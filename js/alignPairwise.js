@@ -2,12 +2,12 @@ function alignPairwise(query, ref){
     const debug=false
     // determine the position where a particular kmer matches the reference sequence
     function seedMatch(kmer){
-        var tmpScore = 0;
-        var maxScore = 0;
-        var maxShift = -1;
-        for(var shift=0; shift<ref.length-kmer.length;shift++){
+        let tmpScore = 0;
+        let maxScore = 0;
+        let maxShift = -1;
+        for(let shift=0; shift<ref.length-kmer.length;shift++){
             tmpScore=0;
-            for (var pos=0; pos<kmer.length; pos++){
+            for (let pos=0; pos<kmer.length; pos++){
                 if (kmer[pos]==ref[shift+pos]){
                     tmpScore++;
                 }
@@ -55,8 +55,8 @@ function alignPairwise(query, ref){
     }
     console.log("BW", bandWidth)
     // allocate a matrix to record the matches
-    var rowLength = ref.length + 1;
-    var matchMatrix = []
+    const rowLength = ref.length + 1;
+    const matchMatrix = []
     for (shift=-bandWidth; shift<bandWidth+1; shift++){
         matchMatrix.push(new Int16Array(rowLength));
     }
@@ -74,10 +74,10 @@ function alignPairwise(query, ref){
     //    -> vertical step in the matrix from si+1 to si
     // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
     //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-    var gapExtend = -1, misMatch = -2, match=1;
+    const gapExtend = -1, misMatch = -2, match=1;
     const END_OF_SEQUENCE = -30;
-    var si, shift, tmpMatch, cmp;
-    for (var ri=0; ri<ref.length; ri++){
+    let si, ri, shift, tmpMatch, cmp;
+    for (ri=0; ri<ref.length; ri++){
         for (si=2*bandWidth; si>=0; si--){
             shift = indexToShift(si);
             qPos = ri - shift;
@@ -109,7 +109,7 @@ function alignPairwise(query, ref){
     }
     // self made argmax function
     function argmax(d){
-        var tmpmax=d[0], tmpii=0;
+        let tmpmax=d[0], tmpii=0;
         d.forEach(function (x,ii){if (x>=tmpmax){tmpmax=x; tmpii=ii;}})
         return [tmpii, tmpmax];
     }
@@ -118,22 +118,22 @@ function alignPairwise(query, ref){
     const lastScoreByShift = matchMatrix.map((d, i) => d[lastIndexByShift[i]]);
     si = argmax(lastScoreByShift)[0];
     shift = indexToShift(si);
-    var rPos = lastIndexByShift[si] - 1;
-    var qPos = rPos - shift;
-    var aln = [];
+    let rPos = lastIndexByShift[si] - 1;
+    let qPos = rPos - shift;
+    const aln = [];
     // add right overhang
     if (rPos<ref.length-1){
-        for (var ii=ref.length-1; ii>rPos; ii--){
+        for (let ii=ref.length-1; ii>rPos; ii--){
             aln.push(['-', ref[ii]]);
         }
     }else if (qPos<query.length-1){
-        for (var ii=query.length-1; ii>qPos; ii--){
+        for (let ii=query.length-1; ii>qPos; ii--){
             aln.push([query[ii], '-']);
         }
     }
 
     // do backtrace for aligned region
-    var tmpmax=0;
+    let tmpmax=0;
     while (rPos>0 && qPos>0){
         // console.log(rPos, qPos, si)
         cmp = [
@@ -160,11 +160,11 @@ function alignPairwise(query, ref){
 
     // add left overhang
     if (rPos>0){
-        for (var ii=rPos-1; ii>=0; ii--){
+        for (let ii=rPos-1; ii>=0; ii--){
             aln.push(["-", ref[ii]]);
         }
     }else if (qPos>0){
-        for (var ii=qPos-1; qPos>=0; ii--){
+        for (let ii=qPos-1; qPos>=0; ii--){
             aln.push([query[ii], "-"]);
         }
     }

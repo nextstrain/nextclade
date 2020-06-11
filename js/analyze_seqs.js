@@ -3,8 +3,8 @@ function addSequence(current_seq, current_seq_name, seqs, all_names) {
   if (current_seq_name == "") {
     current_seq_name = "input sequence";
   }
-  var name_count = 0;
-  for (var tmpii = 0; tmpii < all_names; tmpii++) {
+  let name_count = 0;
+  for (let tmpii = 0; tmpii < all_names; tmpii++) {
     if (all_names[ii] == current_seq_name) {
       name_count++;
     }
@@ -20,14 +20,11 @@ function addSequence(current_seq, current_seq_name, seqs, all_names) {
 
 
 function parseSequences(lines){
-  var seqs = {};
-  var unmatched = [];
-  var closest_nodes = {};
-  var current_seq_name = "";
-  var current_seq = "";
-  var seq_names = [];
-  var suffix;
-  for (var li=0; li<lines.length; li++){
+  const seqs = {};
+  let current_seq_name = "";
+  let current_seq = "";
+  const seq_names = [];
+  for (let li=0; li<lines.length; li++){
       if (lines[li][0]=='>'){
           if (current_seq.length){
               addSequence(current_seq, current_seq_name, seqs, seq_names);
@@ -80,7 +77,7 @@ function analyzeSeq(seq) {
 
 
 d3.select("#seqinput").on("keyup", function () {
-  var lines = document.getElementById("seqinput").value.split("\n");
+  const lines = document.getElementById("seqinput").value.split("\n");
   seqs = parseSequences(lines)
   Object.keys(seqs).forEach(element => {
     console.log("processing ", element)
