@@ -75,7 +75,7 @@ function alignPairwise(query, ref){
     // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
     //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
     const gapExtend = -1, misMatch = -2, match=1;
-    const END_OF_SEQUENCE = -30;
+    const END_OF_SEQUENCE = -1;
     let si, ri, shift, tmpMatch, cmp, qPos;
     for (ri=0; ri<ref.length; ri++){
         for (si=2*bandWidth; si>=0; si--){
@@ -85,6 +85,7 @@ function alignPairwise(query, ref){
             if (qPos>=0 && qPos<query.length){
                 tmpMatch = ref[ri]===query[qPos] ? match : misMatch;
                 cmp = [
+                  0, // unaligned
                   matchMatrix[si][ri] + tmpMatch, // match -- shift stays the same
                   si < 2 * bandWidth
                     ? matchMatrix[si + 1][ri + 1] + gapExtend
