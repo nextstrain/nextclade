@@ -57,7 +57,7 @@ function alignPairwise(query, ref){
     // allocate a matrix to record the matches
     const rowLength = ref.length + 1;
     const matchMatrix = []
-    for (shift=-bandWidth; shift<bandWidth+1; shift++){
+    for (let shift=-bandWidth; shift<bandWidth+1; shift++){
         matchMatrix.push(new Int16Array(rowLength));
     }
 
@@ -76,7 +76,7 @@ function alignPairwise(query, ref){
     //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
     const gapExtend = -1, misMatch = -2, match=1;
     const END_OF_SEQUENCE = -30;
-    let si, ri, shift, tmpMatch, cmp;
+    let si, ri, shift, tmpMatch, cmp, qPos;
     for (ri=0; ri<ref.length; ri++){
         for (si=2*bandWidth; si>=0; si--){
             shift = indexToShift(si);
@@ -119,7 +119,7 @@ function alignPairwise(query, ref){
     si = argmax(lastScoreByShift)[0];
     shift = indexToShift(si);
     let rPos = lastIndexByShift[si] - 1;
-    let qPos = rPos - shift;
+    qPos = rPos - shift;
     const aln = [];
     // add right overhang
     if (rPos<ref.length-1){
