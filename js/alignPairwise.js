@@ -53,7 +53,6 @@ function alignPairwise(query, ref){
     function indexToShift(si){
         return si - bandWidth + meanShift;
     }
-    console.log("BW", bandWidth)
     // allocate a matrix to record the matches
     const rowLength = ref.length + 1;
     const matchMatrix = []
@@ -114,15 +113,20 @@ function alignPairwise(query, ref){
         d.forEach(function (x,ii){if (x>=tmpmax){tmpmax=x; tmpii=ii;}})
         return [tmpii, tmpmax];
     }
-    // Back trace
-    const lastIndexByShift = matchMatrix.map((d, i) => query.length + indexToShift(i));
+
+    // Determine the best alignment by picking the optimal score at the end of the query
+    const aln = [];
+    const lastIndexByShift = matchMatrix.map((d, i) => d3.min([rowLength, query.length + indexToShift(i)]));
     const lastScoreByShift = matchMatrix.map((d, i) => d[lastIndexByShift[i]]);
+
     si = argmax(lastScoreByShift)[0];
     shift = indexToShift(si);
+    const bestScore = lastScoreByShift[si]
+
+    // determine position tuple qPos, rPos corresponding to the place it the matrix
     let rPos = lastIndexByShift[si] - 1;
     qPos = rPos - shift;
-    const aln = [];
-    // add right overhang
+    // add right overhang, i.e. unaligned parts of the query or reference the right end
     if (rPos<ref.length-1){
         for (let ii=ref.length-1; ii>rPos; ii--){
             aln.push(['-', ref[ii]]);
@@ -143,20 +147,21 @@ function alignPairwise(query, ref){
           si > 0 ? matchMatrix[si - 1][rPos] : END_OF_SEQUENCE,
         ];
         tmpmax=d3.max(cmp);
-        if (tmpmax==cmp[0]){
+        if (tmpmax==cmp[0]){ // match -- decrement both strands and add match to alignment
             aln.push([query[qPos], ref[rPos]]);
             qPos--;
             rPos--;
-        }else if (tmpmax==cmp[1]){
+        }else if (tmpmax==cmp[1]){ // insertion in query -- decrement query, increase shift
             aln.push([query[qPos], "-"]);
             qPos--;
             si++;
-        }else if (tmpmax==cmp[2]){
+        }else if (tmpmax==cmp[2]){ // deletion in query -- decrement reference, reduce shift
             aln.push(["-", ref[rPos]]);
             rPos--;
             si--;
         }
     }
+    // add the last match
     aln.push([query[qPos], ref[rPos]]);
 
     // add left overhang
@@ -172,6 +177,6 @@ function alignPairwise(query, ref){
 
     //reverse and make sequence
     aln.reverse();
-    return [aln.map(function (d){return d[0];}), aln.map(function (d){return d[1];})];
+    return {query: aln.map((d) => d[0]), ref: aln.map((d) => d[1]), score: bestScore};
 }
 
