@@ -188,7 +188,7 @@ module.exports = {
     // FIXME: These files are to be fixed and these ignores are to be removed
     // begin
     {
-      files: ['src/algorithms/**/*.{js,ts}'],
+      files: ['src/algorithms/**/*.{js,ts}', 'src/components/**/*.{js,ts,tsx,jsx}'],
       rules: {
         '@typescript-eslint/ban-ts-comment': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
