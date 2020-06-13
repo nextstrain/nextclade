@@ -1,0 +1,14 @@
+3rdparty
+\.build
+\.cache
+\.env
+\.github
+\.idea
+\.ignore
+\.reports
+\.vscode
+node_modules
+public
+styles
+tsconfig.json
+src/algorithms
