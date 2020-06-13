@@ -1,5 +1,11 @@
 function alignPairwise(query, ref){
     const debug=false
+    // self made argmax function
+    function argmax(d){
+        let tmpmax=d[0], tmpii=0;
+        d.forEach((x,i) => {if (x>tmpmax){tmpmax=x; tmpii=i;}})
+        return [tmpii, tmpmax];
+    }
     // determine the position where a particular kmer matches the reference sequence
     function seedMatch(kmer){
         let tmpScore = 0;
@@ -32,7 +38,7 @@ function alignPairwise(query, ref){
         let tmpShift, tmpScore, qPos;
         for (let ni=0; ni<nSeeds; ni++){
             // generate kmers equally spaced on the query
-            qPos = Math.round(query.length/nSeeds)*ni;
+            qPos = Math.round((query.length-seedLength)/(nSeeds-1))*ni;
             [tmpShift, tmpScore] = seedMatch(query.substring(qPos, qPos+seedLength));
 
             // only use seeds that match at least 70%
@@ -46,7 +52,7 @@ function alignPairwise(query, ref){
         // query: ----TCACTCATCT-ACACCGAT  => shift = 4, then 3, 4 again
         const minShift = d3.min(seedMatches.map(function (d){return d[2];}))
         const maxShift = d3.max(seedMatches.map(function (d){return d[2];}))
-        bandWidth = 3*(maxShift-minShift) + 9;
+        bandWidth = (maxShift-minShift) + 9;
         meanShift = Math.round(0.5*(minShift+maxShift));
     }
 
@@ -55,14 +61,14 @@ function alignPairwise(query, ref){
     }
     // allocate a matrix to record the matches
     const rowLength = ref.length + 1;
-    const matchMatrix = []
+    const scores = [], paths = [];
     for (let shift=-bandWidth; shift<bandWidth+1; shift++){
-        matchMatrix.push(new Int16Array(rowLength));
+        scores.push(new Int32Array(rowLength));
+        paths.push(new Int32Array(rowLength));
     }
 
-
-    // fill matchMatrix with alignment scores
-    // The inner index matchMatrix[][ri] is the index of the reference sequence
+    // fill scores with alignment scores
+    // The inner index scores[][ri] is the index of the reference sequence
     // the outer index si index the shift, together they define rPos=ri and qPos = ri-shift
     // if the colon marks the position in the sequence before rPos,qPos
     // R: ...ACT:X
@@ -73,58 +79,64 @@ function alignPairwise(query, ref){
     //    -> vertical step in the matrix from si+1 to si
     // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
     //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-    const gapExtend = -1, misMatch = -2, match=1;
+    const gapExtend = 0, gapOpen = -2, misMatch = -1, match=3;
     const END_OF_SEQUENCE = -1;
-    let si, ri, shift, tmpMatch, cmp, qPos;
+    let si, ri, shift, tmpMatch, cmp, qPos, origin, score, qGapOpen, rGapOpen;
     for (ri=0; ri<ref.length; ri++){
         for (si=2*bandWidth; si>=0; si--){
             shift = indexToShift(si);
             qPos = ri - shift;
             // if the shifted position is within the query sequence
             if (qPos>=0 && qPos<query.length){
-                tmpMatch = ref[ri]===query[qPos] ? match : misMatch;
+                tmpMatch = (ref[ri]===query[qPos] || query[qPos]==='N') ? match : misMatch;
+                rGapOpen =
+                  si < 2 * bandWidth ?
+                    (paths[si + 1][ri + 1] === 2 ? 0 : gapOpen) : 0
+                qGapOpen = si>0 ? (paths[si - 1][ri] === 3 ? 0 : gapOpen) : 0
                 cmp = [
                   0, // unaligned
-                  matchMatrix[si][ri] + tmpMatch, // match -- shift stays the same
+                  scores[si][ri] + tmpMatch, // match -- shift stays the same
                   si < 2 * bandWidth
-                    ? matchMatrix[si + 1][ri + 1] + gapExtend
+                    ? scores[si + 1][ri + 1] + gapExtend + rGapOpen
                     : gapExtend, // putting a gap into ref
-                  si > 0 ? matchMatrix[si - 1][ri] + gapExtend : gapExtend,
-                ]; // putting a gap into query
-                matchMatrix[si][ri + 1] = d3.max(cmp);
+                  si > 0
+                    ? scores[si - 1][ri] + gapExtend + qGapOpen
+                    : gapExtend, // putting a gap into query
+                ];
+                [origin, score] = argmax(cmp)
             } else if (qPos<0) {
-                matchMatrix[si][ri + 1] = 0;
+                score = 0
+                origin = 3
             } else {
-                matchMatrix[si][ri + 1] = END_OF_SEQUENCE;
+                score = END_OF_SEQUENCE;
+                origin = END_OF_SEQUENCE;
             }
+            paths[si][ri + 1] = origin
+            scores[si][ri + 1] = score
         }
     }
     if (debug){
-        if (matchMatrix.length<10){
+        if (scores.length<20){
             console.log("MM")
-            matchMatrix.forEach((d,i) => console.log(i, d.join('\t')))
+            scores.forEach((d,i) => console.log(i, d.join('\t')))
+            console.log("D");
+            paths.forEach((d, i) => console.log(i, d.join("\t")));
         }else{
-            console.log('MM', matchMatrix)
+            console.log('MM', scores)
         }
-    }
-    // self made argmax function
-    function argmax(d){
-        let tmpmax=d[0], tmpii=0;
-        d.forEach(function (x,ii){if (x>=tmpmax){tmpmax=x; tmpii=ii;}})
-        return [tmpii, tmpmax];
     }
 
     // Determine the best alignment by picking the optimal score at the end of the query
     const aln = [];
-    const lastIndexByShift = matchMatrix.map((d, i) => d3.min([rowLength, query.length + indexToShift(i)]));
-    const lastScoreByShift = matchMatrix.map((d, i) => d[lastIndexByShift[i]]);
+    const lastIndexByShift = scores.map((d, i) => d3.min([rowLength-1, query.length + indexToShift(i)]));
+    const lastScoreByShift = scores.map((d, i) => d[lastIndexByShift[i]]);
 
     si = argmax(lastScoreByShift)[0];
     shift = indexToShift(si);
     const bestScore = lastScoreByShift[si]
 
     // determine position tuple qPos, rPos corresponding to the place it the matrix
-    let rPos = lastIndexByShift[si] - 1;
+    let rPos = lastIndexByShift[si]-1;
     qPos = rPos - shift;
     // add right overhang, i.e. unaligned parts of the query or reference the right end
     if (rPos<ref.length-1){
@@ -140,25 +152,22 @@ function alignPairwise(query, ref){
     // do backtrace for aligned region
     let tmpmax=0;
     while (rPos>0 && qPos>0){
-        // console.log(rPos, qPos, si)
-        cmp = [
-          matchMatrix[si][rPos],
-          si < 2 * bandWidth ? matchMatrix[si + 1][rPos + 1] : END_OF_SEQUENCE,
-          si > 0 ? matchMatrix[si - 1][rPos] : END_OF_SEQUENCE,
-        ];
-        tmpmax=d3.max(cmp);
-        if (tmpmax==cmp[0]){ // match -- decrement both strands and add match to alignment
+        // tmpMatch = ref[rPos] === query[qPos] || query[qPos] === "N" ? match : misMatch;
+        origin = paths[si][rPos+1]
+        if (origin===1){ // match -- decrement both strands and add match to alignment
             aln.push([query[qPos], ref[rPos]]);
             qPos--;
             rPos--;
-        }else if (tmpmax==cmp[1]){ // insertion in query -- decrement query, increase shift
+        }else if (origin===2){ // insertion in query -- decrement query, increase shift
             aln.push([query[qPos], "-"]);
             qPos--;
             si++;
-        }else if (tmpmax==cmp[2]){ // deletion in query -- decrement reference, reduce shift
+        }else if (origin===3){ // deletion in query -- decrement reference, reduce shift
             aln.push(["-", ref[rPos]]);
             rPos--;
             si--;
+        } else {
+            break
         }
     }
     // add the last match
@@ -170,13 +179,16 @@ function alignPairwise(query, ref){
             aln.push(["-", ref[ii]]);
         }
     }else if (qPos>0){
-        for (let ii=qPos-1; qPos>=0; ii--){
+        for (let ii=qPos-1; ii>=0; ii--){
             aln.push([query[ii], "-"]);
         }
     }
 
     //reverse and make sequence
     aln.reverse();
+    if (debug){
+        console.log(aln)
+    }
     return {query: aln.map((d) => d[0]), ref: aln.map((d) => d[1]), score: bestScore};
 }
 
