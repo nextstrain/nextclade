@@ -43,7 +43,8 @@
     "test:lint": "WITH_ESLINT=1 yarn test",
     "test:lint:nowatch": "WITH_ESLINT=1 yarn test:nowatch",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --config=config/jest/jest.config.js --runInBand --watch",
-    "test:coverage": "yarn test:nowatch --coverage"
+    "test:coverage": "yarn test:nowatch --coverage",
+    "i18n": "babel-node --extensions \".ts\" node_modules/.bin/i18next -c config/i18next/i18next.config.js"
   },
   "dependencies": {
     "@devexpress/dx-core": "2.6.3",

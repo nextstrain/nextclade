@@ -1,1 +1,20 @@
-{}
+{
+  "-or-": "-or-",
+  "{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}": "{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}",
+  "About": "About",
+  "Clades": "Clades",
+  "Click to select a file": "Click to select a file",
+  "Drag and drop a file": "Drag and drop a file",
+  "Export": "Export",
+  "GitHub": "GitHub",
+  "Link to our Github page": "Link to our Github page",
+  "Link to our Twitter": "Link to our Twitter",
+  "Link to our webpage": "Link to our webpage",
+  "Loading...": "Loading...",
+  "Only one file is expected": "Only one file is expected",
+  "Refresh": "Refresh",
+  "Sequence": "Sequence",
+  "Twitter": "Twitter",
+  "Unable to read file.": "Unable to read file.",
+  "Unknown error": "Unknown error"
+}
