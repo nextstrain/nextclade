@@ -1,3 +1,5 @@
+@use "sass:map";
+
 @import '~typeface-source-sans-pro/index.css';
 @import './font-family-system';
 
@@ -7,18 +9,33 @@
 
 @import '~@devexpress/dx-react-grid-bootstrap4/dist/dx-react-grid-bootstrap4.css';
 
+@import './components/Card';
+@import './components/Main';
+@import './components/UploadZone';
+
 html,
 body {
   height: 100%;
 }
 
 html {
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 body {
   // HACK: workaround for bootstrap modal adding padding-right when open
   padding: 0 !important;
+  background-color: $gray-800;
+}
+
+#__next {
+  height: 100%;
+}
+
+.main-container {
+  max-width: map.get($grid-breakpoints, 'xl');
+  height: 100%;
+  background-color: $gray-800;
 }
 
 .container.absolute {

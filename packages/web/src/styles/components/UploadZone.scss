@@ -1,0 +1,19 @@
+@import '../variables';
+
+$upload-zone-fg: $gray-500;
+$upload-zone-bg: $gray-100;
+
+.upload-zone {
+  cursor: pointer;
+  background-color: $upload-zone-bg;
+  border: 5px $upload-zone-fg dashed;
+  border-radius: 5px;
+}
+
+.upload-zone .upload-zone-active {
+  border-style: dotted;
+}
+
+.upload-icon {
+  fill: $upload-zone-fg;
+}

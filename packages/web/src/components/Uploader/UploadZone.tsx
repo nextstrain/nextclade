@@ -16,7 +16,7 @@ export function UploadZone({ onDrop }: UploadZoneProps) {
   const activeClass = isDragActive ? 'upload-zone-active' : ''
 
   return (
-    <div {...getRootProps()} className="upload-zone">
+    <div {...getRootProps()}>
       <input type="file" {...getInputProps()} />
 
       <div className={`upload-zone ${activeClass}`}>

@@ -1,6 +1,8 @@
 import React, { useCallback, useState, ChangeEvent, useEffect } from 'react'
 
-import { Button, Input } from 'reactstrap'
+import { noop } from 'lodash'
+
+import { Button, Container, Input, Row, Col, Card, CardBody, CardHeader, CardFooter } from 'reactstrap'
 
 import { Uploader } from 'src/components/Uploader/Uploader'
 import { saveFile } from 'src/helpers/saveFile'
@@ -9,6 +11,7 @@ import { AnalyzeSeqResult } from 'src/algorithms/run'
 import { runInWorker } from 'src/algorithms/runInWorker'
 
 import { Result } from './Result'
+import { MdRefresh, MdFileDownload } from 'react-icons/md'
 
 // const rootSeq = "GTTCTATG";
 //                TT   TG
@@ -27,6 +30,8 @@ export function Main() {
     setResult([])
     setInputCurrent(e.target.value)
   }, [])
+
+  const handleRefresh = useCallback(noop, [])
 
   const handleUpload = useCallback((data: string) => {
     setResult([])
@@ -56,30 +61,66 @@ export function Main() {
   }, [inputCurrent])
 
   return (
-    <>
-      <div>
-        <Uploader onUpload={handleUpload} />
-      </div>
+    <Container className="main-container">
+      <Card className="mt-1 mb-1">
+        <CardHeader>{'Sequence'}</CardHeader>
 
-      <div>
-        <Input
-          type="textarea"
-          name="sequence-input"
-          id="sequence-input"
-          cols={80}
-          rows={10}
-          value={inputCurrent}
-          onChange={hangleSequenceChage}
-        />
-      </div>
-      <div>
-        <Result result={result} />
-      </div>
-      <div>
-        <Button color="primary" disabled={!canDownload} onClick={handleDownload}>
-          {'Export'}
-        </Button>
-      </div>
-    </>
+        <CardBody>
+          <Row>
+            <Col>
+              <Uploader onUpload={handleUpload} />
+            </Col>
+          </Row>
+
+          <Row>
+            <Col>
+              <Input
+                type="textarea"
+                name="sequence-input"
+                id="sequence-input"
+                cols={80}
+                rows={10}
+                value={inputCurrent}
+                onChange={hangleSequenceChage}
+              />
+            </Col>
+          </Row>
+        </CardBody>
+
+        <CardFooter>
+          <Row>
+            <Col className="d-flex w-100">
+              <Button className="ml-auto btn-refresh" color="success" onClick={handleRefresh}>
+                <MdRefresh className="btn-icon" />
+                <span>{'Refresh'}</span>
+              </Button>
+            </Col>
+          </Row>
+        </CardFooter>
+      </Card>
+
+      <Card className="mt-1 mb-1">
+        <CardHeader>{'Clades'}</CardHeader>
+
+        <CardBody>
+          <Row>
+            <Col>
+              <Result result={result} />
+            </Col>
+          </Row>
+        </CardBody>
+
+        <CardFooter>
+          <Row>
+            <Col className="d-flex w-100">
+              <Button className="ml-auto btn-export" color="primary" disabled={!canDownload} onClick={handleDownload}>
+                <MdFileDownload className="btn-icon" />
+                <span>{'Export'}</span>
+              </Button>
+            </Col>
+          </Row>
+        </CardFooter>
+      </Card>
+    </Container>
   )
 }
