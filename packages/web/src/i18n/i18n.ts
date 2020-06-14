@@ -6,7 +6,7 @@ import { initReactI18next } from 'react-i18next'
 import moment from 'moment'
 import numbro from 'numbro'
 
-import { ReactComponent as US } from 'flag-icon-css/flags/1x1/us.svg'
+import { ReactComponent as GB } from 'flag-icon-css/flags/1x1/gb.svg'
 import { ReactComponent as DE } from 'flag-icon-css/flags/1x1/de.svg'
 
 import en from './resources/en.json'
@@ -34,7 +34,7 @@ export interface LocaleWithKey extends Locale {
 }
 
 export const locales: Record<LocaleKey, Locale> = {
-  en: { full: 'en-US', flag: 'us', name: 'English', Flag: US },
+  en: { full: 'en-US', flag: 'us', name: 'English', Flag: GB },
   de: { full: 'de-DE', flag: 'de', name: 'Deutsch', Flag: DE },
 } as const
 

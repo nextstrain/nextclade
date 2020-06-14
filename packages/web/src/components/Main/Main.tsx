@@ -61,66 +61,68 @@ export function Main() {
   }, [inputCurrent])
 
   return (
-    <Container className="main-container">
-      <Card className="mt-1 mb-1">
-        <CardHeader>{'Sequence'}</CardHeader>
+    <Row noGutters>
+      <Col>
+        <Card className="mt-1 mb-1">
+          <CardHeader>{'Sequence'}</CardHeader>
 
-        <CardBody>
-          <Row>
-            <Col>
-              <Uploader onUpload={handleUpload} />
-            </Col>
-          </Row>
+          <CardBody>
+            <Row>
+              <Col>
+                <Uploader onUpload={handleUpload} />
+              </Col>
+            </Row>
 
-          <Row>
-            <Col>
-              <Input
-                type="textarea"
-                name="sequence-input"
-                id="sequence-input"
-                cols={80}
-                rows={10}
-                value={inputCurrent}
-                onChange={hangleSequenceChage}
-              />
-            </Col>
-          </Row>
-        </CardBody>
+            <Row>
+              <Col>
+                <Input
+                  type="textarea"
+                  name="sequence-input"
+                  id="sequence-input"
+                  cols={80}
+                  rows={10}
+                  value={inputCurrent}
+                  onChange={hangleSequenceChage}
+                />
+              </Col>
+            </Row>
+          </CardBody>
 
-        <CardFooter>
-          <Row>
-            <Col className="d-flex w-100">
-              <Button className="ml-auto btn-refresh" color="success" onClick={handleRefresh}>
-                <MdRefresh className="btn-icon" />
-                <span>{'Refresh'}</span>
-              </Button>
-            </Col>
-          </Row>
-        </CardFooter>
-      </Card>
+          <CardFooter>
+            <Row>
+              <Col className="d-flex w-100">
+                <Button className="ml-auto btn-refresh" color="success" onClick={handleRefresh}>
+                  <MdRefresh className="btn-icon" />
+                  <span>{'Refresh'}</span>
+                </Button>
+              </Col>
+            </Row>
+          </CardFooter>
+        </Card>
 
-      <Card className="mt-1 mb-1">
-        <CardHeader>{'Clades'}</CardHeader>
+        <Card className="mt-1 mb-1">
+          <CardHeader>{'Clades'}</CardHeader>
 
-        <CardBody>
-          <Row>
-            <Col>
-              <Result result={result} />
-            </Col>
-          </Row>
-        </CardBody>
+          <CardBody>
+            <Row>
+              <Col>
+                <Result result={result} />
+              </Col>
+            </Row>
+          </CardBody>
 
-        <CardFooter>
-          <Row>
-            <Col className="d-flex w-100">
-              <Button className="ml-auto btn-export" color="primary" disabled={!canDownload} onClick={handleDownload}>
-                <MdFileDownload className="btn-icon" />
-                <span>{'Export'}</span>
-              </Button>
-            </Col>
-          </Row>
-        </CardFooter>
-      </Card>
-    </Container>
+          <CardFooter>
+            <Row>
+              <Col className="d-flex w-100">
+                <Button className="ml-auto btn-export" color="primary" disabled={!canDownload} onClick={handleDownload}>
+                  <MdFileDownload className="btn-icon" />
+                  <span>{'Export'}</span>
+                </Button>
+              </Col>
+            </Row>
+          </CardFooter>
+        </Card>
+      </Col>
+    </Row>
   )
 }

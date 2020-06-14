@@ -1,0 +1,34 @@
+@import '../variables';
+
+.navbar {
+  margin-top: -5px;
+  min-width: 2em;
+  box-shadow: 2px 2px 5px 5px rgba($gray-900, 0.5);
+  border-radius: 3px;
+
+  &.navbar-dark.bg-dark {
+    background-color: $gray-800 !important;
+  }
+
+  .navbar-brand {
+    padding: 0;
+    padding-left: 10px;
+  }
+}
+
+.navbar-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+
+.navigation-bar-product-logo {
+  width: 35px;
+  height: 35px;
+  margin-left: 5px;
+}
+
+.navigation-bar-company-logo {
+  width: 26px;
+  height: 26px;
+}
