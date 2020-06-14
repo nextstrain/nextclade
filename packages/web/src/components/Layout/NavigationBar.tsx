@@ -5,6 +5,8 @@ import { connect } from 'react-redux'
 import { FaGithub, FaTwitter } from 'react-icons/fa'
 import { Container } from 'reactstrap'
 
+import { COMPANY_NAME, PROJECT_NAME } from 'src/constants'
+
 import { State } from 'src/state/reducer'
 import { selectPathname } from 'src/state/router/router.selectors'
 
@@ -33,7 +35,7 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
 
   const navLinksLeft = useMemo(
     () => ({
-      '/': t('Web Clades'),
+      '/': PROJECT_NAME,
       '/about': t('About'),
     }),
     [t],
@@ -42,21 +44,21 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
   const navLinksRight = useMemo(
     () => [
       {
-        title: t('neherlab'),
+        title: COMPANY_NAME,
         url: 'https://neherlab.org/',
-        alt: t('Link to webpage of NeherLab at University of Basel'),
+        alt: t('Link to our webpage'),
         icon: <BrandLogo viewBox="0 0 354.325 354.325" className="navigation-bar-company-logo" />,
       },
       {
         title: t('Twitter'),
         url: 'https://twitter.com/richardneher',
-        alt: t('Link to Twitter page of Richard Neher'),
+        alt: t('Link to our Twitter'),
         icon: <FaTwitter size={28} color="#aaa" />,
       },
       {
         title: t('GitHub'),
         url: 'https://github.com/neherlab/webclades',
-        alt: t('Link to Github page of the COVID-19 Scenarios project'),
+        alt: t('Link to our Github page'),
         icon: <FaGithub size={28} color="#aaa" />,
       },
     ],
