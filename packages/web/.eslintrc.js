@@ -143,27 +143,6 @@ module.exports = {
     '@typescript-eslint/no-unused-expressions': 'warn',
 
     '@typescript-eslint/no-duplicate-imports': 'off',
-
-    'no-restricted-imports': [
-      'error',
-      {
-        paths: [
-          './.generated/latest/types',
-          '../../.generated/latest/types',
-          '../../../.generated/latest/types',
-          '../../../../.generated/latest/types',
-          '../../../../../.generated/latest/types',
-          './algorithms/types/restricted/ScenarioDatumInternal',
-          '../algorithms/types/restricted/ScenarioDatumInternal',
-          '../../algorithms/types/restricted/ScenarioDatumInternal',
-          '../../../algorithms/types/restricted/ScenarioDatumInternal',
-          '../../../../algorithms/types/restricted/ScenarioDatumInternal',
-        ].map((name) => ({
-          name,
-          message: `Reason: please don't import generated or restricted types directly, import adjusted types from 'src/algorithms/types/*.types.ts' instead`,
-        })),
-      },
-    ],
   },
   env: {
     browser: true,
