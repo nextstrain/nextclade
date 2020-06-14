@@ -15,6 +15,7 @@ import getWithLodash from './withLodash'
 import getWithTypeChecking from './withTypeChecking'
 import withSvg from './withSvg'
 import withWorker from './withWorker'
+import getWithStaticComprression from './webpackCompression'
 
 const BABEL_ENV = getenv('BABEL_ENV')
 const NODE_ENV = getenv('NODE_ENV')
@@ -38,7 +39,7 @@ const ENABLE_ESLINT = production || DEV_ENABLE_ESLINT
 const { pkg, moduleRoot } = findModuleRoot()
 
 const nextConfig: NextConfig = {
-  distDir: `.build/${process.env.NODE_ENV}/web`,
+  distDir: `.build/${process.env.NODE_ENV}/tmp`,
   onDemandEntries: {
     maxInactiveAge: 60 * 1000,
     pagesBufferLength: 2,
@@ -72,7 +73,7 @@ const withFriendlyConsole = getWithFriendlyConsole({
   clearConsole: false,
   projectRoot: path.resolve(moduleRoot),
   packageName: pkg.name || 'web',
-  progressBarColor: 'red',
+  progressBarColor: 'blue',
 })
 
 const withEnvironment = getWithEnvironment({
@@ -83,6 +84,8 @@ const withEnvironment = getWithEnvironment({
 })
 
 const withLodash = getWithLodash({ unicode: false })
+
+const withStaticComprression = getWithStaticComprression({ brotli: false })
 
 const withTypeChecking = getWithTypeChecking({
   eslint: ENABLE_ESLINT,
@@ -117,7 +120,8 @@ const config = withConfig(
       [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
       [withLodash],
       DEV_ENABLE_TYPE_CHECKS && [withTypeChecking],
-    ],
+      production && [withStaticComprression],
+    ].filter(Boolean),
     nextConfig,
   ),
 )
