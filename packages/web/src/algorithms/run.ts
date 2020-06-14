@@ -28,7 +28,7 @@ export interface AlgorithmResult {
   result: AnalyzeSeqResult[]
 }
 
-export function run({ input, rootSeq }: AlgorithmParams): AlgorithmResult {
+export async function run({ input, rootSeq }: AlgorithmParams): Promise<AlgorithmResult> {
   const lines = input.split('\n')
   const parsedSequences = parseSequences(lines)
 

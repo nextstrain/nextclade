@@ -5,7 +5,8 @@ import { Button, Input } from 'reactstrap'
 import { Uploader } from 'src/components/Uploader/Uploader'
 import { saveFile } from 'src/helpers/saveFile'
 
-import { AnalyzeSeqResult, run } from 'src/algorithms/run'
+import { AnalyzeSeqResult } from 'src/algorithms/run'
+import { runInWorker } from 'src/algorithms/runInWorker'
 
 import { Result } from './Result'
 
@@ -44,10 +45,14 @@ export function Main() {
   const canDownload = !!result
 
   useEffect(() => {
-    const { result } = run({ input: inputCurrent, rootSeq })
-    if (result.length > 0) {
-      setResult(result)
+    async function runEffect() {
+      const { result } = await runInWorker({ input: inputCurrent, rootSeq })
+      if (result.length > 0) {
+        setResult(result)
+      }
     }
+
+    runEffect().catch(console.error)
   }, [inputCurrent])
 
   return (
