@@ -2,7 +2,8 @@ import React, { useCallback, useState, ChangeEvent, useEffect } from 'react'
 
 import { noop } from 'lodash'
 
-import { Button, Container, Input, Row, Col, Card, CardBody, CardHeader, CardFooter } from 'reactstrap'
+import { Button, Input, Row, Col, Card, CardBody, CardHeader, CardFooter } from 'reactstrap'
+import { MdRefresh, MdFileDownload } from 'react-icons/md'
 
 import { Uploader } from 'src/components/Uploader/Uploader'
 import { saveFile } from 'src/helpers/saveFile'
@@ -11,7 +12,6 @@ import { AnalyzeSeqResult } from 'src/algorithms/run'
 import { runInWorker } from 'src/algorithms/runInWorker'
 
 import { Result } from './Result'
-import { MdRefresh, MdFileDownload } from 'react-icons/md'
 
 // const rootSeq = "GTTCTATG";
 //                TT   TG

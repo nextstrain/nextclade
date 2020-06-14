@@ -1,6 +1,10 @@
 import React from 'react'
 
-export function Result({ result }: any) {
+import type { AlgorithmResult, AnalyzeSeqResult, Clades } from 'src/algorithms/run'
+
+export type ResultProps = AlgorithmResult
+
+export function Result({ result }: ResultProps) {
   if (!result) {
     return null
   }
@@ -14,7 +18,9 @@ export function Result({ result }: any) {
   return <ul>{items}</ul>
 }
 
-export function ResultOne({ seqName, clades }: any) {
+export type ResultOneProps = AnalyzeSeqResult
+
+export function ResultOne({ seqName, clades }: ResultOneProps) {
   const items = Object.entries(clades).map(([key, values]) => (
     <li key={key}>
       {key}
@@ -24,7 +30,9 @@ export function ResultOne({ seqName, clades }: any) {
   return <ul>{items}</ul>
 }
 
-export function ResultTwo({ values }: any) {
+export type ResultTwoProps = Clades
+
+export function ResultTwo({ values }: ResultTwoProps) {
   const items = values.map(({ pos, allele }) => <li key={pos}>{`pos: ${pos}, allele: ${allele}`}</li>)
   return <ul>{items}</ul>
 }
