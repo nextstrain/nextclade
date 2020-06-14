@@ -1,0 +1,23 @@
+@import '../variables';
+
+.card {
+  background-color: $gray-800;
+
+  .card-header {
+    color: $gray-200;
+    background-color: $gray-600;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+
+  .card-body {
+    background-color: $gray-200;
+  }
+
+  .card-footer {
+    color: $gray-200;
+    background-color: $gray-200;
+    font-weight: bold;
+    font-size: 1.2rem;
+  }
+}
