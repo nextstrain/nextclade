@@ -9,8 +9,8 @@ import numbro from 'numbro'
 import { ReactComponent as GB } from 'flag-icon-css/flags/1x1/gb.svg'
 import { ReactComponent as DE } from 'flag-icon-css/flags/1x1/de.svg'
 
-import en from './resources/en.json'
-import de from './resources/de.json'
+import en from './resources/en/common.json'
+import de from './resources/de/common.json'
 
 export const localized = { number: '{{value, localizedNumber}}' } as const
 export const translations = { en, de }
