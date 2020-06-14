@@ -28,11 +28,13 @@ export function Main() {
   useEffect(() => {
     const lines = inputCurrent.split('\n')
     const parsedSequences = parseSequences(lines)
-    const result = Object.entries(parsedSequences).map(([seqName, seq]) => {
-      const mutations = analyzeSeq(seq, rootSeq)
-      const clades = pickBy(CLADES, (clade) => isNodeInClade(clade, mutations, rootSeq))
-      return { seqName, clades }
-    })
+    const result = Object.entries(parsedSequences)
+      .map(([seqName, seq]) => {
+        const mutations = analyzeSeq(seq, rootSeq)
+        const clades = pickBy(CLADES, (clade) => isNodeInClade(clade, mutations, rootSeq))
+        return { seqName, clades }
+      })
+      .filter(({ clades }) => Object.keys(clades).length !== 0)
 
     setResult(result)
   }, [inputCurrent])
