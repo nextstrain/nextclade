@@ -1,15 +1,11 @@
 import React, { useCallback, useState, ChangeEvent, useEffect } from 'react'
 
 import { Button, Input } from 'reactstrap'
-import { pickBy } from 'lodash'
-
-import { CLADES } from 'src/algorithms/clades'
-import { parseSequences } from 'src/algorithms/parseSequences'
-import { isNodeInClade } from 'src/algorithms/isNodeInClade'
-import { analyzeSeq } from 'src/algorithms/analyzeSeq'
 
 import { Uploader } from 'src/components/Uploader/Uploader'
 import { saveFile } from 'src/helpers/saveFile'
+
+import { AnalyzeSeqResult, run } from 'src/algorithms/run'
 
 import { Result } from './Result'
 
@@ -24,15 +20,15 @@ const EXPORT_FILENAME = 'webclades.json'
 
 export function Main() {
   const [inputCurrent, setInputCurrent] = useState(DEFAULT_INPUT)
-  const [result, setResult] = useState(null)
+  const [result, setResult] = useState<AnalyzeSeqResult[]>([])
 
   const hangleSequenceChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setResult(null)
+    setResult([])
     setInputCurrent(e.target.value)
   }, [])
 
   const handleUpload = useCallback((data: string) => {
-    setResult(null)
+    setResult([])
     setInputCurrent(data)
   }, [])
 
@@ -48,16 +44,7 @@ export function Main() {
   const canDownload = !!result
 
   useEffect(() => {
-    const lines = inputCurrent.split('\n')
-    const parsedSequences = parseSequences(lines)
-    const result = Object.entries(parsedSequences)
-      .map(([seqName, seq]) => {
-        const mutations = analyzeSeq(seq, rootSeq)
-        const clades = pickBy(CLADES, (clade) => isNodeInClade(clade, mutations, rootSeq))
-        return { seqName, clades }
-      })
-      .filter(({ clades }) => Object.keys(clades).length !== 0)
-
+    const { result } = run({ input: inputCurrent, rootSeq })
     if (result.length > 0) {
       setResult(result)
     }
