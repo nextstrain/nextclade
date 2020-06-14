@@ -4,6 +4,7 @@ import { noop } from 'lodash'
 
 import { Button, Input, Row, Col, Card, CardBody, CardHeader, CardFooter } from 'reactstrap'
 import { MdRefresh, MdFileDownload } from 'react-icons/md'
+import { useTranslation } from 'react-i18next'
 
 import { EXPORT_FILENAME } from 'src/constants'
 
@@ -23,6 +24,7 @@ const rootSeq = 'ATTAAAGGTTTATACCTTCCCAGGTAACAAACCAACCAACTTTCGATCTCTTGTAGATCTGTT
 const DEFAULT_INPUT = 'TT'
 
 export function Main() {
+  const { t } = useTranslation()
   const [inputCurrent, setInputCurrent] = useState(DEFAULT_INPUT)
   const [result, setResult] = useState<AnalyzeSeqResult[]>([])
 
@@ -64,7 +66,7 @@ export function Main() {
     <Row noGutters>
       <Col>
         <Card className="mt-1 mb-1">
-          <CardHeader>{'Sequence'}</CardHeader>
+          <CardHeader>{t('Sequence')}</CardHeader>
 
           <CardBody>
             <Row>
@@ -93,7 +95,7 @@ export function Main() {
               <Col className="d-flex w-100">
                 <Button className="ml-auto btn-refresh" color="success" onClick={handleRefresh}>
                   <MdRefresh className="btn-icon" />
-                  <span>{'Refresh'}</span>
+                  <span>{t('Refresh')}</span>
                 </Button>
               </Col>
             </Row>
@@ -101,7 +103,7 @@ export function Main() {
         </Card>
 
         <Card className="mt-1 mb-1">
-          <CardHeader>{'Clades'}</CardHeader>
+          <CardHeader>{t('Clades')}</CardHeader>
 
           <CardBody>
             <Row>
@@ -116,7 +118,7 @@ export function Main() {
               <Col className="d-flex w-100">
                 <Button className="ml-auto btn-export" color="primary" disabled={!canDownload} onClick={handleDownload}>
                   <MdFileDownload className="btn-icon" />
-                  <span>{'Export'}</span>
+                  <span>{t('Export')}</span>
                 </Button>
               </Col>
             </Row>
