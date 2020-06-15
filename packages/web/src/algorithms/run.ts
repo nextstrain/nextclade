@@ -2,7 +2,7 @@ import { pickBy } from 'lodash'
 
 import { CLADES } from 'src/algorithms/clades'
 import { parseSequences } from 'src/algorithms/parseSequences'
-import { isNodeInClade } from 'src/algorithms/isNodeInClade'
+import { isSequenceInClade } from 'src/algorithms/isSequenceInClade'
 import { analyzeSeq } from 'src/algorithms/analyzeSeq'
 
 export interface AlgorithmParams {
@@ -34,8 +34,8 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
 
   const result = Object.entries(parsedSequences)
     .map(([seqName, seq]) => {
-      const mutations = analyzeSeq(seq, rootSeq)
-      const clades = pickBy(CLADES, (clade) => isNodeInClade(clade, mutations, rootSeq))
+      const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(seq, rootSeq)
+      const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
       return { seqName, clades }
     })
     .filter(({ clades }) => Object.keys(clades).length !== 0)

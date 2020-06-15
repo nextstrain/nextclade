@@ -1,4 +1,3 @@
-import * as d3 from 'd3'
 
 export function alignPairwise(query, ref) {
   const debug = false
@@ -39,7 +38,7 @@ export function alignPairwise(query, ref) {
   // perform a number of seed matches to determine te rough alignment of query rel to ref
   const nSeeds = 5,
     seedLength = 21
-  let bandWidth = d3.min([ref.length, query.length])
+  let bandWidth = Math.min(ref.length, query.length)
   let meanShift = 0
 
   if (bandWidth > 2 * seedLength) {
@@ -59,13 +58,13 @@ export function alignPairwise(query, ref) {
     // this shift is the typical amount the query needs shifting to match ref
     // ref:   ACTCTACTGC-TCAGAC
     // query: ----TCACTCATCT-ACACCGAT  => shift = 4, then 3, 4 again
-    const minShift = d3.min(
-      seedMatches.map(function (d) {
+    const minShift = Math.min(
+      ...seedMatches.map(function (d) {
         return d[2]
       }),
     )
-    const maxShift = d3.max(
-      seedMatches.map(function (d) {
+    const maxShift = Math.max(
+      ...seedMatches.map(function (d) {
         return d[2]
       }),
     )
@@ -143,7 +142,7 @@ export function alignPairwise(query, ref) {
 
   // Determine the best alignment by picking the optimal score at the end of the query
   const aln = []
-  const lastIndexByShift = scores.map((d, i) => d3.min([rowLength - 1, query.length + indexToShift(i)]))
+  const lastIndexByShift = scores.map((d, i) => Math.min(rowLength - 1, query.length + indexToShift(i)))
   const lastScoreByShift = scores.map((d, i) => d[lastIndexByShift[i]])
 
   si = argmax(lastScoreByShift)[0]
@@ -165,7 +164,6 @@ export function alignPairwise(query, ref) {
   }
 
   // do backtrace for aligned region
-  let tmpmax = 0
   while (rPos > 0 && qPos > 0) {
     // tmpMatch = ref[rPos] === query[qPos] || query[qPos] === "N" ? match : misMatch;
     origin = paths[si][rPos + 1]

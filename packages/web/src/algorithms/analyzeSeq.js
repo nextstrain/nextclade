@@ -8,6 +8,7 @@ export function analyzeSeq(seq, rootSeq) {
   let refPos = 0
   let ins = ''
   let insStart = -1
+  const insertions = {}
   ref.forEach((d, i) => {
     if (d === '-') {
       if (ins === '') {
@@ -16,35 +17,39 @@ export function analyzeSeq(seq, rootSeq) {
       ins += query[i]
     } else {
       if (ins) {
-        console.log(`insertion at position ${insStart}: ${ins}`)
+        insertions[insStart] = ins
         ins = ''
       }
       refPos += 1
     }
   })
+  // add insertion at the end of the reference if it exists
+  if (ins) {
+    insertions[insStart] = ins
+  }
   // strip insertions relative to reference
   const refStripped = query.filter((d, i) => ref[i] !== '-')
 
   // report mutations
-  let lastChar = -1
   let nDel = 0
   let delPos = -1
   let beforeAlignment = true
   const mutations = {}
+  const deletions = {}
+  let alnStart = -1, alnEnd = -1
   refStripped.forEach((d, i) => {
     if (d !== '-') {
       if (beforeAlignment) {
-        console.log(`Alignment start: ${i + 1}`)
+        alnStart = i
         beforeAlignment = false
       } else if (nDel) {
-        console.log(`Deletion of length ${nDel} at ${delPos + 1}`)
+        deletions[delPos] = nDel
         nDel = 0
       }
-      lastChar = i
+      alnEnd = i
     }
     if (d !== '-' && d !== rootSeq[i] && d != 'N') {
-      console.log(`Mutation at position ${i + 1}: ${rootSeq[i]} --> ${d}`)
-      mutations[i + 1] = d
+      mutations[i] = d
     } else if (d === '-' && !beforeAlignment) {
       if (!nDel) {
         delPos = i
@@ -52,6 +57,5 @@ export function analyzeSeq(seq, rootSeq) {
       nDel++
     }
   })
-  console.log(`Alignment end: ${lastChar + 1}`)
-  return mutations
+  return {mutations, insertions, deletions, alnStart, alnEnd }
 }
