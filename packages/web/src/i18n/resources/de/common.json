@@ -3,7 +3,7 @@
   "{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}": "{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}",
   "Clades": "Kladen",
   "Click to select a file": "Klicken Sie, um eine Datei auszuwählen",
-  "Drag and drop a file": "Ziehen Sie eine Datei per Drag &amp; Drop",
+  "Drag and drop a file": "Ziehen Sie eine Datei per Drag & Drop",
   "Export": "Export",
   "GitHub": "GitHub",
   "Link to our Github page": "Link zu unserer Github-Seite",
@@ -11,10 +11,10 @@
   "Link to our webpage": "Link zu unserer Webseite",
   "Loading...": "Wird geladen...",
   "Only one file is expected": "Es wird nur eine Datei erwartet",
-  "Refresh": "Aktualisierung",
+  "Refresh": "Aktualisieren",
   "Sequence": "Reihenfolge",
   "Twitter": "Twitter",
   "Unable to read file.": "Datei kann nicht gelesen werden.",
   "Unknown error": "Unbekannter Fehler",
-  "About": "Über uns"
+  "About": "Über dieses Projekt"
 }
