@@ -1,3 +1,4 @@
+/* eslint-disable only-ascii/only-ascii */
 import { mapValues } from 'lodash'
 
 import i18n from 'i18next'
@@ -8,12 +9,14 @@ import numbro from 'numbro'
 
 import { ReactComponent as GB } from 'flag-icon-css/flags/1x1/gb.svg'
 import { ReactComponent as DE } from 'flag-icon-css/flags/1x1/de.svg'
+import { ReactComponent as FR } from 'flag-icon-css/flags/1x1/fr.svg'
 
 import en from './resources/en/common.json'
 import de from './resources/de/common.json'
+import fr from './resources/fr/common.json'
 
 export const localized = { number: '{{value, localizedNumber}}' } as const
-export const translations = { en, de }
+export const translations = { en, de, fr }
 export const flags = new Map()
 
 export type LocaleKey = keyof typeof translations
@@ -36,6 +39,7 @@ export interface LocaleWithKey extends Locale {
 export const locales: Record<LocaleKey, Locale> = {
   en: { full: 'en-US', flag: 'us', name: 'English', Flag: GB },
   de: { full: 'de-DE', flag: 'de', name: 'Deutsch', Flag: DE },
+  fr: { full: 'fr-FR', flag: 'fr', name: 'Français', Flag: FR },
 } as const
 
 export const localesArray: LocaleWithKey[] = Object.entries(locales).map(([key, value]) => ({
