@@ -11,3 +11,18 @@
   padding-right: 5px;
   padding-bottom: 7px;
 }
+
+.sequence-view-wrapper {
+  width: 100%;
+  height: 30px;
+  border: 1px solid $gray-500;
+  margin-bottom: 2px;
+}
+
+.sequence-view-body {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  fill: white;
+}

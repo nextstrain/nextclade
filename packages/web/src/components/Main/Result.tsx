@@ -1,38 +1,66 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
-import type { AlgorithmResult, AnalyzeSeqResult, Clades } from 'src/algorithms/run'
+import { get } from 'lodash'
+
+import type { AlgorithmResult, AnalyzeSeqResult, Substitutions } from 'src/algorithms/run'
+import ReactResizeDetector from 'react-resize-detector'
 
 export type ResultProps = AlgorithmResult
+
+const GENOME_SIZE = 30000 as const
+const BASE_MIN_WIDTH_PX = 4 as const
+
+const BASE_COLORS = {
+  A: '#1167b7',
+  T: '#ad871c',
+  G: '#79ac34',
+  C: '#d04343',
+  N: '#222222',
+} as const
+
+export function getBaseColor(allele: string) {
+  return get(BASE_COLORS, allele) ?? BASE_COLORS.N
+}
+
+export interface SequenceViewProps {
+  sequence: AnalyzeSeqResult
+}
+
+export function SequenceView({ sequence }: SequenceViewProps) {
+  return (
+    <ReactResizeDetector handleWidth refreshRate={300} refreshMode="debounce">
+      {({ width: widthPx }: { width?: number }) => {
+        if (!widthPx) {
+          return <div className="w-100 h-100" />
+        }
+
+        const pixelsPerBase = widthPx / GENOME_SIZE
+        const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
+
+        const mutationViews = Object.entries(sequence.mutations).map(([position, allele]) => {
+          const x = Number.parseInt(position, 10) * pixelsPerBase
+          return <rect key={position} fill={getBaseColor(allele)} x={x} y={-12} width={width} height="30" />
+        })
+
+        return (
+          <div className="sequence-view-wrapper">
+            <svg className="sequence-view-body" viewBox={`0 0 ${widthPx} 10`}>
+              <rect fill="white" x={0} y={-11} width={GENOME_SIZE} height="28" />
+              {mutationViews}
+            </svg>
+          </div>
+        )
+      }}
+    </ReactResizeDetector>
+  )
+}
 
 export function Result({ result }: ResultProps) {
   if (!result) {
     return null
   }
 
-  const items = result.map(({ seqName, clades }) => (
-    <li key={seqName}>
-      {seqName}
-      <ResultOne seqName={seqName} clades={clades} />
-    </li>
-  ))
-  return <ul>{items}</ul>
-}
+  const sequenceViews = result.map((sequence) => <SequenceView key={sequence.seqName} sequence={sequence} />)
 
-export type ResultOneProps = AnalyzeSeqResult
-
-export function ResultOne({ seqName, clades }: ResultOneProps) {
-  const items = Object.entries(clades).map(([key, values]) => (
-    <li key={key}>
-      {key}
-      <ResultTwo values={values} />
-    </li>
-  ))
-  return <ul>{items}</ul>
-}
-
-export type ResultTwoProps = Clades
-
-export function ResultTwo({ values }: ResultTwoProps) {
-  const items = values.map(({ pos, allele }) => <li key={pos}>{`pos: ${pos}, allele: ${allele}`}</li>)
-  return <ul>{items}</ul>
+  return <div>{sequenceViews}</div>
 }
