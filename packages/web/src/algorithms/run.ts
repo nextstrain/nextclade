@@ -4,7 +4,9 @@ import { CLADES } from 'src/algorithms/clades'
 import { parseSequences } from 'src/algorithms/parseSequences'
 import { isSequenceInClade } from 'src/algorithms/isSequenceInClade'
 import { analyzeSeq } from 'src/algorithms/analyzeSeq'
+import { sequenceQC } from 'src/algorithms/sequenceQC'
 import { Tagged } from 'src/helpers/types'
+import { multiValueCSS } from 'react-select/src/components/MultiValue'
 
 export interface AlgorithmParams {
   rootSeq: string
@@ -49,6 +51,10 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
       return { seqName, clades, mutations, insertions, deletions, alnStart, alnEnd }
     })
     .filter(({ clades }) => Object.keys(clades).length !== 0)
+
+  result.forEach((d) => {
+    console.log(d.seqName, sequenceQC(d.mutations, d.insertions, d.deletions))
+  })
 
   return { result }
 }
