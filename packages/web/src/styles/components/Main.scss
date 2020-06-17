@@ -15,14 +15,69 @@
 .sequence-view-wrapper {
   width: 100%;
   height: 30px;
-  border: 1px solid $gray-500;
-  margin-bottom: 2px;
+  margin-top: 0;
+  margin-bottom: 0;
+  vertical-align: middle;
 }
 
 .sequence-view-body {
+  border-bottom: 0;
   padding: 0;
   margin: 0;
   width: 100%;
   height: 100%;
-  fill: white;
+}
+
+.sequence-view-background {
+  fill: $gray-100;
+}
+
+.sequence-view-label {
+  font-size: 0.75rem;
+}
+
+.results-table {
+  box-shadow: 3px 3px 5px 5px rgba($gray-900, 0.25);
+
+  .results-table-row {
+    padding-top: 0;
+    padding-bottom: 0;
+
+    &:nth-child(odd) {
+      background-color: $gray-400;
+    }
+
+    .results-table-header {
+      text-align: center;
+      border: 0;
+    }
+
+    .results-table-col {
+      border: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      font-size: 0.9rem;
+      vertical-align: middle;
+      padding-right: 0;
+
+      &.results-table-col-label {
+        max-width: 50px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      &.results-table-col-clade {
+        width: 20px;
+        text-align: center;
+      }
+
+      &.results-table-col-mutations {
+        padding: 0;
+        width: 65%;
+
+        border: 1px solid $gray-600;
+      }
+    }
+  }
 }

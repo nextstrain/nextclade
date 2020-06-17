@@ -4,6 +4,8 @@ import { get } from 'lodash'
 
 import type { AlgorithmResult, AnalyzeSeqResult, Substitutions } from 'src/algorithms/run'
 import ReactResizeDetector from 'react-resize-detector'
+import { Table } from 'reactstrap'
+import { useTranslation } from 'react-i18next'
 
 export type ResultProps = AlgorithmResult
 
@@ -39,13 +41,13 @@ export function SequenceView({ sequence }: SequenceViewProps) {
 
         const mutationViews = Object.entries(sequence.mutations).map(([position, allele]) => {
           const x = Number.parseInt(position, 10) * pixelsPerBase
-          return <rect key={position} fill={getBaseColor(allele)} x={x} y={-12} width={width} height="30" />
+          return <rect key={position} fill={getBaseColor(allele)} x={x} y={-10} width={width} height="30" />
         })
 
         return (
-          <div className="sequence-view-wrapper">
+          <div className="sequence-view-wrapper d-inline-flex">
             <svg className="sequence-view-body" viewBox={`0 0 ${widthPx} 10`}>
-              <rect fill="white" x={0} y={-11} width={GENOME_SIZE} height="28" />
+              <rect className="sequence-view-background" x={0} y={-10} width={GENOME_SIZE} height="30" />
               {mutationViews}
             </svg>
           </div>
@@ -56,11 +58,30 @@ export function SequenceView({ sequence }: SequenceViewProps) {
 }
 
 export function Result({ result }: ResultProps) {
+  const { t } = useTranslation()
+
   if (!result) {
     return null
   }
 
-  const sequenceViews = result.map((sequence) => <SequenceView key={sequence.seqName} sequence={sequence} />)
+  const rows = result.map((sequence, i) => (
+    <tr className="results-table-row" key={sequence.seqName}>
+      <td className="results-table-col results-table-col-label">{sequence.seqName}</td>
+      <td className="results-table-col results-table-col-clade">{Object.keys(sequence.clades)[0]}</td>
+      <td className="results-table-col results-table-col-mutations">
+        <SequenceView key={sequence.seqName} sequence={sequence} />
+      </td>
+    </tr>
+  ))
 
-  return <div>{sequenceViews}</div>
+  return (
+    <Table className="results-table">
+      <tr className="results-table-row">
+        <th className="results-table-header">{t('Sequence name')}</th>
+        <th className="results-table-header">{t('Clade')}</th>
+        <th className="results-table-header">{t('Mutations')}</th>
+      </tr>
+      {rows}
+    </Table>
+  )
 }
