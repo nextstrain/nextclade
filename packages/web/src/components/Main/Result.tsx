@@ -122,21 +122,25 @@ export function Result({ result }: ResultProps) {
     return null
   }
 
-  const rows = result.map((sequence, i) => (
-    <tr className="results-table-row" key={sequence.seqName}>
-      <td className="results-table-col results-table-col-label">{sequence.seqName}</td>
-      <td className="results-table-col results-table-col-clade">{Object.keys(sequence.clades)[0]}</td>
-      <td className="results-table-col results-table-col-mutations">
-        <SequenceView key={sequence.seqName} sequence={sequence} />
-      </td>
-    </tr>
-  ))
+  const rows = result.map((sequence, i) => {
+    const clades = Object.keys(sequence.clades).join(', ')
+
+    return (
+      <tr className="results-table-row" key={sequence.seqName}>
+        <td className="results-table-col results-table-col-label">{sequence.seqName}</td>
+        <td className="results-table-col results-table-col-clade">{clades}</td>
+        <td className="results-table-col results-table-col-mutations">
+          <SequenceView key={sequence.seqName} sequence={sequence} />
+        </td>
+      </tr>
+    )
+  })
 
   return (
     <Table className="results-table">
       <tr className="results-table-row">
         <th className="results-table-header">{t('Sequence name')}</th>
-        <th className="results-table-header">{t('Clade')}</th>
+        <th className="results-table-header">{t('Clades')}</th>
         <th className="results-table-header">{t('Mutations')}</th>
       </tr>
       {rows}
