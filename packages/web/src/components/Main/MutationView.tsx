@@ -23,8 +23,8 @@ export interface MutationViewProps extends SVGProps<SVGRectElement> {
 }
 
 export function MutationView({ mutation, pixelsPerBase, width, onClick, ...rest }: MutationViewProps) {
-  const { id, position, allele } = mutation
+  const { id, positionZeroBased, allele } = mutation
   const fill = getBaseColor(allele)
-  const x = Number.parseInt(position, 10) * pixelsPerBase
+  const x = Number.parseInt(positionZeroBased, 10) * pixelsPerBase
   return <rect id={id} fill={fill} x={x} y={-10} width={width} height="30" {...rest} />
 }

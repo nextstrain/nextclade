@@ -11,8 +11,8 @@ import type { MutationElementWithId, MutationElement } from './types'
 const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
 const BASE_MIN_WIDTH_PX = 4 as const
 
-export function getMutationIdentifier({ seqName, position, allele }: MutationElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${position}-${allele}`)
+export function getMutationIdentifier({ seqName, positionZeroBased, allele }: MutationElement) {
+  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${positionZeroBased}-${allele}`)
 }
 
 export interface SequenceViewProps {
@@ -33,12 +33,12 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const pixelsPerBase = widthPx / GENOME_SIZE
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
-        const mutationViews = Object.entries(mutations).map(([position, allele]) => {
-          const id = getMutationIdentifier({ seqName, position, allele })
-          const mutation: MutationElementWithId = { id, seqName, position, allele }
+        const mutationViews = Object.entries(mutations).map(([positionZeroBased, allele]) => {
+          const id = getMutationIdentifier({ seqName, positionZeroBased, allele })
+          const mutation: MutationElementWithId = { id, seqName, positionZeroBased, allele }
           return (
             <MutationView
-              key={position}
+              key={positionZeroBased}
               mutation={mutation}
               width={width}
               pixelsPerBase={pixelsPerBase}

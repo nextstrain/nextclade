@@ -1,6 +1,6 @@
 export interface MutationElement {
   seqName: string
-  position: string
+  positionZeroBased: string
   allele: string
 }
 
