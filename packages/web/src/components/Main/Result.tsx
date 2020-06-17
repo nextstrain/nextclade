@@ -102,9 +102,9 @@ export function SequenceView({ sequence }: SequenceViewProps) {
                 fade={false}
               >
                 <PopoverBody>
-                  <p>{`Sequence ${mutation.seqName}`}</p>
-                  <p>{`Position ${mutation.position}`}</p>
-                  <p>{`Allele ${mutation.allele}`}</p>
+                  <div>{`Sequence ${mutation.seqName}`}</div>
+                  <div>{`Position ${mutation.position}`}</div>
+                  <div>{`Allele ${mutation.allele}`}</div>
                 </PopoverBody>
               </Popover>
             )}
