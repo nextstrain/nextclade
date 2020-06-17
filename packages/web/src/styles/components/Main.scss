@@ -41,6 +41,12 @@
   box-shadow: 2px 2px 3px 3px rgba($gray-900, 0.25);
   border: 1px solid $gray-400;
 
+  thead,
+  tbody {
+    border: none;
+    border-image-width: 0;
+  }
+
   .results-table-row {
     padding-top: 0;
     padding-bottom: 0;

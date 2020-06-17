@@ -31,12 +31,14 @@ export function Result({ result }: ResultProps) {
 
   return (
     <Table className="results-table">
-      <tr className="results-table-row">
-        <th className="results-table-header">{t('Sequence name')}</th>
-        <th className="results-table-header">{t('Clades')}</th>
-        <th className="results-table-header">{t('Mutations')}</th>
-      </tr>
-      {rows}
+      <thead>
+        <tr className="results-table-row">
+          <th className="results-table-header">{t('Sequence name')}</th>
+          <th className="results-table-header">{t('Clades')}</th>
+          <th className="results-table-header">{t('Mutations')}</th>
+        </tr>
+      </thead>
+      <tbody>{rows}</tbody>
     </Table>
   )
 }
