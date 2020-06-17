@@ -37,23 +37,23 @@
 }
 
 .results-table {
-  box-shadow: 3px 3px 5px 5px rgba($gray-900, 0.25);
+  box-shadow: 2px 2px 3px 3px rgba($gray-900, 0.25);
+  border: 1px solid $gray-400;
 
   .results-table-row {
     padding-top: 0;
     padding-bottom: 0;
 
+    .results-table-header {
+      text-align: center;
+      border-top: 0;
+    }
+
     &:nth-child(odd) {
       background-color: $gray-400;
     }
 
-    .results-table-header {
-      text-align: center;
-      border: 0;
-    }
-
     .results-table-col {
-      border: 0;
       padding-top: 0;
       padding-bottom: 0;
       font-size: 0.9rem;
