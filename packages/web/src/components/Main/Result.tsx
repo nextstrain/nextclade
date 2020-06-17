@@ -1,11 +1,12 @@
-import React, { useMemo } from 'react'
+import React, { SVGProps, useState } from 'react'
 
 import { get } from 'lodash'
 
-import type { AlgorithmResult, AnalyzeSeqResult, Substitutions } from 'src/algorithms/run'
 import ReactResizeDetector from 'react-resize-detector'
-import { Table } from 'reactstrap'
+import { Table, Popover, PopoverBody, PopoverHeader } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
+
+import type { AlgorithmResult, AnalyzeSeqResult, Substitutions } from 'src/algorithms/run'
 
 export type ResultProps = AlgorithmResult
 
@@ -24,16 +25,31 @@ export function getBaseColor(allele: string) {
   return get(BASE_COLORS, allele) ?? BASE_COLORS.N
 }
 
-export interface MutationViewProps {
+export interface MutationElement {
+  seqName: string
   position: string
   allele: string
+}
+
+export interface MutationElementWithId extends MutationElement {
+  id: string
+}
+
+export function getMutationIdentifier({ seqName, position, allele }: MutationElement) {
+  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${position}-${allele}`)
+}
+
+export interface MutationViewProps extends SVGProps<SVGRectElement> {
+  mutation: MutationElementWithId
   pixelsPerBase: number
   width: number
 }
 
-export function MutationView({ position, allele, pixelsPerBase, width }: MutationViewProps) {
+export function MutationView({ mutation, pixelsPerBase, width, onClick, ...rest }: MutationViewProps) {
+  const { id, position, allele } = mutation
+  const fill = getBaseColor(allele)
   const x = Number.parseInt(position, 10) * pixelsPerBase
-  return <rect key={position} fill={getBaseColor(allele)} x={x} y={-10} width={width} height="30" />
+  return <rect id={id} fill={fill} x={x} y={-10} width={width} height="30" {...rest} />
 }
 
 export interface SequenceViewProps {
@@ -41,6 +57,9 @@ export interface SequenceViewProps {
 }
 
 export function SequenceView({ sequence }: SequenceViewProps) {
+  const [mutation, setMutation] = useState<MutationElementWithId | undefined>(undefined)
+  const { seqName, mutations } = sequence
+
   return (
     <ReactResizeDetector handleWidth refreshRate={300} refreshMode="debounce">
       {({ width: widthPx }: { width?: number }) => {
@@ -51,14 +70,17 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const pixelsPerBase = widthPx / GENOME_SIZE
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
-        const mutationViews = Object.entries(sequence.mutations).map(([position, allele]) => {
+        const mutationViews = Object.entries(mutations).map(([position, allele]) => {
+          const id = getMutationIdentifier({ seqName, position, allele })
+          const mutation: MutationElementWithId = { id, seqName, position, allele }
           return (
             <MutationView
               key={position}
-              allele={allele}
-              position={position}
+              mutation={mutation}
               width={width}
               pixelsPerBase={pixelsPerBase}
+              onMouseEnter={() => setMutation(mutation)}
+              onMouseLeave={() => setMutation(undefined)}
             />
           )
         })
@@ -69,6 +91,23 @@ export function SequenceView({ sequence }: SequenceViewProps) {
               <rect className="sequence-view-background" x={0} y={-10} width={GENOME_SIZE} height="30" />
               {mutationViews}
             </svg>
+            {mutation && (
+              <Popover
+                className="popover-mutation"
+                target={mutation.id}
+                placement="auto"
+                isOpen
+                hideArrow
+                delay={0}
+                fade={false}
+              >
+                <PopoverBody>
+                  <p>{`Sequence ${mutation.seqName}`}</p>
+                  <p>{`Position ${mutation.position}`}</p>
+                  <p>{`Allele ${mutation.allele}`}</p>
+                </PopoverBody>
+              </Popover>
+            )}
           </div>
         )
       }}
