@@ -16,14 +16,15 @@ export function Result({ result }: ResultProps) {
   }
 
   const rows = result.map((sequence, i) => {
-    const clades = Object.keys(sequence.clades).join(', ')
+    const { clades, seqName } = sequence
+    const cladesList = Object.keys(clades).join(', ')
 
     return (
-      <tr className="results-table-row" key={sequence.seqName}>
-        <td className="results-table-col results-table-col-label">{sequence.seqName}</td>
-        <td className="results-table-col results-table-col-clade">{clades}</td>
+      <tr className="results-table-row" key={seqName}>
+        <td className="results-table-col results-table-col-label">{seqName}</td>
+        <td className="results-table-col results-table-col-clade">{cladesList}</td>
         <td className="results-table-col results-table-col-mutations">
-          <SequenceView key={sequence.seqName} sequence={sequence} />
+          <SequenceView key={seqName} sequence={sequence} />
         </td>
       </tr>
     )
