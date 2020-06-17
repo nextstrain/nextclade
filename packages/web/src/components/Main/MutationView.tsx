@@ -5,11 +5,12 @@ import { get } from 'lodash'
 import { MutationElementWithId } from './types'
 
 const BASE_COLORS = {
-  A: '#1167b7',
-  T: '#ad871c',
-  G: '#79ac34',
-  C: '#d04343',
-  N: '#222222',
+  'A': '#1167b7',
+  'T': '#ad871c',
+  'G': '#79ac34',
+  'C': '#d04343',
+  'N': '#555555',
+  '-': '#555555',
 } as const
 
 export function getBaseColor(allele: string) {
