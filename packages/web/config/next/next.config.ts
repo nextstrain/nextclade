@@ -12,10 +12,11 @@ import { getenv, getbool } from '../../lib/getenv'
 import getWithEnvironment from './withEnvironment'
 import getWithFriendlyConsole from './withFriendlyConsole'
 import getWithLodash from './withLodash'
+import getWithStaticComprression from './webpackCompression'
 import getWithTypeChecking from './withTypeChecking'
+import withRaw from './withRaw'
 import withSvg from './withSvg'
 import withWorker from './withWorker'
-import getWithStaticComprression from './webpackCompression'
 
 const BABEL_ENV = getenv('BABEL_ENV')
 const NODE_ENV = getenv('NODE_ENV')
@@ -115,6 +116,7 @@ const config = withConfig(
       [withEnvironment],
       [withWorker],
       [withSvg],
+      [withRaw],
       // ANALYZE && [withBundleAnalyzer],
       [withFriendlyConsole],
       [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
