@@ -21,6 +21,7 @@
 }
 
 .sequence-view-body {
+  background-color: $gray-100;
   border-bottom: 0;
   padding: 0;
   margin: 0;
@@ -29,7 +30,7 @@
 }
 
 .sequence-view-background {
-  fill: $gray-100;
+  fill: transparent;
 }
 
 .sequence-view-label {
