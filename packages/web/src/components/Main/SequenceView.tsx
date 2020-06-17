@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 
 import ReactResizeDetector from 'react-resize-detector'
-import { Popover, PopoverBody } from 'reactstrap'
 
 import type { AnalyzeSeqResult } from 'src/algorithms/run'
 
 import { MutationView } from './MutationView'
+import { MutationTooltip } from './MutationTooltip'
 import type { MutationElementWithId, MutationElement } from './types'
 
 const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
@@ -54,23 +54,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
               <rect className="sequence-view-background" x={0} y={-10} width={GENOME_SIZE} height="30" />
               {mutationViews}
             </svg>
-            {mutation && (
-              <Popover
-                className="popover-mutation"
-                target={mutation.id}
-                placement="auto"
-                isOpen
-                hideArrow
-                delay={0}
-                fade={false}
-              >
-                <PopoverBody>
-                  <div>{`Sequence ${mutation.seqName}`}</div>
-                  <div>{`Position ${mutation.position}`}</div>
-                  <div>{`Allele ${mutation.allele}`}</div>
-                </PopoverBody>
-              </Popover>
-            )}
+            {mutation && <MutationTooltip mutation={mutation} />}
           </div>
         )
       }}
