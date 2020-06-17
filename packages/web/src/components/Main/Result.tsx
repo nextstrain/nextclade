@@ -24,6 +24,18 @@ export function getBaseColor(allele: string) {
   return get(BASE_COLORS, allele) ?? BASE_COLORS.N
 }
 
+export interface MutationViewProps {
+  position: string
+  allele: string
+  pixelsPerBase: number
+  width: number
+}
+
+export function MutationView({ position, allele, pixelsPerBase, width }: MutationViewProps) {
+  const x = Number.parseInt(position, 10) * pixelsPerBase
+  return <rect key={position} fill={getBaseColor(allele)} x={x} y={-10} width={width} height="30" />
+}
+
 export interface SequenceViewProps {
   sequence: AnalyzeSeqResult
 }
@@ -40,8 +52,15 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
         const mutationViews = Object.entries(sequence.mutations).map(([position, allele]) => {
-          const x = Number.parseInt(position, 10) * pixelsPerBase
-          return <rect key={position} fill={getBaseColor(allele)} x={x} y={-10} width={width} height="30" />
+          return (
+            <MutationView
+              key={position}
+              allele={allele}
+              position={position}
+              width={width}
+              pixelsPerBase={pixelsPerBase}
+            />
+          )
         })
 
         return (
