@@ -4,15 +4,21 @@ import ReactResizeDetector from 'react-resize-detector'
 
 import type { AnalyzeSeqResult } from 'src/algorithms/run'
 
-import { MutationView } from './MutationView'
+import type { MutationElementWithId, MutationElement, InvalidElementWithId, InvalidElement } from './types'
+import { InvalidTooltip } from './InvalidTooltip'
+import { InvalidView } from './InvalidView'
 import { MutationTooltip } from './MutationTooltip'
-import type { MutationElementWithId, MutationElement } from './types'
+import { MutationView } from './MutationView'
 
 const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
-const BASE_MIN_WIDTH_PX = 4 as const
+export const BASE_MIN_WIDTH_PX = 4 as const
 
-export function getMutationIdentifier({ seqName, position, allele }: MutationElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${position}-${allele}`)
+export function getMutationIdentifier({ seqName, positionZeroBased, allele }: MutationElement) {
+  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${positionZeroBased}-${allele}`)
+}
+
+export function getInvalidIdentifier({ seqName, character, begin, end }: InvalidElement) {
+  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${character}-${begin}-${end}`)
 }
 
 export interface SequenceViewProps {
@@ -21,7 +27,8 @@ export interface SequenceViewProps {
 
 export function SequenceView({ sequence }: SequenceViewProps) {
   const [mutation, setMutation] = useState<MutationElementWithId | undefined>(undefined)
-  const { seqName, mutations } = sequence
+  const [currInvalid, setCurrInvalid] = useState<InvalidElementWithId | undefined>(undefined)
+  const { seqName, mutations, invalid } = sequence
 
   return (
     <ReactResizeDetector handleWidth refreshRate={300} refreshMode="debounce">
@@ -33,12 +40,12 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const pixelsPerBase = widthPx / GENOME_SIZE
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
-        const mutationViews = Object.entries(mutations).map(([position, allele]) => {
-          const id = getMutationIdentifier({ seqName, position, allele })
-          const mutation: MutationElementWithId = { id, seqName, position, allele }
+        const mutationViews = Object.entries(mutations).map(([positionZeroBased, allele]) => {
+          const id = getMutationIdentifier({ seqName, positionZeroBased, allele })
+          const mutation: MutationElementWithId = { id, seqName, positionZeroBased, allele }
           return (
             <MutationView
-              key={position}
+              key={positionZeroBased}
               mutation={mutation}
               width={width}
               pixelsPerBase={pixelsPerBase}
@@ -48,13 +55,32 @@ export function SequenceView({ sequence }: SequenceViewProps) {
           )
         })
 
+        const invalidViews = invalid.map((inv) => {
+          const { character, range } = inv
+          const { begin, end } = range
+          const id = getInvalidIdentifier({ seqName, character, begin, end })
+          const invWithId: InvalidElementWithId = { id, seqName, character, begin, end }
+
+          return (
+            <InvalidView
+              key={id}
+              inv={invWithId}
+              pixelsPerBase={pixelsPerBase}
+              onMouseEnter={() => setCurrInvalid(invWithId)}
+              onMouseLeave={() => setCurrInvalid(undefined)}
+            />
+          )
+        })
+
         return (
           <div className="sequence-view-wrapper d-inline-flex">
             <svg className="sequence-view-body" viewBox={`0 0 ${widthPx} 10`}>
               <rect className="sequence-view-background" x={0} y={-10} width={GENOME_SIZE} height="30" />
               {mutationViews}
+              {invalidViews}
             </svg>
             {mutation && <MutationTooltip mutation={mutation} />}
+            {currInvalid && <InvalidTooltip inv={currInvalid} />}
           </div>
         )
       }}

@@ -9,13 +9,14 @@ export interface MutationTooltipProps {
 }
 
 export function MutationTooltip({ mutation }: MutationTooltipProps) {
-  const { allele, position, id, seqName } = mutation
+  const { allele, positionZeroBased, id, seqName } = mutation
+  const positionOneBased = Number.parseInt(positionZeroBased, 10) + 1 // NOTE: by convention, bases are numbered starting from 1
 
   return (
     <Popover className="popover-mutation" target={id} placement="auto" isOpen hideArrow delay={0} fade={false}>
       <PopoverBody>
         <div>{`Sequence ${seqName}`}</div>
-        <div>{`Position ${position}`}</div>
+        <div>{`Position ${positionOneBased}`}</div>
         <div>{`Allele ${allele}`}</div>
       </PopoverBody>
     </Popover>

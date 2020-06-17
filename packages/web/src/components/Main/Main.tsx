@@ -14,7 +14,7 @@ import { saveFile } from 'src/helpers/saveFile'
 import { AnalyzeSeqResult } from 'src/algorithms/run'
 import { runInWorker } from 'src/algorithms/runInWorker'
 
-import DEFAULT_INPUT from 'src/assets/data/defaultSequences.fasta'
+import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
 import DEFAULT_ROOT_SEQUENCE from 'src/assets/data/defaultRootSequence.txt'
 
 import { Result } from './Result'
