@@ -75,6 +75,7 @@ export function Main() {
               <Col>
                 <Input
                   type="textarea"
+                  wrap="off"
                   name="sequence-input"
                   id="sequence-input"
                   cols={80}
