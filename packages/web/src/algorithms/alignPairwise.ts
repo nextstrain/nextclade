@@ -1,5 +1,31 @@
 
-export function alignPairwise(query, ref) {
+interface SeedMatch {
+  shift: number
+  score: number
+}
+
+// determine the position where a particular kmer (string of length k) matches the reference sequence
+function seedMatch(kmer: String, ref: String): SeedMatch {
+  let tmpScore = 0
+  let maxScore = 0
+  let maxShift = -1
+  for (let shift = 0; shift < ref.length - kmer.length; shift++) {
+    tmpScore = 0
+    for (let pos = 0; pos < kmer.length; pos++) {
+      if (kmer[pos] == ref[shift + pos]) {
+        tmpScore++
+      }
+    }
+    if (tmpScore > maxScore) {
+      maxScore = tmpScore
+      maxShift = shift
+    }
+  }
+  return {shift: maxShift, score:maxScore}
+}
+
+
+export function alignPairwise(query: String, ref: String) {
   const debug = false
   // self made argmax function
   function argmax(d) {
@@ -13,25 +39,6 @@ export function alignPairwise(query, ref) {
     })
     return [tmpii, tmpmax]
   }
-  // determine the position where a particular kmer matches the reference sequence
-  function seedMatch(kmer) {
-    let tmpScore = 0
-    let maxScore = 0
-    let maxShift = -1
-    for (let shift = 0; shift < ref.length - kmer.length; shift++) {
-      tmpScore = 0
-      for (let pos = 0; pos < kmer.length; pos++) {
-        if (kmer[pos] == ref[shift + pos]) {
-          tmpScore++
-        }
-      }
-      if (tmpScore > maxScore) {
-        maxScore = tmpScore
-        maxShift = shift
-      }
-    }
-    return [maxShift, maxScore]
-  }
 
   // console.log(query);
   // console.log(ref);
@@ -43,15 +50,14 @@ export function alignPairwise(query, ref) {
 
   if (bandWidth > 2 * seedLength) {
     const seedMatches = []
-    let tmpShift, tmpScore, qPos
     for (let ni = 0; ni < nSeeds; ni++) {
       // generate kmers equally spaced on the query
-      qPos = Math.round((query.length - seedLength) / (nSeeds - 1)) * ni
-      ;[tmpShift, tmpScore] = seedMatch(query.substring(qPos, qPos + seedLength))
+      const qPos = Math.round((query.length - seedLength) / (nSeeds - 1)) * ni
+      const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref)
 
       // only use seeds that match at least 70%
-      if (tmpScore >= 0.7 * seedLength) {
-        seedMatches.push([qPos, tmpShift, tmpShift - qPos, tmpScore])
+      if (tmpMatch.score >= 0.7 * seedLength) {
+        seedMatches.push([qPos, tmpMatch.shift, tmpMatch.shift - qPos, tmpMatch.score])
       }
     }
     // given the seed matches, determine the maximal and minimal shifts
