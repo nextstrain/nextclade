@@ -20,10 +20,10 @@ export function MutationTooltip({ mutation, sequence }: MutationTooltipProps) {
   return (
     <Popover className="popover-mutation" target={id} placement="auto" isOpen hideArrow delay={0} fade={false}>
       <PopoverBody>
-        <div>{`Sequence ${seqName}`}</div>
-        <div>{`Clades ${cladesList}`}</div>
-        <div>{`Position ${positionOneBased}`}</div>
-        <div>{`Allele ${allele}`}</div>
+        <div>{`Sequence: ${seqName}`}</div>
+        <div>{`Clades (all): ${cladesList}`}</div>
+        <div>{`Position: ${positionOneBased}`}</div>
+        <div>{`Allele: ${allele}`}</div>
       </PopoverBody>
     </Popover>
   )
