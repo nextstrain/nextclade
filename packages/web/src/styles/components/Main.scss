@@ -83,8 +83,17 @@
       &.results-table-col-gene-map {
         padding: 0;
         width: 65%;
-
         border: 1px solid $gray-500;
+      }
+
+      &.results-table-col-axis {
+        padding: 0;
+        width: 65%;
+        border: none;
+
+        .recharts-wrapper {
+          border: none;
+        }
       }
     }
   }

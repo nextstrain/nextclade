@@ -4,9 +4,10 @@ import { Table } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
 import type { AlgorithmResult, AnalyzeSeqResult } from 'src/algorithms/run'
-import { SequenceView } from './SequenceView'
+import { GENOME_SIZE, SequenceView } from './SequenceView'
 import { getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
+import { Axis } from 'src/components/Main/Axis'
 
 export interface SequenceLabelProps {
   sequence: AnalyzeSeqResult
@@ -68,6 +69,8 @@ export function Result({ result }: ResultProps) {
     return null
   }
 
+  const genomeSize = GENOME_SIZE // FIXME: deduce from sequences
+
   const sequenceItems = result.map((sequence, i) => {
     const { seqName } = sequence
 
@@ -99,6 +102,13 @@ export function Result({ result }: ResultProps) {
             <td className="results-table-col" />
             <td className="results-table-col results-table-col-gene-map">
               <GeneMap />
+            </td>
+          </tr>
+          <tr className="results-table-row">
+            <td className="results-table-col" />
+            <td className="results-table-col" />
+            <td className="results-table-col results-table-col-axis">
+              <Axis genomeSize={genomeSize} />
             </td>
           </tr>
         </tbody>
