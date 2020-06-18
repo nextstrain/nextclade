@@ -1,4 +1,16 @@
 import { alignPairwise } from './alignPairwise'
+import { codonTable } from './codonTable'
+
+export function aminoAcidChange(gene, pos, query, ref) {
+  if (pos < gene.start && pos >= gene.end){
+    return
+  }
+
+  const frame = (pos-gene.start)%3
+  const refCodon = ref.substring(pos - frame, pos - frame + 3)
+  const queryCodon = refCodon.substring(0,frame) + query + refCodon.substring(frame+1, 3)
+  return {refAA: codonTable[refCodon], queryAA:[queryCodon]}
+}
 
 export function analyzeSeq(seq, rootSeq) {
   const { query, ref, score } = alignPairwise(seq, rootSeq)
