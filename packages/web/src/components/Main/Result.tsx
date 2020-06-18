@@ -1,10 +1,62 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { Table } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AlgorithmResult } from 'src/algorithms/run'
+import type { AlgorithmResult, AnalyzeSeqResult } from 'src/algorithms/run'
 import { SequenceView } from './SequenceView'
+import { getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
+
+export interface SequenceLabelProps {
+  sequence: AnalyzeSeqResult
+}
+
+export function SequenceLabel({ sequence }: SequenceLabelProps) {
+  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+
+  const { seqName } = sequence
+  const id = getSequenceIdentifier(seqName)
+
+  return (
+    <>
+      <td
+        id={id}
+        className="results-table-col results-table-col-label"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        {seqName}
+      </td>
+      <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
+    </>
+  )
+}
+
+export interface SequenceCladeProps {
+  sequence: AnalyzeSeqResult
+}
+
+export function SequenceClade({ sequence }: SequenceCladeProps) {
+  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+
+  const { clades, seqName } = sequence
+  const id = getSequenceIdentifier(seqName)
+  const cladesList = Object.keys(clades).join(', ')
+
+  return (
+    <>
+      <td
+        id={id}
+        className="results-table-col results-table-col-clade"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        {cladesList}
+      </td>
+      <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
+    </>
+  )
+}
 
 export type ResultProps = AlgorithmResult
 
@@ -17,12 +69,13 @@ export function Result({ result }: ResultProps) {
 
   const rows = result.map((sequence, i) => {
     const { clades, seqName } = sequence
+    const id = getSequenceIdentifier(seqName)
     const cladesList = Object.keys(clades).join(', ')
 
     return (
       <tr className="results-table-row" key={seqName}>
-        <td className="results-table-col results-table-col-label">{seqName}</td>
-        <td className="results-table-col results-table-col-clade">{cladesList}</td>
+        <SequenceLabel sequence={sequence} />
+        <SequenceClade sequence={sequence} />
         <td className="results-table-col results-table-col-mutations">
           <SequenceView key={seqName} sequence={sequence} />
         </td>
@@ -31,15 +84,17 @@ export function Result({ result }: ResultProps) {
   })
 
   return (
-    <Table className="results-table">
-      <thead>
-        <tr className="results-table-row">
-          <th className="results-table-header">{t('Sequence name')}</th>
-          <th className="results-table-header">{t('Clades')}</th>
-          <th className="results-table-header">{t('Mutations')}</th>
-        </tr>
-      </thead>
-      <tbody>{rows}</tbody>
-    </Table>
+    <>
+      <Table className="results-table">
+        <thead>
+          <tr className="results-table-row">
+            <th className="results-table-header">{t('Sequence name')}</th>
+            <th className="results-table-header">{t('Clades')}</th>
+            <th className="results-table-header">{t('Mutations')}</th>
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </Table>
+    </>
   )
 }

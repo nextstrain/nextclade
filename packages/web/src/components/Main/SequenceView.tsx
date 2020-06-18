@@ -10,7 +10,7 @@ import { InvalidView } from './InvalidView'
 import { MutationTooltip } from './MutationTooltip'
 import { MutationView } from './MutationView'
 
-const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
+export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
 export const BASE_MIN_WIDTH_PX = 4 as const
 
 export function getMutationIdentifier({ seqName, positionZeroBased, allele }: MutationElement) {

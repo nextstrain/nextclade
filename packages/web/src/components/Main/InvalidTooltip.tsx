@@ -5,15 +5,7 @@ import { Popover, PopoverBody } from 'reactstrap'
 import type { InvalidElementWithId } from 'src/components/Main/types'
 import type { AnalyzeSeqResult } from 'src/algorithms/run'
 
-export function formatRange(begin: number, end: number) {
-  const beginOne = begin + 1
-  const endOne = end + 1
-
-  if (beginOne === endOne) {
-    return beginOne.toString()
-  }
-  return `${beginOne}..${endOne}`
-}
+import { formatRange } from './formatRange'
 
 export interface InvalidTooltipProps {
   sequence: AnalyzeSeqResult
