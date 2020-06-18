@@ -4,10 +4,11 @@ import { Table } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
 import type { AlgorithmResult, AnalyzeSeqResult } from 'src/algorithms/run'
+import { Axis } from 'src/components/Main/Axis'
+
 import { GENOME_SIZE, SequenceView } from './SequenceView'
 import { getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
-import { Axis } from 'src/components/Main/Axis'
 
 export interface SequenceLabelProps {
   sequence: AnalyzeSeqResult
