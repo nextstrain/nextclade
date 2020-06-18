@@ -20,10 +20,10 @@ export function getGeneId(gene: GeneMapDatum) {
 
 export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
   const { end, start } = gene
-  const widthPx = Math.max(BASE_MIN_WIDTH_PX, (end - start) * pixelsPerBase)
-  const x = start * pixelsPerBase + widthPx / 2
+  const width = Math.max(BASE_MIN_WIDTH_PX, (end - start) * pixelsPerBase)
+  const x = start * pixelsPerBase
   const id = getGeneId(gene)
-  return <rect id={id} fill={gene.color} x={x} y={-10} width={widthPx} height="30" {...rest} />
+  return <rect id={id} fill={gene.color} x={x} y={-10} width={width} height="30" {...rest} />
 }
 
 export function GeneMap() {

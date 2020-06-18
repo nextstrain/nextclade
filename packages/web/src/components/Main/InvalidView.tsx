@@ -13,8 +13,8 @@ export interface InvalidViewProps extends SVGProps<SVGRectElement> {
 export function InvalidView({ inv, pixelsPerBase, ...rest }: InvalidViewProps) {
   const { id, character, begin, end } = inv
   const fill = getBaseColor(character)
-  let widthPx = (end - begin) * pixelsPerBase
-  const x = begin * pixelsPerBase + widthPx * 0.5
-  widthPx = Math.max(BASE_MIN_WIDTH_PX)
-  return <rect id={id} fill={fill} x={x} y={-10} width={widthPx} height="30" {...rest} />
+  let width = (end - begin) * pixelsPerBase
+  const x = begin * pixelsPerBase
+  width = Math.max(BASE_MIN_WIDTH_PX)
+  return <rect id={id} fill={fill} x={x} y={-10} width={width} height="30" {...rest} />
 }
