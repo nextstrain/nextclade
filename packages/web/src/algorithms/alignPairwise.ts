@@ -4,6 +4,22 @@ interface SeedMatch {
   score: number
 }
 
+interface SeedAlignment {
+  meanShift: number
+  bandWidth: number
+}
+
+interface ForwardTrace {
+  scores: Int32Array[]
+  paths: Int32Array[]
+}
+
+interface Alignment {
+  query: string[]
+  ref: string[]
+  score: number
+}
+
 // determine the position where a particular kmer (string of length k) matches the reference sequence
 function seedMatch(kmer: String, ref: String): SeedMatch {
   let tmpScore = 0
@@ -21,66 +37,58 @@ function seedMatch(kmer: String, ref: String): SeedMatch {
       maxShift = shift
     }
   }
-  return {shift: maxShift, score:maxScore}
+  return { shift: maxShift, score: maxScore }
 }
 
-
-export function alignPairwise(query: String, ref: String) {
-  const debug = false
-  // self made argmax function
-  function argmax(d) {
-    let tmpmax = d[0],
-      tmpii = 0
-    d.forEach((x, i) => {
-      if (x > tmpmax) {
-        tmpmax = x
-        tmpii = i
-      }
-    })
-    return [tmpii, tmpmax]
-  }
-
-  // console.log(query);
-  // console.log(ref);
-  // perform a number of seed matches to determine te rough alignment of query rel to ref
+function seedAlignment(query: String, ref: String): SeedAlignment {
   const nSeeds = 5,
     seedLength = 21
   let bandWidth = Math.min(ref.length, query.length)
   let meanShift = 0
 
-  if (bandWidth > 2 * seedLength) {
-    const seedMatches = []
-    for (let ni = 0; ni < nSeeds; ni++) {
-      // generate kmers equally spaced on the query
-      const qPos = Math.round((query.length - seedLength) / (nSeeds - 1)) * ni
-      const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref)
-
-      // only use seeds that match at least 70%
-      if (tmpMatch.score >= 0.7 * seedLength) {
-        seedMatches.push([qPos, tmpMatch.shift, tmpMatch.shift - qPos, tmpMatch.score])
-      }
-    }
-    // given the seed matches, determine the maximal and minimal shifts
-    // this shift is the typical amount the query needs shifting to match ref
-    // ref:   ACTCTACTGC-TCAGAC
-    // query: ----TCACTCATCT-ACACCGAT  => shift = 4, then 3, 4 again
-    const minShift = Math.min(
-      ...seedMatches.map(function (d) {
-        return d[2]
-      }),
-    )
-    const maxShift = Math.max(
-      ...seedMatches.map(function (d) {
-        return d[2]
-      }),
-    )
-    bandWidth = maxShift - minShift + 9
-    meanShift = Math.round(0.5 * (minShift + maxShift))
+  if (bandWidth < 2 * seedLength) {
+    return { meanShift: 0, bandWidth: bandWidth }
   }
 
-  function indexToShift(si) {
+  const seedMatches = []
+  for (let ni = 0; ni < nSeeds; ni++) {
+    // generate kmers equally spaced on the query
+    const qPos = Math.round((query.length - seedLength) / (nSeeds - 1)) * ni
+    const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref)
+
+    // only use seeds that match at least 70%
+    if (tmpMatch.score >= 0.7 * seedLength) {
+      seedMatches.push([qPos, tmpMatch.shift, tmpMatch.shift - qPos, tmpMatch.score])
+    }
+  }
+  // given the seed matches, determine the maximal and minimal shifts
+  // this shift is the typical amount the query needs shifting to match ref
+  // ref:   ACTCTACTGC-TCAGAC
+  // query: ----TCACTCATCT-ACACCGAT  => shift = 4, then 3, 4 again
+  const minShift = Math.min(...seedMatches.map((d) => d[2]))
+  const maxShift = Math.max(...seedMatches.map((d) => d[2]))
+
+  return { bandWidth: maxShift - minShift + 9, meanShift: Math.round(0.5 * (minShift + maxShift)) }
+}
+
+// self made argmax function
+function argmax(d: number[]) {
+  let tmpmax = d[0],
+    tmpii = 0
+  d.forEach((x, i) => {
+    if (x > tmpmax) {
+      tmpmax = x
+      tmpii = i
+    }
+  })
+  return [tmpii, tmpmax]
+}
+
+function scoreMatrix(query: String, ref: String, bandWidth: number, meanShift: number): ForwardTrace {
+  function indexToShift(si: number): number {
     return si - bandWidth + meanShift
   }
+
   // allocate a matrix to record the matches
   const rowLength = ref.length + 1
   const scores = [],
@@ -135,15 +143,20 @@ export function alignPairwise(query: String, ref: String) {
       scores[si][ri + 1] = score
     }
   }
-  if (debug) {
-    if (scores.length < 20) {
-      console.log('MM')
-      scores.forEach((d, i) => console.log(i, d.join('\t')))
-      console.log('D')
-      paths.forEach((d, i) => console.log(i, d.join('\t')))
-    } else {
-      console.log('MM', scores)
-    }
+  return { scores, paths }
+}
+
+function backTrace(
+  query: String,
+  ref: String,
+  scores: Int32Array[],
+  paths: Int32Array[],
+  meanShift: number,
+): Alignment {
+  const bandWidth = (scores.length - 1) / 2
+  const rowLength = scores[0].length
+  function indexToShift(si: number): number {
+    return si - bandWidth + meanShift
   }
 
   // Determine the best alignment by picking the optimal score at the end of the query
@@ -151,13 +164,14 @@ export function alignPairwise(query: String, ref: String) {
   const lastIndexByShift = scores.map((d, i) => Math.min(rowLength - 1, query.length + indexToShift(i)))
   const lastScoreByShift = scores.map((d, i) => d[lastIndexByShift[i]])
 
-  si = argmax(lastScoreByShift)[0]
-  shift = indexToShift(si)
+  let si = argmax(lastScoreByShift)[0]
+  let shift = indexToShift(si)
   const bestScore = lastScoreByShift[si]
+  let origin = undefined
 
   // determine position tuple qPos, rPos corresponding to the place it the matrix
   let rPos = lastIndexByShift[si] - 1
-  qPos = rPos - shift
+  let qPos = rPos - shift
   // add right overhang, i.e. unaligned parts of the query or reference the right end
   if (rPos < ref.length - 1) {
     for (let ii = ref.length - 1; ii > rPos; ii--) {
@@ -208,12 +222,33 @@ export function alignPairwise(query: String, ref: String) {
 
   //reverse and make sequence
   aln.reverse()
-  if (debug) {
-    console.log(aln)
-  }
   return {
     query: aln.map((d) => d[0]),
     ref: aln.map((d) => d[1]),
     score: bestScore,
   }
+}
+
+export function alignPairwise(query: String, ref: String): Alignment {
+  const debug = false
+
+  // console.log(query);
+  // console.log(ref);
+  // perform a number of seed matches to determine te rough alignment of query rel to ref
+  const { bandWidth, meanShift } = seedAlignment(query, ref)
+
+  const { paths, scores } = scoreMatrix(query, ref, bandWidth, meanShift)
+
+  if (debug) {
+    if (scores.length < 20) {
+      console.log('MM')
+      scores.forEach((d, i) => console.log(i, d.join('\t')))
+      console.log('D')
+      paths.forEach((d, i) => console.log(i, d.join('\t')))
+    } else {
+      console.log('MM', scores)
+    }
+  }
+
+  return backTrace(query, ref, scores, paths, meanShift)
 }
