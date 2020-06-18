@@ -79,7 +79,8 @@
         text-align: center;
       }
 
-      &.results-table-col-mutations {
+      &.results-table-col-mutations,
+      &.results-table-col-gene-map {
         padding: 0;
         width: 65%;
 

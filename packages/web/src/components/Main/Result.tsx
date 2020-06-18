@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import type { AlgorithmResult, AnalyzeSeqResult } from 'src/algorithms/run'
 import { SequenceView } from './SequenceView'
 import { getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
+import { GeneMap } from './GeneMap'
 
 export interface SequenceLabelProps {
   sequence: AnalyzeSeqResult
@@ -67,10 +68,8 @@ export function Result({ result }: ResultProps) {
     return null
   }
 
-  const rows = result.map((sequence, i) => {
-    const { clades, seqName } = sequence
-    const id = getSequenceIdentifier(seqName)
-    const cladesList = Object.keys(clades).join(', ')
+  const sequenceItems = result.map((sequence, i) => {
+    const { seqName } = sequence
 
     return (
       <tr className="results-table-row" key={seqName}>
@@ -93,7 +92,16 @@ export function Result({ result }: ResultProps) {
             <th className="results-table-header">{t('Mutations')}</th>
           </tr>
         </thead>
-        <tbody>{rows}</tbody>
+        <tbody>
+          {sequenceItems}
+          <tr className="results-table-row">
+            <td className="results-table-col" />
+            <td className="results-table-col" />
+            <td className="results-table-col results-table-col-gene-map">
+              <GeneMap />
+            </td>
+          </tr>
+        </tbody>
       </Table>
     </>
   )

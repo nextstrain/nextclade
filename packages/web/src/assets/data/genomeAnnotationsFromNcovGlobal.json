@@ -1,0 +1,102 @@
+{
+  "genome_annotations": {
+    "E": {
+      "end": 26472,
+      "seqid": "config/reference.gb",
+      "start": 26245,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "M": {
+      "end": 27191,
+      "seqid": "config/reference.gb",
+      "start": 26523,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "N": {
+      "end": 29533,
+      "seqid": "config/reference.gb",
+      "start": 28274,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF10": {
+      "end": 29674,
+      "seqid": "config/reference.gb",
+      "start": 29558,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF14": {
+      "end": 28955,
+      "seqid": "config/reference.gb",
+      "start": 28734,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF1a": {
+      "end": 13468,
+      "seqid": "config/reference.gb",
+      "start": 266,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF1b": {
+      "end": 21555,
+      "seqid": "config/reference.gb",
+      "start": 13468,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF3a": {
+      "end": 26220,
+      "seqid": "config/reference.gb",
+      "start": 25393,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF6": {
+      "end": 27387,
+      "seqid": "config/reference.gb",
+      "start": 27202,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF7a": {
+      "end": 27759,
+      "seqid": "config/reference.gb",
+      "start": 27394,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF7b": {
+      "end": 27887,
+      "seqid": "config/reference.gb",
+      "start": 27756,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF8": {
+      "end": 28259,
+      "seqid": "config/reference.gb",
+      "start": 27894,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "ORF9b": {
+      "end": 28577,
+      "seqid": "config/reference.gb",
+      "start": 28284,
+      "strand": "+",
+      "type": "CDS"
+    },
+    "S": {
+      "end": 25384,
+      "seqid": "config/reference.gb",
+      "start": 21563,
+      "strand": "+",
+      "type": "CDS"
+    }
+  }
+}
