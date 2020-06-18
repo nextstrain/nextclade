@@ -79,8 +79,8 @@ export function SequenceView({ sequence }: SequenceViewProps) {
               {mutationViews}
               {invalidViews}
             </svg>
-            {mutation && <MutationTooltip mutation={mutation} />}
-            {currInvalid && <InvalidTooltip inv={currInvalid} />}
+            {mutation && <MutationTooltip mutation={mutation} sequence={sequence} />}
+            {currInvalid && <InvalidTooltip inv={currInvalid} sequence={sequence} />}
           </div>
         )
       }}
