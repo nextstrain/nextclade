@@ -79,6 +79,7 @@ export function Main() {
               <Col>
                 <Input
                   type="textarea"
+                  data-gramm_editor="false"
                   wrap="off"
                   name="sequence-input"
                   id="sequence-input"
