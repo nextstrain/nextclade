@@ -21,6 +21,7 @@ import { Result } from './Result'
 
 export function Main() {
   const { t } = useTranslation()
+  const [rootSeq] = useState(DEFAULT_ROOT_SEQUENCE)
   const [inputCurrent, setInputCurrent] = useState(DEFAULT_INPUT)
   const [result, setResult] = useState<AnalyzeSeqResult[]>([])
 
@@ -49,7 +50,7 @@ export function Main() {
 
   useEffect(() => {
     async function runEffect() {
-      const { result } = await runInWorker({ input: inputCurrent, rootSeq: DEFAULT_ROOT_SEQUENCE })
+      const { result } = await runInWorker({ input: inputCurrent, rootSeq })
       if (result.length > 0) {
         setResult(result)
       }

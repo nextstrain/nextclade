@@ -1,4 +1,19 @@
-declare module '*.txt'
-declare module '*.csv'
-declare module '*.tsv'
-declare module '*.fasta'
+declare module '*.txt' {
+  declare const content: string
+  export default content
+}
+
+declare module '*.csv' {
+  declare const content: string
+  export default content
+}
+
+declare module '*.tsv' {
+  declare const content: string
+  export default content
+}
+
+declare module '*.fasta' {
+  declare const content: string
+  export default content
+}
