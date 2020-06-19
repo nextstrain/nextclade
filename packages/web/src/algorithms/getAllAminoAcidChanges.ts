@@ -2,6 +2,8 @@
 
 import { inRange } from 'lodash'
 
+import { notUndefined } from 'src/helpers/notUndefined'
+
 import type { Base } from './run'
 import type { GeneMapDatum } from './geneMap'
 import { getCodon } from './codonTable'
@@ -31,18 +33,33 @@ export function aminoAcidChange(pos: number, queryAllele: string, refSequence: s
   return { refAA, queryAA, codon }
 }
 
-export function getAminoAcidChanges(pos: number, queryAllele: string, refSequence: string, geneMap: GeneMapDatum[]) {
-  return geneMap.map((gene) => aminoAcidChange(pos, queryAllele, refSequence, gene)).filter(Boolean)
-}
-
 export interface AminoacidSubstitution {
   refAA: string
   queryAA: string
   codon: number
 }
 
-export function getAllAminoAcidChanges(mutations: Record<string, Base>, refSequence: string, geneMap: GeneMapDatum[]) {
-  Object.entries(mutations).map(([position, allele]) => ({
+export function getAminoAcidChanges(
+  pos: number,
+  queryAllele: string,
+  refSequence: string,
+  geneMap: GeneMapDatum[],
+): AminoacidSubstitution[] {
+  return geneMap.map((gene) => aminoAcidChange(pos, queryAllele, refSequence, gene)).filter(notUndefined)
+}
+
+export interface AminoacidSubstitutions {
+  position: string
+  allele: string
+  substitutions: AminoacidSubstitution[]
+}
+
+export function getAllAminoAcidChanges(
+  mutations: Record<string, Base>,
+  refSequence: string,
+  geneMap: GeneMapDatum[],
+): AminoacidSubstitutions[] {
+  return Object.entries(mutations).map(([position, allele]) => ({
     position,
     allele,
     substitutions: getAminoAcidChanges(Number.parseInt(position, 10), allele, refSequence, geneMap),

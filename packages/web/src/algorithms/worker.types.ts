@@ -1,12 +1,14 @@
+import type { DeepReadonly } from 'ts-essentials'
+
 import type { AlgorithmResult } from './run'
 import { AlgorithmParams } from './run'
 
 export interface AlgorithmWorkerInputEvent {
-  data: AlgorithmParams
+  data: DeepReadonly<AlgorithmParams>
 }
 
 export interface AlgorithmWorkerOutputEventData {
-  result: AlgorithmResult
+  result: DeepReadonly<AlgorithmResult>
   error: string
 }
 

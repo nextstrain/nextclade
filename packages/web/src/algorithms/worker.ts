@@ -5,7 +5,7 @@ import 'core-js'
 
 import 'regenerator-runtime'
 
-import { run, AlgorithmParams } from './run'
+import { run } from './run'
 import type { AlgorithmWorkerInputEvent } from './worker.types'
 
 self.addEventListener('message', (event: AlgorithmWorkerInputEvent) => {

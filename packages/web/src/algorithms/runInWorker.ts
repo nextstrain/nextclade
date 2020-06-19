@@ -9,7 +9,7 @@ if (typeof Worker !== 'undefined') {
   const worker = new Worker('./worker.ts', { type: 'module', name: 'algorithm' })
 
   runImpl = async (args: AlgorithmParams) => {
-    return new Promise<AlgorithmResult>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       worker.addEventListener('message', (message: AlgorithmWorkerOutputEvent) => {
         const { result, error } = message.data
 

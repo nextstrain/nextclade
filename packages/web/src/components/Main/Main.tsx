@@ -5,6 +5,7 @@ import { noop } from 'lodash'
 import { Button, Input, Row, Col, Card, CardBody, CardHeader, CardFooter } from 'reactstrap'
 import { MdRefresh, MdFileDownload } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
+import type { DeepReadonly } from 'ts-essentials'
 
 import { EXPORT_FILENAME } from 'src/constants'
 
@@ -23,7 +24,7 @@ export function Main() {
   const { t } = useTranslation()
   const [rootSeq] = useState(DEFAULT_ROOT_SEQUENCE)
   const [inputCurrent, setInputCurrent] = useState(DEFAULT_INPUT)
-  const [result, setResult] = useState<AnalysisResult[]>([])
+  const [result, setResult] = useState<DeepReadonly<AnalysisResult[]>>([])
 
   const hangleSequenceChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setResult([])
@@ -57,7 +58,7 @@ export function Main() {
     }
 
     runEffect().catch(console.error)
-  }, [inputCurrent])
+  }, [inputCurrent, rootSeq])
 
   return (
     <Row noGutters>

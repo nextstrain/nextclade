@@ -10,7 +10,7 @@ import { isSequenceInClade } from './isSequenceInClade'
 import { sequenceQC } from './sequenceQC'
 import { analyzeSeq } from './analyzeSeq'
 import { findCharacterRanges, SubstringMatch } from './findCharacterRanges'
-import { AminoacidSubstitution, getAllAminoAcidChanges } from './getAllAminoAcidChanges'
+import { getAllAminoAcidChanges, AminoacidSubstitutions } from './getAllAminoAcidChanges'
 
 export interface AlgorithmParams {
   rootSeq: string
@@ -41,7 +41,7 @@ export interface AnalysisResult extends Readonly<AnalyzeSeqResult> {
   seqName: string
   clades: DeepReadonly<Substitutions>
   invalid: DeepReadonly<SubstringMatch[]>
-  aminoacidSubstitutions: DeepReadonly<AminoacidSubstitution[]>
+  aminoacidSubstitutions: DeepReadonly<AminoacidSubstitutions[]>
   diagnostics: any
 }
 
