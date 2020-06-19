@@ -24,11 +24,11 @@ export function findCharacterRanges(str: string, characters: string): SubstringM
   for (let c = 0; c < numC; ++c) {
     const character = characters[c]
 
-    const length = str.length
-    let begin: number | undefined = undefined
+    const { length } = str
+    let begin: number | undefined
     for (let i = 0; i < length; ++i) {
       if (character === str[i]) {
-        begin = begin ? begin : i
+        begin = begin ?? i
       } else if (begin) {
         const end = i
         result.push({ character, range: { begin, end } })

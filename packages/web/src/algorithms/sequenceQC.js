@@ -10,7 +10,7 @@ function findSNPClusters(mutations) {
 
   // turn mutation keys into positions, exclude known clusters, and sort
   const positions = Object.keys(mutations)
-    .map((pos) => parseInt(pos))
+    .map((pos) => Number.parseInt(pos))
     .filter((pos) => !knownClusters.has(pos))
     .sort((a, b) => a > b)
 
@@ -46,10 +46,10 @@ export function sequenceQC(mutations, insertions, deletions) {
   const divergenceThreshold = 15
   const flags = []
   const diagnostics = { ClusteredSNPs: [] }
-  diagnostics['totalNumberOfMutations'] =
+  diagnostics.totalNumberOfMutations =
     Object.keys(mutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
-  if (diagnostics['totalNumberOfMutations'] > divergenceThreshold) {
+  if (diagnostics.totalNumberOfMutations > divergenceThreshold) {
     flags.push(TooHighDivergence)
   }
 

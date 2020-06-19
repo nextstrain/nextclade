@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-string-slice */
 
 interface SeedMatch {
   shift: number
@@ -21,14 +22,14 @@ interface Alignment {
 }
 
 // determine the position where a particular kmer (string of length k) matches the reference sequence
-function seedMatch(kmer: String, ref: String): SeedMatch {
+function seedMatch(kmer: string, ref: string): SeedMatch {
   let tmpScore = 0
   let maxScore = 0
   let maxShift = -1
   for (let shift = 0; shift < ref.length - kmer.length; shift++) {
     tmpScore = 0
     for (let pos = 0; pos < kmer.length; pos++) {
-      if (kmer[pos] == ref[shift + pos]) {
+      if (kmer[pos] === ref[shift + pos]) {
         tmpScore++
       }
     }
@@ -40,14 +41,13 @@ function seedMatch(kmer: String, ref: String): SeedMatch {
   return { shift: maxShift, score: maxScore }
 }
 
-function seedAlignment(query: String, ref: String): SeedAlignment {
-  const nSeeds = 5,
-    seedLength = 21
-  let bandWidth = Math.min(ref.length, query.length)
-  let meanShift = 0
+function seedAlignment(query: string, ref: string): SeedAlignment {
+  const nSeeds = 5
+  const seedLength = 21
+  const bandWidth = Math.min(ref.length, query.length)
 
   if (bandWidth < 2 * seedLength) {
-    return { meanShift: 0, bandWidth: bandWidth }
+    return { meanShift: 0, bandWidth }
   }
 
   const seedMatches = []
@@ -73,8 +73,8 @@ function seedAlignment(query: String, ref: String): SeedAlignment {
 
 // self made argmax function
 function argmax(d: number[]) {
-  let tmpmax = d[0],
-    tmpii = 0
+  let tmpmax = d[0]
+  let tmpii = 0
   d.forEach((x, i) => {
     if (x > tmpmax) {
       tmpmax = x
@@ -84,15 +84,15 @@ function argmax(d: number[]) {
   return [tmpii, tmpmax]
 }
 
-function scoreMatrix(query: String, ref: String, bandWidth: number, meanShift: number): ForwardTrace {
+function scoreMatrix(query: string, ref: string, bandWidth: number, meanShift: number): ForwardTrace {
   function indexToShift(si: number): number {
     return si - bandWidth + meanShift
   }
 
   // allocate a matrix to record the matches
   const rowLength = ref.length + 1
-  const scores = [],
-    paths = []
+  const scores = []
+  const paths = []
   for (let shift = -bandWidth; shift < bandWidth + 1; shift++) {
     scores.push(new Int32Array(rowLength))
     paths.push(new Int32Array(rowLength))
@@ -110,12 +110,21 @@ function scoreMatrix(query: String, ref: String, bandWidth: number, meanShift: n
   //    -> vertical step in the matrix from si+1 to si
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-  const gapExtend = 0,
-    gapOpen = -2,
-    misMatch = -1,
-    match = 3
+  const gapExtend = 0
+  const gapOpen = -2
+  const misMatch = -1
+  const match = 3
   const END_OF_SEQUENCE = -1
-  let si, ri, shift, tmpMatch, cmp, qPos, origin, score, qGapOpen, rGapOpen
+  let si
+  let ri
+  let shift
+  let tmpMatch
+  let cmp
+  let qPos
+  let origin
+  let score
+  let qGapOpen
+  let rGapOpen
   for (ri = 0; ri < ref.length; ri++) {
     for (si = 2 * bandWidth; si >= 0; si--) {
       shift = indexToShift(si)
@@ -147,8 +156,8 @@ function scoreMatrix(query: String, ref: String, bandWidth: number, meanShift: n
 }
 
 function backTrace(
-  query: String,
-  ref: String,
+  query: string,
+  ref: string,
   scores: Int32Array[],
   paths: Int32Array[],
   meanShift: number,
@@ -165,9 +174,9 @@ function backTrace(
   const lastScoreByShift = scores.map((d, i) => d[lastIndexByShift[i]])
 
   let si = argmax(lastScoreByShift)[0]
-  let shift = indexToShift(si)
+  const shift = indexToShift(si)
   const bestScore = lastScoreByShift[si]
-  let origin = undefined
+  let origin
 
   // determine position tuple qPos, rPos corresponding to the place it the matrix
   let rPos = lastIndexByShift[si] - 1
@@ -220,7 +229,7 @@ function backTrace(
     }
   }
 
-  //reverse and make sequence
+  // reverse and make sequence
   aln.reverse()
   return {
     query: aln.map((d) => d[0]),
@@ -229,7 +238,7 @@ function backTrace(
   }
 }
 
-export function alignPairwise(query: String, ref: String): Alignment {
+export function alignPairwise(query: string, ref: string): Alignment {
   const debug = false
 
   // console.log(query);
