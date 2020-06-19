@@ -10,6 +10,7 @@ import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getenv, getbool } from '../../lib/getenv'
 
 import getWithEnvironment from './withEnvironment'
+import getWithExtraWatch from './withExtraWatch'
 import getWithFriendlyConsole from './withFriendlyConsole'
 import getWithLodash from './withLodash'
 import getWithStaticComprression from './webpackCompression'
@@ -85,6 +86,11 @@ const withEnvironment = getWithEnvironment({
   ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT,
 })
 
+const withExtraWatch = getWithExtraWatch({
+  files: [path.join(moduleRoot, 'src/types/**/*.d.ts')],
+  dirs: [],
+})
+
 const withLodash = getWithLodash({ unicode: false })
 
 const withStaticComprression = getWithStaticComprression({ brotli: false })
@@ -99,6 +105,7 @@ const config = withConfig(
   withPlugins(
     [
       [withEnvironment],
+      [withExtraWatch],
       [withWorker],
       [withSvg],
       [withRaw],
