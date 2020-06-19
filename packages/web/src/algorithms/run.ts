@@ -34,6 +34,7 @@ export interface AnalyzeSeqResult {
   deletions: Record<string, number>
   alnStart: number
   alnEnd: number
+  alignmentScore: number
 }
 
 export interface AnalysisResult extends Readonly<AnalyzeSeqResult> {
@@ -53,7 +54,7 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
 
   const result = Object.entries(parsedSequences)
     .map(([seqName, seq]) => {
-      const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(seq, rootSeq)
+      const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore } = analyzeSeq(seq, rootSeq)
 
       const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
 
@@ -72,6 +73,7 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
         deletions,
         alnStart,
         alnEnd,
+        alignmentScore,
         aminoacidSubstitutions,
         diagnostics,
       }

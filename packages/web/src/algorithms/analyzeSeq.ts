@@ -4,7 +4,6 @@ import type { AnalyzeSeqResult, Base } from './run'
 
 export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
   const { query, ref, score } = alignPairwise(seq, rootSeq)
-  console.log('Alignment score:', score)
 
   // report insertions
   let refPos = 0
@@ -61,5 +60,5 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
       nDel++
     }
   })
-  return { mutations, insertions, deletions, alnStart, alnEnd }
+  return { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore: score }
 }

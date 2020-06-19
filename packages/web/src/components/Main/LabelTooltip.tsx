@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Popover, PopoverBody } from 'reactstrap'
+import type { DeepReadonly } from 'ts-essentials'
 
 import type { AnalysisResult } from 'src/algorithms/run'
 import type { SubstringMatch } from 'src/algorithms/findCharacterRanges'
@@ -11,7 +12,7 @@ export function getSequenceIdentifier(seqName: string) {
   return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}`)
 }
 
-export function calculateNucleotidesTotals(invalid: SubstringMatch[], character: string) {
+export function calculateNucleotidesTotals(invalid: DeepReadonly<SubstringMatch[]>, character: string) {
   return invalid
     .filter((inv) => inv.character === character)
     .reduce((total, inv) => total + inv.range.end - inv.range.begin, 0)
@@ -23,7 +24,7 @@ export interface LabelTooltipProps {
 }
 
 export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
-  const { seqName, clades, mutations, invalid, alnStart, alnEnd } = sequence
+  const { seqName, clades, mutations, invalid, alnStart, alnEnd, alignmentScore } = sequence
   const id = getSequenceIdentifier(seqName)
   const cladesList = Object.keys(clades).join(', ')
   const alnStartOneBased = alnStart + 1
@@ -69,9 +70,10 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
     >
       <PopoverBody>
         <div>{`Sequence ${seqName}`}</div>
-        <div>{`Clades ${cladesList}`}</div>
+        <div>{`Alignment score ${alignmentScore}`}</div>
         <div>{`Alignment start ${alnStartOneBased}`}</div>
         <div>{`Alignment end ${alnEndOneBased}`}</div>
+        <div>{`Clades ${cladesList}`}</div>
         <div>{`Total mutations: ${totalMutations}`}</div>
         <div>
           <div>{`Mutations:`}</div>
