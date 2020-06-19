@@ -250,12 +250,12 @@ export function alignPairwise(query: string, ref: string): Alignment {
 
   if (debug) {
     if (scores.length < 20) {
-      console.log('MM')
-      scores.forEach((d, i) => console.log(i, d.join('\t')))
-      console.log('D')
-      paths.forEach((d, i) => console.log(i, d.join('\t')))
+      console.info('MM')
+      scores.forEach((d, i) => console.info(i, d.join('\t')))
+      console.info('D')
+      paths.forEach((d, i) => console.info(i, d.join('\t')))
     } else {
-      console.log('MM', scores)
+      console.info('MM', scores)
     }
   }
 

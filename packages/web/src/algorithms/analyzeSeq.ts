@@ -52,7 +52,7 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
       }
       alnEnd = i
     }
-    if (d !== '-' && d !== rootSeq[i] && d != 'N') {
+    if (d !== '-' && d !== rootSeq[i] && d !== 'N') {
       mutations[i] = d as Base
     } else if (d === '-' && !beforeAlignment) {
       if (!nDel) {
