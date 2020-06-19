@@ -42,7 +42,7 @@ export function parseSequences(input: string) {
       currentSeqName = line.substring(1, line.length)
       currentSeq = ''
     } else {
-      currentSeq += line.toUpperCase().replace('-', '')
+      currentSeq += line.toUpperCase().replace(/-/g, '')
     }
   }
 
