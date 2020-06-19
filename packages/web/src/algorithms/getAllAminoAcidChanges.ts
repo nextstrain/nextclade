@@ -7,7 +7,7 @@ import { Base } from './run'
 
 export function aminoAcidChange(pos: number, queryAllele: string, refSequence: string, gene: GeneMapDatum) {
   // check that the positions is infact part of this gene
-  if (inRange(pos, gene.start, gene.end)) {
+  if (!inRange(pos, gene.start, gene.end)) {
     return undefined
   }
 
