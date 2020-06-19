@@ -73,7 +73,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         })
 
         const deletionViews = Object.keys(deletions).map((del) => {
-          const begin = Number.parseInt(del)
+          const begin = Number.parseInt(del, 10)
           const length = deletions[del]
           const end = begin + length
           const id = getInvalidIdentifier({ seqName, character: '-', begin, end })

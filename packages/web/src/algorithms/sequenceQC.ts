@@ -2,7 +2,7 @@ import type { Base, QCDiagnostics, QCResult } from './run'
 
 const TooHighDivergence = 'too high divergence'
 const ClusteredSNPs = 'clustered SNPs'
-const MissingData = 'missing data'
+// const MissingData = 'missing data'
 
 // TODO: verify duplicated numbers in this Set. Probably a typo.
 const knownClusters = new Set([28881, 28881, 28883])
@@ -62,7 +62,7 @@ export function sequenceQC(
 
   const snpClusters = findSNPClusters(mutations)
 
-  if (snpClusters.length) {
+  if (snpClusters.length > 0) {
     snpClusters.forEach((cluster) => {
       diagnostics.clusteredSNPs.push({
         start: cluster[0],

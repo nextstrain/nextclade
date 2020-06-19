@@ -47,17 +47,6 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
     return <li key={key}>{key}</li>
   })
 
-  const cladeMutationItems = Object.entries(clades).map(([key, values]) => (
-    <li key={key}>
-      {key}
-      <ul>
-        {values.map(({ pos, allele }) => (
-          <li key={pos}>{`pos: ${pos + 1}, allele: ${allele}`}</li>
-        ))}
-      </ul>
-    </li>
-  ))
-
   const gapItems = invalid.map((inv) => {
     const { character, range: { begin, end } } = inv // prettier-ignore
     const range = formatRange(begin, end)
