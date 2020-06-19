@@ -61,6 +61,32 @@ export function SequenceClade({ sequence }: SequenceCladeProps) {
   )
 }
 
+export interface SequenceQCStatusProps {
+  sequence: AnalysisResult
+}
+
+export function SequenceQCStatus({ sequence }: SequenceQCStatusProps) {
+  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+
+  const { seqName, diagnostics } = sequence
+  const id = getSequenceIdentifier(seqName)
+
+  return (
+    <>
+      <td
+        id={id}
+        className="results-table-col results-table-col-clade"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        {diagnostics.flags.length > 0 ? "FAIL" : "PASS" }
+      </td>
+      <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
+    </>
+  )
+}
+
+
 export function SequenceNs({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
@@ -123,6 +149,7 @@ export function Result({ result }: ResultProps) {
     return (
       <tr className="results-table-row" key={seqName}>
         <SequenceLabel sequence={sequence} />
+        <SequenceQCStatus sequence={sequence} />
         <SequenceClade sequence={sequence} />
         <SequenceNs sequence={sequence} />
         <SequenceGaps sequence={sequence} />
@@ -139,6 +166,7 @@ export function Result({ result }: ResultProps) {
         <thead>
           <tr className="results-table-row">
             <th className="results-table-header">{t('Sequence name')}</th>
+            <th className="results-table-header">{t('QC')}</th>
             <th className="results-table-header">{t('Clades')}</th>
             <th className="results-table-header">{t('Ns')}</th>
             <th className="results-table-header">{t('Gaps')}</th>
@@ -152,11 +180,13 @@ export function Result({ result }: ResultProps) {
             <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
+            <td className="results-table-col" />
             <td className="results-table-col results-table-col-gene-map">
               <GeneMap />
             </td>
           </tr>
           <tr className="results-table-row">
+            <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
