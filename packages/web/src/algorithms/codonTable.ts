@@ -1,4 +1,6 @@
-export const codonTable = {
+import { get } from 'lodash'
+
+const codonTable: Record<string, string> = {
   AAA: 'K',
   AAC: 'N',
   AAG: 'K',
@@ -64,3 +66,11 @@ export const codonTable = {
   TTG: 'L',
   TTT: 'F',
 } as const
+
+export function getCodon(codon: string) {
+  const aminoacid = get(codonTable, codon)
+  if (process.env.NODE_ENV !== 'production' && !aminoacid) {
+    throw new Error(`getCodon: no aminoacid found for codon "${codon}"`)
+  }
+  return aminoacid
+}

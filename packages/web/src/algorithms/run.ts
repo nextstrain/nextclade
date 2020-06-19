@@ -10,7 +10,7 @@ import { isSequenceInClade } from './isSequenceInClade'
 import { sequenceQC } from './sequenceQC'
 import { analyzeSeq } from './analyzeSeq'
 import { findCharacterRanges, SubstringMatch } from './findCharacterRanges'
-import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
+import { AminoacidSubstitution, getAllAminoAcidChanges } from './getAllAminoAcidChanges'
 
 export interface AlgorithmParams {
   rootSeq: string
@@ -40,6 +40,8 @@ export interface AnalysisResult extends Readonly<AnalyzeSeqResult> {
   seqName: string
   clades: DeepReadonly<Substitutions>
   invalid: DeepReadonly<SubstringMatch[]>
+  aminoacidSubstitutions: DeepReadonly<AminoacidSubstitution[]>
+  diagnostics: any
 }
 
 export interface AlgorithmResult {
@@ -53,25 +55,31 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
   const result = Object.entries(parsedSequences)
     .map(([seqName, seq]) => {
       const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(seq, rootSeq)
+
       const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
+
       const invalid = findCharacterRanges(seq, 'N-')
-      return { seqName, clades, invalid, mutations, insertions, deletions, alnStart, alnEnd }
+
+      const aminoacidSubstitutions = getAllAminoAcidChanges(mutations, rootSeq, geneMap)
+
+      const diagnostics = sequenceQC(mutations, insertions, deletions)
+
+      return {
+        seqName,
+        clades,
+        invalid,
+        mutations,
+        insertions,
+        deletions,
+        alnStart,
+        alnEnd,
+        aminoacidSubstitutions,
+        diagnostics,
+      }
     })
     .filter(({ clades }) => Object.keys(clades).length !== 0)
 
-  const diagnostics = result.map(({ seqName, mutations, insertions, deletions }) => {
-    return { seqName, metrics: sequenceQC(mutations, insertions, deletions) }
-  })
-
-  console.log({ diagnostics })
-
-  // just for development:
-
-  result.forEach((seq) => {
-    Object.keys(seq.mutations).forEach((d) => {
-      console.log(d, getAllAminoAcidChanges(parseInt(d), seq.mutations[d], rootSeq, geneMap))
-    })
-  })
+  console.log(require('util').inspect(result, { colors: true, depth: null }))
 
   return { result }
 }
