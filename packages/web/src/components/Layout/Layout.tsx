@@ -7,7 +7,7 @@ import Footer from './Footer'
 
 export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
-    <Container className="layout-container">
+    <Container fluid className="layout-container">
       <header className="row navbar-container d-print-none">
         <NavigationBar />
       </header>
