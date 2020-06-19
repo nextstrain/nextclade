@@ -11,34 +11,28 @@ export interface CreateFormatterParams {
 export interface GetWithTypeCheckingParams {
   eslint: boolean
   typeChecking: boolean
-  warningsAreErrors: boolean
-  tsconfig: string
-  reportFiles: string[]
   memoryLimit?: number
 }
 
-const getWithTypeChecking = ({
-  eslint,
-  typeChecking,
-  warningsAreErrors,
-  tsconfig,
-  reportFiles,
-  memoryLimit = 512, // Megabytes
-}: GetWithTypeCheckingParams) => (nextConfig: NextConfig) => {
+const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512 }: GetWithTypeCheckingParams) => (
+  nextConfig: NextConfig,
+) => {
   return addWebpackPlugin(
     nextConfig,
     new ForkTsCheckerWebpackPlugin({
-      typescript: {
-        memoryLimit,
-        mode: 'write-references',
-        diagnosticOptions: {
-          declaration: true,
-          global: true,
-          semantic: true,
-          syntactic: true,
-        },
-        profile: true,
-      },
+      typescript: typeChecking
+        ? {
+            memoryLimit,
+            mode: 'write-references',
+            diagnosticOptions: {
+              declaration: true,
+              global: true,
+              semantic: true,
+              syntactic: true,
+            },
+            profile: true,
+          }
+        : undefined,
 
       eslint: eslint
         ? {

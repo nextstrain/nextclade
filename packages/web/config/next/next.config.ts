@@ -24,8 +24,8 @@ const production = NODE_ENV === 'production'
 // const development = NODE_ENV === 'development'
 // const ANALYZE = getbool('ANALYZE')
 // const PROFILE = getbool('PROFILE')
-const DEV_ENABLE_TYPE_CHECKS = getbool('DEV_ENABLE_TYPE_CHECKS')
 const DEV_ENABLE_ESLINT = getbool('DEV_ENABLE_ESLINT')
+const DEV_ENABLE_TYPE_CHECKS = getbool('DEV_ENABLE_TYPE_CHECKS')
 // const DEV_ENABLE_STYLELINT = getbool('DEV_ENABLE_STYLELINT')
 const DEV_ENABLE_REDUX_DEV_TOOLS = getbool('DEV_ENABLE_REDUX_DEV_TOOLS')
 const DEV_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT = getbool('DEV_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT')
@@ -36,6 +36,7 @@ const PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT = getbool('PROD_ENABLE_REDUX_I
 const ENABLE_REDUX_DEV_TOOLS = (production ? PROD_ENABLE_REDUX_DEV_TOOLS : DEV_ENABLE_REDUX_DEV_TOOLS) ? '1' : '0'
 const ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT = (production ? PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT : DEV_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT) ? '1' : "0" // prettier-ignore
 const ENABLE_ESLINT = production || DEV_ENABLE_ESLINT
+const ENABLE_TYPE_CHECKING = production || DEV_ENABLE_TYPE_CHECKS
 
 const { pkg, moduleRoot } = findModuleRoot()
 
@@ -89,25 +90,9 @@ const withLodash = getWithLodash({ unicode: false })
 const withStaticComprression = getWithStaticComprression({ brotli: false })
 
 const withTypeChecking = getWithTypeChecking({
+  typeChecking: ENABLE_TYPE_CHECKING,
   eslint: ENABLE_ESLINT,
-  warningsAreErrors: production,
   memoryLimit: 2048,
-  tsconfig: path.join(moduleRoot, 'tsconfig.json'),
-  reportFiles: [
-    'src/**/*.{js,jsx,ts,tsx}',
-
-    // FIXME: errors in these files have to be resolved eventually
-    // begin
-    '!src/algorithms/**', // FIXME
-    // end
-
-    '!src/**/*.(spec|test).{js,jsx,ts,tsx}',
-    '!src/**/__tests__/**/*.{js,jsx,ts,tsx}',
-    '!src/*generated*/**/*',
-    '!src/algorithms/__test_data__/**/*',
-    '!src/styles/**/*',
-    '!static/**/*',
-  ],
 })
 
 const config = withConfig(
@@ -121,7 +106,7 @@ const config = withConfig(
       [withFriendlyConsole],
       [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
       [withLodash],
-      DEV_ENABLE_TYPE_CHECKS && [withTypeChecking],
+      [withTypeChecking],
       production && [withStaticComprression],
     ].filter(Boolean),
     nextConfig,
