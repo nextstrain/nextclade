@@ -24,7 +24,18 @@ export interface LabelTooltipProps {
 }
 
 export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
-  const { seqName, clades, mutations, invalid, alnStart, alnEnd, alignmentScore } = sequence
+  const {
+    seqName,
+    clades,
+    mutations,
+    deletions,
+    insertions,
+    invalid,
+    alnStart,
+    alnEnd,
+    alignmentScore,
+    diagnostics,
+  } = sequence
   const id = getSequenceIdentifier(seqName)
   const cladesList = Object.keys(clades).join(', ')
   const alnStartOneBased = alnStart + 1
@@ -54,8 +65,18 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
     return <li key={key}>{`${character} ${range}`}</li>
   })
 
+  let flags
+  if (diagnostics.flags.length > 0){
+    flags = diagnostics.flags.map((flag) => {
+      return <li key={flag}>{flag}</li>
+    })
+  } else {
+    flags = [<li key="allGood">None detected</li>]
+  }
+
   const totalMutations = mutationItems.length
-  const totalGaps = calculateNucleotidesTotals(invalid, '-')
+  const totalGaps = Object.values(deletions).reduce((a, b) => a + b, 0)
+  const totalInsertions = Object.values(insertions).reduce((a, b) => a + b.length, 0)
   const totalNs = calculateNucleotidesTotals(invalid, 'N')
 
   return (
@@ -79,11 +100,16 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
           <div>{`Mutations:`}</div>
           <ul>{mutationItems}</ul>
         </div>
-        <div>{`Total gaps: ${totalGaps}`}</div>
+        <div>{`Total deletions: ${totalGaps}`}</div>
+        <div>{`Total insertions: ${totalInsertions}`}</div>
         <div>{`Total Ns: ${totalNs}`}</div>
         <div>
           <div>{`Gaps and Ns`}</div>
           <ul>{gapItems}</ul>
+        </div>
+        <div>
+          <div>{`QC issues`}</div>
+          <ul>{flags}</ul>
         </div>
       </PopoverBody>
     </Popover>

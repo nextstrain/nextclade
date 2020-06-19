@@ -66,7 +66,7 @@ export function Main() {
     <Row noGutters>
       <Col>
         <Card className="mt-1 mb-1">
-          <CardHeader>{t('Sequence')}</CardHeader>
+          <CardHeader>{t('Sequence input')}</CardHeader>
 
           <CardBody>
             <Row>
@@ -105,7 +105,7 @@ export function Main() {
         </Card>
 
         <Card className="mt-1 mb-1">
-          <CardHeader>{t('Clades')}</CardHeader>
+          <CardHeader>{t('Results')}</CardHeader>
 
           <CardBody>
             <Row>
