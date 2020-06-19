@@ -73,15 +73,11 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
         <div>{`Alignment score ${alignmentScore}`}</div>
         <div>{`Alignment start ${alnStartOneBased}`}</div>
         <div>{`Alignment end ${alnEndOneBased}`}</div>
-        <div>{`Clades ${cladesList}`}</div>
+        <div>{`Clades ${cladesList || '--'}`}</div>
         <div>{`Total mutations: ${totalMutations}`}</div>
         <div>
           <div>{`Mutations:`}</div>
           <ul>{mutationItems}</ul>
-        </div>
-        <div>
-          <div>{`Mutations per clade:`}</div>
-          <ul>{cladeMutationItems}</ul>
         </div>
         <div>{`Total gaps: ${totalGaps}`}</div>
         <div>{`Total Ns: ${totalNs}`}</div>
