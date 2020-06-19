@@ -2,8 +2,12 @@ import React from 'react'
 
 import { GeneMapDatum } from 'src/algorithms/geneMap'
 import { Popover, PopoverBody } from 'reactstrap'
-import { getGeneId } from 'src/components/Main/GeneMap'
 import { formatRange } from 'src/components/Main/formatRange'
+
+export function getGeneId(gene: GeneMapDatum) {
+  const { name, start, end } = gene
+  return CSS.escape(`${name}-${start}-${end}`)
+}
 
 export interface GeneTooltipProps {
   gene: GeneMapDatum

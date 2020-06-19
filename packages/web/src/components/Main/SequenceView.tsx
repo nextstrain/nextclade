@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 
 import ReactResizeDetector from 'react-resize-detector'
 
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import type { AnalysisResult } from 'src/algorithms/run'
 
 import type { MutationElementWithId, MutationElement, InvalidElementWithId, InvalidElement } from './types'
@@ -11,7 +12,6 @@ import { MutationTooltip } from './MutationTooltip'
 import { MutationView } from './MutationView'
 
 export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
-export const BASE_MIN_WIDTH_PX = 4 as const
 
 export function getMutationIdentifier({ seqName, positionZeroBased, allele }: MutationElement) {
   return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${positionZeroBased}-${allele}`)

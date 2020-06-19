@@ -1,8 +1,8 @@
 import React, { SVGProps } from 'react'
 
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import type { InvalidElementWithId } from 'src/components/Main/types'
 
-import { BASE_MIN_WIDTH_PX } from './SequenceView'
 import { getBaseColor } from './MutationView'
 
 export interface InvalidViewProps extends SVGProps<SVGRectElement> {

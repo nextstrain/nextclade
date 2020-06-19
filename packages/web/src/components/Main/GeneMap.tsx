@@ -2,18 +2,15 @@ import React, { SVGProps, useState } from 'react'
 
 import ReactResizeDetector from 'react-resize-detector'
 
-import { BASE_MIN_WIDTH_PX, GENOME_SIZE } from 'src/components/Main/SequenceView'
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { GeneMapDatum, geneMap } from 'src/algorithms/geneMap'
-import { GeneTooltip } from './GeneTooltip'
+
+import { GENOME_SIZE } from './SequenceView'
+import { GeneTooltip, getGeneId } from './GeneTooltip'
 
 export interface GeneViewProps extends SVGProps<SVGRectElement> {
   gene: GeneMapDatum
   pixelsPerBase: number
-}
-
-export function getGeneId(gene: GeneMapDatum) {
-  const { name, start, end } = gene
-  return CSS.escape(`${name}-${start}-${end}`)
 }
 
 export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
