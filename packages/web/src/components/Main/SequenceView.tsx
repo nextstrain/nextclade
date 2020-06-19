@@ -28,7 +28,7 @@ export interface SequenceViewProps {
 export function SequenceView({ sequence }: SequenceViewProps) {
   const [mutation, setMutation] = useState<MutationElementWithId | undefined>(undefined)
   const [currInvalid, setCurrInvalid] = useState<InvalidElementWithId | undefined>(undefined)
-  const { seqName, mutations, invalid } = sequence
+  const { seqName, mutations, invalid, deletions } = sequence
 
   return (
     <ReactResizeDetector handleWidth refreshRate={300} refreshMode="debounce">
@@ -72,12 +72,32 @@ export function SequenceView({ sequence }: SequenceViewProps) {
           )
         })
 
+        const deletionViews = Object.keys(deletions).map((del) => {
+          const begin = parseInt(del)
+          const length = deletions[del]
+          const end = begin + length
+          const id = getInvalidIdentifier({ seqName, character:"-", begin, end })
+          const delWithId: InvalidElementWithId = { id, seqName, character:"-", begin, end }
+
+          return (
+            <InvalidView
+              key={id}
+              inv={delWithId}
+              pixelsPerBase={pixelsPerBase}
+              onMouseEnter={() => setCurrInvalid(delWithId)}
+              onMouseLeave={() => setCurrInvalid(undefined)}
+            />
+          )
+        })
+
+
         return (
           <div className="sequence-view-wrapper d-inline-flex">
             <svg className="sequence-view-body" viewBox={`0 0 ${widthPx} 10`}>
               <rect className="sequence-view-background" x={0} y={-10} width={GENOME_SIZE} height="30" />
               {mutationViews}
               {invalidViews}
+              {deletionViews}
             </svg>
             {mutation && <MutationTooltip mutation={mutation} sequence={sequence} />}
             {currInvalid && <InvalidTooltip inv={currInvalid} sequence={sequence} />}
