@@ -9,6 +9,7 @@ import { Axis } from 'src/components/Main/Axis'
 import { GENOME_SIZE, SequenceView } from './SequenceView'
 import { calculateNucleotidesTotals, getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
+import { FaRulerHorizontal } from 'react-icons/fa'
 
 export interface SequenceLabelProps {
   sequence: AnalysisResult
@@ -86,10 +87,10 @@ export function SequenceNs({ sequence }: SequenceCladeProps) {
 export function SequenceGaps({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
-  const { invalid, seqName } = sequence
+  const { deletions, seqName } = sequence
   const id = getSequenceIdentifier(seqName)
 
-  const totalGaps = calculateNucleotidesTotals(invalid, '-')
+  const totalGaps = Object.values(deletions).reduce((a, b) => a + b, 0)
 
   return (
     <>
@@ -148,7 +149,7 @@ export function Result({ result }: ResultProps) {
         <tbody>
           {sequenceItems}
           <tr className="results-table-row">
-            <td className="results-table-col" />
+            <td className="results-table-col">Genome annotation</td>
             <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />

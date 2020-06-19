@@ -122,7 +122,7 @@ export function Main() {
                         <CladeSchema height={200} />
                       </picture>
                       <figcaption>
-                        <div>{t(`TODO: Caption for the tree of clades.`)}</div>
+                        <div>{t(`Illustration of phylogenetic relations ship of clades defined by nextstrain.`)}</div>
                         <div>{t(`Source: nexstrain.org`)}</div>
                       </figcaption>
                     </figure>
