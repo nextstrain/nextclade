@@ -6,9 +6,9 @@ export function isSequenceInClade(
   mutations: Record<string, Base>,
   reference: string,
 ) {
-  const conditions = cladeAlleles.map((d) => {
-    const state = mutations[d.pos - 1] === undefined ? reference[d.pos - 1] : mutations[d.pos - 1]
-    return state === d.allele
+  return cladeAlleles.every(({ allele, pos }) => {
+    // TODO: verify that `-1` is needed here
+    const state = mutations[pos - 1] ?? reference[pos - 1]
+    return state === allele
   })
-  return conditions.every((d) => d)
 }
