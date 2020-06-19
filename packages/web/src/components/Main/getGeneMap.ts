@@ -14,8 +14,6 @@ export interface GeneMapDatum {
   strand: string
 }
 
-export function getGeneColor() {}
-
 export function getGeneMap(): GeneMapDatum[] {
   const geneMap = get(geneMapRaw, 'genome_annotations')
 

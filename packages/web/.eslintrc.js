@@ -164,21 +164,21 @@ module.exports = {
     },
   },
   overrides: [
-    // FIXME: These files are to be fixed and these ignores are to be removed
-    // begin
-    {
-      files: ['src/algorithms/**/*.{js,ts}', 'src/components/**/*.{js,ts,tsx,jsx}'],
-      rules: {
-        '@typescript-eslint/ban-ts-comment': 'off',
-        '@typescript-eslint/no-unsafe-assignment': 'off',
-        '@typescript-eslint/no-unsafe-call': 'off',
-        '@typescript-eslint/no-unsafe-member-access': 'off',
-        '@typescript-eslint/no-unsafe-return': 'off',
-        '@typescript-eslint/restrict-plus-operands': 'off',
-        '@typescript-eslint/restrict-template-expressions': 'off',
-      },
-    },
-    // end
+    // // FIXME: These files are to be fixed and these ignores are to be removed
+    // // begin
+    // {
+    //   files: ['src/algorithms/**/*.{js,ts}', 'src/components/**/*.{js,ts,tsx,jsx}'],
+    //   rules: {
+    //     '@typescript-eslint/ban-ts-comment': 'off',
+    //     '@typescript-eslint/no-unsafe-assignment': 'off',
+    //     '@typescript-eslint/no-unsafe-call': 'off',
+    //     '@typescript-eslint/no-unsafe-member-access': 'off',
+    //     '@typescript-eslint/no-unsafe-return': 'off',
+    //     '@typescript-eslint/restrict-plus-operands': 'off',
+    //     '@typescript-eslint/restrict-template-expressions': 'off',
+    //   },
+    // },
+    // // end
     {
       files: ['src/algorithms/**/*.{js,ts}'],
       rules: {

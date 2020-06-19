@@ -1,4 +1,6 @@
-export const CLADES = {
+import type { Substitutions } from "./run";
+
+export const CLADES: Substitutions = {
   '19A': [
     { pos: 8782, allele: 'C' },
     { pos: 14408, allele: 'C' },

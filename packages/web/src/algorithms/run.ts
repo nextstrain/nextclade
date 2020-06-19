@@ -1,14 +1,15 @@
 import { pickBy } from 'lodash'
 
-import { CLADES } from 'src/algorithms/clades'
-import { parseSequences } from 'src/algorithms/parseSequences'
-import { isSequenceInClade } from 'src/algorithms/isSequenceInClade'
-import { sequenceQC } from 'src/algorithms/sequenceQC'
-import { analyzeSeq, getAllAminoAcidChanges } from 'src/algorithms/analyzeSeq'
-import { getGeneMap } from 'src/components/Main/getGeneMap'
+import { getGeneMap } from 'src/components/Main/getGeneMap' // FIXME
 import type { Tagged } from 'src/helpers/types'
 
+import { CLADES } from './clades'
+import { parseSequences } from './parseSequences'
+import { isSequenceInClade } from './isSequenceInClade'
+import { sequenceQC } from './sequenceQC'
+import { analyzeSeq } from './analyzeSeq'
 import { findCharacterRanges, SubstringMatch } from './findCharacterRanges'
+import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
 
 export interface AlgorithmParams {
   rootSeq: string
@@ -41,8 +42,6 @@ export interface AlgorithmResult {
   result: AnalyzeSeqResult[]
 }
 
-declare function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult
-
 export async function run({ input, rootSeq }: AlgorithmParams): Promise<AlgorithmResult> {
   const lines = input.split('\n')
   const parsedSequences = parseSequences(lines)
@@ -56,9 +55,11 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
     })
     .filter(({ clades }) => Object.keys(clades).length !== 0)
 
-  result.forEach((d) => {
-    console.log(d.seqName, sequenceQC(d.mutations, d.insertions, d.deletions))
+  const diagnostics = result.map(({ seqName, mutations, insertions, deletions }) => {
+    return { seqName, metrics: sequenceQC(mutations, insertions, deletions) }
   })
+
+  console.log({ diagnostics })
 
   // just for development:
   const geneMap = getGeneMap()
