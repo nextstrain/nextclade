@@ -70,7 +70,7 @@ const codonTable: Record<string, string> = {
 export function getCodon(codon: string) {
   const aminoacid = get(codonTable, codon)
   if (process.env.NODE_ENV !== 'production' && !aminoacid) {
-    throw new Error(`getCodon: no aminoacid found for codon "${codon}"`)
+    console.warn(`getCodon: no aminoacid found for codon "${codon}"`)
   }
-  return aminoacid
+  return aminoacid || 'X'
 }
