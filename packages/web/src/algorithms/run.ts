@@ -3,9 +3,12 @@ import { pickBy } from 'lodash'
 import { CLADES } from 'src/algorithms/clades'
 import { parseSequences } from 'src/algorithms/parseSequences'
 import { isSequenceInClade } from 'src/algorithms/isSequenceInClade'
+import { analyzeSeq } from 'src/algorithms/analyzeSeq'
+import { sequenceQC } from 'src/algorithms/sequenceQC'
 import { analyzeSeq, getAllAminoAcidChanges } from 'src/algorithms/analyzeSeq'
 import { getGeneMap } from 'src/components/Main/getGeneMap'
 import { Tagged } from 'src/helpers/types'
+import { multiValueCSS } from 'react-select/src/components/MultiValue'
 import { findCharacterRanges, SubstringMatch } from './findCharacterRanges'
 import { object } from 'prop-types'
 
@@ -55,6 +58,10 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
     })
     .filter(({ clades }) => Object.keys(clades).length !== 0)
 
+  result.forEach((d) => {
+    console.log(d.seqName, sequenceQC(d.mutations, d.insertions, d.deletions))
+  })
+
   // just for development:
   const geneMap = getGeneMap()
   result.forEach((seq) => {
@@ -62,7 +69,6 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
       console.log(d, getAllAminoAcidChanges(parseInt(d), seq.mutations[d], rootSeq, geneMap))
     })
   })
-
 
   return { result }
 }
