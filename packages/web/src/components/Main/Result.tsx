@@ -7,7 +7,7 @@ import type { AlgorithmResult, AnalysisResult } from 'src/algorithms/run'
 import { Axis } from 'src/components/Main/Axis'
 
 import { GENOME_SIZE, SequenceView } from './SequenceView'
-import { getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
+import { calculateNucleotidesTotals, getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
 
 export interface SequenceLabelProps {
@@ -61,6 +61,51 @@ export function SequenceClade({ sequence }: SequenceCladeProps) {
   )
 }
 
+export function SequenceNs({ sequence }: SequenceCladeProps) {
+  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+
+  const { invalid, seqName } = sequence
+  const id = getSequenceIdentifier(seqName)
+  const totalNs = calculateNucleotidesTotals(invalid, 'N')
+
+  return (
+    <>
+      <td
+        id={id}
+        className="results-table-col results-table-col-clade"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        {totalNs}
+      </td>
+      <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
+    </>
+  )
+}
+
+export function SequenceGaps({ sequence }: SequenceCladeProps) {
+  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+
+  const { invalid, seqName } = sequence
+  const id = getSequenceIdentifier(seqName)
+
+  const totalGaps = calculateNucleotidesTotals(invalid, '-')
+
+  return (
+    <>
+      <td
+        id={id}
+        className="results-table-col results-table-col-clade"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        {totalGaps}
+      </td>
+      <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
+    </>
+  )
+}
+
 export type ResultProps = AlgorithmResult
 
 export function Result({ result }: ResultProps) {
@@ -79,6 +124,8 @@ export function Result({ result }: ResultProps) {
       <tr className="results-table-row" key={seqName}>
         <SequenceLabel sequence={sequence} />
         <SequenceClade sequence={sequence} />
+        <SequenceNs sequence={sequence} />
+        <SequenceGaps sequence={sequence} />
         <td className="results-table-col results-table-col-mutations">
           <SequenceView key={seqName} sequence={sequence} />
         </td>
@@ -93,6 +140,8 @@ export function Result({ result }: ResultProps) {
           <tr className="results-table-row">
             <th className="results-table-header">{t('Sequence name')}</th>
             <th className="results-table-header">{t('Clades')}</th>
+            <th className="results-table-header">{t('Ns')}</th>
+            <th className="results-table-header">{t('Gaps')}</th>
             <th className="results-table-header">{t('Mutations')}</th>
           </tr>
         </thead>
@@ -101,11 +150,15 @@ export function Result({ result }: ResultProps) {
           <tr className="results-table-row">
             <td className="results-table-col" />
             <td className="results-table-col" />
+            <td className="results-table-col" />
+            <td className="results-table-col" />
             <td className="results-table-col results-table-col-gene-map">
               <GeneMap />
             </td>
           </tr>
           <tr className="results-table-row">
+            <td className="results-table-col" />
+            <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col results-table-col-axis">
