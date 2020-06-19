@@ -1,5 +1,6 @@
-import { Base, Substitution } from './run'
-import { DeepReadonly } from 'ts-essentials'
+import type { DeepReadonly } from 'ts-essentials'
+
+import type { Base, Substitution } from './run'
 
 export function isSequenceInClade(
   cladeAlleles: DeepReadonly<Substitution[]>,

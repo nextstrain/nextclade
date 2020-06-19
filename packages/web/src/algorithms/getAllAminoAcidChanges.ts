@@ -1,9 +1,10 @@
+/* eslint-disable unicorn/prefer-string-slice */
+
 import { inRange } from 'lodash'
 
-import { GeneMapDatum } from './geneMap'
+import type { Base } from './run'
+import type { GeneMapDatum } from './geneMap'
 import { getCodon } from './codonTable'
-
-import { Base } from './run'
 
 export function aminoAcidChange(pos: number, queryAllele: string, refSequence: string, gene: GeneMapDatum) {
   // check that the positions is infact part of this gene
