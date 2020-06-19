@@ -10,9 +10,9 @@ function findSNPClusters(mutations) {
 
   // turn mutation keys into positions, exclude known clusters, and sort
   const positions = Object.keys(mutations)
-    .map((pos) => Number.parseInt(pos))
+    .map((pos) => Number.parseInt(pos, 10))
     .filter((pos) => !knownClusters.has(pos))
-    .sort((a, b) => a > b)
+    .sort((a, b) => a - b)
 
   // loop over all mutations and count how many fall into the clusters
   let previousPos = -1
@@ -26,7 +26,7 @@ function findSNPClusters(mutations) {
     if (currentCluster.length > clusterCutOff) {
       // if the cluster grows uninterrupted, add to the previous cluster
       if (
-        allClusters.length &&
+        allClusters.length > 0 &&
         currentCluster.length > 1 &&
         allClusters[allClusters.length - 1][allClusters[allClusters.length - 1].length - 1] === previousPos
       ) {
