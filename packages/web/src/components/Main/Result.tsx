@@ -9,7 +9,6 @@ import { Axis } from 'src/components/Main/Axis'
 import { GENOME_SIZE, SequenceView } from './SequenceView'
 import { calculateNucleotidesTotals, getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
-import { FaRulerHorizontal } from 'react-icons/fa'
 
 export interface SequenceLabelProps {
   sequence: AnalysisResult
