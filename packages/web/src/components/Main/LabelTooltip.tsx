@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Popover, PopoverBody } from 'reactstrap'
 
-import type { AnalyzeSeqResult } from 'src/algorithms/run'
+import type { AnalysisResult } from 'src/algorithms/run'
 import type { SubstringMatch } from 'src/algorithms/findCharacterRanges'
 
 import { formatRange } from './formatRange'
@@ -19,7 +19,7 @@ export function calculateNucleotidesTotals(invalid: SubstringMatch[], character:
 
 export interface LabelTooltipProps {
   showTooltip: boolean
-  sequence: AnalyzeSeqResult
+  sequence: AnalysisResult
 }
 
 export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {

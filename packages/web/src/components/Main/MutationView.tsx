@@ -4,7 +4,7 @@ import { get } from 'lodash'
 
 import { MutationElementWithId } from './types'
 
-const BASE_COLORS = {
+const BASE_COLORS: Record<string, string> = {
   'A': '#1167b7',
   'T': '#ad871c',
   'G': '#79ac34',

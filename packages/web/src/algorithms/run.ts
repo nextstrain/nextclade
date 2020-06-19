@@ -10,6 +10,7 @@ import { sequenceQC } from './sequenceQC'
 import { analyzeSeq } from './analyzeSeq'
 import { findCharacterRanges, SubstringMatch } from './findCharacterRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
+import { DeepReadonly } from 'ts-essentials'
 
 export interface AlgorithmParams {
   rootSeq: string
@@ -22,24 +23,27 @@ export interface Substitution {
 }
 
 export interface Substitutions {
-  [key: string]: Substitution[]
+  [key: string]: DeepReadonly<Substitution>[]
 }
 
 export type Base = Tagged<string, 'Base'>
 
 export interface AnalyzeSeqResult {
-  seqName: string
-  clades: Substitutions
-  invalid: SubstringMatch[]
-  mutations: Record<number, Base>
-  insertions: Record<number, Base>
-  deletions: Record<number, Base>
+  mutations: Record<string, Base>
+  insertions: Record<string, Base>
+  deletions: Record<string, number>
   alnStart: number
   alnEnd: number
 }
 
+export interface AnalysisResult extends Readonly<AnalyzeSeqResult> {
+  seqName: string
+  clades: DeepReadonly<Substitutions>
+  invalid: DeepReadonly<SubstringMatch[]>
+}
+
 export interface AlgorithmResult {
-  result: AnalyzeSeqResult[]
+  result: DeepReadonly<AnalysisResult[]>
 }
 
 export async function run({ input, rootSeq }: AlgorithmParams): Promise<AlgorithmResult> {
@@ -55,19 +59,19 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
     })
     .filter(({ clades }) => Object.keys(clades).length !== 0)
 
-  const diagnostics = result.map(({ seqName, mutations, insertions, deletions }) => {
-    return { seqName, metrics: sequenceQC(mutations, insertions, deletions) }
-  })
-
-  console.log({ diagnostics })
-
-  // just for development:
-  const geneMap = getGeneMap()
-  result.forEach((seq) => {
-    Object.keys(seq.mutations).forEach((d) => {
-      console.log(d, getAllAminoAcidChanges(parseInt(d), seq.mutations[d], rootSeq, geneMap))
-    })
-  })
+  // const diagnostics = result.map(({ seqName, mutations, insertions, deletions }) => {
+  //   return { seqName, metrics: sequenceQC(mutations, insertions, deletions) }
+  // })
+  //
+  // console.log({ diagnostics })
+  //
+  // // just for development:
+  // const geneMap = getGeneMap()
+  // result.forEach((seq) => {
+  //   Object.keys(seq.mutations).forEach((d) => {
+  //     console.log(d, getAllAminoAcidChanges(parseInt(d), seq.mutations[d], rootSeq, geneMap))
+  //   })
+  // })
 
   return { result }
 }

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import ReactResizeDetector from 'react-resize-detector'
 
-import type { AnalyzeSeqResult } from 'src/algorithms/run'
+import type { AnalysisResult } from 'src/algorithms/run'
 
 import type { MutationElementWithId, MutationElement, InvalidElementWithId, InvalidElement } from './types'
 import { InvalidTooltip } from './InvalidTooltip'
@@ -22,7 +22,7 @@ export function getInvalidIdentifier({ seqName, character, begin, end }: Invalid
 }
 
 export interface SequenceViewProps {
-  sequence: AnalyzeSeqResult
+  sequence: AnalysisResult
 }
 
 export function SequenceView({ sequence }: SequenceViewProps) {

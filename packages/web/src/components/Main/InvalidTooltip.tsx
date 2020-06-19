@@ -3,12 +3,12 @@ import React from 'react'
 import { Popover, PopoverBody } from 'reactstrap'
 
 import type { InvalidElementWithId } from 'src/components/Main/types'
-import type { AnalyzeSeqResult } from 'src/algorithms/run'
+import type { AnalysisResult } from 'src/algorithms/run'
 
 import { formatRange } from './formatRange'
 
 export interface InvalidTooltipProps {
-  sequence: AnalyzeSeqResult
+  sequence: AnalysisResult
   inv: InvalidElementWithId
 }
 

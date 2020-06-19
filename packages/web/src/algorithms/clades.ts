@@ -1,6 +1,8 @@
-import type { Substitutions } from "./run";
+import { DeepReadonly } from 'ts-essentials'
 
-export const CLADES: Substitutions = {
+import type { Substitutions } from './run'
+
+export const CLADES: DeepReadonly<Substitutions> = {
   '19A': [
     { pos: 8782, allele: 'C' },
     { pos: 14408, allele: 'C' },
@@ -28,4 +30,4 @@ export const CLADES: Substitutions = {
     { pos: 23403, allele: 'G' },
     { pos: 25563, allele: 'T' },
   ],
-}
+} as const

@@ -3,10 +3,10 @@ import React from 'react'
 import { Popover, PopoverBody } from 'reactstrap'
 
 import type { MutationElementWithId } from 'src/components/Main/types'
-import type { AnalyzeSeqResult } from 'src/algorithms/run'
+import type { AnalysisResult } from 'src/algorithms/run'
 
 export interface MutationTooltipProps {
-  sequence: AnalyzeSeqResult
+  sequence: AnalysisResult
   mutation: MutationElementWithId
 }
 

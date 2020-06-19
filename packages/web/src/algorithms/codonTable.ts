@@ -63,4 +63,4 @@ export const codonTable = {
   TTC: 'F',
   TTG: 'L',
   TTT: 'F',
-}
+} as const

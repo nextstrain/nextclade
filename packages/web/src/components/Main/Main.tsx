@@ -11,7 +11,7 @@ import { EXPORT_FILENAME } from 'src/constants'
 import { Uploader } from 'src/components/Uploader/Uploader'
 import { saveFile } from 'src/helpers/saveFile'
 
-import { AnalyzeSeqResult } from 'src/algorithms/run'
+import { AnalysisResult } from 'src/algorithms/run'
 import { runInWorker } from 'src/algorithms/runInWorker'
 
 import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
@@ -23,7 +23,7 @@ export function Main() {
   const { t } = useTranslation()
   const [rootSeq] = useState(DEFAULT_ROOT_SEQUENCE)
   const [inputCurrent, setInputCurrent] = useState(DEFAULT_INPUT)
-  const [result, setResult] = useState<AnalyzeSeqResult[]>([])
+  const [result, setResult] = useState<AnalysisResult[]>([])
 
   const hangleSequenceChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setResult([])
