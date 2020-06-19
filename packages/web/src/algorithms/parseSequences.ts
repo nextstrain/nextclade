@@ -27,7 +27,6 @@ export function addSequence(
 
 export function parseSequences(input: string) {
   const lines = input.split('\n')
-
   let currentSeqName = ''
   let currentSeq = ''
   const seqs: Record<string, string> = {}
@@ -43,7 +42,7 @@ export function parseSequences(input: string) {
       currentSeqName = line.substring(1, line.length)
       currentSeq = ''
     } else {
-      currentSeq += line.toUpperCase()
+      currentSeq += line.toUpperCase().replace('-', '')
     }
   }
 

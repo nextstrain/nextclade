@@ -60,5 +60,5 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
       nDel++
     }
   })
-  return { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore: score }
+  return { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore: score, alignedQuery: query.join('') }
 }
