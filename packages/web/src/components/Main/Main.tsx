@@ -18,6 +18,8 @@ import { runInWorker } from 'src/algorithms/runInWorker'
 import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
 import DEFAULT_ROOT_SEQUENCE from 'src/assets/data/defaultRootSequence.txt'
 
+import { ReactComponent as CladeSchema } from 'src/assets/img/Nextstrain_ncov_clades-20B1tip.svg'
+
 import { Result } from './Result'
 
 export function Main() {
@@ -108,6 +110,28 @@ export function Main() {
             <Row>
               <Col>
                 <Result result={result} />
+              </Col>
+            </Row>
+            <Row>
+              <Col lg={4} className="pr-1">
+                <Card>
+                  <CardBody>
+                    <figure>
+                      <picture className="d-flex">
+                        <CladeSchema height={200} />
+                      </picture>
+                      <figcaption>
+                        <div>{t(`TODO: Caption for the tree of clades.`)}</div>
+                        <div>{t(`Source: nexstrain.org`)}</div>
+                      </figcaption>
+                    </figure>
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col lg={8} className="pl-1">
+                <Card className="h-100">
+                  <CardBody>{'Something here'}</CardBody>
+                </Card>
               </Col>
             </Row>
           </CardBody>
