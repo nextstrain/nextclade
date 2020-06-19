@@ -1,5 +1,5 @@
+import { canonicalNucleotides } from './nucleotideCodes';
 import { alignPairwise } from './alignPairwise'
-
 import type { AnalyzeSeqResult, Base } from './run'
 
 export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
@@ -50,7 +50,7 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
       }
       alnEnd = i
     }
-    if (d !== '-' && d !== rootSeq[i] && d !== 'N') {
+    if (d !== '-' && d !== rootSeq[i] && canonicalNucleotides.has(d)) {
       mutations[i] = d as Base
     } else if (d === '-' && !beforeAlignment) {
       if (!nDel) {

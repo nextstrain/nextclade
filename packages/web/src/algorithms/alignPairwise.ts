@@ -1,3 +1,5 @@
+import { isMatch } from './nucleotideCodes'
+
 /* eslint-disable unicorn/prefer-string-slice */
 
 interface SeedMatch {
@@ -131,7 +133,8 @@ function scoreMatrix(query: string, ref: string, bandWidth: number, meanShift: n
       qPos = ri - shift
       // if the shifted position is within the query sequence
       if (qPos >= 0 && qPos < query.length) {
-        tmpMatch = ref[ri] === query[qPos] || query[qPos] === 'N' ? match : misMatch
+        tmpMatch = isMatch(query[qPos], ref[ri]) ? match : misMatch
+
         rGapOpen = si < 2 * bandWidth ? (paths[si + 1][ri + 1] === 2 ? 0 : gapOpen) : 0
         qGapOpen = si > 0 ? (paths[si - 1][ri] === 3 ? 0 : gapOpen) : 0
         cmp = [
