@@ -49,8 +49,7 @@ export interface AlgorithmResult {
 }
 
 export async function run({ input, rootSeq }: AlgorithmParams): Promise<AlgorithmResult> {
-  const lines = input.split('\n')
-  const parsedSequences = parseSequences(lines)
+  const parsedSequences = parseSequences(input)
 
   const result = Object.entries(parsedSequences)
     .map(([seqName, seq]) => {

@@ -170,6 +170,7 @@ module.exports = {
         'no-loops/no-loops': 'off',
         'no-plusplus': 'off',
         'sonarjs/cognitive-complexity': 'off',
+        'unicorn/no-for-loop': 'off',
       },
     },
     {

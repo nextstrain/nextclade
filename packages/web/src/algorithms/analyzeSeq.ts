@@ -1,7 +1,6 @@
 import { alignPairwise } from './alignPairwise'
 
-import type { AnalyzeSeqResult } from './run'
-import { Base } from './run'
+import type { AnalyzeSeqResult, Base } from './run'
 
 export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
   const { query, ref, score } = alignPairwise(seq, rootSeq)
