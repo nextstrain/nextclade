@@ -38,12 +38,28 @@ export interface AnalyzeSeqResult {
   alignedQuery: string
 }
 
-export interface AnalysisResult extends Readonly<AnalyzeSeqResult> {
+export interface ClusteredSNPs {
+  start: number
+  end: number
+  numberOfSNPs: number
+}
+
+export interface QCDiagnostics {
+  totalNumberOfMutations: number
+  clusteredSNPs: ClusteredSNPs[]
+}
+
+export interface QCResult {
+  flags: string[]
+  diagnostics: QCDiagnostics
+}
+
+export interface AnalysisResult extends DeepReadonly<AnalyzeSeqResult> {
   seqName: string
   clades: DeepReadonly<Substitutions>
   invalid: DeepReadonly<SubstringMatch[]>
   aminoacidSubstitutions: DeepReadonly<AminoacidSubstitutions[]>
-  diagnostics: any
+  diagnostics: DeepReadonly<QCResult>
 }
 
 export interface AlgorithmResult {
@@ -67,7 +83,7 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
 
     const diagnostics = sequenceQC(mutations, insertions, deletions)
 
-    return {
+    return Object.freeze({
       seqName,
       clades,
       invalid,
@@ -77,9 +93,10 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
       alnStart,
       alnEnd,
       alignmentScore,
+      alignedQuery,
       aminoacidSubstitutions,
       diagnostics,
-    }
+    })
   })
 
   return { result }

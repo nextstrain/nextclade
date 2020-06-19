@@ -1,10 +1,13 @@
+import type { Base, QCDiagnostics, QCResult } from './run'
+
 const TooHighDivergence = 'too high divergence'
 const ClusteredSNPs = 'clustered SNPs'
 const MissingData = 'missing data'
 
+// TODO: verify duplicated numbers in this Set. Probably a typo.
 const knownClusters = new Set([28881, 28881, 28883])
 
-function findSNPClusters(mutations) {
+function findSNPClusters(mutations: Record<string, Base>) {
   const windowSize = 100 // window along the genome to look for a cluster
   const clusterCutOff = 6 // number of mutations within that window to trigger a cluster
 
@@ -16,8 +19,8 @@ function findSNPClusters(mutations) {
 
   // loop over all mutations and count how many fall into the clusters
   let previousPos = -1
-  const currentCluster = []
-  const allClusters = []
+  const currentCluster: number[] = []
+  const allClusters: number[][] = []
   positions.forEach((pos) => {
     currentCluster.push(pos)
     while (currentCluster[0] < pos - windowSize) {
@@ -42,10 +45,14 @@ function findSNPClusters(mutations) {
   return allClusters
 }
 
-export function sequenceQC(mutations, insertions, deletions) {
+export function sequenceQC(
+  mutations: Record<string, Base>,
+  insertions: Record<string, Base>,
+  deletions: Record<string, number>,
+): QCResult {
   const divergenceThreshold = 15
   const flags = []
-  const diagnostics = { ClusteredSNPs: [] }
+  const diagnostics: QCDiagnostics = { totalNumberOfMutations: 0, clusteredSNPs: [] }
   diagnostics.totalNumberOfMutations =
     Object.keys(mutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
@@ -57,7 +64,7 @@ export function sequenceQC(mutations, insertions, deletions) {
 
   if (snpClusters.length) {
     snpClusters.forEach((cluster) => {
-      diagnostics.ClusteredSNPs.push({
+      diagnostics.clusteredSNPs.push({
         start: cluster[0],
         end: cluster[cluster.length - 1],
         numberOfSNPs: cluster.length,
