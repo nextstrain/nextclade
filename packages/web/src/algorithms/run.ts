@@ -3,14 +3,12 @@ import { pickBy } from 'lodash'
 import { CLADES } from 'src/algorithms/clades'
 import { parseSequences } from 'src/algorithms/parseSequences'
 import { isSequenceInClade } from 'src/algorithms/isSequenceInClade'
-import { analyzeSeq } from 'src/algorithms/analyzeSeq'
 import { sequenceQC } from 'src/algorithms/sequenceQC'
 import { analyzeSeq, getAllAminoAcidChanges } from 'src/algorithms/analyzeSeq'
 import { getGeneMap } from 'src/components/Main/getGeneMap'
-import { Tagged } from 'src/helpers/types'
-import { multiValueCSS } from 'react-select/src/components/MultiValue'
+import type { Tagged } from 'src/helpers/types'
+
 import { findCharacterRanges, SubstringMatch } from './findCharacterRanges'
-import { object } from 'prop-types'
 
 export interface AlgorithmParams {
   rootSeq: string
