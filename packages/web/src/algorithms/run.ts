@@ -79,7 +79,5 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
     })
     .filter(({ clades }) => Object.keys(clades).length !== 0)
 
-  console.log(require('util').inspect(result, { colors: true, depth: null }))
-
   return { result }
 }
