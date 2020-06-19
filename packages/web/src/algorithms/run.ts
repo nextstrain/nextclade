@@ -35,6 +35,7 @@ export interface AnalyzeSeqResult {
   alnStart: number
   alnEnd: number
   alignmentScore: number
+  alignedQuery: string
 }
 
 export interface AnalysisResult extends Readonly<AnalyzeSeqResult> {
@@ -52,33 +53,31 @@ export interface AlgorithmResult {
 export async function run({ input, rootSeq }: AlgorithmParams): Promise<AlgorithmResult> {
   const parsedSequences = parseSequences(input)
 
-  const result = Object.entries(parsedSequences)
-    .map(([seqName, seq]) => {
-      const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore } = analyzeSeq(seq, rootSeq)
+  const result = Object.entries(parsedSequences).map(([seqName, seq]) => {
+    const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore, alignedQuery } = analyzeSeq(seq, rootSeq)
 
-      const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
+    const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
 
-      const invalid = findCharacterRanges(seq, 'N-')
+    const invalid = findCharacterRanges(alignedQuery, 'N')
 
-      const aminoacidSubstitutions = getAllAminoAcidChanges(mutations, rootSeq, geneMap)
+    const aminoacidSubstitutions = getAllAminoAcidChanges(mutations, rootSeq, geneMap)
 
-      const diagnostics = sequenceQC(mutations, insertions, deletions)
+    const diagnostics = sequenceQC(mutations, insertions, deletions)
 
-      return {
-        seqName,
-        clades,
-        invalid,
-        mutations,
-        insertions,
-        deletions,
-        alnStart,
-        alnEnd,
-        alignmentScore,
-        aminoacidSubstitutions,
-        diagnostics,
-      }
-    })
-    .filter(({ clades }) => Object.keys(clades).length !== 0)
+    return {
+      seqName,
+      clades,
+      invalid,
+      mutations,
+      insertions,
+      deletions,
+      alnStart,
+      alnEnd,
+      alignmentScore,
+      aminoacidSubstitutions,
+      diagnostics,
+    }
+  })
 
   return { result }
 }
