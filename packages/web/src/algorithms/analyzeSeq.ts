@@ -17,8 +17,7 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
       }
       ins += query[i]
     } else {
-      // TODO: verify the conditional here. (Note, `'' === true`)
-      if (ins) {
+      if (ins.length > 0) {
         insertions[insStart] = ins as Base
         ins = ''
       }
