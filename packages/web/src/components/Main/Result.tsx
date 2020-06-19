@@ -79,13 +79,12 @@ export function SequenceQCStatus({ sequence }: SequenceQCStatusProps) {
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
-        {diagnostics.flags.length > 0 ? "FAIL" : "PASS" }
+        {diagnostics.flags.length > 0 ? 'FAIL' : 'PASS'}
       </td>
       <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
     </>
   )
 }
-
 
 export function SequenceNs({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)

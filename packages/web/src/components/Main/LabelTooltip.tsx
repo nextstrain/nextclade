@@ -66,7 +66,7 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   })
 
   let flags
-  if (diagnostics.flags.length > 0){
+  if (diagnostics.flags.length > 0) {
     flags = diagnostics.flags.map((flag) => {
       return <li key={flag}>{flag}</li>
     })

@@ -1,4 +1,4 @@
-import { canonicalNucleotides } from './nucleotideCodes';
+import { canonicalNucleotides } from './nucleotideCodes'
 import { alignPairwise } from './alignPairwise'
 import type { AnalyzeSeqResult, Base } from './run'
 

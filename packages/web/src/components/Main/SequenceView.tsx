@@ -73,11 +73,11 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         })
 
         const deletionViews = Object.keys(deletions).map((del) => {
-          const begin = parseInt(del)
+          const begin = Number.parseInt(del)
           const length = deletions[del]
           const end = begin + length
-          const id = getInvalidIdentifier({ seqName, character:"-", begin, end })
-          const delWithId: InvalidElementWithId = { id, seqName, character:"-", begin, end }
+          const id = getInvalidIdentifier({ seqName, character: '-', begin, end })
+          const delWithId: InvalidElementWithId = { id, seqName, character: '-', begin, end }
 
           return (
             <InvalidView
@@ -89,7 +89,6 @@ export function SequenceView({ sequence }: SequenceViewProps) {
             />
           )
         })
-
 
         return (
           <div className="sequence-view-wrapper d-inline-flex">

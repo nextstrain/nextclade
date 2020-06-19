@@ -54,7 +54,10 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
   const parsedSequences = parseSequences(input)
 
   const result = Object.entries(parsedSequences).map(([seqName, seq]) => {
-    const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore, alignedQuery } = analyzeSeq(seq, rootSeq)
+    const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore, alignedQuery } = analyzeSeq(
+      seq,
+      rootSeq,
+    )
 
     const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
 
