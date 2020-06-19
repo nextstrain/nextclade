@@ -1,16 +1,16 @@
 import { pickBy } from 'lodash'
+import { DeepReadonly } from 'ts-essentials'
 
-import { getGeneMap } from 'src/components/Main/getGeneMap' // FIXME
 import type { Tagged } from 'src/helpers/types'
 
 import { CLADES } from './clades'
+import { geneMap } from './geneMap'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
 import { sequenceQC } from './sequenceQC'
 import { analyzeSeq } from './analyzeSeq'
 import { findCharacterRanges, SubstringMatch } from './findCharacterRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
-import { DeepReadonly } from 'ts-essentials'
 
 export interface AlgorithmParams {
   rootSeq: string
@@ -59,19 +59,19 @@ export async function run({ input, rootSeq }: AlgorithmParams): Promise<Algorith
     })
     .filter(({ clades }) => Object.keys(clades).length !== 0)
 
-  // const diagnostics = result.map(({ seqName, mutations, insertions, deletions }) => {
-  //   return { seqName, metrics: sequenceQC(mutations, insertions, deletions) }
-  // })
-  //
-  // console.log({ diagnostics })
-  //
-  // // just for development:
-  // const geneMap = getGeneMap()
-  // result.forEach((seq) => {
-  //   Object.keys(seq.mutations).forEach((d) => {
-  //     console.log(d, getAllAminoAcidChanges(parseInt(d), seq.mutations[d], rootSeq, geneMap))
-  //   })
-  // })
+  const diagnostics = result.map(({ seqName, mutations, insertions, deletions }) => {
+    return { seqName, metrics: sequenceQC(mutations, insertions, deletions) }
+  })
+
+  console.log({ diagnostics })
+
+  // just for development:
+
+  result.forEach((seq) => {
+    Object.keys(seq.mutations).forEach((d) => {
+      console.log(d, getAllAminoAcidChanges(parseInt(d), seq.mutations[d], rootSeq, geneMap))
+    })
+  })
 
   return { result }
 }

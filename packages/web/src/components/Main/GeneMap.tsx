@@ -3,10 +3,8 @@ import React, { SVGProps, useState } from 'react'
 import ReactResizeDetector from 'react-resize-detector'
 
 import { BASE_MIN_WIDTH_PX, GENOME_SIZE } from 'src/components/Main/SequenceView'
-import { GeneMapDatum, getGeneMap } from 'src/components/Main/getGeneMap'
+import { GeneMapDatum, geneMap } from 'src/algorithms/geneMap'
 import { GeneTooltip } from './GeneTooltip'
-
-const geneMap = getGeneMap()
 
 export interface GeneViewProps extends SVGProps<SVGRectElement> {
   gene: GeneMapDatum

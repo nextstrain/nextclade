@@ -14,7 +14,7 @@ export interface GeneMapDatum {
   strand: string
 }
 
-export function getGeneMap(): GeneMapDatum[] {
+function getGeneMap(): GeneMapDatum[] {
   const geneMap = get(geneMapRaw, 'genome_annotations')
 
   return Object.entries(geneMap).map(([name, geneData]) => ({
@@ -23,3 +23,5 @@ export function getGeneMap(): GeneMapDatum[] {
     ...geneData,
   }))
 }
+
+export const geneMap = getGeneMap()

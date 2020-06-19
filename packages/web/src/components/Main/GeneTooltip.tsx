@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { GeneMapDatum } from 'src/components/Main/getGeneMap'
+import { GeneMapDatum } from 'src/algorithms/geneMap'
 import { Popover, PopoverBody } from 'reactstrap'
 import { getGeneId } from 'src/components/Main/GeneMap'
 import { formatRange } from 'src/components/Main/formatRange'
