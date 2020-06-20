@@ -131,23 +131,30 @@ function scoreMatrix(query: string, ref: string, bandWidth: number, meanShift: n
     for (si = 2 * bandWidth; si >= 0; si--) {
       shift = indexToShift(si)
       qPos = ri - shift
-      // if the shifted position is within the query sequence
-      if (qPos >= 0 && qPos < query.length) {
+
+      if (qPos < 0) {
+        // preceeds query sequence -- no score, origin is query gap
+        score = 0
+        origin = 3
+      } else if (qPos < query.length) {
+        // if the shifted position is within the query sequence
         tmpMatch = isMatch(query[qPos], ref[ri]) ? match : misMatch
 
+        // determine whether the previous move was a reference or query gap
         rGapOpen = si < 2 * bandWidth ? (paths[si + 1][ri + 1] === 2 ? 0 : gapOpen) : 0
         qGapOpen = si > 0 ? (paths[si - 1][ri] === 3 ? 0 : gapOpen) : 0
+
+        // calculate scores
         cmp = [
           0, // unaligned
           scores[si][ri] + tmpMatch, // match -- shift stays the same
           si < 2 * bandWidth ? scores[si + 1][ri + 1] + gapExtend + rGapOpen : gapExtend, // putting a gap into ref
           si > 0 ? scores[si - 1][ri] + gapExtend + qGapOpen : gapExtend, // putting a gap into query
         ]
+        // determine best move and best score
         ;[origin, score] = argmax(cmp)
-      } else if (qPos < 0) {
-        score = 0
-        origin = 3
       } else {
+        // past query sequence -- mark as sequence end
         score = END_OF_SEQUENCE
         origin = END_OF_SEQUENCE
       }
@@ -155,6 +162,7 @@ function scoreMatrix(query: string, ref: string, bandWidth: number, meanShift: n
       scores[si][ri + 1] = score
     }
   }
+
   return { scores, paths }
 }
 
