@@ -45,10 +45,26 @@ function findSNPClusters(mutations: Record<string, Base>) {
   return allClusters
 }
 
+function getNucleotideComposition(alignedQuery: string): Record<string, number> {
+  const result: Record<string, number> = {}
+  let char = ''
+  for (let i = 0; i < alignedQuery.length; i++) {
+    char = alignedQuery[i]
+    if (result[char] === undefined) {
+      result[char] = 1
+    } else {
+      result[char]++
+    }
+  }
+  return result
+}
+
+
 export function sequenceQC(
   mutations: Record<string, Base>,
   insertions: Record<string, Base>,
   deletions: Record<string, number>,
+  alignedQuery: string,
 ): QCResult {
   const divergenceThreshold = 15
   const flags = []
@@ -72,6 +88,7 @@ export function sequenceQC(
     })
     flags.push(ClusteredSNPs)
   }
-
-  return { flags, diagnostics }
+  const nucleotideComposition = getNucleotideComposition(alignedQuery)
+  console.log(nucleotideComposition)
+  return { flags, diagnostics, nucleotideComposition }
 }

@@ -52,6 +52,7 @@ export interface QCDiagnostics {
 export interface QCResult {
   flags: string[]
   diagnostics: QCDiagnostics
+  nucleotideComposition: Record<string, number>
 }
 
 export interface AnalysisResult extends DeepReadonly<AnalyzeSeqResult> {
@@ -85,7 +86,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalyzePrams) {
 
   const aminoacidSubstitutions = getAllAminoAcidChanges(mutations, rootSeq, geneMap)
 
-  const diagnostics = sequenceQC(mutations, insertions, deletions)
+  const diagnostics = sequenceQC(mutations, insertions, deletions, alignedQuery)
 
   return Object.freeze({
     seqName,
