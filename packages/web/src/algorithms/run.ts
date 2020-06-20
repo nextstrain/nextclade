@@ -46,6 +46,7 @@ export interface ClusteredSNPs {
 
 export interface QCDiagnostics {
   totalNumberOfMutations: number
+  totalMixedSites: number
   clusteredSNPs: ClusteredSNPs[]
 }
 

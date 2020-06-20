@@ -9,6 +9,7 @@ import { Axis } from 'src/components/Main/Axis'
 import { GENOME_SIZE, SequenceView } from './SequenceView'
 import { calculateNucleotidesTotals, getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
+import { scryRenderedDOMComponentsWithClass } from 'react-dom/test-utils'
 
 export interface SequenceLabelProps {
   sequence: AnalysisResult
@@ -86,6 +87,24 @@ export function SequenceQCStatus({ sequence }: SequenceQCStatusProps) {
   )
 }
 
+export function SequenceNonACGTNs({ sequence }: SequenceCladeProps) {
+  const { diagnostics, seqName } = sequence
+  const id = getSequenceIdentifier(seqName)
+  const goodBases = new Set(['A', 'C', 'G', 'T', 'N', '-'])
+  const nonACGTN = Object.keys(diagnostics.nucleotideComposition)
+    .filter((d) => !goodBases.has(d))
+    .reduce((a, b) => a + diagnostics.nucleotideComposition[b], 0)
+
+    return (
+    <>
+      <td id={id} className="results-table-col results-table-col-clade">
+        {nonACGTN}
+      </td>
+    </>
+  )
+}
+
+
 export function SequenceNs({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
@@ -150,6 +169,7 @@ export function Result({ result }: ResultProps) {
         <SequenceLabel sequence={sequence} />
         <SequenceQCStatus sequence={sequence} />
         <SequenceClade sequence={sequence} />
+        <SequenceNonACGTNs sequence={sequence} />
         <SequenceNs sequence={sequence} />
         <SequenceGaps sequence={sequence} />
         <td className="results-table-col results-table-col-mutations">
@@ -167,6 +187,7 @@ export function Result({ result }: ResultProps) {
             <th className="results-table-header">{t('Sequence name')}</th>
             <th className="results-table-header">{t('QC')}</th>
             <th className="results-table-header">{t('Clades')}</th>
+            <th className="results-table-header">{t('non-ACGTN')}</th>
             <th className="results-table-header">{t('Ns')}</th>
             <th className="results-table-header">{t('Gaps')}</th>
             <th className="results-table-header">{t('Mutations')}</th>
@@ -180,11 +201,13 @@ export function Result({ result }: ResultProps) {
             <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
+            <td className="results-table-col" />
             <td className="results-table-col results-table-col-gene-map">
               <GeneMap />
             </td>
           </tr>
           <tr className="results-table-row">
+            <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />

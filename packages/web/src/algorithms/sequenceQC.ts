@@ -1,7 +1,8 @@
-import type { Base, QCDiagnostics, QCResult } from './run'
+import type { Base, QCDiagnostics, QCResult, ClusteredSNPs } from './run'
 
 const TooHighDivergence = 'too high divergence'
-const ClusteredSNPs = 'clustered SNPs'
+const ClusteredSNPsFlag = 'clustered SNPs'
+const TooManyMixedSites = 'Too many non-ACGT characters'
 // const MissingData = 'missing data'
 
 // TODO: verify duplicated numbers in this Set. Probably a typo.
@@ -67,28 +68,36 @@ export function sequenceQC(
   alignedQuery: string,
 ): QCResult {
   const divergenceThreshold = 15
-  const flags = []
-  const diagnostics: QCDiagnostics = { totalNumberOfMutations: 0, clusteredSNPs: [] }
-  diagnostics.totalNumberOfMutations =
+  const mixedSitesThreshold = 10
+  const flags: string[] = []
+
+  const totalNumberOfMutations =
     Object.keys(mutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
-  if (diagnostics.totalNumberOfMutations > divergenceThreshold) {
+  if (totalNumberOfMutations > divergenceThreshold) {
     flags.push(TooHighDivergence)
   }
 
   const snpClusters = findSNPClusters(mutations)
-
+  const clusteredSNPs: ClusteredSNPs[] = []
   if (snpClusters.length > 0) {
     snpClusters.forEach((cluster) => {
-      diagnostics.clusteredSNPs.push({
+      clusteredSNPs.push({
         start: cluster[0],
         end: cluster[cluster.length - 1],
         numberOfSNPs: cluster.length,
       })
     })
-    flags.push(ClusteredSNPs)
+    flags.push(ClusteredSNPsFlag)
   }
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
-  console.log(nucleotideComposition)
+  const goodBases = new Set(['A', 'C', 'G', 'T', 'N', '-'])
+  const totalMixedSites = Object.keys(nucleotideComposition)
+    .filter((d) => !goodBases.has(d))
+    .reduce((a, b) => a + nucleotideComposition[b], 0)
+  if (totalMixedSites > mixedSitesThreshold) {
+    flags.push(TooManyMixedSites)
+  }
+  const diagnostics: QCDiagnostics = { clusteredSNPs, totalMixedSites, totalNumberOfMutations }
   return { flags, diagnostics, nucleotideComposition }
 }
