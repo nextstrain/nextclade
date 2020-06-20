@@ -3,7 +3,7 @@ import type { Base, QCDiagnostics, QCResult, ClusteredSNPs } from './run'
 const TooHighDivergence = 'too high divergence'
 const ClusteredSNPsFlag = 'clustered SNPs'
 const TooManyMixedSites = 'Too many non-ACGT characters'
-// const MissingData = 'missing data'
+const MissingData = 'missing data'
 
 // TODO: verify duplicated numbers in this Set. Probably a typo.
 const knownClusters = new Set([28881, 28881, 28883])
@@ -69,6 +69,7 @@ export function sequenceQC(
 ): QCResult {
   const divergenceThreshold = 15
   const mixedSitesThreshold = 10
+  const missingDataThreshold = 1000
   const flags: string[] = []
 
   const totalNumberOfMutations =
@@ -98,6 +99,11 @@ export function sequenceQC(
   if (totalMixedSites > mixedSitesThreshold) {
     flags.push(TooManyMixedSites)
   }
+
+  if (nucleotideComposition.N && nucleotideComposition.N > missingDataThreshold) {
+    flags.push(MissingData)
+  }
+
   const diagnostics: QCDiagnostics = { clusteredSNPs, totalMixedSites, totalNumberOfMutations }
   return { flags, diagnostics, nucleotideComposition }
 }
