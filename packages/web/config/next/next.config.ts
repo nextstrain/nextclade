@@ -17,7 +17,7 @@ import getWithStaticComprression from './webpackCompression'
 import getWithTypeChecking from './withTypeChecking'
 import withRaw from './withRaw'
 import withSvg from './withSvg'
-import withWorker from './withWorker'
+import withThreads from './withThreads'
 
 const BABEL_ENV = getenv('BABEL_ENV')
 const NODE_ENV = getenv('NODE_ENV')
@@ -106,7 +106,7 @@ const config = withConfig(
     [
       [withEnvironment],
       [withExtraWatch],
-      [withWorker],
+      [withThreads],
       [withSvg],
       [withRaw],
       // ANALYZE && [withBundleAnalyzer],

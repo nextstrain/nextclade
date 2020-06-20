@@ -66,38 +66,39 @@ export interface AlgorithmResult {
   result: DeepReadonly<AnalysisResult[]>
 }
 
-export async function run({ input, rootSeq }: AlgorithmParams): Promise<AlgorithmResult> {
-  const parsedSequences = parseSequences(input)
+export function parse(input: string) {
+  return parseSequences(input)
+}
 
-  const result = Object.entries(parsedSequences).map(([seqName, seq]) => {
-    const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore, alignedQuery } = analyzeSeq(
-      seq,
-      rootSeq,
-    )
+export interface AnalyzePrams {
+  seqName: string
+  seq: string
+  rootSeq: string
+}
 
-    const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
+export function analyze({ seqName, seq, rootSeq }: AnalyzePrams) {
+  const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore, alignedQuery } = analyzeSeq(seq, rootSeq)
 
-    const invalid = findCharacterRanges(alignedQuery, 'N')
+  const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
 
-    const aminoacidSubstitutions = getAllAminoAcidChanges(mutations, rootSeq, geneMap)
+  const invalid = findCharacterRanges(alignedQuery, 'N')
 
-    const diagnostics = sequenceQC(mutations, insertions, deletions)
+  const aminoacidSubstitutions = getAllAminoAcidChanges(mutations, rootSeq, geneMap)
 
-    return Object.freeze({
-      seqName,
-      clades,
-      invalid,
-      mutations,
-      insertions,
-      deletions,
-      alnStart,
-      alnEnd,
-      alignmentScore,
-      alignedQuery,
-      aminoacidSubstitutions,
-      diagnostics,
-    })
+  const diagnostics = sequenceQC(mutations, insertions, deletions)
+
+  return Object.freeze({
+    seqName,
+    clades,
+    invalid,
+    mutations,
+    insertions,
+    deletions,
+    alnStart,
+    alnEnd,
+    alignmentScore,
+    alignedQuery,
+    aminoacidSubstitutions,
+    diagnostics,
   })
-
-  return { result }
 }
