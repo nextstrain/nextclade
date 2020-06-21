@@ -1,5 +1,13 @@
+interface QCParameters {
+  knownClusters: Set<number>
+  windowSize: number
+  clusterCutOff: number
+  divergenceThreshold: number
+  mixedSitesThreshold: number
+  missingDataThreshold: number
+}
 
-export const QCParams = {
+export const QCParams: QCParameters = {
   knownClusters: new Set([28881, 28882, 28883]),
   windowSize: 100, // window along the genome to look for a cluster
   clusterCutOff: 6, // number of mutations within that window to trigger a cluster
