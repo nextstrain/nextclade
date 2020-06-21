@@ -5,8 +5,7 @@ const ClusteredSNPsFlag = 'clustered SNPs'
 const TooManyMixedSites = 'Too many non-ACGT characters'
 const MissingData = 'missing data'
 
-// TODO: verify duplicated numbers in this Set. Probably a typo.
-const knownClusters = new Set([28881, 28881, 28883])
+const knownClusters = new Set([28881, 28882, 28883])
 
 function findSNPClusters(mutations: Record<string, Base>) {
   const windowSize = 100 // window along the genome to look for a cluster
