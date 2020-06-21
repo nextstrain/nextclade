@@ -1,6 +1,6 @@
 import { canonicalNucleotides } from './nucleotideCodes'
 import { alignPairwise } from './alignPairwise'
-import type { AnalyzeSeqResult, Base } from './run'
+import type { AnalyzeSeqResult, Base } from './types'
 
 export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
   const { query, ref, score } = alignPairwise(seq, rootSeq)

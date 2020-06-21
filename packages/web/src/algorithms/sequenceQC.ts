@@ -1,5 +1,5 @@
-import type { Base, QCDiagnostics, QCResult, ClusteredSNPs } from './run'
-import { QCParams } from './SARS-CoV-2_parameters'
+import type { Base, QCDiagnostics, QCResult, ClusteredSNPs } from './types'
+import { SARSCOV2 } from './SARS-CoV-2_parameters'
 
 const TooHighDivergence = 'too high divergence'
 const ClusteredSNPsFlag = 'clustered SNPs'
@@ -10,7 +10,7 @@ function findSNPClusters(mutations: Record<string, Base>) {
   // turn mutation keys into positions, exclude known clusters, and sort
   const positions = Object.keys(mutations)
     .map((pos) => Number.parseInt(pos, 10))
-    .filter((pos) => !QCParams.knownClusters.has(pos))
+    .filter((pos) => !SARSCOV2.QCParams.knownClusters.has(pos))
     .sort((a, b) => a - b)
 
   // loop over all mutations and count how many fall into the clusters
@@ -19,10 +19,10 @@ function findSNPClusters(mutations: Record<string, Base>) {
   const allClusters: number[][] = []
   positions.forEach((pos) => {
     currentCluster.push(pos)
-    while (currentCluster[0] < pos - QCParams.windowSize) {
+    while (currentCluster[0] < pos - SARSCOV2.QCParams.windowSize) {
       currentCluster.shift()
     }
-    if (currentCluster.length > QCParams.clusterCutOff) {
+    if (currentCluster.length > SARSCOV2.QCParams.clusterCutOff) {
       // if the cluster grows uninterrupted, add to the previous cluster
       if (
         allClusters.length > 0 &&
@@ -67,7 +67,7 @@ export function sequenceQC(
   const totalNumberOfMutations =
     Object.keys(mutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
-  if (totalNumberOfMutations > QCParams.divergenceThreshold) {
+  if (totalNumberOfMutations > SARSCOV2.QCParams.divergenceThreshold) {
     flags.push(TooHighDivergence)
   }
 
@@ -88,11 +88,11 @@ export function sequenceQC(
   const totalMixedSites = Object.keys(nucleotideComposition)
     .filter((d) => !goodBases.has(d))
     .reduce((a, b) => a + nucleotideComposition[b], 0)
-  if (totalMixedSites > QCParams.mixedSitesThreshold) {
+  if (totalMixedSites > SARSCOV2.QCParams.mixedSitesThreshold) {
     flags.push(TooManyMixedSites)
   }
 
-  if (nucleotideComposition.N && nucleotideComposition.N > QCParams.missingDataThreshold) {
+  if (nucleotideComposition.N && nucleotideComposition.N > SARSCOV2.QCParams.missingDataThreshold) {
     flags.push(MissingData)
   }
 
