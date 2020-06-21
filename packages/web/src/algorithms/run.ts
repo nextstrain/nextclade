@@ -6,6 +6,7 @@ import { geneMap } from './geneMap'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
 import { sequenceQC } from './sequenceQC'
+import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findCharacterRanges } from './findCharacterRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
@@ -15,7 +16,10 @@ export function parse(input: string) {
 }
 
 export function analyze({ seqName, seq, rootSeq }: AnalysisParams) {
-  const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore, alignedQuery } = analyzeSeq(seq, rootSeq)
+  const { query, ref, alignmentScore } = alignPairwise(seq, rootSeq)
+  const alignedQuery = query.join('')
+
+  const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(query, ref)
 
   const clades = pickBy(SARSCOV2.clades, (clade) => isSequenceInClade(clade, mutations, rootSeq))
 
@@ -30,13 +34,13 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams) {
     clades,
     invalid,
     mutations,
+    aminoacidSubstitutions,
     insertions,
     deletions,
     alnStart,
     alnEnd,
     alignmentScore,
     alignedQuery,
-    aminoacidSubstitutions,
     diagnostics,
   })
 }

@@ -3,7 +3,7 @@ import { identity } from 'lodash'
 import { spawn, Pool, Worker } from 'threads'
 import { concurrent } from 'fasy'
 
-import type { AlgorithmParams, AlgorithmResult } from './run'
+import type { AlgorithmParams, AlgorithmResult } from './types'
 import type { ParseThread } from './worker.parse'
 import type { AnalyzeReturn, AnalyzeThread } from './worker.analyze'
 

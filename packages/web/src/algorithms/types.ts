@@ -34,7 +34,7 @@ export interface SubstringMatch {
   range: SubstringRange
 }
 
-interface QCParameters {
+export interface QCParameters {
   knownClusters: Set<number>
   windowSize: number
   clusterCutOff: number
@@ -59,8 +59,6 @@ export interface AnalyzeSeqResult {
   deletions: Record<string, number>
   alnStart: number
   alnEnd: number
-  alignmentScore: number
-  alignedQuery: string
 }
 
 export interface ClusteredSNPs {

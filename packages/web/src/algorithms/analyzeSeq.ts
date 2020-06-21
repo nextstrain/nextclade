@@ -1,10 +1,7 @@
 import { canonicalNucleotides } from './nucleotideCodes'
-import { alignPairwise } from './alignPairwise'
 import type { AnalyzeSeqResult, Base } from './types'
 
-export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
-  const { query, ref, score } = alignPairwise(seq, rootSeq)
-
+export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   // report insertions
   let refPos = 0
   let ins = ''
@@ -29,7 +26,8 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
     insertions[insStart] = ins as Base
   }
   // strip insertions relative to reference
-  const refStripped = query.filter((d, i) => ref[i] !== '-')
+  const refStrippedQuery = query.filter((d, i) => ref[i] !== '-')
+  const refStripped = ref.filter((d) => d !== '-')
 
   // report mutations
   let nDel = 0
@@ -39,7 +37,7 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
   const deletions: Record<string, number> = {}
   let alnStart = -1
   let alnEnd = -1
-  refStripped.forEach((d, i) => {
+  refStrippedQuery.forEach((d, i) => {
     if (d !== '-') {
       if (beforeAlignment) {
         alnStart = i
@@ -50,7 +48,7 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
       }
       alnEnd = i
     }
-    if (d !== '-' && d !== rootSeq[i] && canonicalNucleotides.has(d)) {
+    if (d !== '-' && d !== refStripped[i] && canonicalNucleotides.has(d)) {
       mutations[i] = d as Base
     } else if (d === '-' && !beforeAlignment) {
       if (!nDel) {
@@ -59,5 +57,5 @@ export function analyzeSeq(seq: string, rootSeq: string): AnalyzeSeqResult {
       nDel++
     }
   })
-  return { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore: score, alignedQuery: query.join('') }
+  return { mutations, insertions, deletions, alnStart, alnEnd }
 }
