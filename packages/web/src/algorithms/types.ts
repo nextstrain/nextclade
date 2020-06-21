@@ -10,7 +10,29 @@ export interface Substitutions {
   [key: string]: DeepReadonly<Substitution>[]
 }
 
+export interface AminoacidSubstitution {
+  refAA: string
+  queryAA: string
+  codon: number
+}
+
+export interface AminoacidSubstitutions {
+  position: string
+  allele: string
+  substitutions: AminoacidSubstitution[]
+}
+
 export type Base = Tagged<string, 'Base'>
+
+export interface SubstringRange {
+  begin: number
+  end: number
+}
+
+export interface SubstringMatch {
+  character: string
+  range: SubstringRange
+}
 
 interface QCParameters {
   knownClusters: Set<number>

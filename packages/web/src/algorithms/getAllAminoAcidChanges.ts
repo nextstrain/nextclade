@@ -4,7 +4,7 @@ import { inRange } from 'lodash'
 
 import { notUndefined } from 'src/helpers/notUndefined'
 
-import type { Base } from './run'
+import type { Base, AminoacidSubstitution, AminoacidSubstitutions } from './types'
 import type { GeneMapDatum } from './geneMap'
 import { getCodon } from './codonTable'
 
@@ -33,12 +33,6 @@ export function aminoAcidChange(pos: number, queryAllele: string, refSequence: s
   return { refAA, queryAA, codon }
 }
 
-export interface AminoacidSubstitution {
-  refAA: string
-  queryAA: string
-  codon: number
-}
-
 export function getAminoAcidChanges(
   pos: number,
   queryAllele: string,
@@ -46,12 +40,6 @@ export function getAminoAcidChanges(
   geneMap: GeneMapDatum[],
 ): AminoacidSubstitution[] {
   return geneMap.map((gene) => aminoAcidChange(pos, queryAllele, refSequence, gene)).filter(notUndefined)
-}
-
-export interface AminoacidSubstitutions {
-  position: string
-  allele: string
-  substitutions: AminoacidSubstitution[]
 }
 
 export function getAllAminoAcidChanges(

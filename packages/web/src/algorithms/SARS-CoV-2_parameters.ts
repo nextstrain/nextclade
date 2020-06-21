@@ -37,5 +37,5 @@ export const SARSCOV2: VirusParams = {
       { pos: 23403, allele: 'G' },
       { pos: 25563, allele: 'T' },
     ],
-  }
+  },
 } as const

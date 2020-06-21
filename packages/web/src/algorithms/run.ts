@@ -1,6 +1,6 @@
 import { pickBy } from 'lodash'
 import { SARSCOV2 } from './SARS-CoV-2_parameters'
-import { AnalysisParams } from './types'
+import type { AnalysisParams } from './types'
 
 import { geneMap } from './geneMap'
 import { parseSequences } from './parseSequences'

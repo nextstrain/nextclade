@@ -1,12 +1,4 @@
-export interface SubstringRange {
-  begin: number
-  end: number
-}
-
-export interface SubstringMatch {
-  character: string
-  range: SubstringRange
-}
+import type { SubstringMatch } from './types'
 
 export function findCharacterRanges(str: string, characters: string): SubstringMatch[] {
   if (characters.length === 0) {
