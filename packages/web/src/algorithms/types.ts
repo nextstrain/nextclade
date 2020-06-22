@@ -1,6 +1,9 @@
 import { DeepReadonly } from 'ts-essentials'
 import type { Tagged } from 'src/helpers/types'
 
+export type Nucleotide = Tagged<string, 'Nucleotide'>
+export type Aminoacid = Tagged<string, 'Aminoacid'>
+
 export interface Substitution {
   pos: number
   allele: string
@@ -11,8 +14,8 @@ export interface Substitutions {
 }
 
 export interface AminoacidSubstitution {
-  refAA: string
-  queryAA: string
+  refAA: Aminoacid
+  queryAA: Aminoacid
   codon: number
 }
 
@@ -21,8 +24,6 @@ export interface AminoacidSubstitutions {
   allele: string
   substitutions: AminoacidSubstitution[]
 }
-
-export type Nucleotide = Tagged<string, 'Nucleotide'>
 
 export interface SubstringRange {
   begin: number
