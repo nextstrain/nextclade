@@ -20,7 +20,7 @@ interface ForwardTrace {
 interface Alignment {
   query: string[]
   ref: string[]
-  score: number
+  alignmentScore: number
 }
 
 // determine the position where a particular kmer (string of length k) matches the reference sequence
@@ -245,7 +245,7 @@ function backTrace(
   return {
     query: aln.map((d) => d[0]),
     ref: aln.map((d) => d[1]),
-    score: bestScore,
+    alignmentScore: bestScore,
   }
 }
 

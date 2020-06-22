@@ -1,7 +1,5 @@
 import type { DeepReadonly } from 'ts-essentials'
-
-import type { AlgorithmResult } from './run'
-import { AlgorithmParams } from './run'
+import type { AlgorithmResult, AlgorithmParams } from './types'
 
 export interface AlgorithmWorkerInputEvent {
   data: DeepReadonly<AlgorithmParams>

@@ -1,87 +1,27 @@
 import { pickBy } from 'lodash'
-import { DeepReadonly } from 'ts-essentials'
+import { SARSCOV2 } from './SARS-CoV-2_parameters'
+import type { AnalysisParams } from './types'
 
-import type { Tagged } from 'src/helpers/types'
-
-import { CLADES } from './clades'
 import { geneMap } from './geneMap'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
 import { sequenceQC } from './sequenceQC'
+import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
-import { findCharacterRanges, SubstringMatch } from './findCharacterRanges'
-import { getAllAminoAcidChanges, AminoacidSubstitutions } from './getAllAminoAcidChanges'
-
-export interface AlgorithmParams {
-  rootSeq: string
-  input: string
-}
-
-export interface Substitution {
-  pos: number
-  allele: string
-}
-
-export interface Substitutions {
-  [key: string]: DeepReadonly<Substitution>[]
-}
-
-export type Base = Tagged<string, 'Base'>
-
-export interface AnalyzeSeqResult {
-  mutations: Record<string, Base>
-  insertions: Record<string, Base>
-  deletions: Record<string, number>
-  alnStart: number
-  alnEnd: number
-  alignmentScore: number
-  alignedQuery: string
-}
-
-export interface ClusteredSNPs {
-  start: number
-  end: number
-  numberOfSNPs: number
-}
-
-export interface QCDiagnostics {
-  totalNumberOfMutations: number
-  totalMixedSites: number
-  clusteredSNPs: ClusteredSNPs[]
-}
-
-export interface QCResult {
-  flags: string[]
-  diagnostics: QCDiagnostics
-  nucleotideComposition: Record<string, number>
-}
-
-export interface AnalysisResult extends DeepReadonly<AnalyzeSeqResult> {
-  seqName: string
-  clades: DeepReadonly<Substitutions>
-  invalid: DeepReadonly<SubstringMatch[]>
-  aminoacidSubstitutions: DeepReadonly<AminoacidSubstitutions[]>
-  diagnostics: DeepReadonly<QCResult>
-}
-
-export interface AlgorithmResult {
-  result: DeepReadonly<AnalysisResult[]>
-}
+import { findCharacterRanges } from './findCharacterRanges'
+import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
 
 export function parse(input: string) {
   return parseSequences(input)
 }
 
-export interface AnalyzePrams {
-  seqName: string
-  seq: string
-  rootSeq: string
-}
+export function analyze({ seqName, seq, rootSeq }: AnalysisParams) {
+  const { query, ref, alignmentScore } = alignPairwise(seq, rootSeq)
+  const alignedQuery = query.join('')
 
-export function analyze({ seqName, seq, rootSeq }: AnalyzePrams) {
-  const { mutations, insertions, deletions, alnStart, alnEnd, alignmentScore, alignedQuery } = analyzeSeq(seq, rootSeq)
+  const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(query, ref)
 
-  const clades = pickBy(CLADES, (clade) => isSequenceInClade(clade, mutations, rootSeq))
+  const clades = pickBy(SARSCOV2.clades, (clade) => isSequenceInClade(clade, mutations, rootSeq))
 
   const invalid = findCharacterRanges(alignedQuery, 'N')
 
@@ -94,13 +34,13 @@ export function analyze({ seqName, seq, rootSeq }: AnalyzePrams) {
     clades,
     invalid,
     mutations,
+    aminoacidSubstitutions,
     insertions,
     deletions,
     alnStart,
     alnEnd,
     alignmentScore,
     alignedQuery,
-    aminoacidSubstitutions,
     diagnostics,
   })
 }
