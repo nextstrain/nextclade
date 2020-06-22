@@ -1,10 +1,10 @@
 import type { DeepReadonly } from 'ts-essentials'
 
-import type { Base, Substitution } from './types'
+import type { Nucleotide, Substitution } from './types'
 
 export function isSequenceInClade(
   cladeAlleles: DeepReadonly<Substitution[]>,
-  mutations: Record<string, Base>,
+  mutations: Record<string, Nucleotide>,
   reference: string,
 ) {
   return cladeAlleles.every(({ allele, pos }) => {

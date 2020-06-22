@@ -1,12 +1,12 @@
 import { canonicalNucleotides } from './nucleotideCodes'
-import type { AnalyzeSeqResult, Base } from './types'
+import type { AnalyzeSeqResult, Nucleotide } from './types'
 
 export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   // report insertions
   let refPos = 0
   let ins = ''
   let insStart = -1
-  const insertions: Record<number, Base> = {}
+  const insertions: Record<number, Nucleotide> = {}
   ref.forEach((d, i) => {
     if (d === '-') {
       if (ins === '') {
@@ -15,7 +15,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
       ins += query[i]
     } else {
       if (ins.length > 0) {
-        insertions[insStart] = ins as Base
+        insertions[insStart] = ins as Nucleotide
         ins = ''
       }
       refPos += 1
@@ -23,7 +23,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   })
   // add insertion at the end of the reference if it exists
   if (ins) {
-    insertions[insStart] = ins as Base
+    insertions[insStart] = ins as Nucleotide
   }
   // strip insertions relative to reference
   const refStrippedQuery = query.filter((d, i) => ref[i] !== '-')
@@ -33,7 +33,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   let nDel = 0
   let delPos = -1
   let beforeAlignment = true
-  const substitutions: Record<string, Base> = {}
+  const substitutions: Record<string, Nucleotide> = {}
   const deletions: Record<string, number> = {}
   let alignmentStart = -1
   let alignmentEnd = -1
@@ -49,7 +49,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
       alignmentEnd = i
     }
     if (d !== '-' && d !== refStripped[i] && canonicalNucleotides.has(d)) {
-      substitutions[i] = d as Base
+      substitutions[i] = d as Nucleotide
     } else if (d === '-' && !beforeAlignment) {
       if (!nDel) {
         delPos = i

@@ -22,7 +22,7 @@ export interface AminoacidSubstitutions {
   substitutions: AminoacidSubstitution[]
 }
 
-export type Base = Tagged<string, 'Base'>
+export type Nucleotide = Tagged<string, 'Nucleotide'>
 
 export interface SubstringRange {
   begin: number
@@ -54,8 +54,8 @@ export interface AlgorithmParams {
 }
 
 export interface AnalyzeSeqResult {
-  substitutions: Record<string, Base>
-  insertions: Record<string, Base>
+  substitutions: Record<string, Nucleotide>
+  insertions: Record<string, Nucleotide>
   deletions: Record<string, number>
   alignmentStart: number
   alignmentEnd: number

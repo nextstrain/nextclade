@@ -1,4 +1,4 @@
-import type { Base, QCDiagnostics, QCResult, ClusteredSNPs } from './types'
+import type { Nucleotide, QCDiagnostics, QCResult, ClusteredSNPs } from './types'
 import { SARSCOV2 } from './SARS-CoV-2_parameters'
 
 const TooHighDivergence = 'too high divergence'
@@ -6,7 +6,7 @@ const ClusteredSNPsFlag = 'clustered SNPs'
 const TooManyMixedSites = 'Too many non-ACGT characters'
 const MissingData = 'missing data'
 
-function findSNPClusters(mutations: Record<string, Base>) {
+function findSNPClusters(mutations: Record<string, Nucleotide>) {
   // turn mutation keys into positions, exclude known clusters, and sort
   const positions = Object.keys(mutations)
     .map((pos) => Number.parseInt(pos, 10))
@@ -56,8 +56,8 @@ function getNucleotideComposition(alignedQuery: string): Record<string, number> 
 }
 
 export function sequenceQC(
-  mutations: Record<string, Base>,
-  insertions: Record<string, Base>,
+  mutations: Record<string, Nucleotide>,
+  insertions: Record<string, Nucleotide>,
   deletions: Record<string, number>,
   alignedQuery: string,
 ): QCResult {
