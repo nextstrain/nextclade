@@ -16,10 +16,16 @@ export function parse(input: string) {
 }
 
 export function analyze({ seqName, seq, rootSeq }: AnalysisParams) {
-  const { query, ref, alignmentScore } = alignPairwise(seq, rootSeq)
-  const alignedQuery = query.join('')
+  const alignment = alignPairwise(seq, rootSeq)
+  if (alignment === undefined) {
+    return {
+      seqName,
+    }
+  }
 
-  const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(query, ref)
+  const alignedQuery = alignment.query.join('')
+
+  const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(alignment.query, alignment.ref)
 
   const clades = pickBy(SARSCOV2.clades, (clade) => isSequenceInClade(clade, mutations, rootSeq))
 
@@ -39,7 +45,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams) {
     deletions,
     alnStart,
     alnEnd,
-    alignmentScore,
+    alignmentScore: alignment.alignmentScore,
     alignedQuery,
     diagnostics,
   })

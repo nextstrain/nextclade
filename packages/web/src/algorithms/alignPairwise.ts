@@ -1,4 +1,5 @@
 import { isMatch } from './nucleotideCodes'
+import { NonceProvider } from 'react-select'
 
 /* eslint-disable unicorn/prefer-string-slice */
 
@@ -43,7 +44,7 @@ function seedMatch(kmer: string, ref: string): SeedMatch {
   return { shift: maxShift, score: maxScore }
 }
 
-function seedAlignment(query: string, ref: string): SeedAlignment {
+function seedAlignment(query: string, ref: string): SeedAlignment | undefined {
   const nSeeds = 5
   const seedLength = 21
   const bandWidth = Math.min(ref.length, query.length)
@@ -63,6 +64,12 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
       seedMatches.push([qPos, tmpMatch.shift, tmpMatch.shift - qPos, tmpMatch.score])
     }
   }
+
+  if (seedMatches.length < 2) {
+    // less than two seedmatches found, return undefined
+    return undefined
+  }
+
   // given the seed matches, determine the maximal and minimal shifts
   // this shift is the typical amount the query needs shifting to match ref
   // ref:   ACTCTACTGC-TCAGAC
@@ -249,15 +256,18 @@ function backTrace(
   }
 }
 
-export function alignPairwise(query: string, ref: string): Alignment {
+export function alignPairwise(query: string, ref: string): Alignment | undefined {
   const debug = false
 
   // console.log(query);
   // console.log(ref);
   // perform a number of seed matches to determine te rough alignment of query rel to ref
-  const { bandWidth, meanShift } = seedAlignment(query, ref)
+  const roughAlignment = seedAlignment(query, ref)
+  if (roughAlignment === undefined){
+    return undefined
+  }
 
-  const { paths, scores } = scoreMatrix(query, ref, bandWidth, meanShift)
+  const { paths, scores } = scoreMatrix(query, ref, roughAlignment.bandWidth, roughAlignment.meanShift)
 
   if (debug) {
     if (scores.length < 20) {
@@ -270,5 +280,5 @@ export function alignPairwise(query: string, ref: string): Alignment {
     }
   }
 
-  return backTrace(query, ref, scores, paths, meanShift)
+  return backTrace(query, ref, scores, paths, roughAlignment.meanShift)
 }
