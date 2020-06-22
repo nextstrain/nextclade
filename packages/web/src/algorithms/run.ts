@@ -24,7 +24,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const clades = pickBy(SARSCOV2.clades, (clade) => isSequenceInClade(clade, substitutions, rootSeq))
 
-  const invalid = findCharacterRanges(alignedQuery, 'N')
+  const missing = findCharacterRanges(alignedQuery, 'N')
 
   const aminoacidSubstitutions = getAllAminoAcidChanges(substitutions, rootSeq, geneMap)
 
@@ -33,7 +33,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
   return Object.freeze({
     seqName,
     clades,
-    invalid,
+    missing,
     substitutions,
     aminoacidSubstitutions,
     insertions,

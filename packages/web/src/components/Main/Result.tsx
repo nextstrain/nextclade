@@ -107,9 +107,9 @@ export function SequenceNonACGTNs({ sequence }: SequenceCladeProps) {
 export function SequenceNs({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
-  const { invalid, seqName } = sequence
+  const { missing, seqName } = sequence
   const id = getSequenceIdentifier(seqName)
-  const totalNs = calculateNucleotidesTotals(invalid, 'N')
+  const totalNs = calculateNucleotidesTotals(missing, 'N')
 
   return (
     <>

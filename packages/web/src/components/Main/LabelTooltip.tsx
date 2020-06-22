@@ -11,8 +11,8 @@ export function getSequenceIdentifier(seqName: string) {
   return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}`)
 }
 
-export function calculateNucleotidesTotals(invalid: DeepReadonly<SubstringMatch[]>, character: string) {
-  return invalid
+export function calculateNucleotidesTotals(missing: DeepReadonly<SubstringMatch[]>, character: string) {
+  return missing
     .filter((inv) => inv.character === character)
     .reduce((total, inv) => total + inv.range.end - inv.range.begin, 0)
 }
@@ -29,7 +29,7 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
     substitutions,
     deletions,
     insertions,
-    invalid,
+    missing,
     alignmentStart,
     alignmentEnd,
     alignmentScore,
@@ -46,7 +46,7 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
     return <li key={key}>{key}</li>
   })
 
-  const gapItems = invalid.map((inv) => {
+  const gapItems = missing.map((inv) => {
     const { character, range: { begin, end } } = inv // prettier-ignore
     const range = formatRange(begin, end)
     const key = `${character}-${range}`
@@ -65,7 +65,7 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   const totalMutations = mutationItems.length
   const totalGaps = Object.values(deletions).reduce((a, b) => a + b, 0)
   const totalInsertions = Object.values(insertions).reduce((a, b) => a + b.length, 0)
-  const totalNs = calculateNucleotidesTotals(invalid, 'N')
+  const totalNs = calculateNucleotidesTotals(missing, 'N')
 
   return (
     <Popover

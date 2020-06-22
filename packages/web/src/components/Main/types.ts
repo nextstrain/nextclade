@@ -8,13 +8,13 @@ export interface MutationElementWithId extends MutationElement {
   id: string
 }
 
-export interface InvalidElement {
+export interface MissingElement {
   seqName: string
   character: string
   begin: number
   end: number
 }
 
-export interface InvalidElementWithId extends InvalidElement {
+export interface MissingElementWithId extends MissingElement {
   id: string
 }

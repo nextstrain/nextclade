@@ -82,7 +82,7 @@ export interface QCResult {
 export interface AnalysisResult extends DeepReadonly<AnalyzeSeqResult> {
   seqName: string
   clades: DeepReadonly<Substitutions>
-  invalid: DeepReadonly<SubstringMatch[]>
+  missing: DeepReadonly<SubstringMatch[]>
   aminoacidSubstitutions: DeepReadonly<AminoacidSubstitutions[]>
   diagnostics: DeepReadonly<QCResult>
   alignmentScore: number
