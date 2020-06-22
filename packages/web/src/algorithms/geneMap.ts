@@ -2,17 +2,8 @@ import { get } from 'lodash'
 
 import createColor from 'create-color'
 
+import type { GeneMapDatum } from 'src/algorithms/types'
 import geneMapRaw from 'src/assets/data/genomeAnnotationsFromNcovGlobal.json'
-
-export interface GeneMapDatum {
-  name: string
-  color: string
-  type: string
-  start: number
-  end: number
-  seqid: string
-  strand: string
-}
 
 function getGeneMap(): GeneMapDatum[] {
   const geneMap = get(geneMapRaw, 'genome_annotations')

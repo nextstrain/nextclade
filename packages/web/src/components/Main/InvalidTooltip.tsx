@@ -2,8 +2,8 @@ import React from 'react'
 
 import { Popover, PopoverBody } from 'reactstrap'
 
-import type { InvalidElementWithId } from 'src/components/Main/types'
-import type { AnalysisResult } from 'src/algorithms/run'
+import type { AnalysisResult } from 'src/algorithms/types'
+import type { InvalidElementWithId } from './types'
 
 import { formatRange } from './formatRange'
 

@@ -9,7 +9,8 @@ export function isSequenceInClade(
 ) {
   return cladeAlleles.every(({ allele, pos }) => {
     // clade definition by nextstrain use one-based indices, hence substract 1 to retrieve allele in reference and mutations object
-    const state = mutations[pos - 1] ?? reference[pos - 1]
+    const posZeroBased = pos - 1
+    const state = mutations[posZeroBased] ?? reference[posZeroBased]
     return state === allele
   })
 }

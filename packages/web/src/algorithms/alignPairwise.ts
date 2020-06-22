@@ -1,7 +1,5 @@
-import { isMatch } from './nucleotideCodes'
-import { NonceProvider } from 'react-select'
-
 /* eslint-disable unicorn/prefer-string-slice */
+import { isMatch } from './nucleotideCodes'
 
 interface SeedMatch {
   shift: number
@@ -44,7 +42,7 @@ function seedMatch(kmer: string, ref: string): SeedMatch {
   return { shift: maxShift, score: maxScore }
 }
 
-function seedAlignment(query: string, ref: string): SeedAlignment | undefined {
+function seedAlignment(query: string, ref: string): SeedAlignment {
   const nSeeds = 5
   const seedLength = 21
   const bandWidth = Math.min(ref.length, query.length)
@@ -66,8 +64,8 @@ function seedAlignment(query: string, ref: string): SeedAlignment | undefined {
   }
 
   if (seedMatches.length < 2) {
-    // less than two seedmatches found, return undefined
-    return undefined
+    // TODO: throw concrete instances of errors, catch and diasplay in the UI
+    throw new Error(`alignPairwise: unable to align`)
   }
 
   // given the seed matches, determine the maximal and minimal shifts
@@ -256,18 +254,14 @@ function backTrace(
   }
 }
 
-export function alignPairwise(query: string, ref: string): Alignment | undefined {
+export function alignPairwise(query: string, ref: string): Alignment {
   const debug = false
 
   // console.log(query);
   // console.log(ref);
   // perform a number of seed matches to determine te rough alignment of query rel to ref
-  const roughAlignment = seedAlignment(query, ref)
-  if (roughAlignment === undefined){
-    return undefined
-  }
-
-  const { paths, scores } = scoreMatrix(query, ref, roughAlignment.bandWidth, roughAlignment.meanShift)
+  const { bandWidth, meanShift } = seedAlignment(query, ref)
+  const { paths, scores } = scoreMatrix(query, ref, bandWidth, meanShift)
 
   if (debug) {
     if (scores.length < 20) {
@@ -280,5 +274,5 @@ export function alignPairwise(query: string, ref: string): Alignment | undefined
     }
   }
 
-  return backTrace(query, ref, scores, paths, roughAlignment.meanShift)
+  return backTrace(query, ref, scores, paths, meanShift)
 }

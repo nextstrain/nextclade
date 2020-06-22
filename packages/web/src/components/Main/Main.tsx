@@ -12,7 +12,7 @@ import { EXPORT_FILENAME } from 'src/constants'
 import { Uploader } from 'src/components/Uploader/Uploader'
 import { saveFile } from 'src/helpers/saveFile'
 
-import { AnalysisResult } from 'src/algorithms/run'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { runInWorker } from 'src/algorithms/runInWorker'
 
 import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
@@ -53,7 +53,7 @@ export function Main() {
 
   useEffect(() => {
     async function runEffect() {
-      const { result } = await runInWorker({ input: inputCurrent, rootSeq })
+      const result = await runInWorker({ input: inputCurrent, rootSeq })
       if (result.length > 0) {
         setResult(result)
       }

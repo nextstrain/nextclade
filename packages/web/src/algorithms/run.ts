@@ -1,6 +1,6 @@
 import { pickBy } from 'lodash'
 import { SARSCOV2 } from './SARS-CoV-2_parameters'
-import type { AnalysisParams } from './types'
+import type { AnalysisParams, AnalysisResult } from './types'
 
 import { geneMap } from './geneMap'
 import { parseSequences } from './parseSequences'
@@ -15,17 +15,12 @@ export function parse(input: string) {
   return parseSequences(input)
 }
 
-export function analyze({ seqName, seq, rootSeq }: AnalysisParams) {
-  const alignment = alignPairwise(seq, rootSeq)
-  if (alignment === undefined) {
-    return {
-      seqName,
-    }
-  }
+export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResult {
+  const { alignmentScore, query, ref } = alignPairwise(seq, rootSeq)
 
-  const alignedQuery = alignment.query.join('')
+  const alignedQuery = query.join('')
 
-  const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(alignment.query, alignment.ref)
+  const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(query, ref)
 
   const clades = pickBy(SARSCOV2.clades, (clade) => isSequenceInClade(clade, mutations, rootSeq))
 
@@ -45,7 +40,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams) {
     deletions,
     alnStart,
     alnEnd,
-    alignmentScore: alignment.alignmentScore,
+    alignmentScore,
     alignedQuery,
     diagnostics,
   })

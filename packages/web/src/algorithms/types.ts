@@ -85,14 +85,21 @@ export interface AnalysisResult extends DeepReadonly<AnalyzeSeqResult> {
   invalid: DeepReadonly<SubstringMatch[]>
   aminoacidSubstitutions: DeepReadonly<AminoacidSubstitutions[]>
   diagnostics: DeepReadonly<QCResult>
-}
-
-export interface AlgorithmResult {
-  result: DeepReadonly<AnalysisResult[]>
+  alignmentScore: number
 }
 
 export interface AnalysisParams {
   seqName: string
   seq: string
   rootSeq: string
+}
+
+export interface GeneMapDatum {
+  name: string
+  color: string
+  type: string
+  start: number
+  end: number
+  seqid: string
+  strand: string
 }

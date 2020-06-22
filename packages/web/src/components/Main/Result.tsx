@@ -2,14 +2,14 @@ import React, { useState } from 'react'
 
 import { Table } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
+import { DeepReadonly } from 'ts-essentials'
 
-import type { AlgorithmResult, AnalysisResult } from 'src/algorithms/run'
-import { Axis } from 'src/components/Main/Axis'
+import { AnalysisResult } from 'src/algorithms/types'
 
+import { Axis } from './Axis'
 import { GENOME_SIZE, SequenceView } from './SequenceView'
 import { calculateNucleotidesTotals, getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
-import { scryRenderedDOMComponentsWithClass } from 'react-dom/test-utils'
 
 export interface SequenceLabelProps {
   sequence: AnalysisResult
@@ -95,7 +95,7 @@ export function SequenceNonACGTNs({ sequence }: SequenceCladeProps) {
     .filter((d) => !goodBases.has(d))
     .reduce((a, b) => a + diagnostics.nucleotideComposition[b], 0)
 
-    return (
+  return (
     <>
       <td id={id} className="results-table-col results-table-col-clade">
         {nonACGTN}
@@ -103,7 +103,6 @@ export function SequenceNonACGTNs({ sequence }: SequenceCladeProps) {
     </>
   )
 }
-
 
 export function SequenceNs({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
@@ -150,7 +149,9 @@ export function SequenceGaps({ sequence }: SequenceCladeProps) {
   )
 }
 
-export type ResultProps = AlgorithmResult
+export interface ResultProps {
+  result: DeepReadonly<AnalysisResult[]>
+}
 
 export function Result({ result }: ResultProps) {
   const { t } = useTranslation()

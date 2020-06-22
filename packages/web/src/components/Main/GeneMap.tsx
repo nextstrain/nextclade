@@ -3,7 +3,8 @@ import React, { SVGProps, useState } from 'react'
 import ReactResizeDetector from 'react-resize-detector'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import { GeneMapDatum, geneMap } from 'src/algorithms/geneMap'
+import { geneMap } from 'src/algorithms/geneMap'
+import { GeneMapDatum } from 'src/algorithms/types'
 
 import { GENOME_SIZE } from './SequenceView'
 import { GeneTooltip, getGeneId } from './GeneTooltip'

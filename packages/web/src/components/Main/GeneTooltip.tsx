@@ -1,8 +1,8 @@
 import React from 'react'
 
-import { GeneMapDatum } from 'src/algorithms/geneMap'
 import { Popover, PopoverBody } from 'reactstrap'
 import { formatRange } from 'src/components/Main/formatRange'
+import { GeneMapDatum } from 'src/algorithms/types'
 
 export function getGeneId(gene: GeneMapDatum) {
   const { name, start, end } = gene

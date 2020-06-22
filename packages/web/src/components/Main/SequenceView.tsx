@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import ReactResizeDetector from 'react-resize-detector'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import type { AnalysisResult } from 'src/algorithms/run'
+import type { AnalysisResult } from 'src/algorithms/types'
 
 import type { MutationElementWithId, MutationElement, InvalidElementWithId, InvalidElement } from './types'
 import { InvalidTooltip } from './InvalidTooltip'

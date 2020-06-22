@@ -72,5 +72,5 @@ export function getCodon(codon: string) {
   if (process.env.NODE_ENV !== 'production' && !aminoacid) {
     console.warn(`getCodon: no aminoacid found for codon "${codon}"`)
   }
-  return aminoacid || 'X'
+  return aminoacid ?? 'X'
 }

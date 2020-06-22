@@ -1,16 +1,17 @@
 import { identity } from 'lodash'
 
+import type { DeepReadonly } from 'ts-essentials'
 import { spawn, Pool, Worker } from 'threads'
 import { concurrent } from 'fasy'
 
-import type { AlgorithmParams, AlgorithmResult } from './types'
+import type { AlgorithmParams } from './types'
 import type { ParseThread } from './worker.parse'
 import type { AnalyzeReturn, AnalyzeThread } from './worker.analyze'
 
 const NUM_PARSER_THREADS = 1 as const
 const NUM_ANALYZER_THREADS = 4 as const
 
-let runImpl = async (args: AlgorithmParams): Promise<AlgorithmResult> => {
+let runImpl = async (args: AlgorithmParams): Promise<AnalyzeReturn[]> => {
   return Promise.reject(new Error('Web workers are not supported'))
 }
 
@@ -29,21 +30,19 @@ if (typeof window !== 'undefined') {
     maxQueuedJobs: undefined,
   })
 
-  runImpl = async ({ input, rootSeq }: AlgorithmParams) => {
+  runImpl = async ({ input, rootSeq }: DeepReadonly<AlgorithmParams>): Promise<AnalyzeReturn[]> => {
     const taskParse = poolParse.queue(async (parse: ParseThread) => parse(input))
 
     const parsedSequences = ((await taskParse.then(identity, identity)) as unknown) as Record<string, string>
 
     const entries = Object.entries(parsedSequences)
 
-    const result = await concurrent.map(([seqName, seq]) => {
+    return concurrent.map(([seqName, seq]) => {
       return (poolAnalyze
         .queue(async (analyze: AnalyzeThread) => analyze({ seqName, seq, rootSeq }))
         .then(identity, identity) as unknown) as AnalyzeReturn
       // eslint-disable-next-line array-func/no-unnecessary-this-arg
     }, entries)
-
-    return { result }
   }
 }
 

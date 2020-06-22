@@ -6,7 +6,6 @@ const ClusteredSNPsFlag = 'clustered SNPs'
 const TooManyMixedSites = 'Too many non-ACGT characters'
 const MissingData = 'missing data'
 
-const knownClusters = new Set([28881, 28882, 28883])
 function findSNPClusters(mutations: Record<string, Base>) {
   // turn mutation keys into positions, exclude known clusters, and sort
   const positions = Object.keys(mutations)
@@ -55,7 +54,6 @@ function getNucleotideComposition(alignedQuery: string): Record<string, number> 
   }
   return result
 }
-
 
 export function sequenceQC(
   mutations: Record<string, Base>,

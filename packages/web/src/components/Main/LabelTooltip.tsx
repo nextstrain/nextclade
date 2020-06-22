@@ -3,8 +3,7 @@ import React from 'react'
 import { Popover, PopoverBody } from 'reactstrap'
 import type { DeepReadonly } from 'ts-essentials'
 
-import type { AnalysisResult } from 'src/algorithms/run'
-import type { SubstringMatch } from 'src/algorithms/findCharacterRanges'
+import type { AnalysisResult, SubstringMatch } from 'src/algorithms/types'
 
 import { formatRange } from './formatRange'
 
