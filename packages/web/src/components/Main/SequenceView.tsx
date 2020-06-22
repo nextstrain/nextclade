@@ -3,9 +3,14 @@ import React, { useState } from 'react'
 import ReactResizeDetector from 'react-resize-detector'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import type { AnalysisResult } from 'src/algorithms/types'
+import type {
+  AnalysisResult,
+  MissingElement,
+  MissingElementWithId,
+  MutationElement,
+  MutationElementWithId,
+} from 'src/algorithms/types'
 
-import type { MutationElementWithId, MutationElement, MissingElementWithId, MissingElement } from './types'
 import { MissingTooltip } from './MissingTooltip'
 import { MissingView } from './MissingView'
 import { MutationTooltip } from './MutationTooltip'

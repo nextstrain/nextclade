@@ -2,7 +2,7 @@ import React, { SVGProps } from 'react'
 
 import { get } from 'lodash'
 
-import { MutationElementWithId } from './types'
+import { MutationElementWithId } from 'src/algorithms/types'
 
 const BASE_COLORS: Record<string, string> = {
   'A': '#1167b7',

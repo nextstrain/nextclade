@@ -1,8 +1,8 @@
 import React, { SVGProps } from 'react'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import type { MissingElementWithId } from 'src/components/Main/types'
 
+import { MissingElementWithId } from 'src/algorithms/types'
 import { getBaseColor } from './MutationView'
 
 export interface MissingViewProps extends SVGProps<SVGRectElement> {
