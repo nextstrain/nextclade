@@ -30,7 +30,6 @@ const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512 }: GetWit
               semantic: true,
               syntactic: true,
             },
-            profile: true,
           }
         : undefined,
 
@@ -39,6 +38,7 @@ const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512 }: GetWit
             enabled: true,
             memoryLimit,
             files: ['**/*.{js,jsx,ts,tsx}'],
+            options: { cache: false },
           }
         : undefined,
 
