@@ -28,7 +28,7 @@ export interface SequenceViewProps {
 export function SequenceView({ sequence }: SequenceViewProps) {
   const [mutation, setMutation] = useState<MutationElementWithId | undefined>(undefined)
   const [currInvalid, setCurrInvalid] = useState<InvalidElementWithId | undefined>(undefined)
-  const { seqName, mutations, invalid, deletions } = sequence
+  const { seqName, substitutions, invalid, deletions } = sequence
 
   return (
     <ReactResizeDetector handleWidth refreshRate={300} refreshMode="debounce">
@@ -40,7 +40,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const pixelsPerBase = widthPx / GENOME_SIZE
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
-        const mutationViews = Object.entries(mutations).map(([positionZeroBased, allele]) => {
+        const mutationViews = Object.entries(substitutions).map(([positionZeroBased, allele]) => {
           const id = getMutationIdentifier({ seqName, positionZeroBased, allele })
           const mutation: MutationElementWithId = { id, seqName, positionZeroBased, allele }
           return (

@@ -33,23 +33,23 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   let nDel = 0
   let delPos = -1
   let beforeAlignment = true
-  const mutations: Record<string, Base> = {}
+  const substitutions: Record<string, Base> = {}
   const deletions: Record<string, number> = {}
-  let alnStart = -1
-  let alnEnd = -1
+  let alignmentStart = -1
+  let alignmentEnd = -1
   refStrippedQuery.forEach((d, i) => {
     if (d !== '-') {
       if (beforeAlignment) {
-        alnStart = i
+        alignmentStart = i
         beforeAlignment = false
       } else if (nDel) {
         deletions[delPos] = nDel
         nDel = 0
       }
-      alnEnd = i
+      alignmentEnd = i
     }
     if (d !== '-' && d !== refStripped[i] && canonicalNucleotides.has(d)) {
-      mutations[i] = d as Base
+      substitutions[i] = d as Base
     } else if (d === '-' && !beforeAlignment) {
       if (!nDel) {
         delPos = i
@@ -57,5 +57,5 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
       nDel++
     }
   })
-  return { mutations, insertions, deletions, alnStart, alnEnd }
+  return { substitutions, insertions, deletions, alignmentStart, alignmentEnd }
 }

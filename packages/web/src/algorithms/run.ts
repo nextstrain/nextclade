@@ -20,26 +20,26 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const alignedQuery = query.join('')
 
-  const { mutations, insertions, deletions, alnStart, alnEnd } = analyzeSeq(query, ref)
+  const { substitutions, insertions, deletions, alignmentStart, alignmentEnd } = analyzeSeq(query, ref)
 
-  const clades = pickBy(SARSCOV2.clades, (clade) => isSequenceInClade(clade, mutations, rootSeq))
+  const clades = pickBy(SARSCOV2.clades, (clade) => isSequenceInClade(clade, substitutions, rootSeq))
 
   const invalid = findCharacterRanges(alignedQuery, 'N')
 
-  const aminoacidSubstitutions = getAllAminoAcidChanges(mutations, rootSeq, geneMap)
+  const aminoacidSubstitutions = getAllAminoAcidChanges(substitutions, rootSeq, geneMap)
 
-  const diagnostics = sequenceQC(mutations, insertions, deletions, alignedQuery)
+  const diagnostics = sequenceQC(substitutions, insertions, deletions, alignedQuery)
 
   return Object.freeze({
     seqName,
     clades,
     invalid,
-    mutations,
+    substitutions,
     aminoacidSubstitutions,
     insertions,
     deletions,
-    alnStart,
-    alnEnd,
+    alignmentStart,
+    alignmentEnd,
     alignmentScore,
     alignedQuery,
     diagnostics,

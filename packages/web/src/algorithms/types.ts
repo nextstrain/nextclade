@@ -54,11 +54,11 @@ export interface AlgorithmParams {
 }
 
 export interface AnalyzeSeqResult {
-  mutations: Record<string, Base>
+  substitutions: Record<string, Base>
   insertions: Record<string, Base>
   deletions: Record<string, number>
-  alnStart: number
-  alnEnd: number
+  alignmentStart: number
+  alignmentEnd: number
 }
 
 export interface ClusteredSNPs {

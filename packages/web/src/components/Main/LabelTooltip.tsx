@@ -26,21 +26,21 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   const {
     seqName,
     clades,
-    mutations,
+    substitutions,
     deletions,
     insertions,
     invalid,
-    alnStart,
-    alnEnd,
+    alignmentStart,
+    alignmentEnd,
     alignmentScore,
     diagnostics,
   } = sequence
   const id = getSequenceIdentifier(seqName)
   const cladesList = Object.keys(clades).join(', ')
-  const alnStartOneBased = alnStart + 1
-  const alnEndOneBased = alnEnd + 1
+  const alnStartOneBased = alignmentStart + 1
+  const alnEndOneBased = alignmentEnd + 1
 
-  const mutationItems = Object.entries(mutations).map(([positionZeroBased, allele]) => {
+  const mutationItems = Object.entries(substitutions).map(([positionZeroBased, allele]) => {
     const positionOneBased = Number.parseInt(positionZeroBased, 10) + 1
     const key = `${positionOneBased} ${allele}`
     return <li key={key}>{key}</li>
