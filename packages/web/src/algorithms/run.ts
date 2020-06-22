@@ -41,7 +41,6 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
     alignmentStart,
     alignmentEnd,
     alignmentScore,
-    alignedQuery,
     diagnostics,
   })
 }
