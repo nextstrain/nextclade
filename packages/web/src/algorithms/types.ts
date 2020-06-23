@@ -4,15 +4,26 @@ import type { Tagged } from 'src/helpers/types'
 export type Nucleotide = Tagged<string, 'Nucleotide'>
 export type Aminoacid = Tagged<string, 'Aminoacid'>
 
-export interface NucleotideLocation {
-  pos: number
-  allele: string
+/** Represents a numeric interval bounded by start and end.
+ * Similar to `Span`, but different representation. */
+export interface Range {
+  begin: number
+  end: number
 }
 
-export interface NucleotideDeletion {
+/** Represents a numeric interval bounded by start and length.
+ * Similar to `Range`, but different representation. */
+export interface Span {
   start: number
   length: number
 }
+
+export interface NucleotideLocation {
+  pos: number
+  allele: Nucleotide
+}
+
+export type NucleotideDeletion = Tagged<Span, 'NucleotideDeletion'>
 
 export interface Substitutions {
   [key: string]: DeepReadonly<NucleotideLocation>[]
@@ -30,14 +41,9 @@ export interface AminoacidSubstitutions {
   substitutions: AminoacidSubstitution[]
 }
 
-export interface SubstringRange {
-  begin: number
-  end: number
-}
-
 export interface SubstringMatch {
   character: string
-  range: SubstringRange
+  range: Range
 }
 
 export interface QCParameters {
