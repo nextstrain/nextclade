@@ -4,13 +4,13 @@ import ReactResizeDetector from 'react-resize-detector'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { geneMap } from 'src/algorithms/geneMap'
-import { GeneMapDatum } from 'src/algorithms/types'
+import { Gene } from 'src/algorithms/types'
 
 import { GENOME_SIZE } from './SequenceView'
 import { GeneTooltip, getGeneId } from './GeneTooltip'
 
 export interface GeneViewProps extends SVGProps<SVGRectElement> {
-  gene: GeneMapDatum
+  gene: Gene
   pixelsPerBase: number
 }
 
@@ -24,7 +24,7 @@ export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
 }
 
 export function GeneMap() {
-  const [currGene, setCurrGene] = useState<GeneMapDatum | undefined>(undefined)
+  const [currGene, setCurrGene] = useState<Gene | undefined>(undefined)
 
   return (
     <ReactResizeDetector handleWidth refreshRate={300} refreshMode="debounce">

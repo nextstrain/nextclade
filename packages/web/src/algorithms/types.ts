@@ -4,15 +4,13 @@ import type { Tagged } from 'src/helpers/types'
 export type Nucleotide = Tagged<string, 'Nucleotide'>
 export type Aminoacid = Tagged<string, 'Aminoacid'>
 
-/** Represents a numeric interval bounded by start and end.
- * Similar to `Span`, but different representation. */
+/** Represents a numeric interval bounded by start and end. Similar to `Span`, but different representation. */
 export interface Range {
   begin: number
   end: number
 }
 
-/** Represents a numeric interval bounded by start and length.
- * Similar to `Range`, but different representation. */
+/** Represents a numeric interval bounded by start and length. Similar to `Range`, but different representation. */
 export interface Span {
   start: number
   length: number
@@ -106,14 +104,11 @@ export interface AnalysisParams {
   rootSeq: string
 }
 
-export interface GeneMapDatum {
+/** Represents a named interval in the genome */
+export interface Gene {
   name: string
   color: string
-  type: string
-  start: number
-  end: number
-  seqid: string
-  strand: string
+  range: Span
 }
 
 export interface MutationElement extends NucleotideLocation {

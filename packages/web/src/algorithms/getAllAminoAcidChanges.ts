@@ -4,10 +4,10 @@ import { inRange } from 'lodash'
 
 import { notUndefined } from 'src/helpers/notUndefined'
 
-import type { AminoacidSubstitution, AminoacidSubstitutions, GeneMapDatum, NucleotideLocation } from './types'
+import type { AminoacidSubstitution, AminoacidSubstitutions, Gene, NucleotideLocation } from './types'
 import { getCodon } from './codonTable'
 
-export function aminoAcidChange(pos: number, queryAllele: string, refSequence: string, gene: GeneMapDatum) {
+export function aminoAcidChange(pos: number, queryAllele: string, refSequence: string, gene: Gene) {
   // check that the positions is infact part of this gene
   if (!inRange(pos, gene.start, gene.end)) {
     return undefined
@@ -36,7 +36,7 @@ export function getAminoAcidChanges(
   pos: number,
   queryAllele: string,
   refSequence: string,
-  geneMap: GeneMapDatum[],
+  geneMap: Gene[],
 ): AminoacidSubstitution[] {
   return geneMap.map((gene) => aminoAcidChange(pos, queryAllele, refSequence, gene)).filter(notUndefined)
 }
@@ -44,7 +44,7 @@ export function getAminoAcidChanges(
 export function getAllAminoAcidChanges(
   mutations: NucleotideLocation[],
   refSequence: string,
-  geneMap: GeneMapDatum[],
+  geneMap: Gene[],
 ): AminoacidSubstitutions[] {
   return mutations.map(({ pos, allele }) => ({
     pos,
