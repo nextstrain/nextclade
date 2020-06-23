@@ -1,16 +1,20 @@
-import type { QCDiagnostics, QCResult, ClusteredSNPs, NucleotideLocation, NucleotideDeletion } from './types'
-import { SARSCOV2 } from './SARS-CoV-2_parameters'
+import type {
+  QCDiagnostics,
+  QCResult,
+  ClusteredSNPs,
+  NucleotideLocation,
+  NucleotideDeletion,
+  QCParameters,
+} from './types'
 
 const TooHighDivergence = 'too high divergence'
 const ClusteredSNPsFlag = 'clustered SNPs'
 const TooManyMixedSites = 'Too many non-ACGT characters'
 const MissingData = 'missing data'
 
-function findSNPClusters(mutations: NucleotideLocation[]) {
+function findSNPClusters(QCParams: QCParameters, mutations: NucleotideLocation[]) {
   // turn mutation keys into positions, exclude known clusters, and sort
-  const positions = mutations
-    .filter(({ pos }) => !SARSCOV2.QCParams.knownClusters.has(pos))
-    .sort((a, b) => a.pos - b.pos)
+  const positions = mutations.filter(({ pos }) => !QCParams.knownClusters.has(pos)).sort((a, b) => a.pos - b.pos)
 
   // loop over all mutations and count how many fall into the clusters
   let previousPos = -1
@@ -18,10 +22,10 @@ function findSNPClusters(mutations: NucleotideLocation[]) {
   const allClusters: number[][] = []
   positions.forEach(({ pos }) => {
     currentCluster.push(pos)
-    while (currentCluster[0] < pos - SARSCOV2.QCParams.windowSize) {
+    while (currentCluster[0] < pos - QCParams.windowSize) {
       currentCluster.shift()
     }
-    if (currentCluster.length > SARSCOV2.QCParams.clusterCutOff) {
+    if (currentCluster.length > QCParams.clusterCutOff) {
       // if the cluster grows uninterrupted, add to the previous cluster
       if (
         allClusters.length > 0 &&
@@ -55,6 +59,7 @@ function getNucleotideComposition(alignedQuery: string): Record<string, number> 
 }
 
 export function sequenceQC(
+  QCParams: QCParameters,
   mutations: NucleotideLocation[],
   insertions: NucleotideLocation[],
   deletions: NucleotideDeletion[],
@@ -65,11 +70,11 @@ export function sequenceQC(
   const totalNumberOfMutations =
     Object.keys(mutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
-  if (totalNumberOfMutations > SARSCOV2.QCParams.divergenceThreshold) {
+  if (totalNumberOfMutations > QCParams.divergenceThreshold) {
     flags.push(TooHighDivergence)
   }
 
-  const snpClusters = findSNPClusters(mutations)
+  const snpClusters = findSNPClusters(QCParams, mutations)
   const clusteredSNPs: ClusteredSNPs[] = []
   if (snpClusters.length > 0) {
     snpClusters.forEach((cluster) => {
@@ -86,11 +91,11 @@ export function sequenceQC(
   const totalMixedSites = Object.keys(nucleotideComposition)
     .filter((d) => !goodBases.has(d))
     .reduce((a, b) => a + nucleotideComposition[b], 0)
-  if (totalMixedSites > SARSCOV2.QCParams.mixedSitesThreshold) {
+  if (totalMixedSites > QCParams.mixedSitesThreshold) {
     flags.push(TooManyMixedSites)
   }
 
-  if (nucleotideComposition.N && nucleotideComposition.N > SARSCOV2.QCParams.missingDataThreshold) {
+  if (nucleotideComposition.N && nucleotideComposition.N > QCParams.missingDataThreshold) {
     flags.push(MissingData)
   }
 

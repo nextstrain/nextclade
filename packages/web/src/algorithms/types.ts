@@ -56,7 +56,7 @@ export interface QCParameters {
   missingDataThreshold: number
 }
 
-export interface VirusParams {
+export interface Virus {
   QCParams: QCParameters
   clades: DeepReadonly<Substitutions>
 }

@@ -1,5 +1,5 @@
 import { pickBy } from 'lodash'
-import { SARSCOV2 } from './SARS-CoV-2_parameters'
+import { VIRUSES } from './viruses'
 import type { AnalysisParams, AnalysisResult } from './types'
 
 import { geneMap } from './geneMap'
@@ -16,19 +16,21 @@ export function parse(input: string) {
 }
 
 export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResult {
+  const virus = VIRUSES['SARS-CoV-2']
+
   const { alignmentScore, query, ref } = alignPairwise(seq, rootSeq)
 
   const alignedQuery = query.join('')
 
   const { substitutions, insertions, deletions, alignmentStart, alignmentEnd } = analyzeSeq(query, ref)
 
-  const clades = pickBy(SARSCOV2.clades, (clade) => isSequenceInClade(clade, substitutions, rootSeq))
+  const clades = pickBy(virus.clades, (clade) => isSequenceInClade(clade, substitutions, rootSeq))
 
   const missing = findCharacterRanges(alignedQuery, 'N')
 
   const aminoacidSubstitutions = getAllAminoAcidChanges(substitutions, rootSeq, geneMap)
 
-  const diagnostics = sequenceQC(substitutions, insertions, deletions, alignedQuery)
+  const diagnostics = sequenceQC(virus.QCParams, substitutions, insertions, deletions, alignedQuery)
 
   return Object.freeze({
     seqName,
