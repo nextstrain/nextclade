@@ -1,37 +1,50 @@
 import { DeepReadonly } from 'ts-essentials'
 import type { Tagged } from 'src/helpers/types'
 
-export interface Substitution {
-  pos: number
-  allele: string
-}
+/** Type-safe representation of a nucleotide */
+export type Nucleotide = Tagged<string, 'Nucleotide'>
 
-export interface Substitutions {
-  [key: string]: DeepReadonly<Substitution>[]
-}
+/** Type-safe representation of an aminoacid */
+export type Aminoacid = Tagged<string, 'Aminoacid'>
 
-export interface AminoacidSubstitution {
-  refAA: string
-  queryAA: string
-  codon: number
-}
-
-export interface AminoacidSubstitutions {
-  position: string
-  allele: string
-  substitutions: AminoacidSubstitution[]
-}
-
-export type Base = Tagged<string, 'Base'>
-
-export interface SubstringRange {
+/** Represents a numeric interval bounded by start and end. Similar to `Span`, but different representation. */
+export interface Range {
   begin: number
   end: number
 }
 
+/** Represents a numeric interval bounded by start and length. Similar to `Range`, but different representation. */
+export interface Span {
+  start: number
+  length: number
+}
+
+export interface NucleotideLocation {
+  pos: number
+  allele: Nucleotide
+}
+
+export type NucleotideDeletion = Tagged<Span, 'NucleotideDeletion'>
+
+export interface Substitutions {
+  [key: string]: DeepReadonly<NucleotideLocation[]>
+}
+
+export interface AminoacidSubstitution {
+  refAA: Aminoacid
+  queryAA: Aminoacid
+  codon: number
+}
+
+export interface AminoacidSubstitutions {
+  pos: number
+  allele: string
+  substitutions: AminoacidSubstitution[]
+}
+
 export interface SubstringMatch {
   character: string
-  range: SubstringRange
+  range: Range
 }
 
 export interface QCParameters {
@@ -43,7 +56,7 @@ export interface QCParameters {
   missingDataThreshold: number
 }
 
-export interface VirusParams {
+export interface Virus {
   QCParams: QCParameters
   clades: DeepReadonly<Substitutions>
 }
@@ -54,11 +67,11 @@ export interface AlgorithmParams {
 }
 
 export interface AnalyzeSeqResult {
-  mutations: Record<string, Base>
-  insertions: Record<string, Base>
-  deletions: Record<string, number>
-  alnStart: number
-  alnEnd: number
+  substitutions: NucleotideLocation[]
+  insertions: NucleotideLocation[]
+  deletions: NucleotideDeletion[]
+  alignmentStart: number
+  alignmentEnd: number
 }
 
 export interface ClusteredSNPs {
@@ -82,7 +95,7 @@ export interface QCResult {
 export interface AnalysisResult extends DeepReadonly<AnalyzeSeqResult> {
   seqName: string
   clades: DeepReadonly<Substitutions>
-  invalid: DeepReadonly<SubstringMatch[]>
+  missing: DeepReadonly<SubstringMatch[]>
   aminoacidSubstitutions: DeepReadonly<AminoacidSubstitutions[]>
   diagnostics: DeepReadonly<QCResult>
   alignmentScore: number
@@ -94,12 +107,28 @@ export interface AnalysisParams {
   rootSeq: string
 }
 
-export interface GeneMapDatum {
+/** Represents a named interval in the genome */
+export interface Gene {
   name: string
   color: string
-  type: string
-  start: number
+  range: Range
+}
+
+export interface MutationElement extends NucleotideLocation {
+  seqName: string
+}
+
+export interface MutationElementWithId extends MutationElement {
+  id: string
+}
+
+export interface MissingElement {
+  seqName: string
+  character: string
+  begin: number
   end: number
-  seqid: string
-  strand: string
+}
+
+export interface MissingElementWithId extends MissingElement {
+  id: string
 }

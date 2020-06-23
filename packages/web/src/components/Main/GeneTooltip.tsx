@@ -2,31 +2,34 @@ import React from 'react'
 
 import { Popover, PopoverBody } from 'reactstrap'
 import { formatRange } from 'src/components/Main/formatRange'
-import { GeneMapDatum } from 'src/algorithms/types'
+import { Gene } from 'src/algorithms/types'
 
-export function getGeneId(gene: GeneMapDatum) {
-  const { name, start, end } = gene
-  return CSS.escape(`${name}-${start}-${end}`)
+export function getGeneId(gene: Gene) {
+  const {
+    name,
+    range: { begin, end },
+  } = gene
+  return CSS.escape(`${name}-${begin}-${end}`)
 }
 
 export interface GeneTooltipProps {
-  gene: GeneMapDatum
+  gene: Gene
 }
 
 export function GeneTooltip({ gene }: GeneTooltipProps) {
-  const { name, color, start, end, seqid, strand, type } = gene
+  const {
+    name,
+    color,
+    range: { begin, end },
+  } = gene
   const id = getGeneId(gene)
 
-  const range = formatRange(start, end)
+  const range = formatRange(begin, end)
 
   return (
     <Popover className="popover-mutation" target={id} placement="auto" isOpen hideArrow delay={0} fade={false}>
       <PopoverBody>
-        <div style={{ color }}>{`Name: ${name}`}</div>
-        <div>{`Range: ${range}`}</div>
-        <div>{`SeqId: ${seqid}`}</div>
-        <div>{`Strand: ${strand}`}</div>
-        <div>{`Type: ${type}`}</div>
+        <div style={{ color }}>{`${name} (${range})`}</div>
       </PopoverBody>
     </Popover>
   )

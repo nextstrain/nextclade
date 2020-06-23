@@ -2,7 +2,7 @@ import React, { SVGProps } from 'react'
 
 import { get } from 'lodash'
 
-import { MutationElementWithId } from './types'
+import { MutationElementWithId } from 'src/algorithms/types'
 
 const BASE_COLORS: Record<string, string> = {
   'A': '#1167b7',
@@ -24,8 +24,8 @@ export interface MutationViewProps extends SVGProps<SVGRectElement> {
 }
 
 export function MutationView({ mutation, pixelsPerBase, width, onClick, ...rest }: MutationViewProps) {
-  const { id, positionZeroBased, allele } = mutation
+  const { id, pos, allele } = mutation
   const fill = getBaseColor(allele)
-  const x = Number.parseInt(positionZeroBased, 10) * pixelsPerBase
+  const x = pos * pixelsPerBase
   return <rect id={id} fill={fill} x={x} y={-10} width={width} height="30" {...rest} />
 }

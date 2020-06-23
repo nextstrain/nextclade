@@ -1,12 +1,12 @@
 import { canonicalNucleotides } from './nucleotideCodes'
-import type { AnalyzeSeqResult, Base } from './types'
+import type { AnalyzeSeqResult, Nucleotide, NucleotideDeletion, NucleotideLocation } from './types'
 
 export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   // report insertions
   let refPos = 0
   let ins = ''
   let insStart = -1
-  const insertions: Record<number, Base> = {}
+  const insertions: NucleotideLocation[] = []
   ref.forEach((d, i) => {
     if (d === '-') {
       if (ins === '') {
@@ -15,7 +15,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
       ins += query[i]
     } else {
       if (ins.length > 0) {
-        insertions[insStart] = ins as Base
+        insertions.push({ pos: insStart, allele: ins as Nucleotide })
         ins = ''
       }
       refPos += 1
@@ -23,7 +23,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   })
   // add insertion at the end of the reference if it exists
   if (ins) {
-    insertions[insStart] = ins as Base
+    insertions.push({ pos: insStart, allele: ins as Nucleotide })
   }
   // strip insertions relative to reference
   const refStrippedQuery = query.filter((d, i) => ref[i] !== '-')
@@ -33,23 +33,23 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   let nDel = 0
   let delPos = -1
   let beforeAlignment = true
-  const mutations: Record<string, Base> = {}
-  const deletions: Record<string, number> = {}
-  let alnStart = -1
-  let alnEnd = -1
+  const substitutions: NucleotideLocation[] = []
+  const deletions: NucleotideDeletion[] = []
+  let alignmentStart = -1
+  let alignmentEnd = -1
   refStrippedQuery.forEach((d, i) => {
     if (d !== '-') {
       if (beforeAlignment) {
-        alnStart = i
+        alignmentStart = i
         beforeAlignment = false
       } else if (nDel) {
-        deletions[delPos] = nDel
+        deletions.push({ start: delPos, length: nDel } as NucleotideDeletion)
         nDel = 0
       }
-      alnEnd = i
+      alignmentEnd = i
     }
     if (d !== '-' && d !== refStripped[i] && canonicalNucleotides.has(d)) {
-      mutations[i] = d as Base
+      substitutions.push({ pos: i, allele: d as Nucleotide })
     } else if (d === '-' && !beforeAlignment) {
       if (!nDel) {
         delPos = i
@@ -57,5 +57,5 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
       nDel++
     }
   })
-  return { mutations, insertions, deletions, alnStart, alnEnd }
+  return { substitutions, insertions, deletions, alignmentStart, alignmentEnd }
 }

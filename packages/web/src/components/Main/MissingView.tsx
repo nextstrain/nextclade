@@ -1,16 +1,16 @@
 import React, { SVGProps } from 'react'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import type { InvalidElementWithId } from 'src/components/Main/types'
 
+import { MissingElementWithId } from 'src/algorithms/types'
 import { getBaseColor } from './MutationView'
 
-export interface InvalidViewProps extends SVGProps<SVGRectElement> {
-  inv: InvalidElementWithId
+export interface MissingViewProps extends SVGProps<SVGRectElement> {
+  inv: MissingElementWithId
   pixelsPerBase: number
 }
 
-export function InvalidView({ inv, pixelsPerBase, ...rest }: InvalidViewProps) {
+export function MissingView({ inv, pixelsPerBase, ...rest }: MissingViewProps) {
   const { id, character, begin, end } = inv
   const fill = getBaseColor(character)
   let width = (end - begin) * pixelsPerBase

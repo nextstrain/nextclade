@@ -1,4 +1,6 @@
 /* eslint-disable only-ascii/only-ascii */
+import { ElementType } from 'react'
+
 import { mapValues } from 'lodash'
 
 import i18n from 'i18next'
@@ -29,7 +31,7 @@ export interface Locale {
   readonly full: string
   readonly flag: string
   readonly name: string
-  readonly Flag: React.ElementType
+  readonly Flag: ElementType
 }
 
 export interface LocaleWithKey extends Locale {

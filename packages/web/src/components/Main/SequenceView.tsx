@@ -3,23 +3,15 @@ import React, { useState } from 'react'
 import ReactResizeDetector from 'react-resize-detector'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult, MissingElementWithId, MutationElementWithId } from 'src/algorithms/types'
+import { getSafeId } from 'src/helpers/getSafeId'
 
-import type { MutationElementWithId, MutationElement, InvalidElementWithId, InvalidElement } from './types'
-import { InvalidTooltip } from './InvalidTooltip'
-import { InvalidView } from './InvalidView'
+import { MissingTooltip } from './MissingTooltip'
+import { MissingView } from './MissingView'
 import { MutationTooltip } from './MutationTooltip'
 import { MutationView } from './MutationView'
 
 export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
-
-export function getMutationIdentifier({ seqName, positionZeroBased, allele }: MutationElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${positionZeroBased}-${allele}`)
-}
-
-export function getInvalidIdentifier({ seqName, character, begin, end }: InvalidElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${character}-${begin}-${end}`)
-}
 
 export interface SequenceViewProps {
   sequence: AnalysisResult
@@ -27,8 +19,8 @@ export interface SequenceViewProps {
 
 export function SequenceView({ sequence }: SequenceViewProps) {
   const [mutation, setMutation] = useState<MutationElementWithId | undefined>(undefined)
-  const [currInvalid, setCurrInvalid] = useState<InvalidElementWithId | undefined>(undefined)
-  const { seqName, mutations, invalid, deletions } = sequence
+  const [currMissing, setCurrMissing] = useState<MissingElementWithId | undefined>(undefined)
+  const { seqName, substitutions, missing, deletions } = sequence
 
   return (
     <ReactResizeDetector handleWidth refreshRate={300} refreshMode="debounce">
@@ -40,12 +32,12 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const pixelsPerBase = widthPx / GENOME_SIZE
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
-        const mutationViews = Object.entries(mutations).map(([positionZeroBased, allele]) => {
-          const id = getMutationIdentifier({ seqName, positionZeroBased, allele })
-          const mutation: MutationElementWithId = { id, seqName, positionZeroBased, allele }
+        const mutationViews = substitutions.map(({ pos, allele }) => {
+          const id = getSafeId('mutation', { seqName, pos, allele })
+          const mutation: MutationElementWithId = { id, seqName, pos, allele }
           return (
             <MutationView
-              key={positionZeroBased}
+              key={pos}
               mutation={mutation}
               width={width}
               pixelsPerBase={pixelsPerBase}
@@ -55,37 +47,35 @@ export function SequenceView({ sequence }: SequenceViewProps) {
           )
         })
 
-        const invalidViews = invalid.map((inv) => {
+        const missingViews = missing.map((inv) => {
           const { character, range } = inv
           const { begin, end } = range
-          const id = getInvalidIdentifier({ seqName, character, begin, end })
-          const invWithId: InvalidElementWithId = { id, seqName, character, begin, end }
+          const id = getSafeId('missing', { seqName, character, begin, end })
+          const invWithId: MissingElementWithId = { id, seqName, character, begin, end }
 
           return (
-            <InvalidView
+            <MissingView
               key={id}
               inv={invWithId}
               pixelsPerBase={pixelsPerBase}
-              onMouseEnter={() => setCurrInvalid(invWithId)}
-              onMouseLeave={() => setCurrInvalid(undefined)}
+              onMouseEnter={() => setCurrMissing(invWithId)}
+              onMouseLeave={() => setCurrMissing(undefined)}
             />
           )
         })
 
-        const deletionViews = Object.keys(deletions).map((del) => {
-          const begin = Number.parseInt(del, 10)
-          const length = deletions[del]
-          const end = begin + length
-          const id = getInvalidIdentifier({ seqName, character: '-', begin, end })
-          const delWithId: InvalidElementWithId = { id, seqName, character: '-', begin, end }
+        const deletionViews = deletions.map(({ start, length }) => {
+          const end = start + length
+          const id = getSafeId('deletion', { seqName, character: '-', begin: start, end })
+          const delWithId: MissingElementWithId = { id, seqName, character: '-', begin: start, end }
 
           return (
-            <InvalidView
+            <MissingView
               key={id}
               inv={delWithId}
               pixelsPerBase={pixelsPerBase}
-              onMouseEnter={() => setCurrInvalid(delWithId)}
-              onMouseLeave={() => setCurrInvalid(undefined)}
+              onMouseEnter={() => setCurrMissing(delWithId)}
+              onMouseLeave={() => setCurrMissing(undefined)}
             />
           )
         })
@@ -95,11 +85,11 @@ export function SequenceView({ sequence }: SequenceViewProps) {
             <svg className="sequence-view-body" viewBox={`0 0 ${widthPx} 10`}>
               <rect className="sequence-view-background" x={0} y={-10} width={GENOME_SIZE} height="30" />
               {mutationViews}
-              {invalidViews}
+              {missingViews}
               {deletionViews}
             </svg>
             {mutation && <MutationTooltip mutation={mutation} sequence={sequence} />}
-            {currInvalid && <InvalidTooltip inv={currInvalid} sequence={sequence} />}
+            {currMissing && <MissingTooltip inv={currMissing} sequence={sequence} />}
           </div>
         )
       }}

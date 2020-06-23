@@ -4,15 +4,12 @@ import { Popover, PopoverBody } from 'reactstrap'
 import type { DeepReadonly } from 'ts-essentials'
 
 import type { AnalysisResult, SubstringMatch } from 'src/algorithms/types'
+import { getSafeId } from 'src/helpers/getSafeId'
 
 import { formatRange } from './formatRange'
 
-export function getSequenceIdentifier(seqName: string) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}`)
-}
-
-export function calculateNucleotidesTotals(invalid: DeepReadonly<SubstringMatch[]>, character: string) {
-  return invalid
+export function calculateNucleotidesTotals(missing: DeepReadonly<SubstringMatch[]>, character: string) {
+  return missing
     .filter((inv) => inv.character === character)
     .reduce((total, inv) => total + inv.range.end - inv.range.begin, 0)
 }
@@ -26,27 +23,27 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   const {
     seqName,
     clades,
-    mutations,
+    substitutions,
     deletions,
     insertions,
-    invalid,
-    alnStart,
-    alnEnd,
+    missing,
+    alignmentStart,
+    alignmentEnd,
     alignmentScore,
     diagnostics,
   } = sequence
-  const id = getSequenceIdentifier(seqName)
+  const id = getSafeId('sequence', { seqName })
   const cladesList = Object.keys(clades).join(', ')
-  const alnStartOneBased = alnStart + 1
-  const alnEndOneBased = alnEnd + 1
+  const alnStartOneBased = alignmentStart + 1
+  const alnEndOneBased = alignmentEnd + 1
 
-  const mutationItems = Object.entries(mutations).map(([positionZeroBased, allele]) => {
-    const positionOneBased = Number.parseInt(positionZeroBased, 10) + 1
+  const mutationItems = substitutions.map(({ pos, allele }) => {
+    const positionOneBased = pos + 1
     const key = `${positionOneBased} ${allele}`
     return <li key={key}>{key}</li>
   })
 
-  const gapItems = invalid.map((inv) => {
+  const gapItems = missing.map((inv) => {
     const { character, range: { begin, end } } = inv // prettier-ignore
     const range = formatRange(begin, end)
     const key = `${character}-${range}`
@@ -63,9 +60,9 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   }
 
   const totalMutations = mutationItems.length
-  const totalGaps = Object.values(deletions).reduce((a, b) => a + b, 0)
-  const totalInsertions = Object.values(insertions).reduce((a, b) => a + b.length, 0)
-  const totalNs = calculateNucleotidesTotals(invalid, 'N')
+  const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
+  const totalInsertions = insertions.length
+  const totalNs = calculateNucleotidesTotals(missing, 'N')
 
   return (
     <Popover

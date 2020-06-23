@@ -4,18 +4,20 @@ import { inRange } from 'lodash'
 
 import { notUndefined } from 'src/helpers/notUndefined'
 
-import type { Base, AminoacidSubstitution, AminoacidSubstitutions, GeneMapDatum } from './types'
+import type { AminoacidSubstitution, AminoacidSubstitutions, Gene, NucleotideLocation } from './types'
 import { getCodon } from './codonTable'
 
-export function aminoAcidChange(pos: number, queryAllele: string, refSequence: string, gene: GeneMapDatum) {
+export function aminoAcidChange(pos: number, queryAllele: string, refSequence: string, gene: Gene) {
+  const { range: { begin, end } } = gene // prettier-ignore
+
   // check that the positions is infact part of this gene
-  if (!inRange(pos, gene.start, gene.end)) {
+  if (!inRange(pos, begin, end)) {
     return undefined
   }
 
-  // determine the reading frame and codon number in gene.
-  const frame = (pos - gene.start + 1) % 3
-  const codon = (pos - gene.start + 1 - frame) / 3
+  // determine the reading frame and codon number in
+  const frame = (pos - begin + 1) % 3
+  const codon = (pos - begin + 1 - frame) / 3
   // pull out the codons and construct the query codon by inserting the allele
   const refCodon = refSequence.substring(pos - frame, pos - frame + 3)
   const queryBegin = refCodon.substring(0, frame)
@@ -36,19 +38,19 @@ export function getAminoAcidChanges(
   pos: number,
   queryAllele: string,
   refSequence: string,
-  geneMap: GeneMapDatum[],
+  geneMap: Gene[],
 ): AminoacidSubstitution[] {
   return geneMap.map((gene) => aminoAcidChange(pos, queryAllele, refSequence, gene)).filter(notUndefined)
 }
 
 export function getAllAminoAcidChanges(
-  mutations: Record<string, Base>,
+  mutations: NucleotideLocation[],
   refSequence: string,
-  geneMap: GeneMapDatum[],
+  geneMap: Gene[],
 ): AminoacidSubstitutions[] {
-  return Object.entries(mutations).map(([position, allele]) => ({
-    position,
+  return mutations.map(({ pos, allele }) => ({
+    pos,
     allele,
-    substitutions: getAminoAcidChanges(Number.parseInt(position, 10), allele, refSequence, geneMap),
+    substitutions: getAminoAcidChanges(pos, allele, refSequence, geneMap),
   }))
 }
