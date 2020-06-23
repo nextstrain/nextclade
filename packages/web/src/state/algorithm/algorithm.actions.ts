@@ -15,3 +15,5 @@ export interface AlgorithmRunError {
 }
 
 export const algorithmRunAsync = action.async<void, AlgorithmRunResults, AlgorithmRunError>('RUN')
+
+export const setParams = action<{ input: string; rootSeq: string }>('SET_PARAMS')

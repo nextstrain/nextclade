@@ -6,38 +6,43 @@ import { Button, Input, Row, Col, Card, CardBody, CardHeader, CardFooter } from 
 import { MdRefresh, MdFileDownload } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import type { DeepReadonly } from 'ts-essentials'
+import { connect } from 'react-redux'
 
 import { EXPORT_FILENAME } from 'src/constants'
 
 import { Uploader } from 'src/components/Uploader/Uploader'
 import { saveFile } from 'src/helpers/saveFile'
 
+import type { State } from 'src/state/reducer'
 import type { AnalysisResult } from 'src/algorithms/types'
-import { runInWorker } from 'src/algorithms/runInWorker'
-
-import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
-import DEFAULT_ROOT_SEQUENCE from 'src/assets/data/defaultRootSequence.txt'
+import { algorithmRunTrigger, setParams } from 'src/state/algorithm/algorithm.actions'
 
 import { ReactComponent as CladeSchema } from 'src/assets/img/Nextstrain_ncov_clades-20B1tip.svg'
 
 import { Result } from './Result'
 
-export function Main() {
+const mapStateToProps = (state: State) => ({})
+
+const mapDispatchToProps = {}
+
+export const Main = connect(mapStateToProps, mapDispatchToProps)(MainDisconnected)
+
+export function MainDisconnected() {
   const { t } = useTranslation()
-  const [rootSeq] = useState(DEFAULT_ROOT_SEQUENCE)
-  const [inputCurrent, setInputCurrent] = useState(DEFAULT_INPUT)
+  // const [rootSeq] = useState(DEFAULT_ROOT_SEQUENCE)
+  // const [inputCurrent, setInputCurrent] = useState(DEFAULT_INPUT)
   const [result, setResult] = useState<DeepReadonly<AnalysisResult[]>>([])
 
   const hangleSequenceChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setResult([])
-    setInputCurrent(e.target.value)
+    // setInputCurrent(e.target.value)
   }, [])
 
   const handleRefresh = useCallback(noop, [])
 
   const handleUpload = useCallback((data: string) => {
     setResult([])
-    setInputCurrent(data)
+    // setInputCurrent(data)
   }, [])
 
   const handleDownload = useCallback(() => {
@@ -51,16 +56,24 @@ export function Main() {
 
   const canDownload = !!result
 
-  useEffect(() => {
-    async function runEffect() {
-      const result = await runInWorker({ input: inputCurrent, rootSeq })
-      if (result.length > 0) {
-        setResult(result)
-      }
-    }
+  useEffect(
+    () => {
+      async function runEffect() {
+        // setParams()
+        algorithmRunTrigger()
 
-    runEffect().catch(console.error)
-  }, [inputCurrent, rootSeq])
+        // const result = await runInWorker({ dispatch, input: inputCurrent, rootSeq })
+        // if (result.length > 0) {
+        //   setResult(result)
+        // }
+      }
+
+      runEffect().catch(console.error)
+    },
+    [
+      /* inputCurrent, rootSeq */
+    ],
+  )
 
   return (
     <Row noGutters>
@@ -85,8 +98,8 @@ export function Main() {
                   id="sequence-input"
                   cols={80}
                   rows={10}
-                  value={inputCurrent}
-                  onChange={hangleSequenceChage}
+                  // value={inputCurrent}
+                  // onChange={hangleSequenceChage}
                 />
               </Col>
             </Row>

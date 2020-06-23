@@ -1,4 +1,5 @@
-import { DeepReadonly } from 'ts-essentials'
+import type { Dispatch } from 'redux'
+import type { DeepReadonly } from 'ts-essentials'
 import type { Tagged } from 'src/helpers/types'
 
 /** Type-safe representation of a nucleotide */
@@ -59,11 +60,6 @@ export interface QCParameters {
 export interface Virus {
   QCParams: QCParameters
   clades: DeepReadonly<Substitutions>
-}
-
-export interface AlgorithmParams {
-  rootSeq: string
-  input: string
 }
 
 export interface AnalyzeSeqResult {

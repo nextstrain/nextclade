@@ -4,10 +4,14 @@ import storage from 'redux-persist/lib/storage'
 import { routerReducer } from 'connected-next-router'
 import { RouterState } from 'connected-next-router/types'
 
+import { agorithmReducer } from './algorithm/algorithm.reducer'
+import { AlgorithmState } from './algorithm/algorithm.state'
+
 import { SettingsState } from './settings/settings.state'
 import { settingsReducer } from './settings/settings.reducer'
 
 export interface State {
+  algorithm: AlgorithmState
   settings: SettingsState
   router: RouterState
 }
@@ -22,6 +26,7 @@ const settingsReducerPersisted = persistReducer(
 
 const rootReducer = () =>
   combineReducers({
+    algorithm: agorithmReducer,
     settings: settingsReducerPersisted,
     router: routerReducer,
   })
