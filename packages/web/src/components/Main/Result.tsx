@@ -132,7 +132,7 @@ export function SequenceGaps({ sequence }: SequenceCladeProps) {
   const { deletions, seqName } = sequence
   const id = getSequenceIdentifier(seqName)
 
-  const totalGaps = Object.values(deletions).reduce((a, b) => a + b, 0)
+  const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
 
   return (
     <>

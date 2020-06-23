@@ -1,4 +1,4 @@
-import type { Nucleotide, QCDiagnostics, QCResult, ClusteredSNPs } from './types'
+import type { QCDiagnostics, QCResult, ClusteredSNPs, NucleotideLocation, NucleotideDeletion } from './types'
 import { SARSCOV2 } from './SARS-CoV-2_parameters'
 
 const TooHighDivergence = 'too high divergence'
@@ -6,18 +6,17 @@ const ClusteredSNPsFlag = 'clustered SNPs'
 const TooManyMixedSites = 'Too many non-ACGT characters'
 const MissingData = 'missing data'
 
-function findSNPClusters(mutations: Record<string, Nucleotide>) {
+function findSNPClusters(mutations: NucleotideLocation[]) {
   // turn mutation keys into positions, exclude known clusters, and sort
-  const positions = Object.keys(mutations)
-    .map((pos) => Number.parseInt(pos, 10))
-    .filter((pos) => !SARSCOV2.QCParams.knownClusters.has(pos))
-    .sort((a, b) => a - b)
+  const positions = mutations
+    .filter(({ pos }) => !SARSCOV2.QCParams.knownClusters.has(pos))
+    .sort((a, b) => a.pos - b.pos)
 
   // loop over all mutations and count how many fall into the clusters
   let previousPos = -1
   const currentCluster: number[] = []
   const allClusters: number[][] = []
-  positions.forEach((pos) => {
+  positions.forEach(({ pos }) => {
     currentCluster.push(pos)
     while (currentCluster[0] < pos - SARSCOV2.QCParams.windowSize) {
       currentCluster.shift()
@@ -56,9 +55,9 @@ function getNucleotideComposition(alignedQuery: string): Record<string, number> 
 }
 
 export function sequenceQC(
-  mutations: Record<string, Nucleotide>,
-  insertions: Record<string, Nucleotide>,
-  deletions: Record<string, number>,
+  mutations: NucleotideLocation[],
+  insertions: NucleotideLocation[],
+  deletions: NucleotideDeletion[],
   alignedQuery: string,
 ): QCResult {
   const flags: string[] = []

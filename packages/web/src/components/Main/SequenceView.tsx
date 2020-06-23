@@ -18,12 +18,16 @@ import { MutationView } from './MutationView'
 
 export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
 
-export function getMutationIdentifier({ seqName, positionZeroBased, allele }: MutationElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${positionZeroBased}-${allele}`)
+export function getMutationIdentifier({ seqName, pos, allele }: MutationElement) {
+  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${pos}-${allele}`)
 }
 
 export function getMissingIdentifier({ seqName, character, begin, end }: MissingElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${character}-${begin}-${end}`)
+  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-missing-${character}-${begin}-${end}`)
+}
+
+export function getDeletionIdentifier({ seqName, character, begin, end }: MissingElement) {
+  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-deletion-${character}-${begin}-${end}`)
 }
 
 export interface SequenceViewProps {
@@ -45,12 +49,12 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const pixelsPerBase = widthPx / GENOME_SIZE
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
-        const mutationViews = Object.entries(substitutions).map(([positionZeroBased, allele]) => {
-          const id = getMutationIdentifier({ seqName, positionZeroBased, allele })
-          const mutation: MutationElementWithId = { id, seqName, positionZeroBased, allele }
+        const mutationViews = substitutions.map(({ pos, allele }) => {
+          const id = getMutationIdentifier({ seqName, pos, allele })
+          const mutation: MutationElementWithId = { id, seqName, pos, allele }
           return (
             <MutationView
-              key={positionZeroBased}
+              key={pos}
               mutation={mutation}
               width={width}
               pixelsPerBase={pixelsPerBase}
@@ -77,12 +81,10 @@ export function SequenceView({ sequence }: SequenceViewProps) {
           )
         })
 
-        const deletionViews = Object.keys(deletions).map((del) => {
-          const begin = Number.parseInt(del, 10)
-          const length = deletions[del]
-          const end = begin + length
-          const id = getMissingIdentifier({ seqName, character: '-', begin, end })
-          const delWithId: MissingElementWithId = { id, seqName, character: '-', begin, end }
+        const deletionViews = deletions.map(({ start, length }) => {
+          const end = start + length
+          const id = getDeletionIdentifier({ seqName, character: '-', begin: start, end })
+          const delWithId: MissingElementWithId = { id, seqName, character: '-', begin: start, end }
 
           return (
             <MissingView

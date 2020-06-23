@@ -10,8 +10,8 @@ export interface MutationTooltipProps {
 }
 
 export function MutationTooltip({ mutation, sequence }: MutationTooltipProps) {
-  const { allele, positionZeroBased, id, seqName } = mutation
-  const positionOneBased = Number.parseInt(positionZeroBased, 10) + 1 // NOTE: by convention, bases are numbered starting from 1
+  const { allele, pos, id, seqName } = mutation
+  const positionOneBased = pos + 1 // NOTE: by convention, bases are numbered starting from 1
 
   const { clades } = sequence
   const cladesList = Object.keys(clades).join(', ')

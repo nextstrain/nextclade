@@ -4,13 +4,18 @@ import type { Tagged } from 'src/helpers/types'
 export type Nucleotide = Tagged<string, 'Nucleotide'>
 export type Aminoacid = Tagged<string, 'Aminoacid'>
 
-export interface Substitution {
+export interface NucleotideLocation {
   pos: number
   allele: string
 }
 
+export interface NucleotideDeletion {
+  start: number
+  length: number
+}
+
 export interface Substitutions {
-  [key: string]: DeepReadonly<Substitution>[]
+  [key: string]: DeepReadonly<NucleotideLocation>[]
 }
 
 export interface AminoacidSubstitution {
@@ -20,7 +25,7 @@ export interface AminoacidSubstitution {
 }
 
 export interface AminoacidSubstitutions {
-  position: string
+  pos: number
   allele: string
   substitutions: AminoacidSubstitution[]
 }
@@ -55,9 +60,9 @@ export interface AlgorithmParams {
 }
 
 export interface AnalyzeSeqResult {
-  substitutions: Record<string, Nucleotide>
-  insertions: Record<string, Nucleotide>
-  deletions: Record<string, number>
+  substitutions: NucleotideLocation[]
+  insertions: NucleotideLocation[]
+  deletions: NucleotideDeletion[]
   alignmentStart: number
   alignmentEnd: number
 }
@@ -105,10 +110,8 @@ export interface GeneMapDatum {
   strand: string
 }
 
-export interface MutationElement {
+export interface MutationElement extends NucleotideLocation {
   seqName: string
-  positionZeroBased: string
-  allele: string
 }
 
 export interface MutationElementWithId extends MutationElement {

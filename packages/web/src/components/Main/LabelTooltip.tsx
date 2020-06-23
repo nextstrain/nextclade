@@ -40,8 +40,8 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
 
-  const mutationItems = Object.entries(substitutions).map(([positionZeroBased, allele]) => {
-    const positionOneBased = Number.parseInt(positionZeroBased, 10) + 1
+  const mutationItems = substitutions.map(({ pos, allele }) => {
+    const positionOneBased = pos + 1
     const key = `${positionOneBased} ${allele}`
     return <li key={key}>{key}</li>
   })
@@ -63,8 +63,8 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   }
 
   const totalMutations = mutationItems.length
-  const totalGaps = Object.values(deletions).reduce((a, b) => a + b, 0)
-  const totalInsertions = Object.values(insertions).reduce((a, b) => a + b.length, 0)
+  const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
+  const totalInsertions = insertions.length
   const totalNs = calculateNucleotidesTotals(missing, 'N')
 
   return (
