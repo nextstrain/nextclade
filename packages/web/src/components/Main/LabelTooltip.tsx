@@ -4,12 +4,9 @@ import { Popover, PopoverBody } from 'reactstrap'
 import type { DeepReadonly } from 'ts-essentials'
 
 import type { AnalysisResult, SubstringMatch } from 'src/algorithms/types'
+import { getSafeId } from 'src/helpers/getSafeId'
 
 import { formatRange } from './formatRange'
-
-export function getSequenceIdentifier(seqName: string) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}`)
-}
 
 export function calculateNucleotidesTotals(missing: DeepReadonly<SubstringMatch[]>, character: string) {
   return missing
@@ -35,7 +32,7 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
     alignmentScore,
     diagnostics,
   } = sequence
-  const id = getSequenceIdentifier(seqName)
+  const id = getSafeId('sequence', { seqName })
   const cladesList = Object.keys(clades).join(', ')
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1

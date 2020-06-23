@@ -5,10 +5,11 @@ import { useTranslation } from 'react-i18next'
 import { DeepReadonly } from 'ts-essentials'
 
 import { AnalysisResult } from 'src/algorithms/types'
+import { getSafeId } from 'src/helpers/getSafeId'
 
 import { Axis } from './Axis'
 import { GENOME_SIZE, SequenceView } from './SequenceView'
-import { calculateNucleotidesTotals, getSequenceIdentifier, LabelTooltip } from './LabelTooltip'
+import { calculateNucleotidesTotals, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
 
 export interface SequenceLabelProps {
@@ -19,7 +20,7 @@ export function SequenceLabel({ sequence }: SequenceLabelProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
   const { seqName } = sequence
-  const id = getSequenceIdentifier(seqName)
+  const id = getSafeId('sequence-label', { seqName })
 
   return (
     <>
@@ -44,7 +45,7 @@ export function SequenceClade({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
   const { clades, seqName } = sequence
-  const id = getSequenceIdentifier(seqName)
+  const id = getSafeId('clade-label', { seqName })
   const cladesList = Object.keys(clades).join(', ')
 
   return (
@@ -70,7 +71,7 @@ export function SequenceQCStatus({ sequence }: SequenceQCStatusProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
   const { seqName, diagnostics } = sequence
-  const id = getSequenceIdentifier(seqName)
+  const id = getSafeId('qc-label', { seqName })
 
   return (
     <>
@@ -89,7 +90,7 @@ export function SequenceQCStatus({ sequence }: SequenceQCStatusProps) {
 
 export function SequenceNonACGTNs({ sequence }: SequenceCladeProps) {
   const { diagnostics, seqName } = sequence
-  const id = getSequenceIdentifier(seqName)
+  const id = getSafeId('nonacgtn-label', { seqName })
   const goodBases = new Set(['A', 'C', 'G', 'T', 'N', '-'])
   const nonACGTN = Object.keys(diagnostics.nucleotideComposition)
     .filter((d) => !goodBases.has(d))
@@ -108,7 +109,7 @@ export function SequenceNs({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
   const { missing, seqName } = sequence
-  const id = getSequenceIdentifier(seqName)
+  const id = getSafeId('ns-label', { seqName })
   const totalNs = calculateNucleotidesTotals(missing, 'N')
 
   return (
@@ -130,7 +131,7 @@ export function SequenceGaps({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
   const { deletions, seqName } = sequence
-  const id = getSequenceIdentifier(seqName)
+  const id = getSafeId('gaps-label', { seqName })
 
   const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
 

@@ -3,13 +3,8 @@ import React, { useState } from 'react'
 import ReactResizeDetector from 'react-resize-detector'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import type {
-  AnalysisResult,
-  MissingElement,
-  MissingElementWithId,
-  MutationElement,
-  MutationElementWithId,
-} from 'src/algorithms/types'
+import type { AnalysisResult, MissingElementWithId, MutationElementWithId } from 'src/algorithms/types'
+import { getSafeId } from 'src/helpers/getSafeId'
 
 import { MissingTooltip } from './MissingTooltip'
 import { MissingView } from './MissingView'
@@ -17,18 +12,6 @@ import { MutationTooltip } from './MutationTooltip'
 import { MutationView } from './MutationView'
 
 export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
-
-export function getMutationIdentifier({ seqName, pos, allele }: MutationElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-${pos}-${allele}`)
-}
-
-export function getMissingIdentifier({ seqName, character, begin, end }: MissingElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-missing-${character}-${begin}-${end}`)
-}
-
-export function getDeletionIdentifier({ seqName, character, begin, end }: MissingElement) {
-  return CSS.escape(`${seqName.replace(/(\W+)/g, '-')}-deletion-${character}-${begin}-${end}`)
-}
 
 export interface SequenceViewProps {
   sequence: AnalysisResult
@@ -50,7 +33,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
         const mutationViews = substitutions.map(({ pos, allele }) => {
-          const id = getMutationIdentifier({ seqName, pos, allele })
+          const id = getSafeId('mutation', { seqName, pos, allele })
           const mutation: MutationElementWithId = { id, seqName, pos, allele }
           return (
             <MutationView
@@ -67,7 +50,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const missingViews = missing.map((inv) => {
           const { character, range } = inv
           const { begin, end } = range
-          const id = getMissingIdentifier({ seqName, character, begin, end })
+          const id = getSafeId('missing', { seqName, character, begin, end })
           const invWithId: MissingElementWithId = { id, seqName, character, begin, end }
 
           return (
@@ -83,7 +66,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
 
         const deletionViews = deletions.map(({ start, length }) => {
           const end = start + length
-          const id = getDeletionIdentifier({ seqName, character: '-', begin: start, end })
+          const id = getSafeId('deletion', { seqName, character: '-', begin: start, end })
           const delWithId: MissingElementWithId = { id, seqName, character: '-', begin: start, end }
 
           return (
