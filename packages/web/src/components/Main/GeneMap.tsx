@@ -15,10 +15,10 @@ export interface GeneViewProps extends SVGProps<SVGRectElement> {
 }
 
 export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
-  const { end, start } = gene
-  const frame = start % 3
-  const width = Math.max(BASE_MIN_WIDTH_PX, (end - start) * pixelsPerBase)
-  const x = start * pixelsPerBase
+  const { range: { begin, end } } = gene // prettier-ignore
+  const frame = begin % 3
+  const width = Math.max(BASE_MIN_WIDTH_PX, (end - begin) * pixelsPerBase)
+  const x = begin * pixelsPerBase
   const id = getGeneId(gene)
   return <rect id={id} fill={gene.color} x={x} y={-10 + 7.5 * frame} width={width} height="15" {...rest} />
 }

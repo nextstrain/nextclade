@@ -13,9 +13,10 @@ function getGeneMap(): Gene[] {
   }
 
   return Object.entries(geneMap).map(([name, geneDataRaw]) => {
-    const geneData = pick(geneDataRaw, ['start', 'end'])
-    const color = createColor({ name, ...geneData })
-    return { name, ...geneData, color }
+    const { start: begin, end } = pick(geneDataRaw, ['start', 'end'])
+    const geneWithoutColor = { name, range: { begin, end } }
+    const color = createColor(geneWithoutColor)
+    return { ...geneWithoutColor, color }
   })
 }
 

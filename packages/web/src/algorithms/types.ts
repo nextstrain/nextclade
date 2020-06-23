@@ -1,7 +1,10 @@
 import { DeepReadonly } from 'ts-essentials'
 import type { Tagged } from 'src/helpers/types'
 
+/** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
+
+/** Type-safe representation of an aminoacid */
 export type Aminoacid = Tagged<string, 'Aminoacid'>
 
 /** Represents a numeric interval bounded by start and end. Similar to `Span`, but different representation. */
@@ -24,7 +27,7 @@ export interface NucleotideLocation {
 export type NucleotideDeletion = Tagged<Span, 'NucleotideDeletion'>
 
 export interface Substitutions {
-  [key: string]: DeepReadonly<NucleotideLocation>[]
+  [key: string]: DeepReadonly<NucleotideLocation[]>
 }
 
 export interface AminoacidSubstitution {
@@ -108,7 +111,7 @@ export interface AnalysisParams {
 export interface Gene {
   name: string
   color: string
-  range: Span
+  range: Range
 }
 
 export interface MutationElement extends NucleotideLocation {

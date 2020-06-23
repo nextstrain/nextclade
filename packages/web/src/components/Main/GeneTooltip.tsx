@@ -5,8 +5,11 @@ import { formatRange } from 'src/components/Main/formatRange'
 import { Gene } from 'src/algorithms/types'
 
 export function getGeneId(gene: Gene) {
-  const { name, start, end } = gene
-  return CSS.escape(`${name}-${start}-${end}`)
+  const {
+    name,
+    range: { begin, end },
+  } = gene
+  return CSS.escape(`${name}-${begin}-${end}`)
 }
 
 export interface GeneTooltipProps {
@@ -14,10 +17,14 @@ export interface GeneTooltipProps {
 }
 
 export function GeneTooltip({ gene }: GeneTooltipProps) {
-  const { name, color, start, end } = gene
+  const {
+    name,
+    color,
+    range: { begin, end },
+  } = gene
   const id = getGeneId(gene)
 
-  const range = formatRange(start, end)
+  const range = formatRange(begin, end)
 
   return (
     <Popover className="popover-mutation" target={id} placement="auto" isOpen hideArrow delay={0} fade={false}>
