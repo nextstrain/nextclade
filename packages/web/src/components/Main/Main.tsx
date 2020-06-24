@@ -123,7 +123,7 @@ export function MainDisconnected() {
           <CardBody>
             <Row>
               <Col>
-                <Result result={result} />
+                <Result />
               </Col>
             </Row>
             <Row>

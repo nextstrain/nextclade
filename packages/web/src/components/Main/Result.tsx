@@ -12,6 +12,10 @@ import { GENOME_SIZE, SequenceView } from './SequenceView'
 import { calculateNucleotidesTotals, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
 
+import { connect } from 'react-redux'
+import { State } from 'src/state/reducer'
+import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+
 export interface SequenceLabelProps {
   sequence: AnalysisResult
 }
@@ -150,21 +154,27 @@ export function SequenceGaps({ sequence }: SequenceCladeProps) {
   )
 }
 
+const mapStateToProps = (state: State) => ({
+  result: state.algorithm.results,
+})
+
+const mapDispatchToProps = {}
+
+export const Result = connect(mapStateToProps, mapDispatchToProps)(ResultDisconnected)
+
 export interface ResultProps {
-  result: DeepReadonly<AnalysisResult[]>
+  result: SequenceAnylysisState[]
 }
 
-export function Result({ result }: ResultProps) {
+export function ResultDisconnected({ result }: ResultProps) {
   const { t } = useTranslation()
-
-  if (!result) {
-    return null
-  }
 
   const genomeSize = GENOME_SIZE // FIXME: deduce from sequences
 
-  const sequenceItems = result.map((sequence, i) => {
-    const { seqName } = sequence
+  const sequenceItems = result.map(({ status, seqName, result: sequence }, i) => {
+    if (!sequence) {
+      return null
+    }
 
     return (
       <tr className="results-table-row" key={seqName}>
