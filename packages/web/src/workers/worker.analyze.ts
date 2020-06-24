@@ -4,7 +4,7 @@ import 'regenerator-runtime'
 import type { FunctionThread } from 'threads'
 import { expose } from 'threads/worker'
 
-import { analyze } from './run'
+import { analyze } from '../algorithms/run'
 
 expose(analyze)
 

@@ -1,14 +1,15 @@
 import { format } from 'url'
 
-import { Router } from 'next/router'
+import type { Router } from 'next/router'
 import { applyMiddleware, createStore, StoreEnhancer, Store, Middleware } from 'redux'
 import { composeWithDevTools } from 'redux-devtools-extension'
-import { PersistorOptions, Persistor } from 'redux-persist/es/types'
+import type { PersistorOptions, Persistor } from 'redux-persist/es/types'
 import reduxImmutableStateInvariant from 'redux-immutable-state-invariant'
 import createSagaMiddleware from 'redux-saga'
 import { createRouterMiddleware, initialRouterState } from 'connected-next-router'
-
 import { persistStore } from 'redux-persist'
+
+import type { WorkerPools } from 'src/workers/types'
 
 import createRootReducer from './reducer'
 import createRootSaga from './sagas'
@@ -24,11 +25,14 @@ export function persistStoreAsync(store: Store, options: PersistorOptions): Prom
 
 export interface ConfigureStoreParams {
   router: Router
+  workerPools: WorkerPools
 }
 
-export async function configureStore({ router }: ConfigureStoreParams) {
+export async function configureStore({ router, workerPools }: ConfigureStoreParams) {
   const routerMiddleware = createRouterMiddleware()
-  const sagaMiddleware = createSagaMiddleware()
+  const sagaMiddleware = createSagaMiddleware({
+    context: { workerPools },
+  })
 
   let middlewares: Middleware<string>[] = [routerMiddleware, sagaMiddleware].filter(Boolean)
 

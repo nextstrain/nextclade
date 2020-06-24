@@ -1,17 +1,19 @@
 import actionCreatorFactory from 'typescript-fsa'
 
+import type { AnalysisResult } from 'src/algorithms/types'
+
 const action = actionCreatorFactory('ALGORITHM')
+
+export const setParams = action<{ input: string; rootSeq: string }>('SET_PARAMS')
+
+export const setInput = action<string>('SET_INPUT')
 
 export const algorithmRunTrigger = action('RUN_TRIGGER')
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface AlgorithmRunParams {}
+export const algorithmRunAsync = action.async<void, void, void>('RUN')
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface AlgorithmRunResults {}
+export const parseAsync = action.async<void, string[], Error>('PARSE')
 
-export interface AlgorithmRunError {
-  error: Error
-}
+export const analyzeAsync = action.async<{ seqName: string }, AnalysisResult, Error>('ANALYZE')
 
-export const algorithmRunAsync = action.async<void, AlgorithmRunResults, AlgorithmRunError>('RUN')
+export const exportTrigger = action('EXPORT')

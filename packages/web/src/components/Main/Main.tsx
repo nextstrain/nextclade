@@ -1,66 +1,45 @@
-import React, { useCallback, useState, ChangeEvent, useEffect } from 'react'
+import React, { useCallback } from 'react'
 
-import { noop } from 'lodash'
-
-import { Button, Input, Row, Col, Card, CardBody, CardHeader, CardFooter } from 'reactstrap'
-import { MdRefresh, MdFileDownload } from 'react-icons/md'
+import { Button, Card, CardBody, CardFooter, CardHeader, Col, Input, Row } from 'reactstrap'
+import { MdFileDownload, MdRefresh } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
-import type { DeepReadonly } from 'ts-essentials'
-
-import { EXPORT_FILENAME } from 'src/constants'
+import { connect } from 'react-redux'
 
 import { Uploader } from 'src/components/Uploader/Uploader'
-import { saveFile } from 'src/helpers/saveFile'
 
-import type { AnalysisResult } from 'src/algorithms/types'
-import { runInWorker } from 'src/algorithms/runInWorker'
-
-import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
-import DEFAULT_ROOT_SEQUENCE from 'src/assets/data/defaultRootSequence.txt'
+import type { State } from 'src/state/reducer'
+import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
+import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
+import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
 
 import { ReactComponent as CladeSchema } from 'src/assets/img/Nextstrain_ncov_clades-20B1tip.svg'
 
 import { Result } from './Result'
 
-export function Main() {
+export interface MainProps {
+  params: AlgorithmParams
+  canExport: boolean
+  setInput(input: string): void
+  algorithmRunTrigger(_0?: unknown): void
+  exportTrigger(_0?: unknown): void
+}
+
+const mapStateToProps = (state: State) => ({
+  params: state.algorithm.params,
+  canExport: state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
+})
+
+const mapDispatchToProps = {
+  setInput,
+  algorithmRunTrigger: () => algorithmRunTrigger(),
+  exportTrigger: () => exportTrigger(),
+}
+
+export const Main = connect(mapStateToProps, mapDispatchToProps)(MainDisconnected)
+
+export function MainDisconnected({ params, canExport, setInput, algorithmRunTrigger, exportTrigger }: MainProps) {
   const { t } = useTranslation()
-  const [rootSeq] = useState(DEFAULT_ROOT_SEQUENCE)
-  const [inputCurrent, setInputCurrent] = useState(DEFAULT_INPUT)
-  const [result, setResult] = useState<DeepReadonly<AnalysisResult[]>>([])
-
-  const hangleSequenceChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setResult([])
-    setInputCurrent(e.target.value)
-  }, [])
-
-  const handleRefresh = useCallback(noop, [])
-
-  const handleUpload = useCallback((data: string) => {
-    setResult([])
-    setInputCurrent(data)
-  }, [])
-
-  const handleDownload = useCallback(() => {
-    if (!result) {
-      throw new Error('Unable to export: results are invalid')
-    }
-
-    const str = JSON.stringify(result, null, 2)
-    saveFile(str, EXPORT_FILENAME)
-  }, [result])
-
-  const canDownload = !!result
-
-  useEffect(() => {
-    async function runEffect() {
-      const result = await runInWorker({ input: inputCurrent, rootSeq })
-      if (result.length > 0) {
-        setResult(result)
-      }
-    }
-
-    runEffect().catch(console.error)
-  }, [inputCurrent, rootSeq])
+  const hangleInputChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { setInput(e.target.value) }, [setInput]) // prettier-ignore
 
   return (
     <Row noGutters>
@@ -71,7 +50,7 @@ export function Main() {
           <CardBody>
             <Row>
               <Col>
-                <Uploader onUpload={handleUpload} />
+                <Uploader onUpload={setInput} />
               </Col>
             </Row>
 
@@ -85,8 +64,8 @@ export function Main() {
                   id="sequence-input"
                   cols={80}
                   rows={10}
-                  value={inputCurrent}
-                  onChange={hangleSequenceChage}
+                  value={params.input}
+                  onChange={hangleInputChage}
                 />
               </Col>
             </Row>
@@ -95,7 +74,7 @@ export function Main() {
           <CardFooter>
             <Row>
               <Col className="d-flex w-100">
-                <Button className="ml-auto btn-refresh" color="success" onClick={handleRefresh}>
+                <Button className="ml-auto btn-refresh" color="success" onClick={algorithmRunTrigger}>
                   <MdRefresh className="btn-icon" />
                   <span>{t('Refresh')}</span>
                 </Button>
@@ -110,7 +89,7 @@ export function Main() {
           <CardBody>
             <Row>
               <Col>
-                <Result result={result} />
+                <Result />
               </Col>
             </Row>
             <Row>
@@ -140,7 +119,7 @@ export function Main() {
           <CardFooter>
             <Row>
               <Col className="d-flex w-100">
-                <Button className="ml-auto btn-export" color="primary" disabled={!canDownload} onClick={handleDownload}>
+                <Button className="ml-auto btn-export" color="primary" disabled={!canExport} onClick={exportTrigger}>
                   <MdFileDownload className="btn-icon" />
                   <span>{t('Export')}</span>
                 </Button>
