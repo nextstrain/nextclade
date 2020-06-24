@@ -2,7 +2,7 @@ import { identity } from 'lodash'
 
 import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
-import { getContext, select, takeEvery, call, put, all } from 'redux-saga/effects'
+import { getContext, select, takeEvery, call, put, all, takeLatest } from 'redux-saga/effects'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import type { ParseThread } from 'src/workers/worker.parse'
@@ -12,7 +12,14 @@ import { WorkerPools } from 'src/workers/types'
 import fsaSaga from 'src/state/util/fsaSaga'
 
 import { selectParams } from './algorithm.selectors'
-import { algorithmRunAsync, algorithmRunTrigger, parseAsync, analyzeAsync } from './algorithm.actions'
+import {
+  algorithmRunAsync,
+  algorithmRunTrigger,
+  parseAsync,
+  analyzeAsync,
+  setInput,
+  setParams,
+} from './algorithm.actions'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
@@ -74,4 +81,12 @@ export function* workerAlgorithmRun() {
   yield all(sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })))
 }
 
-export default [takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, workerAlgorithmRun))]
+export function* rerun() {
+  yield put(algorithmRunTrigger())
+}
+
+export default [
+  takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, workerAlgorithmRun)),
+  takeLatest(setInput, rerun),
+  takeLatest(setParams, rerun),
+]

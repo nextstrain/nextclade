@@ -2,6 +2,11 @@ import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
 import DEFAULT_ROOT_SEQUENCE from 'src/assets/data/defaultRootSequence.txt'
 import { AnalysisResult } from 'src/algorithms/types'
 
+export interface AlgorithmParams {
+  input: string
+  rootSeq: string
+}
+
 export enum AlgorithmStatus {
   idling = 'idling',
   started = 'started',
@@ -28,10 +33,7 @@ export interface SequenceAnylysisState {
 
 export interface AlgorithmState {
   status: AlgorithmStatus
-  params: {
-    input: string
-    rootSeq: string
-  }
+  params: AlgorithmParams
   results: SequenceAnylysisState[]
   error?: Error
 }

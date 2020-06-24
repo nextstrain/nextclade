@@ -24,7 +24,7 @@ class UploadErrorUnknown extends Error {
 }
 
 export interface UploaderProps {
-  onUpload(data: string): void
+  onUpload(input: string): void
 }
 
 export function Uploader({ onUpload }: UploaderProps) {

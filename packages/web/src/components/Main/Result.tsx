@@ -1,20 +1,19 @@
 import React, { useState } from 'react'
 
+import { connect } from 'react-redux'
 import { Table } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
-import { DeepReadonly } from 'ts-essentials'
 
 import { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
+
+import type { State } from 'src/state/reducer'
+import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 
 import { Axis } from './Axis'
 import { GENOME_SIZE, SequenceView } from './SequenceView'
 import { calculateNucleotidesTotals, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
-
-import { connect } from 'react-redux'
-import { State } from 'src/state/reducer'
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 
 export interface SequenceLabelProps {
   sequence: AnalysisResult
