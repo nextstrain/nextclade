@@ -1,4 +1,4 @@
-export const PROJECT_NAME = 'Web Cladez' as const
+export const PROJECT_NAME = 'Web Cladezz' as const
 export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'NeherLab' as const
 
