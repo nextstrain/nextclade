@@ -7,11 +7,12 @@ import { getContext, select, takeEvery, call, put, all, takeLatest } from 'redux
 import type { AnalysisResult } from 'src/algorithms/types'
 import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
+import type { WorkerPools } from 'src/workers/types'
 
-import { WorkerPools } from 'src/workers/types'
+import { saveFile } from 'src/helpers/saveFile'
+import { serializeResults } from 'src/io/serializeResults'
 import fsaSaga from 'src/state/util/fsaSaga'
-
-import { selectParams } from './algorithm.selectors'
+import { EXPORT_FILENAME } from 'src/constants'
 import {
   algorithmRunAsync,
   algorithmRunTrigger,
@@ -19,7 +20,9 @@ import {
   analyzeAsync,
   setInput,
   setParams,
+  exportTrigger,
 } from './algorithm.actions'
+import { selectParams, selectResults } from './algorithm.selectors'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
@@ -85,8 +88,15 @@ export function* rerun() {
   yield put(algorithmRunTrigger())
 }
 
+export function* exportResults() {
+  const results = (yield select(selectResults) as unknown) as AnalysisResult[]
+  const str = serializeResults(results)
+  saveFile(str, EXPORT_FILENAME)
+}
+
 export default [
   takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, workerAlgorithmRun)),
   takeLatest(setInput, rerun),
   takeLatest(setParams, rerun),
+  takeEvery(exportTrigger, exportResults),
 ]
