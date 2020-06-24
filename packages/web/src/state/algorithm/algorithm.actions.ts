@@ -17,3 +17,6 @@ export interface AlgorithmRunError {
 export const algorithmRunAsync = action.async<void, AlgorithmRunResults, AlgorithmRunError>('RUN')
 
 export const setParams = action<{ input: string; rootSeq: string }>('SET_PARAMS')
+
+export const parseAsync = action.async<void, void, void>('PARSE')
+export const analyzeAsync = action.async<void, void, void>('ANALYZE')

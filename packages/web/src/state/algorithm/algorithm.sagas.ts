@@ -1,19 +1,18 @@
 import { identity } from 'lodash'
 
-import type { DeepReadonly } from 'ts-essentials'
+import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
-import { concurrent } from 'fasy'
-import { SagaIterator } from 'redux-saga'
-import { getContext, select, takeEvery, call } from 'redux-saga/effects'
+import { getContext, select, takeEvery, call, put, all } from 'redux-saga/effects'
 
+import type { AnalysisResult } from 'src/algorithms/types'
 import type { ParseThread } from 'src/workers/worker.parse'
-import type { AnalyzeReturn, AnalyzeThread } from 'src/workers/worker.analyze'
+import type { AnalyzeThread } from 'src/workers/worker.analyze'
 
 import { WorkerPools } from 'src/workers/types'
 import fsaSaga from 'src/state/util/fsaSaga'
 
 import { selectParams } from './algorithm.selectors'
-import { algorithmRunAsync, AlgorithmRunResults, algorithmRunTrigger } from './algorithm.actions'
+import { algorithmRunAsync, algorithmRunTrigger, parseAsync, analyzeAsync } from './algorithm.actions'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
@@ -21,36 +20,55 @@ export interface RunParams extends WorkerPools {
   dispatch: Dispatch
 }
 
-async function run({ poolParse, poolAnalyze, input, rootSeq }: DeepReadonly<RunParams>): Promise<AnalyzeReturn[]> {
-  // console.log({ poolParse, poolAnalyze, input, rootSeq })
-
-  const taskParse = poolParse.queue(async (parse: ParseThread) => parse(input))
-
-  console.log({ taskParse })
-
-  const parsedSequences = ((await taskParse.then(identity, identity)) as unknown) as Record<string, string>
-
-  console.log({ parsedSequences })
-
-  const entries = Object.entries(parsedSequences)
-
-  return concurrent.map(([seqName, seq]) => {
-    return (poolAnalyze
-      .queue(async (analyze: AnalyzeThread) => analyze({ seqName, seq, rootSeq }))
-      .then(identity, identity) as unknown) as AnalyzeReturn
-    // eslint-disable-next-line array-func/no-unnecessary-this-arg
-  }, entries)
+export function rethrow<T>(e: T) {
+  throw e
 }
 
-// export async function runInWorker(args: AlgorithmParams) {
-//   return run(args)
-// }
+export interface ParseParams {
+  poolParse: Pool<ParseThread>
+  input: string
+}
 
-export function* workerAlgorithmRun(): SagaIterator | AlgorithmRunResults {
+export async function parse({ poolParse, input }: ParseParams) {
+  const taskParse = poolParse.queue(async (parse: ParseThread) => parse(input))
+  return ((await taskParse.then(identity, rethrow)) as unknown) as Record<string, string>
+}
+
+export interface AnalyzeParams {
+  poolAnalyze: Pool<AnalyzeThread>
+  seqName: string
+  seq: string
+  rootSeq: string
+}
+
+export async function analyze({ poolAnalyze, seqName, seq, rootSeq }: AnalyzeParams) {
+  const task = poolAnalyze.queue(async (analyze: AnalyzeThread) => analyze({ seqName, seq, rootSeq }))
+  return task.then(identity, rethrow)
+}
+
+export function* analyzeOne(params: AnalyzeParams) {
+  yield put(analyzeAsync.started())
+
+  try {
+    const result = (yield call(analyze, params) as unknown) as AnalysisResult
+    yield put(analyzeAsync.done(result))
+  } catch (error) {
+    yield put(analyzeAsync.failed(error))
+  }
+}
+
+export function* workerAlgorithmRun() {
   const { poolParse, poolAnalyze } = (yield getContext('workerPools')) as WorkerPools
-  const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
-  const result = (yield call(run, { poolParse, poolAnalyze, ...params }) as unknown) as ReturnType<typeof run>
-  return result
+  const { input, rootSeq } = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
+  // const result = (yield call(run, { poolParse, poolAnalyze, ...params }) as unknown) as ReturnType<typeof run>
+
+  yield put(parseAsync.started())
+  const parsedSequences = (yield call(parse, { poolParse, input }) as unknown) as Record<string, string>
+  const sequenceNames = Object.keys(parsedSequences)
+  yield put(parseAsync.done(sequenceNames))
+
+  const sequenceEntries = Object.entries(parsedSequences)
+  yield all(sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })))
 }
 
 export default [takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, workerAlgorithmRun))]
