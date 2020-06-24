@@ -47,25 +47,28 @@ export async function analyze({ poolAnalyze, seqName, seq, rootSeq }: AnalyzePar
 }
 
 export function* analyzeOne(params: AnalyzeParams) {
-  yield put(analyzeAsync.started())
+  const { seqName } = params
+  yield put(analyzeAsync.started({ seqName }))
 
   try {
     const result = (yield call(analyze, params) as unknown) as AnalysisResult
-    yield put(analyzeAsync.done(result))
+    yield put(analyzeAsync.done({ params: { seqName }, result }))
   } catch (error) {
-    yield put(analyzeAsync.failed(error))
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    yield put(analyzeAsync.failed({ params: { seqName }, error }))
   }
 }
 
 export function* workerAlgorithmRun() {
   const { poolParse, poolAnalyze } = (yield getContext('workerPools')) as WorkerPools
-  const { input, rootSeq } = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
-  // const result = (yield call(run, { poolParse, poolAnalyze, ...params }) as unknown) as ReturnType<typeof run>
+  const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
+  const { rootSeq } = params
 
+  // TODO wrap into a function, handle errors
   yield put(parseAsync.started())
-  const parsedSequences = (yield call(parse, { poolParse, input }) as unknown) as Record<string, string>
+  const parsedSequences = (yield call(parse, { poolParse, ...params }) as unknown) as Record<string, string>
   const sequenceNames = Object.keys(parsedSequences)
-  yield put(parseAsync.done(sequenceNames))
+  yield put(parseAsync.done({ result: sequenceNames }))
 
   const sequenceEntries = Object.entries(parsedSequences)
   yield all(sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })))
