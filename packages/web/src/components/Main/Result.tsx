@@ -91,6 +91,28 @@ export function SequenceQCStatus({ sequence }: SequenceQCStatusProps) {
   )
 }
 
+export function SequenceMutations({ sequence }: SequenceCladeProps) {
+  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+
+  const { seqName, aminoacidSubstitutions } = sequence
+  const id = getSafeId('mutations-label', { seqName })
+  const totalMutations = aminoacidSubstitutions.length
+
+  return (
+    <>
+      <td
+        id={id}
+        className="results-table-col results-table-col-clade"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
+        {totalMutations}
+      </td>
+      <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
+    </>
+  )
+}
+
 export function SequenceNonACGTNs({ sequence }: SequenceCladeProps) {
   const { diagnostics, seqName } = sequence
   const id = getSafeId('nonacgtn-label', { seqName })
@@ -180,6 +202,7 @@ export function ResultDisconnected({ result }: ResultProps) {
           <td className="results-table-col results-table-col-clade" />
           <td className="results-table-col results-table-col-clade" />
           <td className="results-table-col results-table-col-clade" />
+          <td className="results-table-col results-table-col-clade" />
           <td className="results-table-col results-table-col-mutations" />
         </tr>
       )
@@ -190,6 +213,7 @@ export function ResultDisconnected({ result }: ResultProps) {
         <SequenceLabel seqName={seqName} sequence={sequence} />
         <SequenceQCStatus sequence={sequence} />
         <SequenceClade sequence={sequence} />
+        <SequenceMutations sequence={sequence} />
         <SequenceNonACGTNs sequence={sequence} />
         <SequenceNs sequence={sequence} />
         <SequenceGaps sequence={sequence} />
@@ -208,10 +232,11 @@ export function ResultDisconnected({ result }: ResultProps) {
             <th className="results-table-header">{t('Sequence name')}</th>
             <th className="results-table-header">{t('QC')}</th>
             <th className="results-table-header">{t('Clades')}</th>
+            <th className="results-table-header">{t('Mut.')}</th>
             <th className="results-table-header">{t('non-ACGTN')}</th>
             <th className="results-table-header">{t('Ns')}</th>
             <th className="results-table-header">{t('Gaps')}</th>
-            <th className="results-table-header">{t('Mutations')}</th>
+            <th className="results-table-header">{t('Sequence')}</th>
           </tr>
         </thead>
         <tbody>
@@ -223,11 +248,13 @@ export function ResultDisconnected({ result }: ResultProps) {
             <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
+            <td className="results-table-col" />
             <td className="results-table-col results-table-col-gene-map">
               <GeneMap />
             </td>
           </tr>
           <tr className="results-table-row">
+            <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
             <td className="results-table-col" />
