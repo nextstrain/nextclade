@@ -40,6 +40,7 @@ export interface AminoacidSubstitution {
   refAA: Aminoacid
   queryAA: Aminoacid
   codon: number
+  gene: string
 }
 
 export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {

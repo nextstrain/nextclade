@@ -31,7 +31,7 @@ export function aminoAcidChange(pos: number, queryAllele: string, refSequence: s
     return undefined
   }
 
-  return { refAA, queryAA, codon }
+  return { refAA, queryAA, codon, gene: gene.name }
 }
 
 export function getAminoAcidChanges(

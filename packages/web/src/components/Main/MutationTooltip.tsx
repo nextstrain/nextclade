@@ -16,8 +16,8 @@ export function MutationTooltip({ mutation, sequence }: MutationTooltipProps) {
   const { clades } = sequence
   const cladesList = Object.keys(clades).join(', ')
 
-  const aminoacidMutationItems = aaSubstitutions.map(({ queryAA, codon, refAA }) => {
-    const notation = `${refAA}${codon}${queryAA}`
+  const aminoacidMutationItems = aaSubstitutions.map(({ queryAA, codon, refAA, gene }) => {
+    const notation = `${gene}: ${refAA}${codon + 1}${queryAA}`
     return <li key={notation}>{notation}</li>
   })
 
