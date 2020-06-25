@@ -12,7 +12,6 @@ export interface MutationTooltipProps {
 
 export function MutationTooltip({ mutation, sequence }: MutationTooltipProps) {
   const { queryNuc, refNuc, pos, id, seqName, aaSubstitutions } = mutation
-  const positionOneBased = pos + 1 // NOTE: by convention, bases are numbered starting from 1
 
   const { clades } = sequence
   const cladesList = Object.keys(clades).join(', ')

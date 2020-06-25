@@ -4,11 +4,11 @@ import type { DeepReadonly } from 'ts-essentials'
 import { Popover, PopoverBody } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult, NucleotideSubstitution, SubstringMatch } from 'src/algorithms/types'
+import type { AnalysisResult, SubstringMatch } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
+import { formatMutation } from 'src/helpers/formatMutation'
 
 import { formatRange } from './formatRange'
-import { formatMutation } from 'src/helpers/formatMutation'
 
 const SEQUENCE_TOOLTIP_MAX_MUTATIONS = 10 as const
 const SEQUENCE_TOOLTIP_MAX_GAPS = 10 as const
