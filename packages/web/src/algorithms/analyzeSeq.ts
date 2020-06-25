@@ -1,8 +1,8 @@
 import { canonicalNucleotides } from './nucleotideCodes'
-import type { Nucleotide, NucleotideDeletion, NucleotideLocation } from './types'
+import type { Nucleotide, NucleotideDeletion, NucleotideLocation, NucleotideSubstitution } from './types'
 
 export interface AnalyzeSeqResult {
-  substitutions: NucleotideLocation[]
+  substitutions: NucleotideSubstitution[]
   insertions: NucleotideLocation[]
   deletions: NucleotideDeletion[]
   alignmentStart: number
@@ -23,7 +23,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
       ins += query[i]
     } else {
       if (ins.length > 0) {
-        insertions.push({ pos: insStart, allele: ins as Nucleotide })
+        insertions.push({ pos: insStart, nuc: ins as Nucleotide })
         ins = ''
       }
       refPos += 1
@@ -31,7 +31,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   })
   // add insertion at the end of the reference if it exists
   if (ins) {
-    insertions.push({ pos: insStart, allele: ins as Nucleotide })
+    insertions.push({ pos: insStart, nuc: ins as Nucleotide })
   }
   // strip insertions relative to reference
   const refStrippedQuery = query.filter((d, i) => ref[i] !== '-')
@@ -41,7 +41,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   let nDel = 0
   let delPos = -1
   let beforeAlignment = true
-  const substitutions: NucleotideLocation[] = []
+  const substitutions: NucleotideSubstitution[] = []
   const deletions: NucleotideDeletion[] = []
   let alignmentStart = -1
   let alignmentEnd = -1
@@ -56,8 +56,10 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
       }
       alignmentEnd = i
     }
-    if (d !== '-' && d !== refStripped[i] && canonicalNucleotides.has(d)) {
-      substitutions.push({ pos: i, allele: d as Nucleotide })
+
+    const refNuc = refStripped[i] as Nucleotide
+    if (d !== '-' && d !== refNuc && canonicalNucleotides.has(d)) {
+      substitutions.push({ pos: i, refNuc, queryNuc: d as Nucleotide })
     } else if (d === '-' && !beforeAlignment) {
       if (!nDel) {
         delPos = i
