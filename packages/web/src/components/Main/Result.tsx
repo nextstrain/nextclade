@@ -94,9 +94,9 @@ export function SequenceQCStatus({ sequence }: SequenceQCStatusProps) {
 export function SequenceMutations({ sequence }: SequenceCladeProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
 
-  const { seqName, aminoacidSubstitutions } = sequence
+  const { seqName, substitutions } = sequence
   const id = getSafeId('mutations-label', { seqName })
-  const totalMutations = aminoacidSubstitutions.length
+  const totalMutations = substitutions.length
 
   return (
     <>

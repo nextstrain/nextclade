@@ -36,7 +36,7 @@ export interface AminoacidSubstitution {
   codon: number
 }
 
-export interface AminoacidSubstitutions extends NucleotideLocation {
+export interface SubstitutionsWithAminoacids extends NucleotideLocation {
   aaSubstitutions: DeepReadonly<AminoacidSubstitution[]>
 }
 
@@ -59,14 +59,6 @@ export interface Virus {
   clades: DeepReadonly<Substitutions>
 }
 
-export interface AnalyzeSeqResult {
-  substitutions: NucleotideLocation[]
-  insertions: NucleotideLocation[]
-  deletions: NucleotideDeletion[]
-  alignmentStart: number
-  alignmentEnd: number
-}
-
 export interface ClusteredSNPs {
   start: number
   end: number
@@ -85,13 +77,17 @@ export interface QCResult {
   nucleotideComposition: Record<string, number>
 }
 
-export interface AnalysisResult extends DeepReadonly<AnalyzeSeqResult> {
+export interface AnalysisResult {
   seqName: string
   clades: DeepReadonly<Substitutions>
+  substitutions: DeepReadonly<SubstitutionsWithAminoacids[]>
+  insertions: DeepReadonly<NucleotideLocation[]>
+  deletions: DeepReadonly<NucleotideDeletion[]>
   missing: DeepReadonly<SubstringMatch[]>
-  aminoacidSubstitutions: DeepReadonly<AminoacidSubstitutions[]>
-  diagnostics: DeepReadonly<QCResult>
+  alignmentStart: number
+  alignmentEnd: number
   alignmentScore: number
+  diagnostics: DeepReadonly<QCResult>
 }
 
 export interface AnalysisParams {
@@ -107,7 +103,7 @@ export interface Gene {
   range: Range
 }
 
-export interface MutationElement extends AminoacidSubstitutions {
+export interface MutationElement extends SubstitutionsWithAminoacids {
   seqName: string
 }
 

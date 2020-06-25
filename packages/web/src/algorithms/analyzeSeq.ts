@@ -1,5 +1,13 @@
 import { canonicalNucleotides } from './nucleotideCodes'
-import type { AnalyzeSeqResult, Nucleotide, NucleotideDeletion, NucleotideLocation } from './types'
+import type { Nucleotide, NucleotideDeletion, NucleotideLocation } from './types'
+
+export interface AnalyzeSeqResult {
+  substitutions: NucleotideLocation[]
+  insertions: NucleotideLocation[]
+  deletions: NucleotideDeletion[]
+  alignmentStart: number
+  alignmentEnd: number
+}
 
 export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   // report insertions
