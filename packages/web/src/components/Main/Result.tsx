@@ -16,13 +16,12 @@ import { calculateNucleotidesTotals, LabelTooltip } from './LabelTooltip'
 import { GeneMap } from './GeneMap'
 
 export interface SequenceLabelProps {
-  sequence: AnalysisResult
+  seqName: string
+  sequence?: AnalysisResult
 }
 
-export function SequenceLabel({ sequence }: SequenceLabelProps) {
+export function SequenceLabel({ seqName, sequence }: SequenceLabelProps) {
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
-
-  const { seqName } = sequence
   const id = getSafeId('sequence-label', { seqName })
 
   return (
@@ -35,7 +34,7 @@ export function SequenceLabel({ sequence }: SequenceLabelProps) {
       >
         {seqName}
       </td>
-      <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
+      {sequence && <LabelTooltip showTooltip={showTooltip} sequence={sequence} />}
     </>
   )
 }
@@ -172,12 +171,22 @@ export function ResultDisconnected({ result }: ResultProps) {
 
   const sequenceItems = result.map(({ status, seqName, result: sequence }, i) => {
     if (!sequence) {
-      return null
+      return (
+        <tr className="results-table-row" key={seqName}>
+          <SequenceLabel seqName={seqName} sequence={sequence} />
+          <td className="results-table-col results-table-col-clade" />
+          <td className="results-table-col results-table-col-clade" />
+          <td className="results-table-col results-table-col-clade" />
+          <td className="results-table-col results-table-col-clade" />
+          <td className="results-table-col results-table-col-clade" />
+          <td className="results-table-col results-table-col-mutations" />
+        </tr>
+      )
     }
 
     return (
       <tr className="results-table-row" key={seqName}>
-        <SequenceLabel sequence={sequence} />
+        <SequenceLabel seqName={seqName} sequence={sequence} />
         <SequenceQCStatus sequence={sequence} />
         <SequenceClade sequence={sequence} />
         <SequenceNonACGTNs sequence={sequence} />
