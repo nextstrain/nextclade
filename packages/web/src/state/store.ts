@@ -14,9 +14,6 @@ import type { WorkerPools } from 'src/workers/types'
 import createRootReducer from './reducer'
 import createRootSaga from './sagas'
 
-const development = process.env.NODE_ENV === 'development'
-const debug = development || process.env.DEBUGGABLE_PROD === '1'
-
 export function persistStoreAsync(store: Store, options: PersistorOptions): Promise<Persistor> {
   return new Promise((resolve) => {
     const persistor = persistStore(store, options, () => resolve(persistor))
@@ -36,13 +33,13 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
 
   let middlewares: Middleware<string>[] = [routerMiddleware, sagaMiddleware].filter(Boolean)
 
-  if (process.env.DEV_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT === '1') {
+  if (process.env.ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT === 'true') {
     middlewares = [...middlewares, reduxImmutableStateInvariant() as Middleware<string>]
   }
 
   let enhancer = applyMiddleware(...middlewares)
 
-  if (debug && composeWithDevTools) {
+  if (process.env.ENABLE_REDUX_DEV_TOOLS === 'true' && composeWithDevTools) {
     enhancer = composeWithDevTools({
       trace: true,
       traceLimit: 25,

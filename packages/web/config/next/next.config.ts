@@ -7,7 +7,7 @@ import withPlugins from 'next-compose-plugins'
 import nextRuntimeDotenv from 'next-runtime-dotenv'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
-import { getenv, getbool } from '../../lib/getenv'
+import { getEnvVars } from './lib/getEnvVars'
 
 import getWithEnvironment from './withEnvironment'
 import getWithExtraWatch from './withExtraWatch'
@@ -19,25 +19,19 @@ import withRaw from './withRaw'
 import withSvg from './withSvg'
 import withThreads from './withThreads'
 
-const BABEL_ENV = getenv('BABEL_ENV')
-const NODE_ENV = getenv('NODE_ENV')
-const production = NODE_ENV === 'production'
-// const development = NODE_ENV === 'development'
-// const ANALYZE = getbool('ANALYZE')
-// const PROFILE = getbool('PROFILE')
-const DEV_ENABLE_ESLINT = getbool('DEV_ENABLE_ESLINT')
-const DEV_ENABLE_TYPE_CHECKS = getbool('DEV_ENABLE_TYPE_CHECKS')
-// const DEV_ENABLE_STYLELINT = getbool('DEV_ENABLE_STYLELINT')
-const DEV_ENABLE_REDUX_DEV_TOOLS = getbool('DEV_ENABLE_REDUX_DEV_TOOLS')
-const DEV_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT = getbool('DEV_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT')
-const PROD_ENABLE_SOURCE_MAPS = getbool('PROD_ENABLE_SOURCE_MAPS')
-const PROD_ENABLE_REDUX_DEV_TOOLS = getbool('PROD_ENABLE_REDUX_DEV_TOOLS')
-const PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT = getbool('PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT')
-
-const ENABLE_REDUX_DEV_TOOLS = (production ? PROD_ENABLE_REDUX_DEV_TOOLS : DEV_ENABLE_REDUX_DEV_TOOLS) ? '1' : '0'
-const ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT = (production ? PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT : DEV_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT) ? '1' : "0" // prettier-ignore
-const ENABLE_ESLINT = production || DEV_ENABLE_ESLINT
-const ENABLE_TYPE_CHECKING = production || DEV_ENABLE_TYPE_CHECKS
+const {
+  BABEL_ENV,
+  NODE_ENV,
+  // ANALYZE,
+  // PROFILE,
+  PRODUCTION,
+  ENABLE_SOURCE_MAPS,
+  ENABLE_ESLINT,
+  ENABLE_TYPE_CHECKS,
+  // ENABLE_STYLELINT,
+  ENABLE_REDUX_DEV_TOOLS,
+  ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT,
+} = getEnvVars()
 
 const { pkg, moduleRoot } = findModuleRoot()
 
@@ -49,7 +43,7 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     modern: false, // this breaks Threads.js workers in production
-    productionBrowserSourceMaps: PROD_ENABLE_SOURCE_MAPS,
+    productionBrowserSourceMaps: ENABLE_SOURCE_MAPS,
   },
   future: {
     excludeDefaultMomentLocales: true,
@@ -82,8 +76,8 @@ const withFriendlyConsole = getWithFriendlyConsole({
 const withEnvironment = getWithEnvironment({
   BABEL_ENV,
   NODE_ENV,
-  ENABLE_REDUX_DEV_TOOLS,
-  ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT,
+  ENABLE_REDUX_DEV_TOOLS: ENABLE_REDUX_DEV_TOOLS.toString(),
+  ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT: ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT.toString(),
 })
 
 const withExtraWatch = getWithExtraWatch({
@@ -96,7 +90,7 @@ const withLodash = getWithLodash({ unicode: false })
 const withStaticComprression = getWithStaticComprression({ brotli: false })
 
 const withTypeChecking = getWithTypeChecking({
-  typeChecking: ENABLE_TYPE_CHECKING,
+  typeChecking: ENABLE_TYPE_CHECKS,
   eslint: ENABLE_ESLINT,
   memoryLimit: 2048,
 })
@@ -114,7 +108,7 @@ const config = withConfig(
       [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
       [withLodash],
       [withTypeChecking],
-      production && [withStaticComprression],
+      PRODUCTION && [withStaticComprression],
     ].filter(Boolean),
     nextConfig,
   ),
