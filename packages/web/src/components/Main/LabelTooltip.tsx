@@ -32,7 +32,7 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
     alignmentScore,
     diagnostics,
   } = sequence
-  const id = getSafeId('sequence', { seqName })
+  const id = getSafeId('sequence-label', { seqName })
   const cladesList = Object.keys(clades).join(', ')
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
