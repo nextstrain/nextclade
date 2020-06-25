@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { connect } from 'react-redux'
 import { Table } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
+import { MdClear, MdCheck } from 'react-icons/md'
 
 import { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -83,7 +84,7 @@ export function SequenceQCStatus({ sequence }: SequenceQCStatusProps) {
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
-        {diagnostics.flags.length > 0 ? 'FAIL' : 'PASS'}
+        {diagnostics.flags.length > 0 ? <MdClear className="icon fill-red" /> : <MdCheck className="icon fill-green" />}
       </td>
       <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
     </>
