@@ -1,12 +1,16 @@
 import React from 'react'
 
-import { Popover, PopoverBody } from 'reactstrap'
 import type { DeepReadonly } from 'ts-essentials'
+import { Popover, PopoverBody } from 'reactstrap'
+import { useTranslation } from 'react-i18next'
 
 import type { AnalysisResult, SubstringMatch } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 import { formatRange } from './formatRange'
+
+const SEQUENCE_TOOLTIP_MAX_MUTATIONS = 10 as const
+const SEQUENCE_TOOLTIP_MAX_GAPS = 10 as const
 
 export function calculateNucleotidesTotals(missing: DeepReadonly<SubstringMatch[]>, character: string) {
   return missing
@@ -17,6 +21,15 @@ export function calculateNucleotidesTotals(missing: DeepReadonly<SubstringMatch[
 export interface LabelTooltipProps {
   showTooltip: boolean
   sequence: AnalysisResult
+}
+
+function truncateList(list: JSX.Element[], maxLength: number, text: string) {
+  let result = list
+  if (list.length > maxLength) {
+    result = result.slice(0, maxLength)
+    result.push(<li key={'more'}>{text}</li>)
+  }
+  return result
 }
 
 export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
@@ -32,23 +45,31 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
     alignmentScore,
     diagnostics,
   } = sequence
-  const id = getSafeId('sequence-label', { seqName })
+  const { t } = useTranslation()
+
+  const id = getSafeId('sequence-label', {
+    seqName,
+  })
   const cladesList = Object.keys(clades).join(', ')
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
 
-  const mutationItems = substitutions.map(({ pos, allele }) => {
+  let mutationItems = substitutions.map(({ pos, allele }) => {
     const positionOneBased = pos + 1
     const key = `${positionOneBased} ${allele}`
     return <li key={key}>{key}</li>
   })
 
-  const gapItems = missing.map((inv) => {
+  mutationItems = truncateList(mutationItems, SEQUENCE_TOOLTIP_MAX_MUTATIONS, t('...more'))
+
+  let gapItems = missing.slice(0, SEQUENCE_TOOLTIP_MAX_GAPS).map((inv) => {
     const { character, range: { begin, end } } = inv // prettier-ignore
     const range = formatRange(begin, end)
     const key = `${character}-${range}`
     return <li key={key}>{`${character} ${range}`}</li>
   })
+
+  gapItems = truncateList(gapItems, SEQUENCE_TOOLTIP_MAX_GAPS, t('...more'))
 
   let flags
   if (diagnostics.flags.length > 0) {
