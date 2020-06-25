@@ -27,7 +27,7 @@ export function aminoAcidChange(pos: number, queryAllele: string, refSequence: s
   const refAA = getCodon(refCodon)
   const queryAA = getCodon(queryCodon)
 
-  if (refAA !== queryAA) {
+  if (refAA === queryAA) {
     return undefined
   }
 
