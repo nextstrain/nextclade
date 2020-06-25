@@ -1,7 +1,7 @@
 import { pickBy } from 'lodash'
 import { VIRUSES } from './viruses'
-import type { AnalysisParams, AnalysisResult } from './types'
 
+import type { AnalysisParams, AnalysisResult } from './types'
 import { geneMap } from './geneMap'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
@@ -10,6 +10,7 @@ import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findCharacterRanges } from './findCharacterRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
+import { N } from './nucleotides'
 
 export function parse(input: string) {
   return parseSequences(input)
@@ -26,7 +27,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const clades = pickBy(virus.clades, (clade) => isSequenceInClade(clade, substitutions, rootSeq))
 
-  const missing = findCharacterRanges(alignedQuery, 'N')
+  const missing = findCharacterRanges(alignedQuery, N)
 
   const aminoacidSubstitutions = getAllAminoAcidChanges(substitutions, rootSeq, geneMap)
 

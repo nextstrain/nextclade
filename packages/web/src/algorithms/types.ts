@@ -47,7 +47,7 @@ export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
 }
 
 export interface SubstringMatch {
-  character: string
+  character: Nucleotide
   range: Range
 }
 
@@ -119,7 +119,7 @@ export interface MutationElementWithId extends MutationElement {
 
 export interface MissingElement {
   seqName: string
-  character: string
+  character: Nucleotide
   begin: number
   end: number
 }

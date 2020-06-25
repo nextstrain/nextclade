@@ -6,6 +6,8 @@ import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import type { AnalysisResult, MissingElementWithId, MutationElementWithId } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 
+import { GAP } from 'src/algorithms/nucleotides'
+
 import { MissingTooltip } from './MissingTooltip'
 import { MissingView } from './MissingView'
 import { MutationTooltip } from './MutationTooltip'
@@ -68,7 +70,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const deletionViews = deletions.map(({ start, length }) => {
           const end = start + length
           const id = getSafeId('deletion', { seqName, character: '-', begin: start, end })
-          const delWithId: MissingElementWithId = { id, seqName, character: '-', begin: start, end }
+          const delWithId: MissingElementWithId = { id, seqName, character: GAP, begin: start, end }
 
           return (
             <MissingView

@@ -4,16 +4,17 @@ import type { DeepReadonly } from 'ts-essentials'
 import { Popover, PopoverBody } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult, SubstringMatch } from 'src/algorithms/types'
+import type { AnalysisResult, Nucleotide, SubstringMatch } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { formatMutation } from 'src/helpers/formatMutation'
+import { N } from 'src/algorithms/nucleotides'
 
 import { formatRange } from './formatRange'
 
 const SEQUENCE_TOOLTIP_MAX_MUTATIONS = 10 as const
 const SEQUENCE_TOOLTIP_MAX_GAPS = 10 as const
 
-export function calculateNucleotidesTotals(missing: DeepReadonly<SubstringMatch[]>, character: string) {
+export function calculateNucleotidesTotals(missing: DeepReadonly<SubstringMatch[]>, character: Nucleotide) {
   return missing
     .filter((inv) => inv.character === character)
     .reduce((total, inv) => total + inv.range.end - inv.range.begin, 0)
@@ -48,9 +49,7 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   } = sequence
   const { t } = useTranslation()
 
-  const id = getSafeId('sequence-label', {
-    seqName,
-  })
+  const id = getSafeId('sequence-label', { seqName })
   const cladesList = Object.keys(clades).join(', ')
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
@@ -83,7 +82,7 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   const totalMutations = mutationItems.length
   const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
   const totalInsertions = insertions.length
-  const totalNs = calculateNucleotidesTotals(missing, 'N')
+  const totalNs = calculateNucleotidesTotals(missing, N)
 
   return (
     <Popover

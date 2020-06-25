@@ -1,4 +1,4 @@
-import type { SubstringMatch } from './types'
+import type { Nucleotide, SubstringMatch } from './types'
 
 export function findCharacterRanges(str: string, characters: string): SubstringMatch[] {
   if (characters.length === 0) {
@@ -14,7 +14,7 @@ export function findCharacterRanges(str: string, characters: string): SubstringM
   // TODO: make more efficient
   const numC = characters.length
   for (let c = 0; c < numC; ++c) {
-    const character = characters[c]
+    const character = characters[c] as Nucleotide
 
     const { length } = str
     let begin: number | undefined
