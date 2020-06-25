@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { MdClear, MdCheck } from 'react-icons/md'
 
 import { AnalysisResult } from 'src/algorithms/types'
+import { N } from 'src/algorithms/nucleotides'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 import type { State } from 'src/state/reducer'
@@ -135,7 +136,7 @@ export function SequenceNs({ sequence }: SequenceCladeProps) {
 
   const { missing, seqName } = sequence
   const id = getSafeId('ns-label', { seqName })
-  const totalNs = calculateNucleotidesTotals(missing, 'N')
+  const totalNs = calculateNucleotidesTotals(missing, N)
 
   return (
     <>
