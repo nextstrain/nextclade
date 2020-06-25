@@ -48,7 +48,7 @@ const nextConfig: NextConfig = {
     pagesBufferLength: 2,
   },
   experimental: {
-    modern: true,
+    modern: false, // this breaks Threads.js workers in production
     productionBrowserSourceMaps: PROD_ENABLE_SOURCE_MAPS,
   },
   future: {
