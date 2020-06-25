@@ -3,6 +3,7 @@ import React from 'react'
 import { Popover, PopoverBody } from 'reactstrap'
 
 import type { AnalysisResult, MutationElementWithId } from 'src/algorithms/types'
+import { formatMutation } from 'src/helpers/formatMutation'
 
 export interface MutationTooltipProps {
   sequence: AnalysisResult
@@ -10,7 +11,7 @@ export interface MutationTooltipProps {
 }
 
 export function MutationTooltip({ mutation, sequence }: MutationTooltipProps) {
-  const { allele, pos, id, seqName, aaSubstitutions } = mutation
+  const { queryNuc, refNuc, pos, id, seqName, aaSubstitutions } = mutation
   const positionOneBased = pos + 1 // NOTE: by convention, bases are numbered starting from 1
 
   const { clades } = sequence
@@ -21,13 +22,15 @@ export function MutationTooltip({ mutation, sequence }: MutationTooltipProps) {
     return <li key={notation}>{notation}</li>
   })
 
+  const mut = formatMutation({ pos, queryNuc, refNuc })
+
   return (
     <Popover className="popover-mutation" target={id} placement="auto" isOpen hideArrow delay={0} fade={false}>
       <PopoverBody>
         <div>{`Sequence: ${seqName}`}</div>
         <div>{`Clades (all): ${cladesList}`}</div>
-        <div>{`Position: ${positionOneBased}`}</div>
-        <div>{`Allele: ${allele}`}</div>
+        <div>{`Nucleotide mutation:`}</div>
+        <div>{mut}</div>
         {aminoacidMutationItems.length > 0 && (
           <div>
             {`Aminoacid changes:`}

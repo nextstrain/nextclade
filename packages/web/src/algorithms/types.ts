@@ -21,7 +21,13 @@ export interface Span {
 
 export interface NucleotideLocation {
   pos: number
-  allele: Nucleotide
+  nuc: Nucleotide
+}
+
+export interface NucleotideSubstitution {
+  pos: number
+  refNuc: Nucleotide
+  queryNuc: Nucleotide
 }
 
 export type NucleotideDeletion = Tagged<Span, 'NucleotideDeletion'>
@@ -36,7 +42,7 @@ export interface AminoacidSubstitution {
   codon: number
 }
 
-export interface SubstitutionsWithAminoacids extends NucleotideLocation {
+export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
   aaSubstitutions: DeepReadonly<AminoacidSubstitution[]>
 }
 

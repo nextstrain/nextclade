@@ -4,10 +4,11 @@ import type { DeepReadonly } from 'ts-essentials'
 import { Popover, PopoverBody } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult, SubstringMatch } from 'src/algorithms/types'
+import type { AnalysisResult, NucleotideSubstitution, SubstringMatch } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 import { formatRange } from './formatRange'
+import { formatMutation } from 'src/helpers/formatMutation'
 
 const SEQUENCE_TOOLTIP_MAX_MUTATIONS = 10 as const
 const SEQUENCE_TOOLTIP_MAX_GAPS = 10 as const
@@ -54,10 +55,9 @@ export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
 
-  let mutationItems = substitutions.map(({ pos, allele }) => {
-    const positionOneBased = pos + 1
-    const key = `${positionOneBased} ${allele}`
-    return <li key={key}>{key}</li>
+  let mutationItems = substitutions.map(({ pos, queryNuc, refNuc }) => {
+    const mut = formatMutation({ pos, queryNuc, refNuc })
+    return <li key={mut}>{mut}</li>
   })
 
   mutationItems = truncateList(mutationItems, SEQUENCE_TOOLTIP_MAX_MUTATIONS, t('...more'))

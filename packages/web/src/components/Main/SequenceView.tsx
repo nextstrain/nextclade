@@ -32,9 +32,10 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const pixelsPerBase = widthPx / GENOME_SIZE
         const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
-        const mutationViews = substitutions.map(({ pos, allele, aaSubstitutions }) => {
-          const id = getSafeId('mutation', { seqName, pos, allele })
-          const mutation: MutationElementWithId = { id, seqName, pos, allele, aaSubstitutions }
+        const mutationViews = substitutions.map((substitution) => {
+          const { pos } = substitution
+          const id = getSafeId('mutation', { seqName, ...substitution })
+          const mutation: MutationElementWithId = { id, seqName, ...substitution }
           return (
             <MutationView
               key={pos}

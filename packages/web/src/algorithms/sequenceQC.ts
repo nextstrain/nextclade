@@ -5,6 +5,7 @@ import type {
   NucleotideLocation,
   NucleotideDeletion,
   QCParameters,
+  NucleotideSubstitution,
 } from './types'
 
 const TooHighDivergence = 'too high divergence'
@@ -12,7 +13,7 @@ const ClusteredSNPsFlag = 'clustered SNPs'
 const TooManyMixedSites = 'Too many non-ACGT characters'
 const MissingData = 'missing data'
 
-function findSNPClusters(QCParams: QCParameters, mutations: NucleotideLocation[]) {
+function findSNPClusters(QCParams: QCParameters, mutations: NucleotideSubstitution[]) {
   // turn mutation keys into positions, exclude known clusters, and sort
   const positions = mutations.filter(({ pos }) => !QCParams.knownClusters.has(pos)).sort((a, b) => a.pos - b.pos)
 
@@ -60,7 +61,7 @@ function getNucleotideComposition(alignedQuery: string): Record<string, number> 
 
 export function sequenceQC(
   QCParams: QCParameters,
-  mutations: NucleotideLocation[],
+  mutations: NucleotideSubstitution[],
   insertions: NucleotideLocation[],
   deletions: NucleotideDeletion[],
   alignedQuery: string,

@@ -46,7 +46,7 @@ interface CladeMark {
   id: string
   pos: number
   cladeName: string
-  allele: Nucleotide
+  nuc: Nucleotide
 }
 
 export interface CladeMarkTooltipProps {
@@ -54,14 +54,14 @@ export interface CladeMarkTooltipProps {
 }
 
 export function CladeMarkTooltip({ cladeMark }: CladeMarkTooltipProps) {
-  const { id, pos, allele, cladeName } = cladeMark
+  const { id, pos, nuc, cladeName } = cladeMark
 
   return (
     <Popover className="popover-mutation" target={id} placement="auto" isOpen hideArrow delay={0} fade={false}>
       <PopoverBody>
         <div>{`Clade: ${cladeName} `}</div>
         <div>{`Position: ${pos + 1} `}</div>
-        <div>{`Allele: ${allele} `}</div>
+        <div>{`Nucleotide: ${nuc} `}</div>
       </PopoverBody>
     </Popover>
   )
@@ -96,8 +96,8 @@ export function GeneMap() {
 
           const marks: CladeMark[] = substitutions.map((substitution) => {
             const id = getSafeId('clade-mark', { cladeName, ...substitution })
-            const { pos, allele } = substitution
-            return { id, cladeName, pos, allele }
+            const { pos, nuc } = substitution
+            return { id, cladeName, pos, nuc }
           })
 
           return [...result, ...marks]
