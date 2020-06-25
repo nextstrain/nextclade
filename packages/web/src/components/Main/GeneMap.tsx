@@ -80,15 +80,17 @@ export function GeneMap() {
         }
 
         const pixelsPerBase = widthPx / GENOME_SIZE
-        const geneViews = geneMap.map((gene) => (
-          <GeneView
-            key={gene.name}
-            gene={gene}
-            pixelsPerBase={pixelsPerBase}
-            onMouseEnter={() => setCurrGene(gene)}
-            onMouseLeave={() => setCurrGene(undefined)}
-          />
-        ))
+        const geneViews = geneMap.map((gene, i) => {
+          return (
+            <GeneView
+              key={gene.name}
+              gene={gene}
+              pixelsPerBase={pixelsPerBase}
+              onMouseEnter={() => setCurrGene(gene)}
+              onMouseLeave={() => setCurrGene(undefined)}
+            />
+          )
+        })
 
         // TODO: move to algorithms
         const cladeSubstitutions = Object.entries(clades).reduce((result, clade) => {
