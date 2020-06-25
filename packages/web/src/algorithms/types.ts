@@ -1,4 +1,3 @@
-import type { Dispatch } from 'redux'
 import type { DeepReadonly } from 'ts-essentials'
 import type { Tagged } from 'src/helpers/types'
 
@@ -37,10 +36,8 @@ export interface AminoacidSubstitution {
   codon: number
 }
 
-export interface AminoacidSubstitutions {
-  pos: number
-  allele: string
-  substitutions: AminoacidSubstitution[]
+export interface AminoacidSubstitutions extends NucleotideLocation {
+  aaSubstitutions: DeepReadonly<AminoacidSubstitution[]>
 }
 
 export interface SubstringMatch {
@@ -110,7 +107,7 @@ export interface Gene {
   range: Range
 }
 
-export interface MutationElement extends NucleotideLocation {
+export interface MutationElement extends AminoacidSubstitutions {
   seqName: string
 }
 

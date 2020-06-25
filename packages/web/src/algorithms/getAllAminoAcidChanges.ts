@@ -51,6 +51,6 @@ export function getAllAminoAcidChanges(
   return mutations.map(({ pos, allele }) => ({
     pos,
     allele,
-    substitutions: getAminoAcidChanges(pos, allele, refSequence, geneMap),
+    aaSubstitutions: getAminoAcidChanges(pos, allele, refSequence, geneMap),
   }))
 }
