@@ -1,32 +1,31 @@
-# About Web Clades
+# About NextClades
 
-## Lorem ipsum
+**NextClades is currently under active development.
+Implementation and formats are still fluid and the app likely contains bugs we don't know of.
+Please report any issues and leave feedback at [github.com/neherlab/webclades](https://github.com/neherlab/webclades).**
 
-### Lorem ipsum dolor sit amet
+NextClades aligns your sequences to the reference sequence used by Nextstrain (Wuhan-Hu-1 for SARS-CoV-2) and calls mutations relative to this reference.
+Clades are then assigned based on the nucleotides at the positions used to [define clades in nextstrain](https://github.com/nextstrain/ncov/blob/master/config/clades.tsv).
+In addition, the tool calculates a number of quality metrics.
+If these metrics exceed certain scores, the sequence will likely be excluded from the nextstrain builds.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-aliqua. Ac tincidunt vitae semper quis. Nullam vehicula ipsum a arcu cursus vitae congue mauris rhoncus. Elementum
-integer enim neque volutpat ac tincidunt. Amet luctus venenatis lectus magna fringilla urna porttitor rhoncus dolor.
-Mauris pharetra et ultrices neque ornare aenean euismod elementum. Ipsum nunc aliquet bibendum enim facilisis. Turpis
-massa sed elementum tempus egestas sed sed risus pretium. Purus faucibus ornare suspendisse sed nisi lacus. Sagittis
-nisl rhoncus mattis rhoncus. Posuere morbi leo urna molestie at elementum eu facilisis. Morbi tristique senectus et
-netus et malesuada. Eget mi proin sed libero enim. Et tortor at risus viverra adipiscing at in tellus. Aliquet risus
-feugiat in ante metus dictum at tempor.
+## Reference alignments
+NextClades does all computations on your computer -- your data does not leave your browser.
+This mean we can not perform a full multiple sequence alignment or phylogenetic analysis.
+Instead, we roughly estimate the alignment of your sequences to there reference one-by-one using short seeds (21-mers) along the sequence.
+With this rough overall alignment, we perform a banded Smith-Waterman alignment with an affine gap-penalty.
 
-### Quis auctor
+If the seed matches are poor or suggest gaps in excess of 200 bases, we won't attempt to align -- your sequence won't be scored.
+For most sequences, however, this alignment strategy works well and takes less than a second per sequence.
 
-Quis auctor elit sed vulputate mi sit amet mauris. Eget sit amet tellus cras. Natoque penatibus et magnis dis parturient
-montes. Penatibus et magnis dis parturient. Lorem ipsum dolor sit amet consectetur adipiscing. Congue nisi vitae
-suscipit tellus mauris a diam maecenas. Aliquam purus sit amet luctus venenatis. Massa vitae tortor condimentum lacinia
-quis vel eros donec. Varius quam quisque id diam vel quam elementum. Nec feugiat in fermentum posuere urna nec
-tincidunt. Morbi enim nunc faucibus a pellentesque sit amet porttitor eget. Vel turpis nunc eget lorem dolor sed
-viverra. Libero nunc consequat interdum varius sit amet mattis vulputate. Aliquam eleifend mi in nulla posuere
-sollicitudin aliquam ultrices.
+## QC metrics
+We currently implemented four different metrics to flag a sequence as potentially problematic:
 
-### Ut aliquam purus sit
+ * too much missing data: If your sequence misses more than 1000 sites (`N`s), it will be flagged
+ * too high divergence: Sequence more than 20 mutations away from the reference sequence are flagged
+ * too many ambiguous nucleotides: mixed states (such as `R`, `Y`, etc) are indicative of contamination (or superinfection) and more than 10 such non-ACGTN characters will result in a QC warning
+ * clustered differences: If your sequence has clusters with 6 or more differences in 100 bases (excluding known clusters like positions 28881-28883), it will be flagged.
 
-Ut aliquam purus sit amet luctus venenatis lectus magna fringilla. At varius vel pharetra vel turpis nunc eget lorem
-dolor. Molestie nunc non blandit massa enim nec dui nunc. Dolor magna eget est lorem ipsum dolor sit. Scelerisque
-fermentum dui faucibus in ornare. Enim sit amet venenatis urna cursus eget nunc scelerisque viverra. Duis ultricies
-lacus sed turpis tincidunt id. Duis ultricies lacus sed turpis tincidunt id. Integer malesuada nunc vel risus commodo.
-Lacinia at quis risus sed vulputate odio. Turpis egestas pretium aenean pharetra. Egestas sed sed risus pretium.
+These warnings don't necessarily mean your sequences are problematic, but these issues warrant closer examination.
+The [Nextstrain pipeline](https://github.com/nextstrain/ncov) will likely exclude those sequences.
+
