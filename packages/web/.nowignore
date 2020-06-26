@@ -1,0 +1,5 @@
+.build
+.cache
+.github
+.ignore
+.reports
