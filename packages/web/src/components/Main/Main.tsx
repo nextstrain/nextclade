@@ -45,6 +45,61 @@ export function MainDisconnected({ params, canExport, setInput, algorithmRunTrig
     <Row noGutters>
       <Col>
         <Card className="mt-1 mb-1">
+          <CardBody>
+            <Row>
+              <Col lg={4} className="pr-1">
+                <Card>
+                  <CardBody>
+                    <figure>
+                      <picture className="d-flex">
+                        <CladeSchema height={300} />
+                      </picture>
+                      <figcaption>
+                        <div>{t(`Illustration of phylogenetic relations ship of clades defined by nextstrain.`)}</div>
+                        <div>{t(`Source: nexstrain.org`)}</div>
+                      </figcaption>
+                    </figure>
+                  </CardBody>
+                </Card>
+              </Col>
+              <Col lg={8} className="pl-1">
+                <Card className="h-100">
+                  <CardBody>
+                    <h3>Nextstrain SARS-CoV-2 Clades</h3>
+                    Since its emergence in late 2019, SARS-CoV-2 has diversified into several different co-circulating
+                    variants. To facilitate discussion of these variants, we have grouped them into so called clades
+                    which are defined by specific signature mutations. We currently define 5 major clades (see{' '}
+                    <a href="https://nextstrain.org/blog/2020-06-02-SARSCoV2-clade-naming">
+                      this blog post for details
+                    </a>
+                    )
+                    <ul>
+                      <li>19A and 19B emerged in Wuhan and have been dominating the early outbreak</li>
+                      <li>
+                        20A emerged from 19A out of dominated the European outbreak in March and has since spread
+                        globally
+                      </li>
+                      <li>20B and 20C are large genetically distinct subclades 20A</li>
+                    </ul>
+                    <h4>Clade assignment</h4>
+                    The analysis on <a href="https://nextstrain.org/ncov">nextstrain.org/ncov</a> uses the phylogenetic
+                    context to assign clades. Here, we provide a simple tool to do this clade assignment
+                    sequence-by-sequence through alignment to the reference. This is expected to be slightly less
+                    sensitive, but will still give the correct answer in most cases. Sometimes, however, clade
+                    assignment will fail. Importantly, these computations happen on your computer and{' '}
+                    <b>your data does not leave your computer</b>.
+                    <h4>Sequence QC</h4> In addition to assigning clades, the tool will scan your sequences for excess
+                    divergence and clusters of differences from the reference. These might indicate problems during
+                    sequencing or bioinformatic assembly and would result in these sequences being filtered out by
+                    nextstrain.
+                  </CardBody>
+                </Card>
+              </Col>
+            </Row>
+          </CardBody>
+        </Card>
+
+        <Card className="mt-1 mb-1">
           <CardHeader>{t('Sequence input')}</CardHeader>
 
           <CardBody>
@@ -90,28 +145,6 @@ export function MainDisconnected({ params, canExport, setInput, algorithmRunTrig
             <Row>
               <Col>
                 <Result />
-              </Col>
-            </Row>
-            <Row>
-              <Col lg={4} className="pr-1">
-                <Card>
-                  <CardBody>
-                    <figure>
-                      <picture className="d-flex">
-                        <CladeSchema height={200} />
-                      </picture>
-                      <figcaption>
-                        <div>{t(`Illustration of phylogenetic relations ship of clades defined by nextstrain.`)}</div>
-                        <div>{t(`Source: nexstrain.org`)}</div>
-                      </figcaption>
-                    </figure>
-                  </CardBody>
-                </Card>
-              </Col>
-              <Col lg={8} className="pl-1">
-                <Card className="h-100">
-                  <CardBody>{'Something here'}</CardBody>
-                </Card>
               </Col>
             </Row>
           </CardBody>
