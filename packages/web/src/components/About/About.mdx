@@ -1,32 +1,39 @@
+import { ReactComponent as CladeSchema } from 'src/assets/img/Nextstrain_ncov_clades-20B1tip.svg'
+
 # About Web Clades
 
-## Lorem ipsum
+## Nextstrain SARS-CoV-2 Clades
 
-### Lorem ipsum dolor sit amet
+Since its emergence in late 2019, SARS-CoV-2 has diversified into several different co-circulating variants. To
+facilitate discussion of these variants, we have grouped them into so called clades which are defined by specific
+signature mutations.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
-aliqua. Ac tincidunt vitae semper quis. Nullam vehicula ipsum a arcu cursus vitae congue mauris rhoncus. Elementum
-integer enim neque volutpat ac tincidunt. Amet luctus venenatis lectus magna fringilla urna porttitor rhoncus dolor.
-Mauris pharetra et ultrices neque ornare aenean euismod elementum. Ipsum nunc aliquet bibendum enim facilisis. Turpis
-massa sed elementum tempus egestas sed sed risus pretium. Purus faucibus ornare suspendisse sed nisi lacus. Sagittis
-nisl rhoncus mattis rhoncus. Posuere morbi leo urna molestie at elementum eu facilisis. Morbi tristique senectus et
-netus et malesuada. Eget mi proin sed libero enim. Et tortor at risus viverra adipiscing at in tellus. Aliquet risus
-feugiat in ante metus dictum at tempor.
+We currently define 5 major clades (see
+[this blog post](https://nextstrain.org/blog/2020-06-02-SARSCoV2-clade-naming) for details):
 
-### Quis auctor
+- 19A and 19B emerged in Wuhan and have been dominating the early outbreak
+- 20A emerged from 19A out of dominated the European outbreak in March and has since spread globally
+- 20B and 20C are large genetically distinct subclades 20A
 
-Quis auctor elit sed vulputate mi sit amet mauris. Eget sit amet tellus cras. Natoque penatibus et magnis dis parturient
-montes. Penatibus et magnis dis parturient. Lorem ipsum dolor sit amet consectetur adipiscing. Congue nisi vitae
-suscipit tellus mauris a diam maecenas. Aliquam purus sit amet luctus venenatis. Massa vitae tortor condimentum lacinia
-quis vel eros donec. Varius quam quisque id diam vel quam elementum. Nec feugiat in fermentum posuere urna nec
-tincidunt. Morbi enim nunc faucibus a pellentesque sit amet porttitor eget. Vel turpis nunc eget lorem dolor sed
-viverra. Libero nunc consequat interdum varius sit amet mattis vulputate. Aliquam eleifend mi in nulla posuere
-sollicitudin aliquam ultrices.
+<figure className="figure w-100 text-center">
+  <picture className="w-75 figure-img" alt="illustration of the model" >
+    <CladeSchema height={200} />
+  </picture>
+  <figcaption>
+    <small>Fig.1. Illustration of phylogenetic relationship of clades, as defined by nextstrain</small>
+  </figcaption>
+</figure>
 
-### Ut aliquam purus sit
+## Clade assignment
 
-Ut aliquam purus sit amet luctus venenatis lectus magna fringilla. At varius vel pharetra vel turpis nunc eget lorem
-dolor. Molestie nunc non blandit massa enim nec dui nunc. Dolor magna eget est lorem ipsum dolor sit. Scelerisque
-fermentum dui faucibus in ornare. Enim sit amet venenatis urna cursus eget nunc scelerisque viverra. Duis ultricies
-lacus sed turpis tincidunt id. Duis ultricies lacus sed turpis tincidunt id. Integer malesuada nunc vel risus commodo.
-Lacinia at quis risus sed vulputate odio. Turpis egestas pretium aenean pharetra. Egestas sed sed risus pretium.
+The analysis on [nextstrain.org/ncov](https://nextstrain.org/ncov) uses the phylogenetic context to assign clades. Here,
+we provide a simple tool to do this clade assignment sequence-by-sequence through alignment to the reference. This is
+expected to be slightly less sensitive, but will still give the correct answer in most cases. Sometimes, however, clade
+assignment will fail. Importantly, these computations happen on your computer and ** your data does not leave your
+computer**
+
+## Sequence quality control (QC)
+
+In addition to assigning clades, the tool will scan your sequences for excess divergence and clusters of differences
+from the reference. These might indicate problems during sequencing or bioinformatic assembly and would result in these
+sequences being filtered out by nextstrain.

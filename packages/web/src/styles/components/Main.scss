@@ -99,3 +99,55 @@
     }
   }
 }
+
+.layout-container {
+  max-width: 1700px;
+}
+
+.landing-page-row {
+  height: 100%;
+  background-color: $gray-300;
+}
+
+.hero {
+  height: 500px;
+  background-color: #6f42c1;
+  color: #e3d5e9;
+
+  .hero-h1 {
+    font-size: 40px;
+  }
+
+  .hero-h2 {
+    font-size: 20px;
+  }
+}
+
+.landing-controls {
+  position: relative;
+  top: -250px;
+  margin: 0 auto;
+  padding: 10px 10px;
+  border-radius: 3px;
+  max-width: 700px;
+  background-color: $gray-200;
+}
+
+.btn-select-file {
+  width: 250px;
+}
+
+.sequence-input {
+  font-family: $font-family-monospace;
+  font-size: 0.75rem;
+}
+
+.button-transparent {
+  background: none;
+  outline: none;
+  border: none;
+}
+
+.file-icon {
+  filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
+}
