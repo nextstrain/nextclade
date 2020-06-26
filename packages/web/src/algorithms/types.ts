@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 import type { DeepReadonly } from 'ts-essentials'
 import type { Tagged } from 'src/helpers/types'
 
@@ -30,7 +31,12 @@ export interface NucleotideSubstitution {
   queryNuc: Nucleotide
 }
 
-export type NucleotideDeletion = Tagged<Span, 'NucleotideDeletion'>
+export interface NucleotideDeletion extends Span {}
+
+export interface NucleotideRange {
+  character: Nucleotide
+  range: Range
+}
 
 export interface Substitutions {
   [key: string]: DeepReadonly<NucleotideLocation[]>
@@ -45,11 +51,6 @@ export interface AminoacidSubstitution {
 
 export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
   aaSubstitutions: DeepReadonly<AminoacidSubstitution[]>
-}
-
-export interface SubstringMatch {
-  character: Nucleotide
-  range: Range
 }
 
 export interface QCParameters {
@@ -90,7 +91,7 @@ export interface AnalysisResult {
   substitutions: DeepReadonly<SubstitutionsWithAminoacids[]>
   insertions: DeepReadonly<NucleotideLocation[]>
   deletions: DeepReadonly<NucleotideDeletion[]>
-  missing: DeepReadonly<SubstringMatch[]>
+  missing: DeepReadonly<NucleotideRange[]>
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number

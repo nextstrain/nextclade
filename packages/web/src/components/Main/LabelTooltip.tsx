@@ -4,7 +4,7 @@ import type { DeepReadonly } from 'ts-essentials'
 import { Popover, PopoverBody } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult, Nucleotide, SubstringMatch } from 'src/algorithms/types'
+import type { AnalysisResult, Nucleotide, NucleotideRange } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { formatMutation } from 'src/helpers/formatMutation'
 import { N } from 'src/algorithms/nucleotides'
@@ -14,7 +14,7 @@ import { formatRange } from './formatRange'
 const SEQUENCE_TOOLTIP_MAX_MUTATIONS = 10 as const
 const SEQUENCE_TOOLTIP_MAX_GAPS = 10 as const
 
-export function calculateNucleotidesTotals(missing: DeepReadonly<SubstringMatch[]>, character: Nucleotide) {
+export function calculateNucleotidesTotals(missing: DeepReadonly<NucleotideRange[]>, character: Nucleotide) {
   return missing
     .filter((inv) => inv.character === character)
     .reduce((total, inv) => total + inv.range.end - inv.range.begin, 0)

@@ -32,6 +32,7 @@ module.exports = {
   ],
   transformIgnorePatterns: ['<rootDir>/node_modules/(?!(react-children-utilities)/)', '<rootDir>/cypress'],
   moduleNameMapper: {
+    'src/(.*)': '<rootDir>/src/$1',
     '\\.(eot|otf|webp|ttf|woff\\d?|svg|png|jpe?g|gif)$': '<rootDir>/config/jest/mocks/fileMock.js',
     '\\.(css|scss)$': 'identity-obj-proxy',
     'react-children-utilities': '<rootDir>/config/jest/mocks/mockReactChildrenUtilities.js',

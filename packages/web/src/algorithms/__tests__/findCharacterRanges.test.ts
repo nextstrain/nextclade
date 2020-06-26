@@ -1,49 +1,51 @@
-import { findCharacterRanges } from '../findCharacterRanges'
+import { A, T } from 'src/algorithms/nucleotides'
+
+import { findNucleotideRanges } from '../findNucleotideRanges'
 
 describe('findCharacterRanges', () => {
-  it('should find no substrings in the empty string', () => {
-    expect(findCharacterRanges('', 'b')).toStrictEqual([])
+  it('should find no substrings in empty string', () => {
+    expect(findNucleotideRanges('', A)).toStrictEqual([])
   })
 
   it('should find no substrings when no match', () => {
-    expect(findCharacterRanges('aaaaaa', 'b')).toStrictEqual([])
+    expect(findNucleotideRanges('TCC-GCTN', A)).toStrictEqual([])
   })
 
   it('should find a single character: begin', () => {
-    expect(findCharacterRanges('baaaaaaaa', 'b')).toStrictEqual([
-      { character: 'b', range: { begin: 0, end: 1 } }, // prettier-ignore
+    expect(findNucleotideRanges('TGGCNAAGC', T)).toStrictEqual([
+      { character: T, range: { begin: 0, end: 1 } }, // prettier-ignore
     ])
   })
 
   it('should find a single character: middle', () => {
-    expect(findCharacterRanges('aabaaaaa', 'b')).toStrictEqual([
-      { character: 'b', range: { begin: 2, end: 3 } }, // prettier-ignore
+    expect(findNucleotideRanges('GGCNATAGC', T)).toStrictEqual([
+      { character: T, range: { begin: 5, end: 6 } }, // prettier-ignore
     ])
   })
 
   it('should find a single character: end', () => {
-    expect(findCharacterRanges('aaaaaaaab', 'b')).toStrictEqual([
-      { character: 'b', range: { begin: 7, end: 8 } }, // prettier-ignore
+    expect(findNucleotideRanges('GGCNAAGCT', T)).toStrictEqual([
+      { character: T, range: { begin: 8, end: 9 } }, // prettier-ignore
     ])
   })
 
   it('should find 1 substring', () => {
-    expect(findCharacterRanges('aabbaaaaa', 'b')).toStrictEqual([
-      { character: 'b', range: { begin: 2, end: 4 } }, // prettier-ignore
+    expect(findNucleotideRanges('GGNTTTAAGCC', T)).toStrictEqual([
+      { character: T, range: { begin: 3, end: 6 } }, // prettier-ignore
     ])
   })
 
   it('should find 2 substrings', () => {
-    expect(findCharacterRanges('aabbacbba', 'b')).toStrictEqual([
-      { character: 'b', range: { begin: 2, end: 4 } },
-      { character: 'b', range: { begin: 6, end: 8 } },
+    expect(findNucleotideRanges('GGNTTTANTTGCC', T)).toStrictEqual([
+      { character: T, range: { begin: 3, end: 6 } },
+      { character: T, range: { begin: 8, end: 10 } },
     ])
   })
 
-  it('should find substrings for different characters', () => {
-    expect(findCharacterRanges('aabbaccca', 'cb')).toStrictEqual([
-      { character: 'c', range: { begin: 5, end: 8 } },
-      { character: 'b', range: { begin: 2, end: 4 } },
+  it('should find 2 substrings: begin and middle', () => {
+    expect(findNucleotideRanges('TTGGNTTTANGCC', T)).toStrictEqual([
+      { character: T, range: { begin: 0, end: 2 } },
+      { character: T, range: { begin: 5, end: 8 } },
     ])
   })
 })

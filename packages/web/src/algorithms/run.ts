@@ -8,7 +8,7 @@ import { isSequenceInClade } from './isSequenceInClade'
 import { sequenceQC } from './sequenceQC'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
-import { findCharacterRanges } from './findCharacterRanges'
+import { findNucleotideRanges } from './findNucleotideRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
 import { N } from './nucleotides'
 
@@ -27,7 +27,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const clades = pickBy(virus.clades, (clade) => isSequenceInClade(clade, substitutions, rootSeq))
 
-  const missing = findCharacterRanges(alignedQuery, N)
+  const missing = findNucleotideRanges(alignedQuery, N)
 
   const aminoacidSubstitutions = getAllAminoAcidChanges(substitutions, rootSeq, geneMap)
 
