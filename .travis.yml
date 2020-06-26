@@ -24,7 +24,7 @@ before_script:
 
 script:
   - yarn lint
-  - yarn test
+  - yarn test:nowatch
 
 before_deploy:
   - yarn prod:build
