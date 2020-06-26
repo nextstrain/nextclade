@@ -44,7 +44,9 @@
     "test:lint:nowatch": "WITH_ESLINT=1 yarn test:nowatch",
     "test:debug": "node --inspect-brk node_modules/.bin/jest --config=config/jest/jest.config.js --runInBand --watch",
     "test:coverage": "yarn test:nowatch --coverage",
-    "i18n": "babel-node --extensions \".ts\" node_modules/.bin/i18next -c config/i18next/i18next.config.js"
+    "i18n": "babel-node --extensions \".ts\" node_modules/.bin/i18next -c config/i18next/i18next.config.js",
+    "snyk-protect": "snyk protect",
+    "prepare": "yarn run snyk-protect"
   },
   "dependencies": {
     "@devexpress/dx-core": "2.6.4",
@@ -119,7 +121,7 @@
     "regenerator-runtime": "0.13.5",
     "reselect": "4.0.0",
     "semver": "7.3.2",
-    "snyk": "1.348.1",
+    "snyk": "^1.349.0",
     "threads": "1.6.2",
     "threads-plugin": "1.3.2",
     "typeface-source-sans-pro": "1.1.5",
@@ -327,5 +329,6 @@
     "jszip": "3.5.0",
     "moment": "2.27.0",
     "svgo": "1.3.2"
-  }
+  },
+  "snyk": true
 }
