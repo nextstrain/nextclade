@@ -13,9 +13,9 @@ jobs:
         with:
           node-version: 12.x
 
-      - run: yarn install
+      - run: cd packages/web
 
-      - run: yarn schema:totypes
+      - run: yarn install
 
       - uses: reviewdog/action-eslint@v1
         with:
