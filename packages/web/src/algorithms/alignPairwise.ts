@@ -43,7 +43,7 @@ function seedMatch(kmer: string, ref: string): SeedMatch {
 }
 
 function seedAlignment(query: string, ref: string): SeedAlignment {
-  const nSeeds = 5
+  const nSeeds = 7
   const seedLength = 21
   const bandWidth = Math.min(ref.length, query.length)
 
@@ -54,11 +54,11 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
   const seedMatches = []
   for (let ni = 0; ni < nSeeds; ni++) {
     // generate kmers equally spaced on the query
-    const qPos = Math.round((query.length - seedLength) / (nSeeds - 1)) * ni
+    const qPos = Math.round(((query.length - seedLength) / nSeeds) * (ni + 0.5))
     const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref)
 
     // only use seeds that match at least 70%
-    if (tmpMatch.score >= 0.7 * seedLength) {
+    if (tmpMatch.score >= 0.9 * seedLength) {
       seedMatches.push([qPos, tmpMatch.shift, tmpMatch.shift - qPos, tmpMatch.score])
     }
   }
@@ -74,7 +74,6 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
   // query: ----TCACTCATCT-ACACCGAT  => shift = 4, then 3, 4 again
   const minShift = Math.min(...seedMatches.map((d) => d[2]))
   const maxShift = Math.max(...seedMatches.map((d) => d[2]))
-
   return { bandWidth: maxShift - minShift + 9, meanShift: Math.round(0.5 * (minShift + maxShift)) }
 }
 
@@ -261,6 +260,10 @@ export function alignPairwise(query: string, ref: string): Alignment {
   // console.log(ref);
   // perform a number of seed matches to determine te rough alignment of query rel to ref
   const { bandWidth, meanShift } = seedAlignment(query, ref)
+  if (bandWidth > 200) {
+    // TODO: throw concrete instances of errors, catch and diasplay in the UI
+    throw new Error(`alignPairwise: unable to align -- too many gaps`)
+  }
   const { paths, scores } = scoreMatrix(query, ref, bandWidth, meanShift)
 
   if (debug) {
