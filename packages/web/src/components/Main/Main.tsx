@@ -13,31 +13,43 @@ import type { State } from 'src/state/reducer'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
+import { setShowInputBox } from 'src/state/ui/algorithm.actions'
 
 export interface MainProps {
   params: AlgorithmParams
   canExport: boolean
+  showInputBox: boolean
   setInput(input: string): void
-  algorithmRunTrigger(_0?: unknown): void
-  exportTrigger(_0?: unknown): void
+  algorithmRunTrigger(): void
+  exportTrigger(): void
+  setShowInputBox(show: boolean): void
 }
 
 const mapStateToProps = (state: State) => ({
   params: state.algorithm.params,
   canExport: state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
+  showInputBox: state.ui.showInputBox,
 })
 
 const mapDispatchToProps = {
   setInput,
   algorithmRunTrigger: () => algorithmRunTrigger(),
   exportTrigger: () => exportTrigger(),
+  setShowInputBox,
 }
 
 export const Main = connect(mapStateToProps, mapDispatchToProps)(MainDisconnected)
 
-export function MainDisconnected({ params, canExport, setInput, algorithmRunTrigger, exportTrigger }: MainProps) {
+export function MainDisconnected({
+  params,
+  canExport,
+  showInputBox,
+  setInput,
+  algorithmRunTrigger,
+  exportTrigger,
+  setShowInputBox,
+}: MainProps) {
   const { t } = useTranslation()
-  const [showTextbox, setShowTextbox] = useState(false)
   const hangleInputChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { setInput(e.target.value) }, [setInput]) // prettier-ignore
 
   function loadDefaultData() {
@@ -90,27 +102,27 @@ export function MainDisconnected({ params, canExport, setInput, algorithmRunTrig
                   </Col>
                 </Row>
 
-                <Row className="my-2" hidden={showTextbox}>
+                <Row className="my-2" hidden={showInputBox}>
                   <Col className="d-flex">
                     <p className="mx-auto">{t('OR')}</p>
                   </Col>
                 </Row>
 
-                <Row className="mb-2" hidden={showTextbox}>
+                <Row className="mb-2" hidden={showInputBox}>
                   <Col className="d-flex">
-                    <Button className="mx-auto btn-select-file" onClick={() => setShowTextbox(true)}>
+                    <Button className="mx-auto btn-select-file" onClick={() => setShowInputBox(true)}>
                       {t('Paste sequences')}
                     </Button>
                   </Col>
                 </Row>
 
-                <Row className="mb-2" hidden={!showTextbox}>
+                <Row className="mb-2" hidden={!showInputBox}>
                   <Col>
                     <Card>
                       <CardHeader className="d-flex">
                         <div className="mr-auto">{t('Paste sequences')}</div>
                         <div className="ml-auto">
-                          <button type="button" className="button-transparent" onClick={() => setShowTextbox(false)}>
+                          <button type="button" className="button-transparent" onClick={() => setShowInputBox(false)}>
                             <MdClear fill="white" />
                           </button>
                         </div>
@@ -134,7 +146,7 @@ export function MainDisconnected({ params, canExport, setInput, algorithmRunTrig
                   </Col>
                 </Row>
 
-                <Row className="mb-2" hidden={!showTextbox}>
+                <Row className="mb-2" hidden={!showInputBox}>
                   <Col className="d-flex w-100">
                     <Button className="mx-auto btn-refresh" color="success" onClick={algorithmRunTrigger}>
                       <MdPlayArrow className="btn-icon" />

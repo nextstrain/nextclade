@@ -25,6 +25,7 @@ import {
   exportTrigger,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
+import { setShowInputBox } from 'src/state/ui/algorithm.actions'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
@@ -88,6 +89,7 @@ export function* workerAlgorithmRun() {
 
 export function* rerun() {
   yield put(algorithmRunTrigger())
+  yield put(setShowInputBox(true))
   yield put(push('/results'))
 }
 

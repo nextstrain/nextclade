@@ -10,10 +10,14 @@ import { AlgorithmState } from './algorithm/algorithm.state'
 import { SettingsState } from './settings/settings.state'
 import { settingsReducer } from './settings/settings.reducer'
 
+import { uiReducer } from './ui/ui.reducer'
+import { UiState } from './ui/ui.state'
+
 export interface State {
   algorithm: AlgorithmState
   settings: SettingsState
   router: RouterState
+  ui: UiState
 }
 
 // router: initialRouterState
@@ -29,6 +33,7 @@ const rootReducer = () =>
     algorithm: agorithmReducer,
     settings: settingsReducerPersisted,
     router: routerReducer,
+    ui: uiReducer,
   })
 
 export default rootReducer
