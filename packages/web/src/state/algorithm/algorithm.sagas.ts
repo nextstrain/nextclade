@@ -1,5 +1,7 @@
 import { identity } from 'lodash'
 
+import { push } from 'connected-next-router'
+
 import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
 import { getContext, select, takeEvery, call, put, all, takeLatest } from 'redux-saga/effects'
@@ -86,6 +88,7 @@ export function* workerAlgorithmRun() {
 
 export function* rerun() {
   yield put(algorithmRunTrigger())
+  yield put(push('/results'))
 }
 
 export function* exportResults() {
