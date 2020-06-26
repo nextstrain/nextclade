@@ -60,7 +60,7 @@ export function CladeMarkTooltip({ cladeMark }: CladeMarkTooltipProps) {
     <Popover className="popover-mutation" target={id} placement="auto" isOpen hideArrow delay={0} fade={false}>
       <PopoverBody>
         <div>{`Clade: ${cladeName} `}</div>
-        <div>{`Position: ${pos + 1} `}</div>
+        <div>{`Position: ${pos} `}</div>
         <div>{`Nucleotide: ${nuc} `}</div>
       </PopoverBody>
     </Popover>
