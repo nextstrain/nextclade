@@ -14,7 +14,7 @@ export function MissingView({ inv, pixelsPerBase, ...rest }: MissingViewProps) {
   const { id, character, begin, end } = inv
   const fill = getNucleotideColor(character)
   let width = (end - begin) * pixelsPerBase
+  width = Math.max(width, BASE_MIN_WIDTH_PX)
   const x = begin * pixelsPerBase
-  width = Math.max(BASE_MIN_WIDTH_PX)
   return <rect id={id} fill={fill} x={x} y={-10} width={width} height="30" {...rest} />
 }
