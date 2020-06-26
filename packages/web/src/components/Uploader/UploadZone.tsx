@@ -8,7 +8,6 @@ import FileIcon, { defaultStyles } from 'react-file-icon'
 export const FileIconFasta = () => (
   <FileIcon
     {...defaultStyles.txt}
-    className="file-icon"
     size={50}
     extension="fasta"
     type="code2"
@@ -38,6 +37,10 @@ export function UploadZone({ onDrop }: UploadZoneProps) {
   const { t } = useTranslation()
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false })
 
+  const normal = <div className="mx-auto text-center">{t('Drag & Drop a file or click to select')}</div>
+
+  const active = <div className="mx-auto text-center">{t('Drop it!')}</div>
+
   return (
     <div {...getRootProps()}>
       <input type="file" {...getInputProps()} />
@@ -45,17 +48,14 @@ export function UploadZone({ onDrop }: UploadZoneProps) {
       <div className={classNames('d-flex', 'upload-zone', isDragActive && 'upload-zone-active')}>
         <div className="mx-auto my-auto text-center">
           <div className="mx-auto">
-            <span className="mr-2">
+            <span className="mr-2 file-icon">
               <FileIconFasta />
             </span>
-            <span className="ml-2">
+            <span className="ml-2 file-icon">
               <FileIconTxt />
             </span>
           </div>
-          <div className="mt-4">
-            <div className="mx-auto text-center">{t('Click to select a file')}</div>
-            <div className="mx-auto text-center">{t('or Drag & Drop a file here')}</div>
-          </div>
+          <div className="mt-4">{isDragActive ? active : normal}</div>
         </div>
       </div>
     </div>
