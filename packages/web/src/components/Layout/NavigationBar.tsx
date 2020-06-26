@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import { FaGithub, FaTwitter } from 'react-icons/fa'
 import { Container } from 'reactstrap'
 
-import { COMPANY_NAME, PROJECT_NAME } from 'src/constants'
+import { PROJECT_NAME } from 'src/constants'
 
 import { State } from 'src/state/reducer'
 import { selectPathname } from 'src/state/router/router.selectors'
@@ -13,7 +13,7 @@ import { selectPathname } from 'src/state/router/router.selectors'
 import { Link } from 'src/components/Link/Link'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
-import { ReactComponent as BrandLogo } from 'src/assets/img/neherlab.svg'
+import { ReactComponent as BrandLogo } from 'src/assets/img/nextstrain_logo.svg'
 
 import { LanguageSwitcher } from './LanguageSwitcher'
 import NavigationLink from './NavigationLink'
@@ -44,14 +44,8 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
   const navLinksRight = useMemo(
     () => [
       {
-        title: COMPANY_NAME,
-        url: 'https://neherlab.org/',
-        alt: t('Link to our webpage'),
-        icon: <BrandLogo viewBox="0 0 354.325 354.325" className="navigation-bar-company-logo" />,
-      },
-      {
         title: t('Twitter'),
-        url: 'https://twitter.com/richardneher',
+        url: 'https://twitter.com/nextstrain',
         alt: t('Link to our Twitter'),
         icon: <FaTwitter size={28} color="#aaa" />,
       },
@@ -73,7 +67,7 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
         data-testid="NavigationBar"
       >
         <Link className="navbar-brand" href="/" role="button">
-          <BrandLogo viewBox="0 0 354.325 354.325" className="navigation-bar-product-logo" />
+          <BrandLogo viewBox="0 0 100 100" className="navigation-bar-product-logo" />
         </Link>
 
         <ul className="navbar-nav">
