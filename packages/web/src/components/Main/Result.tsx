@@ -50,7 +50,8 @@ export function SequenceClade({ sequence }: SequenceCladeProps) {
 
   const { clades, seqName } = sequence
   const id = getSafeId('clade-label', { seqName })
-  const cladesList = Object.keys(clades).join(', ')
+  const assignedClades = Object.keys(clades).map((c) => c)
+  const cladesStr = assignedClades.length > 0 ? assignedClades[assignedClades.length - 1] : '--'
 
   return (
     <>
@@ -60,7 +61,7 @@ export function SequenceClade({ sequence }: SequenceCladeProps) {
         onMouseEnter={() => setShowTooltip(true)}
         onMouseLeave={() => setShowTooltip(false)}
       >
-        {cladesList}
+        {cladesStr}
       </td>
       <LabelTooltip showTooltip={showTooltip} sequence={sequence} />
     </>
@@ -232,7 +233,7 @@ export function ResultDisconnected({ result }: ResultProps) {
           <tr className="results-table-row">
             <th className="results-table-header">{t('Sequence name')}</th>
             <th className="results-table-header">{t('QC')}</th>
-            <th className="results-table-header">{t('Clades')}</th>
+            <th className="results-table-header">{t('Clade')}</th>
             <th className="results-table-header">{t('Mut.')}</th>
             <th className="results-table-header">{t('non-ACGTN')}</th>
             <th className="results-table-header">{t('Ns')}</th>
