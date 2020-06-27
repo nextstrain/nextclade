@@ -6,7 +6,7 @@ import { MdPlayArrow, MdClear, MdWarning } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
-import About from 'src/components/About/About.mdx'
+import About from 'src/components/Main/About.mdx'
 import { Uploader } from 'src/components/Uploader/Uploader'
 
 import type { State } from 'src/state/reducer'

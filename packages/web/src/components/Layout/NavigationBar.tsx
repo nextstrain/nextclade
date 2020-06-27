@@ -37,7 +37,6 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
     () => ({
       '/': PROJECT_NAME,
       '/results': t('Results'),
-      '/about': t('About'),
     }),
     [t],
   )
