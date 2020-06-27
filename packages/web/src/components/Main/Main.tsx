@@ -205,7 +205,7 @@ export function MainDisconnected({
                   <Alert color="warning" className="w-50 mx-auto main-dev-alert">
                     {t(
                       'NextClades is currently under active development. ' +
-                        'Implementation details and formats are subject to change. ' +
+                        'Implementation details and data formats are subjects to change. ' +
                         'The app may contain bugs. Please report any issues and leave feedback at {{githubURL}}',
                       { githubURL: '' },
                     )}
