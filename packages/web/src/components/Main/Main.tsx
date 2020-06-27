@@ -2,7 +2,7 @@ import React, { useCallback, useRef } from 'react'
 
 import { delay } from 'lodash'
 import { Button, Card, CardBody, CardHeader, Col, Input, Row, Container, UncontrolledAlert, Alert } from 'reactstrap'
-import { MdPlayArrow, MdClear } from 'react-icons/md'
+import { MdPlayArrow, MdClear, MdWarning } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
@@ -201,15 +201,20 @@ export function MainDisconnected({
           <Col>
             <Container>
               <Row noGutters>
-                <Col>
-                  <Alert color="warning" className="w-50 mx-auto main-dev-alert">
-                    {t(
-                      'NextClades is currently under active development. ' +
-                        'Implementation details and data formats are subjects to change. ' +
-                        'The app may contain bugs. Please report any issues and leave feedback at {{githubURL}}',
-                      { githubURL: '' },
-                    )}
-                    <LinkExternal href={URL_GITHUB}>{URL_GITHUB_FRIENDLY}</LinkExternal>
+                <Col className="text-center">
+                  <Alert color="warning" className="d-inline-flex w-50 mx-auto main-dev-alert">
+                    <div className="my-auto ml-2 mr-4">
+                      <MdWarning size={45} />
+                    </div>
+                    <div className="text-left small">
+                      {t(
+                        'NextClades is currently under active development. ' +
+                          'Implementation details and data formats are subjects to change. ' +
+                          'The app may contain bugs. Please report any issues and leave feedback at {{githubURL}}',
+                        { githubURL: '' },
+                      )}
+                      <LinkExternal href={URL_GITHUB}>{URL_GITHUB_FRIENDLY}</LinkExternal>
+                    </div>
                   </Alert>
                 </Col>
               </Row>
