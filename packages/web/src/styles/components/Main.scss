@@ -12,8 +12,8 @@
 
 .hero-bg {
   height: 450px;
-  background-color: #6f42c1;
-  color: #e3d5e9;
+  background-color: $gray-300;
+  color: $gray-900;
 
   .hero-h1 {
     font-weight: bold;
@@ -33,7 +33,7 @@
   text-align: center;
 
   .hero-content-right {
-    color: #e3d5e9;
+    color: #C4B945;
     margin-bottom: 20px;
   }
 
@@ -51,13 +51,13 @@
     }
 
     &.hero-feature-box-top {
-      background-color: #7853d4;
-      color: #dad7e7;
+      background-color: $gray-200;
+      color: #5097BA;
     }
 
     &.hero-feature-box-bottom {
-      background-color: #645fda;
-      color: #dad7e7;
+      background-color: $gray-200;
+      color: #AABD52;
       filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
     }
   }

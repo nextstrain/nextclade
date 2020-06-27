@@ -36,7 +36,7 @@ html {
 body {
   // HACK: workaround for bootstrap modal adding padding-right when open
   padding: 0 !important;
-  background-color: $gray-800;
+  background-color: $gray-400;
 }
 
 #__next {
@@ -45,7 +45,7 @@ body {
 
 .main-container {
   height: 100%;
-  background-color: $gray-800;
+  background-color: $gray-400;
 }
 
 .progress {
