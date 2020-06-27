@@ -20,6 +20,14 @@ $container-max-widths: (
   xxl: 1950px,
 );
 
+@use "sass:map";
+$width-xs: map.get($grid-breakpoints, 'xs');
+$width-sm: map.get($grid-breakpoints, 'sm');
+$width-md: map.get($grid-breakpoints, 'md');
+$width-lg: map.get($grid-breakpoints, 'lg');
+$width-xl: map.get($grid-breakpoints, 'xl');
+$width-xxl: map.get($grid-breakpoints, 'xxl');
+
 $font-family-sans-serif: 'Lato', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial',
   'system-ui', 'system-sans', 'sans-serif';
 $font-family-monospace: 'Roboto Mono', 'system-mono';

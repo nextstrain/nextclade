@@ -23,11 +23,6 @@
     font-weight: 500;
     font-size: 22px;
   }
-
-  .hero-h3 {
-    font-size: 18px;
-    font-weight: bold;
-  }
 }
 
 .hero-content {
@@ -42,6 +37,28 @@
   }
 
   .hero-content-left {
+  }
+
+  .hero-feature-box {
+    padding: 20px 10px;
+    border-radius: 5px;
+    filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
+
+    .hero-h3 {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    &.hero-feature-box-top {
+      background-color: #7853d4;
+      color: #dad7e7;
+    }
+
+    &.hero-feature-box-bottom {
+      background-color: #645fda;
+      color: #dad7e7;
+      filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
+    }
   }
 }
 
@@ -64,13 +81,7 @@
   filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
 }
 
-.main-brief-section {
-  position: relative;
-  top: -225px;
-  width: 50%;
-}
-
 .main-info-section {
   position: relative;
-  top: -225px;
+  top: -250px;
 }

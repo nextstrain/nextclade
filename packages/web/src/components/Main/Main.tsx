@@ -72,32 +72,56 @@ export function MainDisconnected({
             </h2>
           </Col>
         </Row>
+
         <div className="hero-content">
           <Row noGutters>
-            <Col md={6} className="px-4 hero-content-right">
+            <Col xl={6} className="px-4 hero-content-right">
               <Row noGutters className="mx-auto w-70 text-center">
-                <Col className="mx-3">
+                <Col className="mx-2 hero-feature-box hero-feature-box-top">
                   <h3 className="hero-h3">{t('Fast')}</h3>
                   <div className="small">
                     {t('Parallel processing, immediate feedback, faster research iterations')}
                   </div>
                 </Col>
 
-                <Col className="mx-3">
+                <Col className="mx-2 hero-feature-box hero-feature-box-top">
                   <h3 className="hero-h3">{t('Simple')}</h3>
                   <div className="small">
                     {t('No complex tools or pipelines to setup - drop a file and see the results')}
                   </div>
                 </Col>
 
-                <Col className="mx-3">
+                <Col className="mx-2 hero-feature-box hero-feature-box-top">
                   <h3 className="hero-h3 text-center">{t('Private')}</h3>
                   <div className="small">{t('No remote processing - sequencing data never leaves your computer')}</div>
                 </Col>
               </Row>
+
+              <Row noGutters className="mx-auto w-70 text-center my-4">
+                <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
+                  <h3 className="hero-h3">{t('Sequence Alignment')}</h3>
+                  <div className="small">
+                    {t(
+                      'Shift sequences with respect to the reference sequence, such that they can be compared and analyzed',
+                    )}
+                  </div>
+                </Col>
+
+                <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
+                  <h3 className="hero-h3">{t('Clade Assignment')}</h3>
+                  <div className="small">{t('Deduce Nextstrain clades from features present in each sequence')}</div>
+                </Col>
+
+                <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
+                  <h3 className="hero-h3">{t('Quality Assesment')}</h3>
+                  <div className="small">
+                    {t('Check your data for common sequencing issues, inspect common attributes')}
+                  </div>
+                </Col>
+              </Row>
             </Col>
 
-            <Col md={6} className="px-4 hero-content-left">
+            <Col xl={6} className="px-4 hero-content-left">
               <div className="hero-content-left-card">
                 <Row>
                   <Col>
@@ -170,39 +194,6 @@ export function MainDisconnected({
             </Col>
           </Row>
         </div>
-
-        <Row noGutters className="main-brief-section w-auto">
-          <Col>
-            <Row>
-              <Col>
-                <h3>{t('How it works')}</h3>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col className="mx-3">
-                <h3 className="hero-h3">{t('Sequence Alignment')}</h3>
-                <div className="small">
-                  {t(
-                    'Arrange sequences in relation with the reference sequence, cuch that they can be compared and analyzed',
-                  )}
-                </div>
-              </Col>
-
-              <Col className="mx-3">
-                <h3 className="hero-h3">{t('Quality Control')}</h3>
-                <div className="small">
-                  {t('Check your data for common sequencing issues, inspect common attributes')}
-                </div>
-              </Col>
-
-              <Col className="mx-3">
-                <h3 className="hero-h3">{t('Clade Assignment')}</h3>
-                <div className="small">{t('Deduce Nextstrain clade from mutations present in a sequence')}</div>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
 
         <Row className="main-info-section">
           <Col>
