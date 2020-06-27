@@ -105,7 +105,7 @@ export function MainDisconnected({
 
                 <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
                   <h3 className="hero-h3">{t('Quality Assessment')}</h3>
-                  <div className="small">{t("Check your data for against Nextstrain's QC metrics")}</div>
+                  <div className="small">{t("Check your data against Nextstrain's QC metrics")}</div>
                 </Col>
               </Row>
             </Col>
