@@ -24,7 +24,6 @@ import { initialize } from 'src/initialize'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import Loading from 'src/components/Loading/Loading'
 import { Layout } from 'src/components/Layout/Layout'
-import { MdxWrapper } from 'src/components/Layout/MdxWrapper'
 
 import 'src/styles/global.scss'
 
@@ -57,7 +56,7 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
     <Suspense fallback={<Loading />}>
       <Provider store={store}>
         <ConnectedRouter>
-          <MDXProvider components={{ wrapper: MdxWrapper, a: LinkExternal }}>
+          <MDXProvider components={{ a: LinkExternal }}>
             <PersistGate loading={null} persistor={persistor}>
               <I18nextProvider i18n={i18n}>
                 <Layout>
