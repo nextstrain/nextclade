@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useRef } from 'react'
 
+import { delay } from 'lodash'
 import { Button, Card, CardBody, CardHeader, Col, Input, Row } from 'reactstrap'
 import { MdPlayArrow, MdClear } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
@@ -49,10 +50,13 @@ export function MainDisconnected({
   setShowInputBox,
 }: MainProps) {
   const { t } = useTranslation()
+  const inputRef = useRef<HTMLInputElement | null>(null)
   const hangleInputChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { setInput(e.target.value) }, [setInput]) // prettier-ignore
 
   function loadDefaultData() {
-    setInput('')
+    setShowInputBox(true)
+    inputRef?.current?.focus()
+    delay(setInput, 500, '')
   }
 
   return (
@@ -139,6 +143,7 @@ export function MainDisconnected({
                           rows={20}
                           value={params.input}
                           onChange={hangleInputChage}
+                          innerRef={inputRef}
                         />
                       </CardBody>
                     </Card>
