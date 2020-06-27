@@ -1,6 +1,29 @@
 import { ReactComponent as CladeSchema } from 'src/assets/img/Nextstrain_ncov_clades-20B1tip.svg'
 
-## Nextstrain SARS-CoV-2 Clades
+<!-- TODO: What is the main purpose of the tool? -->
+<!-- TODO: How it is supposed to be used? -->
+<!-- TODO: Who is the target audience? -->
+<!-- TODO: Why we built the tool the way we did? -->
+<!-- TODO: What are the trade-offs we have to choose? -->
+<!-- TODO: What are the limitations? -->
+<!-- TODO: What are the advantages of this tool compared to the existing alternatives? -->
+<!-- TODO: How this tool complements the traditional workflow? -->
+
+<!-- FIXME: what is "calls mutations"? We may want to explain this better -->
+
+NextClades is an online tool that aligns your sequences to the reference sequence used by Nextstrain (Wuhan-Hu-1 for
+SARS-CoV-2) and calls mutations relative to this reference. Clades are then assigned based on the nucleotides at the
+positions used to [define clades in nextstrain](https://github.com/nextstrain/ncov/blob/master/config/clades.tsv). In
+addition, the tool calculates a number of quality metrics. If these metrics exceed certain scores, the sequence will
+likely be excluded from the nextstrain builds.
+
+> NextClades is currently under active development. Implementation details and formats are subject to change. The app
+> may contain bugs. Please report any issues and leave feedback at
+> [github.com/neherlab/webclades](https://github.com/neherlab/webclades)
+
+# What are the clades?
+
+<!-- FIXME: This section is specific to SARS-CoV-2, while all others try to be generic. This might be confising. -->
 
 Since its emergence in late 2019, SARS-CoV-2 has diversified into several different co-circulating variants. To
 facilitate discussion of these variants, we have grouped them into so called clades which are defined by specific
@@ -22,16 +45,83 @@ for details):
   </figcaption>
 </figure>
 
-## Clade assignment
+# Processing steps
+
+<!-- A positive-negative-positive sandwich for each section -->
+<!-- Align with feature boxes -->
+
+## Sequence Alignment
+
+<!-- Sequence Alignment: In 1 phrase: remind user what it is (should be similar to the text in the corresp. feature box)  -->
+
+<!-- Sequence Alignment: Give some specifics. Why is it important? Only positives. -->
+
+<!-- Sequence Alignment: Discuss current limitations. Only negatives. -->
+
+NextClades does all computations on your computer -- your data does not leave your browser. This mean we can not perform
+a full multiple sequence alignment or phylogenetic analysis. Instead, we roughly estimate the alignment of your
+sequences to there reference one-by-one using short seeds (21-mers) along the sequence. With this rough overall
+alignment, we perform a banded Smith-Waterman alignment with an affine gap-penalty.
+
+If the seed matches are poor or suggest gaps in excess of 200 bases, we won't attempt to align -- your sequence won't be
+scored.
+
+<!-- Sequence Alignment: Finish with something positive  -->
+
+For most sequences, however, this alignment strategy works well and takes less than a second per sequence.
+
+## Clade Assignment
+
+<!-- Clade Assignment: In 1 phrase: remind user what it is (should be similar to the text in the corresp. feature box)  -->
+
+<!-- Clade Assignment: Give some specifics. Why is it important? Only positives. -->
+
+<!-- Clade Assignment: Discuss current limitations. Only negatives. -->
 
 The analysis on [nextstrain.org/ncov](https://nextstrain.org/ncov) uses the phylogenetic context to assign clades. Here,
 we provide a simple tool to do this clade assignment sequence-by-sequence through alignment to the reference. This is
 expected to be slightly less sensitive, but will still give the correct answer in most cases. Sometimes, however, clade
-assignment will fail. Importantly, these computations happen on your computer and ** your data does not leave your
-computer**
+assignment will fail.
 
-## Sequence quality control (QC)
+<!-- Clade Assignment: Finish with something positive  -->
 
-In addition to assigning clades, the tool will scan your sequences for excess divergence and clusters of differences
-from the reference. These might indicate problems during sequencing or bioinformatic assembly and would result in these
-sequences being filtered out by nextstrain.
+## Quality Control (QC)
+
+<!-- Quality Control: In 1 phrase: remind user what it is (should be similar to the text in the corresp. feature box)  -->
+
+<!-- Quality Control: In 1 phrase: remind user what it is (should be similar to the text in the corresp. feature box)  -->
+
+<!-- Quality Control: Give some specifics. Why is it important? Only positives. -->
+
+<!-- Quality Control: Discuss current limitations. Only negatives. -->
+
+The tool will scan your sequences for excess divergence and clusters of differences from the reference. These might
+indicate problems during sequencing or bioinformatic assembly and would result in these sequences being filtered out by
+nextstrain.
+
+We currently implemented four metrics to flag a sequence as potentially problematic:
+
+- too much missing data: If your sequence misses more than 1000 sites (`N`s), it will be flagged
+- too high divergence: Sequence more than 20 mutations away from the reference sequence are flagged
+- too many ambiguous nucleotides: mixed states (such as `R`, `Y`, etc) are indicative of contamination (or
+  superinfection) and more than 10 such non-ACGTN characters will result in a QC warning
+- clustered differences: If your sequence has clusters with 6 or more differences in 100 bases (excluding known clusters
+  like positions 28881-28883), it will be flagged.
+
+These warnings don't necessarily mean your sequences are problematic, but these issues warrant closer examination. The
+[Nextstrain pipeline](https://github.com/nextstrain/ncov) will likely exclude those sequences.
+
+<!-- Clade Assignment: Finish with something positive  -->
+
+# Features
+
+<!-- A positive-negative-positive sandwich for each section -->
+<!-- Align with feature boxes -->
+
+## Fast iteration
+
+## Ease of use
+
+## Private
+
+Importantly, these computations happen on your computer and ** your data does not leave your computer**
