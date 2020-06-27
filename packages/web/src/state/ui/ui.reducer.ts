@@ -4,7 +4,7 @@ import { uiDefaultState } from 'src/state/ui/ui.state'
 
 import immerCase from '../util/fsaImmerReducer'
 
-import { setShowInputBox } from './algorithm.actions'
+import { setShowInputBox } from './ui.actions'
 
 export const uiReducer = reducerWithInitialState(uiDefaultState).withHandling(
   immerCase(setShowInputBox, (draft, showInputBox) => {

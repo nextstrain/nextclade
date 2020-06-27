@@ -11,10 +11,12 @@ import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { WorkerPools } from 'src/workers/types'
 
+import { EXPORT_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
 import { serializeResults } from 'src/io/serializeResults'
 import fsaSaga from 'src/state/util/fsaSaga'
-import { EXPORT_FILENAME } from 'src/constants'
+
+import { setShowInputBox } from 'src/state/ui/ui.actions'
 import {
   algorithmRunAsync,
   algorithmRunTrigger,
@@ -25,7 +27,6 @@ import {
   exportTrigger,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
-import { setShowInputBox } from 'src/state/ui/algorithm.actions'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string

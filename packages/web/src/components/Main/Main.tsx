@@ -1,11 +1,10 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback } from 'react'
 
 import { Button, Card, CardBody, CardHeader, Col, Input, Row } from 'reactstrap'
 import { MdPlayArrow, MdClear } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
-import { Link } from 'src/components/Link/Link'
 import About from 'src/components/About/About.mdx'
 import { Uploader } from 'src/components/Uploader/Uploader'
 
@@ -13,7 +12,7 @@ import type { State } from 'src/state/reducer'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
-import { setShowInputBox } from 'src/state/ui/algorithm.actions'
+import { setShowInputBox } from 'src/state/ui/ui.actions'
 
 export interface MainProps {
   params: AlgorithmParams
