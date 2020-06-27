@@ -1,12 +1,12 @@
 import React, { useCallback, useRef } from 'react'
 
 import { delay } from 'lodash'
-import { Button, Card, CardBody, CardHeader, Col, Input, Row, Container, UncontrolledAlert, Alert } from 'reactstrap'
+import { Button, Card, CardBody, CardHeader, Col, Input, Row, Container, Alert } from 'reactstrap'
 import { MdPlayArrow, MdClear, MdWarning } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
-import About from 'src/components/Main/About.mdx'
+import { About } from 'src/components/About/About'
 import { Uploader } from 'src/components/Uploader/Uploader'
 
 import type { State } from 'src/state/reducer'
