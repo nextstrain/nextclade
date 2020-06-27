@@ -70,7 +70,7 @@ export function MainDisconnected({
               <div className="font-weight-bold">{t('NextClade')}</div>
             </h1>
             <h2 className="hero-h2 mt-4">
-              {t('Instant sequence alignment, clade assignment, quality control right inside your browser')}
+              {t('Clade assignment, mutation calling, and quality control right inside your browser')}
             </h2>
           </Col>
         </Row>
@@ -80,45 +80,32 @@ export function MainDisconnected({
             <Col xl={6} className="px-4 hero-content-right">
               <Row noGutters className="mx-auto w-70 text-center">
                 <Col className="mx-2 hero-feature-box hero-feature-box-top">
-                  <h3 className="hero-h3">{t('Fast')}</h3>
-                  <div className="small">
-                    {t('Parallel processing, immediate feedback, faster research iterations')}
-                  </div>
-                </Col>
-
-                <Col className="mx-2 hero-feature-box hero-feature-box-top">
                   <h3 className="hero-h3">{t('Simple')}</h3>
-                  <div className="small">
-                    {t('No complex tools or pipelines to setup - drop a file and see the results')}
-                  </div>
+                  <div className="small">{t('No installation or setup - drop a file and see the results')}</div>
                 </Col>
 
                 <Col className="mx-2 hero-feature-box hero-feature-box-top">
                   <h3 className="hero-h3 text-center">{t('Private')}</h3>
-                  <div className="small">{t('No remote processing - sequencing data never leaves your computer')}</div>
+                  <div className="small">{t('No remote processing - sequence data never leaves your computer')}</div>
                 </Col>
               </Row>
 
               <Row noGutters className="mx-auto w-70 text-center my-4">
                 <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
-                  <h3 className="hero-h3">{t('Sequence Alignment')}</h3>
+                  <h3 className="hero-h3">{t('Mutation calling')}</h3>
                   <div className="small">
-                    {t(
-                      'Shift sequences with respect to the reference sequence, such that they can be compared and analyzed',
-                    )}
+                    {t('Find differences of your sequences relative to the reference in standard numbering')}
                   </div>
                 </Col>
 
                 <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
                   <h3 className="hero-h3">{t('Clade Assignment')}</h3>
-                  <div className="small">{t('Deduce Nextstrain clades from features present in each sequence')}</div>
+                  <div className="small">{t('Find out in which Nextstrain clades your samples are from')}</div>
                 </Col>
 
                 <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
-                  <h3 className="hero-h3">{t('Quality Assesment')}</h3>
-                  <div className="small">
-                    {t('Check your data for common sequencing issues, inspect common attributes')}
-                  </div>
+                  <h3 className="hero-h3">{t('Quality Assessment')}</h3>
+                  <div className="small">{t("Check your data for against Nextstrain's QC metrics")}</div>
                 </Col>
               </Row>
             </Col>
