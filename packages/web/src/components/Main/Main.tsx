@@ -1,7 +1,7 @@
 import React, { useCallback, useRef } from 'react'
 
 import { delay } from 'lodash'
-import { Button, Card, CardBody, CardHeader, Col, Input, Row } from 'reactstrap'
+import { Button, Card, CardBody, CardHeader, Col, Input, Row, Container, UncontrolledAlert, Alert } from 'reactstrap'
 import { MdPlayArrow, MdClear } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
@@ -14,6 +14,8 @@ import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
+import { URL_GITHUB, URL_GITHUB_FRIENDLY } from 'src/constants'
 
 export interface MainProps {
   params: AlgorithmParams
@@ -197,7 +199,27 @@ export function MainDisconnected({
 
         <Row className="main-info-section">
           <Col>
-            <About />
+            <Container>
+              <Row noGutters>
+                <Col>
+                  <Alert color="warning" className="w-50 mx-auto main-dev-alert">
+                    {t(
+                      'NextClades is currently under active development. ' +
+                        'Implementation details and formats are subject to change. ' +
+                        'The app may contain bugs. Please report any issues and leave feedback at {{githubURL}}',
+                      { githubURL: '' },
+                    )}
+                    <LinkExternal href={URL_GITHUB}>{URL_GITHUB_FRIENDLY}</LinkExternal>
+                  </Alert>
+                </Col>
+              </Row>
+
+              <Row noGutters className="w-75 mx-auto mt-5">
+                <Col>
+                  <About />
+                </Col>
+              </Row>
+            </Container>
           </Col>
         </Row>
       </Col>

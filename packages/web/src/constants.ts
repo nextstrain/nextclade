@@ -5,6 +5,9 @@ export const COMPANY_NAME = 'Nextstrain' as const
 export const BASE_MIN_WIDTH_PX = 4 as const
 export const EXPORT_FILENAME = 'clades_and_QC_results.json'
 
+export const URL_GITHUB = 'https://github.com/neherlab/webclades' as const
+export const URL_GITHUB_FRIENDLY = 'github.com/neherlab/webclades' as const
+
 // Borrowed from Nextstrain Auspice
 // https://github.com/nextstrain/auspice/blob/05efebfd5eba8a7d086132cf8a182176118b7c28/src/util/globals.js#L90-L92
 export const GENOTYPE_COLORS = [

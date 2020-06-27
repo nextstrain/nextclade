@@ -11,17 +11,15 @@ import { ReactComponent as CladeSchema } from 'src/assets/img/Nextstrain_ncov_cl
 
 <!-- FIXME: what is "calls mutations"? We may want to explain this better -->
 
+## What is NextClades?
+
 NextClades is an online tool that aligns your sequences to the reference sequence used by Nextstrain (Wuhan-Hu-1 for
 SARS-CoV-2) and calls mutations relative to this reference. Clades are then assigned based on the nucleotides at the
 positions used to [define clades in nextstrain](https://github.com/nextstrain/ncov/blob/master/config/clades.tsv). In
 addition, the tool calculates a number of quality metrics. If these metrics exceed certain scores, the sequence will
 likely be excluded from the nextstrain builds.
 
-> NextClades is currently under active development. Implementation details and formats are subject to change. The app
-> may contain bugs. Please report any issues and leave feedback at
-> [github.com/neherlab/webclades](https://github.com/neherlab/webclades)
-
-# What are the clades?
+## What are the clades?
 
 <!-- FIXME: This section is specific to SARS-CoV-2, while all others try to be generic. This might be confising. -->
 
@@ -45,12 +43,12 @@ for details):
   </figcaption>
 </figure>
 
-# Processing steps
+## Processing steps
 
 <!-- A positive-negative-positive sandwich for each section -->
 <!-- Align with feature boxes -->
 
-## Sequence Alignment
+### Sequence Alignment
 
 <!-- Sequence Alignment: In 1 phrase: remind user what it is (should be similar to the text in the corresp. feature box)  -->
 
@@ -70,7 +68,7 @@ scored.
 
 For most sequences, however, this alignment strategy works well and takes less than a second per sequence.
 
-## Clade Assignment
+### Clade Assignment
 
 <!-- Clade Assignment: In 1 phrase: remind user what it is (should be similar to the text in the corresp. feature box)  -->
 
@@ -85,7 +83,7 @@ assignment will fail.
 
 <!-- Clade Assignment: Finish with something positive  -->
 
-## Quality Control (QC)
+### Quality Control (QC)
 
 <!-- Quality Control: In 1 phrase: remind user what it is (should be similar to the text in the corresp. feature box)  -->
 
@@ -113,15 +111,15 @@ These warnings don't necessarily mean your sequences are problematic, but these 
 
 <!-- Clade Assignment: Finish with something positive  -->
 
-# Features
+## Features
 
 <!-- A positive-negative-positive sandwich for each section -->
 <!-- Align with feature boxes -->
 
-## Fast iteration
+### Fast iteration
 
-## Ease of use
+### Ease of use
 
-## Private
+### Private
 
 Importantly, these computations happen on your computer and ** your data does not leave your computer**
