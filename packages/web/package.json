@@ -34,7 +34,6 @@
     "eslint:ci": "yarn eslint --max-warnings=0",
     "tsc": "tsc --project tsconfig.json --noEmit",
     "tsc:watch": "yarn tsc --watch",
-    "tsc:watch": "yarn tsc",
     "stylelint": "stylelint \"**/*.*(css|scss)\"",
     "stylelint:fix": "yarn stylelint --fix",
     "stylelint:watch": "nodemon --config config/nodemon/stylelint.json",
