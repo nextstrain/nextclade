@@ -4,7 +4,6 @@ import type { NextConfig } from 'next'
 import getWithMDX from '@next/mdx'
 // import withBundleAnalyzer from '@zeit/next-bundle-analyzer'
 import withPlugins from 'next-compose-plugins'
-import nextRuntimeDotenv from 'next-runtime-dotenv'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getEnvVars } from './lib/getEnvVars'
@@ -58,12 +57,10 @@ const nextConfig: NextConfig = {
   },
 }
 
-const withConfig = nextRuntimeDotenv()
-
 const withMDX = getWithMDX({
   extension: /\.mdx?$/,
   remarkPlugins: ['remark-images', 'remark-math'].map(require),
-  rehypePlugins: ['rehype-katex'].map(require),
+  rehypePlugins: [].map(require),
 })
 
 const withFriendlyConsole = getWithFriendlyConsole({
@@ -95,23 +92,21 @@ const withTypeChecking = getWithTypeChecking({
   memoryLimit: 2048,
 })
 
-const config = withConfig(
-  withPlugins(
-    [
-      [withEnvironment],
-      [withExtraWatch],
-      [withThreads],
-      [withSvg],
-      [withRaw],
-      // ANALYZE && [withBundleAnalyzer],
-      [withFriendlyConsole],
-      [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
-      [withLodash],
-      [withTypeChecking],
-      PRODUCTION && [withStaticComprression],
-    ].filter(Boolean),
-    nextConfig,
-  ),
+const config = withPlugins(
+  [
+    [withEnvironment],
+    [withExtraWatch],
+    [withThreads],
+    [withSvg],
+    [withRaw],
+    // ANALYZE && [withBundleAnalyzer],
+    [withFriendlyConsole],
+    [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
+    [withLodash],
+    [withTypeChecking],
+    PRODUCTION && [withStaticComprression],
+  ].filter(Boolean),
+  nextConfig,
 )
 
 export default config

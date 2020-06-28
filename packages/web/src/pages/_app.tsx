@@ -2,8 +2,6 @@ import 'map.prototype.tojson' // to visualize Map in Redux Dev Tools
 import 'set.prototype.tojson' // to visualize Set in Redux Dev Tools
 import 'src/helpers/errorPrototypeTojson' // to visualize Error in Redux Dev Tools
 
-import 'react-dates/initialize'
-
 import { enableES5 } from 'immer'
 
 import React, { Suspense, useEffect, useState } from 'react'
