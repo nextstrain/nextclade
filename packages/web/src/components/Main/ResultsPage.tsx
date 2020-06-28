@@ -5,7 +5,7 @@ import { MdFileDownload, MdSettings } from 'react-icons/md'
 import { FaCaretLeft } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
-import { push } from 'connected-next-router'
+import { goBack } from 'connected-next-router'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
@@ -20,7 +20,7 @@ export interface MainProps {
   setInput(input: string): void
   algorithmRunTrigger(_0?: unknown): void
   exportTrigger(_0?: unknown): void
-  goHome(): void
+  goBack(): void
 }
 
 const mapStateToProps = (state: State) => ({
@@ -32,7 +32,7 @@ const mapDispatchToProps = {
   setInput,
   algorithmRunTrigger: () => algorithmRunTrigger(),
   exportTrigger: () => exportTrigger(),
-  goHome: () => push('/'),
+  goBack: () => goBack(),
 }
 
 export const ResultsPage = connect(mapStateToProps, mapDispatchToProps)(ResultsPageDisconnected)
@@ -43,7 +43,7 @@ export function ResultsPageDisconnected({
   setInput,
   algorithmRunTrigger,
   exportTrigger,
-  goHome,
+  goBack,
 }: MainProps) {
   const { t } = useTranslation()
 
@@ -55,7 +55,7 @@ export function ResultsPageDisconnected({
         <Row>
           <Col className="d-flex">
             <div className="mr-auto">
-              <Button color="secondary" className="results-btn-back" onClick={goHome}>
+              <Button color="secondary" className="results-btn-back" onClick={goBack}>
                 <FaCaretLeft />
                 {t('Back')}
               </Button>
