@@ -1,10 +1,12 @@
 import React, { useCallback, useRef } from 'react'
 
 import { delay } from 'lodash'
+import { connect } from 'react-redux'
+import { push } from 'connected-next-router'
 import { Button, Card, CardBody, CardHeader, Col, Input, Row, Container, Alert } from 'reactstrap'
 import { MdPlayArrow, MdClear, MdWarning } from 'react-icons/md'
+import { FaCaretLeft, FaCaretRight } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
 
 import { URL_GITHUB, URL_GITHUB_FRIENDLY } from 'src/constants'
 
@@ -12,6 +14,7 @@ import { About } from 'src/components/About/About'
 import { Uploader } from 'src/components/Uploader/Uploader'
 
 import type { State } from 'src/state/reducer'
+import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
@@ -25,15 +28,18 @@ export interface MainProps {
   params: AlgorithmParams
   canExport: boolean
   showInputBox: boolean
+  isDirty: boolean
   setInput(input: string): void
   algorithmRunTrigger(): void
   exportTrigger(): void
   setShowInputBox(show: boolean): void
+  goToResults(): void
 }
 
 const mapStateToProps = (state: State) => ({
   params: state.algorithm.params,
   canExport: state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
+  isDirty: selectIsDirty(state),
   showInputBox: state.ui.showInputBox,
 })
 
@@ -42,6 +48,7 @@ const mapDispatchToProps = {
   algorithmRunTrigger: () => algorithmRunTrigger(),
   exportTrigger: () => exportTrigger(),
   setShowInputBox,
+  goToResults: () => push('/results'),
 }
 
 export const Main = connect(mapStateToProps, mapDispatchToProps)(MainDisconnected)
@@ -49,11 +56,13 @@ export const Main = connect(mapStateToProps, mapDispatchToProps)(MainDisconnecte
 export function MainDisconnected({
   params,
   canExport,
+  isDirty,
   showInputBox,
   setInput,
   algorithmRunTrigger,
   exportTrigger,
   setShowInputBox,
+  goToResults,
 }: MainProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
@@ -71,9 +80,30 @@ export function MainDisconnected({
     algorithmRunTrigger()
   }
 
+  const runButton = (
+    <Button className="mx-auto btn-refresh" color="success" onClick={algorithmRunTrigger}>
+      <MdPlayArrow className="btn-icon" />
+      <span>{t('Run')}</span>
+    </Button>
+  )
+
+  const toResultsButton = (
+    <Button className="mx-auto btn-refresh" color="primary" onClick={goToResults}>
+      <span className="mr-2">{t('To Results')}</span>
+      <FaCaretRight />
+    </Button>
+  )
+
   return (
     <Row noGutters className="landing-page-row">
       <Col>
+        <div className="mr-auto main-to-results-btn">
+          <Button hidden={isDirty} color="secondary" className="results-btn-back" onClick={goToResults}>
+            {t('To Results')}
+            <FaCaretRight />
+          </Button>
+        </div>
+
         <Row noGutters className="hero-bg text-center">
           <Col>
             <Title />
@@ -172,12 +202,7 @@ export function MainDisconnected({
                 </Row>
 
                 <Row className="mb-2" hidden={!showInputBox}>
-                  <Col className="d-flex w-100">
-                    <Button className="mx-auto btn-refresh" color="success" onClick={algorithmRunTrigger}>
-                      <MdPlayArrow className="btn-icon" />
-                      <span>{t('Run')}</span>
-                    </Button>
-                  </Col>
+                  <Col className="d-flex w-100">{isDirty ? runButton : toResultsButton}</Col>
                 </Row>
 
                 <Row>

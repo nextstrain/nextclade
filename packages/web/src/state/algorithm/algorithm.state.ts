@@ -33,6 +33,7 @@ export interface SequenceAnylysisState {
 export interface AlgorithmState {
   status: AlgorithmStatus
   params: AlgorithmParams
+  isDirty: boolean
   results: SequenceAnylysisState[]
   error?: Error
 }
@@ -43,6 +44,7 @@ export const agorithmDefaultState: AlgorithmState = {
     input: '',
     rootSeq: DEFAULT_ROOT_SEQUENCE,
   },
+  isDirty: true,
   results: [],
   error: undefined,
 }

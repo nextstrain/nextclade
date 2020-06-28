@@ -9,14 +9,16 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(setInput, (draft, input) => {
       draft.status = AlgorithmStatus.idling
+      draft.isDirty = true
       draft.params.input = input
     }),
   )
 
   .withHandling(
     immerCase(algorithmRunAsync.started, (draft) => {
-      draft.results = []
       draft.status = AlgorithmStatus.started
+      draft.isDirty = false
+      draft.results = []
     }),
   )
 
