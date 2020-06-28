@@ -1,27 +1,23 @@
 import { identity } from 'lodash'
 
+import { push } from 'connected-next-router'
+
 import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
-import { getContext, select, takeEvery, call, put, all, takeLatest } from 'redux-saga/effects'
+import { getContext, select, takeEvery, call, put, all } from 'redux-saga/effects'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { WorkerPools } from 'src/workers/types'
 
+import { EXPORT_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
 import { serializeResults } from 'src/io/serializeResults'
 import fsaSaga from 'src/state/util/fsaSaga'
-import { EXPORT_FILENAME } from 'src/constants'
-import {
-  algorithmRunAsync,
-  algorithmRunTrigger,
-  parseAsync,
-  analyzeAsync,
-  setInput,
-  setParams,
-  exportTrigger,
-} from './algorithm.actions'
+
+import { setShowInputBox } from 'src/state/ui/ui.actions'
+import { algorithmRunAsync, algorithmRunTrigger, parseAsync, analyzeAsync, exportTrigger } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
 
 export interface RunParams extends WorkerPools {
@@ -70,6 +66,9 @@ export function* analyzeOne(params: AnalyzeParams) {
 }
 
 export function* workerAlgorithmRun() {
+  yield put(setShowInputBox(true))
+  yield put(push('/results'))
+
   const { poolParse, poolAnalyze } = (yield getContext('workerPools')) as WorkerPools
   const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
   const { rootSeq } = params
@@ -84,10 +83,6 @@ export function* workerAlgorithmRun() {
   yield all(sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })))
 }
 
-export function* rerun() {
-  yield put(algorithmRunTrigger())
-}
-
 export function* exportResults() {
   const results = (yield select(selectResults) as unknown) as AnalysisResult[]
   const str = serializeResults(results)
@@ -96,7 +91,5 @@ export function* exportResults() {
 
 export default [
   takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, workerAlgorithmRun)),
-  takeLatest(setInput, rerun),
-  takeLatest(setParams, rerun),
   takeEvery(exportTrigger, exportResults),
 ]

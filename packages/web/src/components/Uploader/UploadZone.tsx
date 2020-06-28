@@ -2,8 +2,32 @@ import React from 'react'
 
 import { DropEvent, FileRejection, useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
-import { MdFileUpload } from 'react-icons/md'
-import { Col, Row } from 'reactstrap'
+import classNames from 'classnames'
+import FileIcon, { defaultStyles } from 'react-file-icon'
+
+export const FileIconFasta = () => (
+  <FileIcon
+    {...defaultStyles.txt}
+    size={50}
+    extension="fasta"
+    type="code2"
+    labelColor={'#66b51d'}
+    glyphColor={'#66b51d'}
+    labelUppercase
+  />
+)
+
+export const FileIconTxt = () => (
+  <FileIcon
+    {...defaultStyles.txt}
+    className="file-icon"
+    size={50}
+    extension="txt"
+    labelColor={'#777777'}
+    glyphColor={'#777777'}
+    labelUppercase
+  />
+)
 
 export interface UploadZoneProps {
   onDrop<T extends File>(acceptedFiles: T[], fileRejections: FileRejection[], event: DropEvent): void
@@ -13,25 +37,26 @@ export function UploadZone({ onDrop }: UploadZoneProps) {
   const { t } = useTranslation()
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, multiple: false })
 
-  const activeClass = isDragActive ? 'upload-zone-active' : ''
+  const normal = <div className="mx-auto text-center">{t('Drag & Drop a file or click to select')}</div>
+
+  const active = <div className="mx-auto text-center">{t('Drop it!')}</div>
 
   return (
     <div {...getRootProps()}>
       <input type="file" {...getInputProps()} />
 
-      <div className={`upload-zone ${activeClass}`}>
-        <Row noGutters>
-          <Col className="d-flex w-100">
-            <MdFileUpload className="upload-icon mx-auto" size={50} />
-          </Col>
-        </Row>
-        <Row noGutters>
-          <Col>
-            <p className="text-center">{t('Drag and drop a file')}</p>
-            <p className="text-center">{t('-or-')}</p>
-            <p className="text-center">{t('Click to select a file')}</p>
-          </Col>
-        </Row>
+      <div className={classNames('d-flex', 'upload-zone', isDragActive && 'upload-zone-active')}>
+        <div className="mx-auto my-auto text-center">
+          <div className="mx-auto">
+            <span className="mr-2 file-icon">
+              <FileIconFasta />
+            </span>
+            <span className="ml-2 file-icon">
+              <FileIconTxt />
+            </span>
+          </div>
+          <div className="mt-4">{isDragActive ? active : normal}</div>
+        </div>
       </div>
     </div>
   )
