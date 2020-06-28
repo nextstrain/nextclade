@@ -23,7 +23,7 @@ before_script:
   - cp .env.example .env
 
 script:
-  - yarn lint
+  - yarn lint:ci
   - yarn test:coverage
   - yarn codecov -f .reports/coverage/coverage-final.json
 
