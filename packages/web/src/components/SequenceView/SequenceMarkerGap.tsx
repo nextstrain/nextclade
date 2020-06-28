@@ -10,7 +10,7 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
   pixelsPerBase: number
 }
 
-export function MissingView({ inv, pixelsPerBase, ...rest }: MissingViewProps) {
+export function SequenceMarkerGap({ inv, pixelsPerBase, ...rest }: MissingViewProps) {
   const { id, character, begin, end } = inv
   const fill = getNucleotideColor(character)
   let width = (end - begin) * pixelsPerBase

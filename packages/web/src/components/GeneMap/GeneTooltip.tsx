@@ -1,9 +1,10 @@
 import React from 'react'
 
 import { Popover, PopoverBody } from 'reactstrap'
-import { formatRange } from 'src/components/Main/formatRange'
+
 import { Gene } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
+import { formatRange } from 'src/helpers/formatRange'
 
 export const getGeneId = (gene: Gene) => getSafeId('gene', (gene as unknown) as Record<string, unknown>)
 

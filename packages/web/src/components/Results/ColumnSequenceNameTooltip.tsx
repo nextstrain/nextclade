@@ -9,7 +9,7 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { formatMutation } from 'src/helpers/formatMutation'
 import { N } from 'src/algorithms/nucleotides'
 
-import { formatRange } from './formatRange'
+import { formatRange } from '../../helpers/formatRange'
 
 const SEQUENCE_TOOLTIP_MAX_MUTATIONS = 10 as const
 const SEQUENCE_TOOLTIP_MAX_GAPS = 10 as const
@@ -34,7 +34,7 @@ function truncateList(list: JSX.Element[], maxLength: number, text: string) {
   return result
 }
 
-export function LabelTooltip({ sequence, showTooltip }: LabelTooltipProps) {
+export function ColumnSequenceNameTooltip({ sequence, showTooltip }: LabelTooltipProps) {
   const {
     seqName,
     clades,

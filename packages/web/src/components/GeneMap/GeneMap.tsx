@@ -10,7 +10,7 @@ import type { Gene, Nucleotide } from 'src/algorithms/types'
 import { geneMap } from 'src/algorithms/geneMap'
 import { VIRUSES } from 'src/algorithms/viruses'
 
-import { GENOME_SIZE } from './SequenceView'
+import { GENOME_SIZE } from '../SequenceView/SequenceView'
 import { GeneTooltip, getGeneId } from './GeneTooltip'
 
 const GENE_MAP_CLADE_MARK_COLOR = '#444444aa' as const

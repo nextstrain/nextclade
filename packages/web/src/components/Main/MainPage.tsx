@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { URL_GITHUB, URL_GITHUB_FRIENDLY } from 'src/constants'
 
 import { About } from 'src/components/About/About'
-import { Uploader } from 'src/components/Uploader/Uploader'
+import { Uploader } from 'src/components/Main/Uploader'
 
 import type { State } from 'src/state/reducer'
 import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
@@ -51,7 +51,7 @@ const mapDispatchToProps = {
   goToResults: () => push('/results'),
 }
 
-export const Main = connect(mapStateToProps, mapDispatchToProps)(MainDisconnected)
+export const MainPage = connect(mapStateToProps, mapDispatchToProps)(MainDisconnected)
 
 export function MainDisconnected({
   params,

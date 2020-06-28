@@ -4,14 +4,14 @@ import { Popover, PopoverBody } from 'reactstrap'
 
 import type { AnalysisResult, MissingElementWithId } from 'src/algorithms/types'
 
-import { formatRange } from './formatRange'
+import { formatRange } from '../../helpers/formatRange'
 
 export interface MissingTooltipProps {
   sequence: AnalysisResult
   inv: MissingElementWithId
 }
 
-export function MissingTooltip({ inv, sequence }: MissingTooltipProps) {
+export function SequenceMarkerGapTooltip({ inv, sequence }: MissingTooltipProps) {
   const { id, seqName, character, begin, end } = inv
   const rangeStr = formatRange(begin, end)
 

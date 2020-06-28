@@ -8,10 +8,10 @@ import { getSafeId } from 'src/helpers/getSafeId'
 
 import { GAP } from 'src/algorithms/nucleotides'
 
-import { MissingTooltip } from './MissingTooltip'
-import { MissingView } from './MissingView'
-import { MutationTooltip } from './MutationTooltip'
-import { MutationView } from './MutationView'
+import { SequenceMarkerMutation } from './SequenceMarkerMutation'
+import { SequenceMarkerGap } from './SequenceMarkerGap'
+import { SequenceMarkerMutationTooltip } from './SequenceMarkerMutationTooltip'
+import { SequenceMarkerGapTooltip } from './SequenceMarkerGapTooltip'
 
 export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
 
@@ -39,7 +39,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
           const id = getSafeId('mutation', { seqName, ...substitution })
           const mutation: MutationElementWithId = { id, seqName, ...substitution }
           return (
-            <MutationView
+            <SequenceMarkerMutation
               key={pos}
               mutation={mutation}
               width={width}
@@ -57,7 +57,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
           const invWithId: MissingElementWithId = { id, seqName, character, begin, end }
 
           return (
-            <MissingView
+            <SequenceMarkerGap
               key={id}
               inv={invWithId}
               pixelsPerBase={pixelsPerBase}
@@ -73,7 +73,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
           const delWithId: MissingElementWithId = { id, seqName, character: GAP, begin: start, end }
 
           return (
-            <MissingView
+            <SequenceMarkerGap
               key={id}
               inv={delWithId}
               pixelsPerBase={pixelsPerBase}
@@ -91,8 +91,8 @@ export function SequenceView({ sequence }: SequenceViewProps) {
               {missingViews}
               {deletionViews}
             </svg>
-            {mutation && <MutationTooltip mutation={mutation} sequence={sequence} />}
-            {currMissing && <MissingTooltip inv={currMissing} sequence={sequence} />}
+            {mutation && <SequenceMarkerMutationTooltip mutation={mutation} sequence={sequence} />}
+            {currMissing && <SequenceMarkerGapTooltip inv={currMissing} sequence={sequence} />}
           </div>
         )
       }}

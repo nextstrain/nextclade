@@ -10,7 +10,7 @@ export interface MutationTooltipProps {
   mutation: MutationElementWithId
 }
 
-export function MutationTooltip({ mutation, sequence }: MutationTooltipProps) {
+export function SequenceMarkerMutationTooltip({ mutation, sequence }: MutationTooltipProps) {
   const { queryNuc, refNuc, pos, id, seqName, aaSubstitutions } = mutation
 
   const { clades } = sequence
