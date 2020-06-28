@@ -19,6 +19,8 @@ import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Title } from 'src/components/Main/Title'
 
+import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
+
 export interface MainProps {
   params: AlgorithmParams
   canExport: boolean
@@ -60,7 +62,7 @@ export function MainDisconnected({
   function loadDefaultData() {
     setShowInputBox(true)
     inputRef?.current?.focus()
-    delay(setInput, 500, '')
+    delay(setInput, 500, DEFAULT_INPUT)
   }
 
   return (
