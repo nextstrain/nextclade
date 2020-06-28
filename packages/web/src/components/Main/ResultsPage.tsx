@@ -47,8 +47,6 @@ export function ResultsPageDisconnected({
 }: MainProps) {
   const { t } = useTranslation()
 
-  const openSetingsDialog = () => {}
-
   return (
     <Row noGutters>
       <Col>
@@ -58,12 +56,6 @@ export function ResultsPageDisconnected({
               <Button color="secondary" className="results-btn-back" onClick={goBack}>
                 <FaCaretLeft />
                 {t('Back')}
-              </Button>
-            </div>
-
-            <div className="ml-auto">
-              <Button className="btn-settings" onClick={openSetingsDialog}>
-                <MdSettings />
               </Button>
             </div>
           </Col>
