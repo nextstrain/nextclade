@@ -62,7 +62,13 @@ export function MainDisconnected({
   function loadDefaultData() {
     setShowInputBox(true)
     inputRef?.current?.focus()
-    delay(setInput, 500, DEFAULT_INPUT)
+    delay(setInput, 250, DEFAULT_INPUT)
+  }
+
+  function onUpload(content: string, filename: string, size: number) {
+    setInput(content)
+    setShowInputBox(true)
+    algorithmRunTrigger()
   }
 
   return (
@@ -116,7 +122,7 @@ export function MainDisconnected({
               <div className="hero-content-left-card">
                 <Row>
                   <Col>
-                    <Uploader onUpload={setInput} />
+                    <Uploader onUpload={onUpload} />
                   </Col>
                 </Row>
 

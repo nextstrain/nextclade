@@ -24,7 +24,7 @@ class UploadErrorUnknown extends Error {
 }
 
 export interface UploaderProps {
-  onUpload(input: string): void
+  onUpload(content: string, filename: string, size: number): void
 }
 
 export function Uploader({ onUpload }: UploaderProps) {
@@ -60,8 +60,9 @@ export function Uploader({ onUpload }: UploaderProps) {
       throw new UploadErrorTooManyFiles(acceptedFiles.length)
     }
 
-    const str = await readFile(acceptedFiles[0])
-    onUpload(str)
+    const file = acceptedFiles[0]
+    const str = await readFile(file)
+    onUpload(str, file.name, file.size)
   }
 
   async function onDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
