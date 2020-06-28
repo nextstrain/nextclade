@@ -7,11 +7,11 @@ $upload-zone-bg: $gray-150;
 .upload-zone {
   height: 300px;
   cursor: pointer;
-  background-color: $upload-zone-bg;
+  //background-color: $upload-zone-bg;
   border: 5px $upload-zone-fg dashed;
   border-radius: 5px;
   color: $gray-700;
-  box-shadow: 2px 2px 5px 5px rgba($gray-600, 0.5);
+  //box-shadow: 2px 2px 5px 5px rgba($gray-600, 0.5);
 
   &.upload-zone-active {
     border: 5px $upload-zone-fg-active dashed;
