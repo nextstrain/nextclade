@@ -7,22 +7,22 @@
 .landing-page-row {
   width: 100%;
   height: 100%;
-  background-color: $gray-200;
+  background-color: $gray-100;
 }
 
 .hero-bg {
   height: 450px;
-  background-color: $gray-300;
-  color: $gray-900;
 
   .hero-h1 {
     font-weight: bold;
     font-size: 46px;
+    color: $gray-600;
   }
 
   .hero-h2 {
     font-weight: 500;
     font-size: 22px;
+    color: $gray-700;
   }
 }
 
@@ -42,7 +42,7 @@
 
   .hero-feature-box {
     padding: 20px 10px;
-    border-radius: 5px;
+    border-radius: 3px;
     filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
 
     .hero-h3 {
@@ -51,13 +51,13 @@
     }
 
     &.hero-feature-box-top {
-      background-color: $gray-200;
-      color: #5097BA;
+      background-color: $gray-100;
+      color: #3a6598;
     }
 
     &.hero-feature-box-bottom {
-      background-color: $gray-200;
-      color: #AABD52;
+      background-color: $gray-100;
+      color: #6d9239;
       filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
     }
   }

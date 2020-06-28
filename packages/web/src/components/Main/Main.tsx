@@ -92,7 +92,7 @@ export function MainDisconnected({
 
               <Row noGutters className="mx-auto w-70 text-center my-4">
                 <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
-                  <h3 className="hero-h3">{t('Mutation calling')}</h3>
+                  <h3 className="hero-h3">{t('Mutation Calling')}</h3>
                   <div className="small">
                     {t('Find differences of your sequences relative to the reference in standard numbering')}
                   </div>
@@ -104,7 +104,7 @@ export function MainDisconnected({
                 </Col>
 
                 <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
-                  <h3 className="hero-h3">{t('Quality Assessment')}</h3>
+                  <h3 className="hero-h3">{t('Quality Control')}</h3>
                   <div className="small">{t("Check your data against Nextstrain's QC metrics")}</div>
                 </Col>
               </Row>
@@ -136,7 +136,7 @@ export function MainDisconnected({
                   <Col>
                     <Card>
                       <CardHeader className="d-flex">
-                        <div className="mr-auto">{t('Paste sequences')}</div>
+                        <div className="mr-auto">{t('Paste or edit sequences')}</div>
                         <div className="ml-auto">
                           <button type="button" className="button-transparent" onClick={() => setShowInputBox(false)}>
                             <MdClear fill="white" />
