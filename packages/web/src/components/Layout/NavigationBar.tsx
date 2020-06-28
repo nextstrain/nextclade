@@ -32,13 +32,6 @@ export const NavigationBar = connect(mapStateToProps, mapDispatchToProps)(Naviga
 export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
   const { t } = useTranslation()
 
-  const navLinksLeft = useMemo(
-    () => ({
-      '/results': t('Results'),
-    }),
-    [t],
-  )
-
   const navLinksRight = useMemo(
     () => [
       {
@@ -68,16 +61,6 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
           <BrandLogo className="navigation-bar-product-logo" />
           <NavigationLogo />
         </Link>
-
-        <ul className="navbar-nav">
-          {Object.entries(navLinksLeft).map(([url, text]) => {
-            return (
-              <NavigationLink key={url} url={url} active={pathname === url}>
-                {text}
-              </NavigationLink>
-            )
-          })}
-        </ul>
 
         <ul className="navbar-nav ml-auto d-flex">
           <li className="nav-item mx-2 my-auto">
