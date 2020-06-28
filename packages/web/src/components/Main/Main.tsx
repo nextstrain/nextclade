@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import { push } from 'connected-next-router'
 import { Button, Card, CardBody, CardHeader, Col, Input, Row, Container, Alert } from 'reactstrap'
 import { MdPlayArrow, MdClear, MdWarning } from 'react-icons/md'
-import { FaCaretLeft, FaCaretRight } from 'react-icons/fa'
+import { FaCaretRight } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 
 import { URL_GITHUB, URL_GITHUB_FRIENDLY } from 'src/constants'

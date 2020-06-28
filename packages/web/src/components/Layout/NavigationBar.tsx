@@ -14,7 +14,6 @@ import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { ReactComponent as BrandLogo } from 'src/assets/img/nextstrain_logo.svg'
 
 import { LanguageSwitcher } from './LanguageSwitcher'
-import NavigationLink from './NavigationLink'
 import { NavigationLogo } from './NavigationLogo'
 
 export interface NavigationBarProps {

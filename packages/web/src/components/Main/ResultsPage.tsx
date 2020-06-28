@@ -1,11 +1,11 @@
 import React from 'react'
 
 import { Button, Card, CardBody, CardFooter, CardHeader, Col, Row } from 'reactstrap'
-import { MdFileDownload, MdSettings } from 'react-icons/md'
+import { MdFileDownload } from 'react-icons/md'
 import { FaCaretLeft } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
-import { goBack, push } from 'connected-next-router'
+import { goBack } from 'connected-next-router'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
