@@ -11,14 +11,14 @@ import { ReactComponent as CladeSchema } from 'src/assets/img/Nextstrain_ncov_cl
 
 <!-- FIXME: what is "calls mutations"? We may want to explain this better -->
 
-## What is NextClades?
+## What is Nextclade?
 
-NextClades is a free and open-source online tool that aligns your sequences to the reference sequence used by Nextstrain
+Nextclade is a free and open-source online tool that aligns your sequences to the reference sequence used by Nextstrain
 (Wuhan-Hu-1 for SARS-CoV-2) and calls mutations relative to this reference. Clades are then assigned based on the
 nucleotides at the positions used to
-[define clades in nextstrain](https://github.com/nextstrain/ncov/blob/master/config/clades.tsv). In addition, the tool
+[define clades in Nextstrain](https://github.com/nextstrain/ncov/blob/master/config/clades.tsv). In addition, the tool
 calculates a number of quality metrics. If these metrics exceed certain scores, the sequence will likely be excluded
-from the nextstrain builds.
+from the Nextstrain builds.
 
 ## What are the clades?
 
@@ -57,7 +57,7 @@ for details):
 
 <!-- Sequence Alignment: Discuss current limitations. Only negatives. -->
 
-NextClades does all computations on your computer -- your data does not leave your browser. This mean we can not perform
+Nextclade does all computations on your computer -- your data does not leave your browser. This mean we can not perform
 a full multiple sequence alignment or phylogenetic analysis. Instead, we roughly estimate the alignment of your
 sequences to there reference one-by-one using short seeds (21-mers) along the sequence. With this rough overall
 alignment, we perform a banded Smith-Waterman alignment with an affine gap-penalty.
@@ -96,7 +96,7 @@ assignment will fail.
 
 The tool will scan your sequences for excess divergence and clusters of differences from the reference. These might
 indicate problems during sequencing or bioinformatic assembly and would result in these sequences being filtered out by
-nextstrain.
+Nextstrain.
 
 We currently implemented four metrics to flag a sequence as potentially problematic:
 
@@ -134,7 +134,9 @@ We are glad to hear from you!
 If you have encountered a problem or have an idea for an improvement: TODO
 This will help us to identify problems and possibilities for improvements and to develop the project further.
 
-If you want to participat in the discussion of the project feel free to join: TODO
+If you want to participate in the discussion of the project feel free to join: TODO
+
+Help us to translate the tool in your language: TODO
 
 If you are a developer, take a look at:
  - our source code repository at githubL TODO

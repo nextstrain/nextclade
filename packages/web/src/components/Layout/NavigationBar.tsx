@@ -5,8 +5,6 @@ import { connect } from 'react-redux'
 import { FaGithub, FaTwitter } from 'react-icons/fa'
 import { Container } from 'reactstrap'
 
-import { PROJECT_NAME } from 'src/constants'
-
 import { State } from 'src/state/reducer'
 import { selectPathname } from 'src/state/router/router.selectors'
 
@@ -17,6 +15,7 @@ import { ReactComponent as BrandLogo } from 'src/assets/img/nextstrain_logo.svg'
 
 import { LanguageSwitcher } from './LanguageSwitcher'
 import NavigationLink from './NavigationLink'
+import { NavigationLogo } from './NavigationLogo'
 
 export interface NavigationBarProps {
   pathname: string
@@ -35,7 +34,6 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
 
   const navLinksLeft = useMemo(
     () => ({
-      '/': PROJECT_NAME,
       '/results': t('Results'),
     }),
     [t],
@@ -62,12 +60,13 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
   return (
     <Container fluid className="pb-1">
       <nav
-        className="navbar navbar-expand navbar-dark bg-dark navbar-scroll hide-native-scrollbar"
+        className="navbar navbar-expand navbar-light navbar-scroll hide-native-scrollbar"
         role="navigation"
         data-testid="NavigationBar"
       >
-        <Link className="navbar-brand" href="/" role="button">
-          <BrandLogo viewBox="0 0 100 100" className="navigation-bar-product-logo" />
+        <Link className="navbar-brand d-flex" href="/" role="button">
+          <BrandLogo className="navigation-bar-product-logo" />
+          <NavigationLogo />
         </Link>
 
         <ul className="navbar-nav">

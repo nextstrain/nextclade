@@ -6,6 +6,8 @@ import { MdPlayArrow, MdClear, MdWarning } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
+import { URL_GITHUB, URL_GITHUB_FRIENDLY } from 'src/constants'
+
 import { About } from 'src/components/About/About'
 import { Uploader } from 'src/components/Uploader/Uploader'
 
@@ -15,7 +17,7 @@ import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { URL_GITHUB, URL_GITHUB_FRIENDLY } from 'src/constants'
+import { Title } from 'src/components/Main/Title'
 
 export interface MainProps {
   params: AlgorithmParams
@@ -64,11 +66,9 @@ export function MainDisconnected({
   return (
     <Row noGutters className="landing-page-row">
       <Col>
-        <Row noGutters className="pt-5 hero-bg text-center">
+        <Row noGutters className="hero-bg text-center">
           <Col>
-            <h1 className="hero-h1 mt-2">
-              <div className="font-weight-bold">{t('NextClade')}</div>
-            </h1>
+            <Title />
             <h2 className="hero-h2 mt-4">
               {t('Clade assignment, mutation calling, and quality control right inside your browser')}
             </h2>
@@ -189,13 +189,13 @@ export function MainDisconnected({
             <Container>
               <Row noGutters>
                 <Col className="text-center">
-                  <Alert color="warning" className="d-inline-flex w-50 mx-auto main-dev-alert">
+                  <Alert color="warning" fade={false} className="d-inline-flex w-50 mx-auto main-dev-alert">
                     <div className="my-auto ml-2 mr-4">
                       <MdWarning size={45} />
                     </div>
                     <div className="text-left small">
                       {t(
-                        'NextClades is currently under active development. ' +
+                        'Nextclade is currently under active development. ' +
                           'Implementation details and data formats are subjects to change. ' +
                           'The app may contain bugs. Please report any issues and leave feedback at {{githubURL}}',
                         { githubURL: '' },

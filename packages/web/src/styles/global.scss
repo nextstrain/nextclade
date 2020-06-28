@@ -36,7 +36,7 @@ html {
 body {
   // HACK: workaround for bootstrap modal adding padding-right when open
   padding: 0 !important;
-  background-color: $gray-400;
+  background-color: $body-bg;
 }
 
 #__next {
@@ -45,7 +45,7 @@ body {
 
 .main-container {
   height: 100%;
-  background-color: $gray-400;
+  background-color: $body-bg;
 }
 
 .progress {
@@ -115,13 +115,13 @@ p {
   white-space: nowrap;
 }
 
-//.hide-native-scrollbar {
-//  scrollbar-width: none;
-//  -ms-overflow-style: none;
-//  &::-webkit-scrollbar {
-//    display: none;
-//  }
-//}
+.hide-native-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
 
 .body-color {
   color: $body-color;

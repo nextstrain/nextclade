@@ -1,4 +1,4 @@
-export const PROJECT_NAME = 'NextClade' as const
+export const PROJECT_NAME = 'Nextclade' as const
 export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain' as const
 
@@ -21,4 +21,18 @@ export const GENOTYPE_COLORS = [
   '#DF4327',
   '#C4B945',
   '#75B681',
+]
+
+// Borrowed with modifications from Nextstrain.org
+// https://github.com/nextstrain/nextstrain.org/blob/master/static-site/src/components/splash/title.jsx
+export const TITLE_COLORS = [
+  '#4377CD',
+  '#5097BA',
+  '#63AC9A',
+  '#7CB879',
+  '#B9BC4A',
+  '#D4B13F',
+  '#E49938',
+  '#E67030',
+  '#DE3C26',
 ]

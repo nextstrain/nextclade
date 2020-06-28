@@ -35,7 +35,7 @@ $font-family-default: $font-family-sans-serif;
 $font-family-base: $font-family-default;
 $font-size-base: 1rem;
 
-$white: #fff;
+$white: #ffffff;
 $gray-100: #f8f9fa; // stylelint-disable-line plugin/stylelint-no-indistinguishable-colors
 $gray-150: #eff1f3;
 $gray-200: #e9ecef;
@@ -77,6 +77,7 @@ $enable-rounded: true;
 $enable-shadows: true;
 
 $body-color: $gray-700;
+$body-bg: $white;
 $code-color: $body-color;
 $code-font-size: $font-size-base * 0.9;
 $blockquote-font-size: $font-size-base * 0.9;

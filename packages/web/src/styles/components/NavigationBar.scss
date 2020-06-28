@@ -1,19 +1,11 @@
 @import '../variables';
 
 .navbar {
-  margin-top: -5px;
-  min-width: 2em;
-  box-shadow: 2px 2px 5px 5px rgba($gray-900, 0.5);
-  border-radius: 3px;
-
-  &.navbar-dark.bg-dark {
-    background-color: $gray-800 !important;
-  }
-
-  .navbar-brand {
-    padding: 0;
-    padding-left: 10px;
-  }
+  box-shadow: none;
+  border: none;
+  margin: 0;
+  background-color: $body-bg;
+  height: 50px;
 }
 
 .navbar-scroll {
@@ -23,12 +15,8 @@
 }
 
 .navigation-bar-product-logo {
-  width: 35px;
-  height: 35px;
-  margin-left: 5px;
-}
-
-.navigation-bar-company-logo {
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
