@@ -20,8 +20,6 @@ export interface State {
   ui: UiState
 }
 
-// router: initialRouterState
-
 const SETTINGS_VERSION = 1
 const settingsReducerPersisted = persistReducer(
   { key: 'settings', version: SETTINGS_VERSION, storage, timeout: 3000 },
