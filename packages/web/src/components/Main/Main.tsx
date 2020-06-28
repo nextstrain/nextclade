@@ -183,7 +183,7 @@ export function MainDisconnected({
                 <Row>
                   <Col>
                     <Button color="link" onClick={loadDefaultData}>
-                      <small>{t('May I have an Example?')}</small>
+                      <small>{t('Show me an Example')}</small>
                     </Button>
                   </Col>
                 </Row>
