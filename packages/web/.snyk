@@ -766,3 +766,15 @@ patch:
         patched: '2020-06-26T10:20:07.909Z'
     - '@mdx-js/loader > @mdx-js/mdx > remark-mdx > @babel/core > @babel/helper-module-transforms > @babel/helper-replace-supers > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash':
         patched: '2020-06-26T10:20:07.909Z'
+    - styled-components > @babel/traverse > lodash:
+        patched: '2020-06-28T19:04:18.789Z'
+    - styled-components > babel-plugin-styled-components > lodash:
+        patched: '2020-06-28T19:04:18.789Z'
+    - styled-components > @babel/traverse > @babel/generator > lodash:
+        patched: '2020-06-28T19:04:18.789Z'
+    - styled-components > @babel/traverse > @babel/helper-split-export-declaration > @babel/types > lodash:
+        patched: '2020-06-28T19:04:18.789Z'
+    - styled-components > babel-plugin-styled-components > @babel/helper-annotate-as-pure > @babel/types > lodash:
+        patched: '2020-06-28T19:04:18.789Z'
+    - styled-components > @babel/traverse > @babel/helper-function-name > @babel/template > @babel/types > lodash:
+        patched: '2020-06-28T19:04:18.789Z'
