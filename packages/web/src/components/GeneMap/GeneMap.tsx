@@ -8,7 +8,7 @@ import { geneMap } from 'src/algorithms/geneMap'
 import { cladesGrouped } from 'src/algorithms/clades'
 
 import { GENOME_SIZE } from '../SequenceView/SequenceView'
-import { CladeMarker } from './CladeMark'
+import { CladeMarker } from './CladeMarker'
 import { GeneTooltip, getGeneId } from './GeneTooltip'
 
 export interface GeneViewProps extends SVGProps<SVGRectElement> {

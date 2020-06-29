@@ -1,7 +1,7 @@
-import { pickBy, groupBy } from 'lodash'
+import { pickBy } from 'lodash'
 import { VIRUSES } from './viruses'
 
-import type { AnalysisParams, AnalysisResult, Substitutions } from './types'
+import type { AnalysisParams, AnalysisResult } from './types'
 import { geneMap } from './geneMap'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
