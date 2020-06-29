@@ -2,7 +2,7 @@ import React from 'react'
 import { Popover, PopoverBody } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AminoacidSubstitution, AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
