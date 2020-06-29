@@ -101,6 +101,7 @@ export interface AnalysisResult {
   seqName: string
   clades: DeepReadonly<Substitutions>
   substitutions: DeepReadonly<SubstitutionsWithAminoacids[]>
+  aminoacidChanges: AminoacidSubstitution[]
   insertions: DeepReadonly<NucleotideLocation[]>
   deletions: DeepReadonly<NucleotideDeletion[]>
   missing: DeepReadonly<NucleotideMissing[]>

@@ -23,6 +23,7 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
     seqName,
     clades,
     substitutions,
+    aminoacidChanges,
     deletions,
     insertions,
     missing,
@@ -40,11 +41,6 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
   const { cladeListStr } = formatClades(clades)
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
-
-  const aminoacidChanges = substitutions.reduce(
-    (result, { aaSubstitutions }) => [...result, ...aaSubstitutions],
-    [] as AminoacidSubstitution[],
-  )
 
   return (
     <Popover
