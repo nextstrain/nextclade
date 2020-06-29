@@ -11,6 +11,7 @@ import { ReactComponent as LogoNeherlab } from 'src/assets/img/neherlab.svg'
 import { ReactComponent as LogoBiozentrum } from 'src/assets/img/biozentrum.svg'
 import { ReactComponent as LogoUnibas } from 'src/assets/img/unibas.svg'
 import { ReactComponent as LogoVercel } from 'src/assets/img/powered-by-vercel.svg'
+import { getVersionString } from 'src/helpers/getVersionString'
 
 export default function Footer() {
   const { t } = useTranslation()
@@ -53,6 +54,10 @@ export default function Footer() {
               </LinkExternal>
             </Col>
           </Row>
+        </Col>
+
+        <Col xs={12} md={6} className="d-flex justify-content-center justify-content-md-end align-items-center">
+          <small className="text-gray-light">{getVersionString()}</small>
         </Col>
       </Row>
     </Container>
