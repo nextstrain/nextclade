@@ -1,27 +1,33 @@
 import React, { useState } from 'react'
 import { getSafeId } from 'src/helpers/getSafeId'
-import { calculateNucleotidesTotals, ColumnSequenceNameTooltip } from 'src/components/Results/ColumnSequenceNameTooltip'
-import { N } from 'src/algorithms/nucleotides'
-import { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 
-export function ColumnMissing({ sequence }: ColumnCladeProps) {
-  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+import type { AnalysisResult } from 'src/algorithms/types'
+import { getTotalMissing } from 'src/components/Results/getTotalMissing'
+import { Tooltip } from 'src/components/Results/Tooltip'
+import { ListOfMissing } from 'src/components/Results/ListOfMissing'
+
+export interface ColumnMissingProps {
+  sequence: AnalysisResult
+}
+
+export function ColumnMissing({ sequence }: ColumnMissingProps) {
+  const [showTooltip, setShowTooltip] = useState(false)
 
   const { missing, seqName } = sequence
-  const id = getSafeId('ns-label', { seqName })
-  const totalNs = calculateNucleotidesTotals(missing, N)
+  const id = getSafeId('col-missing', { seqName })
+  const totalNs = getTotalMissing(missing)
 
   return (
-    <>
-      <td
-        id={id}
-        className="results-table-col results-table-col-clade"
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
-        {totalNs}
-      </td>
-      <ColumnSequenceNameTooltip showTooltip={showTooltip} sequence={sequence} />
-    </>
+    <td
+      id={id}
+      className="results-table-col results-table-col-clade"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {totalNs}
+      <Tooltip isOpen={showTooltip} target={id}>
+        <ListOfMissing missing={missing} />
+      </Tooltip>
+    </td>
   )
 }

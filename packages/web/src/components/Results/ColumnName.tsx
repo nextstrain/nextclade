@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import type { AnalysisResult } from 'src/algorithms/types'
 
 import { getSafeId } from 'src/helpers/getSafeId'
-import { ColumnSequenceNameTooltip } from 'src/components/Results/ColumnSequenceNameTooltip'
+import { ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
 
 export interface ColumnNameProps {
   seqName: string
@@ -11,7 +11,7 @@ export interface ColumnNameProps {
 }
 
 export function ColumnName({ seqName, sequence }: ColumnNameProps) {
-  const [showTooltip, setShowTooltip] = useState<boolean>(false)
+  const [showTooltip, setShowTooltip] = useState(false)
   const id = getSafeId('sequence-label', { seqName })
 
   return (
@@ -24,7 +24,7 @@ export function ColumnName({ seqName, sequence }: ColumnNameProps) {
       >
         {seqName}
       </td>
-      {sequence && <ColumnSequenceNameTooltip showTooltip={showTooltip} sequence={sequence} />}
+      {sequence && <ColumnNameTooltip showTooltip={showTooltip} sequence={sequence} />}
     </>
   )
 }
