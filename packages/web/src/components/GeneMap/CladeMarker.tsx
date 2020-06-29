@@ -43,7 +43,7 @@ export function CladeMarker({ cladeDatum, pixelsPerBase, ...rest }: CladeMarkerP
     >
       <Tooltip target={id} isOpen={showTooltip}>
         <div>{t('Position: {{position}}', { position: pos })}</div>
-        <div>{t('Signature mutations:')}</div>
+        <div>{t('Clade-defining mutation:')}</div>
         <div>
           <ul>{mutationItems}</ul>
         </div>
