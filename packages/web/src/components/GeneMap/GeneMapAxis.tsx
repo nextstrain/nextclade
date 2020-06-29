@@ -11,7 +11,7 @@ export interface AxisProps {
 const TICK_STEP = 5000
 const MARGIN = {}
 
-export function Axis({ genomeSize }: AxisProps) {
+export function GeneMapAxis({ genomeSize }: AxisProps) {
   const domain: [number, number] = [0, genomeSize]
   const ticks = range(0, genomeSize, TICK_STEP)
   return (

@@ -1,1 +1,1 @@
-export { ResultsPage as default } from 'src/components/Main/ResultsPage'
+export { ResultsPage as default } from 'src/components/Results/ResultsPage'

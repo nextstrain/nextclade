@@ -1,8 +1,9 @@
 import { pickBy } from 'lodash'
+
 import { VIRUSES } from './viruses'
+import { geneMap } from './geneMap'
 
 import type { AnalysisParams, AnalysisResult } from './types'
-import { geneMap } from './geneMap'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
 import { sequenceQC } from './sequenceQC'
@@ -10,7 +11,8 @@ import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
-import { N } from './nucleotides'
+import { GOOD_NUCLEOTIDES, N } from './nucleotides'
+import { AminoacidSubstitution } from './types'
 
 export function parse(input: string) {
   return parseSequences(input)
@@ -23,23 +25,36 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const alignedQuery = query.join('')
 
-  const { substitutions, insertions, deletions, alignmentStart, alignmentEnd } = analyzeSeq(query, ref)
+  const analyzeSeqResult = analyzeSeq(query, ref)
+  const { substitutions: nucSubstitutions, insertions, deletions, alignmentStart, alignmentEnd } = analyzeSeqResult
 
-  const clades = pickBy(virus.clades, (clade) => isSequenceInClade(clade, substitutions, rootSeq))
+  const clades = pickBy(virus.clades, (clade) => isSequenceInClade(clade, nucSubstitutions, rootSeq))
 
   const missing = findNucleotideRanges(alignedQuery, N)
+  const totalMissing = missing.reduce((total, { begin, end }) => total + end - begin, 0)
 
-  const aminoacidSubstitutions = getAllAminoAcidChanges(substitutions, rootSeq, geneMap)
+  const nonACGTNs = findNucleotideRanges(alignedQuery, (nuc) => !GOOD_NUCLEOTIDES.includes(nuc))
+  const totalNonACGTNs = nonACGTNs.reduce((total, { begin, end }) => total + end - begin, 0)
+
+  const substitutions = getAllAminoAcidChanges(nucSubstitutions, rootSeq, geneMap)
+  const aminoacidChanges = substitutions.reduce(
+    (result, { aaSubstitutions }) => [...result, ...aaSubstitutions],
+    [] as AminoacidSubstitution[],
+  )
 
   const diagnostics = sequenceQC(virus.QCParams, substitutions, insertions, deletions, alignedQuery)
 
   return Object.freeze({
     seqName,
     clades,
-    missing,
-    substitutions: aminoacidSubstitutions,
+    substitutions,
+    aminoacidChanges,
     insertions,
     deletions,
+    missing,
+    totalMissing,
+    nonACGTNs,
+    totalNonACGTNs,
     alignmentStart,
     alignmentEnd,
     alignmentScore,

@@ -12,7 +12,7 @@ import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
 
-import { Result } from './Result'
+import { ResultsTable } from './ResultsTable'
 
 export interface MainProps {
   params: AlgorithmParams
@@ -69,7 +69,7 @@ export function ResultsPageDisconnected({
               <CardBody>
                 <Row>
                   <Col>
-                    <Result />
+                    <ResultsTable />
                   </Col>
                 </Row>
               </CardBody>
