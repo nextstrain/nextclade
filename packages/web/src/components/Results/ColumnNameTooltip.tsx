@@ -33,7 +33,7 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
   const { t } = useTranslation()
 
   const id = getSafeId('sequence-label', { seqName })
-  const { cladeStr, cladeListStr } = formatClades(clades)
+  const { cladeListStr } = formatClades(clades)
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
 
