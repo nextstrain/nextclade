@@ -33,9 +33,10 @@ export interface NucleotideSubstitution {
 
 export interface NucleotideDeletion extends Span {}
 
-export interface NucleotideRange {
-  character: Nucleotide
-  range: Range
+export interface NucleotideMissing extends Range {}
+
+export interface NucleotideRange extends Range {
+  nuc: Nucleotide
 }
 
 export interface Substitutions {
@@ -102,7 +103,10 @@ export interface AnalysisResult {
   substitutions: DeepReadonly<SubstitutionsWithAminoacids[]>
   insertions: DeepReadonly<NucleotideLocation[]>
   deletions: DeepReadonly<NucleotideDeletion[]>
-  missing: DeepReadonly<NucleotideRange[]>
+  missing: DeepReadonly<NucleotideMissing[]>
+  totalMissing: number
+  nonACGTNs: DeepReadonly<NucleotideRange[]>
+  totalNonACGTNs: number
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number

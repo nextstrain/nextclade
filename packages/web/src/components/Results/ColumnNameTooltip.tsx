@@ -10,6 +10,7 @@ import { formatClades } from 'src/helpers/formatClades'
 import { ListOfMutations } from 'src/components/Results/ListOfMutations'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
 import { ListOfAminoacidChanges } from 'src/components/SequenceView/ListOfAminoacidChanges'
+import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
 import { ListOfInsertions } from './ListOfInsertions'
 
 export interface ColumnNameTooltipProps {
@@ -25,6 +26,9 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
     deletions,
     insertions,
     missing,
+    totalMissing,
+    nonACGTNs,
+    totalNonACGTNs,
     alignmentStart,
     alignmentEnd,
     alignmentScore,
@@ -63,8 +67,9 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
         <ListOfMutations substitutions={substitutions} />
         <ListOfAminoacidChanges aminoacidChanges={aminoacidChanges} />
         <ListOfGaps deletions={deletions} />
-        <ListOfMissing missing={missing} />
+        <ListOfMissing missing={missing} totalMissing={totalMissing} />
         <ListOfInsertions insertions={insertions} />
+        <ListOfNonACGTNs nonACGTNs={nonACGTNs} totalNonACGTNs={totalNonACGTNs} />
         <ListOfQcIssues diagnostics={diagnostics} />
       </PopoverBody>
     </Popover>

@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 import type { AnalysisResult } from 'src/algorithms/types'
-import { getTotalMissing } from 'src/components/Results/getTotalMissing'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
 
@@ -13,9 +12,8 @@ export interface ColumnMissingProps {
 export function ColumnMissing({ sequence }: ColumnMissingProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { missing, seqName } = sequence
+  const { missing, seqName, totalMissing } = sequence
   const id = getSafeId('col-missing', { seqName })
-  const totalNs = getTotalMissing(missing)
 
   return (
     <td
@@ -24,9 +22,9 @@ export function ColumnMissing({ sequence }: ColumnMissingProps) {
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      {totalNs}
+      {totalMissing}
       <Tooltip isOpen={showTooltip} target={id}>
-        <ListOfMissing missing={missing} />
+        <ListOfMissing missing={missing} totalMissing={totalMissing} />
       </Tooltip>
     </td>
   )

@@ -3,7 +3,7 @@ import React, { SVGProps, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
-import type { NucleotideRange } from 'src/algorithms/types'
+import type { NucleotideMissing } from 'src/algorithms/types'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { formatRange } from 'src/helpers/formatRange'
@@ -14,7 +14,7 @@ const missingColor = getNucleotideColor(N)
 
 export interface MissingViewProps extends SVGProps<SVGRectElement> {
   seqName: string
-  missing: NucleotideRange
+  missing: NucleotideMissing
   pixelsPerBase: number
 }
 
@@ -22,7 +22,7 @@ export function SequenceMarkerMissing({ seqName, missing, pixelsPerBase, ...rest
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { range: { begin, end } } = missing // prettier-ignore
+  const { begin, end } = missing // prettier-ignore
 
   const id = getSafeId('missing-marker', { seqName, ...missing })
   const x = begin * pixelsPerBase

@@ -40,7 +40,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         const missingViews = missing.map((oneMissing) => {
           return (
             <SequenceMarkerMissing
-              key={oneMissing.range.begin}
+              key={oneMissing.begin}
               seqName={seqName}
               missing={oneMissing}
               pixelsPerBase={pixelsPerBase}
