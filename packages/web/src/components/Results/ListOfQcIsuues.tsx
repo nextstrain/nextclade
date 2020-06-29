@@ -23,7 +23,7 @@ export function ListOfQcIssues({ diagnostics }: ListOfQcIssuesProps) {
 
   return (
     <div>
-      <div>{t('QC issues:')}</div>
+      {t('QC issues:')}
       <ul>{flags}</ul>
     </div>
   )

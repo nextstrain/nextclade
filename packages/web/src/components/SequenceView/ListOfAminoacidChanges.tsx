@@ -12,20 +12,17 @@ export interface ListOfAminoacidChangesProps {
 export function ListOfAminoacidChanges({ aminoacidChanges }: ListOfAminoacidChangesProps) {
   const { t } = useTranslation()
 
+  const totalChanges = aminoacidChanges.length
+
   const aminoacidMutationItems = aminoacidChanges.map(({ queryAA, codon, refAA, gene }) => {
     const notation = `${gene}: ${refAA}${codon + 1}${queryAA}`
     return <li key={notation}>{notation}</li>
   })
 
-  const hasChanges = aminoacidMutationItems.length > 0
-
-  const a = <ul>{aminoacidMutationItems}</ul>
-  const b = t('None')
-
   return (
     <div>
-      {t('Aminoacid changes: ')}
-      {hasChanges ? a : b}
+      {t('Aminoacid changes ({{totalChanges}})', { totalChanges })}
+      <ul>{aminoacidMutationItems}</ul>
     </div>
   )
 }

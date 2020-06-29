@@ -16,6 +16,8 @@ export interface ListOfGapsProps {
 export function ListOfGaps({ deletions }: ListOfGapsProps) {
   const { t } = useTranslation()
 
+  const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
+
   let gapItems = deletions.map(({ start, length }) => {
     const range = formatRange(start, start + length)
     return <li key={range}>{range}</li>
@@ -25,7 +27,7 @@ export function ListOfGaps({ deletions }: ListOfGapsProps) {
 
   return (
     <div>
-      <div>{t('Gaps:')}</div>
+      <div>{t('Gaps ({{totalGaps}})', { totalGaps })}</div>
       <ul>{gapItems}</ul>
     </div>
   )

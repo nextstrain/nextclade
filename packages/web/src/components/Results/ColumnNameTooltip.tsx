@@ -8,9 +8,9 @@ import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
 import { formatClades } from 'src/helpers/formatClades'
 import { ListOfMutations } from 'src/components/Results/ListOfMutations'
-import { getTotalMissing } from 'src/components/Results/getTotalMissing'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
 import { ListOfAminoacidChanges } from 'src/components/SequenceView/ListOfAminoacidChanges'
+import { ListOfInsertions } from './ListOfInsertions'
 
 export interface ColumnNameTooltipProps {
   showTooltip: boolean
@@ -33,7 +33,7 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
   const { t } = useTranslation()
 
   const id = getSafeId('sequence-label', { seqName })
-  const { clade, cladeList } = formatClades(clades)
+  const { cladeStr, cladeListStr } = formatClades(clades)
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
 
@@ -41,11 +41,6 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
     (result, { aaSubstitutions }) => [...result, ...aaSubstitutions],
     [] as AminoacidSubstitution[],
   )
-
-  const totalMutations = substitutions.length
-  const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
-  const totalMissing = getTotalMissing(missing)
-  const totalInsertions = insertions.length
 
   return (
     <Popover
@@ -58,27 +53,18 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
       fade={false}
     >
       <PopoverBody>
-        <div>{t('Sequence: {{seqName}}', { seqName })}</div>
-        <div>{t('Alignment score: {{alignmentScore}}', { alignmentScore })}</div>
-        <div>{t('Alignment start: {{alnStart}}', { alnStart: alnStartOneBased })}</div>
-        <div>{t('Alignment end: {{alnEnd}}', { alnEnd: alnEndOneBased })}</div>
+        <div className="mb-4">{t('Sequence: {{seqName}}', { seqName })}</div>
 
-        <div>{t('Clade: {{clade}}', { clade })}</div>
-        <div>{t('Clades: {{cladeList}}', { cladeList })}</div>
+        <div className="my-2">{t('Alignment score: {{alignmentScore}}', { alignmentScore })}</div>
+        <div className="my-2">{t('Alignment start: {{alnStart}}', { alnStart: alnStartOneBased })}</div>
+        <div className="my-2">{t('Alignment end: {{alnEnd}}', { alnEnd: alnEndOneBased })}</div>
+        <div className="my-2">{t('Clade: {{cladeListStr}}', { cladeListStr })}</div>
 
-        <div>{t('Total mutations: {{totalMutations}}', { totalMutations })}</div>
         <ListOfMutations substitutions={substitutions} />
-
         <ListOfAminoacidChanges aminoacidChanges={aminoacidChanges} />
-
-        <div>{`Total gaps: ${totalGaps}`}</div>
         <ListOfGaps deletions={deletions} />
-
-        <div>{`Total insertions: ${totalInsertions}`}</div>
-
-        <div>{`Total missing: ${totalMissing}`}</div>
         <ListOfMissing missing={missing} />
-
+        <ListOfInsertions insertions={insertions} />
         <ListOfQcIssues diagnostics={diagnostics} />
       </PopoverBody>
     </Popover>

@@ -15,16 +15,14 @@ export function ColumnName({ seqName, sequence }: ColumnNameProps) {
   const id = getSafeId('sequence-label', { seqName })
 
   return (
-    <>
-      <td
-        id={id}
-        className="results-table-col results-table-col-label"
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
-        {seqName}
-      </td>
+    <td
+      id={id}
+      className="results-table-col results-table-col-label"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {seqName}
       {sequence && <ColumnNameTooltip showTooltip={showTooltip} sequence={sequence} />}
-    </>
+    </td>
   )
 }

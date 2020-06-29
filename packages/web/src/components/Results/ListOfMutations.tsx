@@ -16,6 +16,8 @@ export interface ListOfMutations {
 export function ListOfMutations({ substitutions }: ListOfMutations) {
   const { t } = useTranslation()
 
+  const totalMutations = substitutions.length
+
   let mutationItems = substitutions.map(({ pos, queryNuc, refNuc }) => {
     const mut = formatMutation({ pos, queryNuc, refNuc })
     return <li key={mut}>{mut}</li>
@@ -25,7 +27,7 @@ export function ListOfMutations({ substitutions }: ListOfMutations) {
 
   return (
     <div>
-      <div>{t('Mutations:')}</div>
+      <div>{t('Mutations ({{totalMutations}})', { totalMutations })}</div>
       <ul>{mutationItems}</ul>
     </div>
   )

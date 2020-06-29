@@ -17,6 +17,8 @@ export interface ListOfInsertionsProps {
 export function ListOfInsertions({ insertions }: ListOfInsertionsProps) {
   const { t } = useTranslation()
 
+  const totalInsertions = insertions.length
+
   let insertionItems = insertions.map(({ pos, nuc }) => {
     const mut = formatMutation({ pos, refNuc: GAP, queryNuc: nuc })
     return <li key={mut}>{mut}</li>
@@ -26,7 +28,7 @@ export function ListOfInsertions({ insertions }: ListOfInsertionsProps) {
 
   return (
     <div>
-      <div>{t('Insertions:')}</div>
+      <div>{t('Insertions ({{totalInsertions}})', { totalInsertions })}</div>
       <ul>{insertionItems}</ul>
     </div>
   )

@@ -7,12 +7,16 @@ const CLADE_EMPTY = '-'
 
 export function formatClades(clades: Substitutions) {
   let cladesArray = Object.keys(clades)
-
   if (cladesArray.length === 0) {
     cladesArray = [CLADE_EMPTY]
   }
 
-  const clade = last(cladesArray) ?? CLADE_EMPTY
-  const cladeList = cladesArray.join(CLADE_LIST_DELIMITER)
-  return { clade, cladeList }
+  const cladeStr = last(cladesArray) ?? CLADE_EMPTY
+  let cladeListStr = cladesArray.join(CLADE_LIST_DELIMITER)
+  if (cladeStr === cladeListStr) {
+    return { cladeStr, cladeListStr }
+  }
+
+  cladeListStr = `${cladeStr} (${cladeListStr})`
+  return { cladeStr, cladeListStr }
 }

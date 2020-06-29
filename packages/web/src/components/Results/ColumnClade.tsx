@@ -17,7 +17,7 @@ export function ColumnClade({ sequence }: ColumnCladeProps) {
 
   const { clades, seqName } = sequence
   const id = getSafeId('col-clade', { seqName })
-  const { clade, cladeList } = formatClades(clades)
+  const { cladeStr, cladeListStr } = formatClades(clades)
 
   return (
     <td
@@ -26,9 +26,9 @@ export function ColumnClade({ sequence }: ColumnCladeProps) {
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      {clade}
+      {cladeStr}
       <Tooltip id={id} isOpen={showTooltip} target={id}>
-        <div>{t('Clades: {{cladeList}}', { cladeList })}</div>
+        <div>{t('Clade: {{cladeListStr}}', { cladeListStr })}</div>
       </Tooltip>
     </td>
   )
