@@ -6,6 +6,11 @@ import getWithMDX from '@next/mdx'
 import withPlugins from 'next-compose-plugins'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
+import { getGitBranch } from '../../lib/getGitBranch'
+import { getBuildNumber } from '../../lib/getBuildNumber'
+import { getBuildUrl } from '../../lib/getBuildUrl'
+import { getGitCommitHash } from '../../lib/getGitCommitHash'
+
 import { getEnvVars } from './lib/getEnvVars'
 
 import getWithEnvironment from './withEnvironment'
@@ -75,6 +80,11 @@ const withEnvironment = getWithEnvironment({
   NODE_ENV,
   ENABLE_REDUX_DEV_TOOLS: ENABLE_REDUX_DEV_TOOLS.toString(),
   ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT: ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT.toString(),
+  BRANCH_NAME: getGitBranch(),
+  PACKAGE_VERSION: pkg.version ?? '',
+  BUILD_NUMBER: getBuildNumber(),
+  TRAVIS_BUILD_WEB_URL: getBuildUrl(),
+  COMMIT_HASH: getGitCommitHash(),
 })
 
 const withExtraWatch = getWithExtraWatch({
