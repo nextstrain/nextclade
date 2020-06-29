@@ -2,7 +2,7 @@ import React from 'react'
 import { Popover, PopoverBody } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AminoacidSubstitution, AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
@@ -10,6 +10,7 @@ import { formatClades } from 'src/helpers/formatClades'
 import { ListOfMutations } from 'src/components/Results/ListOfMutations'
 import { getTotalMissing } from 'src/components/Results/getTotalMissing'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
+import { ListOfAminoacidChanges } from 'src/components/SequenceView/ListOfAminoacidChanges'
 
 export interface ColumnNameTooltipProps {
   showTooltip: boolean
@@ -36,6 +37,11 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
 
+  const aminoacidChanges = substitutions.reduce(
+    (result, { aaSubstitutions }) => [...result, ...aaSubstitutions],
+    [] as AminoacidSubstitution[],
+  )
+
   const totalMutations = substitutions.length
   const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
   const totalMissing = getTotalMissing(missing)
@@ -60,10 +66,12 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
         <div>{t('Clade: {{clade}}', { clade })}</div>
         <div>{t('Clades: {{cladeList}}', { cladeList })}</div>
 
-        <div>{`Total mutations: ${totalMutations}`}</div>
+        <div>{t('Total mutations: {{totalMutations}}', { totalMutations })}</div>
         <ListOfMutations substitutions={substitutions} />
 
-        <div>{`Total deletions: ${totalGaps}`}</div>
+        <ListOfAminoacidChanges aminoacidChanges={aminoacidChanges} />
+
+        <div>{`Total gaps: ${totalGaps}`}</div>
         <ListOfGaps deletions={deletions} />
 
         <div>{`Total insertions: ${totalInsertions}`}</div>

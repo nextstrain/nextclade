@@ -52,7 +52,7 @@ export function SequenceMarkerMutation({
     >
       <Tooltip target={id} isOpen={showTooltip}>
         <div>{t('Nucleotide mutation: {{mutation}}', { mutation: mut })}</div>
-        <ListOfAminoacidChanges aaSubstitutions={aaSubstitutions} />
+        <ListOfAminoacidChanges aminoacidChanges={aaSubstitutions} />
       </Tooltip>
     </rect>
   )

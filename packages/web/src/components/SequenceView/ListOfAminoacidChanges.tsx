@@ -6,13 +6,13 @@ import { useTranslation } from 'react-i18next'
 import { AminoacidSubstitution } from 'src/algorithms/types'
 
 export interface ListOfAminoacidChangesProps {
-  readonly aaSubstitutions: DeepReadonly<AminoacidSubstitution[]>
+  readonly aminoacidChanges: DeepReadonly<AminoacidSubstitution[]>
 }
 
-export function ListOfAminoacidChanges({ aaSubstitutions }: ListOfAminoacidChangesProps) {
+export function ListOfAminoacidChanges({ aminoacidChanges }: ListOfAminoacidChangesProps) {
   const { t } = useTranslation()
 
-  const aminoacidMutationItems = aaSubstitutions.map(({ queryAA, codon, refAA, gene }) => {
+  const aminoacidMutationItems = aminoacidChanges.map(({ queryAA, codon, refAA, gene }) => {
     const notation = `${gene}: ${refAA}${codon + 1}${queryAA}`
     return <li key={notation}>{notation}</li>
   })
