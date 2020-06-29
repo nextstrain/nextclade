@@ -42,6 +42,17 @@ export interface Substitutions {
   [key: string]: DeepReadonly<NucleotideLocation[]>
 }
 
+export interface CladeDataFlat {
+  cladeName: string
+  pos: number
+  nuc: Nucleotide
+}
+
+export interface CladeDataGrouped {
+  pos: number
+  subs: Record<Nucleotide, string[]>
+}
+
 export interface AminoacidSubstitution {
   refAA: Aminoacid
   queryAA: Aminoacid
