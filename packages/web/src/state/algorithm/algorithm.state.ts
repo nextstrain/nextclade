@@ -1,5 +1,6 @@
-import DEFAULT_ROOT_SEQUENCE from 'src/assets/data/defaultRootSequence.txt'
-import { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/algorithms/types'
+
+import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 
 export interface AlgorithmParams {
   input: string
