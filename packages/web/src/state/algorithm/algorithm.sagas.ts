@@ -11,13 +11,20 @@ import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { WorkerPools } from 'src/workers/types'
 
-import { EXPORT_FILENAME } from 'src/constants'
+import { EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
-import { serializeResults } from 'src/io/serializeResults'
-import fsaSaga from 'src/state/util/fsaSaga'
+import { serializeResultsToJson, serializeResultsToCsv } from 'src/io/serializeResults'
 
+import fsaSaga from 'src/state/util/fsaSaga'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
-import { algorithmRunAsync, algorithmRunTrigger, parseAsync, analyzeAsync, exportTrigger } from './algorithm.actions'
+import {
+  algorithmRunAsync,
+  algorithmRunTrigger,
+  parseAsync,
+  analyzeAsync,
+  exportCsvTrigger,
+  exportJsonTrigger,
+} from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
 
 export interface RunParams extends WorkerPools {
@@ -83,14 +90,20 @@ export function* workerAlgorithmRun() {
   yield all(sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })))
 }
 
-export function* exportResults() {
+export function* exportCsv() {
   const results = (yield select(selectResults) as unknown) as AnalysisResult[]
-  const str = serializeResults(results)
-  console.log(str)
-  saveFile(str, EXPORT_FILENAME)
+  const str = serializeResultsToCsv(results)
+  saveFile(str, EXPORT_CSV_FILENAME)
+}
+
+export function* exportJson() {
+  const results = (yield select(selectResults) as unknown) as AnalysisResult[]
+  const str = serializeResultsToJson(results)
+  saveFile(str, EXPORT_JSON_FILENAME)
 }
 
 export default [
   takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, workerAlgorithmRun)),
-  takeEvery(exportTrigger, exportResults),
+  takeEvery(exportCsvTrigger, exportCsv),
+  takeEvery(exportJsonTrigger, exportJson),
 ]

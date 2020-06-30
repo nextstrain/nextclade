@@ -17,7 +17,7 @@ import type { State } from 'src/state/reducer'
 import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
-import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
+import { algorithmRunTrigger, exportCsvTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Title } from 'src/components/Main/Title'
@@ -46,7 +46,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = {
   setInput,
   algorithmRunTrigger: () => algorithmRunTrigger(),
-  exportTrigger: () => exportTrigger(),
+  exportTrigger: () => exportCsvTrigger(),
   setShowInputBox,
   goToResults: () => push('/results'),
 }
