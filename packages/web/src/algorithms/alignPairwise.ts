@@ -24,7 +24,8 @@ interface Alignment {
 
 export const alignmentParameters = {
   gapExtend: 0,
-  gapOpen: -2,
+  gapOpen: -1,
+  gapClose: -1,
   misMatch: -1,
   match: 3,
 }
@@ -124,7 +125,7 @@ function scoreMatrix(query: string, ref: string, bandWidth: number, meanShift: n
   //    -> vertical step in the matrix from si+1 to si
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-  const { gapExtend, gapOpen, misMatch, match } = alignmentParameters
+  const { gapExtend, gapOpen, gapClose, misMatch, match } = alignmentParameters
   const END_OF_SEQUENCE = -1
   let si
   let ri
@@ -148,6 +149,9 @@ function scoreMatrix(query: string, ref: string, bandWidth: number, meanShift: n
       } else if (qPos < query.length) {
         // if the shifted position is within the query sequence
         tmpMatch = isMatch(query[qPos], ref[ri]) ? match : misMatch
+        if (paths[si][ri] === 2 || paths[si][ri] === 3) {
+          tmpMatch += gapClose
+        }
 
         // determine whether the previous move was a reference or query gap
         rGapOpen = si < 2 * bandWidth ? (paths[si + 1][ri + 1] === 2 ? 0 : gapOpen) : 0
@@ -274,9 +278,9 @@ export function alignPairwise(query: string, ref: string): Alignment {
   if (debug) {
     if (scores.length < 20) {
       console.info('MM')
-      scores.forEach((d, i) => console.info(i, d.join('\t')))
+      console.info(scores.map((d) => d.join('\t')).join('\n'))
       console.info('D')
-      paths.forEach((d, i) => console.info(i, d.join('\t')))
+      console.info(paths.map((d) => d.join('\t')).join('\n'))
     } else {
       console.info('MM', scores)
     }
