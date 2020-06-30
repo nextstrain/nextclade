@@ -1,4 +1,5 @@
 export const PROJECT_NAME = 'Nextclade' as const
+export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and quality control right inside your browser'
 export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain' as const
 

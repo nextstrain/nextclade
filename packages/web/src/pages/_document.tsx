@@ -1,6 +1,7 @@
 import React from 'react'
 
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
+import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
 
 export default class Document extends NextDocument {
   static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
@@ -12,6 +13,9 @@ export default class Document extends NextDocument {
     return (
       <Html lang="en">
         <Head>
+          <meta charSet="UTF-8" />
+          <title>{PROJECT_NAME}</title>
+          <meta name="description" content={PROJECT_DESCRIPTION} />
           <meta name="application-name" content="Nextclade" />
           <meta name="theme-color" content="#ffffff" />
 
