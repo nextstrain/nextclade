@@ -43,8 +43,9 @@ function seedMatch(kmer: string, ref: string): SeedMatch {
 }
 
 function seedAlignment(query: string, ref: string): SeedAlignment {
-  const nSeeds = 7
+  const nSeeds = 9
   const seedLength = 21
+  const margin = 100
   const bandWidth = Math.min(ref.length, query.length)
 
   if (bandWidth < 2 * seedLength) {
@@ -54,7 +55,7 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
   const seedMatches = []
   for (let ni = 0; ni < nSeeds; ni++) {
     // generate kmers equally spaced on the query
-    const qPos = Math.round(((query.length - seedLength) / nSeeds) * (ni + 0.5))
+    const qPos = Math.round(margin + ((query.length - seedLength - 2 * margin) / (nSeeds - 1)) * ni)
     const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref)
 
     // only use seeds that match at least 70%
@@ -260,7 +261,7 @@ export function alignPairwise(query: string, ref: string): Alignment {
   // console.log(ref);
   // perform a number of seed matches to determine te rough alignment of query rel to ref
   const { bandWidth, meanShift } = seedAlignment(query, ref)
-  if (bandWidth > 200) {
+  if (bandWidth > 400) {
     // TODO: throw concrete instances of errors, catch and diasplay in the UI
     throw new Error(`alignPairwise: unable to align -- too many gaps`)
   }
