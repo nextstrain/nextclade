@@ -73,7 +73,7 @@ export function* analyzeOne(params: AnalyzeParams) {
 }
 
 export function* workerAlgorithmRun() {
-  yield put(setShowInputBox(true))
+  yield put(setShowInputBox(false))
   yield put(push('/results'))
 
   const { poolParse, poolAnalyze } = (yield getContext('workerPools')) as WorkerPools

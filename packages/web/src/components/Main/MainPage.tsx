@@ -76,7 +76,6 @@ export function MainDisconnected({
 
   function onUpload(content: string, filename: string, size: number) {
     setInput(content)
-    setShowInputBox(true)
     algorithmRunTrigger()
   }
 
