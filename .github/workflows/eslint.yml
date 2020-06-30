@@ -19,13 +19,15 @@ jobs:
 
       - uses: reviewdog/action-eslint@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workdir: packages/web
           eslint_flags: '**/*.{js,jsx,ts,tsx} --max-warnings=0'
           fail_on_error: true
+          level: warning
 
       - uses: reviewdog/action-eslint@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workdir: packages/web
           reporter: github-pr-review
           eslint_flags: '**/*.{js,jsx,ts,tsx} --max-warnings=0'
           fail_on_error: true
+          level: warning
