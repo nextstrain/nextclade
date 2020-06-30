@@ -3,7 +3,7 @@ export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain' as const
 
 export const BASE_MIN_WIDTH_PX = 4 as const
-export const EXPORT_FILENAME = 'clades_and_QC_results.json'
+export const EXPORT_FILENAME = 'clades_and_QC_results.csv'
 
 export const URL_GITHUB = 'https://github.com/neherlab/webclades' as const
 export const URL_GITHUB_FRIENDLY = 'github.com/neherlab/webclades' as const

@@ -86,6 +86,7 @@ export function* workerAlgorithmRun() {
 export function* exportResults() {
   const results = (yield select(selectResults) as unknown) as AnalysisResult[]
   const str = serializeResults(results)
+  console.log(str)
   saveFile(str, EXPORT_FILENAME)
 }
 

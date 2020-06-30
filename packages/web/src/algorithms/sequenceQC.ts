@@ -2,10 +2,10 @@ import type {
   QCDiagnostics,
   QCResult,
   ClusteredSNPs,
-  NucleotideLocation,
   NucleotideDeletion,
   QCParameters,
   NucleotideSubstitution,
+  NucleotideInsertion,
 } from './types'
 
 const TooHighDivergence = 'too high divergence'
@@ -62,7 +62,7 @@ function getNucleotideComposition(alignedQuery: string): Record<string, number> 
 export function sequenceQC(
   QCParams: QCParameters,
   mutations: NucleotideSubstitution[],
-  insertions: NucleotideLocation[],
+  insertions: NucleotideInsertion[],
   deletions: NucleotideDeletion[],
   alignedQuery: string,
 ): QCResult {

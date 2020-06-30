@@ -33,6 +33,11 @@ export interface NucleotideSubstitution {
 
 export interface NucleotideDeletion extends Span {}
 
+export interface NucleotideInsertion {
+  pos: number
+  ins: string
+}
+
 export interface NucleotideMissing extends Range {}
 
 export interface NucleotideRange extends Range {
@@ -101,9 +106,13 @@ export interface AnalysisResult {
   seqName: string
   clades: DeepReadonly<Substitutions>
   substitutions: DeepReadonly<SubstitutionsWithAminoacids[]>
+  totalMutations: number
   aminoacidChanges: AminoacidSubstitution[]
-  insertions: DeepReadonly<NucleotideLocation[]>
+  totalAminoacidChanges: number
+  insertions: DeepReadonly<NucleotideInsertion[]>
+  totalInsertions: number
   deletions: DeepReadonly<NucleotideDeletion[]>
+  totalGaps: number
   missing: DeepReadonly<NucleotideMissing[]>
   totalMissing: number
   nonACGTNs: DeepReadonly<NucleotideRange[]>
