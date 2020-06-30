@@ -35,6 +35,13 @@ describe('findCharacterRanges', () => {
     ])
   })
 
+  it('should find 2 substrings', () => {
+    expect(findNucleotideRanges('GGNTTTANTTGCC', T)).toStrictEqual([
+      { nuc: T, begin: 3, end: 6 },
+      { nuc: T, begin: 8, end: 10 },
+    ])
+  })
+
   it('should find 2 substrings one character apart', () => {
     expect(findNucleotideRanges('GGNTTTNTTGCC', T)).toStrictEqual([
       { nuc: T, begin: 3, end: 6 },
