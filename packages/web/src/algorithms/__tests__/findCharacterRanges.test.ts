@@ -35,10 +35,10 @@ describe('findCharacterRanges', () => {
     ])
   })
 
-  it('should find 2 substrings', () => {
-    expect(findNucleotideRanges('GGNTTTANTTGCC', T)).toStrictEqual([
+  it('should find 2 substrings one character apart', () => {
+    expect(findNucleotideRanges('GGNTTTNTTGCC', T)).toStrictEqual([
       { nuc: T, begin: 3, end: 6 },
-      { nuc: T, begin: 8, end: 10 },
+      { nuc: T, begin: 7, end: 9 },
     ])
   })
 
@@ -61,6 +61,13 @@ describe('findCharacterRanges', () => {
     expect(findNucleotideRanges('TGNYYYTTTZZZZCCTTT', (nuc) => !GOOD_NUCLEOTIDES.includes(nuc))).toStrictEqual([
       { nuc: 'Y', begin: 3, end: 6 },
       { nuc: 'Z', begin: 9, end: 13 },
+    ])
+  })
+
+  it('testing consecutive ranges', () => {
+    expect(findNucleotideRanges('TGNYYYZZZZCCTTT', (nuc) => !GOOD_NUCLEOTIDES.includes(nuc))).toStrictEqual([
+      { nuc: 'Y', begin: 3, end: 6 },
+      { nuc: 'Z', begin: 6, end: 10 },
     ])
   })
 })

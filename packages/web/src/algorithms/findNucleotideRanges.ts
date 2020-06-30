@@ -38,15 +38,15 @@ export function findNucleotideRanges(str: string, condition: Nucleotide | Search
     if (found) {
       // rewind forward to the end of matching range
       while (nuc === found.nuc) {
-        nuc = str[i] as Nucleotide
         ++i
+        nuc = str[i] as Nucleotide
       }
 
-      result.push({ begin: found.begin, nuc: found.nuc, end: i - 1 })
+      result.push({ begin: found.begin, nuc: found.nuc, end: i })
       found = undefined
+    } else {
+      ++i
     }
-
-    ++i
   }
 
   return result
