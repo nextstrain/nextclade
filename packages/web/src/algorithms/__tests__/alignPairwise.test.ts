@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { alignPairwise, alignmentParameters } from '../alignPairwise'
 
 const queryTest =   'ACATCTT'
@@ -30,7 +31,7 @@ describe('alignPairwise', () => {
   it('should pad missing sequence on the right', () => {
     expect(alignPairwise('ACGCTC', 'ACGCTCGCT')).toMatchObject({
       query: 'ACGCTC---'.split(''),
-      ref: 'ACGCTCGCT'.split(''),
+      ref:   'ACGCTCGCT'.split(''),
     })
   })
 
