@@ -52,7 +52,7 @@ function seedMatch(kmer: string, ref: string): SeedMatch {
 function seedAlignment(query: string, ref: string): SeedAlignment {
   const nSeeds = 9
   const seedLength = 21
-  const margin = 100
+  const margin = ref.length > 10000 ? 100 : Math.round(ref.length / 100)
   const bandWidth = Math.min(ref.length, query.length)
 
   if (bandWidth < 2 * seedLength) {

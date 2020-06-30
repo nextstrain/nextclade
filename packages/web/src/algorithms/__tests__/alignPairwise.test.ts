@@ -1,5 +1,11 @@
 import { alignPairwise, alignmentParameters } from '../alignPairwise'
 
+const refTest =   'ACATCTT'
+const queryTest = 'ACATATGGCACTT'
+
+const refTestAln   = 'ACAT------CTT'
+const queryTestAln = 'ACATATGGCACTT'
+
 describe('alignPairwise', () => {
   it('should match up identical stings', () => {
     expect(alignPairwise('ACGCTCGCT', 'ACGCTCGCT')).toStrictEqual({
@@ -63,4 +69,14 @@ describe('alignPairwise', () => {
         2 * alignmentParameters.gapExtend,
     })
   })
+
+  it('should correctly align a complex query', () => {
+    expect(alignPairwise(queryTest, refTest)).toStrictEqual({
+      query: queryTestAln.split(''),
+      ref: refTestAln.split(''),
+      alignmentScore: 7 * alignmentParameters.match + alignmentParameters.gapOpen + 6 * alignmentParameters.gapExtend,
+    })
+  })
+
 })
+
