@@ -39,7 +39,9 @@ export interface ExportButtonProps {
 
 const mapStateToProps = (state: State) => ({
   exportFormat: state.ui.exportFormat,
-  canExport: state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
+  canExport:
+    state.algorithm.results.length > 0 &&
+    state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
 })
 
 const mapDispatchToProps = {
@@ -51,6 +53,7 @@ const mapDispatchToProps = {
 export const ButtonExport = connect(mapStateToProps, mapDispatchToProps)(ExportButtonDisconnected)
 
 export function ExportButtonDisconnected({
+  canExport,
   exportFormat,
   setExportFormat,
   exportCsvTrigger,
@@ -73,12 +76,12 @@ export function ExportButtonDisconnected({
   const handleButtonClick = exportFormat === ExportFormat.JSON ? handleJsonClick : handleCsvClick
 
   return (
-    <ButtonDropdown isOpen={isOpen} toggle={toggle}>
-      <Button id="caret" color="primary" onClick={handleButtonClick}>
+    <ButtonDropdown isOpen={isOpen} toggle={toggle} disabled={!canExport}>
+      <Button id="caret" color="primary" disabled={!canExport} onClick={handleButtonClick}>
         {exportFormat === ExportFormat.JSON ? <ExportJSONIcon /> : <ExportCSVIcon />}
         {t('Export to {{exportFormat}}', { exportFormat })}
       </Button>
-      <DropdownToggle color="primary" caret />
+      <DropdownToggle color="primary" caret disabled={!canExport} />
       <DropdownMenu>
         <DropdownItem onClick={handleCsvClick}>
           <ExportCSVIcon />
