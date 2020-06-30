@@ -40,4 +40,27 @@ describe('alignPairwise', () => {
       alignmentScore: 'ACGCTC'.length * alignmentParameters.match,
     })
   })
+
+  it('should introduce gaps in query with one mismatch', () => {
+    expect(alignPairwise('GCCACTCCCT', 'GCCACGCTCGCT')).toStrictEqual({
+      query: 'GCCA--CTCCCT'.split(''),
+      ref:   'GCCACGCTCGCT'.split(''),
+      alignmentScore:
+        9 * alignmentParameters.match +
+        alignmentParameters.misMatch +
+        alignmentParameters.gapOpen +
+        2 * alignmentParameters.gapExtend,
+    })
+  })
+
+  it('should introduce gaps in ref with one ambigous but matching character', () => {
+    expect(alignPairwise('GCCACGCTCRCT', 'GCCACTCGCT')).toStrictEqual({
+      query: 'GCCACGCTCRCT'.split(''),
+      ref:   'GCCA--CTCGCT'.split(''),
+      alignmentScore:
+        10 * alignmentParameters.match +
+        alignmentParameters.gapOpen +
+        2 * alignmentParameters.gapExtend,
+    })
+  })
 })

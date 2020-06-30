@@ -22,6 +22,13 @@ interface Alignment {
   alignmentScore: number
 }
 
+export const alignmentParameters = {
+  gapExtend: 0,
+  gapOpen: -2,
+  misMatch: -1,
+  match: 3,
+}
+
 // determine the position where a particular kmer (string of length k) matches the reference sequence
 function seedMatch(kmer: string, ref: string): SeedMatch {
   let tmpScore = 0
@@ -117,10 +124,7 @@ function scoreMatrix(query: string, ref: string, bandWidth: number, meanShift: n
   //    -> vertical step in the matrix from si+1 to si
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-  const gapExtend = 0
-  const gapOpen = -2
-  const misMatch = -1
-  const match = 3
+  const { gapExtend, gapOpen, misMatch, match } = alignmentParameters
   const END_OF_SEQUENCE = -1
   let si
   let ri
