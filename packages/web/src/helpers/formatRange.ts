@@ -5,5 +5,5 @@ export function formatRange(begin: number, end: number) {
   if (endOne - beginOne < 2) {
     return beginOne.toString()
   }
-  return `${beginOne}..${endOne}`
+  return `${beginOne}-${endOne}`
 }

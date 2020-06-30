@@ -1,9 +1,9 @@
 import { canonicalNucleotides } from './nucleotideCodes'
-import type { Nucleotide, NucleotideDeletion, NucleotideLocation, NucleotideSubstitution } from './types'
+import type { Nucleotide, NucleotideDeletion, NucleotideSubstitution, NucleotideInsertion } from './types'
 
 export interface AnalyzeSeqResult {
   substitutions: NucleotideSubstitution[]
-  insertions: NucleotideLocation[]
+  insertions: NucleotideInsertion[]
   deletions: NucleotideDeletion[]
   alignmentStart: number
   alignmentEnd: number
@@ -14,7 +14,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   let refPos = 0
   let ins = ''
   let insStart = -1
-  const insertions: NucleotideLocation[] = []
+  const insertions: NucleotideInsertion[] = []
   ref.forEach((d, i) => {
     if (d === '-') {
       if (ins === '') {
@@ -23,7 +23,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
       ins += query[i]
     } else {
       if (ins.length > 0) {
-        insertions.push({ pos: insStart, nuc: ins as Nucleotide })
+        insertions.push({ pos: insStart, ins })
         ins = ''
       }
       refPos += 1
@@ -31,7 +31,7 @@ export function analyzeSeq(query: string[], ref: string[]): AnalyzeSeqResult {
   })
   // add insertion at the end of the reference if it exists
   if (ins) {
-    insertions.push({ pos: insStart, nuc: ins as Nucleotide })
+    insertions.push({ pos: insStart, ins })
   }
   // strip insertions relative to reference
   const refStrippedQuery = query.filter((d, i) => ref[i] !== '-')

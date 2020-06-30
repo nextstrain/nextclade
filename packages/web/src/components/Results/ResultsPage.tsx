@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { Button, Card, CardBody, CardFooter, CardHeader, Col, Row } from 'reactstrap'
-import { MdFileDownload } from 'react-icons/md'
 import { FaCaretLeft } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
@@ -9,14 +8,13 @@ import { goBack } from 'connected-next-router'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
-import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
-import { algorithmRunTrigger, exportTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
+import { algorithmRunTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
 
 import { ResultsTable } from './ResultsTable'
+import { ButtonExport } from './ButtonExport'
 
 export interface MainProps {
   params: AlgorithmParams
-  canExport: boolean
   setInput(input: string): void
   algorithmRunTrigger(_0?: unknown): void
   exportTrigger(_0?: unknown): void
@@ -25,26 +23,17 @@ export interface MainProps {
 
 const mapStateToProps = (state: State) => ({
   params: state.algorithm.params,
-  canExport: state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
 })
 
 const mapDispatchToProps = {
   setInput,
   algorithmRunTrigger: () => algorithmRunTrigger(),
-  exportTrigger: () => exportTrigger(),
   goBack: () => goBack(),
 }
 
 export const ResultsPage = connect(mapStateToProps, mapDispatchToProps)(ResultsPageDisconnected)
 
-export function ResultsPageDisconnected({
-  params,
-  canExport,
-  setInput,
-  algorithmRunTrigger,
-  exportTrigger,
-  goBack,
-}: MainProps) {
+export function ResultsPageDisconnected({ params, setInput, algorithmRunTrigger, goBack }: MainProps) {
   const { t } = useTranslation()
 
   return (
@@ -77,15 +66,9 @@ export function ResultsPageDisconnected({
               <CardFooter>
                 <Row>
                   <Col className="d-flex w-100">
-                    <Button
-                      className="ml-auto btn-export"
-                      color="primary"
-                      disabled={!canExport}
-                      onClick={exportTrigger}
-                    >
-                      <MdFileDownload className="btn-icon" />
-                      <span>{t('Export')}</span>
-                    </Button>
+                    <div className="ml-auto">
+                      <ButtonExport />
+                    </div>
                   </Col>
                 </Row>
               </CardFooter>

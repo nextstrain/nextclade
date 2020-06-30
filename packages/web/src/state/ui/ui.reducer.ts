@@ -4,10 +4,17 @@ import { uiDefaultState } from 'src/state/ui/ui.state'
 
 import immerCase from '../util/fsaImmerReducer'
 
-import { setShowInputBox } from './ui.actions'
+import { setExportFormat, setShowInputBox } from './ui.actions'
 
-export const uiReducer = reducerWithInitialState(uiDefaultState).withHandling(
-  immerCase(setShowInputBox, (draft, showInputBox) => {
-    draft.showInputBox = showInputBox
-  }),
-)
+export const uiReducer = reducerWithInitialState(uiDefaultState)
+  .withHandling(
+    immerCase(setShowInputBox, (draft, showInputBox) => {
+      draft.showInputBox = showInputBox
+    }),
+  )
+
+  .withHandling(
+    immerCase(setExportFormat, (draft, exportFormat) => {
+      draft.exportFormat = exportFormat
+    }),
+  )

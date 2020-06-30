@@ -27,6 +27,9 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const analyzeSeqResult = analyzeSeq(query, ref)
   const { substitutions: nucSubstitutions, insertions, deletions, alignmentStart, alignmentEnd } = analyzeSeqResult
+  const totalMutations = nucSubstitutions.length
+  const totalGaps = deletions.reduce((total, { length }) => total + length, 0)
+  const totalInsertions = insertions.reduce((total, { ins }) => total + ins.length, 0)
 
   const clades = pickBy(virus.clades, (clade) => isSequenceInClade(clade, nucSubstitutions, rootSeq))
 
@@ -41,6 +44,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
     (result, { aaSubstitutions }) => [...result, ...aaSubstitutions],
     [] as AminoacidSubstitution[],
   )
+  const totalAminoacidChanges = aminoacidChanges.length
 
   const diagnostics = sequenceQC(virus.QCParams, substitutions, insertions, deletions, alignedQuery)
 
@@ -48,9 +52,13 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
     seqName,
     clades,
     substitutions,
+    totalMutations,
     aminoacidChanges,
+    totalAminoacidChanges,
     insertions,
+    totalInsertions,
     deletions,
+    totalGaps,
     missing,
     totalMissing,
     nonACGTNs,
