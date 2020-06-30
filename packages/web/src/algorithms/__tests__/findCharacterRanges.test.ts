@@ -71,7 +71,7 @@ describe('findCharacterRanges', () => {
     ])
   })
 
-  it('testing consecutive ranges', () => {
+  it('should find consecutive ranges', () => {
     expect(findNucleotideRanges('TGNYYYZZZZCCTTT', (nuc) => !GOOD_NUCLEOTIDES.includes(nuc))).toStrictEqual([
       { nuc: 'Y', begin: 3, end: 6 },
       { nuc: 'Z', begin: 6, end: 10 },
