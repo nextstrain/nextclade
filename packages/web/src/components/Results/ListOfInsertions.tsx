@@ -3,15 +3,14 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DeepReadonly } from 'ts-essentials'
 
-import type { NucleotideLocation } from 'src/algorithms/types'
-import { GAP } from 'src/algorithms/nucleotides'
+import type { NucleotideInsertion } from 'src/algorithms/types'
+import { formatInsertion } from 'src/helpers/formatInsertion'
 import { truncateList } from 'src/components/Results/truncateList'
-import { formatMutation } from 'src/helpers/formatMutation'
 
 const LIST_OF_INSERTIONS_MAX_ITEMS = 10 as const
 
 export interface ListOfInsertionsProps {
-  readonly insertions: DeepReadonly<NucleotideLocation[]>
+  readonly insertions: DeepReadonly<NucleotideInsertion[]>
 }
 
 export function ListOfInsertions({ insertions }: ListOfInsertionsProps) {
@@ -19,9 +18,9 @@ export function ListOfInsertions({ insertions }: ListOfInsertionsProps) {
 
   const totalInsertions = insertions.length
 
-  let insertionItems = insertions.map(({ pos, nuc }) => {
-    const mut = formatMutation({ pos, refNuc: GAP, queryNuc: nuc })
-    return <li key={mut}>{mut}</li>
+  let insertionItems = insertions.map(({ pos, ins }) => {
+    const insertion = formatInsertion({ pos, ins })
+    return <li key={insertion}>{insertion}</li>
   })
 
   insertionItems = truncateList(insertionItems, LIST_OF_INSERTIONS_MAX_ITEMS, t('...more'))
