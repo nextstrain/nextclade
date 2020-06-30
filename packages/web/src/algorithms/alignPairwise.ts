@@ -24,8 +24,8 @@ interface Alignment {
 
 export const alignmentParameters = {
   gapExtend: 0,
-  gapOpen: -1,
-  gapClose: -1,
+  gapOpen: -2,
+  gapClose: -2,
   misMatch: -1,
   match: 3,
 }
