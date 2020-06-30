@@ -7,7 +7,7 @@
     "babel.config.js",
     "infra/lambda-at-edge/modifyOutgoingHeaders.lambda.js",
     "package.json",
-    "src/server",
+    "tools/server",
     "tsconfig.json",
     "yarn.lock"
   ],
