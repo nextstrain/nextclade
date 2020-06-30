@@ -12,7 +12,6 @@ const FEATURE_POLICY = {
   'midi': `'none'`,
   'payment': `'none'`,
   'picture-in-picture': `'none'`,
-  'screen-wake-lock': `'none'`,
   'sync-xhr': `'none'`,
   'usb': `'none'`,
   'xr-spatial-tracking': `'none'`,
@@ -25,8 +24,7 @@ function generateFeaturePolicyHeader(featurePoicyObject) {
 }
 
 const NEW_HEADERS = {
-  'Content-Security-Policy':
-    "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: *.githubusercontent.com",
+  'Content-Security-Policy': "default-src 'self'",
   'Referrer-Policy': 'no-referrer',
   'Strict-Transport-Security': 'max-age=15768000; includeSubDomains; preload',
   'X-Content-Type-Options': 'nosniff',
