@@ -13,6 +13,9 @@ export interface InitializeParams {
 }
 
 export async function initialize({ router }: InitializeParams) {
+  void router.prefetch('/') // eslint-disable-line no-void
+  void router.prefetch('/results') // eslint-disable-line no-void
+
   const workerPools = createWorkerPools()
 
   const { persistor, store } = await configureStore({ router, workerPools })
