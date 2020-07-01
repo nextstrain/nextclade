@@ -37,6 +37,7 @@ export interface MainProps {
   isDirty: boolean
   setInput(input: string): void
   setInputFile(inputFile: InputFile): void
+  setIsDirty(isDirty: boolean): void
   algorithmRunTrigger(content?: string | File): void
   exportTrigger(): void
   setShowInputBox(show: boolean): void
@@ -53,6 +54,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = {
   setInput,
   setInputFile: (inputFile: InputFile) => setInputFile(inputFile),
+  setIsDirty,
   algorithmRunTrigger: (content?: string | File) => algorithmRunTrigger(content),
   exportTrigger: () => exportCsvTrigger(),
   setShowInputBox,
@@ -68,6 +70,7 @@ export function MainDisconnected({
   showInputBox,
   setInput,
   setInputFile,
+  setIsDirty,
   algorithmRunTrigger,
   exportTrigger,
   setShowInputBox,
