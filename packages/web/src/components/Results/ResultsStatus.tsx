@@ -21,7 +21,7 @@ export function selectStatus(state: State) {
   } else if (statusGlobal === AlgorithmStatus.analysisStarted) {
     const total = sequenceStatuses.length
     const done = sequenceStatuses.filter(({ status }) => status === AnylysisStatus.done).length
-    percent = parseDonePercent + (done / total) * 0.9 * 100
+    percent = parseDonePercent + (done / total) * (100 - parseDonePercent)
     const percentText = numbro(percent / 100).format({ output: 'percent', mantissa: 0 })
     statusText = i18n.t('Analysing sequences: {{done}}/{{total}} ({{percent}})', { done, total, percent: percentText })
   } else if (statusGlobal === AlgorithmStatus.done) {
