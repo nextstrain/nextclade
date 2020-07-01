@@ -9,6 +9,10 @@ import { initReactI18next } from 'react-i18next'
 import moment from 'moment'
 import numbro from 'numbro'
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import numbroLanguages from 'numbro/dist/languages.min'
+
 import { ReactComponent as GB } from 'flag-icon-css/flags/1x1/gb.svg'
 import { ReactComponent as DE } from 'flag-icon-css/flags/1x1/de.svg'
 import { ReactComponent as FR } from 'flag-icon-css/flags/1x1/fr.svg'
@@ -54,11 +58,12 @@ export interface I18NInitParams {
 }
 
 export async function i18nInit({ localeKey }: I18NInitParams) {
-  // FIXME: make it an import if possible
-  // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
-  Object.values(require('numbro/dist/languages.min.js')).forEach((l) =>
-    numbro.registerLanguage(l as numbro.NumbroLanguage),
-  )
+  const enUS = numbro.languages()['en-US']
+  const allNumbroLanguages = numbroLanguages as numbro.NumbroLanguage
+  Object.values(allNumbroLanguages).forEach((languageRaw) => {
+    // If a language object lacks some of the features, substitute these features from English
+    numbro.registerLanguage({ ...enUS, ...languageRaw })
+  })
 
   await i18n.use(initReactI18next).init({
     resources,
