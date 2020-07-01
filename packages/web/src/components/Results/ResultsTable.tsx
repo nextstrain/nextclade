@@ -40,13 +40,7 @@ export function ResultDisconnected({ result }: ResultProps) {
       return (
         <tr className="results-table-row" key={seqName}>
           <ColumnName seqName={seqName} sequence={sequence} />
-          <td className="results-table-col results-table-col-clade" />
-          <td className="results-table-col results-table-col-clade" />
-          <td className="results-table-col results-table-col-clade" />
-          <td className="results-table-col results-table-col-clade" />
-          <td className="results-table-col results-table-col-clade" />
-          <td className="results-table-col results-table-col-clade" />
-          <td className="results-table-col results-table-col-mutations" />
+          <td colSpan={7} className="results-table-col results-table-col-clade" />
         </tr>
       )
     }
