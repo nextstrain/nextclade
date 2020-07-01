@@ -2,7 +2,7 @@ import React from 'react'
 
 import { Progress } from 'reactstrap'
 import { connect } from 'react-redux'
-import i18n, { numbro } from 'src/i18n/i18n'
+import i18n from 'src/i18n/i18n'
 
 import type { State } from 'src/state/reducer'
 import { AlgorithmStatus, AnylysisStatus } from 'src/state/algorithm/algorithm.state'
@@ -22,8 +22,7 @@ export function selectStatus(state: State) {
     const total = sequenceStatuses.length
     const done = sequenceStatuses.filter(({ status }) => status === AnylysisStatus.done).length
     percent = parseDonePercent + (done / total) * (100 - parseDonePercent)
-    const percentText = numbro(percent / 100).format({ output: 'percent', mantissa: 0 })
-    statusText = i18n.t('Analysing sequences: {{done}}/{{total}} ({{percent}})', { done, total, percent: percentText })
+    statusText = i18n.t('Analysing sequences: {{done}}/{{total}}', { done, total })
   } else if (statusGlobal === AlgorithmStatus.done) {
     percent = 100
     statusText = i18n.t('Done')
