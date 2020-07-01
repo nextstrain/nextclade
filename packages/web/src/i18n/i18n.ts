@@ -1,4 +1,3 @@
-/* eslint-disable only-ascii/only-ascii */
 import { ElementType } from 'react'
 
 import { mapValues } from 'lodash'
@@ -8,21 +7,36 @@ import { initReactI18next } from 'react-i18next'
 
 import moment from 'moment'
 import numbro from 'numbro'
+import { languages } from 'countries-list'
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import numbroLanguages from 'numbro/dist/languages.min'
 
 import { ReactComponent as GB } from 'flag-icon-css/flags/1x1/gb.svg'
+import { ReactComponent as SA } from 'flag-icon-css/flags/1x1/sa.svg'
 import { ReactComponent as DE } from 'flag-icon-css/flags/1x1/de.svg'
+import { ReactComponent as ES } from 'flag-icon-css/flags/1x1/es.svg'
 import { ReactComponent as FR } from 'flag-icon-css/flags/1x1/fr.svg'
+import { ReactComponent as IT } from 'flag-icon-css/flags/1x1/it.svg'
+import { ReactComponent as KR } from 'flag-icon-css/flags/1x1/kr.svg'
+import { ReactComponent as PT } from 'flag-icon-css/flags/1x1/pt.svg'
+import { ReactComponent as RU } from 'flag-icon-css/flags/1x1/ru.svg'
+import { ReactComponent as CN } from 'flag-icon-css/flags/1x1/cn.svg'
 
 import en from './resources/en/common.json'
+import ar from './resources/ar/common.json'
 import de from './resources/de/common.json'
+import es from './resources/es/common.json'
 import fr from './resources/fr/common.json'
+import it from './resources/it/common.json'
+import ko from './resources/ko/common.json'
+import pt from './resources/pt/common.json'
+import ru from './resources/ru/common.json'
+import zh from './resources/zh/common.json'
 
 export const localized = { number: '{{value, localizedNumber}}' } as const
-export const translations = { en, de, fr }
+export const translations = { en, ar, de, es, fr, it, ko, pt, ru, zh }
 export const flags = new Map()
 
 export type LocaleKey = keyof typeof translations
@@ -33,7 +47,6 @@ export const localeKeys = Object.keys(translations) as LocaleKey[]
 
 export interface Locale {
   readonly full: string
-  readonly flag: string
   readonly name: string
   readonly Flag: ElementType
 }
@@ -43,9 +56,16 @@ export interface LocaleWithKey extends Locale {
 }
 
 export const locales: Record<LocaleKey, Locale> = {
-  en: { full: 'en-US', flag: 'us', name: 'English', Flag: GB },
-  de: { full: 'de-DE', flag: 'de', name: 'Deutsch', Flag: DE },
-  fr: { full: 'fr-FR', flag: 'fr', name: 'Français', Flag: FR },
+  en: { full: 'en-US', name: languages.en.native, Flag: GB },
+  ar: { full: 'ar-SA', name: languages.ar.native, Flag: SA },
+  de: { full: 'de-DE', name: languages.de.native, Flag: DE },
+  es: { full: 'es-ES', name: languages.es.native, Flag: ES },
+  fr: { full: 'fr-FR', name: languages.fr.native, Flag: FR },
+  it: { full: 'it-IT', name: languages.it.native, Flag: IT },
+  ko: { full: 'ko-KR', name: languages.ko.native, Flag: KR },
+  pt: { full: 'pt-PT', name: languages.pt.native, Flag: PT },
+  ru: { full: 'ru-RU', name: languages.ru.native, Flag: RU },
+  zh: { full: 'zh-CN', name: languages.zh.native, Flag: CN },
 } as const
 
 export const localesArray: LocaleWithKey[] = Object.entries(locales).map(([key, value]) => ({
