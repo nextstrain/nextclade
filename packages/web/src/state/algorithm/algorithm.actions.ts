@@ -9,6 +9,8 @@ export const setInput = action<string>('SET_INPUT')
 
 export const setInputFile = action<InputFile>('SET_INPUT_FILE')
 
+export const setIsDirty = action<boolean>('SET_IS_DIRTY')
+
 export const algorithmRunTrigger = action<string | File | undefined>('RUN_TRIGGER')
 
 export const algorithmRunAsync = action.async<string | File | undefined, void, void>('RUN')

@@ -17,7 +17,13 @@ import type { State } from 'src/state/reducer'
 import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
 import type { AlgorithmParams, InputFile } from 'src/state/algorithm/algorithm.state'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
-import { algorithmRunTrigger, exportCsvTrigger, setInput, setInputFile } from 'src/state/algorithm/algorithm.actions'
+import {
+  algorithmRunTrigger,
+  exportCsvTrigger,
+  setInput,
+  setInputFile,
+  setIsDirty,
+} from 'src/state/algorithm/algorithm.actions'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Title } from 'src/components/Main/Title'
@@ -70,12 +76,14 @@ export function MainDisconnected({
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const hangleInputChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsDirty(true)
     setInput(e.target.value)
     setInputFile({ name: 'input.fasta', size: DEFAULT_INPUT.length })
   }, [setInput, setInputFile]) // prettier-ignore
   const handleRunButtonClick = useCallback(() => algorithmRunTrigger(), [algorithmRunTrigger])
 
   function loadDefaultData() {
+    setIsDirty(true)
     setShowInputBox(true)
     inputRef?.current?.focus()
     delay(setInput, 250, DEFAULT_INPUT)
@@ -83,6 +91,7 @@ export function MainDisconnected({
   }
 
   async function onUpload(file: File) {
+    setIsDirty(true)
     algorithmRunTrigger(file)
   }
 

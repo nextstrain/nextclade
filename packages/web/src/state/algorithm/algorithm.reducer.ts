@@ -9,7 +9,6 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(setInput, (draft, input) => {
       draft.status = AlgorithmStatus.idling
-      draft.isDirty = true
       draft.params.input = input
     }),
   )
@@ -17,7 +16,6 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(setInputFile, (draft, inputFile) => {
       draft.status = AlgorithmStatus.idling
-      draft.isDirty = true
       draft.inputFile = inputFile
     }),
   )
