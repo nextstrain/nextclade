@@ -6,8 +6,8 @@ import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
 import { getContext, select, takeEvery, call, put, all } from 'redux-saga/effects'
 
-import type { AnalysisResult } from 'src/algorithms/types'
-import type { ParseThread } from 'src/workers/worker.parse'
+import type { AnalysisResult, ParseResult } from 'src/algorithms/types'
+import type { ParseReturn, ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { WorkerPools } from 'src/workers/types'
 
@@ -45,7 +45,7 @@ export interface ParseParams {
 
 export async function parse({ poolParse, input }: ParseParams) {
   const taskParse = poolParse.queue(async (parse: ParseThread) => parse(input))
-  return ((await taskParse.then(identity, rethrow)) as unknown) as Record<string, string>
+  return ((await taskParse.then(identity, rethrow)) as unknown) as ParseReturn
 }
 
 export interface AnalyzeParams {
@@ -88,9 +88,13 @@ export function* workerAlgorithmRun(content?: File | string) {
 
   // TODO wrap into a function, handle errors
   yield put(parseAsync.started())
-  const parsedSequences = (yield call(parse, { poolParse, input }) as unknown) as Record<string, string>
+  const { input: newInput, parsedSequences } = (yield call(parse, { poolParse, input }) as unknown) as ParseResult
   const sequenceNames = Object.keys(parsedSequences)
   yield put(parseAsync.done({ result: sequenceNames }))
+
+  if (newInput !== input) {
+    yield put(setInput(newInput))
+  }
 
   const sequenceEntries = Object.entries(parsedSequences)
   yield all(sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })))

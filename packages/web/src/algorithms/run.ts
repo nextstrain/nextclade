@@ -5,7 +5,7 @@ import { readFile } from 'src/helpers/readFile'
 import { VIRUSES } from './viruses'
 import { geneMap } from './geneMap'
 
-import type { AnalysisParams, AnalysisResult } from './types'
+import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
 import { sequenceQC } from './sequenceQC'
@@ -14,15 +14,14 @@ import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
 import { GOOD_NUCLEOTIDES, N } from './nucleotides'
-import { AminoacidSubstitution } from './types'
 
-export async function parse(input: string | File) {
+export async function parse(input: string | File): Promise<ParseResult> {
   if (typeof input !== 'string') {
     // eslint-disable-next-line no-param-reassign
     input = await readFile(input)
   }
 
-  return parseSequences(input)
+  return { input, parsedSequences: parseSequences(input) }
 }
 
 export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResult {
