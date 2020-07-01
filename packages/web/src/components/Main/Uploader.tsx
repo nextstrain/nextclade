@@ -7,6 +7,7 @@ import { UncontrolledAlert } from 'reactstrap'
 import { appendDash } from 'src/helpers/appendDash'
 
 import { UploadZone } from './UploadZone'
+import { UploaderResultsStatus } from './UploaderResultsStatus'
 
 class UploadErrorTooManyFiles extends Error {
   public readonly nFiles: number
@@ -74,6 +75,7 @@ export function Uploader({ onUpload }: UploaderProps) {
     <div className="uploader-container">
       <div className="">
         <UploadZone onDrop={onDrop} />
+        <UploaderResultsStatus />
       </div>
 
       <div className="mt-3 uploader-error-list">
