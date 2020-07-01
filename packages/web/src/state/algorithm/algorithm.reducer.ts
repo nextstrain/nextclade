@@ -1,6 +1,6 @@
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
-import { algorithmRunAsync, analyzeAsync, parseAsync, setInput } from './algorithm.actions'
+import { algorithmRunAsync, analyzeAsync, parseAsync, setInput, setInputFile } from './algorithm.actions'
 import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus } from './algorithm.state'
 
 import immerCase from '../util/fsaImmerReducer'
@@ -11,6 +11,14 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
       draft.status = AlgorithmStatus.idling
       draft.isDirty = true
       draft.params.input = input
+    }),
+  )
+
+  .withHandling(
+    immerCase(setInputFile, (draft, inputFile) => {
+      draft.status = AlgorithmStatus.idling
+      draft.isDirty = true
+      draft.inputFile = inputFile
     }),
   )
 

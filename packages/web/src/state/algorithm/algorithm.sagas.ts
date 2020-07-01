@@ -25,6 +25,7 @@ import {
   exportCsvTrigger,
   exportJsonTrigger,
   setInput,
+  setInputFile,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
 
@@ -85,6 +86,13 @@ export function* workerAlgorithmRun(content?: File | string) {
   const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
   const { rootSeq, input: inputState } = params
   const input = content ?? inputState
+
+  if (typeof input === 'string') {
+    yield put(setInputFile({ name: 'input.fasta', size: input.length }))
+  } else if (input instanceof File) {
+    const { name, size } = input
+    yield put(setInputFile({ name, size }))
+  }
 
   // TODO wrap into a function, handle errors
   yield put(parseAsync.started())

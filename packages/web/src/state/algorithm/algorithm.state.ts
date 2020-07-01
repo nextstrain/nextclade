@@ -2,6 +2,11 @@ import type { AnalysisResult } from 'src/algorithms/types'
 
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 
+export interface InputFile {
+  name: string
+  size: number
+}
+
 export interface AlgorithmParams {
   input: string
   rootSeq: string
@@ -33,6 +38,7 @@ export interface SequenceAnylysisState {
 
 export interface AlgorithmState {
   status: AlgorithmStatus
+  inputFile?: InputFile
   params: AlgorithmParams
   isDirty: boolean
   results: SequenceAnylysisState[]
