@@ -23,6 +23,7 @@ import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Title } from 'src/components/Main/Title'
 
 import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
+import { readFile } from 'src/helpers/readFile'
 
 export interface MainProps {
   params: AlgorithmParams
@@ -74,7 +75,8 @@ export function MainDisconnected({
     delay(setInput, 250, DEFAULT_INPUT)
   }
 
-  function onUpload(content: string, filename: string, size: number) {
+  async function onUpload(file: File) {
+    const content = await readFile(file)
     setInput(content)
     algorithmRunTrigger()
   }
