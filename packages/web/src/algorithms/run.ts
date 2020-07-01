@@ -1,5 +1,7 @@
 import { pickBy } from 'lodash'
 
+import { readFile } from 'src/helpers/readFile'
+
 import { VIRUSES } from './viruses'
 import { geneMap } from './geneMap'
 
@@ -14,7 +16,12 @@ import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
 import { GOOD_NUCLEOTIDES, N } from './nucleotides'
 import { AminoacidSubstitution } from './types'
 
-export function parse(input: string) {
+export async function parse(input: string | File) {
+  if (typeof input !== 'string') {
+    // eslint-disable-next-line no-param-reassign
+    input = await readFile(input)
+  }
+
   return parseSequences(input)
 }
 

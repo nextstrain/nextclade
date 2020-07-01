@@ -23,7 +23,6 @@ import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Title } from 'src/components/Main/Title'
 
 import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
-import { readFile } from 'src/helpers/readFile'
 
 export interface MainProps {
   params: AlgorithmParams
@@ -31,7 +30,7 @@ export interface MainProps {
   showInputBox: boolean
   isDirty: boolean
   setInput(input: string): void
-  algorithmRunTrigger(): void
+  algorithmRunTrigger(content?: string | File): void
   exportTrigger(): void
   setShowInputBox(show: boolean): void
   goToResults(): void
@@ -46,7 +45,7 @@ const mapStateToProps = (state: State) => ({
 
 const mapDispatchToProps = {
   setInput,
-  algorithmRunTrigger: () => algorithmRunTrigger(),
+  algorithmRunTrigger: (content?: string | File) => algorithmRunTrigger(content),
   exportTrigger: () => exportCsvTrigger(),
   setShowInputBox,
   goToResults: () => push('/results'),
@@ -68,6 +67,7 @@ export function MainDisconnected({
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
   const hangleInputChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { setInput(e.target.value) }, [setInput]) // prettier-ignore
+  const handleRunButtonClick = useCallback(() => algorithmRunTrigger(), [algorithmRunTrigger])
 
   function loadDefaultData() {
     setShowInputBox(true)
@@ -76,13 +76,11 @@ export function MainDisconnected({
   }
 
   async function onUpload(file: File) {
-    const content = await readFile(file)
-    setInput(content)
-    algorithmRunTrigger()
+    algorithmRunTrigger(file)
   }
 
   const runButton = (
-    <Button className="mx-auto btn-refresh" color="success" onClick={algorithmRunTrigger}>
+    <Button className="mx-auto btn-refresh" color="success" onClick={handleRunButtonClick}>
       <MdPlayArrow className="btn-icon" />
       <span>{t('Run')}</span>
     </Button>
