@@ -12,6 +12,7 @@ import { setInput } from 'src/state/algorithm/algorithm.actions'
 
 import { ResultsTable } from './ResultsTable'
 import { ButtonExport } from './ButtonExport'
+import { ResultsStatus } from './ResultsStatus'
 
 export interface MainProps {
   params: AlgorithmParams
@@ -45,6 +46,12 @@ export function ResultsPageDisconnected({ params, setInput, goBack }: MainProps)
                 {t('Back')}
               </Button>
             </div>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col>
+            <ResultsStatus />
           </Col>
         </Row>
 
