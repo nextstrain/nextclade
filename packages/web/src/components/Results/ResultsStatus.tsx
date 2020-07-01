@@ -9,7 +9,7 @@ import { AlgorithmStatus, AnylysisStatus } from 'src/state/algorithm/algorithm.s
 
 export function selectStatus(state: State) {
   const statusGlobal = state.algorithm.status
-  const sequenceStatuses = state.algorithm?.results.map(({ seqName, status }) => ({ seqName, status }))
+  const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
 
   const parseDonePercent = 10
   let statusText = 'Idling'
