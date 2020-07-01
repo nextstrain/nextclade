@@ -78,11 +78,15 @@ export function MainDisconnected({
 }: MainProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const hangleInputChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsDirty(true)
-    setInput(e.target.value)
-    setInputFile({ name: 'input.fasta', size: DEFAULT_INPUT.length })
-  }, [setInput, setInputFile]) // prettier-ignore
+  const hangleInputChage = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setIsDirty(true)
+      setInput(e.target.value)
+      setInputFile({ name: 'input.fasta', size: DEFAULT_INPUT.length })
+    },
+    [setInput, setInputFile, setIsDirty],
+  )
+
   const handleRunButtonClick = useCallback(() => algorithmRunTrigger(), [algorithmRunTrigger])
 
   function loadDefaultData() {
