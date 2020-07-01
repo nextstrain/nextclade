@@ -6,8 +6,8 @@ import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
 import { getContext, select, takeEvery, call, put, all } from 'redux-saga/effects'
 
-import type { AnalysisResult } from 'src/algorithms/types'
-import type { ParseThread } from 'src/workers/worker.parse'
+import type { AnalysisResult, ParseResult } from 'src/algorithms/types'
+import type { ParseReturn, ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { WorkerPools } from 'src/workers/types'
 
@@ -24,6 +24,8 @@ import {
   analyzeAsync,
   exportCsvTrigger,
   exportJsonTrigger,
+  setInput,
+  setInputFile,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
 
@@ -39,12 +41,12 @@ export function rethrow<T>(e: T) {
 
 export interface ParseParams {
   poolParse: Pool<ParseThread>
-  input: string
+  input: File | string
 }
 
 export async function parse({ poolParse, input }: ParseParams) {
   const taskParse = poolParse.queue(async (parse: ParseThread) => parse(input))
-  return ((await taskParse.then(identity, rethrow)) as unknown) as Record<string, string>
+  return ((await taskParse.then(identity, rethrow)) as unknown) as ParseReturn
 }
 
 export interface AnalyzeParams {
@@ -72,19 +74,35 @@ export function* analyzeOne(params: AnalyzeParams) {
   }
 }
 
-export function* workerAlgorithmRun() {
+export function* workerAlgorithmRun(content?: File | string) {
   yield put(setShowInputBox(false))
   yield put(push('/results'))
 
+  if (typeof content === 'string') {
+    yield put(setInput(content))
+  }
+
   const { poolParse, poolAnalyze } = (yield getContext('workerPools')) as WorkerPools
   const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
-  const { rootSeq } = params
+  const { rootSeq, input: inputState } = params
+  const input = content ?? inputState
+
+  if (typeof input === 'string') {
+    yield put(setInputFile({ name: 'input.fasta', size: input.length }))
+  } else if (input instanceof File) {
+    const { name, size } = input
+    yield put(setInputFile({ name, size }))
+  }
 
   // TODO wrap into a function, handle errors
   yield put(parseAsync.started())
-  const parsedSequences = (yield call(parse, { poolParse, ...params }) as unknown) as Record<string, string>
+  const { input: newInput, parsedSequences } = (yield call(parse, { poolParse, input }) as unknown) as ParseResult
   const sequenceNames = Object.keys(parsedSequences)
   yield put(parseAsync.done({ result: sequenceNames }))
+
+  if (newInput !== input) {
+    yield put(setInput(newInput))
+  }
 
   const sequenceEntries = Object.entries(parsedSequences)
   yield all(sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })))

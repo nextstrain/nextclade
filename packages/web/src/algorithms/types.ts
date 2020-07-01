@@ -123,6 +123,11 @@ export interface AnalysisResult {
   diagnostics: DeepReadonly<QCResult>
 }
 
+export interface ParseResult {
+  input: string
+  parsedSequences: Record<string, string>
+}
+
 export interface AnalysisParams {
   seqName: string
   seq: string

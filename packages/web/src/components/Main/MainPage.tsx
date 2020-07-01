@@ -15,9 +15,15 @@ import { Uploader } from 'src/components/Main/Uploader'
 
 import type { State } from 'src/state/reducer'
 import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
-import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
+import type { AlgorithmParams, InputFile } from 'src/state/algorithm/algorithm.state'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
-import { algorithmRunTrigger, exportCsvTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
+import {
+  algorithmRunTrigger,
+  exportCsvTrigger,
+  setInput,
+  setInputFile,
+  setIsDirty,
+} from 'src/state/algorithm/algorithm.actions'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Title } from 'src/components/Main/Title'
@@ -30,7 +36,9 @@ export interface MainProps {
   showInputBox: boolean
   isDirty: boolean
   setInput(input: string): void
-  algorithmRunTrigger(): void
+  setInputFile(inputFile: InputFile): void
+  setIsDirty(isDirty: boolean): void
+  algorithmRunTrigger(content?: string | File): void
   exportTrigger(): void
   setShowInputBox(show: boolean): void
   goToResults(): void
@@ -45,7 +53,9 @@ const mapStateToProps = (state: State) => ({
 
 const mapDispatchToProps = {
   setInput,
-  algorithmRunTrigger: () => algorithmRunTrigger(),
+  setInputFile: (inputFile: InputFile) => setInputFile(inputFile),
+  setIsDirty,
+  algorithmRunTrigger: (content?: string | File) => algorithmRunTrigger(content),
   exportTrigger: () => exportCsvTrigger(),
   setShowInputBox,
   goToResults: () => push('/results'),
@@ -59,6 +69,8 @@ export function MainDisconnected({
   isDirty,
   showInputBox,
   setInput,
+  setInputFile,
+  setIsDirty,
   algorithmRunTrigger,
   exportTrigger,
   setShowInputBox,
@@ -66,21 +78,32 @@ export function MainDisconnected({
 }: MainProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const hangleInputChage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { setInput(e.target.value) }, [setInput]) // prettier-ignore
+  const hangleInputChage = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setIsDirty(true)
+      setInput(e.target.value)
+      setInputFile({ name: 'input.fasta', size: DEFAULT_INPUT.length })
+    },
+    [setInput, setInputFile, setIsDirty],
+  )
+
+  const handleRunButtonClick = useCallback(() => algorithmRunTrigger(), [algorithmRunTrigger])
 
   function loadDefaultData() {
+    setIsDirty(true)
     setShowInputBox(true)
     inputRef?.current?.focus()
     delay(setInput, 250, DEFAULT_INPUT)
+    delay(setInputFile, 250, { name: 'input.fasta', size: DEFAULT_INPUT.length })
   }
 
-  function onUpload(content: string, filename: string, size: number) {
-    setInput(content)
-    algorithmRunTrigger()
+  async function onUpload(file: File) {
+    setIsDirty(true)
+    algorithmRunTrigger(file)
   }
 
   const runButton = (
-    <Button className="mx-auto btn-refresh" color="success" onClick={algorithmRunTrigger}>
+    <Button className="mx-auto btn-refresh" color="success" onClick={handleRunButtonClick}>
       <MdPlayArrow className="btn-icon" />
       <span>{t('Run')}</span>
     </Button>

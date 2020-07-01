@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { UncontrolledAlert } from 'reactstrap'
 
 import { appendDash } from 'src/helpers/appendDash'
-import { readFile, FileReaderError } from 'src/helpers/readFile'
 
 import { UploadZone } from './UploadZone'
+import { UploaderResultsStatus } from './UploaderResultsStatus'
 
 class UploadErrorTooManyFiles extends Error {
   public readonly nFiles: number
@@ -24,7 +24,7 @@ class UploadErrorUnknown extends Error {
 }
 
 export interface UploaderProps {
-  onUpload(content: string, filename: string, size: number): void
+  onUpload(file: File): void
 }
 
 export function Uploader({ onUpload }: UploaderProps) {
@@ -42,8 +42,6 @@ export function Uploader({ onUpload }: UploaderProps) {
       setErrors((prevErrors) => [...prevErrors, t('Only one file is expected')])
     } else if (error instanceof UploadErrorUnknown) {
       setErrors((prevErrors) => [...prevErrors, t('Unknown error')])
-    } else if (error instanceof FileReaderError) {
-      setErrors((prevErrors) => [...prevErrors, t('Unable to read file.')])
     } else {
       throw error
     }
@@ -61,27 +59,23 @@ export function Uploader({ onUpload }: UploaderProps) {
     }
 
     const file = acceptedFiles[0]
-    const str = await readFile(file)
-    onUpload(str, file.name, file.size)
+    onUpload(file)
   }
 
   async function onDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
     setErrors([])
-
     try {
       await processFiles(acceptedFiles, rejectedFiles)
     } catch (error) {
       handleError(error)
-      return
     }
-
-    setErrors([])
   }
 
   return (
     <div className="uploader-container">
       <div className="">
         <UploadZone onDrop={onDrop} />
+        <UploaderResultsStatus />
       </div>
 
       <div className="mt-3 uploader-error-list">

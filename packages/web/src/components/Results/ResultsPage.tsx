@@ -8,15 +8,15 @@ import { goBack } from 'connected-next-router'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
-import { algorithmRunTrigger, setInput } from 'src/state/algorithm/algorithm.actions'
+import { setInput } from 'src/state/algorithm/algorithm.actions'
 
 import { ResultsTable } from './ResultsTable'
 import { ButtonExport } from './ButtonExport'
+import { ResultsStatus } from './ResultsStatus'
 
 export interface MainProps {
   params: AlgorithmParams
   setInput(input: string): void
-  algorithmRunTrigger(_0?: unknown): void
   exportTrigger(_0?: unknown): void
   goBack(): void
 }
@@ -27,13 +27,12 @@ const mapStateToProps = (state: State) => ({
 
 const mapDispatchToProps = {
   setInput,
-  algorithmRunTrigger: () => algorithmRunTrigger(),
   goBack: () => goBack(),
 }
 
 export const ResultsPage = connect(mapStateToProps, mapDispatchToProps)(ResultsPageDisconnected)
 
-export function ResultsPageDisconnected({ params, setInput, algorithmRunTrigger, goBack }: MainProps) {
+export function ResultsPageDisconnected({ params, setInput, goBack }: MainProps) {
   const { t } = useTranslation()
 
   return (
@@ -47,6 +46,12 @@ export function ResultsPageDisconnected({ params, setInput, algorithmRunTrigger,
                 {t('Back')}
               </Button>
             </div>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col>
+            <ResultsStatus />
           </Col>
         </Row>
 
