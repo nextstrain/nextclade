@@ -166,41 +166,23 @@ This should build the application in production mode and start a static server t
 ## ✨ Contributors
 
 We are thankful to all our contributors, no matter how they contribute: in ideas, science, code, documentation or
-otherwise. Thanks goes to these wonderful people (<a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">emoji key</a>:
+otherwise. Thanks goes to these wonderful people (<a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">emoji key</a>):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/ivan-aksamentov"><img src="https://avatars0.githubusercontent.com/u/9403403?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ivan Aksamentov</b></sub></a><br /><a href="https://github.com/neherlab/webclades/commits?author=ivan-aksamentov" title="Code">💻</a> <a href="#data-ivan-aksamentov" title="Data">🔣</a> <a href="#design-ivan-aksamentov" title="Design">🎨</a> <a href="#ideas-ivan-aksamentov" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/neherlab/webclades/issues?q=author%3Aivan-aksamentov" title="Bug reports">🐛</a> <a href="#content-ivan-aksamentov" title="Content">🖋</a> <a href="https://github.com/neherlab/webclades/commits?author=ivan-aksamentov" title="Documentation">📖</a> <a href="#maintenance-ivan-aksamentov" title="Maintenance">🚧</a> <a href="#translation-ivan-aksamentov" title="Translation">🌍</a> <a href="https://github.com/neherlab/webclades/commits?author=ivan-aksamentov" title="Tests">⚠️</a> <a href="#talk-ivan-aksamentov" title="Talks">📢</a> <a href="https://github.com/neherlab/webclades/pulls?q=is%3Apr+reviewed-by%3Aivan-aksamentov" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/rneher"><img src="https://avatars3.githubusercontent.com/u/8379168?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Richard Neher</b></sub></a><br /><a href="https://github.com/neherlab/webclades/commits?author=rneher" title="Code">💻</a> <a href="#data-rneher" title="Data">🔣</a> <a href="#design-rneher" title="Design">🎨</a> <a href="#ideas-rneher" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/neherlab/webclades/issues?q=author%3Arneher" title="Bug reports">🐛</a> <a href="#content-rneher" title="Content">🖋</a> <a href="https://github.com/neherlab/webclades/commits?author=rneher" title="Documentation">📖</a> <a href="#maintenance-rneher" title="Maintenance">🚧</a> <a href="#translation-rneher" title="Translation">🌍</a> <a href="https://github.com/neherlab/webclades/commits?author=rneher" title="Tests">⚠️</a> <a href="#talk-rneher" title="Talks">📢</a> <a href="https://github.com/neherlab/webclades/pulls?q=is%3Apr+reviewed-by%3Arneher" title="Reviewed Pull Requests">👀</a></td>
+  </tr>
+</table>
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
-
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the <a target="_blank" rel="noopener noreferrer" href="https://github.com/all-contributors/all-contributors">all-contributors</a> specification. Contributions of any kind welcome!
-
-In order to find the usernames of contributors missing from this list run:
-
-```
-yarn all-contributors check
-
-```
-
-To add a contributor to the list, run:
-
-```
-yarn all-contributors add <contribution_type_1>,<contribution_type_2>,...
-
-```
-
-(see list of contribution types <a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">here</a>)
-
-To re-generate the list, run:
-
-```
-yarn all-contributors generate
-
-```
 
 ## License
 

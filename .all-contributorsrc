@@ -1,0 +1,56 @@
+{
+  "projectName": "webclades",
+  "projectOwner": "neherlab",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "contributorsSortAlphabetically": true,
+  "skipCi": true,
+  "contributors": [
+    {
+      "login": "rneher",
+      "name": "Richard Neher",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/8379168?v=4",
+      "profile": "https://github.com/rneher",
+      "contributions": [
+        "code",
+        "data",
+        "design",
+        "ideas",
+        "bug",
+        "content",
+        "doc",
+        "maintenance",
+        "translation",
+        "test",
+        "talk",
+        "review"
+      ]
+    },
+    {
+      "login": "ivan-aksamentov",
+      "name": "Ivan Aksamentov",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/9403403?v=4",
+      "profile": "https://github.com/ivan-aksamentov",
+      "contributions": [
+        "code",
+        "data",
+        "design",
+        "ideas",
+        "bug",
+        "content",
+        "doc",
+        "maintenance",
+        "translation",
+        "test",
+        "talk",
+        "review"
+      ]
+    }
+  ],
+  "repoType": "github",
+  "contributorsPerLine": 7,
+  "repoHost": "https://github.com",
+  "commitConvention": "angular"
+}
