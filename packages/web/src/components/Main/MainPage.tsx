@@ -129,9 +129,7 @@ export function MainDisconnected({
         <Row noGutters className="hero-bg text-center">
           <Col>
             <Title />
-            <h2 className="hero-h2 mt-4">
-              {t('Clade assignment, mutation calling, and quality control right inside your browser')}
-            </h2>
+            <h2 className="hero-h2 mt-4">{t('Clade assignment, mutation calling, and sequence quality checks')}</h2>
           </Col>
         </Row>
 

@@ -3,7 +3,7 @@ Nextclade
 </h1>
 
 <h4 id="nextclade" align="center">
-Clade assignment, mutation calling, and quality control right inside your browser
+Clade assignment, mutation calling, and sequence quality checks
 </h1>
 
 <p align="center">
