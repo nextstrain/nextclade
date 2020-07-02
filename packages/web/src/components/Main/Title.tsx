@@ -1,4 +1,6 @@
 import React from 'react'
+
+import { Badge } from 'reactstrap'
 import styled from 'styled-components'
 
 import { TITLE_COLORS } from 'src/constants'
@@ -16,6 +18,14 @@ const TitleH1 = styled.h1`
     font-size: 82px;
   }
 `
+
+const VersionBadge = styled(Badge)`
+  position: relative;
+  top: -50px;
+  left: -5px;
+  font-size: 1.1rem;
+`
+
 const LetterSpan = styled.span<{ pos: number }>`
   color: ${(props) => TITLE_COLORS[props.pos]};
 `
@@ -28,5 +38,6 @@ export const Title = () => (
         {letter}
       </LetterSpan>
     ))}
+    <VersionBadge color="secondary">{'beta'}</VersionBadge>
   </TitleH1>
 )
