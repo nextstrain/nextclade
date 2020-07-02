@@ -20,7 +20,6 @@ export enum AlgorithmStatus {
   parsingFailed = 'parsingFailed',
   analysisStarted = 'analysisStarted',
   done = 'done',
-  failed = 'failed',
 }
 
 export enum AnylysisStatus {
@@ -34,6 +33,7 @@ export interface SequenceAnylysisState {
   status: AnylysisStatus
   seqName: string
   result?: AnalysisResult
+  errors: string[]
 }
 
 export interface AlgorithmState {
@@ -42,7 +42,7 @@ export interface AlgorithmState {
   params: AlgorithmParams
   isDirty: boolean
   results: SequenceAnylysisState[]
-  error?: Error
+  errors: string[]
 }
 
 export const agorithmDefaultState: AlgorithmState = {
@@ -53,5 +53,5 @@ export const agorithmDefaultState: AlgorithmState = {
   },
   isDirty: true,
   results: [],
-  error: undefined,
+  errors: [],
 }

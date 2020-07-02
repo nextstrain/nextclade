@@ -1,7 +1,9 @@
+import { DeepWritable } from 'ts-essentials'
+
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
 import { algorithmRunAsync, analyzeAsync, parseAsync, setInput, setInputFile, setIsDirty } from './algorithm.actions'
-import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus } from './algorithm.state'
+import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus, SequenceAnylysisState } from './algorithm.state'
 
 import immerCase from '../util/fsaImmerReducer'
 
@@ -41,11 +43,7 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
     }),
   )
 
-  .withHandling(
-    immerCase(algorithmRunAsync.failed, (draft) => {
-      draft.status = AlgorithmStatus.failed
-    }),
-  )
+  .withHandling(immerCase(algorithmRunAsync.failed, (draft, { params }) => {}))
 
   // parse
   .withHandling(
@@ -57,7 +55,7 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(parseAsync.done, (draft, { result }) => {
       draft.status = AlgorithmStatus.parsingDone
-      const resultState = result.map((seqName) => ({ status: AnylysisStatus.idling, seqName }))
+      const resultState = result.map((seqName) => ({ status: AnylysisStatus.idling, seqName, errors: [] }))
       draft.results = resultState
     }),
   )
@@ -65,7 +63,7 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(parseAsync.failed, (draft, { error }) => {
       draft.status = AlgorithmStatus.parsingFailed
-      draft.error = error
+      draft.errors.push(error.message)
     }),
   )
 
@@ -81,19 +79,18 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
 
   .withHandling(
     immerCase(analyzeAsync.done, (draft, { params: { seqName }, result }) => {
-      draft.results = draft.results.map((oldResult) =>
-        oldResult.seqName === seqName
-          ? { ...oldResult, error: undefined, result, status: AnylysisStatus.done }
-          : oldResult,
-      )
+      draft.results = (draft.results.map((oldResult: DeepWritable<SequenceAnylysisState>) =>
+        oldResult.seqName === seqName ? { ...oldResult, errors: [], result, status: AnylysisStatus.done } : oldResult,
+      ) as unknown) as DeepWritable<SequenceAnylysisState>[]
     }),
   )
 
   .withHandling(
     immerCase(analyzeAsync.failed, (draft, { params: { seqName }, error }) => {
-      draft.status = AlgorithmStatus.failed
       draft.results = draft.results.map((oldResult) =>
-        oldResult.seqName === seqName ? { ...oldResult, error, status: AnylysisStatus.failed } : oldResult,
+        oldResult.seqName === seqName
+          ? { ...oldResult, errors: [error.message], status: AnylysisStatus.failed }
+          : oldResult,
       )
     }),
   )

@@ -13,7 +13,7 @@ export interface SequenceStatus {
 }
 
 export interface ResultsStatusProps {
-  status: { percent: number; statusText: string }
+  status: { percent: number; statusText: string; failureText?: string }
 }
 
 const mapStateToProps = (state: State) => ({
@@ -25,11 +25,27 @@ const mapDispatchToProps = {}
 export const ResultsStatus = connect(mapStateToProps, mapDispatchToProps)(ResultsStatusDisconnected)
 
 export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
-  const { percent, statusText } = status
-  const color = percent === 100 ? 'transparent' : undefined
+  const { percent, statusText, failureText } = status
+
+  let color = percent === 0 || percent === 100 ? 'transparent' : undefined
+  if (failureText) {
+    color = 'danger'
+  }
+
+  let text = <span>{statusText}</span>
+  if (failureText) {
+    text = (
+      <>
+        <span>{statusText}</span>
+        <span>{'. '}</span>
+        <span className="text-danger">{failureText}</span>
+      </>
+    )
+  }
+
   return (
     <div>
-      <div className="text-right">{statusText}</div>
+      <div className="text-right">{text}</div>
       <Progress color={color} value={percent} />
     </div>
   )
