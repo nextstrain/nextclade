@@ -63,7 +63,7 @@ export function serializeResultsToJson(results: SequenceAnylysisState[]) {
 export function serializeResultsToCsv(results: SequenceAnylysisState[]) {
   const data = results.map(({ seqName, status, errors, result }) => {
     if (!result) {
-      return { seqName, errors: [...errors, 'foobar', 'comma,aaa'].map((e) => `"${e}"`).join(',') }
+      return { seqName, errors: errors.map((e) => `"${e}"`).join(',') }
     }
 
     const {
