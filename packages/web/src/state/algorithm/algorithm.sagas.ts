@@ -28,7 +28,6 @@ import {
   setInputFile,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
