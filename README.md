@@ -13,7 +13,7 @@ Clade assignment, mutation calling, and quality control right inside your browse
 </p>
 
 <blockquote align="center">
-Nextclade is a simple web-tool to assign <a target="_blank" rel="noopener noreferrer" href="https://nextstrain.org">Nextstrain</a> <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Clade">clade</a> to the <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Severe_acute_respiratory_syndrome_coronavirus_2">SARS-CoV-2</a> <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/DNA_sequencing">sequences</a>.
+Nextclade is a simple web-tool to assign <a target="_blank" rel="noopener noreferrer" href="https://nextstrain.org">Nextstrain</a> <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Clade">clades</a> to <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/Severe_acute_respiratory_syndrome_coronavirus_2">SARS-CoV-2</a> <a target="_blank" rel="noopener noreferrer" href="https://en.wikipedia.org/wiki/DNA_sequencing">sequences</a>.
 </blockquote>
 
 <p align="center">
