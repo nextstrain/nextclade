@@ -163,10 +163,26 @@ yarn prod:watch
 This should build the application in production mode and start a static server that will serve the app on
 `http://localhost:8080` (by default)
 
+## Sponsors
+
+We are thankful to:
+
+<table>
+<tr>
+<td align="center">
+<a target="_blank" rel="noopener noreferrer" href="https://vercel.com/?utm_source=nextstrain">
+<img src="packages/web/src/assets/img/powered-by-vercel.svg" width="200px" alt="Vercel logo" />
+</a>
+</td>
+<td align="center">
+Vercel for sponsoring our builds on their platform
+</td>
+</tr>
+</table>
+
 ## ✨ Contributors
 
-We are thankful to all our contributors, no matter how they contribute: in ideas, science, code, documentation or
-otherwise. Thanks goes to these wonderful people (<a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">emoji key</a>):
+We are thankful to all our contributors, no matter how they contribute: in ideas, science, code, documentation or otherwise. Thanks goes to these people (<a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">emoji key</a>):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -180,6 +196,7 @@ otherwise. Thanks goes to these wonderful people (<a target="_blank" rel="noopen
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the <a target="_blank" rel="noopener noreferrer" href="https://github.com/all-contributors/all-contributors">all-contributors</a> specification. Contributions of any kind welcome!
