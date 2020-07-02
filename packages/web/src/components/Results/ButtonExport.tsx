@@ -41,7 +41,9 @@ const mapStateToProps = (state: State) => ({
   exportFormat: state.ui.exportFormat,
   canExport:
     state.algorithm.results.length > 0 &&
-    state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
+    state.algorithm.results.every(
+      (result) => result.status === AnylysisStatus.done || result.status === AnylysisStatus.failed,
+    ),
 })
 
 const mapDispatchToProps = {
