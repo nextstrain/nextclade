@@ -87,10 +87,21 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
 
   .withHandling(
     immerCase(analyzeAsync.failed, (draft, { params: { seqName }, error }) => {
-      draft.results = draft.results.map((oldResult) =>
-        oldResult.seqName === seqName
-          ? { ...oldResult, errors: [error.message], status: AnylysisStatus.failed }
-          : oldResult,
-      )
+      draft.results = draft.results.map(handleFailure(seqName, error))
     }),
   )
+
+const handleFailure = (seqName: string, error: Error) => (
+  oldResult: DeepWritable<SequenceAnylysisState>,
+): DeepWritable<SequenceAnylysisState> => {
+  if (oldResult.seqName === seqName) {
+    return {
+      ...oldResult,
+      seqName,
+      errors: [error.message],
+      result: undefined,
+      status: AnylysisStatus.failed,
+    }
+  }
+  return oldResult
+}

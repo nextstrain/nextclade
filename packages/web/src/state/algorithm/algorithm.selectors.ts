@@ -5,7 +5,7 @@ import { AlgorithmStatus, AnylysisStatus } from 'src/state/algorithm/algorithm.s
 
 export const selectParams = (state: State) => state.algorithm.params
 
-export const selectResults = (state: State) => state.algorithm.results.map((r) => r.result)
+export const selectResults = (state: State) => state.algorithm.results
 
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 

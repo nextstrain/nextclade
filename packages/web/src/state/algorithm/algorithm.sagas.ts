@@ -28,6 +28,7 @@ import {
   setInputFile,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
+import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
@@ -109,13 +110,13 @@ export function* workerAlgorithmRun(content?: File | string) {
 }
 
 export function* exportCsv() {
-  const results = (yield select(selectResults) as unknown) as AnalysisResult[]
+  const results = (yield select(selectResults) as unknown) as ReturnType<typeof selectResults>
   const str = serializeResultsToCsv(results)
   saveFile(str, EXPORT_CSV_FILENAME)
 }
 
 export function* exportJson() {
-  const results = (yield select(selectResults) as unknown) as AnalysisResult[]
+  const results = (yield select(selectResults) as unknown) as ReturnType<typeof selectResults>
   const str = serializeResultsToJson(results)
   saveFile(str, EXPORT_JSON_FILENAME)
 }
