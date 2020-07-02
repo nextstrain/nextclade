@@ -14,7 +14,7 @@
   "Alignment start: {{alnStart}}": "Inicio de alineación: {{alnStart}}",
   "Aminoacid changes ({{totalChanges}})": "Cambios de aminoácidos ({{totalChanges}})",
   "Analysing sequences: {{done}}/{{total}}": "Analizando secuencias: {{done}} / {{total}}",
-  "Back": "Espalda",
+  "Back": "Volver",
   "Biozentrum": "Biozentrum",
   "Check your data against Nextstrain's QC metrics": "Verifique sus datos con las métricas de control de calidad de Nextstrain",
   "Clade": "Clade",
