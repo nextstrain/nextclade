@@ -74,7 +74,7 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
 
   if (seedMatches.length < 2) {
     // TODO: throw concrete instances of errors, catch and diasplay in the UI
-    throw new Error(`alignPairwise: unable to align`)
+    throw new Error(`alignPairwise: unable to find seed matches`)
   }
 
   // given the seed matches, determine the maximal and minimal shifts
@@ -271,7 +271,9 @@ export function alignPairwise(query: string, ref: string): Alignment {
   const { bandWidth, meanShift } = seedAlignment(query, ref)
   if (bandWidth > 400) {
     // TODO: throw concrete instances of errors, catch and diasplay in the UI
-    throw new Error(`alignPairwise: unable to align -- too many gaps`)
+    throw new Error(
+      `alignPairwise: unable to align -- too many insertions/deletions, duplications, or ambiguous seed matches`,
+    )
   }
   const { paths, scores } = scoreMatrix(query, ref, bandWidth, meanShift)
 

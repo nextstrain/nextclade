@@ -35,7 +35,18 @@ export function ResultDisconnected({ result }: ResultProps) {
 
   const genomeSize = GENOME_SIZE // FIXME: deduce from sequences
 
-  const sequenceItems = result.map(({ status, seqName, result: sequence }, i) => {
+  const sequenceItems = result.map(({ status, seqName, errors, result: sequence }, i) => {
+    if (errors.length > 0) {
+      return (
+        <tr className="results-table-row results-table-danger" key={seqName}>
+          <ColumnName seqName={seqName} sequence={sequence} />
+          <td colSpan={7} className="results-table-col results-table-col-clade">
+            {errors}
+          </td>
+        </tr>
+      )
+    }
+
     if (!sequence) {
       return (
         <tr className="results-table-row" key={seqName}>
