@@ -61,8 +61,8 @@ Nextclade is a simple web-tool to assign <a target="_blank" rel="noopener norefe
     <img src="https://img.shields.io/travis/neherlab/webclades/master?label=build%3Amaster" alt="Travis CI master" />
   </a>
 
-  <a href="https://snyk.io/test/github/neherlab/webclades?targetFile=package.json">
-    <img src="https://snyk.io/test/github/neherlab/webclades/badge.svg?targetFile=package.json" alt="Snyk">
+  <a href="https://snyk.io/test/github/neherlab/webclades?targetFile=packages/web/package.json">
+    <img src="https://snyk.io/test/github/neherlab/webclades/master/badge.svg?targetFile=packages/web/package.json" alt="Snyk">
   </a>
   <a href="https://securityheaders.com/?q=clades.nextstrain.org&followRedirects=on">
     <img src="https://img.shields.io/security-headers?url=https%3A%2F%2Fclades.nextstrain.org" alt="Security Headers" />
