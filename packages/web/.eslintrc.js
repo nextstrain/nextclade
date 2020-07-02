@@ -111,6 +111,7 @@ module.exports = {
     'only-ascii/only-ascii': 'warn',
     'prefer-for-of': 'off',
     'prettier/prettier': 'warn',
+    'react-redux/no-unused-prop-types': 'off',
     'react-redux/prefer-separate-component-file': 'off',
     'react/jsx-curly-brace-presence': 'off',
     'react/jsx-filename-extension': ['warn', { extensions: ['.js', '.jsx', '.ts', '.tsx'] }],
