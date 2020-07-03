@@ -11,14 +11,6 @@
   background-color: $body-bg;
 }
 
-.hero-bg {
-  .hero-h2 {
-    font-weight: 300;
-    font-size: 30px;
-    color: $gray-800;
-  }
-}
-
 .hero-content {
   text-align: center;
 
@@ -73,8 +65,11 @@
 
 .main-info-section {
   .main-dev-alert {
-    width: 50%;
     filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
+
+    @media (min-width: 780px) {
+      width: 50%;
+    }
   }
 }
 
