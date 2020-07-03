@@ -54,6 +54,8 @@
   "dependencies": {
     "@mdx-js/loader": "1.6.6",
     "@mdx-js/react": "1.6.6",
+    "@types/react-table": "7.0.19",
+    "@types/react-window": "1.8.2",
     "animate.css": "4.1.0",
     "autoprefixer": "9.8.4",
     "bootstrap": "4.5.0",
@@ -85,6 +87,8 @@
     "react-if": "3.4.3",
     "react-redux": "7.2.0",
     "react-resize-detector": "5.0.6",
+    "react-table": "7.2.2",
+    "react-window": "1.8.5",
     "reactstrap": "8.5.1",
     "recharts": "2.0.0-beta.6",
     "redux": "4.0.5",
