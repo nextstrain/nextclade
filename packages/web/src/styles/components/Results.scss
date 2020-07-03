@@ -1,5 +1,9 @@
 @import '../variables';
 
+.results-page-container {
+  min-width: 992px;
+}
+
 .btn-refresh,
 .btn-export {
   width: 160px;

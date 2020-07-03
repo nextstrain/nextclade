@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Button, Card, CardBody, CardFooter, CardHeader, Col, Row } from 'reactstrap'
+import { Button, Card, CardBody, CardFooter, CardHeader, Col, Row, Container } from 'reactstrap'
 import { FaCaretLeft } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
@@ -36,51 +36,53 @@ export function ResultsPageDisconnected({ params, setInput, goBack }: MainProps)
   const { t } = useTranslation()
 
   return (
-    <Row noGutters>
-      <Col>
-        <Row>
-          <Col className="d-flex">
-            <div className="mr-auto">
-              <Button color="secondary" className="results-btn-back" onClick={goBack}>
-                <FaCaretLeft />
-                {t('Back')}
-              </Button>
-            </div>
-          </Col>
-        </Row>
+    <Container fluid className="results-page-container">
+      <Row noGutters>
+        <Col>
+          <Row>
+            <Col className="d-flex">
+              <div className="mr-auto">
+                <Button color="secondary" className="results-btn-back" onClick={goBack}>
+                  <FaCaretLeft />
+                  {t('Back')}
+                </Button>
+              </div>
+            </Col>
+          </Row>
 
-        <Row>
-          <Col>
-            <ResultsStatus />
-          </Col>
-        </Row>
+          <Row>
+            <Col>
+              <ResultsStatus />
+            </Col>
+          </Row>
 
-        <Row>
-          <Col>
-            <Card className="mt-1 mb-1">
-              <CardHeader>{t('Results')}</CardHeader>
+          <Row>
+            <Col>
+              <Card className="mt-1 mb-1">
+                <CardHeader>{t('Results')}</CardHeader>
 
-              <CardBody>
-                <Row>
-                  <Col>
-                    <ResultsTable />
-                  </Col>
-                </Row>
-              </CardBody>
+                <CardBody>
+                  <Row>
+                    <Col>
+                      <ResultsTable />
+                    </Col>
+                  </Row>
+                </CardBody>
 
-              <CardFooter>
-                <Row>
-                  <Col className="d-flex w-100">
-                    <div className="ml-auto">
-                      <ButtonExport />
-                    </div>
-                  </Col>
-                </Row>
-              </CardFooter>
-            </Card>
-          </Col>
-        </Row>
-      </Col>
-    </Row>
+                <CardFooter>
+                  <Row>
+                    <Col className="d-flex w-100">
+                      <div className="ml-auto">
+                        <ButtonExport />
+                      </div>
+                    </Col>
+                  </Row>
+                </CardFooter>
+              </Card>
+            </Col>
+          </Row>
+        </Col>
+      </Row>
+    </Container>
   )
 }
