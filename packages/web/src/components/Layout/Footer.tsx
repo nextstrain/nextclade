@@ -2,64 +2,53 @@ import React from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { Col, Container, Row } from 'reactstrap'
+import styled from 'styled-components'
 
 import { PROJECT_NAME, COMPANY_NAME } from 'src/constants'
 import { getCopyrightYearRange } from 'src/helpers/getCopyrightYearRange'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
-import { ReactComponent as LogoNeherlab } from 'src/assets/img/neherlab.svg'
-import { ReactComponent as LogoBiozentrum } from 'src/assets/img/biozentrum.svg'
-import { ReactComponent as LogoUnibas } from 'src/assets/img/unibas.svg'
 import { ReactComponent as LogoVercel } from 'src/assets/img/powered-by-vercel.svg'
 import { getVersionString } from 'src/helpers/getVersionString'
+
+const FooterContainer = styled(Container)`
+  background-color: #2a2a2a;
+  color: #c4cdd5;
+`
+
+const VersionText = styled.div`
+  font-size: 0.75rem;
+`
+
+const CopyrightText = styled.div`
+  font-size: 0.75rem;
+`
 
 export default function Footer() {
   const { t } = useTranslation()
   const copyrightYearRange = getCopyrightYearRange()
 
   return (
-    <Container fluid className="py-3">
+    <FooterContainer fluid tag="footer">
       <Row noGutters>
-        <Col xs={12} md={4}>
-          <div>
+        <Col className="d-flex">
+          <CopyrightText className="mr-auto my-auto">
             {t('{{PROJECT_NAME}} (c) {{copyrightYearRange}} {{COMPANY_NAME}}', {
               PROJECT_NAME,
               copyrightYearRange,
               COMPANY_NAME,
             })}
-          </div>
-          <div>{t('Biozentrum')}</div>
-          <div>{t('University of Basel')}</div>
-        </Col>
-        <Col>
-          <Row>
-            <Col style={{ padding: '15px 10px', margin: '10px 10px' }}>
-              <LinkExternal url="">
-                <LogoNeherlab height={35} />
-              </LinkExternal>
-            </Col>
-            <Col style={{ backgroundColor: '#777', padding: '15px 10px', margin: '10px 10px' }}>
-              <LinkExternal url="">
-                <LogoBiozentrum height={35} />
-              </LinkExternal>
-            </Col>
-            <Col style={{ backgroundColor: '#777', padding: '15px 10px', margin: '10px 10px' }}>
-              <LinkExternal url="">
-                <LogoUnibas height={35} />
-              </LinkExternal>
-            </Col>
-            <Col style={{ padding: '15px 10px', margin: '10px 10px' }}>
-              <LinkExternal url="https://vercel.com/?utm_source=nextstrain">
-                <LogoVercel height={30} />
-              </LinkExternal>
-            </Col>
-          </Row>
-        </Col>
+          </CopyrightText>
 
-        <Col xs={12} md={6} className="d-flex justify-content-center justify-content-md-end align-items-center">
-          <small className="text-gray-light">{getVersionString()}</small>
+          <div className="mx-auto mt-2 mb-1">
+            <LinkExternal className="my-auto" url="https://vercel.com/?utm_source=nextstrain">
+              <LogoVercel height={25} />
+            </LinkExternal>
+          </div>
+
+          <VersionText className="ml-auto my-auto">{getVersionString()}</VersionText>
         </Col>
       </Row>
-    </Container>
+    </FooterContainer>
   )
 }
