@@ -13,14 +13,12 @@ export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>
       </header>
 
       <div className="row main-wrapper">
-        <main className="main container-fluid absolute" role="main">
+        <main className="container-fluid" role="main">
           {children}
         </main>
       </div>
 
-      <footer className="row d-print-none footer">
-        <Footer />
-      </footer>
+      <Footer />
     </Container>
   )
 }
