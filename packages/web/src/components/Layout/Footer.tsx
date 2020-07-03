@@ -20,23 +20,59 @@ import { ReactComponent as LogoVercel } from 'src/assets/img/powered-by-vercel.s
 const FooterContainer = styled(Container)`
   background-color: #2a2a2a;
   color: #c4cdd5;
-  padding: 5px 10px;
+  padding: 7px 10px;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
 `
 
-const LogoContainer = styled.div``
-
-const VersionText = styled.div`
+const CopyrightText = styled.div`
   font-size: 0.75rem;
+  flex-grow: 1;
+
+  @media (max-width: 576px) {
+    font-size: 0.5rem;
+  }
+`
+
+const LogoContainer = styled.div`
+  flex-grow: 1;
+  text-align: right;
 `
 
 const LogoLink = styled(LinkExternal)`
   padding: 10px 20px;
+
+  svg {
+    height: 20px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 5px 4px;
+    flex-grow: 1;
+
+    svg {
+      height: 20px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    padding: 5px 5px;
+    flex-grow: 1;
+
+    svg {
+      height: 20px;
+    }
+  }
 `
 
-const CopyrightText = styled.div`
+const VersionText = styled.div`
+  flex-grow: 1;
   font-size: 0.75rem;
+  text-align: right;
+
+  @media (max-width: 992px) {
+    display: none;
+  }
 `
 
 export default function Footer() {
@@ -57,23 +93,23 @@ export default function Footer() {
 
           <LogoContainer className="mx-auto">
             <LogoLink url="https://neherlab.org">
-              <LogoNeherlab height={35} />
+              <LogoNeherlab />
             </LogoLink>
 
             <LogoLink url="https://www.biozentrum.unibas.ch">
-              <LogoBiozentrum height={27} />
+              <LogoBiozentrum />
             </LogoLink>
 
             <LogoLink url="https://bedford.io">
-              <LogoBedfordlab height={27} />
+              <LogoBedfordlab />
             </LogoLink>
 
             <LogoLink url="https://www.fredhutch.org">
-              <LogoFredHutch height={27} />
+              <LogoFredHutch />
             </LogoLink>
 
             <LogoLink className="my-auto" url="https://vercel.com/?utm_source=nextstrain">
-              <LogoVercel height={25} />
+              <LogoVercel />
             </LogoLink>
           </LogoContainer>
 
