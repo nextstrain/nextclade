@@ -117,7 +117,7 @@ export function MainDisconnected({
   )
 
   return (
-    <Row noGutters className="landing-page-row">
+    <Row noGutters className="landing-page-row mx-auto">
       <Col>
         <div className="mr-auto main-to-results-btn">
           <Button hidden={isDirty} color="secondary" className="results-btn-back" onClick={goToResults}>
@@ -129,14 +129,14 @@ export function MainDisconnected({
         <Row noGutters className="hero-bg text-center">
           <Col>
             <Title />
-            <h2 className="hero-h2 mt-4">{t('Clade assignment, mutation calling, and sequence quality checks')}</h2>
+            <h2 className="hero-h2">{t('Clade assignment, mutation calling, and sequence quality checks')}</h2>
           </Col>
         </Row>
 
         <div className="hero-content">
           <Row noGutters>
             <Col xl={6} className="px-lg-4 hero-content-right">
-              <Row noGutters className="mx-auto w-70 text-center">
+              <Row noGutters className="mx-auto text-center">
                 <Col md={6} className="mb-2">
                   <div className="mx-2 hero-feature-box hero-feature-box-top">
                     <h3 className="hero-h3">{t('Simple')}</h3>
@@ -247,7 +247,7 @@ export function MainDisconnected({
           </Row>
         </div>
 
-        <Row className="main-info-section">
+        <Row className="mt-lg-4 mt-md-2 main-info-section">
           <Col>
             <Container>
               <Row noGutters>
