@@ -59,6 +59,7 @@
     "bootstrap": "4.5.0",
     "classnames": "2.2.6",
     "connected-next-router": "3.1.0",
+    "core-js": "3.6.5",
     "countries-list": "2.5.4",
     "fasy": "7.0.1",
     "file-saver": "2.0.2",
@@ -271,6 +272,7 @@
     "yaml-loader": "0.6.0"
   },
   "resolutions": {
+    "core-js": "3.6.5",
     "lodash": "4.17.15",
     "moment": "2.27.0",
     "styled-components": "5.1.1",
