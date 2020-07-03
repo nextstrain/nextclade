@@ -135,40 +135,50 @@ export function MainDisconnected({
 
         <div className="hero-content">
           <Row noGutters>
-            <Col xl={6} className="px-4 hero-content-right">
+            <Col xl={6} className="px-lg-4 hero-content-right">
               <Row noGutters className="mx-auto w-70 text-center">
-                <Col className="mx-2 hero-feature-box hero-feature-box-top">
-                  <h3 className="hero-h3">{t('Simple')}</h3>
-                  <div className="small">{t('No installation or setup - drop a file and see the results')}</div>
-                </Col>
-
-                <Col className="mx-2 hero-feature-box hero-feature-box-top">
-                  <h3 className="hero-h3 text-center">{t('Private')}</h3>
-                  <div className="small">{t('No remote processing - sequence data never leaves your computer')}</div>
-                </Col>
-              </Row>
-
-              <Row noGutters className="mx-auto w-70 text-center my-4">
-                <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
-                  <h3 className="hero-h3">{t('Mutation Calling')}</h3>
-                  <div className="small">
-                    {t('Find differences of your sequences relative to the reference in standard numbering')}
+                <Col md={6} className="mb-2">
+                  <div className="mx-2 hero-feature-box hero-feature-box-top">
+                    <h3 className="hero-h3">{t('Simple')}</h3>
+                    <div className="small">{t('No installation or setup - drop a file and see the results')}</div>
                   </div>
                 </Col>
 
-                <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
-                  <h3 className="hero-h3">{t('Clade Assignment')}</h3>
-                  <div className="small">{t('Find out in which Nextstrain clades your samples are from')}</div>
+                <Col md={6} className="mb-2">
+                  <div className="mx-2 hero-feature-box hero-feature-box-top">
+                    <h3 className="hero-h3 text-center">{t('Private')}</h3>
+                    <div className="small">{t('No remote processing - sequence data never leaves your computer')}</div>
+                  </div>
+                </Col>
+              </Row>
+
+              <Row noGutters className="text-center my-4">
+                <Col md={4} className="mb-2">
+                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                    <h3 className="hero-h3">{t('Mutation Calling')}</h3>
+                    <div className="small">
+                      {t('Find differences of your sequences relative to the reference in standard numbering')}
+                    </div>
+                  </div>
                 </Col>
 
-                <Col className="mx-2 hero-feature-box hero-feature-box-bottom">
-                  <h3 className="hero-h3">{t('Quality Control')}</h3>
-                  <div className="small">{t("Check your data against Nextstrain's QC metrics")}</div>
+                <Col md={4} className="mb-2">
+                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                    <h3 className="hero-h3">{t('Clade Assignment')}</h3>
+                    <div className="small">{t('Find out in which Nextstrain clades your samples are from')}</div>
+                  </div>
+                </Col>
+
+                <Col md={4} className="mb-2">
+                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                    <h3 className="hero-h3">{t('Quality Control')}</h3>
+                    <div className="small">{t("Check your data against Nextstrain's QC metrics")}</div>
+                  </div>
                 </Col>
               </Row>
             </Col>
 
-            <Col xl={6} className="px-4 hero-content-left">
+            <Col xl={6} className="px-lg-4 hero-content-left">
               <div className="hero-content-left-card">
                 <Row>
                   <Col>
