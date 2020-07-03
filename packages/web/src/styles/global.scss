@@ -43,6 +43,7 @@ body {
 .main-container {
   height: 100%;
   background-color: $body-bg;
+  min-width: 320px;
 }
 
 .progress {
