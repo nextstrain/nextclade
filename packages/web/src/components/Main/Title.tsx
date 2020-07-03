@@ -14,8 +14,13 @@ const TitleH1 = styled.h1`
   font-weight: 300;
   letter-spacing: -1px;
   font-size: 106px;
+
   @media (max-width: 780px) {
     font-size: 82px;
+  }
+
+  @media (max-width: 560px) {
+    font-size: 60px;
   }
 `
 
