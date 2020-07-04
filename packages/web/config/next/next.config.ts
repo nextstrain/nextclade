@@ -132,7 +132,6 @@ const withTranspileModules = getWithTranspileModules([
 
 const config = withPlugins(
   [
-    PRODUCTION && [withTranspileModules],
     [withEnvironment],
     [withExtraWatch],
     [withThreads],
@@ -143,6 +142,7 @@ const config = withPlugins(
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
     [withLodash],
     [withTypeChecking],
+    PRODUCTION && [withTranspileModules],
     PRODUCTION && [withStaticComprression],
     // [withoutMinification],
   ].filter(Boolean),
