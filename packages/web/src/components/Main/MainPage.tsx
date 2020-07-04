@@ -251,7 +251,7 @@ export function MainDisconnected({
               <Col className="text-center">
                 <Alert color="warning" fade={false} className="d-inline-flex mx-auto main-dev-alert">
                   <Row>
-                    <Col lg={1} md={3} sm={2} className="my-auto">
+                    <Col lg={2} md={3} sm={2} className="my-auto">
                       <MdWarning size={45} />
                     </Col>
                     <Col className="small text-left over">
