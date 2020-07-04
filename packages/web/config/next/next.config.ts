@@ -4,6 +4,7 @@ import type { NextConfig } from 'next'
 import getWithMDX from '@next/mdx'
 // import withBundleAnalyzer from '@zeit/next-bundle-analyzer'
 import withPlugins from 'next-compose-plugins'
+import getWithTranspileModules from 'next-transpile-modules'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getGitBranch } from '../../lib/getGitBranch'
@@ -22,6 +23,7 @@ import getWithTypeChecking from './withTypeChecking'
 import withRaw from './withRaw'
 import withSvg from './withSvg'
 import withThreads from './withThreads'
+// import withoutMinification from './withoutMinification'
 
 const {
   BABEL_ENV,
@@ -102,8 +104,35 @@ const withTypeChecking = getWithTypeChecking({
   memoryLimit: 2048,
 })
 
+const withTranspileModules = getWithTranspileModules([
+  '!d3-array/src/cumsum.js',
+  '@loadable',
+  'create-color',
+  'd3-array',
+  'd3-scale',
+  'debug',
+  'delay',
+  'immer',
+  'lodash',
+  'observable-fns',
+  'p-min-delay',
+  'proper-url-join',
+  'query-string',
+  'react-router',
+  'is-observable',
+  'react-share',
+  'recharts',
+  'redux-saga',
+  'redux/es',
+  'semver',
+  'split-on-first',
+  'strict-uri-encode',
+  'threads',
+])
+
 const config = withPlugins(
   [
+    PRODUCTION && [withTranspileModules],
     [withEnvironment],
     [withExtraWatch],
     [withThreads],
@@ -115,6 +144,7 @@ const config = withPlugins(
     [withLodash],
     [withTypeChecking],
     PRODUCTION && [withStaticComprression],
+    // [withoutMinification],
   ].filter(Boolean),
   nextConfig,
 )
