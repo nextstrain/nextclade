@@ -1,4 +1,3 @@
-import 'core-js'
 import 'regenerator-runtime'
 
 import type { FunctionThread } from 'threads'
