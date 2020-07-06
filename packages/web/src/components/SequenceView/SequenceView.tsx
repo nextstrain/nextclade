@@ -1,6 +1,7 @@
 import React from 'react'
 
 import ReactResizeDetector from 'react-resize-detector'
+import AutoSizer from 'react-virtualized-auto-sizer'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 
@@ -18,13 +19,24 @@ export function SequenceView({ sequence }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions } = sequence
 
   return (
-    <ReactResizeDetector handleWidth refreshRate={300} refreshMode="debounce">
-      {({ width: widthPx }: { width?: number }) => {
-        if (!widthPx) {
-          return <div className="w-100 h-100" />
+    <ReactResizeDetector handleHeight nodeType="td">
+      {({ width }) => {
+        console.log({ width })
+        // console.log({ par })
+
+        // const { width: widthPx } = par
+
+        if (!width) {
+          // return <div className="w-100 h-100" />
+
+          return (
+            <div className="sequence-view-wrapper d-inline-flex w-100 h-100">
+              <svg className="sequence-view-body" viewBox={`0 0 10 10`} />
+            </div>
+          )
         }
 
-        const pixelsPerBase = widthPx / GENOME_SIZE
+        const pixelsPerBase = width / GENOME_SIZE
 
         const mutationViews = substitutions.map((substitution) => {
           return (
@@ -60,8 +72,8 @@ export function SequenceView({ sequence }: SequenceViewProps) {
         })
 
         return (
-          <div className="sequence-view-wrapper d-inline-flex">
-            <svg className="sequence-view-body" viewBox={`0 0 ${widthPx} 10`}>
+          <div className="sequence-view-wrapper d-inline-flex w-100 h-100">
+            <svg className="sequence-view-body" viewBox={`0 0 ${width} 10`}>
               <rect className="sequence-view-background" x={0} y={-10} width={GENOME_SIZE} height="30" />
               {mutationViews}
               {missingViews}

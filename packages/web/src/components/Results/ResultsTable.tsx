@@ -1,120 +1,210 @@
-import React from 'react'
+import React, { HTMLProps, memo, PropsWithChildren, ReactPropTypes } from 'react'
 
 import { connect } from 'react-redux'
-import { Table } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
+import { FixedSizeList, areEqual, ListChildComponentProps } from 'react-window'
+import memoize from 'memoize-one'
+import AutoSizer from 'react-virtualized-auto-sizer'
+import ReactResizeDetector from 'react-resize-detector'
+import classNames from 'classnames'
+import styled from 'styled-components'
 
-import type { State } from 'src/state/reducer'
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
-
-import { GeneMap } from 'src/components/GeneMap/GeneMap'
-import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
-import { GENOME_SIZE, SequenceView } from 'src/components/SequenceView/SequenceView'
-import { ColumnGaps } from 'src/components/Results/ColumnGaps'
-import { ColumnMissing } from 'src/components/Results/ColumnMissing'
+import { ButtonBack } from 'src/components/Results/ButtonBack'
+import { ButtonExport } from 'src/components/Results/ButtonExport'
 import { ColumnName } from 'src/components/Results/ColumnName'
-import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnQCStatus } from 'src/components/Results/ColumnQCStatus'
+import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnMutations } from 'src/components/Results/ColumnMutations'
 import { ColumnNonACGTNs } from 'src/components/Results/ColumnNonACGTNs'
+import { ColumnMissing } from 'src/components/Results/ColumnMissing'
+import { ColumnGaps } from 'src/components/Results/ColumnGaps'
+import { SequenceView } from 'src/components/SequenceView/SequenceView'
+import { range } from 'lodash'
 
-const mapStateToProps = (state: State) => ({
-  result: state.algorithm.results,
-})
+const ROW_HEIGHT = 30
+const HEADER_ROW_HEIGHT = 50
 
-const mapDispatchToProps = {}
+const Table = styled.div`
+  width: 100%;
+  height: 100%;
+  //background-color: #c3dfad;
+  //border: #79bf47 solid 3px;
+`
 
-export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultDisconnected)
+const TableHeaderRow = styled.div`
+  display: flex;
+  height: ${HEADER_ROW_HEIGHT}px;
+  overflow-y: scroll;
+`
 
-export interface ResultProps {
-  result: SequenceAnylysisState[]
-}
+const TableHeaderCell = styled.div`
+  flex-basis: ${(props) => (props?.basis ? `${props?.basis}%` : '5%')};
+  flex-grow: ${(props) => props?.grow ?? 1};
+  flex-shrink: 1;
+  background-color: #cdc4da;
+  border: #7b47c3 solid 1px;
+  //overflow: hidden;
+  z-index: 1000;
+`
 
-export function ResultDisconnected({ result }: ResultProps) {
+const TableRow = styled.div`
+  display: flex;
+  background-color: ${(props) => (props.even ? '#fff' : '#ccc')};
+`
+
+const TableCell = styled.div`
+  flex-basis: ${(props) => (props?.basis ? `${props?.basis}%` : '5%')};
+  flex-grow: ${(props) => props?.grow ?? 1};
+  flex-shrink: 1;
+  //background-color: #dacdca;
+  border: #c36247 solid 1px;
+  overflow: hidden;
+`
+
+// const Row = memo((props) => {
+//   const { index, style, data } = props
+//   const { status, seqName, errors, result: sequence } = data[index]
+//
+//   if (!sequence) {
+//     return (
+//       <TableRow style={style}>
+//         <ColumnName seqName={seqName} sequence={sequence} />
+//         {/*<TableCell className="results-table-col results-table-col-clade " />*/}
+//       </TableRow>
+//     )
+//   }
+//
+//   return (
+//     <TableRow style={style}>
+//       <TableCell>
+//         <ColumnName seqName={seqName} sequence={sequence} />
+//       </TableCell>
+//       <TableCell>
+//         <ColumnQCStatus sequence={sequence} />
+//       </TableCell>
+//       <TableCell>
+//         <ColumnClade sequence={sequence} />
+//       </TableCell>
+//       <TableCell>
+//         <ColumnMutations sequence={sequence} />
+//       </TableCell>
+//       <TableCell>
+//         <ColumnNonACGTNs sequence={sequence} />
+//       </TableCell>
+//       <TableCell>
+//         <ColumnMissing sequence={sequence} />
+//       </TableCell>
+//       <TableCell>
+//         <ColumnGaps sequence={sequence} />
+//       </TableCell>
+//       <TableCell>
+//         <SequenceView key={seqName} sequence={sequence} />
+//       </TableCell>
+//     </TableRow>
+//   )
+// }, areEqual)
+
+const Row = memo((props: ListChildComponentProps) => {
   const { t } = useTranslation()
 
-  const genomeSize = GENOME_SIZE // FIXME: deduce from sequences
+  const { index, style, data, isScrolling } = props
+  const { status, seqName, errors, result: sequence } = data[index]
 
-  const sequenceItems = result.map(({ status, seqName, errors, result: sequence }, i) => {
-    if (errors.length > 0) {
-      return (
-        <tr className="results-table-row results-table-danger" key={seqName}>
-          <ColumnName seqName={seqName} sequence={sequence} />
-          <td colSpan={7} className="results-table-col results-table-col-clade">
-            {errors}
-          </td>
-        </tr>
-      )
-    }
-
-    if (!sequence) {
-      return (
-        <tr className="results-table-row" key={seqName}>
-          <ColumnName seqName={seqName} sequence={sequence} />
-          <td colSpan={7} className="results-table-col results-table-col-clade" />
-        </tr>
-      )
-    }
-
+  if (errors.length > 0) {
     return (
-      <tr className="results-table-row" key={seqName}>
-        <ColumnName seqName={seqName} sequence={sequence} />
-        <ColumnQCStatus sequence={sequence} />
-        <ColumnClade sequence={sequence} />
-        <ColumnMutations sequence={sequence} />
-        <ColumnNonACGTNs sequence={sequence} />
-        <ColumnMissing sequence={sequence} />
-        <ColumnGaps sequence={sequence} />
-        <td className="results-table-col results-table-col-mutations">
-          <SequenceView key={seqName} sequence={sequence} />
-        </td>
-      </tr>
+      <TableRow style={style} even={index % 2 === 0}>
+        <TableCell grow={10}>
+          <ColumnName seqName={seqName} sequence={sequence} />
+        </TableCell>
+        <TableCell grow={100}>{errors}</TableCell>
+      </TableRow>
     )
-  })
+  }
+
+  if (!sequence) {
+    return (
+      <TableRow style={style} even={index % 2 === 0}>
+        <TableCell grow={10}>
+          <ColumnName seqName={seqName} sequence={sequence} />
+        </TableCell>
+        <TableCell grow={100}>{errors}</TableCell>
+      </TableRow>
+    )
+  }
 
   return (
-    <>
-      <Table className="results-table">
-        <thead>
-          <tr className="results-table-row">
-            <th className="results-table-header">{t('Sequence name')}</th>
-            <th className="results-table-header">{t('QC')}</th>
-            <th className="results-table-header">{t('Clade')}</th>
-            <th className="results-table-header">{t('Mut.')}</th>
-            <th className="results-table-header">{t('non-ACGTN')}</th>
-            <th className="results-table-header">{t('Ns')}</th>
-            <th className="results-table-header">{t('Gaps')}</th>
-            <th className="results-table-header">{t('Sequence')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sequenceItems}
-          <tr className="results-table-row">
-            <td className="results-table-col">Genome annotation</td>
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col results-table-col-gene-map">
-              <GeneMap />
-            </td>
-          </tr>
-          <tr className="results-table-row">
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col" />
-            <td className="results-table-col results-table-col-axis">
-              <GeneMapAxis genomeSize={genomeSize} />
-            </td>
-          </tr>
-        </tbody>
-      </Table>
-    </>
+    <TableRow style={style} even={index % 2 === 0}>
+      <TableCell grow={10}>
+        <ColumnName seqName={seqName} sequence={sequence} />
+      </TableCell>
+
+      <TableCell grow={1}>
+        <ColumnQCStatus sequence={sequence} />
+      </TableCell>
+
+      <TableCell grow={1}>
+        <ColumnClade sequence={sequence} />
+      </TableCell>
+
+      <TableCell grow={1}>
+        <ColumnMutations sequence={sequence} />
+      </TableCell>
+
+      <TableCell grow={1}>
+        <ColumnNonACGTNs sequence={sequence} />
+      </TableCell>
+
+      <TableCell grow={1}>
+        <ColumnMissing sequence={sequence} />
+      </TableCell>
+
+      <TableCell grow={1}>
+        <ColumnGaps sequence={sequence} />
+      </TableCell>
+
+      <TableCell grow={50}>
+        <SequenceView key={seqName} sequence={sequence} />
+      </TableCell>
+    </TableRow>
+  )
+}, areEqual)
+
+export function ResultsTable({ result }) {
+  const { t } = useTranslation()
+
+  const data = result
+  // const data = Array.from(range(100))
+
+  return (
+    <Table>
+      <TableHeaderRow>
+        <TableHeaderCell grow={10}>{t('Sequence name')}</TableHeaderCell>
+        <TableHeaderCell grow={1}>{t('QC')}</TableHeaderCell>
+        <TableHeaderCell grow={1}>{t('Clade')}</TableHeaderCell>
+        <TableHeaderCell grow={1}>{t('Mut.')}</TableHeaderCell>
+        <TableHeaderCell grow={1}>{t('non-ACGTN')}</TableHeaderCell>
+        <TableHeaderCell grow={1}>{t('Ns')}</TableHeaderCell>
+        <TableHeaderCell grow={1}>{t('Gaps')}</TableHeaderCell>
+        <TableHeaderCell grow={50}>{t('Sequence')}</TableHeaderCell>
+      </TableHeaderRow>
+
+      <AutoSizer>
+        {({ width, height }) => {
+          return (
+            <FixedSizeList
+              overscanCount={10}
+              style={{ overflowY: 'scroll' }}
+              width={width}
+              height={height - HEADER_ROW_HEIGHT}
+              itemCount={data.length}
+              itemSize={ROW_HEIGHT}
+              itemData={data}
+            >
+              {Row}
+            </FixedSizeList>
+          )
+        }}
+      </AutoSizer>
+    </Table>
   )
 }

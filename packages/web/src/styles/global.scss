@@ -26,10 +26,6 @@ html {
   overflow-y: auto;
 }
 
-.main-wrapper {
-  min-height: 100vh;
-}
-
 body {
   // HACK: workaround for bootstrap modal adding padding-right when open
   padding: 0 !important;

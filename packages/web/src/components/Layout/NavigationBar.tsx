@@ -50,31 +50,29 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
   )
 
   return (
-    <Container fluid className="pb-1">
-      <nav
-        className="navbar navbar-expand navbar-light navbar-scroll hide-native-scrollbar"
-        role="navigation"
-        data-testid="NavigationBar"
-      >
-        <Link className="navbar-brand d-flex" href="/" role="button">
-          <BrandLogo className="navigation-bar-product-logo" />
-          <NavigationLogo />
-        </Link>
+    <nav
+      className="navbar navbar-expand navbar-light navbar-scroll hide-native-scrollbar"
+      role="navigation"
+      data-testid="NavigationBar"
+    >
+      <Link className="navbar-brand d-flex" href="/" role="button">
+        <BrandLogo className="navigation-bar-product-logo" />
+        <NavigationLogo />
+      </Link>
 
-        <ul className="navbar-nav ml-auto d-flex">
-          <li className="nav-item mx-2 my-auto">
-            <LanguageSwitcher />
+      <ul className="navbar-nav ml-auto d-flex">
+        <li className="nav-item mx-2 my-auto">
+          <LanguageSwitcher />
+        </li>
+
+        {navLinksRight.map(({ title, url, alt, icon }) => (
+          <li key={title} className="nav-item mx-2 my-auto">
+            <LinkExternal title={title} url={url} alt={alt}>
+              {icon}
+            </LinkExternal>
           </li>
-
-          {navLinksRight.map(({ title, url, alt, icon }) => (
-            <li key={title} className="nav-item mx-2 my-auto">
-              <LinkExternal title={title} url={url} alt={alt}>
-                {icon}
-              </LinkExternal>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </Container>
+        ))}
+      </ul>
+    </nav>
   )
 }

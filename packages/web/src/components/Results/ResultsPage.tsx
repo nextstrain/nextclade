@@ -1,18 +1,40 @@
 import React from 'react'
 
-import { Button, Card, CardBody, CardFooter, CardHeader, Col, Row, Container } from 'reactstrap'
-import { FaCaretLeft } from 'react-icons/fa'
-import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
+import styled from 'styled-components'
 import { goBack } from 'connected-next-router'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import { setInput } from 'src/state/algorithm/algorithm.actions'
 
-import { ResultsTable } from './ResultsTable'
+import { ButtonBack } from './ButtonBack'
 import { ButtonExport } from './ButtonExport'
-import { ResultsStatus } from './ResultsStatus'
+import { ResultsTable } from './ResultsTable'
+
+import { FAKE_DATA } from './FAKE_DATA'
+
+export const LayoutContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+`
+
+const Header = styled.header`
+  flex-shrink: 0;
+
+  background-color: #ecbbb6;
+`
+
+const MainContent = styled.main`
+  flex-grow: 1;
+  overflow: auto;
+  min-height: 2em;
+
+  background-color: #b6d2ec;
+`
 
 export interface MainProps {
   params: AlgorithmParams
@@ -33,56 +55,16 @@ const mapDispatchToProps = {
 export const ResultsPage = connect(mapStateToProps, mapDispatchToProps)(ResultsPageDisconnected)
 
 export function ResultsPageDisconnected({ params, setInput, goBack }: MainProps) {
-  const { t } = useTranslation()
-
   return (
-    <Container fluid className="results-page-container">
-      <Row noGutters>
-        <Col>
-          <Row>
-            <Col className="d-flex">
-              <div className="mr-auto">
-                <Button color="secondary" className="results-btn-back" onClick={goBack}>
-                  <FaCaretLeft />
-                  {t('Back')}
-                </Button>
-              </div>
-            </Col>
-          </Row>
+    <LayoutContainer>
+      <Header>
+        <ButtonBack />
+        <ButtonExport />
+      </Header>
 
-          <Row>
-            <Col>
-              <ResultsStatus />
-            </Col>
-          </Row>
-
-          <Row>
-            <Col>
-              <Card className="mt-1 mb-1">
-                <CardHeader>{t('Results')}</CardHeader>
-
-                <CardBody>
-                  <Row>
-                    <Col>
-                      <ResultsTable />
-                    </Col>
-                  </Row>
-                </CardBody>
-
-                <CardFooter>
-                  <Row>
-                    <Col className="d-flex w-100">
-                      <div className="ml-auto">
-                        <ButtonExport />
-                      </div>
-                    </Col>
-                  </Row>
-                </CardFooter>
-              </Card>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
-    </Container>
+      <MainContent>
+        <ResultsTable result={FAKE_DATA} />
+      </MainContent>
+    </LayoutContainer>
   )
 }

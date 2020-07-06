@@ -1,24 +1,49 @@
 import React, { PropsWithChildren, HTMLProps } from 'react'
 
-import { Container } from 'reactstrap'
+import styled from 'styled-components'
 
 import { NavigationBar } from './NavigationBar'
-import Footer from './Footer'
+import FooterContent from './Footer'
+
+export const LayoutContainer = styled.div`
+  max-width: 1700px;
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+`
+
+const Header = styled.header`
+  flex-shrink: 0;
+  //background-color: #ecbbb6;
+`
+
+const MainContent = styled.main`
+  flex-grow: 1;
+  overflow: auto;
+  min-height: 2em;
+  //background-color: #c2ceaf;
+`
+
+const Footer = styled.footer`
+  flex-shrink: 0;
+  //background-color: #b6d2ec;
+`
 
 export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
-    <Container fluid className="layout-container">
-      <header className="row navbar-container d-print-none">
+    <LayoutContainer>
+      <Header>
         <NavigationBar />
-      </header>
+      </Header>
 
-      <div className="row main-wrapper">
-        <main className="container-fluid" role="main">
-          {children}
-        </main>
-      </div>
+      <MainContent>{children}</MainContent>
 
-      <Footer />
-    </Container>
+      <Footer>
+        <FooterContent />
+      </Footer>
+    </LayoutContainer>
   )
 }
