@@ -14,7 +14,21 @@ module.exports = (api) => {
 
   return {
     compact: false,
-    presets: ['next/babel'],
+    presets: [
+      [
+        'next/babel',
+        {
+          'preset-env': {
+            useBuiltIns: 'usage',
+            corejs: '3',
+            modules: web ? false : undefined,
+          },
+          // 'transform-runtime': {},
+          // 'styled-jsx': {},
+          // 'class-properties': {},
+        },
+      ],
+    ],
     plugins: [
       '@babel/plugin-proposal-numeric-separator',
       'babel-plugin-styled-components',
