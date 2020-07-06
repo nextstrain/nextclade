@@ -4,17 +4,17 @@ import { connect } from 'react-redux'
 // import { Table } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
-import { useTable, useBlockLayout, useFlexLayout } from 'react-table'
+import { useBlockLayout, useTable } from 'react-table'
 import { FixedSizeList } from 'react-window'
 
 import type { State } from 'src/state/reducer'
 import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
-
 // import { GeneMap } from 'src/components/GeneMap/GeneMap'
 // import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
-import { GENOME_SIZE, SequenceView } from 'src/components/SequenceView/SequenceView'
+import { GENOME_SIZE } from 'src/components/SequenceView/SequenceView'
 import { AnalysisResult } from 'src/algorithms/types'
 import { FAKE_DATA } from 'src/components/Results/FAKE_DATA'
+import { ColumnName } from './ColumnName'
 // import { ColumnGaps } from 'src/components/Results/ColumnGaps'
 // import { ColumnMissing } from 'src/components/Results/ColumnMissing'
 // import { ColumnName } from 'src/components/Results/ColumnName'
@@ -73,7 +73,13 @@ export function ResultDisconnected({ result }: ResultProps) {
 
   const columns = React.useMemo(
     () => [
-      { Header: 'Sequence', accessor: (r: AnalysisResult) => r.seqName },
+      {
+        Header: 'Sequence',
+        Cell({ cell, row }) {
+          const sequence = row.original
+          return <ColumnName {...cell.getCellProps()} seqName={sequence.seqName} sequence={sequence} />
+        },
+      },
       { Header: 'QC', accessor: (r: AnalysisResult) => (r.diagnostics.flags.length > 0 ? 'Fail' : 'Pass') },
       { Header: 'Clade', accessor: (r: AnalysisResult) => Object.keys(r.clades).join(',') },
       { Header: 'Mut', accessor: (r: AnalysisResult) => r.totalMutations },
@@ -86,7 +92,7 @@ export function ResultDisconnected({ result }: ResultProps) {
 
   const defaultColumn = React.useMemo(
     () => ({
-      width: 150,
+      width: 100,
     }),
     [],
   )
@@ -97,7 +103,7 @@ export function ResultDisconnected({ result }: ResultProps) {
       data,
       defaultColumn,
     },
-    useFlexLayout,
+    useBlockLayout,
   )
 
   const RenderRow = React.useCallback(
@@ -105,13 +111,9 @@ export function ResultDisconnected({ result }: ResultProps) {
       const row = rows[index]
       prepareRow(row)
       return (
-        <div {...row.getRowProps({ style })} className="tr">
-          {row.cells.map((cell) => (
-            <div {...cell.getCellProps()} className="td">
-              {cell.render('Cell')}
-            </div>
-          ))}
-        </div>
+        <tr {...row.getRowProps({ style })}>
+          {row.cells.map((cell) => cell.render('Cell', { ...cell.getCellProps() }))}
+        </tr>
       )
     },
     [prepareRow, rows],
@@ -121,15 +123,18 @@ export function ResultDisconnected({ result }: ResultProps) {
     <Styles>
       <div {...getTableProps()} className="table">
         <div>
-          {headers.map((column) => (
-            <div {...column.getHeaderProps()} className="th">
-              {column.render('Header')}
-            </div>
-          ))}
+          {headers.map((column) => {
+            // console.log({ column })
+            return (
+              <div {...column.getHeaderProps()} className="th">
+                {column.render('Header')}
+              </div>
+            )
+          })}
         </div>
 
         <div {...getTableBodyProps()}>
-          <FixedSizeList height={400} itemCount={rows.length} itemSize={35} width={totalColumnsWidth}>
+          <FixedSizeList height={600} itemCount={rows.length} itemSize={30} width={totalColumnsWidth}>
             {RenderRow}
           </FixedSizeList>
         </div>

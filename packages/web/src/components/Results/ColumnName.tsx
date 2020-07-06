@@ -10,7 +10,7 @@ export interface ColumnNameProps {
   sequence?: AnalysisResult
 }
 
-export function ColumnName({ seqName, sequence }: ColumnNameProps) {
+export function ColumnName({ seqName, sequence, ...restProps }: ColumnNameProps) {
   const [showTooltip, setShowTooltip] = useState(false)
   const id = getSafeId('sequence-label', { seqName })
 
@@ -20,6 +20,7 @@ export function ColumnName({ seqName, sequence }: ColumnNameProps) {
       className="results-table-col results-table-col-label"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
+      {...restProps}
     >
       {seqName}
       {sequence && <ColumnNameTooltip showTooltip={showTooltip} sequence={sequence} />}
