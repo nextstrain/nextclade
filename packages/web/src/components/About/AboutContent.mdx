@@ -47,7 +47,7 @@ Nextclade assigns your sequences to these clades by checking them for these muta
 
 ### Quality Control (QC)
 
-Whole genome sequencing of RNA viruses is not a bush-button operation -- in particular from scarce or degraded input material.
+Whole genome sequencing of RNA viruses is not a push-button operation -- in particular from scarce or degraded input material.
 Some parts of the sequence might be missing and the bioinformatic analysis pipelines that turn the raw data into a consensus genome sometimes produce artefacts.
 Such artefacts typically manifest in spurious differences of the sequence from the reference.
 If such problematic sequences are included in phylogenetic analysis, they can distort the tree.
@@ -80,9 +80,9 @@ Once the sequences are aligned, we can identify differences between them and use
 
 ### Sequence Alignment
 
-To meaningfully compare two sequences and identify mutations between them, the need to be [aligned to each other](https://en.wikipedia.org/wiki/Sequence_alignment).
+To meaningfully compare two sequences and identify mutations between them, they need to be [aligned to each other](https://en.wikipedia.org/wiki/Sequence_alignment).
 While many tools exist to compute pairwise or multiple sequence alignments, they typically run on the command line.
-For Nextclade, we therefore implemented a banded-pairwise alignment algorithm in javascript that will run in your browers.
+For Nextclade, we therefore implemented a banded-pairwise alignment algorithm in javascript that will run in your browser.
 
 We roughly estimate the alignment of your sequences to the reference one-by-one using short seeds (21-mers) along the sequence.
 With this rough overall alignment, we perform a [banded Smith-Waterman alignment](https://github.com/neherlab/webclades/blob/master/packages/web/src/algorithms/alignPairwise.ts) with an affine gap-penalty.
