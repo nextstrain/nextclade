@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
+import styled from 'styled-components'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 
@@ -9,6 +10,28 @@ import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 
 export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
+
+export const SequenceViewWrapper = styled.div`
+  display: flex;
+  width: 100%;
+  height: 30px;
+  margin-top: 0;
+  margin-bottom: 0;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0;
+`
+
+export const SequenceViewSVG = styled.svg`
+  background-color: $gray-100;
+  border-bottom: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+`
 
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
@@ -21,9 +44,9 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
 
   if (!width) {
     return (
-      <div className="sequence-view-wrapper d-inline-flex w-100 h-100">
-        <svg className="sequence-view-body" viewBox={`0 0 10 10`} />
-      </div>
+      <SequenceViewWrapper>
+        <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
+      </SequenceViewWrapper>
     )
   }
 
@@ -58,13 +81,13 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   })
 
   return (
-    <div className="sequence-view-wrapper d-inline-flex w-100 h-100">
-      <svg className="sequence-view-body" viewBox={`0 0 ${width} 10`}>
-        <rect className="sequence-view-background" x={0} y={-10} width={GENOME_SIZE} height="30" />
+    <SequenceViewWrapper>
+      <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
+        <rect fill="transparent" x={0} y={-10} width={GENOME_SIZE} height="30" />
         {mutationViews}
         {missingViews}
         {deletionViews}
-      </svg>
-    </div>
+      </SequenceViewSVG>
+    </SequenceViewWrapper>
   )
 }
