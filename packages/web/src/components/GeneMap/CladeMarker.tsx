@@ -34,9 +34,7 @@ export function CladeMarker({ cladeDatum, pixelsPerBase, ...rest }: CladeMarkerP
       id={id}
       fill={fill}
       x={x}
-      y={-10}
       width={width}
-      height="30"
       {...rest}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}

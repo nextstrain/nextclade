@@ -9536,14 +9536,4 @@ export const FAKE_DATA = [
       },
     },
   },
-  {
-    status: 'started',
-    seqName: 'Australia/VIC423/2020',
-    errors: [],
-  },
-  {
-    status: 'started',
-    seqName: 'Australia/VIC431/2020',
-    errors: [],
-  },
 ]

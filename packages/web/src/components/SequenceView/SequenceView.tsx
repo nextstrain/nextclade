@@ -19,7 +19,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions } = sequence
 
   return (
-    <ReactResizeDetector handleHeight nodeType="td">
+    <ReactResizeDetector handleHeight>
       {({ width }) => {
         if (!width) {
           return (
