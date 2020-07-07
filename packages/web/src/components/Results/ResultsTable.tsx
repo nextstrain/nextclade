@@ -99,7 +99,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
   if (errors.length > 0) {
     return (
       <TableRowError style={style} even={index % 2 === 0}>
-        <TableCellName basis="200px" shrink={0}>
+        <TableCellName basis="250px" shrink={0}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
         <TableCell grow={20} shrink={20}>
@@ -112,7 +112,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
   if (!sequence) {
     return (
       <TableRowPending style={style} even={index % 2 === 0}>
-        <TableCellName basis="200px" shrink={0}>
+        <TableCellName basis="250px" shrink={0}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
         <TableCell grow={20} shrink={20}>
@@ -124,7 +124,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
 
   return (
     <TableRow style={style} even={index % 2 === 0}>
-      <TableCellName basis="200px" shrink={0}>
+      <TableCellName basis="250px" shrink={0}>
         <ColumnName seqName={seqName} sequence={sequence} />
       </TableCellName>
 
@@ -182,7 +182,7 @@ export function ResultsTableDisconnected({ result }: ResultProps) {
     <>
       <Table>
         <TableHeaderRow>
-          <TableHeaderCell basis="200px" shrink={0}>
+          <TableHeaderCell basis="250px" shrink={0}>
             <TableCellText>{t('Sequence name')}</TableCellText>
           </TableHeaderCell>
           <TableHeaderCell basis="50px" grow={0} shrink={0}>

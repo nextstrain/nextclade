@@ -30,7 +30,7 @@ export function GeneMapTable() {
   return (
     <GeneMapTableContent>
       <GeneMapTableRow>
-        <TableCellName basis="500px" shrink={0}>
+        <TableCellName basis="550px" shrink={0}>
           <TableCellText>{t('Genome annotation')}</TableCellText>
         </TableCellName>
         <TableCell grow={1} shrink={1} className="w-100">
@@ -38,7 +38,7 @@ export function GeneMapTable() {
         </TableCell>
       </GeneMapTableRow>
       <GeneMapAxisTableRow>
-        <TableCellName basis="500px" shrink={0} />
+        <TableCellName basis="550px" shrink={0} />
         <TableCell grow={1} shrink={1} className="w-100">
           <GeneMapAxis genomeSize={GENOME_SIZE} />
         </TableCell>
