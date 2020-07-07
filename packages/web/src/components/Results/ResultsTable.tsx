@@ -78,7 +78,7 @@ export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; 
 `
 
 export const TableRowPending = styled(TableRow)`
-  background-color: ${(props) => (props.even ? '#e2e2e2aa55' : '#fcfcfc55')};
+  background-color: #d2d2d2;
   color: #818181;
 `
 
