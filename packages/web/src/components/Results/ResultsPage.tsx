@@ -40,7 +40,7 @@ const HeaderRight = styled.header`
 const MainContent = styled.main`
   flex-grow: 1;
   overflow: auto;
-  min-height: 2em;
+  border: 1px solid #b3b3b3aa;
 `
 
 const Footer = styled.footer`
