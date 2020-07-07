@@ -15,6 +15,7 @@ import styled from 'styled-components'
 
 const Button = styled(ReactstrapButton)`
   width: 225px;
+  margin: 0;
 `
 
 export function ExportJSONIcon() {

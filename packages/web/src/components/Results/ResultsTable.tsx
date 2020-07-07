@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 
+import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { FixedSizeList, areEqual, ListChildComponentProps } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
@@ -13,7 +14,8 @@ import { ColumnNonACGTNs } from 'src/components/Results/ColumnNonACGTNs'
 import { ColumnMissing } from 'src/components/Results/ColumnMissing'
 import { ColumnGaps } from 'src/components/Results/ColumnGaps'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
-import { GeneMap } from 'src/components/GeneMap/GeneMap'
+import { State } from 'src/state/reducer'
+import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 
 const ROW_HEIGHT = 30
 const HEADER_ROW_HEIGHT = 50
@@ -151,7 +153,19 @@ export const Row = memo((props: ListChildComponentProps) => {
   )
 }, areEqual)
 
-export function ResultsTable({ result }) {
+const mapStateToProps = (state: State) => ({
+  result: state.algorithm.results,
+})
+
+const mapDispatchToProps = {}
+
+export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected)
+
+export interface ResultProps {
+  result: SequenceAnylysisState[]
+}
+
+export function ResultsTableDisconnected({ result }: ResultProps) {
   const { t } = useTranslation()
 
   const data = result

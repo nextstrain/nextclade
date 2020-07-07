@@ -2,10 +2,16 @@ import React from 'react'
 
 import { Progress } from 'reactstrap'
 import { connect } from 'react-redux'
+import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
 import type { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import { selectStatus } from 'src/state/algorithm/algorithm.selectors'
+
+const ResultsStatusWrapper = styled.div`
+  height: 32px;
+  margin: 0;
+`
 
 export interface SequenceStatus {
   seqName: string
@@ -44,9 +50,9 @@ export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
   }
 
   return (
-    <div>
+    <ResultsStatusWrapper>
       <div className="text-right">{text}</div>
       <Progress color={color} value={percent} />
-    </div>
+    </ResultsStatusWrapper>
   )
 }
