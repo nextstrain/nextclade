@@ -28,7 +28,7 @@ const Table = styled.div`
   font-size: 0.8rem;
   width: 100%;
   height: 100%;
-  min-width: 780px;
+  min-width: 740px;
 `
 
 const TableHeaderRow = styled.div`
@@ -75,6 +75,7 @@ const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>
 
 const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
   text-align: left;
+  padding-left: 5px;
 `
 
 const TableRowPending = styled(TableRow)`
