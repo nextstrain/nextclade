@@ -55,8 +55,7 @@ The Nextstrain analysis pipeline therefore excludes sequences deemed problematic
 
 Many such problems can be fixed by tweaking the pipeline or by removing primers or contaminants.
 It is therefore useful to spot these problems early.
-Nextclade will scan your sequences for issues that indicate problems during sequencing or bioinformatic assembly and would result in these sequences being filtered out by
-Nextstrain.
+Nextclade will scan your sequences for issues that indicate problems during sequencing or bioinformatic assembly.
 We currently implemented four metrics to flag a sequence as potentially problematic:
 
 - too much missing data: If your sequence misses more than 1000 sites (`N`s), it will be flagged
@@ -68,7 +67,9 @@ We currently implemented four metrics to flag a sequence as potentially problema
   like positions 28881-28883), it will be flagged.
 
 These warnings don't necessarily mean your sequences are problematic, but these issues warrant closer examination.
-The [Nextstrain pipeline](https://github.com/nextstrain/ncov) will likely exclude those sequences.
+The [Nextstrain pipeline](https://github.com/nextstrain/ncov) uses similar (more lenient) QC criteria.
+Nextstrain will exclude your sequence if it has fewer than 27000 valid bases (corresponding to roughly 3000 Ns) and doesn't check for ambiguous characters.
+But sequences flagged for excess divergence and SNP clusters by Nextclade are likely excluded by Nextstrain.
 Note that there are many additional potential problems Nextclade does not check for.
 These include for example: primer sequences, adaptaters, or chimeras between divergent SARS-CoV-2 strains.
 
