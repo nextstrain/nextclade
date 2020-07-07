@@ -17,30 +17,31 @@ export interface GetWithTypeCheckingParams {
 const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512 }: GetWithTypeCheckingParams) => (
   nextConfig: NextConfig,
 ) => {
+  if (!typeChecking && !eslint) {
+    return nextConfig
+  }
+
   return addWebpackPlugin(
     nextConfig,
     new ForkTsCheckerWebpackPlugin({
-      typescript: typeChecking
-        ? {
-            memoryLimit,
-            mode: 'write-references',
-            diagnosticOptions: {
-              declaration: true,
-              global: true,
-              semantic: true,
-              syntactic: true,
-            },
-          }
-        : undefined,
+      typescript: {
+        enabled: typeChecking,
+        memoryLimit,
+        mode: 'write-references',
+        diagnosticOptions: {
+          declaration: true,
+          global: true,
+          semantic: true,
+          syntactic: true,
+        },
+      },
 
-      eslint: eslint
-        ? {
-            enabled: true,
-            memoryLimit,
-            files: ['**/*.{js,jsx,ts,tsx}'],
-            options: { cache: false },
-          }
-        : undefined,
+      eslint: {
+        enabled: eslint,
+        memoryLimit,
+        files: ['**/*.{js,jsx,ts,tsx}'],
+        options: { cache: false },
+      },
 
       formatter: 'codeframe',
     }),
