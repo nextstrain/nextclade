@@ -47,14 +47,14 @@ export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
   return <rect id={id} fill={gene.color} x={x} y={-10 + 7.5 * frame} width={width} height={GENE_HEIGHT_PX} {...rest} />
 }
 
-export const GeneMap = withResizeDetector(GeneMapView, {
+export const GeneMap = withResizeDetector(GeneMapUnsized, {
   handleWidth: true,
   handleHeight: true,
   refreshRate: 300,
   refreshMode: 'debounce',
 })
 
-function GeneMapView({ width, height }: ReactResizeDetectorDimensions) {
+export function GeneMapUnsized({ width, height }: ReactResizeDetectorDimensions) {
   const [currGene, setCurrGene] = useState<Gene | undefined>(undefined)
 
   if (!width || !height) {
