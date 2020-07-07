@@ -5,10 +5,21 @@ import styled from 'styled-components'
 
 import { Table, TableCell, TableCellName, TableCellText, TableRow } from 'src/components/Results/ResultsTable'
 import { GeneMap, GENE_MAP_HEIGHT_PX } from 'src/components/GeneMap/GeneMap'
+import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
+import { GENOME_SIZE } from 'src/components/SequenceView/SequenceView'
+
+export const GeneMapTableContent = styled(Table)`
+  border-top: 1px solid #b3b3b3aa;
+  overflow-y: scroll;
+`
 
 export const GeneMapTableRow = styled(TableRow)`
   height: ${GENE_MAP_HEIGHT_PX}px;
-  border: 1px solid #b3b3b3aa;
+  background-color: #dadfe5;
+`
+
+export const GeneMapAxisTableRow = styled(TableRow)`
+  height: 30px;
   background-color: #dadfe5;
 `
 
@@ -16,7 +27,7 @@ export function GeneMapTable() {
   const { t } = useTranslation()
 
   return (
-    <Table>
+    <GeneMapTableContent>
       <GeneMapTableRow>
         <TableCellName basis="500px" shrink={0}>
           <TableCellText>{t('Genome annotation')}</TableCellText>
@@ -25,6 +36,12 @@ export function GeneMapTable() {
           <GeneMap />
         </TableCell>
       </GeneMapTableRow>
-    </Table>
+      <GeneMapAxisTableRow>
+        <TableCellName basis="500px" shrink={0} />
+        <TableCell grow={1} shrink={1} className="w-100">
+          <GeneMapAxis genomeSize={GENOME_SIZE} />
+        </TableCell>
+      </GeneMapAxisTableRow>
+    </GeneMapTableContent>
   )
 }
