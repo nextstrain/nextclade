@@ -14,17 +14,12 @@ export function ColumnMutations({ sequence }: ColumnCladeProps) {
   const totalMutations = substitutions.length
 
   return (
-    <td
-      id={id}
-      className="results-table-col results-table-col-clade"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
       {totalMutations}
       <Tooltip isOpen={showTooltip} target={id}>
         <ListOfMutations substitutions={substitutions} />
         <ListOfAminoacidChanges aminoacidChanges={aminoacidChanges} />
       </Tooltip>
-    </td>
+    </div>
   )
 }

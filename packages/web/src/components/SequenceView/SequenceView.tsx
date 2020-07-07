@@ -21,14 +21,7 @@ export function SequenceView({ sequence }: SequenceViewProps) {
   return (
     <ReactResizeDetector handleHeight nodeType="td">
       {({ width }) => {
-        console.log({ width })
-        // console.log({ par })
-
-        // const { width: widthPx } = par
-
         if (!width) {
-          // return <div className="w-100 h-100" />
-
           return (
             <div className="sequence-view-wrapper d-inline-flex w-100 h-100">
               <svg className="sequence-view-body" viewBox={`0 0 10 10`} />

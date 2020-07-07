@@ -25,7 +25,7 @@ export const LayoutContainer = styled.div`
 const Header = styled.header`
   flex-shrink: 0;
 
-  background-color: #ecbbb6;
+  //background-color: #ecbbb6;
 `
 
 const MainContent = styled.main`
@@ -33,7 +33,7 @@ const MainContent = styled.main`
   overflow: auto;
   min-height: 2em;
 
-  background-color: #b6d2ec;
+  //background-color: #b6d2ec;
 `
 
 export interface MainProps {

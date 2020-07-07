@@ -25,40 +25,66 @@ const ROW_HEIGHT = 30
 const HEADER_ROW_HEIGHT = 50
 
 const Table = styled.div`
+  font-size: 0.8rem;
   width: 100%;
   height: 100%;
-  //background-color: #c3dfad;
-  //border: #79bf47 solid 3px;
+  min-width: 780px;
 `
 
 const TableHeaderRow = styled.div`
   display: flex;
+  align-items: stretch;
   height: ${HEADER_ROW_HEIGHT}px;
   overflow-y: scroll;
+  background-color: #4c4c4c;
+  color: #bcbbbb;
 `
 
-const TableHeaderCell = styled.div`
-  flex-basis: ${(props) => (props?.basis ? `${props?.basis}%` : '5%')};
-  flex-grow: ${(props) => props?.grow ?? 1};
-  flex-shrink: 1;
-  background-color: #cdc4da;
-  border: #7b47c3 solid 1px;
-  //overflow: hidden;
-  z-index: 1000;
-`
-
-const TableRow = styled.div`
-  display: flex;
-  background-color: ${(props) => (props.even ? '#fff' : '#ccc')};
-`
-
-const TableCell = styled.div`
-  flex-basis: ${(props) => (props?.basis ? `${props?.basis}%` : '5%')};
-  flex-grow: ${(props) => props?.grow ?? 1};
-  flex-shrink: 1;
-  //background-color: #dacdca;
-  border: #c36247 solid 1px;
+const TableHeaderCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
+  flex-basis: ${(props) => props?.basis};
+  flex-grow: ${(props) => props?.grow};
+  flex-shrink: ${(props) => props?.shrink};
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  border-left: 1px solid #b3b3b3aa;
+`
+
+const TableCellText = styled.p`
+  text-align: center;
+  margin: 0 auto;
+`
+
+const TableRow = styled.div<{ even?: boolean }>`
+  display: flex;
+  align-items: stretch;
+  background-color: ${(props) => (props.even ? '#e2e2e2' : '#fcfcfc')};
+`
+
+const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
+  flex-basis: ${(props) => props?.basis};
+  flex-grow: ${(props) => props?.grow};
+  flex-shrink: ${(props) => props?.shrink};
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  border-left: 1px solid #b3b3b3aa;
+`
+
+const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
+  text-align: left;
+`
+
+const TableRowPending = styled(TableRow)`
+  background-color: ${(props) => (props.even ? '#e2e2e2aa55' : '#fcfcfc55')};
+  color: #818181;
+`
+
+const TableRowError = styled(TableRow)`
+  background-color: #f5cbc6;
+  color: #962d26;
 `
 
 // const Row = memo((props) => {
@@ -112,57 +138,61 @@ const Row = memo((props: ListChildComponentProps) => {
 
   if (errors.length > 0) {
     return (
-      <TableRow style={style} even={index % 2 === 0}>
-        <TableCell grow={10}>
+      <TableRowError style={style} even={index % 2 === 0}>
+        <TableCellName basis="200px" shrink={3}>
           <ColumnName seqName={seqName} sequence={sequence} />
+        </TableCellName>
+        <TableCell grow={20} shrink={20}>
+          <TableCellText>{errors}</TableCellText>
         </TableCell>
-        <TableCell grow={100}>{errors}</TableCell>
-      </TableRow>
+      </TableRowError>
     )
   }
 
   if (!sequence) {
     return (
-      <TableRow style={style} even={index % 2 === 0}>
-        <TableCell grow={10}>
+      <TableRowPending style={style} even={index % 2 === 0}>
+        <TableCellName basis="200px" shrink={3}>
           <ColumnName seqName={seqName} sequence={sequence} />
+        </TableCellName>
+        <TableCell grow={20} shrink={20}>
+          <TableCellText>{t('Analyzing...')}</TableCellText>
         </TableCell>
-        <TableCell grow={100}>{errors}</TableCell>
-      </TableRow>
+      </TableRowPending>
     )
   }
 
   return (
     <TableRow style={style} even={index % 2 === 0}>
-      <TableCell grow={10}>
+      <TableCellName basis="200px" shrink={3}>
         <ColumnName seqName={seqName} sequence={sequence} />
-      </TableCell>
+      </TableCellName>
 
-      <TableCell grow={1}>
+      <TableCell basis="50px" grow={0} shrink={0}>
         <ColumnQCStatus sequence={sequence} />
       </TableCell>
 
-      <TableCell grow={1}>
+      <TableCell basis="50px" grow={0} shrink={0}>
         <ColumnClade sequence={sequence} />
       </TableCell>
 
-      <TableCell grow={1}>
+      <TableCell basis="50px" grow={0} shrink={0}>
         <ColumnMutations sequence={sequence} />
       </TableCell>
 
-      <TableCell grow={1}>
+      <TableCell basis="50px" grow={0} shrink={0}>
         <ColumnNonACGTNs sequence={sequence} />
       </TableCell>
 
-      <TableCell grow={1}>
+      <TableCell basis="50px" grow={0} shrink={0}>
         <ColumnMissing sequence={sequence} />
       </TableCell>
 
-      <TableCell grow={1}>
+      <TableCell basis="50px" grow={0} shrink={0}>
         <ColumnGaps sequence={sequence} />
       </TableCell>
 
-      <TableCell grow={50}>
+      <TableCell grow={20} shrink={20}>
         <SequenceView key={seqName} sequence={sequence} />
       </TableCell>
     </TableRow>
@@ -178,14 +208,30 @@ export function ResultsTable({ result }) {
   return (
     <Table>
       <TableHeaderRow>
-        <TableHeaderCell grow={10}>{t('Sequence name')}</TableHeaderCell>
-        <TableHeaderCell grow={1}>{t('QC')}</TableHeaderCell>
-        <TableHeaderCell grow={1}>{t('Clade')}</TableHeaderCell>
-        <TableHeaderCell grow={1}>{t('Mut.')}</TableHeaderCell>
-        <TableHeaderCell grow={1}>{t('non-ACGTN')}</TableHeaderCell>
-        <TableHeaderCell grow={1}>{t('Ns')}</TableHeaderCell>
-        <TableHeaderCell grow={1}>{t('Gaps')}</TableHeaderCell>
-        <TableHeaderCell grow={50}>{t('Sequence')}</TableHeaderCell>
+        <TableHeaderCell basis="200px" shrink={3}>
+          <TableCellText>{t('Sequence name')}</TableCellText>
+        </TableHeaderCell>
+        <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableCellText>{t('QC')}</TableCellText>
+        </TableHeaderCell>
+        <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableCellText>{t('Clade')}</TableCellText>
+        </TableHeaderCell>
+        <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableCellText>{t('Mut.')}</TableCellText>
+        </TableHeaderCell>
+        <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableCellText>{t('non-ACGTN')}</TableCellText>
+        </TableHeaderCell>
+        <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableCellText>{t('Ns')}</TableCellText>
+        </TableHeaderCell>
+        <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableCellText>{t('Gaps')}</TableCellText>
+        </TableHeaderCell>
+        <TableHeaderCell grow={20}>
+          <TableCellText>{t('Sequence')}</TableCellText>
+        </TableHeaderCell>
       </TableHeaderRow>
 
       <AutoSizer>
