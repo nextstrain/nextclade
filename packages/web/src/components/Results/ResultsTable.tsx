@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { FixedSizeList, areEqual, ListChildComponentProps } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
+import { rgba } from 'polished'
 
 import { ColumnName } from 'src/components/Results/ColumnName'
 import { ColumnQCStatus } from 'src/components/Results/ColumnQCStatus'
@@ -24,6 +25,7 @@ export const Table = styled.div`
   font-size: 0.8rem;
   width: 100%;
   height: 100%;
+  background-color: #b3b3b3aa;
 `
 
 export const TableHeaderRow = styled.div`
@@ -43,7 +45,7 @@ export const TableHeaderCell = styled.div<{ basis?: string; grow?: number; shrin
   display: flex;
   align-items: center;
   text-align: center;
-  border-left: 1px solid #b3b3b3aa;
+  border-left: 1px solid #b3b3b3;
 `
 
 export const TableCellText = styled.p`
@@ -55,6 +57,7 @@ export const TableRow = styled.div<{ even?: boolean }>`
   display: flex;
   align-items: stretch;
   background-color: ${(props) => (props.even ? '#e2e2e2' : '#fcfcfc')};
+  box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
 `
 
 export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
@@ -65,7 +68,7 @@ export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: nu
   display: flex;
   align-items: center;
   text-align: center;
-  border-left: 1px solid #b3b3b3aa;
+  border-left: 1px solid #b3b3b3;
   height: 100%;
 `
 

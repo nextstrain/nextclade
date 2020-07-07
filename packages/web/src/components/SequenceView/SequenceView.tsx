@@ -23,8 +23,6 @@ export const SequenceViewWrapper = styled.div`
 `
 
 export const SequenceViewSVG = styled.svg`
-  background-color: $gray-100;
-  border-bottom: 0;
   padding: 0;
   margin: 0;
   width: 100%;

@@ -78,6 +78,7 @@
     "next-compose-plugins": "2.2.0",
     "numbro": "2.3.1",
     "papaparse": "5.2.0",
+    "polished": "3.6.5",
     "prop-types": "15.7.2",
     "re-reselect": "4.0.0",
     "react": "16.13.1",

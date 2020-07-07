@@ -2,6 +2,7 @@ import React from 'react'
 
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
+import { rgba } from 'polished'
 
 import { Table, TableCell, TableCellName, TableCellText, TableRow } from 'src/components/Results/ResultsTable'
 import { GeneMap, GENE_MAP_HEIGHT_PX } from 'src/components/GeneMap/GeneMap'
@@ -9,8 +10,8 @@ import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
 import { GENOME_SIZE } from 'src/components/SequenceView/SequenceView'
 
 export const GeneMapTableContent = styled(Table)`
-  border-top: 1px solid #b3b3b3aa;
   overflow-y: scroll;
+  box-shadow: 1px -2px 2px 2px ${rgba('#212529', 0.25)};
 `
 
 export const GeneMapTableRow = styled(TableRow)`
