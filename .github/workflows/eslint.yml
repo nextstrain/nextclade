@@ -20,14 +20,6 @@ jobs:
       - uses: reviewdog/action-eslint@v1
         with:
           workdir: packages/web
-          eslint_flags: '**/*.{js,jsx,ts,tsx} --max-warnings=0'
-          fail_on_error: true
-          level: warning
-
-      - uses: reviewdog/action-eslint@v1
-        with:
-          workdir: packages/web
-          reporter: github-pr-review
-          eslint_flags: '**/*.{js,jsx,ts,tsx} --max-warnings=0'
+          eslint_flags: "**/*.{js,jsx,ts,tsx} --max-warnings=0"
           fail_on_error: true
           level: warning
