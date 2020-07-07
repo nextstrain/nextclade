@@ -60,7 +60,7 @@ export function GeneMapUnsized({ width, height }: ReactResizeDetectorDimensions)
   if (!width || !height) {
     return (
       <GeneMapWrapper>
-        <GeneMapSVG viewBox={`0 0 -25 50`} />
+        <GeneMapSVG viewBox={`0 -25 50 50`} />
       </GeneMapWrapper>
     )
   }
