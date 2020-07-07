@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 
 import { connect } from 'react-redux'
 import { FaGithub, FaTwitter } from 'react-icons/fa'
-import { Container } from 'reactstrap'
 
 import { State } from 'src/state/reducer'
 import { selectPathname } from 'src/state/router/router.selectors'

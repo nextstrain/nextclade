@@ -1,5 +1,6 @@
 import React, { SVGProps, useState } from 'react'
-import ReactResizeDetector, { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
+
+import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'

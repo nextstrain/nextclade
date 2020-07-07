@@ -87,11 +87,14 @@ export const TableRowError = styled(TableRow)`
   color: #962d26;
 `
 
-export const Row = memo((props: ListChildComponentProps) => {
+export interface RowProps extends ListChildComponentProps {
+  data: SequenceAnylysisState[]
+}
+
+function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { index, style, data, isScrolling } = props
-  const { status, seqName, errors, result: sequence } = data[index]
+  const { seqName, errors, result: sequence } = data[index]
 
   if (errors.length > 0) {
     return (
@@ -154,7 +157,9 @@ export const Row = memo((props: ListChildComponentProps) => {
       </TableCell>
     </TableRow>
   )
-}, areEqual)
+}
+
+const TableRowMemo = memo(TableRowComponent, areEqual)
 
 const mapStateToProps = (state: State) => ({
   result: state.algorithm.results,
@@ -215,7 +220,7 @@ export function ResultsTableDisconnected({ result }: ResultProps) {
                 itemSize={ROW_HEIGHT}
                 itemData={data}
               >
-                {Row}
+                {TableRowMemo}
               </FixedSizeList>
             )
           }}
