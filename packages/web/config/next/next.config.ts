@@ -37,6 +37,7 @@ const {
   // ENABLE_STYLELINT,
   ENABLE_REDUX_DEV_TOOLS,
   ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT,
+  DEBUG_SET_INITIAL_DATA,
 } = getEnvVars()
 
 const { pkg, moduleRoot } = findModuleRoot()
@@ -82,6 +83,7 @@ const withEnvironment = getWithEnvironment({
   NODE_ENV,
   ENABLE_REDUX_DEV_TOOLS: ENABLE_REDUX_DEV_TOOLS.toString(),
   ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT: ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT.toString(),
+  DEBUG_SET_INITIAL_DATA: DEBUG_SET_INITIAL_DATA.toString(),
   BRANCH_NAME: getGitBranch(),
   PACKAGE_VERSION: pkg.version ?? '',
   BUILD_NUMBER: getBuildNumber(),

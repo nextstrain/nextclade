@@ -1,6 +1,7 @@
 import type { AnalysisResult } from 'src/algorithms/types'
 
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
+import { getFakeResults } from 'src/assets/data/getFakeResults'
 
 export interface InputFile {
   name: string
@@ -45,6 +46,11 @@ export interface AlgorithmState {
   errors: string[]
 }
 
+let results: SequenceAnylysisState[] = []
+if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
+  results = getFakeResults()
+}
+
 export const agorithmDefaultState: AlgorithmState = {
   status: AlgorithmStatus.idling,
   params: {
@@ -52,6 +58,6 @@ export const agorithmDefaultState: AlgorithmState = {
     rootSeq: DEFAULT_ROOT_SEQUENCE,
   },
   isDirty: true,
-  results: [],
+  results,
   errors: [],
 }
