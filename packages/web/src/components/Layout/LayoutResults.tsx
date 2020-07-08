@@ -17,22 +17,19 @@ export const LayoutContainer = styled.div`
 
 const Header = styled.header`
   flex-shrink: 0;
-  //background-color: #ecbbb6;
 `
 
 const MainContent = styled.main`
   flex-grow: 1;
   overflow: auto;
   min-height: 2em;
-  //background-color: #c2ceaf;
 `
 
 const Footer = styled.footer`
   flex-shrink: 0;
-  //background-color: #b6d2ec;
 `
 
-export function Layout({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
+export function LayoutResults({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   return (
     <LayoutContainer>
       <Header>

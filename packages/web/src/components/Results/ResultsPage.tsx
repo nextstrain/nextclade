@@ -2,6 +2,7 @@ import React from 'react'
 
 import styled from 'styled-components'
 
+import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 
 import { ButtonBack } from './ButtonBack'
@@ -9,7 +10,7 @@ import { ButtonExport } from './ButtonExport'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsTable } from './ResultsTable'
 
-export const LayoutContainer = styled.div`
+export const Container = styled.div`
   width: 100%;
   height: 100%;
   min-width: 740px;
@@ -49,26 +50,28 @@ const Footer = styled.footer`
 
 export function ResultsPage() {
   return (
-    <LayoutContainer>
-      <Header>
-        <HeaderLeft>
-          <ButtonBack />
-        </HeaderLeft>
-        <HeaderCenter>
-          <ResultsStatus />
-        </HeaderCenter>
-        <HeaderRight>
-          <ButtonExport />
-        </HeaderRight>
-      </Header>
+    <LayoutResults>
+      <Container>
+        <Header>
+          <HeaderLeft>
+            <ButtonBack />
+          </HeaderLeft>
+          <HeaderCenter>
+            <ResultsStatus />
+          </HeaderCenter>
+          <HeaderRight>
+            <ButtonExport />
+          </HeaderRight>
+        </Header>
 
-      <MainContent>
-        <ResultsTable />
-      </MainContent>
+        <MainContent>
+          <ResultsTable />
+        </MainContent>
 
-      <Footer>
-        <GeneMapTable />
-      </Footer>
-    </LayoutContainer>
+        <Footer>
+          <GeneMapTable />
+        </Footer>
+      </Container>
+    </LayoutResults>
   )
 }
