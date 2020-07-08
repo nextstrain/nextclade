@@ -8,10 +8,12 @@ import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import type { Gene } from 'src/algorithms/types'
 import { geneMap } from 'src/algorithms/geneMap'
 import { cladesGrouped } from 'src/algorithms/clades'
+import { Tooltip } from 'src/components/Results/Tooltip'
+import { formatRange } from 'src/helpers/formatRange'
+import { getSafeId } from 'src/helpers/getSafeId'
 
 import { GENOME_SIZE } from '../SequenceView/SequenceView'
 import { CladeMarker } from './CladeMarker'
-import { GeneTooltip, getGeneId } from './GeneTooltip'
 
 export const GENE_MAP_HEIGHT_PX = 35
 export const GENE_HEIGHT_PX = 15
@@ -40,12 +42,31 @@ export interface GeneViewProps extends SVGProps<SVGRectElement> {
 }
 
 export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
-  const { range: { begin, end } } = gene // prettier-ignore
+  const [showTooltip, setShowTooltip] = useState(false)
+  const { name, color, range: { begin, end } } = gene // prettier-ignore
   const frame = begin % 3
   const width = Math.max(BASE_MIN_WIDTH_PX, (end - begin) * pixelsPerBase)
   const x = begin * pixelsPerBase
-  const id = getGeneId(gene)
-  return <rect id={id} fill={gene.color} x={x} y={-10 + 7.5 * frame} width={width} height={GENE_HEIGHT_PX} {...rest} />
+  const id = getSafeId('gene', { ...gene })
+  const range = formatRange(begin, end)
+
+  return (
+    <rect
+      id={id}
+      fill={gene.color}
+      x={x}
+      y={-10 + 7.5 * frame}
+      width={width}
+      height={GENE_HEIGHT_PX}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      {...rest}
+    >
+      <Tooltip target={id} isOpen={showTooltip}>
+        <div style={{ color }}>{`${name} (${range})`}</div>
+      </Tooltip>
+    </rect>
+  )
 }
 
 export const GeneMap = withResizeDetector(GeneMapUnsized, {
@@ -56,8 +77,6 @@ export const GeneMap = withResizeDetector(GeneMapUnsized, {
 })
 
 export function GeneMapUnsized({ width, height }: ReactResizeDetectorDimensions) {
-  const [currGene, setCurrGene] = useState<Gene | undefined>(undefined)
-
   if (!width || !height) {
     return (
       <GeneMapWrapper>
@@ -68,15 +87,7 @@ export function GeneMapUnsized({ width, height }: ReactResizeDetectorDimensions)
 
   const pixelsPerBase = width / GENOME_SIZE
   const geneViews = geneMap.map((gene, i) => {
-    return (
-      <GeneView
-        key={gene.name}
-        gene={gene}
-        pixelsPerBase={pixelsPerBase}
-        onMouseEnter={() => setCurrGene(gene)}
-        onMouseLeave={() => setCurrGene(undefined)}
-      />
-    )
+    return <GeneView key={gene.name} gene={gene} pixelsPerBase={pixelsPerBase} />
   })
 
   const cladeMarks = cladesGrouped.map((cladeDatum) => {
@@ -98,7 +109,6 @@ export function GeneMapUnsized({ width, height }: ReactResizeDetectorDimensions)
         {geneViews}
         {cladeMarks}
       </GeneMapSVG>
-      {currGene && <GeneTooltip gene={currGene} />}
     </GeneMapWrapper>
   )
 }

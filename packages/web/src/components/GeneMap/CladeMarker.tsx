@@ -39,7 +39,7 @@ export function CladeMarker({ cladeDatum, pixelsPerBase, ...rest }: CladeMarkerP
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      <Tooltip target={id} isOpen={showTooltip}>
+      <Tooltip target={id} isOpen={showTooltip} placement="top-start">
         <div>{t('Position: {{position}}', { position: pos })}</div>
         <div>{t('Clade-defining mutation:')}</div>
         <div>
