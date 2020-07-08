@@ -23,7 +23,6 @@ import { initialize } from 'src/initialize'
 
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import Loading from 'src/components/Loading/Loading'
-import { Layout } from 'src/components/Layout/Layout'
 
 import 'src/styles/global.scss'
 
@@ -59,9 +58,7 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
           <MDXProvider components={{ a: LinkExternal }}>
             <PersistGate loading={null} persistor={persistor}>
               <I18nextProvider i18n={i18n}>
-                <Layout>
-                  <Component {...pageProps} />
-                </Layout>
+                <Component {...pageProps} />
               </I18nextProvider>
             </PersistGate>
           </MDXProvider>

@@ -13,6 +13,10 @@ export interface InitializeParams {
 }
 
 export async function initialize({ router }: InitializeParams) {
+  if (router.pathname !== '/') {
+    await router.replace('/')
+  }
+
   void router.prefetch('/') // eslint-disable-line no-void
   void router.prefetch('/results') // eslint-disable-line no-void
 

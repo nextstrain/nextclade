@@ -1,9 +1,5 @@
 @import '../variables';
 
-.layout-container {
-  max-width: 1700px;
-}
-
 .landing-page-row {
   width: 100%;
   height: 100%;
@@ -71,10 +67,4 @@
       width: 50%;
     }
   }
-}
-
-.main-to-results-btn {
-  position: absolute;
-  z-index: 1000;
-  width: 140px;
 }
