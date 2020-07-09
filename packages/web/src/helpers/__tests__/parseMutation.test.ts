@@ -9,6 +9,14 @@ describe('parseMutation', () => {
     expect(parseMutation('A')).toStrictEqual({ refNuc: 'A', pos: undefined, queryNuc: undefined })
   })
 
+  it('should parse position', () => {
+    expect(parseMutation('123')).toStrictEqual({ refNuc: undefined, pos: 122, queryNuc: undefined })
+  })
+
+  it('should parse position, query', () => {
+    expect(parseMutation('123C')).toStrictEqual({ refNuc: undefined, pos: 122, queryNuc: 'C' })
+  })
+
   it('should parse ref, query', () => {
     expect(parseMutation('AC')).toStrictEqual({ refNuc: 'A', pos: undefined, queryNuc: 'C' })
   })

@@ -25,7 +25,7 @@ export function parseNucleotidePosition(raw: string | undefined | null) {
 }
 
 export function parseMutation(formatted: string): Partial<NucleotideSubstitution> | undefined {
-  const match = /^(?<refNuc>[.a-z-])(?<pos>(\d)*)(?<queryNuc>[.a-z-]{0,1})$/i.exec(formatted)
+  const match = /^(?<refNuc>[.a-z-]{0,1})(?<pos>(\d)*)(?<queryNuc>[.a-z-]{0,1})$/i.exec(formatted)
 
   if (!match?.groups) {
     return undefined
