@@ -24,3 +24,5 @@ export const exportCsvTrigger = action('EXPORT_CSV')
 export const exportJsonTrigger = action('EXPORT_JSON')
 
 export const setMutationsFilter = action<string | undefined>('SET_MUTATIONS_FILTER')
+
+export const setCladesFilter = action<string | undefined>('SET_CLADES_FILTER')

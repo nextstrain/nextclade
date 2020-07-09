@@ -5,41 +5,68 @@ import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
 import { State } from 'src/state/reducer'
-import { setMutationsFilter } from 'src/state/algorithm/algorithm.actions'
+import { setMutationsFilter, setCladesFilter } from 'src/state/algorithm/algorithm.actions'
 
 const mapStateToProps = (state: State) => ({
+  cladesFilter: state.algorithm.cladesFilter,
   mutationsFilter: state.algorithm.mutationsFilter,
 })
 
 const mapDispatchToProps = {
-  setMutationsFilter: (mutationsFilter?: string) => setMutationsFilter(mutationsFilter),
+  setMutationsFilter,
+  setCladesFilter,
 }
 
 export const ResultsFilter = connect(mapStateToProps, mapDispatchToProps)(ResultsFilterDisconnected)
 
 export interface ResultsFilterProps {
   mutationsFilter?: string
+  cladesFilter?: string
   setMutationsFilter(filter?: string): void
+  setCladesFilter(cladesFilter?: string): void
 }
 
-export function ResultsFilterDisconnected({ mutationsFilter, setMutationsFilter }: ResultsFilterProps) {
+export function ResultsFilterDisconnected({
+  mutationsFilter,
+  setMutationsFilter,
+  cladesFilter,
+  setCladesFilter,
+}: ResultsFilterProps) {
   const { t } = useTranslation()
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleMutationsFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { value } = event.target
     setMutationsFilter(value)
   }
 
+  function handleCladesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { value } = event.target
+    setCladesFilter(value)
+  }
+
   return (
     <div>
-      <label htmlFor="mutation-filter">{t('Mutations')}</label>
-      <Input
-        name="mutation-filter"
-        type="text"
-        value={mutationsFilter ?? ''}
-        onChange={handleChange}
-        autoComplete="off"
-      />
+      <div>
+        <label htmlFor="mutation-filter">{t('Mutations')}</label>
+        <Input
+          name="mutation-filter"
+          type="text"
+          value={mutationsFilter ?? ''}
+          onChange={handleMutationsFilterChange}
+          autoComplete="off"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="clade-filter">{t('Clades')}</label>
+        <Input
+          name="clade-filter"
+          type="text"
+          value={cladesFilter ?? ''}
+          onChange={handleCladesFilterChange}
+          autoComplete="off"
+        />
+      </div>
     </div>
   )
 }

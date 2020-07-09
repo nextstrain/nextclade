@@ -45,6 +45,7 @@ export interface AlgorithmState {
   results: SequenceAnylysisState[]
   resultsFiltered: SequenceAnylysisState[]
   errors: string[]
+  cladesFilter?: string
   mutationsFilter?: string
 }
 

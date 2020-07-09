@@ -1,10 +1,10 @@
-import { DeepWritable } from 'ts-essentials'
+import { DeepNullable, DeepWritable } from 'ts-essentials'
 
-import { intersectionWith } from 'lodash'
+import { intersectionWith, intersection } from 'lodash'
 import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
-import type { NucleotideSubstitution } from 'src/algorithms/types'
+import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
 import { parseMutation } from 'src/helpers/parseMutation'
 import { notUndefined } from 'src/helpers/notUndefined'
 
@@ -12,6 +12,7 @@ import {
   algorithmRunAsync,
   analyzeAsync,
   parseAsync,
+  setCladesFilter,
   setInput,
   setInputFile,
   setIsDirty,
@@ -28,7 +29,7 @@ export function mutationsAreEqual(filter: Partial<NucleotideSubstitution>, actua
   return posMatch && refNucMatch && queryNucMatch
 }
 
-export function mutationsFilterRun(mutationsFilter: string) {
+export function getMutationsFilterRunner(mutationsFilter: string) {
   const mutationFilters = mutationsFilter.split(',').map(parseMutation).filter(notUndefined)
 
   return (result: SequenceAnylysisState) => {
@@ -40,12 +41,53 @@ export function mutationsFilterRun(mutationsFilter: string) {
   }
 }
 
+export function getCladesFilterRunner(cladesFilter: string) {
+  const cladesFilters = cladesFilter.split(',')
+
+  return (result: SequenceAnylysisState) => {
+    if (!result?.result) {
+      return false
+    }
+
+    const clades = Object.keys(result.result.clades)
+    return intersectionWith(cladesFilters, clades, (filter, clade) => clade.startsWith(filter)).length > 0
+  }
+}
+
+export interface RunFiltersParams {
+  resultsCurrent: SequenceAnylysisState[]
+  mutationsFilter?: string
+  cladesFilter?: string
+}
+
+export function runFilters({ resultsCurrent, mutationsFilter, cladesFilter }: RunFiltersParams) {
+  let filtered = resultsCurrent
+  if (mutationsFilter) {
+    filtered = filtered.filter(getMutationsFilterRunner(mutationsFilter))
+  }
+  if (cladesFilter) {
+    filtered = filtered.filter(getCladesFilterRunner(cladesFilter))
+  }
+  return filtered as DeepWritable<typeof filtered>
+}
+
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(setMutationsFilter, (draft, mutationsFilter) => {
       draft.mutationsFilter = mutationsFilter
-      if (mutationsFilter) {
-        draft.resultsFiltered = current(draft).results.filter(mutationsFilterRun(mutationsFilter))
+
+      const resultsCurrent = current(draft).results
+      const { cladesFilter } = draft
+      const resultsFiltered = runFilters({ resultsCurrent, mutationsFilter, cladesFilter })
+      draft.resultsFiltered = resultsFiltered
+    }),
+  )
+
+  .withHandling(
+    immerCase(setCladesFilter, (draft, cladesFilter) => {
+      draft.cladesFilter = cladesFilter
+      if (cladesFilter) {
+        draft.resultsFiltered = current(draft).results.filter(getCladesFilterRunner(cladesFilter))
       } else {
         draft.resultsFiltered = draft.results
       }
