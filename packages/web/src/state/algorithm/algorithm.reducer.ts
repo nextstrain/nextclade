@@ -7,6 +7,7 @@ import { reducerWithInitialState } from 'typescript-fsa-reducers'
 import type { NucleotideSubstitution } from 'src/algorithms/types'
 import { parseMutation } from 'src/helpers/parseMutation'
 import { notUndefined } from 'src/helpers/notUndefined'
+import { formatClades } from 'src/helpers/formatClades'
 
 import {
   algorithmRunAsync,
@@ -63,8 +64,8 @@ export function getCladesFilterRunner(cladesFilter: string) {
       return false
     }
 
-    const clades = Object.keys(result.result.clades)
-    return intersectionWith(cladesFilters, clades, (filter, clade) => clade.startsWith(filter)).length > 0
+    const { cladeStr } = formatClades(result.result.clades)
+    return cladesFilters.some((filter) => cladeStr.startsWith(filter))
   }
 }
 
