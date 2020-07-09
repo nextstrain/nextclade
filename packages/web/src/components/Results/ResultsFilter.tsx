@@ -8,6 +8,7 @@ import { State } from 'src/state/reducer'
 import {
   setSeqNamesFilter,
   setMutationsFilter,
+  setAAFilter,
   setCladesFilter,
   setHasErrorsFilter,
   setHasNoQcIssuesFilter,
@@ -17,6 +18,7 @@ import {
 const mapStateToProps = (state: State) => ({
   seqNamesFilter: state.algorithm.seqNamesFilter ?? '',
   mutationsFilter: state.algorithm.mutationsFilter ?? '',
+  aaFilter: state.algorithm.aaFilter ?? '',
   cladesFilter: state.algorithm.cladesFilter ?? '',
   hasNoQcIssuesFilter: state.algorithm.hasNoQcIssuesFilter,
   hasQcIssuesFilter: state.algorithm.hasQcIssuesFilter,
@@ -26,6 +28,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = {
   setSeqNamesFilter,
   setMutationsFilter,
+  setAAFilter,
   setCladesFilter,
   setHasNoQcIssuesFilter,
   setHasQcIssuesFilter,
@@ -37,12 +40,14 @@ export const ResultsFilter = connect(mapStateToProps, mapDispatchToProps)(Result
 export interface ResultsFilterProps {
   seqNamesFilter: string
   mutationsFilter: string
+  aaFilter: string
   cladesFilter: string
   hasQcIssuesFilter: boolean
   hasNoQcIssuesFilter: boolean
   hasErrorsFilter: boolean
   setSeqNamesFilter(namesFilter?: string): void
   setMutationsFilter(mutationsFilter?: string): void
+  setAAFilter(aaFilter?: string): void
   setCladesFilter(cladesFilter?: string): void
   setHasNoQcIssuesFilter(checked: boolean): void
   setHasQcIssuesFilter(checked: boolean): void
@@ -53,10 +58,12 @@ export function ResultsFilterDisconnected({
   seqNamesFilter,
   setSeqNamesFilter,
   mutationsFilter,
+  aaFilter,
   hasQcIssuesFilter,
   hasNoQcIssuesFilter,
   hasErrorsFilter,
   setMutationsFilter,
+  setAAFilter,
   cladesFilter,
   setCladesFilter,
   setHasNoQcIssuesFilter,
@@ -65,19 +72,24 @@ export function ResultsFilterDisconnected({
 }: ResultsFilterProps) {
   const { t } = useTranslation()
 
+  function handleSeqNamesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { value } = event.target
+    setSeqNamesFilter(value)
+  }
+
   function handleMutationsFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { value } = event.target
     setMutationsFilter(value)
   }
 
+  function handleAAFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { value } = event.target
+    setAAFilter(value)
+  }
+
   function handleCladesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { value } = event.target
     setCladesFilter(value)
-  }
-
-  function handleSeqNamesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-    setSeqNamesFilter(value)
   }
 
   function handleHasNoQcIssuesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -115,6 +127,17 @@ export function ResultsFilterDisconnected({
           type="text"
           value={mutationsFilter}
           onChange={handleMutationsFilterChange}
+          autoComplete="off"
+        />
+      </div>
+
+      <div>
+        <label htmlFor="aa-mutation-filter">{t('Aminoacid changes')}</label>
+        <Input
+          name="aa-mutation-filter"
+          type="text"
+          value={aaFilter}
+          onChange={handleAAFilterChange}
           autoComplete="off"
         />
       </div>

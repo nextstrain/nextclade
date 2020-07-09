@@ -4,7 +4,7 @@ import { intersectionWith } from 'lodash'
 import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
-import type { NucleotideSubstitution } from 'src/algorithms/types'
+import type { AminoacidSubstitution, NucleotideSubstitution } from 'src/algorithms/types'
 import { parseMutation } from 'src/helpers/parseMutation'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { formatClades } from 'src/helpers/formatClades'
@@ -22,6 +22,7 @@ import {
   setIsDirty,
   setMutationsFilter,
   setSeqNamesFilter,
+  setAAFilter,
 } from './algorithm.actions'
 import {
   agorithmDefaultState,
@@ -59,6 +60,25 @@ export function getMutationsFilterRunner(mutationsFilter: string) {
   }
 }
 
+export function aaChangesAreEqual(filter: Partial<NucleotideSubstitution>, actual: AminoacidSubstitution) {
+  const posMatch = filter.pos === undefined || filter.pos === actual.codon
+  const refNucMatch = filter.refNuc === undefined || (filter.refNuc as string) === (actual.refAA as string)
+  const queryNucMatch = filter.queryNuc === undefined || (filter.queryNuc as string) === (actual.queryAA as string)
+  return posMatch && refNucMatch && queryNucMatch
+}
+
+export function getAAFilterRunner(aaFilter: string) {
+  const aaFilters = aaFilter.split(',').map(parseMutation).filter(notUndefined)
+
+  return (result: SequenceAnylysisState) => {
+    if (!result?.result) {
+      return false
+    }
+    const { aminoacidChanges } = result.result
+    return intersectionWith(aaFilters, aminoacidChanges, aaChangesAreEqual).length > 0
+  }
+}
+
 export function getCladesFilterRunner(cladesFilter: string) {
   const cladesFilters = cladesFilter.split(',')
 
@@ -77,6 +97,7 @@ export function runFilters(state: AlgorithmState) {
     results,
     seqNamesFilter,
     mutationsFilter,
+    aaFilter,
     cladesFilter,
     hasQcIssuesFilter,
     hasNoQcIssuesFilter,
@@ -90,6 +111,10 @@ export function runFilters(state: AlgorithmState) {
 
   if (mutationsFilter) {
     filtered = filtered.filter(getMutationsFilterRunner(mutationsFilter))
+  }
+
+  if (aaFilter) {
+    filtered = filtered.filter(getAAFilterRunner(aaFilter))
   }
 
   if (cladesFilter) {
@@ -124,6 +149,13 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(setMutationsFilter, (draft, mutationsFilter) => {
       draft.mutationsFilter = mutationsFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setAAFilter, (draft, aaFilter) => {
+      draft.aaFilter = aaFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )

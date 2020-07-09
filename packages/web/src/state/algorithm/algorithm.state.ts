@@ -48,6 +48,7 @@ export interface AlgorithmState {
   errors: string[]
   seqNamesFilter?: string
   mutationsFilter?: string
+  aaFilter?: string
   cladesFilter?: string
   hasNoQcIssuesFilter: boolean
   hasQcIssuesFilter: boolean

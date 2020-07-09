@@ -23,11 +23,10 @@ export const exportCsvTrigger = action('EXPORT_CSV')
 
 export const exportJsonTrigger = action('EXPORT_JSON')
 
-export const setSeqNamesFilter = action<string | undefined>('SET_SEQ_NAMES_FILTER')
-
-export const setMutationsFilter = action<string | undefined>('SET_MUTATIONS_FILTER')
-
-export const setCladesFilter = action<string | undefined>('SET_CLADES_FILTER')
+export const setSeqNamesFilter = action<string | undefined>('setSeqNamesFilter')
+export const setMutationsFilter = action<string | undefined>('setMutationsFilter')
+export const setAAFilter = action<string | undefined>('setAAFilter')
+export const setCladesFilter = action<string | undefined>('setCladesFilter')
 
 export const setHasNoQcIssuesFilter = action<boolean>('setHasNoQcIssuesFilter')
 export const setHasQcIssuesFilter = action<boolean>('setHasQcIssuesFilter')
