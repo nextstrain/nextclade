@@ -28,3 +28,7 @@ export const setSeqNamesFilter = action<string | undefined>('SET_SEQ_NAMES_FILTE
 export const setMutationsFilter = action<string | undefined>('SET_MUTATIONS_FILTER')
 
 export const setCladesFilter = action<string | undefined>('SET_CLADES_FILTER')
+
+export const setHasNoQcIssuesFilter = action<boolean>('setHasNoQcIssuesFilter')
+export const setHasQcIssuesFilter = action<boolean>('setHasQcIssuesFilter')
+export const setHasErrorsFilter = action<boolean>('setHasErrorsFilter')

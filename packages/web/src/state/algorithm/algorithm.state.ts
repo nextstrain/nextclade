@@ -48,6 +48,9 @@ export interface AlgorithmState {
   seqNamesFilter?: string
   mutationsFilter?: string
   cladesFilter?: string
+  hasNoQcIssuesFilter: boolean
+  hasQcIssuesFilter: boolean
+  hasErrorsFilter: boolean
 }
 
 let results: SequenceAnylysisState[] = []
@@ -65,4 +68,7 @@ export const agorithmDefaultState: AlgorithmState = {
   results,
   resultsFiltered: results,
   errors: [],
+  hasNoQcIssuesFilter: true,
+  hasQcIssuesFilter: true,
+  hasErrorsFilter: true,
 }

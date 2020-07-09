@@ -14,6 +14,9 @@ import {
   analyzeAsync,
   parseAsync,
   setCladesFilter,
+  setHasErrorsFilter,
+  setHasNoQcIssuesFilter,
+  setHasQcIssuesFilter,
   setInput,
   setInputFile,
   setIsDirty,
@@ -70,18 +73,43 @@ export function getCladesFilterRunner(cladesFilter: string) {
 }
 
 export function runFilters(state: AlgorithmState) {
-  const { results, seqNamesFilter, mutationsFilter, cladesFilter } = state
+  const {
+    results,
+    seqNamesFilter,
+    mutationsFilter,
+    cladesFilter,
+    hasQcIssuesFilter,
+    hasNoQcIssuesFilter,
+    hasErrorsFilter,
+  } = state
 
   let filtered = results
   if (seqNamesFilter) {
     filtered = filtered.filter(getSeqNamesFilterRunner(seqNamesFilter))
   }
+
   if (mutationsFilter) {
     filtered = filtered.filter(getMutationsFilterRunner(mutationsFilter))
   }
+
   if (cladesFilter) {
     filtered = filtered.filter(getCladesFilterRunner(cladesFilter))
   }
+
+  if (!hasNoQcIssuesFilter) {
+    filtered = filtered.filter(({ result }) => !(result && result.diagnostics.flags.length === 0))
+  }
+
+  if (!hasQcIssuesFilter) {
+    filtered = filtered.filter(
+      ({ result, errors }) => !(errors.length > 0 || (result && result.diagnostics.flags.length > 0)),
+    )
+  }
+
+  if (!hasErrorsFilter) {
+    filtered = filtered.filter(({ errors }) => !(errors.length > 0))
+  }
+
   return filtered as DeepWritable<typeof filtered>
 }
 
@@ -103,6 +131,27 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(setCladesFilter, (draft, cladesFilter) => {
       draft.cladesFilter = cladesFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setHasNoQcIssuesFilter, (draft, hasNoQcIssuesFilter) => {
+      draft.hasNoQcIssuesFilter = hasNoQcIssuesFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setHasQcIssuesFilter, (draft, hasQcIssuesFilter) => {
+      draft.hasQcIssuesFilter = hasQcIssuesFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setHasErrorsFilter, (draft, hasErrorsFilter) => {
+      draft.hasErrorsFilter = hasErrorsFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
