@@ -6,12 +6,13 @@ export function getFakeResults() {
     throw new Error(': Developer error: Fake data should not be used in production!')
   }
 
-  return GetFakeResults
+  return fakeResults
 }
 
-const GetFakeResults = ([
+const fakeResults = ([
   {
     status: 'done',
+    id: 0,
     seqName: 'Wuhan-Hu-1/2019',
     errors: [],
     result: {
@@ -61,6 +62,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 1,
     seqName: 'Wuhan/WH01/2019',
     errors: [],
     result: {
@@ -151,6 +153,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 2,
     seqName: 'Australia/VIC05/2020',
     errors: [],
     result: {
@@ -303,6 +306,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 3,
     seqName: 'Australia/VIC1000/2020',
     errors: [],
     result: {
@@ -485,6 +489,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 4,
     seqName: 'Australia/VIC1008/2020',
     errors: [],
     result: {
@@ -623,6 +628,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 5,
     seqName: 'Australia/VIC1018/2020',
     errors: [],
     result: {
@@ -774,6 +780,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 6,
     seqName: 'Australia/VIC102/2020',
     errors: [],
     result: {
@@ -854,17 +861,455 @@ const GetFakeResults = ([
     },
   },
   {
-    status: 'started',
-    seqName: 'Australia/VIC423/2020',
+    status: 'done',
+    id: 7,
+    seqName: 'Australia/VIC1038/2020',
     errors: [],
-  },
-  {
-    status: 'started',
-    seqName: 'Australia/VIC431/2020',
-    errors: [],
+    result: {
+      seqName: 'Australia/VIC1038/2020',
+      clades: {
+        '20A': [
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+        ],
+        '20B': [
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+          {
+            pos: 28881,
+            nuc: 'A',
+          },
+          {
+            pos: 28882,
+            nuc: 'A',
+          },
+        ],
+      },
+      substitutions: [
+        {
+          pos: 240,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 3036,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 14407,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'P',
+              queryAA: 'L',
+              codon: 313,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 23402,
+          refNuc: 'A',
+          queryNuc: 'G',
+          aaSubstitutions: [
+            {
+              refAA: 'D',
+              queryAA: 'G',
+              codon: 613,
+              gene: 'S',
+            },
+          ],
+        },
+        {
+          pos: 26995,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 28880,
+          refNuc: 'G',
+          queryNuc: 'A',
+          aaSubstitutions: [
+            {
+              refAA: 'R',
+              queryAA: 'K',
+              codon: 202,
+              gene: 'N',
+            },
+            {
+              refAA: 'G',
+              queryAA: 'R',
+              codon: 49,
+              gene: 'ORF14',
+            },
+          ],
+        },
+        {
+          pos: 28881,
+          refNuc: 'G',
+          queryNuc: 'A',
+          aaSubstitutions: [
+            {
+              refAA: 'G',
+              queryAA: 'E',
+              codon: 49,
+              gene: 'ORF14',
+            },
+          ],
+        },
+        {
+          pos: 28882,
+          refNuc: 'G',
+          queryNuc: 'C',
+          aaSubstitutions: [
+            {
+              refAA: 'G',
+              queryAA: 'R',
+              codon: 203,
+              gene: 'N',
+            },
+          ],
+        },
+      ],
+      totalMutations: 8,
+      aminoacidChanges: [
+        {
+          refAA: 'P',
+          queryAA: 'L',
+          codon: 313,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'D',
+          queryAA: 'G',
+          codon: 613,
+          gene: 'S',
+        },
+        {
+          refAA: 'R',
+          queryAA: 'K',
+          codon: 202,
+          gene: 'N',
+        },
+        {
+          refAA: 'G',
+          queryAA: 'R',
+          codon: 49,
+          gene: 'ORF14',
+        },
+        {
+          refAA: 'G',
+          queryAA: 'E',
+          codon: 49,
+          gene: 'ORF14',
+        },
+        {
+          refAA: 'G',
+          queryAA: 'R',
+          codon: 203,
+          gene: 'N',
+        },
+      ],
+      totalAminoacidChanges: 6,
+      insertions: [],
+      totalInsertions: 0,
+      deletions: [],
+      totalGaps: 0,
+      missing: [
+        {
+          begin: 22324,
+          nuc: 'N',
+          end: 22352,
+        },
+        {
+          begin: 22361,
+          nuc: 'N',
+          end: 22374,
+        },
+        {
+          begin: 22896,
+          nuc: 'N',
+          end: 23128,
+        },
+        {
+          begin: 29083,
+          nuc: 'N',
+          end: 29299,
+        },
+      ],
+      totalMissing: 489,
+      nonACGTNs: [
+        {
+          begin: 3816,
+          nuc: 'Y',
+          end: 3817,
+        },
+        {
+          begin: 22355,
+          nuc: 'R',
+          end: 22356,
+        },
+      ],
+      totalNonACGTNs: 2,
+      alignmentStart: 45,
+      alignmentEnd: 29853,
+      alignmentScore: 89393,
+      diagnostics: {
+        flags: [],
+        diagnostics: {
+          clusteredSNPs: [],
+          totalMixedSites: 2,
+          totalNumberOfMutations: 8,
+        },
+        nucleotideComposition: {
+          '-': 94,
+          'A': 8762,
+          'T': 9441,
+          'C': 5370,
+          'G': 5745,
+          'Y': 1,
+          'N': 489,
+          'R': 1,
+        },
+      },
+    },
   },
   {
     status: 'done',
+    id: 8,
+    seqName: 'Australia/VIC1045/2020',
+    errors: [],
+    result: {
+      seqName: 'Australia/VIC1045/2020',
+      clades: {
+        '20A': [
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+        ],
+        '20C': [
+          {
+            pos: 1059,
+            nuc: 'T',
+          },
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+          {
+            pos: 25563,
+            nuc: 'T',
+          },
+        ],
+      },
+      substitutions: [
+        {
+          pos: 240,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 1058,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'T',
+              queryAA: 'I',
+              codon: 264,
+              gene: 'ORF1a',
+            },
+          ],
+        },
+        {
+          pos: 3036,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 14407,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'P',
+              queryAA: 'L',
+              codon: 313,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 23402,
+          refNuc: 'A',
+          queryNuc: 'G',
+          aaSubstitutions: [
+            {
+              refAA: 'D',
+              queryAA: 'G',
+              codon: 613,
+              gene: 'S',
+            },
+          ],
+        },
+        {
+          pos: 25562,
+          refNuc: 'G',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'Q',
+              queryAA: 'H',
+              codon: 56,
+              gene: 'ORF3a',
+            },
+          ],
+        },
+      ],
+      totalMutations: 6,
+      aminoacidChanges: [
+        {
+          refAA: 'T',
+          queryAA: 'I',
+          codon: 264,
+          gene: 'ORF1a',
+        },
+        {
+          refAA: 'P',
+          queryAA: 'L',
+          codon: 313,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'D',
+          queryAA: 'G',
+          codon: 613,
+          gene: 'S',
+        },
+        {
+          refAA: 'Q',
+          queryAA: 'H',
+          codon: 56,
+          gene: 'ORF3a',
+        },
+      ],
+      totalAminoacidChanges: 4,
+      insertions: [],
+      totalInsertions: 0,
+      deletions: [],
+      totalGaps: 0,
+      missing: [
+        {
+          begin: 22895,
+          nuc: 'N',
+          end: 23127,
+        },
+      ],
+      totalMissing: 232,
+      nonACGTNs: [
+        {
+          begin: 13637,
+          nuc: 'W',
+          end: 13638,
+        },
+        {
+          begin: 15809,
+          nuc: 'Y',
+          end: 15810,
+        },
+        {
+          begin: 23127,
+          nuc: 'M',
+          end: 23128,
+        },
+        {
+          begin: 28252,
+          nuc: 'Y',
+          end: 28253,
+        },
+        {
+          begin: 28335,
+          nuc: 'W',
+          end: 28336,
+        },
+        {
+          begin: 28431,
+          nuc: 'Y',
+          end: 28432,
+        },
+      ],
+      totalNonACGTNs: 6,
+      alignmentStart: 47,
+      alignmentEnd: 29850,
+      alignmentScore: 89386,
+      diagnostics: {
+        flags: [],
+        diagnostics: {
+          clusteredSNPs: [],
+          totalMixedSites: 6,
+          totalNumberOfMutations: 6,
+        },
+        nucleotideComposition: {
+          '-': 99,
+          'C': 5428,
+          'T': 9497,
+          'G': 5811,
+          'A': 8830,
+          'W': 2,
+          'Y': 3,
+          'N': 232,
+          'M': 1,
+        },
+      },
+    },
+  },
+  {
+    status: 'done',
+    id: 9,
     seqName: 'Australia/VIC1048/2020',
     errors: [],
     result: {
@@ -1056,6 +1501,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 10,
     seqName: 'Australia/VIC1062/2020',
     errors: [],
     result: {
@@ -1186,6 +1632,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 11,
     seqName: 'Australia/VIC1120/2020',
     errors: [],
     result: {
@@ -1526,6 +1973,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 12,
     seqName: 'Australia/VIC1135/2020',
     errors: [],
     result: {
@@ -1755,12 +2203,219 @@ const GetFakeResults = ([
     },
   },
   {
-    status: 'failed',
+    status: 'done',
+    id: 13,
     seqName: 'Australia/VIC1139/2020',
-    errors: ['This is an error!'],
+    errors: [],
+    result: {
+      seqName: 'Australia/VIC1139/2020',
+      clades: {
+        '20A': [
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+        ],
+        '20C': [
+          {
+            pos: 1059,
+            nuc: 'T',
+          },
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+          {
+            pos: 25563,
+            nuc: 'T',
+          },
+        ],
+      },
+      substitutions: [
+        {
+          pos: 240,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 1058,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'T',
+              queryAA: 'I',
+              codon: 264,
+              gene: 'ORF1a',
+            },
+          ],
+        },
+        {
+          pos: 3036,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 8184,
+          refNuc: 'G',
+          queryNuc: 'A',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 14407,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'P',
+              queryAA: 'L',
+              codon: 313,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 17379,
+          refNuc: 'T',
+          queryNuc: 'C',
+          aaSubstitutions: [
+            {
+              refAA: 'Y',
+              queryAA: 'H',
+              codon: 1304,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 21930,
+          refNuc: 'T',
+          queryNuc: 'C',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 23402,
+          refNuc: 'A',
+          queryNuc: 'G',
+          aaSubstitutions: [
+            {
+              refAA: 'D',
+              queryAA: 'G',
+              codon: 613,
+              gene: 'S',
+            },
+          ],
+        },
+        {
+          pos: 23784,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 25562,
+          refNuc: 'G',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'Q',
+              queryAA: 'H',
+              codon: 56,
+              gene: 'ORF3a',
+            },
+          ],
+        },
+      ],
+      totalMutations: 10,
+      aminoacidChanges: [
+        {
+          refAA: 'T',
+          queryAA: 'I',
+          codon: 264,
+          gene: 'ORF1a',
+        },
+        {
+          refAA: 'P',
+          queryAA: 'L',
+          codon: 313,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'Y',
+          queryAA: 'H',
+          codon: 1304,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'D',
+          queryAA: 'G',
+          codon: 613,
+          gene: 'S',
+        },
+        {
+          refAA: 'Q',
+          queryAA: 'H',
+          codon: 56,
+          gene: 'ORF3a',
+        },
+      ],
+      totalAminoacidChanges: 5,
+      insertions: [],
+      totalInsertions: 0,
+      deletions: [],
+      totalGaps: 0,
+      missing: [
+        {
+          begin: 22338,
+          nuc: 'N',
+          end: 22523,
+        },
+      ],
+      totalMissing: 185,
+      nonACGTNs: [],
+      totalNonACGTNs: 0,
+      alignmentStart: 38,
+      alignmentEnd: 29852,
+      alignmentScore: 89403,
+      diagnostics: {
+        flags: [],
+        diagnostics: {
+          clusteredSNPs: [],
+          totalMixedSites: 0,
+          totalNumberOfMutations: 10,
+        },
+        nucleotideComposition: {
+          '-': 88,
+          'A': 8842,
+          'C': 5440,
+          'T': 9527,
+          'G': 5821,
+          'N': 185,
+        },
+      },
+    },
   },
   {
     status: 'done',
+    id: 14,
     seqName: 'Australia/VIC1175/2020',
     errors: [],
     result: {
@@ -1980,6 +2635,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 15,
     seqName: 'Australia/VIC1186/2020',
     errors: [],
     result: {
@@ -2191,6 +2847,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 16,
     seqName: 'Australia/VIC1199/2020',
     errors: [],
     result: {
@@ -2397,6 +3054,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 17,
     seqName: 'Australia/VIC1200/2020',
     errors: [],
     result: {
@@ -2550,6 +3208,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 18,
     seqName: 'Australia/VIC1208/2020',
     errors: [],
     result: {
@@ -2772,420 +3431,14 @@ const GetFakeResults = ([
     },
   },
   {
-    status: 'done',
+    status: 'failed',
+    id: 19,
     seqName: 'Australia/VIC1251/2020',
-    errors: [],
-    result: {
-      seqName: 'Australia/VIC1251/2020',
-      clades: {
-        '19A': [
-          {
-            pos: 8782,
-            nuc: 'C',
-          },
-          {
-            pos: 14408,
-            nuc: 'C',
-          },
-        ],
-      },
-      substitutions: [
-        {
-          pos: 4539,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [],
-        },
-        {
-          pos: 9476,
-          refNuc: 'T',
-          queryNuc: 'A',
-          aaSubstitutions: [
-            {
-              refAA: 'F',
-              queryAA: 'Y',
-              codon: 3070,
-              gene: 'ORF1a',
-            },
-          ],
-        },
-        {
-          pos: 14804,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [],
-        },
-        {
-          pos: 25978,
-          refNuc: 'G',
-          queryNuc: 'T',
-          aaSubstitutions: [
-            {
-              refAA: 'G',
-              queryAA: 'V',
-              codon: 195,
-              gene: 'ORF3a',
-            },
-          ],
-        },
-        {
-          pos: 28143,
-          refNuc: 'T',
-          queryNuc: 'C',
-          aaSubstitutions: [
-            {
-              refAA: 'L',
-              queryAA: 'S',
-              codon: 83,
-              gene: 'ORF8',
-            },
-          ],
-        },
-        {
-          pos: 28310,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [
-            {
-              refAA: 'P',
-              queryAA: 'L',
-              codon: 12,
-              gene: 'N',
-            },
-            {
-              refAA: 'P',
-              queryAA: 'S',
-              codon: 9,
-              gene: 'ORF9b',
-            },
-          ],
-        },
-        {
-          pos: 28656,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [],
-        },
-        {
-          pos: 28862,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [
-            {
-              refAA: 'S',
-              queryAA: 'L',
-              codon: 196,
-              gene: 'N',
-            },
-            {
-              refAA: 'Q',
-              queryAA: '*',
-              codon: 43,
-              gene: 'ORF14',
-            },
-          ],
-        },
-      ],
-      totalMutations: 8,
-      aminoacidChanges: [
-        {
-          refAA: 'F',
-          queryAA: 'Y',
-          codon: 3070,
-          gene: 'ORF1a',
-        },
-        {
-          refAA: 'G',
-          queryAA: 'V',
-          codon: 195,
-          gene: 'ORF3a',
-        },
-        {
-          refAA: 'L',
-          queryAA: 'S',
-          codon: 83,
-          gene: 'ORF8',
-        },
-        {
-          refAA: 'P',
-          queryAA: 'L',
-          codon: 12,
-          gene: 'N',
-        },
-        {
-          refAA: 'P',
-          queryAA: 'S',
-          codon: 9,
-          gene: 'ORF9b',
-        },
-        {
-          refAA: 'S',
-          queryAA: 'L',
-          codon: 196,
-          gene: 'N',
-        },
-        {
-          refAA: 'Q',
-          queryAA: '*',
-          codon: 43,
-          gene: 'ORF14',
-        },
-      ],
-      totalAminoacidChanges: 7,
-      insertions: [],
-      totalInsertions: 0,
-      deletions: [],
-      totalGaps: 0,
-      missing: [
-        {
-          begin: 2185,
-          nuc: 'N',
-          end: 2188,
-        },
-        {
-          begin: 2585,
-          nuc: 'N',
-          end: 2592,
-        },
-        {
-          begin: 5629,
-          nuc: 'N',
-          end: 5679,
-        },
-        {
-          begin: 5854,
-          nuc: 'N',
-          end: 5872,
-        },
-        {
-          begin: 7434,
-          nuc: 'N',
-          end: 7440,
-        },
-        {
-          begin: 8090,
-          nuc: 'N',
-          end: 8091,
-        },
-        {
-          begin: 8635,
-          nuc: 'N',
-          end: 8898,
-        },
-        {
-          begin: 10447,
-          nuc: 'N',
-          end: 10448,
-        },
-        {
-          begin: 12247,
-          nuc: 'N',
-          end: 12248,
-        },
-        {
-          begin: 13379,
-          nuc: 'N',
-          end: 13611,
-        },
-        {
-          begin: 17747,
-          nuc: 'N',
-          end: 17761,
-        },
-        {
-          begin: 18353,
-          nuc: 'N',
-          end: 18378,
-        },
-        {
-          begin: 19620,
-          nuc: 'N',
-          end: 19621,
-        },
-        {
-          begin: 21160,
-          nuc: 'N',
-          end: 21385,
-        },
-        {
-          begin: 22307,
-          nuc: 'N',
-          end: 22523,
-        },
-        {
-          begin: 22896,
-          nuc: 'N',
-          end: 22917,
-        },
-        {
-          begin: 25665,
-          nuc: 'N',
-          end: 25915,
-        },
-        {
-          begin: 29041,
-          nuc: 'N',
-          end: 29316,
-        },
-      ],
-      totalMissing: 1609,
-      nonACGTNs: [
-        {
-          begin: 883,
-          nuc: 'Y',
-          end: 884,
-        },
-        {
-          begin: 994,
-          nuc: 'Y',
-          end: 995,
-        },
-        {
-          begin: 1606,
-          nuc: 'S',
-          end: 1607,
-        },
-        {
-          begin: 1929,
-          nuc: 'W',
-          end: 1930,
-        },
-        {
-          begin: 1930,
-          nuc: 'M',
-          end: 1931,
-        },
-        {
-          begin: 2149,
-          nuc: 'K',
-          end: 2150,
-        },
-        {
-          begin: 4654,
-          nuc: 'Y',
-          end: 4655,
-        },
-        {
-          begin: 5917,
-          nuc: 'K',
-          end: 5918,
-        },
-        {
-          begin: 6922,
-          nuc: 'Y',
-          end: 6923,
-        },
-        {
-          begin: 7532,
-          nuc: 'R',
-          end: 7533,
-        },
-        {
-          begin: 7625,
-          nuc: 'R',
-          end: 7626,
-        },
-        {
-          begin: 8091,
-          nuc: 'M',
-          end: 8092,
-        },
-        {
-          begin: 9174,
-          nuc: 'M',
-          end: 9175,
-        },
-        {
-          begin: 9445,
-          nuc: 'S',
-          end: 9446,
-        },
-        {
-          begin: 10071,
-          nuc: 'R',
-          end: 10072,
-        },
-        {
-          begin: 15254,
-          nuc: 'Y',
-          end: 15255,
-        },
-        {
-          begin: 17319,
-          nuc: 'K',
-          end: 17320,
-        },
-        {
-          begin: 17631,
-          nuc: 'R',
-          end: 17632,
-        },
-        {
-          begin: 18961,
-          nuc: 'Y',
-          end: 18962,
-        },
-        {
-          begin: 22061,
-          nuc: 'Y',
-          end: 22062,
-        },
-        {
-          begin: 23485,
-          nuc: 'K',
-          end: 23486,
-        },
-        {
-          begin: 24583,
-          nuc: 'R',
-          end: 24584,
-        },
-        {
-          begin: 25392,
-          nuc: 'R',
-          end: 25393,
-        },
-        {
-          begin: 26446,
-          nuc: 'Y',
-          end: 26447,
-        },
-        {
-          begin: 28792,
-          nuc: 'K',
-          end: 28793,
-        },
-      ],
-      totalNonACGTNs: 25,
-      alignmentStart: 63,
-      alignmentEnd: 29839,
-      alignmentScore: 89297,
-      diagnostics: {
-        flags: ['Too many non-ACGT characters', 'missing data'],
-        diagnostics: {
-          clusteredSNPs: [],
-          totalMixedSites: 25,
-          totalNumberOfMutations: 8,
-        },
-        nucleotideComposition: {
-          '-': 126,
-          'C': 5136,
-          'T': 9066,
-          'A': 8431,
-          'G': 5510,
-          'Y': 8,
-          'S': 2,
-          'W': 1,
-          'M': 3,
-          'K': 5,
-          'N': 1609,
-          'R': 6,
-        },
-      },
-    },
+    errors: ['Some error'],
   },
   {
     status: 'done',
+    id: 20,
     seqName: 'Australia/VIC127/2020',
     errors: [],
     result: {
@@ -3395,6 +3648,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 21,
     seqName: 'Australia/VIC14/2020',
     errors: [],
     result: {
@@ -3503,6 +3757,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 22,
     seqName: 'Australia/VIC157/2020',
     errors: [],
     result: {
@@ -3652,216 +3907,14 @@ const GetFakeResults = ([
     },
   },
   {
-    status: 'done',
+    status: 'failed',
+    id: 23,
     seqName: 'Australia/VIC17/2020',
-    errors: [],
-    result: {
-      seqName: 'Australia/VIC17/2020',
-      clades: {
-        '19B': [
-          {
-            pos: 8782,
-            nuc: 'T',
-          },
-          {
-            pos: 28144,
-            nuc: 'C',
-          },
-        ],
-      },
-      substitutions: [
-        {
-          pos: 489,
-          refNuc: 'T',
-          queryNuc: 'A',
-          aaSubstitutions: [
-            {
-              refAA: 'D',
-              queryAA: 'E',
-              codon: 74,
-              gene: 'ORF1a',
-            },
-          ],
-        },
-        {
-          pos: 3176,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [
-            {
-              refAA: 'P',
-              queryAA: 'L',
-              codon: 970,
-              gene: 'ORF1a',
-            },
-          ],
-        },
-        {
-          pos: 8781,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [],
-        },
-        {
-          pos: 18735,
-          refNuc: 'T',
-          queryNuc: 'C',
-          aaSubstitutions: [
-            {
-              refAA: 'F',
-              queryAA: 'L',
-              codon: 1756,
-              gene: 'ORF1b',
-            },
-          ],
-        },
-        {
-          pos: 19683,
-          refNuc: 'G',
-          queryNuc: 'T',
-          aaSubstitutions: [
-            {
-              refAA: 'V',
-              queryAA: 'L',
-              codon: 2072,
-              gene: 'ORF1b',
-            },
-          ],
-        },
-        {
-          pos: 24033,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [],
-        },
-        {
-          pos: 26728,
-          refNuc: 'T',
-          queryNuc: 'C',
-          aaSubstitutions: [],
-        },
-        {
-          pos: 27634,
-          refNuc: 'C',
-          queryNuc: 'T',
-          aaSubstitutions: [
-            {
-              refAA: 'S',
-              queryAA: 'L',
-              codon: 80,
-              gene: 'ORF7a',
-            },
-          ],
-        },
-        {
-          pos: 28076,
-          refNuc: 'G',
-          queryNuc: 'C',
-          aaSubstitutions: [
-            {
-              refAA: 'V',
-              queryAA: 'L',
-              codon: 61,
-              gene: 'ORF8',
-            },
-          ],
-        },
-        {
-          pos: 28143,
-          refNuc: 'T',
-          queryNuc: 'C',
-          aaSubstitutions: [
-            {
-              refAA: 'L',
-              queryAA: 'S',
-              codon: 83,
-              gene: 'ORF8',
-            },
-          ],
-        },
-        {
-          pos: 29699,
-          refNuc: 'A',
-          queryNuc: 'G',
-          aaSubstitutions: [],
-        },
-      ],
-      totalMutations: 11,
-      aminoacidChanges: [
-        {
-          refAA: 'D',
-          queryAA: 'E',
-          codon: 74,
-          gene: 'ORF1a',
-        },
-        {
-          refAA: 'P',
-          queryAA: 'L',
-          codon: 970,
-          gene: 'ORF1a',
-        },
-        {
-          refAA: 'F',
-          queryAA: 'L',
-          codon: 1756,
-          gene: 'ORF1b',
-        },
-        {
-          refAA: 'V',
-          queryAA: 'L',
-          codon: 2072,
-          gene: 'ORF1b',
-        },
-        {
-          refAA: 'S',
-          queryAA: 'L',
-          codon: 80,
-          gene: 'ORF7a',
-        },
-        {
-          refAA: 'V',
-          queryAA: 'L',
-          codon: 61,
-          gene: 'ORF8',
-        },
-        {
-          refAA: 'L',
-          queryAA: 'S',
-          codon: 83,
-          gene: 'ORF8',
-        },
-      ],
-      totalAminoacidChanges: 7,
-      insertions: [],
-      totalInsertions: 0,
-      deletions: [],
-      totalGaps: 0,
-      missing: [],
-      totalMissing: 0,
-      nonACGTNs: [],
-      totalNonACGTNs: 0,
-      alignmentStart: 39,
-      alignmentEnd: 29840,
-      alignmentScore: 89360,
-      diagnostics: {
-        flags: [],
-        diagnostics: {
-          clusteredSNPs: [],
-          totalMixedSites: 0,
-          totalNumberOfMutations: 11,
-        },
-        nucleotideComposition: {
-          '-': 101,
-          'C': 5479,
-          'T': 9575,
-          'G': 5852,
-          'A': 8896,
-        },
-      },
-    },
+    errors: ['Here is an error', 'Another error'],
   },
   {
     status: 'done',
+    id: 24,
     seqName: 'Australia/VIC174/2020',
     errors: [],
     result: {
@@ -3968,6 +4021,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 25,
     seqName: 'Australia/VIC187/2020',
     errors: [],
     result: {
@@ -4120,6 +4174,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 26,
     seqName: 'Australia/VIC205/2020',
     errors: [],
     result: {
@@ -4281,17 +4336,310 @@ const GetFakeResults = ([
     },
   },
   {
-    status: 'started',
-    seqName: 'Australia/VIC423/2020',
+    status: 'done',
+    id: 27,
+    seqName: 'Australia/VIC207/2020',
     errors: [],
-  },
-  {
-    status: 'started',
-    seqName: 'Australia/VIC431/2020',
-    errors: [],
+    result: {
+      seqName: 'Australia/VIC207/2020',
+      clades: {
+        '20A': [
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+        ],
+        '20C': [
+          {
+            pos: 1059,
+            nuc: 'T',
+          },
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+          {
+            pos: 25563,
+            nuc: 'T',
+          },
+        ],
+      },
+      substitutions: [
+        {
+          pos: 240,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 1058,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'T',
+              queryAA: 'I',
+              codon: 264,
+              gene: 'ORF1a',
+            },
+          ],
+        },
+        {
+          pos: 3036,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 14407,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'P',
+              queryAA: 'L',
+              codon: 313,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 23402,
+          refNuc: 'A',
+          queryNuc: 'G',
+          aaSubstitutions: [
+            {
+              refAA: 'D',
+              queryAA: 'G',
+              codon: 613,
+              gene: 'S',
+            },
+          ],
+        },
+        {
+          pos: 25562,
+          refNuc: 'G',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'Q',
+              queryAA: 'H',
+              codon: 56,
+              gene: 'ORF3a',
+            },
+          ],
+        },
+      ],
+      totalMutations: 6,
+      aminoacidChanges: [
+        {
+          refAA: 'T',
+          queryAA: 'I',
+          codon: 264,
+          gene: 'ORF1a',
+        },
+        {
+          refAA: 'P',
+          queryAA: 'L',
+          codon: 313,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'D',
+          queryAA: 'G',
+          codon: 613,
+          gene: 'S',
+        },
+        {
+          refAA: 'Q',
+          queryAA: 'H',
+          codon: 56,
+          gene: 'ORF3a',
+        },
+      ],
+      totalAminoacidChanges: 4,
+      insertions: [],
+      totalInsertions: 0,
+      deletions: [],
+      totalGaps: 0,
+      missing: [],
+      totalMissing: 0,
+      nonACGTNs: [],
+      totalNonACGTNs: 0,
+      alignmentStart: 38,
+      alignmentEnd: 29850,
+      alignmentScore: 89413,
+      diagnostics: {
+        flags: [],
+        diagnostics: {
+          clusteredSNPs: [],
+          totalMixedSites: 0,
+          totalNumberOfMutations: 6,
+        },
+        nucleotideComposition: {
+          '-': 90,
+          'A': 8899,
+          'C': 5475,
+          'T': 9585,
+          'G': 5854,
+        },
+      },
+    },
   },
   {
     status: 'done',
+    id: 28,
+    seqName: 'Australia/VIC241/2020',
+    errors: [],
+    result: {
+      seqName: 'Australia/VIC241/2020',
+      clades: {
+        '19B': [
+          {
+            pos: 8782,
+            nuc: 'T',
+          },
+          {
+            pos: 28144,
+            nuc: 'C',
+          },
+        ],
+      },
+      substitutions: [
+        {
+          pos: 8781,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 17746,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'P',
+              queryAA: 'L',
+              codon: 1426,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 17857,
+          refNuc: 'A',
+          queryNuc: 'G',
+          aaSubstitutions: [
+            {
+              refAA: 'Y',
+              queryAA: 'C',
+              codon: 1463,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 18059,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 24693,
+          refNuc: 'A',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 28143,
+          refNuc: 'T',
+          queryNuc: 'C',
+          aaSubstitutions: [
+            {
+              refAA: 'L',
+              queryAA: 'S',
+              codon: 83,
+              gene: 'ORF8',
+            },
+          ],
+        },
+      ],
+      totalMutations: 6,
+      aminoacidChanges: [
+        {
+          refAA: 'P',
+          queryAA: 'L',
+          codon: 1426,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'Y',
+          queryAA: 'C',
+          codon: 1463,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'L',
+          queryAA: 'S',
+          codon: 83,
+          gene: 'ORF8',
+        },
+      ],
+      totalAminoacidChanges: 3,
+      insertions: [],
+      totalInsertions: 0,
+      deletions: [],
+      totalGaps: 0,
+      missing: [],
+      totalMissing: 0,
+      nonACGTNs: [
+        {
+          begin: 20772,
+          nuc: 'R',
+          end: 20773,
+        },
+      ],
+      totalNonACGTNs: 1,
+      alignmentStart: 38,
+      alignmentEnd: 29835,
+      alignmentScore: 89368,
+      diagnostics: {
+        flags: [],
+        diagnostics: {
+          clusteredSNPs: [],
+          totalMixedSites: 1,
+          totalNumberOfMutations: 6,
+        },
+        nucleotideComposition: {
+          '-': 105,
+          'A': 8894,
+          'C': 5475,
+          'T': 9576,
+          'G': 5852,
+          'R': 1,
+        },
+      },
+    },
+  },
+  {
+    status: 'done',
+    id: 29,
     seqName: 'Australia/VIC248/2020',
     errors: [],
     result: {
@@ -4502,6 +4850,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 30,
     seqName: 'Australia/VIC254/2020',
     errors: [],
     result: {
@@ -4658,6 +5007,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 31,
     seqName: 'Australia/VIC259/2020',
     errors: [],
     result: {
@@ -4850,6 +5200,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 32,
     seqName: 'Australia/VIC27/2020',
     errors: [],
     result: {
@@ -5066,6 +5417,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 33,
     seqName: 'Australia/VIC289/2020',
     errors: [],
     result: {
@@ -5184,6 +5536,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 34,
     seqName: 'Australia/VIC29/2020',
     errors: [],
     result: {
@@ -5405,6 +5758,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 35,
     seqName: 'Australia/VIC295/2020',
     errors: [],
     result: {
@@ -5619,6 +5973,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 36,
     seqName: 'Australia/VIC300/2020',
     errors: [],
     result: {
@@ -5756,6 +6111,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 37,
     seqName: 'Australia/VIC302/2020',
     errors: [],
     result: {
@@ -5905,6 +6261,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 38,
     seqName: 'Australia/VIC306/2020',
     errors: [],
     result: {
@@ -6336,6 +6693,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 39,
     seqName: 'Australia/VIC312/2020',
     errors: [],
     result: {
@@ -6486,6 +6844,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 40,
     seqName: 'Australia/VIC319/2020',
     errors: [],
     result: {
@@ -6610,6 +6969,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 41,
     seqName: 'Australia/VIC322/2020',
     errors: [],
     result: {
@@ -6775,6 +7135,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 42,
     seqName: 'Australia/VIC329/2020',
     errors: [],
     result: {
@@ -7092,6 +7453,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 43,
     seqName: 'Australia/VIC330/2020',
     errors: [],
     result: {
@@ -7355,6 +7717,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 44,
     seqName: 'Australia/VIC367/2020',
     errors: [],
     result: {
@@ -7532,6 +7895,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 45,
     seqName: 'Australia/VIC380/2020',
     errors: [],
     result: {
@@ -7789,6 +8153,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 46,
     seqName: 'Australia/VIC385/2020',
     errors: [],
     result: {
@@ -8251,6 +8616,7 @@ const GetFakeResults = ([
   },
   {
     status: 'done',
+    id: 47,
     seqName: 'Australia/VIC413/2020',
     errors: [],
     result: {
@@ -9543,6 +9909,583 @@ const GetFakeResults = ([
           'Y': 21,
           'W': 3,
           'B': 2,
+        },
+      },
+    },
+  },
+  {
+    status: 'done',
+    id: 48,
+    seqName: 'Australia/VIC423/2020',
+    errors: [],
+    result: {
+      seqName: 'Australia/VIC423/2020',
+      clades: {
+        '19A': [
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'C',
+          },
+        ],
+      },
+      substitutions: [
+        {
+          pos: 17857,
+          refNuc: 'A',
+          queryNuc: 'G',
+          aaSubstitutions: [
+            {
+              refAA: 'Y',
+              queryAA: 'C',
+              codon: 1463,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 18059,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 28143,
+          refNuc: 'T',
+          queryNuc: 'C',
+          aaSubstitutions: [
+            {
+              refAA: 'L',
+              queryAA: 'S',
+              codon: 83,
+              gene: 'ORF8',
+            },
+          ],
+        },
+      ],
+      totalMutations: 3,
+      aminoacidChanges: [
+        {
+          refAA: 'Y',
+          queryAA: 'C',
+          codon: 1463,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'L',
+          queryAA: 'S',
+          codon: 83,
+          gene: 'ORF8',
+        },
+      ],
+      totalAminoacidChanges: 2,
+      insertions: [],
+      totalInsertions: 0,
+      deletions: [],
+      totalGaps: 0,
+      missing: [
+        {
+          begin: 5620,
+          nuc: 'N',
+          end: 5656,
+        },
+        {
+          begin: 5741,
+          nuc: 'N',
+          end: 5765,
+        },
+        {
+          begin: 5769,
+          nuc: 'N',
+          end: 5771,
+        },
+        {
+          begin: 6267,
+          nuc: 'N',
+          end: 6271,
+        },
+        {
+          begin: 6312,
+          nuc: 'N',
+          end: 6313,
+        },
+        {
+          begin: 6335,
+          nuc: 'N',
+          end: 6344,
+        },
+        {
+          begin: 6402,
+          nuc: 'N',
+          end: 6475,
+        },
+        {
+          begin: 8635,
+          nuc: 'N',
+          end: 8896,
+        },
+        {
+          begin: 13456,
+          nuc: 'N',
+          end: 13623,
+        },
+        {
+          begin: 17966,
+          nuc: 'N',
+          end: 17975,
+        },
+        {
+          begin: 21160,
+          nuc: 'N',
+          end: 21213,
+        },
+        {
+          begin: 21241,
+          nuc: 'N',
+          end: 21288,
+        },
+        {
+          begin: 21301,
+          nuc: 'N',
+          end: 21386,
+        },
+        {
+          begin: 22026,
+          nuc: 'N',
+          end: 22066,
+        },
+        {
+          begin: 22262,
+          nuc: 'N',
+          end: 22293,
+        },
+        {
+          begin: 22297,
+          nuc: 'N',
+          end: 22523,
+        },
+        {
+          begin: 22896,
+          nuc: 'N',
+          end: 22899,
+        },
+        {
+          begin: 23007,
+          nuc: 'N',
+          end: 23131,
+        },
+        {
+          begin: 29041,
+          nuc: 'N',
+          end: 29316,
+        },
+      ],
+      totalMissing: 1470,
+      nonACGTNs: [
+        {
+          begin: 99,
+          nuc: 'Y',
+          end: 100,
+        },
+        {
+          begin: 2658,
+          nuc: 'S',
+          end: 2659,
+        },
+        {
+          begin: 3637,
+          nuc: 'K',
+          end: 3638,
+        },
+        {
+          begin: 5704,
+          nuc: 'W',
+          end: 5705,
+        },
+        {
+          begin: 14665,
+          nuc: 'S',
+          end: 14666,
+        },
+        {
+          begin: 17585,
+          nuc: 'Y',
+          end: 17586,
+        },
+        {
+          begin: 17746,
+          nuc: 'Y',
+          end: 17747,
+        },
+        {
+          begin: 24049,
+          nuc: 'K',
+          end: 24050,
+        },
+        {
+          begin: 25073,
+          nuc: 'K',
+          end: 25074,
+        },
+      ],
+      totalNonACGTNs: 9,
+      alignmentStart: 49,
+      alignmentEnd: 29840,
+      alignmentScore: 89362,
+      diagnostics: {
+        flags: ['missing data'],
+        diagnostics: {
+          clusteredSNPs: [],
+          totalMixedSites: 9,
+          totalNumberOfMutations: 3,
+        },
+        nucleotideComposition: {
+          '-': 111,
+          'C': 5182,
+          'T': 9131,
+          'G': 5548,
+          'A': 8452,
+          'Y': 3,
+          'S': 2,
+          'K': 3,
+          'N': 1470,
+          'W': 1,
+        },
+      },
+    },
+  },
+  {
+    status: 'done',
+    id: 49,
+    seqName: 'Australia/VIC431/2020',
+    errors: [],
+    result: {
+      seqName: 'Australia/VIC431/2020',
+      clades: {
+        '20A': [
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+        ],
+        '20C': [
+          {
+            pos: 1059,
+            nuc: 'T',
+          },
+          {
+            pos: 8782,
+            nuc: 'C',
+          },
+          {
+            pos: 14408,
+            nuc: 'T',
+          },
+          {
+            pos: 23403,
+            nuc: 'G',
+          },
+          {
+            pos: 25563,
+            nuc: 'T',
+          },
+        ],
+      },
+      substitutions: [
+        {
+          pos: 240,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 1058,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'T',
+              queryAA: 'I',
+              codon: 264,
+              gene: 'ORF1a',
+            },
+          ],
+        },
+        {
+          pos: 3036,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [],
+        },
+        {
+          pos: 14407,
+          refNuc: 'C',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'P',
+              queryAA: 'L',
+              codon: 313,
+              gene: 'ORF1b',
+            },
+          ],
+        },
+        {
+          pos: 23402,
+          refNuc: 'A',
+          queryNuc: 'G',
+          aaSubstitutions: [
+            {
+              refAA: 'D',
+              queryAA: 'G',
+              codon: 613,
+              gene: 'S',
+            },
+          ],
+        },
+        {
+          pos: 25562,
+          refNuc: 'G',
+          queryNuc: 'T',
+          aaSubstitutions: [
+            {
+              refAA: 'Q',
+              queryAA: 'H',
+              codon: 56,
+              gene: 'ORF3a',
+            },
+          ],
+        },
+      ],
+      totalMutations: 6,
+      aminoacidChanges: [
+        {
+          refAA: 'T',
+          queryAA: 'I',
+          codon: 264,
+          gene: 'ORF1a',
+        },
+        {
+          refAA: 'P',
+          queryAA: 'L',
+          codon: 313,
+          gene: 'ORF1b',
+        },
+        {
+          refAA: 'D',
+          queryAA: 'G',
+          codon: 613,
+          gene: 'S',
+        },
+        {
+          refAA: 'Q',
+          queryAA: 'H',
+          codon: 56,
+          gene: 'ORF3a',
+        },
+      ],
+      totalAminoacidChanges: 4,
+      insertions: [],
+      totalInsertions: 0,
+      deletions: [],
+      totalGaps: 0,
+      missing: [
+        {
+          begin: 1636,
+          nuc: 'N',
+          end: 1637,
+        },
+        {
+          begin: 2325,
+          nuc: 'N',
+          end: 2326,
+        },
+        {
+          begin: 3575,
+          nuc: 'N',
+          end: 3576,
+        },
+        {
+          begin: 4217,
+          nuc: 'N',
+          end: 4218,
+        },
+        {
+          begin: 5620,
+          nuc: 'N',
+          end: 5703,
+        },
+        {
+          begin: 5733,
+          nuc: 'N',
+          end: 5750,
+        },
+        {
+          begin: 5761,
+          nuc: 'N',
+          end: 5877,
+        },
+        {
+          begin: 6262,
+          nuc: 'N',
+          end: 6307,
+        },
+        {
+          begin: 6326,
+          nuc: 'N',
+          end: 6344,
+        },
+        {
+          begin: 6346,
+          nuc: 'N',
+          end: 6360,
+        },
+        {
+          begin: 6362,
+          nuc: 'N',
+          end: 6372,
+        },
+        {
+          begin: 6432,
+          nuc: 'N',
+          end: 6474,
+        },
+        {
+          begin: 7288,
+          nuc: 'N',
+          end: 7289,
+        },
+        {
+          begin: 8635,
+          nuc: 'N',
+          end: 8912,
+        },
+        {
+          begin: 12020,
+          nuc: 'N',
+          end: 12021,
+        },
+        {
+          begin: 13378,
+          nuc: 'N',
+          end: 13625,
+        },
+        {
+          begin: 20294,
+          nuc: 'N',
+          end: 20295,
+        },
+        {
+          begin: 21157,
+          nuc: 'N',
+          end: 21386,
+        },
+        {
+          begin: 22026,
+          nuc: 'N',
+          end: 22038,
+        },
+        {
+          begin: 22199,
+          nuc: 'N',
+          end: 22523,
+        },
+        {
+          begin: 22895,
+          nuc: 'N',
+          end: 23131,
+        },
+        {
+          begin: 28698,
+          nuc: 'N',
+          end: 28699,
+        },
+        {
+          begin: 28756,
+          nuc: 'N',
+          end: 28757,
+        },
+        {
+          begin: 29071,
+          nuc: 'N',
+          end: 29316,
+        },
+      ],
+      totalMissing: 1924,
+      nonACGTNs: [
+        {
+          begin: 505,
+          nuc: 'Y',
+          end: 506,
+        },
+        {
+          begin: 4100,
+          nuc: 'Y',
+          end: 4101,
+        },
+        {
+          begin: 5703,
+          nuc: 'K',
+          end: 5704,
+        },
+        {
+          begin: 14177,
+          nuc: 'Y',
+          end: 14178,
+        },
+        {
+          begin: 15527,
+          nuc: 'Y',
+          end: 15528,
+        },
+        {
+          begin: 23147,
+          nuc: 'R',
+          end: 23148,
+        },
+        {
+          begin: 25203,
+          nuc: 'K',
+          end: 25204,
+        },
+        {
+          begin: 28755,
+          nuc: 'Y',
+          end: 28756,
+        },
+      ],
+      totalNonACGTNs: 8,
+      alignmentStart: 49,
+      alignmentEnd: 29837,
+      alignmentScore: 89341,
+      diagnostics: {
+        flags: ['missing data'],
+        diagnostics: {
+          clusteredSNPs: [],
+          totalMixedSites: 8,
+          totalNumberOfMutations: 6,
+        },
+        nucleotideComposition: {
+          '-': 114,
+          'C': 5094,
+          'T': 8987,
+          'G': 5448,
+          'A': 8328,
+          'Y': 5,
+          'N': 1924,
+          'K': 2,
+          'R': 1,
         },
       },
     },

@@ -31,6 +31,7 @@ export enum AnylysisStatus {
 }
 
 export interface SequenceAnylysisState {
+  id: number
   status: AnylysisStatus
   seqName: string
   result?: AnalysisResult

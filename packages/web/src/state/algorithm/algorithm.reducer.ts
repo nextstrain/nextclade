@@ -204,7 +204,10 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(parseAsync.done, (draft, { result }) => {
       draft.status = AlgorithmStatus.parsingDone
-      const resultState = result.map((seqName) => ({ status: AnylysisStatus.idling, seqName, errors: [] }))
+      const resultState = result.map(
+        (seqName, id) =>
+          ({ status: AnylysisStatus.idling, id, seqName, errors: [] } as DeepWritable<SequenceAnylysisState>),
+      )
       draft.results = resultState
       draft.resultsFiltered = runFilters(current(draft))
     }),

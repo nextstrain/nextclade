@@ -94,11 +94,14 @@ export interface RowProps extends ListChildComponentProps {
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { seqName, errors, result: sequence } = data[index]
+  const { id, seqName, errors, result: sequence } = data[index]
 
   if (errors.length > 0) {
     return (
       <TableRowError style={style} even={index % 2 === 0}>
+        <TableCell basis="50px" grow={0} shrink={0}>
+          <TableCellText>{id}</TableCellText>
+        </TableCell>
         <TableCellName basis="250px" shrink={0}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
@@ -112,6 +115,9 @@ function TableRowComponent({ index, style, data }: RowProps) {
   if (!sequence) {
     return (
       <TableRowPending style={style} even={index % 2 === 0}>
+        <TableCell basis="50px" grow={0} shrink={0}>
+          <TableCellText>{id}</TableCellText>
+        </TableCell>
         <TableCellName basis="250px" shrink={0}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
@@ -124,6 +130,10 @@ function TableRowComponent({ index, style, data }: RowProps) {
 
   return (
     <TableRow style={style} even={index % 2 === 0}>
+      <TableCell basis="50px" grow={0} shrink={0}>
+        <TableCellText>{id}</TableCellText>
+      </TableCell>
+
       <TableCellName basis="250px" shrink={0}>
         <ColumnName seqName={seqName} sequence={sequence} />
       </TableCellName>
@@ -182,6 +192,9 @@ export function ResultsTableDisconnected({ resultsFiltered }: ResultProps) {
     <>
       <Table>
         <TableHeaderRow>
+          <TableHeaderCell basis="50px" grow={0} shrink={0}>
+            <TableCellText>{t('ID')}</TableCellText>
+          </TableHeaderCell>
           <TableHeaderCell basis="250px" shrink={0}>
             <TableCellText>{t('Sequence name')}</TableCellText>
           </TableHeaderCell>
