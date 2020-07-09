@@ -6,6 +6,7 @@ import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
 import type { AminoacidSubstitution, NucleotideSubstitution } from 'src/algorithms/types'
 import { parseMutation } from 'src/helpers/parseMutation'
+import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { formatClades } from 'src/helpers/formatClades'
 
@@ -60,15 +61,16 @@ export function getMutationsFilterRunner(mutationsFilter: string) {
   }
 }
 
-export function aaChangesAreEqual(filter: Partial<NucleotideSubstitution>, actual: AminoacidSubstitution) {
-  const posMatch = filter.pos === undefined || filter.pos === actual.codon
-  const refNucMatch = filter.refNuc === undefined || (filter.refNuc as string) === (actual.refAA as string)
-  const queryNucMatch = filter.queryNuc === undefined || (filter.queryNuc as string) === (actual.queryAA as string)
-  return posMatch && refNucMatch && queryNucMatch
+export function aaChangesAreEqual(filter: Partial<AminoacidSubstitution>, actual: AminoacidSubstitution) {
+  const geneMatch = filter.gene === undefined || filter.gene === actual.gene
+  const posMatch = filter.codon === undefined || filter.codon === actual.codon
+  const refNucMatch = filter.refAA === undefined || (filter.refAA as string) === (actual.refAA as string)
+  const queryNucMatch = filter.queryAA === undefined || (filter.queryAA as string) === (actual.queryAA as string)
+  return geneMatch && posMatch && refNucMatch && queryNucMatch
 }
 
 export function getAAFilterRunner(aaFilter: string) {
-  const aaFilters = aaFilter.split(',').map(parseMutation).filter(notUndefined)
+  const aaFilters = aaFilter.split(',').map(parseAminoacidChange).filter(notUndefined)
 
   return (result: SequenceAnylysisState) => {
     if (!result?.result) {
