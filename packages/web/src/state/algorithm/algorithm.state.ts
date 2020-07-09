@@ -45,8 +45,9 @@ export interface AlgorithmState {
   results: SequenceAnylysisState[]
   resultsFiltered: SequenceAnylysisState[]
   errors: string[]
-  cladesFilter?: string
+  seqNamesFilter?: string
   mutationsFilter?: string
+  cladesFilter?: string
 }
 
 let results: SequenceAnylysisState[] = []

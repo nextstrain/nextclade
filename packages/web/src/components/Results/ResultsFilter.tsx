@@ -5,14 +5,16 @@ import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
 import { State } from 'src/state/reducer'
-import { setMutationsFilter, setCladesFilter } from 'src/state/algorithm/algorithm.actions'
+import { setSeqNamesFilter, setMutationsFilter, setCladesFilter } from 'src/state/algorithm/algorithm.actions'
 
 const mapStateToProps = (state: State) => ({
-  cladesFilter: state.algorithm.cladesFilter,
+  seqNamesFilter: state.algorithm.seqNamesFilter,
   mutationsFilter: state.algorithm.mutationsFilter,
+  cladesFilter: state.algorithm.cladesFilter,
 })
 
 const mapDispatchToProps = {
+  setSeqNamesFilter,
   setMutationsFilter,
   setCladesFilter,
 }
@@ -20,13 +22,17 @@ const mapDispatchToProps = {
 export const ResultsFilter = connect(mapStateToProps, mapDispatchToProps)(ResultsFilterDisconnected)
 
 export interface ResultsFilterProps {
+  seqNamesFilter?: string
   mutationsFilter?: string
   cladesFilter?: string
-  setMutationsFilter(filter?: string): void
+  setSeqNamesFilter(namesFilter?: string): void
+  setMutationsFilter(mutationsFilter?: string): void
   setCladesFilter(cladesFilter?: string): void
 }
 
 export function ResultsFilterDisconnected({
+  seqNamesFilter,
+  setSeqNamesFilter,
   mutationsFilter,
   setMutationsFilter,
   cladesFilter,
@@ -44,8 +50,24 @@ export function ResultsFilterDisconnected({
     setCladesFilter(value)
   }
 
+  function handleSeqNamesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { value } = event.target
+    setSeqNamesFilter(value)
+  }
+
   return (
     <div>
+      <div>
+        <label htmlFor="seq-name-filter">{t('Seq-names')}</label>
+        <Input
+          name="seq-name-filter"
+          type="text"
+          value={seqNamesFilter ?? ''}
+          onChange={handleSeqNamesFilterChange}
+          autoComplete="off"
+        />
+      </div>
+
       <div>
         <label htmlFor="mutation-filter">{t('Mutations')}</label>
         <Input

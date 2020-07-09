@@ -1,10 +1,10 @@
-import { DeepNullable, DeepWritable } from 'ts-essentials'
+import { DeepWritable } from 'ts-essentials'
 
-import { intersectionWith, intersection } from 'lodash'
+import { intersectionWith } from 'lodash'
 import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
-import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
+import type { NucleotideSubstitution } from 'src/algorithms/types'
 import { parseMutation } from 'src/helpers/parseMutation'
 import { notUndefined } from 'src/helpers/notUndefined'
 
@@ -17,10 +17,24 @@ import {
   setInputFile,
   setIsDirty,
   setMutationsFilter,
+  setSeqNamesFilter,
 } from './algorithm.actions'
-import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus, SequenceAnylysisState } from './algorithm.state'
+import {
+  agorithmDefaultState,
+  AlgorithmState,
+  AlgorithmStatus,
+  AnylysisStatus,
+  SequenceAnylysisState,
+} from './algorithm.state'
 
 import immerCase from '../util/fsaImmerReducer'
+
+export function getSeqNamesFilterRunner(seqNamesFilter: string) {
+  const seqNamesFilters = seqNamesFilter.split(',')
+  return (result: SequenceAnylysisState) => {
+    return seqNamesFilters.some((filter) => result.seqName.includes(filter))
+  }
+}
 
 export function mutationsAreEqual(filter: Partial<NucleotideSubstitution>, actual: NucleotideSubstitution) {
   const posMatch = filter.pos === undefined || filter.pos === actual.pos
@@ -54,14 +68,13 @@ export function getCladesFilterRunner(cladesFilter: string) {
   }
 }
 
-export interface RunFiltersParams {
-  resultsCurrent: SequenceAnylysisState[]
-  mutationsFilter?: string
-  cladesFilter?: string
-}
+export function runFilters(state: AlgorithmState) {
+  const { results, seqNamesFilter, mutationsFilter, cladesFilter } = state
 
-export function runFilters({ resultsCurrent, mutationsFilter, cladesFilter }: RunFiltersParams) {
-  let filtered = resultsCurrent
+  let filtered = results
+  if (seqNamesFilter) {
+    filtered = filtered.filter(getSeqNamesFilterRunner(seqNamesFilter))
+  }
   if (mutationsFilter) {
     filtered = filtered.filter(getMutationsFilterRunner(mutationsFilter))
   }
@@ -73,24 +86,23 @@ export function runFilters({ resultsCurrent, mutationsFilter, cladesFilter }: Ru
 
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
+    immerCase(setSeqNamesFilter, (draft, seqNamesFilter) => {
+      draft.seqNamesFilter = seqNamesFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
     immerCase(setMutationsFilter, (draft, mutationsFilter) => {
       draft.mutationsFilter = mutationsFilter
-
-      const resultsCurrent = current(draft).results
-      const { cladesFilter } = draft
-      const resultsFiltered = runFilters({ resultsCurrent, mutationsFilter, cladesFilter })
-      draft.resultsFiltered = resultsFiltered
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(setCladesFilter, (draft, cladesFilter) => {
       draft.cladesFilter = cladesFilter
-      if (cladesFilter) {
-        draft.resultsFiltered = current(draft).results.filter(getCladesFilterRunner(cladesFilter))
-      } else {
-        draft.resultsFiltered = draft.results
-      }
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
