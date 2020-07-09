@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 
 export function getFakeResults() {

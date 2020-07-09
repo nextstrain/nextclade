@@ -15,7 +15,7 @@ export function parseNucleotidePosition(raw: string | undefined | null) {
     return undefined
   }
 
-  const num = Number.parseInt(raw ?? '', 10)
+  const num = Number.parseInt(raw, 10)
 
   if (!Number.isFinite(num)) {
     return undefined

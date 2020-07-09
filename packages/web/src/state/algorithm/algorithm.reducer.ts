@@ -107,7 +107,7 @@ export function runFilters(state: AlgorithmState) {
   }
 
   if (!hasErrorsFilter) {
-    filtered = filtered.filter(({ errors }) => !(errors.length > 0))
+    filtered = filtered.filter(({ errors }) => errors.length === 0)
   }
 
   return filtered as DeepWritable<typeof filtered>

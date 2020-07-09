@@ -8,8 +8,8 @@ import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 import { ButtonBack } from './ButtonBack'
 import { ButtonExport } from './ButtonExport'
 import { ResultsStatus } from './ResultsStatus'
+import { ResultsFilter } from './ResultsFilter'
 import { ResultsTable } from './ResultsTable'
-import { ResultsFilter } from 'src/components/Results/ResultsFilter'
 
 export const Container = styled.div`
   width: 100%;
