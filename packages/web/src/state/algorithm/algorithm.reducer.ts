@@ -133,6 +133,7 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
       draft.status = AlgorithmStatus.started
       draft.isDirty = false
       draft.results = []
+      draft.resultsFiltered = []
     }),
   )
 
@@ -156,6 +157,7 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
       draft.status = AlgorithmStatus.parsingDone
       const resultState = result.map((seqName) => ({ status: AnylysisStatus.idling, seqName, errors: [] }))
       draft.results = resultState
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
@@ -173,6 +175,7 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
       draft.results = draft.results.map((result) =>
         result.seqName === seqName ? { ...result, status: AnylysisStatus.started } : result,
       )
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
@@ -181,12 +184,16 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
       draft.results = (draft.results.map((oldResult: DeepWritable<SequenceAnylysisState>) =>
         oldResult.seqName === seqName ? { ...oldResult, errors: [], result, status: AnylysisStatus.done } : oldResult,
       ) as unknown) as DeepWritable<SequenceAnylysisState>[]
+
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(analyzeAsync.failed, (draft, { params: { seqName }, error }) => {
       draft.results = draft.results.map(handleFailure(seqName, error))
+
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
