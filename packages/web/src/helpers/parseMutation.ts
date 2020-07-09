@@ -1,27 +1,14 @@
 /* eslint-disable security/detect-unsafe-regex */
 import type { Nucleotide, NucleotideSubstitution } from 'src/algorithms/types'
+import { ANY } from 'src/algorithms/nucleotides'
 
-export const NUCLEOTIDE_WILDCARD = '.' as const
+import { parsePosition } from './parsePosition'
 
-export function parseNucleotideCharacter(raw: string | undefined | null) {
-  if (!raw || raw.length === 0 || raw === NUCLEOTIDE_WILDCARD) {
+export function parseNucleotide(raw: string | undefined | null) {
+  if (!raw || raw.length === 0 || raw === ANY) {
     return undefined
   }
   return raw.toUpperCase() as Nucleotide
-}
-
-export function parseNucleotidePosition(raw: string | undefined | null) {
-  if (!raw || raw.length === 0 || raw === NUCLEOTIDE_WILDCARD) {
-    return undefined
-  }
-
-  const num = Number.parseInt(raw, 10)
-
-  if (!Number.isFinite(num)) {
-    return undefined
-  }
-
-  return num - 1
 }
 
 export function parseMutation(formatted: string): Partial<NucleotideSubstitution> | undefined {
@@ -35,9 +22,9 @@ export function parseMutation(formatted: string): Partial<NucleotideSubstitution
     return undefined
   }
 
-  const refNuc = parseNucleotideCharacter(match.groups?.refNuc)
-  const pos = parseNucleotidePosition(match.groups?.pos)
-  const queryNuc = parseNucleotideCharacter(match.groups?.queryNuc)
+  const refNuc = parseNucleotide(match.groups?.refNuc)
+  const pos = parsePosition(match.groups?.pos)
+  const queryNuc = parseNucleotide(match.groups?.queryNuc)
 
   const result = { refNuc, pos, queryNuc }
 
