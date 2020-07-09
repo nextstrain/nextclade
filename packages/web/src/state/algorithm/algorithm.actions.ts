@@ -22,3 +22,5 @@ export const analyzeAsync = action.async<{ seqName: string }, AnalysisResult, Er
 export const exportCsvTrigger = action('EXPORT_CSV')
 
 export const exportJsonTrigger = action('EXPORT_JSON')
+
+export const setMutationsFilter = action<string | undefined>('SET_MUTATIONS_FILTER')

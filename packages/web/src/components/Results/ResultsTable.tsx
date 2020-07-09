@@ -162,7 +162,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
 const TableRowMemo = memo(TableRowComponent, areEqual)
 
 const mapStateToProps = (state: State) => ({
-  result: state.algorithm.results,
+  resultsFiltered: state.algorithm.resultsFiltered,
 })
 
 const mapDispatchToProps = {}
@@ -170,13 +170,13 @@ const mapDispatchToProps = {}
 export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected)
 
 export interface ResultProps {
-  result: SequenceAnylysisState[]
+  resultsFiltered: SequenceAnylysisState[]
 }
 
-export function ResultsTableDisconnected({ result }: ResultProps) {
+export function ResultsTableDisconnected({ resultsFiltered }: ResultProps) {
   const { t } = useTranslation()
 
-  const data = result
+  const data = resultsFiltered
 
   return (
     <>

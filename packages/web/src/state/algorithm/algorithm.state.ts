@@ -43,7 +43,9 @@ export interface AlgorithmState {
   params: AlgorithmParams
   isDirty: boolean
   results: SequenceAnylysisState[]
+  resultsFiltered: SequenceAnylysisState[]
   errors: string[]
+  mutationsFilter?: string
 }
 
 let results: SequenceAnylysisState[] = []
@@ -59,5 +61,6 @@ export const agorithmDefaultState: AlgorithmState = {
   },
   isDirty: true,
   results,
+  resultsFiltered: results,
   errors: [],
 }

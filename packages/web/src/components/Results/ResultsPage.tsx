@@ -9,6 +9,7 @@ import { ButtonBack } from './ButtonBack'
 import { ButtonExport } from './ButtonExport'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsTable } from './ResultsTable'
+import { ResultsFilter } from 'src/components/Results/ResultsFilter'
 
 export const Container = styled.div`
   width: 100%;
@@ -63,6 +64,8 @@ export function ResultsPage() {
             <ButtonExport />
           </HeaderRight>
         </Header>
+
+        <ResultsFilter />
 
         <MainContent>
           <ResultsTable />

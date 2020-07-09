@@ -1,5 +1,4 @@
 /* eslint-disable security/detect-unsafe-regex */
-import { Optional } from 'utility-types'
 import type { Nucleotide, NucleotideSubstitution } from 'src/algorithms/types'
 
 export const NUCLEOTIDE_WILDCARD = '.' as const
@@ -25,7 +24,7 @@ export function parseNucleotidePosition(raw: string | undefined | null) {
   return num - 1
 }
 
-export function parseMutation(formatted: string): Optional<NucleotideSubstitution> | undefined {
+export function parseMutation(formatted: string): Partial<NucleotideSubstitution> | undefined {
   const match = /^(?<refNuc>[.a-z-])(?<pos>(\d)*)(?<queryNuc>[.a-z-]{0,1})$/i.exec(formatted)
 
   if (!match?.groups) {

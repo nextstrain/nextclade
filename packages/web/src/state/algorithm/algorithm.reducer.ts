@@ -1,13 +1,57 @@
 import { DeepWritable } from 'ts-essentials'
 
+import { intersectionWith } from 'lodash'
+import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
-import { algorithmRunAsync, analyzeAsync, parseAsync, setInput, setInputFile, setIsDirty } from './algorithm.actions'
+import type { NucleotideSubstitution } from 'src/algorithms/types'
+import { parseMutation } from 'src/helpers/parseMutation'
+import { notUndefined } from 'src/helpers/notUndefined'
+
+import {
+  algorithmRunAsync,
+  analyzeAsync,
+  parseAsync,
+  setInput,
+  setInputFile,
+  setIsDirty,
+  setMutationsFilter,
+} from './algorithm.actions'
 import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus, SequenceAnylysisState } from './algorithm.state'
 
 import immerCase from '../util/fsaImmerReducer'
 
+export function mutationsAreEqual(filter: Partial<NucleotideSubstitution>, actual: NucleotideSubstitution) {
+  const posMatch = filter.pos === undefined || filter.pos === actual.pos
+  const refNucMatch = filter.refNuc === undefined || filter.refNuc === actual.refNuc
+  const queryNucMatch = filter.queryNuc === undefined || filter.queryNuc === actual.queryNuc
+  return posMatch && refNucMatch && queryNucMatch
+}
+
+export function mutationsFilterRun(mutationsFilter: string) {
+  const mutationFilters = mutationsFilter.split(',').map(parseMutation).filter(notUndefined)
+
+  return (result: SequenceAnylysisState) => {
+    if (!result?.result) {
+      return false
+    }
+    const mutations = result.result.substitutions
+    return intersectionWith(mutationFilters, mutations, mutationsAreEqual).length > 0
+  }
+}
+
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
+  .withHandling(
+    immerCase(setMutationsFilter, (draft, mutationsFilter) => {
+      draft.mutationsFilter = mutationsFilter
+      if (mutationsFilter) {
+        draft.resultsFiltered = current(draft).results.filter(mutationsFilterRun(mutationsFilter))
+      } else {
+        draft.resultsFiltered = draft.results
+      }
+    }),
+  )
+
   .withHandling(
     immerCase(setInput, (draft, input) => {
       draft.status = AlgorithmStatus.idling
