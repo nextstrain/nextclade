@@ -7,6 +7,10 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { rgba } from 'polished'
 
+import { State } from 'src/state/reducer'
+import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import { sortByNameAsc, sortByNameDesc } from 'src/state/algorithm/algorithm.actions'
+
 import { ColumnName } from 'src/components/Results/ColumnName'
 import { ColumnQCStatus } from 'src/components/Results/ColumnQCStatus'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
@@ -15,11 +19,11 @@ import { ColumnNonACGTNs } from 'src/components/Results/ColumnNonACGTNs'
 import { ColumnMissing } from 'src/components/Results/ColumnMissing'
 import { ColumnGaps } from 'src/components/Results/ColumnGaps'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
-import { State } from 'src/state/reducer'
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import { SortAndFilterControls } from './SortAndFilterControls'
+import { ResultsFilterControls } from './ResultsFilterControls'
 
 const ROW_HEIGHT = 30
-const HEADER_ROW_HEIGHT = 50
+const HEADER_ROW_HEIGHT = 60
 
 export const Table = styled.div`
   font-size: 0.8rem;
@@ -42,15 +46,15 @@ export const TableHeaderCell = styled.div<{ basis?: string; grow?: number; shrin
   flex-grow: ${(props) => props?.grow};
   flex-shrink: ${(props) => props?.shrink};
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  text-align: center;
   border-left: 1px solid #b3b3b3;
+  width: 100%;
+  height: 100%;
+  display: flex;
 `
 
 export const TableCellText = styled.p`
   text-align: center;
-  margin: 0 auto;
+  margin: auto;
 `
 
 export const TableRow = styled.div<{ even?: boolean }>`
@@ -175,15 +179,20 @@ const mapStateToProps = (state: State) => ({
   resultsFiltered: state.algorithm.resultsFiltered,
 })
 
-const mapDispatchToProps = {}
+const mapDispatchToProps = {
+  sortByNameAsc: () => sortByNameAsc(),
+  sortByNameDesc: () => sortByNameDesc(),
+}
 
 export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected)
 
 export interface ResultProps {
   resultsFiltered: SequenceAnylysisState[]
+  sortByNameAsc(): void
+  sortByNameDesc(): void
 }
 
-export function ResultsTableDisconnected({ resultsFiltered }: ResultProps) {
+export function ResultsTableDisconnected({ resultsFiltered, sortByNameAsc, sortByNameDesc }: ResultProps) {
   const { t } = useTranslation()
 
   const data = resultsFiltered
@@ -196,8 +205,11 @@ export function ResultsTableDisconnected({ resultsFiltered }: ResultProps) {
             <TableCellText>{t('ID')}</TableCellText>
           </TableHeaderCell>
           <TableHeaderCell basis="250px" shrink={0}>
+            <ResultsFilterControls />
             <TableCellText>{t('Sequence name')}</TableCellText>
+            <SortAndFilterControls sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
           </TableHeaderCell>
+
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('QC')}</TableCellText>
           </TableHeaderCell>

@@ -1,6 +1,6 @@
 import { DeepWritable } from 'ts-essentials'
 
-import { intersectionWith } from 'lodash'
+import { intersectionWith, sortBy, orderBy } from 'lodash'
 import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
@@ -24,6 +24,8 @@ import {
   setMutationsFilter,
   setSeqNamesFilter,
   setAAFilter,
+  sortByNameAsc,
+  sortByNameDesc,
 } from './algorithm.actions'
 import {
   agorithmDefaultState,
@@ -141,6 +143,20 @@ export function runFilters(state: AlgorithmState) {
 }
 
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
+  .withHandling(
+    immerCase(sortByNameAsc, (draft) => {
+      draft.results = orderBy(current(draft).results, (result) => result.seqName, 'asc')
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(sortByNameDesc, (draft) => {
+      draft.results = orderBy(current(draft).results, (result) => result.seqName, 'desc')
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
   .withHandling(
     immerCase(setSeqNamesFilter, (draft, seqNamesFilter) => {
       draft.seqNamesFilter = seqNamesFilter

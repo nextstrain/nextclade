@@ -31,3 +31,6 @@ export const setCladesFilter = action<string | undefined>('setCladesFilter')
 export const setHasNoQcIssuesFilter = action<boolean>('setHasNoQcIssuesFilter')
 export const setHasQcIssuesFilter = action<boolean>('setHasQcIssuesFilter')
 export const setHasErrorsFilter = action<boolean>('setHasErrorsFilter')
+
+export const sortByNameAsc = action('sortByNameAsc')
+export const sortByNameDesc = action('sortByNameDesc')
