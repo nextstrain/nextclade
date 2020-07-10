@@ -24,10 +24,10 @@ export interface ResultsControlsSortProps {
 export function ResultsControlsSort({ sortAsc, sortDesc }: ResultsControlsSortProps) {
   return (
     <SortButtonWrapper>
-      <ButtonTransparent height={SORT_BUTTON_SIZE} onClick={sortAsc}>
+      <ButtonTransparent height={SORT_BUTTON_SIZE} onClick={sortDesc}>
         <BsCaretUpFill size={SORT_BUTTON_ICON_SIZE} />
       </ButtonTransparent>
-      <ButtonTransparent height={SORT_BUTTON_SIZE} onClick={sortDesc}>
+      <ButtonTransparent height={SORT_BUTTON_SIZE} onClick={sortAsc}>
         <BsCaretDownFill size={SORT_BUTTON_ICON_SIZE} />
       </ButtonTransparent>
     </SortButtonWrapper>
