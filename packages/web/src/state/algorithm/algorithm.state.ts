@@ -1,4 +1,5 @@
 import type { AnalysisResult } from 'src/algorithms/types'
+import type { Sorting } from 'src/helpers/resultsSort'
 
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 import { getFakeResults } from 'src/assets/data/getFakeResults'
@@ -53,6 +54,7 @@ export interface AlgorithmState {
   hasNoQcIssuesFilter: boolean
   hasQcIssuesFilter: boolean
   hasErrorsFilter: boolean
+  sorting?: Sorting
 }
 
 let results: SequenceAnylysisState[] = []

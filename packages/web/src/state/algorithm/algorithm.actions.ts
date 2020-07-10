@@ -1,6 +1,7 @@
 import actionCreatorFactory from 'typescript-fsa'
 
 import type { AnalysisResult } from 'src/algorithms/types'
+import type { Sorting } from 'src/helpers/resultsSort'
 import type { InputFile } from './algorithm.state'
 
 const action = actionCreatorFactory('ALGORITHM')
@@ -32,5 +33,4 @@ export const setHasNoQcIssuesFilter = action<boolean>('setHasNoQcIssuesFilter')
 export const setHasQcIssuesFilter = action<boolean>('setHasQcIssuesFilter')
 export const setHasErrorsFilter = action<boolean>('setHasErrorsFilter')
 
-export const sortByNameAsc = action('sortByNameAsc')
-export const sortByNameDesc = action('sortByNameDesc')
+export const resultsSortTrigger = action<Sorting>('resultsSortTrigger')

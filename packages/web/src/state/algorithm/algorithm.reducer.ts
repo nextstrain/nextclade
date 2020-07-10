@@ -1,6 +1,6 @@
 import { DeepWritable } from 'ts-essentials'
 
-import { intersectionWith, sortBy, orderBy } from 'lodash'
+import { intersectionWith } from 'lodash'
 import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
@@ -24,8 +24,7 @@ import {
   setMutationsFilter,
   setSeqNamesFilter,
   setAAFilter,
-  sortByNameAsc,
-  sortByNameDesc,
+  resultsSortTrigger,
 } from './algorithm.actions'
 import {
   agorithmDefaultState,
@@ -36,6 +35,7 @@ import {
 } from './algorithm.state'
 
 import immerCase from '../util/fsaImmerReducer'
+import { resultsSort } from 'src/helpers/resultsSort'
 
 export function getSeqNamesFilterRunner(seqNamesFilter: string) {
   const seqNamesFilters = seqNamesFilter.split(',')
@@ -144,15 +144,12 @@ export function runFilters(state: AlgorithmState) {
 
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
-    immerCase(sortByNameAsc, (draft) => {
-      draft.results = orderBy(current(draft).results, (result) => result.seqName, 'asc')
-      draft.resultsFiltered = runFilters(current(draft))
-    }),
-  )
+    immerCase(resultsSortTrigger, (draft, sorting) => {
+      draft.sorting = sorting
 
-  .withHandling(
-    immerCase(sortByNameDesc, (draft) => {
-      draft.results = orderBy(current(draft).results, (result) => result.seqName, 'desc')
+      const results = resultsSort(current(draft).results, sorting)
+      draft.results = results as DeepWritable<typeof results>
+
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )

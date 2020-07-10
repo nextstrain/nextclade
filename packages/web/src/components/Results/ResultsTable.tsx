@@ -2,14 +2,16 @@ import React, { memo } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { FixedSizeList, areEqual, ListChildComponentProps } from 'react-window'
+import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { rgba } from 'polished'
 
-import { State } from 'src/state/reducer'
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
-import { sortByNameAsc, sortByNameDesc } from 'src/state/algorithm/algorithm.actions'
+import type { State } from 'src/state/reducer'
+import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { Sorting } from 'src/helpers/resultsSort'
+import { SortCategory, SortDirection } from 'src/helpers/resultsSort'
+import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
 
 import { ColumnName } from 'src/components/Results/ColumnName'
 import { ColumnQCStatus } from 'src/components/Results/ColumnQCStatus'
@@ -180,19 +182,74 @@ const mapStateToProps = (state: State) => ({
 })
 
 const mapDispatchToProps = {
-  sortByNameAsc: () => sortByNameAsc(),
-  sortByNameDesc: () => sortByNameDesc(),
+  resultsSortTrigger: (sorting: Sorting) => resultsSortTrigger(sorting),
+
+  sortByIdAsc: () => resultsSortTrigger({ category: SortCategory.id, direction: SortDirection.asc }),
+  sortByIdDesc: () => resultsSortTrigger({ category: SortCategory.id, direction: SortDirection.desc }),
+
+  sortByNameAsc: () => resultsSortTrigger({ category: SortCategory.seqName, direction: SortDirection.asc }),
+  sortByNameDesc: () => resultsSortTrigger({ category: SortCategory.seqName, direction: SortDirection.desc }),
+
+  sortByQcIssuesAsc: () => resultsSortTrigger({ category: SortCategory.qcIssues, direction: SortDirection.asc }),
+  sortByQcIssuesDesc: () => resultsSortTrigger({ category: SortCategory.qcIssues, direction: SortDirection.desc }),
+
+  sortByCladeAsc: () => resultsSortTrigger({ category: SortCategory.clade, direction: SortDirection.asc }),
+  sortByCladeDesc: () => resultsSortTrigger({ category: SortCategory.clade, direction: SortDirection.desc }),
+
+  sortByTotalMutationsAsc: () => resultsSortTrigger({ category: SortCategory.totalMutations, direction: SortDirection.asc }), // prettier-ignore
+  sortByTotalMutationsDesc: () => resultsSortTrigger({ category: SortCategory.totalMutations, direction: SortDirection.desc }), // prettier-ignore
+
+  sortByTotalNonAcgtnAsc: () => resultsSortTrigger({ category: SortCategory.totalNonACGTNs, direction: SortDirection.asc }), // prettier-ignore
+  sortByTotalNonAcgtnDesc: () => resultsSortTrigger({ category: SortCategory.totalNonACGTNs, direction: SortDirection.desc }), // prettier-ignore
+
+  sortByTotalNsAsc: () => resultsSortTrigger({ category: SortCategory.totalMissing, direction: SortDirection.asc }),
+  sortByTotalNsDesc: () => resultsSortTrigger({ category: SortCategory.totalMissing, direction: SortDirection.desc }),
+
+  sortByTotalGapsAsc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.asc }),
+  sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
 }
 
 export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected)
 
 export interface ResultProps {
   resultsFiltered: SequenceAnylysisState[]
+  sortByIdAsc(): void
+  sortByIdDesc(): void
   sortByNameAsc(): void
   sortByNameDesc(): void
+  sortByQcIssuesAsc(): void
+  sortByQcIssuesDesc(): void
+  sortByCladeAsc(): void
+  sortByCladeDesc(): void
+  sortByTotalMutationsAsc(): void
+  sortByTotalMutationsDesc(): void
+  sortByTotalNonAcgtnAsc(): void
+  sortByTotalNonAcgtnDesc(): void
+  sortByTotalNsAsc(): void
+  sortByTotalNsDesc(): void
+  sortByTotalGapsAsc(): void
+  sortByTotalGapsDesc(): void
 }
 
-export function ResultsTableDisconnected({ resultsFiltered, sortByNameAsc, sortByNameDesc }: ResultProps) {
+export function ResultsTableDisconnected({
+  resultsFiltered,
+  sortByIdAsc,
+  sortByIdDesc,
+  sortByNameAsc,
+  sortByNameDesc,
+  sortByQcIssuesAsc,
+  sortByQcIssuesDesc,
+  sortByCladeAsc,
+  sortByCladeDesc,
+  sortByTotalMutationsAsc,
+  sortByTotalMutationsDesc,
+  sortByTotalNonAcgtnAsc,
+  sortByTotalNonAcgtnDesc,
+  sortByTotalNsAsc,
+  sortByTotalNsDesc,
+  sortByTotalGapsAsc,
+  sortByTotalGapsDesc,
+}: ResultProps) {
   const { t } = useTranslation()
 
   const data = resultsFiltered
@@ -203,7 +260,9 @@ export function ResultsTableDisconnected({ resultsFiltered, sortByNameAsc, sortB
         <TableHeaderRow>
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('ID')}</TableCellText>
+            <SortAndFilterControls sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
           </TableHeaderCell>
+
           <TableHeaderCell basis="250px" shrink={0}>
             <ResultsFilterControls />
             <TableCellText>{t('Sequence name')}</TableCellText>
@@ -211,23 +270,38 @@ export function ResultsTableDisconnected({ resultsFiltered, sortByNameAsc, sortB
           </TableHeaderCell>
 
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
+            <ResultsFilterControls />
             <TableCellText>{t('QC')}</TableCellText>
+            <SortAndFilterControls sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
           </TableHeaderCell>
+
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
+            <ResultsFilterControls />
             <TableCellText>{t('Clade')}</TableCellText>
+            <SortAndFilterControls sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
           </TableHeaderCell>
+
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
+            <ResultsFilterControls />
             <TableCellText>{t('Mut.')}</TableCellText>
+            <SortAndFilterControls sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
           </TableHeaderCell>
+
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('non-ACGTN')}</TableCellText>
+            <SortAndFilterControls sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
           </TableHeaderCell>
+
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('Ns')}</TableCellText>
+            <SortAndFilterControls sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
           </TableHeaderCell>
+
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('Gaps')}</TableCellText>
+            <SortAndFilterControls sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
           </TableHeaderCell>
+
           <TableHeaderCell grow={20}>
             <TableCellText>{t('Sequence')}</TableCellText>
           </TableHeaderCell>
