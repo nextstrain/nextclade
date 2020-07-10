@@ -8266,10 +8266,10 @@ i18next-parser@2.1.0:
     vue-template-compiler "^2.6.11"
     yamljs "^0.3.0"
 
-i18next@19.5.2:
-  version "19.5.2"
-  resolved "https://registry.yarnpkg.com/i18next/-/i18next-19.5.2.tgz#0db0293704b2bb73caa8b54ef4a9ff211aef8ee0"
-  integrity sha512-gkUpnWt+y3Yuz6Lp6VV0VPxJ8oOr/6YQ7PeUkEOBY/u/fE2RqxvoCNTJVhBiuJySWwf4cbtWjmlASoFqf1Y1cg==
+i18next@19.5.5:
+  version "19.5.5"
+  resolved "https://registry.yarnpkg.com/i18next/-/i18next-19.5.5.tgz#e0eb84bdc81eb030079cbed13b688fc5ff1c3359"
+  integrity sha512-0vG/cdqA83RxEJfb07zEm1dl5akQono0vs1I+p0r6l7NwnNUIN4JIB+dYoyWlIEJ30/zNTZGnQVHBqXbEwA2gA==
   dependencies:
     "@babel/runtime" "^7.10.1"
 
