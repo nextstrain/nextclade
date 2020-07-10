@@ -1,6 +1,5 @@
 import React, { memo } from 'react'
 
-import { map } from 'lodash'
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
