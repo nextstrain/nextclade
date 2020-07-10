@@ -1,6 +1,21 @@
 import React from 'react'
 
-import { FormGroup, Input, Label } from 'reactstrap'
+import {
+  FormGroup as ReactstrapFormGroup,
+  Input as ReactstrapInput,
+  Label as ReactstrapLabel,
+  FormGroupProps as ReactstrapFormGroupProps,
+  InputProps as ReactstrapInputProps,
+  LabelProps as ReactstrapLabelProps,
+  Card as ReactstrapCard,
+  CardBody as ReactstrapCardBody,
+  CardHeader as ReactstrapCardHeader,
+  CardBodyProps as ReactstrapCardBodyProps,
+  CardHeaderProps as ReactstrapCardHeaderProps,
+  CardProps as ReactstrapCardProps,
+  Collapse,
+} from 'reactstrap'
+import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
@@ -14,8 +29,50 @@ import {
   setHasNoQcIssuesFilter,
   setHasQcIssuesFilter,
 } from 'src/state/algorithm/algorithm.actions'
+import { setFilterPanelCollapsed } from 'src/state/ui/ui.actions'
+
+export const Card = styled(ReactstrapCard)<ReactstrapCardProps>``
+
+export const CardHeader = styled(ReactstrapCardHeader)<ReactstrapCardHeaderProps>`
+  height: 36px;
+  font-size: 1rem;
+  line-height: 1rem;
+`
+
+export const CardBody = styled(ReactstrapCardBody)<ReactstrapCardBodyProps>`
+  display: flex;
+  width: 100%;
+`
+
+export const FormGroup = styled(ReactstrapFormGroup)<ReactstrapFormGroupProps>`
+  flex-grow: 1;
+  flex-basis: 22%;
+`
+
+export const FormSection = styled(FormGroup)<ReactstrapFormGroupProps>`
+  font-size: 0.85rem;
+  padding: 5px 10px;
+  margin: 5px;
+  border: 1px solid #ccca;
+  border-radius: 3px;
+  box-shadow: 1px 1px 3px rgba(128, 128, 128, 0.33);
+`
+
+export const Label = styled(ReactstrapLabel)<ReactstrapLabelProps>`
+  font-size: 0.85rem;
+`
+
+export const InputText = styled(ReactstrapInput)<ReactstrapInputProps>`
+  height: 30px;
+  padding: 5px 7px;
+`
+
+export const InputCheckbox = styled(ReactstrapInput)<ReactstrapInputProps>`
+  padding-bottom: 3px;
+`
 
 const mapStateToProps = (state: State) => ({
+  filterPanelCollapsed: state.ui.filterPanelCollapsed,
   seqNamesFilter: state.algorithm.seqNamesFilter ?? '',
   mutationsFilter: state.algorithm.mutationsFilter ?? '',
   aaFilter: state.algorithm.aaFilter ?? '',
@@ -26,6 +83,7 @@ const mapStateToProps = (state: State) => ({
 })
 
 const mapDispatchToProps = {
+  setFilterPanelCollapsed,
   setSeqNamesFilter,
   setMutationsFilter,
   setAAFilter,
@@ -38,6 +96,7 @@ const mapDispatchToProps = {
 export const ResultsFilter = connect(mapStateToProps, mapDispatchToProps)(ResultsFilterDisconnected)
 
 export interface ResultsFilterProps {
+  filterPanelCollapsed: boolean
   seqNamesFilter: string
   mutationsFilter: string
   aaFilter: string
@@ -45,6 +104,7 @@ export interface ResultsFilterProps {
   hasQcIssuesFilter: boolean
   hasNoQcIssuesFilter: boolean
   hasErrorsFilter: boolean
+  setFilterPanelCollapsed(collapsed: boolean): void
   setSeqNamesFilter(namesFilter?: string): void
   setMutationsFilter(mutationsFilter?: string): void
   setAAFilter(aaFilter?: string): void
@@ -55,6 +115,8 @@ export interface ResultsFilterProps {
 }
 
 export function ResultsFilterDisconnected({
+  filterPanelCollapsed,
+  setFilterPanelCollapsed,
   seqNamesFilter,
   setSeqNamesFilter,
   mutationsFilter,
@@ -108,73 +170,75 @@ export function ResultsFilterDisconnected({
   }
 
   return (
-    <div>
-      <div>
-        <label htmlFor="seq-name-filter">{t('Sequence names')}</label>
-        <Input
-          name="seq-name-filter"
-          type="text"
-          value={seqNamesFilter}
-          onChange={handleSeqNamesFilterChange}
-          autoComplete="off"
-        />
-      </div>
+    <Collapse isOpen={filterPanelCollapsed}>
+      <Card>
+        <CardHeader>{t('Filtering and sorting')}</CardHeader>
 
-      <div>
-        <label htmlFor="mutation-filter">{t('Mutations')}</label>
-        <Input
-          name="mutation-filter"
-          type="text"
-          value={mutationsFilter}
-          onChange={handleMutationsFilterChange}
-          autoComplete="off"
-        />
-      </div>
+        <CardBody>
+          <FormSection>
+            <Label>
+              {t('By sequence name')}
+              <InputText type="text" value={seqNamesFilter} onChange={handleSeqNamesFilterChange} autoComplete="off" />
+            </Label>
+          </FormSection>
 
-      <div>
-        <label htmlFor="aa-mutation-filter">{t('Aminoacid changes')}</label>
-        <Input
-          name="aa-mutation-filter"
-          type="text"
-          value={aaFilter}
-          onChange={handleAAFilterChange}
-          autoComplete="off"
-        />
-      </div>
+          <FormSection>
+            <Label>
+              {t('By nucleotide mutations')}
+              <InputText
+                type="text"
+                value={mutationsFilter}
+                onChange={handleMutationsFilterChange}
+                autoComplete="off"
+              />
+            </Label>
+          </FormSection>
 
-      <div>
-        <label htmlFor="clade-filter">{t('Clades')}</label>
-        <Input
-          name="clade-filter"
-          type="text"
-          value={cladesFilter}
-          onChange={handleCladesFilterChange}
-          autoComplete="off"
-        />
-      </div>
+          <FormSection>
+            <Label>
+              {t('By aminoacid changes')}
+              <InputText type="text" value={aaFilter} onChange={handleAAFilterChange} autoComplete="off" />
+            </Label>
+          </FormSection>
 
-      <div>
-        <FormGroup check>
-          <Label check>
-            <Input type="checkbox" checked={hasNoQcIssuesFilter} onChange={handleHasNoQcIssuesFilterChange} />
-            {t('Has no QC issues')}
-          </Label>
-        </FormGroup>
+          <FormSection>
+            <Label>
+              {t('By clades')}
+              <InputText type="text" value={cladesFilter} onChange={handleCladesFilterChange} autoComplete="off" />
+            </Label>
+          </FormSection>
 
-        <FormGroup check>
-          <Label check>
-            <Input type="checkbox" checked={hasQcIssuesFilter} onChange={handleHasQcIssuesFilterChange} />
-            {t('Has QC issues')}
-          </Label>
-        </FormGroup>
+          <FormSection>
+            <Label>
+              {t('By QC status')}
+              <FormGroup check>
+                <Label check>
+                  <InputCheckbox
+                    type="checkbox"
+                    checked={hasNoQcIssuesFilter}
+                    onChange={handleHasNoQcIssuesFilterChange}
+                  />
+                  {t('Has no issues')}
+                </Label>
+              </FormGroup>
 
-        <FormGroup check>
-          <Label check>
-            <Input type="checkbox" checked={hasErrorsFilter} onChange={handleHasErrorsFilterChange} />
-            {t('Has errors')}
-          </Label>
-        </FormGroup>
-      </div>
-    </div>
+              <FormGroup check>
+                <Label check>
+                  <InputCheckbox type="checkbox" checked={hasQcIssuesFilter} onChange={handleHasQcIssuesFilterChange} />
+                  {t('Has issues')}
+                </Label>
+              </FormGroup>
+
+              <FormGroup check>
+                <Label check>
+                  <InputCheckbox type="checkbox" checked={hasErrorsFilter} onChange={handleHasErrorsFilterChange} />
+                  {t('Has errors')}
+                </Label>
+              </FormGroup>
+            </Label>
+          </FormSection>
+        </CardBody>
+      </Card>
+    </Collapse>
   )
 }

@@ -6,6 +6,7 @@ import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 
 import { ButtonBack } from './ButtonBack'
+import { ButtonFilter } from './ButtonFilter'
 import { ButtonExport } from './ButtonExport'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
@@ -14,7 +15,7 @@ import { ResultsTable } from './ResultsTable'
 export const Container = styled.div`
   width: 100%;
   height: 100%;
-  min-width: 740px;
+  min-width: 1000px;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -61,6 +62,7 @@ export function ResultsPage() {
             <ResultsStatus />
           </HeaderCenter>
           <HeaderRight>
+            <ButtonFilter />
             <ButtonExport />
           </HeaderRight>
         </Header>

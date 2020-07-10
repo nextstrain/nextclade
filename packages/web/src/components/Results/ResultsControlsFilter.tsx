@@ -19,16 +19,37 @@ export interface ResultsControlsFilterProps extends PropsWithChildren<unknown> {
 }
 
 export function ResultsControlsFilter({ identifier, children }: ResultsControlsFilterProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const open = useCallback(() => setIsOpen(true), [])
-  const close = useCallback(() => setIsOpen(false), [])
+  // const [isOpen, setIsOpen] = useState(false)
+  const [buttonFocused, setButtonFocused] = useState(false)
+  const [tooltipFocused, setTooltipFocused] = useState(false)
+
+  // const toggle = useCallback(() => setIsOpen(!isOpen), [isOpen])
+
+  // const open = useCallback(() => setIsOpen(true), [])
+  // const close = useCallback(() => setIsOpen(false), [])
 
   return (
     <FilterButtonWrapper>
-      <ButtonTransparent id={identifier} width={FILTER_BUTTON_SIZE} onFocus={open} onBlur={close}>
+      <ButtonTransparent
+        id={identifier}
+        width={FILTER_BUTTON_SIZE}
+        // onClick={toggle}
+        onFocus={() => setButtonFocused(true)}
+        onBlur={() => setButtonFocused(false)}
+      >
         <FaFilter size={FILTER_BUTTON_ICON_SIZE} />
       </ButtonTransparent>
-      <Tooltip target={identifier} isOpen={isOpen} placement="auto-start" hideArrow={false}>
+      <Tooltip
+        target={identifier}
+        isOpen={buttonFocused || tooltipFocused}
+        // isOpen={isOpen || tooltipFocused}
+        placement="auto-start"
+        hideArrow={false}
+        // toggle={toggle}
+        onFocus={() => setTooltipFocused(true)}
+        onBlur={() => setTooltipFocused(false)}
+        // onBlur={close}
+      >
         {children}
       </Tooltip>
     </FilterButtonWrapper>

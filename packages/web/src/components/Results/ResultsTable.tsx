@@ -13,14 +13,15 @@ import type { Sorting } from 'src/helpers/resultsSort'
 import { SortCategory, SortDirection } from 'src/helpers/resultsSort'
 import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
 
-import { ColumnName } from 'src/components/Results/ColumnName'
-import { ColumnQCStatus } from 'src/components/Results/ColumnQCStatus'
-import { ColumnClade } from 'src/components/Results/ColumnClade'
-import { ColumnMutations } from 'src/components/Results/ColumnMutations'
-import { ColumnNonACGTNs } from 'src/components/Results/ColumnNonACGTNs'
-import { ColumnMissing } from 'src/components/Results/ColumnMissing'
-import { ColumnGaps } from 'src/components/Results/ColumnGaps'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
+
+import { ColumnName } from './ColumnName'
+import { ColumnQCStatus } from './ColumnQCStatus'
+import { ColumnClade } from './ColumnClade'
+import { ColumnMutations } from './ColumnMutations'
+import { ColumnNonACGTNs } from './ColumnNonACGTNs'
+import { ColumnMissing } from './ColumnMissing'
+import { ColumnGaps } from './ColumnGaps'
 import { ResultsControlsSort } from './ResultsControlsSort'
 import { ResultsControlsFilter } from './ResultsControlsFilter'
 
@@ -50,6 +51,7 @@ export const Table = styled.div`
   width: 100%;
   height: 100%;
   background-color: #b3b3b3aa;
+  overflow: hidden;
 `
 
 export const TableHeaderRow = styled.div`
@@ -286,7 +288,7 @@ export function ResultsTableDisconnected({
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-            <ResultsControlsFilter identifier="btn-filter-seq-name">{'Sequence name'}</ResultsControlsFilter>
+            <ResultsControlsFilter identifier="btn-filter-seq-name" />
             <TableCellText>{t('Sequence name')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
           </TableHeaderCell>
