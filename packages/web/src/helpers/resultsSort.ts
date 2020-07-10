@@ -1,7 +1,7 @@
-import { orderBy } from 'lodash'
+import { orderBy, partition } from 'lodash'
 
 import { formatClades } from 'src/helpers/formatClades'
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import { AnylysisStatus, SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 
 export enum SortCategory {
   id = 'id',
@@ -48,19 +48,31 @@ export function sortByName(results: SequenceAnylysisState[], direction: SortDire
 }
 
 export function sortByQcIssues(results: SequenceAnylysisState[], direction: SortDirection) {
-  return orderBy(
+  // Only sort sequences that are ready (succeeded or failed). Put sequences still being analyzed sequences at the bottom.
+  const [ready, rest] = partition(
     results,
+    (res) => res.status === AnylysisStatus.done || res.status === AnylysisStatus.failed,
+  )
+
+  const readySorted = orderBy(
+    ready,
     (res) => {
+      // Sort errored sequences as having very bad QC results
       const errorScore = res.errors.length * 10e3
       const qcScore = res.result?.diagnostics.flags.length ?? defaultNumber(direction)
       return errorScore + qcScore
     },
     direction,
   )
+
+  return [...readySorted, ...rest]
 }
 
 export function sortByClade(results: SequenceAnylysisState[], direction: SortDirection) {
-  return orderBy(results, getClade, direction)
+  // Only sort sequences that are succeeded. Put errored sequences and sequences still being analyzed at the bottom.
+  const [succeeded, rest] = partition(results, (res) => !!res.result)
+  const succeededSorted = orderBy(succeeded, getClade, direction)
+  return [...succeededSorted, ...rest]
 }
 
 export function sortByMutations(results: SequenceAnylysisState[], direction: SortDirection) {
