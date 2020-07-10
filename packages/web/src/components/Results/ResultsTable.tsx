@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 
+import { map } from 'lodash'
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
@@ -26,6 +27,24 @@ import { ResultsControlsFilter } from './ResultsControlsFilter'
 
 const ROW_HEIGHT = 30
 const HEADER_ROW_HEIGHT = 60
+
+// TODO: This should be passed through the theme context to styled-components
+export const RESULTS_TABLE_FLEX_BASIS = {
+  id: 50,
+  seqName: 225,
+  qc: 70,
+  clade: 85,
+  mut: 80,
+  nonACGTN: 80,
+  ns: 55,
+  gaps: 60,
+} as const
+
+export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
+  Object.entries(RESULTS_TABLE_FLEX_BASIS).map(([item, fb]) => [item, `${fb}px`]),
+) as Record<keyof typeof RESULTS_TABLE_FLEX_BASIS, string>
+
+export const geneMapNameBasisPx = `${RESULTS_TABLE_FLEX_BASIS.id + RESULTS_TABLE_FLEX_BASIS.seqName}px`
 
 export const Table = styled.div`
   font-size: 0.8rem;
@@ -105,12 +124,14 @@ function TableRowComponent({ index, style, data }: RowProps) {
   if (errors.length > 0) {
     return (
       <TableRowError style={style} even={index % 2 === 0}>
-        <TableCell basis="50px" grow={0} shrink={0}>
+        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
           <TableCellText>{id}</TableCellText>
         </TableCell>
-        <TableCellName basis="250px" shrink={0}>
+
+        <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
+
         <TableCell grow={20} shrink={20}>
           <TableCellText>{errors}</TableCellText>
         </TableCell>
@@ -121,12 +142,14 @@ function TableRowComponent({ index, style, data }: RowProps) {
   if (!sequence) {
     return (
       <TableRowPending style={style} even={index % 2 === 0}>
-        <TableCell basis="50px" grow={0} shrink={0}>
+        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
           <TableCellText>{id}</TableCellText>
         </TableCell>
-        <TableCellName basis="250px" shrink={0}>
+
+        <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
+
         <TableCell grow={20} shrink={20}>
           <TableCellText>{t('Analyzing...')}</TableCellText>
         </TableCell>
@@ -136,35 +159,35 @@ function TableRowComponent({ index, style, data }: RowProps) {
 
   return (
     <TableRow style={style} even={index % 2 === 0}>
-      <TableCell basis="50px" grow={0} shrink={0}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
         <TableCellText>{id}</TableCellText>
       </TableCell>
 
-      <TableCellName basis="250px" shrink={0}>
+      <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
         <ColumnName seqName={seqName} sequence={sequence} />
       </TableCellName>
 
-      <TableCell basis="50px" grow={0} shrink={0}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
         <ColumnQCStatus sequence={sequence} />
       </TableCell>
 
-      <TableCell basis="50px" grow={0} shrink={0}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
         <ColumnClade sequence={sequence} />
       </TableCell>
 
-      <TableCell basis="50px" grow={0} shrink={0}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
         <ColumnMutations sequence={sequence} />
       </TableCell>
 
-      <TableCell basis="50px" grow={0} shrink={0}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.nonACGTN} grow={0} shrink={0}>
         <ColumnNonACGTNs sequence={sequence} />
       </TableCell>
 
-      <TableCell basis="50px" grow={0} shrink={0}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.ns} grow={0} shrink={0}>
         <ColumnMissing sequence={sequence} />
       </TableCell>
 
-      <TableCell basis="50px" grow={0} shrink={0}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.gaps} grow={0} shrink={0}>
         <ColumnGaps sequence={sequence} />
       </TableCell>
 
@@ -258,46 +281,46 @@ export function ResultsTableDisconnected({
     <>
       <Table>
         <TableHeaderRow>
-          <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
             <TableCellText>{t('ID')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
           </TableHeaderCell>
 
-          <TableHeaderCell basis="250px" shrink={0}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
             <ResultsControlsFilter />
             <TableCellText>{t('Sequence name')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
           </TableHeaderCell>
 
-          <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
             <ResultsControlsFilter />
             <TableCellText>{t('QC')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
           </TableHeaderCell>
 
-          <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
             <ResultsControlsFilter />
             <TableCellText>{t('Clade')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
           </TableHeaderCell>
 
-          <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
             <ResultsControlsFilter />
             <TableCellText>{t('Mut.')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
           </TableHeaderCell>
 
-          <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.nonACGTN} grow={0} shrink={0}>
             <TableCellText>{t('non-ACGTN')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
           </TableHeaderCell>
 
-          <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.ns} grow={0} shrink={0}>
             <TableCellText>{t('Ns')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
           </TableHeaderCell>
 
-          <TableHeaderCell basis="50px" grow={0} shrink={0}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.gaps} grow={0} shrink={0}>
             <TableCellText>{t('Gaps')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
           </TableHeaderCell>
