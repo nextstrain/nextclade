@@ -31,20 +31,27 @@ import {
 } from 'src/state/algorithm/algorithm.actions'
 import { setFilterPanelCollapsed } from 'src/state/ui/ui.actions'
 
-export const Card = styled(ReactstrapCard)<ReactstrapCardProps>``
+export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
+  box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
+`
 
 export const CardHeader = styled(ReactstrapCardHeader)<ReactstrapCardHeaderProps>`
+  background-color: #495057;
+  color: #fff;
   height: 36px;
   font-size: 1rem;
   line-height: 1rem;
 `
 
 export const CardBody = styled(ReactstrapCardBody)<ReactstrapCardBodyProps>`
+  background-color: #495057;
   display: flex;
   width: 100%;
+  padding: 3px 3px;
 `
 
 export const FormGroup = styled(ReactstrapFormGroup)<ReactstrapFormGroupProps>`
+  background-color: #fff;
   flex-grow: 1;
   flex-basis: 22%;
 `
@@ -53,18 +60,27 @@ export const FormSection = styled(FormGroup)<ReactstrapFormGroupProps>`
   font-size: 0.85rem;
   padding: 5px 10px;
   margin: 5px;
-  border: 1px solid #ccca;
   border-radius: 3px;
-  box-shadow: 1px 1px 3px rgba(128, 128, 128, 0.33);
 `
 
 export const Label = styled(ReactstrapLabel)<ReactstrapLabelProps>`
+  width: 100%;
   font-size: 0.85rem;
 `
 
 export const InputText = styled(ReactstrapInput)<ReactstrapInputProps>`
+  width: 100%;
   height: 30px;
   padding: 5px 7px;
+  font-size: 0.75rem;
+
+  ::placeholder {
+    color: rgba(168, 182, 200, 0.67);
+  }
+
+  &:hover::placeholder {
+    color: rgba(168, 182, 200, 1);
+  }
 `
 
 export const InputCheckbox = styled(ReactstrapInput)<ReactstrapInputProps>`
@@ -172,13 +188,23 @@ export function ResultsFilterDisconnected({
   return (
     <Collapse isOpen={filterPanelCollapsed}>
       <Card>
-        <CardHeader>{t('Filtering and sorting')}</CardHeader>
+        <CardHeader>{t('Results filter')}</CardHeader>
 
         <CardBody>
           <FormSection>
             <Label>
               {t('By sequence name')}
-              <InputText type="text" value={seqNamesFilter} onChange={handleSeqNamesFilterChange} autoComplete="off" />
+              <InputText
+                type="text"
+                placeholder="Ex.: Wuhan, WH"
+                value={seqNamesFilter}
+                onChange={handleSeqNamesFilterChange}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-gramm="false"
+              />
             </Label>
           </FormSection>
 
@@ -187,9 +213,14 @@ export function ResultsFilterDisconnected({
               {t('By nucleotide mutations')}
               <InputText
                 type="text"
+                placeholder="Ex.: C3037T, .A"
                 value={mutationsFilter}
                 onChange={handleMutationsFilterChange}
                 autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-gramm="false"
               />
             </Label>
           </FormSection>
@@ -197,14 +228,34 @@ export function ResultsFilterDisconnected({
           <FormSection>
             <Label>
               {t('By aminoacid changes')}
-              <InputText type="text" value={aaFilter} onChange={handleAAFilterChange} autoComplete="off" />
+              <InputText
+                type="text"
+                placeholder="Ex.: ORF1b:P314L, S:, :84"
+                value={aaFilter}
+                onChange={handleAAFilterChange}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-gramm="false"
+              />
             </Label>
           </FormSection>
 
           <FormSection>
             <Label>
               {t('By clades')}
-              <InputText type="text" value={cladesFilter} onChange={handleCladesFilterChange} autoComplete="off" />
+              <InputText
+                type="text"
+                placeholder="Ex.: 19B, 20"
+                value={cladesFilter}
+                onChange={handleCladesFilterChange}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-gramm="false"
+              />
             </Label>
           </FormSection>
 

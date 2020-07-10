@@ -46,12 +46,14 @@ export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
 
 export const geneMapNameBasisPx = `${RESULTS_TABLE_FLEX_BASIS.id + RESULTS_TABLE_FLEX_BASIS.seqName}px`
 
-export const Table = styled.div`
+export const Table = styled.div<{ rounded?: boolean }>`
   font-size: 0.8rem;
   width: 100%;
   height: 100%;
   background-color: #b3b3b3aa;
   overflow: hidden;
+  border-radius: ${(props) => props.rounded && '3px'};
+  transition: border-radius 250ms linear;
 `
 
 export const TableHeaderRow = styled.div`
@@ -59,16 +61,16 @@ export const TableHeaderRow = styled.div`
   align-items: stretch;
   height: ${HEADER_ROW_HEIGHT}px;
   overflow-y: scroll;
-  background-color: #4c4c4c;
-  color: #bcbbbb;
+  background-color: #495057;
+  color: #e7e7e7;
 `
 
-export const TableHeaderCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
+export const TableHeaderCell = styled.div<{ basis?: string; grow?: number; shrink?: number; first?: boolean }>`
   flex-basis: ${(props) => props?.basis};
   flex-grow: ${(props) => props?.grow};
   flex-shrink: ${(props) => props?.shrink};
+  border-left: ${(props) => !props.first && `1px solid #b3b3b3aa`};
   overflow: hidden;
-  border-left: 1px solid #b3b3b3;
   width: 100%;
   height: 100%;
   display: flex;
@@ -203,6 +205,7 @@ const TableRowMemo = memo(TableRowComponent, areEqual)
 
 const mapStateToProps = (state: State) => ({
   resultsFiltered: state.algorithm.resultsFiltered,
+  filterPanelCollapsed: state.ui.filterPanelCollapsed,
 })
 
 const mapDispatchToProps = {
@@ -237,6 +240,7 @@ export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(Results
 
 export interface ResultProps {
   resultsFiltered: SequenceAnylysisState[]
+  filterPanelCollapsed: boolean
   sortByIdAsc(): void
   sortByIdDesc(): void
   sortByNameAsc(): void
@@ -257,6 +261,7 @@ export interface ResultProps {
 
 export function ResultsTableDisconnected({
   resultsFiltered,
+  filterPanelCollapsed,
   sortByIdAsc,
   sortByIdDesc,
   sortByNameAsc,
@@ -280,9 +285,9 @@ export function ResultsTableDisconnected({
 
   return (
     <>
-      <Table>
+      <Table rounded={!filterPanelCollapsed}>
         <TableHeaderRow>
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
+          <TableHeaderCell first basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
             <TableCellText>{t('ID')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
           </TableHeaderCell>
