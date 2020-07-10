@@ -286,25 +286,25 @@ export function ResultsTableDisconnected({
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-            <ResultsControlsFilter />
+            <ResultsControlsFilter identifier="btn-filter-seq-name">{'Sequence name'}</ResultsControlsFilter>
             <TableCellText>{t('Sequence name')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
-            <ResultsControlsFilter />
+            <ResultsControlsFilter identifier="btn-filter-qc">{'QC'}</ResultsControlsFilter>
             <TableCellText>{t('QC')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
-            <ResultsControlsFilter />
+            <ResultsControlsFilter identifier="btn-filter-clade">{'Clade'}</ResultsControlsFilter>
             <TableCellText>{t('Clade')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
-            <ResultsControlsFilter />
+            <ResultsControlsFilter identifier="btn-filter-mut">{'Mutations'}</ResultsControlsFilter>
             <TableCellText>{t('Mut.')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
           </TableHeaderCell>
