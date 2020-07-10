@@ -9,6 +9,7 @@ import { parseMutation } from 'src/helpers/parseMutation'
 import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { formatClades } from 'src/helpers/formatClades'
+import { resultsSort } from 'src/helpers/resultsSort'
 
 import {
   algorithmRunAsync,
@@ -35,7 +36,6 @@ import {
 } from './algorithm.state'
 
 import immerCase from '../util/fsaImmerReducer'
-import { resultsSort } from 'src/helpers/resultsSort'
 
 export function getSeqNamesFilterRunner(seqNamesFilter: string) {
   const seqNamesFilters = seqNamesFilter.split(',')

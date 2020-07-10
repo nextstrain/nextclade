@@ -13,12 +13,12 @@ export const SortButtonWrapper = styled.div`
   margin: auto 10px;
 `
 
-export interface SortAndFilterControlsProps {
+export interface SortControlsProps {
   sortAsc(): void
   sortDesc(): void
 }
 
-export function SortAndFilterControls({ sortAsc, sortDesc }: SortAndFilterControlsProps) {
+export function SortControls({ sortAsc, sortDesc }: SortControlsProps) {
   return (
     <SortButtonWrapper>
       <ButtonTransparent width={SORT_BUTTON_SIZE} onClick={sortAsc}>
