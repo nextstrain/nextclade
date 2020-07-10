@@ -25,7 +25,7 @@ export interface Sorting {
 }
 
 export function defaultNumber(direction: SortDirection) {
-  return direction === SortDirection.asc ? Infinity : -Infinity
+  return direction === SortDirection.asc ? Infinity : 0
 }
 
 export function getClade(res: SequenceAnylysisState) {
@@ -48,7 +48,15 @@ export function sortByName(results: SequenceAnylysisState[], direction: SortDire
 }
 
 export function sortByQcIssues(results: SequenceAnylysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.diagnostics.flags.length ?? defaultNumber(direction), direction)
+  return orderBy(
+    results,
+    (res) => {
+      const errorScore = res.errors.length * 10e3
+      const qcScore = res.result?.diagnostics.flags.length ?? defaultNumber(direction)
+      return errorScore + qcScore
+    },
+    direction,
+  )
 }
 
 export function sortByClade(results: SequenceAnylysisState[], direction: SortDirection) {
