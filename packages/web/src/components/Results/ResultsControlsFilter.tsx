@@ -9,10 +9,10 @@ const FILTER_BUTTON_SIZE = '15px'
 
 export const FilterButtonWrapper = styled.div`
   flex: 0;
-  margin: auto 10px;
+  margin: auto 7px;
 `
 
-export function ResultsFilterControls({ children }: PropsWithChildren<unknown>) {
+export function ResultsControlsFilter({ children }: PropsWithChildren<unknown>) {
   const [isOpen, setIsOpen] = useState(false)
   const toggle = useCallback(() => setIsOpen(!isOpen), [isOpen])
 

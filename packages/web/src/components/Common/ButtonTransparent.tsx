@@ -11,14 +11,17 @@ export const ButtonTransparent = styled(Button)<ButtonTransparentProps>`
   display: block;
   width: ${(props) => props.width ?? props.height};
   height: ${(props) => props.height};
-  padding: 0;
+  line-height: ${(props) => props.height};
   font-size: ${(props) => props.fontSize};
+  padding: 0;
+  margin: 4px 0;
   background-color: transparent;
   background-image: none;
   color: #cccccc;
   border: none;
   border-radius: 0;
   box-shadow: none;
+  border-image: none;
 
   &:active,
   &:hover,

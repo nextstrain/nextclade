@@ -21,8 +21,8 @@ import { ColumnNonACGTNs } from 'src/components/Results/ColumnNonACGTNs'
 import { ColumnMissing } from 'src/components/Results/ColumnMissing'
 import { ColumnGaps } from 'src/components/Results/ColumnGaps'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
-import { SortControls } from './SortControls'
-import { ResultsFilterControls } from './ResultsFilterControls'
+import { ResultsControlsSort } from './ResultsControlsSort'
+import { ResultsControlsFilter } from './ResultsControlsFilter'
 
 const ROW_HEIGHT = 30
 const HEADER_ROW_HEIGHT = 60
@@ -260,46 +260,46 @@ export function ResultsTableDisconnected({
         <TableHeaderRow>
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('ID')}</TableCellText>
-            <SortControls sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
+            <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis="250px" shrink={0}>
-            <ResultsFilterControls />
+            <ResultsControlsFilter />
             <TableCellText>{t('Sequence name')}</TableCellText>
-            <SortControls sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
+            <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
-            <ResultsFilterControls />
+            <ResultsControlsFilter />
             <TableCellText>{t('QC')}</TableCellText>
-            <SortControls sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
+            <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
-            <ResultsFilterControls />
+            <ResultsControlsFilter />
             <TableCellText>{t('Clade')}</TableCellText>
-            <SortControls sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
+            <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
-            <ResultsFilterControls />
+            <ResultsControlsFilter />
             <TableCellText>{t('Mut.')}</TableCellText>
-            <SortControls sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
+            <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('non-ACGTN')}</TableCellText>
-            <SortControls sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
+            <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('Ns')}</TableCellText>
-            <SortControls sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
+            <ResultsControlsSort sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis="50px" grow={0} shrink={0}>
             <TableCellText>{t('Gaps')}</TableCellText>
-            <SortControls sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
+            <ResultsControlsSort sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell grow={20}>
