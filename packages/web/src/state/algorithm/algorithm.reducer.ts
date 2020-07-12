@@ -1,13 +1,90 @@
 import { DeepWritable } from 'ts-essentials'
-
+import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
-import { algorithmRunAsync, analyzeAsync, parseAsync, setInput, setInputFile, setIsDirty } from './algorithm.actions'
+import immerCase from 'src/state/util/fsaImmerReducer'
+import { resultsSort } from 'src/helpers/resultsSort'
+import { runFilters } from 'src/filtering/runFilters'
+
+import {
+  algorithmRunAsync,
+  analyzeAsync,
+  parseAsync,
+  resultsSortTrigger,
+  setAAFilter,
+  setCladesFilter,
+  setHasErrorsFilter,
+  setHasNoQcIssuesFilter,
+  setHasQcIssuesFilter,
+  setInput,
+  setInputFile,
+  setIsDirty,
+  setMutationsFilter,
+  setSeqNamesFilter,
+} from './algorithm.actions'
 import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus, SequenceAnylysisState } from './algorithm.state'
 
-import immerCase from '../util/fsaImmerReducer'
-
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
+  .withHandling(
+    immerCase(resultsSortTrigger, (draft, sorting) => {
+      draft.filters.sorting = sorting
+
+      const results = resultsSort(current(draft).results, sorting)
+      draft.results = results as DeepWritable<typeof results>
+
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setSeqNamesFilter, (draft, seqNamesFilter) => {
+      draft.filters.seqNamesFilter = seqNamesFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setMutationsFilter, (draft, mutationsFilter) => {
+      draft.filters.mutationsFilter = mutationsFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setAAFilter, (draft, aaFilter) => {
+      draft.filters.aaFilter = aaFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setCladesFilter, (draft, cladesFilter) => {
+      draft.filters.cladesFilter = cladesFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setHasNoQcIssuesFilter, (draft, hasNoQcIssuesFilter) => {
+      draft.filters.hasNoQcIssuesFilter = hasNoQcIssuesFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setHasQcIssuesFilter, (draft, hasQcIssuesFilter) => {
+      draft.filters.hasQcIssuesFilter = hasQcIssuesFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setHasErrorsFilter, (draft, hasErrorsFilter) => {
+      draft.filters.hasErrorsFilter = hasErrorsFilter
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
   .withHandling(
     immerCase(setInput, (draft, input) => {
       draft.status = AlgorithmStatus.idling
@@ -34,6 +111,7 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
       draft.status = AlgorithmStatus.started
       draft.isDirty = false
       draft.results = []
+      draft.resultsFiltered = []
     }),
   )
 
@@ -55,8 +133,12 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(parseAsync.done, (draft, { result }) => {
       draft.status = AlgorithmStatus.parsingDone
-      const resultState = result.map((seqName) => ({ status: AnylysisStatus.idling, seqName, errors: [] }))
+      const resultState = result.map(
+        (seqName, id) =>
+          ({ status: AnylysisStatus.idling, id, seqName, errors: [] } as DeepWritable<SequenceAnylysisState>),
+      )
       draft.results = resultState
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
@@ -74,6 +156,7 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
       draft.results = draft.results.map((result) =>
         result.seqName === seqName ? { ...result, status: AnylysisStatus.started } : result,
       )
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
@@ -82,12 +165,16 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
       draft.results = (draft.results.map((oldResult: DeepWritable<SequenceAnylysisState>) =>
         oldResult.seqName === seqName ? { ...oldResult, errors: [], result, status: AnylysisStatus.done } : oldResult,
       ) as unknown) as DeepWritable<SequenceAnylysisState>[]
+
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(analyzeAsync.failed, (draft, { params: { seqName }, error }) => {
       draft.results = draft.results.map(handleFailure(seqName, error))
+
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 

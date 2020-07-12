@@ -201,7 +201,7 @@ export function MainDisconnected({
                         <div className="mr-auto">{t('Paste or edit sequences')}</div>
                         <div className="ml-auto">
                           <button type="button" className="button-transparent" onClick={() => setShowInputBox(false)}>
-                            <MdClear fill="white" />
+                            <MdClear />
                           </button>
                         </div>
                       </CardHeader>

@@ -6,6 +6,7 @@ export function getEnvVars() {
   const ANALYZE = getbool('ANALYZE')
   const PROFILE = getbool('PROFILE')
   const PRODUCTION = NODE_ENV === 'production'
+  const DEBUG_SET_INITIAL_DATA = getbool('DEV_DEBUG_SET_INITIAL_DATA')
 
   const common = {
     BABEL_ENV,
@@ -13,6 +14,7 @@ export function getEnvVars() {
     ANALYZE,
     PROFILE,
     PRODUCTION,
+    DEBUG_SET_INITIAL_DATA,
   }
 
   if (PRODUCTION) {

@@ -12,8 +12,10 @@ export interface InitializeParams {
   router: Router
 }
 
+const allowResultsPage = process.env.NODE_ENV === 'development' && process.env.DEBUG_SET_INITIAL_DATA === 'true'
+
 export async function initialize({ router }: InitializeParams) {
-  if (router.pathname !== '/') {
+  if (!allowResultsPage && router.pathname === '/results') {
     await router.replace('/')
   }
 
