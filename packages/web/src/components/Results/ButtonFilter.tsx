@@ -10,8 +10,8 @@ import { State } from 'src/state/reducer'
 import { setFilterPanelCollapsed } from 'src/state/ui/ui.actions'
 
 export const ButtonStyled = styled(Button)`
-  width: 140px;
-  margin: 0;
+  width: 100px;
+  margin: 0 5px;
 `
 
 const mapStateToProps = (state: State) => ({
@@ -43,7 +43,7 @@ export function ButtonFilterDisconnected({
 
   return (
     <ButtonStyled color="secondary" onClick={toggleFilterPanel}>
-      <FaFilter />
+      <FaFilter className="mr-2" />
       {t('Filter')}
     </ButtonStyled>
   )

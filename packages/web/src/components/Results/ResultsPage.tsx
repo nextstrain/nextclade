@@ -38,6 +38,11 @@ const HeaderCenter = styled.header`
 
 const HeaderRight = styled.header`
   flex: 0;
+  display: flex;
+`
+
+const HeaderRightContainer = styled.div`
+  flex: 0;
 `
 
 const MainContent = styled.main`
@@ -62,8 +67,12 @@ export function ResultsPage() {
             <ResultsStatus />
           </HeaderCenter>
           <HeaderRight>
-            <ButtonFilter />
-            <ButtonExport />
+            <HeaderRightContainer>
+              <ButtonFilter />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <ButtonExport />
+            </HeaderRightContainer>
           </HeaderRight>
         </Header>
 
