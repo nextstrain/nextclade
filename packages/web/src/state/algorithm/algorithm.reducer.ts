@@ -37,8 +37,18 @@ import {
 
 import immerCase from '../util/fsaImmerReducer'
 
+const FILTER_DELIMITERS = /[\n\r,;]/gi
+
+export function splitFilter(filter: string) {
+  return filter
+    .split(FILTER_DELIMITERS)
+    .map((f) => f.trim())
+    .filter((f) => f !== '')
+}
+
 export function getSeqNamesFilterRunner(seqNamesFilter: string) {
-  const seqNamesFilters = seqNamesFilter.split(',')
+  const seqNamesFilters = splitFilter(seqNamesFilter)
+
   return (result: SequenceAnylysisState) => {
     return seqNamesFilters.some((filter) => result.seqName.includes(filter))
   }
@@ -52,7 +62,7 @@ export function mutationsAreEqual(filter: Partial<NucleotideSubstitution>, actua
 }
 
 export function getMutationsFilterRunner(mutationsFilter: string) {
-  const mutationFilters = mutationsFilter.split(',').map(parseMutation).filter(notUndefined)
+  const mutationFilters = splitFilter(mutationsFilter).map(parseMutation).filter(notUndefined)
 
   return (result: SequenceAnylysisState) => {
     if (!result?.result) {
@@ -72,7 +82,7 @@ export function aaChangesAreEqual(filter: Partial<AminoacidSubstitution>, actual
 }
 
 export function getAAFilterRunner(aaFilter: string) {
-  const aaFilters = aaFilter.split(',').map(parseAminoacidChange).filter(notUndefined)
+  const aaFilters = splitFilter(aaFilter).map(parseAminoacidChange).filter(notUndefined)
 
   return (result: SequenceAnylysisState) => {
     if (!result?.result) {
@@ -84,7 +94,7 @@ export function getAAFilterRunner(aaFilter: string) {
 }
 
 export function getCladesFilterRunner(cladesFilter: string) {
-  const cladesFilters = cladesFilter.split(',')
+  const cladesFilters = splitFilter(cladesFilter)
 
   return (result: SequenceAnylysisState) => {
     if (!result?.result) {
