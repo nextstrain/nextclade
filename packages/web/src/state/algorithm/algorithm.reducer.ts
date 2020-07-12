@@ -2,7 +2,9 @@ import { DeepWritable } from 'ts-essentials'
 import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
+import immerCase from 'src/state/util/fsaImmerReducer'
 import { resultsSort } from 'src/helpers/resultsSort'
+import { runFilters } from 'src/filtering/runFilters'
 
 import {
   algorithmRunAsync,
@@ -22,13 +24,10 @@ import {
 } from './algorithm.actions'
 import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus, SequenceAnylysisState } from './algorithm.state'
 
-import immerCase from '../util/fsaImmerReducer'
-import { runFilters } from 'src/filtering/runFilters'
-
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
     immerCase(resultsSortTrigger, (draft, sorting) => {
-      draft.sorting = sorting
+      draft.filters.sorting = sorting
 
       const results = resultsSort(current(draft).results, sorting)
       draft.results = results as DeepWritable<typeof results>
@@ -39,49 +38,49 @@ export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
 
   .withHandling(
     immerCase(setSeqNamesFilter, (draft, seqNamesFilter) => {
-      draft.seqNamesFilter = seqNamesFilter
+      draft.filters.seqNamesFilter = seqNamesFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(setMutationsFilter, (draft, mutationsFilter) => {
-      draft.mutationsFilter = mutationsFilter
+      draft.filters.mutationsFilter = mutationsFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(setAAFilter, (draft, aaFilter) => {
-      draft.aaFilter = aaFilter
+      draft.filters.aaFilter = aaFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(setCladesFilter, (draft, cladesFilter) => {
-      draft.cladesFilter = cladesFilter
+      draft.filters.cladesFilter = cladesFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(setHasNoQcIssuesFilter, (draft, hasNoQcIssuesFilter) => {
-      draft.hasNoQcIssuesFilter = hasNoQcIssuesFilter
+      draft.filters.hasNoQcIssuesFilter = hasNoQcIssuesFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(setHasQcIssuesFilter, (draft, hasQcIssuesFilter) => {
-      draft.hasQcIssuesFilter = hasQcIssuesFilter
+      draft.filters.hasQcIssuesFilter = hasQcIssuesFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(setHasErrorsFilter, (draft, hasErrorsFilter) => {
-      draft.hasErrorsFilter = hasErrorsFilter
+      draft.filters.hasErrorsFilter = hasErrorsFilter
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )

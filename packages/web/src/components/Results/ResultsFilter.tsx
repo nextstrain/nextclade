@@ -89,13 +89,13 @@ export const InputCheckbox = styled(ReactstrapInput)<ReactstrapInputProps>`
 
 const mapStateToProps = (state: State) => ({
   filterPanelCollapsed: state.ui.filterPanelCollapsed,
-  seqNamesFilter: state.algorithm.seqNamesFilter ?? '',
-  mutationsFilter: state.algorithm.mutationsFilter ?? '',
-  aaFilter: state.algorithm.aaFilter ?? '',
-  cladesFilter: state.algorithm.cladesFilter ?? '',
-  hasNoQcIssuesFilter: state.algorithm.hasNoQcIssuesFilter,
-  hasQcIssuesFilter: state.algorithm.hasQcIssuesFilter,
-  hasErrorsFilter: state.algorithm.hasErrorsFilter,
+  seqNamesFilter: state.algorithm.filters.seqNamesFilter ?? '',
+  mutationsFilter: state.algorithm.filters.mutationsFilter ?? '',
+  aaFilter: state.algorithm.filters.aaFilter ?? '',
+  cladesFilter: state.algorithm.filters.cladesFilter ?? '',
+  hasNoQcIssuesFilter: state.algorithm.filters.hasNoQcIssuesFilter,
+  hasQcIssuesFilter: state.algorithm.filters.hasQcIssuesFilter,
+  hasErrorsFilter: state.algorithm.filters.hasErrorsFilter,
 })
 
 const mapDispatchToProps = {

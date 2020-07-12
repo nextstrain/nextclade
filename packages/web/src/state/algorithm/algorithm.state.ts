@@ -39,14 +39,7 @@ export interface SequenceAnylysisState {
   errors: string[]
 }
 
-export interface AlgorithmState {
-  status: AlgorithmStatus
-  inputFile?: InputFile
-  params: AlgorithmParams
-  isDirty: boolean
-  results: SequenceAnylysisState[]
-  resultsFiltered: SequenceAnylysisState[]
-  errors: string[]
+export interface ResultsFilters {
   seqNamesFilter?: string
   mutationsFilter?: string
   aaFilter?: string
@@ -55,6 +48,17 @@ export interface AlgorithmState {
   hasQcIssuesFilter: boolean
   hasErrorsFilter: boolean
   sorting?: Sorting
+}
+
+export interface AlgorithmState {
+  status: AlgorithmStatus
+  inputFile?: InputFile
+  params: AlgorithmParams
+  isDirty: boolean
+  results: SequenceAnylysisState[]
+  resultsFiltered: SequenceAnylysisState[]
+  errors: string[]
+  filters: ResultsFilters
 }
 
 let results: SequenceAnylysisState[] = []
@@ -72,7 +76,9 @@ export const agorithmDefaultState: AlgorithmState = {
   results,
   resultsFiltered: results,
   errors: [],
-  hasNoQcIssuesFilter: true,
-  hasQcIssuesFilter: true,
-  hasErrorsFilter: true,
+  filters: {
+    hasNoQcIssuesFilter: true,
+    hasQcIssuesFilter: true,
+    hasErrorsFilter: true,
+  },
 }

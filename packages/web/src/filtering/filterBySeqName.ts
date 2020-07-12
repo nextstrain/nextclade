@@ -1,5 +1,6 @@
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
-import { splitFilterString } from 'src/filtering/splitFilterString'
+import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+
+import { splitFilterString } from './splitFilterString'
 
 export function filterBySeqName(seqNamesFilter: string) {
   const seqNamesFilters = splitFilterString(seqNamesFilter)

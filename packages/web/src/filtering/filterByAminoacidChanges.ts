@@ -1,9 +1,11 @@
-import { splitFilterString } from 'src/filtering/splitFilterString'
+import { intersectionWith } from 'lodash'
+
 import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
 import { notUndefined } from 'src/helpers/notUndefined'
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
-import { intersectionWith } from 'lodash'
-import { AminoacidSubstitution } from 'src/algorithms/types'
+import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { AminoacidSubstitution } from 'src/algorithms/types'
+
+import { splitFilterString } from './splitFilterString'
 
 export function aminoacidChangesAreEqual(filter: Partial<AminoacidSubstitution>, actual: AminoacidSubstitution) {
   const geneMatch = filter.gene === undefined || filter.gene === actual.gene

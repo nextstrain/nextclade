@@ -1,4 +1,4 @@
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 
 export function filterByQCIssues(hasNoQcIssuesFilter: boolean, hasQcIssuesFilter: boolean, hasErrorsFilter: boolean) {
   return ({ result, errors }: SequenceAnylysisState) => {

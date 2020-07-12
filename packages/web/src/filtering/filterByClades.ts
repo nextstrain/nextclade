@@ -1,6 +1,7 @@
-import { splitFilterString } from 'src/filtering/splitFilterString'
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 import { formatClades } from 'src/helpers/formatClades'
+
+import { splitFilterString } from './splitFilterString'
 
 export function filterByClades(cladesFilter: string) {
   const cladesFilters = splitFilterString(cladesFilter)

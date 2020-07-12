@@ -1,9 +1,11 @@
-import { splitFilterString } from 'src/filtering/splitFilterString'
+import { intersectionWith } from 'lodash'
+
 import { parseMutation } from 'src/helpers/parseMutation'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
-import { intersectionWith } from 'lodash'
 import { NucleotideSubstitution } from 'src/algorithms/types'
+
+import { splitFilterString } from './splitFilterString'
 
 export function mutationsAreEqual(filter: Partial<NucleotideSubstitution>, actual: NucleotideSubstitution) {
   const posMatch = filter.pos === undefined || filter.pos === actual.pos
