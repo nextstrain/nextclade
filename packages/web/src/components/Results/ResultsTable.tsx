@@ -23,7 +23,6 @@ import { ColumnNonACGTNs } from './ColumnNonACGTNs'
 import { ColumnMissing } from './ColumnMissing'
 import { ColumnGaps } from './ColumnGaps'
 import { ResultsControlsSort } from './ResultsControlsSort'
-import { ResultsControlsFilter } from './ResultsControlsFilter'
 
 const ROW_HEIGHT = 30
 const HEADER_ROW_HEIGHT = 60
@@ -31,12 +30,12 @@ const HEADER_ROW_HEIGHT = 60
 // TODO: This should be passed through the theme context to styled-components
 export const RESULTS_TABLE_FLEX_BASIS = {
   id: 50,
-  seqName: 225,
-  qc: 70,
-  clade: 85,
-  mut: 80,
-  nonACGTN: 80,
-  ns: 55,
+  seqName: 200,
+  qc: 60,
+  clade: 60,
+  mut: 60,
+  nonACGTN: 70,
+  ns: 60,
   gaps: 60,
 } as const
 
@@ -293,25 +292,21 @@ export function ResultsTableDisconnected({
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-            <ResultsControlsFilter identifier="btn-filter-seq-name" />
             <TableCellText>{t('Sequence name')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
-            <ResultsControlsFilter identifier="btn-filter-qc">{'QC'}</ResultsControlsFilter>
             <TableCellText>{t('QC')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
-            <ResultsControlsFilter identifier="btn-filter-clade">{'Clade'}</ResultsControlsFilter>
             <TableCellText>{t('Clade')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
-            <ResultsControlsFilter identifier="btn-filter-mut">{'Mutations'}</ResultsControlsFilter>
             <TableCellText>{t('Mut.')}</TableCellText>
             <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
           </TableHeaderCell>
