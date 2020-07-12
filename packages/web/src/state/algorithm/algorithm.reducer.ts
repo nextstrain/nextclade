@@ -4,8 +4,6 @@ import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
 import { resultsSort } from 'src/helpers/resultsSort'
 
-import { runFilters } from 'src/filtering/filtering'
-
 import {
   algorithmRunAsync,
   analyzeAsync,
@@ -25,6 +23,7 @@ import {
 import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus, SequenceAnylysisState } from './algorithm.state'
 
 import immerCase from '../util/fsaImmerReducer'
+import { runFilters } from 'src/filtering/runFilters'
 
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
   .withHandling(
