@@ -1,5 +1,6 @@
 import React, { memo } from 'react'
 
+import { sum } from 'lodash'
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
@@ -43,7 +44,8 @@ export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
   Object.entries(RESULTS_TABLE_FLEX_BASIS).map(([item, fb]) => [item, `${fb}px`]),
 ) as Record<keyof typeof RESULTS_TABLE_FLEX_BASIS, string>
 
-export const geneMapNameBasisPx = `${RESULTS_TABLE_FLEX_BASIS.id + RESULTS_TABLE_FLEX_BASIS.seqName}px`
+export const geneMapNameBasis = sum(Object.values(RESULTS_TABLE_FLEX_BASIS))
+export const geneMapNameBasisPx = `${geneMapNameBasis}px`
 
 export const Table = styled.div<{ rounded?: boolean }>`
   font-size: 0.8rem;
