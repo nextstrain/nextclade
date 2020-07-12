@@ -29,11 +29,10 @@ export function defaultNumber(direction: SortDirection) {
 }
 
 export function getClade(res: SequenceAnylysisState) {
-  if (!res.result) {
+  const clades = res.result?.clades
+  if (!clades) {
     return '-'
   }
-
-  const clades = res.result?.clades
 
   const { cladeStr } = formatClades(clades)
   return cladeStr
