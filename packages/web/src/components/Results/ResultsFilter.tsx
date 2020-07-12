@@ -186,7 +186,7 @@ export function ResultsFilterDisconnected({
   }
 
   return (
-    <Collapse isOpen={filterPanelCollapsed}>
+    <Collapse isOpen={!filterPanelCollapsed}>
       <Card>
         <CardHeader>{t('Results filter')}</CardHeader>
 
