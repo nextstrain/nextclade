@@ -72,6 +72,9 @@ export function SEODisconnected({ localeKey }: SEOProps) {
       <meta name="msapplication-wide310x150logo" content="/icons/mstile-310x150.png" />
       <meta name="msapplication-square310x310logo" content="/icons/mstile-310x310.png" />
 
+      <meta itemProp="description" content={PROJECT_DESCRIPTION} />
+      <meta itemProp="image" content="/social-1200x600.png" />
+      <meta itemProp="name" content={PROJECT_NAME} />
       <meta property="og:description" content={PROJECT_DESCRIPTION} />
       <meta property="og:image" content="/social-1200x600.png" />
       <meta property="og:title" content={PROJECT_NAME} />
