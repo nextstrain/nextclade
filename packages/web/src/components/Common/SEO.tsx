@@ -7,6 +7,8 @@ import { PROJECT_DESCRIPTION, PROJECT_NAME } from 'src/constants'
 import { LocaleKey } from 'src/i18n/i18n'
 import { State } from 'src/state/reducer'
 
+const PROJECT_FULL_DOMAIN = process.env.PROJECT_FULL_DOMAIN ?? ''
+
 export interface SEOProps {
   localeKey: LocaleKey
 }
@@ -69,6 +71,17 @@ export function SEODisconnected({ localeKey }: SEOProps) {
       <meta name="msapplication-square150x150logo" content="/icons/mstile-150x150.png" />
       <meta name="msapplication-wide310x150logo" content="/icons/mstile-310x150.png" />
       <meta name="msapplication-square310x310logo" content="/icons/mstile-310x310.png" />
+
+      <meta property="og:description" content={PROJECT_DESCRIPTION} />
+      <meta property="og:image" content="/social-1200x600.png" />
+      <meta property="og:title" content={PROJECT_NAME} />
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={PROJECT_FULL_DOMAIN} />
+      <meta property="twitter:card" content="summary_large_image" />
+      <meta property="twitter:description" content={PROJECT_DESCRIPTION} />
+      <meta property="twitter:image" content="/social-1200x600.png" />
+      <meta property="twitter:title" content={PROJECT_NAME} />
+      <meta property="twitter:url" content={PROJECT_FULL_DOMAIN} />
     </Helmet>
   )
 }

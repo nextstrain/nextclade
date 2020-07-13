@@ -22,6 +22,7 @@ import getWithStaticComprression from './webpackCompression'
 import getWithTypeChecking from './withTypeChecking'
 import withRaw from './withRaw'
 import withSvg from './withSvg'
+import withImages from './withImages'
 import withThreads from './withThreads'
 // import withoutMinification from './withoutMinification'
 
@@ -138,6 +139,7 @@ const config = withPlugins(
     [withExtraWatch],
     [withThreads],
     [withSvg],
+    [withImages],
     [withRaw],
     // ANALYZE && [withBundleAnalyzer],
     [withFriendlyConsole],
