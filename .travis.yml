@@ -28,7 +28,7 @@ script:
   - yarn codecov -f .reports/coverage/coverage-final.json
 
 before_deploy:
-  - yarn prod:build
+  - yarn prod:build:ci
 
 deploy:
   - provider: s3

@@ -1,5 +1,5 @@
 /* eslint-disable lodash/prefer-is-nil */
-import { getenv } from './getenv'
+import { getbool, getenv } from './getenv'
 
 const WEB_PORT_DEV = getenv('WEB_PORT_DEV', null)
 const WEB_PORT_PROD = getenv('WEB_PORT_PROD', null)
@@ -27,7 +27,7 @@ export function getDomain() {
       return devDomain
     }
 
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === 'production' && getbool('LOCAL_BUILD', null)) {
       return prodDomain
     }
 
