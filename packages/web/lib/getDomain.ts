@@ -66,6 +66,8 @@ export function getDomain() {
     if (!detectedDomain) {
       throw new Error(devError())
     }
+
+    return detectedDomain
   }
   return DOMAIN
 }
