@@ -1,6 +1,6 @@
 {
   "name": "@neherlab/webclades-web",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "main": "index.js",
   "module": "src/index.tsx",
   "license": "MIT",
