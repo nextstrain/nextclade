@@ -3,6 +3,11 @@ export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and qual
 export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain developers' as const
 
+export const DOMAIN = process.env.PROJECT_FULL_DOMAIN ?? ''
+export const SOCIAL_IMAGE_URL = `${DOMAIN}/social-1200x600.png`
+export const SAFARI_PINNED_TAB_COLOR = '#555555' as const
+export const MS_TILE_COLOR = '#2b5797' as const
+
 export const BASE_MIN_WIDTH_PX = 4 as const
 export const EXPORT_CSV_FILENAME = 'nextclades.csv'
 export const EXPORT_JSON_FILENAME = 'nextclades.json'
