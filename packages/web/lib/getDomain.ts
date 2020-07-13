@@ -1,4 +1,6 @@
 /* eslint-disable lodash/prefer-is-nil */
+import isInteractive from 'is-interactive'
+
 import { getbool, getenv } from './getenv'
 
 const WEB_PORT_DEV = getenv('WEB_PORT_DEV', null)
@@ -20,26 +22,49 @@ export function getenvFirst(vars: string[]) {
   return vars.map((v) => getenv(v, null)).find((v) => v !== undefined && v !== null)
 }
 
+export function listEnvVars(vars: string[]) {
+  return vars
+    .map((v) => {
+      let val = getenv(v, null)
+      if (val === null || val === undefined) {
+        val = ''
+      }
+      return `\n   - ${v}=${val}`
+    })
+    .join('')
+}
+
+export function devError() {
+  // prettier-ignore
+  return `Developer error: environment variable "FULL_DOMAIN" was set to "autodetect", but automatic domain detection failed.
+
+  If you build on your local computer, make sure you are running \`yarn dev\` or \`yarn prod:watch\` from an interactive terminal session. In this case the domain will be set to localhost.
+
+  If this is a CI build, here is the list of the environment variables where domain name is being looked for (in this order) along with their current values: ${listEnvVars(ENV_VARS)}
+
+  Make sure that this list is correct, that it includes the specific variable for this particular CI server and that the CI server really sets the variable to domain name.
+
+  In all cases, you can bypass the automatic domain detection by explicitly defining environment variable \`FULL_DOMAIN\`
+`
+}
+
 export function getDomain() {
   const DOMAIN = getenv('FULL_DOMAIN')
   if (DOMAIN === 'autodetect') {
-    if (process.env.NODE_ENV === 'development') {
+    const interactive = isInteractive()
+
+    if (interactive && process.env.NODE_ENV === 'development') {
       return devDomain
     }
 
-    if (process.env.NODE_ENV === 'production' && getbool('LOCAL_BUILD', null)) {
+    if (interactive && process.env.NODE_ENV === 'production') {
       return prodDomain
     }
 
     const detectedDomain = getenvFirst(ENV_VARS)
 
     if (!detectedDomain) {
-      throw new Error(
-        `: Developer error: environment variable "DOMAIN" was set to "autodetect", but automatic detection failed.
-           Here are the environment variables being looked for:
-            ${ENV_VARS.map((v) => ` - ${v}=${getenv(v, null)}`).join('\n')}
-        `,
-      )
+      throw new Error(devError())
     }
   }
   return DOMAIN
