@@ -154,10 +154,10 @@ const fakeResults = ([
   {
     status: 'done',
     id: 2,
-    seqName: 'Australia/VIC05/2020',
+    seqName: 'hCoV-19/USA/FL-Miami-06_UMTL-A388/2020',
     errors: [],
     result: {
-      seqName: 'Australia/VIC05/2020',
+      seqName: 'hCoV-19/USA/FL-Miami-06_UMTL-A388/2020',
       clades: {
         '19B': [
           {
@@ -490,10 +490,10 @@ const fakeResults = ([
   {
     status: 'done',
     id: 4,
-    seqName: 'Australia/VIC1008/2020',
+    seqName: 'hCoV-19/Madagascar/MA-Antananarivo-01_XXXX-A999/2020',
     errors: [],
     result: {
-      seqName: 'Australia/VIC1008/2020',
+      seqName: 'hCoV-19/Madagascar/MA-Antananarivo-01_XXXX-A999/2020',
       clades: {
         '20A': [
           {
