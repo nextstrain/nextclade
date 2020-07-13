@@ -29,6 +29,7 @@ export const SEO = connect(mapStateToProps, mapDispatchToProps)(SEODisconnected)
 
 export function SEODisconnected({ localeKey }: SEOProps) {
   const htmlAttributes = useMemo(() => ({ lang: localeKey }), [localeKey])
+  console.warn({ DOMAIN })
 
   return (
     <Helmet htmlAttributes={htmlAttributes}>

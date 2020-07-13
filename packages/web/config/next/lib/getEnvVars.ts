@@ -1,4 +1,5 @@
 import { getbool, getenv } from '../../../lib/getenv'
+import { getDomain } from '../../../lib/getDomain'
 
 export function getEnvVars() {
   const BABEL_ENV = getenv('BABEL_ENV')
@@ -7,6 +8,7 @@ export function getEnvVars() {
   const PROFILE = getbool('PROFILE')
   const PRODUCTION = NODE_ENV === 'production'
   const DEBUG_SET_INITIAL_DATA = getbool('DEV_DEBUG_SET_INITIAL_DATA')
+  const DOMAIN = getDomain()
 
   const common = {
     BABEL_ENV,
@@ -15,6 +17,7 @@ export function getEnvVars() {
     PROFILE,
     PRODUCTION,
     DEBUG_SET_INITIAL_DATA,
+    DOMAIN,
   }
 
   if (PRODUCTION) {
