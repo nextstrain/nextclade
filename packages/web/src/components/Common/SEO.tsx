@@ -22,6 +22,7 @@ const mapDispatchToProps = {}
 export const SEO = connect(mapStateToProps, mapDispatchToProps)(SEODisconnected)
 
 export function SEODisconnected({ localeKey }: SEOProps) {
+  const socialImageUrl = useMemo(() => '/social-1200x600.png', [])
   const htmlAttributes = useMemo(() => ({ lang: localeKey }), [localeKey])
 
   return (
@@ -73,16 +74,16 @@ export function SEODisconnected({ localeKey }: SEOProps) {
       <meta name="msapplication-square310x310logo" content="/icons/mstile-310x310.png" />
 
       <meta itemProp="description" content={PROJECT_DESCRIPTION} />
-      <meta itemProp="image" content="/social-1200x600.png" />
+      <meta itemProp="image" content={socialImageUrl} />
       <meta itemProp="name" content={PROJECT_NAME} />
       <meta property="og:description" content={PROJECT_DESCRIPTION} />
-      <meta property="og:image" content="/social-1200x600.png" />
+      <meta property="og:image" content={socialImageUrl} />
       <meta property="og:title" content={PROJECT_NAME} />
       <meta property="og:type" content="website" />
       <meta property="og:url" content={PROJECT_FULL_DOMAIN} />
       <meta property="twitter:card" content="summary_large_image" />
       <meta property="twitter:description" content={PROJECT_DESCRIPTION} />
-      <meta property="twitter:image" content="/social-1200x600.png" />
+      <meta property="twitter:image" content={socialImageUrl} />
       <meta property="twitter:title" content={PROJECT_NAME} />
       <meta property="twitter:url" content={PROJECT_FULL_DOMAIN} />
     </Helmet>
