@@ -20,16 +20,11 @@ export function ColumnClade({ sequence }: ColumnCladeProps) {
   const { cladeStr, cladeListStr } = formatClades(clades)
 
   return (
-    <td
-      id={id}
-      className="results-table-col results-table-col-clade"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
       {cladeStr}
       <Tooltip id={id} isOpen={showTooltip} target={id}>
         <div>{t('Clade: {{cladeListStr}}', { cladeListStr })}</div>
       </Tooltip>
-    </td>
+    </div>
   )
 }

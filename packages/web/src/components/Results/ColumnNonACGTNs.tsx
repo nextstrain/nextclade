@@ -16,16 +16,11 @@ export function ColumnNonACGTNs({ sequence }: ColumnNonACGTNsProps) {
   const id = getSafeId('col-nonacgtn', { seqName })
 
   return (
-    <td
-      id={id}
-      className="results-table-col results-table-col-clade"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
       {totalNonACGTNs}
       <Tooltip isOpen={showTooltip} target={id}>
         <ListOfNonACGTNs nonACGTNs={nonACGTNs} totalNonACGTNs={totalNonACGTNs} />
       </Tooltip>
-    </td>
+    </div>
   )
 }

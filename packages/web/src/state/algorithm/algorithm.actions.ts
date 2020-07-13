@@ -1,6 +1,7 @@
 import actionCreatorFactory from 'typescript-fsa'
 
 import type { AnalysisResult } from 'src/algorithms/types'
+import type { Sorting } from 'src/helpers/resultsSort'
 import type { InputFile } from './algorithm.state'
 
 const action = actionCreatorFactory('ALGORITHM')
@@ -22,3 +23,14 @@ export const analyzeAsync = action.async<{ seqName: string }, AnalysisResult, Er
 export const exportCsvTrigger = action('EXPORT_CSV')
 
 export const exportJsonTrigger = action('EXPORT_JSON')
+
+export const setSeqNamesFilter = action<string | undefined>('setSeqNamesFilter')
+export const setMutationsFilter = action<string | undefined>('setMutationsFilter')
+export const setAAFilter = action<string | undefined>('setAAFilter')
+export const setCladesFilter = action<string | undefined>('setCladesFilter')
+
+export const setHasNoQcIssuesFilter = action<boolean>('setHasNoQcIssuesFilter')
+export const setHasQcIssuesFilter = action<boolean>('setHasQcIssuesFilter')
+export const setHasErrorsFilter = action<boolean>('setHasErrorsFilter')
+
+export const resultsSortTrigger = action<Sorting>('resultsSortTrigger')

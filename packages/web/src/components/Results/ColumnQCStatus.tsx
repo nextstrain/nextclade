@@ -22,16 +22,11 @@ export function ColumnQCStatus({ sequence }: ColumnQCStatusProps) {
   const iconGreen = <MdCheck className="icon fill-green" />
 
   return (
-    <td
-      id={id}
-      className="results-table-col results-table-col-clade"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
       {hasIssues ? iconRed : iconGreen}
       <Tooltip target={id} isOpen={showTooltip}>
         <ListOfQcIssues diagnostics={diagnostics} />
       </Tooltip>
-    </td>
+    </div>
   )
 }

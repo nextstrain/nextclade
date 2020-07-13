@@ -4,8 +4,7 @@
   min-width: 992px;
 }
 
-.btn-refresh,
-.btn-export {
+.btn-refresh {
   width: 160px;
 }
 
@@ -14,27 +13,6 @@
   vertical-align: middle;
   padding-right: 5px;
   padding-bottom: 7px;
-}
-
-.sequence-view-wrapper {
-  width: 100%;
-  height: 30px;
-  margin-top: 0;
-  margin-bottom: 0;
-  vertical-align: middle;
-}
-
-.sequence-view-body {
-  background-color: $gray-100;
-  border-bottom: 0;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.sequence-view-background {
-  fill: transparent;
 }
 
 .sequence-view-label {
@@ -109,8 +87,4 @@
       background-color: #e9d2d3;
     }
   }
-}
-
-.results-btn-back {
-  width: 140px;
 }

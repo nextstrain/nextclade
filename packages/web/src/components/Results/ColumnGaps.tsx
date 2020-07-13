@@ -18,16 +18,11 @@ export function ColumnGaps({ sequence }: ColumnGapsProps) {
   const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
 
   return (
-    <td
-      id={id}
-      className="results-table-col results-table-col-clade"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
       {totalGaps}
       <Tooltip id={id} isOpen={showTooltip} target={id}>
         <ListOfGaps deletions={deletions} />
       </Tooltip>
-    </td>
+    </div>
   )
 }

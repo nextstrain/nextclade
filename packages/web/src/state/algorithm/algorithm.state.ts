@@ -1,6 +1,8 @@
 import type { AnalysisResult } from 'src/algorithms/types'
+import type { Sorting } from 'src/helpers/resultsSort'
 
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
+import { getFakeResults } from 'src/assets/data/getFakeResults'
 
 export interface InputFile {
   name: string
@@ -30,10 +32,22 @@ export enum AnylysisStatus {
 }
 
 export interface SequenceAnylysisState {
+  id: number
   status: AnylysisStatus
   seqName: string
   result?: AnalysisResult
   errors: string[]
+}
+
+export interface ResultsFilters {
+  seqNamesFilter?: string
+  mutationsFilter?: string
+  aaFilter?: string
+  cladesFilter?: string
+  hasNoQcIssuesFilter: boolean
+  hasQcIssuesFilter: boolean
+  hasErrorsFilter: boolean
+  sorting?: Sorting
 }
 
 export interface AlgorithmState {
@@ -42,7 +56,14 @@ export interface AlgorithmState {
   params: AlgorithmParams
   isDirty: boolean
   results: SequenceAnylysisState[]
+  resultsFiltered: SequenceAnylysisState[]
   errors: string[]
+  filters: ResultsFilters
+}
+
+let results: SequenceAnylysisState[] = []
+if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
+  results = getFakeResults()
 }
 
 export const agorithmDefaultState: AlgorithmState = {
@@ -52,6 +73,12 @@ export const agorithmDefaultState: AlgorithmState = {
     rootSeq: DEFAULT_ROOT_SEQUENCE,
   },
   isDirty: true,
-  results: [],
+  results,
+  resultsFiltered: results,
   errors: [],
+  filters: {
+    hasNoQcIssuesFilter: true,
+    hasQcIssuesFilter: true,
+    hasErrorsFilter: true,
+  },
 }

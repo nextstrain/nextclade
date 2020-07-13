@@ -1,88 +1,91 @@
 import React from 'react'
 
-import { Button, Card, CardBody, CardFooter, CardHeader, Col, Row, Container } from 'reactstrap'
-import { FaCaretLeft } from 'react-icons/fa'
-import { useTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
-import { goBack } from 'connected-next-router'
+import styled from 'styled-components'
 
-import type { State } from 'src/state/reducer'
-import type { AlgorithmParams } from 'src/state/algorithm/algorithm.state'
-import { setInput } from 'src/state/algorithm/algorithm.actions'
+import { LayoutResults } from 'src/components/Layout/LayoutResults'
+import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 
-import { ResultsTable } from './ResultsTable'
+import { ButtonBack } from './ButtonBack'
+import { ButtonFilter } from './ButtonFilter'
 import { ButtonExport } from './ButtonExport'
 import { ResultsStatus } from './ResultsStatus'
+import { ResultsFilter } from './ResultsFilter'
+import { ResultsTable } from './ResultsTable'
 
-export interface MainProps {
-  params: AlgorithmParams
-  setInput(input: string): void
-  exportTrigger(_0?: unknown): void
-  goBack(): void
-}
+export const Container = styled.div`
+  width: 100%;
+  height: 100%;
+  min-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+`
 
-const mapStateToProps = (state: State) => ({
-  params: state.algorithm.params,
-})
+const Header = styled.header`
+  flex-shrink: 0;
+  display: flex;
+`
 
-const mapDispatchToProps = {
-  setInput,
-  goBack: () => goBack(),
-}
+const HeaderLeft = styled.header`
+  flex: 0;
+`
 
-export const ResultsPage = connect(mapStateToProps, mapDispatchToProps)(ResultsPageDisconnected)
+const HeaderCenter = styled.header`
+  flex: 1;
+  padding: 5px 10px;
+  border-radius: 5px;
+`
 
-export function ResultsPageDisconnected({ params, setInput, goBack }: MainProps) {
-  const { t } = useTranslation()
+const HeaderRight = styled.header`
+  flex: 0;
+  display: flex;
+`
 
+const HeaderRightContainer = styled.div`
+  flex: 0;
+`
+
+const MainContent = styled.main`
+  flex-grow: 1;
+  overflow: auto;
+  border: none;
+`
+
+const Footer = styled.footer`
+  flex-shrink: 0;
+`
+
+export function ResultsPage() {
   return (
-    <Container fluid className="results-page-container">
-      <Row noGutters>
-        <Col>
-          <Row>
-            <Col className="d-flex">
-              <div className="mr-auto">
-                <Button color="secondary" className="results-btn-back" onClick={goBack}>
-                  <FaCaretLeft />
-                  {t('Back')}
-                </Button>
-              </div>
-            </Col>
-          </Row>
+    <LayoutResults>
+      <Container>
+        <Header>
+          <HeaderLeft>
+            <ButtonBack />
+          </HeaderLeft>
+          <HeaderCenter>
+            <ResultsStatus />
+          </HeaderCenter>
+          <HeaderRight>
+            <HeaderRightContainer>
+              <ButtonFilter />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <ButtonExport />
+            </HeaderRightContainer>
+          </HeaderRight>
+        </Header>
 
-          <Row>
-            <Col>
-              <ResultsStatus />
-            </Col>
-          </Row>
+        <ResultsFilter />
 
-          <Row>
-            <Col>
-              <Card className="mt-1 mb-1">
-                <CardHeader>{t('Results')}</CardHeader>
+        <MainContent>
+          <ResultsTable />
+        </MainContent>
 
-                <CardBody>
-                  <Row>
-                    <Col>
-                      <ResultsTable />
-                    </Col>
-                  </Row>
-                </CardBody>
-
-                <CardFooter>
-                  <Row>
-                    <Col className="d-flex w-100">
-                      <div className="ml-auto">
-                        <ButtonExport />
-                      </div>
-                    </Col>
-                  </Row>
-                </CardFooter>
-              </Card>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
-    </Container>
+        <Footer>
+          <GeneMapTable />
+        </Footer>
+      </Container>
+    </LayoutResults>
   )
 }

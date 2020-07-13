@@ -8,8 +8,6 @@
 @import './theme';
 
 @import './components/About';
-@import './components/Card';
-@import './components/GeneMap';
 @import './components/LanguageSwitcher';
 @import './components/Main';
 @import './components/MdxWrapper';
@@ -24,10 +22,6 @@ body {
 
 html {
   overflow-y: auto;
-}
-
-.main-wrapper {
-  min-height: 100vh;
 }
 
 body {

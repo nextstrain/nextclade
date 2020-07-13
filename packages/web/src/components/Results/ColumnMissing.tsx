@@ -16,16 +16,11 @@ export function ColumnMissing({ sequence }: ColumnMissingProps) {
   const id = getSafeId('col-missing', { seqName })
 
   return (
-    <td
-      id={id}
-      className="results-table-col results-table-col-clade"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
       {totalMissing}
       <Tooltip isOpen={showTooltip} target={id}>
         <ListOfMissing missing={missing} totalMissing={totalMissing} />
       </Tooltip>
-    </td>
+    </div>
   )
 }
