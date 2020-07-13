@@ -31,7 +31,7 @@ const HEADER_ROW_HEIGHT = 60
 // TODO: This should be passed through the theme context to styled-components
 export const RESULTS_TABLE_FLEX_BASIS = {
   id: 50,
-  seqName: 200,
+  seqName: 300,
   qc: 60,
   clade: 60,
   mut: 60,
