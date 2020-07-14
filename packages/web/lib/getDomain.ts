@@ -1,7 +1,7 @@
 /* eslint-disable lodash/prefer-is-nil */
 import isInteractive from 'is-interactive'
 
-import { getbool, getenv } from './getenv'
+import { getenv } from './getenv'
 
 const WEB_PORT_DEV = getenv('WEB_PORT_DEV', null)
 const WEB_PORT_PROD = getenv('WEB_PORT_PROD', null)
@@ -26,7 +26,7 @@ export function listEnvVars(vars: string[]) {
   return vars
     .map((v) => {
       let val = getenv(v, null)
-      if (val === null || val === undefined) {
+      if (val === null) {
         val = ''
       }
       return `\n   - ${v}=${val}`
