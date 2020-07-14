@@ -125,6 +125,7 @@
     "@babel/runtime-corejs3": "7.10.4",
     "@next/mdx": "9.4.4",
     "@nuxt/friendly-errors-webpack-plugin": "2.5.0",
+    "@packtracker/webpack-plugin": "2.3.0",
     "@primer/css": "15.0.0",
     "@schemastore/package": "0.0.5",
     "@svgr/webpack": "5.4.0",
