@@ -3,7 +3,7 @@ import type { NextConfig } from 'next'
 import { addWebpackPlugin } from './lib/addWebpackPlugin'
 import { getenv } from '../../lib/getenv'
 
-const withPacktracker = () => (nextConfig: NextConfig) => {
+export default function withPacktracker(nextConfig: NextConfig) {
   const PT_PROJECT_TOKEN = getenv('PT_PROJECT_TOKEN', null)
   if (!PT_PROJECT_TOKEN) {
     return nextConfig
@@ -18,5 +18,3 @@ const withPacktracker = () => (nextConfig: NextConfig) => {
     }),
   )
 }
-
-export default withPacktracker
