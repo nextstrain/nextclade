@@ -8,7 +8,7 @@ import { enableES5 } from 'immer'
 
 import React, { Suspense, useEffect, useState } from 'react'
 
-import NextApp, { AppInitialProps, AppContext, AppProps } from 'next/app'
+import { AppProps } from 'next/app'
 import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
 import type { Persistor } from 'redux-persist'
@@ -68,8 +68,4 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
       </Provider>
     </Suspense>
   )
-}
-
-MyApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps> => {
-  return NextApp.getInitialProps(appContext)
 }
