@@ -8,7 +8,7 @@ import { enableES5 } from 'immer'
 
 import React, { Suspense, useEffect, useState } from 'react'
 
-import NextApp, { AppInitialProps, AppContext, AppProps } from 'next/app'
+import { AppProps } from 'next/app'
 import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
 import type { Persistor } from 'redux-persist'
@@ -24,6 +24,7 @@ import { initialize } from 'src/initialize'
 
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import Loading from 'src/components/Loading/Loading'
+import { SEO } from 'src/components/Common/SEO'
 
 import { theme } from 'src/theme'
 
@@ -62,6 +63,7 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
             <MDXProvider components={{ a: LinkExternal }}>
               <PersistGate loading={null} persistor={persistor}>
                 <I18nextProvider i18n={i18n}>
+                  <SEO />
                   <Component {...pageProps} />
                 </I18nextProvider>
               </PersistGate>
@@ -71,8 +73,4 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
       </Provider>
     </Suspense>
   )
-}
-
-MyApp.getInitialProps = async (appContext: AppContext): Promise<AppInitialProps> => {
-  return NextApp.getInitialProps(appContext)
 }

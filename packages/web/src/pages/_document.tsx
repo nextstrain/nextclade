@@ -1,7 +1,7 @@
 import React from 'react'
 
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
-import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
+import { PROJECT_NAME, PROJECT_DESCRIPTION, SOCIAL_IMAGE_URL, DOMAIN } from 'src/constants'
 
 export default class Document extends NextDocument {
   static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
@@ -42,10 +42,26 @@ export default class Document extends NextDocument {
           <link rel="apple-touch-icon-precomposed" sizes="60x60" href="/icons/apple-touch-icon-60x60-precomposed.png" />
           <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/icons/apple-touch-icon-72x72-precomposed.png" />
           <link rel="apple-touch-icon-precomposed" sizes="76x76" href="/icons/apple-touch-icon-76x76-precomposed.png" />
-          <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/icons/apple-touch-icon-114x114-precomposed.png" />
-          <link rel="apple-touch-icon-precomposed" sizes="120x120" href="/icons/apple-touch-icon-120x120-precomposed.png" />
-          <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/icons/apple-touch-icon-144x144-precomposed.png" />
-          <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/icons/apple-touch-icon-152x152-precomposed.png" />
+          <link
+            rel="apple-touch-icon-precomposed"
+            sizes="114x114"
+            href="/icons/apple-touch-icon-114x114-precomposed.png"
+          />
+          <link
+            rel="apple-touch-icon-precomposed"
+            sizes="120x120"
+            href="/icons/apple-touch-icon-120x120-precomposed.png"
+          />
+          <link
+            rel="apple-touch-icon-precomposed"
+            sizes="144x144"
+            href="/icons/apple-touch-icon-144x144-precomposed.png"
+          />
+          <link
+            rel="apple-touch-icon-precomposed"
+            sizes="152x152"
+            href="/icons/apple-touch-icon-152x152-precomposed.png"
+          />
           <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#555555" />
 
           <meta name="msapplication-config" content="/browserconfig.xml" />
@@ -55,6 +71,20 @@ export default class Document extends NextDocument {
           <meta name="msapplication-square150x150logo" content="/icons/mstile-150x150.png" />
           <meta name="msapplication-wide310x150logo" content="/icons/mstile-310x150.png" />
           <meta name="msapplication-square310x310logo" content="/icons/mstile-310x310.png" />
+
+          <meta itemProp="description" content={PROJECT_DESCRIPTION} />
+          <meta itemProp="image" content={SOCIAL_IMAGE_URL} />
+          <meta itemProp="name" content={PROJECT_NAME} />
+          <meta property="og:description" content={PROJECT_DESCRIPTION} />
+          <meta property="og:image" content={SOCIAL_IMAGE_URL} />
+          <meta property="og:title" content={PROJECT_NAME} />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content={DOMAIN} />
+          <meta property="twitter:card" content="summary_large_image" />
+          <meta property="twitter:description" content={PROJECT_DESCRIPTION} />
+          <meta property="twitter:image" content={SOCIAL_IMAGE_URL} />
+          <meta property="twitter:title" content={PROJECT_NAME} />
+          <meta property="twitter:url" content={DOMAIN} />
         </Head>
 
         <body>
