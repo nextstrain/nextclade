@@ -8,12 +8,13 @@ import { geneMap } from './geneMap'
 import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
-import { sequenceQC } from './sequenceQC'
+import { runQC } from './QC/runQC'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
 import { GOOD_NUCLEOTIDES, N } from './nucleotides'
+import { getNucleotideComposition } from './getNucleotideComposition'
 
 export async function parse(input: string | File): Promise<ParseResult> {
   if (typeof input !== 'string') {
@@ -52,7 +53,9 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
   )
   const totalAminoacidChanges = aminoacidChanges.length
 
-  const diagnostics = sequenceQC(virus.QCParams, substitutions, insertions, deletions, alignedQuery)
+  const nucleotideComposition = getNucleotideComposition(alignedQuery)
+
+  const diagnostics = runQC({ virus, substitutions, insertions, deletions, alignedQuery, nucleotideComposition })
 
   return Object.freeze({
     seqName,
