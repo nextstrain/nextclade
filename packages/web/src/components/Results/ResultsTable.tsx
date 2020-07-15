@@ -1,12 +1,12 @@
 import React, { memo } from 'react'
 
-import { sum } from 'lodash'
+import { sum, clamp } from 'lodash'
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
-import { rgba } from 'polished'
+import { mix, rgba } from 'polished'
 
 import type { State } from 'src/state/reducer'
 import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
@@ -82,10 +82,10 @@ export const TableCellText = styled.p`
   margin: auto;
 `
 
-export const TableRow = styled.div<{ even?: boolean }>`
+export const TableRow = styled.div<{ even?: boolean; backgroundColor?: string }>`
   display: flex;
   align-items: stretch;
-  background-color: ${(props) => (props.even ? '#e2e2e2' : '#fcfcfc')};
+  background-color: ${(props) => props.backgroundColor};
   box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
 `
 
@@ -115,6 +115,8 @@ export const TableRowError = styled(TableRow)`
   background-color: #f5cbc6;
   color: #962d26;
 `
+
+const highlightRowsWithIssues = true
 
 export interface RowProps extends ListChildComponentProps {
   data: SequenceAnylysisState[]
@@ -161,8 +163,18 @@ function TableRowComponent({ index, style, data }: RowProps) {
     )
   }
 
+  const even = index % 2 === 0
+  let color = even ? '#e2e2e2' : '#fcfcfc'
+  if (highlightRowsWithIssues) {
+    const scoreNormal = clamp(sequence.diagnostics.score / 100, 0, 1)
+    if (scoreNormal > 0) {
+      color = mix(scoreNormal, '#ff0000', '#ffff00')
+      color = mix(0.7, '#fff', color)
+    }
+  }
+
   return (
-    <TableRow style={style} even={index % 2 === 0}>
+    <TableRow style={style} backgroundColor={color} even={even}>
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
         <TableCellText>{id}</TableCellText>
       </TableCell>
