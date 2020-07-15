@@ -63,6 +63,14 @@ export interface QCInputData {
   nucleotideComposition: Record<string, number>
 }
 
+export interface QCResults {
+  score: number
+  totalMutations?: QCResultTotalMutations
+  missingData?: QCResultMissingData
+  snpClusters?: QCResultSNPClusters
+  mixedSites?: QCResultMixedSites
+}
+
 export type Rule<Conf, Ret> = (d: QCInputData, c: Conf) => Ret
 
 export function runOne<Conf extends Enableable<unknown>, Ret>(
@@ -76,17 +84,13 @@ export function runOne<Conf extends Enableable<unknown>, Ret>(
 export function runQC(qcData: QCInputData, qcRulesConfig: DeepPartial<QCRulesConfig>): QCResults {
   const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
-  return {
+  const result = {
     totalMutations: runOne(ruleTotalMutations, qcData, configs.totalMutations),
     missingData: runOne(ruleMissingData, qcData, configs.missingData),
     snpClusters: runOne(ruleSnpClusters, qcData, configs.snpClusters),
     mixedSites: runOne(ruleMixedSites, qcData, configs.mixedSites),
   }
-}
 
-export interface QCResults {
-  totalMutations?: QCResultTotalMutations
-  missingData?: QCResultMissingData
-  snpClusters?: QCResultSNPClusters
-  mixedSites?: QCResultMixedSites
+  const score = Object.values(result).reduce((acc, r) => acc + (r?.score ?? 0), 0)
+  return { ...result, score }
 }

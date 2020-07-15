@@ -17,7 +17,8 @@ export function ColumnQCStatus({ sequence }: ColumnQCStatusProps) {
   const { seqName, diagnostics } = sequence
   const id = getSafeId('qc-label', { seqName })
 
-  const hasIssues = diagnostics.flags.length > 0
+  const { score } = diagnostics
+  const hasIssues = score > 0
   const iconRed = <MdClear className="icon fill-red" />
   const iconGreen = <MdCheck className="icon fill-green" />
 
