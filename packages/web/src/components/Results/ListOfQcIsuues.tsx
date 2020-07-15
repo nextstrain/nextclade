@@ -13,8 +13,8 @@ import type { QCResultMixedSites } from 'src/algorithms/QC/ruleMixedSites'
 import type { QCResultMissingData } from 'src/algorithms/QC/ruleMissingData'
 
 export function formatQCTotalMutations(t: TFunction, totalMutations?: DeepReadonly<QCResultTotalMutations>) {
-  if (!totalMutations) {
-    return ''
+  if (!totalMutations || totalMutations.score === 0) {
+    return undefined
   }
 
   const { score, totalNumberOfMutations, divergenceThreshold } = totalMutations
@@ -26,8 +26,8 @@ export function formatQCTotalMutations(t: TFunction, totalMutations?: DeepReadon
 }
 
 export function formatQCSNPClusters(t: TFunction, snpClusters?: DeepReadonly<QCResultSNPClusters>) {
-  if (!snpClusters) {
-    return ''
+  if (!snpClusters || snpClusters.score === 0) {
+    return undefined
   }
 
   const { score, totalSNPs, totalSNPsThreshold } = snpClusters
@@ -39,8 +39,8 @@ export function formatQCSNPClusters(t: TFunction, snpClusters?: DeepReadonly<QCR
 }
 
 export function formatQCMixedSites(t: TFunction, mixedSites?: DeepReadonly<QCResultMixedSites>) {
-  if (!mixedSites) {
-    return ''
+  if (!mixedSites || mixedSites.score === 0) {
+    return undefined
   }
 
   const { score, totalMixedSites, mixedSitesThreshold } = mixedSites
@@ -52,8 +52,8 @@ export function formatQCMixedSites(t: TFunction, mixedSites?: DeepReadonly<QCRes
 }
 
 export function formatQCMissingData(t: TFunction, missingData?: DeepReadonly<QCResultMissingData>) {
-  if (!missingData) {
-    return ''
+  if (!missingData || missingData.score === 0) {
+    return undefined
   }
 
   const { score, totalMissing, missingDataThreshold } = missingData
