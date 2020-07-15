@@ -1,27 +1,26 @@
 import merge from 'deepmerge'
 
 import type { NucleotideDeletion, NucleotideInsertion, SubstitutionsWithAminoacids } from '../types'
-import { ruleMissingData } from './ruleMissingData'
-import { ruleMixedSites } from './ruleMixedSites'
-import { ruleSnpClusters } from './ruleSnpClusters'
-import { ruleTotalMutations } from './ruleTotalMutations'
+import { ruleMissingData, QCRulesConfigMissingData } from './ruleMissingData'
+import { ruleMixedSites, QCRulesConfigMixedSites } from './ruleMixedSites'
+import { QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
+import { ruleTotalMutations, QCRulesConfigTotalMutations } from './ruleTotalMutations'
 
 // const TooHighDivergence = 'too high divergence'
 // const ClusteredSNPsFlag = 'clustered SNPs'
 // const TooManyMixedSites = 'Too many non-ACGT characters'
 // const MissingData = 'missing data'
 
-const rules = {
-  totalMutations: { implementation: ruleTotalMutations },
-  missingData: { implementation: ruleMissingData },
-  snpClusters: { implementation: ruleSnpClusters },
-  mixedSites: { implementation: ruleMixedSites },
-} as const
+export type Enableable<T> = T & { enabled: boolean }
 
-export type Rules = typeof rules
-export type RuleName = keyof Rules
+export interface QCRulesConfig {
+  totalMutations: Enableable<QCRulesConfigTotalMutations>
+  missingData: Enableable<QCRulesConfigMissingData>
+  snpClusters: Enableable<QCRulesConfigSNPClusters>
+  mixedSites: Enableable<QCRulesConfigMixedSites>
+}
 
-const qcRulesConfigDefault = {
+const qcRulesConfigDefault: QCRulesConfig = {
   totalMutations: {
     enabled: true,
     divergenceThreshold: 20, // number of mutations to trigger divergence warning
@@ -55,8 +54,6 @@ const qcRulesConfigDefault = {
   },
 } as const
 
-export type QCRulesConfig = typeof qcRulesConfigDefault
-
 export interface QCInputData {
   substitutions: SubstitutionsWithAminoacids[]
   insertions: NucleotideInsertion[]
@@ -65,14 +62,18 @@ export interface QCInputData {
   nucleotideComposition: Record<string, number>
 }
 
+export function runOne<F extends (d: D, c: C) => unknown, D, C extends Enableable<unknown>>(f: F, data: D, config: C) {
+  return config.enabled ? f(data, config) : undefined
+}
+
 export function runQC(qcData: QCInputData, qcRulesConfig: Partial<QCRulesConfig>) {
   const configs = merge(qcRulesConfigDefault, qcRulesConfig)
 
   return {
-    totalMutations: ruleTotalMutations(qcData, configs.totalMutations),
-    missingData: ruleMissingData(qcData, configs.missingData),
-    snpClusters: ruleSnpClusters(qcData, configs.snpClusters),
-    mixedSites: ruleMixedSites(qcData, configs.mixedSites),
+    totalMutations: runOne(ruleTotalMutations, qcData, configs.totalMutations),
+    missingData: runOne(ruleMissingData, qcData, configs.missingData),
+    snpClusters: runOne(ruleSnpClusters, qcData, configs.snpClusters),
+    mixedSites: runOne(ruleMixedSites, qcData, configs.mixedSites),
   }
 }
 
