@@ -66,6 +66,7 @@
     "core-js": "3.6.5",
     "countries-list": "2.5.4",
     "css.escape": "1.5.1",
+    "deepmerge": "4.2.2",
     "fasy": "7.0.1",
     "file-saver": "2.0.2",
     "flag-icon-css": "3.5.0",

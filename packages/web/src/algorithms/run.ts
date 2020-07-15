@@ -8,7 +8,7 @@ import { geneMap } from './geneMap'
 import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
-import { runQC } from './QC/runQC'
+import { QCRulesConfig, runQC } from './QC/runQC'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
@@ -55,7 +55,10 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
 
-  const diagnostics = runQC({ virus, substitutions, insertions, deletions, alignedQuery, nucleotideComposition })
+  const data = { substitutions, insertions, deletions, alignedQuery, nucleotideComposition }
+
+  const qcRulesConfig: Partial<QCRulesConfig> = {}
+  const diagnostics = runQC(data, qcRulesConfig)
 
   return Object.freeze({
     seqName,

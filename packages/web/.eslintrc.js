@@ -104,6 +104,7 @@ module.exports = {
     'lodash/prefer-lodash-method': 'off',
     'lodash/prefer-lodash-typecheck': 'off',
     'lodash/prefer-noop': 'off',
+    'lodash/prop-shorthand': 'off',
     'max-classes-per-file': 'off',
     'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
     'no-loops/no-loops': 'warn',
