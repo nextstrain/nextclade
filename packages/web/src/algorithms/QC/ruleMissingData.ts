@@ -27,3 +27,5 @@ export function ruleMissingData(
     missingDataThreshold,
   }
 }
+
+export type QCResultMissingData = ReturnType<typeof ruleMissingData>

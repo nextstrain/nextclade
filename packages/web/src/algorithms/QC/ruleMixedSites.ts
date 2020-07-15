@@ -31,3 +31,5 @@ export function ruleMixedSites(
     mixedSitesThreshold,
   }
 }
+
+export type QCResultMixedSites = ReturnType<typeof ruleMixedSites>

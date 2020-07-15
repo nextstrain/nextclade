@@ -28,3 +28,5 @@ export function ruleTotalMutations(
     divergenceThreshold,
   }
 }
+
+export type QCResultTotalMutations = ReturnType<typeof ruleTotalMutations>

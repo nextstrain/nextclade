@@ -87,3 +87,5 @@ export function ruleSnpClusters(data: QCInputData, config: QCRulesConfigSNPClust
     clusteredSNPs,
   }
 }
+
+export type QCResultSNPClusters = ReturnType<typeof ruleSnpClusters>

@@ -1,5 +1,6 @@
 import { pickBy } from 'lodash'
 
+import type { DeepPartial } from 'ts-essentials'
 import { readFile } from 'src/helpers/readFile'
 
 import { VIRUSES } from './viruses'
@@ -57,7 +58,13 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const data = { substitutions, insertions, deletions, alignedQuery, nucleotideComposition }
 
-  const qcRulesConfig: Partial<QCRulesConfig> = {}
+  const qcRulesConfig: DeepPartial<QCRulesConfig> = {
+    totalMutations: {},
+    missingData: {},
+    snpClusters: {},
+    mixedSites: {},
+  }
+
   const diagnostics = runQC(data, qcRulesConfig)
 
   return Object.freeze({

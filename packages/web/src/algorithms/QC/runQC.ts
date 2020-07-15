@@ -1,10 +1,11 @@
-import merge from 'deepmerge'
+import { merge } from 'lodash'
 
+import { DeepPartial } from 'ts-essentials'
 import type { NucleotideDeletion, NucleotideInsertion, SubstitutionsWithAminoacids } from '../types'
-import { ruleMissingData, QCRulesConfigMissingData } from './ruleMissingData'
-import { ruleMixedSites, QCRulesConfigMixedSites } from './ruleMixedSites'
-import { QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
-import { ruleTotalMutations, QCRulesConfigTotalMutations } from './ruleTotalMutations'
+import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
+import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
+import { QCResultSNPClusters, QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
+import { ruleTotalMutations, QCRulesConfigTotalMutations, QCResultTotalMutations } from './ruleTotalMutations'
 
 // const TooHighDivergence = 'too high divergence'
 // const ClusteredSNPsFlag = 'clustered SNPs'
@@ -62,12 +63,18 @@ export interface QCInputData {
   nucleotideComposition: Record<string, number>
 }
 
-export function runOne<F extends (d: D, c: C) => unknown, D, C extends Enableable<unknown>>(f: F, data: D, config: C) {
-  return config.enabled ? f(data, config) : undefined
+export type Rule<Conf, Ret> = (d: QCInputData, c: Conf) => Ret
+
+export function runOne<Conf extends Enableable<unknown>, Ret>(
+  rule: Rule<Conf, Ret>,
+  data: QCInputData,
+  config: Conf,
+): Ret | undefined {
+  return config.enabled ? rule(data, config) : undefined
 }
 
-export function runQC(qcData: QCInputData, qcRulesConfig: Partial<QCRulesConfig>) {
-  const configs = merge(qcRulesConfigDefault, qcRulesConfig)
+export function runQC(qcData: QCInputData, qcRulesConfig: DeepPartial<QCRulesConfig>): QCResults {
+  const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
   return {
     totalMutations: runOne(ruleTotalMutations, qcData, configs.totalMutations),
@@ -77,4 +84,9 @@ export function runQC(qcData: QCInputData, qcRulesConfig: Partial<QCRulesConfig>
   }
 }
 
-export type QCResults = ReturnType<typeof runQC>
+export interface QCResults {
+  totalMutations?: QCResultTotalMutations
+  missingData?: QCResultMissingData
+  snpClusters?: QCResultSNPClusters
+  mixedSites?: QCResultMixedSites
+}
