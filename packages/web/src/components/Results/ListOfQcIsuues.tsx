@@ -57,7 +57,7 @@ export function formatQCMissingData(t: TFunction, missingData?: DeepReadonly<QCR
   }
 
   const { score, totalMissing, missingDataThreshold } = missingData
-  return t('Too much missing data. Total Ns: {{total}} ({{allowed}}). QC score: {{score}}', {
+  return t('Too much missing data. Total Ns: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
     total: totalMissing,
     allowed: missingDataThreshold,
     score,
