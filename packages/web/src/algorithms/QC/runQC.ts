@@ -1,4 +1,3 @@
-import { mapValues, pickBy } from 'lodash'
 import merge from 'deepmerge'
 
 import type { NucleotideDeletion, NucleotideInsertion, SubstitutionsWithAminoacids } from '../types'
@@ -68,15 +67,13 @@ export interface QCInputData {
 
 export function runQC(qcData: QCInputData, qcRulesConfig: Partial<QCRulesConfig>) {
   const configs = merge(qcRulesConfigDefault, qcRulesConfig)
-  const configsDeep = mapValues(configs, (config) => ({ config }))
 
-  const rulesWithConfigs = merge(configsDeep, rules)
-
-  const enabledRulesWithConfigs = pickBy(rulesWithConfigs, ({ config }) => config.enabled)
-
-  return mapValues(enabledRulesWithConfigs, ({ implementation, config }) => {
-    return implementation(qcData, config)
-  })
+  return {
+    totalMutations: ruleTotalMutations(qcData, configs.totalMutations),
+    missingData: ruleMissingData(qcData, configs.missingData),
+    snpClusters: ruleSnpClusters(qcData, configs.snpClusters),
+    mixedSites: ruleMixedSites(qcData, configs.mixedSites),
+  }
 }
 
 export type QCResults = ReturnType<typeof runQC>
