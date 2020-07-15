@@ -32,7 +32,7 @@ const qcRulesConfigDefault: QCRulesConfig = {
   missingData: {
     enabled: true,
     missingDataThreshold: 1000, // number of sites as N to trigger warning
-    scoreWeight: 1,
+    scoreWeight: 0.1,
     scoreBias: 0,
     scoreMax: Infinity,
   },
