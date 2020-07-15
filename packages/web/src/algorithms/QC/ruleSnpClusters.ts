@@ -76,7 +76,7 @@ export function ruleSnpClusters(data: QCInputData, config: QCRulesConfigSNPClust
 
   let scoreRaw = 0
   if (totalSNPs > totalSNPsThreshold) {
-    scoreRaw = totalSNPs * scoreWeight - scoreBias
+    scoreRaw = (totalSNPs - totalSNPsThreshold) * scoreWeight - scoreBias
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 

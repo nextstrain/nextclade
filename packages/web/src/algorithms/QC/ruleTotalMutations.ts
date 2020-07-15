@@ -17,8 +17,8 @@ export function ruleTotalMutations(
     Object.keys(substitutions).length + Object.keys(insertions).length + Object.keys(deletions).length
 
   let scoreRaw = 0
-  if (totalNumberOfMutations) {
-    scoreRaw = totalNumberOfMutations * scoreWeight - scoreBias
+  if (totalNumberOfMutations > divergenceThreshold) {
+    scoreRaw = (totalNumberOfMutations - divergenceThreshold) * scoreWeight - scoreBias
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 

@@ -21,7 +21,7 @@ export function ruleMixedSites(
 
   let scoreRaw = 0
   if (totalMixedSites > mixedSitesThreshold) {
-    scoreRaw = totalMixedSites * scoreWeight - scoreBias
+    scoreRaw = (totalMixedSites - mixedSitesThreshold) * scoreWeight - scoreBias
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 

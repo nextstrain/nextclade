@@ -17,7 +17,7 @@ export function ruleMissingData(
 
   let scoreRaw = 0
   if (totalMissing > missingDataThreshold) {
-    scoreRaw = totalMissing * scoreWeight - scoreBias
+    scoreRaw = (totalMissing - missingDataThreshold) * scoreWeight - scoreBias
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 
