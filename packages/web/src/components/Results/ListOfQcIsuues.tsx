@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { round } from 'lodash'
+
 import type { DeepReadonly } from 'ts-essentials'
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
@@ -21,7 +23,7 @@ export function formatQCTotalMutations(t: TFunction, totalMutations?: DeepReadon
   return t('Divergence is too high. Total mutations: {{total}} ({{allowed}} allowed). QC score: {{score}}.', {
     total: totalNumberOfMutations,
     allowed: divergenceThreshold,
-    score,
+    score: round(score),
   })
 }
 
@@ -34,7 +36,7 @@ export function formatQCSNPClusters(t: TFunction, snpClusters?: DeepReadonly<QCR
   return t('Too many SNP clusters. Total clusters: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
     total: totalSNPs,
     allowed: totalSNPsThreshold,
-    score,
+    score: round(score),
   })
 }
 
@@ -47,7 +49,7 @@ export function formatQCMixedSites(t: TFunction, mixedSites?: DeepReadonly<QCRes
   return t('Too many mixed sites: Total mixed: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
     total: totalMixedSites,
     allowed: mixedSitesThreshold,
-    score,
+    score: round(score),
   })
 }
 
@@ -60,7 +62,7 @@ export function formatQCMissingData(t: TFunction, missingData?: DeepReadonly<QCR
   return t('Too much missing data. Total Ns: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
     total: totalMissing,
     allowed: missingDataThreshold,
-    score,
+    score: round(score),
   })
 }
 
@@ -89,7 +91,7 @@ export function ListOfQcIssues({ diagnostics }: ListOfQcIssuesProps) {
 
   return (
     <>
-      <div>{t('QC score: {{score}}', { score })}</div>
+      <div>{t('QC score: {{score}}', { score: round(score) })}</div>
       <div>
         {t('QC issues:')}
         <ul>{issues}</ul>
