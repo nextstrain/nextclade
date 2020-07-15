@@ -19,7 +19,7 @@ export function serializeResultsToJson(results: SequenceAnylysisState[]) {
       aminoacidChanges,
       clades,
       deletions,
-      diagnostics,
+      // diagnostics,
       insertions,
       missing,
       nonACGTNs,
@@ -52,8 +52,8 @@ export function serializeResultsToJson(results: SequenceAnylysisState[]) {
       totalMissing,
       nonACGTNs,
       totalNonACGTNs,
-      QCStatus: diagnostics.flags.length > 0 ? 'Fail' : 'Pass',
-      QCFlags: diagnostics.flags,
+      // QCStatus: diagnostics.flags.length > 0 ? 'Fail' : 'Pass',
+      // QCFlags: diagnostics.flags,
     }
   })
 
@@ -73,7 +73,7 @@ export function serializeResultsToCsv(results: SequenceAnylysisState[]) {
       // aminoacidChanges,
       clades,
       deletions,
-      diagnostics,
+      // diagnostics,
       insertions,
       missing,
       // nonACGTNs,
@@ -102,8 +102,8 @@ export function serializeResultsToCsv(results: SequenceAnylysisState[]) {
       missing: missing.map(({ begin, end }) => formatRange(begin, end)).join(','),
       totalMissing,
       totalNonACGTNs,
-      QCStatus: diagnostics.flags.length > 0 ? 'Fail' : 'Pass',
-      QCFlags: diagnostics.flags.join(','),
+      // QCStatus: diagnostics.flags.length > 0 ? 'Fail' : 'Pass',
+      // QCFlags: diagnostics.flags.join(','),
       errors: [],
     }
   })
