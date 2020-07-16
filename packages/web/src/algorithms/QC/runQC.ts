@@ -24,15 +24,14 @@ export interface QCRulesConfig {
 const qcRulesConfigDefault: QCRulesConfig = {
   totalMutations: {
     enabled: true,
-    divergenceThreshold: 20, // number of mutations to trigger divergence warning
-    scoreWeight: 1,
-    scoreBias: 0,
-    scoreMax: Infinity,
+    divergenceMean: 9, // number of mutations to trigger divergence warning
+    divergenceStd: 4,
+    nStd: 3,
   },
   missingData: {
     enabled: true,
     missingDataThreshold: 1000, // number of sites as N to trigger warning
-    scoreWeight: 0.1,
+    scoreWeight: 0.01,
     scoreBias: 0,
     scoreMax: Infinity,
   },

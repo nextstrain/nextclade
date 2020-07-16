@@ -1,31 +1,28 @@
-import { clamp } from 'lodash'
-
 import type { QCInputData } from './runQC'
 
 export interface QCRulesConfigTotalMutations {
-  divergenceThreshold: number
-  scoreWeight: number
-  scoreBias: number
-  scoreMax: number
+  divergenceMean: number
+  divergenceStd: number
+  nStd: number
 }
 
 export function ruleTotalMutations(
   { substitutions, insertions, deletions }: QCInputData,
-  { divergenceThreshold, scoreWeight, scoreBias, scoreMax }: QCRulesConfigTotalMutations,
+  { divergenceMean, divergenceStd, nStd }: QCRulesConfigTotalMutations,
 ) {
   const totalNumberOfMutations =
     Object.keys(substitutions).length + Object.keys(insertions).length + Object.keys(deletions).length
 
-  let scoreRaw = 0
-  if (totalNumberOfMutations > divergenceThreshold) {
-    scoreRaw = (totalNumberOfMutations - divergenceThreshold) * scoreWeight - scoreBias
-  }
-  const score = clamp(scoreRaw, 0, scoreMax)
+  // the score hits 100 if the deviation is nStd times the standard deviation.
+  // escalation is quadratic as it should be for a Poisson process
+  const scale = divergenceStd * nStd * 100
+  const dev = totalNumberOfMutations - divergenceMean
+  const score = (dev * dev) / scale / scale
 
   return {
     score,
     totalNumberOfMutations,
-    divergenceThreshold,
+    nStd,
   }
 }
 
