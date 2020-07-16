@@ -37,7 +37,7 @@ export function runFilters(state: AlgorithmState) {
     filtered = filtered.filter(filterByClades(cladesFilter))
   }
 
-  filtered = filtered.filter(filterByQCIssues(hasNoQcIssuesFilter, hasQcIssuesFilter, hasErrorsFilter))
+  filtered = filtered.filter(filterByQCIssues({ hasNoQcIssuesFilter, hasQcIssuesFilter, hasErrorsFilter }))
 
   return filtered as DeepWritable<typeof filtered>
 }
