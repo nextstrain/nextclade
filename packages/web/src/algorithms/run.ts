@@ -59,7 +59,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
   const data = { substitutions, insertions, deletions, alignedQuery, nucleotideComposition }
 
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
-    totalMutations: {},
+    divergence: {},
     missingData: {},
     snpClusters: {},
     mixedSites: {},

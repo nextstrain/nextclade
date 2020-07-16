@@ -9,22 +9,25 @@ import { useTranslation } from 'react-i18next'
 import { notUndefined } from 'src/helpers/notUndefined'
 
 import type { QCResults } from 'src/algorithms/QC/runQC'
-import type { QCResultTotalMutations } from 'src/algorithms/QC/ruleTotalMutations'
+import type { QCResultDivergence } from 'src/algorithms/QC/ruleDivergence'
 import type { QCResultSNPClusters } from 'src/algorithms/QC/ruleSnpClusters'
 import type { QCResultMixedSites } from 'src/algorithms/QC/ruleMixedSites'
 import type { QCResultMissingData } from 'src/algorithms/QC/ruleMissingData'
 
-export function formatQCTotalMutations(t: TFunction, totalMutations?: DeepReadonly<QCResultTotalMutations>) {
-  if (!totalMutations || totalMutations.score === 0) {
+export function formatQCDivergence(t: TFunction, divergence?: DeepReadonly<QCResultDivergence>) {
+  if (!divergence || divergence.score === 0) {
     return undefined
   }
 
-  const { score, totalNumberOfMutations, divergenceThreshold } = totalMutations
-  return t('Divergence is too high. Total mutations: {{total}} ({{allowed}} allowed). QC score: {{score}}.', {
-    total: totalNumberOfMutations,
-    allowed: divergenceThreshold,
-    score: round(score),
-  })
+  const { score, zScore, nStd } = divergence
+  return t(
+    'Divergence is too high or too low. {{total}} standard deviations away, {{allowed}} allowed. QC score: {{score}}.',
+    {
+      total: zScore,
+      allowed: nStd,
+      score: round(score),
+    },
+  )
 }
 
 export function formatQCSNPClusters(t: TFunction, snpClusters?: DeepReadonly<QCResultSNPClusters>) {
@@ -73,10 +76,10 @@ export interface ListOfQcIssuesProps {
 export function ListOfQcIssues({ diagnostics }: ListOfQcIssuesProps) {
   const { t } = useTranslation()
 
-  const { score, totalMutations, snpClusters, mixedSites, missingData } = diagnostics
+  const { score, divergence, snpClusters, mixedSites, missingData } = diagnostics
 
   const messages = [
-    formatQCTotalMutations(t, totalMutations),
+    formatQCDivergence(t, divergence),
     formatQCSNPClusters(t, snpClusters),
     formatQCMixedSites(t, mixedSites),
     formatQCMissingData(t, missingData),

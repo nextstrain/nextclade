@@ -64,7 +64,7 @@ export interface QCInputData {
 
 export interface QCResults {
   score: number
-  Divergence?: QCResultDivergence
+  divergence?: QCResultDivergence
   missingData?: QCResultMissingData
   snpClusters?: QCResultSNPClusters
   mixedSites?: QCResultMixedSites
