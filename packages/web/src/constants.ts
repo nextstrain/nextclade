@@ -15,6 +15,8 @@ export const EXPORT_JSON_FILENAME = 'nextclades.json'
 export const URL_GITHUB = 'https://github.com/neherlab/webclades' as const
 export const URL_GITHUB_FRIENDLY = 'github.com/neherlab/webclades' as const
 
+export const TWITTER_USERNAME = '@nextstrain'
+
 // Borrowed from Nextstrain Auspice
 // https://github.com/nextstrain/auspice/blob/05efebfd5eba8a7d086132cf8a182176118b7c28/src/util/globals.js#L90-L92
 export const GENOTYPE_COLORS = [
