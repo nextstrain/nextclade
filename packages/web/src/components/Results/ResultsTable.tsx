@@ -1,11 +1,11 @@
-import React, { memo, useCallback } from 'react'
+import React, { memo, useCallback, useContext } from 'react'
 
 import { sum } from 'lodash'
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
-import styled from 'styled-components'
+import styled, { ThemeContext } from 'styled-components'
 import { rgba } from 'polished'
 
 import type { State } from 'src/state/reducer'
@@ -97,12 +97,13 @@ export const TableCellText = styled.p`
   margin: auto;
 `
 
-export const TableRow = styled.div<{ even?: boolean; focused?: boolean }>`
+export const TableRow = styled.div<{ backgroundColor: string; color?: string; borderColor: string }>`
   display: flex;
   align-items: stretch;
-  background-color: ${(props) => (props.even ? '#e2e2e2' : '#fcfcfc')};
-  box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
-  border: ${({ focused }) => (focused ? `2px solid #2196f3` : undefined)};
+  color: ${(props) => props.color};
+  background-color: ${(props) => props.backgroundColor};
+  // box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
+  border: ${(props) => `2px solid ${props.borderColor}`};
 `
 
 export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
@@ -125,16 +126,6 @@ export const TableCellName = styled(TableCellClickable)<{ basis?: string; grow?:
   padding-left: 5px;
 `
 
-export const TableRowPending = styled(TableRow)`
-  background-color: #d2d2d2;
-  color: #818181;
-`
-
-export const TableRowError = styled(TableRow)`
-  background-color: #f5cbc6;
-  color: #962d26;
-`
-
 export interface RowData {
   result: SequenceAnylysisState
   focusedSequence?: number
@@ -154,11 +145,17 @@ function TableRowComponent({ index, style, data }: RowProps) {
 
   const { t } = useTranslation()
   const focusThisSequence = useCallback(() => focusSequence(index), [focusSequence, index])
+  const theme = useContext(ThemeContext)
   const isFocused = focusedSequence === index
+  const isEven = index % 2 === 0
+  const borderColorFocused = theme.tableRow.focused.borderColor
 
   if (errors.length > 0) {
+    const { backgroundColor, color } = theme.tableRow.error
+    const borderColor = isFocused ? borderColorFocused : backgroundColor
+
     return (
-      <TableRowError style={style} even={index % 2 === 0} focused={isFocused}>
+      <TableRow style={style} backgroundColor={backgroundColor} color={color} borderColor={borderColor}>
         <TableCellClickable basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0} onClick={focusThisSequence}>
           <TableCellText>{id}</TableCellText>
         </TableCellClickable>
@@ -170,13 +167,16 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <TableCellClickable grow={20} shrink={20} onClick={focusThisSequence}>
           <TableCellText>{errors}</TableCellText>
         </TableCellClickable>
-      </TableRowError>
+      </TableRow>
     )
   }
 
   if (!sequence) {
+    const { backgroundColor, color } = theme.tableRow.pending
+    const borderColor = isFocused ? borderColorFocused : backgroundColor
+
     return (
-      <TableRowPending style={style} even={index % 2 === 0} focused={isFocused}>
+      <TableRow style={style} backgroundColor={backgroundColor} color={color} borderColor={borderColor}>
         <TableCellClickable basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
           <TableCellText>{id}</TableCellText>
         </TableCellClickable>
@@ -188,12 +188,15 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <TableCellClickable grow={20} shrink={20} onClick={focusThisSequence}>
           <TableCellText>{t('Analyzing...')}</TableCellText>
         </TableCellClickable>
-      </TableRowPending>
+      </TableRow>
     )
   }
 
+  const { backgroundColor, color } = isEven ? theme.tableRow.even : theme.tableRow.odd
+  const borderColor = isFocused ? borderColorFocused : backgroundColor
+
   return (
-    <TableRow style={style} even={index % 2 === 0} focused={isFocused}>
+    <TableRow style={style} backgroundColor={backgroundColor} color={color} borderColor={borderColor}>
       <TableCellClickable basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0} onClick={focusThisSequence}>
         <TableCellText>{id}</TableCellText>
       </TableCellClickable>

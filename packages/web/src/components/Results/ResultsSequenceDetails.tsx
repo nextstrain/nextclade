@@ -1,12 +1,6 @@
 import React, { useCallback } from 'react'
 
 import {
-  FormGroup as ReactstrapFormGroup,
-  Input as ReactstrapInput,
-  Label as ReactstrapLabel,
-  FormGroupProps as ReactstrapFormGroupProps,
-  InputProps as ReactstrapInputProps,
-  LabelProps as ReactstrapLabelProps,
   Card as ReactstrapCard,
   CardBody as ReactstrapCardBody,
   CardHeader as ReactstrapCardHeader,

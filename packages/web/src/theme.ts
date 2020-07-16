@@ -36,6 +36,9 @@ export const danger = red
 export const light = white
 export const dark = gray700
 
+const bodyColor = gray700
+const bodyBackgroundColor = gray100
+
 export const basicColors = {
   white,
   gray100,
@@ -63,6 +66,8 @@ export const basicColors = {
 }
 
 export const themeColors = {
+  bodyColor,
+  bodyBackgroundColor,
   primary,
   secondary,
   success,
@@ -82,6 +87,27 @@ export const theme = {
   ...basicColors,
   ...themeColors,
   shadows,
+  tableRow: {
+    focused: {
+      borderColor: '#2196f3',
+    },
+    even: {
+      color: undefined,
+      backgroundColor: '#e2e2e2',
+    },
+    odd: {
+      color: undefined,
+      backgroundColor: '#fcfcfc',
+    },
+    pending: {
+      color: '#818181',
+      backgroundColor: '#d2d2d2',
+    },
+    error: {
+      color: '#962d26',
+      backgroundColor: '#f5cbc6',
+    },
+  },
 }
 
 export type Theme = typeof theme
