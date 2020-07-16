@@ -59,7 +59,7 @@ const nextConfig: NextConfig = {
   },
   devIndicators: {
     buildActivity: false,
-    autoPrerender: true,
+    autoPrerender: false,
   },
   typescript: {
     ignoreDevErrors: true,
