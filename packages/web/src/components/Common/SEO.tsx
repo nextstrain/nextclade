@@ -5,9 +5,9 @@ import Head from 'next/head'
 import { connect } from 'react-redux'
 import { Helmet } from 'react-helmet'
 
-import { DOMAIN, PROJECT_DESCRIPTION, PROJECT_NAME, SOCIAL_IMAGE_URL } from 'src/constants'
+import { DOMAIN, PROJECT_DESCRIPTION, PROJECT_NAME, SOCIAL_IMAGE_URL, TWITTER_USERNAME } from 'src/constants'
 
-import { LocaleKey } from 'src/i18n/i18n'
+import { getLocaleWithKey, LocaleKey } from 'src/i18n/i18n'
 import { State } from 'src/state/reducer'
 
 export interface SEOProps {
@@ -23,8 +23,8 @@ const mapDispatchToProps = {}
 export const SEO = connect(mapStateToProps, mapDispatchToProps)(SEODisconnected)
 
 export function SEODisconnected({ localeKey }: SEOProps) {
+  const localeFull = getLocaleWithKey(localeKey).full
   const htmlAttributes = useMemo(() => ({ lang: localeKey }), [localeKey])
-
   return (
     <>
       <Helmet htmlAttributes={htmlAttributes} />
@@ -39,14 +39,21 @@ export function SEODisconnected({ localeKey }: SEOProps) {
         <meta itemProp="name" content={PROJECT_NAME} />
         <meta property="og:description" content={PROJECT_DESCRIPTION} />
         <meta property="og:image" content={SOCIAL_IMAGE_URL} />
+        <meta property="og:image_secure" content={SOCIAL_IMAGE_URL} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="600" />
+        <meta property="og:locale" content={localeFull} />
         <meta property="og:title" content={PROJECT_NAME} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={DOMAIN} />
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:description" content={PROJECT_DESCRIPTION} />
-        <meta property="twitter:image" content={SOCIAL_IMAGE_URL} />
-        <meta property="twitter:title" content={PROJECT_NAME} />
-        <meta property="twitter:url" content={DOMAIN} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:description" content={PROJECT_DESCRIPTION} />
+        <meta name="twitter:image" content={SOCIAL_IMAGE_URL} />
+        <meta name="twitter:image:alt" content={PROJECT_DESCRIPTION} />
+        <meta name="twitter:title" content={PROJECT_NAME} />
+        <meta name="twitter:url" content={DOMAIN} />
+        <meta name="twitter:site" content={TWITTER_USERNAME} />
       </Head>
     </>
   )
