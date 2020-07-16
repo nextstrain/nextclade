@@ -15,18 +15,18 @@ import { ruleDivergence, QCRulesConfigDivergence, QCResultDivergence } from './r
 export type Enableable<T> = T & { enabled: boolean }
 
 export interface QCRulesConfig {
-  Divergence: Enableable<QCRulesConfigDivergence>
+  divergence: Enableable<QCRulesConfigDivergence>
   missingData: Enableable<QCRulesConfigMissingData>
   snpClusters: Enableable<QCRulesConfigSNPClusters>
   mixedSites: Enableable<QCRulesConfigMixedSites>
 }
 
 const qcRulesConfigDefault: QCRulesConfig = {
-  Divergence: {
+  divergence: {
     enabled: true,
-    divergenceMean: 9, // number of mutations to trigger divergence warning
-    divergenceStd: 4,
-    nStd: 3,
+    divergenceMean: 9, // expected number of mutations
+    divergenceStd: 4, // expected standard deviation around mean
+    nStd: 3, // number of standared deviations to trigger QC warning
   },
   missingData: {
     enabled: true,
