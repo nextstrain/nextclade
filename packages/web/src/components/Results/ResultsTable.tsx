@@ -116,7 +116,11 @@ export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: nu
   border-left: 1px solid #b3b3b3;
 `
 
-export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
+export const TableCellClickable = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
+  cursor: pointer;
+`
+
+export const TableCellName = styled(TableCellClickable)<{ basis?: string; grow?: number; shrink?: number }>`
   text-align: left;
   padding-left: 5px;
 `
@@ -155,17 +159,17 @@ function TableRowComponent({ index, style, data }: RowProps) {
   if (errors.length > 0) {
     return (
       <TableRowError style={style} even={index % 2 === 0} focused={isFocused}>
-        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0} onClick={focusThisSequence}>
+        <TableCellClickable basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0} onClick={focusThisSequence}>
           <TableCellText>{id}</TableCellText>
-        </TableCell>
+        </TableCellClickable>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0} onClick={focusThisSequence}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
 
-        <TableCell grow={20} shrink={20} onClick={focusThisSequence}>
+        <TableCellClickable grow={20} shrink={20} onClick={focusThisSequence}>
           <TableCellText>{errors}</TableCellText>
-        </TableCell>
+        </TableCellClickable>
       </TableRowError>
     )
   }
@@ -173,26 +177,26 @@ function TableRowComponent({ index, style, data }: RowProps) {
   if (!sequence) {
     return (
       <TableRowPending style={style} even={index % 2 === 0} focused={isFocused}>
-        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
+        <TableCellClickable basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
           <TableCellText>{id}</TableCellText>
-        </TableCell>
+        </TableCellClickable>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0} onClick={focusThisSequence}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
 
-        <TableCell grow={20} shrink={20} onClick={focusThisSequence}>
+        <TableCellClickable grow={20} shrink={20} onClick={focusThisSequence}>
           <TableCellText>{t('Analyzing...')}</TableCellText>
-        </TableCell>
+        </TableCellClickable>
       </TableRowPending>
     )
   }
 
   return (
     <TableRow style={style} even={index % 2 === 0} focused={isFocused}>
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0} onClick={focusThisSequence}>
+      <TableCellClickable basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0} onClick={focusThisSequence}>
         <TableCellText>{id}</TableCellText>
-      </TableCell>
+      </TableCellClickable>
 
       <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0} onClick={focusThisSequence}>
         <ColumnName seqName={seqName} sequence={sequence} />
