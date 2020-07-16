@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useCallback } from 'react'
 
 import { sum } from 'lodash'
 import { connect } from 'react-redux'
@@ -12,7 +12,7 @@ import type { State } from 'src/state/reducer'
 import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 import type { Sorting } from 'src/helpers/resultsSort'
 import { SortCategory, SortDirection } from 'src/helpers/resultsSort'
-import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
+import { resultsSortTrigger, focusSequence } from 'src/state/algorithm/algorithm.actions'
 
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
 
@@ -97,11 +97,12 @@ export const TableCellText = styled.p`
   margin: auto;
 `
 
-export const TableRow = styled.div<{ even?: boolean }>`
+export const TableRow = styled.div<{ even?: boolean; focused?: boolean }>`
   display: flex;
   align-items: stretch;
   background-color: ${(props) => (props.even ? '#e2e2e2' : '#fcfcfc')};
   box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
+  border: ${({ focused }) => (focused ? `2px solid #2196f3` : undefined)};
 `
 
 export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
@@ -130,27 +131,39 @@ export const TableRowError = styled(TableRow)`
   color: #962d26;
 `
 
+export interface RowData {
+  result: SequenceAnylysisState
+  focusedSequence?: number
+  focusSequence(index: number): void
+}
+
 export interface RowProps extends ListChildComponentProps {
-  data: SequenceAnylysisState[]
+  data: RowData[]
 }
 
 function TableRowComponent({ index, style, data }: RowProps) {
-  const { t } = useTranslation()
+  const {
+    result: { id, seqName, errors, result: sequence },
+    focusedSequence,
+    focusSequence,
+  } = data[index]
 
-  const { id, seqName, errors, result: sequence } = data[index]
+  const { t } = useTranslation()
+  const focusThisSequence = useCallback(() => focusSequence(index), [focusSequence, index])
+  const isFocused = focusedSequence === index
 
   if (errors.length > 0) {
     return (
-      <TableRowError style={style} even={index % 2 === 0}>
-        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
+      <TableRowError style={style} even={index % 2 === 0} focused={isFocused}>
+        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0} onClick={focusThisSequence}>
           <TableCellText>{id}</TableCellText>
         </TableCell>
 
-        <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
+        <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0} onClick={focusThisSequence}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
 
-        <TableCell grow={20} shrink={20}>
+        <TableCell grow={20} shrink={20} onClick={focusThisSequence}>
           <TableCellText>{errors}</TableCellText>
         </TableCell>
       </TableRowError>
@@ -159,16 +172,16 @@ function TableRowComponent({ index, style, data }: RowProps) {
 
   if (!sequence) {
     return (
-      <TableRowPending style={style} even={index % 2 === 0}>
+      <TableRowPending style={style} even={index % 2 === 0} focused={isFocused}>
         <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
           <TableCellText>{id}</TableCellText>
         </TableCell>
 
-        <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
+        <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0} onClick={focusThisSequence}>
           <ColumnName seqName={seqName} sequence={sequence} />
         </TableCellName>
 
-        <TableCell grow={20} shrink={20}>
+        <TableCell grow={20} shrink={20} onClick={focusThisSequence}>
           <TableCellText>{t('Analyzing...')}</TableCellText>
         </TableCell>
       </TableRowPending>
@@ -176,12 +189,12 @@ function TableRowComponent({ index, style, data }: RowProps) {
   }
 
   return (
-    <TableRow style={style} even={index % 2 === 0}>
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
+    <TableRow style={style} even={index % 2 === 0} focused={isFocused}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0} onClick={focusThisSequence}>
         <TableCellText>{id}</TableCellText>
       </TableCell>
 
-      <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
+      <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0} onClick={focusThisSequence}>
         <ColumnName seqName={seqName} sequence={sequence} />
       </TableCellName>
 
@@ -219,11 +232,14 @@ function TableRowComponent({ index, style, data }: RowProps) {
 const TableRowMemo = memo(TableRowComponent, areEqual)
 
 const mapStateToProps = (state: State) => ({
+  focusedSequence: state.algorithm.focusedSequence,
   resultsFiltered: state.algorithm.resultsFiltered,
   filterPanelCollapsed: state.ui.filterPanelCollapsed,
 })
 
 const mapDispatchToProps = {
+  focusSequence,
+
   resultsSortTrigger: (sorting: Sorting) => resultsSortTrigger(sorting),
 
   sortByIdAsc: () => resultsSortTrigger({ category: SortCategory.id, direction: SortDirection.asc }),
@@ -254,8 +270,10 @@ const mapDispatchToProps = {
 export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected)
 
 export interface ResultProps {
+  focusedSequence?: number
   resultsFiltered: SequenceAnylysisState[]
   filterPanelCollapsed: boolean
+  focusSequence(index: number): void
   sortByIdAsc(): void
   sortByIdDesc(): void
   sortByNameAsc(): void
@@ -275,8 +293,10 @@ export interface ResultProps {
 }
 
 export function ResultsTableDisconnected({
+  focusedSequence,
   resultsFiltered,
   filterPanelCollapsed,
+  focusSequence,
   sortByIdAsc,
   sortByIdDesc,
   sortByNameAsc,
@@ -296,7 +316,7 @@ export function ResultsTableDisconnected({
 }: ResultProps) {
   const { t } = useTranslation()
 
-  const data = resultsFiltered
+  const data: RowData[] = resultsFiltered.map((result) => ({ focusedSequence, focusSequence, result }))
 
   return (
     <>

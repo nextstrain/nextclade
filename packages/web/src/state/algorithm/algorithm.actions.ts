@@ -34,3 +34,5 @@ export const setHasQcIssuesFilter = action<boolean>('setHasQcIssuesFilter')
 export const setHasErrorsFilter = action<boolean>('setHasErrorsFilter')
 
 export const resultsSortTrigger = action<Sorting>('resultsSortTrigger')
+
+export const focusSequence = action<number | undefined>('focusSequence')

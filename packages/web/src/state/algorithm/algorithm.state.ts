@@ -59,6 +59,7 @@ export interface AlgorithmState {
   resultsFiltered: SequenceAnylysisState[]
   errors: string[]
   filters: ResultsFilters
+  focusedSequence?: number
 }
 
 const fakeState: Partial<AlgorithmState> = {}

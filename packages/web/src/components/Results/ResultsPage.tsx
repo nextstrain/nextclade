@@ -12,6 +12,7 @@ import { ButtonTree } from './ButtonTree'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
 import { ResultsTable } from './ResultsTable'
+import { ResultsSequenceDetails } from './ResultsSequenceDetails'
 
 export const Container = styled.div`
   width: 100%;
@@ -89,6 +90,8 @@ export function ResultsPage() {
         <Footer>
           <GeneMapTable />
         </Footer>
+
+        <ResultsSequenceDetails />
       </Container>
     </LayoutResults>
   )

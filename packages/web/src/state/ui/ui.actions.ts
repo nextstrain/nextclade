@@ -7,4 +7,6 @@ export const setShowInputBox = action<boolean>('SET_SHOW_INPUT_BOX')
 
 export const setExportFormat = action<ExportFormat>('SET_EXPORT_FORMAT')
 
+export const setDetailsPanelCollapsed = action<boolean>('setDetailsPanelCollapsed')
+
 export const setFilterPanelCollapsed = action<boolean>('setFilterPanelCollapsed')

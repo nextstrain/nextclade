@@ -21,10 +21,17 @@ import {
   setIsDirty,
   setMutationsFilter,
   setSeqNamesFilter,
+  focusSequence,
 } from './algorithm.actions'
 import { agorithmDefaultState, AlgorithmStatus, AnylysisStatus, SequenceAnylysisState } from './algorithm.state'
 
 export const agorithmReducer = reducerWithInitialState(agorithmDefaultState)
+  .withHandling(
+    immerCase(focusSequence, (draft, index) => {
+      draft.focusedSequence = index
+    }),
+  )
+
   .withHandling(
     immerCase(resultsSortTrigger, (draft, sorting) => {
       draft.filters.sorting = sorting
