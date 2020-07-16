@@ -79,7 +79,7 @@ export default class Document extends NextDocument {
           <meta itemProp="name" content={PROJECT_NAME} />
           <meta property="og:description" content={PROJECT_DESCRIPTION} />
           <meta property="og:image" content={SOCIAL_IMAGE_URL} />
-          <meta property="og:image_secure" content={SOCIAL_IMAGE_URL} />
+          <meta property="og:image:secure_url" content={SOCIAL_IMAGE_URL} />
           <meta property="og:image:type" content="image/png" />
           <meta property="og:image:width" content="1200" />
           <meta property="og:image:height" content="600" />
