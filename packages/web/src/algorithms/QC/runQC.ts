@@ -5,7 +5,7 @@ import type { NucleotideDeletion, NucleotideInsertion, SubstitutionsWithAminoaci
 import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
 import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
 import { QCResultSNPClusters, QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
-import { ruleTotalMutations, QCRulesConfigTotalMutations, QCResultTotalMutations } from './ruleTotalMutations'
+import { ruleDivergence, QCRulesConfigDivergence, QCResultDivergence } from './ruleDivergence'
 
 // const TooHighDivergence = 'too high divergence'
 // const ClusteredSNPsFlag = 'clustered SNPs'
@@ -15,14 +15,14 @@ import { ruleTotalMutations, QCRulesConfigTotalMutations, QCResultTotalMutations
 export type Enableable<T> = T & { enabled: boolean }
 
 export interface QCRulesConfig {
-  totalMutations: Enableable<QCRulesConfigTotalMutations>
+  Divergence: Enableable<QCRulesConfigDivergence>
   missingData: Enableable<QCRulesConfigMissingData>
   snpClusters: Enableable<QCRulesConfigSNPClusters>
   mixedSites: Enableable<QCRulesConfigMixedSites>
 }
 
 const qcRulesConfigDefault: QCRulesConfig = {
-  totalMutations: {
+  Divergence: {
     enabled: true,
     divergenceMean: 9, // number of mutations to trigger divergence warning
     divergenceStd: 4,
@@ -64,7 +64,7 @@ export interface QCInputData {
 
 export interface QCResults {
   score: number
-  totalMutations?: QCResultTotalMutations
+  Divergence?: QCResultDivergence
   missingData?: QCResultMissingData
   snpClusters?: QCResultSNPClusters
   mixedSites?: QCResultMixedSites
@@ -84,7 +84,7 @@ export function runQC(qcData: QCInputData, qcRulesConfig: DeepPartial<QCRulesCon
   const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
   const result = {
-    totalMutations: runOne(ruleTotalMutations, qcData, configs.totalMutations),
+    divergence: runOne(ruleDivergence, qcData, configs.divergence),
     missingData: runOne(ruleMissingData, qcData, configs.missingData),
     snpClusters: runOne(ruleSnpClusters, qcData, configs.snpClusters),
     mixedSites: runOne(ruleMixedSites, qcData, configs.mixedSites),

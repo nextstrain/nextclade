@@ -1,14 +1,14 @@
 import type { QCInputData } from './runQC'
 
-export interface QCRulesConfigTotalMutations {
+export interface QCRulesConfigDivergence {
   divergenceMean: number
   divergenceStd: number
   nStd: number
 }
 
-export function ruleTotalMutations(
+export function ruleDivergence(
   { substitutions, insertions, deletions }: QCInputData,
-  { divergenceMean, divergenceStd, nStd }: QCRulesConfigTotalMutations,
+  { divergenceMean, divergenceStd, nStd }: QCRulesConfigDivergence,
 ) {
   const totalNumberOfMutations =
     Object.keys(substitutions).length + Object.keys(insertions).length + Object.keys(deletions).length
@@ -26,4 +26,4 @@ export function ruleTotalMutations(
   }
 }
 
-export type QCResultTotalMutations = ReturnType<typeof ruleTotalMutations>
+export type QCResultDivergence = ReturnType<typeof ruleDivergence>
