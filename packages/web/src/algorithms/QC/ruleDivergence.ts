@@ -15,9 +15,9 @@ export function ruleDivergence(
 
   // the score hits 100 if the deviation is nStd times the standard deviation.
   // escalation is quadratic as it should be for a Poisson process
-  const scale = divergenceStd * nStd * 100
+  const scale = divergenceStd * nStd
   const dev = totalNumberOfMutations - divergenceMean
-  const score = (dev * dev) / scale / scale
+  const score = (100 * (dev * dev)) / scale / scale
 
   return {
     score,
