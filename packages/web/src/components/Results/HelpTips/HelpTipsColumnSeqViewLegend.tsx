@@ -5,6 +5,11 @@ import { NUCLEOTIDE_COLORS } from '../../../helpers/getNucleotideColor'
 
 const SIZE = 20
 
+export const Legend = styled.div`
+  width: 100%;
+  margin-bottom: 10px;
+`
+
 export const LegendItem = styled.div`
   display: flex;
 `
@@ -19,10 +24,14 @@ export const LegendColorBox = styled.span`
 `
 
 export function HelpTipsColumnSeqViewLegend() {
-  return Object.entries(NUCLEOTIDE_COLORS).map(([nuc, color]) => (
-    <LegendItem>
-      <LegendColorBox color={color} />
-      {nuc}
-    </LegendItem>
-  ))
+  return (
+    <Legend>
+      {Object.entries(NUCLEOTIDE_COLORS).map(([nuc, color]) => (
+        <LegendItem key={nuc}>
+          <LegendColorBox color={color} />
+          {nuc}
+        </LegendItem>
+      ))}
+    </Legend>
+  )
 }
