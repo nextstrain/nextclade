@@ -26,14 +26,17 @@ export function addSequence(
 }
 
 export function parseSequences(input: string) {
-  const lines = input.split('\n')
+  // NOTE: This should protect from parsing failures when file is using DOS- and old Mac-style newlines
+  const content = input.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  const lines = content.split('\n')
   let currentSeqName = ''
   let currentSeq = ''
   const seqs: Record<string, string> = {}
   const seqNames: string[] = []
 
   for (let i = 0; i < lines.length; ++i) {
-    const line = lines[i]
+    const line = lines[i].trim()
+
     if (line.startsWith('>')) {
       if (currentSeq.length > 0) {
         addSequence(currentSeq, currentSeqName, seqs, seqNames)
@@ -42,7 +45,9 @@ export function parseSequences(input: string) {
       currentSeqName = line.substring(1, line.length)
       currentSeq = ''
     } else {
-      currentSeq += line.toUpperCase().replace(/-/g, '')
+      // NOTE: Strip all characters except capital letters, asterisks, dots ans question marks
+      const seq = line.toUpperCase().replace(/[^*.?A-Z]/g, '')
+      currentSeq += seq
     }
   }
 
