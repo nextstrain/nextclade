@@ -2,7 +2,7 @@ import { get } from 'lodash'
 
 import { Nucleotide } from 'src/algorithms/types'
 
-const BASE_COLORS: Record<string, string> = {
+export const NUCLEOTIDE_COLORS: Record<string, string> = {
   'A': '#bf2b18',
   'C': '#162ebc',
   'G': '#bcaf27',
@@ -12,5 +12,5 @@ const BASE_COLORS: Record<string, string> = {
 } as const
 
 export function getNucleotideColor(nuc: Nucleotide) {
-  return get(BASE_COLORS, nuc) ?? BASE_COLORS.N
+  return get(NUCLEOTIDE_COLORS, nuc) ?? NUCLEOTIDE_COLORS.N
 }
