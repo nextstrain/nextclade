@@ -29,6 +29,5 @@ export function isMatch(query: string, reference: string): boolean {
     return IUPACNucCodes[query].has(reference)
   }
 
-  console.warn(`Invalid nucleotide ${query}`)
   return false
 }
