@@ -1,7 +1,7 @@
 import React from 'react'
 
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
-import { PROJECT_NAME, PROJECT_DESCRIPTION, SOCIAL_IMAGE_URL, DOMAIN } from 'src/constants'
+import { PROJECT_NAME, PROJECT_DESCRIPTION, SOCIAL_IMAGE_URL, DOMAIN, TWITTER_USERNAME } from 'src/constants'
 
 export default class Document extends NextDocument {
   static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
@@ -10,6 +10,8 @@ export default class Document extends NextDocument {
   }
 
   render() {
+    const localeFull = 'en_US'
+
     return (
       <Html lang="en">
         <Head>
@@ -77,14 +79,21 @@ export default class Document extends NextDocument {
           <meta itemProp="name" content={PROJECT_NAME} />
           <meta property="og:description" content={PROJECT_DESCRIPTION} />
           <meta property="og:image" content={SOCIAL_IMAGE_URL} />
+          <meta property="og:image:secure_url" content={SOCIAL_IMAGE_URL} />
+          <meta property="og:image:type" content="image/png" />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="600" />
+          <meta property="og:locale" content={localeFull} />
           <meta property="og:title" content={PROJECT_NAME} />
           <meta property="og:type" content="website" />
           <meta property="og:url" content={DOMAIN} />
-          <meta property="twitter:card" content="summary_large_image" />
-          <meta property="twitter:description" content={PROJECT_DESCRIPTION} />
-          <meta property="twitter:image" content={SOCIAL_IMAGE_URL} />
-          <meta property="twitter:title" content={PROJECT_NAME} />
-          <meta property="twitter:url" content={DOMAIN} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:description" content={PROJECT_DESCRIPTION} />
+          <meta name="twitter:image" content={SOCIAL_IMAGE_URL} />
+          <meta name="twitter:image:alt" content={PROJECT_DESCRIPTION} />
+          <meta name="twitter:title" content={PROJECT_NAME} />
+          <meta name="twitter:url" content={DOMAIN} />
+          <meta name="twitter:site" content={TWITTER_USERNAME} />
         </Head>
 
         <body>
