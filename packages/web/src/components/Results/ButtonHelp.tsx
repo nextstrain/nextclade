@@ -11,6 +11,8 @@ export const ButtonHelpStyle = styled(ButtonTransparent)`
   position: relative;
   top: -15px;
   margin: 0 auto;
+  width: 20px;
+  height: 20px;
 `
 
 export interface ButtonHelpProps extends PropsWithChildren<ButtonProps> {
