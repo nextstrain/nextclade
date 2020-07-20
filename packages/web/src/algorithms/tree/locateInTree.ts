@@ -229,8 +229,8 @@ export function attach_to_tree(base_node: AuspiceTreeNode, seq: SequenceAnalysis
   const div = baseDiv + mutations.length
 
   const new_node = get_node_struct(seq)
-  set(new_node, 'new_node.branch_attrs.mutations.nuc.mutations', mutations)
-  set(new_node, 'new_node.node_attrs.div', div)
+  set(new_node, 'branch_attrs.mutations.nuc', mutations)
+  set(new_node, 'node_attrs.div', div)
   set(new_node, 'mutations', cloneDeep(base_node.mutations))
 
   for (const mut of mutations) {
