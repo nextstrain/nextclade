@@ -1,8 +1,9 @@
 require('./config/dotenv')
+const path = require('path')
 
-function isWebTarget(caller) {
-  return Boolean(caller && caller.target === 'web')
-}
+const { findModuleRoot } = require('./lib/findModuleRoot')
+
+const { moduleRoot } = findModuleRoot()
 
 const development = process.env.NODE_ENV === 'development'
 const production = process.env.NODE_ENV === 'production'
@@ -10,7 +11,9 @@ const analyze = process.env.ANALYZE === '1'
 const debuggableProd = process.env.DEBUGGABLE_PROD === '1'
 
 module.exports = (api) => {
-  const web = api.caller(isWebTarget)
+  const web = api.caller((caller) => caller?.target === 'web')
+  // const test = api.caller((caller) => caller?.name === 'babel-jest')
+  const node = api.caller((caller) => caller?.name === '@babel/node')
 
   return {
     compact: false,
@@ -40,6 +43,16 @@ module.exports = (api) => {
       production && web && '@babel/plugin-transform-flow-strip-types',
       !(development || debuggableProd) && web && '@babel/plugin-transform-react-inline-elements', // prettier-ignore
       !(development || debuggableProd) && web && '@babel/plugin-transform-react-constant-elements', // prettier-ignore
+      node && [
+        'babel-plugin-module-resolver',
+        {
+          root: [moduleRoot],
+          removeImport: false,
+          alias: {
+            src: path.join(moduleRoot, 'src'),
+          },
+        },
+      ],
     ].filter(Boolean),
   }
 }
