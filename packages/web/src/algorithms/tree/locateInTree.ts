@@ -117,7 +117,7 @@ export function parseMutationOrThrow(mut: string) {
   }
 
   const { refNuc, pos, queryNuc } = parsedMut
-  if (!refNuc || !pos || !queryNuc) {
+  if (!refNuc || pos === undefined || !queryNuc) {
     throw new Error(`Mutation cannot be parsed: "${mut}"`)
   }
 
