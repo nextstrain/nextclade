@@ -5,9 +5,13 @@ import { formatClades } from 'src/helpers/formatClades'
 import { formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { formatInsertion } from 'src/helpers/formatInsertion'
+import { locateInTree } from 'src/algorithms/tree/locateInTree'
+import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 
-export function serializeResultsToJson(results: SequenceAnylysisState[]) {
-  const data = results.map(({ seqName, status, errors, result }) => {
+import auspiceTree from 'src/assets/data/ncov_small.json'
+
+export function prepareResultsJson(results: SequenceAnylysisState[]) {
+  return results.map(({ seqName, status, errors, result }) => {
     if (!result) {
       return { seqName, errors }
     }
@@ -56,8 +60,17 @@ export function serializeResultsToJson(results: SequenceAnylysisState[]) {
       QCFlags: diagnostics.flags,
     }
   })
+}
 
+export function serializeResultsToJson(results: SequenceAnylysisState[]) {
+  const data = prepareResultsJson(results)
   return JSON.stringify(data, null, 2)
+}
+
+export function serializeResultsToAuspiceJsonV2(results: SequenceAnylysisState[]) {
+  const data = prepareResultsJson(results)
+  const auspiceData = locateInTree(data, auspiceTree, DEFAULT_ROOT_SEQUENCE)
+  return JSON.stringify(auspiceData, null, 2)
 }
 
 export function serializeResultsToCsv(results: SequenceAnylysisState[]) {

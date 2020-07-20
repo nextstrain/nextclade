@@ -8,7 +8,7 @@ import { BsBraces } from 'react-icons/bs'
 
 import type { State } from 'src/state/reducer'
 import { ExportFormat } from 'src/state/ui/ui.state'
-import { exportCsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
+import { exportAuspiceJsonV2Trigger, exportCsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
 import { setExportFormat } from 'src/state/ui/ui.actions'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
@@ -36,6 +36,7 @@ export interface ExportButtonProps {
   setExportFormat(exportType: ExportFormat): void
   exportCsvTrigger(_0: void): void
   exportJsonTrigger(_0: void): void
+  exportAuspiceJsonV2Trigger(_0: void): void
 }
 
 const mapStateToProps = (state: State) => ({
@@ -50,6 +51,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = {
   exportCsvTrigger,
   exportJsonTrigger,
+  exportAuspiceJsonV2Trigger,
   setExportFormat,
 }
 
@@ -61,6 +63,7 @@ export function ExportButtonDisconnected({
   setExportFormat,
   exportCsvTrigger,
   exportJsonTrigger,
+  exportAuspiceJsonV2Trigger,
 }: ExportButtonProps) {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -76,12 +79,17 @@ export function ExportButtonDisconnected({
     exportCsvTrigger()
   }
 
-  const handleButtonClick = exportFormat === ExportFormat.JSON ? handleJsonClick : handleCsvClick
+  const handleAuspiceJsonClick = () => {
+    setExportFormat(ExportFormat.AuspiceJSONv2)
+    exportAuspiceJsonV2Trigger()
+  }
+
+  const handleButtonClick = exportFormat === ExportFormat.CSV ? handleCsvClick : handleJsonClick
 
   return (
     <ButtonDropdown isOpen={isOpen} toggle={toggle} disabled={!canExport}>
       <Button id="caret" color="primary" disabled={!canExport} onClick={handleButtonClick}>
-        {exportFormat === ExportFormat.JSON ? <ExportJSONIcon /> : <ExportCSVIcon />}
+        {exportFormat === ExportFormat.CSV ? <ExportCSVIcon /> : <ExportJSONIcon />}
         {t('Export to {{exportFormat}}', { exportFormat })}
       </Button>
       <DropdownToggle color="primary" caret disabled={!canExport} />
@@ -93,6 +101,10 @@ export function ExportButtonDisconnected({
         <DropdownItem onClick={handleJsonClick}>
           <ExportJSONIcon />
           {t('Export to JSON')}
+        </DropdownItem>
+        <DropdownItem onClick={handleAuspiceJsonClick}>
+          <ExportJSONIcon />
+          {t('Export to Auspice JSON v2')}
         </DropdownItem>
       </DropdownMenu>
     </ButtonDropdown>

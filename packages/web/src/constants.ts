@@ -11,6 +11,7 @@ export const MS_TILE_COLOR = '#2b5797' as const
 export const BASE_MIN_WIDTH_PX = 4 as const
 export const EXPORT_CSV_FILENAME = 'nextclade.csv' as const
 export const EXPORT_JSON_FILENAME = 'nextclade.json' as const
+export const EXPORT_AUSPICE_JSON_V2_FILENAME = 'nextclade.auspice.json' as const
 
 export const URL_GITHUB = 'https://github.com/neherlab/webclades' as const
 export const URL_GITHUB_FRIENDLY = 'github.com/neherlab/webclades' as const

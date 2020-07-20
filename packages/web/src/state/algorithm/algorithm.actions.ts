@@ -20,9 +20,9 @@ export const parseAsync = action.async<void, string[], Error>('PARSE')
 
 export const analyzeAsync = action.async<{ seqName: string }, AnalysisResult, Error>('ANALYZE')
 
-export const exportCsvTrigger = action('EXPORT_CSV')
-
-export const exportJsonTrigger = action('EXPORT_JSON')
+export const exportCsvTrigger = action('exportCsvTrigger')
+export const exportJsonTrigger = action('exportJsonTrigger')
+export const exportAuspiceJsonV2Trigger = action('exportAuspiceJsonV2Trigger')
 
 export const setSeqNamesFilter = action<string | undefined>('setSeqNamesFilter')
 export const setMutationsFilter = action<string | undefined>('setMutationsFilter')

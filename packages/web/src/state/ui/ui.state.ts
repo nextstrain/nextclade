@@ -1,6 +1,7 @@
 export enum ExportFormat {
   CSV = 'CSV',
   JSON = 'JSON',
+  AuspiceJSONv2 = 'AuspiceJSONv2',
 }
 
 export interface UiState {
