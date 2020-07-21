@@ -3,18 +3,9 @@ import type { NextConfig } from 'next'
 
 import { addWebpackPlugin } from './lib/addWebpackPlugin'
 
-export default function withoutNpmCss(nextConfig: NextConfig) {
-  let nextConfigNew = nextConfig
-  nextConfigNew = addWebpackPlugin(
-    nextConfigNew,
-
-    new webpack.ContextReplacementPlugin(/.*/, (context) => {
-      console.log({ context })
-    }),
-  )
-
-  nextConfigNew = addWebpackPlugin(
-    nextConfigNew,
+export default function withIgnore(nextConfig: NextConfig) {
+  return addWebpackPlugin(
+    nextConfig,
     new webpack.IgnorePlugin({
       checkResource: (resource: string) => {
         return (
@@ -25,6 +16,4 @@ export default function withoutNpmCss(nextConfig: NextConfig) {
       },
     }),
   )
-
-  return nextConfigNew
 }

@@ -26,7 +26,7 @@ import withRaw from './withRaw'
 import withSvg from './withSvg'
 import withImages from './withImages'
 import withThreads from './withThreads'
-import withoutNpmCss from './withoutNpmCss'
+import withIgnore from './withIgnore'
 // import withoutMinification from './withoutMinification'
 
 const {
@@ -148,7 +148,7 @@ const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationL
 
 const config = withPlugins(
   [
-    [withoutNpmCss],
+    [withIgnore],
     [withEnvironment],
     [withExtraWatch],
     [withThreads],
