@@ -4,6 +4,19 @@ import storage from 'redux-persist/lib/storage'
 import { routerReducer } from 'connected-next-router'
 import { RouterState } from 'connected-next-router/types'
 
+// BEGIN reducers from auspice
+import metadata from 'auspice/src/reducers/metadata'
+import tree from 'auspice/src/reducers/tree'
+import frequencies from 'auspice/src/reducers/frequencies'
+import entropy from 'auspice/src/reducers/entropy'
+import controls from 'auspice/src/reducers/controls'
+import browserDimensions from 'auspice/src/reducers/browserDimensions'
+import notifications from 'auspice/src/reducers/notifications'
+import narrative from 'auspice/src/reducers/narrative'
+import treeToo from 'auspice/src/reducers/treeToo'
+// import general from 'auspice/src/reducers/general'
+// END reducers from auspice
+
 import { agorithmReducer } from './algorithm/algorithm.reducer'
 import { AlgorithmState } from './algorithm/algorithm.state'
 
@@ -32,6 +45,19 @@ const rootReducer = () =>
     settings: settingsReducerPersisted,
     router: routerReducer,
     ui: uiReducer,
+
+    // BEGIN reducers from auspice
+    metadata,
+    tree,
+    frequencies,
+    controls,
+    entropy,
+    browserDimensions,
+    notifications,
+    narrative,
+    treeToo,
+    // general,
+    // END reducers from auspice
   })
 
 export default rootReducer
