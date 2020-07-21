@@ -399,12 +399,12 @@
     "@babel/helper-create-class-features-plugin" "^7.10.4"
     "@babel/helper-plugin-utils" "^7.10.4"
 
-"@babel/plugin-proposal-decorators@7.10.4", "@babel/plugin-proposal-decorators@7.8.3", "@babel/plugin-proposal-decorators@^7.3.0":
-  version "7.10.4"
-  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-decorators/-/plugin-proposal-decorators-7.10.4.tgz#fe20ef10cc73f386f70910fca48798041cd357c7"
-  integrity sha512-JHTWjQngOPv+ZQQqOGv2x6sCCr4IYWy7S1/VH6BE9ZfkoLrdQ2GpEP3tfb5M++G9PwvqjhY8VC/C3tXm+/eHvA==
+"@babel/plugin-proposal-decorators@7.10.5", "@babel/plugin-proposal-decorators@7.8.3", "@babel/plugin-proposal-decorators@^7.3.0":
+  version "7.10.5"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-decorators/-/plugin-proposal-decorators-7.10.5.tgz#42898bba478bc4b1ae242a703a953a7ad350ffb4"
+  integrity sha512-Sc5TAQSZuLzgY0664mMDn24Vw2P8g/VhyLyGPaWiHahhgLqeZvcGeyBZOrJW0oSKIK2mvQ22a1ENXBIQLhrEiQ==
   dependencies:
-    "@babel/helper-create-class-features-plugin" "^7.10.4"
+    "@babel/helper-create-class-features-plugin" "^7.10.5"
     "@babel/helper-plugin-utils" "^7.10.4"
     "@babel/plugin-syntax-decorators" "^7.10.4"
 
@@ -3593,10 +3593,10 @@ attr-accept@^2.0.0:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.1.0.tgz#a231a854385d36ff7a99647bb77b33c8a5175aee"
   integrity sha512-sLzVM3zCCmmDtDNhI0i96k6PUztkotSOXqE4kDGQt/6iDi5M+H0srjeF+QC6jN581l4X/Zq3Zu/tgcErEssavg==
 
-auspice@2.17.3:
-  version "2.17.3"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.17.3.tgz#35913a9190ec87da40112074cf67ecf993787c0a"
-  integrity sha512-yxAnFizAyIohc1fmbtNaSiqJh2tDecRYjKWjZKsvTndgdkEgDDqb2L5TZAcrbpi4/BrJaZZNKkEw7zyTcjoYkw==
+auspice@2.17.4:
+  version "2.17.4"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.17.4.tgz#fe6c04bb00ab1a6d83d4797b749b417e5a89fd93"
+  integrity sha512-k2MzR2Trz5HgB5apJZyqc/PIhl+4Ul5wQqadZJpugPBtKYoq4zxj2yG+PFTPTYGnHki1Af0TfMj1lXx2ztqkDg==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -6774,10 +6774,10 @@ eslint-plugin-flowtype@5.2.0:
     lodash "^4.17.15"
     string-natural-compare "^3.0.1"
 
-eslint-plugin-i18next@4.2.0:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-i18next/-/eslint-plugin-i18next-4.2.0.tgz#28652d737a272ed53c8dd7debb621fc0b72152dd"
-  integrity sha512-9c1PA6UFC7cPZvxTjPO+bf8r5hllUFKI4bCBH8UdIgXHXoQokeVLzBMBeuuOQ4Az0igZF2wEaeCF9DuHBi9Uqg==
+eslint-plugin-i18next@4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-i18next/-/eslint-plugin-i18next-4.3.0.tgz#a63b939aa964e032d58bc7eab68fde42133010dd"
+  integrity sha512-ns/WmQ+s10v4LbW2OEbROWhjZlhO6WSIYaPgRWcmP++xkO6BcA0RhAWoPuMjyrvhVmNIrnLGcTJapRHeRdX8lA==
   dependencies:
     requireindex "~1.1.0"
 
