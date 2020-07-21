@@ -11,9 +11,9 @@ const analyze = process.env.ANALYZE === '1'
 const debuggableProd = process.env.DEBUGGABLE_PROD === '1'
 
 module.exports = (api) => {
-  const web = api.caller((caller) => caller.target === 'web')
-  // const test = api.caller((caller) => caller.name === 'babel-jest')
-  const node = api.caller((caller) => caller.name === '@babel/node')
+  const test = api.caller((caller) => !!(caller && caller.name === 'babel-jest'))
+  const node = api.caller((caller) => !!(caller && caller.name === '@babel/node'))
+  const web = !(test || node)
 
   return {
     compact: false,
