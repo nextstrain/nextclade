@@ -45,6 +45,22 @@ const {
   DOMAIN,
 } = getEnvVars()
 
+console.log({
+  BABEL_ENV,
+  NODE_ENV,
+  // ANALYZE,
+  // PROFILE,
+  PRODUCTION,
+  ENABLE_SOURCE_MAPS,
+  ENABLE_ESLINT,
+  ENABLE_TYPE_CHECKS,
+  // ENABLE_STYLELINT,
+  ENABLE_REDUX_DEV_TOOLS,
+  ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT,
+  DEBUG_SET_INITIAL_DATA,
+  DOMAIN,
+})
+
 const { pkg, moduleRoot } = findModuleRoot()
 
 const nextConfig: NextConfig = {
