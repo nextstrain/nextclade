@@ -1,5 +1,7 @@
 import path from 'path'
 
+import { uniq } from 'lodash'
+
 import type { NextConfig } from 'next'
 import getWithMDX from '@next/mdx'
 // import withBundleAnalyzer from '@zeit/next-bundle-analyzer'
@@ -24,6 +26,7 @@ import withRaw from './withRaw'
 import withSvg from './withSvg'
 import withImages from './withImages'
 import withThreads from './withThreads'
+import withoutNpmCss from './withoutNpmCss'
 // import withoutMinification from './withoutMinification'
 
 const {
@@ -109,22 +112,28 @@ const withTypeChecking = getWithTypeChecking({
   memoryLimit: 2048,
 })
 
-const withTranspileModules = getWithTranspileModules([
+const transpilationListDev = [
+  // prettier-ignore
+  'auspice',
+  'd3-scale',
+]
+
+const transpilationListProd = uniq([
+  ...transpilationListDev,
   '!d3-array/src/cumsum.js',
   '@loadable',
   'create-color',
   'd3-array',
-  'd3-scale',
   'debug',
   'delay',
   'immer',
+  'is-observable',
   'lodash',
   'observable-fns',
   'p-min-delay',
   'proper-url-join',
   'query-string',
   'react-router',
-  'is-observable',
   'react-share',
   'recharts',
   'redux-saga',
@@ -135,8 +144,11 @@ const withTranspileModules = getWithTranspileModules([
   'threads',
 ])
 
+const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
+
 const config = withPlugins(
   [
+    [withoutNpmCss],
     [withEnvironment],
     [withExtraWatch],
     [withThreads],
@@ -148,7 +160,7 @@ const config = withPlugins(
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
     [withLodash],
     [withTypeChecking],
-    PRODUCTION && [withTranspileModules],
+    [withTranspileModules],
     PRODUCTION && [withStaticComprression],
     // [withoutMinification],
   ].filter(Boolean),

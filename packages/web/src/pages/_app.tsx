@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+
 import 'css.escape'
 
 import 'map.prototype.tojson' // to visualize Map in Redux Dev Tools
