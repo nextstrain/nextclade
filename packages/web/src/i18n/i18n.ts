@@ -1,3 +1,4 @@
+/* eslint-disable no-loops/no-loops */
 import { ElementType } from 'react'
 
 import { mapValues } from 'lodash'
@@ -91,7 +92,7 @@ export async function i18nInit({ localeKey }: I18NInitParams) {
     fallbackLng: 'en',
     debug: process.env.DEV_ENABLE_I18N_DEBUG === '1',
     keySeparator: false, // Disable dots as key separators as we use dots in keys
-    nsSeparator: false,
+    // nsSeparator: false,
 
     interpolation: {
       escapeValue: false,
@@ -104,6 +105,12 @@ export async function i18nInit({ localeKey }: I18NInitParams) {
       useSuspense: true,
     },
   })
+
+  for (const ns of ['language', 'sidebar', 'translation']) {
+    import(/* webpackMode: "eager" */ `auspice/src/locales/en/${ns}.json`)
+      .then((res) => i18n.addResourceBundle('en', ns, res.default))
+      .catch(console.error)
+  }
 
   await changeLocale(localeKey)
 

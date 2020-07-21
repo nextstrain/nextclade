@@ -14,7 +14,6 @@ import browserDimensions from 'auspice/src/reducers/browserDimensions'
 import notifications from 'auspice/src/reducers/notifications'
 import narrative from 'auspice/src/reducers/narrative'
 import treeToo from 'auspice/src/reducers/treeToo'
-// import general from 'auspice/src/reducers/general'
 // END reducers from auspice
 
 import { agorithmReducer } from './algorithm/algorithm.reducer'
@@ -39,6 +38,10 @@ const settingsReducerPersisted = persistReducer(
   settingsReducer,
 )
 
+export function auspiceGeneral() {
+  return { language: 'en' }
+}
+
 const rootReducer = () =>
   combineReducers({
     algorithm: agorithmReducer,
@@ -56,7 +59,7 @@ const rootReducer = () =>
     notifications,
     narrative,
     treeToo,
-    // general,
+    general: auspiceGeneral,
     // END reducers from auspice
   })
 
