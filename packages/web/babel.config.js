@@ -52,6 +52,7 @@ module.exports = (api) => {
       production && web && '@babel/plugin-transform-flow-strip-types',
       !(development || debuggableProd) && web && '@babel/plugin-transform-react-inline-elements', // prettier-ignore
       !(development || debuggableProd) && web && '@babel/plugin-transform-react-constant-elements', // prettier-ignore
+      ['babel-plugin-strip-function-call', { strip: ['timerStart', 'timerEnd'] }],
       node && [
         'babel-plugin-module-resolver',
         {
