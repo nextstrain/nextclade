@@ -8,10 +8,10 @@
   "scripts": {
     "clear": "node ./lib/clear.js",
     "dev": "nodemon --config config/nodemon/dev.json",
-    "dev:start": "yarn install && yarn dev:nowatch || cd .",
+    "dev:start": "yarn install && yarn run monkey-patch && yarn dev:nowatch || cd .",
     "dev:nowatch": "cross-env NODE_ENV=development BABEL_ENV=development NODE_OPTIONS=--max_old_space_size=8192 babel-node --extensions \".js,.ts\" -- node_modules/.bin/next dev --hostname 0.0.0.0 --port 3000",
     "dev:clean": "rimraf '.build/development/{*,.*}' 'node_modules/.cache'",
-    "prod:build": "yarn run next:build && yarn run next:export",
+    "prod:build": "yarn run monkey-patch && yarn run next:build && yarn run next:export",
     "prod:build:ci": "yarn run prod:build",
     "prod:_build": "yarn run next:build && yarn run next:export",
     "next:build": "cross-env NODE_ENV=production BABEL_ENV=production NODE_OPTIONS=--max_old_space_size=8192 babel-node --extensions \".js,.ts\" -- node_modules/.bin/next build",
@@ -53,7 +53,8 @@
     "snyk-protect": "snyk protect",
     "prepare": "yarn run snyk-protect",
     "run:node": "cross-env NODE_ENV=development BABEL_ENV=development babel-node --extensions '.ts'",
-    "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --extensions '.ts'"
+    "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --extensions '.ts'",
+    "monkey-patch": "bash tools/auspice-monkey-patch.sh"
   },
   "dependencies": {
     "@mdx-js/loader": "1.6.6",
