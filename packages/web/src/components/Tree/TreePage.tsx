@@ -8,7 +8,9 @@ import Controls from 'auspice/src/components/controls/controls'
 import Tree from 'auspice/src/components/tree'
 import { createStateFromQueryOrJSONs } from 'auspice/src/actions/recomputeReduxState'
 
-import { State } from 'state/reducer'
+import type { AuspiceState } from 'src/state/auspice/auspice.state'
+import { auspiceStartClean } from 'src/state/auspice/auspice.actions'
+import { State } from 'src/state/reducer'
 
 import json from '../../../out.json'
 
@@ -24,21 +26,25 @@ const TreeContainer = styled.div`
   flex: 1;
 `
 
+export interface TreePageProps {
+  auspiceStartClean(state: AuspiceState): void
+}
+
 const mapStateToProps = (state: State) => ({})
 
-const mapDispatchToProps = (dispatch) => ({
-  startClean: (state) => dispatch({ type: 'CLEAN_START', ...state }),
-})
+const mapDispatchToProps = {
+  auspiceStartClean,
+}
 
 const TreePage = connect(mapStateToProps, mapDispatchToProps)(TreePageDisconnected)
 
-function TreePageDisconnected({ startClean }) {
+function TreePageDisconnected({ auspiceStartClean }: TreePageProps) {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
     const state = createStateFromQueryOrJSONs({ json, query: {} })
-    startClean(state)
-  }, [startClean])
+    auspiceStartClean(state)
+  }, [auspiceStartClean])
 
   return (
     <>
