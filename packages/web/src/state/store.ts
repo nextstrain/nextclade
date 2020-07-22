@@ -8,6 +8,7 @@ import reduxImmutableStateInvariant from 'redux-immutable-state-invariant'
 import createSagaMiddleware from 'redux-saga'
 import { createRouterMiddleware, initialRouterState } from 'connected-next-router'
 import { persistStore } from 'redux-persist'
+import { createLogger } from 'redux-logger'
 
 import type { WorkerPools } from 'src/workers/types'
 
@@ -35,6 +36,11 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
 
   if (process.env.ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT === 'true') {
     middlewares = [...middlewares, reduxImmutableStateInvariant() as Middleware<string>]
+  }
+
+  if (process.env.ENABLE_REDUX_LOGGER === 'true') {
+    const logger = createLogger({})
+    middlewares = [...middlewares, logger]
   }
 
   let enhancer = applyMiddleware(...middlewares)
