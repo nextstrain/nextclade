@@ -3,7 +3,8 @@ import React from 'react'
 import styled from 'styled-components'
 
 import Controls from 'auspice/src/components/controls/controls'
-import Tree from 'auspice/src/components/tree'
+
+import { Tree } from './Tree'
 
 const AuspiceContainer = styled.div`
   display: flex;
@@ -24,7 +25,7 @@ function TreePage() {
         <Controls mapOn={false} frequenciesOn={false} />
       </SidebarContainer>
       <TreeContainer>
-        <Tree width={800} height={600} />
+        <Tree />
       </TreeContainer>
     </AuspiceContainer>
   )
