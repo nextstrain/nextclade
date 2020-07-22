@@ -252,7 +252,14 @@ export function remove_mutations(node: AuspiceTreeNode) {
   }
 }
 
-export function locateInTree(data: SequenceAnalysisDatum[], auspiceDataRaw: Record<string, unknown>, rootSeq: string) {
+export function locateInTree(
+  result: SequenceAnalysisDatum[],
+  auspiceDataRaw: Record<string, unknown>,
+  rootSeq: string,
+) {
+  const data = cloneDeep(result)
+  const auspiceData = (cloneDeep(auspiceDataRaw) as unknown) as AuspiceData // TODO: validate and sanitize
+
   const auspiceTreeVersionExpected = 'v2'
   const auspiceTreeVersion = (auspiceDataRaw?.version as string | undefined) ?? 'undefined'
   if (auspiceTreeVersion !== auspiceTreeVersionExpected) {
@@ -260,9 +267,6 @@ export function locateInTree(data: SequenceAnalysisDatum[], auspiceDataRaw: Reco
       `Tree format not recognized. Expected version "${auspiceTreeVersionExpected}", got "${auspiceTreeVersion}"`,
     )
   }
-
-  // TODO: validate and sanitize
-  const auspiceData = (auspiceDataRaw as unknown) as AuspiceData
 
   const focal_node = auspiceData?.tree
   if (!focal_node) {
