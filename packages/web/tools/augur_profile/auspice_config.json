@@ -1,0 +1,80 @@
+{
+  "title": "Your samples placed on a SARS-CoV-2 phylogeny",
+  "build_url": "https://github.com/neherlab/ncov-ecdc",
+  "maintainers": [
+    {"name": "Ivan Aksamentov", "url": "https://neherlab.org"},
+    {"name": "Richard Neher", "url": "https://neherlab.org"}
+  ],
+  "colorings": [
+    {
+      "key": "country",
+      "title": "Country",
+      "type": "categorical"
+    },
+    {
+      "key": "division",
+      "title": "Admin Division",
+      "type": "categorical"
+    },
+    {
+      "key": "pangolin_lineage",
+      "title": "Pangolin Lineage",
+      "type": "categorical"
+    },
+    {
+      "key": "GISAID_clade",
+      "title": "GISAID Clade",
+      "type": "categorical"
+    },
+    {
+      "key": "subclade_membership",
+      "title": "Emerging clade",
+      "type": "categorical"
+    },
+    {
+      "key": "region",
+      "title": "Region",
+      "type": "categorical"
+    },
+    {
+      "key": "region_exposure",
+      "title": "Region Exposuse",
+      "type": "categorical"
+    },
+    {
+      "key": "author",
+      "title": "Authors",
+      "type": "categorical"
+    },
+    {
+      "key": "originating_lab",
+      "title": "Originating Lab",
+      "type": "categorical"
+    },
+    {
+      "key": "submitting_lab",
+      "title": "Submitting Lab",
+      "type": "categorical"
+    }
+  ],
+  "geo_resolutions": [
+    "region"
+  ],
+  "display_defaults": {
+    "color_by": "clade_membership",
+    "distance_measure": "div",
+    "geo_resolution": "region",
+    "map_triplicate": true,
+    "branch_label": "clade",
+    "transmission_lines": false
+  },
+  "filters": [
+    "region",
+    "country",
+    "division"
+  ],
+  "panels": [
+    "tree",
+    "entropy"
+  ]
+}
