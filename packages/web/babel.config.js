@@ -46,7 +46,7 @@ module.exports = (api) => {
       'babel-plugin-styled-components',
       'babel-plugin-lodash',
       (development || debuggableProd) && web && !analyze && ['babel-plugin-typescript-to-proptypes', { typeCheck: './src/**/*.ts' }], // prettier-ignore
-      (development || debuggableProd) && web && !analyze && 'babel-plugin-redux-saga', // prettier-ignore
+      // (development || debuggableProd) && web && !analyze && 'babel-plugin-redux-saga', // prettier-ignore
       (development || analyze || debuggableProd) && web && 'babel-plugin-smart-webpack-import', // prettier-ignore
       production && web && ['babel-plugin-transform-react-remove-prop-types', { removeImport: true }], // prettier-ignore
       production && web && '@babel/plugin-transform-flow-strip-types',

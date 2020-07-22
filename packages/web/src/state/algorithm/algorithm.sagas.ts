@@ -123,7 +123,6 @@ export function* exportJson() {
 
 export function* exportAuspiceJsonV2() {
   const results = (yield select(selectResults) as unknown) as ReturnType<typeof selectResults>
-  console.log('exportAuspiceJsonV2')
   const str = serializeResultsToAuspiceJsonV2(results)
   saveFile(str, EXPORT_AUSPICE_JSON_V2_FILENAME)
 }

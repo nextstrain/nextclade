@@ -8,6 +8,7 @@ import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 import { ButtonBack } from './ButtonBack'
 import { ButtonFilter } from './ButtonFilter'
 import { ButtonExport } from './ButtonExport'
+import { ButtonTree } from './ButtonTree'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
 import { ResultsTable } from './ResultsTable'
@@ -72,6 +73,9 @@ export function ResultsPage() {
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonExport />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <ButtonTree />
             </HeaderRightContainer>
           </HeaderRight>
         </Header>

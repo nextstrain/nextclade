@@ -48,8 +48,8 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
 
   if (process.env.ENABLE_REDUX_DEV_TOOLS === 'true' && composeWithDevTools) {
     enhancer = composeWithDevTools({
-      trace: true,
-      traceLimit: 25,
+      // trace: true,
+      // traceLimit: 25,
       actionsBlacklist: '@@INIT',
     })(enhancer)
   }
