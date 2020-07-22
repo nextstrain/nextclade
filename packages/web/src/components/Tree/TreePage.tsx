@@ -30,11 +30,9 @@ const mapDispatchToProps = (dispatch) => ({
   startClean: (state) => dispatch({ type: 'CLEAN_START', ...state }),
 })
 
-const AuspicePage = connect(mapStateToProps, mapDispatchToProps)(AuspicePageDisconnected)
+const TreePage = connect(mapStateToProps, mapDispatchToProps)(TreePageDisconnected)
 
-export default AuspicePage
-
-function AuspicePageDisconnected({ startClean }) {
+function TreePageDisconnected({ startClean }) {
   const [show, setShow] = useState(false)
 
   useEffect(() => {
@@ -58,3 +56,5 @@ function AuspicePageDisconnected({ startClean }) {
     </>
   )
 }
+
+export default TreePage
