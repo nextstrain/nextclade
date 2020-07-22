@@ -18,7 +18,7 @@ export const ButtonStyled = styled(Button)`
 const mapStateToProps = (state: State) => ({})
 
 const mapDispatchToProps = {
-  goBack: () => push('/'),
+  goBack: () => push('/results'),
 }
 
 export const ButtonBack = connect(mapStateToProps, mapDispatchToProps)(ButtonBackDisconnected)

@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { memo } from 'react'
 
-import styled, { withTheme } from 'styled-components'
+import styled from 'styled-components'
 import { connect } from 'react-redux'
 import { Button, ButtonProps } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import { RectangularTree } from 'auspice/src/components/framework/svg-icons.js'
+import { RectangularTree } from 'auspice/src/components/framework/svg-icons'
 
 import { State } from 'src/state/reducer'
 import { showTree } from 'src/state/auspice/auspice.actions'
@@ -14,7 +14,13 @@ const IconContainer = styled.span`
   margin-right: 0.5rem;
 `
 
-const TreeIcon = withTheme(RectangularTree)
+export function TreeIconRaw() {
+  const size = 20
+  const theme = { unselectedColor: '#000' }
+  return <RectangularTree theme={theme} width={size} height={size} />
+}
+
+const TreeIcon = memo(TreeIconRaw)
 
 export const ButtonStyled = styled(Button)`
   width: 100px;
@@ -39,7 +45,7 @@ export function ButtonTreeDisconnected({ showTree }: ButtonTreeProps) {
   return (
     <ButtonStyled color="secondary" onClick={showTree}>
       <IconContainer>
-        <TreeIcon width={10} height={10} />
+        <TreeIcon />
       </IconContainer>
       {t('Tree')}
     </ButtonStyled>
