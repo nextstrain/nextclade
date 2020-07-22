@@ -12,6 +12,7 @@ import { persistStore } from 'redux-persist'
 import { createLogger } from 'redux-logger'
 
 import type { WorkerPools } from 'src/workers/types'
+import { auspiceInitialState } from 'src/state/auspice/auspice.state'
 
 import createRootReducer from './reducer'
 import createRootSaga from './sagas'
@@ -60,6 +61,7 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
     const url = format({ pathname, query })
     initialState = {
       router: initialRouterState(url, asPath),
+      ...auspiceInitialState,
     }
   }
 

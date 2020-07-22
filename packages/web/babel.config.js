@@ -59,7 +59,7 @@ module.exports = (api) => {
           root: [moduleRoot],
           removeImport: false,
           alias: {
-            'src': path.join(moduleRoot, 'src'),
+            'src': './src',
             '@extensions': moduleRoot,
           },
         },
