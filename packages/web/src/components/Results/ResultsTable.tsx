@@ -24,9 +24,21 @@ import { ColumnNonACGTNs } from './ColumnNonACGTNs'
 import { ColumnMissing } from './ColumnMissing'
 import { ColumnGaps } from './ColumnGaps'
 import { ResultsControlsSort } from './ResultsControlsSort'
+import { ButtonHelp } from './ButtonHelp'
+
+import HelpTipsColumnClade from './HelpTips/HelpTipsColumnClade.mdx'
+import HelpTipsColumnGaps from './HelpTips/HelpTipsColumnGaps.mdx'
+import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
+import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
+import HelpTipsColumnMut from './HelpTips/HelpTipsColumnMut.mdx'
+import HelpTipsColumnNonAcgtn from './HelpTips/HelpTipsColumnNonAcgtn.mdx'
+import HelpTipsColumnQC from './HelpTips/HelpTipsColumnQC.mdx'
+import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
+import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
 
 const ROW_HEIGHT = 30
-const HEADER_ROW_HEIGHT = 60
+const HEADER_ROW_HEIGHT = 75
+const HEADER_ROW_CONTENT_HEIGHT = 60
 
 // TODO: This should be passed through the theme context to styled-components
 export const RESULTS_TABLE_FLEX_BASIS = {
@@ -73,7 +85,10 @@ export const TableHeaderCell = styled.div<{ basis?: string; grow?: number; shrin
   border-left: ${(props) => !props.first && `1px solid #b3b3b3aa`};
   overflow: hidden;
   width: 100%;
-  height: 100%;
+`
+
+export const TableHeaderCellContent = styled.div`
+  height: ${HEADER_ROW_CONTENT_HEIGHT}px;
   display: flex;
 `
 
@@ -98,7 +113,6 @@ export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: nu
   align-items: center;
   text-align: center;
   border-left: 1px solid #b3b3b3;
-  height: 100%;
 `
 
 export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
@@ -289,47 +303,92 @@ export function ResultsTableDisconnected({
       <Table rounded={!filterPanelCollapsed}>
         <TableHeaderRow>
           <TableHeaderCell first basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
-            <TableCellText>{t('ID')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
+            <TableHeaderCellContent>
+              <TableCellText>{t('ID')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-seq-id">
+              <HelpTipsColumnId />
+            </ButtonHelp>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-            <TableCellText>{t('Sequence name')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
+            <TableHeaderCellContent>
+              <TableCellText>{t('Sequence name')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-seq-name">
+              <HelpTipsColumnSeqName />
+            </ButtonHelp>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
-            <TableCellText>{t('QC')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
+            <TableHeaderCellContent>
+              <TableCellText>{t('QC')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-qc">
+              <HelpTipsColumnQC />
+            </ButtonHelp>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
-            <TableCellText>{t('Clade')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
+            <TableHeaderCellContent>
+              <TableCellText>{t('Clade')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-clade">
+              <HelpTipsColumnClade />
+            </ButtonHelp>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
-            <TableCellText>{t('Mut.')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
+            <TableHeaderCellContent>
+              <TableCellText>{t('Mut.')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-mut">
+              <HelpTipsColumnMut />
+            </ButtonHelp>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.nonACGTN} grow={0} shrink={0}>
-            <TableCellText>{t('non-ACGTN')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
+            <TableHeaderCellContent>
+              <TableCellText>{t('non-ACGTN')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-nonacgtn">
+              <HelpTipsColumnNonAcgtn />
+            </ButtonHelp>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.ns} grow={0} shrink={0}>
-            <TableCellText>{t('Ns')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
+            <TableHeaderCellContent>
+              <TableCellText>{t('Ns')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-missing">
+              <HelpTipsColumnMissing />
+            </ButtonHelp>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.gaps} grow={0} shrink={0}>
-            <TableCellText>{t('Gaps')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
+            <TableHeaderCellContent>
+              <TableCellText>{t('Gaps')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-gaps">
+              <HelpTipsColumnGaps />
+            </ButtonHelp>
           </TableHeaderCell>
 
           <TableHeaderCell grow={20}>
-            <TableCellText>{t('Sequence')}</TableCellText>
+            <TableHeaderCellContent>
+              <TableCellText>{t('Sequence view')}</TableCellText>
+            </TableHeaderCellContent>
+            <ButtonHelp identifier="btn-help-col-seq-view">
+              <HelpTipsColumnSeqView />
+            </ButtonHelp>
           </TableHeaderCell>
         </TableHeaderRow>
 

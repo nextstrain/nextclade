@@ -10,6 +10,7 @@ export const VIRUSES: Record<string, Virus> = {
       divergenceThreshold: 20, // number of mutations to trigger divergence warning
       mixedSitesThreshold: 10, // number of non-ACGTN sites to trigger warning
       missingDataThreshold: 1000, // number of sites as N to trigger warning
+      minimalLength: 100, // minimal length to attempt alignment
     },
     clades: {
       '19A': [

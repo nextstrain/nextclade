@@ -22,6 +22,7 @@ import getWithStaticComprression from './webpackCompression'
 import getWithTypeChecking from './withTypeChecking'
 import withRaw from './withRaw'
 import withSvg from './withSvg'
+import withImages from './withImages'
 import withThreads from './withThreads'
 // import withoutMinification from './withoutMinification'
 
@@ -38,6 +39,7 @@ const {
   ENABLE_REDUX_DEV_TOOLS,
   ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT,
   DEBUG_SET_INITIAL_DATA,
+  DOMAIN,
 } = getEnvVars()
 
 const { pkg, moduleRoot } = findModuleRoot()
@@ -57,7 +59,7 @@ const nextConfig: NextConfig = {
   },
   devIndicators: {
     buildActivity: false,
-    autoPrerender: true,
+    autoPrerender: false,
   },
   typescript: {
     ignoreDevErrors: true,
@@ -89,6 +91,7 @@ const withEnvironment = getWithEnvironment({
   BUILD_NUMBER: getBuildNumber(),
   TRAVIS_BUILD_WEB_URL: getBuildUrl(),
   COMMIT_HASH: getGitCommitHash(),
+  DOMAIN,
 })
 
 const withExtraWatch = getWithExtraWatch({
@@ -138,6 +141,7 @@ const config = withPlugins(
     [withExtraWatch],
     [withThreads],
     [withSvg],
+    [withImages],
     [withRaw],
     // ANALYZE && [withBundleAnalyzer],
     [withFriendlyConsole],
