@@ -22,6 +22,7 @@ export const ButtonTransparent = styled(Button)<ButtonTransparentProps>`
   border-radius: 0;
   box-shadow: none;
   border-image: none;
+  text-decoration: none;
 
   &:active,
   &:hover,
@@ -30,5 +31,6 @@ export const ButtonTransparent = styled(Button)<ButtonTransparentProps>`
     background-color: transparent;
     background-image: none;
     color: #fff;
+    text-decoration: none;
   }
 `
