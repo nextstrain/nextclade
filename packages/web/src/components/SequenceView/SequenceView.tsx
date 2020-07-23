@@ -8,6 +8,7 @@ import type { AnalysisResult } from 'src/algorithms/types'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
+import { SequenceMarkerMissingEnds } from './SequenceMarkerMissingEnds'
 
 export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
 
@@ -38,7 +39,7 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
 export const SequenceView = withResizeDetector(SequenceViewUnsized)
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
-  const { seqName, substitutions, missing, deletions } = sequence
+  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd } = sequence
 
   if (!width) {
     return (
@@ -72,6 +73,20 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
     )
   })
 
+  const missingEndViews = [
+    { start: 0, length: alignmentStart },
+    { start: alignmentEnd, length: GENOME_SIZE - alignmentEnd },
+  ].map((missingEnd) => {
+    return (
+      <SequenceMarkerMissingEnds
+        key={missingEnd.start}
+        seqName={seqName}
+        deletion={missingEnd}
+        pixelsPerBase={pixelsPerBase}
+      />
+    )
+  })
+
   const deletionViews = deletions.map((deletion) => {
     return (
       <SequenceMarkerGap key={deletion.start} seqName={seqName} deletion={deletion} pixelsPerBase={pixelsPerBase} />
@@ -82,6 +97,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
         <rect fill="transparent" x={0} y={-10} width={GENOME_SIZE} height="30" />
+        {missingEndViews}
         {mutationViews}
         {missingViews}
         {deletionViews}
