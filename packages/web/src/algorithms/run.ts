@@ -27,7 +27,7 @@ export async function parse(input: string | File): Promise<ParseResult> {
 export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResult {
   const virus = VIRUSES['SARS-CoV-2']
 
-  if (seq.length < virus.QCParams.minimalLength){
+  if (seq.length < virus.QCParams.minimalLength) {
     throw new Error(`sequence is too short for reliable alignment and QC analysis`)
   }
 
