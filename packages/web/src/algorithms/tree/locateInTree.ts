@@ -93,9 +93,22 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
       }
     }
   }
+  let undetermined_sites = 0
+  if (node.mutations) {
+    for (const nmut of node.mutations) {
+      const pos = nmut[0]
+      if (
+        pos < seq.alignmentStart ||
+        pos >= seq.alignmentEnd ||
+        !seq.missing.every((d) => pos < d.begin && pos >= d.end)
+      ) {
+        undetermined_sites += 1
+      }
+    }
+  }
 
   const numMut = node.mutations?.size ?? 0
-  return numMut + seq.substitutions.length - 2 * shared_differences - shared_sites
+  return numMut + seq.substitutions.length - 2 * shared_differences - shared_sites - undetermined_sites
 }
 
 export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
