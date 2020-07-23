@@ -8,8 +8,6 @@ import { formatInsertion } from 'src/helpers/formatInsertion'
 import { locateInTree } from 'src/algorithms/tree/locateInTree'
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 
-import auspiceTree from 'src/assets/data/ncov_small.json'
-
 export function prepareResultsJson(results: SequenceAnylysisState[]) {
   return results.map(({ seqName, status, errors, result }) => {
     if (!result) {
@@ -68,8 +66,7 @@ export function serializeResultsToJson(results: SequenceAnylysisState[]) {
 }
 
 export function serializeResultsToAuspiceJsonV2(results: SequenceAnylysisState[]) {
-  const data = prepareResultsJson(results)
-  const auspiceData = locateInTree(data, auspiceTree, DEFAULT_ROOT_SEQUENCE)
+  const auspiceData = locateInTree(results, DEFAULT_ROOT_SEQUENCE)
   return JSON.stringify(auspiceData, null, 2)
 }
 

@@ -1,4 +1,4 @@
-/* eslint-disable camelcase,no-continue */
+/* eslint-disable camelcase */
 import { cloneDeep, set } from 'lodash'
 
 import type { AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeNodeAttrs } from 'auspice'
@@ -6,14 +6,12 @@ import type { AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeNodeAttrs } from 'auspi
 import { formatMutation } from 'src/helpers/formatMutation'
 import { parseMutation } from 'src/helpers/parseMutation'
 
-import type {
-  Nucleotide,
-  NucleotideDeletion,
-  NucleotideInsertion,
-  NucleotideMissing,
-  NucleotideRange,
-  SubstitutionsWithAminoacids,
-} from 'src/algorithms/types'
+import type { SequenceAnylysisState } from 'state/algorithm/algorithm.state'
+import type { Nucleotide, AnalysisResult } from 'src/algorithms/types'
+import { notUndefined } from 'helpers/notUndefined'
+import { formatClades } from 'helpers/formatClades'
+
+import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 
 export interface AuspiceTreeNodeAttrsExtended extends AuspiceTreeNodeAttrs {
   new_node?: { value?: string }
@@ -24,29 +22,6 @@ export type MutationMap = Map<number, Nucleotide>
 
 export interface AuspiceTreeNodeExtended extends AuspiceTreeNode<AuspiceTreeNodeAttrsExtended> {
   mutations?: MutationMap
-}
-
-export interface SequenceAnalysisDatum {
-  seqName: string
-  clade: string
-  alignmentStart: number
-  alignmentEnd: number
-  alignmentScore: number
-  mutations: SubstitutionsWithAminoacids[]
-  totalMutations: number
-  aminoacidChanges: string
-  totalAminoacidChanges: number
-  deletions: NucleotideDeletion[]
-  totalGaps: number
-  insertions: NucleotideInsertion[]
-  totalInsertions: number
-  missing: NucleotideMissing[]
-  totalMissing: number
-  nonACGTNs: NucleotideRange[]
-  totalNonACGTNs: number
-  QCStatus: string
-  QCFlags: string[]
-  errors?: string[]
 }
 
 export function parseMutationOrThrow(mut: string) {
@@ -63,14 +38,17 @@ export function parseMutationOrThrow(mut: string) {
   return { anc: refNuc, pos, der: queryNuc }
 }
 
-export function get_node_struct(seq: SequenceAnalysisDatum): AuspiceTreeNodeExtended {
+export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
+  const { cladeStr } = formatClades(seq.clades)
+  const qcStatus = seq.diagnostics.flags.length > 0 ? 'Fail' : 'Pass'
+
   return {
     branch_attrs: { mutations: {} },
     name: `${seq.seqName}_clades`,
     node_attrs: {
-      clade_membership: { value: seq.clade },
+      clade_membership: { value: cladeStr },
       new_node: { value: 'Yes' },
-      QCStatus: { value: seq.QCStatus },
+      QCStatus: { value: qcStatus },
     },
     mutations: new Map(),
   }
@@ -102,10 +80,10 @@ export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: Muta
   }
 }
 
-export function calculate_distance(node: AuspiceTreeNodeExtended, seq: SequenceAnalysisDatum) {
+export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
   let shared_differences = 0
   let shared_sites = 0
-  for (const qmut of seq.mutations) {
+  for (const qmut of seq.substitutions) {
     const der = node.mutations?.get(qmut.pos)
     if (der) {
       if (qmut.queryNuc === der) {
@@ -117,13 +95,13 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: SequenceA
   }
 
   const numMut = node.mutations?.size ?? 0
-  return numMut + seq.mutations.length - 2 * shared_differences - shared_sites
+  return numMut + seq.substitutions.length - 2 * shared_differences - shared_sites
 }
 
-export function get_differences(node: AuspiceTreeNodeExtended, seq: SequenceAnalysisDatum, root_seq: string) {
+export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
   const mutations: string[] = []
 
-  for (const qmut of seq.mutations) {
+  for (const qmut of seq.substitutions) {
     const { pos, queryNuc } = qmut
     const der = node.mutations?.get(pos)
     if (der) {
@@ -142,7 +120,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: SequenceAnal
   return mutations
 }
 
-export function closest_match(node: AuspiceTreeNodeExtended, seq: SequenceAnalysisDatum) {
+export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
   let best = calculate_distance(node, seq)
   let best_node = node
   const children = node?.children ?? []
@@ -157,7 +135,7 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: SequenceAnalys
   return { best, best_node }
 }
 
-export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: SequenceAnalysisDatum, rootSeq: string) {
+export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: AnalysisResult, rootSeq: string) {
   if (!base_node?.children) {
     base_node.children = []
   }
@@ -191,16 +169,13 @@ export function remove_mutations(node: AuspiceTreeNodeExtended) {
   }
 }
 
-export function locateInTree(
-  result: SequenceAnalysisDatum[],
-  auspiceDataRaw: Record<string, unknown>,
-  rootSeq: string,
-) {
-  const data = cloneDeep(result)
+export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
+  const succeeded = result.map((result) => result.result).filter(notUndefined)
+  const data = cloneDeep(succeeded)
   const auspiceData = (cloneDeep(auspiceDataRaw) as unknown) as AuspiceJsonV2 // TODO: validate and sanitize
 
   const auspiceTreeVersionExpected = 'v2'
-  const auspiceTreeVersion = (auspiceDataRaw?.version as string | undefined) ?? 'undefined'
+  const auspiceTreeVersion = (auspiceData?.version as string | undefined) ?? 'undefined'
   if (auspiceTreeVersion !== auspiceTreeVersionExpected) {
     throw new Error(
       `Tree format not recognized. Expected version "${auspiceTreeVersionExpected}", got "${auspiceTreeVersion}"`,
@@ -215,14 +190,10 @@ export function locateInTree(
   const mutations = new Map()
   mutations_on_tree(focal_node, mutations)
 
-  for (const seq of data) {
-    if (seq?.errors && seq?.errors.length > 0) {
-      continue
-    }
-
+  data.forEach((seq) => {
     const { best_node } = closest_match(focal_node, seq)
     attach_to_tree(best_node, seq, rootSeq)
-  }
+  })
 
   remove_mutations(focal_node)
 
