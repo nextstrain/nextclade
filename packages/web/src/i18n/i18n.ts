@@ -1,4 +1,3 @@
-/* eslint-disable no-loops/no-loops */
 import { ElementType } from 'react'
 
 import { mapValues } from 'lodash'
@@ -78,6 +77,14 @@ export interface I18NInitParams {
   localeKey: LocaleKey
 }
 
+export async function loadAuspiceTranslations() {
+  return Promise.all(
+    ['language', 'sidebar', 'translation'].map((ns) =>
+      import(/* webpackMode: "eager" */ `auspice/src/locales/en/${ns}.json`),
+    ),
+  )
+}
+
 export async function i18nInit({ localeKey }: I18NInitParams) {
   const enUS = numbro.languages()['en-US']
   const allNumbroLanguages = numbroLanguages as numbro.NumbroLanguage
@@ -106,11 +113,7 @@ export async function i18nInit({ localeKey }: I18NInitParams) {
     },
   })
 
-  for (const ns of ['language', 'sidebar', 'translation']) {
-    import(/* webpackMode: "eager" */ `auspice/src/locales/en/${ns}.json`)
-      .then((res) => i18n.addResourceBundle('en', ns, res.default))
-      .catch(console.error)
-  }
+  await loadAuspiceTranslations()
 
   await changeLocale(localeKey)
 

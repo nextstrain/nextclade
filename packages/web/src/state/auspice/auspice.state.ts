@@ -1,5 +1,4 @@
-import type { Tagged } from 'helpers/types'
-
+import type { AuspiceState } from 'auspice'
 import { createStateFromQueryOrJSONs } from 'auspice/src/actions/recomputeReduxState'
 
 import { prepareResultsJson } from 'src/io/serializeResults'
@@ -9,9 +8,7 @@ import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 import { getFakeResults } from 'src/assets/data/getFakeResults'
 import auspiceTree from 'src/assets/data/ncov_small.json'
 
-export type AuspiceState = Tagged<Record<string, unknown>, 'AuspiceState'>
-
-export function getFakeAuspiceState() {
+export function getFakeAuspiceState(): AuspiceState {
   if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
     const results = getFakeResults()
     const data = prepareResultsJson(results)

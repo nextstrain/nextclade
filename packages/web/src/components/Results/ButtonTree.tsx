@@ -17,7 +17,7 @@ const IconContainer = styled.span`
 export function TreeIconRaw() {
   const size = 20
   const theme = { unselectedColor: '#000' }
-  return <RectangularTree theme={theme} width={size} height={size} />
+  return <RectangularTree theme={theme} width={size} />
 }
 
 const TreeIcon = memo(TreeIconRaw)

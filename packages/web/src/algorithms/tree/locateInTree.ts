@@ -1,6 +1,8 @@
 /* eslint-disable camelcase,no-continue */
 import { cloneDeep, set } from 'lodash'
 
+import type { AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeNodeAttrs } from 'auspice'
+
 import { formatMutation } from 'src/helpers/formatMutation'
 import { parseMutation } from 'src/helpers/parseMutation'
 
@@ -13,78 +15,15 @@ import type {
   SubstitutionsWithAminoacids,
 } from 'src/algorithms/types'
 
-export interface AuspiceTreeNodeAttrsOriginal {
-  div?: number
-  GISAID_clade?: { value?: string }
-  author?: { author?: string; paper_url?: string; title?: string; value?: string }
-  clade_membership?: { value?: string }
-  country?: { value?: string }
-  country_exposure?: { value?: string }
-  division?: { value?: string }
-  division_exposure?: { value?: string }
-  gisaid_epi_isl?: { value?: string }
-  host?: { value?: string }
-  legacy_clade_membership?: { value?: string }
-  location?: { value?: string }
-  num_date?: { confidence?: [number, number]; value?: number }
-  pangolin_lineage?: { value?: number }
-  recency?: { value?: number }
-  region?: { confidence?: { Asia?: number }; entropy?: number; value?: string }
-  subclade_membership?: { value?: string }
-  submitting_lab?: { value?: string }
-  url?: string
-}
-
-export interface AuspiceTreeNodeAttrs extends AuspiceTreeNodeAttrsOriginal {
+export interface AuspiceTreeNodeAttrsExtended extends AuspiceTreeNodeAttrs {
   new_node?: { value?: string }
   QCStatus?: { value?: string }
 }
 
-export interface AuspiceTreeBranchAttrs {
-  labels?: {
-    aa?: string
-    clade?: string
-    mlabel?: string
-  }
-  mutations?: Record<string, string[]>
-}
-
 export type MutationMap = Map<number, Nucleotide>
 
-export interface AuspiceTreeNode {
-  name?: string
-  node_attrs?: AuspiceTreeNodeAttrs
-  branch_attrs?: AuspiceTreeBranchAttrs
-  children?: AuspiceTreeNode[]
+export interface AuspiceTreeNodeExtended extends AuspiceTreeNode<AuspiceTreeNodeAttrsExtended> {
   mutations?: MutationMap
-}
-
-export interface AuspiceData {
-  version?: 'v2'
-  meta: {
-    title?: string
-    description?: string
-    build_url?: string
-    maintainers?: { name?: string; url?: string }[]
-    updated?: string
-    colorings: { key?: string; title?: string; type?: string; scale?: string[][] }[]
-    display_defaults: {
-      branch_label?: string
-      color_by?: string
-      distance_measure?: string
-      geo_resolution?: string
-      map_triplicate?: boolean
-      transmission_lines?: boolean
-    }
-    filters?: string[]
-    genome_annotations?: Record<
-      string,
-      { end?: number; seqid?: string; start?: number; strand?: string; type?: string }
-    >
-    geo_resolutions?: { demes?: Record<string, { latitude?: number; longitude?: number }>; key?: string }[]
-    panels?: string[]
-  }
-  tree?: AuspiceTreeNode
 }
 
 export interface SequenceAnalysisDatum {
@@ -124,7 +63,7 @@ export function parseMutationOrThrow(mut: string) {
   return { anc: refNuc, pos, der: queryNuc }
 }
 
-export function get_node_struct(seq: SequenceAnalysisDatum): AuspiceTreeNode {
+export function get_node_struct(seq: SequenceAnalysisDatum): AuspiceTreeNodeExtended {
   return {
     branch_attrs: { mutations: {} },
     name: `${seq.seqName}_clades`,
@@ -137,7 +76,7 @@ export function get_node_struct(seq: SequenceAnalysisDatum): AuspiceTreeNode {
   }
 }
 
-export function mutations_on_tree(node: AuspiceTreeNode, mutations: MutationMap) {
+export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: MutationMap) {
   const tmp_muts = cloneDeep(mutations)
 
   const nucleotideMutations = node?.branch_attrs?.mutations?.nuc
@@ -163,7 +102,7 @@ export function mutations_on_tree(node: AuspiceTreeNode, mutations: MutationMap)
   }
 }
 
-export function calculate_distance(node: AuspiceTreeNode, seq: SequenceAnalysisDatum) {
+export function calculate_distance(node: AuspiceTreeNodeExtended, seq: SequenceAnalysisDatum) {
   let shared_differences = 0
   let shared_sites = 0
   for (const qmut of seq.mutations) {
@@ -181,7 +120,7 @@ export function calculate_distance(node: AuspiceTreeNode, seq: SequenceAnalysisD
   return numMut + seq.mutations.length - 2 * shared_differences - shared_sites
 }
 
-export function get_differences(node: AuspiceTreeNode, seq: SequenceAnalysisDatum, root_seq: string) {
+export function get_differences(node: AuspiceTreeNodeExtended, seq: SequenceAnalysisDatum, root_seq: string) {
   const mutations: string[] = []
 
   for (const qmut of seq.mutations) {
@@ -203,7 +142,7 @@ export function get_differences(node: AuspiceTreeNode, seq: SequenceAnalysisDatu
   return mutations
 }
 
-export function closest_match(node: AuspiceTreeNode, seq: SequenceAnalysisDatum) {
+export function closest_match(node: AuspiceTreeNodeExtended, seq: SequenceAnalysisDatum) {
   let best = calculate_distance(node, seq)
   let best_node = node
   const children = node?.children ?? []
@@ -218,7 +157,7 @@ export function closest_match(node: AuspiceTreeNode, seq: SequenceAnalysisDatum)
   return { best, best_node }
 }
 
-export function attach_to_tree(base_node: AuspiceTreeNode, seq: SequenceAnalysisDatum, rootSeq: string) {
+export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: SequenceAnalysisDatum, rootSeq: string) {
   if (!base_node?.children) {
     base_node.children = []
   }
@@ -241,7 +180,7 @@ export function attach_to_tree(base_node: AuspiceTreeNode, seq: SequenceAnalysis
   base_node.children.push(new_node)
 }
 
-export function remove_mutations(node: AuspiceTreeNode) {
+export function remove_mutations(node: AuspiceTreeNodeExtended) {
   if (node?.mutations) {
     node.mutations = undefined
   }
@@ -258,7 +197,7 @@ export function locateInTree(
   rootSeq: string,
 ) {
   const data = cloneDeep(result)
-  const auspiceData = (cloneDeep(auspiceDataRaw) as unknown) as AuspiceData // TODO: validate and sanitize
+  const auspiceData = (cloneDeep(auspiceDataRaw) as unknown) as AuspiceJsonV2 // TODO: validate and sanitize
 
   const auspiceTreeVersionExpected = 'v2'
   const auspiceTreeVersion = (auspiceDataRaw?.version as string | undefined) ?? 'undefined'

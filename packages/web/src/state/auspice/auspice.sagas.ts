@@ -1,3 +1,4 @@
+import type { AuspiceState } from 'auspice'
 import { put, select, takeEvery } from 'redux-saga/effects'
 import { push } from 'connected-next-router'
 
@@ -8,7 +9,6 @@ import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 import { prepareResultsJson } from 'src/io/serializeResults'
 
 import { selectResults } from 'src/state/algorithm/algorithm.selectors'
-import type { AuspiceState } from 'src/state/auspice/auspice.state'
 import { auspiceStartClean, showTree } from 'src/state/auspice/auspice.actions'
 
 import auspiceTree from 'src/assets/data/ncov_small.json'
