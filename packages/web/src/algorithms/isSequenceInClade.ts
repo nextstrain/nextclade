@@ -12,6 +12,8 @@ export function isSequenceInClade(
   return cladeAlleles.every(({ pos, nuc }) => {
     // clade definition by nextstrain use one-based indices, hence substract 1 to retrieve allele in reference and mutations object
     const posZeroBased = pos - 1
+    // if the position isn't part of the aligned region, we can't call the clade
+    // the function will then conservatively return false
     if (posZeroBased < alignmentStart || posZeroBased >= alignmentEnd) {
       return false
     }

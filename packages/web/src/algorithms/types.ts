@@ -77,6 +77,7 @@ export interface QCParameters {
   divergenceThreshold: number
   mixedSitesThreshold: number
   missingDataThreshold: number
+  minimalLength: number
 }
 
 export interface Virus {
