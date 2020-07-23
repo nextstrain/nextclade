@@ -37,7 +37,9 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
   const totalGaps = deletions.reduce((total, { length }) => total + length, 0)
   const totalInsertions = insertions.reduce((total, { ins }) => total + ins.length, 0)
 
-  const clades = pickBy(virus.clades, (clade) => isSequenceInClade(clade, nucSubstitutions, rootSeq))
+  const clades = pickBy(virus.clades, (clade) =>
+    isSequenceInClade(clade, nucSubstitutions, alignmentStart, alignmentEnd, rootSeq),
+  )
 
   const missing = findNucleotideRanges(alignedQuery, N)
   const totalMissing = missing.reduce((total, { begin, end }) => total + end - begin, 0)
