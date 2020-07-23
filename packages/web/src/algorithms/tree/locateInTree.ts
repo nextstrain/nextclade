@@ -155,7 +155,7 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
     new_node.mutations?.set(pos, der)
   }
 
-  base_node.children.push(new_node)
+  base_node.children.splice(0, 0, new_node)
 }
 
 export function remove_mutations(node: AuspiceTreeNodeExtended) {
