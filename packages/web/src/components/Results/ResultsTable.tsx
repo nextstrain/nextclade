@@ -26,10 +26,6 @@ import { ColumnGaps } from './ColumnGaps'
 import { ResultsControlsSort } from './ResultsControlsSort'
 import { ButtonHelp } from './ButtonHelp'
 
-// import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
-// import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
-// import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
-
 import HelpTipsColumnClade from './HelpTips/HelpTipsColumnClade.mdx'
 import HelpTipsColumnGaps from './HelpTips/HelpTipsColumnGaps.mdx'
 import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
@@ -117,7 +113,6 @@ export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: nu
   align-items: center;
   text-align: center;
   border-left: 1px solid #b3b3b3;
-  //height: 100%;
 `
 
 export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
