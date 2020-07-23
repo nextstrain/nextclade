@@ -1,3 +1,4 @@
+import { push } from 'connected-next-router';
 /* eslint-disable camelcase */
 import { cloneDeep, set } from 'lodash'
 
@@ -113,24 +114,32 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
 
 export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
   const mutations: string[] = []
+  const aminoacidMutations = {}
 
   for (const qmut of seq.substitutions) {
     const { pos, queryNuc } = qmut
     const der = node.mutations?.get(pos)
+    let refNuc
     if (der) {
       if (queryNuc !== der) {
-        const refNuc = der
-        const mut = formatMutation({ refNuc, pos, queryNuc })
-        mutations.push(mut)
+        refNuc = der
       }
     } else {
-      const refNuc = root_seq[pos] as Nucleotide
+      refNuc = root_seq[pos] as Nucleotide
+    }
+    if (refNuc) {
       const mut = formatMutation({ refNuc, pos, queryNuc })
       mutations.push(mut)
+      qmut.aaSubstitutions.forEach((d) => {
+        if (aminoacidMutations[d.gene] === undefined){
+          aminoacidMutations[d.gene] = []
+        }
+        aminoacidMutations[d.gene].push(formatMutation({ pos: d.codon, queryNuc: d.queryAA, refNuc: d.refAA }))
+      })
     }
   }
 
-  return mutations
+  return { mutations, aminoacidMutations }
 }
 
 export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
@@ -152,9 +161,7 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
   if (!base_node?.children) {
     base_node.children = []
   }
-
-  const mutations = get_differences(base_node, seq, rootSeq)
-
+  const { mutations, aminoacidMutations } = get_differences(base_node, seq, rootSeq)
   const baseDiv = base_node?.node_attrs?.div ?? 0
   const div = baseDiv + mutations.length
 
