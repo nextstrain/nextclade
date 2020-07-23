@@ -1,7 +1,6 @@
 import React from 'react'
 
 import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
 
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
@@ -44,10 +43,6 @@ const MainContent = styled.main`
   overflow-y: scroll;
 `
 
-// const Footer = styled.footer`
-//   flex-shrink: 0;
-// `
-
 function TreePage() {
   return (
     <LayoutResults>
@@ -67,8 +62,6 @@ function TreePage() {
             </TreeContainer>
           </AuspiceContainer>
         </MainContent>
-
-        {/* <Footer></Footer> */}
       </Container>
     </LayoutResults>
   )
