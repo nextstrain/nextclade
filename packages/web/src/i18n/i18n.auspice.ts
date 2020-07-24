@@ -43,7 +43,7 @@ export function i18nAuspiceInit({ localeKey }: I18NInitParams) {
     },
     lng: DEFAULT_LOCALE_KEY,
     fallbackLng: DEFAULT_LOCALE_KEY,
-    debug: true,
+    debug: process.env.DEV_ENABLE_I18N_DEBUG === '1',
     interpolation: { escapeValue: false },
     defaultNS: 'translation',
   })
