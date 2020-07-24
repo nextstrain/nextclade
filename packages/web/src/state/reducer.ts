@@ -25,6 +25,8 @@ import { settingsReducer } from './settings/settings.reducer'
 import { uiReducer } from './ui/ui.reducer'
 import { UiState } from './ui/ui.state'
 
+import { auspiceGeneralReducer } from './auspice/auspice.reducer'
+
 export interface State {
   algorithm: AlgorithmState
   settings: SettingsState
@@ -37,10 +39,6 @@ const settingsReducerPersisted = persistReducer(
   { key: 'settings', version: SETTINGS_VERSION, storage, timeout: 3000 },
   settingsReducer,
 )
-
-export function auspiceGeneral() {
-  return { language: 'en' }
-}
 
 const rootReducer = () =>
   combineReducers({
@@ -59,7 +57,7 @@ const rootReducer = () =>
     notifications,
     narrative,
     treeToo,
-    general: auspiceGeneral,
+    general: auspiceGeneralReducer,
     // END reducers from auspice
   })
 

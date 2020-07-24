@@ -1,7 +1,9 @@
 import React from 'react'
 
 import styled from 'styled-components'
+import { I18nextProvider } from 'react-i18next'
 
+import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
 
@@ -59,12 +61,14 @@ function TreePage() {
         </Header>
         <MainContent>
           <AuspiceContainer>
-            <SidebarContainer>
-              <Sidebar />
-            </SidebarContainer>
-            <TreeContainer>
-              <Tree />
-            </TreeContainer>
+            <I18nextProvider i18n={i18nAuspice}>
+              <SidebarContainer>
+                <Sidebar />
+              </SidebarContainer>
+              <TreeContainer>
+                <Tree />
+              </TreeContainer>
+            </I18nextProvider>
           </AuspiceContainer>
         </MainContent>
       </Container>
