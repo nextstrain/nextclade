@@ -1,14 +1,47 @@
 import React from 'react'
 import styled from 'styled-components'
+import { useTranslation } from 'react-i18next'
 
-import AuspiceControls from 'auspice/src/components/controls/controls'
+import ColorBy from 'auspice/src/components/controls/color-by'
+import DateRangeInputs from 'auspice/src/components/controls/date-range-inputs'
+import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch-labelling'
+import ChooseLayout from 'auspice/src/components/controls/choose-layout'
+import ChooseDataset from 'auspice/src/components/controls/choose-dataset'
+import ChooseMetric from 'auspice/src/components/controls/choose-metric'
+import SearchStrains from 'auspice/src/components/controls/search'
+import { SidebarHeader } from 'auspice/src/components/controls/styles'
 
-export const StyledAuspiceControls = styled(AuspiceControls)`
-  width: 100%;
+export const StyledAuspiceControlsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  overflow-y: scroll;
+  padding: 10px 15px;
+`
+
+export const SidebarHeaderStyled = styled(SidebarHeader)`
+  margin-top: 2rem;
 `
 
 export function Sidebar() {
-  return <StyledAuspiceControls mapOn={false} frequenciesOn={false} />
+  const { t } = useTranslation()
+
+  return (
+    <StyledAuspiceControlsContainer>
+      <ChooseDataset />
+
+      <SidebarHeader>{t('sidebar:Date Range')}</SidebarHeader>
+      <DateRangeInputs />
+
+      <SidebarHeaderStyled>{t('sidebar:Color By')}</SidebarHeaderStyled>
+      <ColorBy />
+
+      <SidebarHeaderStyled>{t('sidebar:Tree Options')}</SidebarHeaderStyled>
+      <ChooseLayout />
+      <ChooseMetric />
+      <ChooseBranchLabelling />
+      <SearchStrains />
+    </StyledAuspiceControlsContainer>
+  )
 }
+
+export default Sidebar

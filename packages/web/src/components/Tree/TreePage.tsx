@@ -8,22 +8,10 @@ import { ButtonBack } from 'src/components/Tree/ButtonBack'
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
 
-const AuspiceContainer = styled.div`
-  display: flex;
-`
-
-const SidebarContainer = styled.div`
-  flex: 0 0 250px;
-  background-color: #30353f;
-`
-
-const TreeContainer = styled.div`
-  flex: 1 1;
-`
-
 export const Container = styled.div`
   width: 100%;
   height: 100%;
+  min-width: 1000px;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -40,7 +28,24 @@ const HeaderLeft = styled.header`
 
 const MainContent = styled.main`
   flex-grow: 1;
-  overflow-y: scroll;
+  height: 100%;
+  overflow-y: auto;
+`
+
+const AuspiceContainer = styled.div`
+  display: flex;
+  height: 100%;
+  min-height: 750px;
+`
+
+const SidebarContainer = styled.div`
+  flex: 0 0 250px;
+  background-color: #30353f;
+`
+
+const TreeContainer = styled.div`
+  flex: 1 1;
+  overflow: hidden; // prevent infinite loop: show scroll, shrink, hide scroll, expand, show scroll...
 `
 
 function TreePage() {

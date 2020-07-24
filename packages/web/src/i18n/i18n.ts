@@ -77,10 +77,12 @@ export interface I18NInitParams {
   localeKey: LocaleKey
 }
 
-export async function loadAuspiceTranslations() {
+export async function loadAuspiceTranslations(lang: LocaleKey) {
   return Promise.all(
     ['language', 'sidebar', 'translation'].map((ns) =>
-      import(/* webpackMode: "eager" */ `auspice/src/locales/en/${ns}.json`),
+      import(
+        /* webpackMode: "eager" */ `auspice/src/locales/en/${ns}.json`
+      ).then((res: { default: Record<string, never> }) => i18n.addResourceBundle(lang, ns, res.default)),
     ),
   )
 }
@@ -113,7 +115,7 @@ export async function i18nInit({ localeKey }: I18NInitParams) {
     },
   })
 
-  await loadAuspiceTranslations()
+  await loadAuspiceTranslations(DEFAULT_LOCALE_KEY)
 
   await changeLocale(localeKey)
 
@@ -128,6 +130,7 @@ export async function changeLocale(localeKey: LocaleKey) {
   const locale = locales[localeKey]
   moment.locale(localeKey)
   numbro.setLanguage(locale.full)
+  await loadAuspiceTranslations(localeKey)
   return i18n.changeLanguage(localeKey)
 }
 
