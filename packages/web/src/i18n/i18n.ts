@@ -77,15 +77,7 @@ export interface I18NInitParams {
   localeKey: LocaleKey
 }
 
-export interface I18nState {
-  i18n: I18N
-}
-
-const i18nState: Partial<I18nState> = {
-  i18n: undefined,
-}
-
-export async function i18nInit({ localeKey }: I18NInitParams): Promise<I18nState> {
+export function i18nInit({ localeKey }: I18NInitParams) {
   const enUS = numbro.languages()['en-US']
   const allNumbroLanguages = numbroLanguages as numbro.NumbroLanguage
   Object.values(allNumbroLanguages).forEach((languageRaw) => {
@@ -101,17 +93,16 @@ export async function i18nInit({ localeKey }: I18NInitParams): Promise<I18nState
     keySeparator: false, // Disable dots as key separators as we use dots in keys
     nsSeparator: false,
     interpolation: { escapeValue: false },
-    // react: { useSuspense: true },
   })
 
-  await i18n.init()
+  // eslint-disable-next-line no-void
+  void i18n.init()
 
   const locale = locales[localeKey]
   moment.locale(localeKey)
   numbro.setLanguage(locale.full)
 
-  i18nState.i18n = i18n
-  return { i18n }
+  return i18n
 }
 
 export function getLocaleWithKey(key: LocaleKey) {
@@ -125,6 +116,8 @@ export async function changeLocale(i18n: I18N, localeKey: LocaleKey) {
   return i18n.changeLanguage(localeKey)
 }
 
+const i18n = i18nInit({ localeKey: DEFAULT_LOCALE_KEY })
+
 export { numbro }
 
-export default i18nState
+export default i18n

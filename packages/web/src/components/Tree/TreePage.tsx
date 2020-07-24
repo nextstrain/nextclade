@@ -1,15 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 import styled from 'styled-components'
-import type { i18n as I18N } from 'i18next'
 import { I18nextProvider } from 'react-i18next'
 
-import { DEFAULT_LOCALE_KEY } from 'src/i18n/i18n'
-import { i18nAuspiceInit } from 'src/i18n/i18n.auspice'
+import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
-
-import Loading from 'src/components/Loading/Loading'
 
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
@@ -54,25 +50,7 @@ const TreeContainer = styled.div`
   overflow: hidden; // prevent infinite loop: show scroll, shrink, hide scroll, expand, show scroll...
 `
 
-export interface TreePageState {
-  i18nAuspice: I18N
-}
-
 function TreePage() {
-  const [state, setState] = useState<TreePageState | undefined>()
-
-  useEffect(() => {
-    i18nAuspiceInit({ localeKey: DEFAULT_LOCALE_KEY })
-      .then(({ i18nAuspice }) => setState({ i18nAuspice }))
-      .catch((error: Error) => {
-        throw error
-      })
-  }, [])
-
-  if (!state?.i18nAuspice) {
-    return <Loading />
-  }
-
   return (
     <LayoutResults>
       <Container>
@@ -83,7 +61,7 @@ function TreePage() {
         </Header>
         <MainContent>
           <AuspiceContainer>
-            <I18nextProvider i18n={state.i18nAuspice}>
+            <I18nextProvider i18n={i18nAuspice}>
               <SidebarContainer>
                 <Sidebar />
               </SidebarContainer>

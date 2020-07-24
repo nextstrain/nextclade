@@ -27,15 +27,7 @@ import ruTranslation from 'auspice/src/locales/ru/translation.json'
 
 export const AUSPICE_I18N_NAMESPACES = ['language', 'sidebar', 'translation']
 
-export interface I18nAuspiceState {
-  i18nAuspice: I18N
-}
-
-const i18nAuspiceState: Partial<I18nAuspiceState> = {
-  i18nAuspice: undefined,
-}
-
-export async function i18nAuspiceInit({ localeKey }: I18NInitParams): Promise<I18nAuspiceState> {
+export function i18nAuspiceInit({ localeKey }: I18NInitParams) {
   const i18nAuspice = i18nOriginal.use(initReactI18next).createInstance({
     resources: {
       en: { sidebar: enSidebar, translation: enTranslation },
@@ -54,17 +46,18 @@ export async function i18nAuspiceInit({ localeKey }: I18NInitParams): Promise<I1
     debug: process.env.DEV_ENABLE_I18N_DEBUG === '1',
     interpolation: { escapeValue: false },
     defaultNS: 'translation',
-    // react: { useSuspense: true },
   })
 
-  await i18nAuspice.init()
-  i18nAuspiceState.i18nAuspice = i18nAuspice
-  return { i18nAuspice }
+  // eslint-disable-next-line no-void
+  void i18nAuspice.init()
+
+  return i18nAuspice
 }
 
-export async function changeAuspiceLocale(i18nAuspice: I18N, localeKey: LocaleKey) {
-  console.log({ i18nAuspice })
+export function changeAuspiceLocale(i18nAuspice: I18N, localeKey: LocaleKey) {
   return i18nAuspice.changeLanguage(localeKey)
 }
 
-export default i18nAuspiceState
+const i18nAuspice = i18nAuspiceInit({ localeKey: DEFAULT_LOCALE_KEY })
+
+export default i18nAuspice
