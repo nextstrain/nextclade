@@ -11,6 +11,9 @@ builds:
 
 title: "Your samples placed on a SARS-CoV-2 phylogeny"
 
+filter:
+  min_length: 28500
+
 refine:
   root: "Wuhan/Hu-1/2019 Wuhan/WH01/2019" #EPI_ISL_402125  EPI_ISL_406798
   divergence_unit: "mutations"

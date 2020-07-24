@@ -7,6 +7,11 @@
   ],
   "colorings": [
     {
+      "key": "region",
+      "title": "Region",
+      "type": "categorical"
+    },
+    {
       "key": "country",
       "title": "Country",
       "type": "categorical"
@@ -30,31 +35,6 @@
       "key": "subclade_membership",
       "title": "Emerging clade",
       "type": "categorical"
-    },
-    {
-      "key": "region",
-      "title": "Region",
-      "type": "categorical"
-    },
-    {
-      "key": "region_exposure",
-      "title": "Region Exposuse",
-      "type": "categorical"
-    },
-    {
-      "key": "author",
-      "title": "Authors",
-      "type": "categorical"
-    },
-    {
-      "key": "originating_lab",
-      "title": "Originating Lab",
-      "type": "categorical"
-    },
-    {
-      "key": "submitting_lab",
-      "title": "Submitting Lab",
-      "type": "categorical"
     }
   ],
   "geo_resolutions": [
@@ -70,11 +50,11 @@
   },
   "filters": [
     "region",
+    "new_node",
     "country",
     "division"
   ],
   "panels": [
-    "tree",
-    "entropy"
+    "tree"
   ]
 }
