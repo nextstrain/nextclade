@@ -234,10 +234,9 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
     branch_label: 'clade',
     color_by: 'new_node',
     distance_measure: 'div',
-    geo_resolution: 'country',
-    map_triplicate: true,
-    transmission_lines: false,
   }
+  auspiceData.meta.panels = []
+  auspiceData.meta.geo_resolutions = undefined
 
   return auspiceData
 }
