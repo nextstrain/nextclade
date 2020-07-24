@@ -1,4 +1,3 @@
-import { push } from 'connected-next-router';
 /* eslint-disable camelcase */
 import { cloneDeep, set } from 'lodash'
 
@@ -131,7 +130,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
       const mut = formatMutation({ refNuc, pos, queryNuc })
       mutations.push(mut)
       qmut.aaSubstitutions.forEach((d) => {
-        if (aminoacidMutations[d.gene] === undefined){
+        if (aminoacidMutations[d.gene] === undefined) {
           aminoacidMutations[d.gene] = []
         }
         aminoacidMutations[d.gene].push(formatMutation({ pos: d.codon, queryNuc: d.queryAA, refNuc: d.refAA }))
@@ -161,7 +160,7 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
   if (!base_node?.children) {
     base_node.children = []
   }
-  const { mutations, aminoacidMutations } = get_differences(base_node, seq, rootSeq)
+  const { mutations } = get_differences(base_node, seq, rootSeq)
   const baseDiv = base_node?.node_attrs?.div ?? 0
   const div = baseDiv + mutations.length
 
