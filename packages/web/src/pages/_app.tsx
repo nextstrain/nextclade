@@ -8,7 +8,7 @@ import 'src/helpers/errorPrototypeTojson' // to visualize Error in Redux Dev Too
 
 import { enableES5 } from 'immer'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 
 import { AppProps } from 'next/app'
 import type { Store } from 'redux'
@@ -22,7 +22,7 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { MDXProvider } from '@mdx-js/react'
 
 import { initialize } from 'src/initialize'
-import i18n from 'src/i18n/i18n'
+import type { I18nState } from 'src/i18n/i18n'
 
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { SEO } from 'src/components/Common/SEO'
@@ -30,12 +30,14 @@ import { SEO } from 'src/components/Common/SEO'
 import { theme } from 'src/theme'
 
 import 'src/styles/global.scss'
+import Loading from 'components/Loading/Loading'
 
 enableES5()
 
 export interface AppState {
   persistor: Persistor
   store: Store
+  i18nState: I18nState
 }
 
 export default function MyApp({ Component, pageProps, router }: AppProps) {
@@ -50,10 +52,14 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
   }, [router])
 
   if (!state) {
-    return 'Loading'
+    return <Loading />
   }
 
-  const { store, persistor } = state
+  const { store, persistor, i18nState } = state
+
+  if (!i18nState.i18n) {
+    return <Loading />
+  }
 
   return (
     <Provider store={store}>
@@ -61,7 +67,7 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
         <ThemeProvider theme={theme}>
           <MDXProvider components={{ a: LinkExternal }}>
             <PersistGate loading={null} persistor={persistor}>
-              <I18nextProvider i18n={i18n}>
+              <I18nextProvider i18n={i18nState.i18n}>
                 <SEO />
                 <Component {...pageProps} />
               </I18nextProvider>
