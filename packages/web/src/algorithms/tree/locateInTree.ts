@@ -1,9 +1,9 @@
 /* eslint-disable camelcase */
-import { cloneDeep, set } from 'lodash'
+import { cloneDeep, groupBy, set, mapValues } from 'lodash'
 
 import type { AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeNodeAttrs } from 'auspice'
 
-import { formatMutation } from 'src/helpers/formatMutation'
+import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { parseMutation } from 'src/helpers/parseMutation'
 
 import type { SequenceAnylysisState } from 'state/algorithm/algorithm.state'
@@ -112,12 +112,13 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
 }
 
 export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
-  const mutations: string[] = []
-  const aminoacidMutations = {}
+  const nucMutations: string[] = []
+  let aminoacidMutationEntries: { gene: string; aaMut: string }[] = []
 
   for (const qmut of seq.substitutions) {
     const { pos, queryNuc } = qmut
     const der = node.mutations?.get(pos)
+
     let refNuc
     if (der) {
       if (queryNuc !== der) {
@@ -126,19 +127,29 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
     } else {
       refNuc = root_seq[pos] as Nucleotide
     }
+
     if (refNuc) {
       const mut = formatMutation({ refNuc, pos, queryNuc })
-      mutations.push(mut)
-      qmut.aaSubstitutions.forEach((d) => {
-        if (aminoacidMutations[d.gene] === undefined) {
-          aminoacidMutations[d.gene] = []
-        }
-        aminoacidMutations[d.gene].push(formatMutation({ pos: d.codon, queryNuc: d.queryAA, refNuc: d.refAA }))
+      nucMutations.push(mut)
+
+      const aminoacidMutationEntriesNew = qmut.aaSubstitutions.map(({ codon, gene, queryAA, refAA }) => {
+        const aaMut = formatAAMutationWithoutGene({ refAA, codon, queryAA })
+        return { gene, aaMut }
       })
+
+      aminoacidMutationEntries = [...aminoacidMutationEntries, ...aminoacidMutationEntriesNew]
     }
   }
 
-  return { mutations, aminoacidMutations }
+  const aminoacidMutationsGrouped = groupBy(aminoacidMutationEntries, ({ gene }) => gene)
+  const aminoacidMutationsFinal = mapValues(aminoacidMutationsGrouped, (aaMuts) => aaMuts.map(({ aaMut }) => aaMut))
+  const mutations = {
+    nuc: nucMutations,
+    ...aminoacidMutationsFinal,
+  }
+
+  const totalNucMutations = nucMutations.length
+  return { mutations, nucMutations, totalNucMutations }
 }
 
 export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
@@ -160,16 +171,16 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
   if (!base_node?.children) {
     base_node.children = []
   }
-  const { mutations } = get_differences(base_node, seq, rootSeq)
+  const { mutations, nucMutations, totalNucMutations } = get_differences(base_node, seq, rootSeq)
   const baseDiv = base_node?.node_attrs?.div ?? 0
-  const div = baseDiv + mutations.length
+  const div = baseDiv + totalNucMutations
 
   const new_node = get_node_struct(seq)
-  set(new_node, 'branch_attrs.mutations.nuc', mutations)
+  set(new_node, 'branch_attrs.mutations', mutations)
   set(new_node, 'node_attrs.div', div)
   set(new_node, 'mutations', cloneDeep(base_node.mutations))
 
-  for (const mut of mutations) {
+  for (const mut of nucMutations) {
     const { pos, der } = parseMutationOrThrow(mut)
     new_node.mutations?.set(pos, der)
   }
