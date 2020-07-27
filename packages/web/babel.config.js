@@ -1,9 +1,5 @@
 require('./config/dotenv')
 
-const { findModuleRoot } = require('./lib/findModuleRoot')
-
-const { moduleRoot } = findModuleRoot()
-
 const development = process.env.NODE_ENV === 'development'
 const production = process.env.NODE_ENV === 'production'
 const analyze = process.env.ANALYZE === '1'
@@ -27,20 +23,13 @@ module.exports = (api) => {
           },
           // 'transform-runtime': {},
           // 'styled-jsx': {},
-          // 'class-properties': { loose: true },
-          // 'preset-typescript': {
-          //   onlyRemoveTypeImports: true,
-          // },
+          'class-properties': { loose: true },
         },
       ],
     ],
     plugins: [
       ['@babel/plugin-proposal-decorators', { legacy: true }],
-      ['@babel/plugin-proposal-class-properties', { loose: true }],
       'babel-plugin-parameter-decorator',
-      // ['@babel/plugin-proposal-decorators', { legacy: true }],
-      // '@babel/plugin-proposal-class-properties',
-      // 'babel-plugin-transform-typescript-metadata',
       '@babel/plugin-proposal-numeric-separator',
       'babel-plugin-styled-components',
       'babel-plugin-lodash',
@@ -52,17 +41,6 @@ module.exports = (api) => {
       !(development || debuggableProd) && web && '@babel/plugin-transform-react-inline-elements', // prettier-ignore
       !(development || debuggableProd) && web && '@babel/plugin-transform-react-constant-elements', // prettier-ignore
       ['babel-plugin-strip-function-call', { strip: ['timerStart', 'timerEnd'] }],
-      node && [
-        'babel-plugin-module-resolver',
-        {
-          root: [moduleRoot],
-          removeImport: false,
-          alias: {
-            'src': './src',
-            '@extensions': moduleRoot,
-          },
-        },
-      ],
     ].filter(Boolean),
   }
 }
