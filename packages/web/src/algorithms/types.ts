@@ -73,12 +73,6 @@ export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
   aaSubstitutions: DeepReadonly<AminoacidSubstitution[]>
 }
 
-// export interface QCParameters {
-//   divergenceThreshold: number
-//   mixedSitesThreshold: number
-//   missingDataThreshold: number
-// }
-
 export interface Virus {
   minimalLength: 100
   clades: DeepReadonly<Substitutions>
