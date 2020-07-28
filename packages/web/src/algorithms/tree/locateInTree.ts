@@ -227,8 +227,8 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
 
   remove_mutations(focal_node)
 
-  auspiceData.meta.colorings.push({ key: 'QCStatus', title: 'QC Status', type: 'categorical' })
-  auspiceData.meta.colorings.push({ key: 'new_node', title: 'New Node', type: 'categorical' })
+  auspiceData.meta.colorings.unshift({ key: 'QCStatus', title: 'QC Status', type: 'categorical' })
+  auspiceData.meta.colorings.unshift({ key: 'new_node', title: 'New Node', type: 'categorical' })
 
   auspiceData.meta.display_defaults = {
     branch_label: 'clade',
