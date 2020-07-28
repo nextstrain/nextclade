@@ -68,7 +68,7 @@ export function getDomain() {
       throw new Error(devError())
     }
 
-    return detectedDomain
+    DOMAIN = detectedDomain
   }
 
   if (!DOMAIN.startsWith('http')) {
