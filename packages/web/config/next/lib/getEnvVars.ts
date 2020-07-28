@@ -7,7 +7,7 @@ export function getEnvVars() {
   const ANALYZE = getbool('ANALYZE')
   const PROFILE = getbool('PROFILE')
   const PRODUCTION = NODE_ENV === 'production'
-  const DEBUG_SET_INITIAL_DATA = getbool('DEV_DEBUG_SET_INITIAL_DATA')
+  const DEBUG_SET_INITIAL_DATA = !PRODUCTION && getbool('DEV_DEBUG_SET_INITIAL_DATA')
   const DOMAIN = getDomain()
 
   const common = {
