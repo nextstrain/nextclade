@@ -191,7 +191,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
 export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
   let best = calculate_distance(node, seq)
   let best_node = node
-  const children = node?.children ?? []
+  const children = node.children ?? []
 
   // Only consider nodes of the reference tree, skip newly added nodes
   const refChildren = children.filter((node) => node.node_attrs?.['Node type'] !== NodeType.New)
@@ -208,11 +208,11 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult
 }
 
 export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: AnalysisResult, rootSeq: string) {
-  if (!base_node?.children) {
+  if (!base_node.children) {
     base_node.children = []
   }
   const { mutations, nucMutations, totalNucMutations } = get_differences(base_node, seq, rootSeq)
-  const baseDiv = base_node?.node_attrs?.div ?? 0
+  const baseDiv = base_node.node_attrs?.div ?? 0
   const div = baseDiv + totalNucMutations
 
   const new_node = get_node_struct(seq)
