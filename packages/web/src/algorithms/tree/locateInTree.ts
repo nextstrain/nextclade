@@ -192,7 +192,11 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult
   let best = calculate_distance(node, seq)
   let best_node = node
   const children = node?.children ?? []
-  for (const child of children) {
+
+  // Only consider nodes of the reference tree, skip newly added nodes
+  const refChildren = children.filter((node) => node.node_attrs?.['Node type'] !== NodeType.New)
+
+  for (const child of refChildren) {
     const { best: tmp_best, best_node: tmp_best_node } = closest_match(child, seq)
     if (tmp_best < best) {
       best = tmp_best
