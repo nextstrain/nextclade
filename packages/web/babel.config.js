@@ -31,7 +31,7 @@ module.exports = (api) => {
       ['@babel/plugin-proposal-decorators', { legacy: true }],
       'babel-plugin-parameter-decorator',
       '@babel/plugin-proposal-numeric-separator',
-      'babel-plugin-styled-components',
+      ['babel-plugin-styled-components', { ssr: true }],
       'babel-plugin-lodash',
       (development || debuggableProd) && web && !analyze && ['babel-plugin-typescript-to-proptypes', { typeCheck: './src/**/*.ts' }], // prettier-ignore
       // (development || debuggableProd) && web && !analyze && 'babel-plugin-redux-saga', // prettier-ignore
