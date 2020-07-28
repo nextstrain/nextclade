@@ -17,9 +17,9 @@ import { formatRange } from 'src/helpers/formatRange'
 export type MutationMap = Map<number, Nucleotide>
 
 export enum NodeType {
-  New = 'New node',
-  Closest = 'Closest reference node',
-  Other = 'Other reference node',
+  New = 'New',
+  Closest = 'Closest reference',
+  Other = 'Other reference',
 }
 
 export enum QCStatusType {
@@ -287,7 +287,7 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
     type: 'categorical',
     scale: [
       [NodeType.New, '#ff6961'],
-      [NodeType.Closest, '#3065cc'],
+      [NodeType.Closest, '#0e4bef'],
       [NodeType.Other, '#999999'],
     ],
   })
