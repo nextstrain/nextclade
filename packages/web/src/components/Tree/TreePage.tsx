@@ -22,6 +22,7 @@ export const Container = styled.div`
 const Header = styled.header`
   display: flex;
   flex-shrink: 0;
+  margin-bottom: 7px;
 `
 
 const HeaderLeft = styled.header`
