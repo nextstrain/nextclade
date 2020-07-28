@@ -25,6 +25,7 @@ declare module 'auspice' {
     subclade_membership?: { value?: string }
     submitting_lab?: { value?: string }
     url?: string
+    [key: string]: { value?: string | number; entropy?: number; confidence?: number }
   }
 
   export declare interface AuspiceTreeBranchAttrs {

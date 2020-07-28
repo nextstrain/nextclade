@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import { cloneDeep, groupBy, set, mapValues } from 'lodash'
 
-import type { AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeNodeAttrs } from 'auspice'
+import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { parseMutation } from 'src/helpers/parseMutation'
@@ -12,16 +12,11 @@ import { notUndefined } from 'src/helpers/notUndefined'
 import { formatClades } from 'src/helpers/formatClades'
 
 import auspiceDataRaw from 'src/assets/data/ncov_small.json'
-
-export interface AuspiceTreeNodeAttrsExtended extends AuspiceTreeNodeAttrs {
-  new_node?: { value?: string }
-  QCStatus?: { value?: string }
-  QCFlags?: { value?: string }
-}
+import { formatRange } from 'src/helpers/formatRange'
 
 export type MutationMap = Map<number, Nucleotide>
 
-export interface AuspiceTreeNodeExtended extends AuspiceTreeNode<AuspiceTreeNodeAttrsExtended> {
+export interface AuspiceTreeNodeExtended extends AuspiceTreeNode {
   mutations?: MutationMap
 }
 
@@ -41,17 +36,42 @@ export function parseMutationOrThrow(mut: string) {
 
 export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   const { cladeStr } = formatClades(seq.clades)
-  const qcStatus = seq.diagnostics.flags.length > 0 ? 'Fail' : 'Pass'
-  const qcFlags = seq.diagnostics.flags.join(', ')
+  const {
+    alignmentStart,
+    alignmentEnd,
+    alignmentScore,
+    diagnostics,
+    totalGaps,
+    deletions,
+    nonACGTNs,
+    totalNonACGTNs,
+    missing,
+    totalMissing,
+  } = seq
+  const qcStatus = diagnostics.flags.length > 0 ? `Failed: ${diagnostics.flags.join(', ')}` : 'Passed'
+
+  const alignment = `start: ${alignmentStart}, end: ${alignmentEnd} (score: ${alignmentScore})`
+
+  const listOfMissing = missing.map(({ begin, end }) => formatRange(begin, end)).join(', ')
+  const formattedMissing = totalMissing > 0 ? `(${totalMissing}): ${listOfMissing}` : 'None'
+
+  const listOfNonACGTNs = nonACGTNs.map(({ begin, end, nuc }) => `${nuc}: ${formatRange(begin, end)}`).join(', ')
+  const formattedNonACGTNs = totalNonACGTNs > 0 ? `(${totalNonACGTNs}): ${listOfNonACGTNs}` : 'None'
+
+  const listOfGaps = deletions.map(({ start, length }) => formatRange(start, start + length)).join(', ')
+  const formattedGaps = totalGaps > 0 ? `(${totalGaps}): ${listOfGaps}` : 'None'
 
   return {
     branch_attrs: { mutations: {} },
     name: `${seq.seqName}_clades`,
     node_attrs: {
-      clade_membership: { value: cladeStr },
-      new_node: { value: 'Yes' },
-      QCStatus: { value: qcStatus },
-      QCFlags: { value: qcFlags },
+      'clade_membership': { value: cladeStr },
+      'New node': { value: 'Yes' },
+      'Alignment': { value: alignment },
+      'Missing:': { value: formattedMissing },
+      'Gaps': { value: formattedGaps },
+      'Non-ACGTNs': { value: formattedNonACGTNs },
+      'QC Status': { value: qcStatus },
     },
     mutations: new Map(),
   }
@@ -230,12 +250,12 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
 
   remove_mutations(focal_node)
 
-  auspiceData.meta.colorings.unshift({ key: 'QCStatus', title: 'QC Status', type: 'categorical' })
-  auspiceData.meta.colorings.unshift({ key: 'new_node', title: 'New Node', type: 'categorical' })
+  auspiceData.meta.colorings.unshift({ key: 'QC Status', title: 'QC Status', type: 'categorical' })
+  auspiceData.meta.colorings.unshift({ key: 'New node', title: 'New Node', type: 'categorical' })
 
   auspiceData.meta.display_defaults = {
     branch_label: 'clade',
-    color_by: 'new_node',
+    color_by: 'New node',
     distance_measure: 'div',
   }
   auspiceData.meta.panels = []
