@@ -3,10 +3,8 @@ import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 
 import ColorBy from 'auspice/src/components/controls/color-by'
-import DateRangeInputs from 'auspice/src/components/controls/date-range-inputs'
 import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch-labelling'
 import ChooseLayout from 'auspice/src/components/controls/choose-layout'
-import ChooseDataset from 'auspice/src/components/controls/choose-dataset'
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import SearchStrains from 'auspice/src/components/controls/search'
 import { SidebarHeader } from 'auspice/src/components/controls/styles'
@@ -27,11 +25,6 @@ export function Sidebar() {
 
   return (
     <StyledAuspiceControlsContainer>
-      <ChooseDataset />
-
-      <SidebarHeader>{t('sidebar:Date Range')}</SidebarHeader>
-      <DateRangeInputs />
-
       <SidebarHeaderStyled>{t('sidebar:Color By')}</SidebarHeaderStyled>
       <ColorBy />
 
