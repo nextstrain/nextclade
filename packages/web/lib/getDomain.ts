@@ -50,6 +50,7 @@ export function devError() {
 
 export function getDomain() {
   let DOMAIN = getenv('FULL_DOMAIN')
+
   if (DOMAIN === 'autodetect') {
     const interactive = isInteractive()
 
