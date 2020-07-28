@@ -3,6 +3,7 @@ import { A, T, G, C } from './nucleotides'
 
 export const VIRUSES: Record<string, Virus> = {
   'SARS-CoV-2': {
+    minimalLength: 100,
     clades: {
       '19A': [
         { pos: 8782, nuc: C },

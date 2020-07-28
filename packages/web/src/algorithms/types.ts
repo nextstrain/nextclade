@@ -80,6 +80,7 @@ export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
 // }
 
 export interface Virus {
+  minimalLength: 100
   clades: DeepReadonly<Substitutions>
 }
 

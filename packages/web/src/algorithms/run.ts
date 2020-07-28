@@ -29,6 +29,10 @@ export async function parse(input: string | File): Promise<ParseResult> {
 export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResult {
   const virus = VIRUSES['SARS-CoV-2']
 
+  if (seq.length < virus.minimalLength) {
+    throw new Error(`sequence is too short for reliable alignment and QC analysis`)
+  }
+
   const { alignmentScore, query, ref } = alignPairwise(seq, rootSeq)
 
   const alignedQuery = query.join('')
@@ -39,7 +43,9 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
   const totalGaps = deletions.reduce((total, { length }) => total + length, 0)
   const totalInsertions = insertions.reduce((total, { ins }) => total + ins.length, 0)
 
-  const clades = pickBy(virus.clades, (clade) => isSequenceInClade(clade, nucSubstitutions, rootSeq))
+  const clades = pickBy(virus.clades, (clade) =>
+    isSequenceInClade(clade, nucSubstitutions, alignmentStart, alignmentEnd, rootSeq),
+  )
 
   const missing = findNucleotideRanges(alignedQuery, N)
   const totalMissing = missing.reduce((total, { begin, end }) => total + end - begin, 0)
