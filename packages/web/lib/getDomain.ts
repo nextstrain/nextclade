@@ -69,5 +69,6 @@ export function getDomain() {
 
     return detectedDomain
   }
+
   return DOMAIN
 }
