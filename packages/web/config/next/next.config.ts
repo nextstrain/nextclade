@@ -16,7 +16,6 @@ import { getGitCommitHash } from '../../lib/getGitCommitHash'
 
 import { getEnvVars } from './lib/getEnvVars'
 
-import getWithEnvironment from './withEnvironment'
 import getWithExtraWatch from './withExtraWatch'
 import getWithFriendlyConsole from './withFriendlyConsole'
 import getWithLodash from './withLodash'
@@ -30,8 +29,8 @@ import withIgnore from './withIgnore'
 // import withoutMinification from './withoutMinification'
 
 const {
-  BABEL_ENV,
-  NODE_ENV,
+  // BABEL_ENV,
+  // NODE_ENV,
   // ANALYZE,
   // PROFILE,
   PRODUCTION,
@@ -47,6 +46,21 @@ const {
 } = getEnvVars()
 
 const { pkg, moduleRoot } = findModuleRoot()
+
+const clientEnv = {
+  ENABLE_REDUX_DEV_TOOLS: ENABLE_REDUX_DEV_TOOLS.toString(),
+  ENABLE_REDUX_LOGGER: ENABLE_REDUX_LOGGER.toString(),
+  ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT: ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT.toString(),
+  DEBUG_SET_INITIAL_DATA: DEBUG_SET_INITIAL_DATA.toString(),
+  BRANCH_NAME: getGitBranch(),
+  PACKAGE_VERSION: pkg.version ?? '',
+  BUILD_NUMBER: getBuildNumber(),
+  TRAVIS_BUILD_WEB_URL: getBuildUrl(),
+  COMMIT_HASH: getGitCommitHash(),
+  DOMAIN,
+}
+
+console.info(`Client-side Environment:\n${JSON.stringify(clientEnv, null, 2)}`)
 
 const nextConfig: NextConfig = {
   distDir: `.build/${process.env.NODE_ENV}/tmp`,
@@ -69,6 +83,7 @@ const nextConfig: NextConfig = {
     ignoreDevErrors: true,
     ignoreBuildErrors: true,
   },
+  env: clientEnv,
 }
 
 const withMDX = getWithMDX({
@@ -82,21 +97,6 @@ const withFriendlyConsole = getWithFriendlyConsole({
   projectRoot: path.resolve(moduleRoot),
   packageName: pkg.name || 'web',
   progressBarColor: 'blue',
-})
-
-const withEnvironment = getWithEnvironment({
-  BABEL_ENV,
-  NODE_ENV,
-  ENABLE_REDUX_DEV_TOOLS: ENABLE_REDUX_DEV_TOOLS.toString(),
-  ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT: ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT.toString(),
-  ENABLE_REDUX_LOGGER: ENABLE_REDUX_LOGGER.toString(),
-  DEBUG_SET_INITIAL_DATA: DEBUG_SET_INITIAL_DATA.toString(),
-  BRANCH_NAME: getGitBranch(),
-  PACKAGE_VERSION: pkg.version ?? '',
-  BUILD_NUMBER: getBuildNumber(),
-  TRAVIS_BUILD_WEB_URL: getBuildUrl(),
-  COMMIT_HASH: getGitCommitHash(),
-  DOMAIN,
 })
 
 const withExtraWatch = getWithExtraWatch({
@@ -151,7 +151,6 @@ const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationL
 const config = withPlugins(
   [
     [withIgnore],
-    [withEnvironment],
     [withExtraWatch],
     [withThreads],
     [withSvg],
