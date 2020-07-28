@@ -49,7 +49,8 @@ export function devError() {
 }
 
 export function getDomain() {
-  const DOMAIN = getenv('FULL_DOMAIN')
+  let DOMAIN = getenv('FULL_DOMAIN')
+
   if (DOMAIN === 'autodetect') {
     const interactive = isInteractive()
 
@@ -67,7 +68,11 @@ export function getDomain() {
       throw new Error(devError())
     }
 
-    return detectedDomain
+    DOMAIN = detectedDomain
+  }
+
+  if (!DOMAIN.startsWith('http')) {
+    DOMAIN = `https://${DOMAIN}`
   }
 
   return DOMAIN
