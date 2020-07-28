@@ -16,6 +16,7 @@ import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 export interface AuspiceTreeNodeAttrsExtended extends AuspiceTreeNodeAttrs {
   new_node?: { value?: string }
   QCStatus?: { value?: string }
+  QCFlags?: { value?: string }
 }
 
 export type MutationMap = Map<number, Nucleotide>
@@ -41,6 +42,7 @@ export function parseMutationOrThrow(mut: string) {
 export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   const { cladeStr } = formatClades(seq.clades)
   const qcStatus = seq.diagnostics.flags.length > 0 ? 'Fail' : 'Pass'
+  const qcFlags = seq.diagnostics.flags.join(', ')
 
   return {
     branch_attrs: { mutations: {} },
@@ -49,6 +51,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
       clade_membership: { value: cladeStr },
       new_node: { value: 'Yes' },
       QCStatus: { value: qcStatus },
+      QCFlags: { value: qcFlags },
     },
     mutations: new Map(),
   }
