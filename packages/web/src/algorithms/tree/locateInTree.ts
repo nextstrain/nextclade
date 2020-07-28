@@ -16,6 +16,17 @@ import { formatRange } from 'src/helpers/formatRange'
 
 export type MutationMap = Map<number, Nucleotide>
 
+export enum NodeType {
+  New = 'New node',
+  Closest = 'Closest reference node',
+  Other = 'Other reference node',
+}
+
+export enum QCStatusType {
+  Pass = 'Pass',
+  Fail = 'Fail',
+}
+
 export interface AuspiceTreeNodeExtended extends AuspiceTreeNode {
   mutations?: MutationMap
 }
@@ -48,7 +59,8 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     missing,
     totalMissing,
   } = seq
-  const qcStatus = diagnostics.flags.length > 0 ? `Failed: ${diagnostics.flags.join(', ')}` : 'Passed'
+  const qcStatus = diagnostics.flags.length > 0 ? QCStatusType.Fail : QCStatusType.Pass
+  const qcFlags = diagnostics.flags.join(', ')
 
   const alignment = `start: ${alignmentStart}, end: ${alignmentEnd} (score: ${alignmentScore})`
 
@@ -66,12 +78,13 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     name: `${seq.seqName}_clades`,
     node_attrs: {
       'clade_membership': { value: cladeStr },
-      'New node': { value: 'Yes' },
+      'Node type': { value: NodeType.New },
       'Alignment': { value: alignment },
       'Missing:': { value: formattedMissing },
       'Gaps': { value: formattedGaps },
       'Non-ACGTNs': { value: formattedNonACGTNs },
       'QC Status': { value: qcStatus },
+      'QC Flags': { value: qcFlags },
     },
     mutations: new Map(),
   }
@@ -222,6 +235,11 @@ export function remove_mutations(node: AuspiceTreeNodeExtended) {
   }
 }
 
+export function setNodeTypes(node: AuspiceTreeNode) {
+  set(node, `node_attrs['Node type']`, { value: NodeType.Other })
+  node.children?.forEach(setNodeTypes)
+}
+
 export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
   const succeeded = result.map((result) => result.result).filter(notUndefined)
   const data = cloneDeep(succeeded)
@@ -240,22 +258,43 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
   }
 
+  setNodeTypes(focal_node)
+
   const mutations = new Map()
   mutations_on_tree(focal_node, mutations)
 
   data.forEach((seq) => {
     const { best_node } = closest_match(focal_node, seq)
+    set(best_node, `node_attrs['Node type']`, { value: NodeType.Closest })
     attach_to_tree(best_node, seq, rootSeq)
   })
 
   remove_mutations(focal_node)
 
-  auspiceData.meta.colorings.unshift({ key: 'QC Status', title: 'QC Status', type: 'categorical' })
-  auspiceData.meta.colorings.unshift({ key: 'New node', title: 'New Node', type: 'categorical' })
+  auspiceData.meta.colorings.unshift({
+    key: 'QC Status',
+    title: 'QC Status',
+    type: 'categorical',
+    scale: [
+      [QCStatusType.Pass, '#77dd77'],
+      [QCStatusType.Fail, '#f67828'],
+    ],
+  })
+
+  auspiceData.meta.colorings.unshift({
+    key: 'Node type',
+    title: 'Node type',
+    type: 'categorical',
+    scale: [
+      [NodeType.New, '#ff6961'],
+      [NodeType.Closest, '#3065cc'],
+      [NodeType.Other, '#999999'],
+    ],
+  })
 
   auspiceData.meta.display_defaults = {
     branch_label: 'clade',
-    color_by: 'New node',
+    color_by: 'Node type',
     distance_measure: 'div',
   }
   auspiceData.meta.panels = []
