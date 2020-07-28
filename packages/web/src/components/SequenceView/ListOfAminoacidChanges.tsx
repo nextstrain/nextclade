@@ -3,7 +3,7 @@ import React from 'react'
 import type { DeepReadonly } from 'ts-essentials'
 import { useTranslation } from 'react-i18next'
 
-import { formatAAMutation } from 'helpers/formatMutation'
+import { formatAAMutation } from 'src/helpers/formatMutation'
 
 import { AminoacidSubstitution } from 'src/algorithms/types'
 

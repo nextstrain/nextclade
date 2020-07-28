@@ -6,10 +6,10 @@ import type { AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeNodeAttrs } from 'auspi
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { parseMutation } from 'src/helpers/parseMutation'
 
-import type { SequenceAnylysisState } from 'state/algorithm/algorithm.state'
+import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 import type { Nucleotide, AnalysisResult } from 'src/algorithms/types'
-import { notUndefined } from 'helpers/notUndefined'
-import { formatClades } from 'helpers/formatClades'
+import { notUndefined } from 'src/helpers/notUndefined'
+import { formatClades } from 'src/helpers/formatClades'
 
 import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 

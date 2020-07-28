@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "*": ["src/types/*", "src/generated/*", "./src/*"],
+      "*": ["src/types/*", "src/generated/*"],
       "src/*": ["./src/*"]
     },
     "target": "esnext",
