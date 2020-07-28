@@ -1,8 +1,3 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
-  "build": {
-    "env": {
-      "VERCEL_URL": "system"
-    }
-  }
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
