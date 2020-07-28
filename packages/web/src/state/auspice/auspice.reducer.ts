@@ -9,3 +9,5 @@ export const auspiceGeneralReducer = reducerWithInitialState({ language: 'en' })
     draft.language = localeKey
   }),
 )
+
+export const auspiceQueryReducer = reducerWithInitialState({})

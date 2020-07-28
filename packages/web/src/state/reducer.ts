@@ -25,7 +25,7 @@ import { settingsReducer } from './settings/settings.reducer'
 import { uiReducer } from './ui/ui.reducer'
 import { UiState } from './ui/ui.state'
 
-import { auspiceGeneralReducer } from './auspice/auspice.reducer'
+import { auspiceGeneralReducer, auspiceQueryReducer } from './auspice/auspice.reducer'
 
 export interface State {
   algorithm: AlgorithmState
@@ -58,6 +58,7 @@ const rootReducer = () =>
     narrative,
     treeToo,
     general: auspiceGeneralReducer,
+    query: auspiceQueryReducer,
     // END reducers from auspice
   })
 
