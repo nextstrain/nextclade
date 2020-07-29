@@ -19,7 +19,7 @@ export const StyledAuspiceControlsContainer = styled.div`
 `
 
 export const SidebarHeaderStyled = styled(SidebarHeader)`
-  margin-top: 2rem;
+  margin-top: 0.75rem;
 `
 
 export const Bottom = styled.div`
