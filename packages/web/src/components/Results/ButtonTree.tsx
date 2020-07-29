@@ -17,14 +17,14 @@ const IconContainer = styled.span`
 
 export function TreeIconRaw() {
   const size = 20
-  const theme = { unselectedColor: '#000' }
+  const theme = { unselectedColor: '#fff' }
   return <RectangularTree theme={theme} width={size} />
 }
 
 const TreeIcon = memo(TreeIconRaw)
 
 export const ButtonStyled = styled(Button)<ButtonProps>`
-  width: 100px;
+  width: 150px;
   margin: 0 5px;
 `
 
@@ -46,11 +46,11 @@ export function ButtonTreeDisconnected({ showTree, hasResults }: ButtonTreeProps
   const { t } = useTranslation()
 
   return (
-    <ButtonStyled color="secondary" onClick={showTree} disabled={!hasResults}>
+    <ButtonStyled color="success" onClick={showTree} disabled={!hasResults}>
       <IconContainer>
         <TreeIcon />
       </IconContainer>
-      {t('Tree')}
+      {t('Show Tree')}
     </ButtonStyled>
   )
 }
