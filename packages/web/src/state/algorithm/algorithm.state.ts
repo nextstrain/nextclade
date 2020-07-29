@@ -61,9 +61,11 @@ export interface AlgorithmState {
   filters: ResultsFilters
 }
 
-let results: SequenceAnylysisState[] = []
+const fakeState: Partial<AlgorithmState> = {}
 if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
-  results = getFakeResults()
+  fakeState.results = getFakeResults()
+  fakeState.resultsFiltered = fakeState.results
+  fakeState.status = AlgorithmStatus.done
 }
 
 export const agorithmDefaultState: AlgorithmState = {
@@ -73,12 +75,13 @@ export const agorithmDefaultState: AlgorithmState = {
     rootSeq: DEFAULT_ROOT_SEQUENCE,
   },
   isDirty: true,
-  results,
-  resultsFiltered: results,
+  results: [],
+  resultsFiltered: [],
   errors: [],
   filters: {
     hasNoQcIssuesFilter: true,
     hasQcIssuesFilter: true,
     hasErrorsFilter: true,
   },
+  ...fakeState,
 }
