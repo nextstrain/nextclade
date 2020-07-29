@@ -1,5 +1,7 @@
 import { rgba } from 'polished'
 
+import { sidebarTheme as auspiceSidebarTheme } from 'auspice/src/components/main/styles'
+
 export const white = '#ffffff'
 export const gray100 = '#f8f9fa'
 export const gray150 = '#eff1f3'
@@ -76,6 +78,7 @@ export const shadows = {
 }
 
 export const theme = {
+  ...auspiceSidebarTheme,
   ...basicColors,
   ...themeColors,
   shadows,

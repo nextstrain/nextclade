@@ -6,10 +6,13 @@ import { composeWithDevTools } from 'redux-devtools-extension'
 import type { PersistorOptions, Persistor } from 'redux-persist/es/types'
 import reduxImmutableStateInvariant from 'redux-immutable-state-invariant'
 import createSagaMiddleware from 'redux-saga'
+import thunk from 'redux-thunk'
 import { createRouterMiddleware, initialRouterState } from 'connected-next-router'
 import { persistStore } from 'redux-persist'
+import { createLogger } from 'redux-logger'
 
 import type { WorkerPools } from 'src/workers/types'
+import { auspiceInitialState } from 'src/state/auspice/auspice.state'
 
 import createRootReducer from './reducer'
 import createRootSaga from './sagas'
@@ -31,18 +34,23 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
     context: { workerPools },
   })
 
-  let middlewares: Middleware<string>[] = [routerMiddleware, sagaMiddleware].filter(Boolean)
+  let middlewares: Middleware<string>[] = [routerMiddleware, thunk, sagaMiddleware].filter(Boolean)
 
   if (process.env.ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT === 'true') {
     middlewares = [...middlewares, reduxImmutableStateInvariant() as Middleware<string>]
+  }
+
+  if (process.env.ENABLE_REDUX_LOGGER === 'true') {
+    const logger = createLogger({})
+    middlewares = [...middlewares, logger]
   }
 
   let enhancer = applyMiddleware(...middlewares)
 
   if (process.env.ENABLE_REDUX_DEV_TOOLS === 'true' && composeWithDevTools) {
     enhancer = composeWithDevTools({
-      trace: true,
-      traceLimit: 25,
+      // trace: true,
+      // traceLimit: 25,
       actionsBlacklist: '@@INIT',
     })(enhancer)
   }
@@ -53,6 +61,7 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
     const url = format({ pathname, query })
     initialState = {
       router: initialRouterState(url, asPath),
+      ...auspiceInitialState,
     }
   }
 
