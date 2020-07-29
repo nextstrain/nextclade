@@ -9,6 +9,8 @@ import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import SearchStrains from 'auspice/src/components/controls/search'
 import { SidebarHeader } from 'auspice/src/components/controls/styles'
 
+import { LogoPoweredByAuspice } from 'src/components/Tree/LogoPoweredByAuspice'
+
 export const StyledAuspiceControlsContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -18,6 +20,10 @@ export const StyledAuspiceControlsContainer = styled.div`
 
 export const SidebarHeaderStyled = styled(SidebarHeader)`
   margin-top: 2rem;
+`
+
+export const Bottom = styled.div`
+  margin-top: auto;
 `
 
 export function Sidebar() {
@@ -33,6 +39,10 @@ export function Sidebar() {
       <ChooseMetric />
       <ChooseBranchLabelling />
       <SearchStrains />
+
+      <Bottom>
+        <LogoPoweredByAuspice />
+      </Bottom>
     </StyledAuspiceControlsContainer>
   )
 }
