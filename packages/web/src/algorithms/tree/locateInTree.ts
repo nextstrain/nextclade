@@ -18,8 +18,7 @@ export type MutationMap = Map<number, Nucleotide>
 
 export enum NodeType {
   New = 'New',
-  Closest = 'Closest reference',
-  Other = 'Other reference',
+  Reference = 'Reference',
 }
 
 export enum QCStatusType {
@@ -240,7 +239,7 @@ export function remove_mutations(node: AuspiceTreeNodeExtended) {
 }
 
 export function setNodeTypes(node: AuspiceTreeNode) {
-  set(node, `node_attrs['Node type']`, { value: NodeType.Other })
+  set(node, `node_attrs['Node type']`, { value: NodeType.Reference })
   node.children?.forEach(setNodeTypes)
 }
 
@@ -269,7 +268,6 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
 
   data.forEach((seq) => {
     const { best_node } = closest_match(focal_node, seq)
-    set(best_node, `node_attrs['Node type']`, { value: NodeType.Closest })
     attach_to_tree(best_node, seq, rootSeq)
   })
 
@@ -291,8 +289,7 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
     type: 'categorical',
     scale: [
       [NodeType.New, '#ff6961'],
-      [NodeType.Closest, '#0e4bef'],
-      [NodeType.Other, '#999999'],
+      [NodeType.Reference, '#999999'],
     ],
   })
 
