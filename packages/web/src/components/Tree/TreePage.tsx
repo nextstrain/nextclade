@@ -9,6 +9,7 @@ import { ButtonBack } from 'src/components/Tree/ButtonBack'
 
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
+import { Frequencies } from './Frequences'
 
 export const Container = styled.div`
   width: 100%;
