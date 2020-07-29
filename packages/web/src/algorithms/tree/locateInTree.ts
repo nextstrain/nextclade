@@ -278,8 +278,8 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
     title: 'QC Status',
     type: 'categorical',
     scale: [
-      [QCStatusType.Pass, '#77dd77'],
-      [QCStatusType.Fail, '#f67828'],
+      [QCStatusType.Pass, '#417C52'],
+      [QCStatusType.Fail, '#CA738E'],
     ],
   })
 
