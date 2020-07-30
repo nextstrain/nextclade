@@ -206,9 +206,22 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult
   return { best, best_node }
 }
 
+export function addAuxillaryNode(node: AuspiceTreeNodeExtended) {
+  const newTerminal = cloneDeep(node)
+  newTerminal.branch_attrs.mutations = { nuc: [] }
+  node.children = [newTerminal]
+  node['name'] = newTerminal['name'] + '_parent'
+  if (node.node_attrs['author']) {
+    delete node.node_attrs['author']
+  }
+  if (node.node_attrs['url']) {
+    delete node.node_attrs['url']
+  }
+}
+
 export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: AnalysisResult, rootSeq: string) {
   if (!base_node.children) {
-    base_node.children = []
+    addAuxillaryNode(base_node)
   }
   const { mutations, nucMutations, totalNucMutations } = get_differences(base_node, seq, rootSeq)
   const baseDiv = base_node.node_attrs?.div ?? 0
