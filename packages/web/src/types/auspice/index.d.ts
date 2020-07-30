@@ -38,7 +38,7 @@ declare module 'auspice' {
   }
 
   export declare interface AuspiceTreeNode<NodeAttrs = AuspiceTreeNodeAttrs, BranchAttrs = AuspiceTreeBranchAttrs> {
-    name?: string
+    name: string
     node_attrs?: NodeAttrs
     branch_attrs?: BranchAttrs
     children?: AuspiceTreeNode<NodeAttrs, BranchAttrs>[]

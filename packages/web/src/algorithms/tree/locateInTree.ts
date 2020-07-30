@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { cloneDeep, groupBy, set, mapValues } from 'lodash'
+import { cloneDeep, groupBy, set, mapValues, unset } from 'lodash'
 
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
@@ -206,10 +206,31 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult
   return { best, best_node }
 }
 
-export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: AnalysisResult, rootSeq: string) {
-  if (!base_node.children) {
-    base_node.children = []
+export function addAuxiliaryNode(baseNode: AuspiceTreeNodeExtended) {
+  let newTerminal = cloneDeep(baseNode)
+  newTerminal = {
+    ...newTerminal,
+    branch_attrs: {
+      ...newTerminal.branch_attrs,
+      mutations: { nuc: [] },
+    },
   }
+
+  baseNode.name = `${newTerminal.name}_parent`
+  baseNode.children = [newTerminal]
+  unset(baseNode, 'node_attrs.author')
+  unset(baseNode, 'node_attrs.url')
+}
+
+export function isLeaf(node: AuspiceTreeNodeExtended) {
+  return !node.children || node.children.length === 0
+}
+
+export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: AnalysisResult, rootSeq: string) {
+  if (isLeaf(base_node)) {
+    addAuxiliaryNode(base_node)
+  }
+
   const { mutations, nucMutations, totalNucMutations } = get_differences(base_node, seq, rootSeq)
   const baseDiv = base_node.node_attrs?.div ?? 0
   const div = baseDiv + totalNucMutations
@@ -224,7 +245,8 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
     new_node.mutations?.set(pos, der)
   }
 
-  base_node.children.splice(0, 0, new_node)
+  const children = base_node?.children ?? []
+  base_node.children = [new_node, ...children]
 }
 
 export function remove_mutations(node: AuspiceTreeNodeExtended) {
@@ -298,7 +320,7 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
     color_by: 'Node type',
     distance_measure: 'div',
   }
-  auspiceData.meta.panels = []
+  auspiceData.meta.panels = ['tree', 'entropy']
   auspiceData.meta.geo_resolutions = undefined
 
   return auspiceData
