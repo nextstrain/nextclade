@@ -3,6 +3,8 @@ import React from 'react'
 import type { DeepReadonly } from 'ts-essentials'
 import { useTranslation } from 'react-i18next'
 
+import { formatAAMutation } from 'src/helpers/formatMutation'
+
 import { AminoacidSubstitution } from 'src/algorithms/types'
 
 export interface ListOfAminoacidChangesProps {
@@ -15,7 +17,7 @@ export function ListOfAminoacidChanges({ aminoacidChanges }: ListOfAminoacidChan
   const totalChanges = aminoacidChanges.length
 
   const aminoacidMutationItems = aminoacidChanges.map(({ queryAA, codon, refAA, gene }) => {
-    const notation = `${gene}: ${refAA}${codon + 1}${queryAA}`
+    const notation = formatAAMutation({ gene, refAA, codon, queryAA })
     return <li key={notation}>{notation}</li>
   })
 
