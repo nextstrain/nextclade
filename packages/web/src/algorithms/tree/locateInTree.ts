@@ -320,7 +320,7 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
     color_by: 'Node type',
     distance_measure: 'div',
   }
-  auspiceData.meta.panels = []
+  auspiceData.meta.panels = ['tree', 'entropy']
   auspiceData.meta.geo_resolutions = undefined
 
   return auspiceData
