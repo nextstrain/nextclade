@@ -5,6 +5,7 @@ import styled from 'styled-components'
 
 import { TITLE_COLORS } from 'src/constants'
 
+// eslint-disable-next-line prefer-destructuring
 const PACKAGE_VERSION = process.env.PACKAGE_VERSION
 
 // Borrowed with modifications from Nextstrain.org
