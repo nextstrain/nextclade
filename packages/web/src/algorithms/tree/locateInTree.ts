@@ -129,7 +129,7 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
       if (qmut.queryNuc === der) {
         shared_differences += 1 // the exact mutation is shared between node and seq
       } else {
-        shared_sites += 1 // the same position is mutated, but the dates are different
+        shared_sites += 1 // the same position is mutated, but the states are different
       }
     }
   }
