@@ -115,6 +115,10 @@ export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: Muta
   }
 }
 
+export function isSequenced(pos: number, seq: AnalysisResult) {
+  return pos >= seq.alignmentStart && pos < seq.alignmentEnd && seq.missing.every((d) => pos < d.begin || pos >= d.end)
+}
+
 export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
   let shared_differences = 0
   let shared_sites = 0
@@ -135,11 +139,7 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
   if (node.mutations) {
     for (const nmut of node.mutations) {
       const pos = nmut[0]
-      if (
-        pos < seq.alignmentStart ||
-        pos >= seq.alignmentEnd ||
-        !seq.missing.every((d) => pos < d.begin || pos >= d.end)
-      ) {
+      if (!isSequenced(pos, seq)) {
         undetermined_sites += 1
       }
     }
@@ -153,17 +153,21 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
 export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
   const nucMutations: string[] = []
   let aminoacidMutationEntries: { gene: string; aaMut: string }[] = []
+  const positionsCovered = new Set()
 
   for (const qmut of seq.substitutions) {
     const { pos, queryNuc } = qmut
     const der = node.mutations?.get(pos)
+    positionsCovered.add(pos)
 
     let refNuc
     if (der) {
       if (queryNuc !== der) {
+        // shared site but states of node and seq differ
         refNuc = der
       }
     } else {
+      // node does not have a mutation, but seq does -> compare to root
       refNuc = root_seq[pos] as Nucleotide
     }
 
@@ -171,6 +175,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
       const mut = formatMutation({ refNuc, pos, queryNuc })
       nucMutations.push(mut)
 
+      // TODO: these are amino acid mutations relative to reference. Double hits won't how up properly
       const aminoacidMutationEntriesNew = qmut.aaSubstitutions.map(({ codon, gene, queryAA, refAA }) => {
         const aaMut = formatAAMutationWithoutGene({ refAA, codon, queryAA })
         return { gene, aaMut }
@@ -185,6 +190,16 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   const mutations = {
     nuc: nucMutations,
     ...aminoacidMutationsFinal,
+  }
+
+  for (const mut of node.mutations ?? []) {
+    const pos = mut[0]
+    // mutation in node that is not present in node
+    if (!positionsCovered.has(pos) && isSequenced(pos, seq)) {
+      const refNuc = root_seq[pos] as Nucleotide
+      const mutStr = formatMutation({ refNuc: mut[1], pos, queryNuc: refNuc })
+      nucMutations.push(mutStr)
+    }
   }
 
   const totalNucMutations = nucMutations.length
