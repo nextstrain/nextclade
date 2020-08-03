@@ -1,5 +1,7 @@
 import path from 'path'
 
+import { uniq } from 'lodash'
+
 import type { NextConfig } from 'next'
 import getWithMDX from '@next/mdx'
 // import withBundleAnalyzer from '@zeit/next-bundle-analyzer'
@@ -23,6 +25,7 @@ import withRaw from './withRaw'
 import withSvg from './withSvg'
 import withImages from './withImages'
 import withThreads from './withThreads'
+import withIgnore from './withIgnore'
 // import withoutMinification from './withoutMinification'
 
 const {
@@ -37,6 +40,7 @@ const {
   // ENABLE_STYLELINT,
   ENABLE_REDUX_DEV_TOOLS,
   ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT,
+  ENABLE_REDUX_LOGGER,
   DEBUG_SET_INITIAL_DATA,
   DOMAIN,
 } = getEnvVars()
@@ -45,6 +49,7 @@ const { pkg, moduleRoot } = findModuleRoot()
 
 const clientEnv = {
   ENABLE_REDUX_DEV_TOOLS: ENABLE_REDUX_DEV_TOOLS.toString(),
+  ENABLE_REDUX_LOGGER: ENABLE_REDUX_LOGGER.toString(),
   ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT: ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT.toString(),
   DEBUG_SET_INITIAL_DATA: DEBUG_SET_INITIAL_DATA.toString(),
   BRANCH_NAME: getGitBranch(),
@@ -109,22 +114,28 @@ const withTypeChecking = getWithTypeChecking({
   memoryLimit: 2048,
 })
 
-const withTranspileModules = getWithTranspileModules([
+const transpilationListDev = [
+  // prettier-ignore
+  'auspice',
+  'd3-scale',
+]
+
+const transpilationListProd = uniq([
+  ...transpilationListDev,
   '!d3-array/src/cumsum.js',
   '@loadable',
   'create-color',
   'd3-array',
-  'd3-scale',
   'debug',
   'delay',
   'immer',
+  'is-observable',
   'lodash',
   'observable-fns',
   'p-min-delay',
   'proper-url-join',
   'query-string',
   'react-router',
-  'is-observable',
   'react-share',
   'recharts',
   'redux-saga',
@@ -135,8 +146,11 @@ const withTranspileModules = getWithTranspileModules([
   'threads',
 ])
 
+const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
+
 const config = withPlugins(
   [
+    [withIgnore],
     [withExtraWatch],
     [withThreads],
     [withSvg],
@@ -147,9 +161,7 @@ const config = withPlugins(
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
     [withLodash],
     [withTypeChecking],
-    PRODUCTION && [withTranspileModules],
-    // BABEL_ENV,
-    // NODE_ENV,
+    [withTranspileModules],
     PRODUCTION && [withStaticComprression],
     // [withoutMinification],
   ].filter(Boolean),

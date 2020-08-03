@@ -1,6 +1,8 @@
 import React from 'react'
 
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
+import { ServerStyleSheet } from 'styled-components'
+
 import {
   PROJECT_NAME,
   PROJECT_DESCRIPTION,
@@ -44,8 +46,27 @@ export const MicrosoftIcons = (
 
 export default class Document extends NextDocument {
   static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
-    const initialProps: DocumentInitialProps = await NextDocument.getInitialProps(ctx)
-    return { ...initialProps }
+    const sheet = new ServerStyleSheet()
+    const originalRenderPage = ctx.renderPage
+
+    try {
+      ctx.renderPage = () =>
+        originalRenderPage({ enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />) })
+
+      const initialProps = await NextDocument.getInitialProps(ctx)
+
+      return {
+        ...initialProps,
+        styles: (
+          <>
+            {initialProps.styles}
+            {sheet.getStyleElement()}
+          </>
+        ),
+      }
+    } finally {
+      sheet.seal()
+    }
   }
 
   render() {
@@ -57,7 +78,7 @@ export default class Document extends NextDocument {
           <meta charSet="UTF-8" />
           <title>{PROJECT_NAME}</title>
           <meta name="description" content={PROJECT_DESCRIPTION} />
-          <meta name="application-name" content="Nextclade" />
+          <meta name="application-name" content={PROJECT_NAME} />
           <meta name="theme-color" content="#ffffff" />
 
           <link rel="manifest" href={URL_MANIFEST_JSON} />

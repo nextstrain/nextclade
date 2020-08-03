@@ -3,7 +3,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { Button, ButtonProps } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
-import { goBack } from 'connected-next-router'
+import { push } from 'connected-next-router'
 import { FaCaretLeft } from 'react-icons/fa'
 
 import { State } from 'src/state/reducer'
@@ -18,7 +18,7 @@ export const ButtonStyled = styled(Button)`
 const mapStateToProps = (state: State) => ({})
 
 const mapDispatchToProps = {
-  goBack: () => goBack(),
+  goBack: () => push('/'),
 }
 
 export const ButtonBack = connect(mapStateToProps, mapDispatchToProps)(ButtonBackDisconnected)

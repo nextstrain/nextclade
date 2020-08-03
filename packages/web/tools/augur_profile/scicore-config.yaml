@@ -1,0 +1,2 @@
+
+localrules: "augur_profile/localrules.smk"

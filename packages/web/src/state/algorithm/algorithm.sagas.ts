@@ -11,9 +11,9 @@ import type { ParseReturn, ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { WorkerPools } from 'src/workers/types'
 
-import { EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
+import { EXPORT_AUSPICE_JSON_V2_FILENAME, EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
-import { serializeResultsToJson, serializeResultsToCsv } from 'src/io/serializeResults'
+import { serializeResultsToJson, serializeResultsToCsv, serializeResultsToAuspiceJsonV2 } from 'src/io/serializeResults'
 
 import fsaSaga from 'src/state/util/fsaSaga'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
@@ -26,6 +26,7 @@ import {
   exportJsonTrigger,
   setInput,
   setInputFile,
+  exportAuspiceJsonV2Trigger,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
 
@@ -120,8 +121,15 @@ export function* exportJson() {
   saveFile(str, EXPORT_JSON_FILENAME)
 }
 
+export function* exportAuspiceJsonV2() {
+  const results = (yield select(selectResults) as unknown) as ReturnType<typeof selectResults>
+  const str = serializeResultsToAuspiceJsonV2(results)
+  saveFile(str, EXPORT_AUSPICE_JSON_V2_FILENAME)
+}
+
 export default [
   takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, workerAlgorithmRun)),
   takeEvery(exportCsvTrigger, exportCsv),
   takeEvery(exportJsonTrigger, exportJson),
+  takeEvery(exportAuspiceJsonV2Trigger, exportAuspiceJsonV2),
 ]

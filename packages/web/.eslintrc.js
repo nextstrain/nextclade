@@ -185,6 +185,7 @@ module.exports = {
         '@typescript-eslint/ban-types': ['warn', { extendDefaults: true, types: { object: false } }],
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
+        'import/no-duplicates': 'off',
         'no-useless-constructor': 'off',
         'react/prefer-stateless-function': 'off',
       },
