@@ -78,7 +78,7 @@ export default class Document extends NextDocument {
           <meta charSet="UTF-8" />
           <title>{PROJECT_NAME}</title>
           <meta name="description" content={PROJECT_DESCRIPTION} />
-          <meta name="application-name" content="Nextclade" />
+          <meta name="application-name" content={PROJECT_NAME} />
           <meta name="theme-color" content="#ffffff" />
 
           <link rel="manifest" href={URL_MANIFEST_JSON} />
