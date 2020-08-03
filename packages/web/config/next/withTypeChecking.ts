@@ -12,9 +12,10 @@ export interface GetWithTypeCheckingParams {
   eslint: boolean
   typeChecking: boolean
   memoryLimit?: number
+  exclude?: string[]
 }
 
-const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512 }: GetWithTypeCheckingParams) => (
+const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512, exclude = [] }: GetWithTypeCheckingParams) => (
   nextConfig: NextConfig,
 ) => {
   if (!typeChecking && !eslint) {
@@ -24,6 +25,10 @@ const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512 }: GetWit
   return addWebpackPlugin(
     nextConfig,
     new ForkTsCheckerWebpackPlugin({
+      issue: {
+        exclude: exclude?.map((file) => ({ origin: 'typescript', file })),
+      },
+
       typescript: {
         enabled: typeChecking,
         memoryLimit,
@@ -33,6 +38,9 @@ const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512 }: GetWit
           global: true,
           semantic: true,
           syntactic: true,
+        },
+        configOverwrite: {
+          exclude,
         },
       },
 
