@@ -7,6 +7,8 @@ import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
 
+import Footer from 'auspice/src/components/framework/footer'
+
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
 
@@ -71,6 +73,9 @@ function TreePage() {
               </TreeContainer>
             </I18nextProvider>
           </AuspiceContainer>
+          <I18nextProvider i18n={i18nAuspice}>
+            <Footer width={800} />
+          </I18nextProvider>
         </MainContent>
       </Container>
     </LayoutResults>
