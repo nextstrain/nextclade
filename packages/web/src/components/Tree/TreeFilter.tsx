@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { get, uniq } from 'lodash'
+
 import {
   Card as ReactstrapCard,
   CardBody as ReactstrapCardBody,
@@ -17,10 +19,7 @@ import type { AuspiceTreeNode } from 'auspice'
 
 import { State } from 'src/state/reducer'
 import { setTreeFilterPanelCollapsed } from 'src/state/ui/ui.actions'
-
-import { notUndefinedOrNull } from 'src/helpers/notUndefined'
-import unique from 'fork-ts-checker-webpack-plugin/lib/utils/array/unique'
-import { get } from 'lodash'
+import { notUndefined } from 'src/helpers/notUndefined'
 import { TreeFilterCheckboxGroup } from 'src/components/Tree/TreeFilterCheckboxGroup'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
