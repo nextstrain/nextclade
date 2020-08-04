@@ -297,7 +297,7 @@ export interface AddColoringScaleParams {
 
 export function addColoringScale({ auspiceData, key, value, color }: AddColoringScaleParams) {
   const coloring = auspiceData.meta.colorings.find((coloring) => coloring.key === key)
-  coloring?.scale?.unshift([UNKNOWN_VALUE])
+  coloring?.scale?.unshift([UNKNOWN_VALUE, color])
 }
 
 export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
