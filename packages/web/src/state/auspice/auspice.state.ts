@@ -6,6 +6,19 @@ import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 
 import { getFakeResults } from 'src/assets/data/getFakeResults'
 
+export interface AuspiceFiltersState {
+  'author': string[]
+  'country': string[]
+  'division': string[]
+  'host': string[]
+  'location': string[]
+  'originating_lab': string[]
+  'submitting_lab': string[]
+  'clade_membership': string[]
+  'QC Status': string[]
+  'Node type': string[]
+}
+
 export function getFakeAuspiceState(): AuspiceState {
   if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
     const results = getFakeResults()

@@ -2,10 +2,15 @@ import React from 'react'
 
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
+import { Button } from 'reactstrap'
+import { connect } from 'react-redux'
 
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
+
+import { State } from 'src/state/reducer'
+import { treeFilterByClade, treeFilterByQcStatus, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
@@ -51,13 +56,39 @@ const TreeContainer = styled.div`
   overflow: hidden; // prevent infinite loop: show scroll, shrink, hide scroll, expand, show scroll...
 `
 
-function TreePage() {
+const mapStateToProps = (state: State) => ({})
+
+const mapDispatchToProps = {
+  treeFilterByClade,
+  treeFilterByQcStatus,
+  treeFilterByNodeType,
+}
+
+export const TreePage = connect(mapStateToProps, mapDispatchToProps)(TreePageDisconnected)
+
+function TreePageDisconnected({ treeFilterByClade, treeFilterByQcStatus, treeFilterByNodeType }: any) {
   return (
     <LayoutResults>
       <Container>
         <Header>
           <HeaderLeft>
             <ButtonBack />
+
+            <Button type="button" onClick={() => treeFilterByClade(['19A'])}>
+              19A
+            </Button>
+
+            <Button type="button" onClick={() => treeFilterByQcStatus(['Fail'])}>
+              Fail
+            </Button>
+
+            <Button type="button" onClick={() => treeFilterByQcStatus(['Pass'])}>
+              Pass
+            </Button>
+
+            <Button type="button" onClick={() => treeFilterByNodeType(['New'])}>
+              New
+            </Button>
           </HeaderLeft>
         </Header>
         <MainContent>
