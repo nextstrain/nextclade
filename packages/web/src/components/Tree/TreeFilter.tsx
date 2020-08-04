@@ -43,7 +43,7 @@ export const CardBody = styled(ReactstrapCardBody)<ReactstrapCardBodyProps>`
 `
 
 export function selectKnownTraitValues(state: State, trait: string) {
-  const nodes = state?.tree?.nodes as AuspiceTreeNode[]
+  const nodes = (state?.tree?.nodes ?? []) as AuspiceTreeNode[]
   let clades = nodes.map((node) => get(node, `node_attrs.${trait}.value`) as string | undefined)
   clades = clades.filter(notUndefinedOrNull)
   clades = unique(clades)
