@@ -288,6 +288,18 @@ export function setNodeTypes(node: AuspiceTreeNode) {
   node.children?.forEach(setNodeTypes)
 }
 
+export interface AddColoringScaleParams {
+  auspiceData: AuspiceJsonV2
+  key: string
+  value: string
+  color: string
+}
+
+export function addColoringScale({ auspiceData, key, value, color }: AddColoringScaleParams) {
+  const coloring = auspiceData.meta.colorings.find((coloring) => coloring.key === key)
+  coloring?.scale?.unshift([UNKNOWN_VALUE])
+}
+
 export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
   const succeeded = result.map((result) => result.result).filter(notUndefined)
   const data = cloneDeep(succeeded)
@@ -337,6 +349,10 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
       [NodeType.Reference, '#999999'],
     ],
   })
+
+  addColoringScale({ auspiceData, key: 'region', value: UNKNOWN_VALUE, color: '#999999' })
+  addColoringScale({ auspiceData, key: 'country', value: UNKNOWN_VALUE, color: '#999999' })
+  addColoringScale({ auspiceData, key: 'division', value: UNKNOWN_VALUE, color: '#999999' })
 
   auspiceData.meta.display_defaults = {
     branch_label: 'clade',
