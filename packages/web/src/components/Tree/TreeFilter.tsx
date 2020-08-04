@@ -56,7 +56,7 @@ export function selectKnownTraitValues(state: State, trait: string) {
   let values = valuesRaw.filter(notUndefined)
   values = uniq(values)
   values.sort()
-  moveToFirst(values, UNKNOWN_VALUE)
+  values = moveToFirst(values, UNKNOWN_VALUE)
   return values ?? []
 }
 
