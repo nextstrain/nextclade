@@ -22,19 +22,19 @@ const mapDispatchToProps = {
   setTreeFilterPanelCollapsed,
 }
 
-export const ButtonTreeFilter = connect(mapStateToProps, mapDispatchToProps)(ButtonFilterDisconnected)
+export const ButtonTreeFilter = connect(mapStateToProps, mapDispatchToProps)(ButtonTreeFilterDisconnected)
 
-export interface ButtonFilterProps extends ButtonProps {
+export interface ButtonTreeFilterProps extends ButtonProps {
   treeFilterPanelCollapsed: boolean
   setTreeFilterPanelCollapsed(treeFilterPanelCollapsed: boolean): void
 }
 
-export function ButtonFilterDisconnected({
+export function ButtonTreeFilterDisconnected({
   onClick,
   goBack,
   treeFilterPanelCollapsed,
   setTreeFilterPanelCollapsed,
-}: ButtonFilterProps) {
+}: ButtonTreeFilterProps) {
   const { t } = useTranslation()
   const toggleFilterPanel = useCallback(() => setTreeFilterPanelCollapsed(!treeFilterPanelCollapsed), [
     treeFilterPanelCollapsed,
