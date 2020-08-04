@@ -32,8 +32,8 @@ export function TreeFilterCheckboxGroup({ name, trait, values }: TreeFilterCheck
       <Label title={name}>
         <LabelText>{name}</LabelText>
         <FormSectionContent>
-          {values.map((clade) => (
-            <TreeFilterCheckbox key={clade} text={clade} trait={trait} value={clade} />
+          {values.map((value) => (
+            <TreeFilterCheckbox key={value} text={value} trait={trait} value={value} />
           ))}
         </FormSectionContent>
       </Label>
