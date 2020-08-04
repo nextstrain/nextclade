@@ -2,18 +2,15 @@ import React from 'react'
 
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
-import { Button } from 'reactstrap'
-import { connect } from 'react-redux'
 
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
 
-import { State } from 'src/state/reducer'
-import { treeFilterByClade, treeFilterByQcStatus, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
-
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
+import { TreeFilter } from './TreeFilter'
+import { ButtonTreeFilter } from './ButtonTreeFilter'
 
 export const Container = styled.div`
   width: 100%;
@@ -31,6 +28,21 @@ const Header = styled.header`
 `
 
 const HeaderLeft = styled.header`
+  flex: 0;
+`
+
+const HeaderCenter = styled.header`
+  flex: 1;
+  padding: 5px 10px;
+  border-radius: 5px;
+`
+
+const HeaderRight = styled.header`
+  flex: 0;
+  display: flex;
+`
+
+const HeaderRightContainer = styled.div`
   flex: 0;
 `
 
@@ -56,41 +68,26 @@ const TreeContainer = styled.div`
   overflow: hidden; // prevent infinite loop: show scroll, shrink, hide scroll, expand, show scroll...
 `
 
-const mapStateToProps = (state: State) => ({})
-
-const mapDispatchToProps = {
-  treeFilterByClade,
-  treeFilterByQcStatus,
-  treeFilterByNodeType,
-}
-
-export const TreePage = connect(mapStateToProps, mapDispatchToProps)(TreePageDisconnected)
-
-function TreePageDisconnected({ treeFilterByClade, treeFilterByQcStatus, treeFilterByNodeType }: any) {
+function TreePage() {
   return (
     <LayoutResults>
       <Container>
         <Header>
           <HeaderLeft>
             <ButtonBack />
-
-            <Button type="button" onClick={() => treeFilterByClade(['19A'])}>
-              19A
-            </Button>
-
-            <Button type="button" onClick={() => treeFilterByQcStatus(['Fail'])}>
-              Fail
-            </Button>
-
-            <Button type="button" onClick={() => treeFilterByQcStatus(['Pass'])}>
-              Pass
-            </Button>
-
-            <Button type="button" onClick={() => treeFilterByNodeType(['New'])}>
-              New
-            </Button>
           </HeaderLeft>
+
+          <HeaderCenter />
+
+          <HeaderRight>
+            <HeaderRightContainer>
+              <ButtonTreeFilter />
+            </HeaderRightContainer>
+          </HeaderRight>
         </Header>
+
+        <TreeFilter />
+
         <MainContent>
           <AuspiceContainer>
             <I18nextProvider i18n={i18nAuspice}>
