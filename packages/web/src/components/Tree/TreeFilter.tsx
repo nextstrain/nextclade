@@ -21,6 +21,7 @@ import { State } from 'src/state/reducer'
 import { setTreeFilterPanelCollapsed } from 'src/state/ui/ui.actions'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { TreeFilterCheckboxGroup } from 'src/components/Tree/TreeFilterCheckboxGroup'
+import { UNKNOWN_VALUE } from 'src/constants'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
   box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
@@ -41,13 +42,22 @@ export const CardBody = styled(ReactstrapCardBody)<ReactstrapCardBodyProps>`
   padding: 3px 3px;
 `
 
+export function moveToFirst<T>(arr: T[], value: T) {
+  if (arr.includes(value)) {
+    const others = arr.filter((x) => x !== value)
+    return [value, ...others]
+  }
+  return arr
+}
+
 export function selectKnownTraitValues(state: State, trait: string) {
   const nodes = (state?.tree?.nodes ?? []) as AuspiceTreeNode[]
-  let clades = nodes.map((node) => get(node, `node_attrs.${trait}.value`) as string | undefined)
-  clades = clades.filter(notUndefinedOrNull)
-  clades = unique(clades)
-  clades.sort()
-  return clades
+  const valuesRaw = nodes.map((node) => get(node, `node_attrs.${trait}.value`) as string | undefined) || []
+  let values = valuesRaw.filter(notUndefined)
+  values = uniq(values)
+  values.sort()
+  moveToFirst(values, UNKNOWN_VALUE)
+  return values ?? []
 }
 
 const mapStateToProps = (state: State) => ({
