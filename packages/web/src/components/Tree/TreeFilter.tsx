@@ -13,15 +13,15 @@ import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
+import type { AuspiceTreeNode } from 'auspice'
+
 import { State } from 'src/state/reducer'
 import { setTreeFilterPanelCollapsed } from 'src/state/ui/ui.actions'
-import { treeFilterByClade, treeFilterByNodeType, treeFilterByQcStatus } from 'src/state/auspice/auspice.actions'
-import { TreeFilterCheckbox } from './TreeFilterCheckbox'
-import { FormSection, Label } from './Form'
-import AuspiceTree from 'auspice/src/components/tree'
-import { AuspiceTreeNode } from 'auspice'
-import { notUndefined, notUndefinedOrNull } from 'src/helpers/notUndefined'
+
+import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import unique from 'fork-ts-checker-webpack-plugin/lib/utils/array/unique'
+import { get } from 'lodash'
+import { TreeFilterCheckboxGroup } from 'src/components/Tree/TreeFilterCheckboxGroup'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
   box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
@@ -42,26 +42,26 @@ export const CardBody = styled(ReactstrapCardBody)<ReactstrapCardBodyProps>`
   padding: 3px 3px;
 `
 
-function selectKnownClades(state: State) {
+export function selectKnownTraitValues(state: State, trait: string) {
   const nodes = state?.tree?.nodes as AuspiceTreeNode[]
-
-  let clades = nodes.map((node) => node.node_attrs?.clade_membership?.value).filter(notUndefinedOrNull) // eslint-disable-line camelcase
+  let clades = nodes.map((node) => get(node, `node_attrs.${trait}.value`) as string | undefined)
+  clades = clades.filter(notUndefinedOrNull)
   clades = unique(clades)
   clades.sort()
-
   return clades
 }
 
 const mapStateToProps = (state: State) => ({
   treeFilterPanelCollapsed: state.ui.treeFilterPanelCollapsed,
-  knownClades: selectKnownClades(state),
+  knownClades: selectKnownTraitValues(state, 'clade_membership'),
+  knownCountries: selectKnownTraitValues(state, 'country'),
+  knownDivisions: selectKnownTraitValues(state, 'division'),
+  knownRegions: selectKnownTraitValues(state, 'region'),
+  knownQcStatuses: selectKnownTraitValues(state, 'QC Status'),
 })
 
 const mapDispatchToProps = {
   setTreeFilterPanelCollapsed,
-  treeFilterByClade,
-  treeFilterByQcStatus,
-  treeFilterByNodeType,
 }
 
 export const TreeFilter = connect(mapStateToProps, mapDispatchToProps)(TreeFilterDisconnected)
@@ -69,12 +69,20 @@ export const TreeFilter = connect(mapStateToProps, mapDispatchToProps)(TreeFilte
 export interface TreeFilterProps {
   treeFilterPanelCollapsed: boolean
   knownClades: string[]
+  knownCountries: string[]
+  knownDivisions: string[]
+  knownRegions: string[]
+  knownQcStatuses: string[]
   setTreeFilterPanelCollapsed(collapsed: boolean): void
 }
 
 export function TreeFilterDisconnected({
   treeFilterPanelCollapsed,
   knownClades,
+  knownCountries,
+  knownDivisions,
+  knownRegions,
+  knownQcStatuses,
   setTreeFilterPanelCollapsed,
 }: TreeFilterProps) {
   const { t } = useTranslation()
@@ -85,22 +93,11 @@ export function TreeFilterDisconnected({
         <CardHeader>{t('Results filter')}</CardHeader>
 
         <CardBody>
-          <FormSection>
-            <Label>
-              {t('By clades')}
-              {knownClades.map((clade) => (
-                <TreeFilterCheckbox key={clade} text={clade} trait={'clade_membership'} value={clade} />
-              ))}
-            </Label>
-          </FormSection>
-
-          <FormSection>
-            <Label>
-              {t('By QC status')}
-              <TreeFilterCheckbox text={t('Pass')} trait={'QC Status'} value={'Pass'} />
-              <TreeFilterCheckbox text={t('Fail')} trait={'QC Status'} value={'Fail'} />
-            </Label>
-          </FormSection>
+          <TreeFilterCheckboxGroup name={t('by Region')} trait="region" values={knownRegions} />
+          <TreeFilterCheckboxGroup name={t('by Country')} trait="country" values={knownCountries} />
+          <TreeFilterCheckboxGroup name={t('by Division')} trait="division" values={knownDivisions} />
+          <TreeFilterCheckboxGroup name={t('by Clade')} trait="clade_membership" values={knownClades} />
+          <TreeFilterCheckboxGroup name={t('by QC Status')} trait="QC Status" values={knownQcStatuses} />
         </CardBody>
       </Card>
     </Collapse>

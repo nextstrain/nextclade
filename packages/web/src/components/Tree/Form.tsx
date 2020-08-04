@@ -12,7 +12,7 @@ import {
 export const FormGroup = styled(ReactstrapFormGroup)<ReactstrapFormGroupProps>`
   background-color: #fff;
   flex-grow: 1;
-  flex-basis: 22%;
+  flex-basis: 0;
 `
 
 export const FormSection = styled(FormGroup)<ReactstrapFormGroupProps>`

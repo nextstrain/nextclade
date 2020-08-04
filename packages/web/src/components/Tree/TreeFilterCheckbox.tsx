@@ -2,12 +2,20 @@ import React from 'react'
 
 import { connect } from 'react-redux'
 import { get } from 'lodash'
+import styled from 'styled-components'
 
 import { AuspiceFiltersState } from 'src/state/auspice/auspice.state'
 import { State } from 'src/state/reducer'
 import { applyFilter } from 'auspice/src/actions/tree'
 
 import { FormGroup, Label, InputCheckbox } from './Form'
+
+export const LabelStyled = styled(Label)`
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
 
 export interface TreeFilterCheckboxProps {
   filters: AuspiceFiltersState
@@ -37,10 +45,10 @@ export function TreeFilterCheckboxDisconnected({ filters, applyFilter, text, tra
 
   return (
     <FormGroup check>
-      <Label check>
-        <InputCheckbox type="checkbox" checked={isChecked} onChange={toggle} />
+      <LabelStyled title={text} check>
+        <InputCheckbox type="checkbox" checked={isChecked} onChange={toggle} title={text} />
         {text}
-      </Label>
+      </LabelStyled>
     </FormGroup>
   )
 }
