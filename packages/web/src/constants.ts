@@ -10,7 +10,7 @@ export const URL_MANIFEST_JSON = `${DOMAIN}/manifest.json`
 export const SAFARI_PINNED_TAB_COLOR = '#555555' as const
 export const MS_TILE_COLOR = '#2b5797' as const
 
-export const UNKNOWN_VALUE = 'Unknown'
+export const UNKNOWN_VALUE = 'new node'
 export const BASE_MIN_WIDTH_PX = 4 as const
 export const EXPORT_CSV_FILENAME = 'nextclade.csv' as const
 export const EXPORT_JSON_FILENAME = 'nextclade.json' as const
