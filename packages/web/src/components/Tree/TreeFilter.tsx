@@ -53,6 +53,7 @@ export function selectKnownTraitValues(state: State, trait: string) {
 
 const mapStateToProps = (state: State) => ({
   treeFilterPanelCollapsed: state.ui.treeFilterPanelCollapsed,
+  knownNodeTypes: selectKnownTraitValues(state, 'Node type'),
   knownClades: selectKnownTraitValues(state, 'clade_membership'),
   knownCountries: selectKnownTraitValues(state, 'country'),
   knownDivisions: selectKnownTraitValues(state, 'division'),
@@ -68,6 +69,7 @@ export const TreeFilter = connect(mapStateToProps, mapDispatchToProps)(TreeFilte
 
 export interface TreeFilterProps {
   treeFilterPanelCollapsed: boolean
+  knownNodeTypes: string[]
   knownClades: string[]
   knownCountries: string[]
   knownDivisions: string[]
@@ -78,6 +80,7 @@ export interface TreeFilterProps {
 
 export function TreeFilterDisconnected({
   treeFilterPanelCollapsed,
+  knownNodeTypes,
   knownClades,
   knownCountries,
   knownDivisions,
@@ -93,9 +96,10 @@ export function TreeFilterDisconnected({
         <CardHeader>{t('Results filter')}</CardHeader>
 
         <CardBody>
+          <TreeFilterCheckboxGroup name={t('by Node type')} trait="Node type" values={knownNodeTypes} />
           <TreeFilterCheckboxGroup name={t('by Region')} trait="region" values={knownRegions} />
           <TreeFilterCheckboxGroup name={t('by Country')} trait="country" values={knownCountries} />
-          <TreeFilterCheckboxGroup name={t('by Division')} trait="division" values={knownDivisions} />
+          <TreeFilterCheckboxGroup name={t('by Admin division')} trait="division" values={knownDivisions} />
           <TreeFilterCheckboxGroup name={t('by Clade')} trait="clade_membership" values={knownClades} />
           <TreeFilterCheckboxGroup name={t('by QC Status')} trait="QC Status" values={knownQcStatuses} />
         </CardBody>
