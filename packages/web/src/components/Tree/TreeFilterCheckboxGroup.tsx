@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 
 import { partition, isEmpty } from 'lodash'
-import { Input } from 'reactstrap'
+import { Input, Form } from 'reactstrap'
 import styled from 'styled-components'
 import { useDebouncedCallback } from 'use-debounce'
 
@@ -26,9 +26,13 @@ export const FormSectionContent = styled.div`
 `
 
 export const InputStyled = styled(Input)`
-  height: 25px;
+  height: 28px;
   margin-bottom: 7px;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+
+  &::-webkit-search-cancel-button {
+    cursor: pointer;
+  }
 `
 
 export function includesLowerCase(candidate: string, searchTerm: string): boolean {
@@ -102,7 +106,21 @@ export function TreeFilterCheckboxGroup({ name, trait, values }: TreeFilterCheck
   return (
     <FormSectionStyled>
       <Label title={name}>
-        <InputStyled placeholder={name} title={name} value={searchTerm} onChange={onChange} onKeyDown={onKeyDown} />
+        <Form className="d-flex">
+          <InputStyled
+            type="search"
+            placeholder={name}
+            title={name}
+            value={searchTerm}
+            onChange={onChange}
+            onKeyDown={onKeyDown}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+            data-gramm="false"
+          />
+        </Form>
         <FormSectionContent>
           {filteredValues.map((value) => (
             <TreeFilterCheckbox key={value} text={value} trait={trait} value={value} />
