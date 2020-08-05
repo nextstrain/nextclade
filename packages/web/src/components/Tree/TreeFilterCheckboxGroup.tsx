@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 
 import { partition, isEmpty } from 'lodash'
-import { Input, Form } from 'reactstrap'
+import { Input } from 'reactstrap'
 import styled from 'styled-components'
 import { useDebouncedCallback } from 'use-debounce'
 
@@ -106,21 +106,19 @@ export function TreeFilterCheckboxGroup({ name, trait, values }: TreeFilterCheck
   return (
     <FormSectionStyled>
       <Label title={name}>
-        <Form className="d-flex">
-          <InputStyled
-            type="search"
-            placeholder={name}
-            title={name}
-            value={searchTerm}
-            onChange={onChange}
-            onKeyDown={onKeyDown}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck="false"
-            data-gramm="false"
-          />
-        </Form>
+        <InputStyled
+          type="search"
+          placeholder={name}
+          title={name}
+          value={searchTerm}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          data-gramm="false"
+        />
         <FormSectionContent>
           {filteredValues.map((value) => (
             <TreeFilterCheckbox key={value} text={value} trait={trait} value={value} />
