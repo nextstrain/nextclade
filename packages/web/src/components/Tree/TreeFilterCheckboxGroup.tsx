@@ -1,9 +1,15 @@
 import React, { useCallback, useState } from 'react'
 
 import { partition, isEmpty } from 'lodash'
-import { Input } from 'reactstrap'
+import { Button, Input } from 'reactstrap'
 import styled from 'styled-components'
 import { useDebouncedCallback } from 'use-debounce'
+import { useTranslation } from 'react-i18next'
+import { connect } from 'react-redux'
+
+import { applyFilter } from 'auspice/src/actions/tree'
+
+import { State } from 'src/state/reducer'
 
 import { FormSection, Label } from './Form'
 import { TreeFilterCheckbox } from './TreeFilterCheckbox'
@@ -33,6 +39,10 @@ export const InputStyled = styled(Input)`
   &::-webkit-search-cancel-button {
     cursor: pointer;
   }
+`
+export const ButtonClearFilter = styled(Button)`
+  width: 100%;
+  margin-top: 7px;
 `
 
 export function includesLowerCase(candidate: string, searchTerm: string): boolean {
@@ -68,9 +78,22 @@ export interface TreeFilterCheckboxGroupProps {
   name: string
   trait: string
   values: string[]
+  applyFilter(mode: string, trait: string, values: string[]): void
 }
 
-export function TreeFilterCheckboxGroup({ name, trait, values }: TreeFilterCheckboxGroupProps) {
+const mapStateToProps = (state: State) => ({})
+
+const mapDispatchToProps = { applyFilter }
+
+export const TreeFilterCheckboxGroup = connect(mapStateToProps, mapDispatchToProps)(TreeFilterCheckboxGroupDisconnected)
+
+export function TreeFilterCheckboxGroupDisconnected({
+  name,
+  trait,
+  values,
+  applyFilter,
+}: TreeFilterCheckboxGroupProps) {
+  const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState('')
   const [filteredValues, setFilteredValues] = useState(values)
 
@@ -103,6 +126,11 @@ export function TreeFilterCheckboxGroup({ name, trait, values }: TreeFilterCheck
     [applySearch, searchTerm],
   )
 
+  const clearFilter = useCallback(() => {
+    setSearchTerm('')
+    applyFilter('set', trait, [])
+  }, [applyFilter, trait])
+
   return (
     <FormSectionStyled>
       <Label title={name}>
@@ -124,6 +152,9 @@ export function TreeFilterCheckboxGroup({ name, trait, values }: TreeFilterCheck
             <TreeFilterCheckbox key={value} text={value} trait={trait} value={value} />
           ))}
         </FormSectionContent>
+        <ButtonClearFilter size="sm" onClick={clearFilter}>
+          {t('Clear')}
+        </ButtonClearFilter>
       </Label>
     </FormSectionStyled>
   )
