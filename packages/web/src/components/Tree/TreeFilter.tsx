@@ -31,7 +31,7 @@ export const CardHeader = styled(ReactstrapCardHeader)<ReactstrapCardHeaderProps
   background-color: #495057;
   color: #fff;
   height: 36px;
-  font-size: 1rem;
+  font-size: 1.25rem;
   line-height: 1rem;
 `
 
@@ -102,7 +102,7 @@ export function TreeFilterDisconnected({
   return (
     <Collapse isOpen={!treeFilterPanelCollapsed}>
       <Card>
-        <CardHeader>{t('Results filter')}</CardHeader>
+        <CardHeader>{t('Tree filter')}</CardHeader>
 
         <CardBody>
           <TreeFilterCheckboxGroup name={t('by Node type')} trait="Node type" values={knownNodeTypes} />
