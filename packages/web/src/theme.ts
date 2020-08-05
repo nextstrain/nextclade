@@ -74,6 +74,7 @@ export const themeColors = {
 }
 
 export const shadows = {
+  slight: `1px 1px 1px 1px ${rgba(gray700, 0.25)}`,
   medium: `2px 2px 3px 3px ${rgba(gray900, 0.25)}`,
 }
 

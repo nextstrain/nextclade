@@ -31,7 +31,7 @@ export const FormSectionContent = styled.div`
   overflow: auto;
 `
 
-export const InputStyled = styled(Input)`
+export const SearchInput = styled(Input)`
   height: 28px;
   margin-bottom: 7px;
   font-size: 0.9rem;
@@ -95,18 +95,18 @@ export function TreeFilterCheckboxGroupDisconnected({
 }: TreeFilterCheckboxGroupProps) {
   const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState('')
-  const [filteredValues, setFilteredValues] = useState(values)
+  const [foundValues, setFoundValues] = useState(values)
 
   const applySearchRaw = (term: string) => {
     const hasSearchTerm = term.length > 0
-    const filtered = hasSearchTerm ? search(values, term) : values
-    setFilteredValues(filtered)
+    const found = hasSearchTerm ? search(values, term) : values
+    setFoundValues(found)
   }
 
   const applySearch = useCallback(applySearchRaw, [values])
   const [applySearchDebounced] = useDebouncedCallback(applySearchRaw, SEARCH_INPUT_DEBOUNCE_DELAY)
 
-  const onChange = useCallback(
+  const onSearchTermChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const { value } = event.target
       setSearchTerm(value)
@@ -115,7 +115,7 @@ export function TreeFilterCheckboxGroupDisconnected({
     [applySearchDebounced],
   )
 
-  const onKeyDown = useCallback(
+  const onSearchKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       const isEnterKey = event.keyCode === 13
 
@@ -134,13 +134,13 @@ export function TreeFilterCheckboxGroupDisconnected({
   return (
     <FormSectionStyled>
       <Label title={name}>
-        <InputStyled
+        <SearchInput
           type="search"
           placeholder={name}
           title={name}
           value={searchTerm}
-          onChange={onChange}
-          onKeyDown={onKeyDown}
+          onChange={onSearchTermChange}
+          onKeyDown={onSearchKeyDown}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
@@ -148,7 +148,7 @@ export function TreeFilterCheckboxGroupDisconnected({
           data-gramm="false"
         />
         <FormSectionContent>
-          {filteredValues.map((value) => (
+          {foundValues.map((value) => (
             <TreeFilterCheckbox key={value} text={value} trait={trait} value={value} />
           ))}
         </FormSectionContent>
