@@ -16,6 +16,10 @@ import { TreeFilterCheckbox } from './TreeFilterCheckbox'
 
 export const SEARCH_INPUT_DEBOUNCE_DELAY = 250
 
+export const LabelStyled = styled(Label)`
+  margin-bottom: 0;
+`
+
 export const LabelText = styled.div`
   padding-bottom: 5px;
   margin-bottom: 7px;
@@ -138,7 +142,7 @@ export function TreeFilterCheckboxGroupDisconnected({
 
   return (
     <FormSectionStyled>
-      <Label title={name}>
+      <LabelStyled title={name}>
         <SearchInput
           type="search"
           placeholder={name}
@@ -161,7 +165,7 @@ export function TreeFilterCheckboxGroupDisconnected({
         <ButtonClearFilter size="sm" onClick={clearFilter} disabled={!hasFilters}>
           {t('Clear')}
         </ButtonClearFilter>
-      </Label>
+      </LabelStyled>
     </FormSectionStyled>
   )
 }
