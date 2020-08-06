@@ -34,13 +34,14 @@ export const CardHeader = styled(ReactstrapCardHeader)<ReactstrapCardHeaderProps
   background-color: #30353f;
   color: #fff;
   font-size: 1.25rem;
+  padding: 10px 16px;
 `
 
 export const CardBody = styled(ReactstrapCardBody)<ReactstrapCardBodyProps>`
   display: flex;
   width: 100%;
   background-color: #30353f;
-  padding: 3px 3px;
+  padding: 0px 3px;
 `
 
 export const CardHeaderText = styled.div`

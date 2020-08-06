@@ -12,7 +12,7 @@ export const FilterBadgeItem = styled.li`
   display: flex;
   box-shadow: ${(props) => props.theme.shadows.slight};
   margin: 2px;
-  font-size: 1rem;
+  font-size: 0.85rem;
   white-space: nowrap;
 `
 
@@ -36,8 +36,8 @@ export const FilterBadgeRemoveButton = styled(ButtonTransparent)`
   margin-left: 5px;
   padding: 0;
   padding-bottom: 5px;
-  width: 1rem;
-  height: 1rem;
+  width: 0.85rem;
+  height: 0.85rem;
   cursor: pointer;
 `
 
@@ -45,8 +45,8 @@ export const FilterBadgeRemoveIcon = styled(MdClear)`
   display: block;
   margin: 0;
   padding: 0;
-  width: 1rem;
-  height: 1rem;
+  width: 0.85rem;
+  height: 0.85rem;
 `
 
 export const traitTexts = new Map<string, string>(

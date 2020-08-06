@@ -13,17 +13,7 @@ export const FilterBadgeContainer = styled.ul`
   list-style: none;
   padding-left: 8px;
   margin: 0;
-`
-
-export const FilterBadgeItem = styled.li`
-  background-color: ${(props) => props.theme.gray600};
-  color: ${(props) => props.theme.gray200};
-  box-shadow: ${(props) => props.theme.shadows.slight};
-  border-radius: 3px;
-  margin: 2px;
-  padding: 2px 6px;
-  font-size: 0.85rem;
-  white-space: nowrap;
+  margin-top: 3px;
 `
 
 export const traitTexts = new Map<string, string>(

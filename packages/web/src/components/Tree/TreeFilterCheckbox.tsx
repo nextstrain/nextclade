@@ -4,12 +4,13 @@ import { connect } from 'react-redux'
 import { get } from 'lodash'
 import styled from 'styled-components'
 
-import { AuspiceFiltersState } from 'src/state/auspice/auspice.state'
-import { State } from 'src/state/reducer'
 import { applyFilter } from 'auspice/src/actions/tree'
 
-import { FormGroup, Label, InputCheckbox } from './Form'
 import { UNKNOWN_VALUE } from 'src/constants'
+import type { AuspiceFiltersState } from 'src/state/auspice/auspice.state'
+import type { State } from 'src/state/reducer'
+
+import { FormGroup, Label, InputCheckbox } from './Form'
 
 export const LabelStyled = styled(Label)`
   max-width: 100%;

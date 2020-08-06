@@ -28,6 +28,7 @@ export const LabelText = styled.div`
 
 export const FormSectionStyled = styled(FormSection)`
   overflow: auto;
+  margin: 0 4px;
 `
 
 export const FormSectionContent = styled.div`
