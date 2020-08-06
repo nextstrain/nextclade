@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 
 import { get, uniq } from 'lodash'
 
@@ -22,6 +22,7 @@ import { setTreeFilterPanelCollapsed } from 'src/state/ui/ui.actions'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { TreeFilterCheckboxGroup } from 'src/components/Tree/TreeFilterCheckboxGroup'
 import { UNKNOWN_VALUE } from 'src/constants'
+import { FilterBadges } from 'src/components/Tree/FilterBadges'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
   box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
@@ -52,26 +53,6 @@ export const CardHeaderBadges = styled.div`
   flex-wrap: wrap;
 `
 
-export const FilterBadgeContainer = styled.ul`
-  display: flex;
-  flex-wrap: wrap;
-  flex: 0;
-  list-style: none;
-  padding-left: 8px;
-  margin: 0;
-`
-
-export const FilterBadge = styled.li`
-  background-color: ${(props) => props.theme.gray600};
-  color: ${(props) => props.theme.gray200};
-  box-shadow: ${(props) => props.theme.shadows.slight};
-  border-radius: 3px;
-  margin: 2px;
-  padding: 2px 6px;
-  font-size: 0.85rem;
-  white-space: nowrap;
-`
-
 export function moveToFirst<T>(arr: T[], value: T) {
   if (arr.includes(value)) {
     const others = arr.filter((x) => x !== value)
@@ -92,7 +73,6 @@ export function selectKnownTraitValues(state: State, trait: string) {
 
 const mapStateToProps = (state: State) => ({
   treeFilterPanelCollapsed: state.ui.treeFilterPanelCollapsed,
-  filters: state?.controls?.filters ?? [],
   knownNodeTypes: selectKnownTraitValues(state, 'Node type'),
   knownClades: selectKnownTraitValues(state, 'clade_membership'),
   knownCountries: selectKnownTraitValues(state, 'country'),
@@ -109,7 +89,7 @@ export const TreeFilter = connect(mapStateToProps, mapDispatchToProps)(TreeFilte
 
 export interface TreeFilterProps {
   treeFilterPanelCollapsed: boolean
-  filters?: Record<string, string[]>
+
   knownNodeTypes: string[]
   knownClades: string[]
   knownCountries: string[]
@@ -119,20 +99,8 @@ export interface TreeFilterProps {
   setTreeFilterPanelCollapsed(collapsed: boolean): void
 }
 
-export const traitTexts = new Map<string, string>(
-  Object.entries({
-    'Node type': 'Node Type',
-    'clade_membership': 'Clade',
-    'country': 'Country',
-    'division': 'Division',
-    'region': 'Region',
-    'QC Status': 'QC Status',
-  }),
-)
-
 export function TreeFilterDisconnected({
   treeFilterPanelCollapsed,
-  filters,
   knownNodeTypes,
   knownClades,
   knownCountries,
@@ -143,31 +111,13 @@ export function TreeFilterDisconnected({
 }: TreeFilterProps) {
   const { t } = useTranslation()
 
-  const filterBadges = useMemo(() => {
-    if (!filters) {
-      return []
-    }
-
-    return Object.entries(filters).reduce(
-      (result, [trait, filters]) =>
-        result.concat(
-          filters.map((filter) => {
-            const traitText = traitTexts.get(trait) ?? ''
-            const content = `${traitText}: ${filter}`
-            return <FilterBadge key={content}>{content}</FilterBadge>
-          }),
-        ),
-      [] as React.ReactNode[],
-    )
-  }, [filters])
-
   return (
     <Collapse isOpen={!treeFilterPanelCollapsed}>
       <Card>
         <CardHeader>
           <CardHeaderText>{t('Tree filter')}</CardHeaderText>
           <CardHeaderBadges>
-            <FilterBadgeContainer>{filterBadges}</FilterBadgeContainer>
+            <FilterBadges />
           </CardHeaderBadges>
         </CardHeader>
 

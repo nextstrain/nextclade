@@ -11,6 +11,7 @@ export const gray300 = '#dee2e6'
 export const gray400 = '#ced4da'
 export const gray500 = '#adb5bd'
 export const gray600 = '#7b838a'
+export const gray650 = '#626a71'
 export const gray700 = '#495057'
 export const gray800 = '#343a40'
 export const gray900 = '#212529'
@@ -46,6 +47,7 @@ export const basicColors = {
   gray400,
   gray500,
   gray600,
+  gray650,
   gray700,
   gray800,
   gray900,
