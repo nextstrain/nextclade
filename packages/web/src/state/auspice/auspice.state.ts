@@ -26,7 +26,7 @@ export function getFakeAuspiceState(): AuspiceState {
     return createStateFromQueryOrJSONs({ json, query: {} })
   }
 
-  return {}
+  return {} as AuspiceState
 }
 
 export const auspiceInitialState = getFakeAuspiceState()

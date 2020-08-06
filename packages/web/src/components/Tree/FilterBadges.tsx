@@ -42,7 +42,7 @@ export interface FilterBadgesProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  filters: state?.controls?.filters ?? [],
+  filters: state.controls?.filters,
 })
 
 const mapDispatchToProps = {}

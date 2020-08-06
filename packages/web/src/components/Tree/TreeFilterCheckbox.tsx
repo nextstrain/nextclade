@@ -18,7 +18,7 @@ export const LabelStyled = styled(Label)`
 `
 
 export interface TreeFilterCheckboxProps {
-  filters: AuspiceFiltersState
+  filters?: AuspiceFiltersState
   text: string
   trait: string
   value: string
@@ -26,7 +26,7 @@ export interface TreeFilterCheckboxProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  filters: state.controls.filters,
+  filters: state.controls?.filters,
 })
 
 const mapDispatchToProps = {
@@ -36,7 +36,7 @@ const mapDispatchToProps = {
 export const TreeFilterCheckbox = connect(mapStateToProps, mapDispatchToProps)(TreeFilterCheckboxDisconnected)
 
 export function TreeFilterCheckboxDisconnected({ filters, applyFilter, text, trait, value }: TreeFilterCheckboxProps) {
-  const concreteFilters = get(filters, trait) as string[]
+  const concreteFilters = get(filters, trait) as string[] | undefined
   const isChecked = concreteFilters?.includes(value) ?? false
 
   const handleCheck = () => applyFilter('add', trait, [value])

@@ -15,8 +15,6 @@ import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 
-import type { AuspiceTreeNode } from 'auspice'
-
 import { State } from 'src/state/reducer'
 import { setTreeFilterPanelCollapsed } from 'src/state/ui/ui.actions'
 import { notUndefined } from 'src/helpers/notUndefined'
@@ -62,7 +60,7 @@ export function moveToFirst<T>(arr: T[], value: T) {
 }
 
 export function selectKnownTraitValues(state: State, trait: string) {
-  const nodes = (state?.tree?.nodes ?? []) as AuspiceTreeNode[]
+  const nodes = state.tree?.nodes ?? []
   const valuesRaw = nodes.map((node) => get(node, `node_attrs.${trait}.value`) as string | undefined) || []
   let values = valuesRaw.filter(notUndefined)
   values = uniq(values)

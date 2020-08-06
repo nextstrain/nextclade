@@ -3,11 +3,10 @@ import React, { useCallback } from 'react'
 import { connect } from 'react-redux'
 import styled from 'styled-components'
 import { MdClear } from 'react-icons/md'
+import { useTranslation } from 'react-i18next'
 
-import { State } from 'src/state/reducer'
 import { applyFilter } from 'auspice/src/actions/tree'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
-import { useTranslation } from 'react-i18next'
 
 export const FilterBadgeItem = styled.li`
   display: flex;
@@ -95,6 +94,7 @@ export function FilterBadgeDisconnected({ trait, value, applyFilter }: FilterBad
       <FilterBadgeLeft background={traitColor}>{traitText}</FilterBadgeLeft>
       <FilterBadgeRight>
         {value}
+        {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
         <FilterBadgeRemoveButton title={t('Remove filter')} onClick={removeFilter}>
           <FilterBadgeRemoveIcon />
         </FilterBadgeRemoveButton>
