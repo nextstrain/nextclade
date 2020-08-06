@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react'
 
-import { partition, isEmpty } from 'lodash'
+import { partition, isEmpty, get } from 'lodash'
 import { Button, Input } from 'reactstrap'
 import styled from 'styled-components'
 import { useDebouncedCallback } from 'use-debounce'
@@ -78,10 +78,13 @@ export interface TreeFilterCheckboxGroupProps {
   name: string
   trait: string
   values: string[]
+  filters?: Record<string, string[]>
   applyFilter(mode: string, trait: string, values: string[]): void
 }
 
-const mapStateToProps = (state: State) => ({})
+const mapStateToProps = (state: State) => ({
+  filters: state.controls?.filters,
+})
 
 const mapDispatchToProps = { applyFilter }
 
@@ -91,11 +94,13 @@ export function TreeFilterCheckboxGroupDisconnected({
   name,
   trait,
   values,
+  filters,
   applyFilter,
 }: TreeFilterCheckboxGroupProps) {
   const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState('')
   const [foundValues, setFoundValues] = useState(values)
+  const hasFilters = !isEmpty(get(filters, trait))
 
   const applySearchRaw = (term: string) => {
     const hasSearchTerm = term.length > 0
@@ -152,7 +157,8 @@ export function TreeFilterCheckboxGroupDisconnected({
             <TreeFilterCheckbox key={value} text={value} trait={trait} value={value} />
           ))}
         </FormSectionContent>
-        <ButtonClearFilter size="sm" onClick={clearFilter}>
+
+        <ButtonClearFilter size="sm" onClick={clearFilter} disabled={!hasFilters}>
           {t('Clear')}
         </ButtonClearFilter>
       </Label>
