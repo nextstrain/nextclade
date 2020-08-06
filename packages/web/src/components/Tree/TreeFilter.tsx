@@ -23,21 +23,21 @@ import { UNKNOWN_VALUE } from 'src/constants'
 import { FilterBadges } from 'src/components/Tree/FilterBadges'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
-  box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
+  box-shadow: none;
 `
 
 export const CardHeader = styled(ReactstrapCardHeader)<ReactstrapCardHeaderProps>`
   display: flex;
   width: 100%;
-  background-color: #495057;
+  background-color: #30353f;
   color: #fff;
   font-size: 1.25rem;
 `
 
 export const CardBody = styled(ReactstrapCardBody)<ReactstrapCardBodyProps>`
-  background-color: #495057;
   display: flex;
   width: 100%;
+  background-color: #30353f;
   padding: 3px 3px;
 `
 
