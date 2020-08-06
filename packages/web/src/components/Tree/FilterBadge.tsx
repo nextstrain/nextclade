@@ -12,7 +12,7 @@ export const FilterBadgeItem = styled.li`
   display: flex;
   box-shadow: ${(props) => props.theme.shadows.slight};
   margin: 2px;
-  font-size: 0.85rem;
+  font-size: 1rem;
   white-space: nowrap;
 `
 
@@ -35,9 +35,9 @@ export const FilterBadgeRemoveButton = styled(ButtonTransparent)`
   margin: 0;
   margin-left: 5px;
   padding: 0;
-  width: 0.85rem;
-  height: 0.85rem;
   padding-bottom: 5px;
+  width: 1rem;
+  height: 1rem;
   cursor: pointer;
 `
 
@@ -45,8 +45,8 @@ export const FilterBadgeRemoveIcon = styled(MdClear)`
   display: block;
   margin: 0;
   padding: 0;
-  width: 0.85rem;
-  height: 0.85rem;
+  width: 1rem;
+  height: 1rem;
 `
 
 export const traitTexts = new Map<string, string>(
@@ -63,7 +63,7 @@ export const traitTexts = new Map<string, string>(
 export const traitColors = new Map<string, string>(
   Object.entries({
     'Node type': '#417492',
-    'clade_membership': '#867b85',
+    'clade_membership': '#6b5e8e',
     'country': '#997e48',
     'division': '#43705b',
     'region': '#3b7580',
