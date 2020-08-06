@@ -122,10 +122,10 @@ export function TreeFilterDisconnected({
         </CardHeader>
 
         <CardBody>
-          <TreeFilterCheckboxGroup name={t('by Node type')} trait="Node type" values={knownNodeTypes} />
           <TreeFilterCheckboxGroup name={t('by Region')} trait="region" values={knownRegions} />
           <TreeFilterCheckboxGroup name={t('by Country')} trait="country" values={knownCountries} />
           <TreeFilterCheckboxGroup name={t('by Admin division')} trait="division" values={knownDivisions} />
+          <TreeFilterCheckboxGroup name={t('by Node type')} trait="Node type" values={knownNodeTypes} />
           <TreeFilterCheckboxGroup name={t('by Clade')} trait="clade_membership" values={knownClades} />
           <TreeFilterCheckboxGroup name={t('by QC Status')} trait="QC Status" values={knownQcStatuses} />
         </CardBody>
