@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 
 import { connect } from 'react-redux'
 import styled from 'styled-components'
@@ -7,6 +7,7 @@ import { MdClear } from 'react-icons/md'
 import { State } from 'src/state/reducer'
 import { applyFilter } from 'auspice/src/actions/tree'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
+import { useTranslation } from 'react-i18next'
 
 export const FilterBadgeItem = styled.li`
   display: flex;
@@ -74,25 +75,27 @@ export const traitColors = new Map<string, string>(
 export interface FilterBadgeProps {
   trait: string
   value: string
+  applyFilter(mode: string, trait: string, values: string[]): void
 }
 
-const mapStateToProps = (state: State) => ({})
-
-const mapDispatchToProps = {
-  applyFilter,
-}
+const mapStateToProps = undefined
+const mapDispatchToProps = { applyFilter }
 
 export const FilterBadge = connect(mapStateToProps, mapDispatchToProps)(FilterBadgeDisconnected)
 
-export function FilterBadgeDisconnected({ trait, value }: FilterBadgeProps) {
+export function FilterBadgeDisconnected({ trait, value, applyFilter }: FilterBadgeProps) {
+  const { t } = useTranslation()
+  const removeFilter = useCallback(() => applyFilter('remove', trait, [value]), [applyFilter, trait, value])
+
   const traitText = traitTexts.get(trait) ?? ''
   const traitColor = traitColors.get(trait)
+
   return (
     <FilterBadgeItem>
       <FilterBadgeLeft background={traitColor}>{traitText}</FilterBadgeLeft>
       <FilterBadgeRight>
         {value}
-        <FilterBadgeRemoveButton>
+        <FilterBadgeRemoveButton title={t('Remove filter')} onClick={removeFilter}>
           <FilterBadgeRemoveIcon />
         </FilterBadgeRemoveButton>
       </FilterBadgeRight>
