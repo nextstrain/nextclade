@@ -9,6 +9,7 @@ import { State } from 'src/state/reducer'
 import { applyFilter } from 'auspice/src/actions/tree'
 
 import { FormGroup, Label, InputCheckbox } from './Form'
+import { UNKNOWN_VALUE } from 'src/constants'
 
 export const LabelStyled = styled(Label)`
   max-width: 100%;
@@ -43,11 +44,16 @@ export function TreeFilterCheckboxDisconnected({ filters, applyFilter, text, tra
   const handleUncheck = () => applyFilter('remove', trait, [value])
   const toggle = isChecked ? handleUncheck : handleCheck
 
+  let displayText = text
+  if (text === UNKNOWN_VALUE) {
+    displayText = `${text.trim()}*`
+  }
+
   return (
     <FormGroup check>
       <LabelStyled title={text} check>
-        <InputCheckbox type="checkbox" checked={isChecked} onChange={toggle} title={text} />
-        {text}
+        <InputCheckbox type="checkbox" checked={isChecked} onChange={toggle} title={displayText} />
+        {displayText}
       </LabelStyled>
     </FormGroup>
   )

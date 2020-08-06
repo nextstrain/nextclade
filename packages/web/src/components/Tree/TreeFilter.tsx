@@ -9,6 +9,8 @@ import {
   CardBodyProps as ReactstrapCardBodyProps,
   CardHeaderProps as ReactstrapCardHeaderProps,
   CardProps as ReactstrapCardProps,
+  CardFooter as ReactstrapCardFooter,
+  CardFooterProps as ReactstrapCardFooterProps,
   Collapse,
 } from 'reactstrap'
 import styled from 'styled-components'
@@ -49,6 +51,20 @@ export const CardHeaderText = styled.div`
 export const CardHeaderBadges = styled.div`
   flex: 1;
   flex-wrap: wrap;
+`
+
+export const CardFooter = styled(ReactstrapCardFooter)<ReactstrapCardFooterProps>`
+  background-color: #30353f;
+  padding: 4px 6px;
+
+  &:last-child {
+    border-radius: 0;
+  }
+`
+
+export const FooterText = styled.p`
+  font-size: 0.7rem;
+  color: #fff;
 `
 
 export function moveToFirst<T>(arr: T[], value: T) {
@@ -127,6 +143,13 @@ export function TreeFilterDisconnected({
           <TreeFilterCheckboxGroup name={t('by Clade')} trait="clade_membership" values={knownClades} />
           <TreeFilterCheckboxGroup name={t('by QC Status')} trait="QC Status" values={knownQcStatuses} />
         </CardBody>
+        <CardFooter>
+          <FooterText>
+            {t(
+              '* "Unknown" country, division and region are automatically assigned to the new nodes. When filtering, make sure to tick the "Unknown" entry in order to display these nodes.',
+            )}
+          </FooterText>
+        </CardFooter>
       </Card>
     </Collapse>
   )
