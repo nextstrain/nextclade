@@ -21,7 +21,7 @@ declare module 'auspice' {
       version?: number
       idxOfInViewRootNode?: number
       visibleStateCounts?: any
-      totalStateCounts?: any
+      totalStateCounts?: Record<string, Map<string, number>>
       availableBranchLabels?: string[]
       selectedStrain?: any
       selectedClade?: any

@@ -5,8 +5,11 @@ import styled from 'styled-components'
 import { MdClear } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 
+import type { State } from 'src/state/reducer'
 import { applyFilter } from 'auspice/src/actions/tree'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
+import { selectTraitValueCount } from 'src/state/auspice/auspice.selectors'
+import { TreeFilterCheckboxOwnProps } from 'src/components/Tree/TreeFilterCheckbox'
 
 export const FilterBadgeItem = styled.li`
   display: flex;
@@ -71,29 +74,38 @@ export const traitColors = new Map<string, string>(
   }),
 )
 
-export interface FilterBadgeProps {
+export interface FilterBadgeOwnProps {
   trait: string
   value: string
+}
+
+export interface FilterBadgeProps extends FilterBadgeOwnProps {
+  totalNodes: number
   applyFilter(mode: string, trait: string, values: string[]): void
 }
 
-const mapStateToProps = undefined
+const mapStateToProps = (state: State, { trait, value }: TreeFilterCheckboxOwnProps) => ({
+  totalNodes: selectTraitValueCount(state, trait, value),
+})
+
 const mapDispatchToProps = { applyFilter }
 
 export const FilterBadge = connect(mapStateToProps, mapDispatchToProps)(FilterBadgeDisconnected)
 
-export function FilterBadgeDisconnected({ trait, value, applyFilter }: FilterBadgeProps) {
+export function FilterBadgeDisconnected({ trait, value, totalNodes, applyFilter }: FilterBadgeProps) {
   const { t } = useTranslation()
   const removeFilter = useCallback(() => applyFilter('remove', trait, [value]), [applyFilter, trait, value])
 
   const traitText = traitTexts.get(trait) ?? ''
   const traitColor = traitColors.get(trait)
 
+  const valueText = `${value} (${totalNodes})`
+
   return (
     <FilterBadgeItem>
       <FilterBadgeLeft background={traitColor}>{traitText}</FilterBadgeLeft>
       <FilterBadgeRight>
-        {value}
+        {valueText}
         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
         <FilterBadgeRemoveButton title={t('Remove filter')} onClick={removeFilter}>
           <FilterBadgeRemoveIcon />

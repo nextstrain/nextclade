@@ -8,6 +8,7 @@ import { applyFilter } from 'auspice/src/actions/tree'
 
 import { UNKNOWN_VALUE } from 'src/constants'
 import type { AuspiceFiltersState } from 'src/state/auspice/auspice.state'
+import { selectTraitValueCount } from 'src/state/auspice/auspice.selectors'
 import type { State } from 'src/state/reducer'
 
 import { FormGroup, Label, InputCheckbox } from './Form'
@@ -19,16 +20,21 @@ export const LabelStyled = styled(Label)`
   text-overflow: ellipsis;
 `
 
-export interface TreeFilterCheckboxProps {
-  filters?: AuspiceFiltersState
+export interface TreeFilterCheckboxOwnProps {
   text: string
   trait: string
   value: string
+}
+
+export interface TreeFilterCheckboxProps extends TreeFilterCheckboxOwnProps {
+  filters?: AuspiceFiltersState
+  totalNodes: number
   applyFilter(mode: string, trait: string, values: string[]): void
 }
 
-const mapStateToProps = (state: State) => ({
+const mapStateToProps = (state: State, { trait, value }: TreeFilterCheckboxOwnProps) => ({
   filters: state.controls?.filters,
+  totalNodes: selectTraitValueCount(state, trait, value),
 })
 
 const mapDispatchToProps = {
@@ -37,7 +43,14 @@ const mapDispatchToProps = {
 
 export const TreeFilterCheckbox = connect(mapStateToProps, mapDispatchToProps)(TreeFilterCheckboxDisconnected)
 
-export function TreeFilterCheckboxDisconnected({ filters, applyFilter, text, trait, value }: TreeFilterCheckboxProps) {
+export function TreeFilterCheckboxDisconnected({
+  filters,
+  totalNodes,
+  applyFilter,
+  text,
+  trait,
+  value,
+}: TreeFilterCheckboxProps) {
   const concreteFilters = get(filters, trait) as string[] | undefined
   const isChecked = concreteFilters?.includes(value) ?? false
 
@@ -49,10 +62,11 @@ export function TreeFilterCheckboxDisconnected({ filters, applyFilter, text, tra
   if (text === UNKNOWN_VALUE) {
     displayText = `${text.trim()}*`
   }
+  displayText = `${displayText} (${totalNodes})`
 
   return (
-    <FormGroup check>
-      <LabelStyled title={text} check>
+    <FormGroup title={displayText} check>
+      <LabelStyled title={displayText} check>
         <InputCheckbox type="checkbox" checked={isChecked} onChange={toggle} title={displayText} />
         {displayText}
       </LabelStyled>
