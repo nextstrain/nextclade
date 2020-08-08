@@ -13,6 +13,7 @@ import { formatClades } from 'src/helpers/formatClades'
 
 import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 import { formatRange } from 'src/helpers/formatRange'
+import { UNKNOWN_VALUE } from 'src/constants'
 
 export type MutationMap = Map<number, Nucleotide>
 
@@ -257,6 +258,9 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
   const new_node = get_node_struct(seq)
   set(new_node, 'branch_attrs.mutations', mutations)
   set(new_node, 'node_attrs.div', div)
+  set(new_node, 'node_attrs.region', { value: UNKNOWN_VALUE })
+  set(new_node, 'node_attrs.country', { value: UNKNOWN_VALUE })
+  set(new_node, 'node_attrs.division', { value: UNKNOWN_VALUE })
   set(new_node, 'mutations', cloneDeep(base_node.mutations))
 
   for (const mut of nucMutations) {
@@ -282,6 +286,18 @@ export function remove_mutations(node: AuspiceTreeNodeExtended) {
 export function setNodeTypes(node: AuspiceTreeNode) {
   set(node, `node_attrs['Node type']`, { value: NodeType.Reference })
   node.children?.forEach(setNodeTypes)
+}
+
+export interface AddColoringScaleParams {
+  auspiceData: AuspiceJsonV2
+  key: string
+  value: string
+  color: string
+}
+
+export function addColoringScale({ auspiceData, key, value, color }: AddColoringScaleParams) {
+  const coloring = auspiceData.meta.colorings.find((coloring) => coloring.key === key)
+  coloring?.scale?.unshift([UNKNOWN_VALUE, color])
 }
 
 export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
@@ -333,6 +349,10 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
       [NodeType.Reference, '#999999'],
     ],
   })
+
+  addColoringScale({ auspiceData, key: 'region', value: UNKNOWN_VALUE, color: '#999999' })
+  addColoringScale({ auspiceData, key: 'country', value: UNKNOWN_VALUE, color: '#999999' })
+  addColoringScale({ auspiceData, key: 'division', value: UNKNOWN_VALUE, color: '#999999' })
 
   auspiceData.meta.display_defaults = {
     branch_label: 'clade',

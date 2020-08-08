@@ -1,12 +1,14 @@
 import actionCreatorFactory from 'typescript-fsa'
 import { ExportFormat } from 'src/state/ui/ui.state'
 
-const action = actionCreatorFactory('UI')
+const action = actionCreatorFactory('Ui')
 
-export const setShowInputBox = action<boolean>('SET_SHOW_INPUT_BOX')
+export const setShowInputBox = action<boolean>('setShowInputBox')
 
-export const setExportFormat = action<ExportFormat>('SET_EXPORT_FORMAT')
+export const setExportFormat = action<ExportFormat>('setExportFormat')
 
 export const setDetailsPanelCollapsed = action<boolean>('setDetailsPanelCollapsed')
 
 export const setFilterPanelCollapsed = action<boolean>('setFilterPanelCollapsed')
+
+export const setTreeFilterPanelCollapsed = action<boolean>('setTreeFilterPanelCollapsed')

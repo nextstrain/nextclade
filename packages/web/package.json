@@ -1,6 +1,6 @@
 {
   "name": "@neherlab/webclades-web",
-  "version": "0.3.2",
+  "version": "0.3.5",
   "main": "index.js",
   "module": "src/index.tsx",
   "license": "MIT",
@@ -125,6 +125,7 @@
     "typeface-lato": "0.0.75",
     "typescript-fsa": "3.0.0",
     "typescript-fsa-reducers": "1.2.2",
+    "use-debounce": "3.4.3",
     "uuid": "8.3.0"
   },
   "devDependencies": {
