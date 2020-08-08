@@ -9,7 +9,6 @@ import type { State } from 'src/state/reducer'
 import { applyFilter } from 'auspice/src/actions/tree'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { selectTraitValueCount } from 'src/state/auspice/auspice.selectors'
-import { TreeFilterCheckboxOwnProps } from 'src/components/Tree/TreeFilterCheckbox'
 
 export const FilterBadgeItem = styled.li`
   display: flex;
@@ -84,7 +83,7 @@ export interface FilterBadgeProps extends FilterBadgeOwnProps {
   applyFilter(mode: string, trait: string, values: string[]): void
 }
 
-const mapStateToProps = (state: State, { trait, value }: TreeFilterCheckboxOwnProps) => ({
+const mapStateToProps = (state: State, { trait, value }: FilterBadgeOwnProps) => ({
   totalNodes: selectTraitValueCount(state, trait, value),
 })
 
