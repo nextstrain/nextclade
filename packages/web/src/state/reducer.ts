@@ -5,6 +5,7 @@ import { routerReducer } from 'connected-next-router'
 import { RouterState } from 'connected-next-router/types'
 
 // BEGIN reducers from auspice
+import type { AuspiceState } from 'auspice'
 import metadata from 'auspice/src/reducers/metadata'
 import tree from 'auspice/src/reducers/tree'
 import frequencies from 'auspice/src/reducers/frequencies'
@@ -27,7 +28,7 @@ import { UiState } from './ui/ui.state'
 
 import { auspiceGeneralReducer, auspiceQueryReducer } from './auspice/auspice.reducer'
 
-export interface State {
+export interface State extends AuspiceState {
   algorithm: AlgorithmState
   settings: SettingsState
   router: RouterState
