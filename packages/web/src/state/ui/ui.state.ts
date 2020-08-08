@@ -6,12 +6,14 @@ export enum ExportFormat {
 
 export interface UiState {
   filterPanelCollapsed: boolean
+  treeFilterPanelCollapsed: boolean
   exportFormat: ExportFormat
   showInputBox: boolean
 }
 
 export const uiDefaultState: UiState = {
   filterPanelCollapsed: true,
+  treeFilterPanelCollapsed: true,
   showInputBox: false,
   exportFormat: ExportFormat.CSV,
 }
