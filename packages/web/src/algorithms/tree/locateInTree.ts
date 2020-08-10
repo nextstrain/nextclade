@@ -1,12 +1,11 @@
 /* eslint-disable camelcase */
-import { cloneDeep, groupBy, set, mapValues, unset } from 'lodash'
+import { cloneDeep, groupBy, set, mapValues, unset, zip } from 'lodash'
 
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { parseMutation } from 'src/helpers/parseMutation'
 
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
 import type { Nucleotide, AnalysisResult } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { formatClades } from 'src/helpers/formatClades'
@@ -14,6 +13,7 @@ import { formatClades } from 'src/helpers/formatClades'
 import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 import { formatRange } from 'src/helpers/formatRange'
 import { UNKNOWN_VALUE } from 'src/constants'
+import { QCResult } from 'src/algorithms/QC/runQC'
 
 export type MutationMap = Map<number, Nucleotide>
 
@@ -51,7 +51,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     alignmentStart,
     alignmentEnd,
     alignmentScore,
-    diagnostics,
+    // diagnostics,
     totalGaps,
     deletions,
     nonACGTNs,
@@ -59,8 +59,8 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     missing,
     totalMissing,
   } = seq
-  const qcStatus = diagnostics.flags.length > 0 ? QCStatusType.Fail : QCStatusType.Pass
-  const qcFlags = diagnostics.flags.join(', ')
+  // const qcStatus = diagnostics.flags.length > 0 ? QCStatusType.Fail : QCStatusType.Pass
+  // const qcFlags = diagnostics.flags.join(', ')
 
   const alignment = `start: ${alignmentStart}, end: ${alignmentEnd} (score: ${alignmentScore})`
 
@@ -83,8 +83,8 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
       'Missing:': { value: formattedMissing },
       'Gaps': { value: formattedGaps },
       'Non-ACGTNs': { value: formattedNonACGTNs },
-      'QC Status': { value: qcStatus },
-      'QC Flags': { value: qcFlags },
+      // 'QC Status': { value: qcStatus },
+      // 'QC Flags': { value: qcFlags },
     },
     mutations: new Map(),
   }
@@ -300,9 +300,9 @@ export function addColoringScale({ auspiceData, key, value, color }: AddColoring
   coloring?.scale?.unshift([UNKNOWN_VALUE, color])
 }
 
-export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
-  const succeeded = result.map((result) => result.result).filter(notUndefined)
-  const data = cloneDeep(succeeded)
+export function locateInTree(analysisResultsRaw: AnalysisResult[], rootSeq: string) {
+  const succeeded = analysisResultsRaw.filter(notUndefined)
+  const analysisResults = cloneDeep(succeeded)
   const auspiceData = (cloneDeep(auspiceDataRaw) as unknown) as AuspiceJsonV2 // TODO: validate and sanitize
 
   const auspiceTreeVersionExpected = 'v2'
@@ -323,9 +323,20 @@ export function locateInTree(result: SequenceAnylysisState[], rootSeq: string) {
   const mutations = new Map()
   mutations_on_tree(focal_node, mutations)
 
-  data.forEach((seq) => {
-    const { best_node } = closest_match(focal_node, seq)
-    attach_to_tree(best_node, seq, rootSeq)
+  return analysisResults.map((seq) => closest_match(focal_node, seq))
+}
+
+export function finalizeTree(analysisResultsRaw: AnalysisResult[], qcResults: QCResult[]) {
+  zip(analysisResults, matches).forEach(([seq, match]) => {
+    if (!seq || !match) {
+      throw new Error(
+        `Expected number of analysis results and number of match to be the same, but got:
+            data.length: ${analysisResults.length}
+            matches.length: ${matches.length}`,
+      )
+    }
+
+    attach_to_tree(match.best_node, seq, rootSeq)
   })
 
   remove_mutations(focal_node)

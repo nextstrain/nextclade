@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next'
 
 import { notUndefined } from 'src/helpers/notUndefined'
 
-import type { QCResults } from 'src/algorithms/QC/runQC'
+import type { QCResult } from 'src/algorithms/QC/runQC'
 import type { QCResultDivergence } from 'src/algorithms/QC/ruleDivergence'
 import type { QCResultSNPClusters } from 'src/algorithms/QC/ruleSnpClusters'
 import type { QCResultMixedSites } from 'src/algorithms/QC/ruleMixedSites'
@@ -70,7 +70,7 @@ export function formatQCMissingData(t: TFunction, missingData?: DeepReadonly<QCR
 }
 
 export interface ListOfQcIssuesProps {
-  diagnostics: DeepReadonly<QCResults>
+  diagnostics: DeepReadonly<QCResult>
 }
 
 export function ListOfQcIssues({ diagnostics }: ListOfQcIssuesProps) {

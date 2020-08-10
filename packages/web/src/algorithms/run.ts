@@ -3,13 +3,16 @@ import { pickBy } from 'lodash'
 import type { DeepPartial } from 'ts-essentials'
 import { readFile } from 'src/helpers/readFile'
 
+import type { AuspiceJsonV2 } from 'auspice'
+
 import { VIRUSES } from './viruses'
 import { geneMap } from './geneMap'
 
+import { locateInTree } from './tree/locateInTree'
 import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
-import { QCRulesConfig, runQC } from './QC/runQC'
+import { QCResult, QCRulesConfig, runQC } from './QC/runQC'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
@@ -62,17 +65,6 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
 
-  const data = { substitutions, insertions, deletions, alignedQuery, nucleotideComposition }
-
-  const qcRulesConfig: DeepPartial<QCRulesConfig> = {
-    divergence: {},
-    missingData: {},
-    snpClusters: {},
-    mixedSites: {},
-  }
-
-  const diagnostics = runQC(data, qcRulesConfig)
-
   return Object.freeze({
     seqName,
     clades,
@@ -91,6 +83,65 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
     alignmentStart,
     alignmentEnd,
     alignmentScore,
-    diagnostics,
+    alignedQuery,
+    nucleotideComposition,
+  })
+}
+
+export interface BuildTreeParams {
+  analysisResults: AnalysisResult[]
+  rootSeq: string
+}
+
+export interface BuildTreeResult {
+  tree: AuspiceJsonV2
+}
+
+export function buildTree({ analysisResults, rootSeq }: BuildTreeParams): BuildTreeResult {
+  const tree = locateInTree(analysisResults, rootSeq)
+  return { tree }
+}
+
+// const qcRulesConfig: DeepPartial<QCRulesConfig> = {
+//   divergence: {},
+//   missingData: {},
+//   snpClusters: {},
+//   mixedSites: {},
+// }
+
+export interface FinalizeTreeParams {
+  tree: AuspiceJsonV2
+  qcResults: QCResult[]
+}
+
+export function finalizeTree({ tree, qcResults }: FinalizeTreeParams): AuspiceJsonV2 {
+  return tree
+}
+
+// NOTE: this function is not used, but just gives an idea of how data would flow through the algorithm if it was not parallelized
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function runSerial(input: string | File, rootSeq: string, qcRulesConfig: DeepPartial<QCRulesConfig>) {
+  const { parsedSequences } = await parse(input)
+
+  // fork
+
+  const analysisResults = Object.entries(parsedSequences).map(([seqName, seq]) => analyze({ seqName, seq, rootSeq }))
+
+  // join
+
+  const { tree } = buildTree({ analysisResults, rootSeq })
+
+  // fork
+
+  const qcResults = analysisResults.map((analysisResult) => runQC({ analysisResult, tree, qcRulesConfig }))
+
+  // join
+
+  const { tree: finalTree } = finalizeTree({ tree, qcResults })
+
+  return Object.freeze({
+    ...analysisResults,
+    ...finalTree,
+    ...qcResults,
   })
 }

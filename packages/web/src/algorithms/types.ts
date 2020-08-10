@@ -3,7 +3,7 @@ import type { DeepReadonly } from 'ts-essentials'
 
 import type { Tagged } from 'src/helpers/types'
 
-import type { QCResults } from './QC/runQC'
+import type { QCResult } from './QC/runQC'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -102,7 +102,8 @@ export interface AnalysisResult {
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number
-  diagnostics: QCResults
+  alignedQuery: string
+  nucleotideComposition: Record<string, number>
 }
 
 export interface ParseResult {

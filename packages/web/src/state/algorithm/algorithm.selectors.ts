@@ -7,6 +7,8 @@ export const selectParams = (state: State) => state.algorithm.params
 
 export const selectResults = (state: State) => state.algorithm.results
 
+export const selectTree = (state: State) => state.algorithm.results.tree
+
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
 export function selectStatus(state: State) {

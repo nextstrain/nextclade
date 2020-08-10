@@ -1,7 +1,11 @@
 import { merge } from 'lodash'
 
 import { DeepPartial } from 'ts-essentials'
-import type { NucleotideDeletion, NucleotideInsertion, SubstitutionsWithAminoacids } from '../types'
+
+import { AuspiceJsonV2 } from 'auspice'
+
+import type { AnalysisResult } from 'src/algorithms/types'
+
 import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
 import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
 import { QCResultSNPClusters, QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
@@ -54,15 +58,7 @@ const qcRulesConfigDefault: QCRulesConfig = {
   },
 } as const
 
-export interface QCInputData {
-  substitutions: SubstitutionsWithAminoacids[]
-  insertions: NucleotideInsertion[]
-  deletions: NucleotideDeletion[]
-  alignedQuery: string
-  nucleotideComposition: Record<string, number>
-}
-
-export interface QCResults {
+export interface QCResult {
   score: number
   divergence?: QCResultDivergence
   missingData?: QCResultMissingData
@@ -70,24 +66,30 @@ export interface QCResults {
   mixedSites?: QCResultMixedSites
 }
 
-export type Rule<Conf, Ret> = (d: QCInputData, c: Conf) => Ret
+export type Rule<Conf, Ret> = (analysisResult: AnalysisResult, config: Conf) => Ret
 
 export function runOne<Conf extends Enableable<unknown>, Ret>(
   rule: Rule<Conf, Ret>,
-  data: QCInputData,
+  analysisResult: AnalysisResult,
   config: Conf,
 ): Ret | undefined {
-  return config.enabled ? rule(data, config) : undefined
+  return config.enabled ? rule(analysisResult, config) : undefined
 }
 
-export function runQC(qcData: QCInputData, qcRulesConfig: DeepPartial<QCRulesConfig>): QCResults {
+export interface RunQCParams {
+  analysisResult: AnalysisResult
+  tree: AuspiceJsonV2
+  qcRulesConfig: DeepPartial<QCRulesConfig>
+}
+
+export function runQC({ analysisResult, tree, qcRulesConfig }: RunQCParams): QCResult {
   const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
   const result = {
-    divergence: runOne(ruleDivergence, qcData, configs.divergence),
-    missingData: runOne(ruleMissingData, qcData, configs.missingData),
-    snpClusters: runOne(ruleSnpClusters, qcData, configs.snpClusters),
-    mixedSites: runOne(ruleMixedSites, qcData, configs.mixedSites),
+    divergence: runOne(ruleDivergence, analysisResult, configs.divergence),
+    missingData: runOne(ruleMissingData, analysisResult, configs.missingData),
+    snpClusters: runOne(ruleSnpClusters, analysisResult, configs.snpClusters),
+    mixedSites: runOne(ruleMixedSites, analysisResult, configs.mixedSites),
   }
 
   const score = Object.values(result).reduce((acc, r) => acc + (r?.score ?? 0), 0)
