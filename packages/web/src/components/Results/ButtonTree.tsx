@@ -9,7 +9,7 @@ import { RectangularTree } from 'auspice/src/components/framework/svg-icons'
 
 import { State } from 'src/state/reducer'
 import { showTree } from 'src/state/auspice/auspice.actions'
-import { AlgorithmStatus } from 'src/state/algorithm/algorithm.state'
+import { selectHasTree } from 'src/state/algorithm/algorithm.selectors'
 
 const IconContainer = styled.span`
   margin-right: 0.5rem;
@@ -29,7 +29,7 @@ export const ButtonStyled = styled(Button)<ButtonProps>`
 `
 
 const mapStateToProps = (state: State) => ({
-  hasResults: state.algorithm.status === AlgorithmStatus.done,
+  hasTree: selectHasTree(state),
 })
 
 const mapDispatchToProps = {
@@ -39,14 +39,15 @@ const mapDispatchToProps = {
 export const ButtonTree = connect(mapStateToProps, mapDispatchToProps)(ButtonTreeDisconnected)
 
 export interface ButtonTreeProps extends ButtonProps {
+  hasTree: boolean
   showTree(_0: void): void
 }
 
-export function ButtonTreeDisconnected({ showTree, hasResults }: ButtonTreeProps) {
+export function ButtonTreeDisconnected({ showTree, hasTree }: ButtonTreeProps) {
   const { t } = useTranslation()
 
   return (
-    <ButtonStyled color="success" onClick={showTree} disabled={!hasResults}>
+    <ButtonStyled color="success" onClick={showTree} disabled={!hasTree}>
       <IconContainer>
         <TreeIcon />
       </IconContainer>

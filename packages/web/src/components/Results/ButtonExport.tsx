@@ -10,7 +10,7 @@ import type { State } from 'src/state/reducer'
 import { ExportFormat } from 'src/state/ui/ui.state'
 import { exportAuspiceJsonV2Trigger, exportCsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
 import { setExportFormat } from 'src/state/ui/ui.actions'
-import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
 
 const Button = styled(ReactstrapButton)`
@@ -44,7 +44,7 @@ const mapStateToProps = (state: State) => ({
   canExport:
     state.algorithm.results.length > 0 &&
     state.algorithm.results.every(
-      (result) => result.status === AnylysisStatus.done || result.status === AnylysisStatus.failed,
+      (result) => result.status === AlgorithmSequenceStatus.done || result.status === AlgorithmSequenceStatus.failed,
     ),
 })
 

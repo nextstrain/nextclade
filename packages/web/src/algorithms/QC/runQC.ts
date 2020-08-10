@@ -59,6 +59,7 @@ const qcRulesConfigDefault: QCRulesConfig = {
 } as const
 
 export interface QCResult {
+  seqName: string
   score: number
   divergence?: QCResultDivergence
   missingData?: QCResultMissingData
@@ -93,5 +94,5 @@ export function runQC({ analysisResult, auspiceData, qcRulesConfig }: RunQCParam
   }
 
   const score = Object.values(result).reduce((acc, r) => acc + (r?.score ?? 0), 0)
-  return { ...result, score }
+  return { seqName: analysisResult.seqName, ...result, score }
 }

@@ -2,7 +2,7 @@ import actionCreatorFactory from 'typescript-fsa'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import type { QCResult } from 'src/algorithms/QC/runQC'
-import type { Sorting } from 'src/helpers/resultsSort'
+import type { Sorting } from 'src/helpers/sortResults'
 import type { InputFile } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')

@@ -17,7 +17,7 @@ import { Uploader } from 'src/components/Main/Uploader'
 import type { State } from 'src/state/reducer'
 import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
 import type { AlgorithmParams, InputFile } from 'src/state/algorithm/algorithm.state'
-import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import {
   algorithmRunTrigger,
   exportCsvTrigger,
@@ -47,7 +47,7 @@ export interface MainProps {
 
 const mapStateToProps = (state: State) => ({
   params: state.algorithm.params,
-  canExport: state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
+  canExport: state.algorithm.results.every((result) => result.status === AlgorithmSequenceStatus.done),
   isDirty: selectIsDirty(state),
   showInputBox: state.ui.showInputBox,
 })

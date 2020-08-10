@@ -9,9 +9,9 @@ import styled from 'styled-components'
 import { mix, rgba } from 'polished'
 
 import type { State } from 'src/state/reducer'
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
-import type { Sorting } from 'src/helpers/resultsSort'
-import { SortCategory, SortDirection } from 'src/helpers/resultsSort'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import type { Sorting } from 'src/helpers/sortResults'
+import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
 
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
@@ -133,7 +133,7 @@ export const TableRowError = styled(TableRow)`
 const highlightRowsWithIssues = true
 
 export interface RowProps extends ListChildComponentProps {
-  data: SequenceAnylysisState[]
+  data: SequenceAnalysisState[]
 }
 
 function TableRowComponent({ index, style, data }: RowProps) {
@@ -266,7 +266,7 @@ const mapDispatchToProps = {
 export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected)
 
 export interface ResultProps {
-  resultsFiltered: SequenceAnylysisState[]
+  resultsFiltered: SequenceAnalysisState[]
   filterPanelCollapsed: boolean
   sortByIdAsc(): void
   sortByIdDesc(): void

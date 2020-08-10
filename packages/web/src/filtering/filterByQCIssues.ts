@@ -1,4 +1,4 @@
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 
 export interface FilterByQCIssuesParams {
   hasNoQcIssuesFilter: boolean
@@ -7,7 +7,7 @@ export interface FilterByQCIssuesParams {
 }
 
 export function filterByQCIssues({ hasNoQcIssuesFilter, hasQcIssuesFilter, hasErrorsFilter }: FilterByQCIssuesParams) {
-  return ({ result, errors }: SequenceAnylysisState) => {
+  return ({ result, errors }: SequenceAnalysisState) => {
     const hasErrors = errors.length > 0
 
     const hasIssues = result && result.diagnostics.score > 0

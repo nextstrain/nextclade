@@ -17,7 +17,7 @@ import narrative from 'auspice/src/reducers/narrative'
 import treeToo from 'auspice/src/reducers/treeToo'
 // END reducers from auspice
 
-import { agorithmReducer } from './algorithm/algorithm.reducer'
+import { algorithmReducer } from './algorithm/algorithm.reducer'
 import { AlgorithmState } from './algorithm/algorithm.state'
 
 import { SettingsState } from './settings/settings.state'
@@ -43,7 +43,7 @@ const settingsReducerPersisted = persistReducer(
 
 const rootReducer = () =>
   combineReducers({
-    algorithm: agorithmReducer,
+    algorithm: algorithmReducer,
     settings: settingsReducerPersisted,
     router: routerReducer,
     ui: uiReducer,

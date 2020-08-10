@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
-import type { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
+import type { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { selectStatus } from 'src/state/algorithm/algorithm.selectors'
 
 const ResultsStatusWrapper = styled.div`
@@ -15,7 +15,7 @@ const ResultsStatusWrapper = styled.div`
 
 export interface SequenceStatus {
   seqName: string
-  status: AnylysisStatus
+  status: AlgorithmSequenceStatus
 }
 
 export interface ResultsStatusProps {

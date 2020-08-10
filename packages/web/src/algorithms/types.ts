@@ -1,9 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
-import type { DeepReadonly } from 'ts-essentials'
-
 import type { Tagged } from 'src/helpers/types'
-
-import type { QCResult } from './QC/runQC'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -48,7 +44,7 @@ export interface NucleotideRange extends Range {
 }
 
 export interface Substitutions {
-  [key: string]: DeepReadonly<NucleotideLocation[]>
+  [key: string]: NucleotideLocation[]
 }
 
 export interface CladeDataFlat {
@@ -70,12 +66,12 @@ export interface AminoacidSubstitution {
 }
 
 export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
-  aaSubstitutions: DeepReadonly<AminoacidSubstitution[]>
+  aaSubstitutions: AminoacidSubstitution[]
 }
 
 export interface Virus {
   minimalLength: 100
-  clades: DeepReadonly<Substitutions>
+  clades: Substitutions
 }
 
 export interface ClusteredSNPs {
@@ -86,18 +82,18 @@ export interface ClusteredSNPs {
 
 export interface AnalysisResult {
   seqName: string
-  clades: DeepReadonly<Substitutions>
-  substitutions: DeepReadonly<SubstitutionsWithAminoacids[]>
+  clades: Substitutions
+  substitutions: SubstitutionsWithAminoacids[]
   totalMutations: number
   aminoacidChanges: AminoacidSubstitution[]
   totalAminoacidChanges: number
-  insertions: DeepReadonly<NucleotideInsertion[]>
+  insertions: NucleotideInsertion[]
   totalInsertions: number
-  deletions: DeepReadonly<NucleotideDeletion[]>
+  deletions: NucleotideDeletion[]
   totalGaps: number
-  missing: DeepReadonly<NucleotideMissing[]>
+  missing: NucleotideMissing[]
   totalMissing: number
-  nonACGTNs: DeepReadonly<NucleotideRange[]>
+  nonACGTNs: NucleotideRange[]
   totalNonACGTNs: number
   alignmentStart: number
   alignmentEnd: number
