@@ -1,7 +1,7 @@
-import { identity } from 'lodash'
+import { identity, zipWith } from 'lodash'
 
+import type { DeepPartial } from 'ts-essentials'
 import { push } from 'connected-next-router'
-
 import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
 import { getContext, select, takeEvery, call, put, all } from 'redux-saga/effects'
@@ -9,7 +9,11 @@ import { getContext, select, takeEvery, call, put, all } from 'redux-saga/effect
 import type { AnalysisResult, ParseResult } from 'src/algorithms/types'
 import type { ParseReturn, ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
+import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { WorkerPools } from 'src/workers/types'
+
+import { finalizeTree, locateInTree } from 'src/algorithms/tree/locateInTree'
+import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
 
 import { EXPORT_AUSPICE_JSON_V2_FILENAME, EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
@@ -27,6 +31,7 @@ import {
   setInput,
   setInputFile,
   exportAuspiceJsonV2Trigger,
+  runQcAsync,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
 
@@ -75,6 +80,29 @@ export function* analyzeOne(params: AnalyzeParams) {
   }
 }
 
+export interface ScheduleQcRunParams extends RunQCParams {
+  poolQc: Pool<RunQcThread>
+  seqName: string
+}
+
+export async function scheduleQcRun({ poolQc, analysisResult, auspiceData, qcRulesConfig }: ScheduleQcRunParams) {
+  const task = poolQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, auspiceData, qcRulesConfig }))
+  return task.then(identity, rethrow)
+}
+
+export function* runQcOne(params: ScheduleQcRunParams) {
+  const { seqName } = params
+  yield put(runQcAsync.started({ seqName }))
+
+  try {
+    const result = (yield call(scheduleQcRun, params) as unknown) as QCResult
+    yield put(runQcAsync.done({ params: { seqName }, result }))
+  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    yield put(runQcAsync.failed({ params: { seqName }, error }))
+  }
+}
+
 export function* workerAlgorithmRun(content?: File | string) {
   yield put(setShowInputBox(false))
   yield put(push('/results'))
@@ -83,7 +111,7 @@ export function* workerAlgorithmRun(content?: File | string) {
     yield put(setInput(content))
   }
 
-  const { poolParse, poolAnalyze } = (yield getContext('workerPools')) as WorkerPools
+  const { poolParse, poolAnalyze, poolQc } = (yield getContext('workerPools')) as WorkerPools
   const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
   const { rootSeq, input: inputState } = params
   const input = content ?? inputState
@@ -106,7 +134,29 @@ export function* workerAlgorithmRun(content?: File | string) {
   }
 
   const sequenceEntries = Object.entries(parsedSequences)
-  yield all(sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })))
+  const analysisResults = (yield all(
+    sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })),
+  ) as unknown) as AnalysisResult[]
+
+  const { matches, auspiceData } = locateInTree(analysisResults, rootSeq)
+
+  const qcRulesConfig: DeepPartial<QCRulesConfig> = {
+    divergence: {},
+    missingData: {},
+    snpClusters: {},
+    mixedSites: {},
+  }
+
+  const qcResults = analysisResults.map(
+    (analysisResult) =>
+      (yield call(runQcOne({ poolQc, seqName, analysisResult, auspiceData, qcRulesConfig })) as unknown) as QCResult,
+  )
+
+  const tree = finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq })
+
+  const results = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))
+
+  yield { results, tree }
 }
 
 export function* exportCsv() {

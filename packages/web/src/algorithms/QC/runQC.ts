@@ -78,11 +78,11 @@ export function runOne<Conf extends Enableable<unknown>, Ret>(
 
 export interface RunQCParams {
   analysisResult: AnalysisResult
-  tree: AuspiceJsonV2
+  auspiceData: AuspiceJsonV2
   qcRulesConfig: DeepPartial<QCRulesConfig>
 }
 
-export function runQC({ analysisResult, tree, qcRulesConfig }: RunQCParams): QCResult {
+export function runQC({ analysisResult, auspiceData, qcRulesConfig }: RunQCParams): QCResult {
   const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
   const result = {

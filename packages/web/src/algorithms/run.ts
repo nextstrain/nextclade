@@ -1,14 +1,14 @@
-import { pickBy } from 'lodash'
+import { pickBy, zip, zipWith } from 'lodash'
 
 import type { DeepPartial } from 'ts-essentials'
 import { readFile } from 'src/helpers/readFile'
 
-import type { AuspiceJsonV2 } from 'auspice'
+import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
 import { VIRUSES } from './viruses'
 import { geneMap } from './geneMap'
 
-import { locateInTree } from './tree/locateInTree'
+import { locateInTree, finalizeTree } from './tree/locateInTree'
 import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
@@ -94,28 +94,12 @@ export interface BuildTreeParams {
 }
 
 export interface BuildTreeResult {
-  tree: AuspiceJsonV2
+  matches: AuspiceTreeNode[]
+  auspiceData: AuspiceJsonV2
 }
 
 export function buildTree({ analysisResults, rootSeq }: BuildTreeParams): BuildTreeResult {
-  const tree = locateInTree(analysisResults, rootSeq)
-  return { tree }
-}
-
-// const qcRulesConfig: DeepPartial<QCRulesConfig> = {
-//   divergence: {},
-//   missingData: {},
-//   snpClusters: {},
-//   mixedSites: {},
-// }
-
-export interface FinalizeTreeParams {
-  tree: AuspiceJsonV2
-  qcResults: QCResult[]
-}
-
-export function finalizeTree({ tree, qcResults }: FinalizeTreeParams): AuspiceJsonV2 {
-  return tree
+  return locateInTree(analysisResults, rootSeq)
 }
 
 // NOTE: this function is not used, but just gives an idea of how data would flow through the algorithm if it was not parallelized
@@ -129,19 +113,17 @@ async function runSerial(input: string | File, rootSeq: string, qcRulesConfig: D
 
   // join
 
-  const { tree } = buildTree({ analysisResults, rootSeq })
+  const { matches, auspiceData } = locateInTree(analysisResults, rootSeq)
 
   // fork
 
-  const qcResults = analysisResults.map((analysisResult) => runQC({ analysisResult, tree, qcRulesConfig }))
+  const qcResults = analysisResults.map((analysisResult) => runQC({ analysisResult, auspiceData, qcRulesConfig }))
 
   // join
 
-  const { tree: finalTree } = finalizeTree({ tree, qcResults })
+  const tree = finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq })
 
-  return Object.freeze({
-    ...analysisResults,
-    ...finalTree,
-    ...qcResults,
-  })
+  const results = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))
+
+  return Object.freeze({ results, tree })
 }

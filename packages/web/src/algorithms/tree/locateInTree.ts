@@ -323,21 +323,38 @@ export function locateInTree(analysisResultsRaw: AnalysisResult[], rootSeq: stri
   const mutations = new Map()
   mutations_on_tree(focal_node, mutations)
 
-  return analysisResults.map((seq) => closest_match(focal_node, seq))
+  const matches = analysisResults.map((seq) => closest_match(focal_node, seq).best_node)
+  return { matches, auspiceData }
 }
 
-export function finalizeTree(analysisResultsRaw: AnalysisResult[], qcResults: QCResult[]) {
-  zip(analysisResults, matches).forEach(([seq, match]) => {
+export interface FinalizeTreeParams {
+  auspiceData: AuspiceJsonV2
+  analysisResults: AnalysisResult[]
+  matches: AuspiceTreeNode[]
+  qcResults: QCResult[]
+  rootSeq: string
+}
+
+export function finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq }: FinalizeTreeParams) {
+  const succeeded = analysisResults.filter(notUndefined)
+  const analysisResultsSucceeded = cloneDeep(succeeded)
+
+  zip(analysisResultsSucceeded, matches).forEach(([seq, match]) => {
     if (!seq || !match) {
       throw new Error(
         `Expected number of analysis results and number of match to be the same, but got:
-            data.length: ${analysisResults.length}
+            data.length: ${analysisResultsSucceeded.length}
             matches.length: ${matches.length}`,
       )
     }
 
-    attach_to_tree(match.best_node, seq, rootSeq)
+    attach_to_tree(match, seq, rootSeq)
   })
+
+  const focal_node = auspiceData?.tree
+  if (!focal_node) {
+    throw new Error(`Tree format not recognized: ".tree" is undefined`)
+  }
 
   remove_mutations(focal_node)
 
