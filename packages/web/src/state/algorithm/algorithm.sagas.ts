@@ -18,6 +18,7 @@ import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/run
 import { EXPORT_AUSPICE_JSON_V2_FILENAME, EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
 import { serializeResultsToJson, serializeResultsToCsv, serializeResultsToAuspiceJsonV2 } from 'src/io/serializeResults'
+import { AnalysisParams } from 'src/algorithms/types'
 
 import fsaSaga from 'src/state/util/fsaSaga'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
@@ -55,11 +56,8 @@ export async function parse({ poolParse, input }: ParseParams) {
   return ((await taskParse.then(identity, rethrow)) as unknown) as ParseReturn
 }
 
-export interface AnalyzeParams {
+export interface AnalyzeParams extends AnalysisParams {
   poolAnalyze: Pool<AnalyzeThread>
-  seqName: string
-  seq: string
-  rootSeq: string
 }
 
 export async function analyze({ poolAnalyze, seqName, seq, rootSeq }: AnalyzeParams) {
@@ -81,17 +79,17 @@ export function* analyzeOne(params: AnalyzeParams) {
 }
 
 export interface ScheduleQcRunParams extends RunQCParams {
-  poolQc: Pool<RunQcThread>
-  seqName: string
+  poolRunQc: Pool<RunQcThread>
 }
 
-export async function scheduleQcRun({ poolQc, analysisResult, auspiceData, qcRulesConfig }: ScheduleQcRunParams) {
-  const task = poolQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, auspiceData, qcRulesConfig }))
+export async function scheduleQcRun({ poolRunQc, analysisResult, auspiceData, qcRulesConfig }: ScheduleQcRunParams) {
+  const task = poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, auspiceData, qcRulesConfig }))
   return task.then(identity, rethrow)
 }
 
 export function* runQcOne(params: ScheduleQcRunParams) {
-  const { seqName } = params
+  const { analysisResult: { seqName } } = params // prettier-ignore
+
   yield put(runQcAsync.started({ seqName }))
 
   try {
@@ -111,7 +109,7 @@ export function* workerAlgorithmRun(content?: File | string) {
     yield put(setInput(content))
   }
 
-  const { poolParse, poolAnalyze, poolQc } = (yield getContext('workerPools')) as WorkerPools
+  const { poolParse, poolAnalyze, poolRunQc } = (yield getContext('workerPools')) as WorkerPools
   const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
   const { rootSeq, input: inputState } = params
   const input = content ?? inputState
@@ -147,10 +145,9 @@ export function* workerAlgorithmRun(content?: File | string) {
     mixedSites: {},
   }
 
-  const qcResults = analysisResults.map(
-    (analysisResult) =>
-      (yield call(runQcOne({ poolQc, seqName, analysisResult, auspiceData, qcRulesConfig })) as unknown) as QCResult,
-  )
+  const qcResults = (yield all(
+    analysisResults.map((analysisResult) => call(runQcOne, { poolRunQc, analysisResult, auspiceData, qcRulesConfig })),
+  ) as unknown) as QCResult[]
 
   const tree = finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq })
 

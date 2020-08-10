@@ -12,7 +12,7 @@ import { locateInTree, finalizeTree } from './tree/locateInTree'
 import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
-import { QCResult, QCRulesConfig, runQC } from './QC/runQC'
+import { QCRulesConfig, runQC } from './QC/runQC'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
@@ -86,20 +86,6 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
     alignedQuery,
     nucleotideComposition,
   })
-}
-
-export interface BuildTreeParams {
-  analysisResults: AnalysisResult[]
-  rootSeq: string
-}
-
-export interface BuildTreeResult {
-  matches: AuspiceTreeNode[]
-  auspiceData: AuspiceJsonV2
-}
-
-export function buildTree({ analysisResults, rootSeq }: BuildTreeParams): BuildTreeResult {
-  return locateInTree(analysisResults, rootSeq)
 }
 
 // NOTE: this function is not used, but just gives an idea of how data would flow through the algorithm if it was not parallelized

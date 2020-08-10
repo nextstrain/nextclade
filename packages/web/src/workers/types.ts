@@ -7,5 +7,5 @@ import { RunQcThread } from 'src/workers/worker.runQc'
 export interface WorkerPools {
   poolParse: Pool<ParseThread>
   poolAnalyze: Pool<AnalyzeThread>
-  poolQc: Pool<RunQcThread>
+  poolRunQc: Pool<RunQcThread>
 }
