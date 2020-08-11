@@ -1,6 +1,6 @@
 import { clamp } from 'lodash'
 
-import type { QCInputData } from './runQC'
+import type { AnalysisResult } from 'src/algorithms/types'
 
 export interface QCRulesConfigMissingData {
   missingDataThreshold: number
@@ -10,7 +10,7 @@ export interface QCRulesConfigMissingData {
 }
 
 export function ruleMissingData(
-  { nucleotideComposition }: QCInputData,
+  { nucleotideComposition }: AnalysisResult,
   { missingDataThreshold, scoreWeight, scoreBias, scoreMax }: QCRulesConfigMissingData,
 ) {
   const totalMissing = nucleotideComposition.N ?? 0

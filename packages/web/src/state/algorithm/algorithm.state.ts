@@ -2,7 +2,7 @@ import type { AnalysisResult } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
-import { getFakeResults } from 'src/assets/data/getFakeResults'
+// import { getFakeResults } from 'src/assets/data/getFakeResults'
 import { AuspiceJsonV2 } from 'auspice'
 import { QCResult } from 'src/algorithms/QC/runQC'
 
@@ -52,13 +52,7 @@ export interface SequenceAnalysisState {
   seqName: string
   status: AlgorithmSequenceStatus
   result?: AnalysisResult
-  errors: string[]
-}
-
-export interface QcState {
-  seqName: string
-  status: AlgorithmSequenceStatus
-  result?: QCResult
+  qc?: QCResult
   errors: string[]
 }
 
@@ -80,7 +74,6 @@ export interface AlgorithmState {
   isDirty: boolean
   results: SequenceAnalysisState[]
   resultsFiltered: SequenceAnalysisState[]
-  qcResults: QcState[]
   tree: AuspiceJsonV2
   errors: string[]
   filters: ResultsFilters
@@ -88,9 +81,9 @@ export interface AlgorithmState {
 
 const fakeState: Partial<AlgorithmState> = {}
 if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
-  fakeState.results = getFakeResults()
-  fakeState.resultsFiltered = fakeState.results
-  fakeState.status = AlgorithmGlobalStatus.done
+  // fakeState.results = getFakeResults()
+  // fakeState.resultsFiltered = fakeState.results
+  // fakeState.status = AlgorithmGlobalStatus.done
 }
 
 export const algorithmDefaultState: AlgorithmState = {
@@ -102,7 +95,6 @@ export const algorithmDefaultState: AlgorithmState = {
   isDirty: true,
   results: [],
   resultsFiltered: [],
-  qcResults: [],
   tree: {},
   errors: [],
   filters: {

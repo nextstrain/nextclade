@@ -139,7 +139,7 @@ export interface RowProps extends ListChildComponentProps {
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { id, seqName, errors, result: sequence } = data[index]
+  const { id, seqName, errors, result: sequence, qc } = data[index]
 
   if (errors.length > 0) {
     return (
@@ -149,7 +149,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         </TableCell>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} />
+          <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
         </TableCellName>
 
         <TableCell grow={20} shrink={20}>
@@ -159,7 +159,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
     )
   }
 
-  if (!sequence) {
+  if (!sequence || !qc) {
     return (
       <TableRowPending style={style} even={index % 2 === 0}>
         <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
@@ -167,7 +167,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         </TableCell>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} />
+          <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
         </TableCellName>
 
         <TableCell grow={20} shrink={20}>
@@ -180,7 +180,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
   const even = index % 2 === 0
   let color = even ? '#e2e2e2' : '#fcfcfc'
   if (highlightRowsWithIssues) {
-    const scoreNormal = clamp(sequence.diagnostics.score / 100, 0, 1)
+    const scoreNormal = clamp(qc.score / 100, 0, 1)
     if (scoreNormal > 0) {
       color = mix(scoreNormal, '#ff0000', '#ffff00')
       color = mix(0.7, '#fff', color)
@@ -194,11 +194,11 @@ function TableRowComponent({ index, style, data }: RowProps) {
       </TableCell>
 
       <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-        <ColumnName seqName={seqName} sequence={sequence} />
+        <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
       </TableCellName>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
-        <ColumnQCStatus sequence={sequence} />
+        <ColumnQCStatus sequence={sequence} qc={qc} />
       </TableCell>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>

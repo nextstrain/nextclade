@@ -1,4 +1,4 @@
-import type { QCInputData } from './runQC'
+import type { AnalysisResult } from 'src/algorithms/types'
 
 export interface QCRulesConfigDivergence {
   divergenceMean: number
@@ -7,7 +7,7 @@ export interface QCRulesConfigDivergence {
 }
 
 export function ruleDivergence(
-  { substitutions, insertions, deletions }: QCInputData,
+  { substitutions, insertions, deletions }: AnalysisResult,
   { divergenceMean, divergenceStd, nStd }: QCRulesConfigDivergence,
 ) {
   const totalNumberOfMutations =

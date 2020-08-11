@@ -5,8 +5,8 @@ import { formatClades } from 'src/helpers/formatClades'
 import { formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { formatInsertion } from 'src/helpers/formatInsertion'
-import { locateInTree } from 'src/algorithms/tree/locateInTree'
-import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
+// import { locateInTree } from 'src/algorithms/tree/locateInTree'
+// import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 
 export function prepareResultsJson(results: SequenceAnalysisState[]) {
   return results.map(({ seqName, status, errors, result }) => {
@@ -66,8 +66,9 @@ export function serializeResultsToJson(results: SequenceAnalysisState[]) {
 }
 
 export function serializeResultsToAuspiceJsonV2(results: SequenceAnalysisState[]) {
-  const auspiceData = locateInTree(results, DEFAULT_ROOT_SEQUENCE)
-  return JSON.stringify(auspiceData, null, 2)
+  // const auspiceData = locateInTree(results, DEFAULT_ROOT_SEQUENCE)
+  // return JSON.stringify(auspiceData, null, 2)
+  return ''
 }
 
 export function serializeResultsToCsv(results: SequenceAnalysisState[]) {

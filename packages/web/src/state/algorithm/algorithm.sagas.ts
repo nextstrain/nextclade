@@ -69,13 +69,16 @@ export function* analyzeOne(params: AnalyzeParams) {
   const { seqName } = params
   yield put(analyzeAsync.started({ seqName }))
 
+  let result: AnalysisResult | undefined
   try {
-    const result = (yield call(analyze, params) as unknown) as AnalysisResult
+    result = (yield call(analyze, params) as unknown) as AnalysisResult
     yield put(analyzeAsync.done({ params: { seqName }, result }))
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     yield put(analyzeAsync.failed({ params: { seqName }, error }))
   }
+
+  return result
 }
 
 export interface ScheduleQcRunParams extends RunQCParams {
@@ -92,6 +95,7 @@ export function* runQcOne(params: ScheduleQcRunParams) {
 
   yield put(runQcAsync.started({ seqName }))
 
+  let result: QCResult | undefined
   try {
     const result = (yield call(scheduleQcRun, params) as unknown) as QCResult
     yield put(runQcAsync.done({ params: { seqName }, result }))
@@ -99,6 +103,8 @@ export function* runQcOne(params: ScheduleQcRunParams) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     yield put(runQcAsync.failed({ params: { seqName }, error }))
   }
+
+  return result
 }
 
 export function* workerAlgorithmRun(content?: File | string) {

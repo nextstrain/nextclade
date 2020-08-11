@@ -196,43 +196,91 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     }),
   )
 
-  // runQc
+  // QC
   .withHandling(
     immerCase(runQcAsync.started, (draft, { seqName }) => {
       draft.status = AlgorithmGlobalStatus.qcStarted
-      draft.qcResults = draft.qcResults.map((result) => {
+      draft.results = draft.results.map((result) => {
         if (result.seqName === seqName) {
           return { ...result, status: AlgorithmSequenceStatus.qcStarted }
         }
         return result
       })
+
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(runQcAsync.done, (draft, { params: { seqName }, result }) => {
       draft.status = AlgorithmGlobalStatus.qcDone
-      draft.qcResults = draft.qcResults.map((oldResult) => {
+      draft.results = draft.results.map((oldResult) => {
         if (oldResult.seqName === seqName) {
-          return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.qcDone }
+          return { ...oldResult, errors: [], qc: result, status: AlgorithmSequenceStatus.qcDone }
         }
         return oldResult
       })
+
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
     immerCase(runQcAsync.failed, (draft, { params: { seqName }, error }) => {
       draft.status = AlgorithmGlobalStatus.qcFailed
-      draft.qcResults = draft.qcResults.map((oldResult) => {
+      draft.results = draft.results.map((oldResult) => {
         if (oldResult.seqName === seqName) {
           return {
             ...oldResult,
             errors: [error.message],
+            qc: undefined,
             status: AlgorithmSequenceStatus.qcFailed,
           }
         }
         return oldResult
       })
+
+      draft.resultsFiltered = runFilters(current(draft))
     }),
   )
+
+// // runQc
+// .withHandling(
+//   immerCase(runQcAsync.started, (draft, { seqName }) => {
+//     draft.status = AlgorithmGlobalStatus.qcStarted
+//     draft.qcResults = draft.qcResults.map((result) => {
+//       if (result.seqName === seqName) {
+//         return { ...result, status: AlgorithmSequenceStatus.qcStarted }
+//       }
+//       return result
+//     })
+//   }),
+// )
+//
+// .withHandling(
+//   immerCase(runQcAsync.done, (draft, { params: { seqName }, result }) => {
+//     draft.status = AlgorithmGlobalStatus.qcDone
+//     draft.qcResults = draft.qcResults.map((oldResult) => {
+//       if (oldResult.seqName === seqName) {
+//         return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.qcDone }
+//       }
+//       return oldResult
+//     })
+//   }),
+// )
+//
+// .withHandling(
+//   immerCase(runQcAsync.failed, (draft, { params: { seqName }, error }) => {
+//     draft.status = AlgorithmGlobalStatus.qcFailed
+//     draft.qcResults = draft.qcResults.map((oldResult) => {
+//       if (oldResult.seqName === seqName) {
+//         return {
+//           ...oldResult,
+//           errors: [error.message],
+//           status: AlgorithmSequenceStatus.qcFailed,
+//         }
+//       }
+//       return oldResult
+//     })
+//   }),
+// )

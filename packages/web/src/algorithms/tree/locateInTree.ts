@@ -296,7 +296,7 @@ export interface AddColoringScaleParams {
 }
 
 export function addColoringScale({ auspiceData, key, value, color }: AddColoringScaleParams) {
-  const coloring = auspiceData.meta.colorings.find((coloring) => coloring.key === key)
+  const coloring = auspiceData?.meta?.colorings.find((coloring) => coloring.key === key)
   coloring?.scale?.unshift([UNKNOWN_VALUE, color])
 }
 
@@ -357,6 +357,10 @@ export function finalizeTree({ auspiceData, analysisResults, matches, qcResults,
   }
 
   remove_mutations(focal_node)
+
+  if (!auspiceData?.meta) {
+    auspiceData.meta = { colorings: [], display_defaults: {} }
+  }
 
   auspiceData.meta.colorings.unshift({
     key: 'QC Status',

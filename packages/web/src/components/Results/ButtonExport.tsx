@@ -5,13 +5,13 @@ import { useTranslation } from 'react-i18next'
 import { Button as ReactstrapButton, ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap'
 import { IoMdDocument } from 'react-icons/io'
 import { BsBraces } from 'react-icons/bs'
+import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
 import { ExportFormat } from 'src/state/ui/ui.state'
 import { exportAuspiceJsonV2Trigger, exportCsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
 import { setExportFormat } from 'src/state/ui/ui.actions'
-import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
-import styled from 'styled-components'
+import { canExport } from 'src/state/algorithm/algorithm.selectors'
 
 const Button = styled(ReactstrapButton)`
   width: 225px;
@@ -41,11 +41,7 @@ export interface ExportButtonProps {
 
 const mapStateToProps = (state: State) => ({
   exportFormat: state.ui.exportFormat,
-  canExport:
-    state.algorithm.results.length > 0 &&
-    state.algorithm.results.every(
-      (result) => result.status === AlgorithmSequenceStatus.done || result.status === AlgorithmSequenceStatus.failed,
-    ),
+  canExport: canExport(state),
 })
 
 const mapDispatchToProps = {

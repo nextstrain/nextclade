@@ -1,9 +1,7 @@
-import { pickBy, zip, zipWith } from 'lodash'
+import { pickBy, zipWith } from 'lodash'
 
 import type { DeepPartial } from 'ts-essentials'
 import { readFile } from 'src/helpers/readFile'
-
-import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
 import { VIRUSES } from './viruses'
 import { geneMap } from './geneMap'

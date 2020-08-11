@@ -7,13 +7,13 @@ export interface FilterByQCIssuesParams {
 }
 
 export function filterByQCIssues({ hasNoQcIssuesFilter, hasQcIssuesFilter, hasErrorsFilter }: FilterByQCIssuesParams) {
-  return ({ result, errors }: SequenceAnalysisState) => {
+  return ({ result, qc, errors }: SequenceAnalysisState) => {
     const hasErrors = errors.length > 0
 
-    const hasIssues = result && result.diagnostics.score > 0
+    const hasIssues = qc && qc.score > 0
 
     // // Sequences still being processed (!result) are assumed to have no issues until the results come and prove otherwise
-    const hasNoIssues = (!hasErrors && !result) || (result && result.diagnostics.score === 0)
+    const hasNoIssues = (!hasErrors && !result && !qc) || (qc && qc.score === 0)
 
     return (hasNoQcIssuesFilter && hasNoIssues) || (hasQcIssuesFilter && hasIssues) || (hasErrorsFilter && hasErrors)
   }

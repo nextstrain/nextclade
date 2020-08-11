@@ -30,7 +30,7 @@ const qcRulesConfigDefault: QCRulesConfig = {
     enabled: true,
     divergenceMean: 9, // expected number of mutations
     divergenceStd: 4, // expected standard deviation around mean
-    nStd: 3, // number of standared deviations to trigger QC warning
+    nStd: 3, // number of standard deviations to trigger QC warning
   },
   missingData: {
     enabled: true,

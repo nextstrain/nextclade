@@ -70,13 +70,13 @@ export function formatQCMissingData(t: TFunction, missingData?: DeepReadonly<QCR
 }
 
 export interface ListOfQcIssuesProps {
-  diagnostics: DeepReadonly<QCResult>
+  qc: QCResult
 }
 
-export function ListOfQcIssues({ diagnostics }: ListOfQcIssuesProps) {
+export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
   const { t } = useTranslation()
 
-  const { score, divergence, snpClusters, mixedSites, missingData } = diagnostics
+  const { score, divergence, snpClusters, mixedSites, missingData } = qc
 
   const messages = [
     formatQCDivergence(t, divergence),

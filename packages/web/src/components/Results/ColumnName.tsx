@@ -6,6 +6,7 @@ import type { AnalysisResult } from 'src/algorithms/types'
 
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
+import { QCResult } from 'src/algorithms/QC/runQC'
 
 export const SequenceName = styled.div`
   white-space: nowrap;
@@ -16,9 +17,10 @@ export const SequenceName = styled.div`
 export interface ColumnNameProps {
   seqName: string
   sequence?: AnalysisResult
+  qc?: QCResult
 }
 
-export function ColumnName({ seqName, sequence }: ColumnNameProps) {
+export function ColumnName({ seqName, sequence, qc }: ColumnNameProps) {
   const [showTooltip, setShowTooltip] = useState(false)
   const id = getSafeId('sequence-label', { seqName })
 
@@ -30,7 +32,7 @@ export function ColumnName({ seqName, sequence }: ColumnNameProps) {
       onMouseLeave={() => setShowTooltip(false)}
     >
       {seqName}
-      {sequence && <ColumnNameTooltip showTooltip={showTooltip} sequence={sequence} />}
+      {sequence && qc && <ColumnNameTooltip showTooltip={showTooltip} sequence={sequence} qc={qc} />}
     </SequenceName>
   )
 }
