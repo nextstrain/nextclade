@@ -17,11 +17,7 @@ export function ruleDivergence(
   // escalation is quadratic as it should be for a Poisson process
   const zScore = (totalNumberOfMutations - divergenceMean) / divergenceStd
   const score = (100 * zScore * zScore) / (nStd * nStd)
-  return {
-    score,
-    zScore,
-    nStd,
-  }
+  return { score, zScore, nStd }
 }
 
 export type QCResultDivergence = ReturnType<typeof ruleDivergence>

@@ -78,12 +78,7 @@ export function ruleSnpClusters(data: AnalysisResult, config: QCRulesConfigSNPCl
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 
-  return {
-    score,
-    totalSNPs,
-    totalSNPsThreshold,
-    clusteredSNPs,
-  }
+  return { score, totalSNPs, totalSNPsThreshold, clusteredSNPs }
 }
 
 export type QCResultSNPClusters = ReturnType<typeof ruleSnpClusters>

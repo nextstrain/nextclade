@@ -25,11 +25,7 @@ export function ruleMixedSites(
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 
-  return {
-    score,
-    totalMixedSites,
-    mixedSitesThreshold,
-  }
+  return { score, totalMixedSites, mixedSitesThreshold }
 }
 
 export type QCResultMixedSites = ReturnType<typeof ruleMixedSites>

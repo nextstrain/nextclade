@@ -21,11 +21,7 @@ export function ruleMissingData(
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 
-  return {
-    score,
-    totalMissing,
-    missingDataThreshold,
-  }
+  return { score, totalMissing, missingDataThreshold }
 }
 
 export type QCResultMissingData = ReturnType<typeof ruleMissingData>
