@@ -12,6 +12,7 @@ import {
   resultsSortTrigger,
   runQcAsync,
   setAAFilter,
+  setAlgorithmGlobalStatus,
   setCladesFilter,
   setHasErrorsFilter,
   setHasNoQcIssuesFilter,
@@ -109,6 +110,12 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
       draft.isDirty = false
       draft.results = []
       draft.resultsFiltered = []
+    }),
+  )
+
+  .withHandling(
+    immerCase(setAlgorithmGlobalStatus, (draft, status) => {
+      draft.status = status
     }),
   )
 

@@ -4,9 +4,10 @@ import type { DeepPartial } from 'ts-essentials'
 import { push } from 'connected-next-router'
 import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
-import { getContext, select, takeEvery, call, put, all } from 'redux-saga/effects'
+import { all, call, getContext, put, select, takeEvery } from 'redux-saga/effects'
 
 import type { AnalysisResult, ParseResult } from 'src/algorithms/types'
+import { AnalysisParams } from 'src/algorithms/types'
 import type { ParseReturn, ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { RunQcThread } from 'src/workers/worker.runQc'
@@ -15,26 +16,26 @@ import type { WorkerPools } from 'src/workers/types'
 import { finalizeTree, locateInTree } from 'src/algorithms/tree/locateInTree'
 import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
 
+import fsaSaga from 'src/state/util/fsaSaga'
 import { EXPORT_AUSPICE_JSON_V2_FILENAME, EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
-import { serializeResultsToJson, serializeResultsToCsv, serializeResultsToAuspiceJsonV2 } from 'src/io/serializeResults'
-import { AnalysisParams } from 'src/algorithms/types'
-
-import fsaSaga from 'src/state/util/fsaSaga'
+import { serializeResultsToAuspiceJsonV2, serializeResultsToCsv, serializeResultsToJson } from 'src/io/serializeResults'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import {
-  algorithmRunAsync,
   algorithmRunTrigger,
-  parseAsync,
   analyzeAsync,
+  exportAuspiceJsonV2Trigger,
   exportCsvTrigger,
   exportJsonTrigger,
+  parseAsync,
+  runQcAsync,
+  setAlgorithmGlobalStatus,
   setInput,
   setInputFile,
-  exportAuspiceJsonV2Trigger,
-  runQcAsync,
+  algorithmRunAsync,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
+import { AlgorithmGlobalStatus } from './algorithm.state'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
@@ -107,7 +108,25 @@ export function* runQcOne(params: ScheduleQcRunParams) {
   return result
 }
 
-export function* workerAlgorithmRun(content?: File | string) {
+export function* parseSaga({ poolParse, input }: ParseParams) {
+  yield put(parseAsync.started())
+  try {
+    const { input: newInput, parsedSequences } = (yield call(parse, { poolParse, input }) as unknown) as ParseResult
+    const sequenceNames = Object.keys(parsedSequences)
+    yield put(parseAsync.done({ result: sequenceNames }))
+    return { input: newInput, parsedSequences }
+  } catch (error) {
+    if (error instanceof Error) {
+      yield put(parseAsync.failed({ error }))
+    } else {
+      yield put(parseAsync.failed({ error: new Error('Unknown error') }))
+    }
+  }
+  return undefined
+}
+
+export function* runAlgorithm(content?: File | string) {
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield put(setShowInputBox(false))
   yield put(push('/results'))
 
@@ -127,21 +146,20 @@ export function* workerAlgorithmRun(content?: File | string) {
     yield put(setInputFile({ name, size }))
   }
 
-  // TODO wrap into a function, handle errors
-  yield put(parseAsync.started())
-  const { input: newInput, parsedSequences } = (yield call(parse, { poolParse, input }) as unknown) as ParseResult
-  const sequenceNames = Object.keys(parsedSequences)
-  yield put(parseAsync.done({ result: sequenceNames }))
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsingStarted))
+  const { input: newInput, parsedSequences } = (yield call(parseSaga, { poolParse, input }) as unknown) as ParseResult
 
   if (newInput !== input) {
     yield put(setInput(newInput))
   }
 
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysisStarted))
   const sequenceEntries = Object.entries(parsedSequences)
   const analysisResults = (yield all(
     sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })),
   ) as unknown) as AnalysisResult[]
 
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuildStarted))
   const { matches, auspiceData } = locateInTree(analysisResults, rootSeq)
 
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
@@ -151,14 +169,17 @@ export function* workerAlgorithmRun(content?: File | string) {
     mixedSites: {},
   }
 
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qcStarted))
   const qcResults = (yield all(
     analysisResults.map((analysisResult) => call(runQcOne, { poolRunQc, analysisResult, auspiceData, qcRulesConfig })),
   ) as unknown) as QCResult[]
 
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalizationStarted))
   const tree = finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq })
 
   const results = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))
 
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
   yield { results, tree }
 }
 
@@ -181,7 +202,7 @@ export function* exportAuspiceJsonV2() {
 }
 
 export default [
-  takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, workerAlgorithmRun)),
+  takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
   takeEvery(exportCsvTrigger, exportCsv),
   takeEvery(exportJsonTrigger, exportJson),
   takeEvery(exportAuspiceJsonV2Trigger, exportAuspiceJsonV2),
