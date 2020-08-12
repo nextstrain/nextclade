@@ -1,5 +1,6 @@
 declare module 'auspice/src/reducers/frequencies' {
-  export declare type FrequenciesState = Record<string, unknown>
-  declare function frequencies(State?: FrequenciesState): FrequenciesState | undefined
+  import { AuspiceFrequenciesState } from 'auspice'
+
+  declare function frequencies(State?: AuspiceFrequenciesState): AuspiceFrequenciesState | undefined
   export default frequencies
 }
