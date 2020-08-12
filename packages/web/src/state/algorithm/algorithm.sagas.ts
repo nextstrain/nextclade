@@ -1,19 +1,21 @@
 import { identity, zipWith } from 'lodash'
 
 import type { DeepPartial } from 'ts-essentials'
+import type { Dispatch } from 'redux'
 import { push } from 'connected-next-router'
 import { Pool } from 'threads'
-import type { Dispatch } from 'redux'
 import { getContext, put, select, takeEvery } from 'redux-saga/effects'
 import { call, all } from 'typed-redux-saga'
 
 import type { AnalysisParams, AnalysisResult } from 'src/algorithms/types'
+import type { WorkerPools } from 'src/workers/types'
 import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
+import type { TreeBuildThread } from 'src/workers/worker.treeBuild'
 import type { RunQcThread } from 'src/workers/worker.runQc'
-import type { WorkerPools } from 'src/workers/types'
+import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 
-import { finalizeTree, locateInTree } from 'src/algorithms/tree/locateInTree'
+import type { FinalizeTreeParams, LocateInTreeParams } from 'src/algorithms/tree/locateInTree'
 import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
 
 import fsaSaga from 'src/state/util/fsaSaga'
@@ -33,6 +35,8 @@ import {
   setInput,
   setInputFile,
   algorithmRunAsync,
+  treeBuildAsync,
+  treeFinalizeAsync,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
 import { AlgorithmGlobalStatus } from './algorithm.state'
@@ -45,11 +49,6 @@ export interface RunParams extends WorkerPools {
 
 export function rethrow<T>(e: T) {
   throw e
-}
-
-export interface ParseParams {
-  threadParse: ParseThread
-  input: File | string
 }
 
 export interface AnalyzeParams extends AnalysisParams {
@@ -103,6 +102,11 @@ export function* runQcOne(params: ScheduleQcRunParams) {
   return result
 }
 
+export interface ParseParams {
+  threadParse: ParseThread
+  input: File | string
+}
+
 export function* parseSaga({ threadParse, input }: ParseParams) {
   yield put(parseAsync.started())
   try {
@@ -120,6 +124,50 @@ export function* parseSaga({ threadParse, input }: ParseParams) {
   return undefined
 }
 
+export interface TreeBuildParams {
+  threadTreeBuild: TreeBuildThread
+  params: LocateInTreeParams
+}
+
+export function* buildTreeSaga({ threadTreeBuild, params }: TreeBuildParams) {
+  yield put(treeBuildAsync.started(params))
+  try {
+    const result = yield* call(threadTreeBuild, params)
+    yield put(treeBuildAsync.done({ params, result }))
+    return result
+  } catch (error) {
+    if (error instanceof Error) {
+      yield put(treeBuildAsync.failed({ params, error }))
+    } else {
+      yield put(treeBuildAsync.failed({ params, error: new Error('developer error: Error object is not recognized') }))
+    }
+  }
+  return undefined
+}
+
+export interface TreeFinalizeParams {
+  threadTreeFinalize: TreeFinalizeThread
+  params: FinalizeTreeParams
+}
+
+export function* finalizeTreeSaga({ threadTreeFinalize, params }: TreeFinalizeParams) {
+  yield put(treeFinalizeAsync.started(params))
+  try {
+    const result = yield* call(threadTreeFinalize, params)
+    yield put(treeFinalizeAsync.done({ params, result }))
+    return result
+  } catch (error) {
+    if (error instanceof Error) {
+      yield put(treeFinalizeAsync.failed({ params, error }))
+    } else {
+      yield put(
+        treeFinalizeAsync.failed({ params, error: new Error('developer error: Error object is not recognized') }),
+      )
+    }
+  }
+  return undefined
+}
+
 export function* runAlgorithm(content?: File | string) {
   yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield put(setShowInputBox(false))
@@ -129,7 +177,9 @@ export function* runAlgorithm(content?: File | string) {
     yield put(setInput(content))
   }
 
-  const { threadParse, poolAnalyze, poolRunQc } = (yield getContext('workerPools')) as WorkerPools
+  const { threadParse, poolAnalyze, threadTreeBuild, poolRunQc, threadTreeFinalize } = (yield getContext(
+    'workerPools',
+  )) as WorkerPools
   const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
   const { rootSeq, input: inputState } = params
   const input = content ?? inputState
@@ -159,7 +209,12 @@ export function* runAlgorithm(content?: File | string) {
   ) as unknown) as AnalysisResult[]
 
   yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
-  const { matches, auspiceData } = locateInTree(analysisResults, rootSeq)
+  const treeBuildResult = yield* call(buildTreeSaga, { threadTreeBuild, params: { analysisResults, rootSeq } })
+  if (!treeBuildResult) {
+    return
+  }
+
+  const { matches, auspiceData: auspiceDataRaw } = treeBuildResult
 
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
     divergence: {},
@@ -170,16 +225,26 @@ export function* runAlgorithm(content?: File | string) {
 
   yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
   const qcResults = (yield all(
-    analysisResults.map((analysisResult) => call(runQcOne, { poolRunQc, analysisResult, auspiceData, qcRulesConfig })),
+    analysisResults.map((analysisResult) =>
+      call(runQcOne, { poolRunQc, analysisResult, auspiceData: auspiceDataRaw, qcRulesConfig }),
+    ),
   ) as unknown) as QCResult[]
 
   yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
-  const tree = finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq })
+  const treeFinalizeResult = yield* call(finalizeTreeSaga, {
+    threadTreeFinalize,
+    params: { auspiceData: auspiceDataRaw, analysisResults, matches, qcResults, rootSeq },
+  })
+  if (!treeFinalizeResult) {
+    return
+  }
+
+  const { auspiceData } = treeFinalizeResult
 
   const results = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))
 
   yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
-  yield { results, tree }
+  yield { results, auspiceData }
 }
 
 export function* exportCsv() {

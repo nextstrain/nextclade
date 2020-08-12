@@ -97,17 +97,19 @@ async function runSerial(input: string | File, rootSeq: string, qcRulesConfig: D
 
   // join
 
-  const { matches, auspiceData } = locateInTree(analysisResults, rootSeq)
+  const { matches, auspiceData: auspiceDataRaw } = locateInTree({ analysisResults, rootSeq })
 
   // fork
 
-  const qcResults = analysisResults.map((analysisResult) => runQC({ analysisResult, auspiceData, qcRulesConfig }))
+  const qcResults = analysisResults.map((analysisResult) =>
+    runQC({ analysisResult, auspiceData: auspiceDataRaw, qcRulesConfig }),
+  )
 
   // join
 
-  const tree = finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq })
+  const { auspiceData } = finalizeTree({ auspiceData: auspiceDataRaw, analysisResults, matches, qcResults, rootSeq })
 
   const results = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))
 
-  return Object.freeze({ results, tree })
+  return Object.freeze({ results, auspiceData })
 }

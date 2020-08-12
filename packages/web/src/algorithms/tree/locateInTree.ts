@@ -300,7 +300,20 @@ export function addColoringScale({ auspiceData, key, value, color }: AddColoring
   coloring?.scale?.unshift([UNKNOWN_VALUE, color])
 }
 
-export function locateInTree(analysisResultsRaw: AnalysisResult[], rootSeq: string) {
+export interface LocateInTreeParams {
+  analysisResults: AnalysisResult[]
+  rootSeq: string
+}
+
+export interface LocateInTreeResults {
+  matches: AuspiceTreeNodeExtended[]
+  auspiceData: AuspiceJsonV2
+}
+
+export function locateInTree({
+  analysisResults: analysisResultsRaw,
+  rootSeq,
+}: LocateInTreeParams): LocateInTreeResults {
   const succeeded = analysisResultsRaw.filter(notUndefined)
   const analysisResults = cloneDeep(succeeded)
   const auspiceData = (cloneDeep(auspiceDataRaw) as unknown) as AuspiceJsonV2 // TODO: validate and sanitize
@@ -335,7 +348,17 @@ export interface FinalizeTreeParams {
   rootSeq: string
 }
 
-export function finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq }: FinalizeTreeParams) {
+export interface FinalizeTreeResults {
+  auspiceData: AuspiceJsonV2
+}
+
+export function finalizeTree({
+  auspiceData,
+  analysisResults,
+  matches,
+  qcResults,
+  rootSeq,
+}: FinalizeTreeParams): FinalizeTreeResults {
   const succeeded = analysisResults.filter(notUndefined)
   const analysisResultsSucceeded = cloneDeep(succeeded)
 
@@ -394,5 +417,5 @@ export function finalizeTree({ auspiceData, analysisResults, matches, qcResults,
   auspiceData.meta.panels = ['tree', 'entropy']
   auspiceData.meta.geo_resolutions = undefined
 
-  return auspiceData
+  return { auspiceData }
 }
