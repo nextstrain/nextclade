@@ -1,5 +1,6 @@
 declare module 'auspice/src/reducers/treeToo' {
-  export declare type TreeTooState = Record<string, unknown>
-  declare function treeToo(state?: TreeTooState): TreeTooState | undefined
+  import { AuspiceTreeState } from 'auspice'
+
+  declare function treeToo(state?: AuspiceTreeState): AuspiceTreeState | undefined
   export default treeToo
 }
