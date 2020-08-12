@@ -4,11 +4,11 @@ import type { DeepPartial } from 'ts-essentials'
 import { push } from 'connected-next-router'
 import { Pool } from 'threads'
 import type { Dispatch } from 'redux'
-import { all, call, getContext, put, select, takeEvery } from 'redux-saga/effects'
+import { getContext, put, select, takeEvery } from 'redux-saga/effects'
+import { call, all } from 'typed-redux-saga'
 
-import type { AnalysisResult, ParseResult } from 'src/algorithms/types'
-import { AnalysisParams } from 'src/algorithms/types'
-import type { ParseReturn, ParseThread } from 'src/workers/worker.parse'
+import type { AnalysisParams, AnalysisResult } from 'src/algorithms/types'
+import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { WorkerPools } from 'src/workers/types'
@@ -48,13 +48,8 @@ export function rethrow<T>(e: T) {
 }
 
 export interface ParseParams {
-  poolParse: Pool<ParseThread>
+  threadParse: ParseThread
   input: File | string
-}
-
-export async function parse({ poolParse, input }: ParseParams) {
-  const taskParse = poolParse.queue(async (parse: ParseThread) => parse(input))
-  return ((await taskParse.then(identity, rethrow)) as unknown) as ParseReturn
 }
 
 export interface AnalyzeParams extends AnalysisParams {
@@ -108,10 +103,10 @@ export function* runQcOne(params: ScheduleQcRunParams) {
   return result
 }
 
-export function* parseSaga({ poolParse, input }: ParseParams) {
+export function* parseSaga({ threadParse, input }: ParseParams) {
   yield put(parseAsync.started())
   try {
-    const { input: newInput, parsedSequences } = (yield call(parse, { poolParse, input }) as unknown) as ParseResult
+    const { input: newInput, parsedSequences } = yield* call(threadParse, input)
     const sequenceNames = Object.keys(parsedSequences)
     yield put(parseAsync.done({ result: sequenceNames }))
     return { input: newInput, parsedSequences }
@@ -119,7 +114,7 @@ export function* parseSaga({ poolParse, input }: ParseParams) {
     if (error instanceof Error) {
       yield put(parseAsync.failed({ error }))
     } else {
-      yield put(parseAsync.failed({ error: new Error('Unknown error') }))
+      yield put(parseAsync.failed({ error: new Error('developer error: Error object is not recognized') }))
     }
   }
   return undefined
@@ -134,7 +129,7 @@ export function* runAlgorithm(content?: File | string) {
     yield put(setInput(content))
   }
 
-  const { poolParse, poolAnalyze, poolRunQc } = (yield getContext('workerPools')) as WorkerPools
+  const { threadParse, poolAnalyze, poolRunQc } = (yield getContext('workerPools')) as WorkerPools
   const params = (yield select(selectParams) as unknown) as ReturnType<typeof selectParams>
   const { rootSeq, input: inputState } = params
   const input = content ?? inputState
@@ -147,8 +142,12 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
-  const { input: newInput, parsedSequences } = (yield call(parseSaga, { poolParse, input }) as unknown) as ParseResult
+  const parseResult = yield* call(parseSaga, { threadParse, input })
+  if (!parseResult) {
+    return
+  }
 
+  const { input: newInput, parsedSequences } = parseResult
   if (newInput !== input) {
     yield put(setInput(newInput))
   }
