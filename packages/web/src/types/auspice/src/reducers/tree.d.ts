@@ -1,5 +1,6 @@
 declare module 'auspice/src/reducers/tree' {
-  export declare type TreeState = Record<string, unknown>
-  declare function tree(state?: TreeState): TreeState | undefined
+  import { AuspiceTreeState } from 'auspice'
+
+  declare function tree(state?: TreeState): AuspiceTreeState | undefined
   export default tree
 }
