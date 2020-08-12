@@ -2,7 +2,7 @@ import { format } from 'url'
 
 import type { Router } from 'next/router'
 import { applyMiddleware, createStore, StoreEnhancer, Store, Middleware } from 'redux'
-import { composeWithDevTools } from 'redux-devtools-extension'
+
 import type { PersistorOptions, Persistor } from 'redux-persist/es/types'
 import reduxImmutableStateInvariant from 'redux-immutable-state-invariant'
 import createSagaMiddleware from 'redux-saga'
@@ -12,9 +12,10 @@ import { persistStore } from 'redux-persist'
 import { createLogger } from 'redux-logger'
 
 import type { WorkerPools } from 'src/workers/types'
-import { auspiceInitialState } from 'src/state/auspice/auspice.state'
 
-import createRootReducer from './reducer'
+import { auspiceInitialState } from './auspice/auspice.state'
+import { withReduxDevTools } from './util/withReduxDevTools'
+import createRootReducer, { State } from './reducer'
 import createRootSaga from './sagas'
 
 export function persistStoreAsync(store: Store, options: PersistorOptions): Promise<Persistor> {
@@ -46,22 +47,15 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
   }
 
   let enhancer = applyMiddleware(...middlewares)
-
-  if (process.env.ENABLE_REDUX_DEV_TOOLS === 'true' && composeWithDevTools) {
-    enhancer = composeWithDevTools({
-      // trace: true,
-      // traceLimit: 25,
-      actionsBlacklist: '@@INIT',
-    })(enhancer)
-  }
+  enhancer = withReduxDevTools(enhancer)
 
   const { asPath, pathname, query } = router
-  let initialState
+  let initialState = { ...auspiceInitialState } as State
   if (asPath) {
     const url = format({ pathname, query })
     initialState = {
+      ...initialState,
       router: initialRouterState(url, asPath),
-      ...auspiceInitialState,
     }
   }
 
@@ -72,9 +66,9 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
 
   if (module.hot) {
     // Setup hot reloading of root reducer
-    module.hot.accept('./reducer', () => {
+    module.hot.accept(() => {
       store.replaceReducer(createRootReducer())
-      console.info('[HMR] root reducer reloaded succesfully')
+      console.info('[HMR] root reducer reloaded successfully')
     })
 
     // Setup hot reloading of root saga
@@ -84,7 +78,7 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
         .toPromise()
         .then(() => {
           rootSagaTask = sagaMiddleware.run(createRootSaga())
-          console.info('[HMR] root saga reloaded succesfully')
+          console.info('[HMR] root saga reloaded successfully')
           return true
         })
         .catch((error: Error) => console.error(error))
