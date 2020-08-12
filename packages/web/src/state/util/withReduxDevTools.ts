@@ -41,13 +41,13 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
     // @ts-ignore
     actionSanitizer(action: Action<unknown>) {
       // @ts-ignore
-      if (action.type === 'CLEAN_START' && action?.tree) {
+      if (action.type === 'CLEAN_START') {
         return {
           ...action,
           // @ts-ignore
-          tree: sanitizeTree(action?.tree),
+          tree: sanitizeTree(action.tree),
           // @ts-ignore
-          entropy: sanitizeEntropy(action?.controls),
+          entropy: sanitizeEntropy(action.controls),
         }
       }
       return action
@@ -61,8 +61,8 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
           results: sanitizeResults(state.algorithm.results),
           resultsFiltered: sanitizeResults(state.algorithm.results),
         },
-        tree: sanitizeTree(state?.tree),
-        entropy: sanitizeEntropy(state?.controls),
+        tree: sanitizeTree(state.tree),
+        entropy: sanitizeEntropy(state.controls),
       }
     },
 
