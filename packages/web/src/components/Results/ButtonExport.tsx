@@ -11,7 +11,7 @@ import type { State } from 'src/state/reducer'
 import { ExportFormat } from 'src/state/ui/ui.state'
 import { exportAuspiceJsonV2Trigger, exportCsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
 import { setExportFormat } from 'src/state/ui/ui.actions'
-import { canExport } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanExport } from 'src/state/algorithm/algorithm.selectors'
 
 const Button = styled(ReactstrapButton)`
   width: 225px;
@@ -41,7 +41,7 @@ export interface ExportButtonProps {
 
 const mapStateToProps = (state: State) => ({
   exportFormat: state.ui.exportFormat,
-  canExport: canExport(state),
+  canExport: selectCanExport(state),
 })
 
 const mapDispatchToProps = {

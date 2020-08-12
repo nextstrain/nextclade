@@ -146,20 +146,20 @@ export function* runAlgorithm(content?: File | string) {
     yield put(setInputFile({ name, size }))
   }
 
-  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsingStarted))
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
   const { input: newInput, parsedSequences } = (yield call(parseSaga, { poolParse, input }) as unknown) as ParseResult
 
   if (newInput !== input) {
     yield put(setInput(newInput))
   }
 
-  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysisStarted))
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const sequenceEntries = Object.entries(parsedSequences)
   const analysisResults = (yield all(
     sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })),
   ) as unknown) as AnalysisResult[]
 
-  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuildStarted))
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
   const { matches, auspiceData } = locateInTree(analysisResults, rootSeq)
 
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
@@ -169,12 +169,12 @@ export function* runAlgorithm(content?: File | string) {
     mixedSites: {},
   }
 
-  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qcStarted))
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
   const qcResults = (yield all(
     analysisResults.map((analysisResult) => call(runQcOne, { poolRunQc, analysisResult, auspiceData, qcRulesConfig })),
   ) as unknown) as QCResult[]
 
-  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalizationStarted))
+  yield put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
   const tree = finalizeTree({ auspiceData, analysisResults, matches, qcResults, rootSeq })
 
   const results = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))

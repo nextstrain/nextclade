@@ -15,7 +15,7 @@ export const selectHasTree = (state: State) => !isEmpty(state.algorithm.tree)
 
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
-export const canExport = (state: State): boolean =>
+export const selectCanExport = (state: State): boolean =>
   state.algorithm.results.length > 0 && state.algorithm.status === AlgorithmGlobalStatus.allDone
 
 export function selectStatus(state: State) {
@@ -26,13 +26,13 @@ export function selectStatus(state: State) {
   let statusText = 'Idling'
   let failureText: string | undefined
   let percent = 0
-  if (statusGlobal === AlgorithmGlobalStatus.parsingStarted) {
+  if (statusGlobal === AlgorithmGlobalStatus.started) {
     statusText = i18n.t('Parsing...')
     percent = 3
-  } else if (statusGlobal === AlgorithmGlobalStatus.parsingDone) {
+  } else if (statusGlobal === AlgorithmGlobalStatus.parsing) {
     percent = parseDonePercent
     statusText = i18n.t('Parsing...')
-  } else if (statusGlobal === AlgorithmGlobalStatus.analysisStarted) {
+  } else if (statusGlobal === AlgorithmGlobalStatus.analysis) {
     const total = sequenceStatuses.length
     const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.analysisDone).length
     const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.analysisFailed).length
@@ -42,16 +42,16 @@ export function selectStatus(state: State) {
     if (failed > 0) {
       failureText = i18n.t('Failed: {{failed}}/{{total}}', { failed, total })
     }
-  } else if (statusGlobal === AlgorithmGlobalStatus.treeBuildStarted) {
+  } else if (statusGlobal === AlgorithmGlobalStatus.treeBuild) {
     percent = 50
     statusText = i18n.t('Building the tree')
-  } else if (statusGlobal === AlgorithmGlobalStatus.qcStarted) {
+  } else if (statusGlobal === AlgorithmGlobalStatus.qc) {
     const total = sequenceStatuses.length
     const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.qcDone).length
     const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.qcFailed).length
     const done = succeeded + failed
     percent = parseDonePercent + (done / total) * (100 - parseDonePercent)
-    statusText = i18n.t('Analysing sequences: {{done}}/{{total}}', { done, total })
+    statusText = i18n.t('Assessing sequence quality: {{done}}/{{total}}', { done, total })
     if (failed > 0) {
       failureText = i18n.t('Failed: {{failed}}/{{total}}', { failed, total })
     }

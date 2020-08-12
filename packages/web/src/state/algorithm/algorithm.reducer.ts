@@ -106,7 +106,6 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .withHandling(
     immerCase(algorithmRunAsync.started, (draft) => {
-      draft.status = AlgorithmGlobalStatus.started
       draft.isDirty = false
       draft.results = []
       draft.resultsFiltered = []
@@ -128,15 +127,10 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .withHandling(immerCase(algorithmRunAsync.failed, (draft, { params }) => {}))
 
   // parse
-  .withHandling(
-    immerCase(parseAsync.started, (draft) => {
-      draft.status = AlgorithmGlobalStatus.parsingStarted
-    }),
-  )
+  .withHandling(immerCase(parseAsync.started, (draft) => {}))
 
   .withHandling(
     immerCase(parseAsync.done, (draft, { result }) => {
-      draft.status = AlgorithmGlobalStatus.parsingDone
       draft.results = result.map((seqName, id) => ({
         status: AlgorithmSequenceStatus.idling,
         id,
@@ -150,7 +144,6 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .withHandling(
     immerCase(parseAsync.failed, (draft, { error }) => {
-      draft.status = AlgorithmGlobalStatus.parsingFailed
       draft.errors.push(error.message)
     }),
   )
@@ -158,7 +151,6 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   // analyze
   .withHandling(
     immerCase(analyzeAsync.started, (draft, { seqName }) => {
-      draft.status = AlgorithmGlobalStatus.analysisStarted
       draft.results = draft.results.map((result) => {
         if (result.seqName === seqName) {
           return { ...result, status: AlgorithmSequenceStatus.analysisStarted }
@@ -172,7 +164,6 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .withHandling(
     immerCase(analyzeAsync.done, (draft, { params: { seqName }, result }) => {
-      draft.status = AlgorithmGlobalStatus.analysisDone
       draft.results = draft.results.map((oldResult) => {
         if (oldResult.seqName === seqName) {
           return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.analysisDone }
@@ -186,7 +177,6 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .withHandling(
     immerCase(analyzeAsync.failed, (draft, { params: { seqName }, error }) => {
-      draft.status = AlgorithmGlobalStatus.analysisFailed
       draft.results = draft.results.map((oldResult) => {
         if (oldResult.seqName === seqName) {
           return {
@@ -206,7 +196,6 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   // QC
   .withHandling(
     immerCase(runQcAsync.started, (draft, { seqName }) => {
-      draft.status = AlgorithmGlobalStatus.qcStarted
       draft.results = draft.results.map((result) => {
         if (result.seqName === seqName) {
           return { ...result, status: AlgorithmSequenceStatus.qcStarted }
@@ -220,7 +209,6 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .withHandling(
     immerCase(runQcAsync.done, (draft, { params: { seqName }, result }) => {
-      draft.status = AlgorithmGlobalStatus.qcDone
       draft.results = draft.results.map((oldResult) => {
         if (oldResult.seqName === seqName) {
           return { ...oldResult, errors: [], qc: result, status: AlgorithmSequenceStatus.qcDone }
@@ -234,7 +222,6 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .withHandling(
     immerCase(runQcAsync.failed, (draft, { params: { seqName }, error }) => {
-      draft.status = AlgorithmGlobalStatus.qcFailed
       draft.results = draft.results.map((oldResult) => {
         if (oldResult.seqName === seqName) {
           return {
