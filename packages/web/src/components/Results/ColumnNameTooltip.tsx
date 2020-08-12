@@ -17,7 +17,7 @@ import { ListOfInsertions } from './ListOfInsertions'
 export interface ColumnNameTooltipProps {
   showTooltip: boolean
   sequence: AnalysisResult
-  qc: QCResult
+  qc?: QCResult
 }
 
 export function ColumnNameTooltip({ sequence, qc, showTooltip }: ColumnNameTooltipProps) {

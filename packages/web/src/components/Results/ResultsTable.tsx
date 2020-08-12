@@ -159,7 +159,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
     )
   }
 
-  if (!sequence || !qc) {
+  if (!sequence) {
     return (
       <TableRowPending style={style} even={index % 2 === 0}>
         <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
@@ -179,7 +179,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
 
   const even = index % 2 === 0
   let color = even ? '#e2e2e2' : '#fcfcfc'
-  if (highlightRowsWithIssues) {
+  if (highlightRowsWithIssues && qc) {
     const scoreNormal = clamp(qc.score / 100, 0, 1)
     if (scoreNormal > 0) {
       color = mix(scoreNormal, '#ff0000', '#ffff00')

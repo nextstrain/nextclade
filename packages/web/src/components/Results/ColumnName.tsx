@@ -32,7 +32,7 @@ export function ColumnName({ seqName, sequence, qc }: ColumnNameProps) {
       onMouseLeave={() => setShowTooltip(false)}
     >
       {seqName}
-      {sequence && qc && <ColumnNameTooltip showTooltip={showTooltip} sequence={sequence} qc={qc} />}
+      {sequence && <ColumnNameTooltip showTooltip={showTooltip} sequence={sequence} qc={qc} />}
     </SequenceName>
   )
 }

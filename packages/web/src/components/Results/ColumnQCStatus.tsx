@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import { MdCheck, MdClear } from 'react-icons/md'
+import { useTranslation } from 'react-i18next'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import type { QCResult } from 'src/algorithms/QC/runQC'
@@ -10,14 +11,26 @@ import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
 
 export interface ColumnQCStatusProps {
   sequence: AnalysisResult
-  qc: QCResult
+  qc?: QCResult
 }
 
 export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
+  const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
   const { seqName } = sequence
   const id = getSafeId('qc-label', { seqName })
+
+  if (!qc) {
+    return (
+      <div id={id} onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+        {t('Pending...')}
+        <Tooltip target={id} isOpen={showTooltip}>
+          {t('Sequence quality control has not yet completed')}
+        </Tooltip>
+      </div>
+    )
+  }
 
   const { score } = qc
   const hasIssues = score > 0

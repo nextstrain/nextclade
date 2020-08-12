@@ -12,8 +12,9 @@ export function filterByQCIssues({ hasNoQcIssuesFilter, hasQcIssuesFilter, hasEr
 
     const hasIssues = qc && qc.score > 0
 
-    // // Sequences still being processed (!result) are assumed to have no issues until the results come and prove otherwise
-    const hasNoIssues = (!hasErrors && !result && !qc) || (qc && qc.score === 0)
+    // The sequences which are still being processed (!result || !qc) are presumed to have no issues
+    // until QC results come and prove otherwise
+    const hasNoIssues = (!hasErrors && (!result || !qc)) || (qc && qc.score === 0)
 
     return (hasNoQcIssuesFilter && hasNoIssues) || (hasQcIssuesFilter && hasIssues) || (hasErrorsFilter && hasErrors)
   }
