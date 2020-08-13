@@ -9,10 +9,21 @@ import AuspiceEntropy from 'auspice/src/components/entropy'
 // HACK: For some reason, auspice tree requests space larger than the width and height passed into it.
 //  So we pretend the container is smaller, by multiplying by this numbers.
 //  This has to be fixed upstream.
-const TREE_SIZE_HACK_WIDTH = 0.98
+const TREE_SIZE_HACK_WIDTH = 0.95
 const TREE_SIZE_HACK_HEIGHT = 0.96
 
-const ENTROPY_HEIGHT = 0.25
+const ENTROPY_ASPECT_RATIO = 16 / 5
+
+export const AuspiceEntropyContainer = styled.div`
+  // prevent selection when dragging
+  * {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+  }
+`
 
 export const AuspiceTreeStyled = styled(AuspiceTree)`
   height: 100%;
@@ -26,12 +37,15 @@ export function Tree() {
     <AutoSizer>
       {({ width, height }) => {
         const fullWidth = width * TREE_SIZE_HACK_WIDTH
-        const fullHeight = height * TREE_SIZE_HACK_HEIGHT
+        const treeHeight = height * TREE_SIZE_HACK_HEIGHT
+        const entropyHeight = width / ENTROPY_ASPECT_RATIO
 
         return (
           <>
-            <AuspiceTreeStyled width={fullWidth} height={fullHeight * (1 - ENTROPY_HEIGHT)} />
-            <AuspiceEntropy width={fullWidth} height={ENTROPY_HEIGHT} />
+            <AuspiceTreeStyled width={fullWidth} height={treeHeight} />
+            <AuspiceEntropyContainer>
+              <AuspiceEntropy width={fullWidth} height={entropyHeight} />
+            </AuspiceEntropyContainer>
           </>
         )
       }}
