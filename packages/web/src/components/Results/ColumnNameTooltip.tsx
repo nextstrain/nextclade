@@ -3,6 +3,7 @@ import { Popover, PopoverBody } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
 import type { AnalysisResult } from 'src/algorithms/types'
+import type { QCResult } from 'src/algorithms/QC/runQC'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
@@ -16,9 +17,10 @@ import { ListOfInsertions } from './ListOfInsertions'
 export interface ColumnNameTooltipProps {
   showTooltip: boolean
   sequence: AnalysisResult
+  qc?: QCResult
 }
 
-export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipProps) {
+export function ColumnNameTooltip({ sequence, qc, showTooltip }: ColumnNameTooltipProps) {
   const {
     seqName,
     clades,
@@ -33,7 +35,6 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
     alignmentStart,
     alignmentEnd,
     alignmentScore,
-    diagnostics,
   } = sequence
   const { t } = useTranslation()
 
@@ -66,7 +67,7 @@ export function ColumnNameTooltip({ sequence, showTooltip }: ColumnNameTooltipPr
         <ListOfMissing missing={missing} totalMissing={totalMissing} />
         <ListOfInsertions insertions={insertions} />
         <ListOfNonACGTNs nonACGTNs={nonACGTNs} totalNonACGTNs={totalNonACGTNs} />
-        <ListOfQcIssues diagnostics={diagnostics} />
+        {qc && <ListOfQcIssues qc={qc} />}
       </PopoverBody>
     </Popover>
   )

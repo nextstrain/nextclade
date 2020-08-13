@@ -1,4 +1,4 @@
-import type { QCInputData } from './runQC'
+import type { AnalysisResult } from 'src/algorithms/types'
 
 export interface QCRulesConfigDivergence {
   divergenceMean: number
@@ -7,7 +7,7 @@ export interface QCRulesConfigDivergence {
 }
 
 export function ruleDivergence(
-  { substitutions, insertions, deletions }: QCInputData,
+  { substitutions, insertions, deletions }: AnalysisResult,
   { divergenceMean, divergenceStd, nStd }: QCRulesConfigDivergence,
 ) {
   const totalNumberOfMutations =
@@ -17,11 +17,7 @@ export function ruleDivergence(
   // escalation is quadratic as it should be for a Poisson process
   const zScore = (totalNumberOfMutations - divergenceMean) / divergenceStd
   const score = (100 * zScore * zScore) / (nStd * nStd)
-  return {
-    score,
-    zScore,
-    nStd,
-  }
+  return { score, zScore, nStd }
 }
 
 export type QCResultDivergence = ReturnType<typeof ruleDivergence>

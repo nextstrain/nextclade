@@ -2,7 +2,7 @@ import { intersectionWith } from 'lodash'
 
 import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
 import { notUndefined } from 'src/helpers/notUndefined'
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { AminoacidSubstitution } from 'src/algorithms/types'
 
 import { splitFilterString } from './splitFilterString'
@@ -18,7 +18,7 @@ export function aminoacidChangesAreEqual(filter: Partial<AminoacidSubstitution>,
 export function filterByAminoacidChanges(aaFilter: string) {
   const aaFilters = splitFilterString(aaFilter).map(parseAminoacidChange).filter(notUndefined)
 
-  return (result: SequenceAnylysisState) => {
+  return (result: SequenceAnalysisState) => {
     if (!result?.result) {
       return false
     }

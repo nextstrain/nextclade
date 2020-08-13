@@ -1,11 +1,9 @@
 import { clamp } from 'lodash'
 
-import type { ClusteredSNPs } from 'src/algorithms/types'
-
-import type { QCInputData } from './runQC'
+import type { AnalysisResult, ClusteredSNPs } from 'src/algorithms/types'
 
 export function findSNPClusters(
-  { substitutions }: QCInputData,
+  { substitutions }: AnalysisResult,
   { knownClusters, windowSize, clusterCutOff }: QCRulesConfigSNPClusters,
 ) {
   // turn mutation keys into positions, exclude known clusters, and sort
@@ -67,7 +65,7 @@ export interface QCRulesConfigSNPClusters {
   scoreMax: number
 }
 
-export function ruleSnpClusters(data: QCInputData, config: QCRulesConfigSNPClusters) {
+export function ruleSnpClusters(data: AnalysisResult, config: QCRulesConfigSNPClusters) {
   const { totalSNPsThreshold, scoreWeight, scoreBias, scoreMax } = config
 
   const snpClusters = findSNPClusters(data, config)
@@ -80,12 +78,7 @@ export function ruleSnpClusters(data: QCInputData, config: QCRulesConfigSNPClust
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 
-  return {
-    score,
-    totalSNPs,
-    totalSNPsThreshold,
-    clusteredSNPs,
-  }
+  return { score, totalSNPs, totalSNPsThreshold, clusteredSNPs }
 }
 
 export type QCResultSNPClusters = ReturnType<typeof ruleSnpClusters>

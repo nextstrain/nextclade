@@ -1,4 +1,4 @@
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 
 export interface FilterByQCIssuesParams {
   hasNoQcIssuesFilter: boolean
@@ -7,13 +7,14 @@ export interface FilterByQCIssuesParams {
 }
 
 export function filterByQCIssues({ hasNoQcIssuesFilter, hasQcIssuesFilter, hasErrorsFilter }: FilterByQCIssuesParams) {
-  return ({ result, errors }: SequenceAnylysisState) => {
+  return ({ result, qc, errors }: SequenceAnalysisState) => {
     const hasErrors = errors.length > 0
 
-    const hasIssues = result && result.diagnostics.score > 0
+    const hasIssues = qc && qc.score > 0
 
-    // // Sequences still being processed (!result) are assumed to have no issues until the results come and prove otherwise
-    const hasNoIssues = (!hasErrors && !result) || (result && result.diagnostics.score === 0)
+    // The sequences which are still being processed (!result || !qc) are presumed to have no issues
+    // until QC results come and prove otherwise
+    const hasNoIssues = (!hasErrors && (!result || !qc)) || (qc && qc.score === 0)
 
     return (hasNoQcIssuesFilter && hasNoIssues) || (hasQcIssuesFilter && hasIssues) || (hasErrorsFilter && hasErrors)
   }

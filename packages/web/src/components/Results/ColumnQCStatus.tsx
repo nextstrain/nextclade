@@ -1,23 +1,38 @@
 import React, { useState } from 'react'
 
 import { MdCheck, MdClear } from 'react-icons/md'
+import { useTranslation } from 'react-i18next'
 
-import { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/algorithms/types'
+import type { QCResult } from 'src/algorithms/QC/runQC'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
 
 export interface ColumnQCStatusProps {
   sequence: AnalysisResult
+  qc?: QCResult
 }
 
-export function ColumnQCStatus({ sequence }: ColumnQCStatusProps) {
+export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
+  const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { seqName, diagnostics } = sequence
+  const { seqName } = sequence
   const id = getSafeId('qc-label', { seqName })
 
-  const { score } = diagnostics
+  if (!qc) {
+    return (
+      <div id={id} onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+        {t('Pending...')}
+        <Tooltip target={id} isOpen={showTooltip}>
+          {t('Sequence quality control has not yet completed')}
+        </Tooltip>
+      </div>
+    )
+  }
+
+  const { score } = qc
   const hasIssues = score > 0
   const iconRed = <MdClear className="icon fill-red" />
   const iconGreen = <MdCheck className="icon fill-green" />
@@ -26,7 +41,7 @@ export function ColumnQCStatus({ sequence }: ColumnQCStatusProps) {
     <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
       {hasIssues ? iconRed : iconGreen}
       <Tooltip target={id} isOpen={showTooltip}>
-        <ListOfQcIssues diagnostics={diagnostics} />
+        <ListOfQcIssues qc={qc} />
       </Tooltip>
     </div>
   )

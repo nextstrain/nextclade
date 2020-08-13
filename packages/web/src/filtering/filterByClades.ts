@@ -1,4 +1,4 @@
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import { formatClades } from 'src/helpers/formatClades'
 
 import { splitFilterString } from './splitFilterString'
@@ -6,7 +6,7 @@ import { splitFilterString } from './splitFilterString'
 export function filterByClades(cladesFilter: string) {
   const cladesFilters = splitFilterString(cladesFilter)
 
-  return (result: SequenceAnylysisState) => {
+  return (result: SequenceAnalysisState) => {
     if (!result?.result) {
       return false
     }

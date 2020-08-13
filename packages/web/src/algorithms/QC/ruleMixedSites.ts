@@ -1,6 +1,6 @@
 import { clamp } from 'lodash'
 
-import type { QCInputData } from './runQC'
+import type { AnalysisResult } from 'src/algorithms/types'
 
 export interface QCRulesConfigMixedSites {
   mixedSitesThreshold: number
@@ -10,7 +10,7 @@ export interface QCRulesConfigMixedSites {
 }
 
 export function ruleMixedSites(
-  { nucleotideComposition }: QCInputData,
+  { nucleotideComposition }: AnalysisResult,
   { mixedSitesThreshold, scoreWeight, scoreBias, scoreMax }: QCRulesConfigMixedSites,
 ) {
   const goodBases = new Set(['A', 'C', 'G', 'T', 'N', '-'])
@@ -25,11 +25,7 @@ export function ruleMixedSites(
   }
   const score = clamp(scoreRaw, 0, scoreMax)
 
-  return {
-    score,
-    totalMixedSites,
-    mixedSitesThreshold,
-  }
+  return { score, totalMixedSites, mixedSitesThreshold }
 }
 
 export type QCResultMixedSites = ReturnType<typeof ruleMixedSites>

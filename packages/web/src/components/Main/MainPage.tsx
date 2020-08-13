@@ -3,8 +3,8 @@ import React, { useCallback, useRef } from 'react'
 import { delay } from 'lodash'
 import { connect } from 'react-redux'
 import { push } from 'connected-next-router'
-import { Button, Card, CardBody, CardHeader, Col, Input, Row, Alert } from 'reactstrap'
-import { MdPlayArrow, MdClear, MdWarning } from 'react-icons/md'
+import { Alert, Button, Card, CardBody, CardHeader, Col, Input, Row } from 'reactstrap'
+import { MdClear, MdPlayArrow, MdWarning } from 'react-icons/md'
 import { FaCaretRight } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 
@@ -15,9 +15,8 @@ import { About } from 'src/components/About/About'
 import { Uploader } from 'src/components/Main/Uploader'
 
 import type { State } from 'src/state/reducer'
-import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanExport, selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
 import type { AlgorithmParams, InputFile } from 'src/state/algorithm/algorithm.state'
-import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import {
   algorithmRunTrigger,
   exportCsvTrigger,
@@ -27,7 +26,7 @@ import {
 } from 'src/state/algorithm/algorithm.actions'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { Title, Subtitle } from 'src/components/Main/Title'
+import { Subtitle, Title } from 'src/components/Main/Title'
 
 import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
 
@@ -47,7 +46,7 @@ export interface MainProps {
 
 const mapStateToProps = (state: State) => ({
   params: state.algorithm.params,
-  canExport: state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
+  canExport: selectCanExport(state),
   isDirty: selectIsDirty(state),
   showInputBox: state.ui.showInputBox,
 })

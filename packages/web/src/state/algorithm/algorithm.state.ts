@@ -1,8 +1,10 @@
 import type { AnalysisResult } from 'src/algorithms/types'
-import type { Sorting } from 'src/helpers/resultsSort'
+import type { Sorting } from 'src/helpers/sortResults'
 
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
-import { getFakeResults } from 'src/assets/data/getFakeResults'
+// import { getFakeResults } from 'src/assets/data/getFakeResults'
+import { AuspiceJsonV2 } from 'auspice'
+import { QCResult } from 'src/algorithms/QC/runQC'
 
 export interface InputFile {
   name: string
@@ -14,28 +16,33 @@ export interface AlgorithmParams {
   rootSeq: string
 }
 
-export enum AlgorithmStatus {
+export enum AlgorithmGlobalStatus {
   idling = 'idling',
   started = 'started',
-  parsingStarted = 'parsingStarted',
-  parsingDone = 'parsingDone',
-  parsingFailed = 'parsingFailed',
+  parsing = 'parsing',
+  analysis = 'analysis',
+  treeBuild = 'treeBuild',
+  qc = 'qc',
+  treeFinalization = 'treeFinalization',
+  allDone = 'allDone',
+}
+
+export enum AlgorithmSequenceStatus {
+  idling = 'idling',
   analysisStarted = 'analysisStarted',
-  done = 'done',
+  analysisDone = 'analysisDone',
+  analysisFailed = 'analysisFailed',
+  qcStarted = 'qcStarted',
+  qcDone = 'qcDone',
+  qcFailed = 'qcFailed',
 }
 
-export enum AnylysisStatus {
-  idling = 'idling',
-  started = 'started',
-  done = 'done',
-  failed = 'failed',
-}
-
-export interface SequenceAnylysisState {
+export interface SequenceAnalysisState {
   id: number
-  status: AnylysisStatus
   seqName: string
+  status: AlgorithmSequenceStatus
   result?: AnalysisResult
+  qc?: QCResult
   errors: string[]
 }
 
@@ -51,25 +58,26 @@ export interface ResultsFilters {
 }
 
 export interface AlgorithmState {
-  status: AlgorithmStatus
+  status: AlgorithmGlobalStatus
   inputFile?: InputFile
   params: AlgorithmParams
   isDirty: boolean
-  results: SequenceAnylysisState[]
-  resultsFiltered: SequenceAnylysisState[]
+  results: SequenceAnalysisState[]
+  resultsFiltered: SequenceAnalysisState[]
+  tree: AuspiceJsonV2
   errors: string[]
   filters: ResultsFilters
 }
 
 const fakeState: Partial<AlgorithmState> = {}
 if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
-  fakeState.results = getFakeResults()
-  fakeState.resultsFiltered = fakeState.results
-  fakeState.status = AlgorithmStatus.done
+  // fakeState.results = getFakeResults()
+  // fakeState.resultsFiltered = fakeState.results
+  // fakeState.status = AlgorithmGlobalStatus.done
 }
 
-export const agorithmDefaultState: AlgorithmState = {
-  status: AlgorithmStatus.idling,
+export const algorithmDefaultState: AlgorithmState = {
+  status: AlgorithmGlobalStatus.idling,
   params: {
     input: '',
     rootSeq: DEFAULT_ROOT_SEQUENCE,
@@ -77,6 +85,7 @@ export const agorithmDefaultState: AlgorithmState = {
   isDirty: true,
   results: [],
   resultsFiltered: [],
+  tree: {},
   errors: [],
   filters: {
     hasNoQcIssuesFilter: true,

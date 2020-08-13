@@ -34,4 +34,4 @@ export const VIRUSES: Record<string, Virus> = {
       ],
     },
   },
-} as const
+}

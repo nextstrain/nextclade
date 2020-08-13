@@ -1,4 +1,4 @@
-import { pickBy } from 'lodash'
+import { pickBy, zipWith } from 'lodash'
 
 import type { DeepPartial } from 'ts-essentials'
 import { readFile } from 'src/helpers/readFile'
@@ -6,6 +6,7 @@ import { readFile } from 'src/helpers/readFile'
 import { VIRUSES } from './viruses'
 import { geneMap } from './geneMap'
 
+import { locateInTree, finalizeTree } from './tree/locateInTree'
 import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
@@ -62,17 +63,6 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
 
-  const data = { substitutions, insertions, deletions, alignedQuery, nucleotideComposition }
-
-  const qcRulesConfig: DeepPartial<QCRulesConfig> = {
-    divergence: {},
-    missingData: {},
-    snpClusters: {},
-    mixedSites: {},
-  }
-
-  const diagnostics = runQC(data, qcRulesConfig)
-
   return Object.freeze({
     seqName,
     clades,
@@ -91,6 +81,35 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
     alignmentStart,
     alignmentEnd,
     alignmentScore,
-    diagnostics,
+    alignedQuery,
+    nucleotideComposition,
   })
+}
+
+// NOTE: this function is not used, but just gives an idea of how data would flow through the algorithm if it was not parallelized
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function runSerial(input: string | File, rootSeq: string, qcRulesConfig: DeepPartial<QCRulesConfig>) {
+  const { parsedSequences } = await parse(input)
+
+  // fork
+
+  const analysisResults = Object.entries(parsedSequences).map(([seqName, seq]) => analyze({ seqName, seq, rootSeq }))
+
+  // join
+
+  const { matches, auspiceData: auspiceDataRaw } = locateInTree({ analysisResults, rootSeq })
+
+  // fork
+
+  const qcResults = analysisResults.map((analysisResult) =>
+    runQC({ analysisResult, auspiceData: auspiceDataRaw, qcRulesConfig }),
+  )
+
+  // join
+
+  const { auspiceData } = finalizeTree({ auspiceData: auspiceDataRaw, analysisResults, matches, qcResults, rootSeq })
+
+  const results = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))
+
+  return Object.freeze({ results, auspiceData })
 }

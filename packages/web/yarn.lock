@@ -17143,6 +17143,11 @@ type@^2.0.0:
   resolved "https://registry.yarnpkg.com/type/-/type-2.0.0.tgz#5f16ff6ef2eb44f260494dae271033b29c09a9c3"
   integrity sha512-KBt58xCHry4Cejnc2ISQAF7QY+ORngsWfxezO68+12hKV6lQY8P/psIkcbjeHWn7MqcgciWJyCCevFMJdIXpow==
 
+typed-redux-saga@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/typed-redux-saga/-/typed-redux-saga-1.2.0.tgz#120e700c0f10ae73e831f72d68e8279017ea9473"
+  integrity sha512-iEQJqgGeN26kKidG7Tka7QDd1F1DmP0IyzvQo2poCCgiAWxXi/LAJ/sg/H1GPy6lusYd+wrePQg33JU4WARQog==
+
 typed-styles@^0.0.7:
   version "0.0.7"
   resolved "https://registry.yarnpkg.com/typed-styles/-/typed-styles-0.0.7.tgz#93392a008794c4595119ff62dde6809dbc40a3d9"
