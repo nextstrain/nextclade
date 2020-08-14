@@ -5,9 +5,10 @@ set -o nounset
 set -o pipefail
 trap "exit" INT
 
-# Removes import `"../../css/awesomplete.css";` from `search.js`
+# Removes CSS imports
 # Reason: Next.js forbids CSS imports outside `_app.js`.
 sed -i.bak '/import "\.\.\/\.\.\/css\/awesomplete\.css";/d' node_modules/auspice/src/components/controls/search.js
+sed -i.bak '/import "\.\.\/\.\.\/css\/entropy\.css";/d' node_modules/auspice/src/components/entropy/index.js
 
 # Removes requires for '@extensions' modules from `extensions.js`
 # Reason: We don't use extensions and don't want to setup webpack aliases for that.
