@@ -1,5 +1,6 @@
 declare module 'auspice/src/reducers/controls' {
-  export declare type ControlsState = Record<string, unknown>
-  declare function controls(state?: ControlsState): ControlsState | undefined
+  import { AuspiceControlsState } from 'auspice'
+
+  declare function controls(state?: AuspiceControlsState): AuspiceControlsState | undefined
   export default controls
 }

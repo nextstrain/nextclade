@@ -3,123 +3,131 @@
 declare module 'auspice' {
   export declare type AuspiceQuery = Record<string, unknown>
 
-  export declare type AuspiceState = {
-    metadata?: AuspiceMetadata
-    tree?: {
-      name?: string | boolean
-      loaded?: boolean
-      nodes?: AuspiceTreeNode[]
-      visibility?: number[]
-      visibilityVersion?: number
-      nodeColors?: string[]
-      nodeColorsVersion?: number
-      tipRadii?: any
-      tipRadiiVersion?: number
-      branchThickness?: number[]
-      branchThicknessVersion?: number
-      vaccines?: []
-      version?: number
-      idxOfInViewRootNode?: number
-      visibleStateCounts?: any
-      totalStateCounts?: Record<string, Map<string, number>>
-      availableBranchLabels?: string[]
-      selectedStrain?: any
-      selectedClade?: any
-      debug?: any
-      stateCountAttrs?: any
-    }
-    frequencies?: {
-      loaded?: boolean
-      data?: any
-      pivots?: any
-      matrix?: any
-      projection_pivot?: any
-      version?: any
-    }
-    controls?: {
-      defaults?: {
-        distanceMeasure?: string
-        layout?: string
-        geoResolution?: string
-        filters?: Record<string, string[]>
-        colorBy?: string
-        selectedBranchLabel?: string
-        showTransmissionLines?: boolean
-        panels?: Record<string, any>
-      }
-      available?: any
-      canTogglePanelLayout?: boolean
-      selectedBranch?: any
-      selectedNode?: any
-      region?: any
-      search?: any
-      strain?: any
-      geneLength?: Record<string, number>
-      mutType?: string
-      temporalConfidence?: { exists?: boolean; display?: boolean; on?: boolean }
-      layout?: string
+  export interface AuspiceTreeState {
+    name?: string | boolean
+    loaded?: boolean
+    nodes?: AuspiceTreeNode[]
+    visibility?: number[]
+    visibilityVersion?: number
+    nodeColors?: string[]
+    nodeColorsVersion?: number
+    tipRadii?: any
+    tipRadiiVersion?: number
+    branchThickness?: number[]
+    branchThicknessVersion?: number
+    vaccines?: []
+    version?: number
+    idxOfInViewRootNode?: number
+    visibleStateCounts?: any
+    totalStateCounts?: Record<string, Map<string, number>>
+    availableBranchLabels?: string[]
+    selectedStrain?: any
+    selectedClade?: any
+    debug?: any
+    stateCountAttrs?: any
+  }
+
+  export interface AuspiceFrequenciesState {
+    loaded?: boolean
+    data?: any
+    pivots?: any
+    matrix?: any
+    projection_pivot?: any
+    version?: any
+  }
+
+  export interface AuspiceControlsState {
+    defaults?: {
       distanceMeasure?: string
-      dateMin?: Date
-      dateMinNumeric?: number
-      dateMax?: string
-      dateMaxNumeric?: number
-      absoluteDateMin?: Date
-      absoluteDateMinNumeric?: number
-      absoluteDateMax?: string
-      absoluteDateMaxNumeric?: number
-      colorBy?: string
-      colorByConfidence?: boolean
-      colorScale?: {
-        scale?: Record<string, any>
-        continuous?: boolean
-        colorBy?: string
-        version?: number
-        legendValues?: Record<string, any>
-        legendBounds?: any
-        genotype?: any
-      }
-      selectedBranchLabel?: string
-      analysisSlider?: boolean
+      layout?: string
       geoResolution?: string
       filters?: Record<string, string[]>
-      showDownload?: boolean
-      quickdraw?: boolean
-      mapAnimationDurationInMilliseconds?: number
-      mapAnimationStartDate?: Date
-      mapAnimationCumulative?: boolean
-      mapAnimationShouldLoop?: boolean
-      animationPlayPauseButton?: string
-      panelsAvailable?: string[]
-      panelsToDisplay?: string[]
-      panelLayout?: string
-      showTreeToo?: boolean
-      showTangle?: boolean
-      zoomMin?: any
-      zoomMax?: any
-      branchLengthsToDisplay?: string
-      sidebarOpen?: boolean
-      treeLegendOpen?: any
-      mapLegendOpen?: any
-      showOnlyPanels?: boolean
+      colorBy?: string
+      selectedBranchLabel?: string
       showTransmissionLines?: boolean
-      normalizeFrequencies?: boolean
-      coloringsPresentOnTree?: any
-      coloringsPresentOnTreeWithConfidence?: any
-      absoluteZoomMin?: number
-      absoluteZoomMax?: number
+      panels?: Record<string, any>
     }
-    entropy?: {
-      showCounts?: boolean
-      loaded?: boolean
-      annotations?: any[]
-      lengthSequence?: number
-      geneMap?: Record<string, any>
-      bars?: any[]
-      maxYVal?: number
-      zoomMax?: any
-      zoomMin?: any
-      zoomCoordinates?: [any, any]
+    available?: any
+    canTogglePanelLayout?: boolean
+    selectedBranch?: any
+    selectedNode?: any
+    region?: any
+    search?: any
+    strain?: any
+    geneLength?: Record<string, number>
+    mutType?: string
+    temporalConfidence?: { exists?: boolean; display?: boolean; on?: boolean }
+    layout?: string
+    distanceMeasure?: string
+    dateMin?: Date
+    dateMinNumeric?: number
+    dateMax?: string
+    dateMaxNumeric?: number
+    absoluteDateMin?: Date
+    absoluteDateMinNumeric?: number
+    absoluteDateMax?: string
+    absoluteDateMaxNumeric?: number
+    colorBy?: string
+    colorByConfidence?: boolean
+    colorScale?: {
+      scale?: Record<string, any>
+      continuous?: boolean
+      colorBy?: string
+      version?: number
+      legendValues?: Record<string, any>
+      legendBounds?: any
+      genotype?: any
     }
+    selectedBranchLabel?: string
+    analysisSlider?: boolean
+    geoResolution?: string
+    filters?: Record<string, string[]>
+    showDownload?: boolean
+    quickdraw?: boolean
+    mapAnimationDurationInMilliseconds?: number
+    mapAnimationStartDate?: Date
+    mapAnimationCumulative?: boolean
+    mapAnimationShouldLoop?: boolean
+    animationPlayPauseButton?: string
+    panelsAvailable?: string[]
+    panelsToDisplay?: string[]
+    panelLayout?: string
+    showTreeToo?: boolean
+    showTangle?: boolean
+    zoomMin?: any
+    zoomMax?: any
+    branchLengthsToDisplay?: string
+    sidebarOpen?: boolean
+    treeLegendOpen?: any
+    mapLegendOpen?: any
+    showOnlyPanels?: boolean
+    showTransmissionLines?: boolean
+    normalizeFrequencies?: boolean
+    coloringsPresentOnTree?: any
+    coloringsPresentOnTreeWithConfidence?: any
+    absoluteZoomMin?: number
+    absoluteZoomMax?: number
+  }
+
+  export interface AuspiceEntropyState {
+    showCounts?: boolean
+    loaded?: boolean
+    annotations?: any[]
+    lengthSequence?: number
+    geneMap?: Record<string, any>
+    bars?: any[]
+    maxYVal?: number
+    zoomMax?: any
+    zoomMin?: any
+    zoomCoordinates?: [any, any]
+  }
+
+  export declare type AuspiceState = {
+    metadata?: AuspiceMetadata
+    tree?: AuspiceTreeState
+    frequencies?: AuspiceFrequenciesState
+    controls?: AuspiceControlsState
+    entropy?: AuspiceEntropyState
     browserDimensions?: { browserDimensions?: { width?: number; height?: number; docHeight?: number } }
     notifications?: { stack?: any[]; counter?: number }
     narrative?: {
@@ -130,27 +138,7 @@ declare module 'auspice' {
       display?: boolean
       title?: any
     }
-    treeToo?: {
-      loaded?: boolean
-      nodes?: any
-      name?: any
-      visibility?: any
-      visibilityVersion?: any
-      nodeColors?: any
-      nodeColorsVersion?: any
-      tipRadii?: any
-      tipRadiiVersion?: any
-      branchThickness?: any
-      branchThicknessVersion?: any
-      vaccines?: boolean
-      version?: any
-      idxOfInViewRootNode?: any
-      visibleStateCounts?: any
-      totalStateCounts?: any
-      availableBranchLabels?: any[]
-      selectedStrain?: any
-      selectedClade?: any
-    }
+    treeToo?: AuspiceTreeState
     general?: { language?: string }
     query?: any
   }

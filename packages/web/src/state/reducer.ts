@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux'
-import { persistReducer } from 'redux-persist'
+import { persistReducer, PersistedState } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 import { routerReducer } from 'connected-next-router'
 import { RouterState } from 'connected-next-router/types'
@@ -30,7 +30,7 @@ import { auspiceGeneralReducer, auspiceQueryReducer } from './auspice/auspice.re
 
 export interface State extends AuspiceState {
   algorithm: AlgorithmState
-  settings: SettingsState
+  settings: SettingsState & PersistedState
   router: RouterState
   ui: UiState
 }

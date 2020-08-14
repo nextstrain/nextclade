@@ -24,6 +24,7 @@ export const SidebarHeaderStyled = styled(SidebarHeader)`
 
 export const Bottom = styled.div`
   margin-top: auto;
+  padding-top: 25px;
 `
 
 export function Sidebar() {

@@ -48,24 +48,23 @@ const HeaderRightContainer = styled.div`
 
 const MainContent = styled.main`
   flex-grow: 1;
-  height: 100%;
-  overflow-y: auto;
+  overflow-y: hidden;
 `
 
 const AuspiceContainer = styled.div`
   display: flex;
   height: 100%;
-  min-height: 750px;
 `
 
 const SidebarContainer = styled.div`
-  flex: 0 0 250px;
+  flex: 0 0 260px;
   background-color: #30353f;
+  overflow-y: auto;
 `
 
 const TreeContainer = styled.div`
   flex: 1 1;
-  overflow: hidden; // prevent infinite loop: show scroll, shrink, hide scroll, expand, show scroll...
+  overflow-y: scroll;
 `
 
 function TreePage() {

@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useCallback } from 'react'
 
 import styled from 'styled-components'
 import { connect } from 'react-redux'
@@ -45,9 +45,10 @@ export interface ButtonTreeProps extends ButtonProps {
 
 export function ButtonTreeDisconnected({ showTree, hasTree }: ButtonTreeProps) {
   const { t } = useTranslation()
+  const showTreeLocal = useCallback(() => showTree(), [showTree])
 
   return (
-    <ButtonStyled color="success" onClick={showTree} disabled={!hasTree}>
+    <ButtonStyled color="success" onClick={showTreeLocal} disabled={!hasTree}>
       <IconContainer>
         <TreeIcon />
       </IconContainer>
