@@ -55,7 +55,7 @@
     "prepare": "yarn run snyk-protect",
     "run:node": "cross-env NODE_ENV=development BABEL_ENV=development babel-node --extensions '.ts'",
     "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --extensions '.ts'",
-    "monkey-patch": "bash tools/auspice-monkey-patch.sh"
+    "monkey-patch": "bash tools/auspice-monkey-patch.sh && bash tools/patch-next.sh"
   },
   "dependencies": {
     "@mdx-js/loader": "1.6.16",
