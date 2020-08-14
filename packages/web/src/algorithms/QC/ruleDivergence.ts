@@ -1,4 +1,4 @@
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
 
 export interface QCRulesConfigDivergence {
   divergenceMean: number
@@ -8,6 +8,7 @@ export interface QCRulesConfigDivergence {
 
 export function ruleDivergence(
   { substitutions, insertions, deletions }: AnalysisResult,
+  mutationsDiff: NucleotideSubstitution[],
   { divergenceMean, divergenceStd, nStd }: QCRulesConfigDivergence,
 ) {
   const totalNumberOfMutations =

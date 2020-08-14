@@ -16,6 +16,7 @@ import type { TreeBuildThread } from 'src/workers/worker.treeBuild'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 
+import { safeZip } from 'src/helpers/safeZip'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import fsaSaga from 'src/state/util/fsaSaga'
@@ -74,8 +75,13 @@ export interface ScheduleQcRunParams extends RunQCParams {
   poolRunQc: Pool<RunQcThread>
 }
 
-export async function scheduleOneQcRun({ poolRunQc, analysisResult, auspiceData, qcRulesConfig }: ScheduleQcRunParams) {
-  return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, auspiceData, qcRulesConfig }))
+export async function scheduleOneQcRun({
+  poolRunQc,
+  analysisResult,
+  mutationsDiff,
+  qcRulesConfig,
+}: ScheduleQcRunParams) {
+  return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, mutationsDiff, qcRulesConfig }))
 }
 
 export function* runQcOne(params: ScheduleQcRunParams) {
@@ -195,8 +201,9 @@ export function* runAlgorithm(content?: File | string) {
     return undefined
   }
 
-  const { matches, auspiceData: auspiceDataRaw } = treeBuildResult
+  const { matches, mutationsDiffs, auspiceData: auspiceDataRaw } = treeBuildResult
 
+  // TODO: move this to user-controlled state
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
     divergence: {},
     missingData: {},
@@ -205,9 +212,10 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
+  const resultsAndDiffs = safeZip(analysisResults, mutationsDiffs)
   const qcResults = yield* all(
-    analysisResults.map((analysisResult) =>
-      call(runQcOne, { poolRunQc, analysisResult, auspiceData: auspiceDataRaw, qcRulesConfig }),
+    resultsAndDiffs.map(([analysisResult, mutationsDiff]) =>
+      call(runQcOne, { poolRunQc, analysisResult, mutationsDiff, qcRulesConfig }),
     ),
   )
 

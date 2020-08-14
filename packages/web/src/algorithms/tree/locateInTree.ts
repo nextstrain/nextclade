@@ -3,16 +3,14 @@ import { cloneDeep, groupBy, set, mapValues, unset, zip } from 'lodash'
 
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
+import type { Nucleotide, AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { parseMutation } from 'src/helpers/parseMutation'
-
-import type { Nucleotide, AnalysisResult } from 'src/algorithms/types'
-import { notUndefined } from 'src/helpers/notUndefined'
 import { formatClades } from 'src/helpers/formatClades'
-
-import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 import { formatRange } from 'src/helpers/formatRange'
 import { UNKNOWN_VALUE } from 'src/constants'
+
+import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 
 export type MutationMap = Map<number, Nucleotide>
 
@@ -148,6 +146,12 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
   const numMut = node.mutations?.size ?? 0
   // calculate distance from set overlaps.
   return numMut + seq.substitutions.length - 2 * shared_differences - shared_sites - undetermined_sites
+}
+
+/* Find mutations that are present in the new sequence, but not present in the matching reference node sequence */
+export function findMutDiff(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
+  const nodeMuts: [number, Nucleotide][] = Array.from(node.mutations?.entries() ?? [])
+  return seq.substitutions.filter((qmut) => nodeMuts.some(([pos, nuc]) => pos === qmut.pos && nuc === qmut.queryNuc))
 }
 
 export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
@@ -300,12 +304,13 @@ export function addColoringScale({ auspiceData, key, value, color }: AddColoring
 }
 
 export interface LocateInTreeParams {
-  analysisResults: (AnalysisResult | undefined)[]
+  analysisResults: AnalysisResult[]
   rootSeq: string
 }
 
 export interface LocateInTreeResults {
   matches: AuspiceTreeNodeExtended[]
+  mutationsDiffs: NucleotideSubstitution[][]
   auspiceData: AuspiceJsonV2
 }
 
@@ -313,8 +318,7 @@ export function locateInTree({
   analysisResults: analysisResultsRaw,
   rootSeq,
 }: LocateInTreeParams): LocateInTreeResults {
-  const succeeded = analysisResultsRaw.filter(notUndefined)
-  const analysisResults = cloneDeep(succeeded)
+  const analysisResults = cloneDeep(analysisResultsRaw)
   const auspiceData = (cloneDeep(auspiceDataRaw) as unknown) as AuspiceJsonV2 // TODO: validate and sanitize
 
   const auspiceTreeVersionExpected = 'v2'
@@ -330,13 +334,22 @@ export function locateInTree({
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
   }
 
+  // TODO: this can be done offline when preparing the json
   setNodeTypes(focal_node)
 
   const mutations = new Map()
   mutations_on_tree(focal_node, mutations)
 
-  const matches = analysisResults.map((seq) => closest_match(focal_node, seq).best_node)
-  return { matches, auspiceData }
+  const matchesAndDiffs = analysisResults.map((seq) => {
+    const match = closest_match(focal_node, seq).best_node
+    const diff = findMutDiff(match, seq, rootSeq)
+    return { match, diff }
+  })
+
+  const matches = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.match)
+  const mutationsDiffs = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.diff)
+
+  return { matches, mutationsDiffs, auspiceData }
 }
 
 export interface FinalizeTreeParams {
@@ -375,6 +388,7 @@ export function finalizeTree({ auspiceData, results, matches, rootSeq }: Finaliz
     auspiceData.meta = { colorings: [], display_defaults: {} }
   }
 
+  // TODO: this can be done offline when preparing the json
   auspiceData.meta.colorings.unshift({
     key: 'QC Status',
     title: 'QC Status',
@@ -385,6 +399,7 @@ export function finalizeTree({ auspiceData, results, matches, rootSeq }: Finaliz
     ],
   })
 
+  // TODO: this can be done offline when preparing the json
   auspiceData.meta.colorings.unshift({
     key: 'Node type',
     title: 'Node type',
@@ -395,10 +410,12 @@ export function finalizeTree({ auspiceData, results, matches, rootSeq }: Finaliz
     ],
   })
 
+  // TODO: this can be done offline when preparing the json
   addColoringScale({ auspiceData, key: 'region', value: UNKNOWN_VALUE, color: '#999999' })
   addColoringScale({ auspiceData, key: 'country', value: UNKNOWN_VALUE, color: '#999999' })
   addColoringScale({ auspiceData, key: 'division', value: UNKNOWN_VALUE, color: '#999999' })
 
+  // TODO: this can be done offline when preparing the json
   auspiceData.meta.display_defaults = {
     branch_label: 'clade',
     color_by: 'Node type',

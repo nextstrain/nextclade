@@ -1,9 +1,10 @@
 import { clamp } from 'lodash'
 
-import type { AnalysisResult, ClusteredSNPs } from 'src/algorithms/types'
+import type { AnalysisResult, ClusteredSNPs, NucleotideSubstitution } from 'src/algorithms/types'
 
 export function findSNPClusters(
   { substitutions }: AnalysisResult,
+  mutationsDiff: NucleotideSubstitution[],
   { knownClusters, windowSize, clusterCutOff }: QCRulesConfigSNPClusters,
 ) {
   // turn mutation keys into positions, exclude known clusters, and sort
@@ -65,10 +66,14 @@ export interface QCRulesConfigSNPClusters {
   scoreMax: number
 }
 
-export function ruleSnpClusters(data: AnalysisResult, config: QCRulesConfigSNPClusters) {
+export function ruleSnpClusters(
+  data: AnalysisResult,
+  mutationsDiff: NucleotideSubstitution[],
+  config: QCRulesConfigSNPClusters,
+) {
   const { totalSNPsThreshold, scoreWeight, scoreBias, scoreMax } = config
 
-  const snpClusters = findSNPClusters(data, config)
+  const snpClusters = findSNPClusters(data, mutationsDiff, config)
   const clusteredSNPs = processSNPClusters(snpClusters)
   const totalSNPs = clusteredSNPs.reduce((acc, { numberOfSNPs }) => acc + numberOfSNPs, 0)
 
