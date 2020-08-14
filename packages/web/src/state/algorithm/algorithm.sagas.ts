@@ -8,6 +8,8 @@ import { getContext, put, select, takeEvery } from 'redux-saga/effects'
 import { call, all } from 'typed-redux-saga'
 
 import type { AnalysisParams, AnalysisResult } from 'src/algorithms/types'
+import type { FinalizeTreeParams, LocateInTreeParams } from 'src/algorithms/tree/locateInTree'
+import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
 import type { WorkerPools } from 'src/workers/types'
 import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
@@ -15,9 +17,7 @@ import type { TreeBuildThread } from 'src/workers/worker.treeBuild'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 
-import type { FinalizeTreeParams, LocateInTreeParams } from 'src/algorithms/tree/locateInTree'
-import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
-
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import fsaSaga from 'src/state/util/fsaSaga'
 import { EXPORT_AUSPICE_JSON_V2_FILENAME, EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
@@ -69,8 +69,7 @@ export function* analyzeOne(params: AnalyzeParams) {
     result = (yield call(analyze, params) as unknown) as AnalysisResult
     yield put(analyzeAsync.done({ params: { seqName }, result }))
   } catch (error) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    yield put(analyzeAsync.failed({ params: { seqName }, error }))
+    yield put(analyzeAsync.failed({ params: { seqName }, error: sanitizeError(error) }))
   }
 
   return result
@@ -95,8 +94,7 @@ export function* runQcOne(params: ScheduleQcRunParams) {
     const result = (yield call(scheduleQcRun, params) as unknown) as QCResult
     yield put(runQcAsync.done({ params: { seqName }, result }))
   } catch (error) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    yield put(runQcAsync.failed({ params: { seqName }, error }))
+    yield put(runQcAsync.failed({ params: { seqName }, error: sanitizeError(error) }))
   }
 
   return result
@@ -115,11 +113,7 @@ export function* parseSaga({ threadParse, input }: ParseParams) {
     yield put(parseAsync.done({ result: sequenceNames }))
     return { input: newInput, parsedSequences }
   } catch (error) {
-    if (error instanceof Error) {
-      yield put(parseAsync.failed({ error }))
-    } else {
-      yield put(parseAsync.failed({ error: new Error('developer error: Error object is not recognized') }))
-    }
+    yield put(parseAsync.failed({ error: sanitizeError(error) }))
   }
   return undefined
 }

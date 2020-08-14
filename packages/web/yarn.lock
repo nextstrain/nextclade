@@ -2548,6 +2548,11 @@
   resolved "https://registry.yarnpkg.com/@types/semver/-/semver-5.5.0.tgz#146c2a29ee7d3bae4bf2fcb274636e264c813c45"
   integrity sha512-41qEJgBH/TWgo5NFSvBCJ1qkoi3Q6ONSF2avrHq1LVEZfYpdHmj0y9SuTK+u9ZhG1sYQKBL1AWXKyLWP4RaUoQ==
 
+"@types/serialize-javascript@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@types/serialize-javascript/-/serialize-javascript-4.0.0.tgz#ab9c47edf71f6a4590221118d1dffc37b50d71a2"
+  integrity sha512-y9UO8ozDGF30EVRizmsXuCdZzAxHmYpEEiL+/SQjX+7bnxslkvZQU8rLydixJv7yVae6bWyrNDFHsh6fYHkFMA==
+
 "@types/serve-static@*":
   version "1.13.5"
   resolved "https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.13.5.tgz#3d25d941a18415d3ab092def846e135a08bbcf53"
