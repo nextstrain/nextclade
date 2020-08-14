@@ -1,14 +1,19 @@
 /* eslint-disable camelcase */
-import { cloneDeep, groupBy, set, mapValues, unset, zip } from 'lodash'
+import { cloneDeep, groupBy, identity, mapValues, set, unset, zip } from 'lodash'
 
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
+import { UNKNOWN_VALUE } from 'src/constants'
 import type { Nucleotide, AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
-import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
+import { notUndefined } from 'src/helpers/notUndefined'
 import { parseMutation } from 'src/helpers/parseMutation'
+import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { formatClades } from 'src/helpers/formatClades'
 import { formatRange } from 'src/helpers/formatRange'
-import { UNKNOWN_VALUE } from 'src/constants'
+import { formatQCDivergence } from 'src/helpers/formatQCDivergence'
+import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
+import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
+import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
 
 import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 
@@ -48,16 +53,29 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     alignmentStart,
     alignmentEnd,
     alignmentScore,
-    // diagnostics,
     totalGaps,
     deletions,
     nonACGTNs,
     totalNonACGTNs,
     missing,
     totalMissing,
+    qc,
   } = seq
-  // const qcStatus = diagnostics.flags.length > 0 ? QCStatusType.Fail : QCStatusType.Pass
-  // const qcFlags = diagnostics.flags.join(', ')
+
+  const qcStatus = (qc?.score ?? Infinity) > 0 ? QCStatusType.Fail : QCStatusType.Pass
+  let qcFlags = 'Not available'
+  if (qc) {
+    const { divergence, snpClusters, mixedSites, missingData } = qc
+    const t = identity
+    const messages = [
+      formatQCDivergence(t, divergence),
+      formatQCSNPClusters(t, snpClusters),
+      formatQCMixedSites(t, mixedSites),
+      formatQCMissingData(t, missingData),
+    ].filter(notUndefined)
+
+    qcFlags = messages.join('; ')
+  }
 
   const alignment = `start: ${alignmentStart}, end: ${alignmentEnd} (score: ${alignmentScore})`
 
@@ -80,8 +98,8 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
       'Missing:': { value: formattedMissing },
       'Gaps': { value: formattedGaps },
       'Non-ACGTNs': { value: formattedNonACGTNs },
-      // 'QC Status': { value: qcStatus },
-      // 'QC Flags': { value: qcFlags },
+      'QC Status': { value: qcStatus },
+      'QC Flags': { value: qcFlags },
     },
     mutations: new Map(),
   }
