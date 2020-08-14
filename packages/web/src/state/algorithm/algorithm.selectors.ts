@@ -1,5 +1,3 @@
-import { isEmpty } from 'lodash'
-
 import i18n from 'src/i18n/i18n'
 
 import type { State } from 'src/state/reducer'
@@ -8,10 +6,6 @@ import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/state/algori
 export const selectParams = (state: State) => state.algorithm.params
 
 export const selectResults = (state: State) => state.algorithm.results
-
-export const selectTree = (state: State) => state.algorithm.tree
-
-export const selectHasTree = (state: State) => !isEmpty(state.algorithm.tree)
 
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 

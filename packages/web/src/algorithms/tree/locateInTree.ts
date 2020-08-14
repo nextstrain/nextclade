@@ -16,6 +16,8 @@ import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
 
 import auspiceDataRaw from 'src/assets/data/ncov_small.json'
+import { AuspiceState } from 'auspice'
+import { createStateFromQueryOrJSONs } from 'auspice/src/actions/recomputeReduxState'
 
 export type MutationMap = Map<number, Nucleotide>
 
@@ -379,6 +381,7 @@ export interface FinalizeTreeParams {
 
 export interface FinalizeTreeResults {
   auspiceData: AuspiceJsonV2
+  auspiceState: AuspiceState
 }
 
 export function finalizeTree({ auspiceData, results, matches, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
@@ -442,5 +445,14 @@ export function finalizeTree({ auspiceData, results, matches, rootSeq }: Finaliz
   auspiceData.meta.panels = ['tree', 'entropy']
   auspiceData.meta.geo_resolutions = undefined
 
-  return { auspiceData }
+  const auspiceState = createStateFromQueryOrJSONs({ json: auspiceData, query: {} })
+
+  // HACK: we are about to send the state object from this webworker process to the main process. However, `state.controls.colorScale.scale` is a function.
+  // This will not work currently, because transferring between webworker processes uses structured cloning algorithm and functions are not supported.
+  // https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+  // To workaround we unset the function here and set it back again (to a dummy one) on the other side.
+  // Ideally, the state should not contain functions. This is something to discuss in auspice upstream.
+  set(auspiceState, 'controls.colorScale.scale', undefined)
+
+  return { auspiceData, auspiceState }
 }

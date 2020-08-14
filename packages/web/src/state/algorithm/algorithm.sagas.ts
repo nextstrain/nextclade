@@ -1,4 +1,4 @@
-import { zipWith } from 'lodash'
+import { zipWith, set } from 'lodash'
 
 import type { DeepPartial } from 'ts-essentials'
 import type { Dispatch } from 'redux'
@@ -24,6 +24,7 @@ import { EXPORT_AUSPICE_JSON_V2_FILENAME, EXPORT_CSV_FILENAME, EXPORT_JSON_FILEN
 import { saveFile } from 'src/helpers/saveFile'
 import { serializeResultsToAuspiceJsonV2, serializeResultsToCsv, serializeResultsToJson } from 'src/io/serializeResults'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
+import { auspiceStartClean } from 'src/state/auspice/auspice.actions'
 import {
   algorithmRunTrigger,
   analyzeAsync,
@@ -229,7 +230,16 @@ export function* runAlgorithm(content?: File | string) {
   if (!treeFinalizeResult) {
     return undefined
   }
-  const { auspiceData } = treeFinalizeResult
+  const { auspiceData, auspiceState } = treeFinalizeResult
+
+  // HACK: now that we are in the main process, we can re-attach the function we previously set to undefined in the worker process.
+  // This is because transferring between webworker processes uses structured cloning algorithm and functions are not supported.
+  // https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+  // We attach a dummy function, because the original function is no longer available.
+  // Ideally, the state should not contain functions. This is something to discuss in auspice upstream.
+  set(auspiceState, 'controls.colorScale.scale', () => '#AAAAAA')
+
+  yield* put(auspiceStartClean(auspiceState))
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
   return { results, auspiceData }
 }
