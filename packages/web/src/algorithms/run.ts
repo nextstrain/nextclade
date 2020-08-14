@@ -1,16 +1,13 @@
-import { pickBy, zipWith } from 'lodash'
+import { pickBy } from 'lodash'
 
-import type { DeepPartial } from 'ts-essentials'
 import { readFile } from 'src/helpers/readFile'
 
 import { VIRUSES } from './viruses'
 import { geneMap } from './geneMap'
 
-import { locateInTree, finalizeTree } from './tree/locateInTree'
 import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { isSequenceInClade } from './isSequenceInClade'
-import { QCRulesConfig, runQC } from './QC/runQC'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
@@ -19,12 +16,13 @@ import { GOOD_NUCLEOTIDES, N } from './nucleotides'
 import { getNucleotideComposition } from './getNucleotideComposition'
 
 export async function parse(input: string | File): Promise<ParseResult> {
-  if (typeof input !== 'string') {
-    // eslint-disable-next-line no-param-reassign
-    input = await readFile(input)
+  let newInput: string
+  if (typeof input === 'string') {
+    newInput = input
+  } else {
+    newInput = await readFile(input)
   }
-
-  return { input, parsedSequences: parseSequences(input) }
+  return { input: newInput, parsedSequences: parseSequences(newInput) }
 }
 
 export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResult {
@@ -84,32 +82,4 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
     alignedQuery,
     nucleotideComposition,
   })
-}
-
-// NOTE: this function is not used, but just gives an idea of how data would flow through the algorithm if it was not parallelized
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function runSerial(input: string | File, rootSeq: string, qcRulesConfig: DeepPartial<QCRulesConfig>) {
-  const { parsedSequences } = await parse(input)
-
-  // fork
-
-  const analysisResults = Object.entries(parsedSequences).map(([seqName, seq]) => analyze({ seqName, seq, rootSeq }))
-
-  // join
-
-  const { matches, auspiceData: auspiceDataRaw } = locateInTree({ analysisResults, rootSeq })
-
-  // fork
-
-  const qcResults = analysisResults.map((analysisResult) =>
-    runQC({ analysisResult, auspiceData: auspiceDataRaw, qcRulesConfig }),
-  )
-
-  // join
-
-  const { auspiceData } = finalizeTree({ auspiceData: auspiceDataRaw, analysisResults, matches, qcResults, rootSeq })
-
-  const results = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))
-
-  return Object.freeze({ results, auspiceData })
 }

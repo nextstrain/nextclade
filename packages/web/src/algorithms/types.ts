@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import type { Tagged } from 'src/helpers/types'
+import { QCResult } from 'src/algorithms/QC/runQC'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -100,6 +101,7 @@ export interface AnalysisResult {
   alignmentScore: number
   alignedQuery: string
   nucleotideComposition: Record<string, number>
+  qc?: QCResult
 }
 
 export interface ParseResult {

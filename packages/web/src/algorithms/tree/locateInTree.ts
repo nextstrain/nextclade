@@ -13,7 +13,6 @@ import { formatClades } from 'src/helpers/formatClades'
 import auspiceDataRaw from 'src/assets/data/ncov_small.json'
 import { formatRange } from 'src/helpers/formatRange'
 import { UNKNOWN_VALUE } from 'src/constants'
-import { QCResult } from 'src/algorithms/QC/runQC'
 
 export type MutationMap = Map<number, Nucleotide>
 
@@ -301,7 +300,7 @@ export function addColoringScale({ auspiceData, key, value, color }: AddColoring
 }
 
 export interface LocateInTreeParams {
-  analysisResults: AnalysisResult[]
+  analysisResults: (AnalysisResult | undefined)[]
   rootSeq: string
 }
 
@@ -342,9 +341,8 @@ export function locateInTree({
 
 export interface FinalizeTreeParams {
   auspiceData: AuspiceJsonV2
-  analysisResults: AnalysisResult[]
+  results: AnalysisResult[]
   matches: AuspiceTreeNode[]
-  qcResults: QCResult[]
   rootSeq: string
 }
 
@@ -352,21 +350,13 @@ export interface FinalizeTreeResults {
   auspiceData: AuspiceJsonV2
 }
 
-export function finalizeTree({
-  auspiceData,
-  analysisResults,
-  matches,
-  qcResults,
-  rootSeq,
-}: FinalizeTreeParams): FinalizeTreeResults {
-  const succeeded = analysisResults.filter(notUndefined)
-  const analysisResultsSucceeded = cloneDeep(succeeded)
-
-  zip(analysisResultsSucceeded, matches).forEach(([seq, match]) => {
+export function finalizeTree({ auspiceData, results, matches, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
+  const analysisResults = cloneDeep(results)
+  zip(analysisResults, matches).forEach(([seq, match]) => {
     if (!seq || !match) {
       throw new Error(
         `Expected number of analysis results and number of match to be the same, but got:
-            data.length: ${analysisResultsSucceeded.length}
+            data.length: ${analysisResults.length}
             matches.length: ${matches.length}`,
       )
     }
