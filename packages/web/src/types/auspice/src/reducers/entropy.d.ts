@@ -1,5 +1,6 @@
 declare module 'auspice/src/reducers/entropy' {
-  export declare type EntropyState = Record<string, unknown>
-  declare function entropy(state?: EntropyState): EntropyState | undefined
+  import { AuspiceEntropyState } from 'auspice'
+
+  declare function entropy(state?: AuspiceEntropyState): AuspiceEntropyState | undefined
   export default entropy
 }

@@ -1,14 +1,21 @@
 import React, { useCallback } from 'react'
 
+import { noop } from 'lodash'
+
 import { connect } from 'react-redux'
 import styled from 'styled-components'
 import { MdClear } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
+import { darken } from 'polished'
 
 import type { State } from 'src/state/reducer'
 import { applyFilter } from 'auspice/src/actions/tree'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { selectTraitValueCount } from 'src/state/auspice/auspice.selectors'
+
+export function darkenIf(darkness: number, color: string, condition: boolean) {
+  return condition ? darken(darkness, color) : color
+}
 
 export const FilterBadgeItem = styled.li`
   display: flex;
@@ -18,18 +25,33 @@ export const FilterBadgeItem = styled.li`
   white-space: nowrap;
 `
 
-export const FilterBadgeLeft = styled.span<{ background?: string }>`
-  padding: 0 6px;
-  background-color: ${(props) => props.background ?? props.theme.gray650};
-  color: ${(props) => props.theme.gray200};
-  border-radius: 3px 0px 0px 3px;
+export const FilterBadgeSection = styled.span<{ background: string; disabled: boolean }>`
+  background-color: ${(props) => darkenIf(0.05, props.background, props.disabled)};
+  color: ${(props) => darkenIf(0.25, props.theme.gray200, props.disabled)};
 `
 
-export const FilterBadgeRight = styled.span`
+export const FilterBadgeLeft = styled(FilterBadgeSection)<{ background: string; disabled: boolean }>`
   padding: 0 6px;
-  background-color: ${(props) => props.theme.gray650};
-  color: ${(props) => props.theme.gray200};
+  border-radius: 3px 0px 0px 3px;
+  cursor: pointer;
+`
+
+export const FilterBadgeMiddle = styled(FilterBadgeSection)<{ background: string; disabled: boolean }>`
+  padding: 0;
+  padding-left: 5px;
+  padding-right: 0px;
+  cursor: pointer;
+`
+
+export const FilterBadgeRight = styled(FilterBadgeSection)<{ background: string; disabled: boolean }>`
+  padding: 0;
+  padding-right: 3px;
+  padding-left: 0px;
   border-radius: 0px 3px 3px 0px;
+`
+
+export const BadgeText = styled.div<{ disabled?: boolean }>`
+  text-decoration: ${(props) => (props.disabled ? 'line-through' : 'none')};
 `
 
 export const FilterBadgeRemoveButton = styled(ButtonTransparent)`
@@ -76,6 +98,9 @@ export const traitColors = new Map<string, string>(
 export interface FilterBadgeOwnProps {
   trait: string
   value: string
+  disabled?: boolean
+  setDisabled(trait: string, value: string): void
+  setEnabled(trait: string, value: string): void
 }
 
 export interface FilterBadgeProps extends FilterBadgeOwnProps {
@@ -91,22 +116,61 @@ const mapDispatchToProps = { applyFilter }
 
 export const FilterBadge = connect(mapStateToProps, mapDispatchToProps)(FilterBadgeDisconnected)
 
-export function FilterBadgeDisconnected({ trait, value, totalNodes, applyFilter }: FilterBadgeProps) {
+export function FilterBadgeDisconnected({
+  trait,
+  value,
+  disabled,
+  totalNodes,
+  applyFilter,
+  setDisabled = noop,
+  setEnabled = noop,
+}: FilterBadgeProps) {
   const { t } = useTranslation()
+  const addFilter = useCallback(() => applyFilter('add', trait, [value]), [applyFilter, trait, value])
   const removeFilter = useCallback(() => applyFilter('remove', trait, [value]), [applyFilter, trait, value])
 
+  const disableFilter = useCallback(() => {
+    if (disabled) {
+      addFilter()
+      setEnabled(trait, value)
+    } else {
+      removeFilter()
+      setDisabled(trait, value)
+    }
+  }, [addFilter, disabled, removeFilter, setDisabled, setEnabled, trait, value])
+
+  const removeBadge = useCallback(() => {
+    setEnabled(trait, value)
+    removeFilter()
+  }, [removeFilter, setEnabled, trait, value])
+
   const traitText = traitTexts.get(trait) ?? ''
-  const traitColor = traitColors.get(trait)
+  const traitColor = traitColors.get(trait) ?? '#888'
+  const valueColor = '#777'
 
   const valueText = `${value} (${totalNodes})`
 
   return (
     <FilterBadgeItem>
-      <FilterBadgeLeft background={traitColor}>{traitText}</FilterBadgeLeft>
-      <FilterBadgeRight>
-        {valueText}
+      <FilterBadgeLeft
+        title={t('Click to disable this filter temporarily')}
+        onClick={disableFilter}
+        background={traitColor}
+        disabled={disabled ?? false}
+      >
+        <BadgeText disabled={disabled}>{traitText}</BadgeText>
+      </FilterBadgeLeft>
+      <FilterBadgeMiddle
+        title={t('Click to disable this filter temporarily')}
+        onClick={disableFilter}
+        background={valueColor}
+        disabled={disabled ?? false}
+      >
+        <BadgeText disabled={disabled}>{valueText}</BadgeText>
+      </FilterBadgeMiddle>
+      <FilterBadgeRight background={valueColor} disabled={disabled ?? false}>
         {/* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */}
-        <FilterBadgeRemoveButton title={t('Remove filter')} onClick={removeFilter}>
+        <FilterBadgeRemoveButton title={t('Click to remove this filter')} onClick={removeBadge}>
           <FilterBadgeRemoveIcon />
         </FilterBadgeRemoveButton>
       </FilterBadgeRight>

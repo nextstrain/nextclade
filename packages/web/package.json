@@ -1,6 +1,6 @@
 {
   "name": "@neherlab/webclades-web",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "main": "index.js",
   "module": "src/index.tsx",
   "license": "MIT",
@@ -208,6 +208,7 @@
     "codecov": "3.7.2",
     "compression-webpack-plugin": "4.0.0",
     "connect-history-api-fallback": "1.6.0",
+    "conventional-changelog-cli": "2.1.0",
     "cross-env": "7.0.2",
     "css-loader": "3.6.0",
     "dotenv": "8.2.0",
