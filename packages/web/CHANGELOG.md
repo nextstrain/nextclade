@@ -1,3 +1,20 @@
+## [0.3.6](https://github.com/neherlab/webclades/compare/0.3.5...0.3.6) (2020-08-18)
+
+
+### Bug Fixes
+
+* lint ([521594b](https://github.com/neherlab/webclades/commit/521594b17df7f2822152d61a7e25f7807bec8d4c))
+
+
+### Features
+
+* **dev:** visualize functions in redux devtools ([fa8fa54](https://github.com/neherlab/webclades/commit/fa8fa54aea6c163a4d0f7afd433c4ec2117eef00))
+* add ability to disable filters temporarily ([a09521c](https://github.com/neherlab/webclades/commit/a09521c7faf966cdff808158266678a6a434df71))
+* add auspice entropy widget ([96ad6f6](https://github.com/neherlab/webclades/commit/96ad6f63ac03d89ffb2ba17b02e4dfa1490dc790))
+* make sure entropy chart renders properly, adjust page styling ([2eec5c9](https://github.com/neherlab/webclades/commit/2eec5c97d57b7d8fac0341e0e5ddffd4622f0771))
+
+
+
 ## [0.3.5](https://github.com/neherlab/webclades/compare/0.3.4...0.3.5) (2020-08-08)
 
 
