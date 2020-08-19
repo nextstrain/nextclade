@@ -139,6 +139,16 @@ export function* buildTreeSaga({ threadTreeBuild, params }: TreeBuildParams) {
   return undefined
 }
 
+function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
+  const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
+  if (!clade) {
+    throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
+  }
+
+  yield* put(assignClade({ seqName: analysisResult.seqName, clade }))
+  return { ...analysisResult, clade }
+}
+
 export interface TreeFinalizeParams {
   threadTreeFinalize: TreeFinalizeThread
   params: FinalizeTreeParams
@@ -202,30 +212,16 @@ export function* runAlgorithm(content?: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
   const treeBuildResult = yield* call(buildTreeSaga, {
     threadTreeBuild,
-    params: { analysisResults: analysisResultsWithoutClades, rootSeq },
+    params: { analysisResults: analysisResultsWithoutClades },
   })
   if (!treeBuildResult) {
     return undefined
   }
 
-  const { matches, mutationsDiffs, auspiceData: auspiceDataRaw } = treeBuildResult
-
-  function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
-    const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
-    if (!clade) {
-      throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
-    }
-
-    yield* put(assignClade({ seqName: analysisResult.seqName, clade }))
-    return { ...analysisResult, clade }
-  }
+  const { matches, mutationsDiffs } = treeBuildResult
 
   // TODO: move to the previous webworker when tree build is parallel
   const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
-  // const analysisResultsWithClades = resultsAndMatches.map(([analysisResult, match]) => {
-  //
-  // })
-
   const analysisResultsWithClades = yield* all(
     resultsAndMatches.map(([analysisResult, match]) => call(assignOneClade, analysisResult, match)),
   )
@@ -251,7 +247,7 @@ export function* runAlgorithm(content?: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
   const treeFinalizeResult = yield* call(finalizeTreeSaga, {
     threadTreeFinalize,
-    params: { auspiceData: auspiceDataRaw, results, matches, rootSeq },
+    params: { results, matches, rootSeq },
   })
   if (!treeFinalizeResult) {
     return undefined
