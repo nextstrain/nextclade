@@ -9,8 +9,22 @@ import { StrictOmit } from 'ts-essentials'
 
 const TOO_BIG = '<<TOO_BIG>>' as const
 
-function sanitizeResults(results: SequenceAnalysisState[] = []) {
-  return results && results.length > 20 ? TOO_BIG : results
+export function sanitizeResult(result?: SequenceAnalysisState) {
+  if (!result) {
+    return undefined
+  }
+  // @ts-ignore
+  return { ...result, alignedQuery: TOO_BIG }
+}
+
+export function sanitizeResults(results: SequenceAnalysisState[] = []) {
+  let newResults = results
+  if (results && results.length > 20) {
+    return TOO_BIG
+  }
+  // @ts-ignore
+  newResults = newResults?.map((result) => ({ ...result, result: sanitizeResult(result.result) }))
+  return newResults
 }
 
 export interface AuspiceTreeStateLite
@@ -50,7 +64,16 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
           entropy: sanitizeEntropy(action.controls),
         }
       }
-      return action
+
+      return {
+        ...action,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        payload: {
+          // @ts-ignore
+          ...(action?.payload ?? {}),
+          result: sanitizeResult(action?.payload?.result),
+        },
+      }
     },
 
     stateSanitizer(state: State) {

@@ -3,14 +3,14 @@ import React, { useState } from 'react'
 import { MdCheck, MdClear } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult } from 'src/algorithms/types'
 import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
 
 export interface ColumnQCStatusProps {
-  sequence: AnalysisResult
+  sequence: AnalysisResultState
   qc?: QCResult
 }
 

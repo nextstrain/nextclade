@@ -8,6 +8,7 @@ import { runFilters } from 'src/filtering/runFilters'
 import {
   algorithmRunAsync,
   analyzeAsync,
+  assignClade,
   parseAsync,
   resultsSortTrigger,
   runQcAsync,
@@ -189,6 +190,17 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
         return oldResult
       })
 
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(assignClade, (draft, { seqName, clade }) => {
+      draft.results.forEach((result) => {
+        if (result.seqName === seqName && result.result) {
+          result.result.clade = clade
+        }
+      })
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )

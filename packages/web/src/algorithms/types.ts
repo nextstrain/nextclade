@@ -81,9 +81,8 @@ export interface ClusteredSNPs {
   numberOfSNPs: number
 }
 
-export interface AnalysisResult {
+export interface AnalysisResultWithoutClade {
   seqName: string
-  clades: Substitutions
   substitutions: SubstitutionsWithAminoacids[]
   totalMutations: number
   aminoacidChanges: AminoacidSubstitution[]
@@ -101,6 +100,13 @@ export interface AnalysisResult {
   alignmentScore: number
   alignedQuery: string
   nucleotideComposition: Record<string, number>
+}
+
+export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {
+  clade: string
+}
+
+export interface AnalysisResult extends AnalysisResultWithClade {
   qc?: QCResult
 }
 

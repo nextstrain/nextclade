@@ -1,6 +1,6 @@
 import actionCreatorFactory from 'typescript-fsa'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type {
   FinalizeTreeParams,
   FinalizeTreeResults,
@@ -9,7 +9,7 @@ import type {
 } from 'src/algorithms/tree/locateInTree'
 import type { QCResult } from 'src/algorithms/QC/runQC'
 import type { Sorting } from 'src/helpers/sortResults'
-import type { AlgorithmGlobalStatus, InputFile } from './algorithm.state'
+import type { AlgorithmGlobalStatus, CladeAssignmentResult, InputFile } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
 
@@ -22,8 +22,9 @@ export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgori
 export const algorithmRunAsync = action.async<string | File | undefined, void, void>('run')
 
 export const parseAsync = action.async<void, string[], Error>('parse')
-export const analyzeAsync = action.async<{ seqName: string }, AnalysisResult, Error>('analyze')
+export const analyzeAsync = action.async<{ seqName: string }, AnalysisResultWithoutClade, Error>('analyze')
 export const treeBuildAsync = action.async<LocateInTreeParams, LocateInTreeResults, Error>('treeBuild')
+export const assignClade = action<CladeAssignmentResult>('assignClade')
 export const runQcAsync = action.async<{ seqName: string }, QCResult, Error>('runQc')
 export const treeFinalizeAsync = action.async<FinalizeTreeParams, FinalizeTreeResults, Error>('treeFinalizeAsync')
 

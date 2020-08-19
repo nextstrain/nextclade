@@ -1,6 +1,5 @@
 import { orderBy, partition } from 'lodash'
 
-import { formatClades } from 'src/helpers/formatClades'
 import { AlgorithmSequenceStatus, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 
 export enum SortCategory {
@@ -29,13 +28,7 @@ export function defaultNumber(direction: SortDirection) {
 }
 
 export function getClade(res: SequenceAnalysisState) {
-  const clades = res.result?.clades
-  if (!clades) {
-    return '-'
-  }
-
-  const { cladeStr } = formatClades(clades)
-  return cladeStr
+  return res.result?.clade ?? '-'
 }
 
 export function sortById(results: SequenceAnalysisState[], direction: SortDirection) {

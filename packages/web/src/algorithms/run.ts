@@ -1,13 +1,10 @@
-import { pickBy } from 'lodash'
-
 import { readFile } from 'src/helpers/readFile'
 
 import { VIRUSES } from './viruses'
 import { geneMap } from './geneMap'
 
-import type { AminoacidSubstitution, AnalysisParams, AnalysisResult, ParseResult } from './types'
+import type { AminoacidSubstitution, AnalysisParams, AnalysisResultWithoutClade, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
-import { isSequenceInClade } from './isSequenceInClade'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
@@ -25,7 +22,7 @@ export async function parse(input: string | File): Promise<ParseResult> {
   return { input: newInput, parsedSequences: parseSequences(newInput) }
 }
 
-export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResult {
+export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResultWithoutClade {
   const virus = VIRUSES['SARS-CoV-2']
 
   if (seq.length < virus.minimalLength) {
@@ -41,10 +38,6 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
   const totalMutations = nucSubstitutions.length
   const totalGaps = deletions.reduce((total, { length }) => total + length, 0)
   const totalInsertions = insertions.reduce((total, { ins }) => total + ins.length, 0)
-
-  const clades = pickBy(virus.clades, (clade) =>
-    isSequenceInClade(clade, nucSubstitutions, alignmentStart, alignmentEnd, rootSeq),
-  )
 
   const missing = findNucleotideRanges(alignedQuery, N)
   const totalMissing = missing.reduce((total, { begin, end }) => total + end - begin, 0)
@@ -63,7 +56,6 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   return Object.freeze({
     seqName,
-    clades,
     substitutions,
     totalMutations,
     aminoacidChanges,

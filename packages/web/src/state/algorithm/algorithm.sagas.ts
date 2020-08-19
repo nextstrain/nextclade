@@ -1,4 +1,4 @@
-import { zipWith, set } from 'lodash'
+import { zipWith, set, get } from 'lodash'
 
 import type { DeepPartial } from 'ts-essentials'
 import type { Dispatch } from 'redux'
@@ -6,7 +6,9 @@ import { push } from 'connected-next-router'
 import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
 
-import type { AnalysisParams, AnalysisResult } from 'src/algorithms/types'
+import type { AuspiceTreeNode } from 'auspice'
+
+import type { AnalysisParams, AnalysisResult, AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type { FinalizeTreeParams, LocateInTreeParams } from 'src/algorithms/tree/locateInTree'
 import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
 import type { WorkerPools } from 'src/workers/types'
@@ -39,6 +41,7 @@ import {
   algorithmRunAsync,
   treeBuildAsync,
   treeFinalizeAsync,
+  assignClade,
 } from './algorithm.actions'
 import { selectParams, selectResults } from './algorithm.selectors'
 import { AlgorithmGlobalStatus } from './algorithm.state'
@@ -61,7 +64,7 @@ export function* analyzeOne(params: AnalyzeParams) {
   const { seqName } = params
   yield* put(analyzeAsync.started({ seqName }))
 
-  let result: AnalysisResult | undefined
+  let result: AnalysisResultWithoutClade | undefined
   try {
     result = yield* call(scheduleOneAnalysisRun, params)
     yield* put(analyzeAsync.done({ params: { seqName }, result }))
@@ -194,15 +197,38 @@ export function* runAlgorithm(content?: File | string) {
   const analysisResultsRaw = yield* all(
     sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })),
   )
-  const analysisResults = analysisResultsRaw.filter(notUndefined)
+  const analysisResultsWithoutClades = analysisResultsRaw.filter(notUndefined)
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
-  const treeBuildResult = yield* call(buildTreeSaga, { threadTreeBuild, params: { analysisResults, rootSeq } })
+  const treeBuildResult = yield* call(buildTreeSaga, {
+    threadTreeBuild,
+    params: { analysisResults: analysisResultsWithoutClades, rootSeq },
+  })
   if (!treeBuildResult) {
     return undefined
   }
 
   const { matches, mutationsDiffs, auspiceData: auspiceDataRaw } = treeBuildResult
+
+  function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
+    const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
+    if (!clade) {
+      throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
+    }
+
+    yield* put(assignClade({ seqName: analysisResult.seqName, clade }))
+    return { ...analysisResult, clade }
+  }
+
+  // TODO: move to the previous webworker when tree build is parallel
+  const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
+  // const analysisResultsWithClades = resultsAndMatches.map(([analysisResult, match]) => {
+  //
+  // })
+
+  const analysisResultsWithClades = yield* all(
+    resultsAndMatches.map(([analysisResult, match]) => call(assignOneClade, analysisResult, match)),
+  )
 
   // TODO: move this to user-controlled state
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
@@ -213,14 +239,14 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
-  const resultsAndDiffs = safeZip(analysisResults, mutationsDiffs)
+  const resultsAndDiffs = safeZip(analysisResultsWithClades, mutationsDiffs)
   const qcResults = yield* all(
     resultsAndDiffs.map(([analysisResult, mutationsDiff]) =>
       call(runQcOne, { poolRunQc, analysisResult, mutationsDiff, qcRulesConfig }),
     ),
   )
 
-  const results: AnalysisResult[] = zipWith(analysisResults, qcResults, (ar, qc) => ({ ...ar, qc }))
+  const results: AnalysisResult[] = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
   const treeFinalizeResult = yield* call(finalizeTreeSaga, {
@@ -241,6 +267,7 @@ export function* runAlgorithm(content?: File | string) {
 
   yield* put(auspiceStartClean(auspiceState))
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
+
   return { results, auspiceData }
 }
 

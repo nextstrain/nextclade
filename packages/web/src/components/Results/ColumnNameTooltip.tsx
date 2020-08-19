@@ -2,12 +2,11 @@ import React from 'react'
 import { Popover, PopoverBody } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResult } from 'src/algorithms/types'
 import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
-import { formatClades } from 'src/helpers/formatClades'
 import { ListOfMutations } from 'src/components/Results/ListOfMutations'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
 import { ListOfAminoacidChanges } from 'src/components/SequenceView/ListOfAminoacidChanges'
@@ -16,14 +15,14 @@ import { ListOfInsertions } from './ListOfInsertions'
 
 export interface ColumnNameTooltipProps {
   showTooltip: boolean
-  sequence: AnalysisResult
+  sequence: AnalysisResultState
   qc?: QCResult
 }
 
 export function ColumnNameTooltip({ sequence, qc, showTooltip }: ColumnNameTooltipProps) {
   const {
     seqName,
-    clades,
+    clade,
     substitutions,
     aminoacidChanges,
     deletions,
@@ -39,9 +38,9 @@ export function ColumnNameTooltip({ sequence, qc, showTooltip }: ColumnNameToolt
   const { t } = useTranslation()
 
   const id = getSafeId('sequence-label', { seqName })
-  const { cladeListStr } = formatClades(clades)
   const alnStartOneBased = alignmentStart + 1
   const alnEndOneBased = alignmentEnd + 1
+  const cladeText = clade ?? t('Pending...')
 
   return (
     <Popover
@@ -59,7 +58,7 @@ export function ColumnNameTooltip({ sequence, qc, showTooltip }: ColumnNameToolt
         <div className="my-2">{t('Alignment score: {{alignmentScore}}', { alignmentScore })}</div>
         <div className="my-2">{t('Alignment start: {{alnStart}}', { alnStart: alnStartOneBased })}</div>
         <div className="my-2">{t('Alignment end: {{alnEnd}}', { alnEnd: alnEndOneBased })}</div>
-        <div className="my-2">{t('Clade: {{cladeListStr}}', { cladeListStr })}</div>
+        <div className="my-2">{t('Clade: {{cladeText}}', { cladeText })}</div>
 
         <ListOfMutations substitutions={substitutions} />
         <ListOfAminoacidChanges aminoacidChanges={aminoacidChanges} />

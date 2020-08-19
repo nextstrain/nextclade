@@ -1,7 +1,6 @@
 import { unparse } from 'papaparse'
 
 import { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import { formatClades } from 'src/helpers/formatClades'
 import { formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { formatInsertion } from 'src/helpers/formatInsertion'
@@ -19,7 +18,7 @@ export function prepareResultsJson(results: SequenceAnalysisState[]) {
       alignmentStart,
       alignmentEnd,
       aminoacidChanges,
-      clades,
+      clade,
       deletions,
       // diagnostics,
       insertions,
@@ -33,8 +32,6 @@ export function prepareResultsJson(results: SequenceAnalysisState[]) {
       totalMutations,
       totalNonACGTNs,
     } = result
-
-    const { cladeStr: clade } = formatClades(clades)
 
     return {
       seqName,
@@ -82,7 +79,7 @@ export function serializeResultsToCsv(results: SequenceAnalysisState[]) {
       alignmentStart,
       alignmentEnd,
       // aminoacidChanges,
-      clades,
+      clade,
       deletions,
       // diagnostics,
       insertions,
@@ -96,8 +93,6 @@ export function serializeResultsToCsv(results: SequenceAnalysisState[]) {
       totalMutations,
       totalNonACGTNs,
     } = result
-
-    const { cladeStr: clade } = formatClades(clades)
 
     return {
       seqName,

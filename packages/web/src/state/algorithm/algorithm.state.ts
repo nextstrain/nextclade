@@ -1,10 +1,10 @@
-import type { AnalysisResult } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 // import { getFakeResults } from 'src/assets/data/getFakeResults'
 import { AuspiceJsonV2 } from 'auspice'
 import { QCResult } from 'src/algorithms/QC/runQC'
+import { AnalysisResultWithoutClade } from 'src/algorithms/types'
 
 export interface InputFile {
   name: string
@@ -37,11 +37,15 @@ export enum AlgorithmSequenceStatus {
   qcFailed = 'qcFailed',
 }
 
+export interface AnalysisResultState extends AnalysisResultWithoutClade {
+  clade?: string
+}
+
 export interface SequenceAnalysisState {
   id: number
   seqName: string
   status: AlgorithmSequenceStatus
-  result?: AnalysisResult
+  result?: AnalysisResultState
   qc?: QCResult
   errors: string[]
 }
@@ -67,6 +71,11 @@ export interface AlgorithmState {
   tree: AuspiceJsonV2
   errors: string[]
   filters: ResultsFilters
+}
+
+export interface CladeAssignmentResult {
+  seqName: string
+  clade: string
 }
 
 const fakeState: Partial<AlgorithmState> = {}

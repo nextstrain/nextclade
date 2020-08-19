@@ -4,11 +4,15 @@ import { cloneDeep, groupBy, identity, mapValues, set, unset, zip } from 'lodash
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
 import { UNKNOWN_VALUE } from 'src/constants'
-import type { Nucleotide, AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
+import type {
+  Nucleotide,
+  NucleotideSubstitution,
+  AnalysisResultWithoutClade,
+  AnalysisResult,
+} from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { parseMutation } from 'src/helpers/parseMutation'
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
-import { formatClades } from 'src/helpers/formatClades'
 import { formatRange } from 'src/helpers/formatRange'
 import { formatQCDivergence } from 'src/helpers/formatQCDivergence'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
@@ -50,7 +54,6 @@ export function parseMutationOrThrow(mut: string) {
 }
 
 export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
-  const { cladeStr } = formatClades(seq.clades)
   const {
     alignmentStart,
     alignmentEnd,
@@ -94,7 +97,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     branch_attrs: { mutations: {} },
     name: `${seq.seqName}_clades`,
     node_attrs: {
-      'clade_membership': { value: cladeStr },
+      'clade_membership': { value: seq.clade },
       'Node type': { value: NodeType.New },
       'Alignment': { value: alignment },
       'Missing:': { value: formattedMissing },
@@ -133,11 +136,11 @@ export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: Muta
   }
 }
 
-export function isSequenced(pos: number, seq: AnalysisResult) {
+export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
   return pos >= seq.alignmentStart && pos < seq.alignmentEnd && seq.missing.every((d) => pos < d.begin || pos >= d.end)
 }
 
-export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
+export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   let shared_differences = 0
   let shared_sites = 0
   for (const qmut of seq.substitutions) {
@@ -169,7 +172,7 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
 }
 
 /* Find mutations that are present in the new sequence, but not present in the matching reference node sequence */
-export function findMutDiff(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
+export function findMutDiff(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   const nodeMuts: [number, Nucleotide][] = Array.from(node.mutations?.entries() ?? [])
 
   // This is effectively a set difference operation
@@ -178,7 +181,7 @@ export function findMutDiff(node: AuspiceTreeNodeExtended, seq: AnalysisResult) 
   )
 }
 
-export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
+export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade, root_seq: string) {
   const nucMutations: string[] = []
   let aminoacidMutationEntries: { gene: string; aaMut: string }[] = []
   const positionsCovered = new Set()
@@ -234,7 +237,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   return { mutations, nucMutations, totalNucMutations }
 }
 
-export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
+export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   let best = calculate_distance(node, seq)
   let best_node = node
   const children = node.children ?? []
@@ -328,7 +331,7 @@ export function addColoringScale({ auspiceData, key, value, color }: AddColoring
 }
 
 export interface LocateInTreeParams {
-  analysisResults: AnalysisResult[]
+  analysisResults: AnalysisResultWithoutClade[]
   rootSeq: string
 }
 

@@ -2,7 +2,7 @@ import { merge } from 'lodash'
 
 import { DeepPartial } from 'ts-essentials'
 
-import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
+import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
 
 import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
 import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
@@ -66,14 +66,14 @@ export interface QCResult {
 }
 
 export type Rule<Conf, Ret> = (
-  analysisResult: AnalysisResult,
+  analysisResult: AnalysisResultWithClade,
   mutationsDiff: NucleotideSubstitution[],
   config: Conf,
 ) => Ret
 
 export function runOne<Conf extends Enableable<unknown>, Ret>(
   rule: Rule<Conf, Ret>,
-  analysisResult: AnalysisResult,
+  analysisResult: AnalysisResultWithClade,
   mutationsDiff: NucleotideSubstitution[],
   config: Conf,
 ): Ret | undefined {
@@ -81,7 +81,7 @@ export function runOne<Conf extends Enableable<unknown>, Ret>(
 }
 
 export interface RunQCParams {
-  analysisResult: AnalysisResult
+  analysisResult: AnalysisResultWithClade
   mutationsDiff: NucleotideSubstitution[]
   qcRulesConfig: DeepPartial<QCRulesConfig>
 }
