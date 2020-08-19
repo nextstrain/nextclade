@@ -1,9 +1,7 @@
 /* eslint-disable camelcase */
 import { cloneDeep, groupBy, identity, mapValues, set, unset, zip } from 'lodash'
 
-import type { DeepReadonly } from 'ts-essentials'
-import type { AuspiceJsonV2, AuspiceTreeNode, AuspiceState } from 'auspice'
-import { createStateFromQueryOrJSONs } from 'auspice/src/actions/recomputeReduxState'
+import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
 import { UNKNOWN_VALUE } from 'src/constants'
 import type {
@@ -12,18 +10,48 @@ import type {
   AnalysisResultWithoutClade,
   AnalysisResult,
 } from 'src/algorithms/types'
-import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
-import { NodeType, QCStatusType } from 'src/algorithms/tree/types'
-import { parseMutationOrThrow } from 'src/algorithms/parseMutationOrThrow'
-import { auspiceData } from 'src/algorithms/prepareTree'
-
 import { notUndefined } from 'src/helpers/notUndefined'
+import { parseMutation } from 'src/helpers/parseMutation'
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { formatQCDivergence } from 'src/helpers/formatQCDivergence'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
+
+import auspiceDataRaw from 'src/assets/data/ncov_small.json'
+import { AuspiceState } from 'auspice'
+import { createStateFromQueryOrJSONs } from 'auspice/src/actions/recomputeReduxState'
+
+export type MutationMap = Map<number, Nucleotide>
+
+export enum NodeType {
+  New = 'New',
+  Reference = 'Reference',
+}
+
+export enum QCStatusType {
+  Pass = 'Pass',
+  Fail = 'Fail',
+}
+
+export interface AuspiceTreeNodeExtended extends AuspiceTreeNode {
+  mutations?: MutationMap
+}
+
+export function parseMutationOrThrow(mut: string) {
+  const parsedMut = parseMutation(mut)
+  if (!parsedMut) {
+    throw new Error(`Mutation cannot be parsed: "${mut}"`)
+  }
+
+  const { refNuc, pos, queryNuc } = parsedMut
+  if (!refNuc || pos === undefined || !queryNuc) {
+    throw new Error(`Mutation cannot be parsed: "${mut}"`)
+  }
+
+  return { anc: refNuc, pos, der: queryNuc }
+}
 
 export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   const {
@@ -82,14 +110,37 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   }
 }
 
-export function isSequenced(pos: number, seq: DeepReadonly<AnalysisResultWithoutClade>) {
+export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: MutationMap) {
+  const tmp_muts = cloneDeep(mutations)
+
+  const nucleotideMutations = node?.branch_attrs?.mutations?.nuc
+  if (nucleotideMutations) {
+    for (const mut of nucleotideMutations) {
+      const { anc, pos, der } = parseMutationOrThrow(mut)
+      const previousNuc = mutations.get(pos)
+      if (previousNuc && previousNuc !== anc) {
+        throw new Error(
+          `Mutation is inconsistent: "${mut}": current nucleotide: "${anc}", previously seen: "${previousNuc}"`,
+        )
+      }
+      tmp_muts.set(pos, der)
+    }
+  }
+
+  node.mutations = tmp_muts
+  const { children } = node
+  if (children) {
+    for (const c of children) {
+      mutations_on_tree(c, tmp_muts)
+    }
+  }
+}
+
+export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
   return pos >= seq.alignmentStart && pos < seq.alignmentEnd && seq.missing.every((d) => pos < d.begin || pos >= d.end)
 }
 
-export function calculate_distance(
-  node: DeepReadonly<AuspiceTreeNodeExtended>,
-  seq: DeepReadonly<AnalysisResultWithoutClade>,
-) {
+export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   let shared_differences = 0
   let shared_sites = 0
   for (const qmut of seq.substitutions) {
@@ -121,10 +172,7 @@ export function calculate_distance(
 }
 
 /* Find mutations that are present in the new sequence, but not present in the matching reference node sequence */
-export function findMutDiff(
-  node: DeepReadonly<AuspiceTreeNodeExtended>,
-  seq: DeepReadonly<AnalysisResultWithoutClade>,
-) {
+export function findMutDiff(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   const nodeMuts: [number, Nucleotide][] = Array.from(node.mutations?.entries() ?? [])
 
   // This is effectively a set difference operation
@@ -189,7 +237,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   return { mutations, nucMutations, totalNucMutations }
 }
 
-export function closest_match(node: AuspiceTreeNodeExtended, seq: DeepReadonly<AnalysisResultWithoutClade>) {
+export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   let best = calculate_distance(node, seq)
   let best_node = node
   const children = node.children ?? []
@@ -265,6 +313,11 @@ export function remove_mutations(node: AuspiceTreeNodeExtended) {
   }
 }
 
+export function setNodeTypes(node: AuspiceTreeNode) {
+  set(node, `node_attrs['Node type']`, { value: NodeType.Reference })
+  node.children?.forEach(setNodeTypes)
+}
+
 export interface AddColoringScaleParams {
   auspiceData: AuspiceJsonV2
   key: string
@@ -278,19 +331,41 @@ export function addColoringScale({ auspiceData, key, value, color }: AddColoring
 }
 
 export interface LocateInTreeParams {
-  readonly analysisResults: DeepReadonly<AnalysisResultWithoutClade[]>
+  analysisResults: AnalysisResultWithoutClade[]
+  rootSeq: string
 }
 
 export interface LocateInTreeResults {
   matches: AuspiceTreeNodeExtended[]
   mutationsDiffs: NucleotideSubstitution[][]
+  auspiceData: AuspiceJsonV2
 }
 
-export function locateInTree({ analysisResults }: LocateInTreeParams): LocateInTreeResults {
+export function locateInTree({
+  analysisResults: analysisResultsRaw,
+  rootSeq,
+}: LocateInTreeParams): LocateInTreeResults {
+  const analysisResults = cloneDeep(analysisResultsRaw)
+  const auspiceData = (cloneDeep(auspiceDataRaw) as unknown) as AuspiceJsonV2 // TODO: validate and sanitize
+
+  const auspiceTreeVersionExpected = 'v2'
+  const auspiceTreeVersion = (auspiceData?.version as string | undefined) ?? 'undefined'
+  if (auspiceTreeVersion !== auspiceTreeVersionExpected) {
+    throw new Error(
+      `Tree format not recognized. Expected version "${auspiceTreeVersionExpected}", got "${auspiceTreeVersion}"`,
+    )
+  }
+
   const focal_node = auspiceData?.tree
   if (!focal_node) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
   }
+
+  // TODO: this can be done offline when preparing the json
+  setNodeTypes(focal_node)
+
+  const mutations = new Map()
+  mutations_on_tree(focal_node, mutations)
 
   const matchesAndDiffs = analysisResults.map((seq) => {
     const match = closest_match(focal_node, seq).best_node
@@ -301,10 +376,11 @@ export function locateInTree({ analysisResults }: LocateInTreeParams): LocateInT
   const matches = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.match)
   const mutationsDiffs = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.diff)
 
-  return { matches, mutationsDiffs }
+  return { matches, mutationsDiffs, auspiceData }
 }
 
 export interface FinalizeTreeParams {
+  auspiceData: AuspiceJsonV2
   results: AnalysisResult[]
   matches: AuspiceTreeNode[]
   rootSeq: string
@@ -315,7 +391,7 @@ export interface FinalizeTreeResults {
   auspiceState: AuspiceState
 }
 
-export function finalizeTree({ results, matches, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
+export function finalizeTree({ auspiceData, results, matches, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
   const analysisResults = cloneDeep(results)
   zip(analysisResults, matches).forEach(([seq, match]) => {
     if (!seq || !match) {
