@@ -22,6 +22,7 @@ export enum AlgorithmGlobalStatus {
   parsing = 'parsing',
   analysis = 'analysis',
   treeBuild = 'treeBuild',
+  assignClades = 'assignClades',
   qc = 'qc',
   treeFinalization = 'treeFinalization',
   allDone = 'allDone',

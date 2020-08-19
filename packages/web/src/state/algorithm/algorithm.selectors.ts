@@ -16,13 +16,19 @@ export function selectStatus(state: State) {
   const statusGlobal = state.algorithm.status
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
 
+  const parseStartedPercent = 1
   const parseDonePercent = 10
+  const treeBuildPercent = 50
+  const assignCladesPercent = 55
+  const treeFinalizationPercent = 90
+  const allDonePercent = 100
+
   let statusText = 'Idling'
   let failureText: string | undefined
   let percent = 0
   if (statusGlobal === AlgorithmGlobalStatus.started) {
     statusText = i18n.t('Parsing...')
-    percent = 3
+    percent = parseStartedPercent
   } else if (statusGlobal === AlgorithmGlobalStatus.parsing) {
     percent = parseDonePercent
     statusText = i18n.t('Parsing...')
@@ -31,26 +37,32 @@ export function selectStatus(state: State) {
     const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.analysisDone).length
     const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.analysisFailed).length
     const done = succeeded + failed
-    percent = parseDonePercent + (done / total) * (100 - parseDonePercent)
+    percent = parseDonePercent + (done / total) * (treeBuildPercent - parseDonePercent)
     statusText = i18n.t('Analysing sequences: {{done}}/{{total}}', { done, total })
     if (failed > 0) {
       failureText = i18n.t('Failed: {{failed}}/{{total}}', { failed, total })
     }
   } else if (statusGlobal === AlgorithmGlobalStatus.treeBuild) {
-    percent = 50
-    statusText = i18n.t('Building the tree')
+    percent = treeBuildPercent
+    statusText = i18n.t('Finding nearest tree nodes')
+  } else if (statusGlobal === AlgorithmGlobalStatus.assignClades) {
+    percent = assignCladesPercent
+    statusText = i18n.t('Assigning clades')
   } else if (statusGlobal === AlgorithmGlobalStatus.qc) {
     const total = sequenceStatuses.length
     const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.qcDone).length
     const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.qcFailed).length
     const done = succeeded + failed
-    percent = parseDonePercent + (done / total) * (100 - parseDonePercent)
+    percent = assignCladesPercent + (done / total) * (treeFinalizationPercent - assignCladesPercent)
     statusText = i18n.t('Assessing sequence quality: {{done}}/{{total}}', { done, total })
     if (failed > 0) {
       failureText = i18n.t('Failed: {{failed}}/{{total}}', { failed, total })
     }
+  } else if (statusGlobal === AlgorithmGlobalStatus.treeFinalization) {
+    percent = treeFinalizationPercent
+    statusText = i18n.t('Attaching new tree nodes')
   } else if (statusGlobal === AlgorithmGlobalStatus.allDone) {
-    percent = 100
+    percent = allDonePercent
     const total = sequenceStatuses.length
     const succeeded = sequenceStatuses.filter(
       ({ status }) => status === AlgorithmSequenceStatus.analysisDone || status === AlgorithmSequenceStatus.qcDone,
