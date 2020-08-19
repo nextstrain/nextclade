@@ -20,7 +20,8 @@ module.exports = {
     },
   },
   transform: {
-    '^.+\\.(js|jsx)?$': 'babel-jest',
+    // '^.+\\.[t|j]sx?$': 'babel-jest',
+    '^.+\\.[t|j]sx?$': 'ts-jest',
     '^.+\\.(md|mdx)$': 'jest-transformer-mdx',
   },
   testMatch: [
@@ -30,9 +31,9 @@ module.exports = {
     '<rootDir>/src/**/test/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/tests/**/*.{js,jsx,ts,tsx}',
   ],
-  transformIgnorePatterns: ['<rootDir>/node_modules/(?!(react-children-utilities)/)', '<rootDir>/cypress'],
+  transformIgnorePatterns: ['node_modules/(?!(auspice|d3-scale)/)'],
   moduleNameMapper: {
-    'src/(.*)': '<rootDir>/src/$1',
+    '^src/(.*)': '<rootDir>/src/$1',
     '\\.(eot|otf|webp|ttf|woff\\d?|svg|png|jpe?g|gif)$': '<rootDir>/config/jest/mocks/fileMock.js',
     '\\.(css|scss)$': 'identity-obj-proxy',
     'react-children-utilities': '<rootDir>/config/jest/mocks/mockReactChildrenUtilities.js',
@@ -40,6 +41,7 @@ module.exports = {
     'popper-js': '<rootDir>/config/jest/mockPopperJS.js',
     'use-debounce': '<rootDir>/config/jest/mocks/mockUseDebounce.js',
   },
+  setupFiles: ['core-js', 'regenerator-runtime'],
   setupFilesAfterEnv: [
     '<rootDir>/config/jest/setupDotenv.js',
     'jest-chain',

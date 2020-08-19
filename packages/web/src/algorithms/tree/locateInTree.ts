@@ -169,9 +169,13 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
 }
 
 /* Find mutations that are present in the new sequence, but not present in the matching reference node sequence */
-export function findMutDiff(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
+export function findMutDiff(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
   const nodeMuts: [number, Nucleotide][] = Array.from(node.mutations?.entries() ?? [])
-  return seq.substitutions.filter((qmut) => nodeMuts.some(([pos, nuc]) => pos === qmut.pos && nuc === qmut.queryNuc))
+
+  // This is effectively a set difference operation
+  return seq.substitutions.filter((qmut) =>
+    nodeMuts.every(([pos, queryNuc]) => !(pos === qmut.pos && queryNuc === qmut.queryNuc)),
+  )
 }
 
 export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
@@ -362,7 +366,7 @@ export function locateInTree({
 
   const matchesAndDiffs = analysisResults.map((seq) => {
     const match = closest_match(focal_node, seq).best_node
-    const diff = findMutDiff(match, seq, rootSeq)
+    const diff = findMutDiff(match, seq)
     return { match, diff }
   })
 
