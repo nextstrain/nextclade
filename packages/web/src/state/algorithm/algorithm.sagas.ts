@@ -7,6 +7,7 @@ import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
 
 import type { AuspiceTreeNode } from 'auspice'
+import { changeColorBy } from 'auspice/src/actions/colors'
 
 import type { AnalysisParams, AnalysisResult, AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type { FinalizeTreeParams, LocateInTreeParams } from 'src/algorithms/tree/locateInTree'
@@ -254,14 +255,17 @@ export function* runAlgorithm(content?: File | string) {
   }
   const { auspiceData, auspiceState } = treeFinalizeResult
 
-  // HACK: now that we are in the main process, we can re-attach the function we previously set to undefined in the worker process.
+  // HACK: now that we are in the main process, we can re-attach the `controls.colorScale.scale` function we previously set to undefined in the worker process.
   // This is because transferring between webworker processes uses structured cloning algorithm and functions are not supported.
   // https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
   // We attach a dummy function, because the original function is no longer available.
   // Ideally, the state should not contain functions. This is something to discuss in auspice upstream.
   set(auspiceState, 'controls.colorScale.scale', () => '#AAAAAA')
-
   yield* put(auspiceStartClean(auspiceState))
+
+  // HACK: Now we restore the `controls.colorScale.scale` function to the correct one by emulating action of changing "Color By"
+  yield* put(changeColorBy())
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 
   return { results, auspiceData }
