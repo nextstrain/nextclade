@@ -37,16 +37,15 @@ export function findSNPClusters(
   return allClusters
 }
 
-export function processSNPClusters(snpClusters: number[][]) : ClusteredSNPs[]{
+export function processSNPClusters(snpClusters: number[][]): ClusteredSNPs[] {
   // reformat the SNP clusters and return
   return snpClusters.map((cluster) => {
     return {
-        start: cluster[0],
-        end: cluster[cluster.length - 1],
-        numberOfSNPs: cluster.length,
-      }
-    })
-  }
+      start: cluster[0],
+      end: cluster[cluster.length - 1],
+      numberOfSNPs: cluster.length,
+    }
+  })
 }
 
 export interface QCRulesConfigSNPClusters {
