@@ -6,7 +6,7 @@ export interface QCRulesConfigDivergence {
   nStd: number
 }
 
-export function ruleDivergence(
+export function ruleTerminalMutations(
   { substitutions, insertions, deletions }: AnalysisResult,
   mutationsDiff: NucleotideSubstitution[],
   { divergenceMean, divergenceStd, nStd }: QCRulesConfigDivergence,
@@ -21,4 +21,4 @@ export function ruleDivergence(
   return { score, zScore, nStd }
 }
 
-export type QCResultDivergence = ReturnType<typeof ruleDivergence>
+export type QCResultTerminalMutations = ReturnType<typeof ruleTerminalMutations>

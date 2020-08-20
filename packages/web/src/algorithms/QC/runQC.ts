@@ -7,7 +7,7 @@ import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algori
 import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
 import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
 import { QCResultSNPClusters, QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
-import { ruleDivergence, QCRulesConfigDivergence, QCResultDivergence } from './ruleDivergence'
+import { ruleTerminalMutations, QCRulesConfigDivergence, QCResultTerminalMutations } from './ruleTerminalMutations'
 
 // const TooHighDivergence = 'too high divergence'
 // const ClusteredSNPsFlag = 'clustered SNPs'
@@ -17,17 +17,17 @@ import { ruleDivergence, QCRulesConfigDivergence, QCResultDivergence } from './r
 export type Enableable<T> = T & { enabled: boolean }
 
 export interface QCRulesConfig {
-  divergence: Enableable<QCRulesConfigDivergence>
+  terminalMutations: Enableable<QCRulesConfigDivergence>
   missingData: Enableable<QCRulesConfigMissingData>
   snpClusters: Enableable<QCRulesConfigSNPClusters>
   mixedSites: Enableable<QCRulesConfigMixedSites>
 }
 
 const qcRulesConfigDefault: QCRulesConfig = {
-  divergence: {
+  terminalMutations: {
     enabled: true,
-    divergenceMean: 9, // expected number of mutations
-    divergenceStd: 4, // expected standard deviation around mean
+    divergenceMean: 1, // expected number of mutations
+    divergenceStd: 3, // expected standard deviation around mean
     nStd: 3, // number of standard deviations to trigger QC warning
   },
   missingData: {
@@ -59,7 +59,7 @@ const qcRulesConfigDefault: QCRulesConfig = {
 export interface QCResult {
   seqName: string
   score: number
-  divergence?: QCResultDivergence
+  terminalMutations?: QCResultTerminalMutations
   missingData?: QCResultMissingData
   snpClusters?: QCResultSNPClusters
   mixedSites?: QCResultMixedSites
@@ -91,7 +91,7 @@ export function runQC({ analysisResult, mutationsDiff, qcRulesConfig }: RunQCPar
   const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
   const result = {
-    divergence: runOne(ruleDivergence, analysisResult, mutationsDiff, configs.divergence),
+    divergence: runOne(ruleTerminalMutations, analysisResult, mutationsDiff, configs.terminalMutations),
     missingData: runOne(ruleMissingData, analysisResult, mutationsDiff, configs.missingData),
     snpClusters: runOne(ruleSnpClusters, analysisResult, mutationsDiff, configs.snpClusters),
     mixedSites: runOne(ruleMixedSites, analysisResult, mutationsDiff, configs.mixedSites),
