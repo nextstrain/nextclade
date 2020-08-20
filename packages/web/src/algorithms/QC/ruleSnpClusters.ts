@@ -37,22 +37,16 @@ export function findSNPClusters(
   return allClusters
 }
 
-export function processSNPClusters(snpClusters: number[][]) {
-  const clusteredSNPs: ClusteredSNPs[] = []
-
-  // FIXME: unnecessary conditional? Iteration on an empty array is valid and yields an empty array.
-  if (snpClusters.length > 0) {
-    // FIXME: this looks like a map()
-    snpClusters.forEach((cluster) => {
-      clusteredSNPs.push({
+export function processSNPClusters(snpClusters: number[][]) : ClusteredSNPs[]{
+  // reformat the SNP clusters and return
+  return snpClusters.map((cluster) => {
+    return {
         start: cluster[0],
         end: cluster[cluster.length - 1],
         numberOfSNPs: cluster.length,
-      })
+      }
     })
   }
-
-  return clusteredSNPs
 }
 
 export interface QCRulesConfigSNPClusters {
