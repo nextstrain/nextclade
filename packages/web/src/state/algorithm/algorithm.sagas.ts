@@ -20,6 +20,7 @@ import type { TreeBuildThread } from 'src/workers/worker.treeBuild'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 
+import { prepareTree } from 'src/algorithms/tree/prepareTree'
 import { safeZip } from 'src/helpers/safeZip'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -202,9 +203,10 @@ export function* runAlgorithm(content?: File | string) {
   const analysisResultsWithoutClades = analysisResultsRaw.filter(notUndefined)
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
+  const auspiceDataOriginal = prepareTree()
   const treeBuildResult = yield* call(buildTreeSaga, {
     threadTreeBuild,
-    params: { analysisResults: analysisResultsWithoutClades, rootSeq },
+    params: { auspiceData: auspiceDataOriginal, analysisResults: analysisResultsWithoutClades, rootSeq },
   })
   if (!treeBuildResult) {
     return undefined
@@ -224,10 +226,6 @@ export function* runAlgorithm(content?: File | string) {
 
   // TODO: move to the previous webworker when tree build is parallel
   const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
-  // const analysisResultsWithClades = resultsAndMatches.map(([analysisResult, match]) => {
-  //
-  // })
-
   const analysisResultsWithClades = yield* all(
     resultsAndMatches.map(([analysisResult, match]) => call(assignOneClade, analysisResult, match)),
   )

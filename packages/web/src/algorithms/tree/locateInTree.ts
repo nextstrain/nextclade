@@ -7,7 +7,6 @@ import type { Nucleotide, NucleotideSubstitution, AnalysisResultWithoutClade } f
 import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/types'
 import { isSequenced } from 'src/algorithms/tree/isSequenced'
-import { prepareTree } from 'src/algorithms/tree/prepareTree'
 
 export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   let shared_differences = 0
@@ -70,6 +69,7 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult
 }
 
 export interface LocateInTreeParams {
+  auspiceData: AuspiceJsonV2
   analysisResults: AnalysisResultWithoutClade[]
   rootSeq: string
 }
@@ -81,12 +81,12 @@ export interface LocateInTreeResults {
 }
 
 export function locateInTree({
+  auspiceData,
   analysisResults: analysisResultsRaw,
   rootSeq,
 }: LocateInTreeParams): LocateInTreeResults {
   const analysisResults = cloneDeep(analysisResultsRaw)
 
-  const auspiceData = prepareTree()
   const focal_node = auspiceData?.tree
   if (!focal_node) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
