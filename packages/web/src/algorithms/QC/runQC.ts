@@ -40,9 +40,8 @@ const qcRulesConfigDefault: QCRulesConfig = {
   snpClusters: {
     enabled: true,
     totalSNPsThreshold: 0,
-    knownClusters: new Set([28881, 28882, 28883]),
     windowSize: 100, // window along the genome to look for a cluster
-    clusterCutOff: 6, // number of mutations within that window to trigger a cluster
+    clusterCutOff: 4, // number of mutations within that window to trigger a cluster
     scoreWeight: 1,
     scoreBias: 0,
     scoreMax: Infinity,
