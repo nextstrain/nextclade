@@ -9,7 +9,6 @@ export function findSNPClusters(
 ) {
   // turn mutation keys into positions, exclude known clusters, and sort
   const positions = terminalMutations.map(({ pos }) => pos)
-
   // loop over all mutations and count how many fall into the clusters
   let previousPos = -1
   const currentCluster: number[] = []

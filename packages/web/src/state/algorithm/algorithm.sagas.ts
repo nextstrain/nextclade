@@ -209,7 +209,7 @@ export function* runAlgorithm(content?: File | string) {
     return undefined
   }
 
-  const { matches, mutationsDiffs, auspiceData: auspiceDataRaw } = treeBuildResult
+  const { matches, terminalMutationSets, auspiceData: auspiceDataRaw } = treeBuildResult
 
   function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
     const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
@@ -233,14 +233,14 @@ export function* runAlgorithm(content?: File | string) {
 
   // TODO: move this to user-controlled state
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
-    divergence: {},
+    terminalMutations: {},
     missingData: {},
     snpClusters: {},
     mixedSites: {},
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
-  const resultsAndDiffs = safeZip(analysisResultsWithClades, mutationsDiffs)
+  const resultsAndDiffs = safeZip(analysisResultsWithClades, terminalMutationSets)
   const qcResults = yield* all(
     resultsAndDiffs.map(([analysisResult, terminalMutations]) =>
       call(runQcOne, { poolRunQc, analysisResult, terminalMutations, qcRulesConfig }),

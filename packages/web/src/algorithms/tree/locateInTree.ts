@@ -172,13 +172,28 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
 }
 
 /* Find mutations that are present in the new sequence, but not present in the matching reference node sequence */
-export function findMutDiff(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
-  const nodeMuts: [number, Nucleotide][] = Array.from(node.mutations?.entries() ?? [])
-
+export function findTerminalMutations(
+  node: AuspiceTreeNodeExtended,
+  seq: AnalysisResultWithoutClade,
+  root_seq: string,
+) {
+  const terminalMutations: SubstitutionsWithAminoacids[] = []
+  const mutatedPositions = new Set(seq.substitutions.map((s) => s.pos))
+  console.log('node', node.mutations)
+  console.log('sequence', seq.substitutions)
   // This is effectively a set difference operation
-  return seq.substitutions.filter((qmut) =>
-    nodeMuts.every(([pos, queryNuc]) => !(pos === qmut.pos && queryNuc === qmut.queryNuc)),
-  )
+  seq.substitutions.forEach((qmut) => {
+    if (!(node.mutations?.has(qmut.pos) && node.mutations?.get(qmut.pos) === qmut.queryNuc)) {
+      terminalMutations.push(qmut)
+    }
+  })
+  for (const { pos, nuc } of node.mutations) {
+    if (!mutatedPositions.has(pos) && isSequenced(pos, seq)) {
+      terminalMutations.push({ pos: pos, refNuc: nuc, queryNuc: root_seq[pos], aaSubstitutions: [] })
+    }
+  }
+  console.log('terminals', terminalMutations)
+  return terminalMutations
 }
 
 export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade, root_seq: string) {
@@ -337,7 +352,7 @@ export interface LocateInTreeParams {
 
 export interface LocateInTreeResults {
   matches: AuspiceTreeNodeExtended[]
-  mutationsDiffs: NucleotideSubstitution[][]
+  terminalMutationSets: NucleotideSubstitution[][]
   auspiceData: AuspiceJsonV2
 }
 
@@ -369,14 +384,14 @@ export function locateInTree({
 
   const matchesAndDiffs = analysisResults.map((seq) => {
     const match = closest_match(focal_node, seq).best_node
-    const diff = findMutDiff(match, seq)
+    const diff = findTerminalMutations(match, seq, rootSeq)
     return { match, diff }
   })
 
   const matches = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.match)
-  const mutationsDiffs = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.diff)
+  const terminalMutationSets = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.diff)
 
-  return { matches, mutationsDiffs, auspiceData }
+  return { matches, terminalMutationSets, auspiceData }
 }
 
 export interface FinalizeTreeParams {

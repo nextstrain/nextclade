@@ -26,7 +26,7 @@ export interface QCRulesConfig {
 const qcRulesConfigDefault: QCRulesConfig = {
   terminalMutations: {
     enabled: true,
-    divergenceMean: 1, // expected number of mutations
+    divergenceMean: 2, // expected number of mutations
     divergenceStd: 3, // expected standard deviation around mean
     nStd: 3, // number of standard deviations to trigger QC warning
   },

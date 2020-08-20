@@ -12,7 +12,7 @@ export function ruleTerminalMutations(
   { divergenceMean, divergenceStd, nStd }: QCRulesConfigDivergence,
 ) {
   const totalNumberOfMutations =
-    Object.keys(substitutions).length + Object.keys(insertions).length + Object.keys(deletions).length
+    Object.keys(terminalMutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
   // the score hits 100 if the deviation is nStd times the standard deviation.
   // escalation is quadratic as it should be for a Poisson process
