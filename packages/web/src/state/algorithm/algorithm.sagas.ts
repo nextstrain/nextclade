@@ -142,6 +142,16 @@ export function* buildTreeSaga({ threadTreeBuild, params }: TreeBuildParams) {
   return undefined
 }
 
+function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
+  const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
+  if (!clade) {
+    throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
+  }
+
+  yield* put(assignClade({ seqName: analysisResult.seqName, clade }))
+  return { ...analysisResult, clade }
+}
+
 export interface TreeFinalizeParams {
   threadTreeFinalize: TreeFinalizeThread
   params: FinalizeTreeParams
@@ -213,16 +223,6 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   const { matches, mutationsDiffs, auspiceData: auspiceDataRaw } = treeBuildResult
-
-  function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
-    const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
-    if (!clade) {
-      throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
-    }
-
-    yield* put(assignClade({ seqName: analysisResult.seqName, clade }))
-    return { ...analysisResult, clade }
-  }
 
   // TODO: move to the previous webworker when tree build is parallel
   const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
