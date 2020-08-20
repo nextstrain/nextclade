@@ -83,10 +83,10 @@ export interface ScheduleQcRunParams extends RunQCParams {
 export async function scheduleOneQcRun({
   poolRunQc,
   analysisResult,
-  mutationsDiff,
+  terminalMutations,
   qcRulesConfig,
 }: ScheduleQcRunParams) {
-  return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, mutationsDiff, qcRulesConfig }))
+  return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, terminalMutations, qcRulesConfig }))
 }
 
 export function* runQcOne(params: ScheduleQcRunParams) {
@@ -242,8 +242,8 @@ export function* runAlgorithm(content?: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
   const resultsAndDiffs = safeZip(analysisResultsWithClades, mutationsDiffs)
   const qcResults = yield* all(
-    resultsAndDiffs.map(([analysisResult, mutationsDiff]) =>
-      call(runQcOne, { poolRunQc, analysisResult, mutationsDiff, qcRulesConfig }),
+    resultsAndDiffs.map(([analysisResult, terminalMutations]) =>
+      call(runQcOne, { poolRunQc, analysisResult, terminalMutations, qcRulesConfig }),
     ),
   )
 

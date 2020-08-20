@@ -66,34 +66,34 @@ export interface QCResult {
 
 export type Rule<Conf, Ret> = (
   analysisResult: AnalysisResultWithClade,
-  mutationsDiff: NucleotideSubstitution[],
+  terminalMutations: NucleotideSubstitution[],
   config: Conf,
 ) => Ret
 
 export function runOne<Conf extends Enableable<unknown>, Ret>(
   rule: Rule<Conf, Ret>,
   analysisResult: AnalysisResultWithClade,
-  mutationsDiff: NucleotideSubstitution[],
+  terminalMutations: NucleotideSubstitution[],
   config: Conf,
 ): Ret | undefined {
-  return config.enabled ? rule(analysisResult, mutationsDiff, config) : undefined
+  return config.enabled ? rule(analysisResult, terminalMutations, config) : undefined
 }
 
 export interface RunQCParams {
   analysisResult: AnalysisResultWithClade
-  mutationsDiff: NucleotideSubstitution[]
+  terminalMutations: NucleotideSubstitution[]
   qcRulesConfig: DeepPartial<QCRulesConfig>
 }
 
-export function runQC({ analysisResult, mutationsDiff, qcRulesConfig }: RunQCParams): QCResult {
+export function runQC({ analysisResult, terminalMutations, qcRulesConfig }: RunQCParams): QCResult {
   // TODO: set initial state to default object in redux store instead of merging objects here every time
   const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
   const result = {
-    divergence: runOne(ruleTerminalMutations, analysisResult, mutationsDiff, configs.terminalMutations),
-    missingData: runOne(ruleMissingData, analysisResult, mutationsDiff, configs.missingData),
-    snpClusters: runOne(ruleSnpClusters, analysisResult, mutationsDiff, configs.snpClusters),
-    mixedSites: runOne(ruleMixedSites, analysisResult, mutationsDiff, configs.mixedSites),
+    divergence: runOne(ruleTerminalMutations, analysisResult, terminalMutations, configs.terminalMutations),
+    missingData: runOne(ruleMissingData, analysisResult, terminalMutations, configs.missingData),
+    snpClusters: runOne(ruleSnpClusters, analysisResult, terminalMutations, configs.snpClusters),
+    mixedSites: runOne(ruleMixedSites, analysisResult, terminalMutations, configs.mixedSites),
   }
 
   const score = Object.values(result).reduce((acc, r) => acc + (r?.score ?? 0), 0)

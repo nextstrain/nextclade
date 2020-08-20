@@ -8,7 +8,7 @@ export interface QCRulesConfigDivergence {
 
 export function ruleTerminalMutations(
   { substitutions, insertions, deletions }: AnalysisResult,
-  mutationsDiff: NucleotideSubstitution[],
+  terminalMutations: NucleotideSubstitution[],
   { divergenceMean, divergenceStd, nStd }: QCRulesConfigDivergence,
 ) {
   const totalNumberOfMutations =
