@@ -9,12 +9,13 @@ import type {
   NucleotideSubstitution,
   AnalysisResultWithoutClade,
   AnalysisResult,
+  SubstitutionsWithAminoacids,
 } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { parseMutation } from 'src/helpers/parseMutation'
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
-import { formatQCDivergence } from 'src/helpers/formatQCDivergence'
+import { formatQCTerminals } from 'src/helpers/formatQCTerminals'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
@@ -70,10 +71,10 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   const qcStatus = (qc?.score ?? Infinity) > 0 ? QCStatusType.Fail : QCStatusType.Pass
   let qcFlags = 'Not available'
   if (qc) {
-    const { divergence, snpClusters, mixedSites, missingData } = qc
+    const { terminalMutations, snpClusters, mixedSites, missingData } = qc
     const t = identity
     const messages = [
-      formatQCDivergence(t, divergence),
+      formatQCTerminals(t, terminalMutations),
       formatQCSNPClusters(t, snpClusters),
       formatQCMixedSites(t, mixedSites),
       formatQCMissingData(t, missingData),
@@ -179,8 +180,6 @@ export function findTerminalMutations(
 ) {
   const terminalMutations: SubstitutionsWithAminoacids[] = []
   const mutatedPositions = new Set(seq.substitutions.map((s) => s.pos))
-  console.log('node', node.mutations)
-  console.log('sequence', seq.substitutions)
   // This is effectively a set difference operation
   seq.substitutions.forEach((qmut) => {
     if (!(node.mutations?.has(qmut.pos) && node.mutations?.get(qmut.pos) === qmut.queryNuc)) {
@@ -192,7 +191,6 @@ export function findTerminalMutations(
       terminalMutations.push({ pos: pos, refNuc: nuc, queryNuc: root_seq[pos], aaSubstitutions: [] })
     }
   }
-  console.log('terminals', terminalMutations)
   return terminalMutations
 }
 

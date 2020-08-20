@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { QCResult } from 'src/algorithms/QC/runQC'
 import { notUndefined } from 'src/helpers/notUndefined'
-import { formatQCDivergence } from 'src/helpers/formatQCDivergence'
+import { formatQCTerminals } from 'src/helpers/formatQCTerminals'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
@@ -17,20 +17,22 @@ export interface ListOfQcIssuesProps {
 export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
   const { t } = useTranslation()
 
-  const { score, divergence, snpClusters, mixedSites, missingData } = qc
+  const { score, terminalMutations, snpClusters, mixedSites, missingData } = qc
 
   const messages = [
-    formatQCDivergence(t, divergence),
+    formatQCTerminals(t, terminalMutations),
     formatQCSNPClusters(t, snpClusters),
     formatQCMixedSites(t, mixedSites),
     formatQCMissingData(t, missingData),
   ].filter(notUndefined)
 
-  let issues: React.ReactNode = <li>{t('None detected')}</li>
-  if (score > 0) {
+  let issues: React.ReactNode
+  if (messages.length > 0) {
     issues = messages.map((flag) => {
       return <li key={flag}>{flag}</li>
     })
+  } else {
+    issues = <li>{t('None detected')}</li>
   }
 
   return (

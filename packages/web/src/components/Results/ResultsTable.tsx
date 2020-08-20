@@ -180,7 +180,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
   const even = index % 2 === 0
   let color = even ? '#e2e2e2' : '#fcfcfc'
   if (highlightRowsWithIssues && qc) {
-    const scoreNormal = clamp(qc.score / 100, 0, 1)
+    const scoreNormal = clamp((qc.score - 70) / 100, 0, 1)
     if (scoreNormal > 0) {
       color = mix(scoreNormal, '#ff0000', '#ffff00')
       color = mix(0.7, '#fff', color)

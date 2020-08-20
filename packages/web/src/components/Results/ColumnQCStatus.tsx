@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-import { MdCheck, MdClear } from 'react-icons/md'
+import { MdCheck, MdClear, MdPriorityHigh } from 'react-icons/md'
 import { useTranslation } from 'react-i18next'
 
 import type { QCResult } from 'src/algorithms/QC/runQC'
@@ -33,13 +33,16 @@ export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
   }
 
   const { score } = qc
-  const hasIssues = score > 0
-  const iconRed = <MdClear className="icon fill-red" />
-  const iconGreen = <MdCheck className="icon fill-green" />
-
+  let icon = <MdCheck className="icon fill-green" />
+  if (score > 50) {
+    icon = <MdPriorityHigh className="icon fill-orange" />
+  }
+  if (score > 100) {
+    icon = <MdClear className="icon fill-red" />
+  }
   return (
     <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
-      {hasIssues ? iconRed : iconGreen}
+      {icon}
       <Tooltip target={id} isOpen={showTooltip}>
         <ListOfQcIssues qc={qc} />
       </Tooltip>

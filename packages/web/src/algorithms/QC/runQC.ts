@@ -90,7 +90,7 @@ export function runQC({ analysisResult, terminalMutations, qcRulesConfig }: RunQ
   const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
   const result = {
-    divergence: runOne(ruleTerminalMutations, analysisResult, terminalMutations, configs.terminalMutations),
+    terminalMutations: runOne(ruleTerminalMutations, analysisResult, terminalMutations, configs.terminalMutations),
     missingData: runOne(ruleMissingData, analysisResult, terminalMutations, configs.missingData),
     snpClusters: runOne(ruleSnpClusters, analysisResult, terminalMutations, configs.snpClusters),
     mixedSites: runOne(ruleMixedSites, analysisResult, terminalMutations, configs.mixedSites),
