@@ -7,7 +7,7 @@ import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algori
 import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
 import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
 import { QCResultSNPClusters, QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
-import { rulePrivateMutations, QCRulesConfigDivergence, QCResultPrivateMutations } from './rulePrivateMutations'
+import { rulePrivateMutations, QCRulesConfigPrivateMutations, QCResultPrivateMutations } from './rulePrivateMutations'
 
 // const TooHighDivergence = 'too high divergence'
 // const ClusteredSNPsFlag = 'clustered SNPs'
@@ -17,7 +17,7 @@ import { rulePrivateMutations, QCRulesConfigDivergence, QCResultPrivateMutations
 export type Enableable<T> = T & { enabled: boolean }
 
 export interface QCRulesConfig {
-  privateMutations: Enableable<QCRulesConfigDivergence>
+  privateMutations: Enableable<QCRulesConfigPrivateMutations>
   missingData: Enableable<QCRulesConfigMissingData>
   snpClusters: Enableable<QCRulesConfigSNPClusters>
   mixedSites: Enableable<QCRulesConfigMixedSites>
@@ -26,9 +26,8 @@ export interface QCRulesConfig {
 const qcRulesConfigDefault: QCRulesConfig = {
   privateMutations: {
     enabled: true,
-    divergenceMean: 2, // expected number of mutations
-    divergenceStd: 3, // expected standard deviation around mean
-    nStd: 3, // number of standard deviations to trigger QC warning
+    typical: 2, // expected number of mutations
+    cutoff: 5, // trigger QC warning if the typical value exceeds this value
   },
   missingData: {
     enabled: true,

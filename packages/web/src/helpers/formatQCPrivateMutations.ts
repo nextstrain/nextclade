@@ -13,13 +13,14 @@ export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
     return undefined
   }
 
-  const { score, zScore, nStd } = privateMutations
+  const { score, total, excess, cutoff } = privateMutations
   return t(
-    'Too many terminal mutations. {{total}} standard deviations away, {{allowed}} allowed. QC score: {{score}}.',
+    '{{warn}} private mutations. {{total}} private mutations seen, {{excess}} more than expected (more than {{cutoff}} is considered problematic).',
     {
-      total: zScore,
-      allowed: nStd,
-      score: round(score),
+      warn: score > 100 ? 'Too many' : 'Many',
+      total,
+      excess,
+      cutoff,
     },
   )
 }
