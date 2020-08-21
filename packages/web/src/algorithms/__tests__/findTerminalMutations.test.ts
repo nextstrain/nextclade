@@ -1,4 +1,4 @@
-import { findTerminalMutations } from 'src/algorithms/tree/locateInTree'
+import { findTerminalMutations } from 'src/algorithms/tree/treeFindNearestNodes'
 import { AuspiceTreeNode } from 'auspice'
 import { AnalysisResult } from 'src/algorithms/types'
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'

@@ -1,12 +1,8 @@
 import actionCreatorFactory from 'typescript-fsa'
 
 import type { AnalysisResultWithoutClade } from 'src/algorithms/types'
-import type {
-  FinalizeTreeParams,
-  FinalizeTreeResults,
-  LocateInTreeParams,
-  LocateInTreeResults,
-} from 'src/algorithms/tree/locateInTree'
+import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
+import type { FinalizeTreeParams, FinalizeTreeResults } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult } from 'src/algorithms/QC/runQC'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { AlgorithmGlobalStatus, CladeAssignmentResult, InputFile } from './algorithm.state'

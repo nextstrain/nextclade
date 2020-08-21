@@ -1,11 +1,11 @@
 import { Pool, spawn, Worker } from 'threads'
 
-import type { WorkerPools } from './types'
-import type { ParseThread } from './worker.parse'
-import type { AnalyzeThread } from './worker.analyze'
-import type { TreeFinalizeThread } from './worker.treeFinalize'
-import type { RunQcThread } from './worker.runQc'
-import type { TreeBuildThread } from './worker.treeBuild'
+import type { WorkerPools } from 'src/workers/types'
+import type { ParseThread } from 'src/workers/worker.parse'
+import type { AnalyzeThread } from 'src/workers/worker.analyze'
+import type { TreeFinalizeThread } from 'src/workers/worker.treeAttachNodes'
+import type { RunQcThread } from 'src/workers/worker.runQc'
+import type { TreeBuildThread } from 'src/workers/worker.treeFindNearest'
 
 const NUM_ANALYZER_THREADS = 4 as const
 const NUM_RUN_QC_THREADS = 4 as const
@@ -21,7 +21,7 @@ export async function createWorkerPools(): Promise<WorkerPools> {
       maxQueuedJobs: undefined,
     })
 
-    const threadTreeBuild = await spawn<TreeBuildThread>(new Worker('./worker.treeBuild.ts'))
+    const threadTreeBuild = await spawn<TreeBuildThread>(new Worker('./worker.treeFindNearest.ts'))
 
     const poolRunQc = Pool<RunQcThread>(() => spawn(new Worker('./worker.runQc.ts')), {
       size: NUM_RUN_QC_THREADS, // number of workers to spawn, defaults to the number of CPU cores
@@ -30,7 +30,7 @@ export async function createWorkerPools(): Promise<WorkerPools> {
       maxQueuedJobs: undefined,
     })
 
-    const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('./worker.treeFinalize.ts'))
+    const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('./worker.treeAttachNodes.ts'))
 
     return { threadParse, poolAnalyze, threadTreeBuild, poolRunQc, threadTreeFinalize }
   }

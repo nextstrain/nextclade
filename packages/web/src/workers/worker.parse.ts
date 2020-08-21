@@ -3,7 +3,7 @@ import 'regenerator-runtime'
 import type { FunctionThread } from 'threads'
 import { expose } from 'threads/worker'
 
-import { parse } from '../algorithms/run'
+import { parse } from 'src/algorithms/run'
 
 expose(parse)
 

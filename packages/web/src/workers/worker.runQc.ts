@@ -3,7 +3,7 @@ import 'regenerator-runtime'
 import type { FunctionThread } from 'threads'
 import { expose } from 'threads/worker'
 
-import { runQC } from '../algorithms/QC/runQC'
+import { runQC } from 'src/algorithms/QC/runQC'
 
 expose(runQC)
 
