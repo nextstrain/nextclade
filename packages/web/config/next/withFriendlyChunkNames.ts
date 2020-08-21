@@ -9,10 +9,6 @@ export default function withFriendlyChunkNames(nextConfig: NextConfig) {
       typeof webpackConfig.optimization?.splitChunks !== 'boolean' &&
       webpackConfig.optimization?.splitChunks?.cacheGroups
     ) {
-      console.log(
-        require('util').inspect({ splitChunks: webpackConfig.optimization.splitChunks }, { colors: true, depth: null }),
-      )
-
       unset(webpackConfig, 'optimization.splitChunks.cacheGroups.lib.name')
       unset(webpackConfig, 'optimization.splitChunks.cacheGroups.shared.name')
     }
