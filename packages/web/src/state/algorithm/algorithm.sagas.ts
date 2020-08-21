@@ -130,6 +130,16 @@ export function* parseSaga({ threadParse, input }: ParseParams) {
   return undefined
 }
 
+function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
+  const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
+  if (!clade) {
+    throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
+  }
+
+  yield* put(assignClade({ seqName: analysisResult.seqName, clade }))
+  return { ...analysisResult, clade }
+}
+
 export interface TreeBuildParams {
   threadTreeBuild: TreeBuildThread
   params: LocateInTreeParams
@@ -230,22 +240,17 @@ export function* runAlgorithm(content?: File | string) {
   const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = treeBuildResult
 
   console.timeEnd('algorithm: tree build')
-  console.time('algorithm: assign clades')
-  function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
-    const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
-    if (!clade) {
-      throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
-    }
-
-    yield* put(assignClade({ seqName: analysisResult.seqName, clade }))
-    return { ...analysisResult, clade }
-  }
 
   // TODO: move to the previous webworker when tree build is parallel
+  console.time('algorithm: zip results and matches')
   const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
+  console.timeEnd('algorithm: zip results and matches')
+
+  console.time('algorithm: assign clades')
   const analysisResultsWithClades = yield* all(
     resultsAndMatches.map(([analysisResult, match]) => call(assignOneClade, analysisResult, match)),
   )
+  console.timeEnd('algorithm: assign clades')
 
   // TODO: move this to user-controlled state
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
@@ -255,20 +260,23 @@ export function* runAlgorithm(content?: File | string) {
     mixedSites: {},
   }
 
-  console.timeEnd('algorithm: assign clades')
-  console.time('algorithm: qc')
-
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
+  console.time('algorithm: zip results and diffs')
   const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
+  console.timeEnd('algorithm: zip results and diffs')
+
+  console.time('algorithm: qc')
   const qcResults = yield* all(
     resultsAndDiffs.map(([analysisResult, privateMutations]) =>
       call(runQcOne, { poolRunQc, analysisResult, privateMutations, qcRulesConfig }),
     ),
   )
-
-  const results: AnalysisResult[] = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
-
   console.timeEnd('algorithm: qc')
+
+  console.time('algorithm: zip results and qc results')
+  const results: AnalysisResult[] = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
+  console.timeEnd('algorithm: zip results and qc results')
+
   console.time('algorithm: tree finalize')
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
   const treeFinalizeResult = yield* call(finalizeTreeSaga, {
