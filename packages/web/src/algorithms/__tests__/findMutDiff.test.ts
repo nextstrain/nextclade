@@ -1,10 +1,12 @@
-import { findMutDiff } from 'src/algorithms/tree/locateInTree'
+import { findTerminalMutations } from 'src/algorithms/tree/locateInTree'
 import { AuspiceTreeNode } from 'auspice'
 import { AnalysisResult } from 'src/algorithms/types'
+import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 
+const rootSeq = DEFAULT_ROOT_SEQUENCE
 const refNuc = "Can't touch this"
 
-describe('findMutDiff', () => {
+describe('findTerminalMutations', () => {
   it('should return empty for empty sets', () => {
     const ref = ({
       mutations: new Map<number, string>(),
@@ -14,7 +16,7 @@ describe('findMutDiff', () => {
       substitutions: [],
     } as unknown) as AnalysisResult
 
-    expect(findMutDiff(ref, query)).toStrictEqual([])
+    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual([])
   })
 
   it('should return empty for matching single element sets', () => {
@@ -26,7 +28,7 @@ describe('findMutDiff', () => {
       substitutions: [{ pos: 123, queryNuc: 'B', refNuc }],
     } as AnalysisResult
 
-    expect(findMutDiff(ref, query)).toStrictEqual([])
+    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual([])
   })
 
   it('should return query for disjoint single element sets', () => {
@@ -38,7 +40,7 @@ describe('findMutDiff', () => {
       substitutions: [{ pos: 123, queryNuc: 'B', refNuc }],
     } as AnalysisResult
 
-    expect(findMutDiff(ref, query)).toStrictEqual(query.substitutions)
+    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual(query.substitutions)
   })
 
   it('should return query for disjoint sets', () => {
@@ -58,7 +60,7 @@ describe('findMutDiff', () => {
       ],
     } as AnalysisResult
 
-    expect(findMutDiff(ref, query)).toStrictEqual(query.substitutions)
+    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual(query.substitutions)
   })
 
   it('should return empty for same sets', () => {
@@ -80,7 +82,7 @@ describe('findMutDiff', () => {
       ],
     } as AnalysisResult
 
-    expect(findMutDiff(ref, query)).toStrictEqual([])
+    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual([])
   })
 
   it('should return multiple elements in general case', () => {
@@ -105,7 +107,7 @@ describe('findMutDiff', () => {
       ],
     } as AnalysisResult
 
-    expect(findMutDiff(ref, query)).toStrictEqual([
+    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual([
       { pos: 123, queryNuc: 'B', refNuc },
       { pos: 679, queryNuc: 'Z', refNuc },
       { pos: 45875, queryNuc: 'Z', refNuc },

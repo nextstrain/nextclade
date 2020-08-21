@@ -20,9 +20,9 @@ module.exports = {
     },
   },
   transform: {
-    // '^.+\\.[t|j]sx?$': 'babel-jest',
     '^.+\\.[t|j]sx?$': 'ts-jest',
     '^.+\\.(md|mdx)$': 'jest-transformer-mdx',
+    '\\.txt': 'jest-raw-loader',
   },
   testMatch: [
     '<rootDir>/src/**/*.(spec|test).{js,jsx,ts,tsx}',

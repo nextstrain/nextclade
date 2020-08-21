@@ -9,7 +9,6 @@ import type {
   NucleotideSubstitution,
   AnalysisResultWithoutClade,
   AnalysisResult,
-  SubstitutionsWithAminoacids,
 } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { parseMutation } from 'src/helpers/parseMutation'
@@ -178,19 +177,23 @@ export function findTerminalMutations(
   seq: AnalysisResultWithoutClade,
   root_seq: string,
 ) {
-  const terminalMutations: SubstitutionsWithAminoacids[] = []
+  const terminalMutations: NucleotideSubstitution[] = []
   const mutatedPositions = new Set(seq.substitutions.map((s) => s.pos))
+
   // This is effectively a set difference operation
   seq.substitutions.forEach((qmut) => {
     if (!(node.mutations?.has(qmut.pos) && node.mutations?.get(qmut.pos) === qmut.queryNuc)) {
       terminalMutations.push(qmut)
     }
   })
-  for (const { pos, nuc } of node.mutations) {
+
+  for (const [pos, refNuc] of node?.mutations ?? []) {
     if (!mutatedPositions.has(pos) && isSequenced(pos, seq)) {
-      terminalMutations.push({ pos: pos, refNuc: nuc, queryNuc: root_seq[pos], aaSubstitutions: [] })
+      const queryNuc = root_seq[pos] as Nucleotide
+      terminalMutations.push({ pos, refNuc, queryNuc })
     }
   }
+
   return terminalMutations
 }
 
