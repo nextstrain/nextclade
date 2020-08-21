@@ -1,11 +1,11 @@
 /* eslint-disable camelcase */
-import { AuspiceJsonV2, AuspiceState, AuspiceTreeNode } from 'auspice'
-import { AnalysisResult, AnalysisResultWithoutClade, Nucleotide } from 'src/algorithms/types'
+import { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 import { cloneDeep, groupBy, identity, mapValues, set, unset, zip } from 'lodash'
+
 import { UNKNOWN_VALUE } from 'src/constants'
-import { createStateFromQueryOrJSONs } from 'auspice/src/actions/recomputeReduxState'
+import type { AnalysisResult, AnalysisResultWithoutClade, Nucleotide } from 'src/algorithms/types'
+import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { QCStatusType, NodeType } from 'src/algorithms/tree/enums'
-import { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { formatQCTerminals } from 'src/helpers/formatQCTerminals'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
@@ -118,18 +118,6 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
   base_node.children = [new_node, ...children]
 }
 
-export interface AddColoringScaleParams {
-  auspiceData: AuspiceJsonV2
-  key: string
-  value: string
-  color: string
-}
-
-export function addColoringScale({ auspiceData, key, value, color }: AddColoringScaleParams) {
-  const coloring = auspiceData?.meta?.colorings.find((coloring) => coloring.key === key)
-  coloring?.scale?.unshift([UNKNOWN_VALUE, color])
-}
-
 export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   const {
     alignmentStart,
@@ -187,17 +175,6 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   }
 }
 
-export function remove_mutations(node: AuspiceTreeNodeExtended) {
-  if (node?.mutations) {
-    node.mutations = undefined
-  }
-
-  const children = node?.children ?? []
-  for (const c of children) {
-    remove_mutations(c)
-  }
-}
-
 export interface FinalizeTreeParams {
   auspiceData: AuspiceJsonV2
   results: AnalysisResult[]
@@ -207,7 +184,6 @@ export interface FinalizeTreeParams {
 
 export interface FinalizeTreeResults {
   auspiceData: AuspiceJsonV2
-  auspiceState: AuspiceState
 }
 
 export function treeAttachNodes({ auspiceData, results, matches, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
@@ -229,56 +205,5 @@ export function treeAttachNodes({ auspiceData, results, matches, rootSeq }: Fina
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
   }
 
-  remove_mutations(focal_node)
-
-  if (!auspiceData?.meta) {
-    auspiceData.meta = { colorings: [], display_defaults: {} }
-  }
-
-  // TODO: this can be done offline when preparing the json
-  auspiceData.meta.colorings.unshift({
-    key: 'QC Status',
-    title: 'QC Status',
-    type: 'categorical',
-    scale: [
-      [QCStatusType.Pass, '#417C52'],
-      [QCStatusType.Fail, '#CA738E'],
-    ],
-  })
-
-  // TODO: this can be done offline when preparing the json
-  auspiceData.meta.colorings.unshift({
-    key: 'Node type',
-    title: 'Node type',
-    type: 'categorical',
-    scale: [
-      [NodeType.New, '#ff6961'],
-      [NodeType.Reference, '#999999'],
-    ],
-  })
-
-  // TODO: this can be done offline when preparing the json
-  addColoringScale({ auspiceData, key: 'region', value: UNKNOWN_VALUE, color: '#999999' })
-  addColoringScale({ auspiceData, key: 'country', value: UNKNOWN_VALUE, color: '#999999' })
-  addColoringScale({ auspiceData, key: 'division', value: UNKNOWN_VALUE, color: '#999999' })
-
-  // TODO: this can be done offline when preparing the json
-  auspiceData.meta.display_defaults = {
-    branch_label: 'clade',
-    color_by: 'Node type',
-    distance_measure: 'div',
-  }
-  auspiceData.meta.panels = ['tree', 'entropy']
-  auspiceData.meta.geo_resolutions = undefined
-
-  const auspiceState = createStateFromQueryOrJSONs({ json: auspiceData, query: {} })
-
-  // HACK: we are about to send the state object from this webworker process to the main process. However, `state.controls.colorScale.scale` is a function.
-  // This will not work currently, because transferring between webworker processes uses structured cloning algorithm and functions are not supported.
-  // https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
-  // To workaround we unset the function here and set it back again (to a dummy one) on the other side.
-  // Ideally, the state should not contain functions. This is something to discuss in auspice upstream.
-  set(auspiceState, 'controls.colorScale.scale', undefined)
-
-  return { auspiceData, auspiceState }
+  return { auspiceData }
 }

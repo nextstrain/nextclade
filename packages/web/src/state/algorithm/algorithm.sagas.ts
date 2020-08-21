@@ -20,6 +20,8 @@ import type { TreeBuildThread } from 'src/workers/worker.treeFindNearest'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeAttachNodes'
 
+import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
+import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { safeZip } from 'src/helpers/safeZip'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -44,9 +46,13 @@ import {
   treeBuildAsync,
   treeFinalizeAsync,
   assignClade,
-} from './algorithm.actions'
-import { selectParams, selectResults } from './algorithm.selectors'
-import { AlgorithmGlobalStatus } from './algorithm.state'
+} from 'src/state/algorithm/algorithm.actions'
+import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
+import { selectParams, selectResults } from 'src/state/algorithm/algorithm.selectors'
+
+import auspiceDataOriginal from 'src/assets/data/ncov_small.json'
+import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
+import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
@@ -202,9 +208,10 @@ export function* runAlgorithm(content?: File | string) {
   const analysisResultsWithoutClades = analysisResultsRaw.filter(notUndefined)
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
+  const auspiceDataPreprocessed = treePreprocess(treeValidate(auspiceDataOriginal))
   const treeBuildResult = yield* call(buildTreeSaga, {
     threadTreeBuild,
-    params: { analysisResults: analysisResultsWithoutClades, rootSeq },
+    params: { analysisResults: analysisResultsWithoutClades, rootSeq, auspiceData: auspiceDataPreprocessed },
   })
   if (!treeBuildResult) {
     return undefined
@@ -258,7 +265,10 @@ export function* runAlgorithm(content?: File | string) {
   if (!treeFinalizeResult) {
     return undefined
   }
-  const { auspiceData, auspiceState } = treeFinalizeResult
+  const { auspiceData } = treeFinalizeResult
+
+  const auspiceDataPostprocessed = treePostProcess(auspiceData)
+  const auspiceState = createAuspiceState(auspiceDataPostprocessed)
 
   // HACK: now that we are in the main process, we can re-attach the `controls.colorScale.scale` function we previously set to undefined in the worker process.
   // This is because transferring between webworker processes uses structured cloning algorithm and functions are not supported.
@@ -273,7 +283,7 @@ export function* runAlgorithm(content?: File | string) {
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 
-  return { results, auspiceData }
+  return { results, auspiceData: auspiceDataPostprocessed }
 }
 
 export function* exportCsv() {
