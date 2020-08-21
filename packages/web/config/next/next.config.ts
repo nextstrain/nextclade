@@ -26,13 +26,14 @@ import withSvg from './withSvg'
 import withImages from './withImages'
 import withThreads from './withThreads'
 import withIgnore from './withIgnore'
-// import withoutMinification from './withoutMinification'
+import withoutMinification from './withoutMinification'
+import withFriendlyChunkNames from './withFriendlyChunkNames'
 
 const {
   // BABEL_ENV,
   // NODE_ENV,
   // ANALYZE,
-  // PROFILE,
+  PROFILE,
   PRODUCTION,
   ENABLE_SOURCE_MAPS,
   ENABLE_ESLINT,
@@ -64,6 +65,7 @@ console.info(`Client-side Environment:\n${JSON.stringify(clientEnv, null, 2)}`)
 
 const nextConfig: NextConfig = {
   distDir: `.build/${process.env.NODE_ENV}/tmp`,
+  reactProductionProfiling: PROFILE,
   onDemandEntries: {
     maxInactiveAge: 60 * 1000,
     pagesBufferLength: 2,
@@ -163,7 +165,8 @@ const config = withPlugins(
     [withTypeChecking],
     [withTranspileModules],
     PRODUCTION && [withStaticComprression],
-    // [withoutMinification],
+    PROFILE && [withoutMinification],
+    [withFriendlyChunkNames],
   ].filter(Boolean),
   nextConfig,
 )

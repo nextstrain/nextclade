@@ -168,6 +168,9 @@ export function* finalizeTreeSaga({ threadTreeFinalize, params }: TreeFinalizePa
 }
 
 export function* runAlgorithm(content?: File | string) {
+  console.time('algorithm: whole')
+  console.time('algorithm: init')
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield* put(setShowInputBox(false))
   yield* put(push('/results'))
@@ -189,6 +192,9 @@ export function* runAlgorithm(content?: File | string) {
     yield* put(setInputFile({ name, size }))
   }
 
+  console.timeEnd('algorithm: init')
+  console.time('algorithm: parse')
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
   const parseResult = yield* call(parseSaga, { threadParse, input })
   if (!parseResult) {
@@ -200,6 +206,8 @@ export function* runAlgorithm(content?: File | string) {
     yield* put(setInput(newInput))
   }
 
+  console.timeEnd('algorithm: parse')
+  console.time('algorithm: analyze')
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const sequenceEntries = Object.entries(parsedSequences)
   const analysisResultsRaw = yield* all(
@@ -207,6 +215,8 @@ export function* runAlgorithm(content?: File | string) {
   )
   const analysisResultsWithoutClades = analysisResultsRaw.filter(notUndefined)
 
+  console.timeEnd('algorithm: analyze')
+  console.time('algorithm: tree build')
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
   const auspiceDataPreprocessed = treePreprocess(treeValidate(auspiceDataOriginal))
   const treeBuildResult = yield* call(buildTreeSaga, {
@@ -219,6 +229,8 @@ export function* runAlgorithm(content?: File | string) {
 
   const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = treeBuildResult
 
+  console.timeEnd('algorithm: tree build')
+  console.time('algorithm: assign clades')
   function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
     const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
     if (!clade) {
@@ -231,10 +243,6 @@ export function* runAlgorithm(content?: File | string) {
 
   // TODO: move to the previous webworker when tree build is parallel
   const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
-  // const analysisResultsWithClades = resultsAndMatches.map(([analysisResult, match]) => {
-  //
-  // })
-
   const analysisResultsWithClades = yield* all(
     resultsAndMatches.map(([analysisResult, match]) => call(assignOneClade, analysisResult, match)),
   )
@@ -247,6 +255,9 @@ export function* runAlgorithm(content?: File | string) {
     mixedSites: {},
   }
 
+  console.timeEnd('algorithm: assign clades')
+  console.time('algorithm: qc')
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
   const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
   const qcResults = yield* all(
@@ -257,6 +268,8 @@ export function* runAlgorithm(content?: File | string) {
 
   const results: AnalysisResult[] = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
 
+  console.timeEnd('algorithm: qc')
+  console.time('algorithm: tree finalize')
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
   const treeFinalizeResult = yield* call(finalizeTreeSaga, {
     threadTreeFinalize,
@@ -267,7 +280,13 @@ export function* runAlgorithm(content?: File | string) {
   }
   const { auspiceData } = treeFinalizeResult
 
+  console.timeEnd('algorithm: tree finalize')
+  console.time('algorithm: tree postprocess')
+
   const auspiceDataPostprocessed = treePostProcess(auspiceData)
+  console.timeEnd('algorithm: tree postprocess')
+  console.time('algorithm: create auspice state')
+
   const auspiceState = createAuspiceState(auspiceDataPostprocessed)
 
   // HACK: now that we are in the main process, we can re-attach the `controls.colorScale.scale` function we previously set to undefined in the worker process.
@@ -281,8 +300,11 @@ export function* runAlgorithm(content?: File | string) {
   // HACK: Now we restore the `controls.colorScale.scale` function to the correct one by emulating action of changing "Color By"
   yield* put(changeColorBy())
 
+  console.timeEnd('algorithm: create auspice state')
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 
+  console.timeEnd('algorithm: whole')
   return { results, auspiceData: auspiceDataPostprocessed }
 }
 

@@ -12,25 +12,29 @@ const NUM_RUN_QC_THREADS = 4 as const
 
 export async function createWorkerPools(): Promise<WorkerPools> {
   if (typeof window !== 'undefined') {
-    const threadParse = await spawn<ParseThread>(new Worker('./worker.parse.ts'))
+    const threadParse = await spawn<ParseThread>(new Worker('./worker.parse.ts', { name: 'parse' }))
 
-    const poolAnalyze = Pool<AnalyzeThread>(() => spawn(new Worker('./worker.analyze.ts')), {
+    const poolAnalyze = Pool<AnalyzeThread>(() => spawn(new Worker('./worker.analyze.ts', { name: 'analyze' })), {
       size: NUM_ANALYZER_THREADS, // number of workers to spawn, defaults to the number of CPU cores
       concurrency: 1, // number of tasks to run simultaneously per worker, defaults to one
       name: 'analyze',
       maxQueuedJobs: undefined,
     })
 
-    const threadTreeBuild = await spawn<TreeBuildThread>(new Worker('./worker.treeFindNearest.ts'))
+    const threadTreeBuild = await spawn<TreeBuildThread>(
+      new Worker('./worker.treeFindNearest.ts', { name: 'treeFindNearest' }),
+    )
 
-    const poolRunQc = Pool<RunQcThread>(() => spawn(new Worker('./worker.runQc.ts')), {
+    const poolRunQc = Pool<RunQcThread>(() => spawn(new Worker('./worker.runQc.ts', { name: 'runQc' })), {
       size: NUM_RUN_QC_THREADS, // number of workers to spawn, defaults to the number of CPU cores
       concurrency: 1, // number of tasks to run simultaneously per worker, defaults to one
       name: 'runQc',
       maxQueuedJobs: undefined,
     })
 
-    const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('./worker.treeAttachNodes.ts'))
+    const threadTreeFinalize = await spawn<TreeFinalizeThread>(
+      new Worker('./worker.treeAttachNodes.ts', { name: 'treeAttachNodes' }),
+    )
 
     return { threadParse, poolAnalyze, threadTreeBuild, poolRunQc, threadTreeFinalize }
   }
