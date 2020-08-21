@@ -4,15 +4,13 @@ import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/type
 
 export interface QCRulesConfigMixedSites {
   mixedSitesThreshold: number
-  scoreWeight: number
-  scoreBias: number
   scoreMax: number
 }
 
 export function ruleMixedSites(
   { nucleotideComposition }: AnalysisResult,
   _1: NucleotideSubstitution[],
-  { mixedSitesThreshold, scoreWeight, scoreBias, scoreMax }: QCRulesConfigMixedSites,
+  { mixedSitesThreshold, scoreMax }: QCRulesConfigMixedSites,
 ) {
   const goodBases = new Set(['A', 'C', 'G', 'T', 'N', '-'])
 
@@ -21,9 +19,8 @@ export function ruleMixedSites(
     .reduce((a, b) => a + nucleotideComposition[b], 0)
 
   let scoreRaw = 0
-  if (totalMixedSites > mixedSitesThreshold) {
-    scoreRaw = (totalMixedSites - mixedSitesThreshold) * scoreWeight - scoreBias
-  }
+  scoreRaw = 100 * (totalMixedSites / mixedSitesThreshold)
+
   const score = clamp(scoreRaw, 0, scoreMax)
 
   return { score, totalMixedSites, mixedSitesThreshold }

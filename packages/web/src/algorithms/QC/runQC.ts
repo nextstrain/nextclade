@@ -37,18 +37,14 @@ const qcRulesConfigDefault: QCRulesConfig = {
   },
   snpClusters: {
     enabled: true,
-    totalSNPsThreshold: 0,
     windowSize: 100, // window along the genome to look for a cluster
     clusterCutOff: 4, // number of mutations within that window to trigger a cluster
-    scoreWeight: 1,
-    scoreBias: 0,
+    scoreWeight: 50, // each cluster counts for 50
     scoreMax: Infinity,
   },
   mixedSites: {
     enabled: true,
     mixedSitesThreshold: 10, // number of non-ACGTN sites to trigger warning
-    scoreWeight: 1,
-    scoreBias: 0,
     scoreMax: Infinity,
   },
 } as const

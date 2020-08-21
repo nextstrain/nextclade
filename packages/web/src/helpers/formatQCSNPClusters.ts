@@ -13,10 +13,10 @@ export function formatQCSNPClusters<TFunction extends TFunctionInterface>(
     return undefined
   }
 
-  const { score, totalSNPs, totalSNPsThreshold } = snpClusters
-  return t('Too many SNP clusters. Total clusters: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
+  const { score, totalSNPs } = snpClusters
+  return t('Found {{nClusters}} SNP clusters with total of {{total}} mutations. QC score: {{score}}', {
     total: totalSNPs,
-    allowed: totalSNPsThreshold,
+    nClusters: snpClusters.clusteredSNPs.length,
     score: round(score),
   })
 }

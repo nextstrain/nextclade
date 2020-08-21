@@ -14,7 +14,8 @@ export function formatQCMixedSites<TFunction extends TFunctionInterface>(
   }
 
   const { score, totalMixedSites, mixedSitesThreshold } = mixedSites
-  return t('Too many mixed sites: Total mixed: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
+  return t('{{warn}} mixed sites: Total mixed: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
+    warn: score > 100 ? 'Too many' : 'Found',
     total: totalMixedSites,
     allowed: mixedSitesThreshold,
     score: round(score),

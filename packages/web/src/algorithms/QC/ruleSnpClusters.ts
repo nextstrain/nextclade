@@ -51,9 +51,7 @@ export function processSNPClusters(snpClusters: number[][]): ClusteredSNPs[] {
 export interface QCRulesConfigSNPClusters {
   windowSize: number
   clusterCutOff: number
-  totalSNPsThreshold: number
   scoreWeight: number
-  scoreBias: number
   scoreMax: number
 }
 
@@ -62,19 +60,18 @@ export function ruleSnpClusters(
   privateMutations: NucleotideSubstitution[],
   config: QCRulesConfigSNPClusters,
 ) {
-  const { totalSNPsThreshold, scoreWeight, scoreBias, scoreMax } = config
+  const { scoreWeight, scoreMax } = config
 
   const snpClusters = findSNPClusters(data, privateMutations, config)
   const clusteredSNPs = processSNPClusters(snpClusters)
   const totalSNPs = clusteredSNPs.reduce((acc, { numberOfSNPs }) => acc + numberOfSNPs, 0)
 
   let scoreRaw = 0
-  if (totalSNPs > totalSNPsThreshold) {
-    scoreRaw = (totalSNPs - totalSNPsThreshold) * scoreWeight - scoreBias
-  }
+  scoreRaw = snpClusters.length * scoreWeight
+
   const score = clamp(scoreRaw, 0, scoreMax)
 
-  return { score, totalSNPs, totalSNPsThreshold, clusteredSNPs }
+  return { score, totalSNPs, clusteredSNPs }
 }
 
 export type QCResultSNPClusters = ReturnType<typeof ruleSnpClusters>
