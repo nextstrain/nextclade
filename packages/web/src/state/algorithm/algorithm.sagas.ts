@@ -90,10 +90,10 @@ export interface ScheduleQcRunParams extends RunQCParams {
 export async function scheduleOneQcRun({
   poolRunQc,
   analysisResult,
-  terminalMutations,
+  privateMutations,
   qcRulesConfig,
 }: ScheduleQcRunParams) {
-  return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, terminalMutations, qcRulesConfig }))
+  return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, privateMutations, qcRulesConfig }))
 }
 
 export function* runQcOne(params: ScheduleQcRunParams) {
@@ -217,7 +217,7 @@ export function* runAlgorithm(content?: File | string) {
     return undefined
   }
 
-  const { matches, terminalMutationSets, auspiceData: auspiceDataRaw } = treeBuildResult
+  const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = treeBuildResult
 
   function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
     const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
@@ -241,17 +241,17 @@ export function* runAlgorithm(content?: File | string) {
 
   // TODO: move this to user-controlled state
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
-    terminalMutations: {},
+    privateMutations: {},
     missingData: {},
     snpClusters: {},
     mixedSites: {},
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
-  const resultsAndDiffs = safeZip(analysisResultsWithClades, terminalMutationSets)
+  const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
   const qcResults = yield* all(
-    resultsAndDiffs.map(([analysisResult, terminalMutations]) =>
-      call(runQcOne, { poolRunQc, analysisResult, terminalMutations, qcRulesConfig }),
+    resultsAndDiffs.map(([analysisResult, privateMutations]) =>
+      call(runQcOne, { poolRunQc, analysisResult, privateMutations, qcRulesConfig }),
     ),
   )
 

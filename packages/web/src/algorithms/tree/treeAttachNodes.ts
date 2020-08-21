@@ -6,7 +6,7 @@ import { UNKNOWN_VALUE } from 'src/constants'
 import type { AnalysisResult, AnalysisResultWithoutClade, Nucleotide } from 'src/algorithms/types'
 import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { QCStatusType, NodeType } from 'src/algorithms/tree/enums'
-import { formatQCTerminals } from 'src/helpers/formatQCTerminals'
+import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatRange } from 'src/helpers/formatRange'
@@ -135,10 +135,10 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   const qcStatus = (qc?.score ?? Infinity) > 0 ? QCStatusType.Fail : QCStatusType.Pass
   let qcFlags = 'Not available'
   if (qc) {
-    const { terminalMutations, snpClusters, mixedSites, missingData } = qc
+    const { privateMutations, snpClusters, mixedSites, missingData } = qc
     const t = identity
     const messages = [
-      formatQCTerminals(t, terminalMutations),
+      formatQCPrivateMutations(t, privateMutations),
       formatQCSNPClusters(t, snpClusters),
       formatQCMixedSites(t, mixedSites),
       formatQCMissingData(t, missingData),

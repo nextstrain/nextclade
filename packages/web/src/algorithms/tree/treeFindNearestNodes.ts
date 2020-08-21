@@ -43,29 +43,25 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
 }
 
 /* Find mutations that are present in the new sequence, but not present in the matching reference node sequence */
-export function findTerminalMutations(
-  node: AuspiceTreeNodeExtended,
-  seq: AnalysisResultWithoutClade,
-  root_seq: string,
-) {
-  const terminalMutations: NucleotideSubstitution[] = []
+export function findPrivateMutations(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade, root_seq: string) {
+  const privateMutations: NucleotideSubstitution[] = []
   const mutatedPositions = new Set(seq.substitutions.map((s) => s.pos))
 
   // This is effectively a set difference operation
   seq.substitutions.forEach((qmut) => {
     if (!(node.mutations?.has(qmut.pos) && node.mutations?.get(qmut.pos) === qmut.queryNuc)) {
-      terminalMutations.push(qmut)
+      privateMutations.push(qmut)
     }
   })
 
   for (const [pos, refNuc] of node?.mutations ?? []) {
     if (!mutatedPositions.has(pos) && isSequenced(pos, seq)) {
       const queryNuc = root_seq[pos] as Nucleotide
-      terminalMutations.push({ pos, refNuc, queryNuc })
+      privateMutations.push({ pos, refNuc, queryNuc })
     }
   }
 
-  return terminalMutations
+  return privateMutations
 }
 
 export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
@@ -100,7 +96,7 @@ export interface LocateInTreeParams {
 
 export interface LocateInTreeResults {
   matches: AuspiceTreeNodeExtended[]
-  terminalMutationSets: NucleotideSubstitution[][]
+  privateMutationSets: NucleotideSubstitution[][]
   auspiceData: AuspiceJsonV2
 }
 
@@ -118,12 +114,12 @@ export function treeFindNearestNodes({
 
   const matchesAndDiffs = analysisResults.map((seq) => {
     const match = closest_match(focal_node, seq).best_node
-    const diff = findTerminalMutations(match, seq, rootSeq)
+    const diff = findPrivateMutations(match, seq, rootSeq)
     return { match, diff }
   })
 
   const matches = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.match)
-  const terminalMutationSets = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.diff)
+  const privateMutationSets = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.diff)
 
-  return { matches, terminalMutationSets, auspiceData }
+  return { matches, privateMutationSets, auspiceData }
 }

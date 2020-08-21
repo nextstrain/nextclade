@@ -7,7 +7,7 @@ import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algori
 import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
 import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
 import { QCResultSNPClusters, QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
-import { ruleTerminalMutations, QCRulesConfigDivergence, QCResultTerminalMutations } from './ruleTerminalMutations'
+import { rulePrivateMutations, QCRulesConfigDivergence, QCResultPrivateMutations } from './rulePrivateMutations'
 
 // const TooHighDivergence = 'too high divergence'
 // const ClusteredSNPsFlag = 'clustered SNPs'
@@ -17,14 +17,14 @@ import { ruleTerminalMutations, QCRulesConfigDivergence, QCResultTerminalMutatio
 export type Enableable<T> = T & { enabled: boolean }
 
 export interface QCRulesConfig {
-  terminalMutations: Enableable<QCRulesConfigDivergence>
+  privateMutations: Enableable<QCRulesConfigDivergence>
   missingData: Enableable<QCRulesConfigMissingData>
   snpClusters: Enableable<QCRulesConfigSNPClusters>
   mixedSites: Enableable<QCRulesConfigMixedSites>
 }
 
 const qcRulesConfigDefault: QCRulesConfig = {
-  terminalMutations: {
+  privateMutations: {
     enabled: true,
     divergenceMean: 2, // expected number of mutations
     divergenceStd: 3, // expected standard deviation around mean
@@ -58,7 +58,7 @@ const qcRulesConfigDefault: QCRulesConfig = {
 export interface QCResult {
   seqName: string
   score: number
-  terminalMutations?: QCResultTerminalMutations
+  privateMutations?: QCResultPrivateMutations
   missingData?: QCResultMissingData
   snpClusters?: QCResultSNPClusters
   mixedSites?: QCResultMixedSites
@@ -66,34 +66,34 @@ export interface QCResult {
 
 export type Rule<Conf, Ret> = (
   analysisResult: AnalysisResultWithClade,
-  terminalMutations: NucleotideSubstitution[],
+  privateMutations: NucleotideSubstitution[],
   config: Conf,
 ) => Ret
 
 export function runOne<Conf extends Enableable<unknown>, Ret>(
   rule: Rule<Conf, Ret>,
   analysisResult: AnalysisResultWithClade,
-  terminalMutations: NucleotideSubstitution[],
+  privateMutations: NucleotideSubstitution[],
   config: Conf,
 ): Ret | undefined {
-  return config.enabled ? rule(analysisResult, terminalMutations, config) : undefined
+  return config.enabled ? rule(analysisResult, privateMutations, config) : undefined
 }
 
 export interface RunQCParams {
   analysisResult: AnalysisResultWithClade
-  terminalMutations: NucleotideSubstitution[]
+  privateMutations: NucleotideSubstitution[]
   qcRulesConfig: DeepPartial<QCRulesConfig>
 }
 
-export function runQC({ analysisResult, terminalMutations, qcRulesConfig }: RunQCParams): QCResult {
+export function runQC({ analysisResult, privateMutations, qcRulesConfig }: RunQCParams): QCResult {
   // TODO: set initial state to default object in redux store instead of merging objects here every time
   const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
 
   const result = {
-    terminalMutations: runOne(ruleTerminalMutations, analysisResult, terminalMutations, configs.terminalMutations),
-    missingData: runOne(ruleMissingData, analysisResult, terminalMutations, configs.missingData),
-    snpClusters: runOne(ruleSnpClusters, analysisResult, terminalMutations, configs.snpClusters),
-    mixedSites: runOne(ruleMixedSites, analysisResult, terminalMutations, configs.mixedSites),
+    privateMutations: runOne(rulePrivateMutations, analysisResult, privateMutations, configs.privateMutations),
+    missingData: runOne(ruleMissingData, analysisResult, privateMutations, configs.missingData),
+    snpClusters: runOne(ruleSnpClusters, analysisResult, privateMutations, configs.snpClusters),
+    mixedSites: runOne(ruleMixedSites, analysisResult, privateMutations, configs.mixedSites),
   }
 
   const score = Object.values(result).reduce((acc, r) => acc + (r?.score ?? 0), 0)

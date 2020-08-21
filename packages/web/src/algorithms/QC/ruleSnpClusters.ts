@@ -4,11 +4,11 @@ import type { AnalysisResult, ClusteredSNPs, NucleotideSubstitution } from 'src/
 
 export function findSNPClusters(
   { substitutions }: AnalysisResult,
-  terminalMutations: NucleotideSubstitution[],
+  privateMutations: NucleotideSubstitution[],
   { windowSize, clusterCutOff }: QCRulesConfigSNPClusters,
 ) {
   // turn mutation keys into positions, exclude known clusters, and sort
-  const positions = terminalMutations.map(({ pos }) => pos)
+  const positions = privateMutations.map(({ pos }) => pos)
   // loop over all mutations and count how many fall into the clusters
   let previousPos = -1
   const currentCluster: number[] = []
@@ -59,12 +59,12 @@ export interface QCRulesConfigSNPClusters {
 
 export function ruleSnpClusters(
   data: AnalysisResult,
-  terminalMutations: NucleotideSubstitution[],
+  privateMutations: NucleotideSubstitution[],
   config: QCRulesConfigSNPClusters,
 ) {
   const { totalSNPsThreshold, scoreWeight, scoreBias, scoreMax } = config
 
-  const snpClusters = findSNPClusters(data, terminalMutations, config)
+  const snpClusters = findSNPClusters(data, privateMutations, config)
   const clusteredSNPs = processSNPClusters(snpClusters)
   const totalSNPs = clusteredSNPs.reduce((acc, { numberOfSNPs }) => acc + numberOfSNPs, 0)
 

@@ -2,18 +2,18 @@ import { round } from 'lodash'
 
 import type { DeepReadonly } from 'ts-essentials'
 
-import type { QCResultTerminalMutations } from 'src/algorithms/QC/ruleTerminalMutations'
+import type { QCResultPrivateMutations } from 'src/algorithms/QC/rulePrivateMutations'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
 
-export function formatQCTerminals<TFunction extends TFunctionInterface>(
+export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
   t: TFunction,
-  terminalMutations?: DeepReadonly<QCResultTerminalMutations>,
+  privateMutations?: DeepReadonly<QCResultPrivateMutations>,
 ) {
-  if (!terminalMutations || terminalMutations.score === 0) {
+  if (!privateMutations || privateMutations.score === 0) {
     return undefined
   }
 
-  const { score, zScore, nStd } = terminalMutations
+  const { score, zScore, nStd } = privateMutations
   return t(
     'Too many terminal mutations. {{total}} standard deviations away, {{allowed}} allowed. QC score: {{score}}.',
     {

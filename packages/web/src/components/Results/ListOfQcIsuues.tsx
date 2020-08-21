@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { QCResult } from 'src/algorithms/QC/runQC'
 import { notUndefined } from 'src/helpers/notUndefined'
-import { formatQCTerminals } from 'src/helpers/formatQCTerminals'
+import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
@@ -17,10 +17,10 @@ export interface ListOfQcIssuesProps {
 export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
   const { t } = useTranslation()
 
-  const { score, terminalMutations, snpClusters, mixedSites, missingData } = qc
+  const { score, privateMutations, snpClusters, mixedSites, missingData } = qc
 
   const messages = [
-    formatQCTerminals(t, terminalMutations),
+    formatQCPrivateMutations(t, privateMutations),
     formatQCSNPClusters(t, snpClusters),
     formatQCMixedSites(t, mixedSites),
     formatQCMissingData(t, missingData),

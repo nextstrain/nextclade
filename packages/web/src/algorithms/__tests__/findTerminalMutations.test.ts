@@ -1,4 +1,4 @@
-import { findTerminalMutations } from 'src/algorithms/tree/treeFindNearestNodes'
+import { findPrivateMutations } from 'src/algorithms/tree/treeFindNearestNodes'
 import { AuspiceTreeNode } from 'auspice'
 import { AnalysisResult } from 'src/algorithms/types'
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
@@ -6,7 +6,7 @@ import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 const rootSeq = DEFAULT_ROOT_SEQUENCE
 const refNuc = "Can't touch this"
 
-describe('findTerminalMutations', () => {
+describe('findPrivateMutations', () => {
   it('should return empty for empty sets', () => {
     const ref = ({
       mutations: new Map<number, string>(),
@@ -16,7 +16,7 @@ describe('findTerminalMutations', () => {
       substitutions: [],
     } as unknown) as AnalysisResult
 
-    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual([])
+    expect(findPrivateMutations(ref, query, rootSeq)).toStrictEqual([])
   })
 
   it('should return empty for matching single element sets', () => {
@@ -28,7 +28,7 @@ describe('findTerminalMutations', () => {
       substitutions: [{ pos: 123, queryNuc: 'B', refNuc }],
     } as AnalysisResult
 
-    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual([])
+    expect(findPrivateMutations(ref, query, rootSeq)).toStrictEqual([])
   })
 
   it('should return query for disjoint single element sets', () => {
@@ -40,7 +40,7 @@ describe('findTerminalMutations', () => {
       substitutions: [{ pos: 123, queryNuc: 'B', refNuc }],
     } as AnalysisResult
 
-    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual(query.substitutions)
+    expect(findPrivateMutations(ref, query, rootSeq)).toStrictEqual(query.substitutions)
   })
 
   it('should return query for disjoint sets', () => {
@@ -60,7 +60,7 @@ describe('findTerminalMutations', () => {
       ],
     } as AnalysisResult
 
-    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual(query.substitutions)
+    expect(findPrivateMutations(ref, query, rootSeq)).toStrictEqual(query.substitutions)
   })
 
   it('should return empty for same sets', () => {
@@ -82,7 +82,7 @@ describe('findTerminalMutations', () => {
       ],
     } as AnalysisResult
 
-    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual([])
+    expect(findPrivateMutations(ref, query, rootSeq)).toStrictEqual([])
   })
 
   it('should return multiple elements in general case', () => {
@@ -107,7 +107,7 @@ describe('findTerminalMutations', () => {
       ],
     } as AnalysisResult
 
-    expect(findTerminalMutations(ref, query, rootSeq)).toStrictEqual([
+    expect(findPrivateMutations(ref, query, rootSeq)).toStrictEqual([
       { pos: 123, queryNuc: 'B', refNuc },
       { pos: 679, queryNuc: 'Z', refNuc },
       { pos: 45875, queryNuc: 'Z', refNuc },

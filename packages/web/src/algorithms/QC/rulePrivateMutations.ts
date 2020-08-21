@@ -6,13 +6,13 @@ export interface QCRulesConfigDivergence {
   nStd: number
 }
 
-export function ruleTerminalMutations(
+export function rulePrivateMutations(
   { substitutions, insertions, deletions }: AnalysisResult,
-  terminalMutations: NucleotideSubstitution[],
+  privateMutations: NucleotideSubstitution[],
   { divergenceMean, divergenceStd, nStd }: QCRulesConfigDivergence,
 ) {
   const totalNumberOfMutations =
-    Object.keys(terminalMutations).length + Object.keys(insertions).length + Object.keys(deletions).length
+    Object.keys(privateMutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
   // the score hits 100 if the deviation is nStd times the standard deviation.
   // escalation is quadratic as it should be for a Poisson process
@@ -21,4 +21,4 @@ export function ruleTerminalMutations(
   return { score, zScore, nStd }
 }
 
-export type QCResultTerminalMutations = ReturnType<typeof ruleTerminalMutations>
+export type QCResultPrivateMutations = ReturnType<typeof rulePrivateMutations>
