@@ -13,7 +13,8 @@ export function formatQCMissingData<TFunction extends TFunctionInterface>(
   }
 
   const { score, totalMissing, missingDataThreshold } = missingData
-  return t('Too much missing data. Total Ns: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
+  return t('{{warn}} missing data. Total Ns: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
+    warn: score > 100 ? 'Too many' : 'Many',
     total: totalMissing,
     allowed: missingDataThreshold,
     score: round(score),

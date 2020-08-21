@@ -1,5 +1,3 @@
-import { round } from 'lodash'
-
 import type { DeepReadonly } from 'ts-essentials'
 
 import type { QCResultPrivateMutations } from 'src/algorithms/QC/rulePrivateMutations'

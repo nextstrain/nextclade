@@ -31,9 +31,8 @@ const qcRulesConfigDefault: QCRulesConfig = {
   },
   missingData: {
     enabled: true,
-    missingDataThreshold: 1000, // number of sites as N to trigger warning
-    scoreWeight: 0.01,
-    scoreBias: 0,
+    missingDataThreshold: 2700, // number of sites as N to trigger warning
+    scoreBias: 300, // 300 missing sites is considered the norm
     scoreMax: Infinity,
   },
   snpClusters: {
