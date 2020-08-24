@@ -70,8 +70,8 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         payload: {
           // @ts-ignore
-          ...(action?.payload ?? {}),
-          result: sanitizeResult(action?.payload?.result),
+          ...(action.payload ?? {}),
+          result: sanitizeResult(action.payload?.result),
         },
       }
     },

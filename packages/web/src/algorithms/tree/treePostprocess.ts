@@ -29,14 +29,14 @@ export function remove_mutations(node: AuspiceTreeNodeExtended) {
 }
 
 export function treePostProcess(auspiceData: AuspiceJsonV2) {
-  const focal_node = auspiceData?.tree
+  const focal_node = auspiceData.tree
   if (!focal_node) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
   }
 
   remove_mutations(focal_node)
 
-  if (!auspiceData?.meta) {
+  if (!auspiceData.meta) {
     auspiceData.meta = { colorings: [], display_defaults: {} }
   }
 

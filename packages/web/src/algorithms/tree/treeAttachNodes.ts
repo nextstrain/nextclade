@@ -115,7 +115,7 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
     new_node.mutations?.set(pos, der)
   }
 
-  const children = base_node?.children ?? []
+  const children = base_node.children ?? []
   base_node.children = [new_node, ...children]
 }
 

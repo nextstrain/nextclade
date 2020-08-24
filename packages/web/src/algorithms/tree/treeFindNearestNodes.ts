@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 import { set } from 'lodash'
-import copy from 'fast-copy'
 
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
