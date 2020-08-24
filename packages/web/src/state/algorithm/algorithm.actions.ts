@@ -17,7 +17,7 @@ export const algorithmRunTrigger = action<string | File | undefined>('runTrigger
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
 export const algorithmRunAsync = action.async<string | File | undefined, void, void>('run')
 
-export const parseAsync = action.async<void, string[], Error>('parse')
+export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<{ seqName: string }, AnalysisResultWithoutClade, Error>('analyze')
 export const treeBuildAsync = action.async<LocateInTreeParams, LocateInTreeResults, Error>('treeBuild')
 export const setClades = action<CladeAssignmentResult[]>('setClades')

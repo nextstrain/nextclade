@@ -14,9 +14,7 @@ import type { LocateInTreeParams } from 'src/algorithms/tree/treeFindNearestNode
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
 import type { WorkerPools } from 'src/workers/types'
-import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
-import type { TreeBuildThread } from 'src/workers/worker.treeFindNearest'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeAttachNodes'
 
@@ -53,6 +51,19 @@ import { selectParams, selectResults } from 'src/state/algorithm/algorithm.selec
 import auspiceDataOriginal from 'src/assets/data/ncov_small.json'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import { fsaSagaFromParams } from 'src/state/util/fsaSagaFromParams'
+
+const parseSaga = fsaSagaFromParams(
+  parseAsync,
+  function* parseWorker(input: File | string) {
+    const { threadParse } = yield* getContext<WorkerPools>('workerPools')
+    const { input: newInput, parsedSequences } = yield* call(threadParse, input)
+    return { input: newInput, parsedSequences }
+  },
+  function parseResultsTransformer({ parsedSequences }) {
+    return Object.keys(parsedSequences)
+  },
+)
 
 export interface RunParams extends WorkerPools {
   rootSeq: string
@@ -93,27 +104,7 @@ export async function runQcOne({ poolRunQc, analysisResult, privateMutations, qc
   return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, privateMutations, qcRulesConfig }))
 }
 
-export interface ParseParams {
-  threadParse: ParseThread
-  input: File | string
-}
-
-export function* parseSaga({ threadParse, input }: ParseParams) {
-  yield* put(parseAsync.started())
-  try {
-    const { input: newInput, parsedSequences } = yield* call(threadParse, input)
-    const sequenceNames = Object.keys(parsedSequences)
-    yield* put(parseAsync.done({ result: sequenceNames }))
-    return { input: newInput, parsedSequences }
-  } catch (error) {
-    const saneError = sanitizeError(error)
-    console.error(saneError.message)
-    yield* put(parseAsync.failed({ error: saneError }))
-  }
-  return undefined
-}
-
-function assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
+export function assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
   const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
   if (!clade) {
     throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
@@ -122,24 +113,10 @@ function assignOneClade(analysisResult: AnalysisResultWithoutClade, match: Auspi
   return { seqName: analysisResult.seqName, clade }
 }
 
-export interface TreeBuildParams {
-  threadTreeBuild: TreeBuildThread
-  params: LocateInTreeParams
-}
-
-export function* buildTreeSaga({ threadTreeBuild, params }: TreeBuildParams) {
-  yield* put(treeBuildAsync.started(params))
-  try {
-    const result = yield* call(threadTreeBuild, params)
-    yield* put(treeBuildAsync.done({ params, result }))
-    return result
-  } catch (error) {
-    const saneError = sanitizeError(error)
-    console.error(saneError.message)
-    yield* put(treeBuildAsync.failed({ params, error: saneError }))
-  }
-  return undefined
-}
+const buildTreeSaga = fsaSagaFromParams(treeBuildAsync, function* buildTreeWorker(params: LocateInTreeParams) {
+  const { threadTreeBuild } = yield* getContext<WorkerPools>('workerPools')
+  return yield* call(threadTreeBuild, params)
+})
 
 export interface TreeFinalizeParams {
   threadTreeFinalize: TreeFinalizeThread
@@ -169,7 +146,7 @@ export function* runAlgorithm(content?: File | string) {
     yield* put(setInput(content))
   }
 
-  const { threadParse, poolAnalyze, threadTreeBuild, poolRunQc, threadTreeFinalize } =
+  const { poolAnalyze, poolRunQc, threadTreeFinalize } =
     yield* getContext<WorkerPools>('workerPools') // prettier-ignore
 
   const { rootSeq, input: inputState } = yield* select(selectParams)
@@ -183,7 +160,7 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
-  const parseResult = yield* call(parseSaga, { threadParse, input })
+  const parseResult = yield* parseSaga(input)
   if (!parseResult) {
     return undefined
   }
@@ -202,9 +179,10 @@ export function* runAlgorithm(content?: File | string) {
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
   const auspiceDataPreprocessed = treePreprocess(treeValidate(auspiceDataOriginal))
-  const treeBuildResult = yield* call(buildTreeSaga, {
-    threadTreeBuild,
-    params: { analysisResults: analysisResultsWithoutClades, rootSeq, auspiceData: auspiceDataPreprocessed },
+  const treeBuildResult = yield* buildTreeSaga({
+    analysisResults: analysisResultsWithoutClades,
+    rootSeq,
+    auspiceData: auspiceDataPreprocessed,
   })
   if (!treeBuildResult) {
     return undefined
