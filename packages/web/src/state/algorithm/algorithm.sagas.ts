@@ -161,9 +161,6 @@ export function* finalizeTreeSaga({ threadTreeFinalize, params }: TreeFinalizePa
 }
 
 export function* runAlgorithm(content?: File | string) {
-  console.time('algorithm: whole')
-  console.time('algorithm: init')
-
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield* put(setShowInputBox(false))
   yield* put(push('/results'))
@@ -185,9 +182,6 @@ export function* runAlgorithm(content?: File | string) {
     yield* put(setInputFile({ name, size }))
   }
 
-  console.timeEnd('algorithm: init')
-  console.time('algorithm: parse')
-
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
   const parseResult = yield* call(parseSaga, { threadParse, input })
   if (!parseResult) {
@@ -199,8 +193,6 @@ export function* runAlgorithm(content?: File | string) {
     yield* put(setInput(newInput))
   }
 
-  console.timeEnd('algorithm: parse')
-  console.time('algorithm: analyze')
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const sequenceEntries = Object.entries(parsedSequences)
   const analysisResultsRaw = yield* all(
@@ -208,8 +200,6 @@ export function* runAlgorithm(content?: File | string) {
   )
   const analysisResultsWithoutClades = analysisResultsRaw.filter(notUndefined)
 
-  console.timeEnd('algorithm: analyze')
-  console.time('algorithm: tree build')
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
   const auspiceDataPreprocessed = treePreprocess(treeValidate(auspiceDataOriginal))
   const treeBuildResult = yield* call(buildTreeSaga, {
@@ -222,19 +212,13 @@ export function* runAlgorithm(content?: File | string) {
 
   const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = treeBuildResult
 
-  console.timeEnd('algorithm: tree build')
-
   // TODO: move to the previous webworker when tree build is parallel
-  console.time('algorithm: zip results and matches')
   const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
-  console.timeEnd('algorithm: zip results and matches')
 
-  console.time('algorithm: assign clades')
   const clades = resultsAndMatches.map(([analysisResult, match]) => assignOneClade(analysisResult, match))
   yield* put(setClades(clades))
   const analysisResultsWithClades = safeZip(analysisResultsWithoutClades, clades) // prettier-ignore
     .map(([analysisResult, { clade }]) => ({ ...analysisResult, clade }))
-  console.timeEnd('algorithm: assign clades')
 
   // TODO: move this to user-controlled state
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
@@ -245,7 +229,6 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
-  console.time('algorithm: qc')
   const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
   const qcResults = yield* all(
     resultsAndDiffs.map(([analysisResult, privateMutations]) =>
@@ -253,13 +236,9 @@ export function* runAlgorithm(content?: File | string) {
     ),
   )
   yield* put(setQcResults(qcResults))
-  console.timeEnd('algorithm: qc')
 
-  console.time('algorithm: zip results and qc results')
   const results: AnalysisResult[] = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
-  console.timeEnd('algorithm: zip results and qc results')
 
-  console.time('algorithm: tree finalize')
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
   const treeFinalizeResult = yield* call(finalizeTreeSaga, {
     threadTreeFinalize,
@@ -270,12 +249,7 @@ export function* runAlgorithm(content?: File | string) {
   }
   const { auspiceData } = treeFinalizeResult
 
-  console.timeEnd('algorithm: tree finalize')
-  console.time('algorithm: tree postprocess')
-
   const auspiceDataPostprocessed = treePostProcess(auspiceData)
-  console.timeEnd('algorithm: tree postprocess')
-  console.time('algorithm: create auspice state')
 
   const auspiceState = createAuspiceState(auspiceDataPostprocessed)
 
@@ -290,11 +264,8 @@ export function* runAlgorithm(content?: File | string) {
   // HACK: Now we restore the `controls.colorScale.scale` function to the correct one by emulating action of changing "Color By"
   yield* put(changeColorBy())
 
-  console.timeEnd('algorithm: create auspice state')
-
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 
-  console.timeEnd('algorithm: whole')
   return { results, auspiceData: auspiceDataPostprocessed }
 }
 
