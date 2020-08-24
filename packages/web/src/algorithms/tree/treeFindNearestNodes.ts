@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
-import { cloneDeep, set } from 'lodash'
+import { set } from 'lodash'
+import copy from 'fast-copy'
 
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
@@ -101,12 +102,10 @@ export interface LocateInTreeResults {
 }
 
 export function treeFindNearestNodes({
-  analysisResults: analysisResultsRaw,
+  analysisResults,
   rootSeq,
   auspiceData,
 }: LocateInTreeParams): LocateInTreeResults {
-  const analysisResults = cloneDeep(analysisResultsRaw)
-
   const focal_node = auspiceData?.tree
   if (!focal_node) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)

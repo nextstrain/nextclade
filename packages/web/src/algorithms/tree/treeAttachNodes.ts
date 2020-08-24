@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
-import { cloneDeep, groupBy, identity, mapValues, set, unset, zip } from 'lodash'
+import { groupBy, identity, mapValues, set, unset, zip } from 'lodash'
+import copy from 'fast-copy'
 
 import { UNKNOWN_VALUE } from 'src/constants'
 import type { AnalysisResult, AnalysisResultWithoutClade, Nucleotide } from 'src/algorithms/types'
@@ -21,7 +22,7 @@ export function isLeaf(node: AuspiceTreeNodeExtended) {
 }
 
 export function addAuxiliaryNode(baseNode: AuspiceTreeNodeExtended) {
-  let newTerminal = cloneDeep(baseNode)
+  let newTerminal = copy(baseNode)
   newTerminal = {
     ...newTerminal,
     branch_attrs: {
@@ -107,7 +108,7 @@ export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: Analysis
   set(new_node, 'node_attrs.region', { value: UNKNOWN_VALUE })
   set(new_node, 'node_attrs.country', { value: UNKNOWN_VALUE })
   set(new_node, 'node_attrs.division', { value: UNKNOWN_VALUE })
-  set(new_node, 'mutations', cloneDeep(base_node.mutations))
+  set(new_node, 'mutations', copy(base_node.mutations))
 
   for (const mut of nucMutations) {
     const { pos, der } = parseMutationOrThrow(mut)
@@ -187,12 +188,11 @@ export interface FinalizeTreeResults {
 }
 
 export function treeAttachNodes({ auspiceData, results, matches, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
-  const analysisResults = cloneDeep(results)
-  zip(analysisResults, matches).forEach(([seq, match]) => {
+  zip(results, matches).forEach(([seq, match]) => {
     if (!seq || !match) {
       throw new Error(
         `Expected number of analysis results and number of match to be the same, but got:
-            data.length: ${analysisResults.length}
+            data.length: ${results.length}
             matches.length: ${matches.length}`,
       )
     }

@@ -1,10 +1,10 @@
-import type { AuspiceJsonV2 } from 'auspice'
+import copy from 'fast-copy'
 
-import { cloneDeep } from 'lodash'
+import type { AuspiceJsonV2 } from 'auspice'
 
 export function treeValidate(auspiceDataDangerous: unknown) {
   // TODO: validate and sanitize
-  const auspiceData = cloneDeep(auspiceDataDangerous) as AuspiceJsonV2
+  const auspiceData = copy(auspiceDataDangerous) as AuspiceJsonV2
 
   const auspiceTreeVersionExpected = 'v2'
   const auspiceTreeVersion = (auspiceData?.version as string | undefined) ?? 'undefined'

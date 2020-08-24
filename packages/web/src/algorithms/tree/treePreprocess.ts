@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { cloneDeep } from 'lodash'
+import copy from 'fast-copy'
 
 import type { AuspiceJsonV2 } from 'auspice'
 
@@ -8,7 +8,7 @@ import { setNodeTypes } from 'src/algorithms/tree/treeFindNearestNodes'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
 
 export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: MutationMap) {
-  const tmp_muts = cloneDeep(mutations)
+  const tmp_muts = copy(mutations)
 
   const nucleotideMutations = node?.branch_attrs?.mutations?.nuc
   if (nucleotideMutations) {
