@@ -8,7 +8,7 @@ import { runFilters } from 'src/filtering/runFilters'
 import {
   algorithmRunAsync,
   analyzeAsync,
-  assignClade,
+  assignClades,
   parseAsync,
   resultsSortTrigger,
   runQcAsync,
@@ -25,6 +25,7 @@ import {
   setSeqNamesFilter,
 } from './algorithm.actions'
 import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
+import { safeZip } from 'src/helpers/safeZip'
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .withHandling(
@@ -195,12 +196,15 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   )
 
   .withHandling(
-    immerCase(assignClade, (draft, { seqName, clade }) => {
-      draft.results.forEach((result) => {
-        if (result.seqName === seqName && result.result) {
+    immerCase(assignClades, (draft, clades) => {
+      safeZip(draft.results, clades).forEach(([result, cladeAssignment]) => {
+        const { clade } = cladeAssignment
+
+        if (result.result) {
           result.result.clade = clade
         }
       })
+
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )

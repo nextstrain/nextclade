@@ -45,10 +45,10 @@ import {
   algorithmRunAsync,
   treeBuildAsync,
   treeFinalizeAsync,
-  assignClade,
+  assignClades,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
-import { selectParams, selectResults } from 'src/state/algorithm/algorithm.selectors'
+import { selectParams, selectResults, selectResultsArray } from 'src/state/algorithm/algorithm.selectors'
 
 import auspiceDataOriginal from 'src/assets/data/ncov_small.json'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
@@ -136,14 +136,13 @@ export function* parseSaga({ threadParse, input }: ParseParams) {
   return undefined
 }
 
-function* assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
+function assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
   const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
   if (!clade) {
     throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
   }
 
-  yield* put(assignClade({ seqName: analysisResult.seqName, clade }))
-  return { ...analysisResult, clade }
+  return { seqName: analysisResult.seqName, clade }
 }
 
 export interface TreeBuildParams {
@@ -254,9 +253,10 @@ export function* runAlgorithm(content?: File | string) {
   console.timeEnd('algorithm: zip results and matches')
 
   console.time('algorithm: assign clades')
-  const analysisResultsWithClades = yield* all(
-    resultsAndMatches.map(([analysisResult, match]) => call(assignOneClade, analysisResult, match)),
-  )
+  const clades = resultsAndMatches.map(([analysisResult, match]) => assignOneClade(analysisResult, match))
+  yield* put(assignClades(clades))
+
+  const analysisResultsWithClades = yield* select(selectResultsArray)
   console.timeEnd('algorithm: assign clades')
 
   // TODO: move this to user-controlled state

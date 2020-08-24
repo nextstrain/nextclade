@@ -20,7 +20,7 @@ export const algorithmRunAsync = action.async<string | File | undefined, void, v
 export const parseAsync = action.async<void, string[], Error>('parse')
 export const analyzeAsync = action.async<{ seqName: string }, AnalysisResultWithoutClade, Error>('analyze')
 export const treeBuildAsync = action.async<LocateInTreeParams, LocateInTreeResults, Error>('treeBuild')
-export const assignClade = action<CladeAssignmentResult>('assignClade')
+export const assignClades = action<CladeAssignmentResult[]>('assignClades')
 export const runQcAsync = action.async<{ seqName: string }, QCResult, Error>('runQc')
 export const treeFinalizeAsync = action.async<FinalizeTreeParams, FinalizeTreeResults, Error>('treeFinalizeAsync')
 

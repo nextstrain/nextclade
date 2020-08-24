@@ -8,6 +8,8 @@ export const selectParams = (state: State) => state.algorithm.params
 
 export const selectResults = (state: State) => state.algorithm.results
 
+export const selectResultsArray = (state: State) => state.algorithm.results.map((result) => result.result)
+
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
 export const selectCanExport = (state: State): boolean =>
