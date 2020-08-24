@@ -1,6 +1,6 @@
 import actionCreatorFactory from 'typescript-fsa'
 
-import type { AnalysisResultWithoutClade } from 'src/algorithms/types'
+import type { AnalysisParams, AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams, FinalizeTreeResults } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult } from 'src/algorithms/QC/runQC'
@@ -18,7 +18,7 @@ export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgori
 export const algorithmRunAsync = action.async<string | File | undefined, void, void>('run')
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
-export const analyzeAsync = action.async<{ seqName: string }, AnalysisResultWithoutClade, Error>('analyze')
+export const analyzeAsync = action.async<AnalysisParams, AnalysisResultWithoutClade, Error>('analyze')
 export const treeBuildAsync = action.async<LocateInTreeParams, LocateInTreeResults, Error>('treeBuild')
 export const setClades = action<CladeAssignmentResult[]>('setClades')
 export const setQcResults = action<QCResult[]>('setQcResults')

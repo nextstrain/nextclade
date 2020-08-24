@@ -1,7 +1,6 @@
 import { zipWith, set, get } from 'lodash'
 
 import type { DeepPartial } from 'ts-essentials'
-import type { Dispatch } from 'redux'
 import { push } from 'connected-next-router'
 import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
@@ -16,13 +15,12 @@ import type { QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
 import type { WorkerPools } from 'src/workers/types'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { RunQcThread } from 'src/workers/worker.runQc'
-import type { TreeFinalizeThread } from 'src/workers/worker.treeAttachNodes'
 
 import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
 import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { safeZip } from 'src/helpers/safeZip'
 import { notUndefined } from 'src/helpers/notUndefined'
-import { sanitizeError } from 'src/helpers/sanitizeError'
+import { fsaSagaFromParams } from 'src/state/util/fsaSagaFromParams'
 import fsaSaga from 'src/state/util/fsaSaga'
 import { EXPORT_AUSPICE_JSON_V2_FILENAME, EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
@@ -51,7 +49,6 @@ import { selectParams, selectResults } from 'src/state/algorithm/algorithm.selec
 import auspiceDataOriginal from 'src/assets/data/ncov_small.json'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
-import { fsaSagaFromParams } from 'src/state/util/fsaSagaFromParams'
 
 const parseSaga = fsaSagaFromParams(
   parseAsync,
@@ -65,12 +62,6 @@ const parseSaga = fsaSagaFromParams(
   },
 )
 
-export interface RunParams extends WorkerPools {
-  rootSeq: string
-  input: string
-  dispatch: Dispatch
-}
-
 export interface AnalyzeParams extends AnalysisParams {
   poolAnalyze: Pool<AnalyzeThread>
 }
@@ -79,22 +70,10 @@ export async function scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, rootSe
   return poolAnalyze.queue(async (analyze: AnalyzeThread) => analyze({ seqName, seq, rootSeq }))
 }
 
-export function* analyzeOne(params: AnalyzeParams) {
-  const { seqName } = params
-  yield* put(analyzeAsync.started({ seqName }))
-
-  let result: AnalysisResultWithoutClade | undefined
-  try {
-    result = yield* call(scheduleOneAnalysisRun, params)
-    yield* put(analyzeAsync.done({ params: { seqName }, result }))
-  } catch (error) {
-    const saneError = sanitizeError(error)
-    console.error(saneError.message)
-    yield* put(analyzeAsync.failed({ params: { seqName }, error: saneError }))
-  }
-
-  return result
-}
+const analyzeOne = fsaSagaFromParams(analyzeAsync, function* analyzeWorker(params: AnalysisParams) {
+  const { poolAnalyze } = yield* getContext<WorkerPools>('workerPools')
+  return yield* call(scheduleOneAnalysisRun, { poolAnalyze, ...params })
+})
 
 export interface ScheduleQcRunParams extends RunQCParams {
   poolRunQc: Pool<RunQcThread>
@@ -118,24 +97,10 @@ const buildTreeSaga = fsaSagaFromParams(treeBuildAsync, function* buildTreeWorke
   return yield* call(threadTreeBuild, params)
 })
 
-export interface TreeFinalizeParams {
-  threadTreeFinalize: TreeFinalizeThread
-  params: FinalizeTreeParams
-}
-
-export function* finalizeTreeSaga({ threadTreeFinalize, params }: TreeFinalizeParams) {
-  yield* put(treeFinalizeAsync.started(params))
-  try {
-    const result = yield* call(threadTreeFinalize, params)
-    yield* put(treeFinalizeAsync.done({ params, result }))
-    return result
-  } catch (error) {
-    const saneError = sanitizeError(error)
-    console.error(saneError.message)
-    yield* put(treeFinalizeAsync.failed({ params, error: saneError }))
-  }
-  return undefined
-}
+const finalizeTreeSaga = fsaSagaFromParams(treeFinalizeAsync, function* finalizeTreeWorker(params: FinalizeTreeParams) {
+  const { threadTreeFinalize } = yield* getContext<WorkerPools>('workerPools')
+  return yield* call(threadTreeFinalize, params)
+})
 
 export function* runAlgorithm(content?: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
@@ -146,7 +111,7 @@ export function* runAlgorithm(content?: File | string) {
     yield* put(setInput(content))
   }
 
-  const { poolAnalyze, poolRunQc, threadTreeFinalize } =
+  const {  poolRunQc } =
     yield* getContext<WorkerPools>('workerPools') // prettier-ignore
 
   const { rootSeq, input: inputState } = yield* select(selectParams)
@@ -173,7 +138,7 @@ export function* runAlgorithm(content?: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const sequenceEntries = Object.entries(parsedSequences)
   const analysisResultsRaw = yield* all(
-    sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { poolAnalyze, seqName, seq, rootSeq })),
+    sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { seqName, seq, rootSeq })),
   )
   const analysisResultsWithoutClades = analysisResultsRaw.filter(notUndefined)
 
@@ -218,10 +183,7 @@ export function* runAlgorithm(content?: File | string) {
   const results: AnalysisResult[] = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
-  const treeFinalizeResult = yield* call(finalizeTreeSaga, {
-    threadTreeFinalize,
-    params: { auspiceData: auspiceDataRaw, results, matches, rootSeq },
-  })
+  const treeFinalizeResult = yield* finalizeTreeSaga({ auspiceData: auspiceDataRaw, results, matches, rootSeq })
   if (!treeFinalizeResult) {
     return undefined
   }
