@@ -35,8 +35,6 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResultState
 }
 
-export const SequenceView = withResizeDetector(SequenceViewUnsized)
-
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd } = sequence
 
@@ -104,3 +102,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
     </SequenceViewWrapper>
   )
 }
+
+export const SequenceViewUnmemoed = withResizeDetector(SequenceViewUnsized)
+
+export const SequenceView = React.memo(SequenceViewUnmemoed)

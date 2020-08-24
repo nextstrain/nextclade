@@ -18,7 +18,7 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
   pixelsPerBase: number
 }
 
-export function SequenceMarkerMissing({ seqName, missing, pixelsPerBase, ...rest }: MissingViewProps) {
+export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase, ...rest }: MissingViewProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
@@ -49,3 +49,4 @@ export function SequenceMarkerMissing({ seqName, missing, pixelsPerBase, ...rest
     </rect>
   )
 }
+export const SequenceMarkerMissing = React.memo(SequenceMarkerMissingUnmemoed)

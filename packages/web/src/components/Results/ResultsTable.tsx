@@ -263,7 +263,7 @@ const mapDispatchToProps = {
   sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
 }
 
-export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected)
+export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected))
 
 export interface ResultProps {
   resultsFiltered: SequenceAnalysisState[]

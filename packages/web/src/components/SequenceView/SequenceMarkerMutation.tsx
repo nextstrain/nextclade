@@ -19,7 +19,7 @@ export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   pixelsPerBase: number
 }
 
-export function SequenceMarkerMutation({
+function SequenceMarkerMutationUnmemoed({
   seqName,
   substitution,
   pixelsPerBase,
@@ -57,3 +57,5 @@ export function SequenceMarkerMutation({
     </rect>
   )
 }
+
+export const SequenceMarkerMutation = React.memo(SequenceMarkerMutationUnmemoed)
