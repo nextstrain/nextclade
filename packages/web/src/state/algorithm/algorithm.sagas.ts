@@ -9,16 +9,10 @@ import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
 import type { AuspiceTreeNode } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
-import type {
-  AnalysisParams,
-  AnalysisResult,
-  AnalysisResultWithClade,
-  AnalysisResultWithoutClade,
-  NucleotideSubstitution,
-} from 'src/algorithms/types'
+import type { AnalysisParams, AnalysisResult, AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type { LocateInTreeParams } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
-import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
+import type { QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
 import type { WorkerPools } from 'src/workers/types'
 import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
@@ -44,7 +38,6 @@ import {
   exportCsvTrigger,
   exportJsonTrigger,
   parseAsync,
-  runQcAsync,
   setAlgorithmGlobalStatus,
   setInput,
   setInputFile,
@@ -55,7 +48,7 @@ import {
   setQcResults,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
-import { selectParams, selectResults, selectResultsArray } from 'src/state/algorithm/algorithm.selectors'
+import { selectParams, selectResults } from 'src/state/algorithm/algorithm.selectors'
 
 import auspiceDataOriginal from 'src/assets/data/ncov_small.json'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
