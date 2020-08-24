@@ -255,8 +255,8 @@ export function* runAlgorithm(content?: File | string) {
   console.time('algorithm: assign clades')
   const clades = resultsAndMatches.map(([analysisResult, match]) => assignOneClade(analysisResult, match))
   yield* put(assignClades(clades))
-
-  const analysisResultsWithClades = yield* select(selectResultsArray)
+  const analysisResultsWithClades = safeZip(analysisResultsWithoutClades, clades) // prettier-ignore
+    .map(([analysisResult, { clade }]) => ({ ...analysisResult, clade }))
   console.timeEnd('algorithm: assign clades')
 
   // TODO: move this to user-controlled state
