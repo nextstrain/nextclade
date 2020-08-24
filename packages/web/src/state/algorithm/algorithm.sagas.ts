@@ -77,7 +77,9 @@ export function* analyzeOne(params: AnalyzeParams) {
     result = yield* call(scheduleOneAnalysisRun, params)
     yield* put(analyzeAsync.done({ params: { seqName }, result }))
   } catch (error) {
-    yield* put(analyzeAsync.failed({ params: { seqName }, error: sanitizeError(error) }))
+    const saneError = sanitizeError(error)
+    console.error(saneError.message)
+    yield* put(analyzeAsync.failed({ params: { seqName }, error: saneError }))
   }
 
   return result
@@ -106,7 +108,9 @@ export function* runQcOne(params: ScheduleQcRunParams) {
     const result = yield* call(scheduleOneQcRun, params)
     yield* put(runQcAsync.done({ params: { seqName }, result }))
   } catch (error) {
-    yield* put(runQcAsync.failed({ params: { seqName }, error: sanitizeError(error) }))
+    const saneError = sanitizeError(error)
+    console.error(saneError.message)
+    yield* put(runQcAsync.failed({ params: { seqName }, error: saneError }))
   }
 
   return result
@@ -125,7 +129,9 @@ export function* parseSaga({ threadParse, input }: ParseParams) {
     yield* put(parseAsync.done({ result: sequenceNames }))
     return { input: newInput, parsedSequences }
   } catch (error) {
-    yield* put(parseAsync.failed({ error: sanitizeError(error) }))
+    const saneError = sanitizeError(error)
+    console.error(saneError.message)
+    yield* put(parseAsync.failed({ error: saneError }))
   }
   return undefined
 }
@@ -152,7 +158,9 @@ export function* buildTreeSaga({ threadTreeBuild, params }: TreeBuildParams) {
     yield* put(treeBuildAsync.done({ params, result }))
     return result
   } catch (error) {
-    yield* put(treeBuildAsync.failed({ params, error: sanitizeError(error) }))
+    const saneError = sanitizeError(error)
+    console.error(saneError.message)
+    yield* put(treeBuildAsync.failed({ params, error: saneError }))
   }
   return undefined
 }
@@ -169,10 +177,9 @@ export function* finalizeTreeSaga({ threadTreeFinalize, params }: TreeFinalizePa
     yield* put(treeFinalizeAsync.done({ params, result }))
     return result
   } catch (error) {
-    if (error instanceof Error) {
-      yield* put(treeFinalizeAsync.failed({ params, error }))
-      treeFinalizeAsync.failed({ params, error: sanitizeError(error) })
-    }
+    const saneError = sanitizeError(error)
+    console.error(saneError.message)
+    yield* put(treeFinalizeAsync.failed({ params, error: saneError }))
   }
   return undefined
 }
