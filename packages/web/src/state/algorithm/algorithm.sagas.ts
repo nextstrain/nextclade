@@ -51,7 +51,7 @@ import {
   algorithmRunAsync,
   treeBuildAsync,
   treeFinalizeAsync,
-  assignClades,
+  setClades,
   setQcResults,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
@@ -238,7 +238,7 @@ export function* runAlgorithm(content?: File | string) {
 
   console.time('algorithm: assign clades')
   const clades = resultsAndMatches.map(([analysisResult, match]) => assignOneClade(analysisResult, match))
-  yield* put(assignClades(clades))
+  yield* put(setClades(clades))
   const analysisResultsWithClades = safeZip(analysisResultsWithoutClades, clades) // prettier-ignore
     .map(([analysisResult, { clade }]) => ({ ...analysisResult, clade }))
   console.timeEnd('algorithm: assign clades')

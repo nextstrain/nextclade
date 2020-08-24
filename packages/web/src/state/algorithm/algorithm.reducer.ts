@@ -9,7 +9,7 @@ import { runFilters } from 'src/filtering/runFilters'
 import {
   algorithmRunAsync,
   analyzeAsync,
-  assignClades,
+  setClades,
   parseAsync,
   resultsSortTrigger,
   setAAFilter,
@@ -197,7 +197,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   // Assign clades
   .withHandling(
-    immerCase(assignClades, (draft, clades) => {
+    immerCase(setClades, (draft, clades) => {
       safeZip(draft.results, clades).forEach(([result, cladeAssignment]) => {
         const { clade } = cladeAssignment
 
