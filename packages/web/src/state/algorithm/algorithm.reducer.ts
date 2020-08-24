@@ -2,6 +2,7 @@ import { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
 import immerCase from 'src/state/util/fsaImmerReducer'
+import { safeZip } from 'src/helpers/safeZip'
 import { sortResults } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
 
@@ -11,7 +12,6 @@ import {
   assignClades,
   parseAsync,
   resultsSortTrigger,
-  runQcAsync,
   setAAFilter,
   setAlgorithmGlobalStatus,
   setCladesFilter,
@@ -22,10 +22,10 @@ import {
   setInputFile,
   setIsDirty,
   setMutationsFilter,
+  setQcResults,
   setSeqNamesFilter,
 } from './algorithm.actions'
 import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
-import { safeZip } from 'src/helpers/safeZip'
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .withHandling(
@@ -195,6 +195,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     }),
   )
 
+  // Assign clades
   .withHandling(
     immerCase(assignClades, (draft, clades) => {
       safeZip(draft.results, clades).forEach(([result, cladeAssignment]) => {
@@ -211,43 +212,9 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   // QC
   .withHandling(
-    immerCase(runQcAsync.started, (draft, { seqName }) => {
-      draft.results = draft.results.map((result) => {
-        if (result.seqName === seqName) {
-          return { ...result, status: AlgorithmSequenceStatus.qcStarted }
-        }
-        return result
-      })
-
-      draft.resultsFiltered = runFilters(current(draft))
-    }),
-  )
-
-  .withHandling(
-    immerCase(runQcAsync.done, (draft, { params: { seqName }, result }) => {
-      draft.results = draft.results.map((oldResult) => {
-        if (oldResult.seqName === seqName) {
-          return { ...oldResult, errors: [], qc: result, status: AlgorithmSequenceStatus.qcDone }
-        }
-        return oldResult
-      })
-
-      draft.resultsFiltered = runFilters(current(draft))
-    }),
-  )
-
-  .withHandling(
-    immerCase(runQcAsync.failed, (draft, { params: { seqName }, error }) => {
-      draft.results = draft.results.map((oldResult) => {
-        if (oldResult.seqName === seqName) {
-          return {
-            ...oldResult,
-            errors: [error.message],
-            qc: undefined,
-            status: AlgorithmSequenceStatus.qcFailed,
-          }
-        }
-        return oldResult
+    immerCase(setQcResults, (draft, qcResults) => {
+      safeZip(draft.results, qcResults).forEach(([result, qc]) => {
+        result.qc = qc
       })
 
       draft.resultsFiltered = runFilters(current(draft))

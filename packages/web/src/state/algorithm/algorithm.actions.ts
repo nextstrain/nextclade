@@ -21,7 +21,7 @@ export const parseAsync = action.async<void, string[], Error>('parse')
 export const analyzeAsync = action.async<{ seqName: string }, AnalysisResultWithoutClade, Error>('analyze')
 export const treeBuildAsync = action.async<LocateInTreeParams, LocateInTreeResults, Error>('treeBuild')
 export const assignClades = action<CladeAssignmentResult[]>('assignClades')
-export const runQcAsync = action.async<{ seqName: string }, QCResult, Error>('runQc')
+export const setQcResults = action<QCResult[]>('setQcResults')
 export const treeFinalizeAsync = action.async<FinalizeTreeParams, FinalizeTreeResults, Error>('treeFinalizeAsync')
 
 export const exportCsvTrigger = action('exportCsvTrigger')

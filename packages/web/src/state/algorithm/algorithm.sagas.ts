@@ -9,7 +9,13 @@ import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
 import type { AuspiceTreeNode } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
-import type { AnalysisParams, AnalysisResult, AnalysisResultWithoutClade } from 'src/algorithms/types'
+import type {
+  AnalysisParams,
+  AnalysisResult,
+  AnalysisResultWithClade,
+  AnalysisResultWithoutClade,
+  NucleotideSubstitution,
+} from 'src/algorithms/types'
 import type { LocateInTreeParams } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult, QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
@@ -46,6 +52,7 @@ import {
   treeBuildAsync,
   treeFinalizeAsync,
   assignClades,
+  setQcResults,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import { selectParams, selectResults, selectResultsArray } from 'src/state/algorithm/algorithm.selectors'
@@ -89,31 +96,8 @@ export interface ScheduleQcRunParams extends RunQCParams {
   poolRunQc: Pool<RunQcThread>
 }
 
-export async function scheduleOneQcRun({
-  poolRunQc,
-  analysisResult,
-  privateMutations,
-  qcRulesConfig,
-}: ScheduleQcRunParams) {
+export async function runQcOne({ poolRunQc, analysisResult, privateMutations, qcRulesConfig }: ScheduleQcRunParams) {
   return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, privateMutations, qcRulesConfig }))
-}
-
-export function* runQcOne(params: ScheduleQcRunParams) {
-  const { analysisResult: { seqName } } = params // prettier-ignore
-
-  yield* put(runQcAsync.started({ seqName }))
-
-  let result: QCResult | undefined
-  try {
-    const result = yield* call(scheduleOneQcRun, params)
-    yield* put(runQcAsync.done({ params: { seqName }, result }))
-  } catch (error) {
-    const saneError = sanitizeError(error)
-    console.error(saneError.message)
-    yield* put(runQcAsync.failed({ params: { seqName }, error: saneError }))
-  }
-
-  return result
 }
 
 export interface ParseParams {
@@ -268,16 +252,14 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
-  console.time('algorithm: zip results and diffs')
-  const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
-  console.timeEnd('algorithm: zip results and diffs')
-
   console.time('algorithm: qc')
+  const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
   const qcResults = yield* all(
     resultsAndDiffs.map(([analysisResult, privateMutations]) =>
       call(runQcOne, { poolRunQc, analysisResult, privateMutations, qcRulesConfig }),
     ),
   )
+  yield* put(setQcResults(qcResults))
   console.timeEnd('algorithm: qc')
 
   console.time('algorithm: zip results and qc results')
