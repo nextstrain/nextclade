@@ -44,7 +44,7 @@ const HEADER_ROW_CONTENT_HEIGHT = 60
 export const RESULTS_TABLE_FLEX_BASIS = {
   id: 50,
   seqName: 300,
-  qc: 60,
+  qc: 100,
   clade: 60,
   mut: 60,
   nonACGTN: 70,
