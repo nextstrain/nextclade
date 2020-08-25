@@ -111,7 +111,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
               // @ts-ignore
               analysisResults: sanitizeResults(action.payload.params.analysisResults),
               // @ts-ignore
-              auspiceData: sanitizeResults(action.payload.params.auspiceData),
+              auspiceData: sanitizeTree(action.payload.params.auspiceData),
             },
           },
         }
