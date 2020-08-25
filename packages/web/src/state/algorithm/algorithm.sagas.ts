@@ -5,10 +5,16 @@ import { push } from 'connected-next-router'
 import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
 
-import type { AuspiceTreeNode } from 'auspice'
+import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
-import type { AnalysisParams, AnalysisResult, AnalysisResultWithoutClade } from 'src/algorithms/types'
+import type {
+  AnalysisParams,
+  AnalysisResult,
+  AnalysisResultWithClade,
+  AnalysisResultWithoutClade,
+  NucleotideSubstitution,
+} from 'src/algorithms/types'
 import type { LocateInTreeParams } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
@@ -49,6 +55,7 @@ import { selectParams, selectResults } from 'src/state/algorithm/algorithm.selec
 import auspiceDataOriginal from 'src/assets/data/ncov_small.json'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 
 const parseSaga = fsaSagaFromParams(
   parseAsync,
@@ -102,7 +109,7 @@ const finalizeTreeSaga = fsaSagaFromParams(treeFinalizeAsync, function* finalize
   return yield* call(threadTreeFinalize, params)
 })
 
-export function* runAlgorithm(content?: File | string) {
+export function* prepare(content?: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield* put(setShowInputBox(false))
   yield* put(push('/results'))
@@ -110,9 +117,6 @@ export function* runAlgorithm(content?: File | string) {
   if (typeof content === 'string') {
     yield* put(setInput(content))
   }
-
-  const {  poolRunQc } =
-    yield* getContext<WorkerPools>('workerPools') // prettier-ignore
 
   const { rootSeq, input: inputState } = yield* select(selectParams)
   const input = content ?? inputState
@@ -124,17 +128,21 @@ export function* runAlgorithm(content?: File | string) {
     yield* put(setInputFile({ name, size }))
   }
 
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
-  const parseResult = yield* parseSaga(input)
-  if (!parseResult) {
-    return undefined
-  }
+  return { input, rootSeq }
+}
 
-  const { input: newInput, parsedSequences } = parseResult
+export function* parse(input: File | string) {
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
+  const { input: newInput, parsedSequences } = yield* parseSaga(input)
+
   if (newInput !== input) {
     yield* put(setInput(newInput))
   }
 
+  return { parsedSequences }
+}
+
+export function* analyze(parsedSequences: Record<string, string>, rootSeq: string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const sequenceEntries = Object.entries(parsedSequences)
   const analysisResultsRaw = yield* all(
@@ -142,27 +150,28 @@ export function* runAlgorithm(content?: File | string) {
   )
   const analysisResultsWithoutClades = analysisResultsRaw.filter(notUndefined)
 
+  return { analysisResultsWithoutClades }
+}
+
+export function* treeFindNearestNodes(analysisResults: AnalysisResultWithoutClade[], rootSeq: string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
-  const auspiceDataPreprocessed = treePreprocess(treeValidate(auspiceDataOriginal))
-  const treeBuildResult = yield* buildTreeSaga({
-    analysisResults: analysisResultsWithoutClades,
-    rootSeq,
-    auspiceData: auspiceDataPreprocessed,
-  })
-  if (!treeBuildResult) {
-    return undefined
-  }
+  const auspiceData = treePreprocess(treeValidate(auspiceDataOriginal))
+  return yield* buildTreeSaga({ analysisResults, rootSeq, auspiceData })
+}
 
-  const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = treeBuildResult
-
-  // TODO: move to the previous webworker when tree build is parallel
-  const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
-
+export function* assignClades(analysisResults: AnalysisResultWithoutClade[], matches: AuspiceTreeNodeExtended[]) {
+  const resultsAndMatches = safeZip(analysisResults, matches)
   const clades = resultsAndMatches.map(([analysisResult, match]) => assignOneClade(analysisResult, match))
   yield* put(setClades(clades))
-  const analysisResultsWithClades = safeZip(analysisResultsWithoutClades, clades) // prettier-ignore
+  const analysisResultsWithClades = safeZip(analysisResults, clades) // prettier-ignore
     .map(([analysisResult, { clade }]) => ({ ...analysisResult, clade }))
+  return { analysisResultsWithClades }
+}
 
+export function* runQC(
+  analysisResultsWithClades: AnalysisResultWithClade[],
+  privateMutationSets: NucleotideSubstitution[][],
+) {
   // TODO: move this to user-controlled state
   const qcRulesConfig: DeepPartial<QCRulesConfig> = {
     privateMutations: {},
@@ -173,6 +182,7 @@ export function* runAlgorithm(content?: File | string) {
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
   const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
+  const { poolRunQc } = yield* getContext<WorkerPools>('workerPools')
   const qcResults = yield* all(
     resultsAndDiffs.map(([analysisResult, privateMutations]) =>
       call(runQcOne, { poolRunQc, analysisResult, privateMutations, qcRulesConfig }),
@@ -182,15 +192,20 @@ export function* runAlgorithm(content?: File | string) {
 
   const results: AnalysisResult[] = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
 
+  return { results }
+}
+
+export function* finalizeTree(
+  auspiceData: AuspiceJsonV2,
+  results: AnalysisResult[],
+  matches: AuspiceTreeNodeExtended[],
+  rootSeq: string,
+) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
-  const treeFinalizeResult = yield* finalizeTreeSaga({ auspiceData: auspiceDataRaw, results, matches, rootSeq })
-  if (!treeFinalizeResult) {
-    return undefined
-  }
-  const { auspiceData } = treeFinalizeResult
+  return yield* finalizeTreeSaga({ auspiceData, results, matches, rootSeq })
+}
 
-  const auspiceDataPostprocessed = treePostProcess(auspiceData)
-
+export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
   const auspiceState = createAuspiceState(auspiceDataPostprocessed)
 
   // HACK: now that we are in the main process, we can re-attach the `controls.colorScale.scale` function we previously set to undefined in the worker process.
@@ -203,6 +218,27 @@ export function* runAlgorithm(content?: File | string) {
 
   // HACK: Now we restore the `controls.colorScale.scale` function to the correct one by emulating action of changing "Color By"
   yield* put(changeColorBy())
+}
+
+export function* runAlgorithm(content?: File | string) {
+  const { input, rootSeq } = yield* prepare(content)
+
+  const { parsedSequences } = yield* parse(input)
+
+  const { analysisResultsWithoutClades } = yield* analyze(parsedSequences, rootSeq)
+
+  const { matches, privateMutationSets, auspiceData: auspiceDataRaw } =
+    yield* treeFindNearestNodes(analysisResultsWithoutClades, rootSeq) // prettier-ignore
+
+  const { analysisResultsWithClades } = yield* assignClades(analysisResultsWithoutClades, matches)
+
+  const { results } = yield* runQC(analysisResultsWithClades, privateMutationSets)
+
+  const { auspiceData } = yield* finalizeTree(auspiceDataRaw, results, matches, rootSeq)
+
+  const auspiceDataPostprocessed = treePostProcess(auspiceData)
+
+  yield* setAuspiceState(auspiceDataPostprocessed)
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 

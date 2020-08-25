@@ -28,8 +28,8 @@ export function fsaSagaFromParams<Params, Result, TransformedResult = Result>(
     } catch (error_) {
       // Worker failed. Print error and dispatch an action of type "failed" with error payload.
       const error = sanitizeError(error_)
-      console.error(error_)
       yield* put(asyncActionCreators.failed({ params, error }))
+      throw error
     } finally {
       // Worker was cancelled (e.g. manually or as a result of take*).
       // Dispatch an action of type "failed" with the special error value.
@@ -38,6 +38,5 @@ export function fsaSagaFromParams<Params, Result, TransformedResult = Result>(
         yield* put(asyncActionCreators.failed({ params, error }))
       }
     }
-    return undefined
   }
 }
