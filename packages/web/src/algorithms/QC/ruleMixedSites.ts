@@ -1,6 +1,7 @@
 import { clamp } from 'lodash'
 
 import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
+import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export interface QCRulesConfigMixedSites {
   mixedSitesThreshold: number
@@ -23,7 +24,9 @@ export function ruleMixedSites(
 
   const score = clamp(scoreRaw, 0, scoreMax)
 
-  return { score, totalMixedSites, mixedSitesThreshold }
+  const status = getQCRuleStatus(score)
+
+  return { score, totalMixedSites, mixedSitesThreshold, status }
 }
 
 export type QCResultMixedSites = ReturnType<typeof ruleMixedSites>

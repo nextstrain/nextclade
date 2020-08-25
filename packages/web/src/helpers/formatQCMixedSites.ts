@@ -4,18 +4,25 @@ import type { DeepReadonly } from 'ts-essentials'
 
 import type { QCResultMixedSites } from 'src/algorithms/QC/ruleMixedSites'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
+import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export function formatQCMixedSites<TFunction extends TFunctionInterface>(
   t: TFunction,
   mixedSites?: DeepReadonly<QCResultMixedSites>,
 ) {
-  if (!mixedSites || mixedSites.score === 0) {
+  if (!mixedSites || mixedSites.status === QCRuleStatus.good) {
     return undefined
   }
 
-  const { score, totalMixedSites, mixedSitesThreshold } = mixedSites
-  return t('{{warn}} mixed sites: Total mixed: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
-    warn: score > 100 ? 'Too many' : 'Found',
+  const { score, totalMixedSites, mixedSitesThreshold, status } = mixedSites
+
+  let message = t('Mixed sites found')
+  if (status === QCRuleStatus.bad) {
+    message = t('Too much mixed sites found')
+  }
+
+  return t('{{message}}: Total mixed: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
+    message,
     total: totalMixedSites,
     allowed: mixedSitesThreshold,
     score: round(score),

@@ -4,15 +4,11 @@ import { DeepPartial } from 'ts-essentials'
 
 import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
 
+import { QCRuleStatus } from './QCRuleStatus'
 import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
 import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
 import { QCResultSNPClusters, QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
 import { rulePrivateMutations, QCRulesConfigPrivateMutations, QCResultPrivateMutations } from './rulePrivateMutations'
-
-// const TooHighDivergence = 'too high divergence'
-// const ClusteredSNPsFlag = 'clustered SNPs'
-// const TooManyMixedSites = 'Too many non-ACGT characters'
-// const MissingData = 'missing data'
 
 export type Enableable<T> = T & { enabled: boolean }
 
@@ -58,13 +54,17 @@ export interface QCResult {
   mixedSites?: QCResultMixedSites
 }
 
+export interface QCRuleResult {
+  status: QCRuleStatus
+}
+
 export type Rule<Conf, Ret> = (
   analysisResult: AnalysisResultWithClade,
   privateMutations: NucleotideSubstitution[],
   config: Conf,
 ) => Ret
 
-export function runOne<Conf extends Enableable<unknown>, Ret>(
+export function runOne<Conf extends Enableable<unknown>, Ret extends QCRuleResult>(
   rule: Rule<Conf, Ret>,
   analysisResult: AnalysisResultWithClade,
   privateMutations: NucleotideSubstitution[],

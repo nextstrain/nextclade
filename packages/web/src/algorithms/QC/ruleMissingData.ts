@@ -1,6 +1,7 @@
 import { clamp } from 'lodash'
 
 import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
+import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export interface QCRulesConfigMissingData {
   missingDataThreshold: number
@@ -17,7 +18,10 @@ export function ruleMissingData(
 
   const scoreRaw = ((totalMissing - scoreBias) * 100) / missingDataThreshold
   const score = clamp(scoreRaw, 0, scoreMax)
-  return { score, totalMissing, missingDataThreshold: missingDataThreshold + scoreBias }
+
+  const status = getQCRuleStatus(score)
+
+  return { score, totalMissing, missingDataThreshold: missingDataThreshold + scoreBias, status }
 }
 
 export type QCResultMissingData = ReturnType<typeof ruleMissingData>

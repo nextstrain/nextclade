@@ -1,4 +1,5 @@
 import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
+import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export interface QCRulesConfigPrivateMutations {
   typical: number
@@ -15,7 +16,10 @@ export function rulePrivateMutations(
 
   // the score hits 100 if the excess mutations equals the cutoff value
   const score = (Math.max(0, totalNumberOfMutations - typical) * 100) / cutoff
-  return { score, total: totalNumberOfMutations, excess: totalNumberOfMutations - typical, cutoff }
+
+  const status = getQCRuleStatus(score)
+
+  return { score, total: totalNumberOfMutations, excess: totalNumberOfMutations - typical, cutoff, status }
 }
 
 export type QCResultPrivateMutations = ReturnType<typeof rulePrivateMutations>

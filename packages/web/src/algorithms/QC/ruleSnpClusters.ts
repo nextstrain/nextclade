@@ -1,6 +1,7 @@
 import { clamp } from 'lodash'
 
 import type { AnalysisResult, ClusteredSNPs, NucleotideSubstitution } from 'src/algorithms/types'
+import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export function findSNPClusters(
   { substitutions }: AnalysisResult,
@@ -71,7 +72,9 @@ export function ruleSnpClusters(
 
   const score = clamp(scoreRaw, 0, scoreMax)
 
-  return { score, totalSNPs, clusteredSNPs }
+  const status = getQCRuleStatus(score)
+
+  return { score, totalSNPs, clusteredSNPs, status }
 }
 
 export type QCResultSNPClusters = ReturnType<typeof ruleSnpClusters>
