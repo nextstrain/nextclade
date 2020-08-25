@@ -6,9 +6,9 @@ export enum QCRuleStatus {
 
 export function getQCRuleStatus(score: number) {
   let status = QCRuleStatus.good
-  if (score > 70) {
+  if (score >= 70 && score < 100) {
     status = QCRuleStatus.mediocre
-  } else if (score > 100) {
+  } else if (score >= 100) {
     status = QCRuleStatus.bad
   }
   return status
