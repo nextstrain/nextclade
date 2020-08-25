@@ -1,8 +1,9 @@
 /* eslint-disable camelcase */
 import { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
-import { groupBy, identity, mapValues, set, unset, zip } from 'lodash'
+import { groupBy, mapValues, set, unset, zip } from 'lodash'
 import copy from 'fast-copy'
 
+import i18n from 'src/i18n/i18n'
 import { UNKNOWN_VALUE } from 'src/constants'
 import type { AnalysisResult, AnalysisResultWithoutClade, Nucleotide } from 'src/algorithms/types'
 import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
@@ -16,6 +17,8 @@ import { notUndefined } from 'src/helpers/notUndefined'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
 import { isSequenced } from 'src/algorithms/tree/treeFindNearestNodes'
+
+const t = i18n.t.bind(i18n)
 
 export function isLeaf(node: AuspiceTreeNodeExtended) {
   return !node.children || node.children.length === 0
@@ -137,14 +140,12 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   let qcFlags = 'Not available'
   if (qc) {
     const { privateMutations, snpClusters, mixedSites, missingData } = qc
-    const t = identity
     const messages = [
       formatQCPrivateMutations(t, privateMutations),
       formatQCSNPClusters(t, snpClusters),
       formatQCMixedSites(t, mixedSites),
       formatQCMissingData(t, missingData),
     ].filter(notUndefined)
-
     qcFlags = messages.join('; ')
   }
 
