@@ -202,7 +202,11 @@ export function* finalizeTree(
   rootSeq: string,
 ) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
-  return yield* finalizeTreeSaga({ auspiceData, results, matches, rootSeq })
+  const { auspiceData: auspiceDataRaw } = yield* finalizeTreeSaga({ auspiceData, results, matches, rootSeq })
+
+  const auspiceDataPostprocessed = treePostProcess(auspiceDataRaw)
+
+  return { auspiceDataPostprocessed }
 }
 
 export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
@@ -234,9 +238,7 @@ export function* runAlgorithm(content?: File | string) {
 
   const { results } = yield* runQC(analysisResultsWithClades, privateMutationSets)
 
-  const { auspiceData } = yield* finalizeTree(auspiceDataRaw, results, matches, rootSeq)
-
-  const auspiceDataPostprocessed = treePostProcess(auspiceData)
+  const { auspiceDataPostprocessed } = yield* finalizeTree(auspiceDataRaw, results, matches, rootSeq)
 
   yield* setAuspiceState(auspiceDataPostprocessed)
 
