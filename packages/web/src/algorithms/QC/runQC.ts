@@ -55,7 +55,10 @@ export interface QCResult {
 }
 
 export interface QCRuleResult {
+  score: number
   status: QCRuleStatus
+  name: string
+  acronym: string
 }
 
 export type Rule<Conf, Ret> = (

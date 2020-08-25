@@ -13,6 +13,9 @@ export function ruleMixedSites(
   _1: NucleotideSubstitution[],
   { mixedSitesThreshold, scoreMax }: QCRulesConfigMixedSites,
 ) {
+  const name = 'Mixed sites'
+  const acronym = 'MS'
+
   const goodBases = new Set(['A', 'C', 'G', 'T', 'N', '-'])
 
   const totalMixedSites = Object.keys(nucleotideComposition)
@@ -26,7 +29,7 @@ export function ruleMixedSites(
 
   const status = getQCRuleStatus(score)
 
-  return { score, totalMixedSites, mixedSitesThreshold, status }
+  return { name, acronym, score, totalMixedSites, mixedSitesThreshold, status }
 }
 
 export type QCResultMixedSites = ReturnType<typeof ruleMixedSites>

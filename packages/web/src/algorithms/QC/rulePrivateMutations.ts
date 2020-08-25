@@ -11,6 +11,9 @@ export function rulePrivateMutations(
   privateMutations: NucleotideSubstitution[],
   { typical, cutoff }: QCRulesConfigPrivateMutations,
 ) {
+  const name = 'Private mutations'
+  const acronym = 'PM'
+
   const totalNumberOfMutations =
     Object.keys(privateMutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
@@ -19,7 +22,15 @@ export function rulePrivateMutations(
 
   const status = getQCRuleStatus(score)
 
-  return { score, total: totalNumberOfMutations, excess: totalNumberOfMutations - typical, cutoff, status }
+  return {
+    name,
+    acronym,
+    score,
+    total: totalNumberOfMutations,
+    excess: totalNumberOfMutations - typical,
+    cutoff,
+    status,
+  }
 }
 
 export type QCResultPrivateMutations = ReturnType<typeof rulePrivateMutations>

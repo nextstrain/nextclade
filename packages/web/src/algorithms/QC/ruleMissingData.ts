@@ -14,6 +14,9 @@ export function ruleMissingData(
   _1: NucleotideSubstitution[],
   { missingDataThreshold, scoreBias, scoreMax }: QCRulesConfigMissingData,
 ) {
+  const name = 'Missing data'
+  const acronym = 'N'
+
   const totalMissing = nucleotideComposition.N ?? 0
 
   const scoreRaw = ((totalMissing - scoreBias) * 100) / missingDataThreshold
@@ -21,7 +24,7 @@ export function ruleMissingData(
 
   const status = getQCRuleStatus(score)
 
-  return { score, totalMissing, missingDataThreshold: missingDataThreshold + scoreBias, status }
+  return { name, acronym, score, totalMissing, missingDataThreshold: missingDataThreshold + scoreBias, status }
 }
 
 export type QCResultMissingData = ReturnType<typeof ruleMissingData>

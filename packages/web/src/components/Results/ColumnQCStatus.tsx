@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
-import styled from 'styled-components'
+import styled, { useTheme } from 'styled-components'
 import { useTranslation } from 'react-i18next'
-import { GiPlainCircle } from 'react-icons/gi'
 
 import type { QCResult } from 'src/algorithms/QC/runQC'
 import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
@@ -14,28 +13,44 @@ import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 const CIRCLE_SZE_PX = 20
 
-export const Circle = styled(GiPlainCircle)`
-  width: ${CIRCLE_SZE_PX}px;
-  height: ${CIRCLE_SZE_PX}px;
+export const CircleBase = styled.div<{ color: string }>`
+  flex: 0;
+  margin: 5px auto;
+  min-width: ${CIRCLE_SZE_PX}px;
+  min-height: ${CIRCLE_SZE_PX}px;
+  border-radius: ${CIRCLE_SZE_PX / 2}px;
+  background-color: ${(props) => props.color};
+  color: ${(props) => props.theme.gray100};
+  font-size: 0.66rem;
+  box-shadow: ${(props) => props.theme.shadows.slight}
+
+  text-align: center;
+  vertical-align: middle;
+  line-height: ${CIRCLE_SZE_PX}px;
 `
 
-export const CircleRed = styled(Circle)`
-  color: ${(props) => props.theme.red};
-`
+export interface CircleProps {
+  status: QCRuleStatus
+  text: string
+}
 
-export const CircleOrange = styled(Circle)`
-  color: ${(props) => props.theme.orange};
-`
+export function Circle({ status, text }: CircleProps) {
+  const { red, orange, green } = useTheme()
 
-export const CircleGreen = styled(Circle)`
-  color: ${(props) => props.theme.green};
-`
+  const statusColors = useMemo(
+    () =>
+      ({
+        [QCRuleStatus.good]: green,
+        [QCRuleStatus.mediocre]: orange,
+        [QCRuleStatus.bad]: red,
+      } as const),
+    [green, orange, red],
+  )
 
-const statusIcons = {
-  [QCRuleStatus.good]: <CircleGreen />,
-  [QCRuleStatus.mediocre]: <CircleOrange />,
-  [QCRuleStatus.bad]: <CircleRed />,
-} as const
+  const color = statusColors[status]
+
+  return <CircleBase color={color}>{text}</CircleBase>
+}
 
 export interface ColumnQCStatusProps {
   sequence: AnalysisResultState
@@ -64,10 +79,17 @@ export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
 
   const icons = [missingData, mixedSites, privateMutations, snpClusters]
     .filter(notUndefined)
-    .map(({ status }) => statusIcons[status])
+    .map(({ status, acronym }, i) => {
+      return <Circle key={i} status={status} text={acronym} /> // eslint-disable-line react/no-array-index-key
+    })
 
   return (
-    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+    <div
+      id={id}
+      className="d-flex w-100 h-100"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
       {icons}
       <Tooltip target={id} isOpen={showTooltip}>
         <ListOfQcIssues qc={qc} />
