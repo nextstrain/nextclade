@@ -21,6 +21,7 @@ export const parseAsync = action.async<void, string[], Error>('PARSE')
 export const analyzeAsync = action.async<{ seqName: string }, AnalysisResult, Error>('ANALYZE')
 
 export const exportCsvTrigger = action('exportCsvTrigger')
+export const exportTsvTrigger = action('exportTsvTrigger')
 export const exportJsonTrigger = action('exportJsonTrigger')
 export const exportAuspiceJsonV2Trigger = action('exportAuspiceJsonV2Trigger')
 

@@ -70,7 +70,7 @@ export function serializeResultsToAuspiceJsonV2(results: SequenceAnylysisState[]
   return JSON.stringify(auspiceData, null, 2)
 }
 
-export function serializeResultsToCsv(results: SequenceAnylysisState[]) {
+export function serializeResultsToCsv(results: SequenceAnylysisState[], delimiter: string) {
   const data = results.map(({ seqName, status, errors, result }) => {
     if (!result) {
       return { seqName, errors: errors.map((e) => `"${e}"`).join(',') }
@@ -118,5 +118,5 @@ export function serializeResultsToCsv(results: SequenceAnylysisState[]) {
     }
   })
 
-  return unparse(data, { delimiter: ';', header: true, newline: '\r\n', quotes: false })
+  return unparse(data, { delimiter, header: true, newline: '\r\n', quotes: false })
 }

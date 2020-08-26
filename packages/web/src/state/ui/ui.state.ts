@@ -1,5 +1,6 @@
 export enum ExportFormat {
   CSV = 'CSV',
+  TSV = 'TSV',
   JSON = 'JSON',
   AuspiceJSONv2 = 'AuspiceJSONv2',
 }
