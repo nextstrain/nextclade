@@ -8,7 +8,12 @@ import { BsBraces } from 'react-icons/bs'
 
 import type { State } from 'src/state/reducer'
 import { ExportFormat } from 'src/state/ui/ui.state'
-import { exportAuspiceJsonV2Trigger, exportCsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
+import {
+  exportAuspiceJsonV2Trigger,
+  exportCsvTrigger,
+  exportTsvTrigger,
+  exportJsonTrigger,
+} from 'src/state/algorithm/algorithm.actions'
 import { setExportFormat } from 'src/state/ui/ui.actions'
 import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
@@ -35,6 +40,7 @@ export interface ExportButtonProps {
   exportFormat: ExportFormat
   setExportFormat(exportType: ExportFormat): void
   exportCsvTrigger(_0: void): void
+  exportTsvTrigger(_0: void): void
   exportJsonTrigger(_0: void): void
   exportAuspiceJsonV2Trigger(_0: void): void
 }
@@ -51,6 +57,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = {
   exportCsvTrigger,
   exportJsonTrigger,
+  exportTsvTrigger,
   exportAuspiceJsonV2Trigger,
   setExportFormat,
 }
@@ -62,6 +69,7 @@ export function ExportButtonDisconnected({
   exportFormat,
   setExportFormat,
   exportCsvTrigger,
+  exportTsvTrigger,
   exportJsonTrigger,
   exportAuspiceJsonV2Trigger,
 }: ExportButtonProps) {
@@ -77,6 +85,11 @@ export function ExportButtonDisconnected({
   const handleCsvClick = () => {
     setExportFormat(ExportFormat.CSV)
     exportCsvTrigger()
+  }
+
+  const handleTsvClick = () => {
+    setExportFormat(ExportFormat.TSV)
+    exportTsvTrigger()
   }
 
   const handleAuspiceJsonClick = () => {
@@ -97,6 +110,10 @@ export function ExportButtonDisconnected({
         <DropdownItem onClick={handleCsvClick}>
           <ExportCSVIcon />
           {t('Export to CSV')}
+        </DropdownItem>
+        <DropdownItem onClick={handleTsvClick}>
+          <ExportCSVIcon />
+          {t('Export to TSV')}
         </DropdownItem>
         <DropdownItem onClick={handleJsonClick}>
           <ExportJSONIcon />
