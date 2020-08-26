@@ -133,7 +133,13 @@ export function* prepare(content?: File | string) {
 
 export function* parse(input: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
-  const { input: newInput, parsedSequences } = yield* parseSaga(input)
+  const result = yield* parseSaga(input)
+
+  if (!result) {
+    return undefined
+  }
+
+  const { input: newInput, parsedSequences } = result
 
   if (newInput !== input) {
     yield* put(setInput(newInput))
@@ -202,8 +208,13 @@ export function* finalizeTree(
   rootSeq: string,
 ) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
-  const { auspiceData: auspiceDataRaw } = yield* finalizeTreeSaga({ auspiceData, results, matches, rootSeq })
+  const result = yield* finalizeTreeSaga({ auspiceData, results, matches, rootSeq })
 
+  if (!result) {
+    return undefined
+  }
+
+  const { auspiceData: auspiceDataRaw } = result
   const auspiceDataPostprocessed = treePostProcess(auspiceDataRaw)
 
   return { auspiceDataPostprocessed }
@@ -227,24 +238,34 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
 export function* runAlgorithm(content?: File | string) {
   const { input, rootSeq } = yield* prepare(content)
 
-  const { parsedSequences } = yield* parse(input)
+  const parseResult = yield* parse(input)
+  if (!parseResult) {
+    return
+  }
 
+  const { parsedSequences } = parseResult
   const { analysisResultsWithoutClades } = yield* analyze(parsedSequences, rootSeq)
 
-  const { matches, privateMutationSets, auspiceData: auspiceDataRaw } =
-    yield* treeFindNearestNodes(analysisResultsWithoutClades, rootSeq) // prettier-ignore
+  const findResult = yield* treeFindNearestNodes(analysisResultsWithoutClades, rootSeq)
 
+  if (!findResult) {
+    return
+  }
+
+  const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = findResult
   const { analysisResultsWithClades } = yield* assignClades(analysisResultsWithoutClades, matches)
 
   const { results } = yield* runQC(analysisResultsWithClades, privateMutationSets)
 
-  const { auspiceDataPostprocessed } = yield* finalizeTree(auspiceDataRaw, results, matches, rootSeq)
+  const finalizeResult = yield* finalizeTree(auspiceDataRaw, results, matches, rootSeq)
+  if (!finalizeResult) {
+    return
+  }
 
+  const { auspiceDataPostprocessed } = finalizeResult
   yield* setAuspiceState(auspiceDataPostprocessed)
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
-
-  return { results, auspiceData: auspiceDataPostprocessed }
 }
 
 export function* exportCsv() {

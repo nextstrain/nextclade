@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga'
 import { call, cancelled, put } from 'redux-saga/effects'
 import { Action, AsyncActionCreators } from 'typescript-fsa'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 
 /**
  * Produces a saga that wraps an original worker saga, into a common usage
@@ -41,13 +42,11 @@ export default function fsaSaga<Params, Result>(
 
       // Worker suceeded. dispatch "done" action with results
       yield put(asyncActionCreators.done({ params, result }))
-    } catch (error) {
-      if (error instanceof Error) {
-        // Worker has failed. Dispatch "failed" action with the error.
-        yield put(asyncActionCreators.failed({ params, error: { error } }))
-      } else {
-        throw error
-      }
+    } catch (error_) {
+      // Worker failed. Print error and dispatch an action of type "failed" with error payload.
+      const error = sanitizeError(error_)
+      console.error(error)
+      yield put(asyncActionCreators.failed({ params, error }))
     } finally {
       // Worker was cancelled (e.g. manually or as a result of take*).
       // Dispatch "failed" action with the special error value.

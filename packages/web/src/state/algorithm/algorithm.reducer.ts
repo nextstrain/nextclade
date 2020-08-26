@@ -1,8 +1,10 @@
-import { current } from 'immer'
+import produce, { current } from 'immer'
 import { reducerWithInitialState } from 'typescript-fsa-reducers'
 
+import type { QCResult } from 'src/algorithms/QC/runQC'
+
 import immerCase from 'src/state/util/fsaImmerReducer'
-import { safeZip } from 'src/helpers/safeZip'
+import { mergeByWith } from 'src/helpers/mergeByWith'
 import { sortResults } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
 
@@ -25,7 +27,31 @@ import {
   setQcResults,
   setSeqNamesFilter,
 } from './algorithm.actions'
-import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
+import {
+  algorithmDefaultState,
+  AlgorithmGlobalStatus,
+  AlgorithmSequenceStatus,
+  CladeAssignmentResult,
+  SequenceAnalysisState,
+} from './algorithm.state'
+
+const haveSameSeqName = (x: { seqName: string }, y: { seqName: string }) => x.seqName === y.seqName
+
+const mergeCladesIntoResults = (result: SequenceAnalysisState, cladeResult: CladeAssignmentResult) =>
+  produce(result, (draft) => {
+    if (draft.result) {
+      draft.result.clade = cladeResult.clade
+    }
+    return draft
+  })
+
+const mergeQcIntoResults = (result: SequenceAnalysisState, qc: QCResult) =>
+  produce(result, (draft) => {
+    if (draft.result) {
+      draft.qc = qc
+    }
+    return draft
+  })
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .withHandling(
@@ -198,14 +224,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   // Assign clades
   .withHandling(
     immerCase(setClades, (draft, clades) => {
-      safeZip(draft.results, clades).forEach(([result, cladeAssignment]) => {
-        const { clade } = cladeAssignment
-
-        if (result.result) {
-          result.result.clade = clade
-        }
-      })
-
+      draft.results = mergeByWith(draft.results, clades, haveSameSeqName, mergeCladesIntoResults)
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
@@ -213,10 +232,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   // QC
   .withHandling(
     immerCase(setQcResults, (draft, qcResults) => {
-      safeZip(draft.results, qcResults).forEach(([result, qc]) => {
-        result.qc = qc
-      })
-
+      draft.results = mergeByWith(draft.results, qcResults, haveSameSeqName, mergeQcIntoResults)
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
