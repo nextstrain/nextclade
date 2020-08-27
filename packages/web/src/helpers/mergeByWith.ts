@@ -7,7 +7,7 @@ export const defaultMerger = <T, U>(t: T, u: U) => ({ ...t, ...u })
 
 /*
  * Merges two arrays of objects pairwise. The pairs are selected with a boolean predicate.
- * Each pair is merged using provided merger function.
+ * Each pair is merged using provided merger function (falls back to object spread if not provided)
  */
 export function mergeByWith<T, U, TU>(X: T[], Y: U[], predicate: Predicate<T, U>, merger?: Merger<T, U, TU>) {
   // For every `x` in the first array
@@ -20,11 +20,12 @@ export function mergeByWith<T, U, TU>(X: T[], Y: U[], predicate: Predicate<T, U>
       return x
     }
 
-    if (!merger) {
-      return { ...x, ...matchingY }
+    // If there's a match and a merger function is provided, merge with it
+    if (merger) {
+      return merger(x, matchingY)
     }
 
-    // // If there's a match, merge using provided merger function
-    return merger(x, matchingY)
+    // Otherwise fallback to simple object spread
+    return { ...x, ...matchingY }
   })
 }
