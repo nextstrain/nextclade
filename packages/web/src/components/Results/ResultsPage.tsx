@@ -12,6 +12,7 @@ import { ButtonTree } from './ButtonTree'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
 import { ResultsTable } from './ResultsTable'
+import { ButtonRerun } from './ButtonRerun'
 
 export const Container = styled.div`
   width: 100%;
@@ -68,6 +69,9 @@ export function ResultsPage() {
             <ResultsStatus />
           </HeaderCenter>
           <HeaderRight>
+            <HeaderRightContainer>
+              <ButtonRerun />
+            </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonFilter />
             </HeaderRightContainer>
