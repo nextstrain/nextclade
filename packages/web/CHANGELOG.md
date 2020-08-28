@@ -1,3 +1,12 @@
+## [0.3.7](https://github.com/neherlab/webclades/compare/0.3.6...0.3.7) (2020-08-28)
+
+
+### Features
+
+* add export to tsv ([0c4452a](https://github.com/neherlab/webclades/commit/0c4452ac231169b37e42b6439492ce87c3681e78))
+
+
+
 ## [0.3.6](https://github.com/neherlab/webclades/compare/0.3.5...0.3.6) (2020-08-18)
 
 
