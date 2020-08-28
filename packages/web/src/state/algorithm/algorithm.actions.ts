@@ -25,6 +25,7 @@ export const setQcResults = action<QCResult[]>('setQcResults')
 export const treeFinalizeAsync = action.async<FinalizeTreeParams, FinalizeTreeResults, Error>('treeFinalizeAsync')
 
 export const exportCsvTrigger = action('exportCsvTrigger')
+export const exportTsvTrigger = action('exportTsvTrigger')
 export const exportJsonTrigger = action('exportJsonTrigger')
 export const exportAuspiceJsonV2Trigger = action('exportAuspiceJsonV2Trigger')
 

@@ -27,7 +27,12 @@ import { safeZip } from 'src/helpers/safeZip'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { fsaSagaFromParams } from 'src/state/util/fsaSagaFromParams'
 import fsaSaga from 'src/state/util/fsaSaga'
-import { EXPORT_AUSPICE_JSON_V2_FILENAME, EXPORT_CSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
+import {
+  EXPORT_AUSPICE_JSON_V2_FILENAME,
+  EXPORT_CSV_FILENAME,
+  EXPORT_TSV_FILENAME,
+  EXPORT_JSON_FILENAME,
+} from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
 import { serializeResultsToAuspiceJsonV2, serializeResultsToCsv, serializeResultsToJson } from 'src/io/serializeResults'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
@@ -37,6 +42,7 @@ import {
   analyzeAsync,
   exportAuspiceJsonV2Trigger,
   exportCsvTrigger,
+  exportTsvTrigger,
   exportJsonTrigger,
   parseAsync,
   setAlgorithmGlobalStatus,
@@ -263,8 +269,14 @@ export function* runAlgorithm(content?: File | string) {
 
 export function* exportCsv() {
   const results = yield* select(selectResults)
-  const str = serializeResultsToCsv(results)
+  const str = serializeResultsToCsv(results, ';')
   saveFile(str, EXPORT_CSV_FILENAME)
+}
+
+export function* exportTsv() {
+  const results = (yield select(selectResults) as unknown) as ReturnType<typeof selectResults>
+  const str = serializeResultsToCsv(results, '\t')
+  saveFile(str, EXPORT_TSV_FILENAME)
 }
 
 export function* exportJson() {
@@ -282,6 +294,7 @@ export function* exportAuspiceJsonV2() {
 export default [
   takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
   takeEvery(exportCsvTrigger, exportCsv),
+  takeEvery(exportTsvTrigger, exportTsv),
   takeEvery(exportJsonTrigger, exportJson),
   takeEvery(exportAuspiceJsonV2Trigger, exportAuspiceJsonV2),
 ]
