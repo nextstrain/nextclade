@@ -5,13 +5,12 @@ import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export interface QCRulesConfigMixedSites {
   mixedSitesThreshold: number
-  scoreMax: number
 }
 
 export function ruleMixedSites(
   { nucleotideComposition }: AnalysisResult,
   _1: NucleotideSubstitution[],
-  { mixedSitesThreshold, scoreMax }: QCRulesConfigMixedSites,
+  { mixedSitesThreshold }: QCRulesConfigMixedSites,
 ) {
   const name = 'Mixed sites'
   const acronym = 'MS'
@@ -22,10 +21,8 @@ export function ruleMixedSites(
     .filter((d) => !goodBases.has(d))
     .reduce((a, b) => a + nucleotideComposition[b], 0)
 
-  let scoreRaw = 0
-  scoreRaw = 100 * (totalMixedSites / mixedSitesThreshold)
-
-  const score = clamp(scoreRaw, 0, scoreMax)
+  let score = 100 * (totalMixedSites / mixedSitesThreshold)
+  score = clamp(score, 0, Infinity)
 
   const status = getQCRuleStatus(score)
 

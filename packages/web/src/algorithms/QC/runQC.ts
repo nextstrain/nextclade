@@ -1,49 +1,13 @@
-import { merge } from 'lodash'
-
-import { DeepPartial } from 'ts-essentials'
-
 import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
 
+import type { QCRulesConfig } from './qcRulesConfig'
 import { QCRuleStatus } from './QCRuleStatus'
-import { ruleMissingData, QCRulesConfigMissingData, QCResultMissingData } from './ruleMissingData'
-import { ruleMixedSites, QCRulesConfigMixedSites, QCResultMixedSites } from './ruleMixedSites'
-import { QCResultSNPClusters, QCRulesConfigSNPClusters, ruleSnpClusters } from './ruleSnpClusters'
-import { rulePrivateMutations, QCRulesConfigPrivateMutations, QCResultPrivateMutations } from './rulePrivateMutations'
+import { ruleMissingData, QCResultMissingData } from './ruleMissingData'
+import { ruleMixedSites, QCResultMixedSites } from './ruleMixedSites'
+import { ruleSnpClusters, QCResultSNPClusters } from './ruleSnpClusters'
+import { rulePrivateMutations, QCResultPrivateMutations } from './rulePrivateMutations'
 
 export type Enableable<T> = T & { enabled: boolean }
-
-export interface QCRulesConfig {
-  privateMutations: Enableable<QCRulesConfigPrivateMutations>
-  missingData: Enableable<QCRulesConfigMissingData>
-  snpClusters: Enableable<QCRulesConfigSNPClusters>
-  mixedSites: Enableable<QCRulesConfigMixedSites>
-}
-
-const qcRulesConfigDefault: QCRulesConfig = {
-  privateMutations: {
-    enabled: true,
-    typical: 2, // expected number of mutations
-    cutoff: 5, // trigger QC warning if the typical value exceeds this value
-  },
-  missingData: {
-    enabled: true,
-    missingDataThreshold: 2700, // number of sites as N to trigger warning
-    scoreBias: 300, // 300 missing sites is considered the norm
-    scoreMax: Infinity,
-  },
-  snpClusters: {
-    enabled: true,
-    windowSize: 100, // window along the genome to look for a cluster
-    clusterCutOff: 4, // number of mutations within that window to trigger a cluster
-    scoreWeight: 50, // each cluster counts for 50
-    scoreMax: Infinity,
-  },
-  mixedSites: {
-    enabled: true,
-    mixedSitesThreshold: 10, // number of non-ACGTN sites to trigger warning
-    scoreMax: Infinity,
-  },
-} as const
 
 export interface QCResult {
   seqName: string
@@ -79,18 +43,15 @@ export function runOne<Conf extends Enableable<unknown>, Ret extends QCRuleResul
 export interface RunQCParams {
   analysisResult: AnalysisResultWithClade
   privateMutations: NucleotideSubstitution[]
-  qcRulesConfig: DeepPartial<QCRulesConfig>
+  qcRulesConfig: QCRulesConfig
 }
 
 export function runQC({ analysisResult, privateMutations, qcRulesConfig }: RunQCParams): QCResult {
-  // TODO: set initial state to default object in redux store instead of merging objects here every time
-  const configs: QCRulesConfig = merge(qcRulesConfigDefault, qcRulesConfig)
-
   const result = {
-    privateMutations: runOne(rulePrivateMutations, analysisResult, privateMutations, configs.privateMutations),
-    missingData: runOne(ruleMissingData, analysisResult, privateMutations, configs.missingData),
-    snpClusters: runOne(ruleSnpClusters, analysisResult, privateMutations, configs.snpClusters),
-    mixedSites: runOne(ruleMixedSites, analysisResult, privateMutations, configs.mixedSites),
+    privateMutations: runOne(rulePrivateMutations, analysisResult, privateMutations, qcRulesConfig.privateMutations),
+    missingData: runOne(ruleMissingData, analysisResult, privateMutations, qcRulesConfig.missingData),
+    snpClusters: runOne(ruleSnpClusters, analysisResult, privateMutations, qcRulesConfig.snpClusters),
+    mixedSites: runOne(ruleMixedSites, analysisResult, privateMutations, qcRulesConfig.mixedSites),
   }
 
   const score = Object.values(result).reduce((acc, r) => acc + (r?.score ?? 0), 0)

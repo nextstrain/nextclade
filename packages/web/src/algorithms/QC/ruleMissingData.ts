@@ -6,21 +6,20 @@ import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 export interface QCRulesConfigMissingData {
   missingDataThreshold: number
   scoreBias: number
-  scoreMax: number
 }
 
 export function ruleMissingData(
   { nucleotideComposition }: AnalysisResult,
   _1: NucleotideSubstitution[],
-  { missingDataThreshold, scoreBias, scoreMax }: QCRulesConfigMissingData,
+  { missingDataThreshold, scoreBias }: QCRulesConfigMissingData,
 ) {
   const name = 'Missing data'
   const acronym = 'N'
 
   const totalMissing = nucleotideComposition.N ?? 0
 
-  const scoreRaw = ((totalMissing - scoreBias) * 100) / missingDataThreshold
-  const score = clamp(scoreRaw, 0, scoreMax)
+  let score = ((totalMissing - scoreBias) * 100) / missingDataThreshold
+  score = clamp(score, 0, Infinity)
 
   const status = getQCRuleStatus(score)
 

@@ -12,7 +12,7 @@ import { algorithmRunTrigger } from 'src/state/algorithm/algorithm.actions'
 
 export const ButtonStyled = styled(Button)<ButtonProps>`
   width: 150px;
-  margin: 0 5px;
+  margin: 0 3px;
 `
 
 const mapStateToProps = (state: State) => ({

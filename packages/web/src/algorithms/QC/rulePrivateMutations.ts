@@ -1,5 +1,6 @@
 import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
 import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
+import { clamp } from 'lodash'
 
 export interface QCRulesConfigPrivateMutations {
   typical: number
@@ -18,7 +19,8 @@ export function rulePrivateMutations(
     Object.keys(privateMutations).length + Object.keys(insertions).length + Object.keys(deletions).length
 
   // the score hits 100 if the excess mutations equals the cutoff value
-  const score = (Math.max(0, totalNumberOfMutations - typical) * 100) / cutoff
+  let score = (Math.max(0, totalNumberOfMutations - typical) * 100) / cutoff
+  score = clamp(score, 0, Infinity)
 
   const status = getQCRuleStatus(score)
 

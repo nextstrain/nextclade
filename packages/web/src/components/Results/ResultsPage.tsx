@@ -4,6 +4,7 @@ import styled from 'styled-components'
 
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
+import { SettingsButton } from 'src/components/Settings/SettingsButton'
 
 import { ButtonBack } from './ButtonBack'
 import { ButtonFilter } from './ButtonFilter'
@@ -80,6 +81,9 @@ export function ResultsPage() {
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonTree />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <SettingsButton />
             </HeaderRightContainer>
           </HeaderRight>
         </Header>

@@ -53,7 +53,6 @@ export interface QCRulesConfigSNPClusters {
   windowSize: number
   clusterCutOff: number
   scoreWeight: number
-  scoreMax: number
 }
 
 export function ruleSnpClusters(
@@ -64,16 +63,14 @@ export function ruleSnpClusters(
   const name = 'SNP clusters'
   const acronym = 'SC'
 
-  const { scoreWeight, scoreMax } = config
+  const { scoreWeight } = config
 
   const snpClusters = findSNPClusters(data, privateMutations, config)
   const clusteredSNPs = processSNPClusters(snpClusters)
   const totalSNPs = clusteredSNPs.reduce((acc, { numberOfSNPs }) => acc + numberOfSNPs, 0)
 
-  let scoreRaw = 0
-  scoreRaw = snpClusters.length * scoreWeight
-
-  const score = clamp(scoreRaw, 0, scoreMax)
+  let score = snpClusters.length * scoreWeight
+  score = clamp(score, 0, Infinity)
 
   const status = getQCRuleStatus(score)
 

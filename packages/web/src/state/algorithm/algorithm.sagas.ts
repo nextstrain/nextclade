@@ -1,6 +1,5 @@
 import { zipWith, set, get } from 'lodash'
 
-import type { DeepPartial } from 'ts-essentials'
 import { push } from 'connected-next-router'
 import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
@@ -17,7 +16,7 @@ import type {
 } from 'src/algorithms/types'
 import type { LocateInTreeParams } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
-import type { QCRulesConfig, RunQCParams } from 'src/algorithms/QC/runQC'
+import type { RunQCParams } from 'src/algorithms/QC/runQC'
 import type { WorkerPools } from 'src/workers/types'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { RunQcThread } from 'src/workers/worker.runQc'
@@ -56,6 +55,7 @@ import auspiceDataOriginal from 'src/assets/data/ncov_small.json'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
+import { selectQcRulesConfig } from 'src/state/settings/settings.selectors'
 
 const parseSaga = fsaSagaFromParams(
   parseAsync,
@@ -178,15 +178,8 @@ export function* runQC(
   analysisResultsWithClades: AnalysisResultWithClade[],
   privateMutationSets: NucleotideSubstitution[][],
 ) {
-  // TODO: move this to user-controlled state
-  const qcRulesConfig: DeepPartial<QCRulesConfig> = {
-    privateMutations: {},
-    missingData: {},
-    snpClusters: {},
-    mixedSites: {},
-  }
-
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.qc))
+  const qcRulesConfig = yield* select(selectQcRulesConfig)
   const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
   const { poolRunQc } = yield* getContext<WorkerPools>('workerPools')
   const qcResults = yield* all(
