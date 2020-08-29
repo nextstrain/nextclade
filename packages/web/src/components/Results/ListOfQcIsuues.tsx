@@ -37,7 +37,7 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
 
   return (
     <>
-      <div>{t('QC score: {{score}}', { score: round(score) })}</div>
+      <div>{t('Aggregate QC score: {{score}}', { score: round(score) })}</div>
       <div>
         {t('QC issues:')}
         <ul>{issues}</ul>

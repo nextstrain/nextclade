@@ -57,7 +57,7 @@ export function SettingsButtonDisconnected({ resetQcRulesConfig }: SettingsButto
 
       <Modal centered isOpen={isOpen} toggle={toggleOpen} fade={false} size="lg">
         <ModalHeader toggle={close} tag="div">
-          {t('Settings')}
+          {t('QC Settings')}
         </ModalHeader>
         <ModalBody>
           <SettingsDialog />

@@ -16,12 +16,12 @@ export function formatQCSNPClusters<TFunction extends TFunctionInterface>(
 
   const { score, totalSNPs, status } = snpClusters
 
-  let message = t('SNP clusters found')
+  let message = t('Mutations clusters found')
   if (status === QCRuleStatus.bad) {
-    message = t('Too many SNP clusters found found')
+    message = t('Too many mutation clusters found found')
   }
 
-  return t('{{message}}. Seen {{nClusters}} SNP clusters with total of {{total}} mutations. QC score: {{score}}', {
+  return t('{{message}}. Seen {{nClusters}} mutation clusters with total of {{total}} mutations. QC score: {{score}}', {
     message,
     total: totalSNPs,
     nClusters: snpClusters.clusteredSNPs.length,

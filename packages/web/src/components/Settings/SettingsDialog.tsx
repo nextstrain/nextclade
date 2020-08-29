@@ -88,7 +88,7 @@ function SettingsDialogDisconnected({ qcRulesConfig, setQcRulesConfig }: Setting
 
                   <NumericField
                     identifier={'missing-data-score-bias'}
-                    label={t('Score bias')}
+                    label={t('Typical value')}
                     disabled={!missingData.enabled}
                     value={missingData.scoreBias}
                     min={0}
@@ -141,7 +141,7 @@ function SettingsDialogDisconnected({ qcRulesConfig, setQcRulesConfig }: Setting
               <CardHeader>
                 <CardHeaderWithToggle
                   identifier={'snp-clusters-toggle'}
-                  text={t('Rule: SNP clusters')}
+                  text={t('Rule: Clustered mutations')}
                   checked={snpClusters.enabled}
                   onValueChanged={(enabled: boolean) =>
                     updateQcConfig((config) => {
@@ -154,7 +154,7 @@ function SettingsDialogDisconnected({ qcRulesConfig, setQcRulesConfig }: Setting
                 <Form>
                   <NumericField
                     identifier={'snp-clusters-cluster-cut-off'}
-                    label={t('Cluster cut-off')}
+                    label={t('Number of mutations in window')}
                     disabled={!snpClusters.enabled}
                     value={snpClusters.clusterCutOff}
                     min={0}
@@ -182,7 +182,7 @@ function SettingsDialogDisconnected({ qcRulesConfig, setQcRulesConfig }: Setting
 
                   <NumericField
                     identifier={'snp-clusters-score-weight'}
-                    label={t('Window size')}
+                    label={t('Penalty per cluster')}
                     disabled={!snpClusters.enabled}
                     value={snpClusters.scoreWeight}
                     min={0}
