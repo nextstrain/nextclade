@@ -54,6 +54,6 @@ export function runQC({ analysisResult, privateMutations, qcRulesConfig }: RunQC
     mixedSites: runOne(ruleMixedSites, analysisResult, privateMutations, qcRulesConfig.mixedSites),
   }
 
-  const score = Object.values(result).reduce((acc, r) => acc + (r?.score ?? 0), 0)
+  const score = Object.values(result).reduce((acc, r) => acc + ((r?.score ?? 0) * (r?.score ?? 0)) / 100, 0)
   return { seqName: analysisResult.seqName, ...result, score }
 }

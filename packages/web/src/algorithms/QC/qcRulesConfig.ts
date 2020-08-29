@@ -15,7 +15,7 @@ export const qcRulesConfigDefault: QCRulesConfig = {
   privateMutations: {
     enabled: true,
     typical: 2, // expected number of mutations
-    cutoff: 5, // trigger QC warning if the typical value exceeds this value
+    cutoff: 8, // trigger QC warning if the typical value exceeds this value
   },
   missingData: {
     enabled: true,
