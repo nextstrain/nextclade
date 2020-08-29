@@ -18,7 +18,7 @@ export function formatQCMixedSites<TFunction extends TFunctionInterface>(
 
   let message = t('Mixed sites found')
   if (status === QCRuleStatus.bad) {
-    message = t('Too much mixed sites found')
+    message = t('Too many mixed sites found')
   }
 
   return t('{{message}}: Total mixed: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
