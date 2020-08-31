@@ -10,7 +10,7 @@ import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
-import { Circle, CircleProps } from 'src/components/Results/ColumnQCStatus'
+import { Circle, CircleProps } from 'src/components/Results/Circle'
 
 export const QcList = styled.ul`
   padding-left: 0.5rem;

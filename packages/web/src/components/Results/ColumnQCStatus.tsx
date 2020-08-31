@@ -1,6 +1,4 @@
 import React, { useState } from 'react'
-
-import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 
 import type { QCResult } from 'src/algorithms/QC/runQC'
@@ -9,51 +7,7 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
 import { notUndefined } from 'src/helpers/notUndefined'
-import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
-
-const CIRCLE_SZE_PX = 22
-
-const statusColors = {
-  [QCRuleStatus.good]: '#68b844',
-  [QCRuleStatus.mediocre]: '#e4902f',
-  [QCRuleStatus.bad]: '#da4e3c',
-}
-
-export const CircleBase = styled.div<{ color: string }>`
-  flex: 0;
-  margin: 5px auto;
-  width: ${CIRCLE_SZE_PX}px;
-  height: ${CIRCLE_SZE_PX}px;
-  min-width: ${CIRCLE_SZE_PX}px;
-  min-height: ${CIRCLE_SZE_PX}px;
-  border-radius: ${CIRCLE_SZE_PX / 2}px;
-  background-color: ${(props) => props.color};
-
-  box-shadow: ${(props) => props.theme.shadows.slight};
-`
-
-export const CircleText = styled.div`
-  color: ${(props) => props.theme.gray100};
-  font-size: 0.66rem;
-  text-align: center;
-  vertical-align: middle;
-  line-height: ${CIRCLE_SZE_PX}px;
-`
-
-export interface CircleProps {
-  status: QCRuleStatus
-  text: string
-}
-
-export function Circle({ status, text }: CircleProps) {
-  const color = statusColors[status]
-
-  return (
-    <CircleBase color={color}>
-      <CircleText>{text}</CircleText>
-    </CircleBase>
-  )
-}
+import { Circle } from 'src/components/Results/Circle'
 
 export interface ColumnQCStatusProps {
   sequence: AnalysisResultState

@@ -3,13 +3,13 @@ import { Row, Col } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
 import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
+import { formatRange } from 'src/helpers/formatRange'
 import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
 import { ListOfMutations } from 'src/components/Results/ListOfMutations'
 import { ListOfAminoacidChanges } from 'src/components/SequenceView/ListOfAminoacidChanges'
 import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
 import { ListOfInsertions } from './ListOfInsertions'
-import { formatRange } from 'src/helpers/formatRange'
 
 export interface ColumnNameTooltipProps {
   sequence: AnalysisResultState
