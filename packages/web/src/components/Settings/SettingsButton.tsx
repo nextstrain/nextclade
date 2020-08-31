@@ -34,7 +34,7 @@ export const SettingsButton = connect(mapStateToProps, mapDispatchToProps)(Setti
 
 export function SettingsButtonDisconnected({ resetQcRulesConfig }: SettingsButtonProps) {
   const { t } = useTranslation()
-  const [isOpen, setIsOpen] = useState<boolean>(true)
+  const [isOpen, setIsOpen] = useState<boolean>(false)
 
   function toggleOpen() {
     setIsOpen(!isOpen)
