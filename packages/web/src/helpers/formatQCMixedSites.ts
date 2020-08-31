@@ -21,7 +21,7 @@ export function formatQCMixedSites<TFunction extends TFunctionInterface>(
     message = t('Too many mixed sites found')
   }
 
-  return t('{{message}}: Total mixed: {{total}} ({{allowed}} allowed). QC score: {{score}}', {
+  return t('{{message}}: total {{total}} ({{allowed}} allowed). QC score: {{score}}', {
     message,
     total: totalMixedSites,
     allowed: mixedSitesThreshold,

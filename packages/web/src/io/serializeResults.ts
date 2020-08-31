@@ -5,6 +5,7 @@ import { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import { formatAAMutation, formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { formatInsertion } from 'src/helpers/formatInsertion'
+import { formatNonAcgtn } from 'src/helpers/formatNonAcgtn'
 
 export function prepareResultsJson(results: SequenceAnalysisState[]) {
   return results.map(({ seqName, status, errors, result, qc }) => {
@@ -26,7 +27,7 @@ export async function serializeResultsToCsv(results: SequenceAnalysisState[], de
       return { seqName, errors: errors.map((e) => `"${e}"`).join(',') }
     }
 
-    const datum = omit({ ...result, ...qc }, ['alignedQuery'])
+    const datum = omit({ ...result, qc }, ['alignedQuery'])
 
     return {
       ...datum,
@@ -35,6 +36,7 @@ export async function serializeResultsToCsv(results: SequenceAnalysisState[], de
       deletions: datum.deletions.map(({ start, length }) => formatRange(start, start + length)).join(','),
       insertions: datum.insertions.map((ins) => formatInsertion(ins)).join(','),
       missing: datum.missing.map(({ begin, end }) => formatRange(begin, end)).join(','),
+      nonACGTNs: datum.nonACGTNs.map((nacgtn) => formatNonAcgtn(nacgtn)).join(','),
     }
   })
 
