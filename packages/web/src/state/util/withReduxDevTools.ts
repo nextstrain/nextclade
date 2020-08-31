@@ -17,9 +17,9 @@ export function sanitizeParams(params?: DeepPartial<AlgorithmParams>) {
   }
 
   // @ts-ignore
-  const seq = params?.seq ? TOO_BIG : undefined
-  const rootSeq = params?.rootSeq ? TOO_BIG : undefined
-  const input = params?.input ? TOO_BIG : undefined
+  const seq = params.seq ? TOO_BIG : undefined
+  const rootSeq = params.rootSeq ? TOO_BIG : undefined
+  const input = params.input ? TOO_BIG : undefined
   return { ...params, seq, rootSeq, input }
 }
 
