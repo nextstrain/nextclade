@@ -19,6 +19,9 @@ export function selectStatus(state: State) {
   const statusGlobal = state.algorithm.status
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
 
+  // We want to report failure state even when a particular progress status does not have failure text
+  const hasFailures = state.algorithm.results.some(({ status }) => status === AlgorithmSequenceStatus.analysisFailed)
+
   const idlingPercent = 0
   const parseStartedPercent = 5
   const parseDonePercent = 10
@@ -129,5 +132,5 @@ export function selectStatus(state: State) {
       }
   }
 
-  return { percent, statusText, failureText }
+  return { percent, statusText, failureText, hasFailures }
 }
