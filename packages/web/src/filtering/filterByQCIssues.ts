@@ -1,21 +1,29 @@
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
+import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
-export interface FilterByQCIssuesParams {
-  hasNoQcIssuesFilter: boolean
-  hasQcIssuesFilter: boolean
-  hasErrorsFilter: boolean
+export interface QCFilters {
+  showGood: boolean
+  showMediocre: boolean
+  showBad: boolean
+  showErrors: boolean
 }
 
-export function filterByQCIssues({ hasNoQcIssuesFilter, hasQcIssuesFilter, hasErrorsFilter }: FilterByQCIssuesParams) {
-  return ({ result, qc, errors }: SequenceAnalysisState) => {
-    const hasErrors = errors.length > 0
+export function filterByQCIssues({ showGood, showMediocre, showBad, showErrors }: QCFilters) {
+  return ({ status, result, qc, errors }: SequenceAnalysisState) => {
+    const isError = status === AlgorithmSequenceStatus.analysisFailed
+    const isPending = !isError && (!result || !qc)
 
-    const hasIssues = qc && qc.score > 100
+    // The sequences which are still being processed are presumed to be 'good' until QC results come and prove otherwise
+    const isGood = isPending || qc?.status === QCRuleStatus.good
+    const isMediocre = qc?.status === QCRuleStatus.mediocre
+    const isBad = qc?.status === QCRuleStatus.bad
 
-    // The sequences which are still being processed (!result || !qc) are presumed to have no issues
-    // until QC results come and prove otherwise
-    const hasNoIssues = (!hasErrors && (!result || !qc)) || (qc && qc.score < 100)
+    const good = showGood && isGood
+    const mediocre = showMediocre && isMediocre
+    const bad = showBad && isBad
+    const err = showErrors && isError
 
-    return (hasNoQcIssuesFilter && hasNoIssues) || (hasQcIssuesFilter && hasIssues) || (hasErrorsFilter && hasErrors)
+    return err || good || mediocre || bad
   }
 }

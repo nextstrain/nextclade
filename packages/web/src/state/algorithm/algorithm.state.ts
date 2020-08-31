@@ -2,9 +2,10 @@ import type { Sorting } from 'src/helpers/sortResults'
 
 import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
 // import { getFakeResults } from 'src/assets/data/getFakeResults'
-import { AuspiceJsonV2 } from 'auspice'
-import { QCResult } from 'src/algorithms/QC/runQC'
-import { AnalysisResultWithoutClade } from 'src/algorithms/types'
+import type { AuspiceJsonV2 } from 'auspice'
+import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { AnalysisResultWithoutClade } from 'src/algorithms/types'
+import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
 export interface InputFile {
   name: string
@@ -51,14 +52,11 @@ export interface SequenceAnalysisState {
   errors: string[]
 }
 
-export interface ResultsFilters {
+export interface ResultsFilters extends QCFilters {
   seqNamesFilter?: string
   mutationsFilter?: string
   aaFilter?: string
   cladesFilter?: string
-  hasNoQcIssuesFilter: boolean
-  hasQcIssuesFilter: boolean
-  hasErrorsFilter: boolean
   sorting?: Sorting
 }
 
@@ -98,9 +96,10 @@ export const algorithmDefaultState: AlgorithmState = {
   tree: {},
   errors: [],
   filters: {
-    hasNoQcIssuesFilter: true,
-    hasQcIssuesFilter: true,
-    hasErrorsFilter: true,
+    showGood: true,
+    showMediocre: true,
+    showBad: true,
+    showErrors: true,
   },
   ...fakeState,
 }

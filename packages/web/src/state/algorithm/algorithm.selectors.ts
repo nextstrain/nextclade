@@ -12,8 +12,7 @@ export const selectResultsArray = (state: State) => state.algorithm.results.map(
 
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
-export const selectCanExport = (state: State): boolean =>
-  state.algorithm.results.length > 0 && state.algorithm.status === AlgorithmGlobalStatus.allDone
+export const selectCanExport = (state: State): boolean => state.algorithm.status === AlgorithmGlobalStatus.allDone
 
 export function selectStatus(state: State) {
   const statusGlobal = state.algorithm.status

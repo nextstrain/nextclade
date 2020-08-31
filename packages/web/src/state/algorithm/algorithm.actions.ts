@@ -33,8 +33,9 @@ export const setMutationsFilter = action<string | undefined>('setMutationsFilter
 export const setAAFilter = action<string | undefined>('setAAFilter')
 export const setCladesFilter = action<string | undefined>('setCladesFilter')
 
-export const setHasNoQcIssuesFilter = action<boolean>('setHasNoQcIssuesFilter')
-export const setHasQcIssuesFilter = action<boolean>('setHasQcIssuesFilter')
-export const setHasErrorsFilter = action<boolean>('setHasErrorsFilter')
+export const setShowGood = action<boolean>('setShowGood')
+export const setShowMediocre = action<boolean>('setShowMediocre')
+export const setShowBad = action<boolean>('setShowBad')
+export const setShowErrors = action<boolean>('setShowErrors')
 
 export const resultsSortTrigger = action<Sorting>('resultsSortTrigger')

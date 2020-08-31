@@ -17,15 +17,16 @@ import {
   setAAFilter,
   setAlgorithmGlobalStatus,
   setCladesFilter,
-  setHasErrorsFilter,
-  setHasNoQcIssuesFilter,
-  setHasQcIssuesFilter,
   setInput,
   setInputFile,
   setIsDirty,
   setMutationsFilter,
   setQcResults,
   setSeqNamesFilter,
+  setShowGood,
+  setShowErrors,
+  setShowBad,
+  setShowMediocre,
 } from './algorithm.actions'
 import {
   algorithmDefaultState,
@@ -91,22 +92,29 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   )
 
   .withHandling(
-    immerCase(setHasNoQcIssuesFilter, (draft, hasNoQcIssuesFilter) => {
-      draft.filters.hasNoQcIssuesFilter = hasNoQcIssuesFilter
+    immerCase(setShowGood, (draft, showGood) => {
+      draft.filters.showGood = showGood
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
-    immerCase(setHasQcIssuesFilter, (draft, hasQcIssuesFilter) => {
-      draft.filters.hasQcIssuesFilter = hasQcIssuesFilter
+    immerCase(setShowMediocre, (draft, showMediocre) => {
+      draft.filters.showMediocre = showMediocre
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
 
   .withHandling(
-    immerCase(setHasErrorsFilter, (draft, hasErrorsFilter) => {
-      draft.filters.hasErrorsFilter = hasErrorsFilter
+    immerCase(setShowBad, (draft, showBad) => {
+      draft.filters.showBad = showBad
+      draft.resultsFiltered = runFilters(current(draft))
+    }),
+  )
+
+  .withHandling(
+    immerCase(setShowErrors, (draft, showErrors) => {
+      draft.filters.showErrors = showErrors
       draft.resultsFiltered = runFilters(current(draft))
     }),
   )
