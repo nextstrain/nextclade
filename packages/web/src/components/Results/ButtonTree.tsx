@@ -54,7 +54,7 @@ export function ButtonTreeDisconnected({ showTree, hasTree }: ButtonTreeProps) {
   const text = t('Show Tree')
 
   return (
-    <ButtonStyled onClick={showTree} disabled={false} title={text}>
+    <ButtonStyled onClick={showTree} disabled={!hasTree} title={text}>
       <IconContainer>
         <TreeIcon />
       </IconContainer>
