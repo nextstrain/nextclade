@@ -103,7 +103,7 @@ export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
       onMouseLeave={() => setShowTooltip(false)}
     >
       {icons}
-      <Tooltip target={id} isOpen={showTooltip}>
+      <Tooltip wide target={id} isOpen={showTooltip}>
         <ListOfQcIssues qc={qc} />
       </Tooltip>
     </div>

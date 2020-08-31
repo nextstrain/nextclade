@@ -11,7 +11,6 @@ import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
 import { Circle, CircleProps } from 'src/components/Results/ColumnQCStatus'
-import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export const QcList = styled.ul`
   padding-left: 0.5rem;
