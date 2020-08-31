@@ -7,7 +7,7 @@ import i18n from 'src/i18n/i18n'
 import { UNKNOWN_VALUE } from 'src/constants'
 import type { AnalysisResult, AnalysisResultWithoutClade, Nucleotide } from 'src/algorithms/types'
 import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
-import { QCStatusType, NodeType } from 'src/algorithms/tree/enums'
+import { NodeType } from 'src/algorithms/tree/enums'
 import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
@@ -136,7 +136,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     qc,
   } = seq
 
-  const qcStatus = (qc?.score ?? Infinity) > 0 ? QCStatusType.Fail : QCStatusType.Pass
+  const qcStatus = qc?.status
   let qcFlags = 'Not available'
   if (qc) {
     const { privateMutations, snpClusters, mixedSites, missingData } = qc

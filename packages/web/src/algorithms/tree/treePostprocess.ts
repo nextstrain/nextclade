@@ -2,8 +2,9 @@
 import type { AuspiceJsonV2 } from 'auspice'
 
 import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
-import { NodeType, QCStatusType } from 'src/algorithms/tree/enums'
+import { NodeType } from 'src/algorithms/tree/enums'
 import { UNKNOWN_VALUE } from 'src/constants'
+import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export interface AddColoringScaleParams {
   auspiceData: AuspiceJsonV2
@@ -46,8 +47,9 @@ export function treePostProcess(auspiceData: AuspiceJsonV2) {
     title: 'QC Status',
     type: 'categorical',
     scale: [
-      [QCStatusType.Pass, '#417C52'],
-      [QCStatusType.Fail, '#CA738E'],
+      [QCRuleStatus.good, '#417C52'],
+      [QCRuleStatus.mediocre, '#cab44d'],
+      [QCRuleStatus.bad, '#CA738E'],
     ],
   })
 
