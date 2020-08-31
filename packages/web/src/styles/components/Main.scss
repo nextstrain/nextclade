@@ -3,7 +3,7 @@
 .landing-page-row {
   width: 100%;
   height: 100%;
-  max-width: 1200px;
+  max-width: 1300px;
   background-color: $body-bg;
 }
 
@@ -13,6 +13,7 @@
   .hero-content-right {
     color: #c4b945;
     margin-bottom: 20px;
+    padding: 0;
   }
 
   .hero-content-left {
@@ -29,6 +30,7 @@
     }
 
     &.hero-feature-box-top {
+      min-height: 120px;
       color: #3a6598;
     }
 

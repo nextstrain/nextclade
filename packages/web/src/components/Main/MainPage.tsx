@@ -128,17 +128,17 @@ export function MainDisconnected({
           </Row>
 
           <Row noGutters className="hero-content">
-            <Col xl={6} className="px-lg-4 hero-content-right">
+            <Col xl={6} className="hero-content-right">
               <Row noGutters className="mx-auto text-center">
                 <Col md={6} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-top">
+                  <div className="mx-1 hero-feature-box hero-feature-box-top">
                     <h3 className="hero-h3">{t('Simple')}</h3>
                     <div className="small">{t('No installation or setup - drop a file and see the results')}</div>
                   </div>
                 </Col>
 
                 <Col md={6} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-top">
+                  <div className="mx-1 hero-feature-box hero-feature-box-top">
                     <h3 className="hero-h3 text-center">{t('Private')}</h3>
                     <div className="small">{t('No remote processing - sequence data never leaves your computer')}</div>
                   </div>
@@ -146,8 +146,8 @@ export function MainDisconnected({
               </Row>
 
               <Row noGutters className="text-center my-4">
-                <Col md={4} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                <Col md={3} className="mb-2">
+                  <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
                     <h3 className="hero-h3">{t('Mutation Calling')}</h3>
                     <div className="small">
                       {t('Find differences of your sequences relative to the reference in standard numbering')}
@@ -155,17 +155,24 @@ export function MainDisconnected({
                   </div>
                 </Col>
 
-                <Col md={4} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                <Col md={3} className="mb-2">
+                  <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
                     <h3 className="hero-h3">{t('Clade Assignment')}</h3>
-                    <div className="small">{t('Find out in which Nextstrain clades your samples are from')}</div>
+                    <div className="small">{t('Find out which Nextstrain clades your samples are from')}</div>
                   </div>
                 </Col>
 
-                <Col md={4} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                <Col md={3} className="mb-2">
+                  <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
+                    <h3 className="hero-h3">{t('Phylogenetic placement')}</h3>
+                    <div className="small">{t('See where on the SARS-CoV-2 tree your sequences fall')}</div>
+                  </div>
+                </Col>
+
+                <Col md={3} className="mb-2">
+                  <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
                     <h3 className="hero-h3">{t('Quality Control')}</h3>
-                    <div className="small">{t("Check your data against Nextstrain's QC metrics")}</div>
+                    <div className="small">{t('Check your data against multiple QC metrics')}</div>
                   </div>
                 </Col>
               </Row>
