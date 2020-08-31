@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react'
+import React, { useState } from 'react'
 
-import styled, { useTheme } from 'styled-components'
+import styled from 'styled-components'
 import { useTranslation } from 'react-i18next'
 
 import type { QCResult } from 'src/algorithms/QC/runQC'
@@ -12,6 +12,12 @@ import { notUndefined } from 'src/helpers/notUndefined'
 import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 const CIRCLE_SZE_PX = 20
+
+const statusColors = {
+  [QCRuleStatus.good]: '#68b844',
+  [QCRuleStatus.mediocre]: '#e4902f',
+  [QCRuleStatus.bad]: '#da4e3c',
+}
 
 export const CircleBase = styled.div<{ color: string }>`
   flex: 0;
@@ -35,18 +41,6 @@ export interface CircleProps {
 }
 
 export function Circle({ status, text }: CircleProps) {
-  const { red, orange, green } = useTheme()
-
-  const statusColors = useMemo(
-    () =>
-      ({
-        [QCRuleStatus.good]: green,
-        [QCRuleStatus.mediocre]: orange,
-        [QCRuleStatus.bad]: red,
-      } as const),
-    [green, orange, red],
-  )
-
   const color = statusColors[status]
 
   return <CircleBase color={color}>{text}</CircleBase>
