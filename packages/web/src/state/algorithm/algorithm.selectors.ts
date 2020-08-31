@@ -20,11 +20,11 @@ export function selectStatus(state: State) {
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
 
   const idlingPercent = 0
-  const parseStartedPercent = 1
+  const parseStartedPercent = 5
   const parseDonePercent = 10
-  const treeBuildPercent = 50
-  const assignCladesPercent = 55
-  const treeFinalizationPercent = 90
+  const treeBuildPercent = 85
+  const assignCladesPercent = 90
+  const treeFinalizationPercent = 95
   const allDonePercent = 100
 
   let statusText = 'Idling'

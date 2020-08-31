@@ -33,7 +33,9 @@ export const ResultsStatus = connect(mapStateToProps, mapDispatchToProps)(Result
 export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
   const { percent, statusText, failureText } = status
 
-  let color = percent === 0 || percent === 100 ? 'transparent' : undefined
+  const show = !(percent === 0 || percent === 100)
+
+  let color: string | undefined
   if (failureText) {
     color = 'danger'
   }
@@ -52,7 +54,7 @@ export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
   return (
     <ResultsStatusWrapper>
       <div className="text-right">{text}</div>
-      <Progress color={color} value={percent} />
+      {show && <Progress color={color} value={percent} />}
     </ResultsStatusWrapper>
   )
 }
