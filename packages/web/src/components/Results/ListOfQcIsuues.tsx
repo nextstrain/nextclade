@@ -20,10 +20,10 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
   const { score, privateMutations, snpClusters, mixedSites, missingData } = qc
 
   const messages = [
-    formatQCPrivateMutations(t, privateMutations),
-    formatQCSNPClusters(t, snpClusters),
-    formatQCMixedSites(t, mixedSites),
     formatQCMissingData(t, missingData),
+    formatQCPrivateMutations(t, privateMutations),
+    formatQCMixedSites(t, mixedSites),
+    formatQCSNPClusters(t, snpClusters),
   ].filter(notUndefined)
 
   let issues: React.ReactNode
