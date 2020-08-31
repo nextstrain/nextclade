@@ -78,7 +78,7 @@ export function MainDisconnected({
 }: MainProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const hangleInputChage = useCallback(
+  const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setIsDirty(true)
       setInput(e.target.value)
@@ -216,7 +216,7 @@ export function MainDisconnected({
                           cols={80}
                           rows={20}
                           value={params.input}
-                          onChange={hangleInputChage}
+                          onChange={handleInputChange}
                           innerRef={inputRef}
                         />
                       </CardBody>
