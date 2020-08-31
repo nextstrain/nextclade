@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import type { State } from 'src/state/reducer'
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
-import { Button, Modal as ReactstrapModal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
+import { Button, ButtonProps, Modal as ReactstrapModal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
 import styled from 'styled-components'
 import { MdSettings } from 'react-icons/md'
 
@@ -11,9 +11,15 @@ import { resetQcRulesConfig } from 'src/state/settings/settings.actions'
 
 import { SettingsDialog } from 'src/components/Settings/SettingsDialog'
 
-export const ButtonStyled = styled(Button)`
-  width: 150px;
-  margin: 0 5px;
+export const ButtonStyled = styled(Button)<ButtonProps>`
+  margin: 2px 2px;
+  height: 38px;
+  width: 50px;
+  color: ${(props) => props.theme.gray700};
+
+  @media (min-width: 1200px) {
+    width: 150px;
+  }
 `
 
 export const Modal = styled(ReactstrapModal)`
@@ -48,11 +54,13 @@ export function SettingsButtonDisconnected({ resetQcRulesConfig }: SettingsButto
     setIsOpen(false)
   }
 
+  const text = t(`Settings`)
+
   return (
     <>
-      <ButtonStyled type="button" color="secondary" onClick={open} title={t(`Settings`)}>
-        <MdSettings className="mr-2" />
-        {t('Settings')}
+      <ButtonStyled type="button" onClick={open} title={text}>
+        <MdSettings className="mr-xl-2" />
+        <span className="d-none d-xl-inline">{text}</span>
       </ButtonStyled>
 
       <Modal centered isOpen={isOpen} toggle={toggleOpen} fade={false} size="lg">

@@ -17,15 +17,21 @@ const IconContainer = styled.span`
 
 export function TreeIconRaw() {
   const size = 20
-  const theme = { unselectedColor: '#fff' }
+  const theme = { unselectedColor: '#222' }
   return <RectangularTree theme={theme} width={size} />
 }
 
 const TreeIcon = memo(TreeIconRaw)
 
 export const ButtonStyled = styled(Button)<ButtonProps>`
-  width: 150px;
-  margin: 0 5px;
+  margin: 2px 2px;
+  height: 38px;
+  width: 50px;
+  color: ${(props) => props.theme.gray700};
+
+  @media (min-width: 1200px) {
+    width: 150px;
+  }
 `
 
 const mapStateToProps = (state: State) => ({
@@ -45,12 +51,14 @@ export interface ButtonTreeProps extends ButtonProps {
 
 export function ButtonTreeDisconnected({ showTree, hasTree }: ButtonTreeProps) {
   const { t } = useTranslation()
+  const text = t('Show Tree')
+
   return (
-    <ButtonStyled color="success" onClick={showTree} disabled={false}>
+    <ButtonStyled onClick={showTree} disabled={false} title={text}>
       <IconContainer>
         <TreeIcon />
       </IconContainer>
-      {t('Show Tree')}
+      <span className="d-none d-xl-inline">{text}</span>
     </ButtonStyled>
   )
 }

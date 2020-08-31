@@ -11,8 +11,23 @@ import { MdRefresh } from 'react-icons/md'
 import { algorithmRunTrigger } from 'src/state/algorithm/algorithm.actions'
 
 export const ButtonStyled = styled(Button)<ButtonProps>`
-  width: 150px;
-  margin: 0 3px;
+  margin: 2px 2px;
+  height: 38px;
+  width: 75px;
+  color: ${(props) => props.theme.gray100};
+
+  @media (min-width: 1200px) {
+    width: 120px;
+  }
+`
+export const Refresh = styled(MdRefresh)`
+  width: 22px;
+  height: 22px;
+  margin-bottom: 3px;
+
+  @media (min-width: 1200px) {
+    margin-right: 2px;
+  }
 `
 
 const mapStateToProps = (state: State) => ({
@@ -40,8 +55,8 @@ export function ButtonRerunDisconnected({ algorithmRunTrigger, canRun }: ButtonR
 
   return (
     <ButtonStyled color="success" onClick={rerun} disabled={!canRun} title={tooltip}>
-      <MdRefresh className="btn-icon" />
-      <span>{text}</span>
+      <Refresh />
+      <span className="d-none d-xl-inline">{text}</span>
     </ButtonStyled>
   )
 }
