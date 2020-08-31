@@ -11,7 +11,7 @@ import { resetQcRulesConfig } from 'src/state/settings/settings.actions'
 
 import { SettingsDialog } from 'src/components/Settings/SettingsDialog'
 
-export const ButtonStyled = styled(Button)<ButtonProps>`
+export const ButtonSettingsBase = styled(Button)<ButtonProps>`
   margin: 2px 2px;
   height: 38px;
   width: 50px;
@@ -20,6 +20,10 @@ export const ButtonStyled = styled(Button)<ButtonProps>`
   @media (min-width: 1200px) {
     width: 150px;
   }
+`
+
+export const ButtonOk = styled(Button)<ButtonProps>`
+  width: 100px;
 `
 
 export const Modal = styled(ReactstrapModal)`
@@ -59,10 +63,10 @@ export function SettingsButtonDisconnected({ resetQcRulesConfig }: SettingsButto
 
   return (
     <>
-      <ButtonStyled type="button" onClick={open} title={text}>
+      <ButtonSettingsBase type="button" onClick={open} title={text}>
         <MdSettings className="mr-xl-2" />
         <span className="d-none d-xl-inline">{text}</span>
-      </ButtonStyled>
+      </ButtonSettingsBase>
 
       <Modal centered isOpen={isOpen} toggle={toggleOpen} fade={false} size="lg">
         <ModalHeader toggle={close} tag="div">
@@ -79,9 +83,9 @@ export function SettingsButtonDisconnected({ resetQcRulesConfig }: SettingsButto
           </div>
 
           <div className="ml-auto">
-            <ButtonStyled type="button" color="success" onClick={close} title={closeText}>
+            <ButtonOk type="button" color="success" onClick={close} title={closeText}>
               {t('OK')}
-            </ButtonStyled>
+            </ButtonOk>
           </div>
         </ModalFooter>
       </Modal>
