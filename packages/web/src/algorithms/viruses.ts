@@ -3,15 +3,7 @@ import { A, T, G, C } from './nucleotides'
 
 export const VIRUSES: Record<string, Virus> = {
   'SARS-CoV-2': {
-    QCParams: {
-      knownClusters: new Set([28881, 28882, 28883]),
-      windowSize: 100, // window along the genome to look for a cluster
-      clusterCutOff: 6, // number of mutations within that window to trigger a cluster
-      divergenceThreshold: 20, // number of mutations to trigger divergence warning
-      mixedSitesThreshold: 10, // number of non-ACGTN sites to trigger warning
-      missingDataThreshold: 1000, // number of sites as N to trigger warning
-      minimalLength: 100, // minimal length to attempt alignment
-    },
+    minimalLength: 100,
     clades: {
       '19A': [
         { pos: 8782, nuc: C },
@@ -42,4 +34,4 @@ export const VIRUSES: Record<string, Virus> = {
       ],
     },
   },
-} as const
+}

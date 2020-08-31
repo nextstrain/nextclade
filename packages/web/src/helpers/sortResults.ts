@@ -1,7 +1,6 @@
 import { orderBy, partition } from 'lodash'
 
-import { formatClades } from 'src/helpers/formatClades'
-import { AnylysisStatus, SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmSequenceStatus, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 
 export enum SortCategory {
   id = 'id',
@@ -28,37 +27,35 @@ export function defaultNumber(direction: SortDirection) {
   return direction === SortDirection.asc ? Infinity : 0
 }
 
-export function getClade(res: SequenceAnylysisState) {
-  const clades = res.result?.clades
-  if (!clades) {
-    return '-'
-  }
-
-  const { cladeStr } = formatClades(clades)
-  return cladeStr
+export function getClade(res: SequenceAnalysisState) {
+  return res.result?.clade ?? '-'
 }
 
-export function sortById(results: SequenceAnylysisState[], direction: SortDirection) {
+export function sortById(results: SequenceAnalysisState[], direction: SortDirection) {
   return orderBy(results, (res) => res.id, direction)
 }
 
-export function sortByName(results: SequenceAnylysisState[], direction: SortDirection) {
+export function sortByName(results: SequenceAnalysisState[], direction: SortDirection) {
   return orderBy(results, (res) => res.seqName, direction)
 }
 
-export function sortByQcIssues(results: SequenceAnylysisState[], direction: SortDirection) {
+export function sortByQcIssues(results: SequenceAnalysisState[], direction: SortDirection) {
   // Only sort sequences that are ready (succeeded or failed). Put sequences still being analyzed sequences at the bottom.
-  const [ready, rest] = partition(
-    results,
-    (res) => res.status === AnylysisStatus.done || res.status === AnylysisStatus.failed,
+  const [ready, rest] = partition(results, (res) =>
+    [
+      AlgorithmSequenceStatus.analysisDone,
+      AlgorithmSequenceStatus.analysisFailed,
+      AlgorithmSequenceStatus.qcDone,
+      AlgorithmSequenceStatus.qcFailed,
+    ].includes(res.status),
   )
 
   const readySorted = orderBy(
     ready,
     (res) => {
       // Sort errored sequences as having very bad QC results
-      const errorScore = res.errors.length * 10e3
-      const qcScore = res.result?.diagnostics.flags.length ?? defaultNumber(direction)
+      const errorScore = res.errors.length * 1e9
+      const qcScore = res.qc?.score ?? defaultNumber(direction)
       return errorScore + qcScore
     },
     direction,
@@ -67,30 +64,30 @@ export function sortByQcIssues(results: SequenceAnylysisState[], direction: Sort
   return [...readySorted, ...rest]
 }
 
-export function sortByClade(results: SequenceAnylysisState[], direction: SortDirection) {
+export function sortByClade(results: SequenceAnalysisState[], direction: SortDirection) {
   // Only sort sequences that are succeeded. Put errored sequences and sequences still being analyzed at the bottom.
   const [succeeded, rest] = partition(results, (res) => !!res.result)
   const succeededSorted = orderBy(succeeded, getClade, direction)
   return [...succeededSorted, ...rest]
 }
 
-export function sortByMutations(results: SequenceAnylysisState[], direction: SortDirection) {
+export function sortByMutations(results: SequenceAnalysisState[], direction: SortDirection) {
   return orderBy(results, (res) => res.result?.totalMutations ?? defaultNumber(direction), direction)
 }
 
-export function sortByNonACGTNs(results: SequenceAnylysisState[], direction: SortDirection) {
+export function sortByNonACGTNs(results: SequenceAnalysisState[], direction: SortDirection) {
   return orderBy(results, (res) => res.result?.totalNonACGTNs ?? defaultNumber(direction), direction)
 }
 
-export function sortByMissing(results: SequenceAnylysisState[], direction: SortDirection) {
+export function sortByMissing(results: SequenceAnalysisState[], direction: SortDirection) {
   return orderBy(results, (res) => res.result?.totalMissing ?? defaultNumber(direction), direction)
 }
 
-export function sortByGaps(results: SequenceAnylysisState[], direction: SortDirection) {
+export function sortByGaps(results: SequenceAnalysisState[], direction: SortDirection) {
   return orderBy(results, (res) => res.result?.totalGaps ?? defaultNumber(direction), direction)
 }
 
-export function resultsSort(results: SequenceAnylysisState[], sorting: Sorting) {
+export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) {
   const { category, direction } = sorting
 
   switch (category) {

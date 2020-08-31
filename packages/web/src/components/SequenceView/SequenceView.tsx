@@ -3,8 +3,7 @@ import React from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import styled from 'styled-components'
 
-import type { AnalysisResult } from 'src/algorithms/types'
-
+import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
@@ -33,10 +32,8 @@ export const SequenceViewSVG = styled.svg`
 `
 
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
-  sequence: AnalysisResult
+  sequence: AnalysisResultState
 }
-
-export const SequenceView = withResizeDetector(SequenceViewUnsized)
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd } = sequence
@@ -105,3 +102,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
     </SequenceViewWrapper>
   )
 }
+
+export const SequenceViewUnmemoed = withResizeDetector(SequenceViewUnsized)
+
+export const SequenceView = React.memo(SequenceViewUnmemoed)

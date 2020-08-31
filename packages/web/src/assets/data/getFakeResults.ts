@@ -1,5 +1,5 @@
 /* eslint-disable sonarjs/no-duplicate-string */
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 
 export function getFakeResults() {
   if (process.env.NODE_ENV === 'production') {
@@ -10490,4 +10490,4 @@ const fakeResults = ([
       },
     },
   },
-] as unknown) as SequenceAnylysisState[]
+] as unknown) as SequenceAnalysisState[]

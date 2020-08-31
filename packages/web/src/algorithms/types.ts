@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
-import type { DeepReadonly } from 'ts-essentials'
 import type { Tagged } from 'src/helpers/types'
+import { QCResult } from 'src/algorithms/QC/runQC'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -45,7 +45,7 @@ export interface NucleotideRange extends Range {
 }
 
 export interface Substitutions {
-  [key: string]: DeepReadonly<NucleotideLocation[]>
+  [key: string]: NucleotideLocation[]
 }
 
 export interface CladeDataFlat {
@@ -67,22 +67,12 @@ export interface AminoacidSubstitution {
 }
 
 export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
-  aaSubstitutions: DeepReadonly<AminoacidSubstitution[]>
-}
-
-export interface QCParameters {
-  knownClusters: Set<number>
-  windowSize: number
-  clusterCutOff: number
-  divergenceThreshold: number
-  mixedSitesThreshold: number
-  missingDataThreshold: number
-  minimalLength: number
+  aaSubstitutions: AminoacidSubstitution[]
 }
 
 export interface Virus {
-  QCParams: QCParameters
-  clades: DeepReadonly<Substitutions>
+  minimalLength: 100
+  clades: Substitutions
 }
 
 export interface ClusteredSNPs {
@@ -91,37 +81,33 @@ export interface ClusteredSNPs {
   numberOfSNPs: number
 }
 
-export interface QCDiagnostics {
-  totalNumberOfMutations: number
-  totalMixedSites: number
-  clusteredSNPs: ClusteredSNPs[]
-}
-
-export interface QCResult {
-  flags: string[]
-  diagnostics: QCDiagnostics
-  nucleotideComposition: Record<string, number>
-}
-
-export interface AnalysisResult {
+export interface AnalysisResultWithoutClade {
   seqName: string
-  clades: DeepReadonly<Substitutions>
-  substitutions: DeepReadonly<SubstitutionsWithAminoacids[]>
+  substitutions: SubstitutionsWithAminoacids[]
   totalMutations: number
   aminoacidChanges: AminoacidSubstitution[]
   totalAminoacidChanges: number
-  insertions: DeepReadonly<NucleotideInsertion[]>
+  insertions: NucleotideInsertion[]
   totalInsertions: number
-  deletions: DeepReadonly<NucleotideDeletion[]>
+  deletions: NucleotideDeletion[]
   totalGaps: number
-  missing: DeepReadonly<NucleotideMissing[]>
+  missing: NucleotideMissing[]
   totalMissing: number
-  nonACGTNs: DeepReadonly<NucleotideRange[]>
+  nonACGTNs: NucleotideRange[]
   totalNonACGTNs: number
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number
-  diagnostics: DeepReadonly<QCResult>
+  alignedQuery: string
+  nucleotideComposition: Record<string, number>
+}
+
+export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {
+  clade: string
+}
+
+export interface AnalysisResult extends AnalysisResultWithClade {
+  qc?: QCResult
 }
 
 export interface ParseResult {

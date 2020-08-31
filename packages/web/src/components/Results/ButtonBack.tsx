@@ -10,9 +10,14 @@ import { State } from 'src/state/reducer'
 import styled from 'styled-components'
 
 export const ButtonStyled = styled(Button)`
-  width: 140px;
+  margin: 2px 2px;
+  height: 38px;
+  width: 50px;
+  color: ${(props) => props.theme.gray700};
 
-  margin: 0;
+  @media (min-width: 1200px) {
+    width: 140px;
+  }
 `
 
 const mapStateToProps = (state: State) => ({})
@@ -29,11 +34,12 @@ export interface ButtonBackProps extends ButtonProps {
 
 export function ButtonBackDisconnected({ onClick, goBack }: ButtonBackProps) {
   const { t } = useTranslation()
+  const text = t('Back')
 
   return (
-    <ButtonStyled color="secondary" onClick={goBack}>
+    <ButtonStyled color="secondary" onClick={goBack} title={text}>
       <FaCaretLeft />
-      {t('Back')}
+      <span className="d-none d-xl-inline">{text}</span>
     </ButtonStyled>
   )
 }

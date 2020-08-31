@@ -1,16 +1,47 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { composeWithDevTools } from 'redux-devtools-extension'
 import type { Action } from 'typescript-fsa'
+import type { DeepPartial, StrictOmit } from 'ts-essentials'
+import { isType } from 'typescript-fsa'
+import { composeWithDevTools } from 'redux-devtools-extension'
 
 import type { State } from 'src/state/reducer'
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import type { AlgorithmParams, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
-import { StrictOmit } from 'ts-essentials'
+import { analyzeAsync, setInput, treeBuildAsync } from 'src/state/algorithm/algorithm.actions'
 
 const TOO_BIG = '<<TOO_BIG>>' as const
 
-function sanitizeResults(results: SequenceAnylysisState[] = []) {
-  return results && results.length > 20 ? TOO_BIG : results
+export function sanitizeParams(params?: DeepPartial<AlgorithmParams>) {
+  if (!params) {
+    return undefined
+  }
+
+  // @ts-ignore
+  const seq = params.seq ? TOO_BIG : undefined
+  const rootSeq = params.rootSeq ? TOO_BIG : undefined
+  const input = params.input ? TOO_BIG : undefined
+  return { ...params, seq, rootSeq, input }
+}
+
+export function sanitizeResult(result?: { alignedQuery: string }) {
+  if (!result) {
+    return undefined
+  }
+
+  const alignedQuery = result.alignedQuery ? TOO_BIG : undefined
+
+  // @ts-ignore
+  return { ...result, alignedQuery }
+}
+
+export function sanitizeResults(results: SequenceAnalysisState[] = []) {
+  let newResults = results
+  if (results && results.length > 20) {
+    return TOO_BIG
+  }
+  // @ts-ignore
+  newResults = newResults?.map((result) => ({ ...result, result: sanitizeResult(result.result) }))
+  return newResults
 }
 
 export interface AuspiceTreeStateLite
@@ -50,7 +81,66 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
           entropy: sanitizeEntropy(action.controls),
         }
       }
-      return action
+
+      if (isType(action, setInput)) {
+        return {
+          ...action,
+          payload: TOO_BIG,
+        }
+      }
+
+      if (isType(action, analyzeAsync.started)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            seq: TOO_BIG,
+            rootSeq: TOO_BIG,
+          },
+        }
+      }
+
+      if (isType(action, treeBuildAsync.done)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            params: {
+              // @ts-ignore
+              ...sanitizeParams(action.payload.params),
+              // @ts-ignore
+              analysisResults: sanitizeResults(action.payload.params.analysisResults),
+              // @ts-ignore
+              auspiceData: sanitizeTree(action.payload.params.auspiceData),
+            },
+          },
+        }
+      }
+
+      if (isType(action, analyzeAsync.done)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            params: {
+              ...action.payload.params,
+              seq: TOO_BIG,
+              rootSeq: TOO_BIG,
+            },
+            result: sanitizeResult(action.payload.result),
+          },
+        }
+      }
+
+      return {
+        ...action,
+        payload: {
+          // @ts-ignore
+          params: sanitizeParams(action.payload?.params),
+          // @ts-ignore
+          result: sanitizeResult(action.payload?.result),
+        },
+      }
     },
 
     stateSanitizer(state: State) {
@@ -58,6 +148,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
         ...state,
         algorithm: {
           ...state.algorithm,
+          params: sanitizeParams(state.algorithm.params),
           results: sanitizeResults(state.algorithm.results),
           resultsFiltered: sanitizeResults(state.algorithm.results),
         },

@@ -26,13 +26,14 @@ import withSvg from './withSvg'
 import withImages from './withImages'
 import withThreads from './withThreads'
 import withIgnore from './withIgnore'
-// import withoutMinification from './withoutMinification'
+import withoutMinification from './withoutMinification'
+import withFriendlyChunkNames from './withFriendlyChunkNames'
 
 const {
   // BABEL_ENV,
   // NODE_ENV,
   // ANALYZE,
-  // PROFILE,
+  PROFILE,
   PRODUCTION,
   ENABLE_SOURCE_MAPS,
   ENABLE_ESLINT,
@@ -163,7 +164,8 @@ const config = withPlugins(
     [withTypeChecking],
     [withTranspileModules],
     PRODUCTION && [withStaticComprression],
-    // [withoutMinification],
+    PROFILE && [withoutMinification],
+    [withFriendlyChunkNames],
   ].filter(Boolean),
   nextConfig,
 )

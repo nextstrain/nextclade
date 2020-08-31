@@ -1,6 +1,8 @@
-import { get } from 'lodash'
+import { get, isEmpty } from 'lodash'
 
 import type { State } from 'src/state/reducer'
+
+export const selectHasTree = (state: State) => !isEmpty(state.tree)
 
 export function selectFilters(state: State) {
   return state?.controls?.filters
