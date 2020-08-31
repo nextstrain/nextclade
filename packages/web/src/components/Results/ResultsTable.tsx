@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 
-import { sum, clamp } from 'lodash'
+import { sum } from 'lodash'
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
@@ -8,6 +8,7 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
 
+import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 import type { State } from 'src/state/reducer'
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { Sorting } from 'src/helpers/sortResults'
@@ -125,8 +126,8 @@ export const TableRowPending = styled(TableRow)`
   color: #818181;
 `
 
-export const TableRowError = styled(TableRow)`
-  background-color: #f5cbc6;
+export const TableRowError = styled(TableRow)<{ even?: boolean }>`
+  background-color: #f0a9a9;
   color: #962d26;
 `
 
@@ -178,12 +179,12 @@ function TableRowComponent({ index, style, data }: RowProps) {
   }
 
   const even = index % 2 === 0
-  let color = even ? '#e2e2e2' : '#fcfcfc'
+  let color = even ? '#ededed' : '#fcfcfc'
   if (highlightRowsWithIssues && qc) {
-    const scoreNormal = clamp((qc.score - 70) / 100, 0, 1)
-    if (scoreNormal > 0) {
-      color = mix(scoreNormal, '#ff0000', '#ffff00')
-      color = mix(0.7, '#fff', color)
+    if (qc.status === QCRuleStatus.mediocre) {
+      color = mix(0.5, color, '#ffeeaa')
+    } else if (qc.status === QCRuleStatus.bad) {
+      color = mix(0.5, color, '#eeaaaa')
     }
   }
 
