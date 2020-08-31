@@ -60,9 +60,6 @@ export function ruleSnpClusters(
   privateMutations: NucleotideSubstitution[],
   config: QCRulesConfigSNPClusters,
 ) {
-  const name = 'SNP clusters'
-  const acronym = 'SC'
-
   const { scoreWeight } = config
 
   const snpClusters = findSNPClusters(data, privateMutations, config)
@@ -74,7 +71,7 @@ export function ruleSnpClusters(
 
   const status = getQCRuleStatus(score)
 
-  return { name, acronym, score, totalSNPs, clusteredSNPs, status }
+  return { score, totalSNPs, clusteredSNPs, status }
 }
 
 export type QCResultSNPClusters = ReturnType<typeof ruleSnpClusters>

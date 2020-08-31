@@ -27,7 +27,6 @@ export const treeFinalizeAsync = action.async<FinalizeTreeParams, FinalizeTreeRe
 export const exportCsvTrigger = action('exportCsvTrigger')
 export const exportTsvTrigger = action('exportTsvTrigger')
 export const exportJsonTrigger = action('exportJsonTrigger')
-export const exportAuspiceJsonV2Trigger = action('exportAuspiceJsonV2Trigger')
 
 export const setSeqNamesFilter = action<string | undefined>('setSeqNamesFilter')
 export const setMutationsFilter = action<string | undefined>('setMutationsFilter')

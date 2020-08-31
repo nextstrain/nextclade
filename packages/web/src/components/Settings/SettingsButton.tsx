@@ -54,7 +54,8 @@ export function SettingsButtonDisconnected({ resetQcRulesConfig }: SettingsButto
     setIsOpen(false)
   }
 
-  const text = t(`Settings`)
+  const text = t('Settings')
+  const closeText = t('Close this window')
 
   return (
     <>
@@ -78,7 +79,7 @@ export function SettingsButtonDisconnected({ resetQcRulesConfig }: SettingsButto
           </div>
 
           <div className="ml-auto">
-            <ButtonStyled type="button" color="success" onClick={close} title={t('Close this window')}>
+            <ButtonStyled type="button" color="success" onClick={close} title={closeText}>
               {t('OK')}
             </ButtonStyled>
           </div>

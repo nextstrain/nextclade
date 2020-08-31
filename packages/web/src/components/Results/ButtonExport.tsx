@@ -15,12 +15,7 @@ import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
 import { ExportFormat } from 'src/state/ui/ui.state'
-import {
-  exportAuspiceJsonV2Trigger,
-  exportCsvTrigger,
-  exportTsvTrigger,
-  exportJsonTrigger,
-} from 'src/state/algorithm/algorithm.actions'
+import { exportCsvTrigger, exportTsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
 import { setExportFormat } from 'src/state/ui/ui.actions'
 import { selectCanExport } from 'src/state/algorithm/algorithm.selectors'
 
@@ -61,7 +56,6 @@ export interface ExportButtonProps {
   exportCsvTrigger(_0: void): void
   exportTsvTrigger(_0: void): void
   exportJsonTrigger(_0: void): void
-  exportAuspiceJsonV2Trigger(_0: void): void
 }
 
 const mapStateToProps = (state: State) => ({
@@ -73,7 +67,6 @@ const mapDispatchToProps = {
   exportCsvTrigger,
   exportJsonTrigger,
   exportTsvTrigger,
-  exportAuspiceJsonV2Trigger,
   setExportFormat,
 }
 
@@ -86,7 +79,6 @@ export function ExportButtonDisconnected({
   exportCsvTrigger,
   exportTsvTrigger,
   exportJsonTrigger,
-  exportAuspiceJsonV2Trigger,
 }: ExportButtonProps) {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -105,11 +97,6 @@ export function ExportButtonDisconnected({
   const handleTsvClick = () => {
     setExportFormat(ExportFormat.TSV)
     exportTsvTrigger()
-  }
-
-  const handleAuspiceJsonClick = () => {
-    setExportFormat(ExportFormat.Auspice)
-    exportAuspiceJsonV2Trigger()
   }
 
   const handleButtonClick = exportFormat === ExportFormat.CSV ? handleCsvClick : handleJsonClick
@@ -135,10 +122,6 @@ export function ExportButtonDisconnected({
         <DropdownItem onClick={handleJsonClick}>
           <ExportJSONIcon />
           {t('Export to JSON')}
-        </DropdownItem>
-        <DropdownItem onClick={handleAuspiceJsonClick}>
-          <ExportJSONIcon />
-          {t('Export to Auspice')}
         </DropdownItem>
       </DropdownMenu>
     </ButtonDropdown>

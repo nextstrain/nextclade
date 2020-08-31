@@ -1,7 +1,7 @@
 import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
 
 import type { QCRulesConfig } from './qcRulesConfig'
-import { QCRuleStatus } from './QCRuleStatus'
+import { getQCRuleStatus, QCRuleStatus } from './QCRuleStatus'
 import { ruleMissingData, QCResultMissingData } from './ruleMissingData'
 import { ruleMixedSites, QCResultMixedSites } from './ruleMixedSites'
 import { ruleSnpClusters, QCResultSNPClusters } from './ruleSnpClusters'
@@ -12,6 +12,7 @@ export type Enableable<T> = T & { enabled: boolean }
 export interface QCResult {
   seqName: string
   score: number
+  status: QCRuleStatus
   privateMutations?: QCResultPrivateMutations
   missingData?: QCResultMissingData
   snpClusters?: QCResultSNPClusters
@@ -21,8 +22,6 @@ export interface QCResult {
 export interface QCRuleResult {
   score: number
   status: QCRuleStatus
-  name: string
-  acronym: string
 }
 
 export type Rule<Conf, Ret> = (
@@ -55,5 +54,8 @@ export function runQC({ analysisResult, privateMutations, qcRulesConfig }: RunQC
   }
 
   const score = Object.values(result).reduce((acc, r) => acc + ((r?.score ?? 0) * (r?.score ?? 0)) / 100, 0)
-  return { seqName: analysisResult.seqName, ...result, score }
+
+  const status = getQCRuleStatus(score)
+
+  return { seqName: analysisResult.seqName, ...result, score, status }
 }

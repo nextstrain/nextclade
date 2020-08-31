@@ -77,11 +77,20 @@ export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
 
   const { missingData, privateMutations, mixedSites, snpClusters } = qc
 
-  const icons = [missingData, mixedSites, privateMutations, snpClusters]
-    .filter(notUndefined)
-    .map(({ status, acronym }, i) => {
-      return <Circle key={i} status={status} text={acronym} /> // eslint-disable-line react/no-array-index-key
-    })
+  const rules = [
+    { value: missingData, name: 'MD' },
+    { value: mixedSites, name: 'MS' },
+    { value: privateMutations, name: 'PM' },
+    { value: snpClusters, name: 'MC' },
+  ].filter((value) => notUndefined(value))
+
+  const icons = rules.map(({ name, value }, i) => {
+    if (!value) {
+      return undefined
+    }
+
+    return <Circle key={i} status={value?.status} text={name} /> // eslint-disable-line react/no-array-index-key
+  })
 
   return (
     <div

@@ -2,7 +2,6 @@ export enum ExportFormat {
   CSV = 'CSV',
   TSV = 'TSV',
   JSON = 'JSON',
-  Auspice = 'Auspice',
 }
 
 export interface UiState {
