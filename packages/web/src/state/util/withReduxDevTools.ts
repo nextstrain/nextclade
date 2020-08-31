@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import type { Action } from 'typescript-fsa'
-import type { StrictOmit } from 'ts-essentials'
+import type { DeepPartial, StrictOmit } from 'ts-essentials'
 import { isType } from 'typescript-fsa'
 import { composeWithDevTools } from 'redux-devtools-extension'
 
@@ -11,7 +11,7 @@ import { analyzeAsync, setInput, treeBuildAsync } from 'src/state/algorithm/algo
 
 const TOO_BIG = '<<TOO_BIG>>' as const
 
-export function sanitizeParams(params: AlgorithmParams) {
+export function sanitizeParams(params?: DeepPartial<AlgorithmParams>) {
   if (!params) {
     return undefined
   }

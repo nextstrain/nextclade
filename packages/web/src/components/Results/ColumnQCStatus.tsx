@@ -89,7 +89,7 @@ export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
       return undefined
     }
 
-    return <Circle key={i} status={value?.status} text={name} /> // eslint-disable-line react/no-array-index-key
+    return <Circle key={i} status={value.status} text={name} /> // eslint-disable-line react/no-array-index-key
   })
 
   return (
