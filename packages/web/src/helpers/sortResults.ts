@@ -55,7 +55,7 @@ export function sortByQcIssues(results: SequenceAnalysisState[], direction: Sort
     (res) => {
       // Sort errored sequences as having very bad QC results
       const errorScore = res.errors.length * 1e9
-      const qcScore = res.qc?.score ?? defaultNumber(direction)
+      const qcScore = res.qc?.overallScore ?? defaultNumber(direction)
       return errorScore + qcScore
     },
     direction,

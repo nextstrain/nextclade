@@ -136,7 +136,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     qc,
   } = seq
 
-  const qcStatus = qc?.status
+  const qcStatus = qc?.overallStatus
   let qcFlags = 'Not available'
   if (qc) {
     const { privateMutations, snpClusters, mixedSites, missingData } = qc

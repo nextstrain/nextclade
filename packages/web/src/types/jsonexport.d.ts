@@ -14,7 +14,7 @@ declare module 'jsonexport' {
     rename?: string[] // Array Used to set a custom header text, defaults to [] example ['Last Name', 'Name']
 
     // Post-process headers after they are calculated with delimiters, example mapHeaders: (header) => header.replace(/foo\./, '')
-    mapHeaders?: (string) => string
+    mapHeaders?: (header: string) => string
 
     // Change the file row delimiter
     //   Defaults to , (cvs format).

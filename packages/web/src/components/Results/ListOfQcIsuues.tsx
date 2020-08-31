@@ -17,7 +17,7 @@ export interface ListOfQcIssuesProps {
 export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
   const { t } = useTranslation()
 
-  const { score, privateMutations, snpClusters, mixedSites, missingData } = qc
+  const { overallScore, privateMutations, snpClusters, mixedSites, missingData } = qc
 
   const messages = [
     formatQCMissingData(t, missingData),
@@ -37,7 +37,7 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
 
   return (
     <>
-      <div>{t('Aggregate QC score: {{score}}', { score: round(score) })}</div>
+      <div>{t('Aggregate QC score: {{score}}', { score: round(overallScore) })}</div>
       <div>
         {t('QC issues:')}
         <ul>{issues}</ul>

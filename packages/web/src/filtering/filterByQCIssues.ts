@@ -15,9 +15,9 @@ export function filterByQCIssues({ showGood, showMediocre, showBad, showErrors }
     const isPending = !isError && (!result || !qc)
 
     // The sequences which are still being processed are presumed to be 'good' until QC results come and prove otherwise
-    const isGood = isPending || qc?.status === QCRuleStatus.good
-    const isMediocre = qc?.status === QCRuleStatus.mediocre
-    const isBad = qc?.status === QCRuleStatus.bad
+    const isGood = isPending || qc?.overallStatus === QCRuleStatus.good
+    const isMediocre = qc?.overallStatus === QCRuleStatus.mediocre
+    const isBad = qc?.overallStatus === QCRuleStatus.bad
 
     const good = showGood && isGood
     const mediocre = showMediocre && isMediocre

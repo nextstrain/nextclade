@@ -181,9 +181,9 @@ function TableRowComponent({ index, style, data }: RowProps) {
   const even = index % 2 === 0
   let color = even ? '#ededed' : '#fcfcfc'
   if (highlightRowsWithIssues && qc) {
-    if (qc.status === QCRuleStatus.mediocre) {
+    if (qc.overallStatus === QCRuleStatus.mediocre) {
       color = mix(0.5, color, '#ffeeaa')
-    } else if (qc.status === QCRuleStatus.bad) {
+    } else if (qc.overallStatus === QCRuleStatus.bad) {
       color = mix(0.5, color, '#eeaaaa')
     }
   }

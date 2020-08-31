@@ -11,8 +11,8 @@ export type Enableable<T> = T & { enabled: boolean }
 
 export interface QCResult {
   seqName: string
-  score: number
-  status: QCRuleStatus
+  overallScore: number
+  overallStatus: QCRuleStatus
   privateMutations?: QCResultPrivateMutations
   missingData?: QCResultMissingData
   snpClusters?: QCResultSNPClusters
@@ -57,5 +57,5 @@ export function runQC({ analysisResult, privateMutations, qcRulesConfig }: RunQC
 
   const status = getQCRuleStatus(score)
 
-  return { seqName: analysisResult.seqName, ...result, score, status }
+  return { seqName: analysisResult.seqName, ...result, overallScore: score, overallStatus: status }
 }
