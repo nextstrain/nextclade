@@ -17,6 +17,6 @@ export function selectTraitValueCount(state: State, trait: string, value: string
   // NOTE(perf): state?.tree?.totalStateCounts could have been used here to avoid duplicate work,
   // but it currently only counts the default traits and no custom ones (also not clades)
   const nodes = selectNodes(state)
-  const selectedNodes = nodes?.filter((node) => get(node?.node_attrs, trait)?.value === value) // eslint-disable-line camelcase
+  const selectedNodes = nodes?.filter((node) => get(node?.node_attrs, trait)?.value === value)
   return selectedNodes?.length ?? 0
 }

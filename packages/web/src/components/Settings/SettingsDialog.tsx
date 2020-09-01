@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next'
 import { CardHeaderWithToggle } from 'src/components/Common/CardHeaderWithToggle'
 import { NumericField } from '../Common/NumericField'
 
+export type QCConfigUpdater = (config: QCRulesConfig) => void
+
 export const Card = styled(ReactstrapCard)`
   margin: 5px 5px;
   min-height: 230px;
@@ -43,9 +45,8 @@ function SettingsDialogDisconnected({ qcRulesConfig, setQcRulesConfig }: Setting
 
   const { missingData, privateMutations, mixedSites, snpClusters } = qcRulesConfig
 
-  type Updater = (config: QCRulesConfig) => void
   const updateQcConfig = useCallback(
-    (f: Updater) => {
+    (f: QCConfigUpdater) => {
       const newQcRulesConfig = produce(qcRulesConfig, f)
       setQcRulesConfig(newQcRulesConfig)
     },
