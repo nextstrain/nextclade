@@ -54,6 +54,7 @@
     "test:debug": "node --inspect-brk node_modules/.bin/jest --config=config/jest/jest.config.js --runInBand --watch",
     "test:coverage": "yarn test:nowatch --coverage",
     "i18n": "babel-node --extensions \".ts\" node_modules/.bin/i18next -c config/i18next/i18next.config.js",
+    "i18n:fix": "babel-node --extensions \".ts\" tools/fixLocales.ts",
     "run:node": "cross-env NODE_ENV=development BABEL_ENV=development babel-node --extensions '.ts'",
     "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --extensions '.ts'",
     "monkey-patch": "bash tools/auspice-monkey-patch.sh && bash tools/patch-next.sh",
