@@ -21,6 +21,12 @@ export const CircleBase = styled.div<{ color: string }>`
   background-color: ${(props) => props.color};
 
   box-shadow: ${(props) => props.theme.shadows.slight};
+
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 `
 export const CircleText = styled.div`
   color: ${(props) => props.theme.gray100};
