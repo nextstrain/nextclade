@@ -44,10 +44,10 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
   const { overallScore, overallStatus, privateMutations, snpClusters, mixedSites, missingData } = qc
 
   const rules = [
-    { name: t('Missing Data'), shortName: 'MD', value: missingData, message: formatQCMissingData(t, missingData) }, // prettier-ignore
-    { name: t('Mixed Sites'), shortName: 'MS', value: mixedSites, message: formatQCMixedSites(t, mixedSites) }, // prettier-ignore
-    { name: t('Private Mutations'), shortName: 'PM', value: privateMutations, message: formatQCPrivateMutations(t, privateMutations) }, // prettier-ignore
-    { name: t('Mutation Clusters'), shortName: 'MC', value: snpClusters, message: formatQCSNPClusters(t, snpClusters) }, // prettier-ignore
+    { name: t('Missing Data'), shortName: 'D', value: missingData, message: formatQCMissingData(t, missingData) }, // prettier-ignore
+    { name: t('Mixed Sites'), shortName: 'S', value: mixedSites, message: formatQCMixedSites(t, mixedSites) }, // prettier-ignore
+    { name: t('Private Mutations'), shortName: 'M', value: privateMutations, message: formatQCPrivateMutations(t, privateMutations) }, // prettier-ignore
+    { name: t('Mutation Clusters'), shortName: 'C', value: snpClusters, message: formatQCSNPClusters(t, snpClusters) }, // prettier-ignore
   ].filter((value) => notUndefined(value))
 
   const issues = rules.map(({ name, shortName, value, message }, i) => {
