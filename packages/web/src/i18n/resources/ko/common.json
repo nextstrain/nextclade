@@ -138,18 +138,5 @@
   "Tree filter": "트리 필터",
   "Typical": "전형적인",
   "Typical value": "전형적인 가치",
-  "Window size": "창 크기",
-  "Biozentrum": "바이오젠 트럼",
-  "Check your data against Nextstrain's QC metrics": "Nextstrain의 QC 지표와 비교하여 데이터 확인",
-  "Clade assignment, mutation calling, and quality control right inside your browser": "브라우저 내에서 클래드 할당, 돌연변이 호출 및 품질 관리",
-  "Alignment end: {{alnEnd}}": "맞춤 끝 : {{alnEnd}}",
-  "University of Basel": "바젤 대학교",
-  "Done": "끝난",
-  "Clade: {{cladeListStr}}": "클레이 드 : {{cladeListStr}}",
-  "Alignment score: {{alignmentScore}}": "정렬 점수 : {{alignmentScore}}",
-  "Find out in which Nextstrain clades your samples are from": "샘플의 넥스트 스트레인 클래드 확인",
-  "Sequence": "순서",
-  "Results": "결과",
-  "QC issues:": "QC 문제 :",
-  "Alignment start: {{alnStart}}": "맞춤 시작 : {{alnStart}}"
+  "Window size": "창 크기"
 }

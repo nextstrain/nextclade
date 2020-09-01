@@ -138,19 +138,5 @@
   "Tree filter": "مرشح شجرة",
   "Typical": "نموذجي",
   "Typical value": "القيمة النموذجية",
-  "Window size": "بحجم النافذه",
-  "Biozentrum": "Biozentrum",
-  "Results": "النتائج",
-  "QC issues:": "قضايا مراقبة الجودة:",
-  "Find out in which Nextstrain clades your samples are from": "اكتشف من خلال هذه السلاسل التي تنتمي إليها Nextstrain",
-  "Done. Total sequences: {{total}}. Succeeded: {{succeded}}": "منجز. التسلسلات الإجمالية: {{total}}. تم النجاح: {{succeded}}",
-  "Clade: {{cladeListStr}}": "كلايد: {{cladeListStr}}",
-  "Clade assignment, mutation calling, and quality control right inside your browser": "مهمة Clade ، واستدعاء الطفرة ، ومراقبة الجودة داخل المتصفح مباشرة",
-  "Check your data against Nextstrain's QC metrics": "تحقق من بياناتك مقابل مقاييس مراقبة الجودة في Nextstrain",
-  "Sequence": "تسلسل",
-  "Done": "منجز",
-  "University of Basel": "جامعة بازل",
-  "Alignment end: {{alnEnd}}": "نهاية المحاذاة: {{alnEnd}}",
-  "Alignment score: {{alignmentScore}}": "نتيجة المحاذاة: {{alignmentScore}}",
-  "Alignment start: {{alnStart}}": "بدء المحاذاة: {{alnStart}}"
+  "Window size": "بحجم النافذه"
 }

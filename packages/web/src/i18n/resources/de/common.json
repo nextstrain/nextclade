@@ -138,19 +138,5 @@
   "Tree filter": "Baumfilter",
   "Typical": "Typisch",
   "Typical value": "Typischer Wert",
-  "Window size": "Fenstergröße",
-  "Biozentrum": "Biozentrum",
-  "Results": "Ergebnisse",
-  "QC issues:": "QC-Probleme:",
-  "Find out in which Nextstrain clades your samples are from": "Finden Sie heraus, aus welchen Nextstrain-Klassen Ihre Samples stammen",
-  "Done. Total sequences: {{total}}. Succeeded: {{succeded}}": "Getan. Gesamtsequenzen: {{total}}. Erfolgreich: {{succeded}}",
-  "Clade: {{cladeListStr}}": "Clade: {{cladeListStr}}",
-  "Clade assignment, mutation calling, and quality control right inside your browser": "Clade-Zuweisung, Mutationsanalyse und Qualitätskontrolle direkt in Ihrem Browser",
-  "Check your data against Nextstrain's QC metrics": "Überprüfen Sie Ihre Daten anhand der QC-Metriken von Nextstrain",
-  "Sequence": "Sequenz",
-  "Done": "Fertig",
-  "University of Basel": "Universität Basel",
-  "Alignment end: {{alnEnd}}": "Alignierungsende: {{alnEnd}}",
-  "Alignment score: {{alignmentScore}}": "Alignierungspunktzahl: {{alignmentScore}}",
-  "Alignment start: {{alnStart}}": "Alignierungsstart: {{alnStart}}"
+  "Window size": "Fenstergröße"
 }

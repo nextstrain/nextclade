@@ -138,19 +138,5 @@
   "Tree filter": "Фильтр дерева",
   "Typical": "Типично",
   "Typical value": "Типичное значение",
-  "Window size": "Размер окна",
-  "Clade assignment, mutation calling, and quality control right inside your browser": "Назначение клэда, обозначение мутаций и контроль качества последовательностей прямо в вашем браузере",
-  "Sequence": "Последовательность",
-  "Results": "Pезультаты",
-  "QC issues:": "Pезультаты контроля качества:",
-  "Done. Total sequences: {{total}}. Succeeded: {{succeded}}": "Готово. Всего последовательностей: {{total}}. Успешно: {{succeded}}",
-  "Done": "Готово",
-  "Clade: {{cladeListStr}}": "Clade: {{cladeListStr}}",
-  "Alignment end: {{alnEnd}}": "Конец выравнивания: {{alnEnd}}",
-  "Alignment score: {{alignmentScore}}": "Оценка выравнивания: {{alignmentScore}}",
-  "Find out in which Nextstrain clades your samples are from": "Узнайте из каких клэдов Nextstrain происходят ваши образцы",
-  "University of Basel": "Университет Базеля",
-  "Alignment start: {{alnStart}}": "Начало выравнивания: {{alnStart}}",
-  "Biozentrum": "Biozentrum",
-  "Check your data against Nextstrain's QC metrics": "Проверьте ваши данные по метрикам контроля качества Nextstrain"
+  "Window size": "Размер окна"
 }

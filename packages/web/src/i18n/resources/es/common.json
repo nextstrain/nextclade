@@ -138,19 +138,5 @@
   "Tree filter": "Filtro de árbol",
   "Typical": "Típico",
   "Typical value": "Valor típico",
-  "Window size": "Tamaño de ventana",
-  "Clade assignment, mutation calling, and quality control right inside your browser": "Asignación de Clade, llamadas de mutación y control de calidad dentro de su navegador",
-  "Sequence": "Secuencia",
-  "Results": "Resultados",
-  "QC issues:": "Problemas de control de calidad:",
-  "Done. Total sequences: {{total}}. Succeeded: {{succeded}}": "Hecho. Secuencias totales: {{total}}. Exitoso: {{succeded}}",
-  "Done": "Listo",
-  "Clade: {{cladeListStr}}": "Clade: {{cladeListStr}}",
-  "Alignment end: {{alnEnd}}": "Fin de alineación: {{alnEnd}}",
-  "Alignment score: {{alignmentScore}}": "Puntuación de alineación: {{alignmentScore}}",
-  "Find out in which Nextstrain clades your samples are from": "Descubre de qué clados de Nextstrain provienen tus muestras",
-  "University of Basel": "Universidad de basilea",
-  "Alignment start: {{alnStart}}": "Inicio de alineación: {{alnStart}}",
-  "Biozentrum": "Biozentrum",
-  "Check your data against Nextstrain's QC metrics": "Verifique sus datos con las métricas de control de calidad de Nextstrain"
+  "Window size": "Tamaño de ventana"
 }
