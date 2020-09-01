@@ -164,7 +164,7 @@ export function MainDisconnected({
 
                 <Col md={3} className="mb-2">
                   <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
-                    <h3 className="hero-h3">{t('Phylogenetic placement')}</h3>
+                    <h3 className="hero-h3">{t('Phylogenetic Placement')}</h3>
                     <div className="small">{t('See where on the SARS-CoV-2 tree your sequences fall')}</div>
                   </div>
                 </Col>
