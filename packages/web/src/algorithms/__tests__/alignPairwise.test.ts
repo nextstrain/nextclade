@@ -16,35 +16,35 @@ describe('alignPairwise', () => {
   it('should match up identical stings', () => {
     expect(alignPairwise('ACGCTCGCT', 'ACGCTCGCT')).toMatchObject({
       query: 'ACGCTCGCT'.split(''), // prettier-ignore
-      ref:   'ACGCTCGCT'.split('') // prettier-ignore
+      ref:   'ACGCTCGCT'.split(''), // prettier-ignore
     })
   })
 
   it('should pad missing sequence on the left', () => {
     expect(alignPairwise('CTCGCT', 'ACGCTCGCT')).toMatchObject({
       query: '---CTCGCT'.split(''), // prettier-ignore
-      ref:   'ACGCTCGCT'.split('') // prettier-ignore
+      ref:   'ACGCTCGCT'.split(''), // prettier-ignore
     })
   })
 
   it('should pad missing sequence on the right', () => {
     expect(alignPairwise('ACGCTC', 'ACGCTCGCT')).toMatchObject({
       query: 'ACGCTC---'.split(''), // prettier-ignore
-      ref:   'ACGCTCGCT'.split('') // prettier-ignore
+      ref:   'ACGCTCGCT'.split(''), // prettier-ignore
     })
   })
 
   it('should handle query contained in reference', () => {
     expect(alignPairwise('ACGCTC', 'GCCACGCTCGCT')).toMatchObject({
       query: '---ACGCTC---'.split(''), // prettier-ignore
-      ref: 'GCCACGCTCGCT'.split('') // prettier-ignore
+      ref: 'GCCACGCTCGCT'.split(''), // prettier-ignore
     })
   })
 
   it('should handle reference contained in query', () => {
     expect(alignPairwise('GCCACGCTCGCT', 'ACGCTC')).toMatchObject({
       query: 'GCCACGCTCGCT'.split(''), // prettier-ignore
-      ref:   '---ACGCTC---'.split('') // prettier-ignore
+      ref:   '---ACGCTC---'.split(''), // prettier-ignore
     })
   })
 
