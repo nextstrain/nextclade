@@ -1,3 +1,95 @@
+# [0.4.0](https://github.com/neherlab/webclades/compare/0.3.7...0.4.0) (2020-09-01)
+
+
+### Bug Fixes
+
+* add missing word ([f15af21](https://github.com/neherlab/webclades/commit/f15af2187c4bed93839e2412349f3358809ec73a))
+* adjust QC filter to new scoring scheme ([4129947](https://github.com/neherlab/webclades/commit/4129947ad55e5319c63d5058228eb873f7ddd30b))
+* adjust reducers, ui and more types for the new results layout ([8520daf](https://github.com/neherlab/webclades/commit/8520dafff1abc4fdba76a654e3bf77547644d2a5))
+* avoid unrecoverable failure when a sequence fails to align ([1511d7b](https://github.com/neherlab/webclades/commit/1511d7b512d0ae3e97850ed9bf8b748ef3ae6b0a))
+* disable "show tree" button until full results are available ([283dc9e](https://github.com/neherlab/webclades/commit/283dc9e5116eb2887f965e86b7c757f1b7424f8b))
+* don't show settings dialog by default ([627a5ae](https://github.com/neherlab/webclades/commit/627a5ae223fed0540a2b614344b3c4c55f9978c9))
+* ensure progress bar retains failure state until the end of the run ([796eddf](https://github.com/neherlab/webclades/commit/796eddf00aecc994f1d5181c0f358d2cf2468c1e))
+* fix incorrect QC status assignment ([aff806b](https://github.com/neherlab/webclades/commit/aff806bdcbc2793f69670bf497f354e12f49c1d3))
+* fix more type errors ([70fd82a](https://github.com/neherlab/webclades/commit/70fd82a91eb4a620d191845b73e6b29f2028c0cd))
+* fix text color on OK button ([f8b139d](https://github.com/neherlab/webclades/commit/f8b139dcd84a37ccb51a113ffc3c4ea4f2a3ac96))
+* fix type errors ([2108b28](https://github.com/neherlab/webclades/commit/2108b2837f0325c06c10c10739a9a24618f3e812))
+* fix typos ([cebcdb3](https://github.com/neherlab/webclades/commit/cebcdb322618b46d76e0e915133d920e53e105bf))
+* flip erroneous comparison ([fe2446b](https://github.com/neherlab/webclades/commit/fe2446b9bc8505b2b21620214559ae3fea1c1df3))
+* make sure QC strings on tree nodes are being translated ([7c9c96d](https://github.com/neherlab/webclades/commit/7c9c96d330d38f1b0fb0a79450cad3bf1f46bc03))
+* make sure to format non-ACGTN ranges for export ([75abfc3](https://github.com/neherlab/webclades/commit/75abfc3f94ebf00179723e2d5c55d3faef203b38))
+* make sure tooltips are attached to the right element ([2bccf84](https://github.com/neherlab/webclades/commit/2bccf840769cace36580ba8cb65466030310c1a6))
+* make sure tree nodes are properly colored on first tree render ([56662fe](https://github.com/neherlab/webclades/commit/56662fefdf0aedaa1ff399ed81c9bf9f1390d189))
+* make sure we find divergent mutations correctly ([6b7be19](https://github.com/neherlab/webclades/commit/6b7be19d7612e06dcec3a9dba270062b2c1fa72c))
+* make text casing consistent ([6de96d2](https://github.com/neherlab/webclades/commit/6de96d28f19e384cb2302421122641a6a600561f))
+* prevent text from selection on QC status icons ([bd2fb9f](https://github.com/neherlab/webclades/commit/bd2fb9fbc92f8b4140593f209f520c3bba481ecd))
+* **dev:** fix type error and tests ([ea2fef4](https://github.com/neherlab/webclades/commit/ea2fef4e889bc61986974670b6c3b1da23dce571))
+* remove stray brace ([272a44f](https://github.com/neherlab/webclades/commit/272a44f1c6f9102db05b53ac4dbb80bc390a0ce1))
+* remove unused package ([23c8e82](https://github.com/neherlab/webclades/commit/23c8e82c57f1815c74b90125c715d8384d1bfdc0))
+* type errors in QC runner ([ab4d34c](https://github.com/neherlab/webclades/commit/ab4d34ca6734042dadc5cdf843365fc92d9cfd8a))
+
+
+### Features
+
+* add "phylogenetic placement" feature box, adjust main page styling ([45f01fa](https://github.com/neherlab/webclades/commit/45f01fa0b3547b91c9d5bc3fc111f32ab5a34ed4))
+* add button to rerun the algorithm ([a4dbcba](https://github.com/neherlab/webclades/commit/a4dbcbac6bbe7ec99055cfc46a4fda4c55816151))
+* add intermediate QC level ([46fd02f](https://github.com/neherlab/webclades/commit/46fd02f191d69ecfe1055c22bcf49885d7dc0df6))
+* add new QC text to the auspice tree ([641ef02](https://github.com/neherlab/webclades/commit/641ef02c49679815d4ec32743b2b473faa3f403a))
+* add reversion mutations to the terminalMutations, rename function ([f2dc7c2](https://github.com/neherlab/webclades/commit/f2dc7c275380f76230d946816728db36f891dbd8))
+* adjust exports for new data layout, remove auspice json export ([05a9409](https://github.com/neherlab/webclades/commit/05a940935637c942a09dd298b46e1f025edc5b00))
+* adjust progress bar for new algorithms ([1a15c4c](https://github.com/neherlab/webclades/commit/1a15c4cdf8fd30e3ff170b11b371318029d2a0d3))
+* adjust progress bar to better reflect recent algorithm changes ([0562dfa](https://github.com/neherlab/webclades/commit/0562dfa899074d9d01818440524164c6925fb04e))
+* adjust progress indicator for the new state and event flow ([3f3839b](https://github.com/neherlab/webclades/commit/3f3839b49e8d7c09da6802e854dbae39bec2d2f8))
+* adjust results table for the new state and event flow ([3d0c835](https://github.com/neherlab/webclades/commit/3d0c8358f22183412f2cce8e1ad2ceeda1a4f803))
+* adjust sorting and filtering for the new QC categories ([7a1d68c](https://github.com/neherlab/webclades/commit/7a1d68c61a8e85072714d3f1eb361266cde5a7fc))
+* adjust sorting for the new QC results ([638750d](https://github.com/neherlab/webclades/commit/638750dcb53c19e11e0cb2d867ca834b70e51bd1))
+* assign clade from nearest node in reference tree ([d23d5e1](https://github.com/neherlab/webclades/commit/d23d5e1000e4d91be6d83727d89a1e82bd9123dc))
+* change privateMutation rule to affine linear excess ([98c71d6](https://github.com/neherlab/webclades/commit/98c71d6452b212755621a21c4f4f19b2094407fb))
+* change QC icon labels ([dba62b6](https://github.com/neherlab/webclades/commit/dba62b687e81aa2de37ae4da0e012c5881ae3501))
+* combine scores quadratically such that two scores of 70 trigger a warning, or one score of 100 ([c543cee](https://github.com/neherlab/webclades/commit/c543cee6c78d9c4d8164d12bb288119270ce6bf7))
+* display status for every QC rule as colored circles ([637a095](https://github.com/neherlab/webclades/commit/637a095bd0f4d3804e2bb3cfbcd689a31e326e4c))
+* expose QC config in the UI ([7fc5881](https://github.com/neherlab/webclades/commit/7fc5881a86740c760bc53332c512a7b88b446fa4))
+* format QC tooltip based on new results  ([ba412bb](https://github.com/neherlab/webclades/commit/ba412bbaf7f1deac4249cb60bc78c51ab9953699))
+* hide passed QC checks from tooltip ([07f92e3](https://github.com/neherlab/webclades/commit/07f92e35bb13b6e84e2e82b26b7507457354c1a9))
+* highlight rows with issues ([ba3e2ed](https://github.com/neherlab/webclades/commit/ba3e2edc9c1607dcf04c8c8caefc327315d6c4ff))
+* improve QC tooltips, improve layout of large tooltips ([7716b14](https://github.com/neherlab/webclades/commit/7716b149db77ac1b3a9a92030170dbcd6fa50969))
+* improve string formatting of insertions ([c0863e2](https://github.com/neherlab/webclades/commit/c0863e2dd1ed767993fa0e4bb90743b405244e43))
+* list QC rules in the same order ([1ad2738](https://github.com/neherlab/webclades/commit/1ad2738bde220cd512b88dcaeb677ce7c44f1a85))
+* make QC status coloring more consistent ([b17b33f](https://github.com/neherlab/webclades/commit/b17b33f00352a37d057ef3bddeaf017ab5b2a4f0))
+* make QC status icons' labels more distinct, single-letter ([4350c28](https://github.com/neherlab/webclades/commit/4350c28aa704f9ef2107fe9df6a5f23935d74ae1))
+* pass mutations difference from reference node to QC ([48415c1](https://github.com/neherlab/webclades/commit/48415c1ae995624734485b5c2dab394c15dbdd14))
+* prettify QC status circles ([ad61a15](https://github.com/neherlab/webclades/commit/ad61a15845cc36b920f6f0749678bcf6ae280524))
+* reduce weight of missing data check ([575aa05](https://github.com/neherlab/webclades/commit/575aa05bd8fbf5a262d6eb6c895786ae702e59aa))
+* rename variables to clarify intent ([389dd79](https://github.com/neherlab/webclades/commit/389dd799832ecaf93a9c6b29d56ec9d65079f7ba))
+* restyle buttons on results page, adjust for smaller screens ([5a4e806](https://github.com/neherlab/webclades/commit/5a4e80698f7a8420d244658be2e2fc5f5d8eeac9))
+* round QC scores in UI ([99aaabe](https://github.com/neherlab/webclades/commit/99aaabeb2245ffd48167b59c6b18fd0a9782ced4))
+* show per-rule QC icons in tooltips ([4c45584](https://github.com/neherlab/webclades/commit/4c45584ba3267498b844d6c2d4abc3b261ae2575))
+* simplify QC message for mixed sites ([a8228a8](https://github.com/neherlab/webclades/commit/a8228a84a2d84a41c5b8dc5f9bf99f13c5999a8c))
+* soften QC status icon colors ([cadae7e](https://github.com/neherlab/webclades/commit/cadae7e67a5e76f6068ea6240f6a4a258fbc8f42))
+* use new QC status on tree nodes ([423d459](https://github.com/neherlab/webclades/commit/423d45991b95f035681b700e5c51b68a2d195720))
+* **dev:** implement better error handling in algorithm saga ([49c50c2](https://github.com/neherlab/webclades/commit/49c50c2ed21ab5e13c14f2ef81faa8deb388fd1a))
+* **dev:** improve runtime performance profiling ([538e82e](https://github.com/neherlab/webclades/commit/538e82e5924057f1e4b3419718add726cc0d586d))
+* **dev:** setup runtime performance profiling ([dd12d48](https://github.com/neherlab/webclades/commit/dd12d485d3ac5dd98353de07fa66a9c40082d96f))
+* subtract thresholds when calculating QC scores ([7f5013b](https://github.com/neherlab/webclades/commit/7f5013b54069f91f63edd76174ee08be4c15ebef))
+* tweak MissingData QC rule to return values such that above 100 is problematic ([8d49eee](https://github.com/neherlab/webclades/commit/8d49eee96e94fa29430f7ae5da90b58a7c968e74))
+* tweak parameters of QC rules. remove unused config values ([b78b143](https://github.com/neherlab/webclades/commit/b78b143f7d4b17af3db30cd772a09662474da1b6))
+
+
+### Performance Improvements
+
+* assign all QC results in bulk to avoid redux performance overhead ([dced28c](https://github.com/neherlab/webclades/commit/dced28c2ae6aeecf4c2f4c2539d3434965d9498c))
+* assign clades in bulk to improve performance ([6ce4a2e](https://github.com/neherlab/webclades/commit/6ce4a2e2e0d23b3910b25dcbd59567c58897dbfc))
+* make object cloning faster ([6940e9a](https://github.com/neherlab/webclades/commit/6940e9a7abcbc7c9c96578204c35f68d56540f6a))
+* memoize a slow function ([92ba87c](https://github.com/neherlab/webclades/commit/92ba87c82907717fa7ef99b9e2887b5449da20f6))
+* memoize slowest React components ([4f2969b](https://github.com/neherlab/webclades/commit/4f2969b321bf11fe04c0b25b5db6ad728ce91c5c))
+
+
+### Reverts
+
+* Revert "refactor: split tree preparation away from tree algorithm" ([2b3df69](https://github.com/neherlab/webclades/commit/2b3df69334c67ba826fc6f204a4a858ff056e78a))
+
+
+
 ## [0.3.7](https://github.com/neherlab/webclades/compare/0.3.6...0.3.7) (2020-08-28)
 
 
