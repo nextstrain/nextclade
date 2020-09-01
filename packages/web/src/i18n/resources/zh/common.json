@@ -138,19 +138,5 @@
   "Tree filter": "树过滤器",
   "Typical": "典型",
   "Typical value": "典型值",
-  "Window size": "窗户尺寸",
-  "Clade assignment, mutation calling, and quality control right inside your browser": "浏览器内部的分支分配，变异调用和质量控制",
-  "Sequence": "序列",
-  "Results": "结果",
-  "QC issues:": "质量控制问题：",
-  "Done. Total sequences: {{total}}. Succeeded: {{succeded}}": "做完了总序列：{{total}}。成功：{{succeded}}",
-  "Done": "完成了",
-  "Clade: {{cladeListStr}}": "进化枝：{{cladeListStr}}",
-  "Alignment end: {{alnEnd}}": "对齐结束：{{alnEnd}}",
-  "Alignment score: {{alignmentScore}}": "对齐比分：{{alignmentScore}}",
-  "Find out in which Nextstrain clades your samples are from": "找出您的样本来自哪个Nextstrain进化枝",
-  "University of Basel": "巴塞尔大学",
-  "Alignment start: {{alnStart}}": "对齐开始：{{alnStart}}",
-  "Biozentrum": "生物中心",
-  "Check your data against Nextstrain's QC metrics": "根据Nextstrain的质量控制指标检查数据"
+  "Window size": "窗户尺寸"
 }

@@ -57,7 +57,6 @@
   "{{message}}: total {{total}} ({{allowed}} allowed). QC score: {{score}}": "{{message}}: total {{total}} ({{allowed}} autorisé). Score CQ: {{score}}",
   "{{message}}. Seen {{nClusters}} mutation clusters with total of {{total}} mutations. QC score: {{score}}": "{{message}}. {{nClusters}} groupes de mutations vues avec un total de {{total}} mutations. Score CQ: {{score}}",
   "{{message}}. Total Ns: {{total}} ({{allowed}} allowed). QC score: {{score}}": "{{message}}. Total Ns: {{total}} ({{allowed}} autorisé). Score CQ: {{score}}",
-  "{{message}}{{total}} private mutations seen, {{excess}} more than expected (more than {{cutoff}} is considered problematic). Score CQ: {{score}}": "{{message}} {{total}} mutations privées vues, {{excess}} de plus que prévu (plus de {{cutoff}} est considéré comme problématique). Score CQ: {{score}}",
   "* \"Unknown\" country, division and region are automatically assigned to the new nodes. When filtering, make sure to tick the \"Unknown\" entry in order to display these nodes.": "* Le pays, la division et la région \"inconnus\" sont automatiquement attribués aux nouveaux nœuds. Lors du filtrage, assurez-vous de cocher l'entrée \"Inconnu\" afin d'afficher ces nœuds.",
   "Alignment: {{range}} (score: {{alignmentScore}})": "Alignement: {{range}} (score: {{alignmentScore}})",
   "Analyzing...": "En cours d'analyse...",
@@ -138,19 +137,5 @@
   "Tree filter": "Filtre d'arbre",
   "Typical": "Typique",
   "Typical value": "Valeur typique",
-  "Window size": "La taille de la fenêtre",
-  "Clade assignment, mutation calling, and quality control right inside your browser": "Affectation des clades, appel des mutations et contrôle qualité des séquences directement dans votre navigateur",
-  "Sequence": "Séquence",
-  "Results": "Résultats",
-  "QC issues:": "Problèmes de CQ:",
-  "Done. Total sequences: {{total}}. Succeeded: {{succeded}}": "Terminé. Nombre total de séquences: {{total}}. Réussite: {{succeded}}",
-  "Done": "Terminé",
-  "Clade: {{cladeListStr}}": "Clade: {{cladeListStr}}",
-  "Alignment end: {{alnEnd}}": "Fin de l'alignement: {{alnEnd}}",
-  "Alignment score: {{alignmentScore}}": "Score d'alignement: {{alignmentScore}}",
-  "Find out in which Nextstrain clades your samples are from": "Découvrez dans quels clades Nextstrain vos échantillons proviennent",
-  "University of Basel": "Université de Bâle",
-  "Alignment start: {{alnStart}}": "Début de l'alignement: {{alnStart}}",
-  "Biozentrum": "Biozentrum",
-  "Check your data against Nextstrain's QC metrics": "Vérifiez vos données par rapport aux métriques CQ de Nextstrain"
+  "Window size": "La taille de la fenêtre"
 }

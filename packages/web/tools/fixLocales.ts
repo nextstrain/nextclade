@@ -4,7 +4,9 @@ import { difference, isObject, padStart, isEmpty, get } from 'lodash'
 import { notUndefined } from '../src/helpers/notUndefined'
 import { safeZip } from '../src/helpers/safeZip'
 
+const DEFAULT_LOCALE_KEY = 'en'
 const I18N_RESOURCES_DIR = 'src/i18n/resources/'
+const I18N_RESOURCES_DEFAULT_LOCALE_FILE = path.join(I18N_RESOURCES_DIR, DEFAULT_LOCALE_KEY, 'common.json')
 
 const dirs = fs.readdirSync(I18N_RESOURCES_DIR)
 
@@ -22,9 +24,7 @@ export function getSubstitutions(str: string) {
 
 export const quote = (str: string) => `'${str}'`
 
-export function forEachEntry() {}
-
-filepaths.forEach((filepath) => {
+export function readJson(filepath: string) {
   const content = fs.readFileSync(filepath, 'utf-8')
   const jsonDangerous = JSON.parse(content) as unknown
 
@@ -34,15 +34,37 @@ filepaths.forEach((filepath) => {
 
   const json = jsonDangerous as Record<string, string>
 
-  const results = Object.entries(json).map(([reference, localized], index) => {
+  return { content, json }
+}
+
+export function parseLocale(json: Record<string, string>) {
+  return Object.entries(json).map(([reference, localized], index) => {
     const refSubsts = getSubstitutions(reference)
     const locSubsts = getSubstitutions(localized)
     const missing = difference(refSubsts, locSubsts)
     const extra = difference(locSubsts, refSubsts)
     return { index, missing, extra, reference, localized }
   })
+}
 
-  const resultsFixed = results.map(({ index, missing, extra, reference, localized }) => {
+export function getReferenceKeys() {
+  const { json } = readJson(I18N_RESOURCES_DEFAULT_LOCALE_FILE)
+  const results = parseLocale(json)
+  return results.map(({ reference }) => reference)
+}
+
+const referenceKeys = getReferenceKeys()
+
+filepaths.forEach((filepath) => {
+  const { json } = readJson(filepath)
+  const results = parseLocale(json)
+
+  const keysBefore = results.length
+  const resultsFiltered = results.filter(({ reference }) => referenceKeys.includes(reference))
+  const keysAfter = resultsFiltered.length
+  const keysRemoved = keysBefore - keysAfter
+
+  const resultsFixed = resultsFiltered.map(({ index, missing, extra, reference, localized }) => {
     let missingFixed = missing
     let extraFixed = extra
     let localizedFixed: string | undefined
@@ -80,6 +102,10 @@ filepaths.forEach((filepath) => {
 
   if (contentFixed.total > 0) {
     console.info(`\nIn file: '${filepath}':\nInfo: corrected ${contentFixed.total} translation issues automatically`)
+  }
+
+  if (keysRemoved > 0) {
+    console.info(`\nIn file: '${filepath}':\nInfo: removed ${keysRemoved} unused keys`)
   }
 
   if (resultsFixed.every(({ missingFixed, missingExtra }) => isEmpty(missingFixed) && isEmpty(missingExtra))) {
