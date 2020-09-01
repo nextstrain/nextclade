@@ -208,7 +208,7 @@ declare module 'auspice' {
 
   export declare interface AuspiceJsonV2 {
     version?: 'v2'
-    meta: AuspiceMetadata
+    meta?: AuspiceMetadata
     tree?: AuspiceTreeNode
   }
 }

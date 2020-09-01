@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
-import type { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
+import type { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { selectStatus } from 'src/state/algorithm/algorithm.selectors'
 
 const ResultsStatusWrapper = styled.div`
@@ -15,11 +15,11 @@ const ResultsStatusWrapper = styled.div`
 
 export interface SequenceStatus {
   seqName: string
-  status: AnylysisStatus
+  status: AlgorithmSequenceStatus
 }
 
 export interface ResultsStatusProps {
-  status: { percent: number; statusText: string; failureText?: string }
+  status: { percent: number; statusText: string; failureText?: string; hasFailures: boolean }
 }
 
 const mapStateToProps = (state: State) => ({
@@ -31,10 +31,12 @@ const mapDispatchToProps = {}
 export const ResultsStatus = connect(mapStateToProps, mapDispatchToProps)(ResultsStatusDisconnected)
 
 export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
-  const { percent, statusText, failureText } = status
+  const { percent, statusText, failureText, hasFailures } = status
 
-  let color = percent === 0 || percent === 100 ? 'transparent' : undefined
-  if (failureText) {
+  const show = !(percent === 0 || percent === 100)
+
+  let color: string | undefined
+  if (hasFailures) {
     color = 'danger'
   }
 
@@ -52,7 +54,7 @@ export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
   return (
     <ResultsStatusWrapper>
       <div className="text-right">{text}</div>
-      <Progress color={color} value={percent} />
+      {show && <Progress color={color} value={percent} />}
     </ResultsStatusWrapper>
   )
 }

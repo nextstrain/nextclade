@@ -2,7 +2,7 @@ import { intersectionWith } from 'lodash'
 
 import { parseMutation } from 'src/helpers/parseMutation'
 import { notUndefined } from 'src/helpers/notUndefined'
-import { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
+import { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import { NucleotideSubstitution } from 'src/algorithms/types'
 
 import { splitFilterString } from './splitFilterString'
@@ -17,7 +17,7 @@ export function mutationsAreEqual(filter: Partial<NucleotideSubstitution>, actua
 export function filterByNucleotideMutations(mutationsFilter: string) {
   const mutationFilters = splitFilterString(mutationsFilter).map(parseMutation).filter(notUndefined)
 
-  return (result: SequenceAnylysisState) => {
+  return (result: SequenceAnalysisState) => {
     if (!result?.result) {
       return false
     }

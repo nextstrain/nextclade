@@ -7,7 +7,7 @@ import { connect } from 'react-redux'
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
-import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { selectStatus } from 'src/state/algorithm/algorithm.selectors'
 
 export function delayOpacity(percent: number, setOpacity: (opacity: number | undefined) => void) {
@@ -39,7 +39,7 @@ export const CustomProgress = styled(Progress)`
 
 export interface SequenceStatus {
   seqName: string
-  status: AnylysisStatus
+  status: AlgorithmSequenceStatus
 }
 
 export interface UploaderResultsStatusProps {

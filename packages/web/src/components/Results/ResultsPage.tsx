@@ -4,6 +4,7 @@ import styled from 'styled-components'
 
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
+import { SettingsButton } from 'src/components/Settings/SettingsButton'
 
 import { ButtonBack } from './ButtonBack'
 import { ButtonFilter } from './ButtonFilter'
@@ -12,6 +13,7 @@ import { ButtonTree } from './ButtonTree'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
 import { ResultsTable } from './ResultsTable'
+import { ButtonRerun } from './ButtonRerun'
 
 export const Container = styled.div`
   width: 100%;
@@ -69,6 +71,9 @@ export function ResultsPage() {
           </HeaderCenter>
           <HeaderRight>
             <HeaderRightContainer>
+              <ButtonRerun />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
               <ButtonFilter />
             </HeaderRightContainer>
             <HeaderRightContainer>
@@ -76,6 +81,9 @@ export function ResultsPage() {
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonTree />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <SettingsButton />
             </HeaderRightContainer>
           </HeaderRight>
         </Header>

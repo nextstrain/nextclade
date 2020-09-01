@@ -3,8 +3,8 @@ import React, { useCallback, useRef } from 'react'
 import { delay } from 'lodash'
 import { connect } from 'react-redux'
 import { push } from 'connected-next-router'
-import { Button, Card, CardBody, CardHeader, Col, Input, Row, Alert } from 'reactstrap'
-import { MdPlayArrow, MdClear, MdWarning } from 'react-icons/md'
+import { Alert, Button, Card, CardBody, CardHeader, Col, Input, Row } from 'reactstrap'
+import { MdClear, MdPlayArrow, MdWarning } from 'react-icons/md'
 import { FaCaretRight } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
 
@@ -15,9 +15,8 @@ import { About } from 'src/components/About/About'
 import { Uploader } from 'src/components/Main/Uploader'
 
 import type { State } from 'src/state/reducer'
-import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanExport, selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
 import type { AlgorithmParams, InputFile } from 'src/state/algorithm/algorithm.state'
-import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
 import {
   algorithmRunTrigger,
   exportCsvTrigger,
@@ -27,7 +26,7 @@ import {
 } from 'src/state/algorithm/algorithm.actions'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { Title, Subtitle } from 'src/components/Main/Title'
+import { Subtitle, Title } from 'src/components/Main/Title'
 
 import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
 
@@ -47,7 +46,7 @@ export interface MainProps {
 
 const mapStateToProps = (state: State) => ({
   params: state.algorithm.params,
-  canExport: state.algorithm.results.every((result) => result.status === AnylysisStatus.done),
+  canExport: selectCanExport(state),
   isDirty: selectIsDirty(state),
   showInputBox: state.ui.showInputBox,
 })
@@ -79,7 +78,7 @@ export function MainDisconnected({
 }: MainProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
-  const hangleInputChage = useCallback(
+  const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setIsDirty(true)
       setInput(e.target.value)
@@ -129,17 +128,17 @@ export function MainDisconnected({
           </Row>
 
           <Row noGutters className="hero-content">
-            <Col xl={6} className="px-lg-4 hero-content-right">
+            <Col xl={6} className="hero-content-right">
               <Row noGutters className="mx-auto text-center">
                 <Col md={6} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-top">
+                  <div className="mx-1 hero-feature-box hero-feature-box-top">
                     <h3 className="hero-h3">{t('Simple')}</h3>
                     <div className="small">{t('No installation or setup - drop a file and see the results')}</div>
                   </div>
                 </Col>
 
                 <Col md={6} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-top">
+                  <div className="mx-1 hero-feature-box hero-feature-box-top">
                     <h3 className="hero-h3 text-center">{t('Private')}</h3>
                     <div className="small">{t('No remote processing - sequence data never leaves your computer')}</div>
                   </div>
@@ -147,8 +146,8 @@ export function MainDisconnected({
               </Row>
 
               <Row noGutters className="text-center my-4">
-                <Col md={4} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                <Col md={3} className="mb-2">
+                  <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
                     <h3 className="hero-h3">{t('Mutation Calling')}</h3>
                     <div className="small">
                       {t('Find differences of your sequences relative to the reference in standard numbering')}
@@ -156,17 +155,24 @@ export function MainDisconnected({
                   </div>
                 </Col>
 
-                <Col md={4} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                <Col md={3} className="mb-2">
+                  <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
                     <h3 className="hero-h3">{t('Clade Assignment')}</h3>
-                    <div className="small">{t('Find out in which Nextstrain clades your samples are from')}</div>
+                    <div className="small">{t('Find out which Nextstrain clades your samples are from')}</div>
                   </div>
                 </Col>
 
-                <Col md={4} className="mb-2">
-                  <div className="mx-2 hero-feature-box hero-feature-box-bottom h-100">
+                <Col md={3} className="mb-2">
+                  <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
+                    <h3 className="hero-h3">{t('Phylogenetic Placement')}</h3>
+                    <div className="small">{t('See where on the SARS-CoV-2 tree your sequences fall')}</div>
+                  </div>
+                </Col>
+
+                <Col md={3} className="mb-2">
+                  <div className="mx-1 hero-feature-box hero-feature-box-bottom h-100">
                     <h3 className="hero-h3">{t('Quality Control')}</h3>
-                    <div className="small">{t("Check your data against Nextstrain's QC metrics")}</div>
+                    <div className="small">{t('Check your data against multiple QC metrics')}</div>
                   </div>
                 </Col>
               </Row>
@@ -217,7 +223,7 @@ export function MainDisconnected({
                           cols={80}
                           rows={20}
                           value={params.input}
-                          onChange={hangleInputChage}
+                          onChange={handleInputChange}
                           innerRef={inputRef}
                         />
                       </CardBody>

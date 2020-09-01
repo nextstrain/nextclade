@@ -1,30 +1,82 @@
 import React from 'react'
 
-import type { DeepReadonly } from 'ts-essentials'
+import { round } from 'lodash'
 import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 
-import type { QCResult } from 'src/algorithms/types'
+import type { QCResult } from 'src/algorithms/QC/runQC'
+import { notUndefined } from 'src/helpers/notUndefined'
+import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
+import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
+import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
+import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
+import { Circle, CircleProps } from 'src/components/Results/Circle'
 
-export interface ListOfQcIssuesProps {
-  diagnostics: DeepReadonly<QCResult>
+export const QcList = styled.ul`
+  padding-left: 0.5rem;
+`
+
+export const QcListItemBase = styled.li`
+  display: flex;
+  list-style-type: none;
+  margin-top: 0.5rem;
+`
+
+export interface QcListItem extends React.HTMLProps<HTMLDListElement>, CircleProps {}
+
+export function QcListItem({ status, text, children }: QcListItem) {
+  return (
+    <QcListItemBase>
+      <span className="mr-2 align-content-center">
+        <Circle status={status} text={text} />
+      </span>
+      <span>{children}</span>
+    </QcListItemBase>
+  )
 }
 
-export function ListOfQcIssues({ diagnostics }: ListOfQcIssuesProps) {
-  const { t } = useTranslation()
+export interface ListOfQcIssuesProps {
+  qc: QCResult
+}
 
-  let flags
-  if (diagnostics.flags.length > 0) {
-    flags = diagnostics.flags.map((flag) => {
-      return <li key={flag}>{flag}</li>
-    })
-  } else {
-    flags = [<li key="allGood">None detected</li>]
-  }
+export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
+  const { t } = useTranslation()
+  const { overallScore, overallStatus, privateMutations, snpClusters, mixedSites, missingData } = qc
+
+  const rules = [
+    { name: t('Missing Data'), shortName: 'MD', value: missingData, message: formatQCMissingData(t, missingData) }, // prettier-ignore
+    { name: t('Mixed Sites'), shortName: 'MS', value: mixedSites, message: formatQCMixedSites(t, mixedSites) }, // prettier-ignore
+    { name: t('Private Mutations'), shortName: 'PM', value: privateMutations, message: formatQCPrivateMutations(t, privateMutations) }, // prettier-ignore
+    { name: t('Mutation Clusters'), shortName: 'MC', value: snpClusters, message: formatQCSNPClusters(t, snpClusters) }, // prettier-ignore
+  ].filter((value) => notUndefined(value))
+
+  const issues = rules.map(({ name, shortName, value, message }, i) => {
+    if (!value) {
+      return undefined
+    }
+
+    return (
+      <QcListItem key={name} status={value.status} text={shortName}>
+        <div>
+          <span>
+            <b>{name}</b>
+          </span>
+          <span>{': '}</span>
+          <span>{value.status}</span>
+        </div>
+        {message ?? t('No issues')}
+      </QcListItem>
+    )
+  })
 
   return (
-    <div>
-      {t('QC issues:')}
-      <ul>{flags}</ul>
-    </div>
+    <>
+      <div>{t('Overall QC score: {{score}}', { score: round(overallScore) })}</div>
+      <div>{t('Overall QC status: {{status}}', { status: overallStatus })}</div>
+      <div>
+        {t('Detailed QC assessment:')}
+        <QcList>{issues}</QcList>
+      </div>
+    </>
   )
 }

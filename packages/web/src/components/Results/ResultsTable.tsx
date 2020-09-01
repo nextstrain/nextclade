@@ -6,12 +6,13 @@ import { useTranslation } from 'react-i18next'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
-import { rgba } from 'polished'
+import { mix, rgba } from 'polished'
 
+import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 import type { State } from 'src/state/reducer'
-import type { SequenceAnylysisState } from 'src/state/algorithm/algorithm.state'
-import type { Sorting } from 'src/helpers/resultsSort'
-import { SortCategory, SortDirection } from 'src/helpers/resultsSort'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import type { Sorting } from 'src/helpers/sortResults'
+import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
 
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
@@ -44,7 +45,7 @@ const HEADER_ROW_CONTENT_HEIGHT = 60
 export const RESULTS_TABLE_FLEX_BASIS = {
   id: 50,
   seqName: 300,
-  qc: 60,
+  qc: 100,
   clade: 60,
   mut: 60,
   nonACGTN: 70,
@@ -97,10 +98,10 @@ export const TableCellText = styled.p`
   margin: auto;
 `
 
-export const TableRow = styled.div<{ even?: boolean }>`
+export const TableRow = styled.div<{ even?: boolean; backgroundColor?: string }>`
   display: flex;
   align-items: stretch;
-  background-color: ${(props) => (props.even ? '#e2e2e2' : '#fcfcfc')};
+  background-color: ${(props) => props.backgroundColor};
   box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
 `
 
@@ -125,19 +126,21 @@ export const TableRowPending = styled(TableRow)`
   color: #818181;
 `
 
-export const TableRowError = styled(TableRow)`
-  background-color: #f5cbc6;
+export const TableRowError = styled(TableRow)<{ even?: boolean }>`
+  background-color: #f0a9a9;
   color: #962d26;
 `
 
+const highlightRowsWithIssues = true
+
 export interface RowProps extends ListChildComponentProps {
-  data: SequenceAnylysisState[]
+  data: SequenceAnalysisState[]
 }
 
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { id, seqName, errors, result: sequence } = data[index]
+  const { id, seqName, errors, result: sequence, qc } = data[index]
 
   if (errors.length > 0) {
     return (
@@ -147,7 +150,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         </TableCell>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} />
+          <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
         </TableCellName>
 
         <TableCell grow={20} shrink={20}>
@@ -165,7 +168,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         </TableCell>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} />
+          <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
         </TableCellName>
 
         <TableCell grow={20} shrink={20}>
@@ -175,18 +178,28 @@ function TableRowComponent({ index, style, data }: RowProps) {
     )
   }
 
+  const even = index % 2 === 0
+  let color = even ? '#ededed' : '#fcfcfc'
+  if (highlightRowsWithIssues && qc) {
+    if (qc.overallStatus === QCRuleStatus.mediocre) {
+      color = mix(0.5, color, '#ffeeaa')
+    } else if (qc.overallStatus === QCRuleStatus.bad) {
+      color = mix(0.5, color, '#eeaaaa')
+    }
+  }
+
   return (
-    <TableRow style={style} even={index % 2 === 0}>
+    <TableRow style={style} backgroundColor={color} even={even}>
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
         <TableCellText>{id}</TableCellText>
       </TableCell>
 
       <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-        <ColumnName seqName={seqName} sequence={sequence} />
+        <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
       </TableCellName>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
-        <ColumnQCStatus sequence={sequence} />
+        <ColumnQCStatus sequence={sequence} qc={qc} />
       </TableCell>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
@@ -251,10 +264,10 @@ const mapDispatchToProps = {
   sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
 }
 
-export const ResultsTable = connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected)
+export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected))
 
 export interface ResultProps {
-  resultsFiltered: SequenceAnylysisState[]
+  resultsFiltered: SequenceAnalysisState[]
   filterPanelCollapsed: boolean
   sortByIdAsc(): void
   sortByIdDesc(): void

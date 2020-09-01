@@ -2,33 +2,47 @@ import React, { useState } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { Button as ReactstrapButton, ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap'
+import {
+  Button as ReactstrapButton,
+  ButtonDropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle as ReactstrapDropdownToggle,
+} from 'reactstrap'
 import { IoMdDocument } from 'react-icons/io'
 import { BsBraces } from 'react-icons/bs'
+import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
 import { ExportFormat } from 'src/state/ui/ui.state'
-import {
-  exportAuspiceJsonV2Trigger,
-  exportCsvTrigger,
-  exportTsvTrigger,
-  exportJsonTrigger,
-} from 'src/state/algorithm/algorithm.actions'
+import { exportCsvTrigger, exportTsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
 import { setExportFormat } from 'src/state/ui/ui.actions'
-import { AnylysisStatus } from 'src/state/algorithm/algorithm.state'
-import styled from 'styled-components'
+import { selectCanExport } from 'src/state/algorithm/algorithm.selectors'
 
 const Button = styled(ReactstrapButton)`
-  width: 225px;
-  margin: 0;
+  margin: 2px 2px;
+  height: 38px;
+  width: 50px;
+  color: ${(props) => props.theme.gray700};
+
+  margin-right: 0;
+
+  @media (min-width: 1200px) {
+    width: 225px;
+  }
+`
+
+const DropdownToggle = styled(ReactstrapDropdownToggle)`
+  margin: 2px 0;
+  height: 38px;
 `
 
 export function ExportJSONIcon() {
-  return <BsBraces className="mr-2 mb-1" size={22} />
+  return <BsBraces className="mr-xl-2 mb-1" size={22} />
 }
 
 export function ExportCSVIcon() {
-  return <IoMdDocument className="mr-2 mb-1" size={22} />
+  return <IoMdDocument className="mr-xl-2 mb-1" size={22} />
 }
 
 export interface ExportButtonIconProps {
@@ -42,23 +56,17 @@ export interface ExportButtonProps {
   exportCsvTrigger(_0: void): void
   exportTsvTrigger(_0: void): void
   exportJsonTrigger(_0: void): void
-  exportAuspiceJsonV2Trigger(_0: void): void
 }
 
 const mapStateToProps = (state: State) => ({
   exportFormat: state.ui.exportFormat,
-  canExport:
-    state.algorithm.results.length > 0 &&
-    state.algorithm.results.every(
-      (result) => result.status === AnylysisStatus.done || result.status === AnylysisStatus.failed,
-    ),
+  canExport: selectCanExport(state),
 })
 
 const mapDispatchToProps = {
   exportCsvTrigger,
   exportJsonTrigger,
   exportTsvTrigger,
-  exportAuspiceJsonV2Trigger,
   setExportFormat,
 }
 
@@ -71,7 +79,6 @@ export function ExportButtonDisconnected({
   exportCsvTrigger,
   exportTsvTrigger,
   exportJsonTrigger,
-  exportAuspiceJsonV2Trigger,
 }: ExportButtonProps) {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -92,20 +99,17 @@ export function ExportButtonDisconnected({
     exportTsvTrigger()
   }
 
-  const handleAuspiceJsonClick = () => {
-    setExportFormat(ExportFormat.AuspiceJSONv2)
-    exportAuspiceJsonV2Trigger()
-  }
-
   const handleButtonClick = exportFormat === ExportFormat.CSV ? handleCsvClick : handleJsonClick
 
+  const text = t('Export to {{exportFormat}}', { exportFormat })
+
   return (
-    <ButtonDropdown isOpen={isOpen} toggle={toggle} disabled={!canExport}>
-      <Button id="caret" color="primary" disabled={!canExport} onClick={handleButtonClick}>
+    <ButtonDropdown isOpen={isOpen} toggle={toggle} disabled={!canExport} title={text}>
+      <Button id="caret" disabled={!canExport} onClick={handleButtonClick} title={text}>
         {exportFormat === ExportFormat.CSV ? <ExportCSVIcon /> : <ExportJSONIcon />}
-        {t('Export to {{exportFormat}}', { exportFormat })}
+        <span className="d-none d-xl-inline">{text}</span>
       </Button>
-      <DropdownToggle color="primary" caret disabled={!canExport} />
+      <DropdownToggle caret disabled={!canExport} />
       <DropdownMenu>
         <DropdownItem onClick={handleCsvClick}>
           <ExportCSVIcon />
@@ -118,10 +122,6 @@ export function ExportButtonDisconnected({
         <DropdownItem onClick={handleJsonClick}>
           <ExportJSONIcon />
           {t('Export to JSON')}
-        </DropdownItem>
-        <DropdownItem onClick={handleAuspiceJsonClick}>
-          <ExportJSONIcon />
-          {t('Export to Auspice JSON v2')}
         </DropdownItem>
       </DropdownMenu>
     </ButtonDropdown>

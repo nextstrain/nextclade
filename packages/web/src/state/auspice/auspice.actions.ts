@@ -1,5 +1,4 @@
 import type { AuspiceState } from 'auspice'
-import actionCreatorFactory from 'typescript-fsa'
 
 import { applyFilter } from 'auspice/src/actions/tree'
 
@@ -9,6 +8,3 @@ export const auspiceStartClean = (state: AuspiceState) => ({ type: 'CLEAN_START'
 export const treeFilterByNodeType = (nodeTypes: string[]) => applyFilter('add', 'Node type', nodeTypes)
 export const treeFilterByClade = (clades: string[]) => applyFilter('add', 'clade_membership', clades)
 export const treeFilterByQcStatus = (qsStatuses: string[]) => applyFilter('add', 'QC Status', qsStatuses)
-
-const action = actionCreatorFactory('Auspice')
-export const showTree = action('showTree')

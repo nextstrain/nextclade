@@ -5,7 +5,6 @@ import { errorAdd } from './error/error.actions'
 
 import settingsSaga from './settings/settings.sagas'
 import algorithmSaga from './algorithm/algorithm.sagas'
-import auspiceSagas from './auspice/auspice.sagas'
 
 function autoRestart(generator: Saga, handleError: Saga<[Error]>) {
   return function* autoRestarting() {
@@ -21,7 +20,7 @@ function autoRestart(generator: Saga, handleError: Saga<[Error]>) {
 }
 
 function* rootSaga() {
-  yield all([...algorithmSaga, ...settingsSaga, ...auspiceSagas])
+  yield all([...algorithmSaga, ...settingsSaga])
 }
 
 function* rootErrorHandler(error: Error) {

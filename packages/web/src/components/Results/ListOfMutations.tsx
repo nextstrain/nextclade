@@ -6,6 +6,7 @@ import type { DeepReadonly } from 'ts-essentials'
 import type { SubstitutionsWithAminoacids } from 'src/algorithms/types'
 import { formatMutation } from 'src/helpers/formatMutation'
 import { truncateList } from 'src/components/Results/truncateList'
+import { Li, Ul } from 'src/components/Common/List'
 
 const LIST_OF_MUTATIONS_MAX_ITEMS = 10 as const
 
@@ -20,7 +21,7 @@ export function ListOfMutations({ substitutions }: ListOfMutations) {
 
   let mutationItems = substitutions.map(({ pos, queryNuc, refNuc }) => {
     const mut = formatMutation({ pos, queryNuc, refNuc })
-    return <li key={mut}>{mut}</li>
+    return <Li key={mut}>{mut}</Li>
   })
 
   mutationItems = truncateList(mutationItems, LIST_OF_MUTATIONS_MAX_ITEMS, t('...more'))
@@ -28,7 +29,7 @@ export function ListOfMutations({ substitutions }: ListOfMutations) {
   return (
     <div>
       <div>{t('Mutations ({{totalMutations}})', { totalMutations })}</div>
-      <ul>{mutationItems}</ul>
+      <Ul>{mutationItems}</Ul>
     </div>
   )
 }
