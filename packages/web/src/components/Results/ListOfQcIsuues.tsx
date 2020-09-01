@@ -44,9 +44,9 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
   const { overallScore, overallStatus, privateMutations, snpClusters, mixedSites, missingData } = qc
 
   const rules = [
-    { name: t('Missing Data'), shortName: 'D', value: missingData, message: formatQCMissingData(t, missingData) }, // prettier-ignore
-    { name: t('Mixed Sites'), shortName: 'S', value: mixedSites, message: formatQCMixedSites(t, mixedSites) }, // prettier-ignore
-    { name: t('Private Mutations'), shortName: 'M', value: privateMutations, message: formatQCPrivateMutations(t, privateMutations) }, // prettier-ignore
+    { name: t('Missing Data'), shortName: 'N', value: missingData, message: formatQCMissingData(t, missingData) }, // prettier-ignore
+    { name: t('Mixed Sites'), shortName: 'M', value: mixedSites, message: formatQCMixedSites(t, mixedSites) }, // prettier-ignore
+    { name: t('Private Mutations'), shortName: 'P', value: privateMutations, message: formatQCPrivateMutations(t, privateMutations) }, // prettier-ignore
     { name: t('Mutation Clusters'), shortName: 'C', value: snpClusters, message: formatQCSNPClusters(t, snpClusters) }, // prettier-ignore
   ].filter((value) => notUndefined(value))
 

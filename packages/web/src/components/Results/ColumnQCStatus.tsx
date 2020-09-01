@@ -35,9 +35,9 @@ export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
   const { missingData, privateMutations, mixedSites, snpClusters } = qc
 
   const rules = [
-    { value: missingData, name: 'D' },
-    { value: mixedSites, name: 'S' },
-    { value: privateMutations, name: 'M' },
+    { value: missingData, name: 'N' },
+    { value: mixedSites, name: 'M' },
+    { value: privateMutations, name: 'P' },
     { value: snpClusters, name: 'C' },
   ].filter((value) => notUndefined(value))
 
