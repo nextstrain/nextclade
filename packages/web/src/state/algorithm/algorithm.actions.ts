@@ -13,7 +13,6 @@ export const setInput = action<string>('setInput')
 export const setInputFile = action<InputFile>('setInputFile')
 export const setIsDirty = action<boolean>('setIsDirty')
 
-export const algorithmRunTrigger = action<string | File | undefined>('runTrigger')
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
 export const algorithmRunAsync = action.async<string | File | undefined, void, Error>('run')
 

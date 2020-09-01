@@ -33,7 +33,6 @@ import { serializeResultsToCsv, serializeResultsToJson } from 'src/io/serializeR
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { auspiceStartClean } from 'src/state/auspice/auspice.actions'
 import {
-  algorithmRunTrigger,
   analyzeAsync,
   exportCsvTrigger,
   exportTsvTrigger,
@@ -280,7 +279,7 @@ export function* exportJson() {
 }
 
 export default [
-  takeEvery(algorithmRunTrigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
+  takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
   takeEvery(exportCsvTrigger, exportCsv),
   takeEvery(exportTsvTrigger, exportTsv),
   takeEvery(exportJsonTrigger, exportJson),
