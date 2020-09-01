@@ -35,10 +35,10 @@ export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
   const { missingData, privateMutations, mixedSites, snpClusters } = qc
 
   const rules = [
-    { value: missingData, name: 'MD' },
-    { value: mixedSites, name: 'MS' },
-    { value: privateMutations, name: 'PM' },
-    { value: snpClusters, name: 'MC' },
+    { value: missingData, name: 'N' },
+    { value: mixedSites, name: 'M' },
+    { value: privateMutations, name: 'P' },
+    { value: snpClusters, name: 'C' },
   ].filter((value) => notUndefined(value))
 
   const icons = rules.map(({ name, value }, i) => {

@@ -2,7 +2,7 @@ import styled from 'styled-components'
 import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 import React from 'react'
 
-const CIRCLE_SZE_PX = 22
+const CIRCLE_SZE_PX = 20
 
 const statusColors = {
   [QCRuleStatus.good]: '#68b844',
@@ -30,7 +30,7 @@ export const CircleBase = styled.div<{ color: string }>`
 `
 export const CircleText = styled.div`
   color: ${(props) => props.theme.gray100};
-  font-size: 0.66rem;
+  font-size: 0.85rem;
   text-align: center;
   vertical-align: middle;
   line-height: ${CIRCLE_SZE_PX}px;
