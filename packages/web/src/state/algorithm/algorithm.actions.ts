@@ -1,4 +1,4 @@
-import actionCreatorFactory from 'typescript-fsa'
+import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
 import type { AnalysisParams, AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
@@ -13,9 +13,8 @@ export const setInput = action<string>('setInput')
 export const setInputFile = action<InputFile>('setInputFile')
 export const setIsDirty = action<boolean>('setIsDirty')
 
-export const algorithmRunTrigger = action<string | File | undefined>('runTrigger')
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
-export const algorithmRunAsync = action.async<string | File | undefined, void, void>('run')
+export const algorithmRunAsync = action.async<string | File | undefined, void, Error>('run')
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<AnalysisParams, AnalysisResultWithoutClade, Error>('analyze')

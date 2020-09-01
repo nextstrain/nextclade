@@ -1,32 +1,26 @@
-import { reducerWithInitialState } from 'typescript-fsa-reducers'
+import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import { uiDefaultState } from 'src/state/ui/ui.state'
-
-import immerCase from '../util/fsaImmerReducer'
-
-import { setExportFormat, setShowInputBox, setFilterPanelCollapsed, setTreeFilterPanelCollapsed } from './ui.actions'
+import {
+  setExportFormat,
+  setShowInputBox,
+  setFilterPanelCollapsed,
+  setTreeFilterPanelCollapsed,
+} from 'src/state/ui/ui.actions'
 
 export const uiReducer = reducerWithInitialState(uiDefaultState)
-  .withHandling(
-    immerCase(setShowInputBox, (draft, showInputBox) => {
-      draft.showInputBox = showInputBox
-    }),
-  )
+  .icase(setShowInputBox, (draft, showInputBox) => {
+    draft.showInputBox = showInputBox
+  })
 
-  .withHandling(
-    immerCase(setExportFormat, (draft, exportFormat) => {
-      draft.exportFormat = exportFormat
-    }),
-  )
+  .icase(setExportFormat, (draft, exportFormat) => {
+    draft.exportFormat = exportFormat
+  })
 
-  .withHandling(
-    immerCase(setFilterPanelCollapsed, (draft, filterPanelCollapsed) => {
-      draft.filterPanelCollapsed = filterPanelCollapsed
-    }),
-  )
+  .icase(setFilterPanelCollapsed, (draft, filterPanelCollapsed) => {
+    draft.filterPanelCollapsed = filterPanelCollapsed
+  })
 
-  .withHandling(
-    immerCase(setTreeFilterPanelCollapsed, (draft, treeFilterPanelCollapsed) => {
-      draft.treeFilterPanelCollapsed = treeFilterPanelCollapsed
-    }),
-  )
+  .icase(setTreeFilterPanelCollapsed, (draft, treeFilterPanelCollapsed) => {
+    draft.treeFilterPanelCollapsed = treeFilterPanelCollapsed
+  })

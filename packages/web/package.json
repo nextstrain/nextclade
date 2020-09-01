@@ -130,8 +130,6 @@
     "threads": "1.6.3",
     "threads-plugin": "1.3.2",
     "typeface-lato": "0.0.75",
-    "typescript-fsa": "3.0.0",
-    "typescript-fsa-reducers": "1.2.2",
     "use-debounce": "3.4.3",
     "uuid": "8.3.0"
   },
