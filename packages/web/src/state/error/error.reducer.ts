@@ -1,24 +1,20 @@
-import { Action } from 'redux'
-import { isType } from 'typescript-fsa'
+import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import { errorAdd, errorDismiss } from './error.actions'
 
 export interface ErrorState {
-  error: string | null
+  error?: string
 }
 
 export const errorDefaultState: ErrorState = {
-  error: null,
+  error: undefined,
 }
 
-export function errorReducer(state: ErrorState = errorDefaultState, action: Action) {
-  if (isType(action, errorAdd)) {
-    return { ...state, error: action.payload.error.message }
-  }
+export const errorReducer = reducerWithInitialState(errorDefaultState)
+  .icase(errorAdd, (state, { error }) => {
+    state.error = error.message
+  })
 
-  if (isType(action, errorDismiss)) {
-    return { ...state, error: null }
-  }
-
-  return state
-}
+  .icase(errorDismiss, (state) => {
+    state.error = undefined
+  })

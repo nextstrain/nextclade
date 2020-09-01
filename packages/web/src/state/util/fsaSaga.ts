@@ -1,6 +1,7 @@
-import { SagaIterator } from 'redux-saga'
-import { call, cancelled, put } from 'redux-saga/effects'
-import { Action, AsyncActionCreators } from 'typescript-fsa'
+import type { Action, AsyncActionCreators } from 'src/state/util/fsaActions'
+import type { SagaGenerator } from 'typed-redux-saga'
+import { call, cancelled, put } from 'typed-redux-saga'
+
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
 /**
@@ -12,7 +13,7 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
  * 'done' and 'failed', each adhering to FSA standard)
  * and produces another saga which organizes actions around the worker
  * call. Before running the worker, our wrapper will first dispatch the
- * 'started' action. If worker yields a successful result, then 'done'
+ * 'started' action. If worker yield*s a successful result, then 'done'
  * action is dispatched. Otherwise (if worker fails or cancelled), 'failed'
  * action is dispatched.
  *
@@ -25,33 +26,31 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
  * @param worker
  */
 export default function fsaSaga<Params, Result>(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  asyncActionCreators: AsyncActionCreators<Params, Result, any>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  worker: (params: Params) => any,
+  asyncActionCreators: AsyncActionCreators<Params, Result, Error>,
+  worker: (params: Params) => SagaGenerator<Result>,
 ) {
-  return function* wrappedSaga(action: Action<Params>): SagaIterator {
+  return function* wrappedSaga(action: Action<Params>) {
     const params = action.payload
 
     // Dispatch "started" action
-    yield put(asyncActionCreators.started(params))
+    yield* put(asyncActionCreators.started(params))
 
     try {
       // Call worker
-      const result = ((yield call(worker, params)) as unknown) as Result
+      const result = yield* call(worker, params)
 
-      // Worker suceeded. dispatch "done" action with results
-      yield put(asyncActionCreators.done({ params, result }))
+      // Worker succeeded. dispatch "done" action with results
+      yield* put(asyncActionCreators.done({ params, result }))
     } catch (error_) {
       // Worker failed. Print error and dispatch an action of type "failed" with error payload.
       const error = sanitizeError(error_)
       console.error(error)
-      yield put(asyncActionCreators.failed({ params, error }))
+      yield* put(asyncActionCreators.failed({ params, error }))
     } finally {
       // Worker was cancelled (e.g. manually or as a result of take*).
       // Dispatch "failed" action with the special error value.
-      if (yield cancelled()) {
-        yield put(asyncActionCreators.failed({ params, error: { error: 'cancelled' } }))
+      if (yield* cancelled()) {
+        yield* put(asyncActionCreators.cancelled({ params }))
       }
     }
   }

@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import type { Action } from 'typescript-fsa'
 import type { DeepPartial, StrictOmit } from 'ts-essentials'
-import { isType } from 'typescript-fsa'
 import { composeWithDevTools } from 'redux-devtools-extension'
+
+import type { Action } from 'src/state/util/fsaActions'
+import { isType } from 'src/state/util/fsaActions'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmParams, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
+import type { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
 import { analyzeAsync, setInput, treeBuildAsync } from 'src/state/algorithm/algorithm.actions'
 
 const TOO_BIG = '<<TOO_BIG>>' as const

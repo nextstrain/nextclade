@@ -1,4 +1,4 @@
-import { State } from '../reducer'
+import type { State } from 'src/state/reducer'
 
 export const selectLocation = (state: State) => state.router.location
 

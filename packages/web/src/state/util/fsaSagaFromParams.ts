@@ -1,6 +1,6 @@
 import { identity } from 'lodash'
 
-import type { AsyncActionCreators } from 'typescript-fsa'
+import type { AsyncActionCreators } from 'src/state/util/fsaActions'
 import { call, cancelled, put, SagaGenerator } from 'typed-redux-saga'
 
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -31,11 +31,10 @@ export function fsaSagaFromParams<Params, Result, TransformedResult = Result>(
       console.error(error)
       yield* put(asyncActionCreators.failed({ params, error }))
     } finally {
-      // Worker was cancelled (e.g. manually or as a result of take*).
+      // Worker was cancelled (e.g. manually or as a result of multiple incoming `takeLatest()`).
       // Dispatch an action of type "failed" with the special error value.
       if (yield* cancelled()) {
-        const error = new Error('cancelled')
-        yield* put(asyncActionCreators.failed({ params, error }))
+        yield* put(asyncActionCreators.cancelled({ params }))
       }
     }
     return undefined

@@ -1,26 +1,18 @@
-import { reducerWithInitialState } from 'typescript-fsa-reducers'
+import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import { qcRulesConfigDefault } from 'src/algorithms/QC/qcRulesConfig'
-import immerCase from 'src/state/util/fsaImmerReducer'
-
-import { resetQcRulesConfig, setLocale, setQcRulesConfig } from './settings.actions'
-import { settingsDefaultState } from './settings.state'
+import { resetQcRulesConfig, setLocale, setQcRulesConfig } from 'src/state/settings/settings.actions'
+import { settingsDefaultState } from 'src/state/settings/settings.state'
 
 export const settingsReducer = reducerWithInitialState(settingsDefaultState)
-  .withHandling(
-    immerCase(setLocale, (draft, localeKey) => {
-      draft.localeKey = localeKey
-    }),
-  )
+  .icase(setLocale, (draft, localeKey) => {
+    draft.localeKey = localeKey
+  })
 
-  .withHandling(
-    immerCase(setQcRulesConfig, (draft, qcRulesConfig) => {
-      draft.qcRulesConfig = qcRulesConfig
-    }),
-  )
+  .icase(setQcRulesConfig, (draft, qcRulesConfig) => {
+    draft.qcRulesConfig = qcRulesConfig
+  })
 
-  .withHandling(
-    immerCase(resetQcRulesConfig, (draft) => {
-      draft.qcRulesConfig = qcRulesConfigDefault
-    }),
-  )
+  .icase(resetQcRulesConfig, (draft) => {
+    draft.qcRulesConfig = qcRulesConfigDefault
+  })
