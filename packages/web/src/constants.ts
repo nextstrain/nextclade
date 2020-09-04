@@ -1,5 +1,5 @@
 export const PROJECT_NAME = 'Nextclade' as const
-export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and quality control right inside your browser' as const
+export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and sequence quality checks' as const
 export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain developers' as const
 
