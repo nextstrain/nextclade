@@ -1,4 +1,5 @@
 import path from 'path'
+import { AnalysisResult } from 'src/algorithms/types'
 import type { DeepPartial } from 'ts-essentials'
 import fs from 'fs-extra'
 import { merge } from 'lodash'
@@ -37,22 +38,25 @@ export function parseCommandLine() {
       demandOption: true,
       description: 'path to .fasta or .txt file with input sequences',
     })
+    .option('input-qc-config', {
+      type: 'string',
+      description: 'path to QC config json file',
+    })
+    .option('input-root-seq', {
+      type: 'string',
+      description: 'path to plain text file containing root sequence',
+    })
     .option(OUTPUT_JSON, {
       alias: 'o',
       type: 'string',
-      demandOption: false,
       description: 'path to output JSON file with results',
     })
     .option(OUTPUT_CSV, {
-      alias: 'c',
       type: 'string',
-      demandOption: false,
       description: 'path to output CSV file with results',
     })
     .option(OUTPUT_TSV, {
-      alias: 't',
       type: 'string',
-      demandOption: false,
       description: 'path to output CSV file with results',
     })
     .check((argv) => {
@@ -65,6 +69,8 @@ export function parseCommandLine() {
 
   return params.argv
 }
+
+export type CliParams = ReturnType<typeof parseCommandLine>
 
 export async function isDir(pathlike: string) {
   const stat = await fs.lstat(pathlike)
@@ -82,6 +88,36 @@ export async function assertCanCreate(pathlike?: string) {
     await assertIsDir(path.dirname(pathlike))
   }
   return undefined
+}
+
+export async function validateParams(params: CliParams) {
+  const inputFasta = params['input-fasta']
+
+  const outputJson = params[OUTPUT_JSON]
+  const outputCsv = params[OUTPUT_CSV]
+  const outputTsv = params[OUTPUT_TSV]
+
+  await assertCanCreate(outputJson)
+  await assertCanCreate(outputCsv)
+  await assertCanCreate(outputTsv)
+
+  return { inputFasta, outputJson, outputCsv, outputTsv }
+}
+
+export async function readInputs(inputFasta: string) {
+  const input = await fs.readFile(inputFasta, 'utf-8')
+
+  // TODO: read use-provided root sequence
+  const rootSeq = rootSeqDefault
+
+  // TODO: read use-provided qc config
+  const qcRulesConfigCustom: DeepPartial<QCRulesConfig> = {}
+  const qcRulesConfig: QCRulesConfig = qcRulesConfigValidate(merge(qcRulesConfigDefault, qcRulesConfigCustom))
+
+  // TODO: read use-provided auspice data
+  const auspiceDataReference = treeValidate(auspiceDataDefault)
+
+  return { input, rootSeq, qcRulesConfig, auspiceDataReference }
 }
 
 export interface WriteResultsParams {
@@ -113,27 +149,9 @@ export async function writeResults({ results, outputJson, outputCsv, outputTsv }
 export async function main() {
   const params = parseCommandLine()
 
-  const inputFasta = params['input-fasta']
+  const { inputFasta, outputJson, outputCsv, outputTsv } = await validateParams(params)
 
-  const outputJson = params[OUTPUT_JSON]
-  const outputCsv = params[OUTPUT_CSV]
-  const outputTsv = params[OUTPUT_TSV]
-
-  await assertCanCreate(outputJson)
-  await assertCanCreate(outputCsv)
-  await assertCanCreate(outputTsv)
-
-  const input = await fs.readFile(inputFasta, 'utf-8')
-
-  // TODO: read use-provided root sequence
-  const rootSeq = rootSeqDefault
-
-  // TODO: read use-provided qc config
-  const qcRulesConfigCustom: DeepPartial<QCRulesConfig> = {}
-  const qcRulesConfig: QCRulesConfig = qcRulesConfigValidate(merge(qcRulesConfigDefault, qcRulesConfigCustom))
-
-  // TODO: read use-provided auspice data
-  const auspiceDataReference = treeValidate(auspiceDataDefault)
+  const { input, rootSeq, qcRulesConfig, auspiceDataReference } = await readInputs(inputFasta)
 
   const { results } = run(input, rootSeq, qcRulesConfig, auspiceDataReference)
 
