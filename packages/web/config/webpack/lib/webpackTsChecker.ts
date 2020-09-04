@@ -1,4 +1,10 @@
+import path from 'path'
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin'
+
+import { findModuleRoot } from '../../../lib/findModuleRoot'
+import tsConfig from '../../../tsconfig.json'
+
+const { moduleRoot } = findModuleRoot()
 
 export interface WebpackTsCheckerOptions {
   eslint: boolean
@@ -11,7 +17,7 @@ export default function webpackTsChecker({
   eslint,
   typeChecking,
   memoryLimit = 512,
-  exclude = [],
+  exclude,
 }: WebpackTsCheckerOptions) {
   if (!typeChecking && !eslint) {
     return undefined
@@ -24,23 +30,36 @@ export default function webpackTsChecker({
 
     typescript: {
       enabled: typeChecking,
+      configFile: path.join(moduleRoot, 'tsconfig.json'),
       memoryLimit,
       mode: 'write-references',
-      diagnosticOptions: {
-        declaration: true,
-        global: true,
-        semantic: true,
-        syntactic: true,
-      },
+      diagnosticOptions: { syntactic: true, semantic: true, declaration: true, global: true },
       configOverwrite: {
-        exclude,
+        compilerOptions: {
+          ...tsConfig.compilerOptions,
+          skipLibCheck: true,
+          sourceMap: false,
+          inlineSourceMap: false,
+          declarationMap: false,
+        },
+        include: [
+          'lib/**/*.js',
+          'lib/**/*.jsx',
+          'lib/**/*.ts',
+          'lib/**/*.tsx',
+          'src/**/*.js',
+          'src/**/*.jsx',
+          'src/**/*.ts',
+          'src/**/*.tsx',
+        ],
+        exclude: [...tsConfig.exclude, ...(exclude ?? [])],
       },
     },
 
     eslint: {
       enabled: eslint,
       memoryLimit,
-      files: ['**/*.{js,jsx,ts,tsx}'],
+      files: [path.join(moduleRoot, 'src/**/*.{js,jsx,ts,tsx}')],
       options: { cache: false },
     },
 

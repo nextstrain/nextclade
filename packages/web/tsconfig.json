@@ -44,5 +44,18 @@
     "./**/*.tsx",
     "next-env.d.ts"
   ],
-  "exclude": [".build", ".cache", ".idea", ".ignore", ".reports", "3rdparty", "node_modules", "public", "tsconfig.json"]
+  "exclude": [
+    ".build",
+    ".cache",
+    ".idea",
+    ".ignore",
+    ".reports",
+    "3rdparty",
+    "dist",
+    "docker",
+    "node_modules",
+    "public",
+    "tools/augur_profile",
+    "tsconfig.json"
+  ]
 }
