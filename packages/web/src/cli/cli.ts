@@ -84,6 +84,32 @@ export async function assertCanCreate(pathlike?: string) {
   return undefined
 }
 
+export interface WriteResultsParams {
+  results: AnalysisResult[]
+  outputJson?: string
+  outputCsv?: string
+  outputTsv?: string
+}
+
+export async function writeResults({ results, outputJson, outputCsv, outputTsv }: WriteResultsParams) {
+  const json = results.map(prepareResultJson)
+  if (outputJson) {
+    await fs.writeJson(outputJson, json, { spaces: 2 })
+  }
+
+  if (outputCsv) {
+    const data = results.map(prepareResultCsv)
+    const csv = await toCsvString(data, ';')
+    await fs.writeFile(outputCsv, csv)
+  }
+
+  if (outputTsv) {
+    const data = results.map(prepareResultCsv)
+    const tsv = await toCsvString(data, '\t')
+    await fs.writeFile(outputTsv, tsv)
+  }
+}
+
 export async function main() {
   const params = parseCommandLine()
 
@@ -111,22 +137,7 @@ export async function main() {
 
   const { results } = run(input, rootSeq, qcRulesConfig, auspiceDataReference)
 
-  const json = results.map(prepareResultJson)
-  if (outputJson) {
-    await fs.writeJson(outputJson, json, { spaces: 2 })
-  }
-
-  if (outputCsv) {
-    const data = results.map(prepareResultCsv)
-    const csv = await toCsvString(data, ';')
-    await fs.writeFile(outputCsv, csv)
-  }
-
-  if (outputTsv) {
-    const data = results.map(prepareResultCsv)
-    const tsv = await toCsvString(data, '\t')
-    await fs.writeFile(outputTsv, tsv)
-  }
+  await writeResults({ results, outputJson, outputCsv, outputTsv })
 }
 
 main().catch((error_) => {
