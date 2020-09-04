@@ -39,6 +39,7 @@ export interface WebpackLoadJavaScriptParams {
   options?: PluginOptions
   eslintConfigFile?: string | boolean
   sourceMaps: boolean
+  sourceMapsExclude?: RegExp[]
   transpiledLibs?: string[]
 }
 
@@ -46,6 +47,7 @@ export default function webpackLoadJavaScript({
   babelConfig,
   options = {},
   sourceMaps,
+  sourceMapsExclude = [],
   transpiledLibs = [],
 }: WebpackLoadJavaScriptParams) {
   return [
@@ -55,6 +57,11 @@ export default function webpackLoadJavaScript({
       use: [
         {
           loader: 'source-map-loader',
+          options: {
+            filterSourceMappingUrl: (_0: unknown, resourcePath: string) => {
+              return sourceMapsExclude?.some((pattern) => !pattern.test(resourcePath))
+            },
+          },
         },
       ],
     },

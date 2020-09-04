@@ -7,6 +7,7 @@ import webpack from 'webpack'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getEnvVars } from '../next/lib/getEnvVars'
+import { WebpackChmodPlugin } from './lib/webpackChmod'
 
 import webpackIgnoreModules from './lib/webpackIgnoreModules'
 import webpackLoadRaw from './lib/webpackLoadRaw'
@@ -51,8 +52,8 @@ module.exports = {
     all: false,
     errors: true,
     warnings: true,
+    warningsFilter: [/critical dependency:/i],
     moduleTrace: true,
-    colors: true,
   },
   performance: {
     hints: false,
@@ -62,7 +63,7 @@ module.exports = {
 
   output: {
     filename: outputFilename,
-    path: path.join(buildPath),
+    path: buildPath,
     pathinfo: !development,
   },
 
@@ -70,7 +71,7 @@ module.exports = {
     rules: [
       ...webpackIgnoreModules({ patterns: /\.(css|sass|svg)$/ }),
       ...webpackLoadRaw({ patterns: /\.(txt|csv|tsv|fasta)$/i }),
-      ...webpackLoadJavascript({ babelConfig, sourceMaps }),
+      ...webpackLoadJavascript({ babelConfig, sourceMaps, sourceMapsExclude: [/get-caller-file/] }),
     ],
   },
 
@@ -98,11 +99,25 @@ module.exports = {
     ...webpackFriendlyConsole({
       clearConsole: false,
       projectRoot: path.resolve(moduleRoot),
-      packageName: pkg.name || 'web',
+      packageName: pkg.name || 'cli',
       progressBarColor: 'green',
     }),
 
     new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
+
+    new webpack.BannerPlugin({
+      banner: '#!/usr/bin/env node',
+      raw: true,
+    }),
+
+    new WebpackChmodPlugin({
+      files: [
+        {
+          file: path.join(buildPath, outputFilename),
+          chmod: '775',
+        },
+      ],
+    }),
   ].filter(Boolean),
 
   optimization: {
