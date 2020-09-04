@@ -34,37 +34,37 @@ export function parseCommandLine() {
       alias: 'i',
       type: 'string',
       demandOption: true,
-      description: 'path to .fasta or .txt file with input sequences',
+      description: 'Path to .fasta or .txt file with input sequences',
     })
     .option('input-qc-config', {
       alias: 'q',
       type: 'string',
-      description: 'path to QC config json file containing custom QC configuration',
+      description: 'Path to QC config json file containing custom QC configuration',
     })
     .option('input-root-seq', {
       alias: 'r',
       type: 'string',
-      description: 'path to plain text file containing custom root sequence',
+      description: 'Path to plain text file containing custom root sequence',
     })
     .option('input-tree', {
       alias: 'a',
       type: 'string',
-      description: 'path to Auspice JSON v2 file containing custom reference tree',
+      description: 'Path to Auspice JSON v2 file containing custom reference tree',
     })
     .option(OUTPUT_JSON, {
       alias: 'o',
       type: 'string',
-      description: 'path to output JSON results file',
+      description: 'Path to output JSON results file',
     })
     .option(OUTPUT_CSV, {
       alias: 'c',
       type: 'string',
-      description: 'path to output CSV results file',
+      description: 'Path to output CSV results file',
     })
     .option(OUTPUT_TSV, {
       alias: 't',
       type: 'string',
-      description: 'path to output CSV results file',
+      description: 'Path to output CSV results file',
     })
     .check((argv) => {
       if (!OUTPUT_OPTS.some((opt) => argv[opt])) {
