@@ -13,6 +13,7 @@ import webpackLoadRaw from './lib/webpackLoadRaw'
 import webpackLoadJavascript from './lib/webpackLoadJavascript'
 import webpackTerser from './lib/webpackTerser'
 import webpackTsChecker from './lib/webpackTsChecker'
+import webpackFriendlyConsole from './lib/webpackFriendlyConsole'
 
 import babelConfig from '../../babel.config'
 
@@ -92,6 +93,13 @@ module.exports = {
       typeChecking: ENABLE_TYPE_CHECKS,
       eslint: ENABLE_ESLINT,
       memoryLimit: 2048,
+    }),
+
+    ...webpackFriendlyConsole({
+      clearConsole: false,
+      projectRoot: path.resolve(moduleRoot),
+      packageName: pkg.name || 'web',
+      progressBarColor: 'green',
     }),
 
     new webpack.optimize.LimitChunkCountPlugin({ maxChunks: 1 }),
