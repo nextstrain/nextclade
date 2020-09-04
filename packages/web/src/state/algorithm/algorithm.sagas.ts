@@ -1,4 +1,4 @@
-import { zipWith, set, get } from 'lodash'
+import { zipWith, set } from 'lodash'
 
 import { push } from 'connected-next-router'
 import { Pool } from 'threads'

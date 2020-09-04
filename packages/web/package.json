@@ -26,11 +26,11 @@
     "prod:watch:profile": "nodemon --config config/nodemon/profile.json",
     "prod:start:profile": "yarn prod:build:profile && yarn prod:serve || cd .",
     "cli:dev": "nodemon --config config/nodemon/cli.dev.json",
-    "cli:dev:build": "cross-env NODE_ENV=development BABEL_ENV=development NODE_OPTIONS=--max_old_space_size=8192 babel-node --extensions \".js,.ts\" --  node_modules/.bin/webpack --watch --config config/webpack/webpack.cli.babel.ts",
+    "cli:dev:build": "yarn run monkey-patch && cross-env NODE_ENV=development BABEL_ENV=development NODE_OPTIONS=--max_old_space_size=8192 babel-node --extensions \".js,.ts\" --  node_modules/.bin/webpack --info-verbosity none --watch --config config/webpack/webpack.cli.babel.ts",
     "cli:dev:clean": "rimraf 'dist/{*,.*}' 'node_modules/.cache'",
     "cli:dev:run": "NODE_ENV=development node dist/nextclade.js",
     "cli:prod": "nodemon --config config/nodemon/cli.prod.json",
-    "cli:prod:build": "cross-env NODE_ENV=production BABEL_ENV=production NODE_OPTIONS=--max_old_space_size=8192 babel-node --extensions \".js,.ts\" --  node_modules/.bin/webpack --config config/webpack/webpack.cli.babel.ts",
+    "cli:prod:build": "yarn run monkey-patch && cross-env NODE_ENV=production BABEL_ENV=production NODE_OPTIONS=--max_old_space_size=8192 babel-node --extensions \".js,.ts\" --  node_modules/.bin/webpack --info-verbosity none --config config/webpack/webpack.cli.babel.ts",
     "cli:prod:clean": "rimraf 'dist/{*,.*}' 'node_modules/.cache'",
     "cli:prod:run": "NODE_ENV=production node dist/nextclade.js",
     "analyze": "cross-env ANALYZE=1 yarn prod:build",
@@ -136,7 +136,8 @@
     "threads-plugin": "1.3.3",
     "typeface-lato": "0.0.75",
     "use-debounce": "3.4.3",
-    "uuid": "8.3.0"
+    "uuid": "8.3.0",
+    "yargs": "15.4.1"
   },
   "devDependencies": {
     "@babel/core": "7.11.5",
