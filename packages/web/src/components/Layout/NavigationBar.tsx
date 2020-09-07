@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { connect } from 'react-redux'
-import { FaGithub, FaTwitter } from 'react-icons/fa'
+import { FaDocker, FaGithub, FaNpm, FaTwitter } from 'react-icons/fa'
 
 import { State } from 'src/state/reducer'
 import { selectPathname } from 'src/state/router/router.selectors'
@@ -37,6 +37,18 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
         url: 'https://twitter.com/nextstrain',
         alt: t('Link to our Twitter'),
         icon: <FaTwitter size={28} color="#aaa" />,
+      },
+      {
+        title: t('Our NPM packages'),
+        url: 'https://www.npmjs.com/package/@neherlab/nextclade',
+        alt: t('Link to our NPM package'),
+        icon: <FaNpm size={28} color="#aaa" />,
+      },
+      {
+        title: t('Our containers at Docker Hub'),
+        url: 'https://hub.docker.com/r/neherlab/nextclade',
+        alt: t('Link to our Docker containers'),
+        icon: <FaDocker size={28} color="#aaa" />,
       },
       {
         title: t('GitHub'),
