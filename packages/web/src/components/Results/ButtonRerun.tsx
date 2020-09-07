@@ -5,10 +5,10 @@ import { connect } from 'react-redux'
 import { Button, ButtonProps } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import { State } from 'src/state/reducer'
+import type { State } from 'src/state/reducer'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
+import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
 import { MdRefresh } from 'react-icons/md'
-import { algorithmRunTrigger } from 'src/state/algorithm/algorithm.actions'
 
 export const ButtonStyled = styled(Button)<ButtonProps>`
   margin: 2px 2px;
@@ -36,7 +36,7 @@ const mapStateToProps = (state: State) => ({
 })
 
 const mapDispatchToProps = {
-  algorithmRunTrigger: (content?: string | File) => algorithmRunTrigger(content),
+  algorithmRunTrigger: (content?: string | File) => algorithmRunAsync.trigger(content),
 }
 
 export const ButtonRerun = connect(mapStateToProps, mapDispatchToProps)(ButtonRerunDisconnected)

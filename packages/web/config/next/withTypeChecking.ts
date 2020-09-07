@@ -1,8 +1,13 @@
+import path from 'path'
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin'
 
-import { NextConfig } from '../../src/types/next'
-
+import type { NextConfig } from 'next'
 import { addWebpackPlugin } from './lib/addWebpackPlugin'
+
+import { findModuleRoot } from '../../lib/findModuleRoot'
+import tsConfig from '../../tsconfig.json'
+
+const { moduleRoot } = findModuleRoot()
 
 export interface CreateFormatterParams {
   warningsAreErrors: boolean
@@ -15,7 +20,7 @@ export interface GetWithTypeCheckingParams {
   exclude?: string[]
 }
 
-const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512, exclude = [] }: GetWithTypeCheckingParams) => (
+const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512, exclude }: GetWithTypeCheckingParams) => (
   nextConfig: NextConfig,
 ) => {
   if (!typeChecking && !eslint) {
@@ -31,23 +36,36 @@ const getWithTypeChecking = ({ eslint, typeChecking, memoryLimit = 512, exclude 
 
       typescript: {
         enabled: typeChecking,
+        configFile: path.join(moduleRoot, 'tsconfig.json'),
         memoryLimit,
         mode: 'write-references',
-        diagnosticOptions: {
-          declaration: true,
-          global: true,
-          semantic: true,
-          syntactic: true,
-        },
+        diagnosticOptions: { syntactic: true, semantic: true, declaration: true, global: true },
         configOverwrite: {
-          exclude,
+          compilerOptions: {
+            ...tsConfig.compilerOptions,
+            skipLibCheck: true,
+            sourceMap: false,
+            inlineSourceMap: false,
+            declarationMap: false,
+          },
+          include: [
+            'lib/**/*.js',
+            'lib/**/*.jsx',
+            'lib/**/*.ts',
+            'lib/**/*.tsx',
+            'src/**/*.js',
+            'src/**/*.jsx',
+            'src/**/*.ts',
+            'src/**/*.tsx',
+          ],
+          exclude: [...tsConfig.exclude, ...(exclude ?? [])],
         },
       },
 
       eslint: {
         enabled: eslint,
         memoryLimit,
-        files: ['**/*.{js,jsx,ts,tsx}'],
+        files: [path.join(moduleRoot, 'src/**/*.{js,jsx,ts,tsx}')],
         options: { cache: false },
       },
 

@@ -37,7 +37,6 @@ module.exports = {
     'plugin:sonarjs/recommended',
     'plugin:unicorn/recommended',
 
-    // prettier should go last
     'plugin:prettier/recommended',
     'prettier/react',
     'prettier/@typescript-eslint',
@@ -66,7 +65,6 @@ module.exports = {
 
     '@typescript-eslint',
 
-    // prettier should go last
     'prettier',
   ],
   reportUnusedDisableDirectives: true,
@@ -218,6 +216,12 @@ module.exports = {
         'global-require': 'off',
         'security/detect-child-process': 'off',
         'sonarjs/cognitive-complexity': ['warn', 50],
+      },
+    },
+    {
+      files: ['config/jest/mocks/**/*.js'],
+      rules: {
+        'react/display-name': 'off',
       },
     },
     {

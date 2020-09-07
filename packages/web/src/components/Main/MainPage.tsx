@@ -18,7 +18,7 @@ import type { State } from 'src/state/reducer'
 import { selectCanExport, selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
 import type { AlgorithmParams, InputFile } from 'src/state/algorithm/algorithm.state'
 import {
-  algorithmRunTrigger,
+  algorithmRunAsync,
   exportCsvTrigger,
   setInput,
   setInputFile,
@@ -55,7 +55,7 @@ const mapDispatchToProps = {
   setInput,
   setInputFile: (inputFile: InputFile) => setInputFile(inputFile),
   setIsDirty,
-  algorithmRunTrigger: (content?: string | File) => algorithmRunTrigger(content),
+  algorithmRunTrigger: (content?: string | File) => algorithmRunAsync.trigger(content),
   exportTrigger: () => exportCsvTrigger(),
   setShowInputBox,
   goToResults: () => push('/results'),
