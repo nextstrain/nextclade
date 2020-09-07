@@ -44,7 +44,6 @@ function alias(development: boolean) {
 module.exports = {
   mode: MODE,
   bail: true,
-  watch: true,
   name: pkg.name,
   target: 'node',
   devtool: 'cheap-module-source-map',
