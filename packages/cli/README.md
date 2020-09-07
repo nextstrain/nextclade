@@ -52,7 +52,7 @@ nextclade -i 'sequences.fasta' -o 'results.json'
 
 Generated file `results.json` will contain the results in JSON format.
 Similarly, results can be generated in .csv or .tsv format, or in multiple formats (by passing multiple `--output-<format>=` flags)
-All files have the same format as exports from the [Nextclade web application](clades.nextstrain.org).
+All files have the same format as exports from the [Nextclade web application](https://clades.nextstrain.org).
 
 ### With docker
 
