@@ -8,3 +8,4 @@
 \.reports
 \.vscode
 node_modules
+dist/

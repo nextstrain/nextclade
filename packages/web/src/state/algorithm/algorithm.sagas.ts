@@ -1,10 +1,10 @@
-import { zipWith, set, get } from 'lodash'
+import { zipWith, set } from 'lodash'
 
 import { push } from 'connected-next-router'
 import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
 
-import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
+import type { AuspiceJsonV2 } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
 import type {
@@ -21,6 +21,7 @@ import type { WorkerPools } from 'src/workers/types'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 
+import { assignClade } from 'src/algorithms/assignClade'
 import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
 import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { safeZip } from 'src/helpers/safeZip'
@@ -87,15 +88,6 @@ export interface ScheduleQcRunParams extends RunQCParams {
 
 export async function runQcOne({ poolRunQc, analysisResult, privateMutations, qcRulesConfig }: ScheduleQcRunParams) {
   return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, privateMutations, qcRulesConfig }))
-}
-
-export function assignOneClade(analysisResult: AnalysisResultWithoutClade, match: AuspiceTreeNode) {
-  const clade = get(match, 'node_attrs.clade_membership.value') as string | undefined
-  if (!clade) {
-    throw new Error('Unable to assign clade: best matching reference node does not have clade membership')
-  }
-
-  return { seqName: analysisResult.seqName, clade }
 }
 
 const buildTreeSaga = fsaSagaFromParams(treeBuildAsync, function* buildTreeWorker(params: LocateInTreeParams) {
@@ -166,7 +158,7 @@ export function* treeFindNearestNodes(analysisResults: AnalysisResultWithoutClad
 
 export function* assignClades(analysisResults: AnalysisResultWithoutClade[], matches: AuspiceTreeNodeExtended[]) {
   const resultsAndMatches = safeZip(analysisResults, matches)
-  const clades = resultsAndMatches.map(([analysisResult, match]) => assignOneClade(analysisResult, match))
+  const clades = resultsAndMatches.map(([analysisResult, match]) => assignClade(analysisResult, match))
   yield* put(setClades(clades))
   const analysisResultsWithClades = safeZip(analysisResults, clades) // prettier-ignore
     .map(([analysisResult, { clade }]) => ({ ...analysisResult, clade }))

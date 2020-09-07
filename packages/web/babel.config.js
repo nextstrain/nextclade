@@ -7,8 +7,34 @@ const debuggableProd = process.env.DEBUGGABLE_PROD === '1'
 
 module.exports = (api) => {
   const test = api.caller((caller) => !!(caller && caller.name === 'babel-jest'))
-  const node = api.caller((caller) => !!(caller && caller.name === '@babel/node'))
+  const node = api.caller((caller) => !!(caller && ['@babel/node', '@babel/register'].includes(caller.name)))
   const web = !(test || node)
+
+  if (node) {
+    return {
+      compact: false,
+      presets: [
+        '@babel/preset-typescript',
+        [
+          '@babel/preset-env',
+          {
+            corejs: false,
+            modules: 'commonjs',
+            shippedProposals: true,
+            targets: { node: '12' },
+            exclude: ['transform-typeof-symbol'],
+          },
+        ],
+      ],
+      plugins: [
+        'babel-plugin-transform-typescript-metadata', // goes before "proposal-decorators"
+        ['@babel/plugin-proposal-decorators', { legacy: true }], // goes before "class-properties"
+        'babel-plugin-parameter-decorator',
+        ['@babel/plugin-proposal-class-properties'],
+        ['@babel/plugin-proposal-numeric-separator'],
+      ].filter(Boolean),
+    }
+  }
 
   return {
     compact: false,
