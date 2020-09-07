@@ -26,7 +26,7 @@ const development = MODE === 'development'
 const sourceMaps = ENABLE_SOURCE_MAPS
 
 const { moduleRoot, pkg } = findModuleRoot()
-const buildPath = path.join(moduleRoot, 'dist')
+const buildPath = path.join(moduleRoot, '../cli/dist')
 const outputFilename = 'nextclade.js' as const
 
 function alias(development: boolean) {
