@@ -18,16 +18,16 @@ fi
 
 CLI_VERSION=$(${CLI_EXE_FILE} --version)
 
-if [ ${PACKAGE_VERSION} != ${CLI_VERSION} ];then
-  echo "Error: version mismatch 'package.json' version is ${PACKAGE_VERSION} while '${CLI_EXE_FILE}' --version is ${CLI_VERSION}. Did you forget to rebuild, or to update the package version, or both?"
+if [ ! ${PACKAGE_VERSION} == ${CLI_VERSION} ]; then
+  echo "Error: version mismatch 'package.json' version is '${PACKAGE_VERSION}' while '${CLI_EXE_FILE}' --version is '${CLI_VERSION}'. Did you forget to rebuild, or to update the package version, or both?"
   exit 1
 fi
 
 if [ $GIT_BRANCH == "release" ] && [ -z $(echo $PACKAGE_VERSION | grep '(alpha|beta)') ]; then
   NPM_TAG=latest
-else if [ $GIT_BRANCH == "staging" ] && [ ! -z $(echo $PACKAGE_VERSION | grep beta) ]; then
+elif [ $GIT_BRANCH == "staging" ] && [ ! -z $(echo $PACKAGE_VERSION | grep beta) ]; then
   NPM_TAG=beta
-else if [ $GIT_BRANCH == "alpha" ] && [ ! -z $(echo $PACKAGE_VERSION | grep alpha) ]; then
+elif [ $GIT_BRANCH == "alpha" ] && [ ! -z $(echo $PACKAGE_VERSION | grep alpha) ]; then
   NPM_TAG=alpha
 else
   printf "Error: The package.json version does not correspond to the git branch name. The branch is $GIT_BRANCH, while package.json version is $PACKAGE_VERSION.\nHere is the list of accepted combinations:\n - release: version should not contains words 'alpha' or 'beta'\n - staging: version should contain word 'beta'\n - master: version should contain word 'alpha'\nPublishing from any other branches is not allowed."
