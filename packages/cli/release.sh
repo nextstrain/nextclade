@@ -30,7 +30,7 @@ else if [ $GIT_BRANCH == "staging" ] && [ ! -z $(echo $PACKAGE_VERSION | grep be
 else if [ $GIT_BRANCH == "alpha" ] && [ ! -z $(echo $PACKAGE_VERSION | grep alpha) ]; then
   NPM_TAG=alpha
 else
-  printf "Error: The package.json version does not correspond to the git branch name. The branch is $GIT_BRANCH, while package.json version is $PACKAGE_VERSION.\nHere is the list of accepted combinations:\n - release: version should not containt words 'alpha' or 'beta'\n - staging: version should contain word 'beta'\n - master: version should contain word 'alpha'\nPublishing from any other branches is not allowed."
+  printf "Error: The package.json version does not correspond to the git branch name. The branch is $GIT_BRANCH, while package.json version is $PACKAGE_VERSION.\nHere is the list of accepted combinations:\n - release: version should not contains words 'alpha' or 'beta'\n - staging: version should contain word 'beta'\n - master: version should contain word 'alpha'\nPublishing from any other branches is not allowed."
 fi
 
 npm publish --tag=${NPM_TAG}
