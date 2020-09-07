@@ -11,6 +11,7 @@
 
 ### Features
 
+* add docker container config ([8ea7047](https://github.com/neherlab/webclades/commit/8ea704785ea6a72080c61dd3e8a5bc304fe97d6a))
 * **cli:** allow custom root sequence, qc config and ref tree ([da5824a](https://github.com/neherlab/webclades/commit/da5824a2ff22a504f2e7ee9ee98d02e40fdec60a))
 * add basic node cli ([1eeef0c](https://github.com/neherlab/webclades/commit/1eeef0c97f93e29f6ae75901458b3576097bb77f))
 * add cli arguments for inputs and outputs ([db8c44e](https://github.com/neherlab/webclades/commit/db8c44e6aade356b7ab8ab69db3e8db88eff4524))
