@@ -1,3 +1,25 @@
+## [0.4.1](https://github.com/neherlab/webclades/compare/0.4.0...0.4.1) (2020-09-07)
+
+
+### Bug Fixes
+
+* **cli:** make desc casing consistent ([976a47d](https://github.com/neherlab/webclades/commit/976a47d990d17fb8f0b311c39f52593944d05f85))
+* change app description to match the main page title ([43daceb](https://github.com/neherlab/webclades/commit/43daceb04d1d81188e313ff326c99576d65f4b53))
+* correct substitutions in translated strings ([fa2120a](https://github.com/neherlab/webclades/commit/fa2120a01905320c8e31749c2e73912347ae26e7))
+* ensure saved locale is restored on launch ([86c1688](https://github.com/neherlab/webclades/commit/86c168855ef45a8359f293b466ef7c1ffbe54104))
+
+
+### Features
+
+* **cli:** allow custom root sequence, qc config and ref tree ([da5824a](https://github.com/neherlab/webclades/commit/da5824a2ff22a504f2e7ee9ee98d02e40fdec60a))
+* add basic node cli ([1eeef0c](https://github.com/neherlab/webclades/commit/1eeef0c97f93e29f6ae75901458b3576097bb77f))
+* add cli arguments for inputs and outputs ([db8c44e](https://github.com/neherlab/webclades/commit/db8c44e6aade356b7ab8ab69db3e8db88eff4524))
+* improve fr translation ([243bcbf](https://github.com/neherlab/webclades/commit/243bcbfeb03a00e98e1a66bd146943c9f1d4f71b))
+* improve ru translation ([64aff1a](https://github.com/neherlab/webclades/commit/64aff1a9839f70d1fb9f9532d77a42ad4d9b3b00))
+* remove unused locale keys ([82bd7ba](https://github.com/neherlab/webclades/commit/82bd7ba52c0af1c91aa673b4712064af2ab819f9))
+
+
+
 # [0.4.0](https://github.com/neherlab/webclades/compare/0.3.7...0.4.0) (2020-09-01)
 
 

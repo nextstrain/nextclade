@@ -15,7 +15,12 @@ Clade assignment, mutation calling, and sequence quality checks
 
 ## Getting started
 
-Install the latest release of the [`nextclade` npm package](https://www.npmjs.com/package/@neherlab/nextclade) globally:
+### Locally
+
+In order to run locally, you need Node.js and npm installed.
+It is recommended to use [`nvm`](https://github.com/nvm-sh/nvm) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) to install and manage Node.js versions. Nextclade CLI supports Node.js versions >= 10.
+
+Having Node.js and npm available, install the latest release of the [`nextclade` npm package](https://www.npmjs.com/package/@neherlab/nextclade) globally:
 
 ```bash
 npm install --global @neherlab/nextclade
@@ -49,6 +54,31 @@ Generated file `results.json` will contain the results in JSON format.
 Similarly, results can be generated in .csv or .tsv format, or in multiple formats (by passing multiple `--output-<format>=` flags)
 All files have the same format as exports from the [Nextclade web application](clades.nextstrain.org).
 
+### With docker
+
+Docker images with Nextclade CLI are hosted in docker hub repository [`neherlab/nextclade`](https://hub.docker.com/r/neherlab/nextclade)
+
+You can pull the latest image and run the container as follows
+
+```bash
+docker run -it --rm -u 1000 --volume="${ABSOLUTE_PATH_TO_SEQUENCES}:/seq" neherlab/nextclade nextclade.js --input-fasta '/seq/sequences.fasta' --output-json '/seq/results.json'
+```
+
+Explanation:
+
+ - `-it` - runs inside an interactive instance of tty. Optional.
+ - `--rm` - deletes the container after usage. Optional.
+ - `-u 1000`. Runs container as a user with UID `1000`. Substitute `1000` with your local user's UID. UID of the current user can be found by running `id -u`. On single-user machines it is typically `1000` on Linux and `501` on Mac. If this parameter is not present, output files will be written on behalf of the root user, making them harder to operate on. Optional, but recommended.
+ - `--volume="${ABSOLUTE_PATH_TO_SEQUENCES}:/seq"`. Substitute `${ABSOLUTE_PATH_TO_SEQUENCES}` with your *absolute* path to a directory containing input fasta sequences on your computer. This is necessary in order for docker container to have access to this directory. In this example, it will be available as `/seq` inside the container.
+ - `neherlab/nextclade` name of the image to pull.
+ - `nextclade.js --input-fasta '/seq/sequences.fasta' --output-json '/seq/results.json` the usual invocation of the tool. Note that in this example we read and write from `/seq` directory inside the container, which we previously mounted our local directory with sequences to.
+
+
+The default (`latest`) tag uses Node.js image based on Debian stretch. It is also possible to use smaller Alpine Linux-based images by appending `:alpine` tag after the repo name:  
+
+```
+docker run ... neherlab/nextclade:alpine ...
+```
 
 ## Build
 
