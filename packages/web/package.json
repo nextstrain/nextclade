@@ -5,7 +5,7 @@
   "homepage": "https://clades.nextstrain.org",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/neherlab/webclades.git"
+    "url": "git+https://github.com/nextstrain/nextclade.git"
   },
   "keywords": [
     "nextstrain",
@@ -16,7 +16,7 @@
     "qc"
   ],
   "bugs": {
-    "url": "https://github.com/neherlab/webclades/issues"
+    "url": "https://github.com/nextstrain/nextclade/issues"
   },
   "license": "MIT",
   "scripts": {

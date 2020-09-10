@@ -19,7 +19,7 @@ These sequences will then be analyzed in your browser -- data never leave your c
 Since your computer is doing the work rather than a server, it is advisable to analyze at most a few hundred sequences at a time.
 Nextclade currently only supports SARS-CoV-2, but we will hopefully extend the tool to other pathogens on Nextstrain.
 
-The source code for the application and algorithms is opensource and is available on [Github](https://github.com/neherlab/webclades).
+The source code for the application and algorithms is opensource and is available on [Github](https://github.com/nextstrain/nextclade).
 
 Other than this web application, advanced users may also try the Nextclade command-line tool, available as a Node.js script at [NPM](https://www.npmjs.com/package/@neherlab/nextclade) or as a Docker container image on [Docker Hub](https://hub.docker.com/r/neherlab/nextclade).
 
@@ -90,7 +90,7 @@ While many tools exist to compute pairwise or multiple sequence alignments, they
 For Nextclade, we therefore implemented a banded-pairwise alignment algorithm in javascript that will run in your browser.
 
 We roughly estimate the alignment of your sequences to the reference one-by-one using short seeds (21-mers) along the sequence.
-With this rough overall alignment, we perform a [banded Smith-Waterman alignment](https://github.com/neherlab/webclades/blob/master/packages/web/src/algorithms/alignPairwise.ts) with an affine gap-penalty.
+With this rough overall alignment, we perform a [banded Smith-Waterman alignment](https://github.com/nextstrain/nextclade/blob/master/packages/web/src/algorithms/alignPairwise.ts) with an affine gap-penalty.
 
 If the seed matches are poor or suggest gaps in excess of 200 bases, we won't attempt to align -- your sequence won't be
 scored.
