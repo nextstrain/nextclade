@@ -54,6 +54,8 @@ Generated file `results.json` will contain the results in JSON format.
 Similarly, results can be generated in .csv or .tsv format, or in multiple formats (by passing multiple `--output-<format>=` flags)
 All files have the same format as exports from the [Nextclade web application](https://clades.nextstrain.org).
 
+Additionally, Nextclade can output a new Nextstrain tree (in the same Auspice JSON v2 format), with the user-provided sequences placed on it, with `--output-tree`. Note that this simplified tree placement is to give a rough idea of where the sequences may end up, and this does not substitute the full Nextstrain build.
+
 ### With docker
 
 Docker images with Nextclade CLI are hosted in docker hub repository [`neherlab/nextclade`](https://hub.docker.com/r/neherlab/nextclade)
