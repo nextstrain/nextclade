@@ -1,11 +1,11 @@
 {
   "name": "@neherlab/nextclade-web",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/neherlab/webclades.git"
+    "url": "git+https://github.com/nextstrain/nextclade.git"
   },
   "keywords": [
     "nextstrain",
@@ -16,7 +16,7 @@
     "qc"
   ],
   "bugs": {
-    "url": "https://github.com/neherlab/webclades/issues"
+    "url": "https://github.com/nextstrain/nextclade/issues"
   },
   "license": "MIT",
   "scripts": {

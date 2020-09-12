@@ -52,7 +52,9 @@ nextclade -i 'sequences.fasta' -o 'results.json'
 
 Generated file `results.json` will contain the results in JSON format.
 Similarly, results can be generated in .csv or .tsv format, or in multiple formats (by passing multiple `--output-<format>=` flags)
-All files have the same format as exports from the [Nextclade web application](clades.nextstrain.org).
+All files have the same format as exports from the [Nextclade web application](https://clades.nextstrain.org).
+
+Additionally, Nextclade can output a new Nextstrain tree (in the same Auspice JSON v2 format), with the user-provided sequences placed on it, with `--output-tree`. Note that this simplified tree placement is to give a rough idea of where the sequences may end up, and this does not substitute the full Nextstrain build.
 
 ### With docker
 
@@ -85,13 +87,13 @@ docker run ... neherlab/nextclade:alpine ...
 This will build a production version of the command-line tool:
 
 ```bash
-git clone https://github.com/neherlab/webclades
-cd webclades/packages/web
+git clone https://github.com/nextstrain/nextclade
+cd nextclade/packages/web
 cp .env.example .env
 yarn cli:prod:build
 ```
 
-The bundled npm script will appear as `webclades/packages/cli/dist/nextclade.js`.
+The bundled npm script will appear as `nextclade/packages/cli/dist/nextclade.js`.
 The script is standalone, does not require any local dependencies and can be moved.
 
 If Node.js >= 10 is available locally, the tool can be ran as
@@ -109,18 +111,18 @@ nextclade.js
 A standalone executable (without dependency on Node.js) can be created with
 
 ```bash
-cd webclades/packages/web
+cd nextclade/packages/web
 yarn cli:prod:build:exe
 ```
 
-The native executables for various platforms will appear in `webclades/packages/cli/dist/`.
+The native executables for various platforms will appear in `nextclade/packages/cli/dist/`.
 This uses [`pkg`](https://github.com/vercel/pkg) tool to wrap the script together with Node.js runtime into one standalone file. 
 
 
 ## Publish
 
 This describes how to publish a new version of the package on NPM.
-After build step above, increment the version in `webclades/packages/cli/package.json`:
+After build step above, increment the version in `nextclade/packages/cli/package.json`:
 
 ```json
 {
@@ -131,7 +133,7 @@ After build step above, increment the version in `webclades/packages/cli/package
 and run:
 
 ```bash
-cd webclades/packages/cli
+cd nextclade/packages/cli
 npm publish
 ```
 
@@ -144,7 +146,7 @@ If you need to re-publish the same version (which npm disallows), append an inde
 }
 ```
 
-In order to publish a beta version, name the version in `webclades/packages/cli/package.json` using
+In order to publish a beta version, name the version in `nextclade/packages/cli/package.json` using
 `${x.y.z}-beta.${k}`, format where `${x.y.z}` is the semantic version of the corresponding future release and `${k}`,
 is the numeric index of the current beta version, for example: 
 
@@ -170,15 +172,15 @@ while releases (`latest` tag) are still installed by default.
 For development purposes run
 
 ```
-git clone https://github.com/neherlab/webclades
-cd webclades/packages/web
+git clone https://github.com/nextstrain/nextclade
+cd nextclade/packages/web
 cp .env.example .env
 yarn dev
 
 ```
 
 This will start webpack in watch mode and all changes will trigger partial rebuilds.
-The build result will appear `webclades/packages/cli/dist/nextclade.js` and can be run similarly to the production version.
+The build result will appear `nextclade/packages/cli/dist/nextclade.js` and can be run similarly to the production version.
 
 
 ## License
