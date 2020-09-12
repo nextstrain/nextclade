@@ -1,4 +1,4 @@
-## [0.4.1](https://github.com/nextstrain/nextclade/compare/0.4.0...0.4.1) (2020-09-07)
+## [0.4.3](https://github.com/nextstrain/nextclade/compare/0.4.1...0.4.3) (2020-09-12)
 
 
 ### Bug Fixes
@@ -11,10 +11,12 @@
 
 ### Features
 
-* add docker container config ([8ea7047](https://github.com/nextstrain/nextclade/commit/8ea704785ea6a72080c61dd3e8a5bc304fe97d6a))
-* **cli:** allow custom root sequence, qc config and ref tree ([da5824a](https://github.com/nextstrain/nextclade/commit/da5824a2ff22a504f2e7ee9ee98d02e40fdec60a))
+* **cli:** add ability to output Auspice JSON v2 in CLI ([77563a3](https://github.com/nextstrain/nextclade/commit/77563a3e087e42b599eb7f42a6486f146e5332f8))
 * add basic node cli ([1eeef0c](https://github.com/nextstrain/nextclade/commit/1eeef0c97f93e29f6ae75901458b3576097bb77f))
 * add cli arguments for inputs and outputs ([db8c44e](https://github.com/nextstrain/nextclade/commit/db8c44e6aade356b7ab8ab69db3e8db88eff4524))
+* add docker container config ([8ea7047](https://github.com/nextstrain/nextclade/commit/8ea704785ea6a72080c61dd3e8a5bc304fe97d6a))
+* add links to cli and a short intro on main page ([4a724d9](https://github.com/nextstrain/nextclade/commit/4a724d9942e587d49996723ba655a36b033cd46b))
+* **cli:** allow custom root sequence, qc config and ref tree ([da5824a](https://github.com/nextstrain/nextclade/commit/da5824a2ff22a504f2e7ee9ee98d02e40fdec60a))
 * improve fr translation ([243bcbf](https://github.com/nextstrain/nextclade/commit/243bcbfeb03a00e98e1a66bd146943c9f1d4f71b))
 * improve ru translation ([64aff1a](https://github.com/nextstrain/nextclade/commit/64aff1a9839f70d1fb9f9532d77a42ad4d9b3b00))
 * remove unused locale keys ([82bd7ba](https://github.com/nextstrain/nextclade/commit/82bd7ba52c0af1c91aa673b4712064af2ab819f9))
