@@ -1,3 +1,4 @@
+import { AuspiceJsonV2 } from 'auspice'
 import path from 'path'
 import { AnalysisResult } from 'src/algorithms/types'
 import fs from 'fs-extra'
@@ -21,7 +22,8 @@ import pkg from 'src/../package.json'
 const OUTPUT_JSON = 'output-json' as const
 const OUTPUT_CSV = 'output-csv' as const
 const OUTPUT_TSV = 'output-tsv' as const
-const OUTPUT_OPTS = [OUTPUT_JSON, OUTPUT_CSV, OUTPUT_TSV] as const
+const OUTPUT_TREE = 'output-tree' as const
+const OUTPUT_OPTS = [OUTPUT_JSON, OUTPUT_CSV, OUTPUT_TSV, OUTPUT_TREE] as const
 
 export function parseCommandLine() {
   const params = yargs(process.argv)
@@ -49,7 +51,8 @@ export function parseCommandLine() {
     .option('input-tree', {
       alias: 'a',
       type: 'string',
-      description: 'Path to Auspice JSON v2 file containing custom reference tree',
+      description:
+        'Path to Auspice JSON v2 file containing custom reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats',
     })
     .option(OUTPUT_JSON, {
       alias: 'o',
@@ -64,7 +67,13 @@ export function parseCommandLine() {
     .option(OUTPUT_TSV, {
       alias: 't',
       type: 'string',
-      description: 'Path to output CSV results file',
+      description: 'Path to output TSV results file',
+    })
+    .option(OUTPUT_TREE, {
+      alias: 'T',
+      type: 'string',
+      description:
+        'Path to output Auspice JSON V2 results file. See https://nextstrain.org/docs/bioinformatics/data-formats',
     })
     .check((argv) => {
       if (!OUTPUT_OPTS.some((opt) => argv[opt])) {
@@ -106,12 +115,14 @@ export async function validateParams(params: CliParams) {
   const outputJson = params[OUTPUT_JSON]
   const outputCsv = params[OUTPUT_CSV]
   const outputTsv = params[OUTPUT_TSV]
+  const outputTree = params[OUTPUT_TREE]
 
   await assertCanCreate(outputJson)
   await assertCanCreate(outputCsv)
   await assertCanCreate(outputTsv)
+  await assertCanCreate(outputTree)
 
-  return { inputFasta, inputQcConfig, inputRootSeq, inputTree, outputJson, outputCsv, outputTsv }
+  return { inputFasta, inputQcConfig, inputRootSeq, inputTree, outputJson, outputCsv, outputTsv, outputTree }
 }
 
 export interface ReadInputsParams {
@@ -146,12 +157,21 @@ export async function readInputs({ inputFasta, inputQcConfig, inputRootSeq, inpu
 
 export interface WriteResultsParams {
   results: AnalysisResult[]
+  auspiceData: AuspiceJsonV2
   outputJson?: string
   outputCsv?: string
   outputTsv?: string
+  outputTree?: string
 }
 
-export async function writeResults({ results, outputJson, outputCsv, outputTsv }: WriteResultsParams) {
+export async function writeResults({
+  results,
+  auspiceData,
+  outputJson,
+  outputCsv,
+  outputTsv,
+  outputTree,
+}: WriteResultsParams) {
   const json = results.map(prepareResultJson)
   if (outputJson) {
     await fs.writeJson(outputJson, json, { spaces: 2 })
@@ -168,12 +188,24 @@ export async function writeResults({ results, outputJson, outputCsv, outputTsv }
     const tsv = await toCsvString(data, '\t')
     await fs.writeFile(outputTsv, tsv)
   }
+
+  if (outputTree) {
+    await fs.writeJson(outputTree, auspiceData, { spaces: 2 })
+  }
 }
 
 export async function main() {
   const params = parseCommandLine()
 
-  const { inputFasta, outputJson, outputCsv, outputTsv, inputQcConfig, inputRootSeq } = await validateParams(params)
+  const {
+    inputFasta,
+    outputJson,
+    outputCsv,
+    outputTsv,
+    outputTree,
+    inputQcConfig,
+    inputRootSeq,
+  } = await validateParams(params)
 
   const { input, rootSeq, qcRulesConfig, auspiceDataReference } = await readInputs({
     inputFasta,
@@ -181,9 +213,9 @@ export async function main() {
     inputRootSeq,
   })
 
-  const { results } = run(input, rootSeq, qcRulesConfig, auspiceDataReference)
+  const { results, auspiceData } = run(input, rootSeq, qcRulesConfig, auspiceDataReference)
 
-  await writeResults({ results, outputJson, outputCsv, outputTsv })
+  await writeResults({ results, auspiceData, outputJson, outputCsv, outputTsv, outputTree })
 }
 
 main().catch((error_) => {
