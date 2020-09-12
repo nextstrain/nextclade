@@ -5,8 +5,6 @@ set -o nounset
 set -o pipefail
 trap "exit" INT
 
-set -x
-
 REPO_NAME="neherlab/nextclade"
 PACKAGE_VERSION=$(node -pe "require('./package.json').version")
 CLI_EXE_FILE=./dist/nextclade.js
@@ -31,6 +29,7 @@ elif [ $GIT_BRANCH == "alpha" ] && [ ! -z $(echo $PACKAGE_VERSION | grep alpha) 
   NPM_TAG=alpha
 else
   printf "Error: The package.json version does not correspond to the git branch name. The branch is $GIT_BRANCH, while package.json version is $PACKAGE_VERSION.\nHere is the list of accepted combinations:\n - release: version should not contains words 'alpha' or 'beta'\n - staging: version should contain word 'beta'\n - master: version should contain word 'alpha'\nPublishing from any other branches is not allowed."
+  exit 1
 fi
 
 npm publish --tag=${NPM_TAG}
