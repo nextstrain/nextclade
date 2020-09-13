@@ -255,19 +255,19 @@ export function* runAlgorithm(content?: File | string) {
 export function* exportCsv() {
   const results = yield* select(selectResults)
   const str = yield* call(serializeResultsToCsv, results, ';')
-  saveFile(str, EXPORT_CSV_FILENAME)
+  saveFile(str, EXPORT_CSV_FILENAME, 'text/csv;charset=utf-8')
 }
 
 export function* exportTsv() {
   const results = yield* select(selectResults)
   const str = yield* call(serializeResultsToCsv, results, '\t')
-  saveFile(str, EXPORT_TSV_FILENAME)
+  saveFile(str, EXPORT_TSV_FILENAME, 'text/csv;charset=utf-8')
 }
 
 export function* exportJson() {
   const results = yield* select(selectResults)
   const str = yield* call(serializeResultsToJson, results)
-  saveFile(str, EXPORT_JSON_FILENAME)
+  saveFile(str, EXPORT_JSON_FILENAME, 'application/json;charset=utf-8')
 }
 
 export default [
