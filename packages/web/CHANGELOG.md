@@ -1,8 +1,9 @@
-## [0.4.3](https://github.com/nextstrain/nextclade/compare/0.4.1...0.4.3) (2020-09-12)
+## [0.4.3](https://github.com/nextstrain/nextclade/compare/0.4.4...0.4.3) (2020-09-13)
 
 
 ### Bug Fixes
 
+* make sure exported files have correct extensions ([2bb74c8](https://github.com/nextstrain/nextclade/commit/2bb74c8ed0398cd0bc59bb88e779976a1f30452c))
 * **cli:** make desc casing consistent ([976a47d](https://github.com/nextstrain/nextclade/commit/976a47d990d17fb8f0b311c39f52593944d05f85))
 * change app description to match the main page title ([43daceb](https://github.com/nextstrain/nextclade/commit/43daceb04d1d81188e313ff326c99576d65f4b53))
 * correct substitutions in translated strings ([fa2120a](https://github.com/nextstrain/nextclade/commit/fa2120a01905320c8e31749c2e73912347ae26e7))
