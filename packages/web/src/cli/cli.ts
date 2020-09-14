@@ -205,12 +205,14 @@ export async function main() {
     outputTree,
     inputQcConfig,
     inputRootSeq,
+    inputTree,
   } = await validateParams(params)
 
   const { input, rootSeq, qcRulesConfig, auspiceDataReference } = await readInputs({
     inputFasta,
     inputQcConfig,
     inputRootSeq,
+    inputTree,
   })
 
   const { results, auspiceData } = run(input, rootSeq, qcRulesConfig, auspiceDataReference)
