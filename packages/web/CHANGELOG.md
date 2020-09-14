@@ -1,8 +1,9 @@
-## [0.4.3](https://github.com/nextstrain/nextclade/compare/0.4.4...0.4.3) (2020-09-13)
+## [0.4.5](https://github.com/nextstrain/nextclade/compare/0.4.4...0.4.5) (2020-09-14)
 
 
 ### Bug Fixes
 
+* **cli:** make sure the custom tree is used ([d32d7c2](https://github.com/nextstrain/nextclade/commit/d32d7c28fb852377564df7b4b3cbfb7b8a881808))
 * make sure exported files have correct extensions ([2bb74c8](https://github.com/nextstrain/nextclade/commit/2bb74c8ed0398cd0bc59bb88e779976a1f30452c))
 * **cli:** make desc casing consistent ([976a47d](https://github.com/nextstrain/nextclade/commit/976a47d990d17fb8f0b311c39f52593944d05f85))
 * change app description to match the main page title ([43daceb](https://github.com/nextstrain/nextclade/commit/43daceb04d1d81188e313ff326c99576d65f4b53))
