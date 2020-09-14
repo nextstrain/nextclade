@@ -261,7 +261,7 @@ export function* exportCsv() {
 export function* exportTsv() {
   const results = yield* select(selectResults)
   const str = yield* call(serializeResultsToCsv, results, '\t')
-  saveFile(str, EXPORT_TSV_FILENAME, 'text/csv;charset=utf-8')
+  saveFile(str, EXPORT_TSV_FILENAME, 'text/tab-separated-values;charset=utf-8')
 }
 
 export function* exportJson() {
