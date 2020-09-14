@@ -1,8 +1,9 @@
-## [0.4.5](https://github.com/nextstrain/nextclade/compare/0.4.4...0.4.5) (2020-09-14)
+## [0.4.6](https://github.com/nextstrain/nextclade/compare/0.4.5...0.4.6) (2020-09-14)
 
 
 ### Bug Fixes
 
+* attempt to fix tsv extension on chrome mac ([e47aa5e](https://github.com/nextstrain/nextclade/commit/e47aa5e7026f86554157d1e4030ce8b5a29306b3))
 * **cli:** make sure the custom tree is used ([d32d7c2](https://github.com/nextstrain/nextclade/commit/d32d7c28fb852377564df7b4b3cbfb7b8a881808))
 * make sure exported files have correct extensions ([2bb74c8](https://github.com/nextstrain/nextclade/commit/2bb74c8ed0398cd0bc59bb88e779976a1f30452c))
 * **cli:** make desc casing consistent ([976a47d](https://github.com/nextstrain/nextclade/commit/976a47d990d17fb8f0b311c39f52593944d05f85))
