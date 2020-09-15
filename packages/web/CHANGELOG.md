@@ -1,3 +1,7 @@
+## [0.4.7](https://github.com/nextstrain/nextclade/compare/0.4.6...0.4.7) (2020-09-15)
+
+
+
 ## [0.4.6](https://github.com/nextstrain/nextclade/compare/0.4.5...0.4.6) (2020-09-14)
 
 
