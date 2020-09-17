@@ -1,6 +1,8 @@
 import type { Virus } from './types'
 import { A, T, G, C } from './nucleotides'
 
+import { pcrPrimers } from './primers/getPcrPrimers'
+
 export const VIRUSES: Record<string, Virus> = {
   'SARS-CoV-2': {
     minimalLength: 100,
@@ -33,5 +35,6 @@ export const VIRUSES: Record<string, Virus> = {
         { pos: 25563, nuc: T },
       ],
     },
+    pcrPrimers,
   },
 }

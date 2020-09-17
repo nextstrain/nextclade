@@ -70,9 +70,28 @@ export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
   aaSubstitutions: AminoacidSubstitution[]
 }
 
+export interface PcrPrimer {
+  name: string
+  target: string
+  source: string
+  seq: string
+  candidate: string
+  range: Range
+}
+
+export interface PcrPrimerChange {
+  primer: PcrPrimer
+  substitutions: NucleotideSubstitution[]
+}
+
+export interface SubstitutionsWithPrimers extends SubstitutionsWithAminoacids {
+  pcrPrimersChanged: PcrPrimer[]
+}
+
 export interface Virus {
   minimalLength: 100
   clades: Substitutions
+  pcrPrimers: PcrPrimer[]
 }
 
 export interface ClusteredSNPs {
@@ -83,7 +102,7 @@ export interface ClusteredSNPs {
 
 export interface AnalysisResultWithoutClade {
   seqName: string
-  substitutions: SubstitutionsWithAminoacids[]
+  substitutions: SubstitutionsWithPrimers[]
   totalMutations: number
   aminoacidChanges: AminoacidSubstitution[]
   totalAminoacidChanges: number
@@ -100,6 +119,8 @@ export interface AnalysisResultWithoutClade {
   alignmentScore: number
   alignedQuery: string
   nucleotideComposition: Record<string, number>
+  pcrPrimerChanges: PcrPrimerChange[]
+  totalPcrPrimerChanges: number
 }
 
 export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {

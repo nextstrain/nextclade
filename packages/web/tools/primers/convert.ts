@@ -105,7 +105,7 @@ export async function main() {
       }
 
       const end = begin + template.length
-      return { name, target, source, seq, candidate: template, range: { begin, end } }
+      return { name, target, source, seq, template, range: { begin, end } }
     })
     .filter(notUndefined)
 

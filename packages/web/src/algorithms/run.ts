@@ -11,6 +11,7 @@ import { findNucleotideRanges } from './findNucleotideRanges'
 import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
 import { GOOD_NUCLEOTIDES, N } from './nucleotides'
 import { getNucleotideComposition } from './getNucleotideComposition'
+import { getPcrPrimerChanges, getSubstitutionsWithPcrPrimerChanges } from './getPcrPrimerChanges'
 
 export async function parse(input: string | File): Promise<ParseResult> {
   let newInput: string
@@ -45,14 +46,18 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
   const nonACGTNs = findNucleotideRanges(alignedQuery, (nuc) => !GOOD_NUCLEOTIDES.includes(nuc))
   const totalNonACGTNs = nonACGTNs.reduce((total, { begin, end }) => total + end - begin, 0)
 
-  const substitutions = getAllAminoAcidChanges(nucSubstitutions, rootSeq, geneMap)
-  const aminoacidChanges = substitutions.reduce(
+  const substitutionsWithAA = getAllAminoAcidChanges(nucSubstitutions, rootSeq, geneMap)
+  const aminoacidChanges = substitutionsWithAA.reduce(
     (result, { aaSubstitutions }) => [...result, ...aaSubstitutions],
     [] as AminoacidSubstitution[],
   )
   const totalAminoacidChanges = aminoacidChanges.length
 
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
+
+  const substitutions = getSubstitutionsWithPcrPrimerChanges(substitutionsWithAA, virus.pcrPrimers)
+  const pcrPrimerChanges = getPcrPrimerChanges(nucSubstitutions, virus.pcrPrimers)
+  const totalPcrPrimerChanges = pcrPrimerChanges.reduce((total, { substitutions }) => total + substitutions.length, 0)
 
   return Object.freeze({
     seqName,
@@ -73,5 +78,7 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
     alignmentScore,
     alignedQuery,
     nucleotideComposition,
+    pcrPrimerChanges,
+    totalPcrPrimerChanges,
   })
 }

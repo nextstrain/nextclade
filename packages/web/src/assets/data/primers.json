@@ -4,7 +4,7 @@
     "target": "RdRp",
     "source": "Charité (Germany)",
     "seq": "GTGAAATGGTCATGTGTGGCGG",
-    "candidate": "GTGA.ATGGTCATGTGTGGCGG",
+    "template": "GTGA.ATGGTCATGTGTGGCGG",
     "range": {
       "begin": 15430,
       "end": 15452
@@ -15,7 +15,7 @@
     "target": "RdRp",
     "source": "Charité (Germany)",
     "seq": "CAGGTGGAACCTCATCAGGAGATGC",
-    "candidate": "CAGGTGGAACCTCATCAGGAGATGC",
+    "template": "CAGGTGGAACCTCATCAGGAGATGC",
     "range": {
       "begin": 15469,
       "end": 15494
@@ -26,7 +26,7 @@
     "target": "RdRp",
     "source": "Charité (Germany)",
     "seq": "TATGCTAATAGTGTTTTTAACATTTG",
-    "candidate": "TATGCTAATAGTGT.TTTAACAT.TG",
+    "template": "TATGCTAATAGTGT.TTTAACAT.TG",
     "range": {
       "begin": 15504,
       "end": 15530
@@ -37,7 +37,7 @@
     "target": "E",
     "source": "Charité (Germany)",
     "seq": "ACAGGTACGTTAATAGTTAATAGCGT",
-    "candidate": "ACAGGTACGTTAATAGTTAATAGCGT",
+    "template": "ACAGGTACGTTAATAGTTAATAGCGT",
     "range": {
       "begin": 26268,
       "end": 26294
@@ -48,7 +48,7 @@
     "target": "E",
     "source": "Charité (Germany)",
     "seq": "ACACTAGCCATCCTTACTGCGCTTCG",
-    "candidate": "ACACTAGCCATCCTTACTGCGCTTCG",
+    "template": "ACACTAGCCATCCTTACTGCGCTTCG",
     "range": {
       "begin": 26331,
       "end": 26357
@@ -59,7 +59,7 @@
     "target": "E",
     "source": "Charité (Germany)",
     "seq": "TGTGTGCGTACTGCTGCAATAT",
-    "candidate": "TGTGTGCGTACTGCTGCAATAT",
+    "template": "TGTGTGCGTACTGCTGCAATAT",
     "range": {
       "begin": 26359,
       "end": 26381
@@ -70,7 +70,7 @@
     "target": "N",
     "source": "Charité (Germany)",
     "seq": "CACATTGGCACCCGCAATC",
-    "candidate": "CACATTGGCACCCGCAATC",
+    "template": "CACATTGGCACCCGCAATC",
     "range": {
       "begin": 28705,
       "end": 28724
@@ -81,7 +81,7 @@
     "target": "N",
     "source": "Charité (Germany)",
     "seq": "ACTTCCTCAAGGAACAACATTGCCA",
-    "candidate": "ACTTCCTCAAGGAACAACATTGCCA",
+    "template": "ACTTCCTCAAGGAACAACATTGCCA",
     "range": {
       "begin": 28752,
       "end": 28777
@@ -92,7 +92,7 @@
     "target": "N",
     "source": "Charité (Germany)",
     "seq": "CAAGCCTCTTCTCGTTCCTC",
-    "candidate": "CAAGCCTCTTCTCGTTCCTC",
+    "template": "CAAGCCTCTTCTCGTTCCTC",
     "range": {
       "begin": 28813,
       "end": 28833
@@ -103,7 +103,7 @@
     "target": "ORF1b-nsp14",
     "source": "HKU (Hong Kong)",
     "seq": "TGGGGTTTTACAGGTAACCT",
-    "candidate": "TGGGG.TTTAC.GGTAACCT",
+    "template": "TGGGG.TTTAC.GGTAACCT",
     "range": {
       "begin": 18777,
       "end": 18797
@@ -114,7 +114,7 @@
     "target": "ORF1b-nsp14",
     "source": "HKU (Hong Kong)",
     "seq": "TAGTTGTGATGCAATCATGACTAG",
-    "candidate": "TAGTTGTGATGC.ATCATGACTAG",
+    "template": "TAGTTGTGATGC.ATCATGACTAG",
     "range": {
       "begin": 18848,
       "end": 18872
@@ -125,7 +125,7 @@
     "target": "ORF1b-nsp14",
     "source": "HKU (Hong Kong)",
     "seq": "GAGTGCTTTGTTAAGCGTGTT",
-    "candidate": "GAGTGCTTTGTTAAGCG.GTT",
+    "template": "GAGTGCTTTGTTAAGCG.GTT",
     "range": {
       "begin": 18888,
       "end": 18909
@@ -136,7 +136,7 @@
     "target": "N",
     "source": "HKU (Hong Kong)",
     "seq": "TAATCAGACAAGGAACTGATTA",
-    "candidate": "TAATCAGACAAGGAACTGATTA",
+    "template": "TAATCAGACAAGGAACTGATTA",
     "range": {
       "begin": 29144,
       "end": 29166
@@ -147,7 +147,7 @@
     "target": "N",
     "source": "HKU (Hong Kong)",
     "seq": "CATGGAAGTCACACCTTCG",
-    "candidate": "CATGGAAGTCACACCTTCG",
+    "template": "CATGGAAGTCACACCTTCG",
     "range": {
       "begin": 29235,
       "end": 29254
@@ -158,7 +158,7 @@
     "target": "N",
     "source": "China CDC (China)",
     "seq": "GGGGAACTTCTCCTGCTAGAAT",
-    "candidate": "GGGGAACTTCTCCTGCTAGAAT",
+    "template": "GGGGAACTTCTCCTGCTAGAAT",
     "range": {
       "begin": 28880,
       "end": 28902
@@ -169,7 +169,7 @@
     "target": "N",
     "source": "China CDC (China)",
     "seq": "TTGCTGCTGCTTGACAGATT",
-    "candidate": "TTGCTGCTGCTTGACAGATT",
+    "template": "TTGCTGCTGCTTGACAGATT",
     "range": {
       "begin": 28933,
       "end": 28953
@@ -180,7 +180,7 @@
     "target": "N",
     "source": "China CDC (China)",
     "seq": "CAGCTTGAGAGCAAAATGTCTG",
-    "candidate": "CAGCTTGAGAGCAAAATGTCTG",
+    "template": "CAGCTTGAGAGCAAAATGTCTG",
     "range": {
       "begin": 28957,
       "end": 28979
@@ -191,7 +191,7 @@
     "target": "ORF1ab-nsp10",
     "source": "China CDC (China)",
     "seq": "CCCTGTGGGTTTTACACTTAA",
-    "candidate": "CCCTGTGGGTTTTACACTTAA",
+    "template": "CCCTGTGGGTTTTACACTTAA",
     "range": {
       "begin": 13341,
       "end": 13362
@@ -202,7 +202,7 @@
     "target": "ORF1ab-nsp10",
     "source": "China CDC (China)",
     "seq": "CCGTCTGCGGTATGTGGAAAGGTTATGG",
-    "candidate": "CCGTCTGCGGTATGTGGAAAGGTTATGG",
+    "template": "CCGTCTGCGGTATGTGGAAAGGTTATGG",
     "range": {
       "begin": 13376,
       "end": 13404
@@ -213,7 +213,7 @@
     "target": "ORF1ab-nsp10",
     "source": "China CDC (China)",
     "seq": "TCAGCTGATGCACAATCGT",
-    "candidate": "TCAGCTGATGCACAATCGT",
+    "template": "TCAGCTGATGCACAATCGT",
     "range": {
       "begin": 13441,
       "end": 13460
@@ -224,7 +224,7 @@
     "target": "N1",
     "source": "US CDC (United States) ",
     "seq": "GACCCCAAAATCAGCGAAAT",
-    "candidate": "GACCCCAAAATCAGCGAAAT",
+    "template": "GACCCCAAAATCAGCGAAAT",
     "range": {
       "begin": 28286,
       "end": 28306
@@ -235,7 +235,7 @@
     "target": "N1",
     "source": "US CDC (United States) ",
     "seq": "ACCCCGCATTACGTTTGGTGGACC",
-    "candidate": "ACCCCGCATTACGTTTGGTGGACC",
+    "template": "ACCCCGCATTACGTTTGGTGGACC",
     "range": {
       "begin": 28308,
       "end": 28332
@@ -246,7 +246,7 @@
     "target": "N1",
     "source": "US CDC (United States) ",
     "seq": "CAGATTCAACTGGCAGTAACCAGA",
-    "candidate": "CAGATTCAACTGGCAGTAACCAGA",
+    "template": "CAGATTCAACTGGCAGTAACCAGA",
     "range": {
       "begin": 28334,
       "end": 28358
@@ -257,7 +257,7 @@
     "target": "N2",
     "source": "US CDC (United States) ",
     "seq": "TTACAAACATTGGCCGCAAA",
-    "candidate": "TTACAAACATTGGCCGCAAA",
+    "template": "TTACAAACATTGGCCGCAAA",
     "range": {
       "begin": 29163,
       "end": 29183
@@ -268,7 +268,7 @@
     "target": "N2",
     "source": "US CDC (United States) ",
     "seq": "ACAATTTGCCCCCAGCGCTTCAG",
-    "candidate": "ACAATTTGCCCCCAGCGCTTCAG",
+    "template": "ACAATTTGCCCCCAGCGCTTCAG",
     "range": {
       "begin": 29187,
       "end": 29210
@@ -279,7 +279,7 @@
     "target": "N2",
     "source": "US CDC (United States) ",
     "seq": "TTCTTCGGAATGTCGCGC",
-    "candidate": "TTCTTCGGAATGTCGCGC",
+    "template": "TTCTTCGGAATGTCGCGC",
     "range": {
       "begin": 29212,
       "end": 29230
@@ -290,7 +290,7 @@
     "target": "N3",
     "source": "US CDC (United States) ",
     "seq": "GGGAGCCTTGAATACACCAAAA",
-    "candidate": "GGGAGCCTTGAATACACCAAAA",
+    "template": "GGGAGCCTTGAATACACCAAAA",
     "range": {
       "begin": 28680,
       "end": 28702
@@ -301,7 +301,7 @@
     "target": "N3",
     "source": "US CDC (United States) ",
     "seq": "ATCACATTGGCACCCGCAATCCTG",
-    "candidate": "A.CACATTGGCACCCGCAATCCTG",
+    "template": "A.CACATTGGCACCCGCAATCCTG",
     "range": {
       "begin": 28703,
       "end": 28727
@@ -312,7 +312,7 @@
     "target": "N3",
     "source": "US CDC (United States) ",
     "seq": "CAATGCTGCAATCGTGCTACA",
-    "candidate": "CAATGCTGCAATCGTGCTACA",
+    "template": "CAATGCTGCAATCGTGCTACA",
     "range": {
       "begin": 28731,
       "end": 28752
@@ -323,7 +323,7 @@
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
     "seq": "ATGAGCTTAGTCCTGTTG",
-    "candidate": "ATGAGCTTAGTCCTGTTG",
+    "template": "ATGAGCTTAGTCCTGTTG",
     "range": {
       "begin": 12689,
       "end": 12707
@@ -334,7 +334,7 @@
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
     "seq": "AGATGTCTTGTGCTGCCGGTA",
-    "candidate": "AGATGTCTTGTGCTGCCGGTA",
+    "template": "AGATGTCTTGTGCTGCCGGTA",
     "range": {
       "begin": 12716,
       "end": 12737
@@ -345,7 +345,7 @@
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
     "seq": "ACAACACAACAAAGGGAG",
-    "candidate": "ACAACACAACAAAGGGAG",
+    "template": "ACAACACAACAAAGGGAG",
     "range": {
       "begin": 12779,
       "end": 12797
@@ -356,7 +356,7 @@
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
     "seq": "GGTAACTGGTATGATTTCG",
-    "candidate": "GGTAACTGGTATGATTTCG",
+    "template": "GGTAACTGGTATGATTTCG",
     "range": {
       "begin": 14079,
       "end": 14098
@@ -367,7 +367,7 @@
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
     "seq": "TCATACAAACCACGCCAGG",
-    "candidate": "TCATACAAACCACGCCAGG",
+    "template": "TCATACAAACCACGCCAGG",
     "range": {
       "begin": 14104,
       "end": 14123
@@ -378,7 +378,7 @@
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
     "seq": "CCTATATTAACCTTGACCAG",
-    "candidate": "CCTATATTAACCTTGACCAG",
+    "template": "CCTATATTAACCTTGACCAG",
     "range": {
       "begin": 14166,
       "end": 14186

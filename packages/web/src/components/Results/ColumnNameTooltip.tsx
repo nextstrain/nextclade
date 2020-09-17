@@ -8,6 +8,7 @@ import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
 import { ListOfMutations } from 'src/components/Results/ListOfMutations'
 import { ListOfAminoacidChanges } from 'src/components/SequenceView/ListOfAminoacidChanges'
+import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
 import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
 import { ListOfInsertions } from './ListOfInsertions'
 
@@ -30,6 +31,8 @@ export function ColumnNameTooltip({ sequence }: ColumnNameTooltipProps) {
     alignmentStart,
     alignmentEnd,
     alignmentScore,
+    pcrPrimerChanges,
+    totalPcrPrimerChanges,
   } = sequence
   const { t } = useTranslation()
 
@@ -63,6 +66,7 @@ export function ColumnNameTooltip({ sequence }: ColumnNameTooltipProps) {
         </Col>
         <Col lg={6}>
           <ListOfAminoacidChanges aminoacidChanges={aminoacidChanges} />
+          <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
         </Col>
       </Row>
 
