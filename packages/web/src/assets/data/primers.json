@@ -8,7 +8,13 @@
     "range": {
       "begin": 15430,
       "end": 15452
-    }
+    },
+    "nonACGTs": [
+      {
+        "nuc": "R",
+        "pos": 15434
+      }
+    ]
   },
   {
     "name": "Charité_S_RdRp_P c",
@@ -19,7 +25,8 @@
     "range": {
       "begin": 15469,
       "end": 15494
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Charité_RdRp_R",
@@ -30,7 +37,17 @@
     "range": {
       "begin": 15504,
       "end": 15530
-    }
+    },
+    "nonACGTs": [
+      {
+        "nuc": "R",
+        "pos": 15506
+      },
+      {
+        "nuc": "S",
+        "pos": 15515
+      }
+    ]
   },
   {
     "name": "Charité_E_F",
@@ -41,7 +58,8 @@
     "range": {
       "begin": 26268,
       "end": 26294
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Charité_E_P",
@@ -52,7 +70,8 @@
     "range": {
       "begin": 26331,
       "end": 26357
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Charité_E_R",
@@ -63,7 +82,8 @@
     "range": {
       "begin": 26359,
       "end": 26381
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Charité_N_F",
@@ -74,7 +94,8 @@
     "range": {
       "begin": 28705,
       "end": 28724
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Charité_N_P",
@@ -85,7 +106,8 @@
     "range": {
       "begin": 28752,
       "end": 28777
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Charité_N_R",
@@ -96,7 +118,8 @@
     "range": {
       "begin": 28813,
       "end": 28833
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "HKU_ORF_F",
@@ -107,7 +130,17 @@
     "range": {
       "begin": 18777,
       "end": 18797
-    }
+    },
+    "nonACGTs": [
+      {
+        "nuc": "Y",
+        "pos": 18782
+      },
+      {
+        "nuc": "R",
+        "pos": 18788
+      }
+    ]
   },
   {
     "name": "HKU_ORF_P",
@@ -118,7 +151,13 @@
     "range": {
       "begin": 18848,
       "end": 18872
-    }
+    },
+    "nonACGTs": [
+      {
+        "nuc": "W",
+        "pos": 18860
+      }
+    ]
   },
   {
     "name": "HKU_ORF_R",
@@ -129,7 +168,13 @@
     "range": {
       "begin": 18888,
       "end": 18909
-    }
+    },
+    "nonACGTs": [
+      {
+        "nuc": "R",
+        "pos": 18891
+      }
+    ]
   },
   {
     "name": "HKU_N_F",
@@ -140,7 +185,8 @@
     "range": {
       "begin": 29144,
       "end": 29166
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "HKU_N_R",
@@ -151,7 +197,8 @@
     "range": {
       "begin": 29235,
       "end": 29254
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "ChinaCDC_N_F",
@@ -162,7 +209,8 @@
     "range": {
       "begin": 28880,
       "end": 28902
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "ChinaCDC_N_P",
@@ -173,7 +221,8 @@
     "range": {
       "begin": 28933,
       "end": 28953
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "ChinaCDC_N_R",
@@ -184,7 +233,8 @@
     "range": {
       "begin": 28957,
       "end": 28979
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "ChinaCDC_ORF_F",
@@ -195,7 +245,8 @@
     "range": {
       "begin": 13341,
       "end": 13362
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "ChinaCDC_ORF_P",
@@ -206,7 +257,8 @@
     "range": {
       "begin": 13376,
       "end": 13404
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "ChinaCDC_ORF_R",
@@ -217,7 +269,8 @@
     "range": {
       "begin": 13441,
       "end": 13460
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "USCDC_N1_F",
@@ -228,7 +281,8 @@
     "range": {
       "begin": 28286,
       "end": 28306
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "USCDC_N1_P",
@@ -239,7 +293,8 @@
     "range": {
       "begin": 28308,
       "end": 28332
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "USCDC_N1_R",
@@ -250,7 +305,8 @@
     "range": {
       "begin": 28334,
       "end": 28358
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "USCDC_N2_F",
@@ -261,7 +317,8 @@
     "range": {
       "begin": 29163,
       "end": 29183
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "USCDC_N2_P",
@@ -272,7 +329,8 @@
     "range": {
       "begin": 29187,
       "end": 29210
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "USCDC_N2_R",
@@ -283,7 +341,8 @@
     "range": {
       "begin": 29212,
       "end": 29230
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "USCDC_N3_F",
@@ -294,7 +353,8 @@
     "range": {
       "begin": 28680,
       "end": 28702
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "USCDC_N3_P",
@@ -305,7 +365,13 @@
     "range": {
       "begin": 28703,
       "end": 28727
-    }
+    },
+    "nonACGTs": [
+      {
+        "nuc": "Y",
+        "pos": 28704
+      }
+    ]
   },
   {
     "name": "USCDC_N3_R",
@@ -316,7 +382,8 @@
     "range": {
       "begin": 28731,
       "end": 28752
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Pasteur_IP2_F",
@@ -327,7 +394,8 @@
     "range": {
       "begin": 12689,
       "end": 12707
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Pasteur_IP2_P",
@@ -338,7 +406,8 @@
     "range": {
       "begin": 12716,
       "end": 12737
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Pasteur_IP2_R",
@@ -349,7 +418,8 @@
     "range": {
       "begin": 12779,
       "end": 12797
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Pasteur_IP4_F",
@@ -360,7 +430,8 @@
     "range": {
       "begin": 14079,
       "end": 14098
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Pasteur_IP4_P",
@@ -371,7 +442,8 @@
     "range": {
       "begin": 14104,
       "end": 14123
-    }
+    },
+    "nonACGTs": []
   },
   {
     "name": "Pasteur_IP4_R",
@@ -382,6 +454,7 @@
     "range": {
       "begin": 14166,
       "end": 14186
-    }
+    },
+    "nonACGTs": []
   }
 ]

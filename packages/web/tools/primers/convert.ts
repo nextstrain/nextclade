@@ -1,7 +1,7 @@
 import { readFile, writeJson } from 'fs-extra'
 import path from 'path'
 import Papa from 'papaparse'
-import { PcrPrimer } from 'src/algorithms/types'
+import { Nucleotide, NucleotideLocation, PcrPrimer } from 'src/algorithms/types'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { appendDash } from '../../src/helpers/appendDash'
@@ -56,6 +56,15 @@ export function complementSeq(sequence: string) {
   return sequence.split('').reverse().map(complementNuc).join('')
 }
 
+export function findNonACGTs(seq: string, offset = 0) {
+  return seq.split('').reduce((result, nuc, i) => {
+    if (!['A', 'C', 'G', 'T'].includes(nuc)) {
+      result.push({ nuc: nuc as Nucleotide, pos: i + offset })
+    }
+    return result
+  }, [] as NucleotideLocation[])
+}
+
 export interface PrimerEntries {
   'Country (Institute)': string
   'Target': string
@@ -106,7 +115,10 @@ export async function main() {
       }
 
       const end = begin + template.length
-      return { name, target, source, rootOligonuc, primerOligonuc, range: { begin, end } }
+
+      const nonACGTs = findNonACGTs(primerOligonuc, begin)
+
+      return { name, target, source, rootOligonuc, primerOligonuc, range: { begin, end }, nonACGTs }
     })
     .filter(notUndefined)
 

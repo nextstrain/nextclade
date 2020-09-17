@@ -77,6 +77,7 @@ export interface PcrPrimer {
   rootOligonuc: string
   primerOligonuc: string
   range: Range
+  nonACGTs: NucleotideLocation[]
 }
 
 export interface PcrPrimerChange {
