@@ -131,15 +131,6 @@ export const TableRowError = styled(TableRow)<{ even?: boolean }>`
   color: #962d26;
 `
 
-const AutoSizerStyled = styled(AutoSizer)`
-  height: 100%; // Workaround for Safari
-`
-
-const FixedSizeListStyled = styled(FixedSizeList)`
-  min-height: 100%;
-  height: 100% !important; // Workaround for Safari
-`
-
 const highlightRowsWithIssues = true
 
 export interface RowProps extends ListChildComponentProps {
@@ -414,11 +405,10 @@ export function ResultsTableDisconnected({
           </TableHeaderCell>
         </TableHeaderRow>
 
-        {/* style props is needed for Safari */}
-        <AutoSizerStyled style={{ minHeight: '100%', height: '100%' }}>
+        <AutoSizer>
           {({ width, height }) => {
             return (
-              <FixedSizeListStyled
+              <FixedSizeList
                 overscanCount={10}
                 style={{ overflowY: 'scroll' }}
                 width={width}
@@ -428,10 +418,10 @@ export function ResultsTableDisconnected({
                 itemData={data}
               >
                 {TableRowMemo}
-              </FixedSizeListStyled>
+              </FixedSizeList>
             )
           }}
-        </AutoSizerStyled>
+        </AutoSizer>
       </Table>
     </>
   )
