@@ -74,8 +74,8 @@ export interface PcrPrimer {
   name: string
   target: string
   source: string
-  seq: string
-  candidate: string
+  rootOligonuc: string
+  primerOligonuc: string
   range: Range
 }
 

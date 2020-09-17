@@ -1,6 +1,7 @@
 import { readFile, writeJson } from 'fs-extra'
 import path from 'path'
 import Papa from 'papaparse'
+import { PcrPrimer } from 'src/algorithms/types'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { appendDash } from '../../src/helpers/appendDash'
@@ -66,10 +67,10 @@ export async function main() {
   const primerEntries = ((await readCsv(INPUT_PRIMERS_COVID_CSV)) as unknown) as PrimerEntries[]
   const rootSeq = await readRootSeq(INPUT_ROOT_SEQUENCE_TXT)
 
-  const results = primerEntries
-    .map(({ 'Sequence': sequence, 'Oligonucleotide': name, 'Country (Institute)': source, 'Target': target }) => {
+  const results: PcrPrimer[] = primerEntries
+    .map(({ 'Sequence': primerOligonuc, 'Oligonucleotide': name, 'Country (Institute)': source, 'Target': target }) => {
       // Replace non-ACGT nucleotides with dots (will become "any character" in the regex below)
-      let template = sequence.toUpperCase().replace(/[^ACGT]/g, '.')
+      let template = primerOligonuc.toUpperCase().replace(/[^ACGT]/g, '.')
 
       if (name.endsWith('_R')) {
         template = complementSeq(template)
@@ -81,31 +82,31 @@ export async function main() {
       const matches = [...maybeMatches]
       if (matches.length === 0) {
         // TODO: is this okay if we did not find a match?
-        console.warn(`Warning: no match found for primer ${name} (${sequence})`)
+        console.warn(`Warning: no match found for primer ${name} (${primerOligonuc})`)
         return undefined
       }
 
       if (matches.length > 1) {
         // TODO: More than 1 match is also bad?
-        console.warn(`Warning: more than one match found (namely ${matches.length}) for primer ${name} (${sequence}). Taking first, ignoring ${matches.length - 1} subsequent matches.`) // prettier-ignore
+        console.warn(`Warning: more than one match found (namely ${matches.length}) for primer ${name} (${primerOligonuc}). Taking first, ignoring ${matches.length - 1} subsequent matches.`) // prettier-ignore
       }
 
       const match = matches[0]
       const begin = match.index
-      const seq = match.groups?.found
+      const rootOligonuc = match.groups?.found
 
       if (!begin) {
-        console.warn(`Warning: unable to find match starting index for primer ${name} (${sequence}). Ignoring this match.`) // prettier-ignore
+        console.warn(`Warning: unable to find match starting index for primer ${name} (${primerOligonuc}). Ignoring this match.`) // prettier-ignore
         return undefined
       }
 
-      if (!seq) {
-        console.warn(`Warning: unable to find match string for primer ${name} (${sequence}). Ignoring this match.`)
+      if (!rootOligonuc) {
+        console.warn(`Warning: unable to find match string for primer ${name} (${primerOligonuc}). Ignoring this match.`) // prettier-ignore
         return undefined
       }
 
       const end = begin + template.length
-      return { name, target, source, seq, template, range: { begin, end } }
+      return { name, target, source, rootOligonuc, primerOligonuc, range: { begin, end } }
     })
     .filter(notUndefined)
 

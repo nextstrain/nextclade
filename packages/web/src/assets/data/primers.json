@@ -3,8 +3,8 @@
     "name": "Charité_RdRp_F",
     "target": "RdRp",
     "source": "Charité (Germany)",
-    "seq": "GTGAAATGGTCATGTGTGGCGG",
-    "template": "GTGA.ATGGTCATGTGTGGCGG",
+    "rootOligonuc": "GTGAAATGGTCATGTGTGGCGG",
+    "primerOligonuc": "GTGARATGGTCATGTGTGGCGG",
     "range": {
       "begin": 15430,
       "end": 15452
@@ -14,8 +14,8 @@
     "name": "Charité_S_RdRp_P c",
     "target": "RdRp",
     "source": "Charité (Germany)",
-    "seq": "CAGGTGGAACCTCATCAGGAGATGC",
-    "template": "CAGGTGGAACCTCATCAGGAGATGC",
+    "rootOligonuc": "CAGGTGGAACCTCATCAGGAGATGC",
+    "primerOligonuc": "CAGGTGGAACCTCATCAGGAGATGC",
     "range": {
       "begin": 15469,
       "end": 15494
@@ -25,8 +25,8 @@
     "name": "Charité_RdRp_R",
     "target": "RdRp",
     "source": "Charité (Germany)",
-    "seq": "TATGCTAATAGTGTTTTTAACATTTG",
-    "template": "TATGCTAATAGTGT.TTTAACAT.TG",
+    "rootOligonuc": "TATGCTAATAGTGTTTTTAACATTTG",
+    "primerOligonuc": "CARATGTTAAASACACTATTAGCATA",
     "range": {
       "begin": 15504,
       "end": 15530
@@ -36,8 +36,8 @@
     "name": "Charité_E_F",
     "target": "E",
     "source": "Charité (Germany)",
-    "seq": "ACAGGTACGTTAATAGTTAATAGCGT",
-    "template": "ACAGGTACGTTAATAGTTAATAGCGT",
+    "rootOligonuc": "ACAGGTACGTTAATAGTTAATAGCGT",
+    "primerOligonuc": "ACAGGTACGTTAATAGTTAATAGCGT",
     "range": {
       "begin": 26268,
       "end": 26294
@@ -47,8 +47,8 @@
     "name": "Charité_E_P",
     "target": "E",
     "source": "Charité (Germany)",
-    "seq": "ACACTAGCCATCCTTACTGCGCTTCG",
-    "template": "ACACTAGCCATCCTTACTGCGCTTCG",
+    "rootOligonuc": "ACACTAGCCATCCTTACTGCGCTTCG",
+    "primerOligonuc": "ACACTAGCCATCCTTACTGCGCTTCG",
     "range": {
       "begin": 26331,
       "end": 26357
@@ -58,8 +58,8 @@
     "name": "Charité_E_R",
     "target": "E",
     "source": "Charité (Germany)",
-    "seq": "TGTGTGCGTACTGCTGCAATAT",
-    "template": "TGTGTGCGTACTGCTGCAATAT",
+    "rootOligonuc": "TGTGTGCGTACTGCTGCAATAT",
+    "primerOligonuc": "ATATTGCAGCAGTACGCACACA",
     "range": {
       "begin": 26359,
       "end": 26381
@@ -69,8 +69,8 @@
     "name": "Charité_N_F",
     "target": "N",
     "source": "Charité (Germany)",
-    "seq": "CACATTGGCACCCGCAATC",
-    "template": "CACATTGGCACCCGCAATC",
+    "rootOligonuc": "CACATTGGCACCCGCAATC",
+    "primerOligonuc": "CACATTGGCACCCGCAATC",
     "range": {
       "begin": 28705,
       "end": 28724
@@ -80,8 +80,8 @@
     "name": "Charité_N_P",
     "target": "N",
     "source": "Charité (Germany)",
-    "seq": "ACTTCCTCAAGGAACAACATTGCCA",
-    "template": "ACTTCCTCAAGGAACAACATTGCCA",
+    "rootOligonuc": "ACTTCCTCAAGGAACAACATTGCCA",
+    "primerOligonuc": "ACTTCCTCAAGGAACAACATTGCCA",
     "range": {
       "begin": 28752,
       "end": 28777
@@ -91,8 +91,8 @@
     "name": "Charité_N_R",
     "target": "N",
     "source": "Charité (Germany)",
-    "seq": "CAAGCCTCTTCTCGTTCCTC",
-    "template": "CAAGCCTCTTCTCGTTCCTC",
+    "rootOligonuc": "CAAGCCTCTTCTCGTTCCTC",
+    "primerOligonuc": "GAGGAACGAGAAGAGGCTTG",
     "range": {
       "begin": 28813,
       "end": 28833
@@ -102,8 +102,8 @@
     "name": "HKU_ORF_F",
     "target": "ORF1b-nsp14",
     "source": "HKU (Hong Kong)",
-    "seq": "TGGGGTTTTACAGGTAACCT",
-    "template": "TGGGG.TTTAC.GGTAACCT",
+    "rootOligonuc": "TGGGGTTTTACAGGTAACCT",
+    "primerOligonuc": "TGGGGYTTTACRGGTAACCT",
     "range": {
       "begin": 18777,
       "end": 18797
@@ -113,8 +113,8 @@
     "name": "HKU_ORF_P",
     "target": "ORF1b-nsp14",
     "source": "HKU (Hong Kong)",
-    "seq": "TAGTTGTGATGCAATCATGACTAG",
-    "template": "TAGTTGTGATGC.ATCATGACTAG",
+    "rootOligonuc": "TAGTTGTGATGCAATCATGACTAG",
+    "primerOligonuc": "TAGTTGTGATGCWATCATGACTAG",
     "range": {
       "begin": 18848,
       "end": 18872
@@ -124,8 +124,8 @@
     "name": "HKU_ORF_R",
     "target": "ORF1b-nsp14",
     "source": "HKU (Hong Kong)",
-    "seq": "GAGTGCTTTGTTAAGCGTGTT",
-    "template": "GAGTGCTTTGTTAAGCG.GTT",
+    "rootOligonuc": "GAGTGCTTTGTTAAGCGTGTT",
+    "primerOligonuc": "AACRCGCTTAACAAAGCACTC",
     "range": {
       "begin": 18888,
       "end": 18909
@@ -135,8 +135,8 @@
     "name": "HKU_N_F",
     "target": "N",
     "source": "HKU (Hong Kong)",
-    "seq": "TAATCAGACAAGGAACTGATTA",
-    "template": "TAATCAGACAAGGAACTGATTA",
+    "rootOligonuc": "TAATCAGACAAGGAACTGATTA",
+    "primerOligonuc": "TAATCAGACAAGGAACTGATTA",
     "range": {
       "begin": 29144,
       "end": 29166
@@ -146,8 +146,8 @@
     "name": "HKU_N_R",
     "target": "N",
     "source": "HKU (Hong Kong)",
-    "seq": "CATGGAAGTCACACCTTCG",
-    "template": "CATGGAAGTCACACCTTCG",
+    "rootOligonuc": "CATGGAAGTCACACCTTCG",
+    "primerOligonuc": "CGAAGGTGTGACTTCCATG",
     "range": {
       "begin": 29235,
       "end": 29254
@@ -157,8 +157,8 @@
     "name": "ChinaCDC_N_F",
     "target": "N",
     "source": "China CDC (China)",
-    "seq": "GGGGAACTTCTCCTGCTAGAAT",
-    "template": "GGGGAACTTCTCCTGCTAGAAT",
+    "rootOligonuc": "GGGGAACTTCTCCTGCTAGAAT",
+    "primerOligonuc": "GGGGAACTTCTCCTGCTAGAAT",
     "range": {
       "begin": 28880,
       "end": 28902
@@ -168,8 +168,8 @@
     "name": "ChinaCDC_N_P",
     "target": "N",
     "source": "China CDC (China)",
-    "seq": "TTGCTGCTGCTTGACAGATT",
-    "template": "TTGCTGCTGCTTGACAGATT",
+    "rootOligonuc": "TTGCTGCTGCTTGACAGATT",
+    "primerOligonuc": "TTGCTGCTGCTTGACAGATT",
     "range": {
       "begin": 28933,
       "end": 28953
@@ -179,8 +179,8 @@
     "name": "ChinaCDC_N_R",
     "target": "N",
     "source": "China CDC (China)",
-    "seq": "CAGCTTGAGAGCAAAATGTCTG",
-    "template": "CAGCTTGAGAGCAAAATGTCTG",
+    "rootOligonuc": "CAGCTTGAGAGCAAAATGTCTG",
+    "primerOligonuc": "CAGACATTTTGCTCTCAAGCTG",
     "range": {
       "begin": 28957,
       "end": 28979
@@ -190,8 +190,8 @@
     "name": "ChinaCDC_ORF_F",
     "target": "ORF1ab-nsp10",
     "source": "China CDC (China)",
-    "seq": "CCCTGTGGGTTTTACACTTAA",
-    "template": "CCCTGTGGGTTTTACACTTAA",
+    "rootOligonuc": "CCCTGTGGGTTTTACACTTAA",
+    "primerOligonuc": "CCCTGTGGGTTTTACACTTAA",
     "range": {
       "begin": 13341,
       "end": 13362
@@ -201,8 +201,8 @@
     "name": "ChinaCDC_ORF_P",
     "target": "ORF1ab-nsp10",
     "source": "China CDC (China)",
-    "seq": "CCGTCTGCGGTATGTGGAAAGGTTATGG",
-    "template": "CCGTCTGCGGTATGTGGAAAGGTTATGG",
+    "rootOligonuc": "CCGTCTGCGGTATGTGGAAAGGTTATGG",
+    "primerOligonuc": "CCGTCTGCGGTATGTGGAAAGGTTATGG",
     "range": {
       "begin": 13376,
       "end": 13404
@@ -212,8 +212,8 @@
     "name": "ChinaCDC_ORF_R",
     "target": "ORF1ab-nsp10",
     "source": "China CDC (China)",
-    "seq": "TCAGCTGATGCACAATCGT",
-    "template": "TCAGCTGATGCACAATCGT",
+    "rootOligonuc": "TCAGCTGATGCACAATCGT",
+    "primerOligonuc": "ACGATTGTGCATCAGCTGA",
     "range": {
       "begin": 13441,
       "end": 13460
@@ -223,8 +223,8 @@
     "name": "USCDC_N1_F",
     "target": "N1",
     "source": "US CDC (United States) ",
-    "seq": "GACCCCAAAATCAGCGAAAT",
-    "template": "GACCCCAAAATCAGCGAAAT",
+    "rootOligonuc": "GACCCCAAAATCAGCGAAAT",
+    "primerOligonuc": "GACCCCAAAATCAGCGAAAT",
     "range": {
       "begin": 28286,
       "end": 28306
@@ -234,8 +234,8 @@
     "name": "USCDC_N1_P",
     "target": "N1",
     "source": "US CDC (United States) ",
-    "seq": "ACCCCGCATTACGTTTGGTGGACC",
-    "template": "ACCCCGCATTACGTTTGGTGGACC",
+    "rootOligonuc": "ACCCCGCATTACGTTTGGTGGACC",
+    "primerOligonuc": "ACCCCGCATTACGTTTGGTGGACC",
     "range": {
       "begin": 28308,
       "end": 28332
@@ -245,8 +245,8 @@
     "name": "USCDC_N1_R",
     "target": "N1",
     "source": "US CDC (United States) ",
-    "seq": "CAGATTCAACTGGCAGTAACCAGA",
-    "template": "CAGATTCAACTGGCAGTAACCAGA",
+    "rootOligonuc": "CAGATTCAACTGGCAGTAACCAGA",
+    "primerOligonuc": "TCTGGTTACTGCCAGTTGAATCTG",
     "range": {
       "begin": 28334,
       "end": 28358
@@ -256,8 +256,8 @@
     "name": "USCDC_N2_F",
     "target": "N2",
     "source": "US CDC (United States) ",
-    "seq": "TTACAAACATTGGCCGCAAA",
-    "template": "TTACAAACATTGGCCGCAAA",
+    "rootOligonuc": "TTACAAACATTGGCCGCAAA",
+    "primerOligonuc": "TTACAAACATTGGCCGCAAA",
     "range": {
       "begin": 29163,
       "end": 29183
@@ -267,8 +267,8 @@
     "name": "USCDC_N2_P",
     "target": "N2",
     "source": "US CDC (United States) ",
-    "seq": "ACAATTTGCCCCCAGCGCTTCAG",
-    "template": "ACAATTTGCCCCCAGCGCTTCAG",
+    "rootOligonuc": "ACAATTTGCCCCCAGCGCTTCAG",
+    "primerOligonuc": "ACAATTTGCCCCCAGCGCTTCAG",
     "range": {
       "begin": 29187,
       "end": 29210
@@ -278,8 +278,8 @@
     "name": "USCDC_N2_R",
     "target": "N2",
     "source": "US CDC (United States) ",
-    "seq": "TTCTTCGGAATGTCGCGC",
-    "template": "TTCTTCGGAATGTCGCGC",
+    "rootOligonuc": "TTCTTCGGAATGTCGCGC",
+    "primerOligonuc": "GCGCGACATTCCGAAGAA",
     "range": {
       "begin": 29212,
       "end": 29230
@@ -289,8 +289,8 @@
     "name": "USCDC_N3_F",
     "target": "N3",
     "source": "US CDC (United States) ",
-    "seq": "GGGAGCCTTGAATACACCAAAA",
-    "template": "GGGAGCCTTGAATACACCAAAA",
+    "rootOligonuc": "GGGAGCCTTGAATACACCAAAA",
+    "primerOligonuc": "GGGAGCCTTGAATACACCAAAA",
     "range": {
       "begin": 28680,
       "end": 28702
@@ -300,8 +300,8 @@
     "name": "USCDC_N3_P",
     "target": "N3",
     "source": "US CDC (United States) ",
-    "seq": "ATCACATTGGCACCCGCAATCCTG",
-    "template": "A.CACATTGGCACCCGCAATCCTG",
+    "rootOligonuc": "ATCACATTGGCACCCGCAATCCTG",
+    "primerOligonuc": "AYCACATTGGCACCCGCAATCCTG",
     "range": {
       "begin": 28703,
       "end": 28727
@@ -311,8 +311,8 @@
     "name": "USCDC_N3_R",
     "target": "N3",
     "source": "US CDC (United States) ",
-    "seq": "CAATGCTGCAATCGTGCTACA",
-    "template": "CAATGCTGCAATCGTGCTACA",
+    "rootOligonuc": "CAATGCTGCAATCGTGCTACA",
+    "primerOligonuc": "TGTAGCACGATTGCAGCATTG",
     "range": {
       "begin": 28731,
       "end": 28752
@@ -322,8 +322,8 @@
     "name": "Pasteur_IP2_F",
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
-    "seq": "ATGAGCTTAGTCCTGTTG",
-    "template": "ATGAGCTTAGTCCTGTTG",
+    "rootOligonuc": "ATGAGCTTAGTCCTGTTG",
+    "primerOligonuc": "ATGAGCTTAGTCCTGTTG",
     "range": {
       "begin": 12689,
       "end": 12707
@@ -333,8 +333,8 @@
     "name": "Pasteur_IP2_P",
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
-    "seq": "AGATGTCTTGTGCTGCCGGTA",
-    "template": "AGATGTCTTGTGCTGCCGGTA",
+    "rootOligonuc": "AGATGTCTTGTGCTGCCGGTA",
+    "primerOligonuc": "AGATGTCTTGTGCTGCCGGTA",
     "range": {
       "begin": 12716,
       "end": 12737
@@ -344,8 +344,8 @@
     "name": "Pasteur_IP2_R",
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
-    "seq": "ACAACACAACAAAGGGAG",
-    "template": "ACAACACAACAAAGGGAG",
+    "rootOligonuc": "ACAACACAACAAAGGGAG",
+    "primerOligonuc": "CTCCCTTTGTTGTGTTGT",
     "range": {
       "begin": 12779,
       "end": 12797
@@ -355,8 +355,8 @@
     "name": "Pasteur_IP4_F",
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
-    "seq": "GGTAACTGGTATGATTTCG",
-    "template": "GGTAACTGGTATGATTTCG",
+    "rootOligonuc": "GGTAACTGGTATGATTTCG",
+    "primerOligonuc": "GGTAACTGGTATGATTTCG",
     "range": {
       "begin": 14079,
       "end": 14098
@@ -366,8 +366,8 @@
     "name": "Pasteur_IP4_P",
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
-    "seq": "TCATACAAACCACGCCAGG",
-    "template": "TCATACAAACCACGCCAGG",
+    "rootOligonuc": "TCATACAAACCACGCCAGG",
+    "primerOligonuc": "TCATACAAACCACGCCAGG",
     "range": {
       "begin": 14104,
       "end": 14123
@@ -377,8 +377,8 @@
     "name": "Pasteur_IP4_R",
     "target": "RdRp",
     "source": "Institut Pasteur, Paris (France) ",
-    "seq": "CCTATATTAACCTTGACCAG",
-    "template": "CCTATATTAACCTTGACCAG",
+    "rootOligonuc": "CCTATATTAACCTTGACCAG",
+    "primerOligonuc": "CTGGTCAAGGTTAATATAGG",
     "range": {
       "begin": 14166,
       "end": 14186
