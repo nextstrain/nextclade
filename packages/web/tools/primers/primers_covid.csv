@@ -1,7 +1,6 @@
 Country (Institute),Target,Oligonucleotide,Sequence
 Charité (Germany),RdRp,Charité_RdRp_F,GTGARATGGTCATGTGTGGCGG
-Charité (Germany),RdRp,Charité_S_RdRp_P c,CAGGTGGAACCTCATCAGGAGATGC
-Charité (Germany),RdRp,Charité_NS_RdRp_P d,CCAGGTGGWACRTCATCMGGTGATGC
+Charité (Germany),RdRp,Charité_S_RdRp_P,CAGGTGGAACCTCATCAGGAGATGC
 Charité (Germany),RdRp,Charité_RdRp_R,CARATGTTAAASACACTATTAGCATA
 Charité (Germany),E,Charité_E_F,ACAGGTACGTTAATAGTTAATAGCGT
 Charité (Germany),E,Charité_E_P,ACACTAGCCATCCTTACTGCGCTTCG
