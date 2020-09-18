@@ -2,6 +2,7 @@
 import { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 import { groupBy, mapValues, set, unset, zip } from 'lodash'
 import copy from 'fast-copy'
+import { formatPrimer } from 'src/helpers/formatPrimer'
 
 import i18n from 'src/i18n/i18n'
 import { UNKNOWN_VALUE } from 'src/constants'
@@ -133,6 +134,8 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     totalNonACGTNs,
     missing,
     totalMissing,
+    pcrPrimerChanges,
+    totalPcrPrimerChanges,
     qc,
   } = seq
 
@@ -160,6 +163,10 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
   const listOfGaps = deletions.map(({ start, length }) => formatRange(start, start + length)).join(', ')
   const formattedGaps = totalGaps > 0 ? `(${totalGaps}): ${listOfGaps}` : 'None'
 
+  const listOfPcrPrimerChanges = pcrPrimerChanges.map(formatPrimer).join(', ')
+  const formattedPcrPrimerChanges =
+    totalPcrPrimerChanges > 0 ? `(${totalPcrPrimerChanges}): ${listOfPcrPrimerChanges}` : 'None'
+
   return {
     branch_attrs: { mutations: {} },
     name: `${seq.seqName}_clades`,
@@ -170,6 +177,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
       'Missing:': { value: formattedMissing },
       'Gaps': { value: formattedGaps },
       'Non-ACGTNs': { value: formattedNonACGTNs },
+      'PCR primer changes': { value: formattedPcrPrimerChanges },
       'QC Status': { value: qcStatus },
       'QC Flags': { value: qcFlags },
     },
