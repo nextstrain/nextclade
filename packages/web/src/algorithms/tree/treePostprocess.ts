@@ -43,6 +43,17 @@ export function treePostProcess(auspiceData: AuspiceJsonV2) {
 
   // TODO: this can be done offline when preparing the json
   auspiceData.meta.colorings.unshift({
+    key: 'Has PCR primer changes',
+    title: 'Has PCR primer changes',
+    type: 'categorical',
+    scale: [
+      ['Yes', '#6961ff'],
+      ['No', '#999999'],
+    ],
+  })
+
+  // TODO: this can be done offline when preparing the json
+  auspiceData.meta.colorings.unshift({
     key: 'QC Status',
     title: 'QC Status',
     type: 'categorical',

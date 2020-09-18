@@ -177,6 +177,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
       'Missing:': { value: formattedMissing },
       'Gaps': { value: formattedGaps },
       'Non-ACGTNs': { value: formattedNonACGTNs },
+      'Has PCR primer changes': { value: totalPcrPrimerChanges > 0 ? 'Yes' : 'No' },
       'PCR primer changes': { value: formattedPcrPrimerChanges },
       'QC Status': { value: qcStatus },
       'QC Flags': { value: qcFlags },
