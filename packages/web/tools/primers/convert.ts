@@ -45,11 +45,33 @@ export async function readRootSeq(filename: string) {
   return rootSeq.trim().toUpperCase()
 }
 
-export const COMPLEMENTS = new Map(Object.entries({ A: 'T', T: 'A', G: 'C', C: 'G' }))
+export const COMPLEMENTS = new Map(
+  Object.entries({
+    A: 'T',
+    C: 'G',
+    G: 'C',
+    T: 'A',
+    Y: 'R',
+    R: 'Y',
+    W: 'W',
+    S: 'S',
+    K: 'M',
+    M: 'K',
+    D: 'H',
+    V: 'B',
+    H: 'D',
+    B: 'V',
+    N: 'N',
+  }),
+)
 
 export function complementNuc(nuc: string) {
-  // Return same nucleotide for non-ACGT
-  return COMPLEMENTS.get(nuc) ?? nuc
+  const complement = COMPLEMENTS.get(nuc)
+  if (!complement) {
+    console.warn(`Warning: unknown nucleotide "${nuc}"`)
+  }
+
+  return COMPLEMENTS.get(nuc)
 }
 
 export function complementSeq(sequence: string) {
@@ -79,11 +101,14 @@ export async function main() {
   const results: PcrPrimer[] = primerEntries
     .map(({ 'Sequence': primerOligonuc, 'Oligonucleotide': name, 'Country (Institute)': source, 'Target': target }) => {
       // Replace non-ACGT nucleotides with dots (will become "any character" in the regex below)
-      let template = primerOligonuc.toUpperCase().replace(/[^ACGT]/g, '.')
 
+      let primerOligonucMaybeReverseComplemented = primerOligonuc
       if (name.endsWith('_R')) {
-        template = complementSeq(template)
+        primerOligonucMaybeReverseComplemented = complementSeq(primerOligonucMaybeReverseComplemented)
       }
+
+      // TODO: should search account for particular ambiguous nucleotides instead of making them wildcards?
+      const template = primerOligonucMaybeReverseComplemented.toUpperCase().replace(/[^ACGT]/g, '.')
 
       // Find a match (result will be in the named group `found`)
       const maybeMatches = rootSeq.matchAll(RegExp(`(?<found>${template})`, 'g'))
@@ -114,9 +139,9 @@ export async function main() {
         return undefined
       }
 
-      const end = begin + template.length
+      const end = begin + primerOligonuc.length
 
-      const nonACGTs = findNonACGTs(primerOligonuc, begin)
+      const nonACGTs = findNonACGTs(primerOligonucMaybeReverseComplemented, begin)
 
       return { name, target, source, rootOligonuc, primerOligonuc, range: { begin, end }, nonACGTs }
     })
