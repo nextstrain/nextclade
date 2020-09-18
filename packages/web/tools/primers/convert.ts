@@ -87,6 +87,16 @@ export function findNonACGTs(seq: string, offset = 0) {
   }, [] as NucleotideLocation[])
 }
 
+export function findPrimerInRootSeq(primerOligonuc: string, rootSeq: string) {
+  // TODO: should the search account for particular ambiguous nucleotides instead of making them wildcards?
+  const template = primerOligonuc.toUpperCase().replace(/[^ACGT]/g, '.')
+
+  // Find a match (result will be in the named group `found`)
+  const maybeMatches = rootSeq.matchAll(RegExp(`(?<found>${template})`, 'g'))
+
+  return [...maybeMatches]
+}
+
 export interface PrimerEntries {
   'Country (Institute)': string
   'Target': string
@@ -107,16 +117,18 @@ export async function main() {
         primerOligonucMaybeReverseComplemented = complementSeq(primerOligonucMaybeReverseComplemented)
       }
 
-      // TODO: should search account for particular ambiguous nucleotides instead of making them wildcards?
-      const template = primerOligonucMaybeReverseComplemented.toUpperCase().replace(/[^ACGT]/g, '.')
+      let matches = findPrimerInRootSeq(primerOligonucMaybeReverseComplemented, rootSeq)
 
-      // Find a match (result will be in the named group `found`)
-      const maybeMatches = rootSeq.matchAll(RegExp(`(?<found>${template})`, 'g'))
-
-      const matches = [...maybeMatches]
       if (matches.length === 0) {
-        // TODO: is this okay if we did not find a match?
-        console.warn(`Warning: no match found for primer ${name} (${primerOligonuc})`)
+        // Not found. Retry with reverse-complement.
+        primerOligonucMaybeReverseComplemented = complementSeq(primerOligonucMaybeReverseComplemented)
+        matches = findPrimerInRootSeq(primerOligonucMaybeReverseComplemented, rootSeq)
+
+        if (matches.length === 0) {
+          // TODO: is this okay if we did not find a match?
+          console.warn(`Warning: no match found for primer ${name} (${primerOligonuc})`)
+        }
+
         return undefined
       }
 
