@@ -275,7 +275,7 @@
   {
     "name": "USCDC_N1_F",
     "target": "N1",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "GACCCCAAAATCAGCGAAAT",
     "primerOligonuc": "GACCCCAAAATCAGCGAAAT",
     "range": {
@@ -287,7 +287,7 @@
   {
     "name": "USCDC_N1_P",
     "target": "N1",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "ACCCCGCATTACGTTTGGTGGACC",
     "primerOligonuc": "ACCCCGCATTACGTTTGGTGGACC",
     "range": {
@@ -299,7 +299,7 @@
   {
     "name": "USCDC_N1_R",
     "target": "N1",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "CAGATTCAACTGGCAGTAACCAGA",
     "primerOligonuc": "TCTGGTTACTGCCAGTTGAATCTG",
     "range": {
@@ -311,7 +311,7 @@
   {
     "name": "USCDC_N2_F",
     "target": "N2",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "TTACAAACATTGGCCGCAAA",
     "primerOligonuc": "TTACAAACATTGGCCGCAAA",
     "range": {
@@ -323,7 +323,7 @@
   {
     "name": "USCDC_N2_P",
     "target": "N2",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "ACAATTTGCCCCCAGCGCTTCAG",
     "primerOligonuc": "ACAATTTGCCCCCAGCGCTTCAG",
     "range": {
@@ -335,7 +335,7 @@
   {
     "name": "USCDC_N2_R",
     "target": "N2",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "TTCTTCGGAATGTCGCGC",
     "primerOligonuc": "GCGCGACATTCCGAAGAA",
     "range": {
@@ -347,7 +347,7 @@
   {
     "name": "USCDC_N3_F",
     "target": "N3",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "GGGAGCCTTGAATACACCAAAA",
     "primerOligonuc": "GGGAGCCTTGAATACACCAAAA",
     "range": {
@@ -359,7 +359,7 @@
   {
     "name": "USCDC_N3_P",
     "target": "N3",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "ATCACATTGGCACCCGCAATCCTG",
     "primerOligonuc": "AYCACATTGGCACCCGCAATCCTG",
     "range": {
@@ -376,7 +376,7 @@
   {
     "name": "USCDC_N3_R",
     "target": "N3",
-    "source": "US CDC (United States) ",
+    "source": "US CDC (United States)",
     "rootOligonuc": "CAATGCTGCAATCGTGCTACA",
     "primerOligonuc": "TGTAGCACGATTGCAGCATTG",
     "range": {
@@ -388,7 +388,7 @@
   {
     "name": "Pasteur_IP2_F",
     "target": "RdRp",
-    "source": "Institut Pasteur, Paris (France) ",
+    "source": "Institut Pasteur, Paris (France)",
     "rootOligonuc": "ATGAGCTTAGTCCTGTTG",
     "primerOligonuc": "ATGAGCTTAGTCCTGTTG",
     "range": {
@@ -400,7 +400,7 @@
   {
     "name": "Pasteur_IP2_P",
     "target": "RdRp",
-    "source": "Institut Pasteur, Paris (France) ",
+    "source": "Institut Pasteur, Paris (France)",
     "rootOligonuc": "AGATGTCTTGTGCTGCCGGTA",
     "primerOligonuc": "AGATGTCTTGTGCTGCCGGTA",
     "range": {
@@ -412,7 +412,7 @@
   {
     "name": "Pasteur_IP2_R",
     "target": "RdRp",
-    "source": "Institut Pasteur, Paris (France) ",
+    "source": "Institut Pasteur, Paris (France)",
     "rootOligonuc": "ACAACACAACAAAGGGAG",
     "primerOligonuc": "CTCCCTTTGTTGTGTTGT",
     "range": {
@@ -424,7 +424,7 @@
   {
     "name": "Pasteur_IP4_F",
     "target": "RdRp",
-    "source": "Institut Pasteur, Paris (France) ",
+    "source": "Institut Pasteur, Paris (France)",
     "rootOligonuc": "GGTAACTGGTATGATTTCG",
     "primerOligonuc": "GGTAACTGGTATGATTTCG",
     "range": {
@@ -436,7 +436,7 @@
   {
     "name": "Pasteur_IP4_P",
     "target": "RdRp",
-    "source": "Institut Pasteur, Paris (France) ",
+    "source": "Institut Pasteur, Paris (France)",
     "rootOligonuc": "TCATACAAACCACGCCAGG",
     "primerOligonuc": "TCATACAAACCACGCCAGG",
     "range": {
@@ -448,7 +448,7 @@
   {
     "name": "Pasteur_IP4_R",
     "target": "RdRp",
-    "source": "Institut Pasteur, Paris (France) ",
+    "source": "Institut Pasteur, Paris (France)",
     "rootOligonuc": "CCTATATTAACCTTGACCAG",
     "primerOligonuc": "CTGGTCAAGGTTAATATAGG",
     "range": {
