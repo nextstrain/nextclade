@@ -1,3 +1,4 @@
+import type { StrictOmit } from 'ts-essentials'
 import { omit } from 'lodash'
 import jsonexport from 'jsonexport'
 
@@ -7,7 +8,7 @@ import { formatAAMutation, formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { formatInsertion } from 'src/helpers/formatInsertion'
 import { formatNonAcgtn } from 'src/helpers/formatNonAcgtn'
-import { StrictOmit } from 'ts-essentials'
+import { formatPrimer } from 'src/helpers/formatPrimer'
 
 export type Exportable = StrictOmit<AnalysisResult, 'alignedQuery'>
 
@@ -39,6 +40,7 @@ export function prepareResultCsv(datum: Exportable) {
     insertions: datum.insertions.map((ins) => formatInsertion(ins)).join(','),
     missing: datum.missing.map(({ begin, end }) => formatRange(begin, end)).join(','),
     nonACGTNs: datum.nonACGTNs.map((nacgtn) => formatNonAcgtn(nacgtn)).join(','),
+    pcrPrimerChanges: datum.pcrPrimerChanges.map(formatPrimer).join(','),
   }
 }
 
