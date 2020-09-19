@@ -3318,10 +3318,10 @@ attr-accept@^2.0.0:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.1.tgz#89b48de019ed4342f1865626b4389c666b3ed231"
   integrity sha512-GpefLMsbH5ojNgfTW+OBin2xKzuHfyeNA+qCktzZojBhbA/lPZdCFMWdwk5ajb989Ok7ZT+EADqvW3TAFNMjhA==
 
-auspice@2.18.1:
-  version "2.18.1"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.18.1.tgz#bbfc15596e33b37905610b482a72a5f26933d24d"
-  integrity sha512-TGw1I0ubpMfB3DkEAd0KUeg0HeZaeMNcHzm3DmT0QJ0EAS31w6T1M1FYGbuyxu3pzGaal2q0I1dP1UJcoNG9Lw==
+auspice@2.18.2:
+  version "2.18.2"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.18.2.tgz#676a6ce298366e9b735dea257c330b24a79c5331"
+  integrity sha512-xAl9Ooxp4V4amR53DRuYWPrxkWyv3xFPm8IKXISXZaPB2PfEukOLJ1abmHoQcgDbMXE0qTjiZRywwpNt64COfw==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -3345,6 +3345,7 @@ auspice@2.18.1:
     core-js "^3.6.5"
     create-react-class "^15.6.0"
     css-loader "^2.1.1"
+    css.escape "^1.5.1"
     d3-array "^1.2.0"
     d3-axis "^1.0.6"
     d3-brush "^1.0.4"
