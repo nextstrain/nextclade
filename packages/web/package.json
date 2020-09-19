@@ -1,6 +1,6 @@
 {
   "name": "@neherlab/nextclade-web",
-  "version": "0.4.7",
+  "version": "0.4.9",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -90,7 +90,7 @@
     "@types/react-virtualized-auto-sizer": "1.0.0",
     "@types/react-window": "1.8.2",
     "animate.css": "4.1.0",
-    "auspice": "2.18.1",
+    "auspice": "2.18.2",
     "autoprefixer": "9.8.6",
     "awesomplete": "1.1.5",
     "axios": "0.20.0",
