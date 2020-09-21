@@ -1,4 +1,27 @@
-## [0.4.7](https://github.com/nextstrain/nextclade/compare/0.4.6...0.4.7) (2020-09-15)
+# [0.5.0](https://github.com/nextstrain/nextclade/compare/0.4.8...0.5.0) (2020-09-21)
+
+
+### Bug Fixes
+
+* ensure proper complement and position of ambiguous nucleotides ([8de7f5d](https://github.com/nextstrain/nextclade/commit/8de7f5d3ec3259a246661505bd56ff2960599ede))
+* remove Charité_NS_RdRp_P primer, correct name of Charité_N_RdRp_P ([488bf05](https://github.com/nextstrain/nextclade/commit/488bf05dbcd194f0a2b6f760e6790710da01a487))
+* remove trailing spaces from primer sources ([8dce5c6](https://github.com/nextstrain/nextclade/commit/8dce5c6b9fa5c896592103a90a9c4769e4010bc6))
+
+
+### Features
+
+* add primer changes to the tree node info ([eb51963](https://github.com/nextstrain/nextclade/commit/eb5196306cb1c8a333308898cbe3546054e42864))
+* add tree coloring by presence of PCR primers ([21dceed](https://github.com/nextstrain/nextclade/commit/21dceed07d421d9dac771c16490307b78f96ecea))
+* convert primer data to JSON ([36bbd6e](https://github.com/nextstrain/nextclade/commit/36bbd6ec61fe8610be8b15bf4e9bb4a41c448757))
+* display PCR primer changes in tooltips ([801622f](https://github.com/nextstrain/nextclade/commit/801622f66feb133e1440fa365a3d87b14ee27895))
+* don't report mutations where primer contains ambiguous nucleotides ([7fc5383](https://github.com/nextstrain/nextclade/commit/7fc538368a582c149a6f4a92afeed0af69f58adf))
+* format PCR primer changes when preparing CSV export ([b9019c5](https://github.com/nextstrain/nextclade/commit/b9019c5014d276e61cf63ab2fd2f044a9d15442b))
+* list primer changes in mutation tooltips on sequence view ([98e0189](https://github.com/nextstrain/nextclade/commit/98e0189b0089fa44cd12355e81aae14a7d8e9353))
+* retry with reverse-complement primer if not found in root sequence ([8a7a458](https://github.com/nextstrain/nextclade/commit/8a7a45836f1f515b6368687c53039634c17e40e9))
+
+
+
+## [0.4.8](https://github.com/nextstrain/nextclade/compare/0.4.7...0.4.8) (2020-09-17)
 
 
 
