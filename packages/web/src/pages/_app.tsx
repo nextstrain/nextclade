@@ -15,6 +15,7 @@ import { AppProps } from 'next/app'
 import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
 import type { Persistor } from 'redux-persist'
+import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import { ThemeProvider } from 'styled-components'
 
 import { Provider } from 'react-redux'
@@ -67,6 +68,7 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
                 <I18nextProvider i18n={i18n}>
                   <SEO />
                   <Component {...pageProps} />
+                  <ErrorPopup />
                 </I18nextProvider>
               </PersistGate>
             </MDXProvider>
