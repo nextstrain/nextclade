@@ -26,7 +26,7 @@ import { settingsReducer } from './settings/settings.reducer'
 import { uiReducer } from './ui/ui.reducer'
 import { UiState } from './ui/ui.state'
 
-import { errorReducer, ErrorState } from 'src/state/error/error.reducer'
+import { errorReducer, ErrorState } from './error/error.reducer'
 
 import { auspiceGeneralReducer, auspiceQueryReducer } from './auspice/auspice.reducer'
 
