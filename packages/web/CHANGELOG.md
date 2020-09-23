@@ -1,3 +1,13 @@
+## [0.5.1](https://github.com/nextstrain/nextclade/compare/0.5.0...0.5.1) (2020-09-23)
+
+
+### Features
+
+* fetch input fasta from a remote location ([a339c05](https://github.com/nextstrain/nextclade/commit/a339c05cd0c67ef64cf231c8b41291cbf85fc8b1))
+* present error message on data fetch failure ([aed0a21](https://github.com/nextstrain/nextclade/commit/aed0a215c8d69b316a705c29057de427d77f7c6d))
+
+
+
 # [0.5.0](https://github.com/nextstrain/nextclade/compare/0.4.8...0.5.0) (2020-09-21)
 
 

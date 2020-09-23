@@ -1,6 +1,6 @@
 {
   "name": "@neherlab/nextclade-web",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -82,7 +82,7 @@
     "run:node": "cross-env NODE_ENV=development BABEL_ENV=development babel-node --extensions '.ts'",
     "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --extensions '.ts'",
     "monkey-patch": "bash tools/auspice-monkey-patch.sh && bash tools/patch-next.sh",
-    "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+    "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
     "convert:primers": "yarn run:node tools/primers/convert.ts"
   },
   "dependencies": {

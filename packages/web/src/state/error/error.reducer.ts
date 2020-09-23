@@ -3,7 +3,7 @@ import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 import { errorAdd, errorDismiss } from './error.actions'
 
 export interface ErrorState {
-  error?: string
+  error?: Error
 }
 
 export const errorDefaultState: ErrorState = {
@@ -12,7 +12,7 @@ export const errorDefaultState: ErrorState = {
 
 export const errorReducer = reducerWithInitialState(errorDefaultState)
   .icase(errorAdd, (state, { error }) => {
-    state.error = error.message
+    state.error = error
   })
 
   .icase(errorDismiss, (state) => {

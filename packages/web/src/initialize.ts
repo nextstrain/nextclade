@@ -3,6 +3,7 @@ import type { Router } from 'next/router'
 import { configureStore } from 'src/state/store'
 import { createWorkerPools } from 'src/workers/createWorkerPools'
 import { setLocale } from 'src/state/settings/settings.actions'
+import { fetchInputsAndRunMaybe } from './io/fetchInputsAndRunMaybe'
 
 export interface InitializeParams {
   router: Router
@@ -24,6 +25,8 @@ export async function initialize({ router }: InitializeParams) {
 
   const { localeKey } = store.getState().settings
   store.dispatch(setLocale(localeKey))
+
+  await fetchInputsAndRunMaybe(store.dispatch, router)
 
   return { persistor, store }
 }
