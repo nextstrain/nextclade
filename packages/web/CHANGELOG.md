@@ -1,3 +1,12 @@
+## [0.5.2](https://github.com/nextstrain/nextclade/compare/0.5.1...0.5.2) (2020-09-23)
+
+
+### Bug Fixes
+
+* correct the link URL to nextstrain ncov clades ([92982c7](https://github.com/nextstrain/nextclade/commit/92982c75015ff21df036390aef16f2b6788c9e4e))
+
+
+
 ## [0.5.1](https://github.com/nextstrain/nextclade/compare/0.5.0...0.5.1) (2020-09-23)
 
 
