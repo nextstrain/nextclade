@@ -2,65 +2,19 @@ import type { StrictOmit } from 'ts-essentials'
 import copy from 'fast-copy'
 
 import { groupClades } from 'src/algorithms/clades'
-import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import type { Virus } from 'src/algorithms/types'
-import { A, T, G, C } from 'src/algorithms/nucleotides'
+import { VirusName } from 'src/algorithms/defaults/virusNames'
 
-import { geneMap } from 'src/algorithms/geneMap'
-import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
-import { qcRulesConfigDefault } from 'src/algorithms/QC/qcRulesConfig'
-import { pcrPrimers } from 'src/algorithms/primers/getPcrPrimers'
-import DEFAULT_AUSPICE_DATA from 'src/assets/data/ncov_small.json'
-import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
-
-export enum VirusName {
-  SARS_COV_2 = 'SARS-CoV-2',
-}
+import { SARS_COV_2 } from 'src/algorithms/defaults/sars-cov-2'
 
 export type VirusRaw = StrictOmit<Virus, 'cladesGrouped' | 'length'>
 
 const DEFAULT_VIRUSES: Record<VirusName, VirusRaw> = {
-  [VirusName.SARS_COV_2]: {
-    rootSeq: DEFAULT_ROOT_SEQUENCE,
-    minimalLength: 100,
-    clades: {
-      '19A': [
-        { pos: 8782, nuc: C },
-        { pos: 14408, nuc: C },
-      ],
-      '19B': [
-        { pos: 8782, nuc: T },
-        { pos: 28144, nuc: C },
-      ],
-      '20A': [
-        { pos: 8782, nuc: C },
-        { pos: 14408, nuc: T },
-        { pos: 23403, nuc: G },
-      ],
-      '20B': [
-        { pos: 8782, nuc: C },
-        { pos: 14408, nuc: T },
-        { pos: 23403, nuc: G },
-        { pos: 28881, nuc: A },
-        { pos: 28882, nuc: A },
-      ],
-      '20C': [
-        { pos: 1059, nuc: T },
-        { pos: 8782, nuc: C },
-        { pos: 14408, nuc: T },
-        { pos: 23403, nuc: G },
-        { pos: 25563, nuc: T },
-      ],
-    },
-    geneMap,
-    pcrPrimers,
-    auspiceData: treeValidate(DEFAULT_AUSPICE_DATA),
-    qcRulesConfig: qcRulesConfigDefault,
-  },
+  [VirusName.SARS_COV_2]: SARS_COV_2.virus,
 }
 
 const DEFAULT_SEQUENCE_DATA: Record<VirusName, string> = {
-  [VirusName.SARS_COV_2]: DEFAULT_INPUT,
+  [VirusName.SARS_COV_2]: SARS_COV_2.sequenceData,
 }
 
 export const DEFAULT_VIRUS_NAME = VirusName.SARS_COV_2

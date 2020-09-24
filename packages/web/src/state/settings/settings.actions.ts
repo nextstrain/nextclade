@@ -1,7 +1,7 @@
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
 import type { LocaleKey } from 'src/i18n/i18n'
-import type { QCRulesConfig } from 'src/algorithms/QC/qcRulesConfig'
+import type { QCRulesConfig } from 'src/algorithms/QC/types'
 
 const action = actionCreatorFactory('Settings')
 

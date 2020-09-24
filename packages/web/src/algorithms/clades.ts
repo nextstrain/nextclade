@@ -37,3 +37,8 @@ export function groupClades(clades: Clades): CladesGrouped[] {
 
   return uniqBy(cladesGroupedByNuc, ({ pos }) => pos)
 }
+
+export function validateClades(cladesUnsafe: unknown) {
+  // TODO
+  return cladesUnsafe as Clades
+}

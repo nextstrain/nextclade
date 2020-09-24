@@ -2,8 +2,7 @@
 import type { AuspiceJsonV2 } from 'auspice'
 
 import type { Tagged } from 'src/helpers/types'
-import type { QCRulesConfig } from 'src/algorithms/QC/qcRulesConfig'
-import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>

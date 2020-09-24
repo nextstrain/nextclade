@@ -1,17 +1,6 @@
-import type { QCRulesConfigPrivateMutations } from 'src/algorithms/QC/rulePrivateMutations'
-import type { QCRulesConfigMissingData } from 'src/algorithms/QC/ruleMissingData'
-import type { QCRulesConfigSNPClusters } from 'src/algorithms/QC/ruleSnpClusters'
-import type { QCRulesConfigMixedSites } from 'src/algorithms/QC/ruleMixedSites'
-import type { Enableable } from 'src/algorithms/QC/runQC'
+import type { QCRulesConfig } from 'src/algorithms/QC/types'
 
-export interface QCRulesConfig {
-  privateMutations: Enableable<QCRulesConfigPrivateMutations>
-  missingData: Enableable<QCRulesConfigMissingData>
-  snpClusters: Enableable<QCRulesConfigSNPClusters>
-  mixedSites: Enableable<QCRulesConfigMixedSites>
-}
-
-export const qcRulesConfigDefault: QCRulesConfig = {
+export const qcRulesConfig: QCRulesConfig = {
   privateMutations: {
     enabled: true,
     typical: 2, // expected number of mutations

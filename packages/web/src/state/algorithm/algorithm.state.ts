@@ -1,10 +1,10 @@
 import type { Sorting } from 'src/helpers/sortResults'
 
 import type { AuspiceJsonV2 } from 'auspice'
-import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { QCResult } from 'src/algorithms/QC/types'
 import type { AlgorithmParams, AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
-import { getVirus } from 'src/algorithms/viruses'
+import { getVirus } from 'src/algorithms/defaults/viruses'
 
 export interface InputFile {
   name: string

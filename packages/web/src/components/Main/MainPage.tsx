@@ -29,8 +29,6 @@ import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Subtitle, Title } from 'src/components/Main/Title'
 
-import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
-
 export interface MainProps {
   params: AlgorithmParams
   canExport: boolean
@@ -81,9 +79,10 @@ export function MainDisconnected({
   const inputRef = useRef<HTMLInputElement | null>(null)
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      const data = e.target.value
       setIsDirty(true)
-      setInput(e.target.value)
-      setInputFile({ name: 'input.fasta', size: DEFAULT_INPUT.length })
+      setInput(data)
+      setInputFile({ name: 'pasted.fasta', size: data.length })
     },
     [setInput, setInputFile, setIsDirty],
   )
@@ -94,8 +93,8 @@ export function MainDisconnected({
     setIsDirty(true)
     setShowInputBox(true)
     inputRef?.current?.focus()
-    delay(setInput, 250, DEFAULT_INPUT)
-    delay(setInputFile, 250, { name: 'input.fasta', size: DEFAULT_INPUT.length })
+    delay(setInput, 250, params.sequenceDatum)
+    delay(setInputFile, 250, { name: 'example.fasta', size: params.sequenceDatum.length })
   }
 
   async function onUpload(file: File) {

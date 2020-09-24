@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import styled from 'styled-components'
 
-import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { QCResult } from 'src/algorithms/QC/types'
 import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
