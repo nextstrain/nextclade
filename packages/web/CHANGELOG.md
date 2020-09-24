@@ -1,3 +1,12 @@
+# [0.6.0](https://github.com/nextstrain/nextclade/compare/0.5.2...0.6.0) (2020-09-24)
+
+
+### Bug Fixes
+
+* fix CLI crash on alignment failure ([b02a602](https://github.com/nextstrain/nextclade/commit/b02a602615486d2f3725ed873cae65bea30b4b7b))
+
+
+
 ## [0.5.2](https://github.com/nextstrain/nextclade/compare/0.5.1...0.5.2) (2020-09-23)
 
 
