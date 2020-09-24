@@ -1,6 +1,24 @@
 /* eslint-disable unicorn/prefer-string-slice */
 import { isMatch } from './nucleotideCodes'
 
+export class ErrorAlignmentSequenceTooShort extends Error {
+  public constructor() {
+    super('Unable to align: sequence is too short')
+  }
+}
+
+export class ErrorAlignmentNoSeedMatches extends Error {
+  public constructor() {
+    super('Unable to align: no seed matches')
+  }
+}
+
+export class ErrorAlignmentBadSeedMatches extends Error {
+  public constructor() {
+    super('Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches')
+  }
+}
+
 interface SeedMatch {
   shift: number
   score: number
@@ -73,8 +91,7 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
   }
 
   if (seedMatches.length < 2) {
-    // TODO: throw concrete instances of errors, catch and diasplay in the UI
-    throw new Error(`alignPairwise: unable to find seed matches`)
+    throw new ErrorAlignmentNoSeedMatches()
   }
 
   // given the seed matches, determine the maximal and minimal shifts
@@ -262,7 +279,11 @@ function backTrace(
   }
 }
 
-export function alignPairwise(query: string, ref: string): Alignment {
+export function alignPairwise(query: string, ref: string, minimalLength: number): Alignment {
+  if (query.length < minimalLength) {
+    throw new ErrorAlignmentSequenceTooShort()
+  }
+
   const debug = false
 
   // console.log(query);
@@ -270,10 +291,7 @@ export function alignPairwise(query: string, ref: string): Alignment {
   // perform a number of seed matches to determine te rough alignment of query rel to ref
   const { bandWidth, meanShift } = seedAlignment(query, ref)
   if (bandWidth > 400) {
-    // TODO: throw concrete instances of errors, catch and diasplay in the UI
-    throw new Error(
-      `alignPairwise: unable to align -- too many insertions/deletions, duplications, or ambiguous seed matches`,
-    )
+    throw new ErrorAlignmentBadSeedMatches()
   }
   const { paths, scores } = scoreMatrix(query, ref, bandWidth, meanShift)
 
