@@ -1,5 +1,5 @@
 import { zipWith, set } from 'lodash'
-
+import copy from 'fast-copy'
 import { push } from 'connected-next-router'
 import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
@@ -13,6 +13,7 @@ import type {
   AnalysisResultWithClade,
   AnalysisResultWithoutClade,
   NucleotideSubstitution,
+  Virus,
 } from 'src/algorithms/types'
 import type { LocateInTreeParams } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
@@ -51,7 +52,6 @@ import {
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import { selectParams, selectResults } from 'src/state/algorithm/algorithm.selectors'
 
-import auspiceDataOriginal from 'src/assets/data/ncov_small.json'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
@@ -73,8 +73,8 @@ export interface AnalyzeParams extends AnalysisParams {
   poolAnalyze: Pool<AnalyzeThread>
 }
 
-export async function scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, rootSeq }: AnalyzeParams) {
-  return poolAnalyze.queue(async (analyze: AnalyzeThread) => analyze({ seqName, seq, rootSeq }))
+export async function scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, virus }: AnalyzeParams) {
+  return poolAnalyze.queue(async (analyze: AnalyzeThread) => analyze({ seqName, seq, virus }))
 }
 
 const analyzeOne = fsaSagaFromParams(analyzeAsync, function* analyzeWorker(params: AnalysisParams) {
@@ -109,17 +109,17 @@ export function* prepare(content?: File | string) {
     yield* put(setInput(content))
   }
 
-  const { rootSeq, input: inputState } = yield* select(selectParams)
-  const input = content ?? inputState
+  const { sequenceDatum, virus } = yield* select(selectParams)
+  const input = content ?? sequenceDatum
 
   if (typeof input === 'string') {
-    yield* put(setInputFile({ name: 'input.fasta', size: input.length }))
+    yield* put(setInputFile({ name: 'example.fasta', size: input.length }))
   } else if (input instanceof File) {
     const { name, size } = input
     yield* put(setInputFile({ name, size }))
   }
 
-  return { input, rootSeq }
+  return { input, virus }
 }
 
 export function* parse(input: File | string) {
@@ -139,18 +139,22 @@ export function* parse(input: File | string) {
   return { parsedSequences }
 }
 
-export function* analyze(parsedSequences: Record<string, string>, rootSeq: string) {
+export function* analyze(parsedSequences: Record<string, string>, virus: Virus) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const sequenceEntries = Object.entries(parsedSequences)
   const analysisResultsRaw = yield* all(
-    sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { seqName, seq, rootSeq })),
+    sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { seqName, seq, virus })),
   )
   const analysisResultsWithoutClades = analysisResultsRaw.filter(notUndefined)
 
   return { analysisResultsWithoutClades }
 }
 
-export function* treeFindNearestNodes(analysisResults: AnalysisResultWithoutClade[], rootSeq: string) {
+export function* treeFindNearestNodes(
+  analysisResults: AnalysisResultWithoutClade[],
+  rootSeq: string,
+  auspiceDataOriginal: AuspiceJsonV2,
+) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
   const auspiceData = treePreprocess(treeValidate(auspiceDataOriginal))
   return yield* buildTreeSaga({ analysisResults, rootSeq, auspiceData })
@@ -220,7 +224,9 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
 }
 
 export function* runAlgorithm(content?: File | string) {
-  const { input, rootSeq } = yield* prepare(content)
+  const { input, virus } = yield* prepare(content)
+  const { rootSeq, auspiceData } = virus
+  const auspiceDataOriginal = copy(auspiceData)
 
   const parseResult = yield* parse(input)
   if (!parseResult) {
@@ -228,9 +234,9 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   const { parsedSequences } = parseResult
-  const { analysisResultsWithoutClades } = yield* analyze(parsedSequences, rootSeq)
+  const { analysisResultsWithoutClades } = yield* analyze(parsedSequences, virus)
 
-  const findResult = yield* treeFindNearestNodes(analysisResultsWithoutClades, rootSeq)
+  const findResult = yield* treeFindNearestNodes(analysisResultsWithoutClades, rootSeq, auspiceDataOriginal)
 
   if (!findResult) {
     return

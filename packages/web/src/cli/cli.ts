@@ -1,8 +1,9 @@
 import { AuspiceJsonV2 } from 'auspice'
 import path from 'path'
-import { AnalysisResult } from 'src/algorithms/types'
+import { AnalysisResult, Virus } from 'src/algorithms/types'
 import fs from 'fs-extra'
 import { merge } from 'lodash'
+import { getVirus } from 'src/algorithms/viruses'
 import yargs from 'yargs'
 
 import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
@@ -215,7 +216,16 @@ export async function main() {
     inputTree,
   })
 
-  const { results, auspiceData } = run(input, rootSeq, qcRulesConfig, auspiceDataReference)
+  const virusDefaults = getVirus(/* TODO: virusName */)
+
+  const virus: Virus = {
+    ...virusDefaults,
+    rootSeq,
+    qcRulesConfig,
+    auspiceData: auspiceDataReference,
+  }
+
+  const { results, auspiceData } = run(input, virus)
 
   await writeResults({ results, auspiceData, outputJson, outputCsv, outputTsv, outputTree })
 }

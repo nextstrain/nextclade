@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
-import type { CladeDataGrouped } from 'src/algorithms/types'
+import type { CladesGrouped } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 
 const GENE_MAP_CLADE_MARK_COLOR = '#444444aa' as const
 
 export interface CladeMarkerProps extends SVGProps<SVGRectElement> {
-  cladeDatum: CladeDataGrouped
+  cladeDatum: CladesGrouped
   pixelsPerBase: number
 }
 
@@ -25,7 +25,7 @@ export function CladeMarker({ cladeDatum, pixelsPerBase, ...rest }: CladeMarkerP
   const x = pos * pixelsPerBase
   const width = Math.max(BASE_MIN_WIDTH_PX, 1 * pixelsPerBase)
 
-  const mutationItems = Object.entries(subs as Record<string, string[]>).map(([nuc, clades]) => {
+  const mutationItems = Object.entries(subs).map(([nuc, clades]) => {
     return <li key={nuc}>{`${nuc}: ${clades.join(', ')}`}</li>
   })
 

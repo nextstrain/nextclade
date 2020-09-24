@@ -1,13 +1,14 @@
 import React, { SVGProps, useState } from 'react'
 
+import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
+import { selectParams } from 'src/state/algorithm/algorithm.selectors'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
-import type { Gene } from 'src/algorithms/types'
-import { geneMap } from 'src/algorithms/geneMap'
-import { cladesGrouped } from 'src/algorithms/clades'
+import type { Gene, Virus } from 'src/algorithms/types'
+import type { State } from 'src/state/reducer'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -69,14 +70,19 @@ export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
   )
 }
 
-export const GeneMap = withResizeDetector(GeneMapUnsized, {
-  handleWidth: true,
-  handleHeight: true,
-  refreshRate: 300,
-  refreshMode: 'debounce',
+export interface GeneMapProps extends ReactResizeDetectorDimensions {
+  virus: Virus
+}
+
+const mapStateToProps = (state: State) => ({
+  virus: selectParams(state).virus,
 })
 
-export function GeneMapUnsized({ width, height }: ReactResizeDetectorDimensions) {
+const mapDispatchToProps = {}
+
+export const GeneMapUnsized = connect(mapStateToProps, mapDispatchToProps)(GeneMapUnsizedDisconnected)
+
+export function GeneMapUnsizedDisconnected({ virus, width, height }: GeneMapProps) {
   if (!width || !height) {
     return (
       <GeneMapWrapper>
@@ -85,6 +91,7 @@ export function GeneMapUnsized({ width, height }: ReactResizeDetectorDimensions)
     )
   }
 
+  const { cladesGrouped, geneMap } = virus
   const pixelsPerBase = width / GENOME_SIZE
   const geneViews = geneMap.map((gene, i) => {
     return <GeneView key={gene.name} gene={gene} pixelsPerBase={pixelsPerBase} />
@@ -112,3 +119,10 @@ export function GeneMapUnsized({ width, height }: ReactResizeDetectorDimensions)
     </GeneMapWrapper>
   )
 }
+
+export const GeneMap = withResizeDetector(GeneMapUnsized, {
+  handleWidth: true,
+  handleHeight: true,
+  refreshRate: 300,
+  refreshMode: 'debounce',
+})

@@ -101,7 +101,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setInput, (draft, input) => {
     draft.status = AlgorithmGlobalStatus.idling
-    draft.params.input = input
+    draft.params.sequenceDatum = input
   })
 
   .icase(setInputFile, (draft, inputFile) => {
