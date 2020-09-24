@@ -1,8 +1,10 @@
-import { zipWith } from 'lodash'
+import { identity, zipWith } from 'lodash'
 import type { AuspiceJsonV2 } from 'auspice'
 
 import type { QCRulesConfig } from 'src/algorithms/QC/qcRulesConfig'
 import type { AnalysisResult } from 'src/algorithms/types'
+import { formatError } from 'src/helpers/formatError'
+import { notUndefined } from 'src/helpers/notUndefined'
 
 import { safeZip } from 'src/helpers/safeZip'
 
@@ -14,13 +16,27 @@ import { assignClade } from 'src/algorithms/assignClade'
 import { runQC } from 'src/algorithms/QC/runQC'
 import { treeAttachNodes } from 'src/algorithms/tree/treeAttachNodes'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
+import { sanitizeError } from 'src/helpers/sanitizeError'
+
+const t = identity
 
 export function run(input: string, rootSeq: string, qcRulesConfig: QCRulesConfig, auspiceDataReference: AuspiceJsonV2) {
   const parsedSequences = parseSequences(input)
 
-  const analysisResultsWithoutClades = Object.entries(parsedSequences).map(([seqName, seq]) => {
-    return analyze({ seqName, seq, rootSeq })
-  })
+  const analysisResultsWithoutClades = Object.entries(parsedSequences)
+    .map(([seqName, seq], id) => {
+      try {
+        return analyze({ seqName, seq, rootSeq })
+      } catch (error_) {
+        const error = sanitizeError(error_)
+        const errorText = formatError(t, error)
+        console.error(
+          `Error: in sequence "${seqName}": ${errorText}. Please note that this sequence will not be included in the results.`,
+        )
+        return undefined
+      }
+    })
+    .filter(notUndefined)
 
   const auspiceData = treePreprocess(auspiceDataReference)
   const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = treeFindNearestNodes({
