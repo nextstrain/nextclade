@@ -13,7 +13,6 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 
-import { GENOME_SIZE } from '../SequenceView/SequenceView'
 import { CladeMarker } from './CladeMarker'
 
 export const GENE_MAP_HEIGHT_PX = 35
@@ -91,8 +90,8 @@ export function GeneMapUnsizedDisconnected({ virus, width, height }: GeneMapProp
     )
   }
 
-  const { cladesGrouped, geneMap } = virus
-  const pixelsPerBase = width / GENOME_SIZE
+  const { cladesGrouped, geneMap, genomeSize } = virus
+  const pixelsPerBase = width / genomeSize
   const geneViews = geneMap.map((gene, i) => {
     return <GeneView key={gene.name} gene={gene} pixelsPerBase={pixelsPerBase} />
   })

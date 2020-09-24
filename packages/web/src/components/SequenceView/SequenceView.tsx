@@ -1,15 +1,15 @@
 import React from 'react'
 
+import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import styled from 'styled-components'
 
+import type { State } from 'src/state/reducer'
 import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerMissingEnds } from './SequenceMarkerMissingEnds'
-
-export const GENOME_SIZE = 30000 as const // TODO: deduce from sequences?
 
 export const SequenceViewWrapper = styled.div`
   display: flex;
@@ -33,9 +33,17 @@ export const SequenceViewSVG = styled.svg`
 
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResultState
+  genomeSize: number
 }
 
-export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
+const mapStateToProps = (state: State) => ({
+  genomeSize: state.algorithm.params.virus.genomeSize,
+})
+const mapDispatchToProps = {}
+
+export const SequenceViewUnsized = connect(mapStateToProps, mapDispatchToProps)(SequenceViewUnsizedDisconnected)
+
+export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd } = sequence
 
   if (!width) {
@@ -46,7 +54,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
     )
   }
 
-  const pixelsPerBase = width / GENOME_SIZE
+  const pixelsPerBase = width / genomeSize
 
   const mutationViews = substitutions.map((substitution) => {
     return (
@@ -72,7 +80,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
 
   const missingEndViews = [
     { start: 0, length: alignmentStart },
-    { start: alignmentEnd, length: GENOME_SIZE - alignmentEnd },
+    { start: alignmentEnd, length: genomeSize - alignmentEnd },
   ].map((missingEnd) => {
     return (
       <SequenceMarkerMissingEnds
@@ -93,7 +101,7 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
-        <rect fill="transparent" x={0} y={-10} width={GENOME_SIZE} height="30" />
+        <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
         {missingEndViews}
         {mutationViews}
         {missingViews}

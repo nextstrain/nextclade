@@ -84,7 +84,7 @@ export interface SubstitutionsWithPrimers extends SubstitutionsWithAminoacids {
 }
 
 export interface Virus {
-  length: number
+  genomeSize: number
   minimalLength: number
   clades: Clades
   cladesGrouped: CladesGrouped[]

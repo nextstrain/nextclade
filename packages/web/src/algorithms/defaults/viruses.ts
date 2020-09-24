@@ -7,7 +7,7 @@ import { VirusName } from 'src/algorithms/defaults/virusNames'
 
 import { SARS_COV_2 } from 'src/algorithms/defaults/sars-cov-2'
 
-export type VirusRaw = StrictOmit<Virus, 'cladesGrouped' | 'length'>
+export type VirusRaw = StrictOmit<Virus, 'cladesGrouped' | 'genomeSize'>
 
 const DEFAULT_VIRUSES: Record<VirusName, VirusRaw> = {
   [VirusName.SARS_COV_2]: SARS_COV_2.virus,
@@ -41,7 +41,7 @@ export function getVirus(virusName: string = DEFAULT_VIRUS_NAME): Virus {
   const cladesGrouped = groupClades(virusRaw.clades)
   return copy({
     ...virusRaw,
-    length,
+    genomeSize: length,
     cladesGrouped,
   })
 }
