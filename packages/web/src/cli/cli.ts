@@ -4,7 +4,6 @@ import { AuspiceJsonV2 } from 'auspice'
 import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
 import yargs from 'yargs'
 
-import { validateClades } from 'src/algorithms/clades'
 import { AnalysisResult, Virus } from 'src/algorithms/types'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 import { parseCsv } from 'src/io/parseCsv'
@@ -51,19 +50,12 @@ export function parseCommandLine() {
       description:
         '(optional) Path to Auspice JSON v2 file containing custom reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats',
     })
-    .option('input-clades', {
-      alias: 'l',
-      type: 'string',
-      description:
-        '(optional) Path to a JSON file containing custom clade definitions.\nFor an example see https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/clades.json',
-    })
     .option('input-qc-config', {
       alias: 'q',
       type: 'string',
       description:
         '(optional) Path to a JSON file containing custom configuration of Quality Control rules.\nFor an example format see: https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/qcRulesConfig.ts',
     })
-
     .option('input-gene-map', {
       alias: 'g',
       type: 'string',
@@ -132,7 +124,6 @@ export async function validateParams(params: CliParams) {
   const inputFasta = params['input-fasta']
   const inputRootSeq = params['input-root-seq']
   const inputTree = params['input-tree']
-  const inputClades = params['input-clades']
   const inputQcConfig = params['input-qc-config']
   const inputGeneMap = params['input-gene-map']
   const inputPcrPrimers = params['input-pcr-primers']
@@ -150,7 +141,6 @@ export async function validateParams(params: CliParams) {
     inputFasta,
     inputRootSeq,
     inputTree,
-    inputClades,
     inputQcConfig,
     inputGeneMap,
     inputPcrPrimers,
@@ -165,7 +155,6 @@ export interface ReadInputsParams {
   inputFasta: string
   inputRootSeq?: string
   inputTree?: string
-  inputClades?: string
   inputQcConfig?: string
   inputGeneMap?: string
   inputPcrPrimers?: string
@@ -176,7 +165,6 @@ export async function readInputs({
   inputFasta,
   inputRootSeq,
   inputTree,
-  inputClades,
   inputQcConfig,
   inputGeneMap,
   inputPcrPrimers,
@@ -197,13 +185,6 @@ export async function readInputs({
     const auspiceData = treeValidate(await fs.readJson(inputTree))
     if (auspiceData) {
       virus = { ...virus, auspiceData }
-    }
-  }
-
-  if (inputClades) {
-    const clades = validateClades(await fs.readJson(inputClades))
-    if (clades) {
-      virus = { ...virus, clades }
     }
   }
 
@@ -273,7 +254,6 @@ export async function main() {
     inputFasta,
     inputRootSeq,
     inputTree,
-    inputClades,
     inputQcConfig,
     inputGeneMap,
     inputPcrPrimers,
@@ -289,7 +269,6 @@ export async function main() {
     inputFasta,
     inputRootSeq,
     inputTree,
-    inputClades,
     inputQcConfig,
     inputGeneMap,
     inputPcrPrimers,
