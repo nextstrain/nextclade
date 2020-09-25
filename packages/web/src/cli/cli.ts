@@ -1,18 +1,22 @@
-import { AuspiceJsonV2 } from 'auspice'
 import path from 'path'
-import { AnalysisResult, Virus } from 'src/algorithms/types'
-import fs from 'fs-extra'
-import { merge } from 'lodash'
-import { getVirus } from 'src/algorithms/defaults/viruses'
+import fs, { readFile } from 'fs-extra'
+import { AuspiceJsonV2 } from 'auspice'
+import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
 import yargs from 'yargs'
 
-import type { QCRulesConfig } from 'src/algorithms/QC/types'
+import { validateClades } from 'src/algorithms/clades'
+import { AnalysisResult, Virus } from 'src/algorithms/types'
+import { getVirus } from 'src/algorithms/defaults/viruses'
+import { parseCsv } from 'src/io/parseCsv'
+import { parseRootSeq } from 'src/io/parseRootSeq'
+
 import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
 import { prepareResultCsv, prepareResultJson, toCsvString } from 'src/io/serializeResults'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { qcRulesConfigValidate } from 'src/algorithms/QC/qcRulesConfigValidate'
-
+import { validateGeneMap } from 'src/io/validateGeneMap'
+import { validatePcrPrimerEntries, validatePcrPrimers } from 'src/algorithms/primers/validatePcrPrimers'
 import { run } from 'src/cli/run'
 
 import pkg from 'src/../package.json'
@@ -34,12 +38,7 @@ export function parseCommandLine() {
       alias: 'i',
       type: 'string',
       demandOption: true,
-      description: 'Path to .fasta or .txt file with input sequences',
-    })
-    .option('input-qc-config', {
-      alias: 'q',
-      type: 'string',
-      description: 'Path to QC config json file containing custom QC configuration',
+      description: 'Path to a .fasta or a .txt file with input sequences',
     })
     .option('input-root-seq', {
       alias: 'r',
@@ -50,7 +49,32 @@ export function parseCommandLine() {
       alias: 'a',
       type: 'string',
       description:
-        'Path to Auspice JSON v2 file containing custom reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats',
+        '(optional) Path to Auspice JSON v2 file containing custom reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats',
+    })
+    .option('input-clades', {
+      alias: 'l',
+      type: 'string',
+      description:
+        '(optional) Path to a JSON file containing custom clade definitions.\nFor an example see https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/clades.json',
+    })
+    .option('input-qc-config', {
+      alias: 'q',
+      type: 'string',
+      description:
+        '(optional) Path to a JSON file containing custom configuration of Quality Control rules.\nFor an example format see: https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/qcRulesConfig.ts',
+    })
+
+    .option('input-gene-map', {
+      alias: 'g',
+      type: 'string',
+      description:
+        '(optional) Path to a JSON file containing custom gene map. Gene map (sometimes also called "gene annotations") is used to resolve aminoacid changes in genes.\nFor an example see https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/geneMap.json',
+    })
+    .option('input-pcr-primers', {
+      alias: 'p',
+      type: 'string',
+      description:
+        '(optional) Path to a CSV file containing a list of custom PCR primer sites. These are used to report mutations in these sites.\nFor an example see https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/pcrPrimers.csv',
     })
     .option(OUTPUT_JSON, {
       alias: 'o',
@@ -106,10 +130,12 @@ export async function assertCanCreate(pathlike?: string) {
 
 export async function validateParams(params: CliParams) {
   const inputFasta = params['input-fasta']
-  const inputQcConfig = params['input-qc-config']
   const inputRootSeq = params['input-root-seq']
   const inputTree = params['input-tree']
-
+  const inputClades = params['input-clades']
+  const inputQcConfig = params['input-qc-config']
+  const inputGeneMap = params['input-gene-map']
+  const inputPcrPrimers = params['input-pcr-primers']
   const outputJson = params[OUTPUT_JSON]
   const outputCsv = params[OUTPUT_CSV]
   const outputTsv = params[OUTPUT_TSV]
@@ -120,48 +146,82 @@ export async function validateParams(params: CliParams) {
   await assertCanCreate(outputTsv)
   await assertCanCreate(outputTree)
 
-  return { inputFasta, inputQcConfig, inputRootSeq, inputTree, outputJson, outputCsv, outputTsv, outputTree }
+  return {
+    inputFasta,
+    inputRootSeq,
+    inputTree,
+    inputClades,
+    inputQcConfig,
+    inputGeneMap,
+    inputPcrPrimers,
+    outputJson,
+    outputCsv,
+    outputTsv,
+    outputTree,
+  }
 }
 
 export interface ReadInputsParams {
   inputFasta: string
-  inputQcConfig?: string
   inputRootSeq?: string
   inputTree?: string
+  inputClades?: string
+  inputQcConfig?: string
+  inputGeneMap?: string
+  inputPcrPrimers?: string
   virusDefaults: Virus
 }
 
 export async function readInputs({
   inputFasta,
-  inputQcConfig,
   inputRootSeq,
   inputTree,
+  inputClades,
+  inputQcConfig,
+  inputGeneMap,
+  inputPcrPrimers,
   virusDefaults,
 }: ReadInputsParams) {
-  const input = await fs.readFile(inputFasta, 'utf-8')
+  const input = await fs.readFile(inputFasta, { encoding: 'utf-8' })
 
-  let qcRulesConfigCustom: Record<string, unknown> = {}
-  if (inputQcConfig) {
-    qcRulesConfigCustom = (await fs.readJson(inputQcConfig)) as Record<string, unknown>
-  }
-  const qcRulesConfig: QCRulesConfig = qcRulesConfigValidate(merge(virusDefaults.qcRulesConfig, qcRulesConfigCustom))
+  let virus: Virus = virusDefaults
 
-  // eslint-disable-next-line prefer-destructuring
-  let rootSeq = virusDefaults.rootSeq
   if (inputRootSeq) {
-    rootSeq = await fs.readFile(inputRootSeq, 'utf-8')
+    const rootSeq = parseRootSeq(await fs.readFile(inputRootSeq, { encoding: 'utf-8' }))
+    if (rootSeq) {
+      virus = { ...virus, rootSeq }
+    }
   }
 
-  let auspiceDataCustom
   if (inputTree) {
-    auspiceDataCustom = (await fs.readJson(inputTree)) as Record<string, unknown>
+    const auspiceData = treeValidate(await fs.readJson(inputTree))
+    if (auspiceData) {
+      virus = { ...virus, auspiceData }
+    }
   }
-  const auspiceDataReference = treeValidate(auspiceDataCustom ?? virusDefaults.auspiceData)
-  const virus: Virus = {
-    ...virusDefaults,
-    rootSeq,
-    qcRulesConfig,
-    auspiceData: auspiceDataReference,
+
+  if (inputClades) {
+    const clades = validateClades(await fs.readJson(inputClades))
+    if (clades) {
+      virus = { ...virus, clades }
+    }
+  }
+
+  if (inputQcConfig) {
+    const qcRulesConfig = qcRulesConfigValidate(await fs.readJson(inputQcConfig))
+    virus = { ...virus, qcRulesConfig }
+  }
+
+  if (inputGeneMap) {
+    const geneMap = validateGeneMap(await fs.readJson(inputGeneMap))
+    virus = { ...virus, geneMap }
+  }
+
+  if (inputPcrPrimers) {
+    const content = await readFile(inputPcrPrimers, { encoding: 'utf-8' })
+    const primerEntries = validatePcrPrimerEntries(parseCsv(content))
+    const pcrPrimers = validatePcrPrimers(convertPcrPrimers(primerEntries, virus.rootSeq))
+    virus = { ...virus, pcrPrimers }
   }
 
   return { input, virus }
@@ -211,22 +271,28 @@ export async function main() {
 
   const {
     inputFasta,
+    inputRootSeq,
+    inputTree,
+    inputClades,
+    inputQcConfig,
+    inputGeneMap,
+    inputPcrPrimers,
     outputJson,
     outputCsv,
     outputTsv,
     outputTree,
-    inputQcConfig,
-    inputRootSeq,
-    inputTree,
   } = await validateParams(params)
 
   const virusDefaults = getVirus(/* TODO: virusName */)
 
   const { input, virus } = await readInputs({
     inputFasta,
-    inputQcConfig,
     inputRootSeq,
     inputTree,
+    inputClades,
+    inputQcConfig,
+    inputGeneMap,
+    inputPcrPrimers,
     virusDefaults,
   })
 
