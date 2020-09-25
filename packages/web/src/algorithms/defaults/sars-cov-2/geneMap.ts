@@ -1,8 +1,9 @@
 import { get, pick } from 'lodash'
 
 import type { Gene } from 'src/algorithms/types'
-import geneMapRaw from 'src/assets/data/genomeAnnotationsFromNcovGlobal.json'
 import { GENOTYPE_COLORS } from 'src/constants'
+
+import geneMapRaw from './geneMap.json'
 
 function getGeneMap(): Gene[] {
   const geneMap = get(geneMapRaw, 'genome_annotations')

@@ -3,7 +3,7 @@ import { actionCreatorFactory } from 'src/state/util/fsaActions'
 import type { AnalysisParams, AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams, FinalizeTreeResults } from 'src/algorithms/tree/treeAttachNodes'
-import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { QCResult } from 'src/algorithms/QC/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { AlgorithmGlobalStatus, CladeAssignmentResult, InputFile } from './algorithm.state'
 

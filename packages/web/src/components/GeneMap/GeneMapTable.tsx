@@ -15,7 +15,6 @@ import {
 
 import { GeneMap, GENE_MAP_HEIGHT_PX } from 'src/components/GeneMap/GeneMap'
 import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
-import { GENOME_SIZE } from 'src/components/SequenceView/SequenceView'
 
 export const GeneMapTableContent = styled(Table)`
   overflow-y: scroll;
@@ -49,7 +48,7 @@ export function GeneMapTable() {
       <GeneMapAxisTableRow>
         <TableCellName basis={geneMapNameBasisPx} shrink={0} />
         <TableCell grow={1} shrink={1} className="w-100">
-          <GeneMapAxis genomeSize={GENOME_SIZE} />
+          <GeneMapAxis />
         </TableCell>
       </GeneMapAxisTableRow>
     </GeneMapTableContent>

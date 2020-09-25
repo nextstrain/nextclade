@@ -1,6 +1,6 @@
+import { getVirus } from 'src/algorithms/defaults/viruses'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
-import { qcRulesConfigDefault } from 'src/algorithms/QC/qcRulesConfig'
 import { resetQcRulesConfig, setLocale, setQcRulesConfig } from 'src/state/settings/settings.actions'
 import { settingsDefaultState } from 'src/state/settings/settings.state'
 
@@ -14,5 +14,8 @@ export const settingsReducer = reducerWithInitialState(settingsDefaultState)
   })
 
   .icase(resetQcRulesConfig, (draft) => {
-    draft.qcRulesConfig = qcRulesConfigDefault
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('TODO: remove this action')
+    }
+    draft.qcRulesConfig = getVirus().qcRulesConfig
   })

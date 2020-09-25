@@ -1,19 +1,17 @@
 import { AuspiceJsonV2 } from 'auspice'
 import path from 'path'
-import { AnalysisResult } from 'src/algorithms/types'
+import { AnalysisResult, Virus } from 'src/algorithms/types'
 import fs from 'fs-extra'
 import { merge } from 'lodash'
+import { getVirus } from 'src/algorithms/defaults/viruses'
 import yargs from 'yargs'
 
+import type { QCRulesConfig } from 'src/algorithms/QC/types'
 import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
 import { prepareResultCsv, prepareResultJson, toCsvString } from 'src/io/serializeResults'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { qcRulesConfigDefault, QCRulesConfig } from 'src/algorithms/QC/qcRulesConfig'
 import { treeValidate } from 'src/algorithms/tree/treeValidate'
-import { qcRulesConfigValidate } from 'src/cli/qcRulesConfigValidate'
-
-import rootSeqDefault from 'src/assets/data/defaultRootSequence.txt'
-import auspiceDataDefault from 'src/assets/data/ncov_small.json'
+import { qcRulesConfigValidate } from 'src/algorithms/QC/qcRulesConfigValidate'
 
 import { run } from 'src/cli/run'
 
@@ -130,18 +128,26 @@ export interface ReadInputsParams {
   inputQcConfig?: string
   inputRootSeq?: string
   inputTree?: string
+  virusDefaults: Virus
 }
 
-export async function readInputs({ inputFasta, inputQcConfig, inputRootSeq, inputTree }: ReadInputsParams) {
+export async function readInputs({
+  inputFasta,
+  inputQcConfig,
+  inputRootSeq,
+  inputTree,
+  virusDefaults,
+}: ReadInputsParams) {
   const input = await fs.readFile(inputFasta, 'utf-8')
 
   let qcRulesConfigCustom: Record<string, unknown> = {}
   if (inputQcConfig) {
     qcRulesConfigCustom = (await fs.readJson(inputQcConfig)) as Record<string, unknown>
   }
-  const qcRulesConfig: QCRulesConfig = qcRulesConfigValidate(merge(qcRulesConfigDefault, qcRulesConfigCustom))
+  const qcRulesConfig: QCRulesConfig = qcRulesConfigValidate(merge(virusDefaults.qcRulesConfig, qcRulesConfigCustom))
 
-  let rootSeq = rootSeqDefault
+  // eslint-disable-next-line prefer-destructuring
+  let rootSeq = virusDefaults.rootSeq
   if (inputRootSeq) {
     rootSeq = await fs.readFile(inputRootSeq, 'utf-8')
   }
@@ -150,9 +156,15 @@ export async function readInputs({ inputFasta, inputQcConfig, inputRootSeq, inpu
   if (inputTree) {
     auspiceDataCustom = (await fs.readJson(inputTree)) as Record<string, unknown>
   }
-  const auspiceDataReference = treeValidate(auspiceDataCustom ?? auspiceDataDefault)
+  const auspiceDataReference = treeValidate(auspiceDataCustom ?? virusDefaults.auspiceData)
+  const virus: Virus = {
+    ...virusDefaults,
+    rootSeq,
+    qcRulesConfig,
+    auspiceData: auspiceDataReference,
+  }
 
-  return { input, rootSeq, qcRulesConfig, auspiceDataReference }
+  return { input, virus }
 }
 
 export interface WriteResultsParams {
@@ -208,14 +220,17 @@ export async function main() {
     inputTree,
   } = await validateParams(params)
 
-  const { input, rootSeq, qcRulesConfig, auspiceDataReference } = await readInputs({
+  const virusDefaults = getVirus(/* TODO: virusName */)
+
+  const { input, virus } = await readInputs({
     inputFasta,
     inputQcConfig,
     inputRootSeq,
     inputTree,
+    virusDefaults,
   })
 
-  const { results, auspiceData } = run(input, rootSeq, qcRulesConfig, auspiceDataReference)
+  const { results, auspiceData } = run(input, virus)
 
   await writeResults({ results, auspiceData, outputJson, outputCsv, outputTsv, outputTree })
 }

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
+import type { AuspiceJsonV2 } from 'auspice'
+
 import type { Tagged } from 'src/helpers/types'
-import { QCResult } from 'src/algorithms/QC/runQC'
+import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -8,7 +10,7 @@ export type Nucleotide = Tagged<string, 'Nucleotide'>
 /** Type-safe representation of an aminoacid */
 export type Aminoacid = Tagged<string, 'Aminoacid'>
 
-/** Represents a numeric interval bounded by start and end. Similar to `Span`, but different representation. */
+/** Represents a numeric interval bounded by begin and end. Similar to `Span`, but different representation. */
 export interface Range {
   begin: number
   end: number
@@ -44,19 +46,11 @@ export interface NucleotideRange extends Range {
   nuc: Nucleotide
 }
 
-export interface Substitutions {
-  [key: string]: NucleotideLocation[]
-}
+export type Clades = Record<string, NucleotideLocation[]>
 
-export interface CladeDataFlat {
-  cladeName: string
+export interface CladesGrouped {
   pos: number
-  nuc: Nucleotide
-}
-
-export interface CladeDataGrouped {
-  pos: number
-  subs: Record<Nucleotide, string[]>
+  subs: Record<string, string[]>
 }
 
 export interface AminoacidSubstitution {
@@ -90,9 +84,20 @@ export interface SubstitutionsWithPrimers extends SubstitutionsWithAminoacids {
 }
 
 export interface Virus {
-  minimalLength: 100
-  clades: Substitutions
+  genomeSize: number
+  minimalLength: number
+  clades: Clades
+  cladesGrouped: CladesGrouped[]
+  geneMap: Gene[]
+  rootSeq: string
+  auspiceData: AuspiceJsonV2
   pcrPrimers: PcrPrimer[]
+  qcRulesConfig: QCRulesConfig
+}
+
+export interface AlgorithmParams {
+  sequenceDatum: string
+  virus: Virus
 }
 
 export interface ClusteredSNPs {
@@ -140,7 +145,7 @@ export interface ParseResult {
 export interface AnalysisParams {
   seqName: string
   seq: string
-  rootSeq: string
+  virus: Virus
 }
 
 /** Represents a named interval in the genome */

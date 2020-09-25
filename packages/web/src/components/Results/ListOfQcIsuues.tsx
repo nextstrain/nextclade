@@ -4,7 +4,7 @@ import { round } from 'lodash'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { QCResult } from 'src/algorithms/QC/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'

@@ -1,9 +1,9 @@
+import type { AuspiceTreeNode } from 'auspice'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { findPrivateMutations } from 'src/algorithms/tree/treeFindNearestNodes'
-import { AuspiceTreeNode } from 'auspice'
-import { AnalysisResult } from 'src/algorithms/types'
-import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
+import { getVirus } from 'src/algorithms/defaults/viruses'
 
-const rootSeq = DEFAULT_ROOT_SEQUENCE
+const { rootSeq } = getVirus()
 const refNuc = "Can't touch this"
 
 describe('findPrivateMutations', () => {

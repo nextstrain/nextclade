@@ -1,21 +1,22 @@
 import { groupBy, uniqBy } from 'lodash'
 
-import type { Nucleotide, Substitutions, CladeDataFlat, CladeDataGrouped } from 'src/algorithms/types'
+import type { Nucleotide, Clades, CladesGrouped } from 'src/algorithms/types'
 
-import { VIRUSES } from 'src/algorithms/viruses'
-
-export function cladesFlatten(clades: Substitutions): CladeDataFlat[] {
-  return Object.entries(clades).reduce((result, [cladeName, substitutions]) => {
-    const subs = substitutions.map(({ pos, nuc }) => {
-      return { cladeName, pos, nuc }
-    })
-
-    return [...result, ...subs]
-  }, [] as CladeDataFlat[])
+export interface CladesFlat {
+  cladeName: string
+  pos: number
+  nuc: Nucleotide
 }
 
-export function groupClades(clades: Substitutions): CladeDataGrouped[] {
-  const cladesFlat = cladesFlatten(clades)
+export function flattenClades(clades: Clades): CladesFlat[] {
+  return Object.entries(clades).reduce((result, [cladeName, substitutions]) => {
+    const subs = substitutions.map(({ pos, nuc }) => ({ cladeName, pos, nuc }))
+    return [...result, ...subs]
+  }, [] as CladesFlat[])
+}
+
+export function groupClades(clades: Clades): CladesGrouped[] {
+  const cladesFlat = flattenClades(clades)
 
   // TODO: there should probably be a simpler and cleaner way to do this
   const cladesGroupedByNuc = cladesFlat.map(({ pos }) => {
@@ -37,4 +38,7 @@ export function groupClades(clades: Substitutions): CladeDataGrouped[] {
   return uniqBy(cladesGroupedByNuc, ({ pos }) => pos)
 }
 
-export const cladesGrouped = groupClades(VIRUSES['SARS-CoV-2'].clades)
+export function validateClades(cladesUnsafe: unknown) {
+  // TODO
+  return cladesUnsafe as Clades
+}

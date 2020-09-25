@@ -1,21 +1,17 @@
 import type { Sorting } from 'src/helpers/sortResults'
 
-import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
-// import { getFakeResults } from 'src/assets/data/getFakeResults'
 import type { AuspiceJsonV2 } from 'auspice'
-import type { QCResult } from 'src/algorithms/QC/runQC'
-import type { AnalysisResultWithoutClade } from 'src/algorithms/types'
+import type { QCResult } from 'src/algorithms/QC/types'
+import type { AlgorithmParams, AnalysisResultWithoutClade } from 'src/algorithms/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
+import { getVirus } from 'src/algorithms/defaults/viruses'
 
 export interface InputFile {
   name: string
   size: number
 }
 
-export interface AlgorithmParams {
-  input: string
-  rootSeq: string
-}
+export type AlgorithmParamsPartial = Partial<AlgorithmParams>
 
 export enum AlgorithmGlobalStatus {
   idling = 'idling',
@@ -77,18 +73,11 @@ export interface CladeAssignmentResult {
   clade: string
 }
 
-const fakeState: Partial<AlgorithmState> = {}
-if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
-  // fakeState.results = getFakeResults()
-  // fakeState.resultsFiltered = fakeState.results
-  // fakeState.status = AlgorithmGlobalStatus.done
-}
-
 export const algorithmDefaultState: AlgorithmState = {
   status: AlgorithmGlobalStatus.idling,
   params: {
-    input: '',
-    rootSeq: DEFAULT_ROOT_SEQUENCE,
+    sequenceDatum: '',
+    virus: getVirus(),
   },
   isDirty: true,
   results: [],
@@ -101,5 +90,4 @@ export const algorithmDefaultState: AlgorithmState = {
     showBad: true,
     showErrors: true,
   },
-  ...fakeState,
 }

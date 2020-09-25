@@ -1,8 +1,5 @@
 import { readFile } from 'src/helpers/readFile'
 
-import { VIRUSES } from './viruses'
-import { geneMap } from './geneMap'
-
 import type { AminoacidSubstitution, AnalysisParams, AnalysisResultWithoutClade, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { alignPairwise } from './alignPairwise'
@@ -23,10 +20,10 @@ export async function parse(input: string | File): Promise<ParseResult> {
   return { input: newInput, parsedSequences: parseSequences(newInput) }
 }
 
-export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResultWithoutClade {
-  const virus = VIRUSES['SARS-CoV-2']
+export function analyze({ seqName, seq, virus }: AnalysisParams): AnalysisResultWithoutClade {
+  const { rootSeq, minimalLength, pcrPrimers, geneMap } = virus
 
-  const { alignmentScore, query, ref } = alignPairwise(seq, rootSeq, virus.minimalLength)
+  const { alignmentScore, query, ref } = alignPairwise(seq, rootSeq, minimalLength)
 
   const alignedQuery = query.join('')
 
@@ -51,8 +48,8 @@ export function analyze({ seqName, seq, rootSeq }: AnalysisParams): AnalysisResu
 
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
 
-  const substitutions = getSubstitutionsWithPcrPrimerChanges(substitutionsWithAA, virus.pcrPrimers)
-  const pcrPrimerChanges = getPcrPrimerChanges(nucSubstitutions, virus.pcrPrimers)
+  const substitutions = getSubstitutionsWithPcrPrimerChanges(substitutionsWithAA, pcrPrimers)
+  const pcrPrimerChanges = getPcrPrimerChanges(nucSubstitutions, pcrPrimers)
   const totalPcrPrimerChanges = pcrPrimerChanges.reduce((total, { substitutions }) => total + substitutions.length, 0)
 
   return Object.freeze({

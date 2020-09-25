@@ -1,4 +1,4 @@
-import { QCRulesConfig } from 'src/algorithms/QC/qcRulesConfig'
+import { QCRulesConfig } from 'src/algorithms/QC/types'
 
 export function qcRulesConfigValidate(config: unknown) {
   // TODO

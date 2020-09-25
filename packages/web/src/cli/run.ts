@@ -1,8 +1,6 @@
 import { identity, zipWith } from 'lodash'
-import type { AuspiceJsonV2 } from 'auspice'
 
-import type { QCRulesConfig } from 'src/algorithms/QC/qcRulesConfig'
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult, Virus } from 'src/algorithms/types'
 import { formatError } from 'src/helpers/formatError'
 import { notUndefined } from 'src/helpers/notUndefined'
 
@@ -20,13 +18,14 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
 
 const t = identity
 
-export function run(input: string, rootSeq: string, qcRulesConfig: QCRulesConfig, auspiceDataReference: AuspiceJsonV2) {
+export function run(input: string, virus: Virus) {
+  const { rootSeq, auspiceData: auspiceDataReference, qcRulesConfig } = virus
   const parsedSequences = parseSequences(input)
 
   const analysisResultsWithoutClades = Object.entries(parsedSequences)
     .map(([seqName, seq], id) => {
       try {
-        return analyze({ seqName, seq, rootSeq })
+        return analyze({ seqName, seq, virus })
       } catch (error_) {
         const error = sanitizeError(error_)
         const errorText = formatError(t, error)

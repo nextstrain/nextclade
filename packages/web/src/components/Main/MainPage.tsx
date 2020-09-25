@@ -14,9 +14,10 @@ import { LayoutMain } from 'src/components/Layout/LayoutMain'
 import { About } from 'src/components/About/About'
 import { Uploader } from 'src/components/Main/Uploader'
 
+import type { AlgorithmParams } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
-import { selectCanExport, selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
-import type { AlgorithmParams, InputFile } from 'src/state/algorithm/algorithm.state'
+import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
+import type { InputFile } from 'src/state/algorithm/algorithm.state'
 import {
   algorithmRunAsync,
   exportCsvTrigger,
@@ -27,8 +28,6 @@ import {
 import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Subtitle, Title } from 'src/components/Main/Title'
-
-import DEFAULT_INPUT from 'src/assets/data/defaultSequencesWithGaps.fasta'
 
 export interface MainProps {
   params: AlgorithmParams
@@ -45,7 +44,7 @@ export interface MainProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  params: state.algorithm.params,
+  params: selectParams(state),
   canExport: selectCanExport(state),
   isDirty: selectIsDirty(state),
   showInputBox: state.ui.showInputBox,
@@ -80,9 +79,10 @@ export function MainDisconnected({
   const inputRef = useRef<HTMLInputElement | null>(null)
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      const data = e.target.value
       setIsDirty(true)
-      setInput(e.target.value)
-      setInputFile({ name: 'input.fasta', size: DEFAULT_INPUT.length })
+      setInput(data)
+      setInputFile({ name: 'pasted.fasta', size: data.length })
     },
     [setInput, setInputFile, setIsDirty],
   )
@@ -93,8 +93,8 @@ export function MainDisconnected({
     setIsDirty(true)
     setShowInputBox(true)
     inputRef?.current?.focus()
-    delay(setInput, 250, DEFAULT_INPUT)
-    delay(setInputFile, 250, { name: 'input.fasta', size: DEFAULT_INPUT.length })
+    delay(setInput, 250, params.sequenceDatum)
+    delay(setInputFile, 250, { name: 'example.fasta', size: params.sequenceDatum.length })
   }
 
   async function onUpload(file: File) {
@@ -222,7 +222,7 @@ export function MainDisconnected({
                           id="sequence-input"
                           cols={80}
                           rows={20}
-                          value={params.input}
+                          value={params.sequenceDatum}
                           onChange={handleInputChange}
                           innerRef={inputRef}
                         />

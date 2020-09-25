@@ -5,8 +5,9 @@ import { composeWithDevTools } from 'redux-devtools-extension'
 import type { Action } from 'src/state/util/fsaActions'
 import { isType } from 'src/state/util/fsaActions'
 
+import type { AlgorithmParams } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
-import type { AlgorithmParams, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
 import { analyzeAsync, setInput, treeBuildAsync } from 'src/state/algorithm/algorithm.actions'
 
@@ -19,8 +20,8 @@ export function sanitizeParams(params?: DeepPartial<AlgorithmParams>) {
 
   // @ts-ignore
   const seq = params.seq ? TOO_BIG : undefined
-  const rootSeq = params.rootSeq ? TOO_BIG : undefined
-  const input = params.input ? TOO_BIG : undefined
+  const rootSeq = params.virus?.rootSeq ? TOO_BIG : undefined
+  const input = params.sequenceDatum ? TOO_BIG : undefined
   return { ...params, seq, rootSeq, input }
 }
 

@@ -1,28 +1,11 @@
+import type { Enableable, QCResult, QCRuleResult, QCRulesConfig } from 'src/algorithms/QC/types'
 import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
 
-import type { QCRulesConfig } from './qcRulesConfig'
-import { getQCRuleStatus, QCRuleStatus } from './QCRuleStatus'
-import { ruleMissingData, QCResultMissingData } from './ruleMissingData'
-import { ruleMixedSites, QCResultMixedSites } from './ruleMixedSites'
-import { ruleSnpClusters, QCResultSNPClusters } from './ruleSnpClusters'
-import { rulePrivateMutations, QCResultPrivateMutations } from './rulePrivateMutations'
-
-export type Enableable<T> = T & { enabled: boolean }
-
-export interface QCResult {
-  seqName: string
-  overallScore: number
-  overallStatus: QCRuleStatus
-  privateMutations?: QCResultPrivateMutations
-  missingData?: QCResultMissingData
-  snpClusters?: QCResultSNPClusters
-  mixedSites?: QCResultMixedSites
-}
-
-export interface QCRuleResult {
-  score: number
-  status: QCRuleStatus
-}
+import { getQCRuleStatus } from './QCRuleStatus'
+import { ruleMissingData } from './ruleMissingData'
+import { ruleMixedSites } from './ruleMixedSites'
+import { ruleSnpClusters } from './ruleSnpClusters'
+import { rulePrivateMutations } from './rulePrivateMutations'
 
 export type Rule<Conf, Ret> = (
   analysisResult: AnalysisResultWithClade,

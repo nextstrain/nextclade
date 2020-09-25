@@ -1,7 +1,7 @@
 import produce, { current } from 'immer'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
-import type { QCResult } from 'src/algorithms/QC/runQC'
+import type { QCResult } from 'src/algorithms/QC/types'
 import { mergeByWith } from 'src/helpers/mergeByWith'
 import { sortResults } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
@@ -101,7 +101,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setInput, (draft, input) => {
     draft.status = AlgorithmGlobalStatus.idling
-    draft.params.input = input
+    draft.params.sequenceDatum = input
   })
 
   .icase(setInputFile, (draft, inputFile) => {
