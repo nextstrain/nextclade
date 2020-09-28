@@ -44,6 +44,11 @@ export function prepareResultCsv(datum: Exportable) {
   }
 }
 
+export function prepareResultCsvCladesOnly(datum: Exportable) {
+  const { seqName, clade } = datum
+  return { seqName, clade }
+}
+
 export async function toCsvString(data: Array<unknown> | Record<string, unknown>, delimiter: string) {
   return jsonexport(data, { rowDelimiter: delimiter, endOfLine: '\r\n' })
 }

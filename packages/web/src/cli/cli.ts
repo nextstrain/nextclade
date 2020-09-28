@@ -10,7 +10,7 @@ import { parseCsv } from 'src/io/parseCsv'
 import { parseRootSeq } from 'src/io/parseRootSeq'
 
 import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
-import { prepareResultCsv, prepareResultJson, toCsvString } from 'src/io/serializeResults'
+import { prepareResultCsv, prepareResultCsvCladesOnly, prepareResultJson, toCsvString } from 'src/io/serializeResults'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { qcRulesConfigValidate } from 'src/algorithms/QC/qcRulesConfigValidate'
@@ -22,9 +22,10 @@ import pkg from 'src/../package.json'
 
 const OUTPUT_JSON = 'output-json' as const
 const OUTPUT_CSV = 'output-csv' as const
+const OUTPUT_CSV_CLADES_ONLY = 'output-csv-clades-only' as const
 const OUTPUT_TSV = 'output-tsv' as const
 const OUTPUT_TREE = 'output-tree' as const
-const OUTPUT_OPTS = [OUTPUT_JSON, OUTPUT_CSV, OUTPUT_TSV, OUTPUT_TREE] as const
+const OUTPUT_OPTS = [OUTPUT_JSON, OUTPUT_CSV, OUTPUT_CSV_CLADES_ONLY, OUTPUT_TSV, OUTPUT_TREE] as const
 
 export function parseCommandLine() {
   const params = yargs(process.argv)
@@ -78,6 +79,10 @@ export function parseCommandLine() {
       type: 'string',
       description: 'Path to output CSV results file',
     })
+    .option(OUTPUT_CSV_CLADES_ONLY, {
+      type: 'string',
+      description: 'Path to output CSV clades-only file',
+    })
     .option(OUTPUT_TSV, {
       alias: 't',
       type: 'string',
@@ -129,11 +134,13 @@ export async function validateParams(params: CliParams) {
   const inputPcrPrimers = params['input-pcr-primers']
   const outputJson = params[OUTPUT_JSON]
   const outputCsv = params[OUTPUT_CSV]
+  const outputCsvCladesOnly = params[OUTPUT_CSV_CLADES_ONLY]
   const outputTsv = params[OUTPUT_TSV]
   const outputTree = params[OUTPUT_TREE]
 
   await assertCanCreate(outputJson)
   await assertCanCreate(outputCsv)
+  await assertCanCreate(outputCsvCladesOnly)
   await assertCanCreate(outputTsv)
   await assertCanCreate(outputTree)
 
@@ -146,6 +153,7 @@ export async function validateParams(params: CliParams) {
     inputPcrPrimers,
     outputJson,
     outputCsv,
+    outputCsvCladesOnly,
     outputTsv,
     outputTree,
   }
@@ -213,6 +221,7 @@ export interface WriteResultsParams {
   auspiceData: AuspiceJsonV2
   outputJson?: string
   outputCsv?: string
+  outputCsvCladesOnly?: string
   outputTsv?: string
   outputTree?: string
 }
@@ -222,6 +231,7 @@ export async function writeResults({
   auspiceData,
   outputJson,
   outputCsv,
+  outputCsvCladesOnly,
   outputTsv,
   outputTree,
 }: WriteResultsParams) {
@@ -234,6 +244,12 @@ export async function writeResults({
     const data = results.map(prepareResultCsv)
     const csv = await toCsvString(data, ';')
     await fs.writeFile(outputCsv, csv)
+  }
+
+  if (outputCsvCladesOnly) {
+    const data = results.map(prepareResultCsvCladesOnly)
+    const csv = await toCsvString(data, ';')
+    await fs.writeFile(outputCsvCladesOnly, csv)
   }
 
   if (outputTsv) {
@@ -259,6 +275,7 @@ export async function main() {
     inputPcrPrimers,
     outputJson,
     outputCsv,
+    outputCsvCladesOnly,
     outputTsv,
     outputTree,
   } = await validateParams(params)
@@ -277,7 +294,7 @@ export async function main() {
 
   const { results, auspiceData } = run(input, virus)
 
-  await writeResults({ results, auspiceData, outputJson, outputCsv, outputTsv, outputTree })
+  await writeResults({ results, auspiceData, outputJson, outputCsv, outputCsvCladesOnly, outputTsv, outputTree })
 }
 
 main().catch((error_) => {
