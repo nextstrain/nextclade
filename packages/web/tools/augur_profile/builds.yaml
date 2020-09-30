@@ -21,8 +21,8 @@ refine:
   no_timetree: True
 
 files:
-  auspice_config: "augur_profile/auspice_config.json"
-  description: "augur_profile/description.md"
+  auspice_config: "clades_profile/auspice_config.json"
+  description: "clades_profile/description.md"
 
 subsampling:
   # Custom subsampling logic for regions like Europe where grouping by country
@@ -30,8 +30,8 @@ subsampling:
   nextclade:
     # Focal samples for region
     global:
-      group_by: "division year month"
-      seq_per_group: 1
+      group_by: "region year month"
+      max_sequences: 1000
 
 traits:
   nextclade:
