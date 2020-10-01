@@ -59,12 +59,16 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
           <Li>{t('the address to the file is correct')}</Li>
           <Li>{t('the address to the file is reachable from your browser')}</Li>
           <Li>
-            {t('the server allows Cross-Origin Resource Sharing (CORS)')}
+            {t('the are no browser extensions interfering with network requests')}
             <sup>1</sup>
           </Li>
           <Li>
-            {t('there are no problems in domain name resolution')}
+            {t('the server allows Cross-Origin Resource Sharing (CORS)')}
             <sup>2</sup>
+          </Li>
+          <Li>
+            {t('there are no problems in domain name resolution')}
+            <sup>3</sup>
           </Li>
         </Ul>
 
@@ -73,13 +77,25 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
             <span>
               <sup className="mr-1">1</sup>
             </span>
+
+            {t(
+              'Some of the adblocking browser extensions are known to prevent {{appName}} from making network requests to other servers. ' +
+                '{{appName}} respects your privacy and does not serve ads or collects and data. ' +
+                'All computation is happening inside your browser. Therefore you can safely disable adblockers on {{appName}} and/or allow {{appName}} to reach your data source server in adblocker settings.',
+              { appName: PROJECT_NAME },
+            )}
+          </div>
+          <div>
+            <span>
+              <sup className="mr-1">2</sup>
+            </span>
             <LinkExternal href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing">
               {'en.wikipedia.org/wiki/Cross-origin_resource_sharing'}
             </LinkExternal>
           </div>
           <div>
             <span>
-              <sup className="mr-1">2</sup>
+              <sup className="mr-1">3</sup>
             </span>
             <LinkExternal href="https://en.wikipedia.org/wiki/Name_server">
               {'en.wikipedia.org/wiki/Name_server'}
