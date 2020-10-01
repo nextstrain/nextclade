@@ -1,3 +1,13 @@
+## [0.7.2](https://github.com/nextstrain/nextclade/compare/0.7.1...0.7.2) (2020-10-01)
+
+
+### Features
+
+* attempt to reduce breakage by adblockers ([1870cdc](https://github.com/nextstrain/nextclade/commit/1870cdc2667a58e496f9d182173af5c5770ed6bd))
+* warn about possible adblocker interference ([ffff5fb](https://github.com/nextstrain/nextclade/commit/ffff5fb41fc5b5967270a3dcdee8058acc9e692e))
+
+
+
 # [0.7.0](https://github.com/nextstrain/nextclade/compare/0.6.0...0.7.0) (2020-10-01)
 
 
