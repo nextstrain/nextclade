@@ -20,6 +20,9 @@ export const EXPORT_AUSPICE_JSON_V2_FILENAME = 'nextclade.auspice.json' as const
 export const URL_GITHUB = 'https://github.com/nextstrain/nextclade' as const
 export const URL_GITHUB_FRIENDLY = 'github.com/nextstrain/nextclade' as const
 
+export const URL_GITHUB_ISSUES = 'https://github.com/nextstrain/nextclade/issues' as const
+export const URL_GITHUB_ISSUES_FRIENDLY = 'github.com/nextstrain/nextclade/issues' as const
+
 export const TWITTER_USERNAME = '@nextstrain' as const
 
 // Borrowed from Nextstrain Auspice

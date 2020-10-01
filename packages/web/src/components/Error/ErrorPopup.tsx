@@ -3,6 +3,8 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button, ButtonProps, Modal, ModalBody, ModalFooter, ModalHeader as ReactstrapModalHeader } from 'reactstrap'
 import { connect } from 'react-redux'
+import { Li, Ul } from 'src/components/Common/List'
+import { PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
 import styled from 'styled-components'
 import { lighten } from 'polished'
 
@@ -27,7 +29,10 @@ export function GenericError({ error }: { error: Error }) {
   return (
     <div>
       <h4>{t('Error')}</h4>
-      <div>{error.message}</div>
+
+      <section className="mt-3">
+        <div>{error.message}</div>
+      </section>
     </div>
   )
 }
@@ -37,14 +42,51 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
 
   return (
     <div>
-      <h5>{t('Request failed')}</h5>
+      <h5>{t('Network request failed')}</h5>
 
-      <div>{t('We tried to fetch data from')}</div>
-      <div>
-        <LinkExternal href={url}>{url}</LinkExternal>
-      </div>
-      <div>{t('but were unable to establish connection.')}</div>
-      <div>{t('Please verify that the hostname is correct and that you are connected to internet')}</div>
+      <section className="mt-3">
+        <div>{t('We tried to fetch the file from')}</div>
+        <div>
+          <LinkExternal href={url}>{url}</LinkExternal>
+        </div>
+        <div>{t('but were unable to establish connection.')}</div>
+      </section>
+
+      <section className="mt-3">
+        {t('Please verify that:')}
+        <Ul>
+          <Li>{t('you are connected to internet')}</Li>
+          <Li>{t('the address to the file is correct')}</Li>
+          <Li>{t('the address to the file is reachable from your browser')}</Li>
+          <Li>
+            {t('the server allows Cross-Origin Resource Sharing (CORS)')}
+            <sup>1</sup>
+          </Li>
+          <Li>
+            {t('there are no problems in domain name resolution')}
+            <sup>2</sup>
+          </Li>
+        </Ul>
+
+        <small>
+          <div>
+            <span>
+              <sup className="mr-1">1</sup>
+            </span>
+            <LinkExternal href="https://en.wikipedia.org/wiki/Cross-origin_resource_sharing">
+              {'en.wikipedia.org/wiki/Cross-origin_resource_sharing'}
+            </LinkExternal>
+          </div>
+          <div>
+            <span>
+              <sup className="mr-1">2</sup>
+            </span>
+            <LinkExternal href="https://en.wikipedia.org/wiki/Name_server">
+              {'en.wikipedia.org/wiki/Name_server'}
+            </LinkExternal>
+          </div>
+        </small>
+      </section>
     </div>
   )
 }
@@ -56,13 +98,16 @@ export function AxiosErrorFailed({ url, status, statusText }: { url: string; sta
 
   return (
     <div>
-      <h5>{t('Request failed')}</h5>
+      <h5>{t('Network request failed')}</h5>
 
-      <div>{t('We tried to fetch data from')}</div>
-      <div>
-        <LinkExternal href={url}>{url}</LinkExternal>
-      </div>
-      <div>{t('but received an error: {{statusMessage}}', { statusMessage })}</div>
+      <section className="mt-3">
+        <div>{t('We tried to fetch the file from')}</div>
+        <div>
+          <LinkExternal href={url}>{url}</LinkExternal>
+        </div>
+        <div>{t('but the remote server replied with the following error:')}</div>
+        <div className="text-danger">{statusMessage}</div>
+      </section>
     </div>
   )
 }
@@ -111,6 +156,17 @@ export function ErrorPopupDisconnected({ error, errorDismiss }: ErrorPopupProps)
       {error?.message && (
         <ModalBody>
           <ErrorContent error={error} />
+          <section className="mt-3">
+            <div>
+              {t('If you think it might be a bug in {{appName}}, please create a new issue at:', {
+                appName: PROJECT_NAME,
+              })}
+            </div>
+            <div>
+              <LinkExternal href={URL_GITHUB_ISSUES}>{URL_GITHUB_ISSUES_FRIENDLY}</LinkExternal>
+            </div>
+            <div>{t('The developers will be happy to investigate this problem.')}</div>
+          </section>
         </ModalBody>
       )}
       <ModalFooter>
