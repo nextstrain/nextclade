@@ -1,3 +1,21 @@
+# [0.7.0](https://github.com/nextstrain/nextclade/compare/0.6.0...0.7.0) (2020-10-01)
+
+
+### Bug Fixes
+
+* ensure example sequences are loading correctly ([fc44961](https://github.com/nextstrain/nextclade/commit/fc449615bcfa84551912434671a724ef30caa94f))
+
+
+### Features
+
+* improve network error popup informativeness and looks ([ffd2995](https://github.com/nextstrain/nextclade/commit/ffd29954b9a3761a7e0eb6263436254c129dc0d5))
+* **cli:** add CLI flag to output a CSV with clades only ([bb405ff](https://github.com/nextstrain/nextclade/commit/bb405ffccdd50a09e43c148ab592c8d21f95e5ed))
+* **cli:** add possibility to override clades, primers and gene map ([643607b](https://github.com/nextstrain/nextclade/commit/643607b2a435a93267479251dbb5da086bbb48fa))
+* **cli:** output a TSV with clades only, instead of CSV ([d956f0b](https://github.com/nextstrain/nextclade/commit/d956f0bbae2be6a4e35d21f091f3e45851b524a6))
+* deduce virus genome size from root sequence length ([22d4e7a](https://github.com/nextstrain/nextclade/commit/22d4e7a76db63a85b5cbe43efb18de7f3e52edd0))
+
+
+
 # [0.6.0](https://github.com/nextstrain/nextclade/compare/0.5.2...0.6.0) (2020-09-24)
 
 
