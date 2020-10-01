@@ -32,6 +32,10 @@ body {
   background-color: $body-bg;
 }
 
+.modal-open {
+  overflow: scroll;
+}
+
 #__next {
   height: 100%;
 }
