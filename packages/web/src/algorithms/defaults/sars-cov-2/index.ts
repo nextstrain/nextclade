@@ -1,3 +1,4 @@
+import type { VirusRaw } from 'src/algorithms/types'
 import { VirusName } from 'src/algorithms/defaults/virusNames'
 import { qcRulesConfig } from 'src/algorithms/defaults/sars-cov-2/qcRulesConfig'
 import { geneMap } from 'src/algorithms/defaults/sars-cov-2/geneMap'
@@ -11,16 +12,15 @@ import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { validateClades } from 'src/algorithms/clades'
 import { validatePcrPrimers } from 'src/algorithms/primers/validatePcrPrimers'
 
-export const SARS_COV_2 = Object.freeze({
-  sequenceData,
-  virus: {
-    name: VirusName.SARS_COV_2,
-    rootSeq,
-    clades: validateClades(clades),
-    geneMap,
-    pcrPrimers: validatePcrPrimers(pcrPrimers),
-    auspiceData: treeValidate(auspiceData),
-    qcRulesConfig,
-    minimalLength: 100,
-  },
-})
+const virus: VirusRaw = {
+  name: VirusName.SARS_COV_2,
+  rootSeq,
+  clades: validateClades(clades),
+  geneMap,
+  pcrPrimers: validatePcrPrimers(pcrPrimers),
+  auspiceData: treeValidate(auspiceData),
+  qcRulesConfig,
+  minimalLength: 100,
+}
+
+export const SARS_COV_2 = Object.freeze({ sequenceData, virus })

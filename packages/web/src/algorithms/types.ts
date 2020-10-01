@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import type { AuspiceJsonV2 } from 'auspice'
+import type { StrictOmit } from 'ts-essentials'
 
 import type { Tagged } from 'src/helpers/types'
 import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
@@ -84,6 +85,7 @@ export interface SubstitutionsWithPrimers extends SubstitutionsWithAminoacids {
 }
 
 export interface Virus {
+  name: string
   genomeSize: number
   minimalLength: number
   clades: Clades
@@ -94,6 +96,8 @@ export interface Virus {
   pcrPrimers: PcrPrimer[]
   qcRulesConfig: QCRulesConfig
 }
+
+export type VirusRaw = StrictOmit<Virus, 'cladesGrouped' | 'genomeSize'>
 
 export interface AlgorithmParams {
   sequenceDatum: string
