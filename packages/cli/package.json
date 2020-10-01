@@ -19,7 +19,8 @@
     "url": "https://github.com/nextstrain/nextclade/issues"
   },
   "bin": {
-    "nextclade": "dist/nextclade.js"
+    "nextclade": "dist/nextclade.js",
+    "nextclade.js": "dist/nextclade.js"
   },
   "files": [
     "dist/nextclade.js"
