@@ -1,8 +1,7 @@
 import type { QCRulesConfig } from 'src/algorithms/QC/types'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 
-import { detectLocale } from 'src/i18n/detectLocale'
-import { DEFAULT_LOCALE_KEY, LocaleKey, localeKeys } from 'src/i18n/i18n'
+import { DEFAULT_LOCALE_KEY, LocaleKey } from 'src/i18n/i18n'
 
 export interface SettingsState {
   localeKey: LocaleKey
@@ -10,6 +9,6 @@ export interface SettingsState {
 }
 
 export const settingsDefaultState: SettingsState = {
-  localeKey: detectLocale({ defaultLanguage: DEFAULT_LOCALE_KEY, availableLocales: localeKeys }),
+  localeKey: DEFAULT_LOCALE_KEY,
   qcRulesConfig: getVirus().qcRulesConfig,
 }

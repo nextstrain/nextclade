@@ -43,7 +43,6 @@ export type LocaleKey = keyof typeof translations
 
 export const DEFAULT_LOCALE_KEY: LocaleKey = 'en'
 export const resources = mapValues(translations, (value) => ({ translation: value }))
-export const localeKeys = Object.keys(translations) as LocaleKey[]
 
 export interface Locale {
   readonly full: string
@@ -67,6 +66,8 @@ export const locales: Record<LocaleKey, Locale> = {
   ru: { full: 'ru-RU', name: languages.ru.native, Flag: RU },
   zh: { full: 'zh-CN', name: languages.zh.native, Flag: CN },
 } as const
+
+export const localeKeys = Object.keys(locales)
 
 export const localesArray: LocaleWithKey[] = Object.entries(locales).map(([key, value]) => ({
   ...value,
@@ -110,10 +111,14 @@ export function getLocaleWithKey(key: LocaleKey) {
 }
 
 export async function changeLocale(i18n: I18N, localeKey: LocaleKey) {
-  const locale = locales[localeKey]
-  moment.locale(localeKey)
-  numbro.setLanguage(locale.full)
-  return i18n.changeLanguage(localeKey)
+  if (localeKeys.includes(localeKey)) {
+    const locale = locales[localeKey]
+    moment.locale(localeKey)
+    numbro.setLanguage(locale.full)
+    await i18n.changeLanguage(localeKey)
+    return true
+  }
+  return false
 }
 
 const i18n = i18nInit({ localeKey: DEFAULT_LOCALE_KEY })
