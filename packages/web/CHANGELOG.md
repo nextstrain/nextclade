@@ -1,3 +1,12 @@
+## [0.7.4](https://github.com/nextstrain/nextclade/compare/0.7.3...0.7.4) (2020-10-05)
+
+
+### Bug Fixes
+
+* format SNP clusters properly for export ([c7aa5c7](https://github.com/nextstrain/nextclade/commit/c7aa5c7c81b9a9fb9cb072aa8e704b0a0a019991))
+
+
+
 ## [0.7.3](https://github.com/nextstrain/nextclade/compare/0.7.2...0.7.3) (2020-10-05)
 
 
