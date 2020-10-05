@@ -50,7 +50,9 @@ export function prepareResultCsvCladesOnly(datum: Exportable) {
 }
 
 export async function toCsvString(data: Array<unknown> | Record<string, unknown>, delimiter: string) {
-  return jsonexport(data, { rowDelimiter: delimiter, endOfLine: '\r\n' })
+  const eol = '\r\n'
+  const csv = await jsonexport(data, { rowDelimiter: delimiter, endOfLine: eol })
+  return `${csv}${eol}`
 }
 
 export async function serializeResultsToCsv(results: SequenceAnalysisState[], delimiter: string) {
