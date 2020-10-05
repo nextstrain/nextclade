@@ -9,6 +9,7 @@ import { formatRange } from 'src/helpers/formatRange'
 import { formatInsertion } from 'src/helpers/formatInsertion'
 import { formatNonAcgtn } from 'src/helpers/formatNonAcgtn'
 import { formatPrimer } from 'src/helpers/formatPrimer'
+import { formatSnpCluster } from 'src/helpers/formatSnpCluster'
 
 export type Exportable = StrictOmit<AnalysisResult, 'alignedQuery'>
 
@@ -34,6 +35,13 @@ export function serializeResultsToJson(results: SequenceAnalysisState[]) {
 export function prepareResultCsv(datum: Exportable) {
   return {
     ...datum,
+    qc: {
+      ...datum.qc,
+      snpClusters: {
+        ...(datum.qc?.snpClusters ?? {}),
+        clusteredSNPs: datum.qc?.snpClusters?.clusteredSNPs.map(formatSnpCluster).join(','),
+      },
+    },
     substitutions: datum.substitutions.map((mut) => formatMutation(mut)).join(','),
     aminoacidChanges: datum.aminoacidChanges.map((mut) => formatAAMutation(mut)).join(','),
     deletions: datum.deletions.map(({ start, length }) => formatRange(start, start + length)).join(','),
