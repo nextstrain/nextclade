@@ -1,3 +1,13 @@
+## [0.7.3](https://github.com/nextstrain/nextclade/compare/0.7.2...0.7.3) (2020-10-05)
+
+
+### Bug Fixes
+
+* add last newline in exports ([c3d83d6](https://github.com/nextstrain/nextclade/commit/c3d83d6da3a4c272fa76326359451327c674dab5))
+* prevent app from crashing when a locale is missing ([1fd2a19](https://github.com/nextstrain/nextclade/commit/1fd2a19e41fa8f5cf563da04afcbb1dcbc921b75))
+
+
+
 ## [0.7.2](https://github.com/nextstrain/nextclade/compare/0.7.1...0.7.2) (2020-10-01)
 
 
