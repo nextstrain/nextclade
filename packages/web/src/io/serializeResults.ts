@@ -11,9 +11,10 @@ import { formatNonAcgtn } from 'src/helpers/formatNonAcgtn'
 import { formatPrimer } from 'src/helpers/formatPrimer'
 import { formatSnpCluster } from 'src/helpers/formatSnpCluster'
 
+export type AnalysisResultWithErrors = AnalysisResult & { errors: string[] }
 export type Exportable = StrictOmit<AnalysisResult, 'alignedQuery' | 'nucleotideComposition'>
 
-export function prepareResultJson(result: AnalysisResult): Exportable {
+export function prepareResultJson(result: AnalysisResultWithErrors): Exportable {
   return omit(result, ['alignedQuery', 'nucleotideComposition'])
 }
 
@@ -23,7 +24,7 @@ export function prepareResultsJson(results: SequenceAnalysisState[]) {
       return { seqName, errors }
     }
 
-    return prepareResultJson({ ...result, clade: result.clade, qc })
+    return prepareResultJson({ ...result, clade: result.clade, qc, errors: [] })
   })
 }
 
@@ -69,7 +70,7 @@ export async function serializeResultsToCsv(results: SequenceAnalysisState[], de
       return { seqName, errors: errors.map((e) => `"${e}"`).join(',') }
     }
 
-    const datum = prepareResultJson({ ...result, clade: result.clade, qc })
+    const datum = prepareResultJson({ ...result, clade: result.clade, qc, errors: [] })
     return prepareResultCsv(datum)
   })
 

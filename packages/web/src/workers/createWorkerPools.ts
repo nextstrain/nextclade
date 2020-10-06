@@ -11,7 +11,7 @@ const NUM_ANALYZER_THREADS = 4 as const
 const NUM_RUN_QC_THREADS = 4 as const
 
 export async function createWorkerPools(): Promise<WorkerPools> {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' || process.env.FORCE_USE_WORKERS === 'true') {
     const threadParse = await spawn<ParseThread>(new Worker('./worker.parse.ts', { name: 'parse' }))
 
     const poolAnalyze = Pool<AnalyzeThread>(() => spawn(new Worker('./worker.analyze.ts', { name: 'analyze' })), {

@@ -3,6 +3,7 @@ import '../dotenv'
 import path from 'path'
 
 import ExtraWatchWebpackPlugin from 'extra-watch-webpack-plugin'
+import ThreadsPlugin from 'threads-plugin'
 import webpack from 'webpack'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
@@ -62,6 +63,7 @@ module.exports = {
 
   output: {
     filename: outputFilename,
+    chunkFilename: '[name].js',
     path: buildPath,
     pathinfo: !development,
   },
@@ -84,6 +86,8 @@ module.exports = {
   node: false,
 
   plugins: [
+    new ThreadsPlugin({ globalObject: false, target: 'electron-node-worker' }),
+
     new ExtraWatchWebpackPlugin({
       files: [path.join(moduleRoot, 'src/types/**/*.d.ts')],
       dirs: [],
@@ -107,6 +111,10 @@ module.exports = {
     new webpack.BannerPlugin({
       banner: '#!/usr/bin/env node',
       raw: true,
+    }),
+
+    new webpack.EnvironmentPlugin({
+      FORCE_USE_WORKERS: 'true',
     }),
 
     new WebpackChmodPlugin({

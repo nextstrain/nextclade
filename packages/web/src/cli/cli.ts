@@ -1,16 +1,19 @@
+/* eslint-disable promise/always-return,unicorn/no-process-exit */
 import path from 'path'
 import fs, { readFile } from 'fs-extra'
 import { AuspiceJsonV2 } from 'auspice'
 import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
+import { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import { createWorkerPools } from 'src/workers/createWorkerPools'
 import yargs from 'yargs'
 
-import { AnalysisResult, Virus } from 'src/algorithms/types'
+import { Virus } from 'src/algorithms/types'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 import { parseCsv } from 'src/io/parseCsv'
 import { parseRootSeq } from 'src/io/parseRootSeq'
 
 import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
-import { prepareResultCsv, prepareResultCsvCladesOnly, prepareResultJson, toCsvString } from 'src/io/serializeResults'
+import { prepareResultsJson, serializeResultsToCsv } from 'src/io/serializeResults'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { qcRulesConfigValidate } from 'src/algorithms/QC/qcRulesConfigValidate'
@@ -217,7 +220,7 @@ export async function readInputs({
 }
 
 export interface WriteResultsParams {
-  results: AnalysisResult[]
+  results: SequenceAnalysisState[]
   auspiceData: AuspiceJsonV2
   outputJson?: string
   outputCsv?: string
@@ -235,26 +238,18 @@ export async function writeResults({
   outputTsv,
   outputTree,
 }: WriteResultsParams) {
-  const json = results.map(prepareResultJson)
+  const json = prepareResultsJson(results)
   if (outputJson) {
     await fs.writeJson(outputJson, json, { spaces: 2 })
   }
 
   if (outputCsv) {
-    const data = json.map(prepareResultCsv)
-    const csv = await toCsvString(data, ';')
+    const csv = await serializeResultsToCsv(results, ';')
     await fs.writeFile(outputCsv, csv)
   }
 
-  if (outputTsvCladesOnly) {
-    const data = json.map(prepareResultCsvCladesOnly)
-    const csv = await toCsvString(data, '\t')
-    await fs.writeFile(outputTsvCladesOnly, csv)
-  }
-
   if (outputTsv) {
-    const data = json.map(prepareResultCsv)
-    const tsv = await toCsvString(data, '\t')
+    const tsv = await serializeResultsToCsv(results, '\t')
     await fs.writeFile(outputTsv, tsv)
   }
 
@@ -292,12 +287,21 @@ export async function main() {
     virusDefaults,
   })
 
-  const { results, auspiceData } = run(input, virus)
+  const workers = await createWorkerPools()
+
+  const { results, auspiceData } = await run(workers, input, virus)
+
+  await workers.poolAnalyze.terminate()
+  await workers.poolRunQc.terminate()
 
   await writeResults({ results, auspiceData, outputJson, outputCsv, outputTsvCladesOnly, outputTsv, outputTree })
 }
 
-main().catch((error_) => {
-  const error = sanitizeError(error_)
-  console.error(error)
-})
+main()
+  .then(() => {
+    process.exit(0)
+  })
+  .catch((error_) => {
+    const error = sanitizeError(error_)
+    console.error(error)
+  })
