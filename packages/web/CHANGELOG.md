@@ -1,3 +1,12 @@
+## [0.7.5](https://github.com/nextstrain/nextclade/compare/0.7.4...0.7.5) (2020-10-06)
+
+
+### Features
+
+* don't output nucleotide composition to CSV ([ff7c883](https://github.com/nextstrain/nextclade/commit/ff7c883ad4125f688db949121e5c645cc3ba877c))
+
+
+
 ## [0.7.4](https://github.com/nextstrain/nextclade/compare/0.7.3...0.7.4) (2020-10-05)
 
 
