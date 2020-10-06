@@ -241,19 +241,19 @@ export async function writeResults({
   }
 
   if (outputCsv) {
-    const data = results.map(prepareResultCsv)
+    const data = json.map(prepareResultCsv)
     const csv = await toCsvString(data, ';')
     await fs.writeFile(outputCsv, csv)
   }
 
   if (outputTsvCladesOnly) {
-    const data = results.map(prepareResultCsvCladesOnly)
+    const data = json.map(prepareResultCsvCladesOnly)
     const csv = await toCsvString(data, '\t')
     await fs.writeFile(outputTsvCladesOnly, csv)
   }
 
   if (outputTsv) {
-    const data = results.map(prepareResultCsv)
+    const data = json.map(prepareResultCsv)
     const tsv = await toCsvString(data, '\t')
     await fs.writeFile(outputTsv, tsv)
   }

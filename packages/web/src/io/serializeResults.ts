@@ -11,10 +11,10 @@ import { formatNonAcgtn } from 'src/helpers/formatNonAcgtn'
 import { formatPrimer } from 'src/helpers/formatPrimer'
 import { formatSnpCluster } from 'src/helpers/formatSnpCluster'
 
-export type Exportable = StrictOmit<AnalysisResult, 'alignedQuery'>
+export type Exportable = StrictOmit<AnalysisResult, 'alignedQuery' | 'nucleotideComposition'>
 
 export function prepareResultJson(result: AnalysisResult): Exportable {
-  return omit(result, ['alignedQuery'])
+  return omit(result, ['alignedQuery', 'nucleotideComposition'])
 }
 
 export function prepareResultsJson(results: SequenceAnalysisState[]) {
