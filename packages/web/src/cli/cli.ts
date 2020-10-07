@@ -1,4 +1,5 @@
 /* eslint-disable promise/always-return,unicorn/no-process-exit */
+import os from 'os'
 import path from 'path'
 import fs, { readFile } from 'fs-extra'
 import { AuspiceJsonV2 } from 'auspice'
@@ -30,6 +31,8 @@ const OUTPUT_TSV = 'output-tsv' as const
 const OUTPUT_TREE = 'output-tree' as const
 const OUTPUT_OPTS = [OUTPUT_JSON, OUTPUT_CSV, OUTPUT_TSV_CLADES_ONLY, OUTPUT_TSV, OUTPUT_TREE] as const
 
+const NUM_CPUS = os.cpus().length
+
 export function parseCommandLine() {
   const params = yargs(process.argv)
     .parserConfiguration({ 'camel-case-expansion': false })
@@ -37,6 +40,13 @@ export function parseCommandLine() {
     .usage(`${PROJECT_NAME}: ${PROJECT_DESCRIPTION}\n\nUsage: $0 [options]\n       $0 completion`)
     .completion('completion', 'Generate shell autocompletion script')
     .version(pkg.version)
+    .option('jobs', {
+      alias: 'j',
+      type: 'number',
+      default: NUM_CPUS,
+      description:
+        'Number of CPU threads used by the algorithm. If not specified, using number of logical CPU cores, as detected by Node.js runtime',
+    })
     .option('input-fasta', {
       alias: 'i',
       type: 'string',
@@ -129,6 +139,7 @@ export async function assertCanCreate(pathlike?: string) {
 }
 
 export async function validateParams(params: CliParams) {
+  const numThreads = params.jobs
   const inputFasta = params['input-fasta']
   const inputRootSeq = params['input-root-seq']
   const inputTree = params['input-tree']
@@ -148,6 +159,7 @@ export async function validateParams(params: CliParams) {
   await assertCanCreate(outputTree)
 
   return {
+    numThreads,
     inputFasta,
     inputRootSeq,
     inputTree,
@@ -262,6 +274,7 @@ export async function main() {
   const params = parseCommandLine()
 
   const {
+    numThreads,
     inputFasta,
     inputRootSeq,
     inputTree,
@@ -287,7 +300,7 @@ export async function main() {
     virusDefaults,
   })
 
-  const workers = await createWorkerPools()
+  const workers = await createWorkerPools({ numThreads })
 
   const { results, auspiceData } = await run(workers, input, virus)
 
