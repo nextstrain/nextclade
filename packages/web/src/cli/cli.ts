@@ -233,7 +233,7 @@ export async function readInputs({
 
 export interface WriteResultsParams {
   results: SequenceAnalysisState[]
-  auspiceData: AuspiceJsonV2
+  auspiceData?: AuspiceJsonV2
   outputJson?: string
   outputCsv?: string
   outputTsvCladesOnly?: string
@@ -265,7 +265,7 @@ export async function writeResults({
     await fs.writeFile(outputTsv, tsv)
   }
 
-  if (outputTree) {
+  if (outputTree && auspiceData) {
     await fs.writeJson(outputTree, auspiceData, { spaces: 2 })
   }
 }
@@ -289,6 +289,7 @@ export async function main() {
   } = await validateParams(params)
 
   const virusDefaults = getVirus(/* TODO: virusName */)
+  const shouldMakeTree = outputTree !== undefined
 
   const { input, virus } = await readInputs({
     inputFasta,
@@ -302,7 +303,7 @@ export async function main() {
 
   const workers = await createWorkerPools({ numThreads })
 
-  const { results, auspiceData } = await run(workers, input, virus)
+  const { results, auspiceData } = await run(workers, input, virus, shouldMakeTree)
 
   await workers.poolAnalyze.terminate()
   await workers.poolRunQc.terminate()

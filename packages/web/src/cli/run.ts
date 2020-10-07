@@ -29,7 +29,7 @@ export async function scheduleOneQcRun({
   return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, privateMutations, qcRulesConfig }))
 }
 
-export async function run(workers: WorkerPools, input: string, virus: Virus) {
+export async function run(workers: WorkerPools, input: string, virus: Virus, shouldMakeTree: boolean) {
   const { rootSeq, auspiceData: auspiceDataReference, qcRulesConfig } = virus
 
   const { threadParse, poolAnalyze, threadTreeBuild, poolRunQc, threadTreeFinalize } = workers
@@ -112,14 +112,17 @@ export async function run(workers: WorkerPools, input: string, virus: Virus) {
     })
   })
 
-  const { auspiceData: auspiceDataFinal } = await threadTreeFinalize({
-    auspiceData: auspiceDataRaw,
-    results: analysisResults,
-    matches,
-    rootSeq,
-  })
+  let auspiceDataPostprocessed
+  if (shouldMakeTree) {
+    const { auspiceData: auspiceDataFinal } = await threadTreeFinalize({
+      auspiceData: auspiceDataRaw,
+      results: analysisResults,
+      matches,
+      rootSeq,
+    })
 
-  const auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
+    auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
+  }
 
   return { results, auspiceData: auspiceDataPostprocessed }
 }
