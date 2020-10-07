@@ -11,7 +11,7 @@ import { formatNonAcgtn } from 'src/helpers/formatNonAcgtn'
 import { formatPrimer } from 'src/helpers/formatPrimer'
 import { formatSnpCluster } from 'src/helpers/formatSnpCluster'
 
-const EOL = '\r\n'
+const CSV_EOL = '\r\n'
 
 export type AnalysisResultWithErrors = AnalysisResult & { errors: string[] }
 export type Exportable = StrictOmit<AnalysisResult, 'alignedQuery' | 'nucleotideComposition'>
@@ -33,7 +33,7 @@ export function prepareResultsJson(results: SequenceAnalysisState[]) {
 export function serializeResultsToJson(results: SequenceAnalysisState[]) {
   const data = prepareResultsJson(results)
   const str = JSON.stringify(data, null, 2)
-  return `${str}${EOL}`
+  return `${str}\n`
 }
 
 export function prepareResultCsv(datum: Exportable) {
@@ -62,8 +62,8 @@ export function prepareResultCsvCladesOnly(datum: Exportable) {
 }
 
 export async function toCsvString(data: Array<unknown> | Record<string, unknown>, delimiter: string) {
-  const csv = await jsonexport(data, { rowDelimiter: delimiter, endOfLine: EOL })
-  return `${csv}${EOL}`
+  const csv = await jsonexport(data, { rowDelimiter: delimiter, endOfLine: CSV_EOL })
+  return `${csv}${CSV_EOL}`
 }
 
 export async function serializeResultsToCsv(results: SequenceAnalysisState[], delimiter: string) {
