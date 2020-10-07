@@ -1,11 +1,13 @@
 /* eslint-disable array-func/no-unnecessary-this-arg */
 import { concurrent } from 'fasy'
-import { zipWith } from 'lodash'
+import { sortBy, zipWith } from 'lodash'
 
 import type { Virus } from 'src/algorithms/types'
+import { notUndefined } from 'src/helpers/notUndefined'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import type { AnalyzeParams, ScheduleQcRunParams } from 'src/state/algorithm/algorithm.sagas'
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import { WorkerPools } from 'src/workers/types'
+import type { WorkerPools } from 'src/workers/types'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
@@ -34,29 +36,39 @@ export async function run(workers: WorkerPools, input: string, virus: Virus) {
   const { parsedSequences } = await threadParse(input)
 
   // Mimics the redux state in the web app
-  let results: SequenceAnalysisState[] = Object.keys(parsedSequences).map((seqName, id) => {
-    return {
-      seqName,
-      id,
-      status: AlgorithmSequenceStatus.analysisStarted,
-      result: undefined,
-      qc: undefined,
-      errors: [],
+  let results: SequenceAnalysisState[] = await concurrent.map(async ([seqName, seq], id) => {
+    try {
+      const result = await scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, virus })
+      return { seqName, id, errors: [], result, qc: undefined, status: AlgorithmSequenceStatus.analysisDone }
+    } catch (error_) {
+      const error = sanitizeError(error_)
+      console.error(
+        `Error: in sequence "${seqName}": ${error.message}. This sequence will be excluded from further analysis.`,
+      )
+      return {
+        seqName,
+        id,
+        errors: [error.message],
+        result: undefined,
+        qc: undefined,
+        status: AlgorithmSequenceStatus.analysisFailed,
+      }
     }
-  })
+  }, Object.entries(parsedSequences))
 
-  const analysisResultsWithoutClades = await concurrent.map(
-    async ([seqName, seq], id) => ({
-      seqName,
-      result: await scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, virus }),
-    }),
-    Object.entries(parsedSequences),
-  )
+  // Sorting is necessary because parallel execution order is not guaranteed
+  results = sortBy(results, (result) => result.id)
 
-  // Mimics the reducer invocation in the web app - updates state
-  analysisResultsWithoutClades.forEach(({ seqName, result }) => {
+  // From now on we only operate on results from successfully analyzed sequences.
+  // However, it is important to preserve the errored sequences in the `results` array above.
+  // For that, from now on we update `results` entries matching them by sequence name, without overwriting failed entries.
+  const analysisResultsWithoutClades = results.map((r) => r.result).filter(notUndefined)
+
+  // Mimics the reducer in the web app - updates `results` state
+  analysisResultsWithoutClades.forEach((result) => {
+    // Important to not overwrite the failed results. Only update successful ones.
     results = results.map((oldResult) => {
-      if (oldResult.seqName === seqName) {
+      if (oldResult.seqName === result.seqName) {
         return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.analysisDone }
       }
       return oldResult
@@ -64,20 +76,18 @@ export async function run(workers: WorkerPools, input: string, virus: Virus) {
   })
 
   const auspiceData = treePreprocess(auspiceDataReference)
+
   const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = await threadTreeBuild({
-    analysisResults: analysisResultsWithoutClades.map((r) => r.result),
+    analysisResults: analysisResultsWithoutClades,
     rootSeq,
     auspiceData,
   })
 
-  const resultsAndMatches = safeZip(
-    analysisResultsWithoutClades.map((r) => r.result),
-    matches,
-  )
+  const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
   const clades = resultsAndMatches.map(([analysisResult, match]) => assignClade(analysisResult, match))
 
   const analysisResultsWithClades = safeZip(
-    analysisResultsWithoutClades.map((r) => r.result),
+    analysisResultsWithoutClades,
     clades.map((r) => r.clade),
   ).map(([analysisResult, clade]) => ({ ...analysisResult, clade }))
 
@@ -91,11 +101,12 @@ export async function run(workers: WorkerPools, input: string, virus: Virus) {
 
   const analysisResults = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
 
-  // Mimics the reducer invocation in the web app - updates state
+  // Mimics the reducer in the web app - updates `results` state
   analysisResults.forEach((result) => {
+    // Important to not overwrite the failed results. Only update successful ones.
     results = results.map((oldResult) => {
       if (oldResult.seqName === result.seqName) {
-        return { ...oldResult, errors: [], result, qc: result.qc, status: AlgorithmSequenceStatus.qcDone }
+        return { ...oldResult, result, qc: result.qc, status: AlgorithmSequenceStatus.qcDone }
       }
       return oldResult
     })
