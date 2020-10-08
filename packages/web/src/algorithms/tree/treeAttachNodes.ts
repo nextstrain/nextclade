@@ -1,19 +1,25 @@
 /* eslint-disable camelcase */
-import { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
-import { groupBy, mapValues, set, unset, zip } from 'lodash'
+import { AuspiceJsonV2 } from 'auspice'
+import { groupBy, mapValues, set, unset } from 'lodash'
 import copy from 'fast-copy'
-import { formatPrimer } from 'src/helpers/formatPrimer'
 
 import i18n from 'src/i18n/i18n'
 import { UNKNOWN_VALUE } from 'src/constants'
-import type { AnalysisResult, AnalysisResultWithoutClade, Nucleotide } from 'src/algorithms/types'
+
+import type {
+  AnalysisResult,
+  AnalysisResultWithMatch,
+  AnalysisResultWithoutClade,
+  Nucleotide,
+} from 'src/algorithms/types'
 import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/enums'
 import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
-import { formatRange } from 'src/helpers/formatRange'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
+import { formatPrimer } from 'src/helpers/formatPrimer'
+import { formatRange } from 'src/helpers/formatRange'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
@@ -97,7 +103,8 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   return { mutations, nucMutations, totalNucMutations }
 }
 
-export function attach_to_tree(base_node: AuspiceTreeNodeExtended, seq: AnalysisResult, rootSeq: string) {
+export function attach_to_tree(seq: AnalysisResultWithMatch, rootSeq: string) {
+  const base_node: AuspiceTreeNodeExtended = seq.match
   if (isLeaf(base_node)) {
     addAuxiliaryNode(base_node)
   }
@@ -188,8 +195,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
 
 export interface FinalizeTreeParams {
   auspiceData: AuspiceJsonV2
-  results: AnalysisResult[]
-  matches: AuspiceTreeNode[]
+  results: AnalysisResultWithMatch[]
   rootSeq: string
 }
 
@@ -197,23 +203,10 @@ export interface FinalizeTreeResults {
   auspiceData: AuspiceJsonV2
 }
 
-export function treeAttachNodes({ auspiceData, results, matches, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
-  zip(results, matches).forEach(([seq, match]) => {
-    if (!seq || !match) {
-      throw new Error(
-        `Expected number of analysis results and number of match to be the same, but got:
-            data.length: ${results.length}
-            matches.length: ${matches.length}`,
-      )
-    }
-
-    attach_to_tree(match, seq, rootSeq)
+export function treeAttachNodes({ auspiceData, results, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
+  results.forEach((result) => {
+    attach_to_tree(result, rootSeq)
   })
-
-  const focal_node = auspiceData?.tree
-  if (!focal_node) {
-    throw new Error(`Tree format not recognized: ".tree" is undefined`)
-  }
 
   return { auspiceData }
 }

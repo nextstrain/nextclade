@@ -1,20 +1,20 @@
 /* eslint-disable array-func/no-unnecessary-this-arg */
 import { concurrent } from 'fasy'
-import { sortBy, zipWith } from 'lodash'
+import { omit } from 'lodash'
 
-import type { Virus } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import type { AnalysisResultWithClade, AnalysisResultWithMatch, Virus } from 'src/algorithms/types'
 import type { AnalyzeParams, ScheduleQcRunParams } from 'src/state/algorithm/algorithm.sagas'
-import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { WorkerPools } from 'src/workers/types'
 import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
+import type { SequenceAnalysisStateWithMatch } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { assignClade } from 'src/algorithms/assignClade'
 import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
-import { safeZip } from 'src/helpers/safeZip'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
+import { treeFindNearestNodes } from 'src/algorithms/tree/treeFindNearestNodes'
 
 export async function scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, virus }: AnalyzeParams) {
   return poolAnalyze.queue(async (analyze: AnalyzeThread) => analyze({ seqName, seq, virus }))
@@ -32,14 +32,39 @@ export async function scheduleOneQcRun({
 export async function run(workers: WorkerPools, input: string, virus: Virus, shouldMakeTree: boolean) {
   const { rootSeq, auspiceData: auspiceDataReference, qcRulesConfig } = virus
 
-  const { threadParse, poolAnalyze, threadTreeBuild, poolRunQc, threadTreeFinalize } = workers
+  const auspiceData = treePreprocess(auspiceDataReference)
+
+  const { threadParse, poolAnalyze, poolRunQc, threadTreeFinalize } = workers
   const { parsedSequences } = await threadParse(input)
 
-  // Mimics the redux state in the web app
-  let results: SequenceAnalysisState[] = await concurrent.map(async ([seqName, seq], id) => {
+  const states: SequenceAnalysisStateWithMatch[] = await concurrent.map(async ([seqName, seq], id) => {
     try {
-      const result = await scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, virus })
-      return { seqName, id, errors: [], result, qc: undefined, status: AlgorithmSequenceStatus.analysisDone }
+      const analysisResult = await scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, virus })
+
+      const { match, privateMutations } = treeFindNearestNodes({ analysisResult, rootSeq, auspiceData })
+
+      const { clade } = assignClade(analysisResult, match)
+
+      const analysisResultWithClade: AnalysisResultWithClade = { ...analysisResult, clade }
+
+      const qc = await scheduleOneQcRun({
+        poolRunQc,
+        analysisResult: analysisResultWithClade,
+        privateMutations,
+        qcRulesConfig,
+      })
+
+      const result: AnalysisResultWithMatch = { ...analysisResultWithClade, qc, match }
+
+      return {
+        seqName,
+        id,
+        errors: [],
+        result,
+        qc,
+        match,
+        status: AlgorithmSequenceStatus.analysisDone,
+      }
     } catch (error_) {
       const error = sanitizeError(error_)
       console.error(
@@ -51,78 +76,24 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
         errors: [error.message],
         result: undefined,
         qc: undefined,
+        match: undefined,
         status: AlgorithmSequenceStatus.analysisFailed,
       }
     }
   }, Object.entries(parsedSequences))
 
-  // Sorting is necessary because parallel execution order is not guaranteed
-  results = sortBy(results, (result) => result.id)
-
-  // From now on we only operate on results from successfully analyzed sequences.
-  // However, it is important to preserve the errored sequences in the `results` array above.
-  // For that, from now on we update `results` entries matching them by sequence name, without overwriting failed entries.
-  const analysisResultsWithoutClades = results.map((r) => r.result).filter(notUndefined)
-
-  // Mimics the reducer in the web app - updates `results` state
-  analysisResultsWithoutClades.forEach((result) => {
-    // Important to not overwrite the failed results. Only update successful ones.
-    results = results.map((oldResult) => {
-      if (oldResult.seqName === result.seqName) {
-        return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.analysisDone }
-      }
-      return oldResult
-    })
-  })
-
-  const auspiceData = treePreprocess(auspiceDataReference)
-
-  const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = await threadTreeBuild({
-    analysisResults: analysisResultsWithoutClades,
-    rootSeq,
-    auspiceData,
-  })
-
-  const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
-  const clades = resultsAndMatches.map(([analysisResult, match]) => assignClade(analysisResult, match))
-
-  const analysisResultsWithClades = safeZip(
-    analysisResultsWithoutClades,
-    clades.map((r) => r.clade),
-  ).map(([analysisResult, clade]) => ({ ...analysisResult, clade }))
-
-  const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
-
-  const qcResults = await concurrent.map(
-    async ([analysisResult, privateMutations], id) =>
-      scheduleOneQcRun({ poolRunQc, analysisResult, privateMutations, qcRulesConfig }),
-    resultsAndDiffs,
-  )
-
-  const analysisResults = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
-
-  // Mimics the reducer in the web app - updates `results` state
-  analysisResults.forEach((result) => {
-    // Important to not overwrite the failed results. Only update successful ones.
-    results = results.map((oldResult) => {
-      if (oldResult.seqName === result.seqName) {
-        return { ...oldResult, result, qc: result.qc, status: AlgorithmSequenceStatus.qcDone }
-      }
-      return oldResult
-    })
-  })
-
   let auspiceDataPostprocessed
   if (shouldMakeTree) {
     const { auspiceData: auspiceDataFinal } = await threadTreeFinalize({
-      auspiceData: auspiceDataRaw,
-      results: analysisResults,
-      matches,
+      auspiceData,
+      results: states.map((state) => state.result).filter(notUndefined),
       rootSeq,
     })
 
     auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
   }
+
+  const results = states.map((state) => omit(state, 'result.match'))
 
   return { results, auspiceData: auspiceDataPostprocessed }
 }

@@ -3,6 +3,7 @@ import type { AuspiceJsonV2 } from 'auspice'
 import type { StrictOmit } from 'ts-essentials'
 
 import type { Tagged } from 'src/helpers/types'
+import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
 /** Type-safe representation of a nucleotide */
@@ -139,6 +140,10 @@ export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {
 
 export interface AnalysisResult extends AnalysisResultWithClade {
   qc?: QCResult
+}
+
+export interface AnalysisResultWithMatch extends AnalysisResult {
+  match: AuspiceTreeNodeExtended
 }
 
 export interface ParseResult {

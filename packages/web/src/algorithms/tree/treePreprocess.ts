@@ -1,11 +1,18 @@
 /* eslint-disable camelcase */
+import { AuspiceTreeNode } from 'auspice'
 import copy from 'fast-copy'
+import { set } from 'lodash'
 
 import type { AuspiceJsonV2 } from 'auspice'
+import { NodeType } from 'src/algorithms/tree/enums'
 
 import type { AuspiceTreeNodeExtended, MutationMap } from 'src/algorithms/tree/types'
-import { setNodeTypes } from 'src/algorithms/tree/treeFindNearestNodes'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
+
+export function setNodeTypes(node: AuspiceTreeNode) {
+  set(node, `node_attrs['Node type']`, { value: NodeType.Reference })
+  node.children?.forEach(setNodeTypes)
+}
 
 export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: MutationMap) {
   const tmp_muts = copy(mutations)
