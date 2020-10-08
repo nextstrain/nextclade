@@ -140,7 +140,8 @@ export interface RowProps extends ListChildComponentProps {
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { id, seqName, errors, result: sequence, qc } = data[index]
+  const { id, seqName, errors, result: sequence } = data[index]
+  const qc = sequence?.qc
 
   if (errors.length > 0) {
     return (
