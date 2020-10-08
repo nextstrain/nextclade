@@ -203,7 +203,7 @@ export function attachNewNodesRecursively(
   }
 
   // We look for a matching result, by it's unique `id`
-  const attachables = results.filter((result) => result.closestRefNodeId === node.id)
+  const attachables = results.filter((result) => result.nearestTreeNodeId === node.id)
   attachables.forEach((attachable) => {
     attach_to_tree(attachable, node, rootSeq)
   })

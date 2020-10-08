@@ -58,17 +58,13 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
 
   let auspiceDataPostprocessed
   if (shouldMakeTree) {
-    const auspiceDataFinal = await threadTreeFinalize({
-      auspiceData,
-      results: states.map((state) => state.result).filter(notUndefined),
-      rootSeq,
-    })
-
+    const results = states.map((state) => state.result).filter(notUndefined)
+    const auspiceDataFinal = await threadTreeFinalize({ auspiceData, results, rootSeq })
     auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
   }
 
   states.forEach((state) => {
-    unset(state.result, 'closestRefNodeId')
+    unset(state.result, 'nearestTreeNodeId')
   })
 
   return { results: states, auspiceData: auspiceDataPostprocessed }

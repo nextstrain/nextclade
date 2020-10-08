@@ -143,7 +143,7 @@ export interface AnalysisResult extends AnalysisResultWithClade {
 }
 
 export interface AnalysisResultWithMatch extends AnalysisResult {
-  closestRefNodeId: number
+  nearestTreeNodeId: number
 }
 
 export interface ParseResult {

@@ -92,5 +92,5 @@ export function analyze({
 
   const qc = runQC({ analysisResult: analysisResultWithClade, privateMutations, qcRulesConfig })
 
-  return { ...analysisResultWithClade, qc, closestRefNodeId: match.id }
+  return { ...analysisResultWithClade, qc, nearestTreeNodeId: match.id }
 }
