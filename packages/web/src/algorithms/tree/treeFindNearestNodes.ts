@@ -1,8 +1,6 @@
 /* eslint-disable camelcase */
-import type { AuspiceJsonV2 } from 'auspice'
-
 import type { Nucleotide, NucleotideSubstitution, AnalysisResultWithoutClade } from 'src/algorithms/types'
-import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
+import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/enums'
 
 export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
@@ -84,7 +82,7 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult
 export interface LocateInTreeParams {
   analysisResult: AnalysisResultWithoutClade
   rootSeq: string
-  auspiceData: AuspiceJsonV2
+  auspiceData: AuspiceJsonV2Extended
 }
 
 export interface LocateInTreeResults {

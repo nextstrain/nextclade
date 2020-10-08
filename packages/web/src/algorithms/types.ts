@@ -3,7 +3,7 @@ import type { AuspiceJsonV2 } from 'auspice'
 import type { StrictOmit } from 'ts-essentials'
 
 import type { Tagged } from 'src/helpers/types'
-import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
+import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
 /** Type-safe representation of a nucleotide */
@@ -143,7 +143,7 @@ export interface AnalysisResult extends AnalysisResultWithClade {
 }
 
 export interface AnalysisResultWithMatch extends AnalysisResult {
-  match: AuspiceTreeNodeExtended
+  closestRefNodeId: number
 }
 
 export interface ParseResult {
@@ -157,7 +157,7 @@ export interface AnalysisParams {
   minimalLength: number
   geneMap: Gene[]
   rootSeq: string
-  auspiceData: AuspiceJsonV2
+  auspiceData: AuspiceJsonV2Extended
   pcrPrimers: PcrPrimer[]
   qcRulesConfig: QCRulesConfig
 }

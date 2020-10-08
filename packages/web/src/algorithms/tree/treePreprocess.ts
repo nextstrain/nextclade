@@ -6,7 +6,7 @@ import { set } from 'lodash'
 import type { AuspiceJsonV2 } from 'auspice'
 import { NodeType } from 'src/algorithms/tree/enums'
 
-import type { AuspiceTreeNodeExtended, MutationMap } from 'src/algorithms/tree/types'
+import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended, MutationMap } from 'src/algorithms/tree/types'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
 
 export function setNodeTypes(node: AuspiceTreeNode) {
@@ -14,7 +14,7 @@ export function setNodeTypes(node: AuspiceTreeNode) {
   node.children?.forEach(setNodeTypes)
 }
 
-export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: MutationMap) {
+export function mutations_on_tree(node: AuspiceTreeNode, id: { value: number }, mutations: MutationMap) {
   const tmp_muts = copy(mutations)
 
   const nucleotideMutations = node?.branch_attrs?.mutations?.nuc
@@ -31,16 +31,23 @@ export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: Muta
     }
   }
 
-  node.mutations = tmp_muts
-  const { children } = node
+  // Extend the node with out temporary parameters
+  const nodeExtended = node as AuspiceTreeNodeExtended
+  nodeExtended.mutations = tmp_muts
+  nodeExtended.id = id.value
+
+  const { children } = nodeExtended
   if (children) {
-    for (const c of children) {
-      mutations_on_tree(c, tmp_muts)
+    for (const child of children) {
+      id.value += 1
+      mutations_on_tree(child, id, tmp_muts)
     }
   }
+
+  return nodeExtended
 }
 
-export function treePreprocess(auspiceData: AuspiceJsonV2) {
+export function treePreprocess(auspiceData: AuspiceJsonV2): AuspiceJsonV2Extended {
   const focal_node = auspiceData?.tree
   if (!focal_node) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
@@ -48,8 +55,11 @@ export function treePreprocess(auspiceData: AuspiceJsonV2) {
 
   setNodeTypes(focal_node)
 
+  // This will be the global index of nodes.
+  // It's wrapped into an object to emulate pass-by-reference semantics for a primitive type (number).
+  const id = { value: 0 }
   const mutations = new Map()
-  mutations_on_tree(focal_node, mutations)
+  const tree = mutations_on_tree(focal_node, id, mutations)
 
-  return auspiceData
+  return { ...auspiceData, tree }
 }

@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import { AuspiceJsonV2 } from 'auspice'
 import { groupBy, mapValues, set, unset } from 'lodash'
 import copy from 'fast-copy'
 
@@ -12,7 +11,7 @@ import type {
   AnalysisResultWithoutClade,
   Nucleotide,
 } from 'src/algorithms/types'
-import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
+import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/enums'
 import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
@@ -103,31 +102,30 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   return { mutations, nucMutations, totalNucMutations }
 }
 
-export function attach_to_tree(seq: AnalysisResultWithMatch, rootSeq: string) {
-  const base_node: AuspiceTreeNodeExtended = seq.match
-  if (isLeaf(base_node)) {
-    addAuxiliaryNode(base_node)
+export function attach_to_tree(result: AnalysisResult, nearestRefNode: AuspiceTreeNodeExtended, rootSeq: string) {
+  if (isLeaf(nearestRefNode)) {
+    addAuxiliaryNode(nearestRefNode)
   }
 
-  const { mutations, nucMutations, totalNucMutations } = get_differences(base_node, seq, rootSeq)
-  const baseDiv = base_node.node_attrs?.div ?? 0
+  const { mutations, nucMutations, totalNucMutations } = get_differences(nearestRefNode, result, rootSeq)
+  const baseDiv = nearestRefNode.node_attrs?.div ?? 0
   const div = baseDiv + totalNucMutations
 
-  const new_node = get_node_struct(seq)
+  const new_node = get_node_struct(result)
   set(new_node, 'branch_attrs.mutations', mutations)
   set(new_node, 'node_attrs.div', div)
   set(new_node, 'node_attrs.region', { value: UNKNOWN_VALUE })
   set(new_node, 'node_attrs.country', { value: UNKNOWN_VALUE })
   set(new_node, 'node_attrs.division', { value: UNKNOWN_VALUE })
-  set(new_node, 'mutations', copy(base_node.mutations))
+  set(new_node, 'mutations', copy(nearestRefNode.mutations))
 
   for (const mut of nucMutations) {
     const { pos, der } = parseMutationOrThrow(mut)
     new_node.mutations?.set(pos, der)
   }
 
-  const children = base_node.children ?? []
-  base_node.children = [new_node, ...children]
+  const children = nearestRefNode.children ?? []
+  nearestRefNode.children = [new_node, ...children]
 }
 
 export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
@@ -175,6 +173,9 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     totalPcrPrimerChanges > 0 ? `(${totalPcrPrimerChanges}): ${listOfPcrPrimerChanges}` : 'None'
 
   return {
+    id: -1,
+    children: undefined,
+    mutations: undefined,
     branch_attrs: { mutations: {} },
     name: `${seq.seqName}_clades`,
     node_attrs: {
@@ -189,24 +190,39 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
       'QC Status': { value: qcStatus },
       'QC Flags': { value: qcFlags },
     },
-    mutations: new Map(),
   }
 }
 
+export function attachNewNodesRecursively(
+  node: AuspiceTreeNodeExtended,
+  results: AnalysisResultWithMatch[],
+  rootSeq: string,
+) {
+  for (const child of node.children ?? []) {
+    attachNewNodesRecursively(child, results, rootSeq)
+  }
+
+  // We look for a matching result, by it's unique `id`
+  const attachables = results.filter((result) => result.closestRefNodeId === node.id)
+  attachables.forEach((attachable) => {
+    attach_to_tree(attachable, node, rootSeq)
+  })
+
+  return node
+}
+
 export interface FinalizeTreeParams {
-  auspiceData: AuspiceJsonV2
+  auspiceData: AuspiceJsonV2Extended
   results: AnalysisResultWithMatch[]
   rootSeq: string
 }
 
-export interface FinalizeTreeResults {
-  auspiceData: AuspiceJsonV2
-}
+export function treeAttachNodes({ auspiceData, results, rootSeq }: FinalizeTreeParams): AuspiceJsonV2Extended {
+  const rootNode = auspiceData.tree
+  if (!rootNode) {
+    throw new Error('Error: invalid tree: it does not contain any nodes')
+  }
 
-export function treeAttachNodes({ auspiceData, results, rootSeq }: FinalizeTreeParams): FinalizeTreeResults {
-  results.forEach((result) => {
-    attach_to_tree(result, rootSeq)
-  })
-
-  return { auspiceData }
+  const tree = attachNewNodesRecursively(rootNode, results, rootSeq)
+  return { ...auspiceData, tree }
 }

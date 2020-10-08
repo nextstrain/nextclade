@@ -1,6 +1,6 @@
 /* eslint-disable array-func/no-unnecessary-this-arg */
 import { concurrent } from 'fasy'
-import { omit } from 'lodash'
+import { unset } from 'lodash'
 
 import { notUndefined } from 'src/helpers/notUndefined'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -58,7 +58,7 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
 
   let auspiceDataPostprocessed
   if (shouldMakeTree) {
-    const { auspiceData: auspiceDataFinal } = await threadTreeFinalize({
+    const auspiceDataFinal = await threadTreeFinalize({
       auspiceData,
       results: states.map((state) => state.result).filter(notUndefined),
       rootSeq,
@@ -67,7 +67,9 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
     auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
   }
 
-  const results = states.map((state) => omit(state, 'result.match'))
+  states.forEach((state) => {
+    unset(state.result, 'closestRefNodeId')
+  })
 
-  return { results, auspiceData: auspiceDataPostprocessed }
+  return { results: states, auspiceData: auspiceDataPostprocessed }
 }
