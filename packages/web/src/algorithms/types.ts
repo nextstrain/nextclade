@@ -139,7 +139,7 @@ export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {
 }
 
 export interface AnalysisResult extends AnalysisResultWithClade {
-  qc?: QCResult
+  qc: QCResult
 }
 
 export interface AnalysisResultWithMatch extends AnalysisResult {
@@ -154,7 +154,12 @@ export interface ParseResult {
 export interface AnalysisParams {
   seqName: string
   seq: string
-  virus: Virus
+  minimalLength: number
+  geneMap: Gene[]
+  rootSeq: string
+  auspiceData: AuspiceJsonV2
+  pcrPrimers: PcrPrimer[]
+  qcRulesConfig: QCRulesConfig
 }
 
 /** Represents a named interval in the genome */

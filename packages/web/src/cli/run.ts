@@ -4,65 +4,41 @@ import { omit } from 'lodash'
 
 import { notUndefined } from 'src/helpers/notUndefined'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import type { AnalysisResultWithClade, AnalysisResultWithMatch, Virus } from 'src/algorithms/types'
-import type { AnalyzeParams, ScheduleQcRunParams } from 'src/state/algorithm/algorithm.sagas'
+import type { Virus } from 'src/algorithms/types'
 import type { WorkerPools } from 'src/workers/types'
-import type { RunQcThread } from 'src/workers/worker.runQc'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { SequenceAnalysisStateWithMatch } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
-import { assignClade } from 'src/algorithms/assignClade'
 import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
-import { treeFindNearestNodes } from 'src/algorithms/tree/treeFindNearestNodes'
-
-export async function scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, virus }: AnalyzeParams) {
-  return poolAnalyze.queue(async (analyze: AnalyzeThread) => analyze({ seqName, seq, virus }))
-}
-
-export async function scheduleOneQcRun({
-  poolRunQc,
-  analysisResult,
-  privateMutations,
-  qcRulesConfig,
-}: ScheduleQcRunParams) {
-  return poolRunQc.queue(async (runQc: RunQcThread) => runQc({ analysisResult, privateMutations, qcRulesConfig }))
-}
 
 export async function run(workers: WorkerPools, input: string, virus: Virus, shouldMakeTree: boolean) {
-  const { rootSeq, auspiceData: auspiceDataReference, qcRulesConfig } = virus
-
+  const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
   const auspiceData = treePreprocess(auspiceDataReference)
 
-  const { threadParse, poolAnalyze, poolRunQc, threadTreeFinalize } = workers
+  const { threadParse, poolAnalyze, threadTreeFinalize } = workers
   const { parsedSequences } = await threadParse(input)
 
   const states: SequenceAnalysisStateWithMatch[] = await concurrent.map(async ([seqName, seq], id) => {
     try {
-      const analysisResult = await scheduleOneAnalysisRun({ poolAnalyze, seqName, seq, virus })
-
-      const { match, privateMutations } = treeFindNearestNodes({ analysisResult, rootSeq, auspiceData })
-
-      const { clade } = assignClade(analysisResult, match)
-
-      const analysisResultWithClade: AnalysisResultWithClade = { ...analysisResult, clade }
-
-      const qc = await scheduleOneQcRun({
-        poolRunQc,
-        analysisResult: analysisResultWithClade,
-        privateMutations,
-        qcRulesConfig,
-      })
-
-      const result: AnalysisResultWithMatch = { ...analysisResultWithClade, qc, match }
+      const result = await poolAnalyze.queue(async (analyze: AnalyzeThread) =>
+        analyze({
+          seqName,
+          seq,
+          rootSeq,
+          minimalLength,
+          pcrPrimers,
+          geneMap,
+          auspiceData,
+          qcRulesConfig,
+        }),
+      )
 
       return {
         seqName,
         id,
         errors: [],
         result,
-        qc,
-        match,
         status: AlgorithmSequenceStatus.analysisDone,
       }
     } catch (error_) {
@@ -75,8 +51,6 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
         id,
         errors: [error.message],
         result: undefined,
-        qc: undefined,
-        match: undefined,
         status: AlgorithmSequenceStatus.analysisFailed,
       }
     }

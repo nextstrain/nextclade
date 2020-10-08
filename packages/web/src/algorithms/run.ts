@@ -1,6 +1,9 @@
+import { assignClade } from 'src/algorithms/assignClade'
+import { runQC } from 'src/algorithms/QC/runQC'
+import { treeFindNearestNodes } from 'src/algorithms/tree/treeFindNearestNodes'
 import { readFile } from 'src/helpers/readFile'
 
-import type { AminoacidSubstitution, AnalysisParams, AnalysisResultWithoutClade, ParseResult } from './types'
+import type { AnalysisResultWithMatch, AminoacidSubstitution, AnalysisParams, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
@@ -20,9 +23,16 @@ export async function parse(input: string | File): Promise<ParseResult> {
   return { input: newInput, parsedSequences: parseSequences(newInput) }
 }
 
-export function analyze({ seqName, seq, virus }: AnalysisParams): AnalysisResultWithoutClade {
-  const { rootSeq, minimalLength, pcrPrimers, geneMap } = virus
-
+export function analyze({
+  seqName,
+  seq,
+  rootSeq,
+  minimalLength,
+  pcrPrimers,
+  geneMap,
+  auspiceData,
+  qcRulesConfig,
+}: AnalysisParams): AnalysisResultWithMatch {
   const { alignmentScore, query, ref } = alignPairwise(seq, rootSeq, minimalLength)
 
   const alignedQuery = query.join('')
@@ -52,7 +62,7 @@ export function analyze({ seqName, seq, virus }: AnalysisParams): AnalysisResult
   const pcrPrimerChanges = getPcrPrimerChanges(nucSubstitutions, pcrPrimers)
   const totalPcrPrimerChanges = pcrPrimerChanges.reduce((total, { substitutions }) => total + substitutions.length, 0)
 
-  return Object.freeze({
+  const analysisResult = {
     seqName,
     substitutions,
     totalMutations,
@@ -73,5 +83,14 @@ export function analyze({ seqName, seq, virus }: AnalysisParams): AnalysisResult
     nucleotideComposition,
     pcrPrimerChanges,
     totalPcrPrimerChanges,
-  })
+  }
+
+  const { match, privateMutations } = treeFindNearestNodes({ analysisResult, rootSeq, auspiceData })
+
+  const { clade } = assignClade(analysisResult, match)
+  const analysisResultWithClade = { ...analysisResult, clade }
+
+  const qc = runQC({ analysisResult: analysisResultWithClade, privateMutations, qcRulesConfig })
+
+  return { ...analysisResultWithClade, qc, match }
 }

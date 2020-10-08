@@ -21,12 +21,12 @@ export function prepareResultJson(result: AnalysisResultWithErrors): Exportable 
 }
 
 export function prepareResultsJson(results: SequenceAnalysisState[]) {
-  return results.map(({ seqName, status, errors, result, qc }) => {
-    if (!result || !qc || !result.clade) {
+  return results.map(({ seqName, status, errors, result }) => {
+    if (!result) {
       return { seqName, errors }
     }
 
-    return prepareResultJson({ ...result, clade: result.clade, qc, errors: [] })
+    return prepareResultJson({ ...result, errors: [] })
   })
 }
 
@@ -67,12 +67,12 @@ export async function toCsvString(data: Array<unknown> | Record<string, unknown>
 }
 
 export async function serializeResultsToCsv(results: SequenceAnalysisState[], delimiter: string) {
-  const data = results.map(({ seqName, status, errors, result, qc }) => {
-    if (!result || !qc || !result.clade) {
+  const data = results.map(({ seqName, status, errors, result }) => {
+    if (!result) {
       return { seqName, errors: errors.map((e) => `"${e}"`).join(',') }
     }
 
-    const datum = prepareResultJson({ ...result, clade: result.clade, qc, errors: [] })
+    const datum = prepareResultJson({ ...result, errors: [] })
     return prepareResultCsv(datum)
   })
 

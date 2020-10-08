@@ -2,7 +2,7 @@ import React from 'react'
 import { Row, Col } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 
-import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { formatRange } from 'src/helpers/formatRange'
 import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
@@ -13,7 +13,7 @@ import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
 import { ListOfInsertions } from './ListOfInsertions'
 
 export interface ColumnNameTooltipProps {
-  sequence: AnalysisResultState
+  sequence: AnalysisResult
 }
 
 export function ColumnNameTooltip({ sequence }: ColumnNameTooltipProps) {
