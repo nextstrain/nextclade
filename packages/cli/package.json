@@ -23,13 +23,13 @@
     "nextclade.js": "dist/nextclade.js"
   },
   "files": [
-    "dist/nextclade.js"
+    "dist/*.js",
+    "dist/*.js.map"
   ],
   "engines": {
     "node": ">=10"
   },
   "main": "dist/nextclade.js",
-  "module": "src/cli/cli.ts",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

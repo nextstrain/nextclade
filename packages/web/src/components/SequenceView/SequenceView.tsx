@@ -5,7 +5,7 @@ import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
-import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
@@ -32,7 +32,7 @@ export const SequenceViewSVG = styled.svg`
 `
 
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
-  sequence: AnalysisResultState
+  sequence: AnalysisResult
   genomeSize: number
 }
 

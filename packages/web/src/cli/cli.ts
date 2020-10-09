@@ -1,20 +1,23 @@
+/* eslint-disable promise/always-return,unicorn/no-process-exit */
+import os from 'os'
 import path from 'path'
 import fs, { readFile } from 'fs-extra'
 import { AuspiceJsonV2 } from 'auspice'
-import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
 import yargs from 'yargs'
 
-import { AnalysisResult, Virus } from 'src/algorithms/types'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import type { Virus } from 'src/algorithms/types'
+import { createWorkerPools } from 'src/workers/createWorkerPools'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 import { parseCsv } from 'src/io/parseCsv'
 import { parseRootSeq } from 'src/io/parseRootSeq'
-
-import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
-import { prepareResultCsv, prepareResultCsvCladesOnly, prepareResultJson, toCsvString } from 'src/io/serializeResults'
+import { validateGeneMap } from 'src/io/validateGeneMap'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import { PROJECT_NAME, PROJECT_DESCRIPTION } from 'src/constants'
+import { prepareResultsJson, serializeResultsToCsv } from 'src/io/serializeResults'
 import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { qcRulesConfigValidate } from 'src/algorithms/QC/qcRulesConfigValidate'
-import { validateGeneMap } from 'src/io/validateGeneMap'
+import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
 import { validatePcrPrimerEntries, validatePcrPrimers } from 'src/algorithms/primers/validatePcrPrimers'
 import { run } from 'src/cli/run'
 
@@ -27,6 +30,8 @@ const OUTPUT_TSV = 'output-tsv' as const
 const OUTPUT_TREE = 'output-tree' as const
 const OUTPUT_OPTS = [OUTPUT_JSON, OUTPUT_CSV, OUTPUT_TSV_CLADES_ONLY, OUTPUT_TSV, OUTPUT_TREE] as const
 
+const NUM_CPUS = os.cpus().length
+
 export function parseCommandLine() {
   const params = yargs(process.argv)
     .parserConfiguration({ 'camel-case-expansion': false })
@@ -34,6 +39,13 @@ export function parseCommandLine() {
     .usage(`${PROJECT_NAME}: ${PROJECT_DESCRIPTION}\n\nUsage: $0 [options]\n       $0 completion`)
     .completion('completion', 'Generate shell autocompletion script')
     .version(pkg.version)
+    .option('jobs', {
+      alias: 'j',
+      type: 'number',
+      default: NUM_CPUS,
+      description:
+        'Number of CPU threads used by the algorithm. If not specified, using number of logical CPU cores, as detected by Node.js runtime',
+    })
     .option('input-fasta', {
       alias: 'i',
       type: 'string',
@@ -126,6 +138,7 @@ export async function assertCanCreate(pathlike?: string) {
 }
 
 export async function validateParams(params: CliParams) {
+  const numThreads = params.jobs
   const inputFasta = params['input-fasta']
   const inputRootSeq = params['input-root-seq']
   const inputTree = params['input-tree']
@@ -145,6 +158,7 @@ export async function validateParams(params: CliParams) {
   await assertCanCreate(outputTree)
 
   return {
+    numThreads,
     inputFasta,
     inputRootSeq,
     inputTree,
@@ -217,8 +231,8 @@ export async function readInputs({
 }
 
 export interface WriteResultsParams {
-  results: AnalysisResult[]
-  auspiceData: AuspiceJsonV2
+  results: SequenceAnalysisState[]
+  auspiceData?: AuspiceJsonV2
   outputJson?: string
   outputCsv?: string
   outputTsvCladesOnly?: string
@@ -235,30 +249,22 @@ export async function writeResults({
   outputTsv,
   outputTree,
 }: WriteResultsParams) {
-  const json = results.map(prepareResultJson)
+  const json = prepareResultsJson(results)
   if (outputJson) {
     await fs.writeJson(outputJson, json, { spaces: 2 })
   }
 
   if (outputCsv) {
-    const data = json.map(prepareResultCsv)
-    const csv = await toCsvString(data, ';')
+    const csv = await serializeResultsToCsv(results, ';')
     await fs.writeFile(outputCsv, csv)
   }
 
-  if (outputTsvCladesOnly) {
-    const data = json.map(prepareResultCsvCladesOnly)
-    const csv = await toCsvString(data, '\t')
-    await fs.writeFile(outputTsvCladesOnly, csv)
-  }
-
   if (outputTsv) {
-    const data = json.map(prepareResultCsv)
-    const tsv = await toCsvString(data, '\t')
+    const tsv = await serializeResultsToCsv(results, '\t')
     await fs.writeFile(outputTsv, tsv)
   }
 
-  if (outputTree) {
+  if (outputTree && auspiceData) {
     await fs.writeJson(outputTree, auspiceData, { spaces: 2 })
   }
 }
@@ -267,6 +273,7 @@ export async function main() {
   const params = parseCommandLine()
 
   const {
+    numThreads,
     inputFasta,
     inputRootSeq,
     inputTree,
@@ -281,6 +288,7 @@ export async function main() {
   } = await validateParams(params)
 
   const virusDefaults = getVirus(/* TODO: virusName */)
+  const shouldMakeTree = outputTree !== undefined
 
   const { input, virus } = await readInputs({
     inputFasta,
@@ -292,12 +300,21 @@ export async function main() {
     virusDefaults,
   })
 
-  const { results, auspiceData } = run(input, virus)
+  const workers = await createWorkerPools({ numThreads })
+
+  const { results, auspiceData } = await run(workers, input, virus, shouldMakeTree)
+
+  await workers.poolAnalyze.terminate()
+  await workers.poolRunQc.terminate()
 
   await writeResults({ results, auspiceData, outputJson, outputCsv, outputTsvCladesOnly, outputTsv, outputTree })
 }
 
-main().catch((error_) => {
-  const error = sanitizeError(error_)
-  console.error(error)
-})
+main()
+  .then(() => {
+    process.exit(0)
+  })
+  .catch((error_) => {
+    const error = sanitizeError(error_)
+    console.error(error)
+  })

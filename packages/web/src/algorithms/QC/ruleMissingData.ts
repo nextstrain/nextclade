@@ -1,6 +1,6 @@
 import { clamp } from 'lodash'
 
-import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
+import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
 import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export interface QCRulesConfigMissingData {
@@ -9,7 +9,7 @@ export interface QCRulesConfigMissingData {
 }
 
 export function ruleMissingData(
-  { nucleotideComposition }: AnalysisResult,
+  { nucleotideComposition }: AnalysisResultWithClade,
   _1: NucleotideSubstitution[],
   { missingDataThreshold, scoreBias }: QCRulesConfigMissingData,
 ) {

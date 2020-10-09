@@ -1,10 +1,6 @@
 /* eslint-disable camelcase */
-import { set } from 'lodash'
-
-import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
-
 import type { Nucleotide, NucleotideSubstitution, AnalysisResultWithoutClade } from 'src/algorithms/types'
-import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
+import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/enums'
 
 export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
@@ -83,25 +79,19 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult
   return { best, best_node }
 }
 
-export function setNodeTypes(node: AuspiceTreeNode) {
-  set(node, `node_attrs['Node type']`, { value: NodeType.Reference })
-  node.children?.forEach(setNodeTypes)
-}
-
 export interface LocateInTreeParams {
-  analysisResults: AnalysisResultWithoutClade[]
+  analysisResult: AnalysisResultWithoutClade
   rootSeq: string
-  auspiceData: AuspiceJsonV2
+  auspiceData: AuspiceJsonV2Extended
 }
 
 export interface LocateInTreeResults {
-  matches: AuspiceTreeNodeExtended[]
-  privateMutationSets: NucleotideSubstitution[][]
-  auspiceData: AuspiceJsonV2
+  match: AuspiceTreeNodeExtended
+  privateMutations: NucleotideSubstitution[]
 }
 
 export function treeFindNearestNodes({
-  analysisResults,
+  analysisResult,
   rootSeq,
   auspiceData,
 }: LocateInTreeParams): LocateInTreeResults {
@@ -110,14 +100,7 @@ export function treeFindNearestNodes({
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
   }
 
-  const matchesAndDiffs = analysisResults.map((seq) => {
-    const match = closest_match(focal_node, seq).best_node
-    const diff = findPrivateMutations(match, seq, rootSeq)
-    return { match, diff }
-  })
-
-  const matches = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.match)
-  const privateMutationSets = matchesAndDiffs.map((matchAndDiff) => matchAndDiff.diff)
-
-  return { matches, privateMutationSets, auspiceData }
+  const match = closest_match(focal_node, analysisResult).best_node
+  const privateMutations = findPrivateMutations(match, analysisResult, rootSeq)
+  return { match, privateMutations }
 }

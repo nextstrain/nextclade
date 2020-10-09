@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { getSafeId } from 'src/helpers/getSafeId'
 
-import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
 
 export interface ColumnMissingProps {
-  sequence: AnalysisResultState
+  sequence: AnalysisResult
 }
 
 export function ColumnMissing({ sequence }: ColumnMissingProps) {

@@ -1,4 +1,4 @@
-import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
+import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
 import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 import { clamp } from 'lodash'
 
@@ -8,7 +8,7 @@ export interface QCRulesConfigPrivateMutations {
 }
 
 export function rulePrivateMutations(
-  { substitutions, insertions, deletions }: AnalysisResult,
+  { substitutions, insertions, deletions }: AnalysisResultWithClade,
   privateMutations: NucleotideSubstitution[],
   { typical, cutoff }: QCRulesConfigPrivateMutations,
 ) {

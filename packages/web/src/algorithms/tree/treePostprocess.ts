@@ -1,10 +1,11 @@
 /* eslint-disable camelcase */
-import type { AuspiceJsonV2 } from 'auspice'
+import { unset } from 'lodash'
+import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
-import type { AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
+import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/enums'
-import { UNKNOWN_VALUE } from 'src/constants'
 import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
+import { UNKNOWN_VALUE } from 'src/constants'
 
 export interface AddColoringScaleParams {
   auspiceData: AuspiceJsonV2
@@ -18,24 +19,25 @@ export function addColoringScale({ auspiceData, key, value, color }: AddColoring
   coloring?.scale?.unshift([UNKNOWN_VALUE, color])
 }
 
-export function remove_mutations(node: AuspiceTreeNodeExtended) {
-  if (node?.mutations) {
-    node.mutations = undefined
+export function remove_mutations(nodeExtended: AuspiceTreeNodeExtended): AuspiceTreeNode {
+  unset(nodeExtended, 'id')
+  unset(nodeExtended, 'mutations')
+
+  const children = nodeExtended?.children ?? []
+  for (const child of children) {
+    remove_mutations(child)
   }
 
-  const children = node?.children ?? []
-  for (const c of children) {
-    remove_mutations(c)
-  }
+  return nodeExtended
 }
 
-export function treePostProcess(auspiceData: AuspiceJsonV2) {
+export function treePostProcess(auspiceData: AuspiceJsonV2Extended): AuspiceJsonV2 {
   const focal_node = auspiceData.tree
   if (!focal_node) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
   }
 
-  remove_mutations(focal_node)
+  const tree = remove_mutations(focal_node)
 
   if (!auspiceData.meta) {
     auspiceData.meta = { colorings: [], display_defaults: {} }
@@ -89,5 +91,5 @@ export function treePostProcess(auspiceData: AuspiceJsonV2) {
   auspiceData.meta.panels = ['tree', 'entropy']
   auspiceData.meta.geo_resolutions = undefined
 
-  return auspiceData
+  return { ...auspiceData, tree }
 }
