@@ -1,9 +1,14 @@
 /* eslint-disable promise/always-return,unicorn/no-process-exit */
 import os from 'os'
 import path from 'path'
+
 import fs, { readFile } from 'fs-extra'
-import { AuspiceJsonV2 } from 'auspice'
+import { pipeline as pipelineOrig } from 'stream'
+import { promisify } from 'util'
 import yargs from 'yargs'
+
+import type { AuspiceJsonV2 } from 'auspice'
+import fasta from 'bionode-fasta'
 
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { Virus } from 'src/algorithms/types'
@@ -19,7 +24,7 @@ import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { qcRulesConfigValidate } from 'src/algorithms/QC/qcRulesConfigValidate'
 import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
 import { validatePcrPrimerEntries, validatePcrPrimers } from 'src/algorithms/primers/validatePcrPrimers'
-import { run } from 'src/cli/run'
+import { AnalysisStream } from 'src/cli/run'
 
 import pkg from 'src/../package.json'
 
@@ -174,7 +179,6 @@ export async function validateParams(params: CliParams) {
 }
 
 export interface ReadInputsParams {
-  inputFasta: string
   inputRootSeq?: string
   inputTree?: string
   inputQcConfig?: string
@@ -184,7 +188,6 @@ export interface ReadInputsParams {
 }
 
 export async function readInputs({
-  inputFasta,
   inputRootSeq,
   inputTree,
   inputQcConfig,
@@ -192,8 +195,6 @@ export async function readInputs({
   inputPcrPrimers,
   virusDefaults,
 }: ReadInputsParams) {
-  const input = await fs.readFile(inputFasta, { encoding: 'utf-8' })
-
   let virus: Virus = virusDefaults
 
   if (inputRootSeq) {
@@ -227,7 +228,7 @@ export async function readInputs({
     virus = { ...virus, pcrPrimers }
   }
 
-  return { input, virus }
+  return { virus }
 }
 
 export interface WriteResultsParams {
@@ -287,11 +288,10 @@ export async function main() {
     outputTree,
   } = await validateParams(params)
 
+  const workers = await createWorkerPools({ numThreads })
   const virusDefaults = getVirus(/* TODO: virusName */)
-  const shouldMakeTree = outputTree !== undefined
 
-  const { input, virus } = await readInputs({
-    inputFasta,
+  const { virus } = await readInputs({
     inputRootSeq,
     inputTree,
     inputQcConfig,
@@ -300,12 +300,18 @@ export async function main() {
     virusDefaults,
   })
 
-  const workers = await createWorkerPools({ numThreads })
+  const pipeline = promisify(pipelineOrig)
+  const fastaStream = fasta.obj(inputFasta)
+  const analysisStream = new AnalysisStream(workers.poolAnalyze, workers.threadTreeFinalize, virus)
 
-  const { results, auspiceData } = await run(workers, input, virus, shouldMakeTree)
+  await pipeline(fastaStream, analysisStream)
 
-  await workers.poolAnalyze.terminate()
-  await workers.poolRunQc.terminate()
+  const results = analysisStream.getResults()
+
+  let auspiceData
+  if (outputTree) {
+    auspiceData = await analysisStream.finalizeTree()
+  }
 
   await writeResults({ results, auspiceData, outputJson, outputCsv, outputTsvCladesOnly, outputTsv, outputTree })
 }

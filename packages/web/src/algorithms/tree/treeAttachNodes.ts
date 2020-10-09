@@ -125,6 +125,13 @@ export function attach_to_tree(result: AnalysisResult, nearestRefNode: AuspiceTr
   }
 
   const children = nearestRefNode.children ?? []
+
+  // This is the line that prevents this algorithm from being parallel.
+  // All threads would write into this array simultaneously, creating a race condition.
+  // TODO(perf): we might use parallel map() to compute all children attachments per node,
+  // and then gather them into the final tree separately.
+  // However, in this case the implementation might become considerably more complex,
+  // with little gain, because this part is usually not a bottleneck.
   nearestRefNode.children = [new_node, ...children]
 }
 

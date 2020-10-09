@@ -1,28 +1,33 @@
+/**
+ * Catches duplicate names and renames if needed (appends a counter)
+ */
+export function deduplicateSeqName(seqNameOrig: string, seqNames: Map<string, number>) {
+  let seqName = seqNameOrig
+  if (seqNameOrig === '') {
+    seqName = 'Untitled'
+  }
+
+  const nameCount = seqNames.get(seqName) ?? 0
+  if (nameCount > 0) {
+    seqName = `${seqName} (${nameCount})`
+  }
+  seqNames.set(seqName, nameCount + 1)
+
+  return seqName
+}
+
 export function addSequence(
   currentSeq: string,
   currentSeqName: string,
   seqs: Record<string, string>,
-  allNames: string[],
+  seqNames: Map<string, number>,
 ) {
-  if (currentSeqName === '') {
-    // eslint-disable-next-line no-param-reassign
-    currentSeqName = 'Untitled'
-  }
+  const seqName = deduplicateSeqName(currentSeqName, seqNames)
+  seqs[seqName] = currentSeq
+}
 
-  let nameCount = 0
-  for (let i = 0; i < allNames.length; ++i) {
-    if (allNames[i] === currentSeqName) {
-      ++nameCount
-    }
-  }
-
-  let suffix = ''
-  if (nameCount) {
-    suffix = ` (${nameCount})`
-  }
-
-  allNames.push(currentSeqName)
-  seqs[currentSeqName + suffix] = currentSeq
+export function sanitizeSequence(seq: string) {
+  return seq.toUpperCase().replace(/[^*.?A-Z]/g, '')
 }
 
 export function parseSequences(input: string) {
@@ -32,7 +37,7 @@ export function parseSequences(input: string) {
   let currentSeqName = ''
   let currentSeq = ''
   const seqs: Record<string, string> = {}
-  const seqNames: string[] = []
+  const seqNames = new Map<string, number>()
 
   for (let i = 0; i < lines.length; ++i) {
     const line = lines[i].trim()
@@ -46,7 +51,7 @@ export function parseSequences(input: string) {
       currentSeq = ''
     } else {
       // NOTE: Strip all characters except capital letters, asterisks, dots ans question marks
-      const seq = line.toUpperCase().replace(/[^*.?A-Z]/g, '')
+      const seq = sanitizeSequence(line)
       currentSeq += seq
     }
   }

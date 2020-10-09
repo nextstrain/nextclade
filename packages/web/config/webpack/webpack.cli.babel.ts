@@ -47,7 +47,7 @@ module.exports = {
   bail: true,
   name: pkg.name,
   target: 'node',
-  devtool: 'cheap-module-source-map',
+  devtool: 'source-map',
   stats: {
     all: false,
     errors: true,

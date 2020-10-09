@@ -1,27 +1,76 @@
-/* eslint-disable array-func/no-unnecessary-this-arg */
-import { concurrent } from 'fasy'
+/* eslint-disable cflint/no-this-assignment */
 import { unset } from 'lodash'
+import { Writable } from 'stream'
+
+import { Pool } from 'threads'
+import { FastaObject } from 'bionode-fasta'
 
 import { notUndefined } from 'src/helpers/notUndefined'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import type { Virus } from 'src/algorithms/types'
-import type { WorkerPools } from 'src/workers/types'
+import type { Gene, PcrPrimer, Virus } from 'src/algorithms/types'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
 import type { SequenceAnalysisStateWithMatch } from 'src/state/algorithm/algorithm.state'
+import type { QCRulesConfig } from 'src/algorithms/QC/types'
+import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
+import type { TreeFinalizeThread } from 'src/workers/worker.treeAttachNodes'
 import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
+import { deduplicateSeqName, sanitizeSequence } from 'src/algorithms/parseSequences'
 
-export async function run(workers: WorkerPools, input: string, virus: Virus, shouldMakeTree: boolean) {
-  const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
-  const auspiceData = treePreprocess(auspiceDataReference)
+/**
+ * Implements a writable stream, which accepts parsed sequences and analyzes them
+ */
+export class AnalysisStream extends Writable {
+  private readonly poolAnalyze: Pool<AnalyzeThread>
+  private readonly threadTreeFinalize: TreeFinalizeThread
 
-  const { threadParse, poolAnalyze, threadTreeFinalize } = workers
-  const { parsedSequences } = await threadParse(input)
+  private readonly rootSeq: string
+  private readonly minimalLength: number
+  private readonly geneMap: Gene[]
+  private readonly auspiceData: AuspiceJsonV2Extended
+  private readonly pcrPrimers: PcrPrimer[]
+  private readonly qcRulesConfig: QCRulesConfig
 
-  const states: SequenceAnalysisStateWithMatch[] = await concurrent.map(async ([seqName, seq], id) => {
-    try {
-      const result = await poolAnalyze.queue(async (analyze: AnalyzeThread) =>
+  private readonly seqNames = new Map<string, number>()
+  private readonly results: SequenceAnalysisStateWithMatch[] = []
+  private readonly id: number = 0
+
+  public constructor(poolAnalyze: Pool<AnalyzeThread>, threadTreeFinalize: TreeFinalizeThread, virus: Virus) {
+    // We have to use `objectMode` in order to accepts parsed sequences in form of objects
+    super({ objectMode: true })
+
+    this.poolAnalyze = poolAnalyze
+    this.threadTreeFinalize = threadTreeFinalize
+
+    this.rootSeq = virus.rootSeq
+    this.minimalLength = virus.minimalLength
+    this.pcrPrimers = virus.pcrPrimers
+    this.geneMap = virus.geneMap
+    this.qcRulesConfig = virus.qcRulesConfig
+    this.auspiceData = treePreprocess(virus.auspiceData)
+  }
+
+  /**
+   * Catches duplicate names and renames if needed
+   */
+  private deduplicateSeqName(seqNameOrig: string) {
+    return deduplicateSeqName(seqNameOrig, this.seqNames)
+  }
+
+  /**
+   * Implements the writable stream interface. Will be called internally by the pipeline.
+   * Receives an object with sequence name and sequence string and schedules the analysis.
+   */
+  // eslint-disable-next-line no-underscore-dangle
+  public _write({ id: seqNameOrig, seq: seqOrig }: FastaObject, encoding: string, next: (error?: Error) => void) {
+    const { id, rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData, qcRulesConfig } = this
+    const seqName = this.deduplicateSeqName(seqNameOrig)
+    const seq = sanitizeSequence(seqOrig)
+
+    // Schedule this sequence for the analysis on the worker thread pool
+    this.poolAnalyze
+      .queue(async (analyze: AnalyzeThread) =>
         analyze({
           seqName,
           seq,
@@ -33,39 +82,60 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
           qcRulesConfig,
         }),
       )
+      // eslint-disable-next-line promise/always-return
+      .then((result) => {
+        this.results.push({
+          seqName,
+          id,
+          errors: [],
+          result,
+          status: AlgorithmSequenceStatus.analysisDone,
+        })
 
-      return {
-        seqName,
-        id,
-        errors: [],
-        result,
-        status: AlgorithmSequenceStatus.analysisDone,
-      }
-    } catch (error_) {
-      const error = sanitizeError(error_)
-      console.error(
-        `Error: in sequence "${seqName}": ${error.message}. This sequence will be excluded from further analysis.`,
-      )
-      return {
-        seqName,
-        id,
-        errors: [error.message],
-        result: undefined,
-        status: AlgorithmSequenceStatus.analysisFailed,
-      }
-    }
-  }, Object.entries(parsedSequences))
+        next() // eslint-disable-line promise/no-callback-in-promise
+      })
+      .catch((error_: unknown) => {
+        const error = sanitizeError(error_)
+        console.error(
+          `Error: in sequence "${seqName}": ${error.message}. This sequence will be excluded from further analysis.`,
+        )
 
-  let auspiceDataPostprocessed
-  if (shouldMakeTree) {
-    const results = states.map((state) => state.result).filter(notUndefined)
-    const auspiceDataFinal = await threadTreeFinalize({ auspiceData, results, rootSeq })
-    auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
+        this.results.push({
+          seqName,
+          id,
+          errors: [error.message],
+          result: undefined,
+          status: AlgorithmSequenceStatus.analysisFailed,
+        })
+
+        next() // eslint-disable-line promise/no-callback-in-promise
+      })
   }
 
-  states.forEach((state) => {
-    unset(state.result, 'nearestTreeNodeId')
-  })
+  /**
+   * Returns results after the analysis
+   */
+  public getResults() {
+    return this.results
+  }
 
-  return { results: states, auspiceData: auspiceDataPostprocessed }
+  /**
+   * Returns a tree with the analyzed sequences attached
+   */
+  public async finalizeTree() {
+    if (!this.results) {
+      throw new Error(`Error: cannot finalize tree: there are no analysis results available`)
+    }
+
+    const { auspiceData, rootSeq } = this
+    const results = this.results.map((state) => state.result).filter(notUndefined)
+    const auspiceDataFinal = await this.threadTreeFinalize({ auspiceData, results, rootSeq })
+    const auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
+
+    this.results.forEach((state) => {
+      unset(state.result, 'nearestTreeNodeId')
+    })
+
+    return auspiceDataPostprocessed
+  }
 }
