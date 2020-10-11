@@ -147,24 +147,26 @@ const transpilationListProd = uniq([
   'threads',
 ])
 
-const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
+const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev, {
+  unstable_webpack5: true,
+})
 
 const config = withPlugins(
   [
     [withIgnore],
-    [withExtraWatch],
+    // [withExtraWatch],
     [withThreads],
     [withSvg],
     [withImages],
     [withRaw],
     // ANALYZE && [withBundleAnalyzer],
-    [withFriendlyConsole],
+    // [withFriendlyConsole],
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
-    [withLodash],
-    [withTypeChecking],
+    // [withLodash],
+    // [withTypeChecking],
     [withTranspileModules],
-    PRODUCTION && [withStaticComprression],
-    PROFILE && [withoutMinification],
+    // PRODUCTION && [withStaticComprression],
+    // PROFILE && [withoutMinification],
     [withFriendlyChunkNames],
   ].filter(Boolean),
   nextConfig,

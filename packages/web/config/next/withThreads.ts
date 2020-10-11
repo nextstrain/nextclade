@@ -1,8 +1,10 @@
 import type { NextConfig } from 'next'
-import ThreadsPlugin from 'threads-plugin'
 
-import { addWebpackPlugin } from './lib/addWebpackPlugin'
+import { addWebpackLoader } from './lib/addWebpackLoader'
 
 export default function withWorker(nextConfig: NextConfig) {
-  return addWebpackPlugin(nextConfig, new ThreadsPlugin({ globalObject: 'self' }))
+  return addWebpackLoader(nextConfig, (webpackConfig, { dev, isServer }) => ({
+    test: /\.worker\.js$/,
+    use: { loader: 'worker-loader' },
+  }))
 }

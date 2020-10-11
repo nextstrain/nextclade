@@ -2,9 +2,10 @@
 .DS_Store
 \.build
 \.cache
-\.ignore
 \.env
 \.idea
+\.ignore
+\.next
 \.reports
 \.vscode
 node_modules

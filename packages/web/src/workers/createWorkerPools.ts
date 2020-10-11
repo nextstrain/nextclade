@@ -1,4 +1,4 @@
-import { Pool, spawn, Worker } from 'threads'
+import { Pool, spawn } from 'threads'
 
 import type { WorkerPools } from 'src/workers/types'
 import type { ParseThread } from 'src/workers/worker.parse'
@@ -11,9 +11,9 @@ const DEFAULT_NUM_THREADS = 4
 
 export async function createWorkerPools({ numThreads = DEFAULT_NUM_THREADS } = {}): Promise<WorkerPools> {
   if (typeof window !== 'undefined' || process.env.FORCE_USE_WORKERS === 'true') {
-    const threadParse = await spawn<ParseThread>(new Worker('./worker.parse.ts', { name: 'parse' }))
+    const threadParse = await spawn<ParseThread>(new Worker(new URL('./worker.parse.ts', import.meta.url)))
 
-    const poolAnalyze = Pool<AnalyzeThread>(() => spawn(new Worker('./worker.analyze.ts', { name: 'analyze' })), {
+    const poolAnalyze = Pool<AnalyzeThread>(() => spawn(new Worker(new URL('./worker.analyze.ts', import.meta.url))), {
       size: numThreads, // number of workers to spawn, defaults to the number of CPU cores
       concurrency: 1, // number of tasks to run simultaneously per worker, defaults to one
       name: 'analyze',
@@ -21,10 +21,10 @@ export async function createWorkerPools({ numThreads = DEFAULT_NUM_THREADS } = {
     })
 
     const threadTreeBuild = await spawn<TreeBuildThread>(
-      new Worker('./worker.treeFindNearest.ts', { name: 'treeFindNearest' }),
+      new Worker(new URL('./worker.treeFindNearest.ts', import.meta.url)),
     )
 
-    const poolRunQc = Pool<RunQcThread>(() => spawn(new Worker('./worker.runQc.ts', { name: 'runQc' })), {
+    const poolRunQc = Pool<RunQcThread>(() => spawn(new Worker(new URL('./worker.runQc.ts', import.meta.url))), {
       size: numThreads, // number of workers to spawn, defaults to the number of CPU cores
       concurrency: 1, // number of tasks to run simultaneously per worker, defaults to one
       name: 'runQc',
@@ -32,7 +32,7 @@ export async function createWorkerPools({ numThreads = DEFAULT_NUM_THREADS } = {
     })
 
     const threadTreeFinalize = await spawn<TreeFinalizeThread>(
-      new Worker('./worker.treeAttachNodes.ts', { name: 'treeAttachNodes' }),
+      new Worker(new URL('./worker.treeAttachNodes.ts', import.meta.url)),
     )
 
     return { threadParse, poolAnalyze, threadTreeBuild, poolRunQc, threadTreeFinalize }

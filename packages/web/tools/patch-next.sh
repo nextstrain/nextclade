@@ -12,3 +12,5 @@ sed -i.bak 's/warn=onWarning;/warn=function(){};/g' node_modules/next/dist/build
 # Removes "<title> should not be used in _document.js" warning.
 # Reason: We want title and other SEO tags to be pre-rendered, so that crawlers could find them.
 sed -i.bak "s|console.warn(\"Warning: <title> should not be used in _document.js's <Head>. https://err.sh/next.js/no-document-title\");||g" node_modules/next/dist/pages/_document.js
+
+sed -i.bak "s|module.exports = require('os').EOL|module.exports = '\\\n'|g" node_modules/jsonexport/lib/core/eol.js
