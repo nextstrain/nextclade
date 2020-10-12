@@ -46,4 +46,12 @@ docker build -f ./docker/alpine3.12.dockerfile . \
 -t ${REPO_NAME}:${PACKAGE_VERSION}-alpine \
 -t ${REPO_NAME}:${PACKAGE_VERSION}-alpine3.12
 
-docker push ${REPO_NAME}
+
+docker push ${REPO_NAME}:latest
+docker push ${REPO_NAME}:latest-stretch
+docker push ${REPO_NAME}:${PACKAGE_VERSION}
+docker push ${REPO_NAME}:${PACKAGE_VERSION}-stretch
+docker push ${REPO_NAME}:alpine
+docker push ${REPO_NAME}:alpine3.12
+docker push ${REPO_NAME}:${PACKAGE_VERSION}-alpine
+docker push ${REPO_NAME}:${PACKAGE_VERSION}-alpine3.12
