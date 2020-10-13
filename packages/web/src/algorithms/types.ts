@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import type { AuspiceJsonV2 } from 'auspice'
+import type { StrictOmit } from 'ts-essentials'
 
 import type { Tagged } from 'src/helpers/types'
+import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
 /** Type-safe representation of a nucleotide */
@@ -84,6 +86,7 @@ export interface SubstitutionsWithPrimers extends SubstitutionsWithAminoacids {
 }
 
 export interface Virus {
+  name: string
   genomeSize: number
   minimalLength: number
   clades: Clades
@@ -94,6 +97,8 @@ export interface Virus {
   pcrPrimers: PcrPrimer[]
   qcRulesConfig: QCRulesConfig
 }
+
+export type VirusRaw = StrictOmit<Virus, 'cladesGrouped' | 'genomeSize'>
 
 export interface AlgorithmParams {
   sequenceDatum: string
@@ -134,7 +139,11 @@ export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {
 }
 
 export interface AnalysisResult extends AnalysisResultWithClade {
-  qc?: QCResult
+  qc: QCResult
+}
+
+export interface AnalysisResultWithMatch extends AnalysisResult {
+  nearestTreeNodeId: number
 }
 
 export interface ParseResult {
@@ -145,7 +154,12 @@ export interface ParseResult {
 export interface AnalysisParams {
   seqName: string
   seq: string
-  virus: Virus
+  minimalLength: number
+  geneMap: Gene[]
+  rootSeq: string
+  auspiceData: AuspiceJsonV2Extended
+  pcrPrimers: PcrPrimer[]
+  qcRulesConfig: QCRulesConfig
 }
 
 /** Represents a named interval in the genome */

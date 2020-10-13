@@ -1,3 +1,109 @@
+# [0.8.0-alpha.2](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.1...0.8.0-alpha.2) (2020-10-13)
+
+
+### Bug Fixes
+
+* **cli:** add missing files into docker builds ([dbb54f2](https://github.com/nextstrain/nextclade/commit/dbb54f2a8584379437932d7480cc08db34d16a87))
+
+
+
+# [0.8.0-alpha.1](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.1) (2020-10-13)
+
+
+### Bug Fixes
+
+* use consistent line endings in json export ([3d8ddb5](https://github.com/nextstrain/nextclade/commit/3d8ddb537dd2fb516e99924165eed8ed2fbd74dc))
+* **cli:** preserve failed sequences in results ([8e1e78b](https://github.com/nextstrain/nextclade/commit/8e1e78b170242e72b97e3e75ce67856ad9f32c28))
+
+
+### Features
+
+* enforce csv column order, remove duplicate qc.seqName column ([5928b53](https://github.com/nextstrain/nextclade/commit/5928b53cc0d8d74fa3e438d91d958b54d1dd1fee))
+* **cli:** add jobs flag for setting the level of parallelism ([96100b6](https://github.com/nextstrain/nextclade/commit/96100b6063880c69630ef7019a3d4223aaf63379))
+* **cli:** don't finalize tree when tree output is not requested ([8a9c767](https://github.com/nextstrain/nextclade/commit/8a9c767e6f39270ee4d24fc3c2445deae895dd3e))
+* **cli:** make CLI run in parallel   ([5a8902c](https://github.com/nextstrain/nextclade/commit/5a8902c1248d2aec9851e9d27ea59790d9eb4af9))
+
+
+### BREAKING CHANGES
+
+*  - qc.seqName is removed from CSV, TSV and JSON outputs (it had the same values as seqName)
+ - order of columns is changed in CSV ans TSV outputs
+
+
+
+# [0.8.0-alpha.0](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.0) (2020-10-12)
+
+
+### Bug Fixes
+
+* use consistent line endings in json export ([3d8ddb5](https://github.com/nextstrain/nextclade/commit/3d8ddb537dd2fb516e99924165eed8ed2fbd74dc))
+* **cli:** preserve failed sequences in results ([8e1e78b](https://github.com/nextstrain/nextclade/commit/8e1e78b170242e72b97e3e75ce67856ad9f32c28))
+
+
+### Features
+
+* **cli:** add jobs flag for setting the level of parallelism ([96100b6](https://github.com/nextstrain/nextclade/commit/96100b6063880c69630ef7019a3d4223aaf63379))
+* **cli:** don't finalize tree when tree output is not requested ([8a9c767](https://github.com/nextstrain/nextclade/commit/8a9c767e6f39270ee4d24fc3c2445deae895dd3e))
+* **cli:** make CLI run in parallel   ([5a8902c](https://github.com/nextstrain/nextclade/commit/5a8902c1248d2aec9851e9d27ea59790d9eb4af9))
+
+
+
+## [0.7.5](https://github.com/nextstrain/nextclade/compare/0.7.4...0.7.5) (2020-10-06)
+
+
+### Features
+
+* don't output nucleotide composition to CSV ([ff7c883](https://github.com/nextstrain/nextclade/commit/ff7c883ad4125f688db949121e5c645cc3ba877c))
+
+
+
+## [0.7.4](https://github.com/nextstrain/nextclade/compare/0.7.3...0.7.4) (2020-10-05)
+
+
+### Bug Fixes
+
+* format SNP clusters properly for export ([c7aa5c7](https://github.com/nextstrain/nextclade/commit/c7aa5c7c81b9a9fb9cb072aa8e704b0a0a019991))
+
+
+
+## [0.7.3](https://github.com/nextstrain/nextclade/compare/0.7.2...0.7.3) (2020-10-05)
+
+
+### Bug Fixes
+
+* add last newline in exports ([c3d83d6](https://github.com/nextstrain/nextclade/commit/c3d83d6da3a4c272fa76326359451327c674dab5))
+* prevent app from crashing when a locale is missing ([1fd2a19](https://github.com/nextstrain/nextclade/commit/1fd2a19e41fa8f5cf563da04afcbb1dcbc921b75))
+
+
+
+## [0.7.2](https://github.com/nextstrain/nextclade/compare/0.7.1...0.7.2) (2020-10-01)
+
+
+### Features
+
+* attempt to reduce breakage by adblockers ([1870cdc](https://github.com/nextstrain/nextclade/commit/1870cdc2667a58e496f9d182173af5c5770ed6bd))
+* warn about possible adblocker interference ([ffff5fb](https://github.com/nextstrain/nextclade/commit/ffff5fb41fc5b5967270a3dcdee8058acc9e692e))
+
+
+
+# [0.7.0](https://github.com/nextstrain/nextclade/compare/0.6.0...0.7.0) (2020-10-01)
+
+
+### Bug Fixes
+
+* ensure example sequences are loading correctly ([fc44961](https://github.com/nextstrain/nextclade/commit/fc449615bcfa84551912434671a724ef30caa94f))
+
+
+### Features
+
+* improve network error popup informativeness and looks ([ffd2995](https://github.com/nextstrain/nextclade/commit/ffd29954b9a3761a7e0eb6263436254c129dc0d5))
+* **cli:** add CLI flag to output a CSV with clades only ([bb405ff](https://github.com/nextstrain/nextclade/commit/bb405ffccdd50a09e43c148ab592c8d21f95e5ed))
+* **cli:** add possibility to override clades, primers and gene map ([643607b](https://github.com/nextstrain/nextclade/commit/643607b2a435a93267479251dbb5da086bbb48fa))
+* **cli:** output a TSV with clades only, instead of CSV ([d956f0b](https://github.com/nextstrain/nextclade/commit/d956f0bbae2be6a4e35d21f091f3e45851b524a6))
+* deduce virus genome size from root sequence length ([22d4e7a](https://github.com/nextstrain/nextclade/commit/22d4e7a76db63a85b5cbe43efb18de7f3e52edd0))
+
+
+
 # [0.6.0](https://github.com/nextstrain/nextclade/compare/0.5.2...0.6.0) (2020-09-24)
 
 

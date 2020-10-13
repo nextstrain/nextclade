@@ -1,13 +1,10 @@
-import type { StrictOmit } from 'ts-essentials'
 import copy from 'fast-copy'
 
 import { groupClades } from 'src/algorithms/clades'
-import type { Virus } from 'src/algorithms/types'
+import type { Virus, VirusRaw } from 'src/algorithms/types'
 import { VirusName } from 'src/algorithms/defaults/virusNames'
 
 import { SARS_COV_2 } from 'src/algorithms/defaults/sars-cov-2'
-
-export type VirusRaw = StrictOmit<Virus, 'cladesGrouped' | 'genomeSize'>
 
 const DEFAULT_VIRUSES: Record<VirusName, VirusRaw> = {
   [VirusName.SARS_COV_2]: SARS_COV_2.virus,
@@ -37,13 +34,9 @@ export function validateVirusName(virusName: string): VirusName {
 export function getVirus(virusName: string = DEFAULT_VIRUS_NAME): Virus {
   const virusNameValid = validateVirusName(virusName)
   const virusRaw = DEFAULT_VIRUSES[virusNameValid]
-  const length = virusRaw.rootSeq.length // eslint-disable-line prefer-destructuring
+  const genomeSize = virusRaw.rootSeq.length
   const cladesGrouped = groupClades(virusRaw.clades)
-  return copy({
-    ...virusRaw,
-    genomeSize: length,
-    cladesGrouped,
-  })
+  return copy({ ...virusRaw, genomeSize, cladesGrouped })
 }
 
 export function getSequenceDatum(virusName: string = DEFAULT_VIRUS_NAME): string {

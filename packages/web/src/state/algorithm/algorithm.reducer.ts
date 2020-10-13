@@ -47,7 +47,7 @@ const mergeCladesIntoResults = (result: SequenceAnalysisState, cladeResult: Clad
 const mergeQcIntoResults = (result: SequenceAnalysisState, qc: QCResult) =>
   produce(result, (draft) => {
     if (draft.result) {
-      draft.qc = qc
+      draft.result.qc = qc
     }
     return draft
   })

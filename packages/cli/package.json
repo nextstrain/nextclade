@@ -1,6 +1,6 @@
 {
   "name": "@neherlab/nextclade",
-  "version": "0.6.0",
+  "version": "0.8.0-alpha.2",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -19,16 +19,17 @@
     "url": "https://github.com/nextstrain/nextclade/issues"
   },
   "bin": {
-    "nextclade": "dist/nextclade.js"
+    "nextclade": "dist/nextclade.js",
+    "nextclade.js": "dist/nextclade.js"
   },
   "files": [
-    "dist/nextclade.js"
+    "dist/*.js",
+    "dist/*.js.map"
   ],
   "engines": {
     "node": ">=10"
   },
   "main": "dist/nextclade.js",
-  "module": "src/cli/cli.ts",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

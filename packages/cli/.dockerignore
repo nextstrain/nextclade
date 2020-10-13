@@ -1,2 +1,4 @@
 **/*
-!dist/nextclade.js
+**/.*
+!dist/*.js
+!dist/*.js.map

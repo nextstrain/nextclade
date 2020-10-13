@@ -7,6 +7,7 @@ import { Alert, Button, Card, CardBody, CardHeader, Col, Input, Row } from 'reac
 import { MdClear, MdPlayArrow, MdWarning } from 'react-icons/md'
 import { FaCaretRight } from 'react-icons/fa'
 import { useTranslation } from 'react-i18next'
+import { getSequenceDatum } from 'src/algorithms/defaults/viruses'
 
 import { URL_GITHUB, URL_GITHUB_FRIENDLY } from 'src/constants'
 
@@ -93,8 +94,9 @@ export function MainDisconnected({
     setIsDirty(true)
     setShowInputBox(true)
     inputRef?.current?.focus()
-    delay(setInput, 250, params.sequenceDatum)
-    delay(setInputFile, 250, { name: 'example.fasta', size: params.sequenceDatum.length })
+    const sequenceDatum = getSequenceDatum(params.virus.name)
+    delay(setInput, 250, sequenceDatum)
+    delay(setInputFile, 250, { name: 'example.fasta', size: sequenceDatum.length })
   }
 
   async function onUpload(file: File) {

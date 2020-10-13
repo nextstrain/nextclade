@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 
-import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 
 export interface ColumnGapsProps {
-  sequence: AnalysisResultState
+  sequence: AnalysisResult
 }
 
 export function ColumnGaps({ sequence }: ColumnGapsProps) {

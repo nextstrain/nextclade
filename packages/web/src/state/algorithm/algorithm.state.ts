@@ -1,8 +1,8 @@
-import type { Sorting } from 'src/helpers/sortResults'
-
+import type { StrictOmit } from 'ts-essentials'
 import type { AuspiceJsonV2 } from 'auspice'
-import type { QCResult } from 'src/algorithms/QC/types'
-import type { AlgorithmParams, AnalysisResultWithoutClade } from 'src/algorithms/types'
+
+import type { Sorting } from 'src/helpers/sortResults'
+import type { AlgorithmParams, AnalysisResultWithMatch, AnalysisResult } from 'src/algorithms/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 
@@ -35,17 +35,16 @@ export enum AlgorithmSequenceStatus {
   qcFailed = 'qcFailed',
 }
 
-export interface AnalysisResultState extends AnalysisResultWithoutClade {
-  clade?: string
-}
-
 export interface SequenceAnalysisState {
   id: number
   seqName: string
   status: AlgorithmSequenceStatus
-  result?: AnalysisResultState
-  qc?: QCResult
+  result?: AnalysisResult
   errors: string[]
+}
+
+export interface SequenceAnalysisStateWithMatch extends StrictOmit<SequenceAnalysisState, 'result'> {
+  result?: AnalysisResultWithMatch
 }
 
 export interface ResultsFilters extends QCFilters {

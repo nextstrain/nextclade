@@ -1,67 +1,71 @@
-import { identity, zipWith } from 'lodash'
+/* eslint-disable array-func/no-unnecessary-this-arg */
+import { concurrent } from 'fasy'
+import { unset } from 'lodash'
 
-import type { AnalysisResult, Virus } from 'src/algorithms/types'
-import { formatError } from 'src/helpers/formatError'
 import { notUndefined } from 'src/helpers/notUndefined'
-
-import { safeZip } from 'src/helpers/safeZip'
-
-import { parseSequences } from 'src/algorithms/parseSequences'
-import { analyze } from 'src/algorithms/run'
-import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
-import { treeFindNearestNodes } from 'src/algorithms/tree/treeFindNearestNodes'
-import { assignClade } from 'src/algorithms/assignClade'
-import { runQC } from 'src/algorithms/QC/runQC'
-import { treeAttachNodes } from 'src/algorithms/tree/treeAttachNodes'
-import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import type { Virus } from 'src/algorithms/types'
+import type { WorkerPools } from 'src/workers/types'
+import type { AnalyzeThread } from 'src/workers/worker.analyze'
+import type { SequenceAnalysisStateWithMatch } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
+import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
+import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 
-const t = identity
-
-export function run(input: string, virus: Virus) {
-  const { rootSeq, auspiceData: auspiceDataReference, qcRulesConfig } = virus
-  const parsedSequences = parseSequences(input)
-
-  const analysisResultsWithoutClades = Object.entries(parsedSequences)
-    .map(([seqName, seq], id) => {
-      try {
-        return analyze({ seqName, seq, virus })
-      } catch (error_) {
-        const error = sanitizeError(error_)
-        const errorText = formatError(t, error)
-        console.error(
-          `Error: in sequence "${seqName}": ${errorText}. Please note that this sequence will not be included in the results.`,
-        )
-        return undefined
-      }
-    })
-    .filter(notUndefined)
-
+export async function run(workers: WorkerPools, input: string, virus: Virus, shouldMakeTree: boolean) {
+  const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
   const auspiceData = treePreprocess(auspiceDataReference)
-  const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = treeFindNearestNodes({
-    analysisResults: analysisResultsWithoutClades,
-    rootSeq,
-    auspiceData,
+
+  const { threadParse, poolAnalyze, threadTreeFinalize } = workers
+  const { parsedSequences } = await threadParse(input)
+
+  const states: SequenceAnalysisStateWithMatch[] = await concurrent.map(async ([seqName, seq], id) => {
+    try {
+      const result = await poolAnalyze.queue(async (analyze: AnalyzeThread) =>
+        analyze({
+          seqName,
+          seq,
+          rootSeq,
+          minimalLength,
+          pcrPrimers,
+          geneMap,
+          auspiceData,
+          qcRulesConfig,
+        }),
+      )
+
+      return {
+        seqName,
+        id,
+        errors: [],
+        result,
+        status: AlgorithmSequenceStatus.analysisDone,
+      }
+    } catch (error_) {
+      const error = sanitizeError(error_)
+      console.error(
+        `Error: in sequence "${seqName}": ${error.message}. This sequence will be excluded from further analysis.`,
+      )
+      return {
+        seqName,
+        id,
+        errors: [error.message],
+        result: undefined,
+        status: AlgorithmSequenceStatus.analysisFailed,
+      }
+    }
+  }, Object.entries(parsedSequences))
+
+  let auspiceDataPostprocessed
+  if (shouldMakeTree) {
+    const results = states.map((state) => state.result).filter(notUndefined)
+    const auspiceDataFinal = await threadTreeFinalize({ auspiceData, results, rootSeq })
+    auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
+  }
+
+  states.forEach((state) => {
+    unset(state.result, 'nearestTreeNodeId')
   })
 
-  const resultsAndMatches = safeZip(analysisResultsWithoutClades, matches)
-  const clades = resultsAndMatches.map(([analysisResult, match]) => assignClade(analysisResult, match))
-
-  const analysisResultsWithClades = safeZip(
-    analysisResultsWithoutClades,
-    clades,
-  ).map(([analysisResult, { clade }]) => ({ ...analysisResult, clade }))
-
-  const resultsAndDiffs = safeZip(analysisResultsWithClades, privateMutationSets)
-
-  const qcResults = resultsAndDiffs.map(([analysisResult, privateMutations]) =>
-    runQC({ analysisResult, privateMutations, qcRulesConfig }),
-  )
-
-  const results: AnalysisResult[] = zipWith(analysisResultsWithClades, qcResults, (ar, qc) => ({ ...ar, qc }))
-
-  const { auspiceData: auspiceDataFinal } = treeAttachNodes({ auspiceData: auspiceDataRaw, results, matches, rootSeq })
-  const auspiceDataPostprocessed = treePostProcess(auspiceDataFinal)
-
-  return { results, auspiceData: auspiceDataPostprocessed }
+  return { results: states, auspiceData: auspiceDataPostprocessed }
 }
