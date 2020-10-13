@@ -1,3 +1,27 @@
+# [0.8.0-alpha.1](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.1) (2020-10-13)
+
+
+### Bug Fixes
+
+* use consistent line endings in json export ([3d8ddb5](https://github.com/nextstrain/nextclade/commit/3d8ddb537dd2fb516e99924165eed8ed2fbd74dc))
+* **cli:** preserve failed sequences in results ([8e1e78b](https://github.com/nextstrain/nextclade/commit/8e1e78b170242e72b97e3e75ce67856ad9f32c28))
+
+
+### Features
+
+* enforce csv column order, remove duplicate qc.seqName column ([5928b53](https://github.com/nextstrain/nextclade/commit/5928b53cc0d8d74fa3e438d91d958b54d1dd1fee))
+* **cli:** add jobs flag for setting the level of parallelism ([96100b6](https://github.com/nextstrain/nextclade/commit/96100b6063880c69630ef7019a3d4223aaf63379))
+* **cli:** don't finalize tree when tree output is not requested ([8a9c767](https://github.com/nextstrain/nextclade/commit/8a9c767e6f39270ee4d24fc3c2445deae895dd3e))
+* **cli:** make CLI run in parallel   ([5a8902c](https://github.com/nextstrain/nextclade/commit/5a8902c1248d2aec9851e9d27ea59790d9eb4af9))
+
+
+### BREAKING CHANGES
+
+*  - qc.seqName is removed from CSV, TSV and JSON outputs (it had the same values as seqName)
+ - order of columns is changed in CSV ans TSV outputs
+
+
+
 # [0.8.0-alpha.0](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.0) (2020-10-12)
 
 
