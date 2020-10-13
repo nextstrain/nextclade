@@ -1,3 +1,12 @@
+# [0.8.0-alpha.2](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.1...0.8.0-alpha.2) (2020-10-13)
+
+
+### Bug Fixes
+
+* **cli:** add missing files into docker builds ([dbb54f2](https://github.com/nextstrain/nextclade/commit/dbb54f2a8584379437932d7480cc08db34d16a87))
+
+
+
 # [0.8.0-alpha.1](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.1) (2020-10-13)
 
 
