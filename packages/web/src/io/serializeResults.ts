@@ -1,5 +1,5 @@
 import type { StrictOmit } from 'ts-essentials'
-import { omit } from 'lodash'
+import { omit, unset } from 'lodash'
 import jsonexport from 'jsonexport'
 
 import type { AnalysisResult } from 'src/algorithms/types'
@@ -12,6 +12,48 @@ import { formatPrimer } from 'src/helpers/formatPrimer'
 import { formatSnpCluster } from 'src/helpers/formatSnpCluster'
 
 const CSV_EOL = '\r\n'
+
+const headers = [
+  'seqName',
+  'clade',
+  'qc.overallScore',
+  'qc.overallStatus',
+  'totalAminoacidChanges',
+  'totalGaps',
+  'totalInsertions',
+  'totalMissing',
+  'totalMutations',
+  'totalNonACGTNs',
+  'totalPcrPrimerChanges',
+  'substitutions',
+  'deletions',
+  'insertions',
+  'aminoacidChanges',
+  'missing',
+  'nonACGTNs',
+  'pcrPrimerChanges',
+  'alignmentEnd',
+  'alignmentScore',
+  'alignmentStart',
+  'qc.missingData.missingDataThreshold',
+  'qc.missingData.score',
+  'qc.missingData.status',
+  'qc.missingData.totalMissing',
+  'qc.mixedSites.mixedSitesThreshold',
+  'qc.mixedSites.score',
+  'qc.mixedSites.status',
+  'qc.mixedSites.totalMixedSites',
+  'qc.privateMutations.cutoff',
+  'qc.privateMutations.excess',
+  'qc.privateMutations.score',
+  'qc.privateMutations.status',
+  'qc.privateMutations.total',
+  'qc.snpClusters.clusteredSNPs',
+  'qc.snpClusters.score',
+  'qc.snpClusters.status',
+  'qc.snpClusters.totalSNPs',
+  'errors',
+]
 
 export type AnalysisResultWithErrors = AnalysisResult & { errors: string[] }
 export type Exportable = StrictOmit<AnalysisResult, 'alignedQuery' | 'nucleotideComposition'>
@@ -26,7 +68,9 @@ export function prepareResultsJson(results: SequenceAnalysisState[]) {
       return { seqName, errors }
     }
 
-    return prepareResultJson({ ...result, errors: [] })
+    const datum = prepareResultJson({ ...result, errors: [] })
+    unset(datum, 'qc.seqName')
+    return datum
   })
 }
 
@@ -62,7 +106,7 @@ export function prepareResultCsvCladesOnly(datum: Exportable) {
 }
 
 export async function toCsvString(data: Array<unknown> | Record<string, unknown>, delimiter: string) {
-  const csv = await jsonexport(data, { rowDelimiter: delimiter, endOfLine: CSV_EOL })
+  const csv = await jsonexport(data, { headers, rowDelimiter: delimiter, endOfLine: CSV_EOL })
   return `${csv}${CSV_EOL}`
 }
 
