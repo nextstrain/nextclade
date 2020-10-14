@@ -28,6 +28,7 @@ import withThreads from './withThreads'
 import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
+import withWebassembly from './withWebassembly'
 
 const {
   // BABEL_ENV,
@@ -156,6 +157,7 @@ const config = withPlugins(
     [withIgnore],
     // [withExtraWatch],
     [withThreads],
+    [withWebassembly],
     [withSvg],
     [withImages],
     [withRaw],

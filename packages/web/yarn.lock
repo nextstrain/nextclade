@@ -7234,6 +7234,15 @@ expect@^26.4.2:
     jest-message-util "^26.3.0"
     jest-regex-util "^26.0.0"
 
+exports-loader@1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/exports-loader/-/exports-loader-1.1.1.tgz#88c9a6877ee6a5519d7c41a016bdd99148421e69"
+  integrity sha512-CmyhIR2sJ3KOfVsHjsR0Yvo+0lhRhRMAevCbB8dhTVLHsZPs0lCQTvRmR9YNvBXDBxUuhmCE2f54KqEjZUaFrg==
+  dependencies:
+    loader-utils "^2.0.0"
+    schema-utils "^3.0.0"
+    source-map "^0.6.1"
+
 express-naked-redirect@^0.1.2:
   version "0.1.9"
   resolved "https://registry.yarnpkg.com/express-naked-redirect/-/express-naked-redirect-0.1.9.tgz#b0b015a43997fa84414907100c6c24b4a74a68fe"
