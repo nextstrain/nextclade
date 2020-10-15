@@ -1,9 +1,9 @@
-#include <string>
-#include <exception>
-#include <iostream>
-
 #include <emscripten.h>
 #include <emscripten/bind.h>
+
+#include <exception>
+#include <iostream>
+#include <string>
 
 
 int add(int x, int y) {
