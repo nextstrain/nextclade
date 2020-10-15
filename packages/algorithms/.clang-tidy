@@ -1,0 +1,5 @@
+---
+Checks: "*,-modernize-use-trailing-return-type,-llvmlibc*,-fuchsia*"
+HeaderFilterRegex: '^(?!emscripten\/system\/).*$'
+AnalyzeTemporaryDtors: true
+...

@@ -5,6 +5,8 @@ project(nextclade)
 
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 add_executable(${PROJECT_NAME}
   src/add.cpp
@@ -44,3 +46,4 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
       -s EXPORT_ES6=1 \
   ")
 endif ()
+
