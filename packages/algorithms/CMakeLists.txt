@@ -12,6 +12,9 @@ add_executable(${PROJECT_NAME}
   src/add.cpp
   )
 
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE -DPROJECT_NAME="${PROJECT_NAME}"
   )

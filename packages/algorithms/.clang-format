@@ -1,6 +1,6 @@
 # Generated from CLion C/C++ Code Style settings
 BasedOnStyle: Google
-AccessModifierOffset: -4
+AccessModifierOffset: -2
 AlignAfterOpenBracket: false
 AlignConsecutiveAssignments: false
 AlignOperands: true
