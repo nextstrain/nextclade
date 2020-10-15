@@ -1,7 +1,7 @@
 configfile:
   - defaults/parameters.yaml
-  - augur_profile/builds.yaml
-  - augur_profile/scicore-config.yaml
+  - clades_profile/builds.yaml
+  - clades_profile/scicore-config.yaml
 
 keep-going: True
 printshellcmds: True
