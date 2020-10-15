@@ -10,6 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(${PROJECT_NAME}
   src/add.cpp
+  src/bbb.cpp
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)

@@ -2,7 +2,6 @@
 
 #include <exception>
 #include <string>
-#include <typeinfo>
 
 
 class WasmErrorImpl : public std::exception {
@@ -21,18 +20,6 @@ public:
 // clang-format off
 #define WasmError(message) WasmErrorImpl(__FILE__, __LINE__, __PRETTY_FUNCTION__, #message) // NOLINT(cppcoreguidelines-macro-usage,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 // clang-format on
-
-struct Foo {// NOLINT(cppcoreguidelines-pro-type-member-init)
-  double bar;
-};
-
-
-struct Person {// NOLINT(cppcoreguidelines-pro-type-member-init)
-  std::string name;
-  int age;
-  Foo foo;
-};
-
 
 int add(int x, int y) {
   return x + y;
@@ -54,14 +41,6 @@ emscripten::val getObject() {
   return obj;
 }
 
-Person getPerson() {
-  return {.name = "Bob", .age = 33, .foo = {.bar = 3.1415}};// NOLINT(cppcoreguidelines-avoid-magic-numbers)
-}
-
-std::string toString(const Person& p) {
-  return "Person: " + std::string(p.name) + " | " + std::to_string(p.age) + " | " + std::to_string(p.foo.bar);
-}
-
 void kaboom() {
   throw WasmError("kaboom!");
 }
@@ -77,16 +56,6 @@ EMSCRIPTEN_BINDINGS(add) {
   emscripten::function("add", &add);
   emscripten::function("concat", &concat);
   emscripten::function("getObject", &getObject);
-
-  emscripten::function("getPerson", &getPerson);
-  emscripten::function("toString", &toString);
-
-  emscripten::value_object<Foo>("Foo").field("bar", &Foo::bar);
-  emscripten::value_object<Person>("Person")
-          .field("name", &Person::name)
-          .field("age", &Person::age)
-          .field("foo", &Person::foo);
-
   emscripten::function("kaboom", &kaboom);
   emscripten::function("getExceptionMessage", &getExceptionMessage);
 }
