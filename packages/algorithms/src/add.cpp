@@ -1,49 +1,32 @@
-#ifdef EMSCRIPTEN
-  #include <emscripten.h>
-  #include <emscripten/bind.h>
-  #define EXPORT EMSCRIPTEN_KEEPALIVE
-#else
-  #define EXPORT
-#endif
+#include <string>
+#include <exception>
+#include <iostream>
 
-//EXPORT
-//int add(int v1, int v2) {
-//  return v1 + v2;
-//}
+#include <emscripten.h>
+#include <emscripten/bind.h>
 
+#include <boost/stacktrace.hpp>
 
-////#include <emscripten.h>
-//
-////extern "C" {
-////  EMSCRIPTEN_KEEPALIVE
-//  int add(int x, int y) {
-//    return x + y;
-//  }
-////}
-//
-//
-//int main() {}
-
-//#include <iostream>
-
-
-
-using namespace emscripten;
-
-//extern "C"
-//EMSCRIPTEN_KEEPALIVE
-EXPORT
 int add(int x, int y) {
   return x + y;
 }
 
-//int main() {
-//  std::cout << "Hello";
-//  std::cout.flush();
-//  return 0;
-//}
+std::string concat(const std::string& x, const std::string& y) {
+  return x + y;
+}
 
+void kaboom() {
+  throw std::runtime_error("Error: in " + std::string(__FILE__) + ":" + std::to_string(__LINE__) + ": kaboom!");
+}
+
+std::string getExceptionMessage(std::intptr_t exceptionPtr) {
+  const std::exception* e = reinterpret_cast<std::runtime_error*>(exceptionPtr);
+  return e->what();
+}
 
 EMSCRIPTEN_BINDINGS(add) {
-  function("add", &add);
+  emscripten::function("add", &add);
+  emscripten::function("concat", &concat);
+  emscripten::function("kaboom", &kaboom);
+  emscripten::function("getExceptionMessage", &getExceptionMessage);
 }

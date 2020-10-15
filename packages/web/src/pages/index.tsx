@@ -9,7 +9,7 @@ export default function Index({}: IndexProps) {
   const [value, setValue] = useState()
 
   useEffect(() => {
-    Promise.all([import('src/wasm/add.webassembly.js'), import('src/wasm/add.webassembly.wasm')]).then(([m, w]) => {
+    Promise.all([import('src/wasm/add.js'), import('src/wasm/add.wasm')]).then(([m, w]) => {
       console.log({ m, w })
 
       const module = m.default({
@@ -22,16 +22,30 @@ export default function Index({}: IndexProps) {
         onRuntimeInitialized() {
           console.log({ module })
 
-          module.then((md) => {
-            console.log({ md })
-            const res = md.add(3, 5)
-            console.log({ res })
+          let mod
+          module
+            .then((md) => {
+              mod = md
+              console.log({ md })
 
-            setValue(res)
-          })
+              let res = mod.add(3, 5)
+              console.log({ res })
+
+              res = mod.concat('a', 'b')
+              console.log({ res })
+
+              setValue(res)
+
+              mod.kaboom()
+            })
+            .catch((error_) => {
+              console.log({ error_ })
+              const msg = mod.getExceptionMessage(error_)
+              console.error({ msg })
+            })
         },
       })
-    })
+    }, [])
   })
 
   return <div>{value ?? 'Calculating...'}</div>

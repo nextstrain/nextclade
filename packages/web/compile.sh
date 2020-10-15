@@ -2,14 +2,15 @@
 
 set -e
 
-source emsdk_env.sh
+set -x
 
 #export OPTIMIZE="-Os"
 #export LDFLAGS="${OPTIMIZE}"
 #export CFLAGS="${OPTIMIZE}"
 #export CXXFLAGS="${OPTIMIZE}"
 
-rm -rf obj/*
+#rm -rf src/wasm/*
+mkdir -p src/wasm
 
 #pushd obj >/dev/null
 #
@@ -24,27 +25,34 @@ rm -rf obj/*
 #  ../algorithms/src/add.cpp \
 #  -o src/wasm/add.js
 
+#  --std=c++17 \
+
+
 emcc \
+  -s DEMANGLE_SUPPORT=1 \
+  -frtti \
+  -g4 \
+  -O0 \
+  -std=c++17 \
   --bind \
-  -O3 \
-  -s WASM=1 \
-  -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]' \
+   --source-map-base './' \
+  -s ALIASING_FUNCTION_POINTERS=0 \
   -s ALLOW_MEMORY_GROWTH=1 \
+  -s MALLOC=emmalloc \
+  -s ASSERTIONS=1 \
+  -s DISABLE_EXCEPTION_CATCHING=2 \
+  -s SAFE_HEAP=1 \
+  -s STACK_OVERFLOW_CHECK=2 \
+  -s ENVIRONMENT=web \
   -s MODULARIZE=1 \
   -s EXPORT_ES6=1 \
-  -s "ENVIRONMENT='web'" \
-  -s "EXPORT_NAME='main'" \
+  -I ../algorithms/3rdparty \
   ../algorithms/src/add.cpp \
-  -o src/wasm/add.webassembly.js
+  -o src/wasm/add.js
 
-
-#/home/ia/opt/emscripten/upstream/bin/clang \
-#--target=wasm32 \
-#-nostdlib \
-#-Wl,--no-entry -Wl,--export-all \
-#../algorithms/src/add.cpp \
-#-o src/wasm/add.wasm
-
+#  -s "EXPORT_NAME='entry'" \
+#  -s NO_EXIT_RUNTIME=1 \
+#  -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\"]' \
 #  -g \
 #  -O0 \
 #-s WASM=1 \
@@ -54,11 +62,9 @@ emcc \
 #  -s ALLOW_MEMORY_GROWTH=1 \
 #  -s MALLOC=emmalloc \
 #  -s MODULARIZE=1 \
-
 #  -s EXPORT_ES6=1 \
 #  -s STRICT=1 \
 #  -s ASSERTIONS=0 \
-
 #  -s EXTRA_EXPORTED_RUNTIME_METHODS=[\"cwrap\"] \
 #  -s EXPORT_NAME=\"add\" \
 
@@ -73,3 +79,5 @@ emcc \
 #-s EXPORT_ES6=1 \
 
 #NODE_ENV=development webpack
+
+echo "done"

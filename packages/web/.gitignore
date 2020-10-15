@@ -1,0 +1,13 @@
+*.log
+.DS_Store
+\.build
+\.cache
+\.env
+\.idea
+\.ignore
+\.next
+\.reports
+\.vscode
+node_modules
+dist/
+wasm/

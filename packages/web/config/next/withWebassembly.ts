@@ -21,21 +21,28 @@ export default function withWebassembly(nextConfig: NextConfig) {
     test: /\.wasm$/,
     type: 'javascript/auto',
     // type: 'webassembly/async',
-    loader: 'file-loader',
-    options: {
-      name: dev ? '[name].[ext]' : '[name].[hash:7].[ext]',
-      publicPath: `${nextConfig.assetPrefix}/_next/static/wasm/`,
-      outputPath: `${isServer ? '../' : ''}static/wasm/`,
-    },
+    use: [
+      {
+        loader: 'source-map-loader',
+      },
+      {
+        loader: 'file-loader',
+        options: {
+          name: dev ? '[name].[ext]' : '[name].[hash:7].[ext]',
+          publicPath: `${nextConfig.assetPrefix}/_next/static/wasm/`,
+          outputPath: `${isServer ? '../' : ''}static/wasm/`,
+        },
+      },
+    ],
   }))
 
-  cfg = addWebpackLoader(cfg, (webpackConfig, { dev }) => ({
-    test: /\.webassembly\.js$/,
-    loader: 'exports-loader',
-    options: {
-      exports: ['main'],
-    },
-  }))
+  // cfg = addWebpackLoader(cfg, (webpackConfig, { dev }) => ({
+  //   test: /\.webassembly\.js$/,
+  //   loader: 'exports-loader',
+  //   options: {
+  //     exports: ['entry'],
+  //   },
+  // }))
 
   return cfg
 }
