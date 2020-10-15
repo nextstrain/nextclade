@@ -9,7 +9,7 @@ export default function Index({}: IndexProps) {
   const [value, setValue] = useState()
 
   useEffect(() => {
-    Promise.all([import('src/wasm/add.js'), import('src/wasm/add.wasm')]).then(([m, w]) => {
+    Promise.all([import('src/wasm/nextclade.js'), import('src/wasm/nextclade.wasm')]).then(([m, w]) => {
       console.log({ m, w })
 
       const module = m.default({

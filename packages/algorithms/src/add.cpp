@@ -5,7 +5,6 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
-#include <boost/stacktrace.hpp>
 
 int add(int x, int y) {
   return x + y;
