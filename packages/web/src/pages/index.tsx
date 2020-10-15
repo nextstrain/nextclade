@@ -36,6 +36,15 @@ export default function Index({}: IndexProps) {
 
               setValue(res)
 
+              res = mod.getObject()
+              console.log(res)
+
+              res = mod.getPerson()
+              console.log(res)
+
+              res = mod.toString({ name: 'Alice', age: 27, foo: { bar: 2.74 } })
+              console.log(res)
+
               mod.kaboom()
             })
             .catch((error_) => {
