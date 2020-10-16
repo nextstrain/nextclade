@@ -1,61 +1,88 @@
-// import w from 'src/wasm/add.webassembly.wasm'
-// import mod from 'src/wasm/add.js'
-// import await { add } from "src/wasm/add.wasm"
 import React, { useEffect, useState } from 'react'
 
-export interface IndexProps {}
+import { isNumber } from 'lodash'
+import serializeJavascript from 'serialize-javascript'
 
-export default function Index({}: IndexProps) {
-  const [value, setValue] = useState()
+export type EmscriptenModulePair = [js: EmscriptenRuntimeModule, wasm: WasmModulePath]
+
+export interface WasmModulePath {
+  default: string
+}
+
+export interface EmscriptenModule {
+  locateFile(path: string): string
+  onRuntimeInitialized(): void
+}
+
+export type EmscriptenRuntimeModule = {
+  default(options: EmscriptenModule): Promise<MyModule>
+}
+
+export interface MyModule extends EmscriptenModule {
+  add(x: number, y: number): number
+  concat(x: string, y: string): string
+  getObject(): object // eslint-disable-line @typescript-eslint/ban-types
+  getPerson(): object // eslint-disable-line @typescript-eslint/ban-types
+  toString({ name, age, foo }: { name: string; age: number; foo: { bar: number } }): string
+  kaboom(): void
+  getExceptionMessage(errorPointer: number): string
+}
+
+export async function loadWasmModule(name: string): Promise<MyModule> {
+  const [js, wasm] = (await Promise.all([
+    import(`src/wasm/${name}.js`),
+    import(`src/wasm/${name}.wasm`),
+  ])) as EmscriptenModulePair
+
+  return new Promise((resolve, reject) => {
+    const module = js.default({
+      locateFile: (path: string) => (path.endsWith('.wasm') ? wasm.default : path),
+      onRuntimeInitialized: () => resolve(module),
+    })
+  })
+}
+
+export class WasmNativeError extends Error {}
+export class WasmNativeErrorUnknown extends Error {}
+
+export async function runWasmModule<T>(module: MyModule, runFunction: (module: MyModule) => T) {
+  try {
+    const result = runFunction(module)
+    return { module, result }
+  } catch (
+    errorPointer: unknown // eslint-disable-line unicorn/catch-error-name
+  ) {
+    if (isNumber(errorPointer)) {
+      const message = module.getExceptionMessage(errorPointer)
+      throw new WasmNativeError(message)
+    } else {
+      const details = serializeJavascript(errorPointer, { space: 2 })
+      throw new WasmNativeErrorUnknown(`Unknown native module error. Details:\n${details}`)
+    }
+  }
+}
+
+export default function Index() {
+  const [value, setValue] = useState<number>()
 
   useEffect(() => {
-    Promise.all([import('src/wasm/nextclade.js'), import('src/wasm/nextclade.wasm')]).then(([m, w]) => {
-      console.log({ m, w })
+    loadWasmModule('nextclade')
+      .then((module) =>
+        runWasmModule(module, (module) => {
+          const res = module.add(3, 5)
+          console.info(res)
 
-      const module = m.default({
-        locateFile(path) {
-          if (path.endsWith('.wasm')) {
-            return w.default
-          }
-          return path
-        },
-        onRuntimeInitialized() {
-          console.log({ module })
+          console.info(module.concat('a', 'b'))
+          console.info(module.getObject())
+          console.info(module.getPerson())
+          console.info(module.toString({ name: 'Alice', age: 27, foo: { bar: 2.74 } }))
+          setValue(res)
 
-          let mod
-          module
-            .then((md) => {
-              mod = md
-              console.log({ md })
-
-              let res = mod.add(3, 5)
-              console.log({ res })
-
-              res = mod.concat('a', 'b')
-              console.log({ res })
-
-              setValue(res)
-
-              res = mod.getObject()
-              console.log(res)
-
-              res = mod.getPerson()
-              console.log(res)
-
-              res = mod.toString({ name: 'Alice', age: 27, foo: { bar: 2.74 } })
-              console.log(res)
-
-              mod.kaboom()
-            })
-            .catch((error_) => {
-              console.log({ error_ })
-              const msg = mod.getExceptionMessage(error_)
-              console.error({ msg })
-            })
-        },
-      })
-    }, [])
-  })
+          module.kaboom()
+        }),
+      )
+      .catch(console.error)
+  }, [])
 
   return <div>{value ?? 'Calculating...'}</div>
 }
