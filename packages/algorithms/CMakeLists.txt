@@ -48,7 +48,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
       -s DISABLE_EXCEPTION_CATCHING=2 \
       -s SAFE_HEAP=1 \
       -s STACK_OVERFLOW_CHECK=2 \
-      -s ENVIRONMENT=web \
+      -s ENVIRONMENT=worker \
       -s MODULARIZE=1 \
       -s EXPORT_ES6=1 \
   ")
