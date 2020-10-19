@@ -46,7 +46,9 @@ export async function init() {
 
 export function run() {
   if (!module) {
-    throw new Error('WebAssembly module has not been initialized yet')
+    throw new Error(
+      'Developer error: this WebAssembly module has not been initialized yet. Make sure to call `module.init()` function before `module.run()`',
+    )
   }
 
   return runWasmModule(module, (module) => {
