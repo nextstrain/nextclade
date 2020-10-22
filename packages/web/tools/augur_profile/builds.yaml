@@ -28,10 +28,14 @@ subsampling:
   # Custom subsampling logic for regions like Europe where grouping by country
   # is the smallest resolution required.
   nextclade:
-    # Focal samples for region
-    global:
+    global_late:
       group_by: "region year month"
+      min_date: "--min-date 2020-06-01"
       max_sequences: 1000
+    global_early:
+      group_by: "region year month"
+      max_sequences: 500
+      max_date: "--max-date 2020-05-31"
 
 traits:
   nextclade:
