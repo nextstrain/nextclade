@@ -1,3 +1,12 @@
+## [0.7.6](https://github.com/nextstrain/nextclade/compare/0.7.5...0.7.6) (2020-10-27)
+
+
+### Bug Fixes
+
+* avoid crash on filter badge removal ([472b9ab](https://github.com/nextstrain/nextclade/commit/472b9ab2c9bf5e7e83621c0046e331d3e9d5cebb)), closes [#235](https://github.com/nextstrain/nextclade/issues/235)
+
+
+
 # [0.8.0-alpha.2](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.1...0.8.0-alpha.2) (2020-10-13)
 
 
