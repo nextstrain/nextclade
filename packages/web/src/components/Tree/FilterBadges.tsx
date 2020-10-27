@@ -1,11 +1,12 @@
 import React, { useCallback, useMemo, useState } from 'react'
 
+import { uniq, get } from 'lodash'
 import { connect } from 'react-redux'
 import styled from 'styled-components'
 
+import { removeUndefined } from 'src/helpers/removeUndefined'
 import { State } from 'src/state/reducer'
 import { FilterBadge } from 'src/components/Tree/FilterBadge'
-import { uniq, get } from 'lodash'
 
 export const FilterBadgeContainer = styled.ul`
   display: flex;
@@ -44,17 +45,21 @@ export function FilterBadgesDisconnected({ filters }: FilterBadgesProps) {
   const [badgesDisabled, setBadgesDisabled] = useState<Record<string, string[]>>({})
 
   const setBadgeDisabled = useCallback((trait: string, value: string) => {
-    setBadgesDisabled((badgesDisabled) => ({
-      ...badgesDisabled,
-      [trait]: uniq([...(get(badgesDisabled, trait) ?? []), value]),
-    }))
+    setBadgesDisabled((badgesDisabled) =>
+      removeUndefined({
+        ...badgesDisabled,
+        [trait]: uniq([...(get(badgesDisabled, trait) ?? []), value]),
+      }),
+    )
   }, [])
 
   const setBadgeEnabled = useCallback((trait: string, value: string) => {
-    setBadgesDisabled((badgesDisabled) => ({
-      ...badgesDisabled,
-      [trait]: get(badgesDisabled, trait)?.filter((val) => val !== value),
-    }))
+    setBadgesDisabled((badgesDisabled) =>
+      removeUndefined({
+        ...badgesDisabled,
+        [trait]: get(badgesDisabled, trait)?.filter((val) => val !== value),
+      }),
+    )
   }, [])
 
   const filterBadges = useMemo(() => {
