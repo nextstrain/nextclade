@@ -1,5 +1,5 @@
 ---
-Checks: "*,-modernize-use-trailing-return-type,-llvmlibc*,-fuchsia*,-readability-magic-numbers,-hicpp*,-llvm-header-guard"
+Checks: "*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-llvmlibc*,-fuchsia*,-readability-magic-numbers,-hicpp*,-llvm-header-guard"
 HeaderFilterRegex: '^(?!emscripten\/system\/).*$'
 AnalyzeTemporaryDtors: true
 ...

@@ -1,0 +1,13 @@
+{
+  "quiet": true,
+  "legacyWatch": false,
+  "delay": 0.1,
+  "watch": [
+    "CMakeLists.txt",
+    "conanfile.txt",
+    "src/*"
+  ],
+  "ext": "cpp,h,hpp,cxx,c,.txt",
+  "ignore": [".build", "node_modules"],
+  "exec": "bash -c 'CMAKE_BUILD_TYPE=Debug ./scripts/build_locally.sh' && .build/Debug/nextclade || cd ."
+}

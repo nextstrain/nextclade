@@ -1,0 +1,11 @@
+[requires]
+boost/1.74.0
+cxxopts/2.2.1
+fmt/7.1.0
+gtest/1.10.0
+
+[generators]
+cmake
+txt
+cmake_find_package
+cmake_paths
