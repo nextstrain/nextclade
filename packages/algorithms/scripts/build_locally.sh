@@ -26,6 +26,14 @@ BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
 
 USE_COLOR="${USE_COLOR:=1}"
 
+# gdb (or lldb) command with arguments
+GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
+GDB="${GDB:=${GDB_DEFAULT}}"
+
+# gttp (Google Test Pretty Printer) command
+GTTP_DEFAULT="${THIS_DIR}/lib/gtpp.py"
+GTPP="${GTPP:=${GTTP_DEFAULT}}"
+
 mkdir -p "${BUILD_DIR}"
 
 # Generate a semicolon-delimited list of arguments for cppcheck
@@ -65,6 +73,11 @@ pushd "${BUILD_DIR}" > /dev/null
 
   print 25 "Run cppcheck";
   . "${SOURCE_DIR}/scripts/cppcheck.sh"
+
+  print 23 "Run tests";
+  pushd "${BUILD_DIR}/tests" > /dev/null
+      ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml
+  popd > /dev/null
 
   print 22 "Done";
 

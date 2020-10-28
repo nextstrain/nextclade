@@ -1,0 +1,11 @@
+
+set confirm off
+
+# Setup gdb-dashboard to only show source and stack modules
+# See: https://github.com/cyrus-and/gdb-dashboard#default-modules
+
+dashboard -layout stack source variables
+dashboard source -style height 20
+
+run
+quit

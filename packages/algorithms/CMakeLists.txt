@@ -19,7 +19,7 @@ add_executable(${PROJECT_NAME}
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE -DPROJECT_NAME="${PROJECT_NAME}"
@@ -56,5 +56,12 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
       -s MODULARIZE=1 \
       -s EXPORT_ES6=1 \
   ")
+endif ()
+
+set(${PROJECT_NAME}_BUILD_TESTS ON CACHE BOOL "Build unit tests")
+if (${${PROJECT_NAME}_BUILD_TESTS})
+  include(CTest)
+  enable_testing()
+  add_subdirectory(tests)
 endif ()
 

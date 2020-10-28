@@ -5,9 +5,11 @@
   "watch": [
     "CMakeLists.txt",
     "conanfile.txt",
-    "src/*"
+    "src/*",
+    "scripts/*",
+    "tests/*"
   ],
-  "ext": "cpp,h,hpp,cxx,c,.txt",
+  "ext": ".cpp,.h,.hpp,.cxx,.c,.txt,.cmake,.sh",
   "ignore": [".build", "node_modules"],
   "exec": "bash -c 'CMAKE_BUILD_TYPE=Debug ./scripts/build_locally.sh' || cd ."
 }
