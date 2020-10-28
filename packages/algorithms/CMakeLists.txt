@@ -9,6 +9,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
+include(cmake/CoolCFlags.cmake)
+include(cmake/CoolCXXFlags.cmake)
+
 find_package(boost_base 1.68.0 REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
