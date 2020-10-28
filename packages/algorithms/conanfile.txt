@@ -1,5 +1,5 @@
 [requires]
-boost/1.74.0
+boost_base/1.68.0@bincrafters/stable
 cxxopts/2.2.1
 fmt/7.1.0
 gtest/1.10.0

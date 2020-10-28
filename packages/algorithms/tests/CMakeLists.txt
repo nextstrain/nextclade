@@ -1,15 +1,13 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0069 NEW)
 
-project(${PROJECT_NAME}_tests)
-
+project(nextclade_tests)
 
 find_package(GTest 1.10.0 REQUIRED)
 
 add_executable(${PROJECT_NAME}
-  ../src/add.h
-  ../src/add.cpp
-  test.cpp
+  ../src/parseSequences.h
+  parseSequences.test.cpp
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
@@ -24,7 +22,9 @@ target_include_directories(${PROJECT_NAME}
   )
 
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE GTest::GTest
+  PRIVATE
+  nextclade
+  GTest::GTest
   )
 
 add_test(${PROJECT_NAME} ${PROJECT_NAME})

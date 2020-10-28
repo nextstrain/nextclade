@@ -9,13 +9,13 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
-
-find_package(Boost 1.74 REQUIRED)
+find_package(boost_base 1.68.0 REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 
-add_executable(${PROJECT_NAME}
-  src/cli.cpp
+add_library(${PROJECT_NAME} STATIC
+  src/parseSequences.cpp
+  src/parseSequences.h
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
@@ -30,7 +30,8 @@ target_include_directories(${PROJECT_NAME}
   )
 
 target_link_libraries(${PROJECT_NAME}
-  Boost::Boost
+  PUBLIC
+  boost_base::boost_base
   cxxopts::cxxopts
   fmt::fmt
   )
