@@ -24,7 +24,7 @@ mkdir -p "${BUILD_DIR_DEFAULT}"
 BUILD_DIR_DEFAULT=$(realpath "${BUILD_DIR_DEFAULT}")
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
 
-USE_COLOR="${USE_COLOR:=}"
+USE_COLOR="${USE_COLOR:=1}"
 
 mkdir -p "${BUILD_DIR}"
 
@@ -39,7 +39,7 @@ done<"${SOURCE_DIR}/.cppcheck"
 # Print coloured message
 function print() {
   if [[ ! -z "${USE_COLOR}" ]] && [[ "${USE_COLOR}" != "false" ]]; then
-    echo -en "\n\e[48;5;${1}m ${2}\t\e[0m\n";
+    echo -en "\n\e[48;5;${1}m - ${2} \t\e[0m\n";
   else
     printf "\n${2}\n";
   fi
@@ -61,5 +61,10 @@ pushd "${BUILD_DIR}" > /dev/null
 
   print 12 "Build";
   cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
+
+  print 25 "Run cppcheck";
+  . "${SOURCE_DIR}/scripts/cppcheck.sh"
+
+  print 22 "Done";
 
 popd > /dev/null

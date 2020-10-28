@@ -1,0 +1,14 @@
+--enable=warning,performance,portability
+--error-exitcode=0
+--force
+--inconclusive
+--inline-suppr
+--quiet
+--std=c++20
+--suppress=*:*third_party/*:*tests/*
+-i .build
+-i .conan
+-i .git
+-i .idea
+-i .ignore
+-i .vscode
