@@ -25,8 +25,8 @@ auto sanitizeSequence(std::string seq) {
 }
 
 void addSequence(std::string currentSeqName, const std::string &currentSeq,
-        std::map<std::string, std::string> &seqs,// NOLINT(google-runtime-references)
-        std::map<std::string, int> &seqNames     // NOLINT(google-runtime-references)
+  std::map<std::string, std::string> &seqs,// NOLINT(google-runtime-references)
+  std::map<std::string, int> &seqNames     // NOLINT(google-runtime-references)
 ) {
   if (currentSeqName.empty()) {
     currentSeqName = "Untitled";
@@ -51,7 +51,6 @@ std::map<std::string, std::string> parseSequences(std::istream &istream) {
   std::string currentSeq;
   std::map<std::string, std::string> seqs;
   std::map<std::string, int> seqNames;
-
 
   std::string line;
   while (std::getline(istream, line)) {

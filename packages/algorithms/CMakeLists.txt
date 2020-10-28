@@ -14,6 +14,10 @@ find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
+  src/analyzeSequence.cpp
+  src/analyzeSequence.h
+  src/isCannonicalNucleotide.cpp
+  src/isCannonicalNucleotide.h
   src/parseSequences.cpp
   src/parseSequences.h
   )

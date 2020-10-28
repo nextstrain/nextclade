@@ -6,7 +6,8 @@ project(nextclade_tests)
 find_package(GTest 1.10.0 REQUIRED)
 
 add_executable(${PROJECT_NAME}
-  ../src/parseSequences.h
+  analyzeSequence.test.cpp
+  isCanonicalNucleotide.test.cpp
   parseSequences.test.cpp
   )
 
