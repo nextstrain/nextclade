@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0069 NEW)
 
-project(nextclade)
+include(cmake/quiet.cmake)
 
+project(nextclade)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_INSTALL_MESSAGE LAZY)
+
 
 find_package(Boost 1.74 REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)

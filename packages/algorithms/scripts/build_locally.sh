@@ -58,6 +58,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \
     -DCMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK}" \
+    -DCMAKE_VERBOSE_MAKEFILE=0 \
 
   print 12 "Build";
   cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
