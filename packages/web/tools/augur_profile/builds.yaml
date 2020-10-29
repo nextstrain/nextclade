@@ -7,7 +7,10 @@
 builds:
   nextclade:
     subsampling_scheme: nextclade
+    subclades: "nextstrain_profiles/nextstrain/subclades_EU.tsv"
 
+custom_rules:
+  - nextstrain_profiles/nextstrain/subsampling_ranges.smk
 
 title: "Your samples placed on a SARS-CoV-2 phylogeny"
 
@@ -29,7 +32,7 @@ subsampling:
   # is the smallest resolution required.
   nextclade:
     global_late:
-      group_by: "region year month"
+      group_by: "country year month"
       min_date: "--min-date 2020-06-01"
       max_sequences: 1000
     global_early:

@@ -35,3 +35,30 @@ rule export_nextclade:
             --description {input.description} \
             --output {output.auspice_json} 2>&1 | tee {log}
         """
+
+rule example_data:
+    input:
+        sequences = rules.download.output.sequences,
+        metadata = rules.download.output.metadata,
+    output:
+        sequences = "results/{build_name}/example.fasta"
+    log:
+        "logs/example_{build_name}.txt"
+    params:
+        min_length = 20000,
+        exclude_where = "genbank_accession='?'",
+        min_date = "2020-07-01",
+        date = numeric_date(date.today())
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --max-date {params.date} \
+            --min-date {params.min_date} \
+	    --subsample-max-sequences 50 \
+	    --group-by region month \
+            --exclude-where {params.exclude_where}\
+            --min-length {params.min_length} \
+            --output {output.sequences} 2>&1 | tee {log}
+        """
