@@ -1,3 +1,70 @@
+# [0.8.0-alpha.4](https://github.com/nextstrain/nextclade/compare/0.7.6...0.8.0-alpha.4) (2020-10-30)
+
+* feat: add rule to augur workflow to make example sequence fasta
+* feat: add more interesting example data
+* feat: add subclades
+* feat!: remove clade markers from Gene Map, remove clades.json ([858b92a](https://github.com/nextstrain/nextclade/commit/858b92a7558e0ff7b9c7119cc34250f4ea829b85))
+
+### Features
+
+* force reset all users to English locale ([762d34d](https://github.com/nextstrain/nextclade/commit/762d34de89c27e8b867ad34f55154d87503cd4ae))
+
+
+### BREAKING CHANGES
+
+* This removes `virus.json` file and modifies `Virus` data structure.
+
+For a while now, we assign clades by looking at the closest node in the tree, and we don't rely algorithmically on clade definitions in `clades.json`. The only place where clade definitions were used is displaying clade-defining mutation markers on Gene Map.
+
+We agreed that with introduction of subclades we want to remove `clades.json`, rather than update it. It also means removing clade-defining mutation markers on Gene Map in the web app. This commit makes this happen.
+
+Affected are:
+ - Gene Map in the web app does not show clade markers anymore
+ - CLI users don't have to provide `clades.json` for custom viruses
+
+
+
+# [0.8.0-alpha.2](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.1...0.8.0-alpha.2) (2020-10-13)
+
+
+### Bug Fixes
+
+* **cli:** add missing files into docker builds ([dbb54f2](https://github.com/nextstrain/nextclade/commit/dbb54f2a8584379437932d7480cc08db34d16a87))
+
+
+
+# [0.8.0-alpha.1](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.0...0.8.0-alpha.1) (2020-10-13)
+
+
+### Features
+
+* enforce csv column order, remove duplicate qc.seqName column ([5928b53](https://github.com/nextstrain/nextclade/commit/5928b53cc0d8d74fa3e438d91d958b54d1dd1fee))
+
+
+### BREAKING CHANGES
+
+*  - qc.seqName is removed from CSV, TSV and JSON outputs (it had the same values as seqName)
+ - order of columns is changed in CSV ans TSV outputs
+
+
+
+# [0.8.0-alpha.0](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.0) (2020-10-12)
+
+
+### Bug Fixes
+
+* use consistent line endings in json export ([3d8ddb5](https://github.com/nextstrain/nextclade/commit/3d8ddb537dd2fb516e99924165eed8ed2fbd74dc))
+* **cli:** preserve failed sequences in results ([8e1e78b](https://github.com/nextstrain/nextclade/commit/8e1e78b170242e72b97e3e75ce67856ad9f32c28))
+
+
+### Features
+
+* **cli:** add jobs flag for setting the level of parallelism ([96100b6](https://github.com/nextstrain/nextclade/commit/96100b6063880c69630ef7019a3d4223aaf63379))
+* **cli:** don't finalize tree when tree output is not requested ([8a9c767](https://github.com/nextstrain/nextclade/commit/8a9c767e6f39270ee4d24fc3c2445deae895dd3e))
+* **cli:** make CLI run in parallel   ([5a8902c](https://github.com/nextstrain/nextclade/commit/5a8902c1248d2aec9851e9d27ea59790d9eb4af9))
+
+
+
 ## [0.7.6](https://github.com/nextstrain/nextclade/compare/0.7.5...0.7.6) (2020-10-27)
 
 
