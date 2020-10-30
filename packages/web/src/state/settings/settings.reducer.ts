@@ -6,7 +6,7 @@ import { settingsDefaultState } from 'src/state/settings/settings.state'
 
 export const settingsReducer = reducerWithInitialState(settingsDefaultState)
   .icase(setLocale, (draft, localeKey) => {
-    draft.localeKey = localeKey
+    draft.localeKeyV2 = localeKey
   })
 
   .icase(setQcRulesConfig, (draft, qcRulesConfig) => {
