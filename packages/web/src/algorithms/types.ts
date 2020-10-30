@@ -89,8 +89,6 @@ export interface Virus {
   name: string
   genomeSize: number
   minimalLength: number
-  clades: Clades
-  cladesGrouped: CladesGrouped[]
   geneMap: Gene[]
   rootSeq: string
   auspiceData: AuspiceJsonV2
@@ -98,7 +96,7 @@ export interface Virus {
   qcRulesConfig: QCRulesConfig
 }
 
-export type VirusRaw = StrictOmit<Virus, 'cladesGrouped' | 'genomeSize'>
+export type VirusRaw = StrictOmit<Virus, 'genomeSize'>
 
 export interface AlgorithmParams {
   sequenceDatum: string
