@@ -23,8 +23,8 @@ export async function initialize({ router }: InitializeParams) {
 
   const { persistor, store } = await configureStore({ router, workerPools })
 
-  const { localeKey } = store.getState().settings
-  store.dispatch(setLocale(localeKey))
+  const { localeKeyV2 } = store.getState().settings
+  store.dispatch(setLocale(localeKeyV2))
 
   await fetchInputsAndRunMaybe(store.dispatch, router)
 
