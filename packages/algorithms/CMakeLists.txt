@@ -15,8 +15,11 @@ include(cmake/CoolCXXFlags.cmake)
 find_package(boost_base 1.68.0 REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
+find_package(SeqAn3 3.0.2 REQUIRED HINTS "${CMAKE_SOURCE_DIR}/3rdparty/seqan3/build_system")
 
 add_library(${PROJECT_NAME} STATIC
+  src/alignPairwise.cpp
+  src/alignPairwise.h
   src/analyzeSequence.cpp
   src/analyzeSequence.h
   src/isCannonicalNucleotide.cpp
@@ -41,6 +44,7 @@ target_link_libraries(${PROJECT_NAME}
   boost_base::boost_base
   cxxopts::cxxopts
   fmt::fmt
+  seqan3::seqan3
   )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")

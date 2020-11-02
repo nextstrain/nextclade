@@ -12,3 +12,5 @@
 -i .idea
 -i .ignore
 -i .vscode
+-i 3rdparty
+-i cmake
