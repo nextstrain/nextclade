@@ -14,7 +14,7 @@ import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 
 export async function run(workers: WorkerPools, input: string, virus: Virus, shouldMakeTree: boolean) {
   const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
-  const auspiceData = treePreprocess(auspiceDataReference)
+  const auspiceData = treePreprocess(auspiceDataReference, rootSeq)
 
   const { threadParse, poolAnalyze, threadTreeFinalize } = workers
   const { parsedSequences } = await threadParse(input)

@@ -128,7 +128,7 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
 export function* runAlgorithm(content?: File | string) {
   const { input, virus } = yield* prepare(content)
   const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
-  const auspiceData = treePreprocess(copy(auspiceDataReference))
+  const auspiceData = treePreprocess(copy(auspiceDataReference), rootSeq)
 
   const parseResult = yield* parse(input)
   if (!parseResult) {
