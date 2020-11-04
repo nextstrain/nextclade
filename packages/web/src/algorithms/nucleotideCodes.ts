@@ -1,3 +1,6 @@
+import { get } from 'lodash'
+import { intersection } from 'src/helpers/setOperations'
+
 const IUPACNucCodes: Record<string, Set<string>> = {
   A: new Set(['A']),
   C: new Set(['C']),
@@ -25,8 +28,10 @@ export function isMatch(query: string, reference: string): boolean {
   }
 
   // match specific ambiguity codes
-  if (IUPACNucCodes[query]) {
-    return IUPACNucCodes[query].has(reference)
+  const queryNucs = get(IUPACNucCodes, query)
+  const refNucs = get(IUPACNucCodes, reference)
+  if (queryNucs && refNucs) {
+    return intersection(queryNucs, refNucs).size > 0
   }
 
   return false
