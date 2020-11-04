@@ -16,7 +16,12 @@ import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { fsaSagaFromParams } from 'src/state/util/fsaSagaFromParams'
 import fsaSaga from 'src/state/util/fsaSaga'
-import { EXPORT_CSV_FILENAME, EXPORT_TSV_FILENAME, EXPORT_JSON_FILENAME } from 'src/constants'
+import {
+  EXPORT_CSV_FILENAME,
+  EXPORT_TSV_FILENAME,
+  EXPORT_JSON_FILENAME,
+  EXPORT_AUSPICE_JSON_V2_FILENAME,
+} from 'src/constants'
 import { saveFile } from 'src/helpers/saveFile'
 import { serializeResultsToCsv, serializeResultsToJson } from 'src/io/serializeResults'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
@@ -26,15 +31,17 @@ import {
   exportCsvTrigger,
   exportTsvTrigger,
   exportJsonTrigger,
+  exportTreeJsonTrigger,
   parseAsync,
   setAlgorithmGlobalStatus,
   setInput,
   setInputFile,
   algorithmRunAsync,
   treeFinalizeAsync,
+  setOutputTree,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
-import { selectParams, selectResults } from 'src/state/algorithm/algorithm.selectors'
+import { selectOutputTree, selectParams, selectResults } from 'src/state/algorithm/algorithm.selectors'
 
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
@@ -152,6 +159,7 @@ export function* runAlgorithm(content?: File | string) {
   }
 
   const auspiceDataPostprocessed = treePostProcess(auspiceDataNew)
+  yield* put(setOutputTree(JSON.stringify(auspiceDataPostprocessed, null, 2)))
   yield* setAuspiceState(auspiceDataPostprocessed)
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 }
@@ -174,9 +182,17 @@ export function* exportJson() {
   saveFile(str, EXPORT_JSON_FILENAME, 'application/json;charset=utf-8')
 }
 
+export function* exportTreeJson() {
+  const auspiceDataStr = yield* select(selectOutputTree)
+  if (auspiceDataStr) {
+    saveFile(auspiceDataStr, EXPORT_AUSPICE_JSON_V2_FILENAME, 'application/json;charset=utf-8')
+  }
+}
+
 export default [
   takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
   takeEvery(exportCsvTrigger, exportCsv),
   takeEvery(exportTsvTrigger, exportTsv),
   takeEvery(exportJsonTrigger, exportJson),
+  takeEvery(exportTreeJsonTrigger, exportTreeJson),
 ]

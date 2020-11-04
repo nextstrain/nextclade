@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React from 'react'
 
 import styled from 'styled-components'
 import { connect } from 'react-redux'
@@ -6,22 +6,13 @@ import { Button, ButtonProps } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 import { push } from 'connected-next-router'
 
-import { RectangularTree } from 'auspice/src/components/framework/svg-icons'
-
 import { State } from 'src/state/reducer'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
+import { TreeIcon } from 'src/components/Tree/TreeIcon'
 
 const IconContainer = styled.span`
   margin-right: 0.5rem;
 `
-
-export function TreeIconRaw() {
-  const size = 20
-  const theme = { unselectedColor: '#222' }
-  return <RectangularTree theme={theme} width={size} />
-}
-
-const TreeIcon = memo(TreeIconRaw)
 
 export const ButtonStyled = styled(Button)<ButtonProps>`
   margin: 2px 2px;

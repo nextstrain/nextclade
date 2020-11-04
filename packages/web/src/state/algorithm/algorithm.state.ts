@@ -65,6 +65,7 @@ export interface AlgorithmState {
   tree: AuspiceJsonV2
   errors: string[]
   filters: ResultsFilters
+  outputTree?: string
 }
 
 export interface CladeAssignmentResult {
@@ -89,4 +90,5 @@ export const algorithmDefaultState: AlgorithmState = {
     showBad: true,
     showErrors: true,
   },
+  outputTree: undefined,
 }

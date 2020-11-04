@@ -14,6 +14,8 @@ export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
 export const selectCanExport = (state: State): boolean => state.algorithm.status === AlgorithmGlobalStatus.allDone
 
+export const selectOutputTree = (state: State): string | undefined => state.algorithm.outputTree
+
 export function selectStatus(state: State) {
   const statusGlobal = state.algorithm.status
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
