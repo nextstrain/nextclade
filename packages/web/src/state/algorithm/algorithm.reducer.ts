@@ -25,6 +25,8 @@ import {
   setShowErrors,
   setShowBad,
   setShowMediocre,
+  setInputRootSeq,
+  setInputTree,
 } from './algorithm.actions'
 import {
   algorithmDefaultState,
@@ -107,6 +109,14 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setInputFile, (draft, inputFile) => {
     draft.status = AlgorithmGlobalStatus.idling
     draft.inputFile = inputFile
+  })
+
+  .icase(setInputRootSeq, (draft, inputRootSeq) => {
+    draft.params.virus.rootSeq = inputRootSeq
+  })
+
+  .icase(setInputTree, (draft, inputTree) => {
+    draft.params.virus.auspiceData = inputTree
   })
 
   .icase(setIsDirty, (draft, isDirty) => {

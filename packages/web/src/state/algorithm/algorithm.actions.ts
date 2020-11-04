@@ -1,5 +1,6 @@
-import { actionCreatorFactory } from 'src/state/util/fsaActions'
+import type { AuspiceJsonV2 } from 'auspice'
 
+import { actionCreatorFactory } from 'src/state/util/fsaActions'
 import type { AnalysisParams, AnalysisResult } from 'src/algorithms/types'
 import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
@@ -12,6 +13,8 @@ const action = actionCreatorFactory('Algorithm')
 
 export const setInput = action<string>('setInput')
 export const setInputFile = action<InputFile>('setInputFile')
+export const setInputRootSeq = action<string>('setRootSeq')
+export const setInputTree = action<AuspiceJsonV2>('setTree')
 export const setIsDirty = action<boolean>('setIsDirty')
 
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
