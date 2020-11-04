@@ -25,8 +25,14 @@ export function isMatch(query: string, reference: string): boolean {
   }
 
   // match specific ambiguity codes
-  if (IUPACNucCodes[query]) {
-    return IUPACNucCodes[query].has(reference)
+  if (IUPACNucCodes[query] && IUPACNucCodes[reference]) {
+    const intersection = new Set()
+    for (const elem of IUPACNucCodes[query]) {
+      if (IUPACNucCodes[reference].has(elem)) {
+        intersection.add(elem)
+      }
+    }
+    return intersection.size > 0
   }
 
   return false
