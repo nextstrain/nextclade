@@ -10,10 +10,15 @@ export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
 export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   let shared_differences = 0
   let shared_sites = 0
-  const nodeSubstitutions: MutationMap = new Map()
+
+  // Filter-out gaps, to prevent double counting
+  const nodeSubstitutions: MutationMap = new Map<number, Nucleotide>()
   node.mutations?.forEach((v, k) => {
-    if (v !== '-') nodeSubstitutions.set(k, v)
+    if (v !== '-') {
+      nodeSubstitutions.set(k, v)
+    }
   })
+
   for (const qmut of seq.substitutions) {
     const der = nodeSubstitutions?.get(qmut.pos)
     if (der) {
