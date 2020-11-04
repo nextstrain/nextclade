@@ -26,10 +26,12 @@ export const treeBuildAsync = action.async<LocateInTreeParams, LocateInTreeResul
 export const setClades = action<CladeAssignmentResult[]>('setClades')
 export const setQcResults = action<QCResult[]>('setQcResults')
 export const treeFinalizeAsync = action.async<FinalizeTreeParams, AuspiceJsonV2Extended, Error>('treeFinalizeAsync')
+export const setOutputTree = action<string>('setOutputTree')
 
 export const exportCsvTrigger = action('exportCsvTrigger')
 export const exportTsvTrigger = action('exportTsvTrigger')
 export const exportJsonTrigger = action('exportJsonTrigger')
+export const exportTreeJsonTrigger = action('exportTreeJsonTrigger')
 
 export const setSeqNamesFilter = action<string | undefined>('setSeqNamesFilter')
 export const setMutationsFilter = action<string | undefined>('setMutationsFilter')

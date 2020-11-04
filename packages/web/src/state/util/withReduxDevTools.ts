@@ -153,6 +153,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
           params: sanitizeParams(state.algorithm.params),
           results: sanitizeResults(state.algorithm.results),
           resultsFiltered: sanitizeResults(state.algorithm.results),
+          outputTree: state.algorithm.outputTree?.slice(0, 128),
         },
         tree: sanitizeTree(state.tree),
         entropy: sanitizeEntropy(state.controls),

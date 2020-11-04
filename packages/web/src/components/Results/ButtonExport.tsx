@@ -15,9 +15,15 @@ import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
 import { ExportFormat } from 'src/state/ui/ui.state'
-import { exportCsvTrigger, exportTsvTrigger, exportJsonTrigger } from 'src/state/algorithm/algorithm.actions'
+import {
+  exportCsvTrigger,
+  exportTsvTrigger,
+  exportJsonTrigger,
+  exportTreeJsonTrigger,
+} from 'src/state/algorithm/algorithm.actions'
 import { setExportFormat } from 'src/state/ui/ui.actions'
-import { selectCanExport } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanExport, selectOutputTree } from 'src/state/algorithm/algorithm.selectors'
+import { TreeIcon } from 'src/components/Tree/TreeIcon'
 
 const Button = styled(ReactstrapButton)`
   margin: 2px 2px;
@@ -45,21 +51,33 @@ export function ExportCSVIcon() {
   return <IoMdDocument className="mr-xl-2 mb-1" size={22} />
 }
 
+const TreeIconContainer = styled.span`
+  margin-right: 0.55rem;
+`
+
 export interface ExportButtonIconProps {
   exportFormat: ExportFormat
 }
 
 export interface ExportButtonProps {
   canExport: boolean
+  hasTree: boolean
   exportFormat: ExportFormat
+
   setExportFormat(exportType: ExportFormat): void
+
   exportCsvTrigger(_0: void): void
+
   exportTsvTrigger(_0: void): void
+
   exportJsonTrigger(_0: void): void
+
+  exportTreeJsonTrigger(_0: void): void
 }
 
 const mapStateToProps = (state: State) => ({
   exportFormat: state.ui.exportFormat,
+  hasTree: selectOutputTree(state) !== undefined,
   canExport: selectCanExport(state),
 })
 
@@ -67,6 +85,7 @@ const mapDispatchToProps = {
   exportCsvTrigger,
   exportJsonTrigger,
   exportTsvTrigger,
+  exportTreeJsonTrigger,
   setExportFormat,
 }
 
@@ -74,11 +93,13 @@ export const ButtonExport = connect(mapStateToProps, mapDispatchToProps)(ExportB
 
 export function ExportButtonDisconnected({
   canExport,
+  hasTree,
   exportFormat,
   setExportFormat,
   exportCsvTrigger,
   exportTsvTrigger,
   exportJsonTrigger,
+  exportTreeJsonTrigger,
 }: ExportButtonProps) {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -97,6 +118,11 @@ export function ExportButtonDisconnected({
   const handleTsvClick = () => {
     setExportFormat(ExportFormat.TSV)
     exportTsvTrigger()
+  }
+
+  const handleTreeJsonClick = () => {
+    setExportFormat(ExportFormat.TREE_JSON)
+    exportTreeJsonTrigger()
   }
 
   const handleButtonClick = exportFormat === ExportFormat.CSV ? handleCsvClick : handleJsonClick
@@ -122,6 +148,12 @@ export function ExportButtonDisconnected({
         <DropdownItem onClick={handleJsonClick}>
           <ExportJSONIcon />
           {t('Export to JSON')}
+        </DropdownItem>
+        <DropdownItem onClick={handleTreeJsonClick} disabled={!hasTree}>
+          <TreeIconContainer>
+            <TreeIcon />
+          </TreeIconContainer>
+          {t('Export to Auspice')}
         </DropdownItem>
       </DropdownMenu>
     </ButtonDropdown>
