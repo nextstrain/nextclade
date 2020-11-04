@@ -20,7 +20,7 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
   })
 
   for (const qmut of seq.substitutions) {
-    const der = nodeSubstitutions?.get(qmut.pos)
+    const der = nodeSubstitutions.get(qmut.pos)
     if (der) {
       // position is also mutated in node
       if (qmut.queryNuc === der) {
@@ -33,16 +33,14 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
   // determine the number of sites that are mutated in the node but missing in seq.
   // for these we can't tell whether the node agrees with seq
   let undetermined_sites = 0
-  if (nodeSubstitutions) {
-    for (const nmut of nodeSubstitutions) {
-      const pos = nmut[0]
-      if (!isSequenced(pos, seq)) {
-        undetermined_sites += 1
-      }
+  for (const nmut of nodeSubstitutions) {
+    const pos = nmut[0]
+    if (!isSequenced(pos, seq)) {
+      undetermined_sites += 1
     }
   }
 
-  const numMut = nodeSubstitutions?.size ?? 0
+  const numMut = nodeSubstitutions.size ?? 0
   // calculate distance from set overlaps.
   return numMut + seq.substitutions.length - 2 * shared_differences - shared_sites - undetermined_sites
 }
