@@ -1,3 +1,11 @@
+## [0.7.7](https://github.com/nextstrain/nextclade/compare/0.7.6...0.7.7) (2020-11-04)
+
+
+### Bug Fixes
+
+* remove mutually cancelling mutations during tree preprocessing ([a420e83](https://github.com/nextstrain/nextclade/commit/a420e8373a05af1f74e2f073ae83c4577dd65510))
+
+
 ## [0.7.6](https://github.com/nextstrain/nextclade/compare/0.7.5...0.7.6) (2020-10-27)
 
 
@@ -5,6 +13,9 @@
 
 * avoid crash on filter badge removal ([472b9ab](https://github.com/nextstrain/nextclade/commit/472b9ab2c9bf5e7e83621c0046e331d3e9d5cebb)), closes [#235](https://github.com/nextstrain/nextclade/issues/235)
 
+### Features
+
+* force reset all users to English locale ([762d34d](https://github.com/nextstrain/nextclade/commit/762d34de89c27e8b867ad34f55154d87503cd4ae))
 
 
 ## [0.7.5](https://github.com/nextstrain/nextclade/compare/0.7.4...0.7.5) (2020-10-06)
