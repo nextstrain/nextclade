@@ -13,8 +13,8 @@ const action = actionCreatorFactory('Algorithm')
 
 export const setInput = action<string>('setInput')
 export const setInputFile = action<InputFile>('setInputFile')
-export const setRootSeq = action<string>('setRootSeq')
-export const setTree = action<AuspiceJsonV2>('setTree')
+export const setInputRootSeq = action<string>('setRootSeq')
+export const setInputTree = action<AuspiceJsonV2>('setTree')
 export const setIsDirty = action<boolean>('setIsDirty')
 
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')

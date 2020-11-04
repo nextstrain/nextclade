@@ -4,7 +4,7 @@ import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { treeValidate } from 'src/algorithms/tree/treeValidate'
 
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
-import { algorithmRunAsync, setIsDirty, setRootSeq, setTree } from 'src/state/algorithm/algorithm.actions'
+import { algorithmRunAsync, setIsDirty, setInputRootSeq, setInputTree } from 'src/state/algorithm/algorithm.actions'
 import { errorAdd } from 'src/state/error/error.actions'
 import { sanitizeRootSeq } from 'src/helpers/sanitizeRootSeq'
 
@@ -53,12 +53,12 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
 
   if (inputRootSeqDangerous) {
     const inputRootSeq = sanitizeRootSeq(inputRootSeqDangerous)
-    dispatch(setRootSeq(inputRootSeq))
+    dispatch(setInputRootSeq(inputRootSeq))
   }
 
   if (inputTreeDangerous) {
     const inputTree = treeValidate(inputTreeDangerous)
-    dispatch(setTree(inputTree))
+    dispatch(setInputTree(inputTree))
   }
 
   if (inputFasta) {
