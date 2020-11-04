@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import type { Nucleotide, NucleotideSubstitution, AnalysisResultWithoutClade } from 'src/algorithms/types'
-import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
+import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended, MutationMap } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/enums'
 
 export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
@@ -10,8 +10,17 @@ export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
 export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
   let shared_differences = 0
   let shared_sites = 0
+
+  // Filter-out gaps, to prevent double counting
+  const nodeSubstitutions: MutationMap = new Map<number, Nucleotide>()
+  node.mutations?.forEach((v, k) => {
+    if (v !== '-') {
+      nodeSubstitutions.set(k, v)
+    }
+  })
+
   for (const qmut of seq.substitutions) {
-    const der = node.mutations?.get(qmut.pos)
+    const der = nodeSubstitutions.get(qmut.pos)
     if (der) {
       // position is also mutated in node
       if (qmut.queryNuc === der) {
@@ -24,16 +33,14 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
   // determine the number of sites that are mutated in the node but missing in seq.
   // for these we can't tell whether the node agrees with seq
   let undetermined_sites = 0
-  if (node.mutations) {
-    for (const nmut of node.mutations) {
-      const pos = nmut[0]
-      if (!isSequenced(pos, seq)) {
-        undetermined_sites += 1
-      }
+  for (const nmut of nodeSubstitutions) {
+    const pos = nmut[0]
+    if (!isSequenced(pos, seq)) {
+      undetermined_sites += 1
     }
   }
 
-  const numMut = node.mutations?.size ?? 0
+  const numMut = nodeSubstitutions.size ?? 0
   // calculate distance from set overlaps.
   return numMut + seq.substitutions.length - 2 * shared_differences - shared_sites - undetermined_sites
 }
