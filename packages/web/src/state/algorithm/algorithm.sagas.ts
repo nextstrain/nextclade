@@ -156,7 +156,7 @@ export function* treeFindNearestNodes(
   auspiceDataOriginal: AuspiceJsonV2,
 ) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeBuild))
-  const auspiceData = treePreprocess(treeValidate(auspiceDataOriginal))
+  const auspiceData = treePreprocess(treeValidate(auspiceDataOriginal), rootSeq)
   return yield* buildTreeSaga({ analysisResults, rootSeq, auspiceData })
 }
 

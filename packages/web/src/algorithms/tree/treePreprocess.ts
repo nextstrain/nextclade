@@ -7,7 +7,7 @@ import type { AuspiceTreeNodeExtended, MutationMap } from 'src/algorithms/tree/t
 import { setNodeTypes } from 'src/algorithms/tree/treeFindNearestNodes'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
 
-export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: MutationMap) {
+export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: MutationMap, rootSeq: string) {
   const tmp_muts = copy(mutations)
 
   const nucleotideMutations = node?.branch_attrs?.mutations?.nuc
@@ -20,7 +20,14 @@ export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: Muta
           `Mutation is inconsistent: "${mut}": current nucleotide: "${anc}", previously seen: "${previousNuc}"`,
         )
       }
-      tmp_muts.set(pos, der)
+
+      // if the mutation reverts the nucleotide back to
+      // what reference had, remove it from the map
+      if (rootSeq[pos] === der) {
+        tmp_muts.delete(pos)
+      } else {
+        tmp_muts.set(pos, der)
+      }
     }
   }
 
@@ -28,12 +35,12 @@ export function mutations_on_tree(node: AuspiceTreeNodeExtended, mutations: Muta
   const { children } = node
   if (children) {
     for (const c of children) {
-      mutations_on_tree(c, tmp_muts)
+      mutations_on_tree(c, tmp_muts, rootSeq)
     }
   }
 }
 
-export function treePreprocess(auspiceData: AuspiceJsonV2) {
+export function treePreprocess(auspiceData: AuspiceJsonV2, rootSeq: string) {
   const focal_node = auspiceData?.tree
   if (!focal_node) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
@@ -42,7 +49,7 @@ export function treePreprocess(auspiceData: AuspiceJsonV2) {
   setNodeTypes(focal_node)
 
   const mutations = new Map()
-  mutations_on_tree(focal_node, mutations)
+  mutations_on_tree(focal_node, mutations, rootSeq)
 
   return auspiceData
 }

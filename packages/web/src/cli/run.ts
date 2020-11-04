@@ -37,7 +37,7 @@ export function run(input: string, virus: Virus) {
     })
     .filter(notUndefined)
 
-  const auspiceData = treePreprocess(auspiceDataReference)
+  const auspiceData = treePreprocess(auspiceDataReference, rootSeq)
   const { matches, privateMutationSets, auspiceData: auspiceDataRaw } = treeFindNearestNodes({
     analysisResults: analysisResultsWithoutClades,
     rootSeq,
