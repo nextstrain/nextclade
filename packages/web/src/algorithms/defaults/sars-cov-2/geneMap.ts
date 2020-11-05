@@ -1,23 +1,5 @@
-import { get, pick } from 'lodash'
+import { getGeneMap } from 'src/io/getGeneMap'
 
-import type { Gene } from 'src/algorithms/types'
-import { GENOTYPE_COLORS } from 'src/constants'
+import geneMapJson from './geneMap.json'
 
-import geneMapRaw from './geneMap.json'
-
-function getGeneMap(): Gene[] {
-  const geneMap = get(geneMapRaw, 'genome_annotations')
-
-  if (!geneMap) {
-    throw new Error(`getGeneMap: the gene map data is corrupted`)
-  }
-
-  return Object.entries(geneMap).map(([name, geneDataRaw], i) => {
-    const color = GENOTYPE_COLORS[(i + 1) % GENOTYPE_COLORS.length]
-    const { start: begin, end } = pick(geneDataRaw, ['start', 'end'])
-    const geneWithoutColor = { name, range: { begin, end } }
-    return { ...geneWithoutColor, color }
-  })
-}
-
-export const geneMap = getGeneMap()
+export const geneMap = getGeneMap(geneMapJson)
