@@ -6,6 +6,7 @@ import yargs from 'yargs'
 
 import { AnalysisResult, Virus } from 'src/algorithms/types'
 import { getVirus } from 'src/algorithms/defaults/viruses'
+import { getGeneMap } from 'src/io/getGeneMap'
 import { parseCsv } from 'src/io/parseCsv'
 import { parseRootSeq } from 'src/io/parseRootSeq'
 
@@ -202,7 +203,7 @@ export async function readInputs({
   }
 
   if (inputGeneMap) {
-    const geneMap = validateGeneMap(await fs.readJson(inputGeneMap))
+    const geneMap = validateGeneMap(getGeneMap(await fs.readJson(inputGeneMap)))
     virus = { ...virus, geneMap }
   }
 
