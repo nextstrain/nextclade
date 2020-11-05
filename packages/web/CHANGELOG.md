@@ -1,3 +1,20 @@
+# [0.8.0-alpha.6](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.5...0.8.0-alpha.6) (2020-11-05)
+
+
+### Bug Fixes
+
+* ensure isMatch handles ambiguous nucleotides in both reference and query ([ee35f77](https://github.com/nextstrain/nextclade/commit/ee35f7717d51b4ed70aa20adcf31e62fb17a9ea9))
+* exclude gaps in reference node from distance calculations ([8e6571c](https://github.com/nextstrain/nextclade/commit/8e6571c331e7c277dfba47e757e4b42ee4f2acfe))
+
+
+### Features
+
+* allow exporting Auspice tree json result again ([5428bc8](https://github.com/nextstrain/nextclade/commit/5428bc8054a3f8cd78729a307b5dfadda4e0474b))
+* fetch input root sequence and input ref tree provided  URL params ([585371a](https://github.com/nextstrain/nextclade/commit/585371a1e397bc15e7802d8e6a4e2edaa5777da9))
+* use the root sequence and tree provided in the URL ([d364efa](https://github.com/nextstrain/nextclade/commit/d364efa1936967e345d04ad917f600fca9ecabee))
+
+
+
 ## [0.7.7](https://github.com/nextstrain/nextclade/compare/0.7.6...0.7.7) (2020-11-04), # [0.8.0-alpha.5](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.4...0.8.0-alpha.5) (2020-11-04)
 
 
