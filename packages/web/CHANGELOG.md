@@ -1,4 +1,4 @@
-# [0.7.8](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-11-05)
+# [0.7.8](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-11-05), [0.7.9](https://github.com/nextstrain/nextclade/compare/0.7.8...0.7.9) (2020-11-05)
 
 
 ### Bug Fixes
