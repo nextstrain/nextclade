@@ -1,3 +1,11 @@
+# [0.7.8](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-11-05)
+
+
+### Bug Fixes
+
+* **cli:** add missing preprocessing step for custom gene maps in CLI ([0fb31dd](https://github.com/nextstrain/nextclade/commit/0fb31dd02e44460460c3565e32391aafbc1a7fcc)), closes [#252](https://github.com/nextstrain/nextclade/issues/252)
+
+
 ## [0.7.7](https://github.com/nextstrain/nextclade/compare/0.7.6...0.7.7) (2020-11-04)
 
 
