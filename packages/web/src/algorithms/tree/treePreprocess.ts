@@ -14,7 +14,12 @@ export function setNodeTypes(node: AuspiceTreeNode) {
   node.children?.forEach(setNodeTypes)
 }
 
-export function mutations_on_tree(node: AuspiceTreeNode, id: { value: number }, mutations: MutationMap) {
+export function mutations_on_tree(
+  node: AuspiceTreeNode,
+  id: { value: number },
+  mutations: MutationMap,
+  rootSeq: string,
+) {
   const tmp_muts = copy(mutations)
 
   const nucleotideMutations = node?.branch_attrs?.mutations?.nuc
@@ -27,7 +32,14 @@ export function mutations_on_tree(node: AuspiceTreeNode, id: { value: number }, 
           `Mutation is inconsistent: "${mut}": current nucleotide: "${anc}", previously seen: "${previousNuc}"`,
         )
       }
-      tmp_muts.set(pos, der)
+
+      // if the mutation reverts the nucleotide back to
+      // what reference had, remove it from the map
+      if (rootSeq[pos] === der) {
+        tmp_muts.delete(pos)
+      } else {
+        tmp_muts.set(pos, der)
+      }
     }
   }
 
@@ -40,14 +52,14 @@ export function mutations_on_tree(node: AuspiceTreeNode, id: { value: number }, 
   if (children) {
     for (const child of children) {
       id.value += 1
-      mutations_on_tree(child, id, tmp_muts)
+      mutations_on_tree(child, id, tmp_muts, rootSeq)
     }
   }
 
   return nodeExtended
 }
 
-export function treePreprocess(auspiceData: AuspiceJsonV2): AuspiceJsonV2Extended {
+export function treePreprocess(auspiceData: AuspiceJsonV2, rootSeq: string): AuspiceJsonV2Extended {
   const focal_node = auspiceData?.tree
   if (!focal_node) {
     throw new Error(`Tree format not recognized: ".tree" is undefined`)
@@ -59,7 +71,7 @@ export function treePreprocess(auspiceData: AuspiceJsonV2): AuspiceJsonV2Extende
   // It's wrapped into an object to emulate pass-by-reference semantics for a primitive type (number).
   const id = { value: 0 }
   const mutations = new Map()
-  const tree = mutations_on_tree(focal_node, id, mutations)
+  const tree = mutations_on_tree(focal_node, id, mutations, rootSeq)
 
   return { ...auspiceData, tree }
 }

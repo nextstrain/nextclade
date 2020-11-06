@@ -13,8 +13,6 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 
-import { CladeMarker } from './CladeMarker'
-
 export const GENE_MAP_HEIGHT_PX = 35
 export const GENE_HEIGHT_PX = 15
 export const geneMapY = -GENE_MAP_HEIGHT_PX / 2
@@ -90,22 +88,10 @@ export function GeneMapUnsizedDisconnected({ virus, width, height }: GeneMapProp
     )
   }
 
-  const { cladesGrouped, geneMap, genomeSize } = virus
+  const { geneMap, genomeSize } = virus
   const pixelsPerBase = width / genomeSize
   const geneViews = geneMap.map((gene, i) => {
     return <GeneView key={gene.name} gene={gene} pixelsPerBase={pixelsPerBase} />
-  })
-
-  const cladeMarks = cladesGrouped.map((cladeDatum) => {
-    return (
-      <CladeMarker
-        key={cladeDatum.pos}
-        cladeDatum={cladeDatum}
-        pixelsPerBase={pixelsPerBase}
-        y={geneMapY}
-        height={GENE_MAP_HEIGHT_PX}
-      />
-    )
   })
 
   return (
@@ -113,7 +99,6 @@ export function GeneMapUnsizedDisconnected({ virus, width, height }: GeneMapProp
       <GeneMapSVG viewBox={`0 ${geneMapY} ${width} ${GENE_MAP_HEIGHT_PX}`}>
         <rect fill="transparent" x={0} y={geneMapY} width={width} height={GENE_MAP_HEIGHT_PX} />
         {geneViews}
-        {cladeMarks}
       </GeneMapSVG>
     </GeneMapWrapper>
   )

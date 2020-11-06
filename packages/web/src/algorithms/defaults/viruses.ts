@@ -1,6 +1,5 @@
 import copy from 'fast-copy'
 
-import { groupClades } from 'src/algorithms/clades'
 import type { Virus, VirusRaw } from 'src/algorithms/types'
 import { VirusName } from 'src/algorithms/defaults/virusNames'
 
@@ -35,8 +34,7 @@ export function getVirus(virusName: string = DEFAULT_VIRUS_NAME): Virus {
   const virusNameValid = validateVirusName(virusName)
   const virusRaw = DEFAULT_VIRUSES[virusNameValid]
   const genomeSize = virusRaw.rootSeq.length
-  const cladesGrouped = groupClades(virusRaw.clades)
-  return copy({ ...virusRaw, genomeSize, cladesGrouped })
+  return copy({ ...virusRaw, genomeSize })
 }
 
 export function getSequenceDatum(virusName: string = DEFAULT_VIRUS_NAME): string {

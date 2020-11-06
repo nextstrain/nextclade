@@ -25,6 +25,9 @@ import {
   setShowErrors,
   setShowBad,
   setShowMediocre,
+  setInputRootSeq,
+  setInputTree,
+  setOutputTree,
 } from './algorithm.actions'
 import {
   algorithmDefaultState,
@@ -107,6 +110,14 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setInputFile, (draft, inputFile) => {
     draft.status = AlgorithmGlobalStatus.idling
     draft.inputFile = inputFile
+  })
+
+  .icase(setInputRootSeq, (draft, inputRootSeq) => {
+    draft.params.virus.rootSeq = inputRootSeq
+  })
+
+  .icase(setInputTree, (draft, inputTree) => {
+    draft.params.virus.auspiceData = inputTree
   })
 
   .icase(setIsDirty, (draft, isDirty) => {
@@ -197,4 +208,8 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setQcResults, (draft, qcResults) => {
     draft.results = mergeByWith(draft.results, qcResults, haveSameSeqName, mergeQcIntoResults)
     draft.resultsFiltered = runFilters(current(draft))
+  })
+
+  .icase(setOutputTree, (draft, auspiceData) => {
+    draft.outputTree = auspiceData
   })

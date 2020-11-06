@@ -1,7 +1,5 @@
+import { sanitizeRootSeq } from 'src/helpers/sanitizeRootSeq'
+
 import DEFAULT_ROOT_SEQUENCE_RAW from './rootSeq.txt'
 
-function getRootSequence(): string {
-  return DEFAULT_ROOT_SEQUENCE_RAW.trim()
-}
-
-export const rootSeq = getRootSequence()
+export const rootSeq = sanitizeRootSeq(DEFAULT_ROOT_SEQUENCE_RAW)

@@ -26,10 +26,10 @@ Having Node.js and npm available, install the latest release of the [`nextclade`
 npm install --global @neherlab/nextclade
 ```
 
-you may also try the cutting-edge beta version:
+you may also try the cutting-edge alpha version:
 
 ```bash
-npm install --global @neherlab/nextclade@beta
+npm install --global @neherlab/nextclade@alpha
 ```
 
 Explore available options:

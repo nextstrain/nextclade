@@ -1,4 +1,4 @@
-localrules: filter, partition_sequences, aggregate_alignments, mask, adjust_metadata_regions, clades, colors, recency, export, incorporate_travel_history, fix_colorings, all_regions, export_all_regions, export_gisaid, incorporate_travel_history_gisaid, incorporate_travel_history_zh, export_zh, dated_json, fix_colorings_zh, fix_colorings_gisaid, finalize, pangolin, rename_legacy_clades, adjust_metadata_regions_ecdc, reassign_metadata, export_nextclade
+localrules: download, export_nextclade
 
 ruleorder: export_nextclade>finalize
 
@@ -34,4 +34,31 @@ rule export_nextclade:
             --title {params.title:q} \
             --description {input.description} \
             --output {output.auspice_json} 2>&1 | tee {log}
+        """
+
+rule example_data:
+    input:
+        sequences = rules.download.output.sequences,
+        metadata = rules.download.output.metadata,
+    output:
+        sequences = "results/{build_name}/example.fasta"
+    log:
+        "logs/example_{build_name}.txt"
+    params:
+        min_length = 20000,
+        exclude_where = "genbank_accession='?'",
+        min_date = "2020-07-01",
+        date = numeric_date(date.today())
+    shell:
+        """
+        augur filter \
+            --sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --max-date {params.date} \
+            --min-date {params.min_date} \
+	    --subsample-max-sequences 50 \
+	    --group-by region month \
+            --exclude-where {params.exclude_where}\
+            --min-length {params.min_length} \
+            --output {output.sequences} 2>&1 | tee {log}
         """

@@ -15,7 +15,7 @@ export interface SEOProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  localeKey: state.settings.localeKey,
+  localeKey: state.settings.localeKeyV2,
 })
 
 const mapDispatchToProps = {}

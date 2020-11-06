@@ -35,6 +35,11 @@
       "key": "subclade_membership",
       "title": "Emerging clade",
       "type": "categorical"
+    },
+    {
+      "key": "region_exposure",
+      "title": "Region of exposure",
+      "type": "categorical"
     }
   ],
   "geo_resolutions": [
