@@ -30,7 +30,7 @@ script:
 before_deploy:
   - yarn prod:build:ci
   - bash $TRAVIS_BUILD_DIR/tools/install-aws-cli
-  - aws s3 sync dist s3://$AWS_S3_BUCKET --region=$AWS_DEFAULT_REGION --delete
+  - aws s3 rm s3://$AWS_S3_BUCKET --region=$AWS_DEFAULT_REGION --recursive
 
 deploy:
   - provider: s3
