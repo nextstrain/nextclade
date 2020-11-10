@@ -2,13 +2,13 @@
 
 This release brings several important bugfixes, improvements and new features.
 
-In this version Nextclade adds support for the new SARS-CoV-2 variants. The default reference tree now contains a few nodes with clades `20A.EU1` and `20A.EU2`. For more information about the new variants refer to [Hodcroft et al., 2020](https://www.medrxiv.org/content/10.1101/2020.10.25.20219063v1).
+In this version Nextclade adds support for the new SARS-CoV-2 regional subclades. The default reference tree now contains a few nodes with clades `20A.EU1` and `20A.EU2`. For more information about the new variants refer to [Hodcroft et al., 2020](https://www.medrxiv.org/content/10.1101/2020.10.25.20219063v1).
 
-Nextclade algorithms now handle ambiguous nucleotides and gaps in the root sequence. Previously this was not needed, because our default root sequence is always full and unambiguous, but this is important now that Nextclade allows custom root sequences.
+Nextclade algorithms now handle ambiguous nucleotides and gaps in the reference tree and the root sequence. Previously this was not needed, because our default root sequence is always full and unambiguous, but this is important now that Nextclade allows custom root sequences.
 
 Nextclade developers will no longer maintain `clades.json` file with a list of clades. Since v0.4.0, clade assignment is performed by taking clade of the nearest node on the reference tree, so the algorithm does not depend on this file. This change means that users no longer have to provide `clades.json` for custom viruses anymore, but also that the "Gene map" panel in the web application will not show markers for clade-defining mutations.
 
-Nextclade web app now includes more interesting and relevant example SARS-CoV-2 sequences to better showcase application's features. 
+Nextclade web app now includes more interesting and relevant example SARS-CoV-2 sequences to better showcase application's features.
 
 Nextclade web application now accepts new URL parameters. Additionally, to `input-fasta=` parameter to download and start processing a given FASTA file (introduced in v0.7.0), you can now also provide `input-root-seq=` parameter which will download and use the given custom root sequence as well as `input-tree=` parameter for a custom reference tree.
 
@@ -16,7 +16,7 @@ You can now export the resulting tree, with new sequence placed onto it, in Ausp
 
 > ⚠️ Exercise caution when interpreting Auspice JSON v2 file by Nextclade. Nextclade's algorithms are only meant for quick assessment of sequences: they perform quality control, clade assignment, and a simple phylogenetic placement. Nextclade is not a replacement for the full phylogenetic analysis with the main Nextstrain pipeline.
 
-The non-algorithm part of the command-line version of Nextclade has been substantially rewritten. It now takes advantage of all processor cores in the system. You can set the desired level of parallelism with the new flag: `--jobs`. The sequences that result in error during processing are now included into CSV, TSV and JSON output files, along with their error messages.  
+The non-algorithm part of the command-line version of Nextclade has been substantially rewritten. It now takes advantage of all processor cores in the system. You can set the desired level of parallelism with the new flag: `--jobs`. The sequences that result in error during processing are now included into CSV, TSV and JSON output files, along with their error messages.
 
 The redundant column `qc.seqName` has been removed from the CSV and TSV results. Use column `seqName` instead. The order of columns has been changed, to emphasize clades and QC results.
 
@@ -61,7 +61,7 @@ Additionally, there are more minor fixes and improvements. Here is a full list o
 
 ## [0.7.8](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-11-05)
 
-This is a bugfix release which addresses CLI crash due to improper reading of the custom gene maps 
+This is a bugfix release which addresses CLI crash due to improper reading of the custom gene maps
 
 ### Bug Fixes
 
@@ -72,7 +72,7 @@ This is a bugfix release which addresses CLI crash due to improper reading of th
 
 This is a bugfix release which addresses a rarely occurring situation when clade is incorrectly assigned due to a defect in the clade assignment algorithm.
 
- 
+
 ### Bug Fixes
 
 * remove mutually cancelling mutations during tree preprocessing ([a420e83](https://github.com/nextstrain/nextclade/commit/a420e8373a05af1f74e2f073ae83c4577dd65510))
