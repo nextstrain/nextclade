@@ -28,11 +28,14 @@ export const ToggleBase = styled(ReactToggle)<ReactToggleProps>`
   }
 `
 
-export interface ToggleProps extends StrictOmit<ReactToggleProps, 'type' | 'value'> {
+export interface TogglePropsWithoutChildren extends StrictOmit<ReactToggleProps, 'type' | 'value'> {
+  identifier: string
   onCheckedChanged: (checked: boolean) => void
 }
 
-export function Toggle({ className, onCheckedChanged, ...props }: ToggleProps) {
+export type ToggleProps = React.PropsWithChildren<TogglePropsWithoutChildren>
+
+export function Toggle({ identifier, className, onCheckedChanged, children, ...props }: ToggleProps) {
   const onChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onCheckedChanged(e.target.checked)
@@ -40,5 +43,16 @@ export function Toggle({ className, onCheckedChanged, ...props }: ToggleProps) {
     [onCheckedChanged],
   )
 
-  return <ToggleBase className="react-toggle-custom" onChange={onChange} {...props} />
+  const Result = <ToggleBase id={identifier} className="react-toggle-custom" onChange={onChange} {...props} />
+
+  if (children) {
+    return (
+      <label htmlFor={identifier} className="d-flex">
+        <span>{Result}</span>
+        <span className="ml-2">{children}</span>
+      </label>
+    )
+  }
+
+  return Result
 }

@@ -22,6 +22,8 @@ export const URL_GITHUB_FRIENDLY = 'github.com/nextstrain/nextclade' as const
 
 export const URL_GITHUB_ISSUES = 'https://github.com/nextstrain/nextclade/issues' as const
 export const URL_GITHUB_ISSUES_FRIENDLY = 'github.com/nextstrain/nextclade/issues' as const
+export const URL_GITHUB_CHANGELOG = 'https://github.com/nextstrain/nextclade/blob/release/packages/web/CHANGELOG.md'
+export const URL_GITHUB_COMMITS = 'https://github.com/nextstrain/nextclade/commits/release'
 
 export const TWITTER_USERNAME = '@nextstrain' as const
 
