@@ -86,8 +86,8 @@
     "convert:primers": "yarn run:node tools/primers/convert.ts"
   },
   "dependencies": {
-    "@mdx-js/loader": "1.6.16",
-    "@mdx-js/react": "1.6.16",
+    "@mdx-js/loader": "1.6.21",
+    "@mdx-js/react": "1.6.21",
     "@types/react-virtualized-auto-sizer": "1.0.0",
     "@types/react-window": "1.8.2",
     "animate.css": "4.1.0",
@@ -384,6 +384,8 @@
     "@babel/register": "7.11.5",
     "@babel/runtime": "7.11.2",
     "@babel/runtime-corejs3": "7.11.2",
+    "@mdx-js/loader": "1.6.21",
+    "@mdx-js/react": "1.6.21",
     "awesomplete": "1.1.5",
     "babel-jest": "26.3.0",
     "babel-plugin-lodash": "3.3.4",
