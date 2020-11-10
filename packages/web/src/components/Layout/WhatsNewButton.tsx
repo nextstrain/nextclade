@@ -96,6 +96,25 @@ export const H3 = styled.h2`
   font-size: 1rem;
 `
 
+export const Blockquote = styled.blockquote`
+  padding: 6px 8px;
+  border-radius: 3px;
+  background-color: #f4ebbd;
+`
+
+export const Pre = styled.pre`
+  padding: 6px 8px;
+  border-radius: 3px;
+  background-color: #ccc;
+
+  code {
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    padding: 0;
+  }
+`
+
 export interface WhatsNewButtonProps {
   showWhatsnew: boolean
   showWhatsnewOnUpdate: boolean
@@ -153,7 +172,7 @@ export function WhatsNewButtonDisconnected({
         </ModalHeader>
 
         <ModalBody>
-          <MDXProvider components={{ h1: H1, h2: H2, h3: H3, a: LinkExternal }}>
+          <MDXProvider components={{ h1: H1, h2: H2, h3: H3, a: LinkExternal, blockquote: Blockquote, pre: Pre }}>
             <Changelog />
           </MDXProvider>
         </ModalBody>

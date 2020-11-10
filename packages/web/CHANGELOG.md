@@ -1,78 +1,88 @@
-## [0.7.8](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-11-05)
+# [0.8.0](https://github.com/nextstrain/nextclade/compare/0.7.8...0.8.0) (2020-11-10)
 
+This release brings several important bugfixes, improvements and new features.
+
+In this version Nextclade adds support for the new SARS-CoV-2 variants. The default reference tree now contains a few nodes with clades `20A.EU1` and `20A.EU2`. For more information about the new variants refer to [Hodcroft et al., 2020](https://www.medrxiv.org/content/10.1101/2020.10.25.20219063v1).
+
+Nextclade algorithms now handle ambiguous nucleotides and gaps in the root sequence. Previously this was not needed, because our default root sequence is always full and unambiguous, but this is important now that Nextclade allows custom root sequences.
+
+Nextclade developers will no longer maintain `clades.json` file with a list of clades. Since v0.4.0, clade assignment is performed by taking clade of the nearest node on the reference tree, so the algorithm does not depend on this file. This change means that users no longer have to provide `clades.json` for custom viruses anymore, but also that the "Gene map" panel in the web application will not show markers for clade-defining mutations.
+
+Nextclade web app now includes more interesting and relevant example SARS-CoV-2 sequences to better showcase application's features. 
+
+Nextclade web application now accepts new URL parameters. Additionally, to `input-fasta=` parameter to download and start processing a given FASTA file (introduced in v0.7.0), you can now also provide `input-root-seq=` parameter which will download and use the given custom root sequence as well as `input-tree=` parameter for a custom reference tree.
+
+You can now export the resulting tree, with new sequence placed onto it, in Auspice JSON v2 format if the "Export" dropdown on the results page. This file can then be using for further analysis or visualization (for example with [auspice.us](https://auspice.us)).
+
+> ⚠️ Exercise caution when interpreting Auspice JSON v2 file by Nextclade. Nextclade's algorithms are only meant for quick assessment of sequences: they perform quality control, clade assignment, and a simple phylogenetic placement. Nextclade is not a replacement for the full phylogenetic analysis with the main Nextstrain pipeline.
+
+The non-algorithm part of the command-line version of Nextclade has been substantially rewritten. It now takes advantage of all processor cores in the system. You can set the desired level of parallelism with the new flag: `--jobs`. The sequences that result in error during processing are now included into CSV, TSV and JSON output files, along with their error messages.  
+
+The redundant column `qc.seqName` has been removed from the CSV and TSV results. Use column `seqName` instead. The order of columns has been changed, to emphasize clades and QC results.
+
+Additionally, there are more minor fixes and improvements. Here is a full list of changes since previous release:
 
 ### Bug Fixes
 
-* **cli:** add missing preprocessing step for custom gene maps in CLI ([0fb31dd](https://github.com/nextstrain/nextclade/commit/0fb31dd02e44460460c3565e32391aafbc1a7fcc)), closes [#252](https://github.com/nextstrain/nextclade/issues/252)
-
-
-
-## [0.8.0-alpha.6](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.5...0.8.0-alpha.6) (2020-11-05)
-
-
-### Bug Fixes
-
+* ensure auspice strings interpolate correctly ([1f0e3c1](https://github.com/nextstrain/nextclade/commit/1f0e3c119a6528c07ea32f19273b3919891ca8a3))
+* remove black overlay above entropy panel when holding shift or alt ([fbc851c](https://github.com/nextstrain/nextclade/commit/fbc851c4d330bda997a0c9fd3fd36c1764a1f424))
 * ensure isMatch handles ambiguous nucleotides in both reference and query ([ee35f77](https://github.com/nextstrain/nextclade/commit/ee35f7717d51b4ed70aa20adcf31e62fb17a9ea9))
 * exclude gaps in reference node from distance calculations ([8e6571c](https://github.com/nextstrain/nextclade/commit/8e6571c331e7c277dfba47e757e4b42ee4f2acfe))
-
-
-### Features
-
-* allow exporting Auspice tree json result again ([5428bc8](https://github.com/nextstrain/nextclade/commit/5428bc8054a3f8cd78729a307b5dfadda4e0474b))
-* fetch input root sequence and input ref tree provided  URL params ([585371a](https://github.com/nextstrain/nextclade/commit/585371a1e397bc15e7802d8e6a4e2edaa5777da9))
-* use the root sequence and tree provided in the URL ([d364efa](https://github.com/nextstrain/nextclade/commit/d364efa1936967e345d04ad917f600fca9ecabee))
-
-
-
-## [0.7.7](https://github.com/nextstrain/nextclade/compare/0.7.6...0.7.7), [0.8.0-alpha.5](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.4...0.8.0-alpha.5) (2020-11-04)
-
-
-### Bug Fixes
-
-* remove mutually cancelling mutations during tree preprocessing ([a420e83](https://github.com/nextstrain/nextclade/commit/a420e8373a05af1f74e2f073ae83c4577dd65510))
-
-
-## [0.8.0-alpha.4](https://github.com/nextstrain/nextclade/compare/0.7.6...0.8.0-alpha.4) (2020-10-30)
-
-* feat: add rule to augur workflow to make example sequence fasta
-* feat: add more interesting example data
-* feat: add subclades
-* feat!: remove clade markers from Gene Map, remove clades.json ([858b92a](https://github.com/nextstrain/nextclade/commit/858b92a7558e0ff7b9c7119cc34250f4ea829b85))
-
-### Features
-
-* force reset all users to English locale ([762d34d](https://github.com/nextstrain/nextclade/commit/762d34de89c27e8b867ad34f55154d87503cd4ae))
-
-
-### BREAKING CHANGES
-
-* This removes `virus.json` file and modifies `Virus` data structure.
-
-For a while now, we assign clades by looking at the closest node in the tree, and we don't rely algorithmically on clade definitions in `clades.json`. The only place where clade definitions were used is displaying clade-defining mutation markers on Gene Map.
-
-We agreed that with introduction of subclades we want to remove `clades.json`, rather than update it. It also means removing clade-defining mutation markers on Gene Map in the web app. This commit makes this happen.
-
-Affected are:
- - Gene Map in the web app does not show clade markers anymore
- - CLI users don't have to provide `clades.json` for custom viruses
-
-
-### Bug Fixes
-
 * use consistent line endings in json export ([3d8ddb5](https://github.com/nextstrain/nextclade/commit/3d8ddb537dd2fb516e99924165eed8ed2fbd74dc))
+* ensure isMatch handles ambiguous nucleotides in both reference and query ([ee35f77](https://github.com/nextstrain/nextclade/commit/ee35f7717d51b4ed70aa20adcf31e62fb17a9ea9))
+* exclude gaps in reference node from distance calculations ([8e6571c](https://github.com/nextstrain/nextclade/commit/8e6571c331e7c277dfba47e757e4b42ee4f2acfe))
+* **cli:** add missing files into docker builds ([dbb54f2](https://github.com/nextstrain/nextclade/commit/dbb54f2a8584379437932d7480cc08db34d16a87))
 * **cli:** preserve failed sequences in results ([8e1e78b](https://github.com/nextstrain/nextclade/commit/8e1e78b170242e72b97e3e75ce67856ad9f32c28))
-
 
 ### Features
 
 * **cli:** add jobs flag for setting the level of parallelism ([96100b6](https://github.com/nextstrain/nextclade/commit/96100b6063880c69630ef7019a3d4223aaf63379))
 * **cli:** don't finalize tree when tree output is not requested ([8a9c767](https://github.com/nextstrain/nextclade/commit/8a9c767e6f39270ee4d24fc3c2445deae895dd3e))
 * **cli:** make CLI run in parallel   ([5a8902c](https://github.com/nextstrain/nextclade/commit/5a8902c1248d2aec9851e9d27ea59790d9eb4af9))
+* add "what's new" popup, optionally show on every release ([66cf03d](https://github.com/nextstrain/nextclade/commit/66cf03d59f83981b198a064ae510650cc37d4a83))
+* allow exporting Auspice tree json result again ([5428bc8](https://github.com/nextstrain/nextclade/commit/5428bc8054a3f8cd78729a307b5dfadda4e0474b))
+* enforce csv column order, remove duplicate qc.seqName column ([5928b53](https://github.com/nextstrain/nextclade/commit/5928b53cc0d8d74fa3e438d91d958b54d1dd1fee))
+* feat!: remove clade markers from Gene Map, remove clades.json ([858b92a](https://github.com/nextstrain/nextclade/commit/858b92a7558e0ff7b9c7119cc34250f4ea829b85))
+* feat: add more interesting example data
+* feat: add rule to augur workflow to make example sequence fasta
+* feat: add subclades
+* fetch input root sequence and input ref tree provided  URL params ([585371a](https://github.com/nextstrain/nextclade/commit/585371a1e397bc15e7802d8e6a4e2edaa5777da9))
+* remove uppercase text transform from buttons  ([79c99b6](https://github.com/nextstrain/nextclade/commit/79c99b666077b11b31fd155518c36e6a0e98b4c5))
+* use the root sequence and tree provided in the URL ([d364efa](https://github.com/nextstrain/nextclade/commit/d364efa1936967e345d04ad917f600fca9ecabee))
 
+### BREAKING CHANGES
+
+* We removed `clades.json` file and modified `Virus` data structure.
+  For a while now we assign clades by looking at the closest node in the tree, and we don't rely algorithmically on clade definitions in `clades.json`. The only place where clade definitions were used is displaying clade-defining mutation markers on Gene Map.
+  We agreed that with introduction of subclades we want to remove `clades.json`, rather than update it. It also means removing clade-defining mutation markers on Gene Map in the web app. This commit makes this happen.
+* qc.seqName is removed from CSV, TSV and JSON outputs (it had the same values as seqName)
+* order of columns is changed in CSV ans TSV outputs
+
+
+## [0.7.8](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-11-05)
+
+This is a bugfix release which addresses CLI crash due to improper reading of the custom gene maps 
+
+### Bug Fixes
+
+* **cli:** add missing preprocessing step for custom gene maps in CLI ([0fb31dd](https://github.com/nextstrain/nextclade/commit/0fb31dd02e44460460c3565e32391aafbc1a7fcc)), closes [#252](https://github.com/nextstrain/nextclade/issues/252)
+
+
+## [0.7.7](https://github.com/nextstrain/nextclade/compare/0.7.6...0.7.7)
+
+This is a bugfix release which addresses a rarely occurring situation when clade is incorrectly assigned due to a defect in the clade assignment algorithm.
+
+ 
+### Bug Fixes
+
+* remove mutually cancelling mutations during tree preprocessing ([a420e83](https://github.com/nextstrain/nextclade/commit/a420e8373a05af1f74e2f073ae83c4577dd65510))
 
 
 ## [0.7.6](https://github.com/nextstrain/nextclade/compare/0.7.5...0.7.6) (2020-10-27)
 
+This is a bugfix release which addresses crash of the web application which occurred when removing a tree filter by clicking on a "cross" icon of the filter badge.
+
+Additionally, we decided tp force reset all users' browsers to use English version of the Nextclade web application, because other locales went out of sync significantly. P.S. We are [looking for translators](https://github.com/nextstrain/nextclade/issues/37)!
 
 ### Bug Fixes
 
@@ -83,58 +93,10 @@ Affected are:
 * force reset all users to English locale ([762d34d](https://github.com/nextstrain/nextclade/commit/762d34de89c27e8b867ad34f55154d87503cd4ae))
 
 
-## [0.8.0-alpha.2](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.1...0.8.0-alpha.2) (2020-10-13)
-
-
-### Bug Fixes
-
-* **cli:** add missing files into docker builds ([dbb54f2](https://github.com/nextstrain/nextclade/commit/dbb54f2a8584379437932d7480cc08db34d16a87))
-
-
-
-## [0.8.0-alpha.1](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.1) (2020-10-13)
-
-
-### Bug Fixes
-
-* use consistent line endings in json export ([3d8ddb5](https://github.com/nextstrain/nextclade/commit/3d8ddb537dd2fb516e99924165eed8ed2fbd74dc))
-* **cli:** preserve failed sequences in results ([8e1e78b](https://github.com/nextstrain/nextclade/commit/8e1e78b170242e72b97e3e75ce67856ad9f32c28))
-
-
-### Features
-
-* enforce csv column order, remove duplicate qc.seqName column ([5928b53](https://github.com/nextstrain/nextclade/commit/5928b53cc0d8d74fa3e438d91d958b54d1dd1fee))
-* **cli:** add jobs flag for setting the level of parallelism ([96100b6](https://github.com/nextstrain/nextclade/commit/96100b6063880c69630ef7019a3d4223aaf63379))
-* **cli:** don't finalize tree when tree output is not requested ([8a9c767](https://github.com/nextstrain/nextclade/commit/8a9c767e6f39270ee4d24fc3c2445deae895dd3e))
-* **cli:** make CLI run in parallel   ([5a8902c](https://github.com/nextstrain/nextclade/commit/5a8902c1248d2aec9851e9d27ea59790d9eb4af9))
-
-
-### BREAKING CHANGES
-
-*  - qc.seqName is removed from CSV, TSV and JSON outputs (it had the same values as seqName)
- - order of columns is changed in CSV ans TSV outputs
-
-
-
-## [0.8.0-alpha.0](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.0) (2020-10-12)
-
-
-### Bug Fixes
-
-* use consistent line endings in json export ([3d8ddb5](https://github.com/nextstrain/nextclade/commit/3d8ddb537dd2fb516e99924165eed8ed2fbd74dc))
-* **cli:** preserve failed sequences in results ([8e1e78b](https://github.com/nextstrain/nextclade/commit/8e1e78b170242e72b97e3e75ce67856ad9f32c28))
-
-
-### Features
-
-* **cli:** add jobs flag for setting the level of parallelism ([96100b6](https://github.com/nextstrain/nextclade/commit/96100b6063880c69630ef7019a3d4223aaf63379))
-* **cli:** don't finalize tree when tree output is not requested ([8a9c767](https://github.com/nextstrain/nextclade/commit/8a9c767e6f39270ee4d24fc3c2445deae895dd3e))
-* **cli:** make CLI run in parallel   ([5a8902c](https://github.com/nextstrain/nextclade/commit/5a8902c1248d2aec9851e9d27ea59790d9eb4af9))
-
-
-
 ## [0.7.5](https://github.com/nextstrain/nextclade/compare/0.7.4...0.7.5) (2020-10-06)
 
+
+This release removes nucleotide composition from CSV and TSV outputs. Due to variations of the alphabet, nucleotide composition has been adding and removing columns unpredictably. By removing it we opt-in to a stable set of columns.
 
 ### Features
 
@@ -144,6 +106,7 @@ Affected are:
 
 ## [0.7.4](https://github.com/nextstrain/nextclade/compare/0.7.3...0.7.4) (2020-10-05)
 
+This is a bugfix release which addresses improperly formatted SNP clusters in output files
 
 ### Bug Fixes
 
@@ -153,6 +116,7 @@ Affected are:
 
 ## [0.7.3](https://github.com/nextstrain/nextclade/compare/0.7.2...0.7.3) (2020-10-05)
 
+This is a bugfix release
 
 ### Bug Fixes
 
@@ -163,6 +127,8 @@ Affected are:
 
 ## [0.7.2](https://github.com/nextstrain/nextclade/compare/0.7.1...0.7.2) (2020-10-01)
 
+This version introduces a mechanism that allows Nexclade to signal common ad blocking browser extensions that it respects privacy. We hope that it may increase compatibility when these extensions are enabled.
+
 
 ### Features
 
@@ -172,6 +138,20 @@ Affected are:
 
 
 # [0.7.0](https://github.com/nextstrain/nextclade/compare/0.6.0...0.7.0) (2020-10-01)
+
+Nextclade 0.7.0 ships with new CLI flags, allowing overriding most of the virus-specific parameters:
+
+```
+--input-fasta
+--input-root-seq
+--input-tree
+--input-qc-config
+--input-gene-map
+--input-pcr-primers
+```
+
+Additionally, the web application now can fetch a .fasta file from a remote location using `input-fasta` query parameter:
+`https://clades.nextstrain.org/?input-fasta=<your_url>` (CORS needs to be enabled on your server)
 
 
 ### Bug Fixes
@@ -191,6 +171,7 @@ Affected are:
 
 # [0.6.0](https://github.com/nextstrain/nextclade/compare/0.5.2...0.6.0) (2020-09-24)
 
+This a bugfix release which addresses CLI crash on alignment failure
 
 ### Bug Fixes
 
