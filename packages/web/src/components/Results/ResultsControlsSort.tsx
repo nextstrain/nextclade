@@ -16,20 +16,34 @@ export const SortButtonWrapper = styled.div`
   align-items: center;
 `
 
+export const SortButton = styled(ButtonTransparent)`
+  color: #cccccc;
+
+  &.show > .btn-secondary.dropdown-toggle,
+  &.active,
+  &:active,
+  &:hover,
+  &:focus,
+  &:focus-within {
+    color: #cccccc;
+  }
+`
+
 export interface ResultsControlsSortProps {
   sortAsc(): void
+
   sortDesc(): void
 }
 
 export function ResultsControlsSort({ sortAsc, sortDesc }: ResultsControlsSortProps) {
   return (
     <SortButtonWrapper>
-      <ButtonTransparent height={SORT_BUTTON_SIZE} onClick={sortDesc}>
+      <SortButton height={SORT_BUTTON_SIZE} onClick={sortDesc}>
         <BsCaretUpFill size={SORT_BUTTON_ICON_SIZE} />
-      </ButtonTransparent>
-      <ButtonTransparent height={SORT_BUTTON_SIZE} onClick={sortAsc}>
+      </SortButton>
+      <SortButton height={SORT_BUTTON_SIZE} onClick={sortAsc}>
         <BsCaretDownFill size={SORT_BUTTON_ICON_SIZE} />
-      </ButtonTransparent>
+      </SortButton>
     </SortButtonWrapper>
   )
 }

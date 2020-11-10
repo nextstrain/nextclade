@@ -3,15 +3,15 @@ import React, { useCallback } from 'react'
 import produce from 'immer'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { Card as ReactstrapCard, CardBody, CardHeader as ReactstrapCardHeader, Col, Form, Row } from 'reactstrap'
 
 import type { State } from 'src/state/reducer'
 import type { QCRulesConfig } from 'src/algorithms/QC/types'
 import { selectQcRulesConfig } from 'src/state/settings/settings.selectors'
 import { setQcRulesConfig } from 'src/state/settings/settings.actions'
-import { useTranslation } from 'react-i18next'
 import { CardHeaderWithToggle } from 'src/components/Common/CardHeaderWithToggle'
-import { NumericField } from '../Common/NumericField'
+import { NumericField } from 'src/components/Common/NumericField'
 
 export type QCConfigUpdater = (config: QCRulesConfig) => void
 
@@ -37,6 +37,7 @@ export const SettingsDialog = connect(mapStateToProps, mapDispatchToProps)(Setti
 
 export interface SettingsDialogProps {
   qcRulesConfig: QCRulesConfig
+
   setQcRulesConfig(qcRulesConfig: QCRulesConfig): void
 }
 

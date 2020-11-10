@@ -6,6 +6,7 @@ import {
   setShowInputBox,
   setFilterPanelCollapsed,
   setTreeFilterPanelCollapsed,
+  setShowWhatsnew,
 } from 'src/state/ui/ui.actions'
 
 export const uiReducer = reducerWithInitialState(uiDefaultState)
@@ -23,4 +24,8 @@ export const uiReducer = reducerWithInitialState(uiDefaultState)
 
   .icase(setTreeFilterPanelCollapsed, (draft, treeFilterPanelCollapsed) => {
     draft.treeFilterPanelCollapsed = treeFilterPanelCollapsed
+  })
+
+  .icase(setShowWhatsnew, (draft, showWhatsnew) => {
+    draft.showWhatsnew = showWhatsnew
   })

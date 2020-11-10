@@ -1,4 +1,4 @@
-# [0.7.8](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-11-05), [0.7.9](https://github.com/nextstrain/nextclade/compare/0.7.8...0.7.9) (2020-11-05), [0.8.0-alpha.7](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.6...0.8.0-alpha.7) (2020-11-05)
+## [0.7.8](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-11-05)
 
 
 ### Bug Fixes
@@ -7,7 +7,7 @@
 
 
 
-# [0.8.0-alpha.6](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.5...0.8.0-alpha.6) (2020-11-05)
+## [0.8.0-alpha.6](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.5...0.8.0-alpha.6) (2020-11-05)
 
 
 ### Bug Fixes
@@ -24,7 +24,7 @@
 
 
 
-## [0.7.7](https://github.com/nextstrain/nextclade/compare/0.7.6...0.7.7) (2020-11-04), # [0.8.0-alpha.5](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.4...0.8.0-alpha.5) (2020-11-04)
+## [0.7.7](https://github.com/nextstrain/nextclade/compare/0.7.6...0.7.7), [0.8.0-alpha.5](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.4...0.8.0-alpha.5) (2020-11-04)
 
 
 ### Bug Fixes
@@ -32,7 +32,7 @@
 * remove mutually cancelling mutations during tree preprocessing ([a420e83](https://github.com/nextstrain/nextclade/commit/a420e8373a05af1f74e2f073ae83c4577dd65510))
 
 
-# [0.8.0-alpha.4](https://github.com/nextstrain/nextclade/compare/0.7.6...0.8.0-alpha.4) (2020-10-30)
+## [0.8.0-alpha.4](https://github.com/nextstrain/nextclade/compare/0.7.6...0.8.0-alpha.4) (2020-10-30)
 
 * feat: add rule to augur workflow to make example sequence fasta
 * feat: add more interesting example data
@@ -55,34 +55,6 @@ We agreed that with introduction of subclades we want to remove `clades.json`, r
 Affected are:
  - Gene Map in the web app does not show clade markers anymore
  - CLI users don't have to provide `clades.json` for custom viruses
-
-
-
-# [0.8.0-alpha.2](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.1...0.8.0-alpha.2) (2020-10-13)
-
-
-### Bug Fixes
-
-* **cli:** add missing files into docker builds ([dbb54f2](https://github.com/nextstrain/nextclade/commit/dbb54f2a8584379437932d7480cc08db34d16a87))
-
-
-
-# [0.8.0-alpha.1](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.0...0.8.0-alpha.1) (2020-10-13)
-
-
-### Features
-
-* enforce csv column order, remove duplicate qc.seqName column ([5928b53](https://github.com/nextstrain/nextclade/commit/5928b53cc0d8d74fa3e438d91d958b54d1dd1fee))
-
-
-### BREAKING CHANGES
-
-*  - qc.seqName is removed from CSV, TSV and JSON outputs (it had the same values as seqName)
- - order of columns is changed in CSV ans TSV outputs
-
-
-
-# [0.8.0-alpha.0](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.0) (2020-10-12)
 
 
 ### Bug Fixes
@@ -111,7 +83,7 @@ Affected are:
 * force reset all users to English locale ([762d34d](https://github.com/nextstrain/nextclade/commit/762d34de89c27e8b867ad34f55154d87503cd4ae))
 
 
-# [0.8.0-alpha.2](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.1...0.8.0-alpha.2) (2020-10-13)
+## [0.8.0-alpha.2](https://github.com/nextstrain/nextclade/compare/0.8.0-alpha.1...0.8.0-alpha.2) (2020-10-13)
 
 
 ### Bug Fixes
@@ -120,7 +92,7 @@ Affected are:
 
 
 
-# [0.8.0-alpha.1](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.1) (2020-10-13)
+## [0.8.0-alpha.1](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.1) (2020-10-13)
 
 
 ### Bug Fixes
@@ -144,7 +116,7 @@ Affected are:
 
 
 
-# [0.8.0-alpha.0](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.0) (2020-10-12)
+## [0.8.0-alpha.0](https://github.com/nextstrain/nextclade/compare/0.7.5...0.8.0-alpha.0) (2020-10-12)
 
 
 ### Bug Fixes
@@ -265,11 +237,6 @@ Affected are:
 * format PCR primer changes when preparing CSV export ([b9019c5](https://github.com/nextstrain/nextclade/commit/b9019c5014d276e61cf63ab2fd2f044a9d15442b))
 * list primer changes in mutation tooltips on sequence view ([98e0189](https://github.com/nextstrain/nextclade/commit/98e0189b0089fa44cd12355e81aae14a7d8e9353))
 * retry with reverse-complement primer if not found in root sequence ([8a7a458](https://github.com/nextstrain/nextclade/commit/8a7a45836f1f515b6368687c53039634c17e40e9))
-
-
-
-## [0.4.8](https://github.com/nextstrain/nextclade/compare/0.4.7...0.4.8) (2020-09-17)
-
 
 
 ## [0.4.6](https://github.com/nextstrain/nextclade/compare/0.4.5...0.4.6) (2020-09-14)
@@ -831,4 +798,6 @@ Affected are:
 * write input filename and size into state ([61f1591](https://github.com/nextstrain/nextclade/commit/61f159174734f096bce19dec81410b800b783875))
 
 
+## [0.1.0](https://github.com/nextstrain/nextclade/compare/0.7.7...0.7.8) (2020-06-11)
 
+Development started

@@ -35,15 +35,7 @@ export function CardHeaderWithToggle({
     <HeaderWrapper>
       <HeaderTitle htmlFor={identifier}>{text}</HeaderTitle>
       <HeaderSwitch>
-        <Toggle
-          className="custom-switch col-md-4"
-          type="checkbox"
-          id={identifier}
-          name={identifier}
-          checked={checked}
-          onCheckedChanged={onValueChanged}
-          {...props}
-        />
+        <Toggle identifier={identifier} checked={checked} onCheckedChanged={onValueChanged} {...props} />
       </HeaderSwitch>
     </HeaderWrapper>
   )

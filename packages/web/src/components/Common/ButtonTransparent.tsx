@@ -17,20 +17,27 @@ export const ButtonTransparent = styled(Button)<ButtonTransparentProps>`
   margin: 4px 0;
   background-color: transparent;
   background-image: none;
-  color: #cccccc;
+  color: initial;
   border: none;
   border-radius: 0;
   box-shadow: none;
   border-image: none;
   text-decoration: none;
+  -webkit-tap-highlight-color: #ccc;
 
+  &.show > .btn-secondary.dropdown-toggle,
+  &.active,
   &:active,
   &:hover,
   &:focus,
   &:focus-within {
     background-color: transparent;
     background-image: none;
-    color: #fff;
+    color: initial;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    border-image: none;
     text-decoration: none;
   }
 `
