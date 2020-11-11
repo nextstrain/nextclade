@@ -3,8 +3,8 @@ import type { QCRulesConfig } from 'src/algorithms/QC/types'
 export const qcRulesConfig: QCRulesConfig = {
   privateMutations: {
     enabled: true,
-    typical: 2, // expected number of mutations
-    cutoff: 8, // trigger QC warning if the typical value exceeds this value
+    typical: 5, // expected number of mutations
+    cutoff: 15, // trigger QC warning if the typical value exceeds this value
   },
   missingData: {
     enabled: true,
