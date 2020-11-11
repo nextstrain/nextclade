@@ -6,6 +6,7 @@ export type MutationMap = Map<number, Nucleotide>
 export interface AuspiceTreeNodeExtended extends AuspiceTreeNode {
   id: number
   mutations?: MutationMap
+  substitutions?: MutationMap
   children?: AuspiceTreeNodeExtended[]
 }
 
