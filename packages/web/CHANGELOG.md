@@ -1,3 +1,34 @@
+## [0.8.1](https://github.com/nextstrain/nextclade/compare/0.8.0...0.8.1) (2020-11-12)
+
+This is a follow-up release, on top of version 0.8.0.
+
+In this version Nextclade further improves handling of gaps in node distance calculation.
+
+We increased the thresholds of private mutations in Quality Control calculation for SARS-CoV-2, to account for the current situation, so some sequences will have better QC scores now. As usual, you can set the desired custom values in Settings dialog or using the `--input-qc-config` flag in the command-line version.
+
+Additionally, this version introduces some minor improvements in the user interface as well as in runtime performance.
+
+You can find the full set of changes below:
+
+
+### Bug Fixes
+
+* formatting markdown snippets (about and changelog) ([b8b1971](https://github.com/nextstrain/nextclade/commit/b8b1971ebaf528c937b8cc458723362b8ac3a7ec))
+* increase allowed private mutations -- as SARS-CoV-2 diversifies, sequences are expected to have more private mutations ([fc1e885](https://github.com/nextstrain/nextclade/commit/fc1e885863c417c33eaf7795df2b29011848d709))
+
+
+### Features
+
+* exclude gaps from private mutations counting ([5b04903](https://github.com/nextstrain/nextclade/commit/5b04903b21a279cf8094bf72b789f2fa440de9b5))
+* only show the "what's new" popup on major branches ([a902c6a](https://github.com/nextstrain/nextclade/commit/a902c6ac7b68a3ccf767e4059fe50db4c32bc79f))
+
+
+### Performance Improvements
+
+* avoid re-filtering gaps from mutations for every node every time ([0509770](https://github.com/nextstrain/nextclade/commit/0509770f1a95b2d463449a2b7d4c8a83ceb04005))
+* catch common cases in nucleotide match function before doing full set intersection ([20a20ae](https://github.com/nextstrain/nextclade/commit/20a20ae8022f8d340f397b0fd4087a455117e9b3))
+
+
 # [0.8.0](https://github.com/nextstrain/nextclade/compare/0.7.8...0.8.0) (2020-11-10)
 
 This release brings several important bugfixes, improvements and new features.
