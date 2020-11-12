@@ -6,8 +6,9 @@ import { getVirus } from 'src/algorithms/defaults/viruses'
 const { rootSeq } = getVirus()
 const refNuc = "Can't touch this"
 
-function makeRef(mutations: [number, string][]) {
-  return { mutations: new Map<number, string>(mutations) } as AuspiceTreeNodeExtended
+function makeRef(mutationEntries: [number, string][]) {
+  const mutations = new Map<number, string>(mutationEntries)
+  return { mutations, substitutions: mutations } as AuspiceTreeNodeExtended
 }
 
 function makeQuery(substitutions: { pos: number; queryNuc: string; refNuc: string }[]) {
