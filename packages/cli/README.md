@@ -18,18 +18,12 @@ Clade assignment, mutation calling, and sequence quality checks
 ### Locally
 
 In order to run locally, you need Node.js and npm installed.
-It is recommended to use [`nvm`](https://github.com/nvm-sh/nvm) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) to install and manage Node.js versions. Nextclade CLI supports Node.js versions >= 10.
+It is recommended to use [`nvm`](https://github.com/nvm-sh/nvm) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) to install and manage Node.js versions. Nextclade CLI supports Node.js versions >= 12, version >= 14.15.0 LTS is recommended.
 
 Having Node.js and npm available, install the latest release of the [`nextclade` npm package](https://www.npmjs.com/package/@neherlab/nextclade) globally:
 
 ```bash
 npm install --global @neherlab/nextclade
-```
-
-you may also try the cutting-edge alpha version:
-
-```bash
-npm install --global @neherlab/nextclade@alpha
 ```
 
 Explore available options:
@@ -56,9 +50,19 @@ All files have the same format as exports from the [Nextclade web application](h
 
 Additionally, Nextclade can output a new Nextstrain tree (in the same Auspice JSON v2 format), with the user-provided sequences placed on it, with `--output-tree`. Note that this simplified tree placement is to give a rough idea of where the sequences may end up, and this does not substitute the full Nextstrain build.
 
+
+Nextclade is currently in active development stage. If you encounter problems with the latest version, or if you need to use the same version to produce consistent, comparable experiments, you can install a specific version as follows:
+
+```
+npm install --global @neherlab/nextclade@0.8.1
+```
+
+See the list of all versions released on NPM: [www.npmjs.com/package/@neherlab/nextclade](https://www.npmjs.com/package/@neherlab/nextclade). Note that only versions from `latest` channel are officially supported. Alpha and beta versions are only for development and internal testing and we discourage using them.
+
+
 ### With docker
 
-Docker images with Nextclade CLI are hosted in docker hub repository [`neherlab/nextclade`](https://hub.docker.com/r/neherlab/nextclade)
+Docker images with Nextclade CLI are hosted in docker hub repository [`neherlab/nextclade`](https://hub.docker.com/r/neherlab/nextclade). They contain everything needed to run Nextclade, including the currently recommended version of Node.js. The only requirement is to have [Docker installed](https://docs.docker.com/get-docker/).
 
 You can pull the latest image and run the container as follows
 
@@ -72,8 +76,8 @@ Explanation:
  - `--rm` - deletes the container after usage. Optional.
  - `-u 1000`. Runs container as a user with UID `1000`. Substitute `1000` with your local user's UID. UID of the current user can be found by running `id -u`. On single-user machines it is typically `1000` on Linux and `501` on Mac. If this parameter is not present, output files will be written on behalf of the root user, making them harder to operate on. Optional, but recommended.
  - `--volume="${ABSOLUTE_PATH_TO_SEQUENCES}:/seq"`. Substitute `${ABSOLUTE_PATH_TO_SEQUENCES}` with your *absolute* path to a directory containing input fasta sequences on your computer. This is necessary in order for docker container to have access to this directory. In this example, it will be available as `/seq` inside the container.
- - `neherlab/nextclade` name of the image to pull.
- - `nextclade.js --input-fasta '/seq/sequences.fasta' --output-json '/seq/results.json` the usual invocation of the tool. Note that in this example we read and write from `/seq` directory inside the container, which we previously mounted our local directory with sequences to.
+ - `neherlab/nextclade` name of the image to pull. In Unix-like environments you can use the variable `${PWD}` to get the absolute path to the current directory, for example: `--volume="${PWD}/data:/seq"`.
+ - `nextclade.js --input-fasta '/seq/sequences.fasta' --output-json '/seq/results.json` the usual invocation of the tool. Note that in this example we read and write from `/seq` directory inside the container, which we mounted using Docker's `--volume=` parameter.
 
 
 The default (`latest`) tag uses Node.js image based on Debian stretch. It is also possible to use smaller Alpine Linux-based images by appending `:alpine` tag after the repo name:  
@@ -82,21 +86,26 @@ The default (`latest`) tag uses Node.js image based on Debian stretch. It is als
 docker run ... neherlab/nextclade:alpine ...
 ```
 
-## Build
+See the list of all tags on Docker Hub: [hub.docker.com/r/neherlab/nextclade/tags](https://hub.docker.com/r/neherlab/nextclade/tags)
+
+
+## Developer's guide
+
+### Build: production version
 
 This will build a production version of the command-line tool:
 
 ```bash
 git clone https://github.com/nextstrain/nextclade
+# Optionally checkout a branch or a tag: git checkout -b 0.8.1
 cd nextclade/packages/web
 cp .env.example .env
 yarn cli:prod:build
 ```
 
-The bundled npm script will appear as `nextclade/packages/cli/dist/nextclade.js`.
-The script is standalone, does not require any local dependencies and can be moved.
+The build results - the main executable script, and a set of webworker modules, along with their source maps - will appear in `nextclade/packages/cli/dist/`.
 
-If Node.js >= 10 is available locally, the tool can be ran as
+If Node.js >= 12 is available locally, the freshly built Nextclade can be ran as
 
 ```bash
 node nextclade.js
@@ -108,6 +117,8 @@ or simply
 nextclade.js
 ```
 
+### Build: standalone executables
+
 A standalone executable (without dependency on Node.js) can be created with
 
 ```bash
@@ -116,13 +127,11 @@ yarn cli:prod:build:exe
 ```
 
 The native executables for various platforms will appear in `nextclade/packages/cli/dist/`.
-This uses [`pkg`](https://github.com/vercel/pkg) tool to wrap the script together with Node.js runtime into one standalone file. 
+This uses [`pkg`](https://github.com/vercel/pkg) tool to wrap the script together with Node.js runtime into one standalone file. Currently, these are neither officially released nor supported.
 
+### Publish a new version to NPM and Docker Hub
 
-## Publish
-
-This describes how to publish a new version of the package on NPM.
-After build step above, increment the version in `nextclade/packages/cli/package.json`:
+Increment the version in both, `nextclade/packages/web/package.json` and `nextclade/packages/cli/package.json`:
 
 ```json
 {
@@ -130,44 +139,34 @@ After build step above, increment the version in `nextclade/packages/cli/package
 }
 ```
 
-and run:
+The version formats accepted:
+ 
+ - `x.y.z` semantic version, for stable releases (will be published to `latest` channel on NPM and with no tag prefix on Docker Hub)
+
+ - `x.y.z-beta.n` for beta releases (will be published to `beta` channel on NPM and with `beta` tag prefix on Docker Hub)
+
+ - `x.y.z-alpha.n` for alpha releases (will be published to `alpha` channel on NPM and with `alpha` tag prefix on Docker Hub) 
+
+
+rebuild:
 
 ```bash
-cd nextclade/packages/cli
-npm publish
+cd packages/web
+yarn cli:prod:build
 ```
 
-If you need to re-publish the same version (which npm disallows), append an index of the re-release after a dash,
- using the following format: `${x.y.z}-{k}`, for example: 
-
-```json
-{
-  "version": "0.4.0-1"
-}
-```
-
-In order to publish a beta version, name the version in `nextclade/packages/cli/package.json` using
-`${x.y.z}-beta.${k}`, format where `${x.y.z}` is the semantic version of the corresponding future release and `${k}`,
-is the numeric index of the current beta version, for example: 
-
-```json
-{
-  "version": "0.4.0-beta.1"
-}
-```
-
-and run publish with a `beta` tag:
+publish:
 
 ```bash
-npm publish --tag=beta
+cd packages/cli
+./release.sh
 ```
 
-This allows users to install the latest beta version with 
+This will:
+ - publish a new version on NPM to the appropriate channel
+ - build and push Docker images to Docker Hub
 
-
-while releases (`latest` tag) are still installed by default.
-
-## Development
+### Run in development mode
 
 For development purposes run
 
@@ -175,12 +174,11 @@ For development purposes run
 git clone https://github.com/nextstrain/nextclade
 cd nextclade/packages/web
 cp .env.example .env
-yarn dev
+yarn cli:dev
 
 ```
 
-This will start webpack in watch mode and all changes will trigger partial rebuilds.
-The build result will appear `nextclade/packages/cli/dist/nextclade.js` and can be run similarly to the production version.
+This will start webpack in watch mode and all changes will trigger partial rebuilds, which is convenient for continuous development. The build results will appear in `nextclade/packages/cli/dist/` and can be run similarly to the production version (see above).
 
 
 ## License
