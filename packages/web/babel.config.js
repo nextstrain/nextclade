@@ -64,7 +64,10 @@ module.exports = (api) => {
       (((development || analyze || debuggableProd) && web) || (node)) && 'babel-plugin-smart-webpack-import', // prettier-ignore
       production && web && ['babel-plugin-transform-react-remove-prop-types', { removeImport: true }], // prettier-ignore
       production && web && '@babel/plugin-transform-flow-strip-types',
-      !(development || debuggableProd) && web && '@babel/plugin-transform-react-inline-elements', // prettier-ignore
+
+      // Breaks MDX. See https://github.com/mdx-js/mdx/issues/1327
+      // !(development || debuggableProd) && web && '@babel/plugin-transform-react-inline-elements', // prettier-ignore
+
       !(development || debuggableProd) && web && '@babel/plugin-transform-react-constant-elements', // prettier-ignore
       ['babel-plugin-strip-function-call', { strip: ['timerStart', 'timerEnd'] }],
     ].filter(Boolean),
