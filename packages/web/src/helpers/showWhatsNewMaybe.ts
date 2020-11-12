@@ -4,7 +4,7 @@ import compareVersions from 'compare-versions'
 import { setShowWhatsnew } from 'src/state/ui/ui.actions'
 import { setLastVersionSeen } from 'src/state/settings/settings.actions'
 
-// const BRANCH_NAME = process.env.BRANCH_NAME ?? ''
+const BRANCH_NAME = process.env.BRANCH_NAME ?? ''
 const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? ''
 
 export function checkIsNewerVersionSafe(currentVersion: string, lastVersionSeen: string) {
@@ -24,10 +24,10 @@ export function showWhatsNewMaybe(lastVersionSeen: string, showWhatsnewOnUpdate:
     return
   }
 
-  // const isPr = !['master', 'staging', 'release'].includes(BRANCH_NAME)
-  // if (isPr) {
-  //   return
-  // }
+  const isPr = !['master', 'staging', 'release'].includes(BRANCH_NAME)
+  if (isPr) {
+    return
+  }
 
   const isNewerVersion = checkIsNewerVersionSafe(PACKAGE_VERSION, lastVersionSeen)
   if (isNewerVersion) {
