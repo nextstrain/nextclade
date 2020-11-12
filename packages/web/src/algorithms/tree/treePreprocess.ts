@@ -8,6 +8,7 @@ import { NodeType } from 'src/algorithms/tree/enums'
 
 import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended, MutationMap } from 'src/algorithms/tree/types'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
+import { Nucleotide } from '../types'
 
 export function setNodeTypes(node: AuspiceTreeNode) {
   set(node, `node_attrs['Node type']`, { value: NodeType.Reference })
@@ -46,6 +47,13 @@ export function mutations_on_tree(
   // Extend the node with out temporary parameters
   const nodeExtended = node as AuspiceTreeNodeExtended
   nodeExtended.mutations = tmp_muts
+  const tmp_subs: MutationMap = new Map<number, Nucleotide>()
+  tmp_muts?.forEach((v, k) => {
+    if (v !== '-') {
+      tmp_subs.set(k, v)
+    }
+  })
+  nodeExtended.substitutions = tmp_subs
   nodeExtended.id = id.value
 
   const { children } = nodeExtended

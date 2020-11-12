@@ -23,11 +23,21 @@ export const canonicalNucleotides = new Set(['A', 'C', 'G', 'T'])
 
 export function isMatch(query: string, reference: string): boolean {
   // simple match or ambiguous
-  if (query === reference || query === 'N') {
+  if (query === reference || query === 'N' || reference === 'N') {
     return true
   }
 
-  // match specific ambiguity codes
+  // match ambiguity code in query
+  if (IUPACNucCodes[query] && IUPACNucCodes[query].has(reference)) {
+    return true
+  }
+
+  // match ambiguity code in reference
+  if (IUPACNucCodes[reference] && IUPACNucCodes[reference].has(query)) {
+    return true
+  }
+
+  // if none of the previous matched, match generic ambiguity
   const queryNucs = get(IUPACNucCodes, query)
   const refNucs = get(IUPACNucCodes, reference)
   if (queryNucs && refNucs) {
