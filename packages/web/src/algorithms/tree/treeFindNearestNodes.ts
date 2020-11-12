@@ -50,7 +50,7 @@ export function findPrivateMutations(node: AuspiceTreeNodeExtended, seq: Analysi
     }
   })
 
-  for (const [pos, refNuc] of node?.mutations ?? []) {
+  for (const [pos, refNuc] of node?.substitutions ?? []) {
     if (!mutatedPositions.has(pos) && isSequenced(pos, seq)) {
       const queryNuc = root_seq[pos] as Nucleotide
       privateMutations.push({ pos, refNuc, queryNuc })
