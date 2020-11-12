@@ -45,7 +45,7 @@ export function findPrivateMutations(node: AuspiceTreeNodeExtended, seq: Analysi
 
   // This is effectively a set difference operation
   seq.substitutions.forEach((qmut) => {
-    if (!(node.mutations?.has(qmut.pos) && node.mutations?.get(qmut.pos) === qmut.queryNuc)) {
+    if (!(node.substitutions?.has(qmut.pos) && node.substitutions?.get(qmut.pos) === qmut.queryNuc)) {
       privateMutations.push(qmut)
     }
   })
