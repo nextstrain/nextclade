@@ -7,7 +7,7 @@ export function MainSectionHeroFeatures() {
   const { t } = useTranslation()
 
   return (
-    <Col xl={6} className="hero-content-right">
+    <>
       <Row noGutters className="mx-auto text-center">
         <Col md={6} className="mb-2">
           <div className="mx-1 hero-feature-box hero-feature-box-top">
@@ -55,6 +55,6 @@ export function MainSectionHeroFeatures() {
           </div>
         </Col>
       </Row>
-    </Col>
+    </>
   )
 }
