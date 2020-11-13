@@ -14,29 +14,32 @@ import classNames from 'classnames'
 export const Label = styled(ReactstrapLabel)<{ disabled?: boolean }>`
   color: ${(props) => (props.disabled ? props.theme.gray500 : undefined)};
   padding: 2px 5px;
+  width: 100%;
+  display: flex;
 `
 
 export const LabelText = styled.div<{ disabled?: boolean }>`
   color: ${(props) => (props.disabled ? props.theme.gray500 : undefined)};
   font-size: 0.9rem;
   padding: 0;
-  margin: 0;
+  margin-right: auto;
 `
 
 export const ErrorText = styled.div<{ disabled?: boolean }>`
   color: ${(props) => (props.disabled ? props.theme.gray500 : props.theme.danger)};
   font-size: 0.7rem;
   padding: 0;
-  margin: 0;
+  margin-right: auto;
 `
 
 export const Input = styled(ReactstrapInput)`
-  font-size: 0.85rem;
-  padding: 0 7px;
+  font-size: 0.9rem;
+  padding: 0 0.75rem;
 `
 
 export const FormGroup = styled(ReactstrapFormGroup)`
   margin-bottom: 3px;
+  margin: 5px 0;
 `
 
 export interface NumericFieldProps extends InputProps {
@@ -45,6 +48,7 @@ export interface NumericFieldProps extends InputProps {
   value: number | typeof Infinity
   min: number
   max: number
+
   onValueChanged(value: number): void
 }
 
@@ -89,8 +93,8 @@ export function NumericField({
   }
 
   return (
-    <FormGroup row>
-      <Label className="col-sm-9 col-form-label" htmlFor={identifier} disabled={disabled}>
+    <FormGroup row className="d-flex w-100">
+      <Label className="col-sm-9 ml-auto" htmlFor={identifier} disabled={disabled}>
         <LabelText disabled={disabled}>{label}</LabelText>
         <ErrorText disabled={disabled}>{error}</ErrorText>
       </Label>

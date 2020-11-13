@@ -11,17 +11,25 @@ export const ToggleTwoLabelsBase = styled(ReactToggle)<ReactToggleProps>`
       background-color: #4a5bc6;
     }
 
+    .react-toggle-thumb {
+      border-color: #4a5bc6;
+    }
+
     &.react-toggle--checked > .react-toggle-track {
-      background-color: #d06e0b;
+      background-color: #d8782e;
+    }
+
+    &.react-toggle--checked .react-toggle-thumb {
+      border-color: #d8782e;
     }
 
     &:hover {
       & > .react-toggle-track {
-        background-color: #4f96cb;
+        background-color: #8494ec;
       }
 
       &.react-toggle--checked > .react-toggle-track {
-        background-color: #c69c45;
+        background-color: #e89e6c;
       }
     }
   }

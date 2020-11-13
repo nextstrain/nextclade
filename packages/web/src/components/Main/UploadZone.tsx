@@ -24,7 +24,7 @@ export const FileIconContainer = styled.span`
 `
 
 export const FileIconFasta = () => (
-  <FileIconContainer className="mr-2">
+  <FileIconContainer className="mx-auto">
     <FileIcon
       {...defaultStyles.txt}
       extension="fasta"
@@ -37,7 +37,7 @@ export const FileIconFasta = () => (
 )
 
 export const FileIconTxt = () => (
-  <FileIconContainer className="ml-2">
+  <FileIconContainer className="mx-mx-auto">
     <FileIcon {...defaultStyles.txt} extension="txt" labelColor={'#777777'} glyphColor={'#777777'} labelUppercase />
   </FileIconContainer>
 )
@@ -49,6 +49,7 @@ export function formatFileText(inputFile: InputFile) {
 
 export interface UploadZoneProps {
   inputFile?: InputFile
+
   onDrop<T extends File>(acceptedFiles: T[], fileRejections: FileRejection[], event: DropEvent): void
 }
 

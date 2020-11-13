@@ -80,11 +80,25 @@ export const shadows = {
   medium: `2px 2px 3px 3px ${rgba(gray900, 0.25)}`,
 }
 
+export const uploadZone = {
+  color: {
+    normal: basicColors.gray700,
+    accept: basicColors.gray700,
+    reject: basicColors.gray700,
+  },
+  border: {
+    normal: `5px ${basicColors.gray500} dashed`,
+    accept: `5px ${themeColors.success} dashed`,
+    reject: `5px ${themeColors.danger} dashed`,
+  },
+}
+
 export const theme = {
   ...auspiceSidebarTheme,
   ...basicColors,
   ...themeColors,
   shadows,
+  uploadZone,
 }
 
 export type Theme = typeof theme
