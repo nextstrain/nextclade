@@ -48,8 +48,9 @@ Generated file `results.json` will contain the results in JSON format.
 Similarly, results can be generated in .csv or .tsv format, or in multiple formats (by passing multiple `--output-<format>=` flags)
 All files have the same format as exports from the [Nextclade web application](https://clades.nextstrain.org).
 
-Additionally, Nextclade can output a new Nextstrain tree (in the same Auspice JSON v2 format), with the user-provided sequences placed on it, with `--output-tree`. Note that this simplified tree placement is to give a rough idea of where the sequences may end up, and this does not substitute the full Nextstrain build.
+Nextclade can accept a custom Auspice JSON v2 reference tree through `--input-tree` and it's root sequence through `--input-root-seq` flags. It is user's responsibility to ensure that the root sequence corresponds to the root node of the tree - Nextclade has no possibility to enforce that requirement. The results will be incorrect if it isn't.
 
+With `--output-tree` flag you can output a new Nextstrain tree, with the analyzed sequences placed on it (in the same Auspice JSON v2 format). The tree produced is the same which you would see in Nextclade web application on tree page. This file can be used for further processing and visualization (for example with [auspice.us](https://auspice.us)). Note that Nextclade implements a fast but also very simplified tree placement algorithm. Its purpose is to give a rough idea of where the sequences may end up on the tree, and it is not a substitute for a full Nextstrain build.
 
 Nextclade is currently in active development stage. If you encounter problems with the latest version, or if you need to use the same version to produce consistent, comparable experiments, you can install a specific version as follows:
 
@@ -57,7 +58,7 @@ Nextclade is currently in active development stage. If you encounter problems wi
 npm install --global @neherlab/nextclade@0.8.1
 ```
 
-See the list of all versions released on NPM: [www.npmjs.com/package/@neherlab/nextclade](https://www.npmjs.com/package/@neherlab/nextclade). Note that only versions from `latest` channel are officially supported. Alpha and beta versions are only for development and internal testing and we discourage using them.
+See the list of all versions released on NPM: [www.npmjs.com/package/@neherlab/nextclade?activeTab=versions](https://www.npmjs.com/package/@neherlab/nextclade?activeTab=versions). Note that only versions from the `latest` channel are officially supported. Version marked `alpha` and `beta` versions are for development and internal testing. We release them publicly, but discourage using them for any serious purposes. You can find out which version you are currently using by running `nextclade --version`.
 
 
 ### With docker
@@ -67,7 +68,7 @@ Docker images with Nextclade CLI are hosted in docker hub repository [`neherlab/
 You can pull the latest image and run the container as follows
 
 ```bash
-docker run -it --rm -u 1000 --volume="${ABSOLUTE_PATH_TO_SEQUENCES}:/seq" neherlab/nextclade nextclade.js --input-fasta '/seq/sequences.fasta' --output-json '/seq/results.json'
+docker run -it --rm -u 1000 --volume="${ABSOLUTE_PATH_TO_SEQUENCES}:/seq" neherlab/nextclade nextclade --input-fasta '/seq/sequences.fasta' --output-json '/seq/results.json'
 ```
 
 Explanation:
@@ -77,7 +78,7 @@ Explanation:
  - `-u 1000`. Runs container as a user with UID `1000`. Substitute `1000` with your local user's UID. UID of the current user can be found by running `id -u`. On single-user machines it is typically `1000` on Linux and `501` on Mac. If this parameter is not present, output files will be written on behalf of the root user, making them harder to operate on. Optional, but recommended.
  - `--volume="${ABSOLUTE_PATH_TO_SEQUENCES}:/seq"`. Substitute `${ABSOLUTE_PATH_TO_SEQUENCES}` with your *absolute* path to a directory containing input fasta sequences on your computer. This is necessary in order for docker container to have access to this directory. In this example, it will be available as `/seq` inside the container.
  - `neherlab/nextclade` name of the image to pull. In Unix-like environments you can use the variable `${PWD}` to get the absolute path to the current directory, for example: `--volume="${PWD}/data:/seq"`.
- - `nextclade.js --input-fasta '/seq/sequences.fasta' --output-json '/seq/results.json` the usual invocation of the tool. Note that in this example we read and write from `/seq` directory inside the container, which we mounted using Docker's `--volume=` parameter.
+ - `nextclade --input-fasta '/seq/sequences.fasta' --output-json '/seq/results.json` the usual invocation of the tool. Note that in this example we read and write from `/seq` directory inside the container, which we mounted using Docker's `--volume=` parameter.
 
 
 The default (`latest`) tag uses Node.js image based on Debian stretch. It is also possible to use smaller Alpine Linux-based images by appending `:alpine` tag after the repo name:  
@@ -141,11 +142,11 @@ Increment the version in both, `nextclade/packages/web/package.json` and `nextcl
 
 The version formats accepted:
  
- - `x.y.z` semantic version, for stable releases (will be published to `latest` channel on NPM and with no tag prefix on Docker Hub)
+ - `x.y.z` - semantic version for stable releases (will be published to `latest` channel on NPM and with no tag prefix on Docker Hub)
 
- - `x.y.z-beta.n` for beta releases (will be published to `beta` channel on NPM and with `beta` tag prefix on Docker Hub)
+ - `x.y.z-beta.n` - semantic version and a mandatory suffix for beta releases (will be published to `beta` channel on NPM and with `beta` tag prefix on Docker Hub)
 
- - `x.y.z-alpha.n` for alpha releases (will be published to `alpha` channel on NPM and with `alpha` tag prefix on Docker Hub) 
+ - `x.y.z-alpha.n` - semantic version and a mandatory suffix for alpha releases (will be published to `alpha` channel on NPM and with `alpha` tag prefix on Docker Hub) 
 
 
 rebuild:
