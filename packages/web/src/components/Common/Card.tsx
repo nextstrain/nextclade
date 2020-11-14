@@ -4,20 +4,25 @@ import { Card as ReactstrapCard, CardHeader as ReactstrapCardHeader, CardBody as
 
 /* Level 1 */
 export const CardL1 = styled(ReactstrapCard)`
+  border: none;
   border-image: none;
   margin: 10px 5px;
+  border-radius: 3px;
 `
 
 export const CardL1Header = styled(ReactstrapCardHeader)`
+  border: none;
+  border-image: none;
   background-color: #666;
-  //border-bottom: #ccc 1px solid;
   color: #ddd;
-  font-weight: bold;
-  font-size: 1.25rem;
-  padding: 7px 5px;
+  padding: 5px 5px;
+  display: flex;
+  height: 42px;
 `
 
 export const CardL1Body = styled(ReactstrapCardBody)`
+  border: 0;
+  border-image: none;
   margin: 3px 2px;
   padding: 6px;
 `

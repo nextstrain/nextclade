@@ -9,7 +9,7 @@ export function MainSectionTitle() {
   const { t } = useTranslation()
 
   return (
-    <Row noGutters className="hero-bg text-center mb-lg-5 mb-md-4 mb-sm-2">
+    <Row noGutters className="hero-bg text-center mb-lg-3 mb-sm-2">
       <Col>
         <Title />
         <Subtitle>{t('Clade assignment, mutation calling, and sequence quality checks')}</Subtitle>

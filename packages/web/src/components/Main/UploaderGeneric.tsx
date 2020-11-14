@@ -84,8 +84,13 @@ export function getUploadZoneTheme(props: { state: UploadZoneState; theme: Defau
   return props.theme.uploadZone[elem][props.state]
 }
 
+export const UploadZoneWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+`
+
 export const UploadZone = styled.div<{ state: UploadZoneState }>`
-  height: 100px;
+  height: 100%;
   cursor: pointer;
   border-radius: 5px;
   border: ${(props) => getUploadZoneTheme(props, 'border')};
@@ -97,7 +102,6 @@ export function UploaderGeneric({ onUpload, children }: PropsWithChildren<Upload
   const [errors, setErrors] = useState<string[]>([])
   const { getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject } = useDropzone({
     onDrop: makeOnDrop({ t, onUpload, setErrors }),
-    noClick: true,
     multiple: false,
   })
 
@@ -119,14 +123,12 @@ export function UploaderGeneric({ onUpload, children }: PropsWithChildren<Upload
   const file = inputFile && <div className="mx-auto text-center">{formatFileText(inputFile)}</div>
 
   return (
-    <div>
-      <div {...getRootProps()}>
-        <input type="file" {...getInputProps()} />
-        <UploadZone state={state}>
-          {children}
-          <div className="mt-4">{file ?? (isDragActive ? active : normal)}</div>
-        </UploadZone>
-      </div>
-    </div>
+    <UploadZoneWrapper {...getRootProps()}>
+      <input type="file" {...getInputProps()} />
+      <UploadZone state={state}>
+        {children}
+        <div className="mt-4">{file ?? (isDragActive ? active : normal)}</div>
+      </UploadZone>
+    </UploadZoneWrapper>
   )
 }

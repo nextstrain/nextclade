@@ -10,12 +10,13 @@ export const Tab = styled(ReactTab)`
   list-style: none;
   padding: 6px 12px;
   cursor: pointer;
+  border-radius: 3px 3px 0 0;
+  margin: 10px 10px;
 
   &.react-tabs__tab--selected {
     background: #fff;
     border-color: #aaa;
-    color: black;
-    border-radius: 5px 5px 0 0;
+    color: #222;
   }
 
   .react-tabs__tab--disabled {
@@ -43,14 +44,14 @@ export const Tab = styled(ReactTab)`
 export const TabList = styled(ReactTabList)`
   border-bottom: 1px solid #aaa;
   margin: 0 0 10px;
-  padding: 0;
+  padding: 5px 5px;
 `
 
 export const TabPanel = styled(ReactTabPanel)`
   display: none;
 
   &.react-tabs__tab-panel--selected {
-    display: block;
+    display: flex;
   }
 `
 
