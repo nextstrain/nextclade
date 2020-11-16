@@ -1,7 +1,6 @@
 import React, { ReactNode, useState } from 'react'
 
-import { useTranslation } from 'react-i18next'
-
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { UploadedFileInfo } from 'src/components/Main/UploadedFileInfo'
 import { FileStats } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
@@ -16,13 +15,11 @@ import {
   Collapse,
 } from 'reactstrap'
 import { BsClipboard, BsFileEarmark, BsLink45Deg } from 'react-icons/bs'
+import { IoIosArrowDroprightCircle } from 'react-icons/io'
+import { FaAsterisk } from 'react-icons/fa'
 
 import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
 import { Tab, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
-
-import { MdArrowDropDown } from 'react-icons/md'
-import { IoIosArrowDroprightCircle } from 'react-icons/io'
-import { FaAsterisk } from 'react-icons/fa'
 
 export const TextInputMonospace = styled(Input)`
   width:100%;
@@ -76,16 +73,18 @@ export const FlexBottom = styled(Flex)`
   margin-top: 25px;
 `
 
-export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ rotated: boolean }>`
+export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ shouldRotate: boolean; collapsible: boolean }>`
   transition: transform linear 0.25s;
-  ${({ rotated }) => rotated && 'transform: rotate(90deg)'};
+  ${({ shouldRotate }) => shouldRotate && 'transform: rotate(90deg)'};
   margin-bottom: 3px;
   margin-right: 3px;
+  cursor: pointer;
 `
 
 export const NonCollapsibleIcon = styled(FaAsterisk)`
   margin-bottom: 3px;
   margin-right: 3px;
+  margin-left: 1px;
 `
 
 export interface FilePickerProps {
@@ -100,7 +99,7 @@ export interface FilePickerProps {
 const MOCK_ERRORS = ['File format not recognized', 'Unable to download']
 
 export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = true }: FilePickerProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslationSafe()
   const [file, setFile] = useState<FileStats | undefined>(undefined)
   const [errors, setErrors] = useState<string[]>(MOCK_ERRORS)
   const [collapsed, setCollapsed] = useState(collapsible ? defaultCollapsed : false)
@@ -117,9 +116,15 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
     }
   }
 
-  const value = undefined
-  const onChange = undefined
-  const inputRef = undefined
+  const url: string | undefined = ''
+  const hasUrl = url?.length && url?.length > 0
+  const onUrlChange = undefined
+  const urlInputRef = undefined
+
+  const seqData: string | undefined = ''
+  const hasSeqData = seqData?.length && seqData?.length > 0
+  const onSeqDataChange = undefined
+  const seqInputRef = undefined
 
   function onUpload(file: File) {
     setFile({ name: file.name, size: file.size })
@@ -143,31 +148,37 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
     <Row noGutters>
       <Col>
         <Tabs>
-          <TabList>
+          <TabList collapsible={collapsible}>
             <TextContainer onClick={toggle}>
               <div className="align-content-start">
                 {collapsible ? (
-                  <CollapseToggleIcon rotated={!collapsed} color="#ccc" size={30} />
+                  <CollapseToggleIcon
+                    title={collapsed ? t('Expand this section') : t('Collapse this section')}
+                    collapsible={collapsible}
+                    shouldRotate={!collapsed}
+                    color="#ccc"
+                    size={30}
+                  />
                 ) : (
-                  <NonCollapsibleIcon color="#ccc" size={24} />
+                  <NonCollapsibleIcon title={t('Required')} color="#ccc" size={22} />
                 )}
                 {text}
               </div>
             </TextContainer>
 
-            <Tab onClick={open}>
+            <Tab onClick={open} title={t('Provide file from your computer')}>
               <span className="mr-2">
                 <BsFileEarmark />
               </span>
               {t('From file')}
             </Tab>
-            <Tab onClick={open}>
+            <Tab onClick={open} title={t('Provide URL to download a file from a remote server')}>
               <span className="mr-2">
                 <BsLink45Deg />
               </span>
               {t('From URL')}
             </Tab>
-            <Tab onClick={open}>
+            <Tab onClick={open} title={t('Type or paste the content directly')}>
               <span className="mr-2">
                 <BsClipboard />
               </span>
@@ -189,8 +200,9 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
                     <Label htmlFor="tree-url-text-input">{t('Enter URL to a file to fetch')}</Label>
                   </Flex>
                   <TextInputMonospace
-                    placeholder="https://example.com/data.fasta"
+                    id="tree-url-text-input"
                     type="textarea"
+                    placeholder={t('For example: {{exampleUrl}}', { exampleUrl: 'https://example.com/data.fasta' })}
                     autoComplete="off"
                     autoCorrect="off"
                     autoCapitalize="off"
@@ -198,11 +210,9 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
                     data-gramm="false"
                     wrap="off"
                     data-gramm_editor="false"
-                    id="sequence-input"
-                    cols={80}
-                    value={value}
-                    onChange={onChange}
-                    innerRef={inputRef}
+                    value={url}
+                    onChange={onUrlChange}
+                    innerRef={urlInputRef}
                   />
 
                   <Flex>
@@ -212,11 +222,21 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
                   </Flex>
 
                   <FlexBottom>
-                    <ButtonClear type="button" color="secondary">
+                    <ButtonClear
+                      disabled={!hasUrl}
+                      type="button"
+                      color="secondary"
+                      title={t('Clear the URL text field')}
+                    >
                       {t('Clear')}
                     </ButtonClear>
 
-                    <ButtonDownload type="button" color="primary">
+                    <ButtonDownload
+                      disabled={!hasUrl}
+                      type="button"
+                      color="primary"
+                      title={hasUrl ? 'Start downloading this file' : 'Provide a URL before downloading is possible'}
+                    >
                       {t('Download')}
                     </ButtonDownload>
                   </FlexBottom>
@@ -224,21 +244,53 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
               </Form>
             </TabPanel>
             <TabPanel>
-              <TextInputMonospace
-                type="textarea"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-                data-gramm="false"
-                wrap="off"
-                data-gramm_editor="false"
-                id="sequence-input"
-                cols={80}
-                value={value}
-                onChange={onChange}
-                innerRef={inputRef}
-              />
+              <Form>
+                <FormGroup>
+                  <Flex>
+                    <Label htmlFor="sequence-input">{t('Enter sequence data in FASTA format')}</Label>
+                  </Flex>
+                  <TextInputMonospace
+                    id="sequence-input"
+                    type="textarea"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    data-gramm="false"
+                    wrap="off"
+                    data-gramm_editor="false"
+                    value={seqData}
+                    onChange={onSeqDataChange}
+                    innerRef={seqInputRef}
+                  />
+
+                  <Flex>
+                    <Footnote>
+                      {t('*Make sure this file is publicly accessible and CORS is enabled on your server')}
+                    </Footnote>
+                  </Flex>
+
+                  <FlexBottom>
+                    <ButtonClear
+                      disabled={!hasSeqData}
+                      type="button"
+                      color="secondary"
+                      title={t('Clear the text field')}
+                    >
+                      {t('Clear')}
+                    </ButtonClear>
+
+                    <ButtonDownload
+                      disabled={!hasSeqData}
+                      type="button"
+                      color="primary"
+                      title={hasSeqData ? 'Accept sequence data' : 'Provide provide before analysis is possible'}
+                    >
+                      {t('OK')}
+                    </ButtonDownload>
+                  </FlexBottom>
+                </FormGroup>
+              </Form>
             </TabPanel>
           </Collapse>
         </Tabs>

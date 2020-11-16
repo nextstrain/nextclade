@@ -1,16 +1,14 @@
-import { TFunction } from 'i18next'
-import React, { PropsWithChildren, useCallback, useMemo, useState } from 'react'
-import { Button } from 'reactstrap'
-import { FileStats } from 'src/state/algorithm/algorithm.state'
+import React, { PropsWithChildren, useMemo, useState } from 'react'
 
+import type { TFunction } from 'i18next'
+import { Button } from 'reactstrap'
 import styled, { DefaultTheme } from 'styled-components'
 import { FileRejection, useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
 
+import type { FileStats } from 'src/state/algorithm/algorithm.state'
 import { theme } from 'src/theme'
 import { appendDash } from 'src/helpers/appendDash'
-import { formatFileStats } from 'src/helpers/formatFileStats'
-import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 
 export type UpdateErrorsFunction = (prevErrors: string[]) => string[]
 
