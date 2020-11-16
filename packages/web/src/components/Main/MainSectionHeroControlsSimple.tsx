@@ -20,7 +20,7 @@ import {
   setIsDirty,
 } from 'src/state/algorithm/algorithm.actions'
 import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
-import type { InputFile } from 'src/state/algorithm/algorithm.state'
+import type { FileStats } from 'src/state/algorithm/algorithm.state'
 
 import type { State } from 'src/state/reducer'
 import { setShowInputBox } from 'src/state/ui/ui.actions'
@@ -33,7 +33,7 @@ export interface MainSectionHeroControlsProps {
 
   setInput(input: string): void
 
-  setInputFile(inputFile: InputFile): void
+  setInputFile(inputFile: FileStats): void
 
   setIsDirty(isDirty: boolean): void
 
@@ -55,7 +55,7 @@ const mapStateToProps = (state: State) => ({
 
 const mapDispatchToProps = {
   setInput,
-  setInputFile: (inputFile: InputFile) => setInputFile(inputFile),
+  setInputFile: (inputFile: FileStats) => setInputFile(inputFile),
   setIsDirty,
   algorithmRunTrigger: (content?: string | File) => algorithmRunAsync.trigger(content),
   exportTrigger: () => exportCsvTrigger(),

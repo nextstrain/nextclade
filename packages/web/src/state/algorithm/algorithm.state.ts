@@ -6,7 +6,7 @@ import type { AlgorithmParams, AnalysisResultWithMatch, AnalysisResult } from 's
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 
-export interface InputFile {
+export interface FileStats {
   name: string
   size: number
 }
@@ -57,7 +57,7 @@ export interface ResultsFilters extends QCFilters {
 
 export interface AlgorithmState {
   status: AlgorithmGlobalStatus
-  inputFile?: InputFile
+  inputFile?: FileStats
   params: AlgorithmParams
   isDirty: boolean
   results: SequenceAnalysisState[]

@@ -3,37 +3,14 @@ import React from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import styled from 'styled-components'
 import { Col, Row } from 'reactstrap'
-import { defaultStyles, FileIcon } from 'react-file-icon'
 
 import type { AlgorithmParams } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { setIsDirty } from 'src/state/algorithm/algorithm.actions'
-import { FilePicker, TextContainer } from 'src/components/Main/FilePicker'
-import { FileIconTxt } from 'src/components/Main/UploadZone'
-import { SettingsDialog } from 'src/components/Settings/SettingsDialog'
 import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
-import { CardL1, CardL1Body, CardL1Header } from 'src/components/Common/Card'
-import { FileIconJson } from 'src/components/Main/FileIconJson'
-
-export const FileIconContainer = styled.span`
-  //flex: 0 0 50px;
-  //margin: auto;
-`
-
-export const FileIconFasta = () => (
-  <FileIconContainer className="mx-auto">
-    <FileIcon
-      {...defaultStyles.txt}
-      extension="fasta"
-      type="code2"
-      labelColor={'#66b51d'}
-      glyphColor={'#66b51d'}
-      labelUppercase
-    />
-  </FileIconContainer>
-)
+import { FilePicker } from 'src/components/Main/FilePicker'
+import { FileIconFasta, FileIconJson, FileIconTxt } from 'src/components/Main/UploaderFileIcons'
 
 export interface MainSectionHeroControlsAdvancedProps {
   params: AlgorithmParams

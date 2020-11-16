@@ -15,6 +15,7 @@ import FooterContent from './Footer'
 
 export const Container = styled.div`
   max-width: 1700px;
+  min-width: 500px;
   margin: 0 auto;
 `
 

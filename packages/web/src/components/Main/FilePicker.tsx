@@ -1,6 +1,8 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
+import { UploadedFileInfo } from 'src/components/Main/UploadedFileInfo'
+import { FileStats } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
 import {
   Button,
@@ -13,86 +15,8 @@ import {
 } from 'reactstrap'
 import { BsClipboard, BsFileEarmark, BsLink45Deg } from 'react-icons/bs'
 
-import {
-  Tab as TabBase,
-  TabList as TabListBase,
-  TabPanel as TabPanelBase,
-  Tabs as TabsBase,
-} from 'src/components/Common/Tabs'
 import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
-
-export const Tabs = styled(TabsBase)`
-  border-image: none;
-  border-radius: 3px;
-  margin: 10px 5px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-`
-
-export const TabList = styled(TabListBase)`
-  border: none;
-  border-image: none;
-  border-image-width: 0;
-  height: 42px;
-  background-color: #666;
-  color: #ddd;
-  font-size: 1.25rem;
-  padding: 3px 5px;
-  padding-bottom: 0;
-  border-top-left-radius: 3px;
-  border-top-right-radius: 3px;
-  margin-bottom: 0;
-  display: flex;
-`
-
-export const Tab = styled(TabBase)`
-  background: #666;
-  color: #ccc;
-  border-color: #999;
-  font-size: 0.9rem;
-  width: 125px;
-
-  margin: 1px 1px;
-  padding: 8px;
-
-  &.react-tabs__tab--selected {
-    border: none;
-    border-image: none;
-    font-weight: bold;
-  }
-
-  :hover {
-    background: #777;
-    color: #eee;
-  }
-
-  &.react-tabs__tab--selected:hover {
-    background: #fff;
-    color: #333;
-    font-weight: bold;
-  }
-`
-
-export const TabPanel = styled(TabPanelBase)`
-  border: none;
-  border-image: none;
-  border-image-width: 0;
-  margin: 3px 2px;
-  padding: 6px;
-  height: 200px;
-`
-
-export const FileIconsContainer = styled.span`
-  display: flex;
-  width: 1.2rem;
-`
-
-export const TextContainer = styled.span`
-  position: relative;
-  padding: 4px 7px;
-  margin-right: auto;
-  font-weight: bold;
-  font-size: 1.25rem;
-`
+import { Tab, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
 
 export const TextInputMonospace = styled(Input)`
   width:100%;
@@ -153,12 +77,35 @@ export interface FilePickerProps {
   onUpload(): void
 }
 
-export function FilePicker({ icon, text, onUpload }: FilePickerProps) {
+const MOCK_ERRORS = ['File format not recognized', 'Unable to download']
+
+export function FilePicker({ icon, text /*, onUpload */ }: FilePickerProps) {
   const { t } = useTranslation()
 
   const value = undefined
   const onChange = undefined
   const inputRef = undefined
+
+  const [file, setFile] = useState<FileStats | undefined>(undefined)
+  const [errors, setErrors] = useState<string[]>(MOCK_ERRORS)
+
+  function onUpload(file: File) {
+    setFile({ name: file.name, size: file.size })
+  }
+
+  function onRemove() {
+    setFile(undefined)
+  }
+
+  if (file) {
+    return (
+      <Row noGutters>
+        <Col>
+          <UploadedFileInfo text={text} file={file} errors={errors} onRemove={onRemove} />
+        </Col>
+      </Row>
+    )
+  }
 
   return (
     <Row noGutters>
@@ -188,8 +135,8 @@ export function FilePicker({ icon, text, onUpload }: FilePickerProps) {
           </TabList>
 
           <TabPanel>
-            <UploaderGeneric onUpload={onUpload}>
-              <FileIconsContainer>{icon}</FileIconsContainer>
+            <UploaderGeneric fileStats={file} removeFile={onRemove} onUpload={onUpload}>
+              {icon}
             </UploaderGeneric>
           </TabPanel>
 

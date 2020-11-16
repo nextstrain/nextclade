@@ -45,6 +45,7 @@ export const TabList = styled(ReactTabList)`
   border-bottom: 1px solid #aaa;
   margin: 0 0 10px;
   padding: 5px 5px;
+  height: 42px;
 `
 
 export const TabPanel = styled(ReactTabPanel)`

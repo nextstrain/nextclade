@@ -1,13 +1,16 @@
 import { TFunction } from 'i18next'
-import React, { PropsWithChildren, useState } from 'react'
+import React, { PropsWithChildren, useCallback, useMemo, useState } from 'react'
+import { Button } from 'reactstrap'
+import { FileStats } from 'src/state/algorithm/algorithm.state'
 
+import styled, { DefaultTheme } from 'styled-components'
 import { FileRejection, useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
 
+import { theme } from 'src/theme'
 import { appendDash } from 'src/helpers/appendDash'
-import styled, { DefaultTheme } from 'styled-components'
-
-import { formatFileText } from './UploadZone'
+import { formatFileStats } from 'src/helpers/formatFileStats'
+import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 
 export type UpdateErrorsFunction = (prevErrors: string[]) => string[]
 
@@ -59,6 +62,7 @@ export enum UploadZoneState {
   normal = 'normal',
   accept = 'accept',
   reject = 'reject',
+  hover = 'hover',
 }
 
 class UploadErrorTooManyFiles extends Error {
@@ -77,29 +81,85 @@ class UploadErrorUnknown extends Error {
 }
 
 export interface UploaderGenericProps {
+  fileStats?: FileStats
+
   onUpload(file: File): void
+
+  removeFile(fileStats: FileStats): void
 }
 
-export function getUploadZoneTheme(props: { state: UploadZoneState; theme: DefaultTheme }, elem: 'border' | 'color') {
+export type UploadZoneElems = keyof typeof theme.uploadZone
+
+export function getUploadZoneTheme(props: { state: UploadZoneState; theme: DefaultTheme }, elem: UploadZoneElems) {
   return props.theme.uploadZone[elem][props.state]
 }
 
 export const UploadZoneWrapper = styled.div`
   width: 100%;
   height: 100%;
+
+  &:focus-within {
+    border: none;
+    inset: none;
+    border-image: none;
+  }
 `
 
 export const UploadZone = styled.div<{ state: UploadZoneState }>`
+  display: flex;
   height: 100%;
   cursor: pointer;
   border-radius: 5px;
   border: ${(props) => getUploadZoneTheme(props, 'border')};
-  color: ${(props) => getUploadZoneTheme(props, 'color')}; ;
+  color: ${(props) => getUploadZoneTheme(props, 'color')};
+  background-color: ${(props) => getUploadZoneTheme(props, 'background')};
+  box-shadow: ${(props) => getUploadZoneTheme(props, 'box-shadow')};
+`
+
+export const UploadZoneInput = styled.input``
+
+export const UploadZoneLeft = styled.div`
+  display: flex;
+  flex: 1 1 40%;
+  margin: auto;
+  margin-right: 20px;
+`
+
+export const UploadZoneRight = styled.div`
+  display: flex;
+  flex: 1 0 60%;
+`
+
+export const FileIconsContainer = styled.div`
+  margin-left: auto;
+`
+
+export const UploadZoneTextContainer = styled.div`
+  display: block;
+  margin: auto;
+  margin-left: 20px;
+`
+
+export const UploadZoneText = styled.div`
+  font-size: 1.1rem;
+`
+
+export const UploadZoneTextOr = styled.div`
+  margin-top: 10px;
+  font-size: 0.9rem;
+  font-weight: light;
+`
+
+export const UploadZoneButton = styled(Button)`
+  margin-top: 10px;
+  min-width: 160px;
+  min-height: 50px;
 `
 
 export function UploaderGeneric({ onUpload, children }: PropsWithChildren<UploaderGenericProps>) {
   const { t } = useTranslation()
   const [errors, setErrors] = useState<string[]>([])
+
   const { getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject } = useDropzone({
     onDrop: makeOnDrop({ t, onUpload, setErrors }),
     multiple: false,
@@ -115,19 +175,32 @@ export function UploaderGeneric({ onUpload, children }: PropsWithChildren<Upload
   if (isDragAccept) state = UploadZoneState.accept
   else if (isDragReject) state = UploadZoneState.reject
 
-  const normal = <div className="mx-auto text-center">{t('Drag & Drop a file or click to select')}</div>
+  const normal = useMemo(
+    () => (
+      <UploadZoneTextContainer>
+        <UploadZoneText>{t('Drag & Drop file here')}</UploadZoneText>
+        <UploadZoneTextOr>{t('or')}</UploadZoneTextOr>
+        <UploadZoneButton color="primary">{t('Select a file')}</UploadZoneButton>
+      </UploadZoneTextContainer>
+    ),
+    [t],
+  )
 
-  const active = <div className="mx-auto text-center">{t('Drop it!')}</div>
-
-  const inputFile = undefined
-  const file = inputFile && <div className="mx-auto text-center">{formatFileText(inputFile)}</div>
+  const active = useMemo(
+    () => (
+      <UploadZoneTextContainer>
+        <UploadZoneText>{t('Drop it!')}</UploadZoneText>
+      </UploadZoneTextContainer>
+    ),
+    [t],
+  )
 
   return (
     <UploadZoneWrapper {...getRootProps()}>
-      <input type="file" {...getInputProps()} />
+      <UploadZoneInput type="file" {...getInputProps()} />
       <UploadZone state={state}>
-        {children}
-        <div className="mt-4">{file ?? (isDragActive ? active : normal)}</div>
+        <UploadZoneLeft>{<FileIconsContainer>{children}</FileIconsContainer>}</UploadZoneLeft>
+        <UploadZoneRight>{isDragActive ? active : normal}</UploadZoneRight>
       </UploadZone>
     </UploadZoneWrapper>
   )

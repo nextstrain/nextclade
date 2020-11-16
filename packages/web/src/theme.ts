@@ -2,6 +2,23 @@ import { rgba } from 'polished'
 
 import { sidebarTheme as auspiceSidebarTheme } from 'auspice/src/components/main/styles'
 
+const gridBreakpoints = {
+  xs: '0',
+  sm: '576px',
+  md: '768px',
+  lg: '992px',
+  xl: '1200px',
+  xxl: '2000px',
+}
+
+const containerMaxWidths = {
+  sm: '540px',
+  md: '720px',
+  lg: '960px',
+  xl: '1140px',
+  xxl: '1950px',
+}
+
 export const white = '#ffffff'
 export const gray100 = '#f8f9fa'
 export const gray150 = '#eff1f3'
@@ -10,6 +27,7 @@ export const gray250 = '#e5e8ea'
 export const gray300 = '#dee2e6'
 export const gray400 = '#ced4da'
 export const gray500 = '#adb5bd'
+export const gray550 = '#979fa7'
 export const gray600 = '#7b838a'
 export const gray650 = '#626a71'
 export const gray700 = '#495057'
@@ -46,6 +64,7 @@ export const basicColors = {
   gray300,
   gray400,
   gray500,
+  gray550,
   gray600,
   gray650,
   gray700,
@@ -84,18 +103,38 @@ export const font = {
 export const shadows = {
   slight: `1px 1px 1px 1px ${rgba(gray700, 0.25)}`,
   medium: `2px 2px 3px 3px ${rgba(gray900, 0.25)}`,
+  filter: {
+    slight: `1px 1px 1px ${rgba(gray700, 0.25)}`,
+    medium: `2px 2px 3px ${rgba(gray900, 0.33)}`,
+  },
 }
 
+const uploadZoneBxoShadow = `1px 1px 3px 3px ${rgba(gray700, 0.25)}`
+
 export const uploadZone = {
-  color: {
-    normal: basicColors.gray700,
-    accept: basicColors.gray700,
-    reject: basicColors.gray700,
+  'background': {
+    normal: basicColors.gray100,
+    accept: rgba(themeColors.success, 0.25),
+    reject: rgba(themeColors.danger, 0.25),
+    hover: basicColors.white,
   },
-  border: {
-    normal: `5px ${basicColors.gray500} dashed`,
-    accept: `5px ${themeColors.success} dashed`,
-    reject: `5px ${themeColors.danger} dashed`,
+  'color': {
+    normal: basicColors.gray700,
+    accept: themeColors.success,
+    reject: themeColors.danger,
+    hover: basicColors.gray900,
+  },
+  'border': {
+    normal: `4px ${rgba(basicColors.gray500, 0.75)} dashed`,
+    accept: `4px ${rgba(themeColors.success, 0.75)} dashed`,
+    reject: `4px ${rgba(themeColors.danger, 0.75)} dashed`,
+    hover: `4px ${rgba(basicColors.gray550, 0.75)} dashed`,
+  },
+  'box-shadow': {
+    normal: 'none',
+    accept: uploadZoneBxoShadow,
+    reject: uploadZoneBxoShadow,
+    hover: uploadZoneBxoShadow,
   },
 }
 
@@ -103,6 +142,8 @@ export const theme = {
   ...auspiceSidebarTheme,
   ...basicColors,
   ...themeColors,
+  ...gridBreakpoints,
+  containerMaxWidths,
   font,
   shadows,
   uploadZone,

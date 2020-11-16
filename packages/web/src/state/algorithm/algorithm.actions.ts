@@ -7,12 +7,12 @@ import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tre
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult } from 'src/algorithms/QC/types'
 import type { Sorting } from 'src/helpers/sortResults'
-import type { AlgorithmGlobalStatus, CladeAssignmentResult, InputFile } from './algorithm.state'
+import type { AlgorithmGlobalStatus, CladeAssignmentResult, FileStats } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
 
 export const setInput = action<string>('setInput')
-export const setInputFile = action<InputFile>('setInputFile')
+export const setInputFile = action<FileStats>('setInputFile')
 export const setInputRootSeq = action<string>('setRootSeq')
 export const setInputTree = action<AuspiceJsonV2>('setTree')
 export const setIsDirty = action<boolean>('setIsDirty')
