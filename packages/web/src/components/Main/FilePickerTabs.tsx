@@ -18,7 +18,7 @@ export const TabList = styled(TabListBase)<{ collapsible?: boolean }>`
   border: none;
   border-image: none;
   border-image-width: 0;
-  height: 42px;
+  height: 48px;
   background-color: #666;
   color: #ddd;
   font-size: 1.25rem;
@@ -69,11 +69,20 @@ export const TabPanel = styled(TabPanelBase)`
   height: 200px;
 `
 
-export const TextContainer = styled.span`
+export const TextContainer = styled.div`
   display: flex;
   flex: 1;
   position: relative;
   padding: 4px 7px;
-  font-weight: bold;
-  font-size: 1.25rem;
+  margin: auto;
+
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  h1 {
+    margin-top: 3px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    white-space: nowrap;
+  }
 `

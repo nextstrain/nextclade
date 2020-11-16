@@ -76,15 +76,16 @@ export const FlexBottom = styled(Flex)`
 export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ shouldRotate: boolean; collapsible: boolean }>`
   transition: transform linear 0.25s;
   ${({ shouldRotate }) => shouldRotate && 'transform: rotate(90deg)'};
-  margin-bottom: 3px;
-  margin-right: 3px;
+  margin: auto;
+  margin-right: 0.5rem;
+  margin-bottom: 5px;
   cursor: pointer;
 `
 
 export const NonCollapsibleIcon = styled(FaAsterisk)`
-  margin-bottom: 3px;
-  margin-right: 3px;
-  margin-left: 1px;
+  margin: auto;
+  margin-right: 0.5rem;
+  margin-bottom: 5px;
 `
 
 export interface FilePickerProps {
@@ -151,18 +152,21 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
           <TabList collapsible={collapsible}>
             <TextContainer onClick={toggle}>
               <div className="align-content-start">
-                {collapsible ? (
-                  <CollapseToggleIcon
-                    title={collapsed ? t('Expand this section') : t('Collapse this section')}
-                    collapsible={collapsible}
-                    shouldRotate={!collapsed}
-                    color="#ccc"
-                    size={30}
-                  />
-                ) : (
-                  <NonCollapsibleIcon title={t('Required')} color="#ccc" size={22} />
-                )}
-                {text}
+                <h1>
+                  {collapsible ? (
+                    <CollapseToggleIcon
+                      title={collapsed ? t('Expand this section') : t('Collapse this section')}
+                      collapsible={collapsible}
+                      shouldRotate={!collapsed}
+                      color="#ccc"
+                      size={30}
+                    />
+                  ) : (
+                    <NonCollapsibleIcon title={t('Required')} color="#ccc" size={24} />
+                  )}
+
+                  {text}
+                </h1>
               </div>
             </TextContainer>
 
