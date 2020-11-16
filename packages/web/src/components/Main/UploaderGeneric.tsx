@@ -176,7 +176,7 @@ export function UploaderGeneric({ onUpload, children }: PropsWithChildren<Upload
   const normal = useMemo(
     () => (
       <UploadZoneTextContainer>
-        <UploadZoneText>{t('Drag & Drop file here')}</UploadZoneText>
+        <UploadZoneText>{t('Drag & Drop a file here')}</UploadZoneText>
         <UploadZoneTextOr>{t('or')}</UploadZoneTextOr>
         <UploadZoneButton color="primary">{t('Select a file')}</UploadZoneButton>
       </UploadZoneTextContainer>
