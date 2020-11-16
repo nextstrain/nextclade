@@ -1,6 +1,7 @@
 import React, { ReactNode, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
+
 import { UploadedFileInfo } from 'src/components/Main/UploadedFileInfo'
 import { FileStats } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
@@ -12,11 +13,16 @@ import {
   Form as ReactstrapForm,
   Label as ReactstrapLabel,
   FormGroup as ReactstrapFormGroup,
+  Collapse,
 } from 'reactstrap'
 import { BsClipboard, BsFileEarmark, BsLink45Deg } from 'react-icons/bs'
 
 import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
 import { Tab, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
+
+import { MdArrowDropDown } from 'react-icons/md'
+import { IoIosArrowDroprightCircle } from 'react-icons/io'
+import { FaAsterisk } from 'react-icons/fa'
 
 export const TextInputMonospace = styled(Input)`
   width:100%;
@@ -70,24 +76,50 @@ export const FlexBottom = styled(Flex)`
   margin-top: 25px;
 `
 
+export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ rotated: boolean }>`
+  transition: transform linear 0.25s;
+  ${({ rotated }) => rotated && 'transform: rotate(90deg)'};
+  margin-bottom: 3px;
+  margin-right: 3px;
+`
+
+export const NonCollapsibleIcon = styled(FaAsterisk)`
+  margin-bottom: 3px;
+  margin-right: 3px;
+`
+
 export interface FilePickerProps {
   icon: ReactNode
   text: ReactNode
+  collapsible?: boolean
+  defaultCollapsed?: boolean
 
   onUpload(): void
 }
 
 const MOCK_ERRORS = ['File format not recognized', 'Unable to download']
 
-export function FilePicker({ icon, text /*, onUpload */ }: FilePickerProps) {
+export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = true }: FilePickerProps) {
   const { t } = useTranslation()
+  const [file, setFile] = useState<FileStats | undefined>(undefined)
+  const [errors, setErrors] = useState<string[]>(MOCK_ERRORS)
+  const [collapsed, setCollapsed] = useState(collapsible ? defaultCollapsed : false)
+
+  const toggle = (e: React.MouseEvent<HTMLElement>) => {
+    if (collapsible) {
+      setCollapsed((collapsed) => !collapsed)
+    }
+  }
+
+  const open = (e: React.MouseEvent<HTMLElement>) => {
+    if (collapsible) {
+      setCollapsed(false)
+    }
+  }
 
   const value = undefined
   const onChange = undefined
   const inputRef = undefined
-
-  const [file, setFile] = useState<FileStats | undefined>(undefined)
-  const [errors, setErrors] = useState<string[]>(MOCK_ERRORS)
 
   function onUpload(file: File) {
     setFile({ name: file.name, size: file.size })
@@ -112,21 +144,30 @@ export function FilePicker({ icon, text /*, onUpload */ }: FilePickerProps) {
       <Col>
         <Tabs>
           <TabList>
-            <TextContainer>{text}</TextContainer>
+            <TextContainer onClick={toggle}>
+              <div className="align-content-start">
+                {collapsible ? (
+                  <CollapseToggleIcon rotated={!collapsed} color="#ccc" size={30} />
+                ) : (
+                  <NonCollapsibleIcon color="#ccc" size={24} />
+                )}
+                {text}
+              </div>
+            </TextContainer>
 
-            <Tab>
+            <Tab onClick={open}>
               <span className="mr-2">
                 <BsFileEarmark />
               </span>
               {t('From file')}
             </Tab>
-            <Tab>
+            <Tab onClick={open}>
               <span className="mr-2">
                 <BsLink45Deg />
               </span>
               {t('From URL')}
             </Tab>
-            <Tab>
+            <Tab onClick={open}>
               <span className="mr-2">
                 <BsClipboard />
               </span>
@@ -134,70 +175,72 @@ export function FilePicker({ icon, text /*, onUpload */ }: FilePickerProps) {
             </Tab>
           </TabList>
 
-          <TabPanel>
-            <UploaderGeneric fileStats={file} removeFile={onRemove} onUpload={onUpload}>
-              {icon}
-            </UploaderGeneric>
-          </TabPanel>
+          <Collapse isOpen={!collapsed}>
+            <TabPanel>
+              <UploaderGeneric fileStats={file} removeFile={onRemove} onUpload={onUpload}>
+                {icon}
+              </UploaderGeneric>
+            </TabPanel>
 
-          <TabPanel>
-            <Form>
-              <FormGroup>
-                <Flex>
-                  <Label htmlFor="tree-url-text-input">{t('Enter URL to a file to fetch')}</Label>
-                </Flex>
-                <TextInputMonospace
-                  placeholder="https://example.com/data.fasta"
-                  type="textarea"
-                  autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  spellCheck="false"
-                  data-gramm="false"
-                  wrap="off"
-                  data-gramm_editor="false"
-                  id="sequence-input"
-                  cols={80}
-                  value={value}
-                  onChange={onChange}
-                  innerRef={inputRef}
-                />
+            <TabPanel>
+              <Form>
+                <FormGroup>
+                  <Flex>
+                    <Label htmlFor="tree-url-text-input">{t('Enter URL to a file to fetch')}</Label>
+                  </Flex>
+                  <TextInputMonospace
+                    placeholder="https://example.com/data.fasta"
+                    type="textarea"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    data-gramm="false"
+                    wrap="off"
+                    data-gramm_editor="false"
+                    id="sequence-input"
+                    cols={80}
+                    value={value}
+                    onChange={onChange}
+                    innerRef={inputRef}
+                  />
 
-                <Flex>
-                  <Footnote>
-                    {t('*Make sure this file is publicly accessible and CORS is enabled on your server')}
-                  </Footnote>
-                </Flex>
+                  <Flex>
+                    <Footnote>
+                      {t('*Make sure this file is publicly accessible and CORS is enabled on your server')}
+                    </Footnote>
+                  </Flex>
 
-                <FlexBottom>
-                  <ButtonClear type="button" color="secondary">
-                    {t('Clear')}
-                  </ButtonClear>
+                  <FlexBottom>
+                    <ButtonClear type="button" color="secondary">
+                      {t('Clear')}
+                    </ButtonClear>
 
-                  <ButtonDownload type="button" color="primary">
-                    {t('Download')}
-                  </ButtonDownload>
-                </FlexBottom>
-              </FormGroup>
-            </Form>
-          </TabPanel>
-          <TabPanel>
-            <TextInputMonospace
-              type="textarea"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck="false"
-              data-gramm="false"
-              wrap="off"
-              data-gramm_editor="false"
-              id="sequence-input"
-              cols={80}
-              value={value}
-              onChange={onChange}
-              innerRef={inputRef}
-            />
-          </TabPanel>
+                    <ButtonDownload type="button" color="primary">
+                      {t('Download')}
+                    </ButtonDownload>
+                  </FlexBottom>
+                </FormGroup>
+              </Form>
+            </TabPanel>
+            <TabPanel>
+              <TextInputMonospace
+                type="textarea"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-gramm="false"
+                wrap="off"
+                data-gramm_editor="false"
+                id="sequence-input"
+                cols={80}
+                value={value}
+                onChange={onChange}
+                innerRef={inputRef}
+              />
+            </TabPanel>
+          </Collapse>
         </Tabs>
       </Col>
     </Row>

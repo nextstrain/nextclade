@@ -109,7 +109,13 @@ export function MainSectionHeroControlsAdvancedDisconnected({
           </Col>
 
           <Col lg={8}>
-            <FilePicker icon={<FileIconFasta />} text={t('Sequences')} onUpload={onUploadFasta} />
+            <FilePicker
+              collapsible={false}
+              defaultCollapsed={false}
+              icon={<FileIconFasta />}
+              text={t('Sequences')}
+              onUpload={onUploadFasta}
+            />
 
             <FilePicker icon={<FileIconJson />} text={t('Reference tree')} onUpload={onUploadTree} />
 

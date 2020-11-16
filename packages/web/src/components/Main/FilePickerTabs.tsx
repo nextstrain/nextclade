@@ -22,7 +22,7 @@ export const TabList = styled(TabListBase)`
   background-color: #666;
   color: #ddd;
   font-size: 1.25rem;
-  padding: 3px 5px;
+  padding: 3px;
   padding-bottom: 0;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
@@ -68,9 +68,10 @@ export const TabPanel = styled(TabPanelBase)`
 `
 
 export const TextContainer = styled.span`
+  display: flex;
+  flex: 1;
   position: relative;
   padding: 4px 7px;
-  margin-right: auto;
   font-weight: bold;
   font-size: 1.25rem;
 `
