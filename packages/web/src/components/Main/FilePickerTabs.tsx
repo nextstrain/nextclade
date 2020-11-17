@@ -14,7 +14,7 @@ export const Tabs = styled(TabsBase)`
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 `
 
-export const TabList = styled(TabListBase)<{ collapsible?: boolean }>`
+export const TabList = styled(TabListBase)<{ canCollapse?: boolean }>`
   border: none;
   border-image: none;
   border-image-width: 0;
@@ -28,7 +28,7 @@ export const TabList = styled(TabListBase)<{ collapsible?: boolean }>`
   border-top-right-radius: 3px;
   margin-bottom: 0;
   display: flex;
-  ${({ collapsible }) => (collapsible === undefined || collapsible) && 'cursor: pointer'};
+  ${({ canCollapse }) => (canCollapse === undefined || canCollapse) && 'cursor: pointer'};
   user-select: none;
 `
 

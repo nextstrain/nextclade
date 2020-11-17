@@ -73,7 +73,7 @@ export const FlexBottom = styled(Flex)`
   margin-top: 25px;
 `
 
-export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ shouldRotate: boolean; collapsible: boolean }>`
+export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ shouldRotate: boolean; canCollapse: boolean }>`
   transition: transform linear 0.25s;
   ${({ shouldRotate }) => shouldRotate && 'transform: rotate(90deg)'};
   margin: auto;
@@ -91,7 +91,7 @@ export const NonCollapsibleIcon = styled(FaAsterisk)`
 export interface FilePickerProps {
   icon: ReactNode
   text: ReactNode
-  collapsible?: boolean
+  canCollapse?: boolean
   defaultCollapsed?: boolean
 
   onUpload(): void
@@ -99,21 +99,21 @@ export interface FilePickerProps {
 
 const MOCK_ERRORS = ['File format not recognized', 'Unable to download']
 
-export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = true }: FilePickerProps) {
+export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = true }: FilePickerProps) {
   const { t } = useTranslationSafe()
   const [file, setFile] = useState<FileStats | undefined>(undefined)
   const [errors, setErrors] = useState<string[]>(MOCK_ERRORS)
-  const [collapsed, setCollapsed] = useState(collapsible ? defaultCollapsed : false)
+  const [shouldCollapse, setShouldCollapse] = useState(canCollapse ? defaultCollapsed : false)
 
   const toggle = (e: React.MouseEvent<HTMLElement>) => {
-    if (collapsible) {
-      setCollapsed((collapsed) => !collapsed)
+    if (canCollapse) {
+      setShouldCollapse((shouldCollapse) => !shouldCollapse)
     }
   }
 
   const open = (e: React.MouseEvent<HTMLElement>) => {
-    if (collapsible) {
-      setCollapsed(false)
+    if (canCollapse) {
+      setShouldCollapse(false)
     }
   }
 
@@ -149,15 +149,15 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
     <Row noGutters>
       <Col>
         <Tabs>
-          <TabList collapsible={collapsible}>
+          <TabList canCollapse={canCollapse}>
             <TextContainer onClick={toggle}>
               <div className="align-content-start">
                 <h1>
-                  {collapsible ? (
+                  {canCollapse ? (
                     <CollapseToggleIcon
-                      title={collapsed ? t('Expand this section') : t('Collapse this section')}
-                      collapsible={collapsible}
-                      shouldRotate={!collapsed}
+                      title={shouldCollapse ? t('Expand this section') : t('Collapse this section')}
+                      canCollapse={canCollapse}
+                      shouldRotate={!shouldCollapse}
                       color="#ccc"
                       size={30}
                     />
@@ -190,7 +190,7 @@ export function FilePicker({ icon, text, collapsible = true, defaultCollapsed = 
             </Tab>
           </TabList>
 
-          <Collapse isOpen={!collapsed}>
+          <Collapse isOpen={!shouldCollapse}>
             <TabPanel>
               <UploaderGeneric fileStats={file} removeFile={onRemove} onUpload={onUpload}>
                 {icon}
