@@ -1,8 +1,5 @@
 import React, { ReactNode, useState } from 'react'
 
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { UploadedFileInfo } from 'src/components/Main/UploadedFileInfo'
-import { FileStats } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
 import {
   Button,
@@ -18,8 +15,13 @@ import { BsClipboard, BsFileEarmark, BsLink45Deg } from 'react-icons/bs'
 import { IoIosArrowDroprightCircle } from 'react-icons/io'
 import { FaAsterisk } from 'react-icons/fa'
 
-import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
+import type { FileStats } from 'src/state/algorithm/algorithm.state'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Tab, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
+import { UploadedFileInfo } from 'src/components/Main/UploadedFileInfo'
+import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
+import { TabPanelPaste } from 'src/components/Main/TabPanelPaste'
+import { TabPanelUrl } from 'src/components/Main//TabPanelUrl'
 
 export const Row = styled(ReactstrapRow)`
   &:first-child > .col {
@@ -195,15 +197,13 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
     }
   }
 
-  const url: string | undefined = ''
-  const hasUrl = url?.length && url?.length > 0
-  const onUrlChange = undefined
-  const urlInputRef = undefined
+  const url = ''
 
-  const seqData: string | undefined = ''
-  const hasSeqData = seqData?.length && seqData?.length > 0
-  const onSeqDataChange = undefined
-  const seqInputRef = undefined
+  function onUrlChange(seqData: string) {}
+
+  const seqData = ''
+
+  function onSeqDataChange(seqData: string) {}
 
   function onUpload(file: File) {
     setFile({ name: file.name, size: file.size })
@@ -276,118 +276,11 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
             </TabPanel>
 
             <TabPanel>
-              <Form>
-                <FormGroup>
-                  <FlexColumn>
-                    <Label htmlFor="tree-url-text-input">{t('Enter URL to a file to fetch')}</Label>
-                  </FlexColumn>
-
-                  <TextInputWrapper>
-                    <TextInputMonospace
-                      id="tree-url-text-input"
-                      type="textarea"
-                      placeholder={t('For example: {{exampleUrl}}', { exampleUrl: 'https://example.com/data.fasta' })}
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="off"
-                      spellCheck="false"
-                      data-gramm="false"
-                      wrap="off"
-                      data-gramm_editor="false"
-                      value={url}
-                      onChange={onUrlChange}
-                      innerRef={urlInputRef}
-                    />
-                  </TextInputWrapper>
-
-                  <FlexColumn>
-                    <Footnote>
-                      {t('*Make sure this file is publicly accessible and CORS is enabled on your server')}
-                    </Footnote>
-                  </FlexColumn>
-
-                  <FlexBottom>
-                    <ButtonClear
-                      disabled={!hasUrl}
-                      type="button"
-                      color="secondary"
-                      title={t('Clear the URL text field')}
-                    >
-                      {t('Clear')}
-                    </ButtonClear>
-
-                    <ButtonDownload
-                      disabled={!hasUrl}
-                      type="button"
-                      color="primary"
-                      title={hasUrl ? 'Start downloading this file' : 'Provide a URL before downloading is possible'}
-                    >
-                      {t('Download')}
-                    </ButtonDownload>
-                  </FlexBottom>
-                </FormGroup>
-              </Form>
+              <TabPanelUrl url={url} onUrlChange={onUrlChange} />
             </TabPanel>
+
             <TabPanel>
-              <Form>
-                <RowFill noGutter>
-                  <ColFlexVertical>
-                    <Row noGutter>
-                      <Col className="d-flex">
-                        <Label className="mr-auto" htmlFor="sequence-input">
-                          {t('Enter sequence data in FASTA format')}
-                        </Label>
-                      </Col>
-                    </Row>
-
-                    <RowFill noGutter>
-                      <Col className="d-flex flex-sm-column">
-                        <TextInputMonospace
-                          id="sequence-input"
-                          className="flex-grow-1"
-                          type="textarea"
-                          autoComplete="off"
-                          autoCorrect="off"
-                          autoCapitalize="off"
-                          spellCheck="false"
-                          data-gramm="false"
-                          wrap="off"
-                          data-gramm_editor="false"
-                          value={seqData}
-                          onChange={onSeqDataChange}
-                          innerRef={seqInputRef}
-                        />
-                      </Col>
-                    </RowFill>
-
-                    <Row noGutter>
-                      <ColFlexHorizontal>
-                        <ButtonContainer>
-                          <ButtonClear
-                            disabled={!hasSeqData}
-                            type="button"
-                            color="secondary"
-                            title={t('Clear the text field')}
-                          >
-                            {t('Clear')}
-                          </ButtonClear>
-
-                          <ButtonDownload
-                            disabled={!hasSeqData}
-                            type="button"
-                            color="primary"
-                            title={
-                              hasSeqData ? 'Accept sequence data' : 'Please provide content before analysis is possible'
-                            }
-                          >
-                            {t('OK')}
-                          </ButtonDownload>
-                        </ButtonContainer>
-                      </ColFlexHorizontal>
-                    </Row>
-                  </ColFlexVertical>
-                </RowFill>
-              </Form>
+              <TabPanelPaste seqData={seqData} onSeqDataChange={onSeqDataChange} />
             </TabPanel>
           </Collapse>
         </Tabs>
