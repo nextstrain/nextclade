@@ -39,20 +39,37 @@ export const Row = styled(ReactstrapRow)`
   }
 `
 
+export const TextInputWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  //height: 100% !important;
+  //width: 100%;
+`
+
 export const TextInputMonospace = styled(Input)`
-  width: 100%;
   font-family: ${(props) => props.theme.font.monospace};
   font-size: 0.75rem;
   border-radius: 3px;
   box-shadow: inset 2px 1px 3px #2222;
   resize: none;
+  //flex: 1;
+  //height: 90px !important;
 `
 
 export const Form = styled(ReactstrapForm)`
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin: 5px;
+  height: 100%;
+  margin: 0 5px;
+`
+
+export const FormGroup = styled(ReactstrapFormGroup)`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  margin: 0 !important;
 `
 
 export const Label = styled(ReactstrapLabel)`
@@ -61,19 +78,17 @@ export const Label = styled(ReactstrapLabel)`
   margin-bottom: 2px;
 `
 
-export const FormGroup = styled(ReactstrapFormGroup)`
-  margin-bottom: 10px;
-`
-
-export const Flex = styled.div`
-  display: flex;
-  width: 100%;
-`
-
 export const Footnote = styled.small`
   margin-left: auto;
   font-size: 0.75rem;
   color: ${(props) => props.theme.gray600};
+`
+
+export const ButtonContainer = styled.div`
+  display: flex;
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 3px;
 `
 
 export const ButtonClear = styled(Button)`
@@ -86,8 +101,54 @@ export const ButtonDownload = styled(Button)`
   margin-left: auto;
 `
 
-export const FlexBottom = styled(Flex)`
-  margin-top: 25px;
+export const FlexRow = styled.div`
+  //display: flex;
+  //flex-direction: row;
+  //flex: 1;
+`
+
+export const FlexColumn = styled.div`
+  //display: flex;
+  //flex-direction: column;
+  //width: 100%;
+  //flex: 1;
+`
+
+export const FlexBottom = styled(FlexColumn)`
+  //margin-top: auto;
+`
+
+export const FlexRight = styled.div`
+  //align-content: flex-start;
+`
+
+export const FlexFill = styled.div`
+  //display: flex;
+  //flex-direction: column;
+  //flex: 1;
+`
+
+export const RowFill = styled(Row)`
+  flex: 1;
+
+  //& > .col {
+  //  display: flex;
+  //  flex: 1 0 100%;
+  //}
+  //
+  //& textarea {
+  //  flex: 1 0 100%;
+  //}
+`
+
+export const ColFlexVertical = styled(Col)`
+  display: flex;
+  flex-direction: column;
+`
+
+export const ColFlexHorizontal = styled(Col)`
+  display: flex;
+  flex-direction: row;
 `
 
 export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ shouldRotate: boolean; canCollapse: boolean }>`
@@ -168,7 +229,7 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
         <Tabs className="file-picker-tabs">
           <TabList canCollapse={canCollapse}>
             <TextContainer onClick={toggle}>
-              <div className="align-content-start">
+              <FlexRight>
                 <h1>
                   {canCollapse ? (
                     <CollapseToggleIcon
@@ -184,7 +245,7 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
 
                   {text}
                 </h1>
-              </div>
+              </FlexRight>
             </TextContainer>
 
             <Tab onClick={open} title={t('Provide file from your computer')}>
@@ -217,30 +278,33 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
             <TabPanel>
               <Form>
                 <FormGroup>
-                  <Flex>
+                  <FlexColumn>
                     <Label htmlFor="tree-url-text-input">{t('Enter URL to a file to fetch')}</Label>
-                  </Flex>
-                  <TextInputMonospace
-                    id="tree-url-text-input"
-                    type="textarea"
-                    placeholder={t('For example: {{exampleUrl}}', { exampleUrl: 'https://example.com/data.fasta' })}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                    data-gramm="false"
-                    wrap="off"
-                    data-gramm_editor="false"
-                    value={url}
-                    onChange={onUrlChange}
-                    innerRef={urlInputRef}
-                  />
+                  </FlexColumn>
 
-                  <Flex>
+                  <TextInputWrapper>
+                    <TextInputMonospace
+                      id="tree-url-text-input"
+                      type="textarea"
+                      placeholder={t('For example: {{exampleUrl}}', { exampleUrl: 'https://example.com/data.fasta' })}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
+                      data-gramm="false"
+                      wrap="off"
+                      data-gramm_editor="false"
+                      value={url}
+                      onChange={onUrlChange}
+                      innerRef={urlInputRef}
+                    />
+                  </TextInputWrapper>
+
+                  <FlexColumn>
                     <Footnote>
                       {t('*Make sure this file is publicly accessible and CORS is enabled on your server')}
                     </Footnote>
-                  </Flex>
+                  </FlexColumn>
 
                   <FlexBottom>
                     <ButtonClear
@@ -266,51 +330,63 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
             </TabPanel>
             <TabPanel>
               <Form>
-                <FormGroup>
-                  <Flex>
-                    <Label htmlFor="sequence-input">{t('Enter sequence data in FASTA format')}</Label>
-                  </Flex>
-                  <TextInputMonospace
-                    id="sequence-input"
-                    type="textarea"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck="false"
-                    data-gramm="false"
-                    wrap="off"
-                    data-gramm_editor="false"
-                    value={seqData}
-                    onChange={onSeqDataChange}
-                    innerRef={seqInputRef}
-                  />
+                <RowFill noGutter>
+                  <ColFlexVertical>
+                    <Row noGutter>
+                      <Col className="d-flex">
+                        <Label className="mr-auto" htmlFor="sequence-input">
+                          {t('Enter sequence data in FASTA format')}
+                        </Label>
+                      </Col>
+                    </Row>
 
-                  <Flex>
-                    <Footnote>
-                      {t('*Make sure this file is publicly accessible and CORS is enabled on your server')}
-                    </Footnote>
-                  </Flex>
+                    <RowFill noGutter>
+                      <Col className="d-flex flex-sm-column">
+                        <TextInputMonospace
+                          id="sequence-input"
+                          className="flex-grow-1"
+                          type="textarea"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                          spellCheck="false"
+                          data-gramm="false"
+                          wrap="off"
+                          data-gramm_editor="false"
+                          value={seqData}
+                          onChange={onSeqDataChange}
+                          innerRef={seqInputRef}
+                        />
+                      </Col>
+                    </RowFill>
 
-                  <FlexBottom>
-                    <ButtonClear
-                      disabled={!hasSeqData}
-                      type="button"
-                      color="secondary"
-                      title={t('Clear the text field')}
-                    >
-                      {t('Clear')}
-                    </ButtonClear>
+                    <Row noGutter>
+                      <ColFlexHorizontal>
+                        <ButtonContainer>
+                          <ButtonClear
+                            disabled={!hasSeqData}
+                            type="button"
+                            color="secondary"
+                            title={t('Clear the text field')}
+                          >
+                            {t('Clear')}
+                          </ButtonClear>
 
-                    <ButtonDownload
-                      disabled={!hasSeqData}
-                      type="button"
-                      color="primary"
-                      title={hasSeqData ? 'Accept sequence data' : 'Please provide content before analysis is possible'}
-                    >
-                      {t('OK')}
-                    </ButtonDownload>
-                  </FlexBottom>
-                </FormGroup>
+                          <ButtonDownload
+                            disabled={!hasSeqData}
+                            type="button"
+                            color="primary"
+                            title={
+                              hasSeqData ? 'Accept sequence data' : 'Please provide content before analysis is possible'
+                            }
+                          >
+                            {t('OK')}
+                          </ButtonDownload>
+                        </ButtonContainer>
+                      </ColFlexHorizontal>
+                    </Row>
+                  </ColFlexVertical>
+                </RowFill>
               </Form>
             </TabPanel>
           </Collapse>
