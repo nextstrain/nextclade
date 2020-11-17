@@ -6,13 +6,13 @@ import { FileStats } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
 import {
   Button,
-  Input,
   Col,
-  Row,
-  Form as ReactstrapForm,
-  Label as ReactstrapLabel,
-  FormGroup as ReactstrapFormGroup,
   Collapse,
+  Form as ReactstrapForm,
+  FormGroup as ReactstrapFormGroup,
+  Input,
+  Label as ReactstrapLabel,
+  Row as ReactstrapRow,
 } from 'reactstrap'
 import { BsClipboard, BsFileEarmark, BsLink45Deg } from 'react-icons/bs'
 import { IoIosArrowDroprightCircle } from 'react-icons/io'
@@ -21,14 +21,31 @@ import { FaAsterisk } from 'react-icons/fa'
 import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
 import { Tab, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
 
+export const Row = styled(ReactstrapRow)`
+  &:first-child > .col {
+    margin-top: 0;
+  }
+
+  &:first-child > .col > .file-picker-tabs {
+    margin-top: 0;
+  }
+
+  &:last-child > .col {
+    margin-bottom: 0;
+  }
+
+  &:last-child > .col > .file-picker-tabs {
+    margin-bottom: 0;
+  }
+`
+
 export const TextInputMonospace = styled(Input)`
-  width:100%;
+  width: 100%;
   font-family: ${(props) => props.theme.font.monospace};
   font-size: 0.75rem;
   border-radius: 3px;
   box-shadow: inset 2px 1px 3px #2222;
   resize: none;
-}
 `
 
 export const Form = styled(ReactstrapForm)`
@@ -148,7 +165,7 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
   return (
     <Row noGutters>
       <Col>
-        <Tabs>
+        <Tabs className="file-picker-tabs">
           <TabList canCollapse={canCollapse}>
             <TextContainer onClick={toggle}>
               <div className="align-content-start">
@@ -288,7 +305,7 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
                       disabled={!hasSeqData}
                       type="button"
                       color="primary"
-                      title={hasSeqData ? 'Accept sequence data' : 'Provide provide before analysis is possible'}
+                      title={hasSeqData ? 'Accept sequence data' : 'Please provide content before analysis is possible'}
                     >
                       {t('OK')}
                     </ButtonDownload>

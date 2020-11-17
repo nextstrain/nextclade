@@ -5,12 +5,13 @@ import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { Col, Row } from 'reactstrap'
 
-import type { AlgorithmParams } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
+import type { AlgorithmParams } from 'src/algorithms/types'
 import { setIsDirty } from 'src/state/algorithm/algorithm.actions'
 import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
 import { FilePicker } from 'src/components/Main/FilePicker'
 import { FileIconFasta, FileIconJson, FileIconTxt } from 'src/components/Main/UploaderFileIcons'
+import { PreviousResultsCard } from 'src/components/Main/PreviousResultsCard'
 
 export interface MainSectionHeroControlsAdvancedProps {
   params: AlgorithmParams
@@ -59,58 +60,12 @@ export function MainSectionHeroControlsAdvancedDisconnected({
       <Col>
         <Row noGutters>
           <Col lg={4}>
-            {/*
-        <Row noGutters>
-          <Col>
-            <CardL1>
-              <CardL1Header>
-                <TextContainer>{t('Quality Control')}</TextContainer>
-              </CardL1Header>
-
-              <CardL1Body>
-                <SettingsDialog />
-              </CardL1Body>
-            </CardL1>
-          </Col>
-        </Row>
-        */}
-
-            {/*
-        <Row noGutters>
-          <Col>
-            <CardL1>
-              <CardL1Header>
-                <TextContainer>{t('Gene Map')}</TextContainer>
-              </CardL1Header>
-
-              <CardL1Body>
-                <div style={{ width: '100%', height: '300px' }}>{t('Coming soon!')}</div>
-              </CardL1Body>
-            </CardL1>
-          </Col>
-        </Row>
-        */}
-
-            {/*
-        <Row noGutters>
-          <Col>
-            <CardL1>
-              <CardL1Header>
-                <TextContainer>{t('PCR Primers')}</TextContainer>
-              </CardL1Header>
-
-              <CardL1Body>
-                <div style={{ width: '100%', height: '300px' }}>{t('Coming soon!')}</div>
-              </CardL1Body>
-            </CardL1>
-          </Col>
-        </Row>
-        */}
+            <PreviousResultsCard />
           </Col>
 
           <Col lg={8}>
             <FilePicker
-              collapsible={false}
+              canCollapse={false}
               defaultCollapsed={false}
               icon={<FileIconFasta />}
               text={t('Sequences')}

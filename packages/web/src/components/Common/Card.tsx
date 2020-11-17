@@ -17,7 +17,7 @@ export const CardL1Header = styled(ReactstrapCardHeader)`
   color: #ddd;
   padding: 5px 5px;
   display: flex;
-  height: 42px;
+  height: 48px;
 `
 
 export const CardL1Body = styled(ReactstrapCardBody)`
