@@ -156,7 +156,7 @@
     "typeface-lato": "0.0.75",
     "use-debounce": "3.4.3",
     "uuid": "8.3.0",
-    "yargs": "15.4.1"
+    "yargs": "16.0.0"
   },
   "devDependencies": {
     "@babel/core": "7.11.5",
