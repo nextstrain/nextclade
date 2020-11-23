@@ -22,7 +22,7 @@ export const FillVertical = styled.div`
 export const CardL1 = styled(CardL1Base)`
   flex: 1;
   margin: 0 5px;
-  min-height: 300px;
+  //min-height: 300px;
 
   @media (max-width: ${(props) => props.theme.lg}) {
     display: none;

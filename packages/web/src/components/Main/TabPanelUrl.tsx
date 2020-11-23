@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-import { useTranslation } from 'react-i18next'
 import { Col } from 'reactstrap'
+// eslint-disable-next-line import/no-cycle
 import {
   ButtonClear,
   ButtonContainer,
@@ -15,17 +15,19 @@ import {
   RowFill,
   TextInputMonospace,
 } from 'src/components/Main/FilePicker'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export interface TabPanelUrlProps {
-  url: ''
-
-  onUrlChange(seqData: string): void
+  onConfirm(url: string): void
 }
 
-export function TabPanelUrl({ url, onUrlChange }: TabPanelUrlProps) {
-  const { t } = useTranslation()
-
+export function TabPanelUrl({ onConfirm }: TabPanelUrlProps) {
+  const { t } = useTranslationSafe()
+  const [url, setUrl] = useState<string>('')
   const hasUrl = url.length > 0
+  const change = (e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)
+  const clear = () => setUrl('')
+  const confirm = () => onConfirm(url)
 
   return (
     <Form>
@@ -54,7 +56,7 @@ export function TabPanelUrl({ url, onUrlChange }: TabPanelUrlProps) {
                 wrap="off"
                 data-gramm_editor="false"
                 value={url}
-                onChange={onUrlChange}
+                onChange={change}
               />
             </ColFlexVertical>
           </RowFill>
@@ -68,7 +70,13 @@ export function TabPanelUrl({ url, onUrlChange }: TabPanelUrlProps) {
           <Row noGutter>
             <ColFlexHorizontal>
               <ButtonContainer>
-                <ButtonClear disabled={!hasUrl} type="button" color="secondary" title={t('Clear the URL text field')}>
+                <ButtonClear
+                  disabled={!hasUrl}
+                  type="button"
+                  color="secondary"
+                  title={t('Clear the URL text field')}
+                  onClick={clear}
+                >
                   {t('Clear')}
                 </ButtonClear>
 
@@ -77,6 +85,7 @@ export function TabPanelUrl({ url, onUrlChange }: TabPanelUrlProps) {
                   type="button"
                   color="primary"
                   title={hasUrl ? 'Start downloading this file' : 'Provide a URL before downloading is possible'}
+                  onClick={confirm}
                 >
                   {t('Download')}
                 </ButtonDownload>

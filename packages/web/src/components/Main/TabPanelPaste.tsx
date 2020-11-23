@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { Ref, useState } from 'react'
 
-import { useTranslation } from 'react-i18next'
 import { Col } from 'reactstrap'
+// eslint-disable-next-line import/no-cycle
 import {
   ButtonClear,
   ButtonContainer,
@@ -14,18 +14,21 @@ import {
   RowFill,
   TextInputMonospace,
 } from 'src/components/Main/FilePicker'
-import { TabPanel } from 'src/components/Main/FilePickerTabs'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export interface TabPanelPasteProps {
-  seqData: ''
+  inputRef?: Ref<HTMLInputElement | null>
 
-  onSeqDataChange(seqData: string): void
+  onConfirm(seqData: string): void
 }
 
-export function TabPanelPaste({ seqData, onSeqDataChange }: TabPanelPasteProps) {
-  const { t } = useTranslation()
-
+export function TabPanelPaste({ onConfirm, inputRef }: TabPanelPasteProps) {
+  const { t } = useTranslationSafe()
+  const [seqData, setSeqData] = useState<string>('')
   const hasSeqData = seqData.length > 0
+  const change = (e: React.ChangeEvent<HTMLInputElement>) => setSeqData(e.target.value)
+  const clear = () => setSeqData('')
+  const confirm = () => onConfirm(seqData)
 
   return (
     <Form>
@@ -53,7 +56,8 @@ export function TabPanelPaste({ seqData, onSeqDataChange }: TabPanelPasteProps) 
                 wrap="off"
                 data-gramm_editor="false"
                 value={seqData}
-                onChange={onSeqDataChange}
+                onChange={change}
+                innerRef={inputRef}
               />
             </Col>
           </RowFill>
@@ -61,7 +65,13 @@ export function TabPanelPaste({ seqData, onSeqDataChange }: TabPanelPasteProps) 
           <Row noGutter>
             <ColFlexHorizontal>
               <ButtonContainer>
-                <ButtonClear disabled={!hasSeqData} type="button" color="secondary" title={t('Clear the text field')}>
+                <ButtonClear
+                  disabled={!hasSeqData}
+                  type="button"
+                  color="secondary"
+                  title={t('Clear the text field')}
+                  onClick={clear}
+                >
                   {t('Clear')}
                 </ButtonClear>
 
@@ -69,7 +79,10 @@ export function TabPanelPaste({ seqData, onSeqDataChange }: TabPanelPasteProps) 
                   disabled={!hasSeqData}
                   type="button"
                   color="primary"
-                  title={hasSeqData ? 'Accept sequence data' : 'Please provide content before analysis is possible'}
+                  title={
+                    hasSeqData ? 'Accept sequence data' : 'Please provide sequence data before the analysis is possible'
+                  }
+                  onClick={confirm}
                 >
                   {t('OK')}
                 </ButtonDownload>

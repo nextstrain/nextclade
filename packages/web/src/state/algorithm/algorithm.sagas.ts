@@ -6,7 +6,7 @@ import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
-import type { AnalysisParams } from 'src/algorithms/types'
+import type { AlgorithmParams, AnalysisParams } from 'src/algorithms/types'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { WorkerPools } from 'src/workers/types'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
@@ -34,17 +34,16 @@ import {
   exportTreeJsonTrigger,
   parseAsync,
   setAlgorithmGlobalStatus,
-  setInput,
-  setInputFile,
   algorithmRunAsync,
   treeFinalizeAsync,
   setOutputTree,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
-import { selectOutputTree, selectParams, selectResults } from 'src/state/algorithm/algorithm.selectors'
+import { selectOutputTree, selectResults } from 'src/state/algorithm/algorithm.selectors'
 
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import { State } from '../reducer'
 
 const parseSaga = fsaSagaFromParams(
   parseAsync,
@@ -75,26 +74,21 @@ const finalizeTreeSaga = fsaSagaFromParams(treeFinalizeAsync, function* finalize
   return yield* call(threadTreeFinalize, params)
 })
 
-export function* prepare(content?: File | string) {
+export function* prepare() {
+  const params = yield* select((state: State) => state.algorithm.params)
+
+  if (!params.raw.seqData) {
+    throw new Error('No sequence data provided')
+  }
+
+  const { virus } = params
+  const content = yield* call(params.raw.seqData.getContent)
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield* put(setShowInputBox(false))
   yield* put(push('/results'))
 
-  if (typeof content === 'string') {
-    yield* put(setInput(content))
-  }
-
-  const { sequenceDatum, virus } = yield* select(selectParams)
-  const input = content ?? sequenceDatum
-
-  if (typeof input === 'string') {
-    yield* put(setInputFile({ name: 'example.fasta', size: input.length }))
-  } else if (input instanceof File) {
-    const { name, size } = input
-    yield* put(setInputFile({ name, size }))
-  }
-
-  return { input, virus }
+  return { content, virus }
 }
 
 export function* parse(input: File | string) {
@@ -105,11 +99,7 @@ export function* parse(input: File | string) {
     return undefined
   }
 
-  const { input: newInput, parsedSequences } = result
-
-  if (newInput !== input) {
-    yield* put(setInput(newInput))
-  }
+  const { parsedSequences } = result
 
   return { parsedSequences }
 }
@@ -132,12 +122,12 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
   yield* put(changeColorBy())
 }
 
-export function* runAlgorithm(content?: File | string) {
-  const { input, virus } = yield* prepare(content)
+export function* runAlgorithm() {
+  const { content, virus } = yield* prepare()
   const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
   const auspiceData = treePreprocess(copy(auspiceDataReference), rootSeq)
 
-  const parseResult = yield* parse(input)
+  const parseResult = yield* parse(content)
   if (!parseResult) {
     return
   }
@@ -190,7 +180,7 @@ export function* exportTreeJson() {
 }
 
 export default [
-  takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
+  // takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
   takeEvery(exportCsvTrigger, exportCsv),
   takeEvery(exportTsvTrigger, exportTsv),
   takeEvery(exportJsonTrigger, exportJson),

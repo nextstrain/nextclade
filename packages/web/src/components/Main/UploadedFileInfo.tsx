@@ -4,10 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Button, UncontrolledAlert } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 
-import type { FileStats } from 'src/state/algorithm/algorithm.state'
 import { Tab as TabBase, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
 
-import { formatFileStats } from 'src/helpers/formatFileStats'
 import { theme } from 'src/theme'
 import styled from 'styled-components'
 
@@ -47,7 +45,7 @@ export const UploadZoneTextContainer = styled.div`
   margin-left: 20px;
 `
 
-export const UploadZoneText = styled.div`
+export const UploadZoneDescription = styled.div`
   font-size: 1.1rem;
 `
 
@@ -75,19 +73,20 @@ function FileStatusIcon({ hasErrors }: { hasErrors: boolean }) {
   return <IoMdCheckmarkCircle size={ICON_SIZE} color={theme.success} />
 }
 
-function FileError({ error }: { error: string }) {
-  return <FileErrorStyled color="danger">{error}</FileErrorStyled>
-}
+// TODO: handle errors
+// function FileError({ error }: { error: string }) {
+//   return <FileErrorStyled color="danger">{error}</FileErrorStyled>
+// }
 
 export interface UploadedFileInfoProps {
-  text: ReactNode
-  file: FileStats
+  name: ReactNode
+  description: string
   errors: string[]
 
-  onRemove(fileStats: FileStats): void
+  onRemove(): void
 }
 
-export function UploadedFileInfo({ text, file, errors, onRemove }: UploadedFileInfoProps) {
+export function UploadedFileInfo({ name, description, errors, onRemove }: UploadedFileInfoProps) {
   const { t } = useTranslation()
 
   const hasErrors = errors.length > 0
@@ -97,7 +96,7 @@ export function UploadedFileInfo({ text, file, errors, onRemove }: UploadedFileI
   return (
     <Tabs>
       <TabList>
-        <TextContainer>{text}</TextContainer>
+        <TextContainer>{name}</TextContainer>
         <Tab />
       </TabList>
 
@@ -111,7 +110,7 @@ export function UploadedFileInfo({ text, file, errors, onRemove }: UploadedFileI
             </UploadZoneLeft>
             <UploadZoneRight>
               <UploadZoneTextContainer>
-                <UploadZoneText>{formatFileStats(file)}</UploadZoneText>
+                <UploadZoneDescription>{description}</UploadZoneDescription>
                 <UploadZoneButton color="secondary" onClick={onRemove}>
                   {t('Remove')}
                 </UploadZoneButton>

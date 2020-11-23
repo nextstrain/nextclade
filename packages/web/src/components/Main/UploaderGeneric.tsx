@@ -6,7 +6,6 @@ import styled, { DefaultTheme } from 'styled-components'
 import { FileRejection, useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
 
-import type { FileStats } from 'src/state/algorithm/algorithm.state'
 import { theme } from 'src/theme'
 import { appendDash } from 'src/helpers/appendDash'
 
@@ -78,14 +77,6 @@ class UploadErrorUnknown extends Error {
   }
 }
 
-export interface UploaderGenericProps {
-  fileStats?: FileStats
-
-  onUpload(file: File): void
-
-  removeFile(fileStats: FileStats): void
-}
-
 export type UploadZoneElems = keyof typeof theme.uploadZone
 
 export function getUploadZoneTheme(props: { state: UploadZoneState; theme: DefaultTheme }, elem: UploadZoneElems) {
@@ -153,6 +144,10 @@ export const UploadZoneButton = styled(Button)`
   min-width: 160px;
   min-height: 50px;
 `
+
+export interface UploaderGenericProps {
+  onUpload(file: File): void
+}
 
 export function UploaderGeneric({ onUpload, children }: PropsWithChildren<UploaderGenericProps>) {
   const { t } = useTranslation()

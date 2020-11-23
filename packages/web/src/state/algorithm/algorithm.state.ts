@@ -6,11 +6,6 @@ import type { AlgorithmParams, AnalysisResultWithMatch, AnalysisResult } from 's
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 
-export interface FileStats {
-  name: string
-  size: number
-}
-
 export type AlgorithmParamsPartial = Partial<AlgorithmParams>
 
 export enum AlgorithmGlobalStatus {
@@ -57,7 +52,6 @@ export interface ResultsFilters extends QCFilters {
 
 export interface AlgorithmState {
   status: AlgorithmGlobalStatus
-  inputFile?: FileStats
   params: AlgorithmParams
   isDirty: boolean
   results: SequenceAnalysisState[]
@@ -76,7 +70,8 @@ export interface CladeAssignmentResult {
 export const algorithmDefaultState: AlgorithmState = {
   status: AlgorithmGlobalStatus.idling,
   params: {
-    sequenceDatum: '',
+    raw: {},
+    seqData: undefined,
     virus: getVirus(),
   },
   isDirty: true,

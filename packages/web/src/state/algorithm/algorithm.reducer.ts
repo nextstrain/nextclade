@@ -15,8 +15,6 @@ import {
   setAAFilter,
   setAlgorithmGlobalStatus,
   setCladesFilter,
-  setInput,
-  setInputFile,
   setIsDirty,
   setMutationsFilter,
   setQcResults,
@@ -25,9 +23,19 @@ import {
   setShowErrors,
   setShowBad,
   setShowMediocre,
-  setInputRootSeq,
-  setInputTree,
   setOutputTree,
+  setFasta,
+  setTree,
+  setGeneMap,
+  setQcSettings,
+  setRootSeq,
+  setPcrPrimers,
+  removeGeneMap,
+  removePcrPrimers,
+  removeFasta,
+  removeTree,
+  removeQcSettings,
+  removeRootSeq,
 } from './algorithm.actions'
 import {
   algorithmDefaultState,
@@ -102,22 +110,70 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.resultsFiltered = runFilters(current(draft))
   })
 
-  .icase(setInput, (draft, input) => {
-    draft.status = AlgorithmGlobalStatus.idling
-    draft.params.sequenceDatum = input
+  // .icase(setInput, (draft, input) => {
+  //   draft.status = AlgorithmGlobalStatus.idling
+  //   draft.params.sequenceDatum = input
+  // })
+  //
+  // .icase(setInputFile, (draft, inputFile) => {
+  //   draft.status = AlgorithmGlobalStatus.idling
+  //   draft.inputFile = inputFile
+  // })
+
+  // .icase(setInputRootSeq, (draft, inputRootSeq) => {
+  //   draft.params.virus.rootSeq = inputRootSeq
+  // })
+  //
+  // .icase(setInputTree, (draft, inputTree) => {
+  //   draft.params.virus.auspiceData = inputTree
+  // })
+
+  .icase(setFasta, (draft, input) => {
+    draft.params.raw.seqData = input
   })
 
-  .icase(setInputFile, (draft, inputFile) => {
-    draft.status = AlgorithmGlobalStatus.idling
-    draft.inputFile = inputFile
+  .icase(setTree, (draft, input) => {
+    draft.params.raw.auspiceData = input
   })
 
-  .icase(setInputRootSeq, (draft, inputRootSeq) => {
-    draft.params.virus.rootSeq = inputRootSeq
+  .icase(setRootSeq, (draft, input) => {
+    draft.params.raw.rootSeq = input
   })
 
-  .icase(setInputTree, (draft, inputTree) => {
-    draft.params.virus.auspiceData = inputTree
+  .icase(setQcSettings, (draft, input) => {
+    draft.params.raw.qcRulesConfig = input
+  })
+
+  .icase(setGeneMap, (draft, input) => {
+    draft.params.raw.geneMap = input
+  })
+
+  .icase(setPcrPrimers, (draft, input) => {
+    draft.params.raw.pcrPrimers = input
+  })
+
+  .icase(removeFasta, (draft, input) => {
+    draft.params.raw.seqData = undefined
+  })
+
+  .icase(removeTree, (draft, input) => {
+    draft.params.raw.auspiceData = undefined
+  })
+
+  .icase(removeRootSeq, (draft, input) => {
+    draft.params.raw.rootSeq = undefined
+  })
+
+  .icase(removeQcSettings, (draft, input) => {
+    draft.params.raw.qcRulesConfig = undefined
+  })
+
+  .icase(removeGeneMap, (draft, input) => {
+    draft.params.raw.geneMap = undefined
+  })
+
+  .icase(removePcrPrimers, (draft, input) => {
+    draft.params.raw.pcrPrimers = undefined
   })
 
   .icase(setIsDirty, (draft, isDirty) => {

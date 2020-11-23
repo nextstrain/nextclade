@@ -1,4 +1,5 @@
-import React, { ReactNode, useState } from 'react'
+import React, { ReactNode, Ref, useState } from 'react'
+import { AlgorithmInput, AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/algorithms/types'
 
 import styled from 'styled-components'
 import {
@@ -10,19 +11,17 @@ import {
   Input,
   Label as ReactstrapLabel,
   Row as ReactstrapRow,
-  RowProps,
 } from 'reactstrap'
 import { BsClipboard, BsFileEarmark, BsLink45Deg } from 'react-icons/bs'
 import { IoIosArrowDroprightCircle } from 'react-icons/io'
 import { FaAsterisk } from 'react-icons/fa'
 
-import type { FileStats } from 'src/state/algorithm/algorithm.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Tab, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
 import { UploadedFileInfo } from 'src/components/Main/UploadedFileInfo'
 import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
-import { TabPanelPaste } from 'src/components/Main/TabPanelPaste'
-import { TabPanelUrl } from 'src/components/Main//TabPanelUrl'
+import { TabPanelPaste } from 'src/components/Main/TabPanelPaste' // eslint-disable-line import/no-cycle
+import { TabPanelUrl } from 'src/components/Main//TabPanelUrl' // eslint-disable-line import/no-cycle
 
 import { filterProps } from 'src/helpers/filterProps'
 
@@ -174,18 +173,33 @@ export const NonCollapsibleIcon = styled(FaAsterisk)`
 export interface FilePickerProps {
   icon: ReactNode
   text: ReactNode
+  input?: AlgorithmInput
+  errors: string[]
+  inputRef?: Ref<HTMLInputElement | null>
   canCollapse?: boolean
   defaultCollapsed?: boolean
 
-  onUpload(file: File): void
+  onInput(input: AlgorithmInput): void
+
+  onRemove(_0: unknown): void
+
+  onError(error: string): void
 }
 
-const MOCK_ERRORS = ['File format not recognized', 'Unable to download']
-
-export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = true }: FilePickerProps) {
+export function FilePicker({
+  icon,
+  text,
+  input,
+  errors,
+  onInput,
+  onRemove,
+  onError,
+  inputRef,
+  canCollapse = true,
+  defaultCollapsed = true,
+}: FilePickerProps) {
   const { t } = useTranslationSafe()
-  const [file, setFile] = useState<FileStats | undefined>(undefined)
-  const [errors, setErrors] = useState<string[]>(MOCK_ERRORS)
+
   const [shouldCollapse, setShouldCollapse] = useState(canCollapse ? defaultCollapsed : false)
 
   const toggle = (e: React.MouseEvent<HTMLElement>) => {
@@ -200,27 +214,27 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
     }
   }
 
-  const url = ''
-
-  function onUrlChange(seqData: string) {}
-
-  const seqData = ''
-
-  function onSeqDataChange(seqData: string) {}
-
-  function onUpload(file: File) {
-    setFile({ name: file.name, size: file.size })
+  function onFile(file: File) {
+    onInput(new AlgorithmInputFile(file))
   }
 
-  function onRemove() {
-    setFile(undefined)
+  function onUrl(url: string) {
+    onInput(new AlgorithmInputUrl(url))
   }
 
-  if (file) {
+  function onPaste(content: string) {
+    onInput(new AlgorithmInputString(content))
+  }
+
+  function clearAndRemove() {
+    onRemove([])
+  }
+
+  if (input) {
     return (
       <Row noGutters>
         <Col>
-          <UploadedFileInfo text={text} file={file} errors={errors} onRemove={onRemove} />
+          <UploadedFileInfo name={text} description={input.description} errors={errors} onRemove={clearAndRemove} />
         </Col>
       </Row>
     )
@@ -273,17 +287,15 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
 
           <Collapse isOpen={!shouldCollapse}>
             <TabPanel>
-              <UploaderGeneric fileStats={file} removeFile={onRemove} onUpload={onUpload}>
-                {icon}
-              </UploaderGeneric>
+              <UploaderGeneric onUpload={onFile}>{icon}</UploaderGeneric>
             </TabPanel>
 
             <TabPanel>
-              <TabPanelUrl url={url} onUrlChange={onUrlChange} />
+              <TabPanelUrl onConfirm={onUrl} />
             </TabPanel>
 
             <TabPanel>
-              <TabPanelPaste seqData={seqData} onSeqDataChange={onSeqDataChange} />
+              <TabPanelPaste onConfirm={onPaste} inputRef={inputRef} />
             </TabPanel>
           </Collapse>
         </Tabs>

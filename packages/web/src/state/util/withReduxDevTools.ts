@@ -9,7 +9,7 @@ import type { AlgorithmParams } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
-import { analyzeAsync, setInput, treeBuildAsync } from 'src/state/algorithm/algorithm.actions'
+import { analyzeAsync, treeBuildAsync } from 'src/state/algorithm/algorithm.actions'
 
 const TOO_BIG = '<<TOO_BIG>>' as const
 
@@ -21,8 +21,7 @@ export function sanitizeParams(params?: DeepPartial<AlgorithmParams>) {
   // @ts-ignore
   const seq = params.seq ? TOO_BIG : undefined
   const rootSeq = params.virus?.rootSeq ? TOO_BIG : undefined
-  const input = params.sequenceDatum ? TOO_BIG : undefined
-  return { ...params, seq, rootSeq, input }
+  return { ...params, seq, rootSeq }
 }
 
 export function sanitizeResult(result?: { alignedQuery: string }) {
@@ -71,94 +70,87 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
 
   // @ts-ignore
   const compose = composeWithDevTools({
-    // @ts-ignore
-    actionSanitizer(action: Action<unknown>) {
-      // @ts-ignore
-      if (action.type === 'CLEAN_START') {
-        return {
-          ...action,
-          // @ts-ignore
-          tree: sanitizeTree(action.tree),
-          // @ts-ignore
-          entropy: sanitizeEntropy(action.controls),
-        }
-      }
-
-      if (isType(action, setInput)) {
-        return {
-          ...action,
-          payload: TOO_BIG,
-        }
-      }
-
-      if (isType(action, analyzeAsync.started)) {
-        return {
-          ...action,
-          payload: {
-            ...action.payload,
-            seq: TOO_BIG,
-            rootSeq: TOO_BIG,
-          },
-        }
-      }
-
-      if (isType(action, treeBuildAsync.done)) {
-        return {
-          ...action,
-          payload: {
-            ...action.payload,
-            params: {
-              // @ts-ignore
-              ...sanitizeParams(action.payload.params),
-              // @ts-ignore
-              analysisResults: sanitizeResults(action.payload.params.analysisResults),
-              // @ts-ignore
-              auspiceData: sanitizeTree(action.payload.params.auspiceData),
-            },
-          },
-        }
-      }
-
-      if (isType(action, analyzeAsync.done)) {
-        return {
-          ...action,
-          payload: {
-            ...action.payload,
-            params: {
-              ...action.payload.params,
-              seq: TOO_BIG,
-              rootSeq: TOO_BIG,
-            },
-            result: sanitizeResult(action.payload.result),
-          },
-        }
-      }
-
-      return {
-        ...action,
-        payload: {
-          // @ts-ignore
-          params: sanitizeParams(action.payload?.params),
-          // @ts-ignore
-          result: sanitizeResult(action.payload?.result),
-        },
-      }
-    },
-
-    stateSanitizer(state: State) {
-      return {
-        ...state,
-        algorithm: {
-          ...state.algorithm,
-          params: sanitizeParams(state.algorithm.params),
-          results: sanitizeResults(state.algorithm.results),
-          resultsFiltered: sanitizeResults(state.algorithm.results),
-          outputTree: state.algorithm.outputTree?.slice(0, 128),
-        },
-        tree: sanitizeTree(state.tree),
-        entropy: sanitizeEntropy(state.controls),
-      }
-    },
+    // // @ts-ignore
+    // actionSanitizer(action: Action<unknown>) {
+    //   // @ts-ignore
+    //   if (action.type === 'CLEAN_START') {
+    //     return {
+    //       ...action,
+    //       // @ts-ignore
+    //       tree: sanitizeTree(action.tree),
+    //       // @ts-ignore
+    //       entropy: sanitizeEntropy(action.controls),
+    //     }
+    //   }
+    //
+    //   if (isType(action, analyzeAsync.started)) {
+    //     return {
+    //       ...action,
+    //       payload: {
+    //         ...action.payload,
+    //         seq: TOO_BIG,
+    //         rootSeq: TOO_BIG,
+    //       },
+    //     }
+    //   }
+    //
+    //   if (isType(action, treeBuildAsync.done)) {
+    //     return {
+    //       ...action,
+    //       payload: {
+    //         ...action.payload,
+    //         params: {
+    //           // @ts-ignore
+    //           ...sanitizeParams(action.payload.params),
+    //           // @ts-ignore
+    //           analysisResults: sanitizeResults(action.payload.params.analysisResults),
+    //           // @ts-ignore
+    //           auspiceData: sanitizeTree(action.payload.params.auspiceData),
+    //         },
+    //       },
+    //     }
+    //   }
+    //
+    //   if (isType(action, analyzeAsync.done)) {
+    //     return {
+    //       ...action,
+    //       payload: {
+    //         ...action.payload,
+    //         params: {
+    //           ...action.payload.params,
+    //           seq: TOO_BIG,
+    //           rootSeq: TOO_BIG,
+    //         },
+    //         result: sanitizeResult(action.payload.result),
+    //       },
+    //     }
+    //   }
+    //
+    //   return {
+    //     ...action,
+    //     payload: {
+    //       // @ts-ignore
+    //       params: sanitizeParams(action.payload?.params),
+    //       // @ts-ignore
+    //       result: sanitizeResult(action.payload?.result),
+    //     },
+    //   }
+    // },
+    //
+    // stateSanitizer(state: State) {
+    //   return {
+    //     ...state,
+    //     algorithm: {
+    //       ...state.algorithm,
+    //       params: sanitizeParams(state.algorithm.params),
+    //       results: sanitizeResults(state.algorithm.results),
+    //       resultsFiltered: sanitizeResults(state.algorithm.results),
+    //       outputTree: state.algorithm.outputTree?.slice(0, 128),
+    //     },
+    //     tree: sanitizeTree(state.tree),
+    //     entropy: sanitizeEntropy(state.controls),
+    //   }
+    // },
 
     trace: true,
     traceLimit: 25,

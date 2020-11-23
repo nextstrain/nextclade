@@ -1,24 +1,32 @@
-import type { AuspiceJsonV2 } from 'auspice'
-
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
-import type { AnalysisParams, AnalysisResult } from 'src/algorithms/types'
+import type { AlgorithmInput, AnalysisParams, AnalysisResult } from 'src/algorithms/types'
 import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult } from 'src/algorithms/QC/types'
 import type { Sorting } from 'src/helpers/sortResults'
-import type { AlgorithmGlobalStatus, CladeAssignmentResult, FileStats } from './algorithm.state'
+import type { AlgorithmGlobalStatus, CladeAssignmentResult } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
 
-export const setInput = action<string>('setInput')
-export const setInputFile = action<FileStats>('setInputFile')
-export const setInputRootSeq = action<string>('setRootSeq')
-export const setInputTree = action<AuspiceJsonV2>('setTree')
 export const setIsDirty = action<boolean>('setIsDirty')
 
+export const setFasta = action<AlgorithmInput>('setFasta')
+export const setTree = action<AlgorithmInput>('setTree')
+export const setRootSeq = action<AlgorithmInput>('setRootSeq')
+export const setQcSettings = action<AlgorithmInput>('setQcSettings')
+export const setGeneMap = action<AlgorithmInput>('setGeneMap')
+export const setPcrPrimers = action<AlgorithmInput>('setPcrPrimers')
+
+export const removeFasta = action<AlgorithmInput>('removeFasta')
+export const removeTree = action<AlgorithmInput>('removeTree')
+export const removeRootSeq = action<AlgorithmInput>('removeRootSeq')
+export const removeQcSettings = action<AlgorithmInput>('removeQcSettings')
+export const removeGeneMap = action<AlgorithmInput>('removeGeneMap')
+export const removePcrPrimers = action<AlgorithmInput>('removePcrPrimers')
+
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
-export const algorithmRunAsync = action.async<string | File | undefined, void, Error>('run')
+export const algorithmRunAsync = action.async<AlgorithmInput, void, Error>('run')
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<AnalysisParams, AnalysisResult, Error>('analyze')
