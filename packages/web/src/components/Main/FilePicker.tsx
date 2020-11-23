@@ -1,5 +1,6 @@
 import React, { ReactNode, Ref, useState } from 'react'
 import { AlgorithmInput, AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/algorithms/types'
+import { BadgeDefault, BadgeRequired } from 'src/components/Main/BadgeDefault'
 
 import styled from 'styled-components'
 import {
@@ -123,7 +124,11 @@ export const FlexBottom = styled(FlexColumn)`
 `
 
 export const FlexRight = styled.div`
-  //align-content: flex-start;
+  margin-left: auto;
+`
+
+export const FlexLeft = styled.div`
+  margin-right: auto;
 `
 
 export const FlexFill = styled.div`
@@ -246,7 +251,7 @@ export function FilePicker({
         <Tabs className="file-picker-tabs">
           <TabList $canCollapse={canCollapse}>
             <TextContainer onClick={toggle}>
-              <FlexRight>
+              <FlexLeft>
                 <h1>
                   {canCollapse ? (
                     <CollapseToggleIcon
@@ -262,7 +267,8 @@ export function FilePicker({
 
                   {text}
                 </h1>
-              </FlexRight>
+              </FlexLeft>
+              <FlexRight>{canCollapse ? <BadgeDefault /> : <BadgeRequired />}</FlexRight>
             </TextContainer>
 
             <Tab onClick={open} title={t('Provide file from your computer')}>
