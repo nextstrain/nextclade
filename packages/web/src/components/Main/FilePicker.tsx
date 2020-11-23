@@ -24,7 +24,9 @@ import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
 import { TabPanelPaste } from 'src/components/Main/TabPanelPaste'
 import { TabPanelUrl } from 'src/components/Main//TabPanelUrl'
 
-export const Row = styled(ReactstrapRow)`
+export const Row = styled(ReactstrapRow).withConfig({
+  shouldForwardProp: (prop: string | number) => !['noGutter'].includes(prop),
+})`
   &:first-child > .col {
     margin-top: 0;
   }
