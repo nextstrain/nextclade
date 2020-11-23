@@ -1,11 +1,13 @@
-# Nextclade
+# Nextclade: command-line tool
 
 Clade assignment, mutation calling, and sequence quality checks
 
 ---
 
+This is the command-line version of Nextclade.
+
 <p>
-  <span>Try our web application at: </span>
+  <span>You can also yry our web application at: </span>
   <a target="_blank" rel="noopener noreferrer" href="https://clades.nextstrain.org" alt="Link to our website">
     clades.nextstrain.org
   </a>
@@ -88,6 +90,35 @@ docker run ... neherlab/nextclade:alpine ...
 ```
 
 See the list of all tags on Docker Hub: [hub.docker.com/r/neherlab/nextclade/tags](https://hub.docker.com/r/neherlab/nextclade/tags)
+
+
+### Tips and tricks
+
+#### Memory consumption
+
+In the current implementation, Nextclade may consume large amounts of memory. By default, Nextclade currently detects the number of logical threads available on the machine and runs this number of sequence analyses in parallel - one input sequence per thread. It might happen that you have a machine with many cores/threads but limited amount of memory. In this case, many  Nextclade threads will run concurrently, and you might run out of heap space and become very slow and unstable.
+
+Additionally, even in low-parallelism scenarios, Nextclade accumulates information for the tree b
+
+
+It is recommended to monitor the memory consumption, especially in automated workflows. To tune the memory consumption you could also:
+ 
+  - limit the parallelism of Nextclade with `--jobs=n` flag
+
+  - run completely sequentially (1 thread) with `--jobs=1`
+
+  - process fewer sequences, by filtering/subsampling the data before passing to Nextclade
+  
+  - process fewer sequences at a time, by batching the input data before passing it into multiple Nextclade runs, and then merging the results for every run
+
+
+We are planning:
+
+ - algorithmic improvements which should reduce the memory footprint of Nextclade
+ 
+ - streaming and batching of inputs
+ 
+Contributions are welcome!
 
 
 ## Developer's guide
