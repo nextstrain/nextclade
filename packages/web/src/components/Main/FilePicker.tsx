@@ -153,9 +153,9 @@ export const ColFlexHorizontal = styled(Col)`
   flex-direction: row;
 `
 
-export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ shouldRotate: boolean; canCollapse: boolean }>`
+export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ $shouldRotate: boolean; $canCollapse: boolean }>`
   transition: transform linear 0.25s;
-  ${({ shouldRotate }) => shouldRotate && 'transform: rotate(90deg)'};
+  ${({ $shouldRotate }) => $shouldRotate && 'transform: rotate(90deg)'};
   margin: auto;
   margin-right: 0.5rem;
   margin-bottom: 5px;
@@ -227,15 +227,15 @@ export function FilePicker({ icon, text, canCollapse = true, defaultCollapsed = 
     <Row noGutters>
       <Col>
         <Tabs className="file-picker-tabs">
-          <TabList canCollapse={canCollapse}>
+          <TabList $canCollapse={canCollapse}>
             <TextContainer onClick={toggle}>
               <FlexRight>
                 <h1>
                   {canCollapse ? (
                     <CollapseToggleIcon
                       title={shouldCollapse ? t('Expand this section') : t('Collapse this section')}
-                      canCollapse={canCollapse}
-                      shouldRotate={!shouldCollapse}
+                      $canCollapse={canCollapse}
+                      $shouldRotate={!shouldCollapse}
                       color="#ccc"
                       size={30}
                     />
