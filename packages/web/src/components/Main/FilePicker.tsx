@@ -10,6 +10,7 @@ import {
   Input,
   Label as ReactstrapLabel,
   Row as ReactstrapRow,
+  RowProps,
 } from 'reactstrap'
 import { BsClipboard, BsFileEarmark, BsLink45Deg } from 'react-icons/bs'
 import { IoIosArrowDroprightCircle } from 'react-icons/io'
@@ -130,7 +131,9 @@ export const FlexFill = styled.div`
   //flex: 1;
 `
 
-export const RowFill = styled(Row)`
+export const RowFill = styled(Row).withConfig({
+  shouldForwardProp: (prop: string | number) => !['noGutter'].includes(prop),
+})`
   flex: 1;
 
   //& > .col {
@@ -174,7 +177,7 @@ export interface FilePickerProps {
   canCollapse?: boolean
   defaultCollapsed?: boolean
 
-  onUpload(): void
+  onUpload(file: File): void
 }
 
 const MOCK_ERRORS = ['File format not recognized', 'Unable to download']
