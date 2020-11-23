@@ -24,9 +24,9 @@ import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
 import { TabPanelPaste } from 'src/components/Main/TabPanelPaste'
 import { TabPanelUrl } from 'src/components/Main//TabPanelUrl'
 
-export const Row = styled(ReactstrapRow).withConfig({
-  shouldForwardProp: (prop: string | number) => !['noGutter'].includes(prop),
-})`
+import { filterProps } from 'src/helpers/filterProps'
+
+export const Row = styled(ReactstrapRow).withConfig(filterProps(['noGutter']))`
   &:first-child > .col {
     margin-top: 0;
   }
@@ -133,9 +133,7 @@ export const FlexFill = styled.div`
   //flex: 1;
 `
 
-export const RowFill = styled(Row).withConfig({
-  shouldForwardProp: (prop: string | number) => !['noGutter'].includes(prop),
-})`
+export const RowFill = styled(Row).withConfig(filterProps(['noGutter']))`
   flex: 1;
 
   //& > .col {
