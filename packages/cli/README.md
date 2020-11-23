@@ -98,7 +98,7 @@ See the list of all tags on Docker Hub: [hub.docker.com/r/neherlab/nextclade/tag
 
 In the current implementation, Nextclade may consume large amounts of memory. By default, Nextclade currently detects the number of logical threads available on the machine and runs this number of sequence analyses in parallel - one input sequence per thread. It might happen that you have a machine with many cores/threads but limited amount of memory. In this case, many  Nextclade threads will run concurrently, and it might run out of heap space and become very slow and unstable.
 
-Additionally, even in low-parallelism scenarios, Nextclade accumulates information for the tree b
+Additionally, while processing sequences, Nextclade accumulates information for the output tree construction. When there are many sequences, it may also lead to the excessive memory consumption, even in low-parallelism scenarios.
 
 
 It is recommended to monitor the memory consumption, especially in automated workflows. To tune the memory consumption you could also:
