@@ -30,7 +30,7 @@ export const removeGeneMap = action('removeGeneMap')
 export const removePcrPrimers = action('removePcrPrimers')
 
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
-export const algorithmRunAsync = action.async<AlgorithmInput, void, Error>('run')
+export const algorithmRunAsync = action.async<void, void, Error>('run')
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<AnalysisParams, AnalysisResult, Error>('analyze')

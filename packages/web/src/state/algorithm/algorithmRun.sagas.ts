@@ -61,22 +61,6 @@ const finalizeTreeSaga = fsaSagaFromParams(treeFinalizeAsync, function* finalize
   return yield* call(threadTreeFinalize, params)
 })
 
-export function* prepare() {
-  const params = yield* select((state: State) => state.algorithm.params)
-
-  if (!params.raw.seqData) {
-    throw new Error('No sequence data provided')
-  }
-
-  const { virus } = params
-  const content = yield* call(params.raw.seqData.getContent)
-
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
-  yield* put(push('/results'))
-
-  return { content, virus }
-}
-
 export function* parse(input: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
   const result = yield* parseSaga(input)
@@ -109,11 +93,19 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
 }
 
 export function* runAlgorithm() {
-  const { content, virus } = yield* prepare()
+  const { seqData, virus } = yield* select((state: State) => state.algorithm.params)
+
+  if (!seqData) {
+    throw new Error('No sequence data provided')
+  }
+
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
+  yield* put(push('/results'))
+
   const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
   const auspiceData = treePreprocess(copy(auspiceDataReference), rootSeq)
 
-  const parseResult = yield* parse(content)
+  const parseResult = yield* parse(seqData)
   if (!parseResult) {
     return
   }
@@ -140,6 +132,4 @@ export function* runAlgorithm() {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 }
 
-export default [
-  // takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
-]
+export default [takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm))]

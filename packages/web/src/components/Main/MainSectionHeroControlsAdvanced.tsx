@@ -22,6 +22,7 @@ import {
   removeQcSettings,
   removeGeneMap,
   removeRootSeq,
+  algorithmRunAsync,
 } from 'src/state/algorithm/algorithm.actions'
 import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
 import { ColFlexHorizontal, FilePicker } from 'src/components/Main/FilePicker'
@@ -75,6 +76,8 @@ export interface MainSectionHeroControlsAdvancedProps {
   removeGeneMap(_0: unknown): void
 
   removePcrPrimers(_0: unknown): void
+
+  algorithmRunTrigger(_0: unknown): void
 }
 
 const mapStateToProps = (state: State) => ({
@@ -98,6 +101,7 @@ const mapDispatchToProps = {
   removeQcSettings,
   removeGeneMap,
   removePcrPrimers,
+  algorithmRunTrigger: algorithmRunAsync.trigger,
 }
 
 export const MainSectionHeroControlsAdvanced = connect(
@@ -122,6 +126,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
   removeQcSettings,
   removeGeneMap,
   removePcrPrimers,
+  algorithmRunTrigger,
 }: MainSectionHeroControlsAdvancedProps) {
   const { t } = useTranslation()
 
@@ -142,7 +147,11 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   <CardL1Body>
                     <Row noGutters>
                       <ColFlexHorizontal>
-                        <ButtonRun disabled={!canRun} color={canRun ? 'success' : 'secondary'}>
+                        <ButtonRun
+                          disabled={!canRun}
+                          color={canRun ? 'success' : 'secondary'}
+                          onClick={algorithmRunTrigger}
+                        >
                           {t('Run')}
                         </ButtonRun>
                       </ColFlexHorizontal>
@@ -224,7 +233,11 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   <CardL1Body>
                     <Row noGutters>
                       <ColFlexHorizontal>
-                        <ButtonRun disabled={!canRun} color={canRun ? 'success' : 'secondary'}>
+                        <ButtonRun
+                          disabled={!canRun}
+                          color={canRun ? 'success' : 'secondary'}
+                          onClick={algorithmRunTrigger}
+                        >
                           {t('Run')}
                         </ButtonRun>
                       </ColFlexHorizontal>
