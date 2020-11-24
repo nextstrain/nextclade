@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { Button, UncontrolledAlert } from 'reactstrap'
+import { Alert, Button, Col, Row, UncontrolledAlert } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 
 import { Tab as TabBase, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
@@ -61,7 +61,15 @@ export const UploadZoneButton = styled(Button)`
   min-height: 50px;
 `
 
-export const FileErrorStyled = styled(UncontrolledAlert)``
+export const FileErrorStyled = styled(Alert)`
+  margin: 5px 5px;
+
+  :first-child {
+    margin-top: 0;
+  }
+
+  box-shadow: ${(props) => props.theme.shadows.slight};
+`
 
 function FileStatusIcon({ hasErrors }: { hasErrors: boolean }) {
   const ICON_SIZE = 70
@@ -73,10 +81,9 @@ function FileStatusIcon({ hasErrors }: { hasErrors: boolean }) {
   return <IoMdCheckmarkCircle size={ICON_SIZE} color={theme.success} />
 }
 
-// TODO: handle errors
-// function FileError({ error }: { error: string }) {
-//   return <FileErrorStyled color="danger">{error}</FileErrorStyled>
-// }
+function FileError({ error }: { error: string }) {
+  return <FileErrorStyled color="danger">{error}</FileErrorStyled>
+}
 
 export interface UploadedFileInfoProps {
   name: ReactNode
@@ -119,10 +126,14 @@ export function UploadedFileInfo({ name, description, errors, onRemove }: Upload
           </UploadZone>
         </UploadZoneWrapper>
       </TabPanel>
+
+      <Row noGutters>
+        <Col>
+          {errors.map((error) => (
+            <FileError key={error} error={error} />
+          ))}
+        </Col>
+      </Row>
     </Tabs>
   )
 }
-
-// {errors.map((error) => (
-// <FileError key={error} error={error} />
-// ))}

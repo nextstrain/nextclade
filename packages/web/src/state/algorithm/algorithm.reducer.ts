@@ -113,26 +113,32 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setFasta.started, (draft, input) => {
     draft.params.raw.seqData = input
+    draft.params.errors.seqData = []
   })
 
   .icase(setTree.started, (draft, input) => {
     draft.params.raw.auspiceData = input
+    draft.params.errors.auspiceData = []
   })
 
   .icase(setRootSeq.started, (draft, input) => {
     draft.params.raw.rootSeq = input
+    draft.params.errors.rootSeq = []
   })
 
   .icase(setQcSettings.started, (draft, input) => {
     draft.params.raw.qcRulesConfig = input
+    draft.params.errors.qcRulesConfig = []
   })
 
   .icase(setGeneMap.started, (draft, input) => {
     draft.params.raw.geneMap = input
+    draft.params.errors.geneMap = []
   })
 
   .icase(setPcrPrimers.started, (draft, input) => {
     draft.params.raw.pcrPrimers = input
+    draft.params.errors.pcrPrimers = []
   })
 
   .icase(setFasta.done, (draft, { result: { seqData } }) => {
@@ -159,33 +165,63 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.virus.pcrPrimers = pcrPrimers
   })
 
+  .icase(setFasta.failed, (draft, { params: input, error }) => {
+    draft.params.errors.seqData = [error.message]
+  })
+
+  .icase(setTree.failed, (draft, { params: input, error }) => {
+    draft.params.errors.auspiceData = [error.message]
+  })
+
+  .icase(setRootSeq.failed, (draft, { params: input, error }) => {
+    draft.params.errors.rootSeq = [error.message]
+  })
+
+  .icase(setQcSettings.failed, (draft, { params: input, error }) => {
+    draft.params.errors.qcRulesConfig = [error.message]
+  })
+
+  .icase(setGeneMap.failed, (draft, { params: input, error }) => {
+    draft.params.errors.geneMap = [error.message]
+  })
+
+  .icase(setPcrPrimers.failed, (draft, { params: input, error }) => {
+    draft.params.errors.pcrPrimers = [error.message]
+  })
+
   .icase(removeFasta, (draft) => {
     draft.params.raw.seqData = undefined
+    draft.params.errors.seqData = []
     draft.params.seqData = undefined
   })
 
   .icase(removeTree, (draft) => {
     draft.params.raw.auspiceData = undefined
+    draft.params.errors.auspiceData = []
     draft.params.virus.auspiceData = getVirus(draft.params.virus.name).auspiceData
   })
 
   .icase(removeRootSeq, (draft) => {
     draft.params.raw.rootSeq = undefined
+    draft.params.errors.rootSeq = []
     draft.params.virus.rootSeq = getVirus(draft.params.virus.name).rootSeq
   })
 
   .icase(removeQcSettings, (draft) => {
     draft.params.raw.qcRulesConfig = undefined
+    draft.params.errors.qcRulesConfig = []
     draft.params.virus.qcRulesConfig = getVirus(draft.params.virus.name).qcRulesConfig
   })
 
   .icase(removeGeneMap, (draft) => {
     draft.params.raw.geneMap = undefined
+    draft.params.errors.geneMap = []
     draft.params.virus.geneMap = getVirus(draft.params.virus.name).geneMap
   })
 
   .icase(removePcrPrimers, (draft) => {
     draft.params.raw.pcrPrimers = undefined
+    draft.params.errors.pcrPrimers = []
     draft.params.virus.pcrPrimers = getVirus(draft.params.virus.name).pcrPrimers
   })
 

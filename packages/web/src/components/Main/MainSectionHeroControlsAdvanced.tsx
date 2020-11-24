@@ -125,8 +125,6 @@ export function MainSectionHeroControlsAdvancedDisconnected({
 }: MainSectionHeroControlsAdvancedProps) {
   const { t } = useTranslation()
 
-  const errors: string[] = []
-
   function onError() {}
 
   return (
@@ -162,7 +160,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   canCollapse={false}
                   defaultCollapsed={false}
                   input={params.raw.seqData}
-                  errors={errors}
+                  errors={params.errors.seqData}
                   onError={onError}
                   onRemove={removeFasta}
                   onInput={setFasta}
@@ -172,7 +170,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   icon={<FileIconJson />}
                   text={t('Reference tree')}
                   input={params.raw.auspiceData}
-                  errors={errors}
+                  errors={params.errors.auspiceData}
                   onError={onError}
                   onRemove={removeTree}
                   onInput={setTree}
@@ -182,7 +180,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   icon={<FileIconTxt />}
                   text={t('Root sequence')}
                   input={params.raw.rootSeq}
-                  errors={errors}
+                  errors={params.errors.rootSeq}
                   onError={onError}
                   onRemove={removeRootSeq}
                   onInput={setRootSeq}
@@ -192,7 +190,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   icon={<FileIconJson />}
                   text={t('Quality control')}
                   input={params.raw.qcRulesConfig}
-                  errors={errors}
+                  errors={params.errors.qcRulesConfig}
                   onError={onError}
                   onRemove={removeQcSettings}
                   onInput={setQcSettings}
@@ -202,7 +200,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   icon={<FileIconJson />}
                   text={t('Gene map')}
                   input={params.raw.geneMap}
-                  errors={errors}
+                  errors={params.errors.geneMap}
                   onError={onError}
                   onRemove={removeGeneMap}
                   onInput={setGeneMap}
@@ -212,7 +210,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   icon={<FileIconJson />}
                   text={t('PCR primers')}
                   input={params.raw.pcrPrimers}
-                  errors={errors}
+                  errors={params.errors.pcrPrimers}
                   onError={onError}
                   onRemove={removePcrPrimers}
                   onInput={setPcrPrimers}

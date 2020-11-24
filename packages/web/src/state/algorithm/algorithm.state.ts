@@ -71,6 +71,14 @@ export const algorithmDefaultState: AlgorithmState = {
   status: AlgorithmGlobalStatus.idling,
   params: {
     raw: {},
+    errors: {
+      seqData: [],
+      auspiceData: [],
+      rootSeq: [],
+      qcRulesConfig: [],
+      geneMap: [],
+      pcrPrimers: [],
+    },
     seqData: undefined,
     virus: getVirus(),
   },
