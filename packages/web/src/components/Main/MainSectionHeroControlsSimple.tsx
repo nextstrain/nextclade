@@ -18,10 +18,9 @@ import {
   setFasta,
   setIsDirty,
 } from 'src/state/algorithm/algorithm.actions'
-import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanExport, selectParams } from 'src/state/algorithm/algorithm.selectors'
 
 import type { State } from 'src/state/reducer'
-import { setShowInputBox } from 'src/state/ui/ui.actions'
 import { FileIconFasta } from './UploaderFileIcons'
 
 export const FilePickerSimple = styled(FilePicker)`
@@ -38,15 +37,9 @@ export interface MainSectionHeroControlsProps {
 
   removeFasta(_0: unknown): void
 
-  setInput(input: string): void
-
   setIsDirty(isDirty: boolean): void
 
   algorithmRunTrigger(input: AlgorithmInput): void
-
-  exportTrigger(): void
-
-  setShowInputBox(show: boolean): void
 
   goToResults(): void
 }
@@ -54,17 +47,14 @@ export interface MainSectionHeroControlsProps {
 const mapStateToProps = (state: State) => ({
   params: selectParams(state),
   canExport: selectCanExport(state),
-  isDirty: selectIsDirty(state),
-  showInputBox: state.ui.showInputBox,
 })
 
 const mapDispatchToProps = {
   setIsDirty,
-  setFasta,
+  setFasta: setFasta.trigger,
   removeFasta,
-  algorithmRunTrigger: (input: AlgorithmInput) => algorithmRunAsync.trigger(input),
+  algorithmRunTrigger: algorithmRunAsync.trigger,
   exportTrigger: () => exportCsvTrigger(),
-  setShowInputBox,
   goToResults: () => push('/results'),
 }
 
@@ -76,13 +66,8 @@ export const MainSectionHeroControlsSimple = connect(
 export function MainSectionHeroControlsDisconnected({
   params,
   canExport,
-  isDirty,
-  showInputBox,
-  setInput,
   setIsDirty,
   algorithmRunTrigger,
-  exportTrigger,
-  setShowInputBox,
   goToResults,
   setFasta,
   removeFasta,
@@ -92,10 +77,9 @@ export function MainSectionHeroControlsDisconnected({
 
   function loadDefaultData() {
     setIsDirty(true)
-    setShowInputBox(true)
     inputRef?.current?.focus()
     const seqData = getSequenceDatum(params.virus.name)
-    delay(setInput, 250, new AlgorithmInputString(seqData))
+    delay(setFasta, 250, new AlgorithmInputString(seqData))
   }
 
   async function onUpload(input: AlgorithmInput) {

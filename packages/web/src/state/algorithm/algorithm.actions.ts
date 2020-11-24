@@ -1,29 +1,33 @@
+import type { AuspiceJsonV2 } from 'auspice'
+
+import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
-import type { AlgorithmInput, AnalysisParams, AnalysisResult } from 'src/algorithms/types'
+
+import type { AlgorithmInput, AnalysisParams, AnalysisResult, Gene, PcrPrimer } from 'src/algorithms/types'
 import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
-import type { QCResult } from 'src/algorithms/QC/types'
-import type { Sorting } from 'src/helpers/sortResults'
+import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
+
 import type { AlgorithmGlobalStatus, CladeAssignmentResult } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
 
 export const setIsDirty = action<boolean>('setIsDirty')
 
-export const setFasta = action<AlgorithmInput>('setFasta')
-export const setTree = action<AlgorithmInput>('setTree')
-export const setRootSeq = action<AlgorithmInput>('setRootSeq')
-export const setQcSettings = action<AlgorithmInput>('setQcSettings')
-export const setGeneMap = action<AlgorithmInput>('setGeneMap')
-export const setPcrPrimers = action<AlgorithmInput>('setPcrPrimers')
+export const setFasta = action.async<AlgorithmInput, string, Error>('setFasta')
+export const setTree = action.async<AlgorithmInput, AuspiceJsonV2, Error>('setTree')
+export const setRootSeq = action.async<AlgorithmInput, string, Error>('setRootSeq')
+export const setQcSettings = action.async<AlgorithmInput, QCRulesConfig, Error>('setQcSettings')
+export const setGeneMap = action.async<AlgorithmInput, Gene[], Error>('setGeneMap')
+export const setPcrPrimers = action.async<AlgorithmInput, PcrPrimer[], Error>('setPcrPrimers')
 
-export const removeFasta = action<AlgorithmInput>('removeFasta')
-export const removeTree = action<AlgorithmInput>('removeTree')
-export const removeRootSeq = action<AlgorithmInput>('removeRootSeq')
-export const removeQcSettings = action<AlgorithmInput>('removeQcSettings')
-export const removeGeneMap = action<AlgorithmInput>('removeGeneMap')
-export const removePcrPrimers = action<AlgorithmInput>('removePcrPrimers')
+export const removeFasta = action('removeFasta')
+export const removeTree = action('removeTree')
+export const removeRootSeq = action('removeRootSeq')
+export const removeQcSettings = action('removeQcSettings')
+export const removeGeneMap = action('removeGeneMap')
+export const removePcrPrimers = action('removePcrPrimers')
 
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
 export const algorithmRunAsync = action.async<AlgorithmInput, void, Error>('run')

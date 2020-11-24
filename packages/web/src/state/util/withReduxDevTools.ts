@@ -1,65 +1,65 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import type { DeepPartial, StrictOmit } from 'ts-essentials'
+// import type { DeepPartial, StrictOmit } from 'ts-essentials'
 import { composeWithDevTools } from 'redux-devtools-extension'
 
-import type { Action } from 'src/state/util/fsaActions'
-import { isType } from 'src/state/util/fsaActions'
+// import type { Action } from 'src/state/util/fsaActions'
+// import { isType } from 'src/state/util/fsaActions'
 
-import type { AlgorithmParams } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import type { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
-import { analyzeAsync, treeBuildAsync } from 'src/state/algorithm/algorithm.actions'
+// import type { AlgorithmParams } from 'src/algorithms/types'
+// import type { State } from 'src/state/reducer'
+// import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+// import type { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
+// import { analyzeAsync, treeBuildAsync } from 'src/state/algorithm/algorithm.actions'
 
-const TOO_BIG = '<<TOO_BIG>>' as const
-
-export function sanitizeParams(params?: DeepPartial<AlgorithmParams>) {
-  if (!params) {
-    return undefined
-  }
-
-  // @ts-ignore
-  const seq = params.seq ? TOO_BIG : undefined
-  const rootSeq = params.virus?.rootSeq ? TOO_BIG : undefined
-  return { ...params, seq, rootSeq }
-}
-
-export function sanitizeResult(result?: { alignedQuery: string }) {
-  if (!result) {
-    return undefined
-  }
-
-  const alignedQuery = result.alignedQuery ? TOO_BIG : undefined
-
-  // @ts-ignore
-  return { ...result, alignedQuery }
-}
-
-export function sanitizeResults(results: SequenceAnalysisState[] = []) {
-  let newResults = results
-  if (results && results.length > 20) {
-    return TOO_BIG
-  }
-  // @ts-ignore
-  newResults = newResults?.map((result) => ({ ...result, result: sanitizeResult(result.result) }))
-  return newResults
-}
-
-export interface AuspiceTreeStateLite
-  extends StrictOmit<AuspiceTreeState, 'nodes' | 'visibility' | 'nodeColors' | 'branchThickness'> {
-  nodes: string
-  visibility: string
-  nodeColors: string
-  branchThickness: string
-}
-
-function sanitizeTree(tree: AuspiceTreeState = {}): AuspiceTreeStateLite {
-  return { ...tree, nodes: TOO_BIG, visibility: TOO_BIG, nodeColors: TOO_BIG, branchThickness: TOO_BIG }
-}
-
-function sanitizeEntropy(entropy: AuspiceEntropyState = {}) {
-  return { ...entropy, bars: TOO_BIG }
-}
+// const TOO_BIG = '<<TOO_BIG>>' as const
+//
+// export function sanitizeParams(params?: DeepPartial<AlgorithmParams>) {
+//   if (!params) {
+//     return undefined
+//   }
+//
+//   // @ts-ignore
+//   const seq = params.seq ? TOO_BIG : undefined
+//   const rootSeq = params.virus?.rootSeq ? TOO_BIG : undefined
+//   return { ...params, seq, rootSeq }
+// }
+//
+// export function sanitizeResult(result?: { alignedQuery: string }) {
+//   if (!result) {
+//     return undefined
+//   }
+//
+//   const alignedQuery = result.alignedQuery ? TOO_BIG : undefined
+//
+//   // @ts-ignore
+//   return { ...result, alignedQuery }
+// }
+//
+// export function sanitizeResults(results: SequenceAnalysisState[] = []) {
+//   let newResults = results
+//   if (results && results.length > 20) {
+//     return TOO_BIG
+//   }
+//   // @ts-ignore
+//   newResults = newResults?.map((result) => ({ ...result, result: sanitizeResult(result.result) }))
+//   return newResults
+// }
+//
+// export interface AuspiceTreeStateLite
+//   extends StrictOmit<AuspiceTreeState, 'nodes' | 'visibility' | 'nodeColors' | 'branchThickness'> {
+//   nodes: string
+//   visibility: string
+//   nodeColors: string
+//   branchThickness: string
+// }
+//
+// function sanitizeTree(tree: AuspiceTreeState = {}): AuspiceTreeStateLite {
+//   return { ...tree, nodes: TOO_BIG, visibility: TOO_BIG, nodeColors: TOO_BIG, branchThickness: TOO_BIG }
+// }
+//
+// function sanitizeEntropy(entropy: AuspiceEntropyState = {}) {
+//   return { ...entropy, bars: TOO_BIG }
+// }
 
 export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
   enhancer: StoreEnhancerIn,

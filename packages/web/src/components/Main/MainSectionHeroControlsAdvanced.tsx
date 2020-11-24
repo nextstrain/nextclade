@@ -82,17 +82,16 @@ const mapStateToProps = (state: State) => ({
   params: selectParams(state),
   canExport: selectCanExport(state),
   isDirty: selectIsDirty(state),
-  showInputBox: state.ui.showInputBox,
 })
 
 const mapDispatchToProps = {
   setIsDirty,
-  setFasta,
-  setTree,
-  setRootSeq,
-  setQcSettings,
-  setGeneMap,
-  setPcrPrimers,
+  setFasta: setFasta.trigger,
+  setTree: setTree.trigger,
+  setRootSeq: setRootSeq.trigger,
+  setQcSettings: setQcSettings.trigger,
+  setGeneMap: setGeneMap.trigger,
+  setPcrPrimers: setPcrPrimers.trigger,
   removeFasta,
   removeTree,
   removeRootSeq,
