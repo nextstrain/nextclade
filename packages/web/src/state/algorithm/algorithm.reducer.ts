@@ -111,32 +111,57 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.resultsFiltered = runFilters(current(draft))
   })
 
-  .icase(setFasta.done, (draft, { result: seqData }) => {
+  .icase(setFasta.started, (draft, input) => {
+    draft.params.raw.seqData = input
+  })
+
+  .icase(setTree.started, (draft, input) => {
+    draft.params.raw.auspiceData = input
+  })
+
+  .icase(setRootSeq.started, (draft, input) => {
+    draft.params.raw.rootSeq = input
+  })
+
+  .icase(setQcSettings.started, (draft, input) => {
+    draft.params.raw.qcRulesConfig = input
+  })
+
+  .icase(setGeneMap.started, (draft, input) => {
+    draft.params.raw.geneMap = input
+  })
+
+  .icase(setPcrPrimers.started, (draft, input) => {
+    draft.params.raw.pcrPrimers = input
+  })
+
+  .icase(setFasta.done, (draft, { result: { seqData } }) => {
     draft.params.seqData = seqData
   })
 
-  .icase(setTree.done, (draft, { result: auspiceData }) => {
+  .icase(setTree.done, (draft, { result: { auspiceData } }) => {
     draft.params.virus.auspiceData = auspiceData
   })
 
-  .icase(setRootSeq.done, (draft, { result: rootSeq }) => {
+  .icase(setRootSeq.done, (draft, { result: { rootSeq } }) => {
     draft.params.virus.rootSeq = rootSeq
   })
 
-  .icase(setQcSettings.done, (draft, { result: qcRulesConfig }) => {
+  .icase(setQcSettings.done, (draft, { result: { qcRulesConfig } }) => {
     draft.params.virus.qcRulesConfig = qcRulesConfig
   })
 
-  .icase(setGeneMap.done, (draft, { result: geneMap }) => {
+  .icase(setGeneMap.done, (draft, { result: { geneMap } }) => {
     draft.params.virus.geneMap = geneMap
   })
 
-  .icase(setPcrPrimers.done, (draft, { result: pcrPrimers }) => {
+  .icase(setPcrPrimers.done, (draft, { result: { pcrPrimers } }) => {
     draft.params.virus.pcrPrimers = pcrPrimers
   })
 
   .icase(removeFasta, (draft) => {
     draft.params.raw.seqData = undefined
+    draft.params.seqData = undefined
   })
 
   .icase(removeTree, (draft) => {

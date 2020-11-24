@@ -15,12 +15,12 @@ const action = actionCreatorFactory('Algorithm')
 
 export const setIsDirty = action<boolean>('setIsDirty')
 
-export const setFasta = action.async<AlgorithmInput, string, Error>('setFasta')
-export const setTree = action.async<AlgorithmInput, AuspiceJsonV2, Error>('setTree')
-export const setRootSeq = action.async<AlgorithmInput, string, Error>('setRootSeq')
-export const setQcSettings = action.async<AlgorithmInput, QCRulesConfig, Error>('setQcSettings')
-export const setGeneMap = action.async<AlgorithmInput, Gene[], Error>('setGeneMap')
-export const setPcrPrimers = action.async<AlgorithmInput, PcrPrimer[], Error>('setPcrPrimers')
+export const setFasta = action.async<AlgorithmInput, { input: AlgorithmInput; seqData: string }, Error>('setFasta')
+export const setTree = action.async<AlgorithmInput, { input: AlgorithmInput; auspiceData: AuspiceJsonV2 }, Error>('setTree') // prettier-ignore
+export const setRootSeq = action.async<AlgorithmInput, { input: AlgorithmInput; rootSeq: string }, Error>('setRootSeq')
+export const setQcSettings = action.async<AlgorithmInput, { input: AlgorithmInput, qcRulesConfig: QCRulesConfig }, Error>('setQcSettings') // prettier-ignore
+export const setGeneMap = action.async<AlgorithmInput, { input: AlgorithmInput; geneMap: Gene[] }, Error>('setGeneMap')
+export const setPcrPrimers = action.async<AlgorithmInput, { input: AlgorithmInput, pcrPrimers: PcrPrimer[] }, Error>('setPcrPrimers') // prettier-ignore
 
 export const removeFasta = action('removeFasta')
 export const removeTree = action('removeTree')

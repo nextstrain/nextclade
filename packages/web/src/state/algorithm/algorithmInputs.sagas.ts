@@ -22,12 +22,14 @@ import {
 import { State } from '../reducer'
 
 export function* loadFasta(input: AlgorithmInput) {
-  return yield* call([input, input.getContent])
+  const seqData = yield* call([input, input.getContent])
+  return { seqData, input }
 }
 
 export function* loadTree(input: AlgorithmInput) {
   const content = yield* call([input, input.getContent])
-  return treeValidate(treeDeserialize(content))
+  const auspiceData = treeValidate(treeDeserialize(content))
+  return { auspiceData, input }
 }
 
 export function* loadRootSeq(input: AlgorithmInput) {
@@ -41,21 +43,23 @@ export function* loadRootSeq(input: AlgorithmInput) {
     throw new Error(`Expected exactly 1 root sequence, but received ${n}`)
   }
 
-  const rootSeq = entries[0][1]
+  const rootSeq = sanitizeRootSeq(entries[0][1])
 
-  return sanitizeRootSeq(rootSeq)
+  return { rootSeq, input }
 }
 
 export function* loadQcSettings(input: AlgorithmInput) {
   const content = yield* call([input, input.getContent])
-  return qcRulesConfigValidate(qcRulesConfigDeserialize(content))
+  const qcRulesConfig = qcRulesConfigValidate(qcRulesConfigDeserialize(content))
+  return { qcRulesConfig, input }
 }
 
 export function* loadGeneMap(input: AlgorithmInput) {
   const content = yield* call([input, input.getContent])
   const geneMapJsonDangerous = geneMapDeserialize(content)
   const geneMapJson = geneMapValidate(geneMapJsonDangerous)
-  return getGeneMap(geneMapJson)
+  const geneMap = getGeneMap(geneMapJson)
+  return { geneMap, input }
 }
 
 export function* loadPcrPrimers(input: AlgorithmInput) {
@@ -66,7 +70,9 @@ export function* loadPcrPrimers(input: AlgorithmInput) {
   const rootSeq = yield* select((state: State) => state.algorithm.params.virus.rootSeq)
 
   const primerEntries = validatePcrPrimerEntries(parseCsv(content))
-  return validatePcrPrimers(convertPcrPrimers(primerEntries, rootSeq))
+  const pcrPrimers = validatePcrPrimers(convertPcrPrimers(primerEntries, rootSeq))
+
+  return { pcrPrimers, input }
 }
 
 export default [
