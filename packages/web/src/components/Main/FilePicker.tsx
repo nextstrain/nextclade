@@ -59,6 +59,10 @@ export const TextInputMonospace = styled(Input)`
   border-radius: 3px;
   box-shadow: inset 2px 1px 3px #2222;
   resize: none;
+  word-break: break-all;
+  word-wrap: break-word;
+  text-wrap: unrestricted;
+
   //flex: 1;
   //height: 90px !important;
 `

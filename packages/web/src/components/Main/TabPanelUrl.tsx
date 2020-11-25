@@ -44,6 +44,7 @@ export function TabPanelUrl({ onConfirm }: TabPanelUrlProps) {
           <RowFill noGutter>
             <ColFlexVertical>
               <TextInputMonospace
+                wrap="hard"
                 id="tree-url-text-input"
                 className="flex-grow-1"
                 type="textarea"
@@ -53,7 +54,6 @@ export function TabPanelUrl({ onConfirm }: TabPanelUrlProps) {
                 autoCapitalize="off"
                 spellCheck="false"
                 data-gramm="false"
-                wrap="off"
                 data-gramm_editor="false"
                 value={url}
                 onChange={change}

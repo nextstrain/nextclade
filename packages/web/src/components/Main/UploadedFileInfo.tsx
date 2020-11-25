@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { Alert, Button, Col, Row, UncontrolledAlert } from 'reactstrap'
+import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 
 import { Tab as TabBase, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
