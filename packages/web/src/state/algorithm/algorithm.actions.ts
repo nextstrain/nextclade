@@ -3,13 +3,13 @@ import type { AuspiceJsonV2 } from 'auspice'
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
-import type { AlgorithmInput, AnalysisParams, AnalysisResult, Gene, PcrPrimer } from 'src/algorithms/types'
+import type { AnalysisParams, AnalysisResult, Gene, PcrPrimer } from 'src/algorithms/types'
 import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
-import type { AlgorithmGlobalStatus, CladeAssignmentResult } from './algorithm.state'
+import type { AlgorithmGlobalStatus, AlgorithmInput, CladeAssignmentResult } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
 

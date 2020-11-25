@@ -5,12 +5,15 @@ import { connect } from 'react-redux'
 import { push } from 'connected-next-router'
 import { useTranslation } from 'react-i18next'
 import { Button, Col, Row } from 'reactstrap'
+import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 import styled from 'styled-components'
 
 import { getSequenceDatum } from 'src/algorithms/defaults/viruses'
-import { AlgorithmInput, AlgorithmInputString, AlgorithmParams } from 'src/algorithms/types'
 import { FilePicker } from 'src/components/Main/FilePicker'
 import { MainSectionHeroFeatures } from 'src/components/Main/MainSectionHeroFeatures'
+
+import type { State } from 'src/state/reducer'
+import type { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import {
   algorithmRunWithSequencesAsync,
   exportCsvTrigger,
@@ -19,8 +22,6 @@ import {
   setIsDirty,
 } from 'src/state/algorithm/algorithm.actions'
 import { selectCanExport, selectParams } from 'src/state/algorithm/algorithm.selectors'
-
-import type { State } from 'src/state/reducer'
 import { FileIconFasta } from './UploaderFileIcons'
 
 export const FilePickerSimple = styled(FilePicker)`

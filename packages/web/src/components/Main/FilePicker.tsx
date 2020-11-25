@@ -1,6 +1,4 @@
 import React, { ReactNode, Ref, useState } from 'react'
-import { AlgorithmInput, AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/algorithms/types'
-import { BadgeDefault, BadgeRequired } from 'src/components/Main/BadgeDefault'
 
 import styled from 'styled-components'
 import {
@@ -24,6 +22,9 @@ import { UploaderGeneric } from 'src/components/Main/UploaderGeneric'
 import { TabPanelPaste } from 'src/components/Main/TabPanelPaste' // eslint-disable-line import/no-cycle
 import { TabPanelUrl } from 'src/components/Main//TabPanelUrl' // eslint-disable-line import/no-cycle
 
+import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/io/AlgorithmInput'
+import { BadgeDefault, BadgeRequired } from 'src/components/Main/BadgeDefault'
 import { filterProps } from 'src/helpers/filterProps'
 
 export const Row = styled(ReactstrapRow).withConfig(filterProps(['noGutter']))`

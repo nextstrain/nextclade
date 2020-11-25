@@ -6,7 +6,7 @@ import { Pool } from 'threads'
 import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
-import type { AlgorithmInput, AnalysisParams } from 'src/algorithms/types'
+import type { AnalysisParams } from 'src/algorithms/types'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { WorkerPools } from 'src/workers/types'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
@@ -28,7 +28,7 @@ import {
   setOutputTree,
   treeFinalizeAsync,
 } from 'src/state/algorithm/algorithm.actions'
-import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'

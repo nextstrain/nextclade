@@ -7,7 +7,7 @@ import { Button, Col, Row } from 'reactstrap'
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
-import type { AlgorithmInput, AlgorithmParams } from 'src/algorithms/types'
+import type { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import {
   setIsDirty,
   setFasta,

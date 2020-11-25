@@ -3,9 +3,9 @@ import { validatePcrPrimerEntries, validatePcrPrimers } from 'src/algorithms/pri
 import { parseCsv } from 'src/io/parseCsv'
 import { call, select, takeEvery } from 'typed-redux-saga'
 
+import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import fsaSaga from 'src/state/util/fsaSaga'
 
-import type { AlgorithmInput } from 'src/algorithms/types'
 import { parseSequences } from 'src/algorithms/parseSequences'
 import { qcRulesConfigValidate, qcRulesConfigDeserialize } from 'src/algorithms/QC/qcRulesConfigValidate'
 import { treeDeserialize, treeValidate } from 'src/algorithms/tree/treeValidate'
