@@ -12,7 +12,7 @@ import { AlgorithmInput, AlgorithmInputString, AlgorithmParams } from 'src/algor
 import { FilePicker } from 'src/components/Main/FilePicker'
 import { MainSectionHeroFeatures } from 'src/components/Main/MainSectionHeroFeatures'
 import {
-  algorithmRunAsync,
+  algorithmRunWithSequencesAsync,
   exportCsvTrigger,
   removeFasta,
   setFasta,
@@ -30,8 +30,6 @@ export const FilePickerSimple = styled(FilePicker)`
 export interface MainSectionHeroControlsProps {
   params: AlgorithmParams
   canExport: boolean
-  showInputBox: boolean
-  isDirty: boolean
 
   setFasta(input: AlgorithmInput): void
 
@@ -39,7 +37,7 @@ export interface MainSectionHeroControlsProps {
 
   setIsDirty(isDirty: boolean): void
 
-  algorithmRunTrigger(input: AlgorithmInput): void
+  algorithmRunTrigger(_0: unknown): void
 
   goToResults(): void
 }
@@ -53,7 +51,7 @@ const mapDispatchToProps = {
   setIsDirty,
   setFasta: setFasta.trigger,
   removeFasta,
-  algorithmRunTrigger: algorithmRunAsync.trigger,
+  algorithmRunTrigger: algorithmRunWithSequencesAsync.trigger,
   exportTrigger: () => exportCsvTrigger(),
   goToResults: () => push('/results'),
 }
@@ -84,8 +82,7 @@ export function MainSectionHeroControlsDisconnected({
 
   async function onUpload(input: AlgorithmInput) {
     setIsDirty(true)
-    setFasta(input)
-    // algorithmRunTrigger()
+    algorithmRunTrigger(input)
   }
 
   const errors: string[] = []

@@ -30,7 +30,8 @@ export const removeGeneMap = action('removeGeneMap')
 export const removePcrPrimers = action('removePcrPrimers')
 
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
-export const algorithmRunAsync = action.async<void, void, Error>('run')
+export const algorithmRunAsync = action.async<void, void, Error>('algorithmRunAsync')
+export const algorithmRunWithSequencesAsync = action.async<AlgorithmInput, void, Error>('algorithmRunWithSequencesAsync') // prettier-ignore
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<AnalysisParams, AnalysisResult, Error>('analyze')
