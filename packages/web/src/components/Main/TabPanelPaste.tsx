@@ -53,7 +53,7 @@ export function TabPanelPaste({ onConfirm, inputRef }: TabPanelPasteProps) {
                 autoCapitalize="off"
                 spellCheck="false"
                 data-gramm="false"
-                wrap="off"
+                wrap="hard"
                 data-gramm_editor="false"
                 value={seqData}
                 onChange={change}
