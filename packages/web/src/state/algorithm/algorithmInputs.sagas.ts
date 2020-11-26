@@ -23,13 +23,13 @@ import { State } from '../reducer'
 
 export function* loadFasta(input: AlgorithmInput) {
   const seqData = yield* call([input, input.getContent])
-  return { seqData, input }
+  return { seqData }
 }
 
 export function* loadTree(input: AlgorithmInput) {
   const content = yield* call([input, input.getContent])
   const auspiceData = treeValidate(treeDeserialize(content))
-  return { auspiceData, input }
+  return { auspiceData }
 }
 
 export function* loadRootSeq(input: AlgorithmInput) {
@@ -45,13 +45,13 @@ export function* loadRootSeq(input: AlgorithmInput) {
 
   const rootSeq = sanitizeRootSeq(entries[0][1])
 
-  return { rootSeq, input }
+  return { rootSeq }
 }
 
 export function* loadQcSettings(input: AlgorithmInput) {
   const content = yield* call([input, input.getContent])
   const qcRulesConfig = qcRulesConfigValidate(qcRulesConfigDeserialize(content))
-  return { qcRulesConfig, input }
+  return { qcRulesConfig }
 }
 
 export function* loadGeneMap(input: AlgorithmInput) {
@@ -59,7 +59,7 @@ export function* loadGeneMap(input: AlgorithmInput) {
   const geneMapJsonDangerous = geneMapDeserialize(content)
   const geneMapJson = geneMapValidate(geneMapJsonDangerous)
   const geneMap = getGeneMap(geneMapJson)
-  return { geneMap, input }
+  return { geneMap }
 }
 
 export function* loadPcrPrimers(input: AlgorithmInput) {
@@ -72,7 +72,7 @@ export function* loadPcrPrimers(input: AlgorithmInput) {
   const primerEntries = validatePcrPrimerEntries(parseCsv(content))
   const pcrPrimers = validatePcrPrimers(convertPcrPrimers(primerEntries, rootSeq))
 
-  return { pcrPrimers, input }
+  return { pcrPrimers }
 }
 
 export default [
