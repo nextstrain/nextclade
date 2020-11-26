@@ -129,6 +129,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
   algorithmRunTrigger,
 }: MainSectionHeroControlsAdvancedProps) {
   const { t } = useTranslation()
+  const run = () => algorithmRunTrigger(undefined)
 
   function onError() {}
 
@@ -147,11 +148,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   <CardL1Body>
                     <Row noGutters>
                       <ColFlexHorizontal>
-                        <ButtonRun
-                          disabled={!canRun}
-                          color={canRun ? 'success' : 'secondary'}
-                          onClick={algorithmRunTrigger}
-                        >
+                        <ButtonRun disabled={!canRun} color={canRun ? 'success' : 'secondary'} onClick={run}>
                           {t('Run')}
                         </ButtonRun>
                       </ColFlexHorizontal>
@@ -233,11 +230,7 @@ export function MainSectionHeroControlsAdvancedDisconnected({
                   <CardL1Body>
                     <Row noGutters>
                       <ColFlexHorizontal>
-                        <ButtonRun
-                          disabled={!canRun}
-                          color={canRun ? 'success' : 'secondary'}
-                          onClick={algorithmRunTrigger}
-                        >
+                        <ButtonRun disabled={!canRun} color={canRun ? 'success' : 'secondary'} onClick={run}>
                           {t('Run')}
                         </ButtonRun>
                       </ColFlexHorizontal>
