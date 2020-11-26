@@ -102,14 +102,14 @@ export function* runAlgorithmWithSequences(inputSeq: AlgorithmInput) {
 }
 
 export function* runAlgorithm() {
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
+  yield* put(push('/results'))
+
   const { seqData, virus } = yield* select((state: State) => state.algorithm.params)
 
   if (!seqData) {
     throw new Error('No sequence data provided')
   }
-
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
-  yield* put(push('/results'))
 
   const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
   const auspiceData = treePreprocess(copy(auspiceDataReference), rootSeq)
