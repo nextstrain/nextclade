@@ -10,7 +10,6 @@ import styled from 'styled-components'
 
 import { getSequenceDatum } from 'src/algorithms/defaults/viruses'
 import { FilePicker } from 'src/components/Main/FilePicker'
-import { MainSectionHeroFeatures } from 'src/components/Main/MainSectionHeroFeatures'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
@@ -95,39 +94,31 @@ export function MainSectionHeroControlsDisconnected({
   function onError() {}
 
   return (
-    <Row noGutters className="hero-content">
-      <Col xl={6} className="px-lg-4 hero-content-left">
-        <MainSectionHeroFeatures />
-      </Col>
+    <div className="hero-content-left-card">
+      <Row>
+        <Col>
+          <FilePickerSimple
+            canCollapse={false}
+            defaultCollapsed={false}
+            icon={<FileIconFasta />}
+            text={t('Sequences')}
+            input={params.raw.seqData}
+            onInput={onUpload}
+            errors={params.errors.seqData}
+            onRemove={removeFasta}
+            onError={onError}
+            inputRef={inputRef}
+          />
+        </Col>
+      </Row>
 
-      <Col xl={6} className="hero-content-right">
-        <div className="hero-content-left-card">
-          <Row>
-            <Col>
-              <FilePickerSimple
-                canCollapse={false}
-                defaultCollapsed={false}
-                icon={<FileIconFasta />}
-                text={t('Sequences')}
-                input={params.raw.seqData}
-                onInput={onUpload}
-                errors={params.errors.seqData}
-                onRemove={removeFasta}
-                onError={onError}
-                inputRef={inputRef}
-              />
-            </Col>
-          </Row>
-
-          <Row>
-            <Col>
-              <Button color="link" onClick={loadDefaultData}>
-                <small>{t('Show me an Example')}</small>
-              </Button>
-            </Col>
-          </Row>
-        </div>
-      </Col>
-    </Row>
+      <Row>
+        <Col>
+          <Button color="link" onClick={loadDefaultData}>
+            <small>{t('Show me an Example')}</small>
+          </Button>
+        </Col>
+      </Row>
+    </div>
   )
 }

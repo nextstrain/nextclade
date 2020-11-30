@@ -5,6 +5,15 @@ import ReactToggle, { ToggleProps as ReactToggleProps } from 'react-toggle'
 import 'react-toggle/style.css'
 import { StrictOmit } from 'ts-essentials'
 
+export const Label = styled.label`
+  flex: 0;
+  display: flex;
+  margin: 0 auto;
+  word-wrap: normal;
+  text-overflow: clip;
+  white-space: nowrap;
+`
+
 export const ToggleTwoLabelsBase = styled(ReactToggle)<ReactToggleProps>`
   &.react-toggle-two-labels-custom {
     & > .react-toggle-track {
@@ -40,14 +49,15 @@ export interface ToggleTwoLabelsProps extends StrictOmit<ReactToggleProps, 'type
   onCheckedChanged: (checked: boolean) => void
   labelLeft?: ReactNode
   labelRight?: ReactNode
+  className?: string
 }
 
 export function ToggleTwoLabels({
   identifier,
-  className,
   onCheckedChanged,
   labelLeft,
   labelRight,
+  className,
   ...props
 }: ToggleTwoLabelsProps) {
   const onChange = useCallback(
@@ -58,7 +68,7 @@ export function ToggleTwoLabels({
   )
 
   return (
-    <label htmlFor={identifier} className="d-flex m-0">
+    <Label htmlFor={identifier} className={className}>
       {labelRight}
       <span className="mr-2 ml-2">
         <ToggleTwoLabelsBase
@@ -70,6 +80,6 @@ export function ToggleTwoLabels({
         />
       </span>
       {labelLeft}
-    </label>
+    </Label>
   )
 }

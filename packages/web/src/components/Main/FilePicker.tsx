@@ -163,6 +163,7 @@ export const ColFlexVertical = styled(Col)`
 export const ColFlexHorizontal = styled(Col)`
   display: flex;
   flex-direction: row;
+  width: 100%;
 `
 
 export const CollapseToggleIcon = styled(IoIosArrowDroprightCircle)<{ $shouldRotate: boolean; $canCollapse: boolean }>`

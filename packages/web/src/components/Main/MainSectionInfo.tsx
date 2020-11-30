@@ -13,7 +13,7 @@ export function MainSectionInfo() {
   const { t } = useTranslation()
 
   return (
-    <Row noGutters className="mt-3 main-info-section">
+    <Row noGutters className="mx-2 mt-3 main-info-section">
       <Col>
         <Row noGutters>
           <Col className="text-center">

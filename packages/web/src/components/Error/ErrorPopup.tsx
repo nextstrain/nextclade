@@ -1,16 +1,7 @@
 import React from 'react'
 
 import { useTranslation } from 'react-i18next'
-import {
-  Button,
-  ButtonProps,
-  Modal,
-  ModalBody,
-  ModalFooter,
-  ModalHeader as ReactstrapModalHeader,
-  Row,
-  Col,
-} from 'reactstrap'
+import { Button, ButtonProps, Modal, ModalBody, ModalFooter, ModalHeader as ReactstrapModalHeader } from 'reactstrap'
 import { connect } from 'react-redux'
 import { Li, Ul } from 'src/components/Common/List'
 import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
