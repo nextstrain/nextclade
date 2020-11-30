@@ -40,6 +40,8 @@ export interface MainSectionHeroControlsProps {
 
   algorithmRunTrigger(_0: unknown): void
 
+  algorithmRunWithSequencesTrigger(input: AlgorithmInput): void
+
   goToResults(): void
 }
 
@@ -53,6 +55,7 @@ const mapDispatchToProps = {
   setFasta: setFasta.trigger,
   removeFasta,
   algorithmRunTrigger: algorithmRunWithSequencesAsync.trigger,
+  algorithmRunWithSequencesTrigger: algorithmRunWithSequencesAsync.trigger,
   exportTrigger: () => exportCsvTrigger(),
   goToResults: () => push('/results'),
 }
@@ -67,6 +70,7 @@ export function MainSectionHeroControlsDisconnected({
   canExport,
   setIsDirty,
   algorithmRunTrigger,
+  algorithmRunWithSequencesTrigger,
   goToResults,
   setFasta,
   removeFasta,
@@ -78,12 +82,13 @@ export function MainSectionHeroControlsDisconnected({
     setIsDirty(true)
     inputRef?.current?.focus()
     const seqData = getSequenceDatum(params.virus.name)
-    delay(setFasta, 250, new AlgorithmInputString(seqData))
+    setFasta(new AlgorithmInputString(seqData))
+    delay(algorithmRunWithSequencesTrigger, 250, new AlgorithmInputString(seqData))
   }
 
   async function onUpload(input: AlgorithmInput) {
     setIsDirty(true)
-    algorithmRunTrigger(input)
+    algorithmRunWithSequencesTrigger(input)
   }
 
   // eslint-disable-next-line unicorn/consistent-function-scoping
