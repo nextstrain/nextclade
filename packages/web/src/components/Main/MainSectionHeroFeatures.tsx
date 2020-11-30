@@ -13,7 +13,6 @@ export const FeatureBox = styled.div`
   padding: 20px 10px;
   border-radius: 3px;
   box-shadow: ${(props) => props.theme.shadows.light};
-  height: 150px;
 
   h3 {
     font-size: 1.25rem;
@@ -33,6 +32,7 @@ export const FeatureBoxTop = styled(FeatureBox)`
 
 export const FeatureBoxBottom = styled(FeatureBox)`
   color: #6d9239;
+  height: 200px;
 `
 
 export function MainSectionHeroFeatures() {
