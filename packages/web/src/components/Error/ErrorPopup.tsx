@@ -9,10 +9,10 @@ import styled from 'styled-components'
 import { lighten } from 'polished'
 
 import type { State } from 'src/state/reducer'
-import { HttpRequestError } from 'src/io/fetchInputsAndRunMaybe'
 import { errorDismiss } from 'src/state/error/error.actions'
 import { getHttpStatusText } from 'src/helpers/getHttpStatusText'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
+import { HttpRequestError } from 'src/io/AlgorithmInput'
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
   color: ${(props) => props.theme.danger};

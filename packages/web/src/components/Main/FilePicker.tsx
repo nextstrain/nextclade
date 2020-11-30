@@ -184,7 +184,7 @@ export interface FilePickerProps {
   icon: ReactNode
   text: ReactNode
   input?: AlgorithmInput
-  errors: string[]
+  errors: Error[]
   inputRef?: Ref<HTMLInputElement | null>
   canCollapse?: boolean
   defaultCollapsed?: boolean

@@ -1,27 +1,11 @@
-import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import Axios, { AxiosError } from 'axios'
 import type { Router } from 'next/router'
 import type { Dispatch } from 'redux'
 
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
-import { AlgorithmInputString } from 'src/io/AlgorithmInput'
+import { AlgorithmInputString, HttpRequestError } from 'src/io/AlgorithmInput'
 import { errorAdd } from 'src/state/error/error.actions'
 import { algorithmRunWithSequencesAsync, setIsDirty, setRootSeq, setTree } from 'src/state/algorithm/algorithm.actions'
-
-export class HttpRequestError extends Error {
-  public readonly request: AxiosRequestConfig
-  public readonly response?: AxiosResponse
-
-  constructor(error_: AxiosError) {
-    super(error_.message)
-    this.request = error_.config
-    this.response = error_.response
-  }
-}
-
-export interface FetchParams {
-  url?: string
-  dispatch: Dispatch
-}
 
 export async function fetchMaybe(url?: string): Promise<string | undefined> {
   if (url) {

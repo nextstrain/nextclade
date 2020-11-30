@@ -74,12 +74,12 @@ export interface AlgorithmParams {
     pcrPrimers?: AlgorithmInput
   }
   errors: {
-    seqData: string[]
-    auspiceData: string[]
-    rootSeq: string[]
-    qcRulesConfig: string[]
-    geneMap: string[]
-    pcrPrimers: string[]
+    seqData: Error[]
+    auspiceData: Error[]
+    rootSeq: Error[]
+    qcRulesConfig: Error[]
+    geneMap: Error[]
+    pcrPrimers: Error[]
   }
   seqData?: string
   virus: Virus

@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 
+import { ErrorContent } from 'src/components/Error/ErrorPopup'
+
 import {
   Tab as TabBase,
   TabList,
@@ -75,6 +77,9 @@ export const UploadZoneButton = styled(Button)`
 `
 
 export const FileErrorStyled = styled(Alert)`
+  display: flex;
+  text-align: left;
+
   margin: 5px 5px;
 
   :first-child {
@@ -94,14 +99,18 @@ function FileStatusIcon({ hasErrors }: { hasErrors: boolean }) {
   return <IoMdCheckmarkCircle size={ICON_SIZE} color={theme.success} />
 }
 
-function FileError({ error }: { error: string }) {
-  return <FileErrorStyled color="danger">{error}</FileErrorStyled>
+function FileError({ error }: { error: Error }) {
+  return (
+    <FileErrorStyled color="danger">
+      <ErrorContent error={error} />
+    </FileErrorStyled>
+  )
 }
 
 export interface UploadedFileInfoProps {
   name: ReactNode
   description: string
-  errors: string[]
+  errors: Error[]
 
   onRemove(): void
 }
@@ -153,7 +162,7 @@ export function UploadedFileInfo({ name, description, errors, onRemove }: Upload
       <Row noGutters>
         <Col>
           {errors.map((error) => (
-            <FileError key={error} error={error} />
+            <FileError key={error.message} error={error} />
           ))}
         </Col>
       </Row>

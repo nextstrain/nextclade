@@ -166,27 +166,27 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(setFasta.failed, (draft, { params: input, error }) => {
-    draft.params.errors.seqData = [error.message]
+    draft.params.errors.seqData = [error]
   })
 
   .icase(setTree.failed, (draft, { params: input, error }) => {
-    draft.params.errors.auspiceData = [error.message]
+    draft.params.errors.auspiceData = [error]
   })
 
   .icase(setRootSeq.failed, (draft, { params: input, error }) => {
-    draft.params.errors.rootSeq = [error.message]
+    draft.params.errors.rootSeq = [error]
   })
 
   .icase(setQcSettings.failed, (draft, { params: input, error }) => {
-    draft.params.errors.qcRulesConfig = [error.message]
+    draft.params.errors.qcRulesConfig = [error]
   })
 
   .icase(setGeneMap.failed, (draft, { params: input, error }) => {
-    draft.params.errors.geneMap = [error.message]
+    draft.params.errors.geneMap = [error]
   })
 
   .icase(setPcrPrimers.failed, (draft, { params: input, error }) => {
-    draft.params.errors.pcrPrimers = [error.message]
+    draft.params.errors.pcrPrimers = [error]
   })
 
   .icase(removeFasta, (draft) => {
