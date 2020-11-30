@@ -11,7 +11,7 @@ export const Tabs = styled(TabsBase)`
   border-image: none;
   border-radius: 3px;
   margin: 3px 5px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  box-shadow: ${(props) => props.theme.shadows.light};
 `
 
 export const TabList = styled(TabListBase)<{ $canCollapse?: boolean }>`
