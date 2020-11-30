@@ -81,8 +81,8 @@ export function MainSectionHeroControlsDisconnected({
     setIsDirty(true)
     inputRef?.current?.focus()
     const seqData = getSequenceDatum(params.virus.name)
-    setFasta(new AlgorithmInputString(seqData))
-    delay(algorithmRunWithSequencesTrigger, 250, new AlgorithmInputString(seqData))
+    setFasta(new AlgorithmInputString(seqData, t('Example sequences')))
+    delay(algorithmRunWithSequencesTrigger, 250, new AlgorithmInputString(seqData, t('Example sequences')))
   }
 
   async function onUpload(input: AlgorithmInput) {

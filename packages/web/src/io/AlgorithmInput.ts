@@ -86,14 +86,15 @@ export class AlgorithmInputString implements AlgorithmInput {
   public readonly type: AlgorithmInputType = AlgorithmInputType.String as const
 
   private readonly content: string
+  private readonly contentName: string
 
-  constructor(content: string) {
+  constructor(content: string, contentName?: string) {
     this.content = content
+    this.contentName = contentName ?? 'Pasted sequences'
   }
 
-  // eslint-disable-next-line class-methods-use-this
   public get name(): string {
-    return 'Pasted sequences'
+    return this.contentName
   }
 
   public get description(): string {

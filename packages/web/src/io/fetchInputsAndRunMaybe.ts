@@ -43,16 +43,16 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
 
   // TODO: we could use AlgorithmInputUrl instead. User experience should be improved: e.g. show progress indicator
   if (inputRootSeqDangerous) {
-    dispatch(setRootSeq.trigger(new AlgorithmInputString(inputRootSeqDangerous)))
+    dispatch(setRootSeq.trigger(new AlgorithmInputString(inputRootSeqDangerous, inputRootSeqUrl)))
   }
 
   if (inputTreeDangerous) {
-    dispatch(setTree.trigger(new AlgorithmInputString(inputTreeDangerous)))
+    dispatch(setTree.trigger(new AlgorithmInputString(inputTreeDangerous, inputTreeUrl)))
   }
 
   if (inputFasta) {
     dispatch(setIsDirty(true))
-    dispatch(algorithmRunWithSequencesAsync.trigger(new AlgorithmInputString(inputFasta)))
+    dispatch(algorithmRunWithSequencesAsync.trigger(new AlgorithmInputString(inputFasta, inputFastaUrl)))
     await router.replace('/results')
   }
 }
