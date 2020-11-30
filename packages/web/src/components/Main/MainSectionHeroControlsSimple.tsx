@@ -94,7 +94,7 @@ export function MainSectionHeroControlsDisconnected({
   function onError() {}
 
   return (
-    <div className="hero-content-left-card">
+    <div>
       <Row>
         <Col>
           <FilePickerSimple

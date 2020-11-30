@@ -6,7 +6,6 @@ import { FaClock } from 'react-icons/fa'
 
 import { TWITTER_USERNAME_RAW } from 'src/constants'
 import { LinkTwitter } from 'src/components/Link/LinkTwitter'
-import { TextContainer } from 'src/components/Main/FilePickerTabs'
 import {
   CardL1 as CardL1Base,
   CardL1Body as CardL1BodyBase,
@@ -21,8 +20,6 @@ export const FillVertical = styled.div`
 
 export const CardL1 = styled(CardL1Base)`
   flex: 1;
-  margin: 0 5px;
-  //min-height: 300px;
 
   @media (max-width: ${(props) => props.theme.lg}) {
     display: none;
@@ -60,19 +57,9 @@ export function PreviousResultsCard() {
   return (
     <FillVertical>
       <CardL1>
-        <CardL1Header>
-          <TextContainer>
-            <FlexRight>
-              <h1>
-                <PreviousResultsHeaderIcon color="#ccc" size={23} />
-                {t('Previous results')}
-              </h1>
-            </FlexRight>
-          </TextContainer>
-        </CardL1Header>
         <CardL1Body>
           <Centered>
-            <h3>{t('Coming soon')}</h3>
+            <h3>{t('Coming soon!')}</h3>
             {t('Stay tuned ')}
             <LinkTwitter username={TWITTER_USERNAME_RAW} />
           </Centered>

@@ -27,24 +27,30 @@ import {
 import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
 import { ColFlexHorizontal, FilePicker } from 'src/components/Main/FilePicker'
 import { FileIconFasta, FileIconJson, FileIconTxt } from 'src/components/Main/UploaderFileIcons'
-import { PreviousResultsCard } from 'src/components/Main/PreviousResultsCard'
-import { CardL1 as CardL1Base, CardL1Body as CardL1BodyBase } from 'src/components/Common/Card'
 
-const ButtonsCardTop = styled(CardL1Base)`
-  margin-top: 0;
+const RowButtonsAdvanced = styled(Row)`
+  margin: 5px 7px;
 `
 
-const ButtonsCardBottom = styled(CardL1Base)`
-  margin-bottom: 0;
-`
-
-const CardL1Body = styled(CardL1BodyBase)``
-
-const ButtonRun = styled(Button)`
+const ButtonRunStyled = styled(Button)`
   min-height: 50px;
   min-width: 200px;
   margin-left: auto;
 `
+
+export function ButtonsAdvanced({ canRun, run }: { canRun: boolean; run(): void }) {
+  const { t } = useTranslation()
+
+  return (
+    <RowButtonsAdvanced noGutters>
+      <ColFlexHorizontal>
+        <ButtonRunStyled disabled={!canRun} color={canRun ? 'success' : 'secondary'} onClick={run}>
+          {t('Run')}
+        </ButtonRunStyled>
+      </ColFlexHorizontal>
+    </RowButtonsAdvanced>
+  )
+}
 
 export interface MainSectionHeroControlsAdvancedProps {
   canRun: boolean
@@ -134,113 +140,77 @@ export function MainSectionHeroControlsAdvancedDisconnected({
   function onError() {}
 
   return (
-    <Row noGutters className="hero-content">
+    <Row noGutters>
       <Col>
+        <ButtonsAdvanced canRun={canRun} run={run} />
+
         <Row noGutters>
-          <Col lg={4}>
-            <PreviousResultsCard />
-          </Col>
+          <Col>
+            <FilePicker
+              icon={<FileIconFasta />}
+              text={t('Sequences')}
+              canCollapse={false}
+              defaultCollapsed={false}
+              input={params.raw.seqData}
+              errors={params.errors.seqData}
+              onError={onError}
+              onRemove={removeFasta}
+              onInput={setFasta}
+            />
 
-          <Col lg={8}>
-            <Row noGutters>
-              <Col>
-                <ButtonsCardTop>
-                  <CardL1Body>
-                    <Row noGutters>
-                      <ColFlexHorizontal>
-                        <ButtonRun disabled={!canRun} color={canRun ? 'success' : 'secondary'} onClick={run}>
-                          {t('Run')}
-                        </ButtonRun>
-                      </ColFlexHorizontal>
-                    </Row>
-                  </CardL1Body>
-                </ButtonsCardTop>
-              </Col>
-            </Row>
+            <FilePicker
+              icon={<FileIconJson />}
+              text={t('Reference tree')}
+              input={params.raw.auspiceData}
+              errors={params.errors.auspiceData}
+              onError={onError}
+              onRemove={removeTree}
+              onInput={setTree}
+            />
 
-            <Row noGutters>
-              <Col>
-                <FilePicker
-                  icon={<FileIconFasta />}
-                  text={t('Sequences')}
-                  canCollapse={false}
-                  defaultCollapsed={false}
-                  input={params.raw.seqData}
-                  errors={params.errors.seqData}
-                  onError={onError}
-                  onRemove={removeFasta}
-                  onInput={setFasta}
-                />
+            <FilePicker
+              icon={<FileIconTxt />}
+              text={t('Root sequence')}
+              input={params.raw.rootSeq}
+              errors={params.errors.rootSeq}
+              onError={onError}
+              onRemove={removeRootSeq}
+              onInput={setRootSeq}
+            />
 
-                <FilePicker
-                  icon={<FileIconJson />}
-                  text={t('Reference tree')}
-                  input={params.raw.auspiceData}
-                  errors={params.errors.auspiceData}
-                  onError={onError}
-                  onRemove={removeTree}
-                  onInput={setTree}
-                />
+            <FilePicker
+              icon={<FileIconJson />}
+              text={t('Quality control')}
+              input={params.raw.qcRulesConfig}
+              errors={params.errors.qcRulesConfig}
+              onError={onError}
+              onRemove={removeQcSettings}
+              onInput={setQcSettings}
+            />
 
-                <FilePicker
-                  icon={<FileIconTxt />}
-                  text={t('Root sequence')}
-                  input={params.raw.rootSeq}
-                  errors={params.errors.rootSeq}
-                  onError={onError}
-                  onRemove={removeRootSeq}
-                  onInput={setRootSeq}
-                />
+            <FilePicker
+              icon={<FileIconJson />}
+              text={t('Gene map')}
+              input={params.raw.geneMap}
+              errors={params.errors.geneMap}
+              onError={onError}
+              onRemove={removeGeneMap}
+              onInput={setGeneMap}
+            />
 
-                <FilePicker
-                  icon={<FileIconJson />}
-                  text={t('Quality control')}
-                  input={params.raw.qcRulesConfig}
-                  errors={params.errors.qcRulesConfig}
-                  onError={onError}
-                  onRemove={removeQcSettings}
-                  onInput={setQcSettings}
-                />
-
-                <FilePicker
-                  icon={<FileIconJson />}
-                  text={t('Gene map')}
-                  input={params.raw.geneMap}
-                  errors={params.errors.geneMap}
-                  onError={onError}
-                  onRemove={removeGeneMap}
-                  onInput={setGeneMap}
-                />
-
-                <FilePicker
-                  icon={<FileIconJson />}
-                  text={t('PCR primers')}
-                  input={params.raw.pcrPrimers}
-                  errors={params.errors.pcrPrimers}
-                  onError={onError}
-                  onRemove={removePcrPrimers}
-                  onInput={setPcrPrimers}
-                />
-              </Col>
-            </Row>
-
-            <Row noGutters>
-              <Col>
-                <ButtonsCardBottom>
-                  <CardL1Body>
-                    <Row noGutters>
-                      <ColFlexHorizontal>
-                        <ButtonRun disabled={!canRun} color={canRun ? 'success' : 'secondary'} onClick={run}>
-                          {t('Run')}
-                        </ButtonRun>
-                      </ColFlexHorizontal>
-                    </Row>
-                  </CardL1Body>
-                </ButtonsCardBottom>
-              </Col>
-            </Row>
+            <FilePicker
+              icon={<FileIconJson />}
+              text={t('PCR primers')}
+              input={params.raw.pcrPrimers}
+              errors={params.errors.pcrPrimers}
+              onError={onError}
+              onRemove={removePcrPrimers}
+              onInput={setPcrPrimers}
+            />
           </Col>
         </Row>
+
+        <ButtonsAdvanced canRun={canRun} run={run} />
       </Col>
     </Row>
   )

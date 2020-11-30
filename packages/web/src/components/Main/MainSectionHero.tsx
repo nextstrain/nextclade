@@ -2,12 +2,13 @@ import React, { useState } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { ToggleTwoLabels as ToggleTwoLabelsBase } from 'src/components/Common/ToggleTwoLabels'
 import { ColFlexHorizontal } from 'src/components/Main/FilePicker'
-import { setShowAdvancedControls } from 'src/state/settings/settings.actions'
 import styled from 'styled-components'
 import { Col, Row } from 'reactstrap'
 
+import { ToggleTwoLabels as ToggleTwoLabelsBase } from 'src/components/Common/ToggleTwoLabels'
+import { PreviousResultsCard } from 'src/components/Main/PreviousResultsCard'
+import { setShowAdvancedControls } from 'src/state/settings/settings.actions'
 import { VirusName } from 'src/algorithms/defaults/virusNames'
 import { MainSectionHeroFeatures } from 'src/components/Main/MainSectionHeroFeatures'
 import type { State } from 'src/state/reducer'
@@ -60,20 +61,17 @@ export function MainSectionHeroDisconnected({ showAdvancedControls, setShowAdvan
   const virusNameOptions = Object.values(VirusName).map((name) => ({ value: name, label: name }))
 
   return (
-    <Row noGutters className="hero-content">
-      {!showAdvancedControls && (
-        <Col xl={6} className="px-lg-4 hero-content-left">
-          <MainSectionHeroFeatures />
-        </Col>
-      )}
+    <Row noGutters>
+      <Col xl={showAdvancedControls ? 4 : 6}>
+        {!showAdvancedControls && <MainSectionHeroFeatures />}
+        {showAdvancedControls && <PreviousResultsCard />}
+      </Col>
 
-      <Col xl={showAdvancedControls ? 12 : 6} className="hero-content-right">
+      <Col xl={showAdvancedControls ? 8 : 6}>
         <CardL1>
           <CardL1Body>
             <Row noGutters>
-              <Col lg={showAdvancedControls && 4} xl={showAdvancedControls && 0} />
-
-              <ColFlexHorizontal lg={showAdvancedControls && 8} xl={!showAdvancedControls && 12}>
+              <ColFlexHorizontal>
                 <Dropdown
                   identifier="virus.name"
                   options={virusNameOptions}
