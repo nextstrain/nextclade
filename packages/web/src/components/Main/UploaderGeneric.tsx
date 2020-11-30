@@ -131,12 +131,14 @@ export const UploadZoneTextContainer = styled.div`
 
 export const UploadZoneText = styled.div`
   font-size: 1.1rem;
+  text-align: center;
 `
 
 export const UploadZoneTextOr = styled.div`
   margin-top: 10px;
   font-size: 0.9rem;
   font-weight: light;
+  text-align: center;
 `
 
 export const UploadZoneButton = styled(Button)`

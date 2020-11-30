@@ -49,12 +49,17 @@ export const UploadZoneRight = styled.div`
 `
 
 export const FileIconsContainer = styled.div`
-  margin-left: auto;
+  text-align: center;
 `
 
 export const UploadZoneTextContainer = styled.div`
   display: block;
   margin: auto;
+  text-align: center;
+`
+
+export const UploadZoneButtonContainer = styled.div`
+  text-align: center;
 `
 
 export const UploadZoneDescription = styled.div`
@@ -62,6 +67,7 @@ export const UploadZoneDescription = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: center;
 `
 
 export const UploadZoneTextOr = styled.div`
@@ -150,9 +156,11 @@ export function UploadedFileInfo({ name, description, errors, onRemove }: Upload
 
             <Row noGutters className="my-auto">
               <Col>
-                <UploadZoneButton color="secondary" onClick={onRemove}>
-                  {t('Remove')}
-                </UploadZoneButton>
+                <UploadZoneButtonContainer>
+                  <UploadZoneButton color="secondary" onClick={onRemove}>
+                    {t('Remove')}
+                  </UploadZoneButton>
+                </UploadZoneButtonContainer>
               </Col>
             </Row>
           </UploadZone>

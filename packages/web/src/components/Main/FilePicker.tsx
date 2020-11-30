@@ -26,6 +26,7 @@ import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/io/AlgorithmInput'
 import { BadgeDefault, BadgeRequired } from 'src/components/Main/BadgeDefault'
 import { filterProps } from 'src/helpers/filterProps'
+import { TabContainer } from '../Common/Tabs'
 
 export const Row = styled(ReactstrapRow).withConfig(filterProps(['noGutter']))`
   &:first-child > .col {
@@ -278,22 +279,28 @@ export function FilePicker({
             </TextContainer>
 
             <Tab onClick={open} title={t('Provide file from your computer')}>
-              <span className="mr-2">
-                <BsFileEarmark />
-              </span>
-              {t('From file')}
+              <TabContainer>
+                <span className="mr-2">
+                  <BsFileEarmark />
+                </span>
+                <span>{t('From file')}</span>
+              </TabContainer>
             </Tab>
             <Tab onClick={open} title={t('Provide URL to download a file from a remote server')}>
-              <span className="mr-2">
-                <BsLink45Deg />
-              </span>
-              {t('From URL')}
+              <TabContainer>
+                <span className="mr-2">
+                  <BsLink45Deg />
+                </span>
+                <span>{t('From URL')}</span>
+              </TabContainer>
             </Tab>
             <Tab onClick={open} title={t('Type or paste the content directly')}>
-              <span className="mr-2">
-                <BsClipboard />
-              </span>
-              {t('Paste')}
+              <TabContainer>
+                <span className="mr-2">
+                  <BsClipboard />
+                </span>
+                <span>{t('Paste')}</span>
+              </TabContainer>
             </Tab>
           </TabList>
 

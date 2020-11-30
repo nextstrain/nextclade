@@ -41,6 +41,10 @@ export const Tab = styled(ReactTab)`
   }
 `
 
+export const TabContainer = styled.div`
+  text-align: center;
+`
+
 export const TabList = styled(ReactTabList)`
   border-bottom: 1px solid #aaa;
   margin: 0 0 10px;

@@ -14,6 +14,7 @@ const Badge = styled.div<{ $background: string; $foreground: string } & HTMLProp
   box-shadow: ${(props) => props.theme.shadows.slight};
   margin-top: 3px;
   min-width: 70px;
+  text-align: center;
 `
 
 export function BadgeRequired() {
