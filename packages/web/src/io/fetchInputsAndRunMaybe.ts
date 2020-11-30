@@ -40,6 +40,8 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
   let inputRootSeqDangerous: string | undefined
   let inputTreeDangerous: string | undefined
 
+  let hasError = false
+
   try {
     inputFasta = await fetchMaybe(inputFastaUrl)
     inputRootSeqDangerous = await fetchMaybe(inputRootSeqUrl)
@@ -48,6 +50,11 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
     const error = new HttpRequestError(error_ as AxiosError)
     console.error(error)
     dispatch(errorAdd({ error }))
+    hasError = true
+  }
+
+  if (hasError) {
+    return
   }
 
   // TODO: we could use AlgorithmInputUrl instead. User experience should be improved: e.g. show progress indicator
