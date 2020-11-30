@@ -4,13 +4,23 @@ import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 
-import { Tab as TabBase, TabList, TabPanel, Tabs, TextContainer } from 'src/components/Main/FilePickerTabs'
+import {
+  Tab as TabBase,
+  TabList,
+  TabPanel as TabPanelBase,
+  Tabs,
+  TextContainer,
+} from 'src/components/Main/FilePickerTabs'
 
 import { theme } from 'src/theme'
 import styled from 'styled-components'
 
 export const Tab = styled(TabBase)`
   display: none;
+`
+
+export const TabPanel = styled(TabPanelBase)`
+  //height: 300px;
 `
 
 export const UploadZoneWrapper = styled.div`
@@ -20,6 +30,7 @@ export const UploadZoneWrapper = styled.div`
 
 export const UploadZone = styled.div`
   display: flex;
+  flex-direction: column;
   height: 100%;
 `
 
@@ -42,11 +53,13 @@ export const FileIconsContainer = styled.div`
 export const UploadZoneTextContainer = styled.div`
   display: block;
   margin: auto;
-  margin-left: 20px;
 `
 
 export const UploadZoneDescription = styled.div`
   font-size: 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `
 
 export const UploadZoneTextOr = styled.div`
@@ -110,19 +123,29 @@ export function UploadedFileInfo({ name, description, errors, onRemove }: Upload
       <TabPanel>
         <UploadZoneWrapper>
           <UploadZone>
-            <UploadZoneLeft>
-              <FileIconsContainer>
-                <FileStatusIcon hasErrors={hasErrors} />
-              </FileIconsContainer>
-            </UploadZoneLeft>
-            <UploadZoneRight>
-              <UploadZoneTextContainer>
-                <UploadZoneDescription>{description}</UploadZoneDescription>
+            <Row noGutters className="my-auto">
+              <Col>
+                <FileIconsContainer>
+                  <FileStatusIcon hasErrors={hasErrors} />
+                </FileIconsContainer>
+              </Col>
+            </Row>
+
+            <Row noGutters className="my-auto">
+              <Col>
+                <UploadZoneTextContainer>
+                  <UploadZoneDescription>{description}</UploadZoneDescription>
+                </UploadZoneTextContainer>
+              </Col>
+            </Row>
+
+            <Row noGutters className="my-auto">
+              <Col>
                 <UploadZoneButton color="secondary" onClick={onRemove}>
                   {t('Remove')}
                 </UploadZoneButton>
-              </UploadZoneTextContainer>
-            </UploadZoneRight>
+              </Col>
+            </Row>
           </UploadZone>
         </UploadZoneWrapper>
       </TabPanel>
