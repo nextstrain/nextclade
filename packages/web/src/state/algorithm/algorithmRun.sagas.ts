@@ -98,6 +98,12 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
 export function* runAlgorithmWithSequences(inputSeq: AlgorithmInput) {
   const loadFastaSaga = fsaSaga(setFasta, loadFasta)
   yield* loadFastaSaga(setFasta.trigger(inputSeq))
+
+  const errors: string[] = yield* select((state: State) => state.algorithm.params.errors.seqData)
+  if (errors.length > 0) {
+    return
+  }
+
   yield* runAlgorithm()
 }
 

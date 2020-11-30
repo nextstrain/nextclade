@@ -86,8 +86,6 @@ export function MainSectionHeroControlsDisconnected({
     algorithmRunTrigger(input)
   }
 
-  const errors: string[] = []
-
   // eslint-disable-next-line unicorn/consistent-function-scoping
   function onError() {}
 
@@ -108,7 +106,7 @@ export function MainSectionHeroControlsDisconnected({
                 text={t('Sequences')}
                 input={params.raw.seqData}
                 onInput={onUpload}
-                errors={errors}
+                errors={params.errors.seqData}
                 onRemove={removeFasta}
                 onError={onError}
                 inputRef={inputRef}
