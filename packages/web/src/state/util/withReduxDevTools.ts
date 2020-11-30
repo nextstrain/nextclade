@@ -162,6 +162,20 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
         return { type: action.type, note: 'action content is truncated' }
       }
 
+      if (
+        isType(action, setFasta.trigger) ||
+        isType(action, setTree.trigger) ||
+        isType(action, setRootSeq.trigger) ||
+        isType(action, setFasta.started) ||
+        isType(action, setTree.started) ||
+        isType(action, setRootSeq.started)
+      ) {
+        return {
+          ...action,
+          payload: truncateContent(action.payload),
+        }
+      }
+
       if (isType(action, setFasta.done)) {
         return {
           ...action,
