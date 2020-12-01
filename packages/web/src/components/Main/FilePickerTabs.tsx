@@ -10,8 +10,8 @@ import {
 export const Tabs = styled(TabsBase)`
   border-image: none;
   border-radius: 3px;
-  margin: 3px 5px;
-  box-shadow: ${(props) => props.theme.shadows.light};
+  margin: 8px 5px;
+  box-shadow: ${(props) => props.theme.shadows.slight};
 `
 
 export const TabList = styled(TabListBase)<{ $canCollapse?: boolean }>`
@@ -66,7 +66,7 @@ export const TabPanel = styled(TabPanelBase)`
   border-image-width: 0;
   margin: 3px 2px;
   padding: 6px;
-  height: 200px;
+  height: 250px;
 `
 
 export const TextContainer = styled.div`
