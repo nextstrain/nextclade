@@ -16,35 +16,24 @@ import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { fsaSagaFromParams } from 'src/state/util/fsaSagaFromParams'
 import fsaSaga from 'src/state/util/fsaSaga'
-import {
-  EXPORT_CSV_FILENAME,
-  EXPORT_TSV_FILENAME,
-  EXPORT_JSON_FILENAME,
-  EXPORT_AUSPICE_JSON_V2_FILENAME,
-} from 'src/constants'
-import { saveFile } from 'src/helpers/saveFile'
-import { serializeResultsToCsv, serializeResultsToJson } from 'src/io/serializeResults'
-import { setShowInputBox } from 'src/state/ui/ui.actions'
+
 import { auspiceStartClean } from 'src/state/auspice/auspice.actions'
 import {
+  algorithmRunAsync,
+  algorithmRunWithSequencesAsync,
   analyzeAsync,
-  exportCsvTrigger,
-  exportTsvTrigger,
-  exportJsonTrigger,
-  exportTreeJsonTrigger,
   parseAsync,
   setAlgorithmGlobalStatus,
-  setInput,
-  setInputFile,
-  algorithmRunAsync,
-  treeFinalizeAsync,
+  setFasta,
   setOutputTree,
+  treeFinalizeAsync,
 } from 'src/state/algorithm/algorithm.actions'
-import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
-import { selectOutputTree, selectParams, selectResults } from 'src/state/algorithm/algorithm.selectors'
+import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import { loadFasta } from './algorithmInputs.sagas'
+import { State } from '../reducer'
 
 const parseSaga = fsaSagaFromParams(
   parseAsync,
@@ -75,28 +64,6 @@ const finalizeTreeSaga = fsaSagaFromParams(treeFinalizeAsync, function* finalize
   return yield* call(threadTreeFinalize, params)
 })
 
-export function* prepare(content?: File | string) {
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
-  yield* put(setShowInputBox(false))
-  yield* put(push('/results'))
-
-  if (typeof content === 'string') {
-    yield* put(setInput(content))
-  }
-
-  const { sequenceDatum, virus } = yield* select(selectParams)
-  const input = content ?? sequenceDatum
-
-  if (typeof input === 'string') {
-    yield* put(setInputFile({ name: 'example.fasta', size: input.length }))
-  } else if (input instanceof File) {
-    const { name, size } = input
-    yield* put(setInputFile({ name, size }))
-  }
-
-  return { input, virus }
-}
-
 export function* parse(input: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
   const result = yield* parseSaga(input)
@@ -105,11 +72,7 @@ export function* parse(input: File | string) {
     return undefined
   }
 
-  const { input: newInput, parsedSequences } = result
-
-  if (newInput !== input) {
-    yield* put(setInput(newInput))
-  }
+  const { parsedSequences } = result
 
   return { parsedSequences }
 }
@@ -132,12 +95,32 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
   yield* put(changeColorBy())
 }
 
-export function* runAlgorithm(content?: File | string) {
-  const { input, virus } = yield* prepare(content)
+export function* runAlgorithmWithSequences(inputSeq: AlgorithmInput) {
+  const loadFastaSaga = fsaSaga(setFasta, loadFasta)
+  yield* loadFastaSaga(setFasta.trigger(inputSeq))
+
+  const errors: Error[] = yield* select((state: State) => state.algorithm.params.errors.seqData)
+  if (errors.length > 0) {
+    return
+  }
+
+  yield* runAlgorithm()
+}
+
+export function* runAlgorithm() {
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
+  yield* put(push('/results'))
+
+  const { seqData, virus } = yield* select((state: State) => state.algorithm.params)
+
+  if (!seqData) {
+    throw new Error('No sequence data provided')
+  }
+
   const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
   const auspiceData = treePreprocess(copy(auspiceDataReference), rootSeq)
 
-  const parseResult = yield* parse(input)
+  const parseResult = yield* parse(seqData)
   if (!parseResult) {
     return
   }
@@ -164,35 +147,7 @@ export function* runAlgorithm(content?: File | string) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 }
 
-export function* exportCsv() {
-  const results = yield* select(selectResults)
-  const str = yield* call(serializeResultsToCsv, results, ';')
-  saveFile(str, EXPORT_CSV_FILENAME, 'text/csv;charset=utf-8')
-}
-
-export function* exportTsv() {
-  const results = yield* select(selectResults)
-  const str = yield* call(serializeResultsToCsv, results, '\t')
-  saveFile(str, EXPORT_TSV_FILENAME, 'text/tab-separated-values;charset=utf-8')
-}
-
-export function* exportJson() {
-  const results = yield* select(selectResults)
-  const str = yield* call(serializeResultsToJson, results)
-  saveFile(str, EXPORT_JSON_FILENAME, 'application/json;charset=utf-8')
-}
-
-export function* exportTreeJson() {
-  const auspiceDataStr = yield* select(selectOutputTree)
-  if (auspiceDataStr) {
-    saveFile(auspiceDataStr, EXPORT_AUSPICE_JSON_V2_FILENAME, 'application/json;charset=utf-8')
-  }
-}
-
 export default [
+  takeEvery(algorithmRunWithSequencesAsync.trigger, fsaSaga(algorithmRunWithSequencesAsync, runAlgorithmWithSequences)),
   takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
-  takeEvery(exportCsvTrigger, exportCsv),
-  takeEvery(exportTsvTrigger, exportTsv),
-  takeEvery(exportJsonTrigger, exportJson),
-  takeEvery(exportTreeJsonTrigger, exportTreeJson),
 ]

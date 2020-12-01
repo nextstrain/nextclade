@@ -8,6 +8,7 @@ export interface SettingsState {
   qcRulesConfig: QCRulesConfig
   showWhatsnewOnUpdate: boolean
   lastVersionSeen: string
+  showAdvancedControls: boolean
 }
 
 export const settingsDefaultState: SettingsState = {
@@ -15,4 +16,5 @@ export const settingsDefaultState: SettingsState = {
   qcRulesConfig: getVirus().qcRulesConfig,
   showWhatsnewOnUpdate: true,
   lastVersionSeen: '',
+  showAdvancedControls: false,
 }

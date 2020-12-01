@@ -4,19 +4,29 @@ import { useTranslation } from 'react-i18next'
 import { Button, ButtonProps, Modal, ModalBody, ModalFooter, ModalHeader as ReactstrapModalHeader } from 'reactstrap'
 import { connect } from 'react-redux'
 import { Li, Ul } from 'src/components/Common/List'
-import { PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
+import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
 import styled from 'styled-components'
 import { lighten } from 'polished'
 
 import type { State } from 'src/state/reducer'
-import { HttpRequestError } from 'src/io/fetchInputsAndRunMaybe'
 import { errorDismiss } from 'src/state/error/error.actions'
 import { getHttpStatusText } from 'src/helpers/getHttpStatusText'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
+import { HttpRequestError } from 'src/io/AlgorithmInput'
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
   color: ${(props) => props.theme.danger};
   background-color: ${(props) => lighten(0.45, props.theme.danger)};
+`
+
+export const ErrorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  & a {
+    overflow-wrap: anywhere;
+  }
 `
 
 export const ButtonOk = styled(Button)<ButtonProps>`
@@ -27,13 +37,13 @@ export function GenericError({ error }: { error: Error }) {
   const { t } = useTranslation()
 
   return (
-    <div>
-      <h4>{t('Error')}</h4>
+    <ErrorContainer>
+      <h5>{t('Error: {{errorName}}', { errorName: error.name })}</h5>
 
       <section className="mt-3">
         <div>{error.message}</div>
       </section>
-    </div>
+    </ErrorContainer>
   )
 }
 
@@ -41,21 +51,21 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
   const { t } = useTranslation()
 
   return (
-    <div>
-      <h5>{t('Network request failed')}</h5>
+    <ErrorContainer>
+      <h5>{t('Error: Network connection failed')}</h5>
 
       <section className="mt-3">
-        <div>{t('We tried to fetch the file from')}</div>
+        <div>{t('We tried to download the file from')}</div>
         <div>
           <LinkExternal href={url}>{url}</LinkExternal>
         </div>
-        <div>{t('but were unable to establish connection.')}</div>
+        <div>{t('but were unable to establish a connection.')}</div>
       </section>
 
       <section className="mt-3">
         {t('Please verify that:')}
         <Ul>
-          <Li>{t('you are connected to internet')}</Li>
+          <Li>{t('you are connected to the internet')}</Li>
           <Li>{t('the address to the file is correct')}</Li>
           <Li>{t('the address to the file is reachable from your browser')}</Li>
           <Li>
@@ -67,7 +77,7 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
             <sup>2</sup>
           </Li>
           <Li>
-            {t('there are no problems in domain name resolution')}
+            {t('there are no problems in domain name resolution of your server')}
             <sup>3</sup>
           </Li>
         </Ul>
@@ -79,10 +89,10 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
             </span>
 
             {t(
-              'Some of the adblocking browser extensions are known to prevent {{appName}} from making network requests to other servers. ' +
-                '{{appName}} respects your privacy and does not serve ads or collects and data. ' +
-                'All computation is happening inside your browser. Therefore you can safely disable adblockers on {{appName}} and/or allow {{appName}} to reach your data source server in adblocker settings.',
-              { appName: PROJECT_NAME },
+              'Some of the adblocking browser extensions (AdBlock, uBlock, Privacy Badger and others) and privacy-oriented browsers (such as Brave) are known to prevent {{appName}} from making network requests to other servers. ' +
+                '{{appName}} respects your privacy, does not serve ads or collects personal data. ' +
+                'All computation is done inside your browser. You can safely disable adblockers on {{domain}} and/or allow {{domain}} to make network requests to your data source server.',
+              { appName: PROJECT_NAME, domain: DOMAIN },
             )}
           </div>
           <div>
@@ -103,7 +113,7 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
           </div>
         </small>
       </section>
-    </div>
+    </ErrorContainer>
   )
 }
 
@@ -113,18 +123,18 @@ export function AxiosErrorFailed({ url, status, statusText }: { url: string; sta
   const statusMessage = getHttpStatusText(t, status) ?? statusText
 
   return (
-    <div>
-      <h5>{t('Network request failed')}</h5>
+    <ErrorContainer>
+      <h5>{t('Error: Network request failed')}</h5>
 
       <section className="mt-3">
-        <div>{t('We tried to fetch the file from')}</div>
+        <div>{t('We tried to download the file from')}</div>
         <div>
           <LinkExternal href={url}>{url}</LinkExternal>
         </div>
-        <div>{t('but the remote server replied with the following error:')}</div>
+        <div>{t('and the connection was successful, but the remote server replied with the following error:')}</div>
         <div className="text-danger">{statusMessage}</div>
       </section>
-    </div>
+    </ErrorContainer>
   )
 }
 
@@ -144,6 +154,7 @@ export function ErrorContent({ error }: { error: Error }) {
 
 export interface ErrorPopupProps {
   error?: Error
+
   errorDismiss(): void
 }
 

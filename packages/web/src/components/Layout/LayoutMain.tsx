@@ -15,13 +15,14 @@ import FooterContent from './Footer'
 
 export const Container = styled.div`
   max-width: 1700px;
-  margin: 0 auto;
+  min-width: 500px;
+  margin: 0;
 `
 
 const Header = styled.header``
 
 const MainContent = styled.main`
-  margin: 0 1rem;
+  margin: 0;
 `
 
 const Footer = styled.footer``

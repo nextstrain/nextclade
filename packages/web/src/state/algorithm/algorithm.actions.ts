@@ -1,24 +1,37 @@
 import type { AuspiceJsonV2 } from 'auspice'
 
+import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
-import type { AnalysisParams, AnalysisResult } from 'src/algorithms/types'
+
+import type { AnalysisParams, AnalysisResult, Gene, PcrPrimer } from 'src/algorithms/types'
 import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
-import type { QCResult } from 'src/algorithms/QC/types'
-import type { Sorting } from 'src/helpers/sortResults'
-import type { AlgorithmGlobalStatus, CladeAssignmentResult, InputFile } from './algorithm.state'
+import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
+
+import type { AlgorithmGlobalStatus, AlgorithmInput, CladeAssignmentResult } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
 
-export const setInput = action<string>('setInput')
-export const setInputFile = action<InputFile>('setInputFile')
-export const setInputRootSeq = action<string>('setRootSeq')
-export const setInputTree = action<AuspiceJsonV2>('setTree')
 export const setIsDirty = action<boolean>('setIsDirty')
 
+export const setFasta = action.async<AlgorithmInput, { seqData: string }, Error>('setFasta')
+export const setTree = action.async<AlgorithmInput, { auspiceData: AuspiceJsonV2 }, Error>('setTree') // prettier-ignore
+export const setRootSeq = action.async<AlgorithmInput, { rootSeq: string }, Error>('setRootSeq')
+export const setQcSettings = action.async<AlgorithmInput, { qcRulesConfig: QCRulesConfig }, Error>('setQcSettings') // prettier-ignore
+export const setGeneMap = action.async<AlgorithmInput, { geneMap: Gene[] }, Error>('setGeneMap')
+export const setPcrPrimers = action.async<AlgorithmInput, { pcrPrimers: PcrPrimer[] }, Error>('setPcrPrimers') // prettier-ignore
+
+export const removeFasta = action('removeFasta')
+export const removeTree = action('removeTree')
+export const removeRootSeq = action('removeRootSeq')
+export const removeQcSettings = action('removeQcSettings')
+export const removeGeneMap = action('removeGeneMap')
+export const removePcrPrimers = action('removePcrPrimers')
+
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
-export const algorithmRunAsync = action.async<string | File | undefined, void, Error>('run')
+export const algorithmRunAsync = action.async<void, void, Error>('algorithmRunAsync')
+export const algorithmRunWithSequencesAsync = action.async<AlgorithmInput, void, Error>('algorithmRunWithSequencesAsync') // prettier-ignore
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<AnalysisParams, AnalysisResult, Error>('analyze')

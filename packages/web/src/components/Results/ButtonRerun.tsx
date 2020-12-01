@@ -36,14 +36,15 @@ const mapStateToProps = (state: State) => ({
 })
 
 const mapDispatchToProps = {
-  algorithmRunTrigger: (content?: string | File) => algorithmRunAsync.trigger(content),
+  algorithmRunTrigger: algorithmRunAsync.trigger,
 }
 
 export const ButtonRerun = connect(mapStateToProps, mapDispatchToProps)(ButtonRerunDisconnected)
 
 export interface ButtonRerunProps extends ButtonProps {
   canRun: boolean
-  algorithmRunTrigger(content?: string | File): void
+
+  algorithmRunTrigger(_0: void): void
 }
 
 export function ButtonRerunDisconnected({ algorithmRunTrigger, canRun }: ButtonRerunProps) {

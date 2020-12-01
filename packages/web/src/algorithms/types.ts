@@ -98,11 +98,6 @@ export interface Virus {
 
 export type VirusRaw = StrictOmit<Virus, 'genomeSize'>
 
-export interface AlgorithmParams {
-  sequenceDatum: string
-  virus: Virus
-}
-
 export interface ClusteredSNPs {
   start: number
   end: number

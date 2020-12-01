@@ -1,4 +1,5 @@
 import React from 'react'
+import { ButtonNewRun } from 'src/components/Results/ButtonNewRun'
 
 import styled from 'styled-components'
 
@@ -72,6 +73,9 @@ export function ResultsPage() {
           <HeaderRight>
             <HeaderRightContainer>
               <ButtonRerun />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
+              <ButtonNewRun />
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonFilter />

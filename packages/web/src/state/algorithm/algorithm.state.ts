@@ -1,15 +1,10 @@
 import type { StrictOmit } from 'ts-essentials'
 import type { AuspiceJsonV2 } from 'auspice'
 
+import type { Virus, AnalysisResultWithMatch, AnalysisResult } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
-import type { AlgorithmParams, AnalysisResultWithMatch, AnalysisResult } from 'src/algorithms/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
-
-export interface InputFile {
-  name: string
-  size: number
-}
 
 export type AlgorithmParamsPartial = Partial<AlgorithmParams>
 
@@ -55,9 +50,43 @@ export interface ResultsFilters extends QCFilters {
   sorting?: Sorting
 }
 
+export enum AlgorithmInputType {
+  File = 'FileInput',
+  Url = 'Url',
+  String = 'String',
+}
+
+export interface AlgorithmInput {
+  type: AlgorithmInputType
+  name: string
+  description: string
+
+  getContent(): Promise<string>
+}
+
+export interface AlgorithmParams {
+  raw: {
+    seqData?: AlgorithmInput
+    auspiceData?: AlgorithmInput
+    rootSeq?: AlgorithmInput
+    qcRulesConfig?: AlgorithmInput
+    geneMap?: AlgorithmInput
+    pcrPrimers?: AlgorithmInput
+  }
+  errors: {
+    seqData: Error[]
+    auspiceData: Error[]
+    rootSeq: Error[]
+    qcRulesConfig: Error[]
+    geneMap: Error[]
+    pcrPrimers: Error[]
+  }
+  seqData?: string
+  virus: Virus
+}
+
 export interface AlgorithmState {
   status: AlgorithmGlobalStatus
-  inputFile?: InputFile
   params: AlgorithmParams
   isDirty: boolean
   results: SequenceAnalysisState[]
@@ -76,7 +105,16 @@ export interface CladeAssignmentResult {
 export const algorithmDefaultState: AlgorithmState = {
   status: AlgorithmGlobalStatus.idling,
   params: {
-    sequenceDatum: '',
+    raw: {},
+    errors: {
+      seqData: [],
+      auspiceData: [],
+      rootSeq: [],
+      qcRulesConfig: [],
+      geneMap: [],
+      pcrPrimers: [],
+    },
+    seqData: undefined,
     virus: getVirus(),
   },
   isDirty: true,

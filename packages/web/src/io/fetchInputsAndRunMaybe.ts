@@ -1,32 +1,15 @@
+import Axios, { AxiosError } from 'axios'
 import type { Router } from 'next/router'
 import type { Dispatch } from 'redux'
-import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { treeValidate } from 'src/algorithms/tree/treeValidate'
 
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
-import { algorithmRunAsync, setIsDirty, setInputRootSeq, setInputTree } from 'src/state/algorithm/algorithm.actions'
+import { AlgorithmInputString, HttpRequestError } from 'src/io/AlgorithmInput'
 import { errorAdd } from 'src/state/error/error.actions'
-import { sanitizeRootSeq } from 'src/helpers/sanitizeRootSeq'
+import { algorithmRunWithSequencesAsync, setIsDirty, setRootSeq, setTree } from 'src/state/algorithm/algorithm.actions'
 
-export class HttpRequestError extends Error {
-  public readonly request: AxiosRequestConfig
-  public readonly response?: AxiosResponse
-
-  constructor(error_: AxiosError) {
-    super(error_.message)
-    this.request = error_.config
-    this.response = error_.response
-  }
-}
-
-export interface FetchParams {
-  url?: string
-  dispatch: Dispatch
-}
-
-export async function fetchMaybe<T>(url?: string) {
+export async function fetchMaybe(url?: string): Promise<string | undefined> {
   if (url) {
-    const { data } = await Axios.get<T | undefined>(url)
+    const { data } = await Axios.get<string | undefined>(url, { transformResponse: [] })
     return data
   }
   return undefined
@@ -41,6 +24,8 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
   let inputRootSeqDangerous: string | undefined
   let inputTreeDangerous: string | undefined
 
+  let hasError = false
+
   try {
     inputFasta = await fetchMaybe(inputFastaUrl)
     inputRootSeqDangerous = await fetchMaybe(inputRootSeqUrl)
@@ -49,21 +34,25 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
     const error = new HttpRequestError(error_ as AxiosError)
     console.error(error)
     dispatch(errorAdd({ error }))
+    hasError = true
   }
 
+  if (hasError) {
+    return
+  }
+
+  // TODO: we could use AlgorithmInputUrl instead. User experience should be improved: e.g. show progress indicator
   if (inputRootSeqDangerous) {
-    const inputRootSeq = sanitizeRootSeq(inputRootSeqDangerous)
-    dispatch(setInputRootSeq(inputRootSeq))
+    dispatch(setRootSeq.trigger(new AlgorithmInputString(inputRootSeqDangerous, inputRootSeqUrl)))
   }
 
   if (inputTreeDangerous) {
-    const inputTree = treeValidate(inputTreeDangerous)
-    dispatch(setInputTree(inputTree))
+    dispatch(setTree.trigger(new AlgorithmInputString(inputTreeDangerous, inputTreeUrl)))
   }
 
   if (inputFasta) {
     dispatch(setIsDirty(true))
-    dispatch(algorithmRunAsync.trigger(inputFasta))
+    dispatch(algorithmRunWithSequencesAsync.trigger(new AlgorithmInputString(inputFasta, inputFastaUrl)))
     await router.replace('/results')
   }
 }

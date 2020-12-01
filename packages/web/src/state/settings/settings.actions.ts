@@ -16,3 +16,5 @@ export const setLastVersionSeen = action<string>('setLastVersionSeen')
 export const setShowWhatsnew = action<boolean>('setShowWhatsnew')
 
 export const setShowWhatsnewOnUpdate = action<boolean>('setShowWhatsnewOnUpdate')
+
+export const setShowAdvancedControls = action<boolean>('setShowAdvancedControls')
