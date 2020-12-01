@@ -50,8 +50,6 @@ export const TextInputWrapper = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
-  //height: 100% !important;
-  //width: 100%;
 `
 
 export const TextInputMonospace = styled(Input)`
@@ -63,9 +61,6 @@ export const TextInputMonospace = styled(Input)`
   word-break: break-all;
   word-wrap: break-word;
   text-wrap: unrestricted;
-
-  //flex: 1;
-  //height: 90px !important;
 `
 
 export const Form = styled(ReactstrapForm)`
@@ -112,22 +107,11 @@ export const ButtonDownload = styled(Button)`
   margin-left: auto;
 `
 
-export const FlexRow = styled.div`
-  //display: flex;
-  //flex-direction: row;
-  //flex: 1;
-`
+export const FlexRow = styled.div``
 
-export const FlexColumn = styled.div`
-  //display: flex;
-  //flex-direction: column;
-  //width: 100%;
-  //flex: 1;
-`
+export const FlexColumn = styled.div``
 
-export const FlexBottom = styled(FlexColumn)`
-  //margin-top: auto;
-`
+export const FlexBottom = styled(FlexColumn)``
 
 export const FlexRight = styled.div`
   margin-left: auto;
@@ -137,23 +121,10 @@ export const FlexLeft = styled.div`
   margin-right: auto;
 `
 
-export const FlexFill = styled.div`
-  //display: flex;
-  //flex-direction: column;
-  //flex: 1;
-`
+export const FlexFill = styled.div``
 
 export const RowFill = styled(Row).withConfig(filterProps(['noGutter']))`
   flex: 1;
-
-  //& > .col {
-  //  display: flex;
-  //  flex: 1 0 100%;
-  //}
-  //
-  //& textarea {
-  //  flex: 1 0 100%;
-  //}
 `
 
 export const ColFlexVertical = styled(Col)`
