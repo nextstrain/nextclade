@@ -44,7 +44,7 @@ function truncateContent(input?: DeepPartial<AlgorithmInput>) {
   }
 
   // @ts-ignore
-  return { ...input, content: input?.content ? truncate(input?.content) : undefined }
+  return { ...input, content: input?.content ? truncate(input.content) : undefined }
 }
 
 interface AuspiceTreeNodeTruncated {
@@ -92,20 +92,20 @@ export function sanitizeParams(params?: AlgorithmParams) {
 
   return {
     ...params,
-    seqData: truncate(params?.seqData),
+    seqData: truncate(params.seqData),
     raw: {
       ...params.raw,
-      seqData: truncateContent(params?.raw?.seqData),
-      auspiceData: truncateContent(params?.raw?.auspiceData),
-      rootSeq: truncateContent(params?.raw?.rootSeq),
-      qcRulesConfig: truncateContent(params?.raw?.qcRulesConfig),
-      geneMap: truncateContent(params?.raw?.geneMap),
-      pcrPrimers: truncateContent(params?.raw?.pcrPrimers),
+      seqData: truncateContent(params.raw?.seqData),
+      auspiceData: truncateContent(params.raw?.auspiceData),
+      rootSeq: truncateContent(params.raw?.rootSeq),
+      qcRulesConfig: truncateContent(params.raw?.qcRulesConfig),
+      geneMap: truncateContent(params.raw?.geneMap),
+      pcrPrimers: truncateContent(params.raw?.pcrPrimers),
     },
     virus: {
       ...params.virus,
-      rootSeq: truncate(params?.virus?.rootSeq),
-      auspiceData: truncateTreeJson(params?.virus?.auspiceData),
+      rootSeq: truncate(params.virus?.rootSeq),
+      auspiceData: truncateTreeJson(params.virus?.auspiceData),
     },
   }
 }

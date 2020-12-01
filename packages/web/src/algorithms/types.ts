@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import type { AuspiceJsonV2 } from 'auspice'
-import { readFile } from 'src/helpers/readFile'
-import { numbro } from 'src/i18n/i18n'
 import type { StrictOmit } from 'ts-essentials'
 
 import type { Tagged } from 'src/helpers/types'
