@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { Col, Row } from 'reactstrap'
 import { FilePicker } from 'src/components/Main/FilePicker'
-import { FileIconFasta, FileIconJson, FileIconTxt } from 'src/components/Main/UploaderFileIcons'
+import { FileIconFasta, FileIconJson, FileIconCsv } from 'src/components/Main/UploaderFileIcons'
 import {
   algorithmRunAsync,
   removeFasta,
@@ -118,6 +118,8 @@ export function FilePickerAdvancedDisconnected({
         <FilePicker
           icon={<FileIconFasta />}
           text={t('Sequences')}
+          exampleUrl="https://example.com/sequences.fasta"
+          pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
           canCollapse={false}
           defaultCollapsed={false}
           input={params.raw.seqData}
@@ -129,6 +131,8 @@ export function FilePickerAdvancedDisconnected({
         <FilePicker
           icon={<FileIconJson />}
           text={t('Reference tree')}
+          exampleUrl="https://example.com/tree.json"
+          pasteInstructions={t('Enter tree data in Auspice JSON v2 format')}
           input={params.raw.auspiceData}
           errors={params.errors.auspiceData}
           onRemove={removeTree}
@@ -136,8 +140,10 @@ export function FilePickerAdvancedDisconnected({
         />
 
         <FilePicker
-          icon={<FileIconTxt />}
+          icon={<FileIconFasta />}
           text={t('Root sequence')}
+          exampleUrl="https://example.com/root_seq.fasta"
+          pasteInstructions={t('Enter tree data in FASTA or plain text format')}
           input={params.raw.rootSeq}
           errors={params.errors.rootSeq}
           onRemove={removeRootSeq}
@@ -147,6 +153,8 @@ export function FilePickerAdvancedDisconnected({
         <FilePicker
           icon={<FileIconJson />}
           text={t('Quality control')}
+          exampleUrl="https://example.com/qc.json"
+          pasteInstructions={t('Enter QC config in JSON format')}
           input={params.raw.qcRulesConfig}
           errors={params.errors.qcRulesConfig}
           onRemove={removeQcSettings}
@@ -156,6 +164,8 @@ export function FilePickerAdvancedDisconnected({
         <FilePicker
           icon={<FileIconJson />}
           text={t('Gene map')}
+          exampleUrl="https://example.com/gene_map.json"
+          pasteInstructions={t('Enter gene map data in JSON format')}
           input={params.raw.geneMap}
           errors={params.errors.geneMap}
           onRemove={removeGeneMap}
@@ -163,8 +173,10 @@ export function FilePickerAdvancedDisconnected({
         />
 
         <FilePicker
-          icon={<FileIconJson />}
+          icon={<FileIconCsv />}
           text={t('PCR primers')}
+          exampleUrl="https://example.com/pcr_primers.csv"
+          pasteInstructions={t('Enter PCR primers data in CSV format')}
           input={params.raw.pcrPrimers}
           errors={params.errors.pcrPrimers}
           onRemove={removePcrPrimers}

@@ -15,7 +15,7 @@ export const DEFAULT_ICON_SIZE = 50 as const
 
 export const DEFAULT_ICON_COLORS = {
   fasta: '#66b51d',
-  txt: '#777777',
+  csv: '#777777',
   json: '#bb7e38',
 } as const
 
@@ -98,11 +98,11 @@ export const FileIconJson = ({ size }: FileIconProps) => (
   />
 )
 
-export const FileIconTxt = ({ size }: FileIconProps) => (
+export const FileIconCsv = ({ size }: FileIconProps) => (
   <FileIconBase
     size={size}
-    extension={'txt'}
-    labelColor={DEFAULT_ICON_COLORS.txt}
-    glyphColor={DEFAULT_ICON_COLORS.txt}
+    extension={'csv'}
+    labelColor={DEFAULT_ICON_COLORS.csv}
+    glyphColor={DEFAULT_ICON_COLORS.csv}
   />
 )

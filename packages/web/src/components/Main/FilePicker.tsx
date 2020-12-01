@@ -1,4 +1,4 @@
-import React, { ReactNode, Ref, useState } from 'react'
+import React, { ReactNode, Ref, useMemo, useState } from 'react'
 
 import styled from 'styled-components'
 import {
@@ -185,6 +185,8 @@ export const NonCollapsibleIcon = styled(FaAsterisk)`
 export interface FilePickerProps {
   icon: ReactNode
   text: ReactNode
+  exampleUrl: string
+  pasteInstructions: string
   input?: AlgorithmInput
   errors: Error[]
   inputRef?: Ref<HTMLInputElement | null>
@@ -201,6 +203,8 @@ export interface FilePickerProps {
 export function FilePicker({
   icon,
   text,
+  exampleUrl,
+  pasteInstructions,
   input,
   errors,
   onInput,
@@ -242,6 +246,13 @@ export function FilePicker({
     onRemove([])
   }
 
+  const collapseToggleIconTooltip = useMemo(
+    () => (shouldCollapse ? t('Expand this section') : t('Collapse this section')),
+    [shouldCollapse, t],
+  )
+
+  const badge = useMemo(() => (canCollapse ? <BadgeDefault /> : <BadgeRequired />), [canCollapse])
+
   if (input) {
     return (
       <Row noGutters>
@@ -262,7 +273,7 @@ export function FilePicker({
                 <h1>
                   {canCollapse ? (
                     <CollapseToggleIcon
-                      title={shouldCollapse ? t('Expand this section') : t('Collapse this section')}
+                      title={collapseToggleIconTooltip}
                       $canCollapse={canCollapse}
                       $shouldRotate={!shouldCollapse}
                       color="#ccc"
@@ -275,7 +286,7 @@ export function FilePicker({
                   {text}
                 </h1>
               </FlexLeft>
-              <FlexRight>{canCollapse ? <BadgeDefault /> : <BadgeRequired />}</FlexRight>
+              <FlexRight>{badge}</FlexRight>
             </TextContainer>
 
             <Tab onClick={open} title={t('Provide file from your computer')}>
@@ -310,11 +321,11 @@ export function FilePicker({
             </TabPanel>
 
             <TabPanel>
-              <TabPanelUrl onConfirm={onUrl} />
+              <TabPanelUrl onConfirm={onUrl} exampleUrl={exampleUrl} />
             </TabPanel>
 
             <TabPanel>
-              <TabPanelPaste onConfirm={onPaste} inputRef={inputRef} />
+              <TabPanelPaste onConfirm={onPaste} pasteInstructions={pasteInstructions} inputRef={inputRef} />
             </TabPanel>
           </Collapse>
         </Tabs>

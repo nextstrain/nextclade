@@ -99,6 +99,8 @@ export function MainSectionHeroControlsDisconnected({
             defaultCollapsed={false}
             icon={<FileIconFasta />}
             text={t('Sequences')}
+            exampleUrl="https://example.com/sequences.fasta"
+            pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
             input={params.raw.seqData}
             onInput={onUpload}
             errors={params.errors.seqData}

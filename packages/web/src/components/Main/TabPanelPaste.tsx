@@ -17,12 +17,14 @@ import {
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export interface TabPanelPasteProps {
+  pasteInstructions: string
+
   inputRef?: Ref<HTMLInputElement | null>
 
   onConfirm(seqData: string): void
 }
 
-export function TabPanelPaste({ onConfirm, inputRef }: TabPanelPasteProps) {
+export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPanelPasteProps) {
   const { t } = useTranslationSafe()
   const [seqData, setSeqData] = useState<string>('')
   const hasSeqData = seqData.length > 0
@@ -37,7 +39,7 @@ export function TabPanelPaste({ onConfirm, inputRef }: TabPanelPasteProps) {
           <Row noGutter>
             <Col className="d-flex">
               <Label className="mr-auto" htmlFor="sequence-input">
-                {t('Enter sequence data in FASTA format')}
+                {pasteInstructions}
               </Label>
             </Col>
           </Row>
@@ -79,9 +81,7 @@ export function TabPanelPaste({ onConfirm, inputRef }: TabPanelPasteProps) {
                   disabled={!hasSeqData}
                   type="button"
                   color="primary"
-                  title={
-                    hasSeqData ? 'Accept sequence data' : 'Please provide sequence data before the analysis is possible'
-                  }
+                  title={hasSeqData ? t('Accept the data') : t('Please provide the data first')}
                   onClick={confirm}
                 >
                   {t('OK')}

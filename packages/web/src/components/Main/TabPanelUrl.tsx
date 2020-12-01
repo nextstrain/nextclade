@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { Col } from 'reactstrap'
 // eslint-disable-next-line import/no-cycle
@@ -18,16 +18,19 @@ import {
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export interface TabPanelUrlProps {
+  exampleUrl: string
+
   onConfirm(url: string): void
 }
 
-export function TabPanelUrl({ onConfirm }: TabPanelUrlProps) {
+export function TabPanelUrl({ exampleUrl, onConfirm }: TabPanelUrlProps) {
   const { t } = useTranslationSafe()
   const [url, setUrl] = useState<string>('')
   const hasUrl = url.length > 0
   const change = (e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)
   const clear = () => setUrl('')
   const confirm = () => onConfirm(url)
+  const placeholder = useMemo(() => t('For example: {{exampleUrl}}', { exampleUrl }), [t, exampleUrl])
 
   return (
     <Form>
@@ -48,7 +51,7 @@ export function TabPanelUrl({ onConfirm }: TabPanelUrlProps) {
                 id="tree-url-text-input"
                 className="flex-grow-1"
                 type="textarea"
-                placeholder={t('For example: {{exampleUrl}}', { exampleUrl: 'https://example.com/data.fasta' })}
+                placeholder={placeholder}
                 autoComplete="off"
                 autoCorrect="off"
                 autoCapitalize="off"
