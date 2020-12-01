@@ -44,7 +44,7 @@ function truncateContent(input?: DeepPartial<AlgorithmInput>) {
   }
 
   // @ts-ignore
-  return { ...input, content: input?.content ? truncate(input.content) : undefined }
+  return { ...input, content: input.content ? truncate(input.content) : undefined }
 }
 
 interface AuspiceTreeNodeTruncated {
