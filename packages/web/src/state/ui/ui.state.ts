@@ -10,6 +10,7 @@ export interface UiState {
   treeFilterPanelCollapsed: boolean
   exportFormat: ExportFormat
   showWhatsnew: boolean
+  showNewRunPopup: boolean
 }
 
 export const uiDefaultState: UiState = {
@@ -17,4 +18,5 @@ export const uiDefaultState: UiState = {
   treeFilterPanelCollapsed: true,
   exportFormat: ExportFormat.CSV,
   showWhatsnew: false,
+  showNewRunPopup: false,
 }

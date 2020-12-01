@@ -4,8 +4,9 @@ import { uiDefaultState } from 'src/state/ui/ui.state'
 import {
   setExportFormat,
   setFilterPanelCollapsed,
-  setTreeFilterPanelCollapsed,
+  setShowNewRunPopup,
   setShowWhatsnew,
+  setTreeFilterPanelCollapsed,
 } from 'src/state/ui/ui.actions'
 
 export const uiReducer = reducerWithInitialState(uiDefaultState)
@@ -23,4 +24,8 @@ export const uiReducer = reducerWithInitialState(uiDefaultState)
 
   .icase(setShowWhatsnew, (draft, showWhatsnew) => {
     draft.showWhatsnew = showWhatsnew
+  })
+
+  .icase(setShowNewRunPopup, (draft, showNewRunPopup) => {
+    draft.showNewRunPopup = showNewRunPopup
   })

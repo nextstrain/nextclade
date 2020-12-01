@@ -195,7 +195,7 @@ export interface FilePickerProps {
 
   onRemove(_0: unknown): void
 
-  onError(error: string): void
+  onError?(error: string): void
 }
 
 export function FilePicker({

@@ -1,9 +1,9 @@
-/* eslint-disable unicorn/consistent-function-scoping */
-import React from 'react'
+import React, { useCallback } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { Button, Col, Row } from 'reactstrap'
+import { FilePickerAdvanced } from 'src/components/Main/FilePickerAdvanced'
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
@@ -24,9 +24,9 @@ import {
   removeRootSeq,
   algorithmRunAsync,
 } from 'src/state/algorithm/algorithm.actions'
+import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
 import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
-import { ColFlexHorizontal, FilePicker } from 'src/components/Main/FilePicker'
-import { FileIconFasta, FileIconJson, FileIconTxt } from 'src/components/Main/UploaderFileIcons'
+import { ColFlexHorizontal } from 'src/components/Main/FilePicker'
 
 const RowButtonsAdvanced = styled(Row)`
   margin: 5px 7px;
@@ -84,6 +84,8 @@ export interface MainSectionHeroControlsAdvancedProps {
   removePcrPrimers(_0: unknown): void
 
   algorithmRunTrigger(_0: unknown): void
+
+  setShowNewRunPopup(showNewRunPopup: boolean): void
 }
 
 const mapStateToProps = (state: State) => ({
@@ -108,6 +110,7 @@ const mapDispatchToProps = {
   removeGeneMap,
   removePcrPrimers,
   algorithmRunTrigger: algorithmRunAsync.trigger,
+  setShowNewRunPopup,
 }
 
 export const MainSectionHeroControlsAdvanced = connect(
@@ -133,83 +136,18 @@ export function MainSectionHeroControlsAdvancedDisconnected({
   removeGeneMap,
   removePcrPrimers,
   algorithmRunTrigger,
+  setShowNewRunPopup,
 }: MainSectionHeroControlsAdvancedProps) {
-  const { t } = useTranslation()
-  const run = () => algorithmRunTrigger(undefined)
-
-  function onError() {}
+  const run = useCallback(() => {
+    setShowNewRunPopup(false)
+    algorithmRunTrigger(undefined)
+  }, [algorithmRunTrigger, setShowNewRunPopup])
 
   return (
     <Row noGutters>
       <Col>
         <ButtonsAdvanced canRun={canRun} run={run} />
-
-        <Row noGutters>
-          <Col>
-            <FilePicker
-              icon={<FileIconFasta />}
-              text={t('Sequences')}
-              canCollapse={false}
-              defaultCollapsed={false}
-              input={params.raw.seqData}
-              errors={params.errors.seqData}
-              onError={onError}
-              onRemove={removeFasta}
-              onInput={setFasta}
-            />
-
-            <FilePicker
-              icon={<FileIconJson />}
-              text={t('Reference tree')}
-              input={params.raw.auspiceData}
-              errors={params.errors.auspiceData}
-              onError={onError}
-              onRemove={removeTree}
-              onInput={setTree}
-            />
-
-            <FilePicker
-              icon={<FileIconTxt />}
-              text={t('Root sequence')}
-              input={params.raw.rootSeq}
-              errors={params.errors.rootSeq}
-              onError={onError}
-              onRemove={removeRootSeq}
-              onInput={setRootSeq}
-            />
-
-            <FilePicker
-              icon={<FileIconJson />}
-              text={t('Quality control')}
-              input={params.raw.qcRulesConfig}
-              errors={params.errors.qcRulesConfig}
-              onError={onError}
-              onRemove={removeQcSettings}
-              onInput={setQcSettings}
-            />
-
-            <FilePicker
-              icon={<FileIconJson />}
-              text={t('Gene map')}
-              input={params.raw.geneMap}
-              errors={params.errors.geneMap}
-              onError={onError}
-              onRemove={removeGeneMap}
-              onInput={setGeneMap}
-            />
-
-            <FilePicker
-              icon={<FileIconJson />}
-              text={t('PCR primers')}
-              input={params.raw.pcrPrimers}
-              errors={params.errors.pcrPrimers}
-              onError={onError}
-              onRemove={removePcrPrimers}
-              onInput={setPcrPrimers}
-            />
-          </Col>
-        </Row>
-
+        <FilePickerAdvanced />
         <ButtonsAdvanced canRun={canRun} run={run} />
       </Col>
     </Row>
