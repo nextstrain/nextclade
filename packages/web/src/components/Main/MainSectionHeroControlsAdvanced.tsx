@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
@@ -41,10 +41,16 @@ const ButtonRunStyled = styled(Button)`
 export function ButtonsAdvanced({ canRun, run }: { canRun: boolean; run(): void }) {
   const { t } = useTranslation()
 
+  const color = useMemo(() => (canRun ? 'success' : 'secondary'), [canRun])
+  const title = useMemo(
+    () => (canRun ? t('Launch the analysis') : t('Please provide the correct inputs for the algorithm')),
+    [canRun, t],
+  )
+
   return (
     <RowButtonsAdvanced noGutters>
       <ColFlexHorizontal>
-        <ButtonRunStyled disabled={!canRun} color={canRun ? 'success' : 'secondary'} onClick={run}>
+        <ButtonRunStyled disabled={!canRun} color={color} onClick={run} title={title}>
           {t('Run')}
         </ButtonRunStyled>
       </ColFlexHorizontal>
