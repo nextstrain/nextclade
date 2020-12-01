@@ -143,7 +143,7 @@ export function FilePickerAdvancedDisconnected({
           icon={<FileIconFasta />}
           text={t('Root sequence')}
           exampleUrl="https://example.com/root_seq.fasta"
-          pasteInstructions={t('Enter tree data in FASTA or plain text format')}
+          pasteInstructions={t('Enter root sequence data in FASTA or plain text format')}
           input={params.raw.rootSeq}
           errors={params.errors.rootSeq}
           onRemove={removeRootSeq}
