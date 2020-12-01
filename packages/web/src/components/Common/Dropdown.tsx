@@ -1,10 +1,10 @@
 import React from 'react'
 
-import Select, { ValueType } from 'react-select'
+import Select, { ValueType, Props as SelectProps } from 'react-select'
 
 import { DropdownOption } from 'src/components/Common/DropdownOption'
 
-export interface DropdownProps {
+export interface DropdownProps extends SelectProps {
   identifier: string
   className?: string
   options: DropdownOption<string>[]
@@ -27,6 +27,7 @@ export function Dropdown({
   onOptionChange,
   onValueChange,
   onBlur,
+  ...restProps
 }: DropdownProps) {
   return (
     <Select
@@ -49,6 +50,7 @@ export function Dropdown({
         }
       }}
       onBlur={onBlur}
+      {...restProps}
     />
   )
 }

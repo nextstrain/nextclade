@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
@@ -16,9 +16,9 @@ import { MainSectionHeroControlsSimple } from 'src/components/Main/MainSectionHe
 import { MainSectionHeroControlsAdvanced } from 'src/components/Main/MainSectionHeroControlsAdvanced'
 import { CardL1, CardL1Body } from 'src/components/Common/Card'
 import type { DropdownOption } from 'src/components/Common/DropdownOption'
-import { Dropdown as DropdownBase } from 'src/components/Common/Dropdown'
+import { Dropdown } from 'src/components/Common/Dropdown'
 
-const Dropdown = styled(DropdownBase)`
+const DropdownContainer = styled.div`
   flex: 0 0 230px;
   margin-right: auto;
   margin-left: 5px;
@@ -60,6 +60,8 @@ export function MainSectionHeroDisconnected({ showAdvancedControls, setShowAdvan
   const virusNameOptionDefault = { value: virusNameDefault, label: virusNameDefault }
   const virusNameOptions = Object.values(VirusName).map((name) => ({ value: name, label: name }))
 
+  const virusDropdownTooltip = useMemo(() => `${t('Select a virus')} (${t('Coming soon!')})`, [t])
+
   return (
     <Row noGutters>
       <Col xl={showAdvancedControls ? 4 : 6}>
@@ -72,13 +74,16 @@ export function MainSectionHeroDisconnected({ showAdvancedControls, setShowAdvan
           <CardL1Body>
             <Row noGutters>
               <ColFlexHorizontal>
-                <Dropdown
-                  identifier="virus.name"
-                  options={virusNameOptions}
-                  defaultOption={virusNameOptionDefault}
-                  value={current}
-                  onOptionChange={setCurrent}
-                />
+                <DropdownContainer title={virusDropdownTooltip}>
+                  <Dropdown
+                    identifier="virus.name"
+                    options={virusNameOptions}
+                    defaultOption={virusNameOptionDefault}
+                    value={current}
+                    onOptionChange={setCurrent}
+                    isDisabled
+                  />
+                </DropdownContainer>
 
                 <AdvancedToggleWrapper>
                   <ToggleTwoLabels
