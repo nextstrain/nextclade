@@ -182,6 +182,16 @@ declare module 'auspice' {
     children?: AuspiceTreeNode<NodeAttrs, BranchAttrs>[]
   }
 
+  export interface GeneMapJsonEntry {
+    end: number
+    seqid?: string
+    start: number
+    strand?: string
+    type?: string
+  }
+
+  export type GeneMapJson = { [key: string]: GeneMapJsonEntry }
+
   export declare interface AuspiceMetadata {
     title?: string
     description?: string
@@ -198,10 +208,7 @@ declare module 'auspice' {
       transmission_lines?: boolean
     }
     filters?: string[]
-    genome_annotations?: Record<
-      string,
-      { end?: number; seqid?: string; start?: number; strand?: string; type?: string }
-    >
+    genome_annotations?: GeneMapJson
     geo_resolutions?: { demes?: Record<string, { latitude?: number; longitude?: number }>; key?: string }[]
     panels?: string[]
   }

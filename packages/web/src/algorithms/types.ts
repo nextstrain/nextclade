@@ -160,6 +160,7 @@ export interface Gene {
   name: string
   color: string
   range: Range
+  frame: number
 }
 
 export interface MutationElement extends SubstitutionsWithAminoacids {

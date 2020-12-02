@@ -145,8 +145,9 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.seqData = seqData
   })
 
-  .icase(setTree.done, (draft, { result: { auspiceData } }) => {
+  .icase(setTree.done, (draft, { result: { auspiceData, geneMap } }) => {
     draft.params.virus.auspiceData = auspiceData
+    draft.params.virus.geneMap = geneMap
   })
 
   .icase(setRootSeq.done, (draft, { result: { rootSeq } }) => {

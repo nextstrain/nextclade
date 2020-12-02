@@ -9,7 +9,7 @@ import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { Virus } from 'src/algorithms/types'
 import { createWorkerPools } from 'src/workers/createWorkerPools'
 import { getVirus } from 'src/algorithms/defaults/viruses'
-import { getGeneMap } from 'src/io/getGeneMap'
+import { convertGeneMap } from 'src/io/convertGeneMap'
 import { parseCsv } from 'src/io/parseCsv'
 import { parseRootSeq } from 'src/io/parseRootSeq'
 import { validateGeneMap } from 'src/io/validateGeneMap'
@@ -217,7 +217,7 @@ export async function readInputs({
   }
 
   if (inputGeneMap) {
-    const geneMap = validateGeneMap(getGeneMap(await fs.readJson(inputGeneMap)))
+    const geneMap = validateGeneMap(convertGeneMap(await fs.readJson(inputGeneMap)))
     virus = { ...virus, geneMap }
   }
 
