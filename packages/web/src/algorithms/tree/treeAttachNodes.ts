@@ -109,7 +109,7 @@ export function attach_to_tree(result: AnalysisResult, nearestRefNode: AuspiceTr
 
   const { mutations, nucMutations, totalNucMutations } = get_differences(nearestRefNode, result, rootSeq)
   const baseDiv = nearestRefNode.node_attrs?.div ?? 0
-  const div = baseDiv + totalNucMutations
+  const div = baseDiv + totalNucMutations / rootSeq.length
 
   const new_node = get_node_struct(result)
   set(new_node, 'branch_attrs.mutations', mutations)
