@@ -118,9 +118,9 @@ export function attach_to_tree(
   // HACK: Guess the unit of measurement of divergence.
   // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
   //  Should be resolved upstream in augur/auspice.
-  let thisDiv = totalNucMutations // unit: number of substitutions per site per year
+  let thisDiv = totalNucMutations // unit: number of substitutions
   if (maxDivergence <= 5) {
-    thisDiv /= rootSeq.length // unit: number substitutions
+    thisDiv /= rootSeq.length // unit: number of substitutions per site
   }
   const div = baseDiv + thisDiv
 
