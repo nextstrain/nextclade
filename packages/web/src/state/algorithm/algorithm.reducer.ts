@@ -152,6 +152,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setRootSeq.done, (draft, { result: { rootSeq } }) => {
     draft.params.virus.rootSeq = rootSeq
+    draft.params.virus.genomeSize = rootSeq.length
   })
 
   .icase(setQcSettings.done, (draft, { result: { qcRulesConfig } }) => {
