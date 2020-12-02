@@ -102,14 +102,27 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   return { mutations, nucMutations, totalNucMutations }
 }
 
-export function attach_to_tree(result: AnalysisResult, nearestRefNode: AuspiceTreeNodeExtended, rootSeq: string) {
+export function attach_to_tree(
+  result: AnalysisResult,
+  nearestRefNode: AuspiceTreeNodeExtended,
+  rootSeq: string,
+  maxDivergence: number,
+) {
   if (isLeaf(nearestRefNode)) {
     addAuxiliaryNode(nearestRefNode)
   }
 
   const { mutations, nucMutations, totalNucMutations } = get_differences(nearestRefNode, result, rootSeq)
   const baseDiv = nearestRefNode.node_attrs?.div ?? 0
-  const div = baseDiv + totalNucMutations
+
+  // HACK: Guess the unit of measurement of divergence.
+  // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
+  //  Should be resolved upstream in augur/auspice.
+  let thisDiv = totalNucMutations // unit: number of substitutions per site per year
+  if (maxDivergence <= 5) {
+    thisDiv /= rootSeq.length // unit: number substitutions
+  }
+  const div = baseDiv + thisDiv
 
   const new_node = get_node_struct(result)
   set(new_node, 'branch_attrs.mutations', mutations)
@@ -197,18 +210,31 @@ export function attachNewNodesRecursively(
   node: AuspiceTreeNodeExtended,
   results: AnalysisResultWithMatch[],
   rootSeq: string,
+  maxDivergence: number,
 ) {
   for (const child of node.children ?? []) {
-    attachNewNodesRecursively(child, results, rootSeq)
+    attachNewNodesRecursively(child, results, rootSeq, maxDivergence)
   }
 
   // We look for a matching result, by it's unique `id`
   const attachables = results.filter((result) => result.nearestTreeNodeId === node.id)
   attachables.forEach((attachable) => {
-    attach_to_tree(attachable, node, rootSeq)
+    attach_to_tree(attachable, node, rootSeq, maxDivergence)
   })
 
   return node
+}
+
+export function getMaxDivergence(node: AuspiceTreeNodeExtended) {
+  const div = node?.node_attrs?.div ?? -Infinity
+
+  let childDiv = -Infinity
+  for (const child of node?.children ?? []) {
+    const currChildDiv = getMaxDivergence(child)
+    childDiv = Math.max(childDiv, currChildDiv)
+  }
+
+  return Math.max(div, childDiv)
 }
 
 export interface FinalizeTreeParams {
@@ -223,6 +249,8 @@ export function treeAttachNodes({ auspiceData, results, rootSeq }: FinalizeTreeP
     throw new Error('Error: invalid tree: it does not contain any nodes')
   }
 
-  const tree = attachNewNodesRecursively(rootNode, results, rootSeq)
+  const maxDivergence = getMaxDivergence(rootNode)
+
+  const tree = attachNewNodesRecursively(rootNode, results, rootSeq, maxDivergence)
   return { ...auspiceData, tree }
 }
