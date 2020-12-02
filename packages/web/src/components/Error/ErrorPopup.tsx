@@ -12,7 +12,7 @@ import type { State } from 'src/state/reducer'
 import { errorDismiss } from 'src/state/error/error.actions'
 import { getHttpStatusText } from 'src/helpers/getHttpStatusText'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { HttpRequestError } from 'src/io/AlgorithmInput'
+import { ErrorInvalidHttpUrl, HttpRequestError } from 'src/io/AlgorithmInput'
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
   color: ${(props) => props.theme.danger};
@@ -138,6 +138,23 @@ export function AxiosErrorFailed({ url, status, statusText }: { url: string; sta
   )
 }
 
+export function InvalidUtlError({ url }: { url: string }) {
+  const { t } = useTranslation()
+
+  return (
+    <ErrorContainer>
+      <h5>{t('Error: Invalid URL')}</h5>
+
+      <section className="mt-3">
+        <div>{t('Invalid HTTP URL: expected an absolute URL with http:// or https:// protocol, but got:')}</div>
+        <div>
+          <LinkExternal href={url}>{url}</LinkExternal>
+        </div>
+      </section>
+    </ErrorContainer>
+  )
+}
+
 export function ErrorContent({ error }: { error: Error }) {
   if (error instanceof HttpRequestError) {
     const url = error.request.url ?? 'Unknown URL'
@@ -147,6 +164,10 @@ export function ErrorContent({ error }: { error: Error }) {
     }
     const statusText = error.response?.statusText ?? 'Unknown status'
     return <AxiosErrorFailed url={url} status={status} statusText={statusText} />
+  }
+
+  if (error instanceof ErrorInvalidHttpUrl) {
+    return <InvalidUtlError url={error.url} />
   }
 
   return <GenericError error={error} />

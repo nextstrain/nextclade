@@ -1,4 +1,5 @@
 import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { isValidHttpUrl } from 'src/helpers/isValidHttpUrl'
 
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmInputType } from 'src/state/algorithm/algorithm.state'
@@ -13,6 +14,15 @@ export class HttpRequestError extends Error {
     super(error_.message)
     this.request = error_.config
     this.response = error_.response
+  }
+}
+
+export class ErrorInvalidHttpUrl extends Error {
+  public readonly url: string
+
+  public constructor(url: string) {
+    super(`Invalid HTTP URL: expected an absolute URL with http:// or https:// protocol, but got: '${url}'`)
+    this.url = url
   }
 }
 
@@ -72,6 +82,10 @@ export class AlgorithmInputUrl implements AlgorithmInput {
   }
 
   public async getContent(): Promise<string> {
+    if (!isValidHttpUrl(this.url)) {
+      throw new ErrorInvalidHttpUrl(this.url)
+    }
+
     try {
       const { data } = await Axios.get<string>(this.url, { transformResponse: [] })
       this.size = data.length
