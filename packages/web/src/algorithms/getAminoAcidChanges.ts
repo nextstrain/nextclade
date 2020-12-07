@@ -1,4 +1,5 @@
 import { inRange } from 'lodash'
+import copy from 'fast-copy'
 
 import type {
   AminoacidDeletion,
@@ -23,7 +24,7 @@ export function reconstructQuery(
 
   // Take a gene from the reference sequence
   const refGene = refSequence.slice(geneBegin, geneEnd).split('')
-  const queryGene = refGene
+  const queryGene = copy(refGene)
   // TODO: const initialLength = queryGene.length
   // TODO: invariant(isDivisibleBy(initialLength, 3))
 
