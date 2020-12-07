@@ -3,12 +3,12 @@ import { runQC } from 'src/algorithms/QC/runQC'
 import { treeFindNearestNodes } from 'src/algorithms/tree/treeFindNearestNodes'
 import { readFile } from 'src/helpers/readFile'
 
-import type { AnalysisResultWithMatch, AminoacidSubstitution, AnalysisParams, ParseResult } from './types'
+import type { AnalysisResultWithMatch, AnalysisParams, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
-import { getAllAminoAcidChanges } from './getAllAminoAcidChanges'
+import { getAminoAcidChanges } from 'src/algorithms/getAminoAcidChanges'
 import { GOOD_NUCLEOTIDES, N } from './nucleotides'
 import { getNucleotideComposition } from './getNucleotideComposition'
 import { getPcrPrimerChanges, getSubstitutionsWithPcrPrimerChanges } from './getPcrPrimerChanges'
@@ -49,16 +49,13 @@ export function analyze({
   const nonACGTNs = findNucleotideRanges(alignedQuery, (nuc) => !GOOD_NUCLEOTIDES.includes(nuc))
   const totalNonACGTNs = nonACGTNs.reduce((total, { begin, end }) => total + end - begin, 0)
 
-  const substitutionsWithAA = getAllAminoAcidChanges(nucSubstitutions, rootSeq, geneMap)
-  const aminoacidChanges = substitutionsWithAA.reduce(
-    (result, { aaSubstitutions }) => [...result, ...aaSubstitutions],
-    [] as AminoacidSubstitution[],
-  )
-  const totalAminoacidChanges = aminoacidChanges.length
+  const { aaSubstitutions, aaDeletions } = getAminoAcidChanges(nucSubstitutions, deletions, rootSeq, geneMap)
+  const totalAminoacidSubstitutions = aaSubstitutions.length
+  const totalAminoacidDeletions = aaDeletions.length
 
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
 
-  const substitutions = getSubstitutionsWithPcrPrimerChanges(substitutionsWithAA, pcrPrimers)
+  const substitutions = getSubstitutionsWithPcrPrimerChanges(nucSubstitutions, pcrPrimers)
   const pcrPrimerChanges = getPcrPrimerChanges(nucSubstitutions, pcrPrimers)
   const totalPcrPrimerChanges = pcrPrimerChanges.reduce((total, { substitutions }) => total + substitutions.length, 0)
 
@@ -66,8 +63,6 @@ export function analyze({
     seqName,
     substitutions,
     totalMutations,
-    aminoacidChanges,
-    totalAminoacidChanges,
     insertions,
     totalInsertions,
     deletions,
@@ -76,6 +71,10 @@ export function analyze({
     totalMissing,
     nonACGTNs,
     totalNonACGTNs,
+    aaSubstitutions,
+    totalAminoacidSubstitutions,
+    aaDeletions,
+    totalAminoacidDeletions,
     alignmentStart,
     alignmentEnd,
     alignmentScore,

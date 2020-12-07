@@ -1,12 +1,6 @@
 import { inRange } from 'lodash'
 
-import type {
-  SubstitutionsWithAminoacids,
-  PcrPrimer,
-  NucleotideSubstitution,
-  PcrPrimerChange,
-  SubstitutionsWithPrimers,
-} from 'src/algorithms/types'
+import type { PcrPrimer, NucleotideSubstitution, PcrPrimerChange, SubstitutionsWithPrimers } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { isMatch } from './nucleotideCodes'
 
@@ -52,7 +46,7 @@ export function getPcrPrimerChanges(
  * Each substitution can have multiple PCR primer changes.
  */
 export function getSubstitutionsWithPcrPrimerChanges(
-  substitutions: SubstitutionsWithAminoacids[],
+  substitutions: NucleotideSubstitution[],
   primers: PcrPrimer[],
 ): SubstitutionsWithPrimers[] {
   return substitutions.map((mut) => {
