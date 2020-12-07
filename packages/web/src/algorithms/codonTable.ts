@@ -1,8 +1,8 @@
 import { get } from 'lodash'
 import type { Aminoacid } from 'src/algorithms/types'
 
-const AMINOACID_UNKNOWN = ('X' as const) as Aminoacid
-const AMINOACID_GAP = ('-' as const) as Aminoacid
+export const AMINOACID_UNKNOWN = ('X' as const) as Aminoacid
+export const AMINOACID_GAP = ('-' as const) as Aminoacid
 
 const codonTable: Record<string, Aminoacid> = {
   '---': AMINOACID_GAP,

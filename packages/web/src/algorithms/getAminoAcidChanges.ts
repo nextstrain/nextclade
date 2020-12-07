@@ -8,7 +8,7 @@ import type {
   NucleotideDeletion,
   NucleotideSubstitution,
 } from './types'
-import { getCodon } from './codonTable'
+import { AMINOACID_GAP, getCodon } from './codonTable'
 
 /**
  * Reconstructs the query sequence gene with insertions removed and deletions filled with gaps
@@ -50,7 +50,7 @@ export function reconstructQuery(
 
     // Fill deletion range with gaps
     for (let i = begin; i < end; ++i) {
-      queryGene[i] = '-'
+      queryGene[i] = AMINOACID_GAP
     }
   }
 
