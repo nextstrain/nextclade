@@ -8,7 +8,7 @@ import { parseSequences } from './parseSequences'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
 import { findNucleotideRanges } from './findNucleotideRanges'
-import { getAminoAcidChanges } from 'src/algorithms/getAminoAcidChanges'
+import { getAminoAcidChanges } from './getAminoAcidChanges'
 import { GOOD_NUCLEOTIDES, N } from './nucleotides'
 import { getNucleotideComposition } from './getNucleotideComposition'
 import { getPcrPrimerChanges, getSubstitutionsWithPcrPrimerChanges } from './getPcrPrimerChanges'
@@ -38,9 +38,15 @@ export function analyze({
   const alignedQuery = query.join('')
 
   const analyzeSeqResult = analyzeSeq(query, ref)
-  const { substitutions: nucSubstitutions, insertions, deletions, alignmentStart, alignmentEnd } = analyzeSeqResult
+  const {
+    substitutions: nucSubstitutions,
+    insertions,
+    deletions: nucDeletions,
+    alignmentStart,
+    alignmentEnd,
+  } = analyzeSeqResult
   const totalMutations = nucSubstitutions.length
-  const totalGaps = deletions.reduce((total, { length }) => total + length, 0)
+  const totalGaps = nucDeletions.reduce((total, { length }) => total + length, 0)
   const totalInsertions = insertions.reduce((total, { ins }) => total + ins.length, 0)
 
   const missing = findNucleotideRanges(alignedQuery, N)
@@ -49,15 +55,20 @@ export function analyze({
   const nonACGTNs = findNucleotideRanges(alignedQuery, (nuc) => !GOOD_NUCLEOTIDES.includes(nuc))
   const totalNonACGTNs = nonACGTNs.reduce((total, { begin, end }) => total + end - begin, 0)
 
-  const { aaSubstitutions, aaDeletions } = getAminoAcidChanges(nucSubstitutions, deletions, rootSeq, geneMap)
+  // prettier-ignore
+  const { aaSubstitutions, aaDeletions, substitutionsWithAA, deletionsWithAA } =
+    getAminoAcidChanges(nucSubstitutions, nucDeletions, rootSeq, geneMap)
+
   const totalAminoacidSubstitutions = aaSubstitutions.length
   const totalAminoacidDeletions = aaDeletions.length
 
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
 
-  const substitutions = getSubstitutionsWithPcrPrimerChanges(nucSubstitutions, pcrPrimers)
+  const substitutions = getSubstitutionsWithPcrPrimerChanges(substitutionsWithAA, pcrPrimers)
   const pcrPrimerChanges = getPcrPrimerChanges(nucSubstitutions, pcrPrimers)
   const totalPcrPrimerChanges = pcrPrimerChanges.reduce((total, { substitutions }) => total + substitutions.length, 0)
+
+  const deletions = deletionsWithAA
 
   const analysisResult = {
     seqName,

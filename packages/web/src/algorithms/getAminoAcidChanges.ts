@@ -6,14 +6,19 @@ import type {
   AminoacidSubstitution,
   Gene,
   NucleotideDeletion,
+  NucleotideDeletionWithAminoacids,
   NucleotideSubstitution,
+  NucleotideSubstitutionWithAminoacids,
+  Range,
 } from './types'
 import { AMINOACID_GAP, getCodon } from './codonTable'
+import { haveIntersectionStrict } from './haveIntersectionStrict'
 
 /**
- * Reconstructs the query sequence gene with insertions removed and deletions filled with gaps
+ * Reconstructs the query gene sequence with insertions removed and deletions filled with gaps,
+ * also returns reference gene sequence.
  */
-export function reconstructQuery(
+export function reconstructGeneSequences(
   gene: Gene,
   refSequence: string,
   mutations: NucleotideSubstitution[],
@@ -69,7 +74,11 @@ export function addAminoacidChanges(
   // TODO: precondition(isDivisibleBy(refGene.length, 3))
   // TODO: precondition(isDivisibleBy(queryGene.length, 3))
 
+  const { begin } = gene.range
+
   for (let codon = 0; codon < queryGene.length; codon += 3) {
+    const nucRange: Range = { begin: begin + codon, end: begin + codon + 3 }
+
     const queryCodon = queryGene.slice(codon, codon + 3)
     const refCodon = refGene.slice(codon, codon + 3)
 
@@ -77,18 +86,41 @@ export function addAminoacidChanges(
     const queryAA = getCodon(queryCodon)
 
     if (queryAA === '-') {
-      aaDeletions.push({ refAA, codon, gene: gene.name })
+      aaDeletions.push({ refAA, codon, gene: gene.name, nucRange })
     }
 
     if (refAA !== queryAA) {
-      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name })
+      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, nucRange })
     }
   }
+}
+
+/** Extends nucleotide substitutions with information about associated aminoacid substitutions */
+export function associateSubstitutions(mutations: NucleotideSubstitution[], aaSubstitutions: AminoacidSubstitution[]) {
+  return mutations.map((mut) => {
+    const theseAaSubstitutions = aaSubstitutions.filter((aaSub) =>
+      // Nuc substitution causes AA substitution iff its position is in the codon range
+      inRange(mut.pos, aaSub.nucRange.begin, aaSub.nucRange.end),
+    )
+    return { ...mut, aaSubstitutions: theseAaSubstitutions }
+  })
+}
+
+/** Extends nucleotide deletions with information about associated aminoacid deletions */
+export function associateDeletions(deletions: NucleotideDeletion[], aaDeletions: AminoacidDeletion[]) {
+  return deletions.map((del) => {
+    const delRange: Range = { begin: del.start, end: del.length }
+    // Nuc deletion causes AA deletion iff their ranges intersect
+    const theseAaDeletions = aaDeletions.filter((aaSub) => haveIntersectionStrict(aaSub.nucRange, delRange))
+    return { ...del, aaDeletions: theseAaDeletions }
+  })
 }
 
 export interface GetAllAminoAcidChangesResult {
   aaSubstitutions: AminoacidSubstitution[]
   aaDeletions: AminoacidDeletion[]
+  substitutionsWithAA: NucleotideSubstitutionWithAminoacids[]
+  deletionsWithAA: NucleotideDeletionWithAminoacids[]
 }
 
 export function getAminoAcidChanges(
@@ -101,9 +133,12 @@ export function getAminoAcidChanges(
   const aaDeletions: AminoacidDeletion[] = []
 
   for (const gene of geneMap) {
-    const { refGene, queryGene } = reconstructQuery(gene, refSequence, mutations, deletions)
+    const { refGene, queryGene } = reconstructGeneSequences(gene, refSequence, mutations, deletions)
     addAminoacidChanges(gene, refGene, queryGene, /* out */ aaSubstitutions, /* out */ aaDeletions)
   }
 
-  return { aaSubstitutions, aaDeletions }
+  const substitutionsWithAA = associateSubstitutions(mutations, aaSubstitutions)
+  const deletionsWithAA = associateDeletions(deletions, aaDeletions)
+
+  return { aaSubstitutions, aaDeletions, substitutionsWithAA, deletionsWithAA }
 }

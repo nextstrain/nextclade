@@ -60,12 +60,22 @@ export interface AminoacidSubstitution {
   queryAA: Aminoacid
   codon: number
   gene: string
+  nucRange: Range
 }
 
 export interface AminoacidDeletion {
   refAA: Aminoacid
   codon: number
   gene: string
+  nucRange: Range
+}
+
+export interface NucleotideSubstitutionWithAminoacids extends NucleotideSubstitution {
+  aaSubstitutions: AminoacidSubstitution[]
+}
+
+export interface NucleotideDeletionWithAminoacids extends NucleotideDeletion {
+  aaDeletions: AminoacidDeletion[]
 }
 
 export interface PcrPrimer {
@@ -83,7 +93,7 @@ export interface PcrPrimerChange {
   substitutions: NucleotideSubstitution[]
 }
 
-export interface SubstitutionsWithPrimers extends NucleotideSubstitution {
+export interface SubstitutionsWithPrimers extends NucleotideSubstitutionWithAminoacids {
   pcrPrimersChanged: PcrPrimer[]
 }
 
@@ -112,7 +122,7 @@ export interface AnalysisResultWithoutClade {
   totalMutations: number
   insertions: NucleotideInsertion[]
   totalInsertions: number
-  deletions: NucleotideDeletion[]
+  deletions: NucleotideDeletionWithAminoacids[]
   totalGaps: number
   missing: NucleotideMissing[]
   totalMissing: number
