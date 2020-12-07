@@ -110,7 +110,7 @@ export function associateSubstitutions(mutations: NucleotideSubstitution[], aaSu
 export function associateDeletions(deletions: NucleotideDeletion[], aaDeletions: AminoacidDeletion[]) {
   return deletions.map((del) => {
     const delRange: Range = { begin: del.start, end: del.length }
-    // Nuc deletion causes AA deletion iff their ranges intersect
+    // A nuc deletion causes an AA deletion iff the AA codon nuc range is strictly inside the deletion nuc range
     const theseAaDeletions = aaDeletions.filter((aaSub) => contains({ big: delRange, small: aaSub.nucRange }))
     return { ...del, aaDeletions: theseAaDeletions }
   })
