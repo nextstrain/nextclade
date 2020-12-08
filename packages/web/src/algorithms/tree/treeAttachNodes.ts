@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { groupBy, mapValues, set, unset } from 'lodash'
+import { groupBy, isEqual, mapValues, set, uniqWith, unset } from 'lodash'
 import copy from 'fast-copy'
 
 import i18n from 'src/i18n/i18n'
@@ -22,6 +22,8 @@ import { formatRange } from 'src/helpers/formatRange'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
+import { GAP } from 'src/algorithms/nucleotides'
+import { AMINOACID_GAP } from 'src/algorithms/codonTable'
 import { isSequenced } from 'src/algorithms/tree/treeFindNearestNodes'
 
 const t = i18n.t.bind(i18n)
@@ -80,6 +82,39 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
       aminoacidMutationEntries = [...aminoacidMutationEntries, ...aminoacidMutationEntriesNew]
     }
   }
+
+  for (const del of seq.deletions) {
+    for (let pos = del.start; pos < del.start + del.length; ++pos) {
+      const queryNuc = GAP
+      const der = node.mutations?.get(pos)
+      positionsCovered.add(pos)
+
+      let refNuc
+      if (der) {
+        if (queryNuc !== der) {
+          // shared site but states of node and seq differ
+          refNuc = der
+        }
+      } else {
+        // node does not have a mutation, but seq does -> compare to root
+        refNuc = root_seq[pos] as Nucleotide
+      }
+
+      if (refNuc) {
+        const mut = formatMutation({ refNuc, pos, queryNuc })
+        nucMutations.push(mut)
+
+        const aminoacidMutationEntriesNew = del.aaDeletions.map(({ codon, gene, refAA }) => {
+          const aaMut = formatAAMutationWithoutGene({ refAA, codon, queryAA: AMINOACID_GAP })
+          return { gene, aaMut }
+        })
+
+        aminoacidMutationEntries = [...aminoacidMutationEntries, ...aminoacidMutationEntriesNew]
+      }
+    }
+  }
+
+  aminoacidMutationEntries = uniqWith(aminoacidMutationEntries, isEqual)
 
   const aminoacidMutationsGrouped = groupBy(aminoacidMutationEntries, ({ gene }) => gene)
   const aminoacidMutationsFinal = mapValues(aminoacidMutationsGrouped, (aaMuts) => aaMuts.map(({ aaMut }) => aaMut))
