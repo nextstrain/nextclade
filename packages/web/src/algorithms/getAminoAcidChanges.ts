@@ -106,10 +106,8 @@ export function addAminoacidChanges(
 /** Extends nucleotide substitutions with information about associated aminoacid substitutions */
 export function associateSubstitutions(mutations: NucleotideSubstitution[], aaSubstitutions: AminoacidSubstitution[]) {
   return mutations.map((mut) => {
-    const theseAaSubstitutions = aaSubstitutions.filter((aaSub) =>
-      // Nuc substitution causes AA substitution iff its position is in the codon range
-      inRange(mut.pos, aaSub.nucRange),
-    )
+    // Nuc substitution causes AA substitution iff its position is in the codon range
+    const theseAaSubstitutions = aaSubstitutions.filter((aaSub) => inRange(mut.pos, aaSub.nucRange))
     return { ...mut, aaSubstitutions: theseAaSubstitutions }
   })
 }
