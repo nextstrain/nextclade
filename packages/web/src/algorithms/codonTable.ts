@@ -74,8 +74,15 @@ const codonTable: Record<string, Aminoacid> = {
 
 export function getCodon(codon: string): Aminoacid {
   const aminoacid = get(codonTable, codon)
+
   if (process.env.NODE_ENV !== 'production' && !aminoacid) {
-    console.warn(`getCodon: no aminoacid found for codon "${codon}"`)
+    if (codon.length !== 3) {
+      console.warn(`getCodon: invalid codon "${codon}" of length ${codon.length}: translating to aminoacid "${AMINOACID_UNKNOWN}", but this is probably a bug.`) // prettier-ignore
+    } else if (codon.includes(AMINOACID_GAP)) {
+      console.info(`getCodon: ambiguous codon "${codon}: translating to aminoacid "${AMINOACID_UNKNOWN}"`)
+    } else {
+      console.info(`getCodon: unknown codon "${codon}: translating to aminoacid "${AMINOACID_UNKNOWN}"`)
+    }
   }
 
   return aminoacid ?? AMINOACID_UNKNOWN
