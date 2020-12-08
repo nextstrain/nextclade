@@ -97,9 +97,7 @@ export function addAminoacidChanges(
 
     if (queryAA === AMINOACID_GAP) {
       aaDeletions.push({ refAA, codon, gene: gene.name, nucRange, refCodon })
-    }
-
-    if (refAA !== queryAA) {
+    } else if (refAA !== queryAA) {
       aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, nucRange, refCodon, queryCodon })
     }
   }
