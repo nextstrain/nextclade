@@ -115,9 +115,9 @@ export function associateSubstitutions(mutations: NucleotideSubstitution[], aaSu
 /** Extends nucleotide deletions with information about associated aminoacid deletions */
 export function associateDeletions(deletions: NucleotideDeletion[], aaDeletions: AminoacidDeletion[]) {
   return deletions.map((del) => {
-    const delRange: Range = { begin: del.start, end: del.length }
+    const delRange: Range = { begin: del.start, end: del.start + del.length }
     // A nuc deletion causes an AA deletion iff the AA codon nuc range is strictly inside the deletion nuc range
-    const theseAaDeletions = aaDeletions.filter((aaSub) => contains({ big: delRange, small: aaSub.nucRange }))
+    const theseAaDeletions = aaDeletions.filter((aaDel) => contains({ big: delRange, small: aaDel.nucRange }))
     return { ...del, aaDeletions: theseAaDeletions }
   })
 }
