@@ -47,8 +47,11 @@ export function getGeneMap(geneMapJson: GeneMapJson): Gene[] {
 
     let { start: begin, end } = pick(geneDataRaw, ['start', 'end']) // eslint-disable-line prefer-const
 
-    // `+1` to make the range semi-open (upper boundary is not included into the range)
-    end += 1
+    // begin: `-1` to convert to zero-based indices
+    begin -= 1
+
+    // end: `-1` to convert to zero-based indices, `+1` to make the range semi-open (upper boundary is not included into the range)
+    // end = end - 1 + 1
 
     const geneWithoutColor = { name, range: { begin, end } }
     const length = end - begin
