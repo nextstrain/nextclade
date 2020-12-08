@@ -96,11 +96,11 @@ export function addAminoacidChanges(
     const codon = pos / 3
 
     if (queryAA === AMINOACID_GAP) {
-      aaDeletions.push({ refAA, codon, gene: gene.name, nucRange })
+      aaDeletions.push({ refAA, codon, gene: gene.name, nucRange, refCodon })
     }
 
     if (refAA !== queryAA) {
-      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, nucRange })
+      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, nucRange, refCodon, queryCodon })
     }
   }
 }

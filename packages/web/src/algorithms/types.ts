@@ -61,6 +61,8 @@ export interface AminoacidSubstitution {
   codon: number
   gene: string
   nucRange: Range
+  refCodon: string
+  queryCodon: string
 }
 
 export interface AminoacidDeletion {
@@ -68,6 +70,7 @@ export interface AminoacidDeletion {
   codon: number
   gene: string
   nucRange: Range
+  refCodon: string
 }
 
 export interface NucleotideSubstitutionWithAminoacids extends NucleotideSubstitution {
