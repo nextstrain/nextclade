@@ -92,12 +92,15 @@ export function addAminoacidChanges(
     const refAA = getCodon(refCodon)
     const queryAA = getCodon(queryCodon)
 
+    // TODO: invariant(isDivisibleBy(codon, 3))
+    const codon = pos / 3
+
     if (queryAA === AMINOACID_GAP) {
-      aaDeletions.push({ refAA, codon: pos, gene: gene.name, nucRange })
+      aaDeletions.push({ refAA, codon, gene: gene.name, nucRange })
     }
 
     if (refAA !== queryAA) {
-      aaSubstitutions.push({ refAA, queryAA, codon: pos, gene: gene.name, nucRange })
+      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, nucRange })
     }
   }
 }
