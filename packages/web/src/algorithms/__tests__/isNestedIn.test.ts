@@ -1,6 +1,6 @@
 import { contains } from 'src/algorithms/haveIntersectionStrict'
 
-describe('isNestedInStrict', () => {
+describe('contains', () => {
   // Accepts
 
   it('should accept nested', () => {

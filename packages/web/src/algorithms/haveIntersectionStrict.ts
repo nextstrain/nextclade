@@ -25,3 +25,11 @@ export function contains({ big, small }: { big: Range; small: Range }) {
   // TODO: precondition(big.begin <= big.end)
   return nonEmpty(small) && nonEmpty(big) && small.begin >= big.begin && small.end <= big.end
 }
+
+/**
+ * Checks if the given number is in the given range
+ */
+export function inRange(x: number, range: Range) {
+  // TODO: precondition(range.begin <= range.end)
+  return x >= range.begin && x < range.end
+}

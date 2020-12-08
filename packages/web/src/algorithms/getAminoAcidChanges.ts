@@ -1,4 +1,3 @@
-import { inRange } from 'lodash'
 import copy from 'fast-copy'
 
 import type {
@@ -12,7 +11,7 @@ import type {
   Range,
 } from './types'
 import { AMINOACID_GAP, getCodon } from './codonTable'
-import { contains } from './haveIntersectionStrict'
+import { contains, inRange } from './haveIntersectionStrict'
 
 /**
  * Reconstructs the query gene sequence with insertions removed and deletions filled with gaps,
