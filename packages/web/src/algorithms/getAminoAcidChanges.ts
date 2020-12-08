@@ -37,11 +37,10 @@ export function reconstructGeneSequences(
     const { pos, queryNuc } = mut
 
     if (inRange(pos, gene.range)) {
-      const genePos = geneBegin - pos // Position relative to the gene start
-
-      // TODO: invariant(genePos > 0)
-      // TODO: invariant(genePos < queryGene.length)
-      queryGene[genePos] = queryNuc
+      const genePos = pos - geneBegin // Position relative to the gene start
+      if (genePos >= 0 && genePos < queryGene.length) {
+        queryGene[genePos] = queryNuc
+      }
     }
   }
 
@@ -59,10 +58,10 @@ export function reconstructGeneSequences(
 
     // Fill deletion range with gaps
     for (let pos = begin; pos < end; ++pos) {
-      const genePos = geneBegin - pos // Position relative to the gene start
-      // TODO: invariant(genePos > 0)
-      // TODO: invariant(genePos < queryGene.length)
-      queryGene[genePos] = AMINOACID_GAP
+      const genePos = pos - geneBegin // Position relative to the gene start
+      if (genePos >= 0 && genePos < queryGene.length) {
+        queryGene[genePos] = AMINOACID_GAP
+      }
     }
   }
 
