@@ -92,7 +92,7 @@ export function addAminoacidChanges(
     const refAA = getCodon(refCodon)
     const queryAA = getCodon(queryCodon)
 
-    if (queryAA === '-') {
+    if (queryAA === AMINOACID_GAP) {
       aaDeletions.push({ refAA, codon, gene: gene.name, nucRange })
     }
 
