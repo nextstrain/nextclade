@@ -53,10 +53,14 @@ export function getGeneMap(geneMapJson: GeneMapJson): Gene[] {
     const geneWithoutColor = { name, range: { begin, end } }
     const length = end - begin
 
-    if (length) {
+    if (length < 0) {
       throw new ErrorGeneInvalidRange(
-        `GeneMap: in gene "${name}": expected gene.begin < gene.end, but got ${begin} < ${end}`,
+        `GeneMap: in gene "${name}": expected gene.begin < gene.end, but got ${begin} < ${end} (length is ${length})`,
       )
+    }
+
+    if (length === 0) {
+      console.warn(`GeneMap: in gene "${name}": gene is empty (length is 0)`)
     }
 
     if (!isDivisibleBy(length, 3)) {
