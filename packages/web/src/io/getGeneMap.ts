@@ -44,9 +44,13 @@ export function getGeneMap(geneMapJson: GeneMapJson): Gene[] {
 
   return Object.entries(geneMap).map(([name, geneDataRaw], i) => {
     const color = GENOTYPE_COLORS[(i + 1) % GENOTYPE_COLORS.length]
-    const { start: begin, end } = pick(geneDataRaw, ['start', 'end'])
-    const geneWithoutColor = { name, range: { begin, end } }
 
+    let { start: begin, end } = pick(geneDataRaw, ['start', 'end']) // eslint-disable-line prefer-const
+
+    // `+1` to make the range semi-open (upper boundary is not included into the range)
+    end += 1
+
+    const geneWithoutColor = { name, range: { begin, end } }
     const length = end - begin
 
     if (length) {
