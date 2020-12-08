@@ -83,21 +83,21 @@ export function addAminoacidChanges(
 
   const { begin } = gene.range
 
-  for (let codon = 0; codon < queryGene.length; codon += 3) {
-    const nucRange: Range = { begin: begin + codon, end: begin + codon + 3 }
+  for (let pos = 0; pos < queryGene.length; pos += 3) {
+    const nucRange: Range = { begin: begin + pos, end: begin + pos + 3 }
 
-    const queryCodon = queryGene.slice(codon, codon + 3)
-    const refCodon = refGene.slice(codon, codon + 3)
+    const queryCodon = queryGene.slice(pos, pos + 3)
+    const refCodon = refGene.slice(pos, pos + 3)
 
     const refAA = getCodon(refCodon)
     const queryAA = getCodon(queryCodon)
 
     if (queryAA === AMINOACID_GAP) {
-      aaDeletions.push({ refAA, codon, gene: gene.name, nucRange })
+      aaDeletions.push({ refAA, codon: pos, gene: gene.name, nucRange })
     }
 
     if (refAA !== queryAA) {
-      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, nucRange })
+      aaSubstitutions.push({ refAA, queryAA, codon: pos, gene: gene.name, nucRange })
     }
   }
 }
