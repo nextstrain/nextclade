@@ -52,6 +52,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   const nucMutations: string[] = []
   let aminoacidMutationEntries: { gene: string; aaMut: string }[] = []
   const positionsCovered = new Set()
+  let totalNucMutations = 0
 
   for (const qmut of seq.substitutions) {
     const { pos, queryNuc } = qmut
@@ -72,7 +73,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
     if (refNuc) {
       const mut = formatMutation({ refNuc, pos, queryNuc })
       nucMutations.push(mut)
-
+      totalNucMutations += 1
       // TODO: these are amino acid mutations relative to reference. Double hits won't how up properly
       const aminoacidMutationEntriesNew = qmut.aaSubstitutions.map(({ codon, gene, queryAA, refAA }) => {
         const aaMut = formatAAMutationWithoutGene({ refAA, codon, queryAA })
@@ -133,7 +134,6 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
     }
   }
 
-  const totalNucMutations = nucMutations.length
   return { mutations, nucMutations, totalNucMutations }
 }
 
