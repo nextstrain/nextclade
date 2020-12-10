@@ -11,7 +11,7 @@ import type {
   Range,
 } from './types'
 import { AMINOACID_GAP, getCodon } from './codonTable'
-import { contains, inRange } from './haveIntersectionStrict'
+import { haveIntersectionStrict, inRange } from './haveIntersectionStrict'
 
 /**
  * Reconstructs the query gene sequence with insertions removed and deletions filled with gaps,
@@ -117,7 +117,9 @@ export function associateDeletions(deletions: NucleotideDeletion[], aaDeletions:
   return deletions.map((del) => {
     const delRange: Range = { begin: del.start, end: del.start + del.length }
     // A nuc deletion causes an AA deletion iff the AA codon nuc range is strictly inside the deletion nuc range
-    const theseAaDeletions = aaDeletions.filter((aaDel) => contains({ big: delRange, small: aaDel.nucRange }))
+    const theseAaDeletions = aaDeletions.filter((aaDel) =>
+      haveIntersectionStrict({ big: delRange, small: aaDel.nucRange }),
+    )
     return { ...del, aaDeletions: theseAaDeletions }
   })
 }
