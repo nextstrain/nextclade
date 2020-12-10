@@ -131,6 +131,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
       const refNuc = root_seq[pos] as Nucleotide
       const mutStr = formatMutation({ refNuc: mut[1], pos, queryNuc: refNuc })
       nucMutations.push(mutStr)
+      totalNucMutations += 1
     }
   }
 
