@@ -1,5 +1,5 @@
 import { get } from 'lodash'
-import { intersection } from 'src/helpers/setOperations'
+import { intersection } from '../helpers/setOperations'
 
 const IUPACNucCodes: Record<string, Set<string>> = {
   A: new Set(['A']),
