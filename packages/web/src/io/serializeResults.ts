@@ -4,7 +4,7 @@ import jsonexport from 'jsonexport'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import { formatAAMutation, formatMutation } from 'src/helpers/formatMutation'
+import { formatAADeletion, formatAAMutation, formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { formatInsertion } from 'src/helpers/formatInsertion'
 import { formatNonAcgtn } from 'src/helpers/formatNonAcgtn'
@@ -18,7 +18,6 @@ const headers = [
   'clade',
   'qc.overallScore',
   'qc.overallStatus',
-  'totalAminoacidChanges',
   'totalGaps',
   'totalInsertions',
   'totalMissing',
@@ -28,10 +27,13 @@ const headers = [
   'substitutions',
   'deletions',
   'insertions',
-  'aminoacidChanges',
   'missing',
   'nonACGTNs',
   'pcrPrimerChanges',
+  'aaSubstitutions',
+  'totalAminoacidSubstitutions',
+  'aaDeletions',
+  'totalAminoacidDeletions',
   'alignmentEnd',
   'alignmentScore',
   'alignmentStart',
@@ -91,7 +93,8 @@ export function prepareResultCsv(datum: Exportable) {
       },
     },
     substitutions: datum.substitutions.map((mut) => formatMutation(mut)).join(','),
-    aminoacidChanges: datum.aminoacidChanges.map((mut) => formatAAMutation(mut)).join(','),
+    aaSubstitutions: datum.aaSubstitutions.map((mut) => formatAAMutation(mut)).join(','),
+    aaDeletions: datum.aaDeletions.map((del) => formatAADeletion(del)).join(','),
     deletions: datum.deletions.map(({ start, length }) => formatRange(start, start + length)).join(','),
     insertions: datum.insertions.map((ins) => formatInsertion(ins)).join(','),
     missing: datum.missing.map(({ begin, end }) => formatRange(begin, end)).join(','),
