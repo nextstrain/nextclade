@@ -16,7 +16,7 @@ const action = actionCreatorFactory('Algorithm')
 export const setIsDirty = action<boolean>('setIsDirty')
 
 export const setFasta = action.async<AlgorithmInput, { seqData: string }, Error>('setFasta')
-export const setTree = action.async<AlgorithmInput, { auspiceData: AuspiceJsonV2 }, Error>('setTree') // prettier-ignore
+export const setTree = action.async<AlgorithmInput, { auspiceData: AuspiceJsonV2, geneMap: Gene[] }, Error>('setTree') // prettier-ignore
 export const setRootSeq = action.async<AlgorithmInput, { rootSeq: string }, Error>('setRootSeq')
 export const setQcSettings = action.async<AlgorithmInput, { qcRulesConfig: QCRulesConfig }, Error>('setQcSettings') // prettier-ignore
 export const setGeneMap = action.async<AlgorithmInput, { geneMap: Gene[] }, Error>('setGeneMap')

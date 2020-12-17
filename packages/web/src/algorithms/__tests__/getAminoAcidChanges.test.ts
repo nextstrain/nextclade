@@ -13,6 +13,7 @@ const geneMap: Gene[] = [
       begin: 265,
       end: 13468,
     },
+    frame: 0,
   },
 ]
 

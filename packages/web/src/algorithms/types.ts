@@ -177,4 +177,5 @@ export interface Gene {
   name: string
   color: string
   range: Range
+  frame: number
 }

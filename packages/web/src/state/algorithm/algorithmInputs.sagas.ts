@@ -10,7 +10,7 @@ import { parseSequences } from 'src/algorithms/parseSequences'
 import { qcRulesConfigValidate, qcRulesConfigDeserialize } from 'src/algorithms/QC/qcRulesConfigValidate'
 import { treeDeserialize, treeValidate } from 'src/algorithms/tree/treeValidate'
 import { sanitizeRootSeq } from 'src/helpers/sanitizeRootSeq'
-import { geneMapDeserialize, geneMapValidate, getGeneMap } from 'src/io/getGeneMap'
+import { geneMapDeserialize, geneMapValidate, convertGeneMap } from 'src/io/convertGeneMap'
 import {
   setFasta,
   setGeneMap,
@@ -29,7 +29,11 @@ export function* loadFasta(input: AlgorithmInput) {
 export function* loadTree(input: AlgorithmInput) {
   const content = yield* call([input, input.getContent])
   const auspiceData = treeValidate(treeDeserialize(content))
-  return { auspiceData }
+
+  const geneMapJson = geneMapValidate(auspiceData.meta?.genome_annotations)
+  const geneMap = convertGeneMap(geneMapJson)
+
+  return { auspiceData, geneMap }
 }
 
 export function* loadRootSeq(input: AlgorithmInput) {
@@ -58,7 +62,7 @@ export function* loadGeneMap(input: AlgorithmInput) {
   const content = yield* call([input, input.getContent])
   const geneMapJsonDangerous = geneMapDeserialize(content)
   const geneMapJson = geneMapValidate(geneMapJsonDangerous)
-  const geneMap = getGeneMap(geneMapJson)
+  const geneMap = convertGeneMap(geneMapJson)
   return { geneMap }
 }
 
