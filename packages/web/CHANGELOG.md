@@ -1,3 +1,63 @@
+# [0.9.0](https://github.com/nextstrain/nextclade/compare/0.8.1...0.9.0) (2020-12-02)
+
+This release is focused on advanced users of Nextclade web application. On the main page you can find the new "Advanced mode" toggle, which opens access to the additional parameters. There you can set custom input data: reference tree, root sequences, QC parameters, and PCR primers. For each filed you can provide a local file, a URL to a remote file, or paste the data into the text box directly. Parameters that are left blank will be substituted from Nextclade's defaults. All data formats are shared with the command-line version of Nextclade CLI.
+
+You can find the full list of changes below:
+
+### Bug Fixes
+
+* avoid passing the DOM button click event to state ([6fb21de](https://github.com/nextstrain/nextclade/commit/6fb21dedf243f9a3d904f79f04e775d66386f9e0))
+* correct grammar ([dd8f5af](https://github.com/nextstrain/nextclade/commit/dd8f5af5a5c591a4815cdc74cdd27b2fb18fb4ab))
+* don't pass the custom props to DOM nodes ([cea8285](https://github.com/nextstrain/nextclade/commit/cea82859ddd55d15f3e05ea833824d6a8b016ec0))
+* don't pass the custom props to DOM nodes (more) ([47b6fe0](https://github.com/nextstrain/nextclade/commit/47b6fe087824b0555bb3397548916086eeea2573))
+* don't pass the custom props to DOM nodes (more) ([585642b](https://github.com/nextstrain/nextclade/commit/585642b6789904fc6f0bf1d87ae9918cc91a8705))
+* remove delay in navigation to results page when after file loaded ([855e285](https://github.com/nextstrain/nextclade/commit/855e285c90def92f4684071fdddaffca3c926658))
+
+
+### Features
+
+* add advanced mode toggle ([da3e3d8](https://github.com/nextstrain/nextclade/commit/da3e3d874fa19af0e05fee13866fda457090f84d))
+* add badges indicating default input state ([b6078fd](https://github.com/nextstrain/nextclade/commit/b6078fd146818ef0e127249c0760b9d4b3e929f1))
+* add button and modal to create new runs ([f3b4f72](https://github.com/nextstrain/nextclade/commit/f3b4f72006cb77e8c5efc6532076b9e42c78787e))
+* add mockup of advanced controls on main page ([31a3b30](https://github.com/nextstrain/nextclade/commit/31a3b301b12005f7a74a939fad68bbd5e2fefbf6))
+* add placeholder for previous results section  ([5260682](https://github.com/nextstrain/nextclade/commit/5260682c657e39bb4b5a2cbc890befd8e3a747d8))
+* add tooltip text for the run button ([5ba07ee](https://github.com/nextstrain/nextclade/commit/5ba07ee2a834d432e2293e558529b7b9a4fa422c))
+* add tooltips and visual helpers to improve file picker ux ([666a842](https://github.com/nextstrain/nextclade/commit/666a84258a829e05183402fa3a687179e2e95603))
+* align file picker header text ([5ff6eb5](https://github.com/nextstrain/nextclade/commit/5ff6eb5950677008a8426254daa6481f5f36c09c))
+* bail out of data processing early on fetch failure from url params ([6e5b9a4](https://github.com/nextstrain/nextclade/commit/6e5b9a4167e4de3e15ad300cd43aecd48ca7af7a))
+* center-align text ([fa72701](https://github.com/nextstrain/nextclade/commit/fa727015c05a19d01f8295e9f9bf17ad2fec164a))
+* connect input controls to new input param state ([5744fcb](https://github.com/nextstrain/nextclade/commit/5744fcb071b6f7e843947f7c20cde48c1feb4af8))
+* customize instruction and placeholder text on url and paste comps. ([2adbd92](https://github.com/nextstrain/nextclade/commit/2adbd9256fa0c5feae5c092a0aafa9ffcee0fa59))
+* dim placeholder text color ([6585a10](https://github.com/nextstrain/nextclade/commit/6585a10e501693c3f5714fba974ffe61020f8e7f))
+* disable virus selection dropdown and add a tooltip for it ([d3024c5](https://github.com/nextstrain/nextclade/commit/d3024c5ceb26d31d15c5e2f086dd7f10e527962b))
+* fetch inputs from user-provided URL  ([e352814](https://github.com/nextstrain/nextclade/commit/e352814b73436e7ff9ad60624380f26932afcc00))
+* handle errors in simple mode better ([417b11c](https://github.com/nextstrain/nextclade/commit/417b11c7b4a4046d7cd8979591ef07f1035a4181))
+* improve file picker layout ([6e99fbb](https://github.com/nextstrain/nextclade/commit/6e99fbb957ebc7134d13ea4bfeab0eeec254b904))
+* improve layout of main page ([29b99ef](https://github.com/nextstrain/nextclade/commit/29b99efe6864629e48c56ab9b585a0822a7a6dfb))
+* improve layout of network error messages, clarify the text ([fd18f34](https://github.com/nextstrain/nextclade/commit/fd18f34da4b858b83d236b0a49c90c17fea2dab5))
+* improve layout of tab-cards and URL tab body ([7775325](https://github.com/nextstrain/nextclade/commit/77753259cf4a749ed2610ed461b0a7c111aa695c))
+* improve layout of the "paste" tab panel ([d111a96](https://github.com/nextstrain/nextclade/commit/d111a966012568be5546c32992f20524cb405c38))
+* improve layout of the "url" tab panel ([a3eed14](https://github.com/nextstrain/nextclade/commit/a3eed147c679a2df8fa5b0d7ac0e7941209b060c))
+* improve layout of the file info component ([407fcd7](https://github.com/nextstrain/nextclade/commit/407fcd7a1645eba0c899399e3a2c279284a4a2bc))
+* improve layout of upload cards ([18a49c8](https://github.com/nextstrain/nextclade/commit/18a49c8d21982caffa736b627abff4f42175005a))
+* improve network error messages ([08f3f5f](https://github.com/nextstrain/nextclade/commit/08f3f5ff809abda59242aa23b5c5c7740879ba79))
+* improve uplolader text for case where data is provided as a string ([7f29bf4](https://github.com/nextstrain/nextclade/commit/7f29bf4ca2498fdf7cd57823819dd28b5a07200f))
+* increase feature box height ([9777ae6](https://github.com/nextstrain/nextclade/commit/9777ae6752fcbf411668a2c98ac00fc5d336f804))
+* increase file picker height ([1933511](https://github.com/nextstrain/nextclade/commit/1933511addf2c7d0a5cb8a794703099878c017ae))
+* indicate file upload with status text ([c40a76d](https://github.com/nextstrain/nextclade/commit/c40a76de2ea2512ac7dbb8bb75d0ba14825ca5b2))
+* launch algorithm on "Run" button click in advanced mode ([84afce2](https://github.com/nextstrain/nextclade/commit/84afce235d1c63c89e5f34d8a3e28a3a5c40c717))
+* load and process files in advanced mode ([fbb106c](https://github.com/nextstrain/nextclade/commit/fbb106cbb736ccdc4d7b560e0869631fd4081360))
+* make file pickers collapsible ([c51b4f8](https://github.com/nextstrain/nextclade/commit/c51b4f8c751dccb225c079fbe88647a38a07659f))
+* reduce spacing between cards ([9a94b51](https://github.com/nextstrain/nextclade/commit/9a94b51f01ace1f6599d4ecbde2f12b96060518e))
+* run automatically after example data is loaded ([d0c07d5](https://github.com/nextstrain/nextclade/commit/d0c07d57bbbbb8914c8eeeeacf1db65550517673))
+* run immediately after input is provided in simple mode ([5d68c73](https://github.com/nextstrain/nextclade/commit/5d68c73dce97992099c80132a37589bb221db52d))
+* show error alerts under file dialogs when there are errors ([6aa42be](https://github.com/nextstrain/nextclade/commit/6aa42be70c64d383778c2c3261c0928035ebbedb))
+* soften card shadows ([b50d2ee](https://github.com/nextstrain/nextclade/commit/b50d2eebc53268e8a75869241045d5ebf0281f72))
+* use new file picker in simple mode too ([9344d92](https://github.com/nextstrain/nextclade/commit/9344d923233956c37ea2ac1dfd4432dd27bf2149))
+* wrap text in text area for pasting sequences ([73540c5](https://github.com/nextstrain/nextclade/commit/73540c5e5452c5c235f7833f8a2e02bc293daefd))
+
+
+
 ## [0.8.1](https://github.com/nextstrain/nextclade/compare/0.8.0...0.8.1) (2020-11-12)
 
 This is a follow-up release, on top of version 0.8.0.

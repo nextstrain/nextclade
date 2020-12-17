@@ -60,10 +60,25 @@ export interface AminoacidSubstitution {
   queryAA: Aminoacid
   codon: number
   gene: string
+  nucRange: Range
+  refCodon: string
+  queryCodon: string
 }
 
-export interface SubstitutionsWithAminoacids extends NucleotideSubstitution {
+export interface AminoacidDeletion {
+  refAA: Aminoacid
+  codon: number
+  gene: string
+  nucRange: Range
+  refCodon: string
+}
+
+export interface NucleotideSubstitutionWithAminoacids extends NucleotideSubstitution {
   aaSubstitutions: AminoacidSubstitution[]
+}
+
+export interface NucleotideDeletionWithAminoacids extends NucleotideDeletion {
+  aaDeletions: AminoacidDeletion[]
 }
 
 export interface PcrPrimer {
@@ -81,7 +96,7 @@ export interface PcrPrimerChange {
   substitutions: NucleotideSubstitution[]
 }
 
-export interface SubstitutionsWithPrimers extends SubstitutionsWithAminoacids {
+export interface SubstitutionsWithPrimers extends NucleotideSubstitutionWithAminoacids {
   pcrPrimersChanged: PcrPrimer[]
 }
 
@@ -108,16 +123,18 @@ export interface AnalysisResultWithoutClade {
   seqName: string
   substitutions: SubstitutionsWithPrimers[]
   totalMutations: number
-  aminoacidChanges: AminoacidSubstitution[]
-  totalAminoacidChanges: number
   insertions: NucleotideInsertion[]
   totalInsertions: number
-  deletions: NucleotideDeletion[]
+  deletions: NucleotideDeletionWithAminoacids[]
   totalGaps: number
   missing: NucleotideMissing[]
   totalMissing: number
   nonACGTNs: NucleotideRange[]
   totalNonACGTNs: number
+  aaSubstitutions: AminoacidSubstitution[]
+  totalAminoacidSubstitutions: number
+  aaDeletions: AminoacidDeletion[]
+  totalAminoacidDeletions: number
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number
@@ -161,23 +178,4 @@ export interface Gene {
   color: string
   range: Range
   frame: number
-}
-
-export interface MutationElement extends SubstitutionsWithAminoacids {
-  seqName: string
-}
-
-export interface MutationElementWithId extends MutationElement {
-  id: string
-}
-
-export interface MissingElement {
-  seqName: string
-  character: Nucleotide
-  begin: number
-  end: number
-}
-
-export interface MissingElementWithId extends MissingElement {
-  id: string
 }

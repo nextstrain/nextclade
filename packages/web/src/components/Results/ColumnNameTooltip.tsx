@@ -7,9 +7,10 @@ import { formatRange } from 'src/helpers/formatRange'
 import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
 import { ListOfMutations } from 'src/components/Results/ListOfMutations'
-import { ListOfAminoacidChanges } from 'src/components/SequenceView/ListOfAminoacidChanges'
-import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
 import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
+import { ListOfAminoacidSubstitutions } from 'src/components/SequenceView/ListOfAminoacidSubstitutions'
+import { ListOfAminoacidDeletions } from 'src/components/SequenceView/ListOfAminoacidDeletions'
+import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
 import { ListOfInsertions } from './ListOfInsertions'
 
 export interface ColumnNameTooltipProps {
@@ -21,13 +22,14 @@ export function ColumnNameTooltip({ sequence }: ColumnNameTooltipProps) {
     seqName,
     clade,
     substitutions,
-    aminoacidChanges,
     deletions,
     insertions,
     missing,
     totalMissing,
     nonACGTNs,
     totalNonACGTNs,
+    aaSubstitutions,
+    aaDeletions,
     alignmentStart,
     alignmentEnd,
     alignmentScore,
@@ -65,7 +67,8 @@ export function ColumnNameTooltip({ sequence }: ColumnNameTooltipProps) {
           <ListOfMutations substitutions={substitutions} />
         </Col>
         <Col lg={6}>
-          <ListOfAminoacidChanges aminoacidChanges={aminoacidChanges} />
+          <ListOfAminoacidSubstitutions aminoacidSubstitutions={aaSubstitutions} />
+          <ListOfAminoacidDeletions aminoacidDeletions={aaDeletions} />
           <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
         </Col>
       </Row>
