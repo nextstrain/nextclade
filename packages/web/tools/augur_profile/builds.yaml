@@ -11,6 +11,7 @@ builds:
 
 custom_rules:
   - nextstrain_profiles/nextstrain/subsampling_ranges.smk
+  - nextstrain_profiles/nextstrain/download_preprocessed.smk
 
 title: "Your samples placed on a SARS-CoV-2 phylogeny"
 
