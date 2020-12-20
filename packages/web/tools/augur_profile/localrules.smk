@@ -1,4 +1,4 @@
-localrules: download, export_nextclade
+localrules: download, export_nextclade, download_metadata, download_filtered
 
 ruleorder: export_nextclade>finalize
 

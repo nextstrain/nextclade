@@ -15,6 +15,8 @@ custom_rules:
 
 title: 'Your samples placed on a SARS-CoV-2 phylogeny'
 
+S3_BUCKET: "nextstrain-ncov-private"
+
 filter:
   min_length: 28500
 
@@ -34,12 +36,12 @@ subsampling:
   nextclade:
     global_late:
       group_by: 'country year month'
-      min_date: '--min-date 2020-06-01'
+      min_date: '--min-date 2020-08-01'
       max_sequences: 1000
     global_early:
       group_by: 'region year month'
       max_sequences: 500
-      max_date: '--max-date 2020-05-31'
+      max_date: '--max-date 2020-07-31'
 
 traits:
   nextclade:
