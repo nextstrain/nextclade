@@ -1,3 +1,57 @@
+# [0.10.0](https://github.com/nextstrain/nextclade/compare/0.9.0...0.10.0) (2020-12-21)
+
+
+Nextclade (both, web and CLI versions) no longer uses or requires the standalone gene map file by default. Instead, it takes the corresponding information from `genome_annotations` field of the reference tree file (nowadays, this property is usually present in all Auspice JSON v2 files produced with Nextstrain's Augur). A standalone gene map file can still be provided, in which case it overrides the gene map found in the reference tree file.
+
+In some cases, when there were multiple mutations in the same codon, Nextclade has been reporting aminoacid changes incorrectly, as if these changes were in separate codons having the same position. The reported changes would then list this aminoacid mutation twice, with the same position, but with two different resulting aminoacids (which is impossible). We adjusted the detection of aminoacid changes by performing full translation of every gene, so this issue is now fixed.
+
+Nexclade now also reports aminoacid deletions. It no longer outputs `aminoacidChanges` field/column in JSON, CSV and TSV exports. Instead, it outputs separate `aaSubstitutions` and `aaDeletions` columns.
+
+Nexclade is now better suited for the analysis of viruses other than SARS-CoV-2. We briefly tested it with the Flu virus, however, more testing is required. Please reach out to developers if you are interested in the analysis of other viruses.  
+
+The default reference tree has been updated.
+
+
+### Bug Fixes
+
+* add download location and local rules ([fbf6adc](https://github.com/nextstrain/nextclade/commit/fbf6adcd4cde76626ee6dbfd829e7b293667f18b))
+* add reversion mutation to distance of attached tree nodes ([0889457](https://github.com/nextstrain/nextclade/commit/088945762bab189937134875715d1ef8f3bc3aea))
+* avoid buffer overflow by using positions relative to the gene start ([faf2a88](https://github.com/nextstrain/nextclade/commit/faf2a88f4e858e7a9667069a351c61b4c43ace33))
+* convert gene map to zero-based indices ([02b8b8e](https://github.com/nextstrain/nextclade/commit/02b8b8e13aadc8ba063869174c667f9b506ad6fb))
+* corect the nuc position calculation relative to gene start ([97e4508](https://github.com/nextstrain/nextclade/commit/97e450894edd87fcc74b09225fb5653a8b5bd10a))
+* correct deletion range end ([23b794c](https://github.com/nextstrain/nextclade/commit/23b794c84bbaf0c16d7e97e380528054c334f54f))
+* ensure only full-codon nuc dels are associated with the aa dels ([0448d1f](https://github.com/nextstrain/nextclade/commit/0448d1f16d3f6ca440c18fe0770b22aa94f0ebc0))
+* exclude aa deletions from aa substitutions ([bc188bd](https://github.com/nextstrain/nextclade/commit/bc188bd06aedd6fc016ada687ed67408cd5c0561))
+* fix arguments to intersection in aa Association ([b75ff5c](https://github.com/nextstrain/nextclade/commit/b75ff5c1ac2e0482ac3f4e1a972e3ea883976e17))
+* make sure query gene changes don't propagate to the ref gene ([61b9bf5](https://github.com/nextstrain/nextclade/commit/61b9bf5827bc1862ed74ef24111c1da4d7e81980))
+* make sure the gene ranges are semi-open ([3d9754a](https://github.com/nextstrain/nextclade/commit/3d9754a1e8f8bf375c97b9ffae551f9306681dff))
+* make sure the genes of the gene map are of correct length ([a737a5e](https://github.com/nextstrain/nextclade/commit/a737a5eab6a9d8d4b20e90d121e8fded9e5d4926))
+* only count nucleotide substitutions towards divergence during tree attachment ([2f2305d](https://github.com/nextstrain/nextclade/commit/2f2305db71cfbdb0eb2485c9549469ce9bbaba98))
+* rectify codon position calculation ([1e56a18](https://github.com/nextstrain/nextclade/commit/1e56a18934e0a4b075a3b029c9e23be524fbedc4))
+* revise clade names ([79541b4](https://github.com/nextstrain/nextclade/commit/79541b43b2e9beffe5a453b571941b44987cc88b))
+* revise clade names ([88e612d](https://github.com/nextstrain/nextclade/commit/88e612d0446e09d836f953be053e1fb1cc53b3b4))
+* update genome size when custom root sequence is provided ([680e44c](https://github.com/nextstrain/nextclade/commit/680e44cf98c00b36174c892eba9d0b684ff80028))
+
+
+### Features
+
+* adapt filtering UI for the new aa subs and dels ([db97f2b](https://github.com/nextstrain/nextclade/commit/db97f2b31b776a21301df6cf3ed8f5995783ef56))
+* adapt results serialization for the new aa subs and dels ([2be7de6](https://github.com/nextstrain/nextclade/commit/2be7de657aa25c5de6eee874d2d86591f347d899))
+* adapt results table UI for the new aa subs and dels ([89e40be](https://github.com/nextstrain/nextclade/commit/89e40be896b4ab5879df941ecc8fd31e7ad59a7e))
+* add aa deletions to the tree tooltips ([613971e](https://github.com/nextstrain/nextclade/commit/613971ef875a6619add2de2edc82eddedc1c4c3a))
+* add additional checks when loading gene map ([1d39b4e](https://github.com/nextstrain/nextclade/commit/1d39b4e9e207e170b28c9ef7da7751eb42e180d1))
+* add codons to the aa change objects ([d425981](https://github.com/nextstrain/nextclade/commit/d42598143c17e88f82810a6bd61c53c16a9e82e3))
+* add subclades ([24b0abc](https://github.com/nextstrain/nextclade/commit/24b0abc0c59be31a9fbe44a6892faa9081f19bdd))
+* guess unit of measurement of divergence ([8db8bde](https://github.com/nextstrain/nextclade/commit/8db8bde0e30a1d3f4531d88bc522f33901beac2b)), closes [/github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376](https://github.com//github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js/issues/L376)
+* improve reporting of bad codons ([66fc002](https://github.com/nextstrain/nextclade/commit/66fc002bf2e20584c41177a19d2e474ec88edd1f))
+* list partial codons as mutations to X ([16e11d9](https://github.com/nextstrain/nextclade/commit/16e11d9d08404ed99910a609c1ba1a2087c259ef))
+* re-associate nuc changes with their corresponding aa changes ([cc17a97](https://github.com/nextstrain/nextclade/commit/cc17a97bfe2506c3ddaf70d2386b06eef5ae069f))
+* reimplement aminoacid changes extraction, extract deletions ([7472109](https://github.com/nextstrain/nextclade/commit/74721090b4b9b773a6cf5d9fa3d714ad4f73925f))
+* take gene map from tree json ([9466d8f](https://github.com/nextstrain/nextclade/commit/9466d8fdcd8cad10fe5f65485a8a8a50a3fa640d))
+* truncate aminoacid changes lists in tooltips ([a383b4c](https://github.com/nextstrain/nextclade/commit/a383b4cbb509c3dfc76ecae47244d7e0867d8730))
+
+
+
 # [0.9.0](https://github.com/nextstrain/nextclade/compare/0.8.1...0.9.0) (2020-12-02)
 
 This release is focused on advanced users of Nextclade web application. On the main page you can find the new "Advanced mode" toggle, which opens access to the additional parameters. There you can set custom input data: reference tree, root sequences, QC parameters, and PCR primers. For each filed you can provide a local file, a URL to a remote file, or paste the data into the text box directly. Parameters that are left blank will be substituted from Nextclade's defaults. All data formats are shared with the command-line version of Nextclade CLI.
