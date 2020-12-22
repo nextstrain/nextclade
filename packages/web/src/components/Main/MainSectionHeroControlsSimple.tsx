@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 
 import { delay } from 'lodash'
 import { connect } from 'react-redux'
@@ -91,6 +91,8 @@ export function MainSectionHeroControlsDisconnected({
 }: MainSectionHeroControlsProps) {
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const [showResultsImport, setShowResultsImport] = useState(false)
+  const toggleShowResultsImport = useCallback(() => setShowResultsImport(!showResultsImport), [showResultsImport])
 
   function loadDefaultData() {
     setIsDirty(true)
@@ -111,45 +113,58 @@ export function MainSectionHeroControlsDisconnected({
 
   return (
     <div>
-      <Row>
-        <Col>
-          <FilePickerSimple
-            canCollapse={false}
-            defaultCollapsed={false}
-            icon={<FileIconFasta />}
-            text={t('Sequences')}
-            exampleUrl="https://example.com/sequences.fasta"
-            pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
-            input={params.raw.seqData}
-            onInput={onUpload}
-            errors={params.errors.seqData}
-            onRemove={removeFasta}
-            inputRef={inputRef}
-          />
-        </Col>
-      </Row>
+      {!showResultsImport && (
+        <Row>
+          <Col>
+            <FilePickerSimple
+              canCollapse={false}
+              defaultCollapsed={false}
+              icon={<FileIconFasta />}
+              text={t('Sequences')}
+              exampleUrl="https://example.com/sequences.fasta"
+              pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
+              input={params.raw.seqData}
+              onInput={onUpload}
+              errors={params.errors.seqData}
+              onRemove={removeFasta}
+              showBadge={false}
+              inputRef={inputRef}
+            />
+          </Col>
+        </Row>
+      )}
+
+      {showResultsImport && (
+        <Row>
+          <Col>
+            <FilePickerSimple
+              canCollapse={false}
+              defaultCollapsed={false}
+              icon={<FileIconJson />}
+              text={t('Results import')}
+              exampleUrl="https://example.com/nextclade.json"
+              pasteInstructions={t('Enter Nextclade results data in JSON format')}
+              input={params.raw.resultsJson}
+              onInput={onResultsUpload}
+              errors={params.errors.resultsJson}
+              onRemove={removeResultsJson}
+              showBadge={false}
+            />
+          </Col>
+        </Row>
+      )}
 
       <Row>
-        <Col>
-          <FilePickerSimple
-            canCollapse={false}
-            defaultCollapsed={false}
-            icon={<FileIconJson />}
-            text={t('Results import')}
-            exampleUrl="https://example.com/nextclade.json"
-            pasteInstructions={t('Enter Nextclade results data in JSON format')}
-            input={params.raw.resultsJson}
-            onInput={onResultsUpload}
-            errors={params.errors.resultsJson}
-            onRemove={removeResultsJson}
-          />
+        <Col xs={6}>
+          {!showResultsImport && (
+            <Button color="link" onClick={loadDefaultData}>
+              <small>{t('Show me an Example')}</small>
+            </Button>
+          )}
         </Col>
-      </Row>
-
-      <Row>
-        <Col>
-          <Button color="link" onClick={loadDefaultData}>
-            <small>{t('Show me an Example')}</small>
+        <Col xs={6} className="d-flex">
+          <Button className="ml-auto" color="link" onClick={toggleShowResultsImport}>
+            <small>{showResultsImport ? t('Run a new analysis') : t('Load previous results')}</small>
           </Button>
         </Col>
       </Row>

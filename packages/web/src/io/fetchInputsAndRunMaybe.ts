@@ -1,19 +1,12 @@
-import Axios, { AxiosError } from 'axios'
+import { AxiosError } from 'axios'
 import type { Router } from 'next/router'
 import type { Dispatch } from 'redux'
 
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import { AlgorithmInputString, HttpRequestError } from 'src/io/AlgorithmInput'
-import { errorAdd } from 'src/state/error/error.actions'
+import { fetchMaybe } from 'src/io/fetchMaybe'
 import { algorithmRunWithSequencesAsync, setIsDirty, setRootSeq, setTree } from 'src/state/algorithm/algorithm.actions'
-
-export async function fetchMaybe(url?: string): Promise<string | undefined> {
-  if (url) {
-    const { data } = await Axios.get<string | undefined>(url, { transformResponse: [] })
-    return data
-  }
-  return undefined
-}
+import { errorAdd } from 'src/state/error/error.actions'
 
 export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router) {
   const inputFastaUrl = takeFirstMaybe(router.query?.['input-fasta'])

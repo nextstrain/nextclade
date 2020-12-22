@@ -1,4 +1,5 @@
 import type { Router } from 'next/router'
+import { fetchResultsAndShowMaybe } from 'src/io/fetchResultsAndShowMaybe'
 
 import { configureStore } from 'src/state/store'
 import { createWorkerPools } from 'src/workers/createWorkerPools'
@@ -28,6 +29,8 @@ export async function initialize({ router }: InitializeParams) {
   store.dispatch(setLocale(localeKeyV2))
 
   showWhatsNewMaybe(lastVersionSeen, showWhatsnewOnUpdate, store.dispatch)
+
+  await fetchResultsAndShowMaybe(store.dispatch, router)
 
   await fetchInputsAndRunMaybe(store.dispatch, router)
 

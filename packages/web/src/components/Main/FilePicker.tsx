@@ -163,6 +163,7 @@ export interface FilePickerProps {
   inputRef?: Ref<HTMLInputElement | null>
   canCollapse?: boolean
   defaultCollapsed?: boolean
+  showBadge?: boolean
 
   onInput(input: AlgorithmInput): void
 
@@ -184,6 +185,7 @@ export function FilePicker({
   inputRef,
   canCollapse = true,
   defaultCollapsed = true,
+  showBadge = true,
 }: FilePickerProps) {
   const { t } = useTranslationSafe()
 
@@ -222,7 +224,8 @@ export function FilePicker({
     [shouldCollapse, t],
   )
 
-  const badge = useMemo(() => (canCollapse ? <BadgeDefault /> : <BadgeRequired />), [canCollapse])
+  const badge = useMemo(() => showBadge && (canCollapse ? <BadgeDefault /> :
+    <BadgeRequired />), [showBadge, canCollapse]) // prettier-ignore
 
   if (input) {
     return (
