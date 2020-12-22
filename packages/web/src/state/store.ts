@@ -1,3 +1,4 @@
+import { AlgorithmState } from 'src/state/algorithm/algorithm.state'
 import { format } from 'url'
 
 import type { Router } from 'next/router'

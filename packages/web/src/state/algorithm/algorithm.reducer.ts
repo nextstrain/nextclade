@@ -1,5 +1,6 @@
 import produce, { current } from 'immer'
 import { getVirus } from 'src/algorithms/defaults/viruses'
+import { deserializeJsonToResults } from 'src/io/deserializeResults'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import type { QCResult } from 'src/algorithms/QC/types'
@@ -37,6 +38,7 @@ import {
   removeTree,
   removeQcSettings,
   removeRootSeq,
+  setResultsJson,
 } from './algorithm.actions'
 import {
   algorithmDefaultState,
@@ -111,6 +113,11 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.resultsFiltered = runFilters(current(draft))
   })
 
+  .icase(setResultsJson.started, (draft, input) => {
+    draft.params.raw.resultsJson = input
+    draft.params.errors.seqData = []
+  })
+
   .icase(setFasta.started, (draft, input) => {
     draft.params.raw.seqData = input
     draft.params.errors.seqData = []
@@ -141,6 +148,12 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.errors.pcrPrimers = []
   })
 
+  .icase(setResultsJson.done, (draft, { result: { json } }) => {
+    const results = deserializeJsonToResults(json)
+    draft.results = results
+    draft.resultsFiltered = results
+  })
+
   .icase(setFasta.done, (draft, { result: { seqData } }) => {
     draft.params.seqData = seqData
   })
@@ -165,6 +178,10 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setPcrPrimers.done, (draft, { result: { pcrPrimers } }) => {
     draft.params.virus.pcrPrimers = pcrPrimers
+  })
+
+  .icase(setResultsJson.failed, (draft, { params: input, error }) => {
+    draft.params.errors.resultsJson = [error]
   })
 
   .icase(setFasta.failed, (draft, { params: input, error }) => {

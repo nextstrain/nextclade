@@ -26,13 +26,15 @@ import {
   setAlgorithmGlobalStatus,
   setFasta,
   setOutputTree,
+  setResultsJson,
+  showResultsAsync,
   treeFinalizeAsync,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
-import { loadFasta } from './algorithmInputs.sagas'
+import { loadFasta, loadResultsJson } from './algorithmInputs.sagas'
 import { State } from '../reducer'
 
 const parseSaga = fsaSagaFromParams(
@@ -147,7 +149,21 @@ export function* runAlgorithm() {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 }
 
+export function* showResults(input: AlgorithmInput) {
+  const loadResultsJsonSaga = fsaSaga(setResultsJson, loadResultsJson)
+  yield* loadResultsJsonSaga(setResultsJson.trigger(input))
+
+  const errors: Error[] = yield* select((state: State) => state.algorithm.params.errors.resultsJson)
+  if (errors.length > 0) {
+    return
+  }
+
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
+  yield* put(push('/results'))
+}
+
 export default [
   takeEvery(algorithmRunWithSequencesAsync.trigger, fsaSaga(algorithmRunWithSequencesAsync, runAlgorithmWithSequences)),
   takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
+  takeEvery(showResultsAsync.trigger, fsaSaga(showResultsAsync, showResults)),
 ]

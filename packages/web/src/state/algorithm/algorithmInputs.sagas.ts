@@ -1,5 +1,6 @@
 import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
 import { validatePcrPrimerEntries, validatePcrPrimers } from 'src/algorithms/primers/validatePcrPrimers'
+import { NextcladeJson } from 'src/io/deserializeResults'
 import { parseCsv } from 'src/io/parseCsv'
 import { call, select, takeEvery } from 'typed-redux-saga'
 
@@ -16,10 +17,17 @@ import {
   setGeneMap,
   setPcrPrimers,
   setQcSettings,
+  setResultsJson,
   setRootSeq,
   setTree,
 } from 'src/state/algorithm/algorithm.actions'
 import { State } from '../reducer'
+
+export function* loadResultsJson(input: AlgorithmInput) {
+  const str = yield* call([input, input.getContent])
+  const json = JSON.parse(str) as NextcladeJson // TODO: validate
+  return { json }
+}
 
 export function* loadFasta(input: AlgorithmInput) {
   const seqData = yield* call([input, input.getContent])
@@ -80,6 +88,7 @@ export function* loadPcrPrimers(input: AlgorithmInput) {
 }
 
 export default [
+  takeEvery(setResultsJson.trigger, fsaSaga(setResultsJson, loadResultsJson)),
   takeEvery(setFasta.trigger, fsaSaga(setFasta, loadFasta)),
   takeEvery(setTree.trigger, fsaSaga(setTree, loadTree)),
   takeEvery(setRootSeq.trigger, fsaSaga(setRootSeq, loadRootSeq)),

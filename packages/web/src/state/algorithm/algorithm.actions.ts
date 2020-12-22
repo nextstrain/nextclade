@@ -8,6 +8,7 @@ import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
+import type { NextcladeJson } from 'src/io/deserializeResults'
 
 import type { AlgorithmGlobalStatus, AlgorithmInput, CladeAssignmentResult } from './algorithm.state'
 
@@ -15,6 +16,7 @@ const action = actionCreatorFactory('Algorithm')
 
 export const setIsDirty = action<boolean>('setIsDirty')
 
+export const setResultsJson = action.async<AlgorithmInput, { json: NextcladeJson }, Error>('setResultsJson')
 export const setFasta = action.async<AlgorithmInput, { seqData: string }, Error>('setFasta')
 export const setTree = action.async<AlgorithmInput, { auspiceData: AuspiceJsonV2, geneMap: Gene[] }, Error>('setTree') // prettier-ignore
 export const setRootSeq = action.async<AlgorithmInput, { rootSeq: string }, Error>('setRootSeq')
@@ -22,6 +24,7 @@ export const setQcSettings = action.async<AlgorithmInput, { qcRulesConfig: QCRul
 export const setGeneMap = action.async<AlgorithmInput, { geneMap: Gene[] }, Error>('setGeneMap')
 export const setPcrPrimers = action.async<AlgorithmInput, { pcrPrimers: PcrPrimer[] }, Error>('setPcrPrimers') // prettier-ignore
 
+export const removeResultsJson = action('removeResultsJson')
 export const removeFasta = action('removeFasta')
 export const removeTree = action('removeTree')
 export const removeRootSeq = action('removeRootSeq')
@@ -32,6 +35,7 @@ export const removePcrPrimers = action('removePcrPrimers')
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
 export const algorithmRunAsync = action.async<void, void, Error>('algorithmRunAsync')
 export const algorithmRunWithSequencesAsync = action.async<AlgorithmInput, void, Error>('algorithmRunWithSequencesAsync') // prettier-ignore
+export const showResultsAsync = action.async<AlgorithmInput, void, Error>('showResultsAsync')
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<AnalysisParams, AnalysisResult, Error>('analyze')

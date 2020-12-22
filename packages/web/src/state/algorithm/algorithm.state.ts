@@ -66,6 +66,7 @@ export interface AlgorithmInput {
 
 export interface AlgorithmParams {
   raw: {
+    resultsJson?: AlgorithmInput
     seqData?: AlgorithmInput
     auspiceData?: AlgorithmInput
     rootSeq?: AlgorithmInput
@@ -74,6 +75,7 @@ export interface AlgorithmParams {
     pcrPrimers?: AlgorithmInput
   }
   errors: {
+    resultsJson: Error[]
     seqData: Error[]
     auspiceData: Error[]
     rootSeq: Error[]
@@ -107,6 +109,7 @@ export const algorithmDefaultState: AlgorithmState = {
   params: {
     raw: {},
     errors: {
+      resultsJson: [],
       seqData: [],
       auspiceData: [],
       rootSeq: [],
