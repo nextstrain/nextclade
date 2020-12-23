@@ -1,7 +1,7 @@
 /* eslint-disable no-loops/no-loops,no-plusplus */
 import { isMatch } from '../src/algorithms/nucleotideCodes'
 
-const NUCS = ['U', 'T', 'A', 'W', 'C', 'Y', 'M', 'H', 'G', 'K', 'R', 'D', 'S', 'B', 'V', 'N']
+const NUCS = ['U', 'T', 'A', 'W', 'C', 'Y', 'M', 'H', 'G', 'K', 'R', 'D', 'S', 'B', 'V', 'N', '-']
 const N = NUCS.length
 const indices = Array.from(Array(N).keys())
 

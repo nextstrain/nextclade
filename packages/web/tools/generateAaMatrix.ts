@@ -28,8 +28,9 @@ const AAS = [
   'W',
   'Y',
   'Z',
-  '*',
   'X',
+  '*',
+  '-',
 ]
 
 const ambiguities: Record<string, Set<string>> = {
