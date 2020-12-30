@@ -1,3 +1,8 @@
+export function sanitizeSequence(seq: string) {
+  // Trim contiguous Ns in the beginning and end
+  return seq.replace(/N+$/g, '').replace(/^N+/g, '')
+}
+
 export function addSequence(
   currentSeq: string,
   currentSeqName: string,
@@ -22,7 +27,7 @@ export function addSequence(
   }
 
   allNames.push(currentSeqName)
-  seqs[currentSeqName + suffix] = currentSeq
+  seqs[currentSeqName + suffix] = sanitizeSequence(currentSeq)
 }
 
 export function parseSequences(input: string) {
@@ -39,7 +44,7 @@ export function parseSequences(input: string) {
 
     if (line.startsWith('>')) {
       if (currentSeq.length > 0) {
-        addSequence(currentSeq.replace(/N+$/g, '').replace(/^N+/g, ''), currentSeqName, seqs, seqNames)
+        addSequence(currentSeq, currentSeqName, seqs, seqNames)
       }
       // eslint-disable-next-line unicorn/prefer-string-slice
       currentSeqName = line.substring(1, line.length)
@@ -52,7 +57,7 @@ export function parseSequences(input: string) {
   }
 
   if (currentSeq.length > 0) {
-    addSequence(currentSeq.replace(/N+$/g, '').replace(/^N+/g, ''), currentSeqName, seqs, seqNames)
+    addSequence(currentSeq, currentSeqName, seqs, seqNames)
   }
 
   return seqs
