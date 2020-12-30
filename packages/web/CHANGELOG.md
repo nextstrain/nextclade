@@ -1,3 +1,18 @@
+## [0.10.1](https://github.com/nextstrain/nextclade/compare/0.10.0...0.10.1) (2020-12-30)
+
+This release fixes a problem with input sequences with large chunks of `N` nucleotides at the edges.
+To ensure correctness of results, before alignment we now trim contiguous blocks of `N`s at the beginning and at the end of each sequence.
+
+Thanks [Stacia K Wyman](https://github.com/staciawyman) for the bug report.
+
+See also: [issue #285](https://github.com/nextstrain/nextclade/issues/285)
+
+### Bug Fixes
+
+* trim leading and trailing to void seed matching problems ([17a554a](https://github.com/nextstrain/nextclade/commit/17a554ab28a80679fb2931c6469843e014d5fcbe))
+
+
+
 # [0.10.0](https://github.com/nextstrain/nextclade/compare/0.9.0...0.10.0) (2020-12-21)
 
 
