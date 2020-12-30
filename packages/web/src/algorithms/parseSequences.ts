@@ -39,7 +39,7 @@ export function parseSequences(input: string) {
 
     if (line.startsWith('>')) {
       if (currentSeq.length > 0) {
-        addSequence(currentSeq, currentSeqName, seqs, seqNames)
+        addSequence(currentSeq.replace(/N+$/g, '').replace(/^N+/g, ''), currentSeqName, seqs, seqNames)
       }
       // eslint-disable-next-line unicorn/prefer-string-slice
       currentSeqName = line.substring(1, line.length)
@@ -52,7 +52,7 @@ export function parseSequences(input: string) {
   }
 
   if (currentSeq.length > 0) {
-    addSequence(currentSeq, currentSeqName, seqs, seqNames)
+    addSequence(currentSeq.replace(/N+$/g, '').replace(/^N+/g, ''), currentSeqName, seqs, seqNames)
   }
 
   return seqs
