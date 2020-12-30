@@ -1,3 +1,8 @@
+export function sanitizeSequence(seq: string) {
+  // Trim contiguous Ns in the beginning and end
+  return seq.replace(/N+$/g, '').replace(/^N+/g, '')
+}
+
 export function addSequence(
   currentSeq: string,
   currentSeqName: string,
@@ -22,7 +27,7 @@ export function addSequence(
   }
 
   allNames.push(currentSeqName)
-  seqs[currentSeqName + suffix] = currentSeq
+  seqs[currentSeqName + suffix] = sanitizeSequence(currentSeq)
 }
 
 export function parseSequences(input: string) {
