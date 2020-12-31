@@ -1,0 +1,19 @@
+--enable=warning,performance,portability
+--error-exitcode=0
+--force
+--inconclusive
+--inline-suppr
+--quiet
+--std=c++17
+--suppress=*:*3rdparty/*:*tests/*:*tmp/*:*temp/*
+--suppress=invalidPointerCast:*ieee754_comparison.h
+-i .build
+-i .conan
+-i .git
+-i .idea
+-i .ignore
+-i .vscode
+-i 3rdparty
+-i cmake
+-i temp
+-i tmp

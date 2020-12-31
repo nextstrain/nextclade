@@ -1,0 +1,16 @@
+[requires]
+benchmark/1.5.2
+boost_base/1.68.0@bincrafters/stable
+cxxopts/2.2.1
+fast-cpp-csv-parser/20191004
+fmt/7.1.0
+# gtest/1.10.0
+ms-gsl/3.1.0
+tbb/2020.3
+type_safe/0.2.1
+
+[generators]
+cmake
+txt
+cmake_find_package
+cmake_paths

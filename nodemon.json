@@ -1,0 +1,37 @@
+{
+  "quiet": true,
+  "legacyWatch": false,
+  "delay": 0.1,
+  "watch": [
+    ".clang-tidy",
+    ".cppcheck",
+    ".env",
+    ".env.example",
+    "CMakeLists.txt",
+    "Makefile",
+    "conanfile.txt",
+    "config/*",
+    "packages/cmake",
+    "packages/nextclade/CMakeLists.txt",
+    "packages/nextclade/include/nextclade/*",
+    "packages/nextclade/src/*",
+    "packages/nextclade/tests/*",
+    "packages/nextclade/tests/.clang-tidy",
+    "packages/nextclade/tests/CMakeLists.txt",
+    "packages/nextclade_cli/CMakeLists.txt",
+    "packages/nextclade_cli/src/*",
+    "scripts/*"
+  ],
+  "ext": ".c,.cpp,.h,.hpp,.cx,.cxx,.txt,.py,.cmake,.sh,.cppcheck,.clang-tidy,Makefile,.env,.env.example",
+  "ignore": [
+    ".build",
+    ".git",
+    ".ignore",
+    ".temp",
+    ".tmp",
+    "3rdparty",
+    "temp",
+    "tmp"
+  ],
+  "exec": "reset; bash -c \"CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:=Debug} ./scripts/build_locally.sh\" || cd ."
+}

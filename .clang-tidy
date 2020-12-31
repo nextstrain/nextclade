@@ -1,0 +1,6 @@
+---
+Checks: "*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-llvmlibc*,-fuchsia*,-readability-magic-numbers,-hicpp*,-llvm-header-guard,-google-readability-todo,-OCUnusedMacroInspection"
+HeaderFilterRegex: '^(?!emscripten\/|system\/|3rdparty\/).*$'
+AnalyzeTemporaryDtors: true
+UseColor: true
+...
