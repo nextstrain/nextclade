@@ -41,8 +41,7 @@ export interface GeneViewProps extends SVGProps<SVGRectElement> {
 
 export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
   const [showTooltip, setShowTooltip] = useState(false)
-  const { name, color, range: { begin, end } } = gene // prettier-ignore
-  const frame = begin % 3
+  const { name, color, range: { begin, end }, frame } = gene // prettier-ignore
   const width = Math.max(BASE_MIN_WIDTH_PX, (end - begin) * pixelsPerBase)
   const x = begin * pixelsPerBase
   const id = getSafeId('gene', { ...gene })

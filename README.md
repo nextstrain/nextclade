@@ -123,6 +123,26 @@ Nextclade is a simple web-tool to assign <a target="_blank" rel="noopener norefe
   </a>
 </p>
 
+## ⌨️ Command-line version
+
+Also try our CLI tool:
+
+<p>
+   📦
+   <a target="_blank" rel="noopener noreferrer" href="https://www.npmjs.com/package/@neherlab/nextclade" alt="Link to Nextclade NPM package">
+    @neherlab/nextclade
+  </a>
+</p>
+
+<p>
+   🐋
+   <a target="_blank" rel="noopener noreferrer" href="https://hub.docker.com/r/neherlab/nextclade" alt="Link to Nextclade on Docker Hub">
+    neherlab/nextclade
+  </a>
+</p>
+
+
+
 ## 🖥️ Developers guide
 
 ### Quick start

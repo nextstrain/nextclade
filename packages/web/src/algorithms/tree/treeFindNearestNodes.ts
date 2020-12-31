@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import type { Nucleotide, NucleotideSubstitution, AnalysisResultWithoutClade } from 'src/algorithms/types'
-import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended, MutationMap } from 'src/algorithms/tree/types'
+import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/enums'
 
 export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
@@ -12,15 +12,8 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
   let shared_sites = 0
 
   // Filter-out gaps, to prevent double counting
-  const nodeSubstitutions: MutationMap = new Map<number, Nucleotide>()
-  node.mutations?.forEach((v, k) => {
-    if (v !== '-') {
-      nodeSubstitutions.set(k, v)
-    }
-  })
-
   for (const qmut of seq.substitutions) {
-    const der = nodeSubstitutions.get(qmut.pos)
+    const der = node.substitutions?.get(qmut.pos)
     if (der) {
       // position is also mutated in node
       if (qmut.queryNuc === der) {
@@ -33,14 +26,14 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
   // determine the number of sites that are mutated in the node but missing in seq.
   // for these we can't tell whether the node agrees with seq
   let undetermined_sites = 0
-  for (const nmut of nodeSubstitutions) {
+  for (const nmut of node.substitutions ?? []) {
     const pos = nmut[0]
     if (!isSequenced(pos, seq)) {
       undetermined_sites += 1
     }
   }
 
-  const numMut = nodeSubstitutions.size ?? 0
+  const numMut = node.substitutions?.size ?? 0
   // calculate distance from set overlaps.
   return numMut + seq.substitutions.length - 2 * shared_differences - shared_sites - undetermined_sites
 }
@@ -52,12 +45,12 @@ export function findPrivateMutations(node: AuspiceTreeNodeExtended, seq: Analysi
 
   // This is effectively a set difference operation
   seq.substitutions.forEach((qmut) => {
-    if (!(node.mutations?.has(qmut.pos) && node.mutations?.get(qmut.pos) === qmut.queryNuc)) {
+    if (!(node.substitutions?.has(qmut.pos) && node.substitutions?.get(qmut.pos) === qmut.queryNuc)) {
       privateMutations.push(qmut)
     }
   })
 
-  for (const [pos, refNuc] of node?.mutations ?? []) {
+  for (const [pos, refNuc] of node?.substitutions ?? []) {
     if (!mutatedPositions.has(pos) && isSequenced(pos, seq)) {
       const queryNuc = root_seq[pos] as Nucleotide
       privateMutations.push({ pos, refNuc, queryNuc })

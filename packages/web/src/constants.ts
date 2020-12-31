@@ -22,8 +22,11 @@ export const URL_GITHUB_FRIENDLY = 'github.com/nextstrain/nextclade' as const
 
 export const URL_GITHUB_ISSUES = 'https://github.com/nextstrain/nextclade/issues' as const
 export const URL_GITHUB_ISSUES_FRIENDLY = 'github.com/nextstrain/nextclade/issues' as const
+export const URL_GITHUB_CHANGELOG = 'https://github.com/nextstrain/nextclade/blob/release/packages/web/CHANGELOG.md'
+export const URL_GITHUB_COMMITS = 'https://github.com/nextstrain/nextclade/commits/release'
 
-export const TWITTER_USERNAME = '@nextstrain' as const
+export const TWITTER_USERNAME_RAW = 'nextstrain' as const
+export const TWITTER_USERNAME_FRIENDLY = '@nextstrain' as const
 
 // Borrowed from Nextstrain Auspice
 // https://github.com/nextstrain/auspice/blob/05efebfd5eba8a7d086132cf8a182176118b7c28/src/util/globals.js#L90-L92

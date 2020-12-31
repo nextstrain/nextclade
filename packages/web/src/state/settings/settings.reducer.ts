@@ -1,7 +1,14 @@
 import { getVirus } from 'src/algorithms/defaults/viruses'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
-import { resetQcRulesConfig, setLocale, setQcRulesConfig } from 'src/state/settings/settings.actions'
+import {
+  resetQcRulesConfig,
+  setLastVersionSeen,
+  setLocale,
+  setQcRulesConfig,
+  setShowAdvancedControls,
+  setShowWhatsnewOnUpdate,
+} from 'src/state/settings/settings.actions'
 import { settingsDefaultState } from 'src/state/settings/settings.state'
 
 export const settingsReducer = reducerWithInitialState(settingsDefaultState)
@@ -18,4 +25,16 @@ export const settingsReducer = reducerWithInitialState(settingsDefaultState)
       console.warn('TODO: remove this action')
     }
     draft.qcRulesConfig = getVirus().qcRulesConfig
+  })
+
+  .icase(setShowWhatsnewOnUpdate, (draft, showWhatsnewOnUpdate) => {
+    draft.showWhatsnewOnUpdate = showWhatsnewOnUpdate
+  })
+
+  .icase(setLastVersionSeen, (draft, lastVersionSeen) => {
+    draft.lastVersionSeen = lastVersionSeen
+  })
+
+  .icase(setShowAdvancedControls, (draft, showAdvancedControls) => {
+    draft.showAdvancedControls = showAdvancedControls
   })

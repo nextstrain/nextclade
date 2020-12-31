@@ -239,7 +239,7 @@ export function ResultsFilterDisconnected({
               {t('By aminoacid changes')}
               <InputText
                 type="text"
-                placeholder="Ex.: ORF1b:P314L, S:, :84"
+                placeholder="Ex.: ORF1b:P314L, S:, :84, ORF1b:P314-"
                 value={aaFilter}
                 onChange={handleAAFilterChange}
                 autoComplete="off"

@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { groupBy, mapValues, set, unset } from 'lodash'
+import { groupBy, isEqual, mapValues, set, uniqWith, unset } from 'lodash'
 import copy from 'fast-copy'
 
 import i18n from 'src/i18n/i18n'
@@ -22,6 +22,8 @@ import { formatRange } from 'src/helpers/formatRange'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { parseMutationOrThrow } from 'src/algorithms/tree/parseMutationOrThrow'
 import { formatAAMutationWithoutGene, formatMutation } from 'src/helpers/formatMutation'
+import { GAP } from 'src/algorithms/nucleotides'
+import { AMINOACID_GAP } from 'src/algorithms/codonTable'
 import { isSequenced } from 'src/algorithms/tree/treeFindNearestNodes'
 
 const t = i18n.t.bind(i18n)
@@ -50,6 +52,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   const nucMutations: string[] = []
   let aminoacidMutationEntries: { gene: string; aaMut: string }[] = []
   const positionsCovered = new Set()
+  let totalNucMutations = 0
 
   for (const qmut of seq.substitutions) {
     const { pos, queryNuc } = qmut
@@ -70,7 +73,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
     if (refNuc) {
       const mut = formatMutation({ refNuc, pos, queryNuc })
       nucMutations.push(mut)
-
+      totalNucMutations += 1
       // TODO: these are amino acid mutations relative to reference. Double hits won't how up properly
       const aminoacidMutationEntriesNew = qmut.aaSubstitutions.map(({ codon, gene, queryAA, refAA }) => {
         const aaMut = formatAAMutationWithoutGene({ refAA, codon, queryAA })
@@ -80,6 +83,39 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
       aminoacidMutationEntries = [...aminoacidMutationEntries, ...aminoacidMutationEntriesNew]
     }
   }
+
+  for (const del of seq.deletions) {
+    for (let pos = del.start; pos < del.start + del.length; ++pos) {
+      const queryNuc = GAP
+      const der = node.mutations?.get(pos)
+      positionsCovered.add(pos)
+
+      let refNuc
+      if (der) {
+        if (queryNuc !== der) {
+          // shared site but states of node and seq differ
+          refNuc = der
+        }
+      } else {
+        // node does not have a mutation, but seq does -> compare to root
+        refNuc = root_seq[pos] as Nucleotide
+      }
+
+      if (refNuc) {
+        const mut = formatMutation({ refNuc, pos, queryNuc })
+        nucMutations.push(mut)
+
+        const aminoacidMutationEntriesNew = del.aaDeletions.map(({ codon, gene, refAA }) => {
+          const aaMut = formatAAMutationWithoutGene({ refAA, codon, queryAA: AMINOACID_GAP })
+          return { gene, aaMut }
+        })
+
+        aminoacidMutationEntries = [...aminoacidMutationEntries, ...aminoacidMutationEntriesNew]
+      }
+    }
+  }
+
+  aminoacidMutationEntries = uniqWith(aminoacidMutationEntries, isEqual)
 
   const aminoacidMutationsGrouped = groupBy(aminoacidMutationEntries, ({ gene }) => gene)
   const aminoacidMutationsFinal = mapValues(aminoacidMutationsGrouped, (aaMuts) => aaMuts.map(({ aaMut }) => aaMut))
@@ -95,21 +131,34 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
       const refNuc = root_seq[pos] as Nucleotide
       const mutStr = formatMutation({ refNuc: mut[1], pos, queryNuc: refNuc })
       nucMutations.push(mutStr)
+      totalNucMutations += 1
     }
   }
 
-  const totalNucMutations = nucMutations.length
   return { mutations, nucMutations, totalNucMutations }
 }
 
-export function attach_to_tree(result: AnalysisResult, nearestRefNode: AuspiceTreeNodeExtended, rootSeq: string) {
+export function attach_to_tree(
+  result: AnalysisResult,
+  nearestRefNode: AuspiceTreeNodeExtended,
+  rootSeq: string,
+  maxDivergence: number,
+) {
   if (isLeaf(nearestRefNode)) {
     addAuxiliaryNode(nearestRefNode)
   }
 
   const { mutations, nucMutations, totalNucMutations } = get_differences(nearestRefNode, result, rootSeq)
   const baseDiv = nearestRefNode.node_attrs?.div ?? 0
-  const div = baseDiv + totalNucMutations
+
+  // HACK: Guess the unit of measurement of divergence.
+  // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
+  //  Should be resolved upstream in augur/auspice.
+  let thisDiv = totalNucMutations // unit: number of substitutions
+  if (maxDivergence <= 5) {
+    thisDiv /= rootSeq.length // unit: number of substitutions per site
+  }
+  const div = baseDiv + thisDiv
 
   const new_node = get_node_struct(result)
   set(new_node, 'branch_attrs.mutations', mutations)
@@ -197,18 +246,31 @@ export function attachNewNodesRecursively(
   node: AuspiceTreeNodeExtended,
   results: AnalysisResultWithMatch[],
   rootSeq: string,
+  maxDivergence: number,
 ) {
   for (const child of node.children ?? []) {
-    attachNewNodesRecursively(child, results, rootSeq)
+    attachNewNodesRecursively(child, results, rootSeq, maxDivergence)
   }
 
   // We look for a matching result, by it's unique `id`
   const attachables = results.filter((result) => result.nearestTreeNodeId === node.id)
   attachables.forEach((attachable) => {
-    attach_to_tree(attachable, node, rootSeq)
+    attach_to_tree(attachable, node, rootSeq, maxDivergence)
   })
 
   return node
+}
+
+export function getMaxDivergence(node: AuspiceTreeNodeExtended) {
+  const div = node?.node_attrs?.div ?? -Infinity
+
+  let childDiv = -Infinity
+  for (const child of node?.children ?? []) {
+    const currChildDiv = getMaxDivergence(child)
+    childDiv = Math.max(childDiv, currChildDiv)
+  }
+
+  return Math.max(div, childDiv)
 }
 
 export interface FinalizeTreeParams {
@@ -223,6 +285,8 @@ export function treeAttachNodes({ auspiceData, results, rootSeq }: FinalizeTreeP
     throw new Error('Error: invalid tree: it does not contain any nodes')
   }
 
-  const tree = attachNewNodesRecursively(rootNode, results, rootSeq)
+  const maxDivergence = getMaxDivergence(rootNode)
+
+  const tree = attachNewNodesRecursively(rootNode, results, rootSeq, maxDivergence)
   return { ...auspiceData, tree }
 }

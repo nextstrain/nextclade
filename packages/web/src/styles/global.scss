@@ -15,7 +15,6 @@
 @import './components/MdxWrapper';
 @import './components/NavigationBar';
 @import './components/Results';
-@import './components/UploadZone';
 
 html,
 body {
@@ -27,13 +26,7 @@ html {
 }
 
 body {
-  // HACK: workaround for bootstrap modal adding padding-right when open
-  padding: 0 !important;
   background-color: $body-bg;
-}
-
-.modal-open {
-  overflow: scroll;
 }
 
 #__next {

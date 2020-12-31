@@ -1,4 +1,4 @@
-localrules: download, export_nextclade
+localrules: download, export_nextclade, download_metadata, download_filtered
 
 ruleorder: export_nextclade>finalize
 
@@ -38,8 +38,8 @@ rule export_nextclade:
 
 rule example_data:
     input:
-        sequences = rules.download.output.sequences,
-        metadata = rules.download.output.metadata,
+        sequences = rules.download_sequences.output.sequences,
+        metadata = rules.download_metadata.output.metadata,
     output:
         sequences = "results/{build_name}/example.fasta"
     log:
@@ -48,7 +48,7 @@ rule example_data:
         min_length = 20000,
         exclude_where = "genbank_accession='?'",
         min_date = "2020-07-01",
-        date = numeric_date(date.today())
+        date = date.today().strftime("%Y-%m-%d")
     shell:
         """
         augur filter \

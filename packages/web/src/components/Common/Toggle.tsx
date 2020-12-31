@@ -1,41 +1,40 @@
 import React, { useCallback } from 'react'
 
 import type { StrictOmit } from 'ts-essentials'
-import classNames from 'classnames'
 import styled from 'styled-components'
-import { CustomInput, CustomInputProps } from 'reactstrap'
+import ReactToggle, { ToggleProps as ReactToggleProps } from 'react-toggle'
+import 'react-toggle/style.css'
 
-export const ToggleBase = styled(CustomInput)`
-  padding: 0;
-  margin: 0;
+export const ToggleBase = styled(ReactToggle)<ReactToggleProps>`
+  &.react-toggle-custom {
+    & > .react-toggle-track {
+      background-color: #9c3434;
+    }
 
-  -moz-user-select: none;
-  -ms-user-select: none;
-  -o-user-select: none;
-  -webkit-user-select: none;
-  user-select: none;
+    &.react-toggle--checked > .react-toggle-track {
+      background-color: #459f25;
+    }
 
-  & input {
-    padding: 0;
-    margin: 0;
-    width: 0;
-    height: 0;
-    border: 0;
-  }
+    &:hover {
+      & > .react-toggle-track {
+        background-color: #b95353;
+      }
 
-  transform: scale(1.25) translateX(7px);
-
-  & .custom-control-label::before,
-  & .custom-control-label::after {
-    cursor: pointer;
+      &.react-toggle--checked > .react-toggle-track {
+        background-color: #5db240;
+      }
+    }
   }
 `
 
-export interface ToggleProps extends StrictOmit<CustomInputProps, 'type' | 'value'> {
+export interface TogglePropsWithoutChildren extends StrictOmit<ReactToggleProps, 'type' | 'value'> {
+  identifier: string
   onCheckedChanged: (checked: boolean) => void
 }
 
-export function Toggle({ className, onCheckedChanged, ...props }: ToggleProps) {
+export type ToggleProps = React.PropsWithChildren<TogglePropsWithoutChildren>
+
+export function Toggle({ identifier, className, onCheckedChanged, children, ...props }: ToggleProps) {
   const onChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       onCheckedChanged(e.target.checked)
@@ -43,13 +42,16 @@ export function Toggle({ className, onCheckedChanged, ...props }: ToggleProps) {
     [onCheckedChanged],
   )
 
-  return (
-    <ToggleBase
-      className={classNames('custom-switch', className)}
-      type="checkbox"
-      onChange={onChange}
-      title={'Disable this rule'}
-      {...props}
-    />
-  )
+  const Result = <ToggleBase id={identifier} className="react-toggle-custom" onChange={onChange} {...props} />
+
+  if (children) {
+    return (
+      <label htmlFor={identifier} className="d-flex m-0">
+        <span className="mr-2">{Result}</span>
+        {children}
+      </label>
+    )
+  }
+
+  return Result
 }

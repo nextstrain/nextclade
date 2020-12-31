@@ -8,7 +8,7 @@ import {
   PROJECT_DESCRIPTION,
   URL_SOCIAL_IMAGE,
   DOMAIN,
-  TWITTER_USERNAME,
+  TWITTER_USERNAME_FRIENDLY,
   URL_MANIFEST_JSON,
   URL_FAVICON,
 } from 'src/constants'
@@ -111,7 +111,7 @@ export default class Document extends NextDocument {
           <meta name="twitter:image:alt" content={PROJECT_DESCRIPTION} />
           <meta name="twitter:title" content={PROJECT_NAME} />
           <meta name="twitter:url" content={DOMAIN} />
-          <meta name="twitter:site" content={TWITTER_USERNAME} />
+          <meta name="twitter:site" content={TWITTER_USERNAME_FRIENDLY} />
         </Head>
 
         <body>
