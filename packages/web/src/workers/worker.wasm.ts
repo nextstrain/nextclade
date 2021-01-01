@@ -1,15 +1,18 @@
 import 'regenerator-runtime'
+
 import { isNumber } from 'lodash'
 import serializeJavascript from 'serialize-javascript'
 
+import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
 import type { EmscriptenRuntimeModule, MyModule } from 'src/workers/types2'
 
-import emscriptenJsRaw from 'src/wasm/nextclade.js'
-import wasmPath from 'src/wasm/nextclade.wasm'
+import emscriptenJsRaw from 'src/.generated/wasm/nextclade'
+import wasmPath from 'src/.generated/wasm/nextclade.wasm'
 
 export class WasmNativeError extends Error {}
+
 export class WasmNativeErrorUnknown extends Error {}
 
 export async function runWasmModule<T>(module: MyModule, runFunction: (module: MyModule) => T) {
@@ -29,11 +32,15 @@ export async function runWasmModule<T>(module: MyModule, runFunction: (module: M
 }
 
 export async function loadWasmModule(name: string): Promise<MyModule> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const js = emscriptenJsRaw as EmscriptenRuntimeModule
     const module = js({
-      locateFile: (path: string) => (path.endsWith('.wasm') ? wasmPath : path),
-      onRuntimeInitialized: () => resolve(module),
+      locateFile: (path: string) => {
+        return path.includes(name) && path.endsWith('.wasm') ? wasmPath : path
+      },
+      onRuntimeInitialized: () => {
+        resolve(module)
+      },
     })
   })
 }
@@ -41,7 +48,11 @@ export async function loadWasmModule(name: string): Promise<MyModule> {
 let module: MyModule | undefined
 
 export async function init() {
-  module = await loadWasmModule('nextclade')
+  try {
+    module = await loadWasmModule('nextclade')
+  } catch (error) {
+    console.error(error)
+  }
 }
 
 export function run() {
@@ -60,10 +71,16 @@ export function run() {
     console.info(module.getPerson())
     console.info(module.toString({ name: 'Alice', age: 27, foo: { bar: 2.74 } }))
 
-    module.kaboom()
+    // module.kaboom()
 
     return res
   })
 }
 
-expose({ init, run })
+const worker = { init, run }
+
+export type WasmWorker = typeof worker
+
+export type WasmWorkerThread = WasmWorker & Thread
+
+expose(worker)

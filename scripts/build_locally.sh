@@ -6,7 +6,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 shopt -s dotglob
-trap "exit" INT
+trap "echo Error; exit" INT
 
 # Install these for clang support:
 # sudo apt-get install --verbose-versions llvm-10 clang{,-tools,-tidy,-format}-10 llvm-10 libclang-common-10-dev
@@ -30,8 +30,10 @@ BUILD_PREFIX=""
 # Build type (default: Release)
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
 
+INSTALL_DIR="${PROJECT_ROOT_DIR}/packages/web/src/.generated"
+
 # Deduce conan build type from cmake build type
-CONAN_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+export CONAN_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 case ${CMAKE_BUILD_TYPE} in
   Debug|Release|RelWithDebInfo|MinSizeRelease) CONAN_BUILD_TYPE=${CMAKE_BUILD_TYPE} ;;
   ASAN|MSAN|TSAN|UBSAN) CONAN_BUILD_TYPE=RelWithDebInfo ;;
@@ -70,6 +72,27 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
 
   BUILD_SUFFIX="-Clang"
 fi
+
+# Whether to produce Webassembly with Emscripten
+export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
+EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
+EMCMAKE=""
+EMMAKE=""
+CONAN_COMPILER_SETTINGS=""
+BUILD_SUFFIX=""
+if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  CONAN_COMPILER_SETTINGS="\
+    --profile="${PROJECT_ROOT_DIR}/config/conan/conan_profile_emscripten_wasm.txt" \
+    -s compiler=clang \
+    -s compiler.version=${EMSDK_CLANG_VERSION} \
+  "
+
+  BUILD_SUFFIX="-Wasm"
+
+  EMCMAKE="emcmake"
+  EMMAKE="emmake"
+fi
+
 
 # Create build directory
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
@@ -138,7 +161,7 @@ pushd "${BUILD_DIR}" > /dev/null
     --build missing \
 
   print 92 "Generate build files";
-  ${CLANG_ANALYZER} cmake "${PROJECT_ROOT_DIR}" \
+  ${CLANG_ANALYZER} ${EMCMAKE} cmake "${PROJECT_ROOT_DIR}" \
     -DCMAKE_MODULE_PATH="${BUILD_DIR}" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \
@@ -149,26 +172,31 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTCLADE_BUILD_TESTS=1 \
 
   print 12 "Build";
-  ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
+  ${CLANG_ANALYZER} ${EMMAKE} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
+
+  print 30 "Install";
+  cmake --install "${BUILD_DIR}" --prefix "${INSTALL_DIR}"
 
 popd > /dev/null
 
 
-#print 25 "Run cppcheck";
-#. "${THIS_DIR}/cppcheck.sh"
+print 25 "Run cppcheck";
+. "${THIS_DIR}/cppcheck.sh"
 
 
-#pushd "${PROJECT_ROOT_DIR}" > /dev/null
-#  print 23 "Run tests";
-#  pushd "${BUILD_DIR}/packages/${PROJECT_NAME}/tests" > /dev/null
-#      eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-#  popd > /dev/null
-#
-#  print 27 "Run CLI";
-#  CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
-#  CLI_EXE="nextclade_cli"
-#  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_CLI_OPTIONS} || cd .
-#
-#  print 22 "Done";
-#
-#popd > /dev/null
+if [ "${NEXTCLADE_BUILD_WASM}" != "true" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
+
+  print 23 "Run tests";
+  pushd "${BUILD_DIR}/packages/${PROJECT_NAME}/tests" > /dev/null
+      eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+  popd > /dev/null
+
+  print 27 "Run CLI";
+  CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
+  CLI_EXE="nextclade_cli"
+  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_CLI_OPTIONS} || cd .
+fi
+
+print 22 "Done";
+
+
