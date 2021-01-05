@@ -93,7 +93,7 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
   const seedMatches = []
   for (let ni = 0; ni < nSeeds; ni++) {
     // generate kmers equally spaced on the query
-    const qPos = Math.round(margin + ((numberOfGoodPositions - 2 * margin) / (nSeeds - 1)) * ni)
+    const qPos = mapToGoodPositions[Math.round(margin + ((numberOfGoodPositions - 2 * margin) / (nSeeds - 1)) * ni)]
     const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref)
 
     // only use seeds that match at least 70%
