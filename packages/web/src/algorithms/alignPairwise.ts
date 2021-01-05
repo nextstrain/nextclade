@@ -49,11 +49,11 @@ export const alignmentParameters = {
 }
 
 // determine the position where a particular kmer (string of length k) matches the reference sequence
-function seedMatch(kmer: string, ref: string): SeedMatch {
+function seedMatch(kmer: string, ref: string, searchStart: number): SeedMatch {
   let tmpScore = 0
   let maxScore = 0
   let maxShift = -1
-  for (let shift = 0; shift < ref.length - kmer.length; shift++) {
+  for (let shift = searchStart; shift < ref.length - kmer.length; shift++) {
     tmpScore = 0
     for (let pos = 0; pos < kmer.length; pos++) {
       if (kmer[pos] === ref[shift + pos]) {
@@ -69,7 +69,7 @@ function seedMatch(kmer: string, ref: string): SeedMatch {
 }
 
 function seedAlignment(query: string, ref: string): SeedAlignment {
-  const nSeeds = 9
+  const nSeeds = 29
   const seedLength = 21
   const margin = ref.length > 3000 ? 30 : Math.round(ref.length / 100)
   const bandWidth = Math.min(ref.length, query.length)
@@ -91,14 +91,15 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
   const numberOfGoodPositions = mapToGoodPositions.length
 
   const seedMatches = []
+  let searchStart = 0
   for (let ni = 0; ni < nSeeds; ni++) {
     // generate kmers equally spaced on the query
     const qPos = mapToGoodPositions[Math.round(margin + ((numberOfGoodPositions - 2 * margin) / (nSeeds - 1)) * ni)]
-    const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref)
-
+    const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref, searchStart)
     // only use seeds that match at least 70%
     if (tmpMatch.score >= 0.9 * seedLength) {
       seedMatches.push([qPos, tmpMatch.shift, tmpMatch.shift - qPos, tmpMatch.score])
+      searchStart = tmpMatch.shift
     }
   }
 
