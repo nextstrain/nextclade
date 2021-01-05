@@ -78,10 +78,22 @@ function seedAlignment(query: string, ref: string): SeedAlignment {
     return { meanShift: 0, bandWidth }
   }
 
+  const mapToGoodPositions = []
+  let distanceToLastBadPos = 0
+  for (let i = 0; i < query.length; i++) {
+    if (query[i] === 'N') {
+      distanceToLastBadPos = -1
+    } else if (distanceToLastBadPos > seedLength) {
+      mapToGoodPositions.push(i - seedLength)
+    }
+    distanceToLastBadPos += 1
+  }
+  const numberOfGoodPositions = mapToGoodPositions.length
+
   const seedMatches = []
   for (let ni = 0; ni < nSeeds; ni++) {
     // generate kmers equally spaced on the query
-    const qPos = Math.round(margin + ((query.length - seedLength - 2 * margin) / (nSeeds - 1)) * ni)
+    const qPos = Math.round(margin + ((numberOfGoodPositions - 2 * margin) / (nSeeds - 1)) * ni)
     const tmpMatch = seedMatch(query.substring(qPos, qPos + seedLength), ref)
 
     // only use seeds that match at least 70%
