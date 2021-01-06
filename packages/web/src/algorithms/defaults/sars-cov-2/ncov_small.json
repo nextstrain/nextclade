@@ -23414,7 +23414,7 @@
                     "branch_attrs": {
                       "labels": {
                         "aa": "N: A220V; ORF10: V30L; ORF14: L67F; S: A222V",
-                        "clade": "20A.EU1"
+                        "clade": "20E (EU1)"
                       },
                       "mutations": {
                         "N": [
@@ -23472,7 +23472,7 @@
                             "value": "The Lighthouse Lab in Milton Keynes et al"
                           },
                           "clade_membership": {
-                            "value": "20A.EU1"
+                            "value": "20E (EU1)"
                           },
                           "country": {
                             "value": "United Kingdom"
@@ -23529,7 +23529,7 @@
                             "value": "Christian Beisel et al"
                           },
                           "clade_membership": {
-                            "value": "20A.EU1"
+                            "value": "20E (EU1)"
                           },
                           "country": {
                             "value": "Switzerland"
@@ -23596,7 +23596,7 @@
                                 "value": "Tze Minn Mak et al"
                               },
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "country": {
                                 "value": "Singapore"
@@ -23660,7 +23660,7 @@
                                 "value": "Xiaoyun Ren et al"
                               },
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "country": {
                                 "value": "New Zealand"
@@ -23722,7 +23722,7 @@
                                 "value": "Victor M Corman et al"
                               },
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "country": {
                                 "value": "Germany"
@@ -23784,7 +23784,7 @@
                                 "value": "Mar\u00eda de Toro et al"
                               },
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "country": {
                                 "value": "Spain"
@@ -23839,7 +23839,7 @@
                                     "value": "Antonio Rezusta L\u00f3pez et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Spain"
@@ -23891,7 +23891,7 @@
                                     "value": "Antonio Rezusta L\u00f3pez et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Spain"
@@ -23923,7 +23923,7 @@
                             "name": "NODE_0000128",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 12,
                               "subclade_membership": {
@@ -23989,7 +23989,7 @@
                                     "value": "Borges et al et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Portugal"
@@ -24042,7 +24042,7 @@
                                     "value": "Borges et al et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Portugal"
@@ -24074,7 +24074,7 @@
                             "name": "NODE_0000135",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 13,
                               "subclade_membership": {
@@ -24129,7 +24129,7 @@
                                     "value": "Parisi A. et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Italy"
@@ -24183,7 +24183,7 @@
                                     "value": "Victor M Corman et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Germany"
@@ -24254,7 +24254,7 @@
                                     "value": "in alphabetical order - Patrizia Annunziata et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Italy"
@@ -24286,7 +24286,7 @@
                             "name": "NODE_0000131",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 12,
                               "subclade_membership": {
@@ -24354,7 +24354,7 @@
                                     "value": "Xiaoyun Ren et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "New Zealand"
@@ -24396,7 +24396,7 @@
                                     "value": "Xiaoyun Ren et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "New Zealand"
@@ -24438,7 +24438,7 @@
                                     "value": "Xiaoyun Ren et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "New Zealand"
@@ -24470,7 +24470,7 @@
                             "name": "NODE_0000136",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 16,
                               "subclade_membership": {
@@ -24542,7 +24542,7 @@
                                     "value": "Bas Oude Munnink et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Netherlands"
@@ -24607,7 +24607,7 @@
                                     "value": "Bas Oude Munnink et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Netherlands"
@@ -24660,7 +24660,7 @@
                                     "value": "Bas Oude Munnink et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Netherlands"
@@ -24692,7 +24692,7 @@
                             "name": "NODE_0000159",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 17,
                               "subclade_membership": {
@@ -24750,7 +24750,7 @@
                                     "value": "Harper VanSteenhouse et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "United Kingdom"
@@ -24829,7 +24829,7 @@
                                         "value": "Kuo-Chien Tsao et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Taiwan"
@@ -24902,7 +24902,7 @@
                                             "value": "Department of Microbiology et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Sweden"
@@ -24968,7 +24968,7 @@
                                             "value": "Department of Microbiology et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Sweden"
@@ -25000,7 +25000,7 @@
                                     "name": "NODE_0000144",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 16,
                                       "subclade_membership": {
@@ -25056,7 +25056,7 @@
                                             "value": "M Rueca et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Italy"
@@ -25118,7 +25118,7 @@
                                             "value": "Adelaide Milani et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Italy"
@@ -25150,7 +25150,7 @@
                                     "name": "NODE_0000146",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 18,
                                       "subclade_membership": {
@@ -25218,7 +25218,7 @@
                                             "value": "in alphabetical order - Patrizia Annunziata et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Italy"
@@ -25276,7 +25276,7 @@
                                                 "value": "Maximilian Damagnez et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Germany"
@@ -25325,7 +25325,7 @@
                                                 "value": "Kathrine Stene-Johansen et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Norway"
@@ -25357,7 +25357,7 @@
                                         "name": "NODE_0000148",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 17,
                                           "subclade_membership": {
@@ -25379,7 +25379,7 @@
                                     "name": "NODE_0000147",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 15,
                                       "subclade_membership": {
@@ -25401,7 +25401,7 @@
                                 "name": "NODE_0000142",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 14,
                                   "subclade_membership": {
@@ -25421,7 +25421,7 @@
                             "name": "NODE_0000141",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 12,
                               "subclade_membership": {
@@ -25480,7 +25480,7 @@
                                     "value": "Chaoran Chen et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Switzerland"
@@ -25550,7 +25550,7 @@
                                         "value": "Elisa Martr\u00f3 et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Spain"
@@ -25602,7 +25602,7 @@
                                         "value": "Elisa Martr\u00f3 et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Spain"
@@ -25634,7 +25634,7 @@
                                 "name": "NODE_0000151",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 19,
                                   "subclade_membership": {
@@ -25703,7 +25703,7 @@
                                         "value": "Tze Minn Mak et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Singapore"
@@ -25755,7 +25755,7 @@
                                         "value": "Alan K.L. Tsang et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Hong Kong"
@@ -25787,7 +25787,7 @@
                                 "name": "NODE_0000154",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 20,
                                   "subclade_membership": {
@@ -25863,7 +25863,7 @@
                                         "value": "Ilhem Boutiba-Ben Boubaker et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Tunisia"
@@ -25919,7 +25919,7 @@
                                         "value": "Anke Wienecke-Baldacchino et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Luxembourg"
@@ -25974,7 +25974,7 @@
                                         "value": "Ilhem Boutiba-Ben Boubaker et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Tunisia"
@@ -26045,7 +26045,7 @@
                                         "value": "in alphabetical order - Patrizia Annunziata et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Italy"
@@ -26077,7 +26077,7 @@
                                 "name": "NODE_0000155",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 15,
                                   "subclade_membership": {
@@ -26098,7 +26098,7 @@
                             "name": "NODE_0000150",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 13,
                               "subclade_membership": {
@@ -26162,7 +26162,7 @@
                                     "value": "Antonin Bal et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "France"
@@ -26236,7 +26236,7 @@
                                         "value": "Antonio Rezusta L\u00f3pez et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Spain"
@@ -26293,7 +26293,7 @@
                                         "value": "Bas Oude Munnink et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Netherlands"
@@ -26366,7 +26366,7 @@
                                             "value": "Department of Microbiology et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Sweden"
@@ -26413,7 +26413,7 @@
                                             "value": "Department of Microbiology et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Sweden"
@@ -26445,7 +26445,7 @@
                                     "name": "NODE_0000167",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 19,
                                       "subclade_membership": {
@@ -26493,7 +26493,7 @@
                                             "value": "Michael Carr et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Ireland"
@@ -26550,7 +26550,7 @@
                                             "value": "Michael Carr et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Ireland"
@@ -26582,7 +26582,7 @@
                                     "name": "NODE_0000169",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 17,
                                       "subclade_membership": {
@@ -26629,7 +26629,7 @@
                                             "value": "Christian Beisel et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Switzerland"
@@ -26684,7 +26684,7 @@
                                                 "value": "Christian Beisel et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Switzerland"
@@ -26743,7 +26743,7 @@
                                                 "value": "Chaoran Chen et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Switzerland"
@@ -26775,7 +26775,7 @@
                                         "name": "NODE_0000165",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 17,
                                           "subclade_membership": {
@@ -26797,7 +26797,7 @@
                                     "name": "NODE_0000164",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 16,
                                       "subclade_membership": {
@@ -26819,7 +26819,7 @@
                                 "name": "NODE_0000162",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 15,
                                   "subclade_membership": {
@@ -26838,7 +26838,7 @@
                             "name": "NODE_0000161",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 12,
                               "subclade_membership": {
@@ -26890,7 +26890,7 @@
                                     "value": "Iglesias-Caballero et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Spain"
@@ -26946,7 +26946,7 @@
                                     "value": "Dar\u00edo Garc\u00eda de Viedma et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Spain"
@@ -27015,7 +27015,7 @@
                                     "value": "Antonin Bal et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "France"
@@ -27068,7 +27068,7 @@
                                     "value": "Gustavo Cilla et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Spain"
@@ -27175,7 +27175,7 @@
                                     "value": "Dar\u00edo Garc\u00eda de Viedma et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Spain"
@@ -27243,7 +27243,7 @@
                                     "value": "Borges et al et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Portugal"
@@ -27298,7 +27298,7 @@
                                     "value": "Kathrine Stene-Johansen et al"
                                   },
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "country": {
                                     "value": "Norway"
@@ -27349,7 +27349,7 @@
                                         "value": "Nick Vereecke et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Belgium"
@@ -27401,7 +27401,7 @@
                                         "value": "Laurens Lambrechts et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Belgium"
@@ -27433,7 +27433,7 @@
                                 "name": "NODE_0000182",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 13,
                                   "subclade_membership": {
@@ -27494,7 +27494,7 @@
                                         "value": "Jacquelyn Wynn et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "United Kingdom"
@@ -27554,7 +27554,7 @@
                                         "value": "Gustavo Cilla Eguiluz et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Spain"
@@ -27600,7 +27600,7 @@
                                         "value": "Anke Wienecke-Baldacchino et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Luxembourg"
@@ -27632,7 +27632,7 @@
                                 "name": "NODE_0000179",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 13,
                                   "subclade_membership": {
@@ -27699,7 +27699,7 @@
                                         "value": "Bas Oude Munnink et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Netherlands"
@@ -27766,7 +27766,7 @@
                                             "value": "Bas Oude Munnink et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Netherlands"
@@ -27833,7 +27833,7 @@
                                                 "value": "Victor M Corman et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Germany"
@@ -27892,7 +27892,7 @@
                                                 "value": "Victor M Corman et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Germany"
@@ -27950,7 +27950,7 @@
                                                 "value": "E Giombini et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Italy"
@@ -27982,7 +27982,7 @@
                                         "name": "NODE_0000187",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 15,
                                           "subclade_membership": {
@@ -28003,7 +28003,7 @@
                                     "name": "NODE_0000186",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 14,
                                       "subclade_membership": {
@@ -28025,7 +28025,7 @@
                                 "name": "NODE_0000185",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 13,
                                   "subclade_membership": {
@@ -28072,7 +28072,7 @@
                                         "value": "Darren L Smith et al B"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "United Kingdom"
@@ -28138,7 +28138,7 @@
                                         "value": "Anke Wienecke-Baldacchino et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "country": {
                                         "value": "Luxembourg"
@@ -28208,7 +28208,7 @@
                                             "value": "Alan K.L. Tsang et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Hong Kong"
@@ -28270,7 +28270,7 @@
                                             "value": "Michael Carr et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Ireland"
@@ -28343,7 +28343,7 @@
                                                 "value": "Michael Carr et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Ireland"
@@ -28389,7 +28389,7 @@
                                                 "value": "Michael Carr et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Ireland"
@@ -28466,7 +28466,7 @@
                                                 "value": "Michael Carr et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Ireland"
@@ -28498,7 +28498,7 @@
                                         "name": "NODE_0000195",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 19,
                                           "subclade_membership": {
@@ -28519,7 +28519,7 @@
                                     "name": "NODE_0000193",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 14,
                                       "subclade_membership": {
@@ -28571,7 +28571,7 @@
                                             "value": "Department of Microbiology et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Sweden"
@@ -28622,7 +28622,7 @@
                                                 "value": "Danish Covid-19 Genome Consortia et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Denmark"
@@ -28676,7 +28676,7 @@
                                                 "value": "Danish Covid-19 Genome Consortium et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Denmark"
@@ -28737,7 +28737,7 @@
                                                     "value": "Danish Covid-19 Genome Consortia et al"
                                                   },
                                                   "clade_membership": {
-                                                    "value": "20A.EU1"
+                                                    "value": "20E (EU1)"
                                                   },
                                                   "country": {
                                                     "value": "Denmark"
@@ -28818,7 +28818,7 @@
                                                             "value": "Danish Covid-19 Genome Consortium et al"
                                                           },
                                                           "clade_membership": {
-                                                            "value": "20A.EU1"
+                                                            "value": "20E (EU1)"
                                                           },
                                                           "country": {
                                                             "value": "Denmark"
@@ -28871,7 +28871,7 @@
                                                             "value": "Danish Covid-19 Genome Consortium et al"
                                                           },
                                                           "clade_membership": {
-                                                            "value": "20A.EU1"
+                                                            "value": "20E (EU1)"
                                                           },
                                                           "country": {
                                                             "value": "Denmark"
@@ -28903,7 +28903,7 @@
                                                     "name": "NODE_0000202",
                                                     "node_attrs": {
                                                       "clade_membership": {
-                                                        "value": "20A.EU1"
+                                                        "value": "20E (EU1)"
                                                       },
                                                       "div": 20,
                                                       "subclade_membership": {
@@ -28964,7 +28964,7 @@
                                                             "value": "Danish Covid-19 Genome Consortium et al"
                                                           },
                                                           "clade_membership": {
-                                                            "value": "20A.EU1"
+                                                            "value": "20E (EU1)"
                                                           },
                                                           "country": {
                                                             "value": "Denmark"
@@ -29017,7 +29017,7 @@
                                                             "value": "Danish Covid-19 Genome Consortium et al"
                                                           },
                                                           "clade_membership": {
-                                                            "value": "20A.EU1"
+                                                            "value": "20E (EU1)"
                                                           },
                                                           "country": {
                                                             "value": "Denmark"
@@ -29049,7 +29049,7 @@
                                                     "name": "NODE_0000203",
                                                     "node_attrs": {
                                                       "clade_membership": {
-                                                        "value": "20A.EU1"
+                                                        "value": "20E (EU1)"
                                                       },
                                                       "div": 19,
                                                       "subclade_membership": {
@@ -29071,7 +29071,7 @@
                                                 "name": "NODE_0000201",
                                                 "node_attrs": {
                                                   "clade_membership": {
-                                                    "value": "20A.EU1"
+                                                    "value": "20E (EU1)"
                                                   },
                                                   "div": 18,
                                                   "subclade_membership": {
@@ -29093,7 +29093,7 @@
                                             "name": "NODE_0000200",
                                             "node_attrs": {
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "div": 16,
                                               "subclade_membership": {
@@ -29115,7 +29115,7 @@
                                         "name": "NODE_0000198",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 15,
                                           "subclade_membership": {
@@ -29137,7 +29137,7 @@
                                     "name": "NODE_0000197",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 14,
                                       "subclade_membership": {
@@ -29195,7 +29195,7 @@
                                             "value": "Victor M Corman et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "Germany"
@@ -29237,7 +29237,7 @@
                                             "value": "Harper VanSteenhouse et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "United Kingdom"
@@ -29288,7 +29288,7 @@
                                             "value": "Catherine Moore et al A"
                                           },
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "country": {
                                             "value": "United Kingdom"
@@ -29355,7 +29355,7 @@
                                                 "value": "Lukas Zemaitis et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Lithuania"
@@ -29414,7 +29414,7 @@
                                                 "value": "Kathrine Stene-Johansen et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Norway"
@@ -29446,7 +29446,7 @@
                                         "name": "NODE_0000205",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 15,
                                           "subclade_membership": {
@@ -29514,7 +29514,7 @@
                                                 "value": "Catherine Moore et al A"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "United Kingdom"
@@ -29573,7 +29573,7 @@
                                                     "value": "Michael Carr et al"
                                                   },
                                                   "clade_membership": {
-                                                    "value": "20A.EU1"
+                                                    "value": "20E (EU1)"
                                                   },
                                                   "country": {
                                                     "value": "Ireland"
@@ -29615,7 +29615,7 @@
                                                     "value": "Michael Carr et al"
                                                   },
                                                   "clade_membership": {
-                                                    "value": "20A.EU1"
+                                                    "value": "20E (EU1)"
                                                   },
                                                   "country": {
                                                     "value": "Ireland"
@@ -29647,7 +29647,7 @@
                                             "name": "NODE_0000214",
                                             "node_attrs": {
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "div": 18,
                                               "subclade_membership": {
@@ -29669,7 +29669,7 @@
                                         "name": "NODE_0000213",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 15,
                                           "subclade_membership": {
@@ -29732,7 +29732,7 @@
                                                 "value": "Victor M Corman et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Germany"
@@ -29774,7 +29774,7 @@
                                                 "value": "Victor M Corman et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Germany"
@@ -29820,7 +29820,7 @@
                                                 "value": "Spott et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Germany"
@@ -29888,7 +29888,7 @@
                                                 "value": "Ariane D\u00fcx et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "Germany"
@@ -29920,7 +29920,7 @@
                                         "name": "NODE_0000209",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 17,
                                           "subclade_membership": {
@@ -29977,7 +29977,7 @@
                                                 "value": "PHE Covid Sequencing Team et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "United Kingdom"
@@ -30035,7 +30035,7 @@
                                                 "value": "Harper VanSteenhouse et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "United Kingdom"
@@ -30088,7 +30088,7 @@
                                                 "value": "Ben Temperton et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "United Kingdom"
@@ -30145,7 +30145,7 @@
                                                 "value": "Harper VanSteenhouse et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20A.EU1"
+                                                "value": "20E (EU1)"
                                               },
                                               "country": {
                                                 "value": "United Kingdom"
@@ -30177,7 +30177,7 @@
                                         "name": "NODE_0000216",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20A.EU1"
+                                            "value": "20E (EU1)"
                                           },
                                           "div": 15,
                                           "subclade_membership": {
@@ -30196,7 +30196,7 @@
                                     "name": "NODE_0000204",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20A.EU1"
+                                        "value": "20E (EU1)"
                                       },
                                       "div": 14,
                                       "subclade_membership": {
@@ -30215,7 +30215,7 @@
                                 "name": "NODE_0000189",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20A.EU1"
+                                    "value": "20E (EU1)"
                                   },
                                   "div": 13,
                                   "subclade_membership": {
@@ -30234,7 +30234,7 @@
                             "name": "NODE_0000172",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20A.EU1"
+                                "value": "20E (EU1)"
                               },
                               "div": 12,
                               "subclade_membership": {
@@ -30253,7 +30253,7 @@
                         "name": "NODE_0000127",
                         "node_attrs": {
                           "clade_membership": {
-                            "value": "20A.EU1"
+                            "value": "20E (EU1)"
                           },
                           "div": 11,
                           "subclade_membership": {
@@ -30272,7 +30272,7 @@
                     "name": "NODE_0000125",
                     "node_attrs": {
                       "clade_membership": {
-                        "value": "20A.EU1"
+                        "value": "20E (EU1)"
                       },
                       "div": 10,
                       "subclade_membership": {
@@ -35389,7 +35389,7 @@
                                     "branch_attrs": {
                                       "labels": {
                                         "aa": "N: T205I; ORF14: L52F; ORF1a: K3353R, S3675-, G3676-, F3677-; S: E484K, N501Y",
-                                        "clade": "20C/501Y.V2"
+                                        "clade": "20H/501Y.V2"
                                       },
                                       "mutations": {
                                         "N": [
@@ -35451,7 +35451,7 @@
                                             "value": "Susan Engelbrecht et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20C/501Y.V2"
+                                            "value": "20H/501Y.V2"
                                           },
                                           "country": {
                                             "value": "South Africa"
@@ -35493,7 +35493,7 @@
                                             "value": "Mohale T et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20C/501Y.V2"
+                                            "value": "20H/501Y.V2"
                                           },
                                           "country": {
                                             "value": "South Africa"
@@ -35565,7 +35565,7 @@
                                                 "value": "Giandhari J et al B"
                                               },
                                               "clade_membership": {
-                                                "value": "20C/501Y.V2"
+                                                "value": "20H/501Y.V2"
                                               },
                                               "country": {
                                                 "value": "South Africa"
@@ -35628,7 +35628,7 @@
                                                 "value": "Giandhari J et al B"
                                               },
                                               "clade_membership": {
-                                                "value": "20C/501Y.V2"
+                                                "value": "20H/501Y.V2"
                                               },
                                               "country": {
                                                 "value": "South Africa"
@@ -35709,7 +35709,7 @@
                                                 "value": "Arash Iranzadeh et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20C/501Y.V2"
+                                                "value": "20H/501Y.V2"
                                               },
                                               "country": {
                                                 "value": "South Africa"
@@ -35792,7 +35792,7 @@
                                                     "value": "Susan Engelbrecht et al"
                                                   },
                                                   "clade_membership": {
-                                                    "value": "20C/501Y.V2"
+                                                    "value": "20H/501Y.V2"
                                                   },
                                                   "country": {
                                                     "value": "South Africa"
@@ -35862,7 +35862,7 @@
                                                         "value": "Ae Kyung Park et al"
                                                       },
                                                       "clade_membership": {
-                                                        "value": "20C/501Y.V2"
+                                                        "value": "20H/501Y.V2"
                                                       },
                                                       "country": {
                                                         "value": "South Korea"
@@ -35895,7 +35895,7 @@
                                             "name": "NODE_0000366",
                                             "node_attrs": {
                                               "clade_membership": {
-                                                "value": "20C/501Y.V2"
+                                                "value": "20H/501Y.V2"
                                               },
                                               "div": 21,
                                               "subclade_membership": {
@@ -35915,7 +35915,7 @@
                                         "name": "NODE_0000365",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20C/501Y.V2"
+                                            "value": "20H/501Y.V2"
                                           },
                                           "div": 19,
                                           "subclade_membership": {
@@ -35934,7 +35934,7 @@
                                     "name": "NODE_0000363",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20C/501Y.V2"
+                                        "value": "20H/501Y.V2"
                                       },
                                       "div": 18,
                                       "subclade_membership": {
@@ -75858,7 +75858,7 @@
                             "branch_attrs": {
                               "labels": {
                                 "aa": "N: D3L; ORF1a: T1001I, A1708D, I2230T; ORF8: Q27*, R52I, Y73C; S: I68X, H69-, V70X, Y144-, N501Y, A570D, T716I, S982A, D1118H, *1274X",
-                                "clade": "20B/501Y.V1"
+                                "clade": "20I/501Y.V1"
                               },
                               "mutations": {
                                 "N": [
@@ -75972,7 +75972,7 @@
                                         "value": "Jeong-Min Kim et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "country": {
                                         "value": "South Korea"
@@ -76055,7 +76055,7 @@
                                         "value": "Sergio Buenestado Serrano et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "country": {
                                         "value": "Spain"
@@ -76097,7 +76097,7 @@
                                         "value": "The Lighthouse Lab in Milton Keynes et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "country": {
                                         "value": "United Kingdom"
@@ -76163,7 +76163,7 @@
                                         "value": "in alphabetical order - Patrizia Annunziata et al"
                                       },
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "country": {
                                         "value": "Italy"
@@ -76232,7 +76232,7 @@
                                             "value": "Raul Recio et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Spain"
@@ -76274,7 +76274,7 @@
                                             "value": "Sergio Buenestado Serrano et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Spain"
@@ -76306,7 +76306,7 @@
                                     "name": "NODE_0000744",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "div": 31,
                                       "subclade_membership": {
@@ -76367,7 +76367,7 @@
                                             "value": "Teemu Smura et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Finland"
@@ -76424,7 +76424,7 @@
                                             "value": "Department of Microbiology et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Sweden"
@@ -76456,7 +76456,7 @@
                                     "name": "NODE_0000756",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "div": 29,
                                       "subclade_membership": {
@@ -76520,7 +76520,7 @@
                                             "value": "Massab Umair et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Pakistan"
@@ -76573,7 +76573,7 @@
                                             "value": "Jacquelyn Wynn et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "United Kingdom"
@@ -76629,7 +76629,7 @@
                                             "value": "Massab Umair et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Pakistan"
@@ -76661,7 +76661,7 @@
                                     "name": "NODE_0000752",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "div": 29,
                                       "subclade_membership": {
@@ -76720,7 +76720,7 @@
                                             "value": "Borges et al et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Portugal"
@@ -76784,7 +76784,7 @@
                                             "value": "Department of Microbiology et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Sweden"
@@ -76855,7 +76855,7 @@
                                                 "value": "Michael Carr et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Ireland"
@@ -76927,7 +76927,7 @@
                                                     "value": "Neta S. Zuckerman et al"
                                                   },
                                                   "clade_membership": {
-                                                    "value": "20B/501Y.V1"
+                                                    "value": "20I/501Y.V1"
                                                   },
                                                   "country": {
                                                     "value": "Israel"
@@ -76984,7 +76984,7 @@
                                                     "value": "Samiha Al-Kharusi et al"
                                                   },
                                                   "clade_membership": {
-                                                    "value": "20B/501Y.V1"
+                                                    "value": "20I/501Y.V1"
                                                   },
                                                   "country": {
                                                     "value": "Oman"
@@ -77016,7 +77016,7 @@
                                             "name": "NODE_0000750",
                                             "node_attrs": {
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "div": 32,
                                               "subclade_membership": {
@@ -77038,7 +77038,7 @@
                                         "name": "NODE_0000749",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "div": 31,
                                           "subclade_membership": {
@@ -77060,7 +77060,7 @@
                                     "name": "NODE_0000747",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "div": 29,
                                       "subclade_membership": {
@@ -77120,7 +77120,7 @@
                                             "value": "Borges et al et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Portugal"
@@ -77179,7 +77179,7 @@
                                             "value": "Nikita S. D. Sahadeo et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Jamaica"
@@ -77232,7 +77232,7 @@
                                             "value": "Parisi A. et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Italy"
@@ -77286,7 +77286,7 @@
                                             "value": "Sergio Buenestado Serrano et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Spain"
@@ -77342,7 +77342,7 @@
                                             "value": "Borges et al et al"
                                           },
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "country": {
                                             "value": "Portugal"
@@ -77419,7 +77419,7 @@
                                                 "value": "Teemu Smura et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Finland"
@@ -77489,7 +77489,7 @@
                                                         "value": "Jeong-Min Kim et al"
                                                       },
                                                       "clade_membership": {
-                                                        "value": "20B/501Y.V1"
+                                                        "value": "20I/501Y.V1"
                                                       },
                                                       "country": {
                                                         "value": "South Korea"
@@ -77545,7 +77545,7 @@
                                                         "value": "Jeong-Min Kim et al"
                                                       },
                                                       "clade_membership": {
-                                                        "value": "20B/501Y.V1"
+                                                        "value": "20I/501Y.V1"
                                                       },
                                                       "country": {
                                                         "value": "South Korea"
@@ -77578,7 +77578,7 @@
                                             "name": "NODE_0000761",
                                             "node_attrs": {
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "div": 31,
                                               "subclade_membership": {
@@ -77600,7 +77600,7 @@
                                         "name": "NODE_0000760",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "div": 30,
                                           "subclade_membership": {
@@ -77666,7 +77666,7 @@
                                                 "value": "Alan K.L. Tsang et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Hong Kong"
@@ -77718,7 +77718,7 @@
                                                 "value": "Michael Carr et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Ireland"
@@ -77770,7 +77770,7 @@
                                                 "value": "Michael Carr et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Ireland"
@@ -77802,7 +77802,7 @@
                                         "name": "NODE_0000766",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "div": 30,
                                           "subclade_membership": {
@@ -77858,7 +77858,7 @@
                                                 "value": "Claudio Tavares Sacchi et al B"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Brazil"
@@ -77900,7 +77900,7 @@
                                                 "value": "Sandrine Moreira et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Canada"
@@ -77956,7 +77956,7 @@
                                                 "value": "Michael Carr et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Ireland"
@@ -78002,7 +78002,7 @@
                                                 "value": "Borges et al et al"
                                               },
                                               "clade_membership": {
-                                                "value": "20B/501Y.V1"
+                                                "value": "20I/501Y.V1"
                                               },
                                               "country": {
                                                 "value": "Portugal"
@@ -78034,7 +78034,7 @@
                                         "name": "NODE_0000768",
                                         "node_attrs": {
                                           "clade_membership": {
-                                            "value": "20B/501Y.V1"
+                                            "value": "20I/501Y.V1"
                                           },
                                           "div": 31,
                                           "subclade_membership": {
@@ -78056,7 +78056,7 @@
                                     "name": "NODE_0000757",
                                     "node_attrs": {
                                       "clade_membership": {
-                                        "value": "20B/501Y.V1"
+                                        "value": "20I/501Y.V1"
                                       },
                                       "div": 29,
                                       "subclade_membership": {
@@ -78075,7 +78075,7 @@
                                 "name": "NODE_0000742",
                                 "node_attrs": {
                                   "clade_membership": {
-                                    "value": "20B/501Y.V1"
+                                    "value": "20I/501Y.V1"
                                   },
                                   "div": 28,
                                   "subclade_membership": {
@@ -78094,7 +78094,7 @@
                             "name": "NODE_0000741",
                             "node_attrs": {
                               "clade_membership": {
-                                "value": "20B/501Y.V1"
+                                "value": "20I/501Y.V1"
                               },
                               "div": 27,
                               "subclade_membership": {
