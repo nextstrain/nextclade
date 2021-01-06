@@ -36,12 +36,10 @@ subsampling:
   nextclade:
     global_late:
       group_by: 'country year month'
-      min_date: '--min-date 2020-08-01'
       max_sequences: 1000
     global_early:
       group_by: 'region year month'
       max_sequences: 500
-      max_date: '--max-date 2020-07-31'
 
 traits:
   nextclade:
