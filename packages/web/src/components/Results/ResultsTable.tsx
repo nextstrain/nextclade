@@ -351,7 +351,7 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Clade')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-clade">
+            <ButtonHelp identifier="btn-help-col-clade" wide>
               <HelpTipsColumnClade />
             </ButtonHelp>
           </TableHeaderCell>
@@ -372,7 +372,9 @@ export function ResultsTableDisconnected({
               <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
             </TableHeaderCellContent>
             <ButtonHelp identifier="btn-help-col-nonacgtn">
-              <HelpTipsColumnNonAcgtn />
+              <div className="d-flex w-100">
+                <HelpTipsColumnNonAcgtn />
+              </div>
             </ButtonHelp>
           </TableHeaderCell>
 

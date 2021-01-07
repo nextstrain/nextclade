@@ -1,7 +1,12 @@
 import React, { PropsWithChildren } from 'react'
 
 import styled from 'styled-components'
-import { Popover as ReactstrapPopover, PopoverBody, PopoverProps } from 'reactstrap'
+import { Popover as ReactstrapPopover, PopoverBody as ReactstrapPopoverBody, PopoverProps } from 'reactstrap'
+
+const PopoverBody = styled(ReactstrapPopoverBody)`
+  display: block;
+  width: 100%;
+`
 
 export const Popover = styled(ReactstrapPopover).withConfig({
   shouldForwardProp: (prop) => prop !== 'wide',

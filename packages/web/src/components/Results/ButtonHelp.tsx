@@ -17,9 +17,10 @@ export const ButtonHelpStyle = styled(ButtonTransparent)`
 
 export interface ButtonHelpProps extends PropsWithChildren<ButtonProps> {
   identifier: string
+  wide?: boolean
 }
 
-export function ButtonHelp({ identifier, children }: ButtonHelpProps) {
+export function ButtonHelp({ identifier, children, wide }: ButtonHelpProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
   return (
@@ -30,7 +31,7 @@ export function ButtonHelp({ identifier, children }: ButtonHelpProps) {
     >
       {'?'}
       {children && (
-        <Tooltip isOpen={showTooltip} target={identifier} placement="bottom-end">
+        <Tooltip isOpen={showTooltip} target={identifier} placement="bottom-end" wide={wide}>
           {children}
         </Tooltip>
       )}
