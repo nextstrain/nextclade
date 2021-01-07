@@ -1,17 +1,32 @@
-## [0.11.0](https://github.com/nextstrain/nextclade/compare/0.10.1...0.11.0) (2021-01-07)
+## [0.11.1](https://github.com/nextstrain/nextclade/compare/0.10.1...0.11.1) (2021-01-07)
 
-This release updates the clade definitions for SARS-CoV-2 and improves seed matching by
+BREAKING CHANGE: Starting with this version Nextclade uses the new Nextstrain clade definitions for SARS-CoV-2. "What are the clades?" section on the main page was updated accordingly. For more information on the updated clade definitions, see our [blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming).
 
- * avoiding stretches of `N` when choosing seeds
- * increasing the number of seeds
- * reverting the trimming of terminal `N` to keep sequences unchanged.
+Additionally, Nextclade alignment algorithm was adjusted to correctly handle a few more corner cases. In particular, seed matching was improved to:
+ * avoid stretches of `N` when choosing seeds
+ * increase the number of seeds
 
-Thanks [Stacia K Wyman](https://github.com/staciawyman) and [Syed Muktadir Al Sium](https://github.com/sium007) for the bug reports.
+The trimming of terminal `N` characters (introduced in 0.10.1) was removed, because the new improvements also handle this case.
+
+Thanks [Stacia K Wyman](https://github.com/staciawyman) and [Syed Muktadir Al Sium](https://github.com/sium007) for the bug reports!
 
 See also: [issue #288](https://github.com/nextstrain/nextclade/issues/288)
 See also: [issue #290](https://github.com/nextstrain/nextclade/issues/290)
 
-For more information on the updated clade definitions, see the our [blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming).
+
+### Bug Fixes
+
+* actually use the map to good characters ([c3a0a2c](https://github.com/nextstrain/nextclade/commit/c3a0a2c658accae04ff527a1ef6c5ea097e2aafe))
+* remove old clades ([43f3c86](https://github.com/nextstrain/nextclade/commit/43f3c86a67d2b54ea19b4ab65637555f1f3c3894))
+
+
+### Features
+
+* add new clade schema ([5ab7054](https://github.com/nextstrain/nextclade/commit/5ab7054191a467694e6ba499a1b60e99ada7f738))
+* improve seed matching by logging good nucleotides ([ce62478](https://github.com/nextstrain/nextclade/commit/ce6247816e79d2c8c161f44346368cf9c42abd68))
+* increase number of seeds and reduce redundant seed search ([d1e0a2f](https://github.com/nextstrain/nextclade/commit/d1e0a2f15bc986e86996d4d62d48eb8fe556abd5))
+* update SARSCoV2 tree.json ([880223e](https://github.com/nextstrain/nextclade/commit/880223e49df863deab749aa0378339660a6f3735))
+
 
 ## [0.10.1](https://github.com/nextstrain/nextclade/compare/0.10.0...0.10.1) (2020-12-30)
 
@@ -72,7 +87,7 @@ The default reference tree has been updated.
 * add additional checks when loading gene map ([1d39b4e](https://github.com/nextstrain/nextclade/commit/1d39b4e9e207e170b28c9ef7da7751eb42e180d1))
 * add codons to the aa change objects ([d425981](https://github.com/nextstrain/nextclade/commit/d42598143c17e88f82810a6bd61c53c16a9e82e3))
 * add subclades ([24b0abc](https://github.com/nextstrain/nextclade/commit/24b0abc0c59be31a9fbe44a6892faa9081f19bdd))
-* guess unit of measurement of divergence ([8db8bde](https://github.com/nextstrain/nextclade/commit/8db8bde0e30a1d3f4531d88bc522f33901beac2b)), closes [/github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376](https://github.com//github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js/issues/L376)
+* guess unit of measurement of divergence ([8db8bde](https://github.com/nextstrain/nextclade/commit/8db8bde0e30a1d3f4531d88bc522f33901beac2b))
 * improve reporting of bad codons ([66fc002](https://github.com/nextstrain/nextclade/commit/66fc002bf2e20584c41177a19d2e474ec88edd1f))
 * list partial codons as mutations to X ([16e11d9](https://github.com/nextstrain/nextclade/commit/16e11d9d08404ed99910a609c1ba1a2087c259ef))
 * re-associate nuc changes with their corresponding aa changes ([cc17a97](https://github.com/nextstrain/nextclade/commit/cc17a97bfe2506c3ddaf70d2386b06eef5ae069f))
