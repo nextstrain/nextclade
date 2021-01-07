@@ -1,3 +1,16 @@
+## [0.11.0](https://github.com/nextstrain/nextclade/compare/0.10.1...0.11.0) (2021-01-07)
+
+This release updates the clade definitions for SARS-CoV-2 and improves seed matching by
+
+ * avoiding stretches of `N` when choosing seeds
+ * increasing the number of seeds
+ * reverting the trimming of terminal `N` to keep sequences unchanged.
+
+Thanks [Stacia K Wyman](https://github.com/staciawyman) and [Syed Muktadir Al Sium](https://github.com/sium007) for the bug reports.
+
+See also: [issue #288](https://github.com/nextstrain/nextclade/issues/288)
+See also: [issue #290](https://github.com/nextstrain/nextclade/issues/290)
+
 ## [0.10.1](https://github.com/nextstrain/nextclade/compare/0.10.0...0.10.1) (2020-12-30)
 
 This release fixes a problem with input sequences with large chunks of `N` nucleotides at the edges.
@@ -22,7 +35,7 @@ In some cases, when there were multiple mutations in the same codon, Nextclade h
 
 Nexclade now also reports aminoacid deletions. It no longer outputs `aminoacidChanges` field/column in JSON, CSV and TSV exports. Instead, it outputs separate `aaSubstitutions` and `aaDeletions` columns.
 
-Nexclade is now better suited for the analysis of viruses other than SARS-CoV-2. We briefly tested it with the Flu virus, however, more testing is required. Please reach out to developers if you are interested in the analysis of other viruses.  
+Nexclade is now better suited for the analysis of viruses other than SARS-CoV-2. We briefly tested it with the Flu virus, however, more testing is required. Please reach out to developers if you are interested in the analysis of other viruses.
 
 The default reference tree has been updated.
 
