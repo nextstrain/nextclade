@@ -11,6 +11,8 @@ Thanks [Stacia K Wyman](https://github.com/staciawyman) and [Syed Muktadir Al Si
 See also: [issue #288](https://github.com/nextstrain/nextclade/issues/288)
 See also: [issue #290](https://github.com/nextstrain/nextclade/issues/290)
 
+For more information on the updated clade definitions, see the our [blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming).
+
 ## [0.10.1](https://github.com/nextstrain/nextclade/compare/0.10.0...0.10.1) (2020-12-30)
 
 This release fixes a problem with input sequences with large chunks of `N` nucleotides at the edges.
