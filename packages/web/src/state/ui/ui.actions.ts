@@ -13,3 +13,7 @@ export const setTreeFilterPanelCollapsed = action<boolean>('setTreeFilterPanelCo
 export const setShowWhatsnew = action<boolean>('setShowWhatsnew')
 
 export const setShowNewRunPopup = action<boolean>('setShowNewRunPopup')
+
+export const setSequenceViewZoom = action<number>('setSequenceViewZoom')
+
+export const setSequenceViewPan = action<number>('setSequenceViewPan')

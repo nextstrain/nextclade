@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { ChangeEvent, memo, useCallback } from 'react'
 
 import { sum } from 'lodash'
 import { connect } from 'react-redux'
@@ -14,6 +14,7 @@ import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { Sorting } from 'src/helpers/sortResults'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
+import { setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
 
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
 
@@ -103,6 +104,7 @@ export const TableRow = styled.div<{ even?: boolean; backgroundColor?: string }>
   align-items: stretch;
   background-color: ${(props) => props.backgroundColor};
   box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
+  user-select: none;
 `
 
 export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
@@ -235,6 +237,8 @@ const TableRowMemo = memo(TableRowComponent, areEqual)
 const mapStateToProps = (state: State) => ({
   resultsFiltered: state.algorithm.resultsFiltered,
   filterPanelCollapsed: state.ui.filterPanelCollapsed,
+  sequenceViewZoom: state.ui.sequenceView.zoom,
+  sequenceViewPan: state.ui.sequenceView.pan,
 })
 
 const mapDispatchToProps = {
@@ -263,6 +267,9 @@ const mapDispatchToProps = {
 
   sortByTotalGapsAsc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.asc }),
   sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
+
+  setSequenceViewZoom,
+  setSequenceViewPan,
 }
 
 export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected))
@@ -286,6 +293,10 @@ export interface ResultProps {
   sortByTotalNsDesc(): void
   sortByTotalGapsAsc(): void
   sortByTotalGapsDesc(): void
+  sequenceViewZoom: number
+  setSequenceViewZoom(zoom: number): void
+  sequenceViewPan: number
+  setSequenceViewPan(zoom: number): void
 }
 
 export function ResultsTableDisconnected({
@@ -307,13 +318,56 @@ export function ResultsTableDisconnected({
   sortByTotalNsDesc,
   sortByTotalGapsAsc,
   sortByTotalGapsDesc,
+  sequenceViewZoom,
+  setSequenceViewZoom,
+  sequenceViewPan,
+  setSequenceViewPan,
 }: ResultProps) {
   const { t } = useTranslation()
-
   const data = resultsFiltered
+
+  const handleZoomChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const z = Number.parseInt(event.target.value, 10) / 100
+      setSequenceViewZoom(z)
+    },
+    [setSequenceViewZoom],
+  )
+
+  const handlePanChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const z = Number.parseInt(event.target.value, 10) / 100
+      setSequenceViewPan(z)
+    },
+    [setSequenceViewPan],
+  )
 
   return (
     <>
+      <div style={{ margin: '20px', width: '200px' }}>{sequenceViewZoom * 100}</div>
+      <div>
+        <input
+          type="range"
+          style={{ margin: '20px', width: '200px' }}
+          min={0}
+          max={100}
+          value={sequenceViewZoom * 100}
+          onChange={handleZoomChange}
+        />
+      </div>
+
+      <div style={{ margin: '20px', width: '200px' }}>{sequenceViewPan}</div>
+      <div>
+        <input
+          type="range"
+          style={{ margin: '20px', width: '200px' }}
+          min={0}
+          max={100}
+          value={sequenceViewPan * 100}
+          onChange={handlePanChange}
+        />
+      </div>
+
       <Table rounded={!filterPanelCollapsed}>
         <TableHeaderRow>
           <TableHeaderCell first basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>

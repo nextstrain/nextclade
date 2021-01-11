@@ -4,6 +4,8 @@ import { uiDefaultState } from 'src/state/ui/ui.state'
 import {
   setExportFormat,
   setFilterPanelCollapsed,
+  setSequenceViewPan,
+  setSequenceViewZoom,
   setShowNewRunPopup,
   setShowWhatsnew,
   setTreeFilterPanelCollapsed,
@@ -28,4 +30,12 @@ export const uiReducer = reducerWithInitialState(uiDefaultState)
 
   .icase(setShowNewRunPopup, (draft, showNewRunPopup) => {
     draft.showNewRunPopup = showNewRunPopup
+  })
+
+  .icase(setSequenceViewZoom, (draft, zoom) => {
+    draft.sequenceView.zoom = zoom
+  })
+
+  .icase(setSequenceViewPan, (draft, pan) => {
+    draft.sequenceView.pan = pan
   })

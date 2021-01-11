@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
@@ -10,6 +10,7 @@ import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerMissingEnds } from './SequenceMarkerMissingEnds'
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
 export const SequenceViewWrapper = styled.div`
   display: flex;
@@ -25,25 +26,25 @@ export const SequenceViewWrapper = styled.div`
 export const SequenceViewSVG = styled.svg`
   padding: 0;
   margin: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
 `
 
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
   genomeSize: number
+  zoom: number
+  pan: number
 }
 
 const mapStateToProps = (state: State) => ({
   genomeSize: state.algorithm.params.virus.genomeSize,
+  zoom: state.ui.sequenceView.zoom,
+  pan: state.ui.sequenceView.pan,
 })
 const mapDispatchToProps = {}
 
 export const SequenceViewUnsized = connect(mapStateToProps, mapDispatchToProps)(SequenceViewUnsizedDisconnected)
 
-export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }: SequenceViewProps) {
+export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize, zoom, pan }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd } = sequence
 
   if (!width) {
@@ -55,6 +56,7 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
   }
 
   const pixelsPerBase = width / genomeSize
+  const pixelPan = pan * width
 
   const mutationViews = substitutions.map((substitution) => {
     return (
@@ -100,7 +102,7 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
 
   return (
     <SequenceViewWrapper>
-      <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
+      <SequenceViewSVG width={width} height={30} viewBox={`${pixelPan} 0 ${width * zoom} 10`}>
         <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
         {missingEndViews}
         {mutationViews}

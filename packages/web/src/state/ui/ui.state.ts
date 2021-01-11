@@ -6,6 +6,10 @@ export enum ExportFormat {
 }
 
 export interface UiState {
+  sequenceView: {
+    zoom: number
+    pan: number
+  }
   filterPanelCollapsed: boolean
   treeFilterPanelCollapsed: boolean
   exportFormat: ExportFormat
@@ -14,6 +18,10 @@ export interface UiState {
 }
 
 export const uiDefaultState: UiState = {
+  sequenceView: {
+    zoom: 1,
+    pan: 0,
+  },
   filterPanelCollapsed: true,
   treeFilterPanelCollapsed: true,
   exportFormat: ExportFormat.CSV,
