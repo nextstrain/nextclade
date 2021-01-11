@@ -89,7 +89,6 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
       const queryNuc = GAP
       const der = node.mutations?.get(pos)
       positionsCovered.add(pos)
-
       let refNuc
       if (der) {
         if (queryNuc !== der) {
@@ -127,7 +126,7 @@ export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResu
   for (const mut of node.mutations ?? []) {
     const pos = mut[0]
     // mutation in node that is not present in node
-    if (!positionsCovered.has(pos) && isSequenced(pos, seq)) {
+    if (!positionsCovered.has(pos) && isSequenced(pos, seq) && mut[1] !== GAP) {
       const refNuc = root_seq[pos] as Nucleotide
       const mutStr = formatMutation({ refNuc: mut[1], pos, queryNuc: refNuc })
       nucMutations.push(mutStr)
