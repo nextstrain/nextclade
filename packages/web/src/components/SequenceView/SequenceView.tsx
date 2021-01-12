@@ -5,13 +5,13 @@ import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
+import { setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
 import { HorizontalDragScroll } from 'src/components/Common/HorizontalDragScroll'
 import type { AnalysisResult } from 'src/algorithms/types'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerMissingEnds } from './SequenceMarkerMissingEnds'
-import { setSequenceViewPan } from 'src/state/ui/ui.actions'
 
 export const SequenceViewWrapper = styled(HorizontalDragScroll)`
   display: flex;
@@ -35,6 +35,7 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   zoom: number
   pan: number
   setSequenceViewPan(pan: number): void
+  setSequenceViewZoom(pan: number): void
 }
 
 const mapStateToProps = (state: State) => ({
@@ -45,6 +46,7 @@ const mapStateToProps = (state: State) => ({
 
 const mapDispatchToProps = {
   setSequenceViewPan,
+  setSequenceViewZoom,
 }
 
 export const SequenceViewUnsized = connect(mapStateToProps, mapDispatchToProps)(SequenceViewUnsizedDisconnected)
@@ -56,6 +58,7 @@ export function SequenceViewUnsizedDisconnected({
   zoom,
   pan,
   setSequenceViewPan,
+  setSequenceViewZoom,
 }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd } = sequence
 
@@ -66,9 +69,16 @@ export function SequenceViewUnsizedDisconnected({
     [pan, setSequenceViewPan],
   )
 
+  const handleWheel = useCallback(
+    (delta: number) => {
+      setSequenceViewZoom(zoom - 0.0005 * delta)
+    },
+    [zoom, setSequenceViewZoom],
+  )
+
   if (!width) {
     return (
-      <SequenceViewWrapper onScroll={handleScroll}>
+      <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
         <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
       </SequenceViewWrapper>
     )
@@ -120,7 +130,7 @@ export function SequenceViewUnsizedDisconnected({
   })
 
   return (
-    <SequenceViewWrapper onScroll={handleScroll}>
+    <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
       <SequenceViewSVG width={width} height={30} viewBox={`${pixelPan} 0 ${width * zoom} 10`}>
         <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
         {missingEndViews}

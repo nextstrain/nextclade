@@ -15,9 +15,15 @@ const Draggable = styled.div<{ $dragged: boolean }>`
 
 export interface DragScrollProps {
   onScroll(delta: number): void
+  onWheel(delta: number): void
 }
 
-export function HorizontalDragScroll({ children, onScroll, ...restProps }: PropsWithChildren<DragScrollProps>) {
+export function HorizontalDragScroll({
+  children,
+  onScroll,
+  onWheel,
+  ...restProps
+}: PropsWithChildren<DragScrollProps>) {
   const [mouseState, setMouseState] = useState(MouseState.up)
 
   const onMouseDown = useCallback(() => setMouseState(MouseState.down), [])
@@ -35,12 +41,23 @@ export function HorizontalDragScroll({ children, onScroll, ...restProps }: Props
     [mouseState, onScroll],
   )
 
+  const handleWheel = useCallback(
+    (e: React.WheelEvent<HTMLDivElement>) => {
+      if (e.shiftKey) {
+        const delta = e.deltaY
+        onWheel(delta)
+      }
+    },
+    [onWheel],
+  )
+
   return (
     <Draggable
       $dragged={dragged}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onMouseMove={onMouseMove}
+      onWheel={handleWheel}
       {...restProps}
     >
       {children}
