@@ -1,10 +1,17 @@
 import React, { PropsWithChildren, useCallback, useState } from 'react'
 
+import styled from 'styled-components'
+
 export enum MouseState {
   up,
   down,
   moving,
 }
+
+const Draggable = styled.div<{ $dragged: boolean }>`
+  cursor: ${(props) => props.$dragged && 'grabbing'};
+  user-select: ${(props) => props.$dragged && 'none'};
+`
 
 export interface DragScrollProps {
   onScroll(delta: number): void
@@ -15,6 +22,7 @@ export function HorizontalDragScroll({ children, onScroll, ...restProps }: Props
 
   const onMouseDown = useCallback(() => setMouseState(MouseState.down), [])
   const onMouseUp = useCallback(() => setMouseState(MouseState.up), [])
+  const dragged = mouseState === MouseState.moving
 
   const onMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -28,9 +36,14 @@ export function HorizontalDragScroll({ children, onScroll, ...restProps }: Props
   )
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-    <div onMouseDown={onMouseDown} onMouseUp={onMouseUp} onMouseMove={onMouseMove} {...restProps}>
+    <Draggable
+      $dragged={dragged}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onMouseMove={onMouseMove}
+      {...restProps}
+    >
       {children}
-    </div>
+    </Draggable>
   )
 }
