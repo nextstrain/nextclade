@@ -1,3 +1,15 @@
+## [0.11.2](https://github.com/nextstrain/nextclade/compare/0.11.1...0.11.2) (2021-01-18)
+
+This release updates default reference tree and adds new clade designations.
+
+Additionally, it fixes a problem of excess divergence in cases where there are gaps in the reference node we attach to. These gaps no longer contribute to divergence.
+
+### Bug Fixes
+
+* avoid counting every gap in a new node as one divergence unit ([51bfce6](https://github.com/nextstrain/nextclade/commit/51bfce6bfd66e783cca5f2c5cd93bf6b07b6dfde))
+
+
+
 ## [0.11.1](https://github.com/nextstrain/nextclade/compare/0.10.1...0.11.1) (2021-01-07)
 
 BREAKING CHANGE: Starting with this version Nextclade uses the new Nextstrain clade definitions for SARS-CoV-2. "What are the clades?" section on the main page was updated accordingly. For more information on the updated clade definitions, see our [blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming).

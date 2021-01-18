@@ -1,6 +1,6 @@
 {
   "name": "@neherlab/nextclade",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
