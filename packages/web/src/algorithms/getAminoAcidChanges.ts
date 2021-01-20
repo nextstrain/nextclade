@@ -10,6 +10,7 @@ import type {
   NucleotideSubstitutionWithAminoacids,
   Range,
 } from './types'
+import { GAP } from './nucleotides'
 import { AMINOACID_GAP, getCodon } from './codonTable'
 import { haveIntersectionStrict, inRange } from './haveIntersectionStrict'
 
@@ -51,16 +52,34 @@ export function reconstructGeneSequences(
     // Check deletion range bounds to prevent overflowing the gene range
     const begin = Math.max(geneBegin, delBegin)
     const end = Math.min(geneEnd, delEnd)
+    const frame = (begin - geneBegin) % 3
 
     // TODO: invariant(begin > 0)
     // TODO: invariant(begin <= end)
     // TODO: invariant(end - begin <= queryGene.length)
 
-    // Fill deletion range with gaps
-    for (let pos = begin; pos < end; ++pos) {
-      const genePos = pos - geneBegin // Position relative to the gene start
-      if (genePos >= 0 && genePos < queryGene.length) {
-        queryGene[genePos] = AMINOACID_GAP
+    // handle out-of-frame but not frame-shifting deletions
+    if (frame && delLength % 3 === 0) {
+      let genePos = begin - geneBegin
+      for (let pos = end - (3 - frame); pos < end; ++pos) {
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = queryGene[genePos + delLength]
+        }
+        genePos++
+      }
+      for (let gap = 0; gap < delLength; ++gap) {
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = GAP
+        }
+        genePos++
+      }
+    } else {
+      // Fill deletion range with gaps
+      for (let pos = begin; pos < end; ++pos) {
+        const genePos = pos - geneBegin // Position relative to the gene start
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = GAP
+        }
       }
     }
   }
