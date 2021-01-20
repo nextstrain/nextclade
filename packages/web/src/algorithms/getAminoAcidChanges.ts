@@ -14,6 +14,9 @@ import { GAP } from './nucleotides'
 import { AMINOACID_GAP, getCodon } from './codonTable'
 import { haveIntersectionStrict, inRange } from './haveIntersectionStrict'
 
+// dictionary to look up preferred codon patching by startOfGene and startOfDeletion
+const preferredCodonPatches = { 21562: { 21993: 'right' } }
+
 /**
  * Reconstructs the query gene sequence with insertions removed and deletions filled with gaps,
  * also returns reference gene sequence.
@@ -59,11 +62,11 @@ export function reconstructGeneSequences(
     // TODO: invariant(end - begin <= queryGene.length)
 
     // handle out-of-frame but not frame-shifting deletions
-    let shiftForward = true
-    if (geneBegin === 21562 && begin === 21993) {
-      shiftForward = false
+    let patchDirection = 'left'
+    if (preferredCodonPatches[geneBegin] && preferredCodonPatches[geneBegin][begin]) {
+      patchDirection = preferredCodonPatches[geneBegin][begin]
     }
-    if (frame && delLength % 3 === 0 && shiftForward) {
+    if (frame && delLength % 3 === 0 && patchDirection === 'left') {
       let genePos = begin - geneBegin
       for (let pos = end - (3 - frame); pos < end; ++pos) {
         if (genePos >= 0 && genePos < queryGene.length) {
@@ -77,7 +80,7 @@ export function reconstructGeneSequences(
         }
         genePos++
       }
-    } else if (frame && delLength % 3 === 0 && !shiftForward) {
+    } else if (frame && delLength % 3 === 0 && patchDirection === 'right') {
       let genePos = begin - geneBegin - frame + delLength
       for (let pos = begin - frame; pos < begin; ++pos) {
         if (genePos >= 0 && genePos < queryGene.length) {
