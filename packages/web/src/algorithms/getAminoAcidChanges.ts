@@ -59,7 +59,11 @@ export function reconstructGeneSequences(
     // TODO: invariant(end - begin <= queryGene.length)
 
     // handle out-of-frame but not frame-shifting deletions
-    if (frame && delLength % 3 === 0) {
+    let shiftForward = true
+    if (geneBegin === 21562 && begin === 21993) {
+      shiftForward = false
+    }
+    if (frame && delLength % 3 === 0 && shiftForward) {
       let genePos = begin - geneBegin
       for (let pos = end - (3 - frame); pos < end; ++pos) {
         if (genePos >= 0 && genePos < queryGene.length) {
@@ -67,6 +71,21 @@ export function reconstructGeneSequences(
         }
         genePos++
       }
+      for (let gap = 0; gap < delLength; ++gap) {
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = GAP
+        }
+        genePos++
+      }
+    } else if (frame && delLength % 3 === 0 && !shiftForward) {
+      let genePos = begin - geneBegin - frame + delLength
+      for (let pos = begin - frame; pos < begin; ++pos) {
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = queryGene[genePos - delLength]
+        }
+        genePos++
+      }
+      genePos = begin - geneBegin - frame
       for (let gap = 0; gap < delLength; ++gap) {
         if (genePos >= 0 && genePos < queryGene.length) {
           queryGene[genePos] = GAP
