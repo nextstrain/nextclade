@@ -10,8 +10,34 @@ import type {
   NucleotideSubstitutionWithAminoacids,
   Range,
 } from './types'
+import { GAP } from './nucleotides'
 import { AMINOACID_GAP, getCodon } from './codonTable'
 import { haveIntersectionStrict, inRange } from './haveIntersectionStrict'
+
+export enum PatchDirection {
+  left,
+  right,
+}
+
+const DEFAULT_PATCH_DIRECTION = PatchDirection.left
+
+export interface PreferredPatchDirectionDatum {
+  geneName: string
+  delStart: number
+  patchDirection: PatchDirection
+}
+
+// look up preferred codon patching by gene name and deletion start
+const KNOWN_PREFERRED_PATCH_DIRECTIONS: PreferredPatchDirectionDatum[] = [
+  { geneName: 'S', delStart: 21993, patchDirection: PatchDirection.right },
+]
+
+export function getPatchDirection(geneName: string, delStart: number): PatchDirection {
+  const foundDirection = KNOWN_PREFERRED_PATCH_DIRECTIONS.find(
+    (candidate) => candidate.geneName === geneName && candidate.delStart === delStart,
+  )
+  return foundDirection?.patchDirection ?? DEFAULT_PATCH_DIRECTION
+}
 
 /**
  * Reconstructs the query gene sequence with insertions removed and deletions filled with gaps,
@@ -51,16 +77,51 @@ export function reconstructGeneSequences(
     // Check deletion range bounds to prevent overflowing the gene range
     const begin = Math.max(geneBegin, delBegin)
     const end = Math.min(geneEnd, delEnd)
+    const frame = (begin - geneBegin) % 3
 
     // TODO: invariant(begin > 0)
     // TODO: invariant(begin <= end)
     // TODO: invariant(end - begin <= queryGene.length)
 
-    // Fill deletion range with gaps
-    for (let pos = begin; pos < end; ++pos) {
-      const genePos = pos - geneBegin // Position relative to the gene start
-      if (genePos >= 0 && genePos < queryGene.length) {
-        queryGene[genePos] = AMINOACID_GAP
+    // handle out-of-frame but not frame-shifting deletions
+    const patchDirection = getPatchDirection(gene.name, begin)
+    const isOutOfFrameButNotShifting = frame > 0 && delLength % 3 === 0
+    if (isOutOfFrameButNotShifting && patchDirection === PatchDirection.left) {
+      let genePos = begin - geneBegin
+      for (let pos = end - (3 - frame); pos < end; ++pos) {
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = queryGene[genePos + delLength]
+        }
+        genePos++
+      }
+      for (let gap = 0; gap < delLength; ++gap) {
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = GAP
+        }
+        genePos++
+      }
+    } else if (isOutOfFrameButNotShifting && patchDirection === PatchDirection.right) {
+      let genePos = begin - geneBegin - frame + delLength
+      for (let pos = begin - frame; pos < begin; ++pos) {
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = queryGene[genePos - delLength]
+        }
+        genePos++
+      }
+      genePos = begin - geneBegin - frame
+      for (let gap = 0; gap < delLength; ++gap) {
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = GAP
+        }
+        genePos++
+      }
+    } else {
+      // Fill deletion range with gaps
+      for (let pos = begin; pos < end; ++pos) {
+        const genePos = pos - geneBegin // Position relative to the gene start
+        if (genePos >= 0 && genePos < queryGene.length) {
+          queryGene[genePos] = GAP
+        }
       }
     }
   }
