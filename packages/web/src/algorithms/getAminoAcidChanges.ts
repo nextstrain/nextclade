@@ -14,8 +14,30 @@ import { GAP } from './nucleotides'
 import { AMINOACID_GAP, getCodon } from './codonTable'
 import { haveIntersectionStrict, inRange } from './haveIntersectionStrict'
 
-// dictionary to look up preferred codon patching by startOfGene and startOfDeletion
-const preferredCodonPatches = { 21562: { 21993: 'right' } }
+export enum PatchDirection {
+  left,
+  right,
+}
+
+const DEFAULT_PATCH_DIRECTION = PatchDirection.left
+
+export interface PreferredPatchDirectionDatum {
+  geneStart: number
+  delStart: number
+  patchDirection: PatchDirection
+}
+
+// look up preferred codon patching by gene and deletion start
+const KNOWN_PREFERRED_PATCH_DIRECTIONS: PreferredPatchDirectionDatum[] = [
+  { geneStart: 21562, delStart: 21993, patchDirection: PatchDirection.right },
+]
+
+export function getPatchDirection(geneStart: number, delStart: number): PatchDirection {
+  const foundDirection = KNOWN_PREFERRED_PATCH_DIRECTIONS.find(
+    (candidate) => candidate.geneStart === geneStart && candidate.delStart === delStart,
+  )
+  return foundDirection?.patchDirection ?? DEFAULT_PATCH_DIRECTION
+}
 
 /**
  * Reconstructs the query gene sequence with insertions removed and deletions filled with gaps,
@@ -62,11 +84,9 @@ export function reconstructGeneSequences(
     // TODO: invariant(end - begin <= queryGene.length)
 
     // handle out-of-frame but not frame-shifting deletions
-    let patchDirection = 'left'
-    if (preferredCodonPatches[geneBegin] && preferredCodonPatches[geneBegin][begin]) {
-      patchDirection = preferredCodonPatches[geneBegin][begin]
-    }
-    if (frame && delLength % 3 === 0 && patchDirection === 'left') {
+    const patchDirection = getPatchDirection(geneBegin, begin)
+    const TODO_renameMe = frame === 0 && delLength % 3 === 0
+    if (TODO_renameMe && patchDirection === PatchDirection.left) {
       let genePos = begin - geneBegin
       for (let pos = end - (3 - frame); pos < end; ++pos) {
         if (genePos >= 0 && genePos < queryGene.length) {
@@ -80,7 +100,7 @@ export function reconstructGeneSequences(
         }
         genePos++
       }
-    } else if (frame && delLength % 3 === 0 && patchDirection === 'right') {
+    } else if (TODO_renameMe && patchDirection === PatchDirection.right) {
       let genePos = begin - geneBegin - frame + delLength
       for (let pos = begin - frame; pos < begin; ++pos) {
         if (genePos >= 0 && genePos < queryGene.length) {
