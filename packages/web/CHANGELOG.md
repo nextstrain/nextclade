@@ -1,3 +1,30 @@
+# [0.12.0](https://github.com/nextstrain/nextclade/compare/0.11.2...0.12.0) (2021-01-21)
+
+This release provides a temporary solution for the problem when certain aminoacid deletions are not being detected properly.
+
+We now maintain a list of "patches" to selectively modify the sequence during translation: the partial codons at the beginning and end of the deletion are combined to one complete codon. This way, deletions that start within a codon no longer result in invalid peptides, and some of the well-known deletions are now properly recognized.
+
+See pull request [#308](https://github.com/nextstrain/nextclade/pull/308)
+
+Thanks [@bede](https://github.com/bede), [@dbrandtner](https://github.com/dbrandtner), [@giuseppina950](https://github.com/giuseppina950), [@iskandr](https://github.com/iskandr), [@SarahNadeau](https://github.com/SarahNadeau) for their reports.
+
+At the same time we are working on a more permanent solution.
+
+Please report issues and leave feedback on [GitHub](https://github.com/nextstrain/nextclade/issues)
+
+### Bug Fixes
+
+* rename variable and fix condition ([40ba67f](https://github.com/nextstrain/nextclade/commit/40ba67f18ef17fa464c8dd70aae72d7025e88ff9))
+
+
+### Features
+
+* allow codon padding to happen forward and backward for custom cases ([945ca77](https://github.com/nextstrain/nextclade/commit/945ca77074b109f7688cbd677b05f8ff64b64613))
+* properly translate out-of-frame gaps ([c34a640](https://github.com/nextstrain/nextclade/commit/c34a640586992e547eca71720b10790247b4d340))
+* refactor the codon patching by gene and deletion start: ([7e258d8](https://github.com/nextstrain/nextclade/commit/7e258d8b6de671d90922480fe9893803139b867c))
+
+
+
 ## [0.11.2](https://github.com/nextstrain/nextclade/compare/0.11.1...0.11.2) (2021-01-18)
 
 This release updates default reference tree and adds new clade designations.
