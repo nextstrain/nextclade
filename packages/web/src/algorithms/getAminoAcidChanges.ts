@@ -22,19 +22,19 @@ export enum PatchDirection {
 const DEFAULT_PATCH_DIRECTION = PatchDirection.left
 
 export interface PreferredPatchDirectionDatum {
-  geneStart: number
+  geneName: string
   delStart: number
   patchDirection: PatchDirection
 }
 
-// look up preferred codon patching by gene and deletion start
+// look up preferred codon patching by gene name and deletion start
 const KNOWN_PREFERRED_PATCH_DIRECTIONS: PreferredPatchDirectionDatum[] = [
-  { geneStart: 21562, delStart: 21993, patchDirection: PatchDirection.right },
+  { geneName: 'S', delStart: 21993, patchDirection: PatchDirection.right },
 ]
 
-export function getPatchDirection(geneStart: number, delStart: number): PatchDirection {
+export function getPatchDirection(geneName: string, delStart: number): PatchDirection {
   const foundDirection = KNOWN_PREFERRED_PATCH_DIRECTIONS.find(
-    (candidate) => candidate.geneStart === geneStart && candidate.delStart === delStart,
+    (candidate) => candidate.geneName === geneName && candidate.delStart === delStart,
   )
   return foundDirection?.patchDirection ?? DEFAULT_PATCH_DIRECTION
 }
@@ -84,7 +84,7 @@ export function reconstructGeneSequences(
     // TODO: invariant(end - begin <= queryGene.length)
 
     // handle out-of-frame but not frame-shifting deletions
-    const patchDirection = getPatchDirection(geneBegin, begin)
+    const patchDirection = getPatchDirection(gene.name, begin)
     const isOutOfFrameButNotShifting = frame > 0 && delLength % 3 === 0
     if (isOutOfFrameButNotShifting && patchDirection === PatchDirection.left) {
       let genePos = begin - geneBegin
