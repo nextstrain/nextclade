@@ -85,8 +85,8 @@ export function reconstructGeneSequences(
 
     // handle out-of-frame but not frame-shifting deletions
     const patchDirection = getPatchDirection(geneBegin, begin)
-    const TODO_renameMe = frame === 0 && delLength % 3 === 0
-    if (TODO_renameMe && patchDirection === PatchDirection.left) {
+    const isOutOfFrameButNotShifting = frame > 0 && delLength % 3 === 0
+    if (isOutOfFrameButNotShifting && patchDirection === PatchDirection.left) {
       let genePos = begin - geneBegin
       for (let pos = end - (3 - frame); pos < end; ++pos) {
         if (genePos >= 0 && genePos < queryGene.length) {
@@ -100,7 +100,7 @@ export function reconstructGeneSequences(
         }
         genePos++
       }
-    } else if (TODO_renameMe && patchDirection === PatchDirection.right) {
+    } else if (isOutOfFrameButNotShifting && patchDirection === PatchDirection.right) {
       let genePos = begin - geneBegin - frame + delLength
       for (let pos = begin - frame; pos < begin; ++pos) {
         if (genePos >= 0 && genePos < queryGene.length) {
