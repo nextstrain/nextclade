@@ -1,4 +1,4 @@
-import { ReactComponent as CladeSchema } from 'src/assets/img/Nextstrain_ncov_clades-20B1tip.svg'
+import { ReactComponent as CladeSchema } from 'src/assets/img/nextstrain_clades.svg'
 
 <!-- TODO: Why we built the tool the way we did? -->
 <!-- TODO: What are the trade-offs we have to choose? -->
@@ -29,25 +29,26 @@ Since its emergence in late 2019, SARS-CoV-2 has diversified into several differ
 facilitate discussion of these variants, we have grouped them into __clades__ which are defined by specific
 signature mutations.
 
-We currently define 5 major clades (see [this blog post](https://nextstrain.org/blog/2020-06-02-SARSCoV2-clade-naming)
+We currently define 11 major clades (see [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming)
 for details):
 
 - 19A and 19B emerged in Wuhan and have been dominating the early outbreak
 - 20A emerged from 19A out of dominated the European outbreak in March and has since spread globally
-- 20B and 20C are large genetically distinct subclades 20A
+- 20B and 20C are large genetically distinct subclades 20A emerged in early 2020
+- 20D to 20I have emerged over the summer of 2020 and include two "variants of concern" (VOC) with signature mutations S:N501Y.
 
 <figure className="figure w-100 text-center">
-  <picture className="w-75 figure-img" alt="illustration of the model">
-    <CladeSchema height={200} />
+  <picture className="w-100 figure-img" alt="illustration of the model">
+    <CladeSchema height={400} />
   </picture>
   <figcaption>
-    <small>Fig.1. Illustration of phylogenetic relationship of clades, as defined by nextstrain</small>
+    <small>Fig.1. Illustration of phylogenetic relationship of clades, as defined by Nextstrain</small>
   </figcaption>
 </figure>
 
 Within Nextstrain, we define each clade by its combination of signature mutations.
 You can find the exact clade definition in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).
-Nextclade assigns your sequences to these clades by checking them for these mutations.
+Nextclade assigns your sequences to these clades by placing them on a phylogenetic tree annotated with these clade definitions.
 
 ### Quality Control (QC)
 
@@ -81,7 +82,7 @@ These include for example: primer sequences, adaptaters, or chimeras between div
 ## How does it work?
 
 At the core of Nextclade is a pairwise sequence alignment between the reference sequence and each of the sequences in your data.
-Once the sequences are aligned, we can identify differences between them and use these differences to assign clades and identify quality issues.
+Once the sequences are aligned, we can identify differences between them and use these differences to place the sequence on the phylogeny and identify quality issues.
 
 ### Sequence Alignment
 
@@ -92,7 +93,7 @@ For Nextclade, we therefore implemented a banded-pairwise alignment algorithm in
 We roughly estimate the alignment of your sequences to the reference one-by-one using short seeds (21-mers) along the sequence.
 With this rough overall alignment, we perform a [banded Smith-Waterman alignment](https://github.com/nextstrain/nextclade/blob/master/packages/web/src/algorithms/alignPairwise.ts) with an affine gap-penalty.
 
-If the seed matches are poor or suggest gaps in excess of 200 bases, we won't attempt to align -- your sequence won't be
+If the seed matches are poor or suggest gaps in excess of 400 bases, we won't attempt to align -- your sequence won't be
 scored.
 Large gaps require a lot of memory and computation in our current implementation.
 For most sequences, however, this alignment strategy works well and takes less than a second per sequence.
@@ -105,7 +106,7 @@ Nextclade can not do such phylogenetic analysis in the browser.
 Instead, we perform clade assignment sequence-by-sequence on the basis of signature mutations.
 This is expected to be slightly less sensitive, but will still give the correct answer in most cases.
 Sometimes, however, clade assignment will fail and those sequences will remain unassigned.
-The [clade-defining mutations](https://github.com/nextstrain/ncov/blob/master/config/clades.tsv) are chosen such that assignment on the basis of genotype works in most cases.
+The [clade-defining mutations](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv) are chosen such that assignment on the basis of genotype works in most cases.
 
 <!--
 ## How can I help?

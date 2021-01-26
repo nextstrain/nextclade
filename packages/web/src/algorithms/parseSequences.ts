@@ -1,6 +1,6 @@
 export function sanitizeSequence(seq: string) {
   // Trim contiguous Ns in the beginning and end
-  return seq.replace(/N+$/g, '').replace(/^N+/g, '')
+  return seq // .replace(/N+$/g, '').replace(/^N+/g, '')
 }
 
 export function addSequence(

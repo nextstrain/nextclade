@@ -1,3 +1,72 @@
+# [0.12.0](https://github.com/nextstrain/nextclade/compare/0.11.2...0.12.0) (2021-01-21)
+
+This release provides a temporary solution for the problem when certain aminoacid deletions are not being detected properly.
+
+We now maintain a list of "patches" to selectively modify the sequence during translation: the partial codons at the beginning and end of the deletion are combined to one complete codon. This way, deletions that start within a codon no longer result in invalid peptides, and some of the well-known deletions are now properly recognized.
+
+See pull request [#308](https://github.com/nextstrain/nextclade/pull/308)
+
+Thanks [@bede](https://github.com/bede), [@dbrandtner](https://github.com/dbrandtner), [@giuseppina950](https://github.com/giuseppina950), [@iskandr](https://github.com/iskandr), [@SarahNadeau](https://github.com/SarahNadeau) for their reports.
+
+At the same time we are working on a more permanent solution.
+
+Please report issues and leave feedback on [GitHub](https://github.com/nextstrain/nextclade/issues)
+
+### Bug Fixes
+
+* rename variable and fix condition ([40ba67f](https://github.com/nextstrain/nextclade/commit/40ba67f18ef17fa464c8dd70aae72d7025e88ff9))
+
+
+### Features
+
+* allow codon padding to happen forward and backward for custom cases ([945ca77](https://github.com/nextstrain/nextclade/commit/945ca77074b109f7688cbd677b05f8ff64b64613))
+* properly translate out-of-frame gaps ([c34a640](https://github.com/nextstrain/nextclade/commit/c34a640586992e547eca71720b10790247b4d340))
+* refactor the codon patching by gene and deletion start: ([7e258d8](https://github.com/nextstrain/nextclade/commit/7e258d8b6de671d90922480fe9893803139b867c))
+
+
+
+## [0.11.2](https://github.com/nextstrain/nextclade/compare/0.11.1...0.11.2) (2021-01-18)
+
+This release updates default reference tree and adds new clade designations.
+
+Additionally, it fixes a problem of excess divergence in cases where there are gaps in the reference node we attach to. These gaps no longer contribute to divergence.
+
+### Bug Fixes
+
+* avoid counting every gap in a new node as one divergence unit ([51bfce6](https://github.com/nextstrain/nextclade/commit/51bfce6bfd66e783cca5f2c5cd93bf6b07b6dfde))
+
+
+
+## [0.11.1](https://github.com/nextstrain/nextclade/compare/0.10.1...0.11.1) (2021-01-07)
+
+BREAKING CHANGE: Starting with this version Nextclade uses the new Nextstrain clade definitions for SARS-CoV-2. "What are the clades?" section on the main page was updated accordingly. For more information on the updated clade definitions, see our [blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming).
+
+Additionally, Nextclade alignment algorithm was adjusted to correctly handle a few more corner cases. In particular, seed matching was improved to:
+ * avoid stretches of `N` when choosing seeds
+ * increase the number of seeds
+
+The trimming of terminal `N` characters (introduced in 0.10.1) was removed, because the new improvements also handle this case.
+
+Thanks [Stacia K Wyman](https://github.com/staciawyman) and [Syed Muktadir Al Sium](https://github.com/sium007) for the bug reports!
+
+See also: [issue #288](https://github.com/nextstrain/nextclade/issues/288)
+See also: [issue #290](https://github.com/nextstrain/nextclade/issues/290)
+
+
+### Bug Fixes
+
+* actually use the map to good characters ([c3a0a2c](https://github.com/nextstrain/nextclade/commit/c3a0a2c658accae04ff527a1ef6c5ea097e2aafe))
+* remove old clades ([43f3c86](https://github.com/nextstrain/nextclade/commit/43f3c86a67d2b54ea19b4ab65637555f1f3c3894))
+
+
+### Features
+
+* add new clade schema ([5ab7054](https://github.com/nextstrain/nextclade/commit/5ab7054191a467694e6ba499a1b60e99ada7f738))
+* improve seed matching by logging good nucleotides ([ce62478](https://github.com/nextstrain/nextclade/commit/ce6247816e79d2c8c161f44346368cf9c42abd68))
+* increase number of seeds and reduce redundant seed search ([d1e0a2f](https://github.com/nextstrain/nextclade/commit/d1e0a2f15bc986e86996d4d62d48eb8fe556abd5))
+* update SARSCoV2 tree.json ([880223e](https://github.com/nextstrain/nextclade/commit/880223e49df863deab749aa0378339660a6f3735))
+
+
 ## [0.10.1](https://github.com/nextstrain/nextclade/compare/0.10.0...0.10.1) (2020-12-30)
 
 This release fixes a problem with input sequences with large chunks of `N` nucleotides at the edges.
@@ -22,7 +91,7 @@ In some cases, when there were multiple mutations in the same codon, Nextclade h
 
 Nexclade now also reports aminoacid deletions. It no longer outputs `aminoacidChanges` field/column in JSON, CSV and TSV exports. Instead, it outputs separate `aaSubstitutions` and `aaDeletions` columns.
 
-Nexclade is now better suited for the analysis of viruses other than SARS-CoV-2. We briefly tested it with the Flu virus, however, more testing is required. Please reach out to developers if you are interested in the analysis of other viruses.  
+Nexclade is now better suited for the analysis of viruses other than SARS-CoV-2. We briefly tested it with the Flu virus, however, more testing is required. Please reach out to developers if you are interested in the analysis of other viruses.
 
 The default reference tree has been updated.
 
@@ -57,7 +126,7 @@ The default reference tree has been updated.
 * add additional checks when loading gene map ([1d39b4e](https://github.com/nextstrain/nextclade/commit/1d39b4e9e207e170b28c9ef7da7751eb42e180d1))
 * add codons to the aa change objects ([d425981](https://github.com/nextstrain/nextclade/commit/d42598143c17e88f82810a6bd61c53c16a9e82e3))
 * add subclades ([24b0abc](https://github.com/nextstrain/nextclade/commit/24b0abc0c59be31a9fbe44a6892faa9081f19bdd))
-* guess unit of measurement of divergence ([8db8bde](https://github.com/nextstrain/nextclade/commit/8db8bde0e30a1d3f4531d88bc522f33901beac2b)), closes [/github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376](https://github.com//github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js/issues/L376)
+* guess unit of measurement of divergence ([8db8bde](https://github.com/nextstrain/nextclade/commit/8db8bde0e30a1d3f4531d88bc522f33901beac2b))
 * improve reporting of bad codons ([66fc002](https://github.com/nextstrain/nextclade/commit/66fc002bf2e20584c41177a19d2e474ec88edd1f))
 * list partial codons as mutations to X ([16e11d9](https://github.com/nextstrain/nextclade/commit/16e11d9d08404ed99910a609c1ba1a2087c259ef))
 * re-associate nuc changes with their corresponding aa changes ([cc17a97](https://github.com/nextstrain/nextclade/commit/cc17a97bfe2506c3ddaf70d2386b06eef5ae069f))

@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="d3-component" font-family="sans-serif" font-size="1.25rem" viewBox="-70 0 830 550">
+  <defs/>
+  <path fill="none" stroke="#ccc" stroke-width="3" d="M180 316.25c-90 0-90 55-180 55M180 371.25H0M180 426.25c-90 0-90-55-180-55M360 137.5c-90 0-90 178.75-180 178.75M360 385c-90 0-90-68.75-180-68.75M360 440c-90 0-90-123.75-180-123.75M360 495c-90 0-90-178.75-180-178.75M540 55c-90 0-90 82.5-180 82.5M540 110c-90 0-90 27.5-180 27.5M540 165c-90 0-90-27.5-180-27.5M540 220c-90 0-90-82.5-180-82.5M540 330c-90 0-90 55-180 55M540 385H360M540 440c-90 0-90-55-180-55"/>
+  <g class="node" transform="translate(0 371.25)">
+    <circle r="15" fill="#463bd0" stroke="#3d33b5" class="node" cursor="pointer"/>
+    <text x="-20" fill="#777" dy=".35em" font-weight="700" text-anchor="end">
+      19A
+    </text>
+  </g>
+  <g class="node" transform="translate(180 316.25)">
+    <circle r="15" fill="#5197d0" stroke="#4683b5" class="node" cursor="pointer"/>
+    <text x="-20" fill="#777" dy=".35em" font-weight="700" text-anchor="end">
+      20A
+    </text>
+  </g>
+  <g class="node" transform="translate(180 371.25)">
+    <circle r="15" fill="#456ede" stroke="#3c5fc1" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      19B
+    </text>
+  </g>
+  <g class="node" transform="translate(180 426.25)">
+    <circle r="15" fill="#463bd0" stroke="#3d33b5" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      19A
+    </text>
+  </g>
+  <g class="node" transform="translate(360 137.5)">
+    <circle r="15" fill="#64b4af" stroke="#579c98" class="node" cursor="pointer"/>
+    <text x="-20" fill="#777" dy=".35em" font-weight="700" text-anchor="end">
+      20B
+    </text>
+  </g>
+  <g class="node" transform="translate(360 385)">
+    <circle r="15" fill="#80c388" stroke="#6fa976" class="node" cursor="pointer"/>
+    <text x="-20" fill="#777" dy=".35em" font-weight="700" text-anchor="end">
+      20C
+    </text>
+  </g>
+  <g class="node" transform="translate(360 440)">
+    <circle r="15" fill="#c6ca51" stroke="#abaf46" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20E (EU1)
+    </text>
+  </g>
+  <g class="node" transform="translate(360 495)">
+    <circle r="15" fill="#5197d0" stroke="#4683b5" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20A
+    </text>
+  </g>
+  <g class="node" transform="translate(540 55)">
+    <circle r="15" fill="#ec3227" stroke="#cd2c22" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20I/501Y.V1
+    </text>
+  </g>
+  <g class="node" transform="translate(540 110)">
+    <circle r="15" fill="#e4be44" stroke="#c5a53b" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20F
+    </text>
+  </g>
+  <g class="node" transform="translate(540 165)">
+    <circle r="15" fill="#a1cb67" stroke="#8cb059" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20D
+    </text>
+  </g>
+  <g class="node" transform="translate(540 220)">
+    <circle r="15" fill="#64b4af" stroke="#579c98" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20B
+    </text>
+  </g>
+  <g class="node" transform="translate(540 330)">
+    <circle r="15" fill="#f56f32" stroke="#d4602c" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20H/501Y.V2
+    </text>
+  </g>
+  <g class="node" transform="translate(540 385)">
+    <circle r="15" fill="#f6a13c" stroke="#d58c34" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20G
+    </text>
+  </g>
+  <g class="node" transform="translate(540 440)">
+    <circle r="15" fill="#80c388" stroke="#6fa976" class="node" cursor="pointer"/>
+    <text x="20" fill="#777" dy=".35em" font-weight="700">
+      20C
+    </text>
+  </g>
+</svg>
