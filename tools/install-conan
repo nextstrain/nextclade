@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+BASH_DEBUG="${BASH_DEBUG:=}"
+[[ "${BASH_DEBUG}" == "true" ]] && set -o xtrace
+set -o errexit
+set -o nounset
+set -o pipefail
+shopt -s dotglob
+trap "exit" INT
+
+# Install conan
+pip3 install --user --upgrade conan
+
+# Generate default profile
+conan profile new default --detect
+
+# Switch to new GCC ABI (for GCC >= 5)
+conan profile update settings.compiler.libcxx=libstdc++11 default
+
+# Add bincrafters remote repository (https://bintray.com/bincrafters/public-conan)
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan

@@ -1,0 +1,93 @@
+version: 2.1
+
+# Reference. Allows to restrict a job to release branch
+release_only: &release_only
+  filters:
+    branches:
+      only: release
+
+
+jobs:
+  Build-Linux-x86_64:
+    resource_class: medium
+
+    machine:
+      image: ubuntu-2004:202010-01
+
+    steps:
+      - checkout
+      - run: git submodule sync
+      - run: git submodule update --init
+
+      - run:
+          name: 'Check release version'
+          command: |
+            make check-release-version
+
+      - restore_cache:
+          name: 'Restore docker image cache'
+          keys:
+            - cache-nextalign-v1-docker_images
+
+      - run:
+          name: 'Load docker image cache'
+          command: |
+            make docker-cache-load
+
+      - run:
+          name: 'Build "Builder" container image'
+          command: |
+            make docker-prod-build
+
+      - run:
+          name: 'Store docker image cache'
+          command: |
+            make docker-cache-save
+
+      - save_cache:
+          name: 'Save docker image cache'
+          key: cache-nextalign-v1-docker_images
+          paths:
+            - docker_images
+
+      - restore_cache:
+          name: 'Restore build cache'
+          keys:
+            - cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+
+      - run:
+          name: 'Run "Builder" container'
+          command: |
+            make docker-prod-run
+
+      - save_cache:
+          name: 'Save build cache'
+          key: cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+          paths:
+            - .cache
+
+      - store_artifacts:
+          name: 'Store Linux x86_64 binary'
+          path: .out/bin/nextalign-Linux-x86_64
+          destination: nextalign-Linux-x86_64
+
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            GHR_VERSION=0.13.0
+            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
+            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
+            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} .out/bin
+
+      - run:
+          name: "Publish Docker Image to Docker Hub"
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            scripts/publish_docker_images.sh
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - Build-Linux-x86_64:
+          <<: *release_only
