@@ -1,0 +1,5 @@
+---
+Checks: "*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-llvmlibc*,-fuchsia*,-readability-magic-numbers,-hicpp*,-llvm-header-guard,-cppcoreguidelines-owning-memory,-cppcoreguidelines-special-member-functions,-cppcoreguidelines-macro-usage,-cert-err58-cpp"
+HeaderFilterRegex: '^(?!emscripten\/system\/).*$'
+AnalyzeTemporaryDtors: true
+...

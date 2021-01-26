@@ -24,7 +24,6 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
-PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
 
 CI="true"
@@ -175,6 +174,9 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
     -DNEXTALIGN_BUILD_BENCHMARKS=1 \
     -DNEXTALIGN_BUILD_TESTS=1 \
+    -DNEXTCLADE_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
+    -DNEXTCLADE_BUILD_BENCHMARKS=1 \
+    -DNEXTCLADE_BUILD_TESTS=1 \
 
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
@@ -193,14 +195,23 @@ print 25 "Run cppcheck";
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
   print 23 "Run tests";
-  pushd "${BUILD_DIR}/packages/${PROJECT_NAME}/tests" > /dev/null
+  pushd "${BUILD_DIR}/packages/nextalign/tests" > /dev/null
       eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
   popd > /dev/null
 
+  pushd "${BUILD_DIR}/packages/nextclade/src/__tests__" > /dev/null
+      eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+  popd > /dev/null
+
+
   print 27 "Run CLI";
-  CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
+  CLI_DIR="${BUILD_DIR}/packages/nextalign_cli"
   CLI_EXE="nextalign-$(uname -s)-$(uname -p || uname -m)"
-  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_CLI_OPTIONS} || cd .
+  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_NEXTALIGN_CLI_OPTIONS} || cd .
+
+  CLI_DIR="${BUILD_DIR}/packages/nextclade_cli"
+  CLI_EXE="nextclade-$(uname -s)-$(uname -p || uname -m)"
+  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
 
   print 22 "Done";
 

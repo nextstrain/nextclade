@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "../alphabet/nucleotides.h"
-#include "../nextalign_private.h"
 #include "../utils/contract.h"
 #include "../utils/safe_cast.h"
+#include "nextalign/private/nextalign_private.h"
 
 
 template<typename Letter>

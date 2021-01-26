@@ -6,7 +6,9 @@ include(CFlags)
 include(Quiet)
 include(Sanitizers)
 
-project(nextclade)
+project(nextclade VERSION 0.1.0
+  DESCRIPTION "C++ library for viral genome analysis"
+  )
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -20,7 +22,15 @@ find_package(type_safe 0.2.1 REQUIRED)
 
 set(SOURCE_FILES
   include/nextclade/nextclade.h
+  include/nextclade/private/nextclade_private.h
+  src/analyze/analyze.cpp
+  src/analyze/analyze.h
+  src/analyze/findNucleotideRanges.cpp
+  src/analyze/findNucleotideRanges.h
+  src/analyze/nucleotide.cpp
+  src/analyze/nucleotide.h
   src/nextclade.cpp
+  src/utils/safe_cast.h
   )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
@@ -77,6 +87,10 @@ target_compile_definitions(${PROJECT_NAME}
   PRIVATE
 
   -DPROJECT_NAME="${PROJECT_NAME}"
+  -DPROJECT_VERSION="${PROJECT_VERSION}"
+  -DPROJECT_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
+  -DPROJECT_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
+  -DPROJECT_VERSION_PATCH="${PROJECT_VERSION_PATCH}"
 
   # Workaround for GCC 9 error in type_safe.
   # See: https://github.com/foonathan/debug_assert/issues/17
@@ -96,8 +110,14 @@ target_include_directories(${PROJECT_NAME} SYSTEM
   "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
   )
 
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+  include
+  )
+
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+  nextalign
 
   PRIVATE
   Microsoft.GSL::GSL
@@ -109,12 +129,7 @@ target_link_libraries(${PROJECT_NAME}
 
 set(NEXTCLADE_BUILD_TESTS ON CACHE BOOL "Build unit tests")
 if (${NEXTCLADE_BUILD_TESTS})
-  #  include(CTest)
-  #  enable_testing()
-  #  add_subdirectory(tests)
-endif ()
-
-set(NEXTCLADE_BUILD_BENCHMARKS OFF CACHE BOOL "Build benchmarks")
-if (${NEXTCLADE_BUILD_BENCHMARKS})
-  #  add_subdirectory(benchmarks)
+  include(CTest)
+  enable_testing()
+  add_subdirectory(src/__tests__)
 endif ()

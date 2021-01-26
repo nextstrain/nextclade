@@ -5,8 +5,8 @@
 #include <gsl/string_span>
 #include <string>
 
-#include "../nextalign_private.h"
 #include "../utils/to_underlying.h"
+#include "nextalign/private/nextalign_private.h"
 
 using NucleotideSequenceSpan = SequenceSpan<Nucleotide>;
 

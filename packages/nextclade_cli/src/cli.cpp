@@ -1,11 +1,7 @@
 #include <fmt/format.h>
-
-#include <cxxopts.hpp>
 #include <nextclade/nextclade.h>
 
-
-const int numCores = 4;
-
+#include <cxxopts.hpp>
 
 using CliOptions = cxxopts::ParseResult;
 
@@ -164,8 +160,6 @@ int main(int argc, char *argv[]) {
     if (params.outputTsv) {
       std::cout << *params.outputTsv << std::endl;
     }
-
-    Nextclade::nextclade();
 
   } catch (const cxxopts::OptionSpecException &e) {
     std::cerr << e.what() << std::endl;

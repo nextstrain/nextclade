@@ -24,6 +24,7 @@ find_package(type_safe 0.2.1 REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
   include/nextalign/nextalign.h
+  include/nextalign/private/nextalign_private.h
   src/align/alignPairwise.cpp
   src/align/alignPairwise.h
   src/align/getGapOpenCloseScores.cpp
@@ -41,7 +42,6 @@ add_library(${PROJECT_NAME} STATIC
   src/match/matchNuc.cpp
   src/match/matchNuc.h
   src/nextalign.cpp
-  src/nextalign_private.h
   src/strip/stripInsertions.h
   src/translate/decode.cpp
   src/translate/decode.h
@@ -97,9 +97,12 @@ target_include_directories(${PROJECT_NAME} SYSTEM
   "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
   )
 
-target_link_libraries(${PROJECT_NAME}
+target_include_directories(${PROJECT_NAME}
   PUBLIC
+  include
+  )
 
+target_link_libraries(${PROJECT_NAME}
   PRIVATE
   Microsoft.GSL::GSL
   boost_algorithm::boost_algorithm

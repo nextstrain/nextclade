@@ -1,5 +1,5 @@
 ---
-Checks: "*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-llvmlibc*,-fuchsia*,-readability-magic-numbers,-hicpp*,-llvm-header-guard,-google-readability-todo,-OCUnusedMacroInspection"
+Checks: "*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-llvmlibc*,-fuchsia*,-readability-magic-numbers,-hicpp*,-llvm-header-guard,-google-readability-todo,-OCUnusedMacroInspection,-altera-struct-pack-align"
 HeaderFilterRegex: '^(?!emscripten\/|system\/|3rdparty\/).*$'
 AnalyzeTemporaryDtors: true
 UseColor: true
