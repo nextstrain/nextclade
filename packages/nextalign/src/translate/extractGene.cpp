@@ -17,7 +17,7 @@ NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const G
 }
 
 /**
- * Replaces first or second gap in the non-all-gap codon with N
+ * Replaces first or second gap in a not-all-gap codon with N
  */
 template<typename SpanIterator>
 void protectCodonInPlace(SpanIterator it) {
@@ -27,7 +27,7 @@ void protectCodonInPlace(SpanIterator it) {
     if (it[1] == Nucleotide::GAP) {
       it[1] = Nucleotide::N;
 
-      precondition_not_equal(it[2], Nucleotide::GAP);// Should not protect all-gap codon
+      precondition_not_equal(it[2], Nucleotide::GAP);// Should last position in codon should not be a gap
     }
   }
 }
@@ -38,7 +38,7 @@ void stripGeneInPlace(NucleotideSequence& seq) {
   const auto& length = safe_cast<int>(seq.size());
   NucleotideSequenceSpan seqSpan = seq;
 
-  // Find the first non-GAP codon and replace GAPs with Ns in it, so that it's not getting stripped
+  // Find the first non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
   for (int i = 0; i < length; ++i) {
     if (seqSpan[i] != Nucleotide::GAP) {
       const auto codonBegin = i - i % 3;
@@ -51,7 +51,7 @@ void stripGeneInPlace(NucleotideSequence& seq) {
     }
   }
 
-  // Find the last non-GAP codon and replace GAPs with Ns in it, so that it's not getting stripped
+  // Find the last non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
   for (int i = length - 1; i >= 0; --i) {
     if (seqSpan[i] != Nucleotide::GAP) {
       const auto codonBegin = i - i % 3;
