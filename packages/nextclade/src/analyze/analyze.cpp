@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "nucleotide.h"
+#include "utils/safe_cast.h"
 
 
 namespace Nextclade {
@@ -22,7 +23,7 @@ namespace Nextclade {
         ins += query[i];
       } else {
         if (!ins.empty()) {
-          insertions.push_back({.pos = insStart, .ins = ins});
+          insertions.push_back(NucleotideInsertion{.pos = insStart, .length = safe_cast<int>(ins.size()), .ins = ins});
           ins = NucleotideSequence{};
         }
         refPos += 1;
@@ -32,7 +33,7 @@ namespace Nextclade {
 
     // add insertion at the end of the reference if it exists
     if (!ins.empty()) {
-      insertions.push_back({.pos = insStart, .ins = ins});
+      insertions.push_back(NucleotideInsertion{.pos = insStart, .length = safe_cast<int>(ins.size()), .ins = ins});
     }
 
     return insertions;
@@ -77,14 +78,14 @@ namespace Nextclade {
             alignmentStart = i;
             beforeAlignment = false;
           } else if (nDel != 0) {
-            deletions.push_back({.start = delPos, .length = nDel});
+            deletions.push_back(NucleotideDeletion{.start = delPos, .length = nDel});
             nDel = 0;
           }
           alignmentEnd = i;
         }
 
         const auto& refNuc = refStripped[i];
-        if (d != refNuc && isAcgt(d)) {
+        if (d != Nucleotide::GAP && d != refNuc && isAcgt(d)) {
           substitutions.push_back(NucleotideSubstitution{.pos = i, .refNuc = refNuc, .queryNuc = d});
         } else if (d == Nucleotide::GAP && !beforeAlignment) {
           if (nDel != 0) {
