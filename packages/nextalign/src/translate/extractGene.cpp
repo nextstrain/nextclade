@@ -88,12 +88,11 @@ NucleotideSequence extractGeneQuery(
   auto result = NucleotideSequence(query.substr(start, length));
   stripGeneInPlace(result);
 
-  const auto numGaps = safe_cast<int>(result.size() - result.size());
-  if (numGaps % 3 != 0) {
-    throw ErrorExtractGeneLengthInvalid(gene.geneName, numGaps);
+  const auto resultLength = safe_cast<int>(result.size());
+  if (resultLength % 3 != 0) {
+    throw ErrorExtractGeneLengthInvalid(gene.geneName, resultLength);
   }
 
   invariant_less_equal(result.size(), query.size());// Length of the gene should not exceed the length of the sequence
-  invariant_divisible_by(result.size(), 3);         // Gene length should be a multiple of 3
   return result;
 }
