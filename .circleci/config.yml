@@ -4,7 +4,7 @@ version: 2.1
 release_only: &release_only
   filters:
     branches:
-      only: release
+      only: nextalign-release
 
 
 jobs:
