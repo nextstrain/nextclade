@@ -1,7 +1,7 @@
 #include "extractGene.h"
 
+#include <frozen/string.h>
 #include <nextalign/nextalign.h>
-
 
 #include <vector>
 
@@ -16,6 +16,57 @@ NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const G
   return ref.substr(gene.start, gene.length);
 }
 
+/**
+ * Replaces first or second gap in a not-all-gap codon with N
+ */
+template<typename SpanIterator>
+void protectCodonInPlace(SpanIterator it) {
+  if (it[0] == Nucleotide::GAP) {
+    it[0] = Nucleotide::N;
+
+    if (it[1] == Nucleotide::GAP) {
+      it[1] = Nucleotide::N;
+
+      precondition_not_equal(it[2], Nucleotide::GAP);// Should last position in codon should not be a gap
+    }
+  }
+}
+
+void stripGeneInPlace(NucleotideSequence& seq) {
+  precondition_divisible_by(seq.size(), 3);
+
+  const auto& length = safe_cast<int>(seq.size());
+  NucleotideSequenceSpan seqSpan = seq;
+
+  // Find the first non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
+  for (int i = 0; i < length; ++i) {
+    if (seqSpan[i] != Nucleotide::GAP) {
+      const auto codonBegin = i - i % 3;
+      invariant_greater_equal(codonBegin, 0);
+      invariant_less(codonBegin + 2, length);
+
+      const auto codon = seqSpan.subspan(codonBegin, 3);
+      protectCodonInPlace(codon.begin());
+      break;
+    }
+  }
+
+  // Find the last non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
+  for (int i = length - 1; i >= 0; --i) {
+    if (seqSpan[i] != Nucleotide::GAP) {
+      const auto codonBegin = i - i % 3;
+      invariant_greater_equal(codonBegin, 0);
+      invariant_less(codonBegin + 2, length);
+
+      const auto codon = seqSpan.subspan(codonBegin, 3);
+      protectCodonInPlace(codon.rbegin());// Note: reverse iterator - going from end to begin
+      break;
+    }
+  }
+
+  // Remove all GAP characters from everywhere (Note: including the full gap-only codons at the edges)
+  removeGapsInPlace(seq);
+}
 
 /**
  * Extracts gene from the query sequence according to coordinate map relative to the reference sequence
@@ -33,15 +84,15 @@ NucleotideSequence extractGeneQuery(
   invariant_less(start, query.size());
   invariant_less(end, query.size());
 
-  const auto unstripped = query.substr(start, length);
-  auto stripped = removeGaps(unstripped);
 
-  const auto numGaps = safe_cast<int>(unstripped.size() - stripped.size());
-  if (numGaps % 3 != 0) {
-    throw ErrorExtractGeneLengthInvalid(gene.geneName, numGaps);
+  auto result = NucleotideSequence(query.substr(start, length));
+  stripGeneInPlace(result);
+
+  const auto resultLength = safe_cast<int>(result.size());
+  if (resultLength % 3 != 0) {
+    throw ErrorExtractGeneLengthInvalid(gene.geneName, resultLength);
   }
 
-  invariant_less_equal(stripped.size(), query.size());// Length of the gene should not exceed the length of the sequence
-  invariant_divisible_by(stripped.size(), 3);         // Gene length should be a multiple of 3
-  return stripped;
+  invariant_less_equal(result.size(), query.size());// Length of the gene should not exceed the length of the sequence
+  return result;
 }

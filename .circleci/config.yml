@@ -4,7 +4,7 @@ version: 2.1
 release_only: &release_only
   filters:
     branches:
-      only: release
+      only: nextalign-release
 
 
 jobs:
@@ -77,7 +77,7 @@ jobs:
             GHR_VERSION=0.13.0
             pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
             VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
-            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} .out/bin
+            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete nextalign-${VERSION} .out/bin
 
       - run:
           name: "Publish Docker Image to Docker Hub"
