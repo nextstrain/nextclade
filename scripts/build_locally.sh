@@ -204,14 +204,14 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
   popd > /dev/null
 
 
-  print 27 "Run CLI";
-  CLI_DIR="${BUILD_DIR}/packages/nextalign_cli"
-  CLI_EXE="nextalign-$(uname -s)-$(uname -p || uname -m)"
-  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_NEXTALIGN_CLI_OPTIONS} || cd .
-
-  CLI_DIR="${BUILD_DIR}/packages/nextclade_cli"
-  CLI_EXE="nextclade-$(uname -s)-$(uname -p || uname -m)"
-  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+#  print 27 "Run CLI";
+#  CLI_DIR="${BUILD_DIR}/packages/nextalign_cli"
+#  CLI_EXE="nextalign-$(uname -s)-$(uname -p || uname -m)"
+#  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_NEXTALIGN_CLI_OPTIONS} || cd .
+#
+#  CLI_DIR="${BUILD_DIR}/packages/nextclade_cli"
+#  CLI_EXE="nextclade-$(uname -s)-$(uname -p || uname -m)"
+#  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
 
   print 22 "Done";
 

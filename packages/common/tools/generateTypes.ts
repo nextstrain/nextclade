@@ -109,7 +109,7 @@ export default async function generateTypes() {
   const { moduleRoot } = findModuleRoot()
   const schemasRoot = path.join(moduleRoot, 'schemas')
   const tsOutputDir = path.join(moduleRoot, 'src', 'generated')
-  const cppOutputDir = path.join(moduleRoot, 'src', 'generated')
+  const cppOutputDir = path.join(moduleRoot, '..', 'nextclade/include/nextclade/private/__generated__')
   const tsOutput = path.join(tsOutputDir, 'types.ts')
   const cppOutput = path.join(cppOutputDir, 'types.h')
 
@@ -125,7 +125,13 @@ export default async function generateTypes() {
       'nice-property-names': 'true',
       'runtime-typecheck': 'true',
     }),
-    quicktypesGenerate('cpp', schemasRoot, schemaFilenames, cppOutput, { boost: false }),
+    quicktypesGenerate('cpp', schemasRoot, schemaFilenames, cppOutput, {
+      'boost': false,
+      'code-format': 'with-struct',
+      // 'just-types': true,
+      'namespace': 'Generated',
+      // 'source-style': 'single-source',
+    }),
     ajvGenerate(schemasRoot, schemaFilenames, tsOutputDir),
   ])
 }

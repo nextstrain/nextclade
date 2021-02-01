@@ -22,6 +22,7 @@ find_package(type_safe 0.2.1 REQUIRED)
 
 set(SOURCE_FILES
   include/nextclade/nextclade.h
+  include/nextclade/private/__generated__/types.h
   include/nextclade/private/nextclade_private.h
   src/analyze/analyze.cpp
   src/analyze/analyze.h
@@ -30,6 +31,15 @@ set(SOURCE_FILES
   src/analyze/nucleotide.cpp
   src/analyze/nucleotide.h
   src/nextclade.cpp
+  src/tree/treeFindNearestNodes.cpp
+  src/tree/treeFindNearestNodes.h
+  src/utils/config.h
+  src/utils/contract.h
+  src/utils/debugbreak.h
+  src/utils/ieee754_comparison.h
+  src/utils/inRange.h
+  src/utils/macro_overload.h
+  src/utils/mapFind.h
   src/utils/safe_cast.h
   )
 

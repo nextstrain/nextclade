@@ -2,9 +2,26 @@
 
 #include <nextalign/nextalign.h>
 
+#include <map>
+
+#include "private/__generated__/types.h"
 
 namespace Nextclade {
-  struct AuspiceJsonV2 {};
+  struct NucleotideSubstitution;
+
+  using AuspiceJsonV2 = Generated::AuspiceJsonV2Json;
+  using AuspiceJsonV2TreeNode = Generated::Tree;
+  using AuspiceJsonV2TreeNodeBranchAttrs = Generated::BranchAttrs;
+  using AuspiceJsonV2TreeNodeNodeAttrs = Generated::NodeAttrs;
+
+  using MutationMap = std::map<int, Nucleotide>;
+
+  struct AuspiceJsonV2TreeNodeExtended : public AuspiceJsonV2TreeNode {
+    int id;
+    MutationMap mutations;
+    MutationMap substitutions;
+    // std::shared_ptr<std::vector<AuspiceJsonV2TreeNodeExtended>> children;
+  };
 
   struct PcrPrimer {};
 
@@ -57,7 +74,7 @@ namespace Nextclade {
     int alignmentEnd;
   };
 
-  struct NextcladeResult {
+  struct NextcladeResultIntermediate {
     std::string seqName;
     std::vector<NucleotideSubstitution> substitutions;
     int totalSubstitutions;
@@ -74,6 +91,7 @@ namespace Nextclade {
     int alignmentScore;
   };
 
+  struct NextcladeResult : public NextcladeResultIntermediate {};
 
   NextcladeResult nextclade(const NextcladeParams& params);
 }// namespace Nextclade

@@ -9,6 +9,7 @@
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/nucleotide.h"
 #include "src/utils/safe_cast.h"
+#include "tree/treeFindNearestNodes.h"
 
 namespace Nextclade {
 
@@ -43,7 +44,7 @@ namespace Nextclade {
     const int totalNonACGTNs = calculateTotalLength(nonACGTNs);
 
 
-    return {
+    const NextcladeResultIntermediate analysisResult = {
       .seqName = seqName,
       .substitutions = analysis.substitutions,
       .totalSubstitutions = totalSubstitutions,
@@ -59,5 +60,13 @@ namespace Nextclade {
       .alignmentEnd = analysis.alignmentEnd,
       .alignmentScore = alignment.alignmentScore,
     };
+
+    const auto treeFindNearestNodesResult = treeFindNearestNodes(analysisResult, ref, auspiceData);
+    //  const { clade } = assignClade(analysisResult, match)
+    //  const analysisResultWithClade = { ...analysisResult, clade }
+    //
+    //  const qc = runQC({ analysisResult: analysisResultWithClade, privateMutations, qcRulesConfig })
+    //
+    //  return { ...analysisResultWithClade, qc, nearestTreeNodeId: match.id }
   }
 }// namespace Nextclade
