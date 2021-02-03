@@ -97,13 +97,13 @@ jobs:
           name: 'Install cmake'
           command: |
             set -x
-            brew install cmake
+            brew install -q cmake
 
       - run:
           name: 'Install conan'
           command: |
             set -x
-            brew install conan
+            brew install -q conan
             conan profile new default --detect
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 
