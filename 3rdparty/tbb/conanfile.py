@@ -3,6 +3,8 @@ from conans import ConanFile, tools
 from conans.errors import ConanInvalidConfiguration
 
 
+this_dir = os.path.dirname(os.path.realpath(__file__))
+
 class TBBConan(ConanFile):
     name = "tbb"
     license = "Apache-2.0"
@@ -28,6 +30,8 @@ that have future-proof scalability"""
     version = "2020.3"
     src_url = "https://github.com/oneapi-src/oneTBB/archive/v2020.3.tar.gz"
     src_sha256 = "ebc4f6aa47972daed1f7bf71d100ae5bf6931c2e3144cf299c8cc7d041dca2f3"
+
+    exports_sources = "armv8.patch"
 
     @property
     def _source_subfolder(self):
@@ -83,6 +87,9 @@ that have future-proof scalability"""
         tools.download(url, patch_file)
         tools.patch(patch_file=patch_file, base_path=self._source_subfolder)
 
+        # Patch to support armv8 target
+        tools.patch(patch_file="armv8.patch", base_path=self._source_subfolder)
+
     def build(self):
         def add_flag(name, value):
             if name in os.environ:
@@ -132,8 +139,7 @@ MALLOCPROXY.DEF =
             "x86": "ia32",
             "x86_64": "intel64",
             "armv7": "armv7",
-            "armv8": "armv8",
-            "arm64": "armv8",
+            "armv8": "arm64",
         }[str(self.settings.arch)]
         extra += " arch=%s" % arch
 
