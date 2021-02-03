@@ -163,6 +163,17 @@ function print() {
   fi
 }
 
+# If `tbb/2020.3@local/stable` is not in conan cache
+if [ -z "$(conan search | grep 'tbb/2020.3@local/stable')"]; then
+  # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
+  print 56 "Build Intel TBB";
+  pushd "3rdparty/tbb" > /dev/null
+      conan create . local/stable \
+      -s build_type="${CONAN_BUILD_TYPE}" \
+      ${CONAN_COMPILER_SETTINGS} \
+      ${CONAN_STATIC_BUILD_FLAGS}
+  popd > /dev/null
+fi
 
 pushd "${BUILD_DIR}" > /dev/null
 
