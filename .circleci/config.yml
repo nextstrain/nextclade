@@ -102,7 +102,7 @@ jobs:
           name: 'Install build tools'
           command: |
             set -x
-            brew install -q cmake@3.19.4 conan@1.33.1
+            brew install -q cmake conan
             brew list > brew.txt
             cat brew.txt
             conan profile new default --detect
@@ -115,6 +115,7 @@ jobs:
           key: cache-nextalign-v1-homebrew-{arch}
           paths:
             - ~/Library/Caches/Homebrew
+            - /usr/local/Homebrew
 
       - restore_cache:
           name: 'Restore build cache'
