@@ -175,7 +175,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
     -DNEXTALIGN_BUILD_BENCHMARKS=1 \
     -DNEXTALIGN_BUILD_TESTS=1 \
-    -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+    -DCMAKE_OSX_ARCHITECTURES="x86_64" \
 
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
