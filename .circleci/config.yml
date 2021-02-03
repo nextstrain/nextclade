@@ -102,7 +102,7 @@ jobs:
           name: 'Install build tools'
           command: |
             set -x
-            brew install -q cmake conan
+            brew install -q cmake conan coreutils
             conan profile new default --detect
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
