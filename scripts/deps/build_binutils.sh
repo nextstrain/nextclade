@@ -19,7 +19,7 @@ THIS_DIR=$(
   pwd
 )
 
-PROJECT_ROOT_DIR="$(realpath ${THIS_DIR}/../..)"
+PROJECT_ROOT_DIR="$(readlink -f ${THIS_DIR}/../..)"
 
 if [[ $OSTYPE == "linux-gnu" ]]; then
   export NUM_JOBS="$(nproc)"
