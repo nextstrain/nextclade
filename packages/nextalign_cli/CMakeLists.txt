@@ -21,7 +21,7 @@ find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(TBB REQUIRED)
 
-if (${NEXTALIGN_STATIC_BUILD})
+if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
 endif ()
 
