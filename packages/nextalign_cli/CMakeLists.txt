@@ -25,12 +25,19 @@ if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
 endif ()
 
+set(SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
+set(PROCESSOR_NAME ${CMAKE_SYSTEM_PROCESSOR})
+if (APPLE)
+  set(SYSTEM_NAME "MacOS")
+  set(PROCESSOR_NAME "Universal")
+endif ()
+
 add_executable(${PROJECT_NAME}
   src/cli.cpp
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY
-  OUTPUT_NAME nextalign-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+  OUTPUT_NAME nextalign-${SYSTEM_NAME}-${PROCESSOR_NAME})
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)

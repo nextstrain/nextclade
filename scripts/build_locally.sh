@@ -175,6 +175,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
     -DNEXTALIGN_BUILD_BENCHMARKS=1 \
     -DNEXTALIGN_BUILD_TESTS=1 \
+    -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
 
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
@@ -186,6 +187,13 @@ pushd "${BUILD_DIR}" > /dev/null
 
 popd > /dev/null
 
+
+SYSTEM_NAME="$(uname -s)"
+PROCESSOR_NAME="$(uname -p || uname -m)"
+if [ "${SYSTEM_NAME}" == "Darwin" ]; then
+  SYSTEM_NAME="MacOS"
+  PROCESSOR_NAME="Universal"
+fi
 
 print 25 "Run cppcheck";
 . "${THIS_DIR}/cppcheck.sh"
@@ -199,7 +207,7 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
 
   print 27 "Run CLI";
   CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
-  CLI_EXE="nextalign-$(uname -s)-$(uname -p || uname -m)"
+  CLI_EXE="nextalign-${SYSTEM_NAME}-${PROCESSOR_NAME}"
   eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_CLI_OPTIONS} || cd .
 
   print 22 "Done";
