@@ -156,8 +156,8 @@ workflows:
           matrix:
             parameters:
               macos_arch:
-#               - x86_64
-               - arm64
+               - x86_64
+               # - arm64 # Currently broken, because of Intel TBB
           filters:
             branches:
               only: macos

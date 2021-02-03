@@ -28,8 +28,12 @@ endif ()
 set(SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
 set(PROCESSOR_NAME ${CMAKE_SYSTEM_PROCESSOR})
 if (APPLE)
+  if(NOT DEFINED NEXTALIGN_MACOS_ARCH)
+    set(NEXTALIGN_MACOS_ARCH "Unknown")
+  endif()
+
   set(SYSTEM_NAME "MacOS")
-  set(PROCESSOR_NAME "Universal")
+  set(PROCESSOR_NAME "${NEXTALIGN_MACOS_ARCH}")
 endif ()
 
 add_executable(${PROJECT_NAME}
