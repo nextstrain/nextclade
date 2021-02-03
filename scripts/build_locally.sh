@@ -26,6 +26,7 @@ fi
 
 PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
+MACOS_ARCH=${MACOS_ARCH:=x86_64}
 
 CI="true"
 
@@ -71,7 +72,10 @@ fi
 
 # Whether to use Clang C++ compiler (default: use GCC)
 USE_CLANG="${USE_CLANG:=0}"
-CONAN_COMPILER_SETTINGS=""
+CONAN_COMPILER_SETTINGS="\
+  -s arch_build=${MACOS_ARCH} \
+"
+
 BUILD_SUFFIX=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CC="${CC:-clang}"
@@ -83,6 +87,7 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   CLANG_VERSION=${CLANG_VERSION:=${CLANG_VERSION_DETECTED}}
 
   CONAN_COMPILER_SETTINGS="\
+    ${CONAN_COMPILER_SETTINGS}
     -s compiler=clang \
     -s compiler.version=${CLANG_VERSION} \
   "
@@ -175,7 +180,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
     -DNEXTALIGN_BUILD_BENCHMARKS=1 \
     -DNEXTALIGN_BUILD_TESTS=1 \
-    -DCMAKE_OSX_ARCHITECTURES="x86_64" \
+    -DCMAKE_OSX_ARCHITECTURES="${MACOS_ARCH}" \
 
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
@@ -192,7 +197,7 @@ SYSTEM_NAME="$(uname -s)"
 PROCESSOR_NAME="$(uname -p || uname -m)"
 if [ "${SYSTEM_NAME}" == "Darwin" ]; then
   SYSTEM_NAME="MacOS"
-  PROCESSOR_NAME="Universal"
+  PROCESSOR_NAME="${MACOS_ARCH}"
 fi
 
 print 25 "Run cppcheck";

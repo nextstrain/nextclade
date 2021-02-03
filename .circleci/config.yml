@@ -86,7 +86,11 @@ jobs:
             scripts/publish_docker_images.sh
 
 
-  Build-MacOS-Universal:
+  Build-MacOS:
+    parameters:
+      macos_arch:
+        type: string
+
     macos:
       xcode: "12.4.0"
 
@@ -127,12 +131,18 @@ jobs:
             make prod
           environment:
             CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
+            MACOS_ARCH: << parameters.macos_arch >>
 
       - save_cache:
           name: 'Save build cache'
           key: cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
+
+      - store_artifacts:
+          name: 'Store macOS universal binary'
+          path: .out/bin/nextalign-MacOS-Universal
+          destination: nextalign-MacOS-Universal
 
 
 workflows:
@@ -142,7 +152,12 @@ workflows:
       # - Build-Linux-x86_64:
       #     <<: *release_only
 
-      - Build-MacOS-Universal:
+      - Build-MacOS:
+          matrix:
+            parameters:
+              macos_arch:
+               - x86_64
+               - arm64
           filters:
             branches:
               only: macos
