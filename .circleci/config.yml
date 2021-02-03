@@ -103,8 +103,6 @@ jobs:
           command: |
             set -x
             brew install -q cmake conan
-            brew list --formula > brew.txt
-            cat brew.txt
             conan profile new default --detect
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
