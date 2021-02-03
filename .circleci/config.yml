@@ -53,7 +53,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+            - cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
@@ -62,7 +62,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+          key: cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
@@ -96,7 +96,7 @@ jobs:
       - restore_cache:
           name: 'Restore homebrew cache'
           keys:
-            - cache-nextalign-v1-homebrew-{arch}
+            - cache-nextalign-v1-homebrew-{{ arch }}
 
       - run:
           name: 'Install build tools'
@@ -107,31 +107,30 @@ jobs:
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
             HOMEBREW_NO_AUTO_UPDATE: 1
-            CONAN_USER_HOME: '.cache/conan'
+            CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
 
       - save_cache:
           name: 'Save homebrew cache'
-          key: cache-nextalign-v1-homebrew-{arch}
+          key: cache-nextalign-v1-homebrew-{{ arch }}
           paths:
             - '~/Library/Caches/Homebrew'
             - '/usr/local/Homebrew'
-            - '.cache/conan'
 
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+            - cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run build'
           command: |
             make prod
           environment:
-            CONAN_USER_HOME: '.cache/conan'
+            CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+          key: cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
