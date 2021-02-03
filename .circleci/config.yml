@@ -16,8 +16,6 @@ jobs:
 
     steps:
       - checkout
-      - run: git submodule sync
-      - run: git submodule update --init
 
       - run:
           name: 'Check release version'
@@ -72,19 +70,12 @@ jobs:
           destination: nextalign-Linux-x86_64
 
       - run:
-          name: "Publish Release on GitHub"
+          name: Save artifact info
           command: |
-            GHR_VERSION=0.13.0
-            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
-            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
-            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete nextalign-${VERSION} .out/bin
-
-      - run:
-          name: "Publish Docker Image to Docker Hub"
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            scripts/publish_docker_images.sh
-
+            artifacts=$(curl -X GET "https://circleci.com/api/v2/project/github/neherlab/nextclade/$CIRCLE_BUILD_NUM/artifacts" \
+            -H "Accept: application/json" \
+            -u "$CIRCLE_API_TOKEN:")
+            echo "export ARTIFACT_LINUX_x86_64=$artifacts" >> $BASH_ENV
 
   Build-MacOS:
     parameters:
@@ -126,7 +117,7 @@ jobs:
             - cache-nextalign-v3-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
 
       - run:
-          name: 'Run build'
+          name: Run macOS << parameters.macos_arch >> build
           command: |
             make prod
           environment:
@@ -140,17 +131,66 @@ jobs:
             - .cache
 
       - store_artifacts:
-          name: Store macOS << parameters.macos_arch >> binary
+          name: Persist artifacts in CircleCI Artifacts (macOS << parameters.macos_arch >>)
           path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
           destination: nextalign-MacOS-<< parameters.macos_arch >>
+
+      - run:
+          name: Save artifact info
+          command: |
+            artifacts=$(curl -X GET "https://circleci.com/api/v2/project/github/neherlab/nextclade/$CIRCLE_BUILD_NUM/artifacts" \
+            -H "Accept: application/json" \
+            -u "$CIRCLE_API_TOKEN:")
+            echo "export ARTIFACT_MACOS_<< parameters.macos_arch >>=$artifacts" >> $BASH_ENV
+
+
+  Release:
+    resource_class: medium
+
+    machine:
+      image: ubuntu-2004:202010-01
+
+    steps:
+      - checkout
+
+      - run:
+          name: "Print Artifact info"
+
+          command: |
+            set -x
+            echo "ARTIFACT_MACOS_x86_64"
+            echo "-------------------------------------------------------"
+            echo "$ARTIFACT_MACOS_x86_64"
+            echo "-------------------------------------------------------"
+            echo "ARTIFACT_LINUX_x86_64"
+            echo "-------------------------------------------------------"
+            echo "$ARTIFACT_LINUX_x86_64"
+            echo "-------------------------------------------------------"
+
+      #- run:
+      #    name: "Publish Release on GitHub"
+      #    command: |
+      #      GHR_VERSION=0.13.0
+      #      pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
+      #      VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
+      #      ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete nextalign-${VERSION} .out/bin
+      #
+      #- run:
+      #    name: "Publish Docker Image to Docker Hub"
+      #    command: |
+      #      echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      #      scripts/publish_docker_images.sh
 
 
 workflows:
   version: 2
   build:
     jobs:
-      # - Build-Linux-x86_64:
-      #     <<: *release_only
+      - Build-Linux-x86_64:
+         filters:
+           branches:
+             only: macos
+         # <<: *release_only
 
       - Build-MacOS:
           matrix:
@@ -161,3 +201,8 @@ workflows:
           filters:
             branches:
               only: macos
+
+      - Release:
+          requires:
+            - Build-Linux-x86_64
+            - Build-MacOS
