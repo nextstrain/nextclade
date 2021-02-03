@@ -93,19 +93,28 @@ jobs:
     steps:
       - checkout
 
-      - run:
-          name: 'Install cmake'
-          command: |
-            set -x
-            brew install -q cmake
+      - restore_cache:
+          name: 'Restore build cache'
+          keys:
+            - cache-nextalign-v1-homebrew-{arch}
 
       - run:
-          name: 'Install conan'
+          name: 'Install build tools'
           command: |
             set -x
-            brew install -q conan
+            brew install -q cmake@3.19.4 conan@1.33.1
+            brew list > brew.txt
+            cat brew.txt
             conan profile new default --detect
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+          environment:
+            HOMEBREW_NO_AUTO_UPDATE: 1
+
+      - save_cache:
+          name: 'Save build cache'
+          key: cache-nextalign-v1-homebrew-{arch}
+          paths:
+            - ~/Library/Caches/Homebrew
 
       - restore_cache:
           name: 'Restore build cache'
