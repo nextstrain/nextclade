@@ -119,14 +119,11 @@ NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAUL
 
 # Add flags necessary for static build
 CONAN_STATIC_BUILD_FLAGS=""
-CONAN_TBB_STATIC_BUILD_FLAGS=""
 if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   CONAN_STATIC_BUILD_FLAGS="\
     -o tbb:shared=False \
     -o gtest:shared=True \
   "
-
-  CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
 fi
 
 # AddressSanitizer and MemorySanitizer don't work with gdb
@@ -167,14 +164,14 @@ function print() {
 }
 
 # If `tbb/2020.3@local/stable` is not in conan cache
-if [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
+if [ -z "$(conan search | grep 'tbb/2020.3@local/stable')"]; then
   # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
   print 56 "Build Intel TBB";
   pushd "3rdparty/tbb" > /dev/null
       conan create . local/stable \
       -s build_type="${CONAN_BUILD_TYPE}" \
       ${CONAN_COMPILER_SETTINGS} \
-      ${CONAN_TBB_STATIC_BUILD_FLAGS}
+      ${CONAN_STATIC_BUILD_FLAGS}
   popd > /dev/null
 fi
 

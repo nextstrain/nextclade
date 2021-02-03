@@ -1,7 +1,7 @@
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
 #include <tbb/global_control.h>
-#include <tbb/parallel_pipeline.h>
+#include <tbb/pipeline.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -380,7 +380,7 @@ void run(
 
   /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
-  const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(tbb::filter_mode::serial_in_order,//
+  const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(tbb::filter::serial_in_order,//
     [&inputFastaStream](tbb::flow_control &fc) -> AlgorithmInput {
       if (!inputFastaStream->good()) {
         fc.stop();
@@ -394,7 +394,7 @@ void run(
   /** A set of parallel transform filter functions, each accepts a parsed sequence from the input filter,
    * runs nextalign algorithm sequentially and returning its result.
    * The number of filters is determined by the `--jobs` CLI argument */
-  const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter_mode::parallel,//
+  const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter::parallel,//
     [&ref, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
       try {
         const auto query = toNucleotideSequence(input.seq);
@@ -412,7 +412,7 @@ void run(
 
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
-  const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(tbb::filter_mode::serial_in_order,//
+  const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(tbb::filter::serial_in_order,//
     [&outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &refGenesHaveBeenWritten](
       const AlgorithmOutput &output) {
       const auto index = output.index;
