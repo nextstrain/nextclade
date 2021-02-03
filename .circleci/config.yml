@@ -123,7 +123,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+            - cache-nextalign-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
 
       - run:
           name: 'Run build'
@@ -135,14 +135,14 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+          key: cache-nextalign-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
           paths:
             - .cache
 
       - store_artifacts:
-          name: 'Store macOS universal binary'
-          path: .out/bin/nextalign-MacOS-Universal
-          destination: nextalign-MacOS-Universal
+          name: Store macOS << parameters.macos_arch >> binary
+          path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
+          destination: nextalign-MacOS-<< parameters.macos_arch >>
 
 
 workflows:
@@ -156,7 +156,7 @@ workflows:
           matrix:
             parameters:
               macos_arch:
-               - x86_64
+#               - x86_64
                - arm64
           filters:
             branches:

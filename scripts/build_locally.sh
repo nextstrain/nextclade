@@ -72,9 +72,13 @@ fi
 
 # Whether to use Clang C++ compiler (default: use GCC)
 USE_CLANG="${USE_CLANG:=0}"
-CONAN_COMPILER_SETTINGS="\
-  -s arch_build=${MACOS_ARCH} \
-"
+
+CONAN_COMPILER_SETTINGS=""
+if [ "${MACOS_ARCH}" == "arm64" ]; then
+  CONAN_COMPILER_SETTINGS="\
+    -s arch_build=armv8 \
+  "
+fi
 
 BUILD_SUFFIX=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
