@@ -107,13 +107,15 @@ jobs:
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
             HOMEBREW_NO_AUTO_UPDATE: 1
+            CONAN_USER_HOME: '.cache/conan'
 
       - save_cache:
           name: 'Save homebrew cache'
           key: cache-nextalign-v1-homebrew-{arch}
           paths:
-            - ~/Library/Caches/Homebrew
-            - /usr/local/Homebrew
+            - '~/Library/Caches/Homebrew'
+            - '/usr/local/Homebrew'
+            - '.cache/conan'
 
       - restore_cache:
           name: 'Restore build cache'
@@ -124,6 +126,8 @@ jobs:
           name: 'Run build'
           command: |
             make prod
+          environment:
+            CONAN_USER_HOME: '.cache/conan'
 
       - save_cache:
           name: 'Save build cache'
