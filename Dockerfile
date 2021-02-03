@@ -77,7 +77,7 @@ RUN . ${NVM_DIR}/nvm.sh \
 && nvm alias default ${NODE_VERSION} || true \
 && cd ${NVM_DIR}/versions/node >/dev/null \
 && ln -s ${NODE_VERSION} default \
-&& npm install -g npm yarn nodemon
+&& npm install -g nodemon@2.0.6
 
 RUN set -x \
 && chown -R ${USER}:${GROUP} ${HOME}
