@@ -85,9 +85,53 @@ jobs:
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             scripts/publish_docker_images.sh
 
+
+  Build-MacOS-Universal:
+    macos:
+      xcode: "12.4.0"
+
+    steps:
+      - checkout
+
+      - run:
+          name: 'Install cmake'
+          command: |
+            set -x
+            brew install cmake
+
+      - run:
+          name: 'Install conan'
+          command: |
+            set -x
+            brew install conan
+            conan profile new default --detect
+            conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+
+      - restore_cache:
+          name: 'Restore build cache'
+          keys:
+            - cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+
+      - run:
+          name: 'Run build'
+          command: |
+            make docker-prod-run
+
+      - save_cache:
+          name: 'Save build cache'
+          key: cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+          paths:
+            - .cache
+
+
 workflows:
   version: 2
   build:
     jobs:
-      - Build-Linux-x86_64:
-          <<: *release_only
+      # - Build-Linux-x86_64:
+      #     <<: *release_only
+
+      - Build-MacOS-Universal:
+          filters:
+            branches:
+              only: macos
