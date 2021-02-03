@@ -76,7 +76,7 @@ USE_CLANG="${USE_CLANG:=0}"
 CONAN_COMPILER_SETTINGS=""
 if [ "${MACOS_ARCH}" == "arm64" ]; then
   CONAN_COMPILER_SETTINGS="\
-    -s arch_build=armv8 \
+    -s arch=armv8 \
   "
 fi
 
