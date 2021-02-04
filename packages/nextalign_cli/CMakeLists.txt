@@ -14,9 +14,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
-find_package(boost_algorithm 1.68.0 REQUIRED)
-find_package(boost_base 1.68.0 REQUIRED)
-find_package(boost_detail 1.68.0 REQUIRED)
+find_package(Boost 1.68.0 COMPONENTS headers REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(TBB REQUIRED)
@@ -62,9 +60,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-  boost_algorithm::boost_algorithm
-  boost_base::boost_base
-  boost_detail::boost_detail
+  Boost::headers
   cxxopts::cxxopts
   fmt::fmt
   nextalign

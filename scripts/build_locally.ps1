@@ -15,11 +15,11 @@ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-co
 
 
 pushd "$PROJECT_ROOT_DIR/3rdparty/tbb"
-conan create . local/stable -s build_type="$CMAKE_BUILD_TYPE" -o tbb:shared=False
+conan create . local/stable -s build_type="$CMAKE_BUILD_TYPE" -o shared=False
 popd
 
 
-conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" --build missing
+conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" -o tbb:shared=False -o boost:header_only=True --build missing
 
 cmake $PROJECT_ROOT_DIR `
 -DCMAKE_MODULE_PATH="$BUILD_DIR" `
