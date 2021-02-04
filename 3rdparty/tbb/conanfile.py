@@ -45,7 +45,11 @@ that have future-proof scalability"""
 
         self._cmake = CMake(self)
         self._cmake.definitions["TBB_TEST"] = False
-        self._cmake.definitions["BUILD_SHARED_LIBS"] = self.options.shared
+
+        if not self.options.shared:
+            self._cmake.definitions["BUILD_SHARED_LIBS"] = False
+            self._cmake.definitions["CMAKE_C_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0'
+            self._cmake.definitions["CMAKE_CXX_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0'
 
         self._cmake.configure(source_folder=self._source_subfolder)
         return self._cmake
