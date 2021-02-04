@@ -3,6 +3,7 @@ cmake_policy(SET CMP0069 NEW)
 
 project(nextalign_tests)
 
+find_package(Boost 1.68.0 COMPONENTS headers REQUIRED)
 find_package(GTest 1.10.0 REQUIRED)
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
@@ -42,6 +43,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
   nextalign
+  Boost::headers
   GTest::GTest
   Microsoft.GSL::GSL
   fmt::fmt
