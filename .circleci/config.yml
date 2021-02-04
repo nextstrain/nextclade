@@ -232,7 +232,8 @@ workflows:
 #          requires:
 #            - Build-Linux-x86_64
 #            - Build-MacOS
-       - Build-Windows-x86_64:
+
+      - Build-Windows-x86_64:
           filters:
             branches:
               only: windows
