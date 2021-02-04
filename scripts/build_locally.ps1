@@ -1,3 +1,5 @@
+Set-PSDebug -Trace 2
+
 $THIS_DIR="$PSScriptRoot"
 
 $PROJECT_ROOT_DIR="$THIS_DIR\.."
@@ -11,6 +13,10 @@ $env:Path += ";C:\ProgramFiles\CMake\bin"
 $env:Path += ";C:\ProgramFiles\Conan\bin"
 
 conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" --build missing
+
+conan profile new default --detect
+
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 
 cmake $PROJECT_ROOT_DIR `
 -DCMAKE_MODULE_PATH="$BUILD_DIR" `

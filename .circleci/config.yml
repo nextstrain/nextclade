@@ -157,7 +157,7 @@ jobs:
       - checkout
 
       - run:
-          name: Install cmake
+          name: Install build tools
           command: |
             choco install cmake conan -y
 
