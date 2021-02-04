@@ -45,6 +45,7 @@ that have future-proof scalability"""
 
         self._cmake = CMake(self)
         self._cmake.definitions["TBB_TEST"] = False
+        self._cmake.definitions["TBB_STRICT"] = False
 
         if not self.options.shared:
             self._cmake.definitions["BUILD_SHARED_LIBS"] = False
