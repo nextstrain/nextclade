@@ -3,7 +3,7 @@ cmake_policy(SET CMP0069 NEW)
 
 project(nextalign_benchmarks)
 
-find_package(Boost 1.68.0 COMPONENTS headers REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(benchmark REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)

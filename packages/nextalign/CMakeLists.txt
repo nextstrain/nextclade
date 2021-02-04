@@ -15,7 +15,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
-find_package(Boost 1.68.0 COMPONENTS headers REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(type_safe 0.2.1 REQUIRED)
