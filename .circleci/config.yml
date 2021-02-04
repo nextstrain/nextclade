@@ -1,5 +1,9 @@
 version: 2.1
 
+orbs:
+  win: circleci/windows@2.4.0
+
+
 # Reference. Allows to restrict a job to release branch
 release_only: &release_only
   filters:
@@ -143,6 +147,23 @@ jobs:
             -u "$CIRCLE_API_TOKEN:")
             echo "export ARTIFACT_MACOS_<< parameters.macos_arch >>=$artifacts" >> $BASH_ENV
 
+  Build-Windows-x86_64:
+    executor:
+      name: win/default
+      size: medium
+      shell: powershell.exe
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install cmake
+          command: |
+            choco install cmake conan -y
+
+      - run:
+          command: |
+            .\scripts\build_locally.ps1
 
   Release:
     resource_class: medium
@@ -186,23 +207,27 @@ workflows:
   version: 2
   build:
     jobs:
-      - Build-Linux-x86_64:
-         filters:
-           branches:
-             only: macos
-         # <<: *release_only
+#      - Build-Linux-x86_64:
+#         filters:
+#           branches:
+#             only: macos
+#         # <<: *release_only
+#
+#      - Build-MacOS:
+#          matrix:
+#            parameters:
+#              macos_arch:
+#               - x86_64
+#               # - arm64 # Currently broken, because of Intel TBB
+#          filters:
+#            branches:
+#              only: macos
 
-      - Build-MacOS:
-          matrix:
-            parameters:
-              macos_arch:
-               - x86_64
-               # - arm64 # Currently broken, because of Intel TBB
+#      - Release:
+#          requires:
+#            - Build-Linux-x86_64
+#            - Build-MacOS
+       - Build-Windows-x86_64:
           filters:
             branches:
-              only: macos
-
-      - Release:
-          requires:
-            - Build-Linux-x86_64
-            - Build-MacOS
+              only: windows
