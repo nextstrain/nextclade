@@ -222,14 +222,24 @@ pushd "${BUILD_DIR}" > /dev/null
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
     print 14 "Strip executable";
-    strip -S \
-      --strip-unneeded \
-      --remove-section=.note.gnu.gold-version \
-      --remove-section=.comment \
-      --remove-section=.note \
-      --remove-section=.note.gnu.build-id \
-      --remove-section=.note.ABI-tag \
-      ${CLI}
+
+    if [ "${SYSTEM_NAME}" == "Darwin" ]; then
+      strip ${CLI}
+
+      ls -l ${CLI}
+    else
+      strip -s \
+        --strip-unneeded \
+        --remove-section=.note.gnu.gold-version \
+        --remove-section=.comment \
+        --remove-section=.note \
+        --remove-section=.note.gnu.build-id \
+        --remove-section=.note.ABI-tag \
+        ${CLI}
+
+        ls --human-readable --kibibytes -Sl ${CLI}
+    fi
+
 
     print 14 "Install";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
