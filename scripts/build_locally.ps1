@@ -1,4 +1,4 @@
-Set-PSDebug -Trace 2
+Set-PSDebug -Trace 1
 
 $THIS_DIR="$PSScriptRoot"
 
@@ -9,8 +9,17 @@ $INSTALL_DIR="$PROJECT_ROOT_DIR\.out"
 $CMAKE_BUILD_TYPE="Release"
 $NEXTALIGN_STATIC_BUILD=1
 
-$env:Path += ";C:\ProgramFiles\CMake\bin"
-$env:Path += ";C:\ProgramFiles\Conan\bin"
+$env:Path += ";C:\Program Files\CMake\bin"
+$env:Path += ";C:\Program Files\Conan\bin"
+
+Get-ChildItem "C:\Program Files\CMake"
+
+Get-ChildItem "C:\Program Files\CMake\bin"
+
+Get-ChildItem "C:\Program Files\Conan"
+
+Get-ChildItem "C:\Program Files\Conan\bin"
+
 
 conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" --build missing
 
