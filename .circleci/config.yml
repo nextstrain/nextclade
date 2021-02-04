@@ -157,9 +157,14 @@ jobs:
       - checkout
 
       - run:
-          name: Install build tools
+          name: Install cmake
           command: |
-            choco install cmake conan -y
+            choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
+
+      - run:
+          name: Install conan
+          command: |
+            choco install conan -y
 
       - run:
           command: |

@@ -18,14 +18,13 @@ Get-ChildItem "C:\Program Files\CMake\bin"
 
 Get-ChildItem "C:\Program Files\Conan"
 
-Get-ChildItem "C:\Program Files\Conan\bin"
-
-
-conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" --build missing
+Get-ChildItem "C:\Program Files\Conan\conan"
 
 conan profile new default --detect
 
 conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+
+conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" --build missing
 
 cmake $PROJECT_ROOT_DIR `
 -DCMAKE_MODULE_PATH="$BUILD_DIR" `
