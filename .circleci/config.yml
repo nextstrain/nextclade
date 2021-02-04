@@ -223,7 +223,7 @@ workflows:
             parameters:
               macos_arch:
                 - x86_64
-                # - arm64 # Currently broken, because of Intel TBB
+                - arm64
           filters:
             branches:
               only: macos
