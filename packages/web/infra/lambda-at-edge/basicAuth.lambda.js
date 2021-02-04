@@ -1,3 +1,4 @@
+/* eslint-disable prefer-destructuring */
 // Implements basic authentication using AWS Lambda@Edge
 // This is insecure due to hardcoded credentials and is only suited for blocking crawlers
 //
@@ -13,7 +14,7 @@ exports.handler = (event, context, callback) => {
   const headers = request.headers
 
   // Require Basic authentication
-  if (typeof headers.authorization == 'undefined' || headers.authorization[0].value != BASIC_AUTH_STRING) {
+  if (typeof headers.authorization == 'undefined' || headers.authorization[0].value !== BASIC_AUTH_STRING) {
     const body = 'Unauthorized'
     const response = {
       status: '401',
