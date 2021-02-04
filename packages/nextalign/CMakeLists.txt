@@ -93,6 +93,7 @@ target_include_directories(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} SYSTEM
   PRIVATE
   "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
+  "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
   )
 
 target_link_libraries(${PROJECT_NAME}

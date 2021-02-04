@@ -32,6 +32,13 @@ target_include_directories(${PROJECT_NAME}
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/
   )
 
+target_include_directories(${PROJECT_NAME} SYSTEM
+  PRIVATE
+  "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
+  "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
+  )
+
+
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
   nextalign
