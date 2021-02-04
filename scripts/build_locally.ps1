@@ -14,7 +14,9 @@ conan profile new default --detect
 conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 
 
+pushd "$PROJECT_ROOT_DIR/3rdparty/tbb"
 conan create . local/stable -s build_type="$CMAKE_BUILD_TYPE" -o tbb:shared=False
+popd
 
 
 conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" --build missing
