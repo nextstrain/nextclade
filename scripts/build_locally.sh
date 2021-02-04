@@ -30,6 +30,15 @@ MACOS_ARCH=${MACOS_ARCH:=x86_64}
 
 CI="true"
 
+
+SYSTEM_NAME="$(uname -s)"
+PROCESSOR_NAME="$(uname -p || uname -m)"
+if [ "${SYSTEM_NAME}" == "Darwin" ]; then
+  SYSTEM_NAME="MacOS"
+  PROCESSOR_NAME="${MACOS_ARCH}"
+fi
+
+
 IS_CI="0"
 if false \
 || [ ! -z "${BUILD_ID:=}" ] \
@@ -106,6 +115,10 @@ BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
 mkdir -p "${BUILD_DIR}"
 
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
+
+CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
+CLI_EXE="nextalign-${SYSTEM_NAME}-${PROCESSOR_NAME}"
+CLI=${INSTALL_DIR}/bin/${CLI_EXE}
 
 USE_COLOR="${USE_COLOR:=1}"
 DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
@@ -208,23 +221,26 @@ pushd "${BUILD_DIR}" > /dev/null
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+    print 14 "Strip executable";
+    strip -S \
+      --strip-unneeded \
+      --remove-section=.note.gnu.gold-version \
+      --remove-section=.comment \
+      --remove-section=.note \
+      --remove-section=.note.gnu.build-id \
+      --remove-section=.note.ABI-tag \
+      ${CLI}
+
     print 14 "Install";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
+
+    file ${CLI}
   fi
 
 popd > /dev/null
 
-
-SYSTEM_NAME="$(uname -s)"
-PROCESSOR_NAME="$(uname -p || uname -m)"
-if [ "${SYSTEM_NAME}" == "Darwin" ]; then
-  SYSTEM_NAME="MacOS"
-  PROCESSOR_NAME="${MACOS_ARCH}"
-fi
-
 print 25 "Run cppcheck";
 . "${THIS_DIR}/cppcheck.sh"
-
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
   print 23 "Run tests";
@@ -233,9 +249,8 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
   popd > /dev/null
 
   print 27 "Run CLI";
-  CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
-  CLI_EXE="nextalign-${SYSTEM_NAME}-${PROCESSOR_NAME}"
-  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_CLI_OPTIONS} || cd .
+
+  eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
 
   print 22 "Done";
 
