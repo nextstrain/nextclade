@@ -23,6 +23,8 @@
 
 # Adds CMake build types for C++ build with sanitizers
 
+if(NOT WIN32)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     set(FOUND_GCC 1)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -117,3 +119,5 @@ set(CMAKE_CONFIGURATION_TYPES
     UBSAN
     CACHE STRING INTERNAL FORCE
 )
+
+endif()
