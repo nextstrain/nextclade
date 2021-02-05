@@ -95,6 +95,10 @@ jobs:
     macos:
       xcode: "12.4.0"
 
+    environment:
+      CLICOLOR: 1
+      TERM: xterm-256color
+
     steps:
       - checkout
 
