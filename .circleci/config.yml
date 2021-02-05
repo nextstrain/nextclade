@@ -59,16 +59,13 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            GHR_VERSION=0.13.0
-            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_darwin_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_darwin/ghr"; popd >/dev/null
-            VERSION=$(cat packages/nextalign_cli/VERSION)
-            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
+            ./scripts/publish_github_release_linux.sh
 
       - run:
           name: "Publish Docker Image to Docker Hub"
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            scripts/publish_docker_images.sh
+            ./scripts/publish_docker_images.sh
 
   Build-MacOS:
     parameters:
