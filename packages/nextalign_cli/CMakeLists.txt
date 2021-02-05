@@ -6,7 +6,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
 include(Quiet)
 include(Sanitizers)
 
-project(nextalign_cli VERSION 0.1.1
+project(nextalign_cli VERSION 0.1.2
   DESCRIPTION "Viral genome reference alignment"
   )
 
