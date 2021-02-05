@@ -1,4 +1,7 @@
-FROM ubuntu:focal-20210119
+# ubuntu:focal-20210119
+# https://hub.docker.com/layers/ubuntu/library/ubuntu/focal-20210119/images/sha256-3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e?context=explore
+FROM ubuntu@sha256:3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e
+
 
 ARG DEBIAN_FRONTEND=noninteractive
 ARG USER
