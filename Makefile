@@ -49,7 +49,7 @@ clang-tidy:
 	@scripts/clang-tidy.sh
 
 docker-dev:
-	UID=${UID} GID=${GID} docker-compose -f docker-compose.yml up --build --exit-code-from=nextalign_dev
+	UID=${UID} GID=${GID} docker-compose -f docker-compose.yml up --build --exit-code-from=nextalign_builder_dev
 
 
 docker-prod: docker-prod-build docker-prod-run
@@ -58,7 +58,7 @@ docker-prod-build:
 	UID=${UID} GID=${GID} docker-compose -f docker-compose.prod.yml build
 
 docker-prod-run:
-	UID=${UID} GID=${GID} docker-compose -f docker-compose.prod.yml up --build --exit-code-from=nextalign_prod
+	UID=${UID} GID=${GID} docker-compose -f docker-compose.prod.yml up --build --exit-code-from=nextalign_builder
 
 docker-cache-save:
 	mkdir -p docker_images
