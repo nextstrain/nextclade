@@ -23,16 +23,12 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             set -x
-            docker pull neherlab/nextalign_builder:latest
-            make docker-prod-build
-            docker tag neherlab/nextalign_builder:latest neherlab/nextalign_builder:${CIRCLE_SHA1}
-            docker push neherlab/nextalign_builder:latest
-            docker push neherlab/nextalign_builder:${CIRCLE_SHA1}
+            make docker-builder-update
 
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+            - cache-nextalign-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
@@ -41,7 +37,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v1-docker_images-{{ arch }}-{{ checksum "conanfile.txt" }}
+          key: cache-nextalign-v2-docker_images-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 

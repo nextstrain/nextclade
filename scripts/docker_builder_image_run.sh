@@ -21,25 +21,24 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
-
+CONTAINER_NAME=nextalign_builder
 DOCKERHUB_REPO=neherlab/nextalign_builder
 COMMIT_HASH=${CIRCLE_SHA1:=$(git rev-parse --short HEAD)}
 USER_ID=${UID:=$(id -u)}
 GROUP_ID=${GID:=$(id -g)}
 
 
-docker pull ${DOCKERHUB_REPO}:latest
-
-
-docker build -f "${PROJECT_ROOT_DIR}/Dockerfile" \
-  --build-arg USER="user" \
-  --build-arg GROUP="user" \
-  --build-arg UID="${USER_ID}" \
-  --build-arg GID="${GROUP_ID}" \
-  --tag ${DOCKERHUB_REPO}:latest \
-  --tag ${DOCKERHUB_REPO}:${COMMIT_HASH} \
-  .
-
-
-docker push ${DOCKERHUB_REPO}:latest
-docker push ${DOCKERHUB_REPO}:${COMMIT_HASH}
+docker run -it --rm \
+  --name="${CONTAINER_NAME}" \
+  --user="${USER_ID}:${GROUP_ID}" \
+  --env USER="user" \
+  --env GROUP="user" \
+  --env UID="${USER_ID}" \
+  --env GID="${GROUP_ID}" \
+  --env TERM=xterm-256color \
+  --volume=${PWD}/:/src \
+  --volume=/etc/timezone:/etc/timezone:ro \
+  --volume=/etc/localtime:/etc/localtime:ro \
+  --init \
+  ${DOCKERHUB_REPO}:latest \
+  ${1}
