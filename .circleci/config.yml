@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  win: circleci/windows@2.4.0
-
 
 # Reference. Allows to restrict a job to release branch
 release_only: &release_only
