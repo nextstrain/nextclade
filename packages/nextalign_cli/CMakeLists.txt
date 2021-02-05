@@ -13,9 +13,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
+find_package(TBB REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
-find_package(TBB REQUIRED)
+find_package(ghcFilesystem 1.4.0 REQUIRED)
 
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   if (MINGW)
@@ -65,11 +66,12 @@ target_include_directories(${PROJECT_NAME} SYSTEM
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
+  nextalign
   Boost::headers
+  TBB::tbb
   cxxopts::cxxopts
   fmt::fmt
-  nextalign
-  TBB::tbb
+  ghcFilesystem::ghc_filesystem
   ${STATIC_BUILD_FLAGS}
   )
 
