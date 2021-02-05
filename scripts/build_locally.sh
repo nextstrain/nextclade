@@ -254,13 +254,15 @@ pushd "${BUILD_DIR}" > /dev/null
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-    print 14 "Strip executable";
+    print 14 "Install executable";
+    cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
+    print 14 "Strip executable";
     if [ "${SYSTEM_NAME}" == "MacOS" ]; then
       strip ${CLI}
 
       ls -l ${CLI}
-    else
+    elif [ "${SYSTEM_NAME}" == "Linux" ]; then
       strip -s \
         --strip-unneeded \
         --remove-section=.note.gnu.gold-version \
@@ -273,10 +275,7 @@ pushd "${BUILD_DIR}" > /dev/null
         ls --human-readable --kibibytes -Sl ${CLI}
     fi
 
-
-    print 14 "Install";
-    cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
-
+    print 14 "Print executable info";
     file ${CLI}
   fi
 
