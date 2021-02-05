@@ -7,7 +7,7 @@ include(Quiet)
 include(Sanitizers)
 
 project(nextalign DESCRIPTION "C++ library for viral genome reference alignment")
-file (STRINGS "VERSION" PROJECT_VERSION)
+file(STRINGS "VERSION" PROJECT_VERSION)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
