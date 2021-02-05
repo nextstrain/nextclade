@@ -1,8 +1,6 @@
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
-.PHONY: docker-prod
-
 dev:
 	@$(MAKE) --no-print-directory dev-impl
 
@@ -76,7 +74,7 @@ docker-dev: docker-builder-build docker-dev-run
 
 ## Runs "Builder" container in dev mode
 docker-dev-run:
-	./scripts/docker_builder_image_run.sh make dev
+	./scripts/docker_builder_image_run.sh "make dev"
 
 
 
@@ -87,7 +85,7 @@ docker-prod: docker-builder-build docker-prod-run
 
 ## Runs "Builder" container in prod mode
 docker-prod-run:
-	./scripts/docker_builder_image_run.sh make prod
+	./scripts/docker_builder_image_run.sh "make prod"
 
 
 # Checks if attempted release version is valid
