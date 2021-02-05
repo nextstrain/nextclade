@@ -7,8 +7,9 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <cxxopts.hpp>
-#include <filesystem>
 #include <fstream>
+
+#include "filesystem.h"
 
 
 struct CliParams {
@@ -24,9 +25,9 @@ struct CliParams {
 };
 
 struct Paths {
-  std::filesystem::path outputFasta;
-  std::filesystem::path outputInsertions;
-  std::map<std::string, std::filesystem::path> outputGenes;
+  fs::path outputFasta;
+  fs::path outputInsertions;
+  std::map<std::string, fs::path> outputGenes;
 };
 
 template<typename Result>
@@ -60,7 +61,8 @@ auto getParamRequiredDefaulted([[maybe_unused]] const cxxopts::Options &cxxOpts,
 
 CliParams parseCommandLine(int argc, char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
   const std::string versionShort = PROJECT_VERSION;
-  const std::string versionDetailed = fmt::format("nextalign {:s}\nbased on libnextalign {:s}", PROJECT_VERSION, getVersion());
+  const std::string versionDetailed =
+    fmt::format("nextalign {:s}\nbased on libnextalign {:s}", PROJECT_VERSION, getVersion());
 
   cxxopts::Options cxxOpts("nextalign", fmt::format("{:s}\n\n{:s}\n", versionDetailed, PROJECT_DESCRIPTION));
 
@@ -158,7 +160,7 @@ CliParams parseCommandLine(int argc, char *argv[]) {// NOLINT(cppcoreguidelines-
     std::exit(0);
   }
 
-    if (cxxOptsParsed.count("version-detailed") > 0) {
+  if (cxxOptsParsed.count("version-detailed") > 0) {
     fmt::print(stdout, "{:s}\n", versionDetailed);
     std::exit(0);
   }
@@ -274,15 +276,15 @@ std::string formatCliParams(const CliParams &cliParams) {
 }
 
 Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
-  std::filesystem::path sequencesPath = cliParams.sequences;
+  fs::path sequencesPath = cliParams.sequences;
 
-  auto outDir = std::filesystem::canonical(std::filesystem::current_path());
+  auto outDir = fs::canonical(fs::current_path());
   if (cliParams.outputDir) {
     outDir = *cliParams.outputDir;
   }
 
   if (!outDir.is_absolute()) {
-    outDir = std::filesystem::current_path() / outDir;
+    outDir = fs::current_path() / outDir;
   }
 
   fmt::print("OUT PATH: \"{:<s}\"\n", outDir.string());
@@ -304,8 +306,8 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     outputInsertions = *cliParams.outputInsertions;
   }
 
-  std::map<std::string, std::filesystem::path> outputGenes;
-  for (const auto& gene : genes) {
+  std::map<std::string, fs::path> outputGenes;
+  for (const auto &gene : genes) {
     auto outputGene = outDir / baseName;
     outputGene += fmt::format(".gene.{:s}.fasta", gene);
     outputGenes.emplace(gene, outputGene);
@@ -499,8 +501,8 @@ int main(int argc, char *argv[]) {
     const auto paths = getPaths(cliParams, options.genes);
     fmt::print(stdout, formatPaths(paths));
 
-    std::filesystem::create_directories(paths.outputFasta.parent_path());
-    std::filesystem::create_directories(paths.outputInsertions.parent_path());
+    fs::create_directories(paths.outputFasta.parent_path());
+    fs::create_directories(paths.outputInsertions.parent_path());
 
 
     std::ofstream outputFastaFile(paths.outputFasta);

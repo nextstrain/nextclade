@@ -7,7 +7,7 @@ include(Quiet)
 include(Sanitizers)
 
 project(nextalign_cli DESCRIPTION "Viral genome reference alignment")
-file (STRINGS "VERSION" PROJECT_VERSION)
+file(STRINGS "VERSION" PROJECT_VERSION)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
@@ -18,19 +18,19 @@ find_package(fmt 7.1.0 REQUIRED)
 find_package(TBB REQUIRED)
 
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
-  if(MINGW)
+  if (MINGW)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
-  else()
+  else ()
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
-  endif()
+  endif ()
 endif ()
 
 set(SYSTEM_NAME ${CMAKE_SYSTEM_NAME})
 set(PROCESSOR_NAME ${CMAKE_SYSTEM_PROCESSOR})
 if (APPLE)
-  if(NOT DEFINED NEXTALIGN_MACOS_ARCH)
+  if (NOT DEFINED NEXTALIGN_MACOS_ARCH)
     set(NEXTALIGN_MACOS_ARCH "Unknown")
-  endif()
+  endif ()
 
   set(SYSTEM_NAME "MacOS")
   set(PROCESSOR_NAME "${NEXTALIGN_MACOS_ARCH}")
@@ -38,6 +38,7 @@ endif ()
 
 add_executable(${PROJECT_NAME}
   src/cli.cpp
+  src/filesystem.h
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY
