@@ -27,6 +27,8 @@ fi
 PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
 
+export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
+
 # Whether we are running on a Continuous integration server
 IS_CI="0"
 if false \
@@ -117,28 +119,28 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
     ${CONAN_COMPILER_SETTINGS}
     -s compiler=clang \
     -s compiler.version=${CLANG_VERSION} \
+    -s compiler.libcxx=libstdc++11 \
   "
 
   BUILD_SUFFIX="-Clang"
 fi
 
-# Create build directory
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
-
-mkdir -p "${BUILD_DIR}"
-
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
-
 CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
 CLI_EXE="nextalign-${HOST_OS}-${HOST_ARCH}"
-CLI=${INSTALL_DIR}/bin/${CLI_EXE}
+
+CLI="${CLI_DIR}/${CLI_EXE}"
+if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+  CLI=${INSTALL_DIR}/bin/${CLI_EXE}
+fi
 
 USE_COLOR="${USE_COLOR:=1}"
 DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 
 # Whether to build a standalone static executable
-NEXTALIGN_STATIC_BUILD_DEFAULT=0
+NEXTALIGN_STATIC_BUILD_DEFAULT=1
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
 fi
@@ -221,9 +223,10 @@ echo "CXX                      = ${CXX:=}"
 echo "CMAKE_C_COMPILER         = ${CMAKE_C_COMPILER:=}"
 echo "CMAKE_CXX_COMPILER       = ${CMAKE_CXX_COMPILER:=}"
 echo "USE_CLANG_ANALYZER       = ${USE_CLANG_ANALYZER:=}"
-echo "CONAN_COMPILER_SETTINGS  = ${CONAN_COMPILER_SETTINGS:=}"
-echo "CONAN_COMPILER_SETTINGS  = ${CONAN_STATIC_BUILD_FLAGS:=}"
-echo "CONAN_COMPILER_SETTINGS  = ${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
+echo ""
+echo "CONAN_COMPILER_SETTINGS      = ${CONAN_COMPILER_SETTINGS:=}"
+echo "CONAN_STATIC_BUILD_FLAGS     = ${CONAN_STATIC_BUILD_FLAGS:=}"
+echo "CONAN_TBB_STATIC_BUILD_FLAGS = ${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
 echo ""
 echo "BUILD_PREFIX             = ${BUILD_PREFIX:=}"
 echo "BUILD_SUFFIX             = ${BUILD_SUFFIX:=}"
@@ -232,7 +235,14 @@ echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
 echo "CLI                      = ${CLI:=}"
 echo "-------------------------------------------------------------------------"
 
-# If `tbb/2020.3@local/stable` is not in conan cache
+# Setup conan profile in CONAN_USE_HOME
+print 56 "Create conan profile";
+CONAN_V2_MODE=1 conan profile new default --detect --force
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
+
+# At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
+# This will build a local conan package and put it into local conan cache, if not present yet.
+# On `conan install` step this local package will be used, instead of querying conan remote servers.
 if [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
   # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
   print 56 "Build Intel TBB";
@@ -246,6 +256,7 @@ if [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
   popd > /dev/null
 fi
 
+mkdir -p "${BUILD_DIR}"
 pushd "${BUILD_DIR}" > /dev/null
 
   print 56 "Install dependencies";
