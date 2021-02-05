@@ -33,6 +33,7 @@ RUN set -x \
   coreutils \
   cppcheck \
   curl \
+  file \
   g++ \
   gcc \
   gdb \
