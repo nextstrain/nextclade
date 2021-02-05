@@ -17,9 +17,6 @@ ENV PATH="${NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
 
 RUN set -x \
 && apt-get update -qq --yes \
->/dev/null
-
-RUN set -x \
 && apt-get install -qq --no-install-recommends --yes \
   apt-transport-https \
   apt-utils \
