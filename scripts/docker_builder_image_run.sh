@@ -26,7 +26,7 @@ DOCKERHUB_REPO=neherlab/nextalign_builder
 COMMIT_HASH=${CIRCLE_SHA1:=$(git rev-parse --short HEAD)}
 USER_ID=${UID:=$(id -u)}
 GROUP_ID=${GID:=$(id -g)}
-
+CI="${CI:=0}"
 
 docker run -it --rm \
   --name="${CONTAINER_NAME}" \
@@ -35,6 +35,7 @@ docker run -it --rm \
   --env GROUP="user" \
   --env UID="${USER_ID}" \
   --env GID="${GROUP_ID}" \
+  --env CI="${CI}" \
   --env TERM=xterm-256color \
   --volume=${PWD}/:/src \
   --volume=/etc/timezone:/etc/timezone:ro \
