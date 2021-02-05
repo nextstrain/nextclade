@@ -75,6 +75,9 @@ if [ "${BUILD_OS}" != "${HOST_OS}" ] || [ "${BUILD_ARCH}" != "${HOST_ARCH}" ]; t
   CROSS=1
 fi
 
+# Minimum target version of macOS. End up in `-mmacosx-version-min=` flag of AppleClang
+OSX_MIN_VER=${OSX_MIN_VER:=10.12}
+
 # Build type (default: Release)
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
 
@@ -229,6 +232,7 @@ echo "uname -m       = $(uname -m)"
 echo ""
 echo "HOST_OS        = ${HOST_OS:=}"
 echo "HOST_ARCH      = ${HOST_ARCH:=}"
+echo "OSX_MIN_VER    = ${OSX_MIN_VER:=}"
 echo ""
 echo "IS_CI          = ${IS_CI:=}"
 echo "CI             = ${CI:=}"
@@ -305,6 +309,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS} \
     -DNEXTALIGN_MACOS_ARCH="${HOST_ARCH}" \
     -DCMAKE_OSX_ARCHITECTURES="${HOST_ARCH}" \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_MIN_VER}"
 
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
