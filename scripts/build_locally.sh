@@ -61,6 +61,10 @@ fi
 
 # Name of the processor architecture we are running this script on: x86_64, arm64
 BUILD_ARCH="$(uname -p || uname -m)"
+if [ "${BUILD_OS}" == "MacOS" ] && [ ${BUILD_ARCH} == "i386" ]; then
+  # x86_64 is called i386 on macOS, fix that
+  BUILD_ARCH="x86_64"
+fi
 
 # Name of the processor architecture for which we will build the binaries. Default is the same as build arch
 HOST_ARCH=${HOST_ARCH:=${BUILD_ARCH}}
@@ -201,6 +205,10 @@ echo "PROJECT_NAME   = ${PROJECT_NAME:=}"
 echo ""
 echo "BUILD_OS       = ${BUILD_OS:=}"
 echo "BUILD_ARCH     = ${BUILD_ARCH:=}"
+echo "uname -a       = $(uname -a)"
+echo "uname -s       = $(uname -s)"
+echo "uname -p       = $(uname -p)"
+echo "uname -m       = $(uname -m)"
 echo ""
 echo "HOST_OS        = ${HOST_OS:=}"
 echo "HOST_ARCH      = ${HOST_ARCH:=}"
