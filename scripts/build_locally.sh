@@ -256,7 +256,7 @@ pushd "${BUILD_DIR}" > /dev/null
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
     print 14 "Strip executable";
 
-    if [ "${SYSTEM_NAME}" == "Darwin" ]; then
+    if [ "${SYSTEM_NAME}" == "MacOS" ]; then
       strip ${CLI}
 
       ls -l ${CLI}
