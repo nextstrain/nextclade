@@ -37,7 +37,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v2-docker_images-{{ arch }}-{{ checksum "conanfile.txt" }}
+          key: cache-nextalign-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
