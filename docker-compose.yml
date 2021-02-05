@@ -2,8 +2,8 @@ version: '3.7'
 
 services:
   nextalign_dev:
-    container_name: nextalign_dev
-    image: nextalign_dev
+    container_name: neherlab/nextalign_builder
+    image: neherlab/nextalign_builder:latest
     build:
       context: ./
       dockerfile: Dockerfile

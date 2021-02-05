@@ -21,15 +21,11 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          name: 'Restore docker image cache'
-          keys:
-            - cache-nextalign-v1-docker_images
-
       - run:
-          name: 'Load docker image cache'
+          name: 'Pull "Builder" container image'
           command: |
-            make docker-cache-load
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker pull neherlab/nextalign_builder:latest
 
       - run:
           name: 'Build "Builder" container image'
@@ -37,15 +33,10 @@ jobs:
             make docker-prod-build
 
       - run:
-          name: 'Store docker image cache'
+          name: 'Push "Builder" container image'
           command: |
-            make docker-cache-save
-
-      - save_cache:
-          name: 'Save docker image cache'
-          key: cache-nextalign-v1-docker_images-{{ arch }}-{{ checksum "Dockerfile" }}
-          paths:
-            - docker_images
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker push neherlab/nextalign_builder:latest
 
       - restore_cache:
           name: 'Restore build cache'
