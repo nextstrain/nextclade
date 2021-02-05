@@ -26,16 +26,8 @@ fi
 
 PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
-MACOS_ARCH=${MACOS_ARCH:=x86_64}
 
-SYSTEM_NAME="$(uname -s)"
-PROCESSOR_NAME="$(uname -p || uname -m)"
-if [ "${SYSTEM_NAME}" == "Darwin" ]; then
-  SYSTEM_NAME="MacOS"
-  PROCESSOR_NAME="${MACOS_ARCH}"
-fi
-
-
+# Whether we are running on a Continuous integration server
 IS_CI="0"
 if false \
 || [ ! -z "${BUILD_ID:=}" ] \
@@ -51,6 +43,30 @@ if false \
 || [ ! -z "${TRAVIS:=}" ] \
 ; then
   IS_CI="1"
+fi
+
+# Name of the operating system we are running this script on: Linux, Darwin (we rename it to MacOS below)
+BUILD_OS="$(uname -s)"
+if [ "${BUILD_OS}" == "Darwin" ]; then
+  BUILD_OS="MacOS"
+fi
+
+# Name of the operating system for which we will build the binaries. Default is the same as build OS
+HOST_OS="${HOST_OS:=${BUILD_OS}}"
+if [ "${HOST_OS}" == "Darwin" ]; then
+  HOST_OS="MacOS"
+fi
+
+# Name of the processor architecture we are running this script on: x86_64, arm64
+BUILD_ARCH="$(uname -p || uname -m)"
+
+# Name of the processor architecture for which we will build the binaries. Default is the same as build arch
+HOST_ARCH=${HOST_ARCH:=${BUILD_ARCH}}
+
+# Whether we are cross-compiling for another operating system or another processor architecture
+CROSS=0
+if [ "${BUILD_OS}" != "${HOST_OS}" ] || [ "${BUILD_ARCH}" != "${HOST_ARCH}" ]; then
+  CROSS=1
 fi
 
 # Build type (default: Release)
@@ -79,8 +95,9 @@ fi
 # Whether to use Clang C++ compiler (default: use GCC)
 USE_CLANG="${USE_CLANG:=0}"
 
-CONAN_COMPILER_SETTINGS=""
-if [ "${MACOS_ARCH}" == "arm64" ]; then
+CONAN_COMPILER_SETTINGS="-s arch=${HOST_ARCH}"
+if [ "${HOST_OS}" == "MacOS" ] && [ "${HOST_ARCH}" == "arm64" ]; then
+  # Conan uses different name for macOS arm64 architecture
   CONAN_COMPILER_SETTINGS="\
     -s arch=armv8 \
   "
@@ -114,7 +131,7 @@ mkdir -p "${BUILD_DIR}"
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
 
 CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
-CLI_EXE="nextalign-${SYSTEM_NAME}-${PROCESSOR_NAME}"
+CLI_EXE="nextalign-${HOST_OS}-${HOST_ARCH}"
 CLI=${INSTALL_DIR}/bin/${CLI_EXE}
 
 USE_COLOR="${USE_COLOR:=1}"
@@ -178,39 +195,41 @@ function print() {
 }
 
 echo "-------------------------------------------------------------------------"
-echo "PROJECT_NAME=${PROJECT_NAME:=}"
+echo "PROJECT_NAME   = ${PROJECT_NAME:=}"
 echo ""
-echo "SYSTEM_NAME=${SYSTEM_NAME:=}"
-echo "PROCESSOR_NAME=${PROCESSOR_NAME:=}"
-echo "MACOS_ARCH=${MACOS_ARCH:=}"
+echo "BUILD_OS       = ${BUILD_OS:=}"
+echo "BUILD_ARCH     = ${BUILD_ARCH:=}"
 echo ""
-echo "IS_CI=${IS_CI:=}"
-echo "CI=${CI:=}"
-echo "TRAVIS=${TRAVIS:=}"
-echo "CIRCLECI=${CIRCLECI:=}"
-echo "GITHUB_ACTIONS=${GITHUB_ACTIONS:=}"
+echo "HOST_OS        = ${HOST_OS:=}"
+echo "HOST_ARCH      = ${HOST_ARCH:=}"
 echo ""
-echo "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:=}"
-echo "CONAN_BUILD_TYPE=${CONAN_BUILD_TYPE:=}"
-echo "NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=}"
+echo "IS_CI          = ${IS_CI:=}"
+echo "CI             = ${CI:=}"
+echo "TRAVIS         = ${TRAVIS:=}"
+echo "CIRCLECI       = ${CIRCLECI:=}"
+echo "GITHUB_ACTIONS = ${GITHUB_ACTIONS:=}"
 echo ""
-echo "USE_COLOR=${USE_COLOR:=}"
-echo "USE_CLANG=${USE_CLANG:=}"
-echo "CLANG_VERSION=${CLANG_VERSION:=}"
-echo "CC=${CC:=}"
-echo "CXX=${CXX:=}"
-echo "CMAKE_C_COMPILER=${CMAKE_C_COMPILER:=}"
-echo "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER:=}"
-echo "USE_CLANG_ANALYZER=${USE_CLANG_ANALYZER:=}"
-echo "CONAN_COMPILER_SETTINGS=${CONAN_COMPILER_SETTINGS:=}"
-echo "CONAN_COMPILER_SETTINGS=${CONAN_STATIC_BUILD_FLAGS:=}"
-echo "CONAN_COMPILER_SETTINGS=${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
+echo "CMAKE_BUILD_TYPE         = ${CMAKE_BUILD_TYPE:=}"
+echo "CONAN_BUILD_TYPE         = ${CONAN_BUILD_TYPE:=}"
+echo "NEXTALIGN_STATIC_BUILD   = ${NEXTALIGN_STATIC_BUILD:=}"
 echo ""
-echo "BUILD_PREFIX=${BUILD_PREFIX:=}"
-echo "BUILD_SUFFIX=${BUILD_SUFFIX:=}"
-echo "BUILD_DIR=${BUILD_DIR:=}"
-echo "INSTALL_DIR=${INSTALL_DIR:=}"
-echo "CLI=${CLI:=}"
+echo "USE_COLOR                = ${USE_COLOR:=}"
+echo "USE_CLANG                = ${USE_CLANG:=}"
+echo "CLANG_VERSION            = ${CLANG_VERSION:=}"
+echo "CC                       = ${CC:=}"
+echo "CXX                      = ${CXX:=}"
+echo "CMAKE_C_COMPILER         = ${CMAKE_C_COMPILER:=}"
+echo "CMAKE_CXX_COMPILER       = ${CMAKE_CXX_COMPILER:=}"
+echo "USE_CLANG_ANALYZER       = ${USE_CLANG_ANALYZER:=}"
+echo "CONAN_COMPILER_SETTINGS  = ${CONAN_COMPILER_SETTINGS:=}"
+echo "CONAN_COMPILER_SETTINGS  = ${CONAN_STATIC_BUILD_FLAGS:=}"
+echo "CONAN_COMPILER_SETTINGS  = ${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
+echo ""
+echo "BUILD_PREFIX             = ${BUILD_PREFIX:=}"
+echo "BUILD_SUFFIX             = ${BUILD_SUFFIX:=}"
+echo "BUILD_DIR                = ${BUILD_DIR:=}"
+echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
+echo "CLI                      = ${CLI:=}"
 echo "-------------------------------------------------------------------------"
 
 # If `tbb/2020.3@local/stable` is not in conan cache
@@ -247,8 +266,8 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
     -DNEXTALIGN_BUILD_BENCHMARKS=1 \
     -DNEXTALIGN_BUILD_TESTS=1 \
-    -DNEXTALIGN_MACOS_ARCH="${MACOS_ARCH}" \
-    -DCMAKE_OSX_ARCHITECTURES="${MACOS_ARCH}" \
+    -DNEXTALIGN_MACOS_ARCH="${HOST_ARCH}" \
+    -DCMAKE_OSX_ARCHITECTURES="${HOST_ARCH}" \
 
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
@@ -258,11 +277,12 @@ pushd "${BUILD_DIR}" > /dev/null
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
     print 14 "Strip executable";
-    if [ "${SYSTEM_NAME}" == "MacOS" ]; then
+    # Strip works differently on mac
+    if [ "${BUILD_OS}" == "MacOS" ]; then
       strip ${CLI}
 
       ls -l ${CLI}
-    elif [ "${SYSTEM_NAME}" == "Linux" ]; then
+    elif [ "${BUILD_OS}" == "Linux" ]; then
       strip -s \
         --strip-unneeded \
         --remove-section=.note.gnu.gold-version \
@@ -283,6 +303,12 @@ popd > /dev/null
 
 print 25 "Run cppcheck";
 . "${THIS_DIR}/cppcheck.sh"
+
+
+if [ "${CROSS}" == "1" ]; then
+  echo "Skipping unit tests and executable e2e test built for ${HOST_OS} ${HOST_ARCH} because they cannot run on ${BUILD_OS} ${BUILD_ARCH}. Exiting with success."
+  exit 0
+fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
   print 23 "Run tests";
