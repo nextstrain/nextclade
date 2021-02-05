@@ -161,8 +161,18 @@ git clone https://github.com/nextstrain/nextclade
 cd nextclade/packages/web
 cp .env.example .env
 yarn install
-yarn dev
+```
 
+then start the development server with:
+
+```bash
+yarn dev
+```
+
+for Windows, (without Linux Subsystem), try:
+
+```bash
+yarn dev:start_win
 ```
 
 (on Windows, substitute `cp` with `copy`)
