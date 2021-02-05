@@ -111,7 +111,7 @@ jobs:
           name: 'Install build tools'
           command: |
             set -x
-            brew install -q cmake conan coreutils cppcheck
+            brew install -q cmake conan coreutils cppcheck ghr
             conan profile new default --detect
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
@@ -152,8 +152,6 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            GHR_VERSION=0.13.0
-            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_darwin_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_darwin/ghr"; popd >/dev/null
             VERSION=$(.out/bin/nextalign-MacOS-<< parameters.macos_arch >> --version)
             ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
 
