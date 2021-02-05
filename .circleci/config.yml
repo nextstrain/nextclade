@@ -102,10 +102,10 @@ jobs:
     steps:
       - checkout
 
-      - restore_cache:
-          name: 'Restore homebrew cache'
-          keys:
-            - cache-nextalign-v2-homebrew-{{ arch }}
+#      - restore_cache:
+#          name: 'Restore homebrew cache'
+#          keys:
+#            - cache-nextalign-v2-homebrew-{{ arch }}
 
       - run:
           name: 'Install build tools'
@@ -118,12 +118,12 @@ jobs:
             HOMEBREW_NO_AUTO_UPDATE: 1
             CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
 
-      - save_cache:
-          name: 'Save homebrew cache'
-          key: cache-nextalign-v2-homebrew-{{ arch }}
-          paths:
-            - '~/Library/Caches/Homebrew'
-            - '/usr/local/Homebrew'
+#      - save_cache:
+#          name: 'Save homebrew cache'
+#          key: cache-nextalign-v2-homebrew-{{ arch }}
+#          paths:
+#            - '~/Library/Caches/Homebrew'
+#            - '/usr/local/Homebrew'
 
       - restore_cache:
           name: 'Restore build cache'
@@ -161,11 +161,11 @@ workflows:
   version: 2
   build:
     jobs:
-      - Build-Linux-x86_64:
-         filters:
-           branches:
-             only: macos
-         # <<: *release_only
+#      - Build-Linux-x86_64:
+#         filters:
+#           branches:
+#             only: macos
+#         # <<: *release_only
 
       - Build-MacOS:
           matrix:
