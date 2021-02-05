@@ -26,8 +26,9 @@ fi
 
 BUILD_PREFIX=""
 
-CI="true"
+export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
 
+# Whether we are running on a Continuous integration server
 IS_CI="0"
 if false \
 || [ ! -z "${BUILD_ID:=}" ] \
@@ -43,6 +44,34 @@ if false \
 || [ ! -z "${TRAVIS:=}" ] \
 ; then
   IS_CI="1"
+fi
+
+# Name of the operating system we are running this script on: Linux, Darwin (we rename it to MacOS below)
+BUILD_OS="$(uname -s)"
+if [ "${BUILD_OS}" == "Darwin" ]; then
+  BUILD_OS="MacOS"
+fi
+
+# Name of the operating system for which we will build the binaries. Default is the same as build OS
+HOST_OS="${HOST_OS:=${BUILD_OS}}"
+if [ "${HOST_OS}" == "Darwin" ]; then
+  HOST_OS="MacOS"
+fi
+
+# Name of the processor architecture we are running this script on: x86_64, arm64
+BUILD_ARCH="$(uname -p || uname -m)"
+if [ "${BUILD_OS}" == "MacOS" ] && [ ${BUILD_ARCH} == "i386" ]; then
+  # x86_64 is called i386 on macOS, fix that
+  BUILD_ARCH="x86_64"
+fi
+
+# Name of the processor architecture for which we will build the binaries. Default is the same as build arch
+HOST_ARCH=${HOST_ARCH:=${BUILD_ARCH}}
+
+# Whether we are cross-compiling for another operating system or another processor architecture
+CROSS=0
+if [ "${BUILD_OS}" != "${HOST_OS}" ] || [ "${BUILD_ARCH}" != "${HOST_ARCH}" ]; then
+  CROSS=1
 fi
 
 # Build type (default: Release)
@@ -70,7 +99,19 @@ fi
 
 # Whether to use Clang C++ compiler (default: use GCC)
 USE_CLANG="${USE_CLANG:=0}"
-CONAN_COMPILER_SETTINGS=""
+
+# Whether to use MinGW GCC C++ compiler for croww-compiling for Windows (default: no)
+USE_MINGW="${USE_MINGW:=0}"
+
+
+CONAN_COMPILER_SETTINGS="-s arch=${HOST_ARCH}"
+if [ "${HOST_OS}" == "MacOS" ] && [ "${HOST_ARCH}" == "arm64" ]; then
+  # Conan uses different name for macOS arm64 architecture
+  CONAN_COMPILER_SETTINGS="\
+    -s arch=armv8 \
+  "
+fi
+
 BUILD_SUFFIX=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CC="${CC:-clang}"
@@ -82,37 +123,59 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   CLANG_VERSION=${CLANG_VERSION:=${CLANG_VERSION_DETECTED}}
 
   CONAN_COMPILER_SETTINGS="\
+    ${CONAN_COMPILER_SETTINGS}
     -s compiler=clang \
     -s compiler.version=${CLANG_VERSION} \
+    -s compiler.libcxx=libstdc++11 \
   "
 
   BUILD_SUFFIX="-Clang"
 fi
 
-# Create build directory
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
-
-mkdir -p "${BUILD_DIR}"
-
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
+CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
+CLI_EXE="nextalign-${HOST_OS}-${HOST_ARCH}"
+
+CLI="${CLI_DIR}/${CLI_EXE}"
+if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+  CLI=${INSTALL_DIR}/bin/${CLI_EXE}
+fi
 
 USE_COLOR="${USE_COLOR:=1}"
 DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 
 # Whether to build a standalone static executable
-NEXTALIGN_STATIC_BUILD_DEFAULT=0
+NEXTALIGN_STATIC_BUILD_DEFAULT=1
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
 fi
 NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
 
 # Add flags necessary for static build
-CONAN_STATIC_BUILD_FLAGS=""
+CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True"
+CONAN_TBB_STATIC_BUILD_FLAGS=""
 if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   CONAN_STATIC_BUILD_FLAGS="\
+    ${CONAN_STATIC_BUILD_FLAGS} \
     -o tbb:shared=False \
     -o gtest:shared=True \
+  "
+
+  CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
+fi
+
+
+NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
+NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
+if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
+  NEXTALIGN_BUILD_BENCHMARKS=0
+  NEXTALIGN_BUILD_TESTS=0
+
+  CONAN_STATIC_BUILD_FLAGS="\
+    ${CONAN_STATIC_BUILD_FLAGS} \
+    --profile ${PROJECT_ROOT_DIR}/config/conan/mingw-profile.txt \
   "
 fi
 
@@ -153,7 +216,71 @@ function print() {
   fi
 }
 
+echo "-------------------------------------------------------------------------"
+echo "PROJECT_NAME   = ${PROJECT_NAME:=}"
+echo ""
+echo "BUILD_OS       = ${BUILD_OS:=}"
+echo "BUILD_ARCH     = ${BUILD_ARCH:=}"
+echo "uname -a       = $(uname -a)"
+echo "uname -s       = $(uname -s)"
+echo "uname -p       = $(uname -p)"
+echo "uname -m       = $(uname -m)"
+echo ""
+echo "HOST_OS        = ${HOST_OS:=}"
+echo "HOST_ARCH      = ${HOST_ARCH:=}"
+echo ""
+echo "IS_CI          = ${IS_CI:=}"
+echo "CI             = ${CI:=}"
+echo "TRAVIS         = ${TRAVIS:=}"
+echo "CIRCLECI       = ${CIRCLECI:=}"
+echo "GITHUB_ACTIONS = ${GITHUB_ACTIONS:=}"
+echo ""
+echo "CMAKE_BUILD_TYPE         = ${CMAKE_BUILD_TYPE:=}"
+echo "CONAN_BUILD_TYPE         = ${CONAN_BUILD_TYPE:=}"
+echo "NEXTALIGN_STATIC_BUILD   = ${NEXTALIGN_STATIC_BUILD:=}"
+echo ""
+echo "USE_COLOR                = ${USE_COLOR:=}"
+echo "USE_CLANG                = ${USE_CLANG:=}"
+echo "CLANG_VERSION            = ${CLANG_VERSION:=}"
+echo "CC                       = ${CC:=}"
+echo "CXX                      = ${CXX:=}"
+echo "CMAKE_C_COMPILER         = ${CMAKE_C_COMPILER:=}"
+echo "CMAKE_CXX_COMPILER       = ${CMAKE_CXX_COMPILER:=}"
+echo "USE_CLANG_ANALYZER       = ${USE_CLANG_ANALYZER:=}"
+echo ""
+echo "CONAN_COMPILER_SETTINGS      = ${CONAN_COMPILER_SETTINGS:=}"
+echo "CONAN_STATIC_BUILD_FLAGS     = ${CONAN_STATIC_BUILD_FLAGS:=}"
+echo "CONAN_TBB_STATIC_BUILD_FLAGS = ${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
+echo ""
+echo "BUILD_PREFIX             = ${BUILD_PREFIX:=}"
+echo "BUILD_SUFFIX             = ${BUILD_SUFFIX:=}"
+echo "BUILD_DIR                = ${BUILD_DIR:=}"
+echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
+echo "CLI                      = ${CLI:=}"
+echo "-------------------------------------------------------------------------"
 
+# Setup conan profile in CONAN_USE_HOME
+print 56 "Create conan profile";
+CONAN_V2_MODE=1 conan profile new default --detect --force
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
+
+# At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
+# This will build a local conan package and put it into local conan cache, if not present yet.
+# On `conan install` step this local package will be used, instead of querying conan remote servers.
+if [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
+  # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
+  print 56 "Build Intel TBB";
+  pushd "3rdparty/tbb" > /dev/null
+      conan create . local/stable \
+      -s build_type="${CONAN_BUILD_TYPE}" \
+      ${CONAN_COMPILER_SETTINGS} \
+      ${CONAN_STATIC_BUILD_FLAGS} \
+      ${CONAN_TBB_STATIC_BUILD_FLAGS} \
+
+  popd > /dev/null
+fi
+
+mkdir -p "${BUILD_DIR}"
 pushd "${BUILD_DIR}" > /dev/null
 
   print 56 "Install dependencies";
@@ -171,9 +298,12 @@ pushd "${BUILD_DIR}" > /dev/null
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \
     -DCMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK}" \
     -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE:=0} \
+    -DCMAKE_COLOR_MAKEFILE=${CMAKE_COLOR_MAKEFILE:=1} \
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
-    -DNEXTALIGN_BUILD_BENCHMARKS=1 \
-    -DNEXTALIGN_BUILD_TESTS=1 \
+    -DNEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS} \
+    -DNEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS} \
+    -DNEXTALIGN_MACOS_ARCH="${HOST_ARCH}" \
+    -DCMAKE_OSX_ARCHITECTURES="${HOST_ARCH}" \
     -DNEXTCLADE_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
     -DNEXTCLADE_BUILD_BENCHMARKS=1 \
     -DNEXTCLADE_BUILD_TESTS=1 \
@@ -182,16 +312,42 @@ pushd "${BUILD_DIR}" > /dev/null
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-    print 14 "Install";
+    print 14 "Install executable";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
+
+    print 14 "Strip executable";
+    # Strip works differently on mac
+    if [ "${BUILD_OS}" == "MacOS" ]; then
+      strip ${CLI}
+
+      ls -l ${CLI}
+    elif [ "${BUILD_OS}" == "Linux" ]; then
+      strip -s \
+        --strip-unneeded \
+        --remove-section=.note.gnu.gold-version \
+        --remove-section=.comment \
+        --remove-section=.note \
+        --remove-section=.note.gnu.build-id \
+        --remove-section=.note.ABI-tag \
+        ${CLI}
+
+        ls --human-readable --kibibytes -Sl ${CLI}
+    fi
+
+    print 14 "Print executable info";
+    file ${CLI}
   fi
 
 popd > /dev/null
 
-
 print 25 "Run cppcheck";
 . "${THIS_DIR}/cppcheck.sh"
 
+
+if [ "${CROSS}" == "1" ]; then
+  echo "Skipping unit tests and executable e2e test built for ${HOST_OS} ${HOST_ARCH} because they cannot run on ${BUILD_OS} ${BUILD_ARCH}. Exiting with success."
+  exit 0
+fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
   print 23 "Run tests";
@@ -203,15 +359,8 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
       eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
   popd > /dev/null
 
-
-#  print 27 "Run CLI";
-#  CLI_DIR="${BUILD_DIR}/packages/nextalign_cli"
-#  CLI_EXE="nextalign-$(uname -s)-$(uname -p || uname -m)"
-#  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_NEXTALIGN_CLI_OPTIONS} || cd .
-#
-#  CLI_DIR="${BUILD_DIR}/packages/nextclade_cli"
-#  CLI_EXE="nextclade-$(uname -s)-$(uname -p || uname -m)"
-#  eval "${GDB}" ${CLI_DIR}/${CLI_EXE} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+  # print 27 "Run CLI";
+  # eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
 
   print 22 "Done";
 

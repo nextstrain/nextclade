@@ -49,8 +49,7 @@ clang-tidy:
 	@scripts/clang-tidy.sh
 
 docker-dev:
-	mkdir -p .build/Debug .cache/docker/home/user/.conan/data
-	UID=${UID} GID=${GID} docker-compose -f docker-compose.yml up --build
+	UID=${UID} GID=${GID} docker-compose -f docker-compose.yml up --build --exit-code-from=nextalign_dev
 
 
 docker-prod: docker-prod-build docker-prod-run
@@ -59,8 +58,7 @@ docker-prod-build:
 	UID=${UID} GID=${GID} docker-compose -f docker-compose.prod.yml build
 
 docker-prod-run:
-	mkdir -p .build/Release .cache/docker/home/user/.conan/data
-	UID=${UID} GID=${GID} docker-compose -f docker-compose.prod.yml up --build
+	UID=${UID} GID=${GID} docker-compose -f docker-compose.prod.yml up --build --exit-code-from=nextalign_prod
 
 docker-cache-save:
 	mkdir -p docker_images

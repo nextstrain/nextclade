@@ -1,5 +1,9 @@
 version: 2.1
 
+orbs:
+  win: circleci/windows@2.4.0
+
+
 # Reference. Allows to restrict a job to release branch
 release_only: &release_only
   filters:
@@ -16,8 +20,6 @@ jobs:
 
     steps:
       - checkout
-      - run: git submodule sync
-      - run: git submodule update --init
 
       - run:
           name: 'Check release version'
@@ -46,14 +48,14 @@ jobs:
 
       - save_cache:
           name: 'Save docker image cache'
-          key: cache-nextalign-v1-docker_images
+          key: cache-nextalign-v1-docker_images-{{ arch }}-{{ checksum "Dockerfile" }}
           paths:
             - docker_images
 
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+            - cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
@@ -62,7 +64,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v1-cache-{arch}-{checksum "conanfile.txt"}
+          key: cache-nextalign-v1-docker_images-{{ arch }}-{{ checksum "Dockerfile" }}
           paths:
             - .cache
 
@@ -77,7 +79,7 @@ jobs:
             GHR_VERSION=0.13.0
             pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
             VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
-            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete nextalign-${VERSION} .out/bin
+            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
 
       - run:
           name: "Publish Docker Image to Docker Hub"
@@ -85,9 +87,87 @@ jobs:
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             scripts/publish_docker_images.sh
 
+  Build-MacOS:
+    parameters:
+      macos_arch:
+        type: string
+
+    macos:
+      xcode: "12.4.0"
+
+    environment:
+      CLICOLOR: 1
+      TERM: xterm-256color
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: 'Restore homebrew cache'
+          keys:
+            - cache-nextalign-v2-homebrew-{{ arch }}
+
+      - run:
+          name: 'Install build tools'
+          command: |
+            set -x
+            brew install -q cmake conan coreutils cppcheck
+            conan profile new default --detect
+            conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+          environment:
+            HOMEBREW_NO_AUTO_UPDATE: 1
+            CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
+
+      - save_cache:
+          name: 'Save homebrew cache'
+          key: cache-nextalign-v2-homebrew-{{ arch }}
+          paths:
+            - '~/Library/Caches/Homebrew'
+            - '/usr/local/Homebrew'
+
+      - restore_cache:
+          name: 'Restore build cache'
+          keys:
+            - cache-nextalign-v4-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+
+      - run:
+          name: Run macOS << parameters.macos_arch >> build
+          command: |
+            make prod
+          environment:
+            CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
+            HOST_ARCH: << parameters.macos_arch >>
+
+      - save_cache:
+          name: 'Save build cache'
+          key: cache-nextalign-v4-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+          paths:
+            - .cache
+
+      - store_artifacts:
+          name: Persist artifacts in CircleCI Artifacts (macOS << parameters.macos_arch >>)
+          path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
+          destination: nextalign-MacOS-<< parameters.macos_arch >>
+
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            GHR_VERSION=0.13.0
+            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
+            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
+            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
+
 workflows:
   version: 2
   build:
     jobs:
       - Build-Linux-x86_64:
+         <<: *release_only
+
+      - Build-MacOS:
+          matrix:
+            parameters:
+              macos_arch:
+                - x86_64
+                - arm64
           <<: *release_only

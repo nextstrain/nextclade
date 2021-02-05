@@ -3,11 +3,9 @@ cmake_policy(SET CMP0069 NEW)
 
 project(nextalign_benchmarks)
 
+find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(benchmark REQUIRED)
-find_package(boost_algorithm 1.68.0 REQUIRED)
-find_package(boost_base 1.68.0 REQUIRED)
-find_package(boost_detail 1.68.0 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 
 add_executable(${PROJECT_NAME}
@@ -25,13 +23,16 @@ add_executable(${PROJECT_NAME}
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
+target_include_directories(${PROJECT_NAME} SYSTEM
+  PRIVATE
+  "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
+  )
+
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
   nextalign
-  benchmark::benchmark
-  boost_algorithm::boost_algorithm
-  boost_base::boost_base
-  boost_detail::boost_detail
-  fmt::fmt
+  Boost::headers
   Microsoft.GSL::GSL
+  benchmark::benchmark
+  fmt::fmt
   )
