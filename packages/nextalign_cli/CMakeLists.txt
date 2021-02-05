@@ -6,9 +6,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
 include(Quiet)
 include(Sanitizers)
 
-project(nextalign_cli VERSION 0.1.2
-  DESCRIPTION "Viral genome reference alignment"
-  )
+project(nextalign_cli DESCRIPTION "Viral genome reference alignment")
+file (STRINGS "VERSION" PROJECT_VERSION)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -53,9 +52,6 @@ target_compile_definitions(${PROJECT_NAME}
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
   -DPROJECT_DESCRIPTION="${PROJECT_DESCRIPTION}"
-  -DPROJECT_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
-  -DPROJECT_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
-  -DPROJECT_VERSION_PATCH="${PROJECT_VERSION_PATCH}"
   )
 
 target_include_directories(${PROJECT_NAME}

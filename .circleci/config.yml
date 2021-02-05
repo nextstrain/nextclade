@@ -21,11 +21,6 @@ jobs:
     steps:
       - checkout
 
-      - run:
-          name: 'Check release version'
-          command: |
-            make check-release-version
-
       - restore_cache:
           name: 'Restore docker image cache'
           keys:
@@ -78,7 +73,7 @@ jobs:
           command: |
             GHR_VERSION=0.13.0
             pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_darwin_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_darwin/ghr"; popd >/dev/null
-            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
+            VERSION=$(cat packages/nextalign_cli/VERSION)
             ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
 
       - run:
@@ -152,8 +147,8 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            VERSION=$(.out/bin/nextalign-MacOS-<< parameters.macos_arch >> --version)
-            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
+            VERSION=$(cat packages/nextalign_cli/VERSION)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
 
 workflows:
   version: 2
