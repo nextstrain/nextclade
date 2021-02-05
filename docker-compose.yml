@@ -15,7 +15,6 @@ services:
     command: ['make', 'dev']
     volumes:
       - ./:/src
-      - ./.cache/docker/home/user/.conan/data:/home/user/.conan/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
