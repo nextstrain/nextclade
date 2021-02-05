@@ -1,4 +1,5 @@
 import os
+import shutil
 from conans import ConanFile, CMake, tools
 from conans.errors import ConanInvalidConfiguration
 
@@ -29,6 +30,8 @@ that have future-proof scalability"""
     src_url = "https://github.com/oneapi-src/oneTBB/archive/v2021.2.0-rc.tar.gz"
     src_dirname = "oneTBB-2021.2.0-rc"
 
+    mingw = False
+
     _cmake = None
 
     @property
@@ -38,6 +41,11 @@ that have future-proof scalability"""
     def source(self):
         tools.get(url=self.src_url)
         os.rename(self.src_dirname, self._source_subfolder)
+
+        if self.mingw:
+            # shutil.copytree('/path/to/oneTBB', self._source_subfolder)
+            git = tools.Git(folder=self._source_subfolder)
+            git.clone("https://github.com/ivan-aksamentov/oneTBB", branch="mingw", shallow=True)
 
     def _configure_cmake(self):
         if self._cmake:
@@ -75,11 +83,16 @@ that have future-proof scalability"""
         # tbb
         self.cpp_info.components["libtbb"].names["cmake_find_package"] = "tbb"
         self.cpp_info.components["libtbb"].names["cmake_find_package_multi"] = "tbb"
-        self.cpp_info.components["libtbb"].libs = [self._lib_name("tbb")]
+
+        lib_name = "tbb"
+        if self.mingw:
+            lib_name += "12"
+
+        self.cpp_info.components["libtbb"].libs = [self._lib_name(lib_name)]
 
         if self.settings.os == "Linux":
             # self.cpp_info.components["libtbb"].system_libs = ["dl", "rt", "pthread"]
-            self.cpp_info.components["libtbb"].system_libs = ["pthread"]
+            self.cpp_info.components["libtbb"].system_libs = ["rt", "pthread"]
 
         # tbbmalloc
         if self.options.tbbmalloc:

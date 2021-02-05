@@ -20,7 +20,11 @@ find_package(fmt 7.1.0 REQUIRED)
 find_package(TBB REQUIRED)
 
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
-  set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
+  if(MINGW)
+    set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
+  else()
+    set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
+  endif()
 endif ()
 
 set(SYSTEM_NAME ${CMAKE_SYSTEM_NAME})

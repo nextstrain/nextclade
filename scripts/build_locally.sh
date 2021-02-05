@@ -101,6 +101,10 @@ fi
 # Whether to use Clang C++ compiler (default: use GCC)
 USE_CLANG="${USE_CLANG:=0}"
 
+# Whether to use MinGW GCC C++ compiler for croww-compiling for Windows (default: no)
+USE_MINGW="${USE_MINGW:=0}"
+
+
 CONAN_COMPILER_SETTINGS="-s arch=${HOST_ARCH}"
 if [ "${HOST_OS}" == "MacOS" ] && [ "${HOST_ARCH}" == "arm64" ]; then
   # Conan uses different name for macOS arm64 architecture
@@ -161,6 +165,19 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
   "
 
   CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
+fi
+
+
+NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
+NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
+if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
+  NEXTALIGN_BUILD_BENCHMARKS=0
+  NEXTALIGN_BUILD_TESTS=0
+
+  CONAN_STATIC_BUILD_FLAGS="\
+    ${CONAN_STATIC_BUILD_FLAGS} \
+    --profile ${PROJECT_ROOT_DIR}/config/conan/mingw-profile.txt \
+  "
 fi
 
 # AddressSanitizer and MemorySanitizer don't work with gdb
@@ -284,8 +301,8 @@ pushd "${BUILD_DIR}" > /dev/null
     -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE:=0} \
     -DCMAKE_COLOR_MAKEFILE=${CMAKE_COLOR_MAKEFILE:=1} \
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
-    -DNEXTALIGN_BUILD_BENCHMARKS=1 \
-    -DNEXTALIGN_BUILD_TESTS=1 \
+    -DNEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS} \
+    -DNEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS} \
     -DNEXTALIGN_MACOS_ARCH="${HOST_ARCH}" \
     -DCMAKE_OSX_ARCHITECTURES="${HOST_ARCH}" \
 
