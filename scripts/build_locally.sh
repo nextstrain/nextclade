@@ -28,9 +28,6 @@ PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
 MACOS_ARCH=${MACOS_ARCH:=x86_64}
 
-CI="true"
-
-
 SYSTEM_NAME="$(uname -s)"
 PROCESSOR_NAME="$(uname -p || uname -m)"
 if [ "${SYSTEM_NAME}" == "Darwin" ]; then
@@ -179,6 +176,42 @@ function print() {
     printf "\n${2}\n";
   fi
 }
+
+echo "-------------------------------------------------------------------------"
+echo "PROJECT_NAME=${PROJECT_NAME:=}"
+echo ""
+echo "SYSTEM_NAME=${SYSTEM_NAME:=}"
+echo "PROCESSOR_NAME=${PROCESSOR_NAME:=}"
+echo "MACOS_ARCH=${MACOS_ARCH:=}"
+echo ""
+echo "IS_CI=${IS_CI:=}"
+echo "CI=${CI:=}"
+echo "TRAVIS=${TRAVIS:=}"
+echo "CIRCLECI=${CIRCLECI:=}"
+echo "GITHUB_ACTIONS=${GITHUB_ACTIONS:=}"
+echo ""
+echo "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:=}"
+echo "CONAN_BUILD_TYPE=${CONAN_BUILD_TYPE:=}"
+echo "NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=}"
+echo ""
+echo "USE_COLOR=${USE_COLOR:=}"
+echo "USE_CLANG=${USE_CLANG:=}"
+echo "CLANG_VERSION=${CLANG_VERSION:=}"
+echo "CC=${CC:=}"
+echo "CXX=${CXX:=}"
+echo "CMAKE_C_COMPILER=${CMAKE_C_COMPILER:=}"
+echo "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER:=}"
+echo "USE_CLANG_ANALYZER=${USE_CLANG_ANALYZER:=}"
+echo "CONAN_COMPILER_SETTINGS=${CONAN_COMPILER_SETTINGS:=}"
+echo "CONAN_COMPILER_SETTINGS=${CONAN_STATIC_BUILD_FLAGS:=}"
+echo "CONAN_COMPILER_SETTINGS=${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
+echo ""
+echo "BUILD_PREFIX=${BUILD_PREFIX:=}"
+echo "BUILD_SUFFIX=${BUILD_SUFFIX:=}"
+echo "BUILD_DIR=${BUILD_DIR:=}"
+echo "INSTALL_DIR=${INSTALL_DIR:=}"
+echo "CLI=${CLI:=}"
+echo "-------------------------------------------------------------------------"
 
 # If `tbb/2020.3@local/stable` is not in conan cache
 if [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
