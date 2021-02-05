@@ -21,10 +21,10 @@ jobs:
     steps:
       - checkout
 
-#      - run:
-#          name: 'Check release version'
-#          command: |
-#            make check-release-version
+      - run:
+          name: 'Check release version'
+          command: |
+            make check-release-version
 
       - restore_cache:
           name: 'Restore docker image cache'
@@ -73,19 +73,19 @@ jobs:
           path: .out/bin/nextalign-Linux-x86_64
           destination: nextalign-Linux-x86_64
 
-#      - run:
-#          name: "Publish Release on GitHub"
-#          command: |
-#            GHR_VERSION=0.13.0
-#            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
-#            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
-#            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
-#
-#      - run:
-#          name: "Publish Docker Image to Docker Hub"
-#          command: |
-#            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-#            scripts/publish_docker_images.sh
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            GHR_VERSION=0.13.0
+            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
+            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
+            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
+
+      - run:
+          name: "Publish Docker Image to Docker Hub"
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            scripts/publish_docker_images.sh
 
   Build-MacOS:
     parameters:
@@ -102,10 +102,10 @@ jobs:
     steps:
       - checkout
 
-#      - restore_cache:
-#          name: 'Restore homebrew cache'
-#          keys:
-#            - cache-nextalign-v2-homebrew-{{ arch }}
+      - restore_cache:
+          name: 'Restore homebrew cache'
+          keys:
+            - cache-nextalign-v2-homebrew-{{ arch }}
 
       - run:
           name: 'Install build tools'
@@ -118,12 +118,12 @@ jobs:
             HOMEBREW_NO_AUTO_UPDATE: 1
             CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
 
-#      - save_cache:
-#          name: 'Save homebrew cache'
-#          key: cache-nextalign-v2-homebrew-{{ arch }}
-#          paths:
-#            - '~/Library/Caches/Homebrew'
-#            - '/usr/local/Homebrew'
+      - save_cache:
+          name: 'Save homebrew cache'
+          key: cache-nextalign-v2-homebrew-{{ arch }}
+          paths:
+            - '~/Library/Caches/Homebrew'
+            - '/usr/local/Homebrew'
 
       - restore_cache:
           name: 'Restore build cache'
@@ -149,23 +149,20 @@ jobs:
           path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
           destination: nextalign-MacOS-<< parameters.macos_arch >>
 
-#      - run:
-#          name: "Publish Release on GitHub"
-#          command: |
-#            GHR_VERSION=0.13.0
-#            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
-#            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
-#            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            GHR_VERSION=0.13.0
+            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
+            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
+            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
 
 workflows:
   version: 2
   build:
     jobs:
       - Build-Linux-x86_64:
-         filters:
-           branches:
-             only: macos
-#         # <<: *release_only
+         <<: *release_only
 
       - Build-MacOS:
           matrix:
@@ -173,6 +170,4 @@ workflows:
               macos_arch:
                 - x86_64
                 - arm64
-          filters:
-            branches:
-              only: macos
+          <<: *release_only
