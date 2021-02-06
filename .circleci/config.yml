@@ -91,7 +91,7 @@ jobs:
           name: 'Install build tools'
           command: |
             set -x
-            brew install -q cmake conan coreutils cppcheck ghr
+            brew install -q ccache cmake conan coreutils cppcheck ghr
             conan profile new default --detect
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
