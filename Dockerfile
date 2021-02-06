@@ -1,24 +1,12 @@
+# Target: builder
+# Purpose: production build environment used in CI and for local testing of the release build
+
 # ubuntu:focal-20210119
 # https://hub.docker.com/layers/ubuntu/library/ubuntu/focal-20210119/images/sha256-3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e?context=explore
-FROM ubuntu@sha256:3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e
-
-
-ARG DEBIAN_FRONTEND=noninteractive
-ARG USER
-ARG GROUP
-ARG UID
-ARG GID
-
-ENV USER=$USER
-ENV GROUP=$GROUP
-ENV UID=$UID
-ENV GID=$GID
-ENV TERM="xterm-256color"
-ENV HOME="/home/user"
-ENV NVM_DIR="${HOME}/.nvm"
-ENV PATH="${NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
+FROM ubuntu@sha256:3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e as builder
 
 RUN set -x \
+&& export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
   apt-transport-https \
@@ -55,9 +43,50 @@ RUN set -x \
   conan \
   cpplint
 
-RUN set -x \
-&& addgroup --system --gid ${GID} ${GROUP} \
-&& useradd --system --create-home --home-dir ${HOME} \
+ARG USER=user
+ARG GROUP=user
+ARG UID
+ARG GID
+
+ENV USER=$USER
+ENV GROUP=$GROUP
+ENV UID=$UID
+ENV GID=$GID
+ENV TERM="xterm-256color"
+ENV HOME="/home/${USER}"
+
+USER ${USER}
+
+WORKDIR /src
+
+ENTRYPOINT ["make", "prod"]
+
+#-------------------------------------------------------------------------------
+
+# Target: developer
+# Purpose: development environment used for the routine development tasks
+FROM builder as developer
+
+USER 0
+
+ARG USER=user
+ARG GROUP=user
+ARG UID
+ARG GID
+
+ENV USER=$USER
+ENV GROUP=$GROUP
+ENV UID=$UID
+ENV GID=$GID
+ENV TERM="xterm-256color"
+ENV HOME="/home/${USER}"
+
+ENV NVM_DIR="${HOME}/.nvm"
+ENV PATH="${NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
+
+RUN addgroup --system --gid ${GID} ${GROUP}
+
+RUN useradd --system --create-home --home-dir ${HOME} \
 --shell /bin/bash \
 --gid ${GROUP} \
 --groups sudo \
@@ -86,3 +115,7 @@ RUN set -x \
 USER ${USER}
 
 WORKDIR /src
+
+ENTRYPOINT ["make", "dev"]
+
+#-------------------------------------------------------------------------------

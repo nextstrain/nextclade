@@ -22,10 +22,13 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
 fi
 
 
-DOCKERHUB_REPO=neherlab/nextalign_builder
+TARGET="builder"
+
+DOCKERHUB_ORG="neherlab"
+DOCKERHUB_PROJECT="nextalign"
+DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}_${TARGET}"
+
 COMMIT_HASH=${CIRCLE_SHA1:=$(git rev-parse --short HEAD)}
-USER_ID=${UID:=$(id -u)}
-GROUP_ID=${GID:=$(id -g)}
 
 docker push ${DOCKERHUB_REPO}:latest
 docker push ${DOCKERHUB_REPO}:${COMMIT_HASH}

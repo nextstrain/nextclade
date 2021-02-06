@@ -18,6 +18,7 @@ THIS_DIR=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
 PROJECT_ROOT_DIR="$(realpath ${THIS_DIR}/..)"
 
 source "${THIS_DIR}/lib/set_locales.sh"
+source "${THIS_DIR}/lib/is_ci.sh"
 
 source "${PROJECT_ROOT_DIR}/.env.example"
 if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
@@ -28,24 +29,10 @@ PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
 
 export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
+export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/.ccache}"
 
-# Whether we are running on a Continuous integration server
-IS_CI="0"
-if false \
-|| [ ! -z "${BUILD_ID:=}" ] \
-|| [ ! -z "${CI:=}" ] \
-|| [ ! -z "${CIRCLECI:=}" ] \
-|| [ ! -z "${CIRRUS_CI:=}" ] \
-|| [ ! -z "${CODEBUILD_BUILD_ID:=}" ] \
-|| [ ! -z "${GITHUB_ACTIONS:=}" ] \
-|| [ ! -z "${GITLAB_CI:=}" ] \
-|| [ ! -z "${HEROKU_TEST_RUN_ID:=}" ] \
-|| [ ! -z "${TEAMCITY_VERSION:=}" ] \
-|| [ ! -z "${TF_BUILD:=}" ] \
-|| [ ! -z "${TRAVIS:=}" ] \
-; then
-  IS_CI="1"
-fi
+# Check whether we are running on a Continuous integration server
+IS_CI=${IS_CI:=$(is_ci)}
 
 # Name of the operating system we are running this script on: Linux, Darwin (we rename it to MacOS below)
 BUILD_OS="$(uname -s)"
@@ -148,6 +135,10 @@ if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
 fi
 
 USE_COLOR="${USE_COLOR:=1}"
+if [ "${IS_CI}" == "1" ] || [ "${IS_CI}" == "true" ]; then
+  USE_COLOR="0"
+fi
+
 DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 
 # Whether to build a standalone static executable
@@ -213,7 +204,7 @@ done<"${THIS_DIR}/../.cppcheck"
 
 # Print coloured message
 function print() {
-  if [[ ! -z "${USE_COLOR}" ]] && [[ "${USE_COLOR}" != "false" ]]; then
+  if [ ! -z "${USE_COLOR}" ] && [ "${USE_COLOR}" != "false" ] && [ "${USE_COLOR}" != "0" ]; then
     echo -en "\n\e[48;5;${1}m - ${2} \t\e[0m\n";
   else
     printf "\n${2}\n";
@@ -264,7 +255,7 @@ echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
 echo "CLI                      = ${CLI:=}"
 echo "-------------------------------------------------------------------------"
 
-# Setup conan profile in CONAN_USE_HOME
+# Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
 conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
@@ -315,10 +306,10 @@ pushd "${BUILD_DIR}" > /dev/null
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-    print 14 "Install executable";
+    print 30 "Install executable";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
-    print 14 "Strip executable";
+    print 29 "Strip executable";
     # Strip works differently on mac
     if [ "${BUILD_OS}" == "MacOS" ]; then
       strip ${CLI}
@@ -337,7 +328,7 @@ pushd "${BUILD_DIR}" > /dev/null
         ls --human-readable --kibibytes -Sl ${CLI}
     fi
 
-    print 14 "Print executable info";
+    print 28 "Print executable info";
     file ${CLI}
   fi
 
@@ -359,7 +350,6 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
   popd > /dev/null
 
   print 27 "Run CLI";
-
   eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
 
   print 22 "Done";

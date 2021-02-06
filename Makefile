@@ -58,34 +58,21 @@ docker-builder-pull:
 docker-builder-push:
 	./scripts/docker_builder_image_push.sh
 
-# Builds "Builder" docker container
-docker-builder-build:
-	./scripts/docker_builder_image_build.sh
-
-# Updates (pull-build-push) "Builder" docker container
-docker-builder-update: docker-builder-pull docker-builder-build docker-builder-push
 
 
+# Builds and runs development container
+docker-dev:
+	./scripts/docker_builder_image_build.sh "developer"
+	./scripts/docker_builder_image_run.sh "developer"
 
-# Development in "Builder" docker container
+docker-builder:
+	./scripts/docker_builder_image_build.sh "builder"
 
-## Builds and runs "Builder" container in dev mode
-docker-dev: docker-builder-build docker-dev-run
+docker-builder-run:
+	./scripts/docker_builder_image_run.sh "builder"
 
-## Runs "Builder" container in dev mode
-docker-dev-run:
-	./scripts/docker_builder_image_run.sh "make dev"
-
-
-
-# Production in "Builder" docker container
-
-## Builds and runs "Builder" container in prod mode
-docker-prod: docker-builder-build docker-prod-run
-
-## Runs "Builder" container in prod mode
-docker-prod-run:
-	./scripts/docker_builder_image_run.sh "make prod"
+## Builds and runs "Builder" container
+docker-prod: docker-builder docker-builder-run
 
 
 # Checks if attempted release version is valid

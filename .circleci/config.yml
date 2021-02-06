@@ -19,11 +19,21 @@ jobs:
       - checkout
 
       - run:
-          name: 'Download or build the "Builder" container image'
+          name: 'Pull "Builder" container image'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            set -x
-            make docker-builder-update
+            ./scripts/docker_builder_image_pull.sh || true
+
+      - run:
+          name: 'Build "Builder" container image'
+          command: |
+            make docker-builder
+
+      - run:
+          name: 'Push "Builder" container image'
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/docker_builder_image_push.sh
 
       - restore_cache:
           name: 'Restore build cache'
@@ -33,7 +43,7 @@ jobs:
       - run:
           name: 'Run "Builder" container'
           command: |
-            make docker-prod-run
+            make docker-builder-run
 
       - save_cache:
           name: 'Save build cache'

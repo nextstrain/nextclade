@@ -21,16 +21,23 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
+TARGET="${1:-builder}"
+if [ ${TARGET} == "release" ]; then
+  echo "Should not build the release image with this script. Refusing to proceed."
+  exit 1
+fi
 
-DOCKERHUB_REPO=neherlab/nextalign_builder
+DOCKERHUB_ORG="neherlab"
+DOCKERHUB_PROJECT="nextalign"
+DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}_${TARGET}"
+
 COMMIT_HASH=${CIRCLE_SHA1:=$(git rev-parse --short HEAD)}
+
 USER_ID=${UID:=$(id -u)}
 GROUP_ID=${GID:=$(id -g)}
 
-
 docker build -f "${PROJECT_ROOT_DIR}/Dockerfile" \
-  --build-arg USER="user" \
-  --build-arg GROUP="user" \
+  --target="${TARGET}" \
   --build-arg UID="${USER_ID}" \
   --build-arg GID="${GROUP_ID}" \
   --tag ${DOCKERHUB_REPO}:latest \
