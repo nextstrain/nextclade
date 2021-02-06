@@ -96,7 +96,7 @@ jobs:
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
             HOMEBREW_NO_AUTO_UPDATE: 1
-            CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
+            CONAN_USER_HOME: '/Users/distiller/project/.cache'
 
       - save_cache:
           name: 'Save homebrew cache'
@@ -115,7 +115,7 @@ jobs:
           command: |
             make prod
           environment:
-            CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
+            CONAN_USER_HOME: '/Users/distiller/project/.cache'
             HOST_ARCH: << parameters.macos_arch >>
 
       - save_cache:
