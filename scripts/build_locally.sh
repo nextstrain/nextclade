@@ -103,6 +103,15 @@ if [ "${HOST_OS}" == "MacOS" ] && [ "${HOST_ARCH}" == "arm64" ]; then
   "
 fi
 
+if [ "${HOST_OS}" == "MacOS" ]; then
+  # Conan uses different name for macOS arm64 architecture
+  CONAN_COMPILER_SETTINGS="\
+    ${CONAN_COMPILER_SETTINGS} \
+    -s os.version=${OSX_MIN_VER} \
+  "
+fi
+
+
 BUILD_SUFFIX=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CC="${CC:-clang}"
