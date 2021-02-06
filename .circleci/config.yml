@@ -38,7 +38,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+            - cache-nextalign-v3-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
@@ -47,7 +47,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+          key: cache-nextalign-v3-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
@@ -85,7 +85,7 @@ jobs:
       - restore_cache:
           name: 'Restore homebrew cache'
           keys:
-            - cache-nextalign-v2-homebrew-{{ arch }}
+            - cache-nextalign-v3-homebrew-{{ arch }}
 
       - run:
           name: 'Install build tools'
@@ -100,7 +100,7 @@ jobs:
 
       - save_cache:
           name: 'Save homebrew cache'
-          key: cache-nextalign-v2-homebrew-{{ arch }}
+          key: cache-nextalign-v3-homebrew-{{ arch }}
           paths:
             - '~/Library/Caches/Homebrew'
             - '/usr/local/Homebrew'
@@ -108,7 +108,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v4-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+            - cache-nextalign-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
 
       - run:
           name: Run macOS << parameters.macos_arch >> build
@@ -120,7 +120,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v4-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+          key: cache-nextalign-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
           paths:
             - .cache
 
