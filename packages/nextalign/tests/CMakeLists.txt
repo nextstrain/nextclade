@@ -44,7 +44,9 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
   nextalign
   Boost::headers
-  GTest::GTest
+  GTest::gtest
+  GTest::gmock
+  GTest::gmock_main
   Microsoft.GSL::GSL
   fmt::fmt
   )
