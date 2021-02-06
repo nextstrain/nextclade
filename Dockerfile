@@ -24,9 +24,9 @@ RUN set -x \
   python3-setuptools \
   python3-wheel \
 >/dev/null \
-&& rm -rf /var/lib/apt/lists/* \
+&& apt-get autoremove --yes >/dev/null \
 && apt-get clean autoclean >/dev/null \
-&& apt-get autoremove --yes >/dev/null
+&& rm -rf /var/lib/apt/lists/*
 
 RUN set -x \
 && pip3 install --upgrade --quiet \
