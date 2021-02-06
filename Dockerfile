@@ -9,39 +9,31 @@ RUN set -x \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
-  apt-transport-https \
-  apt-utils \
   bash \
-  build-essential \
   ccache \
-  clang-format-10 \
-  clang-tidy \
-  clang-tools-10 \
   cmake \
   coreutils \
   cppcheck \
-  curl \
   file \
+  gdb \
   g++ \
   gcc \
-  gdb \
-  git \
-  libclang-common-10-dev \
-  llvm-10 \
   make \
   python3 \
-  python3-dev \
   python3-pip \
   python3-setuptools \
   python3-wheel \
-  sudo \
->/dev/null
+>/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null
 
 RUN set -x \
 && pip3 install --upgrade --quiet \
   colorama \
   conan \
-  cpplint
+  cpplint \
+&& rm -rf ~/.cache/pip/*
 
 ARG USER=user
 ARG GROUP=user
@@ -68,6 +60,24 @@ ENTRYPOINT ["make", "prod"]
 FROM builder as developer
 
 USER 0
+
+RUN set -x \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  build-essential \
+  clang-format-10 \
+  clang-tidy \
+  clang-tools-10 \
+  curl \
+  git \
+  libclang-common-10-dev \
+  llvm-10 \
+  sudo \
+>/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null
 
 ARG USER=user
 ARG GROUP=user
