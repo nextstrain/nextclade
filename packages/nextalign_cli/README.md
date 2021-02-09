@@ -76,6 +76,10 @@ You can download Nextalign executables on Github Releases page:
 
 https://github.com/nextstrain/nextclade/releases
 
+> ⚠️ Note that macOS executables are not currently signed with a developer certificate. Recent versions of macOS might refuse to run it. Before invoking Nextalign on command line, follow these steps to add Nextalign to the exclude list:
+> <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac">
+macOS User Guide: Open a Mac app from an unidentified developer</a>, or, if this does not work, check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
+Security settings</a>.
 
 <h3 id="download-from-command-line" align="center">
 🖥️ Download from command line
