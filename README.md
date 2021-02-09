@@ -106,7 +106,7 @@ Nextclade
 ---
 
 <p align="center">
-  <a href="https://github.com/nextstrain/nextclade/releases">
+  <a href="https://clades.nextstrain.org" target="_blank" rel="noopener noreferrer" >
     <img height="50px"
       src="https://img.shields.io/badge/%F0%9F%8C%8E%20Visit%20clades.nextstrain.org-%23aa1718.svg"
       alt="Download button"
