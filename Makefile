@@ -1,6 +1,12 @@
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
+clean:
+	rm -rf .build .out tmp
+
+cleanest: clean
+	rm -rf .cache
+
 dev:
 	@$(MAKE) --no-print-directory dev-impl
 
