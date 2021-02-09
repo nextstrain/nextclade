@@ -5,6 +5,7 @@
 #include <numeric>
 #include <vector>
 
+#include "../../src/options.h"
 #include "../include/nextalign/nextalign.h"
 #include "../src/align/alignPairwise.h"
 #include "../src/align/getGapOpenCloseScores.h"
@@ -16,11 +17,7 @@
 
 class AlignPairwiseAverageBench : public benchmark::Fixture {
 protected:
-  const NextalignOptions options = {
-    .gapOpenInFrame = -5,
-    .gapOpenOutOfFrame = -6,
-    .genes = {},
-  };
+  const NextalignOptions options = OPTIONS_DEFAULT;
   const std::vector<int> gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
   const NucleotideSequence ref = toNucleotideSequence(reference);
   std::vector<NucleotideSequence> nucSequences;
@@ -44,7 +41,7 @@ BENCHMARK_DEFINE_F(AlignPairwiseAverageBench, Average)(benchmark::State& st) {
   for (const auto _ : st) {
     for (int i = 0; i < n; ++i) {
       const auto& input = nucSequences[i];
-      benchmark::DoNotOptimize(aln = alignPairwise(input, ref, gapOpenClose, 100));
+      benchmark::DoNotOptimize(aln = alignPairwise(input, ref, gapOpenClose, options.alignment, options.seedNuc));
     }
   }
 

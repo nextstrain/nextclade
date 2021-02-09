@@ -6,23 +6,22 @@
 
 #include "../src/align/getGapOpenCloseScores.h"
 #include "../src/match/matchNuc.h"
-#include "./data/sampleGeneMap.h"
+#include "../src/options.h"
 
-const int min_length = 5;
 
-const NextalignOptions options = {
-  .gapOpenInFrame = -5,
-  .gapOpenOutOfFrame = -6,
-  .genes = {},
+class AlignPairwise : public ::testing::Test {
+protected:
+  NextalignOptions options = OPTIONS_DEFAULT;
+  std::vector<int> gapOpenClose;
+
+  AlignPairwise() {
+    options.alignment.minimalLength = 3;
+    const NucleotideSequence dummyRef{100, Nucleotide::GAP};
+    gapOpenClose = getGapOpenCloseScoresFlat(dummyRef, options);
+  }
 };
 
-// TODO: this is codon-unaware alignment
-const NucleotideSequence dummyRef{100, Nucleotide::GAP};
-const std::vector<int> gapOpenClose = getGapOpenCloseScoresFlat(dummyRef, options);
-//const std::vector<int> gapOpenClose = getGapOpenCloseScoresCodonAware(dummyRef, sampleGeneMap, options);
-
-
-TEST(alignPairwise, MatchesIdenticalStrings) {
+TEST_F(AlignPairwise, MatchesIdenticalStrings) {
   std::stringstream input;
 
   // clang-format off
@@ -30,13 +29,13 @@ TEST(alignPairwise, MatchesIdenticalStrings) {
   const auto ref = toNucleotideSequence("ACGCTCGCT");
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(27, result.alignmentScore);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qry), toString(result.query));
 }
 
-TEST(alignPairwise, PadsMissingLeft) {
+TEST_F(AlignPairwise, PadsMissingLeft) {
   std::stringstream input;
 
   // clang-format off
@@ -45,13 +44,13 @@ TEST(alignPairwise, PadsMissingLeft) {
   const auto qryAln = toNucleotideSequence(  "---CTCGCT"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(18, result.alignmentScore);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
-TEST(alignPairwise, PadsMissingLeftSingleMismatch) {
+TEST_F(AlignPairwise, PadsMissingLeftSingleMismatch) {
   std::stringstream input;
 
   // clang-format off
@@ -60,13 +59,13 @@ TEST(alignPairwise, PadsMissingLeftSingleMismatch) {
   const auto qryAln = toNucleotideSequence(  "-----TCCAATCA"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(16, result.alignmentScore);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
-TEST(alignPairwise, PadsMissingRightSingleMismatch) {
+TEST_F(AlignPairwise, PadsMissingRightSingleMismatch) {
   std::stringstream input;
 
   // clang-format off
@@ -75,13 +74,13 @@ TEST(alignPairwise, PadsMissingRightSingleMismatch) {
   const auto qryAln = toNucleotideSequence(  "CCAATCAT-----"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(16, result.alignmentScore);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
-TEST(alignPairwise, PadsMissingRightSingleMismatchRevere) {
+TEST_F(AlignPairwise, PadsMissingRightSingleMismatchRevere) {
   std::stringstream input;
 
   // clang-format off
@@ -90,13 +89,13 @@ TEST(alignPairwise, PadsMissingRightSingleMismatchRevere) {
   const auto refAln = toNucleotideSequence(  "CCGATCAT-----"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(16, result.alignmentScore);
   EXPECT_EQ(toString(qry), toString(result.query));
   EXPECT_EQ(toString(refAln), toString(result.ref));
 }
 
-TEST(alignPairwise, PadsMissingLeftSingle) {
+TEST_F(AlignPairwise, PadsMissingLeftSingle) {
   std::stringstream input;
 
   // clang-format off
@@ -105,13 +104,13 @@ TEST(alignPairwise, PadsMissingLeftSingle) {
   const auto qryAln = toNucleotideSequence(  "-CGCTCGCT"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(24, result.alignmentScore);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
-TEST(alignPairwise, PadsMissingLeftMismatch) {
+TEST_F(AlignPairwise, PadsMissingLeftMismatch) {
   std::stringstream input;
 
   // clang-format off
@@ -120,13 +119,13 @@ TEST(alignPairwise, PadsMissingLeftMismatch) {
   const auto qryAln = toNucleotideSequence( "-----TGTTACCTGCGC" );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(28, result.alignmentScore);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
-TEST(alignPairwise, PadsMissingRight) {
+TEST_F(AlignPairwise, PadsMissingRight) {
   std::stringstream input;
 
   // clang-format off
@@ -135,12 +134,12 @@ TEST(alignPairwise, PadsMissingRight) {
   const auto qryAln = toNucleotideSequence(  "ACGCTC---"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
-TEST(alignPairwise, HandlesQueryContainedInRef) {
+TEST_F(AlignPairwise, HandlesQueryContainedInRef) {
   std::stringstream input;
 
   // clang-format off
@@ -149,12 +148,12 @@ TEST(alignPairwise, HandlesQueryContainedInRef) {
   const auto qryAln = toNucleotideSequence(  "---ACGCTC---"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
-TEST(alignPairwise, HandlesRefContainedInQuery) {
+TEST_F(AlignPairwise, HandlesRefContainedInQuery) {
   std::stringstream input;
 
   // clang-format off
@@ -163,12 +162,12 @@ TEST(alignPairwise, HandlesRefContainedInQuery) {
   const auto refAln = toNucleotideSequence(  "---ACGCTC---"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qry), toString(result.query));
 }
 
-TEST(alignPairwise, AddsGapsWhenOneMismatch) {
+TEST_F(AlignPairwise, AddsGapsWhenOneMismatch) {
   std::stringstream input;
 
   // clang-format off
@@ -177,13 +176,13 @@ TEST(alignPairwise, AddsGapsWhenOneMismatch) {
   const auto qryAln = toNucleotideSequence(  "GCCA--CTCCCT"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(20, result.alignmentScore);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
-TEST(alignPairwise, AddsGapsInRefWhenOneAmbiguousButMatchingChar) {
+TEST_F(AlignPairwise, AddsGapsInRefWhenOneAmbiguousButMatchingChar) {
   std::stringstream input;
 
   // clang-format off
@@ -192,12 +191,12 @@ TEST(alignPairwise, AddsGapsInRefWhenOneAmbiguousButMatchingChar) {
   const auto ref =    toNucleotideSequence(  "GCCACTCGCT"    );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qry), toString(result.query));
 }
 
-TEST(alignPairwise, CorrectlyAlignsAmbiguousGapPlacingCase) {
+TEST_F(AlignPairwise, CorrectlyAlignsAmbiguousGapPlacingCase) {
   std::stringstream input;
 
   // clang-format off
@@ -206,14 +205,14 @@ TEST(alignPairwise, CorrectlyAlignsAmbiguousGapPlacingCase) {
   const auto qryAln = toNucleotideSequence(  "ACAT---CTTC"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(18, result.alignmentScore);
   EXPECT_EQ(toString(ref), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
 
 
-TEST(alignPairwise, CorrectlyAlignsAmbiguousGapPlacingCaseReversed) {
+TEST_F(AlignPairwise, CorrectlyAlignsAmbiguousGapPlacingCaseReversed) {
   std::stringstream input;
 
   // clang-format off
@@ -222,13 +221,13 @@ TEST(alignPairwise, CorrectlyAlignsAmbiguousGapPlacingCaseReversed) {
    const auto ref =    toNucleotideSequence(  "ACATCTTG"        );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(18, result.alignmentScore);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qry), toString(result.query));
 }
 
-TEST(alignPairwise, CorrectlyAlignsLongComplexQuery) {
+TEST_F(AlignPairwise, CorrectlyAlignsLongComplexQuery) {
   std::stringstream input;
 
   // clang-format off
@@ -238,7 +237,7 @@ TEST(alignPairwise, CorrectlyAlignsLongComplexQuery) {
    const auto qryAln = toNucleotideSequence(  "CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATC-----AAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT"  );
   // clang-format on
 
-  const auto result = alignPairwise(qry, ref, gapOpenClose, min_length);
+  const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }

@@ -29,7 +29,7 @@ NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSeque
   const auto gapOpenCloseNuc = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
   const auto gapOpenCloseAA = getGapOpenCloseScoresFlat(ref, options);
 
-  const auto alignment = alignPairwise(query, ref, gapOpenCloseNuc, 100);
+  const auto alignment = alignPairwise(query, ref, gapOpenCloseNuc, options.alignment, options.seedNuc);
 
   std::vector<Peptide> queryPeptides;
   std::vector<Peptide> refPeptides;

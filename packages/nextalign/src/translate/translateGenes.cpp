@@ -74,7 +74,7 @@ PeptidesInternal translateGenes(         //
       const auto& queryGene = extractGeneQuery(query, gene, coordMap);
       const auto queryPeptide = translate(queryGene);
 
-      const auto geneAlignment = alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, 10);
+      const auto geneAlignment = alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
       const auto stripped = stripInsertions(geneAlignment.ref, geneAlignment.query);
 
 
