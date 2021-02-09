@@ -215,4 +215,4 @@ This will start webpack in watch mode and all changes will trigger partial rebui
 
 ## License
 
-<a target="_blank" rel="noopener noreferrer" href="LICENSE" alt="License file">MIT License</a>
+<a target="_blank" rel="noopener noreferrer" href="../LICENSE" alt="License file">MIT License</a>

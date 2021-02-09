@@ -9,48 +9,6 @@
   "skipCi": true,
   "contributors": [
     {
-      "login": "rneher",
-      "name": "Richard Neher",
-      "avatar_url": "https://avatars3.githubusercontent.com/u/8379168?v=4",
-      "profile": "https://github.com/rneher",
-      "contributions": [
-        "bug",
-        "code",
-        "content",
-        "data",
-        "design",
-        "doc",
-        "ideas",
-        "infra",
-        "maintenance",
-        "review",
-        "security",
-        "talk",
-        "test",
-        "translation"
-      ]
-    },
-    {
-      "login": "ivan-aksamentov",
-      "name": "Ivan Aksamentov",
-      "avatar_url": "https://avatars0.githubusercontent.com/u/9403403?v=4",
-      "profile": "https://github.com/ivan-aksamentov",
-      "contributions": [
-        "code",
-        "data",
-        "design",
-        "ideas",
-        "bug",
-        "content",
-        "doc",
-        "maintenance",
-        "translation",
-        "test",
-        "talk",
-        "review"
-      ]
-    },
-    {
       "login": "stroudn1",
       "name": "Natalie Stroud",
       "avatar_url": "https://avatars3.githubusercontent.com/u/17433156?v=4",
