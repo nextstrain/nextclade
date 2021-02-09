@@ -43,10 +43,6 @@ Nextalign (command-line tool)
 ---
 
 ![Docker Image Version (latest semver)](https://img.shields.io/docker/v/neherlab/nextalign?label=%F0%9F%90%8B%20docker)
-![GitHub contributors](https://img.shields.io/github/contributors/nextstrain/nextclade)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/nextstrain/nextclade)
-[![CircleCI](https://img.shields.io/circleci/build/github/nextstrain/nextclade)](https://circleci.com/gh/nextstrain/nextclade)
-
 
 ---
 
