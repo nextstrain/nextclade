@@ -4,7 +4,7 @@ namespace {
   inline const NextalignOptions OPTIONS_DEFAULT = {
     .alignment =
       {
-        .minimalLength = 10,
+        .minimalLength = 100,
         .scoreGapExtend = 0,
         .scoreGapOpen = -6,
         .scoreGapOpenInFrame = -5,

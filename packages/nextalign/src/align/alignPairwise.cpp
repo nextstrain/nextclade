@@ -440,10 +440,6 @@ template<typename Letter>
 AlignmentResult<Letter> alignPairwise(const Sequence<Letter>& query, const Sequence<Letter>& ref,
   const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
   const NextalignSeedOptions& seedOptions, AlignPairwiseTag) {
-  const int querySize = query.size();
-  if (querySize < alignmentOptions.minimalLength) {
-    throw ErrorAlignmentSequenceTooShort();
-  }
 
   const SeedAlignment& seedAlignmentResult = seedAlignment(query, ref, seedOptions);
   const auto& bandWidth = seedAlignmentResult.bandWidth;
@@ -463,6 +459,12 @@ AlignmentResult<Letter> alignPairwise(const Sequence<Letter>& query, const Seque
 NucleotideAlignmentResult alignPairwise(const NucleotideSequence& query, const NucleotideSequence& ref,
   const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
   const NextalignSeedOptions& seedOptions) {
+
+  const int querySize = query.size();
+  if (querySize < alignmentOptions.minimalLength) {
+    throw ErrorAlignmentSequenceTooShort();
+  }
+
   return alignPairwise(query, ref, gapOpenClose, alignmentOptions, seedOptions, AlignPairwiseTag{});
 }
 
