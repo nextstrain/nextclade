@@ -13,11 +13,11 @@ Nextclade
 > </p>
 
 <p align="center">
-  <a href="docs/assets/ui.gif" target="_blank" rel="noopener noreferrer"  alt="Link to animated screenshot of the application, showcasing the user interface on main page">
+  <a href="https://raw.githubusercontent.com/nextstrain/nextclade/master/docs/assets/ui.gif" target="_blank" rel="noopener noreferrer"  alt="Link to animated screenshot of the application, showcasing the user interface on main page">
     <img
       width="100%"
       height="auto"
-      src="docs/assets/ui.gif"
+      src="https://raw.githubusercontent.com/nextstrain/nextclade/master/docs/assets/ui.gif"
       alt="Animated screenshot of the application, showcasing the user interface on main page"
     />
   </a>
