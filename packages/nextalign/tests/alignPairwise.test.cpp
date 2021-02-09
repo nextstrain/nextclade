@@ -6,12 +6,11 @@
 
 #include "../src/align/getGapOpenCloseScores.h"
 #include "../src/match/matchNuc.h"
-#include "../src/options.h"
 
 
 class AlignPairwise : public ::testing::Test {
 protected:
-  NextalignOptions options = OPTIONS_DEFAULT;
+  NextalignOptions options = getDefaultOptions();
   std::vector<int> gapOpenClose;
 
   AlignPairwise() {

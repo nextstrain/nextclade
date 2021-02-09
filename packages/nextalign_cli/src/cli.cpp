@@ -476,7 +476,7 @@ int main(int argc, char *argv[]) {
     fmt::print(stdout, formatCliParams(cliParams));
 
 
-    NextalignOptions options;
+    NextalignOptions options = getDefaultOptions();
 
     const auto refInput = parseRefFastaFile(cliParams.reference);
     const auto &refName = refInput.seqName;

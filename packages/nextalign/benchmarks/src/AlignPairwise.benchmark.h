@@ -5,7 +5,6 @@
 #include <numeric>
 #include <vector>
 
-#include "../../src/options.h"
 #include "../include/nextalign/nextalign.h"
 #include "../src/align/alignPairwise.h"
 #include "../src/align/getGapOpenCloseScores.h"
@@ -17,7 +16,7 @@
 
 class AlignPairwiseAverageBench : public benchmark::Fixture {
 protected:
-  const NextalignOptions options = OPTIONS_DEFAULT;
+  const NextalignOptions options = getDefaultOptions();
   const std::vector<int> gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
   const NucleotideSequence ref = toNucleotideSequence(reference);
   std::vector<NucleotideSequence> nucSequences;

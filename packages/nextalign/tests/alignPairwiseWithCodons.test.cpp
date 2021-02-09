@@ -5,12 +5,11 @@
 #include "../src/align/alignPairwise.h"
 #include "../src/align/getGapOpenCloseScores.h"
 #include "../src/match/matchNuc.h"
-#include "../src/options.h"
 
 
 class AlignPairwiseWithCodons : public ::testing::Test {
 protected:
-  NextalignOptions options = OPTIONS_DEFAULT;
+  NextalignOptions options = getDefaultOptions();
 
   AlignPairwiseWithCodons() {
     options.alignment.minimalLength = 3;
