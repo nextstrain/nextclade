@@ -21,11 +21,20 @@ protected:
     .gapOpenOutOfFrame = -6,
     .genes = {},
   };
-  const std::vector<int> gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
-  const NucleotideSequence ref = toNucleotideSequence(reference);
+
+  std::vector<int> gapOpenClose;
+  NucleotideSequence ref;
   std::vector<NucleotideSequence> nucSequences;
+  int totalNucs;
+  GeneMap geneMap;
 
   AlignPairwiseAverageBench() {
+    const auto [sequences, reference, geneMap, nNucs] = getData();
+    gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
+    ref = toNucleotideSequence(reference);
+    totalNucs = nNucs;
+    this->geneMap = geneMap;
+
     const auto n = NUM_SEQUENCES_AVG;
     nucSequences.resize(n);
     for (int i = 0; i < n; ++i) {
