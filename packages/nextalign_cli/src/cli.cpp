@@ -216,7 +216,7 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "max-indel",
-      "(optional) Maximum number of indels allowed to proceed with alignment. If a sequence or gene contains more thanthat, alignment will not be attempted and a warning will be emitted.",
+      "(optional) Maximum number of indels allowed to proceed with alignment. If a sequence or gene contains more than that, alignment will not be attempted and a warning will be emitted.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.maxIndel)),
       "MAX_INDEL"
     )
