@@ -195,21 +195,21 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "score-gap-open-in-frame",
-      "(optional) As score-gap-open, but for opening gaps at the beginning of a codon. Should be smaller than score-gap-open but bigger than score-gap-open-out-of-frame to avoid gaps in genes but favor gaps that align with codons.",
+      "(optional) As `--score-gap-open`, but for opening gaps at the beginning of a codon. Should be less than `--score-gap-open` but greater than `--score-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenInFrame)),
       "SCORE_GAP_OPEN_IN_FRAME"
     )
 
     (
       "score-gap-open-out-of-frame",
-      "(optional) As score-gap-open, but for opening gaps at the beginning of a codon. Should be smaller than score-gap-out-of-frame to favor gaps that align with codons.",
+      "(optional) As `--score-gap-open`, but for opening gaps at the beginning of a codon. Should be smaller than `--score-gap-out-of-frame` to favor gaps that align with codons.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenOutOfFrame)),
       "SCORE_GAP_OPEN_OUT_OF_FRAME"
     )
 
     (
       "score-mismatch",
-      "(optional) Score for aligned nucleotides or amino acids that differ in state. Should be 0 or negative. Note that this is redundantly parameterized with `score-match`.",
+      "(optional) Score for aligned nucleotides or amino acids that differ in state. Should be 0 or negative. Note that this is redundantly parameterized with `--score-match`.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreMismatch)),
       "SCORE_MISMATCH"
     )
