@@ -13,10 +13,17 @@
 
 class NextalignAverageBench : public benchmark::Fixture {
 protected:
+  NucleotideSequence ref;
   std::vector<NucleotideSequence> nucSequences;
-  NucleotideSequence ref = toNucleotideSequence(reference);
+  int totalNucs;
+  GeneMap geneMap;
 
   NextalignAverageBench() {
+    const auto [sequences, reference, geneMap, nNucs] = getData();
+    ref = toNucleotideSequence(reference);
+    totalNucs = nNucs;
+    this->geneMap = geneMap;
+
     const auto n = NUM_SEQUENCES_AVG;
     nucSequences.resize(n);
     for (int i = 0; i < n; ++i) {
