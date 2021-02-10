@@ -16,7 +16,7 @@
 
 class AlignPairwiseAverageBench : public benchmark::Fixture {
 protected:
-  const NextalignOptions options = {
+  NextalignOptions options = {
     .gapOpenInFrame = -5,
     .gapOpenOutOfFrame = -6,
     .genes = {},
@@ -29,11 +29,12 @@ protected:
   GeneMap geneMap;
 
   AlignPairwiseAverageBench() {
-    const auto [sequences, reference, geneMap, nNucs] = getData();
-    gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
+    const auto [sequences, reference, GENE_MAP, TOTAL_NUCS, GENES] = getData();
     ref = toNucleotideSequence(reference);
-    totalNucs = nNucs;
-    this->geneMap = geneMap;
+    totalNucs = TOTAL_NUCS;
+    geneMap = GENE_MAP;
+    options.genes = GENES;
+    gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
     const auto n = NUM_SEQUENCES_AVG;
     nucSequences.resize(n);
