@@ -188,28 +188,28 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "score-gap-open",
-      "(optional) Score to favor alignments with open gaps",
+      "(optional) Score to favor alignments with open gaps. The higher the score the ...",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpen)),
       "SCORE_GAP_OPEN"
     )
 
     (
       "score-gap-open-in-frame",
-      "(optional) Score to favor alignments with open gaps when in codon",
+      "(optional) Score to favor alignments with open gaps when in codon. The higher the score the ...",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenInFrame)),
       "SCORE_GAP_OPEN_IN_FRAME"
     )
 
     (
       "score-mismatch",
-      "(optional) Score to assign to mismatching nucleotides or aminoacids during alignment",
+      "(optional) Score to assign to mismatching nucleotides or aminoacids during alignment. The higher the score the ...",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreMismatch)),
       "SCORE_MISMATCH"
     )
 
     (
       "score-match",
-      "(optional) Score to assign to matching nucleotides or aminoacids during alignment",
+      "(optional) Score to assign to matching nucleotides or aminoacids during alignment. The higher the score the ...",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreMatch)),
       "SCORE_MATCH"
     )
@@ -223,14 +223,14 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "nuc-seed-length",
-      "(optional) Seed length for nucleotide alignment. Indicates number of nucleotides in a seed.",
+      "(optional) Seed length for nucleotide alignment. Indicates number of nucleotides in a seed. There is a trade-off between the number of seeds and their size: <describe the tradeoff>...",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.seedLength)),
       "NUC_SEED_LENGTH"
     )
 
     (
       "nuc-min-seeds",
-      "(optional) Minimum number of seeds to search for during nucleotide alignment.",
+      "(optional) Minimum number of seeds to search for during nucleotide alignment. There is a trade-off between the number of seeds and their size: <describe the tradeoff>...",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.minSeeds)),
       "NUC_MIN_SEEDS"
     )
