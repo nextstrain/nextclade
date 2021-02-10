@@ -65,6 +65,7 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
   options.alignment.scoreGapExtend = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-gap-extend");
   options.alignment.scoreGapOpen = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-gap-open");
   options.alignment.scoreGapOpenInFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-gap-open-in-frame");
+  options.alignment.scoreGapOpenOutOfFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-gap-open-out-of-frame");
   options.alignment.scoreMismatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-mismatch");
   options.alignment.scoreMatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-match");
   options.alignment.maxIndel = getParamRequiredDefaulted<int>(cxxOptsParsed, "max-indel");
