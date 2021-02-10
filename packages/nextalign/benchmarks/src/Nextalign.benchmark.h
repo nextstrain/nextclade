@@ -17,12 +17,14 @@ protected:
   std::vector<NucleotideSequence> nucSequences;
   int totalNucs;
   GeneMap geneMap;
+  std::set<std::string> genes;
 
   NextalignAverageBench() {
-    const auto [sequences, reference, geneMap, nNucs] = getData();
+    const auto [sequences, reference, GENE_MAP, TOTAL_NUCS, GENES] = getData();
     ref = toNucleotideSequence(reference);
-    totalNucs = nNucs;
-    this->geneMap = geneMap;
+    totalNucs = TOTAL_NUCS;
+    geneMap = GENE_MAP;
+    genes = GENES;
 
     const auto n = NUM_SEQUENCES_AVG;
     nucSequences.resize(n);
