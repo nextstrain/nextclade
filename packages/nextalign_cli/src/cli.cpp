@@ -181,98 +181,98 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "score-gap-extend",
-      "(optional) Score ...",
+      "(optional) Score that penalizes the extension of a gap. Should be 0 or negative.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapExtend)),
       "SCORE_GAP_EXTEND"
     )
 
     (
       "score-gap-open",
-      "(optional) Score to favor alignments with open gaps. The higher the score the ...",
+      "(optional) Score that penalizes opening of a gap. Should be negative. A higher penalty will results in fewer gaps and more mismatches.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpen)),
       "SCORE_GAP_OPEN"
     )
 
     (
       "score-gap-open-in-frame",
-      "(optional) Score to favor alignments with open gaps when in codon. The higher the score the ...",
+      "(optional) As score-gap-open, but for opening gaps at the beginning of a codon. Should be bigger than score-gap-open to favor gaps that align with codons.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenInFrame)),
       "SCORE_GAP_OPEN_IN_FRAME"
     )
 
     (
       "score-mismatch",
-      "(optional) Score to assign to mismatching nucleotides or aminoacids during alignment. The higher the score the ...",
+      "(optional) Score for aligned nucleotides or amino acids that differ in state. Should be 0 or negative. Note that this is redundantly parameterized with `score-match`.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreMismatch)),
       "SCORE_MISMATCH"
     )
 
     (
       "score-match",
-      "(optional) Score to assign to matching nucleotides or aminoacids during alignment. The higher the score the ...",
+      "(optional) Score for aligned nucleotides or amino acids with matching state. Needs to be positive.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreMatch)),
       "SCORE_MATCH"
     )
 
     (
       "max-indel",
-      "(optional) Maximum number of indels allowed to proceed with alignment. If a sequence or gene contains more than that, alignment will not be attempted and a warning will be emitted.",
+      "(optional) Maximum length of insertions or deletions allowed to proceed with alignment. Alignments with long indels are slow to compute and require substantial memory in the current implementation. Sequences with longer indels will not be attempted and a warning will be emitted.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.maxIndel)),
       "MAX_INDEL"
     )
 
     (
       "nuc-seed-length",
-      "(optional) Seed length for nucleotide alignment. Indicates number of nucleotides in a seed. There is a trade-off between the number of seeds and their size: <describe the tradeoff>...",
+      "(optional) Seed length for nucleotide alignment. Seeds should be long enough to be unique, but short enough to match with high probability.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.seedLength)),
       "NUC_SEED_LENGTH"
     )
 
     (
       "nuc-min-seeds",
-      "(optional) Minimum number of seeds to search for during nucleotide alignment. There is a trade-off between the number of seeds and their size: <describe the tradeoff>...",
+      "(optional) Minimum number of seeds to search for during nucleotide alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `nuc-seed-spacing`.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.minSeeds)),
       "NUC_MIN_SEEDS"
     )
 
     (
       "nuc-seed-spacing",
-      "(optional) Spacing between seeds during nucleotide alignment. Indicates number of nucleotides between any two seeds.",
+      "(optional) Spacing between seeds during nucleotide alignment.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.seedSpacing)),
       "NUC_SEED_SPACING"
     )
 
     (
       "nuc-mismatches-allowed",
-      "(optional) Maximum number of mismatching nucleotides allowed for a seed to be considered valid.",
+      "(optional) Maximum number of mismatching nucleotides allowed for a seed to be considered a match.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.mismatchesAllowed)),
       "NUC_MISMATCHES_ALLOWED"
     )
 
     (
       "aa-seed-length",
-      "(optional) Seed length for aminoacid alignment. Indicates number of aminoacids in a seed.",
+      "(optional) Seed length for aminoacid alignment.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.seedLength)),
       "AA_SEED_LENGTH"
     )
 
     (
       "aa-min-seeds",
-      "(optional) Minimum number of seeds to search for during aminoacid alignment.",
+      "(optional) Minimum number of seeds to search for during aminoacid alignment.  Relevant for short sequences. In long sequences, the number of seeds is determined by `aa-seed-spacing`.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.minSeeds)),
       "AA_MIN_SEEDS"
     )
 
     (
       "aa-seed-spacing",
-      "(optional) Spacing between seeds during aminoacid alignment. Indicates number of aminoacids between any two seeds.",
+      "(optional) Spacing between seeds during aminoacid alignment.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.seedSpacing)),
       "AA_SEED_SPACING"
     )
 
     (
       "aa-mismatches-allowed",
-      "(optional) Maximum number of mismatching aminoacids allowed for a seed to be considered valid.",
+      "(optional) Maximum number of mismatching aminoacids allowed for a seed to be considered a match.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.mismatchesAllowed)),
       "AA_MISMATCHES_ALLOWED"
     )
