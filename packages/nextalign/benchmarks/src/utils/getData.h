@@ -18,7 +18,7 @@ auto getData() {
   std::copy(sequencesMap.cbegin(), sequencesMap.cend(), back_inserter(sequences));
 
   assert(sequences.size() >= NUM_SEQUENCES_VAR);
-  const auto totalNucs = std::accumulate(
+  const auto TOTAL_NUCS = std::accumulate(
     sequences.cbegin(), sequences.cbegin() + NUM_SEQUENCES_VAR, 0, [](int total, const AlgorithmInput& input) {
       total += input.seq.size();
       return total;
@@ -29,7 +29,12 @@ auto getData() {
   const auto ref = refSeqs.begin()->seq;
 
   std::ifstream genemapFile("data/example/genemap.gff");
-  const auto geneMap = parseGeneMapGff(genemapFile);
+  const auto GENE_MAP = parseGeneMapGff(genemapFile);
 
-  return std::make_tuple(sequences, ref, geneMap, totalNucs);
+  std::set<std::string> GENES;
+  for (const auto& [geneName, _] : GENE_MAP) {
+    GENES.insert(geneName);
+  }
+
+  return std::make_tuple(sequences, ref, GENE_MAP, TOTAL_NUCS, GENES);
 }

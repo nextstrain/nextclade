@@ -17,11 +17,19 @@
 class AlignPairwiseAverageBench : public benchmark::Fixture {
 protected:
   const NextalignOptions options = getDefaultOptions();
-  const std::vector<int> gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
-  const NucleotideSequence ref = toNucleotideSequence(reference);
+  std::vector<int> gapOpenClose;
+  NucleotideSequence ref;
   std::vector<NucleotideSequence> nucSequences;
+  int totalNucs;
+  GeneMap geneMap;
 
   AlignPairwiseAverageBench() {
+    const auto [sequences, reference, GENE_MAP, TOTAL_NUCS, _] = getData();
+    ref = toNucleotideSequence(reference);
+    totalNucs = TOTAL_NUCS;
+    geneMap = GENE_MAP;
+    gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
+
     const auto n = NUM_SEQUENCES_AVG;
     nucSequences.resize(n);
     for (int i = 0; i < n; ++i) {

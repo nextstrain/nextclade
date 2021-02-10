@@ -7,7 +7,7 @@ Clade assignment, mutation calling, and sequence quality checks
 This is the command-line version of Nextclade.
 
 <p>
-  <span>You can also yry our web application at: </span>
+  <span>You can also try our web application at: </span>
   <a target="_blank" rel="noopener noreferrer" href="https://clades.nextstrain.org" alt="Link to our website">
     clades.nextstrain.org
   </a>
