@@ -21,10 +21,10 @@ namespace {
       },
     .seedAa =
       {
-        .seedLength = 21,
+        .seedLength = 12,
         .minSeeds = 10,
         .seedSpacing = 100,
-        .mismatchesAllowed = 3,
+        .mismatchesAllowed = 2,
       },
   };
 }
