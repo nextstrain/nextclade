@@ -16,7 +16,7 @@
 
 
 namespace details {
-  int round(double x) {
+  inline int round(double x) {
     return safe_cast<int>(std::round(x));
   }
 }// namespace details

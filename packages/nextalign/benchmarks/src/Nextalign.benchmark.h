@@ -15,6 +15,7 @@ class NextalignAverageBench : public benchmark::Fixture {
 protected:
   std::vector<NucleotideSequence> nucSequences;
   NucleotideSequence ref = toNucleotideSequence(reference);
+  NextalignOptions options = getDefaultOptions();
 
   NextalignAverageBench() {
     const auto n = NUM_SEQUENCES_AVG;
@@ -29,7 +30,6 @@ protected:
 
 BENCHMARK_DEFINE_F(NextalignAverageBench, Average)(benchmark::State& st) {
   const auto n = NUM_SEQUENCES_AVG;
-  const NextalignOptions options = {};
   st.SetComplexityN(totalNucs);
 
   for (const auto _ : st) {

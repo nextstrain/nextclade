@@ -118,7 +118,6 @@ struct NextalignOptions {
   NextalignAlignmentOptions alignment;
   NextalignSeedOptions seedNuc;
   NextalignSeedOptions seedAa;
-  std::set<std::string> genes;
 };
 
 struct Gene {

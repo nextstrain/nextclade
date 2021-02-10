@@ -1,7 +1,7 @@
 #include <nextalign/nextalign.h>
 
 namespace {
-  inline const NextalignOptions OPTIONS_DEFAULT = {
+  inline constexpr const NextalignOptions OPTIONS_DEFAULT = {
     .alignment =
       {
         .minimalLength = 100,
@@ -26,7 +26,6 @@ namespace {
         .seedSpacing = 100,
         .mismatchesAllowed = 3,
       },
-    .genes = {},
   };
 }
 

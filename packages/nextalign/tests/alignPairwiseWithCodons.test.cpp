@@ -13,8 +13,6 @@ protected:
 
   AlignPairwiseWithCodons() {
     options.alignment.minimalLength = 3;
-    options.genes = {"Gene 1"};
-    const NucleotideSequence dummyRef{100, Nucleotide::GAP};
   }
 };
 
@@ -76,8 +74,6 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsRef) {
 
 
 TEST_F(AlignPairwiseWithCodons, AlignsCodonTwoGenes) {
-  options.genes = {"Gene 1", "Gene 2"};
-
   GeneMap geneMap = {//
     {"Gene 1",       //
       Gene{
