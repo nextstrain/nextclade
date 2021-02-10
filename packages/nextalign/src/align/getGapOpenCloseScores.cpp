@@ -33,8 +33,10 @@ std::vector<int> getGapOpenCloseScoresCodonAware(//
   for (const auto& [geneName, gene] : geneMap) {
 
     // TODO: might use std::fill()
-    for (int i = gene.start; i <= gene.end; i += 3) {
+    for (int i = gene.start; i <= gene.end-2; i += 3) {
       gapOpenClose[i] = options.alignment.scoreGapOpenInFrame;
+      gapOpenClose[i+1] = options.alignment.scoreGapOpenOutOfFrame;
+      gapOpenClose[i+2] = options.alignment.scoreGapOpenOutOfFrame;
     }
   }
 

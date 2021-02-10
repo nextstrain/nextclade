@@ -109,6 +109,7 @@ struct NextalignAlignmentOptions {
   int scoreGapExtend;
   int scoreGapOpen;
   int scoreGapOpenInFrame;
+  int scoreGapOpenOutOfFrame;
   int scoreMismatch;
   int scoreMatch;
   int maxIndel;

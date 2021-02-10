@@ -195,9 +195,16 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "score-gap-open-in-frame",
-      "(optional) As score-gap-open, but for opening gaps at the beginning of a codon. Should be bigger than score-gap-open to favor gaps that align with codons.",
+      "(optional) As score-gap-open, but for opening gaps at the beginning of a codon. Should be smaller than score-gap-open but bigger than score-gap-open-out-of-frame to avoid gaps in genes but favor gaps that align with codons.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenInFrame)),
       "SCORE_GAP_OPEN_IN_FRAME"
+    )
+
+    (
+      "score-gap-open-out-of-frame",
+      "(optional) As score-gap-open, but for opening gaps at the beginning of a codon. Should be smaller than score-gap-out-of-frame to favor gaps that align with codons.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenOutOfFrame)),
+      "SCORE_GAP_OPEN_OUT_OF_FRAME"
     )
 
     (
