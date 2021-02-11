@@ -60,7 +60,10 @@ that have future-proof scalability"""
             self._cmake.definitions["CMAKE_CXX_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0'
 
         if tools.os_info.is_windows:
-            self._cmake.definitions["CMAKE_CXX_FLAGS"] = '-D__TBB_TSX_INTRINSICS_PRESENT=0'
+            self._cmake.definitions["CMAKE_C_FLAGS"] = \
+                '-D__TBB_DYNAMIC_LOAD_ENABLED=0 -D__TBB_TSX_INTRINSICS_PRESENT=0 -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS /EHa'
+            self._cmake.definitions["CMAKE_CXX_FLAGS"] = \
+                '-D__TBB_DYNAMIC_LOAD_ENABLED=0 -D__TBB_TSX_INTRINSICS_PRESENT=0 -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS /EHa'
 
         self._cmake.configure(source_folder=self._source_subfolder)
         return self._cmake
