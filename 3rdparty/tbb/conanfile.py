@@ -60,10 +60,59 @@ that have future-proof scalability"""
             self._cmake.definitions["CMAKE_CXX_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0'
 
         if tools.os_info.is_windows:
-            self._cmake.definitions["CMAKE_C_FLAGS"] = \
-                '-Wno-c++98-compat -D__TBB_DYNAMIC_LOAD_ENABLED=0 -D__TBB_TSX_INTRINSICS_PRESENT=0 -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS /EHa'
-            self._cmake.definitions["CMAKE_CXX_FLAGS"] = \
-                '-Wno-c++98-compat -D__TBB_DYNAMIC_LOAD_ENABLED=0 -D__TBB_TSX_INTRINSICS_PRESENT=0 -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS /EHa'
+            compiler_flags_windows_clang = "".join([
+              "/EHa",
+              "-D__TBB_DYNAMIC_LOAD_ENABLED=0",
+              "-D__TBB_TSX_INTRINSICS_PRESENT=0",
+              "-D_CRT_SECURE_NO_DEPRECATE",
+              "-D_CRT_SECURE_NO_WARNINGS",
+              "-Wno-c++98-compat",
+              "-Wno-c++98-compat-bind-to-temporary-copy",
+              "-Wno-c++98-compat-extra-semi",
+              "-Wno-c++98-compat-pedantic",
+              "-Wno-cast-align",
+              "-Wno-covered-switch-default",
+              "-Wno-deprecated-copy-dtor",
+              "-Wno-deprecated-declarations",
+              "-Wno-disabled-macro-expansion",
+              "-Wno-documentation-deprecated-sync",
+              "-Wno-documentation-unknown-command",
+              "-Wno-documentation",
+              "-Wno-exit-time-destructors",
+              "-Wno-extra-semi-stmt",
+              "-Wno-extra-semi",
+              "-Wno-format-nonliteral",
+              "-Wno-global-constructors",
+              "-Wno-implicit-fallthrough",
+              "-Wno-implicit-int-conversion",
+              "-Wno-inconsistent-missing-destructor-override",
+              "-Wno-language-extension-token",
+              "-Wno-microsoft-enum-value",
+              "-Wno-microsoft-unqualified-friend",
+              "-Wno-missing-field-initializers",
+              "-Wno-missing-noreturn",
+              "-Wno-missing-prototypes",
+              "-Wno-missing-variable-declarations",
+              "-Wno-non-virtual-dtor",
+              "-Wno-nonportable-system-include-path",
+              "-Wno-old-style-cast",
+              "-Wno-reserved-id-macro",
+              "-Wno-shorten-64-to-32",
+              "-Wno-sign-compare",
+              "-Wno-sign-conversion",
+              "-Wno-switch-enum",
+              "-Wno-undef",
+              "-Wno-unknown-argument",
+              "-Wno-unused-const-variable",
+              "-Wno-unused-macros",
+              "-Wno-unused-private-field",
+              "-Wno-unused-template",
+              "-Wno-unused-variable",
+              "-Wno-zero-as-null-pointer-constant"
+            ])
+
+            self._cmake.definitions["CMAKE_C_FLAGS"] = compiler_flags_windows_clang
+            self._cmake.definitions["CMAKE_CXX_FLAGS"] = compiler_flags_windows_clang
 
         self._cmake.configure(source_folder=self._source_subfolder)
         return self._cmake
