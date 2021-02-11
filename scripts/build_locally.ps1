@@ -16,6 +16,8 @@ $PROJECT_ROOT_DIR="$THIS_DIR/.."
 $BUILD_DIR="$PROJECT_ROOT_DIR/.build/Release"
 $INSTALL_DIR="$PROJECT_ROOT_DIR/.out"
 
+$CONAN_USER_HOME="$PROJECT_ROOT_DIR/.cache"
+
 $CMAKE_BUILD_TYPE="Release"
 $NEXTALIGN_STATIC_BUILD=1
 
@@ -35,8 +37,6 @@ pushd "$BUILD_DIR"
 
 conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" -o tbb:shared=False -o boost:header_only=True --build missing  --profile "$PROJECT_ROOT_DIR/config/conan/clang-cl.txt"
 ThrowOnNativeFailure
-
-#-DCMAKE_GENERATOR_TOOLSET="v141" `
 
 cmake $PROJECT_ROOT_DIR `
 -G "Visual Studio 16 2019" -A "x64" -T "ClangCl" `
