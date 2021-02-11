@@ -25,14 +25,14 @@ Start-BitsTransfer `
 
 Expand-Archive "ghr_v${GHR_VERSION}_windows_amd64.zip"
 
-Move-Item -Path "ghr_v${GHR_VERSION}_windows_amd64/ghr" -Destination . -Force
+Move-Item -Path "ghr_v${GHR_VERSION}/ghr.exe" -Destination . -Force
 
 Get-ChildItem $INSTALL_DIR/bin
 
 
 $VERSION=Get-Content -Path VERSION
 
-ghr -t $GITHUB_TOKEN `
+ghr.exe -t $GITHUB_TOKEN `
 -u $CIRCLE_PROJECT_USERNAME `
 -r $CIRCLE_PROJECT_REPONAME `
 -c $CIRCLE_SHA1 `
