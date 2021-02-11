@@ -160,7 +160,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v1-cache-windows-{{ arch }}-{{ checksum "conanfile.txt" }}-{{ checksum config/conan/clang-cl.txt }}
+            - cache-nextalign-v2-cache-windows-{{ arch }}-{{ checksum "conanfile.txt" }}-{{ checksum config/conan/clang-cl.txt }}
 
       - run:
           name: 'Run Windows x86_64 build'
@@ -169,7 +169,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v1-cache-windows-{{ arch }}-{{ checksum "conanfile.txt" }}-{{ checksum config/conan/clang-cl.txt }}
+          key: cache-nextalign-v2-cache-windows-{{ arch }}-{{ checksum "conanfile.txt" }}-{{ checksum config/conan/clang-cl.txt }}
           paths:
             - .cache
 
