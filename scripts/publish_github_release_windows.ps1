@@ -25,7 +25,11 @@ Start-BitsTransfer `
 
 Expand-Archive "ghr_v${GHR_VERSION}_windows_amd64.zip"
 
-Move-Item -Path "ghr_v${GHR_VERSION}_windows_amd64/ghr.exe" -Destination . -Force
+Get-ChildItem .
+
+Get-ChildItem "ghr_v${GHR_VERSION}_windows_amd64"
+
+Move-Item -Path "ghr_v${GHR_VERSION}_windows_amd64\ghr.exe" -Destination . -Force
 
 Get-ChildItem $INSTALL_DIR/bin
 
