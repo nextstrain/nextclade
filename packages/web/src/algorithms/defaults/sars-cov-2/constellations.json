@@ -1,0 +1,20 @@
+[
+  {
+    "description": "transmissibility",
+    "url": "http://github.com/nodrogluap/pokay/pages/S:D614G",
+    "substitutions": 
+      [
+        { "refAA": "D", "queryAA": "G", "codon": 614, "gene": "S", "nucRange": {"Range": { "begin": 23403, "end": 23403 }}, "refCodon": "GAU", "queryCodon": "GGU" }
+      ],
+    "deletions": []
+  },
+  {
+    "description": "immune_evasion",
+    "url": "http://github.com/nodrogluap/pokay/pages/S:S477N",
+    "substitutions":
+      [
+        { "refAA": "S", "queryAA": "N", "codon": 477, "gene": "S", "nucRange": {"Range": { "begin": 22992, "end": 22992 }}, "refCodon": "AGC", "queryCodon": "AAC" } 
+      ],
+    "deletions": []
+  }
+]
