@@ -138,9 +138,6 @@ jobs:
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
 
   Build-Windows-x86_64:
-    machine:
-      image: windows-server-2019-vs2019:stable
-
     executor:
       name: win/default
       size: medium
