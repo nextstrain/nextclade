@@ -1,3 +1,4 @@
+@echo on
 
 pushd 3rdparty\tbb
   conan create . local/stable -s build_type=Release -o shared=False
@@ -22,7 +23,7 @@ pushd .build\Release
   rem -DCMAKE_GENERATOR_TOOLSET=v141 ^
 
   cmake ..\.. ^
-  -G "Visual Studio 15 2017" -A "x64" -T v141 ^
+  -G "Visual Studio 15 2017" -A "x64" -T "ClangCl" ^
   -DCMAKE_GENERATOR_TOOLSET=v141 ^
   -DCMAKE_MODULE_PATH="%BUILD_DIR%" ^
   -DCMAKE_INSTALL_PREFIX=.out ^

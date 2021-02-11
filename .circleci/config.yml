@@ -1,5 +1,7 @@
 version: 2.1
 
+orbs:
+  win: circleci/windows@2.4.0
 
 # Reference. Allows to restrict a job to release branch
 release_only: &release_only
@@ -135,6 +137,29 @@ jobs:
             VERSION=$(cat packages/nextalign_cli/VERSION)
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
 
+  Build-Windows-x86_64:
+    executor:
+      name: win/default
+      size: medium
+
+    steps:
+      - checkout
+
+      - run:
+          name: 'Install build tools'
+          shell: cmd.exe
+          command: |
+            @echo on
+            choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
+            choco install conan -y
+
+      - run:
+          name: 'Run Windows x86_64 build'
+          shell: cmd.exe
+          command: |
+            @echo on
+            .\scripts\build_locally.bat
+
 workflows:
   version: 2
   build:
@@ -149,3 +174,8 @@ workflows:
                 - x86_64
                 - arm64
           <<: *release_only
+
+      - Build-Windows-x86_64:
+          filters:
+            branches:
+              only: clang-cl-2019

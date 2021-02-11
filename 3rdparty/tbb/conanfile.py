@@ -43,9 +43,12 @@ that have future-proof scalability"""
         os.rename(self.src_dirname, self._source_subfolder)
 
         if self.mingw:
-            # shutil.copytree('/path/to/oneTBB', self._source_subfolder)
-            git = tools.Git(folder=self._source_subfolder)
-            git.clone("https://github.com/ivan-aksamentov/oneTBB", branch="mingw", shallow=True)
+            shutil.copytree('/home/ia/to/oneTBB', self._source_subfolder)
+            # git = tools.Git(folder=self._source_subfolder)
+            # git.clone("https://github.com/ivan-aksamentov/oneTBB", branch="mingw", shallow=True)
+
+        git = tools.Git(folder=self._source_subfolder)
+        git.clone("https://github.com/ivan-aksamentov/oneTBB", branch="clang-cl-2019", shallow=True)
 
     def _configure_cmake(self):
         if self._cmake:
