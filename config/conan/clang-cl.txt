@@ -1,0 +1,16 @@
+include(default)
+
+[settings]
+compiler=clang
+compiler.version=8
+compiler.runtime=MD
+compiler.driver=cl
+
+[options]
+
+[env]
+CC=clang-cl  -mrtm
+CXX=clang-cl  -mrtm
+CFLAGS= -fms-compatibility-version=1800
+CXXFLAGS= -fms-compatibility-version=1800
+PATH=[C:\Program Files\LLVM\bin]

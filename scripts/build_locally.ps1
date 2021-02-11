@@ -26,14 +26,14 @@ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-co
 ThrowOnNativeFailure
 
 pushd "$PROJECT_ROOT_DIR/3rdparty/tbb"
-conan create . local/stable -s build_type="$CMAKE_BUILD_TYPE" -o shared=False
+conan create . local/stable -s build_type="$CMAKE_BUILD_TYPE" -o shared=False --profile "$PROJECT_ROOT_DIR/config/conan/clang-cl.txt"
 ThrowOnNativeFailure
 popd
 
 mkdir "$BUILD_DIR" -ea 0
 pushd "$BUILD_DIR"
 
-conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" -o tbb:shared=False -o boost:header_only=True --build missing
+conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" -o tbb:shared=False -o boost:header_only=True --build missing  --profile "$PROJECT_ROOT_DIR/config/conan/clang-cl.txt"
 ThrowOnNativeFailure
 
 #-DCMAKE_GENERATOR_TOOLSET="v141" `
