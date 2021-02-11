@@ -49,7 +49,7 @@ cmake $PROJECT_ROOT_DIR `
 -DNEXTALIGN_BUILD_TESTS=0
 ThrowOnNativeFailure
 
-cmake --build "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE"
+cmake --build "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE" --parallel
 ThrowOnNativeFailure
 
 Get-ChildItem "$BUILD_DIR"

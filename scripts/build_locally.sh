@@ -314,7 +314,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_MIN_VER}"
 
   print 12 "Build";
-  ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
+  ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --parallel
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
     print 30 "Install executable";
