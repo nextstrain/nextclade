@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0069 NEW)
+cmake_policy(SET CMP0091 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
 # include(CFlags)
@@ -25,6 +26,7 @@ add_executable(${PROJECT_NAME}
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE and NOT WIN32)
   if(MINGW)
