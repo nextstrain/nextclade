@@ -38,10 +38,10 @@ Get-ChildItem $INSTALL_DIR/bin
 
 $VERSION=Get-Content -Path "packages/nextalign_cli/VERSION"
 
-ghr.exe -t $GITHUB_TOKEN `
--u $CIRCLE_PROJECT_USERNAME `
--r $CIRCLE_PROJECT_REPONAME `
--c $CIRCLE_SHA1 `
+ghr.exe -t $env:GITHUB_TOKEN `
+-u $env:CIRCLE_PROJECT_USERNAME `
+-r $env:CIRCLE_PROJECT_REPONAME `
+-c $env:CIRCLE_SHA1 `
 -replace "nextalign-${VERSION}" `
 "${INSTALL_DIR}/bin"
 ThrowOnNativeFailure
