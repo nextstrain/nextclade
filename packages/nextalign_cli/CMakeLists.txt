@@ -18,6 +18,14 @@ find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
 
+add_executable(${PROJECT_NAME}
+  src/cli.cpp
+  src/filesystem.h
+  )
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   if (WIN32)
     set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -39,16 +47,8 @@ if (APPLE)
   set(PROCESSOR_NAME "${NEXTALIGN_MACOS_ARCH}")
 endif ()
 
-add_executable(${PROJECT_NAME}
-  src/cli.cpp
-  src/filesystem.h
-  )
-
 set_property(TARGET ${PROJECT_NAME} PROPERTY
   OUTPUT_NAME nextalign-${SYSTEM_NAME}-${PROCESSOR_NAME})
-
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
-set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE

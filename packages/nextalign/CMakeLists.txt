@@ -18,12 +18,6 @@ find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(type_safe 0.2.1 REQUIRED)
 
-if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
-  if (WIN32)
-    set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-  endif ()
-endif ()
-
 add_library(${PROJECT_NAME} STATIC
   include/nextalign/nextalign.h
   src/align/alignPairwise.cpp
@@ -71,6 +65,12 @@ add_library(${PROJECT_NAME} STATIC
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
+
+if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
+  if (WIN32)
+    set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+  endif ()
+endif ()
 
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
