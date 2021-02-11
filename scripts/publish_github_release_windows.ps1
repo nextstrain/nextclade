@@ -20,12 +20,12 @@ $INSTALL_DIR="$PROJECT_ROOT_DIR/.out"
 
 
 Start-BitsTransfer `
--Source https://github.com/tcnksm/ghr/releases/download/v$GHR_VERSION/ghr_v$GHR_VERSION_windows_amd64.zip `
--Destination ghr_v$GHR_VERSION_windows_amd64.zip
+-Source "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_windows_amd64.zip" `
+-Destination "ghr_v${GHR_VERSION}_windows_amd64.zip"
 
-Expand-Archive ghr_v$GHR_VERSION_windows_amd64.zip
+Expand-Archive "ghr_v${GHR_VERSION}_windows_amd64.zip"
 
-Move-Item -Path "ghr_v$GHR_VERSION_windows_amd64/ghr" -Destination . -Force
+Move-Item -Path "ghr_v${GHR_VERSION}_windows_amd64/ghr" -Destination . -Force
 
 Get-ChildItem $INSTALL_DIR/bin
 
@@ -36,6 +36,6 @@ ghr -t $GITHUB_TOKEN `
 -u $CIRCLE_PROJECT_USERNAME `
 -r $CIRCLE_PROJECT_REPONAME `
 -c $CIRCLE_SHA1 `
--replace nextalign-${VERSION} `
-"$INSTALL_DIR/bin"
+-replace "nextalign-${VERSION}" `
+"${INSTALL_DIR}/bin"
 ThrowOnNativeFailure
