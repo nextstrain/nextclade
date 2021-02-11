@@ -147,18 +147,21 @@ jobs:
 
       - run:
           name: 'Install build tools'
-          shell: cmd.exe
           command: |
-            @echo on
             choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
             choco install conan -y
+            cmake --version
+            conan --version
 
       - run:
           name: 'Run Windows x86_64 build'
-          shell: cmd.exe
           command: |
-            @echo on
-            .\scripts\build_locally.bat
+            .\scripts\build_locally.ps1
+
+      - run:
+          name: 'Publish Release on GitHub'
+          command: |
+            .\scripts\publish_github_release_windows.ps1
 
 workflows:
   version: 2
