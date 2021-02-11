@@ -10,7 +10,7 @@ function ThrowOnNativeFailure {
     }
 }
 
-$GHR_VERSION=0.13.0
+$GHR_VERSION="0.13.0"
 
 $THIS_DIR="$PSScriptRoot"
 
@@ -38,3 +38,4 @@ ghr -t $GITHUB_TOKEN `
 -c $CIRCLE_SHA1 `
 -replace nextalign-${VERSION} `
 "$INSTALL_DIR/bin"
+ThrowOnNativeFailure

@@ -175,8 +175,8 @@ jobs:
 
       - store_artifacts:
           name: 'Store Windows x86_64 binary'
-          path: .out/bin/nextalign-Windows-x86_64.exe
-          destination: nextalign-Windows-x86_64.exe
+          path: .out/bin/nextalign-Windows-AMD64.exe
+          destination: nextalign-Windows-AMD64.exe
 
       - run:
           name: 'Publish Release on GitHub'
