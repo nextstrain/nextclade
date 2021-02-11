@@ -10,3 +10,9 @@ compiler.version=16
 compiler.cppstd=17
 compiler.toolset=ClangCL
 compiler.runtime=MD
+
+[env]
+CC=clang-cl -mrtm
+CXX=clang-cl -mrtm
+CFLAGS= -fms-compatibility-version=1800
+CXXFLAGS= -fms-compatibility-version=1800
