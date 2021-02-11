@@ -26,7 +26,7 @@ add_executable(${PROJECT_NAME}
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
-if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
+if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE and NOT WIN32)
   if(MINGW)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
