@@ -12,7 +12,7 @@ compiler.toolset=ClangCL
 compiler.runtime=MT
 
 [env]
-CC=clang-cl -mrtm
-CXX=clang-cl -mrtm
+CC=clang-cl
+CXX=clang-cl
 CFLAGS= -fms-compatibility-version=1800
 CXXFLAGS= -fms-compatibility-version=1800
