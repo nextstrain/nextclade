@@ -81,6 +81,11 @@ https://github.com/nextstrain/nextclade/releases
 macOS User Guide: Open a Mac app from an unidentified developer</a>, or, if this does not work, check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
 Security settings</a>.
 
+> ⚠️ Note that in order to run Windows executables you will need to install "Microsoft Visual C++ Redistributable for Visual Studio 2019".
+> You can download it from the official Microsoft website: https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0
+> There you need to download the "x64" version: `vc_redist.x64.exe`, to run it and to follow the instructions of the installer. A reboot might be needed. After that the application should be able to run.
+
+
 <h3 id="download-from-command-line" align="center">
 🖥️ Download from command line
 </h3>
@@ -148,7 +153,41 @@ NEXTALIGN_VERSION=0.1.4 && curl -fsSL "https://github.com/nextstrain/nextclade/r
 </p>
 
 
-Native Windows executables are not yet available. Windows users can try one of the following:
+<p>
+<details>
+<summary>
+🏢 Windows native
+</summary>
+
+Download latest version (from Powershell):
+
+```powershell
+Start-BitsTransfer -Source "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-Windows-AMD64.exe" -Destination "nextalign-Windows-AMD64.exe"
+```
+
+Download specific version (from Powershell):
+
+```powershell
+$NEXTALIGN_VERSION="0.1.4"
+Start-BitsTransfer -Source "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-Windows-AMD64.exe" -Destination "nextalign-Windows-AMD64.exe"
+```
+
+</details>
+</p>
+
+
+<p>
+<details>
+<summary>
+🏢 Windows Subsystem for Linux
+</summary>
+
+See 🐧 Linux instructions above
+
+</details>
+</p>
+
+
 
  - Downloading and running Linux executable from [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
  - Running docker container (see below)
