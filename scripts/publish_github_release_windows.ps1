@@ -10,6 +10,8 @@ function ThrowOnNativeFailure {
     }
 }
 
+$GHR_VERSION=0.13.0
+
 $THIS_DIR="$PSScriptRoot"
 
 $PROJECT_ROOT_DIR="$THIS_DIR/.."
@@ -18,19 +20,21 @@ $INSTALL_DIR="$PROJECT_ROOT_DIR/.out"
 
 
 Start-BitsTransfer `
--Source https://github.com/tcnksm/ghr/releases/download/v0.13.0/ghr_v0.13.0_windows_amd64.zip `
--Destination ghr_v0.13.0_windows_amd64.zip
+-Source https://github.com/tcnksm/ghr/releases/download/v$GHR_VERSION/ghr_v$GHR_VERSION_windows_amd64.zip `
+-Destination ghr_v$GHR_VERSION_windows_amd64.zip
 
-ThrowOnNativeFailure
+Expand-Archive ghr_v$GHR_VERSION_windows_amd64.zip
+
+Move-Item -Path "ghr_v$GHR_VERSION_windows_amd64/ghr" -Destination . -Force
+
+Get-ChildItem $INSTALL_DIR/bin
 
 
-Expand-Archive ghr_v0.13.0_windows_amd64.zip
+$VERSION=Get-Content -Path VERSION
 
-ThrowOnNativeFailure
-
-
-Get-ChildItem .
-
-Get-ChildItem $BUILD_DIR
-
-Get-ChildItem $INSTALL_DIR
+ghr -t $GITHUB_TOKEN `
+-u $CIRCLE_PROJECT_USERNAME `
+-r $CIRCLE_PROJECT_REPONAME `
+-c $CIRCLE_SHA1 `
+-replace nextalign-${VERSION} `
+"$INSTALL_DIR/bin"

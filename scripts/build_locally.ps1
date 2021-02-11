@@ -58,7 +58,7 @@ ThrowOnNativeFailure
 cmake --install "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE" --strip
 ThrowOnNativeFailure
 
-Get-ChildItem "$INSTALL_DIR"
+Get-ChildItem "$INSTALL_DIR/bin"
 ThrowOnNativeFailure
 
 popd

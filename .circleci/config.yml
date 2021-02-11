@@ -157,10 +157,26 @@ jobs:
             cmake --version
             conan --version
 
+      - restore_cache:
+          name: 'Restore build cache'
+          keys:
+            - cache-nextalign-v1-cache-windows-{{ arch }}-{{ checksum "conanfile.txt" }}
+
       - run:
           name: 'Run Windows x86_64 build'
           command: |
             .\scripts\build_locally.ps1
+
+      - save_cache:
+          name: 'Save build cache'
+          key: cache-nextalign-v1-cache-windows-{{ arch }}-{{ checksum "conanfile.txt" }}
+          paths:
+            - .cache
+
+      - store_artifacts:
+          name: 'Store Windows x86_64 binary'
+          path: .out/bin/nextalign-Windows-x86_64.exe
+          destination: nextalign-Windows-x86_64.exe
 
       - run:
           name: 'Publish Release on GitHub'
