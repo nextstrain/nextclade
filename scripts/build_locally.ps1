@@ -10,7 +10,7 @@ function ThrowOnNativeFailure {
     }
 }
 
-$THIS_DIR="$PSScriptRoot"
+$THIS_DIR="$PSScriptRoot" -replace "\\", "/"
 
 $PROJECT_ROOT_DIR="$THIS_DIR/.."
 $BUILD_DIR="$PROJECT_ROOT_DIR/.build/Release"
