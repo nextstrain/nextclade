@@ -102,8 +102,8 @@ export interface SubstitutionsWithPrimers extends NucleotideSubstitutionWithAmin
 }
 
 export interface Constellation {
-  description: string 
-  url: string 
+  description: string
+  url: string
   substitutions: AminoacidSubstitution[]
   deletions: AminoacidDeletion[]
 }
