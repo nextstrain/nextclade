@@ -30,6 +30,8 @@ conan create . local/stable -s build_type="$CMAKE_BUILD_TYPE" -o shared=False
 ThrowOnNativeFailure
 popd
 
+mkdir "$BUILD_DIR" -ea 0
+pushd "$BUILD_DIR"
 
 conan install "$PROJECT_ROOT_DIR" -s build_type="$CMAKE_BUILD_TYPE" -o tbb:shared=False -o boost:header_only=True --build missing
 ThrowOnNativeFailure
@@ -50,8 +52,13 @@ ThrowOnNativeFailure
 cmake --build "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE"
 ThrowOnNativeFailure
 
+Get-ChildItem "$BUILD_DIR"
+ThrowOnNativeFailure
+
 cmake --install "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE" --strip
 ThrowOnNativeFailure
 
 Get-ChildItem "$INSTALL_DIR"
 ThrowOnNativeFailure
+
+popd
