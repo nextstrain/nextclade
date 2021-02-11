@@ -39,7 +39,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsQuery) {
   const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedAa);
-  EXPECT_EQ(16 * 3 - 5 - 5, result.alignmentScore);
+  EXPECT_EQ(16 * 3 - 7 - 7, result.alignmentScore);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
@@ -67,7 +67,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsRef) {
   const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedAa);
-  EXPECT_EQ(16 * 3 - 5 - 5, result.alignmentScore);
+  EXPECT_EQ(16 * 3 - 7 - 7, result.alignmentScore);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
@@ -106,7 +106,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonTwoGenes) {
   const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedAa);
-  EXPECT_EQ(20 * 3 - 5 - 5, result.alignmentScore);
+  EXPECT_EQ(20 * 3 - 7 - 7, result.alignmentScore);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
@@ -134,7 +134,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsQuery2) {
   const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedAa);
-  EXPECT_EQ(18 * 3 - 5, result.alignmentScore);
+  EXPECT_EQ(18 * 3 - 7, result.alignmentScore);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
@@ -162,7 +162,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsRef2) {
   const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedAa);
-  EXPECT_EQ(18 * 3 - 5, result.alignmentScore);
+  EXPECT_EQ(18 * 3 - 7, result.alignmentScore);
   EXPECT_EQ(toString(refAln), toString(result.ref));
   EXPECT_EQ(toString(qryAln), toString(result.query));
 }
