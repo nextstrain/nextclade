@@ -92,7 +92,7 @@ NucleotideSequence extractGeneQuery(
   stripGeneInPlace(result);
 
   const auto resultLength = safe_cast<int>(result.size());
-  if (resultLength % 3 != 0) {
+  if (resultLength % 3 != 0 || resultLength == 0) {
     throw ErrorExtractGeneLengthInvalid(gene.geneName, resultLength);
   }
 
