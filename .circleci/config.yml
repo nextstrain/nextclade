@@ -150,8 +150,17 @@ jobs:
           command: |
             choco install cmake -y --version=3.19.4 --installargs 'ADD_CMAKE_TO_PATH=System'
             choco install conan -y --version=1.33.1
+
+      - run:
+          name: 'Check build tools'
+          command: |
             cmake --version
             conan --version
+
+      - run:
+          name: 'Check compiler toolchain'
+          command: |
+            cl /?
 
       - run:
           name: 'Run Windows x86_64 build'
