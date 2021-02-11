@@ -60,7 +60,7 @@ that have future-proof scalability"""
             self._cmake.definitions["CMAKE_CXX_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0'
 
         if tools.os_info.is_windows:
-            compiler_flags_windows_clang = "".join([
+            compiler_flags_windows_clang = " ".join([
               "/EHa",
               "-D__TBB_DYNAMIC_LOAD_ENABLED=0",
               "-D__TBB_TSX_INTRINSICS_PRESENT=0",
