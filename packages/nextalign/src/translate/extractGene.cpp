@@ -9,7 +9,6 @@
 #include "../utils/safe_cast.h"
 #include "./removeGaps.h"
 
-
 NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene) {
   precondition_less(gene.length, ref.size());
   precondition_less_equal(gene.length, ref.size());
@@ -86,6 +85,10 @@ NucleotideSequence extractGeneQuery(
 
 
   auto result = NucleotideSequence(query.substr(start, length));
+  const auto resultLengthPreStrip = safe_cast<int>(result.size());
+  if (resultLengthPreStrip % 3 != 0) {
+    throw ErrorExtractGeneLengthInvalid(gene.geneName, resultLengthPreStrip);
+  }
   stripGeneInPlace(result);
 
   const auto resultLength = safe_cast<int>(result.size());

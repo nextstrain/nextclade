@@ -44,10 +44,6 @@ PeptidesInternal translateGenes(         //
 
   const auto coordMap = mapCoordinates(ref);
 
-  // Each position in the raw ref sequence should have a corresponding mapped position in aligned ref sequence
-  invariant_equal(coordMap.size(), ref.size());
-
-
   std::vector<PeptideInternal> queryPeptides;
   queryPeptides.reserve(geneMap.size());
 
