@@ -30,7 +30,7 @@ Move-Item -Path "ghr_v${GHR_VERSION}/ghr.exe" -Destination . -Force
 Get-ChildItem $INSTALL_DIR/bin
 
 
-$VERSION=Get-Content -Path VERSION
+$VERSION=Get-Content -Path "packages/nextalign_cli/VERSION"
 
 ghr.exe -t $GITHUB_TOKEN `
 -u $CIRCLE_PROJECT_USERNAME `
