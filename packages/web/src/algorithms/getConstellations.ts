@@ -25,18 +25,7 @@ export function satistfiesMutationCriteria(
 export function satistfiesDeletionCriteria(constellationDefinition: Constellation, aaDeletions: AminoacidDeletion[]) {
   let isMissingDel = false
   for (const requiredDeletion of constellationDefinition.deletions) {
-    let requiredDelFound = false
-    for (const existingDel of aaDeletions) {
-      if (
-        /* TODO: check that the deleted bases are the same (i.e. the rootSeq is the same as the constellation definition's? */
-        requiredDeletion.gene === existingDel.gene &&
-        requiredDeletion.codon === existingDel.codon
-      ) {
-        requiredDelFound = true
-        break
-      }
-    }
-    if (!requiredDelFound) {
+    if (isEmpty(filter(aaDeletions, { gene: requiredDeletion.gene, codon: requiredDeletion.codon }))) {
       isMissingDel = true
       break
     }
