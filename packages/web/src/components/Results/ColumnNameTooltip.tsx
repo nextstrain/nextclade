@@ -11,6 +11,7 @@ import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
 import { ListOfAminoacidSubstitutions } from 'src/components/SequenceView/ListOfAminoacidSubstitutions'
 import { ListOfAminoacidDeletions } from 'src/components/SequenceView/ListOfAminoacidDeletions'
 import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
+import { ListOfConstellations } from 'src/components/SequenceView/ListOfConstellations'
 import { ListOfInsertions } from './ListOfInsertions'
 
 export interface ColumnNameTooltipProps {
@@ -35,6 +36,7 @@ export function ColumnNameTooltip({ sequence }: ColumnNameTooltipProps) {
     alignmentScore,
     pcrPrimerChanges,
     totalPcrPrimerChanges,
+    constellations,
   } = sequence
   const { t } = useTranslation()
 
@@ -70,6 +72,7 @@ export function ColumnNameTooltip({ sequence }: ColumnNameTooltipProps) {
           <ListOfAminoacidSubstitutions aminoacidSubstitutions={aaSubstitutions} />
           <ListOfAminoacidDeletions aminoacidDeletions={aaDeletions} />
           <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
+          <ListOfConstellations constellations={constellations} />
         </Col>
       </Row>
 

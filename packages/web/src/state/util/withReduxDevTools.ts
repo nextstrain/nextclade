@@ -101,6 +101,7 @@ export function sanitizeParams(params?: AlgorithmParams) {
       qcRulesConfig: truncateContent(params.raw?.qcRulesConfig),
       geneMap: truncateContent(params.raw?.geneMap),
       pcrPrimers: truncateContent(params.raw?.pcrPrimers),
+      constellations: truncateContent(params.raw?.constellations),
     },
     virus: {
       ...params.virus,
@@ -228,6 +229,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
             auspiceData: truncateTreeJson(action.payload.auspiceData),
             geneMap: TRUNCATED,
             pcrPrimers: TRUNCATED,
+            constellations: TRUNCATED,
           },
         }
       }
@@ -243,6 +245,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
               auspiceData: truncateTreeJson(action.payload.params.auspiceData),
               geneMap: TRUNCATED,
               pcrPrimers: TRUNCATED,
+              constellations: TRUNCATED,
             },
             result: sanitizeResult(action.payload.result),
           },

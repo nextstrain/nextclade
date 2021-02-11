@@ -98,6 +98,14 @@ export interface PcrPrimerChange {
 
 export interface SubstitutionsWithPrimers extends NucleotideSubstitutionWithAminoacids {
   pcrPrimersChanged: PcrPrimer[]
+  constellations: Constellation[]
+}
+
+export interface Constellation {
+  description: string 
+  url: string 
+  substitutions: AminoacidSubstitution[]
+  deletions: AminoacidDeletion[]
 }
 
 export interface Virus {
@@ -108,6 +116,7 @@ export interface Virus {
   rootSeq: string
   auspiceData: AuspiceJsonV2
   pcrPrimers: PcrPrimer[]
+  constellations: Constellation[]
   qcRulesConfig: QCRulesConfig
 }
 
@@ -142,6 +151,7 @@ export interface AnalysisResultWithoutClade {
   nucleotideComposition: Record<string, number>
   pcrPrimerChanges: PcrPrimerChange[]
   totalPcrPrimerChanges: number
+  constellations: Constellation[]
 }
 
 export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {
@@ -169,6 +179,7 @@ export interface AnalysisParams {
   rootSeq: string
   auspiceData: AuspiceJsonV2Extended
   pcrPrimers: PcrPrimer[]
+  constellations: Constellation[]
   qcRulesConfig: QCRulesConfig
 }
 

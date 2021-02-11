@@ -3,7 +3,7 @@ import type { AuspiceJsonV2 } from 'auspice'
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
-import type { AnalysisParams, AnalysisResult, Gene, PcrPrimer } from 'src/algorithms/types'
+import type { AnalysisParams, AnalysisResult, Gene, PcrPrimer, Constellation } from 'src/algorithms/types'
 import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
 import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
@@ -21,6 +21,7 @@ export const setRootSeq = action.async<AlgorithmInput, { rootSeq: string }, Erro
 export const setQcSettings = action.async<AlgorithmInput, { qcRulesConfig: QCRulesConfig }, Error>('setQcSettings') // prettier-ignore
 export const setGeneMap = action.async<AlgorithmInput, { geneMap: Gene[] }, Error>('setGeneMap')
 export const setPcrPrimers = action.async<AlgorithmInput, { pcrPrimers: PcrPrimer[] }, Error>('setPcrPrimers') // prettier-ignore
+export const setConstellationDefinitions = action.async<AlgorithmInput, { constellations: Constellation[] }, Error>('setConstellationDefinitions') // prettier-ignore
 
 export const removeFasta = action('removeFasta')
 export const removeTree = action('removeTree')
@@ -28,6 +29,7 @@ export const removeRootSeq = action('removeRootSeq')
 export const removeQcSettings = action('removeQcSettings')
 export const removeGeneMap = action('removeGeneMap')
 export const removePcrPrimers = action('removePcrPrimers')
+export const removeConstellationDefinitions = action('removeConstellationDefinitions')
 
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
 export const algorithmRunAsync = action.async<void, void, Error>('algorithmRunAsync')

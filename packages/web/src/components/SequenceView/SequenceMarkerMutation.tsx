@@ -13,6 +13,7 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ListOfAminoacidSubstitutions } from 'src/components/SequenceView/ListOfAminoacidSubstitutions'
 import { ListOfPcrPrimersChanged } from 'src/components/SequenceView/ListOfPcrPrimersChanged'
+import { ListOfConstellations } from 'src/components/SequenceView/ListOfConstellations'
 
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   seqName: string
@@ -30,7 +31,7 @@ function SequenceMarkerMutationUnmemoed({
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { pos, queryNuc, refNuc, aaSubstitutions, pcrPrimersChanged } = substitution
+  const { pos, queryNuc, refNuc, aaSubstitutions, pcrPrimersChanged, constellations } = substitution
   const id = getSafeId('mutation-marker', { seqName, ...substitution })
 
   const mut = formatMutation({ pos, queryNuc, refNuc })
@@ -55,6 +56,7 @@ function SequenceMarkerMutationUnmemoed({
         <div>{t('Nucleotide mutation: {{mutation}}', { mutation: mut })}</div>
         <ListOfAminoacidSubstitutions aminoacidSubstitutions={aaSubstitutions} />
         <ListOfPcrPrimersChanged pcrPrimersChanged={pcrPrimersChanged} />
+        <ListOfConstellations constellations={constellations} />
       </Tooltip>
     </rect>
   )

@@ -10,6 +10,7 @@ import {
   removeFasta,
   removeGeneMap,
   removePcrPrimers,
+  removeConstellationDefinitions,
   removeQcSettings,
   removeRootSeq,
   removeTree,
@@ -17,6 +18,7 @@ import {
   setGeneMap,
   setIsDirty,
   setPcrPrimers,
+  setConstellationDefinitions,
   setQcSettings,
   setRootSeq,
   setTree,
@@ -46,6 +48,8 @@ export interface FilePickerAdvancedProps {
 
   setPcrPrimers(input: AlgorithmInput): void
 
+  setConstellationDefinitions(input: AlgorithmInput): void
+
   removeFasta(_0: unknown): void
 
   removeTree(_0: unknown): void
@@ -57,6 +61,8 @@ export interface FilePickerAdvancedProps {
   removeGeneMap(_0: unknown): void
 
   removePcrPrimers(_0: unknown): void
+
+  removeConstellationDefinitions(_0: unknown): void
 
   algorithmRunTrigger(_0: unknown): void
 
@@ -78,12 +84,14 @@ const mapDispatchToProps = {
   setQcSettings: setQcSettings.trigger,
   setGeneMap: setGeneMap.trigger,
   setPcrPrimers: setPcrPrimers.trigger,
+  setConstellationDefinitions: setConstellationDefinitions.trigger,
   removeFasta,
   removeTree,
   removeRootSeq,
   removeQcSettings,
   removeGeneMap,
   removePcrPrimers,
+  removeConstellationDefinitions,
   algorithmRunTrigger: algorithmRunAsync.trigger,
   setShowNewRunPopup,
 }
@@ -101,12 +109,14 @@ export function FilePickerAdvancedDisconnected({
   setQcSettings,
   setGeneMap,
   setPcrPrimers,
+  setConstellationDefinitions,
   removeFasta,
   removeTree,
   removeRootSeq,
   removeQcSettings,
   removeGeneMap,
   removePcrPrimers,
+  removeConstellationDefinitions,
   algorithmRunTrigger,
   setShowNewRunPopup,
 }: FilePickerAdvancedProps) {
@@ -181,6 +191,17 @@ export function FilePickerAdvancedDisconnected({
           errors={params.errors.pcrPrimers}
           onRemove={removePcrPrimers}
           onInput={setPcrPrimers}
+        />
+
+        <FilePicker
+          icon={<FileIconJson />}
+          text={t('Variant Constellations')}
+          exampleUrl="https://example.com/variant_constellations.csv"
+          pasteInstructions={t('Enter variant constellation data (e.g. sub-lineage defining SNPs) in CSV format')}
+          input={params.raw.constellations}
+          errors={params.errors.constellations}
+          onRemove={removeConstellationDefinitions}
+          onInput={setConstellationDefinitions}
         />
       </Col>
     </Row>

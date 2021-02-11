@@ -1,5 +1,6 @@
 import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
 import { validatePcrPrimerEntries, validatePcrPrimers } from 'src/algorithms/primers/validatePcrPrimers'
+import { convertConstellationDefinitions } from 'src/io/convertConstellationDefinitions'
 import { parseCsv } from 'src/io/parseCsv'
 import { call, select, takeEvery } from 'typed-redux-saga'
 
@@ -15,6 +16,7 @@ import {
   setFasta,
   setGeneMap,
   setPcrPrimers,
+  setConstellationDefinitions,
   setQcSettings,
   setRootSeq,
   setTree,
@@ -79,6 +81,15 @@ export function* loadPcrPrimers(input: AlgorithmInput) {
   return { pcrPrimers }
 }
 
+export function* loadConstellationDefinitions(input: AlgorithmInput) {
+  // TODO: validate the correct root sequence is loaded corresponding to the aa mutation definitions
+  const content = yield* call([input, input.getContent])
+
+  const constellations = convertConstellationDefinitions(content)
+
+  return { constellations }
+}
+
 export default [
   takeEvery(setFasta.trigger, fsaSaga(setFasta, loadFasta)),
   takeEvery(setTree.trigger, fsaSaga(setTree, loadTree)),
@@ -86,4 +97,5 @@ export default [
   takeEvery(setQcSettings.trigger, fsaSaga(setQcSettings, loadQcSettings)),
   takeEvery(setGeneMap.trigger, fsaSaga(setGeneMap, loadGeneMap)),
   takeEvery(setPcrPrimers.trigger, fsaSaga(setPcrPrimers, loadPcrPrimers)),
+  takeEvery(setConstellationDefinitions.trigger, fsaSaga(setConstellationDefinitions, loadConstellationDefinitions)),
 ]

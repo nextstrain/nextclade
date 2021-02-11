@@ -2,11 +2,13 @@ import { inRange } from 'lodash'
 
 import type {
   PcrPrimer,
+  Constellation,
   NucleotideSubstitution,
   PcrPrimerChange,
   SubstitutionsWithPrimers,
   NucleotideSubstitutionWithAminoacids,
 } from 'src/algorithms/types'
+import { getConstellations } from 'src/algorithms/getConstellations'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { isMatch } from './nucleotideCodes'
 
@@ -54,9 +56,11 @@ export function getPcrPrimerChanges(
 export function getSubstitutionsWithPcrPrimerChanges(
   substitutions: NucleotideSubstitutionWithAminoacids[],
   primers: PcrPrimer[],
+  constellationDefinitions: Constellation[],
 ): SubstitutionsWithPrimers[] {
   return substitutions.map((mut) => {
     const pcrPrimersChanged = primers.filter((primer) => shouldReportPrimerMutation(mut, primer))
-    return { ...mut, pcrPrimersChanged }
+    const constellations = getConstellations(mut.aaSubstitutions, [], constellationDefinitions)
+    return { ...mut, pcrPrimersChanged, constellations }
   })
 }

@@ -31,8 +31,10 @@ import {
   setQcSettings,
   setRootSeq,
   setPcrPrimers,
+  setConstellationDefinitions,
   removeGeneMap,
   removePcrPrimers,
+  removeConstellationDefinitions,
   removeFasta,
   removeTree,
   removeQcSettings,
@@ -141,6 +143,11 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.errors.pcrPrimers = []
   })
 
+  .icase(setConstellationDefinitions.started, (draft, input) => {
+    draft.params.raw.constellations = input
+    draft.params.errors.constellations = []
+  })
+
   .icase(setFasta.done, (draft, { result: { seqData } }) => {
     draft.params.seqData = seqData
   })
@@ -167,6 +174,10 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.virus.pcrPrimers = pcrPrimers
   })
 
+  .icase(setConstellationDefinitions.done, (draft, { result: { constellations } }) => {
+    draft.params.virus.constellations = constellations
+  })
+
   .icase(setFasta.failed, (draft, { params: input, error }) => {
     draft.params.errors.seqData = [error]
   })
@@ -189,6 +200,10 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setPcrPrimers.failed, (draft, { params: input, error }) => {
     draft.params.errors.pcrPrimers = [error]
+  })
+
+  .icase(setConstellationDefinitions.failed, (draft, { params: input, error }) => {
+    draft.params.errors.constellations = [error]
   })
 
   .icase(removeFasta, (draft) => {
@@ -225,6 +240,12 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.raw.pcrPrimers = undefined
     draft.params.errors.pcrPrimers = []
     draft.params.virus.pcrPrimers = getVirus(draft.params.virus.name).pcrPrimers
+  })
+
+  .icase(removeConstellationDefinitions, (draft) => {
+    draft.params.raw.constellations = undefined
+    draft.params.errors.constellations = []
+    draft.params.virus.constellations = getVirus(draft.params.virus.name).constellations
   })
 
   .icase(setIsDirty, (draft, isDirty) => {

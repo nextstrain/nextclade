@@ -117,7 +117,15 @@ export function* runAlgorithm() {
     throw new Error('No sequence data provided')
   }
 
-  const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
+  const {
+    rootSeq,
+    minimalLength,
+    pcrPrimers,
+    constellations,
+    geneMap,
+    auspiceData: auspiceDataReference,
+    qcRulesConfig,
+  } = virus
   const auspiceData = treePreprocess(copy(auspiceDataReference), rootSeq)
 
   const parseResult = yield* parse(seqData)
@@ -130,6 +138,7 @@ export function* runAlgorithm() {
     rootSeq,
     minimalLength,
     pcrPrimers,
+    constellations,
     geneMap,
     auspiceData,
     qcRulesConfig,

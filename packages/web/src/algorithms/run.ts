@@ -12,6 +12,7 @@ import { getAminoAcidChanges } from './getAminoAcidChanges'
 import { GOOD_NUCLEOTIDES, N } from './nucleotides'
 import { getNucleotideComposition } from './getNucleotideComposition'
 import { getPcrPrimerChanges, getSubstitutionsWithPcrPrimerChanges } from './getPcrPrimerChanges'
+import { getConstellations } from './getConstellations'
 
 export async function parse(input: string | File): Promise<ParseResult> {
   let newInput: string
@@ -29,6 +30,7 @@ export function analyze({
   rootSeq,
   minimalLength,
   pcrPrimers,
+  constellations,
   geneMap,
   auspiceData,
   qcRulesConfig,
@@ -64,9 +66,11 @@ export function analyze({
 
   const nucleotideComposition = getNucleotideComposition(alignedQuery)
 
-  const substitutions = getSubstitutionsWithPcrPrimerChanges(substitutionsWithAA, pcrPrimers)
+  const substitutions = getSubstitutionsWithPcrPrimerChanges(substitutionsWithAA, pcrPrimers, constellations)
   const pcrPrimerChanges = getPcrPrimerChanges(nucSubstitutions, pcrPrimers)
   const totalPcrPrimerChanges = pcrPrimerChanges.reduce((total, { substitutions }) => total + substitutions.length, 0)
+
+  const constellationsMatched = getConstellations(aaSubstitutions, aaDeletions, constellations)
 
   const deletions = deletionsWithAA
 
@@ -93,6 +97,7 @@ export function analyze({
     nucleotideComposition,
     pcrPrimerChanges,
     totalPcrPrimerChanges,
+    constellations: constellationsMatched,
   }
 
   const { match, privateMutations } = treeFindNearestNodes({ analysisResult, rootSeq, auspiceData })

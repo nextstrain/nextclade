@@ -1,19 +1,135 @@
 [
   {
-    "description": "transmissibility",
-    "url": "http://github.com/nodrogluap/pokay/pages/S:D614G",
+    "description": "20A.EU1 (S:A222V)",
+    "url": "https://covariants.org/variants/20A.EU1",
     "substitutions": 
       [
-        { "refAA": "D", "queryAA": "G", "codon": 614, "gene": "S", "nucRange": {"Range": { "begin": 23403, "end": 23403 }}, "refCodon": "GAU", "queryCodon": "GGU" }
+        { "refAA": "A", "queryAA": "V", "codon": 222, "gene": "S" },
+        { "refAA": "V", "queryAA": "L", "codon": 30, "gene": "ORF10" },
+        { "refAA": "A", "queryAA": "V", "codon": 220, "gene": "N" }
       ],
     "deletions": []
   },
   {
-    "description": "immune_evasion",
-    "url": "http://github.com/nodrogluap/pokay/pages/S:S477N",
+    "description": "20A.EU2 (S:477N)",
+    "url": "https://covariants.org/variants/20A.EU2",
     "substitutions":
       [
-        { "refAA": "S", "queryAA": "N", "codon": 477, "gene": "S", "nucRange": {"Range": { "begin": 22992, "end": 22992 }}, "refCodon": "AGC", "queryCodon": "AAC" } 
+        { "refAA": "S", "queryAA": "N", "codon": 477, "gene": "S" },
+        { "refAA": "M", "queryAA": "I", "codon": 234, "gene": "N" },
+        { "refAA": "A", "queryAA": "T", "codon": 376, "gene": "N" },
+        { "refAA": "A", "queryAA": "S", "codon": 176, "gene": "ORF1b" },
+        { "refAA": "V", "queryAA": "L", "codon": 767, "gene": "ORF1b" },
+        { "refAA": "K", "queryAA": "R", "codon": 1141, "gene": "ORF1b" },
+        { "refAA": "E", "queryAA": "D", "codon": 1184, "gene": "ORF1b" }
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:N501",
+    "url": "https://covariants.org/variants/S.N501",
+    "substitutions":
+      [
+        { "refAA": "N", "queryAA": "Y", "codon": 501, "gene": "S" } 
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:E484",
+    "url": "https://covariants.org/variants/S.E484",
+    "substitutions":
+      [
+        { "refAA": "E", "queryAA": "K", "codon": 484, "gene": "S" } 
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:H69-",
+    "url": "https://covariants.org/variants/S.H69-",
+    "substitutions": [], 
+    "deletions": 
+      [
+        { "refAA": "H", "codon": 69, "gene": "S"}
+      ]
+  },
+  {
+    "description": "S:N439K",
+    "url": "http://covariants.org/variants/S:N439K",
+    "substitutions":
+      [
+        { "refAA": "N", "queryAA": "K", "codon": 439, "gene": "S" },
+        { "refAA": "I", "queryAA": "T", "codon": 2501, "gene": "ORF1a" } 
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:Y453F",
+    "url": "http://covariants.org/variants/S:Y453F",
+    "substitutions":
+      [
+        { "refAA": "Y", "queryAA": "F", "codon": 453, "gene": "S" } 
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:S98F",
+    "url": "http://covariants.org/variants/S:S98F",
+    "substitutions":
+      [
+        { "refAA": "S", "queryAA": "F", "codon": 98, "gene": "S" },
+        { "refAA": "P", "queryAA": "L", "codon": 199, "gene": "N" },
+        { "refAA": "Q", "queryAA": "R", "codon": 38, "gene": "ORF3a" },
+        { "refAA": "G", "queryAA": "R", "codon": 172, "gene": "ORF3a" },
+        { "refAA": "V", "queryAA": "L", "codon": 202, "gene": "ORF3a" }
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:L452R",
+    "url": "http://covariants.org/variants/S:L452R",
+    "substitutions":
+      [
+        { "refAA": "S", "queryAA": "I", "codon": 13, "gene": "S" },
+        { "refAA": "W", "queryAA": "C", "codon": 152, "gene": "S" },
+        { "refAA": "L", "queryAA": "R", "codon": 452, "gene": "S" },
+        { "refAA": "I", "queryAA": "V", "codon": 4205, "gene": "ORF1a" },
+        { "refAA": "D", "queryAA": "Y", "codon": 1183, "gene": "ORF1b" }
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:D80Y",
+    "url": "http://covariants.org/variants/S:D80Y",
+    "substitutions":
+      [
+        { "refAA": "D", "queryAA": "Y", "codon": 80, "gene": "S" },
+        { "refAA": "S", "queryAA": "Y", "codon": 186, "gene": "N" },
+        { "refAA": "D", "queryAA": "Y", "codon": 377, "gene": "N" },
+        { "refAA": "T", "queryAA": "I", "codon": 945, "gene": "ORF1a" },
+        { "refAA": "T", "queryAA": "I", "codon": 1567, "gene": "ORF1a" },
+        { "refAA": "Q", "queryAA": "K", "codon": 3346, "gene": "ORF1a" },
+        { "refAA": "V", "queryAA": "F", "codon": 3475, "gene": "ORF1a" },
+        { "refAA": "M", "queryAA": "I", "codon": 3862, "gene": "ORF1a" },
+        { "refAA": "P", "queryAA": "T", "codon": 255, "gene": "ORF1b" },
+        { "refAA": "R", "queryAA": "I", "codon": 80, "gene": "ORF7a" }
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:A626S",
+    "url": "http://covariants.org/variants/S:A626S",
+    "substitutions":
+      [
+        { "refAA": "A", "queryAA": "S", "codon": 626, "gene": "S" } 
+      ],
+    "deletions": []
+  },
+  {
+    "description": "S:V1122L",
+    "url": "http://covariants.org/variants/S:V1122L",
+    "substitutions":
+      [
+        { "refAA": "V", "queryAA": "L", "codon": 1122, "gene": "S" } 
       ],
     "deletions": []
   }

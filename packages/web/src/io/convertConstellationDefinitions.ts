@@ -1,9 +1,9 @@
 import type { Constellation } from 'src/algorithms/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 
-export function convertConstellationDefinitionObjects(constellationsSpec: Object[]): Constellation[] {
+export function convertConstellationDefinitionObjects(constellationsSpecDangerous: unknown): Constellation[] {
   const itemsNotConstellation = []
-  const constellations = constellationsSpec as Constellation[]
+  const constellations = constellationsSpecDangerous as Constellation[]
   constellations.forEach(function f(item) {
     if (
       !Object.prototype.hasOwnProperty.call(item, 'description') ||

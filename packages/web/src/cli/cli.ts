@@ -20,6 +20,7 @@ import { treeValidate } from 'src/algorithms/tree/treeValidate'
 import { qcRulesConfigValidate } from 'src/algorithms/QC/qcRulesConfigValidate'
 import { convertPcrPrimers } from 'src/algorithms/primers/convertPcrPrimers'
 import { validatePcrPrimerEntries, validatePcrPrimers } from 'src/algorithms/primers/validatePcrPrimers'
+import { convertConstellationDefinitions } from 'src/io/convertConstellationDefinitions'
 import { run } from 'src/cli/run'
 
 import pkg from 'src/../package.json'
@@ -81,6 +82,12 @@ export function parseCommandLine() {
       type: 'string',
       description:
         '(optional) Path to a CSV file containing a list of custom PCR primer sites. These are used to report mutations in these sites.\nFor an example see https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/pcrPrimers.csv',
+    })
+    .option('input-constellations', {
+      alias: 'c',
+      type: 'string',
+      description:
+        '(optional) Path to a JSON file containing a list of variant combinations (1 or more variant) that have specific functional or phylodynamics information available. These are used to link out to scientific literature.\nFor an example see https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/constellations.json',
     })
     .option(OUTPUT_JSON, {
       alias: 'o',
@@ -146,6 +153,7 @@ export async function validateParams(params: CliParams) {
   const inputQcConfig = params['input-qc-config']
   const inputGeneMap = params['input-gene-map']
   const inputPcrPrimers = params['input-pcr-primers']
+  const inputConstellations = params['input-constellations']
   const outputJson = params[OUTPUT_JSON]
   const outputCsv = params[OUTPUT_CSV]
   const outputTsvCladesOnly = params[OUTPUT_TSV_CLADES_ONLY]
@@ -166,6 +174,7 @@ export async function validateParams(params: CliParams) {
     inputQcConfig,
     inputGeneMap,
     inputPcrPrimers,
+    inputConstellations,
     outputJson,
     outputCsv,
     outputTsvCladesOnly,
@@ -181,6 +190,7 @@ export interface ReadInputsParams {
   inputQcConfig?: string
   inputGeneMap?: string
   inputPcrPrimers?: string
+  inputConstellations?: string
   virusDefaults: Virus
 }
 
@@ -191,6 +201,7 @@ export async function readInputs({
   inputQcConfig,
   inputGeneMap,
   inputPcrPrimers,
+  inputConstellations,
   virusDefaults,
 }: ReadInputsParams) {
   const input = await fs.readFile(inputFasta, { encoding: 'utf-8' })
@@ -226,6 +237,11 @@ export async function readInputs({
     const primerEntries = validatePcrPrimerEntries(parseCsv(content))
     const pcrPrimers = validatePcrPrimers(convertPcrPrimers(primerEntries, virus.rootSeq))
     virus = { ...virus, pcrPrimers }
+  }
+
+  if (inputConstellations) {
+    const constellations = convertConstellationDefinitions(await fs.readJson(inputConstellations))
+    virus = { ...virus, constellations }
   }
 
   return { input, virus }
@@ -281,6 +297,7 @@ export async function main() {
     inputQcConfig,
     inputGeneMap,
     inputPcrPrimers,
+    inputConstellations,
     outputJson,
     outputCsv,
     outputTsvCladesOnly,
@@ -298,6 +315,7 @@ export async function main() {
     inputQcConfig,
     inputGeneMap,
     inputPcrPrimers,
+    inputConstellations,
     virusDefaults,
   })
 

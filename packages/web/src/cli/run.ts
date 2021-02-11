@@ -13,7 +13,15 @@ import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
 
 export async function run(workers: WorkerPools, input: string, virus: Virus, shouldMakeTree: boolean) {
-  const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
+  const {
+    rootSeq,
+    minimalLength,
+    pcrPrimers,
+    constellations,
+    geneMap,
+    auspiceData: auspiceDataReference,
+    qcRulesConfig,
+  } = virus
   const auspiceData = treePreprocess(auspiceDataReference, rootSeq)
 
   const { threadParse, poolAnalyze, threadTreeFinalize } = workers
@@ -28,6 +36,7 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
           rootSeq,
           minimalLength,
           pcrPrimers,
+          constellations,
           geneMap,
           auspiceData,
           qcRulesConfig,

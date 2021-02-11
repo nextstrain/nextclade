@@ -21,7 +21,10 @@ export function ListOfConstellations({ constellations }: ListOfConstellationProp
   const items = constellations.map(({ description, url, substitutions, deletions }) => {
     return (
       <Li key={description}>
-        <a href={url}>{description}</a>:
+        <a target="_blank" rel="noreferrer noopener" href={url}>
+          {description}
+        </a>
+        :
         {substitutions.map((mut) => {
           const notation = formatAAMutation(mut)
           return `${notation} `

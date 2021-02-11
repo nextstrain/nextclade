@@ -9,6 +9,7 @@ import { formatRange } from 'src/helpers/formatRange'
 import { formatInsertion } from 'src/helpers/formatInsertion'
 import { formatNonAcgtn } from 'src/helpers/formatNonAcgtn'
 import { formatPrimer } from 'src/helpers/formatPrimer'
+import { formatConstellation } from 'src/helpers/formatConstellation'
 import { formatSnpCluster } from 'src/helpers/formatSnpCluster'
 
 const CSV_EOL = '\r\n'
@@ -30,6 +31,7 @@ const headers = [
   'missing',
   'nonACGTNs',
   'pcrPrimerChanges',
+  'constyellations',
   'aaSubstitutions',
   'totalAminoacidSubstitutions',
   'aaDeletions',
@@ -100,6 +102,7 @@ export function prepareResultCsv(datum: Exportable) {
     missing: datum.missing.map(({ begin, end }) => formatRange(begin, end)).join(','),
     nonACGTNs: datum.nonACGTNs.map((nacgtn) => formatNonAcgtn(nacgtn)).join(','),
     pcrPrimerChanges: datum.pcrPrimerChanges.map(formatPrimer).join(','),
+    constellations: datum.constellations.map(formatConstellation).join(','),
   }
 }
 

@@ -72,6 +72,7 @@ export interface AlgorithmParams {
     qcRulesConfig?: AlgorithmInput
     geneMap?: AlgorithmInput
     pcrPrimers?: AlgorithmInput
+    constellations?: AlgorithmInput
   }
   errors: {
     seqData: Error[]
@@ -80,6 +81,7 @@ export interface AlgorithmParams {
     qcRulesConfig: Error[]
     geneMap: Error[]
     pcrPrimers: Error[]
+    constellations: Error[]
   }
   seqData?: string
   virus: Virus
@@ -113,6 +115,7 @@ export const algorithmDefaultState: AlgorithmState = {
       qcRulesConfig: [],
       geneMap: [],
       pcrPrimers: [],
+      constellations: [],
     },
     seqData: undefined,
     virus: getVirus(),

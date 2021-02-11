@@ -1,25 +1,18 @@
 import type { Constellation, AminoacidSubstitution, AminoacidDeletion } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
-/* import { isMatch } from 'lodash' */
+import { filter, isEmpty } from 'lodash'
 
 export function satistfiesMutationCriteria(
   constellationDefinition: Constellation,
   aaSubstitutions: AminoacidSubstitution[],
 ) {
   let isMissingSub = false
-  for (const requiredSubstitution of constellationDefinition.substitutions) {
-    let requiredSubFound = false
-    for (const existingSub of aaSubstitutions) {
-      if (
-        requiredSubstitution.gene === existingSub.gene &&
-        requiredSubstitution.codon === existingSub.codon &&
-        requiredSubstitution.queryAA === existingSub.queryAA
-      ) {
-        requiredSubFound = true
-        break
-      }
-    }
-    if (!requiredSubFound) {
+  for (const requiredSub of constellationDefinition.substitutions) {
+    if (
+      isEmpty(
+        filter(aaSubstitutions, { gene: requiredSub.gene, codon: requiredSub.codon, queryAA: requiredSub.queryAA }),
+      )
+    ) {
       isMissingSub = true
       break
     }
@@ -36,8 +29,8 @@ export function satistfiesDeletionCriteria(constellationDefinition: Constellatio
     for (const existingDel of aaDeletions) {
       if (
         /* TODO: check that the deleted bases are the same (i.e. the rootSeq is the same as the constellation definition's? */
-        requiredDeletion.nucRange.begin === existingDel.nucRange.end &&
-        requiredDeletion.nucRange.end === existingDel.nucRange.end
+        requiredDeletion.gene === existingDel.gene &&
+        requiredDeletion.codon === existingDel.codon
       ) {
         requiredDelFound = true
         break
