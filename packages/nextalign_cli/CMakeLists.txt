@@ -18,7 +18,7 @@ find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
 
-if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
+if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE AND NOT WIN32)
   if (MINGW)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
