@@ -158,11 +158,6 @@ jobs:
             conan --version
 
       - run:
-          name: 'Check compiler toolchain'
-          command: |
-            cl /?
-
-      - run:
           name: 'Run Windows x86_64 build'
           command: |
             .\scripts\build_locally.ps1
