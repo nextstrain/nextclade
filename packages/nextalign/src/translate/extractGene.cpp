@@ -70,8 +70,8 @@ void stripGeneInPlace(NucleotideSequence& seq) {
 /**
  * Extracts gene from the query sequence according to coordinate map relative to the reference sequence
  */
-NucleotideSequence extractGeneQuery(
-  const NucleotideSequenceView& query, const Gene& gene, const std::vector<int>& coordMap) {
+NucleotideSequence extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
+  const std::vector<int>& coordMap) {
   precondition_less(gene.start, coordMap.size());
   precondition_less(gene.end, coordMap.size());
 
@@ -86,14 +86,20 @@ NucleotideSequence extractGeneQuery(
 
   auto result = NucleotideSequence(query.substr(start, length));
   const auto resultLengthPreStrip = safe_cast<int>(result.size());
-  if (resultLengthPreStrip % 3 != 0) {
-    throw ErrorExtractGeneLengthInvalid(gene.geneName, resultLengthPreStrip);
-  }
-  stripGeneInPlace(result);
 
+  if (resultLengthPreStrip % 3 != 0) {
+    throw ErrorExtractGeneLengthNonMul3(gene, resultLengthPreStrip);
+  }
+
+  stripGeneInPlace(result);
   const auto resultLength = safe_cast<int>(result.size());
-  if (resultLength % 3 != 0 || resultLength == 0) {
-    throw ErrorExtractGeneLengthInvalid(gene.geneName, resultLength);
+
+  if (resultLength == 0) {
+    throw ErrorExtractStrippedGeneEmpty(gene, resultLengthPreStrip);
+  }
+
+  if (resultLength % 3 != 0) {
+    throw ErrorExtractGeneStrippedLengthNonMul3(gene, resultLength, resultLengthPreStrip);
   }
 
   invariant_less_equal(result.size(), query.size());// Length of the gene should not exceed the length of the sequence
