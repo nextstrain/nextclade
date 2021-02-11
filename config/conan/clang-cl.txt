@@ -9,7 +9,7 @@ compiler=Visual Studio
 compiler.version=16
 compiler.cppstd=17
 compiler.toolset=ClangCL
-compiler.runtime=MT
+compiler.runtime=MD
 
 [env]
 CC=clang-cl
