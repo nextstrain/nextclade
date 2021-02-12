@@ -8,7 +8,9 @@ import { ReactComponent as CladeSchemaSvg } from 'src/assets/img/nextstrain_clad
 const CladeSchemaFigure = styled.figure`
   display: flex;
   width: 100%;
+  max-width: 800px;
   flex-direction: column;
+  margin: 0 auto;
 `
 
 const CladeSchemaPicture = styled.picture`
