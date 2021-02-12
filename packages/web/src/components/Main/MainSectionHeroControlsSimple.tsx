@@ -91,8 +91,8 @@ export function MainSectionHeroControlsDisconnected({
   }
 
   return (
-    <Container fluid>
-      <Row>
+    <Container fluid className="p-0">
+      <Row noGutters>
         <Col>
           <FilePickerSimple
             canCollapse={false}
@@ -110,7 +110,7 @@ export function MainSectionHeroControlsDisconnected({
         </Col>
       </Row>
 
-      <Row>
+      <Row noGutters>
         <Col>
           <Button color="link" onClick={loadDefaultData}>
             <small>{t('Show me an Example')}</small>
