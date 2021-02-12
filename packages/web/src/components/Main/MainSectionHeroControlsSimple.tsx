@@ -4,7 +4,7 @@ import { delay } from 'lodash'
 import { connect } from 'react-redux'
 import { push } from 'connected-next-router'
 import { useTranslation } from 'react-i18next'
-import { Button, Col, Row } from 'reactstrap'
+import { Button, Col, Container, Row } from 'reactstrap'
 import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 import styled from 'styled-components'
 
@@ -91,7 +91,7 @@ export function MainSectionHeroControlsDisconnected({
   }
 
   return (
-    <div>
+    <Container fluid>
       <Row>
         <Col>
           <FilePickerSimple
@@ -117,6 +117,6 @@ export function MainSectionHeroControlsDisconnected({
           </Button>
         </Col>
       </Row>
-    </div>
+    </Container>
   )
 }
