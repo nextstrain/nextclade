@@ -11,7 +11,7 @@
   .main-dev-alert {
     filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.4));
 
-    @media (min-width: 780px) {
+    @media (min-width: 768px) {
       width: 50%;
     }
   }

@@ -6,6 +6,10 @@ import styled from 'styled-components'
 
 export const FeatureBoxContainer = styled.div`
   margin: 10px 5px;
+
+  @media (max-width: 767.98px) {
+    display: none;
+  }
 `
 
 export const FeatureBox = styled.div`
