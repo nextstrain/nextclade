@@ -7,18 +7,55 @@ import styled from 'styled-components'
 import { FaGithub, FaTwitter } from 'react-icons/fa'
 import { GiEarthAfricaEurope } from 'react-icons/gi'
 
-import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { getContributors } from 'src/io/getContributors'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
+import { TeamCreditsContributor } from 'src/components/Team/TeamCreditsContributor'
 
-import { TeamCreditsContributor } from './TeamCreditsContributor'
+import { ReactComponent as NextstrainLogo } from 'src/assets/img/nextstrain_logo.svg'
 
 const contributors = getContributors()
+
+const FlexCol = styled(Col)`
+  display: flex;
+  flex-wrap: wrap;
+  text-align: center;
+`
 
 const Flex = styled.section`
   display: flex;
   flex-direction: column;
-  width: 300px;
+  flex: 1 0 300px;
   margin: 10px auto;
+
+  @media (min-width: 768px) {
+    &:first-child {
+      padding-left: 75px;
+    }
+
+    &:last-child {
+      padding-right: pxpx;
+    }
+  }
+
+  @media (min-width: 992px) {
+    &:first-child {
+      padding-left: 150px;
+    }
+
+    &:last-child {
+      padding-right: 150px;
+    }
+  }
+
+  @media (min-width: 1201px) {
+    &:first-child {
+      padding-left: 300px;
+    }
+
+    &:last-child {
+      padding-right: 300px;
+    }
+  }
 `
 
 const TeamCreditsH1 = styled.h1`
@@ -100,12 +137,19 @@ export function TeamCredits() {
       <Col>
         <Row noGutters>
           <Col className="d-flex text-center">
-            <TeamCreditsH1>{`${PROJECT_NAME} is developed by`}</TeamCreditsH1>
+            <TeamCreditsH1>
+              {`${PROJECT_NAME} is a part of `}
+              <NextstrainLogo width="20px" height="20px" className="mx-1" />
+              <LinkExternal href="https://nextstrain.org">
+                <span>{'Nextstrain project'}</span>
+              </LinkExternal>
+              <span>{`. ${PROJECT_NAME} is maintained by: `}</span>
+            </TeamCreditsH1>
           </Col>
         </Row>
 
         <Row noGutters>
-          <Col className="d-flex text-center">
+          <FlexCol>
             <Flex>
               <Portrait src="https://avatars3.githubusercontent.com/u/9403403?s=400" />
               <NameText>{'Ivan Aksamentov'}</NameText>
@@ -139,11 +183,12 @@ export function TeamCredits() {
                 ))}
               </Ul>
             </Flex>
-          </Col>
+          </FlexCol>
         </Row>
 
         <Row noGutters>
           <Col>
+            <TeamCreditsH1 className="text-center">{'We are thankful to our contributors: '}</TeamCreditsH1>
             <FlexContributors>
               {contributors.map((contributor) => (
                 <TeamCreditsContributor key={contributor.login} contributor={contributor} />
