@@ -155,7 +155,8 @@ Nextclade is a part of
 <span>Nextstrain project</span>
 </a>.</p>
 
-it is maintained by
+
+It is maintained by:
 
 <table>
   <tr>
