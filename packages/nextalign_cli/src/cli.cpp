@@ -238,21 +238,21 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "score-gap-open",
-      "(optional, integer, negative) Score that penalizes opening of a gap. A higher penalty results in fewer gaps and more mismatches.",
+      "(optional, integer, negative) Score that penalizes opening of a gap. A higher penalty results in fewer gaps and more mismatches. Should be greater than `--score-gap-open-in-frame`.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpen)),
       "SCORE_GAP_OPEN"
     )
 
     (
       "score-gap-open-in-frame",
-      "(optional, integer, negative) As `--score-gap-open`, but for opening gaps at the beginning of a codon. Should be a positive integer, less than `--score-gap-open` and greater than `--score-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
+      "(optional, integer, negative) As `--score-gap-open`, but for opening gaps at the beginning of a codon. Should be a negative integer, less than `--score-gap-open` and greater than `--score-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenInFrame)),
       "SCORE_GAP_OPEN_IN_FRAME"
     )
 
     (
       "score-gap-open-out-of-frame",
-      "(optional, integer, negative) As `--score-gap-open`, but for opening gaps at the beginning of a codon. Should be less than `--score-gap-out-of-frame` to favor gaps that align with codons.",
+      "(optional, integer, negative) As `--score-gap-open`, but for opening gaps in the body of a codon. Should be less than `--score-gap-open-in-frame` to favor gaps that align with codons.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenOutOfFrame)),
       "SCORE_GAP_OPEN_OUT_OF_FRAME"
     )
