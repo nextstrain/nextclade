@@ -10,6 +10,7 @@
 #include <fstream>
 
 #include "filesystem.h"
+#include "description.h"
 
 
 struct CliParams {
