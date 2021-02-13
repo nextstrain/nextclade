@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { ColFlexHorizontal } from 'src/components/Main/FilePicker'
 import styled from 'styled-components'
 import { Col, Row } from 'reactstrap'
 
@@ -18,10 +17,22 @@ import { CardL1, CardL1Body } from 'src/components/Common/Card'
 import type { DropdownOption } from 'src/components/Common/DropdownOption'
 import { Dropdown } from 'src/components/Common/Dropdown'
 
+export const ColFlexHorizontal = styled(Col)`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+`
+
 const DropdownContainer = styled.div`
   flex: 0 0 230px;
   margin-right: auto;
   margin-left: 5px;
+
+  @media (max-width: 767.98px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
 `
 
 const AdvancedToggleWrapper = styled.div`
@@ -31,6 +42,11 @@ const AdvancedToggleWrapper = styled.div`
   margin-bottom: 10px;
   display: flex;
   width: 100%;
+
+  @media (max-width: 767.98px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
 `
 
 const ToggleTwoLabels = styled(ToggleTwoLabelsBase)``

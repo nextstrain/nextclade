@@ -21,6 +21,7 @@ import getWithFriendlyConsole from './withFriendlyConsole'
 import getWithLodash from './withLodash'
 import getWithStaticComprression from './webpackCompression'
 import getWithTypeChecking from './withTypeChecking'
+import withJson from './withJson'
 import withRaw from './withRaw'
 import withSvg from './withSvg'
 import withImages from './withImages'
@@ -157,6 +158,7 @@ const config = withPlugins(
     [withSvg],
     [withImages],
     [withRaw],
+    [withJson],
     // ANALYZE && [withBundleAnalyzer],
     [withFriendlyConsole],
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],

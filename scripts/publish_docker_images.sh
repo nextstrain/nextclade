@@ -24,9 +24,9 @@ fi
 VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
 
 docker build -f "${PROJECT_ROOT_DIR}/Dockerfile.prod" \
-  -t neherlab/nextalign:latest \
-  -t neherlab/nextalign:${VERSION} \
+  -t nextstrain/nextalign:latest \
+  -t nextstrain/nextalign:${VERSION} \
   .
 
-docker push neherlab/nextalign:latest
-docker push neherlab/nextalign:${VERSION}
+docker push nextstrain/nextalign:latest
+docker push nextstrain/nextalign:${VERSION}

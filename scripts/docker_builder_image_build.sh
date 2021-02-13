@@ -27,7 +27,7 @@ if [ ${TARGET} == "release" ]; then
   exit 1
 fi
 
-DOCKERHUB_ORG="neherlab"
+DOCKERHUB_ORG="nextstrain"
 DOCKERHUB_PROJECT="nextalign"
 DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}_${TARGET}"
 

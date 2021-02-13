@@ -25,7 +25,7 @@ fi
 TARGET="${1:-builder}"
 COMMAND="${2:-}"
 
-DOCKERHUB_ORG="neherlab"
+DOCKERHUB_ORG="nextstrain"
 DOCKERHUB_PROJECT="nextalign"
 DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}_${TARGET}"
 
