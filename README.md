@@ -144,9 +144,18 @@ This repository consists of a set of packages presented in the table below. Refe
 
 ## ✨ Team
 
-Nextclade and nextalign are the parts of the [Nextstrain project](https://nextstrain.org).
+<p>
+Nextclade is a part of 
+<a target="_blank" rel="noopener noreferrer" href="https://nextstrain.org">
+<img height="15px"
+  src="https://github.com/nextstrain/nextclade/blob/master/docs/assets/nextstrain_logo.svg"
+  alt="Nextstrain logo"
+/>
+<span> </span>
+<span>Nextstrain project</span>
+</a>.</p>
 
-They are maintained by
+it is maintained by
 
 <table>
   <tr>
