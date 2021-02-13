@@ -200,13 +200,16 @@ We are thankful to all our contributors, no matter how they contribute: in ideas
 <table>
   <tr>
     <td align="center"><a href="https://github.com/emmahodcroft"><img src="https://avatars1.githubusercontent.com/u/14290674?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Emma Hodcroft</b></sub></a><br /><a href="#ideas-emmahodcroft" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/nextstrain/nextclade/commits?author=emmahodcroft" title="Tests">⚠️</a> <a href="#talk-emmahodcroft" title="Talks">📢</a> <a href="https://github.com/nextstrain/nextclade/pulls?q=is%3Apr+reviewed-by%3Aemmahodcroft" title="Reviewed Pull Requests">👀</a></td>
-    <td align="center"><a href="http://www.natalieastroud.com/"><img src="https://avatars3.githubusercontent.com/u/17433156?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Natalie Stroud</b></sub></a><br /><a href="#content-stroudn1" title="Content">🖋</a> <a href="#translation-stroudn1" title="Translation">🌍</a></td>
     <td align="center"><a href="https://tsibley.net/"><img src="https://avatars2.githubusercontent.com/u/79913?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Thomas Sibley</b></sub></a><br /><a href="#infra-tsibley" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#security-tsibley" title="Security">🛡️</a></td>
+    <td align="center"><a href="http://theo.io/"><img src="https://avatars.githubusercontent.com/u/19732295?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Theo Sanderson</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=theosanderson" title="Code">💻</a></td>
+    <td align="center"><a href="http://www.natalieastroud.com/"><img src="https://avatars3.githubusercontent.com/u/17433156?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Natalie Stroud</b></sub></a><br /><a href="#content-stroudn1" title="Content">🖋</a> <a href="#translation-stroudn1" title="Translation">🌍</a></td>
+    <td align="center"><a href="http://www.rubinsteyn.com/"><img src="https://avatars.githubusercontent.com/u/48441?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Rubinsteyn</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=iskandr" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/molecules"><img src="https://avatars.githubusercontent.com/u/345060?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christopher Bottoms</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=molecules" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://finlaymagui.re/"><img src="https://avatars.githubusercontent.com/u/1698629?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Finlay Maguire</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=fmaguire" title="Documentation">📖</a></td>
   </tr>
 </table>
 
-
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->

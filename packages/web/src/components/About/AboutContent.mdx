@@ -1,4 +1,4 @@
-import { ReactComponent as CladeSchema } from 'src/assets/img/nextstrain_clades.svg'
+import { CladeSchema } from 'src/components/Main/CladeSchema.tsx'
 
 <!-- TODO: Why we built the tool the way we did? -->
 <!-- TODO: What are the trade-offs we have to choose? -->
@@ -21,7 +21,6 @@ Nextclade currently only supports SARS-CoV-2, but we will hopefully extend the t
 
 The source code for the application and algorithms is opensource and is available on [Github](https://github.com/nextstrain/nextclade).
 
-Other than this web application, advanced users may also try the Nextclade command-line tool, available as a Node.js script at [NPM](https://www.npmjs.com/package/@neherlab/nextclade) or as a Docker container image on [Docker Hub](https://hub.docker.com/r/neherlab/nextclade).
 
 ### What are the clades?
 
@@ -37,14 +36,7 @@ for details):
 - 20B and 20C are large genetically distinct subclades 20A emerged in early 2020
 - 20D to 20I have emerged over the summer of 2020 and include two "variants of concern" (VOC) with signature mutations S:N501Y.
 
-<figure className="figure w-100 text-center">
-  <picture className="w-100 figure-img" alt="illustration of the model">
-    <CladeSchema height={400} />
-  </picture>
-  <figcaption>
-    <small>Fig.1. Illustration of phylogenetic relationship of clades, as defined by Nextstrain</small>
-  </figcaption>
-</figure>
+<CladeSchema />
 
 Within Nextstrain, we define each clade by its combination of signature mutations.
 You can find the exact clade definition in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).

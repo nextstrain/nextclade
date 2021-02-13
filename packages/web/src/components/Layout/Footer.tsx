@@ -20,7 +20,7 @@ import { ReactComponent as LogoVercel } from 'src/assets/img/powered-by-vercel.s
 const FooterContainer = styled(Container)`
   background-color: #2a2a2a;
   color: #c4cdd5;
-  padding: 7px 10px;
+  padding: 6px 10px;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
 `
