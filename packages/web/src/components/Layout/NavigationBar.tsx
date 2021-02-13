@@ -41,13 +41,13 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
       },
       {
         title: t('Our NPM packages'),
-        url: 'https://www.npmjs.com/package/@neherlab/nextclade',
+        url: 'https://www.npmjs.com/package/@nextstrain/nextclade',
         alt: t('Link to our NPM package'),
         icon: <FaNpm size={28} color="#aaa" />,
       },
       {
         title: t('Our containers at Docker Hub'),
-        url: 'https://hub.docker.com/r/neherlab/nextclade',
+        url: 'https://hub.docker.com/r/nextstrain/nextclade',
         alt: t('Link to our Docker containers'),
         icon: <FaDocker size={28} color="#aaa" />,
       },

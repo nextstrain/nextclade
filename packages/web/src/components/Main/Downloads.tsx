@@ -62,14 +62,14 @@ export function Downloads() {
                   <DownloadLink
                     className="d-block mx-2"
                     Icon={<FaDocker color="#369cec" size={25} />}
-                    text="neherlab/nextclade on Docker Hub"
-                    url="https://hub.docker.com/r/neherlab/nextclade"
+                    text="nextstrain/nextclade on Docker Hub"
+                    url="https://hub.docker.com/r/nextstrain/nextclade"
                   />
                   <DownloadLink
                     className="d-block mx-2"
                     Icon={<FaNpm color="#cc5555" size={25} />}
-                    text="@neherlab/nextclade on NPM"
-                    url="https://www.npmjs.com/package/@neherlab/nextclade"
+                    text="@nextstrain/nextclade on NPM"
+                    url="https://www.npmjs.com/package/@nextstrain/nextclade"
                   />
                 </DownloadLinkList>
               </Col>
@@ -90,8 +90,8 @@ export function Downloads() {
                   <DownloadLink
                     className="d-block mx-2"
                     Icon={<FaDocker color="#369cec" size={25} />}
-                    text={t('neherlab/nextalign on Docker Hub')}
-                    url="https://hub.docker.com/r/neherlab/nextalign"
+                    text={t('nextstrain/nextalign on Docker Hub')}
+                    url="https://hub.docker.com/r/nextstrain/nextalign"
                   />
                   <DownloadLink
                     className="d-block mx-2"

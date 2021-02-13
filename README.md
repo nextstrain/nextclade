@@ -136,9 +136,9 @@ This repository consists of a set of packages presented in the table below. Refe
 | Package                                  | Type           | Get                                                                    | Docker images                                                        |
 | ---------------------------------------- | -------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------- |
 | [nextclade_web](/packages/web)           | Web App        | 🌎 [clades.nextstrain.org](https://clades.nextstrain.org)              |                                                                      |
-| [nextclade_cli](/packages/cli)           | Node.js CLI    | 📦 [@neherlab/nextclade](@neherlab/nextclade)                          | 🐋 [neherlab/nextclade](https://hub.docker.com/r/neherlab/nextclade) |
+| [nextclade_cli](/packages/cli)           | Node.js CLI    | 📦 [@nextstrain/nextclade](@nextstrain/nextclade)                          | 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade) |
 | [nextalign](/packages/nextalign)         | C++ library    |                                                                        |                                                                      |
-| [nextalign_cli](/packages/nextalign_cli) | C++ executable | 📥 [Github Releases](https://github.com/nextstrain/nextclade/releases) | 🐋 [neherlab/nextalign](https://hub.docker.com/r/neherlab/nextalign) |
+| [nextalign_cli](/packages/nextalign_cli) | C++ executable | 📥 [Github Releases](https://github.com/nextstrain/nextclade/releases) | 🐋 [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign) |
 
 
 
