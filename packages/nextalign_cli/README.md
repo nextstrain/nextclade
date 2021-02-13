@@ -50,14 +50,14 @@ by Nextstrain team
 
   <a href="https://github.com/nextstrain/nextclade/issues/new">
     <img height="30px"
-      src="https://img.shields.io/badge/%F0%9F%99%8B%E2%80%8D%E2%99%80%EF%B8%8F%20Request%20feature-%2317992a.svg"
+      src="https://img.shields.io/badge/%E2%9C%A8%20Request%20feature-%2317992a.svg"
       alt="Request feature button"
     />
   </a>
 
   <a href="https://discussion.nextstrain.org">
     <img height="30px"
-      src="https://img.shields.io/badge/%F0%9F%92%AC%20Discuss-%23d99852.svg"
+      src="https://img.shields.io/badge/%F0%9F%92%AC%20Join%20discussion-%23d99852.svg"
       alt="Discuss button"
     />
   </a>
