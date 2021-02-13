@@ -32,7 +32,7 @@ by Nextstrain team
     />
   </a>
 
-  <a href="https://hub.docker.com/r/neherlab/nextalign">
+  <a href="https://hub.docker.com/r/nextstrain/nextalign">
     <img height="30px"
       src="https://img.shields.io/badge/%F0%9F%90%8B%20%20%20Docker-%231188cc.svg"
       alt="Docker button"
@@ -65,7 +65,7 @@ by Nextstrain team
 
 ---
 
-![Docker Image Version (latest semver)](https://img.shields.io/docker/v/neherlab/nextalign?label=%F0%9F%90%8B%20docker)
+![Docker Image Version (latest semver)](https://img.shields.io/docker/v/nextstrain/nextalign?label=%F0%9F%90%8B%20docker)
 
 ---
 
@@ -186,19 +186,19 @@ Native Windows executables are not yet available. Windows users can try one of t
 </h3>
 
 
-Container images are available at Docker Hub: https://hub.docker.com/repository/docker/neherlab/nextalign
+Container images are available at Docker Hub: https://hub.docker.com/repository/docker/nextstrain/nextalign
 
 Pull and run the latest version with:
 
 ```
-docker pull neherlab/nextalign:latest
-docker run -it --rm nneherlab/nextalign:latest nextalign --help
+docker pull nextstrain/nextalign:latest
+docker run -it --rm nextstrain/nextalign:latest nextalign --help
 ```
 
 Pull and run a specific version with:
 
 ```
-docker run -it --rm neherlab/nextalign:0.1.4 nextalign --help
+docker run -it --rm nextstrain/nextalign:0.1.4 nextalign --help
 ```
 
 Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
