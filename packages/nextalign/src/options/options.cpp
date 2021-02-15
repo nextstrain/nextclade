@@ -5,11 +5,11 @@ namespace {
     .alignment =
       {
         .minimalLength = 100,
-        .scoreGapExtend = 0,
-        .scoreGapOpen = -6,
-        .scoreGapOpenInFrame = -7,
-        .scoreGapOpenOutOfFrame = -8,
-        .scoreMismatch = -1,
+        .penaltyGapExtend = 0,
+        .penaltyGapOpen = 6,
+        .penaltyGapOpenInFrame = 7,
+        .penaltyGapOpenOutOfFrame = 8,
+        .penaltyMismatch = 1,
         .scoreMatch = 3,
         .maxIndel = 400,
       },

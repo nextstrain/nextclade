@@ -211,20 +211,20 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
   //    -> vertical step in the matrix from si+1 to si
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-  const auto NO_ALIGN = -(alignmentOptions.scoreMatch - alignmentOptions.scoreMismatch) * refSize;
+  const auto NO_ALIGN = -(alignmentOptions.scoreMatch + alignmentOptions.penaltyMismatch) * refSize;
 
   for (int si = 2 * bandWidth; si > bandWidth; si--) {
     paths(si, 0) = qryGAPmatrix;
   }
   paths(bandWidth, 0) = MATCH;
-  qryGaps[bandWidth] = alignmentOptions.scoreGapOpen;
+  qryGaps[bandWidth] = -alignmentOptions.penaltyGapOpen;
   for (int si = bandWidth - 1; si >= 0; si--) {
     paths(si, 0) = refGAPmatrix;
-    qryGaps[si] = alignmentOptions.scoreGapOpen;
+    qryGaps[si] = -alignmentOptions.penaltyGapOpen;
   }
   for (int ri = 0; ri < refSize; ri++) {
     int qPos = ri - (bandWidth + meanShift);
-    int refGaps = gapOpenClose[ri];
+    int refGaps = - gapOpenClose[ri];
     for (int si = 2 * bandWidth; si >= 0; si--) {
       int tmpPath = 0, score = 0, origin = 0;
       int qGapExtend = 0, rGapExtend = 0, rGapOpen = 0, qGapOpen = 0;
@@ -234,21 +234,21 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
         // we could fill all of this at once
         score = 0;
         tmpPath += qryGAPextend;
-        refGaps = gapOpenClose[ri];
+        refGaps = - gapOpenClose[ri];
         origin = qryGAPmatrix;
       } else if (qPos < querySize) {
         // if the shifted position is within the query sequence
 
         // no gap -- match case
         tmpMatch =
-          lookupMatchScore(query[qPos], ref[ri]) > 0 ? alignmentOptions.scoreMatch : alignmentOptions.scoreMismatch;
+          lookupMatchScore(query[qPos], ref[ri]) > 0 ? alignmentOptions.scoreMatch : -alignmentOptions.penaltyMismatch;
         score = scores(si, ri) + tmpMatch;
         origin = MATCH;
 
         // check the scores of a reference gap
         if (si < 2 * bandWidth) {
-          rGapExtend = refGaps + alignmentOptions.scoreGapExtend;
-          rGapOpen = scores(si + 1, ri + 1) + gapOpenClose[ri + 1];
+          rGapExtend = refGaps - alignmentOptions.penaltyGapExtend;
+          rGapOpen = scores(si + 1, ri + 1) - gapOpenClose[ri + 1];
           if (rGapExtend > rGapOpen) {
             tmpScore = rGapExtend;
             tmpPath += refGAPextend;
@@ -266,8 +266,8 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
 
         // check the scores of a reference gap
         if (si > 0) {
-          qGapExtend = qryGaps[si - 1] + alignmentOptions.scoreGapExtend;
-          qGapOpen = scores(si - 1, ri) + gapOpenClose[ri];
+          qGapExtend = qryGaps[si - 1] - alignmentOptions.penaltyGapExtend;
+          qGapOpen = scores(si - 1, ri) - gapOpenClose[ri];
           tmpScore = qGapExtend > qGapOpen ? qGapExtend : qGapOpen;
           if (qGapExtend > qGapOpen) {
             tmpScore = qGapExtend;

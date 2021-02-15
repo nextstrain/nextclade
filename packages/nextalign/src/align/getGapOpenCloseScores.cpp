@@ -19,7 +19,7 @@ std::vector<int> getGapOpenCloseScoresFlat(//
   /* in */ const NextalignOptions& options //
 ) {
   std::vector<int> gapOpenClose(ref.size() + 2);
-  std::fill(gapOpenClose.begin(), gapOpenClose.end(), options.alignment.scoreGapOpen);
+  std::fill(gapOpenClose.begin(), gapOpenClose.end(), options.alignment.penaltyGapOpen);
   return gapOpenClose;
 }
 
@@ -34,9 +34,9 @@ std::vector<int> getGapOpenCloseScoresCodonAware(//
 
     // TODO: might use std::fill()
     for (int i = gene.start; i < gene.end-2; i += 3) {
-      gapOpenClose[i] = options.alignment.scoreGapOpenInFrame;
-      gapOpenClose[i+1] = options.alignment.scoreGapOpenOutOfFrame;
-      gapOpenClose[i+2] = options.alignment.scoreGapOpenOutOfFrame;
+      gapOpenClose[i] = options.alignment.penaltyGapOpenInFrame;
+      gapOpenClose[i+1] = options.alignment.penaltyGapOpenOutOfFrame;
+      gapOpenClose[i+2] = options.alignment.penaltyGapOpenOutOfFrame;
     }
   }
 

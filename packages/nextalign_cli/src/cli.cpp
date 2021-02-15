@@ -98,23 +98,23 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
 
   // clang-format off
   options.alignment.minimalLength = getParamRequiredDefaulted<int>(cxxOptsParsed, "min-length", ensureNonNegative);
-  options.alignment.scoreGapExtend = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-gap-extend", ensureNonNegative);
+  options.alignment.penaltyGapExtend = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-extend", ensureNonNegative);
 
-  options.alignment.scoreGapOpen = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-gap-open", ensureNegative);
-  options.alignment.scoreGapOpenInFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-gap-open-in-frame", ensureNegative);
-  options.alignment.scoreGapOpenOutOfFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-gap-open-out-of-frame", ensureNegative);
+  options.alignment.penaltyGapOpen = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-open", ensurePositive);
+  options.alignment.penaltyGapOpenInFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-open-in-frame", ensurePositive);
+  options.alignment.penaltyGapOpenOutOfFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-open-out-of-frame", ensurePositive);
 
-  // scoreGapOpenOutOfFrame < scoreGapOpenInFrame < scoreGapOpen
-  const auto isInFrameLess = options.alignment.scoreGapOpenInFrame < options.alignment.scoreGapOpen;
-  const auto isOutOfFrameEvenLess = options.alignment.scoreGapOpenOutOfFrame < options.alignment.scoreGapOpenInFrame;
-  if(!(isInFrameLess && isOutOfFrameEvenLess)) {
+  // penaltyGapOpenOutOfFrame > penaltyGapOpenInFrame > penaltyGapOpen
+  const auto isInFrameGreater = options.alignment.penaltyGapOpenInFrame > options.alignment.penaltyGapOpen;
+  const auto isOutOfFrameEvenGreater = options.alignment.penaltyGapOpenOutOfFrame > options.alignment.penaltyGapOpenInFrame;
+  if(!(isInFrameGreater && isOutOfFrameEvenGreater)) {
     throw std::runtime_error(
-      fmt::format("Error: should verify the condition `--score-gap-open-out-of-frame` < `--score-gap-open-in-frame` < `--score-gap-open` but got {:d} < {:d} < {:d}, which is false",
-        options.alignment.scoreGapOpenOutOfFrame, options.alignment.scoreGapOpenInFrame, options.alignment.scoreGapOpen)
+      fmt::format("Error: should verify the condition `--penalty-gap-open-out-of-frame` > `--penalty-gap-open-in-frame` > `--penalty-gap-open`, but got {:d} > {:d} > {:d}, which is false",
+        options.alignment.penaltyGapOpenOutOfFrame, options.alignment.penaltyGapOpenInFrame, options.alignment.penaltyGapOpen)
     );
   }
 
-  options.alignment.scoreMismatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-mismatch", ensureNegative);
+  options.alignment.penaltyMismatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-mismatch", ensurePositive);
   options.alignment.scoreMatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-match", ensurePositive);
   options.alignment.maxIndel = getParamRequiredDefaulted<int>(cxxOptsParsed, "max-indel", ensureNonNegative);
 
@@ -230,43 +230,43 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
     )
 
     (
-      "score-gap-extend",
-      "(optional, integer, non-negative) Score that penalizes the extension of a gap.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapExtend)),
-      "SCORE_GAP_EXTEND"
+      "penalty-gap-extend",
+      "(optional, integer, non-negative) Penalty for extending of a gap.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapExtend)),
+      "PENALTY_GAP_EXTEND"
     )
 
     (
-      "score-gap-open",
-      "(optional, integer, negative) Score that penalizes opening of a gap. A higher penalty results in fewer gaps and more mismatches. Should be greater than `--score-gap-open-in-frame`.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpen)),
-      "SCORE_GAP_OPEN"
+      "penalty-gap-open",
+      "(optional, integer, positive) Penalty for opening of a gap. A higher penalty results in fewer gaps and more mismatches. Should be less than `--penalty-gap-open-in-frame`.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapOpen)),
+      "PENALTY_GAP_OPEN"
     )
 
     (
-      "score-gap-open-in-frame",
-      "(optional, integer, negative) As `--score-gap-open`, but for opening gaps at the beginning of a codon. Should be a negative integer, less than `--score-gap-open` and greater than `--score-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenInFrame)),
-      "SCORE_GAP_OPEN_IN_FRAME"
+      "penalty-gap-open-in-frame",
+      "(optional, integer, positive) As `--penalty-gap-open`, but for opening gaps at the beginning of a codon. Should be a greater than `--penalty-gap-open` and less than `--penalty-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapOpenInFrame)),
+      "PENALTY_GAP_OPEN_IN_FRAME"
     )
 
     (
-      "score-gap-open-out-of-frame",
-      "(optional, integer, negative) As `--score-gap-open`, but for opening gaps in the body of a codon. Should be less than `--score-gap-open-in-frame` to favor gaps that align with codons.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreGapOpenOutOfFrame)),
-      "SCORE_GAP_OPEN_OUT_OF_FRAME"
+      "penalty-gap-open-out-of-frame",
+      "(optional, integer, positive) As `--penalty-gap-open`, but for opening gaps in the body of a codon. Should be greater than `--penalty-gap-open-in-frame` to favor gaps that align with codons.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapOpenOutOfFrame)),
+      "PENALTY_GAP_OPEN_OUT_OF_FRAME"
     )
 
     (
-      "score-mismatch",
-      "(optional, integer, negative) Score for aligned nucleotides or aminoacids that differ in state during alignment.Note that this is redundantly parameterized with `--score-match`.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreMismatch)),
-      "SCORE_MISMATCH"
+      "penalty-mismatch",
+      "(optional, integer, positive) Penalty for aligned nucleotides or aminoacids that differ in state during alignment. Note that this is redundantly parameterized with `--score-match`.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyMismatch)),
+      "PENALTY_MISMATCH"
     )
 
     (
       "score-match",
-      "(optional, integer, positive) Score for aligned nucleotides or aminoacids with matching state.",
+      "(optional, integer, positive) Score for encouraging aligned nucleotides or aminoacids with matching state.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreMatch)),
       "SCORE_MATCH"
     )

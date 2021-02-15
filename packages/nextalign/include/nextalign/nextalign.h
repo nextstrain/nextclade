@@ -106,11 +106,11 @@ struct NextalignSeedOptions {
 
 struct NextalignAlignmentOptions {
   int minimalLength;
-  int scoreGapExtend;
-  int scoreGapOpen;
-  int scoreGapOpenInFrame;
-  int scoreGapOpenOutOfFrame;
-  int scoreMismatch;
+  int penaltyGapExtend;
+  int penaltyGapOpen;
+  int penaltyGapOpenInFrame;
+  int penaltyGapOpenOutOfFrame;
+  int penaltyMismatch;
   int scoreMatch;
   int maxIndel;
 };
