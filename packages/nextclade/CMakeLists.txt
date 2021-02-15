@@ -6,16 +6,14 @@ include(CFlags)
 include(Quiet)
 include(Sanitizers)
 
-project(nextclade VERSION 0.1.0
-  DESCRIPTION "C++ library for viral genome analysis"
-  )
+project(nextclade DESCRIPTION "C++ library for viral genome analysis")
+file(STRINGS "VERSION" PROJECT_VERSION)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
-find_package(boost_base 1.68.0 REQUIRED)
+find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(type_safe 0.2.1 REQUIRED)
@@ -98,9 +96,6 @@ target_compile_definitions(${PROJECT_NAME}
 
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
-  -DPROJECT_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
-  -DPROJECT_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
-  -DPROJECT_VERSION_PATCH="${PROJECT_VERSION_PATCH}"
 
   # Workaround for GCC 9 error in type_safe.
   # See: https://github.com/foonathan/debug_assert/issues/17
@@ -131,7 +126,7 @@ target_link_libraries(${PROJECT_NAME}
 
   PRIVATE
   Microsoft.GSL::GSL
-  boost_base::boost_base
+  Boost::headers
   fast-cpp-csv-parser::fast-cpp-csv-parser
   fmt::fmt
   type_safe::type_safe

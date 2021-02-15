@@ -134,7 +134,7 @@ fi
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
-CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
+CLI_DIR="${BUILD_DIR}/packages/nextalign_cli"
 CLI_EXE="nextalign-${HOST_OS}-${HOST_ARCH}"
 
 CLI="${CLI_DIR}/${CLI_EXE}"
@@ -220,7 +220,6 @@ function print() {
 }
 
 echo "-------------------------------------------------------------------------"
-echo "PROJECT_NAME   = ${PROJECT_NAME:=}"
 echo ""
 echo "BUILD_OS       = ${BUILD_OS:=}"
 echo "BUILD_ARCH     = ${BUILD_ARCH:=}"

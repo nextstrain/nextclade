@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0069 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
-# include(CFlags)
+include(CFlags)
 include(Quiet)
 include(Sanitizers)
 
@@ -38,7 +38,6 @@ add_library(${PROJECT_NAME} STATIC
   src/match/matchNuc.cpp
   src/match/matchNuc.h
   src/nextalign.cpp
-  src/nextalign_private.h
   src/options/options.cpp
   src/strip/stripInsertions.h
   src/translate/decode.cpp

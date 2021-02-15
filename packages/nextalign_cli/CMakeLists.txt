@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0069 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
-# include(CFlags)
+include(CFlags)
 include(Quiet)
 include(Sanitizers)
 
@@ -65,8 +65,10 @@ target_include_directories(${PROJECT_NAME} SYSTEM
   )
 
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE
+  PUBLIC
   nextalign
+
+  PRIVATE
   Boost::headers
   TBB::tbb
   cxxopts::cxxopts
