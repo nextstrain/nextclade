@@ -82,6 +82,13 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   ")
 endif ()
 
+if (APPLE)
+  set(C_CXX_FLAGS "${C_CXX_FLAGS} \
+  -Wno-c++2a-designator \
+  -Wno-unknown-warning-option \
+  ")
+endif ()
+
 
 ####################### GCC and CLANG ##########################################
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
