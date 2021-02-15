@@ -44,20 +44,16 @@ PeptidesInternal translateGenes(         //
 
   const auto coordMap = mapCoordinates(ref);
 
-  // Each position in the raw ref sequence should have a corresponding mapped position in aligned ref sequence
-  invariant_equal(coordMap.size(), ref.size());
-
-
   std::vector<PeptideInternal> queryPeptides;
-  queryPeptides.reserve(options.genes.size());
+  queryPeptides.reserve(geneMap.size());
 
   std::vector<PeptideInternal> refPeptides;
-  refPeptides.reserve(options.genes.size());
+  refPeptides.reserve(geneMap.size());
 
   std::vector<std::string> warnings;
 
   // For each gene in the requested subset
-  for (const auto& geneName : options.genes) {
+  for (const auto& [geneName, _] : geneMap) {
     try {
 
       const auto& found = geneMap.find(geneName);
@@ -74,7 +70,8 @@ PeptidesInternal translateGenes(         //
       const auto& queryGene = extractGeneQuery(query, gene, coordMap);
       const auto queryPeptide = translate(queryGene);
 
-      const auto geneAlignment = alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, 10);
+      const auto geneAlignment =
+        alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
       const auto stripped = stripInsertions(geneAlignment.ref, geneAlignment.query);
 
 

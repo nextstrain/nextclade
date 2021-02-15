@@ -96,10 +96,29 @@ struct AlgorithmInput {
   std::string seq;
 };
 
+
+struct NextalignSeedOptions {
+  int seedLength;
+  int minSeeds;
+  int seedSpacing;
+  int mismatchesAllowed;
+};
+
+struct NextalignAlignmentOptions {
+  int minimalLength;
+  int penaltyGapExtend;
+  int penaltyGapOpen;
+  int penaltyGapOpenInFrame;
+  int penaltyGapOpenOutOfFrame;
+  int penaltyMismatch;
+  int scoreMatch;
+  int maxIndel;
+};
+
 struct NextalignOptions {
-  int gapOpenInFrame = -5;
-  int gapOpenOutOfFrame = -6;
-  std::set<std::string> genes;
+  NextalignAlignmentOptions alignment;
+  NextalignSeedOptions seedNuc;
+  NextalignSeedOptions seedAa;
 };
 
 struct Gene {
@@ -150,6 +169,8 @@ struct AlgorithmOutput {
 
 NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref, const GeneMap& geneMap,
   const NextalignOptions& options);
+
+NextalignOptions getDefaultOptions();
 
 /**
  * Parses genemap in GFF format from a file or string stream

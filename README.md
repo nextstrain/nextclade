@@ -2,15 +2,19 @@
 Nextclade
 </h1>
 
-> <h3 align="center">
-> 🧬 Viral genome clade assignment, mutation calling, and sequence quality checks
-> </h3>
-> <p align="center">
-> by Nextstrain team
-> </p>
-> <p align="center">
-> 🌎 clades.nextstrain.org
-> </p>
+<h4 id="nextclade" align="center">
+Viral genome clade assignment, mutation calling, and sequence quality checks
+</h4>
+
+<p align="center">
+by Nextstrain team
+</p>
+
+<p align="center">
+  <a target="_blank" rel="noopener noreferrer" href="https://clades.nextstrain.org">
+    🌎 clades.nextstrain.org
+  </a>
+</p>
 
 <p align="center">
   <a href="https://raw.githubusercontent.com/nextstrain/nextclade/master/docs/assets/ui.gif" target="_blank" rel="noopener noreferrer"  alt="Link to animated screenshot of the application, showcasing the user interface on main page">
@@ -66,21 +70,6 @@ Nextclade
 </p>
 
 <p align="center">
-
-  <a href="https://deepscan.io/dashboard#view=project&tid=8207&pid=12611&bid=195750">
-    <img src="https://deepscan.io/api/teams/8207/projects/12611/branches/195750/badge/grade.svg" alt="DeepScan grade">
-  </a>
-
-  <a href="https://codeclimate.com/github/nextstrain/nextclade">
-    <img src="https://img.shields.io/codeclimate/maintainability/nextstrain/nextclade?label=codeclimate" />
-  </a>
-
-  <a href="https://codeclimate.com/github/nextstrain/nextclade">
-    <img src="https://img.shields.io/codeclimate/tech-debt/nextstrain/nextclade" />
-  </a>
-</p>
-
-<p align="center">
   <a href="https://github.com/nextstrain/nextclade/commits">
     <img
       src="https://img.shields.io/github/last-commit/nextstrain/nextclade?logo=github"
@@ -101,6 +90,10 @@ Nextclade
       alt="GitHub contributors"
     />
   </a>
+
+  <a href="https://deepscan.io/dashboard#view=project&tid=8207&pid=12611&bid=195750">
+    <img src="https://deepscan.io/api/teams/8207/projects/12611/branches/195750/badge/grade.svg" alt="DeepScan grade">
+  </a>
 </p>
 
 ---
@@ -116,9 +109,23 @@ Nextclade
 
 <p align="center">
   <a href="https://github.com/nextstrain/nextclade/issues/new">
-    <img height="50px"
+    <img height="30px"
       src="https://img.shields.io/badge/%F0%9F%93%A2%20Report%20Issue-%2317992a.svg"
-      alt="Download button"
+      alt="Report issue button"
+    />
+  </a>
+
+  <a href="https://github.com/nextstrain/nextclade/issues/new">
+    <img height="30px"
+      src="https://img.shields.io/badge/%E2%9C%A8%20Request%20feature-%2317992a.svg"
+      alt="Request feature button"
+    />
+  </a>
+
+  <a href="https://discussion.nextstrain.org">
+    <img height="30px"
+      src="https://img.shields.io/badge/%F0%9F%92%AC%20Join%20discussion-%23d99852.svg"
+      alt="Discuss button"
     />
   </a>
 </p>
@@ -142,7 +149,9 @@ This repository consists of a set of packages presented in the table below. Refe
 
 
 
-## ✨ Team
+<h2 id="team" align="center">
+ ✨ Team
+</h2>
 
 <p>
 Nextclade is a part of 
