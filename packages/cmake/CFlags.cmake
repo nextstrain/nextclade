@@ -1,7 +1,7 @@
 # Adds some useful C compiler flags
 
 
-####################### GCC ################################
+####################### GCC ###################################################
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} \
   -fno-inline-small-functions \
@@ -13,26 +13,31 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 
   set(C_CXX_FLAGS "${C_CXX_FLAGS} \
   -Walloc-zero \
-  -Wdangling-else \
+  -Wattribute-alias \
+  -Wduplicated-branches \
   -Wduplicated-cond \
+  -Wformat-overflow \
+  -Wformat-truncation \
   -Wif-not-aligned \
-  -Wmisleading-indentation \
+  -Wlogical-op \
   -Wmissing-attributes \
   -Wmultistatement-macros \
-  -Wnonnull \
-  -Wnull-dereference \
   -Wrestrict \
-  -Wshift-negative-value \
   -Wshift-overflow=2 \
+  -Wstringop-truncation \
   -Wvector-operation-performance \
   -Wvla-larger-than=1 \
   ")
 
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+  -Wabsolute-value \
+  -Wjump-misses-init \
+  ")
+
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
+  -Wuseless-cast \
   -Waligned-new \
-  -Wold-style-cast \
   -Wsized-deallocation \
-  -Wvector-operation-performance \
   ")
 
 endif ()
@@ -42,19 +47,30 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(C_CXX_FLAGS "${C_CXX_FLAGS} \
   -Reverything \
   -Wabsolute-value \
+  -Wbitwise-conditional-parentheses \
+  -Wbitwise-op-parentheses \
+  -Wc99-designator \
   -Wcomma \
+  -Wextra-semi \
+  -Wfinal-dtor-non-final-class \
+  -Wlogical-op-parentheses \
   -Wloop-analysis \
   -Wmove \
-  -Wnull-dereference \
+  -Wno-c++20-designator \
   -Wnull-pointer-arithmetic \
   -Wpragma-pack \
   -Wpragma-pack-suspicious-include \
   -Wrange-loop-analysis \
-  -Wshift-negative-value \
-  -Wshift-overflow \
-  -Wtautological-compare \
+  -Wrange-loop-bind-reference \
+  -Wreorder-init-list \
+  -Wself-assign \
+  -Wself-assign-field \
+  -Wsizeof-array-div \
+  -Wtautological-bitwise-compare \
+  -Wtautological-overlap-compare \
   -Wtautological-undefined-compare \
   -Wunused-lambda-capture \
+  -Wxor-used-as-pow \
   -fdouble-square-bracket-attributes \
   -fstrict-vtable-pointers \
   ")
@@ -75,14 +91,15 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   -Wextra \
   -fdiagnostics-color \
   -fno-strict-aliasing \
-  -fsized-deallocation \
   -ftree-vectorize \
   -funroll-loops \
   -pipe \
   -Warray-bounds \
-  -Wcast-qual \
+   -Wcast-qual \
   -Wconversion \
+  -Wdangling-else \
   -Wdeprecated-declarations \
+  -Wdouble-promotion \
   -Wempty-body \
   -Wfloat-conversion \
   -Wfloat-equal \
@@ -94,23 +111,20 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   -Wformat=2 \
   -Wignored-qualifiers \
   -Winit-self \
-  -Wno-cast-align \
-  -Wno-conversion \
-  -Wno-float-conversion \
-  -Wno-format-nonliteral \
-  -Wno-shadow \
-  -Wno-undef \
-  -Wno-unknown-pragmas \
-  -Wno-unused-parameter \
-  -Wno-unused-variable \
-  -Wno-zero-as-null-pointer-constant \
+  -Wmisleading-indentation \
+  -Wnonnull \
+  -Wnull-dereference \
   -Wpointer-arith \
   -Wredundant-decls \
   -Wshadow \
+  -Wshift-negative-value \
+  -Wshift-overflow \
   -Wsign-compare \
+  -Wsizeof-pointer-div \
   -Wstrict-overflow=5 \
   -Wswitch-default \
   -Wswitch-enum \
+  -Wtautological-compare \
   -Wtype-limits \
   -Wundef \
   -Wuninitialized \
@@ -129,7 +143,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   ")
 
   set(CXX_FLAGS "${CXX_FLAGS} \
+  -Wextra-semi \
+  -Wold-style-cast \
   -Woverloaded-virtual \
+  -fsized-deallocation \
   ")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_CXX_FLAGS} ${C_FLAGS}")
@@ -139,7 +156,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} \
   -DDEBUG=1 \
   -g \
-  -O0 \
+  -Og \
   -fstack-protector-all \
   -fno-inline \
   ")
@@ -147,7 +164,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
   -DDEBUG=1 \
   -g \
-  -O0 \
+  -Og \
   -fstack-protector-all \
   -fno-inline \
   ")
