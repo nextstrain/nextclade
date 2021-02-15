@@ -1,9 +1,8 @@
 #pragma once
 
-#pragma GCC diagnostic push
-#pragma ide diagnostic ignored "OCUnusedMacroInspection"
-#pragma GCC diagnostic ignored "-Wsign-compare"
-
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-convert-member-functions-to-static"
+#pragma ide diagnostic ignored "cppcoreguidelines-macro-usage"
 
 #include "config.h"
 
@@ -199,7 +198,7 @@ inline std::string debug_assert_print(
 inline std::string debug_assert_print(
   float left, float right, const char* left_str, const char* right_str, const char* op_str) {
   std::stringstream ss;
-  ss << std::fixed << std::setw(10) << std::setprecision(10);
+  ss << std::fixed << std::setw(10) << std::setprecision(10);//NOLINT:cppcoreguidelines-avoid-magic-numbers
   debug_assert_print_impl(left, right, left_str, right_str, op_str, ss);
   ss << "(The difference is " << ulps_distance(left, right) << " ULPs)\n";
   return ss.str();
@@ -208,7 +207,7 @@ inline std::string debug_assert_print(
 inline std::string debug_assert_print(
   double left, double right, const char* left_str, const char* right_str, const char* op_str) {
   std::stringstream ss;
-  ss << std::fixed << std::setw(20) << std::setprecision(20);
+  ss << std::fixed << std::setw(20) << std::setprecision(20);//NOLINT:cppcoreguidelines-avoid-magic-numbers
   debug_assert_print_impl(left, right, left_str, right_str, op_str, ss);
   ss << "(The difference is " << ulps_distance(left, right) << " ULPs)\n";
   return ss.str();
@@ -243,7 +242,7 @@ inline std::string debug_assert_print(
 #define debug_assert_op(what_happened, left, right, op)                            \
   do {                                                                             \
     if (!(op(left, right))) {                                                      \
-      const auto msg = debug_assert_print(left, right, #left, #right, op.c_str()); \
+      const auto msg = debug_assert_print(left, right, #left, #right, (op).c_str()); \
       print_error(__FILE__, __LINE__, NA_FUNCTION, what_happened, (msg.c_str()));  \
       debug_break();                                                               \
     }                                                                              \
@@ -328,4 +327,4 @@ inline std::string debug_assert_print(
 
 #endif
 
-#pragma GCC diagnostic pop
+#pragma clang diagnostic pop

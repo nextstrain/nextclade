@@ -1,6 +1,5 @@
 ---
-Checks: "*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-llvmlibc*,-fuchsia*,-readability-magic-numbers,-hicpp*,-llvm-header-guard,-google-readability-todo,-OCUnusedMacroInspection,-altera-struct-pack-align,-readability-named-parameter,-readability-function-cognitive-complexity,-readability-isolate-declaration,-readability-uppercase-literal-suffix"
+Checks: "*,-modernize-use-trailing-return-type,-modernize-avoid-c-arrays,-llvmlibc*,-fuchsia*,-readability-magic-numbers,-hicpp*,-llvm-header-guard,-google-readability-todo,-OCUnusedMacroInspection,-altera-struct-pack-align,-readability-named-parameter,-readability-function-cognitive-complexity,-readability-isolate-declaration,-readability-uppercase-literal-suffix,-readability-convert-member-functions-to-static,-modernize-use-nodiscard"
 HeaderFilterRegex: '^(?!emscripten\/|system\/|3rdparty\/).*$'
 AnalyzeTemporaryDtors: true
-UseColor: true
 ...

@@ -1,482 +1,241 @@
 # Adds some useful C compiler flags
 
-set(COOL_C_AND_CXX_FLAGS " \
--D_XOPEN_SOURCE=700 \
--Wall \
--Wextra \
--fno-strict-aliasing \
--ftrapv \
--fvisibility=hidden \
--pipe \
--Warray-bounds \
--Wconversion \
--Wdeprecated-declarations \
--Wempty-body \
--Wfloat-conversion \
--Wfloat-equal \
--Wformat-extra-args \
--Wformat-nonliteral \
--Wformat-security \
--Wformat-y2k \
--Wformat-zero-length \
--Wformat=2 \
--Wignored-qualifiers \
--Winit-self \
--Wno-cast-align \
--Wno-conversion \
--Wno-float-conversion \
--Wno-format-nonliteral \
--Wno-shadow \
--Wno-undef \
--Wno-unknown-pragmas \
--Wno-unused-parameter \
--Wno-unused-variable \
--Wno-zero-as-null-pointer-constant \
--Wpointer-arith \
--Wredundant-decls \
--Wshadow \
--Wsign-compare \
--Wstrict-overflow=5 \
--Wswitch-default \
--Wswitch-enum \
--Wtype-limits \
--Wundef \
--Wuninitialized \
--Wunreachable-code \
--Wwrite-strings \
-")
 
-set(COOL_C_FLAGS " \
-${COOL_C_AND_CXX_FLAGS} \
--Wvla \
--Waggregate-return \
--Wcast-qual \
--Wstrict-prototypes \
--Wtype-limits \
--Werror=incompatible-pointer-types \
--Werror-implicit-function-declaration \
--Werror=int-conversion \
-")
+####################### GCC ###################################################
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} \
+  -fno-inline-small-functions \
+  ")
 
-set(COOL_C_FLAGS_DEBUG " \
-${COOL_C_FLAGS} \
--DDEBUG=1 \
--g \
--O0 \
--fstack-protector-all \
--fno-inline \
-")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
+  -fno-inline-small-functions \
+  ")
 
-set(COOL_C_FLAGS_DEBUG_FAST " \
-${COOL_C_FLAGS} \
--DDEBUG=1 \
--g \
--O0 \
--fstack-protector-all \
--fno-inline \
-")
+  set(C_CXX_FLAGS "${C_CXX_FLAGS} \
+  -Walloc-zero \
+  -Wattribute-alias \
+  -Wduplicated-branches \
+  -Wduplicated-cond \
+  -Wformat-overflow \
+  -Wformat-truncation \
+  -Wif-not-aligned \
+  -Wlogical-op \
+  -Wmissing-attributes \
+  -Wmultistatement-macros \
+  -Wrestrict \
+  -Wshift-overflow=2 \
+  -Wstringop-truncation \
+  -Wvector-operation-performance \
+  -Wvla-larger-than=1 \
+  ")
 
-set(COOL_C_FLAGS_RELEASE " \
-${COOL_C_FLAGS} \
--DNDEBUG=1 \
--fomit-frame-pointer \
-")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+  -Wabsolute-value \
+  -Wjump-misses-init \
+  ")
 
-set(CMAKE_C_FLAGS_SANITIZE "\
-${COOL_C_FLAGS} \
--g \
--O1 \
--DNDEBUG=1 \
--fno-omit-frame-pointer \
--fno-optimize-sibling-calls \
-")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
+  -Wuseless-cast \
+  -Waligned-new \
+  -Wsized-deallocation \
+  ")
 
+endif ()
 
-set(COOL_C_FLAGS_DEBUG_FAST_GCC " \
--fno-inline-small-functions \
-")
+####################### Clang ##################################################
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(C_CXX_FLAGS "${C_CXX_FLAGS} \
+  -Reverything \
+  -Wabsolute-value \
+  -Wbitwise-conditional-parentheses \
+  -Wbitwise-op-parentheses \
+  -Wc99-designator \
+  -Wcomma \
+  -Wextra-semi \
+  -Wfinal-dtor-non-final-class \
+  -Wlogical-op-parentheses \
+  -Wloop-analysis \
+  -Wmove \
+  -Wno-c++20-designator \
+  -Wnull-pointer-arithmetic \
+  -Wpragma-pack \
+  -Wpragma-pack-suspicious-include \
+  -Wrange-loop-analysis \
+  -Wrange-loop-bind-reference \
+  -Wreorder-init-list \
+  -Wself-assign \
+  -Wself-assign-field \
+  -Wsizeof-array-div \
+  -Wtautological-bitwise-compare \
+  -Wtautological-overlap-compare \
+  -Wtautological-undefined-compare \
+  -Wunused-lambda-capture \
+  -Wxor-used-as-pow \
+  -fdouble-square-bracket-attributes \
+  -fstrict-vtable-pointers \
+  ")
 
-set(COOL_C_FLAGS_GCC " \
-${COOL_C_FLAGS} \
--fdiagnostics-color \
-")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+  ")
 
-set(COOL_C_FLAGS_GCC5 " \
-${COOL_C_FLAGS_GCC} \
--Wcast-qual \
--Wvector-operation-performance \
-")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
+  ")
+endif ()
 
-set(COOL_C_FLAGS_GCC6 " \
-${COOL_C_FLAGS_GCC5} \
--Wduplicated-cond \
--Wmisleading-indentation \
--Wnull-dereference \
--Wshift-negative-value \
--Wshift-overflow=2 \
-")
-
-set(COOL_C_FLAGS_GCC7 " \
-${COOL_C_FLAGS_GCC6} \
--Wrestrict \
--Wvla-larger-than=1 \
--Wdangling-else \
--Walloc-zero \
--Wnonnull \
-")
-
-set(COOL_C_FLAGS_GCC8 " \
-${COOL_C_FLAGS_GCC7} \
--Wmultistatement-macros \
--Wif-not-aligned \
--Wmissing-attributes \
-")
-
-set(COOL_EXE_LINKER_FLAGS_GCC "")
-set(COOL_EXE_LINKER_FLAGS_GCC_DEBUG "")
-set(COOL_EXE_LINKER_FLAGS_GCC_RELEASE "")
-set(COOL_SHARED_LINKER_FLAGS_GCC "")
-set(COOL_SHARED_LINKER_FLAGS_GCC_DEBUG "")
-set(COOL_SHARED_LINKER_FLAGS_GCC_RELEASE "")
-
-
-set(COOL_C_FLAGS_CLANG " \
--Reverything \
--Wabsolute-value \
--Wcomma \
--Wloop-analysis \
--Wmove \
--Wnull-dereference \
--Wrange-loop-analysis \
--Wshift-negative-value \
--Wshift-overflow \
--Wtautological-undefined-compare \
-")
-
-set(COOL_C_FLAGS_CLANG4 " \
-${COOL_C_FLAGS_CLANG} \
--fstrict-vtable-pointers \
-")
-
-set(COOL_C_FLAGS_CLANG5 " \
-${COOL_C_FLAGS_CLANG4} \
--Wcast-qual \
--Wunused-lambda-capture \
-")
-
-set(COOL_C_FLAGS_CLANG6 " \
-${COOL_C_FLAGS_CLANG5} \
--Wpragma-pack \
--Wpragma-pack-suspicious-include \
--Wtautological-compare \
--Wnull-pointer-arithmetic \
--fdouble-square-bracket-attributes \
-")
-
-set(COOL_EXE_LINKER_FLAGS_CLANG "")
-set(COOL_EXE_LINKER_FLAGS_CLANG_DEBUG "")
-set(COOL_EXE_LINKER_FLAGS_CLANG_RELEASE "")
-set(COOL_SHARED_LINKER_FLAGS_CLANG "")
-set(COOL_SHARED_LINKER_FLAGS_CLANG_DEBUG "")
-set(COOL_SHARED_LINKER_FLAGS_CLANG_RELEASE "")
-
-
-set(COOL_C_FLAGS_MSVC " \
-/D_SCL_SECURE_NO_WARNINGS \
-/D_CRT_SECURE_NO_WARNINGS \
-/DNOMINMAX \
-/DWIN32_LEAN_AND_MEAN \
-")
-
-set(COOL_C_FLAGS_MSVC_DEBUG "")
-
-set(COOL_C_FLAGS_MSVC_RELEASE "")
-
-set(COOL_EXE_LINKER_FLAGS_MSVC "/ignore:4099")
-
-set(COOL_EXE_LINKER_FLAGS_MSVC_DEBUG "")
-
-set(COOL_EXE_LINKER_FLAGS_MSVC_RELEASE "")
-
-set(COOL_SHARED_LINKER_FLAGS_MSVC "/ignore:4099")
-
-set(COOL_SHARED_LINKER_FLAGS_MSVC_DEBUG "")
-
-set(COOL_SHARED_LINKER_FLAGS_MSVC_RELEASE "")
-
-
-if (CMAKE_C_COMPILER_ID MATCHES "GNU")
-  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 8)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_GCC8}")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG_FAST} ${COOL_C_FLAGS_DEBUG_FAST_GCC}")
-  elseif (CMAKE_C_COMPILER_VERSION VERSION_GREATER 7)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_GCC7}")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG_FAST} ${COOL_C_FLAGS_DEBUG_FAST_GCC}")
-  elseif (CMAKE_C_COMPILER_VERSION VERSION_GREATER 6)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_GCC6}")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG_FAST} ${COOL_C_FLAGS_DEBUG_FAST_GCC}")
-  elseif (CMAKE_C_COMPILER_VERSION VERSION_GREATER 5)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_GCC5}")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG}")
-  else ()
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG}")
-  endif ()
-
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE} ${COOL_C_FLAGS_RELEASE}")
-  set(CMAKE_C_FLAGS_SANITIZE "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_SANITIZE} ${COOL_C_FLAGS_SANITIZE}")
-  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${COOL_SHARED_LINKER_FLAGS_GCC_RELEASE}")
-  set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${COOL_EXE_LINKER_FLAGS_GCC_RELEASE}")
-
-elseif (CMAKE_C_COMPILER_ID MATCHES "Clang")
-  if (CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 6)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_CLANG6}")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG_FAST}")
-  elseif (CMAKE_C_COMPILER_VERSION VERSION_GREATER 5)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_CLANG5}")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG_FAST}")
-  elseif (CMAKE_C_COMPILER_VERSION VERSION_GREATER 4)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_CLANG4}")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG_FAST}")
-  else ()
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} ${COOL_C_FLAGS_DEBUG}")
-  endif ()
-
-
-  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_RELEASE} ${COOL_C_FLAGS_RELEASE}")
-  set(CMAKE_C_FLAGS_SANITIZE "${CMAKE_C_FLAGS} ${CMAKE_C_FLAGS_SANITIZE} ${COOL_C_FLAGS_SANITIZE}")
-  set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${COOL_SHARED_LINKER_FLAGS_CLANG_RELEASE}")
-  set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} ${COOL_EXE_LINKER_FLAGS_CLANG_RELEASE}")
-
-elseif (CMAKE_C_COMPILER_ID MATCHES "Intel")
-
-elseif (CMAKE_C_COMPILER_ID MATCHES "MSVC")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${COOL_MSVC_C_FLAGS}")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${COOL_EXE_LINKER_FLAGS_MSVC}")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${COOL_SHARED_LINKER_FLAGS_MSVC}")
+if (APPLE)
+  set(C_CXX_FLAGS "${C_CXX_FLAGS} \
+  -Wno-c++2a-designator \
+  -Wno-unknown-warning-option \
+  ")
 endif ()
 
 
-set(COOL_CXX_FLAGS " \
-${COOL_C_AND_CXX_FLAGS} \
--Woverloaded-virtual \
--Wwrite-strings \
--fsized-deallocation \
-")
+####################### GCC and CLANG ##########################################
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(C_CXX_FLAGS " \
+  ${C_CXX_FLAGS} \
+  -Wall \
+  -Wextra \
+  -fdiagnostics-color \
+  -fno-strict-aliasing \
+  -ftree-vectorize \
+  -funroll-loops \
+  -pipe \
+  -Warray-bounds \
+  -Wcast-qual \
+  -Wconversion \
+  -Wdangling-else \
+  -Wdeprecated-declarations \
+  -Wdouble-promotion \
+  -Wempty-body \
+  -Wfloat-conversion \
+  -Wfloat-equal \
+  -Wformat-extra-args \
+  -Wformat-nonliteral \
+  -Wformat-security \
+  -Wformat-y2k \
+  -Wformat-zero-length \
+  -Wformat=2 \
+  -Wignored-qualifiers \
+  -Winit-self \
+  -Wmisleading-indentation \
+  -Wno-unknown-pragmas \
+  -Wnonnull \
+  -Wnull-dereference \
+  -Wpointer-arith \
+  -Wredundant-decls \
+  -Wshadow \
+  -Wshift-negative-value \
+  -Wshift-overflow \
+  -Wsign-compare \
+  -Wsizeof-pointer-div \
+  -Wstrict-overflow=5 \
+  -Wswitch-default \
+  -Wswitch-enum \
+  -Wtautological-compare \
+  -Wtype-limits \
+  -Wundef \
+  -Wuninitialized \
+  -Wunreachable-code \
+  -Wwrite-strings \
+  ")
 
-set(COOL_CXX_FLAGS_DEBUG " \
-${COOL_CXX_FLAGS} \
--DDEBUG=1 \
--g \
--O0 \
--fstack-protector-all \
--fno-inline \
-")
+  # TODO: remove these and fix the warnings!
+  set(C_CXX_FLAGS " \
+  ${C_CXX_FLAGS} \
+  -Wno-conversion \
+  -Wno-sign-compare \
+  -Wno-sign-conversion \
+  -Wno-strict-overflow \
+  -Wno-unused-parameter \
+  -Wno-useless-cast \
+  ")
 
-set(COOL_CXX_FLAGS_DEBUG_FAST " \
-${COOL_CXX_FLAGS} \
--DDEBUG=1 \
--g \
--O0 \
--fstack-protector-all \
--fno-inline \
-")
+  set(C_FLAGS " ${C_FLAGS} \
+  -Waggregate-return \
+  -Wcast-qual \
+  -Wimplicit-function-declaration \
+  -Wincompatible-pointer-types \
+  -Wint-conversion \
+  -Wstrict-prototypes \
+  -Wvla \
+  ")
 
-set(COOL_CXX_FLAGS_RELEASE " \
-${COOL_CXX_FLAGS} \
--DNDEBUG=1 \
--fomit-frame-pointer \
-")
+  set(CXX_FLAGS "${CXX_FLAGS} \
+  -Wextra-semi \
+  -Wold-style-cast \
+  -Woverloaded-virtual \
+  -fsized-deallocation \
+  ")
 
-set(CMAKE_CXX_FLAGS_SANITIZE "\
-${COOL_CXX_FLAGS} \
--g \
--O1 \
--DNDEBUG=1 \
--fno-omit-frame-pointer \
--fno-optimize-sibling-calls \
-")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_CXX_FLAGS} ${C_FLAGS}")
 
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${C_CXX_FLAGS} ${CXX_FLAGS}")
 
-set(COOL_CXX_FLAGS_DEBUG_FAST_GCC "\
--fno-inline-small-functions \
-")
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} \
+  -DDEBUG=1 \
+  -g \
+  -Og \
+  -fstack-protector-all \
+  -fno-inline \
+  ")
 
-set(COOL_CXX_FLAGS_GCC "\
--fdiagnostics-color \
--Wsized-deallocation \
-")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
+  -DDEBUG=1 \
+  -g \
+  -Og \
+  -fstack-protector-all \
+  -fno-inline \
+  ")
 
-set(COOL_CXX_FLAGS_GCC5 " \
-${COOL_CXX_FLAGS_GCC} \
--Wcast-qual \
--Wvector-operation-performance \
-")
+  set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} \
+  -DNDEBUG=1 \
+  -fomit-frame-pointer \
+  ")
 
-set(COOL_CXX_FLAGS_GCC6 " \
-${COOL_CXX_FLAGS_GCC5} \
--Wduplicated-cond \
--Wmisleading-indentation \
--Wnull-dereference \
--Wshift-negative-value \
--Wshift-overflow=2 \
-")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} \
+  -DNDEBUG=1 \
+  -fomit-frame-pointer \
+  ")
 
-set(COOL_CXX_FLAGS_GCC7 " \
-${COOL_CXX_FLAGS_GCC6} \
--Wrestrict \
--Wvla-larger-than=1 \
--Wdangling-else \
--Walloc-zero \
--Wnonnull \
--Waligned-new \
-")
+endif ()
 
-set(COOL_CXX_FLAGS_GCC8 " \
-${COOL_CXX_FLAGS_GCC7} \
--Wmultistatement-macros \
--Wif-not-aligned \
--Wmissing-attributes \
--Wold-style-cast \
-")
+####################### Visual C++ #############################################
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set(C_CXX_FLAGS "${C_CXX_FLAGS} \
+  /D_CRT_SECURE_NO_WARNINGS \
+  /D_SCL_SECURE_NO_WARNINGS \
+  /DNOMINMAX \
+  /DWIN32_LEAN_AND_MEAN \
+  /permissive- \
+  /W4 \
+  /w14242 \
+  /w14254 \
+  /w14263 \
+  /w14265 \
+  /w14287 \
+  /w14296 \
+  /w14311 \
+  /w14545 \
+  /w14546 \
+  /w14547 \
+  /w14549 \
+  /w14555 \
+  /w14619 \
+  /w14640 \
+  /w14826 \
+  /w14905 \
+  /w14906 \
+  /w14928 \
+  /we4289 \
+  ")
 
-set(COOL_EXE_LINKER_FLAGS_GCC "")
-set(COOL_EXE_LINKER_FLAGS_GCC_DEBUG "")
-set(COOL_EXE_LINKER_FLAGS_GCC_RELEASE "")
-set(COOL_SHARED_LINKER_FLAGS_GCC "")
-set(COOL_SHARED_LINKER_FLAGS_GCC_DEBUG "")
-set(COOL_SHARED_LINKER_FLAGS_GCC_RELEASE "")
+  set(LINKER_FLAGS "${LINKER_FLAGS} \
+  /ignore:4099
+  ")
 
-
-set(COOL_CXX_FLAGS_CLANG " \
-${COOL_CXX_FLAGS} \
--Reverything \
--Wabsolute-value \
--Wcomma \
--Wloop-analysis \
--Wmove \
--Wnull-dereference \
--Wrange-loop-analysis \
--Wshift-negative-value \
--Wshift-overflow \
--Wtautological-undefined-compare \
-")
-
-set(COOL_CXX_FLAGS_CLANG4 " \
-${COOL_CXX_FLAGS_CLANG} \
--fstrict-vtable-pointers \
-")
-
-set(COOL_CXX_FLAGS_CLANG5 " \
-${COOL_CXX_FLAGS_CLANG4} \
--Wcast-qual \
--Wunused-lambda-capture \
-")
-
-set(COOL_CXX_FLAGS_CLANG6 " \
-${COOL_CXX_FLAGS_CLANG5} \
--Wpragma-pack \
--Wpragma-pack-suspicious-include \
--Wtautological-compare \
--Wnull-pointer-arithmetic \
--fdouble-square-bracket-attributes \
-")
-
-set(COOL_EXE_LINKER_FLAGS_CLANG "")
-set(COOL_EXE_LINKER_FLAGS_CLANG_DEBUG "")
-set(COOL_EXE_LINKER_FLAGS_CLANG_RELEASE "")
-set(COOL_SHARED_LINKER_FLAGS_CLANG "")
-set(COOL_SHARED_LINKER_FLAGS_CLANG_DEBUG "")
-set(COOL_SHARED_LINKER_FLAGS_CLANG_RELEASE "")
-
-
-set(COOL_CXX_FLAGS_MSVC " \
-/D_CRT_SECURE_NO_WARNINGS \
-/D_SCL_SECURE_NO_WARNINGS \
-/DNOMINMAX \
-/DWIN32_LEAN_AND_MEAN \
-/permissive- \
-/W4 \
-/w14242 \
-/w14254 \
-/w14263 \
-/w14265 \
-/w14287 \
-/w14296 \
-/w14311 \
-/w14545 \
-/w14546 \
-/w14547 \
-/w14549 \
-/w14555 \
-/w14619 \
-/w14640 \
-/w14826 \
-/w14905 \
-/w14906 \
-/w14928 \
-/we4289 \
-")
-
-set(COOL_CXX_FLAGS_MSVC_DEBUG "")
-
-set(COOL_CXX_FLAGS_MSVC_RELEASE "")
-
-set(COOL_EXE_LINKER_FLAGS_MSVC "/ignore:4099")
-
-set(COOL_EXE_LINKER_FLAGS_MSVC_DEBUG "")
-
-set(COOL_EXE_LINKER_FLAGS_MSVC_RELEASE "")
-
-set(COOL_SHARED_LINKER_FLAGS_MSVC "/ignore:4099")
-
-set(COOL_SHARED_LINKER_FLAGS_MSVC_DEBUG "")
-
-set(COOL_SHARED_LINKER_FLAGS_MSVC_RELEASE "")
-
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_GCC8}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COOL_CXX_FLAGS} ${COOL_CXX_FLAGS_DEBUG_FAST_GCC} ${COOL_CXX_FLAGS_DEBUG_FAST}")
-  elseif (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_GCC7}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COOL_CXX_FLAGS} ${COOL_CXX_FLAGS_DEBUG_FAST_GCC} ${COOL_CXX_FLAGS_DEBUG_FAST}")
-  elseif (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_GCC6}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COOL_CXX_FLAGS} ${COOL_CXX_FLAGS_DEBUG_FAST_GCC} ${COOL_CXX_FLAGS_DEBUG_FAST}")
-  elseif (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_GCC5}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COOL_CXX_FLAGS_DEBUG}")
-  else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_GCC}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COOL_CXX_FLAGS_DEBUG}")
-  endif ()
-
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${COOL_CXX_FLAGS_RELEASE}")
-  set(CMAKE_CXX_FLAGS_SANITIZE "${CMAKE_CXX_FLAGS_SANITIZE} ${COOL_CXX_FLAGS_SANITIZE}")
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_CLANG6}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${COOL_CXX_FLAGS_DEBUG_FAST}")
-  elseif (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 5)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_CLANG5}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${COOL_CXX_FLAGS_DEBUG_FAST}")
-  elseif (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_CLANG4}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${COOL_CXX_FLAGS_DEBUG_FAST}")
-  else ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_CLANG}")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${COOL_CXX_FLAGS_DEBUG}")
-  endif ()
-
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${COOL_CXX_FLAGS_RELEASE}")
-  set(CMAKE_CXX_FLAGS_SANITIZE "${CMAKE_CXX_FLAGS_SANITIZE} ${COOL_CXX_FLAGS_SANITIZE}")
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-
-elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COOL_MSVC_CXX_FLAGS}")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${COOL_EXE_LINKER_FLAGS_MSVC}")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${COOL_SHARED_LINKER_FLAGS_MSVC}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${C_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${C_CXX_FLAGS}")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKER_FLAGS}")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${LINKER_FLAGS}")
 endif ()
