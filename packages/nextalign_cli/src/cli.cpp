@@ -7,8 +7,10 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <cxxopts.hpp>
-#include <filesystem>
 #include <fstream>
+
+#include "filesystem.h"
+#include "description.h"
 
 
 struct CliParams {
@@ -24,9 +26,9 @@ struct CliParams {
 };
 
 struct Paths {
-  std::filesystem::path outputFasta;
-  std::filesystem::path outputInsertions;
-  std::map<std::string, std::filesystem::path> outputGenes;
+  fs::path outputFasta;
+  fs::path outputInsertions;
+  std::map<std::string, fs::path> outputGenes;
 };
 
 template<typename Result>
@@ -42,8 +44,7 @@ Result getParamRequired(
 }
 
 template<typename Result>
-std::optional<Result> getParamOptional(
-  const cxxopts::Options &cxxOpts, const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
+std::optional<Result> getParamOptional(const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
   if (!cxxOptsParsed.count(name)) {
     return {};
   }
@@ -51,18 +52,95 @@ std::optional<Result> getParamOptional(
   return cxxOptsParsed[name].as<Result>();
 }
 
+template<typename ValueType>
+ValueType noopValidator([[maybe_unused]] const std::string &name, ValueType value) {
+  return value;
+}
+
+int ensureNonNegative(const std::string &name, int value) {
+  if (value >= 0) {
+    return value;
+  }
+  throw std::runtime_error(fmt::format("Error: argument `--{:s}` should be non-negative, but got {:d}", name, value));
+}
+
+int ensurePositive(const std::string &name, int value) {
+  if (value > 0) {
+    return value;
+  }
+  throw std::runtime_error(fmt::format("Error: argument `--{:s}` should be positive, but got {:d}", name, value));
+}
+
+int ensureNegative(const std::string &name, int value) {
+  if (value >= 0) {
+    throw std::runtime_error(fmt::format("Error: argument `--{:s}` should be negative, but got {:d}", name, value));
+  }
+  return value;
+}
+
 template<typename Result>
-auto getParamRequiredDefaulted([[maybe_unused]] const cxxopts::Options &cxxOpts,
-  const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) -> Result {
-  return cxxOptsParsed[name].as<Result>();
+Result getParamRequiredDefaulted(const cxxopts::ParseResult &cxxOptsParsed, const std::string &name,
+  const std::function<Result(const std::string &, Result)> &validator = &noopValidator<Result>) {
+  const auto &value = cxxOptsParsed[name].as<Result>();
+  return validator(name, value);
 }
 
 
-CliParams parseCommandLine(int argc, char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
+class ErrorCliOptionInvalidValue : public std::runtime_error {
+public:
+  explicit ErrorCliOptionInvalidValue(const std::string &message)
+      : std::runtime_error(fmt::format("\"{:s}\"", message)) {}
+};
+
+
+NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
+  NextalignOptions options = getDefaultOptions();
+
+  // clang-format off
+  options.alignment.minimalLength = getParamRequiredDefaulted<int>(cxxOptsParsed, "min-length", ensureNonNegative);
+  options.alignment.penaltyGapExtend = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-extend", ensureNonNegative);
+
+  options.alignment.penaltyGapOpen = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-open", ensurePositive);
+  options.alignment.penaltyGapOpenInFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-open-in-frame", ensurePositive);
+  options.alignment.penaltyGapOpenOutOfFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-open-out-of-frame", ensurePositive);
+
+  // penaltyGapOpenOutOfFrame > penaltyGapOpenInFrame > penaltyGapOpen
+  const auto isInFrameGreater = options.alignment.penaltyGapOpenInFrame > options.alignment.penaltyGapOpen;
+  const auto isOutOfFrameEvenGreater = options.alignment.penaltyGapOpenOutOfFrame > options.alignment.penaltyGapOpenInFrame;
+  if(!(isInFrameGreater && isOutOfFrameEvenGreater)) {
+    throw std::runtime_error(
+      fmt::format("Error: should verify the condition `--penalty-gap-open-out-of-frame` > `--penalty-gap-open-in-frame` > `--penalty-gap-open`, but got {:d} > {:d} > {:d}, which is false",
+        options.alignment.penaltyGapOpenOutOfFrame, options.alignment.penaltyGapOpenInFrame, options.alignment.penaltyGapOpen)
+    );
+  }
+
+  options.alignment.penaltyMismatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-mismatch", ensurePositive);
+  options.alignment.scoreMatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-match", ensurePositive);
+  options.alignment.maxIndel = getParamRequiredDefaulted<int>(cxxOptsParsed, "max-indel", ensureNonNegative);
+
+  options.seedNuc.seedLength = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-seed-length", ensurePositive);
+  options.seedNuc.minSeeds = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-min-seeds", ensurePositive);
+  options.seedNuc.seedSpacing = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-seed-spacing", ensureNonNegative);
+  options.seedNuc.mismatchesAllowed = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-mismatches-allowed", ensureNonNegative);
+
+  options.seedAa.seedLength = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-seed-length", ensurePositive);
+  options.seedAa.minSeeds = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-min-seeds", ensurePositive);
+  options.seedAa.seedSpacing = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-seed-spacing", ensureNonNegative);
+  options.seedAa.mismatchesAllowed = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-mismatches-allowed", ensureNonNegative);
+  // clang-format on
+
+  return options;
+}
+
+
+std::tuple<CliParams, NextalignOptions> parseCommandLine(
+  int argc, char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
   const std::string versionShort = PROJECT_VERSION;
-  const std::string versionDetailed = fmt::format("nextalign {:s}\nbased on libnextalign {:s}", PROJECT_VERSION, getVersion());
+  const std::string versionDetailed =
+    fmt::format("nextalign {:s}\nbased on libnextalign {:s}", PROJECT_VERSION, getVersion());
 
   cxxopts::Options cxxOpts("nextalign", fmt::format("{:s}\n\n{:s}\n", versionDetailed, PROJECT_DESCRIPTION));
+
 
   // clang-format off
   cxxOpts.add_options()
@@ -78,70 +156,182 @@ CliParams parseCommandLine(int argc, char *argv[]) {// NOLINT(cppcoreguidelines-
 
     (
       "version-detailed",
-      "Show version"
+      "Show detailed version"
     )
 
     (
       "j,jobs",
-      "(optional) Number of CPU threads used by the algorithm. If not specified or non-positive, will use all available threads",
+      "(optional, integer) Number of CPU threads used by the algorithm. If not specified or if a non-positive value specified, the algorithm will use all the available threads.",
       cxxopts::value<int>()->default_value(std::to_string(0)),
       "JOBS"
     )
 
     (
       "i,sequences",
-      "(required) Path to a FASTA or file with input sequences",
+      "(required, string) Path to a FASTA file with input sequences",
       cxxopts::value<std::string>(),
       "SEQS"
     )
 
     (
       "r,reference",
-       "(required) Path to a GB file containing reference sequence and gene map",
+       "(required, string) Path to a FASTA or plain text file containing reference sequence",
        cxxopts::value<std::string>(),
        "REF"
     )
 
     (
       "g,genes",
-       "(optional) List of genes to translate. Requires `--genemap` to be specified. If not supplied or empty, translation won't run.",
+       "(optional, string) List of genes to translate. Requires `--genemap`. If not supplied or empty, translation won't run. If non-empty, should contain a coma-separated list of gene names. Parameters `--genes` and `--genemap` should be either both specified or both omitted.",
        cxxopts::value<std::string>(),
        "GENES"
     )
 
     (
       "m,genemap",
-       "(optional) Path to a JSON file containing custom gene map. Requires `--genes.` If not supplied, translation won't run.",
+       "(optional, string) Path to a GFF file containing custom gene map. Requires `--genes.` If not supplied, translation won't run. Parameters `--genes` and `--genemap` should be either both specified or both omitted.",
        cxxopts::value<std::string>(),
        "GENEMAP"
     )
 
     (
       "d,output-dir",
-      "(optional) Write output files to this directory. The base filename can be set using --output-basename flag. The paths can be overridden on a per-file basis using --output-* flags. If the required directory tree does not exist, it will be created.",
+      "(optional, string) Write output files to this directory. The base filename can be set using `--output-basename` flag. The paths can be overridden on a per-file basis using `--output-*` flags. If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
       "OUTPUT"
     )
 
     (
       "n,output-basename",
-      "(optional) Sets the base filename to use for output files. To be used together with --output-dir flag. By default uses the filename of the sequences file (provided with --sequences). The paths can be overridden on a per-file basis using --output-* flags.",
+      "(optional, string) Set the base filename to use for output files. To be used together with `--output-dir` flag. By default uses the filename of the sequences file (provided with `--sequences`). The paths can be overridden on a per-file basis using `--output-*` flags.",
       cxxopts::value<std::string>(),
       "OUTPUT"
     )
 
     (
       "o,output-fasta",
-      "(required) Path to output aligned sequences in FASTA format (overrides paths given with --output-dir and --output-basename). If the required directory tree does not exist, it will be created.",
+      "(required, string) Path to output aligned sequences in FASTA format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
       "OUTPUT"
     )
 
     (
       "I,output-insertions",
-      "(optional) Path to output stripped insertions data in CSV format (overrides paths given with --output-dir and --output-basename). If the required directory tree does not exist, it will be created.",
+      "(optional, string) Path to output stripped insertions data in CSV format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
       "OUTPUT_INSERTIONS"
+    )
+
+    (
+      "min-length",
+      "(optional, integer, non-negative) Minimum length of nucleotide sequence to consider for alignment. If a sequence is shorter than that, alignment will not be attempted and a warning will be emitted. When adjusting this parameter, note that alignment of short sequences can be unreliable.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.minimalLength)),
+      "MIN_LENGTH"
+    )
+
+    (
+      "penalty-gap-extend",
+      "(optional, integer, non-negative) Penalty for extending of a gap.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapExtend)),
+      "PENALTY_GAP_EXTEND"
+    )
+
+    (
+      "penalty-gap-open",
+      "(optional, integer, positive) Penalty for opening of a gap. A higher penalty results in fewer gaps and more mismatches. Should be less than `--penalty-gap-open-in-frame`.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapOpen)),
+      "PENALTY_GAP_OPEN"
+    )
+
+    (
+      "penalty-gap-open-in-frame",
+      "(optional, integer, positive) As `--penalty-gap-open`, but for opening gaps at the beginning of a codon. Should be a greater than `--penalty-gap-open` and less than `--penalty-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapOpenInFrame)),
+      "PENALTY_GAP_OPEN_IN_FRAME"
+    )
+
+    (
+      "penalty-gap-open-out-of-frame",
+      "(optional, integer, positive) As `--penalty-gap-open`, but for opening gaps in the body of a codon. Should be greater than `--penalty-gap-open-in-frame` to favor gaps that align with codons.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapOpenOutOfFrame)),
+      "PENALTY_GAP_OPEN_OUT_OF_FRAME"
+    )
+
+    (
+      "penalty-mismatch",
+      "(optional, integer, positive) Penalty for aligned nucleotides or aminoacids that differ in state during alignment. Note that this is redundantly parameterized with `--score-match`.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyMismatch)),
+      "PENALTY_MISMATCH"
+    )
+
+    (
+      "score-match",
+      "(optional, integer, positive) Score for encouraging aligned nucleotides or aminoacids with matching state.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.scoreMatch)),
+      "SCORE_MATCH"
+    )
+
+    (
+      "max-indel",
+      "(optional, integer, non-negative) Maximum length of insertions or deletions allowed to proceed with alignment. Alignments with long indels are slow to compute and require substantial memory in the current implementation. Alignment of sequences with indels longer that this value, will not be attempted and a warning will be emitted.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.maxIndel)),
+      "MAX_INDEL"
+    )
+
+    (
+      "nuc-seed-length",
+      "(optional, integer, positive) Seed length for nucleotide alignment. Seeds should be long enough to be unique, but short enough to match with high probability.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.seedLength)),
+      "NUC_SEED_LENGTH"
+    )
+
+    (
+      "nuc-min-seeds",
+      "(optional, integer, positive) Minimum number of seeds to search for during nucleotide alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--nuc-seed-spacing`. Should be a positive integer.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.minSeeds)),
+      "NUC_MIN_SEEDS"
+    )
+
+    (
+      "nuc-seed-spacing",
+      "(optional, integer, non-negative) Spacing between seeds during nucleotide alignment.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.seedSpacing)),
+      "NUC_SEED_SPACING"
+    )
+
+    (
+      "nuc-mismatches-allowed",
+      "(optional, integer, non-negative) Maximum number of mismatching nucleotides allowed for a seed to be considered a match.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.mismatchesAllowed)),
+      "NUC_MISMATCHES_ALLOWED"
+    )
+
+    (
+      "aa-seed-length",
+      "(optional, integer, positive) Seed length for aminoacid alignment.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.seedLength)),
+      "AA_SEED_LENGTH"
+    )
+
+    (
+      "aa-min-seeds",
+      "(optional, integer, positive) Minimum number of seeds to search for during aminoacid alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--aa-seed-spacing`.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.minSeeds)),
+      "AA_MIN_SEEDS"
+    )
+
+    (
+      "aa-seed-spacing",
+      "(optional, integer, non-negative) Spacing between seeds during aminoacid alignment.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.seedSpacing)),
+      "AA_SEED_SPACING"
+    )
+
+    (
+      "aa-mismatches-allowed",
+      "(optional, integer, non-negative) Maximum number of mismatching aminoacids allowed for a seed to be considered a match.",
+      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.mismatchesAllowed)),
+      "AA_MISMATCHES_ALLOWED"
     )
   ;
   // clang-format on
@@ -158,36 +348,37 @@ CliParams parseCommandLine(int argc, char *argv[]) {// NOLINT(cppcoreguidelines-
     std::exit(0);
   }
 
-    if (cxxOptsParsed.count("version-detailed") > 0) {
+  if (cxxOptsParsed.count("version-detailed") > 0) {
     fmt::print(stdout, "{:s}\n", versionDetailed);
     std::exit(0);
   }
+  try {
 
-  const auto jobs = getParamRequiredDefaulted<int>(cxxOpts, cxxOptsParsed, "jobs");
-  const auto sequences = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "sequences");
-  const auto reference = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "reference");
-  const auto genemap = getParamOptional<std::string>(cxxOpts, cxxOptsParsed, "genemap");
-  const auto genes = getParamOptional<std::string>(cxxOpts, cxxOptsParsed, "genes");
-  const auto outputDir = getParamOptional<std::string>(cxxOpts, cxxOptsParsed, "output-dir");
-  const auto outputBasename = getParamOptional<std::string>(cxxOpts, cxxOptsParsed, "output-basename");
-  const auto outputFasta = getParamOptional<std::string>(cxxOpts, cxxOptsParsed, "output-fasta");
-  const auto outputInsertions = getParamOptional<std::string>(cxxOpts, cxxOptsParsed, "output-insertions");
+    CliParams cliParams;
+    cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
+    cliParams.sequences = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "sequences");
+    cliParams.reference = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "reference");
+    cliParams.genemap = getParamOptional<std::string>(cxxOptsParsed, "genemap");
+    cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
+    cliParams.outputDir = getParamOptional<std::string>(cxxOptsParsed, "output-dir");
+    cliParams.outputBasename = getParamOptional<std::string>(cxxOptsParsed, "output-basename");
+    cliParams.outputFasta = getParamOptional<std::string>(cxxOptsParsed, "output-fasta");
+    cliParams.outputInsertions = getParamOptional<std::string>(cxxOptsParsed, "output-insertions");
 
-  if (bool(genes) != bool(genemap)) {
-    throw std::runtime_error("Parameters `--genes` and `--genemap` should be either both specified or both omitted.");
+    if (bool(cliParams.genes) != bool(cliParams.genemap)) {
+      throw ErrorCliOptionInvalidValue(
+        "Parameters `--genes` and `--genemap` should be either both specified or both omitted.");
+    }
+
+    NextalignOptions options = validateOptions(cxxOptsParsed);
+
+    return std::make_pair(cliParams, options);
+
+  } catch (const ErrorCliOptionInvalidValue &e) {
+    fmt::print(stderr, "{:s}\n\n", e.what());
+    fmt::print(stderr, "{:s}\n", cxxOpts.help());
+    std::exit(1);
   }
-
-  return {
-    jobs,
-    sequences,
-    reference,
-    genemap,
-    genes,
-    outputDir,
-    outputBasename,
-    outputFasta,
-    outputInsertions,
-  };
 }
 
 AlgorithmInput parseRefFastaFile(const std::string &filename) {
@@ -242,6 +433,17 @@ void validateGenes(const std::set<std::string> &genes, const GeneMap &geneMap) {
   }
 }
 
+GeneMap filterGeneMap(const std::set<std::string> &genes, const GeneMap &geneMap) {
+  GeneMap result;
+  for (const auto &gene : genes) {
+    const auto &it = geneMap.find(gene);
+    if (it != geneMap.end()) {
+      result.insert(*it);
+    }
+  }
+  return result;
+}
+
 std::string formatCliParams(const CliParams &cliParams) {
   fmt::memory_buffer buf;
   fmt::format_to(buf, "\nCLI Parameters:\n");
@@ -274,15 +476,15 @@ std::string formatCliParams(const CliParams &cliParams) {
 }
 
 Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
-  std::filesystem::path sequencesPath = cliParams.sequences;
+  fs::path sequencesPath = cliParams.sequences;
 
-  auto outDir = std::filesystem::canonical(std::filesystem::current_path());
+  auto outDir = fs::canonical(fs::current_path());
   if (cliParams.outputDir) {
     outDir = *cliParams.outputDir;
   }
 
   if (!outDir.is_absolute()) {
-    outDir = std::filesystem::current_path() / outDir;
+    outDir = fs::current_path() / outDir;
   }
 
   fmt::print("OUT PATH: \"{:<s}\"\n", outDir.string());
@@ -304,8 +506,8 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     outputInsertions = *cliParams.outputInsertions;
   }
 
-  std::map<std::string, std::filesystem::path> outputGenes;
-  for (const auto& gene : genes) {
+  std::map<std::string, fs::path> outputGenes;
+  for (const auto &gene : genes) {
     auto outputGene = outDir / baseName;
     outputGene += fmt::format(".gene.{:s}.fasta", gene);
     outputGenes.emplace(gene, outputGene);
@@ -470,11 +672,8 @@ void run(
 
 int main(int argc, char *argv[]) {
   try {
-    const auto cliParams = parseCommandLine(argc, argv);
+    const auto [cliParams, options] = parseCommandLine(argc, argv);
     fmt::print(stdout, formatCliParams(cliParams));
-
-
-    NextalignOptions options;
 
     const auto refInput = parseRefFastaFile(cliParams.reference);
     const auto &refName = refInput.seqName;
@@ -482,11 +681,13 @@ int main(int argc, char *argv[]) {
     fmt::print(stdout, formatRef(refName, ref));
 
     GeneMap geneMap;
+    std::set<std::string> genes;
     if (cliParams.genes && cliParams.genemap) {
       geneMap = parseGeneMapGffFile(*cliParams.genemap);
-      options.genes = parseGenes(cliParams, geneMap);
-      validateGenes(options.genes, geneMap);
-      fmt::print(stdout, formatGeneMap(geneMap, options.genes));
+      genes = parseGenes(cliParams, geneMap);
+      validateGenes(genes, geneMap);
+      geneMap = filterGeneMap(genes, geneMap);
+      fmt::print(stdout, formatGeneMap(geneMap, genes));
     }
 
     std::ifstream fastaFile(cliParams.sequences);
@@ -496,11 +697,11 @@ int main(int argc, char *argv[]) {
       std::exit(1);
     }
 
-    const auto paths = getPaths(cliParams, options.genes);
+    const auto paths = getPaths(cliParams, genes);
     fmt::print(stdout, formatPaths(paths));
 
-    std::filesystem::create_directories(paths.outputFasta.parent_path());
-    std::filesystem::create_directories(paths.outputInsertions.parent_path());
+    fs::create_directories(paths.outputFasta.parent_path());
+    fs::create_directories(paths.outputInsertions.parent_path());
 
 
     std::ofstream outputFastaFile(paths.outputFasta);

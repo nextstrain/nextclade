@@ -1,8 +1,6 @@
 #include <benchmark/benchmark.h>
 
-#include "utils/getData.h"
 
-const auto [sequences, reference, geneMap, totalNucs] = getData();
 
 // clang-format off
 #include "Nextalign.benchmark.h"

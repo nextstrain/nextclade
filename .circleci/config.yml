@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  win: circleci/windows@2.4.0
-
 
 # Reference. Allows to restrict a job to release branch
 release_only: &release_only
@@ -22,49 +19,35 @@ jobs:
       - checkout
 
       - run:
-          name: 'Check release version'
+          name: 'Pull "Builder" container image'
           command: |
-            make check-release-version
-
-      - restore_cache:
-          name: 'Restore docker image cache'
-          keys:
-            - cache-nextalign-v1-docker_images
-
-      - run:
-          name: 'Load docker image cache'
-          command: |
-            make docker-cache-load
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/docker_builder_image_pull.sh || true
 
       - run:
           name: 'Build "Builder" container image'
           command: |
-            make docker-prod-build
+            make docker-builder
 
       - run:
-          name: 'Store docker image cache'
+          name: 'Push "Builder" container image'
           command: |
-            make docker-cache-save
-
-      - save_cache:
-          name: 'Save docker image cache'
-          key: cache-nextalign-v1-docker_images-{{ arch }}-{{ checksum "Dockerfile" }}
-          paths:
-            - docker_images
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/docker_builder_image_push.sh
 
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+            - cache-nextalign-v3-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
           command: |
-            make docker-prod-run
+            make docker-builder-run
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v1-docker_images-{{ arch }}-{{ checksum "Dockerfile" }}
+          key: cache-nextalign-v3-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
@@ -76,16 +59,13 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            GHR_VERSION=0.13.0
-            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
-            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
-            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
+            ./scripts/publish_github_release_linux.sh
 
       - run:
           name: "Publish Docker Image to Docker Hub"
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            scripts/publish_docker_images.sh
+            ./scripts/publish_docker_images.sh
 
   Build-MacOS:
     parameters:
@@ -105,22 +85,22 @@ jobs:
       - restore_cache:
           name: 'Restore homebrew cache'
           keys:
-            - cache-nextalign-v2-homebrew-{{ arch }}
+            - cache-nextalign-v3-homebrew-{{ arch }}
 
       - run:
           name: 'Install build tools'
           command: |
             set -x
-            brew install -q cmake conan coreutils cppcheck
+            brew install -q ccache cmake conan coreutils cppcheck ghr
             conan profile new default --detect
             conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
             HOMEBREW_NO_AUTO_UPDATE: 1
-            CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
+            CONAN_USER_HOME: '/Users/distiller/project/.cache'
 
       - save_cache:
           name: 'Save homebrew cache'
-          key: cache-nextalign-v2-homebrew-{{ arch }}
+          key: cache-nextalign-v3-homebrew-{{ arch }}
           paths:
             - '~/Library/Caches/Homebrew'
             - '/usr/local/Homebrew'
@@ -128,19 +108,19 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v4-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+            - cache-nextalign-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
 
       - run:
           name: Run macOS << parameters.macos_arch >> build
           command: |
             make prod
           environment:
-            CONAN_USER_HOME: '/Users/distiller/project/.cache/conan'
+            CONAN_USER_HOME: '/Users/distiller/project/.cache'
             HOST_ARCH: << parameters.macos_arch >>
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v4-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+          key: cache-nextalign-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
           paths:
             - .cache
 
@@ -152,10 +132,8 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            GHR_VERSION=0.13.0
-            pushd ${HOME} >/dev/null && curl -fsSL "https://github.com/tcnksm/ghr/releases/download/v${GHR_VERSION}/ghr_v${GHR_VERSION}_linux_amd64.tar.gz" | tar -xz --directory="$(pwd)" --strip-components=1 "ghr_v${GHR_VERSION}_linux_amd64/ghr"; popd >/dev/null
-            VERSION=$(.out/bin/nextalign-Linux-x86_64 --version)
-            ${HOME}/ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
+            VERSION=$(cat packages/nextalign_cli/VERSION)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
 
 workflows:
   version: 2

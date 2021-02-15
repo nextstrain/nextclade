@@ -7,7 +7,7 @@ Clade assignment, mutation calling, and sequence quality checks
 This is the command-line version of Nextclade.
 
 <p>
-  <span>You can also yry our web application at: </span>
+  <span>You can also try our web application at: </span>
   <a target="_blank" rel="noopener noreferrer" href="https://clades.nextstrain.org" alt="Link to our website">
     clades.nextstrain.org
   </a>
@@ -22,7 +22,7 @@ This is the command-line version of Nextclade.
 In order to run locally, you need Node.js and npm installed.
 It is recommended to use [`nvm`](https://github.com/nvm-sh/nvm) or [`nvm-windows`](https://github.com/coreybutler/nvm-windows) to install and manage Node.js versions. Nextclade CLI supports Node.js versions >= 12, version >= 14.15.0 LTS is recommended.
 
-Having Node.js and npm available, install the latest release of the [`nextclade` npm package](https://www.npmjs.com/package/@neherlab/nextclade) globally:
+Having Node.js and npm available, install the latest release of the [`nextclade` npm package](https://www.npmjs.com/package/@nextstrain/nextclade) globally:
 
 ```bash
 npm install --global @neherlab/nextclade
@@ -57,15 +57,15 @@ With `--output-tree` flag you can output a new Nextstrain tree, with the analyze
 Nextclade is currently in active development stage. If you encounter problems with the latest version, or if you need to use the same version to produce consistent, comparable experiments, you can install a specific version as follows:
 
 ```
-npm install --global @neherlab/nextclade@0.8.1
+npm install --global @nextstrain/nextclade@0.8.1
 ```
 
-See the list of all versions released on NPM: [www.npmjs.com/package/@neherlab/nextclade?activeTab=versions](https://www.npmjs.com/package/@neherlab/nextclade?activeTab=versions). Note that only versions from the `latest` channel are officially supported. Version marked `alpha` and `beta` versions are for development and internal testing. We release them publicly, but discourage using them for any serious purposes. You can find out which version you are currently using by running `nextclade --version`.
+See the list of all versions released on NPM: [www.npmjs.com/package/@nextstrain/nextclade?activeTab=versions](https://www.npmjs.com/package/@nextstrain/nextclade?activeTab=versions). Note that only versions from the `latest` channel are officially supported. Version marked `alpha` and `beta` versions are for development and internal testing. We release them publicly, but discourage using them for any serious purposes. You can find out which version you are currently using by running `nextclade --version`.
 
 
 ### With docker
 
-Docker images with Nextclade CLI are hosted in docker hub repository [`neherlab/nextclade`](https://hub.docker.com/r/neherlab/nextclade). They contain everything needed to run Nextclade, including the currently recommended version of Node.js. The only requirement is to have [Docker installed](https://docs.docker.com/get-docker/).
+Docker images with Nextclade CLI are hosted in docker hub repository [`nextstrain/nextclade`](https://hub.docker.com/r/nextstrain/nextclade). They contain everything needed to run Nextclade, including the currently recommended version of Node.js. The only requirement is to have [Docker installed](https://docs.docker.com/get-docker/).
 
 You can pull the latest image and run the container as follows
 
@@ -86,10 +86,10 @@ Explanation:
 The default (`latest`) tag uses Node.js image based on Debian stretch. It is also possible to use smaller Alpine Linux-based images by appending `:alpine` tag after the repo name:  
 
 ```
-docker run ... neherlab/nextclade:alpine ...
+docker run ... nextstrain/nextclade:alpine ...
 ```
 
-See the list of all tags on Docker Hub: [hub.docker.com/r/neherlab/nextclade/tags](https://hub.docker.com/r/neherlab/nextclade/tags)
+See the list of all tags on Docker Hub: [hub.docker.com/r/nextstrain/nextclade/tags](https://hub.docker.com/r/nextstrain/nextclade/tags)
 
 
 ### Tips and tricks
@@ -215,4 +215,4 @@ This will start webpack in watch mode and all changes will trigger partial rebui
 
 ## License
 
-<a target="_blank" rel="noopener noreferrer" href="LICENSE" alt="License file">MIT License</a>
+<a target="_blank" rel="noopener noreferrer" href="../LICENSE" alt="License file">MIT License</a>

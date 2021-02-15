@@ -21,7 +21,7 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
-GIT_REPO="https://github.com/neherlab/nextalign"
+GIT_REPO="https://github.com/nextstrain/nextalign"
 
 LATEST_TAG=$(git ls-remote --tags "${GIT_REPO}" | awk -F ' ' '{print $2}' | sort -h | tail -1 | cut -c11- | tr -d " \t\n\r")
 CURRENT_VERSION=$(grep -i 'project(nextalign_cli VERSION' "packages/nextalign_cli/CMakeLists.txt" | cut -c31- | tr -d " \t\n\r")

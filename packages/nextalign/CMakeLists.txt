@@ -6,11 +6,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
 include(Quiet)
 include(Sanitizers)
 
-project(nextalign VERSION 0.1.2
-  DESCRIPTION "C++ library for viral genome reference alignment"
-  )
+project(nextalign DESCRIPTION "C++ library for viral genome reference alignment")
+file(STRINGS "VERSION" PROJECT_VERSION)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
@@ -40,6 +38,8 @@ add_library(${PROJECT_NAME} STATIC
   src/match/matchNuc.cpp
   src/match/matchNuc.h
   src/nextalign.cpp
+  src/nextalign_private.h
+  src/options/options.cpp
   src/strip/stripInsertions.h
   src/translate/decode.cpp
   src/translate/decode.h
@@ -73,9 +73,6 @@ target_compile_definitions(${PROJECT_NAME}
 
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
-  -DPROJECT_VERSION_MAJOR="${PROJECT_VERSION_MAJOR}"
-  -DPROJECT_VERSION_MINOR="${PROJECT_VERSION_MINOR}"
-  -DPROJECT_VERSION_PATCH="${PROJECT_VERSION_PATCH}"
 
   # Workaround for GCC 9 error in type_safe.
   # See: https://github.com/foonathan/debug_assert/issues/17

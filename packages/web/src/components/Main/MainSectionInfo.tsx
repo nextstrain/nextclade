@@ -6,6 +6,7 @@ import { MdWarning } from 'react-icons/md'
 
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { About } from 'src/components/About/About'
+import { Downloads } from 'src/components/Main/Downloads'
 
 import { URL_GITHUB, URL_GITHUB_FRIENDLY } from 'src/constants'
 
@@ -33,6 +34,12 @@ export function MainSectionInfo() {
                 </Col>
               </Row>
             </Alert>
+          </Col>
+        </Row>
+
+        <Row noGutters>
+          <Col>
+            <Downloads />
           </Col>
         </Row>
 

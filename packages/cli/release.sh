@@ -5,7 +5,7 @@ set -o nounset
 set -o pipefail
 trap "exit" INT
 
-REPO_NAME="neherlab/nextclade"
+REPO_NAME="nextstrain/nextclade"
 PACKAGE_VERSION=$(node -pe "require('./package.json').version")
 CLI_EXE_FILE=./dist/nextclade.js
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)

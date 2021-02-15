@@ -1,7 +1,11 @@
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
-.PHONY: docker-prod
+clean:
+	rm -rf .build .out tmp
+
+cleanest: clean
+	rm -rf .cache
 
 dev:
 	@$(MAKE) --no-print-directory dev-impl
@@ -48,24 +52,35 @@ format:
 clang-tidy:
 	@scripts/clang-tidy.sh
 
+
+
+# "Builder" docker container
+
+# Pulls "Builder" docker container from Docker Hub
+docker-builder-pull:
+	./scripts/docker_builder_image_pull.sh
+
+# Pushes "Builder" docker container to Docker Hub
+docker-builder-push:
+	./scripts/docker_builder_image_push.sh
+
+
+
+# Builds and runs development container
 docker-dev:
-	UID=${UID} GID=${GID} docker-compose -f docker-compose.yml up --build --exit-code-from=nextalign_dev
+	./scripts/docker_builder_image_build.sh "developer"
+	./scripts/docker_builder_image_run.sh "developer"
+
+docker-builder:
+	./scripts/docker_builder_image_build.sh "builder"
+
+docker-builder-run:
+	./scripts/docker_builder_image_run.sh "builder"
+
+## Builds and runs "Builder" container
+docker-prod: docker-builder docker-builder-run
 
 
-docker-prod: docker-prod-build docker-prod-run
-
-docker-prod-build:
-	UID=${UID} GID=${GID} docker-compose -f docker-compose.prod.yml build
-
-docker-prod-run:
-	UID=${UID} GID=${GID} docker-compose -f docker-compose.prod.yml up --build --exit-code-from=nextalign_prod
-
-docker-cache-save:
-	mkdir -p docker_images
-	docker save -o docker_images/images.tar $(shell docker images -a -q)
-
-docker-cache-load:
-	docker load -i docker_images/images.tar || true
-
+# Checks if attempted release version is valid
 check-release-version:
 	scripts/check_release_version.sh

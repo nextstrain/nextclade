@@ -29,12 +29,12 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
   const auto gapOpenCloseNuc = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
   const auto gapOpenCloseAA = getGapOpenCloseScoresFlat(ref, options);
 
-  const auto alignment = alignPairwise(query, ref, gapOpenCloseNuc, 100);
+  const auto alignment = alignPairwise(query, ref, gapOpenCloseNuc, options.alignment, options.seedNuc);
 
   std::vector<PeptideInternal> queryPeptides;
   std::vector<PeptideInternal> refPeptides;
   std::vector<std::string> warnings;
-  if (!options.genes.empty()) {
+  if (!geneMap.empty()) {
     try {
       auto peptidesInternal = translateGenes(alignment.query, alignment.ref, geneMap, gapOpenCloseAA, options);
       concat_move(peptidesInternal.queryPeptides, queryPeptides);

@@ -18,6 +18,7 @@ THIS_DIR=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
 PROJECT_ROOT_DIR="$(realpath ${THIS_DIR}/..)"
 
 source "${THIS_DIR}/lib/set_locales.sh"
+source "${THIS_DIR}/lib/is_ci.sh"
 
 source "${PROJECT_ROOT_DIR}/.env.example"
 if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
@@ -27,24 +28,10 @@ fi
 BUILD_PREFIX=""
 
 export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
+export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/.ccache}"
 
-# Whether we are running on a Continuous integration server
-IS_CI="0"
-if false \
-|| [ ! -z "${BUILD_ID:=}" ] \
-|| [ ! -z "${CI:=}" ] \
-|| [ ! -z "${CIRCLECI:=}" ] \
-|| [ ! -z "${CIRRUS_CI:=}" ] \
-|| [ ! -z "${CODEBUILD_BUILD_ID:=}" ] \
-|| [ ! -z "${GITHUB_ACTIONS:=}" ] \
-|| [ ! -z "${GITLAB_CI:=}" ] \
-|| [ ! -z "${HEROKU_TEST_RUN_ID:=}" ] \
-|| [ ! -z "${TEAMCITY_VERSION:=}" ] \
-|| [ ! -z "${TF_BUILD:=}" ] \
-|| [ ! -z "${TRAVIS:=}" ] \
-; then
-  IS_CI="1"
-fi
+# Check whether we are running on a Continuous integration server
+IS_CI=${IS_CI:=$(is_ci)}
 
 # Name of the operating system we are running this script on: Linux, Darwin (we rename it to MacOS below)
 BUILD_OS="$(uname -s)"
@@ -73,6 +60,9 @@ CROSS=0
 if [ "${BUILD_OS}" != "${HOST_OS}" ] || [ "${BUILD_ARCH}" != "${HOST_ARCH}" ]; then
   CROSS=1
 fi
+
+# Minimum target version of macOS. End up in `-mmacosx-version-min=` flag of AppleClang
+OSX_MIN_VER=${OSX_MIN_VER:=10.12}
 
 # Build type (default: Release)
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
@@ -112,6 +102,15 @@ if [ "${HOST_OS}" == "MacOS" ] && [ "${HOST_ARCH}" == "arm64" ]; then
   "
 fi
 
+if [ "${HOST_OS}" == "MacOS" ]; then
+  # Conan uses different name for macOS arm64 architecture
+  CONAN_COMPILER_SETTINGS="\
+    ${CONAN_COMPILER_SETTINGS} \
+    -s os.version=${OSX_MIN_VER} \
+  "
+fi
+
+
 BUILD_SUFFIX=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CC="${CC:-clang}"
@@ -144,6 +143,10 @@ if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
 fi
 
 USE_COLOR="${USE_COLOR:=1}"
+if [ "${IS_CI}" == "1" ] || [ "${IS_CI}" == "true" ]; then
+  USE_COLOR="0"
+fi
+
 DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 
 # Whether to build a standalone static executable
@@ -209,7 +212,7 @@ done<"${THIS_DIR}/../.cppcheck"
 
 # Print coloured message
 function print() {
-  if [[ ! -z "${USE_COLOR}" ]] && [[ "${USE_COLOR}" != "false" ]]; then
+  if [ ! -z "${USE_COLOR}" ] && [ "${USE_COLOR}" != "false" ] && [ "${USE_COLOR}" != "0" ]; then
     echo -en "\n\e[48;5;${1}m - ${2} \t\e[0m\n";
   else
     printf "\n${2}\n";
@@ -228,6 +231,7 @@ echo "uname -m       = $(uname -m)"
 echo ""
 echo "HOST_OS        = ${HOST_OS:=}"
 echo "HOST_ARCH      = ${HOST_ARCH:=}"
+echo "OSX_MIN_VER    = ${OSX_MIN_VER:=}"
 echo ""
 echo "IS_CI          = ${IS_CI:=}"
 echo "CI             = ${CI:=}"
@@ -252,6 +256,8 @@ echo "CONAN_COMPILER_SETTINGS      = ${CONAN_COMPILER_SETTINGS:=}"
 echo "CONAN_STATIC_BUILD_FLAGS     = ${CONAN_STATIC_BUILD_FLAGS:=}"
 echo "CONAN_TBB_STATIC_BUILD_FLAGS = ${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
 echo ""
+echo "CONAN_USER_HOME          = ${CONAN_USER_HOME:=}"
+echo "CCACHE_DIR               = ${CCACHE_DIR:=}"
 echo "BUILD_PREFIX             = ${BUILD_PREFIX:=}"
 echo "BUILD_SUFFIX             = ${BUILD_SUFFIX:=}"
 echo "BUILD_DIR                = ${BUILD_DIR:=}"
@@ -259,7 +265,7 @@ echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
 echo "CLI                      = ${CLI:=}"
 echo "-------------------------------------------------------------------------"
 
-# Setup conan profile in CONAN_USE_HOME
+# Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
 conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
@@ -304,6 +310,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS} \
     -DNEXTALIGN_MACOS_ARCH="${HOST_ARCH}" \
     -DCMAKE_OSX_ARCHITECTURES="${HOST_ARCH}" \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_MIN_VER}" \
     -DNEXTCLADE_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
     -DNEXTCLADE_BUILD_BENCHMARKS=1 \
     -DNEXTCLADE_BUILD_TESTS=1 \
@@ -312,10 +319,10 @@ pushd "${BUILD_DIR}" > /dev/null
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-    print 14 "Install executable";
+    print 30 "Install executable";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
-    print 14 "Strip executable";
+    print 29 "Strip executable";
     # Strip works differently on mac
     if [ "${BUILD_OS}" == "MacOS" ]; then
       strip ${CLI}
@@ -334,7 +341,7 @@ pushd "${BUILD_DIR}" > /dev/null
         ls --human-readable --kibibytes -Sl ${CLI}
     fi
 
-    print 14 "Print executable info";
+    print 28 "Print executable info";
     file ${CLI}
   fi
 

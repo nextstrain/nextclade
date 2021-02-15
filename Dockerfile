@@ -1,8 +1,42 @@
-FROM ubuntu:focal
+# Target: builder
+# Purpose: production build environment used in CI and for local testing of the release build
 
-ARG DEBIAN_FRONTEND=noninteractive
-ARG USER
-ARG GROUP
+# ubuntu:focal-20210119
+# https://hub.docker.com/layers/ubuntu/library/ubuntu/focal-20210119/images/sha256-3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e?context=explore
+FROM ubuntu@sha256:3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e as builder
+
+RUN set -x \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  bash \
+  ccache \
+  cmake \
+  coreutils \
+  cppcheck \
+  file \
+  gdb \
+  g++ \
+  gcc \
+  make \
+  python3 \
+  python3-pip \
+  python3-setuptools \
+  python3-wheel \
+>/dev/null \
+&& apt-get autoremove --yes >/dev/null \
+&& apt-get clean autoclean >/dev/null \
+&& rm -rf /var/lib/apt/lists/*
+
+RUN set -x \
+&& pip3 install --upgrade --quiet \
+  colorama \
+  conan \
+  cpplint \
+&& rm -rf ~/.cache/pip/*
+
+ARG USER=user
+ARG GROUP=user
 ARG UID
 ARG GID
 
@@ -11,53 +45,58 @@ ENV GROUP=$GROUP
 ENV UID=$UID
 ENV GID=$GID
 ENV TERM="xterm-256color"
-ENV HOME="/home/user"
-ENV NVM_DIR="${HOME}/.nvm"
-ENV PATH="${NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
+ENV HOME="/home/${USER}"
+
+USER ${USER}
+
+WORKDIR /src
+
+ENTRYPOINT ["make", "prod"]
+
+#-------------------------------------------------------------------------------
+
+# Target: developer
+# Purpose: development environment used for the routine development tasks
+FROM builder as developer
+
+USER 0
 
 RUN set -x \
+&& export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
->/dev/null
-
-RUN set -x \
 && apt-get install -qq --no-install-recommends --yes \
-  apt-transport-https \
-  apt-utils \
-  bash \
   build-essential \
-  ccache \
   clang-format-10 \
   clang-tidy \
   clang-tools-10 \
-  cmake \
-  coreutils \
-  cppcheck \
   curl \
-  file \
-  g++ \
-  gcc \
-  gdb \
   git \
   libclang-common-10-dev \
   llvm-10 \
-  make \
-  python3 \
-  python3-dev \
-  python3-pip \
-  python3-setuptools \
-  python3-wheel \
   sudo \
->/dev/null
+>/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null
 
-RUN set -x \
-&& pip3 install --upgrade --quiet \
-  colorama \
-  conan \
-  cpplint
+ARG USER=user
+ARG GROUP=user
+ARG UID
+ARG GID
 
-RUN set -x \
-&& addgroup --system --gid ${GID} ${GROUP} \
-&& useradd --system --create-home --home-dir ${HOME} \
+ENV USER=$USER
+ENV GROUP=$GROUP
+ENV UID=$UID
+ENV GID=$GID
+ENV TERM="xterm-256color"
+ENV HOME="/home/${USER}"
+
+ENV NVM_DIR="${HOME}/.nvm"
+ENV PATH="${NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
+
+RUN addgroup --system --gid ${GID} ${GROUP}
+
+RUN useradd --system --create-home --home-dir ${HOME} \
 --shell /bin/bash \
 --gid ${GROUP} \
 --groups sudo \
@@ -86,3 +125,7 @@ RUN set -x \
 USER ${USER}
 
 WORKDIR /src
+
+ENTRYPOINT ["make", "dev"]
+
+#-------------------------------------------------------------------------------

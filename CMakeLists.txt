@@ -9,7 +9,6 @@ include(packages/cmake/Sanitizers.cmake)
 
 project(nextclade_all)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
