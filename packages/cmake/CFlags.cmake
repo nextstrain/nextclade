@@ -95,7 +95,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   -funroll-loops \
   -pipe \
   -Warray-bounds \
-   -Wcast-qual \
+  -Wcast-qual \
   -Wconversion \
   -Wdangling-else \
   -Wdeprecated-declarations \
@@ -112,6 +112,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   -Wignored-qualifiers \
   -Winit-self \
   -Wmisleading-indentation \
+  -Wno-unknown-pragmas \
   -Wnonnull \
   -Wnull-dereference \
   -Wpointer-arith \
@@ -130,6 +131,17 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   -Wuninitialized \
   -Wunreachable-code \
   -Wwrite-strings \
+  ")
+
+  # TODO: remove these and fix the warnings!
+  set(C_CXX_FLAGS " \
+  ${C_CXX_FLAGS} \
+  -Wno-conversion \
+  -Wno-sign-compare \
+  -Wno-sign-conversion \
+  -Wno-strict-overflow \
+  -Wno-unused-parameter \
+  -Wno-useless-cast \
   ")
 
   set(C_FLAGS " ${C_FLAGS} \
