@@ -16,12 +16,7 @@
 
 class AlignPairwiseAverageBench : public benchmark::Fixture {
 protected:
-  NextalignOptions options = {
-    .gapOpenInFrame = -5,
-    .gapOpenOutOfFrame = -6,
-    .genes = {},
-  };
-
+  const NextalignOptions options = getDefaultOptions();
   std::vector<int> gapOpenClose;
   NucleotideSequence ref;
   std::vector<NucleotideSequence> nucSequences;
@@ -29,11 +24,10 @@ protected:
   GeneMap geneMap;
 
   AlignPairwiseAverageBench() {
-    const auto [sequences, reference, GENE_MAP, TOTAL_NUCS, GENES] = getData();
+    const auto [sequences, reference, GENE_MAP, TOTAL_NUCS, _] = getData();
     ref = toNucleotideSequence(reference);
     totalNucs = TOTAL_NUCS;
     geneMap = GENE_MAP;
-    options.genes = GENES;
     gapOpenClose = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
     const auto n = NUM_SEQUENCES_AVG;
@@ -54,7 +48,7 @@ BENCHMARK_DEFINE_F(AlignPairwiseAverageBench, Average)(benchmark::State& st) {
   for (const auto _ : st) {
     for (int i = 0; i < n; ++i) {
       const auto& input = nucSequences[i];
-      benchmark::DoNotOptimize(aln = alignPairwise(input, ref, gapOpenClose, 100));
+      benchmark::DoNotOptimize(aln = alignPairwise(input, ref, gapOpenClose, options.alignment, options.seedNuc));
     }
   }
 

@@ -1,17 +1,26 @@
-<h1 id="nextalign" align="center">
-Nextalign (command-line tool)
+<h1 id="nextclade" align="center">
+Nextalign
 </h1>
 
-> <h3 align="center">
-> 🧬 Viral genome reference alignment
-> </h3>
-> <p align="center">
-> by Nextstrain team
-> </p>
+<h4 id="nextclade" align="center">
+Viral genome alignment
+</h4>
+
+<p align="center">
+by Nextstrain team
+</p>
 
 ---
 
-> ⚠️ IMPORTANT: Nextalign is a new project and is under heavy development. There might be serious bugs. Please report all errors and inconsistencies using [Github Issues](https://github.com/nextstrain/nextclade/issues/new).
+> ⚠️ IMPORTANT:
+> 
+> Nextalign is a new project and is under development.
+> 
+> Please report bugs and request features using GitHub Issues:
+> https://github.com/nextstrain/nextclade/issues/new
+> 
+> For questions and general discussion join Nextstrain discussion forum:
+> https://discussion.nextstrain.org
 
 ---
 
@@ -35,7 +44,21 @@ Nextalign (command-line tool)
   <a href="https://github.com/nextstrain/nextclade/issues/new">
     <img height="30px"
       src="https://img.shields.io/badge/%F0%9F%93%A2%20Report%20Issue-%2317992a.svg"
-      alt="Download button"
+      alt="Report issue button"
+    />
+  </a>
+
+  <a href="https://github.com/nextstrain/nextclade/issues/new">
+    <img height="30px"
+      src="https://img.shields.io/badge/%E2%9C%A8%20Request%20feature-%2317992a.svg"
+      alt="Request feature button"
+    />
+  </a>
+
+  <a href="https://discussion.nextstrain.org">
+    <img height="30px"
+      src="https://img.shields.io/badge/%F0%9F%92%AC%20Join%20discussion-%23d99852.svg"
+      alt="Discuss button"
     />
   </a>
 </p>
@@ -50,12 +73,15 @@ Nextalign (command-line tool)
 👋 About
 </h2>
 
-Nextalign is the viral genome sequence alignment algorithm used in [Nextclade](https://github.com/nextstrain/nextclade),
-ported to C++ and made into a standalone command-line tool.
+Nextalign is a viral genome sequence alignment algorithm used in [Nextclade](https://github.com/nextstrain/nextclade), ported to C++ and made into the standalone command-line tool.
 
-Nextalign performs pairwise alignment of provided sequences against a given reference sequence using a banded local alignment with affine gap-cost. Band width and rough relative positions are determined through seed matching.
+Nextalign performs pairwise alignment of provided sequences against a given reference sequence using banded local alignment algorithm with affine gap-cost. Band width and rough relative positions are determined through seed matching.
 
-Currently Nextalign primarily focuses on SARS-CoV-2 genome, but it can be used on any virus, given a sufficiently similar reference sequence (less than a 5% divergence). Nextalign will strip insertions relative to the reference and output them in a separate CSV file.
+Nextalign will strip insertions relative to the reference and output them in a separate CSV file.
+
+Optionally, when provided with a gene map and a list of genes, Nextalign can perform translation of these genes.
+
+Currently Nextalign primarily focuses on SARS-CoV-2 genome, but it can be used on any virus, given a sufficiently similar reference sequence (less than a 5% divergence).
 
 ---
 
@@ -187,6 +213,20 @@ Refer to help prompt for usage of Nextalign:
 ```
 nextalign --help
 ```
+
+Quick Example:
+
+1. Download the example data files from:
+    https://github.com/nextstrain/nextclade/tree/master/data/example
+
+2. Run:
+   ```
+   nextalign --sequences=sequences.fasta --reference=reference.txt \
+     --genemap=genemap.gff --genes=E,M,N,ORF10,ORF14,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+     --output-dir=output/ --output-basename=nextalign
+   ```
+
+3. Find the output files in the `output/` directory
 
 
 <h3 id="feedback" align="center">
