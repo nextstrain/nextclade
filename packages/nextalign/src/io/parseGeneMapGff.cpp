@@ -77,7 +77,7 @@ class ErrorGffParserGeneFrameInvalid : public std::runtime_error {
 public:
   explicit ErrorGffParserGeneFrameInvalid(const std::string& geneName, int frame)
       : std::runtime_error(fmt::format(
-          R"(GFF parser: in gene "{:s}": frame "{:d}" is invalid, expected an integer 1, 2, or 3 (NOTE: indices in GFF files are one-based))",
+          R"(GFF parser: in gene "{:s}": frame "{:d}" is invalid, expected an integer 0, 1, or 2. (NOTE: positions in GFF files are one-based, but that frames are zero-based))",
           geneName, frame)) {}
 };
 
@@ -85,7 +85,7 @@ class ErrorGffParserGeneFrameInconsistent : public std::runtime_error {
 public:
   explicit ErrorGffParserGeneFrameInconsistent(const std::string& geneName, int frame, int start, int frameExpected)
       : std::runtime_error(fmt::format(
-          R"(GFF parser: in gene "{:s}": frame "{:d}" is inconsistent: with gene start position ${:d}" it is expected to be in frame "{:d}". (NOTE: indices in GFF files are one-based))",
+          R"(GFF parser: in gene "{:s}": frame "{:d}" is inconsistent: with gene start position ${:d}" it is expected to be in frame "{:d}". (NOTE: positions in GFF files are one-based, but that frames are zero-based))",
           geneName, frame, start, frameExpected)) {}
 };
 
@@ -144,6 +144,10 @@ std::string getGeneName(const AttribMap& attribMap) {
 }
 
 void validateGene(const Gene& gene) {
+  if (gene.frame < 0 || gene.frame > 2) {
+    throw ErrorGffParserGeneFrameInvalid(gene.geneName, gene.frame);
+  }
+
   if (gene.geneName.empty()) {
     throw ErrorGffParserGenNameEmpty();
   }
@@ -157,11 +161,7 @@ void validateGene(const Gene& gene) {
     throw ErrorGffParserGeneLengthInvalid(gene.geneName, length, gene.start, gene.end);
   }
 
-  if (gene.frame < 1 || gene.frame > 3) {
-    throw ErrorGffParserGeneFrameInvalid(gene.geneName, gene.frame);
-  }
-
-  const auto frameExpected = (gene.start % 3) + 1;
+  const auto frameExpected = (gene.start % 3);
   if (gene.frame != frameExpected) {
     throw ErrorGffParserGeneFrameInconsistent(gene.geneName, gene.frame, gene.start, frameExpected);
   }
@@ -215,7 +215,7 @@ GeneMap parseGeneMapGff(std::istream& is, const std::string& name) {
       .start = start,           // 1-based
       .end = end,               // 1-based, open (upper bound included)
       .strand = strand,         //
-      .frame = frame,           // // 1-based
+      .frame = frame,           // // 0-based
       .length = end - start + 1,// This is how you find length of a 1-based, open range
     };
 
@@ -227,9 +227,6 @@ GeneMap parseGeneMapGff(std::istream& is, const std::string& name) {
     // "-1": convert to zero-based indices
     // "+1": convert to semi-open range (exclude upper bound)
     gene.end = gene.end - 1 + 1;
-
-    // "-1": convert to zero-based indices
-    gene.frame = gene.frame - 1;
 
     postcondition_equal(gene.length, gene.end - gene.start);
     geneMap.emplace(geneName, gene);
