@@ -14,6 +14,10 @@ namespace Nextclade {
     return lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc == rhs.queryNuc;
   }
 
+  inline bool operator<(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
+    return lhs.pos < rhs.pos || lhs.refNuc < rhs.refNuc || lhs.queryNuc < rhs.queryNuc;
+  }
+
   inline bool operator==(const NucleotideInsertion& lhs, const NucleotideInsertion& rhs) {
     return lhs.pos == rhs.pos && lhs.ins == rhs.ins && lhs.length == rhs.length;
   }

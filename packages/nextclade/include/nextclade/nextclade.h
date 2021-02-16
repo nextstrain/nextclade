@@ -4,15 +4,15 @@
 
 #include <map>
 
-#include "private/__generated__/types.h"
+#include "private/auspiceJsonV2.h"
 
 namespace Nextclade {
   struct NucleotideSubstitution;
 
-  using AuspiceJsonV2 = Generated::AuspiceJsonV2Json;
-  using AuspiceJsonV2TreeNode = Generated::Tree;
-  using AuspiceJsonV2TreeNodeBranchAttrs = Generated::BranchAttrs;
-  using AuspiceJsonV2TreeNodeNodeAttrs = Generated::NodeAttrs;
+  using AuspiceJsonV2 = ::AuspiceJsonV2::AuspiceJsonV2;
+  using AuspiceJsonV2TreeNode = ::AuspiceJsonV2::Tree;
+  using AuspiceJsonV2TreeNodeBranchAttrs = ::AuspiceJsonV2::BranchAttrs;
+  using AuspiceJsonV2TreeNodeNodeAttrs = ::AuspiceJsonV2::NodeAttrs;
 
   using MutationMap = std::map<int, Nucleotide>;
 

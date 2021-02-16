@@ -128,7 +128,7 @@ export default async function generateTypes() {
     quicktypesGenerate('cpp', schemasRoot, schemaFilenames, cppOutput, {
       'boost': false,
       'code-format': 'with-struct',
-      // 'just-types': true,
+      'just-types': true,
       'namespace': 'Generated',
       // 'source-style': 'single-source',
     }),

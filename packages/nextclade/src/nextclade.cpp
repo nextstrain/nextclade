@@ -8,8 +8,8 @@
 #include "analyze/analyze.h"
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/nucleotide.h"
-#include "src/utils/safe_cast.h"
 #include "tree/treeFindNearestNodes.h"
+#include "utils/safe_cast.h"
 
 namespace Nextclade {
 
