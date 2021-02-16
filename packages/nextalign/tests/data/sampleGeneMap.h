@@ -10,7 +10,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 26244,
     .end = 26472,
     .strand = "+",
-    .frame = 1,
+    .frame = 0,
     .length = 228,
   },
   Gene{
@@ -18,7 +18,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 26522,
     .end = 27191,
     .strand = "+",
-    .frame = 0,
+    .frame = 2,
     .length = 669,
   },
   Gene{
@@ -26,7 +26,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 28273,
     .end = 29533,
     .strand = "+",
-    .frame = 2,
+    .frame = 1,
     .length = 1260,
   },
   Gene{
@@ -34,7 +34,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 29557,
     .end = 29674,
     .strand = "+",
-    .frame = 2,
+    .frame = 1,
     .length = 117,
   },
   Gene{
@@ -42,7 +42,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 28733,
     .end = 28955,
     .strand = "+",
-    .frame = 0,
+    .frame = 2,
     .length = 222,
   },
   Gene{
@@ -50,7 +50,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 265,
     .end = 13468,
     .strand = "+",
-    .frame = 2,
+    .frame = 1,
     .length = 13203,
   },
   Gene{
@@ -58,7 +58,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 13467,
     .end = 21555,
     .strand = "+",
-    .frame = 1,
+    .frame = 0,
     .length = 8088,
   },
   Gene{
@@ -66,7 +66,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 25392,
     .end = 26220,
     .strand = "+",
-    .frame = 1,
+    .frame = 0,
     .length = 828,
   },
   Gene{
@@ -74,7 +74,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 27201,
     .end = 27387,
     .strand = "+",
-    .frame = 1,
+    .frame = 0,
     .length = 186,
   },
   Gene{
@@ -82,7 +82,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 27393,
     .end = 27759,
     .strand = "+",
-    .frame = 1,
+    .frame = 0,
     .length = 366,
   },
   Gene{
@@ -90,7 +90,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 27755,
     .end = 27887,
     .strand = "+",
-    .frame = 0,
+    .frame = 2,
     .length = 132,
   },
   Gene{
@@ -98,7 +98,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 27893,
     .end = 28259,
     .strand = "+",
-    .frame = 0,
+    .frame = 2,
     .length = 366,
   },
   Gene{
@@ -106,7 +106,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 28283,
     .end = 28577,
     .strand = "+",
-    .frame = 0,
+    .frame = 2,
     .length = 294,
   },
   Gene{
@@ -114,7 +114,7 @@ const std::vector<Gene> sampleGeneArray = {//
     .start = 21562,
     .end = 25384,
     .strand = "+",
-    .frame = 2,
+    .frame = 1,
     .length = 3822,
   }};
 
