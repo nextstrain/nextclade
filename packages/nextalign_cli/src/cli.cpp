@@ -565,7 +565,7 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
     const auto selected = std::find(genes.cbegin(), genes.cend(), geneName) != genes.cend();
     const auto selectedStr = selected ? "  yes" : " ";
     fmt::format_to(buf, "| {:8s} | {:16s} | {:8d} | {:8d} | {:8d} | {:8d} | {:8s} |\n", selectedStr, geneName,
-      gene.start + 1, gene.end + 1, gene.length, gene.frame + 1, gene.strand);
+      gene.start + 1, gene.end, gene.length, gene.frame + 1, gene.strand);
   }
   fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
   return fmt::to_string(buf);
