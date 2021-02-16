@@ -75,16 +75,16 @@ namespace Nextclade {
   ClosestMatchResult treeFindNearestNodeRecursively(
     const AuspiceJsonV2TreeNodeExtended& node, const NextcladeResultIntermediate& analysisResult) {
 
-    const int distance = calculateDistance(node, analysisResult);
-    const auto& nearestNode = node;
-    const auto& children = node.children;
+    int distance = calculateDistance(node, analysisResult);
+    auto& nearestNode = node;
+    auto& children = node.children;
 
     // TODO: Only consider nodes of the reference tree, skip newly added nodes
     // const refChildren = children.filter((node) => node.node_attrs?.['Node type'].value !== NodeType.New)
     const auto& refChildren = children;
 
     for (const AuspiceJsonV2TreeNodeExtended& child : *refChildren) {
-      const auto match = treeFindNearestNodeRecursively(child, analysisResult);
+      auto match = treeFindNearestNodeRecursively(child, analysisResult);
       if (match.distance < distance) {
         distance = match.distance;
         nearestNode = match.nearestNode;
@@ -103,7 +103,7 @@ namespace Nextclade {
     precondition(std::is_sorted(node.substitutions.cbegin(), node.substitutions.cend()));
     precondition(std::is_sorted(seq.substitutions.cbegin(), seq.substitutions.cend()));
 
-    const std::set<int> mutatedPositions;
+    std::set<int> mutatedPositions;
     std::for_each(seq.substitutions.cbegin(), seq.substitutions.cend(),
       [&mutatedPositions](const auto& sub) { mutatedPositions.insert(sub.pos); });
 
