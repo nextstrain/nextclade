@@ -182,14 +182,14 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "g,genes",
-       "(optional, string) List of genes to translate. Requires `--genemap`. If not supplied or empty, translation won't run. If non-empty, should contain a coma-separated list of gene names. Parameters `--genes` and `--genemap` should be either both specified or both omitted.",
+       "(optional, string) List of genes to translate. Requires `--genemap`. If not supplied or empty, sequence will not be translated. If non-empty, should contain a coma-separated list of gene names. Parameters `--genes` and `--genemap` should be either both specified or both omitted.",
        cxxopts::value<std::string>(),
        "GENES"
     )
 
     (
       "m,genemap",
-       "(optional, string) Path to a GFF file containing custom gene map. Requires `--genes.` If not supplied, translation won't run. Parameters `--genes` and `--genemap` should be either both specified or both omitted.",
+       "(optional, string) Path to a GFF file containing custom gene map. Requires `--genes.` If not supplied, sequence will not be translated. Parameters `--genes` and `--genemap` should be either both specified or both omitted.",
        cxxopts::value<std::string>(),
        "GENEMAP"
     )
@@ -231,21 +231,21 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     (
       "penalty-gap-extend",
-      "(optional, integer, non-negative) Penalty for extending of a gap.",
+      "(optional, integer, non-negative) Penalty for extending a gap. If zero, all gaps regardless of length incur the same penalty.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapExtend)),
       "PENALTY_GAP_EXTEND"
     )
 
     (
       "penalty-gap-open",
-      "(optional, integer, positive) Penalty for opening of a gap. A higher penalty results in fewer gaps and more mismatches. Should be less than `--penalty-gap-open-in-frame`.",
+      "(optional, integer, positive) Penalty for opening of a gap. A higher penalty results in fewer gaps and more mismatches. Should be less than `--penalty-gap-open-in-frame` to avoid gaps in genes.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapOpen)),
       "PENALTY_GAP_OPEN"
     )
 
     (
       "penalty-gap-open-in-frame",
-      "(optional, integer, positive) As `--penalty-gap-open`, but for opening gaps at the beginning of a codon. Should be a greater than `--penalty-gap-open` and less than `--penalty-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
+      "(optional, integer, positive) As `--penalty-gap-open`, but for opening gaps at the beginning of a codon. Should be greater than `--penalty-gap-open` and less than `--penalty-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.penaltyGapOpenInFrame)),
       "PENALTY_GAP_OPEN_IN_FRAME"
     )
@@ -404,7 +404,7 @@ GeneMap parseGeneMapGffFile(const std::string &filename) {
     std::exit(1);
   }
 
-  auto geneMap = parseGeneMapGff(file);
+  auto geneMap = parseGeneMapGff(file, filename);
   if (geneMap.empty()) {
     fmt::print(stderr, "Error: gene map is empty");
     std::exit(1);
