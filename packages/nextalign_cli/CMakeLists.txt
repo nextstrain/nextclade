@@ -38,6 +38,7 @@ if (APPLE)
 endif ()
 
 add_executable(${PROJECT_NAME}
+  src/Logger.h
   src/cli.cpp
   src/description.h
   src/filesystem.h

@@ -9,12 +9,15 @@
 #include <cxxopts.hpp>
 #include <fstream>
 
-#include "filesystem.h"
+#include "Logger.h"
 #include "description.h"
+#include "filesystem.h"
 
 
 struct CliParams {
   int jobs;
+  bool verbose;
+  bool noColor;
   std::string sequences;
   std::string reference;
   std::optional<std::string> genemap;
@@ -31,13 +34,18 @@ struct Paths {
   std::map<std::string, fs::path> outputGenes;
 };
 
+
+class ErrorCliOptionInvalidValue : public std::runtime_error {
+public:
+  explicit ErrorCliOptionInvalidValue(const std::string &message) : std::runtime_error(message) {}
+};
+
+
 template<typename Result>
 Result getParamRequired(
   const cxxopts::Options &cxxOpts, const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
   if (!cxxOptsParsed.count(name)) {
-    fmt::print(stderr, "Error: argument `--{:s}` is required\n\n", name);
-    fmt::print(stderr, "{:s}\n", cxxOpts.help());
-    std::exit(1);
+    throw ErrorCliOptionInvalidValue(fmt::format("Error: argument `--{:s}` is required\n\n", name));
   }
 
   return cxxOptsParsed[name].as<Result>();
@@ -61,21 +69,16 @@ int ensureNonNegative(const std::string &name, int value) {
   if (value >= 0) {
     return value;
   }
-  throw std::runtime_error(fmt::format("Error: argument `--{:s}` should be non-negative, but got {:d}", name, value));
+  throw ErrorCliOptionInvalidValue(
+    fmt::format("Error: argument `--{:s}` should be non-negative, but got {:d}", name, value));
 }
 
 int ensurePositive(const std::string &name, int value) {
   if (value > 0) {
     return value;
   }
-  throw std::runtime_error(fmt::format("Error: argument `--{:s}` should be positive, but got {:d}", name, value));
-}
-
-int ensureNegative(const std::string &name, int value) {
-  if (value >= 0) {
-    throw std::runtime_error(fmt::format("Error: argument `--{:s}` should be negative, but got {:d}", name, value));
-  }
-  return value;
+  throw ErrorCliOptionInvalidValue(
+    fmt::format("Error: argument `--{:s}` should be positive, but got {:d}", name, value));
 }
 
 template<typename Result>
@@ -84,13 +87,6 @@ Result getParamRequiredDefaulted(const cxxopts::ParseResult &cxxOptsParsed, cons
   const auto &value = cxxOptsParsed[name].as<Result>();
   return validator(name, value);
 }
-
-
-class ErrorCliOptionInvalidValue : public std::runtime_error {
-public:
-  explicit ErrorCliOptionInvalidValue(const std::string &message)
-      : std::runtime_error(fmt::format("\"{:s}\"", message)) {}
-};
 
 
 NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
@@ -133,14 +129,13 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
 }
 
 
-std::tuple<CliParams, NextalignOptions> parseCommandLine(
+std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
   int argc, char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
   const std::string versionShort = PROJECT_VERSION;
   const std::string versionDetailed =
     fmt::format("nextalign {:s}\nbased on libnextalign {:s}", PROJECT_VERSION, getVersion());
 
   cxxopts::Options cxxOpts("nextalign", fmt::format("{:s}\n\n{:s}\n", versionDetailed, PROJECT_DESCRIPTION));
-
 
   // clang-format off
   cxxOpts.add_options()
@@ -157,6 +152,16 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
     (
       "version-detailed",
       "Show detailed version"
+    )
+
+    (
+      "verbose",
+      "Increase verbosity of the console output. By default only errors and warnings are shown. With this option more information will be printed."
+    )
+
+    (
+      "no-color",
+      "Don't use color in console log."
     )
 
     (
@@ -339,23 +344,25 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
   const auto cxxOptsParsed = cxxOpts.parse(argc, argv);
 
   if (cxxOptsParsed.count("help") > 0) {
-    fmt::print(stdout, "{:s}\n", cxxOpts.help());
+    fmt::print("{:s}\n", cxxOpts.help());
     std::exit(0);
   }
 
   if (cxxOptsParsed.count("version") > 0) {
-    fmt::print(stdout, "{:s}\n", versionShort);
+    fmt::print("{:s}\n", versionShort);
     std::exit(0);
   }
 
   if (cxxOptsParsed.count("version-detailed") > 0) {
-    fmt::print(stdout, "{:s}\n", versionDetailed);
+    fmt::print("{:s}\n", versionDetailed);
     std::exit(0);
   }
   try {
 
     CliParams cliParams;
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
+    cliParams.verbose = getParamRequiredDefaulted<bool>(cxxOptsParsed, "verbose");
+    cliParams.noColor = getParamRequiredDefaulted<bool>(cxxOptsParsed, "no-color");
     cliParams.sequences = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "sequences");
     cliParams.reference = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "reference");
     cliParams.genemap = getParamOptional<std::string>(cxxOptsParsed, "genemap");
@@ -372,7 +379,7 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
 
     NextalignOptions options = validateOptions(cxxOptsParsed);
 
-    return std::make_pair(cliParams, options);
+    return std::make_tuple(cliParams, cxxOpts, options);
 
   } catch (const ErrorCliOptionInvalidValue &e) {
     fmt::print(stderr, "{:s}\n\n", e.what());
@@ -381,33 +388,42 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
   }
 }
 
+
+class ErrorFastaReader : public std::runtime_error {
+public:
+  explicit ErrorFastaReader(const std::string &message) : std::runtime_error(message) {}
+};
+
 AlgorithmInput parseRefFastaFile(const std::string &filename) {
   std::ifstream file(filename);
   if (!file.good()) {
-    fmt::print(stderr, "Error: unable to read \"{:s}\"\n", filename);
-    std::exit(1);
+    throw ErrorFastaReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
   }
 
   const auto refSeqs = parseSequences(file);
   if (refSeqs.size() != 1) {
-    fmt::print(stderr, "Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size());
-    std::exit(1);
+    throw ErrorFastaReader(
+      fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
   }
 
   return *(refSeqs.begin());
 }
 
+
+class ErrorGffReader : public std::runtime_error {
+public:
+  explicit ErrorGffReader(const std::string &message) : std::runtime_error(message) {}
+};
+
 GeneMap parseGeneMapGffFile(const std::string &filename) {
   std::ifstream file(filename);
   if (!file.good()) {
-    fmt::print(stderr, "Error: unable to read \"{:s}\"\n", filename);
-    std::exit(1);
+    throw ErrorGffReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
   }
 
   auto geneMap = parseGeneMapGff(file, filename);
   if (geneMap.empty()) {
-    fmt::print(stderr, "Error: gene map is empty");
-    std::exit(1);
+    throw ErrorGffReader(fmt::format("Error: gene map is empty"));
   }
 
   return geneMap;
@@ -422,13 +438,16 @@ std::set<std::string> parseGenes(const CliParams &cliParams, const GeneMap &gene
 
   return genes;
 }
+class ErrorGeneMapValidationFailure : public std::runtime_error {
+public:
+  explicit ErrorGeneMapValidationFailure(const std::string &message) : std::runtime_error(message) {}
+};
 
 void validateGenes(const std::set<std::string> &genes, const GeneMap &geneMap) {
   for (const auto &gene : genes) {
     const auto &it = geneMap.find(gene);
     if (it == geneMap.end()) {
-      fmt::print(stderr, "Error: gene \"{}\" is not in gene map\n", gene);
-      std::exit(1);
+      throw ErrorGeneMapValidationFailure(fmt::format("Error: gene \"{}\" is not in gene map\n", gene));
     }
   }
 }
@@ -486,8 +505,6 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
   if (!outDir.is_absolute()) {
     outDir = fs::current_path() / outDir;
   }
-
-  fmt::print("OUT PATH: \"{:<s}\"\n", outDir.string());
 
   auto baseName = sequencesPath.stem();
   if (cliParams.outputBasename) {
@@ -575,7 +592,8 @@ void run(
   /* in  */ const NextalignOptions &options,
   /* out */ std::ostream &outputFastaStream,
   /* out */ std::ostream &outputInsertionsStream,
-  /* out */ std::map<std::string, std::ofstream> &outputGeneStreams) {
+  /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
+  /* out */ Logger &logger) {
   tbb::task_group_context context;
 
   const auto ref = toNucleotideSequence(refStr);
@@ -615,7 +633,7 @@ void run(
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(tbb::filter_mode::serial_in_order,//
-    [&outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &refGenesHaveBeenWritten](
+    [&outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &refGenesHaveBeenWritten, &logger](
       const AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
@@ -625,9 +643,8 @@ void run(
         try {
           std::rethrow_exception(error);
         } catch (const std::exception &e) {
-          fmt::print(stderr,
-            "Error: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n", seqName,
-            e.what());
+          logger.error("Error: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n",
+            seqName, e.what());
           return;
         }
       }
@@ -638,11 +655,11 @@ void run(
       const auto &queryPeptides = output.result.queryPeptides;
       const auto &refPeptides = output.result.refPeptides;
       const auto &warnings = output.result.warnings;
-      fmt::print(stdout, "| {:5d} | {:<40s} | {:>16d} | {:12d} | \n",//
+      logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} | \n",//
         index, seqName, alignmentScore, insertions.size());
 
       for (const auto &warning : warnings) {
-        fmt::print(stderr, "Warning: in sequence \"{:s}\": {:s}\n", seqName, warning);
+        logger.error("Warning: in sequence \"{:s}\": {:s}\n", seqName, warning);
       }
 
       outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, query);
@@ -665,20 +682,31 @@ void run(
   try {
     tbb::parallel_pipeline(parallelism, inputFilter & transformFilters & outputFilter, context);
   } catch (const std::exception &e) {
-    fmt::print(stderr, "Error: when running the pipeline: {:s}\n", e.what());
+    logger.error("Error: when running the pipeline: {:s}\n", e.what());
   }
 }
 
-
 int main(int argc, char *argv[]) {
   try {
-    const auto [cliParams, options] = parseCommandLine(argc, argv);
-    fmt::print(stdout, formatCliParams(cliParams));
+    const auto [cliParams, cxxOpts, options] = parseCommandLine(argc, argv);
+
+    Logger::Options loggerOptions;
+    if (cliParams.verbose) {
+      loggerOptions.verbosity = Logger::Verbosity::info;
+    }
+
+    if (cliParams.noColor) {
+      loggerOptions.useColor = false;
+    }
+
+    Logger logger{loggerOptions};
+
+    logger.info(formatCliParams(cliParams));
 
     const auto refInput = parseRefFastaFile(cliParams.reference);
     const auto &refName = refInput.seqName;
     const auto &ref = refInput.seq;
-    fmt::print(stdout, formatRef(refName, ref));
+    logger.info(formatRef(refName, ref));
 
     GeneMap geneMap;
     std::set<std::string> genes;
@@ -687,18 +715,18 @@ int main(int argc, char *argv[]) {
       genes = parseGenes(cliParams, geneMap);
       validateGenes(genes, geneMap);
       geneMap = filterGeneMap(genes, geneMap);
-      fmt::print(stdout, formatGeneMap(geneMap, genes));
+      logger.info(formatGeneMap(geneMap, genes));
     }
 
     std::ifstream fastaFile(cliParams.sequences);
     auto fastaStream = makeFastaStream(fastaFile);
     if (!fastaFile.good()) {
-      fmt::print(stderr, "Error: unable to read \"{:s}\"\n", cliParams.sequences);
+      logger.error("Error: unable to read \"{:s}\"\n", cliParams.sequences);
       std::exit(1);
     }
 
     const auto paths = getPaths(cliParams, genes);
-    fmt::print(stdout, formatPaths(paths));
+    logger.info(formatPaths(paths));
 
     fs::create_directories(paths.outputFasta.parent_path());
     fs::create_directories(paths.outputInsertions.parent_path());
@@ -706,14 +734,13 @@ int main(int argc, char *argv[]) {
 
     std::ofstream outputFastaFile(paths.outputFasta);
     if (!outputFastaFile.good()) {
-      fmt::print(stderr, "Error: unable to write \"{:s}\"\n", paths.outputFasta.string());
+      logger.error("Error: unable to write \"{:s}\"\n", paths.outputFasta.string());
       std::exit(1);
     }
 
-
     std::ofstream outputInsertionsFile(paths.outputInsertions);
     if (!outputInsertionsFile.good()) {
-      fmt::print(stderr, "Error: unable to write \"{:s}\"\n", paths.outputInsertions.string());
+      logger.error("Error: unable to write \"{:s}\"\n", paths.outputInsertions.string());
       std::exit(1);
     }
     outputInsertionsFile << "seqName,insertions\n";
@@ -726,7 +753,7 @@ int main(int argc, char *argv[]) {
       const auto &outputGeneFile = result.first->second;
 
       if (!outputGeneFile.good()) {
-        fmt::print(stderr, "Error: unable to write \"{:s}\"\n", outputGenePath.string());
+        logger.error("Error: unable to write \"{:s}\"\n", outputGenePath.string());
         std::exit(1);
       }
     }
@@ -738,23 +765,24 @@ int main(int argc, char *argv[]) {
       parallelism = cliParams.jobs;
     }
 
-    fmt::print("\nParallelism: {:d}\n", parallelism);
+    logger.info("\nParallelism: {:d}\n", parallelism);
 
     constexpr const auto TABLE_WIDTH = 86;
-    fmt::print(stdout, "\nSequences:\n");
-    fmt::print(stdout, "{:s}\n", std::string(TABLE_WIDTH, '-'));
-    fmt::print(stdout, "| {:5s} | {:40s} | {:16s} | {:12s} |\n", "Index", "Seq. name", "Align. score", "Insertions");
-    fmt::print(stdout, "{:s}\n", std::string(TABLE_WIDTH, '-'));
+    logger.info("\nSequences:\n");
+    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
+    logger.info("| {:5s} | {:40s} | {:16s} | {:12s} |\n", "Index", "Seq. name", "Align. score", "Insertions");
+    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
 
     try {
       run(parallelism, cliParams, fastaStream, ref, geneMap, options, outputFastaFile, outputInsertionsFile,
-        outputGeneFiles);
+        outputGeneFiles, logger);
     } catch (const std::exception &e) {
-      fmt::print(stdout, "Error: {:>16s} |\n", e.what());
+      logger.info("Error: {:>16s} |\n", e.what());
     }
 
-    fmt::print(stdout, "{:s}\n", std::string(TABLE_WIDTH, '-'));
+    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
+
   } catch (const cxxopts::OptionSpecException &e) {
     std::cerr << "Error: " << e.what() << std::endl;
     std::exit(1);
