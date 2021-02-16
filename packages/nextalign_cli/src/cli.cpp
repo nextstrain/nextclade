@@ -404,7 +404,7 @@ GeneMap parseGeneMapGffFile(const std::string &filename) {
     std::exit(1);
   }
 
-  auto geneMap = parseGeneMapGff(file);
+  auto geneMap = parseGeneMapGff(file, filename);
   if (geneMap.empty()) {
     fmt::print(stderr, "Error: gene map is empty");
     std::exit(1);

@@ -177,7 +177,7 @@ NextalignOptions getDefaultOptions();
  *
  * @see GFF format reference at https://www.ensembl.org/info/website/upload/gff.html
  */
-GeneMap parseGeneMapGff(std::istream& is);
+GeneMap parseGeneMapGff(std::istream& is, const std::string& name = "filestream");
 
 class FastaStream {
 public:

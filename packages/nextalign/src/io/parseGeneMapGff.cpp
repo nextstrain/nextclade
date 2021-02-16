@@ -171,8 +171,8 @@ void validateGene(const Gene& gene) {
   }
 }
 
-GeneMap parseGeneMapGff(std::istream& is) {
-  GffReader reader("file", is);
+GeneMap parseGeneMapGff(std::istream& is, const std::string& name) {
+  GffReader reader(name, is);
 
   reader.set_header(
     /* 1 */ "seqname",
