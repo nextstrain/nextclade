@@ -1,6 +1,8 @@
+#include <emscripten.h>
 #include <emscripten/bind.h>
 
 #include <exception>
+#include <optional>
 #include <string>
 
 #include "add.h"
@@ -45,4 +47,65 @@ EMSCRIPTEN_BINDINGS(bbb) {
 
   emscripten::function("getPerson", &getPerson);
   emscripten::function("toString", &toString);
+}
+
+
+struct Node {
+  int foo;
+  std::string bar;
+  std::optional<std::vector<Node>> children;
+};
+
+struct AuspiceJsonV2 {
+  Node tree;
+};
+
+
+template<typename OptionalType>
+struct StdOptional {
+  static emscripten::val value(const OptionalType& v) {
+    return emscripten::val(v.value());
+  }
+
+  static bool has_value(OptionalType& v) {
+    return v.has_value();
+  }
+};
+
+template<typename V>
+emscripten::class_<std::optional<V>> register_optional(const char* name) {
+  return emscripten::class_<std::optional<V>>(name)
+    .constructor()
+    .template constructor<V>()
+    .function("value", &StdOptional<std::optional<V>>::value)
+    .function("has_value", &StdOptional<std::optional<V>>::has_value);
+}
+
+std::string getOptional(const std::optional<int> x) {
+  if (x) {
+    return "optional: " + std::to_string(*x);
+  }
+
+  return "optional: empty";
+}
+
+Node getAuspiceJson(const Node& node) {
+  return node;
+}
+
+
+EMSCRIPTEN_BINDINGS(opt) {
+//  emscripten::value_object<Node>("Node")
+//    .field("foo", &Node::foo)
+//    .field("bar", &Node::bar)
+//    .field("children", &Node::children);
+
+  register_optional<int>("hello");
+
+//  emscripten::register_vector<Node>("NodeArray");
+//  register_optional<std::vector<Node>>("OptionalNodeArray");
+
+  emscripten::function("getOptional", &getOptional);
+
+//  emscripten::function("getAuspiceJson", &getAuspiceJson);
 }

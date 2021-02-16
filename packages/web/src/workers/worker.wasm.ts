@@ -64,12 +64,29 @@ export function run() {
 
   return runWasmModule(module, (module) => {
     const res = module.add(3, 5)
-    console.info(res)
+    // console.info(res)
 
-    console.info(module.concat('a', 'b'))
-    console.info(module.getObject())
-    console.info(module.getPerson())
-    console.info(module.toString({ name: 'Alice', age: 27, foo: { bar: 2.74 } }))
+    // console.info(module.concat('a', 'b'))
+    // console.info(module.getObject())
+    // console.info(module.getPerson())
+    // console.info(module.toString({ name: 'Alice', age: 27, foo: { bar: 2.74 } }))
+
+    console.info(module.getOptional(new module.hello(42)))
+
+    // const json = {
+    //   foo: 42,
+    //   bar: 'hello',
+    //   children: new module.OptionalNodeArray([
+    //     {
+    //       foo: 12,
+    //       bar: 'world',
+    //       children: new module.OptionalNodeArray(),
+    //     },
+    //   ]),
+    // }
+    //
+    // const resJson = module.getAuspiceJson(json)
+    // console.info({ resJson, children: resJson.children })
 
     // module.kaboom()
 
