@@ -162,7 +162,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 
     (
       "out-of-order",
-      "Allow parallel processing out of order. Without this flag the program will wait for all results from the preceding sequences to be written to the output files before writing to the results for the next sequence. This might introduce waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs. Specifying this flag allows to lift this requirement, which might make the processing faster by eliminating waits, but might also lead to results written out of order. In this case, the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1."
+      "Allow parallel processing out of order. Without this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs. Specifying this flag allows to lift this requirement, which might make the processing faster by eliminating waits, but might also lead to results written out of order. In this case, the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1."
     )
 
     (
