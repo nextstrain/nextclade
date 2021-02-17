@@ -1,3 +1,80 @@
+## [0.13.0](https://github.com/nextstrain/nextclade/compare/0.12.0...0.12.1) (2021-02-17)
+
+### 🚀 Announcing Nextalign
+
+Today we announce Nextalign, the new command-line tool and the algorithm for viral genome alignment.
+
+Nextalign is based on the alignment algorithm used in Nextclade, ported to C++ and made into the standalone command-line tool. Nextalign development is currently primarily focused on SARS-CoV-2, but it can be used with any virus (and if you encounter any difficulties, let us know [on GitHub](https://github.com/nextstrain/nextclade/issues/new)).
+
+There are 2 ways of using Nextalign:
+
+ - Download Nextalign on [Nextclade Github Releases page](https://github.com/nextstrain/nextclade/releases) to run natively 
+
+ - Use Docker container image: [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign)
+
+   ```
+   docker run -it --rm nextstrain/nextalign:latest --help
+   ```
+
+Learn more about Nextalign [here](https://github.com/nextstrain/nextclade/tree/master/packages/nextalign_cli).
+
+
+### 💥 [BREAKING CHANGE] Nextclade has moved!
+
+Once started as a prototype project at [NeherLab](https://neherlab.org/), Nextclade is a part of [Nextstrain project](https://nextstrain.org/) for some time now. For consistency, we will now publish Nextclade in Nexstrain-branded NPM and DockerHub repositories:
+
+ - NPM: [@nextstrain/nextclade](https://www.npmjs.com/package/@nextstrain/nextclade)
+
+ - DockerHub: [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade)
+
+
+We added a "Downloads" section on the main page of Nextclade web application. Additionally, this release contains a few fixes to website's look & feel and slightly improves user experience on mobile devices.
+
+
+### Bug Fixes
+
+* accept 0-based frames as per gff spec ([5c3af28](https://github.com/nextstrain/nextclade/commit/5c3af28ca9afde60b9ad859d38143c9d278e5cea))
+* adjust test expectations to new default parameters ([9a457c3](https://github.com/nextstrain/nextclade/commit/9a457c3648c1a38a9c714d62e79ba29a10902997))
+* center main page content properly ([460464d](https://github.com/nextstrain/nextclade/commit/460464dc10f65a84a454b15a811a0abdfc830841))
+* check for length being a multiple of 3 before codon aware stripping ([a33dd6b](https://github.com/nextstrain/nextclade/commit/a33dd6bfff2b363535ff90d8ee1ff80128a186ec))
+* correct error message formatting ([016e924](https://github.com/nextstrain/nextclade/commit/016e92477a818f79f3cfbcfe4cedf425adfd499d))
+* correct gene length check ([c6e488f](https://github.com/nextstrain/nextclade/commit/c6e488fb3a1dfe392a12f9c5da44bf531628f3b7))
+* end of gene in gene extraction and cli logging ([16626fa](https://github.com/nextstrain/nextclade/commit/16626faecf388f2cadfb6e89ed93ba0b4ec976ad))
+* fix non-responsive elements on main page ([36fa501](https://github.com/nextstrain/nextclade/commit/36fa501477aa72fef0e8604e9ecd0dbe06d92629))
+* only protect gaps on the edges ([fef98c0](https://github.com/nextstrain/nextclade/commit/fef98c059dbc71194ac2a7f46c832f0c4ed8e5b2))
+* pass gff filename to csv parser for more descriptive errors ([6843cc2](https://github.com/nextstrain/nextclade/commit/6843cc2981080c82478d15d30cbdbd926fd8f94c))
+* pass the `score-gap-open-out-of-frame` option from cli into lib ([f9a435d](https://github.com/nextstrain/nextclade/commit/f9a435d7ea5dda3e45a21bd59879d39558e1f581))
+* remove excessive padding around upload box ([34e7bce](https://github.com/nextstrain/nextclade/commit/34e7bce7d454b22ccada877a7231987ae4d1797b))
+* remove gap under the footer ([d4db78b](https://github.com/nextstrain/nextclade/commit/d4db78bb1e9c56f5d40654c6a356f424df2279f2))
+* remove horizontal overflow from main page ([d1061f5](https://github.com/nextstrain/nextclade/commit/d1061f591ddce012828799e0fd367252dcf86216))
+* throw error when stripped sequence has zero length ([2b74257](https://github.com/nextstrain/nextclade/commit/2b74257ce5e1e4ae7b7f43cccb610a9864e92a38))
+
+
+### Features
+
+* add an option to allow out-of-order writes ([22702e3](https://github.com/nextstrain/nextclade/commit/22702e376a87708298948da8276640918818c71d))
+* add downloads section to nextclade main page ([96bd007](https://github.com/nextstrain/nextclade/commit/96bd0074266f82570f29ba344ae9ba6dbe53bf23))
+* add in-order CLI flag and make out-of-order behavior the default ([e722504](https://github.com/nextstrain/nextclade/commit/e722504726cdaec8885c1ce5a63a9fe86e9cb93c))
+* add logger with configurable verbosity ([0a62c1f](https://github.com/nextstrain/nextclade/commit/0a62c1f24f3b1cdca8fce5063eb33176646b5066))
+* add team portraits to main page ([7566b27](https://github.com/nextstrain/nextclade/commit/7566b27f0879f44e3e35aae26251006106befc1b))
+* add validation for numeric cli params ([3915334](https://github.com/nextstrain/nextclade/commit/39153349dc9a8ff64b09d914d16c168aabaefc58))
+* adjust team credits styling and text ([ba7f0ab](https://github.com/nextstrain/nextclade/commit/ba7f0ab1ccf6a3e455b851dc4078fbc30256f1c6))
+* clarify descriptions for score-gap-open* family of cli options ([3765de8](https://github.com/nextstrain/nextclade/commit/3765de8a06a5aa21fff1799beeee0710589ae367))
+* differentiate gap open cost outside of genes, in frame, and out of frame ([a5ead08](https://github.com/nextstrain/nextclade/commit/a5ead0877bebb2e4738e38060921d09f4914f9e1))
+* don't use frame from gff ([d9f3023](https://github.com/nextstrain/nextclade/commit/d9f302356ec8e49f2ea668f0bf8a03af4a31ec47))
+* expose nextalign algorithm params in cli ([852c2b1](https://github.com/nextstrain/nextclade/commit/852c2b153f0fe9089ebfea7ed5b1e5f035ccface))
+* expose nextalign algorithm params in library ([5e3900a](https://github.com/nextstrain/nextclade/commit/5e3900a54c45ecf7b2da6497ffb6656196ca91ae))
+* extend cli param descriptions ([a4ac1d5](https://github.com/nextstrain/nextclade/commit/a4ac1d5255e503d406c93cd92163fe7e4b5d76b2))
+* extend project description ([30d104e](https://github.com/nextstrain/nextclade/commit/30d104ea7acf09709b1bc43e61d2901b12a11df6))
+* further improve logging ([2f593f0](https://github.com/nextstrain/nextclade/commit/2f593f0f84c8e14ba960ba1ee04e62efb09d55c2))
+* improve warning messages during gene extraction ([07e2c38](https://github.com/nextstrain/nextclade/commit/07e2c38be24d452a4cea6752965b6720bd606bd1))
+* limit clade schema size ([a75dace](https://github.com/nextstrain/nextclade/commit/a75dacee525a5c64c38629c93ece19db052869a8))
+* rename negative 'scores' to 'penalties' ([17bb582](https://github.com/nextstrain/nextclade/commit/17bb582566daf8ce22d3ea3840d29758b907a6e9))
+* skip minimal sequence length check for aminoacid alignment ([394ca8e](https://github.com/nextstrain/nextclade/commit/394ca8e3887dd57344c276bb4848ff9099ff0974))
+* validate codon-related penalty scores only if genes are provided ([9627cfc](https://github.com/nextstrain/nextclade/commit/9627cfc76bb6c500b19aeb3a8d0d05a3ed9431ab))
+
+
+
 # [0.12.0](https://github.com/nextstrain/nextclade/compare/0.11.2...0.12.0) (2021-01-21)
 
 This release provides a temporary solution for the problem when certain aminoacid deletions are not being detected properly.
