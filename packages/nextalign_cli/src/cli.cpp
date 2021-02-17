@@ -99,16 +99,6 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
   options.alignment.penaltyGapOpenInFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-open-in-frame", ensurePositive);
   options.alignment.penaltyGapOpenOutOfFrame = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-gap-open-out-of-frame", ensurePositive);
 
-  // penaltyGapOpenOutOfFrame > penaltyGapOpenInFrame > penaltyGapOpen
-  const auto isInFrameGreater = options.alignment.penaltyGapOpenInFrame > options.alignment.penaltyGapOpen;
-  const auto isOutOfFrameEvenGreater = options.alignment.penaltyGapOpenOutOfFrame > options.alignment.penaltyGapOpenInFrame;
-  if(!(isInFrameGreater && isOutOfFrameEvenGreater)) {
-    throw std::runtime_error(
-      fmt::format("Error: should verify the condition `--penalty-gap-open-out-of-frame` > `--penalty-gap-open-in-frame` > `--penalty-gap-open`, but got {:d} > {:d} > {:d}, which is false",
-        options.alignment.penaltyGapOpenOutOfFrame, options.alignment.penaltyGapOpenInFrame, options.alignment.penaltyGapOpen)
-    );
-  }
-
   options.alignment.penaltyMismatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "penalty-mismatch", ensurePositive);
   options.alignment.scoreMatch = getParamRequiredDefaulted<int>(cxxOptsParsed, "score-match", ensurePositive);
   options.alignment.maxIndel = getParamRequiredDefaulted<int>(cxxOptsParsed, "max-indel", ensureNonNegative);
@@ -705,6 +695,20 @@ int main(int argc, char *argv[]) {
       validateGenes(genes, geneMap);
       geneMap = filterGeneMap(genes, geneMap);
       logger.info(formatGeneMap(geneMap, genes));
+    }
+
+    if (!genes.empty()) {
+      // penaltyGapOpenOutOfFrame > penaltyGapOpenInFrame > penaltyGapOpen
+      const auto isInFrameGreater = options.alignment.penaltyGapOpenInFrame > options.alignment.penaltyGapOpen;
+      const auto isOutOfFrameEvenGreater =
+        options.alignment.penaltyGapOpenOutOfFrame > options.alignment.penaltyGapOpenInFrame;
+      if (!(isInFrameGreater && isOutOfFrameEvenGreater)) {
+        throw ErrorCliOptionInvalidValue(
+          fmt::format("Should verify the condition `--penalty-gap-open-out-of-frame` > `--penalty-gap-open-in-frame` > "
+                      "`--penalty-gap-open`, but got {:d} > {:d} > {:d}, which is false",
+            options.alignment.penaltyGapOpenOutOfFrame, options.alignment.penaltyGapOpenInFrame,
+            options.alignment.penaltyGapOpen));
+      }
     }
 
     std::ifstream fastaFile(cliParams.sequences);
