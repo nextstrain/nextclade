@@ -17,7 +17,7 @@
 struct CliParams {
   int jobs;
   bool verbose;
-  bool outOfOrder;
+  bool inOrder;
   std::string sequences;
   std::string reference;
   std::optional<std::string> genemap;
@@ -161,8 +161,8 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     )
 
     (
-      "out-of-order",
-      "Allow parallel processing out of order. Without this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs. Specifying this flag allows to lift this requirement, which might make the processing faster by eliminating waits, but might also lead to results written out of order. In this case, the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1."
+      "in-order",
+      "Force parallel processing in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag."
     )
 
     (
@@ -355,7 +355,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 
     CliParams cliParams;
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
-    cliParams.outOfOrder = getParamRequiredDefaulted<bool>(cxxOptsParsed, "out-of-order");
+    cliParams.inOrder = getParamRequiredDefaulted<bool>(cxxOptsParsed, "in-order");
     cliParams.verbose = getParamRequiredDefaulted<bool>(cxxOptsParsed, "verbose");
     cliParams.sequences = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "sequences");
     cliParams.reference = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "reference");
@@ -591,7 +591,7 @@ std::string formatInsertions(const std::vector<Insertion> &insertions) {
  */
 void run(
   /* in  */ int parallelism,
-  /* in  */ bool outOfOrder,
+  /* in  */ bool inOrder,
   /* in  */ const CliParams &cliParams,
   /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
   /* in  */ const std::string &refStr,
@@ -602,7 +602,7 @@ void run(
   /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
   /* out */ Logger &logger) {
   tbb::task_group_context context;
-  const auto ioFiltersMode = outOfOrder ? tbb::filter_mode::serial_out_of_order : tbb::filter_mode::serial_in_order;
+  const auto ioFiltersMode = inOrder ? tbb::filter_mode::serial_in_order : tbb::filter_mode::serial_out_of_order;
 
   const auto ref = toNucleotideSequence(refStr);
 
@@ -780,7 +780,7 @@ int main(int argc, char *argv[]) {
       parallelism = cliParams.jobs;
     }
 
-    bool outOfOrder = cliParams.outOfOrder;
+    bool inOrder = cliParams.inOrder;
 
     logger.info("\nParallelism: {:d}\n", parallelism);
 
@@ -791,7 +791,7 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, outOfOrder, cliParams, fastaStream, ref, geneMap, options, outputFastaFile, outputInsertionsFile,
+      run(parallelism, inOrder, cliParams, fastaStream, ref, geneMap, options, outputFastaFile, outputInsertionsFile,
         outputGeneFiles, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
