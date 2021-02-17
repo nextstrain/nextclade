@@ -1,5 +1,6 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
+#include <fmt/format.h>
 
 #include <exception>
 #include <optional>
@@ -67,8 +68,8 @@ struct StdOptional {
     return emscripten::val(v.value());
   }
 
-  static bool has_value(OptionalType& v) {
-    return v.has_value();
+  static emscripten::val has_value(OptionalType& v) {
+    return emscripten::val(v.has_value());
   }
 };
 
@@ -89,23 +90,53 @@ std::string getOptional(const std::optional<int> x) {
   return "optional: empty";
 }
 
+//std::string getAuspiceJson(const Node& node) {
+//  const auto hasChildren = node.children.has_value();
+//
+//  fmt::memory_buffer buf;
+//  fmt::format_to(buf, "{:d} {:s} {:d}", node.foo, node.bar, hasChildren);
+//  std::string result = fmt::to_string(buf);
+//
+//  if (hasChildren) {
+//    for (const auto& child : *node.children) {
+//      result += " | " + getAuspiceJson(child);
+//    }
+//  }
+//
+//  return result;
+//}
+
+
 Node getAuspiceJson(const Node& node) {
+//  const auto hasChildren = node.children.has_value();
+//
+//  fmt::memory_buffer buf;
+//  fmt::format_to(buf, "{:d} {:s} {:d}", node.foo, node.bar, hasChildren);
+//  std::string result = fmt::to_string(buf);
+//
+//  if (hasChildren) {
+//    for (const auto& child : *node.children) {
+//      result += " | " + getAuspiceJson(child);
+//    }
+//  }
+
   return node;
 }
 
 
 EMSCRIPTEN_BINDINGS(opt) {
-//  emscripten::value_object<Node>("Node")
-//    .field("foo", &Node::foo)
-//    .field("bar", &Node::bar)
-//    .field("children", &Node::children);
+  //  register_optional<int>("hello");
+  //  emscripten::function("getOptional", &getOptional);
 
-  register_optional<int>("hello");
+  emscripten::value_object<Node>("Node")
+    .field("foo", &Node::foo)
+    .field("bar", &Node::bar)
+    .field("children", &Node::children);
 
-//  emscripten::register_vector<Node>("NodeArray");
-//  register_optional<std::vector<Node>>("OptionalNodeArray");
 
-  emscripten::function("getOptional", &getOptional);
+  emscripten::register_vector<Node>("NodeArray");
 
-//  emscripten::function("getAuspiceJson", &getAuspiceJson);
+  register_optional<std::vector<Node>>("OptionalNodeArray");
+
+  emscripten::function<Node, const Node&>("getAuspiceJson", &getAuspiceJson);
 }
