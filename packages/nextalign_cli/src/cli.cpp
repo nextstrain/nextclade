@@ -17,6 +17,7 @@
 struct CliParams {
   int jobs;
   bool verbose;
+  bool outOfOrder;
   std::string sequences;
   std::string reference;
   std::optional<std::string> genemap;
@@ -157,6 +158,11 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
       "(optional, integer) Number of CPU threads used by the algorithm. If not specified or if a non-positive value specified, the algorithm will use all the available threads.",
       cxxopts::value<int>()->default_value(std::to_string(0)),
       "JOBS"
+    )
+
+    (
+      "out-of-order",
+      "Allow parallel processing out of order. Without this flag the program will wait for all results from the preceding sequences to be written to the output files before writing to the results for the next sequence. This might introduce waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs. Specifying this flag allows to lift this requirement, which might make the processing faster by eliminating waits, but might also lead to results written out of order. In this case, the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1."
     )
 
     (
@@ -349,6 +355,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 
     CliParams cliParams;
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
+    cliParams.outOfOrder = getParamRequiredDefaulted<bool>(cxxOptsParsed, "out-of-order");
     cliParams.verbose = getParamRequiredDefaulted<bool>(cxxOptsParsed, "verbose");
     cliParams.sequences = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "sequences");
     cliParams.reference = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "reference");
@@ -584,6 +591,7 @@ std::string formatInsertions(const std::vector<Insertion> &insertions) {
  */
 void run(
   /* in  */ int parallelism,
+  /* in  */ bool outOfOrder,
   /* in  */ const CliParams &cliParams,
   /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
   /* in  */ const std::string &refStr,
@@ -594,12 +602,13 @@ void run(
   /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
   /* out */ Logger &logger) {
   tbb::task_group_context context;
+  const auto ioFiltersMode = outOfOrder ? tbb::filter_mode::serial_out_of_order : tbb::filter_mode::serial_in_order;
 
   const auto ref = toNucleotideSequence(refStr);
 
   /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
-  const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(tbb::filter_mode::serial_in_order,//
+  const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(ioFiltersMode,//
     [&inputFastaStream](tbb::flow_control &fc) -> AlgorithmInput {
       if (!inputFastaStream->good()) {
         fc.stop();
@@ -631,7 +640,7 @@ void run(
 
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
-  const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(tbb::filter_mode::serial_in_order,//
+  const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(ioFiltersMode,//
     [&outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &refGenesHaveBeenWritten, &logger](
       const AlgorithmOutput &output) {
       const auto index = output.index;
@@ -771,6 +780,8 @@ int main(int argc, char *argv[]) {
       parallelism = cliParams.jobs;
     }
 
+    bool outOfOrder = cliParams.outOfOrder;
+
     logger.info("\nParallelism: {:d}\n", parallelism);
 
     constexpr const auto TABLE_WIDTH = 86;
@@ -780,7 +791,7 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, cliParams, fastaStream, ref, geneMap, options, outputFastaFile, outputInsertionsFile,
+      run(parallelism, outOfOrder, cliParams, fastaStream, ref, geneMap, options, outputFastaFile, outputInsertionsFile,
         outputGeneFiles, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
