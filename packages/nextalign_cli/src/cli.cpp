@@ -39,6 +39,10 @@ public:
   explicit ErrorCliOptionInvalidValue(const std::string &message) : std::runtime_error(message) {}
 };
 
+class ErrorIoUnableToWrite : public std::runtime_error {
+public:
+  explicit ErrorIoUnableToWrite(const std::string &message) : std::runtime_error(message) {}
+};
 
 template<typename Result>
 Result getParamRequired(
@@ -325,23 +329,23 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
   ;
   // clang-format on
 
-  const auto cxxOptsParsed = cxxOpts.parse(argc, argv);
-
-  if (cxxOptsParsed.count("help") > 0) {
-    fmt::print("{:s}\n", cxxOpts.help());
-    std::exit(0);
-  }
-
-  if (cxxOptsParsed.count("version") > 0) {
-    fmt::print("{:s}\n", versionShort);
-    std::exit(0);
-  }
-
-  if (cxxOptsParsed.count("version-detailed") > 0) {
-    fmt::print("{:s}\n", versionDetailed);
-    std::exit(0);
-  }
   try {
+    const auto cxxOptsParsed = cxxOpts.parse(argc, argv);
+
+    if (cxxOptsParsed.count("help") > 0) {
+      fmt::print("{:s}\n", cxxOpts.help());
+      std::exit(0);
+    }
+
+    if (cxxOptsParsed.count("version") > 0) {
+      fmt::print("{:s}\n", versionShort);
+      std::exit(0);
+    }
+
+    if (cxxOptsParsed.count("version-detailed") > 0) {
+      fmt::print("{:s}\n", versionDetailed);
+      std::exit(0);
+    }
 
     CliParams cliParams;
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
@@ -364,8 +368,20 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 
     return std::make_tuple(cliParams, cxxOpts, options);
 
+  } catch (const cxxopts::OptionSpecException &e) {
+    fmt::print(stderr, "Error: OptionSpecException: {:s}\n\n", e.what());
+    fmt::print(stderr, "{:s}\n", cxxOpts.help());
+    std::exit(1);
+  } catch (const cxxopts::OptionParseException &e) {
+    fmt::print(stderr, "Error: OptionParseException: {:s}\n\n", e.what());
+    fmt::print(stderr, "{:s}\n", cxxOpts.help());
+    std::exit(1);
   } catch (const ErrorCliOptionInvalidValue &e) {
-    fmt::print(stderr, "{:s}\n\n", e.what());
+    fmt::print(stderr, "Error: ErrorCliOptionInvalidValue: {:s}\n\n", e.what());
+    fmt::print(stderr, "{:s}\n", cxxOpts.help());
+    std::exit(1);
+  } catch (const std::exception &e) {
+    fmt::print(stderr, "Error: {:s}\n\n", e.what());
     fmt::print(stderr, "{:s}\n", cxxOpts.help());
     std::exit(1);
   }
@@ -626,7 +642,7 @@ void run(
         try {
           std::rethrow_exception(error);
         } catch (const std::exception &e) {
-          logger.error("Error: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n",
+          logger.warn("Warning: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n",
             seqName, e.what());
           return;
         }
@@ -642,7 +658,7 @@ void run(
         index, seqName, alignmentScore, insertions.size());
 
       for (const auto &warning : warnings) {
-        logger.error("Warning: in sequence \"{:s}\": {:s}\n", seqName, warning);
+        logger.warn("Warning: in sequence \"{:s}\": {:s}\n", seqName, warning);
       }
 
       outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, query);
@@ -672,6 +688,7 @@ void run(
 int main(int argc, char *argv[]) {
   try {
     const auto [cliParams, cxxOpts, options] = parseCommandLine(argc, argv);
+    const auto helpText = cxxOpts.help();
 
     Logger::Options loggerOptions;
     if (cliParams.verbose) {
@@ -724,17 +741,14 @@ int main(int argc, char *argv[]) {
     fs::create_directories(paths.outputFasta.parent_path());
     fs::create_directories(paths.outputInsertions.parent_path());
 
-
     std::ofstream outputFastaFile(paths.outputFasta);
     if (!outputFastaFile.good()) {
-      logger.error("Error: unable to write \"{:s}\"\n", paths.outputFasta.string());
-      std::exit(1);
+      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputFasta.string()));
     }
 
     std::ofstream outputInsertionsFile(paths.outputInsertions);
     if (!outputInsertionsFile.good()) {
-      logger.error("Error: unable to write \"{:s}\"\n", paths.outputInsertions.string());
-      std::exit(1);
+      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputInsertions.string()));
     }
     outputInsertionsFile << "seqName,insertions\n";
 
@@ -746,8 +760,7 @@ int main(int argc, char *argv[]) {
       const auto &outputGeneFile = result.first->second;
 
       if (!outputGeneFile.good()) {
-        logger.error("Error: unable to write \"{:s}\"\n", outputGenePath.string());
-        std::exit(1);
+        throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", outputGenePath.string()));
       }
     }
 
@@ -766,24 +779,16 @@ int main(int argc, char *argv[]) {
     logger.info("| {:5s} | {:40s} | {:16s} | {:12s} |\n", "Index", "Seq. name", "Align. score", "Insertions");
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
-
     try {
       run(parallelism, cliParams, fastaStream, ref, geneMap, options, outputFastaFile, outputInsertionsFile,
         outputGeneFiles, logger);
     } catch (const std::exception &e) {
-      logger.info("Error: {:>16s} |\n", e.what());
+      logger.error("Error: {:>16s} |\n", e.what());
     }
 
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
-
-  } catch (const cxxopts::OptionSpecException &e) {
-    std::cerr << "Error: " << e.what() << std::endl;
-    std::exit(1);
-  } catch (const cxxopts::OptionParseException &e) {
-    std::cerr << "Error: " << e.what() << std::endl;
-    std::exit(1);
   } catch (const std::exception &e) {
-    std::cerr << "Error: " << e.what() << std::endl;
+    fmt::print(stderr, "Error: {:s}\n", e.what());
     std::exit(1);
   }
 }
