@@ -747,8 +747,15 @@ int main(int argc, char *argv[]) {
     const auto paths = getPaths(cliParams, genes);
     logger.info(formatPaths(paths));
 
-    fs::create_directories(paths.outputFasta.parent_path());
-    fs::create_directories(paths.outputInsertions.parent_path());
+    const auto outputFastaParent = paths.outputFasta.parent_path();
+    if (!outputFastaParent.empty()) {
+      fs::create_directories(outputFastaParent);
+    }
+
+    const auto outputInsertionsParent = paths.outputInsertions.parent_path();
+    if (!outputInsertionsParent.empty()) {
+      fs::create_directories(outputInsertionsParent);
+    }
 
     std::ofstream outputFastaFile(paths.outputFasta);
     if (!outputFastaFile.good()) {
