@@ -1,3 +1,0 @@
-[submodule "packages/algorithms/3rdparty/seqan3"]
-	path = packages/algorithms/3rdparty/seqan3
-	url = https://github.com/seqan/seqan3
