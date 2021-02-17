@@ -17,7 +17,6 @@
 struct CliParams {
   int jobs;
   bool verbose;
-  bool noColor;
   std::string sequences;
   std::string reference;
   std::optional<std::string> genemap;
@@ -157,11 +156,6 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     (
       "verbose",
       "Increase verbosity of the console output. By default only errors and warnings are shown. With this option more information will be printed."
-    )
-
-    (
-      "no-color",
-      "Don't use color in console log."
     )
 
     (
@@ -362,7 +356,6 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     CliParams cliParams;
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
     cliParams.verbose = getParamRequiredDefaulted<bool>(cxxOptsParsed, "verbose");
-    cliParams.noColor = getParamRequiredDefaulted<bool>(cxxOptsParsed, "no-color");
     cliParams.sequences = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "sequences");
     cliParams.reference = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "reference");
     cliParams.genemap = getParamOptional<std::string>(cxxOptsParsed, "genemap");
@@ -693,10 +686,6 @@ int main(int argc, char *argv[]) {
     Logger::Options loggerOptions;
     if (cliParams.verbose) {
       loggerOptions.verbosity = Logger::Verbosity::info;
-    }
-
-    if (cliParams.noColor) {
-      loggerOptions.useColor = false;
     }
 
     Logger logger{loggerOptions};

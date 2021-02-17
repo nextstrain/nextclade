@@ -16,7 +16,6 @@ public:
 
   struct Options {
     Verbosity verbosity = Verbosity::warn;
-    bool useColor = true;
   };
 
 
