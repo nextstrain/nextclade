@@ -65,7 +65,7 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
 
   if (module.hot) {
     // Setup hot reloading of root reducer
-    module.hot.accept('./reducer', () => {
+    module.hot.accept(() => {
       store.replaceReducer(createRootReducer())
       console.info('[HMR] root reducer reloaded successfully')
     })

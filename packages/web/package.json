@@ -156,7 +156,6 @@
     "serialize-javascript": "5.0.1",
     "styled-components": "5.2.1",
     "threads": "1.6.3",
-    "threads-plugin": "1.4.0",
     "typeface-lato": "1.1.13",
     "use-debounce": "5.2.0",
     "uuid": "8.3.2",
@@ -370,7 +369,7 @@
     "utility-types": "3.10.0",
     "webpack": "5.22.0",
     "webpack-cli": "4.5.0",
-    "webpackbar": "4.0.0",
+    "webpackbar": "5.0.0-3",
     "yaml-loader": "0.6.0"
   },
   "resolutions": {

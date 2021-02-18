@@ -1,8 +1,8 @@
 import { NextConfig, NextWebpackOptions } from 'next'
-import { WebpackOptions } from 'webpack/declarations/WebpackOptions'
+import { Configuration } from 'webpack'
 
 export type CustomWebpackConfig = (
   nextConfig: NextConfig,
-  webpackConfig: WebpackOptions,
+  webpackConfig: Configuration,
   options: NextWebpackOptions,
-) => WebpackOptions
+) => Configuration

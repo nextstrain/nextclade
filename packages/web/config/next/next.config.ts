@@ -25,10 +25,10 @@ import withJson from './withJson'
 import withRaw from './withRaw'
 import withSvg from './withSvg'
 import withImages from './withImages'
-import withThreads from './withThreads'
 import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
+import withWorker from './withWorker'
 
 const {
   // BABEL_ENV,
@@ -76,6 +76,7 @@ const nextConfig: NextConfig = {
   },
   future: {
     excludeDefaultMomentLocales: true,
+    webpack5: true,
   },
   devIndicators: {
     buildActivity: false,
@@ -124,37 +125,39 @@ const transpilationListDev = [
 
 const transpilationListProd = uniq([
   ...transpilationListDev,
-  '!d3-array/src/cumsum.js',
-  '@loadable',
-  'create-color',
   'd3-array',
   'debug',
-  'delay',
   'immer',
   'is-observable',
   'lodash',
   'observable-fns',
-  'p-min-delay',
-  'proper-url-join',
   'query-string',
-  'react-router',
-  'react-share',
   'recharts',
   'redux-saga',
-  'redux/es',
   'semver',
-  'split-on-first',
   'strict-uri-encode',
   'threads',
+  // '!d3-array/src/cumsum.js',
+  // '@loadable',
+  // 'create-color',
+  // 'delay',
+  // 'p-min-delay',
+  // 'proper-url-join',
+  // 'react-router',
+  // 'react-share',
+  // 'redux/es',
+  // 'split-on-first',
 ])
 
-const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
+const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev, {
+  unstable_webpack5: true,
+})
 
 const config = withPlugins(
   [
     [withIgnore],
-    [withExtraWatch],
-    [withThreads],
+    // [withExtraWatch],
+    // [withWorker],
     [withSvg],
     [withImages],
     [withRaw],
@@ -165,7 +168,7 @@ const config = withPlugins(
     [withLodash],
     [withTypeChecking],
     [withTranspileModules],
-    PRODUCTION && [withStaticComprression],
+    // PRODUCTION && [withStaticComprression],
     PROFILE && [withoutMinification],
     [withFriendlyChunkNames],
   ].filter(Boolean),

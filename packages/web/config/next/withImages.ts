@@ -5,11 +5,9 @@ import { addWebpackLoader } from './lib/addWebpackLoader'
 export default function withSvg(nextConfig: NextConfig) {
   return addWebpackLoader(nextConfig, (webpackConfig, { dev, isServer }) => ({
     test: /\.(gif|ico|jp2|jpe?g|png|webp)$/,
-    issuer: {
-      // Next.js already handles url() in css/sass/scss files
-      // eslint-disable-next-line security/detect-unsafe-regex
-      test: /\.\w+(?<!(s?c|sa)ss)$/i,
-    },
+    // Next.js already handles url() in css/sass/scss files
+    // eslint-disable-next-line security/detect-unsafe-regex
+    issuer: /\.\w+(?<!(s?c|sa)ss)$/i,
     exclude: nextConfig.exclude,
     use: [
       {

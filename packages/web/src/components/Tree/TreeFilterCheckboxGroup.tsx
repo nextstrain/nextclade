@@ -114,7 +114,7 @@ export function TreeFilterCheckboxGroupDisconnected({
   }
 
   const applySearch = useCallback(applySearchRaw, [values])
-  const [applySearchDebounced] = useDebouncedCallback(applySearchRaw, SEARCH_INPUT_DEBOUNCE_DELAY)
+  const { callback: applySearchDebounced } = useDebouncedCallback(applySearchRaw, SEARCH_INPUT_DEBOUNCE_DELAY)
 
   const onSearchTermChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
