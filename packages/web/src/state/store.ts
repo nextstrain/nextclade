@@ -1,7 +1,5 @@
-import { format } from 'url'
-
 import type { Router } from 'next/router'
-import { applyMiddleware, createStore, StoreEnhancer, Store, Middleware } from 'redux'
+import { applyMiddleware, createStore, Store, Middleware } from 'redux'
 
 import type { PersistorOptions, Persistor } from 'redux-persist/es/types'
 import reduxImmutableStateInvariant from 'redux-immutable-state-invariant'
@@ -48,13 +46,12 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
   let enhancer = applyMiddleware(...middlewares)
   enhancer = withReduxDevTools(enhancer)
 
-  const { asPath, pathname, query } = router
+  const { asPath } = router
   let initialState = {}
   if (asPath) {
-    const url = format({ pathname, query })
     initialState = {
       ...initialState,
-      router: initialRouterState(url, asPath),
+      router: initialRouterState(asPath),
     }
   }
 

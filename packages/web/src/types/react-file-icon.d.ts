@@ -1,60 +1,62 @@
 import React from 'react'
 
+export type IconGlyphType =
+  | '3d'
+  | 'acrobat'
+  | 'audio'
+  | 'binary'
+  | 'code'
+  | 'code2'
+  | 'compressed'
+  | 'document'
+  | 'drive'
+  | 'font'
+  | 'image'
+  | 'presentation'
+  | 'settings'
+  | 'spreadsheet'
+  | 'vector'
+  | 'video'
+
 export interface FileIconProps {
   /** Color of icon background */
-  color: string
+  color?: string
 
   /** Text to display in label */
-  extension: string
+  extension?: string
 
   /** Displays the corner fold */
-  fold: boolean
+  fold?: boolean
 
   /** Color of the corner fold */
-  foldColor: string
+  foldColor?: string
 
   /** Color of file type icon */
-  glyphColor: string
+  glyphColor?: string
 
   /** Color of page gradient */
-  gradientColor: string
+  gradientColor?: string
 
   /** Opacity of page gradient */
-  gradientOpacity: number
+  gradientOpacity?: number
 
   /** Color of label */
-  labelColor: string
+  labelColor?: string
 
   /** Color of label text */
-  labelTextColor: string
+  labelTextColor?: string
 
   /** Style of label text */
-  labelTextStyle: object
+  labelTextStyle?: object
 
   /** Displays the label in all caps */
-  labelUppercase: boolean
+  labelUppercase?: boolean
 
   /** Corner radius of the file icon */
-  radius: number
+  radius?: number
 
   /** Type of glyph icon to display */
-  type:
-    | '3d'
-    | 'acrobat'
-    | 'audio'
-    | 'binary'
-    | 'code'
-    | 'code2'
-    | 'compressed'
-    | 'document'
-    | 'drive'
-    | 'font'
-    | 'image'
-    | 'presentation'
-    | 'settings'
-    | 'spreadsheet'
-    | 'vector'
-    | 'video'
+  type?: IconGlyphType
 }
 
 export type FileExtension =
@@ -170,4 +172,6 @@ export type FileIconComponent = React.FunctionComponent<FileIconProps | React.HT
 
 export declare const FileIcon: FileIconComponent
 
-export declare const defaultStyles: Record<FileExtension, FileIconProps>
+export type Styles = Record<FileExtension, FileIconProps>
+
+export declare const defaultStyles: Styles

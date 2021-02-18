@@ -6,6 +6,8 @@ import { addWebpackPlugin } from './lib/addWebpackPlugin'
 const withLodash = (options: Options) => (nextConfig: NextConfig) => {
   return addWebpackPlugin(
     nextConfig,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     new LodashWebpackPlugin({
       caching: true,
       chaining: true,

@@ -2,7 +2,6 @@ import '../dotenv'
 
 import path from 'path'
 
-import ExtraWatchWebpackPlugin from 'extra-watch-webpack-plugin'
 import ThreadsPlugin from 'threads-plugin'
 import webpack from 'webpack'
 
@@ -87,11 +86,6 @@ module.exports = {
 
   plugins: [
     new ThreadsPlugin({ globalObject: false, target: 'electron-node-worker' }),
-
-    new ExtraWatchWebpackPlugin({
-      files: [path.join(moduleRoot, 'src/types/**/*.d.ts')],
-      dirs: [],
-    }),
 
     webpackTsChecker({
       typeChecking: ENABLE_TYPE_CHECKS,

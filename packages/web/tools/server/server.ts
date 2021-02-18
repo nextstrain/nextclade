@@ -12,7 +12,7 @@
 
 import path from 'path'
 
-import express, { Response } from 'express'
+import express from 'express'
 
 import allowMethods from 'allow-methods'
 import history from 'connect-history-api-fallback'
@@ -35,15 +35,15 @@ export interface NewHeaders {
 function main() {
   const app = express()
 
-  const expressStaticGzipOptions = { enableBrotli: true }
+  const expressStaticGzipOptions: expressStaticGzip.ExpressStaticGzipOptions = { enableBrotli: true }
 
-  const cacheNone = {
+  const cacheNone: expressStaticGzip.ExpressStaticGzipOptions = {
     ...expressStaticGzipOptions,
     serveStatic: {
-      setHeaders: (res: Response) => res.set({ 'Cache-Control': 'no-cache' }),
+      setHeaders: (res) => res.setHeader('Cache-Control', 'no-cache'),
     },
   }
-  const cacheOneYear = {
+  const cacheOneYear: expressStaticGzip.ExpressStaticGzipOptions = {
     ...expressStaticGzipOptions,
     serveStatic: { maxAge: '31556952000', immutable: true },
   }

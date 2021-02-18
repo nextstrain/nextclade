@@ -4,7 +4,6 @@ import { uniq } from 'lodash'
 
 import type { NextConfig } from 'next'
 import getWithMDX from '@next/mdx'
-// import withBundleAnalyzer from '@zeit/next-bundle-analyzer'
 import withPlugins from 'next-compose-plugins'
 import getWithTranspileModules from 'next-transpile-modules'
 
@@ -13,22 +12,18 @@ import { getGitBranch } from '../../lib/getGitBranch'
 import { getBuildNumber } from '../../lib/getBuildNumber'
 import { getBuildUrl } from '../../lib/getBuildUrl'
 import { getGitCommitHash } from '../../lib/getGitCommitHash'
-
 import { getEnvVars } from './lib/getEnvVars'
 
-import getWithExtraWatch from './withExtraWatch'
 import getWithFriendlyConsole from './withFriendlyConsole'
 import getWithLodash from './withLodash'
-// import getWithStaticComprression from './webpackCompression'
 import getWithTypeChecking from './withTypeChecking'
+import withFriendlyChunkNames from './withFriendlyChunkNames'
+import withIgnore from './withIgnore'
+import withImages from './withImages'
 import withJson from './withJson'
 import withRaw from './withRaw'
 import withSvg from './withSvg'
-import withImages from './withImages'
-import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
-import withFriendlyChunkNames from './withFriendlyChunkNames'
-// import withWorker from './withWorker'
 
 const {
   // BABEL_ENV,
@@ -102,14 +97,7 @@ const withFriendlyConsole = getWithFriendlyConsole({
   progressBarColor: 'blue',
 })
 
-const withExtraWatch = getWithExtraWatch({
-  files: [path.join(moduleRoot, 'src/types/**/*.d.ts')],
-  dirs: [],
-})
-
 const withLodash = getWithLodash({ unicode: false })
-
-// const withStaticComprression = getWithStaticComprression({ brotli: false })
 
 const withTypeChecking = getWithTypeChecking({
   typeChecking: ENABLE_TYPE_CHECKS,
@@ -156,19 +144,15 @@ const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationL
 const config = withPlugins(
   [
     [withIgnore],
-    [withExtraWatch],
-    // [withWorker],
     [withSvg],
     [withImages],
     [withRaw],
     [withJson],
-    // ANALYZE && [withBundleAnalyzer],
     [withFriendlyConsole],
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
     [withLodash],
     [withTypeChecking],
     [withTranspileModules],
-    // PRODUCTION && [withStaticComprression],
     PROFILE && [withoutMinification],
     [withFriendlyChunkNames],
   ].filter(Boolean),

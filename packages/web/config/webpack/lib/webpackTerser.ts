@@ -54,8 +54,6 @@ export default function webpackTerser({ sourceMaps, node, profile = false }: Web
   return new TerserPlugin({
     terserOptions: node ? beautify : minify,
     parallel: true,
-    cache: true,
     extractComments: false,
-    sourceMap: sourceMaps,
   })
 }

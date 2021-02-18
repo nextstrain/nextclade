@@ -1,6 +1,6 @@
 import { parseMutation } from 'src/helpers/parseMutation'
 
-describe('parseMutation', () => {
+describe('parseMutation accepts', () => {
   it('should parse ref, position, query', () => {
     expect(parseMutation('A123C')).toStrictEqual({ refNuc: 'A', pos: 122, queryNuc: 'C' })
   })
@@ -58,7 +58,7 @@ describe('parseMutation', () => {
   })
 })
 
-describe('parseMutation', () => {
+describe('parseMutation rejects', () => {
   it('should reject empty input', () => {
     expect(parseMutation('')).toBeUndefined()
   })
