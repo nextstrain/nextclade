@@ -45,7 +45,7 @@ export const FormGroup = styled(ReactstrapFormGroup)`
 export interface NumericFieldProps extends InputProps {
   identifier: string
   label: string
-  value: number | typeof Infinity
+  value: number | typeof Number.POSITIVE_INFINITY
   min: number
   max: number
 

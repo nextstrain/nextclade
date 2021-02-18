@@ -22,8 +22,8 @@ export interface WebpackCompressionParams {
 }
 
 const getWithStaticComprression = ({
-  gzip = { level: 6, threshold: 0, minRatio: Infinity },
-  brotli = { level: 6, threshold: 0, minRatio: Infinity },
+  gzip = { level: 6, threshold: 0, minRatio: Number.POSITIVE_INFINITY },
+  brotli = { level: 6, threshold: 0, minRatio: Number.POSITIVE_INFINITY },
   cache = false,
   exclude = [],
 }: WebpackCompressionParams = {}) => (nextConfig: NextConfig) => {

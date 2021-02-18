@@ -17,7 +17,7 @@ export function rulePrivateMutations(
 
   // the score hits 100 if the excess mutations equals the cutoff value
   let score = (Math.max(0, totalNumberOfMutations - typical) * 100) / cutoff
-  score = clamp(score, 0, Infinity)
+  score = clamp(score, 0, Number.POSITIVE_INFINITY)
 
   const status = getQCRuleStatus(score)
 

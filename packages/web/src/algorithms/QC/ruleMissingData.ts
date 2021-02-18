@@ -16,7 +16,7 @@ export function ruleMissingData(
   const totalMissing = nucleotideComposition.N ?? 0
 
   let score = ((totalMissing - scoreBias) * 100) / missingDataThreshold
-  score = clamp(score, 0, Infinity)
+  score = clamp(score, 0, Number.POSITIVE_INFINITY)
 
   const status = getQCRuleStatus(score)
 

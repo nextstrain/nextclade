@@ -261,9 +261,9 @@ export function attachNewNodesRecursively(
 }
 
 export function getMaxDivergence(node: AuspiceTreeNodeExtended) {
-  const div = node?.node_attrs?.div ?? -Infinity
+  const div = node?.node_attrs?.div ?? Number.NEGATIVE_INFINITY
 
-  let childDiv = -Infinity
+  let childDiv = Number.NEGATIVE_INFINITY
   for (const child of node?.children ?? []) {
     const currChildDiv = getMaxDivergence(child)
     childDiv = Math.max(childDiv, currChildDiv)

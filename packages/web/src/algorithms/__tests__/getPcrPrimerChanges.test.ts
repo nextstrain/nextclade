@@ -119,7 +119,7 @@ describe('shouldReportPrimerMutation', () => {
     expect(shouldReportPrimerMutation(mut, primer)).toBeFalse()
   })
 
-  it('should NOT report when inside AND position matches AND nucleotide is the same ', () => {
+  it('should NOT report when inside AND position matches AND nucleotide is the same', () => {
     const mut = makeMutation({
       pos: 12,
       queryNuc: 'R',

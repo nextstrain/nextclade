@@ -67,7 +67,7 @@ export function ruleSnpClusters(
   const totalSNPs = clusteredSNPs.reduce((acc, { numberOfSNPs }) => acc + numberOfSNPs, 0)
 
   let score = snpClusters.length * scoreWeight
-  score = clamp(score, 0, Infinity)
+  score = clamp(score, 0, Number.POSITIVE_INFINITY)
 
   const status = getQCRuleStatus(score)
 

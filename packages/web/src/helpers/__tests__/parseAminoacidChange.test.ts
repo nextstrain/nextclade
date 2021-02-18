@@ -1,6 +1,6 @@
 import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
 
-describe('parseAminoacidChange', () => {
+describe('parseAminoacidChange accepts', () => {
   it('should parse gene, ref, position, query', () => {
     expect(parseAminoacidChange('Gene1:V123S')).toStrictEqual({ gene: 'Gene1', refAA: 'V', codon: 122, queryAA: 'S' })
   })
@@ -82,7 +82,7 @@ describe('parseAminoacidChange', () => {
   })
 })
 
-describe('parseAminoacidChange ', () => {
+describe('parseAminoacidChange rejects', () => {
   it('should reject empty input', () => {
     expect(parseAminoacidChange('')).toBeUndefined()
   })

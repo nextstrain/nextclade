@@ -87,8 +87,4 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
   return { store, persistor }
 }
 
-declare const window: Window & {
-  __REDUX_DEVTOOLS_EXTENSION_COMPOSE__: StoreEnhancer
-}
-
 declare const module: NodeHotModule

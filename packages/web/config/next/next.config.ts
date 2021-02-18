@@ -19,7 +19,7 @@ import { getEnvVars } from './lib/getEnvVars'
 import getWithExtraWatch from './withExtraWatch'
 import getWithFriendlyConsole from './withFriendlyConsole'
 import getWithLodash from './withLodash'
-import getWithStaticComprression from './webpackCompression'
+// import getWithStaticComprression from './webpackCompression'
 import getWithTypeChecking from './withTypeChecking'
 import withJson from './withJson'
 import withRaw from './withRaw'
@@ -28,7 +28,7 @@ import withImages from './withImages'
 import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
-import withWorker from './withWorker'
+// import withWorker from './withWorker'
 
 const {
   // BABEL_ENV,
@@ -109,7 +109,7 @@ const withExtraWatch = getWithExtraWatch({
 
 const withLodash = getWithLodash({ unicode: false })
 
-const withStaticComprression = getWithStaticComprression({ brotli: false })
+// const withStaticComprression = getWithStaticComprression({ brotli: false })
 
 const withTypeChecking = getWithTypeChecking({
   typeChecking: ENABLE_TYPE_CHECKS,
@@ -156,7 +156,7 @@ const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationL
 const config = withPlugins(
   [
     [withIgnore],
-    // [withExtraWatch],
+    [withExtraWatch],
     // [withWorker],
     [withSvg],
     [withImages],

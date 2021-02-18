@@ -58,7 +58,7 @@ describe('parseMutation', () => {
   })
 })
 
-describe('parseMutation ', () => {
+describe('parseMutation', () => {
   it('should reject empty input', () => {
     expect(parseMutation('')).toBeUndefined()
   })

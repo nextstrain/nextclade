@@ -24,7 +24,7 @@ export interface Sorting {
 }
 
 export function defaultNumber(direction: SortDirection) {
-  return direction === SortDirection.asc ? Infinity : 0
+  return direction === SortDirection.asc ? Number.POSITIVE_INFINITY : 0
 }
 
 export function getClade(res: SequenceAnalysisState) {

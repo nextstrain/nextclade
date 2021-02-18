@@ -19,7 +19,7 @@ export function ruleMixedSites(
     .reduce((a, b) => a + nucleotideComposition[b], 0)
 
   let score = 100 * (totalMixedSites / mixedSitesThreshold)
-  score = clamp(score, 0, Infinity)
+  score = clamp(score, 0, Number.POSITIVE_INFINITY)
 
   const status = getQCRuleStatus(score)
 
