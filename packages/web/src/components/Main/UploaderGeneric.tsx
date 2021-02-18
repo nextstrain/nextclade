@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useMemo, useState } from 'react'
+import { PropsWithChildren, useMemo, useState } from 'react'
 
 import type { TFunction } from 'i18next'
 import { Button } from 'reactstrap'

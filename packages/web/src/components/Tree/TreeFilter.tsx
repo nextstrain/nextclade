@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { get, uniq } from 'lodash'
 
 import {

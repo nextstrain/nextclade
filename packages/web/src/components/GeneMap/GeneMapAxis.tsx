@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { range } from 'lodash'
 import { connect } from 'react-redux'
 import { XAxis, ComposedChart, ResponsiveContainer } from 'recharts'

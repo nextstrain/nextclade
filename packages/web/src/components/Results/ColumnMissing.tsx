@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 import type { AnalysisResult } from 'src/algorithms/types'

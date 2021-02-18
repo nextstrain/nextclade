@@ -1,5 +1,3 @@
-import React from 'react'
-
 export type IconGlyphType =
   | '3d'
   | 'acrobat'

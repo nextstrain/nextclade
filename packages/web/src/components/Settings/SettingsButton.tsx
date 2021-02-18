@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 import type { State } from 'src/state/reducer'
 import { useTranslation } from 'react-i18next'

@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import { memo } from 'react'
 
 import { sum } from 'lodash'
 import { connect } from 'react-redux'
@@ -265,7 +265,7 @@ const mapDispatchToProps = {
   sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
 }
 
-export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected))
+export const ResultsTable = memo(connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected))
 
 export interface ResultProps {
   resultsFiltered: SequenceAnalysisState[]

@@ -1,4 +1,4 @@
-import React, { HTMLProps } from 'react'
+import { HTMLProps } from 'react'
 
 import { useTranslation } from 'react-i18next'
 

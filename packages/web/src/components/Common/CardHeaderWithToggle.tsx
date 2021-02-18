@@ -1,5 +1,3 @@
-import React from 'react'
-
 import styled from 'styled-components'
 import type { StrictOmit } from 'ts-essentials'
 import { CustomInputProps, Label as ReactstrapLabel } from 'reactstrap'

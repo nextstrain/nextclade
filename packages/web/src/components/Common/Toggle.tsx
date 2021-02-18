@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import { useCallback } from 'react'
 
 import type { StrictOmit } from 'ts-essentials'
 import styled from 'styled-components'

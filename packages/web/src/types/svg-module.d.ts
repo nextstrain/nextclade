@@ -1,5 +1,5 @@
 declare module '*.svg' {
-  import type { PureComponent, HTMLProps, SVGProps } from 'react'
+  import type { PureComponent, SVGProps } from 'react'
 
   declare const url: string
   declare class SVG extends PureComponent<SVGProps<SVGElement>> {}

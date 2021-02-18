@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback } from 'react'
+import { ReactNode, useCallback } from 'react'
 
 import styled from 'styled-components'
 import ReactToggle, { ToggleProps as ReactToggleProps } from 'react-toggle'

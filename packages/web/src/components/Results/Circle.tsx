@@ -1,6 +1,5 @@
 import styled from 'styled-components'
 import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
-import React from 'react'
 
 const CIRCLE_SZE_PX = 20
 

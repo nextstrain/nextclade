@@ -1,4 +1,4 @@
-import React, { HTMLProps, PropsWithChildren } from 'react'
+import { HTMLProps, PropsWithChildren } from 'react'
 
 import classNames from 'classnames'
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Col } from 'reactstrap'
 // eslint-disable-next-line import/no-cycle

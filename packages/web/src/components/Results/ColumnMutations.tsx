@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 import { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import { getSafeId } from 'src/helpers/getSafeId'

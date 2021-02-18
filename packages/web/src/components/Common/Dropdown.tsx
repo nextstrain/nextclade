@@ -1,5 +1,3 @@
-import React from 'react'
-
 import Select, { ValueType, Props as SelectProps } from 'react-select'
 
 import { DropdownOption } from 'src/components/Common/DropdownOption'

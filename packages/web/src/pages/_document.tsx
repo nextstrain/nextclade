@@ -1,4 +1,4 @@
-import React from 'react'
+import { Fragment } from 'react'
 
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
@@ -21,14 +21,14 @@ export const GenericIcons = [16, 32, 96, 128, 196].map((size) => {
 export const AppleIcons = [57, 60, 72, 76, 114, 120, 144, 152, 180].map((size) => {
   const sizes = `${size}x${size}`
   return (
-    <React.Fragment key={size}>
+    <Fragment key={size}>
       <link rel="apple-touch-icon" sizes={sizes} href={`${DOMAIN}/icons/apple-touch-icon-${sizes}.png`} />
       <link
         rel="apple-touch-icon-precomposed"
         sizes={sizes}
         href={`${DOMAIN}/icons/apple-touch-icon-${sizes}-precomposed.png`}
       />
-    </React.Fragment>
+    </Fragment>
   )
 })
 

@@ -1,5 +1,3 @@
-import React from 'react'
-
 import type { DeepReadonly } from 'ts-essentials'
 import { useTranslation } from 'react-i18next'
 

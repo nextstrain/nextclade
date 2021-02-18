@@ -1,4 +1,3 @@
-import React from 'react'
 import { ButtonNewRun } from 'src/components/Results/ButtonNewRun'
 
 import styled from 'styled-components'

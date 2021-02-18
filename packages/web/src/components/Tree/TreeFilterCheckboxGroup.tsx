@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { partition, isEmpty, get } from 'lodash'
 import { Button, Input } from 'reactstrap'

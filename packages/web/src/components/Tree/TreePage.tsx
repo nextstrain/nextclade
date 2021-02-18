@@ -1,5 +1,3 @@
-import React from 'react'
-
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 

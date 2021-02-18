@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { useTranslation } from 'react-i18next'
 import { Col, Container, Row } from 'reactstrap'
 import styled from 'styled-components'

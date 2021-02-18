@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { Col, Row } from 'reactstrap'
 
 import { LayoutMain } from 'src/components/Layout/LayoutMain'

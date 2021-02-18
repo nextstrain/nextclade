@@ -1,5 +1,3 @@
-import React from 'react'
-
 export function truncateList(list: JSX.Element[], maxLength: number, text: string) {
   let result = list
   if (list.length > maxLength) {

@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import { SVGProps, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'

@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import { memo, SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
@@ -60,4 +60,4 @@ function SequenceMarkerMutationUnmemoed({
   )
 }
 
-export const SequenceMarkerMutation = React.memo(SequenceMarkerMutationUnmemoed)
+export const SequenceMarkerMutation = memo(SequenceMarkerMutationUnmemoed)

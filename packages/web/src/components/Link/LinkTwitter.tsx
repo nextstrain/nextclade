@@ -1,4 +1,4 @@
-import React, { PropsWithChildren } from 'react'
+import { PropsWithChildren } from 'react'
 
 import styled from 'styled-components'
 import { FaTwitterSquare } from 'react-icons/fa'

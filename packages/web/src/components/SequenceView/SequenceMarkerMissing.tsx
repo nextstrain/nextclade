@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import { memo, SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -49,4 +49,4 @@ export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase,
     </rect>
   )
 }
-export const SequenceMarkerMissing = React.memo(SequenceMarkerMissingUnmemoed)
+export const SequenceMarkerMissing = memo(SequenceMarkerMissingUnmemoed)

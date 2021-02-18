@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { connect } from 'react-redux'
 import { Button, ButtonProps } from 'reactstrap'
 import { useTranslation } from 'react-i18next'

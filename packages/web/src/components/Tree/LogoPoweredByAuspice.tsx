@@ -1,5 +1,3 @@
-import React from 'react'
-
 import styled from 'styled-components'
 import { ReactComponent as LogoAuspiceSvg } from 'src/assets/img/auspice-logo.svg'
 import { LinkExternal } from 'src/components/Link/LinkExternal'

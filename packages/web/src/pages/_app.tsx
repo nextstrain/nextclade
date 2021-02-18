@@ -9,7 +9,7 @@ import 'src/helpers/functionPrototypeTojson' // to visualize Function in Redux D
 
 import { enableES5 } from 'immer'
 
-import React, { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
 import { AppProps } from 'next/app'
 import type { Store } from 'redux'

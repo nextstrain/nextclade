@@ -1,4 +1,3 @@
-import React from 'react'
 import styled from 'styled-components'
 
 import { NUCLEOTIDE_COLORS } from '../../../helpers/getNucleotideColor'

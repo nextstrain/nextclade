@@ -1,6 +1,4 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import React from 'react'
-
 import { Col, Row } from 'reactstrap'
 import { PROJECT_NAME } from 'src/constants'
 import styled from 'styled-components'

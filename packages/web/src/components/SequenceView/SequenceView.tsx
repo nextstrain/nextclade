@@ -1,4 +1,4 @@
-import React from 'react'
+import { memo } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
@@ -113,4 +113,4 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
 
 export const SequenceViewUnmemoed = withResizeDetector(SequenceViewUnsized)
 
-export const SequenceView = React.memo(SequenceViewUnmemoed)
+export const SequenceView = memo(SequenceViewUnmemoed)

@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { useTranslation } from 'react-i18next'
 import { Button, ButtonProps, Modal, ModalBody, ModalFooter, ModalHeader as ReactstrapModalHeader } from 'reactstrap'
 import { connect } from 'react-redux'

@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { useTranslation } from 'react-i18next'
 import { Alert, Col, Row } from 'reactstrap'
 import { MdWarning } from 'react-icons/md'

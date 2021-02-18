@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { Badge } from 'reactstrap'
 import styled from 'styled-components'
 

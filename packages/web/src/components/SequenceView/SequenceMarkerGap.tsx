@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import { memo, SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { ListOfAminoacidDeletions } from 'src/components/SequenceView/ListOfAminoacidDeletions'
@@ -54,4 +54,4 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
   )
 }
 
-export const SequenceMarkerGap = React.memo(SequenceMarkerGapUnmemoed)
+export const SequenceMarkerGap = memo(SequenceMarkerGapUnmemoed)

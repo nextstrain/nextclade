@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { Progress } from 'reactstrap'
 import { connect } from 'react-redux'
 import styled from 'styled-components'

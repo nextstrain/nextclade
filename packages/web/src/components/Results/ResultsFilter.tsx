@@ -1,5 +1,3 @@
-import React from 'react'
-
 import {
   FormGroup as ReactstrapFormGroup,
   Input as ReactstrapInput,
