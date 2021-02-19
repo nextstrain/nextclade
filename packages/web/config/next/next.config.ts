@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { uniq } from 'lodash'
+import { get, set, uniq } from 'lodash'
 
 import type { NextConfig } from 'next'
 import getWithMDX from '@next/mdx'
@@ -13,6 +13,7 @@ import { getBuildNumber } from '../../lib/getBuildNumber'
 import { getBuildUrl } from '../../lib/getBuildUrl'
 import { getGitCommitHash } from '../../lib/getGitCommitHash'
 import { getEnvVars } from './lib/getEnvVars'
+import { addWebpackConfig } from './lib/addWebpackConfig'
 
 import getWithFriendlyConsole from './withFriendlyConsole'
 import getWithLodash from './withLodash'
@@ -141,8 +142,42 @@ const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationL
   unstable_webpack5: true,
 })
 
+/**
+ * Workaround for the warning:
+ * "
+ * HotModuleReplacementPlugin
+ * The configured output.hotUpdateMainFilename doesn't lead to unique filenames per runtime and HMR update differs between runtimes.
+ * This might lead to incorrect runtime behavior of the applied update.
+ * To fix this, make sure to include [runtime] in the output.hotUpdateMainFilename option, or use the default config.
+ * "
+ *
+ * See: https://github.com/vercel/next.js/issues/19865
+ */
+function withHmrWorkaround(nextConfig: NextConfig) {
+  return addWebpackConfig(nextConfig, (nextConfig, webpackConfig, options) => {
+    // The default Next.js `hotUpdateMainFilename` does not contain `[runtime]` placeholder. We add it here.
+    set(webpackConfig, 'output.hotUpdateMainFilename', 'static/webpack/[runtime].[fullhash].hot-update.json')
+    return webpackConfig
+  })
+}
+
+// Workaround for the warning:
+// "Watchpack Error (initial scan): Error: ENOTDIR: not a directory, scandir 'packages/web/node_modules/next/dist/next-server/lib/router/utils/resolve-rewrites.js'"
+function withWatchpackWorkaround(nextConfig: NextConfig) {
+  return addWebpackConfig(nextConfig, (nextConfig, webpackConfig, options) => {
+    const ignored = get(webpackConfig, 'watchOptions.ignored')
+    if (Array.isArray(ignored)) {
+      // The `node_modules` entry is incorrectly modified by `next-transpile-modules`. We restore the entry here.
+      set(webpackConfig, 'watchOptions.ignored', [...ignored, '**/node_modules/**'])
+    }
+    return webpackConfig
+  })
+}
+
 const config = withPlugins(
   [
+    [withHmrWorkaround],
+    [withWatchpackWorkaround],
     [withIgnore],
     [withSvg],
     [withImages],
