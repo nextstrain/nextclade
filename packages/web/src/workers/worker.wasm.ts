@@ -73,27 +73,29 @@ export function run() {
 
     // console.info(module.getOptional(new module.hello(42)))
 
-    const c = new module.NodeArray()
-    c.push_back({
-      foo: 12,
-      bar: 'world',
-      children: new module.OptionalNodeArray(),
-    })
-
-    const json = {
-      foo: 42,
-      bar: 'hello',
-      children: new module.OptionalNodeArray(c),
-    }
-
-    const resJson = module.getAuspiceJson(json)
-    console.log(resJson)
-
-    console.log(vectorToArray(resJson.children.value()))
+    // const c = new module.NodeArray()
+    // c.push_back({
+    //   foo: 12,
+    //   bar: 'world',
+    //   children: new module.OptionalNodeArray(),
+    // })
+    //
+    // const json = {
+    //   foo: 42,
+    //   bar: 'hello',
+    //   children: new module.OptionalNodeArray(c),
+    // }
+    //
+    // const resJson = module.getAuspiceJson(json)
+    // console.log(resJson)
+    //
+    // console.log(vectorToArray(resJson.children.value()))
 
     // console.info({ resJson, children: resJson.children.hasValue() ? resJson.children.value() : 'no value' })
 
     // module.kaboom()
+
+    console.log(module.threads())
 
     return res
   })

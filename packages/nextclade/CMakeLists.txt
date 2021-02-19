@@ -39,11 +39,17 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     -s WASM=1 \
     -s DEMANGLE_SUPPORT=1 \
     -s ALIASING_FUNCTION_POINTERS=0 \
-    -s ALLOW_MEMORY_GROWTH=1 \
     -s MALLOC=emmalloc \
     -s DISABLE_EXCEPTION_CATCHING=2 \
     -s ENVIRONMENT=worker \
+    \
+    -pthread \
+    -s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+    -s USE_PTHREADS=1 \
+    -s PTHREAD_POOL_SIZE=4 \
+    -s EXPORT_NAME='ExampleModuleFactory' \
   ")
+#    -s ALLOW_MEMORY_GROWTH=1 \
 
   set(EMSCRIPTEN_COMPILER_FLAGS_DEBUG "\
     -g4 \
