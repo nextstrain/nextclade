@@ -27,7 +27,7 @@
     "dist/*.js.map"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "main": "dist/nextclade.js",
   "license": "MIT",
