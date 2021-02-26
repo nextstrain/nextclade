@@ -1,0 +1,38 @@
+name: nextclade
+channels:
+  - conda-forge
+  - r
+  - bioconda
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=conda_forge
+  - _openmp_mutex=4.5=1_gnu
+  - c-ares=1.17.1=h36c2ea0_0
+  - ca-certificates=2020.12.5=ha878542_0
+  - curl=7.71.1=he644dc0_8
+  - expat=2.2.10=h9c3ff4c_0
+  - gettext=0.19.8.1=h0b5b191_1005
+  - git=2.30.0=pl5320h014a29a_0
+  - icu=68.1=h58526e2_0
+  - jq=1.6=h36c2ea0_1000
+  - krb5=1.17.2=h926e7f8_0
+  - libcurl=7.71.1=hcdd3856_8
+  - libedit=3.1.20191231=he28a2e2_2
+  - libev=4.33=h516909a_1
+  - libffi=3.3=h58526e2_2
+  - libgcc-ng=9.3.0=h2828fa1_18
+  - libgomp=9.3.0=h2828fa1_18
+  - libiconv=1.16=h516909a_0
+  - libnghttp2=1.43.0=h812cca2_0
+  - libssh2=1.9.0=hab1572f_5
+  - libstdcxx-ng=9.3.0=h6de172a_18
+  - libuv=1.40.0=h7f98852_0
+  - ncurses=6.2=h58526e2_4
+  - nodejs=15.3.0=h92b4a50_1
+  - oniguruma=6.9.3=h36c2ea0_0
+  - openssl=1.1.1j=h7f98852_0
+  - pcre=8.44=he1b5a44_0
+  - perl=5.32.0=h36c2ea0_0
+  - tk=8.6.10=h21135ba_1
+  - yarn=1.22.10=0
+  - zlib=1.2.11=h516909a_1010
