@@ -48,6 +48,10 @@ fi
 
 # Name of the processor architecture we are running this script on: x86_64, arm64
 BUILD_ARCH="$(uname -p || uname -m)"
+if [ "${BUILD_ARCH}" == "unknown" ]; then
+  BUILD_ARCH="$(uname -m)"
+fi
+
 if [ "${BUILD_OS}" == "MacOS" ] && [ ${BUILD_ARCH} == "i386" ]; then
   # x86_64 is called i386 on macOS, fix that
   BUILD_ARCH="x86_64"
@@ -134,9 +138,10 @@ fi
 
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
-INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
+INSTALL_DIR=${CMAKE_INSTALL_PREFIX:="${PROJECT_ROOT_DIR}/.out"}
 CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
-CLI_EXE="nextalign-${HOST_OS}-${HOST_ARCH}"
+CLI_EXE=${CLI_EXE:="nextalign-${HOST_OS}-${HOST_ARCH}"}
+RUN_CLI="${RUN_CLI:=1}"
 
 CLI="${CLI_DIR}/${CLI_EXE}"
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
@@ -301,11 +306,13 @@ pushd "${BUILD_DIR}" > /dev/null
   ${CLANG_ANALYZER} cmake "${PROJECT_ROOT_DIR}" \
     -DCMAKE_MODULE_PATH="${BUILD_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
+    -DCLI_EXE="${CLI_EXE}" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \
     -DCMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK}" \
     -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE:=0} \
     -DCMAKE_COLOR_MAKEFILE=${CMAKE_COLOR_MAKEFILE:=1} \
+    -DUSE_ADVANCED_COMPILER_FLAGS=${USE_ADVANCED_COMPILER_FLAGS:=1} \
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
     -DNEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS} \
     -DNEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS} \
@@ -356,13 +363,20 @@ fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
   print 23 "Run tests";
-  pushd "${BUILD_DIR}/packages/${PROJECT_NAME}/tests" > /dev/null
-      eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-  popd > /dev/null
+  if [ "${NEXTALIGN_BUILD_TESTS}" == 1 ] || [ "${NEXTALIGN_BUILD_TESTS}" == "true" ]; then
+    pushd "${BUILD_DIR}/packages/${PROJECT_NAME}/tests" > /dev/null
+        eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+    popd > /dev/null
+  else
+    echo "Tests are disabled (NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS})"
+  fi
 
-  print 27 "Run CLI";
-  eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
+  if [ "${RUN_CLI}" == 1 ] || [ "${RUN_CLI}" == "true" ]; then
+    print 27 "Run CLI";
+    eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS}
+  fi
 
-  print 22 "Done";
 
 popd > /dev/null
+
+print 22 "Done";

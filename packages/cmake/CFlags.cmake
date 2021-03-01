@@ -1,5 +1,6 @@
 # Adds some useful C compiler flags
 
+if(USE_ADVANCED_COMPILER_FLAGS)
 
 ####################### GCC ###################################################
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
@@ -239,3 +240,5 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKER_FLAGS}")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${LINKER_FLAGS}")
 endif ()
+
+endif()

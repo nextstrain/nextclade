@@ -34,6 +34,9 @@ dev-clang-analyzer:
 prod:
 	@CMAKE_BUILD_TYPE=Release scripts/build_locally.sh
 
+conda:
+	@CMAKE_BUILD_TYPE=Release USE_ADVANCED_COMPILER_FLAGS=0 NEXTALIGN_BUILD_TESTS=0 NEXTALIGN_BUILD_BENCHMARKS=0 NEXTALIGN_STATIC_BUILD=1 CMAKE_INSTALL_PREFIX="${PREFIX}" CLI_EXE="nextalign" RUN_CLI=0 scripts/build_locally.sh
+
 profile:
 	@CMAKE_BUILD_TYPE=RelWithDebInfo scripts/build_locally.sh
 
