@@ -39,20 +39,20 @@ std::string makeGff(const std::vector<Gene>& genes) {
 TEST(parseGeneMapGff, ParsesGeneMap) {
   std::stringstream input;
   input << R"(
-.	.	gene	26245	26472	.	+	1	 gene_name "E"
-.	.	gene	26523	27191	.	+	0	 gene_name "M"
-.	.	gene	28274	29533	.	+	2	 gene_name "N"
-.	.	gene	29558	29674	.	+	2	 gene_name "ORF10"
-.	.	gene	28734	28955	.	+	0	 gene_name "ORF14"
-.	.	gene	266	13468	.	+	2	 gene_name "ORF1a"
-.	.	gene	13468	21555	.	+	1	 gene_name "ORF1b"
-.	.	gene	25393	26220	.	+	1	 gene_name "ORF3a"
-.	.	gene	27202	27387	.	+	1	 gene_name "ORF6"
-.	.	gene	27394	27759	.	+	1	 gene_name "ORF7a"
-.	.	gene	27756	27887	.	+	0	 gene_name "ORF7b"
-.	.	gene	27894	28259	.	+	0	 gene_name "ORF8"
-.	.	gene	28284	28577	.	+	0	 gene_name "ORF9b"
-.	.	gene	21563	25384	.	+	2	 gene_name "S"
+.	.	gene	26245	26472	.	+	.	 gene_name "E"
+.	.	gene	26523	27191	.	+	.	 gene_name "M"
+.	.	gene	28274	29533	.	+	.	 gene_name "N"
+.	.	gene	29558	29674	.	+	.	 gene_name "ORF10"
+.	.	gene	28734	28955	.	+	.	 gene_name "ORF14"
+.	.	gene	266	13468	.	+	.	 gene_name "ORF1a"
+.	.	gene	13468	21555	.	+	.	 gene_name "ORF1b"
+.	.	gene	25393	26220	.	+	.	 gene_name "ORF3a"
+.	.	gene	27202	27387	.	+	.	 gene_name "ORF6"
+.	.	gene	27394	27759	.	+	.	 gene_name "ORF7a"
+.	.	gene	27756	27887	.	+	.	 gene_name "ORF7b"
+.	.	gene	27894	28259	.	+	.	 gene_name "ORF8"
+.	.	gene	28284	28577	.	+	.	 gene_name "ORF9b"
+.	.	gene	21563	25384	.	+	.	 gene_name "S"
 )";
 
   const auto results = parseGeneMapGff(input);
@@ -69,10 +69,10 @@ TEST(parseGeneMapGff, IgnoresComments) {
   input << fmt::format(R"( #  This is a comment
 # Another comment
   # Indented comment
-.	.	gene	28274	29533	.	+	2	 gene_name "N"
-.	.	gene	29558	29674	.	+	2	 gene_name "ORF10"
+.	.	gene	28274	29533	.	+	.	 gene_name "N"
+.	.	gene	29558	29674	.	+	.	 gene_name "ORF10"
 # In-body comment
-.	.	gene	21563	25384	.	+	2	 gene_name "S"
+.	.	gene	21563	25384	.	+	.	 gene_name "S"
 )");
   // clang-format on
 
@@ -85,7 +85,7 @@ TEST(parseGeneMapGff, IgnoresComments) {
         .start = 28273,
         .end = 29533,
         .strand = "+",
-        .frame = 2,
+        .frame = 1,
         .length = 1260,
       }},
     {"ORF10",//
@@ -94,7 +94,7 @@ TEST(parseGeneMapGff, IgnoresComments) {
         .start = 29557,
         .end = 29674,
         .strand = "+",
-        .frame = 2,
+        .frame = 1,
         .length = 117,
       }},
     {"S",//
@@ -103,7 +103,7 @@ TEST(parseGeneMapGff, IgnoresComments) {
         .start = 21562,
         .end = 25384,
         .strand = "+",
-        .frame = 2,
+        .frame = 1,
         .length = 3822,
       }}};
 

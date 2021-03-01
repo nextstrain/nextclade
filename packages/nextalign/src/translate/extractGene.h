@@ -27,6 +27,7 @@ public:
   ErrorExtractStrippedGeneEmpty(const Gene& gene, int resultLengthPreStrip)
       : std::runtime_error(fmt::format(                                                                        //
           "When extracting gene \"{:s}\": The gene ended up being empty after being stripped from insertions. "//
+          "Before stripping insertions this gene had length {:d}. "                                              //
           "The gene map contained the following information: "                                                 //
           "start: {:d}, end: {:d}, length: {:d}"                                                               //
           ,
@@ -43,10 +44,10 @@ public:
           "The gene map contained the following information: "                                                   //
           "start: {:d}, end: {:d}, length: {:d}"                                                                 //
           ,
-          gene.geneName, resultLength, resultLengthPreStrip, gene.start, gene.end, gene.length)) {}
+          gene.geneName, gene.geneName, resultLength, resultLengthPreStrip, gene.start, gene.end, gene.length)) {}
 };
 
 NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene);
 
-NucleotideSequence extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
-  const std::vector<int>& coordMap);
+NucleotideSequence extractGeneQuery(
+  const NucleotideSequenceView& query, const Gene& gene, const std::vector<int>& coordMap);
