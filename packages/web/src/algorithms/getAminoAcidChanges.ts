@@ -30,6 +30,8 @@ export interface PreferredPatchDirectionDatum {
 // look up preferred codon patching by gene name and deletion start
 const KNOWN_PREFERRED_PATCH_DIRECTIONS: PreferredPatchDirectionDatum[] = [
   { geneName: 'S', delStart: 21993, patchDirection: PatchDirection.right },
+  { geneName: 'S', delStart: 21983, patchDirection: PatchDirection.right },
+  { geneName: 'S', delStart: 21980, patchDirection: PatchDirection.right },
 ]
 
 export function getPatchDirection(geneName: string, delStart: number): PatchDirection {
