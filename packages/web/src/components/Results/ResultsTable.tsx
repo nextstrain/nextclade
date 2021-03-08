@@ -46,7 +46,7 @@ export const RESULTS_TABLE_FLEX_BASIS = {
   id: 50,
   seqName: 300,
   qc: 100,
-  clade: 60,
+  clade: 90,
   mut: 60,
   nonACGTN: 70,
   ns: 60,
