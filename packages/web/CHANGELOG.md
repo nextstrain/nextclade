@@ -1,3 +1,24 @@
+# [0.14.0](https://github.com/nextstrain/nextclade/compare/0.13.0...0.14.0) (2021-03-08)
+
+This is a maintenance release which updates the default reference tree with more recent genomes and increases the number of sequences in it to better reflect circulating diversity. 
+
+Additionally, we extend our list of partial codon patches (first introduced in version 0.12.0), in order to correctly detect deletions involving spike protein positions 141 and 142.
+
+There are also some small improvements in the user interface. 
+
+As always, don't hesitate to provide feedback, report issues and  on [GitHub](https://github.com/nextstrain/nextclade/issues/new/choose).
+
+The full list of changes is below.
+
+### Bug Fixes
+
+* add additional directions to patch partial codons ([d266fa7](https://github.com/nextstrain/nextclade/commit/d266fa71da6cdc6549dbf2d873ee94d6326634bf))
+* Correct Node.js version requirement for the Nextclade CLI ([24c7b76](https://github.com/nextstrain/nextclade/commit/24c7b7608fe519c80109fb87d146d226e9200def))
+* don't attempt to create directories from empty paths ([576eb9f](https://github.com/nextstrain/nextclade/commit/576eb9fec4303ad86c2d2722285c763c4f439219))
+* increase clade column width to accommodate longer clade names ([557d3d2](https://github.com/nextstrain/nextclade/commit/557d3d227d2741a4b1b1f85e35665159b425a1e2))
+
+
+
 ## [0.13.0](https://github.com/nextstrain/nextclade/compare/0.12.0...0.12.1) (2021-02-17)
 
 ### 🚀 Announcing Nextalign
