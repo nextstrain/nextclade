@@ -1,0 +1,40 @@
+{
+  "exampleCladeData": [
+    {
+      "clade": "20A",
+      "cladeUrl": "https://covariants.org/variants/20A.EU2",
+      "fastaUrl": "https://example.com/20A.fasta",
+      "genomes": [
+        {
+          "name": "Tamriel/1351/Abc",
+          "url": "https://genbank.org/casfvcasvf"
+        },
+        {
+          "name": "Azeroth/5975/DEFGH",
+          "url": "https://genbank.org/416354135"
+        }
+      ],
+      "mutations": ["S:K212A", "ORF1a:P15T"]
+    },
+    {
+      "clade": "20G",
+      "cladeUrl": "https://covariants.org/variants/S.H69-",
+      "fastaUrl": "https://example.com/20G.fasta",
+      "genomes": [
+        {
+          "name": "Moon/Luna/2121/Foo-bar",
+          "url": "https://genbank.org/fheakvasdv"
+        },
+        {
+          "name": "Mars/MareTranquillitatis/3020|Baz",
+          "url": "https://genbank.org/153413541"
+        },
+        {
+          "name": "Mars/Cydonia/3021/Baz-baf",
+          "url": "https://genbank.org/435416351"
+        }
+      ],
+      "mutations": ["S:D614G"]
+    }
+  ]
+}
