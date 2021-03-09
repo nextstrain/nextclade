@@ -83,7 +83,9 @@ export function ExampleData() {
       <CardBody>
         <Row noGutters>
           <Col>
-            <h3 className="text-center">{t('Example Public Data')}</h3>
+            <h3 id="example-public-data" className="text-center">
+              {t('Example Public Data')}
+            </h3>
 
             <ExampleDataContent />
 
