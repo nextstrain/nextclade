@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { unset } from 'lodash'
+import { get, set, unset } from 'lodash'
 import type { AuspiceJsonV2, AuspiceTreeNode } from 'auspice'
 
 import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
@@ -90,6 +90,15 @@ export function treePostProcess(auspiceData: AuspiceJsonV2Extended): AuspiceJson
   }
   auspiceData.meta.panels = ['tree', 'entropy']
   auspiceData.meta.geo_resolutions = undefined
+
+  const defaultFilters = get(auspiceData, 'meta.filters', []) as string[]
+  set(auspiceData, 'meta.filters', [
+    ...defaultFilters,
+    'clade_membership',
+    'Node type',
+    'QC Status',
+    'Has PCR primer changes',
+  ])
 
   return { ...auspiceData, tree }
 }

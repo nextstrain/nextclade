@@ -225,7 +225,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
     children: undefined,
     mutations: undefined,
     branch_attrs: { mutations: {} },
-    name: `${seq.seqName}_clades`,
+    name: `${seq.seqName}_new`,
     node_attrs: {
       'clade_membership': { value: seq.clade },
       'Node type': { value: NodeType.New },
