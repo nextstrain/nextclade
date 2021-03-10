@@ -89,7 +89,7 @@ export function treePostProcess(auspiceData: AuspiceJsonV2Extended): AuspiceJson
   // TODO: this can be done offline when preparing the json
   auspiceData.meta.display_defaults = {
     branch_label: 'clade',
-    color_by: NODE_TYPE,
+    color_by: 'clade_membership',
     distance_measure: 'div',
   }
   auspiceData.meta.panels = ['tree', 'entropy']
