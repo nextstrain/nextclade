@@ -7,7 +7,7 @@ import ChooseBranchLabelling from 'auspice/src/components/controls/choose-branch
 import ChooseLayout from 'auspice/src/components/controls/choose-layout'
 import ChooseMetric from 'auspice/src/components/controls/choose-metric'
 import { HeaderContainer } from 'auspice/src/components/controls/styles'
-import FilterData, { FilterInfo } from 'auspice/src/components/controls/filter'
+import FilterData from 'auspice/src/components/controls/filter'
 
 import { LogoPoweredByAuspice } from 'src/components/Tree/LogoPoweredByAuspice'
 
