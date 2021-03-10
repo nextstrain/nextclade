@@ -2,7 +2,7 @@ import type { VirusRaw } from 'src/algorithms/types'
 import { VirusName } from 'src/algorithms/defaults/virusNames'
 import { qcRulesConfig } from 'src/algorithms/defaults/sars-cov-2/qcRulesConfig'
 import { rootSeq } from 'src/algorithms/defaults/sars-cov-2/rootSeq'
-import auspiceDataRaw from 'src/algorithms/defaults/sars-cov-2/ncov_small.json'
+import auspiceDataRaw from 'src/algorithms/defaults/sars-cov-2/tree.json'
 import sequenceData from 'src/algorithms/defaults/sars-cov-2/sequenceData.fasta'
 import pcrPrimers from 'src/algorithms/defaults/sars-cov-2/pcrPrimers.json'
 
