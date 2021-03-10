@@ -11,8 +11,6 @@ import { ButtonBack } from 'src/components/Tree/ButtonBack'
 
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
-import { TreeFilter } from './TreeFilter'
-import { ButtonTreeFilter } from './ButtonTreeFilter'
 
 export const Container = styled.div`
   width: 100%;
@@ -37,15 +35,6 @@ const HeaderCenter = styled.header`
   flex: 1;
   padding: 5px 10px;
   border-radius: 5px;
-`
-
-const HeaderRight = styled.header`
-  flex: 0;
-  display: flex;
-`
-
-const HeaderRightContainer = styled.div`
-  flex: 0;
 `
 
 const MainContent = styled.main`
@@ -79,15 +68,7 @@ function TreePage() {
           </HeaderLeft>
 
           <HeaderCenter />
-
-          <HeaderRight>
-            <HeaderRightContainer>
-              <ButtonTreeFilter />
-            </HeaderRightContainer>
-          </HeaderRight>
         </Header>
-
-        <TreeFilter />
 
         <MainContent>
           <AuspiceContainer>
