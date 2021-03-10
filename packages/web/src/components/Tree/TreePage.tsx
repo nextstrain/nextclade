@@ -3,6 +3,8 @@ import React from 'react'
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 
+import FiltersSummary from 'auspice/src/components/info/filtersSummary'
+
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
@@ -94,6 +96,10 @@ function TreePage() {
                 <Sidebar />
               </SidebarContainer>
               <TreeContainer>
+                <span>
+                  <FiltersSummary />
+                </span>
+
                 <Tree />
               </TreeContainer>
             </I18nextProvider>

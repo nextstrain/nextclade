@@ -10,7 +10,7 @@ import AuspiceEntropy from 'auspice/src/components/entropy'
 //  So we pretend the container is smaller, by multiplying by this numbers.
 //  This has to be fixed upstream.
 const TREE_SIZE_HACK_WIDTH = 0.95
-const TREE_SIZE_HACK_HEIGHT = 0.96
+const TREE_SIZE_HACK_HEIGHT = 0.9
 
 const ENTROPY_ASPECT_RATIO = 16 / 5
 
