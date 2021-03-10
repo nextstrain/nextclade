@@ -7,6 +7,10 @@ import { NodeType } from 'src/algorithms/tree/enums'
 import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 import { UNKNOWN_VALUE } from 'src/constants'
 
+const HAS_PCR_PRIMER_CHANGES = 'Has PCR primer changes'
+const NODE_TYPE = 'Node type'
+const QC_STATUS = 'QC Status'
+
 export interface AddColoringScaleParams {
   auspiceData: AuspiceJsonV2
   key: string
@@ -45,8 +49,8 @@ export function treePostProcess(auspiceData: AuspiceJsonV2Extended): AuspiceJson
 
   // TODO: this can be done offline when preparing the json
   auspiceData.meta.colorings.unshift({
-    key: 'Has PCR primer changes',
-    title: 'Has PCR primer changes',
+    key: HAS_PCR_PRIMER_CHANGES,
+    title: HAS_PCR_PRIMER_CHANGES,
     type: 'categorical',
     scale: [
       ['Yes', '#6961ff'],
@@ -56,8 +60,8 @@ export function treePostProcess(auspiceData: AuspiceJsonV2Extended): AuspiceJson
 
   // TODO: this can be done offline when preparing the json
   auspiceData.meta.colorings.unshift({
-    key: 'QC Status',
-    title: 'QC Status',
+    key: QC_STATUS,
+    title: QC_STATUS,
     type: 'categorical',
     scale: [
       [QCRuleStatus.good, '#417C52'],
@@ -68,8 +72,8 @@ export function treePostProcess(auspiceData: AuspiceJsonV2Extended): AuspiceJson
 
   // TODO: this can be done offline when preparing the json
   auspiceData.meta.colorings.unshift({
-    key: 'Node type',
-    title: 'Node type',
+    key: NODE_TYPE,
+    title: NODE_TYPE,
     type: 'categorical',
     scale: [
       [NodeType.New, '#ff6961'],
@@ -85,7 +89,7 @@ export function treePostProcess(auspiceData: AuspiceJsonV2Extended): AuspiceJson
   // TODO: this can be done offline when preparing the json
   auspiceData.meta.display_defaults = {
     branch_label: 'clade',
-    color_by: 'Node type',
+    color_by: NODE_TYPE,
     distance_measure: 'div',
   }
   auspiceData.meta.panels = ['tree', 'entropy']
@@ -95,9 +99,9 @@ export function treePostProcess(auspiceData: AuspiceJsonV2Extended): AuspiceJson
   set(auspiceData, 'meta.filters', [
     ...defaultFilters,
     'clade_membership',
-    'Node type',
-    'QC Status',
-    'Has PCR primer changes',
+    NODE_TYPE,
+    QC_STATUS,
+    HAS_PCR_PRIMER_CHANGES,
   ])
 
   return { ...auspiceData, tree }
