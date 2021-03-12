@@ -12,6 +12,7 @@ rule export_nextclade:
                       rules.translate.output.node_data,
                       rules.rename_subclades.output.clade_data,
                       rules.clades.output.clade_data,
+		      rules.aa_muts_explicit.output.node_data
                     ],
         auspice_config = lambda w: config["builds"][w.build_name]["auspice_config"] if "auspice_config" in config["builds"][w.build_name] else config["files"]["auspice_config"],
         colors = lambda w: config["builds"][w.build_name]["colors"] if "colors" in config["builds"][w.build_name] else ( config["files"]["colors"] if "colors" in config["files"] else rules.colors.output.colors.format(**w) ),
