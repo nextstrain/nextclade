@@ -146,6 +146,11 @@ SeedAlignment seedAlignment(
   // generate kmers equally spaced on the query
   const auto seedCover = safe_cast<double>(nGoodPositions - 2 * margin);
   const double kmerSpacing = (seedCover - 1.0) / (nSeeds - 1.0);
+
+  if (seedCover < 0.0 || kmerSpacing < 0.0) {
+    throw ErrorAlignmentNoSeedMatches();
+  }
+
   for (int ni = 0; ni < nSeeds; ++ni) {
 
     const int qPos = mapToGoodPositions[details::round(margin + (kmerSpacing * ni))];
