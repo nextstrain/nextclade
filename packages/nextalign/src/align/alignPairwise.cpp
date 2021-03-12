@@ -153,9 +153,11 @@ SeedAlignment seedAlignment(
 
   for (int ni = 0; ni < nSeeds; ++ni) {
 
-    const int qPos = mapToGoodPositions[details::round(margin + (kmerSpacing * ni))];
+    const auto goodPositionIndex = details::round(margin + (kmerSpacing * ni));
+    const int qPos = mapToGoodPositions[goodPositionIndex];
     // FIXME: query.substr() creates a new string. Use string view instead.
-    const auto tmpMatch = seedMatch(query.substr(qPos, options.seedLength), ref, start_pos, options.mismatchesAllowed);
+    const auto seed = query.substr(qPos, options.seedLength);
+    const auto tmpMatch = seedMatch(seed, ref, start_pos, options.mismatchesAllowed);
 
     // only use seeds with at most allowed_mismatches
     if (tmpMatch.score >= options.seedLength - options.mismatchesAllowed) {
