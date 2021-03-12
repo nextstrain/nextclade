@@ -20,7 +20,7 @@ dev-asan:
 	@CMAKE_BUILD_TYPE=ASAN $(MAKE) dev
 
 dev-msan:
-	@CMAKE_BUILD_TYPE=MSAN $(MAKE) dev
+	@CMAKE_BUILD_TYPE=MSAN USE_CLANG=1 $(MAKE) dev
 
 dev-tsan:
 	@CMAKE_BUILD_TYPE=TSAN $(MAKE) dev
