@@ -154,6 +154,8 @@ DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 NEXTALIGN_STATIC_BUILD_DEFAULT=1
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
+elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] ; then
+  NEXTALIGN_STATIC_BUILD_DEFAULT=0
 fi
 NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
 
@@ -183,14 +185,15 @@ if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   "
 fi
 
+# gdb (or lldb) command with arguments
+GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
+
 # AddressSanitizer and MemorySanitizer don't work with gdb
 case ${CMAKE_BUILD_TYPE} in
   ASAN|MSAN) GDB_DEFAULT="" ;;
   *) ;;
 esac
 
-# gdb (or lldb) command with arguments
-GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
 if [ "${IS_CI}" == "1" ]; then
   GDB_DEFAULT=""
 fi
@@ -355,10 +358,13 @@ if [ "${CROSS}" == "1" ]; then
 fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
-  print 23 "Run tests";
-  pushd "${BUILD_DIR}/packages/${PROJECT_NAME}/tests" > /dev/null
-      eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-  popd > /dev/null
+
+  if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
+    print 23 "Run tests";
+    pushd "${BUILD_DIR}/packages/${PROJECT_NAME}/tests" > /dev/null
+        eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+    popd > /dev/null
+  fi
 
   print 27 "Run CLI";
   eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
