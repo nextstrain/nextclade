@@ -1,7 +1,6 @@
 #include <benchmark/benchmark.h>
 
 
-
 // clang-format off
 #include "Nextalign.benchmark.h"
 #include "AlignPairwise.benchmark.h"

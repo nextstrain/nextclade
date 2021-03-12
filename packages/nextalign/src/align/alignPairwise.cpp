@@ -232,7 +232,7 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
   }
   for (int ri = 0; ri < refSize; ri++) {
     int qPos = ri - (bandWidth + meanShift);
-    int refGaps = - gapOpenClose[ri];
+    int refGaps = -gapOpenClose[ri];
     for (int si = 2 * bandWidth; si >= 0; si--) {
       int tmpPath = 0, score = 0, origin = 0;
       int qGapExtend = 0, rGapExtend = 0, rGapOpen = 0, qGapOpen = 0;
@@ -242,7 +242,7 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
         // we could fill all of this at once
         score = 0;
         tmpPath += qryGAPextend;
-        refGaps = - gapOpenClose[ri];
+        refGaps = -gapOpenClose[ri];
         origin = qryGAPmatrix;
       } else if (qPos < querySize) {
         // if the shifted position is within the query sequence

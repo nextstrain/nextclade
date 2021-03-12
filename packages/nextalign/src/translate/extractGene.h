@@ -27,7 +27,7 @@ public:
   ErrorExtractStrippedGeneEmpty(const Gene& gene, int resultLengthPreStrip)
       : std::runtime_error(fmt::format(                                                                        //
           "When extracting gene \"{:s}\": The gene ended up being empty after being stripped from insertions. "//
-          "Before stripping insertions this gene had length {:d}. "                                              //
+          "Before stripping insertions this gene had length {:d}. "                                            //
           "The gene map contained the following information: "                                                 //
           "start: {:d}, end: {:d}, length: {:d}"                                                               //
           ,

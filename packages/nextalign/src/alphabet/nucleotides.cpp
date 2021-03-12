@@ -80,4 +80,3 @@ NucleotideSequence toNucleotideSequence(const std::string& seq) {
 std::string toString(const NucleotideSequence& seq) {
   return map(seq, std::function<char(Nucleotide)>(nucToChar));
 }
-

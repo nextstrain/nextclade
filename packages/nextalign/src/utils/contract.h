@@ -239,13 +239,13 @@ inline std::string debug_assert_print(
 #define debug_assert_impl(...) MACRO_OVERLOAD(debug_assert, __VA_ARGS__)
 
 
-#define debug_assert_op(what_happened, left, right, op)                            \
-  do {                                                                             \
-    if (!(op(left, right))) {                                                      \
+#define debug_assert_op(what_happened, left, right, op)                              \
+  do {                                                                               \
+    if (!(op(left, right))) {                                                        \
       const auto msg = debug_assert_print(left, right, #left, #right, (op).c_str()); \
-      print_error(__FILE__, __LINE__, NA_FUNCTION, what_happened, (msg.c_str()));  \
-      debug_break();                                                               \
-    }                                                                              \
+      print_error(__FILE__, __LINE__, NA_FUNCTION, what_happened, (msg.c_str()));    \
+      debug_break();                                                                 \
+    }                                                                                \
   } while (0)
 
 // clang-format off

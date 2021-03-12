@@ -70,8 +70,8 @@ void stripGeneInPlace(NucleotideSequence& seq) {
 /**
  * Extracts gene from the query sequence according to coordinate map relative to the reference sequence
  */
-NucleotideSequence extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
-  const std::vector<int>& coordMap) {
+NucleotideSequence extractGeneQuery(
+  const NucleotideSequenceView& query, const Gene& gene, const std::vector<int>& coordMap) {
   precondition_less(gene.start, coordMap.size());
   precondition_less_equal(gene.end, coordMap.size());
   precondition_less(gene.start, gene.end);
@@ -82,7 +82,7 @@ NucleotideSequence extractGeneQuery(const NucleotideSequenceView& query, const G
   // the corresponding base in the query is hence found by coordMap[gene.end-1]
   // we add 1 to make that end be again after the last base of the gene.
   // with this addition: length = end - start
-  const auto end = coordMap[gene.end-1] + 1;
+  const auto end = coordMap[gene.end - 1] + 1;
   const auto length = end - start;
   // Start and end should be within bounds
   invariant_less(start, query.size());
