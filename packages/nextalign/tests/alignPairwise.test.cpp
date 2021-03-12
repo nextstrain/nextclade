@@ -1,9 +1,8 @@
-#include "../src/align/alignPairwise.h"
-
 #include <gtest/gtest.h>
 
 #include <string>
 
+#include "../src/align/alignPairwise.h"
 #include "../src/align/getGapOpenCloseScores.h"
 #include "../src/match/matchNuc.h"
 

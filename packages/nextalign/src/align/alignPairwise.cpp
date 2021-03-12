@@ -1,18 +1,13 @@
 #include "alignPairwise.h"
 
-#include <algorithm>
 #include <cmath>
-#include <ctime>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "../alphabet/aminoacids.h"
-#include "../alphabet/nucleotides.h"
 #include "../match/matchAa.h"
 #include "../match/matchNuc.h"
 #include "../utils/safe_cast.h"
-#include "../utils/vector2d.h"
 
 
 namespace details {
@@ -124,20 +119,20 @@ SeedAlignment seedAlignment(
 
   // clang-format off
   const int nSeeds = refSize > options.minSeeds * options.seedSpacing ? refSize / options.seedSpacing : options.minSeeds;
-  const int margin = details::round(refSize / (nSeeds * 3.0f));
-  const int bandWidth = details::round((refSize + querySize) * 0.5f) - 3;
+  const int margin = details::round(refSize / (nSeeds * 3.0));
+  const int bandWidth = details::round((refSize + querySize) * 0.5) - 3;
   // clang-format on
 
   int start_pos = 0;
   if (bandWidth < 2 * options.seedLength) {
     return {
-      .meanShift = details::round((refSize - querySize) * 0.5f),// NOLINT: cppcoreguidelines-avoid-magic-numbers
+      .meanShift = details::round((refSize - querySize) * 0.5),// NOLINT: cppcoreguidelines-avoid-magic-numbers
       .bandWidth = bandWidth                                    //
     };
   }
 
   const auto mapToGoodPositions = getMapToGoodPositions(query, options.seedLength);
-  const int nGoodPositions = mapToGoodPositions.size();
+  const int nGoodPositions = safe_cast<int>(mapToGoodPositions.size());
 
   // TODO: Maybe use something other than array? A struct with named fields to make
   //  the code in the end of the function less confusing?
@@ -232,7 +227,7 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
   }
   for (int ri = 0; ri < refSize; ri++) {
     int qPos = ri - (bandWidth + meanShift);
-    int refGaps = - gapOpenClose[ri];
+    int refGaps = -gapOpenClose[ri];
     for (int si = 2 * bandWidth; si >= 0; si--) {
       int tmpPath = 0, score = 0, origin = 0;
       int qGapExtend = 0, rGapExtend = 0, rGapOpen = 0, qGapOpen = 0;
@@ -242,7 +237,7 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
         // we could fill all of this at once
         score = 0;
         tmpPath += qryGAPextend;
-        refGaps = - gapOpenClose[ri];
+        refGaps = -gapOpenClose[ri];
         origin = qryGAPmatrix;
       } else if (qPos < querySize) {
         // if the shifted position is within the query sequence
@@ -310,7 +305,7 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
 template<typename Letter>
 AlignmentResult<Letter> backTrace(const Sequence<Letter>& query, const Sequence<Letter>& ref,
   const vector2d<int>& scores, const vector2d<int>& paths, int meanShift) {
-  const int rowLength = scores.num_cols();
+  const int rowLength = safe_cast<int>(scores.num_cols());
   const int scoresSize = safe_cast<int>(scores.num_rows());
   const int querySize = safe_cast<int>(query.size());
   const int refSize = safe_cast<int>(ref.size());
@@ -468,7 +463,7 @@ NucleotideAlignmentResult alignPairwise(const NucleotideSequence& query, const N
   const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
   const NextalignSeedOptions& seedOptions) {
 
-  const int querySize = query.size();
+  const int querySize = safe_cast<int>(query.size());
   if (querySize < alignmentOptions.minimalLength) {
     throw ErrorAlignmentSequenceTooShort();
   }

@@ -1,9 +1,8 @@
-#include "../src/translate/decode.h"
-
 #include <gtest/gtest.h>
 
 #include "../src/alphabet/aminoacids.h"
 #include "../src/alphabet/nucleotides.h"
+#include "../src/translate/decode.h"
 
 TEST(decode, DecodesGap) {
 
