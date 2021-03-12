@@ -1,3 +1,35 @@
+## [0.14.1](https://github.com/nextstrain/nextclade/compare/0.14.0...0.14.1) (2021-03-12)
+
+This release of Nextclade adjusts the default Quality Control configuration to account for ever-increasing diversity of circulating SARS-CoV-2. The following default QC parameters have been changed:
+
+Rule "Private mutations":
+ 
+ - "typical" (expected number of mutations) increased from 5 to 8
+ - "cutoff" (number of mutations to trigger QC warning) increased from 15 to 24
+
+Rule "Mutation clusters":
+
+ - "clusterCutOff" (number of mutations within window to trigger a warning) increased from 4 to 6
+
+As always, users can provide their own QC configuration, to override the defaults, if these changes are not desirable. 
+
+
+Additionally, [Nextalign 0.1.7](https://github.com/nextstrain/nextclade/releases) is now available, which fixes rare crash in peptide alignment, when a low-quality sequence has not enough seed positions.
+
+
+Don't hesitate to provide feedback, report issues and share ideas on [GitHub](https://github.com/nextstrain/nextclade/issues).
+
+
+### Bug Fixes
+
+* prevent crashing when not enough good gene seed positions ([6233aa2](https://github.com/nextstrain/nextclade/commit/6233aa28e1f9946d0e2ea388d025fc40c5af2a54))
+
+
+Misc:
+
+* relax SARS-CoV-2 QC parameters to account for increasing diversity of circulating virus
+
+
 # [0.14.0](https://github.com/nextstrain/nextclade/compare/0.13.0...0.14.0) (2021-03-08)
 
 This is a maintenance release which updates the default reference tree with more recent genomes and increases the number of sequences in it to better reflect circulating diversity. 
@@ -6,7 +38,7 @@ Additionally, we extend our list of partial codon patches (first introduced in v
 
 There are also some small improvements in the user interface. 
 
-As always, don't hesitate to provide feedback, report issues and  on [GitHub](https://github.com/nextstrain/nextclade/issues/new/choose).
+As always, don't hesitate to provide feedback, report issues and share ideas on [GitHub](https://github.com/nextstrain/nextclade/issues/new/choose).
 
 The full list of changes is below.
 

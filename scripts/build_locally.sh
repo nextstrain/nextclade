@@ -25,6 +25,7 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
+PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
 
 export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
@@ -134,7 +135,7 @@ fi
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
-CLI_DIR="${BUILD_DIR}/packages/nextalign_cli"
+CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
 CLI_EXE="nextalign-${HOST_OS}-${HOST_ARCH}"
 
 CLI="${CLI_DIR}/${CLI_EXE}"
@@ -153,6 +154,8 @@ DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 NEXTALIGN_STATIC_BUILD_DEFAULT=1
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
+elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] ; then
+  NEXTALIGN_STATIC_BUILD_DEFAULT=0
 fi
 NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
 
@@ -182,14 +185,15 @@ if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   "
 fi
 
+# gdb (or lldb) command with arguments
+GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
+
 # AddressSanitizer and MemorySanitizer don't work with gdb
 case ${CMAKE_BUILD_TYPE} in
   ASAN|MSAN) GDB_DEFAULT="" ;;
   *) ;;
 esac
 
-# gdb (or lldb) command with arguments
-GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
 if [ "${IS_CI}" == "1" ]; then
   GDB_DEFAULT=""
 fi
@@ -220,6 +224,7 @@ function print() {
 }
 
 echo "-------------------------------------------------------------------------"
+echo "PROJECT_NAME   = ${PROJECT_NAME:=}"
 echo ""
 echo "BUILD_OS       = ${BUILD_OS:=}"
 echo "BUILD_ARCH     = ${BUILD_ARCH:=}"
@@ -356,17 +361,20 @@ if [ "${CROSS}" == "1" ]; then
 fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
-  print 23 "Run tests";
-  pushd "${BUILD_DIR}/packages/nextalign/tests" > /dev/null
-      eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-  popd > /dev/null
 
-  pushd "${BUILD_DIR}/packages/nextclade/src/__tests__" > /dev/null
-      eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-  popd > /dev/null
+  if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
+    print 23 "Run tests";
+    pushd "${BUILD_DIR}/packages/nextalign/tests" > /dev/null
+        eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+    popd > /dev/null
 
-  # print 27 "Run CLI";
-  # eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
+    pushd "${BUILD_DIR}/packages/nextclade/src/__tests__" > /dev/null
+        eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+    popd > /dev/null
+  fi
+
+  print 27 "Run CLI";
+  eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
 
   print 22 "Done";
 
