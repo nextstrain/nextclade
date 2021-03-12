@@ -1,11 +1,11 @@
+#include "../src/translate/extractGene.h"
+
 #include <gtest/gtest.h>
 #include <nextalign/nextalign.h>
 
-#include <string>
 #include <string_view>
 #include <vector>
 
-#include "../src/translate/extractGene.h"
 #include "../src/translate/mapCoordinates.h"
 
 
@@ -14,10 +14,10 @@ TEST(extractGeneRef, ExtractsRefGene) {
   // gene                                    2          14
   // gene                                    |           |
   const std::string ref =                 "ACTCCGTGCGCTGCTG";
-  const std::string ref_aligned =         "ACTCCG---TGCGCTGCTG";
-  const std::string query_aligned =       "ACTGGTCTA---GCA";
+  // const std::string ref_aligned =      "ACTCCG---TGCGCTGCTG";
+  // const std::string query_aligned =    "ACTGGTCTA---GCA";
   const std::string expected_gene_ref =     "TCCGTGCGCTGC";
-  const std::string expected_gene_query =   "TGGTCTAGC";
+  // const std::string expected_gene_query ="TGGTCTAGC";
   // clang-format on
 
   const Gene gene = {
@@ -40,9 +40,9 @@ TEST(extractGeneQuery, ExtractsQueryGene) {
   // gene                                    2          14
   // gene                                    |           |
   const std::string ref =                 "ACTCCGTGCGCTGCTG";
-  const std::string ref_aligned =         "ACTCCG---TGCGCTGCTG";
+  // const std::string ref_aligned =      "ACTCCG---TGCGCTGCTG";
   const std::string query_aligned =       "ACTGGTCTA---GCA";
-  const std::string expected_gene_ref =     "TCCGTGCGCTGC";
+  // const std::string expected_gene_ref =  "TCCGTGCGCTGC";
   const std::string expected_gene_query =   "TGGTCTAGC";
   // clang-format on
 
@@ -56,7 +56,7 @@ TEST(extractGeneQuery, ExtractsQueryGene) {
   };
 
   const auto coordMap = mapCoordinates(toNucleotideSequence(ref));
-  const auto gene_query = NucleotideSequence(extractGeneQuery(toNucleotideSequence(query_aligned), gene, coordMap));
+  const auto gene_query = extractGeneQuery(toNucleotideSequence(query_aligned), gene, coordMap);
 
   EXPECT_EQ(toString(gene_query), expected_gene_query);
 }
@@ -81,7 +81,7 @@ TEST(extractGeneQuery, ExtractsQueryGeneCorrectlyStripped) {
   };
 
   const auto coordMap = mapCoordinates(toNucleotideSequence(ref));
-  const auto gene_query = NucleotideSequence(extractGeneQuery(toNucleotideSequence(query_aligned), gene, coordMap));
+  const auto gene_query = extractGeneQuery(toNucleotideSequence(query_aligned), gene, coordMap);
 
   EXPECT_EQ(toString(gene_query), expected_gene_query);
 }
@@ -105,7 +105,7 @@ TEST(extractGeneQuery, ExtractsQueryGeneCorrectlyStrippedWithGaps) {
   };
 
   const auto coordMap = mapCoordinates(toNucleotideSequence(ref));
-  const auto gene_query = NucleotideSequence(extractGeneQuery(toNucleotideSequence(query_aligned), gene, coordMap));
+  const auto gene_query = extractGeneQuery(toNucleotideSequence(query_aligned), gene, coordMap);
 
   EXPECT_EQ(toString(gene_query), expected_gene_query);
 }
