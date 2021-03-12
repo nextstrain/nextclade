@@ -3,8 +3,8 @@ import type { QCRulesConfig } from 'src/algorithms/QC/types'
 export const qcRulesConfig: QCRulesConfig = {
   privateMutations: {
     enabled: true,
-    typical: 5, // expected number of mutations
-    cutoff: 15, // trigger QC warning if the typical value exceeds this value
+    typical: 8, // expected number of mutations
+    cutoff: 24, // trigger QC warning if the typical value exceeds this value
   },
   missingData: {
     enabled: true,
@@ -14,7 +14,7 @@ export const qcRulesConfig: QCRulesConfig = {
   snpClusters: {
     enabled: true,
     windowSize: 100, // window along the genome to look for a cluster
-    clusterCutOff: 4, // number of mutations within that window to trigger a cluster
+    clusterCutOff: 6, // number of mutations within that window to trigger a cluster
     scoreWeight: 50, // each cluster counts for 50
   },
   mixedSites: {
