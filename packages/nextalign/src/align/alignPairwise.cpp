@@ -154,6 +154,7 @@ SeedAlignment seedAlignment(
   for (int ni = 0; ni < nSeeds; ++ni) {
 
     const auto goodPositionIndex = details::round(margin + (kmerSpacing * ni));
+    invariant_less(goodPositionIndex, mapToGoodPositions.size());
     const int qPos = mapToGoodPositions[goodPositionIndex];
     // FIXME: query.substr() creates a new string. Use string view instead.
     const auto seed = query.substr(qPos, options.seedLength);
