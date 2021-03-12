@@ -148,7 +148,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   -Wno-sign-conversion \
   -Wno-strict-overflow \
   -Wno-unused-parameter \
-  -Wno-useless-cast \
   ")
 
   set(C_FLAGS " ${C_FLAGS} \
