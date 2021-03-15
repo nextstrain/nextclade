@@ -23,6 +23,7 @@ namespace Nextclade {
     const auto& seqName = options.seqName;
     const auto& query = options.query;
     const auto& ref = options.ref;
+    const auto& treeString = options.treeString;
     const auto& pcrPrimers = options.pcrPrimers;
     const auto& geneMap = options.geneMap;
 
@@ -56,10 +57,7 @@ namespace Nextclade {
       .alignmentScore = alignment.alignmentScore,
     };
 
-    // TODO: user real string
-    const std::string auspiceDataString;
-    Tree tree{auspiceDataString};
-
+    Tree tree{treeString};
     const auto treeFindNearestNodesResult = treeFindNearestNode(analysisResult, ref, tree);
     //  const { clade } = assignClade(analysisResult, match)
     //  const analysisResultWithClade = { ...analysisResult, clade }

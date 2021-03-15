@@ -20,6 +20,7 @@ namespace Nextclade {
     std::string seqName;
     NucleotideSequence query;
     NucleotideSequence ref;
+    std::string treeString;
     std::vector<PcrPrimer> pcrPrimers;
     GeneMap geneMap;
     QcConfig qcRulesConfig;

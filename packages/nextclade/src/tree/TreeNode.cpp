@@ -23,7 +23,6 @@ namespace Nextclade {
     auto* substitutionsValue = rapidjson::GetValueByPointer(*value, "/substitutions");
     std::map<int, Nucleotide> substitutions;
     if (substitutionsValue->IsObject()) {
-
       for (const auto& substitution : substitutionsValue->GetObject()) {
         const auto pos = substitution.name.GetInt();
         const std::string sub = substitution.value.GetString();

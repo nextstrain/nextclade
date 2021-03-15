@@ -445,6 +445,7 @@ void run(
   /* in  */ bool inOrder,
   /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
   /* in  */ const std::string &refStr,
+  /* in  */ const std::string &treeString,
   /* in  */ const GeneMap &geneMap,
   /* in  */ const NextalignOptions &options,
   /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
@@ -471,7 +472,7 @@ void run(
    * The number of filters is determined by the `--jobs` CLI argument */
   const auto transformFilters = tbb::make_filter<AlgorithmInput, Nextclade::AlgorithmOutput>(
     tbb::filter_mode::parallel,//
-    [&ref, &geneMap, &options](const AlgorithmInput &input) -> Nextclade::AlgorithmOutput {
+    [&ref, &treeString, &geneMap, &options](const AlgorithmInput &input) -> Nextclade::AlgorithmOutput {
       try {
         const auto query = toNucleotideSequence(input.seq);
 
@@ -479,6 +480,7 @@ void run(
           .seqName = input.seqName,
           .query = query,
           .ref = ref,
+          .treeString = treeString,
           .pcrPrimers = std::vector<Nextclade::PcrPrimer>(),
           .geneMap = geneMap,
           .qcRulesConfig = Nextclade::QcConfig(),
@@ -519,6 +521,16 @@ void run(
   }
 }
 
+std::string readFile(const std::string &filepath) {
+  std::ifstream stream(filepath);
+  if (!stream.good()) {
+    throw std::runtime_error(fmt::format("Error: unable to read \"{:s}\"\n", filepath));
+  }
+  std::stringstream buffer;
+  buffer << stream.rdbuf();
+  return buffer.str();
+}
+
 int main(int argc, char *argv[]) {
   try {
     const auto [cliParams, cxxOpts, options] = parseCommandLine(argc, argv);
@@ -542,6 +554,8 @@ int main(int argc, char *argv[]) {
       logger.error("Error: unable to read \"{:s}\"\n", cliParams.inputFasta);
       std::exit(1);
     }
+
+    const auto treeString = readFile(cliParams.inputTree);
 
     std::unique_ptr<std::ostream> outputJsonFile;
     if (cliParams.outputJson) {
@@ -569,7 +583,7 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, inputFastaStream, ref, geneMap, options, outputJsonFile, logger);
+      run(parallelism, inOrder, inputFastaStream, ref, treeString, geneMap, options, outputJsonFile, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
     }
