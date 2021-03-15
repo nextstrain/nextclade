@@ -8,6 +8,7 @@ include(Sanitizers)
 
 project(nextclade_cli)
 file(STRINGS "VERSION" PROJECT_VERSION)
+file(STRINGS "../nextalign/VERSION" NEXTALIGN_VERSION)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
@@ -53,6 +54,7 @@ target_compile_definitions(${PROJECT_NAME}
   PRIVATE
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
+  -DNEXTALIGN_VERSION="${NEXTALIGN_VERSION}"
   )
 
 target_include_directories(${PROJECT_NAME}

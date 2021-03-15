@@ -19,15 +19,14 @@ namespace Nextclade {
       [](int result, const auto& item) { return result + item.length; });
   }
 
-  NextcladeResult nextclade(const NextcladeParams& params) {
-    const auto& seqName = params.seqName;
-    const auto& query = params.query;
-    const auto& ref = params.ref;
-    const auto& pcrPrimers = params.pcrPrimers;
-    const auto& geneMap = params.geneMap;
-    const auto& options = params.options;
+  NextcladeResult nextclade(const NextcladeOptions& options) {
+    const auto& seqName = options.seqName;
+    const auto& query = options.query;
+    const auto& ref = options.ref;
+    const auto& pcrPrimers = options.pcrPrimers;
+    const auto& geneMap = options.geneMap;
 
-    const auto alignment = nextalignInternal(query, ref, geneMap, options);
+    const auto alignment = nextalignInternal(query, ref, geneMap, options.nextalignOptions);
 
     const auto analysis = analyze(alignment.query, alignment.ref);
     const int totalSubstitutions = safe_cast<int>(analysis.substitutions.size());
@@ -68,5 +67,28 @@ namespace Nextclade {
     //  const qc = runQC({ analysisResult: analysisResultWithClade, privateMutations, qcRulesConfig })
     //
     //  return { ...analysisResultWithClade, qc, nearestTreeNodeId: match.id }
+
+    NextcladeResult result = {{
+      .seqName = seqName,
+      .substitutions = analysis.substitutions,
+      .totalSubstitutions = totalSubstitutions,
+      .deletions = analysis.deletions,
+      .totalDeletions = totalDeletions,
+      .insertions = analysis.insertions,
+      .totalInsertions = totalInsertions,
+      .missing = missing,
+      .totalMissing = totalMissing,
+      .nonACGTNs = nonACGTNs,
+      .totalNonACGTNs = totalNonACGTNs,
+      .alignmentStart = analysis.alignmentStart,
+      .alignmentEnd = analysis.alignmentEnd,
+      .alignmentScore = alignment.alignmentScore,
+    }};
+
+    return result;
+  }
+
+  const char* getVersion() {
+    return PROJECT_VERSION;
   }
 }// namespace Nextclade

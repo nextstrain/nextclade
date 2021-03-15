@@ -9,8 +9,9 @@
 
 
 namespace Nextclade {
-  template<typename Predicate>
-  std::vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str, Predicate pred) {
+
+  std::vector<NucleotideRange> findNucleotideRanges(
+    const NucleotideSequence& str, const std::function<bool(const Nucleotide&)>& pred) {
     const auto& length = safe_cast<int>(str.length());
     std::vector<NucleotideRange> result;
 
@@ -26,7 +27,7 @@ namespace Nextclade {
         foundNuc = &nuc;
       }
 
-      if (foundNuc) {
+      if (foundNuc != nullptr) {
         // rewind forward to the end of matching range
         while (nuc == *foundNuc) {
           ++i;

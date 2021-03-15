@@ -16,18 +16,14 @@ namespace Nextclade {
 
   struct QcConfig {};
 
-  struct NextcladeOptions : public NextalignOptions {
-    QcConfig qcRulesConfig;
-    int minimalLength;
-  };
-
-  struct NextcladeParams {
+  struct NextcladeOptions {
     std::string seqName;
     NucleotideSequence query;
     NucleotideSequence ref;
     std::vector<PcrPrimer> pcrPrimers;
     GeneMap geneMap;
-    NextcladeOptions options;
+    QcConfig qcRulesConfig;
+    NextalignOptions nextalignOptions;
   };
 
   struct NucleotideSubstitution {
@@ -81,5 +77,7 @@ namespace Nextclade {
 
   struct NextcladeResult : public NextcladeResultIntermediate {};
 
-  NextcladeResult nextclade(const NextcladeParams& params);
+  NextcladeResult nextclade(const NextcladeOptions& options);
+
+  const char* getVersion();
 }// namespace Nextclade
