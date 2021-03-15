@@ -3,21 +3,15 @@
 #include <nextclade/nextclade.h>
 
 #include <algorithm>
-#include <optional>
 
-#include "../utils/contract.h"
 #include "../utils/inRange.h"
 #include "../utils/mapFind.h"
 #include "../utils/safe_cast.h"
+#include "Tree.h"
+#include "TreeNode.h"
 
 
 namespace Nextclade {
-  struct FindPrivateMutationsResult {};
-
-  FindPrivateMutationsResult findPrivateMutations() {
-    return {};
-  }
-
   /**
    * Checks if a nucleotide at a given position is sequenced
    */
@@ -33,13 +27,18 @@ namespace Nextclade {
     return inRange(pos, analysisResult.alignmentStart, analysisResult.alignmentEnd);
   }
 
-  int calculateDistance(const AuspiceJsonV2TreeNodeExtended& node, const NextcladeResultIntermediate& seq) {
+  /**
+   * Calculate distance metric between the new node and a candidate reference node
+   */
+  int calculateDistance(const TreeNode& node, const NextcladeResultIntermediate& seq) {
     int shared_differences = 0;
     int shared_sites = 0;
 
+    const auto nodeSubstitutions = node.substitutions();
+
     // Filter-out gaps, to prevent double counting
     for (const auto& qmut : seq.substitutions) {
-      const auto der = mapFind(node.substitutions, qmut.pos);
+      const auto der = mapFind(nodeSubstitutions, qmut.pos);
       if (der) {
         // position is also mutated in node
         if (qmut.queryNuc == *der) {
@@ -53,14 +52,14 @@ namespace Nextclade {
     // determine the number of sites that are mutated in the node but missing in seq.
     // for these we can't tell whether the node agrees with seq
     int undetermined_sites = 0;
-    for (const auto& nmut : node.substitutions) {
+    for (const auto& nmut : nodeSubstitutions) {
       const int pos = nmut.first;
       if (!isSequenced(pos, seq)) {
         undetermined_sites += 1;
       }
     }
 
-    const auto numMutNode = safe_cast<int>(node.substitutions.size());
+    const auto numMutNode = safe_cast<int>(nodeSubstitutions.size());
     const auto numMutSeq = safe_cast<int>(seq.substitutions.size());
 
     // calculate distance from set overlaps.
@@ -69,27 +68,30 @@ namespace Nextclade {
 
   struct ClosestMatchResult {
     int distance;
-    const AuspiceJsonV2TreeNodeExtended& nearestNode;
+    TreeNode nearestNode;
   };
 
   ClosestMatchResult treeFindNearestNodeRecursively(
-    const AuspiceJsonV2TreeNodeExtended& node, const NextcladeResultIntermediate& analysisResult) {
+    const TreeNode& node, const NextcladeResultIntermediate& analysisResult) {
 
     int distance = calculateDistance(node, analysisResult);
-    auto& nearestNode = node;
-    auto& children = node.children;
+    auto nearestNode = node;
+    auto children = node.children();
 
     // TODO: Only consider nodes of the reference tree, skip newly added nodes
     // const refChildren = children.filter((node) => node.node_attrs?.['Node type'].value !== NodeType.New)
-    const auto& refChildren = children;
+    auto refChildren = children.filter([](const TreeNode& child) {
+      (void) child;
+      return true;
+    });
 
-    for (const AuspiceJsonV2TreeNodeExtended& child : *refChildren) {
+    refChildren.forEach([&analysisResult, &nearestNode, &distance](const TreeNode& child) {
       auto match = treeFindNearestNodeRecursively(child, analysisResult);
       if (match.distance < distance) {
         distance = match.distance;
         nearestNode = match.nearestNode;
       }
-    }
+    });
 
     return {.distance = distance, .nearestNode = nearestNode};
   }
@@ -97,39 +99,43 @@ namespace Nextclade {
   /**
    * Finds mutations that are present in the new sequence, but not present in the matching reference node sequence
    */
-  std::vector<NucleotideSubstitution> findPrivateMutations(const AuspiceJsonV2TreeNodeExtended& node,
-    const NextcladeResultIntermediate& seq, const NucleotideSequence& root_seq) {
-    // `std::set_difference` requires containers to be sorted
-    precondition(std::is_sorted(node.substitutions.cbegin(), node.substitutions.cend()));
-    precondition(std::is_sorted(seq.substitutions.cbegin(), seq.substitutions.cend()));
+  std::vector<NucleotideSubstitution> findPrivateMutations(
+    const TreeNode& node, const NextcladeResultIntermediate& seq, const NucleotideSequence& root_seq) {
 
-    std::set<int> mutatedPositions;
-    std::for_each(seq.substitutions.cbegin(), seq.substitutions.cend(),
-      [&mutatedPositions](const auto& sub) { mutatedPositions.insert(sub.pos); });
+    const auto nodeSubstitutions = node.substitutions();
+    const auto& seqSubstitutions = seq.substitutions;
 
     std::vector<NucleotideSubstitution> privateMutations;
-    std::set_difference(                                     //
-      node.substitutions.cbegin(), node.substitutions.cend(),//
-      seq.substitutions.cbegin(), seq.substitutions.cend(),  //
-      privateMutations.begin()                               //
-    );
+    for (const auto& seqSubstitution : seqSubstitutions) {
+      const auto nodeSub = mapFind(nodeSubstitutions, seqSubstitution.pos);
+      if (*nodeSub == seqSubstitution.queryNuc) {
+        privateMutations.push_back(seqSubstitution);
+      }
+    }
 
-    for (const auto& [pos, refNuc] : node.substitutions) {
-      if (has(mutatedPositions, pos) && isSequenced(pos, seq)) {
-        const auto queryNuc = root_seq[pos];
-        privateMutations.push_back(NucleotideSubstitution{.pos = pos, .refNuc = refNuc, .queryNuc = queryNuc});
+    std::set<int> mutatedPositions;
+    for (auto sub : seqSubstitutions) {
+      mutatedPositions.insert(sub.pos);
+    }
+
+    for (const auto [pos, refNuc] : nodeSubstitutions) {
+      if (!has(mutatedPositions, pos) && isSequenced(pos, seq)) {
+        const auto& queryNuc = root_seq[pos];
+        privateMutations.push_back({pos, refNuc, queryNuc});
       }
     }
 
     return privateMutations;
   }
 
+  TreeFindNearestNodesResult treeFindNearestNodes(
+    const NextcladeResultIntermediate& analysisResult, const NucleotideSequence& rootSeq, const Tree& auspiceData) {
 
-  TreeFindNearestNodesResult treeFindNearestNodes(const NextcladeResultIntermediate& analysisResult,
-    const NucleotideSequence& rootSeq, const AuspiceJsonV2& auspiceData) {
-    const AuspiceJsonV2TreeNodeExtended& focalNode = auspiceData.tree;
+    const auto focalNode = auspiceData.root();
+
     const auto nearestNode = treeFindNearestNodeRecursively(focalNode, analysisResult).nearestNode;
     const auto privateMutations = findPrivateMutations(nearestNode, analysisResult, rootSeq);
+
     return {.nearestNode = nearestNode, .privateMutations = privateMutations};
   }
 }// namespace Nextclade

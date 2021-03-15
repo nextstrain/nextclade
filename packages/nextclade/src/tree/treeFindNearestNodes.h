@@ -3,12 +3,14 @@
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
 
+#include "TreeNode.h"
+
 namespace Nextclade {
   struct TreeFindNearestNodesResult {
-    const AuspiceJsonV2TreeNodeExtended& nearestNode;
+    TreeNode nearestNode;
     std::vector<NucleotideSubstitution> privateMutations;
   };
 
-  TreeFindNearestNodesResult treeFindNearestNodes(const NextcladeResultIntermediate& analysisResult,
-    const NucleotideSequence& rootSeq, const AuspiceJsonV2& auspiceData);
+  TreeFindNearestNodesResult treeFindNearestNodes(
+    const NextcladeResultIntermediate& analysisResult, const NucleotideSequence& rootSeq, const Tree& auspiceData);
 }// namespace Nextclade

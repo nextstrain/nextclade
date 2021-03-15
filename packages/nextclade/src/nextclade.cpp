@@ -8,18 +8,16 @@
 #include "analyze/analyze.h"
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/nucleotide.h"
+#include "tree/Tree.h"
 #include "tree/treeFindNearestNodes.h"
 #include "utils/safe_cast.h"
 
 namespace Nextclade {
-
-
   template<typename T>
   int calculateTotalLength(const std::vector<T>& items) {
     return std::accumulate(items.cbegin(), items.cend(), 0,//
       [](int result, const auto& item) { return result + item.length; });
   }
-
 
   NextcladeResult nextclade(const NextcladeParams& params) {
     const auto& seqName = params.seqName;
@@ -27,7 +25,6 @@ namespace Nextclade {
     const auto& ref = params.ref;
     const auto& pcrPrimers = params.pcrPrimers;
     const auto& geneMap = params.geneMap;
-    const auto& auspiceData = params.auspiceData;
     const auto& options = params.options;
 
     const auto alignment = nextalignInternal(query, ref, geneMap, options);
@@ -42,7 +39,6 @@ namespace Nextclade {
 
     const auto nonACGTNs = findNucleotideRanges(alignment.query, isNonAcgtnAndNonGap);
     const int totalNonACGTNs = calculateTotalLength(nonACGTNs);
-
 
     const NextcladeResultIntermediate analysisResult = {
       .seqName = seqName,
@@ -61,7 +57,11 @@ namespace Nextclade {
       .alignmentScore = alignment.alignmentScore,
     };
 
-    const auto treeFindNearestNodesResult = treeFindNearestNodes(analysisResult, ref, auspiceData);
+    // TODO: user real string
+    const std::string auspiceDataString;
+    Tree tree{auspiceDataString};
+
+    const auto treeFindNearestNodesResult = treeFindNearestNodes(analysisResult, ref, tree);
     //  const { clade } = assignClade(analysisResult, match)
     //  const analysisResultWithClade = { ...analysisResult, clade }
     //

@@ -12,10 +12,11 @@ file(STRINGS "VERSION" PROJECT_VERSION)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
-find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
+find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
+find_package(RapidJSON 1.1.0 REQUIRED)
 find_package(type_safe 0.2.1 REQUIRED)
 
 set(SOURCE_FILES
@@ -29,6 +30,8 @@ set(SOURCE_FILES
   src/analyze/nucleotide.cpp
   src/analyze/nucleotide.h
   src/nextclade.cpp
+  src/tree/Tree.cpp
+  src/tree/Tree.h
   src/tree/treeFindNearestNodes.cpp
   src/tree/treeFindNearestNodes.h
   src/utils/config.h
@@ -39,7 +42,7 @@ set(SOURCE_FILES
   src/utils/macro_overload.h
   src/utils/mapFind.h
   src/utils/safe_cast.h
-  )
+  src/tree/TreeNode.cpp src/tree/TreeNode.h src/tree/TreeNodeArray.cpp src/tree/TreeNodeArray.h)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   add_executable(${PROJECT_NAME} ${SOURCE_FILES})
@@ -91,6 +94,13 @@ endif ()
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
+if (MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE /arch:SSE4.2)
+else ()
+  target_compile_options(${PROJECT_NAME} PRIVATE -msse4.2)
+endif ()
+
+
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
 
@@ -100,6 +110,9 @@ target_compile_definitions(${PROJECT_NAME}
   # Workaround for GCC 9 error in type_safe.
   # See: https://github.com/foonathan/debug_assert/issues/17
   -DDEBUG_ASSERT_PURE_FUNCTION=
+
+  -DRAPIDJSON_SSE42=1
+  -DRAPIDJSON_HAS_STDSTRING=1
   )
 
 target_include_directories(${PROJECT_NAME}
@@ -125,8 +138,9 @@ target_link_libraries(${PROJECT_NAME}
   nextalign
 
   PRIVATE
-  Microsoft.GSL::GSL
   Boost::headers
+  Microsoft.GSL::GSL
+  RapidJSON::RapidJSON
   fast-cpp-csv-parser::fast-cpp-csv-parser
   fmt::fmt
   type_safe::type_safe

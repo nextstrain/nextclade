@@ -4,24 +4,13 @@
 
 #include <map>
 
-#include "private/auspiceJsonV2.h"
 
 namespace Nextclade {
+  class Tree;
+
   struct NucleotideSubstitution;
 
-  using AuspiceJsonV2 = ::AuspiceJsonV2::AuspiceJsonV2;
-  using AuspiceJsonV2TreeNode = ::AuspiceJsonV2::Tree;
-  using AuspiceJsonV2TreeNodeBranchAttrs = ::AuspiceJsonV2::BranchAttrs;
-  using AuspiceJsonV2TreeNodeNodeAttrs = ::AuspiceJsonV2::NodeAttrs;
-
   using MutationMap = std::map<int, Nucleotide>;
-
-  struct AuspiceJsonV2TreeNodeExtended : public AuspiceJsonV2TreeNode {
-    int id;
-    MutationMap mutations;
-    MutationMap substitutions;
-    // std::shared_ptr<std::vector<AuspiceJsonV2TreeNodeExtended>> children;
-  };
 
   struct PcrPrimer {};
 
@@ -38,7 +27,6 @@ namespace Nextclade {
     NucleotideSequence ref;
     std::vector<PcrPrimer> pcrPrimers;
     GeneMap geneMap;
-    AuspiceJsonV2 auspiceData;
     NextcladeOptions options;
   };
 

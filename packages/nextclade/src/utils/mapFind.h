@@ -16,7 +16,7 @@ inline std::optional<V> mapFind(const std::map<K, V>& container, K key) {
 }
 
 /**
- * Convenience wrapper for std::map::find which returns std::optional
+ * Convenience wrapper for std::set::find which returns std::optional
  */
 template<typename T>
 inline bool has(const std::set<T>& container, T key) {
