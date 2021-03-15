@@ -97,19 +97,19 @@ namespace Nextclade {
   }
 
   /**
-   * Finds mutations that are present in the new sequence, but not present in the matching reference node sequence
+   * Finds mutations that are present in the new sequence, but not present in the matching reference tree node
    */
   std::vector<NucleotideSubstitution> findPrivateMutations(
-    const TreeNode& node, const NextcladeResultIntermediate& seq, const NucleotideSequence& root_seq) {
+    const TreeNode& node, const NextcladeResultIntermediate& seq, const NucleotideSequence& rootSeq) {
 
     const auto nodeSubstitutions = node.substitutions();
     const auto& seqSubstitutions = seq.substitutions;
 
     std::vector<NucleotideSubstitution> privateMutations;
-    for (const auto& seqSubstitution : seqSubstitutions) {
-      const auto nodeSub = mapFind(nodeSubstitutions, seqSubstitution.pos);
-      if (*nodeSub == seqSubstitution.queryNuc) {
-        privateMutations.push_back(seqSubstitution);
+    for (const auto& sub : seqSubstitutions) {
+      const auto nodeSub = mapFind(nodeSubstitutions, sub.pos);
+      if (*nodeSub == sub.queryNuc) {
+        privateMutations.push_back(sub);
       }
     }
 
@@ -120,7 +120,7 @@ namespace Nextclade {
 
     for (const auto [pos, refNuc] : nodeSubstitutions) {
       if (!has(mutatedPositions, pos) && isSequenced(pos, seq)) {
-        const auto& queryNuc = root_seq[pos];
+        const auto& queryNuc = rootSeq[pos];
         privateMutations.push_back({pos, refNuc, queryNuc});
       }
     }
@@ -128,10 +128,14 @@ namespace Nextclade {
     return privateMutations;
   }
 
-  TreeFindNearestNodesResult treeFindNearestNodes(
-    const NextcladeResultIntermediate& analysisResult, const NucleotideSequence& rootSeq, const Tree& auspiceData) {
+  /**
+   * For a given new sequence, finds a reference tree node that has the least distance metric
+   * (as defined by `calculateDistance()`), as well as enumerates sequence's private mutations relative to that node
+   */
+  TreeFindNearestNodesResult treeFindNearestNode(
+    const NextcladeResultIntermediate& analysisResult, const NucleotideSequence& rootSeq, const Tree& tree) {
 
-    const auto focalNode = auspiceData.root();
+    const auto focalNode = tree.root();
 
     const auto nearestNode = treeFindNearestNodeRecursively(focalNode, analysisResult).nearestNode;
     const auto privateMutations = findPrivateMutations(nearestNode, analysisResult, rootSeq);

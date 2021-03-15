@@ -61,7 +61,7 @@ namespace Nextclade {
     const std::string auspiceDataString;
     Tree tree{auspiceDataString};
 
-    const auto treeFindNearestNodesResult = treeFindNearestNodes(analysisResult, ref, tree);
+    const auto treeFindNearestNodesResult = treeFindNearestNode(analysisResult, ref, tree);
     //  const { clade } = assignClade(analysisResult, match)
     //  const analysisResultWithClade = { ...analysisResult, clade }
     //
