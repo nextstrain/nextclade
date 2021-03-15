@@ -135,13 +135,23 @@ fi
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
-CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
-CLI_EXE="nextalign-${HOST_OS}-${HOST_ARCH}"
 
-CLI="${CLI_DIR}/${CLI_EXE}"
-if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-  CLI=${INSTALL_DIR}/bin/${CLI_EXE}
-fi
+function get_cli() {
+  NAME=${1}
+
+  CLI_DIR="${BUILD_DIR}/packages/${NAME}_cli"
+  CLI_EXE="${NAME}-${HOST_OS}-${HOST_ARCH}"
+
+  CLI="${CLI_DIR}/${CLI_EXE}"
+  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+    CLI=${INSTALL_DIR}/bin/${CLI_EXE}
+  fi
+
+  echo "${CLI}"
+}
+
+NEXTALIGN_CLI=$(get_cli "nextalign")
+NEXTCLADE_CLI=$(get_cli "nextclade")
 
 USE_COLOR="${USE_COLOR:=1}"
 if [ "${IS_CI}" == "1" ] || [ "${IS_CI}" == "true" ]; then
@@ -266,7 +276,8 @@ echo "BUILD_PREFIX             = ${BUILD_PREFIX:=}"
 echo "BUILD_SUFFIX             = ${BUILD_SUFFIX:=}"
 echo "BUILD_DIR                = ${BUILD_DIR:=}"
 echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
-echo "CLI                      = ${CLI:=}"
+echo "NEXTALIGN_CLI            = ${NEXTALIGN_CLI}"
+echo "NEXTCLADE_CLI            = ${NEXTCLADE_CLI}"
 echo "-------------------------------------------------------------------------"
 
 # Setup conan profile in CONAN_USER_HOME
@@ -362,19 +373,23 @@ fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
 
-  if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
-    print 23 "Run tests";
-    pushd "${BUILD_DIR}/packages/nextalign/tests" > /dev/null
-        eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-    popd > /dev/null
+#  if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
+#    print 23 "Run Nextalign tests";
+#    pushd "${BUILD_DIR}/packages/nextalign/tests" > /dev/null
+#        eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+#    popd > /dev/null
+#
+#    print 23 "Run Nextclade tests";
+#    pushd "${BUILD_DIR}/packages/nextclade/src/__tests__" > /dev/null
+#        eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+#    popd > /dev/null
+#  fi
+#
+#  print 27 "Run Nextalign CLI";
+#  eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
 
-    pushd "${BUILD_DIR}/packages/nextclade/src/__tests__" > /dev/null
-        eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-    popd > /dev/null
-  fi
-
-  print 27 "Run CLI";
-  eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
+  print 27 "Run Nextclade CLI";
+  eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
 
   print 22 "Done";
 
