@@ -502,6 +502,8 @@ void run(
       const auto index = output.index;
       const auto &seqName = output.seqName;
 
+      logger.info("| {:5d} | {:40s} | {:16d} | {:12d} |\n", index, seqName, 0, 0);
+
       const auto &error = output.error;
       if (error) {
         try {
