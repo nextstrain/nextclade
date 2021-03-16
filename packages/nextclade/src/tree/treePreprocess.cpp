@@ -56,6 +56,8 @@ namespace Nextclade {
     node.setNodeAttr("mutations", tmpMuts);
     node.setNodeAttr("substitutions", substitutions);
     node.setNodeAttr("id", id);
+
+    // Node type will not be removed during postprocessing.
     node.setNodeAttr("Node type", "Reference");
 
     // Repeat for children recursively

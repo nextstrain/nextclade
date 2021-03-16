@@ -105,5 +105,12 @@ namespace Nextclade {
     rapidjson::Pointer(path.c_str()).Set(*value, data, *a);
   }
 
+  void TreeNode::removeNodeAttr(const char* name) {
+    auto* nodeAttrs = rapidjson::Pointer("/node_attrs").Get(*value);
+    if (nodeAttrs) {
+      nodeAttrs->RemoveMember(name);
+    }
+  }
+
 
 }// namespace Nextclade

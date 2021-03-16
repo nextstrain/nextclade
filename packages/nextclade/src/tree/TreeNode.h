@@ -34,5 +34,6 @@ namespace Nextclade {
     std::map<int, Nucleotide> substitutions() const;
 
     std::vector<NucleotideSubstitution> nucleotideMutations() const;
+    void removeNodeAttr(const char string[10]);
   };
 }// namespace Nextclade
