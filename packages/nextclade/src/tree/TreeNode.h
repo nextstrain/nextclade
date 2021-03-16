@@ -16,6 +16,10 @@ namespace Nextclade {
   public:
     explicit TreeNode(rapidjson::Value* value);
 
+    rapidjson::Value* get(const char* path) const;
+
+    rapidjson::Value* get(const char* path);
+
     TreeNodeArray children() const;
 
     std::map<int, Nucleotide> substitutions() const;

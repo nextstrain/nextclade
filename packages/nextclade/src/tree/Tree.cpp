@@ -20,9 +20,18 @@ namespace Nextclade {
       json.Parse(auspiceJsonV2.c_str());
     }
 
-    template<typename CharType, size_t N>
-    auto get(const CharType (&source)[N]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
-      return rapidjson::GetValueByPointer(json, source);
+    const rapidjson::Value* get(const char* path) const {
+      const rapidjson::Value* result = rapidjson::Pointer(path).Get(json);
+      if (!result) {//NOLINT(readability-implicit-bool-conversion)
+        return nullptr;
+      }
+      return result;
+    }
+
+    rapidjson::Value* get(const char* path) {
+      return const_cast<rapidjson::Value*>(// NOLINT(cppcoreguidelines-pro-type-const-cast)
+        std::as_const(*this).get(path)     //
+      );
     }
   };
 

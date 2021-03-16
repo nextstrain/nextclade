@@ -14,13 +14,31 @@ namespace Nextclade {
 
   TreeNode::TreeNode(rapidjson::Value* value) : value(value) {}
 
+  rapidjson::Value* TreeNode::get(const char* path) const {
+    rapidjson::Value* result = rapidjson::Pointer(path).Get(*value);
+    if (!result) {//NOLINT(readability-implicit-bool-conversion)
+      return nullptr;
+    }
+    return result;
+  }
+
+  rapidjson::Value* TreeNode::get(const char* path) {
+    return const_cast<rapidjson::Value*>(// NOLINT(cppcoreguidelines-pro-type-const-cast)
+      std::as_const(*this).get(path)     //
+    );
+  }
+
   TreeNodeArray TreeNode::children() const {
-    auto* childrenValue = rapidjson::GetValueByPointer(*value, "/children");
+    auto* childrenValue = get("/children");
     return TreeNodeArray{childrenValue};
   }
 
   std::map<int, Nucleotide> TreeNode::substitutions() const {
-    auto* substitutionsValue = rapidjson::GetValueByPointer(*value, "/substitutions");
+    auto* substitutionsValue = get("/substitutions");
+    if (substitutionsValue == nullptr) {
+      return {};
+    }
+
     std::map<int, Nucleotide> substitutions;
     if (substitutionsValue->IsObject()) {
       for (const auto& substitution : substitutionsValue->GetObject()) {
