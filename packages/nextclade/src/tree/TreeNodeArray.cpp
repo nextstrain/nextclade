@@ -15,6 +15,7 @@ namespace Nextclade {
     if (value->IsArray()) {
       auto a = rapidjson::MemoryPoolAllocator();
       rapidjson::Value result;
+      result.SetArray();
       for (auto&& item : value->GetArray()) {
         if (predicate(TreeNode{&item})) {
           result.PushBack(std::move(item), a);
