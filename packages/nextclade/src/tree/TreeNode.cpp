@@ -16,7 +16,7 @@ namespace Nextclade {
 
   rapidjson::Value* TreeNode::get(const char* path) const {
     rapidjson::Value* result = rapidjson::Pointer(path).Get(*value);
-    if (!result) {//NOLINT(readability-implicit-bool-conversion)
+    if (!result) {
       return nullptr;
     }
     return result;

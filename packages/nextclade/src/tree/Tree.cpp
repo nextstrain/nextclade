@@ -22,7 +22,7 @@ namespace Nextclade {
 
     const rapidjson::Value* get(const char* path) const {
       const rapidjson::Value* result = rapidjson::Pointer(path).Get(json);
-      if (!result) {//NOLINT(readability-implicit-bool-conversion)
+      if (!result) {
         return nullptr;
       }
       return result;
