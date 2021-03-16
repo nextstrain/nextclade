@@ -23,19 +23,10 @@ namespace Nextclade {
   };
 
   /**
-   * Recursively, in-place, marks all nodes with attribute key: "Node type", value: "Reference"
-   */
-  void setNodeTypesRecursive(TreeNode& node) {
-    node.setNodeAttr("Node type", "Reference");
-    auto children = node.children();
-    children.forEach([](TreeNode child) { setNodeTypesRecursive(child); });
-  }
-
-  /**
    * Recursively, in-place, extends nodes with temporary data needed on further stages of the algorithm:
-   * attaches a map of substitutions and node IDs to every node.
+   * attaches a map of substitutions, node type and node ID to every node.
    */
-  void attachMutationsRecursive(
+  void treePreprocessInPlaceRecursive(
     TreeNode& node, std::map<int, Nucleotide>& mutationMap, int& id, const NucleotideSequence& rootSeq) {
 
     std::map<int, Nucleotide> tmpMuts = mutationMap;
@@ -65,12 +56,13 @@ namespace Nextclade {
     node.setNodeAttr("mutations", tmpMuts);
     node.setNodeAttr("substitutions", substitutions);
     node.setNodeAttr("id", id);
+    node.setNodeAttr("Node type", "Reference");
 
     // Repeat for children recursively
     auto children = node.children();
     children.forEach([&tmpMuts, &id, &rootSeq](TreeNode child) {
       ++id;
-      attachMutationsRecursive(child, tmpMuts, id, rootSeq);
+      treePreprocessInPlaceRecursive(child, tmpMuts, id, rootSeq);
     });
   }
 
@@ -81,11 +73,9 @@ namespace Nextclade {
   void treePreprocess(Tree& tree, const NucleotideSequence& rootSeq) {
     auto root = tree.root();
 
-    setNodeTypesRecursive(root);
-
     std::map<int, Nucleotide> mutationMap;
     int id = 0;
-    attachMutationsRecursive(root, mutationMap, id, rootSeq);
+    treePreprocessInPlaceRecursive(root, mutationMap, id, rootSeq);
   }
 
 }// namespace Nextclade
