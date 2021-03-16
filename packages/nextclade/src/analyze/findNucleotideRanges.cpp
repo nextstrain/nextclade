@@ -29,7 +29,8 @@ namespace Nextclade {
 
       if (foundNuc != nullptr) {
         // rewind forward to the end of matching range
-        while (nuc == *foundNuc) {
+        // TODO: the `i < length` was added to avoid buffer overrun. Double-check algorithmic correctness.
+        while ((nuc == *foundNuc) && (i < length)) {
           ++i;
           nuc = str[i];
         }
@@ -37,7 +38,9 @@ namespace Nextclade {
         const auto& end = i;
         result.push_back({.begin = begin, .end = end, .length = end - begin, .nuc = *foundNuc});
         foundNuc = nullptr;
-      } else {
+
+        // TODO: the `i < length` was added to avoid buffer overrun. Double-check algorithmic correctness.
+      } else if (i < length) {
         ++i;
       }
     }
