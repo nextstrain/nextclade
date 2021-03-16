@@ -121,7 +121,7 @@ namespace Nextclade {
     for (const auto [pos, refNuc] : nodeSubstitutions) {
       if (!has(mutatedPositions, pos) && isSequenced(pos, seq)) {
         const auto& queryNuc = rootSeq[pos];
-        privateMutations.push_back({pos, refNuc, queryNuc});
+        privateMutations.emplace_back(NucleotideSubstitution{refNuc, pos, queryNuc});
       }
     }
 

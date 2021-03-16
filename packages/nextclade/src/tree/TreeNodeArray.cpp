@@ -1,7 +1,6 @@
 #include "TreeNodeArray.h"
 
 #include <rapidjson/document.h>
-#include <rapidjson/pointer.h>
 
 #include <functional>
 #include <string>
@@ -9,30 +8,30 @@
 #include "TreeNode.h"
 
 namespace Nextclade {
-  TreeNodeArray::TreeNodeArray(rapidjson::Value* value) : value(value) {}
+  TreeNodeArray::TreeNodeArray(rapidjson::Value* value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a)
+      : value(value),
+        a(a) {}
 
   TreeNodeArray TreeNodeArray::filter(const std::function<bool(TreeNode)>& predicate) const {
     if (value && value->IsArray()) {
-      auto a = rapidjson::MemoryPoolAllocator();
       rapidjson::Value result;
       result.SetArray();
-      for (auto&& item : value->GetArray()) {
-        if (predicate(TreeNode{&item})) {
-          result.PushBack(std::move(item), a);
+      for (auto& item : value->GetArray()) {
+        if (predicate(TreeNode{&item, a})) {
+          result.PushBack(std::move(item), *a);
         }
       }
-      return TreeNodeArray{value};
+      return TreeNodeArray{value, a};
     }
 
-    return TreeNodeArray{nullptr};
+    return TreeNodeArray{nullptr, a};
   }
 
-  void TreeNodeArray::forEach(const std::function<void(TreeNode)>& action) const {
+  void TreeNodeArray::forEach(const std::function<void(TreeNode)>& action) {
     if (value && value->IsArray()) {
-      auto a = rapidjson::MemoryPoolAllocator();
       rapidjson::Value result;
       for (auto&& item : value->GetArray()) {
-        action(TreeNode{&item});
+        action(TreeNode{&item, a});
       }
     }
   }

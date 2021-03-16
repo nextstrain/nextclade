@@ -28,8 +28,8 @@ namespace Nextclade {
   };
 
   struct NucleotideSubstitution {
-    int pos;
     Nucleotide refNuc;
+    int pos;
     Nucleotide queryNuc;
   };
 

@@ -1,6 +1,8 @@
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
+#include <tree/treePostprocess.h>
+#include <tree/treePreprocess.h>
 
 #include <numeric>
 #include <vector>
@@ -58,6 +60,9 @@ namespace Nextclade {
     };
 
     Tree tree{treeString};
+
+    treePreprocess(tree, ref);
+
     const auto treeFindNearestNodesResult = treeFindNearestNode(analysisResult, ref, tree);
     //  const { clade } = assignClade(analysisResult, match)
     //  const analysisResultWithClade = { ...analysisResult, clade }
@@ -65,6 +70,8 @@ namespace Nextclade {
     //  const qc = runQC({ analysisResult: analysisResultWithClade, privateMutations, qcRulesConfig })
     //
     //  return { ...analysisResultWithClade, qc, nearestTreeNodeId: match.id }
+
+    treePostprocess(tree);
 
     NextcladeResult result = {{
       .seqName = seqName,

@@ -11,5 +11,5 @@ export function parseMutationOrThrow(mut: string) {
     throw new Error(`Mutation cannot be parsed: "${mut}"`)
   }
 
-  return { anc: refNuc, pos, der: queryNuc }
+  return { refNuc: refNuc, pos, queryNuc: queryNuc }
 }

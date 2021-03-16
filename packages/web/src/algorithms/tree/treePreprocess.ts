@@ -26,20 +26,20 @@ export function mutations_on_tree(
   const nucleotideMutations = node?.branch_attrs?.mutations?.nuc
   if (nucleotideMutations) {
     for (const mut of nucleotideMutations) {
-      const { anc, pos, der } = parseMutationOrThrow(mut)
+      const { refNuc, pos, queryNuc } = parseMutationOrThrow(mut)
       const previousNuc = mutations.get(pos)
-      if (previousNuc && previousNuc !== anc) {
+      if (previousNuc && previousNuc !== refNuc) {
         throw new Error(
-          `Mutation is inconsistent: "${mut}": current nucleotide: "${anc}", previously seen: "${previousNuc}"`,
+          `Mutation is inconsistent: "${mut}": current nucleotide: "${refNuc}", previously seen: "${previousNuc}"`,
         )
       }
 
       // if the mutation reverts the nucleotide back to
       // what reference had, remove it from the map
-      if (rootSeq[pos] === der) {
+      if (rootSeq[pos] === queryNuc) {
         tmp_muts.delete(pos)
       } else {
-        tmp_muts.set(pos, der)
+        tmp_muts.set(pos, queryNuc)
       }
     }
   }

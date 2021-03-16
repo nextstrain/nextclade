@@ -30,10 +30,20 @@ set(SOURCE_FILES
   src/analyze/nucleotide.cpp
   src/analyze/nucleotide.h
   src/nextclade.cpp
+  src/parse/parseMutation.cpp
+  src/parse/parseMutation.h
   src/tree/Tree.cpp
   src/tree/Tree.h
+  src/tree/TreeNode.cpp
+  src/tree/TreeNode.h
+  src/tree/TreeNodeArray.cpp
+  src/tree/TreeNodeArray.h
   src/tree/treeFindNearestNodes.cpp
   src/tree/treeFindNearestNodes.h
+  src/tree/treePostprocess.cpp
+  src/tree/treePostprocess.h
+  src/tree/treePreprocess.cpp
+  src/tree/treePreprocess.h
   src/utils/config.h
   src/utils/contract.h
   src/utils/debugbreak.h
@@ -42,7 +52,7 @@ set(SOURCE_FILES
   src/utils/macro_overload.h
   src/utils/mapFind.h
   src/utils/safe_cast.h
-  src/tree/TreeNode.cpp src/tree/TreeNode.h src/tree/TreeNodeArray.cpp src/tree/TreeNodeArray.h)
+  )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   add_executable(${PROJECT_NAME} ${SOURCE_FILES})

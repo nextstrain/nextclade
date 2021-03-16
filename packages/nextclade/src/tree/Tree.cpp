@@ -33,6 +33,11 @@ namespace Nextclade {
         std::as_const(*this).get(path)     //
       );
     }
+
+    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator() {
+      return json.GetAllocator();
+    }
+
   };
 
   Tree::Tree(const std::string& auspiceJsonV2) : pimpl(std::make_unique<TreeImpl>(auspiceJsonV2)) {}
@@ -44,6 +49,6 @@ namespace Nextclade {
     if (treeRootValue->IsNull()) {
       throw ErrorAuspiceJsonV2TreeNotFound();
     }
-    return TreeNode{treeRootValue};
+    return TreeNode{treeRootValue, &pimpl->allocator()};
   }
 }// namespace Nextclade

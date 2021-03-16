@@ -168,8 +168,8 @@ export function attach_to_tree(
   set(new_node, 'mutations', copy(nearestRefNode.mutations))
 
   for (const mut of nucMutations) {
-    const { pos, der } = parseMutationOrThrow(mut)
-    new_node.mutations?.set(pos, der)
+    const { pos, queryNuc } = parseMutationOrThrow(mut)
+    new_node.mutations?.set(pos, queryNuc)
   }
 
   const children = nearestRefNode.children ?? []

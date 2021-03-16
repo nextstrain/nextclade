@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <nextclade/nextclade.h>
+
 #include <memory>
 #include <string>
 
@@ -26,5 +28,4 @@ namespace Nextclade {
     const Tree& operator=(const Tree&) = delete;
     const Tree& operator=(const Tree&&) = delete;
   };
-
 }// namespace Nextclade

@@ -10,13 +10,14 @@ namespace Nextclade {
 
   class TreeNodeArray {
     rapidjson::Value* value;
+    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a;
 
   public:
-    explicit TreeNodeArray(rapidjson::Value* value);
+    explicit TreeNodeArray(rapidjson::Value* value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a);
 
     TreeNodeArray filter(const std::function<bool(TreeNode)>& predicate) const;
 
-    void forEach(const std::function<void(TreeNode)>& action) const;
+    void forEach(const std::function<void(TreeNode)>& action);
   };
 
 
