@@ -81,6 +81,9 @@ void stripGeneInPlace(NucleotideSequence& seq) {
 
   const auto& final_frame = length%3;
   // Find the last non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
+  // Do to insertions elsewhere in the sequence, the beginning of a codon is not necessarily
+  // a position with i%3==0. Assuming the 3' end of the gene is in frame, we use
+  // the frame a the end (final_frame) as the reference frame for the end of the gene
   for (int i = length - 1; i >= 0; --i) {
     if (at(seqSpan, i) != Nucleotide::GAP) {
       const auto codonBegin = i - (i - final_frame) % 3;
