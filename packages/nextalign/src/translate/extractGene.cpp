@@ -79,10 +79,11 @@ void stripGeneInPlace(NucleotideSequence& seq) {
     }
   }
 
+  const auto& final_frame = length%3;
   // Find the last non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
   for (int i = length - 1; i >= 0; --i) {
     if (at(seqSpan, i) != Nucleotide::GAP) {
-      const auto codonBegin = i - i % 3;
+      const auto codonBegin = i - (i - final_frame) % 3;
       invariant_greater_equal(codonBegin, 0);
       invariant_less(codonBegin + 2, length);
 
