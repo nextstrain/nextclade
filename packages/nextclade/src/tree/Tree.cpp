@@ -37,7 +37,6 @@ namespace Nextclade {
     rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator() {
       return json.GetAllocator();
     }
-
   };
 
   Tree::Tree(const std::string& auspiceJsonV2) : pimpl(std::make_unique<TreeImpl>(auspiceJsonV2)) {}
