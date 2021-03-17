@@ -17,8 +17,6 @@ namespace Nextclade {
   struct QcConfig {};
 
   struct NextcladeOptions {
-    std::string seqName;
-    NucleotideSequence query;
     NucleotideSequence ref;
     std::string treeString;
     std::vector<PcrPrimer> pcrPrimers;
@@ -78,7 +76,27 @@ namespace Nextclade {
 
   struct NextcladeResult : public NextcladeResultIntermediate {};
 
-  NextcladeResult nextclade(const NextcladeOptions& options);
+  class NextcladeAlgorithmImpl;
+
+  class NextcladeAlgorithm {
+    std::unique_ptr<NextcladeAlgorithmImpl> pimpl;
+
+  public:
+    explicit NextcladeAlgorithm(const NextcladeOptions& options);
+
+    NextcladeResult run(const std::string& seqName, const NucleotideSequence& seq);
+
+    const Tree& finalize();
+
+    // Destructor is required when using pimpl idiom with unique_ptr.
+    // See "Effective Modern C++" by Scott Meyers,
+    // "Item 22: When using the Pimpl Idiom, define special member functions in the implementation file".
+    ~NextcladeAlgorithm();
+    NextcladeAlgorithm(const NextcladeAlgorithm& other) = delete;
+    NextcladeAlgorithm(NextcladeAlgorithm&& other) noexcept = delete;
+    NextcladeAlgorithm& operator=(const NextcladeAlgorithm& other) = delete;
+    NextcladeAlgorithm& operator=(NextcladeAlgorithm&& other) noexcept = delete;
+  };
 
   const char* getVersion();
 }// namespace Nextclade

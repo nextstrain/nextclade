@@ -4,8 +4,6 @@
 #include <tbb/global_control.h>
 #include <tbb/parallel_pipeline.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <cxxopts.hpp>
 #include <fstream>
@@ -447,13 +445,24 @@ void run(
   /* in  */ const std::string &refStr,
   /* in  */ const std::string &treeString,
   /* in  */ const GeneMap &geneMap,
-  /* in  */ const NextalignOptions &options,
+  /* in  */ const NextalignOptions &nextalignOptions,
   /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
   /* out */ Logger &logger) {
   tbb::task_group_context context;
   const auto ioFiltersMode = inOrder ? tbb::filter_mode::serial_in_order : tbb::filter_mode::serial_out_of_order;
 
   const auto ref = toNucleotideSequence(refStr);
+
+  const Nextclade::NextcladeOptions options = {
+    .ref = ref,
+    .treeString = treeString,
+    .pcrPrimers = std::vector<Nextclade::PcrPrimer>(),
+    .geneMap = geneMap,
+    .qcRulesConfig = Nextclade::QcConfig(),
+    .nextalignOptions = nextalignOptions,
+  };
+
+  Nextclade::NextcladeAlgorithm nextclade{options};
 
   /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
@@ -468,37 +477,27 @@ void run(
     });
 
   /** A set of parallel transform filter functions, each accepts a parsed sequence from the input filter,
-   * runs nextalign algorithm sequentially and returning its result.
+   * runs nextclade algorithm sequentially and returns its result.
    * The number of filters is determined by the `--jobs` CLI argument */
-  const auto transformFilters = tbb::make_filter<AlgorithmInput, Nextclade::AlgorithmOutput>(
-    tbb::filter_mode::parallel,//
-    [&ref, &treeString, &geneMap, &options](const AlgorithmInput &input) -> Nextclade::AlgorithmOutput {
-      try {
-        const auto query = toNucleotideSequence(input.seq);
+  const auto transformFilters =
+    tbb::make_filter<AlgorithmInput, Nextclade::AlgorithmOutput>(tbb::filter_mode::parallel,//
+      [&nextclade](const AlgorithmInput &input) -> Nextclade::AlgorithmOutput {
+        const auto &seqName = input.seqName;
 
-        const Nextclade::NextcladeOptions params = {
-          .seqName = input.seqName,
-          .query = query,
-          .ref = ref,
-          .treeString = treeString,
-          .pcrPrimers = std::vector<Nextclade::PcrPrimer>(),
-          .geneMap = geneMap,
-          .qcRulesConfig = Nextclade::QcConfig(),
-          .nextalignOptions = getDefaultOptions(),
-        };
-
-        const auto result = nextclade(params);
-        return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
-      } catch (const std::exception &e) {
-        const auto &error = std::current_exception();
-        return {.index = input.index, .seqName = input.seqName, .hasError = true, .result = {}, .error = error};
-      }
-    });
+        try {
+          const auto seq = toNucleotideSequence(input.seq);
+          const auto result = nextclade.run(seqName, seq);
+          return {.index = input.index, .seqName = seqName, .hasError = false, .result = result, .error = nullptr};
+        } catch (const std::exception &e) {
+          const auto &error = std::current_exception();
+          return {.index = input.index, .seqName = seqName, .hasError = true, .result = {}, .error = error};
+        }
+      });
 
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
-    [&outputJsonStream, &logger](const Nextclade::AlgorithmOutput &output) {
+    [&nextclade, &outputJsonStream, &logger](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
 
@@ -521,6 +520,8 @@ void run(
   } catch (const std::exception &e) {
     logger.error("Error: when running the pipeline: {:s}\n", e.what());
   }
+
+  const auto &tree = nextclade.finalize();
 }
 
 std::string readFile(const std::string &filepath) {
