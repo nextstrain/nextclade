@@ -111,6 +111,4 @@ namespace Nextclade {
       nodeAttrs->RemoveMember(name);
     }
   }
-
-
 }// namespace Nextclade
