@@ -120,9 +120,6 @@ NucleotideSequence extractGeneQuery(
 
   auto result = NucleotideSequence(details::substr(query, start, length));
   const auto resultLengthPreStrip = safe_cast<int>(result.size());
-  if (resultLengthPreStrip % 3 != 0) {
-    throw ErrorExtractGeneLengthNonMul3(gene, resultLengthPreStrip);
-  }
 
   stripGeneInPlace(result);
   const auto resultLength = safe_cast<int>(result.size());
