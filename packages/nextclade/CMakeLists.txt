@@ -34,6 +34,18 @@ set(SOURCE_FILES
   src/nextclade.cpp
   src/parse/parseMutation.cpp
   src/parse/parseMutation.h
+  src/qc/getQcRuleStatus.cpp
+  src/qc/getQcRuleStatus.h
+  src/qc/ruleMissingData.cpp
+  src/qc/ruleMissingData.h
+  src/qc/ruleMixedSites.cpp
+  src/qc/ruleMixedSites.h
+  src/qc/rulePrivateMutations.cpp
+  src/qc/rulePrivateMutations.h
+  src/qc/ruleSnpClusters.cpp
+  src/qc/ruleSnpClusters.h
+  src/qc/runQc.cpp
+  src/qc/runQc.h
   src/tree/Tree.cpp
   src/tree/Tree.h
   src/tree/TreeNode.cpp

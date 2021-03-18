@@ -8,6 +8,7 @@
 #include "analyze/analyze.h"
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/nucleotide.h"
+#include "qc/runQc.h"
 #include "tree/Tree.h"
 #include "tree/treeAttachNodes.h"
 #include "tree/treeFindNearestNodes.h"
@@ -36,6 +37,7 @@ namespace Nextclade {
       const auto& ref = options.ref;
       const auto& pcrPrimers = options.pcrPrimers;
       const auto& geneMap = options.geneMap;
+      const auto& qcRulesConfig = options.qcRulesConfig;
 
       const auto alignment = nextalignInternal(query, ref, geneMap, options.nextalignOptions);
 
@@ -50,7 +52,9 @@ namespace Nextclade {
       const auto nonACGTNs = findNucleotideRanges(alignment.query, isNonAcgtnAndNonGap);
       const int totalNonACGTNs = calculateTotalLength(nonACGTNs);
 
-      const NextcladeResultIntermediate analysisResult = {
+      // TODO: implement PCR primer changes detection
+
+      NextcladeResult analysisResult = {
         .seqName = seqName,
         .substitutions = analysis.substitutions,
         .totalSubstitutions = totalSubstitutions,
@@ -65,44 +69,20 @@ namespace Nextclade {
         .alignmentStart = analysis.alignmentStart,
         .alignmentEnd = analysis.alignmentEnd,
         .alignmentScore = alignment.alignmentScore,
+        // NOTE: not all fields are initialized here. They must be initialized below.
       };
 
-      const auto treeFindNearestNodesResult = treeFindNearestNode(analysisResult, ref, tree);
-      const auto& nearestNode = treeFindNearestNodesResult.nearestNode;
-      const auto& nearestNodeId = nearestNode.id();
-      const auto& privateMutations = treeFindNearestNodesResult.privateMutations;
+      const auto [nearestNode, privateMutations] = treeFindNearestNode(analysisResult, ref, tree);
+      analysisResult.nearestNodeId = nearestNode.id();
+      analysisResult.clade = nearestNode.clade();
 
-      //  const { clade } = assignClade(analysisResult, match)
-      //  const analysisResultWithClade = { ...analysisResult, clade }
-      //
-      //  const qc = runQC({ analysisResult: analysisResultWithClade, privateMutations, qcRulesConfig })
-      //
-      //  return { ...analysisResultWithClade, qc, nearestTreeNodeId: match.id }
-
-
-      NextcladeResult result = {{
-        .seqName = seqName,
-        .substitutions = analysis.substitutions,
-        .totalSubstitutions = totalSubstitutions,
-        .deletions = analysis.deletions,
-        .totalDeletions = totalDeletions,
-        .insertions = analysis.insertions,
-        .totalInsertions = totalInsertions,
-        .missing = missing,
-        .totalMissing = totalMissing,
-        .nonACGTNs = nonACGTNs,
-        .totalNonACGTNs = totalNonACGTNs,
-        .alignmentStart = analysis.alignmentStart,
-        .alignmentEnd = analysis.alignmentEnd,
-        .alignmentScore = alignment.alignmentScore,
-        .nearestNodeId = nearestNodeId,
-      }};
+      analysisResult.qc = runQc(analysisResult, privateMutations, qcRulesConfig);
 
       // FIXME: This is not thread-safe
-      results.push_back(result);
+      results.push_back(analysisResult);
 
-      return result;
-    }// namespace Nextclade
+      return analysisResult;
+    }
 
     const Tree& finalize() {
       treeAttachNodes(tree, options.ref, results);

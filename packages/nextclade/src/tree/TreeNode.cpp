@@ -20,6 +20,15 @@ namespace Nextclade {
             "developers, providing data and parameters you used, in ord-er to replicate the error.") {}
   };
 
+  class ErrorTreeNodeCladeInvalid : public std::runtime_error {
+  public:
+    explicit ErrorTreeNodeCladeInvalid()
+        : std::runtime_error(
+            "When accessing clade of the tree node: the clade is missing or invalid. Make sure all reference tree "
+            "nodes have `clade_membership` field assigned. Please report this to "
+            "developers, providing data and parameters you used, in ord-er to replicate the error.") {}
+  };
+
   TreeNode::TreeNode() = default;
 
   TreeNode::TreeNode(rapidjson::Value* value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a)
@@ -142,6 +151,15 @@ namespace Nextclade {
     }
 
     throw ErrorTreeNodeIdInvalid();
+  }
+
+  std::string TreeNode::clade() const {
+    rapidjson::Value* cladeValue = get("/node_attrs/clade_membership/value");
+    if (cladeValue && cladeValue->IsString()) {
+      return cladeValue->GetString();
+    }
+
+    throw ErrorTreeNodeCladeInvalid();
   }
 
   bool TreeNode::isReferenceNode() const {

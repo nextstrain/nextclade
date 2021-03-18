@@ -5,7 +5,7 @@
 #include "../utils/inRange.h"
 
 namespace Nextclade {
-  bool isSequenced(int pos, const NextcladeResultIntermediate& analysisResult) {
+  bool isSequenced(int pos, const NextcladeResult& analysisResult) {
     // Make sure position does not belong to a missing fragment
     for (const auto& missing : analysisResult.missing) {
       if (inRange(pos, missing.begin, missing.end)) {

@@ -18,8 +18,8 @@ inline std::optional<V> mapFind(const std::map<K, V>& container, K key) {
 /**
  * Convenience wrapper for std::set::find which returns std::optional
  */
-template<typename T>
-inline bool has(const std::set<T>& container, T key) {
+template<typename Set, typename T>
+inline bool has(const Set& container, T key) {
   const auto found = container.find(key);
   return found != container.end();
 }

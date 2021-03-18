@@ -40,6 +40,8 @@ namespace Nextclade {
 
     int id() const;
 
+    std::string clade() const;
+
     bool isReferenceNode() const;
 
     bool isLeaf() const;

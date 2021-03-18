@@ -12,5 +12,5 @@ namespace Nextclade {
   };
 
   TreeFindNearestNodesResult treeFindNearestNode(
-    const NextcladeResultIntermediate& analysisResult, const NucleotideSequence& rootSeq, const Tree& tree);
+    const NextcladeResult& analysisResult, const NucleotideSequence& rootSeq, const Tree& tree);
 }// namespace Nextclade

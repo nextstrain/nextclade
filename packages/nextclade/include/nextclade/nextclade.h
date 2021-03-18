@@ -3,18 +3,98 @@
 #include <nextalign/nextalign.h>
 
 #include <map>
+#include <optional>
 
 
 namespace Nextclade {
   class Tree;
 
-  struct NucleotideSubstitution;
+  struct QCRulesConfigMissingData {
+    bool enabled;
+    double missingDataThreshold;
+    double scoreBias;
+  };
 
-  using MutationMap = std::map<int, Nucleotide>;
+  struct QCRulesConfigMixedSites {
+    bool enabled;
+    double mixedSitesThreshold;
+  };
+
+  struct QCRulesConfigPrivateMutations {
+    bool enabled;
+    double typical;
+    double cutoff;
+  };
+
+  struct QCRulesConfigSnpClusters {
+    bool enabled;
+    double windowSize;
+    double clusterCutOff;
+    double scoreWeight;
+  };
+
+  struct QcConfig {
+    QCRulesConfigMissingData missingData;
+    QCRulesConfigMixedSites mixedSites;
+    QCRulesConfigPrivateMutations privateMutations;
+    QCRulesConfigSnpClusters snpClusters;
+  };
+
+  enum class QcStatus : char {
+    good = 1,
+    mediocre = 2,
+    bad = 3,
+  };
+
+
+  struct QCResultMixedSites {
+    double score;
+    QcStatus status;
+    int totalMixedSites;
+    double mixedSitesThreshold;
+  };
+
+  struct ClusteredSnp {
+    int start;
+    int end;
+    int numberOfSNPs;
+  };
+
+  struct QCResultSnpClusters {
+    double score;
+    QcStatus status;
+    int totalSNPs;
+    std::vector<ClusteredSnp> clusteredSNPs;
+  };
+
+  struct QcResultMissingData {
+    double score;
+    QcStatus status;
+    int totalMissing;
+    double missingDataThreshold;
+  };
+
+  struct QcResultPrivateMutations {
+    double score;
+    QcStatus status;
+    double total;
+    double excess;
+    double cutoff;
+  };
+
+
+  struct QcResult {
+    std::optional<QcResultMissingData> missingData;
+    std::optional<QCResultMixedSites> mixedSites;
+    std::optional<QcResultPrivateMutations> privateMutations;
+    std::optional<QCResultSnpClusters> snpClusters;
+    double overallScore;
+    QcStatus overallStatus;
+  };
 
   struct PcrPrimer {};
 
-  struct QcConfig {};
+  struct PcrPrimerChange {};
 
   struct NextcladeOptions {
     NucleotideSequence ref;
@@ -57,7 +137,7 @@ namespace Nextclade {
     int alignmentEnd;
   };
 
-  struct NextcladeResultIntermediate {
+  struct NextcladeResult {
     std::string seqName;
     std::vector<NucleotideSubstitution> substitutions;
     int totalSubstitutions;
@@ -73,9 +153,12 @@ namespace Nextclade {
     int alignmentEnd;
     int alignmentScore;
     int nearestNodeId;
+    std::map<Nucleotide, int> nucleotideComposition;
+    std::vector<PcrPrimerChange> pcrPrimerChanges;
+    int totalPcrPrimerChanges;
+    std::string clade;
+    QcResult qc;
   };
-
-  struct NextcladeResult : public NextcladeResultIntermediate {};
 
   class NextcladeAlgorithmImpl;
 
