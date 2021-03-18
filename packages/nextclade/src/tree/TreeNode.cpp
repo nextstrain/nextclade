@@ -12,6 +12,16 @@
 #include "TreeNodeArray.h"
 
 namespace Nextclade {
+  class ErrorTreeNodeIdInvalid : public std::runtime_error {
+  public:
+    explicit ErrorTreeNodeIdInvalid()
+        : std::runtime_error(
+            "When accessing Tree Node ID: the ID is invalid. This is an internal issue. Please report this to "
+            "developers, providing data and parameters you used, in ord-er to replicate the error.") {}
+  };
+
+  TreeNode::TreeNode() = default;
+
   TreeNode::TreeNode(rapidjson::Value* value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a)
       : value(value),
         a(a) {}
@@ -35,6 +45,20 @@ namespace Nextclade {
     return TreeNodeArray{childrenValue, a};
   }
 
+  void TreeNode::addChild(const TreeNode& node) {
+    auto childrenPtr = rapidjson::Pointer("/children");
+    auto* childrenValue = childrenPtr.Get(*value);
+
+    if (!childrenValue || !childrenValue->IsArray()) {
+      rapidjson::Value emptyArray;
+      emptyArray.SetArray();
+      childrenPtr.Create(emptyArray, *a);
+      childrenValue = childrenPtr.Get(*value);
+    }
+
+    childrenValue->PushBack(*node.value, *a);
+  }
+
   std::map<int, Nucleotide> TreeNode::substitutions() const {
     auto* substitutionsValue = get("/substitutions");
     if (substitutionsValue == nullptr) {
@@ -53,14 +77,28 @@ namespace Nextclade {
     return substitutions;
   }
 
-  std::vector<NucleotideSubstitution> TreeNode::nucleotideMutations() const {
-    auto* nucMutsValue = get("/branch_attrs/mutations/nuc");
-    if (nucMutsValue == nullptr) {
+  std::map<int, Nucleotide> TreeNode::mutations() const {
+    auto* substitutionsValue = get("/mutations");
+    if (substitutionsValue == nullptr) {
       return {};
     }
 
+    std::map<int, Nucleotide> substitutions;
+    if (substitutionsValue->IsObject()) {
+      for (const auto& substitution : substitutionsValue->GetObject()) {
+        const auto pos = substitution.name.GetInt();
+        const std::string sub = substitution.value.GetString();
+        const auto nuc = toNucleotide(sub[0]);
+        substitutions.insert({pos, nuc});
+      }
+    }
+    return substitutions;
+  }
+
+  std::vector<NucleotideSubstitution> TreeNode::nucleotideMutations() const {
+    auto* nucMutsValue = get("/branch_attrs/mutations/nuc");
     std::vector<NucleotideSubstitution> nucMuts;
-    if (nucMutsValue->IsArray()) {
+    if (nucMutsValue && nucMutsValue->IsArray()) {
       const auto& nucMutsArray = nucMutsValue->GetArray();
       nucMuts.reserve(nucMutsArray.Size());
       for (const auto& mutStrValue : nucMutsArray) {
@@ -74,6 +112,60 @@ namespace Nextclade {
 
     return nucMuts;
   }
+
+  void TreeNode::setNucleotideMutationsEmpty() {
+    constexpr auto path = "/branch_attrs/mutations/nuc";
+    auto mutsPtr = rapidjson::Pointer(path);
+    auto* mutsValue = mutsPtr.Get(*value);
+
+    if (!mutsValue || !mutsValue->IsArray()) {
+      mutsPtr.Create(*value, *a);
+      mutsValue = mutsPtr.Get(*value);
+      mutsValue->SetArray();
+    }
+
+    mutsValue->Clear();
+  }
+
+  std::optional<double> TreeNode::divergence() const {
+    rapidjson::Value* divergenceValue = get("/node_attrs/div");
+    if (divergenceValue && divergenceValue->IsNumber()) {
+      return divergenceValue->Get<double>();
+    }
+    return {};
+  }
+
+  int TreeNode::id() const {
+    rapidjson::Value* idValue = get("/node_attrs/id/value");
+    if (idValue && idValue->IsNumber()) {
+      return idValue->Get<int>();
+    }
+
+    throw ErrorTreeNodeIdInvalid();
+  }
+
+  bool TreeNode::isReferenceNode() const {
+    rapidjson::Value* idValue = get("/node_attrs/Node Type/value");
+    return idValue && idValue->IsString() && idValue->GetString() == std::string{"Reference"};
+  }
+
+  bool TreeNode::isLeaf() const {
+    auto* childrenValue = get("/children");
+    return !childrenValue || !childrenValue->IsArray();
+  }
+
+  std::string TreeNode::name() const {
+    const auto* nameValue = rapidjson::Pointer("/name").Get(*value);
+    if (!nameValue || !nameValue->IsString()) {
+      return "";
+    }
+    return nameValue->Get<const char*>();
+  }
+
+  void TreeNode::setName(const std::string& name) {
+    rapidjson::Pointer("/name").Set(*value, name, *a);
+  }
+
 
   void TreeNode::setNodeAttr(const char* name, const char* val) {
     const auto path = fmt::format("/node_attrs/{}/value", name);
@@ -110,5 +202,12 @@ namespace Nextclade {
     if (nodeAttrs) {
       nodeAttrs->RemoveMember(name);
     }
+  }
+
+  /**
+   * Performs deep copy assignment of the given node's data to `this` node
+   */
+  void TreeNode::assign(const TreeNode& node) const {
+    value->CopyFrom(*node.value, *a);
   }
 }// namespace Nextclade

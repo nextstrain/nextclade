@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "../analyze/isSequenced.h"
 #include "../utils/inRange.h"
 #include "../utils/mapFind.h"
 #include "../utils/safe_cast.h"
@@ -12,21 +13,6 @@
 
 
 namespace Nextclade {
-  /**
-   * Checks if a nucleotide at a given position is sequenced
-   */
-  bool isSequenced(int pos, const NextcladeResultIntermediate& analysisResult) {
-    // Make sure position does not belong to a missing fragment
-    for (const auto& missing : analysisResult.missing) {
-      if (inRange(pos, missing.begin, missing.end)) {
-        return false;
-      }
-    }
-
-    // Make sure position belongs to alignment range
-    return inRange(pos, analysisResult.alignmentStart, analysisResult.alignmentEnd);
-  }
-
   /**
    * Calculate distance metric between the new node and a candidate reference node
    */

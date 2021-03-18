@@ -27,6 +27,8 @@ set(SOURCE_FILES
   src/analyze/analyze.h
   src/analyze/findNucleotideRanges.cpp
   src/analyze/findNucleotideRanges.h
+  src/analyze/isSequenced.cpp
+  src/analyze/isSequenced.h
   src/analyze/nucleotide.cpp
   src/analyze/nucleotide.h
   src/nextclade.cpp
@@ -38,6 +40,8 @@ set(SOURCE_FILES
   src/tree/TreeNode.h
   src/tree/TreeNodeArray.cpp
   src/tree/TreeNodeArray.h
+  src/tree/treeAttachNodes.cpp
+  src/tree/treeAttachNodes.h
   src/tree/treeFindNearestNodes.cpp
   src/tree/treeFindNearestNodes.h
   src/tree/treePostprocess.cpp
@@ -47,6 +51,7 @@ set(SOURCE_FILES
   src/utils/config.h
   src/utils/contract.h
   src/utils/debugbreak.h
+  src/utils/eraseDuplicates.h
   src/utils/ieee754_comparison.h
   src/utils/inRange.h
   src/utils/macro_overload.h

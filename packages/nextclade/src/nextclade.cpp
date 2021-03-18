@@ -9,6 +9,7 @@
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/nucleotide.h"
 #include "tree/Tree.h"
+#include "tree/treeAttachNodes.h"
 #include "tree/treeFindNearestNodes.h"
 #include "tree/treePostprocess.h"
 #include "tree/treePreprocess.h"
@@ -24,6 +25,7 @@ namespace Nextclade {
   class NextcladeAlgorithmImpl {
     NextcladeOptions options;
     Tree tree;
+    std::vector<NextcladeResult> results;
 
   public:
     explicit NextcladeAlgorithmImpl(const NextcladeOptions& options) : options(options), tree(options.treeString) {
@@ -67,6 +69,7 @@ namespace Nextclade {
 
       const auto treeFindNearestNodesResult = treeFindNearestNode(analysisResult, ref, tree);
       const auto& nearestNode = treeFindNearestNodesResult.nearestNode;
+      const auto& nearestNodeId = nearestNode.id();
       const auto& privateMutations = treeFindNearestNodesResult.privateMutations;
 
       //  const { clade } = assignClade(analysisResult, match)
@@ -92,12 +95,17 @@ namespace Nextclade {
         .alignmentStart = analysis.alignmentStart,
         .alignmentEnd = analysis.alignmentEnd,
         .alignmentScore = alignment.alignmentScore,
+        .nearestNodeId = nearestNodeId,
       }};
 
+      // FIXME: This is not thread-safe
+      results.push_back(result);
+
       return result;
-    }
+    }// namespace Nextclade
 
     const Tree& finalize() {
+      treeAttachNodes(tree, options.ref, results);
       treePostprocess(tree);
       return tree;
     }

@@ -72,6 +72,7 @@ namespace Nextclade {
     int alignmentStart;
     int alignmentEnd;
     int alignmentScore;
+    int nearestNodeId;
   };
 
   struct NextcladeResult : public NextcladeResultIntermediate {};
