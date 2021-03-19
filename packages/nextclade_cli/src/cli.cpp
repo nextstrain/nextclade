@@ -513,6 +513,8 @@ void run(
           return;
         }
       }
+
+      nextclade.saveResult(output.result);
     });
 
   try {

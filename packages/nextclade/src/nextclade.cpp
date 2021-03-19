@@ -90,10 +90,11 @@ namespace Nextclade {
 
       analysisResult.qc = runQc(analysisResult, privateMutations, qcRulesConfig);
 
-      // FIXME: This is not thread-safe
-      results.push_back(analysisResult);
-
       return analysisResult;
+    }
+
+    void saveResult(const NextcladeResult& analysisResult) {
+      results.push_back(analysisResult);
     }
 
     const Tree& finalize() {
@@ -110,6 +111,10 @@ namespace Nextclade {
 
   NextcladeResult NextcladeAlgorithm::run(const std::string& seqName, const NucleotideSequence& seq) {
     return pimpl->run(seqName, seq);
+  }
+
+  void NextcladeAlgorithm::saveResult(const NextcladeResult& analysisResult) {
+    pimpl->saveResult(analysisResult);
   }
 
   const Tree& NextcladeAlgorithm::finalize() {
