@@ -127,7 +127,7 @@ SeedAlignment seedAlignment(
   if (bandWidth < 2 * options.seedLength) {
     return {
       .meanShift = details::round((refSize - querySize) * 0.5),// NOLINT: cppcoreguidelines-avoid-magic-numbers
-      .bandWidth = bandWidth                                    //
+      .bandWidth = bandWidth                                   //
     };
   }
 
