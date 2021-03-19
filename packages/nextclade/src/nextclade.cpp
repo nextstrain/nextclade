@@ -1,3 +1,4 @@
+#include <analyze/getPcrPrimerChanges.h>
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
@@ -42,7 +43,7 @@ namespace Nextclade {
 
       const auto alignment = nextalignInternal(query, ref, geneMap, options.nextalignOptions);
 
-      const auto analysis = analyze(alignment.query, alignment.ref);
+      auto analysis = analyze(alignment.query, alignment.ref);
       const int totalSubstitutions = safe_cast<int>(analysis.substitutions.size());
       const int totalDeletions = calculateTotalLength(analysis.deletions);
       const int totalInsertions = calculateTotalLength(analysis.insertions);
@@ -54,6 +55,11 @@ namespace Nextclade {
       const int totalNonACGTNs = calculateTotalLength(nonACGTNs);
 
       const auto nucleotideComposition = getNucleotideComposition(alignment.query);
+
+      addPrimerChangesInPlace(analysis.substitutions, pcrPrimers);
+      const auto pcrPrimerChanges = getPcrPrimerChanges(analysis.substitutions, pcrPrimers);
+      const auto totalPcrPrimerChanges = std::accumulate(pcrPrimerChanges.cbegin(), pcrPrimerChanges.cend(), 0,
+        [](int result, const auto& item) { return result + item.substitutions.size(); });
 
       // TODO: implement PCR primer changes detection
 
@@ -73,6 +79,8 @@ namespace Nextclade {
         .alignmentEnd = analysis.alignmentEnd,
         .alignmentScore = alignment.alignmentScore,
         .nucleotideComposition = nucleotideComposition,
+        .pcrPrimerChanges = pcrPrimerChanges,
+        .totalPcrPrimerChanges = totalPcrPrimerChanges,
         // NOTE: not all fields are initialized here. They must be initialized below.
       };
 

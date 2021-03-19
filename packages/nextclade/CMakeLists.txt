@@ -29,6 +29,10 @@ set(SOURCE_FILES
   src/analyze/findNucleotideRanges.h
   src/analyze/getNucleotideComposition.cpp
   src/analyze/getNucleotideComposition.h
+  src/analyze/getPcrPrimerChanges.cpp
+  src/analyze/getPcrPrimerChanges.h
+  src/analyze/isMatch.cpp
+  src/analyze/isMatch.h
   src/analyze/isSequenced.cpp
   src/analyze/isSequenced.h
   src/analyze/nucleotide.cpp

@@ -92,9 +92,24 @@ namespace Nextclade {
     QcStatus overallStatus;
   };
 
-  struct PcrPrimer {};
+  /** Represents a numeric interval bounded by begin and end. Similar to `Span`, but different representation. */
+  struct Range {
+    int begin;
+    int end;
+  };
 
-  struct PcrPrimerChange {};
+  /** Represents a numeric interval bounded by start and length. Similar to `Range`, but different representation. */
+  struct Span {
+    int start;
+    int length;
+  };
+
+  struct NucleotideLocation {
+    int pos;
+    Nucleotide nuc;
+  };
+
+  struct PcrPrimer;
 
   struct NextcladeOptions {
     NucleotideSequence ref;
@@ -109,6 +124,7 @@ namespace Nextclade {
     Nucleotide refNuc;
     int pos;
     Nucleotide queryNuc;
+    std::vector<PcrPrimer> pcrPrimersChanged;
   };
 
   struct NucleotideDeletion {
@@ -128,6 +144,22 @@ namespace Nextclade {
     int length;
     Nucleotide nuc;
   };
+
+  struct PcrPrimer {
+    std::string name;
+    std::string target;
+    std::string source;
+    NucleotideSequence rootOligonuc;
+    NucleotideSequence primerOligonuc;
+    Range range;
+    std::vector<NucleotideLocation> nonACGTs;
+  };
+
+  struct PcrPrimerChange {
+    PcrPrimer primer;
+    std::vector<NucleotideSubstitution> substitutions;
+  };
+
 
   struct AnalysisResult {
     std::vector<NucleotideSubstitution> substitutions;
