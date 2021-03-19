@@ -7,6 +7,8 @@ namespace Nextclade {
   struct PcrPrimer;
   struct PcrPrimerChange;
 
+  bool shouldReportPrimerMutation(const NucleotideSubstitution& mut, const PcrPrimer& primer);
+
   void addPrimerChangesInPlace(                        //
     std::vector<NucleotideSubstitution>& substitutions,//
     const std::vector<PcrPrimer>& primers              //
