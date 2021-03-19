@@ -36,58 +36,58 @@ namespace {
       .nonACGTs = std::move(realNonACGTs),
     };
   }
-
-  TEST(shouldReportPrimerMutation, REPORT_WHEN_PRIMER_HAS_NO_NONACGTS) {
-    const auto mut = makeMutation(12, 'A');
-    const auto primer = makePrimer({.begin = 10, .end = 15}, {});
-    EXPECT_TRUE(shouldReportPrimerMutation(mut, primer));
-  }
-
-  TEST(shouldReportPrimerMutation, REPORT_WHEN_INSIDE_AND_NONACGT_NUCLEOTIDE_DOESNT_MATCH) {
-    const auto mut = makeMutation(12, 'A');
-    const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'S' /* G or C */}});
-    EXPECT_TRUE(shouldReportPrimerMutation(mut, primer));
-  }
-
-  TEST(shouldReportPrimerMutation, REPORT_WHEN_INSIDE_AND_NONACGT_POSITION_DOESNT_MATCH) {
-    const auto mut = makeMutation(12, 'A');
-    const auto primer = makePrimer({.begin = 10, .end = 15}, {{5, 'R' /* A or G */}, {20, 'R' /* A or G */}});
-    EXPECT_TRUE(shouldReportPrimerMutation(mut, primer));
-  }
-
-  TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_OUTSIDE_LEFT) {
-    const auto mut = makeMutation(8, 'A');
-    const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'A'}});
-    EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
-  }
-
-  TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_OUTSIDE_RIGHT) {
-    const auto mut = makeMutation(19, 'A');
-    const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'A'}});
-    EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
-  }
-
-  TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_NONACGT_POSITION_AND_NUCLEOTIDE_MATCHES_EXPLICITLY) {
-    const auto mut = makeMutation(12, 'A');
-    const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'A'}});
-    EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
-  }
-
-  TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_NONACGT_POSITION_AND_NUCLEOTIDE_MATCHES_AMBIGUOUSLY) {
-    const auto mut = makeMutation(12, 'A');
-    const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'R' /* A or G */}});
-    EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
-  }
-
-  TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_NONACGT_POSITION_AND_NUCLEOTIDE_MATCHES_FOR_SOME) {
-    const auto mut = makeMutation(12, 'A');
-    const auto primer = makePrimer({.begin = 10, .end = 15},//
-      {
-        {4, 'R' /* A or G */},
-        {12, 'S' /* G or C */},
-        {12, 'R' /* A or G */},
-        {19, 'R' /* A or G */},
-      });
-    EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
-  }
 }// namespace
+
+TEST(shouldReportPrimerMutation, REPORT_WHEN_PRIMER_HAS_NO_NONACGTS) {
+  const auto mut = makeMutation(12, 'A');
+  const auto primer = makePrimer({.begin = 10, .end = 15}, {});
+  EXPECT_TRUE(shouldReportPrimerMutation(mut, primer));
+}
+
+TEST(shouldReportPrimerMutation, REPORT_WHEN_INSIDE_AND_NONACGT_NUCLEOTIDE_DOESNT_MATCH) {
+  const auto mut = makeMutation(12, 'A');
+  const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'S' /* G or C */}});
+  EXPECT_TRUE(shouldReportPrimerMutation(mut, primer));
+}
+
+TEST(shouldReportPrimerMutation, REPORT_WHEN_INSIDE_AND_NONACGT_POSITION_DOESNT_MATCH) {
+  const auto mut = makeMutation(12, 'A');
+  const auto primer = makePrimer({.begin = 10, .end = 15}, {{5, 'R' /* A or G */}, {20, 'R' /* A or G */}});
+  EXPECT_TRUE(shouldReportPrimerMutation(mut, primer));
+}
+
+TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_OUTSIDE_LEFT) {
+  const auto mut = makeMutation(8, 'A');
+  const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'A'}});
+  EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
+}
+
+TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_OUTSIDE_RIGHT) {
+  const auto mut = makeMutation(19, 'A');
+  const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'A'}});
+  EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
+}
+
+TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_NONACGT_POSITION_AND_NUCLEOTIDE_MATCHES_EXPLICITLY) {
+  const auto mut = makeMutation(12, 'A');
+  const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'A'}});
+  EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
+}
+
+TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_NONACGT_POSITION_AND_NUCLEOTIDE_MATCHES_AMBIGUOUSLY) {
+  const auto mut = makeMutation(12, 'A');
+  const auto primer = makePrimer({.begin = 10, .end = 15}, {{12, 'R' /* A or G */}});
+  EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
+}
+
+TEST(shouldReportPrimerMutation, NO_REPORT_WHEN_NONACGT_POSITION_AND_NUCLEOTIDE_MATCHES_FOR_SOME) {
+  const auto mut = makeMutation(12, 'A');
+  const auto primer = makePrimer({.begin = 10, .end = 15},//
+    {
+      {4, 'R' /* A or G */},
+      {12, 'S' /* G or C */},
+      {12, 'R' /* A or G */},
+      {19, 'R' /* A or G */},
+    });
+  EXPECT_FALSE(shouldReportPrimerMutation(mut, primer));
+}
