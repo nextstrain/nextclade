@@ -27,6 +27,8 @@ set(SOURCE_FILES
   src/analyze/analyze.h
   src/analyze/findNucleotideRanges.cpp
   src/analyze/findNucleotideRanges.h
+  src/analyze/getNucleotideComposition.cpp
+  src/analyze/getNucleotideComposition.h
   src/analyze/isSequenced.cpp
   src/analyze/isSequenced.h
   src/analyze/nucleotide.cpp

@@ -7,6 +7,7 @@
 
 #include "analyze/analyze.h"
 #include "analyze/findNucleotideRanges.h"
+#include "analyze/getNucleotideComposition.h"
 #include "analyze/nucleotide.h"
 #include "qc/runQc.h"
 #include "tree/Tree.h"
@@ -52,6 +53,8 @@ namespace Nextclade {
       const auto nonACGTNs = findNucleotideRanges(alignment.query, isNonAcgtnAndNonGap);
       const int totalNonACGTNs = calculateTotalLength(nonACGTNs);
 
+      const auto nucleotideComposition = getNucleotideComposition(alignment.query);
+
       // TODO: implement PCR primer changes detection
 
       NextcladeResult analysisResult = {
@@ -69,6 +72,7 @@ namespace Nextclade {
         .alignmentStart = analysis.alignmentStart,
         .alignmentEnd = analysis.alignmentEnd,
         .alignmentScore = alignment.alignmentScore,
+        .nucleotideComposition = nucleotideComposition,
         // NOTE: not all fields are initialized here. They must be initialized below.
       };
 
