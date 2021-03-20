@@ -447,11 +447,17 @@ void run(
   /* in  */ const GeneMap &geneMap,
   /* in  */ const NextalignOptions &nextalignOptions,
   /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
+  /* out */ std::unique_ptr<std::ostream> &outputCsvFile,
   /* out */ Logger &logger) {
   tbb::task_group_context context;
   const auto ioFiltersMode = inOrder ? tbb::filter_mode::serial_in_order : tbb::filter_mode::serial_out_of_order;
 
   const auto ref = toNucleotideSequence(refStr);
+
+  std::optional<Nextclade::CsvWriter> csv;
+  if (outputCsvFile) {
+    csv.emplace(Nextclade::CsvWriter(*outputCsvFile, Nextclade::CsvWriterOptions{.delimiter = ';'}));
+  }
 
   const Nextclade::NextcladeOptions options = {
     .ref = ref,
@@ -497,7 +503,7 @@ void run(
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
-    [&nextclade, &outputJsonStream, &logger](const Nextclade::AlgorithmOutput &output) {
+    [&nextclade, &outputJsonStream, &csv, &logger](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
 
@@ -515,6 +521,10 @@ void run(
       }
 
       nextclade.saveResult(output.result);
+
+      if (csv) {
+        csv->addRow(output.result);
+      }
     });
 
   try {
@@ -570,6 +580,14 @@ int main(int argc, char *argv[]) {
       }
     }
 
+    std::unique_ptr<std::ostream> outputCsvFile;
+    if (cliParams.outputCsv) {
+      outputCsvFile = std::make_unique<std::ofstream>(*cliParams.outputCsv);
+      if (!(*outputCsvFile).good()) {
+        throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", *cliParams.outputCsv));
+      }
+    }
+
     int parallelism = -1;
     if (cliParams.jobs > 0) {
       tbb::global_control globalControl{
@@ -588,7 +606,8 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, inputFastaStream, ref, treeString, geneMap, options, outputJsonFile, logger);
+      run(parallelism, inOrder, inputFastaStream, ref, treeString, geneMap, options, outputJsonFile, outputCsvFile,
+        logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
     }

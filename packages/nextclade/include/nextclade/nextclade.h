@@ -4,6 +4,9 @@
 
 #include <map>
 #include <optional>
+#include <sstream>
+#include <string>
+#include <vector>
 
 
 namespace Nextclade {
@@ -214,6 +217,24 @@ namespace Nextclade {
     NextcladeAlgorithm(NextcladeAlgorithm&& other) noexcept = delete;
     NextcladeAlgorithm& operator=(const NextcladeAlgorithm& other) = delete;
     NextcladeAlgorithm& operator=(NextcladeAlgorithm&& other) noexcept = delete;
+  };
+
+  struct CsvWriterOptions {
+    char delimiter = ';';
+  };
+
+  class CsvWriter {
+    CsvWriterOptions options;
+    std::ostream& outputStream;
+
+    std::string prepareRow(const std::vector<std::string>& columns) const;
+
+  public:
+    explicit CsvWriter(std::ostream& outputStream, const CsvWriterOptions& options = {});
+
+    std::string addHeader();
+
+    std::string addRow(const NextcladeResult& result);
   };
 
   const char* getVersion();

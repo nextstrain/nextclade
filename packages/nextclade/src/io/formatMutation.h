@@ -3,11 +3,11 @@
 #include <string>
 
 namespace Nextclade {
-
   struct NucleotideSubstitution;
-
-  NucleotideSubstitution parseMutation(const std::string& raw);
 
   std::string formatMutation(const NucleotideSubstitution& mut);
 
+  std::string formatDeletion(const NucleotideDeletion& del);
+
+  std::string formatInsertion(const NucleotideInsertion& insertion);
 }// namespace Nextclade

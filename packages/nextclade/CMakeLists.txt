@@ -37,9 +37,12 @@ set(SOURCE_FILES
   src/analyze/isSequenced.h
   src/analyze/nucleotide.cpp
   src/analyze/nucleotide.h
+  src/io/CsvWriter.cpp
+  src/io/formatMutation.cpp
+  src/io/formatMutation.h
+  src/io/parseMutation.cpp
+  src/io/parseMutation.h
   src/nextclade.cpp
-  src/parse/parseMutation.cpp
-  src/parse/parseMutation.h
   src/qc/getQcRuleStatus.cpp
   src/qc/getQcRuleStatus.h
   src/qc/ruleMissingData.cpp
@@ -67,6 +70,7 @@ set(SOURCE_FILES
   src/tree/treePreprocess.cpp
   src/tree/treePreprocess.h
   src/utils/config.h
+  src/utils/contains.h
   src/utils/contract.h
   src/utils/debugbreak.h
   src/utils/eraseDuplicates.h

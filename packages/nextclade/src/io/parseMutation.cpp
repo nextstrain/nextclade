@@ -8,7 +8,6 @@
 #include <string>
 
 namespace Nextclade {
-
   class ErrorParseMutationInvalidPosition : public std::runtime_error {
   public:
     explicit ErrorParseMutationInvalidPosition(const std::string& pos)
@@ -64,11 +63,5 @@ namespace Nextclade {
     const auto& queryNuc = parseNucleotide(matches["queryNuc"]);
 
     return {.refNuc = refNuc, .pos = pos, .queryNuc = queryNuc};
-  }
-
-  std::string formatMutation(const NucleotideSubstitution& mut) {
-    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
-    const auto positionOneBased = mut.pos + 1;
-    return fmt::format("{}{}{}", nucToChar(mut.refNuc), positionOneBased, nucToChar(mut.queryNuc));
   }
 }// namespace Nextclade

@@ -8,7 +8,7 @@
 #include <string>
 
 #include "../../../nextalign/src/alphabet/nucleotides.h"
-#include "../parse/parseMutation.h"
+#include "../io/parseMutation.h"
 #include "TreeNodeArray.h"
 
 namespace Nextclade {

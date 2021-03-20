@@ -2,9 +2,9 @@
 
 #include <fmt/format.h>
 #include <nextclade/private/nextclade_private.h>
-#include <parse/parseMutation.h>
 #include <utils/mapFind.h>
 
+#include "../io/formatMutation.h"
 #include "Tree.h"
 
 
