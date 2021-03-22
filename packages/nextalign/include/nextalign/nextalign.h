@@ -150,6 +150,7 @@ struct Insertion {
 };
 
 struct NextalignResult {
+  std::string ref;
   std::string query;
   int alignmentScore;
   std::vector<Peptide> refPeptides;
