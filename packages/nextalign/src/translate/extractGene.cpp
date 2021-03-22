@@ -64,10 +64,11 @@ void stripGeneInPlace(NucleotideSequence& seq) {
   precondition_divisible_by(seq.size(), 3);
 
   const auto& length = safe_cast<int>(seq.size());
+  const auto end = length - (length % 3);
   NucleotideSequenceSpan seqSpan = seq;
 
   // Find the first non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
-  for (int i = 0; i < length; ++i) {
+  for (int i = 0; i < end; ++i) {
     if (at(seqSpan, i) != Nucleotide::GAP) {
       const auto codonBegin = i - (i % 3);
       invariant_greater_equal(codonBegin, 0);
