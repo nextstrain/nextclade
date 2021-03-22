@@ -82,7 +82,7 @@ public:
 
 std::pair<std::string, std::string> parseAttribute(const std ::string& keyValStr) {
   std::vector<std::string> keyVal;
-  boost::split(keyVal, keyValStr, boost::is_any_of(" "));
+  boost::split(keyVal, keyValStr, boost::is_any_of(" ="));
 
   if (keyVal.size() != 2) {
     throw ErrorGffParserInvalidAttribute(keyValStr);

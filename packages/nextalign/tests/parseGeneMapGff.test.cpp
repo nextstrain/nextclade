@@ -36,7 +36,32 @@ std::string makeGff(const std::vector<Gene>& genes) {
 }
 
 
-TEST(parseGeneMapGff, ParsesGeneMap) {
+TEST(parseGeneMapGff, ParsesGeneMapWithAttributesWithEquals) {
+  std::stringstream input;
+  input << R"(
+.	.	gene	26245	26472	.	+	.	 gene_name=E
+.	.	gene	26523	27191	.	+	.	 gene_name=M
+.	.	gene	28274	29533	.	+	.	 gene_name=N
+.	.	gene	29558	29674	.	+	.	 gene_name=ORF10
+.	.	gene	28734	28955	.	+	.	 gene_name=ORF14
+.	.	gene	266	13468	.	+	.	 gene_name=ORF1a
+.	.	gene	13468	21555	.	+	.	 gene_name=ORF1b
+.	.	gene	25393	26220	.	+	.	 gene_name=ORF3a
+.	.	gene	27202	27387	.	+	.	 gene_name=ORF6
+.	.	gene	27394	27759	.	+	.	 gene_name=ORF7a
+.	.	gene	27756	27887	.	+	.	 gene_name=ORF7b
+.	.	gene	27894	28259	.	+	.	 gene_name=ORF8
+.	.	gene	28284	28577	.	+	.	 gene_name=ORF9b
+.	.	gene	21563	25384	.	+	.	 gene_name=S
+)";
+
+  const auto results = parseGeneMapGff(input);
+
+  EXPECT_EQ(results.size(), sampleGeneMap.size());
+  EXPECT_THAT(results, testing::UnorderedElementsAreArray(sampleGeneMap));
+}
+
+TEST(parseGeneMapGff, ParsesGeneMapWithAttributesWithSpacesAndQuotes) {
   std::stringstream input;
   input << R"(
 .	.	gene	26245	26472	.	+	.	 gene_name "E"
@@ -61,6 +86,30 @@ TEST(parseGeneMapGff, ParsesGeneMap) {
   EXPECT_THAT(results, testing::UnorderedElementsAreArray(sampleGeneMap));
 }
 
+TEST(parseGeneMapGff, ParsesGeneMapWithMultipleAttributes) {
+  std::stringstream input;
+  input << R"(
+.	.	gene	26245	26472	.	+	.	 gene_name=E;foo=42;bar=0
+.	.	gene	26523	27191	.	+	.	 gene_name=M;foo=42;bar=1
+.	.	gene	28274	29533	.	+	.	 gene_name=N;foo=42;bar=2
+.	.	gene	29558	29674	.	+	.	 gene_name=ORF10;foo=42;bar=3
+.	.	gene	28734	28955	.	+	.	 gene_name=ORF14;foo=42;bar=4
+.	.	gene	266	13468	.	+	.	 gene_name=ORF1a;foo=42;bar=5
+.	.	gene	13468	21555	.	+	.	 gene_name=ORF1b;foo=42;bar=6
+.	.	gene	25393	26220	.	+	.	 gene_name=ORF3a;foo=42;bar=7
+.	.	gene	27202	27387	.	+	.	 gene_name=ORF6;foo=42;bar=8
+.	.	gene	27394	27759	.	+	.	 gene_name=ORF7a;foo=42;bar=9
+.	.	gene	27756	27887	.	+	.	 gene_name=ORF7b;foo=42;bar=10
+.	.	gene	27894	28259	.	+	.	 gene_name=ORF8;foo=42;bar=11
+.	.	gene	28284	28577	.	+	.	 gene_name=ORF9b;foo=42;bar=12
+.	.	gene	21563	25384	.	+	.	 gene_name=S;foo=42;bar=13
+)";
+
+  const auto results = parseGeneMapGff(input);
+
+  EXPECT_EQ(results.size(), sampleGeneMap.size());
+  EXPECT_THAT(results, testing::UnorderedElementsAreArray(sampleGeneMap));
+}
 
 TEST(parseGeneMapGff, IgnoresComments) {
   std::stringstream input;
@@ -69,10 +118,10 @@ TEST(parseGeneMapGff, IgnoresComments) {
   input << fmt::format(R"( #  This is a comment
 # Another comment
   # Indented comment
-.	.	gene	28274	29533	.	+	.	 gene_name "N"
-.	.	gene	29558	29674	.	+	.	 gene_name "ORF10"
+.	.	gene	28274	29533	.	+	.	 gene_name=N
+.	.	gene	29558	29674	.	+	.	 gene_name=ORF10
 # In-body comment
-.	.	gene	21563	25384	.	+	.	 gene_name "S"
+.	.	gene	21563	25384	.	+	.	 gene_name=S
 )");
   // clang-format on
 
