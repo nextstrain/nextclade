@@ -83,7 +83,7 @@ PeptidesInternal translateGenes(         //
 
       refPeptides.emplace_back(PeptideInternal{
         .name = geneName,                   //
-        .seq = std::move(geneAlignment.ref),//
+        .seq = std::move(refPeptide),       //
         .insertions = {}                    //
       });
 
