@@ -30,8 +30,9 @@ https://discussion.nextstrain.org
 
 Quick Example:
 
- 1. Download the example data files from:
-    https://github.com/nextstrain/nextclade/tree/master/data/example/SARS-CoV-2
+ 1. Download the example SARS-CoV-2 data files from:
+    https://github.com/nextstrain/nextclade/tree/master/data/SARS-CoV-2
+    (You can also try other viruses in the `data/` directory)
 
  2. Run:
     nextalign --sequences=sequences.fasta --reference=reference.fasta --genemap=genemap.gff --genes=E,M,N,ORF10,ORF14,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S --output-dir=output/ --output-basename=nextalign
