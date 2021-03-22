@@ -574,6 +574,11 @@ int main(int argc, char *argv[]) {
 
     std::unique_ptr<std::ostream> outputJsonFile;
     if (cliParams.outputJson) {
+      const auto outputJsonParent = fs::path(*cliParams.outputJson).parent_path();
+      if (!outputJsonParent.empty()) {
+        fs::create_directories(outputJsonParent);
+      }
+
       outputJsonFile = std::make_unique<std::ofstream>(*cliParams.outputJson);
       if (!(*outputJsonFile).good()) {
         throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", *cliParams.outputJson));
@@ -582,6 +587,11 @@ int main(int argc, char *argv[]) {
 
     std::unique_ptr<std::ostream> outputCsvFile;
     if (cliParams.outputCsv) {
+      const auto outputCsvParent = fs::path(*cliParams.outputCsv).parent_path();
+      if (!outputCsvParent.empty()) {
+        fs::create_directories(outputCsvParent);
+      }
+
       outputCsvFile = std::make_unique<std::ofstream>(*cliParams.outputCsv);
       if (!(*outputCsvFile).good()) {
         throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", *cliParams.outputCsv));
