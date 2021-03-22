@@ -164,7 +164,7 @@ DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 NEXTALIGN_STATIC_BUILD_DEFAULT=1
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
-elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] ; then
+elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=0
 fi
 NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
@@ -200,7 +200,7 @@ GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexe
 
 # AddressSanitizer and MemorySanitizer don't work with gdb
 case ${CMAKE_BUILD_TYPE} in
-  ASAN|MSAN) GDB_DEFAULT="" ;;
+  ASAN|MSAN|UBSAN) GDB_DEFAULT="" ;;
   *) ;;
 esac
 
