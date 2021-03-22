@@ -52,9 +52,8 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
   const auto refStripped = removeGaps(ref);
 
   NextalignResultInternal result;
-  result.ref = toString(refStripped);
+  result.ref = refStripped;
   result.query = stripped.queryStripped;
-  result.ref = alignment.ref;
   result.alignmentScore = alignment.alignmentScore;
   result.refPeptides = refPeptides;
   result.queryPeptides = queryPeptides;
