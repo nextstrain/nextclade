@@ -24,14 +24,12 @@ struct CliParams {
   std::optional<std::string> genes;
   std::optional<std::string> outputDir;
   std::optional<std::string> outputBasename;
-  std::optional<std::string> outputRef;
   std::optional<std::string> outputFasta;
   std::optional<std::string> outputInsertions;
   bool writeReference;
 };
 
 struct Paths {
-  fs::path outputRef;
   fs::path outputFasta;
   fs::path outputInsertions;
   std::map<std::string, fs::path> outputGenes;
@@ -211,13 +209,6 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     )
 
     (
-      "R,output-ref",
-      "(optional, string) Path to output aligned reference sequences in FASTA format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
-      cxxopts::value<std::string>(),
-      "OUTPUT_REF"
-    )
-
-    (
       "write-ref",
       "(optional, boolean) Whether to include aligned reference nucleotide sequence into output nucleotide sequence fasta file and reference peptides into output peptide files.",
       cxxopts::value<bool>(),
@@ -380,7 +371,6 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
     cliParams.outputDir = getParamOptional<std::string>(cxxOptsParsed, "output-dir");
     cliParams.outputBasename = getParamOptional<std::string>(cxxOptsParsed, "output-basename");
-    cliParams.outputRef = getParamOptional<std::string>(cxxOptsParsed, "output-ref");
     cliParams.outputFasta = getParamOptional<std::string>(cxxOptsParsed, "output-fasta");
     cliParams.writeReference = getParamRequiredDefaulted<bool>(cxxOptsParsed, "write-ref");
     cliParams.outputInsertions = getParamOptional<std::string>(cxxOptsParsed, "output-insertions");
@@ -517,10 +507,6 @@ std::string formatCliParams(const CliParams &cliParams) {
     fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-basename", *cliParams.outputBasename);
   }
 
-  if (cliParams.outputRef) {
-    fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-ref", *cliParams.outputRef);
-  }
-
   if (cliParams.outputFasta) {
     fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-fasta", *cliParams.outputFasta);
   }
@@ -549,12 +535,6 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     baseName = *cliParams.outputBasename;
   }
 
-  auto outputRef = outDir / baseName;
-  outputRef += ".ref.aligned.fasta";
-  if (cliParams.outputRef) {
-    outputRef = *cliParams.outputRef;
-  }
-
   auto outputFasta = outDir / baseName;
   outputFasta += ".aligned.fasta";
   if (cliParams.outputFasta) {
@@ -575,7 +555,6 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
   }
 
   return {
-    .outputRef = outputRef,
     .outputFasta = outputFasta,
     .outputInsertions = outputInsertions,
     .outputGenes = outputGenes,
@@ -585,7 +564,6 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
 std::string formatPaths(const Paths &paths) {
   fmt::memory_buffer buf;
   fmt::format_to(buf, "\nOutput files:\n");
-  fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned reference", paths.outputRef.string());
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
 
@@ -642,7 +620,6 @@ void run(
   /* in  */ const ReferenceSequenceData &refData,
   /* in  */ const GeneMap &geneMap,
   /* in  */ const NextalignOptions &options,
-  /* out */ std::ostream &outputRefStream,
   /* out */ std::ostream &outputFastaStream,
   /* out */ std::ostream &outputInsertionsStream,
   /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
@@ -684,13 +661,13 @@ void run(
 
   // HACK: prevent aligned ref and ref genes from being written multiple times
   // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
-  bool refsHaveBeenWritten = false;
+  bool refsHaveBeenWritten = !shouldWriteReference;
 
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(ioFiltersMode,//
-    [&refName, &shouldWriteReference, &outputRefStream, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams,
-      &refsHaveBeenWritten, &logger](const AlgorithmOutput &output) {
+    [&refName, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &refsHaveBeenWritten, &logger](
+      const AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
 
@@ -721,17 +698,12 @@ void run(
 
       // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
       if (!refsHaveBeenWritten) {
-        outputRefStream << fmt::format(">{:s}\n{:s}\n", refName, ref);
-        outputRefStream.flush();
+        outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, ref);
+        outputFastaStream.flush();
 
-        if (shouldWriteReference) {
-          outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, ref);
-          outputFastaStream.flush();
-
-          for (const auto &peptide : refPeptides) {
-            outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", refName, peptide.seq);
-            outputGeneStreams[peptide.name].flush();
-          }
+        for (const auto &peptide : refPeptides) {
+          outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", refName, peptide.seq);
+          outputGeneStreams[peptide.name].flush();
         }
 
         refsHaveBeenWritten = true;
@@ -821,11 +793,6 @@ int main(int argc, char *argv[]) {
       throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputFasta.string()));
     }
 
-    std::ofstream outputRefFile(paths.outputRef);
-    if (!outputRefFile.good()) {
-      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputRef.string()));
-    }
-
     std::ofstream outputInsertionsFile(paths.outputInsertions);
     if (!outputInsertionsFile.good()) {
       throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputInsertions.string()));
@@ -862,7 +829,7 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, cliParams, fastaStream, refData, geneMap, options, outputRefFile, outputFastaFile,
+      run(parallelism, inOrder, cliParams, fastaStream, refData, geneMap, options, outputFastaFile,
         outputInsertionsFile, outputGeneFiles, shouldWriteReference, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
