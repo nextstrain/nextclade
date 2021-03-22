@@ -780,7 +780,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    int parallelism = -1;
+    int parallelism = 0;
     if (cliParams.jobs > 0) {
       tbb::global_control globalControl{
         tbb::global_control::max_allowed_parallelism, static_cast<size_t>(cliParams.jobs)};
