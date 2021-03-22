@@ -209,7 +209,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     )
 
     (
-      "write-ref",
+      "include-reference",
       "(optional, boolean) Whether to include aligned reference nucleotide sequence into output nucleotide sequence fasta file and reference peptides into output peptide files.",
       cxxopts::value<bool>(),
       "WRITE_REF"
@@ -372,7 +372,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     cliParams.outputDir = getParamOptional<std::string>(cxxOptsParsed, "output-dir");
     cliParams.outputBasename = getParamOptional<std::string>(cxxOptsParsed, "output-basename");
     cliParams.outputFasta = getParamOptional<std::string>(cxxOptsParsed, "output-fasta");
-    cliParams.writeReference = getParamRequiredDefaulted<bool>(cxxOptsParsed, "write-ref");
+    cliParams.writeReference = getParamRequiredDefaulted<bool>(cxxOptsParsed, "include-reference");
     cliParams.outputInsertions = getParamOptional<std::string>(cxxOptsParsed, "output-insertions");
 
     if (bool(cliParams.genes) != bool(cliParams.genemap)) {
