@@ -18,25 +18,31 @@ using Nextclade::NucleotideSubstitution;
 TEST(analyzes, ReportsAlignmentStartAndEnd) {
   std::stringstream input;
 
-  const auto query = toNucleotideSequence("---AAA---");
-  const auto ref = toNucleotideSequence("AAA");
+  // clang-format off
+  const auto ref   = toNucleotideSequence(      "AAA"      );
+  const auto query = toNucleotideSequence("---" "AAA" "---");
+  // clang-format on                       012   345   678
 
   const auto results = analyze(query, ref);
 
-  EXPECT_EQ(4, results.alignmentStart);
-  EXPECT_EQ(8, results.alignmentEnd);
+  EXPECT_EQ(3, results.alignmentStart);
+  EXPECT_EQ(6, results.alignmentEnd);
 }
 
 TEST(analyzes, ReportsSubstitutions) {
   std::stringstream input;
 
-  const auto query = toNucleotideSequence("ACAA");
-  const auto ref = toNucleotideSequence("AAAA");
+  // clang-format off
+  const auto ref   = toNucleotideSequence("CTA" "ATA" "GTA");
+  const auto query = toNucleotideSequence("ATA" "TTA" "GTA");
+  // clang-format on                       012   345   678
 
   const auto results = analyze(query, ref);
 
-  const auto expected =
-    std::vector<NucleotideSubstitution>({{.pos = 1, .refNuc = Nucleotide::A, .queryNuc = Nucleotide::C}});
+  const auto expected = std::vector<NucleotideSubstitution>({
+    {.refNuc = Nucleotide::C, .pos = 0, .queryNuc = Nucleotide::A},
+    {.refNuc = Nucleotide::A, .pos = 3, .queryNuc = Nucleotide::T},
+  });
 
   EXPECT_ARR_EQ(expected, results.substitutions)
 }
@@ -44,13 +50,16 @@ TEST(analyzes, ReportsSubstitutions) {
 TEST(analyzes, ReportsInsertions) {
   std::stringstream input;
 
-  const auto query = toNucleotideSequence("AACAA");
-  const auto ref = toNucleotideSequence("AA-AA");
+  // clang-format off
+  const auto ref   = toNucleotideSequence("CTA" "---" "GTA");
+  const auto query = toNucleotideSequence("CTA" "ATA" "GTA");
+  // clang-format on                       012   345   678
 
   const auto results = analyze(query, ref);
 
-  const auto ins = toNucleotideSequence("C");
-  const auto expected = std::vector<NucleotideInsertion>({{.pos = 2, .length = 1, .ins = ins}});
+  const auto expected = std::vector<NucleotideInsertion>({
+    {.pos = 3, .length = 3, .ins = toNucleotideSequence("ATA")},
+  });
 
   EXPECT_ARR_EQ(expected, results.insertions)
 }
@@ -59,12 +68,16 @@ TEST(analyzes, ReportsInsertions) {
 TEST(analyzes, ReportsDeletions) {
   std::stringstream input;
 
-  const auto query = toNucleotideSequence("CT-G");
-  const auto ref = toNucleotideSequence("CTAG");
+  // clang-format off
+  const auto ref   = toNucleotideSequence("CTA" "ATA" "GTA");
+  const auto query = toNucleotideSequence("CTA" "---" "GTA");
+  // clang-format on                       012   345   678
 
   const auto results = analyze(query, ref);
 
-  const auto expected = std::vector<NucleotideDeletion>({{.start = 1, .length = 1}});
+  const auto expected = std::vector<NucleotideDeletion>({
+    {.start = 3, .length = 3}
+  });
 
   EXPECT_ARR_EQ(expected, results.deletions)
 }

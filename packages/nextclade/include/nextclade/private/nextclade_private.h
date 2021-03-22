@@ -35,9 +35,9 @@ namespace Nextclade {
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {
     os << "{ ";
+    os << "refNuc: " << nucToChar(val.refNuc);
     os << "pos: " << val.pos << ", ";
     os << "queryNuc: " << nucToChar(val.queryNuc) << ", ";
-    os << "refNuc: " << nucToChar(val.refNuc);
     os << " }";
     return os;
   }

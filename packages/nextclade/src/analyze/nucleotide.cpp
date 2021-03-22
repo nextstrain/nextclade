@@ -3,6 +3,8 @@
 #include <frozen/set.h>
 #include <nextalign/nextalign.h>
 
+#include "../utils/mapFind.h"
+
 namespace Nextclade {
 
   namespace {
@@ -30,11 +32,11 @@ namespace Nextclade {
   }
 
   bool isAcgt(Nucleotide nuc) {
-    return ACGT.find(nuc) == ACGT.end();
+    return has(ACGT, nuc);
   }
 
   bool isNonAcgtnAndNonGap(const Nucleotide& nuc) {
-    return ACGTN_AND_GAP.find(nuc) == ACGTN_AND_GAP.end();
+    return has(ACGTN_AND_GAP, nuc);
   }
 
 }// namespace Nextclade

@@ -23,8 +23,9 @@ namespace Nextclade {
         ins += query[i];
       } else {
         if (!ins.empty()) {
-          insertions.push_back(NucleotideInsertion{.pos = insStart, .length = safe_cast<int>(ins.size()), .ins = ins});
-          ins = NucleotideSequence{};
+          insertions.emplace_back(
+            NucleotideInsertion{.pos = insStart, .length = safe_cast<int>(ins.size()), .ins = ins});
+          ins.clear();
         }
         refPos += 1;
       }
@@ -33,7 +34,7 @@ namespace Nextclade {
 
     // add insertion at the end of the reference if it exists
     if (!ins.empty()) {
-      insertions.push_back(NucleotideInsertion{.pos = insStart, .length = safe_cast<int>(ins.size()), .ins = ins});
+      insertions.emplace_back(NucleotideInsertion{.pos = insStart, .length = safe_cast<int>(ins.size()), .ins = ins});
     }
 
     return insertions;
@@ -60,8 +61,14 @@ namespace Nextclade {
     return refStripped;
   }
 
-  auto reportMutations(const NucleotideSequence& refStripped, const NucleotideSequence& refStrippedQuery) {
-    // report mutations
+  struct MutationReport {
+    std::vector<NucleotideSubstitution> substitutions;
+    std::vector<NucleotideDeletion> deletions;
+    int alignmentStart;
+    int alignmentEnd;
+  };
+
+  MutationReport reportMutations(const NucleotideSequence& refStripped, const NucleotideSequence& queryStripped) {
     int nDel = 0;
     int delPos = -1;
     bool beforeAlignment = true;
@@ -69,35 +76,38 @@ namespace Nextclade {
     std::vector<NucleotideDeletion> deletions;
     int alignmentStart = -1;
     int alignmentEnd = -1;
-    int i = 0;
-    std::for_each(refStrippedQuery.begin(), refStrippedQuery.end(),
-      [&beforeAlignment, &nDel, &delPos, &substitutions, &deletions, &alignmentEnd, &alignmentStart, &i, &refStripped](
-        Nucleotide d) {
-        if (d != Nucleotide::GAP) {
-          if (beforeAlignment) {
-            alignmentStart = i;
-            beforeAlignment = false;
-          } else if (nDel != 0) {
-            deletions.push_back(NucleotideDeletion{.start = delPos, .length = nDel});
-            nDel = 0;
-          }
-          alignmentEnd = i;
+    const auto length = safe_cast<int>(queryStripped.size());
+    for (int i = 0; i < length; ++i) {
+      const auto& d = queryStripped[i];
+      if (!isGap(d)) {
+        if (beforeAlignment) {
+          alignmentStart = i;
+          beforeAlignment = false;
+        } else if (nDel) {
+          deletions.emplace_back(NucleotideDeletion{.start = delPos, .length = nDel});
+          nDel = 0;
         }
+        alignmentEnd = i + 1;
+      }
 
-        const auto& refNuc = refStripped[i];
-        if (d != Nucleotide::GAP && d != refNuc && isAcgt(d)) {
-          substitutions.push_back(NucleotideSubstitution{.pos = i, .refNuc = refNuc, .queryNuc = d});
-        } else if (d == Nucleotide::GAP && !beforeAlignment) {
-          if (nDel != 0) {
-            delPos = i;
-          }
-          nDel++;
+      const auto& refNuc = refStripped[i];
+      if (!isGap(d) && (d != refNuc) && isAcgt(d)) {
+        substitutions.emplace_back(NucleotideSubstitution{.refNuc = refNuc, .pos = i, .queryNuc = d});
+      } else if (isGap(d) && !beforeAlignment) {
+        if (!nDel) {
+          delPos = i;
         }
-      });
+        nDel++;
+      }
+    }
 
-    return std::tuple(substitutions, deletions, alignmentStart, alignmentEnd);
+    return {
+      .substitutions = substitutions,
+      .deletions = deletions,
+      .alignmentStart = alignmentStart,
+      .alignmentEnd = alignmentEnd,
+    };
   }
-
 
   AnalysisResult analyze(const NucleotideSequence& query, const NucleotideSequence& ref) {
     const auto insertions = reportInsertions(query, ref);
@@ -107,11 +117,12 @@ namespace Nextclade {
     const auto [substitutions, deletions, alignmentStart, alignmentEnd] =
       reportMutations(refStripped, refStrippedQuery);
 
-    return {//
+    return {
       .substitutions = substitutions,
       .deletions = deletions,
       .insertions = insertions,
       .alignmentStart = alignmentStart,
-      .alignmentEnd = alignmentEnd};
+      .alignmentEnd = alignmentEnd,
+    };
   }
 }// namespace Nextclade
