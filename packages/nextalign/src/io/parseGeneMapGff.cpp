@@ -81,18 +81,27 @@ public:
 
 
 std::pair<std::string, std::string> parseAttribute(const std ::string& keyValStr) {
+  std::string separator = "=";
+
+  // If there are no equal signs, then we use spaces as separator,
+  // for backwards compatibility with the old, non-compliant parser
+  // See: https://github.com/nextstrain/nextclade/pull/388
+  if (keyValStr.find(separator) == std::string::npos) {
+    separator = " ";
+  }
+
   std::vector<std::string> keyVal;
-  boost::split(keyVal, keyValStr, boost::is_any_of(" "));
+  boost::split(keyVal, keyValStr, boost::is_any_of(separator));
 
   if (keyVal.size() != 2) {
     throw ErrorGffParserInvalidAttribute(keyValStr);
   }
 
   auto& key = keyVal[0];
-  key = boost::remove_erase_if(key, boost::is_any_of(R"('" )"));
+  key = boost::trim_copy_if(key, boost::is_any_of(R"('" )"));// trim spaces and quotation marks on both ends
 
   auto& val = keyVal[1];
-  val = boost::remove_erase_if(val, boost::is_any_of(R"('" )"));
+  val = boost::trim_copy_if(val, boost::is_any_of(R"('" )"));// trim spaces and quotation marks on both ends
 
   if (key.empty() || val.empty()) {
     throw ErrorGffParserInvalidAttribute(keyValStr);
