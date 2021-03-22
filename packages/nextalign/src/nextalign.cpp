@@ -8,6 +8,7 @@
 #include "align/getGapOpenCloseScores.h"
 #include "alphabet/nucleotides.h"
 #include "strip/stripInsertions.h"
+#include "translate/removeGaps.h"
 #include "translate/translateGenes.h"
 #include "utils/contract.h"
 #include "utils/map.h"
@@ -48,8 +49,10 @@ NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSeque
   }
 
   const auto stripped = stripInsertions(alignment.ref, alignment.query);
+  const auto refStripped = removeGaps(ref);
 
   NextalignResult result;
+  result.ref = toString(refStripped);
   result.query = toString(stripped.queryStripped);
   result.alignmentScore = alignment.alignmentScore;
   result.refPeptides = refPeptides;
