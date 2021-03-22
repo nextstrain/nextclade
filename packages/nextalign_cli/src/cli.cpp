@@ -24,11 +24,14 @@ struct CliParams {
   std::optional<std::string> genes;
   std::optional<std::string> outputDir;
   std::optional<std::string> outputBasename;
+  std::optional<std::string> outputRef;
   std::optional<std::string> outputFasta;
   std::optional<std::string> outputInsertions;
+  bool writeReference;
 };
 
 struct Paths {
+  fs::path outputRef;
   fs::path outputFasta;
   fs::path outputInsertions;
   std::map<std::string, fs::path> outputGenes;
@@ -162,7 +165,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 
     (
       "in-order",
-      "Force parallel processing in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag."
+      "Force parallel processing in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1 or is omitted. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag."
     )
 
     (
@@ -197,21 +200,35 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
       "d,output-dir",
       "(optional, string) Write output files to this directory. The base filename can be set using `--output-basename` flag. The paths can be overridden on a per-file basis using `--output-*` flags. If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
-      "OUTPUT"
+      "OUTPUT_DIR"
     )
 
     (
       "n,output-basename",
       "(optional, string) Set the base filename to use for output files. To be used together with `--output-dir` flag. By default uses the filename of the sequences file (provided with `--sequences`). The paths can be overridden on a per-file basis using `--output-*` flags.",
       cxxopts::value<std::string>(),
-      "OUTPUT"
+      "OUTPUT_BASENAME"
+    )
+
+    (
+      "R,output-ref",
+      "(optional, string) Path to output aligned reference sequences in FASTA format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+      cxxopts::value<std::string>(),
+      "OUTPUT_REF"
+    )
+
+    (
+      "write-ref",
+      "(optional, boolean) Whether to include aligned reference nucleotide sequence into output nucleotide sequence fasta file and reference peptides into output peptide files.",
+      cxxopts::value<bool>(),
+      "WRITE_REF"
     )
 
     (
       "o,output-fasta",
-      "(required, string) Path to output aligned sequences in FASTA format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+      "(optional, string) Path to output aligned sequences in FASTA format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
-      "OUTPUT"
+      "OUTPUT_FASTA"
     )
 
     (
@@ -363,7 +380,9 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
     cliParams.outputDir = getParamOptional<std::string>(cxxOptsParsed, "output-dir");
     cliParams.outputBasename = getParamOptional<std::string>(cxxOptsParsed, "output-basename");
+    cliParams.outputRef = getParamOptional<std::string>(cxxOptsParsed, "output-ref");
     cliParams.outputFasta = getParamOptional<std::string>(cxxOptsParsed, "output-fasta");
+    cliParams.writeReference = getParamRequiredDefaulted<bool>(cxxOptsParsed, "write-ref");
     cliParams.outputInsertions = getParamOptional<std::string>(cxxOptsParsed, "output-insertions");
 
     if (bool(cliParams.genes) != bool(cliParams.genemap)) {
@@ -400,7 +419,13 @@ public:
   explicit ErrorFastaReader(const std::string &message) : std::runtime_error(message) {}
 };
 
-AlgorithmInput parseRefFastaFile(const std::string &filename) {
+struct ReferenceSequenceData {
+  const NucleotideSequence seq;
+  const std::string name;
+  const int length;
+};
+
+ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
   std::ifstream file(filename);
   if (!file.good()) {
     throw ErrorFastaReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
@@ -412,7 +437,10 @@ AlgorithmInput parseRefFastaFile(const std::string &filename) {
       fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
   }
 
-  return *(refSeqs.begin());
+  const auto &refSeq = refSeqs.front();
+  const auto &seq = toNucleotideSequence(refSeq.seq);
+  const auto length = static_cast<int>(seq.size());
+  return {.seq = seq, .name = refSeq.seqName, .length = length};
 }
 
 
@@ -489,6 +517,10 @@ std::string formatCliParams(const CliParams &cliParams) {
     fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-basename", *cliParams.outputBasename);
   }
 
+  if (cliParams.outputRef) {
+    fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-ref", *cliParams.outputRef);
+  }
+
   if (cliParams.outputFasta) {
     fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-fasta", *cliParams.outputFasta);
   }
@@ -517,6 +549,12 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     baseName = *cliParams.outputBasename;
   }
 
+  auto outputRef = outDir / baseName;
+  outputRef += ".ref.aligned.fasta";
+  if (cliParams.outputRef) {
+    outputRef = *cliParams.outputRef;
+  }
+
   auto outputFasta = outDir / baseName;
   outputFasta += ".aligned.fasta";
   if (cliParams.outputFasta) {
@@ -536,12 +574,18 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     outputGenes.emplace(gene, outputGene);
   }
 
-  return {.outputFasta = outputFasta, .outputInsertions = outputInsertions, .outputGenes = outputGenes};
+  return {
+    .outputRef = outputRef,
+    .outputFasta = outputFasta,
+    .outputInsertions = outputInsertions,
+    .outputGenes = outputGenes,
+  };
 }
 
 std::string formatPaths(const Paths &paths) {
   fmt::memory_buffer buf;
   fmt::format_to(buf, "\nOutput files:\n");
+  fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned reference", paths.outputRef.string());
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
 
@@ -554,8 +598,9 @@ std::string formatPaths(const Paths &paths) {
   return fmt::to_string(buf);
 }
 
-std::string formatRef(const std::string &refName, const std::string &ref) {
-  return fmt::format("\nReference:\n  name: \"{:s}\"\n  length: {:d}\n", refName, ref.size());
+std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteReference) {
+  return fmt::format("\nReference:\n  name: \"{:s}\"\n  Length: {:d}\n  Write: {:s}", refData.name, refData.length,
+    shouldWriteReference ? "yes" : "no");
 }
 
 std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &genes) {
@@ -594,17 +639,20 @@ void run(
   /* in  */ bool inOrder,
   /* in  */ const CliParams &cliParams,
   /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
-  /* in  */ const std::string &refStr,
+  /* in  */ const ReferenceSequenceData &refData,
   /* in  */ const GeneMap &geneMap,
   /* in  */ const NextalignOptions &options,
+  /* out */ std::ostream &outputRefStream,
   /* out */ std::ostream &outputFastaStream,
   /* out */ std::ostream &outputInsertionsStream,
   /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
+  /* in */ bool shouldWriteReference,
   /* out */ Logger &logger) {
   tbb::task_group_context context;
   const auto ioFiltersMode = inOrder ? tbb::filter_mode::serial_in_order : tbb::filter_mode::serial_out_of_order;
 
-  const auto ref = toNucleotideSequence(refStr);
+  const auto &ref = refData.seq;
+  const auto &refName = refData.name;
 
   /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
@@ -634,15 +682,15 @@ void run(
       }
     });
 
-  // HACK: prevent ref genes from being written multiple times
+  // HACK: prevent aligned ref and ref genes from being written multiple times
   // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
-  bool refGenesHaveBeenWritten = false;
+  bool refsHaveBeenWritten = false;
 
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(ioFiltersMode,//
-    [&outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &refGenesHaveBeenWritten, &logger](
-      const AlgorithmOutput &output) {
+    [&refName, &shouldWriteReference, &outputRefStream, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams,
+      &refsHaveBeenWritten, &logger](const AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
 
@@ -657,6 +705,7 @@ void run(
         }
       }
 
+      const auto &ref = output.result.ref;
       const auto &query = output.result.query;
       const auto &alignmentScore = output.result.alignmentScore;
       const auto &insertions = output.result.insertions;
@@ -670,21 +719,32 @@ void run(
         logger.warn("Warning: in sequence \"{:s}\": {:s}\n", seqName, warning);
       }
 
-      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, query);
-
-      outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
-
       // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
-      if (!refGenesHaveBeenWritten) {
-        for (const auto &peptide : refPeptides) {
-          outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", "Reference", peptide.seq);
+      if (!refsHaveBeenWritten) {
+        outputRefStream << fmt::format(">{:s}\n{:s}\n", refName, ref);
+        outputRefStream.flush();
+
+        if (shouldWriteReference) {
+          outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, ref);
+          outputFastaStream.flush();
+
+          for (const auto &peptide : refPeptides) {
+            outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", refName, peptide.seq);
+            outputGeneStreams[peptide.name].flush();
+          }
         }
-        refGenesHaveBeenWritten = true;
+
+        refsHaveBeenWritten = true;
       }
+
+
+      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, query);
 
       for (const auto &peptide : queryPeptides) {
         outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
       }
+
+      outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
     });
 
   try {
@@ -708,10 +768,9 @@ int main(int argc, char *argv[]) {
 
     logger.info(formatCliParams(cliParams));
 
-    const auto refInput = parseRefFastaFile(cliParams.reference);
-    const auto &refName = refInput.seqName;
-    const auto &ref = refInput.seq;
-    logger.info(formatRef(refName, ref));
+    const auto refData = parseRefFastaFile(cliParams.reference);
+    const auto shouldWriteReference = cliParams.writeReference;
+    logger.info(formatRef(refData, shouldWriteReference));
 
     GeneMap geneMap;
     std::set<std::string> genes;
@@ -762,6 +821,11 @@ int main(int argc, char *argv[]) {
       throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputFasta.string()));
     }
 
+    std::ofstream outputRefFile(paths.outputRef);
+    if (!outputRefFile.good()) {
+      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputRef.string()));
+    }
+
     std::ofstream outputInsertionsFile(paths.outputInsertions);
     if (!outputInsertionsFile.good()) {
       throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputInsertions.string()));
@@ -798,8 +862,8 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, cliParams, fastaStream, ref, geneMap, options, outputFastaFile, outputInsertionsFile,
-        outputGeneFiles, logger);
+      run(parallelism, inOrder, cliParams, fastaStream, refData, geneMap, options, outputRefFile, outputFastaFile,
+        outputInsertionsFile, outputGeneFiles, shouldWriteReference, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
     }
