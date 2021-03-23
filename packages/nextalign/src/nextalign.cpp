@@ -18,8 +18,16 @@ Insertion toInsertionExternal(const InsertionInternal<Nucleotide>& ins) {
   return Insertion{.begin = ins.begin, .end = ins.end, .seq = toString(ins.seq)};
 }
 
+std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<Nucleotide>>& insertions) {
+  return map(insertions, std::function<Insertion(InsertionInternal<Nucleotide>)>(toInsertionExternal));
+}
+
 Peptide toPeptideExternal(const PeptideInternal& peptide) {
   return Peptide{.name = peptide.name, .seq = toString(peptide.seq)};
+}
+
+std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& peptides) {
+  return map(peptides, std::function<Peptide(PeptideInternal)>(toPeptideExternal));
 }
 
 
@@ -70,10 +78,9 @@ NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSeque
   NextalignResult result;
   result.query = toString(resultInternal.query);
   result.alignmentScore = resultInternal.alignmentScore;
-  result.refPeptides = map(resultInternal.refPeptides, std::function<Peptide(PeptideInternal)>(toPeptideExternal));
-  result.queryPeptides = map(resultInternal.queryPeptides, std::function<Peptide(PeptideInternal)>(toPeptideExternal));
-  result.insertions =
-    map(resultInternal.insertions, std::function<Insertion(InsertionInternal<Nucleotide>)>(toInsertionExternal));
+  result.refPeptides = toPeptidesExternal(resultInternal.refPeptides);
+  result.queryPeptides = toPeptidesExternal(resultInternal.queryPeptides);
+  result.insertions = toInsertionsExternal(resultInternal.insertions);
   result.warnings = resultInternal.warnings;
 
   return result;

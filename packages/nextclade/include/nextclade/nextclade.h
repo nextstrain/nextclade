@@ -191,6 +191,12 @@ namespace Nextclade {
 
   struct NextcladeResult {
     std::string seqName;
+    std::string ref;
+    std::string query;
+    std::vector<Peptide> refPeptides;
+    std::vector<Peptide> queryPeptides;
+    std::vector<Insertion> insertionsStripped;// FIXME: How `insertions` related to `insertionsStripped`?
+    std::vector<std::string> warnings;
     std::vector<NucleotideSubstitution> substitutions;
     int totalSubstitutions;
     std::vector<NucleotideDeletion> deletions;

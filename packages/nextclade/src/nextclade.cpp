@@ -65,6 +65,12 @@ namespace Nextclade {
 
       NextcladeResult analysisResult = {
         .seqName = seqName,
+        .ref = toString(alignment.ref),
+        .query = toString(alignment.query),
+        .refPeptides = toPeptidesExternal(alignment.refPeptides),
+        .queryPeptides = toPeptidesExternal(alignment.queryPeptides),
+        .insertionsStripped = toInsertionsExternal(alignment.insertions),
+        .warnings = alignment.warnings,
         .substitutions = analysis.substitutions,
         .totalSubstitutions = totalSubstitutions,
         .deletions = analysis.deletions,
