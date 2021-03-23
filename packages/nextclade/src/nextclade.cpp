@@ -61,8 +61,6 @@ namespace Nextclade {
       const auto totalPcrPrimerChanges = std::accumulate(pcrPrimerChanges.cbegin(), pcrPrimerChanges.cend(), 0,
         [](int result, const auto& item) { return result + item.substitutions.size(); });
 
-      // TODO: implement PCR primer changes detection
-
       NextcladeResult analysisResult = {
         .seqName = seqName,
         .ref = toString(alignment.ref),
