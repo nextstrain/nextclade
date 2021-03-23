@@ -31,7 +31,7 @@ https://discussion.nextstrain.org
 Quick Example:
 
  1. Download the example SARS-CoV-2 data files from:
-    https://github.com/nextstrain/nextclade/tree/master/data/SARS-CoV-2
+    https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2
     (You can also try other viruses in the `data/` directory)
 
  2. Run:
