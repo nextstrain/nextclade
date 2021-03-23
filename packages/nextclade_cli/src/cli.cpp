@@ -207,7 +207,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 
     (
       "genes",
-       "(optional, string) List of genes to translate. Requires `--genemap`. If not supplied or empty, sequence will not be translated. If non-empty, should contain a coma-separated list of gene names. Parameters `--genes` and `--genemap` should be either both specified or both omitted.",
+       "(optional, string) List of genes to translate and to take into account during alignment. If not supplied or empty, sequence will not be translated. If non-empty, should contain a coma-separated list of gene names",
        cxxopts::value<std::string>(),
        "GENES"
     )
@@ -436,6 +436,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     cliParams.inputRootSeq = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-root-seq");
     cliParams.inputTree = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-tree");
     cliParams.inputQcConfig = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-qc-config");
+    cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
     cliParams.inputGeneMap = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-gene-map");
     cliParams.inputPcrPrimers = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-pcr-primers");
     cliParams.outputJson = getParamOptional<std::string>(cxxOptsParsed, "output-json");
@@ -868,11 +869,8 @@ int main(int argc, char *argv[]) {
 
     std::map<std::string, std::ofstream> outputGeneFiles;
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
-      const auto result = outputGeneFiles.emplace(
-        std::piecewise_construct, std::forward_as_tuple(geneName), std::forward_as_tuple(outputGenePath));
-
+      const auto result = outputGeneFiles.emplace(std::make_pair(geneName, outputGenePath));
       const auto &outputGeneFile = result.first->second;
-
       if (!outputGeneFile.good()) {
         throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", outputGenePath.string()));
       }
