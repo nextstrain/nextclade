@@ -9,7 +9,8 @@
 #include <string>
 #include <vector>
 
-#include "../../../../nextalign/src/alphabet/nucleotides.h"
+#include "../../../../nextalign/src/alphabet/aminoacids.h" // FIXME: Should not include the internals of another package
+#include "../../../../nextalign/src/alphabet/nucleotides.h"// FIXME: Should not include the internals of another package
 
 
 namespace Nextclade {

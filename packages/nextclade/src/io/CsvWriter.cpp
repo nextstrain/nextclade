@@ -8,8 +8,9 @@
 #include <string>
 #include <vector>
 
-#include "../io/formatMutation.h"
 #include "../utils/contains.h"
+#include "formatMutation.h"
+#include "formatQcStatus.h"
 
 namespace Nextclade {
   namespace {
@@ -34,15 +35,7 @@ namespace Nextclade {
         return s;
       };
     }
-  }// namespace
 
-  CsvWriter::CsvWriter(std::ostream& outputStream, const CsvWriterOptions& options)
-      : options(options),
-        outputStream(outputStream) {
-    addHeader();
-  }
-
-  std::string CsvWriter::addHeader() {
     constexpr std::array<frozen::string, 41> COLUMN_NAMES = {
       "seqName",
       "clade",
@@ -86,7 +79,15 @@ namespace Nextclade {
       "qc.snpClusters.totalSNPs",
       "errors",
     };
+  }// namespace
 
+  CsvWriter::CsvWriter(std::ostream& outputStream, const CsvWriterOptions& options)
+      : options(options),
+        outputStream(outputStream) {
+    addHeader();
+  }
+
+  std::string CsvWriter::addHeader() {
     std::vector<std::string> columns;
     std::transform(
       COLUMN_NAMES.cbegin(), COLUMN_NAMES.cend(), std::back_inserter(columns), [](const frozen::string& s) {
@@ -108,13 +109,73 @@ namespace Nextclade {
   std::string CsvWriter::addRow(const NextcladeResult& result) {
     std::vector<std::string> columns;
 
+    columns.emplace_back(result.seqName);
+    columns.emplace_back(result.clade);
+
+    columns.emplace_back(std::to_string(result.qc.overallScore));
+    columns.emplace_back(formatQcStatus(result.qc.overallStatus));
+    columns.emplace_back(std::to_string(result.totalSubstitutions));
+    columns.emplace_back(std::to_string(result.totalDeletions));
+    columns.emplace_back(std::to_string(result.totalInsertions));
+    columns.emplace_back(std::to_string(result.totalMissing));
+    columns.emplace_back(std::to_string(result.totalNonACGTNs));
+    columns.emplace_back(std::to_string(result.totalPcrPrimerChanges));
+    columns.emplace_back(std::to_string(result.totalAminoacidSubstitutions));
+    columns.emplace_back(std::to_string(result.totalAminoacidDeletions));
+
     columns.emplace_back(formatAndJoin(result.substitutions, formatMutation, ","));
     columns.emplace_back(formatAndJoin(result.deletions, formatDeletion, ","));
     columns.emplace_back(formatAndJoin(result.insertions, formatInsertion, ","));
+    columns.emplace_back(formatAndJoin(result.missing, formatMissing, ","));
+    columns.emplace_back(formatAndJoin(result.nonACGTNs, formatNonAcgtn, ","));
+    columns.emplace_back(formatAndJoin(result.pcrPrimerChanges, formatPcrPrimerChange, ","));
+    columns.emplace_back(formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));
+    columns.emplace_back(formatAndJoin(result.aaDeletions, formatAminoacidDeletion, ","));
+
+    columns.emplace_back(std::to_string(result.alignmentEnd));
+    columns.emplace_back(std::to_string(result.alignmentScore));
+    columns.emplace_back(std::to_string(result.alignmentStart));
+
+    if (result.qc.missingData) {
+      columns.emplace_back(std::to_string(result.qc.missingData->missingDataThreshold));
+      columns.emplace_back(std::to_string(result.qc.missingData->score));
+      columns.emplace_back(formatQcStatus(result.qc.missingData->status));
+      columns.emplace_back(std::to_string(result.qc.missingData->totalMissing));
+    }
+
+    if (result.qc.mixedSites) {
+      columns.emplace_back(std::to_string(result.qc.mixedSites->mixedSitesThreshold));
+      columns.emplace_back(std::to_string(result.qc.mixedSites->score));
+      columns.emplace_back(formatQcStatus(result.qc.mixedSites->status));
+      columns.emplace_back(std::to_string(result.qc.mixedSites->totalMixedSites));
+    }
+
+    if (result.qc.privateMutations) {
+      columns.emplace_back(std::to_string(result.qc.privateMutations->cutoff));
+      columns.emplace_back(std::to_string(result.qc.privateMutations->excess));
+      columns.emplace_back(std::to_string(result.qc.privateMutations->score));
+      columns.emplace_back(formatQcStatus(result.qc.privateMutations->status));
+      columns.emplace_back(std::to_string(result.qc.privateMutations->total));
+    }
+
+    if (result.qc.snpClusters) {
+      columns.emplace_back(formatAndJoin(result.qc.snpClusters->clusteredSNPs, formatClusteredSnp, ","));
+      columns.emplace_back(std::to_string(result.qc.snpClusters->score));
+      columns.emplace_back(formatQcStatus(result.qc.snpClusters->status));
+      columns.emplace_back(std::to_string(result.qc.snpClusters->totalSNPs));
+    }
 
     std::for_each(columns.begin(), columns.end(), maybeSurroundWithQuotes(options.delimiter));
     auto row = boost::algorithm::join(columns, std::string{options.delimiter});
     outputStream << row << "\n";
     return row;
   }
+
+  std::string CsvWriter::addErrorRow(const std::string& error) {
+    const auto columns = std::string{COLUMN_NAMES.size() - 1, options.delimiter};
+    auto row = columns + error;
+    outputStream << row << "\n";
+    return row;
+  }
+
 }// namespace Nextclade

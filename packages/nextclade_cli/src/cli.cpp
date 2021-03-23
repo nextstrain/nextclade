@@ -514,16 +514,20 @@ void run(
         try {
           std::rethrow_exception(error);
         } catch (const std::exception &e) {
-          logger.warn("Warning: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n",
-            seqName, e.what());
+
+          const std::string errorFormatted = fmt::format("In sequence \"{:s}\": {:s}.\n", seqName, e.what());
+          logger.warn("Warning: {}. Note that this sequence will be excluded from results.\n", errorFormatted);
+          if (csv) {
+            csv->addErrorRow(errorFormatted);
+          }
           return;
         }
-      }
+      } else {
+        nextclade.saveResult(output.result);
 
-      nextclade.saveResult(output.result);
-
-      if (csv) {
-        csv->addRow(output.result);
+        if (csv) {
+          csv->addRow(output.result);
+        }
       }
     });
 

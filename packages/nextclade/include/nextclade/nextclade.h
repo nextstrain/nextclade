@@ -163,6 +163,23 @@ namespace Nextclade {
     std::vector<NucleotideSubstitution> substitutions;
   };
 
+  struct AminoacidSubstitution {
+    Aminoacid refAA;
+    int codon;
+    Aminoacid queryAA;
+    std::string gene;
+    NucleotideRange nucRange;
+    NucleotideSequence refCodon;
+    NucleotideSequence queryCodon;
+  };
+
+  struct AminoacidDeletion {
+    Aminoacid refAA;
+    int codon;
+    std::string gene;
+    NucleotideRange nucRange;
+    NucleotideSequence refCodon;
+  };
 
   struct AnalysisResult {
     std::vector<NucleotideSubstitution> substitutions;
@@ -183,6 +200,10 @@ namespace Nextclade {
     std::vector<NucleotideRange> missing;
     int totalMissing;
     std::vector<NucleotideRange> nonACGTNs;
+    std::vector<AminoacidSubstitution> aaSubstitutions;
+    int totalAminoacidSubstitutions;
+    std::vector<AminoacidDeletion> aaDeletions;
+    int totalAminoacidDeletions;
     int totalNonACGTNs;
     int alignmentStart;
     int alignmentEnd;
@@ -235,6 +256,8 @@ namespace Nextclade {
     std::string addHeader();
 
     std::string addRow(const NextcladeResult& result);
+
+    std::string addErrorRow(const std::string& error);
   };
 
   const char* getVersion();

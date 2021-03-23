@@ -40,6 +40,8 @@ set(SOURCE_FILES
   src/io/CsvWriter.cpp
   src/io/formatMutation.cpp
   src/io/formatMutation.h
+  src/io/formatQcStatus.cpp
+  src/io/formatQcStatus.h
   src/io/parseMutation.cpp
   src/io/parseMutation.h
   src/nextclade.cpp
