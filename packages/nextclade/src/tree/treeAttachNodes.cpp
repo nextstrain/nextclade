@@ -12,6 +12,7 @@
 #include "../utils/eraseDuplicates.h"
 #include "../utils/mapFind.h"
 #include "Tree.h"
+#include "TreeNode.h"
 
 namespace Nextclade {
   namespace {

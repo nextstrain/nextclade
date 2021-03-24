@@ -1,6 +1,7 @@
 #include "treePostprocess.h"
 
 #include "Tree.h"
+#include "TreeNode.h"
 
 namespace Nextclade {
   class Tree;

@@ -552,6 +552,28 @@ GeneMap filterGeneMap(const std::set<std::string> &genes, const GeneMap &geneMap
   return result;
 }
 
+std::string formatCliParams(const CliParams &cliParams) {
+  fmt::memory_buffer buf;
+  fmt::format_to(buf, "\nParameters:\n");
+  fmt::format_to(buf, "{:<20s}{:<}\n", "Jobs", cliParams.jobs);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "In order", cliParams.inOrder);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "Include reference", cliParams.writeReference ? "yes" : "no");
+  fmt::format_to(buf, "{:<20s}{:<}\n", "Verbose", cliParams.verbose ? "yes" : "no");
+
+  fmt::format_to(buf, "\nInput Files:\n");
+  fmt::format_to(buf, "{:<20s}{:<}\n", "Root sequence", cliParams.inputRootSeq);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "Sequences FASTA", cliParams.inputFasta);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "Gene map", cliParams.inputGeneMap);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "PCR primers", cliParams.inputPcrPrimers);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "QC configuration", cliParams.inputQcConfig);
+
+  if (cliParams.genes) {
+    fmt::format_to(buf, "{:<20s}{:<}\n", "Genes to translate", *cliParams.genes);
+  }
+
+  return fmt::to_string(buf);
+}
+
 Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
   fs::path sequencesPath = cliParams.inputFasta;
 
@@ -595,9 +617,43 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
   };
 }
 
+std::string formatPaths(const Paths &paths) {
+  fmt::memory_buffer buf;
+  fmt::format_to(buf, "\nOutput files:\n");
+  fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
+  fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
+
+  for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
+    fmt::memory_buffer bufGene;
+    fmt::format_to(bufGene, "{:s} {:>10s}", "Translated genes", geneName);
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufGene), outputGenePath.string());
+  }
+
+  return fmt::to_string(buf);
+}
+
 std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteReference) {
   return fmt::format("\nReference:\n  name: \"{:s}\"\n  Length: {:d}\n  Write: {:s}", refData.name, refData.length,
     shouldWriteReference ? "yes" : "no");
+}
+
+std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &genes) {
+  constexpr const auto TABLE_WIDTH = 86;
+
+  fmt::memory_buffer buf;
+  fmt::format_to(buf, "\nGene map:\n");
+  fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
+  fmt::format_to(buf, "| {:8s} | {:16s} | {:8s} | {:8s} | {:8s} | {:8s} | {:8s} |\n", "Selected", "   Gene Name",
+    "  Start", "  End", " Length", "  Frame", " Strand");
+  fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
+  for (const auto &[geneName, gene] : geneMap) {
+    const auto selected = std::find(genes.cbegin(), genes.cend(), geneName) != genes.cend();
+    const auto selectedStr = selected ? "  yes" : " ";
+    fmt::format_to(buf, "| {:8s} | {:16s} | {:8d} | {:8d} | {:8d} | {:8d} | {:8s} |\n", selectedStr, geneName,
+      gene.start + 1, gene.end, gene.length, gene.frame + 1, gene.strand);
+  }
+  fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
+  return fmt::to_string(buf);
 }
 
 std::string formatInsertions(const std::vector<Insertion> &insertions) {
@@ -632,7 +688,9 @@ void run(
   /* in  */ const GeneMap &geneMap,
   /* in  */ const NextalignOptions &nextalignOptions,
   /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
-  /* out */ std::unique_ptr<std::ostream> &outputCsvFile,
+  /* out */ std::unique_ptr<std::ostream> &outputCsvStream,
+  /* out */ std::unique_ptr<std::ostream> &outputTsvStream,
+  /* out */ std::unique_ptr<std::ostream> &outputTreeStream,
   /* out */ std::ostream &outputFastaStream,
   /* out */ std::ostream &outputInsertionsStream,
   /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
@@ -645,8 +703,13 @@ void run(
   const auto &refName = refData.name;
 
   std::optional<Nextclade::CsvWriter> csv;
-  if (outputCsvFile) {
-    csv.emplace(Nextclade::CsvWriter(*outputCsvFile, Nextclade::CsvWriterOptions{.delimiter = ';'}));
+  if (outputCsvStream) {
+    csv.emplace(Nextclade::CsvWriter(*outputCsvStream, Nextclade::CsvWriterOptions{.delimiter = ';'}));
+  }
+
+  std::optional<Nextclade::CsvWriter> tsv;
+  if (outputTsvStream) {
+    tsv.emplace(Nextclade::CsvWriter(*outputTsvStream, Nextclade::CsvWriterOptions{.delimiter = '\t'}));
   }
 
   const Nextclade::NextcladeOptions options = {
@@ -698,7 +761,7 @@ void run(
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
     [&nextclade, &refName, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &outputJsonStream, &csv,
-      &refsHaveBeenWritten, &logger](const Nextclade::AlgorithmOutput &output) {
+      &tsv, &refsHaveBeenWritten, &logger](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
       const auto &ref = output.result.ref;
@@ -721,6 +784,9 @@ void run(
           if (csv) {
             csv->addErrorRow(errorFormatted);
           }
+          if (tsv) {
+            tsv->addErrorRow(errorFormatted);
+          }
           return;
         }
       } else {
@@ -741,7 +807,6 @@ void run(
           refsHaveBeenWritten = true;
         }
 
-
         outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, query);
 
         for (const auto &peptide : queryPeptides) {
@@ -755,6 +820,9 @@ void run(
         if (csv) {
           csv->addRow(output.result);
         }
+        if (tsv) {
+          tsv->addRow(output.result);
+        }
       }
     });
 
@@ -765,6 +833,9 @@ void run(
   }
 
   const auto &tree = nextclade.finalize();
+  if (outputTreeStream) {
+    (*outputTreeStream) << tree.serialize();
+  }
 }
 
 std::string readFile(const std::string &filepath) {
@@ -775,6 +846,42 @@ std::string readFile(const std::string &filepath) {
   std::stringstream buffer;
   buffer << stream.rdbuf();
   return buffer.str();
+}
+
+/**
+ * Opens a file stream given filepath and creates target directory tree if does not exist
+ */
+void openOutputFile(const std::string &filepath, std::ofstream &stream) {
+  const auto outputJsonParent = fs::path(filepath).parent_path();
+  if (!outputJsonParent.empty()) {
+    fs::create_directories(outputJsonParent);
+  }
+
+  stream.open(filepath);
+  if (!stream.is_open()) {
+    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}\n", filepath, strerror(errno)));
+  }
+}
+
+/**
+ * Opens a file stream, if the given optional filepath contains value, returns nullptr otherwise
+ */
+std::unique_ptr<std::ostream> openOutputFileMaybe(const std::optional<std::string> &filepath) {
+  if (!filepath) {
+    return nullptr;
+  }
+
+  const auto outputJsonParent = fs::path(*filepath).parent_path();
+  if (!outputJsonParent.empty()) {
+    fs::create_directories(outputJsonParent);
+  }
+
+  auto stream = std::make_unique<std::ofstream>(*filepath);
+  if (!stream->is_open()) {
+    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}\n", *filepath, strerror(errno)));
+  }
+
+  return stream;
 }
 
 int main(int argc, char *argv[]) {
@@ -789,12 +896,16 @@ int main(int argc, char *argv[]) {
 
     Logger logger{loggerOptions};
 
+    logger.info(formatCliParams(cliParams));
+
     const auto refData = parseRefFastaFile(cliParams.inputRootSeq);
     const auto shouldWriteReference = cliParams.writeReference;
     logger.info(formatRef(refData, shouldWriteReference));
 
     const GeneMap geneMap = parseGeneMapGffFile(cliParams.inputGeneMap);
     const auto genes = parseGenes(cliParams, geneMap);
+    logger.info(formatGeneMap(geneMap, genes));
+
     if (!genes.empty()) {
       // penaltyGapOpenOutOfFrame > penaltyGapOpenInFrame > penaltyGapOpen
       const auto isInFrameGreater = options.alignment.penaltyGapOpenInFrame > options.alignment.penaltyGapOpen;
@@ -818,62 +929,27 @@ int main(int argc, char *argv[]) {
 
     const auto treeString = readFile(cliParams.inputTree);
 
-    std::unique_ptr<std::ostream> outputJsonFile;
-    if (cliParams.outputJson) {
-      const auto outputJsonParent = fs::path(*cliParams.outputJson).parent_path();
-      if (!outputJsonParent.empty()) {
-        fs::create_directories(outputJsonParent);
-      }
-
-      outputJsonFile = std::make_unique<std::ofstream>(*cliParams.outputJson);
-      if (!(*outputJsonFile).good()) {
-        throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", *cliParams.outputJson));
-      }
-    }
-
-    std::unique_ptr<std::ostream> outputCsvFile;
-    if (cliParams.outputCsv) {
-      const auto outputCsvParent = fs::path(*cliParams.outputCsv).parent_path();
-      if (!outputCsvParent.empty()) {
-        fs::create_directories(outputCsvParent);
-      }
-
-      outputCsvFile = std::make_unique<std::ofstream>(*cliParams.outputCsv);
-      if (!(*outputCsvFile).good()) {
-        throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", *cliParams.outputCsv));
-      }
-    }
-
     const auto paths = getPaths(cliParams, genes);
+    logger.info(formatPaths(paths));
 
-    const auto outputFastaParent = paths.outputFasta.parent_path();
-    if (!outputFastaParent.empty()) {
-      fs::create_directories(outputFastaParent);
-    }
 
-    const auto outputInsertionsParent = paths.outputInsertions.parent_path();
-    if (!outputInsertionsParent.empty()) {
-      fs::create_directories(outputInsertionsParent);
-    }
+    auto outputJsonStream = openOutputFileMaybe(cliParams.outputJson);
+    auto outputCsvStream = openOutputFileMaybe(cliParams.outputCsv);
+    auto outputTsvStream = openOutputFileMaybe(cliParams.outputTsv);
+    auto outputTreeStream = openOutputFileMaybe(cliParams.outputTree);
 
-    std::ofstream outputFastaFile(paths.outputFasta);
-    if (!outputFastaFile.good()) {
-      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputFasta.string()));
-    }
+    std::ofstream outputFastaStream;
+    openOutputFile(paths.outputFasta, outputFastaStream);
 
-    std::ofstream outputInsertionsFile(paths.outputInsertions);
-    if (!outputInsertionsFile.good()) {
-      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputInsertions.string()));
-    }
-    outputInsertionsFile << "seqName,insertions\n";
+    std::ofstream outputInsertionsStream;
+    openOutputFile(paths.outputInsertions, outputInsertionsStream);
+    outputInsertionsStream << "seqName,insertions\n";
 
-    std::map<std::string, std::ofstream> outputGeneFiles;
+    std::map<std::string, std::ofstream> outputGeneStreams;
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
-      const auto result = outputGeneFiles.emplace(std::make_pair(geneName, outputGenePath));
-      const auto &outputGeneFile = result.first->second;
-      if (!outputGeneFile.good()) {
-        throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", outputGenePath.string()));
-      }
+      auto result = outputGeneStreams.emplace(std::make_pair(geneName, nullptr));
+      auto &outputGeneFile = result.first->second;
+      openOutputFile(outputGenePath, outputGeneFile);
     }
 
     auto parallelism = std::thread::hardware_concurrency();
@@ -894,8 +970,9 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, inputFastaStream, refData, treeString, geneMap, options, outputJsonFile, outputCsvFile,
-        outputFastaFile, outputInsertionsFile, outputGeneFiles, shouldWriteReference, logger);
+      run(parallelism, inOrder, inputFastaStream, refData, treeString, geneMap, options, outputJsonStream,
+        outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream, outputInsertionsStream,
+        outputGeneStreams, shouldWriteReference, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
     }

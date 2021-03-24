@@ -10,7 +10,28 @@
 
 
 namespace Nextclade {
-  class Tree;
+  class TreeImpl;
+  class TreeNode;
+
+  class Tree {
+    std::unique_ptr<TreeImpl> pimpl;
+
+  public:
+    explicit Tree(const std::string& auspiceJsonV2);
+
+    TreeNode root() const;
+
+    std::string serialize() const;
+
+    // Destructor is required when using pimpl idiom with unique_ptr.
+    // See "Effective Modern C++" by Scott Meyers,
+    // "Item 22: When using the Pimpl Idiom, define special member functions in the implementation file".
+    ~Tree();
+    Tree(const Tree& other) = delete;
+    Tree(Tree&& other) noexcept = delete;
+    Tree& operator=(const Tree& other) = delete;
+    Tree& operator=(Tree&& other) noexcept = delete;
+  };
 
   struct QCRulesConfigMissingData {
     bool enabled;

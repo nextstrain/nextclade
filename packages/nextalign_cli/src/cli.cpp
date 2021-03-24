@@ -462,6 +462,7 @@ std::set<std::string> parseGenes(const CliParams &cliParams, const GeneMap &gene
 
   return genes;
 }
+
 class ErrorGeneMapValidationFailure : public std::runtime_error {
 public:
   explicit ErrorGeneMapValidationFailure(const std::string &message) : std::runtime_error(message) {}

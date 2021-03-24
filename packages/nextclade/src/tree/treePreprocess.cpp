@@ -6,6 +6,7 @@
 
 #include "../io/formatMutation.h"
 #include "Tree.h"
+#include "TreeNode.h"
 
 
 namespace Nextclade {

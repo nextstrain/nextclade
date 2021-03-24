@@ -2,8 +2,12 @@
 
 #include <rapidjson/document.h>
 #include <rapidjson/pointer.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 #include <string>
+
+#include "TreeNode.h"
 
 namespace Nextclade {
   class ErrorAuspiceJsonV2TreeNotFound : public std::runtime_error {
@@ -37,6 +41,16 @@ namespace Nextclade {
     rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator() {
       return json.GetAllocator();
     }
+
+    std::string serialize() const {
+      rapidjson::StringBuffer buffer;
+      buffer.Clear();
+
+      rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+      json.Accept(writer);
+
+      return buffer.GetString();
+    }
   };
 
   Tree::Tree(const std::string& auspiceJsonV2) : pimpl(std::make_unique<TreeImpl>(auspiceJsonV2)) {}
@@ -49,5 +63,9 @@ namespace Nextclade {
       throw ErrorAuspiceJsonV2TreeNotFound();
     }
     return TreeNode{treeRootValue, &pimpl->allocator()};
+  }
+
+  std::string Tree::serialize() const {
+    return pimpl->serialize();
   }
 }// namespace Nextclade
