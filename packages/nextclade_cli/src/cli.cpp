@@ -832,6 +832,10 @@ void run(
     logger.error("Error: when running the pipeline: {:s}\n", e.what());
   }
 
+  if (outputJsonStream) {
+    *outputJsonStream << serializeResults(nextclade.getResults());
+  }
+
   const auto &tree = nextclade.finalize();
   if (outputTreeStream) {
     (*outputTreeStream) << tree.serialize();

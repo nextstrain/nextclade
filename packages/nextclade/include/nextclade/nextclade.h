@@ -257,6 +257,8 @@ namespace Nextclade {
 
     const Tree& finalize();
 
+    const std::vector<NextcladeResult>& getResults() const;
+
     // Destructor is required when using pimpl idiom with unique_ptr.
     // See "Effective Modern C++" by Scott Meyers,
     // "Item 22: When using the Pimpl Idiom, define special member functions in the implementation file".
@@ -286,6 +288,8 @@ namespace Nextclade {
 
     std::string addErrorRow(const std::string& error);
   };
+
+  std::string serializeResults(const std::vector<NextcladeResult>& results);
 
   const char* getVersion();
 }// namespace Nextclade

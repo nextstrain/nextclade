@@ -106,6 +106,10 @@ namespace Nextclade {
       treePostprocess(tree);
       return tree;
     }
+
+    const std::vector<NextcladeResult>& getResults() const {
+      return results;
+    }
   };
 
   NextcladeAlgorithm::NextcladeAlgorithm(const NextcladeOptions& options)
@@ -123,6 +127,10 @@ namespace Nextclade {
 
   const Tree& NextcladeAlgorithm::finalize() {
     return pimpl->finalize();
+  }
+
+  const std::vector<NextcladeResult>& NextcladeAlgorithm::getResults() const {
+    return pimpl->getResults();
   }
 
   const char* getVersion() {
