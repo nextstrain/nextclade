@@ -134,7 +134,7 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
 }
 
 
-std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
+std::tuple<CliParams, NextalignOptions> parseCommandLine(
   int argc, char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
   const std::string versionNextalign = NEXTALIGN_VERSION;
   const std::string versionShort = PROJECT_VERSION;
@@ -446,7 +446,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 
     NextalignOptions options = validateOptions(cxxOptsParsed);
 
-    return std::make_tuple(cliParams, cxxOpts, options);
+    return std::make_tuple(cliParams, options);
 
   } catch (const cxxopts::OptionSpecException &e) {
     fmt::print(stderr, "Error: OptionSpecException: {:s}\n\n", e.what());
@@ -890,8 +890,7 @@ std::unique_ptr<std::ostream> openOutputFileMaybe(const std::optional<std::strin
 
 int main(int argc, char *argv[]) {
   try {
-    const auto [cliParams, cxxOpts, options] = parseCommandLine(argc, argv);
-    const auto helpText = cxxOpts.help();
+    const auto [cliParams, options] = parseCommandLine(argc, argv);
 
     Logger::Options loggerOptions;
     if (cliParams.verbose) {
