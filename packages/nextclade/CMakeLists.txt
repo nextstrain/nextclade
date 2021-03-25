@@ -18,7 +18,6 @@ find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(RapidJSON 1.1.0 REQUIRED)
 find_package(type_safe 0.2.1 REQUIRED)
-find_package(nlohmann_json 3.9.1 REQUIRED)
 
 set(SOURCE_FILES
   include/nextclade/nextclade.h
@@ -168,6 +167,7 @@ target_include_directories(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} SYSTEM
   PRIVATE
   "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
+  "${CMAKE_SOURCE_DIR}/3rdparty/json/include"
   )
 
 target_include_directories(${PROJECT_NAME}
@@ -185,7 +185,6 @@ target_link_libraries(${PROJECT_NAME}
   RapidJSON::RapidJSON
   fast-cpp-csv-parser::fast-cpp-csv-parser
   fmt::fmt
-  nlohmann_json::nlohmann_json
   type_safe::type_safe
   )
 
