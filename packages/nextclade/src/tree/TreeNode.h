@@ -1,32 +1,52 @@
 #pragma once
 
-#include <rapidjson/fwd.h>
+// clang-format off
+#include <nlohmann/json_fwd.hpp>
+// clang-format on
 
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "TreeNodeArray.h"
+
 
 enum class Nucleotide : char;
 
 namespace Nextclade {
+  using json = nlohmann::ordered_json;
+
   struct NucleotideSubstitution;
+  class TreeNodeImpl;
 
   class TreeNode {
-    rapidjson::Value* value;
-    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a;
+    std::unique_ptr<TreeNodeImpl> pimpl;
+
+    friend class TreeNodeImpl;
+    friend class TreeNodeArrayImpl;
+
+    json getJson() const;
 
   public:
     TreeNode();
 
-    explicit TreeNode(rapidjson::Value* value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a);
+    explicit TreeNode(json&& j);
 
-    rapidjson::Value* get(const char* path) const;
+    ~TreeNode();
 
-    rapidjson::Value* get(const char* path);
+    TreeNode(const TreeNode& other) = delete;
+
+    TreeNode& operator=(const TreeNode& other) = delete;
+
+    TreeNode(TreeNode&& other) noexcept;
+
+    TreeNode& operator=(TreeNode&& other) noexcept;
 
     TreeNodeArray children() const;
+
+    void addChild(const TreeNode& node);
 
     std::map<int, Nucleotide> substitutions() const;
 
@@ -54,12 +74,10 @@ namespace Nextclade {
 
     void setNodeAttr(const char* name, const std::map<int, Nucleotide>& data);
 
-    void setNodeAttr(const char* name, int data);
+    void setNodeAttr(const char* name, int val);
 
     void removeNodeAttr(const char* name);
 
-    void assign(const TreeNode& node) const;
-
-    void addChild(const TreeNode& node);
+    void assign(const TreeNode& node);
   };
 }// namespace Nextclade

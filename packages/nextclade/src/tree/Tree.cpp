@@ -1,15 +1,17 @@
 #include "Tree.h"
 
-#include <rapidjson/document.h>
-#include <rapidjson/pointer.h>
-#include <rapidjson/prettywriter.h>
-#include <rapidjson/stringbuffer.h>
-
 #include <string>
 
 #include "TreeNode.h"
 
+
+// Goes last (or at least after forward declarations of this library)
+#include <nlohmann/json.hpp>
+
+
 namespace Nextclade {
+  using json = nlohmann::ordered_json;
+
   class ErrorAuspiceJsonV2TreeNotFound : public std::runtime_error {
   public:
     explicit ErrorAuspiceJsonV2TreeNotFound()
@@ -17,39 +19,21 @@ namespace Nextclade {
   };
 
   class TreeImpl {
-    rapidjson::Document json;
+    json j;
 
   public:
-    explicit TreeImpl(const std::string& auspiceJsonV2) {
-      json.Parse(auspiceJsonV2.c_str());
-    }
+    explicit TreeImpl(const std::string& auspiceJsonV2) : j(json::parse(auspiceJsonV2)) {}
 
-    const rapidjson::Value* get(const char* path) const {
-      const rapidjson::Value* result = rapidjson::Pointer(path).Get(json);
-      if (!result) {
-        return nullptr;
+    TreeNode root() const {
+      auto root = j["tree"];
+      if (!root.is_object()) {
+        throw ErrorAuspiceJsonV2TreeNotFound();
       }
-      return result;
-    }
-
-    rapidjson::Value* get(const char* path) {
-      return const_cast<rapidjson::Value*>(// NOLINT(cppcoreguidelines-pro-type-const-cast)
-        std::as_const(*this).get(path)     //
-      );
-    }
-
-    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>& allocator() {
-      return json.GetAllocator();
+      return TreeNode{std::move(root)};
     }
 
     std::string serialize() const {
-      rapidjson::StringBuffer buffer;
-      buffer.Clear();
-
-      rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-      json.Accept(writer);
-
-      return buffer.GetString();
+      return std::string{j.dump(4)};
     }
   };
 
@@ -58,11 +42,7 @@ namespace Nextclade {
   Tree::~Tree() {}// NOLINT(modernize-use-equals-default)
 
   TreeNode Tree::root() const {
-    auto* treeRootValue = pimpl->get("/tree");
-    if (treeRootValue->IsNull()) {
-      throw ErrorAuspiceJsonV2TreeNotFound();
-    }
-    return TreeNode{treeRootValue, &pimpl->allocator()};
+    return pimpl->root();
   }
 
   std::string Tree::serialize() const {

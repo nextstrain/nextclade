@@ -63,7 +63,7 @@ namespace Nextclade {
 
     // Repeat for children recursively
     auto children = node.children();
-    children.forEach([&tmpMuts, &id, &rootSeq](TreeNode child) {
+    children.forEach([&tmpMuts, &id, &rootSeq](TreeNode& child) {
       ++id;
       treePreprocessInPlaceRecursive(child, tmpMuts, id, rootSeq);
     });

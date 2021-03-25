@@ -88,9 +88,9 @@ namespace Nextclade {
         // NOTE: not all fields are initialized here. They must be initialized below.
       };
 
-      const auto [nearestNode, privateMutations] = treeFindNearestNode(analysisResult, ref, tree);
-      analysisResult.nearestNodeId = nearestNode.id();
-      analysisResult.clade = nearestNode.clade();
+      const auto [nearestNodeId, nearestNodeClade, privateMutations] = treeFindNearestNode(analysisResult, ref, tree);
+      analysisResult.nearestNodeId = nearestNodeId;
+      analysisResult.clade = nearestNodeClade;
 
       analysisResult.qc = runQc(analysisResult, privateMutations, qcRulesConfig);
 

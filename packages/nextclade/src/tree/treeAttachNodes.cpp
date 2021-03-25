@@ -278,8 +278,8 @@ namespace Nextclade {
 
     // Repeat for children recursively
     auto children = node.children();
-    children.forEach([&results, &rootSeq, &maxDivergence](TreeNode child) {//
-      attachNewNodesRecursively(child, results, rootSeq, maxDivergence);   //
+    children.forEach([&results, &rootSeq, &maxDivergence](TreeNode& child) {//
+      attachNewNodesRecursively(child, results, rootSeq, maxDivergence);    //
     });
 
     // We look for a matching result, by it's unique `id`
@@ -301,7 +301,7 @@ namespace Nextclade {
 
     // TODO: can we simplify and use `divergence` variable directly instead of this?
     auto childMaxDivergence = NEGATIVE_INFINITY;
-    children.forEach([&childMaxDivergence](TreeNode child) {
+    children.forEach([&childMaxDivergence](const TreeNode& child) {
       const auto divergence = getMaxDivergenceRecursively(child);
       childMaxDivergence = std::max(divergence, childMaxDivergence);
     });

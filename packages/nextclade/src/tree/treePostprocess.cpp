@@ -14,7 +14,7 @@ namespace Nextclade {
 
     // Repeat for children recursively
     auto children = node.children();
-    children.forEach([](TreeNode child) { treePostprocessInPlaceRecursive(child); });
+    children.forEach([](TreeNode& child) { treePostprocessInPlaceRecursive(child); });
   }
 
   void treePostprocess(Tree& tree) {

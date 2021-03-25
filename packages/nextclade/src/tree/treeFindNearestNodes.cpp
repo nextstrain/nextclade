@@ -57,12 +57,10 @@ namespace Nextclade {
     TreeNode nearestNode;
   };
 
-  ClosestMatchResult treeFindNearestNodeRecursively(
-    const TreeNode& node, const NextcladeResult& analysisResult) {
-
+  ClosestMatchResult treeFindNearestNodeRecursively(const TreeNode& node, const NextcladeResult& analysisResult) {
     int distance = calculateDistance(node, analysisResult);
-    auto nearestNode = node;
-    auto children = node.children();
+    const auto* nearestNode = &node;
+    const auto& children = node.children();
 
     // TODO: Only consider nodes of the reference tree, skip newly added nodes
     // const refChildren = children.filter((node) => node.node_attrs?.['Node type'].value !== NodeType.New)
@@ -75,11 +73,13 @@ namespace Nextclade {
       auto match = treeFindNearestNodeRecursively(child, analysisResult);
       if (match.distance < distance) {
         distance = match.distance;
-        nearestNode = match.nearestNode;
+        nearestNode = &(match.nearestNode);
       }
     });
 
-    return {.distance = distance, .nearestNode = nearestNode};
+    TreeNode nearestNodeCopy;
+    nearestNodeCopy.assign(*nearestNode);
+    return {.distance = distance, .nearestNode = std::move(nearestNodeCopy)};
   }
 
   /**
@@ -126,6 +126,10 @@ namespace Nextclade {
     const auto nearestNode = treeFindNearestNodeRecursively(focalNode, analysisResult).nearestNode;
     const auto privateMutations = findPrivateMutations(nearestNode, analysisResult, rootSeq);
 
-    return {.nearestNode = nearestNode, .privateMutations = privateMutations};
+    return {
+      .nearestNodeId = nearestNode.id(),
+      .nearestNodeClade = nearestNode.clade(),
+      .privateMutations = privateMutations,
+    };
   }
 }// namespace Nextclade

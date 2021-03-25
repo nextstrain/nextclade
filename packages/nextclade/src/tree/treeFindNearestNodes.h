@@ -7,7 +7,8 @@
 
 namespace Nextclade {
   struct TreeFindNearestNodesResult {
-    TreeNode nearestNode;
+    int nearestNodeId;
+    std::string nearestNodeClade;
     std::vector<NucleotideSubstitution> privateMutations;
   };
 

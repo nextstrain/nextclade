@@ -1,23 +1,37 @@
 #pragma once
 
-#include <rapidjson/fwd.h>
-
 #include <functional>
+#include <memory>
+#include <nlohmann/json_fwd.hpp>
 
 namespace Nextclade {
+  using json = nlohmann::ordered_json;
 
   class TreeNode;
+  class TreeNodeArrayImpl;
 
   class TreeNodeArray {
-    rapidjson::Value* value;
-    rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a;
+    std::unique_ptr<TreeNodeArrayImpl> pimpl;
+
+    friend class TreeNodeArrayImpl;
 
   public:
-    explicit TreeNodeArray(rapidjson::Value* value, rapidjson::MemoryPoolAllocator<rapidjson::CrtAllocator>* a);
+    explicit TreeNodeArray(json& j);
 
-    TreeNodeArray filter(const std::function<bool(TreeNode)>& predicate) const;
+    TreeNodeArray filter(const std::function<bool(const TreeNode&)>& predicate) const;
 
-    void forEach(const std::function<void(TreeNode)>& action);
+    void forEach(const std::function<void(TreeNode&)>& action);
+
+    void forEach(const std::function<void(const TreeNode&)>& action) const;
+
+    // Destructor is required when using pimpl idiom with unique_ptr.
+    // See "Effective Modern C++" by Scott Meyers,
+    // "Item 22: When using the Pimpl Idiom, define special member functions in the implementation file".
+    ~TreeNodeArray();
+    TreeNodeArray(const TreeNodeArray& other) = delete;
+    TreeNodeArray(TreeNodeArray&& other) noexcept = delete;
+    TreeNodeArray& operator=(const TreeNodeArray& other) = delete;
+    TreeNodeArray& operator=(TreeNodeArray&& other) noexcept = delete;
   };
 
 
