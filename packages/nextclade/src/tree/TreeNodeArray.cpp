@@ -8,6 +8,7 @@
 #include <string>
 
 #include "TreeNode.h"
+#include "utils/safe_cast.h"
 
 namespace Nextclade {
   using json = nlohmann::ordered_json;
@@ -29,6 +30,14 @@ namespace Nextclade {
 
     explicit TreeNodeArrayImpl(json& j) : j(j) {
       ensureIsArray();
+    }
+
+    int size() const {
+      return safe_cast<int>(j.size());
+    }
+
+    TreeNode operator[](int index) {
+      return TreeNode{j[index]};
     }
 
     void ensureIsArray() const {
@@ -77,6 +86,18 @@ namespace Nextclade {
   TreeNodeArray::TreeNodeArray(json& j) : pimpl(std::make_unique<TreeNodeArrayImpl>(j)) {}
 
   TreeNodeArray::~TreeNodeArray() {}// NOLINT(modernize-use-equals-default)
+
+  int TreeNodeArray::size() const {
+    return pimpl->size();
+  }
+
+  TreeNode TreeNodeArray::operator[](int index) const {
+    return pimpl->operator[](index);
+  }
+
+  TreeNode TreeNodeArray::operator[](int index) {
+    return pimpl->operator[](index);
+  }
 
   TreeNodeArray TreeNodeArray::filter(const std::function<bool(const TreeNode&)>& predicate) const {
     return pimpl->filter(predicate);

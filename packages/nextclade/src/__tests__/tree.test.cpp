@@ -6,6 +6,7 @@
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
 #include "../tree/TreeNode.h"
+#include "../tree/TreeNodeArray.h"
 
 // Goes last
 #include <nlohmann/json.hpp>
@@ -18,6 +19,7 @@ namespace {
 
   using ::Nextclade::Tree;
   using ::Nextclade::TreeNode;
+  using ::Nextclade::TreeNodeArray;
 
   using Nextclade::ErrorAuspiceJsonV2TreeNotFound;
   using Nextclade::ErrorTreeNodeCladeInvalid;
@@ -172,6 +174,105 @@ TEST(Tree, Gets_empty_divergence) {
   auto node = tree.root();
   EXPECT_EQ(std::optional<double>{}, node.divergence());
 }
+
+
+TEST(Tree, Children_get_non_existent) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+       }
+    }
+  )");
+
+  auto node = tree.root();
+  EXPECT_EQ(0, node.children().size());
+}
+
+TEST(Tree, Children_get_empty) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+         "children": []
+       }
+    }
+  )");
+
+  auto node = tree.root();
+  EXPECT_EQ(0, node.children().size());
+}
+
+TEST(Tree, Children_get) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+         "children": [
+            { "tmp": { "id": 123 } },
+            { "tmp": { "id": 894 } },
+            { "tmp": { "id": 42  } },
+            { "tmp": { "id": 67  } }
+          ]
+       }
+    }
+  )");
+
+  constexpr std::array<int, 4> ids = {123, 894, 42, 67};
+
+  auto node = tree.root();
+  EXPECT_EQ(4, node.children().size());
+
+  int i = 0;
+  node.children().forEach([&i, &ids](const auto& child) {
+    EXPECT_EQ(ids[i], child.id());// NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+    ++i;
+  });
+}
+
+TEST(Tree, Children_add) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+         "children": [
+            { "tmp": { "id": 123 } }
+         ]
+       }
+    }
+  )");
+
+  auto node = tree.root();
+  auto child = node.addChild();
+  child.setId(456);
+  EXPECT_EQ(2, node.children().size());
+}
+
+TEST(Tree, Children_add_from_copy) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+         "children": [
+            { "tmp": { "id": 123 }, "foo": "bar" }
+         ]
+       }
+    }
+  )");
+
+  auto treeExpected = Tree(R"(
+    {
+      "tree": {
+         "children": [
+            { "tmp": { "id": 123 }, "foo": "bar" },
+            { "tmp": { "id": 456 }, "foo": "bar" }
+         ]
+       }
+    }
+  )");
+
+  auto node = tree.root();
+  auto child = node.addChildFromCopy(node.children()[0]);
+  child.setId(456);
+
+  EXPECT_EQ(treeExpected.serialize(), tree.serialize());
+}
+
 
 TEST(Tree, Throws_if_no_tree) {
   constexpr auto input = R"(

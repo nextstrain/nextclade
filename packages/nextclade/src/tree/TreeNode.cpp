@@ -57,17 +57,21 @@ namespace Nextclade {
     }
 
     TreeNode addChildFromCopy(const TreeNode& node) {
-      auto childJson = json::object();
+      auto& childrenJson = j["children"];
+      if (!childrenJson.is_array()) {
+        j["children"] = json::array();
+      }
+      auto& childJson = childrenJson.emplace_back(json::object());
       childJson.update(node.pimpl->j);// Deep clone
-      auto childrenJson = j.value("children", json::array());
-      childrenJson.emplace_back(childJson);
       return TreeNode{childJson};
     }
 
     TreeNode addChild() {
-      auto childJson = json::object();
-      auto childrenJson = j.value("children", json::array());
-      childrenJson.emplace_back(childJson);
+      auto& childrenJson = j["children"];
+      if (!childrenJson.is_array()) {
+        j["children"] = json::array();
+      }
+      auto& childJson = childrenJson.emplace_back(json::object());
       return TreeNode{childJson};
     }
 

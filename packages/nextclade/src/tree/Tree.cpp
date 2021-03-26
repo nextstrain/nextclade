@@ -29,8 +29,8 @@ namespace Nextclade {
       return TreeNode{j.at("tree")};
     }
 
-    std::string serialize() const {
-      return std::string{j.dump(4)};
+    std::string serialize(int spaces = 4) const {
+      return std::string{j.dump(spaces)};
     }
   };
 
@@ -42,8 +42,8 @@ namespace Nextclade {
     return pimpl->root();
   }
 
-  std::string Tree::serialize() const {
-    return pimpl->serialize();
+  std::string Tree::serialize(int spaces) const {
+    return pimpl->serialize(spaces);
   }
 
 

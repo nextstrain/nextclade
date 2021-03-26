@@ -18,6 +18,12 @@ namespace Nextclade {
   public:
     explicit TreeNodeArray(json& j);
 
+    int size() const;
+
+    TreeNode operator[](int index) const;
+
+    TreeNode operator[](int index);
+
     TreeNodeArray filter(const std::function<bool(const TreeNode&)>& predicate) const;
 
     void forEach(const std::function<void(TreeNode&)>& action);
