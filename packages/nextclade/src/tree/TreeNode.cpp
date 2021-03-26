@@ -12,6 +12,8 @@
 #include "TreeNodeArray.h"
 
 namespace Nextclade {
+  using json_pointer = json::json_pointer;
+
   namespace {
     int parsePosition(const std::string& posStr) {
       try {
@@ -49,10 +51,6 @@ namespace Nextclade {
       ensureIsObject();
     }
 
-    json getJson() const {
-      return j;
-    }
-
     TreeNodeArray children() const {
       auto childrenArray = j.value("children", json::array());
       return TreeNodeArray{childrenArray};
@@ -74,7 +72,7 @@ namespace Nextclade {
     }
 
     int id() const {
-      const auto id = j.value("/tmp/id"_json_pointer, json());
+      const auto id = j.value(json_pointer{"/tmp/id"}, json());
       if (id.is_number()) {
         return id.get<int>();
       }
@@ -82,11 +80,11 @@ namespace Nextclade {
     }
 
     void setId(int id) {
-      j["/tmp/id"_json_pointer] = id;
+      j[json_pointer{"/tmp/id"}] = id;
     }
 
     std::map<int, Nucleotide> getMutationsOrSubstitutions(const std::string& what) const {
-      const auto path = json::json_pointer{fmt::format("/tmp/{}", what)};
+      const auto path = json_pointer{fmt::format("/tmp/{}", what)};
       auto substitutionsObject = j.value(path, json::object());
       std::map<int, Nucleotide> substitutions;
       if (substitutionsObject.is_object()) {
@@ -108,7 +106,7 @@ namespace Nextclade {
     }
 
     void setMutationsOrSubstitutions(const char* what, const std::map<int, Nucleotide>& data) {
-      const auto path = json::json_pointer{fmt::format("/tmp/{}", what)};
+      const auto path = json_pointer{fmt::format("/tmp/{}", what)};
       auto obj = json::object();
       for (const auto& [pos, nuc] : data) {
         const auto posStr = std::to_string(pos);
@@ -128,7 +126,7 @@ namespace Nextclade {
 
     std::vector<NucleotideSubstitution> nucleotideMutations() const {
       try {
-        auto nucMutsArray = j.value("/branch_attrs/mutations/nuc", json::array());
+        auto nucMutsArray = j.value(json_pointer{"/branch_attrs/mutations/nuc"}, json::array());
         if (!nucMutsArray.is_array()) {
           // TODO: throw an exception
         }
@@ -158,11 +156,11 @@ namespace Nextclade {
     }
 
     void setNucleotideMutationsEmpty() {
-      j["/branch_attrs/mutations/nuc"_json_pointer] = json::array();
+      j[json_pointer{"/branch_attrs/mutations/nuc"}] = json::array();
     }
 
     std::optional<double> divergence() const {
-      const auto div = j.value("/node_attrs/div"_json_pointer, json());
+      const auto div = j.value(json_pointer{"/node_attrs/div"}, json());
       if (div.is_number()) {
         return div.get<double>();
       }
@@ -170,7 +168,7 @@ namespace Nextclade {
     }
 
     std::string clade() const {
-      const auto clade = j.value(json::json_pointer{"/node_attrs/clade_membership/value"}, json());
+      const auto clade = j.value(json_pointer{"/node_attrs/clade_membership/value"}, json());
       if (!clade.is_string()) {
         throw ErrorTreeNodeCladeInvalid(clade);
       }
@@ -178,11 +176,11 @@ namespace Nextclade {
     }
 
     void setClade(const std::string& clade) {
-      j[json::json_pointer{"/node_attrs/clade_membership/value"}] = clade;
+      j[json_pointer{"/node_attrs/clade_membership/value"}] = clade;
     }
 
     bool isReferenceNode() const {
-      const auto nodeType = j.value("/node_attrs/Node Type/value"_json_pointer, json());
+      const auto nodeType = j.value(json_pointer{"/node_attrs/Node Type/value"}, json());
       return nodeType.is_string() && (nodeType.get<std::string>() == "Reference");
     }
 
@@ -200,12 +198,12 @@ namespace Nextclade {
     }
 
     void setNodeAttr(const char* name, const char* val) {
-      const auto path = json::json_pointer{fmt::format("/node_attrs/{}/value", name)};
+      const auto path = json_pointer{fmt::format("/node_attrs/{}/value", name)};
       j[path] = val;
     }
 
     void removeNodeAttr(const char* name) {
-      const auto path = json::json_pointer{fmt::format("/node_attrs/{}", name)};
+      const auto path = json_pointer{fmt::format("/node_attrs/{}", name)};
       j.erase(path);
     }
 
