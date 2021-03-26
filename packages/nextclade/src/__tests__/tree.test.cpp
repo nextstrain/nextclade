@@ -84,6 +84,45 @@ TEST(Tree, Sets_and_gets_substitutions) {
   EXPECT_MAP_EQ(substitutions, result);
 }
 
+TEST(Tree, Sets_clade) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+       }
+    }
+  )");
+
+  const std::string clade = "20A";
+  auto node = tree.root();
+  node.setClade(clade);
+
+  const std::string expected = R"(
+    {
+      "tree": {
+          "node_attrs": {
+            "clade_membership": { "value": "20A" }
+          }
+       }
+    }
+  )"_json.dump(4);
+
+  EXPECT_EQ(expected, tree.serialize());
+}
+
+TEST(Tree, Sets_and_gets_clade) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+       }
+    }
+  )");
+
+  const std::string clade = "20A.EU1";
+  auto node = tree.root();
+  node.setClade(clade);
+  EXPECT_EQ(clade, node.clade());
+}
+
 TEST(Tree, Throws_if_no_tree) {
   constexpr auto input = R"(
     {
@@ -97,12 +136,12 @@ TEST(Tree, Throws_if_no_tree) {
 }
 
 TEST(Tree, Throws_if_node_is_not_object) {
-  EXPECT_THROW(auto node = TreeNode(json()), ErrorTreeNodeNotObject);
+  json j = json();
+  EXPECT_THROW(auto node = TreeNode{j}, ErrorTreeNodeNotObject);
 }
 
-
 TEST(Tree, Throws_if_no_required_node_attrs) {
-  constexpr auto input = R"(
+  const std::string input = R"(
     {
       "tree": {
           "node_attrs": "SO_WROONG"

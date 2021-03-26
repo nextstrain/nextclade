@@ -27,12 +27,8 @@ namespace Nextclade {
     friend class TreeNodeImpl;
     friend class TreeNodeArrayImpl;
 
-    json getJson() const;
-
   public:
-    TreeNode();
-
-    explicit TreeNode(json&& j);
+    explicit TreeNode(json& j);
 
     ~TreeNode();
 
@@ -46,7 +42,9 @@ namespace Nextclade {
 
     TreeNodeArray children() const;
 
-    void addChild(const TreeNode& node);
+    TreeNode addChildFromCopy(const TreeNode& node);
+
+    TreeNode addChild();
 
     int id() const;
 
@@ -68,6 +66,8 @@ namespace Nextclade {
 
     std::string clade() const;
 
+    void setClade(const std::string& clade);
+
     bool isReferenceNode() const;
 
     bool isLeaf() const;
@@ -81,8 +81,6 @@ namespace Nextclade {
     void removeNodeAttr(const char* name);
 
     void removeTemporaries();
-
-    void assign(const TreeNode& node);
   };
 
   class ErrorTreeNodeNotObject : public std::runtime_error {

@@ -36,7 +36,7 @@ namespace Nextclade {
   }// namespace
 
   class TreeNodeImpl {
-    json j;
+    json& j;
 
     void ensureIsObject() const {
       if (!j.is_object()) {
@@ -45,7 +45,7 @@ namespace Nextclade {
     }
 
   public:
-    explicit TreeNodeImpl(json&& json) : j(json) {
+    explicit TreeNodeImpl(json& json) : j(json) {
       ensureIsObject();
     }
 
@@ -58,10 +58,19 @@ namespace Nextclade {
       return TreeNodeArray{childrenArray};
     }
 
-    void addChild(const TreeNode& node) {
-      auto childToAdd = node.pimpl->j;
+    TreeNode addChildFromCopy(const TreeNode& node) {
+      auto childJson = json::object();
+      childJson.update(node.pimpl->j);// Deep clone
       auto childrenJson = j.value("children", json::array());
-      childrenJson.push_back(childToAdd);
+      childrenJson.emplace_back(childJson);
+      return TreeNode{childJson};
+    }
+
+    TreeNode addChild() {
+      auto childJson = json::object();
+      auto childrenJson = j.value("children", json::array());
+      childrenJson.emplace_back(childJson);
+      return TreeNode{childJson};
     }
 
     int id() const {
@@ -161,11 +170,15 @@ namespace Nextclade {
     }
 
     std::string clade() const {
-      const auto clade = j.value("/node_attrs/clade_membership/value"_json_pointer, json());
-      if (clade.is_string()) {
-        return clade.get<std::string>();
+      const auto clade = j.value(json::json_pointer{"/node_attrs/clade_membership/value"}, json());
+      if (!clade.is_string()) {
+        throw ErrorTreeNodeCladeInvalid(clade);
       }
-      throw ErrorTreeNodeCladeInvalid(clade);
+      return clade.get<std::string>();
+    }
+
+    void setClade(const std::string& clade) {
+      j[json::json_pointer{"/node_attrs/clade_membership/value"}] = clade;
     }
 
     bool isReferenceNode() const {
@@ -199,15 +212,9 @@ namespace Nextclade {
     void removeTemporaries() {
       j.erase("tmp");
     }
-
-    void assign(const TreeNode& node) {
-      j.update(node.pimpl->j);// Deep copy
-    }
   };
 
-  TreeNode::TreeNode() = default;
-
-  TreeNode::TreeNode(json&& json) : pimpl(std::make_unique<TreeNodeImpl>(std::move(json))) {}
+  TreeNode::TreeNode(json& json) : pimpl(std::make_unique<TreeNodeImpl>(json)) {}
 
   TreeNode::TreeNode(TreeNode&& other) noexcept : pimpl(std::move(other.pimpl)) {}
 
@@ -218,16 +225,16 @@ namespace Nextclade {
 
   TreeNode::~TreeNode() {}// NOLINT(modernize-use-equals-default)
 
-  json TreeNode::getJson() const {
-    return pimpl->getJson();
-  }
-
   TreeNodeArray TreeNode::children() const {
     return pimpl->children();
   }
 
-  void TreeNode::addChild(const TreeNode& node) {
-    return pimpl->addChild(node);
+  TreeNode TreeNode::addChildFromCopy(const TreeNode& node) {
+    return pimpl->addChildFromCopy(node);
+  }
+
+  TreeNode TreeNode::addChild() {
+    return pimpl->addChild();
   }
 
   std::map<int, Nucleotide> TreeNode::substitutions() const {
@@ -260,6 +267,10 @@ namespace Nextclade {
 
   std::string TreeNode::clade() const {
     return pimpl->clade();
+  }
+
+  void TreeNode::setClade(const std::string& clade) {
+    pimpl->setClade(clade);
   }
 
   bool TreeNode::isReferenceNode() const {
@@ -296,15 +307,6 @@ namespace Nextclade {
 
   void TreeNode::removeTemporaries() {
     pimpl->removeTemporaries();
-  }
-
-  /**
-   * Performs deep copy assignment of the given node's data to `this` node
-   */
-  void TreeNode::assign(const TreeNode& node) {
-    json j;
-    j.update(node.getJson());
-    pimpl = std::make_unique<TreeNodeImpl>(std::move(j));
   }
 
 

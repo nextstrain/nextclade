@@ -44,7 +44,7 @@ namespace Nextclade {
       for (const auto& elem : j) {
         json copy;
         copy.update(elem);
-        TreeNode node{std::move(copy)};
+        TreeNode node{copy};
         if (predicate(node)) {
           filtered.push_back(elem);
         }
@@ -59,7 +59,7 @@ namespace Nextclade {
       for (const auto& elem : j) {
         json copy;
         copy.update(elem);
-        TreeNode node{std::move(copy)};
+        TreeNode node{copy};
         action(node);
       }
     }
@@ -68,9 +68,8 @@ namespace Nextclade {
       ensureIsArray();
 
       for (auto& elem : j) {
-        TreeNode candidate{std::move(elem)};
+        TreeNode candidate{elem};
         action(candidate);
-        elem = candidate.getJson();
       }
     }
   };

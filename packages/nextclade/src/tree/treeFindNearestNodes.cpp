@@ -53,8 +53,8 @@ namespace Nextclade {
   }
 
   struct ClosestMatchResult {
-    int distance;
-    TreeNode nearestNode;
+    const int distance;
+    const TreeNode* nearestNode;
   };
 
   ClosestMatchResult treeFindNearestNodeRecursively(const TreeNode& node, const NextcladeResult& analysisResult) {
@@ -73,22 +73,20 @@ namespace Nextclade {
       auto match = treeFindNearestNodeRecursively(child, analysisResult);
       if (match.distance < distance) {
         distance = match.distance;
-        nearestNode = &(match.nearestNode);
+        nearestNode = match.nearestNode;
       }
     });
 
-    TreeNode nearestNodeCopy;
-    nearestNodeCopy.assign(*nearestNode);
-    return {.distance = distance, .nearestNode = std::move(nearestNodeCopy)};
+    return {.distance = distance, .nearestNode = nearestNode};
   }
 
   /**
    * Finds mutations that are present in the new sequence, but not present in the matching reference tree node
    */
   std::vector<NucleotideSubstitution> findPrivateMutations(
-    const TreeNode& node, const NextcladeResult& seq, const NucleotideSequence& rootSeq) {
+    const TreeNode* node, const NextcladeResult& seq, const NucleotideSequence& rootSeq) {
 
-    const auto nodeSubstitutions = node.substitutions();
+    const auto nodeSubstitutions = node->substitutions();
     const auto& seqSubstitutions = seq.substitutions;
 
     std::vector<NucleotideSubstitution> privateMutations;
@@ -100,7 +98,7 @@ namespace Nextclade {
     }
 
     std::set<int> mutatedPositions;
-    for (auto sub : seqSubstitutions) {
+    for (const auto& sub : seqSubstitutions) {
       mutatedPositions.insert(sub.pos);
     }
 
@@ -123,12 +121,12 @@ namespace Nextclade {
 
     const auto focalNode = tree.root();
 
-    const auto nearestNode = treeFindNearestNodeRecursively(focalNode, analysisResult).nearestNode;
+    const auto* nearestNode = treeFindNearestNodeRecursively(focalNode, analysisResult).nearestNode;
     const auto privateMutations = findPrivateMutations(nearestNode, analysisResult, rootSeq);
 
     return {
-      .nearestNodeId = nearestNode.id(),
-      .nearestNodeClade = nearestNode.clade(),
+      .nearestNodeId = nearestNode->id(),
+      .nearestNodeClade = nearestNode->clade(),
       .privateMutations = privateMutations,
     };
   }

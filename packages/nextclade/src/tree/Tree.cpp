@@ -21,12 +21,12 @@ namespace Nextclade {
   public:
     explicit TreeImpl(const std::string& auspiceJsonV2) : j(json::parse(auspiceJsonV2)) {}
 
-    TreeNode root() const {
-      auto root = j.value("tree", json());
+    TreeNode root() {
+      auto root = j["tree"];
       if (!root.is_object()) {
         throw ErrorAuspiceJsonV2TreeNotFound(root);
       }
-      return TreeNode{std::move(root)};
+      return TreeNode{j.at("tree")};
     }
 
     std::string serialize() const {

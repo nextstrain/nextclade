@@ -42,12 +42,10 @@ namespace Nextclade {
     precondition_equal(node.isLeaf(), true);         // Only add aux node to leaf nodes
     precondition_equal(node.isReferenceNode(), true);// Only add aux node to a reference node
 
-    TreeNode aux;
-    aux.assign(node);
+    auto aux = node.addChildFromCopy(node);
     aux.setNucleotideMutationsEmpty();
 
     node.setName(fmt::format("{}_parent", aux.name()));
-    node.addChild(aux);
 
     // FIXME: there could be more attributes. Instead, should probably delete all attributes, except some.
     node.removeNodeAttr("author");
@@ -181,9 +179,11 @@ namespace Nextclade {
     };
   }
 
-  TreeNode makeNode(const NextcladeResult& result, TreeNode& node,
+  void addChild(TreeNode& node, const NextcladeResult& result,
     std::map<std::string, std::vector<std::string>> mutations, std::vector<std::string> nucMutations,
     double divergence) {
+
+    auto nowNode = node.addChild();
 
     // TODO: implement this
 
@@ -247,7 +247,6 @@ namespace Nextclade {
     //    const { pos, queryNuc } = parseMutationOrThrow(mut)
     //    new_node.mutations?.set(pos, queryNuc)
     //  }
-    return TreeNode{};
   }
 
   /**
@@ -263,10 +262,7 @@ namespace Nextclade {
     }
 
     const auto& [mutations, nucMutations, divergence] = getDifferences(result, node, rootSeq, maxDivergence);
-
-    const auto newNode = makeNode(result, node, mutations, nucMutations, divergence);
-
-    node.addChild(newNode);
+    addChild(node, result, mutations, nucMutations, divergence);
   }
 
   /**
