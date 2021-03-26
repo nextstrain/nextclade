@@ -36,9 +36,9 @@ namespace Nextclade {
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {
     os << "{ ";
-    os << "refNuc: " << nucToChar(val.refNuc);
+    os << "refNuc: " << nucToString(val.refNuc);
     os << "pos: " << val.pos << ", ";
-    os << "queryNuc: " << nucToChar(val.queryNuc) << ", ";
+    os << "queryNuc: " << nucToString(val.queryNuc) << ", ";
     os << " }";
     return os;
   }
@@ -49,7 +49,7 @@ namespace Nextclade {
     os << "length: " << val.length << ", ";
     os << "ins: '";
     for (const auto& v : val.ins) {
-      os << nucToChar(v);
+      os << nucToString(v);
     }
     os << "' }";
     return os;
@@ -65,7 +65,7 @@ namespace Nextclade {
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideRange& val) {
     os << "{ ";
-    os << "nuc: " << nucToChar(val.nuc) << ", ";
+    os << "nuc: " << nucToString(val.nuc) << ", ";
     os << "begin: " << val.begin << ", ";
     os << "end: " << val.end << ", ";
     os << "length: " << val.length;

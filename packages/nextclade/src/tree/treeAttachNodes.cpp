@@ -48,10 +48,13 @@ namespace Nextclade {
 
     node.setName(fmt::format("{}_parent", aux.name()));
     node.addChild(aux);
+
+    // FIXME: there could be more attributes. Instead, should probably delete all attributes, except some.
     node.removeNodeAttr("author");
     node.removeNodeAttr("url");
   }
 
+  // TODO: implement this
   std::map<std::string, std::vector<std::string>> groupAminoacidMutations(
     const std::vector<AminoacidMutationEntry>& aminoacidMutationEntries) {
     //  const aminoacidMutationsGrouped = groupBy(aminoacidMutationEntries, ({ gene }) => gene)
@@ -181,6 +184,8 @@ namespace Nextclade {
   TreeNode makeNode(const NextcladeResult& result, TreeNode& node,
     std::map<std::string, std::vector<std::string>> mutations, std::vector<std::string> nucMutations,
     double divergence) {
+
+    // TODO: implement this
 
     //  const qcStatus = qc?.overallStatus
     //  let qcFlags = 'Not available'

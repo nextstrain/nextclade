@@ -72,6 +72,9 @@ char nucToChar(Nucleotide nuc) {
   return it->second;
 }
 
+std::string nucToString(Nucleotide nuc) {
+  return std::string{nucToChar(nuc)};
+}
 
 NucleotideSequence toNucleotideSequence(const std::string& seq) {
   return map(seq, std::function<Nucleotide(char)>(toNucleotide));

@@ -8,13 +8,11 @@ namespace Nextclade {
 
   void treePostprocessInPlaceRecursive(TreeNode& node) {
     // Remove temporary data that was added during preprocessing step.
-    node.removeNodeAttr("mutations");
-    node.removeNodeAttr("substitutions");
-    node.removeNodeAttr("id");
+    node.removeTemporaries();
 
     // Repeat for children recursively
     auto children = node.children();
-    children.forEach([](TreeNode& child) { treePostprocessInPlaceRecursive(child); });
+    children.forEach(treePostprocessInPlaceRecursive);
   }
 
   void treePostprocess(Tree& tree) {

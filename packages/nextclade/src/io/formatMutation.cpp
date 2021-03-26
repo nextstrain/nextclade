@@ -28,7 +28,7 @@ namespace Nextclade {
   std::string formatMutation(const NucleotideSubstitution& mut) {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto positionOneBased = mut.pos + 1;
-    return fmt::format("{}{}{}", nucToChar(mut.refNuc), positionOneBased, nucToChar(mut.queryNuc));
+    return fmt::format("{}{}{}", nucToString(mut.refNuc), positionOneBased, nucToString(mut.queryNuc));
   }
 
   std::string formatDeletion(const NucleotideDeletion& del) {
@@ -48,7 +48,7 @@ namespace Nextclade {
 
   std::string formatNonAcgtn(const NucleotideRange& nonAcgtn) {
     const auto range = formatRange({.begin = nonAcgtn.begin, .end = nonAcgtn.end});
-    return fmt::format("{}:{}", nucToChar(nonAcgtn.nuc), range);
+    return fmt::format("{}:{}", nucToString(nonAcgtn.nuc), range);
   }
 
   std::string formatPcrPrimerChange(const PcrPrimerChange& primerChange) {

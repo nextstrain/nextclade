@@ -14,12 +14,12 @@ namespace Nextclade {
   class ErrorAttachMutationsInconsistentMutation : public std::runtime_error {
   public:
     explicit ErrorAttachMutationsInconsistentMutation(const NucleotideSubstitution& mut, const Nucleotide& previous)
-        : std::runtime_error(                                                //
-            fmt::format(                                                     //
-              "When attaching mutations: Mutation is inconsistent: \"{}\": " //
-              "current nucleotide: \"{}\", previously seen: \"{}\"",         //
-              formatMutation(mut), nucToChar(mut.refNuc), nucToChar(previous)//
-              )                                                              //
+        : std::runtime_error(                                                    //
+            fmt::format(                                                         //
+              "When attaching mutations: Mutation is inconsistent: \"{}\": "     //
+              "current nucleotide: \"{}\", previously seen: \"{}\"",             //
+              formatMutation(mut), nucToString(mut.refNuc), nucToString(previous)//
+              )                                                                  //
           ) {}
   };
 
@@ -54,9 +54,9 @@ namespace Nextclade {
       [](const std::pair<int, Nucleotide> item) { return item.second != Nucleotide::GAP; });
 
     // Extend node with our temporary data. It will be removed during postprocessing.
-    node.setNodeAttr("mutations", tmpMuts);
-    node.setNodeAttr("substitutions", substitutions);
-    node.setNodeAttr("id", id);
+    node.setMutations(tmpMuts);
+    node.setSubstitutions(substitutions);
+    node.setId(id);
 
     // Node type will not be removed during postprocessing.
     node.setNodeAttr("Node type", "Reference");

@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}
   getNucleotideComposition.test.cpp
   getPcrPrimerChanges.test.cpp
   isMatch.test.cpp
+  tree.test.cpp
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
@@ -20,6 +21,11 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC -DAPP_NAME="${PROJECT_NAME}"
+  )
+
+target_include_directories(${PROJECT_NAME} SYSTEM
+  PRIVATE
+  "${CMAKE_SOURCE_DIR}/3rdparty/json/include"
   )
 
 target_include_directories(${PROJECT_NAME}

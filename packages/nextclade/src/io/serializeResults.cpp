@@ -31,7 +31,7 @@ namespace Nextclade {
     json serializeNucleotideLocation(const NucleotideLocation& loc) {
       auto j = json::object();
       j.emplace("pos", loc.pos);
-      j.emplace("nuc", std::to_string(nucToChar(loc.nuc)));
+      j.emplace("nuc", nucToString(loc.nuc));
       return j;
     }
 

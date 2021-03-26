@@ -12,52 +12,6 @@
 #include "TreeNodeArray.h"
 
 namespace Nextclade {
-
-  class ErrorTreeNodeNotObject : public std::runtime_error {
-  public:
-    explicit ErrorTreeNodeNotObject(const json& node)
-        : std::runtime_error(fmt::format(
-            "When accessing json node: The node is expected to be an object, but found this instead: \"{:s}\"", node)) {
-    }
-  };
-
-  class ErrorTreeNodeMutationPositionInvalid : public std::runtime_error {
-  public:
-    explicit ErrorTreeNodeMutationPositionInvalid(const std::string& pos)
-        : std::runtime_error(fmt::format(
-            "When accessing Tree Node Mutation position: the position is invalid: \"{}\". This is an internal issue. "
-            "Please report this to developers, providing data and parameters you used, in order to replicate the "
-            "error.",
-            pos)) {}
-  };
-
-  class ErrorTreeNodeMutationNucleotideInvalid : public std::runtime_error {
-  public:
-    explicit ErrorTreeNodeMutationNucleotideInvalid(const std::string& nuc)
-        : std::runtime_error(fmt::format(
-            "When accessing Tree Node Mutation nucleotide: the nucleotide is invalid: \"{}\". This is an internal "
-            "issue. Please report this to developers, providing data and parameters you used, in order to replicate "
-            "the error.",
-            nuc)) {}
-  };
-
-  class ErrorTreeNodeIdInvalid : public std::runtime_error {
-  public:
-    explicit ErrorTreeNodeIdInvalid()
-        : std::runtime_error(
-            "When accessing Tree Node ID: the ID is invalid. This is an internal issue. Please report this to "
-            "developers, providing data and parameters you used, in order to replicate the error.") {}
-  };
-
-  class ErrorTreeNodeCladeInvalid : public std::runtime_error {
-  public:
-    explicit ErrorTreeNodeCladeInvalid()
-        : std::runtime_error(
-            "When accessing clade of the tree node: the clade is missing or invalid. Make sure all reference tree "
-            "nodes have `clade_membership` field assigned. Please report this to "
-            "developers, providing data and parameters you used, in order to replicate the error.") {}
-  };
-
   namespace {
     int parsePosition(const std::string& posStr) {
       try {
@@ -110,7 +64,20 @@ namespace Nextclade {
       childrenJson.push_back(childToAdd);
     }
 
-    std::map<int, Nucleotide> getMutationsOrSubstitutions(const std::string& path) const {
+    int id() const {
+      const auto id = j.value("/tmp/id"_json_pointer, json());
+      if (id.is_number()) {
+        return id.get<int>();
+      }
+      throw ErrorTreeNodeIdInvalid(id);
+    }
+
+    void setId(int id) {
+      j["/tmp/id"_json_pointer] = id;
+    }
+
+    std::map<int, Nucleotide> getMutationsOrSubstitutions(const std::string& what) const {
+      const auto path = json::json_pointer{fmt::format("/tmp/{}", what)};
       auto substitutionsObject = j.value(path, json::object());
       std::map<int, Nucleotide> substitutions;
       if (substitutionsObject.is_object()) {
@@ -129,6 +96,25 @@ namespace Nextclade {
 
     std::map<int, Nucleotide> mutations() const {
       return getMutationsOrSubstitutions("mutations");
+    }
+
+    void setMutationsOrSubstitutions(const char* what, const std::map<int, Nucleotide>& data) {
+      const auto path = json::json_pointer{fmt::format("/tmp/{}", what)};
+      auto obj = json::object();
+      for (const auto& [pos, nuc] : data) {
+        const auto posStr = std::to_string(pos);
+        const auto nucStr = nucToString(nuc);
+        obj.emplace(posStr, nucStr);
+      }
+      j[path] = obj;
+    }
+
+    void setMutations(const std::map<int, Nucleotide>& data) {
+      return setMutationsOrSubstitutions("mutations", data);
+    }
+
+    void setSubstitutions(const std::map<int, Nucleotide>& data) {
+      return setMutationsOrSubstitutions("substitutions", data);
     }
 
     std::vector<NucleotideSubstitution> nucleotideMutations() const {
@@ -167,36 +153,28 @@ namespace Nextclade {
     }
 
     std::optional<double> divergence() const {
-      const auto div = j["/node_attrs/div"_json_pointer];
+      const auto div = j.value("/node_attrs/div"_json_pointer, json());
       if (div.is_number()) {
         return div.get<double>();
       }
       return {};
     }
 
-    int id() const {
-      const auto id = j["/node_attrs/id/value"_json_pointer];
-      if (id.is_number()) {
-        return id.get<int>();
-      }
-      throw ErrorTreeNodeIdInvalid();
-    }
-
     std::string clade() const {
-      const auto clade = j["/node_attrs/clade_membership/value"_json_pointer];
+      const auto clade = j.value("/node_attrs/clade_membership/value"_json_pointer, json());
       if (clade.is_string()) {
         return clade.get<std::string>();
       }
-      throw ErrorTreeNodeCladeInvalid();
+      throw ErrorTreeNodeCladeInvalid(clade);
     }
 
     bool isReferenceNode() const {
-      const auto nodeType = j["/node_attrs/Node Type/value"_json_pointer];
+      const auto nodeType = j.value("/node_attrs/Node Type/value"_json_pointer, json());
       return nodeType.is_string() && (nodeType.get<std::string>() == "Reference");
     }
 
     bool isLeaf() const {
-      const auto childrenValue = j["children"];
+      const auto childrenValue = j.value("children", json());
       return !childrenValue.is_array() || childrenValue.empty();
     }
 
@@ -213,26 +191,13 @@ namespace Nextclade {
       j[path] = val;
     }
 
-    void setNodeAttr(const char* name, const std::map<int, Nucleotide>& data) {
-      const auto path = json::json_pointer{fmt::format("/node_attrs/{}/value", name)};
-
-      auto obj = json::object();
-      for (const auto& [pos, nuc] : data) {
-        const auto posStr = std::to_string(pos);
-        const auto nucStr = std::to_string(nucToChar(nuc));
-        obj.emplace(posStr, nucStr);
-      }
-
-      j[path] = obj;
-    }
-
-    void setNodeAttr(const char* name, int val) {
-      const auto path = json::json_pointer{fmt::format("/node_attrs/{}/value", name)};
-      j[path] = val;
-    }
-
     void removeNodeAttr(const char* name) {
-      j.erase(name);
+      const auto path = json::json_pointer{fmt::format("/node_attrs/{}", name)};
+      j.erase(path);
+    }
+
+    void removeTemporaries() {
+      j.erase("tmp");
     }
 
     void assign(const TreeNode& node) {
@@ -289,6 +254,10 @@ namespace Nextclade {
     return pimpl->id();
   }
 
+  void TreeNode::setId(int id) {
+    return pimpl->setId(id);
+  }
+
   std::string TreeNode::clade() const {
     return pimpl->clade();
   }
@@ -309,21 +278,24 @@ namespace Nextclade {
     return pimpl->setName(name);
   }
 
-
   void TreeNode::setNodeAttr(const char* name, const char* val) {
     return pimpl->setNodeAttr(name, val);
   }
 
-  void TreeNode::setNodeAttr(const char* name, const std::map<int, Nucleotide>& data) {
-    return pimpl->setNodeAttr(name, data);
+  void TreeNode::setMutations(const std::map<int, Nucleotide>& data) {
+    return pimpl->setMutations(data);
   }
 
-  void TreeNode::setNodeAttr(const char* name, int data) {
-    return pimpl->setNodeAttr(name, data);
+  void TreeNode::setSubstitutions(const std::map<int, Nucleotide>& data) {
+    return pimpl->setSubstitutions(data);
   }
 
   void TreeNode::removeNodeAttr(const char* name) {
-    return pimpl->removeNodeAttr(name);
+    pimpl->removeNodeAttr(name);
+  }
+
+  void TreeNode::removeTemporaries() {
+    pimpl->removeTemporaries();
   }
 
   /**
@@ -334,5 +306,39 @@ namespace Nextclade {
     j.update(node.getJson());
     pimpl = std::make_unique<TreeNodeImpl>(std::move(j));
   }
+
+
+  ErrorTreeNodeNotObject::ErrorTreeNodeNotObject(const json& node)
+      : std::runtime_error(
+          fmt::format("When accessing json node: The node is expected to be an object, but found this instead: \"{}\"",
+            node.dump())) {}
+
+  ErrorTreeNodeMutationPositionInvalid::ErrorTreeNodeMutationPositionInvalid(const json& node)
+      : std::runtime_error(fmt::format(
+          "When accessing Tree Node Mutation position: the position is invalid: Expected a number, but got \"{}\". "
+          "This is an internal issue. Please report this to developers, providing data and parameters you used, "
+          "in order to replicate the error.",
+          node.dump())) {}
+
+  ErrorTreeNodeMutationNucleotideInvalid::ErrorTreeNodeMutationNucleotideInvalid(const json& node)
+      : std::runtime_error(fmt::format(
+          "When accessing Tree Node Mutation nucleotide: the nucleotide is invalid: \"{}\". This is an internal "
+          "issue. Please report this to developers, providing data and parameters you used, in order to replicate "
+          "the error.",
+          node.dump())) {}
+
+  ErrorTreeNodeIdInvalid::ErrorTreeNodeIdInvalid(const json& node)
+      : std::runtime_error(fmt::format(
+          "When accessing Tree Node ID: the ID is invalid. Expected a number, but got \"{}\". This is an internal "
+          "issue. Please report this to developers, providing data and parameters you used, in order to replicate "
+          "the error.",
+          node.dump())) {}
+
+  ErrorTreeNodeCladeInvalid::ErrorTreeNodeCladeInvalid(const json& node)
+      : std::runtime_error(fmt::format(
+          "When accessing clade of the tree node: expected `clade_membership` to be a string, but got \"{}\". Make "
+          "sure all reference tree nodes have `clade_membership` field assigned. If you think it's a bug, please "
+          "report this to developers, providing data and parameters you used, in order to replicate the error.",
+          node.dump())) {}
 
 }// namespace Nextclade

@@ -14,7 +14,9 @@ Aminoacid charToAa(char aa);
 
 char aaToChar(Aminoacid aa);
 
+std::string aaToString(Aminoacid nuc);
+
 inline std::ostream& operator<<(std::ostream& os, const Aminoacid& aminoacid) {
-  os << std::string{to_underlying(aminoacid)};
+  os << aaToString(aminoacid);
   return os;
 }

@@ -93,6 +93,10 @@ char aaToChar(Aminoacid aa) {
   return it->second;
 }
 
+std::string aaToString(Aminoacid aa) {
+  return std::string{aaToChar(aa)};
+}
+
 AminoacidSequence toAminoacidSequence(const std::string& seq) {
   return map(seq, std::function<Aminoacid(char)>(charToAa));
 }

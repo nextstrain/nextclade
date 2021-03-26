@@ -48,17 +48,23 @@ namespace Nextclade {
 
     void addChild(const TreeNode& node);
 
+    int id() const;
+
+    void setId(int id);
+
     std::map<int, Nucleotide> substitutions() const;
 
     std::map<int, Nucleotide> mutations() const;
+
+    void setMutations(const std::map<int, Nucleotide>& data);
+
+    void setSubstitutions(const std::map<int, Nucleotide>& data);
 
     std::vector<NucleotideSubstitution> nucleotideMutations() const;
 
     void setNucleotideMutationsEmpty();
 
     std::optional<double> divergence() const;
-
-    int id() const;
 
     std::string clade() const;
 
@@ -72,12 +78,36 @@ namespace Nextclade {
 
     void setNodeAttr(const char* name, const char* val);
 
-    void setNodeAttr(const char* name, const std::map<int, Nucleotide>& data);
-
-    void setNodeAttr(const char* name, int val);
-
     void removeNodeAttr(const char* name);
+
+    void removeTemporaries();
 
     void assign(const TreeNode& node);
   };
+
+  class ErrorTreeNodeNotObject : public std::runtime_error {
+  public:
+    explicit ErrorTreeNodeNotObject(const json& node);
+  };
+
+  class ErrorTreeNodeMutationPositionInvalid : public std::runtime_error {
+  public:
+    explicit ErrorTreeNodeMutationPositionInvalid(const json& node);
+  };
+
+  class ErrorTreeNodeMutationNucleotideInvalid : public std::runtime_error {
+  public:
+    explicit ErrorTreeNodeMutationNucleotideInvalid(const json& node);
+  };
+
+  class ErrorTreeNodeIdInvalid : public std::runtime_error {
+  public:
+    explicit ErrorTreeNodeIdInvalid(const json& node);
+  };
+
+  class ErrorTreeNodeCladeInvalid : public std::runtime_error {
+  public:
+    explicit ErrorTreeNodeCladeInvalid(const json& node);
+  };
+
 }// namespace Nextclade

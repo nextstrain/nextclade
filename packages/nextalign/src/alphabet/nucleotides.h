@@ -14,7 +14,9 @@ Nucleotide toNucleotide(char nuc);
 
 char nucToChar(Nucleotide nuc);
 
+std::string nucToString(Nucleotide nuc);
+
 inline std::ostream& operator<<(std::ostream& os, const Nucleotide& nucleotide) {
-  os << std::string{to_underlying(nucleotide)};
+  os << nucToString(nucleotide);
   return os;
 }

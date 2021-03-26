@@ -6,17 +6,14 @@
 
 
 // Goes last (or at least after forward declarations of this library)
+#include <fmt/format.h>
+
 #include <nlohmann/json.hpp>
 
 
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
-  class ErrorAuspiceJsonV2TreeNotFound : public std::runtime_error {
-  public:
-    explicit ErrorAuspiceJsonV2TreeNotFound()
-        : std::runtime_error("Auspice Json v2: format is invalid: .tree is not found") {}
-  };
 
   class TreeImpl {
     json j;
@@ -25,9 +22,9 @@ namespace Nextclade {
     explicit TreeImpl(const std::string& auspiceJsonV2) : j(json::parse(auspiceJsonV2)) {}
 
     TreeNode root() const {
-      auto root = j["tree"];
+      auto root = j.value("tree", json());
       if (!root.is_object()) {
-        throw ErrorAuspiceJsonV2TreeNotFound();
+        throw ErrorAuspiceJsonV2TreeNotFound(root);
       }
       return TreeNode{std::move(root)};
     }
@@ -48,4 +45,11 @@ namespace Nextclade {
   std::string Tree::serialize() const {
     return pimpl->serialize();
   }
+
+
+  ErrorAuspiceJsonV2TreeNotFound::ErrorAuspiceJsonV2TreeNotFound(const json& node)
+      : std::runtime_error(fmt::format(
+          "When parsing Auspice Json v2 tree: format is invalid: `tree` is expected to be an object, but found: "
+          "\"{}\"",
+          node.dump())) {}
 }// namespace Nextclade
