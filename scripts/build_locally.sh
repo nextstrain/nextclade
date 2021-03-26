@@ -333,9 +333,8 @@ pushd "${BUILD_DIR}" > /dev/null
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
 
-  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-    print 30 "Install executable";
-    cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
+  function strip_executable() {
+    CLI=${1}
 
     print 29 "Strip executable";
     # Strip works differently on mac
@@ -358,6 +357,16 @@ pushd "${BUILD_DIR}" > /dev/null
 
     print 28 "Print executable info";
     file ${CLI}
+  }
+
+  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+    print 30 "Install executable";
+    cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
+
+    strip_executable "${NEXTALIGN_CLI}"
+
+    strip_executable "${NEXTCLADE_CLI}"
+
   fi
 
 popd > /dev/null
