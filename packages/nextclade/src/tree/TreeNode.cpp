@@ -167,6 +167,10 @@ namespace Nextclade {
       return {};
     }
 
+    void setDivergence(double div) {
+      j[json_pointer{"/node_attrs/div"}] = div;
+    }
+
     std::string clade() const {
       const auto clade = j.value(json_pointer{"/node_attrs/clade_membership/value"}, json());
       if (!clade.is_string()) {
@@ -253,6 +257,10 @@ namespace Nextclade {
 
   std::optional<double> TreeNode::divergence() const {
     return pimpl->divergence();
+  }
+
+  void TreeNode::setDivergence(double div) {
+    pimpl->setDivergence(div);
   }
 
   int TreeNode::id() const {

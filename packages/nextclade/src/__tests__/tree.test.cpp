@@ -123,6 +123,56 @@ TEST(Tree, Sets_and_gets_clade) {
   EXPECT_EQ(clade, node.clade());
 }
 
+TEST(Tree, Sets_divergence) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+       }
+    }
+  )");
+
+  auto node = tree.root();
+  node.setDivergence(3.14);
+
+  const std::string expected = R"(
+    {
+      "tree": {
+          "node_attrs": {
+            "div": 3.14
+          }
+       }
+    }
+  )"_json.dump(4);
+
+  EXPECT_EQ(expected, tree.serialize());
+}
+
+TEST(Tree, Sets_and_gets_divergence) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+       }
+    }
+  )");
+
+  const double div = 3.14;
+  auto node = tree.root();
+  node.setDivergence(div);
+  EXPECT_EQ(div, node.divergence());
+}
+
+TEST(Tree, Gets_empty_divergence) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+       }
+    }
+  )");
+
+  auto node = tree.root();
+  EXPECT_EQ(std::optional<double>{}, node.divergence());
+}
+
 TEST(Tree, Throws_if_no_tree) {
   constexpr auto input = R"(
     {

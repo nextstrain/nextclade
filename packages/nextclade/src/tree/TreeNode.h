@@ -64,6 +64,8 @@ namespace Nextclade {
 
     std::optional<double> divergence() const;
 
+    void setDivergence(double div);
+
     std::string clade() const;
 
     void setClade(const std::string& clade);
