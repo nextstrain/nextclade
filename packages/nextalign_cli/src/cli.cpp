@@ -682,8 +682,8 @@ void run(
         }
       }
 
-      const auto &ref = output.result.ref;
-      const auto &query = output.result.query;
+      const auto &refAligned = output.result.ref;
+      const auto &queryAligned = output.result.query;
       const auto &alignmentScore = output.result.alignmentScore;
       const auto &insertions = output.result.insertions;
       const auto &queryPeptides = output.result.queryPeptides;
@@ -698,7 +698,7 @@ void run(
 
       // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
       if (!refsHaveBeenWritten) {
-        outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, ref);
+        outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, refAligned);
         outputFastaStream.flush();
 
         for (const auto &peptide : refPeptides) {
@@ -710,7 +710,7 @@ void run(
       }
 
 
-      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, query);
+      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, queryAligned);
 
       for (const auto &peptide : queryPeptides) {
         outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
