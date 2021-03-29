@@ -82,9 +82,9 @@ PeptidesInternal translateGenes(         //
       });
 
       refPeptides.emplace_back(PeptideInternal{
-        .name = geneName,                   //
-        .seq = std::move(refPeptide),       //
-        .insertions = {}                    //
+        .name = geneName,            //
+        .seq = std::move(refPeptide),//
+        .insertions = {}             //
       });
 
     } catch (const std::exception& e) {

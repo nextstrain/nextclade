@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <optional>
+#include <vector>
 
 namespace Nextclade {
   struct NextcladeResult;
@@ -9,9 +9,9 @@ namespace Nextclade {
   struct QcResultPrivateMutations;
   struct QCRulesConfigPrivateMutations;
 
-  std::optional<QcResultPrivateMutations> rulePrivateMutations(         //
-    const NextcladeResult& result,                       //
-    const std::vector<NucleotideSubstitution>& mutations,//
-    const QCRulesConfigPrivateMutations& config          //
+  std::optional<QcResultPrivateMutations> rulePrivateMutations(//
+    const NextcladeResult& result,                             //
+    const std::vector<NucleotideSubstitution>& mutations,      //
+    const QCRulesConfigPrivateMutations& config                //
   );
 }// namespace Nextclade

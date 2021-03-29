@@ -1,5 +1,3 @@
-#include "../analyze/getPcrPrimerChanges.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -7,6 +5,7 @@
 
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
+#include "../analyze/getPcrPrimerChanges.h"
 
 #define EXPECT_ARR_EQ(expected, actual) ASSERT_THAT(actual, ::testing::ElementsAreArray(expected))
 

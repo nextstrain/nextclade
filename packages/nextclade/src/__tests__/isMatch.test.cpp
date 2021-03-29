@@ -1,8 +1,8 @@
-#include "../analyze/isMatch.h"
-
 #include <gtest/gtest.h>
 
 #include <vector>
+
+#include "../analyze/isMatch.h"
 
 using Nextclade::isMatch;
 

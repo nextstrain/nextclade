@@ -1,10 +1,9 @@
-#include "../tree/Tree.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
+#include "../tree/Tree.h"
 #include "../tree/TreeNode.h"
 #include "../tree/TreeNodeArray.h"
 

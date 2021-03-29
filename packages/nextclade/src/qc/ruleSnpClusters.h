@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <optional>
+#include <vector>
 
 namespace Nextclade {
   struct NextcladeResult;
@@ -9,7 +9,7 @@ namespace Nextclade {
   struct QCResultSnpClusters;
   struct QCRulesConfigSnpClusters;
 
-  std::optional<QCResultSnpClusters> ruleSnpClusters(                   //
+  std::optional<QCResultSnpClusters> ruleSnpClusters(    //
     const NextcladeResult& result,                       //
     const std::vector<NucleotideSubstitution>& mutations,//
     const QCRulesConfigSnpClusters& config               //
