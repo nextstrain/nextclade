@@ -92,7 +92,8 @@ namespace Nextclade {
 
       const auto& refNuc = refStripped[i];
       if (!isGap(d) && (d != refNuc) && isAcgt(d)) {
-        substitutions.emplace_back(NucleotideSubstitution{.refNuc = refNuc, .pos = i, .queryNuc = d});
+        substitutions.emplace_back(
+          NucleotideSubstitution{.refNuc = refNuc, .pos = i, .queryNuc = d, .pcrPrimersChanged = {}});
       } else if (isGap(d) && !beforeAlignment) {
         if (!nDel) {
           delPos = i;

@@ -94,7 +94,8 @@ namespace Nextclade {
       }
 
       if (refNuc) {
-        const auto mut = formatMutation(NucleotideSubstitution{.refNuc = *refNuc, .pos = pos, .queryNuc = queryNuc});
+        const auto mut = formatMutation(
+          NucleotideSubstitution{.refNuc = *refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}});
         nucMutations.push_back(mut);
         totalNucMutations += 1;
 
@@ -130,7 +131,8 @@ namespace Nextclade {
         }
 
         if (refNuc) {
-          const auto mut = formatMutation(NucleotideSubstitution{.refNuc = *refNuc, .pos = pos, .queryNuc = queryNuc});
+          const auto mut = formatMutation(
+            NucleotideSubstitution{.refNuc = *refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}});
           nucMutations.push_back(mut);
 
           // TODO: convert this JS code to C++
@@ -152,7 +154,8 @@ namespace Nextclade {
       if (!has(positionsCovered, pos) && isSequenced(pos, result) && nuc != Nucleotide::GAP) {
         const auto& refNuc = rootSeq[pos];
         // TODO: is there no mistake in nucleotides here?
-        const auto& mutStr = formatMutation({.refNuc = nuc, .pos = pos, .queryNuc = refNuc});
+        const auto& mutStr = formatMutation(
+          NucleotideSubstitution{.refNuc = nuc, .pos = pos, .queryNuc = refNuc, .pcrPrimersChanged = {}});
         nucMutations.push_back(mutStr);
         totalNucMutations += 1;
       }
@@ -180,7 +183,7 @@ namespace Nextclade {
   }
 
   void addChild(TreeNode& node, const NextcladeResult& result,
-    std::map<std::string, std::vector<std::string>> mutations, std::vector<std::string> nucMutations,
+    const std::map<std::string, std::vector<std::string>>& mutations, const std::vector<std::string>& nucMutations,
     double divergence) {
 
     auto nowNode = node.addChild();
@@ -303,8 +306,8 @@ namespace Nextclade {
     // TODO: can we simplify and use `divergence` variable directly instead of this?
     auto childMaxDivergence = NEGATIVE_INFINITY;
     children.forEach([&childMaxDivergence](const TreeNode& child) {
-      const auto divergence = getMaxDivergenceRecursively(child);
-      childMaxDivergence = std::max(divergence, childMaxDivergence);
+      const auto childDivergence = getMaxDivergenceRecursively(child);
+      childMaxDivergence = std::max(childDivergence, childMaxDivergence);
     });
 
     return std::max(divergence, childMaxDivergence);

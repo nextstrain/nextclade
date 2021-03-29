@@ -47,7 +47,7 @@ namespace Nextclade {
     }
 
   public:
-    explicit TreeNodeImpl(json& json) : j(json) {
+    explicit TreeNodeImpl(json& js) : j(js) {
       ensureIsObject();
     }
 
@@ -220,7 +220,7 @@ namespace Nextclade {
     }
   };
 
-  TreeNode::TreeNode(json& json) : pimpl(std::make_unique<TreeNodeImpl>(json)) {}
+  TreeNode::TreeNode(json& js) : pimpl(std::make_unique<TreeNodeImpl>(js)) {}
 
   TreeNode::TreeNode(TreeNode&& other) noexcept : pimpl(std::move(other.pimpl)) {}
 

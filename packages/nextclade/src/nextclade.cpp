@@ -31,7 +31,7 @@ namespace Nextclade {
     std::vector<NextcladeResult> results;
 
   public:
-    explicit NextcladeAlgorithmImpl(const NextcladeOptions& options) : options(options), tree(options.treeString) {
+    explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt) : options(opt), tree(opt.treeString) {
       treePreprocess(tree, options.ref);
     }
 
@@ -61,8 +61,13 @@ namespace Nextclade {
       const auto totalPcrPrimerChanges = std::accumulate(pcrPrimerChanges.cbegin(), pcrPrimerChanges.cend(), 0,
         [](int result, const auto& item) { return result + item.substitutions.size(); });
 
-      NextcladeResult analysisResult = {
-        .seqName = seqName,
+      // TODO: implement aminoacid anasysis
+      std::vector<AminoacidSubstitution> aaSubstitutions;
+      const auto totalAminoacidSubstitutions = safe_cast<int>(aaSubstitutions.size());
+      std::vector<AminoacidDeletion> aaDeletions;
+      const auto totalAminoacidDeletions = safe_cast<int>(aaDeletions.size());
+
+      NextcladeResult analysisResult = {.seqName = seqName,
         .ref = toString(alignment.ref),
         .query = toString(alignment.query),
         .refPeptides = toPeptidesExternal(alignment.refPeptides),
@@ -79,14 +84,23 @@ namespace Nextclade {
         .totalMissing = totalMissing,
         .nonACGTNs = nonACGTNs,
         .totalNonACGTNs = totalNonACGTNs,
+
+        .aaSubstitutions = aaSubstitutions,
+        .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
+        .aaDeletions = aaDeletions,
+        .totalAminoacidDeletions = totalAminoacidDeletions,
+
         .alignmentStart = analysis.alignmentStart,
         .alignmentEnd = analysis.alignmentEnd,
         .alignmentScore = alignment.alignmentScore,
         .nucleotideComposition = nucleotideComposition,
         .pcrPrimerChanges = pcrPrimerChanges,
         .totalPcrPrimerChanges = totalPcrPrimerChanges,
-        // NOTE: not all fields are initialized here. They must be initialized below.
-      };
+
+        // NOTE: not these fields are initialized here. They must be initialized below.
+        .nearestNodeId = 0,
+        .clade = "",
+        .qc = {}};
 
       const auto [nearestNodeId, nearestNodeClade, privateMutations] = treeFindNearestNode(analysisResult, ref, tree);
       analysisResult.nearestNodeId = nearestNodeId;

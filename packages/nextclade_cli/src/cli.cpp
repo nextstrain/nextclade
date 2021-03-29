@@ -764,8 +764,8 @@ void run(
       &tsv, &refsHaveBeenWritten, &logger](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
-      const auto &ref = output.result.ref;
-      const auto &query = output.result.query;
+      const auto &refAligned = output.result.ref;
+      const auto &queryAligned = output.result.query;
       const auto &queryPeptides = output.result.queryPeptides;
       const auto &refPeptides = output.result.refPeptides;
       const auto &insertionsStripped = output.result.insertionsStripped;
@@ -796,7 +796,7 @@ void run(
 
         // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
         if (!refsHaveBeenWritten) {
-          outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, ref);
+          outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, refAligned);
           outputFastaStream.flush();
 
           for (const auto &peptide : refPeptides) {
@@ -807,7 +807,7 @@ void run(
           refsHaveBeenWritten = true;
         }
 
-        outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, query);
+        outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, queryAligned);
 
         for (const auto &peptide : queryPeptides) {
           outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);

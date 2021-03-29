@@ -81,9 +81,9 @@ namespace Nextclade {
     };
   }// namespace
 
-  CsvWriter::CsvWriter(std::ostream& outputStream, const CsvWriterOptions& options)
-      : options(options),
-        outputStream(outputStream) {
+  CsvWriter::CsvWriter(std::ostream& out, const CsvWriterOptions& opt)
+      : options(opt),
+        outputStream(out) {
     addHeader();
   }
 

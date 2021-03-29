@@ -62,6 +62,6 @@ namespace Nextclade {
     const auto& pos = parsePosition(matches["pos"]);
     const auto& queryNuc = parseNucleotide(matches["queryNuc"]);
 
-    return {.refNuc = refNuc, .pos = pos, .queryNuc = queryNuc};
+    return NucleotideSubstitution{.refNuc = refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}};
   }
 }// namespace Nextclade

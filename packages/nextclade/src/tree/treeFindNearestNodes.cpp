@@ -105,7 +105,8 @@ namespace Nextclade {
     for (const auto [pos, refNuc] : nodeSubstitutions) {
       if (!has(mutatedPositions, pos) && isSequenced(pos, seq)) {
         const auto& queryNuc = rootSeq[pos];
-        privateMutations.emplace_back(NucleotideSubstitution{refNuc, pos, queryNuc});
+        privateMutations.emplace_back(
+          NucleotideSubstitution{.refNuc = refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}});
       }
     }
 

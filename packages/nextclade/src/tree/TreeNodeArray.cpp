@@ -28,7 +28,7 @@ namespace Nextclade {
   public:
     struct const_tag {};
 
-    explicit TreeNodeArrayImpl(json& j) : j(j) {
+    explicit TreeNodeArrayImpl(json& js) : j(js) {
       ensureIsArray();
     }
 

@@ -28,16 +28,16 @@ namespace Nextclade {
       .mixedSites = ruleMixedSites(analysisResult, privateMutations, qcRulesConfig.mixedSites),
       .privateMutations = rulePrivateMutations(analysisResult, privateMutations, qcRulesConfig.privateMutations),
       .snpClusters = ruleSnpClusters(analysisResult, privateMutations, qcRulesConfig.snpClusters),
+      .overallScore = 0,              // Will be overwritten below
+      .overallStatus = QcStatus::good,// Will be overwritten below
     };
 
-    double score = 0;
-    score += addScore(result.missingData);
-    score += addScore(result.mixedSites);
-    score += addScore(result.privateMutations);
-    score += addScore(result.snpClusters);
+    result.overallScore += addScore(result.missingData);
+    result.overallScore += addScore(result.mixedSites);
+    result.overallScore += addScore(result.privateMutations);
+    result.overallScore += addScore(result.snpClusters);
 
-    result.overallScore = score;
-    result.overallStatus = getQcRuleStatus(score);
+    result.overallStatus = getQcRuleStatus(result.overallScore);
 
     return result;
   }
