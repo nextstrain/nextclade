@@ -760,8 +760,8 @@ void run(
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
-    [&nextclade, &refName, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &outputJsonStream, &csv,
-      &tsv, &refsHaveBeenWritten, &logger](const Nextclade::AlgorithmOutput &output) {
+    [&nextclade, &refName, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &csv, &tsv,
+      &refsHaveBeenWritten, &logger](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
       const auto &refAligned = output.result.ref;
