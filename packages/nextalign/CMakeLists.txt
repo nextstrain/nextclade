@@ -73,6 +73,8 @@ target_compile_definitions(${PROJECT_NAME}
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
 
+  -DFMT_HEADER_ONLY=1
+
   # Workaround for GCC 9 error in type_safe.
   # See: https://github.com/foonathan/debug_assert/issues/17
   -DDEBUG_ASSERT_PURE_FUNCTION=
@@ -102,7 +104,7 @@ target_link_libraries(${PROJECT_NAME}
   Microsoft.GSL::GSL
   Boost::headers
   fast-cpp-csv-parser::fast-cpp-csv-parser
-  fmt::fmt
+  fmt::fmt-header-only
   type_safe::type_safe
   )
 

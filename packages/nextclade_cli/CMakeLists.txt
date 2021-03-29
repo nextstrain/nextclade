@@ -55,6 +55,8 @@ target_compile_definitions(${PROJECT_NAME}
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
   -DNEXTALIGN_VERSION="${NEXTALIGN_VERSION}"
+
+  -DFMT_HEADER_ONLY=1
   )
 
 target_include_directories(${PROJECT_NAME}
@@ -74,7 +76,7 @@ target_link_libraries(${PROJECT_NAME}
   Boost::headers
   TBB::tbb
   cxxopts::cxxopts
-  fmt::fmt
+  fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
   ${STATIC_BUILD_FLAGS}
   )

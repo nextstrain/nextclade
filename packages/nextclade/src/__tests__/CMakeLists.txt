@@ -21,6 +21,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC -DAPP_NAME="${PROJECT_NAME}"
+
+  -DFMT_HEADER_ONLY=1
   )
 
 target_include_directories(${PROJECT_NAME} SYSTEM
@@ -38,7 +40,7 @@ target_link_libraries(${PROJECT_NAME}
   Boost::headers
   GTest::GTest
   Microsoft.GSL::GSL
-  fmt::fmt
+  fmt::fmt-header-only
   )
 
 add_test(${PROJECT_NAME} ${PROJECT_NAME})
