@@ -950,7 +950,7 @@ int main(int argc, char *argv[]) {
 
     std::map<std::string, std::ofstream> outputGeneStreams;
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
-      auto result = outputGeneStreams.emplace(std::make_pair(geneName, nullptr));
+      auto result = outputGeneStreams.emplace(std::make_pair(geneName, std::ofstream{}));
       auto &outputGeneFile = result.first->second;
       openOutputFile(outputGenePath, outputGeneFile);
     }
