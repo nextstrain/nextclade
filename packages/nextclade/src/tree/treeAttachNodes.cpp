@@ -55,6 +55,9 @@ namespace Nextclade {
   // TODO: implement this
   std::map<std::string, std::vector<std::string>> groupAminoacidMutations(
     const std::vector<AminoacidMutationEntry>& aminoacidMutationEntries) {
+
+    (void) aminoacidMutationEntries;
+
     //  const aminoacidMutationsGrouped = groupBy(aminoacidMutationEntries, ({ gene }) => gene)
     //  const aminoacidMutationsFinal = mapValues(aminoacidMutationsGrouped, (aaMuts) => aaMuts.map(({ aaMut }) => aaMut))
     //  const mutations = {
@@ -166,8 +169,9 @@ namespace Nextclade {
     // HACK: Guess the unit of measurement of divergence.
     // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
     // FIXME: Should be resolved upstream in augur/auspice.
+    constexpr const auto HACK_MAX_DIVERGENCE_THESHOLD = 5;
     auto thisDiv = totalNucMutations;// unit: number of substitutions
-    if (maxDivergence <= 5) {
+    if (maxDivergence <= HACK_MAX_DIVERGENCE_THESHOLD) {
       thisDiv /= rootSeq.size();// unit: number of substitutions per site
     }
 
@@ -187,6 +191,12 @@ namespace Nextclade {
     double divergence) {
 
     auto nowNode = node.addChild();
+
+    (void) result;
+    (void) mutations;
+    (void) nucMutations;
+    (void) divergence;
+
 
     // TODO: implement this
 

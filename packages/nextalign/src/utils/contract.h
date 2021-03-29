@@ -289,42 +289,45 @@ inline std::string debug_assert_print(
 
 #else// not debug mode
 
-#define debug_assert(...)
-#define debug_assert_equal(...)
-#define debug_assert_not_equal(...)
-#define debug_assert_less(...)
-#define debug_assert_less_equal(...)
-#define debug_assert_greater(...)
-#define debug_assert_greater_equal(...)
-#define debug_assert_divisible_by(...)
+// clang-format off
 
-#define precondition(...)
-#define precondition_equal(...)
-#define precondition_not_equal(...)
-#define precondition_less(...)
-#define precondition_less_equal(...)
-#define precondition_greater(...)
-#define precondition_greater_equal(...)
-#define precondition_divisible_by(...)
+#define debug_assert(cond)
+#define debug_assert_equal(left, right) { (void)(left); (void)(right); }
+#define debug_assert_not_equal(left, right) { (void)(left); (void)(right); }
+#define debug_assert_less(left, right) { (void)(left); (void)(right); }
+#define debug_assert_less_equal(left, right) { (void)(left); (void)(right); }
+#define debug_assert_greater(left, right) { (void)(left); (void)(right); }
+#define debug_assert_greater_equal(left, right) { (void)(left); (void)(right); }
+#define debug_assert_divisible_by(left, right) { (void)(left); (void)(right); }
 
-#define invariant(...)
-#define invariant_equal(...)
-#define invariant_not_equal(...)
-#define invariant_less(...)
-#define invariant_less_equal(...)
-#define invariant_greater(...)
-#define invariant_greater_equal(...)
-#define invariant_divisible_by(...)
+#define precondition(cond)
+#define precondition_equal(left, right) { (void)(left); (void)(right); }
+#define precondition_not_equal(left, right) { (void)(left); (void)(right); }
+#define precondition_less(left, right) { (void)(left); (void)(right); }
+#define precondition_less_equal(left, right) { (void)(left); (void)(right); }
+#define precondition_greater(left, right) { (void)(left); (void)(right); }
+#define precondition_greater_equal(left, right) { (void)(left); (void)(right); }
+#define precondition_divisible_by(left, right) { (void)(left); (void)(right); }
 
-#define postcondition(...)
-#define postcondition_equal(...)
-#define postcondition_not_equal(...)
-#define postcondition_less(...)
-#define postcondition_less_equal(...)
-#define postcondition_greater(...)
-#define postcondition_greater_equal(...)
-#define postcondition_divisible_by(...)
+#define invariant(cond)
+#define invariant_equal(left, right) { (void)(left); (void)(right); }
+#define invariant_not_equal(left, right) { (void)(left); (void)(right); }
+#define invariant_less(left, right) { (void)(left); (void)(right); }
+#define invariant_less_equal(left, right) { (void)(left); (void)(right); }
+#define invariant_greater(left, right) { (void)(left); (void)(right); }
+#define invariant_greater_equal(left, right) { (void)(left); (void)(right); }
+#define invariant_divisible_by(left, right) { (void)(left); (void)(right); }
 
+#define postcondition(cond)
+#define postcondition_equal(left, right) { (void)(left); (void)(right); }
+#define postcondition_not_equal(left, right) { (void)(left); (void)(right); }
+#define postcondition_less(left, right) { (void)(left); (void)(right); }
+#define postcondition_less_equal(left, right) { (void)(left); (void)(right); }
+#define postcondition_greater(left, right) { (void)(left); (void)(right); }
+#define postcondition_greater_equal(left, right) { (void)(left); (void)(right); }
+#define postcondition_divisible_by(left, right) { (void)(left); (void)(right); }
+
+// clang-format on
 #endif
 
 #pragma clang diagnostic pop

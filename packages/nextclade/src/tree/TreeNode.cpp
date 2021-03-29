@@ -166,9 +166,9 @@ namespace Nextclade {
     std::optional<double> divergence() const {
       const auto div = j.value(json_pointer{"/node_attrs/div"}, json());
       if (div.is_number()) {
-        return div.get<double>();
+        return std::make_optional(div.get<double>());
       }
-      return {};
+      return std::optional<double>();
     }
 
     void setDivergence(double div) {

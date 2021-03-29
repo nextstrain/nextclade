@@ -15,9 +15,9 @@
 
 
 struct CliParams {
-  int jobs;
-  bool verbose;
-  bool inOrder;
+  int jobs{};
+  bool verbose{};
+  bool inOrder{};
   std::string sequences;
   std::string reference;
   std::optional<std::string> genemap;
@@ -26,7 +26,7 @@ struct CliParams {
   std::optional<std::string> outputBasename;
   std::optional<std::string> outputFasta;
   std::optional<std::string> outputInsertions;
-  bool writeReference;
+  bool writeReference{};
 };
 
 struct Paths {
@@ -47,8 +47,7 @@ public:
 };
 
 template<typename Result>
-Result getParamRequired(
-  const cxxopts::Options &cxxOpts, const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
+Result getParamRequired(const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
   if (!cxxOptsParsed.count(name)) {
     throw ErrorCliOptionInvalidValue(fmt::format("Error: argument `--{:s}` is required\n\n", name));
   }
@@ -365,8 +364,8 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
     cliParams.inOrder = getParamRequiredDefaulted<bool>(cxxOptsParsed, "in-order");
     cliParams.verbose = getParamRequiredDefaulted<bool>(cxxOptsParsed, "verbose");
-    cliParams.sequences = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "sequences");
-    cliParams.reference = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "reference");
+    cliParams.sequences = getParamRequired<std::string>(cxxOptsParsed, "sequences");
+    cliParams.reference = getParamRequired<std::string>(cxxOptsParsed, "reference");
     cliParams.genemap = getParamOptional<std::string>(cxxOptsParsed, "genemap");
     cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
     cliParams.outputDir = getParamOptional<std::string>(cxxOptsParsed, "output-dir");
@@ -453,7 +452,7 @@ GeneMap parseGeneMapGffFile(const std::string &filename) {
   return geneMap;
 }
 
-std::set<std::string> parseGenes(const CliParams &cliParams, const GeneMap &geneMap) {
+std::set<std::string> parseGenes(const CliParams &cliParams) {
   std::set<std::string> genes;
 
   if (cliParams.genes && !(cliParams.genes->empty())) {
@@ -593,7 +592,7 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
   fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
   for (const auto &[geneName, gene] : geneMap) {
     const auto selected = std::find(genes.cbegin(), genes.cend(), geneName) != genes.cend();
-    const auto selectedStr = selected ? "  yes" : " ";
+    const std::string selectedStr = selected ? "  yes" : " ";
     fmt::format_to(buf, "| {:8s} | {:16s} | {:8d} | {:8d} | {:8d} | {:8d} | {:8s} |\n", selectedStr, geneName,
       gene.start + 1, gene.end, gene.length, gene.frame + 1, gene.strand);
   }
@@ -603,6 +602,7 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
 
 std::string formatInsertions(const std::vector<Insertion> &insertions) {
   std::vector<std::string> insertionStrings;
+  insertionStrings.reserve(insertions.size());
   for (const auto &insertion : insertions) {
     insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.begin, insertion.seq));
   }
@@ -616,7 +616,6 @@ std::string formatInsertions(const std::vector<Insertion> &insertions) {
 void run(
   /* in  */ int parallelism,
   /* in  */ bool inOrder,
-  /* in  */ const CliParams &cliParams,
   /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
   /* in  */ const ReferenceSequenceData &refData,
   /* in  */ const GeneMap &geneMap,
@@ -749,7 +748,7 @@ int main(int argc, char *argv[]) {
     std::set<std::string> genes;
     if (cliParams.genes && cliParams.genemap) {
       geneMap = parseGeneMapGffFile(*cliParams.genemap);
-      genes = parseGenes(cliParams, geneMap);
+      genes = parseGenes(cliParams);
       validateGenes(genes, geneMap);
       geneMap = filterGeneMap(genes, geneMap);
       logger.info(formatGeneMap(geneMap, genes));
@@ -830,8 +829,8 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, cliParams, fastaStream, refData, geneMap, options, outputFastaFile,
-        outputInsertionsFile, outputGeneFiles, shouldWriteReference, logger);
+      run(parallelism, inOrder, fastaStream, refData, geneMap, options, outputFastaFile, outputInsertionsFile,
+        outputGeneFiles, shouldWriteReference, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
     }

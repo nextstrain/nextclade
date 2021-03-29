@@ -16,9 +16,9 @@
 
 
 struct CliParams {
-  int jobs;
-  bool verbose;
-  bool inOrder;
+  int jobs{};
+  bool verbose{};
+  bool inOrder{};
 
   std::string inputFasta;
   std::string inputRootSeq;
@@ -36,7 +36,7 @@ struct CliParams {
   std::optional<std::string> outputBasename;
   std::optional<std::string> outputFasta;
   std::optional<std::string> outputInsertions;
-  bool writeReference;
+  bool writeReference{};
 };
 
 struct Paths {
@@ -57,8 +57,7 @@ public:
 };
 
 template<typename Result>
-Result getParamRequired(
-  const cxxopts::Options &cxxOpts, const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
+Result getParamRequired(const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
   if (!cxxOptsParsed.count(name)) {
     throw ErrorCliOptionInvalidValue(fmt::format("Error: argument `--{:s}` is required\n\n", name));
   }
@@ -432,13 +431,13 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(
     cliParams.writeReference = getParamRequiredDefaulted<bool>(cxxOptsParsed, "include-reference");
     cliParams.outputInsertions = getParamOptional<std::string>(cxxOptsParsed, "output-insertions");
 
-    cliParams.inputFasta = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-fasta");
-    cliParams.inputRootSeq = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-root-seq");
-    cliParams.inputTree = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-tree");
-    cliParams.inputQcConfig = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-qc-config");
+    cliParams.inputFasta = getParamRequired<std::string>(cxxOptsParsed, "input-fasta");
+    cliParams.inputRootSeq = getParamRequired<std::string>(cxxOptsParsed, "input-root-seq");
+    cliParams.inputTree = getParamRequired<std::string>(cxxOptsParsed, "input-tree");
+    cliParams.inputQcConfig = getParamRequired<std::string>(cxxOptsParsed, "input-qc-config");
     cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
-    cliParams.inputGeneMap = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-gene-map");
-    cliParams.inputPcrPrimers = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "input-pcr-primers");
+    cliParams.inputGeneMap = getParamRequired<std::string>(cxxOptsParsed, "input-gene-map");
+    cliParams.inputPcrPrimers = getParamRequired<std::string>(cxxOptsParsed, "input-pcr-primers");
     cliParams.outputJson = getParamOptional<std::string>(cxxOptsParsed, "output-json");
     cliParams.outputCsv = getParamOptional<std::string>(cxxOptsParsed, "output-csv");
     cliParams.outputTsv = getParamOptional<std::string>(cxxOptsParsed, "output-tsv");
@@ -517,7 +516,7 @@ GeneMap parseGeneMapGffFile(const std::string &filename) {
   return geneMap;
 }
 
-std::set<std::string> parseGenes(const CliParams &cliParams, const GeneMap &geneMap) {
+std::set<std::string> parseGenes(const CliParams &cliParams) {
   std::set<std::string> genes;
 
   if (cliParams.genes && !(cliParams.genes->empty())) {
@@ -648,7 +647,7 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
   fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
   for (const auto &[geneName, gene] : geneMap) {
     const auto selected = std::find(genes.cbegin(), genes.cend(), geneName) != genes.cend();
-    const auto selectedStr = selected ? "  yes" : " ";
+    const std::string selectedStr = selected ? "  yes" : " ";
     fmt::format_to(buf, "| {:8s} | {:16s} | {:8d} | {:8d} | {:8d} | {:8d} | {:8s} |\n", selectedStr, geneName,
       gene.start + 1, gene.end, gene.length, gene.frame + 1, gene.strand);
   }
@@ -658,6 +657,7 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
 
 std::string formatInsertions(const std::vector<Insertion> &insertions) {
   std::vector<std::string> insertionStrings;
+  insertionStrings.reserve(insertions.size());
   for (const auto &insertion : insertions) {
     insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.begin, insertion.seq));
   }
@@ -906,7 +906,7 @@ int main(int argc, char *argv[]) {
     logger.info(formatRef(refData, shouldWriteReference));
 
     const GeneMap geneMap = parseGeneMapGffFile(cliParams.inputGeneMap);
-    const auto genes = parseGenes(cliParams, geneMap);
+    const auto genes = parseGenes(cliParams);
     logger.info(formatGeneMap(geneMap, genes));
 
     if (!genes.empty()) {

@@ -52,7 +52,7 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
     } catch (const std::exception& e) {
       // Errors in translation should not cause sequence alignment failure.
       // Gather and report as warnings instead.
-      warnings.push_back(e.what());
+      warnings.emplace_back(e.what());
     }
   }
 

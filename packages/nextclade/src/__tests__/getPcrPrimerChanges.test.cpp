@@ -31,10 +31,10 @@ namespace {
       realNonACGTs.emplace_back(NucleotideLocation{.pos = nonacgt.first, .nuc = toNucleotide(nonacgt.second)});
     }
 
-    return {
-      .range = range,
-      .nonACGTs = std::move(realNonACGTs),
-    };
+    PcrPrimer primer;
+    primer.range = range;
+    primer.nonACGTs = std::move(realNonACGTs);
+    return primer;
   }
 }// namespace
 

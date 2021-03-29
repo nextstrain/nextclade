@@ -15,7 +15,7 @@ namespace {
     explicit ErrorNucleotideInvalid(char nuc) : std::runtime_error(fmt::format("Invalid nucleotide: \"{:c}\"", nuc)) {}
   };
 
-  static constexpr const frozen::map<char, Nucleotide, 17> charToNucleotide = {
+  constexpr const frozen::map<char, Nucleotide, 17> charToNucleotide = {
     /* 00 */ {'U', Nucleotide::U},
     /* 01 */ {'T', Nucleotide::T},
     /* 02 */ {'A', Nucleotide::A},
@@ -35,7 +35,7 @@ namespace {
     /* 16 */ {'-', Nucleotide::GAP},
   };
 
-  static constexpr const frozen::map<Nucleotide, char, 17> nucleotideToChar = {
+  constexpr const frozen::map<Nucleotide, char, 17> nucleotideToChar = {
     /* 00 */ {Nucleotide::U, 'U'},
     /* 01 */ {Nucleotide::T, 'T'},
     /* 02 */ {Nucleotide::A, 'A'},
@@ -59,7 +59,7 @@ namespace {
 
 
 Nucleotide toNucleotide(char nuc) {
-  const auto it = charToNucleotide.find(nuc);
+  const auto* it = charToNucleotide.find(nuc);
   if (it == charToNucleotide.end()) {
     throw ErrorNucleotideInvalid(nuc);
   }
@@ -68,7 +68,7 @@ Nucleotide toNucleotide(char nuc) {
 
 char nucToChar(Nucleotide nuc) {
   precondition(contains(nucleotideToChar, nuc));
-  const auto it = nucleotideToChar.find(nuc);
+  const auto* it = nucleotideToChar.find(nuc);
   return it->second;
 }
 

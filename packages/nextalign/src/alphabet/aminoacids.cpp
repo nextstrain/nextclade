@@ -15,7 +15,7 @@ namespace {
     explicit ErrorAminoacidInvalid(char aa) : std::runtime_error(fmt::format("Invalid aminoacid: \"{:c}\"", aa)) {}
   };
 
-  static constexpr const frozen::map<char, Aminoacid, 28> charToAminoacid = {
+  constexpr const frozen::map<char, Aminoacid, 28> charToAminoacid = {
     /* 00 */ {'A', Aminoacid::A},
     /* 01 */ {'B', Aminoacid::B},
     /* 02 */ {'C', Aminoacid::C},
@@ -46,7 +46,7 @@ namespace {
     /* 27 */ {CHAR_AMINOACID_GAP, Aminoacid::GAP},
   };
 
-  static constexpr const frozen::map<Aminoacid, char, 28> aminoacidToChar = {
+  constexpr const frozen::map<Aminoacid, char, 28> aminoacidToChar = {
     /* 00 */ {Aminoacid::A, 'A'},
     /* 01 */ {Aminoacid::B, 'B'},
     /* 02 */ {Aminoacid::C, 'C'},
@@ -80,7 +80,7 @@ namespace {
 }// namespace
 
 Aminoacid charToAa(char aa) {
-  const auto it = charToAminoacid.find(aa);
+  const auto* it = charToAminoacid.find(aa);
   if (it == charToAminoacid.end()) {
     throw ErrorAminoacidInvalid(aa);
   }
@@ -89,7 +89,7 @@ Aminoacid charToAa(char aa) {
 
 char aaToChar(Aminoacid aa) {
   precondition(contains(aminoacidToChar, aa));
-  const auto it = aminoacidToChar.find(aa);
+  const auto* it = aminoacidToChar.find(aa);
   return it->second;
 }
 

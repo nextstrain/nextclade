@@ -19,7 +19,6 @@ namespace {
 
   using ::Nextclade::Tree;
   using ::Nextclade::TreeNode;
-  using ::Nextclade::TreeNodeArray;
 
   using Nextclade::ErrorAuspiceJsonV2TreeNotFound;
   using Nextclade::ErrorTreeNodeCladeInvalid;

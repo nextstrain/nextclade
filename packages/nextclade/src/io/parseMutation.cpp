@@ -51,7 +51,9 @@ namespace Nextclade {
     using boost::xpressive::smatch;
     using boost::xpressive::sregex;
 
-    const auto regex = sregex::compile("(?P<refNuc>[A-Z-])(?P<pos>(\\d)*)(?P<queryNuc>[A-Z-])");
+    // clang-format off
+    const auto regex = sregex::compile("(?P<refNuc>[A-Z-])(?P<pos>(\\d)*)(?P<queryNuc>[A-Z-])"); // NOLINT(clang-analyzer-core)
+    // clang-format on
 
     smatch matches;
     if (!regex_match(boost::to_upper_copy(raw), matches, regex)) {

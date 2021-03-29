@@ -65,14 +65,14 @@ PeptidesInternal translateGenes(         //
 
       // TODO: can be done once during initialization
       const auto& refGene = extractGeneQuery(ref, gene, coordMap);
-      const auto refPeptide = translate(refGene);
+      auto refPeptide = translate(refGene);
 
       const auto& queryGene = extractGeneQuery(query, gene, coordMap);
       const auto queryPeptide = translate(queryGene);
 
       const auto geneAlignment =
         alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
-      const auto stripped = stripInsertions(geneAlignment.ref, geneAlignment.query);
+      auto stripped = stripInsertions(geneAlignment.ref, geneAlignment.query);
 
 
       queryPeptides.emplace_back(PeptideInternal{
