@@ -252,7 +252,7 @@ namespace Nextclade {
 
     bool isReferenceNode() const {
       ensureIsObject();
-      const auto nodeType = j.value(json_pointer{"/node_attrs/Node Type/value"}, json());
+      const auto& nodeType = j[json_pointer{"/node_attrs/Node Type/value"}];
       return nodeType.is_string() && (nodeType.get<std::string>() == "Reference");
     }
 
