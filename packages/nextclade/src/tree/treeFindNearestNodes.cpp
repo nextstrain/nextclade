@@ -60,16 +60,8 @@ namespace Nextclade {
   ClosestMatchResult treeFindNearestNodeRecursively(const TreeNode& node, const NextcladeResult& analysisResult) {
     int distance = calculateDistance(node, analysisResult);
     const auto* nearestNode = &node;
-    const auto& children = node.children();
-
-    // TODO: Only consider nodes of the reference tree, skip newly added nodes
-    // const refChildren = children.filter((node) => node.node_attrs?.['Node type'].value !== NodeType.New)
-    auto refChildren = children.filter([](const TreeNode& child) {
-      (void) child;
-      return true;
-    });
-
-    refChildren.forEach([&analysisResult, &nearestNode, &distance](const TreeNode& child) {
+    // Only consider nodes of the reference tree, skip newly added nodes
+    node.forEachChildReferenceNode([&analysisResult, &nearestNode, &distance](const TreeNode& child) {
       auto match = treeFindNearestNodeRecursively(child, analysisResult);
       if (match.distance < distance) {
         distance = match.distance;

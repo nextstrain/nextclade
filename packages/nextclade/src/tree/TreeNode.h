@@ -9,9 +9,7 @@
 #include <optional>
 #include <string>
 #include <vector>
-
-#include "TreeNodeArray.h"
-
+#include <functional>
 
 enum class Nucleotide : char;
 
@@ -25,7 +23,8 @@ namespace Nextclade {
     std::unique_ptr<TreeNodeImpl> pimpl;
 
     friend class TreeNodeImpl;
-    friend class TreeNodeArrayImpl;
+
+    struct const_tag {};
 
   public:
     explicit TreeNode(json& j);
@@ -40,11 +39,15 @@ namespace Nextclade {
 
     TreeNode& operator=(TreeNode&& other) noexcept;
 
-    TreeNodeArray children() const;
-
     TreeNode addChildFromCopy(const TreeNode& node);
 
     TreeNode addChild();
+
+    void forEachChildNode(const std::function<void(const TreeNode&)>& action) const;
+
+    void forEachChildNode(const std::function<void(TreeNode&)>& action);
+
+    void forEachChildReferenceNode(const std::function<void(const TreeNode&)>& action) const;
 
     int id() const;
 

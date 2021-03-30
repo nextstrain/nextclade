@@ -22,10 +22,15 @@ namespace Nextclade {
     explicit TreeImpl(const std::string& auspiceJsonV2) : j(json::parse(auspiceJsonV2)) {}
 
     TreeNode root() {
+      if (!j.is_object()) {
+        throw ErrorAuspiceJsonV2Invalid(j);
+      }
+
       auto root = j["tree"];
       if (!root.is_object()) {
         throw ErrorAuspiceJsonV2TreeNotFound(root);
       }
+
       return TreeNode{j.at("tree")};
     }
 
@@ -46,6 +51,11 @@ namespace Nextclade {
     return pimpl->serialize(spaces);
   }
 
+  ErrorAuspiceJsonV2Invalid::ErrorAuspiceJsonV2Invalid(const json& node)
+      : std::runtime_error(
+          fmt::format("When accessing Auspice Json v2 tree: format is invalid: expected to find an object, but found: "
+                      "\"{}\"",
+            node.dump())) {}
 
   ErrorAuspiceJsonV2TreeNotFound::ErrorAuspiceJsonV2TreeNotFound(const json& node)
       : std::runtime_error(fmt::format(

@@ -63,8 +63,6 @@ set(SOURCE_FILES
   src/tree/Tree.h
   src/tree/TreeNode.cpp
   src/tree/TreeNode.h
-  src/tree/TreeNodeArray.cpp
-  src/tree/TreeNodeArray.h
   src/tree/treeAttachNodes.cpp
   src/tree/treeAttachNodes.h
   src/tree/treeFindNearestNodes.cpp

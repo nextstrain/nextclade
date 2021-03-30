@@ -9,7 +9,7 @@
 
 #include "../../../nextalign/src/alphabet/nucleotides.h"
 #include "../io/parseMutation.h"
-#include "TreeNodeArray.h"
+#include "../utils/contract.h"
 
 namespace Nextclade {
   using json_pointer = json::json_pointer;
@@ -46,36 +46,94 @@ namespace Nextclade {
       }
     }
 
+    const json& getChildren() const {
+      ensureIsObject();
+
+      auto& childrenArray = j["children"];
+      if (!childrenArray.is_array()) {
+        j["children"] = json::array();
+        childrenArray = j["children"];
+      }
+
+      return childrenArray;
+    }
+
+    json& getChildren() {
+      ensureIsObject();
+
+      auto& childrenArray = j["children"];
+      if (!childrenArray.is_array()) {
+        j["children"] = json::array();
+        childrenArray = j["children"];
+      }
+
+      return childrenArray;
+    }
+
   public:
     explicit TreeNodeImpl(json& js) : j(js) {
       ensureIsObject();
     }
 
-    TreeNodeArray children() const {
-      auto childrenArray = j.value("children", json::array());
-      return TreeNodeArray{childrenArray};
-    }
-
     TreeNode addChildFromCopy(const TreeNode& node) {
-      auto& childrenJson = j["children"];
-      if (!childrenJson.is_array()) {
+      ensureIsObject();
+
+      auto& childrenArray = j["children"];
+      if (!childrenArray.is_array()) {
         j["children"] = json::array();
+        childrenArray = j["children"];
       }
-      auto& childJson = childrenJson.emplace_back(json::object());
+      auto& childJson = childrenArray.emplace_back(json::object());
       childJson.update(node.pimpl->j);// Deep clone
       return TreeNode{childJson};
     }
 
     TreeNode addChild() {
-      auto& childrenJson = j["children"];
-      if (!childrenJson.is_array()) {
+      ensureIsObject();
+
+      auto& childrenArray = j["children"];
+      if (!childrenArray.is_array()) {
         j["children"] = json::array();
+        childrenArray = j["children"];
       }
-      auto& childJson = childrenJson.emplace_back(json::object());
+      auto& childJson = childrenArray.emplace_back(json::object());
       return TreeNode{childJson};
     }
 
+    void forEachChildNode(const std::function<void(const TreeNode&)>& action, TreeNode::const_tag) const {
+      ensureIsObject();
+      const auto& childrenArray = getChildren();
+      for (const auto& elem : childrenArray) {
+        json copy;
+        copy.update(elem);
+        TreeNode node{copy};
+        action(node);
+      }
+    }
+
+    void forEachChildNode(const std::function<void(TreeNode&)>& action) {
+      auto& childrenArray = getChildren();
+      for (auto& elem : childrenArray) {
+        TreeNode candidate{elem};
+        action(candidate);
+      }
+    }
+
+    void forEachChildReferenceNode(const std::function<void(const TreeNode&)>& action, TreeNode::const_tag) const {
+      const auto& childrenArray = getChildren();
+      for (const auto& elem : childrenArray) {
+        json copy;
+        copy.update(elem);
+        TreeNode node{copy};
+        if (node.isReferenceNode()) {
+          action(node);
+        }
+      }
+    }
+
     int id() const {
+      ensureIsObject();
+
       const auto id = j.value(json_pointer{"/tmp/id"}, json());
       if (id.is_number()) {
         return id.get<int>();
@@ -84,12 +142,16 @@ namespace Nextclade {
     }
 
     void setId(int id) {
+      ensureIsObject();
+
       j[json_pointer{"/tmp/id"}] = id;
     }
 
     std::map<int, Nucleotide> getMutationsOrSubstitutions(const std::string& what) const {
+      ensureIsObject();
+
       const auto path = json_pointer{fmt::format("/tmp/{}", what)};
-      auto substitutionsObject = j.value(path, json::object());
+      const auto& substitutionsObject = j[path];
       std::map<int, Nucleotide> substitutions;
       if (substitutionsObject.is_object()) {
         for (const auto& [posStr, nucJsonStr] : substitutionsObject.items()) {
@@ -102,14 +164,17 @@ namespace Nextclade {
     }
 
     std::map<int, Nucleotide> substitutions() const {
+      ensureIsObject();
       return getMutationsOrSubstitutions("substitutions");
     }
 
     std::map<int, Nucleotide> mutations() const {
+      ensureIsObject();
       return getMutationsOrSubstitutions("mutations");
     }
 
     void setMutationsOrSubstitutions(const char* what, const std::map<int, Nucleotide>& data) {
+      ensureIsObject();
       const auto path = json_pointer{fmt::format("/tmp/{}", what)};
       auto obj = json::object();
       for (const auto& [pos, nuc] : data) {
@@ -129,41 +194,36 @@ namespace Nextclade {
     }
 
     std::vector<NucleotideSubstitution> nucleotideMutations() const {
-      try {
-        auto nucMutsArray = j.value(json_pointer{"/branch_attrs/mutations/nuc"}, json::array());
-        if (!nucMutsArray.is_array()) {
+      ensureIsObject();
+
+      auto nucMutsArray = j[json_pointer{"/branch_attrs/mutations/nuc"}];
+      if (!nucMutsArray.is_array()) {
+        // TODO: throw an exception
+      }
+
+      std::vector<NucleotideSubstitution> result;
+      result.reserve(nucMutsArray.size());
+
+      for (const auto& mutStrValue : nucMutsArray) {
+        if (!mutStrValue.is_string()) {
           // TODO: throw an exception
         }
 
-        std::vector<NucleotideSubstitution> result;
-        result.reserve(nucMutsArray.size());
-
-        for (const auto& mutStrValue : nucMutsArray) {
-          if (!mutStrValue.is_string()) {
-            // TODO: throw an exception
-          }
-
-          const auto mutStr = mutStrValue.get<std::string>();
-          result.emplace_back(parseMutation(mutStr));
-        }
-
-        result.shrink_to_fit();
-        return result;
-
-      } catch (...) {
-        std::cout << "j: " << j << std::endl;
-        std::cout.flush();
-        fflush(stdout);
-
-        throw;
+        const auto mutStr = mutStrValue.get<std::string>();
+        result.emplace_back(parseMutation(mutStr));
       }
+
+      result.shrink_to_fit();
+      return result;
     }
 
     void setNucleotideMutationsEmpty() {
+      ensureIsObject();
       j[json_pointer{"/branch_attrs/mutations/nuc"}] = json::array();
     }
 
     std::optional<double> divergence() const {
+      ensureIsObject();
       const auto div = j.value(json_pointer{"/node_attrs/div"}, json());
       if (div.is_number()) {
         return std::make_optional(div.get<double>());
@@ -172,10 +232,12 @@ namespace Nextclade {
     }
 
     void setDivergence(double div) {
+      ensureIsObject();
       j[json_pointer{"/node_attrs/div"}] = div;
     }
 
     std::string clade() const {
+      ensureIsObject();
       const auto clade = j.value(json_pointer{"/node_attrs/clade_membership/value"}, json());
       if (!clade.is_string()) {
         throw ErrorTreeNodeCladeInvalid(clade);
@@ -184,24 +246,29 @@ namespace Nextclade {
     }
 
     void setClade(const std::string& clade) {
+      ensureIsObject();
       j[json_pointer{"/node_attrs/clade_membership/value"}] = clade;
     }
 
     bool isReferenceNode() const {
+      ensureIsObject();
       const auto nodeType = j.value(json_pointer{"/node_attrs/Node Type/value"}, json());
       return nodeType.is_string() && (nodeType.get<std::string>() == "Reference");
     }
 
     bool isLeaf() const {
+      ensureIsObject();
       const auto childrenValue = j.value("children", json());
       return !childrenValue.is_array() || childrenValue.empty();
     }
 
     std::string name() const {
+      ensureIsObject();
       return j.value("name", "");
     }
 
     void setName(const std::string& name) {
+      ensureIsObject();
       j["name"] = name;
     }
 
@@ -211,11 +278,13 @@ namespace Nextclade {
     }
 
     void removeNodeAttr(const char* name) {
+      ensureIsObject();
       const auto path = json_pointer{fmt::format("/node_attrs/{}", name)};
       j.erase(path);
     }
 
     void removeTemporaries() {
+      ensureIsObject();
       j.erase("tmp");
     }
   };
@@ -231,16 +300,24 @@ namespace Nextclade {
 
   TreeNode::~TreeNode() {}// NOLINT(modernize-use-equals-default)
 
-  TreeNodeArray TreeNode::children() const {
-    return pimpl->children();
-  }
-
   TreeNode TreeNode::addChildFromCopy(const TreeNode& node) {
     return pimpl->addChildFromCopy(node);
   }
 
   TreeNode TreeNode::addChild() {
     return pimpl->addChild();
+  }
+
+  void TreeNode::forEachChildNode(const std::function<void(const TreeNode&)>& action) const {
+    pimpl->forEachChildNode(action, TreeNode::const_tag{});
+  }
+
+  void TreeNode::forEachChildNode(const std::function<void(TreeNode&)>& action) {
+    pimpl->forEachChildNode(action);
+  }
+
+  void TreeNode::forEachChildReferenceNode(const std::function<void(const TreeNode&)>& action) const {
+    pimpl->forEachChildReferenceNode(action, TreeNode::const_tag{});
   }
 
   std::map<int, Nucleotide> TreeNode::substitutions() const {
@@ -318,7 +395,6 @@ namespace Nextclade {
   void TreeNode::removeTemporaries() {
     pimpl->removeTemporaries();
   }
-
 
   ErrorTreeNodeNotObject::ErrorTreeNodeNotObject(const json& node)
       : std::runtime_error(

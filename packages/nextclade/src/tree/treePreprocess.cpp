@@ -2,9 +2,10 @@
 
 #include <fmt/format.h>
 #include <nextclade/private/nextclade_private.h>
-#include <utils/mapFind.h>
 
 #include "../io/formatMutation.h"
+#include "../utils/contract.h"
+#include "../utils/mapFind.h"
 #include "Tree.h"
 #include "TreeNode.h"
 
@@ -62,8 +63,7 @@ namespace Nextclade {
     node.setNodeAttr("Node type", "Reference");
 
     // Repeat for children recursively
-    auto children = node.children();
-    children.forEach([&tmpMuts, &id, &rootSeq](TreeNode& child) {
+    node.forEachChildNode([&tmpMuts, &id, &rootSeq](TreeNode& child) {
       ++id;
       treePreprocessInPlaceRecursive(child, tmpMuts, id, rootSeq);
     });

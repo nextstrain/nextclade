@@ -11,8 +11,7 @@ namespace Nextclade {
     node.removeTemporaries();
 
     // Repeat for children recursively
-    auto children = node.children();
-    children.forEach(treePostprocessInPlaceRecursive);
+    node.forEachChildNode(treePostprocessInPlaceRecursive);
   }
 
   void treePostprocess(Tree& tree) {
