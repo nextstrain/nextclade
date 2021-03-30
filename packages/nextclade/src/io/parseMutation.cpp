@@ -52,17 +52,23 @@ namespace Nextclade {
     using boost::xpressive::sregex;
 
     // clang-format off
-    const auto regex = sregex::compile("(?P<refNuc>[A-Z-])(?P<pos>(\\d)*)(?P<queryNuc>[A-Z-])"); // NOLINT(clang-analyzer-core)
+    const auto regex = sregex::compile(R"((?P<refNuc>[A-Z-])(?P<pos>\d{1,10})(?P<queryNuc>[A-Z-]))"); // NOLINT(clang-analyzer-core)
     // clang-format on
 
+    const auto upper = boost::to_upper_copy(raw);
+
     smatch matches;
-    if (!regex_match(boost::to_upper_copy(raw), matches, regex)) {
+    if (!regex_match(upper, matches, regex)) {
       throw ErrorParseMutationInvalidFormat(raw);
     }
 
-    const auto& refNuc = parseNucleotide(matches["refNuc"]);
-    const auto& pos = parsePosition(matches["pos"]);
-    const auto& queryNuc = parseNucleotide(matches["queryNuc"]);
+    const auto& refNucStr = std::string{matches["refNuc"]};
+    const auto& posStr = std::string{matches["pos"]};
+    const auto& queryNucStr = std::string{matches["queryNuc"]};
+
+    const auto& refNuc = parseNucleotide(refNucStr);
+    const auto& pos = parsePosition(posStr);
+    const auto& queryNuc = parseNucleotide(queryNucStr);
 
     return NucleotideSubstitution{.refNuc = refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}};
   }
