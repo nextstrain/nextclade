@@ -17,7 +17,7 @@ import { notUndefined } from 'src/helpers/notUndefined'
 import { fsaSagaFromParams } from 'src/state/util/fsaSagaFromParams'
 import fsaSaga from 'src/state/util/fsaSaga'
 
-import { auspiceStartClean } from 'src/state/auspice/auspice.actions'
+import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import {
   algorithmRunAsync,
   algorithmRunWithSequencesAsync,
@@ -144,6 +144,7 @@ export function* runAlgorithm() {
   const auspiceDataPostprocessed = treePostProcess(auspiceDataNew)
   yield* put(setOutputTree(JSON.stringify(auspiceDataPostprocessed, null, 2)))
   yield* setAuspiceState(auspiceDataPostprocessed)
+  yield* put(treeFilterByNodeType(['New']))
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 }
 
