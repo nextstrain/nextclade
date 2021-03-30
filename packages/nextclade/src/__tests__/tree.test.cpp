@@ -1,13 +1,14 @@
+#include "../tree/Tree.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
-#include "../tree/Tree.h"
 #include "../tree/TreeNode.h"
-#include "../tree/TreeNodeArray.h"
 
 // Goes last
+#include <fstream>
 #include <nlohmann/json.hpp>
 
 #define EXPECT_ARR_EQ(expected, actual) ASSERT_THAT(actual, ::testing::ElementsAreArray(expected))
@@ -174,31 +175,6 @@ TEST(Tree, Gets_empty_divergence) {
 }
 
 
-TEST(Tree, Children_get_non_existent) {
-  auto tree = Tree(R"(
-    {
-      "tree": {
-       }
-    }
-  )");
-
-  auto node = tree.root();
-  EXPECT_EQ(0, node.children().size());
-}
-
-TEST(Tree, Children_get_empty) {
-  auto tree = Tree(R"(
-    {
-      "tree": {
-         "children": []
-       }
-    }
-  )");
-
-  auto node = tree.root();
-  EXPECT_EQ(0, node.children().size());
-}
-
 TEST(Tree, Children_get) {
   auto tree = Tree(R"(
     {
@@ -216,10 +192,9 @@ TEST(Tree, Children_get) {
   constexpr std::array<int, 4> ids = {123, 894, 42, 67};
 
   auto node = tree.root();
-  EXPECT_EQ(4, node.children().size());
 
   int i = 0;
-  node.children().forEach([&i, &ids](const auto& child) {
+  node.forEachChildNode([&i, &ids](const auto& child) {
     EXPECT_EQ(ids[i], child.id());// NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
     ++i;
   });
@@ -239,19 +214,6 @@ TEST(Tree, Children_add) {
   auto node = tree.root();
   auto child = node.addChild();
   child.setId(456);
-  EXPECT_EQ(2, node.children().size());
-}
-
-TEST(Tree, Children_add_from_copy) {
-  auto tree = Tree(R"(
-    {
-      "tree": {
-         "children": [
-            { "tmp": { "id": 123 }, "foo": "bar" }
-         ]
-       }
-    }
-  )");
 
   auto treeExpected = Tree(R"(
     {
@@ -263,10 +225,40 @@ TEST(Tree, Children_add_from_copy) {
        }
     }
   )");
+}
+
+TEST(Tree, Children_add_from_copy) {
+  auto tree = Tree(R"(
+    {
+      "tree": {
+          "children": [
+            { "tmp": { "id": 123 }, "foo": "bar" }
+          ]
+       }
+    }
+  )");
+
+  auto tree2 = Tree(R"(
+    {
+      "tree": { "tmp": { "id": 456 }, "foo": "baz" }
+    }
+  )");
+
+  auto treeExpected = Tree(R"(
+    {
+      "tree": {
+         "children": [
+            { "tmp": { "id": 123 }, "foo": "bar" },
+            { "tmp": { "id": 789 }, "foo": "baz" }
+         ]
+       }
+    }
+  )");
 
   auto node = tree.root();
-  auto child = node.addChildFromCopy(node.children()[0]);
-  child.setId(456);
+  auto node2 = tree2.root();
+  auto child = node.addChildFromCopy(node2);
+  child.setId(789);
 
   EXPECT_EQ(treeExpected.serialize(), tree.serialize());
 }
