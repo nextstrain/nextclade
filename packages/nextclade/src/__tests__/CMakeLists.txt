@@ -10,6 +10,7 @@ find_package(fmt 7.1.0 REQUIRED)
 
 add_executable(${PROJECT_NAME}
   analyzeSequence.test.cpp
+  findNucleotideRanges.test.cpp
   getNucleotideComposition.test.cpp
   getPcrPrimerChanges.test.cpp
   isMatch.test.cpp

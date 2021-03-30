@@ -36,7 +36,7 @@ namespace Nextclade {
   }
 
   bool isNonAcgtnAndNonGap(const Nucleotide& nuc) {
-    return has(ACGTN_AND_GAP, nuc);
+    return !has(ACGTN_AND_GAP, nuc);
   }
 
 }// namespace Nextclade

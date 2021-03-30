@@ -16,7 +16,7 @@ namespace Nextclade {
     std::vector<NucleotideRange> result;
 
     int i = 0;
-    Nucleotide* foundNuc = nullptr;
+    std::optional<Nucleotide> foundNuc;
     int begin = 0;
     while (i < length) {
       Nucleotide nuc = str[i];
@@ -24,10 +24,10 @@ namespace Nextclade {
       // find beginning of matching range
       if (pred(nuc)) {
         begin = i;
-        foundNuc = &nuc;
+        foundNuc = nuc;
       }
 
-      if (foundNuc != nullptr) {
+      if (foundNuc) {
         // rewind forward to the end of matching range
         // TODO: the `i < length` was added to avoid buffer overrun. Double-check algorithmic correctness.
         while ((nuc == *foundNuc) && (i < length)) {
@@ -37,7 +37,7 @@ namespace Nextclade {
 
         const auto& end = i;
         result.push_back({.begin = begin, .end = end, .length = end - begin, .nuc = *foundNuc});
-        foundNuc = nullptr;
+        foundNuc = {};
 
         // TODO: the `i < length` was added to avoid buffer overrun. Double-check algorithmic correctness.
       } else if (i < length) {
