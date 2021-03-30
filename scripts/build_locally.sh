@@ -170,7 +170,7 @@ fi
 NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
 
 # Add flags necessary for static build
-CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True"
+CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True -o fmt:header_only=True"
 CONAN_TBB_STATIC_BUILD_FLAGS=""
 if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   CONAN_STATIC_BUILD_FLAGS="\
