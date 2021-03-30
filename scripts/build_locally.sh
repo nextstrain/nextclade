@@ -91,6 +91,9 @@ fi
 # Whether to use Clang C++ compiler (default: use GCC)
 USE_CLANG="${USE_CLANG:=0}"
 
+# Whether to use libc++ as a C++ standard library implementation
+USE_LIBCPP="${USE_LIBCPP:=0}"
+
 # Whether to use MinGW GCC C++ compiler for croww-compiling for Windows (default: no)
 USE_MINGW="${USE_MINGW:=0}"
 
@@ -119,9 +122,6 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CXX="${CXX:-clang++}"
   export CMAKE_C_COMPILER=${CC}
   export CMAKE_CXX_COMPILER=${CXX}
-  export CMAKE_CXX_FLAGS="-stdlib=libc++"
-  export CMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
-  export CMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++"
 
   CLANG_VERSION_DETECTED=$(${CC} --version | grep "clang version" | awk -F ' ' {'print $3'} | awk -F \. {'print $1'})
   CLANG_VERSION=${CLANG_VERSION:=${CLANG_VERSION_DETECTED}}
@@ -130,16 +130,36 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
     ${CONAN_COMPILER_SETTINGS}
     -s compiler=clang \
     -s compiler.version=${CLANG_VERSION} \
-    -s compiler.libcxx=libc++ \
   "
 
   MORE_CMAKE_FLAGS="\
+    ${MORE_CMAKE_FLAGS} \
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} \
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} \
-    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} \
-    -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS} \
-    -DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS} \
   "
+
+  if [ "${USE_LIBCPP}" == "true" ] || [ "${USE_LIBCPP}" == "1" ]; then
+    export CMAKE_CXX_FLAGS="-stdlib=libc++"
+    export CMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
+    export CMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++"
+
+    CONAN_COMPILER_SETTINGS="\
+      ${CONAN_COMPILER_SETTINGS}
+      -s compiler.libcxx=libc++ \
+    "
+
+    MORE_CMAKE_FLAGS="\
+      ${MORE_CMAKE_FLAGS} \
+      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} \
+      -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS} \
+      -DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS} \
+    "
+  else
+    CONAN_COMPILER_SETTINGS="\
+      ${CONAN_COMPILER_SETTINGS}
+      -s compiler.libcxx=libstdc++11 \
+    "
+  fi
 
   BUILD_SUFFIX="-Clang"
 fi
