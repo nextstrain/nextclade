@@ -164,7 +164,7 @@ DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 NEXTALIGN_STATIC_BUILD_DEFAULT=1
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
-elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
+elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "TSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=0
 fi
 NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
@@ -185,9 +185,14 @@ fi
 
 NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
 NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
+NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=1}
+NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=1}
 if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   NEXTALIGN_BUILD_BENCHMARKS=0
   NEXTALIGN_BUILD_TESTS=0
+
+  NEXTCLADE_BUILD_BENCHMARKS=0
+  NEXTCLADE_BUILD_TESTS=0
 
   CONAN_STATIC_BUILD_FLAGS="\
     ${CONAN_STATIC_BUILD_FLAGS} \
@@ -201,6 +206,11 @@ GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexe
 # AddressSanitizer and MemorySanitizer don't work with gdb
 case ${CMAKE_BUILD_TYPE} in
   ASAN|MSAN|UBSAN) GDB_DEFAULT="" ;;
+  *) ;;
+esac
+
+case ${CMAKE_BUILD_TYPE} in
+  ASAN|MSAN|TSAN|UBSAN) NEXTALIGN_BUILD_BENCHMARKS=0; NEXTALIGN_BUILD_TESTS=0 NEXTCLADE_BUILD_BENCHMARKS=0 NEXTCLADE_BUILD_TESTS=0 ;;
   *) ;;
 esac
 
@@ -327,8 +337,9 @@ pushd "${BUILD_DIR}" > /dev/null
     -DCMAKE_OSX_ARCHITECTURES="${HOST_ARCH}" \
     -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_MIN_VER}" \
     -DNEXTCLADE_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
-    -DNEXTCLADE_BUILD_BENCHMARKS=1 \
-    -DNEXTCLADE_BUILD_TESTS=1 \
+    -DNEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS} \
+    -DNEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS} \
+    ${MORE_CMAKE_FLAGS}
 
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
@@ -383,15 +394,20 @@ fi
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
 
   if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
-    # print 23 "Run Nextalign tests";
-    # pushd "${BUILD_DIR}/packages/nextalign/tests" > /dev/null
-    #     eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-    # popd > /dev/null
 
-    print 23 "Run Nextclade tests";
-    pushd "${BUILD_DIR}/packages/nextclade/src/__tests__" > /dev/null
-        eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-    popd > /dev/null
+    # if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
+    #   print 23 "Run Nextalign tests";
+    #   pushd "${BUILD_DIR}/packages/nextalign/tests" > /dev/null
+    #       eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+    #   popd > /dev/null
+    # fi
+
+    if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
+      print 23 "Run Nextclade tests";
+      pushd "${BUILD_DIR}/packages/nextclade/src/__tests__" > /dev/null
+          eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+      popd > /dev/null
+    fi
   fi
 
   # print 27 "Run Nextalign CLI";
