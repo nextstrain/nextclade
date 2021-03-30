@@ -61,7 +61,7 @@ namespace Nextclade {
       const auto totalPcrPrimerChanges = std::accumulate(pcrPrimerChanges.cbegin(), pcrPrimerChanges.cend(), 0,
         [](int result, const auto& item) { return result + item.substitutions.size(); });
 
-      // TODO: implement aminoacid anasysis
+      // TODO: implement aminoacid analysis
       std::vector<AminoacidSubstitution> aaSubstitutions;
       const auto totalAminoacidSubstitutions = safe_cast<int>(aaSubstitutions.size());
       std::vector<AminoacidDeletion> aaDeletions;
@@ -97,7 +97,7 @@ namespace Nextclade {
         .pcrPrimerChanges = pcrPrimerChanges,
         .totalPcrPrimerChanges = totalPcrPrimerChanges,
 
-        // NOTE: not these fields are initialized here. They must be initialized below.
+        // NOTE: these fields are not properly initialized here. They must be initialized below.
         .nearestNodeId = 0,
         .clade = "",
         .qc = {}};
