@@ -13,11 +13,7 @@ namespace Nextclade {
     const auto& length = safe_cast<int>(alignedQuery.size());
     for (int i = 0; i < length; ++i) {
       const auto& nuc = alignedQuery[i];
-      if (!has(result, nuc)) {
-        result.emplace(nuc, 1);
-      } else {
-        ++result[nuc];
-      }
+      result[nuc] = ++(result[nuc]);
     }
     return result;
   }
