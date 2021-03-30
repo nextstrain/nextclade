@@ -1,3 +1,36 @@
+## [0.14.2](https://github.com/nextstrain/nextclade/compare/0.14.1...0.14.2) (2021-03-30)
+
+We updated Nextstrain Auspice (the tree renderer) from version 2.18.2 to version 2.23.0, with bug fixes and new features. In particular, the filtering functionality is now similar to what can be found on nextstrain.org. We now color the tree by clade and filter by node type ("reference" vs "new" nodes). See [Auspice changelog](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md) for more details.
+
+In other news, Nextalign 0.2.0 is now available. See Nextalign [changelog on GitHub Releases page](https://github.com/nextstrain/nextclade/releases).
+
+### Bug Fixes
+
+* account for the fact that the length of the gene can be different from %3 before stripping ([6fc99a0](https://github.com/nextstrain/nextclade/commit/6fc99a0d9b4c26f74955a8e87ad7d4a2938ff2c1))
+* ensure backwards compatibility with the old GFF parser ([07156b7](https://github.com/nextstrain/nextclade/commit/07156b748ac36e7110d6b95877a849fc480e541c))
+* ensure GFF3 spec compliance of gene map parser ([2355d3d](https://github.com/nextstrain/nextclade/commit/2355d3df6b011ef7c1998a5772a0babef9be9ad6))
+* integer underflow in `parallelism` parameter to tbb pipeline ([42664e7](https://github.com/nextstrain/nextclade/commit/42664e7562aad39bdefac7f16c7f93830daedeb0))
+* prevent local variable shadowing ([64c5661](https://github.com/nextstrain/nextclade/commit/64c5661f913dec991ae6472316ad9107c1e1df2c))
+* prevent potential out-of-bounds array access ([4663b32](https://github.com/nextstrain/nextclade/commit/4663b3228b80f57a86aa1dd91d5bdfd90433adfc))
+* query results are returned as alignment with insertions stripped, hence gap symbols in the reference should be stripped ([01e8628](https://github.com/nextstrain/nextclade/commit/01e8628fc7861f806fb7a4682356e891bd330c36))
+* remove erroneous check for length%3==0 before gap removal ([d95761d](https://github.com/nextstrain/nextclade/commit/d95761d267090f285f3769d7d07772b4415e07e6))
+
+
+### Features
+
+* add more tree filtering criteria ([d852122](https://github.com/nextstrain/nextclade/commit/d8521221687bf0ba13b7deb3e24221fa6bd0b0ef))
+* add tree filtering from auspice ([27eb67e](https://github.com/nextstrain/nextclade/commit/27eb67e3651df242c9170f64f63efefc168dd3f7))
+* add tree filters summary ([67c671e](https://github.com/nextstrain/nextclade/commit/67c671ef85f1bd9c23a6c4b4f6ae03dda9b980c9))
+* adjust help text and default flags for new data location ([27fd88e](https://github.com/nextstrain/nextclade/commit/27fd88e1cdacb926e32554e7937b05a9015427a9))
+* color tree by clade and filter by Node Type - New by default ([79de7cd](https://github.com/nextstrain/nextclade/commit/79de7cd8fa73a7730a012fb3e84077751f614e2e))
+* output aligned reference sequence, make ref outputs optional ([49da3f5](https://github.com/nextstrain/nextclade/commit/49da3f59200264b2f7de892cd79a911dc7820271))
+* remove old tree filter panel ([13af3ad](https://github.com/nextstrain/nextclade/commit/13af3ad0d708cec9173b1eac922503c859d8ed4a))
+* remove separate reference sequence output file ([5a899e2](https://github.com/nextstrain/nextclade/commit/5a899e2796b1b282ff8fca1e53b7b7b94e5e81d6))
+* rename flag `--write-ref` to `--include-reference` ([36c52e9](https://github.com/nextstrain/nextclade/commit/36c52e9453fee61c694b9fc1d1246c3fe6130714))
+* upgrade auspice to 2.23.0 ([276675b](https://github.com/nextstrain/nextclade/commit/276675bb4df6a81130e9ac8bc98c5588f2462bd2))
+
+
+
 ## [0.14.1](https://github.com/nextstrain/nextclade/compare/0.14.0...0.14.1) (2021-03-12)
 
 This release of Nextclade adjusts the default Quality Control configuration to account for ever-increasing diversity of circulating SARS-CoV-2. The following default QC parameters have been changed:
