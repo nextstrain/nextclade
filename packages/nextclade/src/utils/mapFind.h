@@ -34,8 +34,7 @@ inline std::optional<V> mapFind(const frozen::map<K, V, N>& container, K key) {
  */
 template<typename Set, typename T>
 inline bool has(const Set& container, T key) {
-  const auto found = container.find(key);
-  return found != container.end();
+  return container.find(key) != container.end();
 }
 
 
