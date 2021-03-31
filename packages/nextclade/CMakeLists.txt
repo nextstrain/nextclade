@@ -42,6 +42,8 @@ set(SOURCE_FILES
   src/io/formatMutation.h
   src/io/formatQcStatus.cpp
   src/io/formatQcStatus.h
+  src/io/jsonStringify.cpp
+  src/io/jsonStringify.h
   src/io/parseMutation.cpp
   src/io/parseMutation.h
   src/io/serializeResults.cpp

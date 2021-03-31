@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+#include "../io/jsonStringify.h"
 #include "formatQcStatus.h"
 
 namespace Nextclade {
@@ -224,6 +225,6 @@ namespace Nextclade {
     for (const auto& result : results) {
       j.emplace_back(serializeResult(result));
     }
-    return std::string{j.dump(4)};
+    return jsonStringify(j);
   }
 }// namespace Nextclade

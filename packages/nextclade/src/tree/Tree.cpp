@@ -1,14 +1,17 @@
 #include "Tree.h"
 
+#include <fmt/format.h>
+
 #include <string>
 
+#include "../io/jsonStringify.h"
 #include "TreeNode.h"
 
 
 // Goes last (or at least after forward declarations of this library)
-#include <fmt/format.h>
-
+// clang-format off
 #include <nlohmann/json.hpp>
+// clang-format on
 
 
 namespace Nextclade {
@@ -35,7 +38,7 @@ namespace Nextclade {
     }
 
     std::string serialize(int spaces = 4) const {
-      return std::string{j.dump(spaces)};
+      return jsonStringify(j, spaces);
     }
   };
 
