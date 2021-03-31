@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
   decode.test.cpp
   extractGene.test.cpp
   mapCoordinates.test.cpp
+  nucToString.test.cpp
   parseGeneMapGff.test.cpp
   parseSequences.test.cpp
   removeGaps.test.cpp
