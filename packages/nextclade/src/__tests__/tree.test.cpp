@@ -105,7 +105,7 @@ TEST(Tree, Sets_clade) {
           }
        }
     }
-  )"_json.dump(4);
+  )"_json.dump(2);
 
   EXPECT_EQ(expected, tree.serialize());
 }
@@ -143,7 +143,7 @@ TEST(Tree, Sets_divergence) {
           }
        }
     }
-  )"_json.dump(4);
+  )"_json.dump(2);
 
   EXPECT_EQ(expected, tree.serialize());
 }
