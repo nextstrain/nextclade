@@ -11,8 +11,7 @@
 #include "../../src/tree/treeFindNearestNodes.h"
 
 
-#define EXPECT_ARR_EQ(expected, actual) ASSERT_THAT(actual, ::testing::ElementsAreArray(expected))
-#define EXPECT_MAP_EQ(expected, actual) ASSERT_THAT(actual, ::testing::ContainerEq(expected))
+#define EXPECT_ARR_EQ_UNORDERED(expected, actual) ASSERT_THAT(actual, ::testing::UnorderedElementsAreArray(expected))
 
 namespace {
   using Nextclade::NextcladeResult;
@@ -85,7 +84,7 @@ TEST_F(FindPrivateMutations, Returns_Empty_If_No_Mutations) {
   Nextclade::NextcladeResult seq = makeQuery({/* no mutations in query seq */});
   const auto actual = findPrivateMutations(&node, seq, rootSeq);
   const auto expected = makeMutList({});
-  EXPECT_ARR_EQ(actual, expected);
+  EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
 
 TEST_F(FindPrivateMutations, Returns_Empty_If_Matching_Single_Element) {
@@ -94,7 +93,7 @@ TEST_F(FindPrivateMutations, Returns_Empty_If_Matching_Single_Element) {
   Nextclade::NextcladeResult seq = makeQuery({"A123C"});
   const auto actual = findPrivateMutations(&node, seq, rootSeq);
   const auto expected = makeMutList({});
-  EXPECT_ARR_EQ(actual, expected);
+  EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
 
 TEST_F(FindPrivateMutations, Returns_Empty_If_Same_muts) {
@@ -104,7 +103,7 @@ TEST_F(FindPrivateMutations, Returns_Empty_If_Same_muts) {
   Nextclade::NextcladeResult seq = makeQuery(muts);
   const auto actual = findPrivateMutations(&node, seq, rootSeq);
   const auto expected = makeMutList({});
-  EXPECT_ARR_EQ(actual, expected);
+  EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
 
 TEST_F(FindPrivateMutations, Returns_Query_Muts_For_Disjoint_Sets) {
@@ -114,7 +113,7 @@ TEST_F(FindPrivateMutations, Returns_Query_Muts_For_Disjoint_Sets) {
   Nextclade::NextcladeResult seq = makeQuery(queryMuts);
   const auto actual = findPrivateMutations(&node, seq, rootSeq);
   const auto expected = makeMutList(queryMuts);
-  EXPECT_ARR_EQ(actual, expected);
+  EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
 
 TEST_F(FindPrivateMutations, Returns_Set_Difference_In_General_Case) {
@@ -122,20 +121,20 @@ TEST_F(FindPrivateMutations, Returns_Set_Difference_In_General_Case) {
 
   Nextclade::TreeNode node = makeRef(tree,//
     {
-      "C123A",
-      "C111B",
       "C567C",
-      "C679N",
-      "C333Y",
+      "C123A",
       "C45874Y",
       "C45875A",
+      "C333Y",
+      "C111B",
+      "C679N",
     });
 
   Nextclade::NextcladeResult seq = makeQuery(//
     {
+      "C679Y",
       "C123B",
       "C567C",
-      "C679Y",
       "C45875Y",
     });
 
@@ -148,5 +147,5 @@ TEST_F(FindPrivateMutations, Returns_Set_Difference_In_General_Case) {
 
   const auto actual = findPrivateMutations(&node, seq, rootSeq);
 
-  EXPECT_ARR_EQ(actual, expected);
+  EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
