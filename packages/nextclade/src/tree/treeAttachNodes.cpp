@@ -169,9 +169,9 @@ namespace Nextclade {
     // HACK: Guess the unit of measurement of divergence.
     // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
     // FIXME: Should be resolved upstream in augur/auspice.
-    constexpr const auto HACK_MAX_DIVERGENCE_THESHOLD = 5;
+    constexpr const auto HACK_MAX_DIVERGENCE_THRESHOLD = 5;
     auto thisDiv = totalNucMutations;// unit: number of substitutions
-    if (maxDivergence <= HACK_MAX_DIVERGENCE_THESHOLD) {
+    if (maxDivergence <= HACK_MAX_DIVERGENCE_THRESHOLD) {
       thisDiv /= rootSeq.size();// unit: number of substitutions per site
     }
 
