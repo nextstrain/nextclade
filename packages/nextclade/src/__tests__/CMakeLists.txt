@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
   getNucleotideComposition.test.cpp
   getPcrPrimerChanges.test.cpp
   isMatch.test.cpp
+  isSequenced.test.cpp
   parseMutation.test.cpp
   tree.test.cpp
   )
