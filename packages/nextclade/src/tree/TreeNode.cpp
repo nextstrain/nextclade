@@ -196,7 +196,13 @@ namespace Nextclade {
     std::vector<NucleotideSubstitution> nucleotideMutations() const {
       ensureIsObject();
 
-      auto nucMutsArray = j[json_pointer{"/branch_attrs/mutations/nuc"}];
+      const auto path = json_pointer{"/branch_attrs/mutations/nuc"};
+
+      if (!j.contains(path)) {
+        return {};
+      }
+
+      auto nucMutsArray = j.at(path);
       if (!nucMutsArray.is_array()) {
         // TODO: throw an exception
       }
