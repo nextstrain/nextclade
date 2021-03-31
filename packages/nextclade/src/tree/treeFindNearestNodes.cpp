@@ -82,16 +82,17 @@ namespace Nextclade {
     const auto& seqSubstitutions = seq.substitutions;
 
     std::vector<NucleotideSubstitution> privateMutations;
-    for (const auto& sub : seqSubstitutions) {
-      const auto nodeSub = mapFind(nodeSubstitutions, sub.pos);
-      if (*nodeSub == sub.queryNuc) {
-        privateMutations.push_back(sub);
+    for (const auto& seqSub : seqSubstitutions) {
+      const auto nodeSub = mapFind(nodeSubstitutions, seqSub.pos);
+      const auto isSharedMutation = (nodeSub && (*nodeSub == seqSub.queryNuc));
+      if (!isSharedMutation) {
+        privateMutations.push_back(seqSub);
       }
     }
 
     std::set<int> mutatedPositions;
-    for (const auto& sub : seqSubstitutions) {
-      mutatedPositions.insert(sub.pos);
+    for (const auto& seqSub : seqSubstitutions) {
+      mutatedPositions.insert(seqSub.pos);
     }
 
     for (const auto [pos, refNuc] : nodeSubstitutions) {

@@ -12,6 +12,9 @@ namespace Nextclade {
     std::vector<NucleotideSubstitution> privateMutations;
   };
 
+  std::vector<NucleotideSubstitution> findPrivateMutations(
+    const TreeNode* node, const NextcladeResult& seq, const NucleotideSequence& rootSeq);
+
   TreeFindNearestNodesResult treeFindNearestNode(
     const NextcladeResult& analysisResult, const NucleotideSequence& rootSeq, const Tree& tree);
 }// namespace Nextclade
