@@ -36,10 +36,15 @@ namespace Nextclade {
     const auto nucleotideMutations = node.nucleotideMutations();
     for (const auto& mut : nucleotideMutations) {
       // TODO: this check seems to be always triggering an exception. Investigate.
-      // const auto& previousNuc = mapFind(tmpMuts, mut.pos);
-      // if (previousNuc.has_value() && (previousNuc.value() != mut.refNuc)) {
-      //   throw ErrorAttachMutationsInconsistentMutation(mut, previousNuc.value());
-      // }
+      const auto& previousNuc = mapFind(tmpMuts, mut.pos);
+      if (previousNuc.has_value() && (previousNuc.value() != mut.refNuc)) {
+        // throw ErrorAttachMutationsInconsistentMutation(mut, previousNuc.value());
+        fmt::print(                                                              //
+          "When attaching mutations: Mutation is inconsistent: \"{}\": "         //
+          "current nucleotide: \"{}\", previously seen: \"{}\"",                 //
+          formatMutation(mut), nucToString(mut.refNuc), nucToString(*previousNuc)//
+        );                                                                       //
+      }
 
       // If mutation reverts nucleotide back to what reference had, remove it from the map
       if (rootSeq[mut.pos] == mut.queryNuc) {
