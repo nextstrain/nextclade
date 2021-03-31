@@ -427,18 +427,14 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
 
   if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
 
-    # if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
-    #   print 23 "Run Nextalign tests";
-    #   pushd "${BUILD_DIR}/packages/nextalign/tests" > /dev/null
-    #       eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-    #   popd > /dev/null
-    # fi
+     if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
+       print 23 "Run Nextalign tests";
+       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+     fi
 
     if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
       print 23 "Run Nextclade tests";
-      pushd "${BUILD_DIR}/packages/nextclade/src/__tests__" > /dev/null
-          eval ${GTPP} ${GDB} ./nextclade_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-      popd > /dev/null
+      eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
     fi
   fi
 
