@@ -58,9 +58,9 @@ namespace Nextclade {
 
     json serializeMutation(const NucleotideSubstitution& mut) {
       auto j = json::object();
-      j.emplace("refNuc", mut.refNuc);
+      j.emplace("refNuc", nucToString(mut.refNuc));
       j.emplace("pos", mut.pos);
-      j.emplace("queryNuc", mut.queryNuc);
+      j.emplace("queryNuc", nucToString(mut.queryNuc));
       j.emplace("pcrPrimersChanged", serializeArray(mut.pcrPrimersChanged, serializePcrPrimer));
       return j;
     }
@@ -101,9 +101,9 @@ namespace Nextclade {
 
     json serializeAminoacidMutation(const AminoacidSubstitution& mut) {
       auto j = json::object();
-      j.emplace("refAA", std::to_string(aaToChar(mut.refAA)));
+      j.emplace("refAA", aaToString(mut.refAA));
       j.emplace("codon", mut.codon);
-      j.emplace("queryAA", std::to_string(aaToChar(mut.queryAA)));
+      j.emplace("queryAA", aaToString(mut.queryAA));
       j.emplace("gene", mut.gene);
       j.emplace("nucRange", serializeNucleotideRange(mut.nucRange));
       j.emplace("refCodon", toString(mut.refCodon));
@@ -113,7 +113,7 @@ namespace Nextclade {
 
     json serializeAminoacidDeletion(const AminoacidDeletion& del) {
       auto j = json::object();
-      j.emplace("refAA", std::to_string(aaToChar(del.refAA)));
+      j.emplace("refAA", aaToString(del.refAA));
       j.emplace("codon", del.codon);
       j.emplace("gene", del.gene);
       j.emplace("nucRange", serializeNucleotideRange(del.nucRange));
