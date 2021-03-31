@@ -26,7 +26,7 @@ namespace Nextclade {
   }
 
   class NextcladeAlgorithmImpl {
-    NextcladeOptions options;
+    const NextcladeOptions options;
     Tree tree;
     std::vector<NextcladeResult> results;
 
