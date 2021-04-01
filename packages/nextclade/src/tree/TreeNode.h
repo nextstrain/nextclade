@@ -65,6 +65,8 @@ namespace Nextclade {
 
     void setNucleotideMutationsEmpty();
 
+    void setBranchAttrMutations(const std::map<std::string, std::vector<std::string>>& mutations);
+
     std::optional<double> divergence() const;
 
     void setDivergence(double div);
@@ -75,15 +77,17 @@ namespace Nextclade {
 
     bool isReferenceNode() const;
 
+    void setNodeType(const std::string& nodeType);
+
     bool isLeaf() const;
 
     std::string name() const;
 
     void setName(const std::string& name);
 
-    void setNodeAttr(const char* name, const char* val);
+    void setNodeAttr(const std::string& name, const std::string& val);
 
-    void removeNodeAttr(const char* name);
+    void removeNodeAttr(const std::string& name);
 
     void removeTemporaries();
   };

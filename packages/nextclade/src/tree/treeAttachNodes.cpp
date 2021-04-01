@@ -8,6 +8,8 @@
 
 #include "../analyze/isSequenced.h"
 #include "../io/formatMutation.h"
+#include "../io/formatQcStatus.h"
+#include "../io/parseMutation.h"
 #include "../utils/contract.h"
 #include "../utils/eraseDuplicates.h"
 #include "../utils/mapFind.h"
@@ -17,6 +19,17 @@
 namespace Nextclade {
   namespace {
     constexpr auto NEGATIVE_INFINITY = -std::numeric_limits<double>::infinity();
+
+    // HACK: keep space at the end: workaround for Auspice filtering out "Unknown"
+    constexpr const char* const UNKNOWN_VALUE = "Unknown ";
+
+    template<typename T, typename Formatter, typename Delimiter>
+    std::string formatAndJoinMaybeEmpty(const std::vector<T>& elements, Formatter formatter, Delimiter delimiter) {
+      if (elements.empty()) {
+        return "None";
+      }
+      return formatAndJoin(elements, formatter, delimiter);
+    }
 
     struct AminoacidMutationEntry {
       NucleotideSequence gene;
@@ -36,6 +49,7 @@ namespace Nextclade {
       std::vector<std::string> nucMutations;
       double divergence;
     };
+
   }// namespace
 
   void addAuxiliaryNode(TreeNode& node) {
@@ -190,76 +204,43 @@ namespace Nextclade {
     const std::map<std::string, std::vector<std::string>>& mutations, const std::vector<std::string>& nucMutations,
     double divergence) {
 
-    auto nowNode = node.addChild();
+    auto newNode = node.addChild();
 
-    (void) result;
-    (void) mutations;
-    (void) nucMutations;
-    (void) divergence;
+    newNode.setName(fmt::format("{}_clades", result.seqName));
+    newNode.setClade(result.clade);
+    newNode.setNodeType("New");
+    newNode.setBranchAttrMutations(mutations);
+    newNode.setDivergence(divergence);
+    newNode.setNodeAttr("region", UNKNOWN_VALUE);
+    newNode.setNodeAttr("country", UNKNOWN_VALUE);
+    newNode.setNodeAttr("division", UNKNOWN_VALUE);
 
+    newNode.setNodeAttr("Alignment",
+      fmt::format("start: {}, end: {} (score: {})", result.alignmentStart, result.alignmentEnd, result.alignmentScore));
 
-    // TODO: implement this
+    newNode.setNodeAttr("Missing", formatAndJoinMaybeEmpty(result.missing, formatMissing, ", "));
 
-    //  const qcStatus = qc?.overallStatus
-    //  let qcFlags = 'Not available'
-    //  if (qc) {
-    //    const { privateMutations, snpClusters, mixedSites, missingData } = qc
-    //    const messages = [
-    //      formatQCMissingData(t, missingData),
-    //      formatQCPrivateMutations(t, privateMutations),
-    //      formatQCMixedSites(t, mixedSites),
-    //      formatQCSNPClusters(t, snpClusters),
-    //    ].filter(notUndefined)
-    //    qcFlags = messages.join('; ')
-    //  }
+    newNode.setNodeAttr("Gaps", formatAndJoinMaybeEmpty(result.deletions, formatDeletion, ", "));
 
-    //  const alignment = `start: ${alignmentStart}, end: ${alignmentEnd} (score: ${alignmentScore})`
-    //
-    //  const listOfMissing = missing.map(({ begin, end }) => formatRange(begin, end)).join(', ')
-    //  const formattedMissing = totalMissing > 0 ? `(${totalMissing}): ${listOfMissing}` : 'None'
-    //
-    //  const listOfNonACGTNs = nonACGTNs.map(({ begin, end, nuc }) => `${nuc}: ${formatRange(begin, end)}`).join(', ')
-    //  const formattedNonACGTNs = totalNonACGTNs > 0 ? `(${totalNonACGTNs}): ${listOfNonACGTNs}` : 'None'
-    //
-    //  const listOfGaps = deletions.map(({ start, length }) => formatRange(start, start + length)).join(', ')
-    //  const formattedGaps = totalGaps > 0 ? `(${totalGaps}): ${listOfGaps}` : 'None'
-    //
-    //  const listOfPcrPrimerChanges = pcrPrimerChanges.map(formatPrimer).join(', ')
-    //  const formattedPcrPrimerChanges =
-    //    totalPcrPrimerChanges > 0 ? `(${totalPcrPrimerChanges}): ${listOfPcrPrimerChanges}` : 'None'
+    newNode.setNodeAttr("Non-ACGTNs", formatAndJoinMaybeEmpty(result.nonACGTNs, formatNonAcgtn, ", "));
 
-    //  return {
-    //    id: -1,
-    //    children: undefined,
-    //    mutations: undefined,
-    //    branch_attrs: { mutations: {} },
-    //    name: `${seq.seqName}_clades`,
-    //    node_attrs: {
-    //      'clade_membership': { value: seq.clade },
-    //      'Node type': { value: NodeType.New },
-    //      'Alignment': { value: alignment },
-    //      'Missing:': { value: formattedMissing },
-    //      'Gaps': { value: formattedGaps },
-    //      'Non-ACGTNs': { value: formattedNonACGTNs },
-    //      'Has PCR primer changes': { value: totalPcrPrimerChanges > 0 ? 'Yes' : 'No' },
-    //      'PCR primer changes': { value: formattedPcrPrimerChanges },
-    //      'QC Status': { value: qcStatus },
-    //      'QC Flags': { value: qcFlags },
-    //    },
-    //  }
+    newNode.setNodeAttr("Has PCR primer changes", result.totalPcrPrimerChanges > 0 ? "Yes" : "No");
 
-    //  const new_node = get_node_struct(result)
-    //  set(new_node, 'branch_attrs.mutations', mutations)
-    //  set(new_node, 'node_attrs.div', div)
-    //  set(new_node, 'node_attrs.region', { value: UNKNOWN_VALUE })
-    //  set(new_node, 'node_attrs.country', { value: UNKNOWN_VALUE })
-    //  set(new_node, 'node_attrs.division', { value: UNKNOWN_VALUE })
-    //  set(new_node, 'mutations', copy(nearestRefNode.mutations))
-    //
-    //  for (const mut of nucMutations) {
-    //    const { pos, queryNuc } = parseMutationOrThrow(mut)
-    //    new_node.mutations?.set(pos, queryNuc)
-    //  }
+    newNode.setNodeAttr(
+      "PCR primer changes", formatAndJoinMaybeEmpty(result.pcrPrimerChanges, formatPcrPrimerChange, ", "));
+
+    newNode.setNodeAttr("QC Status", formatQcStatus(result.qc.overallStatus));
+
+    newNode.setNodeAttr("QC Flags", formatQcFlags(result.qc));
+
+    auto tempMutations = node.mutations();
+    for (const auto& mutStr : nucMutations) {
+      // TODO: This parsing seems redundant. Can we avoid converting these to strings in upstream code?
+      // TODO: Can we move this away from here, closer to where mutations are produced!
+      const auto mut = parseMutation(mutStr);
+      tempMutations.insert(std::make_pair(mut.pos, mut.queryNuc));
+    }
+    newNode.setMutations(tempMutations);
   }
 
   /**

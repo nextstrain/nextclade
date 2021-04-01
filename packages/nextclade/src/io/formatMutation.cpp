@@ -1,20 +1,12 @@
+#include "formatMutation.h"
+
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
 
-#include <boost/algorithm/string/join.hpp>
 #include <string>
 
 namespace Nextclade {
-  namespace {
-    template<typename T, typename Formatter, typename Delimiter>
-    std::string formatAndJoin(const std::vector<T>& elements, Formatter formatter, Delimiter delimiter) {
-      std::vector<std::string> formatted;
-      std::transform(elements.cbegin(), elements.cend(), std::back_inserter(formatted), formatter);
-      return boost::algorithm::join(formatted, delimiter);
-    }
-  }// namespace
-
   std::string formatRange(const Range& range) {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto beginOne = range.begin + 1;

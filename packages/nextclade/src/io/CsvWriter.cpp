@@ -14,13 +14,6 @@
 
 namespace Nextclade {
   namespace {
-    template<typename T, typename Formatter, typename Delimiter>
-    std::string formatAndJoin(const std::vector<T>& elements, Formatter formatter, Delimiter delimiter) {
-      std::vector<std::string> formatted;
-      std::transform(elements.cbegin(), elements.cend(), std::back_inserter(formatted), formatter);
-      return boost::algorithm::join(formatted, delimiter);
-    }
-
     auto maybeSurroundWithQuotes(char delimiter) {
       return [delimiter](const std::string& str) {
         constexpr frozen::string CHARS_TO_QUOTE = "\n \"";

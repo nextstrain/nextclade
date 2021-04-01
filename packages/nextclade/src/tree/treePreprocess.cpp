@@ -65,7 +65,7 @@ namespace Nextclade {
     node.setId(id);
 
     // Node type will not be removed during postprocessing.
-    node.setNodeAttr("Node type", "Reference");
+    node.setNodeType("Reference");
 
     // Repeat for children recursively
     node.forEachChildNode([&tmpMuts, &id, &rootSeq](TreeNode& child) {

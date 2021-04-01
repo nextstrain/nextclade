@@ -171,7 +171,7 @@ namespace Nextclade {
       return getMutationsOrSubstitutions("mutations");
     }
 
-    void setMutationsOrSubstitutions(const char* what, const std::map<int, Nucleotide>& data) {
+    void setMutationsOrSubstitutions(const std::string& what, const std::map<int, Nucleotide>& data) {
       ensureIsObject();
       const auto path = json_pointer{fmt::format("/tmp/{}", what)};
       auto obj = json::object();
@@ -221,9 +221,33 @@ namespace Nextclade {
       return result;
     }
 
+    void setNucleotideMutations() {
+      ensureIsObject();
+      j[json_pointer{"/branch_attrs/mutations/nuc"}] = json::array();
+    }
+
     void setNucleotideMutationsEmpty() {
       ensureIsObject();
       j[json_pointer{"/branch_attrs/mutations/nuc"}] = json::array();
+    }
+
+    void setBranchAttrMutations(const std::map<std::string, std::vector<std::string>>& mutations) {
+      auto mutObj = json::object();
+
+      for (const auto& [gene, muts] : mutations) {
+        if (!muts.empty()) {
+          if (!mutObj.contains(gene)) {
+            mutObj[gene] = json::array();
+          }
+          for (const auto& mut : muts) {
+            mutObj[gene].push_back(mut);
+          }
+        }
+      }
+
+      if (!mutObj.empty()) {
+        j[json_pointer{"/branch_attrs/mutations"}] = std::move(mutObj);
+      }
     }
 
     std::optional<double> divergence() const {
@@ -279,6 +303,10 @@ namespace Nextclade {
       return isReference;
     }
 
+    void setNodeType(const std::string& nodeType) {
+      j[json_pointer{"/node_attrs/Node type/value"}] = nodeType;
+    }
+
     bool isLeaf() const {
       ensureIsObject();
       const auto childrenValue = j.value("children", json());
@@ -295,12 +323,12 @@ namespace Nextclade {
       j["name"] = name;
     }
 
-    void setNodeAttr(const char* name, const char* val) {
+    void setNodeAttr(const std::string& name, const std::string& val) {
       const auto path = json_pointer{fmt::format("/node_attrs/{}/value", name)};
       j[path] = val;
     }
 
-    void removeNodeAttr(const char* name) {
+    void removeNodeAttr(const std::string& name) {
       ensureIsObject();
       const auto path = json_pointer{fmt::format("/node_attrs/{}", name)};
       j.erase(path);
@@ -351,6 +379,10 @@ namespace Nextclade {
     pimpl->setNucleotideMutationsEmpty();
   }
 
+  void TreeNode::setBranchAttrMutations(const std::map<std::string, std::vector<std::string>>& mutations) {
+    pimpl->setBranchAttrMutations(mutations);
+  }
+
   std::optional<double> TreeNode::divergence() const {
     return pimpl->divergence();
   }
@@ -379,6 +411,10 @@ namespace Nextclade {
     return pimpl->isReferenceNode();
   }
 
+  void TreeNode::setNodeType(const std::string& nodeType) {
+    pimpl->setNodeType(nodeType);
+  }
+
   bool TreeNode::isLeaf() const {
     return pimpl->isLeaf();
   }
@@ -391,7 +427,7 @@ namespace Nextclade {
     return pimpl->setName(name);
   }
 
-  void TreeNode::setNodeAttr(const char* name, const char* val) {
+  void TreeNode::setNodeAttr(const std::string& name, const std::string& val) {
     return pimpl->setNodeAttr(name, val);
   }
 
@@ -403,7 +439,7 @@ namespace Nextclade {
     return pimpl->setSubstitutions(data);
   }
 
-  void TreeNode::removeNodeAttr(const char* name) {
+  void TreeNode::removeNodeAttr(const std::string& name) {
     pimpl->removeNodeAttr(name);
   }
 
