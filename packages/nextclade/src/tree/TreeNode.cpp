@@ -258,8 +258,27 @@ namespace Nextclade {
 
     bool isReferenceNode() const {
       ensureIsObject();
-      const auto& nodeType = j[json_pointer{"/node_attrs/Node Type/value"}];
-      return nodeType.is_string() && (nodeType.get<std::string>() == "Reference");
+
+      const auto path = json_pointer{"/node_attrs/Node type/value"};
+
+      if (!j.contains(path)) {
+        throw ErrorTreeNodeTypeInvalid(json());
+      }
+
+      const auto& nodeType = j.at(path);
+
+      if (!nodeType.is_string()) {
+        throw ErrorTreeNodeTypeInvalid(nodeType);
+      }
+
+      const auto isReference = nodeType.get<std::string>() == "Reference";
+      const auto isNew = nodeType.get<std::string>() == "New";
+
+      if (!isReference && !isNew) {
+        throw ErrorTreeNodeTypeInvalid(nodeType);
+      }
+
+      return isReference;
     }
 
     bool isLeaf() const {
@@ -435,4 +454,10 @@ namespace Nextclade {
           "report this to developers, providing data and parameters you used, in order to replicate the error.",
           node.dump())) {}
 
+  ErrorTreeNodeTypeInvalid::ErrorTreeNodeTypeInvalid(const json& node)
+      : std::runtime_error(fmt::format(
+          "When accessing Tree Node type: the type is invalid. Expected a string, one of { \"Reference\", \"New\" },"
+          "but got \"{}\". This is an internal issue. Please report this to developers, providing data and parameters "
+          "you used, in order to replicate the error.",
+          node.dump())) {}
 }// namespace Nextclade
