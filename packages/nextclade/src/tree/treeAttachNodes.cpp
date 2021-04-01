@@ -165,17 +165,17 @@ namespace Nextclade {
     }
 
 
-    const auto baseDiv = node.divergence().value_or(0);
+    const double baseDiv = node.divergence().value_or(0.0);
     // HACK: Guess the unit of measurement of divergence.
     // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
     // FIXME: Should be resolved upstream in augur/auspice.
     constexpr const auto HACK_MAX_DIVERGENCE_THRESHOLD = 5;
-    auto thisDiv = totalNucMutations;// unit: number of substitutions
+    double thisDiv = totalNucMutations;// unit: number of substitutions
     if (maxDivergence <= HACK_MAX_DIVERGENCE_THRESHOLD) {
       thisDiv /= rootSeq.size();// unit: number of substitutions per site
     }
 
-    const auto divergence = baseDiv + thisDiv;
+    const double divergence = baseDiv + thisDiv;
 
     nucMutations.shrink_to_fit();
 
