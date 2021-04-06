@@ -28,8 +28,13 @@ namespace Nextclade {
     if (raw.size() != 1) {
       throw ErrorParseMutationInvalidNucleotide(raw);
     }
-    const char c = safe_cast<char>(std::toupper(raw[0]));
-    return toNucleotide(c);
+
+    try {
+      const char c = safe_cast<char>(std::toupper(raw[0]));
+      return toNucleotide(c);
+    } catch (...) {
+      throw ErrorParseMutationInvalidNucleotide(raw);
+    }
   }
 
   NucleotideSubstitution parseMutation(const std::string& mut) {

@@ -67,12 +67,16 @@ TEST(ParseMutation, With_Missing_Position) {
   EXPECT_THROW(parseMutation("AC"), ErrorParseMutationInvalidFormat);
 }
 
+TEST(ParseMutation, With_Invalid_Position) {
+  EXPECT_THROW(parseMutation("AfffC"), ErrorParseMutationInvalidFormat);
+}
+
 TEST(ParseMutation, With_No_Left_Nuc) {
-  EXPECT_THROW(parseMutation("123C"), ErrorParseMutationInvalidNucleotide);
+  EXPECT_THROW(parseMutation("123C"), ErrorParseMutationInvalidFormat);
 }
 
 TEST(ParseMutation, With_No_Right_Nuc) {
-  EXPECT_THROW(parseMutation("A123"), ErrorParseMutationInvalidNucleotide);
+  EXPECT_THROW(parseMutation("A123"), ErrorParseMutationInvalidFormat);
 }
 
 TEST(ParseMutation, With_No_Position_And_No_Other_Nuc) {
