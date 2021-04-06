@@ -16,7 +16,6 @@ namespace {
 
   using Nextclade::ErrorParseMutationInvalidFormat;
   using Nextclade::ErrorParseMutationInvalidNucleotide;
-  using Nextclade::ErrorParseMutationInvalidPosition;
 }// namespace
 
 
