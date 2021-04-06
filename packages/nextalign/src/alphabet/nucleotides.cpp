@@ -3,11 +3,12 @@
 #include <fmt/format.h>
 #include <frozen/map.h>
 
-#include <exception>
+#include <stdexcept>
 
 #include "../utils/contains.h"
 #include "../utils/contract.h"
 #include "../utils/map.h"
+#include "../utils/safe_cast.h"
 
 namespace {
   class ErrorNucleotideInvalid : public std::runtime_error {
@@ -59,7 +60,8 @@ namespace {
 
 
 Nucleotide toNucleotide(char nuc) {
-  const auto* it = charToNucleotide.find(nuc);
+  const char nucUpper = safe_cast<char>(std::toupper(nuc));
+  const auto* it = charToNucleotide.find(nucUpper);
   if (it == charToNucleotide.end()) {
     throw ErrorNucleotideInvalid(nuc);
   }

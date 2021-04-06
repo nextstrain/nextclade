@@ -3,11 +3,12 @@
 #include <fmt/format.h>
 #include <frozen/map.h>
 
-#include <exception>
+#include <stdexcept>
 
 #include "../utils/contains.h"
 #include "../utils/contract.h"
 #include "../utils/map.h"
+#include "../utils/safe_cast.h"
 
 namespace {
   class ErrorAminoacidInvalid : public std::runtime_error {
@@ -80,7 +81,8 @@ namespace {
 }// namespace
 
 Aminoacid charToAa(char aa) {
-  const auto* it = charToAminoacid.find(aa);
+  const char aaUpper = safe_cast<char>(std::toupper(aa));
+  const auto* it = charToAminoacid.find(aaUpper);
   if (it == charToAminoacid.end()) {
     throw ErrorAminoacidInvalid(aa);
   }
