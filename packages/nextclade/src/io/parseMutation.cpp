@@ -5,52 +5,67 @@
 #include <nextclade/private/nextclade_private.h>
 #include <utils/safe_cast.h>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/xpressive/xpressive.hpp>
 #include <string>
 
 namespace Nextclade {
 
-  int parsePosition(const std::string_view& posStr) {
-    if (posStr.empty()) {
-      throw ErrorParseMutationInvalidPosition(posStr);
+  int parsePosition(const std::string& raw) {
+    if (raw.empty()) {
+      throw ErrorParseMutationInvalidPosition(raw);
     }
 
     try {
-      const auto num = std::stoi(posStr.data());
+      const auto num = std::stoi(raw);
       return num - 1;// To 0-based indexing
     } catch (...) {
-      throw ErrorParseMutationInvalidPosition(posStr);
+      throw ErrorParseMutationInvalidPosition(raw);
     }
   }
 
-  Nucleotide parseNucleotide(char nuc) {
-    try {
-      return toNucleotide(nuc);
-    } catch (...) {
-      throw ErrorParseMutationInvalidNucleotide(nuc);
+  Nucleotide parseNucleotide(const std::string& raw) {
+    if (raw.size() != 1) {
+      throw ErrorParseMutationInvalidNucleotide(raw);
     }
+    const char c = safe_cast<char>(std::toupper(raw[0]));
+    return toNucleotide(c);
   }
 
-  NucleotideSubstitution parseMutation(const std::string_view& mut) {
+  NucleotideSubstitution parseMutation(const std::string& mut) {
     if (mut.size() < 3) {
       throw ErrorParseMutationInvalidFormat(mut);
     }
 
-    const auto& refNuc = parseNucleotide(mut[0]);
-    const auto& pos = parsePosition(mut.substr(1, mut.size() - 2));
-    const auto& queryNuc = parseNucleotide(mut[mut.size() - 1]);
+    using boost::xpressive::smatch;
+    using boost::xpressive::sregex;
+
+    // clang-format off
+    const auto regex = sregex::compile(R"((?P<refNuc>[A-Z-])(?P<pos>\d{1,10})(?P<queryNuc>[A-Z-]))");
+    // clang-format on
+
+    const auto upper = boost::to_upper_copy(mut);
+
+    smatch matches;
+    if (!regex_match(upper, matches, regex)) {
+      throw ErrorParseMutationInvalidFormat(mut);
+    }
+
+    const auto& refNucStr = std::string{matches["refNuc"]};
+    const auto& posStr = std::string{matches["pos"]};
+    const auto& queryNucStr = std::string{matches["queryNuc"]};
+
+    const auto& refNuc = parseNucleotide(refNucStr);
+    const auto& pos = parsePosition(posStr);
+    const auto& queryNuc = parseNucleotide(queryNucStr);
 
     return NucleotideSubstitution{.refNuc = refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}};
   }
 
-  NucleotideSubstitution parseMutation(const std::string& mut) {
-    return parseMutation(std::string_view{mut});
-  }
+  Nextclade::ErrorParseMutationInvalidNucleotide::ErrorParseMutationInvalidNucleotide(const std::string& mut)
+      : std::runtime_error(fmt::format("When parsing mutation: Unable to parse nucleotide: \"{}\"", mut)) {}
 
-  Nextclade::ErrorParseMutationInvalidNucleotide::ErrorParseMutationInvalidNucleotide(char nuc)
-      : std::runtime_error(fmt::format("When parsing mutation: Unable to parse nucleotide: \"{}\"", std::string{nuc})) {
-  }
-
-  Nextclade::ErrorParseMutationInvalidPosition::ErrorParseMutationInvalidPosition(const std::string_view& posStr)
+  Nextclade::ErrorParseMutationInvalidPosition::ErrorParseMutationInvalidPosition(const std::string& posStr)
       : std::runtime_error(fmt::format("When parsing mutation: Unable to parse position: \"{:s}\"", posStr)) {}
 
   ErrorParseMutationInvalidFormat::ErrorParseMutationInvalidFormat(const std::string_view& mut)

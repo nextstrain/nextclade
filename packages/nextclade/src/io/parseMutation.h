@@ -2,19 +2,18 @@
 
 #include <stdexcept>
 #include <string>
-#include <string_view>
 
 namespace Nextclade {
   struct NucleotideSubstitution;
 
   class ErrorParseMutationInvalidPosition : public std::runtime_error {
   public:
-    explicit ErrorParseMutationInvalidPosition(const std::string_view& posStr);
+    explicit ErrorParseMutationInvalidPosition(const std::string& posStr);
   };
 
   class ErrorParseMutationInvalidNucleotide : public std::runtime_error {
   public:
-    explicit ErrorParseMutationInvalidNucleotide(char nuc);
+    explicit ErrorParseMutationInvalidNucleotide(const std::string& mut);
   };
 
   class ErrorParseMutationInvalidFormat : public std::runtime_error {
