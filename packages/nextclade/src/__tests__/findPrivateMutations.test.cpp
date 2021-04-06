@@ -82,7 +82,7 @@ TEST_F(FindPrivateMutations, Returns_Empty_If_No_Mutations) {
   auto tree = Tree(R"({ "tree": {} })");
   Nextclade::TreeNode node = makeRef(tree, {/* no mutations in ref node */});
   Nextclade::NextcladeResult seq = makeQuery({/* no mutations in query seq */});
-  const auto actual = findPrivateMutations(&node, seq, rootSeq);
+  const auto actual = findPrivateMutations(node, seq, rootSeq);
   const auto expected = makeMutList({});
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
@@ -91,7 +91,7 @@ TEST_F(FindPrivateMutations, Returns_Empty_If_Matching_Single_Element) {
   auto tree = Tree(R"({ "tree": {} })");
   Nextclade::TreeNode node = makeRef(tree, {"A123C"});
   Nextclade::NextcladeResult seq = makeQuery({"A123C"});
-  const auto actual = findPrivateMutations(&node, seq, rootSeq);
+  const auto actual = findPrivateMutations(node, seq, rootSeq);
   const auto expected = makeMutList({});
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
@@ -101,7 +101,7 @@ TEST_F(FindPrivateMutations, Returns_Empty_If_Same_muts) {
   const auto muts = std::vector<std::string>{"A123C", "T456C", "A789G"};
   Nextclade::TreeNode node = makeRef(tree, muts);
   Nextclade::NextcladeResult seq = makeQuery(muts);
-  const auto actual = findPrivateMutations(&node, seq, rootSeq);
+  const auto actual = findPrivateMutations(node, seq, rootSeq);
   const auto expected = makeMutList({});
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
@@ -111,7 +111,7 @@ TEST_F(FindPrivateMutations, Returns_Query_Muts_For_Disjoint_Sets) {
   Nextclade::TreeNode node = makeRef(tree, {"A123C", "T456C", "A789G"});
   const auto queryMuts = std::vector<std::string>{{"A123G", "T147C", "A258G"}};
   Nextclade::NextcladeResult seq = makeQuery(queryMuts);
-  const auto actual = findPrivateMutations(&node, seq, rootSeq);
+  const auto actual = findPrivateMutations(node, seq, rootSeq);
   const auto expected = makeMutList(queryMuts);
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }
@@ -145,7 +145,7 @@ TEST_F(FindPrivateMutations, Returns_Set_Difference_In_General_Case) {
       "C45875Y",
     });
 
-  const auto actual = findPrivateMutations(&node, seq, rootSeq);
+  const auto actual = findPrivateMutations(node, seq, rootSeq);
 
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
 }

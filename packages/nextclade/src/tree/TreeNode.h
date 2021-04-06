@@ -20,7 +20,7 @@ namespace Nextclade {
   class TreeNodeImpl;
 
   class TreeNode {
-    std::unique_ptr<TreeNodeImpl> pimpl;
+    std::shared_ptr<TreeNodeImpl> pimpl;
 
     friend class TreeNodeImpl;
 
@@ -29,15 +29,15 @@ namespace Nextclade {
   public:
     explicit TreeNode(json& j);
 
-    ~TreeNode();
+    ~TreeNode() = default;
 
-    TreeNode(const TreeNode& other) = delete;
+    TreeNode(const TreeNode& other) = default;
 
-    TreeNode& operator=(const TreeNode& other) = delete;
+    TreeNode& operator=(const TreeNode& other) = default;
 
-    TreeNode(TreeNode&& other) noexcept;
+    TreeNode(TreeNode&& other) noexcept = default;
 
-    TreeNode& operator=(TreeNode&& other) noexcept;
+    TreeNode& operator=(TreeNode&& other) noexcept = default;
 
     TreeNode addChildFromCopy(const TreeNode& node);
 
@@ -47,7 +47,7 @@ namespace Nextclade {
 
     void forEachChildNode(const std::function<void(TreeNode&)>& action);
 
-    void forEachChildReferenceNode(const std::function<void(const TreeNode&)>& action) const;
+    void forEachChildReferenceNode(const std::function<void(TreeNode)>& action);
 
     int id() const;
 

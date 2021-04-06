@@ -13,7 +13,7 @@ namespace Nextclade {
   };
 
   std::vector<NucleotideSubstitution> findPrivateMutations(
-    const TreeNode* node, const NextcladeResult& seq, const NucleotideSequence& rootSeq);
+    const TreeNode& node, const NextcladeResult& seq, const NucleotideSequence& rootSeq);
 
   TreeFindNearestNodesResult treeFindNearestNode(
     const NextcladeResult& analysisResult, const NucleotideSequence& rootSeq, const Tree& tree);

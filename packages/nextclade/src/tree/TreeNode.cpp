@@ -119,14 +119,12 @@ namespace Nextclade {
       }
     }
 
-    void forEachChildReferenceNode(const std::function<void(const TreeNode&)>& action, TreeNode::const_tag) const {
-      const auto& childrenArray = getChildren();
-      for (const auto& elem : childrenArray) {
-        json copy;
-        copy.update(elem);
-        TreeNode node{copy};
+    void forEachChildReferenceNode(const std::function<void(TreeNode)>& action, TreeNode::const_tag) {
+      auto& childrenArray = getChildren();
+      for (json& elem : childrenArray) {
+        TreeNode node{elem};
         if (node.isReferenceNode()) {
-          action(node);
+          action(TreeNode{elem});
         }
       }
     }
@@ -314,16 +312,8 @@ namespace Nextclade {
     }
   };
 
-  TreeNode::TreeNode(json& js) : pimpl(std::make_unique<TreeNodeImpl>(js)) {}
+  TreeNode::TreeNode(json& js) : pimpl(std::make_shared<TreeNodeImpl>(js)) {}
 
-  TreeNode::TreeNode(TreeNode&& other) noexcept : pimpl(std::move(other.pimpl)) {}
-
-  TreeNode& TreeNode::operator=(TreeNode&& other) noexcept {
-    pimpl = std::move(other.pimpl);
-    return *this;
-  }
-
-  TreeNode::~TreeNode() {}// NOLINT(modernize-use-equals-default)
 
   TreeNode TreeNode::addChildFromCopy(const TreeNode& node) {
     return pimpl->addChildFromCopy(node);
@@ -341,7 +331,7 @@ namespace Nextclade {
     pimpl->forEachChildNode(action);
   }
 
-  void TreeNode::forEachChildReferenceNode(const std::function<void(const TreeNode&)>& action) const {
+  void TreeNode::forEachChildReferenceNode(const std::function<void(TreeNode)>& action) {
     pimpl->forEachChildReferenceNode(action, TreeNode::const_tag{});
   }
 
@@ -420,6 +410,7 @@ namespace Nextclade {
   void TreeNode::removeTemporaries() {
     pimpl->removeTemporaries();
   }
+
 
   ErrorTreeNodeNotObject::ErrorTreeNodeNotObject(const json& node)
       : std::runtime_error(
