@@ -129,11 +129,11 @@ TEST_F(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
   EXPECT_ARR_EQ_UNORDERED(nucSubstitutionsExpected, analysis.substitutions);
 }
 
-
+/** Tests deletion that is aligned to codon. All 3 nucleotides of the codon are deleted here. */
 TEST_F(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
   // clang-format off
   //                                                                        30                            60
-  //                                                                        v                             v
+  //                                                                        v       gene "Hello"          v
   const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTACCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
   const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "ATT---ACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
   //                                                                           ^^^
@@ -190,6 +190,81 @@ TEST_F(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
 
   EXPECT_ARR_EQ_UNORDERED(aaDeletionsExpected, aaChanges.aaDeletions);
 
-  // Should modify mutations in-place!
+  // Should modify deletions in-place!
   EXPECT_ARR_EQ_UNORDERED(nucDeletionsExpected, analysis.deletions);
+}
+
+/** Tests deletion that is not aligned to codons.
+ * 2 codons are affected here.
+ * 3 nucleotides are deleted: 1 at the end of a codon and 2 at the beginning of the next codon.
+ **/
+TEST_F(GetAminoacidChanges, Finds_Aminoacid_Deletions_Of_Adjacent_Codons) {
+  // clang-format off
+  //                                                                        30                            60
+  //                                                                        v       gene "Foo"            v
+  const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTACCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "AT---AACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  //                                                                          ^^^
+  //                                                         deletion of ACC at pos [32; 35) that spans 2 codons
+  // clang-format on
+
+  GeneMap geneMap = GeneMap{
+    {
+      "Foo",//
+      Gene{
+        .geneName = "Foo",
+        .start = 30,
+        .end = 60,
+        .strand = "+",
+        .frame = 0,
+        .length = 30,
+      },
+    },
+  };
+
+  auto options = getDefaultOptions();
+  options.alignment.minimalLength = 0;
+  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+  auto analysis = analyze(alignment.query, alignment.ref);
+
+
+  const auto aaChanges = getAminoacidChanges(//
+    alignment.ref,                           //
+    alignment.query,                         //
+    alignment.refPeptides,                   //
+    alignment.queryPeptides,                 //
+    analysis.substitutions,                  //
+    analysis.deletions,                      //
+    geneMap                                  //
+  );                                         //
+
+  const std::vector<AminoacidDeletion> aaDeletionsExpected = {
+    AminoacidDeletion{
+      .refAA = Aminoacid::T,
+      .codon = 0,
+      .gene = "Foo",
+      .nucRange = {.begin = 30, .end = 33},
+      .refCodon = toNucleotideSequence("CTA"),
+    },
+    AminoacidDeletion{
+      .refAA = Aminoacid::P,
+      .codon = 1,
+      .gene = "Foo",
+      .nucRange = {.begin = 33, .end = 36},
+      .refCodon = toNucleotideSequence("CCA"),
+    },
+  };
+
+  const std::vector<NucleotideDeletion> nucDeletionsExpected = {
+    NucleotideDeletion{
+      .start = 32,
+      .length = 3,
+      .aaDeletions = aaDeletionsExpected,
+    },
+  };
+
+  EXPECT_ARR_EQ_UNORDERED(aaDeletionsExpected, aaChanges.aaDeletions);
+
+  //  // Should modify mutations in-place!
+  //  EXPECT_ARR_EQ_UNORDERED(nucDeletionsExpected, analysis.deletions);
 }
