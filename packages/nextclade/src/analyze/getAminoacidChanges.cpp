@@ -10,6 +10,7 @@
 
 #include "../utils/contract.h"
 #include "../utils/mapFind.h"
+#include "../utils/range.h"
 
 namespace Nextclade {
 
@@ -29,10 +30,16 @@ namespace Nextclade {
       return result;
     }
 
-    void removeDuplicates(std::vector<AminoacidSubstitution>& aaSubstitutions) {}
-
-    void removeDuplicates(std::vector<AminoacidDeletion>& aaDeletions) {}
-
+    /**
+     * Removes duplicates from the array.
+     * Requires type T to have operators `<` and `==` defined.
+     */
+    template<typename T>
+    void removeDuplicates(std::vector<T>& aaSubstitutions) {
+      std::sort(aaSubstitutions.begin(), aaSubstitutions.end());
+      auto last = std::unique(aaSubstitutions.begin(), aaSubstitutions.end());
+      aaSubstitutions.erase(last, aaSubstitutions.end());
+    }
   }// namespace
 
 
@@ -68,7 +75,7 @@ namespace Nextclade {
       }
 
       for (auto& sub : substitutions) {
-        const auto codon = (sub.pos / 3) - gene->start;// TODO: Do we need to consider `frame` here?
+        const auto codon = (sub.pos - gene->start) / 3;// TODO: Do we need to consider `frame` here?
 
         invariant_greater_equal(codon, 0);
         invariant_less(codon, refPeptide.seq.size());
@@ -77,7 +84,8 @@ namespace Nextclade {
         const auto& refAA = refPeptide.seq[codon];
         const auto& queryAA = queryPeptide.seq[codon];
 
-        const auto codonBegin = codon * 3;
+        // Find the beginning of the affected codon as a nearest multiple of 3
+        const auto codonBegin = sub.pos - (sub.pos % 3);
         const auto codonEnd = codonBegin + 3;
 
         invariant_greater_equal(codonBegin, 0);
@@ -91,15 +99,16 @@ namespace Nextclade {
           .gene = geneName,
           .nucRange = {.begin = codonBegin, .end = codonEnd},
           .refCodon = ref.substr(codonBegin, 3),
-          .queryCodon = query.substr(codonEnd, 3),
+          .queryCodon = query.substr(codonBegin, 3),
         };
 
-        // If aminoacid is not changed after nucleotide mutation, the mutation is said to be "silent"
+        // If the aminoacid is not changed after nucleotide substitutions, the mutation is said to be "silent".
+        // This is due to genetic code redundancy.
         if (refAA == queryAA) {
-          // This adds an element to the standalone array of substitution
+          // This adds an element to the standalone array of silent substitutions
           aaSubstitutionsSilent.emplace_back(aaSub);
         } else {
-          // This adds an element to the standalone array of substitution
+          // This adds an element to the standalone array of substitutions
           aaSubstitutions.emplace_back(aaSub);
 
           // This **modifies** existing nucleotide substitution entry
@@ -108,7 +117,61 @@ namespace Nextclade {
         }
       }
 
-      for (const auto& del : deletions) {
+      for (auto& del : deletions) {
+        // Find overlapping between nucleotide deletion's range and gene's range
+        const auto overlap =
+          intersection({del.start, del.start + del.length}, {gene->start, gene->start + gene->length});
+
+        if (overlap) {
+          int begin = overlap->first;
+          int end = overlap->second;
+          invariant_greater(begin, 0);
+          invariant_less(end, ref.size());
+          invariant_greater(end, begin);
+
+          // Extend range to cover full codons...
+          //   ...to the left
+          if (begin > begin % 3) {// TODO: should this condition involve gene.start?
+            begin -= begin % 3;
+          }
+          //   ...to the right
+          // TODO: should we check against gene.end?
+          end += end % 3;
+
+          invariant_greater(begin, 0);
+          invariant_less(end, ref.size());
+          invariant_greater(end, begin);
+
+          for (int i = begin; i < end; ++i) {
+            const int codon = (i - gene->start) / 3;// TODO: Do we need to consider `frame` here?
+
+            invariant_greater_equal(codon, 0);
+            invariant_less(codon, refPeptide.seq.size());
+
+            const auto& refAA = refPeptide.seq[codon];
+
+            const auto codonBegin = begin;
+            const auto codonEnd = codonBegin + 3;
+
+            invariant_greater_equal(codonBegin, 0);
+            invariant_less(codonEnd, ref.size());
+
+            const auto aaDel = AminoacidDeletion{
+              .refAA = refAA,
+              .codon = codon,
+              .gene = geneName,
+              .nucRange = {.begin = codonBegin, .end = codonEnd},
+              .refCodon = ref.substr(codonBegin, 3),
+            };
+
+            // This adds an element to the standalone array of deletions
+            aaDeletions.emplace_back(aaDel);
+
+            // This **modifies** existing nucleotide deletion entry
+            // to add associated aminoacid deletions (possibly multiple)
+            del.aaDeletions.push_back(aaDel);
+          }
+        }
       }
     }
 

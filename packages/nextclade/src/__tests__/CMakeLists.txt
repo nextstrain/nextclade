@@ -18,6 +18,7 @@ add_executable(${PROJECT_NAME}
   isMatch.test.cpp
   isSequenced.test.cpp
   parseMutation.test.cpp
+  range.test.cpp
   tree.test.cpp
   )
 

@@ -81,7 +81,7 @@ set(SOURCE_FILES
   src/utils/debugbreak.h
   src/utils/eraseDuplicates.h
   src/utils/ieee754_comparison.h
-  src/utils/inRange.h
+  src/utils/range.h
   src/utils/macro_overload.h
   src/utils/mapFind.h
   src/utils/safe_cast.h

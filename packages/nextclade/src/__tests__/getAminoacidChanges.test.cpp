@@ -9,12 +9,10 @@
 #include <fstream>
 #include <vector>
 
-#include "../../../nextalign/src/align/alignPairwise.h"
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
 #include "../../src/analyze/analyze.h"
 #include "../../src/io/parseMutation.h"
-#include "../../src/utils/safe_cast.h"
 
 
 #define EXPECT_ARR_EQ_UNORDERED(expected, actual) ASSERT_THAT(actual, ::testing::UnorderedElementsAreArray(expected))
@@ -47,26 +45,6 @@ namespace {
     }
 
   protected:
-    NucleotideSequence rootSeq;
-
-    GeneMap geneMap = GeneMap{
-      {
-        "ORF1a",//
-        Gene{
-          .geneName = "ORF1a",
-          .start = 256,
-          .end = 13468,
-          .strand = "+",
-          .frame = 0,
-          .length = 13468 - 256,
-        },
-      },
-    };
-
-    GetAminoacidChanges() {
-      rootSeq = parseRefFastaFile("data/sars-cov-2/reference.fasta");
-    }
-
     NucleotideSequence replace(const NucleotideSequence& seq, const std::string& nucs, int from) {
       return seq.substr(0, from) + toNucleotideSequence(nucs) + seq.substr(from + nucs.size());
     }
@@ -79,11 +57,34 @@ namespace {
 
 
 TEST_F(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
-  const int substitutionStart = 1342;
-  const std::string substitution = "ACT";
-  const auto query = replace(rootSeq, substitution, substitutionStart);
-  const auto alignment = nextalignInternal(query, rootSeq, geneMap, getDefaultOptions());
+  // clang-format off
+  //                                                                        30                            60
+  //                                                                        v                             v
+  const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTACCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "ATTCCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  //                                                                        ^ ^
+  //                                                              2 mutations at pos 30 and 32
+  // clang-format on
+
+  GeneMap geneMap = GeneMap{
+    {
+      "Hello",//
+      Gene{
+        .geneName = "Hello",
+        .start = 30,
+        .end = 60,
+        .strand = "+",
+        .frame = 0,
+        .length = 30,
+      },
+    },
+  };
+
+  auto options = getDefaultOptions();
+  options.alignment.minimalLength = 0;
+  const auto alignment = nextalignInternal(query, ref, geneMap, options);
   auto analysis = analyze(alignment.query, alignment.ref);
+
 
   const auto aaChanges = getAminoacidChanges(//
     alignment.ref,                           //
@@ -98,40 +99,29 @@ TEST_F(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
   const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
       .refAA = Aminoacid::L,
-      .queryAA = Aminoacid::T,
-      .codon = 359,
-      .gene = "ORF1a",
-      .nucRange =
-        {
-          .begin = substitutionStart,
-          .end = safe_cast<int>(substitutionStart + substitution.size()),
-        },
-      .refCodon = toNucleotideSequence("TTA"),
-      .queryCodon = toNucleotideSequence("ACT"),
+      .queryAA = Aminoacid::I,
+      .codon = 0,
+      .gene = "Hello",
+      .nucRange = {.begin = 30, .end = 33},
+      .refCodon = toNucleotideSequence("CTA"),
+      .queryCodon = toNucleotideSequence("ATT"),
     },
   };
 
   const std::vector<NucleotideSubstitution> nucSubstitutionsExpected = {
     NucleotideSubstitution{
-      .refNuc = Nucleotide::T,
-      .pos = 1342,
+      .refNuc = Nucleotide::C,
+      .pos = 30,
       .queryNuc = Nucleotide::A,
       .aaSubstitutions = aaSubstitutionsExpected,
     },
     NucleotideSubstitution{
-      .refNuc = Nucleotide::T,
-      .pos = 1343,
-      .queryNuc = Nucleotide::C,
-      .aaSubstitutions = aaSubstitutionsExpected,
-    },
-    NucleotideSubstitution{
       .refNuc = Nucleotide::A,
-      .pos = 1344,
+      .pos = 32,
       .queryNuc = Nucleotide::T,
       .aaSubstitutions = aaSubstitutionsExpected,
     },
   };
-
 
   EXPECT_ARR_EQ_UNORDERED(aaSubstitutionsExpected, aaChanges.aaSubstitutions);
 
@@ -141,11 +131,34 @@ TEST_F(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
 
 
 TEST_F(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
-  const int delStart = 1342;
-  const int delLength = 3;
-  const auto query = remove(rootSeq, delStart, delLength);
-  const auto alignment = nextalignInternal(query, rootSeq, geneMap, getDefaultOptions());
+  // clang-format off
+  //                                                                        30                            60
+  //                                                                        v                             v
+  const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTACCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "ATT---ACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  //                                                                           ^^^
+  //                                                                 deletion of CCA at pos [33; 36)
+  // clang-format on
+
+  GeneMap geneMap = GeneMap{
+    {
+      "Hello",//
+      Gene{
+        .geneName = "Hello",
+        .start = 30,
+        .end = 60,
+        .strand = "+",
+        .frame = 0,
+        .length = 30,
+      },
+    },
+  };
+
+  auto options = getDefaultOptions();
+  options.alignment.minimalLength = 0;
+  const auto alignment = nextalignInternal(query, ref, geneMap, options);
   auto analysis = analyze(alignment.query, alignment.ref);
+
 
   const auto aaChanges = getAminoacidChanges(//
     alignment.ref,                           //
@@ -159,28 +172,24 @@ TEST_F(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
 
   const std::vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
-      .refAA = Aminoacid::L,
-      .codon = 359,
-      .gene = "ORF1a",
-      .nucRange =
-        {
-          .begin = delStart,
-          .end = safe_cast<int>(delStart + delLength),
-        },
-      .refCodon = toNucleotideSequence("TTA"),
+      .refAA = Aminoacid::P,
+      .codon = 1,
+      .gene = "Hello",
+      .nucRange = {.begin = 33, .end = 36},
+      .refCodon = toNucleotideSequence("CCA"),
     },
   };
 
   const std::vector<NucleotideDeletion> nucDeletionsExpected = {
     NucleotideDeletion{
-      .start = delStart,
-      .length = delLength,
+      .start = 33,
+      .length = 3,
       .aaDeletions = aaDeletionsExpected,
     },
   };
 
   EXPECT_ARR_EQ_UNORDERED(aaDeletionsExpected, aaChanges.aaDeletions);
 
-  // Should modify deletions in-place!
+  // Should modify mutations in-place!
   EXPECT_ARR_EQ_UNORDERED(nucDeletionsExpected, analysis.deletions);
 }

@@ -2,7 +2,7 @@
 
 #include <nextclade/nextclade.h>
 
-#include "../utils/inRange.h"
+#include "../utils/range.h"
 
 namespace Nextclade {
   bool isSequenced(int pos, const NextcladeResult& analysisResult) {

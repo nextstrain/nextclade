@@ -5,8 +5,8 @@
 #include <algorithm>
 
 #include "../analyze/isSequenced.h"
-#include "../utils/inRange.h"
 #include "../utils/mapFind.h"
+#include "../utils/range.h"
 #include "../utils/safe_cast.h"
 #include "Tree.h"
 #include "TreeNode.h"

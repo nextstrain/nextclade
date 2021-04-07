@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "../analyze/isMatch.h"
-#include "../utils/inRange.h"
+#include "../utils/range.h"
 
 namespace Nextclade {
   /**

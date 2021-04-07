@@ -11,52 +11,6 @@
 
 
 namespace Nextclade {
-  inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
-    return lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc == rhs.queryNuc;
-  }
-
-  inline bool operator<(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
-    return lhs.pos < rhs.pos || lhs.refNuc < rhs.refNuc || lhs.queryNuc < rhs.queryNuc;
-  }
-
-  inline bool operator==(const NucleotideInsertion& lhs, const NucleotideInsertion& rhs) {
-    return lhs.pos == rhs.pos && lhs.ins == rhs.ins && lhs.length == rhs.length;
-  }
-
-  inline bool operator==(const NucleotideDeletion& lhs, const NucleotideDeletion& rhs) {
-    return lhs.start == rhs.start && lhs.length == rhs.length;
-  }
-
-  inline bool operator==(const Range& lhs, const Range& rhs) {
-    return lhs.begin == rhs.begin && lhs.end == rhs.end;
-  }
-
-
-  inline bool operator==(const NucleotideRange& lhs, const NucleotideRange& rhs) {
-    return lhs.begin == rhs.begin && lhs.end == rhs.end && lhs.length == rhs.length && lhs.nuc == rhs.nuc;
-  }
-
-  inline bool operator==(const AminoacidSubstitution& lhs, const AminoacidSubstitution& rhs) {
-    return (                          //
-      lhs.refAA == rhs.refAA &&       //
-      lhs.queryAA == rhs.queryAA &&   //
-      lhs.codon == rhs.codon &&       //
-      lhs.gene == rhs.gene &&         //
-      lhs.nucRange == rhs.nucRange && //
-      lhs.refCodon == rhs.refCodon && //
-      lhs.queryCodon == rhs.queryCodon//
-    );
-  }
-
-  inline bool operator==(const AminoacidDeletion& lhs, const AminoacidDeletion& rhs) {
-    return (                         //
-      lhs.refAA == rhs.refAA &&      //
-      lhs.codon == rhs.codon &&      //
-      lhs.gene == rhs.gene &&        //
-      lhs.nucRange == rhs.nucRange &&//
-      lhs.refCodon == rhs.refCodon   //
-    );
-  }
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {
     os << "{ ";

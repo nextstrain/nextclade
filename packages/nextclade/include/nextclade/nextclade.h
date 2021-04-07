@@ -103,6 +103,10 @@ namespace Nextclade {
     int end;
   };
 
+  inline bool operator==(const Range& left, const Range& right) {
+    return (left.begin == right.begin && left.end == right.end);
+  }
+
   /** Represents a numeric interval bounded by start and length. Similar to `Range`, but different representation. */
   struct Span {
     int start;
@@ -135,6 +139,14 @@ namespace Nextclade {
     std::vector<AminoacidSubstitution> aaSubstitutions;
   };
 
+  inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
+    return lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc == rhs.queryNuc;
+  }
+
+  inline bool operator<(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
+    return lhs.pos < rhs.pos || lhs.refNuc < rhs.refNuc || lhs.queryNuc < rhs.queryNuc;
+  }
+
   struct AminoacidDeletion;
 
   struct NucleotideDeletion {
@@ -143,11 +155,19 @@ namespace Nextclade {
     std::vector<AminoacidDeletion> aaDeletions;
   };
 
+  inline bool operator==(const NucleotideDeletion& lhs, const NucleotideDeletion& rhs) {
+    return lhs.start == rhs.start && lhs.length == rhs.length;
+  }
+
   struct NucleotideInsertion {
     int pos;
     int length;
     NucleotideSequence ins;
   };
+
+  inline bool operator==(const NucleotideInsertion& lhs, const NucleotideInsertion& rhs) {
+    return lhs.pos == rhs.pos && lhs.ins == rhs.ins && lhs.length == rhs.length;
+  }
 
   struct NucleotideRange {
     int begin;
@@ -155,6 +175,15 @@ namespace Nextclade {
     int length;
     Nucleotide nuc;
   };
+
+  inline bool operator==(const NucleotideRange& left, const NucleotideRange& right) {
+    return (                        //
+      left.begin == right.begin &&  //
+      left.end == right.end &&      //
+      left.length == right.length &&//
+      left.nuc == right.nuc         //
+    );
+  }
 
   struct AminoacidSubstitution {
     Aminoacid refAA;
@@ -166,6 +195,25 @@ namespace Nextclade {
     NucleotideSequence queryCodon;
   };
 
+  inline bool operator==(const AminoacidSubstitution& left, const AminoacidSubstitution& right) {
+    return (                             //
+      left.refAA == right.refAA &&       //
+      left.queryAA == right.queryAA &&   //
+      left.codon == right.codon &&       //
+      left.gene == right.gene &&         //
+      left.nucRange == right.nucRange && //
+      left.refCodon == right.refCodon && //
+      left.queryCodon == right.queryCodon//
+    );
+  }
+
+  inline bool operator<(const AminoacidSubstitution& left, const AminoacidSubstitution& right) {
+    return (                   //
+      left.gene < right.gene ||//
+      left.codon < right.codon //
+    );
+  }
+
   struct AminoacidDeletion {
     Aminoacid refAA;
     int codon;
@@ -173,6 +221,23 @@ namespace Nextclade {
     Range nucRange;
     NucleotideSequence refCodon;
   };
+
+  inline bool operator==(const AminoacidDeletion& left, const AminoacidDeletion& right) {
+    return (                            //
+      left.refAA == right.refAA &&      //
+      left.codon == right.codon &&      //
+      left.gene == right.gene &&        //
+      left.nucRange == right.nucRange &&//
+      left.refCodon == right.refCodon   //
+    );
+  }
+
+  inline bool operator<(const AminoacidDeletion& left, const AminoacidDeletion& right) {
+    return (                   //
+      left.gene < right.gene ||//
+      left.codon < right.codon //
+    );
+  }
 
   struct PcrPrimer {
     std::string name;
