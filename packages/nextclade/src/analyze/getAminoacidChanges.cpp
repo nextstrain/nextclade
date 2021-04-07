@@ -136,13 +136,13 @@ namespace Nextclade {
           }
           //   ...to the right
           // TODO: should we check against gene.end?
-          end += end % 3;
+          end += (end % 3) - 1;
 
           invariant_greater(begin, 0);
           invariant_less(end, ref.size());
           invariant_greater(end, begin);
 
-          for (int i = begin; i < end; ++i) {
+          for (int i = begin; i < end; i += 3) {
             const int codon = (i - gene->start) / 3;// TODO: Do we need to consider `frame` here?
 
             invariant_greater_equal(codon, 0);
@@ -150,7 +150,7 @@ namespace Nextclade {
 
             const auto& refAA = refPeptide.seq[codon];
 
-            const auto codonBegin = begin;
+            const auto codonBegin = i;
             const auto codonEnd = codonBegin + 3;
 
             invariant_greater_equal(codonBegin, 0);

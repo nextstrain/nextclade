@@ -9,6 +9,7 @@
 #include <fstream>
 #include <vector>
 
+#include "../../../nextalign/include/nextalign/private/nextalign_private.h"
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
 #include "../../src/analyze/analyze.h"
@@ -18,6 +19,7 @@
 #define EXPECT_ARR_EQ_UNORDERED(expected, actual) ASSERT_THAT(actual, ::testing::UnorderedElementsAreArray(expected))
 
 namespace {
+  using ::PeptideInternal;
   using Nextclade::AminoacidDeletion;
   using Nextclade::AminoacidSubstitution;
   using Nextclade::NucleotideDeletion;
@@ -203,9 +205,11 @@ TEST_F(GetAminoacidChanges, Finds_Aminoacid_Deletions_Of_Adjacent_Codons) {
   //                                                                        30                            60
   //                                                                        v       gene "Foo"            v
   const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTACCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
-  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "AT---AACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
-  //                                                                          ^^^
-  //                                                         deletion of ACC at pos [32; 35) that spans 2 codons
+  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "ATACCAAC---AACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  //                                                                        000111222333444
+  //                                                                                ^^^
+  //                                                  deletion of TCA at pos [38; 41) that spans two codons (2 and 3)
+  //
   // clang-format on
 
   GeneMap geneMap = GeneMap{
@@ -241,23 +245,23 @@ TEST_F(GetAminoacidChanges, Finds_Aminoacid_Deletions_Of_Adjacent_Codons) {
   const std::vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
       .refAA = Aminoacid::T,
-      .codon = 0,
+      .codon = 2,
       .gene = "Foo",
-      .nucRange = {.begin = 30, .end = 33},
-      .refCodon = toNucleotideSequence("CTA"),
+      .nucRange = {.begin = 36, .end = 39},
+      .refCodon = toNucleotideSequence("ACT"),
     },
     AminoacidDeletion{
-      .refAA = Aminoacid::P,
-      .codon = 1,
+      .refAA = Aminoacid::Q,
+      .codon = 3,
       .gene = "Foo",
-      .nucRange = {.begin = 33, .end = 36},
-      .refCodon = toNucleotideSequence("CCA"),
+      .nucRange = {.begin = 39, .end = 42},
+      .refCodon = toNucleotideSequence("CAA"),
     },
   };
 
   const std::vector<NucleotideDeletion> nucDeletionsExpected = {
     NucleotideDeletion{
-      .start = 32,
+      .start = 38,
       .length = 3,
       .aaDeletions = aaDeletionsExpected,
     },
@@ -265,6 +269,6 @@ TEST_F(GetAminoacidChanges, Finds_Aminoacid_Deletions_Of_Adjacent_Codons) {
 
   EXPECT_ARR_EQ_UNORDERED(aaDeletionsExpected, aaChanges.aaDeletions);
 
-  //  // Should modify mutations in-place!
-  //  EXPECT_ARR_EQ_UNORDERED(nucDeletionsExpected, analysis.deletions);
+  // Should modify mutations in-place!
+  EXPECT_ARR_EQ_UNORDERED(nucDeletionsExpected, analysis.deletions);
 }
