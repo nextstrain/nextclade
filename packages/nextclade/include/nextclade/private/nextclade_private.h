@@ -9,9 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "../../../../nextalign/src/alphabet/aminoacids.h" // FIXME: Should not include the internals of another package
-#include "../../../../nextalign/src/alphabet/nucleotides.h"// FIXME: Should not include the internals of another package
-
 
 namespace Nextclade {
   inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
@@ -30,8 +27,35 @@ namespace Nextclade {
     return lhs.start == rhs.start && lhs.length == rhs.length;
   }
 
+  inline bool operator==(const Range& lhs, const Range& rhs) {
+    return lhs.begin == rhs.begin && lhs.end == rhs.end;
+  }
+
+
   inline bool operator==(const NucleotideRange& lhs, const NucleotideRange& rhs) {
     return lhs.begin == rhs.begin && lhs.end == rhs.end && lhs.length == rhs.length && lhs.nuc == rhs.nuc;
+  }
+
+  inline bool operator==(const AminoacidSubstitution& lhs, const AminoacidSubstitution& rhs) {
+    return (                          //
+      lhs.refAA == rhs.refAA &&       //
+      lhs.queryAA == rhs.queryAA &&   //
+      lhs.codon == rhs.codon &&       //
+      lhs.gene == rhs.gene &&         //
+      lhs.nucRange == rhs.nucRange && //
+      lhs.refCodon == rhs.refCodon && //
+      lhs.queryCodon == rhs.queryCodon//
+    );
+  }
+
+  inline bool operator==(const AminoacidDeletion& lhs, const AminoacidDeletion& rhs) {
+    return (                         //
+      lhs.refAA == rhs.refAA &&      //
+      lhs.codon == rhs.codon &&      //
+      lhs.gene == rhs.gene &&        //
+      lhs.nucRange == rhs.nucRange &&//
+      lhs.refCodon == rhs.refCodon   //
+    );
   }
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {
@@ -69,6 +93,38 @@ namespace Nextclade {
     os << "begin: " << val.begin << ", ";
     os << "end: " << val.end << ", ";
     os << "length: " << val.length;
+    os << " }";
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const Range& val) {
+    os << "{ ";
+    os << "begin: " << val.begin << ", ";
+    os << "end: " << val.end;
+    os << " }";
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const AminoacidSubstitution& val) {
+    os << "{ ";
+    os << "refAA: " << val.refAA << ", ";
+    os << "queryAA: " << val.queryAA << ", ";
+    os << "codon: " << val.codon << ", ";
+    os << "gene: \"" << val.gene << "\", ";
+    os << "nucRange: " << val.nucRange << ", ";
+    os << "refCodon: " << val.refCodon << ", ";
+    os << "queryCodon: " << val.queryCodon;
+    os << " }";
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const AminoacidDeletion& val) {
+    os << "{ ";
+    os << "refAA: " << val.refAA << ", ";
+    os << "codon: " << val.codon << ", ";
+    os << "gene: \"" << val.gene << "\", ";
+    os << "nucRange: " << val.nucRange << ", ";
+    os << "refCodon: " << val.refCodon;
     os << " }";
     return os;
   }

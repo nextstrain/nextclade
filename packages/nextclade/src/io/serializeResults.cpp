@@ -106,7 +106,7 @@ namespace Nextclade {
       j.emplace("codon", mut.codon);
       j.emplace("queryAA", aaToString(mut.queryAA));
       j.emplace("gene", mut.gene);
-      j.emplace("nucRange", serializeNucleotideRange(mut.nucRange));
+      j.emplace("nucRange", serializeRange(mut.nucRange));
       j.emplace("refCodon", toString(mut.refCodon));
       j.emplace("queryCodon", toString(mut.queryCodon));
       return j;
@@ -117,7 +117,7 @@ namespace Nextclade {
       j.emplace("refAA", aaToString(del.refAA));
       j.emplace("codon", del.codon);
       j.emplace("gene", del.gene);
-      j.emplace("nucRange", serializeNucleotideRange(del.nucRange));
+      j.emplace("nucRange", serializeRange(del.nucRange));
       j.emplace("refCodon", toString(del.refCodon));
       return j;
     }

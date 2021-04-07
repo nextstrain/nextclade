@@ -125,16 +125,22 @@ namespace Nextclade {
     NextalignOptions nextalignOptions;
   };
 
+  struct AminoacidSubstitution;
+
   struct NucleotideSubstitution {
     Nucleotide refNuc;
     int pos;
     Nucleotide queryNuc;
     std::vector<PcrPrimer> pcrPrimersChanged;
+    std::vector<AminoacidSubstitution> aaSubstitutions;
   };
+
+  struct AminoacidDeletion;
 
   struct NucleotideDeletion {
     int start;
     int length;
+    std::vector<AminoacidDeletion> aaDeletions;
   };
 
   struct NucleotideInsertion {
@@ -150,6 +156,24 @@ namespace Nextclade {
     Nucleotide nuc;
   };
 
+  struct AminoacidSubstitution {
+    Aminoacid refAA;
+    Aminoacid queryAA;
+    int codon;
+    std::string gene;
+    Range nucRange;
+    NucleotideSequence refCodon;
+    NucleotideSequence queryCodon;
+  };
+
+  struct AminoacidDeletion {
+    Aminoacid refAA;
+    int codon;
+    std::string gene;
+    Range nucRange;
+    NucleotideSequence refCodon;
+  };
+
   struct PcrPrimer {
     std::string name;
     std::string target;
@@ -163,24 +187,6 @@ namespace Nextclade {
   struct PcrPrimerChange {
     PcrPrimer primer;
     std::vector<NucleotideSubstitution> substitutions;
-  };
-
-  struct AminoacidSubstitution {
-    Aminoacid refAA;
-    int codon;
-    Aminoacid queryAA;
-    std::string gene;
-    NucleotideRange nucRange;
-    NucleotideSequence refCodon;
-    NucleotideSequence queryCodon;
-  };
-
-  struct AminoacidDeletion {
-    Aminoacid refAA;
-    int codon;
-    std::string gene;
-    NucleotideRange nucRange;
-    NucleotideSequence refCodon;
   };
 
   struct AnalysisResult {

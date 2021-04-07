@@ -8,6 +8,7 @@
 
 #include "analyze/analyze.h"
 #include "analyze/findNucleotideRanges.h"
+#include "analyze/getAminoacidChanges.h"
 #include "analyze/getNucleotideComposition.h"
 #include "analyze/nucleotide.h"
 #include "qc/runQc.h"
@@ -61,13 +62,20 @@ namespace Nextclade {
       const auto totalPcrPrimerChanges = std::accumulate(pcrPrimerChanges.cbegin(), pcrPrimerChanges.cend(), 0,
         [](int result, const auto& item) { return result + item.substitutions.size(); });
 
-      // TODO: implement aminoacid analysis
-      std::vector<AminoacidSubstitution> aaSubstitutions;
-      const auto totalAminoacidSubstitutions = safe_cast<int>(aaSubstitutions.size());
-      std::vector<AminoacidDeletion> aaDeletions;
-      const auto totalAminoacidDeletions = safe_cast<int>(aaDeletions.size());
+      auto aaChanges = getAminoacidChanges(//
+        alignment.ref,                     //
+        alignment.query,                   //
+        alignment.refPeptides,             //
+        alignment.queryPeptides,           //
+        analysis.substitutions,            //
+        analysis.deletions,                //
+        geneMap                            //
+      );
+      const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
+      const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
 
-      NextcladeResult analysisResult = {.seqName = seqName,
+      NextcladeResult analysisResult = {
+        .seqName = seqName,
         .ref = toString(alignment.ref),
         .query = toString(alignment.query),
         .refPeptides = toPeptidesExternal(alignment.refPeptides),
@@ -85,9 +93,9 @@ namespace Nextclade {
         .nonACGTNs = nonACGTNs,
         .totalNonACGTNs = totalNonACGTNs,
 
-        .aaSubstitutions = aaSubstitutions,
+        .aaSubstitutions = aaChanges.aaSubstitutions,
         .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
-        .aaDeletions = aaDeletions,
+        .aaDeletions = aaChanges.aaDeletions,
         .totalAminoacidDeletions = totalAminoacidDeletions,
 
         .alignmentStart = analysis.alignmentStart,
@@ -100,7 +108,8 @@ namespace Nextclade {
         // NOTE: these fields are not properly initialized here. They must be initialized below.
         .nearestNodeId = 0,
         .clade = "",
-        .qc = {}};
+        .qc = {},
+      };
 
       const auto [nearestNodeId, nearestNodeClade, privateMutations] = treeFindNearestNode(analysisResult, ref, tree);
       analysisResult.nearestNodeId = nearestNodeId;

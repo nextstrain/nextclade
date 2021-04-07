@@ -27,6 +27,8 @@ set(SOURCE_FILES
   src/analyze/analyze.h
   src/analyze/findNucleotideRanges.cpp
   src/analyze/findNucleotideRanges.h
+  src/analyze/getAminoacidChanges.cpp
+  src/analyze/getAminoacidChanges.h
   src/analyze/getNucleotideComposition.cpp
   src/analyze/getNucleotideComposition.h
   src/analyze/getPcrPrimerChanges.cpp
