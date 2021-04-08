@@ -147,29 +147,59 @@ namespace Nextclade {
 
             invariant_greater_equal(codon, 0);
             invariant_less(codon, refPeptide.seq.size());
+            invariant_less(codon, queryPeptide.seq.size());
 
             const auto& refAA = refPeptide.seq[codon];
+            const auto& queryAA = queryPeptide.seq[codon];
 
             const auto codonBegin = i;
             const auto codonEnd = codonBegin + 3;
 
             invariant_greater_equal(codonBegin, 0);
             invariant_less(codonEnd, ref.size());
+            invariant_less(codonEnd, query.size());
 
-            const auto aaDel = AminoacidDeletion{
-              .refAA = refAA,
-              .codon = codon,
-              .gene = geneName,
-              .nucRange = {.begin = codonBegin, .end = codonEnd},
-              .refCodon = ref.substr(codonBegin, 3),
-            };
+            if (queryAA == Aminoacid::GAP) {// This is a deletion
+              const auto aaDel = AminoacidDeletion{
+                .refAA = refAA,
+                .codon = codon,
+                .gene = geneName,
+                .nucRange = {.begin = codonBegin, .end = codonEnd},
+                .refCodon = ref.substr(codonBegin, 3),
+              };
 
-            // This adds an element to the standalone array of deletions
-            aaDeletions.emplace_back(aaDel);
+              // This adds an element to the standalone array of deletions
+              aaDeletions.emplace_back(aaDel);
 
-            // This **modifies** existing nucleotide deletion entry
-            // to add associated aminoacid deletions (possibly multiple)
-            del.aaDeletions.push_back(aaDel);
+              // This **modifies** existing nucleotide deletion entry
+              // to add associated aminoacid deletions (possibly multiple)
+              del.aaDeletions.push_back(aaDel);
+            } else {// This is a substitution
+
+              const auto aaSub = AminoacidSubstitution{
+                .refAA = refAA,
+                .queryAA = queryAA,
+                .codon = codon,
+                .gene = geneName,
+                .nucRange = {.begin = codonBegin, .end = codonEnd},
+                .refCodon = ref.substr(codonBegin, 3),
+                .queryCodon = query.substr(codonBegin, 3),
+              };
+
+              // If the aminoacid is not changed after nucleotide substitutions, the mutation is said to be "silent".
+              // This is due to genetic code redundancy.
+              if (refAA == queryAA) {
+                // This adds an element to the standalone array of silent substitutions
+                aaSubstitutionsSilent.emplace_back(aaSub);
+              } else {
+                // This adds an element to the standalone array of substitutions
+                aaSubstitutions.emplace_back(aaSub);
+
+                // This **modifies** existing nucleotide substitution entry
+                // to add associated aminoacid substitution
+                del.aaSubstitutions.push_back(aaSub);
+              }
+            }
           }
         }
       }

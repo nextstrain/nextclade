@@ -152,6 +152,7 @@ namespace Nextclade {
   struct NucleotideDeletion {
     int start;
     int length;
+    std::vector<AminoacidSubstitution> aaSubstitutions;
     std::vector<AminoacidDeletion> aaDeletions;
   };
 

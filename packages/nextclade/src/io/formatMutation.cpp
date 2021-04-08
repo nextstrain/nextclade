@@ -69,8 +69,8 @@ namespace Nextclade {
     const auto& gene = del.gene;
     const auto notation = formatAminoacidMutationWithoutGene(AminoacidSubstitution{
       .refAA = del.refAA,
-      .codon = del.codon,
       .queryAA = Aminoacid::GAP,
+      .codon = del.codon,
       .gene = del.gene,
       .nucRange = del.nucRange,
       .refCodon = del.refCodon,
