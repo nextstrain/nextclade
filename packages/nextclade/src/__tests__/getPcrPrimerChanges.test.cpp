@@ -32,7 +32,7 @@ namespace {
 
     PcrPrimer primer;
     primer.range = range;
-    primer.nonACGTs = std::move(realNonACGTs);
+    primer.nonAcgts = std::move(realNonACGTs);
     return primer;
   }
 }// namespace

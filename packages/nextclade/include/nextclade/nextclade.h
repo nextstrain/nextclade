@@ -2,12 +2,12 @@
 
 #include <nextalign/nextalign.h>
 
+#include <istream>
 #include <map>
 #include <optional>
-#include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
-
 
 namespace Nextclade {
   class Tree;
@@ -247,7 +247,7 @@ namespace Nextclade {
     NucleotideSequence rootOligonuc;
     NucleotideSequence primerOligonuc;
     Range range;
-    std::vector<NucleotideLocation> nonACGTs;
+    std::vector<NucleotideLocation> nonAcgts;
   };
 
   struct PcrPrimerChange {
@@ -320,6 +320,23 @@ namespace Nextclade {
     NextcladeAlgorithm(NextcladeAlgorithm&& other) noexcept = delete;
     NextcladeAlgorithm& operator=(const NextcladeAlgorithm& other) = delete;
     NextcladeAlgorithm& operator=(NextcladeAlgorithm&& other) noexcept = delete;
+  };
+
+  std::vector<PcrPrimer> parsePcrPrimersCsv(      //
+    const std::string& pcrPrimersCsvString,       //
+    const std::string& filename,                  //
+    const NucleotideSequence& rootSeq,            //
+    /* inout */ std::vector<std::string>& warnings//
+  );
+
+  class ErrorPcrPrimersCsvParserMissingColumn : public std::runtime_error {
+  public:
+    explicit ErrorPcrPrimersCsvParserMissingColumn(const std::string& colName);
+  };
+
+  class ErrorPcrPrimersCsvParserComplementUnknownNucleotide : public std::runtime_error {
+  public:
+    explicit ErrorPcrPrimersCsvParserComplementUnknownNucleotide(const std::string& nuc);
   };
 
   struct CsvWriterOptions {

@@ -133,8 +133,8 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
 }
 
 
-std::tuple<CliParams, NextalignOptions> parseCommandLine(
-  int argc, char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
+std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
+  char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
   const std::string versionNextalign = NEXTALIGN_VERSION;
   const std::string versionShort = PROJECT_VERSION;
   const std::string versionDetailed =
@@ -685,6 +685,7 @@ void run(
   /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
   /* in  */ const ReferenceSequenceData &refData,
   /* in  */ const std::string &treeString,
+  /* in  */ const std::vector<Nextclade::PcrPrimer> &pcrPrimers,
   /* in  */ const GeneMap &geneMap,
   /* in  */ const NextalignOptions &nextalignOptions,
   /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
@@ -715,7 +716,7 @@ void run(
   const Nextclade::NextcladeOptions options = {
     .ref = ref,
     .treeString = treeString,
-    .pcrPrimers = std::vector<Nextclade::PcrPrimer>(),
+    .pcrPrimers = pcrPrimers,
     .geneMap = geneMap,
     .qcRulesConfig = Nextclade::QcConfig(),
     .nextalignOptions = nextalignOptions,
@@ -932,9 +933,13 @@ int main(int argc, char *argv[]) {
 
     const auto treeString = readFile(cliParams.inputTree);
 
+    const auto pcrPrimersCsvString = readFile(cliParams.inputPcrPrimers);
+    std::vector<std::string> warnings;
+    std::vector<Nextclade::PcrPrimer> pcrPrimers =
+      Nextclade::parsePcrPrimersCsv(pcrPrimersCsvString, cliParams.inputPcrPrimers, refData.seq, warnings);
+
     const auto paths = getPaths(cliParams, genes);
     logger.info(formatPaths(paths));
-
 
     auto outputJsonStream = openOutputFileMaybe(cliParams.outputJson);
     auto outputCsvStream = openOutputFileMaybe(cliParams.outputCsv);
@@ -957,8 +962,8 @@ int main(int argc, char *argv[]) {
 
     auto parallelism = std::thread::hardware_concurrency();
     if (cliParams.jobs > 0) {
-      tbb::global_control globalControl{
-        tbb::global_control::max_allowed_parallelism, static_cast<size_t>(cliParams.jobs)};
+      tbb::global_control globalControl{tbb::global_control::max_allowed_parallelism,
+        static_cast<size_t>(cliParams.jobs)};
       parallelism = cliParams.jobs;
     }
 
@@ -973,7 +978,7 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, inputFastaStream, refData, treeString, geneMap, options, outputJsonStream,
+      run(parallelism, inOrder, inputFastaStream, refData, treeString, pcrPrimers, geneMap, options, outputJsonStream,
         outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream, outputInsertionsStream,
         outputGeneStreams, shouldWriteReference, logger);
     } catch (const std::exception &e) {

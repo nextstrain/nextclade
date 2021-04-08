@@ -40,12 +40,15 @@ set(SOURCE_FILES
   src/analyze/nucleotide.cpp
   src/analyze/nucleotide.h
   src/io/CsvWriter.cpp
+  src/io/convertPcrPrimers.cpp
+  src/io/convertPcrPrimers.h
   src/io/formatMutation.cpp
   src/io/formatMutation.h
   src/io/formatQcStatus.cpp
   src/io/formatQcStatus.h
   src/io/jsonStringify.cpp
   src/io/jsonStringify.h
+  src/io/parseCsv.h
   src/io/parseMutation.cpp
   src/io/parseMutation.h
   src/io/serializeResults.cpp
@@ -81,9 +84,10 @@ set(SOURCE_FILES
   src/utils/debugbreak.h
   src/utils/eraseDuplicates.h
   src/utils/ieee754_comparison.h
-  src/utils/range.h
   src/utils/macro_overload.h
+  src/utils/map.h
   src/utils/mapFind.h
+  src/utils/range.h
   src/utils/safe_cast.h
   )
 

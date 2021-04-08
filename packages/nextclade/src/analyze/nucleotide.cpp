@@ -35,6 +35,10 @@ namespace Nextclade {
     return has(ACGT, nuc);
   }
 
+  bool isNotAcgt(Nucleotide nuc) {
+    return !isAcgt(nuc);
+  }
+
   bool isNonAcgtnAndNonGap(const Nucleotide& nuc) {
     return !has(ACGTN_AND_GAP, nuc);
   }

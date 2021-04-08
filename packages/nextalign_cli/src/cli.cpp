@@ -123,8 +123,8 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
 }
 
 
-std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
-  int argc, char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
+std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(int argc,
+  char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
   const std::string versionShort = PROJECT_VERSION;
   const std::string versionDetailed =
     fmt::format("nextalign {:s}\nbased on libnextalign {:s}", PROJECT_VERSION, getVersion());
@@ -801,8 +801,8 @@ int main(int argc, char *argv[]) {
 
     std::map<std::string, std::ofstream> outputGeneFiles;
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
-      const auto result = outputGeneFiles.emplace(
-        std::piecewise_construct, std::forward_as_tuple(geneName), std::forward_as_tuple(outputGenePath));
+      const auto result = outputGeneFiles.emplace(std::piecewise_construct, std::forward_as_tuple(geneName),
+        std::forward_as_tuple(outputGenePath));
 
       const auto &outputGeneFile = result.first->second;
 
@@ -813,8 +813,8 @@ int main(int argc, char *argv[]) {
 
     auto parallelism = std::thread::hardware_concurrency();
     if (cliParams.jobs > 0) {
-      tbb::global_control globalControl{
-        tbb::global_control::max_allowed_parallelism, static_cast<size_t>(cliParams.jobs)};
+      tbb::global_control globalControl{tbb::global_control::max_allowed_parallelism,
+        static_cast<size_t>(cliParams.jobs)};
       parallelism = cliParams.jobs;
     }
 
