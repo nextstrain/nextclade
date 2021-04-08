@@ -75,6 +75,13 @@ namespace Nextclade {
       }
 
       for (auto& sub : substitutions) {
+        if (!inRange(sub.pos, gene->start, gene->end)) {// TODO: Do we need to consider `frame` here?
+          // This substitution is not in the gene, so it cannot influence the aminoacids in it
+          continue;
+        }
+
+        invariant_greater_equal(sub.pos, gene->start);
+        invariant_less(sub.pos, gene->end);
         const auto codon = (sub.pos - gene->start) / 3;// TODO: Do we need to consider `frame` here?
 
         invariant_greater_equal(codon, 0);
