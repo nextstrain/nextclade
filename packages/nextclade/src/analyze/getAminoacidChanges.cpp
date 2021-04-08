@@ -129,83 +129,85 @@ namespace Nextclade {
         const auto overlap =
           intersection({del.start, del.start + del.length}, {gene->start, gene->start + gene->length});
 
-        if (overlap) {
-          int begin = overlap->first;
-          int end = overlap->second;
-          invariant_greater(begin, 0);
-          invariant_less(end, ref.size());
-          invariant_greater(end, begin);
+        if (!overlap) {
+          continue;
+        }
 
-          // Extend range to cover full codons...
-          //   ...to the left
-          if (begin > begin % 3) {// TODO: should this condition involve gene.start?
-            begin -= begin % 3;
-          }
-          //   ...to the right
-          // TODO: should we check against gene.end?
-          end += (end % 3) - 1;
+        int begin = overlap->first;
+        int end = overlap->second;
+        invariant_greater(begin, 0);
+        invariant_less(end, ref.size());
+        invariant_greater(end, begin);
 
-          invariant_greater(begin, 0);
-          invariant_less(end, ref.size());
-          invariant_greater(end, begin);
+        // Extend range to cover full codons...
+        //   ...to the left
+        if (begin > begin % 3) {// TODO: should this condition involve gene.start?
+          begin -= begin % 3;
+        }
+        //   ...to the right
+        // TODO: should we check against gene.end?
+        end += (end % 3) - 1;
 
-          for (int i = begin; i < end; i += 3) {
-            const int codon = (i - gene->start) / 3;// TODO: Do we need to consider `frame` here?
+        invariant_greater(begin, 0);
+        invariant_less(end, ref.size());
+        invariant_greater(end, begin);
 
-            invariant_greater_equal(codon, 0);
-            invariant_less(codon, refPeptide.seq.size());
-            invariant_less(codon, queryPeptide.seq.size());
+        for (int i = begin; i < end; i += 3) {
+          const int codon = (i - gene->start) / 3;// TODO: Do we need to consider `frame` here?
 
-            const auto& refAA = refPeptide.seq[codon];
-            const auto& queryAA = queryPeptide.seq[codon];
+          invariant_greater_equal(codon, 0);
+          invariant_less(codon, refPeptide.seq.size());
+          invariant_less(codon, queryPeptide.seq.size());
 
-            const auto codonBegin = i;
-            const auto codonEnd = codonBegin + 3;
+          const auto& refAA = refPeptide.seq[codon];
+          const auto& queryAA = queryPeptide.seq[codon];
 
-            invariant_greater_equal(codonBegin, 0);
-            invariant_less(codonEnd, ref.size());
-            invariant_less(codonEnd, query.size());
+          const auto codonBegin = i;
+          const auto codonEnd = codonBegin + 3;
 
-            if (queryAA == Aminoacid::GAP) {// This is a deletion
-              const auto aaDel = AminoacidDeletion{
-                .refAA = refAA,
-                .codon = codon,
-                .gene = geneName,
-                .nucRange = {.begin = codonBegin, .end = codonEnd},
-                .refCodon = ref.substr(codonBegin, 3),
-              };
+          invariant_greater_equal(codonBegin, 0);
+          invariant_less(codonEnd, ref.size());
+          invariant_less(codonEnd, query.size());
 
-              // This adds an element to the standalone array of deletions
-              aaDeletions.emplace_back(aaDel);
+          if (queryAA == Aminoacid::GAP) {// This is a deletion
+            const auto aaDel = AminoacidDeletion{
+              .refAA = refAA,
+              .codon = codon,
+              .gene = geneName,
+              .nucRange = {.begin = codonBegin, .end = codonEnd},
+              .refCodon = ref.substr(codonBegin, 3),
+            };
 
-              // This **modifies** existing nucleotide deletion entry
-              // to add associated aminoacid deletions (possibly multiple)
-              del.aaDeletions.push_back(aaDel);
-            } else {// This is a substitution
+            // This adds an element to the standalone array of deletions
+            aaDeletions.emplace_back(aaDel);
 
-              const auto aaSub = AminoacidSubstitution{
-                .refAA = refAA,
-                .queryAA = queryAA,
-                .codon = codon,
-                .gene = geneName,
-                .nucRange = {.begin = codonBegin, .end = codonEnd},
-                .refCodon = ref.substr(codonBegin, 3),
-                .queryCodon = query.substr(codonBegin, 3),
-              };
+            // This **modifies** existing nucleotide deletion entry
+            // to add associated aminoacid deletions (possibly multiple)
+            del.aaDeletions.push_back(aaDel);
+          } else {// This is a substitution
 
-              // If the aminoacid is not changed after nucleotide substitutions, the mutation is said to be "silent".
-              // This is due to genetic code redundancy.
-              if (refAA == queryAA) {
-                // This adds an element to the standalone array of silent substitutions
-                aaSubstitutionsSilent.emplace_back(aaSub);
-              } else {
-                // This adds an element to the standalone array of substitutions
-                aaSubstitutions.emplace_back(aaSub);
+            const auto aaSub = AminoacidSubstitution{
+              .refAA = refAA,
+              .queryAA = queryAA,
+              .codon = codon,
+              .gene = geneName,
+              .nucRange = {.begin = codonBegin, .end = codonEnd},
+              .refCodon = ref.substr(codonBegin, 3),
+              .queryCodon = query.substr(codonBegin, 3),
+            };
 
-                // This **modifies** existing nucleotide substitution entry
-                // to add associated aminoacid substitution
-                del.aaSubstitutions.push_back(aaSub);
-              }
+            // If the aminoacid is not changed after nucleotide substitutions, the mutation is said to be "silent".
+            // This is due to genetic code redundancy.
+            if (refAA == queryAA) {
+              // This adds an element to the standalone array of silent substitutions
+              aaSubstitutionsSilent.emplace_back(aaSub);
+            } else {
+              // This adds an element to the standalone array of substitutions
+              aaSubstitutions.emplace_back(aaSub);
+
+              // This **modifies** existing nucleotide substitution entry
+              // to add associated aminoacid substitution
+              del.aaSubstitutions.push_back(aaSub);
             }
           }
         }
