@@ -623,7 +623,7 @@ std::string formatPaths(const Paths &paths) {
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
 
-  for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
+  for (const auto& [geneName, outputGenePath] : paths.outputGenes) {
     fmt::memory_buffer bufGene;
     fmt::format_to(bufGene, "{:s} {:>10s}", "Translated genes", geneName);
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufGene), outputGenePath.string());
@@ -967,7 +967,7 @@ int main(int argc, char *argv[]) {
       openOutputFile(outputGenePath, outputGeneFile);
     }
 
-    auto parallelism = std::thread::hardware_concurrency();
+    int parallelism = static_cast<int>(std::thread::hardware_concurrency());
     if (cliParams.jobs > 0) {
       tbb::global_control globalControl{tbb::global_control::max_allowed_parallelism,
         static_cast<size_t>(cliParams.jobs)};
