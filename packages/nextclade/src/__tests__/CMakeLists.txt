@@ -25,6 +25,12 @@ add_executable(${PROJECT_NAME}
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  target_compile_options(${PROJECT_NAME} PRIVATE
+    -Wno-missing-field-initializers
+    )
+endif ()
+
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC -DAPP_NAME="${PROJECT_NAME}"
 
