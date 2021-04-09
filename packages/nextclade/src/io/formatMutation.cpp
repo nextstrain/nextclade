@@ -53,8 +53,8 @@ namespace Nextclade {
     std::string formatAminoacidMutationWithoutGene(const AminoacidSubstitution& mut) {
       // NOTE: by convention, in bioinformatics, aminoacids are numbered starting from 1, however our arrays are 0-based
       const auto codonOneBased = mut.codon + 1;
-      const auto ref = aaToChar(mut.refAA);
-      const auto query = (mut.queryAA);
+      const auto ref = aaToString(mut.refAA);
+      const auto query = aaToString(mut.queryAA);
       return fmt::format("{}{}{}", ref, codonOneBased, query);
     }
   }// namespace
