@@ -61,7 +61,9 @@ namespace Nextclade {
           substitutionsSelected.push_back(mut);
         }
 
-        result.emplace_back(PcrPrimerChange{.primer = primer, .substitutions = std::move(substitutionsSelected)});
+        if (!substitutionsSelected.empty()) {
+          result.emplace_back(PcrPrimerChange{.primer = primer, .substitutions = std::move(substitutionsSelected)});
+        }
       }
     }
     return result;
