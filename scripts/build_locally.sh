@@ -438,6 +438,11 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
     fi
   fi
 
+  if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
+    # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
+    ulimit -s unlimited
+  fi
+
   # print 27 "Run Nextalign CLI";
   # eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
 
