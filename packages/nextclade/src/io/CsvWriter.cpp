@@ -32,44 +32,53 @@ namespace Nextclade {
     constexpr std::array<frozen::string, 41> COLUMN_NAMES = {
       "seqName",
       "clade",
+
       "qc.overallScore",
       "qc.overallStatus",
-      "totalGaps",
+
+      "totalSubstitutions",
+      "totalDeletions",
       "totalInsertions",
+      "totalAminoacidSubstitutions",
+      "totalAminoacidDeletions",
       "totalMissing",
-      "totalMutations",
       "totalNonACGTNs",
       "totalPcrPrimerChanges",
+
       "substitutions",
       "deletions",
       "insertions",
+      "aaSubstitutions",
+      "aaDeletions",
       "missing",
       "nonACGTNs",
       "pcrPrimerChanges",
-      "aaSubstitutions",
-      "totalAminoacidSubstitutions",
-      "aaDeletions",
-      "totalAminoacidDeletions",
-      "alignmentEnd",
+
       "alignmentScore",
       "alignmentStart",
+      "alignmentEnd",
+
       "qc.missingData.missingDataThreshold",
       "qc.missingData.score",
       "qc.missingData.status",
       "qc.missingData.totalMissing",
+
       "qc.mixedSites.mixedSitesThreshold",
       "qc.mixedSites.score",
       "qc.mixedSites.status",
       "qc.mixedSites.totalMixedSites",
+
       "qc.privateMutations.cutoff",
       "qc.privateMutations.excess",
       "qc.privateMutations.score",
       "qc.privateMutations.status",
       "qc.privateMutations.total",
+
       "qc.snpClusters.clusteredSNPs",
       "qc.snpClusters.score",
       "qc.snpClusters.status",
       "qc.snpClusters.totalSNPs",
+
       "errors",
     };
   }// namespace
@@ -80,8 +89,8 @@ namespace Nextclade {
 
   std::string CsvWriter::addHeader() {
     std::vector<std::string> columns;
-    std::transform(
-      COLUMN_NAMES.cbegin(), COLUMN_NAMES.cend(), std::back_inserter(columns), [](const frozen::string& s) {
+    std::transform(COLUMN_NAMES.cbegin(), COLUMN_NAMES.cend(), std::back_inserter(columns),
+      [](const frozen::string& s) {
         return std::string{s.data(), s.size()};
       });
     auto row = prepareRow(columns);
@@ -105,27 +114,28 @@ namespace Nextclade {
 
     columns.emplace_back(std::to_string(result.qc.overallScore));
     columns.emplace_back(formatQcStatus(result.qc.overallStatus));
+
     columns.emplace_back(std::to_string(result.totalSubstitutions));
     columns.emplace_back(std::to_string(result.totalDeletions));
     columns.emplace_back(std::to_string(result.totalInsertions));
+    columns.emplace_back(std::to_string(result.totalAminoacidSubstitutions));
+    columns.emplace_back(std::to_string(result.totalAminoacidDeletions));
     columns.emplace_back(std::to_string(result.totalMissing));
     columns.emplace_back(std::to_string(result.totalNonACGTNs));
     columns.emplace_back(std::to_string(result.totalPcrPrimerChanges));
-    columns.emplace_back(std::to_string(result.totalAminoacidSubstitutions));
-    columns.emplace_back(std::to_string(result.totalAminoacidDeletions));
 
     columns.emplace_back(formatAndJoin(result.substitutions, formatMutation, ","));
     columns.emplace_back(formatAndJoin(result.deletions, formatDeletion, ","));
     columns.emplace_back(formatAndJoin(result.insertions, formatInsertion, ","));
+    columns.emplace_back(formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));
+    columns.emplace_back(formatAndJoin(result.aaDeletions, formatAminoacidDeletion, ","));
     columns.emplace_back(formatAndJoin(result.missing, formatMissing, ","));
     columns.emplace_back(formatAndJoin(result.nonACGTNs, formatNonAcgtn, ","));
     columns.emplace_back(formatAndJoin(result.pcrPrimerChanges, formatPcrPrimerChange, ","));
-    columns.emplace_back(formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));
-    columns.emplace_back(formatAndJoin(result.aaDeletions, formatAminoacidDeletion, ","));
 
-    columns.emplace_back(std::to_string(result.alignmentEnd));
     columns.emplace_back(std::to_string(result.alignmentScore));
     columns.emplace_back(std::to_string(result.alignmentStart));
+    columns.emplace_back(std::to_string(result.alignmentEnd));
 
     if (result.qc.missingData) {
       columns.emplace_back(std::to_string(result.qc.missingData->missingDataThreshold));
