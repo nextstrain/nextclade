@@ -198,7 +198,6 @@ target_link_libraries(${PROJECT_NAME}
 
 set(NEXTCLADE_BUILD_TESTS ON CACHE BOOL "Build unit tests")
 if (${NEXTCLADE_BUILD_TESTS})
-  include(CTest)
   enable_testing()
   add_subdirectory(src/__tests__)
 endif ()

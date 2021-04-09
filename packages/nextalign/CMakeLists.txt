@@ -110,7 +110,6 @@ target_link_libraries(${PROJECT_NAME}
 
 set(NEXTALIGN_BUILD_TESTS ON CACHE BOOL "Build unit tests")
 if (${NEXTALIGN_BUILD_TESTS})
-  include(CTest)
   enable_testing()
   add_subdirectory(tests)
 endif ()
