@@ -113,10 +113,10 @@ namespace Nextclade {
         // This is due to genetic code redundancy.
         if (refAA == queryAA) {
           // This adds an element to the standalone array of silent substitutions
-          aaSubstitutionsSilent.emplace_back(aaSub);
+          aaSubstitutionsSilent.push_back(aaSub);
         } else {
           // This adds an element to the standalone array of substitutions
-          aaSubstitutions.emplace_back(aaSub);
+          aaSubstitutions.push_back(aaSub);
 
           // This **modifies** existing nucleotide substitution entry
           // to add associated aminoacid substitution
@@ -179,7 +179,7 @@ namespace Nextclade {
             };
 
             // This adds an element to the standalone array of deletions
-            aaDeletions.emplace_back(aaDel);
+            aaDeletions.push_back(aaDel);
 
             // This **modifies** existing nucleotide deletion entry
             // to add associated aminoacid deletions (possibly multiple)
@@ -200,10 +200,10 @@ namespace Nextclade {
             // This is due to genetic code redundancy.
             if (refAA == queryAA) {
               // This adds an element to the standalone array of silent substitutions
-              aaSubstitutionsSilent.emplace_back(aaSub);
+              aaSubstitutionsSilent.push_back(aaSub);
             } else {
               // This adds an element to the standalone array of substitutions
-              aaSubstitutions.emplace_back(aaSub);
+              aaSubstitutions.push_back(aaSub);
 
               // This **modifies** existing nucleotide substitution entry
               // to add associated aminoacid substitution
