@@ -84,7 +84,12 @@ namespace Nextclade {
           alignmentStart = i;
           beforeAlignment = false;
         } else if (nDel) {
-          deletions.emplace_back(NucleotideDeletion{.start = delPos, .length = nDel});
+          deletions.emplace_back(NucleotideDeletion{
+            .start = delPos,
+            .length = nDel,
+            .aaSubstitutions = {},
+            .aaDeletions = {},
+          });
           nDel = 0;
         }
         alignmentEnd = i + 1;
@@ -92,8 +97,13 @@ namespace Nextclade {
 
       const auto& refNuc = refStripped[i];
       if (!isGap(d) && (d != refNuc) && isAcgt(d)) {
-        substitutions.emplace_back(
-          NucleotideSubstitution{.refNuc = refNuc, .pos = i, .queryNuc = d, .pcrPrimersChanged = {}});
+        substitutions.emplace_back(NucleotideSubstitution{
+          .refNuc = refNuc,
+          .pos = i,
+          .queryNuc = d,
+          .pcrPrimersChanged = {},
+          .aaSubstitutions = {},
+        });
       } else if (isGap(d) && !beforeAlignment) {
         if (!nDel) {
           delPos = i;

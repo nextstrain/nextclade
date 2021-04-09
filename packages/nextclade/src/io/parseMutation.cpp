@@ -64,7 +64,13 @@ namespace Nextclade {
     const auto& pos = parsePosition(posStr);
     const auto& queryNuc = parseNucleotide(queryNucStr);
 
-    return NucleotideSubstitution{.refNuc = refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}};
+    return NucleotideSubstitution{
+      .refNuc = refNuc,
+      .pos = pos,
+      .queryNuc = queryNuc,
+      .pcrPrimersChanged = {},
+      .aaSubstitutions = {},
+    };
   }
 
   Nextclade::ErrorParseMutationInvalidNucleotide::ErrorParseMutationInvalidNucleotide(const std::string& mut)

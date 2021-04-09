@@ -81,8 +81,8 @@ namespace Nextclade {
     return {};
   }
 
-  GetDifferencesResult getDifferences(
-    const NextcladeResult& result, TreeNode& node, const NucleotideSequence& rootSeq, double maxDivergence) {
+  GetDifferencesResult getDifferences(const NextcladeResult& result, TreeNode& node, const NucleotideSequence& rootSeq,
+    double maxDivergence) {
     const auto nodeMutations = node.mutations();
 
     std::set<int> positionsCovered;
@@ -111,8 +111,13 @@ namespace Nextclade {
       }
 
       if (refNuc) {
-        const auto mut = formatMutation(
-          NucleotideSubstitution{.refNuc = *refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}});
+        const auto mut = formatMutation(NucleotideSubstitution{
+          .refNuc = *refNuc,
+          .pos = pos,
+          .queryNuc = queryNuc,
+          .pcrPrimersChanged = {},
+          .aaSubstitutions = {},
+        });
         nucMutations.push_back(mut);
         totalNucMutations += 1;
 
@@ -148,8 +153,13 @@ namespace Nextclade {
         }
 
         if (refNuc) {
-          const auto mut = formatMutation(
-            NucleotideSubstitution{.refNuc = *refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}});
+          const auto mut = formatMutation(NucleotideSubstitution{
+            .refNuc = *refNuc,
+            .pos = pos,
+            .queryNuc = queryNuc,
+            .pcrPrimersChanged = {},
+            .aaSubstitutions = {},
+          });
           nucMutations.push_back(mut);
 
           // TODO: convert this JS code to C++
@@ -171,8 +181,13 @@ namespace Nextclade {
       if (!has(positionsCovered, pos) && isSequenced(pos, result) && nuc != Nucleotide::GAP) {
         const auto& refNuc = rootSeq[pos];
         // TODO: is there no mistake in nucleotides here?
-        const auto& mutStr = formatMutation(
-          NucleotideSubstitution{.refNuc = nuc, .pos = pos, .queryNuc = refNuc, .pcrPrimersChanged = {}});
+        const auto& mutStr = formatMutation(NucleotideSubstitution{
+          .refNuc = nuc,
+          .pos = pos,
+          .queryNuc = refNuc,
+          .pcrPrimersChanged = {},
+          .aaSubstitutions = {},
+        });
         nucMutations.push_back(mutStr);
         totalNucMutations += 1;
       }
@@ -226,8 +241,8 @@ namespace Nextclade {
 
     newNode.setNodeAttr("Has PCR primer changes", result.totalPcrPrimerChanges > 0 ? "Yes" : "No");
 
-    newNode.setNodeAttr(
-      "PCR primer changes", formatAndJoinMaybeEmpty(result.pcrPrimerChanges, formatPcrPrimerChange, ", "));
+    newNode.setNodeAttr("PCR primer changes",
+      formatAndJoinMaybeEmpty(result.pcrPrimerChanges, formatPcrPrimerChange, ", "));
 
     newNode.setNodeAttr("QC Status", formatQcStatus(result.qc.overallStatus));
 
@@ -246,8 +261,8 @@ namespace Nextclade {
   /**
    * Attaches a new node to the reference tree
    */
-  void attachNewNode(
-    const NextcladeResult& result, TreeNode& node, const NucleotideSequence& rootSeq, double maxDivergence) {
+  void attachNewNode(const NextcladeResult& result, TreeNode& node, const NucleotideSequence& rootSeq,
+    double maxDivergence) {
     precondition_equal(node.isReferenceNode(), true);   // Attach only to a reference node
     precondition_equal(node.id(), result.nearestNodeId);// Attach only to the matching node
 

@@ -75,8 +75,8 @@ namespace Nextclade {
   /**
    * Finds mutations that are present in the new sequence, but not present in the matching reference tree node
    */
-  std::vector<NucleotideSubstitution> findPrivateMutations(
-    const TreeNode& node, const NextcladeResult& seq, const NucleotideSequence& rootSeq) {
+  std::vector<NucleotideSubstitution> findPrivateMutations(const TreeNode& node, const NextcladeResult& seq,
+    const NucleotideSequence& rootSeq) {
 
     const auto nodeSubstitutions = node.substitutions();
     const auto& seqSubstitutions = seq.substitutions;
@@ -98,8 +98,13 @@ namespace Nextclade {
     for (const auto [pos, refNuc] : nodeSubstitutions) {
       if (!has(mutatedPositions, pos) && isSequenced(pos, seq)) {
         const auto& queryNuc = rootSeq[pos];
-        privateMutations.emplace_back(
-          NucleotideSubstitution{.refNuc = refNuc, .pos = pos, .queryNuc = queryNuc, .pcrPrimersChanged = {}});
+        privateMutations.emplace_back(NucleotideSubstitution{
+          .refNuc = refNuc,
+          .pos = pos,
+          .queryNuc = queryNuc,
+          .pcrPrimersChanged = {},
+          .aaSubstitutions = {},
+        });
       }
     }
 
@@ -110,8 +115,8 @@ namespace Nextclade {
    * For a given new sequence, finds a reference tree node that has the least distance metric
    * (as defined by `calculateDistance()`), as well as enumerates sequence's private mutations relative to that node
    */
-  TreeFindNearestNodesResult treeFindNearestNode(
-    const NextcladeResult& analysisResult, const NucleotideSequence& rootSeq, const Tree& tree) {
+  TreeFindNearestNodesResult treeFindNearestNode(const NextcladeResult& analysisResult,
+    const NucleotideSequence& rootSeq, const Tree& tree) {
 
     auto root = tree.root();
     const auto nearestNode = treeFindNearestNodeRecursively(root, analysisResult).nearestNode;
