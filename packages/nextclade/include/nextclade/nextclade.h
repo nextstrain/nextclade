@@ -365,6 +365,8 @@ namespace Nextclade {
 
     TreeNode root() const;
 
+    void addMetadata();
+
     std::string serialize(int spaces = 2) const;
 
     // Destructor is required when using pimpl idiom with unique_ptr.

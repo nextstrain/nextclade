@@ -18,6 +18,6 @@ namespace Nextclade {
     auto root = tree.root();
     treePostprocessInPlaceRecursive(root);
 
-    // TODO: also port colorings and display_defaults
+    tree.addMetadata();
   }
 }// namespace Nextclade
