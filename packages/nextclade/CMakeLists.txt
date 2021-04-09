@@ -51,6 +51,8 @@ set(SOURCE_FILES
   src/io/parseCsv.h
   src/io/parseMutation.cpp
   src/io/parseMutation.h
+  src/io/parseQcConfig.cpp
+  src/io/parseQcConfig.h
   src/io/serializeResults.cpp
   src/io/serializeResults.h
   src/nextclade.cpp

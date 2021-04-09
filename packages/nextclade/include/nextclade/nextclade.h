@@ -318,6 +318,8 @@ namespace Nextclade {
     NextcladeAlgorithm& operator=(NextcladeAlgorithm&& other) noexcept = delete;
   };
 
+  QcConfig parseQcConfig(const std::string& qcConfigJsonStr);
+
   std::vector<PcrPrimer> parsePcrPrimersCsv(      //
     const std::string& pcrPrimersCsvString,       //
     const std::string& filename,                  //

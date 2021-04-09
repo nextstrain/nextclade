@@ -685,6 +685,7 @@ void run(
   /* in  */ bool inOrder,
   /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
   /* in  */ const ReferenceSequenceData &refData,
+  /* in  */ const Nextclade::QcConfig &qcRulesConfig,
   /* in  */ const std::string &treeString,
   /* in  */ const std::vector<Nextclade::PcrPrimer> &pcrPrimers,
   /* in  */ const GeneMap &geneMap,
@@ -719,7 +720,7 @@ void run(
     .treeString = treeString,
     .pcrPrimers = pcrPrimers,
     .geneMap = geneMap,
-    .qcRulesConfig = Nextclade::QcConfig(),
+    .qcRulesConfig = qcRulesConfig,
     .nextalignOptions = nextalignOptions,
   };
 
@@ -938,6 +939,9 @@ int main(int argc, char *argv[]) {
       std::exit(1);
     }
 
+    const auto qcJsonString = readFile(cliParams.inputQcConfig);
+    const auto qcRulesConfig = Nextclade::parseQcConfig(qcJsonString);
+
     const auto treeString = readFile(cliParams.inputTree);
 
     const auto pcrPrimersCsvString = readFile(cliParams.inputPcrPrimers);
@@ -985,8 +989,8 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, inputFastaStream, refData, treeString, pcrPrimers, geneMap, options, outputJsonStream,
-        outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream, outputInsertionsStream,
+      run(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap, options,
+        outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream, outputInsertionsStream,
         outputGeneStreams, shouldWriteReference, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
