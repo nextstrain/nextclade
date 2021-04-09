@@ -306,11 +306,7 @@ namespace Nextclade {
 
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& seq);
 
-    void saveResult(const NextcladeResult& analysisResult);
-
-    const Tree& finalize();
-
-    const std::vector<NextcladeResult>& getResults() const;
+    const Tree& finalize(const std::vector<NextcladeResult>& results);
 
     // Destructor is required when using pimpl idiom with unique_ptr.
     // See "Effective Modern C++" by Scott Meyers,

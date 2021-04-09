@@ -1,6 +1,7 @@
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
+#include <tbb/concurrent_vector.h>
 #include <tbb/global_control.h>
 #include <tbb/parallel_pipeline.h>
 
@@ -724,6 +725,10 @@ void run(
 
   Nextclade::NextcladeAlgorithm nextclade{options};
 
+  // TODO(perf): consider using a thread-safe queue instead of a vector,
+  //  or restructuring code to avoid concurrent access entirely
+  tbb::concurrent_vector<Nextclade::NextcladeResult> resultsConcurrent;
+
   /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
   const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(ioFiltersMode,//
@@ -762,7 +767,7 @@ void run(
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
     [&nextclade, &refName, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &csv, &tsv,
-      &refsHaveBeenWritten, &logger](const Nextclade::AlgorithmOutput &output) {
+      &refsHaveBeenWritten, &logger, &resultsConcurrent](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
       const auto &refAligned = output.result.ref;
@@ -816,7 +821,7 @@ void run(
 
         outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertionsStripped));
 
-        nextclade.saveResult(output.result);
+        resultsConcurrent.push_back(output.result);
 
         if (csv) {
           csv->addRow(output.result);
@@ -833,11 +838,13 @@ void run(
     logger.error("Error: when running the pipeline: {:s}\n", e.what());
   }
 
+  std::vector<Nextclade::NextcladeResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
+
   if (outputJsonStream) {
-    *outputJsonStream << serializeResults(nextclade.getResults());
+    *outputJsonStream << serializeResults(results);
   }
 
-  const auto &tree = nextclade.finalize();
+  const auto &tree = nextclade.finalize(results);
   if (outputTreeStream) {
     (*outputTreeStream) << tree.serialize();
   }

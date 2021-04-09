@@ -29,7 +29,6 @@ namespace Nextclade {
   class NextcladeAlgorithmImpl {
     const NextcladeOptions options;
     Tree tree;
-    std::vector<NextcladeResult> results;
 
   public:
     explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt) : options(opt), tree(opt.treeString) {
@@ -120,18 +119,10 @@ namespace Nextclade {
       return analysisResult;
     }
 
-    void saveResult(const NextcladeResult& analysisResult) {
-      results.push_back(analysisResult);
-    }
-
-    const Tree& finalize() {
+    const Tree& finalize(const std::vector<NextcladeResult>& results) {
       treeAttachNodes(tree, options.ref, results);
       treePostprocess(tree);
       return tree;
-    }
-
-    const std::vector<NextcladeResult>& getResults() const {
-      return results;
     }
   };
 
@@ -144,17 +135,10 @@ namespace Nextclade {
     return pimpl->run(seqName, seq);
   }
 
-  void NextcladeAlgorithm::saveResult(const NextcladeResult& analysisResult) {
-    pimpl->saveResult(analysisResult);
+  const Tree& NextcladeAlgorithm::finalize(const std::vector<NextcladeResult>& results) {
+    return pimpl->finalize(results);
   }
 
-  const Tree& NextcladeAlgorithm::finalize() {
-    return pimpl->finalize();
-  }
-
-  const std::vector<NextcladeResult>& NextcladeAlgorithm::getResults() const {
-    return pimpl->getResults();
-  }
 
   const char* getVersion() {
     return PROJECT_VERSION;
