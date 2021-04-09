@@ -235,7 +235,7 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Right) {
       .gene = "Foo",
       .nucRange = {.begin = 39, .end = 42},
       .refCodon = toNucleotideSequence("CAA"),
-      .queryCodon = toNucleotideSequence("TTA"),
+      .queryCodon = toNucleotideSequence("--A"),
     },
   };
 
@@ -323,13 +323,13 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Left) {
       .gene = "Foo",
       .nucRange = {.begin = 39, .end = 42},
       .refCodon = toNucleotideSequence("CAA"),
-      .queryCodon = toNucleotideSequence("TAA"),
+      .queryCodon = toNucleotideSequence("-AA"),
     },
   };
 
   const std::vector<NucleotideDeletion> nucDeletionsExpected = {
     NucleotideDeletion{
-      .start = 38,
+      .start = 37,
       .length = 3,
       .aaSubstitutions = aaSubstitutionsExpected,
       .aaDeletions = aaDeletionsExpected,
