@@ -221,7 +221,7 @@ namespace Nextclade {
 
     auto newNode = node.addChild();
 
-    newNode.setName(fmt::format("{}_clades", result.seqName));
+    newNode.setName(fmt::format("{}_new", result.seqName));
     newNode.setClade(result.clade);
     newNode.setNodeType("New");
     newNode.setBranchAttrMutations(mutations);
