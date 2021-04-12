@@ -26,6 +26,7 @@ export function addColoringScale({ auspiceData, key, value, color }: AddColoring
 export function remove_mutations(nodeExtended: AuspiceTreeNodeExtended): AuspiceTreeNode {
   unset(nodeExtended, 'id')
   unset(nodeExtended, 'mutations')
+  unset(nodeExtended, 'substitutions')
 
   const children = nodeExtended?.children ?? []
   for (const child of children) {
