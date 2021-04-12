@@ -79,9 +79,9 @@ namespace Nextclade {
         {
           "scale",
           json::array({
-            json::array({formatQcStatus(QcStatus::good), "#417c52"}),
+            json::array({formatQcStatus(QcStatus::good), "#417C52"}),
             json::array({formatQcStatus(QcStatus::mediocre), "#cab44d"}),
-            json::array({formatQcStatus(QcStatus::bad), "#ca738e"}),
+            json::array({formatQcStatus(QcStatus::bad), "#CA738E"}),
           }),
         },
       }));
