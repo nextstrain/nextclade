@@ -102,6 +102,10 @@ namespace Nextclade {
 
     void forEachChildNode(const std::function<void(const TreeNode&)>& action, TreeNode::const_tag) const {
       ensureIsObject();
+      if (isLeaf()) {
+        return;
+      }
+
       const auto& childrenArray = getChildren();
       for (const auto& elem : childrenArray) {
         json copy;
@@ -112,6 +116,10 @@ namespace Nextclade {
     }
 
     void forEachChildNode(const std::function<void(TreeNode&)>& action) {
+      if (isLeaf()) {
+        return;
+      }
+
       auto& childrenArray = getChildren();
       for (auto& elem : childrenArray) {
         TreeNode candidate{elem};
@@ -120,6 +128,10 @@ namespace Nextclade {
     }
 
     void forEachChildReferenceNode(const std::function<void(TreeNode)>& action, TreeNode::const_tag) {
+      if (isLeaf()) {
+        return;
+      }
+
       auto& childrenArray = getChildren();
       for (json& elem : childrenArray) {
         TreeNode node{elem};
@@ -309,8 +321,7 @@ namespace Nextclade {
 
     bool isLeaf() const {
       ensureIsObject();
-      const auto childrenValue = j.value("children", json());
-      return !childrenValue.is_array() || childrenValue.empty();
+      return !j.contains("children");
     }
 
     std::string name() const {
