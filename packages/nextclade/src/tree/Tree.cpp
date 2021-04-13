@@ -134,12 +134,15 @@ namespace Nextclade {
       }
 
       auto& displayDefaults = get(meta, "display_defaults", json::object());
-      displayDefaults.push_back({"branch_label", "clade"});
-      displayDefaults.push_back({"color_by", "clade_membership"});
-      displayDefaults.push_back({"distance_measure", "div"});
+      displayDefaults = json::object({
+        {"branch_label", "clade"},
+        {"color_by", "clade_membership"},
+        {"distance_measure", "div"},
+      });
 
-      get(meta, "panels", json::array({"tree", "entropy"}));
-      get(meta, "geo_resolutions", json{});
+      auto& panels = get(meta, "panels", json::array());
+      panels = json::array({"tree", "entropy"});
+      meta.erase("geo_resolutions");
 
       auto& filters = get(meta, "filters", json::array());
       auto newFilters = json::array({

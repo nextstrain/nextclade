@@ -4,12 +4,12 @@
 #include <nlohmann/json_fwd.hpp>
 // clang-format on
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
-#include <functional>
 
 enum class Nucleotide : char;
 
@@ -40,6 +40,8 @@ namespace Nextclade {
     TreeNode& operator=(TreeNode&& other) noexcept = default;
 
     TreeNode addChildFromCopy(const TreeNode& node);
+
+    void assign(const TreeNode& node);
 
     TreeNode addChild();
 

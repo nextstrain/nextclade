@@ -56,12 +56,10 @@ namespace Nextclade {
     precondition_equal(node.isLeaf(), true);         // Only add aux node to leaf nodes
     precondition_equal(node.isReferenceNode(), true);// Only add aux node to a reference node
 
-    auto aux = node.addChildFromCopy(node);
+    TreeNode aux = node.addChildFromCopy(node);
     aux.setNucleotideMutationsEmpty();
 
     node.setName(fmt::format("{}_parent", aux.name()));
-
-    // FIXME: there could be more attributes. Instead, should probably delete all attributes, except some.
     node.removeNodeAttr("author");
     node.removeNodeAttr("url");
   }
@@ -81,8 +79,8 @@ namespace Nextclade {
     return {};
   }
 
-  GetDifferencesResult getDifferences(const NextcladeResult& result, TreeNode& node, const NucleotideSequence& rootSeq,
-    double maxDivergence) {
+  GetDifferencesResult getDifferences(const NextcladeResult& result, const TreeNode& node,
+    const NucleotideSequence& rootSeq, double maxDivergence) {
     const auto nodeMutations = node.mutations();
 
     std::set<int> positionsCovered;
@@ -266,11 +264,11 @@ namespace Nextclade {
     precondition_equal(node.isReferenceNode(), true);   // Attach only to a reference node
     precondition_equal(node.id(), result.nearestNodeId);// Attach only to the matching node
 
+    const auto& [mutations, nucMutations, divergence] = getDifferences(result, node, rootSeq, maxDivergence);
+
     if (node.isLeaf()) {
       addAuxiliaryNode(node);
     }
-
-    const auto& [mutations, nucMutations, divergence] = getDifferences(result, node, rootSeq, maxDivergence);
     addChild(node, result, mutations, nucMutations, divergence);
   }
 

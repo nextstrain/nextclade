@@ -78,24 +78,34 @@ namespace Nextclade {
     TreeNode addChildFromCopy(const TreeNode& node) {
       ensureIsObject();
 
-      auto& childrenArray = j["children"];
-      if (!childrenArray.is_array()) {
+      auto nodeCopy = json::object();
+      nodeCopy.merge_patch(node.pimpl->j);// Deep clone
+
+      if (!j.contains("children")) {
         j["children"] = json::array();
-        childrenArray = j["children"];
       }
-      auto& childJson = childrenArray.emplace_back(json::object());
-      childJson.update(node.pimpl->j);// Deep clone
+
+      auto& childrenArray = j.at("children");
+      const auto& index = childrenArray.size();
+      childrenArray.emplace_back(json::object());
+      auto& childJson = childrenArray.at(index);
+      childJson.merge_patch(nodeCopy);
+
       return TreeNode{childJson};
+    }
+
+    void assign(const TreeNode& node) {
+      j.update(node.pimpl->j);// Deep clone
     }
 
     TreeNode addChild() {
       ensureIsObject();
 
-      auto& childrenArray = j["children"];
-      if (!childrenArray.is_array()) {
+      if (!j.contains("children")) {
         j["children"] = json::array();
-        childrenArray = j["children"];
       }
+
+      auto& childrenArray = j.at("children");
       auto& childJson = childrenArray.emplace_back(json::object());
       return TreeNode{childJson};
     }
@@ -342,7 +352,10 @@ namespace Nextclade {
     void removeNodeAttr(const std::string& name) {
       ensureIsObject();
       const auto path = json_pointer{fmt::format("/node_attrs/{}", name)};
-      j.erase(path);
+      if (j.contains(path)) {
+        j.at("node_attrs").erase(name);
+      }
+      postcondition(!j.contains(path));
     }
 
     void removeTemporaries() {
@@ -356,6 +369,10 @@ namespace Nextclade {
 
   TreeNode TreeNode::addChildFromCopy(const TreeNode& node) {
     return pimpl->addChildFromCopy(node);
+  }
+
+  void TreeNode::assign(const TreeNode& node) {
+    pimpl->assign(node);
   }
 
   TreeNode TreeNode::addChild() {
