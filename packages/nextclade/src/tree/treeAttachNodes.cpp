@@ -41,7 +41,7 @@ namespace Nextclade {
     }
 
     bool operator<(const AminoacidMutationEntry& left, const AminoacidMutationEntry& right) {
-      return left.gene < right.gene || left.aaMut < right.aaMut;
+      return left.gene < right.gene && left.aaMut < right.aaMut;
     }
 
     struct GetDifferencesResult {
