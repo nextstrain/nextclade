@@ -100,6 +100,9 @@ namespace Nextclade {
 
   GetDifferencesResult getDifferences(const NextcladeResult& result, const TreeNode& node,
     const NucleotideSequence& rootSeq, double maxDivergence) {
+    // TODO: The private mutations gathered are mostly similar to the ones
+    //  gathered in `findPrivateMutations()` in `treeFindNearestNodes.cpp`. Investigate and deduplicate.
+
     const auto nodeMutations = node.mutations();
 
     std::set<int> positionsCovered;

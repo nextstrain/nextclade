@@ -60,7 +60,12 @@ namespace Nextclade {
   ClosestMatchResult treeFindNearestNodeRecursively(TreeNode& node, const NextcladeResult& analysisResult) {
     int distance = calculateDistance(node, analysisResult);
     TreeNode nearestNode = TreeNode{node};
+
     // Only consider nodes of the reference tree, skip newly added nodes
+    // TODO: We might not need to check for reference nodes here, because,
+    //  at this point, new nodes haven't been attached to the tree. The implementation of
+    //  `node.forEachChildReferenceNode()` is slow and problematic. Investigate and simplify,
+    //  possibly using `const` version of `node.forEachChild()`.
     node.forEachChildReferenceNode([&analysisResult, &nearestNode, &distance](TreeNode child) {
       auto match = treeFindNearestNodeRecursively(child, analysisResult);
       if (match.distance < distance) {
