@@ -46,7 +46,7 @@ namespace Nextclade {
       auto analysis = analyze(alignment.query, alignment.ref);
       const int totalSubstitutions = safe_cast<int>(analysis.substitutions.size());
       const int totalDeletions = calculateTotalLength(analysis.deletions);
-      const int totalInsertions = calculateTotalLength(analysis.insertions);
+      const int totalInsertions = calculateTotalLength(alignment.insertions);
 
       const auto missing = findNucleotideRanges(alignment.query, Nucleotide::N);
       const int totalMissing = calculateTotalLength(missing);
@@ -79,13 +79,12 @@ namespace Nextclade {
         .query = toString(alignment.query),
         .refPeptides = toPeptidesExternal(alignment.refPeptides),
         .queryPeptides = toPeptidesExternal(alignment.queryPeptides),
-        .insertionsStripped = toInsertionsExternal(alignment.insertions),
         .warnings = alignment.warnings,
         .substitutions = analysis.substitutions,
         .totalSubstitutions = totalSubstitutions,
         .deletions = analysis.deletions,
         .totalDeletions = totalDeletions,
-        .insertions = analysis.insertions,
+        .insertions = alignment.insertions,
         .totalInsertions = totalInsertions,
         .missing = missing,
         .totalMissing = totalMissing,

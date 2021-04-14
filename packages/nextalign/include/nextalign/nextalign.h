@@ -143,10 +143,22 @@ struct Peptide {
   std::string seq;
 };
 
+template<typename Letter>
+struct InsertionInternal {
+  int pos;
+  int length;
+  Sequence<Letter> ins;
+};
+
+template<typename Letter>
+inline bool operator==(const InsertionInternal<Letter>& lhs, const InsertionInternal<Letter>& rhs) {
+  return lhs.pos == rhs.pos && lhs.ins == rhs.ins && lhs.length == rhs.length;
+}
+
 struct Insertion {
-  int begin;
-  int end;
-  std::string seq;
+  int pos;
+  int length;
+  std::string ins;
 };
 
 struct NextalignResult {

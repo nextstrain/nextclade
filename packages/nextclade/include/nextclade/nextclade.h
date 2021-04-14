@@ -160,15 +160,7 @@ namespace Nextclade {
     return lhs.start == rhs.start && lhs.length == rhs.length;
   }
 
-  struct NucleotideInsertion {
-    int pos;
-    int length;
-    NucleotideSequence ins;
-  };
-
-  inline bool operator==(const NucleotideInsertion& lhs, const NucleotideInsertion& rhs) {
-    return lhs.pos == rhs.pos && lhs.ins == rhs.ins && lhs.length == rhs.length;
-  }
+  using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
   struct NucleotideRange {
     int begin;
@@ -258,7 +250,6 @@ namespace Nextclade {
   struct AnalysisResult {
     std::vector<NucleotideSubstitution> substitutions;
     std::vector<NucleotideDeletion> deletions;
-    std::vector<NucleotideInsertion> insertions;
     int alignmentStart;
     int alignmentEnd;
   };
@@ -269,7 +260,6 @@ namespace Nextclade {
     std::string query;
     std::vector<Peptide> refPeptides;
     std::vector<Peptide> queryPeptides;
-    std::vector<Insertion> insertionsStripped;// FIXME: How `insertions` related to `insertionsStripped`?
     std::vector<std::string> warnings;
     std::vector<NucleotideSubstitution> substitutions;
     int totalSubstitutions;
@@ -380,6 +370,30 @@ namespace Nextclade {
   };
 
   std::string serializeResults(const std::vector<NextcladeResult>& results);
+
+  std::string formatRange(const Range& range);
+
+  std::string formatMutation(const NucleotideSubstitution& mut);
+
+  std::string formatDeletion(const NucleotideDeletion& del);
+
+  std::string formatInsertion(const NucleotideInsertion& insertion);
+
+  std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions);
+
+  std::string formatMissing(const NucleotideRange& missing);
+
+  std::string formatNonAcgtn(const NucleotideRange& nonAcgtn);
+
+  std::string formatPcrPrimerChange(const PcrPrimerChange& primerChange);
+
+  std::string formatAminoacidMutationWithoutGene(const AminoacidSubstitution& mut);
+
+  std::string formatAminoacidMutation(const AminoacidSubstitution& mut);
+
+  std::string formatAminoacidDeletion(const AminoacidDeletion& del);
+
+  std::string formatClusteredSnp(const ClusteredSnp& csnp);
 
   const char* getVersion();
 }// namespace Nextclade

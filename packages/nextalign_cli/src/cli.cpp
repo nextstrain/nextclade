@@ -604,7 +604,7 @@ std::string formatInsertions(const std::vector<Insertion> &insertions) {
   std::vector<std::string> insertionStrings;
   insertionStrings.reserve(insertions.size());
   for (const auto &insertion : insertions) {
-    insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.begin, insertion.seq));
+    insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.pos, insertion.ins));
   }
 
   return boost::algorithm::join(insertionStrings, ";");

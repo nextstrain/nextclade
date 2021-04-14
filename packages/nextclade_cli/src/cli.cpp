@@ -623,7 +623,7 @@ std::string formatPaths(const Paths &paths) {
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
 
-  for (const auto& [geneName, outputGenePath] : paths.outputGenes) {
+  for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
     fmt::memory_buffer bufGene;
     fmt::format_to(bufGene, "{:s} {:>10s}", "Translated genes", geneName);
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufGene), outputGenePath.string());
@@ -656,15 +656,6 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
   return fmt::to_string(buf);
 }
 
-std::string formatInsertions(const std::vector<Insertion> &insertions) {
-  std::vector<std::string> insertionStrings;
-  insertionStrings.reserve(insertions.size());
-  for (const auto &insertion : insertions) {
-    insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.begin, insertion.seq));
-  }
-
-  return boost::algorithm::join(insertionStrings, ";");
-}
 
 namespace Nextclade {
   struct AlgorithmOutput {
@@ -775,10 +766,10 @@ void run(
       const auto &queryAligned = output.result.query;
       const auto &queryPeptides = output.result.queryPeptides;
       const auto &refPeptides = output.result.refPeptides;
-      const auto &insertionsStripped = output.result.insertionsStripped;
+      const auto &insertions = output.result.insertions;
       const auto &warnings = output.result.warnings;
 
-      logger.info("| {:5d} | {:40s} | {:16d} | {:12d} |\n", index, seqName, 0, 0);
+      logger.info("| {:5d} | {:40s} | {:16d} | {:12d} |\n", index, seqName, 0, output.result.insertions.size());
 
       const auto &error = output.error;
       if (error) {
@@ -820,7 +811,7 @@ void run(
           outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
         }
 
-        outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertionsStripped));
+        outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, Nextclade::formatInsertions(insertions));
 
         resultsConcurrent.push_back(output.result);
 

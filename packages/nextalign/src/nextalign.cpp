@@ -15,7 +15,7 @@
 #include "utils/safe_cast.h"
 
 Insertion toInsertionExternal(const InsertionInternal<Nucleotide>& ins) {
-  return Insertion{.begin = ins.begin, .end = ins.end, .seq = toString(ins.seq)};
+  return Insertion{.pos = ins.pos, .length = ins.length, .ins = toString(ins.ins)};
 }
 
 std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<Nucleotide>>& insertions) {

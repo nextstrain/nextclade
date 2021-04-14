@@ -34,6 +34,10 @@ namespace Nextclade {
     return fmt::format("{}:{}", positionOneBased, insertedSequence);
   }
 
+  std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions) {
+    return formatAndJoin(insertions, formatInsertion, ";");
+  }
+
   std::string formatMissing(const NucleotideRange& missing) {
     return formatRange({.begin = missing.begin, .end = missing.end});
   }

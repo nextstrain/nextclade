@@ -1,7 +1,5 @@
 #include "analyze.h"
 
-#include <algorithm>
-#include <boost/range/algorithm_ext/erase.hpp>
 #include <vector>
 
 #include "nucleotide.h"
@@ -9,58 +7,6 @@
 
 
 namespace Nextclade {
-  auto reportInsertions(const NucleotideSequence& query, const NucleotideSequence& ref) {
-    int refPos = 0;
-    NucleotideSequence ins;
-    int insStart = -1;
-    std::vector<NucleotideInsertion> insertions;
-    int i = 0;
-    std::for_each(ref.begin(), ref.end(), [&refPos, &ins, &insStart, &insertions, &query, &i](Nucleotide d) {
-      if (d == Nucleotide::GAP) {
-        if (ins.empty()) {
-          insStart = refPos;
-        }
-        ins += query[i];
-      } else {
-        if (!ins.empty()) {
-          insertions.emplace_back(
-            NucleotideInsertion{.pos = insStart, .length = safe_cast<int>(ins.size()), .ins = ins});
-          ins.clear();
-        }
-        refPos += 1;
-      }
-      ++i;
-    });
-
-    // add insertion at the end of the reference if it exists
-    if (!ins.empty()) {
-      insertions.emplace_back(NucleotideInsertion{.pos = insStart, .length = safe_cast<int>(ins.size()), .ins = ins});
-    }
-
-    return insertions;
-  }
-
-
-  auto stripQueryInsertionsRelativeToRef(const NucleotideSequence& query, const NucleotideSequence& ref) {
-    int i = 0;
-    auto refStrippedQuery = query;
-    refStrippedQuery = boost::remove_erase_if(refStrippedQuery, [&i, &ref](Nucleotide c) {
-      (void) c;
-      const auto result = ref[i] == Nucleotide::GAP;
-      ++i;
-      return result;
-    });
-
-    return refStrippedQuery;
-  }
-
-
-  auto stripRefInsertions(const NucleotideSequence& ref) {
-    auto refStripped = ref;
-    refStripped = boost::remove_erase_if(refStripped, isGap);
-    return refStripped;
-  }
-
   struct MutationReport {
     std::vector<NucleotideSubstitution> substitutions;
     std::vector<NucleotideDeletion> deletions;
@@ -120,18 +66,11 @@ namespace Nextclade {
     };
   }
 
-  AnalysisResult analyze(const NucleotideSequence& query, const NucleotideSequence& ref) {
-    const auto insertions = reportInsertions(query, ref);
-
-    const auto refStripped = stripRefInsertions(ref);
-    const auto refStrippedQuery = stripQueryInsertionsRelativeToRef(query, ref);
-    const auto [substitutions, deletions, alignmentStart, alignmentEnd] =
-      reportMutations(refStripped, refStrippedQuery);
-
+  AnalysisResult analyze(const NucleotideSequence& queryStripped, const NucleotideSequence& refStripped) {
+    const auto [substitutions, deletions, alignmentStart, alignmentEnd] = reportMutations(refStripped, queryStripped);
     return {
       .substitutions = substitutions,
       .deletions = deletions,
-      .insertions = insertions,
       .alignmentStart = alignmentStart,
       .alignmentEnd = alignmentEnd,
     };

@@ -47,24 +47,6 @@ TEST(analyzes, ReportsSubstitutions) {
   EXPECT_ARR_EQ(expected, results.substitutions)
 }
 
-TEST(analyzes, ReportsInsertions) {
-  std::stringstream input;
-
-  // clang-format off
-  const auto ref   = toNucleotideSequence("CTA" "---" "GTA");
-  const auto query = toNucleotideSequence("CTA" "ATA" "GTA");
-  // clang-format on                       012   345   678
-
-  const auto results = analyze(query, ref);
-
-  const auto expected = std::vector<NucleotideInsertion>({
-    {.pos = 3, .length = 3, .ins = toNucleotideSequence("ATA")},
-  });
-
-  EXPECT_ARR_EQ(expected, results.insertions)
-}
-
-
 TEST(analyzes, ReportsDeletions) {
   std::stringstream input;
 

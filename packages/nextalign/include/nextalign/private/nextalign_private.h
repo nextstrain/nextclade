@@ -16,13 +16,6 @@ using NucleotideSequenceSpan = SequenceSpan<Nucleotide>;
 using AminoacidSequenceSpan = SequenceSpan<Aminoacid>;
 
 
-template<typename Letter>
-struct InsertionInternal {
-  int begin;
-  int end;
-  Sequence<Letter> seq;
-};
-
 struct PeptideInternal {
   std::string name;
   AminoacidSequence seq;
