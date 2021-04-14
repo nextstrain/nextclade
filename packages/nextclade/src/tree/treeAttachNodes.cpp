@@ -32,8 +32,8 @@ namespace Nextclade {
     }
 
     struct AminoacidMutationEntry {
-      NucleotideSequence gene;
-      NucleotideSequence aaMut;
+      std::string gene;
+      std::string aaMut;
     };
 
     bool operator==(const AminoacidMutationEntry& left, const AminoacidMutationEntry& right) {
@@ -64,19 +64,38 @@ namespace Nextclade {
     node.removeNodeAttr("url");
   }
 
-  // TODO: implement this
-  std::map<std::string, std::vector<std::string>> groupAminoacidMutations(
-    const std::vector<AminoacidMutationEntry>& aminoacidMutationEntries) {
+  /**
+   * Groups formatted mutations by gene, according to Auspice JSON format.
+   * The resulting structure will be similar to this:
+   * ```
+   * {
+   *    "A": ["M123N"],
+   *    "S": ["Y456F","P789R"],
+   *    "nuc": ["A123T"]
+   * }
+   * ```
+   * Note how the nucleotide mutations are attached as a "gene" called "nuc".
+   */
+  std::map<std::string, std::vector<std::string>> groupFormattedMutationsByGene(//
+    const std::vector<std::string>& nucMutations,                               //
+    const std::vector<AminoacidMutationEntry>& aminoacidMutationEntries         //
+  ) {
+    std::map<std::string, std::vector<std::string>> grouped;
+    for (const auto& entry : aminoacidMutationEntries) {
+      if (!mapFind(grouped, entry.gene)) {
+        grouped[entry.gene] = {};
+      }
+      grouped[entry.gene].push_back(entry.aaMut);
+    }
 
-    (void) aminoacidMutationEntries;
+    // NOTE: nucleotide mutations are attached as a "gene" called "nuc"
+    grouped["nuc"] = {};
+    grouped["nuc"].reserve(nucMutations.size());
+    for (const auto& mut : nucMutations) {
+      grouped["nuc"].push_back(mut);
+    }
 
-    //  const aminoacidMutationsGrouped = groupBy(aminoacidMutationEntries, ({ gene }) => gene)
-    //  const aminoacidMutationsFinal = mapValues(aminoacidMutationsGrouped, (aaMuts) => aaMuts.map(({ aaMut }) => aaMut))
-    //  const mutations = {
-    //    nuc: nucMutations,
-    //    ...aminoacidMutationsFinal,
-    //  }
-    return {};
+    return grouped;
   }
 
   GetDifferencesResult getDifferences(const NextcladeResult& result, const TreeNode& node,
@@ -119,14 +138,12 @@ namespace Nextclade {
         nucMutations.push_back(mut);
         totalNucMutations += 1;
 
-        // TODO: convert this JS code to C++
-        // TODO: these are amino acid mutations relative to reference. Double hits won't how up properly
-        //  const aminoacidMutationEntriesNew = qmut.aaSubstitutions.map(({ codon, gene, queryAA, refAA }) => {
-        //    const aaMut = formatAAMutationWithoutGene({ refAA, codon, queryAA })
-        //    return { gene, aaMut }
-        //  })
-        //
-        //  aminoacidMutationEntries = [...aminoacidMutationEntries, ...aminoacidMutationEntriesNew]
+        for (const auto& aaSub : qmut.aaSubstitutions) {
+          // TODO: This string conversion might be done too early. We might bring it closer to the place where it's used. Or, perhaps, it can be avoided.
+          //  Often there are multiple competing sets of the same data in different formats. This might be one of those.
+          const auto formatted = formatAminoacidMutationWithoutGene(aaSub);
+          aminoacidMutationEntries.emplace_back(AminoacidMutationEntry{.gene = aaSub.gene, .aaMut = formatted});
+        }
       }
     }
 
@@ -160,19 +177,24 @@ namespace Nextclade {
           });
           nucMutations.push_back(mut);
 
-          // TODO: convert this JS code to C++
-          //  const aminoacidMutationEntriesNew = del.aaDeletions.map(({ codon, gene, refAA }) => {
-          //    const aaMut = formatAAMutationWithoutGene({ refAA, codon, queryAA: AMINOACID_GAP })
-          //    return { gene, aaMut }
-          //  })
-          //  aminoacidMutationEntries = [...aminoacidMutationEntries, ...aminoacidMutationEntriesNew]
+
+          for (const auto& aaDel : del.aaDeletions) {
+            // TODO: This string conversion might be done too early. We might bring it closer to the place where it's used. Or, perhaps, it can be avoided.
+            //  Often there are multiple competing sets of the same data in different formats. This might be one of those.
+            const auto formatted = formatAminoacidMutationWithoutGene(AminoacidSubstitution{
+              .refAA = aaDel.refAA,
+              .queryAA = Aminoacid::GAP,
+              .codon = aaDel.codon,
+              .gene = aaDel.gene,
+              .nucRange = aaDel.nucRange,
+              .refCodon = aaDel.refCodon,
+              .queryCodon = toNucleotideSequence("---"),
+            });
+            aminoacidMutationEntries.emplace_back(AminoacidMutationEntry{.gene = aaDel.gene, .aaMut = formatted});
+          }
         }
       }
     }
-
-    eraseDuplicatesInPlace(aminoacidMutationEntries);
-    const auto mutations = groupAminoacidMutations(aminoacidMutationEntries);
-
 
     for (const auto& [pos, nuc] : nodeMutations) {
       // mutation in node that is not present in node
@@ -205,6 +227,9 @@ namespace Nextclade {
     const double divergence = baseDiv + thisDiv;
 
     nucMutations.shrink_to_fit();
+
+    eraseDuplicatesInPlace(aminoacidMutationEntries);
+    const auto mutations = groupFormattedMutationsByGene(nucMutations, aminoacidMutationEntries);
 
     return {
       .mutations = mutations,

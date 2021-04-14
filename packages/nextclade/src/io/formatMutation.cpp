@@ -49,15 +49,13 @@ namespace Nextclade {
     return fmt::format("{}:{}", name, muts);
   }
 
-  namespace {
-    std::string formatAminoacidMutationWithoutGene(const AminoacidSubstitution& mut) {
-      // NOTE: by convention, in bioinformatics, aminoacids are numbered starting from 1, however our arrays are 0-based
-      const auto codonOneBased = mut.codon + 1;
-      const auto ref = aaToString(mut.refAA);
-      const auto query = aaToString(mut.queryAA);
-      return fmt::format("{}{}{}", ref, codonOneBased, query);
-    }
-  }// namespace
+  std::string formatAminoacidMutationWithoutGene(const AminoacidSubstitution& mut) {
+    // NOTE: by convention, in bioinformatics, aminoacids are numbered starting from 1, however our arrays are 0-based
+    const auto codonOneBased = mut.codon + 1;
+    const auto ref = aaToString(mut.refAA);
+    const auto query = aaToString(mut.queryAA);
+    return fmt::format("{}{}{}", ref, codonOneBased, query);
+  }
 
   std::string formatAminoacidMutation(const AminoacidSubstitution& mut) {
     const auto& gene = mut.gene;

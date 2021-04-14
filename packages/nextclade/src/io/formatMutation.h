@@ -36,6 +36,8 @@ namespace Nextclade {
 
   std::string formatPcrPrimerChange(const PcrPrimerChange& primerChange);
 
+  std::string formatAminoacidMutationWithoutGene(const AminoacidSubstitution& mut);
+
   std::string formatAminoacidMutation(const AminoacidSubstitution& mut);
 
   std::string formatAminoacidDeletion(const AminoacidDeletion& del);
