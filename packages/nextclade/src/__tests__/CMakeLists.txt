@@ -17,6 +17,7 @@ add_executable(${PROJECT_NAME}
   getPcrPrimerChanges.test.cpp
   isMatch.test.cpp
   isSequenced.test.cpp
+  operatorLess.cpp
   parseMutation.test.cpp
   range.test.cpp
   tree.test.cpp
