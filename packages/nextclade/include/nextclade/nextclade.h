@@ -144,7 +144,7 @@ namespace Nextclade {
   }
 
   inline bool operator<(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
-    return lhs.pos < rhs.pos || lhs.refNuc < rhs.refNuc || lhs.queryNuc < rhs.queryNuc;
+    return lhs.pos < rhs.pos && lhs.refNuc < rhs.refNuc && lhs.queryNuc < rhs.queryNuc;
   }
 
   struct AminoacidDeletion;
@@ -202,7 +202,7 @@ namespace Nextclade {
 
   inline bool operator<(const AminoacidSubstitution& left, const AminoacidSubstitution& right) {
     return (                   //
-      left.gene < right.gene ||//
+      left.gene < right.gene &&//
       left.codon < right.codon //
     );
   }
@@ -227,7 +227,7 @@ namespace Nextclade {
 
   inline bool operator<(const AminoacidDeletion& left, const AminoacidDeletion& right) {
     return (                   //
-      left.gene < right.gene ||//
+      left.gene < right.gene &&//
       left.codon < right.codon //
     );
   }
