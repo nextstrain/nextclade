@@ -61,8 +61,6 @@ void protectCodonInPlace(SpanIterator it) {
 }
 
 void stripGeneInPlace(NucleotideSequence& seq) {
-  precondition_divisible_by(seq.size(), 3);
-
   const auto& length = safe_cast<int>(seq.size());
   const auto end = length - (length % 3);
   NucleotideSequenceSpan seqSpan = seq;
