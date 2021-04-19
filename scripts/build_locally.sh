@@ -251,6 +251,30 @@ if [ "${IS_CI}" == "1" ]; then
 fi
 GDB="${GDB:=${GDB_DEFAULT}}"
 
+USE_VALGRIND="${USE_VALGRIND:=0}"
+VALGRIND_DEFAULT=""
+if [ "${USE_VALGRIND}" == "1" ] || [ "${USE_VALGRIND}" == "true" ]; then
+  NEXTALIGN_STATIC_BUILD=0
+
+  VALGRIND_DEFAULT="\
+  valgrind \
+  --tool=memcheck \
+  --error-limit=no \
+  "
+#  --leak-check=full \
+#  --gen-suppressions=all \
+#  --read-var-info=yes \
+#  --show-reachable=no \
+#  --num-callers=32 \
+#  --track-fds=yes \
+#  --track-origins=yes \
+#  --trace-children=yes \
+#  --fullpath-after=${PROJECT_ROOT_DIR} \
+#  --fair-sched=try \
+
+fi
+GDB="${GDB:=${VALGRIND_DEFAULT}}"
+
 # gttp (Google Test Pretty Printer) command
 GTTP_DEFAULT="${THIS_DIR}/lib/gtpp.py"
 if [ "${IS_CI}" == "1" ]; then
@@ -307,6 +331,8 @@ echo "CXX                      = ${CXX:=}"
 echo "CMAKE_C_COMPILER         = ${CMAKE_C_COMPILER:=}"
 echo "CMAKE_CXX_COMPILER       = ${CMAKE_CXX_COMPILER:=}"
 echo "USE_CLANG_ANALYZER       = ${USE_CLANG_ANALYZER:=}"
+echo ""
+echo "USE_VALGRIND             = ${USE_VALGRIND:=}"
 echo ""
 echo "CONAN_COMPILER_SETTINGS      = ${CONAN_COMPILER_SETTINGS:=}"
 echo "CONAN_STATIC_BUILD_FLAGS     = ${CONAN_STATIC_BUILD_FLAGS:=}"

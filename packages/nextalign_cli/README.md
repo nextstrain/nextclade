@@ -564,7 +564,12 @@ The project is set up to build with sanitizers, if one of the following `CMAKE_B
 
 #### Valgrind
 
-> TODO: setup valgrind
+Set environment variable `USE_VALGRIND=1` in order to run the executable with `valgrind` memcheck:
+
+```bash
+USE_VALGRIND=1 make dev
+
+```
 
 ---
 
