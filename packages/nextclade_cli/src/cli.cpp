@@ -148,22 +148,22 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
   cxxOpts.add_options()
     (
       "h,help",
-      "Show this help"
+      "(optional, boolean) Show this help"
     )
 
     (
       "v,version",
-      "Show version"
+      "(optional, boolean) Show version"
     )
 
     (
       "version-detailed",
-      "Show detailed version"
+      "(optional, boolean) Show detailed version"
     )
 
     (
       "verbose",
-      "Increase verbosity of the console output. By default only errors and warnings are shown. With this option more information will be printed."
+      "(optional, boolean) Increase verbosity of the console output. By default only errors and warnings are shown. With this option more information will be printed."
     )
 
     (
@@ -175,81 +175,81 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
 
     (
       "in-order",
-      "Force parallel processing in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag."
+      "(optional, boolean) Force parallel processing in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag."
     )
 
     (
       "i,input-fasta",
-      "Path to a .fasta or a .txt file with input sequences", cxxopts::value<std::string>(),
+      "(required, string) Path to a .fasta or a .txt file with input sequences. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/feat/nextclade-cpp/data/sars-cov-2/sequences.fasta", cxxopts::value<std::string>(),
       "IN_FASTA"
     )
 
     (
       "r,input-root-seq",
-      "(optional) Path to plain text file containing custom root sequence",
+      "Path to a .fasta or a .txt file containing root sequence. Must contain only 1 sequence. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/reference.fasta",
       cxxopts::value<std::string>(),
       "IN_ROOT_SEQ"
     )
 
     (
       "a,input-tree",
-      "(optional) Path to Auspice JSON v2 file containing custom reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats",
+      "(required, string) Path to Auspice JSON v2 file containing reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/tree.json",
       cxxopts::value<std::string>(),
       "IN_TREE"
     )
 
     (
       "q,input-qc-config",
-      "(optional) Path to a JSON file containing custom configuration of Quality Control rules. For an example format see: https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/qcRulesConfig.ts",
+      "(required, string) Path to a JSON file containing configuration of Quality Control rules. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/feat/nextclade-cpp/data/sars-cov-2/qc.json",
       cxxopts::value<std::string>(),
       "IN_QC_CONF"
     )
 
     (
       "genes",
-       "(optional, string) List of genes to translate and to take into account during alignment. If not supplied or empty, sequence will not be translated. If non-empty, should contain a coma-separated list of gene names",
+       "(optional, string) List of genes to translate and to take into account during alignment. If not supplied or empty, sequence will not be translated. If non-empty, should contain a coma-separated list of gene names. Example for SARS-CoV-2: E,M,N,ORF10,ORF14,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S",
        cxxopts::value<std::string>(),
        "GENES"
     )
 
     (
       "g,input-gene-map",
-      R"((optional) Path to a JSON file containing custom gene map. Gene map (sometimes also called "gene annotations") is used to resolve aminoacid changes in genes. For an example see https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/geneMap.json)",
+      R"((optional) Path to a .gff file containing gene map. Gene map (sometimes also called "gene annotations") is used to find gene regions. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/genemap.gff)",
       cxxopts::value<std::string>(),
       "IN_GENE_MAP"
     )
 
     (
       "p,input-pcr-primers",
-      "(optional) Path to a CSV file containing a list of custom PCR primer sites. These are used to report mutations in these sites. For an example see https://github.com/nextstrain/nextclade/blob/20a9fda5b8046ce26669de2023770790c650daae/packages/web/src/algorithms/defaults/sars-cov-2/pcrPrimers.csv",
+      "(optional, string) Path to a CSV file containing a list of custom PCR primer sites. These are used to report mutations in these sites. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/primers.csv",
       cxxopts::value<std::string>(),
       "IN_PCR_PRIMERS"
     )
 
     (
       "o,output-json",
-      "(optional) Path to output JSON results file",
+      "(optional, string) Path to output JSON results file",
       cxxopts::value<std::string>(),
       "OUT_JSON"
     )
 
     (
       "c,output-csv",
-      "(optional) Path to output CSV results file",
+      "(optional, string) Path to output CSV results file",
       cxxopts::value<std::string>(),
       "OUT_CSV"
     )
 
     (
       "t,output-tsv",
-      "(optional) Path to output TSV results file",
+      "(optional, string) Path to output TSV results file",
       cxxopts::value<std::string>(),
       "OUT_TSV"
     )
 
     (
       "T,output-tree",
-      "(optional) Path to output Auspice JSON V2 results file. See https://nextstrain.org/docs/bioinformatics/data-formats",
+      "(optional, string) Path to output Auspice JSON V2 results file. See https://nextstrain.org/docs/bioinformatics/data-formats",
       cxxopts::value<std::string>(),
       "OUT_TREE"
     )
