@@ -26,7 +26,7 @@ struct CliParams {
   std::string inputTree;
   std::string inputQcConfig;
   std::string inputGeneMap;
-  std::string inputPcrPrimers;
+  std::optional<std::string> inputPcrPrimers;
   std::optional<std::string> outputJson;
   std::optional<std::string> outputCsv;
   std::optional<std::string> outputTsv;
@@ -438,7 +438,7 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
     cliParams.inputQcConfig = getParamRequired<std::string>(cxxOptsParsed, "input-qc-config");
     cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
     cliParams.inputGeneMap = getParamRequired<std::string>(cxxOptsParsed, "input-gene-map");
-    cliParams.inputPcrPrimers = getParamRequired<std::string>(cxxOptsParsed, "input-pcr-primers");
+    cliParams.inputPcrPrimers = getParamOptional<std::string>(cxxOptsParsed, "input-pcr-primers");
     cliParams.outputJson = getParamOptional<std::string>(cxxOptsParsed, "output-json");
     cliParams.outputCsv = getParamOptional<std::string>(cxxOptsParsed, "output-csv");
     cliParams.outputTsv = getParamOptional<std::string>(cxxOptsParsed, "output-tsv");
@@ -564,7 +564,7 @@ std::string formatCliParams(const CliParams &cliParams) {
   fmt::format_to(buf, "{:<20s}{:<}\n", "Root sequence", cliParams.inputRootSeq);
   fmt::format_to(buf, "{:<20s}{:<}\n", "Sequences FASTA", cliParams.inputFasta);
   fmt::format_to(buf, "{:<20s}{:<}\n", "Gene map", cliParams.inputGeneMap);
-  fmt::format_to(buf, "{:<20s}{:<}\n", "PCR primers", cliParams.inputPcrPrimers);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "PCR primers", cliParams.inputPcrPrimers.value_or("Disabled"));
   fmt::format_to(buf, "{:<20s}{:<}\n", "QC configuration", cliParams.inputQcConfig);
 
   if (cliParams.genes) {
@@ -935,10 +935,13 @@ int main(int argc, char *argv[]) {
 
     const auto treeString = readFile(cliParams.inputTree);
 
-    const auto pcrPrimersCsvString = readFile(cliParams.inputPcrPrimers);
-    std::vector<std::string> warnings;
-    std::vector<Nextclade::PcrPrimer> pcrPrimers =
-      Nextclade::parsePcrPrimersCsv(pcrPrimersCsvString, cliParams.inputPcrPrimers, refData.seq, warnings);
+    std::vector<Nextclade::PcrPrimer> pcrPrimers;
+    if (cliParams.inputPcrPrimers) {
+      const auto pcrPrimersCsvString = readFile(*cliParams.inputPcrPrimers);
+      std::vector<std::string> warnings;
+      pcrPrimers =
+        Nextclade::parsePcrPrimersCsv(pcrPrimersCsvString, *cliParams.inputPcrPrimers, refData.seq, warnings);
+    }
 
     const auto paths = getPaths(cliParams, genes);
     logger.info(formatPaths(paths));
