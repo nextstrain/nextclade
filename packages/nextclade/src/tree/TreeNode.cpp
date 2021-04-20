@@ -137,20 +137,6 @@ namespace Nextclade {
       }
     }
 
-    void forEachChildReferenceNode(const std::function<void(TreeNode)>& action, TreeNode::const_tag) {
-      if (isLeaf()) {
-        return;
-      }
-
-      auto& childrenArray = getChildren();
-      for (json& elem : childrenArray) {
-        TreeNode node{elem};
-        if (node.isReferenceNode()) {
-          action(TreeNode{elem});
-        }
-      }
-    }
-
     int id() const {
       ensureIsObject();
 
@@ -385,10 +371,6 @@ namespace Nextclade {
 
   void TreeNode::forEachChildNode(const std::function<void(TreeNode&)>& action) {
     pimpl->forEachChildNode(action);
-  }
-
-  void TreeNode::forEachChildReferenceNode(const std::function<void(TreeNode)>& action) {
-    pimpl->forEachChildReferenceNode(action, TreeNode::const_tag{});
   }
 
   std::map<int, Nucleotide> TreeNode::substitutions() const {

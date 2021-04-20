@@ -49,8 +49,6 @@ namespace Nextclade {
 
     void forEachChildNode(const std::function<void(TreeNode&)>& action);
 
-    void forEachChildReferenceNode(const std::function<void(TreeNode)>& action);
-
     int id() const;
 
     void setId(int id);
