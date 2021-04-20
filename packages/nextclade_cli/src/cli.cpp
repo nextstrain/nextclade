@@ -836,8 +836,8 @@ void run(
     *outputJsonStream << serializeResults(results);
   }
 
-  const auto &tree = nextclade.finalize(results);
   if (outputTreeStream) {
+    const auto &tree = nextclade.finalize(results);
     (*outputTreeStream) << tree.serialize();
   }
 }
