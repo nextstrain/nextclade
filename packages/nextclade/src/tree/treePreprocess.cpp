@@ -28,29 +28,23 @@ namespace Nextclade {
    * Recursively, in-place, extends nodes with temporary data needed on further stages of the algorithm:
    * attaches a map of substitutions, node type and node ID to every node.
    */
-  void treePreprocessInPlaceRecursive(
-    TreeNode& node, std::map<int, Nucleotide>& mutationMap, int& id, const NucleotideSequence& rootSeq) {
+  void treePreprocessInPlaceRecursive(TreeNode& node, std::map<int, Nucleotide>& mutationMap, int& id,
+    const NucleotideSequence& rootSeq) {
 
     std::map<int, Nucleotide> tmpMuts = mutationMap;
 
     const auto nucleotideMutations = node.nucleotideMutations();
     for (const auto& mut : nucleotideMutations) {
-      // TODO: this check seems to be always triggering an exception. Investigate.
       const auto& previousNuc = mapFind(tmpMuts, mut.pos);
       if (previousNuc.has_value() && (previousNuc.value() != mut.refNuc)) {
-        // throw ErrorAttachMutationsInconsistentMutation(mut, previousNuc.value());
-        fmt::print(                                                              //
-          "When attaching mutations: Mutation is inconsistent: \"{}\": "         //
-          "current nucleotide: \"{}\", previously seen: \"{}\"",                 //
-          formatMutation(mut), nucToString(mut.refNuc), nucToString(*previousNuc)//
-        );                                                                       //
+        throw ErrorAttachMutationsInconsistentMutation(mut, previousNuc.value());
       }
 
       // If mutation reverts nucleotide back to what reference had, remove it from the map
       if (rootSeq[mut.pos] == mut.queryNuc) {
         tmpMuts.erase(mut.pos);
       } else {
-        tmpMuts.emplace(mut.pos, mut.queryNuc);
+        tmpMuts[mut.pos] = mut.queryNuc;// NOTE: make sure the entry is overwritten
       }
     }
 
