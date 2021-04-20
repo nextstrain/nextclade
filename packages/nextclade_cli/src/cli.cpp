@@ -249,7 +249,7 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
 
     (
       "T,output-tree",
-      "(optional, string) Path to output Auspice JSON V2 results file. See https://nextstrain.org/docs/bioinformatics/data-formats",
+      "(optional, string) Path to output Auspice JSON V2 results file. If the three is not needed, omitting this flag reduces processing time and memory consumption. For file format description see: https://nextstrain.org/docs/bioinformatics/data-formats",
       cxxopts::value<std::string>(),
       "OUT_TREE"
     )
