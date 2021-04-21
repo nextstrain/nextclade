@@ -265,6 +265,7 @@ if [ "${USE_VALGRIND}" == "1" ] || [ "${USE_VALGRIND}" == "true" ]; then
   GDB="${VALGRIND:=${VALGRIND_DEFAULT}}"
 fi
 
+USE_MASSIF="${USE_MASSIF:=0}"
 if [ "${USE_MASSIF}" == "1" ] || [ "${USE_MASSIF}" == "true" ]; then
   NEXTALIGN_STATIC_BUILD=0
 
