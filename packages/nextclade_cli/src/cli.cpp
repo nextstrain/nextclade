@@ -214,7 +214,7 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
 
     (
       "g,input-gene-map",
-      R"((optional, string) Path to a .gff file containing gene map. Gene map (sometimes also called "gene annotations") is used to find gene regions. If not supplied, sequences will not be translated, peptides will not be emitted, aminoacid mutations will not be detected and nucleotide sequence alignment might be less accurate. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/genemap.gff)",
+      R"((optional, string) Path to a .gff file containing gene map. Gene map (sometimes also called "gene annotations") is used to find gene regions. If not supplied, sequences will not be translated, peptides will not be emitted, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by codon boundaries. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/genemap.gff)",
       cxxopts::value<std::string>(),
       "IN_GENE_MAP"
     )
@@ -1005,11 +1005,11 @@ int main(int argc, char *argv[]) {
       logger.warn(
         "Warning: Parameter `--input-gene-map` was not specified. Without a gene map sequences will not be "
         "translated, there will be no peptides in output files, aminoacid mutations will not be detected and "
-        "nucleotide sequence alignment might be less accurate.\n");
+        "nucleotide sequence alignment will not be informed by codon boundaries.\n");
     } else if (geneMap.empty()) {
       logger.warn(
         "Warning: Provided gene map is empty. Sequences will not be translated, there will be no peptides in output "
-        "files, aminoacid mutations will not be detected and nucleotide sequence alignment might be less accurate.\n");
+        "files, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by codon boundaries.\n");
     }
 
     constexpr const auto TABLE_WIDTH = 86;
