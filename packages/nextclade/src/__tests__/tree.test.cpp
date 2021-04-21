@@ -248,8 +248,8 @@ TEST(Tree, Children_add_from_copy) {
     {
       "tree": {
          "children": [
-            { "tmp": { "id": 123 }, "foo": "bar" },
-            { "tmp": { "id": 789 }, "foo": "baz" }
+            { "tmp": { "id": 789 }, "foo": "baz" },
+            { "tmp": { "id": 123 }, "foo": "bar" }
          ]
        }
     }

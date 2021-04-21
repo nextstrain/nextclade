@@ -86,9 +86,8 @@ namespace Nextclade {
       }
 
       auto& childrenArray = j.at("children");
-      const auto& index = childrenArray.size();
-      childrenArray.emplace_back(json::object());
-      auto& childJson = childrenArray.at(index);
+      childrenArray.insert(childrenArray.begin(), {json::object()});
+      auto& childJson = childrenArray.at(0);
       childJson.merge_patch(nodeCopy);
 
       return TreeNode{childJson};
@@ -106,7 +105,8 @@ namespace Nextclade {
       }
 
       auto& childrenArray = j.at("children");
-      auto& childJson = childrenArray.emplace_back(json::object());
+      childrenArray.insert(childrenArray.begin(), {json::object()});
+      auto& childJson = childrenArray.at(0);
       return TreeNode{childJson};
     }
 
