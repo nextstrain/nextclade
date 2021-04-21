@@ -12,7 +12,7 @@ namespace Nextclade {
     // but bioinformaticians prefer 1-based, closed ranges
     const auto beginOne = range.begin + 1;
     const auto endOne = range.end;
-    if (endOne - beginOne == 1) {
+    if (endOne == beginOne) {
       return std::to_string(beginOne);
     }
     return fmt::format("{}-{}", beginOne, endOne);
