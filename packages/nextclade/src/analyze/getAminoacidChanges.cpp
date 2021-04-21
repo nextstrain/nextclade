@@ -97,7 +97,7 @@ namespace Nextclade {
         });
       } else {
         // TODO: we might account for ambiguous aminoacids in this condition
-        if (queryAa != refAa) {
+        if (queryAa != refAa && queryAa != Aminoacid::X) {
           // If not a gap and the state has changed, than it's a substitution
           aaSubstitutions.emplace_back(AminoacidSubstitution{
             .gene = gene.geneName,
