@@ -25,7 +25,7 @@ struct CliParams {
   std::string inputRootSeq;
   std::string inputTree;
   std::string inputQcConfig;
-  std::string inputGeneMap;
+  std::optional<std::string> inputGeneMap;
   std::optional<std::string> inputPcrPrimers;
   std::optional<std::string> outputJson;
   std::optional<std::string> outputCsv;
@@ -207,14 +207,14 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
 
     (
       "genes",
-       "(optional, string) List of genes to translate and to take into account during alignment. If not supplied or empty, sequence will not be translated. If non-empty, should contain a coma-separated list of gene names. Example for SARS-CoV-2: E,M,N,ORF10,ORF14,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S",
+       "(optional, string) Comma-separated list of names of genes to use. This defines which peptides will be written into outputs, and which genes will be taken into account during codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the gene map. If this flag is not supplied or its value is an empty string, then all genes found in the gene map will be used. Requires `--input-gene-map` to be specified. Example for SARS-CoV-2: E,M,N,ORF10,ORF14,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S",
        cxxopts::value<std::string>(),
        "GENES"
     )
 
     (
       "g,input-gene-map",
-      R"((optional) Path to a .gff file containing gene map. Gene map (sometimes also called "gene annotations") is used to find gene regions. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/genemap.gff)",
+      R"((optional, string) Path to a .gff file containing gene map. Gene map (sometimes also called "gene annotations") is used to find gene regions. If not supplied, sequences will not be translated, peptides will not be emitted, aminoacid mutations will not be detected and nucleotide sequence alignment might be less accurate. See an example for SARS-CoV-2 at: https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/genemap.gff)",
       cxxopts::value<std::string>(),
       "IN_GENE_MAP"
     )
@@ -437,12 +437,16 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
     cliParams.inputTree = getParamRequired<std::string>(cxxOptsParsed, "input-tree");
     cliParams.inputQcConfig = getParamRequired<std::string>(cxxOptsParsed, "input-qc-config");
     cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
-    cliParams.inputGeneMap = getParamRequired<std::string>(cxxOptsParsed, "input-gene-map");
+    cliParams.inputGeneMap = getParamOptional<std::string>(cxxOptsParsed, "input-gene-map");
     cliParams.inputPcrPrimers = getParamOptional<std::string>(cxxOptsParsed, "input-pcr-primers");
     cliParams.outputJson = getParamOptional<std::string>(cxxOptsParsed, "output-json");
     cliParams.outputCsv = getParamOptional<std::string>(cxxOptsParsed, "output-csv");
     cliParams.outputTsv = getParamOptional<std::string>(cxxOptsParsed, "output-tsv");
     cliParams.outputTree = getParamOptional<std::string>(cxxOptsParsed, "output-tree");
+
+    if (bool(cliParams.genes) && !bool(cliParams.inputGeneMap)) {
+      throw ErrorCliOptionInvalidValue("Parameter `--genes` requires parameter `--input-gene-map` to be specified.");
+    }
 
     NextalignOptions options = validateOptions(cxxOptsParsed);
 
@@ -517,14 +521,19 @@ GeneMap parseGeneMapGffFile(const std::string &filename) {
   return geneMap;
 }
 
-std::set<std::string> parseGenes(const CliParams &cliParams) {
-  std::set<std::string> genes;
+std::set<std::string> parseGenes(const std::string &genesString) {
+  std::vector<std::string> genes;
 
-  if (cliParams.genes && !(cliParams.genes->empty())) {
-    boost::algorithm::split(genes, *(cliParams.genes), boost::is_any_of(","));
+  if (!genesString.empty()) {
+    boost::algorithm::split(genes, genesString, boost::is_any_of(","));
   }
 
-  return genes;
+  for (auto &gene : genes) {
+    gene = boost::trim_copy(gene);
+  }
+
+  auto result = std::set<std::string>{genes.cbegin(), genes.cend()};
+  return result;
 }
 
 class ErrorGeneMapValidationFailure : public std::runtime_error {
@@ -556,14 +565,14 @@ std::string formatCliParams(const CliParams &cliParams) {
   fmt::memory_buffer buf;
   fmt::format_to(buf, "\nParameters:\n");
   fmt::format_to(buf, "{:<20s}{:<}\n", "Jobs", cliParams.jobs);
-  fmt::format_to(buf, "{:<20s}{:<}\n", "In order", cliParams.inOrder);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "In order", cliParams.inOrder ? "yes" : "no");
   fmt::format_to(buf, "{:<20s}{:<}\n", "Include reference", cliParams.writeReference ? "yes" : "no");
   fmt::format_to(buf, "{:<20s}{:<}\n", "Verbose", cliParams.verbose ? "yes" : "no");
 
   fmt::format_to(buf, "\nInput Files:\n");
-  fmt::format_to(buf, "{:<20s}{:<}\n", "Root sequence", cliParams.inputRootSeq);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "Reference sequence", cliParams.inputRootSeq);
   fmt::format_to(buf, "{:<20s}{:<}\n", "Sequences FASTA", cliParams.inputFasta);
-  fmt::format_to(buf, "{:<20s}{:<}\n", "Gene map", cliParams.inputGeneMap);
+  fmt::format_to(buf, "{:<20s}{:<}\n", "Gene map", cliParams.inputGeneMap.value_or("Disabled"));
   fmt::format_to(buf, "{:<20s}{:<}\n", "PCR primers", cliParams.inputPcrPrimers.value_or("Disabled"));
   fmt::format_to(buf, "{:<20s}{:<}\n", "QC configuration", cliParams.inputQcConfig);
 
@@ -633,8 +642,8 @@ std::string formatPaths(const Paths &paths) {
 }
 
 std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteReference) {
-  return fmt::format("\nReference:\n  name: \"{:s}\"\n  Length: {:d}\n  Write: {:s}", refData.name, refData.length,
-    shouldWriteReference ? "yes" : "no");
+  return fmt::format("\nReference sequence:\n  name: \"{:s}\"\n  Length: {:d}\n  Write: {:s}\n", refData.name,
+    refData.length, shouldWriteReference ? "yes" : "no");
 }
 
 std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &genes) {
@@ -905,9 +914,25 @@ int main(int argc, char *argv[]) {
     const auto shouldWriteReference = cliParams.writeReference;
     logger.info(formatRef(refData, shouldWriteReference));
 
-    const GeneMap geneMap = parseGeneMapGffFile(cliParams.inputGeneMap);
-    const auto genes = parseGenes(cliParams);
-    logger.info(formatGeneMap(geneMap, genes));
+    GeneMap geneMap;
+    std::set<std::string> genes;
+    if (cliParams.inputGeneMap) {
+      geneMap = parseGeneMapGffFile(*cliParams.inputGeneMap);
+
+      if (!cliParams.genes || cliParams.genes->empty()) {
+        // If `--genes` are omitted or empty, use all genes in the gene map
+        std::transform(geneMap.cbegin(), geneMap.cend(), std::inserter(genes, genes.end()),
+          [](const auto &it) { return it.first; });
+      } else {
+        genes = parseGenes(*cliParams.genes);
+      }
+
+      validateGenes(genes, geneMap);
+
+      const GeneMap geneMapFull = geneMap;
+      geneMap = filterGeneMap(genes, geneMap);
+      logger.info(formatGeneMap(geneMapFull, genes));
+    }
 
     if (!genes.empty()) {
       // penaltyGapOpenOutOfFrame > penaltyGapOpenInFrame > penaltyGapOpen
@@ -974,7 +999,18 @@ int main(int argc, char *argv[]) {
 
     bool inOrder = cliParams.inOrder;
 
-    logger.info("\nParallelism: {:d}\n", parallelism);
+    logger.info("\nParallelism: {:d}\n\n", parallelism);
+
+    if (!cliParams.inputGeneMap) {
+      logger.warn(
+        "Warning: Parameter `--input-gene-map` was not specified. Without a gene map sequences will not be "
+        "translated, there will be no peptides in output files, aminoacid mutations will not be detected and "
+        "nucleotide sequence alignment might be less accurate.\n");
+    } else if (geneMap.empty()) {
+      logger.warn(
+        "Warning: Provided gene map is empty. Sequences will not be translated, there will be no peptides in output "
+        "files, aminoacid mutations will not be detected and nucleotide sequence alignment might be less accurate.\n");
+    }
 
     constexpr const auto TABLE_WIDTH = 86;
     logger.info("\nSequences:\n");
