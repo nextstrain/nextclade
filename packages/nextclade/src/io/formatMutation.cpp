@@ -8,10 +8,11 @@
 
 namespace Nextclade {
   std::string formatRange(const Range& range) {
-    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    // NOTE: we (and C++ standard library) uses 0-based half-open ranges,
+    // but bioinformaticians prefer 1-based, closed ranges
     const auto beginOne = range.begin + 1;
-    const auto endOne = range.end + 1;
-    if (endOne - beginOne < 2) {
+    const auto endOne = range.end;
+    if (endOne - beginOne == 1) {
       return std::to_string(beginOne);
     }
     return fmt::format("{}-{}", beginOne, endOne);
