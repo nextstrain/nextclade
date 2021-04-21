@@ -75,7 +75,9 @@ namespace Nextclade {
   }
 
   std::string formatAminoacidDeletion(const AminoacidDeletion& del) {
-    return formatAminoacidDeletionWithoutGene(del);
+    const auto& gene = del.gene;
+    const auto notation = formatAminoacidDeletionWithoutGene(del);
+    return fmt::format("{}:{}", gene, notation);
   }
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp) {
