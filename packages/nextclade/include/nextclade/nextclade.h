@@ -183,24 +183,26 @@ namespace Nextclade {
   }
 
   struct AminoacidSubstitution {
-    Aminoacid refAA;
-    Aminoacid queryAA;
-    int codon;
     std::string gene;
-    Range nucRange;
-    NucleotideSequence refCodon;
-    NucleotideSequence queryCodon;
+    Aminoacid refAA;
+    int codon;
+    Aminoacid queryAA;
+    Range codonNucRange;
+    NucleotideSequence refContext;
+    NucleotideSequence queryContext;
+    Range contextNucRange;
   };
 
   inline bool operator==(const AminoacidSubstitution& left, const AminoacidSubstitution& right) {
-    return (                             //
-      left.refAA == right.refAA &&       //
-      left.queryAA == right.queryAA &&   //
-      left.codon == right.codon &&       //
-      left.gene == right.gene &&         //
-      left.nucRange == right.nucRange && //
-      left.refCodon == right.refCodon && //
-      left.queryCodon == right.queryCodon//
+    return (                                       //
+      left.gene == right.gene &&                   //
+      left.refAA == right.refAA &&                 //
+      left.codon == right.codon &&                 //
+      left.queryAA == right.queryAA &&             //
+      left.codonNucRange == right.codonNucRange && //
+      left.refContext == right.refContext &&       //
+      left.queryContext == right.queryContext &&   //
+      left.contextNucRange == right.contextNucRange//
     );
   }
 
@@ -212,20 +214,24 @@ namespace Nextclade {
   }
 
   struct AminoacidDeletion {
+    std::string gene;
     Aminoacid refAA;
     int codon;
-    std::string gene;
-    Range nucRange;
-    NucleotideSequence refCodon;
+    Range codonNucRange;
+    NucleotideSequence refContext;
+    NucleotideSequence queryContext;
+    Range contextNucRange;
   };
 
   inline bool operator==(const AminoacidDeletion& left, const AminoacidDeletion& right) {
-    return (                            //
-      left.refAA == right.refAA &&      //
-      left.codon == right.codon &&      //
-      left.gene == right.gene &&        //
-      left.nucRange == right.nucRange &&//
-      left.refCodon == right.refCodon   //
+    return (                                       //
+      left.gene == right.gene &&                   //
+      left.refAA == right.refAA &&                 //
+      left.codon == right.codon &&                 //
+      left.codonNucRange == right.codonNucRange && //
+      left.refContext == right.refContext &&       //
+      left.queryContext == right.queryContext &&   //
+      left.contextNucRange == right.contextNucRange//
     );
   }
 
@@ -394,6 +400,8 @@ namespace Nextclade {
   std::string formatAminoacidMutationWithoutGene(const AminoacidSubstitution& mut);
 
   std::string formatAminoacidMutation(const AminoacidSubstitution& mut);
+
+  std::string formatAminoacidDeletionWithoutGene(const AminoacidDeletion& del);
 
   std::string formatAminoacidDeletion(const AminoacidDeletion& del);
 

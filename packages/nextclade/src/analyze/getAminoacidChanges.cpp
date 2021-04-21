@@ -11,55 +11,125 @@
 #include "../utils/contract.h"
 #include "../utils/mapFind.h"
 #include "../utils/range.h"
+#include "../utils/safe_cast.h"
+#include "aminoacid.h"
+
+namespace {
+  std::vector<std::string> surroundWithQuotes(const std::vector<std::string>& m) {
+    std::vector<std::string> result;
+    std::transform(m.cbegin(), m.cend(), std::back_inserter(result),
+      [](const auto& x) { return fmt::format("\"{}\"", x); });
+    return result;
+  }
+}// namespace
 
 namespace Nextclade {
+  /**
+   * Finds aminoacid substitutions and deletions in query peptides relative to reference peptides, in one gene
+   *
+   * NOTE: Nucleotide sequences and peptides are required to be stripped from insertions
+   *
+   * Implementation details: We compare reference and query peptides (extracted by the preceding call to Nextalign),
+   * one aminoacid at at time, and deduce changes. We then report the change and relevant nucleotide context surrounding
+   * this change.
+   * Previously we reported one-to-one mapping of aminoacid changes to corresponding nucleotide changes. However, it
+   * was not always accurate, because if there are multiple nucleotide changes in a codon, the direct correspondence
+   * might not always be established without knowing the order in which nucleotide changes have occurred. And in the
+   * context of Nextclade we don't have this information.
+   */
+  void getAminoacidChangesForGene(                      //
+    const NucleotideSequence& ref,                      //
+    const NucleotideSequence& query,                    //
+    const AminoacidSequence& refPeptide,                //
+    const AminoacidSequence& queryPeptide,              //
+    const Gene& gene,                                   //
+    std::vector<AminoacidSubstitution>& aaSubstitutions,//
+    std::vector<AminoacidDeletion>& aaDeletions         //
+  ) {
+    precondition_equal(queryPeptide.size(), refPeptide.size());
+    precondition_equal(query.size(), ref.size());
 
+    const auto numNucs = safe_cast<int>(query.size());
+    const auto numCodons = safe_cast<int>(queryPeptide.size());
+    for (int codon = 0; codon < numCodons; ++codon) {
+      invariant_greater_equal(codon, 0);
+      invariant_less(codon, refPeptide.size());
+      invariant_less(codon, queryPeptide.size());
 
-  namespace {
-    template<typename Key, typename Value>
-    std::vector<Key> keys(const std::map<Key, Value>& m) {
-      std::vector<Key> result;
-      std::transform(m.cbegin(), m.cend(), std::back_inserter(result), [](const auto& x) { return x.first; });
-      return result;
+      const auto& refAa = refPeptide[codon];
+      const auto& queryAa = queryPeptide[codon];
+
+      // Find where the codon is in nucleotide sequences
+      const auto codonBegin = gene.start + codon * 3;
+      const auto codonEnd = codonBegin + 3;
+
+      invariant_greater_equal(codonBegin, 0);
+      invariant_greater_equal(codonBegin, gene.start);
+      invariant_less(codonBegin, gene.end);
+      invariant_greater_equal(codonEnd, codonBegin);
+
+      // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
+      const auto contextBegin = std::clamp(codonBegin - 3, 0, numNucs);
+      const auto contextEnd = std::clamp(codonEnd + 3, 0, numNucs);
+      const auto contextLength = contextEnd - contextBegin;
+
+      invariant_greater_equal(contextBegin, 0);
+      invariant_less(contextEnd, ref.size());
+      invariant_less(contextEnd, query.size());
+      invariant_less(contextEnd, numNucs);
+      invariant_greater_equal(contextEnd, contextBegin);
+      invariant_greater_equal(contextLength, 0);
+      invariant_less_equal(contextLength, 9);
+
+      NucleotideSequence refContext = ref.substr(contextBegin, contextLength);
+      NucleotideSequence queryContext = query.substr(contextBegin, contextLength);
+
+      if (isGap(queryAa)) {
+        // Gap in the ref sequence means that this is a deletion in the query sequence
+        aaDeletions.emplace_back(AminoacidDeletion{
+          .gene = gene.geneName,
+          .refAA = refAa,
+          .codon = codon,
+          .codonNucRange = Range{.begin = codonBegin, .end = codonEnd},
+          .refContext = std::move(refContext),
+          .queryContext = std::move(queryContext),
+          .contextNucRange = Range{.begin = contextBegin, .end = contextEnd},
+        });
+      } else {
+        // TODO: we might account for ambiguous aminoacids in this condition
+        if (queryAa != refAa) {
+          // If not a gap and the state has changed, than it's a substitution
+          aaSubstitutions.emplace_back(AminoacidSubstitution{
+            .gene = gene.geneName,
+            .refAA = refAa,
+            .codon = codon,
+            .queryAA = queryAa,
+            .codonNucRange = Range{.begin = codonBegin, .end = codonEnd},
+            .refContext = std::move(refContext),
+            .queryContext = std::move(queryContext),
+            .contextNucRange = Range{.begin = contextBegin, .end = contextEnd},
+          });
+        }
+      }
     }
-
-    std::vector<std::string> surroundWithQuotes(const std::vector<std::string>& m) {
-      std::vector<std::string> result;
-      std::transform(m.cbegin(), m.cend(), std::back_inserter(result),
-        [](const auto& x) { return fmt::format("\"{}\"", x); });
-      return result;
-    }
-
-    /**
-     * Removes duplicates from the array.
-     * Requires type T to have operators `<` and `==` defined.
-     */
-    template<typename T>
-    void removeDuplicates(std::vector<T>& aaSubstitutions) {
-      std::sort(aaSubstitutions.begin(), aaSubstitutions.end());
-      auto last = std::unique(aaSubstitutions.begin(), aaSubstitutions.end());
-      aaSubstitutions.erase(last, aaSubstitutions.end());
-    }
-  }// namespace
-
+  }
 
   /**
-   * Finds aminoacid substitutions and deletions in the query sequence
+   * Finds aminoacid substitutions and deletions in query peptides relative to reference peptides, in all genes
    *
-   * @sideeffect Modifies parameters `substitutions` and `deletions`: for every entry it adds associated aminoacid changes
+   * NOTE: Nucleotide sequences and peptides are required to be stripped from insertions
    */
-  GetAminoacidChangesResult getAminoacidChanges(                   //
-    const NucleotideSequence& ref,                                 //
-    const NucleotideSequence& query,                               //
-    const std::vector<PeptideInternal>& refPeptides,               //
-    const std::vector<PeptideInternal>& queryPeptides,             //
-    /* inout */ std::vector<NucleotideSubstitution>& substitutions,//
-    /* inout */ std::vector<NucleotideDeletion>& deletions,        //
-    const GeneMap& geneMap                                         //
+  GetAminoacidChangesResult getAminoacidChanges(      //
+    const NucleotideSequence& ref,                    //
+    const NucleotideSequence& query,                  //
+    const std::vector<PeptideInternal>& refPeptides,  //
+    const std::vector<PeptideInternal>& queryPeptides,//
+    const GeneMap& geneMap                            //
   ) {
+    precondition_equal(refPeptides.size(), queryPeptides.size());
+    precondition_equal(query.size(), ref.size());
 
     std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidSubstitution> aaSubstitutionsSilent;
     std::vector<AminoacidDeletion> aaDeletions;
 
     const auto peptideZip = boost::combine(refPeptides, queryPeptides);
@@ -74,151 +144,18 @@ namespace Nextclade {
         throw ErrorGeneNotFound(geneName, geneMap);
       }
 
-      for (auto& sub : substitutions) {
-        if (!inRange(sub.pos, gene->start, gene->end)) {// TODO: Do we need to consider `frame` here?
-          // This substitution is not in the gene, so it cannot influence the aminoacids in it
-          continue;
-        }
+      invariant_equal(refPeptide.name, queryPeptide.name);
 
-        invariant_greater_equal(sub.pos, gene->start);
-        invariant_less(sub.pos, gene->end);
-        const auto codon = (sub.pos - gene->start) / 3;// TODO: Do we need to consider `frame` here?
-
-        invariant_greater_equal(codon, 0);
-        invariant_less(codon, refPeptide.seq.size());
-        invariant_less(codon, queryPeptide.seq.size());
-
-        const auto& refAA = refPeptide.seq[codon];
-        const auto& queryAA = queryPeptide.seq[codon];
-
-        // Find the beginning of the affected codon as a nearest multiple of 3
-        const auto codonBegin = sub.pos - (sub.pos % 3);
-        const auto codonEnd = codonBegin + 3;
-
-        invariant_greater_equal(codonBegin, 0);
-        invariant_less(codonEnd, ref.size());
-        invariant_less(codonEnd, query.size());
-
-        const auto aaSub = AminoacidSubstitution{
-          .refAA = refAA,
-          .queryAA = queryAA,
-          .codon = codon,
-          .gene = geneName,
-          .nucRange = {.begin = codonBegin, .end = codonEnd},
-          .refCodon = ref.substr(codonBegin, 3),
-          .queryCodon = query.substr(codonBegin, 3),
-        };
-
-        // If the aminoacid is not changed after nucleotide substitutions, the mutation is said to be "silent".
-        // This is due to genetic code redundancy.
-        if (refAA == queryAA) {
-          // This adds an element to the standalone array of silent substitutions
-          aaSubstitutionsSilent.push_back(aaSub);
-        } else {
-          // This adds an element to the standalone array of substitutions
-          aaSubstitutions.push_back(aaSub);
-
-          // This **modifies** existing nucleotide substitution entry
-          // to add associated aminoacid substitution
-          sub.aaSubstitutions.push_back(aaSub);
-        }
-      }
-
-      for (auto& del : deletions) {
-        // Find overlapping between nucleotide deletion's range and gene's range
-        const auto overlap =
-          intersection({del.start, del.start + del.length}, {gene->start, gene->start + gene->length});
-
-        if (!overlap) {
-          continue;
-        }
-
-        int begin = overlap->first;
-        int end = overlap->second;
-        invariant_greater(begin, 0);
-        invariant_less(end, ref.size());
-        invariant_greater(end, begin);
-
-        // Extend range to cover full codons...
-        //   ...to the left
-        if (begin > begin % 3) {// TODO: should this condition involve gene.start?
-          begin -= begin % 3;
-        }
-        //   ...to the right
-        // TODO: should we check against gene.end?
-        end += (end % 3) - 1;
-
-        invariant_greater(begin, 0);
-        invariant_less(end, ref.size());
-        invariant_greater(end, begin);
-
-        for (int i = begin; i < end; i += 3) {
-          const int codon = (i - gene->start) / 3;// TODO: Do we need to consider `frame` here?
-
-          invariant_greater_equal(codon, 0);
-          invariant_less(codon, refPeptide.seq.size());
-          invariant_less(codon, queryPeptide.seq.size());
-
-          const auto& refAA = refPeptide.seq[codon];
-          const auto& queryAA = queryPeptide.seq[codon];
-
-          const auto codonBegin = i;
-          const auto codonEnd = codonBegin + 3;
-
-          invariant_greater_equal(codonBegin, 0);
-          invariant_less(codonEnd, ref.size());
-          invariant_less(codonEnd, query.size());
-
-          if (queryAA == Aminoacid::GAP) {// This is a deletion
-            const auto aaDel = AminoacidDeletion{
-              .refAA = refAA,
-              .codon = codon,
-              .gene = geneName,
-              .nucRange = {.begin = codonBegin, .end = codonEnd},
-              .refCodon = ref.substr(codonBegin, 3),
-            };
-
-            // This adds an element to the standalone array of deletions
-            aaDeletions.push_back(aaDel);
-
-            // This **modifies** existing nucleotide deletion entry
-            // to add associated aminoacid deletions (possibly multiple)
-            del.aaDeletions.push_back(aaDel);
-          } else {// This is a substitution
-
-            const auto aaSub = AminoacidSubstitution{
-              .refAA = refAA,
-              .queryAA = queryAA,
-              .codon = codon,
-              .gene = geneName,
-              .nucRange = {.begin = codonBegin, .end = codonEnd},
-              .refCodon = ref.substr(codonBegin, 3),
-              .queryCodon = query.substr(codonBegin, 3),
-            };
-
-            // If the aminoacid is not changed after nucleotide substitutions, the mutation is said to be "silent".
-            // This is due to genetic code redundancy.
-            if (refAA == queryAA) {
-              // This adds an element to the standalone array of silent substitutions
-              aaSubstitutionsSilent.push_back(aaSub);
-            } else {
-              // This adds an element to the standalone array of substitutions
-              aaSubstitutions.push_back(aaSub);
-
-              // This **modifies** existing nucleotide substitution entry
-              // to add associated aminoacid substitution
-              del.aaSubstitutions.push_back(aaSub);
-            }
-          }
-        }
-      }
+      getAminoacidChangesForGene(//
+        ref,                     //
+        query,                   //
+        refPeptide.seq,          //
+        queryPeptide.seq,        //
+        *gene,                   //
+        aaSubstitutions,         //
+        aaDeletions              //
+      );
     }
-
-    // Adjacent nucleotide changes, if happened to be in the same codon,
-    // might have produced duplicate aminoacid changes. Let's remove them.
-    removeDuplicates(aaSubstitutions);
-    removeDuplicates(aaSubstitutionsSilent);
-    removeDuplicates(aaDeletions);
 
     return {
       .aaSubstitutions = aaSubstitutions,
@@ -228,7 +165,8 @@ namespace Nextclade {
 
   ErrorGeneNotFound::ErrorGeneNotFound(const std::string& geneName, const GeneMap& geneMap)
       : std::runtime_error(fmt::format(//
-          "When searching for aminoacid mutations: attempted to lookup gene \"{:s}\" in gene map, but not found. The "
-          "genes present in the gene map: {}",
+          "When searching for aminoacid mutations: gene \"{:s}\" in gene map, but was not found. The "
+          "genes present in the gene map were: {}. This could be a programming mistake. Please report this to "
+          "project maintainers.",
           geneName, boost::join(surroundWithQuotes(keys(geneMap)), ", "))) {}
 }// namespace Nextclade

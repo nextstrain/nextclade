@@ -102,23 +102,26 @@ namespace Nextclade {
 
     json serializeAminoacidMutation(const AminoacidSubstitution& mut) {
       auto j = json::object();
+      j.emplace("gene", mut.gene);
       j.emplace("refAA", aaToString(mut.refAA));
       j.emplace("codon", mut.codon);
       j.emplace("queryAA", aaToString(mut.queryAA));
-      j.emplace("gene", mut.gene);
-      j.emplace("nucRange", serializeRange(mut.nucRange));
-      j.emplace("refCodon", toString(mut.refCodon));
-      j.emplace("queryCodon", toString(mut.queryCodon));
+      j.emplace("codonNucRange", serializeRange(mut.codonNucRange));
+      j.emplace("refContext", toString(mut.refContext));
+      j.emplace("queryContext", toString(mut.queryContext));
+      j.emplace("contextNucRange", serializeRange(mut.contextNucRange));
       return j;
     }
 
     json serializeAminoacidDeletion(const AminoacidDeletion& del) {
       auto j = json::object();
+      j.emplace("gene", del.gene);
       j.emplace("refAA", aaToString(del.refAA));
       j.emplace("codon", del.codon);
-      j.emplace("gene", del.gene);
-      j.emplace("nucRange", serializeRange(del.nucRange));
-      j.emplace("refCodon", toString(del.refCodon));
+      j.emplace("codonNucRange", serializeRange(del.codonNucRange));
+      j.emplace("refContext", toString(del.refContext));
+      j.emplace("queryContext", toString(del.queryContext));
+      j.emplace("contextNucRange", serializeRange(del.contextNucRange));
       return j;
     }
 

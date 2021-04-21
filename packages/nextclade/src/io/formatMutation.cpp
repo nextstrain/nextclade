@@ -67,18 +67,15 @@ namespace Nextclade {
     return fmt::format("{}:{}", gene, notation);
   }
 
+  std::string formatAminoacidDeletionWithoutGene(const AminoacidDeletion& del) {
+    // NOTE: by convention, in bioinformatics, aminoacids are numbered starting from 1, however our arrays are 0-based
+    const auto codonOneBased = del.codon + 1;
+    const auto ref = aaToString(del.refAA);
+    return fmt::format("{}{}-", ref, codonOneBased);
+  }
+
   std::string formatAminoacidDeletion(const AminoacidDeletion& del) {
-    const auto& gene = del.gene;
-    const auto notation = formatAminoacidMutationWithoutGene(AminoacidSubstitution{
-      .refAA = del.refAA,
-      .queryAA = Aminoacid::GAP,
-      .codon = del.codon,
-      .gene = del.gene,
-      .nucRange = del.nucRange,
-      .refCodon = del.refCodon,
-      .queryCodon = toNucleotideSequence("---"),
-    });
-    return fmt::format("{}:{}", gene, notation);
+    return formatAminoacidDeletionWithoutGene(del);
   }
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp) {

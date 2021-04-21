@@ -187,15 +187,7 @@ namespace Nextclade {
           for (const auto& aaDel : del.aaDeletions) {
             // TODO: This string conversion might be done too early. We might bring it closer to the place where it's used. Or, perhaps, it can be avoided.
             //  Often there are multiple competing sets of the same data in different formats. This might be one of those.
-            const auto formatted = formatAminoacidMutationWithoutGene(AminoacidSubstitution{
-              .refAA = aaDel.refAA,
-              .queryAA = Aminoacid::GAP,
-              .codon = aaDel.codon,
-              .gene = aaDel.gene,
-              .nucRange = aaDel.nucRange,
-              .refCodon = aaDel.refCodon,
-              .queryCodon = toNucleotideSequence("---"),
-            });
+            const auto formatted = formatAminoacidDeletionWithoutGene(aaDel);
             aminoacidMutationEntries.emplace_back(AminoacidMutationEntry{.gene = aaDel.gene, .aaMut = formatted});
           }
         }

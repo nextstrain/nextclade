@@ -66,8 +66,6 @@ namespace Nextclade {
         alignment.query,                   //
         alignment.refPeptides,             //
         alignment.queryPeptides,           //
-        analysis.substitutions,            //
-        analysis.deletions,                //
         geneMap                            //
       );
       const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());

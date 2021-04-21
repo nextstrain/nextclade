@@ -15,21 +15,17 @@ namespace Nextclade {
     ErrorGeneNotFound(const std::string& geneName, const GeneMap& geneMap);
   };
 
-
   struct GetAminoacidChangesResult {
     std::vector<AminoacidSubstitution> aaSubstitutions;
     std::vector<AminoacidDeletion> aaDeletions;
   };
 
-  GetAminoacidChangesResult getAminoacidChanges(                   //
-    const NucleotideSequence& ref,                                 //
-    const NucleotideSequence& query,                               //
-    const std::vector<PeptideInternal>& refPeptides,               //
-    const std::vector<PeptideInternal>& queryPeptides,             //
-    /* inout */ std::vector<NucleotideSubstitution>& substitutions,//
-    /* inout */ std::vector<NucleotideDeletion>& deletions,        //
-    const GeneMap& geneMap                                         //
+  GetAminoacidChangesResult getAminoacidChanges(      //
+    const NucleotideSequence& ref,                    //
+    const NucleotideSequence& query,                  //
+    const std::vector<PeptideInternal>& refPeptides,  //
+    const std::vector<PeptideInternal>& queryPeptides,//
+    const GeneMap& geneMap                            //
   );
-
 
 }// namespace Nextclade

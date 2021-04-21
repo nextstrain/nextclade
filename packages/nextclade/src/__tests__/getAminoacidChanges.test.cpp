@@ -1,42 +1,25 @@
 #include "../../src/analyze/getAminoacidChanges.h"
 
-#include <fmt/format.h>
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <nextalign/private/nextalign_private.h>
+#include <nextclade/private/nextclade_private.h>
 
 #include <exception>
-#include <fstream>
 #include <vector>
 
-#include "../../../nextalign/include/nextalign/private/nextalign_private.h"
-#include "../../include/nextclade/nextclade.h"
-#include "../../include/nextclade/private/nextclade_private.h"
-#include "../../src/analyze/analyze.h"
-#include "../../src/io/parseMutation.h"
-
-
-#define EXPECT_ARR_EQ_UNORDERED(expected, actual) ASSERT_THAT(actual, ::testing::UnorderedElementsAreArray(expected))
 
 namespace {
   using Nextclade::AminoacidDeletion;
   using Nextclade::AminoacidSubstitution;
-  using Nextclade::NucleotideDeletion;
-  using Nextclade::NucleotideSubstitution;
-
-  using Nextclade::analyze;
   using Nextclade::getAminoacidChanges;
-
-
 }// namespace
 
 
 TEST(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
   // clang-format off
-  //                                                                        30                            60
-  //                                                                        v                             v
-  const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTACCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
-  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "ATTCCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  //                                                                        30    33    36    39    42    45                60
+  //                                                                        v     v     v     v     v     v                 v
+  const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTA" "CCA" "ACT" "CAA" "ACT" "GTT" "GAT" "TCA" "TCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "ATT" "CCA" "ACT" "CAA" "ACT" "GTT" "GAT" "TCA" "TCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
   //                                                                        ^ ^
   //                                                              2 mutations at pos 30 and 32
   // clang-format on
@@ -58,62 +41,42 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
   const auto alignment = nextalignInternal(query, ref, geneMap, options);
-  auto analysis = analyze(alignment.query, alignment.ref);
-
 
   const auto aaChanges = getAminoacidChanges(//
     alignment.ref,                           //
     alignment.query,                         //
     alignment.refPeptides,                   //
     alignment.queryPeptides,                 //
-    analysis.substitutions,                  //
-    analysis.deletions,                      //
     geneMap                                  //
   );                                         //
 
   const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
-      .refAA = Aminoacid::L,
-      .queryAA = Aminoacid::I,
-      .codon = 0,
       .gene = "Hello",
-      .nucRange = {.begin = 30, .end = 33},
-      .refCodon = toNucleotideSequence("CTA"),
-      .queryCodon = toNucleotideSequence("ATT"),
+      .refAA = Aminoacid::L,
+      .codon = 0,
+      .queryAA = Aminoacid::I,
+      .codonNucRange = {.begin = 30, .end = 33},
+      .refContext = toNucleotideSequence("GGACTACCA"),
+      .queryContext = toNucleotideSequence("GGAATTCCA"),
+      .contextNucRange = {.begin = 27, .end = 36},
     },
   };
 
-  const std::vector<NucleotideSubstitution> nucSubstitutionsExpected = {
-    NucleotideSubstitution{
-      .refNuc = Nucleotide::C,
-      .pos = 30,
-      .queryNuc = Nucleotide::A,
-      .aaSubstitutions = aaSubstitutionsExpected,
-    },
-    NucleotideSubstitution{
-      .refNuc = Nucleotide::A,
-      .pos = 32,
-      .queryNuc = Nucleotide::T,
-      .aaSubstitutions = aaSubstitutionsExpected,
-    },
-  };
-
-  EXPECT_ARR_EQ_UNORDERED(aaSubstitutionsExpected, aaChanges.aaSubstitutions);
-
-  // Should modify substitutions in-place!
-  EXPECT_ARR_EQ_UNORDERED(nucSubstitutionsExpected, analysis.substitutions);
+  EXPECT_EQ(aaSubstitutionsExpected, aaChanges.aaSubstitutions);
+  EXPECT_EQ(0, aaChanges.aaDeletions.size());
 }
 
 
 /** Tests deletion that is aligned to codon. All 3 nucleotides of the codon are deleted here. */
-TEST(GetAminoacidChanges, FindsAminoacidDeletion) {
+TEST(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
   // clang-format off
-  //                                                                        30                            60
-  //                                                                        v       gene "Hello"          v
-  const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTACCAACTCAAACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
-  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTACCAACT---ACTGTTGATTCATCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
-  //                                                                                 ^^^
-  //                                                                 deletion of CCA at pos [39; 42)
+  //                                                                        30    33    36    39    42    45                60
+  //                                                                        v     v     v     v     v     v                 v
+  const auto ref =   toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTA" "CCA" "ACT" "CAA" "ACT" "GTT" "GAT" "TCA" "TCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  const auto query = toNucleotideSequence("CAGAATGCTGTAGCCTCAAAGATTTTGGGA" "CTA" "CCA" "ACT" "---" "ACT" "GTT" "GAT" "TCA" "TCACAG" "GGCTCAGAATATGACTATGTCATATTCACTCAAACC");
+  //                                                                                          ^^^
+  //                                                                       deletion of CAA at pos [39; 42)
   // clang-format on
 
   GeneMap geneMap = GeneMap{
@@ -133,41 +96,29 @@ TEST(GetAminoacidChanges, FindsAminoacidDeletion) {
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
   const auto alignment = nextalignInternal(query, ref, geneMap, options);
-  auto analysis = analyze(alignment.query, alignment.ref);
-
 
   const auto aaChanges = getAminoacidChanges(//
     alignment.ref,                           //
     alignment.query,                         //
     alignment.refPeptides,                   //
     alignment.queryPeptides,                 //
-    analysis.substitutions,                  //
-    analysis.deletions,                      //
     geneMap                                  //
   );                                         //
 
   const std::vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
+      .gene = "Hello",
       .refAA = Aminoacid::Q,
       .codon = 3,
-      .gene = "Hello",
-      .nucRange = {.begin = 39, .end = 42},
-      .refCodon = toNucleotideSequence("CAA"),
+      .codonNucRange = {.begin = 39, .end = 42},
+      .refContext = toNucleotideSequence("ACTCAAACT"),
+      .queryContext = toNucleotideSequence("ACT---ACT"),
+      .contextNucRange = {.begin = 36, .end = 45},
     },
   };
 
-  const std::vector<NucleotideDeletion> nucDeletionsExpected = {
-    NucleotideDeletion{
-      .start = 39,
-      .length = 3,
-      .aaDeletions = aaDeletionsExpected,
-    },
-  };
-
-  EXPECT_ARR_EQ_UNORDERED(aaDeletionsExpected, aaChanges.aaDeletions);
-
-  // Should modify deletions in-place!
-  EXPECT_ARR_EQ_UNORDERED(nucDeletionsExpected, analysis.deletions);
+  EXPECT_EQ(aaDeletionsExpected, aaChanges.aaDeletions);
+  EXPECT_EQ(0, aaChanges.aaSubstitutions.size());
 }
 
 
@@ -204,58 +155,45 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Right) {
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
   const auto alignment = nextalignInternal(query, ref, geneMap, options);
-  auto analysis = analyze(alignment.query, alignment.ref);
-
 
   const auto aaChanges = getAminoacidChanges(//
     alignment.ref,                           //
     alignment.query,                         //
     alignment.refPeptides,                   //
     alignment.queryPeptides,                 //
-    analysis.substitutions,                  //
-    analysis.deletions,                      //
     geneMap                                  //
   );                                         //
 
-  const std::vector<AminoacidDeletion> aaDeletionsExpected = {
-    AminoacidDeletion{
-      .refAA = Aminoacid::F,
-      .codon = 2,
-      .gene = "Foo",
-      .nucRange = {.begin = 36, .end = 39},
-      .refCodon = toNucleotideSequence("TTT"),
-    },
-  };
-
   const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
-      .refAA = Aminoacid::Q,
-      .queryAA = Aminoacid::L,
-      .codon = 3,
       .gene = "Foo",
-      .nucRange = {.begin = 39, .end = 42},
-      .refCodon = toNucleotideSequence("CAA"),
-      .queryCodon = toNucleotideSequence("--A"),
+      .refAA = Aminoacid::Q,
+      .codon = 3,
+      .queryAA = Aminoacid::L,
+      .codonNucRange = {.begin = 39, .end = 42},
+      .refContext = toNucleotideSequence("TTTCAAACT"),
+      .queryContext = toNucleotideSequence("TT---AACT"),
+      .contextNucRange = {.begin = 36, .end = 45},
     },
   };
 
-  const std::vector<NucleotideDeletion> nucDeletionsExpected = {
-    NucleotideDeletion{
-      .start = 38,
-      .length = 3,
-      .aaSubstitutions = aaSubstitutionsExpected,
-      .aaDeletions = aaDeletionsExpected,
+  const std::vector<AminoacidDeletion> aaDeletionsExpected = {
+    AminoacidDeletion{
+      .gene = "Foo",
+      .refAA = Aminoacid::F,
+      .codon = 2,
+      .codonNucRange = {.begin = 36, .end = 39},
+      .refContext = toNucleotideSequence("CCATTTCAA"),
+      .queryContext = toNucleotideSequence("CCATT---A"),
+      .contextNucRange = {.begin = 33, .end = 42},
     },
   };
-
-  // Should detect aa deletion
-  EXPECT_EQ(aaDeletionsExpected, aaChanges.aaDeletions);
 
   // Should detect aa substitution
   EXPECT_EQ(aaSubstitutionsExpected, aaChanges.aaSubstitutions);
 
-  // Should modify nuc deletions in-place by adding aa changes
-  EXPECT_EQ(nucDeletionsExpected, analysis.deletions);
+  // Should detect aa deletion
+  EXPECT_EQ(aaDeletionsExpected, aaChanges.aaDeletions);
 }
 
 
@@ -292,57 +230,43 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Left) {
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
   const auto alignment = nextalignInternal(query, ref, geneMap, options);
-  auto analysis = analyze(alignment.query, alignment.ref);
-
 
   const auto aaChanges = getAminoacidChanges(//
     alignment.ref,                           //
     alignment.query,                         //
     alignment.refPeptides,                   //
     alignment.queryPeptides,                 //
-    analysis.substitutions,                  //
-    analysis.deletions,                      //
     geneMap                                  //
   );                                         //
 
-  const std::vector<AminoacidDeletion> aaDeletionsExpected = {
-    AminoacidDeletion{
-      .refAA = Aminoacid::F,
-      .codon = 2,
-      .gene = "Foo",
-      .nucRange = {.begin = 36, .end = 39},
-      .refCodon = toNucleotideSequence("TTT"),
-    },
-  };
-
   const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
-      .refAA = Aminoacid::Q,
-      .queryAA = Aminoacid::STOP,
-      .codon = 3,
       .gene = "Foo",
-      .nucRange = {.begin = 39, .end = 42},
-      .refCodon = toNucleotideSequence("CAA"),
-      .queryCodon = toNucleotideSequence("-AA"),
+      .refAA = Aminoacid::Q,
+      .codon = 3,
+      .queryAA = Aminoacid::STOP,
+      .codonNucRange = {.begin = 39, .end = 42},
+      .refContext = toNucleotideSequence("TTTCAAACT"),
+      .queryContext = toNucleotideSequence("T---AAACT"),
+      .contextNucRange = {.begin = 36, .end = 45},
     },
   };
 
-  const std::vector<NucleotideDeletion> nucDeletionsExpected = {
-    NucleotideDeletion{
-      .start = 37,
-      .length = 3,
-      .aaSubstitutions = aaSubstitutionsExpected,
-      .aaDeletions = aaDeletionsExpected,
+  const std::vector<AminoacidDeletion> aaDeletionsExpected = {
+    AminoacidDeletion{
+      .gene = "Foo",
+      .refAA = Aminoacid::F,
+      .codon = 2,
+      .codonNucRange = {.begin = 36, .end = 39},
+      .refContext = toNucleotideSequence("CCATTTCAA"),
+      .queryContext = toNucleotideSequence("CCAT---AA"),
+      .contextNucRange = {.begin = 33, .end = 42},
     },
   };
-
-
-  // Should detect aa deletion
-  EXPECT_EQ(aaDeletionsExpected, aaChanges.aaDeletions);
 
   // Should detect aa substitution
   EXPECT_EQ(aaSubstitutionsExpected, aaChanges.aaSubstitutions);
 
-  // Should modify nuc deletions in-place by adding aa changes
-  EXPECT_EQ(nucDeletionsExpected, analysis.deletions);
+  // Should detect aa deletion
+  EXPECT_EQ(aaDeletionsExpected, aaChanges.aaDeletions);
 }

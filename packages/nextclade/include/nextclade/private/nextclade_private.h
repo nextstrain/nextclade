@@ -61,24 +61,26 @@ namespace Nextclade {
 
   inline std::ostream& operator<<(std::ostream& os, const AminoacidSubstitution& val) {
     os << "{ ";
+    os << "gene: \"" << val.gene << "\", ";
     os << "refAA: " << val.refAA << ", ";
     os << "queryAA: " << val.queryAA << ", ";
     os << "codon: " << val.codon << ", ";
-    os << "gene: \"" << val.gene << "\", ";
-    os << "nucRange: " << val.nucRange << ", ";
-    os << "refCodon: " << val.refCodon << ", ";
-    os << "queryCodon: " << val.queryCodon;
+    os << "codonNucRange: " << val.codonNucRange << ", ";
+    os << "refContext: " << val.refContext << ", ";
+    os << "queryContext: " << val.queryContext << ", ";
+    os << "contextNucRange: " << val.contextNucRange;
     os << " }";
     return os;
   }
 
   inline std::ostream& operator<<(std::ostream& os, const AminoacidDeletion& val) {
     os << "{ ";
+    os << "gene: \"" << val.gene << "\", ";
     os << "refAA: " << val.refAA << ", ";
     os << "codon: " << val.codon << ", ";
-    os << "gene: \"" << val.gene << "\", ";
-    os << "nucRange: " << val.nucRange << ", ";
-    os << "refCodon: " << val.refCodon;
+    os << "codonNucRange: " << val.codonNucRange << ", ";
+    os << "refContext: " << val.refContext << ", ";
+    os << "contextNucRange: " << val.contextNucRange;
     os << " }";
     return os;
   }
