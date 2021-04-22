@@ -80,7 +80,7 @@ def compare_tsv_column(new, old, column_name):
 def compare_aa_muts_one(new, old, column_name):
     diff = tsv_diff(new, old, column_name)
     if diff.empty:
-        return
+        return {}
 
     result = {}
     for row in diff.iterrows():
