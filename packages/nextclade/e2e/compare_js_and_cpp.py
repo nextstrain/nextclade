@@ -19,6 +19,9 @@ OUT_DIR_NEW = f"{PROJECT_ROOT_DIR}/tmp/new"
 TSV_OLD = os.path.join(OUT_DIR_OLD, "out.tsv")
 TSV_NEW = os.path.join(OUT_DIR_NEW, "out.tsv")
 
+TREE_OLD = os.path.join(OUT_DIR_OLD, "tree.json")
+TREE_NEW = os.path.join(OUT_DIR_NEW, "tree.json")
+
 
 def read_json(filepath):
     with open(filepath, "r") as f:
@@ -132,6 +135,77 @@ def compare_aa_muts(new, old):
         print_with_heading('aaSubstitutions & aaDeletions', msg)
 
 
+def get_attachment_recursively(node, parent_name, attachment):
+    name = node.get('name') or '<no_name>'
+    if name.endswith('_new'):
+        attachment.update({name: parent_name})
+
+    children = node.get('children') or []
+    for child in children:
+        get_attachment_recursively(child, node['name'], attachment)
+
+
+def compare_tree_attachment(tree_new, tree_old):
+    attachment_new = dict()
+    get_attachment_recursively(tree_new['tree'], '<root>', attachment_new)
+
+    attachment_old = dict()
+    get_attachment_recursively(tree_old['tree'], '<root>', attachment_old)
+
+    attachment_new_df = pd.DataFrame.from_dict(attachment_new, orient='index')
+    attachment_old_df = pd.DataFrame.from_dict(attachment_old, orient='index')
+    comparison = attachment_new_df \
+        .compare(attachment_old_df) \
+        .rename(columns={'self': 'new', 'other': 'old'})
+
+    if not comparison.empty:
+        print_with_heading('Tree node attachment', comparison)
+
+
+def get_tree_mutations_recursively(node, mutations):
+    name = node.get('name') or '<no_name>'
+    muts = ((node.get('branch_attrs') or {}).get('mutations') or {}).get('nuc') or []
+    if name.endswith('_new'):
+        mutations.update({name: muts})
+
+    children = node.get('children') or []
+    for child in children:
+        get_tree_mutations_recursively(child, mutations)
+
+
+def compare_tree_mutations(tree_new, tree_old):
+    mutations_new = {}
+    get_tree_mutations_recursively(tree_new['tree'], mutations_new)
+
+    mutations_old = {}
+    get_tree_mutations_recursively(tree_old['tree'], mutations_old)
+
+    seq_names = []
+    seq_names += mutations_new.keys()
+    seq_names += mutations_old.keys()
+
+    for seq_name in seq_names:
+        if not mutations_new.get(seq_name):
+            mutations_new[seq_name] = '[]'
+        else:
+            mutations_new[seq_name] = str(mutations_new[seq_name])
+
+        if not mutations_old.get(seq_name):
+            mutations_old[seq_name] = '[]'
+        else:
+            mutations_old[seq_name] = str(mutations_new[seq_name])
+
+    mutations_new_df = pd.DataFrame.from_dict(mutations_new, orient='index')
+    mutations_old_df = pd.DataFrame.from_dict(mutations_old, orient='index')
+
+    comparison = mutations_new_df \
+        .compare(mutations_old_df) \
+        .rename(columns={'self': 'new', 'other': 'old'})
+
+    if not comparison.empty:
+        print_with_heading('Tree mutations', comparison)
+
+
 if __name__ == '__main__':
     print("Comparing")
     print(f"  old: {TSV_OLD}")
@@ -153,5 +227,8 @@ if __name__ == '__main__':
 
     compare_aa_muts(new, old)
 
-    #  - TODO: identity of node attached to
-    #  - TODO: private mutations
+    tree_new = read_json(TREE_NEW)
+    tree_old = read_json(TREE_OLD)
+
+    compare_tree_attachment(tree_new, tree_old)
+    compare_tree_mutations(tree_new, tree_old)
