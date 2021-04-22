@@ -53,7 +53,7 @@ std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<
 std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& peptides);
 
 NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const GeneMap& geneMap, const NextalignOptions& options);
+  const GeneMap& geneMap, const NextalignOptions& options, bool replaceEdgeGaps = false);
 
 
 inline std::ostream& operator<<(std::ostream& os, const Nucleotide& nuc) {

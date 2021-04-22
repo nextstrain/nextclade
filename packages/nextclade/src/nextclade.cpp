@@ -41,7 +41,8 @@ namespace Nextclade {
       const auto& geneMap = options.geneMap;
       const auto& qcRulesConfig = options.qcRulesConfig;
 
-      const auto alignment = nextalignInternal(query, ref, geneMap, options.nextalignOptions);
+      const bool replaceEdgeGaps = true;
+      const auto alignment = nextalignInternal(query, ref, geneMap, options.nextalignOptions, replaceEdgeGaps);
 
       auto analysis = analyze(alignment.query, alignment.ref);
       const int totalSubstitutions = safe_cast<int>(analysis.substitutions.size());

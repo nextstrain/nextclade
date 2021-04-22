@@ -30,15 +30,27 @@ std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& pept
   return map(peptides, std::function<Peptide(PeptideInternal)>(toPeptideExternal));
 }
 
+template<typename It>
+void replaceEdgeGapsInPlace(It begin, It end) {
+  while ((begin != end) && (*begin == Nucleotide::GAP)) {
+    *begin = Nucleotide::N;
+    ++begin;
+  }
+}
 
 NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const GeneMap& geneMap, const NextalignOptions& options) {
+  const GeneMap& geneMap, const NextalignOptions& options, bool replaceEdgeGaps) {
 
   // TODO: hoist this out of the loop
   const auto gapOpenCloseNuc = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
   const auto gapOpenCloseAA = getGapOpenCloseScoresFlat(ref, options);
 
-  const auto alignment = alignPairwise(query, ref, gapOpenCloseNuc, options.alignment, options.seedNuc);
+  auto alignment = alignPairwise(query, ref, gapOpenCloseNuc, options.alignment, options.seedNuc);
+
+  if (replaceEdgeGaps) {
+    replaceEdgeGapsInPlace(alignment.query.begin(), alignment.query.end());
+    replaceEdgeGapsInPlace(alignment.query.rbegin(), alignment.query.rend());
+  }
 
   std::vector<PeptideInternal> queryPeptides;
   std::vector<PeptideInternal> refPeptides;
