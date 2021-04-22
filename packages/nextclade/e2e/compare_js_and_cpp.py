@@ -128,7 +128,8 @@ def compare_aa_muts(new, old):
         msg += f"\nAA deletions     removed : {dels_removed}"
         msg += "\n\n"
 
-    print_with_heading('aaSubstitutions & aaDeletions', msg)
+    if msg:
+        print_with_heading('aaSubstitutions & aaDeletions', msg)
 
 
 if __name__ == '__main__':
