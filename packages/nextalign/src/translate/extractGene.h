@@ -47,8 +47,7 @@ public:
           gene.geneName, gene.geneName, resultLength, resultLengthPreStrip, gene.start, gene.end, gene.length)) {}
 };
 
-void stripGeneInPlace(NucleotideSequence& seq);
+NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene);
 
-
-NucleotideSequence extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
-  const std::vector<int>& coordMap);
+NucleotideSequence extractGeneQuery(
+  const NucleotideSequenceView& query, const Gene& gene, const std::vector<int>& coordMap);
