@@ -38,72 +38,28 @@ namespace details {
 
 }// namespace details
 
-NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene) {
-  precondition_less(gene.length, ref.size());
-  precondition_less_equal(gene.length, ref.size());
-  return details::substr(ref, gene.start, gene.length);
-}
-
-/**
- * Replaces first or second gap in a not-all-gap codon with N
- */
-template<typename SpanIterator>
-void protectCodonInPlace(SpanIterator it) {
-  if (it[0] == Nucleotide::GAP) {
-    it[0] = Nucleotide::N;
-
-    if (it[1] == Nucleotide::GAP) {
-      it[1] = Nucleotide::N;
-
-      precondition_not_equal(it[2], Nucleotide::GAP);// Should last position in codon should not be a gap
-    }
+template<typename It>
+void replaceEdgeGapsInPlace(It begin, It end) {
+  while ((begin != end) && (*begin == Nucleotide::GAP)) {
+    *begin = Nucleotide::N;
+    ++begin;
   }
 }
 
 void stripGeneInPlace(NucleotideSequence& seq) {
-  const auto& length = safe_cast<int>(seq.size());
-  const auto end = length - (length % 3);
-  NucleotideSequenceSpan seqSpan = seq;
+  // Replace GAPs with Ns on both edges
+  replaceEdgeGapsInPlace(seq.begin(), seq.end());
+  replaceEdgeGapsInPlace(seq.rbegin(), seq.rend());
 
-  // Find the first non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
-  for (int i = 0; i < end; ++i) {
-    if (at(seqSpan, i) != Nucleotide::GAP) {
-      const auto codonBegin = i - (i % 3);
-      invariant_greater_equal(codonBegin, 0);
-      invariant_less(codonBegin + 2, length);
-
-      const auto codon = details::subspan(seqSpan, codonBegin, 3);
-      protectCodonInPlace(codon.begin());
-      break;
-    }
-  }
-
-  // Find the last non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
-  // NOTE: Due to insertions elsewhere in the sequence, the beginning of a codon is not necessarily
-  // a position with i % 3 == 0. Assuming the 3' end of the gene is in frame, we use
-  // the frame a the end (lastFrame) as the reference frame for the end of the gene
-  const auto& lastFrame = length % 3;
-  for (int i = length - 1; i >= 0; --i) {
-    if (at(seqSpan, i) != Nucleotide::GAP) {
-      const auto codonBegin = i - ((i - lastFrame) % 3);
-      invariant_greater_equal(codonBegin, 0);
-      invariant_less(codonBegin + 2, length);
-
-      const auto codon = details::subspan(seqSpan, codonBegin, 3);
-      protectCodonInPlace(codon.rbegin());// Note: reverse iterator - going from end to begin
-      break;
-    }
-  }
-
-  // Remove all GAP characters from everywhere (Note: including the full gap-only codons at the edges)
+  // Remove all the remaining GAP characters from everywhere
   removeGapsInPlace(seq);
 }
 
 /**
  * Extracts gene from the query sequence according to coordinate map relative to the reference sequence
  */
-NucleotideSequence extractGeneQuery(
-  const NucleotideSequenceView& query, const Gene& gene, const std::vector<int>& coordMap) {
+NucleotideSequence extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
+  const std::vector<int>& coordMap) {
   precondition_less(gene.start, coordMap.size());
   precondition_less_equal(gene.end, coordMap.size());
   precondition_less(gene.start, gene.end);
