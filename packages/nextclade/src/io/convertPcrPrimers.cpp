@@ -9,6 +9,7 @@
 #include <regex>
 #include <vector>
 
+#include "../analyze/nucleotide.h"
 #include "../utils/map.h"
 #include "../utils/mapFind.h"
 #include "../utils/safe_cast.h"
@@ -149,7 +150,9 @@ namespace Nextclade {
     const auto len = safe_cast<int>(seq.size());
     for (int i = 0; i < len; ++i) {
       const auto& nuc = seq[i];
-      nonAcgts.emplace_back(NucleotideLocation{.pos = i + offset, .nuc = nuc});
+      if (isNotAcgt(nuc)) {
+        nonAcgts.emplace_back(NucleotideLocation{.pos = i + offset, .nuc = nuc});
+      }
     }
     return nonAcgts;
   }
