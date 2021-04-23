@@ -7,7 +7,7 @@ include(packages/cmake/CFlags.cmake)
 include(packages/cmake/Quiet.cmake)
 include(packages/cmake/Sanitizers.cmake)
 
-project(nextalign_all)
+project(nextclade_all)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
@@ -16,3 +16,5 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -pg")
 
 add_subdirectory(packages/nextalign)
 add_subdirectory(packages/nextalign_cli)
+add_subdirectory(packages/nextclade)
+add_subdirectory(packages/nextclade_cli)

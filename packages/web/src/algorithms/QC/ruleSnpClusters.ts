@@ -14,11 +14,14 @@ export function findSNPClusters(
   let previousPos = -1
   const currentCluster: number[] = []
   const allClusters: number[][] = []
+
   positions.forEach((pos) => {
     currentCluster.push(pos)
+
     while (currentCluster[0] < pos - windowSize) {
       currentCluster.shift()
     }
+
     if (currentCluster.length > clusterCutOff) {
       // if the cluster grows uninterrupted, add to the previous cluster
       if (

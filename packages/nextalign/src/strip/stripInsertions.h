@@ -6,9 +6,9 @@
 #include <vector>
 
 #include "../alphabet/nucleotides.h"
-#include "../nextalign_private.h"
 #include "../utils/contract.h"
 #include "../utils/safe_cast.h"
+#include "nextalign/private/nextalign_private.h"
 
 
 template<typename Letter>
@@ -42,10 +42,9 @@ inline StripInsertionsResult<Letter> stripInsertions(const Sequence<Letter>& ref
       result.queryStripped += query[i];
       if (!currentInsertion.empty()) {
         const auto length = safe_cast<int>(currentInsertion.size());
-        const auto end = insertionStart + length;
 
         result.insertions.emplace_back(
-          InsertionInternal<Letter>{.begin = insertionStart, .end = end, .seq = currentInsertion});
+          InsertionInternal<Letter>{.pos = insertionStart, .length = length, .ins = currentInsertion});
 
         currentInsertion = Sequence<Letter>{};
         insertionStart = -1;

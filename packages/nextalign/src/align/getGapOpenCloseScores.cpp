@@ -1,7 +1,7 @@
 #include "getGapOpenCloseScores.h"
 
 #include <fmt/format.h>
-#include <nextalign_private.h>
+#include <nextalign/private/nextalign_private.h>
 
 #include <vector>
 

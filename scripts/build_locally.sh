@@ -91,6 +91,9 @@ fi
 # Whether to use Clang C++ compiler (default: use GCC)
 USE_CLANG="${USE_CLANG:=0}"
 
+# Whether to use libc++ as a C++ standard library implementation
+USE_LIBCPP="${USE_LIBCPP:=0}"
+
 # Whether to use MinGW GCC C++ compiler for croww-compiling for Windows (default: no)
 USE_MINGW="${USE_MINGW:=0}"
 
@@ -113,6 +116,7 @@ fi
 
 
 BUILD_SUFFIX=""
+MORE_CMAKE_FLAGS=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CC="${CC:-clang}"
   export CXX="${CXX:-clang++}"
@@ -126,8 +130,36 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
     ${CONAN_COMPILER_SETTINGS}
     -s compiler=clang \
     -s compiler.version=${CLANG_VERSION} \
-    -s compiler.libcxx=libstdc++11 \
   "
+
+  MORE_CMAKE_FLAGS="\
+    ${MORE_CMAKE_FLAGS} \
+    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} \
+    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} \
+  "
+
+  if [ "${USE_LIBCPP}" == "true" ] || [ "${USE_LIBCPP}" == "1" ]; then
+    export CMAKE_CXX_FLAGS="-stdlib=libc++"
+    export CMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
+    export CMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++"
+
+    CONAN_COMPILER_SETTINGS="\
+      ${CONAN_COMPILER_SETTINGS}
+      -s compiler.libcxx=libc++ \
+    "
+
+    MORE_CMAKE_FLAGS="\
+      ${MORE_CMAKE_FLAGS} \
+      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} \
+      -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS} \
+      -DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS} \
+    "
+  else
+    CONAN_COMPILER_SETTINGS="\
+      ${CONAN_COMPILER_SETTINGS}
+      -s compiler.libcxx=libstdc++11 \
+    "
+  fi
 
   BUILD_SUFFIX="-Clang"
 fi
@@ -135,13 +167,23 @@ fi
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
-CLI_DIR="${BUILD_DIR}/packages/${PROJECT_NAME}_cli"
-CLI_EXE="nextalign-${HOST_OS}-${HOST_ARCH}"
 
-CLI="${CLI_DIR}/${CLI_EXE}"
-if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-  CLI=${INSTALL_DIR}/bin/${CLI_EXE}
-fi
+function get_cli() {
+  NAME=${1}
+
+  CLI_DIR="${BUILD_DIR}/packages/${NAME}_cli"
+  CLI_EXE="${NAME}-${HOST_OS}-${HOST_ARCH}"
+
+  CLI="${CLI_DIR}/${CLI_EXE}"
+  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+    CLI=${INSTALL_DIR}/bin/${CLI_EXE}
+  fi
+
+  echo "${CLI}"
+}
+
+NEXTALIGN_CLI=$(get_cli "nextalign")
+NEXTCLADE_CLI=$(get_cli "nextclade")
 
 USE_COLOR="${USE_COLOR:=1}"
 if [ "${IS_CI}" == "1" ] || [ "${IS_CI}" == "true" ]; then
@@ -154,13 +196,13 @@ DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 NEXTALIGN_STATIC_BUILD_DEFAULT=1
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
-elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
+elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "TSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=0
 fi
 NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
 
 # Add flags necessary for static build
-CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True"
+CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True -o fmt:header_only=True"
 CONAN_TBB_STATIC_BUILD_FLAGS=""
 if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   CONAN_STATIC_BUILD_FLAGS="\
@@ -175,9 +217,14 @@ fi
 
 NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
 NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
+NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=1}
+NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=1}
 if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   NEXTALIGN_BUILD_BENCHMARKS=0
   NEXTALIGN_BUILD_TESTS=0
+
+  NEXTCLADE_BUILD_BENCHMARKS=0
+  NEXTCLADE_BUILD_TESTS=0
 
   CONAN_STATIC_BUILD_FLAGS="\
     ${CONAN_STATIC_BUILD_FLAGS} \
@@ -194,10 +241,43 @@ case ${CMAKE_BUILD_TYPE} in
   *) ;;
 esac
 
+case ${CMAKE_BUILD_TYPE} in
+  ASAN|MSAN|TSAN|UBSAN) NEXTALIGN_BUILD_BENCHMARKS=0; NEXTALIGN_BUILD_TESTS=0 NEXTCLADE_BUILD_BENCHMARKS=0 NEXTCLADE_BUILD_TESTS=0 ;;
+  *) ;;
+esac
+
 if [ "${IS_CI}" == "1" ]; then
   GDB_DEFAULT=""
 fi
 GDB="${GDB:=${GDB_DEFAULT}}"
+
+USE_VALGRIND="${USE_VALGRIND:=0}"
+VALGRIND_DEFAULT=""
+if [ "${USE_VALGRIND}" == "1" ] || [ "${USE_VALGRIND}" == "true" ]; then
+  NEXTALIGN_STATIC_BUILD=0
+
+  VALGRIND_DEFAULT="\
+  valgrind \
+  --tool=memcheck \
+  --error-limit=no \
+  "
+
+  GDB="${VALGRIND:=${VALGRIND_DEFAULT}}"
+fi
+
+USE_MASSIF="${USE_MASSIF:=0}"
+if [ "${USE_MASSIF}" == "1" ] || [ "${USE_MASSIF}" == "true" ]; then
+  NEXTALIGN_STATIC_BUILD=0
+
+  VALGRIND_DEFAULT="\
+  valgrind \
+  --tool=massif \
+  --error-limit=no \
+  "
+
+  GDB="${VALGRIND:=${VALGRIND_DEFAULT}}"
+fi
+
 
 # gttp (Google Test Pretty Printer) command
 GTTP_DEFAULT="${THIS_DIR}/lib/gtpp.py"
@@ -256,6 +336,10 @@ echo "CMAKE_C_COMPILER         = ${CMAKE_C_COMPILER:=}"
 echo "CMAKE_CXX_COMPILER       = ${CMAKE_CXX_COMPILER:=}"
 echo "USE_CLANG_ANALYZER       = ${USE_CLANG_ANALYZER:=}"
 echo ""
+echo "USE_VALGRIND             = ${USE_VALGRIND:=}"
+echo "USE_MASSIF               = ${USE_MASSIF:=}"
+echo "GDB                      = ${GDB:=}"
+echo ""
 echo "CONAN_COMPILER_SETTINGS      = ${CONAN_COMPILER_SETTINGS:=}"
 echo "CONAN_STATIC_BUILD_FLAGS     = ${CONAN_STATIC_BUILD_FLAGS:=}"
 echo "CONAN_TBB_STATIC_BUILD_FLAGS = ${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
@@ -266,7 +350,8 @@ echo "BUILD_PREFIX             = ${BUILD_PREFIX:=}"
 echo "BUILD_SUFFIX             = ${BUILD_SUFFIX:=}"
 echo "BUILD_DIR                = ${BUILD_DIR:=}"
 echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
-echo "CLI                      = ${CLI:=}"
+echo "NEXTALIGN_CLI            = ${NEXTALIGN_CLI}"
+echo "NEXTCLADE_CLI            = ${NEXTCLADE_CLI}"
 echo "-------------------------------------------------------------------------"
 
 # Setup conan profile in CONAN_USER_HOME
@@ -314,14 +399,17 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS} \
     -DNEXTALIGN_MACOS_ARCH="${HOST_ARCH}" \
     -DCMAKE_OSX_ARCHITECTURES="${HOST_ARCH}" \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_MIN_VER}"
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_MIN_VER}" \
+    -DNEXTCLADE_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
+    -DNEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS} \
+    -DNEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS} \
+    ${MORE_CMAKE_FLAGS}
 
   print 12 "Build";
   ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
 
-  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-    print 30 "Install executable";
-    cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
+  function strip_executable() {
+    CLI=${1}
 
     print 29 "Strip executable";
     # Strip works differently on mac
@@ -344,6 +432,16 @@ pushd "${BUILD_DIR}" > /dev/null
 
     print 28 "Print executable info";
     file ${CLI}
+  }
+
+  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+    print 30 "Install executable";
+    cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
+
+    strip_executable "${NEXTALIGN_CLI}"
+
+    strip_executable "${NEXTCLADE_CLI}"
+
   fi
 
 popd > /dev/null
@@ -360,14 +458,28 @@ fi
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
 
   if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
-    print 23 "Run tests";
-    pushd "${BUILD_DIR}/packages/${PROJECT_NAME}/tests" > /dev/null
-        eval ${GTPP} ${GDB} ./nextalign_tests --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-    popd > /dev/null
+
+     if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
+       print 23 "Run Nextalign tests";
+       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+     fi
+
+    if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
+      print 23 "Run Nextclade tests";
+      eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+    fi
   fi
 
-  print 27 "Run CLI";
-  eval "${GDB}" ${CLI} ${DEV_CLI_OPTIONS} || cd .
+  if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
+    # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
+    ulimit -s unlimited
+  fi
+
+  # print 27 "Run Nextalign CLI";
+  # eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+
+  print 27 "Run Nextclade CLI";
+  eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
 
   print 22 "Done";
 

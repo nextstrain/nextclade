@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "../nextalign_private.h"
+#include "nextalign/private/nextalign_private.h"
 
 struct PeptidesInternal {
   std::vector<PeptideInternal> queryPeptides;

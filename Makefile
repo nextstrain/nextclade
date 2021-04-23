@@ -84,3 +84,11 @@ docker-prod: docker-builder docker-builder-run
 # Checks if attempted release version is valid
 check-release-version:
 	scripts/check_release_version.sh
+
+e2e-run:
+	packages/nextclade/e2e/run.sh
+
+e2e-compare:
+	python3 packages/nextclade/e2e/compare_js_and_cpp.py
+
+e2e: e2e-run e2e-compare

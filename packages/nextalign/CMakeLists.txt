@@ -20,6 +20,7 @@ find_package(type_safe 0.2.1 REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
   include/nextalign/nextalign.h
+  include/nextalign/private/nextalign_private.h
   src/align/alignPairwise.cpp
   src/align/alignPairwise.h
   src/align/getGapOpenCloseScores.cpp
@@ -37,7 +38,6 @@ add_library(${PROJECT_NAME} STATIC
   src/match/matchNuc.cpp
   src/match/matchNuc.h
   src/nextalign.cpp
-  src/nextalign_private.h
   src/options/options.cpp
   src/strip/stripInsertions.h
   src/translate/decode.cpp
@@ -73,6 +73,8 @@ target_compile_definitions(${PROJECT_NAME}
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${PROJECT_VERSION}"
 
+  -DFMT_HEADER_ONLY=1
+
   # Workaround for GCC 9 error in type_safe.
   # See: https://github.com/foonathan/debug_assert/issues/17
   -DDEBUG_ASSERT_PURE_FUNCTION=
@@ -92,20 +94,22 @@ target_include_directories(${PROJECT_NAME} SYSTEM
   "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
   )
 
-target_link_libraries(${PROJECT_NAME}
+target_include_directories(${PROJECT_NAME}
   PUBLIC
+  include
+  )
 
+target_link_libraries(${PROJECT_NAME}
   PRIVATE
   Microsoft.GSL::GSL
   Boost::headers
   fast-cpp-csv-parser::fast-cpp-csv-parser
-  fmt::fmt
+  fmt::fmt-header-only
   type_safe::type_safe
   )
 
 set(NEXTALIGN_BUILD_TESTS ON CACHE BOOL "Build unit tests")
 if (${NEXTALIGN_BUILD_TESTS})
-  include(CTest)
   enable_testing()
   add_subdirectory(tests)
 endif ()

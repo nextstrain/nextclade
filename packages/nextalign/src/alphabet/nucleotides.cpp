@@ -3,11 +3,12 @@
 #include <fmt/format.h>
 #include <frozen/map.h>
 
-#include <exception>
+#include <stdexcept>
 
 #include "../utils/contains.h"
 #include "../utils/contract.h"
 #include "../utils/map.h"
+#include "../utils/safe_cast.h"
 
 namespace {
   class ErrorNucleotideInvalid : public std::runtime_error {
@@ -15,7 +16,7 @@ namespace {
     explicit ErrorNucleotideInvalid(char nuc) : std::runtime_error(fmt::format("Invalid nucleotide: \"{:c}\"", nuc)) {}
   };
 
-  static constexpr const frozen::map<char, Nucleotide, 17> charToNucleotide = {
+  constexpr const frozen::map<char, Nucleotide, 17> charToNucleotide = {
     /* 00 */ {'U', Nucleotide::U},
     /* 01 */ {'T', Nucleotide::T},
     /* 02 */ {'A', Nucleotide::A},
@@ -35,7 +36,7 @@ namespace {
     /* 16 */ {'-', Nucleotide::GAP},
   };
 
-  static constexpr const frozen::map<Nucleotide, char, 17> nucleotideToChar = {
+  constexpr const frozen::map<Nucleotide, char, 17> nucleotideToChar = {
     /* 00 */ {Nucleotide::U, 'U'},
     /* 01 */ {Nucleotide::T, 'T'},
     /* 02 */ {Nucleotide::A, 'A'},
@@ -59,7 +60,8 @@ namespace {
 
 
 Nucleotide toNucleotide(char nuc) {
-  const auto it = charToNucleotide.find(nuc);
+  const char nucUpper = safe_cast<char>(std::toupper(nuc));
+  const auto* it = charToNucleotide.find(nucUpper);
   if (it == charToNucleotide.end()) {
     throw ErrorNucleotideInvalid(nuc);
   }
@@ -68,10 +70,13 @@ Nucleotide toNucleotide(char nuc) {
 
 char nucToChar(Nucleotide nuc) {
   precondition(contains(nucleotideToChar, nuc));
-  const auto it = nucleotideToChar.find(nuc);
+  const auto* it = nucleotideToChar.find(nuc);
   return it->second;
 }
 
+std::string nucToString(Nucleotide nuc) {
+  return std::string{nucToChar(nuc)};
+}
 
 NucleotideSequence toNucleotideSequence(const std::string& seq) {
   return map(seq, std::function<Nucleotide(char)>(toNucleotide));

@@ -564,7 +564,38 @@ The project is set up to build with sanitizers, if one of the following `CMAKE_B
 
 #### Valgrind
 
-> TODO: setup valgrind
+##### Valgrind memcheck
+
+Set environment variable `USE_VALGRIND=1` in order to run the executable with `valgrind` memcheck:
+
+```bash
+USE_VALGRIND=1 make dev
+
+```
+
+
+##### Valgrind massif
+
+Set environment variable `USE_MASSIF=1` in order to run the executable with `valgrind` massif heap profiler:
+
+```bash
+USE_VALGRIND=1 make prod
+
+```
+
+Note the process id in the header:
+
+```
+==263799== Massif, a heap profiler
+```
+
+It's `263799` in this example.
+
+After valgrind is done, in order to visualize results, run `ms_print`, with the output filename, containing the process ID. For the example from above it will be:
+
+```
+ms_print massif.out.263799
+```
 
 ---
 

@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
   decode.test.cpp
   extractGene.test.cpp
   mapCoordinates.test.cpp
+  nucToString.test.cpp
   parseGeneMapGff.test.cpp
   parseSequences.test.cpp
   removeGaps.test.cpp
@@ -27,6 +28,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC -DAPP_NAME="${PROJECT_NAME}"
+
+  -DFMT_HEADER_ONLY=1
   )
 
 target_include_directories(${PROJECT_NAME}
@@ -48,7 +51,7 @@ target_link_libraries(${PROJECT_NAME}
   GTest::gmock
   GTest::gmock_main
   Microsoft.GSL::GSL
-  fmt::fmt
+  fmt::fmt-header-only
   )
 
 add_test(${PROJECT_NAME} ${PROJECT_NAME})

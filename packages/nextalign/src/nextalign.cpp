@@ -15,16 +15,24 @@
 #include "utils/safe_cast.h"
 
 Insertion toInsertionExternal(const InsertionInternal<Nucleotide>& ins) {
-  return Insertion{.begin = ins.begin, .end = ins.end, .seq = toString(ins.seq)};
+  return Insertion{.pos = ins.pos, .length = ins.length, .ins = toString(ins.ins)};
+}
+
+std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<Nucleotide>>& insertions) {
+  return map(insertions, std::function<Insertion(InsertionInternal<Nucleotide>)>(toInsertionExternal));
 }
 
 Peptide toPeptideExternal(const PeptideInternal& peptide) {
   return Peptide{.name = peptide.name, .seq = toString(peptide.seq)};
 }
 
+std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& peptides) {
+  return map(peptides, std::function<Peptide(PeptideInternal)>(toPeptideExternal));
+}
 
-NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref, const GeneMap& geneMap,
-  const NextalignOptions& options) {
+
+NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const NucleotideSequence& ref,
+  const GeneMap& geneMap, const NextalignOptions& options) {
 
   // TODO: hoist this out of the loop
   const auto gapOpenCloseNuc = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
@@ -32,37 +40,52 @@ NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSeque
 
   const auto alignment = alignPairwise(query, ref, gapOpenCloseNuc, options.alignment, options.seedNuc);
 
-  std::vector<Peptide> queryPeptides;
-  std::vector<Peptide> refPeptides;
+  std::vector<PeptideInternal> queryPeptides;
+  std::vector<PeptideInternal> refPeptides;
   std::vector<std::string> warnings;
   if (!geneMap.empty()) {
     try {
       auto peptidesInternal = translateGenes(alignment.query, alignment.ref, geneMap, gapOpenCloseAA, options);
-      queryPeptides = map(peptidesInternal.queryPeptides, std::function<Peptide(PeptideInternal)>(toPeptideExternal));
-      refPeptides = map(peptidesInternal.refPeptides, std::function<Peptide(PeptideInternal)>(toPeptideExternal));
+      concat_move(peptidesInternal.queryPeptides, queryPeptides);
+      concat_move(peptidesInternal.refPeptides, refPeptides);
       concat_move(peptidesInternal.warnings, warnings);
     } catch (const std::exception& e) {
       // Errors in translation should not cause sequence alignment failure.
       // Gather and report as warnings instead.
-      warnings.push_back(e.what());
+      warnings.emplace_back(e.what());
     }
   }
 
   const auto stripped = stripInsertions(alignment.ref, alignment.query);
   const auto refStripped = removeGaps(ref);
 
-  NextalignResult result;
-  result.ref = toString(refStripped);
-  result.query = toString(stripped.queryStripped);
+  NextalignResultInternal result;
+  result.ref = refStripped;
+  result.query = stripped.queryStripped;
   result.alignmentScore = alignment.alignmentScore;
   result.refPeptides = refPeptides;
   result.queryPeptides = queryPeptides;
-  result.insertions =
-    map(stripped.insertions, std::function<Insertion(InsertionInternal<Nucleotide>)>(toInsertionExternal));
-  result.warnings = std::move(warnings);
+  result.insertions = stripped.insertions;
+  result.warnings = warnings;
 
   return result;
 }
+
+NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref, const GeneMap& geneMap,
+  const NextalignOptions& options) {
+  const auto resultInternal = nextalignInternal(query, ref, geneMap, options);
+
+  NextalignResult result;
+  result.query = toString(resultInternal.query);
+  result.alignmentScore = resultInternal.alignmentScore;
+  result.refPeptides = toPeptidesExternal(resultInternal.refPeptides);
+  result.queryPeptides = toPeptidesExternal(resultInternal.queryPeptides);
+  result.insertions = toInsertionsExternal(resultInternal.insertions);
+  result.warnings = resultInternal.warnings;
+
+  return result;
+}
+
 
 const char* getVersion() {
   return PROJECT_VERSION;

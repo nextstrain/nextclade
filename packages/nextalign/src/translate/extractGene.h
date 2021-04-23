@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "../nextalign_private.h"
+#include "nextalign/private/nextalign_private.h"
 
 struct Gene;
 

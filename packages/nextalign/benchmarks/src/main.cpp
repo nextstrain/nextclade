@@ -2,12 +2,12 @@
 
 
 // clang-format off
-#include "Nextalign.benchmark.h"
-#include "AlignPairwise.benchmark.h"
-//#include "SeedMatching.benchmark.h"
-//#include "ForwardTrace.benchmark.h"
-//#include "BackwardTrace.benchmark.h"
-//#include "StripInsertions.benchmark.h"
+#include "Nextalign.benchmark.h" // NOLINT(llvm-include-order)
+#include "AlignPairwise.benchmark.h" // NOLINT(llvm-include-order)
+//#include "SeedMatching.benchmark.h" // NOLINT(llvm-include-order)
+//#include "ForwardTrace.benchmark.h" // NOLINT(llvm-include-order)
+//#include "BackwardTrace.benchmark.h" // NOLINT(llvm-include-order)
+//#include "StripInsertions.benchmark.h" // NOLINT(llvm-include-order)
 // clang-format on
 
 
