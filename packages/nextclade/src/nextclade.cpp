@@ -61,12 +61,13 @@ namespace Nextclade {
       const auto totalPcrPrimerChanges = std::accumulate(pcrPrimerChanges.cbegin(), pcrPrimerChanges.cend(), 0,
         [](int result, const auto& item) { return result + item.substitutions.size(); });
 
-      auto aaChanges = getAminoacidChanges(//
-        alignment.ref,                     //
-        alignment.query,                   //
-        alignment.refPeptides,             //
-        alignment.queryPeptides,           //
-        geneMap                            //
+      auto aaChanges = getAminoacidChanges(                                   //
+        alignment.ref,                                                        //
+        alignment.query,                                                      //
+        alignment.refPeptides,                                                //
+        alignment.queryPeptides,                                              //
+        Range{.begin = analysis.alignmentStart, .end = analysis.alignmentEnd},//
+        geneMap                                                               //
       );
       const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
       const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());

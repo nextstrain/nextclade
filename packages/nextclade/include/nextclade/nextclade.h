@@ -101,6 +101,10 @@ namespace Nextclade {
   struct Range {
     int begin;
     int end;
+
+    bool contains(int x) const {
+      return x >= begin && x < end;
+    }
   };
 
   inline bool operator==(const Range& left, const Range& right) {

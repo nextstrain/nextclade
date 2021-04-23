@@ -25,6 +25,7 @@ namespace Nextclade {
     const NucleotideSequence& query,                  //
     const std::vector<PeptideInternal>& refPeptides,  //
     const std::vector<PeptideInternal>& queryPeptides,//
+    const Range& alignmentRange,                      //
     const GeneMap& geneMap                            //
   );
 

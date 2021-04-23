@@ -43,6 +43,7 @@ namespace Nextclade {
     const AminoacidSequence& refPeptide,                //
     const AminoacidSequence& queryPeptide,              //
     const Gene& gene,                                   //
+    const Range& alignmentRange,                        //
     std::vector<AminoacidSubstitution>& aaSubstitutions,//
     std::vector<AminoacidDeletion>& aaDeletions         //
   ) {
@@ -62,6 +63,10 @@ namespace Nextclade {
       // Find where the codon is in nucleotide sequences
       const auto codonBegin = gene.start + codon * 3;
       const auto codonEnd = codonBegin + 3;
+
+      if (!alignmentRange.contains(codonBegin) || !alignmentRange.contains(codonEnd)) {
+        continue;
+      }
 
       invariant_greater_equal(codonBegin, 0);
       invariant_greater_equal(codonBegin, gene.start);
@@ -124,6 +129,7 @@ namespace Nextclade {
     const NucleotideSequence& query,                  //
     const std::vector<PeptideInternal>& refPeptides,  //
     const std::vector<PeptideInternal>& queryPeptides,//
+    const Range& alignmentRange,                      //
     const GeneMap& geneMap                            //
   ) {
     precondition_equal(refPeptides.size(), queryPeptides.size());
@@ -152,6 +158,7 @@ namespace Nextclade {
         refPeptide.seq,          //
         queryPeptide.seq,        //
         *gene,                   //
+        alignmentRange,          //
         aaSubstitutions,         //
         aaDeletions              //
       );
