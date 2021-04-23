@@ -36,8 +36,8 @@ namespace Nextclade {
     const auto nucleotideMutations = node.nucleotideMutations();
     for (const auto& mut : nucleotideMutations) {
       const auto& previousNuc = mapFind(tmpMuts, mut.pos);
-      if (previousNuc.has_value() && (previousNuc.value() != mut.refNuc)) {
-        throw ErrorAttachMutationsInconsistentMutation(mut, previousNuc.value());
+      if (previousNuc.has_value() && (*previousNuc != mut.refNuc)) {
+        throw ErrorAttachMutationsInconsistentMutation(mut, *previousNuc);
       }
 
       // If mutation reverts nucleotide back to what reference had, remove it from the map
