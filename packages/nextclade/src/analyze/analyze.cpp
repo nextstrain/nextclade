@@ -7,14 +7,7 @@
 
 
 namespace Nextclade {
-  struct MutationReport {
-    std::vector<NucleotideSubstitution> substitutions;
-    std::vector<NucleotideDeletion> deletions;
-    int alignmentStart;
-    int alignmentEnd;
-  };
-
-  MutationReport reportMutations(const NucleotideSequence& refStripped, const NucleotideSequence& queryStripped) {
+  AnalysisResult reportMutations(const NucleotideSequence& refStripped, const NucleotideSequence& queryStripped) {
     int nDel = 0;
     int delPos = -1;
     bool beforeAlignment = true;
@@ -67,12 +60,6 @@ namespace Nextclade {
   }
 
   AnalysisResult analyze(const NucleotideSequence& queryStripped, const NucleotideSequence& refStripped) {
-    const auto [substitutions, deletions, alignmentStart, alignmentEnd] = reportMutations(refStripped, queryStripped);
-    return {
-      .substitutions = substitutions,
-      .deletions = deletions,
-      .alignmentStart = alignmentStart,
-      .alignmentEnd = alignmentEnd,
-    };
+    return reportMutations(refStripped, queryStripped);
   }
 }// namespace Nextclade
