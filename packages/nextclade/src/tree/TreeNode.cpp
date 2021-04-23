@@ -264,7 +264,7 @@ namespace Nextclade {
       if (div.is_number()) {
         return std::make_optional(div.get<double>());
       }
-      return std::optional<double>();
+      return {};
     }
 
     void setDivergence(double div) {
