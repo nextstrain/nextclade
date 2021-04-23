@@ -101,8 +101,8 @@ namespace Nextclade {
    */
   std::optional<FindPrimerResult> findPrimerInRootSeq(//
     const std::string& name,                          //
-    const NucleotideSequence& ref,                    //
     const NucleotideSequence& primer,                 //
+    const NucleotideSequence& ref,                    //
     /* inout */ std::vector<std::string>& warnings    //
   ) {
     const auto refStr = toString(ref);
@@ -115,11 +115,11 @@ namespace Nextclade {
 
     std::smatch matches;
     if (!std::regex_search(refStr, matches, re)) {
-      return std::make_optional<FindPrimerResult>();
+      return {};
     }
 
     if (matches.empty()) {
-      return std::make_optional<FindPrimerResult>();
+      return {};
     }
 
     if (matches.size() > 1) {
@@ -131,7 +131,7 @@ namespace Nextclade {
         name, primerStr, matches.size()));
     }
 
-    const auto& begin = safe_cast<int>(matches.position(0));
+    const int begin = safe_cast<int>(matches.position(0));
     const auto rootOligonuc = toNucleotideSequence(matches[0].str());
 
     return std::make_optional(FindPrimerResult{
@@ -182,7 +182,7 @@ namespace Nextclade {
         "When parsing PCR primer CSV: Unable to find PCR primer \"{:s}\" (oligonucleotide: \"{:s}\") in the root "
         "sequence. This might mean that the list of primers is not compatible with the root sequence used",
         primerEntry.name, primerEntry.primerOligonuc));
-      return std::make_optional<PcrPrimer>();
+      return {};
     }
 
     NucleotideSequence rootOligonuc = found->rootOligonuc;

@@ -13,7 +13,7 @@ namespace Nextclade {
    */
   bool shouldReportPrimerMutation(const NucleotideSubstitution& mut, const PcrPrimer& primer) {
     // Don't report mutation if outside the primer range
-    if (!inRange(mut.pos, primer.range.begin, primer.range.end)) {
+    if (!primer.range.contains(mut.pos)) {
       return false;
     }
 

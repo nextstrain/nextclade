@@ -222,7 +222,7 @@ if __name__ == '__main__':
     compare_tsv_column(new, old, 'deletions')
     compare_tsv_column(new, old, 'insertions')
     compare_tsv_column(new, old, 'nonACGTNs')
-    # compare_tsv_column(new, old, 'pcrPrimerChanges')
+    compare_tsv_column(new, old, 'pcrPrimerChanges')
     compare_tsv_column(new, old, 'clade')
 
     compare_aa_muts(new, old)
