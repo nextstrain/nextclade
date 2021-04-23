@@ -49,10 +49,11 @@ namespace Nextclade {
       const int totalDeletions = calculateTotalLength(analysis.deletions);
       const int totalInsertions = calculateTotalLength(alignment.insertions);
 
-      const auto missing = findNucleotideRanges(alignment.query, Nucleotide::N);
+      auto alignmentRange = Range{analysis.alignmentStart, analysis.alignmentEnd};
+      const auto missing = findNucleotideRanges(alignment.query, alignmentRange, Nucleotide::N);
       const int totalMissing = calculateTotalLength(missing);
 
-      const auto nonACGTNs = findNucleotideRanges(alignment.query, isNonAcgtnAndNonGap);
+      const auto nonACGTNs = findNucleotideRanges(alignment.query, alignmentRange, isNonAcgtnAndNonGap);
       const int totalNonACGTNs = calculateTotalLength(nonACGTNs);
 
       const auto nucleotideComposition = getNucleotideComposition(alignment.query);

@@ -5,17 +5,25 @@
 
 #include <vector>
 
-#include "utils/safe_cast.h"
+#include "../utils/contract.h"
+#include "../utils/safe_cast.h"
 
 
 namespace Nextclade {
 
-  std::vector<NucleotideRange> findNucleotideRanges(
-    const NucleotideSequence& str, const std::function<bool(const Nucleotide&)>& pred) {
-    const auto& length = safe_cast<int>(str.length());
+  std::vector<NucleotideRange> findNucleotideRanges(  //
+    const NucleotideSequence& str,                    //
+    const Range& limit,                               //
+    const std::function<bool(const Nucleotide&)>& pred//
+  ) {
+    precondition_greater_equal(limit.begin, 0);
+    precondition_less_equal(limit.begin, limit.end);
+    precondition_less_equal(limit.end, str.size());
+
+    const auto& length = limit.end;
     std::vector<NucleotideRange> result;
 
-    int i = 0;
+    int i = limit.begin;
     std::optional<Nucleotide> foundNuc;
     int begin = 0;
     while (i < length) {
@@ -48,7 +56,31 @@ namespace Nextclade {
     return result;
   }
 
-  std::vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str, Nucleotide nuc) {
-    return findNucleotideRanges(str, [&nuc](const Nucleotide& candidate) { return candidate == nuc; });
+  std::vector<NucleotideRange> findNucleotideRanges(//
+    const NucleotideSequence& str,                  //
+    const Range& limit,                             //
+    Nucleotide nuc                                  //
+  ) {
+    return findNucleotideRanges(str, limit, [&nuc](const Nucleotide& candidate) { return candidate == nuc; });
+  }
+
+  /**
+  * Finds all contiguous ranges in a given sequence, fulfilling given boolean predicate.
+  */
+  std::vector<NucleotideRange> findNucleotideRanges(  //
+    const NucleotideSequence& str,                    //
+    const std::function<bool(const Nucleotide&)>& pred//
+  ) {
+    return findNucleotideRanges(str, Range{.begin = 0, .end = safe_cast<int>(str.size())}, pred);
+  }
+
+  /**
+  * Finds all contiguous ranges of a given character, in a sequence.
+  */
+  std::vector<NucleotideRange> findNucleotideRanges(//
+    const NucleotideSequence& str,                  //
+    Nucleotide nuc                                  //
+  ) {
+    return findNucleotideRanges(str, Range{.begin = 0, .end = safe_cast<int>(str.size())}, nuc);
   }
 }// namespace Nextclade

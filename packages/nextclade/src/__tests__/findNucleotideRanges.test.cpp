@@ -7,6 +7,7 @@
 namespace {
   using Nextclade::findNucleotideRanges;
   using Nextclade::NucleotideRange;
+  using Nextclade::Range;
 }// namespace
 
 #define EXPECT_ARR_EQ(expected, actual) ASSERT_THAT(actual, ::testing::ElementsAreArray(expected));
@@ -92,8 +93,8 @@ TEST(FindNucleotideRanges, With_Predicate) {
 }
 
 TEST(FindNucleotideRanges, With_Predicate_Multiple_Nucs) {
-  std::set<Nucleotide> GOOD_NUCLEOTIDES = {
-    Nucleotide::A, Nucleotide::C, Nucleotide::G, Nucleotide::T, Nucleotide::N, Nucleotide::GAP};
+  std::set<Nucleotide> GOOD_NUCLEOTIDES = {Nucleotide::A, Nucleotide::C, Nucleotide::G, Nucleotide::T, Nucleotide::N,
+    Nucleotide::GAP};
 
   const auto isNotGoodNuc = [&GOOD_NUCLEOTIDES](Nucleotide nuc) {//
     return GOOD_NUCLEOTIDES.find(nuc) == GOOD_NUCLEOTIDES.end();
@@ -109,8 +110,8 @@ TEST(FindNucleotideRanges, With_Predicate_Multiple_Nucs) {
 }
 
 TEST(FindNucleotideRanges, Consecutive_Ranges) {
-  std::set<Nucleotide> GOOD_NUCLEOTIDES = {
-    Nucleotide::A, Nucleotide::C, Nucleotide::G, Nucleotide::T, Nucleotide::N, Nucleotide::GAP};
+  std::set<Nucleotide> GOOD_NUCLEOTIDES = {Nucleotide::A, Nucleotide::C, Nucleotide::G, Nucleotide::T, Nucleotide::N,
+    Nucleotide::GAP};
 
   const auto isNotGoodNuc = [&GOOD_NUCLEOTIDES](Nucleotide nuc) {//
     return GOOD_NUCLEOTIDES.find(nuc) == GOOD_NUCLEOTIDES.end();
@@ -122,5 +123,16 @@ TEST(FindNucleotideRanges, Consecutive_Ranges) {
     NucleotideRange{.begin = 3, .end = 6, .length = 3, .nuc = Nucleotide::Y},
     NucleotideRange{.begin = 6, .end = 10, .length = 4, .nuc = Nucleotide::U},
   };
+  EXPECT_ARR_EQ(expected, actual)
+}
+
+TEST(FindNucleotideRanges, One_Range_Limited) {
+  const auto actual = findNucleotideRanges(               //
+    toNucleotideSequence("NNNNNGGATTCANNNNNNNAAGCCNNNNN"),//
+    Range{.begin = 5, .end = 24},                         //
+    Nucleotide::N                                         //
+  );
+  const auto expected =
+    std::vector<NucleotideRange>{NucleotideRange{.begin = 12, .end = 19, .length = 7, .nuc = Nucleotide::N}};
   EXPECT_ARR_EQ(expected, actual)
 }
