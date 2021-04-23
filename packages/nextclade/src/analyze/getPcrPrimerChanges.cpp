@@ -54,16 +54,16 @@ namespace Nextclade {
   ) {
     std::vector<PcrPrimerChange> result;
     for (const auto& primer : primers) {
-      for (const auto& mut : substitutions) {
 
-        std::vector<NucleotideSubstitution> substitutionsSelected;
+      std::vector<NucleotideSubstitution> substitutionsSelected;
+      for (const auto& mut : substitutions) {
         if (shouldReportPrimerMutation(mut, primer)) {
           substitutionsSelected.push_back(mut);
         }
+      }
 
-        if (!substitutionsSelected.empty()) {
-          result.emplace_back(PcrPrimerChange{.primer = primer, .substitutions = std::move(substitutionsSelected)});
-        }
+      if (!substitutionsSelected.empty()) {
+        result.emplace_back(PcrPrimerChange{.primer = primer, .substitutions = std::move(substitutionsSelected)});
       }
     }
     return result;
