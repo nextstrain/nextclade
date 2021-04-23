@@ -20,7 +20,7 @@ if [ -z "${PROJECT_NAME}" ]; then
   exit 1
 fi
 
-export ARTIFACTS=".out/bin"
+export ARTIFACTS=".out/bin/${PROJECT_NAME}*"
 export VERSION=$(cat packages/${PROJECT_NAME}_cli/VERSION)
 export TAG="${PROJECT_NAME}-${VERSION}"
 
