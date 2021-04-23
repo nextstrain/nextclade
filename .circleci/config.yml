@@ -5,7 +5,7 @@ version: 2.1
 release_only: &release_only
   filters:
     branches:
-      only: nextalign-release
+      only: nextclade-release
 
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v3-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+            - cache-nextclade-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
@@ -47,25 +47,33 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v3-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+          key: cache-nextclade-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
       - store_artifacts:
-          name: 'Store Linux x86_64 binary'
+          name: 'Store artifacts: nextalign-Linux-x86_64'
           path: .out/bin/nextalign-Linux-x86_64
           destination: nextalign-Linux-x86_64
 
-      - run:
-          name: "Publish Release on GitHub"
-          command: |
-            ./scripts/publish_github_release_linux.sh
+      - store_artifacts:
+          name: 'Store artifacts: nextclade-Linux-x86_64'
+          path: .out/bin/nextclade-Linux-x86_64
+          destination: nextclade-Linux-x86_64
 
       - run:
-          name: "Publish Docker Image to Docker Hub"
+          name: "Publish binaries to GitHub Releases"
           command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/publish_docker_images.sh
+            ./scripts/get_ghr_linux.sh
+            ./scripts/publish_github_releases.sh nextalign
+            ./scripts/publish_github_releases.sh nextclade
+
+      # - run:
+      #     name: "Publish Docker images to DockerHub"
+      #     command: |
+      #       echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      #       ./scripts/publish_docker_images.sh nextalign
+      #       ./scripts/publish_docker_images.sh nextclade
 
   Build-MacOS:
     parameters:
@@ -85,7 +93,7 @@ jobs:
       - restore_cache:
           name: 'Restore homebrew cache'
           keys:
-            - cache-nextalign-v3-homebrew-{{ arch }}
+            - cache-nextclade-v1-homebrew-{{ arch }}
 
       - run:
           name: 'Install build tools'
@@ -100,7 +108,7 @@ jobs:
 
       - save_cache:
           name: 'Save homebrew cache'
-          key: cache-nextalign-v3-homebrew-{{ arch }}
+          key: cache-nextclade-v1-homebrew-{{ arch }}
           paths:
             - '~/Library/Caches/Homebrew'
             - '/usr/local/Homebrew'
@@ -108,7 +116,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextalign-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+            - cache-nextclade-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
 
       - run:
           name: Run macOS << parameters.macos_arch >> build
@@ -120,27 +128,32 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextalign-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+          key: cache-nextclade-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
           paths:
             - .cache
 
       - store_artifacts:
-          name: Persist artifacts in CircleCI Artifacts (macOS << parameters.macos_arch >>)
+          name: 'Store artifacts: nextalign-MacOS-<< parameters.macos_arch >>'
           path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
           destination: nextalign-MacOS-<< parameters.macos_arch >>
 
+      - store_artifacts:
+          name: 'Store artifacts: nextclade-MacOS-<< parameters.macos_arch >>'
+          path: .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
+          destination: nextclade-MacOS-<< parameters.macos_arch >>
+
       - run:
-          name: "Publish Release on GitHub"
+          name: "Publish binaries to GitHub Releases"
           command: |
-            VERSION=$(cat packages/nextalign_cli/VERSION)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -replace nextalign-${VERSION} .out/bin
+            ./scripts/publish_github_releases.sh nextalign
+            ./scripts/publish_github_releases.sh nextclade
 
 workflows:
   version: 2
   build:
     jobs:
       - Build-Linux-x86_64:
-         <<: *release_only
+          <<: *release_only
 
       - Build-MacOS:
           matrix:
