@@ -778,7 +778,10 @@ void run(
       const auto &insertions = output.result.insertions;
       const auto &warnings = output.result.warnings;
 
-      logger.info("| {:5d} | {:40s} | {:16d} | {:12d} |\n", index, seqName, 0, output.result.insertions.size());
+      const auto &result = output.result;
+      logger.info("| {:5d} | {:40s} | {:7d} | {:7d} | {:7d} | {:7d} |\n",                                        //
+        index, seqName, result.alignmentScore, result.alignmentStart, result.alignmentEnd, result.totalInsertions//
+      );
 
       const auto &error = output.error;
       if (error) {
@@ -1009,13 +1012,16 @@ int main(int argc, char *argv[]) {
     } else if (geneMap.empty()) {
       logger.warn(
         "Warning: Provided gene map is empty. Sequences will not be translated, there will be no peptides in output "
-        "files, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by codon boundaries.\n");
+        "files, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by "
+        "codon boundaries.\n");
     }
 
-    constexpr const auto TABLE_WIDTH = 86;
+    constexpr const auto TABLE_WIDTH = 92;
     logger.info("\nSequences:\n");
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
-    logger.info("| {:5s} | {:40s} | {:16s} | {:12s} |\n", "Index", "Seq. name", "Align. score", "Insertions");
+    logger.info("| {:5s} | {:40s} | {:7s} | {:7s} | {:7s} | {:7s} |\n",//
+      "Index", "Seq. name", "A.score", "A.start", "A.end", "Insert."   //
+    );
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
