@@ -142,7 +142,7 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
     fmt::format("nextclade {:s}\nbased on libnextclade {:s}\nbased on libnexalign {:s}", PROJECT_VERSION,
       Nextclade::getVersion(), NEXTALIGN_VERSION);
 
-  cxxopts::Options cxxOpts("nextalign", fmt::format("{:s}\n\n{:s}\n", versionDetailed, PROJECT_DESCRIPTION));
+  cxxopts::Options cxxOpts("nextclade", fmt::format("{:s}\n\n{:s}\n", versionDetailed, PROJECT_DESCRIPTION));
 
   // clang-format off
   cxxOpts.add_options()
@@ -207,7 +207,7 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
 
     (
       "genes",
-       "(optional, string) Comma-separated list of names of genes to use. This defines which peptides will be written into outputs, and which genes will be taken into account during codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the gene map. If this flag is not supplied or its value is an empty string, then all genes found in the gene map will be used. Requires `--input-gene-map` to be specified. Example for SARS-CoV-2: E,M,N,ORF10,ORF14,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S",
+       "(optional, string) Comma-separated list of names of genes to use. This defines which peptides will be written into outputs, and which genes will be taken into account during codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the gene map. If this flag is not supplied or its value is an empty string, then all genes found in the gene map will be used. Requires `--input-gene-map` to be specified. Example for SARS-CoV-2: E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S",
        cxxopts::value<std::string>(),
        "GENES"
     )
