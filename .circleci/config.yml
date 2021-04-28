@@ -5,7 +5,7 @@ version: 2.1
 release_only: &release_only
   filters:
     branches:
-      only: nextclade-release
+      only: cli-release
 
 
 jobs:
@@ -65,15 +65,13 @@ jobs:
           name: "Publish binaries to GitHub Releases"
           command: |
             ./scripts/get_ghr_linux.sh
-            ./scripts/publish_github_releases.sh nextalign
-            ./scripts/publish_github_releases.sh nextclade
+            ./scripts/publish_github_releases.sh
 
-      # - run:
-      #     name: "Publish Docker images to DockerHub"
-      #     command: |
-      #       echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-      #       ./scripts/publish_docker_images.sh nextalign
-      #       ./scripts/publish_docker_images.sh nextclade
+      - run:
+          name: "Publish Docker images to DockerHub"
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/publish_docker_images.sh
 
   Build-MacOS:
     parameters:
@@ -145,8 +143,7 @@ jobs:
       - run:
           name: "Publish binaries to GitHub Releases"
           command: |
-            ./scripts/publish_github_releases.sh nextalign
-            ./scripts/publish_github_releases.sh nextclade
+            ./scripts/publish_github_releases.sh
 
 workflows:
   version: 2

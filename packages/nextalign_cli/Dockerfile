@@ -1,5 +1,3 @@
-# Purpose: the actual image we ship. Contains only the release build artifacts
-
 FROM scratch
 
 COPY .out/bin/nextalign-Linux-x86_64 /nextalign

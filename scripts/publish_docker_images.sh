@@ -8,13 +8,6 @@ set -o pipefail
 shopt -s dotglob
 trap "exit" INT
 
-PROJECT_NAME=${1}
-if [ -z "${PROJECT_NAME}" ]; then
-  echo "${0}: Error: project name is required"
-  echo "Usage: ${0} <project_name>"
-  exit 1
-fi
-
 # Directory where this script resides
 THIS_DIR=$(
   cd $(dirname "${BASH_SOURCE[0]}")
@@ -31,12 +24,66 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
-VERSION=$(.out/bin/${PROJECT_NAME}-Linux-x86_64 --version)
+DOCKER_ORG="nextstrain"
 
-docker build -f "${PROJECT_ROOT_DIR}/Dockerfile.prod" \
-  -t nextstrain/${PROJECT_NAME}:latest \
-  -t nextstrain/${PROJECT_NAME}:${VERSION} \
-  .
+VERSION=$(cat "${PROJECT_ROOT_DIR}/VERSION")
+VERSION_MAJOR=$(cut -d '.' -f 1 <<<"${VERSION}")
 
-docker push nextstrain/${PROJECT_NAME}:latest
-docker push nextstrain/${PROJECT_NAME}:${VERSION}
+function check_version_consistency() {
+  set -o errexit
+
+  PROJECT_NAME=${1}
+  if [ -z "${PROJECT_NAME}" ]; then
+    echo "${0}: Error: project name is required"
+    exit 1
+  fi
+
+  VERSION_EXEC=$(.out/bin/${PROJECT_NAME}-Linux-x86_64 --version)
+
+  if [ "${VERSION}" != "${VERSION_EXEC}" ]; then
+    echo "Error: Version from \"VERSION\" file (\"${VERSION}\") does not match the version of the executable (\"${VERSION_EXEC}\"). Did you forget to rebuild the project?"
+    exit 1
+  fi
+}
+
+function publish_one_project() {
+  set -o errexit
+
+  PROJECT_NAME=${1}
+  if [ -z "${PROJECT_NAME}" ]; then
+    echo "${0}: Error: project name is required"
+    exit 1
+  fi
+
+  TAGS=" \
+    ${DOCKER_ORG}/${PROJECT_NAME}:${VERSION_MAJOR}\
+    ${DOCKER_ORG}/${PROJECT_NAME}:${VERSION}
+    "
+
+  # Nextclade's `latest` tag should still point to version 0.x, so omit it here
+  if [ "${PROJECT_NAME}" != "nextclade" ]; then
+    TAGS="${TAGS} ${DOCKER_ORG}/${PROJECT_NAME}:latest"
+  fi
+
+  # Make a string containing of tags for `docker build` command
+  TAGS_FOR_DOCKER_BUILD=""
+  for tag in ${TAGS}; do
+    TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
+  done
+
+  docker build \
+    -f ${PROJECT_ROOT_DIR}/packages/${PROJECT_NAME}_cli/Dockerfile \
+    ${TAGS_FOR_DOCKER_BUILD} \
+    ${PROJECT_ROOT_DIR}
+
+  # Push each tag separately (`docker push` does not support pushing multiple)
+  for tag in ${TAGS}; do
+    docker push ${tag}
+  done
+}
+
+check_version_consistency nextalign
+check_version_consistency nextclade
+
+publish_one_project nextalign
+publish_one_project nextclade

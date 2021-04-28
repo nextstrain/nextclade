@@ -6,9 +6,7 @@ include(CFlags)
 include(Quiet)
 include(Sanitizers)
 
-project(nextclade_cli)
-file(STRINGS "VERSION" PROJECT_VERSION)
-file(STRINGS "../nextalign/VERSION" NEXTALIGN_VERSION)
+project(nextclade_cli DESCRIPTION "C++ tool for viral genome analysis")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
@@ -53,8 +51,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
   -DPROJECT_NAME="${PROJECT_NAME}"
-  -DPROJECT_VERSION="${PROJECT_VERSION}"
-  -DNEXTALIGN_VERSION="${NEXTALIGN_VERSION}"
+  -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
+  -DNEXTALIGN_VERSION="${NEXTCLADE_CPP_VERSION}"
 
   -DFMT_HEADER_ONLY=1
   )
