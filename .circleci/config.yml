@@ -67,11 +67,11 @@ jobs:
             ./scripts/get_ghr_linux.sh
             ./scripts/publish_github_releases.sh
 
-       - run:
-           name: "Publish Docker images to DockerHub"
-           command: |
-             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-             ./scripts/publish_docker_images.sh
+      - run:
+          name: "Publish Docker images to DockerHub"
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/publish_docker_images.sh
 
   Build-MacOS:
     parameters:
