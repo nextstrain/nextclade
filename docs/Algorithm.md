@@ -10,9 +10,9 @@ Nextclade is available as a web application and as a command-line tool. The sour
 
 ### Web application
 
-Nextclade Web is available online at [clades.nextstrain.org](https://clades.nextstrain.org). This is the easiet way of using it and is a recommended way to get started.
+Nextclade Web is available online at [clades.nextstrain.org](https://clades.nextstrain.org). This is the easiest way of using it and is a recommended way to get started.
 
-Drag a fasta file onto the "upload" box, provide a url or paste sequence data directly into the text box. The sequences will then be analyzed right in your browser - data never leaves your computer (i.e. no actual "upload" is hapenning). Since your computer is doing the computational work rather than a remote server, it is advisable to analyze at most a few hundred of sequences at a time, depending on yor hardware.
+Drag a fasta file onto the "upload" box, provide a url or paste sequence data directly into the text box. The sequences will then be analyzed right in your browser - data never leaves your computer (i.e. no actual "upload" is happening). Since your computer is doing the computational work rather than a remote server, it is advisable to analyze at most a few hundred of sequences at a time, depending on yor hardware.
 
 Power users might want to switch to "Advanced mode" in order to get access to more configuration. This mode is equivalent to using Nextclade command-line tool and accepts the same input files (see "Inputs" section).
 
@@ -78,7 +78,7 @@ Nextclade expects the following input data:
 
   Accepted formats: CSV
 
-  Note: the promers are processed differently depending on the primer type. The type is deduced from the primer's name suffix. Conventions that are used:
+  Note: the primers are processed differently depending on the primer type. The type is deduced from the primer's name suffix. Conventions that are used:
 
   - `_F` - forward primer
   - `_R` - reverse primer
@@ -110,7 +110,7 @@ Note: the subsequent analysis steps will ignore regions before and after alignme
 
 ### 2. Translation
 
-In order to detect changes in protein structure of the virus, aminoacid sequences (peptides) need to be computed from the nucleotide sequence regions correspongding to [genes](https://en.wikipedia.org/wiki/Gene). This process is called [translation](<https://en.wikipedia.org/wiki/Translation_(biology)>). Peptides then need to be aligned, in order to make them comparable, similarly to how it's done with nucleotide sequences.
+In order to detect changes in protein structure of the virus, aminoacid sequences (peptides) need to be computed from the nucleotide sequence regions corresponding to [genes](https://en.wikipedia.org/wiki/Gene). This process is called [translation](<https://en.wikipedia.org/wiki/Translation_(biology)>). Peptides then need to be aligned, in order to make them comparable, similarly to how it's done with nucleotide sequences.
 
 Nextclade performs translation separately for every gene (the list of genes to be considered for translation is configurable). Nextclade finds genes by looking into the Gene map, and then generates peptides by taking every triplet of nucleotides (codon) and translating it into a corresponding aminoacid. It then aligns the resulting peptides against the corresponding reference peptides (translated from reference sequence), using the same alignment algorithm as for nucleotide sequences.
 
@@ -123,7 +123,7 @@ Aligned nucleotide sequence, are compared against reference sequence.
 Mismatches are noted and later reported as mutations: in case the nucleotide has changed to `-`
 (a "gap", meaning that the nucleotide was present in reference sequence, but is not present in the query sequence), a nucleotide deletion is reported, otherwise a nucleotide substitution (for example a change from `A` to `G`).
 
-Nextclade also gathers and reports other usful statistics, such as all contiguous ranges of `N` (missing) and non-ACGTN (ambiguous) nucleotides, as well as total numbers of substitutions, deletions, missing and ambiguous nucleotides.
+Nextclade also gathers and reports other useful statistics, such as all contiguous ranges of `N` (missing) and non-ACGTN (ambiguous) nucleotides, as well as total numbers of substitutions, deletions, missing and ambiguous nucleotides.
 
 ### 4. Aminoacid mutation calling and statistics
 
@@ -133,9 +133,9 @@ This step only runs if Gene map is provided.
 
 ### 5. PCR primer changes detection
 
-[Polymerase chain reaction (PCR)](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) uses small nucleotide sequence snippets, [complemetary](<https://en.wikipedia.org/wiki/Complementarity_(molecular_biology)>) to a specific region of the virus genome. Complementarity is essential for PCR to work, and changes in the virus genome can interfere with the process. If provided with a list of PCR primers, Nextclade can detect and report changes in these regions.
+[Polymerase chain reaction (PCR)](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) uses small nucleotide sequence snippets, [complementary](<https://en.wikipedia.org/wiki/Complementarity_(molecular_biology)>) to a specific region of the virus genome. Complementarity is essential for PCR to work, and changes in the virus genome can interfere with the process. If provided with a list of PCR primers, Nextclade can detect and report changes in these regions.
 
-First, for each primer, Nextclade finds and records the complemetary ranges in reference sequence.
+First, for each primer, Nextclade finds and records the complementary ranges in reference sequence.
 Later, it verifies if any of the mutations in query sequence (found during "Nucleotide mutation calling" step) fall to any of these ranges, and if so, reports these mutations as PCR primer changes.
 
 This step only runs if PCR primers table is provided. It can fail if PCR primers provided don't correspond to the reference sequence used.
@@ -244,23 +244,23 @@ Nextclade CLI writes these files into paths specified with a family of `--output
 
 #### Aligned nucleotide sequences
 
-Aligned sequences are produced as a result of the nucleotide alignment step and are being output in FASTA format. The file contains the aligned reference sequence as the first entry (reqires `--include-reference` flag in CLI version), followed by the aligned query sequences.
+Aligned sequences are produced as a result of the nucleotide alignment step and are being output in FASTA format. The file contains the aligned reference sequence as the first entry (requires `--include-reference` flag in CLI version), followed by the aligned query sequences.
 
 #### Aligned peptides
 
-Aligned peptides are produced as a result of the translation and peptide alignment step and are being output in FASTA format. There are multiple files, one for each gene. Each file contains the aligned reference peptide as the first entry (reqires `--include-reference` flag in CLI version), followed by the aligned query sequences.
+Aligned peptides are produced as a result of the translation and peptide alignment step and are being output in FASTA format. There are multiple files, one for each gene. Each file contains the aligned reference peptide as the first entry (requires `--include-reference` flag in CLI version), followed by the aligned query sequences.
 
 #### Analysis results
 
 The results of mutation calling, clade assignment, quality control and PCR primer changes can be obtained in either TSV, CSV, or JSON format.
 
-TSV and CSV files are equivalent and only differ in the colum delimiter (tabs vs semicolons), for better compatibility with spreadsheet software and data-science packages. Tabular format of TSV/CSV files are somwhat more human-friendly, are convenient for the immediate inspection and for simple automated processing.
+TSV and CSV files are equivalent and only differ in the column delimiter (tabs vs semicolons), for better compatibility with spreadsheet software and data-science packages. Tabular format of TSV/CSV files are somewhat more human-friendly, are convenient for the immediate inspection and for simple automated processing.
 
-They contain the folowing columns:
+They contain the following columns:
 
 TODO: describe columns
 
-JSON results file is best for in-depth automated proccessing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format.
+JSON results file is best for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format.
 
 TODO: add JSON schema
 
