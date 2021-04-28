@@ -15,7 +15,7 @@ trap "exit" INT
 
 export ARTIFACTS=".out/bin/"
 export VERSION=$(cat VERSION)
-export TAG="nextclade-${VERSION}"
+export TAG="${VERSION}"
 
 PATH="${PATH}:."
 
