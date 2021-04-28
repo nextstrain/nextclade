@@ -7,7 +7,6 @@ include(Quiet)
 include(Sanitizers)
 
 project(nextclade DESCRIPTION "C++ library for viral genome analysis")
-file(STRINGS "VERSION" PROJECT_VERSION)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
@@ -156,7 +155,7 @@ target_compile_definitions(${PROJECT_NAME}
   PRIVATE
 
   -DPROJECT_NAME="${PROJECT_NAME}"
-  -DPROJECT_VERSION="${PROJECT_VERSION}"
+  -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
 
   -DFMT_HEADER_ONLY=1
 

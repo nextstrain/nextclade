@@ -13,16 +13,9 @@ trap "exit" INT
 : "${CIRCLE_PROJECT_REPONAME}"
 : "${CIRCLE_SHA1}"
 
-PROJECT_NAME=${1}
-if [ -z "${PROJECT_NAME}" ]; then
-  echo "${0}: Error: project name is required"
-  echo "Usage: ${0} <project_name>"
-  exit 1
-fi
-
-export ARTIFACTS=".out/bin/${PROJECT_NAME}*"
-export VERSION=$(cat packages/${PROJECT_NAME}_cli/VERSION)
-export TAG="${PROJECT_NAME}-${VERSION}"
+export ARTIFACTS=".out/bin/"
+export VERSION=$(cat VERSION)
+export TAG="nextclade-${VERSION}"
 
 PATH="${PATH}:."
 

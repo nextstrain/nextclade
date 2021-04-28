@@ -7,6 +7,8 @@ include(packages/cmake/CFlags.cmake)
 include(packages/cmake/Quiet.cmake)
 include(packages/cmake/Sanitizers.cmake)
 
+file(STRINGS "VERSION" NEXTCLADE_CPP_VERSION)
+
 project(nextclade_all)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

@@ -65,8 +65,7 @@ jobs:
           name: "Publish binaries to GitHub Releases"
           command: |
             ./scripts/get_ghr_linux.sh
-            ./scripts/publish_github_releases.sh nextalign
-            ./scripts/publish_github_releases.sh nextclade
+            ./scripts/publish_github_releases.sh
 
       # - run:
       #     name: "Publish Docker images to DockerHub"
@@ -145,8 +144,7 @@ jobs:
       - run:
           name: "Publish binaries to GitHub Releases"
           command: |
-            ./scripts/publish_github_releases.sh nextalign
-            ./scripts/publish_github_releases.sh nextclade
+            ./scripts/publish_github_releases.sh
 
 workflows:
   version: 2
