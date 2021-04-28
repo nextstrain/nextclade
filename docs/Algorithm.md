@@ -98,6 +98,8 @@ In order for sequences to be analyzed, they need to be arranged in a way that al
 
 Nextclade performs pairwise alignment of the provided (query) sequences against a given reference (root) sequence using banded local alignment algorithm with affine gap-cost. Width of the band and rough relative positions are determined through seed matching. This algorithm can be considered a variation of [Smith–Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) algorithm. Seed matching consists of finding several small fragments, "seeds", sufficiently similar in reference and query sequence. The number of seeds, as well as their length, spacing and number of allowed mismatched nucleotides in them are configurable. Nextclade strips insertions relative to the reference from the aligned sequences.
 
+<!-- TODO: explain codon-aware alignment -->
+
 This strategy aims to be sufficiently fast for running in the internet browser on an average consumer computer hardware and trades accuracy of the alignment for runtime performance. We found that it works well for most sequences.
 
 Alignment is only attempted on sequences longer than 100 nucleotides (configurable), because alignment of shorter sequences might be unreliable.
