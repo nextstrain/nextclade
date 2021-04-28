@@ -78,7 +78,7 @@ function publish_one_project() {
 
   # Push each tag separately (`docker push` does not support pushing multiple)
   for tag in ${TAGS}; do
-    docker push --quiet ${tag}
+    docker push ${tag}
   done
 }
 
