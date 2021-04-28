@@ -48,7 +48,7 @@ Nextclade 1.0.0-alpha.1 is available on GitHub Releases and on DockerHub. Don't 
 
 - **BREAKING CHANGE:** Gene map (`--input-gene-map`) now only accepted in [GFF3 format](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md). See an example at [GitHub](https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/genemap.gff).
 
-- **BREAKING CHANGE:** Gap-stripped reference (root) sequence is no longer being written into outputs by default. Add `--include-reference` flag to include it.
+- **BREAKING CHANGE:** Reference (root) sequence is no longer being written into outputs by default. Add `--include-reference` flag to include it. Reference peptides will also be included in this case.
 
 - **BREAKING CHANGE:** Nextclade might write aligned sequences into output files in the order that is different from the order of sequences in the input file. If order is important, use flag `--in-order` to enforce the initial order of sequences. This results in a small runtime performance penalty. Refer to built-in help for more details (`--help`).
 
