@@ -22,18 +22,13 @@
       "type": "categorical"
     },
     {
-      "key": "pangolin_lineage",
-      "title": "Pangolin Lineage",
+      "key": "pango_lineage",
+      "title": "PANGO Lineage",
       "type": "categorical"
     },
     {
       "key": "GISAID_clade",
       "title": "GISAID Clade",
-      "type": "categorical"
-    },
-    {
-      "key": "subclade_membership",
-      "title": "Emerging clade",
       "type": "categorical"
     },
     {
@@ -54,7 +49,9 @@
     "transmission_lines": false
   },
   "filters": [
-    "region",
+      "region",
+      "clade_membership",
+      "pango_lineage",
     "new_node",
     "country",
     "division"
