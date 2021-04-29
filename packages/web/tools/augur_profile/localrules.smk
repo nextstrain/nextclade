@@ -10,7 +10,7 @@ rule export_nextclade:
         node_data = [ rules.refine.output.node_data,
                       rules.ancestral.output.node_data,
                       rules.translate.output.node_data,
-                      rules.rename_subclades.output.clade_data,
+                      rules.rename_emerging_lineages.output.clade_data,
                       rules.clades.output.clade_data,
 		      rules.aa_muts_explicit.output.node_data
                     ],
