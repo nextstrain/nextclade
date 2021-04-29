@@ -94,9 +94,8 @@ set(SOURCE_FILES
   src/utils/safe_cast.h
   )
 
+add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-  add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-
   set(EMSCRIPTEN_COMPILER_FLAGS "\
     -frtti \
     --bind \
@@ -135,20 +134,11 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.wasm.map
     DESTINATION wasm
   )
-
-else ()
-  add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
 endif ()
 
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-
-if (MSVC)
-  target_compile_options(${PROJECT_NAME} PRIVATE /arch:SSE4.2)
-else ()
-  target_compile_options(${PROJECT_NAME} PRIVATE -msse4.2)
-endif ()
 
 
 target_compile_definitions(${PROJECT_NAME}

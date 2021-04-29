@@ -28,6 +28,8 @@
     "packages/nextclade/tests/CMakeLists.txt",
     "packages/nextclade_cli/CMakeLists.txt",
     "packages/nextclade_cli/src/*",
+    "packages/nextclade_wasm/CMakeLists.txt",
+    "packages/nextclade_wasm/src/*",
     "scripts/*"
   ],
   "ext": ".c,.cpp,.h,.hpp,.cx,.cxx,.txt,.py,.cmake,.sh,.cppcheck,.clang-tidy,Makefile,.env,.env.example",
