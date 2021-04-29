@@ -4,6 +4,11 @@
 # be specified explicity as geographic_name. In addition, we require the
 # geographic scale the build focuses on. Together name and scale serve a look-up
 # in the geo_hierarchy to define region, country, division, etc
+inputs:
+  - name: genbank
+    metadata: "s3://nextstrain-data/ncov-ingest/genbank_metadata.tsv.gz"
+    sequences: "s3://nextstrain-data/ncov-ingest/genbank_sequences.fasta.gz"
+
 builds:
   nextclade:
     subsampling_scheme: nextclade
@@ -24,32 +29,12 @@ S3_DST_ORIGINS: ["gisaid"]
 genes: ["ORF1a", "ORF1b", "S", "ORF3a", "M", "N"]
 use_nextalign: true
 
-# NOTE for shepherds -- there are commented out inputs here, you can
-# uncomment them to start the pipeline at that stage.
-# E.g. if you uncomment `filtered` then the pipeline
-# will start by downloading that file and proceeding straight to
-# subsampling
-inputs:
-  - name: gisaid
-    metadata: "s3://nextstrain-ncov-private/metadata.tsv.gz"
-    sequences: "s3://nextstrain-ncov-private/sequences.fasta.gz"
-    # ---------------------- NOTE --------------------------
-    # PR 550 changed the path of intermediate files on
-    # the S3 bucket to include the origin (e.g. _gisaid).
-    # Some of these files may not yet exist!
-    # ------------------------------------------------------
-    # metadata: "s3://nextstrain-ncov-private/metadata_gisaid.tsv.gz"
-    # sequences: "s3://nextstrain-ncov-private/sequences_gisaid.fasta.gz"
-    # aligned: "s3://nextstrain-ncov-private/aligned_gisaid.fasta.xz"
-    # to-exclude: "s3://nextstrain-ncov-private/to-exclude_gisaid.txt.xz"
-    # masked: "s3://nextstrain-ncov-private/masked_gisaid.fasta.fasta.xz"
-    # filtered: "s3://nextstrain-ncov-private/filtered_gisaid.fasta.xz"
 
 filter:
   min_length: 28500
 
 refine:
-  root: 'Wuhan/Hu-1/2019 Wuhan/WH01/2019' #EPI_ISL_402125  EPI_ISL_406798
+  root: "Wuhan/WH01/2019"
   divergence_unit: 'mutations'
   clock_filter_iqd: 4
   no_timetree: True
@@ -63,7 +48,7 @@ subsampling:
   # is the smallest resolution required.
   nextclade:
     global_late:
-      group_by: 'country year month'
+      group_by: 'country year month pango_lineage'
       max_sequences: 1500
     global_early:
       group_by: 'region year month'
