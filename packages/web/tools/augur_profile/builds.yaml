@@ -5,9 +5,9 @@
 # geographic scale the build focuses on. Together name and scale serve a look-up
 # in the geo_hierarchy to define region, country, division, etc
 inputs:
-  - name: genbank
-    metadata: "s3://nextstrain-data/ncov-ingest/genbank_metadata.tsv.gz"
-    sequences: "s3://nextstrain-data/ncov-ingest/genbank_sequences.fasta.gz"
+  - name: gisaid
+    metadata: "s3://nextstrain-ncov-private/metadata.tsv.gz"
+    sequences: "s3://nextstrain-ncov-private/sequences.fasta.gz"
 
 builds:
   nextclade:
