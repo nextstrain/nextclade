@@ -97,6 +97,11 @@ USE_LIBCPP="${USE_LIBCPP:=0}"
 # Whether to use MinGW GCC C++ compiler for croww-compiling for Windows (default: no)
 USE_MINGW="${USE_MINGW:=0}"
 
+INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
+
+# Whether to produce Webassembly with Emscripten
+export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
+
 NEXTALIGN_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
 NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
 NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
@@ -170,8 +175,6 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   BUILD_SUFFIX="-Clang"
 fi
 
-# Whether to produce Webassembly with Emscripten
-export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
 EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
 EMCMAKE=""
 EMMAKE=""
@@ -185,6 +188,7 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
   "
 
   BUILD_SUFFIX="-Wasm"
+  INSTALL_DIR="${PROJECT_ROOT_DIR}/packages/web/src/generated/"
 
   EMCMAKE="emcmake"
   EMMAKE="emmake"
@@ -199,7 +203,6 @@ fi
 
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
-INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
 
 function get_cli() {
   NAME=${1}
@@ -390,7 +393,7 @@ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-co
 # At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
 # This will build a local conan package and put it into local conan cache, if not present yet.
 # On `conan install` step this local package will be used, instead of querying conan remote servers.
-if [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
+if [ "${NEXTCLADE_BUILD_WASM}" == "1" ] && [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
   # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
   print 56 "Build Intel TBB";
   pushd "3rdparty/tbb" > /dev/null
@@ -475,6 +478,14 @@ pushd "${BUILD_DIR}" > /dev/null
 
     strip_executable "${NEXTCLADE_CLI}"
 
+  fi
+
+  if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+    print 31 "Install WebAssembly module";
+    cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}"
+
+    print 31 "Patch WebAssembly helper script";
+    sed -i 's/var _scriptDir = import.meta.url;/var _scriptDir = false;/g' "${INSTALL_DIR}/wasm/nextclade_wasm.js"
   fi
 
 popd > /dev/null

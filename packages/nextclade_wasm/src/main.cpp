@@ -26,8 +26,13 @@ std::string getExceptionMessage(std::intptr_t exceptionPtr) {// NOLINT(misc-unus
   return e->what();
 }
 
+std::string convertToString(const emscripten::val& obj) {
+  return "Hello";
+}
+
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 EMSCRIPTEN_BINDINGS(add) {
   emscripten::function("getObject", &getObject);
+  emscripten::function("convertToString", &convertToString);
   emscripten::function("getExceptionMessage", &getExceptionMessage);
 }
