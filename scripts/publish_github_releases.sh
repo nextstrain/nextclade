@@ -13,17 +13,12 @@ trap "exit" INT
 : "${CIRCLE_PROJECT_REPONAME}"
 : "${CIRCLE_SHA1}"
 
-export ARTIFACTS=".out/bin/"
-export VERSION=$(cat VERSION)
+export ARTIFACTS=.out/bin
+export VERSION="$(cat VERSION)"
 export TAG="${VERSION}"
 
 PATH="${PATH}:."
 
-ghr \
-  -token ${GITHUB_TOKEN} \
-  -username ${CIRCLE_PROJECT_USERNAME} \
-  -repository ${CIRCLE_PROJECT_REPONAME} \
-  -commitish ${CIRCLE_SHA1} \
-  -replace \
-  ${TAG} \
-  ${ARTIFACTS}
+echo "Releasing as '${TAG}' : $(ls ${ARTIFACTS}/ | xargs)"
+
+ghr -token ${GITHUB_TOKEN} -username ${CIRCLE_PROJECT_USERNAME} -repository ${CIRCLE_PROJECT_REPONAME} -commitish ${CIRCLE_SHA1} -replace ${TAG} ${ARTIFACTS}
