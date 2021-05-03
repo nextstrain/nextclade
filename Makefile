@@ -34,6 +34,9 @@ dev-clang-analyzer:
 prod:
 	@CMAKE_BUILD_TYPE=Release scripts/build_locally.sh
 
+prod-watch:
+	@CMAKE_BUILD_TYPE=Release nodemon
+
 profile:
 	@CMAKE_BUILD_TYPE=RelWithDebInfo scripts/build_locally.sh
 
