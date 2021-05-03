@@ -9,22 +9,30 @@ import { expose } from 'threads/worker'
 import emscriptenJsRaw from 'src/generated/wasm/nextclade_wasm.js'
 import wasmPath from 'src/generated/wasm/nextclade_wasm.wasm'
 
+import qcConfig from '../../../../data/sars-cov-2/qc.json'
+import treeJson from '../../../../data/sars-cov-2/tree.json'
+import geneMapStr from '../../../../data/sars-cov-2/genemap.gff'
+import refStr from '../../../../data/sars-cov-2/reference.fasta'
+import queryStr from '../../../../data/sars-cov-2/sequence.fasta'
+
+type MyModule = any
+
+type EmscriptenRuntimeModule = any
+
 export class WasmNativeError extends Error {}
 
 export class WasmNativeErrorUnknown extends Error {}
 
 export async function runWasmModule<T>(module: MyModule, runFunction: (module: MyModule) => T) {
-  console.log({ module })
-
   try {
     return runFunction(module)
   } catch (error: unknown) {
     if (error instanceof Error) {
-      error.message = `When running Webassembly module: ${error.message}`
-      throw error
-    }
-
-    if (isNumber(error)) {
+      const newError = new Error(`When running Webassembly module: ${error.message}`)
+      newError.stack = error.stack
+      newError.name = error.name
+      throw newError
+    } else if (isNumber(error)) {
       const message = module.getExceptionMessage(error)
       throw new WasmNativeError(message)
     } else {
@@ -37,9 +45,6 @@ export async function runWasmModule<T>(module: MyModule, runFunction: (module: M
 }
 
 export async function loadWasmModule(name: string): Promise<MyModule> {
-  console.log({ emscriptenJsRaw })
-  console.log({ wasmPath })
-
   return new Promise((resolve) => {
     const js = emscriptenJsRaw as EmscriptenRuntimeModule
     const module = js({
@@ -63,23 +68,40 @@ export async function init() {
   }
 }
 
-export function run(i: number | string) {
+export function run() {
   if (!module) {
     throw new Error(
       'Developer error: this WebAssembly module has not been initialized yet. Make sure to call `module.init()` function before `module.run()`',
     )
   }
 
+  const index = 0
+  const geneMapName = 'genemap.gff'
+  const treeString = JSON.stringify(treeJson)
+  const pcrPrimersStr = ''
+  const qcConfigStr = JSON.stringify(qcConfig)
+
   return runWasmModule(module, (module) => {
-    console.info(module.getObject())
-    console.info(JSON.stringify(module.convertToString({ name: 'Alice', age: 27, foo: { bar: 2.74 } }), null, 2))
-    return i
+    const results = module.runNextclade(
+      // prettier-ignore
+      index,
+      queryStr,
+      refStr,
+      geneMapStr,
+      geneMapName,
+      treeString,
+      pcrPrimersStr,
+      qcConfigStr,
+    )
+    const result = JSON.parse(results)[0]
+    console.log({ result })
+    return result
   })
 }
 
-export function vectorToArray(vec: Vector) {
-  return new Array(vec.size()).fill(0).map((_, i) => vec.get(i))
-}
+// export function vectorToArray(vec: Vector) {
+//   return new Array(vec.size()).fill(0).map((_, i) => vec.get(i))
+// }
 
 const worker = { init, run }
 

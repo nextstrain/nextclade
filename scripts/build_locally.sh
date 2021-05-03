@@ -470,7 +470,7 @@ pushd "${BUILD_DIR}" > /dev/null
     file ${CLI}
   }
 
-  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+  if [ "${CMAKE_BUILD_TYPE}" == "Release" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
     print 30 "Install executable";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
@@ -480,7 +480,7 @@ pushd "${BUILD_DIR}" > /dev/null
 
   fi
 
-  if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
     print 31 "Install WebAssembly module";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}"
 

@@ -1,24 +1,36 @@
 #include <emscripten.h>
 #include <emscripten/bind.h>
+#include <fmt/format.h>
 #include <nextclade/nextclade.h>
 
 #include <exception>
 
+class ErrorFastaReader : public std::runtime_error {
+public:
+  explicit ErrorFastaReader(const std::string& message) : std::runtime_error(message) {}
+};
 
-emscripten::val getObject() {
-  const auto& nextcladeVersion = Nextclade::getVersion();
+struct ReferenceSequenceData {
+  const NucleotideSequence seq;
+  const std::string name;
+  const int length;
+};
 
-  auto obj = emscripten::val::object();
-  obj.set("foo", 42);// NOLINT(cppcoreguidelines-avoid-magic-numbers)
-  obj.set("bar", "Hello");
-  obj.set("nextcladeVersion", nextcladeVersion);
+ReferenceSequenceData parseRefFastaFile(const std::string& fastaStr) {
+  std::stringstream fastaStream{fastaStr};
 
-  const auto v = std::vector<int>({1, 2, 3});
-  const auto arr = emscripten::val::array(v);
-  obj.set("arr", arr);
+  const auto refSeqs = parseSequences(fastaStream);
+  if (refSeqs.size() != 1) {
+    throw ErrorFastaReader(
+      fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
+  }
 
-  return obj;
+  const auto& refSeq = refSeqs.front();
+  const auto& seq = toNucleotideSequence(refSeq.seq);
+  const auto length = static_cast<int>(seq.size());
+  return {.seq = seq, .name = refSeq.seqName, .length = length};
 }
+
 
 std::string getExceptionMessage(std::intptr_t exceptionPtr) {// NOLINT(misc-unused-parameters)
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-init-variables,performance-no-int-to-ptr)
@@ -26,13 +38,59 @@ std::string getExceptionMessage(std::intptr_t exceptionPtr) {// NOLINT(misc-unus
   return e->what();
 }
 
-std::string convertToString(const emscripten::val& obj) {
-  return "Hello";
+std::string runNextclade(          //
+  int index,                       //
+  const std::string& queryStr,     //
+  const std::string& refStr,       //
+  const std::string& geneMapStr,   //
+  const std::string& geneMapName,  //
+  const std::string& treeString,   //
+  const std::string& pcrPrimersStr,//
+  const std::string& qcConfigStr   //
+) {
+  const auto parsedRef = parseRefFastaFile(refStr);
+  const auto parsedQuery = parseRefFastaFile(queryStr);
+
+  const auto& ref = parsedRef.seq;
+  const auto& query = parsedQuery.seq;
+
+  std::stringstream geneMapStream{geneMapStr};
+  const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
+
+  // FIXME: parse PCR primers
+  // auto pcrPrimers = convertPcrPrimers(pcrPrimersStr);
+  std::vector<Nextclade::PcrPrimer> pcrPrimers;
+
+  Nextclade::QcConfig qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
+
+  // FIXME: pass options from JS
+  const auto nextalignOptions = getDefaultOptions();
+
+  const Nextclade::NextcladeOptions options = {
+    .ref = ref,
+    .treeString = treeString,
+    .pcrPrimers = pcrPrimers,
+    .geneMap = geneMap,
+    .qcRulesConfig = qcRulesConfig,
+    .nextalignOptions = nextalignOptions,
+  };
+
+  Nextclade::NextcladeAlgorithm nextclade{options};
+  const auto result = nextclade.run(parsedQuery.name, query);
+
+  std::vector<Nextclade::NextcladeResult> results;
+  results.push_back(result);
+
+  const auto& tree = nextclade.finalize(results);
+  auto treeStr = tree.serialize();
+
+  auto resultStr = serializeResults(results);
+
+  return resultStr;
 }
 
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
-EMSCRIPTEN_BINDINGS(add) {
-  emscripten::function("getObject", &getObject);
-  emscripten::function("convertToString", &convertToString);
+EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::function("getExceptionMessage", &getExceptionMessage);
+  emscripten::function("runNextclade", &runNextclade);
 }

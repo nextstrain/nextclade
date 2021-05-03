@@ -115,6 +115,7 @@ const withTypeChecking = getWithTypeChecking({
   typeChecking: ENABLE_TYPE_CHECKS,
   eslint: ENABLE_ESLINT,
   memoryLimit: 2048,
+  exclude: ['src/generated'],
 })
 
 const transpilationListDev = [
@@ -165,7 +166,7 @@ const config = withPlugins(
     [withFriendlyConsole],
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
     [withLodash],
-    [withTypeChecking],
+    // [withTypeChecking],
     [withTranspileModules],
     PRODUCTION && [withStaticComprression],
     PROFILE && [withoutMinification],
