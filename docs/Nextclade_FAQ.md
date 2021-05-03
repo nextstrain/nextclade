@@ -22,3 +22,15 @@ Yes, you can specify your own tree, reference sequence, and QC settings in the a
 
 ## Is Nextclade available for other pathogens and microorganisms, too?
 Nextclade works for other viruses, but you have to specify your own reference sequences, trees, and annotations. Only SARS-CoV-2 data is currently provided as a default. We plan to support other pathogens in the future.
+
+
+# Output files
+
+## CSV/TSV outputs
+
+
+## JSON output
+
+
+## Auspice tree output
+
