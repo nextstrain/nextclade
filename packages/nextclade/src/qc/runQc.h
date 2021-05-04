@@ -9,12 +9,12 @@
 
 namespace Nextclade {
   struct QcResult;
-  struct NextcladeResult;
+  struct AnalysisResult;
   struct NucleotideSubstitution;
   struct QcConfig;
 
   QcResult runQc(                                               //
-    const NextcladeResult& analysisResult,                      //
+    const AnalysisResult& analysisResult,                      //
     const std::vector<NucleotideSubstitution>& privateMutations,//
     const QcConfig& qcRulesConfig                               //
   );                                                            //

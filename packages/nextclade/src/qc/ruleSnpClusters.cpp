@@ -56,7 +56,7 @@ namespace Nextclade {
   }
 
   std::optional<QCResultSnpClusters> ruleSnpClusters(           //
-    const NextcladeResult&,                                     //
+    const AnalysisResult&,                                     //
     const std::vector<NucleotideSubstitution>& privateMutations,//
     const QCRulesConfigSnpClusters& config                      //
   ) {

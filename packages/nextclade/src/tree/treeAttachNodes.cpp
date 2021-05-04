@@ -101,7 +101,7 @@ namespace Nextclade {
     return grouped;
   }
 
-  GetDifferencesResult getDifferences(const NextcladeResult& result, const TreeNode& node,
+  GetDifferencesResult getDifferences(const AnalysisResult& result, const TreeNode& node,
     const NucleotideSequence& rootSeq, double maxDivergence) {
     // TODO: The private mutations gathered are mostly similar to the ones
     //  gathered in `findPrivateMutations()` in `treeFindNearestNodes.cpp`. Investigate and deduplicate.
@@ -236,7 +236,7 @@ namespace Nextclade {
     };
   }
 
-  void addChild(TreeNode& node, const NextcladeResult& result,
+  void addChild(TreeNode& node, const AnalysisResult& result,
     const std::map<std::string, std::vector<std::string>>& mutations, const std::vector<std::string>& nucMutations,
     double divergence) {
 
@@ -282,7 +282,7 @@ namespace Nextclade {
   /**
    * Attaches a new node to the reference tree
    */
-  void attachNewNode(const NextcladeResult& result, TreeNode& node, const NucleotideSequence& rootSeq,
+  void attachNewNode(const AnalysisResult& result, TreeNode& node, const NucleotideSequence& rootSeq,
     double maxDivergence) {
     precondition_equal(node.isReferenceNode(), true);   // Attach only to a reference node
     precondition_equal(node.id(), result.nearestNodeId);// Attach only to the matching node
@@ -299,7 +299,7 @@ namespace Nextclade {
    * Attaches new nodes to the nearest reference tree nodes,
    * according to the results of the nearest node search we ran previously for every sequence
    */
-  void attachNewNodesRecursively(TreeNode& node, const std::vector<NextcladeResult>& results,
+  void attachNewNodesRecursively(TreeNode& node, const std::vector<AnalysisResult>& results,
     const NucleotideSequence& rootSeq, double maxDivergence) {
     // Attach only to a reference node.
     // If it's not a reference node, we can stop here, because there can be no reference nodes down the tree.
@@ -337,7 +337,7 @@ namespace Nextclade {
     return std::max(divergence, childMaxDivergence);
   }
 
-  void treeAttachNodes(Tree& tree, const NucleotideSequence& rootSeq, const std::vector<NextcladeResult>& results) {
+  void treeAttachNodes(Tree& tree, const NucleotideSequence& rootSeq, const std::vector<AnalysisResult>& results) {
     auto rootNode = tree.root();
     const auto maxDivergence = getMaxDivergenceRecursively(rootNode);
     attachNewNodesRecursively(rootNode, results, rootSeq, maxDivergence);

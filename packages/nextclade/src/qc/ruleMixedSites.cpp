@@ -23,7 +23,7 @@ namespace Nextclade {
   }//namespace
 
   std::optional<QCResultMixedSites> ruleMixedSites(//
-    const NextcladeResult& result,                 //
+    const AnalysisResult& result,                 //
     const std::vector<NucleotideSubstitution>&,    //
     const QCRulesConfigMixedSites& config          //
   ) {

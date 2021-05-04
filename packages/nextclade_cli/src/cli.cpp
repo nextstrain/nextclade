@@ -728,7 +728,7 @@ void run(
 
   // TODO(perf): consider using a thread-safe queue instead of a vector,
   //  or restructuring code to avoid concurrent access entirely
-  tbb::concurrent_vector<Nextclade::NextcladeResult> resultsConcurrent;
+  tbb::concurrent_vector<Nextclade::AnalysisResult> resultsConcurrent;
 
   /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
@@ -775,12 +775,13 @@ void run(
       const auto &queryAligned = output.result.query;
       const auto &queryPeptides = output.result.queryPeptides;
       const auto &refPeptides = output.result.refPeptides;
-      const auto &insertions = output.result.insertions;
+      const auto &insertions = output.result.analysisResult.insertions;
       const auto &warnings = output.result.warnings;
 
       const auto &result = output.result;
-      logger.info("| {:5d} | {:40s} | {:7d} | {:7d} | {:7d} | {:7d} |\n",                                        //
-        index, seqName, result.alignmentScore, result.alignmentStart, result.alignmentEnd, result.totalInsertions//
+      logger.info("| {:5d} | {:40s} | {:7d} | {:7d} | {:7d} | {:7d} |\n",//
+        index, seqName, result.analysisResult.alignmentScore, result.analysisResult.alignmentStart,
+        result.analysisResult.alignmentEnd, result.analysisResult.totalInsertions//
       );
 
       const auto &error = output.error;
@@ -825,13 +826,13 @@ void run(
 
         outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, Nextclade::formatInsertions(insertions));
 
-        resultsConcurrent.push_back(output.result);
+        resultsConcurrent.push_back(output.result.analysisResult);
 
         if (csv) {
-          csv->addRow(output.result);
+          csv->addRow(output.result.analysisResult);
         }
         if (tsv) {
-          tsv->addRow(output.result);
+          tsv->addRow(output.result.analysisResult);
         }
       }
     });
@@ -842,7 +843,7 @@ void run(
     logger.error("Error: when running the pipeline: {:s}\n", e.what());
   }
 
-  std::vector<Nextclade::NextcladeResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
+  std::vector<Nextclade::AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
 
   if (outputJsonStream) {
     *outputJsonStream << serializeResults(results);

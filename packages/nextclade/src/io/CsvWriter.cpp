@@ -106,7 +106,7 @@ namespace Nextclade {
     return std::string{rowFrozen.data(), rowFrozen.size()};
   }
 
-  std::string CsvWriter::addRow(const NextcladeResult& result) {
+  std::string CsvWriter::addRow(const AnalysisResult& result) {
     std::vector<std::string> columns;
 
     columns.emplace_back(result.seqName);
