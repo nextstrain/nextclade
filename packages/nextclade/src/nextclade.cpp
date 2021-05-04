@@ -6,7 +6,7 @@
 #include <numeric>
 #include <vector>
 
-#include "analyze/analyze.h"
+#include "analyze/findNucChanges.h"
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/getAminoacidChanges.h"
 #include "analyze/getNucleotideComposition.h"
