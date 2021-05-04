@@ -768,7 +768,7 @@ void run(
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
     [&refName, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &csv, &tsv, &refsHaveBeenWritten,
-      &logger, &resultsConcurrent](const Nextclade::AlgorithmOutput &output) {
+      &logger, &resultsConcurrent, &outputJsonStream, &outputTreeStream](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
       const auto &refAligned = output.result.ref;
@@ -826,7 +826,9 @@ void run(
 
         outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, Nextclade::formatInsertions(insertions));
 
-        resultsConcurrent.push_back(output.result.analysisResult);
+        if (outputJsonStream || outputTreeStream) {
+          resultsConcurrent.push_back(output.result.analysisResult);
+        }
 
         if (csv) {
           csv->addRow(output.result.analysisResult);
@@ -843,15 +845,18 @@ void run(
     logger.error("Error: when running the pipeline: {:s}\n", e.what());
   }
 
-  std::vector<Nextclade::AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
+  if (outputJsonStream || outputTreeStream) {
+    // TODO: try to avoid copy here
+    std::vector<Nextclade::AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
 
-  if (outputJsonStream) {
-    *outputJsonStream << serializeResults(results);
-  }
+    if (outputJsonStream) {
+      *outputJsonStream << serializeResults(results);
+    }
 
-  if (outputTreeStream) {
-    const auto &tree = nextclade.finalize(results);
-    (*outputTreeStream) << tree.serialize();
+    if (outputTreeStream) {
+      const auto &tree = nextclade.finalize(results);
+      (*outputTreeStream) << tree.serialize();
+    }
   }
 }
 
