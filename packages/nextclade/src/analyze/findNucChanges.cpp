@@ -1,4 +1,4 @@
-#include "analyze.h"
+#include "findNucChanges.h"
 
 #include <vector>
 
@@ -7,7 +7,10 @@
 
 
 namespace Nextclade {
-  AnalysisResult reportMutations(const NucleotideSequence& refStripped, const NucleotideSequence& queryStripped) {
+  NucMutationsReport findNucChanges(       //
+    const NucleotideSequence& refStripped, //
+    const NucleotideSequence& queryStripped//
+  ) {
     int nDel = 0;
     int delPos = -1;
     bool beforeAlignment = true;
@@ -57,9 +60,5 @@ namespace Nextclade {
       .alignmentStart = alignmentStart,
       .alignmentEnd = alignmentEnd,
     };
-  }
-
-  AnalysisResult analyze(const NucleotideSequence& queryStripped, const NucleotideSequence& refStripped) {
-    return reportMutations(refStripped, queryStripped);
   }
 }// namespace Nextclade

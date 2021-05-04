@@ -14,7 +14,7 @@
 #define EXPECT_ARR_EQ_UNORDERED(expected, actual) ASSERT_THAT(actual, ::testing::UnorderedElementsAreArray(expected))
 
 namespace {
-  using Nextclade::NextcladeResult;
+  using Nextclade::AnalysisResult;
   using Nextclade::NucleotideSubstitution;
   using Nextclade::Tree;
   using Nextclade::TreeNode;
@@ -71,8 +71,8 @@ namespace {
       return muts;
     }
 
-    NextcladeResult makeQuery(const std::vector<std::string>& substitutions) {
-      return NextcladeResult{.substitutions = makeMutList(substitutions)};
+    AnalysisResult makeQuery(const std::vector<std::string>& substitutions) {
+      return AnalysisResult{.substitutions = makeMutList(substitutions)};
     }
   };
 }// namespace
@@ -81,7 +81,7 @@ namespace {
 TEST_F(FindPrivateMutations, Returns_Empty_If_No_Mutations) {
   auto tree = Tree(R"({ "tree": {} })");
   Nextclade::TreeNode node = makeRef(tree, {/* no mutations in ref node */});
-  Nextclade::NextcladeResult seq = makeQuery({/* no mutations in query seq */});
+  Nextclade::AnalysisResult seq = makeQuery({/* no mutations in query seq */});
   const auto actual = findPrivateMutations(node, seq, rootSeq);
   const auto expected = makeMutList({});
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
@@ -90,7 +90,7 @@ TEST_F(FindPrivateMutations, Returns_Empty_If_No_Mutations) {
 TEST_F(FindPrivateMutations, Returns_Empty_If_Matching_Single_Element) {
   auto tree = Tree(R"({ "tree": {} })");
   Nextclade::TreeNode node = makeRef(tree, {"A123C"});
-  Nextclade::NextcladeResult seq = makeQuery({"A123C"});
+  Nextclade::AnalysisResult seq = makeQuery({"A123C"});
   const auto actual = findPrivateMutations(node, seq, rootSeq);
   const auto expected = makeMutList({});
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
@@ -100,7 +100,7 @@ TEST_F(FindPrivateMutations, Returns_Empty_If_Same_muts) {
   auto tree = Tree(R"({ "tree": {} })");
   const auto muts = std::vector<std::string>{"A123C", "T456C", "A789G"};
   Nextclade::TreeNode node = makeRef(tree, muts);
-  Nextclade::NextcladeResult seq = makeQuery(muts);
+  Nextclade::AnalysisResult seq = makeQuery(muts);
   const auto actual = findPrivateMutations(node, seq, rootSeq);
   const auto expected = makeMutList({});
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
@@ -110,7 +110,7 @@ TEST_F(FindPrivateMutations, Returns_Query_Muts_For_Disjoint_Sets) {
   auto tree = Tree(R"({ "tree": {} })");
   Nextclade::TreeNode node = makeRef(tree, {"A123C", "T456C", "A789G"});
   const auto queryMuts = std::vector<std::string>{{"A123G", "T147C", "A258G"}};
-  Nextclade::NextcladeResult seq = makeQuery(queryMuts);
+  Nextclade::AnalysisResult seq = makeQuery(queryMuts);
   const auto actual = findPrivateMutations(node, seq, rootSeq);
   const auto expected = makeMutList(queryMuts);
   EXPECT_ARR_EQ_UNORDERED(actual, expected);
@@ -130,7 +130,8 @@ TEST_F(FindPrivateMutations, Returns_Set_Difference_In_General_Case) {
       "C679N",
     });
 
-  Nextclade::NextcladeResult seq = makeQuery(//
+  Nextclade::AnalysisResult
+    seq = makeQuery(//
     {
       "C679Y",
       "C123B",

@@ -6,12 +6,12 @@
 
 namespace {
   using Nextclade::isSequenced;
-  using Nextclade::NextcladeResult;
+  using Nextclade::AnalysisResult;
   using Nextclade::NucleotideRange;
 }//namespace
 
 TEST(isSequenced, True_When_In_Range_And_No_Missing) {
-  NextcladeResult res = {
+  AnalysisResult res = {
     .missing = {},
     .alignmentStart = 100,
     .alignmentEnd = 200,
@@ -20,7 +20,7 @@ TEST(isSequenced, True_When_In_Range_And_No_Missing) {
 }
 
 TEST(isSequenced, True_When_In_Range_And_Not_In_Missing) {
-  NextcladeResult res = {
+  AnalysisResult res = {
     .missing = std::vector<NucleotideRange>{NucleotideRange{
       .begin = 120,
       .end = 150,
@@ -34,7 +34,7 @@ TEST(isSequenced, True_When_In_Range_And_Not_In_Missing) {
 }
 
 TEST(isSequenced, False_When_Not_In_Range_Left_Adjacent) {
-  NextcladeResult res = {
+  AnalysisResult res = {
     .missing = {},
     .alignmentStart = 100,
     .alignmentEnd = 200,
@@ -43,7 +43,7 @@ TEST(isSequenced, False_When_Not_In_Range_Left_Adjacent) {
 }
 
 TEST(isSequenced, False_When_Not_In_Range_Left) {
-  NextcladeResult res = {
+  AnalysisResult res = {
     .missing = {},
     .alignmentStart = 100,
     .alignmentEnd = 200,
@@ -52,7 +52,7 @@ TEST(isSequenced, False_When_Not_In_Range_Left) {
 }
 
 TEST(isSequenced, False_When_Not_In_Range_Right_Adjacent) {
-  NextcladeResult res = {
+  AnalysisResult res = {
     .missing = {},
     .alignmentStart = 100,
     .alignmentEnd = 200,
@@ -61,7 +61,7 @@ TEST(isSequenced, False_When_Not_In_Range_Right_Adjacent) {
 }
 
 TEST(isSequenced, False_When_Not_In_Range_Right) {
-  NextcladeResult res = {
+  AnalysisResult res = {
     .missing = {},
     .alignmentStart = 100,
     .alignmentEnd = 200,
@@ -70,7 +70,7 @@ TEST(isSequenced, False_When_Not_In_Range_Right) {
 }
 
 TEST(isSequenced, False_When_Missing) {
-  NextcladeResult res = {
+  AnalysisResult res = {
     .missing = std::vector<NucleotideRange>{NucleotideRange{
       .begin = 120,
       .end = 150,

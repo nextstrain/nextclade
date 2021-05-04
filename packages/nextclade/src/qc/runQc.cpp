@@ -19,7 +19,7 @@ namespace Nextclade {
   }
 
   QcResult runQc(                                               //
-    const NextcladeResult& analysisResult,                      //
+    const AnalysisResult& analysisResult,                      //
     const std::vector<NucleotideSubstitution>& privateMutations,//
     const QcConfig& qcRulesConfig                               //
   ) {

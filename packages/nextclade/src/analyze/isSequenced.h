@@ -1,10 +1,10 @@
 #pragma once
 
 namespace Nextclade {
-  struct NextcladeResult;
+  struct AnalysisResult;
 
   /**
    * Checks if a nucleotide at a given position is sequenced
    */
-  bool isSequenced(int pos, const NextcladeResult& analysisResult);
+  bool isSequenced(int pos, const AnalysisResult& analysisResult);
 }// namespace Nextclade
