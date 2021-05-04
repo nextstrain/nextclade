@@ -43,9 +43,9 @@ namespace Nextclade {
 
       const auto alignment = nextalignInternal(query, ref, geneMap, options.nextalignOptions);
 
-      auto analysis = analyze(alignment.query, alignment.ref);
-      const int totalSubstitutions = safe_cast<int>(analysis.substitutions.size());
-      const int totalDeletions = calculateTotalLength(analysis.deletions);
+      auto nucChanges = findNucChanges(alignment.query, alignment.ref);
+      const int totalSubstitutions = safe_cast<int>(nucChanges.substitutions.size());
+      const int totalDeletions = calculateTotalLength(nucChanges.deletions);
       const int totalInsertions = calculateTotalLength(alignment.insertions);
 
       const auto missing = findNucleotideRanges(alignment.query, Nucleotide::N);
@@ -56,18 +56,18 @@ namespace Nextclade {
 
       const auto nucleotideComposition = getNucleotideComposition(alignment.query);
 
-      addPrimerChangesInPlace(analysis.substitutions, pcrPrimers);
-      const auto pcrPrimerChanges = getPcrPrimerChanges(analysis.substitutions, pcrPrimers);
+      addPrimerChangesInPlace(nucChanges.substitutions, pcrPrimers);
+      const auto pcrPrimerChanges = getPcrPrimerChanges(nucChanges.substitutions, pcrPrimers);
       const auto totalPcrPrimerChanges = std::accumulate(pcrPrimerChanges.cbegin(), pcrPrimerChanges.cend(), 0,
         [](int result, const auto& item) { return result + item.substitutions.size(); });
 
-      auto aaChanges = getAminoacidChanges(                                   //
-        alignment.ref,                                                        //
-        alignment.query,                                                      //
-        alignment.refPeptides,                                                //
-        alignment.queryPeptides,                                              //
-        Range{.begin = analysis.alignmentStart, .end = analysis.alignmentEnd},//
-        geneMap                                                               //
+      auto aaChanges = getAminoacidChanges(                                       //
+        alignment.ref,                                                            //
+        alignment.query,                                                          //
+        alignment.refPeptides,                                                    //
+        alignment.queryPeptides,                                                  //
+        Range{.begin = nucChanges.alignmentStart, .end = nucChanges.alignmentEnd},//
+        geneMap                                                                   //
       );
       const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
       const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
@@ -79,9 +79,9 @@ namespace Nextclade {
         .refPeptides = toPeptidesExternal(alignment.refPeptides),
         .queryPeptides = toPeptidesExternal(alignment.queryPeptides),
         .warnings = alignment.warnings,
-        .substitutions = analysis.substitutions,
+        .substitutions = nucChanges.substitutions,
         .totalSubstitutions = totalSubstitutions,
-        .deletions = analysis.deletions,
+        .deletions = nucChanges.deletions,
         .totalDeletions = totalDeletions,
         .insertions = alignment.insertions,
         .totalInsertions = totalInsertions,
@@ -95,8 +95,8 @@ namespace Nextclade {
         .aaDeletions = aaChanges.aaDeletions,
         .totalAminoacidDeletions = totalAminoacidDeletions,
 
-        .alignmentStart = analysis.alignmentStart,
-        .alignmentEnd = analysis.alignmentEnd,
+        .alignmentStart = nucChanges.alignmentStart,
+        .alignmentEnd = nucChanges.alignmentEnd,
         .alignmentScore = alignment.alignmentScore,
         .nucleotideComposition = nucleotideComposition,
         .pcrPrimerChanges = pcrPrimerChanges,

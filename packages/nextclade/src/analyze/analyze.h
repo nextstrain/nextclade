@@ -3,5 +3,8 @@
 #include <nextclade/nextclade.h>
 
 namespace Nextclade {
-  AnalysisResult analyze(const NucleotideSequence& query, const NucleotideSequence& ref);
+  NucMutationsReport findNucChanges(       //
+    const NucleotideSequence& refStripped, //
+    const NucleotideSequence& queryStripped//
+  );                                       //
 }// namespace Nextclade

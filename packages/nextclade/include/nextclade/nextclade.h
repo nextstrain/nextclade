@@ -261,11 +261,15 @@ namespace Nextclade {
     std::vector<NucleotideSubstitution> substitutions;
   };
 
-  struct AnalysisResult {
+  struct NucMutationsReport {
     std::vector<NucleotideSubstitution> substitutions;
     std::vector<NucleotideDeletion> deletions;
     int alignmentStart;
     int alignmentEnd;
+  };
+
+  struct NextcladeAnalysisResult {
+
   };
 
   struct NextcladeResult {
