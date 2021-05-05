@@ -78,13 +78,13 @@ std::string runNextclade(          //
   Nextclade::NextcladeAlgorithm nextclade{options};
   const auto result = nextclade.run(parsedQuery.name, query);
 
-  std::vector<Nextclade::NextcladeResult> results;
-  results.push_back(result);
+  std::vector<Nextclade::AnalysisResult> analysisResults;
+  analysisResults.push_back(result.analysisResult);
 
-  const auto& tree = nextclade.finalize(results);
+  const auto& tree = nextclade.finalize(analysisResults);
   auto treeStr = tree.serialize();
 
-  auto resultStr = serializeResults(results);
+  auto resultStr = serializeResults(analysisResults);
 
   return resultStr;
 }

@@ -93,7 +93,7 @@ export function run() {
       pcrPrimersStr,
       qcConfigStr,
     )
-    const result = JSON.parse(results)[0]
+    const result = JSON.parse(results)
     console.log({ result })
     return result
   })
