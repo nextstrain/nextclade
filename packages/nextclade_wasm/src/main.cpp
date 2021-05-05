@@ -2,8 +2,13 @@
 #include <emscripten/bind.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
+#include <nextclade/private/nextclade_private.h>
 
 #include <exception>
+
+#include "../../packages/nextclade/src/tree/treeAttachNodes.h"
+#include "../../packages/nextclade/src/tree/treePostprocess.h"
+#include "../../packages/nextclade/src/tree/treePreprocess.h"
 
 class ErrorFastaReader : public std::runtime_error {
 public:
@@ -53,6 +58,7 @@ std::string runNextclade(          //
 
   const auto& ref = parsedRef.seq;
   const auto& query = parsedQuery.seq;
+  const auto& queryName = parsedQuery.name;
 
   std::stringstream geneMapStream{geneMapStr};
   const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
@@ -75,18 +81,31 @@ std::string runNextclade(          //
     .nextalignOptions = nextalignOptions,
   };
 
-  Nextclade::NextcladeAlgorithm nextclade{options};
-  const auto result = nextclade.run(parsedQuery.name, query);
+  auto tree = Nextclade::Tree{treeString};
+  Nextclade::treePreprocess(tree, ref);
+  auto treePreprocessedStr = tree.serialize();
+
+  const auto result = analyzeOneSequence(//
+    queryName,                           //
+    ref,                                 //
+    query,                               //
+    geneMap,                             //
+    pcrPrimers,                          //
+    qcRulesConfig,                       //
+    tree,                                //
+    options                              //
+  );
 
   std::vector<Nextclade::AnalysisResult> analysisResults;
   analysisResults.push_back(result.analysisResult);
 
-  const auto& tree = nextclade.finalize(analysisResults);
+  treeAttachNodes(tree, options.ref, analysisResults);
+  treePostprocess(tree);
   auto treeStr = tree.serialize();
 
   auto resultStr = serializeResults(analysisResults);
 
-  return resultStr;
+  return treePreprocessedStr;
 }
 
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)

@@ -11,6 +11,17 @@
 
 
 namespace Nextclade {
+  NextcladeResult analyzeOneSequence(        //
+    const std::string& seqName,              //
+    const NucleotideSequence& ref,           //
+    const NucleotideSequence& query,         //
+    const GeneMap& geneMap,                  //
+    const std::vector<PcrPrimer>& pcrPrimers,//
+    const QcConfig& qcRulesConfig,           //
+    const Tree& tree,                        //
+    const NextcladeOptions& options          //
+  );
+
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {
     os << "{ ";
