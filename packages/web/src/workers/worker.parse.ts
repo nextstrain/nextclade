@@ -1,12 +1,57 @@
 import 'regenerator-runtime'
 
-import type { FunctionThread } from 'threads'
 import { expose } from 'threads/worker'
+import { Observable, Subject } from 'threads/observable'
 
-import { parse } from 'src/algorithms/run'
+import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
 
-expose(parse)
+let subject = new Subject<unknown>()
 
-export type ParseParameters = Parameters<typeof parse>
-export type ParseReturn = ReturnType<typeof parse>
-export type ParseThread = FunctionThread<ParseParameters, ParseReturn>
+export interface ParseSequencesWasmModule {
+  parseSequencesStreaming(fastaStr: string, onSequence: (seq: unknown) => void, onComplete: () => void): void
+}
+
+let module: ParseSequencesWasmModule | undefined
+
+export async function init() {
+  try {
+    module = await loadWasmModule('nextclade_wasm')
+    subject = new Subject()
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export function run(fastaStr: string) {
+  if (!module) {
+    throw new Error(
+      'Developer error: this WebAssembly module has not been initialized yet. Make sure to call `module.init()` function before `module.run()`',
+    )
+  }
+
+  return runWasmModule(module, (module) => {
+    function onSequence(seq: unknown) {
+      subject?.next(seq)
+    }
+
+    function onComplete() {
+      subject?.complete()
+    }
+
+    module.parseSequencesStreaming(fastaStr, onSequence, onComplete)
+  })
+}
+
+const worker = {
+  init,
+  run,
+  values(): Observable<unknown> {
+    return Observable.from(subject)
+  },
+}
+
+export type ParseWorker = typeof worker
+export type ParseThread = ParseWorker
+export type { Observable }
+
+expose(worker)

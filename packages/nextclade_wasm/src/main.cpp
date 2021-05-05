@@ -43,8 +43,10 @@ std::string getExceptionMessage(std::intptr_t exceptionPtr) {// NOLINT(misc-unus
   return e->what();
 }
 
+
 std::string runNextclade(          //
   int index,                       //
+  const std::string& queryName,    //
   const std::string& queryStr,     //
   const std::string& refStr,       //
   const std::string& geneMapStr,   //
@@ -54,11 +56,9 @@ std::string runNextclade(          //
   const std::string& qcConfigStr   //
 ) {
   const auto parsedRef = parseRefFastaFile(refStr);
-  const auto parsedQuery = parseRefFastaFile(queryStr);
-
   const auto& ref = parsedRef.seq;
-  const auto& query = parsedQuery.seq;
-  const auto& queryName = parsedQuery.name;
+
+  const auto& query = toNucleotideSequence(queryStr);
 
   std::stringstream geneMapStream{geneMapStr};
   const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
@@ -108,8 +108,27 @@ std::string runNextclade(          //
   return treePreprocessedStr;
 }
 
+
+void parseSequencesStreaming(const std::string& queryFastaStr, emscripten::val onSequence, emscripten::val onComplete) {
+  std::stringstream queryFastaStringstream{queryFastaStr};
+  auto inputFastaStream = makeFastaStream(queryFastaStringstream);
+  while (inputFastaStream->good()) {
+    onSequence(inputFastaStream->next());
+  }
+  onComplete();
+}
+
+
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::function("getExceptionMessage", &getExceptionMessage);
+
+  emscripten::value_object<AlgorithmInput>("AlgorithmInput")
+    .field("index", &AlgorithmInput::index)
+    .field("seqName", &AlgorithmInput::seqName)
+    .field("seq", &AlgorithmInput::seq);
+
+  emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
+
   emscripten::function("runNextclade", &runNextclade);
 }
