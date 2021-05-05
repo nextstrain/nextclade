@@ -43,7 +43,7 @@ namespace Nextclade {
 
       const auto alignment = nextalignInternal(query, ref, geneMap, options.nextalignOptions);
 
-      auto nucChanges = findNucChanges(alignment.query, alignment.ref);
+      auto nucChanges = findNucChanges(alignment.ref, alignment.query);
       const int totalSubstitutions = safe_cast<int>(nucChanges.substitutions.size());
       const int totalDeletions = calculateTotalLength(nucChanges.deletions);
       const int totalInsertions = calculateTotalLength(alignment.insertions);
