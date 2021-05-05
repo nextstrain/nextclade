@@ -59,31 +59,30 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
   const auto stripped = stripInsertions(alignment.ref, alignment.query);
   const auto refStripped = removeGaps(ref);
 
-  NextalignResultInternal result;
-  result.ref = refStripped;
-  result.query = stripped.queryStripped;
-  result.alignmentScore = alignment.alignmentScore;
-  result.refPeptides = refPeptides;
-  result.queryPeptides = queryPeptides;
-  result.insertions = stripped.insertions;
-  result.warnings = warnings;
-
-  return result;
+  return NextalignResultInternal{
+    .query = stripped.queryStripped,
+    .ref = refStripped,
+    .alignmentScore = alignment.alignmentScore,
+    .refPeptides = refPeptides,
+    .queryPeptides = queryPeptides,
+    .insertions = stripped.insertions,
+    .warnings = warnings,
+  };
 }
 
 NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref, const GeneMap& geneMap,
   const NextalignOptions& options) {
   const auto resultInternal = nextalignInternal(query, ref, geneMap, options);
 
-  NextalignResult result;
-  result.query = toString(resultInternal.query);
-  result.alignmentScore = resultInternal.alignmentScore;
-  result.refPeptides = toPeptidesExternal(resultInternal.refPeptides);
-  result.queryPeptides = toPeptidesExternal(resultInternal.queryPeptides);
-  result.insertions = toInsertionsExternal(resultInternal.insertions);
-  result.warnings = resultInternal.warnings;
-
-  return result;
+  return NextalignResult{
+    .ref = toString(resultInternal.ref),
+    .query = toString(resultInternal.query),
+    .alignmentScore = resultInternal.alignmentScore,
+    .refPeptides = toPeptidesExternal(resultInternal.refPeptides),
+    .queryPeptides = toPeptidesExternal(resultInternal.queryPeptides),
+    .insertions = toInsertionsExternal(resultInternal.insertions),
+    .warnings = resultInternal.warnings,
+  };
 }
 
 

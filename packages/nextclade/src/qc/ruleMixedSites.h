@@ -4,13 +4,13 @@
 #include <vector>
 
 namespace Nextclade {
-  struct NextcladeResult;
+  struct AnalysisResult;
   struct NucleotideSubstitution;
   struct QCResultMixedSites;
   struct QCRulesConfigMixedSites;
 
   std::optional<QCResultMixedSites> ruleMixedSites(      //
-    const NextcladeResult& result,                       //
+    const AnalysisResult& result,                       //
     const std::vector<NucleotideSubstitution>& mutations,//
     const QCRulesConfigMixedSites& config                //
   );

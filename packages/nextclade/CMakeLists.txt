@@ -22,8 +22,8 @@ set(SOURCE_FILES
   include/nextclade/private/nextclade_private.h
   src/analyze/aminoacid.cpp
   src/analyze/aminoacid.h
-  src/analyze/analyze.cpp
-  src/analyze/analyze.h
+  src/analyze/findNucChanges.cpp
+  src/analyze/findNucChanges.h
   src/analyze/findNucleotideRanges.cpp
   src/analyze/findNucleotideRanges.h
   src/analyze/getAminoacidChanges.cpp

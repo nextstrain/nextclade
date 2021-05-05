@@ -62,13 +62,13 @@ jobs:
           destination: nextclade-Linux-x86_64
 
       - run:
-          name: "Publish binaries to GitHub Releases"
+          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
           command: |
-            ./scripts/get_ghr_linux.sh
+            OS=linux ./scripts/download_github_release_tool.sh
             ./scripts/publish_github_releases.sh
 
       - run:
-          name: "Publish Docker images to DockerHub"
+          name: 'Publish Docker images to DockerHub'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             ./scripts/publish_docker_images.sh
@@ -141,8 +141,9 @@ jobs:
           destination: nextclade-MacOS-<< parameters.macos_arch >>
 
       - run:
-          name: "Publish binaries to GitHub Releases"
+          name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
           command: |
+            OS=darwin ./scripts/download_github_release_tool.sh
             ./scripts/publish_github_releases.sh
 
 workflows:

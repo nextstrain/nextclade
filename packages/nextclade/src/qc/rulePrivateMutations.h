@@ -4,13 +4,13 @@
 #include <vector>
 
 namespace Nextclade {
-  struct NextcladeResult;
+  struct AnalysisResult;
   struct NucleotideSubstitution;
   struct QcResultPrivateMutations;
   struct QCRulesConfigPrivateMutations;
 
   std::optional<QcResultPrivateMutations> rulePrivateMutations(//
-    const NextcladeResult& result,                             //
+    const AnalysisResult& result,                             //
     const std::vector<NucleotideSubstitution>& mutations,      //
     const QCRulesConfigPrivateMutations& config                //
   );

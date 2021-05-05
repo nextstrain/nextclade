@@ -189,7 +189,7 @@ namespace Nextclade {
     }
 
 
-    json serializeResult(const NextcladeResult& result) {
+    json serializeResult(const AnalysisResult& result) {
       auto j = json::object();
 
       j.emplace("seqName", result.seqName);
@@ -223,7 +223,7 @@ namespace Nextclade {
     }
   }// namespace
 
-  std::string serializeResults(const std::vector<NextcladeResult>& results) {
+  std::string serializeResults(const std::vector<AnalysisResult>& results) {
     auto j = json::array();
     for (const auto& result : results) {
       j.emplace_back(serializeResult(result));

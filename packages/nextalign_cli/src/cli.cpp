@@ -697,7 +697,7 @@ void run(
       }
 
       // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
-      if (!refsHaveBeenWritten) {
+      if (!refsHaveBeenWritten && !error) {
         outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, refAligned);
         outputFastaStream.flush();
 

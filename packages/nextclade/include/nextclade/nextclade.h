@@ -261,20 +261,15 @@ namespace Nextclade {
     std::vector<NucleotideSubstitution> substitutions;
   };
 
-  struct AnalysisResult {
+  struct NucMutationsReport {
     std::vector<NucleotideSubstitution> substitutions;
     std::vector<NucleotideDeletion> deletions;
     int alignmentStart;
     int alignmentEnd;
   };
 
-  struct NextcladeResult {
+  struct AnalysisResult {
     std::string seqName;
-    std::string ref;
-    std::string query;
-    std::vector<Peptide> refPeptides;
-    std::vector<Peptide> queryPeptides;
-    std::vector<std::string> warnings;
     std::vector<NucleotideSubstitution> substitutions;
     int totalSubstitutions;
     std::vector<NucleotideDeletion> deletions;
@@ -300,6 +295,15 @@ namespace Nextclade {
     QcResult qc;
   };
 
+  struct NextcladeResult {
+    std::string ref;
+    std::string query;
+    std::vector<Peptide> refPeptides;
+    std::vector<Peptide> queryPeptides;
+    std::vector<std::string> warnings;
+    AnalysisResult analysisResult;
+  };
+
   class NextcladeAlgorithmImpl;
 
   class NextcladeAlgorithm {
@@ -310,7 +314,7 @@ namespace Nextclade {
 
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& seq);
 
-    const Tree& finalize(const std::vector<NextcladeResult>& results);
+    const Tree& finalize(const std::vector<AnalysisResult>& results);
 
     // Destructor is required when using pimpl idiom with unique_ptr.
     // See "Effective Modern C++" by Scott Meyers,
@@ -356,7 +360,7 @@ namespace Nextclade {
 
     std::string addHeader();
 
-    std::string addRow(const NextcladeResult& result);
+    std::string addRow(const AnalysisResult& result);
 
     std::string addErrorRow(const std::string& error);
   };
@@ -383,7 +387,7 @@ namespace Nextclade {
     Tree& operator=(Tree&& other) noexcept = delete;
   };
 
-  std::string serializeResults(const std::vector<NextcladeResult>& results);
+  std::string serializeResults(const std::vector<AnalysisResult>& results);
 
   std::string formatRange(const Range& range);
 

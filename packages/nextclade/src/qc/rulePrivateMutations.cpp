@@ -10,7 +10,7 @@
 
 namespace Nextclade {
   std::optional<QcResultPrivateMutations> rulePrivateMutations( //
-    const NextcladeResult& result,                              //
+    const AnalysisResult& result,                              //
     const std::vector<NucleotideSubstitution>& privateMutations,//
     const QCRulesConfigPrivateMutations& config                 //
   ) {
