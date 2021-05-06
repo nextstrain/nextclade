@@ -28,6 +28,9 @@ export async function go() {
   console.log('threadParse.run')
   await threadParse.run(queryStr)
 
+  await poolAnalyze.completed()
+  await poolAnalyze.terminate()
+
   const analysisResults = nextcladeResults.map(nextcladeResult => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
   console.log('threadTreeFinalize.run')
