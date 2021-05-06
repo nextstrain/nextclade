@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../utils/contains.h"
+#include "../utils/contract.h"
 #include "formatMutation.h"
 #include "formatQcStatus.h"
 
@@ -172,9 +173,15 @@ namespace Nextclade {
     return row;
   }
 
-  std::string CsvWriter::addErrorRow(const std::string& error) {
-    const auto columns = std::string{COLUMN_NAMES.size() - 1, options.delimiter};
-    auto row = columns + error;
+  std::string CsvWriter::addErrorRow(const std::string& seqName, const std::string& errorFormatted) {
+    precondition_greater(COLUMN_NAMES.size(), 2);
+
+    std::vector<std::string> columns{COLUMN_NAMES.size(), ""};
+    columns[0] = seqName;
+    columns[columns.size() - 1] = errorFormatted;// NOTE: Assumes that the "error" column is the last one
+
+    std::for_each(columns.begin(), columns.end(), maybeSurroundWithQuotes(options.delimiter));
+    auto row = boost::algorithm::join(columns, std::string{options.delimiter});
     outputStream << row << "\n";
     return row;
   }
