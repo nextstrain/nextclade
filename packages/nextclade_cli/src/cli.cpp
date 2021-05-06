@@ -789,14 +789,14 @@ void run(
         try {
           std::rethrow_exception(error);
         } catch (const std::exception &e) {
-
-          const std::string errorFormatted = fmt::format("In sequence \"{:s}\": {:s}.\n", seqName, e.what());
-          logger.warn("Warning: {}. Note that this sequence will be excluded from results.\n", errorFormatted);
+          const std::string &errorMessage = e.what();
+          logger.warn("Warning: In sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n",
+            seqName, errorMessage);
           if (csv) {
-            csv->addErrorRow(errorFormatted);
+            csv->addErrorRow(seqName, errorMessage);
           }
           if (tsv) {
-            tsv->addErrorRow(errorFormatted);
+            tsv->addErrorRow(seqName, errorMessage);
           }
           return;
         }
