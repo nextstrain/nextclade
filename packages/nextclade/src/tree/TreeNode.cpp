@@ -292,7 +292,7 @@ namespace Nextclade {
       const auto path = json_pointer{"/node_attrs/Node type/value"};
 
       if (!j.contains(path)) {
-        throw ErrorTreeNodeTypeInvalid(json());
+        throw ErrorTreeNodeTypeInvalid(j);
       }
 
       const auto& nodeType = j.at(path);
