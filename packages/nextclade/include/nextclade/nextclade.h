@@ -364,7 +364,7 @@ namespace Nextclade {
 
     std::string addRow(const AnalysisResult& result);
 
-    std::string addErrorRow(const std::string& error);
+    std::string addErrorRow(const std::string& seqName, const std::string& errorFormatted);
   };
 
   class Tree {
