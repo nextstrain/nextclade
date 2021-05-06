@@ -113,15 +113,12 @@ NextcladeResultWasm runNextclade(  //
 
 void parseSequencesStreaming(const std::string& queryFastaStr, const emscripten::val& onSequence,
   const emscripten::val& onComplete) {
-  try {
-    std::stringstream queryFastaStringstream{queryFastaStr};
-    auto inputFastaStream = makeFastaStream(queryFastaStringstream);
-    while (inputFastaStream->good()) {
-      onSequence(inputFastaStream->next());
-    }
-    onComplete();
-  } catch (...) {
+  std::stringstream queryFastaStringstream{queryFastaStr};
+  auto inputFastaStream = makeFastaStream(queryFastaStringstream);
+  while (inputFastaStream->good()) {
+    onSequence(inputFastaStream->next());
   }
+  onComplete();
 }
 
 std::string treePrepare(const std::string& treeStr, const std::string& refStr) {
