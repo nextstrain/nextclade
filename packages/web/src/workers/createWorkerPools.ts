@@ -3,7 +3,7 @@ import { concurrent } from 'fasy'
 
 
 import type { ParseThread } from 'src/workers/worker.parse'
-import type { AnalysisWorker, AnalysisThread } from 'src/workers/worker.wasm'
+import type { AnalysisWorker, AnalysisThread } from 'src/workers/worker.analyze'
 import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 
@@ -24,7 +24,7 @@ export async function createWorkerPools({ numThreads = DEFAULT_NUM_THREADS } = {
   await threadParse.init()
 
   const poolAnalyze = Pool<AnalysisThread>(
-    () => spawn<AnalysisWorker>(new Worker('./worker.wasm.ts', { name: 'worker.pool.wasm' })),
+    () => spawn<AnalysisWorker>(new Worker('./worker.analyze.ts', { name: 'worker.analyze' })),
     {
       size: numThreads,
       concurrency: 1,

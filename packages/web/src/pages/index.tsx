@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import type { NextcladeResultWasm } from 'src/workers/worker.wasm'
+import type { NextcladeResultWasm } from 'src/workers/worker.analyze'
 import { createWorkerPools } from 'src/workers/createWorkerPools'
 
 import queryStr from '../../../../data/sars-cov-2/sequences.fasta'

@@ -53,7 +53,7 @@ struct NextcladeResultWasm {
   std::string analysisResult;
 };
 
-NextcladeResultWasm runNextclade(  //
+NextcladeResultWasm analyze(       //
   int index,                       //
   const std::string& queryName,    //
   const std::string& queryStr,     //
@@ -160,6 +160,6 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
 
   emscripten::function("treePrepare", &treePrepare);
   emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
-  emscripten::function("runNextclade", &runNextclade);
+  emscripten::function("analyze", &analyze);
   emscripten::function("treeFinalize", &treeFinalize);
 }

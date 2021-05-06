@@ -51,7 +51,7 @@ export function run(index: number, queryName: string, queryStr: string, treePrep
   const qcConfigStr = JSON.stringify(qcConfig)
 
   return runWasmModule(module, (module) => {
-    const result = module.runNextclade(
+    const result = module.analyze(
       // prettier-ignore
       index,
       queryName,
