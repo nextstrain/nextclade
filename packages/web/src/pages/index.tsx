@@ -4,10 +4,10 @@ import queryStr from '../../../../data/sars-cov-2/sequences.fasta'
 import treeJson from '../../../../data/sars-cov-2/tree.json'
 import refFastaStr from '../../../../data/sars-cov-2/reference.fasta'
 
-import { createWorkerPools2 } from 'src/workers/createWorkerPools2'
+import { createWorkerPools } from 'src/workers/createWorkerPools'
 
 export async function go() {
-  const { threadTreePrepare, threadParse, poolAnalyze, threadTreeFinalize } = await createWorkerPools2()
+  const { threadTreePrepare, threadParse, poolAnalyze, threadTreeFinalize } = await createWorkerPools()
 
   const treeStr = JSON.stringify(treeJson, null, 2)
   const treePreparedStr = await threadTreePrepare.run(treeStr, refFastaStr)

@@ -1,42 +1,45 @@
 import { Pool, spawn, Worker } from 'threads'
+import { concurrent } from 'fasy'
 
-import type { WorkerPools } from 'src/workers/types'
+
 import type { ParseThread } from 'src/workers/worker.parse'
-import type { AnalyzeThread } from 'src/workers/worker.analyze'
-import type { TreeFinalizeThread } from 'src/workers/worker.treeAttachNodes'
-import type { RunQcThread } from 'src/workers/worker.runQc'
-import type { TreeBuildThread } from 'src/workers/worker.treeFindNearest'
+import type { AnalysisWorker, AnalysisThread } from 'src/workers/worker.wasm'
+import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
+import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
+
+export interface WorkerPools {
+  threadTreePrepare: TreePrepareThread
+  threadParse: ParseThread
+  poolAnalyze: Pool<AnalysisThread>
+  threadTreeFinalize: TreeFinalizeThread
+}
 
 const DEFAULT_NUM_THREADS = 4
 
 export async function createWorkerPools({ numThreads = DEFAULT_NUM_THREADS } = {}): Promise<WorkerPools> {
-  if (typeof window !== 'undefined' || process.env.FORCE_USE_WORKERS === 'true') {
-    const threadParse = await spawn<ParseThread>(new Worker('./worker.parse.ts', { name: 'parse' }))
+  const threadTreePrepare = await spawn<TreePrepareThread>(new Worker('./worker.treePrepare.ts', { name: 'worker.treePrepare' })) // prettier-ignore
+  await threadTreePrepare.init()
 
-    const poolAnalyze = Pool<AnalyzeThread>(() => spawn(new Worker('./worker.analyze.ts', { name: 'analyze' })), {
-      size: numThreads, // number of workers to spawn, defaults to the number of CPU cores
-      concurrency: 1, // number of tasks to run simultaneously per worker, defaults to one
-      name: 'analyze',
+  const threadParse = await spawn<ParseThread>(new Worker('./worker.parse.ts', { name: 'worker.parse' }))
+  await threadParse.init()
+
+  const poolAnalyze = Pool<AnalysisThread>(
+    () => spawn<AnalysisWorker>(new Worker('./worker.wasm.ts', { name: 'worker.pool.wasm' })),
+    {
+      size: numThreads,
+      concurrency: 1,
+      name: 'wasm',
       maxQueuedJobs: undefined,
-    })
+    },
+  )
 
-    const threadTreeBuild = await spawn<TreeBuildThread>(
-      new Worker('./worker.treeFindNearest.ts', { name: 'treeFindNearest' }),
-    )
+  await concurrent.forEach(
+    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init()),
+    Array.from({ length: numThreads }, () => undefined),
+  )
 
-    const poolRunQc = Pool<RunQcThread>(() => spawn(new Worker('./worker.runQc.ts', { name: 'runQc' })), {
-      size: numThreads, // number of workers to spawn, defaults to the number of CPU cores
-      concurrency: 1, // number of tasks to run simultaneously per worker, defaults to one
-      name: 'runQc',
-      maxQueuedJobs: undefined,
-    })
+  const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('./worker.treeFinalize.ts', { name: 'worker.treeFinalize' })) // prettier-ignore
+  await threadTreeFinalize.init()
 
-    const threadTreeFinalize = await spawn<TreeFinalizeThread>(
-      new Worker('./worker.treeAttachNodes.ts', { name: 'treeAttachNodes' }),
-    )
-
-    return { threadParse, poolAnalyze, threadTreeBuild, poolRunQc, threadTreeFinalize }
-  }
-
-  throw new Error(' createWorkerPools: unable to create worker pools')
+  return { threadTreePrepare, threadParse, poolAnalyze, threadTreeFinalize }
 }
