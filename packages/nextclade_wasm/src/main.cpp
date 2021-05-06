@@ -111,7 +111,8 @@ NextcladeResultWasm runNextclade(  //
 }
 
 
-void parseSequencesStreaming(const std::string& queryFastaStr, emscripten::val onSequence, emscripten::val onComplete) {
+void parseSequencesStreaming(const std::string& queryFastaStr, const emscripten::val& onSequence,
+  const emscripten::val& onComplete) {
   try {
     std::stringstream queryFastaStringstream{queryFastaStr};
     auto inputFastaStream = makeFastaStream(queryFastaStringstream);
