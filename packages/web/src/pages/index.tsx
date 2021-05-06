@@ -1,8 +1,4 @@
-/* eslint-disable array-func/no-unnecessary-this-arg */
 import React, { useEffect, useState } from 'react'
-
-// import dynamic from 'next/dynamic'
-// import { concurrent } from 'fasy'
 
 import queryStr from '../../../../data/sars-cov-2/sequences.fasta'
 import treeJson from '../../../../data/sars-cov-2/tree.json'
@@ -11,16 +7,19 @@ import refFastaStr from '../../../../data/sars-cov-2/reference.fasta'
 import { createWorkerPools2 } from 'src/workers/createWorkerPools2'
 
 export async function go() {
-  const { threadTreePrepare, threadParse, threadWasm, threadTreeFinalize } = await createWorkerPools2()
+  const { threadTreePrepare, threadParse, poolAnalyze, threadTreeFinalize } = await createWorkerPools2()
 
   const treeStr = JSON.stringify(treeJson, null, 2)
   const treePreparedStr = await threadTreePrepare.run(treeStr, refFastaStr)
 
   threadParse.values().subscribe((seq: any) => {
     console.log({ seq })
-    threadWasm.run(seq.index, seq.seqName, seq.seq, treePreparedStr).then((nextcladeResult) => {
-      console.log({ nextcladeResult })
-    })
+    poolAnalyze.queue(async (worker) =>
+      worker.run(seq.index, seq.seqName, seq.seq, treePreparedStr)
+        .then((nextcladeResult) => {
+          console.log({ nextcladeResult })
+          return nextcladeResult
+        }))
   })
 
   console.log('threadParse.run')
@@ -33,10 +32,6 @@ export async function go() {
 
   console.log({ tree: JSON.parse(treeFinalStr) })
 
-  // const poolResult = await concurrent.map(
-  //   async (_0, i) => pool.queue(async (worker) => worker.run(i)),
-  //   Array.from({ length: 10 }, () => undefined),
-  // )
 
   // return [result, ...poolResult].join(', ')
 }

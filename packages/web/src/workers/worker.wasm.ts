@@ -1,5 +1,6 @@
 import 'regenerator-runtime'
 
+import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
 import { loadWasmModule, runWasmModule } from './wasmModule'
@@ -75,6 +76,6 @@ const analysisWorker = { init, run }
 
 export type AnalysisWorker = typeof analysisWorker
 
-export type AnalysisThread = AnalysisWorker
+export type AnalysisThread = AnalysisWorker & Thread
 
 expose(analysisWorker)
