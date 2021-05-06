@@ -3,17 +3,24 @@ import { concurrent } from 'fasy'
 
 import type { WorkerPools } from 'src/workers/types'
 import type { ParseThread } from 'src/workers/worker.parse'
-import type { WasmWorker, WasmThread } from 'src/workers/worker.wasm'
+import type { AnalysisThread } from 'src/workers/worker.wasm'
+import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
+import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 
 const DEFAULT_NUM_THREADS = 4
 
 export async function createWorkerPools2({ numThreads = DEFAULT_NUM_THREADS } = {}): Promise<WorkerPools> {
-  // if (typeof window !== 'undefined' || process.env.FORCE_USE_WORKERS === 'true') {
+  const threadTreePrepare = await spawn<TreePrepareThread>(new Worker('./worker.treePrepare.ts', { name: 'worker.treePrepare' })) // prettier-ignore
+  await threadTreePrepare.init()
+
   const threadParse = await spawn<ParseThread>(new Worker('./worker.parse.ts', { name: 'worker.parse' }))
   await threadParse.init()
 
-  const threadWasm = await spawn<WasmThread>(new Worker('./worker.wasm.ts', { name: 'worker.wasm' }))
+  const threadWasm = await spawn<AnalysisThread>(new Worker('./worker.wasm.ts', { name: 'worker.wasm' }))
   await threadWasm.init()
+
+  const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('./worker.treeFinalize.ts', { name: 'worker.treeFinalize' })) // prettier-ignore
+  await threadTreeFinalize.init()
 
   // const pool = Pool<WasmWorkerThread>(
   //   () => spawn<WasmWorker>(new Worker('./worker.wasm.ts', { name: 'worker.pool.wasm' })),
@@ -30,8 +37,5 @@ export async function createWorkerPools2({ numThreads = DEFAULT_NUM_THREADS } = 
   //   Array.from({ length: numThreads }, () => undefined),
   // )
 
-  return { threadParse, threadWasm }
-  // }
-
-  // throw new Error(' createWorkerPools: unable to create worker pools')
+  return { threadTreePrepare, threadParse, threadWasm, threadTreeFinalize }
 }

@@ -5,13 +5,30 @@ import { expose } from 'threads/worker'
 import { loadWasmModule, runWasmModule } from './wasmModule'
 
 import qcConfig from '../../../../data/sars-cov-2/qc.json'
-import treeJson from '../../../../data/sars-cov-2/tree.json'
 import geneMapStr from '../../../../data/sars-cov-2/genemap.gff'
 import refStr from '../../../../data/sars-cov-2/reference.fasta'
 
-type MyModule = any
+export interface NextcladeResultWasm {
+  ref: string
+  query: string
+  analysisResult: string
+}
 
-let module: MyModule | undefined
+export interface NextcladeAnalysisModule {
+  runNextclade(
+    index: number,
+    queryName: string,
+    queryStr: string,
+    refStr: string,
+    geneMapStr: string,
+    geneMapName: string,
+    treePreparedStr: string,
+    pcrPrimersStr: string,
+    qcConfigStr: string,
+  ): NextcladeResultWasm
+}
+
+let module: NextcladeAnalysisModule | undefined
 
 export async function init() {
   try {
@@ -21,7 +38,7 @@ export async function init() {
   }
 }
 
-export function run(index: number, queryName: string, queryStr: string) {
+export function run(index: number, queryName: string, queryStr: string, treePreparedStr: string) {
   if (!module) {
     throw new Error(
       'Developer error: this WebAssembly module has not been initialized yet. Make sure to call `module.init()` function before `module.run()`',
@@ -29,12 +46,11 @@ export function run(index: number, queryName: string, queryStr: string) {
   }
 
   const geneMapName = 'genemap.gff'
-  const treeString = JSON.stringify(treeJson)
   const pcrPrimersStr = ''
   const qcConfigStr = JSON.stringify(qcConfig)
 
   return runWasmModule(module, (module) => {
-    const results = module.runNextclade(
+    const result = module.runNextclade(
       // prettier-ignore
       index,
       queryName,
@@ -42,18 +58,23 @@ export function run(index: number, queryName: string, queryStr: string) {
       refStr,
       geneMapStr,
       geneMapName,
-      treeString,
+      treePreparedStr,
       pcrPrimersStr,
       qcConfigStr,
     )
-    return JSON.parse(results)
+
+    return {
+      ref: result.ref,
+      query: result.query,
+      analysisResult: JSON.parse(result.analysisResult),
+    }
   })
 }
 
-const worker = { init, run }
+const analysisWorker = { init, run }
 
-export type WasmWorker = typeof worker
+export type AnalysisWorker = typeof analysisWorker
 
-export type WasmThread = WasmWorker
+export type AnalysisThread = AnalysisWorker
 
-expose(worker)
+expose(analysisWorker)

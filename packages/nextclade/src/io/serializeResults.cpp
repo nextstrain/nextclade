@@ -223,6 +223,11 @@ namespace Nextclade {
     }
   }// namespace
 
+  std::string serializeResultToString(const AnalysisResult& result) {
+    auto j = serializeResult(result);
+    return jsonStringify(j);
+  }
+
   std::string serializeResults(const std::vector<AnalysisResult>& results) {
     auto j = json::array();
     for (const auto& result : results) {

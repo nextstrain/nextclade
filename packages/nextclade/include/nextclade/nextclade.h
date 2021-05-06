@@ -389,6 +389,8 @@ namespace Nextclade {
     Tree& operator=(Tree&& other) noexcept = delete;
   };
 
+  std::string serializeResultToString(const AnalysisResult& result);
+
   std::string serializeResults(const std::vector<AnalysisResult>& results);
 
   std::string formatRange(const Range& range);

@@ -1,4 +1,4 @@
-#include <emscripten.h>
+//#include <emscripten.h>
 #include <emscripten/bind.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
@@ -44,14 +44,23 @@ std::string getExceptionMessage(std::intptr_t exceptionPtr) {// NOLINT(misc-unus
 }
 
 
-std::string runNextclade(          //
+struct NextcladeResultWasm {
+  std::string ref;
+  std::string query;
+  // std::vector<Peptide> refPeptides; // TODO: use these too
+  // std::vector<Peptide> queryPeptides; // TODO: use these too
+  // std::vector<std::string> warnings; // TODO: use these too
+  std::string analysisResult;
+};
+
+NextcladeResultWasm runNextclade(  //
   int index,                       //
   const std::string& queryName,    //
   const std::string& queryStr,     //
   const std::string& refStr,       //
   const std::string& geneMapStr,   //
   const std::string& geneMapName,  //
-  const std::string& treeString,   //
+  const std::string& treeStr,      //
   const std::string& pcrPrimersStr,//
   const std::string& qcConfigStr   //
 ) {
@@ -59,6 +68,8 @@ std::string runNextclade(          //
   const auto& ref = parsedRef.seq;
 
   const auto& query = toNucleotideSequence(queryStr);
+
+  auto tree = Nextclade::Tree{treeStr};
 
   std::stringstream geneMapStream{geneMapStr};
   const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
@@ -74,16 +85,12 @@ std::string runNextclade(          //
 
   const Nextclade::NextcladeOptions options = {
     .ref = ref,
-    .treeString = treeString,
+    .treeString = treeStr,
     .pcrPrimers = pcrPrimers,
     .geneMap = geneMap,
     .qcRulesConfig = qcRulesConfig,
     .nextalignOptions = nextalignOptions,
   };
-
-  auto tree = Nextclade::Tree{treeString};
-  Nextclade::treePreprocess(tree, ref);
-  auto treePreprocessedStr = tree.serialize();
 
   const auto result = analyzeOneSequence(//
     queryName,                           //
@@ -96,26 +103,46 @@ std::string runNextclade(          //
     options                              //
   );
 
-  std::vector<Nextclade::AnalysisResult> analysisResults;
-  analysisResults.push_back(result.analysisResult);
-
-  treeAttachNodes(tree, options.ref, analysisResults);
-  treePostprocess(tree);
-  auto treeStr = tree.serialize();
-
-  auto resultStr = serializeResults(analysisResults);
-
-  return treePreprocessedStr;
+  return NextcladeResultWasm{
+    .ref = result.ref,
+    .query = result.query,
+    .analysisResult = serializeResultToString(result.analysisResult),
+  };
 }
 
 
 void parseSequencesStreaming(const std::string& queryFastaStr, emscripten::val onSequence, emscripten::val onComplete) {
-  std::stringstream queryFastaStringstream{queryFastaStr};
-  auto inputFastaStream = makeFastaStream(queryFastaStringstream);
-  while (inputFastaStream->good()) {
-    onSequence(inputFastaStream->next());
+  try {
+    std::stringstream queryFastaStringstream{queryFastaStr};
+    auto inputFastaStream = makeFastaStream(queryFastaStringstream);
+    while (inputFastaStream->good()) {
+      onSequence(inputFastaStream->next());
+    }
+    onComplete();
+  } catch (...) {
   }
-  onComplete();
+}
+
+std::string treePrepare(const std::string& treeStr, const std::string& refStr) {
+  const auto parsedRef = parseRefFastaFile(refStr);
+  const auto& ref = parsedRef.seq;
+
+  auto tree = Nextclade::Tree{treeStr};
+  Nextclade::treePreprocess(tree, ref);
+  return tree.serialize(0);
+}
+
+std::string treeFinalize(const std::string& treeStr, const std::string& refStr, const std::string& analysisResultsStr) {
+  const auto parsedRef = parseRefFastaFile(refStr);
+  const auto& ref = parsedRef.seq;
+
+  // FIXME: get actual results
+  std::vector<Nextclade::AnalysisResult> analysisResults;
+
+  auto tree = Nextclade::Tree{treeStr};
+  treeAttachNodes(tree, ref, analysisResults);
+  treePostprocess(tree);
+  return tree.serialize(0);
 }
 
 
@@ -128,7 +155,13 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("seqName", &AlgorithmInput::seqName)
     .field("seq", &AlgorithmInput::seq);
 
-  emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
+  emscripten::value_object<NextcladeResultWasm>("NextcladeResultWasm")
+    .field("ref", &NextcladeResultWasm::ref)
+    .field("query", &NextcladeResultWasm::query)
+    .field("analysisResult", &NextcladeResultWasm::analysisResult);
 
+  emscripten::function("treePrepare", &treePrepare);
+  emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
   emscripten::function("runNextclade", &runNextclade);
+  emscripten::function("treeFinalize", &treeFinalize);
 }
