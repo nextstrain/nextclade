@@ -112,16 +112,12 @@ std::string treePrepare(const std::string& treeStr, const std::string& refStr) {
 
 std::string treeFinalize(const std::string& treeStr, const std::string& refStr, const std::string& analysisResultsStr) {
   const auto ref = toNucleotideSequence(refStr);
-
-  // FIXME: get actual results
-  std::vector<Nextclade::AnalysisResult> analysisResults;
-
+  const auto analysisResults = Nextclade::parseAnalysisResults(analysisResultsStr);
   auto tree = Nextclade::Tree{treeStr};
   treeAttachNodes(tree, ref, analysisResults);
   treePostprocess(tree);
   return tree.serialize(0);
 }
-
 
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 EMSCRIPTEN_BINDINGS(nextclade_wasm) {

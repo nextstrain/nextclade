@@ -47,6 +47,7 @@ set(SOURCE_FILES
   src/io/formatQcStatus.h
   src/io/jsonStringify.cpp
   src/io/jsonStringify.h
+  src/io/parseAnalysisResults.cpp
   src/io/parseCsv.h
   src/io/parseMutation.cpp
   src/io/parseMutation.h

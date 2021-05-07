@@ -140,7 +140,7 @@ namespace Nextclade {
     int pos;
     Nucleotide queryNuc;
     std::vector<PcrPrimer> pcrPrimersChanged;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
+    std::vector<AminoacidSubstitution> aaSubstitutions;// FIXME: unused and should be removed
   };
 
   inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
@@ -160,8 +160,8 @@ namespace Nextclade {
   struct NucleotideDeletion {
     int start;
     int length;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
+    std::vector<AminoacidSubstitution> aaSubstitutions;// FIXME: unused and should be removed
+    std::vector<AminoacidDeletion> aaDeletions;        // FIXME: unused and should be removed
   };
 
   inline bool operator==(const NucleotideDeletion& lhs, const NucleotideDeletion& rhs) {
@@ -388,6 +388,8 @@ namespace Nextclade {
     Tree& operator=(const Tree& other) = delete;
     Tree& operator=(Tree&& other) noexcept = delete;
   };
+
+  std::vector<AnalysisResult> parseAnalysisResults(const std::string& analysisResultsStr);
 
   std::string serializeResultToString(const AnalysisResult& result);
 

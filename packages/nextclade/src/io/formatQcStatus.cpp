@@ -1,8 +1,7 @@
 #include "formatQcStatus.h"
 
 #include <fmt/format.h>
-#include <frozen/map.h>
-#include <frozen/string.h>
+#include <frozen/string.h>// NOLINT(modernize-deprecated-headers) /* false positive */
 
 #include <boost/algorithm/string/join.hpp>
 
@@ -10,12 +9,6 @@
 
 namespace Nextclade {
   namespace {
-    constexpr auto qcStatusStrings = frozen::make_map<QcStatus, frozen::string>({
-      {QcStatus::good, "good"},
-      {QcStatus::mediocre, "mediocre"},
-      {QcStatus::bad, "bad"},
-    });
-
     class ErrorQcStatusUnknown : public std::runtime_error {
     public:
       explicit ErrorQcStatusUnknown(const QcStatus& status)

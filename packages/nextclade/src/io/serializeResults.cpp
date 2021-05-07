@@ -41,7 +41,7 @@ namespace Nextclade {
       j.emplace("begin", nucRange.begin);
       j.emplace("end", nucRange.end);
       j.emplace("length", nucRange.length);
-      j.emplace("nuc", nucRange.nuc);
+      j.emplace("nuc", nucToString(nucRange.nuc));
       return j;
     }
 
@@ -86,6 +86,7 @@ namespace Nextclade {
       j.emplace("begin", missing.begin);
       j.emplace("end", missing.end);
       j.emplace("length", missing.length);
+      j.emplace("nuc", nucToString(Nucleotide::N));
       return j;
     }
 
@@ -188,6 +189,13 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeNucleotideComposition(const std::map<Nucleotide, int>& nucleotideComposition) {
+      json j = json::object();
+      for (const auto& [nuc, num] : nucleotideComposition) {
+        j.emplace(nucToString(nuc), num);
+      }
+      return j;
+    }
 
     json serializeResult(const AnalysisResult& result) {
       auto j = json::object();
@@ -217,7 +225,10 @@ namespace Nextclade {
       j.emplace("aaSubstitutions", serializeArray(result.aaSubstitutions, serializeAminoacidMutation));
       j.emplace("aaDeletions", serializeArray(result.aaDeletions, serializeAminoacidDeletion));
 
+      j.emplace("nearestNodeId", result.nearestNodeId);
+
       j.emplace("qc", serializeQcResult(result.qc));
+      j.emplace("nucleotideComposition", serializeNucleotideComposition(result.nucleotideComposition));
 
       return j;
     }

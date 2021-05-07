@@ -16,6 +16,12 @@ namespace {
     explicit ErrorNucleotideInvalid(char nuc) : std::runtime_error(fmt::format("Invalid nucleotide: \"{:c}\"", nuc)) {}
   };
 
+  class ErrorNucleotideStringInvalid : public std::runtime_error {
+  public:
+    explicit ErrorNucleotideStringInvalid(const std::string& nuc)
+        : std::runtime_error(fmt::format("Invalid nucleotide: \"{:s}\"", nuc)) {}
+  };
+
   constexpr const frozen::map<char, Nucleotide, 17> charToNucleotide = {
     /* 00 */ {'U', Nucleotide::U},
     /* 01 */ {'T', Nucleotide::T},
@@ -66,6 +72,13 @@ Nucleotide toNucleotide(char nuc) {
     throw ErrorNucleotideInvalid(nuc);
   }
   return it->second;
+}
+
+Nucleotide stringToNuc(const std::string& nuc) {
+  if (nuc.size() != 1) {
+    throw ErrorNucleotideStringInvalid(nuc);
+  }
+  return toNucleotide(nuc[0]);
 }
 
 char nucToChar(Nucleotide nuc) {
