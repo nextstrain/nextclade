@@ -29,16 +29,20 @@ export function run(fastaStr: string) {
     )
   }
 
+  function onSequence(seq: unknown) {
+    subject?.next(seq)
+  }
+
+  function onComplete() {
+    subject?.complete()
+  }
+
   return runWasmModule(module, (module) => {
-    function onSequence(seq: unknown) {
-      subject?.next(seq)
+    try {
+      module.parseSequencesStreaming(fastaStr, onSequence, onComplete)
+    } catch (error) {
+      subject?.error(error)
     }
-
-    function onComplete() {
-      subject?.complete()
-    }
-
-    module.parseSequencesStreaming(fastaStr, onSequence, onComplete)
   })
 }
 
