@@ -1,6 +1,6 @@
+/* eslint-disable array-func/no-unnecessary-this-arg */
 import { Pool, spawn, Worker } from 'threads'
 import { concurrent } from 'fasy'
-
 
 import type { ParseThread } from 'src/workers/worker.parse'
 import type { AnalysisWorker, AnalysisThread } from 'src/workers/worker.analyze'

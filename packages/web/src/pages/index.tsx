@@ -1,39 +1,55 @@
 /* eslint-disable promise/always-return */
 import React, { useEffect, useState } from 'react'
 
-import type { NextcladeResultWasm } from 'src/workers/worker.analyze'
+import type { NextcladeWasmParams, NextcladeWasmResult } from 'src/workers/worker.analyze'
+import type { AlgorithmInput } from 'src/workers/worker.parse'
 import { createWorkerPools } from 'src/workers/createWorkerPools'
 
 import queryStr from '../../../../data/sars-cov-2/sequences.fasta'
 import treeJson from '../../../../data/sars-cov-2/tree.json'
 import refFastaStr from '../../../../data/sars-cov-2/reference.fasta'
-
-export interface AlgorithmInput {
-  index: number
-  seqName: string
-  seq: string
-  treePreparedStr: string
-}
+import qcConfig from '../../../../data/sars-cov-2/qc.json'
+import geneMapStr from '../../../../data/sars-cov-2/genemap.gff'
 
 export async function go() {
   const { threadTreePrepare, threadParse, poolAnalyze, threadTreeFinalize } = await createWorkerPools()
 
-  const treeStr = JSON.stringify(treeJson, null, 2)
-  const treePreparedStr: string = await threadTreePrepare.run(treeStr, refFastaStr)
+  const refParsed: AlgorithmInput = await threadParse.parseRefSequence(refFastaStr)
+  const refStr = refParsed.seq
 
-  const nextcladeResults: NextcladeResultWasm[] = []
+  const treeStr = JSON.stringify(treeJson, null, 2)
+  const treePreparedStr: string = await threadTreePrepare.run(treeStr, refStr)
+
+  const nextcladeResults: NextcladeWasmResult[] = []
   const status = { parserDone: true, pendingAnalysis: 0 }
+
+  const geneMapName = 'genemap.gff'
+  const pcrPrimersStr = ''
+  const qcConfigStr = JSON.stringify(qcConfig)
 
   function onSequence(seq: AlgorithmInput) {
     status.pendingAnalysis += 1
     console.log({ seq })
-    poolAnalyze.queue((worker) =>
-      worker.run(seq.index, seq.seqName, seq.seq, treePreparedStr).then((nextcladeResult) => {
+
+    poolAnalyze.queue((worker) => {
+      const params: NextcladeWasmParams = {
+        index: seq.index,
+        queryName: seq.seqName,
+        queryStr: seq.seq,
+        refStr,
+        geneMapStr,
+        geneMapName,
+        treePreparedStr,
+        pcrPrimersStr,
+        qcConfigStr,
+      }
+
+      return worker.run(params).then((nextcladeResult) => {
         console.log({ nextcladeResult })
         nextcladeResults.push(nextcladeResult)
         status.pendingAnalysis -= 1
-      }),
-    )
+      })
+    })
   }
 
   function onError(error: Error) {
@@ -45,7 +61,6 @@ export async function go() {
   }
 
   const subscription = threadParse.values().subscribe(onSequence, onError, onComplete)
-
   await threadParse.run(queryStr)
 
   await poolAnalyze.settled()
@@ -53,8 +68,9 @@ export async function go() {
 
   const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
-  const treeFinalStr = await threadTreeFinalize.run(treePreparedStr, refFastaStr, analysisResultsStr)
+  const treeFinalStr = await threadTreeFinalize.run(treePreparedStr, refStr, analysisResultsStr)
 
+  console.log({ nextcladeResults })
   console.log({ tree: JSON.parse(treeFinalStr) })
 
   await subscription.unsubscribe()

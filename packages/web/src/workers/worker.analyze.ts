@@ -5,28 +5,26 @@ import { expose } from 'threads/worker'
 
 import { loadWasmModule, runWasmModule } from './wasmModule'
 
-import qcConfig from '../../../../data/sars-cov-2/qc.json'
-import geneMapStr from '../../../../data/sars-cov-2/genemap.gff'
-import refStr from '../../../../data/sars-cov-2/reference.fasta'
+export interface NextcladeWasmParams {
+  index: number
+  queryName: string
+  queryStr: string
+  refStr: string
+  geneMapStr: string
+  geneMapName: string
+  treePreparedStr: string
+  pcrPrimersStr: string
+  qcConfigStr: string
+}
 
-export interface NextcladeResultWasm {
+export interface NextcladeWasmResult {
   ref: string
   query: string
   analysisResult: string
 }
 
 export interface NextcladeAnalysisModule {
-  runNextclade(
-    index: number,
-    queryName: string,
-    queryStr: string,
-    refStr: string,
-    geneMapStr: string,
-    geneMapName: string,
-    treePreparedStr: string,
-    pcrPrimersStr: string,
-    qcConfigStr: string,
-  ): NextcladeResultWasm
+  analyze(params: NextcladeWasmParams): NextcladeWasmResult
 }
 
 let module: NextcladeAnalysisModule | undefined
@@ -39,32 +37,27 @@ export async function init() {
   }
 }
 
-export function run(index: number, queryName: string, queryStr: string, treePreparedStr: string) {
+export function run(params: NextcladeWasmParams) {
   if (!module) {
     throw new Error(
       'Developer error: this WebAssembly module has not been initialized yet. Make sure to call `module.init()` function before `module.run()`',
     )
   }
 
-  const geneMapName = 'genemap.gff'
-  const pcrPrimersStr = ''
-  const qcConfigStr = JSON.stringify(qcConfig)
-
   return runWasmModule(module, (module) => {
     const result = module.analyze(
-      // prettier-ignore
-      index,
-      queryName,
-      queryStr,
-      refStr,
-      geneMapStr,
-      geneMapName,
-      treePreparedStr,
-      pcrPrimersStr,
-      qcConfigStr,
+      params.queryName,
+      params.queryStr,
+      params.refStr,
+      params.geneMapStr,
+      params.geneMapName,
+      params.treePreparedStr,
+      params.pcrPrimersStr,
+      params.qcConfigStr,
     )
 
     return {
+      index: params.index,
       ref: result.ref,
       query: result.query,
       analysisResult: JSON.parse(result.analysisResult),

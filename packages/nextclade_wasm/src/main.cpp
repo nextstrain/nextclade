@@ -10,41 +10,13 @@
 #include "../../packages/nextclade/src/tree/treePostprocess.h"
 #include "../../packages/nextclade/src/tree/treePreprocess.h"
 
-class ErrorFastaReader : public std::runtime_error {
-public:
-  explicit ErrorFastaReader(const std::string& message) : std::runtime_error(message) {}
-};
-
-struct ReferenceSequenceData {
-  const NucleotideSequence seq;
-  const std::string name;
-  const int length;
-};
-
-ReferenceSequenceData parseRefFastaFile(const std::string& fastaStr) {
-  std::stringstream fastaStream{fastaStr};
-
-  const auto refSeqs = parseSequences(fastaStream);
-  if (refSeqs.size() != 1) {
-    throw ErrorFastaReader(
-      fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
-  }
-
-  const auto& refSeq = refSeqs.front();
-  const auto& seq = toNucleotideSequence(refSeq.seq);
-  const auto length = static_cast<int>(seq.size());
-  return {.seq = seq, .name = refSeq.seqName, .length = length};
-}
-
-
 std::string getExceptionMessage(std::intptr_t exceptionPtr) {// NOLINT(misc-unused-parameters)
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-init-variables,performance-no-int-to-ptr)
   const std::exception* e = reinterpret_cast<std::runtime_error*>(exceptionPtr);
   return e->what();
 }
 
-
-struct NextcladeResultWasm {
+struct NextcladeWasmResult {
   std::string ref;
   std::string query;
   // std::vector<Peptide> refPeptides; // TODO: use these too
@@ -53,23 +25,21 @@ struct NextcladeResultWasm {
   std::string analysisResult;
 };
 
-NextcladeResultWasm analyze(       //
-  int index,                       //
-  const std::string& queryName,    //
-  const std::string& queryStr,     //
-  const std::string& refStr,       //
-  const std::string& geneMapStr,   //
-  const std::string& geneMapName,  //
-  const std::string& treeStr,      //
-  const std::string& pcrPrimersStr,//
-  const std::string& qcConfigStr   //
+NextcladeWasmResult analyze(         //
+  const std::string& queryName,      //
+  const std::string& queryStr,       //
+  const std::string& refStr,         //
+  const std::string& geneMapStr,     //
+  const std::string& geneMapName,    //
+  const std::string& treePreparedStr,//
+  const std::string& pcrPrimersStr,  //
+  const std::string& qcConfigStr     //
 ) {
-  const auto parsedRef = parseRefFastaFile(refStr);
-  const auto& ref = parsedRef.seq;
 
-  const auto& query = toNucleotideSequence(queryStr);
+  const auto ref = toNucleotideSequence(refStr);
+  const auto query = toNucleotideSequence(queryStr);
 
-  auto tree = Nextclade::Tree{treeStr};
+  auto tree = Nextclade::Tree{treePreparedStr};
 
   std::stringstream geneMapStream{geneMapStr};
   const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
@@ -85,7 +55,7 @@ NextcladeResultWasm analyze(       //
 
   const Nextclade::NextcladeOptions options = {
     .ref = ref,
-    .treeString = treeStr,
+    .treeString = treePreparedStr,
     .pcrPrimers = pcrPrimers,
     .geneMap = geneMap,
     .qcRulesConfig = qcRulesConfig,
@@ -103,13 +73,25 @@ NextcladeResultWasm analyze(       //
     options                              //
   );
 
-  return NextcladeResultWasm{
+  return NextcladeWasmResult{
     .ref = result.ref,
     .query = result.query,
     .analysisResult = serializeResultToString(result.analysisResult),
   };
 }
 
+AlgorithmInput parseRefSequence(const std::string& refFastaStr) {
+  std::stringstream refFastaStream{refFastaStr};
+  const auto parsed = parseSequences(refFastaStream);
+
+  if (parsed.size() != 1) {
+    throw std::runtime_error(
+      fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", parsed.size()));
+  }
+
+  const auto& refSeq = parsed.front();
+  return AlgorithmInput{.index = 0, .seqName = refSeq.seqName, .seq = refSeq.seq};
+}
 
 void parseSequencesStreaming(const std::string& queryFastaStr, const emscripten::val& onSequence,
   const emscripten::val& onComplete) {
@@ -122,17 +104,14 @@ void parseSequencesStreaming(const std::string& queryFastaStr, const emscripten:
 }
 
 std::string treePrepare(const std::string& treeStr, const std::string& refStr) {
-  const auto parsedRef = parseRefFastaFile(refStr);
-  const auto& ref = parsedRef.seq;
-
+  const auto ref = toNucleotideSequence(refStr);
   auto tree = Nextclade::Tree{treeStr};
   Nextclade::treePreprocess(tree, ref);
   return tree.serialize(0);
 }
 
 std::string treeFinalize(const std::string& treeStr, const std::string& refStr, const std::string& analysisResultsStr) {
-  const auto parsedRef = parseRefFastaFile(refStr);
-  const auto& ref = parsedRef.seq;
+  const auto ref = toNucleotideSequence(refStr);
 
   // FIXME: get actual results
   std::vector<Nextclade::AnalysisResult> analysisResults;
@@ -153,12 +132,37 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("seqName", &AlgorithmInput::seqName)
     .field("seq", &AlgorithmInput::seq);
 
-  emscripten::value_object<NextcladeResultWasm>("NextcladeResultWasm")
-    .field("ref", &NextcladeResultWasm::ref)
-    .field("query", &NextcladeResultWasm::query)
-    .field("analysisResult", &NextcladeResultWasm::analysisResult);
+  //  emscripten::class_<NextcladeWasmParams>("NextcladeWasmParams")
+  //    .constructor<>()
+  //    .property("index", &NextcladeWasmParams::index)
+  //    .property("queryName", &NextcladeWasmParams::queryName)
+  //    .property("queryStr", &NextcladeWasmParams::queryStr)
+  //    .property("refStr", &NextcladeWasmParams::refStr)
+  //    .property("geneMapStr", &NextcladeWasmParams::geneMapStr)
+  //    .property("geneMapName", &NextcladeWasmParams::geneMapName)
+  //    .property("treeStr", &NextcladeWasmParams::treeStr)
+  //    .property("pcrPrimersStr", &NextcladeWasmParams::pcrPrimersStr)
+  //    .property("qcConfigStr", &NextcladeWasmParams::qcConfigStr);
+
+
+  //  emscripten::value_object<NextcladeWasmParams>("NextcladeWasmParams")
+  //    .field("index", &NextcladeWasmParams::index)
+  //    .field("queryName", &NextcladeWasmParams::queryName)
+  //    .field("queryStr", &NextcladeWasmParams::queryStr)
+  //    .field("refStr", &NextcladeWasmParams::refStr)
+  //    .field("geneMapStr", &NextcladeWasmParams::geneMapStr)
+  //    .field("geneMapName", &NextcladeWasmParams::geneMapName)
+  //    .field("treeStr", &NextcladeWasmParams::treeStr)
+  //    .field("pcrPrimersStr", &NextcladeWasmParams::pcrPrimersStr)
+  //    .field("qcConfigStr", &NextcladeWasmParams::qcConfigStr);
+
+  emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
+    .field("ref", &NextcladeWasmResult::ref)
+    .field("query", &NextcladeWasmResult::query)
+    .field("analysisResult", &NextcladeWasmResult::analysisResult);
 
   emscripten::function("treePrepare", &treePrepare);
+  emscripten::function("parseRefSequence", &parseRefSequence);
   emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
   emscripten::function("analyze", &analyze);
   emscripten::function("treeFinalize", &treeFinalize);
