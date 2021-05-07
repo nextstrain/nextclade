@@ -1,0 +1,28 @@
+version: "{build}"
+branches:
+  except:
+    - /^(wip\/)?(travis|osx)(\-.+)?$/
+
+environment:
+  matrix:
+    - COMPILER: msvc
+      VS_VERSION: 9.0
+    - COMPILER: msvc
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      VS_YEAR: 2019
+    - COMPILER: pelles
+
+    - COMPILER: msvc
+      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VS_YEAR: 2017
+    - COMPILER: msvc
+      VS_VERSION: 14.0
+    - COMPILER: msvc
+      VS_VERSION: 12.0
+    - COMPILER: msvc
+      VS_VERSION: 11.0
+    - COMPILER: msvc
+      VS_VERSION: 10.0
+
+build_script:
+  - .appveyor.bat

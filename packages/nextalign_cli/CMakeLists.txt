@@ -63,6 +63,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME} SYSTEM
   PRIVATE
+  "${CMAKE_SOURCE_DIR}/3rdparty/hedley"
   "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
   )
 
