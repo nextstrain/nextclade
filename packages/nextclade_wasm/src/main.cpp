@@ -5,6 +5,7 @@
 #include <nextclade/private/nextclade_private.h>
 
 #include <exception>
+#include <utility>
 
 #include "../../packages/nextclade/src/tree/treeAttachNodes.h"
 #include "../../packages/nextclade/src/tree/treePostprocess.h"
@@ -25,60 +26,78 @@ struct NextcladeWasmResult {
   std::string analysisResult;
 };
 
-NextcladeWasmResult analyze(         //
-  const std::string& queryName,      //
-  const std::string& queryStr,       //
-  const std::string& refStr,         //
-  const std::string& geneMapStr,     //
-  const std::string& geneMapName,    //
-  const std::string& treePreparedStr,//
-  const std::string& pcrPrimersStr,  //
-  const std::string& qcConfigStr     //
-) {
+class NextcladeWasm {
+  std::string refStr;
+  std::string geneMapStr;
+  std::string geneMapName;
+  std::string treePreparedStr;
+  std::string pcrPrimersStr;
+  std::string qcConfigStr;
 
-  const auto ref = toNucleotideSequence(refStr);
-  const auto query = toNucleotideSequence(queryStr);
+public:
+  NextcladeWasm(                //
+    std::string refStr,         //
+    std::string geneMapStr,     //
+    std::string geneMapName,    //
+    std::string treePreparedStr,//
+    std::string pcrPrimersStr,  //
+    std::string qcConfigStr     //
+    )
+      : refStr(std::move(refStr)),
+        geneMapStr(std::move(geneMapStr)),
+        geneMapName(std::move(geneMapName)),
+        treePreparedStr(std::move(treePreparedStr)),
+        pcrPrimersStr(std::move(pcrPrimersStr)),
+        qcConfigStr(std::move(qcConfigStr)) {}
 
-  auto tree = Nextclade::Tree{treePreparedStr};
+  NextcladeWasmResult analyze(   //
+    const std::string& queryName,//
+    const std::string& queryStr  //
+  ) {
+    const auto ref = toNucleotideSequence(refStr);
+    const auto query = toNucleotideSequence(queryStr);
 
-  std::stringstream geneMapStream{geneMapStr};
-  const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
+    auto tree = Nextclade::Tree{treePreparedStr};
 
-  // FIXME: parse PCR primers
-  // auto pcrPrimers = convertPcrPrimers(pcrPrimersStr);
-  std::vector<Nextclade::PcrPrimer> pcrPrimers;
+    std::stringstream geneMapStream{geneMapStr};
+    const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
 
-  Nextclade::QcConfig qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
+    // FIXME: parse PCR primers
+    // auto pcrPrimers = convertPcrPrimers(pcrPrimersStr);
+    std::vector<Nextclade::PcrPrimer> pcrPrimers;
 
-  // FIXME: pass options from JS
-  const auto nextalignOptions = getDefaultOptions();
+    Nextclade::QcConfig qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
 
-  const Nextclade::NextcladeOptions options = {
-    .ref = ref,
-    .treeString = treePreparedStr,
-    .pcrPrimers = pcrPrimers,
-    .geneMap = geneMap,
-    .qcRulesConfig = qcRulesConfig,
-    .nextalignOptions = nextalignOptions,
-  };
+    // FIXME: pass options from JS
+    const auto nextalignOptions = getDefaultOptions();
 
-  const auto result = analyzeOneSequence(//
-    queryName,                           //
-    ref,                                 //
-    query,                               //
-    geneMap,                             //
-    pcrPrimers,                          //
-    qcRulesConfig,                       //
-    tree,                                //
-    options                              //
-  );
+    const Nextclade::NextcladeOptions options = {
+      .ref = ref,
+      .treeString = treePreparedStr,
+      .pcrPrimers = pcrPrimers,
+      .geneMap = geneMap,
+      .qcRulesConfig = qcRulesConfig,
+      .nextalignOptions = nextalignOptions,
+    };
 
-  return NextcladeWasmResult{
-    .ref = result.ref,
-    .query = result.query,
-    .analysisResult = serializeResultToString(result.analysisResult),
-  };
-}
+    const auto result = analyzeOneSequence(//
+      queryName,                           //
+      ref,                                 //
+      query,                               //
+      geneMap,                             //
+      pcrPrimers,                          //
+      qcRulesConfig,                       //
+      tree,                                //
+      options                              //
+    );
+
+    return NextcladeWasmResult{
+      .ref = result.ref,
+      .query = result.query,
+      .analysisResult = serializeResultToString(result.analysisResult),
+    };
+  }
+};
 
 AlgorithmInput parseRefSequence(const std::string& refFastaStr) {
   std::stringstream refFastaStream{refFastaStr};
@@ -128,6 +147,13 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("seqName", &AlgorithmInput::seqName)
     .field("seq", &AlgorithmInput::seq);
 
+
+  emscripten::class_<NextcladeWasm>("NextcladeWasm")                                            //
+    .constructor<std::string, std::string, std::string, std::string, std::string, std::string>()//
+    .function("analyze", &NextcladeWasm::analyze)                                               //
+    ;                                                                                           //
+
+
   //  emscripten::class_<NextcladeWasmParams>("NextcladeWasmParams")
   //    .constructor<>()
   //    .property("index", &NextcladeWasmParams::index)
@@ -160,6 +186,5 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::function("treePrepare", &treePrepare);
   emscripten::function("parseRefSequence", &parseRefSequence);
   emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
-  emscripten::function("analyze", &analyze);
   emscripten::function("treeFinalize", &treeFinalize);
 }

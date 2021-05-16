@@ -48,9 +48,7 @@ export function run(seq: AlgorithmInput) {
   }
 
   return runWasmModule(module, (module) => {
-    const result = module.analyze(
-      seq.seqName,
-      seq.seq,
+    const nextcladeWasm = new module.NextcladeWasm(
       gParams.refStr,
       gParams.geneMapStr,
       gParams.geneMapName,
@@ -58,6 +56,10 @@ export function run(seq: AlgorithmInput) {
       gParams.pcrPrimersStr,
       gParams.qcConfigStr,
     )
+
+    const result = nextcladeWasm.analyze(seq.seqName, seq.seq)
+
+    nextcladeWasm.delete()
 
     return {
       index: seq.index,
