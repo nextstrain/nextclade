@@ -1,4 +1,4 @@
-/* eslint-disable promise/always-return */
+/* eslint-disable promise/always-return,array-func/no-unnecessary-this-arg */
 import React, { useEffect, useState } from 'react'
 
 import { concurrent } from 'fasy'
@@ -24,11 +24,24 @@ const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
 
 export async function go() {
+  const threadParse = await spawn<ParseThread>(new Worker('src/workers/worker.parse.ts', { name: 'worker.parse' }))
+  await threadParse.init()
+
+  const refParsed: AlgorithmInput = await threadParse.parseRefSequence(refFastaStr)
+  const refStr = refParsed.seq
+
   const threadTreePrepare = await spawn<TreePrepareThread>(new Worker('src/workers/worker.treePrepare.ts', { name: 'worker.treePrepare' })) // prettier-ignore
   await threadTreePrepare.init()
 
-  const threadParse = await spawn<ParseThread>(new Worker('src/workers/worker.parse.ts', { name: 'worker.parse' }))
-  await threadParse.init()
+  const treeStr = JSON.stringify(treeJson, null, 2)
+  const treePreparedStr: string = await threadTreePrepare.run(treeStr, refStr)
+
+  const nextcladeResults: NextcladeWasmResult[] = []
+  const status = { parserDone: true, pendingAnalysis: 0 }
+
+  const geneMapName = 'genemap.gff'
+  const pcrPrimersStr = ''
+  const qcConfigStr = JSON.stringify(qcConfig)
 
   const poolAnalyze = Pool<AnalysisThread>(
     () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
@@ -44,22 +57,6 @@ export async function go() {
     async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init()),
     Array.from({ length: numThreads }, () => undefined),
   )
-
-  const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('src/workers/worker.treeFinalize.ts', { name: 'worker.treeFinalize' })) // prettier-ignore
-  await threadTreeFinalize.init()
-
-  const refParsed: AlgorithmInput = await threadParse.parseRefSequence(refFastaStr)
-  const refStr = refParsed.seq
-
-  const treeStr = JSON.stringify(treeJson, null, 2)
-  const treePreparedStr: string = await threadTreePrepare.run(treeStr, refStr)
-
-  const nextcladeResults: NextcladeWasmResult[] = []
-  const status = { parserDone: true, pendingAnalysis: 0 }
-
-  const geneMapName = 'genemap.gff'
-  const pcrPrimersStr = ''
-  const qcConfigStr = JSON.stringify(qcConfig)
 
   function onSequence(seq: AlgorithmInput) {
     status.pendingAnalysis += 1
@@ -99,6 +96,9 @@ export async function go() {
 
   await poolAnalyze.settled()
   await poolAnalyze.terminate()
+
+  const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('src/workers/worker.treeFinalize.ts', { name: 'worker.treeFinalize' })) // prettier-ignore
+  await threadTreeFinalize.init()
 
   const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
