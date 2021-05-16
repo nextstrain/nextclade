@@ -16,7 +16,9 @@
 
 struct CliParams {
   int jobs{};
+  std::string verbosity;
   bool verbose{};
+  bool silent{};
   bool inOrder{};
   std::string sequences;
   std::string reference;
@@ -149,8 +151,23 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(int a
     )
 
     (
+      "verbosity",
+      fmt::format("(optional, string) Set minimum verbosity level of console output."
+        " Possible values are (from least verbose to most verbose): {}."
+        " Default: 'warn' (only errors and warnings are shown).",
+        Logger::getVerbosityLevels()),
+      cxxopts::value<std::string>()->default_value(Logger::getVerbosityDefaultLevel()),
+      "VERBOSITY"
+    )
+
+    (
       "verbose",
-      "Increase verbosity of the console output. By default only errors and warnings are shown. With this option more information will be printed."
+      "(optional, boolean) Increase verbosity of the console output. Same as --verbosity=info."
+    )
+
+    (
+      "silent",
+      "(optional, boolean) Disable console output entirely. --verbosity=silent."
     )
 
     (
@@ -363,7 +380,10 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(int a
     CliParams cliParams;
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
     cliParams.inOrder = getParamRequiredDefaulted<bool>(cxxOptsParsed, "in-order");
+    cliParams.verbosity = getParamRequiredDefaulted<std::string>(cxxOptsParsed, "verbosity");
     cliParams.verbose = getParamRequiredDefaulted<bool>(cxxOptsParsed, "verbose");
+    cliParams.silent = getParamRequiredDefaulted<bool>(cxxOptsParsed, "silent");
+
     cliParams.sequences = getParamRequired<std::string>(cxxOptsParsed, "sequences");
     cliParams.reference = getParamRequired<std::string>(cxxOptsParsed, "reference");
     cliParams.genemap = getParamOptional<std::string>(cxxOptsParsed, "genemap");
@@ -731,13 +751,16 @@ int main(int argc, char *argv[]) {
     const auto [cliParams, cxxOpts, options] = parseCommandLine(argc, argv);
     const auto helpText = cxxOpts.help();
 
-    Logger::Options loggerOptions;
+    auto verbosity = Logger::convertVerbosity(cliParams.verbosity);
     if (cliParams.verbose) {
-      loggerOptions.verbosity = Logger::Verbosity::info;
+      verbosity = Logger::Verbosity::info;
     }
 
-    Logger logger{loggerOptions};
+    if (cliParams.silent) {
+      verbosity = Logger::Verbosity::silent;
+    }
 
+    Logger logger{Logger::Options{.verbosity = verbosity}};
     logger.info(formatCliParams(cliParams));
 
     const auto refData = parseRefFastaFile(cliParams.reference);
