@@ -3,12 +3,10 @@ import 'regenerator-runtime'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
+import type { AlgorithmInput } from 'src/workers/worker.parse'
 import { loadWasmModule, runWasmModule } from './wasmModule'
 
 export interface NextcladeWasmParams {
-  index: number
-  queryName: string
-  queryStr: string
   refStr: string
   geneMapStr: string
   geneMapName: string
@@ -24,21 +22,26 @@ export interface NextcladeWasmResult {
 }
 
 export interface NextcladeAnalysisModule {
-  analyze(params: NextcladeWasmParams): NextcladeWasmResult
+  init(params: NextcladeWasmParams): void
+
+  analyze(seq: AlgorithmInput): NextcladeWasmResult
 }
 
 let module: NextcladeAnalysisModule | undefined
 
-export async function init() {
+let gParams: NextcladeWasmParams | undefined
+
+export async function init(params: NextcladeWasmParams) {
   try {
+    gParams = params
     module = await loadWasmModule('nextclade_wasm')
   } catch (error) {
     console.error(error)
   }
 }
 
-export function run(params: NextcladeWasmParams) {
-  if (!module) {
+export function run(seq: AlgorithmInput) {
+  if (!module || !gParams) {
     throw new Error(
       'Developer error: this WebAssembly module has not been initialized yet. Make sure to call `module.init()` function before `module.run()`',
     )
@@ -46,18 +49,18 @@ export function run(params: NextcladeWasmParams) {
 
   return runWasmModule(module, (module) => {
     const result = module.analyze(
-      params.queryName,
-      params.queryStr,
-      params.refStr,
-      params.geneMapStr,
-      params.geneMapName,
-      params.treePreparedStr,
-      params.pcrPrimersStr,
-      params.qcConfigStr,
+      seq.seqName,
+      seq.seq,
+      gParams.refStr,
+      gParams.geneMapStr,
+      gParams.geneMapName,
+      gParams.treePreparedStr,
+      gParams.pcrPrimersStr,
+      gParams.qcConfigStr,
     )
 
     return {
-      index: params.index,
+      index: seq.index,
       ref: result.ref,
       query: result.query,
       analysisResult: JSON.parse(result.analysisResult),

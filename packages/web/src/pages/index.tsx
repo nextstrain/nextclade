@@ -52,9 +52,17 @@ export async function go() {
       maxQueuedJobs: undefined,
     },
   )
+  const params: NextcladeWasmParams = {
+    refStr,
+    geneMapStr,
+    geneMapName,
+    treePreparedStr,
+    pcrPrimersStr,
+    qcConfigStr,
+  }
 
   await concurrent.forEach(
-    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init()),
+    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
     Array.from({ length: numThreads }, () => undefined),
   )
 
@@ -63,19 +71,7 @@ export async function go() {
     console.log({ seq })
 
     poolAnalyze.queue((worker) => {
-      const params: NextcladeWasmParams = {
-        index: seq.index,
-        queryName: seq.seqName,
-        queryStr: seq.seq,
-        refStr,
-        geneMapStr,
-        geneMapName,
-        treePreparedStr,
-        pcrPrimersStr,
-        qcConfigStr,
-      }
-
-      return worker.run(params).then((nextcladeResult) => {
+      return worker.run(seq).then((nextcladeResult) => {
         console.log({ nextcladeResult })
         nextcladeResults.push(nextcladeResult)
         status.pendingAnalysis -= 1
