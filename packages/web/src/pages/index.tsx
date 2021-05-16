@@ -1,9 +1,18 @@
 /* eslint-disable promise/always-return */
 import React, { useEffect, useState } from 'react'
 
-import type { NextcladeWasmParams, NextcladeWasmResult } from 'src/workers/worker.analyze'
-import type { AlgorithmInput } from 'src/workers/worker.parse'
-import { createWorkerPools } from 'src/workers/createWorkerPools'
+import { concurrent } from 'fasy'
+import { Pool, spawn, Worker } from 'threads'
+
+import type { AlgorithmInput, ParseThread } from 'src/workers/worker.parse'
+import type {
+  AnalysisWorker,
+  AnalysisThread,
+  NextcladeWasmParams,
+  NextcladeWasmResult,
+} from 'src/workers/worker.analyze'
+import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
+import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 
 import queryStr from '../../../../data/sars-cov-2/sequences.fasta'
 import treeJson from '../../../../data/sars-cov-2/tree.json'
@@ -11,8 +20,33 @@ import refFastaStr from '../../../../data/sars-cov-2/reference.fasta'
 import qcConfig from '../../../../data/sars-cov-2/qc.json'
 import geneMapStr from '../../../../data/sars-cov-2/genemap.gff'
 
+const DEFAULT_NUM_THREADS = 4
+const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
+
 export async function go() {
-  const { threadTreePrepare, threadParse, poolAnalyze, threadTreeFinalize } = await createWorkerPools()
+  const threadTreePrepare = await spawn<TreePrepareThread>(new Worker('src/workers/worker.treePrepare.ts', { name: 'worker.treePrepare' })) // prettier-ignore
+  await threadTreePrepare.init()
+
+  const threadParse = await spawn<ParseThread>(new Worker('src/workers/worker.parse.ts', { name: 'worker.parse' }))
+  await threadParse.init()
+
+  const poolAnalyze = Pool<AnalysisThread>(
+    () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
+    {
+      size: numThreads,
+      concurrency: 1,
+      name: 'wasm',
+      maxQueuedJobs: undefined,
+    },
+  )
+
+  await concurrent.forEach(
+    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init()),
+    Array.from({ length: numThreads }, () => undefined),
+  )
+
+  const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('src/workers/worker.treeFinalize.ts', { name: 'worker.treeFinalize' })) // prettier-ignore
+  await threadTreeFinalize.init()
 
   const refParsed: AlgorithmInput = await threadParse.parseRefSequence(refFastaStr)
   const refStr = refParsed.seq
