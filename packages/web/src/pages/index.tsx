@@ -4,15 +4,24 @@ import React, { useEffect, useState } from 'react'
 import { concurrent } from 'fasy'
 import { Pool, spawn, Worker } from 'threads'
 
-import type { AlgorithmInput, ParseThread } from 'src/workers/worker.parse'
+import type { ParseSeqResult } from 'src/workers/types'
+
 import type {
   AnalysisWorker,
   AnalysisThread,
   NextcladeWasmParams,
   NextcladeWasmResult,
 } from 'src/workers/worker.analyze'
-import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
-import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
+
+import {
+  parseGeneMapGffString,
+  parsePcrPrimersCsvString,
+  parseQcConfigString,
+  parseRefSequence,
+  parseSequencesStreaming,
+  treeFinalize,
+  treePrepare,
+} from 'src/workers/run'
 
 import queryStr from '../../../../data/sars-cov-2/sequences.fasta'
 import treeJson from '../../../../data/sars-cov-2/tree.json'
@@ -25,23 +34,15 @@ const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
 
 export async function go() {
-  const threadParse = await spawn<ParseThread>(new Worker('src/workers/worker.parse.ts', { name: 'worker.parse' }))
-  const refParsed: AlgorithmInput = await threadParse.parseRefSequence(refFastaStr)
-  const refStr = refParsed.seq
-
-  const threadTreePrepare = await spawn<TreePrepareThread>(new Worker('src/workers/worker.treePrepare.ts', { name: 'worker.treePrepare' })) // prettier-ignore
-  const treeStr = JSON.stringify(treeJson, null, 2)
-  const treePreparedStr = await threadTreePrepare.treePrepare(treeStr, refStr)
-
-  const nextcladeResults: NextcladeWasmResult[] = []
-  const status = { parserDone: true, pendingAnalysis: 0 }
+  const refStr = await parseRefSequence(refFastaStr)
+  const treePreparedStr = await treePrepare(JSON.stringify(treeJson), refStr)
 
   const geneMapName = 'genemap.gff'
   const pcrPrimersFilename = 'primers.csv'
 
-  const geneMapStr = await threadParse.parseGeneMapGffString(geneMapStrRaw, geneMapName)
-  const qcConfigStr = await threadParse.parseQcConfigString(JSON.stringify(qcConfigRaw))
-  const pcrPrimersStr = await threadParse.parsePcrPrimersCsvString(pcrPrimersStrRaw, pcrPrimersFilename, refStr)
+  const geneMapStr = await parseGeneMapGffString(geneMapStrRaw, geneMapName)
+  const qcConfigStr = await parseQcConfigString(JSON.stringify(qcConfigRaw))
+  const pcrPrimersStr = await parsePcrPrimersCsvString(pcrPrimersStrRaw, pcrPrimersFilename, refStr)
 
   const poolAnalyze = Pool<AnalysisThread>(
     () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
@@ -52,6 +53,7 @@ export async function go() {
       maxQueuedJobs: undefined,
     },
   )
+
   const params: NextcladeWasmParams = {
     refStr,
     geneMapStr,
@@ -67,7 +69,10 @@ export async function go() {
     Array.from({ length: numThreads }, () => undefined),
   )
 
-  function onSequence(seq: AlgorithmInput) {
+  const nextcladeResults: NextcladeWasmResult[] = []
+  const status = { parserDone: true, pendingAnalysis: 0 }
+
+  function onSequence(seq: ParseSeqResult) {
     status.pendingAnalysis += 1
     console.log({ seq })
 
@@ -88,8 +93,7 @@ export async function go() {
     status.parserDone = true
   }
 
-  const subscription = threadParse.values().subscribe(onSequence, onError, onComplete)
-  await threadParse.parseSequencesStreaming(queryStr)
+  await parseSequencesStreaming(queryStr, onSequence, onError, onComplete)
 
   await poolAnalyze.completed()
   await concurrent.forEach(
@@ -98,15 +102,12 @@ export async function go() {
   )
   await poolAnalyze.terminate()
 
-  const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('src/workers/worker.treeFinalize.ts', { name: 'worker.treeFinalize' })) // prettier-ignore
   const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
-  const treeFinalStr = await threadTreeFinalize.treeFinalize(treePreparedStr, refStr, analysisResultsStr)
+  const treeFinalStr = await treeFinalize(treePreparedStr, refStr, analysisResultsStr)
 
   console.log({ nextcladeResults })
   console.log({ tree: JSON.parse(treeFinalStr) })
-
-  await subscription.unsubscribe()
 
   // return [result, ...poolResult].join(', ')
 }
