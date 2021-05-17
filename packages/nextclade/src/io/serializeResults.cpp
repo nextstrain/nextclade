@@ -50,8 +50,8 @@ namespace Nextclade {
       j.emplace("name", pcrPrimer.name);
       j.emplace("target", pcrPrimer.target);
       j.emplace("source", pcrPrimer.source);
-      j.emplace("rootOligonuc", pcrPrimer.rootOligonuc);
-      j.emplace("primerOligonuc", pcrPrimer.primerOligonuc);
+      j.emplace("rootOligonuc", toString(pcrPrimer.rootOligonuc));
+      j.emplace("primerOligonuc", toString(pcrPrimer.primerOligonuc));
       j.emplace("range", serializeRange(pcrPrimer.range));
       j.emplace("nonACGTs", serializeArray(pcrPrimer.nonAcgts, serializeNucleotideLocation));
       return j;
