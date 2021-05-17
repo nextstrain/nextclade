@@ -25,16 +25,12 @@ const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
 
 export async function go() {
   const threadParse = await spawn<ParseThread>(new Worker('src/workers/worker.parse.ts', { name: 'worker.parse' }))
-  await threadParse.init()
-
   const refParsed: AlgorithmInput = await threadParse.parseRefSequence(refFastaStr)
   const refStr = refParsed.seq
 
   const threadTreePrepare = await spawn<TreePrepareThread>(new Worker('src/workers/worker.treePrepare.ts', { name: 'worker.treePrepare' })) // prettier-ignore
-  await threadTreePrepare.init()
-
   const treeStr = JSON.stringify(treeJson, null, 2)
-  const treePreparedStr: string = await threadTreePrepare.run(treeStr, refStr)
+  const treePreparedStr = await threadTreePrepare.treePrepare(treeStr, refStr)
 
   const nextcladeResults: NextcladeWasmResult[] = []
   const status = { parserDone: true, pendingAnalysis: 0 }
@@ -71,7 +67,7 @@ export async function go() {
     console.log({ seq })
 
     poolAnalyze.queue((worker) => {
-      return worker.run(seq).then((nextcladeResult) => {
+      return worker.analyze(seq).then((nextcladeResult) => {
         console.log({ nextcladeResult })
         nextcladeResults.push(nextcladeResult)
         status.pendingAnalysis -= 1
@@ -88,17 +84,19 @@ export async function go() {
   }
 
   const subscription = threadParse.values().subscribe(onSequence, onError, onComplete)
-  await threadParse.run(queryStr)
+  await threadParse.parseSequencesStreaming(queryStr)
 
-  await poolAnalyze.settled()
+  await poolAnalyze.completed()
+  await concurrent.forEach(
+    async () => poolAnalyze.queue((worker: AnalysisThread) => worker.destroy()),
+    Array.from({ length: numThreads }, () => undefined),
+  )
   await poolAnalyze.terminate()
 
   const threadTreeFinalize = await spawn<TreeFinalizeThread>(new Worker('src/workers/worker.treeFinalize.ts', { name: 'worker.treeFinalize' })) // prettier-ignore
-  await threadTreeFinalize.init()
-
   const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
-  const treeFinalStr = await threadTreeFinalize.run(treePreparedStr, refStr, analysisResultsStr)
+  const treeFinalStr = await threadTreeFinalize.treeFinalize(treePreparedStr, refStr, analysisResultsStr)
 
   console.log({ nextcladeResults })
   console.log({ tree: JSON.parse(treeFinalStr) })

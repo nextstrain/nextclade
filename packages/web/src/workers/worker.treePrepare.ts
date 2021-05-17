@@ -8,33 +8,14 @@ export interface TreePrepareSequencesWasmModule {
   treePrepare(treeStr: string, refFastaStr: string): string
 }
 
-let module: TreePrepareSequencesWasmModule | undefined
-
-export async function init() {
-  try {
-    module = await loadWasmModule('nextclade_wasm')
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-export function run(treeStr: string, refFastaStr: string) {
-  if (!module) {
-    throw new Error(
-      'Developer error: this WebAssembly module has not been initialized yet. Make sure to call `module.init()` function before `module.run()`',
-    )
-  }
-
-  return runWasmModule(module, (module) => {
+export async function treePrepare(treeStr: string, refFastaStr: string) {
+  const module = await loadWasmModule<TreePrepareSequencesWasmModule>('nextclade_wasm')
+  return runWasmModule<TreePrepareSequencesWasmModule, string>(module, (module) => {
     return module.treePrepare(treeStr, refFastaStr)
   })
 }
 
-const treePrepareWorker = {
-  init,
-  run,
-}
-
+const treePrepareWorker = { treePrepare }
 export type TreePrepareWorker = typeof treePrepareWorker
 export type TreePrepareThread = TreePrepareWorker
 

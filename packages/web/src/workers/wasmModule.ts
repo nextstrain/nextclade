@@ -4,15 +4,13 @@ import serializeJavascript from 'serialize-javascript'
 import emscriptenJsRaw from 'wasm/nextclade_wasm'
 import wasmPath from 'wasm/nextclade_wasm.wasm'
 
-type MyModule = any
-
 type EmscriptenRuntimeModule = any
 
 export class WasmNativeError extends Error {}
 
 export class WasmNativeErrorUnknown extends Error {}
 
-export async function runWasmModule<T>(module: MyModule, runFunction: (module: MyModule) => T) {
+export async function runWasmModule<MyModule, T>(module: MyModule, runFunction: (module: MyModule) => T): Promise<T> {
   try {
     return runFunction(module)
   } catch (error: unknown) {
@@ -33,7 +31,7 @@ export async function runWasmModule<T>(module: MyModule, runFunction: (module: M
   }
 }
 
-export async function loadWasmModule(name: string): Promise<MyModule> {
+export async function loadWasmModule<MyModule>(name: string): Promise<MyModule> {
   return new Promise((resolve) => {
     const js = emscriptenJsRaw as EmscriptenRuntimeModule
     const module = js({
