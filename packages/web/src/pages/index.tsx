@@ -19,6 +19,7 @@ import treeJson from '../../../../data/sars-cov-2/tree.json'
 import refFastaStr from '../../../../data/sars-cov-2/reference.fasta'
 import qcConfig from '../../../../data/sars-cov-2/qc.json'
 import geneMapStr from '../../../../data/sars-cov-2/genemap.gff'
+import pcrPrimersStr from '../../../../data/sars-cov-2/primers.csv'
 
 const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
@@ -36,7 +37,7 @@ export async function go() {
   const status = { parserDone: true, pendingAnalysis: 0 }
 
   const geneMapName = 'genemap.gff'
-  const pcrPrimersStr = ''
+  const pcrPrimersFilename = 'primers.csv'
   const qcConfigStr = JSON.stringify(qcConfig)
 
   const poolAnalyze = Pool<AnalysisThread>(
@@ -54,6 +55,7 @@ export async function go() {
     geneMapName,
     treePreparedStr,
     pcrPrimersStr,
+    pcrPrimersFilename,
     qcConfigStr,
   }
 

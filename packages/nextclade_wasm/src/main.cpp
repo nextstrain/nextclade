@@ -32,22 +32,25 @@ class NextcladeWasm {
   std::string geneMapName;
   std::string treePreparedStr;
   std::string pcrPrimersStr;
+  std::string pcrPrimersFilename;
   std::string qcConfigStr;
 
 public:
-  NextcladeWasm(                //
-    std::string refStr,         //
-    std::string geneMapStr,     //
-    std::string geneMapName,    //
-    std::string treePreparedStr,//
-    std::string pcrPrimersStr,  //
-    std::string qcConfigStr     //
+  NextcladeWasm(                   //
+    std::string refStr,            //
+    std::string geneMapStr,        //
+    std::string geneMapName,       //
+    std::string treePreparedStr,   //
+    std::string pcrPrimersStr,     //
+    std::string pcrPrimersFilename,//
+    std::string qcConfigStr        //
     )
       : refStr(std::move(refStr)),
         geneMapStr(std::move(geneMapStr)),
         geneMapName(std::move(geneMapName)),
         treePreparedStr(std::move(treePreparedStr)),
         pcrPrimersStr(std::move(pcrPrimersStr)),
+        pcrPrimersFilename(std::move(pcrPrimersFilename)),
         qcConfigStr(std::move(qcConfigStr)) {}
 
   NextcladeWasmResult analyze(   //
@@ -62,9 +65,8 @@ public:
     std::stringstream geneMapStream{geneMapStr};
     const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
 
-    // FIXME: parse PCR primers
-    // auto pcrPrimers = convertPcrPrimers(pcrPrimersStr);
-    std::vector<Nextclade::PcrPrimer> pcrPrimers;
+    std::vector<std::string> warnings;
+    auto pcrPrimers = Nextclade::parsePcrPrimersCsv(pcrPrimersStr, pcrPrimersFilename, ref, warnings);
 
     Nextclade::QcConfig qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
 
@@ -148,10 +150,10 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("seq", &AlgorithmInput::seq);
 
 
-  emscripten::class_<NextcladeWasm>("NextcladeWasm")                                            //
-    .constructor<std::string, std::string, std::string, std::string, std::string, std::string>()//
-    .function("analyze", &NextcladeWasm::analyze)                                               //
-    ;                                                                                           //
+  emscripten::class_<NextcladeWasm>("NextcladeWasm")                                                         //
+    .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string>()//
+    .function("analyze", &NextcladeWasm::analyze)                                                            //
+    ;                                                                                                        //
 
 
   //  emscripten::class_<NextcladeWasmParams>("NextcladeWasmParams")

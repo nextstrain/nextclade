@@ -12,6 +12,7 @@ export interface NextcladeWasmParams {
   geneMapName: string
   treePreparedStr: string
   pcrPrimersStr: string
+  pcrPrimersFilename: string
   qcConfigStr: string
 }
 
@@ -31,6 +32,7 @@ export interface NextcladeWasmClass {
     geneMapName: string,
     treePreparedStr: string,
     pcrPrimersStr: string,
+    pcrPrimersFilename: string,
     qcConfigStr: string,
   ): NextcladeWasmClass
 
@@ -62,6 +64,7 @@ export async function init(params: NextcladeWasmParams) {
       params.geneMapName,
       params.treePreparedStr,
       params.pcrPrimersStr,
+      params.pcrPrimersFilename,
       params.qcConfigStr,
     )
   })

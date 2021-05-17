@@ -89,14 +89,14 @@ namespace Nextclade {
   }
 
   PcrPrimer parsePcrPrimer(const json& j) {
-    return {
+    return PcrPrimer{
       .name = at(j, "name"),
       .target = at(j, "target"),
       .source = at(j, "source"),
       .rootOligonuc = toNucleotideSequence(at(j, "rootOligonuc")),
       .primerOligonuc = toNucleotideSequence(at(j, "primerOligonuc")),
       .range = parseRange(at(j, "range")),
-      .nonAcgts = parseArray<NucleotideLocation>(j, "nonAcgts", parseNucleotideLocation),
+      .nonAcgts = parseArray<NucleotideLocation>(j, "nonACGTs", parseNucleotideLocation),
     };
   }
 
