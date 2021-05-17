@@ -28,6 +28,12 @@ function onError(error: Error) {
 export interface ParseSequencesWasmModule {
   parseRefSequence(fastaStr: string): AlgorithmInput
 
+  parseGeneMapGffString(geneMapStr: string, geneMapName: string): string
+
+  parseQcConfigString(qcConfigStr: string): string
+
+  parsePcrPrimersCsvString(pcrPrimersStr: string, pcrPrimersFilename: string, refStr: string): string
+
   parseSequencesStreaming(fastaStr: string, onSequence: (seq: AlgorithmInput) => void, onComplete: () => void): void
 }
 
@@ -49,9 +55,31 @@ export async function parseRefSequence(refFastaStr: string) {
   )
 }
 
+export async function parseGeneMapGffString(geneMapStr: string, geneMapName: string) {
+  const module = await loadWasmModule<ParseSequencesWasmModule>('nextclade_wasm')
+  return runWasmModule<ParseSequencesWasmModule, string>(module, (module) =>
+    module.parseGeneMapGffString(geneMapStr, geneMapName),
+  )
+}
+
+export async function parseQcConfigString(qcConfigStr: string) {
+  const module = await loadWasmModule<ParseSequencesWasmModule>('nextclade_wasm')
+  return runWasmModule<ParseSequencesWasmModule, string>(module, (module) => module.parseQcConfigString(qcConfigStr))
+}
+
+export async function parsePcrPrimersCsvString(pcrPrimersStr: string, pcrPrimersFilename: string, refStr: string) {
+  const module = await loadWasmModule<ParseSequencesWasmModule>('nextclade_wasm')
+  return runWasmModule<ParseSequencesWasmModule, string>(module, (module) =>
+    module.parsePcrPrimersCsvString(pcrPrimersStr, pcrPrimersFilename, refStr),
+  )
+}
+
 const worker = {
   parseRefSequence,
   parseSequencesStreaming,
+  parseGeneMapGffString,
+  parseQcConfigString,
+  parsePcrPrimersCsvString,
   values(): ThreadsObservable<AlgorithmInput> {
     return ThreadsObservable.from(gSubject)
   },

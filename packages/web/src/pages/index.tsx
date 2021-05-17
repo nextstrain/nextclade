@@ -17,9 +17,9 @@ import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 import queryStr from '../../../../data/sars-cov-2/sequences.fasta'
 import treeJson from '../../../../data/sars-cov-2/tree.json'
 import refFastaStr from '../../../../data/sars-cov-2/reference.fasta'
-import qcConfig from '../../../../data/sars-cov-2/qc.json'
-import geneMapStr from '../../../../data/sars-cov-2/genemap.gff'
-import pcrPrimersStr from '../../../../data/sars-cov-2/primers.csv'
+import qcConfigRaw from '../../../../data/sars-cov-2/qc.json'
+import geneMapStrRaw from '../../../../data/sars-cov-2/genemap.gff'
+import pcrPrimersStrRaw from '../../../../data/sars-cov-2/primers.csv'
 
 const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
@@ -38,7 +38,10 @@ export async function go() {
 
   const geneMapName = 'genemap.gff'
   const pcrPrimersFilename = 'primers.csv'
-  const qcConfigStr = JSON.stringify(qcConfig)
+
+  const geneMapStr = await threadParse.parseGeneMapGffString(geneMapStrRaw, geneMapName)
+  const qcConfigStr = await threadParse.parseQcConfigString(JSON.stringify(qcConfigRaw))
+  const pcrPrimersStr = await threadParse.parsePcrPrimersCsvString(pcrPrimersStrRaw, pcrPrimersFilename, refStr)
 
   const poolAnalyze = Pool<AnalysisThread>(
     () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),

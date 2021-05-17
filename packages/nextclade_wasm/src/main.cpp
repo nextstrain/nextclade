@@ -62,13 +62,9 @@ public:
 
     auto tree = Nextclade::Tree{treePreparedStr};
 
-    std::stringstream geneMapStream{geneMapStr};
-    const auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
-
-    std::vector<std::string> warnings;
-    auto pcrPrimers = Nextclade::parsePcrPrimersCsv(pcrPrimersStr, pcrPrimersFilename, ref, warnings);
-
-    Nextclade::QcConfig qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
+    const auto geneMap = Nextclade::parseGeneMap(geneMapStr);
+    const auto pcrPrimers = Nextclade::parsePcrPrimers(pcrPrimersStr);
+    const auto qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
 
     // FIXME: pass options from JS
     const auto nextalignOptions = getDefaultOptions();
@@ -114,6 +110,25 @@ AlgorithmInput parseRefSequence(const std::string& refFastaStr) {
   return AlgorithmInput{.index = 0, .seqName = refSeq.seqName, .seq = refSeq.seq};
 }
 
+std::string parseGeneMapGffString(const std::string& geneMapStr, const std::string& geneMapName) {
+  std::stringstream geneMapStream{geneMapStr};
+  auto geneMap = parseGeneMapGff(geneMapStream, geneMapName);
+  return Nextclade::serializeGeneMap(geneMap);
+}
+
+std::string parseQcConfigString(const std::string& qcConfigStr) {
+  Nextclade::QcConfig qcConfig = Nextclade::parseQcConfig(qcConfigStr);
+  return Nextclade::serializeQcConfig(qcConfig);
+}
+
+std::string parsePcrPrimersCsvString(const std::string& pcrPrimersStr, const std::string& pcrPrimersFilename,
+  const std::string& refStr) {
+  const auto ref = toNucleotideSequence(refStr);
+  std::vector<std::string> warnings;
+  auto pcrPrimers = Nextclade::parsePcrPrimersCsv(pcrPrimersStr, pcrPrimersFilename, ref, warnings);
+  return Nextclade::serializePcrPrimersToString(pcrPrimers);
+}
+
 void parseSequencesStreaming(const std::string& queryFastaStr, const emscripten::val& onSequence,
   const emscripten::val& onComplete) {
   std::stringstream queryFastaStringstream{queryFastaStr};
@@ -144,6 +159,10 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
 EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::function("getExceptionMessage", &getExceptionMessage);
 
+  emscripten::function("parseGeneMapGffString", &parseGeneMapGffString);
+  emscripten::function("parseQcConfigString", &parseQcConfigString);
+  emscripten::function("parsePcrPrimersCsvString", &parsePcrPrimersCsvString);
+
   emscripten::value_object<AlgorithmInput>("AlgorithmInput")
     .field("index", &AlgorithmInput::index)
     .field("seqName", &AlgorithmInput::seqName)
@@ -154,31 +173,6 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string>()//
     .function("analyze", &NextcladeWasm::analyze)                                                            //
     ;                                                                                                        //
-
-
-  //  emscripten::class_<NextcladeWasmParams>("NextcladeWasmParams")
-  //    .constructor<>()
-  //    .property("index", &NextcladeWasmParams::index)
-  //    .property("queryName", &NextcladeWasmParams::queryName)
-  //    .property("queryStr", &NextcladeWasmParams::queryStr)
-  //    .property("refStr", &NextcladeWasmParams::refStr)
-  //    .property("geneMapStr", &NextcladeWasmParams::geneMapStr)
-  //    .property("geneMapName", &NextcladeWasmParams::geneMapName)
-  //    .property("treeStr", &NextcladeWasmParams::treeStr)
-  //    .property("pcrPrimersStr", &NextcladeWasmParams::pcrPrimersStr)
-  //    .property("qcConfigStr", &NextcladeWasmParams::qcConfigStr);
-
-
-  //  emscripten::value_object<NextcladeWasmParams>("NextcladeWasmParams")
-  //    .field("index", &NextcladeWasmParams::index)
-  //    .field("queryName", &NextcladeWasmParams::queryName)
-  //    .field("queryStr", &NextcladeWasmParams::queryStr)
-  //    .field("refStr", &NextcladeWasmParams::refStr)
-  //    .field("geneMapStr", &NextcladeWasmParams::geneMapStr)
-  //    .field("geneMapName", &NextcladeWasmParams::geneMapName)
-  //    .field("treeStr", &NextcladeWasmParams::treeStr)
-  //    .field("pcrPrimersStr", &NextcladeWasmParams::pcrPrimersStr)
-  //    .field("qcConfigStr", &NextcladeWasmParams::qcConfigStr);
 
   emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
     .field("ref", &NextcladeWasmResult::ref)

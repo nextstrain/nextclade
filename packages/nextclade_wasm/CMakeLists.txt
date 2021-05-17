@@ -35,6 +35,9 @@ set(EMSCRIPTEN_COMPILER_FLAGS "\
   -s ENVIRONMENT=worker \
 ")
 
+#  --profiling \
+#  -s EXCEPTION_DEBUG=1 \
+
 set(EMSCRIPTEN_COMPILER_FLAGS_DEBUG "\
   -g4 \
   -O0 \

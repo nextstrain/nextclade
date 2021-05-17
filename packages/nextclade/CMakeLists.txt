@@ -49,10 +49,14 @@ set(SOURCE_FILES
   src/io/jsonStringify.h
   src/io/parseAnalysisResults.cpp
   src/io/parseCsv.h
+  src/io/parseGeneMap.cpp
   src/io/parseMutation.cpp
   src/io/parseMutation.h
   src/io/parseQcConfig.cpp
   src/io/parseQcConfig.h
+  src/io/serializeGeneMap.cpp
+  src/io/serializeQcConfig.cpp
+  src/io/serializeQcConfig.h
   src/io/serializeResults.cpp
   src/io/serializeResults.h
   src/nextclade.cpp

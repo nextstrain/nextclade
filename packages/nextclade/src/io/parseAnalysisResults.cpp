@@ -290,6 +290,11 @@ namespace Nextclade {
     };
   }
 
+  std::vector<PcrPrimer> parsePcrPrimers(const std::string& pcrPrimersStr) {
+    const auto j = json::parse(pcrPrimersStr);
+    return parseArray<PcrPrimer>(j, parsePcrPrimer);
+  }
+
   std::vector<Nextclade::AnalysisResult> parseAnalysisResults(const std::string& analysisResultsStr) {
     const auto j = json::parse(analysisResultsStr);
     if (!j.is_array()) {

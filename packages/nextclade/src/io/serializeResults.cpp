@@ -57,12 +57,16 @@ namespace Nextclade {
       return j;
     }
 
+    json serializePcrPrimers(const std::vector<PcrPrimer>& pcrPrimers) {
+      return serializeArray(pcrPrimers, serializePcrPrimer);
+    }
+
     json serializeMutation(const NucleotideSubstitution& mut) {
       auto j = json::object();
       j.emplace("refNuc", nucToString(mut.refNuc));
       j.emplace("pos", mut.pos);
       j.emplace("queryNuc", nucToString(mut.queryNuc));
-      j.emplace("pcrPrimersChanged", serializeArray(mut.pcrPrimersChanged, serializePcrPrimer));
+      j.emplace("pcrPrimersChanged", serializePcrPrimers(mut.pcrPrimersChanged));
       return j;
     }
 
@@ -233,6 +237,11 @@ namespace Nextclade {
       return j;
     }
   }// namespace
+
+  std::string serializePcrPrimersToString(const std::vector<PcrPrimer>& pcrPrimers) {
+    json j = serializeArray(pcrPrimers, serializePcrPrimer);
+    return jsonStringify(j);
+  }
 
   std::string serializeResultToString(const AnalysisResult& result) {
     auto j = serializeResult(result);

@@ -389,7 +389,17 @@ namespace Nextclade {
     Tree& operator=(Tree&& other) noexcept = delete;
   };
 
+  GeneMap parseGeneMap(const std::string& geneMapStr);
+
+  std::vector<PcrPrimer> parsePcrPrimers(const std::string& pcrPrimersStr);
+
   std::vector<AnalysisResult> parseAnalysisResults(const std::string& analysisResultsStr);
+
+  std::string serializePcrPrimersToString(const std::vector<PcrPrimer>& pcrPrimers);
+
+  std::string serializeGeneMap(const GeneMap& geneMap);
+
+  std::string serializeQcConfig(Nextclade::QcConfig& qcConfig);
 
   std::string serializeResultToString(const AnalysisResult& result);
 
