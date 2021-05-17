@@ -3,7 +3,9 @@ import React, { useEffect, useState } from 'react'
 
 import { concurrent } from 'fasy'
 import { Pool, spawn, Worker } from 'threads'
+import { connect } from 'react-redux'
 
+import type { State } from 'src/state/reducer'
 import type { ParseSeqResult } from 'src/workers/types'
 
 import type {
@@ -29,6 +31,7 @@ import refFastaStr from '../../../../data/sars-cov-2/reference.fasta'
 import qcConfigRaw from '../../../../data/sars-cov-2/qc.json'
 import geneMapStrRaw from '../../../../data/sars-cov-2/genemap.gff'
 import pcrPrimersStrRaw from '../../../../data/sars-cov-2/primers.csv'
+import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
 
 const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
@@ -112,15 +115,26 @@ export async function go() {
   // return [result, ...poolResult].join(', ')
 }
 
-export default function Index() {
+const mapStateToProps = (state: State) => ({})
+
+const mapDispatchToProps = {
+  algorithmRunAyncTrigger: algorithmRunAsync.trigger,
+}
+
+const Index = connect(mapStateToProps, mapDispatchToProps)(IndexDisconnected)
+export default Index
+
+export function IndexDisconnected({ algorithmRunAyncTrigger }) {
   const [value, setValue] = useState<number[]>()
 
   useEffect(() => {
-    go()
-      .then((val) => {
-        setValue(val)
-      })
-      .catch(console.error)
+    algorithmRunAyncTrigger()
+
+    // go()
+    //   .then((val) => {
+    //     setValue(val)
+    //   })
+    //   .catch(console.error)
   }, [])
 
   return <div>{value ?? 'Calculating...'}</div>

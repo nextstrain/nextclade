@@ -1,154 +1,155 @@
-import type { StrictOmit } from 'ts-essentials'
-import type { AuspiceJsonV2 } from 'auspice'
-import copy from 'fast-copy'
-import { push } from 'connected-next-router'
-import { Pool } from 'threads'
-import { call, all, getContext, put, select, takeEvery } from 'typed-redux-saga'
-import { changeColorBy } from 'auspice/src/actions/colors'
+import { concurrent } from 'fasy'
+import { Pool, spawn, Worker } from 'threads'
+import { call, all, getContext, put, select, takeEvery, apply } from 'typed-redux-saga'
 
-import type { AnalysisParams } from 'src/algorithms/types'
-import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
-import type { WorkerPools } from 'src/workers/types'
-import type { AnalyzeThread } from 'src/workers/worker.analyze'
-
-import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
-
-import { notUndefined } from 'src/helpers/notUndefined'
-import { fsaSagaFromParams } from 'src/state/util/fsaSagaFromParams'
 import fsaSaga from 'src/state/util/fsaSaga'
 
-import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import {
   algorithmRunAsync,
-  algorithmRunWithSequencesAsync,
-  analyzeAsync,
-  parseAsync,
+  // algorithmRunWithSequencesAsync,
   setAlgorithmGlobalStatus,
-  setFasta,
-  setOutputTree,
-  treeFinalizeAsync,
 } from 'src/state/algorithm/algorithm.actions'
-import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
+import {
+  parseGeneMapGffString,
+  parsePcrPrimersCsvString,
+  parseQcConfigString,
+  parseRefSequence,
+  parseSequencesStreaming,
+  treeFinalize,
+  treePrepare,
+} from 'src/workers/run'
 
-import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
-import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
-import { loadFasta } from './algorithmInputs.sagas'
-import { State } from '../reducer'
+import type {
+  AnalysisThread,
+  AnalysisWorker,
+  NextcladeWasmParams,
+  NextcladeWasmResult,
+} from 'src/workers/worker.analyze'
+import type { ParseSeqResult } from 'src/workers/types'
 
-const parseSaga = fsaSagaFromParams(
-  parseAsync,
-  function* parseWorker(input: File | string) {
-    const { threadParse } = yield* getContext<WorkerPools>('workerPools')
-    const { input: newInput, parsedSequences } = yield* call(threadParse, input)
-    return { input: newInput, parsedSequences }
-  },
-  function parseResultsTransformer({ parsedSequences }) {
-    return Object.keys(parsedSequences)
-  },
-)
+import refFastaStr from '../../../../../data/sars-cov-2/reference.fasta'
+import treeJson from '../../../../../data/sars-cov-2/tree.json'
+import geneMapStrRaw from '../../../../../data/sars-cov-2/genemap.gff'
+import qcConfigRaw from '../../../../../data/sars-cov-2/qc.json'
+import pcrPrimersStrRaw from '../../../../../data/sars-cov-2/primers.csv'
+import queryStr from '../../../../../data/sars-cov-2/sequences.fasta'
 
-export async function scheduleOneAnalysisRun({
-  poolAnalyze,
-  ...params
-}: AnalysisParams & { poolAnalyze: Pool<AnalyzeThread> }) {
-  return poolAnalyze.queue(async (analyze: AnalyzeThread) => analyze(params))
-}
+const DEFAULT_NUM_THREADS = 4
+const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
 
-const analyzeOne = fsaSagaFromParams(analyzeAsync, function* analyzeWorker(params: AnalysisParams) {
-  const { poolAnalyze } = yield* getContext<WorkerPools>('workerPools')
-  return yield* call(scheduleOneAnalysisRun, { poolAnalyze, ...params })
-})
-
-const finalizeTreeSaga = fsaSagaFromParams(treeFinalizeAsync, function* finalizeTreeWorker(params: FinalizeTreeParams) {
-  const { threadTreeFinalize } = yield* getContext<WorkerPools>('workerPools')
-  return yield* call(threadTreeFinalize, params)
-})
-
-export function* parse(input: File | string) {
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.parsing))
-  const result = yield* parseSaga(input)
-
-  if (!result) {
-    return undefined
-  }
-
-  const { parsedSequences } = result
-
-  return { parsedSequences }
-}
-
-export function* analyze(
-  parsedSequences: Record<string, string>,
-  params: StrictOmit<AnalysisParams, 'seqName' | 'seq'>,
-) {
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
-  const sequenceEntries = Object.entries(parsedSequences)
-  const analysisResultsRaw = yield* all(
-    sequenceEntries.map(([seqName, seq]) => call(analyzeOne, { seqName, seq, ...params })),
-  )
-  return analysisResultsRaw.filter(notUndefined)
-}
-
-export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
-  const auspiceState = createAuspiceState(auspiceDataPostprocessed)
-  yield* put(auspiceStartClean(auspiceState))
-  yield* put(changeColorBy())
-}
-
-export function* runAlgorithmWithSequences(inputSeq: AlgorithmInput) {
-  const loadFastaSaga = fsaSaga(setFasta, loadFasta)
-  yield* loadFastaSaga(setFasta.trigger(inputSeq))
-
-  const errors: Error[] = yield* select((state: State) => state.algorithm.params.errors.seqData)
-  if (errors.length > 0) {
-    return
-  }
-
-  yield* runAlgorithm()
-}
+// ***********************************************************************************************************
+// export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
+//   const auspiceState = createAuspiceState(auspiceDataPostprocessed)
+//   yield* put(auspiceStartClean(auspiceState))
+//   yield* put(changeColorBy())
+// }
+// ***********************************************************************************************************
 
 export function* runAlgorithm() {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
-  yield* put(push('/results'))
+  // yield* put(push('/results'))
+  // ***********************************************************************************************************
 
-  const { seqData, virus } = yield* select((state: State) => state.algorithm.params)
+  const refStr = yield* call(parseRefSequence, refFastaStr)
+  const treePreparedStr = yield* call(treePrepare, JSON.stringify(treeJson), refStr)
 
-  if (!seqData) {
-    throw new Error('No sequence data provided')
+  const geneMapName = 'genemap.gff'
+  const pcrPrimersFilename = 'primers.csv'
+
+  const geneMapStr = yield* call(parseGeneMapGffString, geneMapStrRaw, geneMapName)
+  const qcConfigStr = yield* call(parseQcConfigString, JSON.stringify(qcConfigRaw))
+  const pcrPrimersStr = yield* call(parsePcrPrimersCsvString, pcrPrimersStrRaw, pcrPrimersFilename, refStr)
+
+  console.log('poolAnalyze spawn')
+  const poolAnalyze = Pool<AnalysisThread>(
+    () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
+    {
+      size: numThreads,
+      concurrency: 1,
+      name: 'wasm',
+      maxQueuedJobs: undefined,
+    },
+  )
+
+  yield* apply(poolAnalyze, poolAnalyze.settled, [true])
+
+  const params: NextcladeWasmParams = {
+    refStr,
+    geneMapStr,
+    geneMapName,
+    treePreparedStr,
+    pcrPrimersStr,
+    pcrPrimersFilename,
+    qcConfigStr,
   }
 
-  const { rootSeq, minimalLength, pcrPrimers, geneMap, auspiceData: auspiceDataReference, qcRulesConfig } = virus
-  const auspiceData = treePreprocess(copy(auspiceDataReference), rootSeq)
+  console.log('worker.init')
+  yield* call(async () =>
+    concurrent.forEach(
+      async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
+      Array.from({ length: numThreads }, () => undefined),
+    ),
+  )
 
-  const parseResult = yield* parse(seqData)
-  if (!parseResult) {
-    return
+  const nextcladeResults: NextcladeWasmResult[] = []
+  const status = { parserDone: true, pendingAnalysis: 0 }
+
+  function onSequence(seq: ParseSeqResult) {
+    status.pendingAnalysis += 1
+    console.log({ seq })
+
+    poolAnalyze.queue((worker) => {
+      return worker.analyze(seq).then((nextcladeResult) => {
+        console.log({ nextcladeResult })
+        nextcladeResults.push(nextcladeResult)
+        status.pendingAnalysis -= 1
+      })
+    })
   }
 
-  const { parsedSequences } = parseResult
-  const results = yield* analyze(parsedSequences, {
-    rootSeq,
-    minimalLength,
-    pcrPrimers,
-    geneMap,
-    auspiceData,
-    qcRulesConfig,
-  })
-
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
-  const auspiceDataNew = yield* finalizeTreeSaga({ results, auspiceData, rootSeq })
-  if (!auspiceDataNew) {
-    return
+  function onError(error: Error) {
+    console.error(error)
   }
 
-  const auspiceDataPostprocessed = treePostProcess(auspiceDataNew)
-  yield* put(setOutputTree(JSON.stringify(auspiceDataPostprocessed, null, 2)))
-  yield* setAuspiceState(auspiceDataPostprocessed)
-  yield* put(treeFilterByNodeType(['New']))
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
+  function onComplete() {
+    status.parserDone = true
+  }
+
+  console.log('parseSequencesStreaming')
+  yield* call(parseSequencesStreaming, queryStr, onSequence, onError, onComplete)
+
+  console.log('poolAnalyze.settled')
+  yield* apply(poolAnalyze, poolAnalyze.settled, [true])
+
+  console.log('destroy')
+  yield* call(async () =>
+    concurrent.forEach(
+      async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.destroy()),
+      Array.from({ length: numThreads }, () => undefined),
+    ),
+  )
+
+  console.log('poolAnalyze.terminate')
+  yield* apply(poolAnalyze, poolAnalyze.terminate, [true])
+
+  const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
+  const analysisResultsStr = JSON.stringify(analysisResults)
+
+  console.log('treeFinalize')
+  const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
+
+  console.log({ nextcladeResults })
+  console.log({ tree: JSON.parse(treeFinalStr) })
+
+  // ***********************************************************************************************************
+  // yield* put(setOutputTree(JSON.stringify(auspiceDataPostprocessed, null, 2)))
+  // yield* setAuspiceState(auspiceDataPostprocessed)
+  // yield* put(treeFilterByNodeType(['New']))
+  // yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
 }
 
 export default [
-  takeEvery(algorithmRunWithSequencesAsync.trigger, fsaSaga(algorithmRunWithSequencesAsync, runAlgorithmWithSequences)),
+  // takeEvery(algorithmRunWithSequencesAsync.trigger, fsaSaga(algorithmRunWithSequencesAsync, runAlgorithmWithSequences)),
   takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
 ]
