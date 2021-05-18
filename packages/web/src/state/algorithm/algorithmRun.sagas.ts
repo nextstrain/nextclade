@@ -4,7 +4,7 @@ import type { EventChannel } from 'redux-saga'
 import { concurrent } from 'fasy'
 import { Pool, spawn, Worker } from 'threads'
 import { eventChannel, buffers } from 'redux-saga'
-import { call, put, takeEvery, apply, take } from 'typed-redux-saga'
+import { call, put, takeEvery, apply, take, all } from 'typed-redux-saga'
 
 import fsaSaga from 'src/state/util/fsaSaga'
 
@@ -15,11 +15,11 @@ import {
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import {
+  createThreadParseSequencesStreaming,
   parseGeneMapGffString,
   parsePcrPrimersCsvString,
   parseQcConfigString,
   parseRefSequence,
-  parseSequencesStreaming,
   treeFinalize,
   treePrepare,
 } from 'src/workers/run'
@@ -30,6 +30,7 @@ import type {
   NextcladeWasmParams,
   NextcladeWasmResult,
 } from 'src/workers/worker.analyze'
+import { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { ParseSeqResult } from 'src/workers/types'
 
 import refFastaStr from '../../../../../data/sars-cov-2/reference.fasta'
@@ -57,10 +58,12 @@ export interface SequenceParserChannelElement {
 }
 
 /**
- * Parses sequences and queues the results into the event channel.
- * Note the expanding buffer is passed explicitly in order to not loose any events.
+ * Subscribes to observable stream from sequence parser and queues the results (parsed sequences) into event channel.
+ * Note the expanding buffer that is passed explicitly in order to not loose any events.
  */
-export function createSequenceParserEventChannel(): EventChannel<SequenceParserChannelElement> {
+export function createSequenceParserEventChannel(
+  sequenceParserThread: ParseSequencesStreamingThread,
+): EventChannel<SequenceParserChannelElement> {
   return eventChannel((emit) => {
     function onSequence(seq: ParseSeqResult) {
       emit({ seq })
@@ -74,44 +77,23 @@ export function createSequenceParserEventChannel(): EventChannel<SequenceParserC
       emit({ isDone: true })
     }
 
-    void parseSequencesStreaming(queryStr, onSequence, onError, onComplete)
+    const subscription = sequenceParserThread.values().subscribe(onSequence, onError, onComplete)
 
-    return function unsubscribe() {}
+    return function unsubscribe() {
+      subscription.unsubscribe()
+    }
   }, buffers.expanding(1))
 }
 
 /**
- * Runs sequence parsing and analysis step for each sequence.
- * Uses sequence parser event channel to watch for parser events. Event contain parsed sequences.
- * Upon arrival of such an event, queues the sequence for the analysis in the webworker pool.
+ *
+ * @param sequenceParserEventChannel
+ * @param poolAnalyze
  */
-export function* runSequenceAnalysis(params: NextcladeWasmParams) {
-  // Launch sequence parser and create a channel to take
-  const sequenceParserEventChannel = createSequenceParserEventChannel()
-
-  // Spawn the pool of analysis webworkers
-  const poolAnalyze = Pool<AnalysisThread>(
-    () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
-    {
-      size: numThreads,
-      concurrency: 1,
-      name: 'wasm',
-      maxQueuedJobs: undefined,
-    },
-  )
-
-  // Initialize each webworker in the pool.
-  // This instantiates and initializes webassembly module. And runs the constructor of the underlying C++ class.
-  yield* call(async () =>
-    concurrent.forEach(
-      async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
-      Array.from({ length: numThreads }, () => undefined),
-    ),
-  )
-
-  // Wait until pool is done initializing
-  yield* apply(poolAnalyze, poolAnalyze.settled, [true])
-
+export function* runAnalysisLoop(
+  sequenceParserEventChannel: EventChannel<SequenceParserChannelElement>,
+  poolAnalyze: Pool<AnalysisThread>,
+) {
   const nextcladeResults: NextcladeWasmResult[] = []
   try {
     while (true) {
@@ -141,6 +123,54 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   } finally {
     sequenceParserEventChannel.close()
   }
+  return nextcladeResults
+}
+
+/**
+ * Runs sequence parsing and analysis step for each sequence.
+ * Uses sequence parser event channel to watch for parser events. Event contain parsed sequences.
+ * Upon arrival of such an event, queues the sequence for the analysis in the webworker pool.
+ */
+export function* runSequenceAnalysis(params: NextcladeWasmParams) {
+  // Create sequence parser thread
+  const sequenceParserThread = yield* call(createThreadParseSequencesStreaming)
+
+  // Create a channel which will emit the sequence parsing results
+  const sequenceParserEventChannel = createSequenceParserEventChannel(sequenceParserThread)
+
+  // Spawn the pool of analysis webworkers
+  const poolAnalyze = Pool<AnalysisThread>(
+    () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
+    {
+      size: numThreads,
+      concurrency: 1,
+      name: 'wasm',
+      maxQueuedJobs: undefined,
+    },
+  )
+
+  // Initialize each webworker in the pool.
+  // This instantiates and initializes webassembly module. And runs the constructor of the underlying C++ class.
+  yield* call(async () =>
+    concurrent.forEach(
+      async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
+      Array.from({ length: numThreads }, () => undefined),
+    ),
+  )
+
+  // Wait until pool is done initializing
+  yield* apply(poolAnalyze, poolAnalyze.settled, [true])
+
+  // This launches two main loops: analysis and parsing
+  const { nextcladeResults } = yield* all({
+    // Launch sequence parser loop and wait until it finishes parsing the input string
+    unusedResult: apply(sequenceParserThread, sequenceParserThread.parseSequencesStreaming, [queryStr]),
+
+    // Launch analysis loop
+    nextcladeResults: call(runAnalysisLoop, sequenceParserEventChannel, poolAnalyze),
+  })
+  // When `all()` effect resolves, we know that parsing is done.
+  // However, the analysis is still running on the remaining queued sequences and the results array is still being filled.
 
   // Wait until pool has processed all the queued sequences
   yield* apply(poolAnalyze, poolAnalyze.settled, [true])
@@ -175,7 +205,7 @@ export function* runAlgorithm() {
   const qcConfigStr = yield* call(parseQcConfigString, JSON.stringify(qcConfigRaw))
   const pcrPrimersStr = yield* call(parsePcrPrimersCsvString, pcrPrimersStrRaw, pcrPrimersFilename, refStr)
 
-  const nextcladeResults = yield* call(runSequenceAnalysis, {
+  const nextcladeResults = yield* runSequenceAnalysis({
     refStr,
     geneMapStr,
     geneMapName,

@@ -9,15 +9,19 @@ import type { ParsePcrPrimersThread } from 'src/workers/worker.parsePcrPrimers'
 import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 
+export async function createThreadParseSequencesStreaming() {
+  return spawn<ParseSequencesStreamingThread>(
+    new Worker('src/workers/worker.parseSequencesStreaming.ts', { name: 'worker.parseSequencesStreaming' }),
+  )
+}
+
 export async function parseSequencesStreaming(
   fastaStr: string,
   onSequence: (seq: ParseSeqResult) => void,
   onError: (error: Error) => void,
   onComplete: () => void,
 ) {
-  const thread = await spawn<ParseSequencesStreamingThread>(
-    new Worker('src/workers/worker.parseSequencesStreaming.ts', { name: 'worker.parseSequencesStreaming' }),
-  )
+  const thread = await createThreadParseSequencesStreaming()
   const subscription = thread.values().subscribe(onSequence, onError, onComplete)
   await thread.parseSequencesStreaming(fastaStr)
   await subscription.unsubscribe()
