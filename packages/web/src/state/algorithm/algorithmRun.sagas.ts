@@ -1,6 +1,10 @@
+/* eslint-disable no-loops/no-loops,no-continue,promise/always-return,array-func/no-unnecessary-this-arg,no-void */
+import type { EventChannel } from 'redux-saga'
+
 import { concurrent } from 'fasy'
 import { Pool, spawn, Worker } from 'threads'
-import { call, all, getContext, put, select, takeEvery, apply } from 'typed-redux-saga'
+import { eventChannel, buffers } from 'redux-saga'
+import { call, put, takeEvery, apply, take } from 'typed-redux-saga'
 
 import fsaSaga from 'src/state/util/fsaSaga'
 
@@ -46,6 +50,116 @@ const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
 // }
 // ***********************************************************************************************************
 
+export interface SequenceParserChannelElement {
+  seq?: ParseSeqResult
+  error?: Error
+  isDone?: boolean
+}
+
+/**
+ * Parses sequences and queues the results into the event channel.
+ * Note the expanding buffer is passed explicitly in order to not loose any events.
+ */
+export function createSequenceParserEventChannel(): EventChannel<SequenceParserChannelElement> {
+  return eventChannel((emit) => {
+    function onSequence(seq: ParseSeqResult) {
+      emit({ seq })
+    }
+
+    function onError(error: Error) {
+      emit({ error })
+    }
+
+    function onComplete() {
+      emit({ isDone: true })
+    }
+
+    void parseSequencesStreaming(queryStr, onSequence, onError, onComplete)
+
+    return function unsubscribe() {}
+  }, buffers.expanding(1))
+}
+
+/**
+ * Runs sequence parsing and analysis step for each sequence.
+ * Uses sequence parser event channel to watch for parser events. Event contain parsed sequences.
+ * Upon arrival of such an event, queues the sequence for the analysis in the webworker pool.
+ */
+export function* runSequenceAnalysis(params: NextcladeWasmParams) {
+  // Launch sequence parser and create a channel to take
+  const sequenceParserEventChannel = createSequenceParserEventChannel()
+
+  // Spawn the pool of analysis webworkers
+  const poolAnalyze = Pool<AnalysisThread>(
+    () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
+    {
+      size: numThreads,
+      concurrency: 1,
+      name: 'wasm',
+      maxQueuedJobs: undefined,
+    },
+  )
+
+  // Initialize each webworker in the pool.
+  // This instantiates and initializes webassembly module. And runs the constructor of the underlying C++ class.
+  yield* call(async () =>
+    concurrent.forEach(
+      async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
+      Array.from({ length: numThreads }, () => undefined),
+    ),
+  )
+
+  // Wait until pool is done initializing
+  yield* apply(poolAnalyze, poolAnalyze.settled, [true])
+
+  const nextcladeResults: NextcladeWasmResult[] = []
+  try {
+    while (true) {
+      // Take an event from the channel
+      const { seq, error, isDone } = yield* take(sequenceParserEventChannel)
+
+      if (isDone) {
+        break
+      }
+
+      if (error) {
+        console.error(error) // TODO: handle this sequence parsing error properly
+        continue
+      }
+
+      if (seq) {
+        // Queue the received sequence for the analysis in the worker pool
+        console.log({ seq })
+        void poolAnalyze.queue((worker) => {
+          return worker.analyze(seq).then((nextcladeResult) => {
+            console.log({ nextcladeResult })
+            nextcladeResults.push(nextcladeResult)
+          })
+        })
+      }
+    }
+  } finally {
+    sequenceParserEventChannel.close()
+  }
+
+  // Wait until pool has processed all the queued sequences
+  yield* apply(poolAnalyze, poolAnalyze.settled, [true])
+
+  // Destroy the webworkers in the pool.
+  // This calls the destructor of the underlying C++ class
+  yield* call(async () =>
+    concurrent.forEach(
+      async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.destroy()),
+      Array.from({ length: numThreads }, () => undefined),
+    ),
+  )
+
+  // Terminate the webworker pool
+  yield* apply(poolAnalyze, poolAnalyze.terminate, [true])
+
+  return nextcladeResults
+}
+
 export function* runAlgorithm() {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   // yield* put(push('/results'))
@@ -61,20 +175,7 @@ export function* runAlgorithm() {
   const qcConfigStr = yield* call(parseQcConfigString, JSON.stringify(qcConfigRaw))
   const pcrPrimersStr = yield* call(parsePcrPrimersCsvString, pcrPrimersStrRaw, pcrPrimersFilename, refStr)
 
-  console.log('poolAnalyze spawn')
-  const poolAnalyze = Pool<AnalysisThread>(
-    () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
-    {
-      size: numThreads,
-      concurrency: 1,
-      name: 'wasm',
-      maxQueuedJobs: undefined,
-    },
-  )
-
-  yield* apply(poolAnalyze, poolAnalyze.settled, [true])
-
-  const params: NextcladeWasmParams = {
+  const nextcladeResults = yield* call(runSequenceAnalysis, {
     refStr,
     geneMapStr,
     geneMapName,
@@ -82,63 +183,12 @@ export function* runAlgorithm() {
     pcrPrimersStr,
     pcrPrimersFilename,
     qcConfigStr,
-  }
-
-  console.log('worker.init')
-  yield* call(async () =>
-    concurrent.forEach(
-      async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
-      Array.from({ length: numThreads }, () => undefined),
-    ),
-  )
-
-  const nextcladeResults: NextcladeWasmResult[] = []
-  const status = { parserDone: true, pendingAnalysis: 0 }
-
-  function onSequence(seq: ParseSeqResult) {
-    status.pendingAnalysis += 1
-    console.log({ seq })
-
-    poolAnalyze.queue((worker) => {
-      return worker.analyze(seq).then((nextcladeResult) => {
-        console.log({ nextcladeResult })
-        nextcladeResults.push(nextcladeResult)
-        status.pendingAnalysis -= 1
-      })
-    })
-  }
-
-  function onError(error: Error) {
-    console.error(error)
-  }
-
-  function onComplete() {
-    status.parserDone = true
-  }
-
-  console.log('parseSequencesStreaming')
-  yield* call(parseSequencesStreaming, queryStr, onSequence, onError, onComplete)
-
-  console.log('poolAnalyze.settled')
-  yield* apply(poolAnalyze, poolAnalyze.settled, [true])
-
-  console.log('destroy')
-  yield* call(async () =>
-    concurrent.forEach(
-      async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.destroy()),
-      Array.from({ length: numThreads }, () => undefined),
-    ),
-  )
-
-  console.log('poolAnalyze.terminate')
-  yield* apply(poolAnalyze, poolAnalyze.terminate, [true])
+  })
 
   const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
 
-  console.log('treeFinalize')
   const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
-
   console.log({ nextcladeResults })
   console.log({ tree: JSON.parse(treeFinalStr) })
 
