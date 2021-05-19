@@ -341,7 +341,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   // The `fork()` effect is used to make sure that we don't wait on this loop before parsing and analysis is complete.
   const resultsTask = yield* fork(runResultsLoop, analysisEventChannel)
 
-  // The `call-all` schema is used here, because we want parsing and scheduling for analysis to run in parallel
+  // The `call-all` schema is used here, because we want (1) parsing and (2) scheduling for analysis to run in parallel
   // (ideally concurrently). Note that when parser loop ends, the parsing is known to be done, however when analysis
   // loop is done it only means that all sequences are scheduled for analysis. The analysis itself keeps running.
   yield* all([
@@ -351,7 +351,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
     // Loop 1: Launch sequence parser loop and wait until it finishes parsing the input string.
     call(runParserLoop, sequenceParserThread, queryStr),
   ])
-  // When `all()` effect resolves, we know that parsing is done. However, the analysis loop is still running.
+  // When `all()` effect resolves, we know that parsing is done. However, the analysis is still running.
 
   // Destroy analysis pool as it is no longer needed
   yield* call(destroyAnalysisThreadPool, poolAnalyze)
