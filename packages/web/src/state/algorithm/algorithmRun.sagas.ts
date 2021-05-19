@@ -1,8 +1,7 @@
-/* eslint-disable no-loops/no-loops,no-continue,array-func/no-unnecessary-this-arg,no-void */
+/* eslint-disable no-loops/no-loops,no-continue,no-void */
 import type { EventChannel } from 'redux-saga'
 import type { PoolEvent } from 'threads/dist/master/pool'
-import { concurrent } from 'fasy'
-import { Pool, spawn, Worker } from 'threads'
+import { Pool } from 'threads'
 import { eventChannel, buffers } from 'redux-saga'
 import { call, put, takeEvery, apply, take, all, fork, join } from 'typed-redux-saga'
 
@@ -15,7 +14,9 @@ import {
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import {
+  createAnalysisThreadPool,
   createThreadParseSequencesStreaming,
+  destroyAnalysisThreadPool,
   parseGeneMapGffString,
   parsePcrPrimersCsvString,
   parseQcConfigString,
@@ -24,12 +25,7 @@ import {
   treePrepare,
 } from 'src/workers/run'
 
-import type {
-  AnalysisThread,
-  AnalysisWorker,
-  NextcladeWasmParams,
-  NextcladeWasmResult,
-} from 'src/workers/worker.analyze'
+import type { AnalysisThread, NextcladeWasmParams, NextcladeWasmResult } from 'src/workers/worker.analyze'
 import { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { ParseSeqResult } from 'src/workers/types'
 
@@ -50,53 +46,6 @@ const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
 //   yield* put(changeColorBy())
 // }
 // ***********************************************************************************************************
-
-/**
- * Creates and initializes the analysis webworker pool.
- * Note: perhaps frivolously, but words "webworker" and "thread" are used interchangeably throughout the code.
- */
-export async function createAnalysisThreadPool(params: NextcladeWasmParams): Promise<Pool<AnalysisThread>> {
-  // Spawn the pool of analysis webworkers
-  const poolAnalyze = Pool<AnalysisThread>(
-    () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
-    {
-      size: numThreads,
-      concurrency: 1,
-      name: 'pool.analyze',
-      maxQueuedJobs: undefined,
-    },
-  )
-
-  // Initialize each webworker in the pool.
-  // This instantiates and initializes webassembly module. And runs the constructor of the underlying C++ class.
-  await concurrent.forEach(
-    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
-    Array.from({ length: numThreads }, () => undefined),
-  )
-
-  // Wait until pool is done initializing
-  await poolAnalyze.settled(true)
-
-  return poolAnalyze
-}
-
-/**
- * Destroys the analysis webworker pool.
- * Note: perhaps frivolously, but words "webworker" and "thread" are used interchangeably throughout the code.
- */
-export async function destroyAnalysisThreadPool(poolAnalyze: Pool<AnalysisThread>): Promise<void> {
-  // Wait until pool has processed all the remaining queued sequences.
-  await poolAnalyze.settled(true)
-
-  // Destroy the webworkers in the pool. This calls the destructor of the underlying C++ class.
-  await concurrent.forEach(
-    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.destroy()),
-    Array.from({ length: numThreads }, () => undefined),
-  )
-
-  // Terminate the analysis worker pool
-  await poolAnalyze.terminate(true)
-}
 
 export interface SequenceParserChannelElement {
   seq?: ParseSeqResult
@@ -331,7 +280,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   const sequenceParserEventChannel = createSequenceParserEventChannel(sequenceParserThread)
 
   // Create analysis thread pool
-  const poolAnalyze = yield* call(createAnalysisThreadPool, params)
+  const poolAnalyze = yield* call(createAnalysisThreadPool, params, numThreads)
 
   // Create channel which will buffer the analysis results
   const analysisEventChannel = createAnalysisEventChannel(poolAnalyze)
@@ -354,7 +303,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   // When `all()` effect resolves, we know that parsing is done. However, the analysis is still running.
 
   // Destroy analysis pool as it is no longer needed
-  yield* call(destroyAnalysisThreadPool, poolAnalyze)
+  yield* call(destroyAnalysisThreadPool, poolAnalyze, numThreads)
 
   // Return array of results aggregated in the results retrieval loop
   return ((yield* join(resultsTask)) as unknown) as NextcladeWasmResult[]
