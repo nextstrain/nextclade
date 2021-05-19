@@ -1,10 +1,10 @@
-/* eslint-disable no-loops/no-loops,no-continue,promise/always-return,array-func/no-unnecessary-this-arg,no-void */
+/* eslint-disable no-loops/no-loops,no-continue,array-func/no-unnecessary-this-arg */
 import type { EventChannel } from 'redux-saga'
-
+import type { PoolEvent } from 'threads/dist/master/pool'
 import { concurrent } from 'fasy'
 import { Pool, spawn, Worker } from 'threads'
 import { eventChannel, buffers } from 'redux-saga'
-import { call, put, takeEvery, apply, take, all } from 'typed-redux-saga'
+import { call, put, takeEvery, apply, take, all, fork, join } from 'typed-redux-saga'
 
 import fsaSaga from 'src/state/util/fsaSaga'
 
@@ -58,8 +58,9 @@ export interface SequenceParserChannelElement {
 }
 
 /**
- * Subscribes to observable stream from sequence parser and queues the results (parsed sequences) into event channel.
- * Note the expanding buffer that is passed explicitly in order to not loose any events.
+ * Creates parser event channel.
+ * Subscribes to observable stream from sequence parser webworker and queues the incoming parsed sequences
+ * into the event channel. Later in the code, taking events from this channel yields parsed sequences.
  */
 export function createSequenceParserEventChannel(
   sequenceParserThread: ParseSequencesStreamingThread,
@@ -85,16 +86,78 @@ export function createSequenceParserEventChannel(
   }, buffers.expanding(1))
 }
 
+export interface AnalysisChannelElement {
+  nextcladeResult?: NextcladeWasmResult
+  error?: Error
+  started?: boolean
+  cancelled?: boolean
+  isDone?: boolean
+}
+
 /**
- *
- * @param sequenceParserEventChannel
- * @param poolAnalyze
+ * Subscribes to observable stream of the analysis worker pool and queues the incoming results of the analysis
+ * into the event channel.
+ */
+export function createAnalysisEventChannel(poolAnalyze: Pool<AnalysisThread>): EventChannel<AnalysisChannelElement> {
+  const events = poolAnalyze.events()
+
+  return eventChannel((emit) => {
+    function onNext(event: PoolEvent<AnalysisThread>) {
+      switch (event.type) {
+        case Pool.EventType.taskStart: {
+          // Analysis of one of the sequences has started
+          emit({ started: true })
+          break
+        }
+
+        case Pool.EventType.taskCompleted: {
+          const nextcladeResult = event.returnValue as NextcladeWasmResult
+          emit({ nextcladeResult })
+          break
+        }
+
+        case Pool.EventType.taskFailed: {
+          // Analysis of one of the sequences failed, report error
+          emit({ error: event.error })
+          break
+        }
+
+        case Pool.EventType.taskCanceled: {
+          // Analysis of one of the sequences has been cancelled
+          emit({ cancelled: true })
+          break
+        }
+
+        case Pool.EventType.terminated: {
+          // Pool has been terminated, there will be no more results
+          emit({ isDone: true })
+          break
+        }
+
+        default:
+          break
+      }
+    }
+
+    function onError(error: Error) {
+      emit({ error })
+    }
+
+    const subscription = events.subscribe(onNext, onError)
+
+    return function unsubscribe() {
+      subscription.unsubscribe()
+    }
+  }, buffers.expanding(10))
+}
+
+/**
+ * Repeatedly retrieves parsed sequences from the event channel and queues each of them on the analysis worker pool.
  */
 export function* runAnalysisLoop(
   sequenceParserEventChannel: EventChannel<SequenceParserChannelElement>,
   poolAnalyze: Pool<AnalysisThread>,
 ) {
-  const nextcladeResults: NextcladeWasmResult[] = []
   try {
     while (true) {
       // Take an event from the channel
@@ -110,32 +173,102 @@ export function* runAnalysisLoop(
       }
 
       if (seq) {
-        // Queue the received sequence for the analysis in the worker pool
+        // Queue the received sequence for the analysis in the worker pool.
+        // This returns immediately and the analysis result will be emitted into the analysis event channel.
         console.log({ seq })
-        void poolAnalyze.queue((worker) => {
-          return worker.analyze(seq).then((nextcladeResult) => {
-            console.log({ nextcladeResult })
-            nextcladeResults.push(nextcladeResult)
-          })
-        })
+        void poolAnalyze.queue((worker) => worker.analyze(seq))
       }
     }
   } finally {
     sequenceParserEventChannel.close()
   }
+}
+
+/**
+ * Repeatedly retrieves the results of the analysis from the analysis event channel
+ * and emits corresponding redux actions
+ */
+export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChannelElement>) {
+  const nextcladeResults: NextcladeWasmResult[] = []
+
+  try {
+    while (true) {
+      const { nextcladeResult, error, started, cancelled, isDone } = yield* take(analysisEventChannel)
+
+      if (isDone) {
+        break
+      }
+
+      if (started) {
+        continue
+      }
+
+      if (cancelled) {
+        continue
+      }
+
+      if (error) {
+        console.error(error) // TODO: handle this sequence parsing error properly
+        continue
+      }
+
+      if (nextcladeResult) {
+        console.log({ nextcladeResult })
+        nextcladeResults.push(nextcladeResult)
+      }
+    }
+  } finally {
+    analysisEventChannel.close()
+  }
+
   return nextcladeResults
 }
 
 /**
- * Runs sequence parsing and analysis step for each sequence.
- * Uses sequence parser event channel to watch for parser events. Event contain parsed sequences.
- * Upon arrival of such an event, queues the sequence for the analysis in the webworker pool.
+ * Runs sequence *parsing*, *analysis* and *results retrieval* loops.
+ *
+ * Each loops acts as a producer/consumer (or both) in a 3-stage multiple-producer-multiple-consumer pipeline.
+ * Communication between loops is done using redux-saga event channels, which act as queues, which are buffering
+ * produced items before a consumer is available to consume them.
+ *
+ * Parsing and analysis loops are parallel and rely on WebWorkers and WebAssembly. Results retrieval is a synchronous
+ * saga (generator function)
+ *
+ *
+ * Description of each loop:
+ *
+ *  - Loop 1: sequence parsing: independent.
+ *     Consumes: input sequence string (from FASTA file or string containing multiple sequences) from parameters
+ *     Produces: parsed sequences into sequence parser event channel
+ *     Function: submits input string for parsing in parser webworker and emits resulting single parsed sequences
+ *     into parser event channel
+ *
+ *  - Loop 2: sequence analysis: depends on parsing loop (Loop 1).
+ *      Consumes: parsed sequences from sequence parser event channel
+ *      Produces: analysis results into analysis event channel
+ *      Function: takes parsed sequences from sequence parser event channel and queues them for analysis in the analysis
+ *      webworker pool. Results are emitted by the pool via an observable and then reemitted into the analysis results
+ *      event channel.
+ *
+ *  - Loop 3: results retrieval: depends on analysis loop (Loop 2).
+ *    Consumes: analysis results from analysis event channel
+ *    Produces: redux actions per result and a separate array of all results
+ *    Function: Retrieves analysis results from analysis event channel and emits redux actions, which merge results
+ *    into the app state (and changes to state trigger rerendering of React components). Also produces an array of all
+ *    results for subsequent processing.
+ *
+ * Schema of the pipeline:
+ *                                                           (Analysis thread pool)
+ *                                                         /-> [Analysis thread] -\
+ * Input FASTA -> [Parsing thread] -> Parser event channel --> [Analysis thread] --> Analysis event channel -> [Results retrieval] -> Redux actions -> Redux reducer -> Application state -> React components rerendering
+ *           (parallel, webworker, wasm)                   \-> [Analysis thread] -/                             (synchronous, JS)
+ *                                                     (parallel, webworker pool, wasm)
  */
 export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   // Create sequence parser thread
   const sequenceParserThread = yield* call(createThreadParseSequencesStreaming)
 
-  // Create a channel which will emit the sequence parsing results
+  // Create a channel which will buffer the sequence parsing results
   const sequenceParserEventChannel = createSequenceParserEventChannel(sequenceParserThread)
 
   // Spawn the pool of analysis webworkers
@@ -144,7 +277,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
     {
       size: numThreads,
       concurrency: 1,
-      name: 'wasm',
+      name: 'pool.analyze',
       maxQueuedJobs: undefined,
     },
   )
@@ -161,22 +294,26 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   // Wait until pool is done initializing
   yield* apply(poolAnalyze, poolAnalyze.settled, [true])
 
-  // This launches two main loops: analysis and parsing
-  const { nextcladeResults } = yield* all({
-    // Launch sequence parser loop and wait until it finishes parsing the input string
-    unusedResult: apply(sequenceParserThread, sequenceParserThread.parseSequencesStreaming, [queryStr]),
+  // Create channel which will buffer the analysis results
+  const analysisEventChannel = createAnalysisEventChannel(poolAnalyze)
 
-    // Launch analysis loop
-    nextcladeResults: call(runAnalysisLoop, sequenceParserEventChannel, poolAnalyze),
-  })
-  // When `all()` effect resolves, we know that parsing is done.
-  // However, the analysis is still running on the remaining queued sequences and the results array is still being filled.
+  // Loop 3: Launch results retrieval loop. This loop retrieves analysis results from analysis event channel and
+  // submit redux actions to trigger redux reducer, which incorporates results into the application state
+  const resultsTask = yield* fork(runResultsLoop, analysisEventChannel)
+
+  yield* all([
+    // Loop 2: Launch analysis loop
+    call(runAnalysisLoop, sequenceParserEventChannel, poolAnalyze),
+
+    // Loop 1: Launch sequence parser loop and wait until it finishes parsing the input string
+    apply(sequenceParserThread, sequenceParserThread.parseSequencesStreaming, [queryStr]),
+  ])
+  // When `all()` effect resolves, we know that parsing is done. However, the analysis loop is still running.
 
   // Wait until pool has processed all the queued sequences
   yield* apply(poolAnalyze, poolAnalyze.settled, [true])
 
-  // Destroy the webworkers in the pool.
-  // This calls the destructor of the underlying C++ class
+  // Destroy the webworkers in the pool. This calls the destructor of the underlying C++ class
   yield* call(async () =>
     concurrent.forEach(
       async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.destroy()),
@@ -184,10 +321,11 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
     ),
   )
 
-  // Terminate the webworker pool
+  // Terminate the analysis worker pool
   yield* apply(poolAnalyze, poolAnalyze.terminate, [true])
 
-  return nextcladeResults
+  // Returns array of results aggregated in the results retrieval loop
+  return ((yield* join(resultsTask)) as unknown) as NextcladeWasmResult[]
 }
 
 export function* runAlgorithm() {
