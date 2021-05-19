@@ -18,6 +18,8 @@ import {
   treeBuildAsync,
   parseAsync,
   treeFinalizeAsync,
+  addParsedSequence,
+  addNextcladeResult,
 } from 'src/state/algorithm/algorithm.actions'
 
 const TRUNCATED = ' ... (truncated)' as const
@@ -344,6 +346,33 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
               auspiceData: truncateTreeJson(action.payload.params.auspiceData),
             },
             result: truncateTreeJson(action.payload.result),
+          },
+        }
+      }
+
+      if (isType(action, addParsedSequence)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            seq: {
+              ...action.payload.seq,
+              seq: TRUNCATED,
+            },
+          },
+        }
+      }
+
+      if (isType(action, addNextcladeResult)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            nextcladeResult: {
+              ...action.payload.nextcladeResult,
+              ref: TRUNCATED,
+              query: TRUNCATED,
+            },
           },
         }
       }

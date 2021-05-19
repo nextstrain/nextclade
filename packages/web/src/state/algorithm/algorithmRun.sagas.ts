@@ -8,6 +8,8 @@ import { call, put, takeEvery, apply, take, all, fork, join } from 'typed-redux-
 import fsaSaga from 'src/state/util/fsaSaga'
 
 import {
+  addNextcladeResult,
+  addParsedSequence,
   algorithmRunAsync,
   // algorithmRunWithSequencesAsync,
   setAlgorithmGlobalStatus,
@@ -185,6 +187,7 @@ export function* runAnalysisLoop(
         // This returns immediately and the analysis result will be emitted into the analysis event channel.
         console.log({ seq })
         void poolAnalyze.queue((worker) => worker.analyze(seq))
+        yield* put(addParsedSequence({ index: seq.index, seqName: seq.seqName }))
       }
     }
   } finally {
@@ -223,6 +226,7 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
       if (nextcladeResult) {
         console.log({ nextcladeResult })
         nextcladeResults.push(nextcladeResult)
+        yield* put(addNextcladeResult({ nextcladeResult }))
       }
     }
   } finally {

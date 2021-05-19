@@ -9,6 +9,7 @@ import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tre
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
+import type { NextcladeWasmResult } from 'src/workers/worker.analyze'
 import type { AlgorithmGlobalStatus, AlgorithmInput, CladeAssignmentResult } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
@@ -32,6 +33,9 @@ export const removePcrPrimers = action('removePcrPrimers')
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
 export const algorithmRunAsync = action.async<void, void, Error>('algorithmRunAsync')
 export const algorithmRunWithSequencesAsync = action.async<AlgorithmInput, void, Error>('algorithmRunWithSequencesAsync') // prettier-ignore
+
+export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')
+export const addNextcladeResult = action<{ nextcladeResult: NextcladeWasmResult }>('addNextcladeResult')
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<AnalysisParams, AnalysisResult, Error>('analyze')
