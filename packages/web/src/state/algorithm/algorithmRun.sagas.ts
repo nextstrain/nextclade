@@ -1,4 +1,4 @@
-/* eslint-disable no-loops/no-loops,no-continue,array-func/no-unnecessary-this-arg */
+/* eslint-disable no-loops/no-loops,no-continue,array-func/no-unnecessary-this-arg,no-void */
 import type { EventChannel } from 'redux-saga'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { concurrent } from 'fasy'
@@ -280,7 +280,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   // Create sequence parser thread
   const sequenceParserThread = yield* call(createThreadParseSequencesStreaming)
 
-  // Create a channel which will buffer the sequence parsing results
+  // Create a channel which will buffer parsed sequences
   const sequenceParserEventChannel = createSequenceParserEventChannel(sequenceParserThread)
 
   // Spawn the pool of analysis webworkers
@@ -314,6 +314,9 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   // The `fork()` effect is used to make sure that we don't wait on this loop before parsing and analysis is complete.
   const resultsTask = yield* fork(runResultsLoop, analysisEventChannel)
 
+  // The `call-all` schema is used here, because we want parsing and scheduling for analysis to run in parallel
+  // (ideally concurrently). Note that when parser loop ends, the parsing is known to be done, however when analysis
+  // loop is done it only means that all sequences are scheduled for analysis. The analysis itself keeps running.
   yield* all([
     // Loop 2: Launch analysis loop
     call(runAnalysisLoop, sequenceParserEventChannel, poolAnalyze),
@@ -325,6 +328,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
 
   // Wait until pool has processed all the queued sequences.
   yield* apply(poolAnalyze, poolAnalyze.settled, [true])
+  // At this point we know that the analysis is done.
 
   // Destroy the webworkers in the pool. This calls the destructor of the underlying C++ class.
   yield* call(async () =>
@@ -333,7 +337,6 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
       Array.from({ length: numThreads }, () => undefined),
     ),
   )
-
   // Terminate the analysis worker pool. This signals to results retrieval loop that the analysis is done and there
   // will be no results after that.
   yield* apply(poolAnalyze, poolAnalyze.terminate, [true])
@@ -342,6 +345,9 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   return ((yield* join(resultsTask)) as unknown) as NextcladeWasmResult[]
 }
 
+/**
+ * Runs Nextclade algorithm: parsing, analysis, and tree placement
+ */
 export function* runAlgorithm() {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   // yield* put(push('/results'))
