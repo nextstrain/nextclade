@@ -508,7 +508,7 @@ ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
     throw ErrorFastaReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
   }
 
-  const auto refSeqs = parseSequences(file);
+  const auto refSeqs = parseSequences(file, filename);
   if (refSeqs.size() != 1) {
     throw ErrorFastaReader(
       fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
@@ -798,7 +798,7 @@ void run(
       const auto &warnings = output.result.warnings;
 
       const auto &result = output.result;
-      logger.info("| {:5d} | {:40s} | {:7d} | {:7d} | {:7d} | {:7d} |\n",//
+      logger.info("| {:5d} | {:40s} | {:7d} | {:7d} | {:7d} | {:7d} |",//
         index, seqName, result.analysisResult.alignmentScore, result.analysisResult.alignmentStart,
         result.analysisResult.alignmentEnd, result.analysisResult.totalInsertions//
       );
@@ -809,7 +809,7 @@ void run(
           std::rethrow_exception(error);
         } catch (const std::exception &e) {
           const std::string &errorMessage = e.what();
-          logger.warn("Warning: In sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n",
+          logger.warn("Warning: In sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.",
             seqName, errorMessage);
           if (csv) {
             csv->addErrorRow(seqName, errorMessage);
@@ -821,7 +821,7 @@ void run(
         }
       } else {
         for (const auto &warning : warnings) {
-          logger.warn("Warning: in sequence \"{:s}\": {:s}\n", seqName, warning);
+          logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
         }
 
         // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
@@ -861,7 +861,7 @@ void run(
   try {
     tbb::parallel_pipeline(parallelism, inputFilter & transformFilters & outputFilter, context);
   } catch (const std::exception &e) {
-    logger.error("Error: when running the pipeline: {:s}\n", e.what());
+    logger.error("Error: when running the internal parallel pipeline: {:s}", e.what());
   }
 
   if (outputJsonStream || outputTreeStream) {
@@ -882,7 +882,7 @@ void run(
 std::string readFile(const std::string &filepath) {
   std::ifstream stream(filepath);
   if (!stream.good()) {
-    throw std::runtime_error(fmt::format("Error: unable to read \"{:s}\"\n", filepath));
+    throw std::runtime_error(fmt::format("Error: unable to read \"{:s}\"", filepath));
   }
   std::stringstream buffer;
   buffer << stream.rdbuf();
@@ -900,7 +900,7 @@ void openOutputFile(const std::string &filepath, std::ofstream &stream) {
 
   stream.open(filepath);
   if (!stream.is_open()) {
-    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}\n", filepath, strerror(errno)));
+    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}", filepath, strerror(errno)));
   }
 }
 
@@ -919,13 +919,15 @@ std::unique_ptr<std::ostream> openOutputFileMaybe(const std::optional<std::strin
 
   auto stream = std::make_unique<std::ofstream>(*filepath);
   if (!stream->is_open()) {
-    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}\n", *filepath, strerror(errno)));
+    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}", *filepath, strerror(errno)));
   }
 
   return stream;
 }
 
 int main(int argc, char *argv[]) {
+  Logger logger{Logger::Options{.linePrefix = "Nextclade", .verbosity = Logger::Verbosity::warn}};
+
   try {
     const auto [cliParams, options] = parseCommandLine(argc, argv);
 
@@ -938,7 +940,7 @@ int main(int argc, char *argv[]) {
       verbosity = Logger::Verbosity::silent;
     }
 
-    Logger logger{Logger::Options{.verbosity = verbosity}};
+    logger.setVerbosity(verbosity);
     logger.info(formatCliParams(cliParams));
 
     const auto refData = parseRefFastaFile(cliParams.inputRootSeq);
@@ -980,9 +982,9 @@ int main(int argc, char *argv[]) {
     }
 
     std::ifstream fastaFile(cliParams.inputFasta);
-    auto inputFastaStream = makeFastaStream(fastaFile);
+    auto inputFastaStream = makeFastaStream(fastaFile, cliParams.inputFasta);
     if (!fastaFile.good()) {
-      logger.error("Error: unable to read \"{:s}\"\n", cliParams.inputFasta);
+      logger.error("Error: unable to read \"{:s}\"", cliParams.inputFasta);
       std::exit(1);
     }
 
@@ -1030,25 +1032,25 @@ int main(int argc, char *argv[]) {
 
     bool inOrder = cliParams.inOrder;
 
-    logger.info("\nParallelism: {:d}\n\n", parallelism);
+    logger.info("\nParallelism: {:d}\n", parallelism);
 
     if (!cliParams.inputGeneMap) {
       logger.warn(
         "Warning: Parameter `--input-gene-map` was not specified. Without a gene map sequences will not be "
         "translated, there will be no peptides in output files, aminoacid mutations will not be detected and "
-        "nucleotide sequence alignment will not be informed by codon boundaries.\n");
+        "nucleotide sequence alignment will not be informed by codon boundaries.");
     } else if (geneMap.empty()) {
       logger.warn(
         "Warning: Provided gene map is empty. Sequences will not be translated, there will be no peptides in output "
         "files, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by "
-        "codon boundaries.\n");
+        "codon boundaries.");
     }
 
     constexpr const auto TABLE_WIDTH = 92;
-    logger.info("\nSequences:\n");
-    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
-    logger.info("| {:5s} | {:40s} | {:7s} | {:7s} | {:7s} | {:7s} |\n",//
-      "Index", "Seq. name", "A.score", "A.start", "A.end", "Insert."   //
+    logger.info("\nSequences:");
+    logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
+    logger.info("| {:5s} | {:40s} | {:7s} | {:7s} | {:7s} | {:7s} |",//
+      "Index", "Seq. name", "A.score", "A.start", "A.end", "Insert." //
     );
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
@@ -1057,12 +1059,12 @@ int main(int argc, char *argv[]) {
         outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream, outputInsertionsStream,
         outputGeneStreams, shouldWriteReference, logger);
     } catch (const std::exception &e) {
-      logger.error("Error: {:>16s} |\n", e.what());
+      logger.error("Error: {:>16s} |", e.what());
     }
 
-    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
+    logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
   } catch (const std::exception &e) {
-    fmt::print(stderr, "Error: {:s}\n", e.what());
+    logger.error("Error: {:s}", e.what());
     std::exit(1);
   }
 }

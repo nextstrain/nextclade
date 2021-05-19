@@ -4,6 +4,7 @@
 #include <frozen/string.h>// NOLINT(modernize-deprecated-headers) // false positive
 
 #include <array>
+#include <utility>
 
 class ErrorVerbosityLevelInvalid : public std::runtime_error {
 public:
@@ -32,7 +33,8 @@ public:
   static constexpr frozen::string VERBOSITY_DEFAULT_STR = VERBOSITY_LEVELS[2];
 
   struct Options {
-    Verbosity verbosity = Verbosity::warn;
+    std::string linePrefix;
+    Verbosity verbosity;
   };
 
   static inline std::string getVerbosityLevels() {
@@ -61,6 +63,26 @@ public:
     return std::string{VERBOSITY_DEFAULT_STR.data()};
   }
 
+  template<typename S, typename... Args>
+  inline void print(Verbosity verbosity, std::FILE* f, const S& format_str, Args&&... args) const {
+    int numVerbosityLevels = static_cast<int>(VERBOSITY_LEVELS.size()) - 1;
+    int index = std::clamp(static_cast<int>(verbosity), 0, numVerbosityLevels);
+    auto verbosityStr = std::string{VERBOSITY_LEVELS.at(index).data()};
+    boost::to_upper(verbosityStr);
+    std::string message = fmt::format(format_str, args...);
+    std::string prefix;
+    if (!options.linePrefix.empty()) {
+      prefix = fmt::format("{:s}: ", options.linePrefix);
+    }
+
+    std::vector<std::string> lines;
+    boost::split(lines, message, boost::is_any_of("\n"));
+    for (auto& line : lines) {
+      boost::trim_if(line, boost::is_any_of("\n"));
+      fmt::print(f, "[{: >5s}] {:s}{:s}\n", verbosityStr, prefix, line);
+    }
+  }
+
 private:
   Options options;
 
@@ -68,33 +90,41 @@ private:
 public:
   Logger() = default;
 
-  explicit Logger(const Options& loggerOptions) : options(loggerOptions) {}
+  explicit Logger(Options loggerOptions) : options(std::move(loggerOptions)) {}
+
+  inline Verbosity getVerbosity() const {
+    return options.verbosity;
+  }
+
+  inline void setVerbosity(Verbosity verbosityLevel) {
+    options.verbosity = verbosityLevel;
+  }
 
   template<typename S, typename... Args>
-  inline void debug(const S& format_str, Args&&... args) {
+  inline void debug(const S& format_str, Args&&... args) const {
     if (options.verbosity >= Verbosity::debug) {
-      fmt::print(format_str, args...);
+      this->print(Verbosity::debug, stdout, format_str, args...);
     }
   }
 
   template<typename S, typename... Args>
-  inline void info(const S& format_str, Args&&... args) {
+  inline void info(const S& format_str, Args&&... args) const {
     if (options.verbosity >= Verbosity::info) {
-      fmt::print(format_str, args...);
+      this->print(Verbosity::info, stdout, format_str, args...);
     }
   }
 
   template<typename S, typename... Args>
-  inline void warn(const S& format_str, Args&&... args) {
+  inline void warn(const S& format_str, Args&&... args) const {
     if (options.verbosity >= Verbosity::warn) {
-      fmt::print(stderr, format_str, args...);
+      this->print(Verbosity::warn, stderr, format_str, args...);
     }
   }
 
   template<typename S, typename... Args>
-  inline void error(const S& format_str, Args&&... args) {
+  inline void error(const S& format_str, Args&&... args) const {
     if (options.verbosity >= Verbosity::error) {
-      fmt::print(stderr, format_str, args...);
+      this->print(Verbosity::error, stderr, format_str, args...);
     }
   }
 };
