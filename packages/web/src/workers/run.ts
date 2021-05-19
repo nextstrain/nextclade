@@ -2,14 +2,14 @@ import { Pool, spawn, Worker } from 'threads'
 import { concurrent } from 'fasy'
 
 import type { ParseSeqResult } from 'src/workers/types'
-import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
-import type { ParseRefSequenceThread } from 'src/workers/worker.parseRefSeq'
+import type { AnalysisThread, AnalysisWorker, NextcladeWasmParams } from 'src/workers/worker.analyze'
 import type { ParseGeneMapThread } from 'src/workers/worker.parseGeneMap'
-import type { ParseQcConfigThread } from 'src/workers/worker.parseQcConfig'
 import type { ParsePcrPrimersThread } from 'src/workers/worker.parsePcrPrimers'
-import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
+import type { ParseQcConfigThread } from 'src/workers/worker.parseQcConfig'
+import type { ParseRefSequenceThread } from 'src/workers/worker.parseRefSeq'
+import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
-import { AnalysisThread, AnalysisWorker, NextcladeWasmParams } from 'src/workers/worker.analyze'
+import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
 
 /**
  * Creates and initializes the analysis webworker pool.
@@ -31,11 +31,13 @@ export async function createAnalysisThreadPool(
   )
 
   // Initialize each webworker in the pool.
-  // This instantiates and initializes webassembly module. And runs the constructor of the underlying C++ class.
-  await concurrent.forEach(
-    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
-    Array.from({ length: numThreads }, () => undefined), // eslint-disable-line array-func/no-unnecessary-this-arg
-  )
+  // This instantiates and initializes webassembly module, and runs the constructor of the underlying C++ class.
+  await concurrent.forEach(async (poolWorkerPromise: { init: Promise<AnalysisThread> }) => {
+    const worker = await poolWorkerPromise.init
+    return worker.init(params)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+  }, poolAnalyze.workers) // eslint-disable-line array-func/no-unnecessary-this-arg
 
   // Wait until pool is done initializing
   await poolAnalyze.settled(true)
@@ -47,15 +49,17 @@ export async function createAnalysisThreadPool(
  * Destroys the analysis webworker pool.
  * Note: perhaps frivolously, but words "webworker" and "thread" are used interchangeably throughout the code.
  */
-export async function destroyAnalysisThreadPool(poolAnalyze: Pool<AnalysisThread>, numThreads: number): Promise<void> {
+export async function destroyAnalysisThreadPool(poolAnalyze: Pool<AnalysisThread>): Promise<void> {
   // Wait until pool has processed all the remaining queued sequences.
   await poolAnalyze.settled(true)
 
   // Destroy the webworkers in the pool. This calls the destructor of the underlying C++ class.
-  await concurrent.forEach(
-    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.destroy()),
-    Array.from({ length: numThreads }, () => undefined), // eslint-disable-line array-func/no-unnecessary-this-arg
-  )
+  await concurrent.forEach(async (poolWorkerPromise: { init: Promise<AnalysisThread> }) => {
+    const worker = await poolWorkerPromise.init
+    return worker.destroy()
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+  }, poolAnalyze.workers) // eslint-disable-line array-func/no-unnecessary-this-arg
 
   // Terminate the analysis worker pool
   await poolAnalyze.terminate(true)

@@ -303,7 +303,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   // When `all()` effect resolves, we know that parsing is done. However, the analysis is still running.
 
   // Destroy analysis pool as it is no longer needed
-  yield* call(destroyAnalysisThreadPool, poolAnalyze, numThreads)
+  yield* call(destroyAnalysisThreadPool, poolAnalyze)
 
   // Return array of results aggregated in the results retrieval loop
   return ((yield* join(resultsTask)) as unknown) as NextcladeWasmResult[]
