@@ -4,6 +4,7 @@ import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
 import { eventChannel, buffers } from 'redux-saga'
 import { call, put, takeEvery, apply, take, all, fork, join } from 'typed-redux-saga'
+import { push } from 'connected-next-router/actions'
 
 import fsaSaga from 'src/state/util/fsaSaga'
 
@@ -317,8 +318,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
  */
 export function* runAlgorithm() {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
-  // yield* put(push('/results'))
-  // ***********************************************************************************************************
+  yield* put(push('/results'))
 
   const refStr = yield* call(parseRefSequence, refFastaStr)
   const treePreparedStr = yield* call(treePrepare, JSON.stringify(treeJson), refStr)
