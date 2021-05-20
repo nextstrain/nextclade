@@ -6,17 +6,23 @@ import { eventChannel, buffers } from 'redux-saga'
 import { call, put, takeEvery, apply, take, all, fork, join } from 'typed-redux-saga'
 import { push } from 'connected-next-router/actions'
 
+import { changeColorBy } from 'auspice/src/actions/colors'
+import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
+
 import fsaSaga from 'src/state/util/fsaSaga'
 
 import type { AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { SequenceParserResult } from 'src/algorithms/types'
+import type { AuspiceJsonV2 } from 'auspice'
 import {
   addNextcladeResult,
   addParsedSequence,
   algorithmRunAsync,
   // algorithmRunWithSequencesAsync,
   setAlgorithmGlobalStatus,
+  setOutputTree,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import {
@@ -40,14 +46,6 @@ import queryStr from '../../../../../data/sars-cov-2/sequences.fasta'
 
 const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
-
-// ***********************************************************************************************************
-// export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
-//   const auspiceState = createAuspiceState(auspiceDataPostprocessed)
-//   yield* put(auspiceStartClean(auspiceState))
-//   yield* put(changeColorBy())
-// }
-// ***********************************************************************************************************
 
 export interface SequenceParserChannelElement {
   seq?: SequenceParserResult
@@ -344,14 +342,24 @@ export function* runAlgorithm() {
   const analysisResultsStr = JSON.stringify(analysisResults)
 
   const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
+  const tree = parseAuspiceJsonV2(treeFinalStr)
   console.log({ nextcladeResults })
-  console.log({ tree: JSON.parse(treeFinalStr) })
+  console.log({ tree })
 
-  // ***********************************************************************************************************
-  // yield* put(setOutputTree(JSON.stringify(auspiceDataPostprocessed, null, 2)))
-  // yield* setAuspiceState(auspiceDataPostprocessed)
-  // yield* put(treeFilterByNodeType(['New']))
-  // yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
+  yield* put(setOutputTree(treeFinalStr))
+  yield* setAuspiceState(tree)
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
+}
+
+export function parseAuspiceJsonV2(treeStr: string): AuspiceJsonV2 {
+  return JSON.parse(treeStr) as AuspiceJsonV2 // TODO: validate
+}
+
+export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
+  const auspiceState = createAuspiceState(auspiceDataPostprocessed)
+  yield* put(auspiceStartClean(auspiceState))
+  yield* put(changeColorBy())
+  yield* put(treeFilterByNodeType(['New']))
 }
 
 export default [
