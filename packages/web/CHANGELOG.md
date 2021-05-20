@@ -8,9 +8,9 @@ See also:
 
  - Clade 21A in Nextstrain global build: [link](https://nextstrain.org/ncov/global?f_clade_membership=21A)
 
- - Variant 21A/S:478K on CoVariants.org: [link](https://covariants.org/variants/21A.S.154K)
+ - Variant 21A/S:154K on CoVariants.org: [link](https://covariants.org/variants/21A.S.154K)
 
- - Variant 21A/S:154K on CoVariants.org: [link](https://covariants.org/variants/21A.S.478K)
+ - Variant 21A/S:478K on CoVariants.org: [link](https://covariants.org/variants/21A.S.478K)
 
 
 ## [0.14.2](https://github.com/nextstrain/nextclade/compare/0.14.1...0.14.2) (2021-03-30)
