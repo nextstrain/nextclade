@@ -44,9 +44,9 @@ rule run_nextalign:
         "benchmarks/alignments_nextalign_s{size}_r{rep}_t{threads}.txt",
     shell:
         """
-        ../../.build/Release/packages/nextalign_cli/nextalign-Linux-x86_64 -j {params.threads} \
-                                    -r ../../data/sars-cov-2/reference.fasta -i {input} \
-                                    --output-dir {params.outdir} --output-basename {params.basename}
+        nextalign -j {params.threads} \
+                    -r ../../data/sars-cov-2/reference.fasta -i {input} \
+                    --output-dir {params.outdir} --output-basename {params.basename}
         """
 
 rule benchmark_nextalign:
@@ -69,7 +69,7 @@ rule run_nextalign_wtranslation:
         "benchmarks/alignments_nextalign-wtranslation_s{size}_r{rep}_t{threads}.txt",
     shell:
         """
-        ../../.build/Release/packages/nextalign_cli/nextalign-Linux-x86_64 -j {params.threads} \
+        nextalign -j {params.threads} \
                                     -r ../../data/sars-cov-2/reference.fasta -i {input} \
                                     -m ../../data/sars-cov-2/genemap.gff --genes ORF1a,ORF1b,S,N,M,E \
                                     --output-dir {params.outdir} --output-basename {params.basename}
