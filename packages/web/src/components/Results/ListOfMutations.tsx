@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { useTranslation } from 'react-i18next'
-import type { DeepReadonly } from 'ts-essentials'
 
 import type { NucleotideSubstitution } from 'src/algorithms/types'
 import { formatMutation } from 'src/helpers/formatMutation'
@@ -11,7 +10,7 @@ import { Li, Ul } from 'src/components/Common/List'
 const LIST_OF_MUTATIONS_MAX_ITEMS = 10 as const
 
 export interface ListOfMutations {
-  substitutions: DeepReadonly<NucleotideSubstitution[]>
+  substitutions: NucleotideSubstitution[]
 }
 
 export function ListOfMutations({ substitutions }: ListOfMutations) {

@@ -1,7 +1,6 @@
 import React, { SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { ListOfAminoacidDeletions } from 'src/components/SequenceView/ListOfAminoacidDeletions'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
 import type { NucleotideDeletion } from 'src/algorithms/types'
@@ -23,7 +22,7 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { start: begin, length, aaDeletions } = deletion
+  const { start: begin, length } = deletion
   const end = begin + length
 
   const id = getSafeId('gap-marker', { seqName, ...deletion })
@@ -48,7 +47,6 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
     >
       <Tooltip target={id} isOpen={showTooltip}>
         {t('Gap: {{range}}', { range: rangeStr })}
-        <ListOfAminoacidDeletions aminoacidDeletions={aaDeletions} />
       </Tooltip>
     </rect>
   )
