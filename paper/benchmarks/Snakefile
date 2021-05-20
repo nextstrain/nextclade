@@ -147,20 +147,36 @@ rule plot_benchmarks:
     input:
         "benchmark_results.tsv"
     output:
-        "figures/cpu_time.png"
+        "figures/cpu_time.png",
+        "figures/max_rss.png"
     run:
         import pandas as pd
         import matplotlib.pyplot as plt
         ls = ['-', '--', '-.', ':']
         b = pd.read_csv(input[0], sep=None)
         threads = sorted(b.threads.unique())
+
+        plt.figure()
         for mi,method in enumerate(b.method.unique()):
             for ti,t in enumerate(threads):
                 d = b.loc[(b.method==method)&(b.threads==t),:].groupby('size').mean()
                 plt.plot(d.index, d.cpu_time, label=f"{method}, t={t}", c=f'C{mi}', ls=ls[ti%len(ls)])
         plt.ylabel('CPU time')
+        plt.yscale('log')
+        plt.xscale('log')
         plt.legend()
         plt.savefig(output[0])
+
+        plt.figure()
+        for mi,method in enumerate(b.method.unique()):
+            for ti,t in enumerate(threads):
+                d = b.loc[(b.method==method)&(b.threads==t),:].groupby('size').mean()
+                plt.plot(d.index, d.max_rss, label=f"{method}, t={t}", c=f'C{mi}', ls=ls[ti%len(ls)])
+        plt.ylabel('max memory usage (max_rss)')
+        plt.yscale('log')
+        plt.xscale('log')
+        plt.legend()
+        plt.savefig(output[1])
 
 rule clean:
     shell:
