@@ -3,8 +3,7 @@ import 'regenerator-runtime'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
-import type { ParseSeqResult } from 'src/workers/types'
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult, SequenceParserResult } from 'src/algorithms/types'
 import { loadWasmModule, runWasmModule } from './wasmModule'
 
 export interface NextcladeWasmParams {
@@ -83,7 +82,7 @@ export function parseAnalysisResult(analysisResultStr: string): AnalysisResult {
 }
 
 /** Runs the Nextclade analysis step. Requires `init()` to be called first. */
-export async function analyze(seq: ParseSeqResult) {
+export async function analyze(seq: SequenceParserResult) {
   if (!gModule || !gNextcladeWasm) {
     throw new TypeError(
       'Developer error: this WebWorker module has not been initialized yet. Make sure to call `module.init()` function.',

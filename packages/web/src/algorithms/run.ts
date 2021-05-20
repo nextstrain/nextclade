@@ -3,7 +3,7 @@ import { runQC } from 'src/algorithms/QC/runQC'
 import { treeFindNearestNodes } from 'src/algorithms/tree/treeFindNearestNodes'
 import { readFile } from 'src/helpers/readFile'
 
-import type { AnalysisResult, AnalysisParams, ParseResult } from './types'
+import type { AnalysisResult, AnalysisParams, OBSOLETEParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
@@ -13,7 +13,7 @@ import { GOOD_NUCLEOTIDES, N } from './nucleotides'
 import { getNucleotideComposition } from './getNucleotideComposition'
 import { getPcrPrimerChanges, getSubstitutionsWithPcrPrimerChanges } from './getPcrPrimerChanges'
 
-export async function parse(input: string | File): Promise<ParseResult> {
+export async function parse(input: string | File): Promise<OBSOLETEParseResult> {
   let newInput: string
   if (typeof input === 'string') {
     newInput = input

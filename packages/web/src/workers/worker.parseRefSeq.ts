@@ -2,16 +2,16 @@ import 'regenerator-runtime'
 
 import { expose } from 'threads/worker'
 
-import type { ParseSeqResult } from 'src/workers/types'
+import type { SequenceParserResult } from 'src/algorithms/types'
 import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
 
 export interface ParseRefSequenceWasmModule {
-  parseRefSequence(fastaStr: string): ParseSeqResult
+  parseRefSequence(fastaStr: string): SequenceParserResult
 }
 
 export async function parseRefSequence(refFastaStr: string) {
   const module = await loadWasmModule<ParseRefSequenceWasmModule>('nextclade_wasm')
-  return runWasmModule<ParseRefSequenceWasmModule, ParseSeqResult>(module, (module) =>
+  return runWasmModule<ParseRefSequenceWasmModule, SequenceParserResult>(module, (module) =>
     module.parseRefSequence(refFastaStr),
   )
 }

@@ -6,15 +6,9 @@ import { Pool, spawn, Worker } from 'threads'
 import { connect } from 'react-redux'
 
 import type { State } from 'src/state/reducer'
-import type { ParseSeqResult } from 'src/workers/types'
-
-import type {
-  AnalysisWorker,
-  AnalysisThread,
-  NextcladeWasmParams,
-  NextcladeResult,
-} from 'src/workers/worker.analyze'
-
+import type { SequenceParserResult } from 'src/algorithms/types'
+import type { AnalysisWorker, AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
+import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
 import {
   parseGeneMapGffString,
   parsePcrPrimersCsvString,
@@ -31,7 +25,6 @@ import refFastaStr from '../../../../data/sars-cov-2/reference.fasta'
 import qcConfigRaw from '../../../../data/sars-cov-2/qc.json'
 import geneMapStrRaw from '../../../../data/sars-cov-2/genemap.gff'
 import pcrPrimersStrRaw from '../../../../data/sars-cov-2/primers.csv'
-import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
 
 const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
@@ -75,7 +68,7 @@ export async function go() {
   const nextcladeResults: NextcladeResult[] = []
   const status = { parserDone: true, pendingAnalysis: 0 }
 
-  function onSequence(seq: ParseSeqResult) {
+  function onSequence(seq: SequenceParserResult) {
     status.pendingAnalysis += 1
     console.log({ seq })
 

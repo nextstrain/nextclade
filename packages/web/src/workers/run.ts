@@ -1,7 +1,8 @@
 import { Pool, spawn, Worker } from 'threads'
 import { concurrent } from 'fasy'
 
-import type { ParseSeqResult } from 'src/workers/types'
+import type { SequenceParserResult } from 'src/algorithms/types'
+
 import type { AnalysisThread, AnalysisWorker, NextcladeWasmParams } from 'src/workers/worker.analyze'
 import type { ParseGeneMapThread } from 'src/workers/worker.parseGeneMap'
 import type { ParsePcrPrimersThread } from 'src/workers/worker.parsePcrPrimers'
@@ -73,7 +74,7 @@ export async function createThreadParseSequencesStreaming() {
 
 export async function parseSequencesStreaming(
   fastaStr: string,
-  onSequence: (seq: ParseSeqResult) => void,
+  onSequence: (seq: SequenceParserResult) => void,
   onError: (error: Error) => void,
   onComplete: () => void,
 ) {
@@ -87,7 +88,7 @@ export async function parseRefSequence(refFastaStr: string) {
   const thread = await spawn<ParseRefSequenceThread>(
     new Worker('src/workers/worker.parseRefSeq.ts', { name: 'worker.parseRefSeq' }),
   )
-  const refParsed: ParseSeqResult = await thread.parseRefSequence(refFastaStr)
+  const refParsed: SequenceParserResult = await thread.parseRefSequence(refFastaStr)
   return refParsed.seq
 }
 

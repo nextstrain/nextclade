@@ -3,12 +3,12 @@ import 'regenerator-runtime'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import type { ParseSeqResult } from 'src/workers/types'
+import type { SequenceParserResult } from 'src/algorithms/types'
 import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
 
-const gSubject = new Subject<ParseSeqResult>()
+const gSubject = new Subject<SequenceParserResult>()
 
-function onSequence(seq: ParseSeqResult) {
+function onSequence(seq: SequenceParserResult) {
   gSubject?.next(seq)
 }
 
@@ -21,7 +21,7 @@ function onError(error: Error) {
 }
 
 export interface ParseSequencesStreamingWasmModule {
-  parseSequencesStreaming(fastaStr: string, onSequence: (seq: ParseSeqResult) => void, onComplete: () => void): void
+  parseSequencesStreaming(fastaStr: string, onSequence: (seq: SequenceParserResult) => void, onComplete: () => void): void
 }
 
 export async function parseSequencesStreaming(fastaStr: string) {
@@ -37,7 +37,7 @@ export async function parseSequencesStreaming(fastaStr: string) {
 
 const worker = {
   parseSequencesStreaming,
-  values(): ThreadsObservable<ParseSeqResult> {
+  values(): ThreadsObservable<SequenceParserResult> {
     return ThreadsObservable.from(gSubject)
   },
 }

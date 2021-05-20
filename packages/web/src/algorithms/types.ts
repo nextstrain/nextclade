@@ -138,7 +138,7 @@ export interface AnalysisResult {
   qc: QCResult
 }
 
-export interface ParseResult {
+export interface OBSOLETEParseResult {
   input: string
   parsedSequences: Record<string, string>
 }
@@ -160,4 +160,10 @@ export interface Gene {
   color: string
   range: Range
   frame: number
+}
+
+export interface SequenceParserResult {
+  index: number
+  seqName: string
+  seq: string
 }

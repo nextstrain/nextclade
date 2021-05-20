@@ -7,6 +7,9 @@ import { call, put, takeEvery, apply, take, all, fork, join } from 'typed-redux-
 
 import fsaSaga from 'src/state/util/fsaSaga'
 
+import type { AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
+import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
+import type { SequenceParserResult } from 'src/algorithms/types'
 import {
   addNextcladeResult,
   addParsedSequence,
@@ -27,10 +30,6 @@ import {
   treePrepare,
 } from 'src/workers/run'
 
-import type { AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
-import { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
-import type { ParseSeqResult } from 'src/workers/types'
-
 import refFastaStr from '../../../../../data/sars-cov-2/reference.fasta'
 import treeJson from '../../../../../data/sars-cov-2/tree.json'
 import geneMapStrRaw from '../../../../../data/sars-cov-2/genemap.gff'
@@ -50,7 +49,7 @@ const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
 // ***********************************************************************************************************
 
 export interface SequenceParserChannelElement {
-  seq?: ParseSeqResult
+  seq?: SequenceParserResult
   error?: Error
   isDone?: boolean
 }
@@ -64,7 +63,7 @@ export function createSequenceParserEventChannel(
   sequenceParserThread: ParseSequencesStreamingThread,
 ): EventChannel<SequenceParserChannelElement> {
   return eventChannel((emit) => {
-    function onSequence(seq: ParseSeqResult) {
+    function onSequence(seq: SequenceParserResult) {
       emit({ seq })
     }
 
