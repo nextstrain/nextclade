@@ -3,7 +3,8 @@ import 'regenerator-runtime'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
-import type { AlgorithmInput } from 'src/workers/worker.parse'
+import type { ParseSeqResult } from 'src/workers/types'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { loadWasmModule, runWasmModule } from './wasmModule'
 
 export interface NextcladeWasmParams {
@@ -21,6 +22,13 @@ export interface NextcladeWasmResult {
   ref: string
   query: string
   analysisResult: string
+}
+
+export interface NextcladeResult {
+  index: number
+  ref: string
+  query: string
+  analysisResult: AnalysisResult
 }
 
 export interface NextcladeWasmClass {
@@ -70,8 +78,12 @@ export async function init(params: NextcladeWasmParams) {
   })
 }
 
+export function parseAnalysisResult(analysisResultStr: string): AnalysisResult {
+  return JSON.parse(analysisResultStr) as AnalysisResult // TODO: validate
+}
+
 /** Runs the Nextclade analysis step. Requires `init()` to be called first. */
-export async function analyze(seq: AlgorithmInput) {
+export async function analyze(seq: ParseSeqResult) {
   if (!gModule || !gNextcladeWasm) {
     throw new TypeError(
       'Developer error: this WebWorker module has not been initialized yet. Make sure to call `module.init()` function.',
@@ -80,13 +92,13 @@ export async function analyze(seq: AlgorithmInput) {
 
   const nextcladeWasm = gNextcladeWasm
 
-  return runWasmModule<NextcladeAnalysisModule, NextcladeWasmResult>(gModule, () => {
+  return runWasmModule<NextcladeAnalysisModule, NextcladeResult>(gModule, () => {
     const result = nextcladeWasm.analyze(seq.seqName, seq.seq)
     return {
       index: seq.index,
       ref: result.ref,
       query: result.query,
-      analysisResult: JSON.parse(result.analysisResult),
+      analysisResult: parseAnalysisResult(result.analysisResult),
     }
   })
 }

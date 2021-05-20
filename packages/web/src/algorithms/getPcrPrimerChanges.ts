@@ -4,8 +4,8 @@ import type {
   PcrPrimer,
   NucleotideSubstitution,
   PcrPrimerChange,
-  SubstitutionsWithPrimers,
-  NucleotideSubstitutionWithAminoacids,
+  NucleotideSubstitution,
+  NucleotideSubstitution,
 } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { isMatch } from './nucleotideCodes'
@@ -52,9 +52,9 @@ export function getPcrPrimerChanges(
  * Each substitution can have multiple PCR primer changes.
  */
 export function getSubstitutionsWithPcrPrimerChanges(
-  substitutions: NucleotideSubstitutionWithAminoacids[],
+  substitutions: NucleotideSubstitution[],
   primers: PcrPrimer[],
-): SubstitutionsWithPrimers[] {
+): NucleotideSubstitution[] {
   return substitutions.map((mut) => {
     const pcrPrimersChanged = primers.filter((primer) => shouldReportPrimerMutation(mut, primer))
     return { ...mut, pcrPrimersChanged }

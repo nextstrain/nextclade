@@ -3,7 +3,7 @@ import { runQC } from 'src/algorithms/QC/runQC'
 import { treeFindNearestNodes } from 'src/algorithms/tree/treeFindNearestNodes'
 import { readFile } from 'src/helpers/readFile'
 
-import type { AnalysisResultWithMatch, AnalysisParams, ParseResult } from './types'
+import type { AnalysisResult, AnalysisParams, ParseResult } from './types'
 import { parseSequences } from './parseSequences'
 import { alignPairwise } from './alignPairwise'
 import { analyzeSeq } from './analyzeSeq'
@@ -32,7 +32,7 @@ export function analyze({
   geneMap,
   auspiceData,
   qcRulesConfig,
-}: AnalysisParams): AnalysisResultWithMatch {
+}: AnalysisParams): AnalysisResult {
   const { alignmentScore, query, ref } = alignPairwise(seq, rootSeq, minimalLength)
 
   const alignedQuery = query.join('')

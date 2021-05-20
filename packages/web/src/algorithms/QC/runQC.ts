@@ -1,5 +1,5 @@
 import type { Enableable, QCResult, QCRuleResult, QCRulesConfig } from 'src/algorithms/QC/types'
-import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
+import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
 
 import { getQCRuleStatus } from './QCRuleStatus'
 import { ruleMissingData } from './ruleMissingData'
@@ -8,14 +8,14 @@ import { ruleSnpClusters } from './ruleSnpClusters'
 import { rulePrivateMutations } from './rulePrivateMutations'
 
 export type Rule<Conf, Ret> = (
-  analysisResult: AnalysisResultWithClade,
+  analysisResult: AnalysisResult,
   privateMutations: NucleotideSubstitution[],
   config: Conf,
 ) => Ret
 
 export function runOne<Conf extends Enableable<unknown>, Ret extends QCRuleResult>(
   rule: Rule<Conf, Ret>,
-  analysisResult: AnalysisResultWithClade,
+  analysisResult: AnalysisResult,
   privateMutations: NucleotideSubstitution[],
   config: Conf,
 ): Ret | undefined {
@@ -23,7 +23,7 @@ export function runOne<Conf extends Enableable<unknown>, Ret extends QCRuleResul
 }
 
 export interface RunQCParams {
-  analysisResult: AnalysisResultWithClade
+  analysisResult: AnalysisResult
   privateMutations: NucleotideSubstitution[]
   qcRulesConfig: QCRulesConfig
 }

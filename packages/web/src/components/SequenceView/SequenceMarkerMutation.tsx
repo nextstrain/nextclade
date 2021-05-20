@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
-import type { SubstitutionsWithPrimers } from 'src/algorithms/types'
+import type { NucleotideSubstitution } from 'src/algorithms/types'
 
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { formatMutation } from 'src/helpers/formatMutation'
@@ -16,7 +16,7 @@ import { ListOfPcrPrimersChanged } from 'src/components/SequenceView/ListOfPcrPr
 
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   seqName: string
-  substitution: SubstitutionsWithPrimers
+  substitution: NucleotideSubstitution
   pixelsPerBase: number
 }
 

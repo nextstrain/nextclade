@@ -7,8 +7,8 @@ import { UNKNOWN_VALUE } from 'src/constants'
 
 import type {
   AnalysisResult,
-  AnalysisResultWithMatch,
-  AnalysisResultWithoutClade,
+  AnalysisResult,
+  AnalysisResult,
   Nucleotide,
 } from 'src/algorithms/types'
 import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
@@ -48,7 +48,7 @@ export function addAuxiliaryNode(baseNode: AuspiceTreeNodeExtended) {
   unset(baseNode, 'node_attrs.url')
 }
 
-export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade, root_seq: string) {
+export function get_differences(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
   const nucMutations: string[] = []
   let aminoacidMutationEntries: { gene: string; aaMut: string }[] = []
   const positionsCovered = new Set()
@@ -243,7 +243,7 @@ export function get_node_struct(seq: AnalysisResult): AuspiceTreeNodeExtended {
 
 export function attachNewNodesRecursively(
   node: AuspiceTreeNodeExtended,
-  results: AnalysisResultWithMatch[],
+  results: AnalysisResult[],
   rootSeq: string,
   maxDivergence: number,
 ) {
@@ -274,7 +274,7 @@ export function getMaxDivergence(node: AuspiceTreeNodeExtended) {
 
 export interface FinalizeTreeParams {
   auspiceData: AuspiceJsonV2Extended
-  results: AnalysisResultWithMatch[]
+  results: AnalysisResult[]
   rootSeq: string
 }
 

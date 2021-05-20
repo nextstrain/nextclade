@@ -386,8 +386,8 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
         algorithm: {
           ...state.algorithm,
           params: sanitizeParams(state.algorithm.params),
-          results: sanitizeResults(state.algorithm.results),
-          resultsFiltered: sanitizeResults(state.algorithm.results),
+          // results: sanitizeResults(state.algorithm.results),
+          // resultsFiltered: sanitizeResults(state.algorithm.results),
           outputTree: truncate(state.algorithm.outputTree),
         },
         tree: sanitizeTree(state.tree),

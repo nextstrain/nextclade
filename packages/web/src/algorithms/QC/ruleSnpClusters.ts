@@ -1,10 +1,10 @@
 import { clamp } from 'lodash'
 
-import type { AnalysisResultWithClade, ClusteredSNPs, NucleotideSubstitution } from 'src/algorithms/types'
+import type { AnalysisResult, ClusteredSNPs, NucleotideSubstitution } from 'src/algorithms/types'
 import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export function findSNPClusters(
-  { substitutions }: AnalysisResultWithClade,
+  { substitutions }: AnalysisResult,
   privateMutations: NucleotideSubstitution[],
   { windowSize, clusterCutOff }: QCRulesConfigSNPClusters,
 ) {
@@ -59,7 +59,7 @@ export interface QCRulesConfigSNPClusters {
 }
 
 export function ruleSnpClusters(
-  data: AnalysisResultWithClade,
+  data: AnalysisResult,
   privateMutations: NucleotideSubstitution[],
   config: QCRulesConfigSNPClusters,
 ) {

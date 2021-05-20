@@ -9,7 +9,7 @@ import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tre
 import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
 import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
-import type { NextcladeWasmResult } from 'src/workers/worker.analyze'
+import type { NextcladeResult } from 'src/workers/worker.analyze'
 import type { AlgorithmGlobalStatus, AlgorithmInput, CladeAssignmentResult } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
@@ -35,7 +35,7 @@ export const algorithmRunAsync = action.async<void, void, Error>('algorithmRunAs
 export const algorithmRunWithSequencesAsync = action.async<AlgorithmInput, void, Error>('algorithmRunWithSequencesAsync') // prettier-ignore
 
 export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')
-export const addNextcladeResult = action<{ nextcladeResult: NextcladeWasmResult }>('addNextcladeResult')
+export const addNextcladeResult = action<{ nextcladeResult: NextcladeResult }>('addNextcladeResult')
 
 export const parseAsync = action.async<string | File, string[], Error>('parse')
 export const analyzeAsync = action.async<AnalysisParams, AnalysisResult, Error>('analyze')

@@ -7,7 +7,7 @@ import { sanitizeError } from 'src/helpers/sanitizeError'
 import type { Virus } from 'src/algorithms/types'
 import type { WorkerPools } from 'src/workers/types'
 import type { AnalyzeThread } from 'src/workers/worker.analyze'
-import type { SequenceAnalysisStateWithMatch } from 'src/state/algorithm/algorithm.state'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { treePreprocess } from 'src/algorithms/tree/treePreprocess'
 import { treePostProcess } from 'src/algorithms/tree/treePostprocess'
@@ -19,7 +19,7 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
   const { threadParse, poolAnalyze, threadTreeFinalize } = workers
   const { parsedSequences } = await threadParse(input)
 
-  const states: SequenceAnalysisStateWithMatch[] = await concurrent.map(async ([seqName, seq], id) => {
+  const states: SequenceAnalysisState[] = await concurrent.map(async ([seqName, seq], id) => {
     try {
       const result = await poolAnalyze.queue(async (analyze: AnalyzeThread) =>
         analyze({

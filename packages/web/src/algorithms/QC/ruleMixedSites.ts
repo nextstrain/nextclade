@@ -1,6 +1,6 @@
 import { clamp } from 'lodash'
 
-import type { AnalysisResultWithClade, NucleotideSubstitution } from 'src/algorithms/types'
+import type { AnalysisResult, NucleotideSubstitution } from 'src/algorithms/types'
 import { getQCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
 
 export interface QCRulesConfigMixedSites {
@@ -8,7 +8,7 @@ export interface QCRulesConfigMixedSites {
 }
 
 export function ruleMixedSites(
-  { nucleotideComposition }: AnalysisResultWithClade,
+  { nucleotideComposition }: AnalysisResult,
   _1: NucleotideSubstitution[],
   { mixedSitesThreshold }: QCRulesConfigMixedSites,
 ) {

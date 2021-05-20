@@ -37,6 +37,8 @@ import {
   removeTree,
   removeQcSettings,
   removeRootSeq,
+  addParsedSequence,
+  addNextcladeResult,
 } from './algorithm.actions'
 import {
   algorithmDefaultState,
@@ -65,6 +67,24 @@ const mergeQcIntoResults = (result: SequenceAnalysisState, qc: QCResult) =>
   })
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
+  .icase(addParsedSequence, (draft, { index, seqName }) => {
+    draft.results[index] = {
+      status: AlgorithmSequenceStatus.idling,
+      id: index,
+      seqName,
+      result: undefined,
+      errors: [],
+    }
+    draft.resultsFiltered = runFilters(current(draft))
+  })
+
+  .icase(addNextcladeResult, (draft, { nextcladeResult }) => {
+    draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
+    // nextcladeResult.ref
+    // nextcladeResult.query
+    draft.resultsFiltered = runFilters(current(draft))
+  })
+
   .icase(resultsSortTrigger, (draft, sorting) => {
     draft.filters.sorting = sorting
     draft.results = sortResults(current(draft).results, sorting)

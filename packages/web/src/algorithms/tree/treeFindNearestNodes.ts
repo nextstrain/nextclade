@@ -1,13 +1,13 @@
 /* eslint-disable camelcase */
-import type { Nucleotide, NucleotideSubstitution, AnalysisResultWithoutClade } from 'src/algorithms/types'
+import type { Nucleotide, NucleotideSubstitution, AnalysisResult } from 'src/algorithms/types'
 import type { AuspiceJsonV2Extended, AuspiceTreeNodeExtended } from 'src/algorithms/tree/types'
 import { NodeType } from 'src/algorithms/tree/enums'
 
-export function isSequenced(pos: number, seq: AnalysisResultWithoutClade) {
+export function isSequenced(pos: number, seq: AnalysisResult) {
   return pos >= seq.alignmentStart && pos < seq.alignmentEnd && seq.missing.every((d) => pos < d.begin || pos >= d.end)
 }
 
-export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
+export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
   let shared_differences = 0
   let shared_sites = 0
 
@@ -39,7 +39,7 @@ export function calculate_distance(node: AuspiceTreeNodeExtended, seq: AnalysisR
 }
 
 /* Find mutations that are present in the new sequence, but not present in the matching reference node sequence */
-export function findPrivateMutations(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade, root_seq: string) {
+export function findPrivateMutations(node: AuspiceTreeNodeExtended, seq: AnalysisResult, root_seq: string) {
   const privateMutations: NucleotideSubstitution[] = []
   const mutatedPositions = new Set(seq.substitutions.map((s) => s.pos))
 
@@ -60,7 +60,7 @@ export function findPrivateMutations(node: AuspiceTreeNodeExtended, seq: Analysi
   return privateMutations
 }
 
-export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResultWithoutClade) {
+export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult) {
   let best = calculate_distance(node, seq)
   let best_node = node
   const children = node.children ?? []
@@ -80,7 +80,7 @@ export function closest_match(node: AuspiceTreeNodeExtended, seq: AnalysisResult
 }
 
 export interface LocateInTreeParams {
-  analysisResult: AnalysisResultWithoutClade
+  analysisResult: AnalysisResult
   rootSeq: string
   auspiceData: AuspiceJsonV2Extended
 }

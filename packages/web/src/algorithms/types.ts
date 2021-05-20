@@ -33,6 +33,7 @@ export interface NucleotideSubstitution {
   pos: number
   refNuc: Nucleotide
   queryNuc: Nucleotide
+  pcrPrimersChanged: PcrPrimer[]
 }
 
 export interface NucleotideDeletion extends Span {}
@@ -57,28 +58,23 @@ export interface CladesGrouped {
 
 export interface AminoacidSubstitution {
   refAA: Aminoacid
-  queryAA: Aminoacid
   codon: number
+  queryAA: Aminoacid
   gene: string
-  nucRange: Range
-  refCodon: string
-  queryCodon: string
+  codonNucRange: Range
+  refContext: string
+  queryContext: string
+  contextNucRange: Range
 }
 
 export interface AminoacidDeletion {
+  gene: string
   refAA: Aminoacid
   codon: number
-  gene: string
-  nucRange: Range
-  refCodon: string
-}
-
-export interface NucleotideSubstitutionWithAminoacids extends NucleotideSubstitution {
-  aaSubstitutions: AminoacidSubstitution[]
-}
-
-export interface NucleotideDeletionWithAminoacids extends NucleotideDeletion {
-  aaDeletions: AminoacidDeletion[]
+  codonNucRange: Range
+  refContext: string
+  queryContext: string
+  contextNucRange: Range
 }
 
 export interface PcrPrimer {
@@ -94,10 +90,6 @@ export interface PcrPrimer {
 export interface PcrPrimerChange {
   primer: PcrPrimer
   substitutions: NucleotideSubstitution[]
-}
-
-export interface SubstitutionsWithPrimers extends NucleotideSubstitutionWithAminoacids {
-  pcrPrimersChanged: PcrPrimer[]
 }
 
 export interface Virus {
@@ -119,13 +111,13 @@ export interface ClusteredSNPs {
   numberOfSNPs: number
 }
 
-export interface AnalysisResultWithoutClade {
+export interface AnalysisResult {
   seqName: string
-  substitutions: SubstitutionsWithPrimers[]
+  substitutions: NucleotideSubstitution[]
   totalMutations: number
   insertions: NucleotideInsertion[]
   totalInsertions: number
-  deletions: NucleotideDeletionWithAminoacids[]
+  deletions: NucleotideDeletion[]
   totalGaps: number
   missing: NucleotideMissing[]
   totalMissing: number
@@ -142,18 +134,8 @@ export interface AnalysisResultWithoutClade {
   nucleotideComposition: Record<string, number>
   pcrPrimerChanges: PcrPrimerChange[]
   totalPcrPrimerChanges: number
-}
-
-export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {
   clade: string
-}
-
-export interface AnalysisResult extends AnalysisResultWithClade {
   qc: QCResult
-}
-
-export interface AnalysisResultWithMatch extends AnalysisResult {
-  nearestTreeNodeId: number
 }
 
 export interface ParseResult {

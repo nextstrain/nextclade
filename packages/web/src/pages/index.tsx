@@ -12,7 +12,7 @@ import type {
   AnalysisWorker,
   AnalysisThread,
   NextcladeWasmParams,
-  NextcladeWasmResult,
+  NextcladeResult,
 } from 'src/workers/worker.analyze'
 
 import {
@@ -72,7 +72,7 @@ export async function go() {
     Array.from({ length: numThreads }, () => undefined),
   )
 
-  const nextcladeResults: NextcladeWasmResult[] = []
+  const nextcladeResults: NextcladeResult[] = []
   const status = { parserDone: true, pendingAnalysis: 0 }
 
   function onSequence(seq: ParseSeqResult) {

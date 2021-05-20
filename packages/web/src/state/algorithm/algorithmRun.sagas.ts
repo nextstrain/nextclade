@@ -27,7 +27,7 @@ import {
   treePrepare,
 } from 'src/workers/run'
 
-import type { AnalysisThread, NextcladeWasmParams, NextcladeWasmResult } from 'src/workers/worker.analyze'
+import type { AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
 import { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { ParseSeqResult } from 'src/workers/types'
 
@@ -85,7 +85,7 @@ export function createSequenceParserEventChannel(
 }
 
 export interface AnalysisChannelElement {
-  nextcladeResult?: NextcladeWasmResult
+  nextcladeResult?: NextcladeResult
   error?: Error
   started?: boolean
   cancelled?: boolean
@@ -110,7 +110,7 @@ export function createAnalysisEventChannel(poolAnalyze: Pool<AnalysisThread>): E
         }
 
         case Pool.EventType.taskCompleted: {
-          const nextcladeResult = event.returnValue as NextcladeWasmResult
+          const nextcladeResult = event.returnValue as NextcladeResult
           emit({ nextcladeResult })
           break
         }
@@ -200,7 +200,7 @@ export function* runAnalysisLoop(
  * and emits corresponding redux actions
  */
 export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChannelElement>) {
-  const nextcladeResults: NextcladeWasmResult[] = []
+  const nextcladeResults: NextcladeResult[] = []
 
   try {
     while (true) {
@@ -310,7 +310,7 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   yield* call(destroyAnalysisThreadPool, poolAnalyze)
 
   // Return array of results aggregated in the results retrieval loop
-  return ((yield* join(resultsTask)) as unknown) as NextcladeWasmResult[]
+  return ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
 }
 
 /**

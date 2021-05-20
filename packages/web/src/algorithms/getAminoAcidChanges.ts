@@ -5,9 +5,9 @@ import type {
   AminoacidSubstitution,
   Gene,
   NucleotideDeletion,
-  NucleotideDeletionWithAminoacids,
+  NucleotideDeletion,
   NucleotideSubstitution,
-  NucleotideSubstitutionWithAminoacids,
+  NucleotideSubstitution,
   Range,
 } from './types'
 import { GAP } from './nucleotides'
@@ -159,9 +159,9 @@ export function addAminoacidChanges(
     const codon = pos / 3
 
     if (queryAA === AMINOACID_GAP) {
-      aaDeletions.push({ refAA, codon, gene: gene.name, nucRange, refCodon })
+      aaDeletions.push({ refAA, codon, gene: gene.name, codonNucRange: nucRange, refCodon })
     } else if (refAA !== queryAA) {
-      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, nucRange, refCodon, queryCodon })
+      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, codonNucRange: nucRange, refCodon, queryCodon })
     }
   }
 }
@@ -170,7 +170,7 @@ export function addAminoacidChanges(
 export function associateSubstitutions(mutations: NucleotideSubstitution[], aaSubstitutions: AminoacidSubstitution[]) {
   return mutations.map((mut) => {
     // Nuc substitution causes AA substitution iff its position is in the codon range
-    const theseAaSubstitutions = aaSubstitutions.filter((aaSub) => inRange(mut.pos, aaSub.nucRange))
+    const theseAaSubstitutions = aaSubstitutions.filter((aaSub) => inRange(mut.pos, aaSub.codonNucRange))
     return { ...mut, aaSubstitutions: theseAaSubstitutions }
   })
 }
@@ -180,7 +180,7 @@ export function associateDeletions(deletions: NucleotideDeletion[], aaDeletions:
   return deletions.map((del) => {
     const delRange: Range = { begin: del.start, end: del.start + del.length }
     // A nuc deletion causes an AA deletion iff the AA codon nuc range is strictly inside the deletion nuc range
-    const theseAaDeletions = aaDeletions.filter((aaDel) => haveIntersectionStrict(delRange, aaDel.nucRange))
+    const theseAaDeletions = aaDeletions.filter((aaDel) => haveIntersectionStrict(delRange, aaDel.codonNucRange))
     return { ...del, aaDeletions: theseAaDeletions }
   })
 }
@@ -188,8 +188,8 @@ export function associateDeletions(deletions: NucleotideDeletion[], aaDeletions:
 export interface GetAllAminoAcidChangesResult {
   aaSubstitutions: AminoacidSubstitution[]
   aaDeletions: AminoacidDeletion[]
-  substitutionsWithAA: NucleotideSubstitutionWithAminoacids[]
-  deletionsWithAA: NucleotideDeletionWithAminoacids[]
+  substitutionsWithAA: NucleotideSubstitution[]
+  deletionsWithAA: NucleotideDeletion[]
 }
 
 export function getAminoAcidChanges(
