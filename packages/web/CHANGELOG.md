@@ -1,3 +1,18 @@
+## [0.14.3](https://github.com/nextstrain/nextclade/compare/1.0.0-alpha.8...0.14.3) (2021-05-20)
+
+The [default SARS-CoV-2 reference tree](https://raw.githubusercontent.com/nextstrain/nextclade/0.14.3/data/sars-cov-2/tree.json) is updated. It allows Nextclade to detect the new Nextstrain clade 21A.
+
+See also:
+
+ - Current Nextstrain SARS-CoV-2 clade definitions in nextstrain/ncov GitHub repository: [clades.tsv](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv)
+
+ - Clade 21A in Nextstrain global build: [link](https://nextstrain.org/ncov/global?f_clade_membership=21A)
+
+ - Variant 21A/S:478K on CoVariants.org: [link](https://covariants.org/variants/21A.S.154K)
+
+ - Variant 21A/S:154K on CoVariants.org: [link](https://covariants.org/variants/21A.S.478K)
+
+
 ## [0.14.2](https://github.com/nextstrain/nextclade/compare/0.14.1...0.14.2) (2021-03-30)
 
 We updated Nextstrain Auspice (the tree renderer) from version 2.18.2 to version 2.23.0, with bug fixes and new features. In particular, the filtering functionality is now similar to what can be found on nextstrain.org. We now color the tree by clade and filter by node type ("reference" vs "new" nodes). See [Auspice changelog](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md) for more details.
