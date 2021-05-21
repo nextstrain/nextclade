@@ -16,6 +16,13 @@ export const selectCanExport = (state: State): boolean => state.algorithm.status
 
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.outputTree
 
+export const selectQueryStr = (state: State) => state.algorithm.params.strings.queryStr
+export const selectRefSeq = (state: State) => state.algorithm.params.strings.refStr
+export const selectGeneMapStr = (state: State) => state.algorithm.params.strings.geneMapStr
+export const selectRefTreeStr = (state: State) => state.algorithm.params.strings.refTreeStr
+export const selectPcrPrimersStr = (state: State) => state.algorithm.params.strings.pcrPrimersStr
+export const selectQcConfigStr = (state: State) => state.algorithm.params.strings.qcConfigStr
+
 export function selectStatus(state: State) {
   const statusGlobal = state.algorithm.status
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
@@ -40,6 +47,13 @@ export function selectStatus(state: State) {
       {
         statusText = i18n.t('Idling')
         percent = idlingPercent
+      }
+      break
+
+    case AlgorithmGlobalStatus.waitingInputs:
+      {
+        statusText = i18n.t('Waiting inputs...')
+        percent = parseStartedPercent
       }
       break
 

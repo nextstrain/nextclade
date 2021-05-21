@@ -1,23 +1,20 @@
-/* eslint-disable promise/always-return,array-func/no-unnecessary-this-arg */
+// /* eslint-disable promise/always-return,array-func/no-unnecessary-this-arg */
 import React, { useEffect, useState } from 'react'
-
-import { concurrent } from 'fasy'
-import { Pool, spawn, Worker } from 'threads'
 import { connect } from 'react-redux'
 
+import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import type { State } from 'src/state/reducer'
-import type { SequenceParserResult } from 'src/algorithms/types'
-import type { AnalysisWorker, AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
-import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
+import type { ActionCreator } from 'src/state/util/fsaActions'
+import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 import {
-  parseGeneMapGffString,
-  parsePcrPrimersCsvString,
-  parseQcConfigString,
-  parseRefSequence,
-  parseSequencesStreaming,
-  treeFinalize,
-  treePrepare,
-} from 'src/workers/run'
+  algorithmRunAsync,
+  setFasta,
+  setGeneMap,
+  setPcrPrimers,
+  setQcSettings,
+  setRootSeq,
+  setTree,
+} from 'src/state/algorithm/algorithm.actions'
 
 import queryStr from '../../../../data/sars-cov-2/sequences.fasta'
 import treeJson from '../../../../data/sars-cov-2/tree.json'
@@ -29,99 +26,62 @@ import pcrPrimersStrRaw from '../../../../data/sars-cov-2/primers.csv'
 const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
 
-export async function go() {
-  const refStr = await parseRefSequence(refFastaStr)
-  const treePreparedStr = await treePrepare(JSON.stringify(treeJson), refStr)
+export interface IndexProps {
+  algorithmRunAsyncTrigger: ActionCreator<void>
 
-  const geneMapName = 'genemap.gff'
-  const pcrPrimersFilename = 'primers.csv'
+  setFastaTrigger(input: AlgorithmInput): void
 
-  const geneMapStr = await parseGeneMapGffString(geneMapStrRaw, geneMapName)
-  const qcConfigStr = await parseQcConfigString(JSON.stringify(qcConfigRaw))
-  const pcrPrimersStr = await parsePcrPrimersCsvString(pcrPrimersStrRaw, pcrPrimersFilename, refStr)
+  setTreeTrigger(input: AlgorithmInput): void
 
-  const poolAnalyze = Pool<AnalysisThread>(
-    () => spawn<AnalysisWorker>(new Worker('src/workers/worker.analyze.ts', { name: 'worker.analyze' })),
-    {
-      size: numThreads,
-      concurrency: 1,
-      name: 'wasm',
-      maxQueuedJobs: undefined,
-    },
-  )
+  setRootSeqTrigger(input: AlgorithmInput): void
 
-  const params: NextcladeWasmParams = {
-    refStr,
-    geneMapStr,
-    geneMapName,
-    treePreparedStr,
-    pcrPrimersStr,
-    pcrPrimersFilename,
-    qcConfigStr,
-  }
+  setQcSettingsTrigger(input: AlgorithmInput): void
 
-  await concurrent.forEach(
-    async () => poolAnalyze.queue(async (worker: AnalysisThread) => worker.init(params)),
-    Array.from({ length: numThreads }, () => undefined),
-  )
+  setGeneMapTrigger(input: AlgorithmInput): void
 
-  const nextcladeResults: NextcladeResult[] = []
-  const status = { parserDone: true, pendingAnalysis: 0 }
-
-  function onSequence(seq: SequenceParserResult) {
-    status.pendingAnalysis += 1
-    console.log({ seq })
-
-    poolAnalyze.queue((worker) => {
-      return worker.analyze(seq).then((nextcladeResult) => {
-        console.log({ nextcladeResult })
-        nextcladeResults.push(nextcladeResult)
-        status.pendingAnalysis -= 1
-      })
-    })
-  }
-
-  function onError(error: Error) {
-    console.error(error)
-  }
-
-  function onComplete() {
-    status.parserDone = true
-  }
-
-  await parseSequencesStreaming(queryStr, onSequence, onError, onComplete)
-
-  await poolAnalyze.completed()
-  await concurrent.forEach(
-    async () => poolAnalyze.queue((worker: AnalysisThread) => worker.destroy()),
-    Array.from({ length: numThreads }, () => undefined),
-  )
-  await poolAnalyze.terminate()
-
-  const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
-  const analysisResultsStr = JSON.stringify(analysisResults)
-  const treeFinalStr = await treeFinalize(treePreparedStr, refStr, analysisResultsStr)
-
-  console.log({ nextcladeResults })
-  console.log({ tree: JSON.parse(treeFinalStr) })
-
-  // return [result, ...poolResult].join(', ')
+  setPcrPrimersTrigger(input: AlgorithmInput): void
 }
 
 const mapStateToProps = (state: State) => ({})
 
 const mapDispatchToProps = {
-  algorithmRunAyncTrigger: algorithmRunAsync.trigger,
+  algorithmRunAsyncTrigger: algorithmRunAsync.trigger,
+  setFastaTrigger: setFasta.trigger,
+  setTreeTrigger: setTree.trigger,
+  setRootSeqTrigger: setRootSeq.trigger,
+  setQcSettingsTrigger: setQcSettings.trigger,
+  setGeneMapTrigger: setGeneMap.trigger,
+  setPcrPrimersTrigger: setPcrPrimers.trigger,
 }
 
 const Index = connect(mapStateToProps, mapDispatchToProps)(IndexDisconnected)
 export default Index
 
-export function IndexDisconnected({ algorithmRunAyncTrigger }) {
+export function IndexDisconnected({
+  algorithmRunAsyncTrigger,
+  setFastaTrigger,
+  setTreeTrigger,
+  setRootSeqTrigger,
+  setQcSettingsTrigger,
+  setGeneMapTrigger,
+  setPcrPrimersTrigger,
+}: IndexProps) {
   const [value, setValue] = useState<number[]>()
 
   useEffect(() => {
-    algorithmRunAyncTrigger()
+    setFastaTrigger(new AlgorithmInputString(queryStr))
+    setRootSeqTrigger(new AlgorithmInputString(refFastaStr))
+
+    new Promise((resolve) => setTimeout(resolve, 1000))
+      .then(() => {
+        setTreeTrigger(new AlgorithmInputString(JSON.stringify(treeJson)))
+        setQcSettingsTrigger(new AlgorithmInputString(JSON.stringify(qcConfigRaw)))
+        setGeneMapTrigger(new AlgorithmInputString(geneMapStrRaw))
+        setPcrPrimersTrigger(new AlgorithmInputString(pcrPrimersStrRaw))
+
+        algorithmRunAsyncTrigger()
+      })
+      .catch(console.error)
 
     // go()
     //   .then((val) => {

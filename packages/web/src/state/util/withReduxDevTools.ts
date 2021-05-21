@@ -20,7 +20,12 @@ import {
   treeFinalizeAsync,
   addParsedSequence,
   addNextcladeResult,
+  setQcResults,
+  setQcSettings,
+  setGeneMap,
+  setPcrPrimers,
 } from 'src/state/algorithm/algorithm.actions'
+import { setQcRulesConfig } from 'src/state/settings/settings.actions'
 
 const TRUNCATED = ' ... (truncated)' as const
 
@@ -104,10 +109,14 @@ export function sanitizeParams(params?: AlgorithmParams) {
       geneMap: truncateContent(params.raw?.geneMap),
       pcrPrimers: truncateContent(params.raw?.pcrPrimers),
     },
-    virus: {
-      ...params.virus,
-      rootSeq: truncate(params.virus?.rootSeq),
-      auspiceData: truncateTreeJson(params.virus?.auspiceData),
+    strings: {
+      ...params.strings,
+      queryStr: truncate(params.strings?.queryStr),
+      refStr: truncate(params.strings?.refStr),
+      geneMapStr: truncate(params.strings?.geneMapStr),
+      refTreeStr: truncate(params.strings?.refTreeStr),
+      pcrPrimersStr: truncate(params.strings?.pcrPrimersStr),
+      qcConfigStr: truncate(params.strings?.qcConfigStr),
     },
   }
 }
@@ -168,9 +177,15 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
         isType(action, setFasta.trigger) ||
         isType(action, setTree.trigger) ||
         isType(action, setRootSeq.trigger) ||
+        isType(action, setGeneMap.trigger) ||
+        isType(action, setQcSettings.trigger) ||
+        isType(action, setPcrPrimers.trigger) ||
         isType(action, setFasta.started) ||
         isType(action, setTree.started) ||
-        isType(action, setRootSeq.started)
+        isType(action, setRootSeq.started) ||
+        isType(action, setGeneMap.started) ||
+        isType(action, setQcSettings.started) ||
+        isType(action, setPcrPrimers.started)
       ) {
         return {
           ...action,
@@ -186,7 +201,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
             params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
-              seqData: truncate(action.payload.result.seqData),
+              queryStr: truncate(action.payload.result.queryStr),
             },
           },
         }
@@ -200,7 +215,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
             params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
-              rootSeq: truncate(action.payload.result.rootSeq),
+              refStr: truncate(action.payload.result.refStr),
             },
           },
         }
@@ -214,7 +229,49 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
             params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
-              auspiceData: truncateTreeJson(action.payload.result.auspiceData),
+              refTreeStr: truncate(action.payload.result.refTreeStr),
+            },
+          },
+        }
+      }
+
+      if (isType(action, setQcSettings.done)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            params: truncateContent(action.payload.params),
+            result: {
+              ...action.payload.result,
+              qcConfigStr: truncate(action.payload.result.qcConfigStr),
+            },
+          },
+        }
+      }
+
+      if (isType(action, setGeneMap.done)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            params: truncateContent(action.payload.params),
+            result: {
+              ...action.payload.result,
+              geneMapStr: truncate(action.payload.result.geneMapStr),
+            },
+          },
+        }
+      }
+
+      if (isType(action, setPcrPrimers.done)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            params: truncateContent(action.payload.params),
+            result: {
+              ...action.payload.result,
+              pcrPrimersStr: truncate(action.payload.result.pcrPrimersStr),
             },
           },
         }
@@ -346,19 +403,6 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
               auspiceData: truncateTreeJson(action.payload.params.auspiceData),
             },
             result: truncateTreeJson(action.payload.result),
-          },
-        }
-      }
-
-      if (isType(action, addParsedSequence)) {
-        return {
-          ...action,
-          payload: {
-            ...action.payload,
-            seq: {
-              ...action.payload.seq,
-              seq: TRUNCATED,
-            },
           },
         }
       }

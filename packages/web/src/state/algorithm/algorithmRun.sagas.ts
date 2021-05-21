@@ -3,19 +3,20 @@ import type { EventChannel } from 'redux-saga'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
 import { eventChannel, buffers } from 'redux-saga'
-import { call, put, takeEvery, apply, take, all, fork, join } from 'typed-redux-saga'
+import { call, put, takeEvery, apply, take, all, fork, join, select } from 'typed-redux-saga'
 import { push } from 'connected-next-router/actions'
 
+import type { AuspiceJsonV2 } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
+
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
-
+import { selectOrWait } from 'src/state/util/selectOrThrow'
 import fsaSaga from 'src/state/util/fsaSaga'
 
 import type { AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { SequenceParserResult } from 'src/algorithms/types'
-import type { AuspiceJsonV2 } from 'auspice'
 import {
   addNextcladeResult,
   addParsedSequence,
@@ -26,23 +27,19 @@ import {
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import {
+  selectGeneMapStr,
+  selectPcrPrimersStr,
+  selectQcConfigStr,
+  selectQueryStr,
+  selectRefSeq,
+  selectRefTreeStr,
+} from 'src/state/algorithm/algorithm.selectors'
+import {
   createAnalysisThreadPool,
   createThreadParseSequencesStreaming,
   destroyAnalysisThreadPool,
-  parseGeneMapGffString,
-  parsePcrPrimersCsvString,
-  parseQcConfigString,
-  parseRefSequence,
   treeFinalize,
-  treePrepare,
 } from 'src/workers/run'
-
-import refFastaStr from '../../../../../data/sars-cov-2/reference.fasta'
-import treeJson from '../../../../../data/sars-cov-2/tree.json'
-import geneMapStrRaw from '../../../../../data/sars-cov-2/genemap.gff'
-import qcConfigRaw from '../../../../../data/sars-cov-2/qc.json'
-import pcrPrimersStrRaw from '../../../../../data/sars-cov-2/primers.csv'
-import queryStr from '../../../../../data/sars-cov-2/sequences.fasta'
 
 const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
@@ -274,7 +271,7 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
  *           (parallel, webworker, wasm)                   \-> [Analysis thread] -/                             (synchronous, JS)
  *                                                     (parallel, webworker pool, wasm)
  */
-export function* runSequenceAnalysis(params: NextcladeWasmParams) {
+export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmParams) {
   // Create sequence parser thread
   const sequenceParserThread = yield* call(createThreadParseSequencesStreaming)
 
@@ -311,6 +308,21 @@ export function* runSequenceAnalysis(params: NextcladeWasmParams) {
   return ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
 }
 
+/** Waits until all inputs are provided */
+export function* getInputs() {
+  const refStr = yield* selectOrWait(selectRefSeq, 'root sequence')
+
+  const { queryStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr } = yield* all({
+    queryStr: selectOrWait(selectQueryStr, 'sequence data'),
+    geneMapStr: selectOrWait(selectGeneMapStr, 'gene map'),
+    refTreeStr: selectOrWait(selectRefTreeStr, 'reference tree'),
+    pcrPrimersStr: selectOrWait(selectPcrPrimersStr, 'PCR primers'),
+    qcConfigStr: selectOrWait(selectQcConfigStr, 'QC config'),
+  })
+
+  return { refStr, queryStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr }
+}
+
 /**
  * Runs Nextclade algorithm: parsing, analysis, and tree placement
  */
@@ -318,21 +330,17 @@ export function* runAlgorithm() {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield* put(push('/results'))
 
-  const refStr = yield* call(parseRefSequence, refFastaStr)
-  const treePreparedStr = yield* call(treePrepare, JSON.stringify(treeJson), refStr)
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.waitingInputs))
+  const { refStr, queryStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr } = yield* call(getInputs)
 
-  const geneMapName = 'genemap.gff'
-  const pcrPrimersFilename = 'primers.csv'
-
-  const geneMapStr = yield* call(parseGeneMapGffString, geneMapStrRaw, geneMapName)
-  const qcConfigStr = yield* call(parseQcConfigString, JSON.stringify(qcConfigRaw))
-  const pcrPrimersStr = yield* call(parsePcrPrimersCsvString, pcrPrimersStrRaw, pcrPrimersFilename, refStr)
-
-  const nextcladeResults = yield* runSequenceAnalysis({
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
+  const geneMapName = ''
+  const pcrPrimersFilename = ''
+  const nextcladeResults = yield* runSequenceAnalysis(queryStr, {
     refStr,
     geneMapStr,
     geneMapName,
-    treePreparedStr,
+    refTreeStr,
     pcrPrimersStr,
     pcrPrimersFilename,
     qcConfigStr,
@@ -341,7 +349,8 @@ export function* runAlgorithm() {
   const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
 
-  const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
+  const treeFinalStr = yield* call(treeFinalize, refTreeStr, refStr, analysisResultsStr)
   const tree = parseAuspiceJsonV2(treeFinalStr)
   console.log({ nextcladeResults })
   console.log({ tree })

@@ -10,6 +10,7 @@ export type AlgorithmParamsPartial = Partial<AlgorithmParams>
 export enum AlgorithmGlobalStatus {
   idling = 'idling',
   started = 'started',
+  waitingInputs = 'waitingInputs',
   parsing = 'parsing',
   analysis = 'analysis',
   treeBuild = 'treeBuild',
@@ -68,6 +69,14 @@ export interface AlgorithmParams {
     geneMap?: AlgorithmInput
     pcrPrimers?: AlgorithmInput
   }
+  strings: {
+    queryStr?: string
+    refStr?: string
+    geneMapStr?: string
+    refTreeStr?: string
+    pcrPrimersStr?: string
+    qcConfigStr?: string
+  }
   errors: {
     seqData: Error[]
     auspiceData: Error[]
@@ -101,6 +110,7 @@ export const algorithmDefaultState: AlgorithmState = {
   status: AlgorithmGlobalStatus.idling,
   params: {
     raw: {},
+    strings: {},
     errors: {
       seqData: [],
       auspiceData: [],
