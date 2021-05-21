@@ -4,6 +4,7 @@ import { configureStore } from 'src/state/store'
 import { setLocale } from 'src/state/settings/settings.actions'
 import { showWhatsNewMaybe } from 'src/helpers/showWhatsNewMaybe'
 import { fetchInputsAndRunMaybe } from 'src/io/fetchInputsAndRunMaybe'
+import { setDefaultData } from 'src/state/algorithm/algorithm.actions'
 
 export interface InitializeParams {
   router: Router
@@ -23,6 +24,7 @@ export async function initialize({ router }: InitializeParams) {
 
   const { localeKeyV2, lastVersionSeen, showWhatsnewOnUpdate } = store.getState().settings
   store.dispatch(setLocale(localeKeyV2))
+  store.dispatch(setDefaultData.trigger(undefined))
 
   showWhatsNewMaybe(lastVersionSeen, showWhatsnewOnUpdate, store.dispatch)
 

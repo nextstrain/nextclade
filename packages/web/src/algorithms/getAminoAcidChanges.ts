@@ -86,7 +86,7 @@ export function reconstructGeneSequences(
     // TODO: invariant(end - begin <= queryGene.length)
 
     // handle out-of-frame but not frame-shifting deletions
-    const patchDirection = getPatchDirection(gene.name, begin)
+    const patchDirection = getPatchDirection(gene.geneName, begin)
     const isOutOfFrameButNotShifting = frame > 0 && delLength % 3 === 0
     if (isOutOfFrameButNotShifting && patchDirection === PatchDirection.left) {
       let genePos = begin - geneBegin
@@ -159,9 +159,9 @@ export function addAminoacidChanges(
     const codon = pos / 3
 
     if (queryAA === AMINOACID_GAP) {
-      aaDeletions.push({ refAA, codon, gene: gene.name, codonNucRange: nucRange, refCodon })
+      aaDeletions.push({ refAA, codon, gene: gene.geneName, codonNucRange: nucRange, refCodon })
     } else if (refAA !== queryAA) {
-      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.name, codonNucRange: nucRange, refCodon, queryCodon })
+      aaSubstitutions.push({ refAA, queryAA, codon, gene: gene.geneName, codonNucRange: nucRange, refCodon, queryCodon })
     }
   }
 }

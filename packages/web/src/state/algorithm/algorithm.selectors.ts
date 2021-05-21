@@ -23,6 +23,9 @@ export const selectRefTreeStr = (state: State) => state.algorithm.params.strings
 export const selectPcrPrimersStr = (state: State) => state.algorithm.params.strings.pcrPrimersStr
 export const selectQcConfigStr = (state: State) => state.algorithm.params.strings.qcConfigStr
 
+export const selectGeneMap = (state: State) => state.algorithm.params.final?.geneMap
+export const selectGenomeSize = (state: State) => state.algorithm.params.final?.genomeSize
+
 export function selectStatus(state: State) {
   const statusGlobal = state.algorithm.status
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))

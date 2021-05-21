@@ -14,6 +14,8 @@ const action = actionCreatorFactory('Algorithm')
 
 export const setIsDirty = action<boolean>('setIsDirty')
 
+export const setDefaultData = action.async<string | undefined, void, Error>('setDefaultData')
+
 export const setFasta = action.async<AlgorithmInput, { queryStr: string }, Error>('setFasta')
 export const setTree = action.async<AlgorithmInput, { refTreeStr: string }, Error>('setTree')
 export const setRootSeq = action.async<AlgorithmInput, { refStr: string }, Error>('setRootSeq')
@@ -29,7 +31,7 @@ export const removeGeneMap = action('removeGeneMap')
 export const removePcrPrimers = action('removePcrPrimers')
 
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
-export const algorithmRunAsync = action.async<void, void, Error>('algorithmRunAsync')
+export const algorithmRunAsync = action.async<AlgorithmInput | undefined, void, Error>('algorithmRunAsync')
 export const algorithmRunWithSequencesAsync = action.async<AlgorithmInput, void, Error>('algorithmRunWithSequencesAsync') // prettier-ignore
 
 export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')

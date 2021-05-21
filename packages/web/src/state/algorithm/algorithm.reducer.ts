@@ -3,6 +3,7 @@ import { getVirus } from 'src/algorithms/defaults/viruses'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import type { QCResult } from 'src/algorithms/QC/types'
+import type { Gene } from 'src/algorithms/types'
 import { mergeByWith } from 'src/helpers/mergeByWith'
 import { sortResults } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
@@ -148,6 +149,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setRootSeq.started, (draft, input) => {
     draft.params.raw.rootSeq = input
     draft.params.strings.refStr = undefined
+    draft.params.final.genomeSize = undefined
     draft.params.errors.rootSeq = []
   })
 
@@ -160,6 +162,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setGeneMap.started, (draft, input) => {
     draft.params.raw.geneMap = input
     draft.params.strings.geneMapStr = undefined
+    draft.params.final.geneMap = undefined
     draft.params.errors.geneMap = []
   })
 
@@ -183,6 +186,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setRootSeq.done, (draft, { result: { refStr } }) => {
     draft.params.strings.refStr = refStr
+    draft.params.final.genomeSize = refStr.length
     draft.params.errors.rootSeq = []
   })
 
@@ -192,7 +196,9 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(setGeneMap.done, (draft, { result: { geneMapStr } }) => {
+    const geneMap = JSON.parse(geneMapStr) as Gene[]
     draft.params.strings.geneMapStr = geneMapStr
+    draft.params.final.geneMap = geneMap
     draft.params.errors.geneMap = []
   })
 
@@ -210,11 +216,13 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setTree.failed, (draft, { error }) => {
     draft.params.strings.refStr = undefined
+    draft.params.final.genomeSize = undefined
     draft.params.errors.auspiceData = [error]
   })
 
   .icase(setRootSeq.failed, (draft, { error }) => {
     draft.params.strings.geneMapStr = undefined
+    draft.params.final.geneMap = undefined
     draft.params.errors.rootSeq = [error]
   })
 

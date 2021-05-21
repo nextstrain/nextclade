@@ -65,6 +65,6 @@ export function convertGeneMap(geneMapJson: GeneMapJson): Gene[] {
         )
       }
 
-      return { name, range: { begin, end }, frame, color }
+      return { geneName: name, range: { begin, end }, frame, color }
     })
 }

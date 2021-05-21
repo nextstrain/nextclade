@@ -1,9 +1,11 @@
-import { call, select, takeEvery } from 'typed-redux-saga'
+import { all, call, put, select, takeEvery } from 'typed-redux-saga'
 
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 import fsaSaga from 'src/state/util/fsaSaga'
 
 import {
+  setDefaultData,
   setFasta,
   setGeneMap,
   setPcrPrimers,
@@ -19,8 +21,9 @@ import {
   parseRefSequence,
   treePrepare,
 } from 'src/workers/run'
-import { selectOrThrow } from 'src/state/util/selectOrThrow'
+import { selectOrThrow, selectOrWait } from 'src/state/util/selectOrThrow'
 import { selectRefSeq } from 'src/state/algorithm/algorithm.selectors'
+import { getVirus } from 'src/algorithms/defaults/viruses'
 
 export function* loadFasta(input: AlgorithmInput) {
   const queryStr = yield* call([input, input.getContent])
@@ -63,6 +66,20 @@ export function* loadPcrPrimers(input: AlgorithmInput) {
   return { pcrPrimersStr }
 }
 
+export function* loadDefaults(virusName?: string) {
+  const virus = getVirus(virusName)
+
+  // Load root sequence and wait until it's available in the state (tree and PCR primers rely on it)
+  yield* put(setRootSeq.trigger(new AlgorithmInputString(virus.refFastaStr)))
+  yield* selectOrWait(selectRefSeq, 'root sequence')
+
+  // Load everything else
+  yield* put(setTree.trigger(new AlgorithmInputString(virus.treeJson)))
+  yield* put(setQcSettings.trigger(new AlgorithmInputString(virus.qcConfigRaw)))
+  yield* put(setGeneMap.trigger(new AlgorithmInputString(virus.geneMapStrRaw)))
+  yield* put(setPcrPrimers.trigger(new AlgorithmInputString(virus.pcrPrimersStrRaw)))
+}
+
 export default [
   takeEvery(setFasta.trigger, fsaSaga(setFasta, loadFasta)),
   takeEvery(setTree.trigger, fsaSaga(setTree, loadTree)),
@@ -70,4 +87,5 @@ export default [
   takeEvery(setQcSettings.trigger, fsaSaga(setQcSettings, loadQcSettings)),
   takeEvery(setGeneMap.trigger, fsaSaga(setGeneMap, loadGeneMap)),
   takeEvery(setPcrPrimers.trigger, fsaSaga(setPcrPrimers, loadPcrPrimers)),
+  takeEvery(setDefaultData.trigger, fsaSaga(setDefaultData, loadDefaults)),
 ]

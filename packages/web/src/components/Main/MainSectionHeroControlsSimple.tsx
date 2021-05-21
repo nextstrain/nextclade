@@ -14,6 +14,7 @@ import { FilePicker } from 'src/components/Main/FilePicker'
 import type { State } from 'src/state/reducer'
 import type { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import {
+  algorithmRunAsync,
   algorithmRunWithSequencesAsync,
   exportCsvTrigger,
   removeFasta,
@@ -37,9 +38,7 @@ export interface MainSectionHeroControlsProps {
 
   setIsDirty(isDirty: boolean): void
 
-  algorithmRunTrigger(_0: unknown): void
-
-  algorithmRunWithSequencesTrigger(input: AlgorithmInput): void
+  algorithmRunAsyncTrigger(input: AlgorithmInput): void
 
   goToResults(): void
 }
@@ -53,8 +52,7 @@ const mapDispatchToProps = {
   setIsDirty,
   setFasta: setFasta.trigger,
   removeFasta,
-  algorithmRunTrigger: algorithmRunWithSequencesAsync.trigger,
-  algorithmRunWithSequencesTrigger: algorithmRunWithSequencesAsync.trigger,
+  algorithmRunAsyncTrigger: algorithmRunAsync.trigger,
   exportTrigger: () => exportCsvTrigger(),
   goToResults: () => push('/results'),
 }
@@ -68,8 +66,7 @@ export function MainSectionHeroControlsDisconnected({
   params,
   canExport,
   setIsDirty,
-  algorithmRunTrigger,
-  algorithmRunWithSequencesTrigger,
+  algorithmRunAsyncTrigger,
   goToResults,
   setFasta,
   removeFasta,
@@ -82,12 +79,12 @@ export function MainSectionHeroControlsDisconnected({
     inputRef?.current?.focus()
     const seqData = getSequenceDatum(params.virus.name)
     setFasta(new AlgorithmInputString(seqData, t('Example sequences')))
-    delay(algorithmRunWithSequencesTrigger, 250, new AlgorithmInputString(seqData, t('Example sequences')))
+    delay(algorithmRunAsyncTrigger, 1000, new AlgorithmInputString(seqData, t('Example sequences')))
   }
 
   async function onUpload(input: AlgorithmInput) {
     setIsDirty(true)
-    algorithmRunWithSequencesTrigger(input)
+    algorithmRunAsyncTrigger(input)
   }
 
   return (

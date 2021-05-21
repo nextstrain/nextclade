@@ -7,7 +7,7 @@ import { rootSeq } from 'src/algorithms/defaults/sars-cov-2/rootSeq'
 
 const geneMap: Gene[] = [
   {
-    name: 'ORF1a',
+    geneName: 'ORF1a',
     color: '#222222',
     range: {
       begin: 265,

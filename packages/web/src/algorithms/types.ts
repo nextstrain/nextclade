@@ -94,16 +94,15 @@ export interface PcrPrimerChange {
 
 export interface Virus {
   name: string
-  genomeSize: number
   minimalLength: number
-  geneMap: Gene[]
-  rootSeq: string
-  auspiceData: AuspiceJsonV2
-  pcrPrimers: PcrPrimer[]
-  qcRulesConfig: QCRulesConfig
+  genomeSize: number
+  queryStr: string
+  treeJson: string
+  refFastaStr: string
+  qcConfigRaw: string
+  geneMapStrRaw: string
+  pcrPrimersStrRaw: string
 }
-
-export type VirusRaw = StrictOmit<Virus, 'genomeSize'>
 
 export interface ClusteredSNPs {
   start: number
@@ -156,10 +155,13 @@ export interface AnalysisParams {
 
 /** Represents a named interval in the genome */
 export interface Gene {
-  name: string
+  geneName: string
   color: string
-  range: Range
+  start: number
+  end: number
+  length: number
   frame: number
+  strand: string
 }
 
 export interface SequenceParserResult {

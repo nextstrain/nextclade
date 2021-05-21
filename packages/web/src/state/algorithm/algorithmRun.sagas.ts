@@ -21,11 +21,11 @@ import {
   addNextcladeResult,
   addParsedSequence,
   algorithmRunAsync,
-  // algorithmRunWithSequencesAsync,
+  algorithmRunWithSequencesAsync,
   setAlgorithmGlobalStatus,
   setOutputTree,
 } from 'src/state/algorithm/algorithm.actions'
-import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import {
   selectGeneMapStr,
   selectPcrPrimersStr,
@@ -312,26 +312,35 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
 export function* getInputs() {
   const refStr = yield* selectOrWait(selectRefSeq, 'root sequence')
 
-  const { queryStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr } = yield* all({
-    queryStr: selectOrWait(selectQueryStr, 'sequence data'),
+  const { geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr } = yield* all({
     geneMapStr: selectOrWait(selectGeneMapStr, 'gene map'),
     refTreeStr: selectOrWait(selectRefTreeStr, 'reference tree'),
     pcrPrimersStr: selectOrWait(selectPcrPrimersStr, 'PCR primers'),
     qcConfigStr: selectOrWait(selectQcConfigStr, 'QC config'),
   })
 
-  return { refStr, queryStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr }
+  return { refStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr }
 }
 
 /**
  * Runs Nextclade algorithm: parsing, analysis, and tree placement
  */
-export function* runAlgorithm() {
+export function* runAlgorithm(input?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield* put(push('/results'))
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.waitingInputs))
-  const { refStr, queryStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr } = yield* call(getInputs)
+  const { refStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr } = yield* call(getInputs)
+
+  let queryStr = yield* select(selectQueryStr)
+  if (!queryStr) {
+    if (!input) {
+      throw new Error(
+        'When running Nextclade algorithm: No sequence data provided. This is an internal error. Please report it to developers',
+      )
+    }
+    queryStr = yield* apply(input, input.getContent, [])
+  }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const geneMapName = ''
@@ -372,6 +381,6 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
 }
 
 export default [
-  // takeEvery(algorithmRunWithSequencesAsync.trigger, fsaSaga(algorithmRunWithSequencesAsync, runAlgorithmWithSequences)),
   takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
+  // takeEvery(algorithmRunWithSequencesAsync.trigger, fsaSaga(algorithmRunWithSequencesAsync, runAlgorithmWithSequences)),
 ]

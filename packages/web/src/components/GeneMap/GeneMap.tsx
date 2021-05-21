@@ -2,7 +2,12 @@ import React, { SVGProps, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
-import { selectParams } from 'src/state/algorithm/algorithm.selectors'
+import {
+  selectGeneMap,
+  selectGeneMapStr,
+  selectGenomeSize,
+  selectParams,
+} from 'src/state/algorithm/algorithm.selectors'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -41,11 +46,11 @@ export interface GeneViewProps extends SVGProps<SVGRectElement> {
 
 export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
   const [showTooltip, setShowTooltip] = useState(false)
-  const { name, color, range: { begin, end }, frame } = gene // prettier-ignore
-  const width = Math.max(BASE_MIN_WIDTH_PX, (end - begin) * pixelsPerBase)
-  const x = begin * pixelsPerBase
+  const { geneName, color, start, end, length, frame } = gene // prettier-ignore
+  const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
+  const x = start * pixelsPerBase
   const id = getSafeId('gene', { ...gene })
-  const range = formatRange(begin, end)
+  const range = formatRange(start, end)
 
   return (
     <rect
@@ -60,26 +65,30 @@ export function GeneView({ gene, pixelsPerBase, ...rest }: GeneViewProps) {
       {...rest}
     >
       <Tooltip target={id} isOpen={showTooltip}>
-        <div style={{ color }}>{`${name} (${range})`}</div>
+        <div style={{ color }}>{`${geneName} (${range})`}</div>
       </Tooltip>
     </rect>
   )
 }
 
 export interface GeneMapProps extends ReactResizeDetectorDimensions {
-  virus: Virus
+  // virus: Virus
+  geneMap?: Gene[]
+  genomeSize?: number
 }
 
 const mapStateToProps = (state: State) => ({
-  virus: selectParams(state).virus,
+  // virus: selectParams(state).virus,
+  geneMap: selectGeneMap(state),
+  genomeSize: selectGenomeSize(state),
 })
 
 const mapDispatchToProps = {}
 
 export const GeneMapUnsized = connect(mapStateToProps, mapDispatchToProps)(GeneMapUnsizedDisconnected)
 
-export function GeneMapUnsizedDisconnected({ virus, width, height }: GeneMapProps) {
-  if (!width || !height) {
+export function GeneMapUnsizedDisconnected({ geneMap, genomeSize, width, height }: GeneMapProps) {
+  if (!width || !height || !geneMap || !genomeSize) {
     return (
       <GeneMapWrapper>
         <GeneMapSVG viewBox={`0 -25 50 50`} />
@@ -87,10 +96,10 @@ export function GeneMapUnsizedDisconnected({ virus, width, height }: GeneMapProp
     )
   }
 
-  const { geneMap, genomeSize } = virus
+  // const { geneMap, genomeSize } = virus
   const pixelsPerBase = width / genomeSize
   const geneViews = geneMap.map((gene, i) => {
-    return <GeneView key={gene.name} gene={gene} pixelsPerBase={pixelsPerBase} />
+    return <GeneView key={gene.geneName} gene={gene} pixelsPerBase={pixelsPerBase} />
   })
 
   return (
