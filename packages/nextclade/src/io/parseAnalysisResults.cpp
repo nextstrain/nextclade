@@ -290,16 +290,25 @@ namespace Nextclade {
     };
   }
 
-  std::vector<PcrPrimer> parsePcrPrimers(const std::string& pcrPrimersStr) {
-    const auto j = json::parse(pcrPrimersStr);
-    return parseArray<PcrPrimer>(j, parsePcrPrimer);
-  }
-
   std::vector<Nextclade::AnalysisResult> parseAnalysisResults(const std::string& analysisResultsStr) {
     const auto j = json::parse(analysisResultsStr);
     if (!j.is_array()) {
       throw ErrorAnalysisResultsRootTypeInvalid(j.type_name());
     }
     return parseArray<AnalysisResult>(j, parseAnalysisResult);
+  }
+
+  PcrPrimerCsvRow parsePcrPrimerCsvRow(const json& j) {
+    return PcrPrimerCsvRow{
+      .source = at(j, "source"),
+      .target = at(j, "target"),
+      .name = at(j, "name"),
+      .primerOligonuc = at(j, "primerOligonuc"),
+    };
+  }
+
+  std::vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr) {
+    const auto j = json::parse(pcrPrimerCsvRowsStr);
+    return parseArray<PcrPrimerCsvRow>(j, parsePcrPrimerCsvRow);
   }
 }// namespace Nextclade

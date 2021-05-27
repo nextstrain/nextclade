@@ -16,7 +16,7 @@ import {
 
 import {
   parseGeneMapGffString,
-  parsePcrPrimersCsvString,
+  parsePcrPrimerCsvRowsStr,
   parseQcConfigString,
   parseRefSequence,
   treePrepare,
@@ -61,8 +61,7 @@ export function* loadGeneMap(input: AlgorithmInput) {
 
 export function* loadPcrPrimers(input: AlgorithmInput) {
   const pcrPrimersStrRaw = yield* call([input, input.getContent])
-  const refStr = yield* selectOrThrow(selectRefSeq, 'Reference sequence')
-  const pcrPrimersStr = yield* call(parsePcrPrimersCsvString, pcrPrimersStrRaw, input.name, refStr)
+  const pcrPrimersStr = yield* call(parsePcrPrimerCsvRowsStr, pcrPrimersStrRaw, input.name)
   return { pcrPrimersStr }
 }
 

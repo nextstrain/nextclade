@@ -246,6 +246,13 @@ namespace Nextclade {
     );
   }
 
+  struct PcrPrimerCsvRow {
+    /* 1 */ std::string source;
+    /* 2 */ std::string target;
+    /* 3 */ std::string name;
+    /* 4 */ std::string primerOligonuc;
+  };
+
   struct PcrPrimer {
     std::string name;
     std::string target;
@@ -330,11 +337,22 @@ namespace Nextclade {
 
   QcConfig parseQcConfig(const std::string& qcConfigJsonStr);
 
-  std::vector<PcrPrimer> parsePcrPrimersCsv(      //
+  std::vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,       //
-    const std::string& filename,                  //
-    const NucleotideSequence& rootSeq,            //
-    /* inout */ std::vector<std::string>& warnings//
+    const std::string& filename                   //
+  );
+
+  std::vector<PcrPrimer> convertPcrPrimerRows(           //
+    const std::vector<PcrPrimerCsvRow>& pcrPrimerCsvRows,//
+    const NucleotideSequence& rootSeq,                   //
+    /* inout */ std::vector<std::string>& warnings       //
+  );
+
+  std::vector<PcrPrimer> parseAndConvertPcrPrimersCsv(//
+    const std::string& pcrPrimersCsvString,           //
+    const std::string& filename,                      //
+    const NucleotideSequence& rootSeq,                //
+    /* inout */ std::vector<std::string>& warnings    //
   );
 
   class ErrorPcrPrimersCsvParserMissingColumn : public std::runtime_error {
@@ -391,11 +409,11 @@ namespace Nextclade {
 
   GeneMap parseGeneMap(const std::string& geneMapStr);
 
-  std::vector<PcrPrimer> parsePcrPrimers(const std::string& pcrPrimersStr);
+  std::vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr);
 
   std::vector<AnalysisResult> parseAnalysisResults(const std::string& analysisResultsStr);
 
-  std::string serializePcrPrimersToString(const std::vector<PcrPrimer>& pcrPrimers);
+  std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers);
 
   std::string serializeGeneMap(const GeneMap& geneMap);
 

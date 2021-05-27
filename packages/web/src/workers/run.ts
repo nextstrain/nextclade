@@ -5,7 +5,7 @@ import type { SequenceParserResult } from 'src/algorithms/types'
 
 import type { AnalysisThread, AnalysisWorker, NextcladeWasmParams } from 'src/workers/worker.analyze'
 import type { ParseGeneMapThread } from 'src/workers/worker.parseGeneMap'
-import type { ParsePcrPrimersThread } from 'src/workers/worker.parsePcrPrimers'
+import type { ParsePcrPrimerCsvRowsStrThread } from 'src/workers/worker.parsePcrPrimers'
 import type { ParseQcConfigThread } from 'src/workers/worker.parseQcConfig'
 import type { ParseRefSequenceThread } from 'src/workers/worker.parseRefSeq'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
@@ -106,11 +106,11 @@ export async function parseQcConfigString(qcConfigStr: string) {
   return thread.parseQcConfigString(qcConfigStr)
 }
 
-export async function parsePcrPrimersCsvString(pcrPrimersStrRaw: string, pcrPrimersFilename: string, refStr: string) {
-  const thread = await spawn<ParsePcrPrimersThread>(
+export async function parsePcrPrimerCsvRowsStr(pcrPrimersStrRaw: string, pcrPrimersFilename: string) {
+  const thread = await spawn<ParsePcrPrimerCsvRowsStrThread>(
     new Worker('src/workers/worker.parsePcrPrimers.ts', { name: 'worker.parsePcrPrimers' }),
   )
-  return thread.parsePcrPrimersCsvString(pcrPrimersStrRaw, pcrPrimersFilename, refStr)
+  return thread.parsePcrPrimerCsvRowsStr(pcrPrimersStrRaw, pcrPrimersFilename)
 }
 
 export async function treePrepare(treeStr: string, refStr: string) {

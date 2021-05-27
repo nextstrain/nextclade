@@ -31,7 +31,7 @@ class NextcladeWasm {
   std::string geneMapStr;
   std::string geneMapName;
   std::string treePreparedStr;
-  std::string pcrPrimersStr;
+  std::string pcrPrimerRowsStr;
   std::string pcrPrimersFilename;
   std::string qcConfigStr;
 
@@ -41,7 +41,7 @@ public:
     std::string geneMapStr,        //
     std::string geneMapName,       //
     std::string treePreparedStr,   //
-    std::string pcrPrimersStr,     //
+    std::string pcrPrimerRowsStr,  //
     std::string pcrPrimersFilename,//
     std::string qcConfigStr        //
     )
@@ -49,7 +49,7 @@ public:
         geneMapStr(std::move(geneMapStr)),
         geneMapName(std::move(geneMapName)),
         treePreparedStr(std::move(treePreparedStr)),
-        pcrPrimersStr(std::move(pcrPrimersStr)),
+        pcrPrimerRowsStr(std::move(pcrPrimerRowsStr)),
         pcrPrimersFilename(std::move(pcrPrimersFilename)),
         qcConfigStr(std::move(qcConfigStr)) {}
 
@@ -57,14 +57,19 @@ public:
     const std::string& queryName,//
     const std::string& queryStr  //
   ) {
+    std::vector<std::string> warnings;// TODO: report warnings
+
     const auto ref = toNucleotideSequence(refStr);
     const auto query = toNucleotideSequence(queryStr);
 
     auto tree = Nextclade::Tree{treePreparedStr};
 
     const auto geneMap = Nextclade::parseGeneMap(geneMapStr);
-    const auto pcrPrimers = Nextclade::parsePcrPrimers(pcrPrimersStr);
+
     const auto qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
+
+    const auto pcrPrimerRows = Nextclade::parsePcrPrimerCsvRowsStr(pcrPrimerRowsStr);
+    const auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, warnings);
 
     // FIXME: pass options from JS
     const auto nextalignOptions = getDefaultOptions();
@@ -121,12 +126,9 @@ std::string parseQcConfigString(const std::string& qcConfigStr) {
   return Nextclade::serializeQcConfig(qcConfig);
 }
 
-std::string parsePcrPrimersCsvString(const std::string& pcrPrimersStr, const std::string& pcrPrimersFilename,
-  const std::string& refStr) {
-  const auto ref = toNucleotideSequence(refStr);
-  std::vector<std::string> warnings;
-  auto pcrPrimers = Nextclade::parsePcrPrimersCsv(pcrPrimersStr, pcrPrimersFilename, ref, warnings);
-  return Nextclade::serializePcrPrimersToString(pcrPrimers);
+std::string parsePcrPrimerCsvRowsStr(const std::string& pcrPrimersStr, const std::string& pcrPrimersFilename) {
+  auto pcrPrimers = Nextclade::parsePcrPrimersCsv(pcrPrimersStr, pcrPrimersFilename);
+  return Nextclade::serializePcrPrimerRowsToString(pcrPrimers);
 }
 
 void parseSequencesStreaming(const std::string& queryFastaStr, const emscripten::val& onSequence,
@@ -161,7 +163,7 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
 
   emscripten::function("parseGeneMapGffString", &parseGeneMapGffString);
   emscripten::function("parseQcConfigString", &parseQcConfigString);
-  emscripten::function("parsePcrPrimersCsvString", &parsePcrPrimersCsvString);
+  emscripten::function("parsePcrPrimerCsvRowsStr", &parsePcrPrimerCsvRowsStr);
 
   emscripten::value_object<AlgorithmInput>("AlgorithmInput")
     .field("index", &AlgorithmInput::index)
