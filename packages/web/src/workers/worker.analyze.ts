@@ -70,7 +70,7 @@ export async function init(params: NextcladeWasmParams) {
       params.geneMapStr,
       params.geneMapName,
       params.refTreeStr,
-      params.pcrPrimersStr,
+      params.pcrPrimerCsvRowsStr,
       params.pcrPrimersFilename,
       params.qcConfigStr,
     )

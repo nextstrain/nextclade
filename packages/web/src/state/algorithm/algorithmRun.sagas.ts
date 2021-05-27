@@ -312,14 +312,14 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
 export function* getInputs() {
   const refStr = yield* selectOrWait(selectRefSeq, 'root sequence')
 
-  const { geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr } = yield* all({
+  const { geneMapStr, refTreeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* all({
     geneMapStr: selectOrWait(selectGeneMapStr, 'gene map'),
     refTreeStr: selectOrWait(selectRefTreeStr, 'reference tree'),
-    pcrPrimersStr: selectOrWait(selectPcrPrimersStr, 'PCR primers'),
+    pcrPrimerCsvRowsStr: selectOrWait(selectPcrPrimersStr, 'PCR primers'),
     qcConfigStr: selectOrWait(selectQcConfigStr, 'QC config'),
   })
 
-  return { refStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr }
+  return { refStr, geneMapStr, refTreeStr, pcrPrimerCsvRowsStr, qcConfigStr }
 }
 
 /**
@@ -330,7 +330,7 @@ export function* runAlgorithm(input?: AlgorithmInput) {
   yield* put(push('/results'))
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.waitingInputs))
-  const { refStr, geneMapStr, refTreeStr, pcrPrimersStr, qcConfigStr } = yield* call(getInputs)
+  const { refStr, geneMapStr, refTreeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* call(getInputs)
 
   let queryStr = yield* select(selectQueryStr)
   if (!queryStr) {
@@ -350,7 +350,7 @@ export function* runAlgorithm(input?: AlgorithmInput) {
     geneMapStr,
     geneMapName,
     refTreeStr,
-    pcrPrimersStr,
+    pcrPrimerCsvRowsStr,
     pcrPrimersFilename,
     qcConfigStr,
   })

@@ -21,7 +21,7 @@ export const setTree = action.async<AlgorithmInput, { refTreeStr: string }, Erro
 export const setRootSeq = action.async<AlgorithmInput, { refStr: string }, Error>('setRootSeq')
 export const setQcSettings = action.async<AlgorithmInput, { qcConfigStr: string }, Error>('setQcSettings')
 export const setGeneMap = action.async<AlgorithmInput, { geneMapStr: string }, Error>('setGeneMap')
-export const setPcrPrimers = action.async<AlgorithmInput, { pcrPrimersStr: string }, Error>('setPcrPrimers')
+export const setPcrPrimers = action.async<AlgorithmInput, { pcrPrimerCsvRowsStr: string }, Error>('setPcrPrimers')
 
 export const removeFasta = action('removeFasta')
 export const removeTree = action('removeTree')

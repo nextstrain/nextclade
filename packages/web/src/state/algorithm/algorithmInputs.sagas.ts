@@ -61,8 +61,8 @@ export function* loadGeneMap(input: AlgorithmInput) {
 
 export function* loadPcrPrimers(input: AlgorithmInput) {
   const pcrPrimersStrRaw = yield* call([input, input.getContent])
-  const pcrPrimersStr = yield* call(parsePcrPrimerCsvRowsStr, pcrPrimersStrRaw, input.name)
-  return { pcrPrimersStr }
+  const pcrPrimerCsvRowsStr = yield* call(parsePcrPrimerCsvRowsStr, pcrPrimersStrRaw, input.name)
+  return { pcrPrimerCsvRowsStr }
 }
 
 export function* loadDefaults(virusName?: string) {

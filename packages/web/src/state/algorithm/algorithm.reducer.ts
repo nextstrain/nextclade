@@ -168,7 +168,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setPcrPrimers.started, (draft, input) => {
     draft.params.raw.pcrPrimers = input
-    draft.params.strings.pcrPrimersStr = undefined
+    draft.params.strings.pcrPrimerCsvRowsStr = undefined
     draft.params.errors.pcrPrimers = []
   })
 
@@ -202,8 +202,8 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.errors.geneMap = []
   })
 
-  .icase(setPcrPrimers.done, (draft, { result: { pcrPrimersStr } }) => {
-    draft.params.strings.pcrPrimersStr = pcrPrimersStr
+  .icase(setPcrPrimers.done, (draft, { result: { pcrPrimerCsvRowsStr } }) => {
+    draft.params.strings.pcrPrimerCsvRowsStr = pcrPrimerCsvRowsStr
     draft.params.errors.pcrPrimers = []
   })
 
@@ -232,7 +232,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(setGeneMap.failed, (draft, { error }) => {
-    draft.params.strings.pcrPrimersStr = undefined
+    draft.params.strings.pcrPrimerCsvRowsStr = undefined
     draft.params.errors.geneMap = [error]
   })
 

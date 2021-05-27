@@ -20,7 +20,7 @@ export const selectQueryStr = (state: State) => state.algorithm.params.strings.q
 export const selectRefSeq = (state: State) => state.algorithm.params.strings.refStr
 export const selectGeneMapStr = (state: State) => state.algorithm.params.strings.geneMapStr
 export const selectRefTreeStr = (state: State) => state.algorithm.params.strings.refTreeStr
-export const selectPcrPrimersStr = (state: State) => state.algorithm.params.strings.pcrPrimersStr
+export const selectPcrPrimersStr = (state: State) => state.algorithm.params.strings.pcrPrimerCsvRowsStr
 export const selectQcConfigStr = (state: State) => state.algorithm.params.strings.qcConfigStr
 
 export const selectGeneMap = (state: State) => state.algorithm.params.final?.geneMap
