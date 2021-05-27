@@ -493,7 +493,7 @@ namespace Nextclade {
 
   ErrorTreeNodeTypeInvalid::ErrorTreeNodeTypeInvalid(const json& node)
       : std::runtime_error(fmt::format(
-          "When accessing Tree Node type: the type is invalid. Expected a string, one of { \"Reference\", \"New\" },"
+          "When accessing Tree Node type: the type is invalid. Expected a string, one of {{ \"Reference\", \"New\" }},"
           "but got \"{}\". This is an internal issue. Please report this to developers, providing data and parameters "
           "you used, in order to replicate the error.",
           node.dump())) {}
