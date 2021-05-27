@@ -11,7 +11,7 @@ export interface NextcladeWasmParams {
   geneMapStr: string
   geneMapName: string
   refTreeStr: string
-  pcrPrimersStr: string
+  pcrPrimerCsvRowsStr: string
   pcrPrimersFilename: string
   qcConfigStr: string
 }
