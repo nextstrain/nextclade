@@ -292,7 +292,7 @@ namespace Nextclade {
       const auto path = json_pointer{"/node_attrs/Node type/value"};
 
       if (!j.contains(path)) {
-        throw ErrorTreeNodeTypeInvalid(j);
+        throw ErrorTreeNodeTypeMissing();
       }
 
       const auto& nodeType = j.at(path);
@@ -490,6 +490,11 @@ namespace Nextclade {
           "sure all reference tree nodes have `clade_membership` field assigned. If you think it's a bug, please "
           "report this to developers, providing data and parameters you used, in order to replicate the error.",
           node.dump())) {}
+
+  ErrorTreeNodeTypeMissing::ErrorTreeNodeTypeMissing()
+      : std::runtime_error(
+          "When accessing Tree Node type: the Node type is missing. This is an internal issue. Please report this to "
+          "developers, providing data and parameters you used, in order to replicate the error.") {}
 
   ErrorTreeNodeTypeInvalid::ErrorTreeNodeTypeInvalid(const json& node)
       : std::runtime_error(fmt::format(

@@ -117,6 +117,11 @@ namespace Nextclade {
     explicit ErrorTreeNodeCladeInvalid(const json& node);
   };
 
+  class ErrorTreeNodeTypeMissing : public std::runtime_error {
+  public:
+    ErrorTreeNodeTypeMissing();
+  };
+
   class ErrorTreeNodeTypeInvalid : public std::runtime_error {
   public:
     explicit ErrorTreeNodeTypeInvalid(const json& node);
