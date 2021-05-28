@@ -10,7 +10,7 @@ export interface NextcladeWasmParams {
   refStr: string
   geneMapStr: string
   geneMapName: string
-  refTreeStr: string
+  treePreparedStr: string
   pcrPrimerCsvRowsStr: string
   pcrPrimersFilename: string
   qcConfigStr: string
@@ -69,7 +69,7 @@ export async function init(params: NextcladeWasmParams) {
       params.refStr,
       params.geneMapStr,
       params.geneMapName,
-      params.refTreeStr,
+      params.treePreparedStr,
       params.pcrPrimerCsvRowsStr,
       params.pcrPrimersFilename,
       params.qcConfigStr,

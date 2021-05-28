@@ -39,6 +39,7 @@ import {
   createThreadParseSequencesStreaming,
   destroyAnalysisThreadPool,
   treeFinalize,
+  treePrepare,
 } from 'src/workers/run'
 
 const DEFAULT_NUM_THREADS = 4
@@ -312,14 +313,14 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
 export function* getInputs() {
   const refStr = yield* selectOrWait(selectRefSeq, 'root sequence')
 
-  const { geneMapStr, refTreeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* all({
+  const { geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* all({
     geneMapStr: selectOrWait(selectGeneMapStr, 'gene map'),
-    refTreeStr: selectOrWait(selectRefTreeStr, 'reference tree'),
+    treeStr: selectOrWait(selectRefTreeStr, 'reference tree'),
     pcrPrimerCsvRowsStr: selectOrWait(selectPcrPrimersStr, 'PCR primers'),
     qcConfigStr: selectOrWait(selectQcConfigStr, 'QC config'),
   })
 
-  return { refStr, geneMapStr, refTreeStr, pcrPrimerCsvRowsStr, qcConfigStr }
+  return { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr }
 }
 
 /**
@@ -330,7 +331,7 @@ export function* runAlgorithm(input?: AlgorithmInput) {
   yield* put(push('/results'))
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.waitingInputs))
-  const { refStr, geneMapStr, refTreeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* call(getInputs)
+  const { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* call(getInputs)
 
   let queryStr = yield* select(selectQueryStr)
   if (!queryStr) {
@@ -342,6 +343,8 @@ export function* runAlgorithm(input?: AlgorithmInput) {
     queryStr = yield* apply(input, input.getContent, [])
   }
 
+  const treePreparedStr = yield* call(treePrepare, treeStr, refStr)
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const geneMapName = ''
   const pcrPrimersFilename = ''
@@ -349,7 +352,7 @@ export function* runAlgorithm(input?: AlgorithmInput) {
     refStr,
     geneMapStr,
     geneMapName,
-    refTreeStr,
+    treePreparedStr,
     pcrPrimerCsvRowsStr,
     pcrPrimersFilename,
     qcConfigStr,
@@ -359,7 +362,7 @@ export function* runAlgorithm(input?: AlgorithmInput) {
   const analysisResultsStr = JSON.stringify(analysisResults)
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
-  const treeFinalStr = yield* call(treeFinalize, refTreeStr, refStr, analysisResultsStr)
+  const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
   const tree = parseAuspiceJsonV2(treeFinalStr)
   console.log({ nextcladeResults })
   console.log({ tree })

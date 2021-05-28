@@ -19,9 +19,9 @@ import {
   parsePcrPrimerCsvRowsStr,
   parseQcConfigString,
   parseRefSequence,
-  treePrepare,
+  parseTree,
 } from 'src/workers/run'
-import { selectOrThrow, selectOrWait } from 'src/state/util/selectOrThrow'
+import { selectOrWait } from 'src/state/util/selectOrThrow'
 import { selectRefSeq } from 'src/state/algorithm/algorithm.selectors'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 
@@ -33,12 +33,8 @@ export function* loadFasta(input: AlgorithmInput) {
 
 export function* loadTree(input: AlgorithmInput) {
   const treeJson = yield* call([input, input.getContent])
-  const refStr = yield* selectOrThrow(selectRefSeq, 'Reference sequence')
-  // FIXME: need to wait here until ref sequence is fully loaded
-  const refTreeStr = yield* call(treePrepare, treeJson, refStr)
-  // TODO: make use of gene map from the tree
-  // geneMapValidate(auspiceData.meta?.genome_annotations)
-  return { refTreeStr }
+  const treeStr = yield* call(parseTree, treeJson)
+  return { treeStr }
 }
 
 export function* loadRootSeq(input: AlgorithmInput) {

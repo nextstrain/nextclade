@@ -996,7 +996,7 @@ int main(int argc, char *argv[]) {
       const auto pcrPrimersCsvString = readFile(*cliParams.inputPcrPrimers);
       std::vector<std::string> warnings;
       pcrPrimers =
-        Nextclade::parsePcrPrimersCsv(pcrPrimersCsvString, *cliParams.inputPcrPrimers, refData.seq, warnings);
+        Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, *cliParams.inputPcrPrimers, refData.seq, warnings);
     }
 
     const auto paths = getPaths(cliParams, genes);

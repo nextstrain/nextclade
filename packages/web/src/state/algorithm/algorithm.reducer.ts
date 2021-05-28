@@ -142,7 +142,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setTree.started, (draft, input) => {
     draft.params.raw.auspiceData = input
-    draft.params.strings.refTreeStr = undefined
+    draft.params.strings.treeStr = undefined
     draft.params.errors.auspiceData = []
   })
 
@@ -179,8 +179,8 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.errors.seqData = []
   })
 
-  .icase(setTree.done, (draft, { result: { refTreeStr } }) => {
-    draft.params.strings.refTreeStr = refTreeStr
+  .icase(setTree.done, (draft, { result: { treeStr } }) => {
+    draft.params.strings.treeStr = treeStr
     draft.params.errors.auspiceData = []
   })
 
@@ -215,29 +215,29 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(setTree.failed, (draft, { error }) => {
-    draft.params.strings.refStr = undefined
-    draft.params.final.genomeSize = undefined
+    draft.params.strings.treeStr = undefined
     draft.params.errors.auspiceData = [error]
   })
 
   .icase(setRootSeq.failed, (draft, { error }) => {
-    draft.params.strings.geneMapStr = undefined
-    draft.params.final.geneMap = undefined
+    draft.params.strings.refStr = undefined
+    draft.params.final.genomeSize = undefined
     draft.params.errors.rootSeq = [error]
   })
 
   .icase(setQcSettings.failed, (draft, { error }) => {
-    draft.params.strings.refTreeStr = undefined
+    draft.params.strings.qcConfigStr = undefined
     draft.params.errors.qcRulesConfig = [error]
   })
 
   .icase(setGeneMap.failed, (draft, { error }) => {
     draft.params.strings.pcrPrimerCsvRowsStr = undefined
+    draft.params.final.geneMap = undefined
     draft.params.errors.geneMap = [error]
   })
 
   .icase(setPcrPrimers.failed, (draft, { error }) => {
-    draft.params.strings.qcConfigStr = undefined
+    draft.params.strings.pcrPrimerCsvRowsStr = undefined
     draft.params.errors.pcrPrimers = [error]
   })
 

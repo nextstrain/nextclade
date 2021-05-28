@@ -165,6 +165,13 @@ namespace Nextclade {
 
   Tree::Tree(const std::string& auspiceJsonV2) : pimpl(std::make_unique<TreeImpl>(auspiceJsonV2)) {}
 
+  Tree::Tree(Tree&& other) noexcept : pimpl(std::move(other.pimpl)) {}
+
+  Tree& Tree::operator=(Tree&& other) noexcept {
+    this->pimpl = std::move(other.pimpl);
+    return *this;
+  }
+
   Tree::~Tree() {}// NOLINT(modernize-use-equals-default)
 
   TreeNode Tree::root() const {

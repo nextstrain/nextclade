@@ -34,9 +34,9 @@ namespace Nextclade {
     const std::vector<PcrPrimer>& pcrPrimers,//
     const QcConfig& qcRulesConfig,           //
     const Tree& tree,                        //
-    const NextcladeOptions& options          //
+    const NextalignOptions& nextalignOptions //
   ) {
-    const auto alignment = nextalignInternal(query, ref, geneMap, options.nextalignOptions);
+    const auto alignment = nextalignInternal(query, ref, geneMap, nextalignOptions);
 
     auto nucChanges = findNucChanges(alignment.ref, alignment.query);
     const int totalSubstitutions = safe_cast<int>(nucChanges.substitutions.size());
@@ -120,13 +120,16 @@ namespace Nextclade {
     Tree tree;
 
   public:
-    explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt) : options(opt), tree(opt.treeString) {}
+    explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt) : options(opt), tree(opt.treeString) {
+      treePreprocess(tree, opt.ref);
+    }
 
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& query) {
       const auto& ref = options.ref;
       const auto& pcrPrimers = options.pcrPrimers;
       const auto& geneMap = options.geneMap;
       const auto& qcRulesConfig = options.qcRulesConfig;
+
       return analyzeOneSequence(//
         seqName,                //
         ref,                    //
@@ -135,7 +138,7 @@ namespace Nextclade {
         pcrPrimers,             //
         qcRulesConfig,          //
         tree,                   //
-        options                 //
+        options.nextalignOptions//
       );
     }
 

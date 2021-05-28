@@ -7,6 +7,7 @@ import type { AnalysisThread, AnalysisWorker, NextcladeWasmParams } from 'src/wo
 import type { ParseGeneMapThread } from 'src/workers/worker.parseGeneMap'
 import type { ParsePcrPrimerCsvRowsStrThread } from 'src/workers/worker.parsePcrPrimers'
 import type { ParseQcConfigThread } from 'src/workers/worker.parseQcConfig'
+import type { ParseTreeThread } from 'src/workers/worker.parseTree'
 import type { ParseRefSequenceThread } from 'src/workers/worker.parseRefSeq'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
@@ -113,6 +114,13 @@ export async function parsePcrPrimerCsvRowsStr(pcrPrimersStrRaw: string, pcrPrim
   return thread.parsePcrPrimerCsvRowsStr(pcrPrimersStrRaw, pcrPrimersFilename)
 }
 
+export async function parseTree(treeStr: string) {
+  const thread = await spawn<ParseTreeThread>(
+    new Worker('src/workers/worker.parseTree.ts', { name: 'worker.parseTree' }),
+  )
+  return thread.parseTree(treeStr)
+}
+
 export async function treePrepare(treeStr: string, refStr: string) {
   const thread = await spawn<TreePrepareThread>(
     new Worker('src/workers/worker.treePrepare.ts', { name: 'worker.treePrepare' }),
@@ -121,8 +129,8 @@ export async function treePrepare(treeStr: string, refStr: string) {
 }
 
 export async function treeFinalize(treePreparedStr: string, refStr: string, analysisResultsStr: string) {
-  const threadTreeFinalize = await spawn<TreeFinalizeThread>(
+  const thread = await spawn<TreeFinalizeThread>(
     new Worker('src/workers/worker.treeFinalize.ts', { name: 'worker.treeFinalize' }),
   )
-  return threadTreeFinalize.treeFinalize(treePreparedStr, refStr, analysisResultsStr)
+  return thread.treeFinalize(treePreparedStr, refStr, analysisResultsStr)
 }

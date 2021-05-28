@@ -19,7 +19,7 @@ namespace Nextclade {
     const std::vector<PcrPrimer>& pcrPrimers,//
     const QcConfig& qcRulesConfig,           //
     const Tree& tree,                        //
-    const NextcladeOptions& options          //
+    const NextalignOptions& nextalignOptions //
   );
 
 

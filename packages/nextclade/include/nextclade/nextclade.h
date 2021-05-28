@@ -402,9 +402,9 @@ namespace Nextclade {
     // "Item 22: When using the Pimpl Idiom, define special member functions in the implementation file".
     ~Tree();
     Tree(const Tree& other) = delete;
-    Tree(Tree&& other) noexcept = delete;
     Tree& operator=(const Tree& other) = delete;
-    Tree& operator=(Tree&& other) noexcept = delete;
+    Tree(Tree&& other) noexcept;
+    Tree& operator=(Tree&& other) noexcept;
   };
 
   GeneMap parseGeneMap(const std::string& geneMapStr);

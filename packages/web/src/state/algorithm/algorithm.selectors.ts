@@ -19,7 +19,7 @@ export const selectOutputTree = (state: State): string | undefined => state.algo
 export const selectQueryStr = (state: State) => state.algorithm.params.strings.queryStr
 export const selectRefSeq = (state: State) => state.algorithm.params.strings.refStr
 export const selectGeneMapStr = (state: State) => state.algorithm.params.strings.geneMapStr
-export const selectRefTreeStr = (state: State) => state.algorithm.params.strings.refTreeStr
+export const selectRefTreeStr = (state: State) => state.algorithm.params.strings.treeStr
 export const selectPcrPrimersStr = (state: State) => state.algorithm.params.strings.pcrPrimerCsvRowsStr
 export const selectQcConfigStr = (state: State) => state.algorithm.params.strings.qcConfigStr
 

@@ -114,7 +114,7 @@ export function sanitizeParams(params?: AlgorithmParams) {
       queryStr: truncate(params.strings?.queryStr),
       refStr: truncate(params.strings?.refStr),
       geneMapStr: truncate(params.strings?.geneMapStr),
-      refTreeStr: truncate(params.strings?.refTreeStr),
+      treeStr: truncate(params.strings?.treeStr),
       pcrPrimerCsvRowsStr: truncate(params.strings?.pcrPrimerCsvRowsStr),
       qcConfigStr: truncate(params.strings?.qcConfigStr),
     },
@@ -229,7 +229,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
             params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
-              refTreeStr: truncate(action.payload.result.refTreeStr),
+              treeStr: truncate(action.payload.result.treeStr),
             },
           },
         }
