@@ -27,6 +27,7 @@ import {
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import {
+  selectGeneMap,
   selectGeneMapStr,
   selectPcrPrimersStr,
   selectQcConfigStr,
@@ -41,6 +42,16 @@ import {
   treeFinalize,
   treePrepare,
 } from 'src/workers/run'
+import { getVirus } from 'src/algorithms/defaults/viruses'
+import {
+  loadFasta,
+  loadGeneMap,
+  loadPcrPrimers,
+  loadQcSettings,
+  loadRootSeq,
+  loadTree,
+} from 'src/state/algorithm/algorithmInputs.sagas'
+import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 
 const DEFAULT_NUM_THREADS = 4
 const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
@@ -309,16 +320,24 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
   return ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
 }
 
-/** Waits until all inputs are provided */
+/** Retrieves input data (except for query sequences), either from provided source, or from defaults */
 export function* getInputs() {
-  const refStr = yield* selectOrWait(selectRefSeq, 'root sequence')
+  const virus = getVirus()
+  const { refFastaStr, treeJson, qcConfigRaw, geneMapStrRaw, pcrPrimersStrRaw } = virus
 
-  const { geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* all({
-    geneMapStr: selectOrWait(selectGeneMapStr, 'gene map'),
-    treeStr: selectOrWait(selectRefTreeStr, 'reference tree'),
-    pcrPrimerCsvRowsStr: selectOrWait(selectPcrPrimersStr, 'PCR primers'),
-    qcConfigStr: selectOrWait(selectQcConfigStr, 'QC config'),
-  })
+  const refStr = (yield* select(selectRefSeq)) ?? (yield* loadRootSeq(new AlgorithmInputString(refFastaStr))).refStr
+
+  const geneMapStr =
+    (yield* select(selectGeneMapStr)) ?? (yield* loadGeneMap(new AlgorithmInputString(geneMapStrRaw))).geneMapStr
+
+  const treeStr = (yield* select(selectRefTreeStr)) ?? (yield* loadTree(new AlgorithmInputString(treeJson))).treeStr
+
+  const pcrPrimerCsvRowsStr =
+    (yield* select(selectPcrPrimersStr)) ??
+    (yield* loadPcrPrimers(new AlgorithmInputString(pcrPrimersStrRaw))).pcrPrimerCsvRowsStr
+
+  const qcConfigStr =
+    (yield* select(selectQcConfigStr)) ?? (yield* loadQcSettings(new AlgorithmInputString(qcConfigRaw))).qcConfigStr
 
   return { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr }
 }

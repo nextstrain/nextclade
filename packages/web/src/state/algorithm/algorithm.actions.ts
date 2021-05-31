@@ -14,8 +14,6 @@ const action = actionCreatorFactory('Algorithm')
 
 export const setIsDirty = action<boolean>('setIsDirty')
 
-export const setDefaultData = action.async<string | undefined, void, Error>('setDefaultData')
-
 export const setFasta = action.async<AlgorithmInput, { queryStr: string }, Error>('setFasta')
 export const setTree = action.async<AlgorithmInput, { treeStr: string }, Error>('setTree')
 export const setRootSeq = action.async<AlgorithmInput, { refStr: string }, Error>('setRootSeq')
