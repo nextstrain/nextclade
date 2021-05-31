@@ -110,6 +110,10 @@ https://github.com/nextstrain/nextclade/tree/master/data
 
 ## High-level overview of the pipeline
 
+Nextclade's workflow is pipeline, which consists of a several steps. This section describes these steps, rougly in their order of execution.
+
+Note: A standalone command-line tool "Nextalign" is available, that performs only the alignment (1) and translation (2) steps, without any of the subsequent analysis steps.
+
 ### 1. Sequence alignment
 
 In order for sequences to be analyzed, they need to be arranged in a way that allows for comparing similar regions. This process is called [sequence alignment](https://en.wikipedia.org/wiki/Sequence_alignment).
@@ -151,14 +155,12 @@ This step only runs if Gene map is provided.
 
 ### 5. PCR primer changes detection
 
-[Polymerase chain reaction (PCR)](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) uses small nucleotide sequence snippets, [complementary](<https://en.wikipedia.org/wiki/Complementarity_(molecular_biology)>) to a specific region of the virus genome. Complementarity is essential for PCR to work, and changes in the virus genome can interfere with the process. If provided with a list of PCR primers, Nextclade can detect and report changes in these regions.
+[Polymerase chain reaction (PCR)](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) uses small nucleotide sequence snippets, [complementary](<https://en.wikipedia.org/wiki/Complementarity_(molecular_biology)>) to a specific region of the virus genome. Complementarity is essential for PCR to work, and changes in the virus genome can interfere with the process. If provided with a table of PCR primers (in CSV format), Nextclade can analyze these regions in sequences and detect and report changes.
 
-First, for each primer, Nextclade finds and records the complementary ranges in reference sequence.
-Later, it verifies if any of the mutations in query sequence (found during "Nucleotide mutation calling" step) fall to any of these ranges, and if so, reports these mutations as PCR primer changes.
+For each primer, Nextclade finds and records a complementary range in the reference (root) sequence.
+Later, it verifies if any of the mutations in aligned query sequence (found during "Nucleotide mutation calling" step) fall to any of these ranges, and if so, reports these mutations as PCR primer changes.
 
 This step only runs if PCR primers table is provided. It can fail if PCR primers provided don't correspond to the reference sequence used.
-
-Note: A standalone command-line tool Nextalign is available, that performs only the alignment (1) and translation (2) steps, without any of the analysis steps.
 
 ### 6. Phylogenetic placement
 
