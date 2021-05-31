@@ -51,10 +51,14 @@ If you are a developer, head to https://github.com/nextstrain/nextclade for the 
 Nextclade expects the following input data:
 
 - (required) Sequences to be analyzed.
+  
+  CLI flag: `--input-fasta`
 
   Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text (one sequence per line).
 
 - (required) Reference (root) sequence. Required to be the root of the provided reference phylogenetic tree (see below).
+
+  CLI flag: `--input-root-sequence`
 
   It is used as a reference for alignment and for mutation calling. Reference sequence is expected to be of a very high quality, preferably a complete (fill length of the genome, no missing data) and unambiguous (no ambiguous nucleotides).
 
@@ -62,19 +66,33 @@ Nextclade expects the following input data:
 
 - (required) Reference phylogenetic tree, rooted at the reference (root) sequence.
 
+  CLI flag: `--input-root-sequence`
+
   It is used to assign clades and as a target for phylogenetic placement. The tree is expected to be sufficiently diverse and to meet clade assignment expectations of a particular use-case, study or experiment. Only clades present on the reference tree will be assigned. For more details see "Clade assignment" and "Phylogenetic placement" sections below).
 
   Accepted formats: Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain (produced by Augur and consumed by Auspice).
 
-- (required) Quality control configuration - a set of parameters and thresholds used to configure the QC checks. These should be tuned for the particular study or experiment, considering quality and tolerances of sequencing results of a given laboratory.
+- (required) Quality control configuration.
+
+  CLI flag: `--input-qc-config`
+
+  A set of parameters and thresholds used to configure the QC checks. These should be tuned for the particular study or experiment, considering quality and tolerances of sequencing results of a given laboratory.
 
   Accepted formats: JSON
 
-- (optional, recommended) Gene map (genome annotations) - a table describing the genes of the virus (frame, position, etc.). It is used for the improved codon-aware alignment, for gene translation, calling of aminoacid mutations. Without Gene map, peptides will not be output and aminoacid mutations will not be detected. Also, without Gene map the nucleotide alignment step will not be informed by the codon information.
+- (optional, recommended) Gene map (genome annotations) - a table describing the genes of the virus (frame, position, etc.). 
+
+  CLI flag: `--input-gene-map`
+
+  It is used for the improved codon-aware alignment, for gene translation, calling of aminoacid mutations. Without Gene map, peptides will not be output and aminoacid mutations will not be detected. Also, without Gene map the nucleotide alignment step will not be informed by the codon information.
 
   Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)
 
-- (optional) Table of PCR primers - a table that describes a set of PCR primers that might be used for PCR tests of the virus. It is used to detect changes in PCR primer regions. Without this table these checks will not be performed.
+- (optional) Table of PCR primers - a table that describes a set of PCR primers that might be used for PCR tests of the virus.
+
+  CLI flag: `--input-pcr-primers`
+
+  Used to detect changes in PCR primer regions. Without this table these checks will not be  performed.
 
   Accepted formats: CSV
 
