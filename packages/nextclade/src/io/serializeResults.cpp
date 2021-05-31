@@ -81,7 +81,7 @@ namespace Nextclade {
       auto j = json::object();
       j.emplace("pos", ins.pos);
       j.emplace("length", ins.length);
-      j.emplace("ins", ins.ins);
+      j.emplace("ins", toString(ins.ins));
       return j;
     }
 
