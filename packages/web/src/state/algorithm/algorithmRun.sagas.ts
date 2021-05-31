@@ -285,6 +285,7 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
  *                                                     (parallel, webworker pool, wasm)
  */
 export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmParams) {
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.initWorkers))
   // Create sequence parser thread
   const sequenceParserThread = yield* call(createThreadParseSequencesStreaming)
 
@@ -301,6 +302,8 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
   // submit redux actions to trigger redux reducer, which incorporates results into the application state.
   // The `fork()` effect is used to make sure that we don't wait on this loop before parsing and analysis is complete.
   const resultsTask = yield* fork(runResultsLoop, analysisEventChannel)
+
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
 
   // The `call-all` schema is used here, because we want (1) parsing and (2) scheduling for analysis to run in parallel
   // (ideally concurrently). Note that when parser loop ends, the parsing is known to be done, however when analysis
@@ -368,17 +371,15 @@ export function* getQuerySequences(queryInput?: AlgorithmInput) {
  * Runs Nextclade algorithm: parsing, analysis, and tree placement
  */
 export function* runAlgorithm(queryInput?: AlgorithmInput) {
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.loadingData))
   yield* put(push('/results'))
 
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.waitingInputs))
   const { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* getInputs()
 
   const queryStr = yield* getQuerySequences(queryInput)
 
   const treePreparedStr = yield* call(treePrepare, treeStr, refStr)
 
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.analysis))
   const geneMapName = ''
   const pcrPrimersFilename = ''
   const nextcladeResults = yield* runSequenceAnalysis(queryStr, {
@@ -394,7 +395,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
 
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.treeFinalization))
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
   const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
   const tree = parseAuspiceJsonV2(treeFinalStr)
   console.log({ nextcladeResults })
@@ -402,7 +403,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
 
   yield* put(setOutputTree(treeFinalStr))
   yield* setAuspiceState(tree)
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.allDone))
+  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.done))
 }
 
 export function parseAuspiceJsonV2(treeStr: string): AuspiceJsonV2 {

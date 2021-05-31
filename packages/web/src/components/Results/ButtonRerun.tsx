@@ -32,7 +32,7 @@ export const Refresh = styled(MdRefresh)`
 
 const mapStateToProps = (state: State) => ({
   canRun:
-    state.algorithm.status === AlgorithmGlobalStatus.allDone || state.algorithm.status === AlgorithmGlobalStatus.idling,
+    state.algorithm.status === AlgorithmGlobalStatus.done || state.algorithm.status === AlgorithmGlobalStatus.idle,
 })
 
 const mapDispatchToProps = {

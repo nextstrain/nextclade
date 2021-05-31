@@ -26,7 +26,7 @@ export const ButtonStyled = styled(Button)<ButtonProps>`
 `
 
 const mapStateToProps = (state: State) => ({
-  hasTree: state.algorithm.status === AlgorithmGlobalStatus.allDone,
+  hasTree: state.algorithm.status === AlgorithmGlobalStatus.done,
 })
 
 const mapDispatchToProps = {

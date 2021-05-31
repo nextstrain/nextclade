@@ -8,26 +8,20 @@ import { getVirus } from 'src/algorithms/defaults/viruses'
 export type AlgorithmParamsPartial = Partial<AlgorithmParams>
 
 export enum AlgorithmGlobalStatus {
-  idling = 'idling',
+  idle = 'idle',
+  loadingData = 'loadingData',
+  initWorkers = 'initWorkers',
   started = 'started',
-  waitingInputs = 'waitingInputs',
-  parsing = 'parsing',
-  analysis = 'analysis',
-  treeBuild = 'treeBuild',
-  assignClades = 'assignClades',
-  qc = 'qc',
-  treeFinalization = 'treeFinalization',
-  allDone = 'allDone',
+  buildingTree = 'buildingTree',
+  done = 'done',
 }
 
 export enum AlgorithmSequenceStatus {
   idling = 'idling',
-  analysisStarted = 'analysisStarted',
-  analysisDone = 'analysisDone',
-  analysisFailed = 'analysisFailed',
-  qcStarted = 'qcStarted',
-  qcDone = 'qcDone',
-  qcFailed = 'qcFailed',
+  queued = 'queued',
+  started = 'started',
+  done = 'done',
+  failed = 'failed',
 }
 
 export interface SequenceAnalysisState {
@@ -111,7 +105,7 @@ export interface CladeAssignmentResult {
 }
 
 export const algorithmDefaultState: AlgorithmState = {
-  status: AlgorithmGlobalStatus.idling,
+  status: AlgorithmGlobalStatus.idle,
   params: {
     raw: {},
     strings: {},

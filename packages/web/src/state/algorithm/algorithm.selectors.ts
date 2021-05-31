@@ -12,7 +12,7 @@ export const selectResultsArray = (state: State) => state.algorithm.results.map(
 
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
-export const selectCanExport = (state: State): boolean => state.algorithm.status === AlgorithmGlobalStatus.allDone
+export const selectCanExport = (state: State): boolean => state.algorithm.status === AlgorithmGlobalStatus.done
 
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.outputTree
 
@@ -31,57 +31,48 @@ export function selectStatus(state: State) {
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
 
   // We want to report failure state even when a particular progress status does not have failure text
-  const hasFailures = state.algorithm.results.some(({ status }) => status === AlgorithmSequenceStatus.analysisFailed)
+  const hasFailures = state.algorithm.results.some(({ status }) => status === AlgorithmSequenceStatus.failed)
 
   const idlingPercent = 0
-  const parseStartedPercent = 5
-  const parseDonePercent = 10
+  const loadingDataPercent = 5
+  const loadingDataDonePercent = 10
   const treeBuildPercent = 85
-  const assignCladesPercent = 90
-  const treeFinalizationPercent = 95
+  const treeBuildDonePercent = 90
   const allDonePercent = 100
 
-  let statusText = 'Idling'
+  let statusText = i18n.t('Idle')
   let failureText: string | undefined
   let percent = 0
 
   switch (statusGlobal) {
-    case AlgorithmGlobalStatus.idling:
+    case AlgorithmGlobalStatus.idle:
       {
-        statusText = i18n.t('Idling')
+        statusText = i18n.t('Idle')
         percent = idlingPercent
       }
       break
 
-    case AlgorithmGlobalStatus.waitingInputs:
+    case AlgorithmGlobalStatus.loadingData:
       {
-        statusText = i18n.t('Waiting inputs...')
-        percent = parseStartedPercent
+        statusText = i18n.t('Loading data...')
+        percent = loadingDataPercent
+      }
+      break
+
+    case AlgorithmGlobalStatus.initWorkers:
+      {
+        statusText = i18n.t('Starting WebWorkers...')
+        percent = loadingDataDonePercent
       }
       break
 
     case AlgorithmGlobalStatus.started:
       {
-        statusText = i18n.t('Parsing...')
-        percent = parseStartedPercent
-      }
-      break
-
-    case AlgorithmGlobalStatus.parsing:
-      {
-        percent = parseDonePercent
-        statusText = i18n.t('Parsing...')
-      }
-      break
-
-    case AlgorithmGlobalStatus.analysis:
-      {
         const total = sequenceStatuses.length
-        const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.analysisDone)
-          .length
-        const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.analysisFailed).length
+        const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.done).length
+        const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.failed).length
         const done = succeeded + failed
-        percent = parseDonePercent + (done / total) * (treeBuildPercent - parseDonePercent)
+        percent = loadingDataDonePercent + (done / total) * (treeBuildPercent - loadingDataDonePercent)
         statusText = i18n.t('Analysing sequences: {{done}}/{{total}}', { done, total })
         if (failed > 0) {
           failureText = i18n.t('Failed: {{failed}}/{{total}}', { failed, total })
@@ -89,52 +80,19 @@ export function selectStatus(state: State) {
       }
       break
 
-    case AlgorithmGlobalStatus.treeBuild:
+    case AlgorithmGlobalStatus.buildingTree:
       {
-        percent = treeBuildPercent
-        statusText = i18n.t('Finding nearest tree nodes')
+        percent = treeBuildDonePercent
+        statusText = i18n.t('Building tree')
       }
       break
 
-    case AlgorithmGlobalStatus.assignClades:
-      {
-        percent = assignCladesPercent
-        statusText = i18n.t('Assigning clades')
-      }
-      break
-
-    case AlgorithmGlobalStatus.qc:
-      {
-        const total = sequenceStatuses.length
-        const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.qcDone).length
-        const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.qcFailed).length
-        const done = succeeded + failed
-        percent = assignCladesPercent + (done / total) * (treeFinalizationPercent - assignCladesPercent)
-        statusText = i18n.t('Assessing sequence quality: {{done}}/{{total}}', { done, total })
-        if (failed > 0) {
-          failureText = i18n.t('Failed: {{failed}}/{{total}}', { failed, total })
-        }
-      }
-      break
-
-    case AlgorithmGlobalStatus.treeFinalization:
-      {
-        percent = treeFinalizationPercent
-        statusText = i18n.t('Attaching new tree nodes')
-      }
-      break
-
-    case AlgorithmGlobalStatus.allDone:
+    case AlgorithmGlobalStatus.done:
       {
         percent = allDonePercent
         const total = sequenceStatuses.length
-        const succeeded = sequenceStatuses.filter(
-          ({ status }) => status === AlgorithmSequenceStatus.analysisDone || status === AlgorithmSequenceStatus.qcDone,
-        ).length
-        const failed = sequenceStatuses.filter(
-          ({ status }) =>
-            status === AlgorithmSequenceStatus.analysisFailed || status === AlgorithmSequenceStatus.qcFailed,
-        ).length
+        const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.done).length
+        const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.failed).length
         statusText = i18n.t('Done. Total sequences: {{total}}. Succeeded: {{succeeded}}', { succeeded, total })
         if (failed > 0) {
           failureText = i18n.t('Failed: {{failed}}', { failed, total })

@@ -39,7 +39,7 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
         id,
         errors: [],
         result,
-        status: AlgorithmSequenceStatus.analysisDone,
+        status: AlgorithmSequenceStatus.done,
       }
     } catch (error_) {
       const error = sanitizeError(error_)
@@ -51,7 +51,7 @@ export async function run(workers: WorkerPools, input: string, virus: Virus, sho
         id,
         errors: [error.message],
         result: undefined,
-        status: AlgorithmSequenceStatus.analysisFailed,
+        status: AlgorithmSequenceStatus.failed,
       }
     }
   }, Object.entries(parsedSequences))

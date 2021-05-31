@@ -70,7 +70,7 @@ const mergeQcIntoResults = (result: SequenceAnalysisState, qc: QCResult) =>
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(addParsedSequence, (draft, { index, seqName }) => {
     draft.results[index] = {
-      status: AlgorithmSequenceStatus.idling,
+      status: AlgorithmSequenceStatus.queued,
       id: index,
       seqName,
       result: undefined,
@@ -81,6 +81,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(addNextcladeResult, (draft, { nextcladeResult }) => {
     draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
+    draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.done
     // nextcladeResult.ref
     // nextcladeResult.query
     draft.resultsFiltered = runFilters(current(draft))
@@ -282,7 +283,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   // ******************
 
   .icase(setIsDirty, (draft, isDirty) => {
-    draft.status = AlgorithmGlobalStatus.idling
+    draft.status = AlgorithmGlobalStatus.idle
     draft.isDirty = isDirty
   })
 
@@ -297,7 +298,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(algorithmRunAsync.done, (draft) => {
-    draft.status = AlgorithmGlobalStatus.allDone
+    draft.status = AlgorithmGlobalStatus.done
   })
 
   .icase(algorithmRunAsync.failed, (draft, { params }) => {})
@@ -324,7 +325,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(analyzeAsync.started, (draft, { seqName }) => {
     draft.results = draft.results.map((result) => {
       if (result.seqName === seqName) {
-        return { ...result, status: AlgorithmSequenceStatus.analysisStarted }
+        return { ...result, status: AlgorithmSequenceStatus.started }
       }
       return result
     })
@@ -335,7 +336,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(analyzeAsync.done, (draft, { params: { seqName }, result }) => {
     draft.results = draft.results.map((oldResult) => {
       if (oldResult.seqName === seqName) {
-        return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.analysisDone }
+        return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.done }
       }
       return oldResult
     })
@@ -350,7 +351,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
           ...oldResult,
           errors: [error.message],
           result: undefined,
-          status: AlgorithmSequenceStatus.analysisFailed,
+          status: AlgorithmSequenceStatus.failed,
         }
       }
       return oldResult
