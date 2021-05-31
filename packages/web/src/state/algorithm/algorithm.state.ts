@@ -5,8 +5,6 @@ import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 
-export type AlgorithmParamsPartial = Partial<AlgorithmParams>
-
 export enum AlgorithmGlobalStatus {
   idle = 'idle',
   loadingData = 'loadingData',

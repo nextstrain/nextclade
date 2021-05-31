@@ -11,7 +11,6 @@ import { changeColorBy } from 'auspice/src/actions/colors'
 
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
-import { selectOrWait } from 'src/state/util/selectOrThrow'
 import fsaSaga from 'src/state/util/fsaSaga'
 
 import type { AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
@@ -21,14 +20,12 @@ import {
   addNextcladeResult,
   addParsedSequence,
   algorithmRunAsync,
-  algorithmRunWithSequencesAsync,
   setAlgorithmGlobalStatus,
   setFasta,
   setOutputTree,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import {
-  selectGeneMap,
   selectGeneMapStr,
   selectPcrPrimersStr,
   selectQcConfigStr,
@@ -419,7 +416,4 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
   yield* put(treeFilterByNodeType(['New']))
 }
 
-export default [
-  takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm)),
-  // takeEvery(algorithmRunWithSequencesAsync.trigger, fsaSaga(algorithmRunWithSequencesAsync, runAlgorithmWithSequences)),
-]
+export default [takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm))]

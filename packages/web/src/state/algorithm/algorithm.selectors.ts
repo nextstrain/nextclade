@@ -29,8 +29,6 @@ export const selectGenomeSize = (state: State) => state.algorithm.params.final?.
 export function selectStatus(state: State) {
   const statusGlobal = state.algorithm.status
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
-
-  // We want to report failure state even when a particular progress status does not have failure text
   const hasFailures = state.algorithm.results.some(({ status }) => status === AlgorithmSequenceStatus.failed)
 
   const idlingPercent = 0

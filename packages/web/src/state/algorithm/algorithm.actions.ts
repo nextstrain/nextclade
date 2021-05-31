@@ -30,7 +30,6 @@ export const removePcrPrimers = action('removePcrPrimers')
 
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
 export const algorithmRunAsync = action.async<AlgorithmInput | undefined, void, Error>('algorithmRunAsync')
-export const algorithmRunWithSequencesAsync = action.async<AlgorithmInput, void, Error>('algorithmRunWithSequencesAsync') // prettier-ignore
 
 export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')
 export const addNextcladeResult = action<{ nextcladeResult: NextcladeResult }>('addNextcladeResult')
