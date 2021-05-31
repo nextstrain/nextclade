@@ -187,13 +187,13 @@ namespace Nextclade {
   }
 
   ErrorAuspiceJsonV2Invalid::ErrorAuspiceJsonV2Invalid(const json& node)
-      : std::runtime_error(
+      : ErrorFatal(
           fmt::format("When accessing Auspice Json v2 tree: format is invalid: expected to find an object, but found: "
                       "\"{}\"",
             node.dump())) {}
 
   ErrorAuspiceJsonV2TreeNotFound::ErrorAuspiceJsonV2TreeNotFound(const json& node)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "When parsing Auspice Json v2 tree: format is invalid: `tree` is expected to be an object, but found: "
           "\"{}\"",
           node.dump())) {}

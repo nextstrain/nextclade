@@ -9,10 +9,10 @@
 
 namespace Nextclade {
   namespace {
-    class ErrorQcStatusUnknown : public std::runtime_error {
+    class ErrorQcStatusUnknown : public ErrorNonFatal {
     public:
       explicit ErrorQcStatusUnknown(const QcStatus& status)
-          : std::runtime_error(fmt::format("QC status not recognized: \"{:d}\"", status)) {}
+          : ErrorNonFatal(fmt::format("QC status not recognized: \"{:d}\"", status)) {}
     };
   }// namespace
 

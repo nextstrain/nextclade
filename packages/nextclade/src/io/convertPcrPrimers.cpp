@@ -283,11 +283,10 @@ namespace Nextclade {
 
   ErrorPcrPrimersCsvParserComplementUnknownNucleotide::ErrorPcrPrimersCsvParserComplementUnknownNucleotide(
     const std::string& nuc)
-      : std::runtime_error(
-          fmt::format("When parsing PCR primers CSV: When performing primer oligonucleotide complement: "
-                      "Found unknown nucleotide: \"{:s}\"",
-            nuc)) {}
+      : ErrorFatal(fmt::format("When parsing PCR primers CSV: When performing primer oligonucleotide complement: "
+                               "Found unknown nucleotide: \"{:s}\"",
+          nuc)) {}
 
   ErrorPcrPrimersCsvParserMissingColumn::ErrorPcrPrimersCsvParserMissingColumn(const std::string& colName)
-      : std::runtime_error(fmt::format("When parsing PCR primers CSV: Missing required column: \"{:s}\"", colName)) {}
+      : ErrorFatal(fmt::format("When parsing PCR primers CSV: Missing required column: \"{:s}\"", colName)) {}
 }// namespace Nextclade

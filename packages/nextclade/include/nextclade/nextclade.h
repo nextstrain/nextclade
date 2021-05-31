@@ -355,12 +355,12 @@ namespace Nextclade {
     /* inout */ std::vector<std::string>& warnings    //
   );
 
-  class ErrorPcrPrimersCsvParserMissingColumn : public std::runtime_error {
+  class ErrorPcrPrimersCsvParserMissingColumn : public ErrorFatal {
   public:
     explicit ErrorPcrPrimersCsvParserMissingColumn(const std::string& colName);
   };
 
-  class ErrorPcrPrimersCsvParserComplementUnknownNucleotide : public std::runtime_error {
+  class ErrorPcrPrimersCsvParserComplementUnknownNucleotide : public ErrorFatal {
   public:
     explicit ErrorPcrPrimersCsvParserComplementUnknownNucleotide(const std::string& nuc);
   };

@@ -5,7 +5,7 @@
 
 #include <array>
 
-class ErrorVerbosityLevelInvalid : public std::runtime_error {
+class ErrorVerbosityLevelInvalid : public ErrorFatal {
 public:
   explicit ErrorVerbosityLevelInvalid(const std::string& verb);
 };
@@ -100,5 +100,5 @@ public:
 };
 
 ErrorVerbosityLevelInvalid::ErrorVerbosityLevelInvalid(const std::string& verb)
-    : std::runtime_error(fmt::format("Verbosity level is invalid: \"{:s}\". Possible verbosity levels are: {}", verb,
+    : ErrorFatal(fmt::format("Verbosity level is invalid: \"{:s}\". Possible verbosity levels are: {}", verb,
         Logger::getVerbosityLevels())) {}

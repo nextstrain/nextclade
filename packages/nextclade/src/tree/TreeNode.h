@@ -4,6 +4,8 @@
 #include <nlohmann/json_fwd.hpp>
 // clang-format on
 
+#include <nextalign/nextalign.h>
+
 #include <functional>
 #include <map>
 #include <memory>
@@ -92,37 +94,37 @@ namespace Nextclade {
     void removeTemporaries();
   };
 
-  class ErrorTreeNodeNotObject : public std::runtime_error {
+  class ErrorTreeNodeNotObject : public ErrorFatal {
   public:
     explicit ErrorTreeNodeNotObject(const json& node);
   };
 
-  class ErrorTreeNodeMutationPositionInvalid : public std::runtime_error {
+  class ErrorTreeNodeMutationPositionInvalid : public ErrorFatal {
   public:
     explicit ErrorTreeNodeMutationPositionInvalid(const json& node);
   };
 
-  class ErrorTreeNodeMutationNucleotideInvalid : public std::runtime_error {
+  class ErrorTreeNodeMutationNucleotideInvalid : public ErrorFatal {
   public:
     explicit ErrorTreeNodeMutationNucleotideInvalid(const json& node);
   };
 
-  class ErrorTreeNodeIdInvalid : public std::runtime_error {
+  class ErrorTreeNodeIdInvalid : public ErrorFatal {
   public:
     explicit ErrorTreeNodeIdInvalid(const json& node);
   };
 
-  class ErrorTreeNodeCladeInvalid : public std::runtime_error {
+  class ErrorTreeNodeCladeInvalid : public ErrorFatal {
   public:
     explicit ErrorTreeNodeCladeInvalid(const json& node);
   };
 
-  class ErrorTreeNodeTypeMissing : public std::runtime_error {
+  class ErrorTreeNodeTypeMissing : public ErrorFatal {
   public:
     ErrorTreeNodeTypeMissing();
   };
 
-  class ErrorTreeNodeTypeInvalid : public std::runtime_error {
+  class ErrorTreeNodeTypeInvalid : public ErrorFatal {
   public:
     explicit ErrorTreeNodeTypeInvalid(const json& node);
   };

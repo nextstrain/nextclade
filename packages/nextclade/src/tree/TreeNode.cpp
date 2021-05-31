@@ -459,45 +459,45 @@ namespace Nextclade {
 
 
   ErrorTreeNodeNotObject::ErrorTreeNodeNotObject(const json& node)
-      : std::runtime_error(
+      : ErrorFatal(
           fmt::format("When accessing json node: The node is expected to be an object, but found this instead: \"{}\"",
             node.dump())) {}
 
   ErrorTreeNodeMutationPositionInvalid::ErrorTreeNodeMutationPositionInvalid(const json& node)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "When accessing Tree Node Mutation position: the position is invalid: Expected a number, but got \"{}\". "
           "This is an internal issue. Please report this to developers, providing data and parameters you used, "
           "in order to replicate the error.",
           node.dump())) {}
 
   ErrorTreeNodeMutationNucleotideInvalid::ErrorTreeNodeMutationNucleotideInvalid(const json& node)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "When accessing Tree Node Mutation nucleotide: the nucleotide is invalid: \"{}\". This is an internal "
           "issue. Please report this to developers, providing data and parameters you used, in order to replicate "
           "the error.",
           node.dump())) {}
 
   ErrorTreeNodeIdInvalid::ErrorTreeNodeIdInvalid(const json& node)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "When accessing Tree Node ID: the ID is invalid. Expected a number, but got \"{}\". This is an internal "
           "issue. Please report this to developers, providing data and parameters you used, in order to replicate "
           "the error.",
           node.dump())) {}
 
   ErrorTreeNodeCladeInvalid::ErrorTreeNodeCladeInvalid(const json& node)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "When accessing clade of the tree node: expected `clade_membership` to be a string, but got \"{}\". Make "
           "sure all reference tree nodes have `clade_membership` field assigned. If you think it's a bug, please "
           "report this to developers, providing data and parameters you used, in order to replicate the error.",
           node.dump())) {}
 
   ErrorTreeNodeTypeMissing::ErrorTreeNodeTypeMissing()
-      : std::runtime_error(
+      : ErrorFatal(
           "When accessing Tree Node type: the Node type is missing. This is an internal issue. Please report this to "
           "developers, providing data and parameters you used, in order to replicate the error.") {}
 
   ErrorTreeNodeTypeInvalid::ErrorTreeNodeTypeInvalid(const json& node)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "When accessing Tree Node type: the type is invalid. Expected a string, one of {{ \"Reference\", \"New\" }},"
           "but got \"{}\". This is an internal issue. Please report this to developers, providing data and parameters "
           "you used, in order to replicate the error.",

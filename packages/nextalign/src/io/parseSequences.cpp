@@ -11,17 +11,17 @@ namespace {
 }// namespace
 
 
-class ErrorFastaStreamIllegalNextCall : public std::runtime_error {
+class ErrorFastaStreamIllegalNextCall : public ErrorFatal {
 public:
   ErrorFastaStreamIllegalNextCall()
-      : std::runtime_error("Fasta stream: stream is in non-readable state, the next item cannot be retrieved") {}
+      : ErrorFatal("Fasta stream: stream is in non-readable state, the next item cannot be retrieved") {}
 };
 
 
-class ErrorFastaStreamInvalidState : public std::runtime_error {
+class ErrorFastaStreamInvalidState : public ErrorFatal {
 public:
   ErrorFastaStreamInvalidState()
-      : std::runtime_error("Fasta stream: stream reached an invalid state which should not be reached") {}
+      : ErrorFatal("Fasta stream: stream reached an invalid state which should not be reached") {}
 };
 
 

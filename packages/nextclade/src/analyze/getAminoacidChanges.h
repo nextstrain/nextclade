@@ -10,7 +10,7 @@ struct PeptideInternal;
 
 namespace Nextclade {
 
-  class ErrorGeneNotFound : public std::runtime_error {
+  class ErrorGeneNotFound : public ErrorNonFatal {
   public:
     ErrorGeneNotFound(const std::string& geneName, const GeneMap& geneMap);
   };

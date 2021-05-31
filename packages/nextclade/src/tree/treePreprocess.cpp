@@ -12,10 +12,10 @@
 
 namespace Nextclade {
 
-  class ErrorAttachMutationsInconsistentMutation : public std::runtime_error {
+  class ErrorAttachMutationsInconsistentMutation : public ErrorFatal {
   public:
     explicit ErrorAttachMutationsInconsistentMutation(const NucleotideSubstitution& mut, const Nucleotide& previous)
-        : std::runtime_error(                                                    //
+        : ErrorFatal(                                                            //
             fmt::format(                                                         //
               "When attaching mutations: Mutation is inconsistent: \"{}\": "     //
               "current nucleotide: \"{}\", previously seen: \"{}\"",             //

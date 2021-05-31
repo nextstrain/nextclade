@@ -16,20 +16,20 @@ namespace details {
   }
 }// namespace details
 
-class ErrorAlignmentNoSeedMatches : public std::runtime_error {
+class ErrorAlignmentNoSeedMatches : public ErrorNonFatal {
 public:
-  explicit ErrorAlignmentNoSeedMatches() : std::runtime_error("Unable to align: no seed matches") {}
+  explicit ErrorAlignmentNoSeedMatches() : ErrorNonFatal("Unable to align: no seed matches") {}
 };
 
-class ErrorAlignmentSequenceTooShort : public std::runtime_error {
+class ErrorAlignmentSequenceTooShort : public ErrorNonFatal {
 public:
-  explicit ErrorAlignmentSequenceTooShort() : std::runtime_error("Unable to align: sequence is too short") {}
+  explicit ErrorAlignmentSequenceTooShort() : ErrorNonFatal("Unable to align: sequence is too short") {}
 };
 
-class ErrorAlignmentBadSeedMatches : public std::runtime_error {
+class ErrorAlignmentBadSeedMatches : public ErrorNonFatal {
 public:
   explicit ErrorAlignmentBadSeedMatches()
-      : std::runtime_error("Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches") {
+      : ErrorNonFatal("Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches") {
   }
 };
 

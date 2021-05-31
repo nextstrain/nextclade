@@ -49,14 +49,14 @@ struct Paths {
 };
 
 
-class ErrorCliOptionInvalidValue : public std::runtime_error {
+class ErrorCliOptionInvalidValue : public ErrorFatal {
 public:
-  explicit ErrorCliOptionInvalidValue(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorCliOptionInvalidValue(const std::string &message) : ErrorFatal(message) {}
 };
 
-class ErrorIoUnableToWrite : public std::runtime_error {
+class ErrorIoUnableToWrite : public ErrorFatal {
 public:
-  explicit ErrorIoUnableToWrite(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorIoUnableToWrite(const std::string &message) : ErrorFatal(message) {}
 };
 
 template<typename Result>
@@ -491,9 +491,9 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
 }
 
 
-class ErrorFastaReader : public std::runtime_error {
+class ErrorFastaReader : public ErrorFatal {
 public:
-  explicit ErrorFastaReader(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorFastaReader(const std::string &message) : ErrorFatal(message) {}
 };
 
 struct ReferenceSequenceData {
@@ -521,9 +521,9 @@ ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
 }
 
 
-class ErrorGffReader : public std::runtime_error {
+class ErrorGffReader : public ErrorFatal {
 public:
-  explicit ErrorGffReader(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorGffReader(const std::string &message) : ErrorFatal(message) {}
 };
 
 GeneMap parseGeneMapGffFile(const std::string &filename) {
@@ -555,9 +555,9 @@ std::set<std::string> parseGenes(const std::string &genesString) {
   return result;
 }
 
-class ErrorGeneMapValidationFailure : public std::runtime_error {
+class ErrorGeneMapValidationFailure : public ErrorFatal {
 public:
-  explicit ErrorGeneMapValidationFailure(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorGeneMapValidationFailure(const std::string &message) : ErrorFatal(message) {}
 };
 
 void validateGenes(const std::set<std::string> &genes, const GeneMap &geneMap) {

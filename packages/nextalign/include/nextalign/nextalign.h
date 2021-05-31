@@ -9,6 +9,22 @@
 #include <string_view>
 #include <vector>
 
+class Error : public std::runtime_error {
+public:
+  explicit Error(const std::string& message) : std::runtime_error(message) {}
+};
+
+class ErrorFatal : public Error {
+public:
+  explicit ErrorFatal(const std::string& message) : Error(message) {}
+};
+
+class ErrorNonFatal : public Error {
+public:
+  explicit ErrorNonFatal(const std::string& message) : Error(message) {}
+};
+
+
 template<typename Letter>
 using Sequence = std::basic_string<Letter>;
 

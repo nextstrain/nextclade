@@ -74,12 +74,12 @@ namespace Nextclade {
   }
 
   Nextclade::ErrorParseMutationInvalidNucleotide::ErrorParseMutationInvalidNucleotide(const std::string& mut)
-      : std::runtime_error(fmt::format("When parsing mutation: Unable to parse nucleotide: \"{}\"", mut)) {}
+      : ErrorNonFatal(fmt::format("When parsing mutation: Unable to parse nucleotide: \"{}\"", mut)) {}
 
   Nextclade::ErrorParseMutationInvalidPosition::ErrorParseMutationInvalidPosition(const std::string& posStr)
-      : std::runtime_error(fmt::format("When parsing mutation: Unable to parse position: \"{:s}\"", posStr)) {}
+      : ErrorNonFatal(fmt::format("When parsing mutation: Unable to parse position: \"{:s}\"", posStr)) {}
 
   ErrorParseMutationInvalidFormat::ErrorParseMutationInvalidFormat(const std::string_view& mut)
-      : std::runtime_error(
+      : ErrorNonFatal(
           fmt::format("When parsing mutation: Unable to parse mutation. The format is invalid: \"{:s}\"", mut)) {}
 }// namespace Nextclade

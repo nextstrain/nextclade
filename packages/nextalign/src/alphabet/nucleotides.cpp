@@ -11,15 +11,15 @@
 #include "../utils/safe_cast.h"
 
 namespace {
-  class ErrorNucleotideInvalid : public std::runtime_error {
+  class ErrorNucleotideInvalid : public ErrorNonFatal {
   public:
-    explicit ErrorNucleotideInvalid(char nuc) : std::runtime_error(fmt::format("Invalid nucleotide: \"{:c}\"", nuc)) {}
+    explicit ErrorNucleotideInvalid(char nuc) : ErrorNonFatal(fmt::format("Invalid nucleotide: \"{:c}\"", nuc)) {}
   };
 
-  class ErrorNucleotideStringInvalid : public std::runtime_error {
+  class ErrorNucleotideStringInvalid : public ErrorNonFatal {
   public:
     explicit ErrorNucleotideStringInvalid(const std::string& nuc)
-        : std::runtime_error(fmt::format("Invalid nucleotide: \"{:s}\"", nuc)) {}
+        : ErrorNonFatal(fmt::format("Invalid nucleotide: \"{:s}\"", nuc)) {}
   };
 
   constexpr const frozen::map<char, Nucleotide, 17> charToNucleotide = {

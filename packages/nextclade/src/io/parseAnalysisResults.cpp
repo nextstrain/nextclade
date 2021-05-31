@@ -13,33 +13,33 @@ namespace Nextclade {
   using json = nlohmann::ordered_json;
   using json_pointer = json::json_pointer;
 
-  class ErrorAnalysisResultsKeyNotFound : public std::runtime_error {
+  class ErrorAnalysisResultsKeyNotFound : public ErrorNonFatal {
   public:
     explicit ErrorAnalysisResultsKeyNotFound(const std::string& key)
-        : std::runtime_error(fmt::format("When parsing analysis results JSON: key not found: \"{:s}\"", key)) {}
+        : ErrorNonFatal(fmt::format("When parsing analysis results JSON: key not found: \"{:s}\"", key)) {}
   };
 
-  class ErrorAnalysisResultsRootTypeInvalid : public std::runtime_error {
+  class ErrorAnalysisResultsRootTypeInvalid : public ErrorNonFatal {
   public:
     explicit ErrorAnalysisResultsRootTypeInvalid(const std::string& type)
-        : std::runtime_error(fmt::format(
+        : ErrorNonFatal(fmt::format(
             "When parsing analysis results JSON: Expected to find an array as the root entry, but found \"{:s}\"",
             type)) {}
   };
 
-  class ErrorAnalysisResultsTypeInvalid : public std::runtime_error {
+  class ErrorAnalysisResultsTypeInvalid : public ErrorNonFatal {
   public:
     explicit ErrorAnalysisResultsTypeInvalid(const std::string& key, const std::string& typeExpected,
       const std::string& typeActual)
-        : std::runtime_error(fmt::format("When parsing analysis results JSON: When parsing property \"{:s}\": Expected "
+        : ErrorNonFatal(fmt::format("When parsing analysis results JSON: When parsing property \"{:s}\": Expected "
                                          "to find \"{:s}\", but found \"{:s}\"",
             key, typeExpected, typeActual)) {}
   };
 
-  class ErrorAnalysisResultsQcStatusInvalid : public std::runtime_error {
+  class ErrorAnalysisResultsQcStatusInvalid : public ErrorNonFatal {
   public:
     explicit ErrorAnalysisResultsQcStatusInvalid(const std::string& statusStr)
-        : std::runtime_error(
+        : ErrorNonFatal(
             fmt::format("When parsing analysis results JSON: QC status not recognized: \"{:s}\"", statusStr)) {}
   };
 
