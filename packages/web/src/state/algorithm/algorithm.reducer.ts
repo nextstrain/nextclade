@@ -80,11 +80,18 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(addNextcladeResult, (draft, { nextcladeResult }) => {
-    draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
-    draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.done
-    // nextcladeResult.ref
-    // nextcladeResult.query
-    draft.resultsFiltered = runFilters(current(draft))
+    if (nextcladeResult.hasError) {
+      draft.results[nextcladeResult.index].result = undefined
+      draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.failed
+      draft.results[nextcladeResult.index].errors = [nextcladeResult.error]
+    } else {
+      draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
+      draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.done
+      draft.results[nextcladeResult.index].errors = []
+      // nextcladeResult.ref
+      // nextcladeResult.query
+      draft.resultsFiltered = runFilters(current(draft))
+    }
   })
 
   .icase(resultsSortTrigger, (draft, sorting) => {

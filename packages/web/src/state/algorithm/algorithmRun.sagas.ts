@@ -392,7 +392,9 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     qcConfigStr,
   })
 
-  const analysisResults = nextcladeResults.map((nextcladeResult) => nextcladeResult.analysisResult)
+  const analysisResults = nextcladeResults
+    .filter((nextcladeResult) => !nextcladeResult.hasError)
+    .map((nextcladeResult) => nextcladeResult.analysisResult)
   const analysisResultsStr = JSON.stringify(analysisResults)
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))

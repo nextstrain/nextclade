@@ -21,6 +21,8 @@ export interface NextcladeWasmResult {
   ref: string
   query: string
   analysisResult: string
+  hasError: boolean
+  error: string
 }
 
 export interface NextcladeResult {
@@ -28,6 +30,8 @@ export interface NextcladeResult {
   ref: string
   query: string
   analysisResult: AnalysisResult
+  hasError: boolean
+  error: string
 }
 
 export interface NextcladeWasmClass {
@@ -93,11 +97,25 @@ export async function analyze(seq: SequenceParserResult) {
 
   return runWasmModule<NextcladeAnalysisModule, NextcladeResult>(gModule, () => {
     const result = nextcladeWasm.analyze(seq.seqName, seq.seq)
+
+    if (result.hasError) {
+      return {
+        index: seq.index,
+        ref: undefined,
+        query: undefined,
+        analysisResult: undefined,
+        hasError: result.hasError,
+        error: result.error,
+      }
+    }
+
     return {
       index: seq.index,
       ref: result.ref,
       query: result.query,
       analysisResult: parseAnalysisResult(result.analysisResult),
+      hasError: result.hasError,
+      error: result.error,
     }
   })
 }

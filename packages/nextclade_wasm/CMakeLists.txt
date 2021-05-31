@@ -22,6 +22,7 @@ add_executable(${PROJECT_NAME}
 
 set(EMSCRIPTEN_COMPILER_FLAGS "\
   -frtti \
+  -fexceptions \
   --bind \
   --source-map-base './' \
   -s MODULARIZE=1 \
@@ -31,7 +32,7 @@ set(EMSCRIPTEN_COMPILER_FLAGS "\
   -s ALIASING_FUNCTION_POINTERS=0 \
   -s ALLOW_MEMORY_GROWTH=1 \
   -s MALLOC=emmalloc \
-  -s DISABLE_EXCEPTION_CATCHING=2 \
+  -s DISABLE_EXCEPTION_CATCHING=0 \
   -s ENVIRONMENT=worker \
 ")
 

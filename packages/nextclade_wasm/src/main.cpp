@@ -62,6 +62,8 @@ struct NextcladeWasmResult {
   // std::vector<Peptide> queryPeptides; // TODO: use these too
   // std::vector<std::string> warnings; // TODO: use these too
   std::string analysisResult;
+  bool hasError;
+  std::string error;
 };
 
 class NextcladeWasm {
@@ -92,27 +94,39 @@ public:
     const std::string& queryName,//
     const std::string& queryStr  //
   ) {
-    const auto query = toNucleotideSequence(queryStr);
+    try {
+      const auto query = toNucleotideSequence(queryStr);
 
-    // FIXME: pass options from JS
-    const auto nextalignOptions = getDefaultOptions();
+      // FIXME: pass options from JS
+      const auto nextalignOptions = getDefaultOptions();
 
-    const auto result = analyzeOneSequence(//
-      queryName,                           //
-      state.ref,                           //
-      query,                               //
-      state.geneMap,                       //
-      state.pcrPrimers,                    //
-      state.qcRulesConfig,                 //
-      state.tree,                          //
-      nextalignOptions                     //
-    );
+      const auto result = analyzeOneSequence(//
+        queryName,                           //
+        state.ref,                           //
+        query,                               //
+        state.geneMap,                       //
+        state.pcrPrimers,                    //
+        state.qcRulesConfig,                 //
+        state.tree,                          //
+        nextalignOptions                     //
+      );
 
-    return NextcladeWasmResult{
-      .ref = result.ref,
-      .query = result.query,
-      .analysisResult = serializeResultToString(result.analysisResult),
-    };
+      return NextcladeWasmResult{
+        .ref = result.ref,
+        .query = result.query,
+        .analysisResult = serializeResultToString(result.analysisResult),
+        .hasError = false,
+        .error = {},
+      };
+    } catch (const ErrorNonFatal& e) {
+      return NextcladeWasmResult{
+        .ref = {},
+        .query = {},
+        .analysisResult = {},
+        .hasError = true,
+        .error = e.what(),
+      };
+    }
   }
 };
 
@@ -199,7 +213,9 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
     .field("ref", &NextcladeWasmResult::ref)
     .field("query", &NextcladeWasmResult::query)
-    .field("analysisResult", &NextcladeWasmResult::analysisResult);
+    .field("analysisResult", &NextcladeWasmResult::analysisResult)
+    .field("hasError", &NextcladeWasmResult::hasError)
+    .field("error", &NextcladeWasmResult::error);
 
   emscripten::function("treePrepare", &treePrepare);
   emscripten::function("parseRefSequence", &parseRefSequence);

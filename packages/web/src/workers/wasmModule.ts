@@ -4,13 +4,20 @@ import serializeJavascript from 'serialize-javascript'
 import emscriptenJsRaw from 'wasm/nextclade_wasm'
 import wasmPath from 'wasm/nextclade_wasm.wasm'
 
+export interface WasmModule {
+  getExceptionMessage(errorPtr: number): string
+}
+
 type EmscriptenRuntimeModule = any
 
 export class WasmNativeError extends Error {}
 
 export class WasmNativeErrorUnknown extends Error {}
 
-export async function runWasmModule<MyModule, T>(module: MyModule, runFunction: (module: MyModule) => T): Promise<T> {
+export async function runWasmModule<MyModule extends WasmModule, T>(
+  module: MyModule,
+  runFunction: (module: MyModule) => T,
+): Promise<T> {
   try {
     return runFunction(module)
   } catch (error: unknown) {
