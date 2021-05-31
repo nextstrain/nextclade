@@ -23,6 +23,7 @@ import {
   algorithmRunAsync,
   algorithmRunWithSequencesAsync,
   setAlgorithmGlobalStatus,
+  setFasta,
   setOutputTree,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
@@ -342,25 +343,38 @@ export function* getInputs() {
   return { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr }
 }
 
+/** Retrieves input sequences */
+export function* getQuerySequences(queryInput?: AlgorithmInput) {
+  // If sequence data is provided explicitly, load it
+  if (queryInput) {
+    const loadSequences = fsaSaga(setFasta, loadFasta)
+    yield* loadSequences(setFasta.trigger(queryInput))
+  }
+
+  // If not provided, maybe the previously used sequence data is of any good?
+  const queryStr = yield* select(selectQueryStr)
+  if (queryStr) {
+    return queryStr
+  }
+
+  // If not, something is wrong here
+  throw new Error(
+    'When running Nextclade algorithm: No sequence data provided. ' +
+      'This is an internal error. Please report it to developers',
+  )
+}
+
 /**
  * Runs Nextclade algorithm: parsing, analysis, and tree placement
  */
-export function* runAlgorithm(input?: AlgorithmInput) {
+export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
   yield* put(push('/results'))
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.waitingInputs))
-  const { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* call(getInputs)
+  const { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* getInputs()
 
-  let queryStr = yield* select(selectQueryStr)
-  if (!queryStr) {
-    if (!input) {
-      throw new Error(
-        'When running Nextclade algorithm: No sequence data provided. This is an internal error. Please report it to developers',
-      )
-    }
-    queryStr = yield* apply(input, input.getContent, [])
-  }
+  const queryStr = yield* getQuerySequences(queryInput)
 
   const treePreparedStr = yield* call(treePrepare, treeStr, refStr)
 
