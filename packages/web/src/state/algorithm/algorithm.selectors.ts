@@ -14,7 +14,7 @@ export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
 export const selectCanExport = (state: State): boolean => state.algorithm.status === AlgorithmGlobalStatus.done
 
-export const selectOutputTree = (state: State): string | undefined => state.algorithm.outputTree
+export const selectOutputTree = (state: State): string | undefined => state.algorithm.treeStr
 
 export const selectQueryStr = (state: State) => state.algorithm.params.strings.queryStr
 export const selectRefSeq = (state: State) => state.algorithm.params.strings.refStr

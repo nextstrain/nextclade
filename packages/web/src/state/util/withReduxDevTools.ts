@@ -1,4 +1,4 @@
-/* eslint-disable camelcase,@typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import type { DeepPartial, StrictOmit } from 'ts-essentials'
 import { composeWithDevTools } from 'redux-devtools-extension'
@@ -11,7 +11,7 @@ import type { AlgorithmParams, SequenceAnalysisState } from 'src/state/algorithm
 import type { AuspiceEntropyState, AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeState } from 'auspice'
 import {
   setFasta,
-  setOutputTree,
+  setTreeResult,
   setRootSeq,
   setTree,
   addNextcladeResult,
@@ -45,44 +45,6 @@ function truncateContent(input?: DeepPartial<AlgorithmInput>) {
 
   // @ts-ignore
   return { ...input, content: input.content ? truncate(input.content) : undefined }
-}
-
-interface AuspiceTreeNodeTruncated {
-  name?: string
-  node_attrs: 'truncated'
-  branch_attrs: 'truncated'
-  children: 'truncated'
-}
-
-interface AuspiceJsonV2Truncated {
-  version?: string
-  meta: 'truncated'
-  tree?: AuspiceTreeNodeTruncated
-}
-
-function truncateTreeNode(node?: AuspiceTreeNode): AuspiceTreeNodeTruncated | undefined {
-  if (!node) {
-    return undefined
-  }
-
-  return {
-    name: node.name,
-    branch_attrs: 'truncated',
-    node_attrs: 'truncated',
-    children: 'truncated',
-  }
-}
-
-function truncateTreeJson(tree?: AuspiceJsonV2): AuspiceJsonV2Truncated | undefined {
-  if (!tree) {
-    return undefined
-  }
-
-  return {
-    ...tree,
-    meta: 'truncated',
-    tree: truncateTreeNode(tree.tree),
-  }
 }
 
 export function sanitizeParams(params?: AlgorithmParams) {
@@ -270,8 +232,14 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
         }
       }
 
-      if (isType(action, setOutputTree)) {
-        return { ...action, payload: truncate(action.payload) }
+      if (isType(action, setTreeResult)) {
+        return {
+          ...action,
+          payload: {
+            ...action.payload,
+            treeStr: truncate(action.payload.treeStr),
+          },
+        }
       }
 
       if (isType(action, addNextcladeResult)) {
@@ -300,7 +268,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
           params: sanitizeParams(state.algorithm.params),
           // results: sanitizeResults(state.algorithm.results),
           // resultsFiltered: sanitizeResults(state.algorithm.results),
-          outputTree: truncate(state.algorithm.outputTree),
+          treeStr: truncate(state.algorithm.treeStr),
         },
         tree: sanitizeTree(state.tree),
         entropy: sanitizeEntropy(state.controls),

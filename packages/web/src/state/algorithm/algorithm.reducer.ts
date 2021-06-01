@@ -18,7 +18,7 @@ import {
   setShowErrors,
   setShowBad,
   setShowMediocre,
-  setOutputTree,
+  setTreeResult,
   setFasta,
   setTree,
   setGeneMap,
@@ -34,7 +34,14 @@ import {
   addParsedSequence,
   addNextcladeResult,
 } from './algorithm.actions'
-import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
+import {
+  algorithmDefaultState,
+  AlgorithmGlobalStatus,
+  AlgorithmParams,
+  AlgorithmSequenceStatus,
+  ResultsFilters,
+  SequenceAnalysisState,
+} from './algorithm.state'
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(addParsedSequence, (draft, { index, seqName }) => {
@@ -259,23 +266,35 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(algorithmRunAsync.started, (draft) => {
+    draft.status = AlgorithmGlobalStatus.idle
     draft.isDirty = false
     draft.results = []
     draft.resultsFiltered = []
+    draft.treeStr = undefined
+    draft.errors = []
   })
 
   .icase(setAlgorithmGlobalStatus, (draft, status) => {
     draft.status = status
   })
 
-  .icase(algorithmRunAsync.done, (draft) => {
-    draft.status = AlgorithmGlobalStatus.done
+  .icase(algorithmRunAsync.trigger, (draft) => {
+    draft.status = AlgorithmGlobalStatus.idle
+    draft.errors = []
   })
 
-  .icase(algorithmRunAsync.failed, (draft, { params }) => {})
+  .icase(algorithmRunAsync.done, (draft) => {
+    draft.status = AlgorithmGlobalStatus.done
+    draft.errors = []
+  })
+
+  .icase(algorithmRunAsync.failed, (draft, { params, error }) => {
+    draft.status = AlgorithmGlobalStatus.failed
+    draft.errors = [error.message]
+  })
 
   // ******************
 
-  .icase(setOutputTree, (draft, auspiceData) => {
-    draft.outputTree = auspiceData
+  .icase(setTreeResult, (draft, { treeStr }) => {
+    draft.treeStr = treeStr
   })

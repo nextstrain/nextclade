@@ -1,5 +1,3 @@
-import type { AuspiceJsonV2 } from 'auspice'
-
 import type { Virus, AnalysisResult, Gene } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
@@ -12,6 +10,7 @@ export enum AlgorithmGlobalStatus {
   started = 'started',
   buildingTree = 'buildingTree',
   done = 'done',
+  failed = 'failed',
 }
 
 export enum AlgorithmSequenceStatus {
@@ -91,10 +90,9 @@ export interface AlgorithmState {
   isDirty: boolean
   results: SequenceAnalysisState[]
   resultsFiltered: SequenceAnalysisState[]
-  tree: AuspiceJsonV2
+  treeStr?: string
   errors: string[]
   filters: ResultsFilters
-  outputTree?: string
 }
 
 export interface CladeAssignmentResult {
@@ -122,7 +120,7 @@ export const algorithmDefaultState: AlgorithmState = {
   isDirty: true,
   results: [],
   resultsFiltered: [],
-  tree: {},
+  treeStr: undefined,
   errors: [],
   filters: {
     showGood: true,
@@ -130,5 +128,4 @@ export const algorithmDefaultState: AlgorithmState = {
     showBad: true,
     showErrors: true,
   },
-  outputTree: undefined,
 }

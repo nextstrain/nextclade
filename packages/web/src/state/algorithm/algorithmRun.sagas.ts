@@ -22,7 +22,7 @@ import {
   algorithmRunAsync,
   setAlgorithmGlobalStatus,
   setFasta,
-  setOutputTree,
+  setTreeResult,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import {
@@ -389,19 +389,25 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     qcConfigStr,
   })
 
+  console.log({ nextcladeResults })
+
   const analysisResults = nextcladeResults
     .filter((nextcladeResult) => !nextcladeResult.hasError)
     .map((nextcladeResult) => nextcladeResult.analysisResult)
-  const analysisResultsStr = JSON.stringify(analysisResults)
 
-  yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
-  const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
-  const tree = parseAuspiceJsonV2(treeFinalStr)
-  console.log({ nextcladeResults })
-  console.log({ tree })
+  if (analysisResults.length > 0) {
+    const analysisResultsStr = JSON.stringify(analysisResults)
 
-  yield* put(setOutputTree(treeFinalStr))
-  yield* setAuspiceState(tree)
+    yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
+    const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
+    const tree = parseAuspiceJsonV2(treeFinalStr)
+
+    console.log({ tree })
+
+    yield* setAuspiceState(tree)
+    yield* put(setTreeResult({ treeStr: treeFinalStr }))
+  }
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.done))
 }
 

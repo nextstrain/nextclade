@@ -1,3 +1,5 @@
+import type { AuspiceJsonV2 } from 'auspice'
+
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
@@ -27,7 +29,7 @@ export const algorithmRunAsync = action.async<AlgorithmInput | undefined, void, 
 
 export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')
 export const addNextcladeResult = action<{ nextcladeResult: NextcladeResult }>('addNextcladeResult')
-export const setOutputTree = action<string>('setOutputTree')
+export const setTreeResult = action<{ treeStr: string }>('setTreeResult')
 
 export const exportCsvTrigger = action('exportCsvTrigger')
 export const exportTsvTrigger = action('exportTsvTrigger')
