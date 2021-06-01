@@ -59,8 +59,8 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
       draft.results[nextcladeResult.index].errors = []
       // nextcladeResult.ref
       // nextcladeResult.query
-      draft.resultsFiltered = runFilters(current(draft))
     }
+    draft.resultsFiltered = runFilters(current(draft))
   })
 
   .icase(resultsSortTrigger, (draft, sorting) => {
