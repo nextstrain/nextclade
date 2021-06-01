@@ -75,22 +75,23 @@ export async function createThreadParseSequencesStreaming() {
 
 export async function parseSequencesStreaming(
   fastaStr: string,
+  fastaName: string,
   onSequence: (seq: SequenceParserResult) => void,
   onError: (error: Error) => void,
   onComplete: () => void,
 ) {
   const thread = await createThreadParseSequencesStreaming()
   const subscription = thread.values().subscribe(onSequence, onError, onComplete)
-  await thread.parseSequencesStreaming(fastaStr)
+  await thread.parseSequencesStreaming(fastaStr, fastaName)
   await subscription.unsubscribe()
 }
 
-export async function parseRefSequence(refFastaStr: string) {
+export async function parseRefSequence(refFastaStr: string, refFastaName: string) {
   const thread = await spawn<ParseRefSequenceThread>(
     new Worker('src/workers/worker.parseRefSeq.ts', { name: 'worker.parseRefSeq' }),
   )
-  const refParsed: SequenceParserResult = await thread.parseRefSequence(refFastaStr)
-  return refParsed.seq
+  const refParsed: SequenceParserResult = await thread.parseRefSequence(refFastaStr, refFastaName)
+  return { refStr: refParsed.seq, refName: refFastaName }
 }
 
 export async function parseGeneMapGffString(geneMapStrRaw: string, geneMapName: string) {

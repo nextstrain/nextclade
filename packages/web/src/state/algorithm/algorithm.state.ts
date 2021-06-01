@@ -75,7 +75,9 @@ export interface AlgorithmParams {
   }
   strings: {
     queryStr?: string
+    queryName?: string
     refStr?: string
+    refName?: string
     geneMapStr?: string
     treeStr?: string
     pcrPrimerCsvRowsStr?: string

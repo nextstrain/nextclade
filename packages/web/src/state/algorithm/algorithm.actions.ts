@@ -11,9 +11,9 @@ export const setNumThreads = action<number>('setNumThreads')
 
 export const setIsDirty = action<boolean>('setIsDirty')
 
-export const setFasta = action.async<AlgorithmInput, { queryStr: string }, Error>('setFasta')
+export const setFasta = action.async<AlgorithmInput, { queryStr: string; queryName: string }, Error>('setFasta')
 export const setTree = action.async<AlgorithmInput, { treeStr: string }, Error>('setTree')
-export const setRootSeq = action.async<AlgorithmInput, { refStr: string }, Error>('setRootSeq')
+export const setRootSeq = action.async<AlgorithmInput, { refStr: string; refName: string }, Error>('setRootSeq')
 export const setQcSettings = action.async<AlgorithmInput, { qcConfigStr: string }, Error>('setQcSettings')
 export const setGeneMap = action.async<AlgorithmInput, { geneMapStr: string }, Error>('setGeneMap')
 export const setPcrPrimers = action.async<AlgorithmInput, { pcrPrimerCsvRowsStr: string }, Error>('setPcrPrimers')

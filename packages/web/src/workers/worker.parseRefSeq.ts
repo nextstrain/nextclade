@@ -6,13 +6,13 @@ import type { SequenceParserResult } from 'src/algorithms/types'
 import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
 
 export interface ParseRefSequenceWasmModule {
-  parseRefSequence(fastaStr: string): SequenceParserResult
+  parseRefSequence(fastaStr: string, refFastaName: string): SequenceParserResult
 }
 
-export async function parseRefSequence(refFastaStr: string) {
+export async function parseRefSequence(refFastaStr: string, refFastaName: string) {
   const module = await loadWasmModule<ParseRefSequenceWasmModule>('nextclade_wasm')
   return runWasmModule<ParseRefSequenceWasmModule, SequenceParserResult>(module, (module) =>
-    module.parseRefSequence(refFastaStr),
+    module.parseRefSequence(refFastaStr, refFastaName),
   )
 }
 

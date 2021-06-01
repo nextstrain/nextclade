@@ -8,6 +8,7 @@ import { loadWasmModule, runWasmModule } from './wasmModule'
 
 export interface NextcladeWasmParams {
   refStr: string
+  refName: string
   geneMapStr: string
   geneMapName: string
   treePreparedStr: string

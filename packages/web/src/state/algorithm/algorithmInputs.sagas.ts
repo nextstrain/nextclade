@@ -23,7 +23,7 @@ import {
 export function* loadFasta(input: AlgorithmInput) {
   const queryStr = yield* call([input, input.getContent])
   // TODO: validate fasta file format
-  return { queryStr }
+  return { queryStr, queryName: input.name }
 }
 
 export function* loadTree(input: AlgorithmInput) {
@@ -34,8 +34,7 @@ export function* loadTree(input: AlgorithmInput) {
 
 export function* loadRootSeq(input: AlgorithmInput) {
   const refFastaStr = yield* call([input, input.getContent])
-  const refStr = yield* call(parseRefSequence, refFastaStr)
-  return { refStr }
+  return yield* call(parseRefSequence, refFastaStr, input.name)
 }
 
 export function* loadQcSettings(input: AlgorithmInput) {

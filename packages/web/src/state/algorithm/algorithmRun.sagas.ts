@@ -22,6 +22,7 @@ import {
   algorithmRunAsync,
   setAlgorithmGlobalStatus,
   setFasta,
+  setRootSeq,
   setTreeResult,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
@@ -29,7 +30,9 @@ import {
   selectGeneMapStr,
   selectPcrPrimersStr,
   selectQcConfigStr,
+  selectQueryName,
   selectQueryStr,
+  selectRefName,
   selectRefSeq,
   selectRefTreeStr,
 } from 'src/state/algorithm/algorithm.selectors'
@@ -158,8 +161,12 @@ export function createAnalysisEventChannel(poolAnalyze: Pool<AnalysisThread>): E
  * Thread emits results via an Observable. Parser channel subscribes to these events
  * (see `createSequenceParserEventChannel()`).
  */
-export function* runParserLoop(sequenceParserThread: ParseSequencesStreamingThread, queryStr: string) {
-  yield* apply(sequenceParserThread, sequenceParserThread.parseSequencesStreaming, [queryStr])
+export function* runParserLoop(
+  sequenceParserThread: ParseSequencesStreamingThread,
+  queryStr: string,
+  queryInputName: string,
+) {
+  yield* apply(sequenceParserThread, sequenceParserThread.parseSequencesStreaming, [queryStr, queryInputName])
 }
 
 /**
@@ -279,7 +286,7 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
  *           (parallel, webworker, wasm)                   \-> [Analysis thread] -/                             (synchronous, JS)
  *                                                     (parallel, webworker pool, wasm)
  */
-export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmParams) {
+export function* runSequenceAnalysis(queryStr: string, queryInputName: string, params: NextcladeWasmParams) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.initWorkers))
   // Create sequence parser thread
   const sequenceParserThread = yield* call(createThreadParseSequencesStreaming)
@@ -288,7 +295,7 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
   const sequenceParserEventChannel = createSequenceParserEventChannel(sequenceParserThread)
 
   // Create analysis thread pool
-  const numThreads= yield* select(selectNumThreads)
+  const numThreads = yield* select(selectNumThreads)
   const poolAnalyze = yield* call(createAnalysisThreadPool, params, numThreads)
 
   // Create channel which will buffer the analysis results
@@ -309,7 +316,7 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
     call(runAnalysisLoop, sequenceParserEventChannel, poolAnalyze),
 
     // Loop 1: Launch sequence parser loop and wait until it finishes parsing the input string.
-    call(runParserLoop, sequenceParserThread, queryStr),
+    call(runParserLoop, sequenceParserThread, queryStr, queryInputName),
   ])
   // When `all()` effect resolves, we know that parsing is done. However, the analysis is still running.
 
@@ -323,9 +330,7 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
 /** Retrieves input data (except for query sequences), either from provided source, or from defaults */
 export function* getInputs() {
   const virus = getVirus()
-  const { refFastaStr, treeJson, qcConfigRaw, geneMapStrRaw, pcrPrimersStrRaw } = virus
-
-  const refStr = (yield* select(selectRefSeq)) ?? (yield* loadRootSeq(new AlgorithmInputString(refFastaStr))).refStr
+  const { treeJson, qcConfigRaw, geneMapStrRaw, pcrPrimersStrRaw } = virus
 
   const geneMapStr =
     (yield* select(selectGeneMapStr)) ?? (yield* loadGeneMap(new AlgorithmInputString(geneMapStrRaw))).geneMapStr
@@ -339,10 +344,28 @@ export function* getInputs() {
   const qcConfigStr =
     (yield* select(selectQcConfigStr)) ?? (yield* loadQcSettings(new AlgorithmInputString(qcConfigRaw))).qcConfigStr
 
-  return { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr }
+  return { geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr }
 }
 
-/** Retrieves input sequences */
+export function* getRefSequence() {
+  // Load ref sequence from current state, in case it was set by the user previously
+  let refStr = yield* select(selectRefSeq)
+  let refName = yield* select(selectRefName)
+
+  // If not, load the default ref sequence
+  if (!(refStr && refName)) {
+    const virus = getVirus()
+    const { refFastaStr } = virus
+
+    const loadSequences = fsaSaga(setRootSeq, loadRootSeq)
+    yield* loadSequences(setRootSeq.trigger(new AlgorithmInputString(refFastaStr, 'reference.fasta')))
+    refStr = yield* select(selectRefSeq)
+    refName = yield* select(selectRefName)
+  }
+
+  return { refStr, refName }
+}
+
 export function* getQuerySequences(queryInput?: AlgorithmInput) {
   // If sequence data is provided explicitly, load it
   if (queryInput) {
@@ -352,8 +375,9 @@ export function* getQuerySequences(queryInput?: AlgorithmInput) {
 
   // If not provided, maybe the previously used sequence data is of any good?
   const queryStr = yield* select(selectQueryStr)
-  if (queryStr) {
-    return queryStr
+  const queryName = yield* select(selectQueryName)
+  if (queryStr && queryName) {
+    return { queryStr, queryName }
   }
 
   // If not, something is wrong here
@@ -370,16 +394,18 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.loadingData))
   yield* put(push('/results'))
 
-  const { refStr, geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* getInputs()
+  const { geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* getInputs()
 
-  const queryStr = yield* getQuerySequences(queryInput)
+  const { refStr, refName } = yield* getRefSequence()
+  const { queryStr, queryName } = yield* getQuerySequences(queryInput)
 
   const treePreparedStr = yield* call(treePrepare, treeStr, refStr)
 
   const geneMapName = ''
   const pcrPrimersFilename = ''
-  const nextcladeResults = yield* runSequenceAnalysis(queryStr, {
+  const nextcladeResults = yield* runSequenceAnalysis(queryStr, queryName, {
     refStr,
+    refName,
     geneMapStr,
     geneMapName,
     treePreparedStr,

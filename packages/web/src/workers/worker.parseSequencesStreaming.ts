@@ -21,14 +21,19 @@ function onError(error: Error) {
 }
 
 export interface ParseSequencesStreamingWasmModule {
-  parseSequencesStreaming(fastaStr: string, onSequence: (seq: SequenceParserResult) => void, onComplete: () => void): void
+  parseSequencesStreaming(
+    fastaStr: string,
+    fastaName: string,
+    onSequence: (seq: SequenceParserResult) => void,
+    onComplete: () => void,
+  ): void
 }
 
-export async function parseSequencesStreaming(fastaStr: string) {
+export async function parseSequencesStreaming(fastaStr: string, fastaName: string) {
   const module = await loadWasmModule<ParseSequencesStreamingWasmModule>('nextclade_wasm')
   return runWasmModule<ParseSequencesStreamingWasmModule, void>(module, (module) => {
     try {
-      module.parseSequencesStreaming(fastaStr, onSequence, onComplete)
+      module.parseSequencesStreaming(fastaStr, fastaName, onSequence, onComplete)
     } catch (error) {
       onError(error)
     }

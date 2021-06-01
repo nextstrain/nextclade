@@ -135,13 +135,13 @@ public:
   }
 };
 
-AlgorithmInput parseRefSequence(const std::string& refFastaStr) {
+AlgorithmInput parseRefSequence(const std::string& refFastaStr, const std::string& refFastaName) {
   std::stringstream refFastaStream{refFastaStr};
-  const auto parsed = parseSequences(refFastaStream);
+  const auto parsed = parseSequences(refFastaStream, refFastaName);
 
   if (parsed.size() != 1) {
-    throw std::runtime_error(
-      fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", parsed.size()));
+    throw std::runtime_error(fmt::format("Error: {:d} sequences found in reference sequence file ('{:s}'), expected 1",
+      parsed.size(), refFastaName));
   }
 
   const auto& refSeq = parsed.front();
@@ -164,10 +164,10 @@ std::string parsePcrPrimerCsvRowsStr(const std::string& pcrPrimersStr, const std
   return Nextclade::serializePcrPrimerRowsToString(pcrPrimers);
 }
 
-void parseSequencesStreaming(const std::string& queryFastaStr, const emscripten::val& onSequence,
-  const emscripten::val& onComplete) {
+void parseSequencesStreaming(const std::string& queryFastaStr, const std::string& queryFastaName,
+  const emscripten::val& onSequence, const emscripten::val& onComplete) {
   std::stringstream queryFastaStringstream{queryFastaStr};
-  auto inputFastaStream = makeFastaStream(queryFastaStringstream);
+  auto inputFastaStream = makeFastaStream(queryFastaStringstream, queryFastaName);
   while (inputFastaStream->good()) {
     onSequence(inputFastaStream->next());
   }

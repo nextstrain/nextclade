@@ -26,7 +26,9 @@ export const selectOutputPeptides = (state: State) =>
 export const selectExportParams = (state: State) => state.algorithm.exportParams
 
 export const selectQueryStr = (state: State) => state.algorithm.params.strings.queryStr
+export const selectQueryName = (state: State) => state.algorithm.params.strings.queryName
 export const selectRefSeq = (state: State) => state.algorithm.params.strings.refStr
+export const selectRefName = (state: State) => state.algorithm.params.strings.refName
 export const selectGeneMapStr = (state: State) => state.algorithm.params.strings.geneMapStr
 export const selectRefTreeStr = (state: State) => state.algorithm.params.strings.treeStr
 export const selectPcrPrimersStr = (state: State) => state.algorithm.params.strings.pcrPrimerCsvRowsStr
@@ -34,6 +36,13 @@ export const selectQcConfigStr = (state: State) => state.algorithm.params.string
 
 export const selectGeneMap = (state: State) => state.algorithm.params.final?.geneMap
 export const selectGenomeSize = (state: State) => state.algorithm.params.final?.genomeSize
+
+export interface StatusDisplay {
+  percent: number
+  statusText: string
+  failureText?: string
+  hasFailures: boolean
+}
 
 export function selectStatus(state: State) {
   const numThreads = selectNumThreads(state)
@@ -108,10 +117,17 @@ export function selectStatus(state: State) {
       }
       break
 
+    case AlgorithmGlobalStatus.failed:
+      {
+        failureText = i18n.t('Failed due to error.')
+        percent = 100
+      }
+      break
+
     default:
       if (process.env.NODE_ENV !== 'production') {
         throw new Error(
-          'developer error: this switch-case block should be exhaustive, but has reached the default case',
+          `This switch-case block should be exhaustive, but has reached the default case. The value was ${statusGlobal}. This is an internal error. Please report it to developers.`,
         )
       }
   }

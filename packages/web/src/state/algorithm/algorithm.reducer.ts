@@ -161,8 +161,9 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   // ******************
 
-  .icase(setFasta.done, (draft, { result: { queryStr } }) => {
+  .icase(setFasta.done, (draft, { result: { queryStr, queryName } }) => {
     draft.params.strings.queryStr = queryStr
+    draft.params.strings.queryName = queryName
     draft.params.errors.seqData = []
   })
 
@@ -171,8 +172,9 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.errors.auspiceData = []
   })
 
-  .icase(setRootSeq.done, (draft, { result: { refStr } }) => {
+  .icase(setRootSeq.done, (draft, { result: { refStr, refName } }) => {
     draft.params.strings.refStr = refStr
+    draft.params.strings.refName = refName
     draft.params.final.genomeSize = refStr.length
     draft.params.errors.rootSeq = []
   })
