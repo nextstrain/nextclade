@@ -3,6 +3,7 @@ import i18n from 'src/i18n/i18n'
 
 import type { State } from 'src/state/reducer'
 import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
+import { selectNumThreads } from 'src/state/settings/settings.selectors'
 
 export const selectParams = (state: State) => state.algorithm.params
 
@@ -27,6 +28,7 @@ export const selectGeneMap = (state: State) => state.algorithm.params.final?.gen
 export const selectGenomeSize = (state: State) => state.algorithm.params.final?.genomeSize
 
 export function selectStatus(state: State) {
+  const numThreads = selectNumThreads(state)
   const statusGlobal = state.algorithm.status
   const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
   const hasFailures = state.algorithm.results.some(({ status }) => status === AlgorithmSequenceStatus.failed)
@@ -59,7 +61,7 @@ export function selectStatus(state: State) {
 
     case AlgorithmGlobalStatus.initWorkers:
       {
-        statusText = i18n.t('Starting WebWorkers...')
+        statusText = i18n.t('Starting {{numWorkers}} threads...', { numWorkers: numThreads })
         percent = loadingDataDonePercent
       }
       break
@@ -71,9 +73,9 @@ export function selectStatus(state: State) {
         const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.failed).length
         const done = succeeded + failed
         percent = loadingDataDonePercent + (done / total) * (treeBuildPercent - loadingDataDonePercent)
-        statusText = i18n.t('Analysing sequences: {{done}}/{{total}}', { done, total })
+        statusText = i18n.t('Analysing sequences: Found: {{total}}. Analyzed: {{done}}', { done, total })
         if (failed > 0) {
-          failureText = i18n.t('Failed: {{failed}}/{{total}}', { failed, total })
+          failureText = i18n.t('Failed: {{failed}}', { failed, total })
         }
       }
       break

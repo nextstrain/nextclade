@@ -1,9 +1,9 @@
 /* eslint-disable no-loops/no-loops,no-continue,no-void */
 import type { EventChannel } from 'redux-saga'
+import { buffers, eventChannel } from 'redux-saga'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
-import { eventChannel, buffers } from 'redux-saga'
-import { call, put, takeEvery, apply, take, all, fork, join, select } from 'typed-redux-saga'
+import { all, apply, call, fork, join, put, select, take, takeEvery } from 'typed-redux-saga'
 import { push } from 'connected-next-router/actions'
 
 import type { AuspiceJsonV2 } from 'auspice'
@@ -13,7 +13,7 @@ import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import fsaSaga from 'src/state/util/fsaSaga'
 
-import type { AnalysisThread, NextcladeWasmParams, NextcladeResult } from 'src/workers/worker.analyze'
+import type { AnalysisThread, NextcladeResult, NextcladeWasmParams } from 'src/workers/worker.analyze'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { SequenceParserResult } from 'src/algorithms/types'
 import {
@@ -50,9 +50,7 @@ import {
   loadTree,
 } from 'src/state/algorithm/algorithmInputs.sagas'
 import { AlgorithmInputString } from 'src/io/AlgorithmInput'
-
-const DEFAULT_NUM_THREADS = 4
-const numThreads = DEFAULT_NUM_THREADS // FIXME: detect number of threads
+import { selectNumThreads } from 'src/state/settings/settings.selectors'
 
 export interface SequenceParserChannelElement {
   seq?: SequenceParserResult
@@ -290,6 +288,7 @@ export function* runSequenceAnalysis(queryStr: string, params: NextcladeWasmPara
   const sequenceParserEventChannel = createSequenceParserEventChannel(sequenceParserThread)
 
   // Create analysis thread pool
+  const numThreads= yield* select(selectNumThreads)
   const poolAnalyze = yield* call(createAnalysisThreadPool, params, numThreads)
 
   // Create channel which will buffer the analysis results

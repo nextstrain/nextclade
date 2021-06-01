@@ -6,3 +6,5 @@ export const selectLocaleKey = (state: State): LocaleKey => state.settings.local
 export const selectLocale = (state: State): LocaleWithKey => getLocaleWithKey(selectLocaleKey(state))
 
 export const selectQcRulesConfig = (state: State) => state.settings.qcConfig
+
+export const selectNumThreads = (state: State) => state.settings.numThreads

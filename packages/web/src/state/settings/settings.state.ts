@@ -1,10 +1,12 @@
 import { DEFAULT_LOCALE_KEY, LocaleKey } from 'src/i18n/i18n'
+import { getNumThreads } from 'src/helpers/getNumThreads'
 
 export interface SettingsState {
   localeKeyV2: LocaleKey
   showWhatsnewOnUpdate: boolean
   lastVersionSeen: string
   showAdvancedControls: boolean
+  numThreads: number
 }
 
 export const settingsDefaultState: SettingsState = {
@@ -12,4 +14,5 @@ export const settingsDefaultState: SettingsState = {
   showWhatsnewOnUpdate: true,
   lastVersionSeen: '',
   showAdvancedControls: false,
+  numThreads: getNumThreads(),
 }

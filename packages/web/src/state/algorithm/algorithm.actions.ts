@@ -1,5 +1,3 @@
-import type { AuspiceJsonV2 } from 'auspice'
-
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
@@ -7,6 +5,8 @@ import type { NextcladeResult } from 'src/workers/worker.analyze'
 import type { AlgorithmGlobalStatus, AlgorithmInput } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
+
+export const setNumThreads = action<number>('setNumThreads')
 
 export const setIsDirty = action<boolean>('setIsDirty')
 
