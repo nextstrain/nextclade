@@ -230,9 +230,9 @@ public:
 };
 
 /** Creates an instance of fasta stream, given a file or string stream */
-std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream);
+std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream, std::string filename);
 
 /** Parses all sequences of a given file or string stream */
-std::vector<AlgorithmInput> parseSequences(std::istream& istream);
+std::vector<AlgorithmInput> parseSequences(std::istream& istream, std::string filename);
 
 const char* getVersion();
