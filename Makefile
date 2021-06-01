@@ -7,6 +7,9 @@ clean:
 cleanest: clean
 	rm -rf .cache
 
+
+# Command-line tools
+
 dev:
 	@$(MAKE) --no-print-directory dev-impl
 
@@ -57,7 +60,26 @@ clang-tidy:
 
 
 
-# "Builder" docker container
+# WebAssembly
+
+# There is no dev build for wasm
+dev-wasm: prod-wasm
+
+prod-wasm:
+	@NEXTCLADE_BUILD_WASM=1 $(MAKE) dev
+
+
+# Web
+
+dev-web:
+	cd packages/web && yarn dev
+
+prod-web:
+	cd packages/web && yarn prod:watch
+
+
+
+# Docker-based builds
 
 # Pulls "Builder" docker container from Docker Hub
 docker-builder-pull:
@@ -74,15 +96,23 @@ docker-dev:
 	./scripts/docker_builder_image_build.sh "developer"
 	./scripts/docker_builder_image_run.sh "developer"
 
+# Builds and runs development container for wasm
+docker-dev-wasm:
+	scripts/docker_builder_image_build.sh "developer"
+	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "developer" "make prod-watch"
+
 docker-builder:
 	./scripts/docker_builder_image_build.sh "builder"
 
 docker-builder-run:
 	./scripts/docker_builder_image_run.sh "builder"
 
-## Builds and runs "Builder" container
+docker-builder-wasm-run:
+	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "builder"
+
 docker-prod: docker-builder docker-builder-run
 
+docker-prod-wasm: docker-builder docker-builder-wasm-run
 
 # Checks if attempted release version is valid
 check-release-version:

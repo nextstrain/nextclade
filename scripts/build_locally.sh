@@ -20,13 +20,26 @@ PROJECT_ROOT_DIR="$(realpath ${THIS_DIR}/..)"
 source "${THIS_DIR}/lib/set_locales.sh"
 source "${THIS_DIR}/lib/is_ci.sh"
 
+[ -n "${NEXTCLADE_EMSDK_DIR:=}" ] && NEXTCLADE_EMSDK_DIR_FROM_ENV="${NEXTCLADE_EMSDK_DIR}"
+[ -n "${NEXTCLADE_EMSDK_VERSION:=}" ] && NEXTCLADE_EMSDK_VERSION_FROM_ENV="${NEXTCLADE_EMSDK_VERSION}"
+
 source "${PROJECT_ROOT_DIR}/.env.example"
 if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
+[ -n "${NEXTCLADE_EMSDK_DIR_FROM_ENV:=}" ] && NEXTCLADE_EMSDK_DIR="${NEXTCLADE_EMSDK_DIR_FROM_ENV}"
+[ -n "${NEXTCLADE_EMSDK_VERSION_FROM_ENV:=}" ] && NEXTCLADE_EMSDK_VERSION="${NEXTCLADE_EMSDK_VERSION_FROM_ENV}"
+
 PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
+
+export NEXTCLADE_EMSDK_VERSION_DEFAULT=2.0.6
+export NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION:=${NEXTCLADE_EMSDK_VERSION_DEFAULT}}
+export NEXTCLADE_EMSDK_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk-${NEXTCLADE_EMSDK_VERSION}"
+export NEXTCLADE_EMSDK_DIR=${NEXTCLADE_EMSDK_DIR:=${NEXTCLADE_EMSDK_DIR_DEFAULT}}
+export NEXTCLADE_EMSDK_CACHE_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
+export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_DEFAULT}}"
 
 export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
 export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/.ccache}"
@@ -67,6 +80,11 @@ OSX_MIN_VER=${OSX_MIN_VER:=10.12}
 
 # Build type (default: Release)
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
+
+# Debug wasm build is too slow, always do optimized build
+if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  CMAKE_BUILD_TYPE="Release"
+fi
 
 # Deduce conan build type from cmake build type
 CONAN_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -358,6 +376,11 @@ echo "CMAKE_BUILD_TYPE         = ${CMAKE_BUILD_TYPE:=}"
 echo "CONAN_BUILD_TYPE         = ${CONAN_BUILD_TYPE:=}"
 echo "NEXTALIGN_STATIC_BUILD   = ${NEXTALIGN_STATIC_BUILD:=}"
 echo ""
+echo "NEXTCLADE_BUILD_WASM     = ${NEXTCLADE_BUILD_WASM}"
+echo "NEXTCLADE_EMSDK_VERSION  = ${NEXTCLADE_EMSDK_VERSION}"
+echo "NEXTCLADE_EMSDK_DIR      = ${NEXTCLADE_EMSDK_DIR}"
+echo ""
+echo ""
 echo "USE_COLOR                = ${USE_COLOR:=}"
 echo "USE_CLANG                = ${USE_CLANG:=}"
 echo "CLANG_VERSION            = ${CLANG_VERSION:=}"
@@ -384,6 +407,21 @@ echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
 echo "NEXTALIGN_CLI            = ${NEXTALIGN_CLI}"
 echo "NEXTCLADE_CLI            = ${NEXTCLADE_CLI}"
 echo "-------------------------------------------------------------------------"
+
+if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  print 92 "Install Emscripten SDK";
+
+  if [ ! -d "${NEXTCLADE_EMSDK_DIR}" ]; then
+    ./scripts/install_emscripten.sh "${NEXTCLADE_EMSDK_DIR}" "${NEXTCLADE_EMSDK_VERSION}"
+  else
+    echo "Emscripten SDK already found in '${NEXTCLADE_EMSDK_DIR}'. Skipping install."
+  fi
+
+  print 92 "Prepare Emscripten SDK environment";
+  source "${NEXTCLADE_EMSDK_DIR}/emsdk_env.sh"
+
+  export EM_CACHE="${NEXTCLADE_EMSDK_CACHE}"
+fi
 
 # Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";

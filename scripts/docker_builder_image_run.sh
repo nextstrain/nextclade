@@ -43,6 +43,7 @@ docker run -it --rm \
   --env GID="${GROUP_ID}" \
   --env IS_CI="${IS_CI}" \
   --env TERM=xterm-256color \
+  --env NEXTCLADE_BUILD_WASM=${NEXTCLADE_BUILD_WASM:=0} \
   --volume=${PWD}/:/src \
   --volume=/etc/timezone:/etc/timezone:ro \
   --volume=/etc/localtime:/etc/localtime:ro \

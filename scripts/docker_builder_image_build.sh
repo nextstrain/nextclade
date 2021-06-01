@@ -40,6 +40,8 @@ docker build -f "${PROJECT_ROOT_DIR}/Dockerfile" \
   --target="${TARGET}" \
   --build-arg UID="${USER_ID}" \
   --build-arg GID="${GROUP_ID}" \
+  --build-arg=NEXTCLADE_EMSDK_DIR="${NEXTCLADE_EMSDK_DIR}" \
+  --build-arg=NEXTCLADE_EMSDK_VERSION="${NEXTCLADE_EMSDK_VERSION}" \
   --tag ${DOCKERHUB_REPO}:latest \
   --tag ${DOCKERHUB_REPO}:${COMMIT_HASH} \
   .
