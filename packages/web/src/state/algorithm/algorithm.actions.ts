@@ -2,7 +2,8 @@ import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
 import type { NextcladeResult } from 'src/workers/worker.analyze'
-import type { AlgorithmGlobalStatus, AlgorithmInput } from './algorithm.state'
+import type { AlgorithmGlobalStatus, AlgorithmInput, ExportParams } from './algorithm.state'
+
 
 const action = actionCreatorFactory('Algorithm')
 
@@ -31,10 +32,14 @@ export const addParsedSequence = action<{ index: number; seqName: string }>('add
 export const addNextcladeResult = action<{ nextcladeResult: NextcladeResult }>('addNextcladeResult')
 export const setTreeResult = action<{ treeStr: string }>('setTreeResult')
 
-export const exportCsvTrigger = action('exportCsvTrigger')
-export const exportTsvTrigger = action('exportTsvTrigger')
-export const exportJsonTrigger = action('exportJsonTrigger')
-export const exportTreeJsonTrigger = action('exportTreeJsonTrigger')
+export const exportCsvTrigger = action<void>('exportCsvTrigger')
+export const exportTsvTrigger = action<void>('exportTsvTrigger')
+export const exportJsonTrigger = action<void>('exportJsonTrigger')
+export const exportTreeJsonTrigger = action<void>('exportTreeJsonTrigger')
+export const exportFastaTrigger = action<void>('exportFastaTrigger')
+export const exportPeptides = action.async<void, void, Error>('exportPeptidesTrigger')
+export const exportAll = action.async<void, void, Error>('exportAllTrigger')
+export const setExportFilenames = action<ExportParams>('setExportFilenames')
 
 export const setSeqNamesFilter = action<string | undefined>('setSeqNamesFilter')
 export const setMutationsFilter = action<string | undefined>('setMutationsFilter')

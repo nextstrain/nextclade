@@ -17,6 +17,14 @@ export const selectCanExport = (state: State): boolean => state.algorithm.status
 
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.treeStr
 
+export const selectOutputSequences = (state: State) =>
+  state.algorithm.results.map((result) => ({ seqName: result.seqName, query: result.query }))
+
+export const selectOutputPeptides = (state: State) =>
+  state.algorithm.results.map((result) => ({ seqName: result.seqName, queryPeptides: result.queryPeptides }))
+
+export const selectExportParams = (state: State) => state.algorithm.exportParams
+
 export const selectQueryStr = (state: State) => state.algorithm.params.strings.queryStr
 export const selectRefSeq = (state: State) => state.algorithm.params.strings.refStr
 export const selectGeneMapStr = (state: State) => state.algorithm.params.strings.geneMapStr

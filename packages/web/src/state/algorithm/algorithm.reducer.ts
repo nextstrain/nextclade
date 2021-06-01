@@ -50,23 +50,26 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
       id: index,
       seqName,
       result: undefined,
+      query: undefined,
+      queryPeptides: undefined,
       errors: [],
     }
     draft.resultsFiltered = runFilters(current(draft))
   })
 
   .icase(addNextcladeResult, (draft, { nextcladeResult }) => {
+    draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
+    draft.results[nextcladeResult.index].query = nextcladeResult.query
+    draft.results[nextcladeResult.index].queryPeptides = nextcladeResult.queryPeptides
+
     if (nextcladeResult.hasError) {
-      draft.results[nextcladeResult.index].result = undefined
       draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.failed
       draft.results[nextcladeResult.index].errors = [nextcladeResult.error]
     } else {
-      draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
       draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.done
       draft.results[nextcladeResult.index].errors = []
-      // nextcladeResult.ref
-      // nextcladeResult.query
     }
+
     draft.resultsFiltered = runFilters(current(draft))
   })
 

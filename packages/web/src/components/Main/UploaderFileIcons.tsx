@@ -15,8 +15,10 @@ export const DEFAULT_ICON_SIZE = 50 as const
 
 export const DEFAULT_ICON_COLORS = {
   fasta: '#66b51d',
-  csv: '#777777',
+  csv: '#55aa55',
+  tsv: '#7777cc',
   json: '#bb7e38',
+  zip: '#91640f',
 } as const
 
 export const FileIconContainer = styled.i<{ width: number; height?: number }>`
@@ -104,5 +106,24 @@ export const FileIconCsv = ({ size }: FileIconProps) => (
     extension={'csv'}
     labelColor={DEFAULT_ICON_COLORS.csv}
     glyphColor={DEFAULT_ICON_COLORS.csv}
+  />
+)
+
+export const FileIconTsv = ({ size }: FileIconProps) => (
+  <FileIconBase
+    size={size}
+    extension={'tsv'}
+    type="spreadsheet"
+    labelColor={DEFAULT_ICON_COLORS.tsv}
+    glyphColor={DEFAULT_ICON_COLORS.tsv}
+  />
+)
+
+export const FileIconZip = ({ size }: FileIconProps) => (
+  <FileIconBase
+    size={size}
+    extension={'zip'}
+    labelColor={DEFAULT_ICON_COLORS.zip}
+    glyphColor={DEFAULT_ICON_COLORS.zip}
   />
 )

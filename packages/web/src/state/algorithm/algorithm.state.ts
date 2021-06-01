@@ -1,4 +1,4 @@
-import type { Virus, AnalysisResult, Gene } from 'src/algorithms/types'
+import type { Virus, AnalysisResult, Gene, Peptide } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
@@ -26,6 +26,8 @@ export interface SequenceAnalysisState {
   seqName: string
   status: AlgorithmSequenceStatus
   result?: AnalysisResult
+  query?: string
+  queryPeptides?: Peptide[]
   errors: string[]
 }
 
@@ -49,6 +51,17 @@ export interface AlgorithmInput {
   description: string
 
   getContent(): Promise<string>
+}
+
+export interface ExportParams {
+  filenameZip: string
+  filenameCsv: string
+  filenameTsv: string
+  filenameJson: string
+  filenameTreeJson: string
+  filenameFasta: string
+  filenamePeptidesZip: string
+  filenamePeptidesTemplate: string
 }
 
 export interface AlgorithmParams {
@@ -93,11 +106,23 @@ export interface AlgorithmState {
   treeStr?: string
   errors: string[]
   filters: ResultsFilters
+  exportParams: ExportParams
 }
 
 export interface CladeAssignmentResult {
   seqName: string
   clade: string
+}
+
+export const DEFAULT_EXPORT_PARAMS: ExportParams = {
+  filenameZip: 'nextclade.zip',
+  filenameCsv: 'nextclade.csv',
+  filenameTsv: 'nextclade.tsv',
+  filenameJson: 'nextclade.json',
+  filenameTreeJson: 'nextclade.auspice.json',
+  filenameFasta: 'nextclade.aligned.fasta',
+  filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
+  filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 
 export const algorithmDefaultState: AlgorithmState = {
@@ -128,4 +153,5 @@ export const algorithmDefaultState: AlgorithmState = {
     showBad: true,
     showErrors: true,
   },
+  exportParams: DEFAULT_EXPORT_PARAMS,
 }

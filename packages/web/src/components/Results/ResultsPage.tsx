@@ -7,9 +7,9 @@ import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 import { SettingsButton } from 'src/components/Settings/SettingsButton'
 
+import { ExportDialogButton } from 'src/components/Results/ExportDialogButton'
 import { ButtonBack } from './ButtonBack'
 import { ButtonFilter } from './ButtonFilter'
-import { ButtonExport } from './ButtonExport'
 import { ButtonTree } from './ButtonTree'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
@@ -81,7 +81,7 @@ export function ResultsPage() {
               <ButtonFilter />
             </HeaderRightContainer>
             <HeaderRightContainer>
-              <ButtonExport />
+              <ExportDialogButton buttonSize={30} />
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonTree />

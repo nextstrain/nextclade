@@ -19,6 +19,7 @@ import {
   setGeneMap,
   setPcrPrimers,
 } from 'src/state/algorithm/algorithm.actions'
+import { Peptide } from 'src/algorithms/types'
 
 const TRUNCATED = ' ... (truncated)' as const
 
@@ -76,24 +77,25 @@ export function sanitizeParams(params?: AlgorithmParams) {
   }
 }
 
-export function sanitizeResult(result?: { alignedQuery: string }) {
+export function sanitizeResult(result?: { query?: string; queryPeptides?: Peptide[] }) {
   if (!result) {
     return undefined
   }
 
-  const alignedQuery = result.alignedQuery ? TRUNCATED : undefined
+  const query = truncate(result.query)
+  const queryPeptides = result?.queryPeptides?.map(({ name, seq }) => ({ name, seq: truncate(seq) }))
 
-  return { ...result, alignedQuery }
+  return { ...result, query, queryPeptides }
 }
 
 export function sanitizeResults(results: SequenceAnalysisState[] = []) {
   let newResults = results
   if (results && results.length > 20) {
-    return TRUNCATED
+    newResults = newResults.slice(0, 20)
   }
 
   // @ts-ignore
-  newResults = newResults?.map((result) => ({ ...result, result: sanitizeResult(result.result) }))
+  newResults = newResults?.map(sanitizeResult)
   return newResults
 }
 
@@ -266,8 +268,8 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
         algorithm: {
           ...state.algorithm,
           params: sanitizeParams(state.algorithm.params),
-          // results: sanitizeResults(state.algorithm.results),
-          // resultsFiltered: sanitizeResults(state.algorithm.results),
+          results: sanitizeResults(state.algorithm.results),
+          resultsFiltered: sanitizeResults(state.algorithm.results),
           treeStr: truncate(state.algorithm.treeStr),
         },
         tree: sanitizeTree(state.tree),
