@@ -1,14 +1,8 @@
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
-import type { AnalysisParams, AnalysisResult } from 'src/algorithms/types'
-import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
-import type { LocateInTreeParams, LocateInTreeResults } from 'src/algorithms/tree/treeFindNearestNodes'
-import type { FinalizeTreeParams } from 'src/algorithms/tree/treeAttachNodes'
-import type { QCResult } from 'src/algorithms/QC/types'
-
 import type { NextcladeResult } from 'src/workers/worker.analyze'
-import type { AlgorithmGlobalStatus, AlgorithmInput, CladeAssignmentResult } from './algorithm.state'
+import type { AlgorithmGlobalStatus, AlgorithmInput } from './algorithm.state'
 
 const action = actionCreatorFactory('Algorithm')
 
@@ -33,13 +27,6 @@ export const algorithmRunAsync = action.async<AlgorithmInput | undefined, void, 
 
 export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')
 export const addNextcladeResult = action<{ nextcladeResult: NextcladeResult }>('addNextcladeResult')
-
-export const parseAsync = action.async<string | File, string[], Error>('parse')
-export const analyzeAsync = action.async<AnalysisParams, AnalysisResult, Error>('analyze')
-export const treeBuildAsync = action.async<LocateInTreeParams, LocateInTreeResults, Error>('treeBuild')
-export const setClades = action<CladeAssignmentResult[]>('setClades')
-export const setQcResults = action<QCResult[]>('setQcResults')
-export const treeFinalizeAsync = action.async<FinalizeTreeParams, AuspiceJsonV2Extended, Error>('treeFinalizeAsync')
 export const setOutputTree = action<string>('setOutputTree')
 
 export const exportCsvTrigger = action('exportCsvTrigger')

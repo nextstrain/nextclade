@@ -15,7 +15,6 @@ import type { State } from 'src/state/reducer'
 import type { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import {
   algorithmRunAsync,
-  algorithmRunWithSequencesAsync,
   exportCsvTrigger,
   removeFasta,
   setFasta,

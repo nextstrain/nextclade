@@ -1,25 +1,18 @@
-import produce, { current } from 'immer'
-import { getVirus } from 'src/algorithms/defaults/viruses'
+import { current } from 'immer'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
-import type { QCResult } from 'src/algorithms/QC/types'
 import type { Gene } from 'src/algorithms/types'
-import { mergeByWith } from 'src/helpers/mergeByWith'
 import { sortResults } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
 
 import {
   algorithmRunAsync,
-  analyzeAsync,
-  setClades,
-  parseAsync,
   resultsSortTrigger,
   setAAFilter,
   setAlgorithmGlobalStatus,
   setCladesFilter,
   setIsDirty,
   setMutationsFilter,
-  setQcResults,
   setSeqNamesFilter,
   setShowGood,
   setShowErrors,
@@ -41,31 +34,7 @@ import {
   addParsedSequence,
   addNextcladeResult,
 } from './algorithm.actions'
-import {
-  algorithmDefaultState,
-  AlgorithmGlobalStatus,
-  AlgorithmSequenceStatus,
-  CladeAssignmentResult,
-  SequenceAnalysisState,
-} from './algorithm.state'
-
-const haveSameSeqName = (x: { seqName: string }, y: { seqName: string }) => x.seqName === y.seqName
-
-const mergeCladesIntoResults = (result: SequenceAnalysisState, cladeResult: CladeAssignmentResult) =>
-  produce(result, (draft) => {
-    if (draft.result) {
-      draft.result.clade = cladeResult.clade
-    }
-    return draft
-  })
-
-const mergeQcIntoResults = (result: SequenceAnalysisState, qc: QCResult) =>
-  produce(result, (draft) => {
-    if (draft.result) {
-      draft.result.qc = qc
-    }
-    return draft
-  })
+import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(addParsedSequence, (draft, { index, seqName }) => {
@@ -162,9 +131,9 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(setQcSettings.started, (draft, input) => {
-    draft.params.raw.qcRulesConfig = input
+    draft.params.raw.qcConfig = input
     draft.params.strings.qcConfigStr = undefined
-    draft.params.errors.qcRulesConfig = []
+    draft.params.errors.qcConfig = []
   })
 
   .icase(setGeneMap.started, (draft, input) => {
@@ -200,7 +169,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setQcSettings.done, (draft, { result: { qcConfigStr } }) => {
     draft.params.strings.qcConfigStr = qcConfigStr
-    draft.params.errors.qcRulesConfig = []
+    draft.params.errors.qcConfig = []
   })
 
   .icase(setGeneMap.done, (draft, { result: { geneMapStr } }) => {
@@ -235,7 +204,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setQcSettings.failed, (draft, { error }) => {
     draft.params.strings.qcConfigStr = undefined
-    draft.params.errors.qcRulesConfig = [error]
+    draft.params.errors.qcConfig = [error]
   })
 
   .icase(setGeneMap.failed, (draft, { error }) => {
@@ -260,31 +229,26 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(removeTree, (draft) => {
     draft.params.raw.auspiceData = undefined
     draft.params.errors.auspiceData = []
-    draft.params.virus.auspiceData = getVirus(draft.params.virus.name).auspiceData
   })
 
   .icase(removeRootSeq, (draft) => {
     draft.params.raw.rootSeq = undefined
     draft.params.errors.rootSeq = []
-    draft.params.virus.rootSeq = getVirus(draft.params.virus.name).rootSeq
   })
 
   .icase(removeQcSettings, (draft) => {
-    draft.params.raw.qcRulesConfig = undefined
-    draft.params.errors.qcRulesConfig = []
-    draft.params.virus.qcRulesConfig = getVirus(draft.params.virus.name).qcRulesConfig
+    draft.params.raw.qcConfig = undefined
+    draft.params.errors.qcConfig = []
   })
 
   .icase(removeGeneMap, (draft) => {
     draft.params.raw.geneMap = undefined
     draft.params.errors.geneMap = []
-    draft.params.virus.geneMap = getVirus(draft.params.virus.name).geneMap
   })
 
   .icase(removePcrPrimers, (draft) => {
     draft.params.raw.pcrPrimers = undefined
     draft.params.errors.pcrPrimers = []
-    draft.params.virus.pcrPrimers = getVirus(draft.params.virus.name).pcrPrimers
   })
 
   // ******************
@@ -310,74 +274,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(algorithmRunAsync.failed, (draft, { params }) => {})
 
-  // parse
-  .icase(parseAsync.started, (draft) => {})
-
-  .icase(parseAsync.done, (draft, { result }) => {
-    draft.results = result.map((seqName, id) => ({
-      status: AlgorithmSequenceStatus.idling,
-      id,
-      seqName,
-      errors: [],
-    }))
-
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  .icase(parseAsync.failed, (draft, { error }) => {
-    draft.errors.push(error.message)
-  })
-
-  // analyze
-  .icase(analyzeAsync.started, (draft, { seqName }) => {
-    draft.results = draft.results.map((result) => {
-      if (result.seqName === seqName) {
-        return { ...result, status: AlgorithmSequenceStatus.started }
-      }
-      return result
-    })
-
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  .icase(analyzeAsync.done, (draft, { params: { seqName }, result }) => {
-    draft.results = draft.results.map((oldResult) => {
-      if (oldResult.seqName === seqName) {
-        return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.done }
-      }
-      return oldResult
-    })
-
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  .icase(analyzeAsync.failed, (draft, { params: { seqName }, error }) => {
-    draft.results = draft.results.map((oldResult) => {
-      if (oldResult.seqName === seqName) {
-        return {
-          ...oldResult,
-          errors: [error.message],
-          result: undefined,
-          status: AlgorithmSequenceStatus.failed,
-        }
-      }
-      return oldResult
-    })
-
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  // Assign clades
-  .icase(setClades, (draft, clades) => {
-    draft.results = mergeByWith(draft.results, clades, haveSameSeqName, mergeCladesIntoResults)
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  // QC
-  .icase(setQcResults, (draft, qcResults) => {
-    draft.results = mergeByWith(draft.results, qcResults, haveSameSeqName, mergeQcIntoResults)
-    draft.resultsFiltered = runFilters(current(draft))
-  })
+  // ******************
 
   .icase(setOutputTree, (draft, auspiceData) => {
     draft.outputTree = auspiceData

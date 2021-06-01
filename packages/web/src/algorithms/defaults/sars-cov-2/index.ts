@@ -4,7 +4,7 @@ import { VirusName } from 'src/algorithms/defaults/virusNames'
 import queryStr from '../../../../../../data/sars-cov-2/sequences.fasta'
 import treeJson from '../../../../../../data/sars-cov-2/tree.json'
 import refFastaStr from '../../../../../../data/sars-cov-2/reference.fasta'
-import qcConfigRaw from '../../../../../../data/sars-cov-2/qc.json'
+import qcConfigJson from '../../../../../../data/sars-cov-2/qc.json'
 import geneMapStrRaw from '../../../../../../data/sars-cov-2/genemap.gff'
 import pcrPrimersStrRaw from '../../../../../../data/sars-cov-2/primers.csv'
 
@@ -15,7 +15,8 @@ const virus: Virus = {
   queryStr,
   treeJson: JSON.stringify(treeJson),
   refFastaStr,
-  qcConfigRaw: JSON.stringify(qcConfigRaw),
+  qcConfigRaw: JSON.stringify(qcConfigJson),
+  qcConfigJson,
   geneMapStrRaw,
   pcrPrimersStrRaw,
 }

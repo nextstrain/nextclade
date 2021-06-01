@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Col, Form, Row } from 'reactstrap'
 
 import type { State } from 'src/state/reducer'
-import type { QCRulesConfig } from 'src/algorithms/QC/types'
+import type { QCRulesConfig } from 'src/algorithms/types'
 import { selectQcRulesConfig } from 'src/state/settings/settings.selectors'
 import { setQcRulesConfig } from 'src/state/settings/settings.actions'
 import { CardHeaderWithToggle } from 'src/components/Common/CardHeaderWithToggle'

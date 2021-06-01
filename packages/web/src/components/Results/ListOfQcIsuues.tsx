@@ -4,7 +4,7 @@ import { round } from 'lodash'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import type { QCResult } from 'src/algorithms/QC/types'
+import type { QcResult } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
@@ -36,7 +36,7 @@ export function QcListItem({ status, text, children }: QcListItem) {
 }
 
 export interface ListOfQcIssuesProps {
-  qc: QCResult
+  qc: QcResult
 }
 
 export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {

@@ -5,4 +5,4 @@ export const selectLocaleKey = (state: State): LocaleKey => state.settings.local
 
 export const selectLocale = (state: State): LocaleWithKey => getLocaleWithKey(selectLocaleKey(state))
 
-export const selectQcRulesConfig = (state: State) => state.settings.qcRulesConfig
+export const selectQcRulesConfig = (state: State) => state.settings.qcConfig

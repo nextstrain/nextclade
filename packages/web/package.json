@@ -84,8 +84,7 @@
     "run:node": "cross-env NODE_ENV=development BABEL_ENV=development babel-node --extensions '.ts'",
     "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --extensions '.ts'",
     "monkey-patch": "bash tools/auspice-monkey-patch.sh && bash tools/patch-next.sh",
-    "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
-    "convert:primers": "yarn run:node tools/primers/convert.ts"
+    "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1"
   },
   "dependencies": {
     "@mdx-js/loader": "1.6.16",

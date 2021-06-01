@@ -1,8 +1,8 @@
 /* eslint-disable security/detect-unsafe-regex */
 import type { Aminoacid, AminoacidSubstitution } from 'src/algorithms/types'
-import { ANY } from 'src/algorithms/nucleotides'
 
 import { parsePosition } from './parsePosition'
+import { ANY } from 'src/constants'
 
 export function parseAminoacid(raw: string | undefined | null) {
   if (!raw || raw.length === 0 || raw === ANY) {

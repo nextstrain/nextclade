@@ -8,7 +8,7 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
 
-import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
+import { QcStatus } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { Sorting } from 'src/helpers/sortResults'
@@ -182,9 +182,9 @@ function TableRowComponent({ index, style, data }: RowProps) {
   const even = index % 2 === 0
   let color = even ? '#ededed' : '#fcfcfc'
   if (highlightRowsWithIssues && qc) {
-    if (qc.overallStatus === QCRuleStatus.mediocre) {
+    if (qc.overallStatus === QcStatus.mediocre) {
       color = mix(0.5, color, '#ffeeaa')
-    } else if (qc.overallStatus === QCRuleStatus.bad) {
+    } else if (qc.overallStatus === QcStatus.bad) {
       color = mix(0.5, color, '#eeaaaa')
     }
   }
@@ -252,11 +252,23 @@ const mapDispatchToProps = {
   sortByCladeAsc: () => resultsSortTrigger({ category: SortCategory.clade, direction: SortDirection.asc }),
   sortByCladeDesc: () => resultsSortTrigger({ category: SortCategory.clade, direction: SortDirection.desc }),
 
-  sortByTotalMutationsAsc: () => resultsSortTrigger({ category: SortCategory.totalMutations, direction: SortDirection.asc }), // prettier-ignore
-  sortByTotalMutationsDesc: () => resultsSortTrigger({ category: SortCategory.totalMutations, direction: SortDirection.desc }), // prettier-ignore
+  sortByTotalMutationsAsc: () => resultsSortTrigger({
+    category: SortCategory.totalMutations,
+    direction: SortDirection.asc,
+  }), // prettier-ignore
+  sortByTotalMutationsDesc: () => resultsSortTrigger({
+    category: SortCategory.totalMutations,
+    direction: SortDirection.desc,
+  }), // prettier-ignore
 
-  sortByTotalNonAcgtnAsc: () => resultsSortTrigger({ category: SortCategory.totalNonACGTNs, direction: SortDirection.asc }), // prettier-ignore
-  sortByTotalNonAcgtnDesc: () => resultsSortTrigger({ category: SortCategory.totalNonACGTNs, direction: SortDirection.desc }), // prettier-ignore
+  sortByTotalNonAcgtnAsc: () => resultsSortTrigger({
+    category: SortCategory.totalNonACGTNs,
+    direction: SortDirection.asc,
+  }), // prettier-ignore
+  sortByTotalNonAcgtnDesc: () => resultsSortTrigger({
+    category: SortCategory.totalNonACGTNs,
+    direction: SortDirection.desc,
+  }), // prettier-ignore
 
   sortByTotalNsAsc: () => resultsSortTrigger({ category: SortCategory.totalMissing, direction: SortDirection.asc }),
   sortByTotalNsDesc: () => resultsSortTrigger({ category: SortCategory.totalMissing, direction: SortDirection.desc }),
@@ -270,21 +282,37 @@ export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToPro
 export interface ResultProps {
   resultsFiltered: SequenceAnalysisState[]
   filterPanelCollapsed: boolean
+
   sortByIdAsc(): void
+
   sortByIdDesc(): void
+
   sortByNameAsc(): void
+
   sortByNameDesc(): void
+
   sortByQcIssuesAsc(): void
+
   sortByQcIssuesDesc(): void
+
   sortByCladeAsc(): void
+
   sortByCladeDesc(): void
+
   sortByTotalMutationsAsc(): void
+
   sortByTotalMutationsDesc(): void
+
   sortByTotalNonAcgtnAsc(): void
+
   sortByTotalNonAcgtnDesc(): void
+
   sortByTotalNsAsc(): void
+
   sortByTotalNsDesc(): void
+
   sortByTotalGapsAsc(): void
+
   sortByTotalGapsDesc(): void
 }
 

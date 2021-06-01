@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 
 import styled from 'styled-components'
 
-import type { QCResult } from 'src/algorithms/QC/types'
+import type { QcResult } from 'src/algorithms/types'
 import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
@@ -17,7 +17,7 @@ export const SequenceName = styled.div`
 export interface ColumnNameProps {
   seqName: string
   sequence?: AnalysisResult
-  qc?: QCResult
+  qc?: QcResult
 }
 
 export function ColumnName({ seqName, sequence, qc }: ColumnNameProps) {

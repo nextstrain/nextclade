@@ -1,3 +1,6 @@
+import type { Nucleotide } from 'src/algorithms/types'
+import { Aminoacid } from 'src/algorithms/types'
+
 export const PROJECT_NAME = 'Nextclade' as const
 export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and sequence quality checks' as const
 export const COPYRIGHT_YEAR_START = 2020 as const
@@ -56,3 +59,15 @@ export const TITLE_COLORS = [
   '#E67030',
   '#DE3C26',
 ] as const
+
+export const A = 'A' as Nucleotide
+export const T = 'T' as Nucleotide
+export const G = 'G' as Nucleotide
+export const C = 'C' as Nucleotide
+export const N = 'N' as Nucleotide
+export const X = 'X' as Nucleotide
+export const GAP = '-' as Nucleotide
+export const ANY = '.' as const
+
+export const AMINOACID_UNKNOWN = ('X' as const) as Aminoacid
+export const AMINOACID_GAP = ('-' as const) as Aminoacid

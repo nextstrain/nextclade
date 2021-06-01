@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { QCResult } from 'src/algorithms/QC/types'
+import type { QcResult } from 'src/algorithms/types'
 import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
@@ -11,7 +11,7 @@ import { Circle } from 'src/components/Results/Circle'
 
 export interface ColumnQCStatusProps {
   sequence: AnalysisResult
-  qc?: QCResult
+  qc?: QcResult
 }
 
 export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
