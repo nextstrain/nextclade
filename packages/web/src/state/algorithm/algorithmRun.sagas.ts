@@ -349,21 +349,17 @@ export function* getInputs() {
 
 export function* getRefSequence() {
   // Load ref sequence from current state, in case it was set by the user previously
-  let refStr = yield* select(selectRefSeq)
-  let refName = yield* select(selectRefName)
+  const refStr = yield* select(selectRefSeq)
+  const refName = yield* select(selectRefName)
 
-  // If not, load the default ref sequence
-  if (!(refStr && refName)) {
-    const virus = getVirus()
-    const { refFastaStr } = virus
-
-    const loadSequences = fsaSaga(setRootSeq, loadRootSeq)
-    yield* loadSequences(setRootSeq.trigger(new AlgorithmInputString(refFastaStr, 'reference.fasta')))
-    refStr = yield* select(selectRefSeq)
-    refName = yield* select(selectRefName)
+  if (refStr && refName) {
+    return { refStr, refName }
   }
 
-  return { refStr, refName }
+  // If not, load the default ref sequence
+  const virus = getVirus()
+  const { refFastaStr } = virus
+  return yield* loadRootSeq(new AlgorithmInputString(refFastaStr, 'reference.fasta'))
 }
 
 export function* getQuerySequences(queryInput?: AlgorithmInput) {
