@@ -214,6 +214,11 @@ export interface AnalysisResult {
   qc: QcResult
 }
 
+export interface Peptide {
+  name: string
+  seq: string
+}
+
 /** Represents a named interval in the genome */
 export interface Gene {
   geneName: string

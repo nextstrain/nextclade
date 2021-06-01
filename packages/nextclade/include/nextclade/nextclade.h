@@ -419,6 +419,8 @@ namespace Nextclade {
 
   std::string serializeQcConfig(Nextclade::QcConfig& qcConfig);
 
+  std::string serializePeptidesToString(const std::vector<Peptide>& peptides);
+
   std::string serializeResultToString(const AnalysisResult& result);
 
   std::string serializeResults(const std::vector<AnalysisResult>& results);

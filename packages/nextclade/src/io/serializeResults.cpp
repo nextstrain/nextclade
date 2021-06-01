@@ -238,6 +238,18 @@ namespace Nextclade {
     }
   }// namespace
 
+  json serializePeptide(const Peptide& peptide) {
+    auto j = json::object();
+    j.emplace("name", peptide.name);
+    j.emplace("seq", peptide.seq);
+    return j;
+  }
+
+  std::string serializePeptidesToString(const std::vector<Peptide>& peptides) {
+    json j = serializeArray(peptides, serializePeptide);
+    return jsonStringify(j);
+  }
+
   std::string serializeResultToString(const AnalysisResult& result) {
     auto j = serializeResult(result);
     return jsonStringify(j);

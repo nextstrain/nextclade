@@ -23,7 +23,7 @@ struct NextcladeWasmState {
   GeneMap geneMap;
   Nextclade::QcConfig qcRulesConfig;
   std::vector<Nextclade::PcrPrimer> pcrPrimers;
-  std::vector<std::string> pcrPrimerWarnings;// TODO: report warnings
+  std::vector<std::string> warnings;// TODO: report warnings
 };
 
 NextcladeWasmState makeNextcladeWasmState(//
@@ -42,8 +42,8 @@ NextcladeWasmState makeNextcladeWasmState(//
   auto qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
 
   auto pcrPrimerRows = Nextclade::parsePcrPrimerCsvRowsStr(pcrPrimerRowsStr);
-  std::vector<std::string> pcrPrimerWarnings;
-  auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, pcrPrimerWarnings);
+  std::vector<std::string> warnings;
+  auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, warnings);
 
   return NextcladeWasmState{
     .ref = std::move(ref),
@@ -51,17 +51,16 @@ NextcladeWasmState makeNextcladeWasmState(//
     .geneMap = std::move(geneMap),
     .qcRulesConfig = qcRulesConfig,
     .pcrPrimers = std::move(pcrPrimers),
-    .pcrPrimerWarnings = std::move(pcrPrimerWarnings),
+    .warnings = std::move(warnings),
   };
 }
 
 struct NextcladeWasmResult {
   std::string ref;
   std::string query;
-  // std::vector<Peptide> refPeptides; // TODO: use these too
-  // std::vector<Peptide> queryPeptides; // TODO: use these too
-  // std::vector<std::string> warnings; // TODO: use these too
+  std::string queryPeptides;
   std::string analysisResult;
+  std::vector<std::string> warnings;
   bool hasError;
   std::string error;
 };
@@ -94,6 +93,8 @@ public:
     const std::string& queryName,//
     const std::string& queryStr  //
   ) {
+    std::vector<std::string> warnings = state.warnings;
+
     try {
       const auto query = toNucleotideSequence(queryStr);
 
@@ -114,7 +115,9 @@ public:
       return NextcladeWasmResult{
         .ref = result.ref,
         .query = result.query,
+        .queryPeptides = Nextclade::serializePeptidesToString(result.queryPeptides),
         .analysisResult = serializeResultToString(result.analysisResult),
+        .warnings = warnings,
         .hasError = false,
         .error = {},
       };
@@ -122,7 +125,9 @@ public:
       return NextcladeWasmResult{
         .ref = {},
         .query = {},
+        .queryPeptides = "",
         .analysisResult = {},
+        .warnings = warnings,
         .hasError = true,
         .error = e.what(),
       };
@@ -204,6 +209,10 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("seqName", &AlgorithmInput::seqName)
     .field("seq", &AlgorithmInput::seq);
 
+  emscripten::value_object<Peptide>("Peptide")//
+    .field("name", &Peptide::name)            //
+    .field("seq", &Peptide::seq)              //
+    ;                                         //
 
   emscripten::class_<NextcladeWasm>("NextcladeWasm")                                                         //
     .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string>()//
@@ -213,6 +222,7 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
     .field("ref", &NextcladeWasmResult::ref)
     .field("query", &NextcladeWasmResult::query)
+    .field("queryPeptides", &NextcladeWasmResult::queryPeptides)
     .field("analysisResult", &NextcladeWasmResult::analysisResult)
     .field("hasError", &NextcladeWasmResult::hasError)
     .field("error", &NextcladeWasmResult::error);

@@ -283,6 +283,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
               ...action.payload.nextcladeResult,
               ref: TRUNCATED,
               query: TRUNCATED,
+              queryPeptides: TRUNCATED,
             },
           },
         }

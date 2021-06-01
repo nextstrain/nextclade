@@ -3,7 +3,7 @@ import 'regenerator-runtime'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
-import type { AnalysisResult, SequenceParserResult } from 'src/algorithms/types'
+import type { AnalysisResult, Peptide, SequenceParserResult } from 'src/algorithms/types'
 import { loadWasmModule, runWasmModule } from './wasmModule'
 
 export interface NextcladeWasmParams {
@@ -20,7 +20,9 @@ export interface NextcladeWasmResult {
   index: number
   ref: string
   query: string
+  queryPeptides: string
   analysisResult: string
+  warnings: string[]
   hasError: boolean
   error: string
 }
@@ -29,7 +31,9 @@ export interface NextcladeResult {
   index: number
   ref: string
   query: string
+  queryPeptides: Peptide[]
   analysisResult: AnalysisResult
+  warnings: string[]
   hasError: boolean
   error: string
 }
@@ -85,6 +89,10 @@ export function parseAnalysisResult(analysisResultStr: string): AnalysisResult {
   return JSON.parse(analysisResultStr) as AnalysisResult // TODO: validate
 }
 
+export function parsePeptides(peptidesStr: string): Peptide[] {
+  return JSON.parse(peptidesStr) as Peptide[] // TODO: validate
+}
+
 /** Runs the Nextclade analysis step. Requires `init()` to be called first. */
 export async function analyze(seq: SequenceParserResult) {
   if (!gModule || !gNextcladeWasm) {
@@ -103,7 +111,9 @@ export async function analyze(seq: SequenceParserResult) {
         index: seq.index,
         ref: undefined,
         query: undefined,
+        queryPeptides: [],
         analysisResult: undefined,
+        warnings: [],
         hasError: result.hasError,
         error: result.error,
       }
@@ -113,7 +123,9 @@ export async function analyze(seq: SequenceParserResult) {
       index: seq.index,
       ref: result.ref,
       query: result.query,
+      queryPeptides: parsePeptides(result.queryPeptides),
       analysisResult: parseAnalysisResult(result.analysisResult),
+      warnings: result.warnings,
       hasError: result.hasError,
       error: result.error,
     }
