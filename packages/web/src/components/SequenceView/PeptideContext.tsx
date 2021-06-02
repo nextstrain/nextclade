@@ -45,7 +45,7 @@ export function PeptideContext({ queryContext, refContext, contextNucRange }: Pe
         <Col>
           <small>
             {t(
-              '* - Displays the nucleotide triplet corresponding to the codon of the mutation, as well as surrounding codons on the left and right of it (if any)',
+              '* - Displays the nucleotide triplet corresponding to the codon of the mutation, as well as surrounding triplets on the left and right of it (if any)',
             )}
           </small>
         </Col>
