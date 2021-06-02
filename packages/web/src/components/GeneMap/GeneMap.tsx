@@ -2,12 +2,7 @@ import React, { SVGProps, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
-import {
-  selectGeneMap,
-  selectGeneMapStr,
-  selectGenomeSize,
-  selectParams,
-} from 'src/state/algorithm/algorithm.selectors'
+import { selectGeneMap, selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -96,7 +91,6 @@ export function GeneMapUnsizedDisconnected({ geneMap, genomeSize, width, height 
     )
   }
 
-  // const { geneMap, genomeSize } = virus
   const pixelsPerBase = width / genomeSize
   const geneViews = geneMap.map((gene, i) => {
     return <GeneView key={gene.geneName} gene={gene} pixelsPerBase={pixelsPerBase} />

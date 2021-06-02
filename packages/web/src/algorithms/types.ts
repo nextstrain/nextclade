@@ -121,7 +121,6 @@ export interface QcConfig {
 export interface Virus {
   name: string
   minimalLength: number
-  genomeSize: number
   queryStr: string
   treeJson: string
   refFastaStr: string

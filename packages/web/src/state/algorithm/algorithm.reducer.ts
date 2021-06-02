@@ -33,6 +33,8 @@ import {
   removeRootSeq,
   addParsedSequence,
   addNextcladeResult,
+  setGeneMapObject,
+  setGenomeSize,
 } from './algorithm.actions'
 import {
   algorithmDefaultState,
@@ -44,6 +46,14 @@ import {
 } from './algorithm.state'
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
+  .icase(setGenomeSize, (draft, { genomeSize }) => {
+    draft.params.final.genomeSize = genomeSize
+  })
+
+  .icase(setGeneMapObject, (draft, { geneMap }) => {
+    draft.params.final.geneMap = geneMap
+  })
+
   .icase(addParsedSequence, (draft, { index, seqName }) => {
     draft.results[index] = {
       status: AlgorithmSequenceStatus.queued,

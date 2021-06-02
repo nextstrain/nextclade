@@ -1,3 +1,4 @@
+import type { Gene } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
@@ -28,6 +29,8 @@ export const removePcrPrimers = action('removePcrPrimers')
 export const setAlgorithmGlobalStatus = action<AlgorithmGlobalStatus>('setAlgorithmGlobalStatus')
 export const algorithmRunAsync = action.async<AlgorithmInput | undefined, void, Error>('algorithmRunAsync')
 
+export const setGenomeSize = action<{ genomeSize: number }>('setGenomeSize')
+export const setGeneMapObject = action<{ geneMap: Gene[] }>('setGeneMapObject')
 export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')
 export const addNextcladeResult = action<{ nextcladeResult: NextcladeResult }>('addNextcladeResult')
 export const setTreeResult = action<{ treeStr: string }>('setTreeResult')

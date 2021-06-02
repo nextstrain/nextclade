@@ -15,13 +15,15 @@ import fsaSaga from 'src/state/util/fsaSaga'
 
 import type { AnalysisThread, NextcladeResult, NextcladeWasmParams } from 'src/workers/worker.analyze'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
-import type { SequenceParserResult } from 'src/algorithms/types'
+import type { Gene, SequenceParserResult } from 'src/algorithms/types'
 import {
   addNextcladeResult,
   addParsedSequence,
   algorithmRunAsync,
   setAlgorithmGlobalStatus,
   setFasta,
+  setGeneMapObject,
+  setGenomeSize,
   setRootSeq,
   setTreeResult,
 } from 'src/state/algorithm/algorithm.actions'
@@ -54,6 +56,7 @@ import {
 } from 'src/state/algorithm/algorithmInputs.sagas'
 import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 import { selectNumThreads } from 'src/state/settings/settings.selectors'
+import { prepareGeneMap } from 'src/io/prepareGeneMap'
 
 export interface SequenceParserChannelElement {
   seq?: SequenceParserResult
@@ -390,10 +393,15 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.loadingData))
   yield* put(push('/results'))
 
-  const { geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* getInputs()
-
   const { refStr, refName } = yield* getRefSequence()
   const { queryStr, queryName } = yield* getQuerySequences(queryInput)
+  const { geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* getInputs()
+
+  const genomeSize = refStr.length
+  yield* put(setGenomeSize({ genomeSize }))
+
+  const geneMap = prepareGeneMap(geneMapStr)
+  yield* put(setGeneMapObject({ geneMap }))
 
   const treePreparedStr = yield* call(treePrepare, treeStr, refStr)
 

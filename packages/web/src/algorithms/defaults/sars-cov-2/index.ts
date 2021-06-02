@@ -11,7 +11,6 @@ import pcrPrimersStrRaw from '../../../../../../data/sars-cov-2/primers.csv'
 const virus: Virus = {
   name: VirusName.SARS_COV_2,
   minimalLength: 100,
-  genomeSize: 1000, // FIXME: deduce from root sequence
   queryStr,
   treeJson: JSON.stringify(treeJson),
   refFastaStr,
