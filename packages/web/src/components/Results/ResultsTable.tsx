@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useState } from 'react'
 
 import { sum } from 'lodash'
 import { connect } from 'react-redux'
@@ -16,6 +16,8 @@ import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
 
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
+import { PeptideView } from 'src/components/SequenceView/PeptideView'
+import { SequenceSelector } from 'src/components/SequenceView/SequenceSelector'
 
 import { ColumnName } from './ColumnName'
 import { ColumnQCStatus } from './ColumnQCStatus'
@@ -133,14 +135,18 @@ export const TableRowError = styled(TableRow)<{ even?: boolean }>`
 
 const highlightRowsWithIssues = true
 
+export interface TableRowDatum extends SequenceAnalysisState {
+  viewedGene: string
+}
+
 export interface RowProps extends ListChildComponentProps {
-  data: SequenceAnalysisState[]
+  data: TableRowDatum[]
 }
 
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { id, seqName, errors, result: sequence } = data[index]
+  const { id, seqName, errors, result: sequence, viewedGene } = data[index]
   const qc = sequence?.qc
 
   if (errors.length > 0) {
@@ -224,7 +230,11 @@ function TableRowComponent({ index, style, data }: RowProps) {
       </TableCell>
 
       <TableCell grow={20} shrink={20}>
-        <SequenceView key={seqName} sequence={sequence} />
+        {viewedGene === 'Sequence' ? (
+          <SequenceView key={seqName} sequence={sequence} />
+        ) : (
+          <PeptideView key={seqName} sequence={sequence} viewedGene={viewedGene} />
+        )}
       </TableCell>
     </TableRow>
   )
@@ -337,8 +347,10 @@ export function ResultsTableDisconnected({
   sortByTotalGapsDesc,
 }: ResultProps) {
   const { t } = useTranslation()
+  const [viewedGene, setViewedGene] = useState('Nucleotide')
 
   const data = resultsFiltered
+  const rowData: TableRowDatum[] = data.map((datum) => ({ ...datum, viewedGene }))
 
   return (
     <>
@@ -429,6 +441,7 @@ export function ResultsTableDisconnected({
           <TableHeaderCell grow={20}>
             <TableHeaderCellContent>
               <TableCellText>{t('Sequence view')}</TableCellText>
+              <SequenceSelector viewedGene={viewedGene} setViewedGene={setViewedGene} />
             </TableHeaderCellContent>
             <ButtonHelp identifier="btn-help-col-seq-view">
               <HelpTipsColumnSeqView />
@@ -446,7 +459,7 @@ export function ResultsTableDisconnected({
                 height={height - HEADER_ROW_HEIGHT}
                 itemCount={data.length}
                 itemSize={ROW_HEIGHT}
-                itemData={data}
+                itemData={rowData}
               >
                 {TableRowMemo}
               </FixedSizeList>

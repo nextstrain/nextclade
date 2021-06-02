@@ -4,13 +4,14 @@ import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import styled from 'styled-components'
 
+import { selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
 import type { State } from 'src/state/reducer'
 import type { AnalysisResult } from 'src/algorithms/types'
+
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerMissingEnds } from './SequenceMarkerMissingEnds'
-import { selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
 
 export const SequenceViewWrapper = styled.div`
   display: flex;
