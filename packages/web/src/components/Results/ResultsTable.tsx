@@ -147,7 +147,7 @@ export interface RowProps extends ListChildComponentProps {
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { id, seqName, errors, result: sequence, viewedGene } = data[index]
+  const { id, seqName, warnings, errors, result: sequence, viewedGene } = data[index]
   const qc = sequence?.qc
 
   if (errors.length > 0) {
@@ -158,7 +158,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         </TableCell>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
+          <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
         </TableCellName>
 
         <TableCell grow={20} shrink={20}>
@@ -176,7 +176,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         </TableCell>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
+          <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
         </TableCellName>
 
         <TableCell grow={20} shrink={20}>
@@ -203,7 +203,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
       </TableCell>
 
       <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-        <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
+        <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
       </TableCellName>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>

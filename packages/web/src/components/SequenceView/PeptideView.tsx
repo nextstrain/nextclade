@@ -6,6 +6,7 @@ import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-
 import type { State } from 'src/state/reducer'
 import type { AnalysisResult, Gene } from 'src/algorithms/types'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 import { PeptideMarkerGap } from './PeptideMarkerGap'
 import { PeptideMarkerMutation } from './PeptideMarkerMutation'
@@ -25,6 +26,8 @@ const mapDispatchToProps = {}
 export const PeptideViewUnsized = connect(mapStateToProps, mapDispatchToProps)(PeptideViewUnsizedDisconnected)
 
 export function PeptideViewUnsizedDisconnected({ width, sequence, geneMap, viewedGene }: PeptideViewProps) {
+  const { t } = useTranslationSafe()
+
   if (!width || !geneMap) {
     return (
       <SequenceViewWrapper>
@@ -37,7 +40,7 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, geneMap, viewe
   if (!gene) {
     return (
       <SequenceViewWrapper>
-        <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
+        {t('Gene {{geneName}} is missing in gene map', { geneName: viewedGene })}
       </SequenceViewWrapper>
     )
   }

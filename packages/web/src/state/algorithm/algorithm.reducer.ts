@@ -62,6 +62,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
       result: undefined,
       query: undefined,
       queryPeptides: undefined,
+      warnings: [],
       errors: [],
     }
     draft.resultsFiltered = runFilters(current(draft))
@@ -71,6 +72,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
     draft.results[nextcladeResult.index].query = nextcladeResult.query
     draft.results[nextcladeResult.index].queryPeptides = nextcladeResult.queryPeptides
+    draft.results[nextcladeResult.index].warnings = nextcladeResult.warnings
 
     if (nextcladeResult.hasError) {
       draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.failed

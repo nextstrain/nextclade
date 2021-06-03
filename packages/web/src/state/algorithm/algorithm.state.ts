@@ -28,6 +28,7 @@ export interface SequenceAnalysisState {
   result?: AnalysisResult
   query?: string
   queryPeptides?: Peptide[]
+  warnings: string[]
   errors: string[]
 }
 
