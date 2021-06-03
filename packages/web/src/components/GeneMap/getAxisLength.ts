@@ -7,7 +7,7 @@ export function getAxisLength(genomeSize: number, viewedGene: string, geneMap: G
   if (viewedGene !== GENE_OPTION_NUC_SEQUENCE) {
     const gene = geneMap?.find((gene) => gene.geneName === viewedGene)
     if (gene) {
-      length = gene.length
+      length = Math.round(gene.length / 3)
     }
   }
   return length

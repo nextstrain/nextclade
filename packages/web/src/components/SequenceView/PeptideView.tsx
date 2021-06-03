@@ -48,7 +48,7 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, geneMap, viewe
   const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
   const aaDeletions = sequence.aaDeletions.filter((aaSub) => aaSub.gene === viewedGene)
 
-  const pixelsPerAa = width / gene.length
+  const pixelsPerAa = width / Math.round(gene.length / 3)
 
   const mutationViews = aaSubstitutions.map((aaSubstitution) => {
     return (
