@@ -7,6 +7,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { Gene } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
+import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 
 export interface SequenceSelectorProps {
   geneMap?: Gene[]
@@ -26,7 +27,7 @@ export const SequenceSelector = connect(mapStateToProps, mapDispatchToProps)(Seq
 export function SequenceSelectorDisconnected({ geneMap, viewedGene, setViewedGene }: SequenceSelectorProps) {
   const { t } = useTranslationSafe()
 
-  let geneNames = ['Sequence']
+  let geneNames = [GENE_OPTION_NUC_SEQUENCE]
   if (geneMap) {
     geneNames = [...geneNames, ...geneMap.map((gene) => gene.geneName)]
   }
@@ -40,8 +41,8 @@ export function SequenceSelectorDisconnected({ geneMap, viewedGene, setViewedGen
 
   const getOptionText = useCallback(
     (gene: string) => {
-      if (gene === 'Sequence') {
-        return t('Sequence')
+      if (gene === GENE_OPTION_NUC_SEQUENCE) {
+        return t('Nuc. sequence')
       }
 
       return t('Gene {{geneName}}', { geneName: gene })

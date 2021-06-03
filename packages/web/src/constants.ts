@@ -67,3 +67,5 @@ export const ANY = '.' as const
 
 export const AMINOACID_UNKNOWN = ('X' as const) as Aminoacid
 export const AMINOACID_GAP = ('-' as const) as Aminoacid
+
+export const GENE_OPTION_NUC_SEQUENCE = 'Sequence'

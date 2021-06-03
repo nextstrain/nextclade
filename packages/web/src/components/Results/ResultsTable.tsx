@@ -12,6 +12,7 @@ import { QcStatus } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { Sorting } from 'src/helpers/sortResults'
+import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
 
@@ -230,7 +231,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
       </TableCell>
 
       <TableCell grow={20} shrink={20}>
-        {viewedGene === 'Sequence' ? (
+        {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
           <SequenceView key={seqName} sequence={sequence} />
         ) : (
           <PeptideView key={seqName} sequence={sequence} viewedGene={viewedGene} />
