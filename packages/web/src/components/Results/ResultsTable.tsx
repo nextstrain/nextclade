@@ -348,7 +348,7 @@ export function ResultsTableDisconnected({
   sortByTotalGapsDesc,
 }: ResultProps) {
   const { t } = useTranslation()
-  const [viewedGene, setViewedGene] = useState('Nucleotide')
+  const [viewedGene, setViewedGene] = useState(GENE_OPTION_NUC_SEQUENCE)
 
   const data = resultsFiltered
   const rowData: TableRowDatum[] = data.map((datum) => ({ ...datum, viewedGene }))
