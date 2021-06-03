@@ -13,7 +13,7 @@ namespace Nextclade {
   template<typename T>
   double addScore(const std::optional<T>& ruleResult) {
     if (ruleResult) {
-      return std::pow(ruleResult->score, 2);
+      return std::pow(ruleResult->score, 2) * 0.01;
     }
     return 0.0;
   }
