@@ -100,8 +100,13 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
           </tr>
 
           <tr>
-            <td>{t('Length')}</td>
+            <td>{t('Length (nuc)')}</td>
             <td>{length}</td>
+          </tr>
+
+          <tr>
+            <td>{t('Length (AA)')}</td>
+            <td>{Math.round(length / 3)}</td>
           </tr>
 
           <tr>
