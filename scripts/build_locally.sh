@@ -197,6 +197,7 @@ EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
 EMCMAKE=""
 EMMAKE=""
 CONAN_COMPILER_SETTINGS=""
+NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=""
 BUILD_SUFFIX=""
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
   CONAN_COMPILER_SETTINGS="\
@@ -204,6 +205,30 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
     -s compiler=clang \
     -s compiler.version=${EMSDK_CLANG_VERSION} \
   "
+
+  NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=" \
+    -frtti \
+    -fexceptions \
+    --bind \
+    --source-map-base './' \
+    -s MODULARIZE=1 \
+    -s EXPORT_ES6=1 \
+    -s WASM=1 \
+    -s DISABLE_EXCEPTION_CATCHING=0 \
+    -s DEMANGLE_SUPPORT=1 \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s MALLOC=emmalloc \
+    -s ENVIRONMENT=worker \
+  "
+
+  #  -s ALIASING_FUNCTION_POINTERS=0 \
+  #  --profiling \
+  #  -s EXCEPTION_DEBUG=1 \
+  #  -g4 \
+  #  -O0 \
+  #  -s ASSERTIONS=1 \
+  #  -s SAFE_HEAP=1 \
+  #  -s STACK_OVERFLOW_CHECK=2 \
 
   BUILD_SUFFIX="-Wasm"
   INSTALL_DIR="${PROJECT_ROOT_DIR}/packages/web/src/generated/"
@@ -477,6 +502,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS} \
     -DNEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS} \
     -DNEXTCLADE_BUILD_WASM=${NEXTCLADE_BUILD_WASM} \
+    -DNEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS="${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS}" \
     ${MORE_CMAKE_FLAGS}
 
   print 12 "Build";

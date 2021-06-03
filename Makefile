@@ -2,10 +2,10 @@ export UID=$(shell id -u)
 export GID=$(shell id -g)
 
 clean:
-	rm -rf .build .out tmp
+	rm -rf .build .out tmp packages/web/.build packages/web/src/generated
 
 cleanest: clean
-	rm -rf .cache
+	rm -rf .cache packages/web/.cache
 
 
 # Command-line tools

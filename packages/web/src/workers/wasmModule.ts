@@ -51,3 +51,17 @@ export async function loadWasmModule<MyModule>(name: string): Promise<MyModule> 
     })
   })
 }
+
+export interface Vector<T> {
+  size(): number
+  get(index: number): T
+}
+
+export function vectorToArray<T>(vector: Vector<T>) {
+  const arr: T[] = []
+  // eslint-disable-next-line no-loops/no-loops,no-plusplus
+  for (let i = 0; i < vector.size(); ++i) {
+    arr.push(vector.get(i))
+  }
+  return arr
+}

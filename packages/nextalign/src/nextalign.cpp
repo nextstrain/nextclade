@@ -49,7 +49,7 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
       concat_move(peptidesInternal.queryPeptides, queryPeptides);
       concat_move(peptidesInternal.refPeptides, refPeptides);
       concat_move(peptidesInternal.warnings, warnings);
-    } catch (const std::exception& e) {
+    } catch (const ErrorNonFatal& e) {
       // Errors in translation should not cause sequence alignment failure.
       // Gather and report as warnings instead.
       warnings.emplace_back(e.what());

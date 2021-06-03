@@ -112,6 +112,10 @@ public:
         nextalignOptions                     //
       );
 
+      for (const auto& warning : result.warnings) {
+        warnings.emplace_back(warning);
+      }
+
       return NextcladeWasmResult{
         .ref = result.ref,
         .query = result.query,
@@ -197,6 +201,8 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
 
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 EMSCRIPTEN_BINDINGS(nextclade_wasm) {
+  emscripten::register_vector<std::string>("std::vector<std::string>");
+
   emscripten::function("getExceptionMessage", &getExceptionMessage);
 
   emscripten::function("parseGeneMapGffString", &parseGeneMapGffString);
@@ -224,6 +230,7 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("query", &NextcladeWasmResult::query)
     .field("queryPeptides", &NextcladeWasmResult::queryPeptides)
     .field("analysisResult", &NextcladeWasmResult::analysisResult)
+    .field("warnings", &NextcladeWasmResult::warnings)
     .field("hasError", &NextcladeWasmResult::hasError)
     .field("error", &NextcladeWasmResult::error);
 

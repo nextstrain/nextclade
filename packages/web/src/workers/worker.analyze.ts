@@ -4,7 +4,8 @@ import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
 import type { AnalysisResult, Peptide, SequenceParserResult } from 'src/algorithms/types'
-import { loadWasmModule, runWasmModule } from './wasmModule'
+import type { Vector } from './wasmModule'
+import { loadWasmModule, runWasmModule, vectorToArray } from './wasmModule'
 
 export interface NextcladeWasmParams {
   refStr: string
@@ -23,7 +24,7 @@ export interface NextcladeWasmResult {
   query: string
   queryPeptides: string
   analysisResult: string
-  warnings: string[]
+  warnings: Vector<string>
   hasError: boolean
   error: string
 }
@@ -107,6 +108,8 @@ export async function analyze(seq: SequenceParserResult) {
   return runWasmModule<NextcladeAnalysisModule, NextcladeResult>(gModule, () => {
     const result = nextcladeWasm.analyze(seq.seqName, seq.seq)
 
+    const warnings = vectorToArray(result.warnings)
+
     if (result.hasError) {
       return {
         index: seq.index,
@@ -114,7 +117,7 @@ export async function analyze(seq: SequenceParserResult) {
         query: undefined,
         queryPeptides: [],
         analysisResult: undefined,
-        warnings: [],
+        warnings,
         hasError: result.hasError,
         error: result.error,
       }
@@ -126,7 +129,7 @@ export async function analyze(seq: SequenceParserResult) {
       query: result.query,
       queryPeptides: parsePeptides(result.queryPeptides),
       analysisResult: parseAnalysisResult(result.analysisResult),
-      warnings: result.warnings,
+      warnings,
       hasError: result.hasError,
       error: result.error,
     }

@@ -87,7 +87,7 @@ PeptidesInternal translateGenes(         //
         .insertions = {}             //
       });
 
-    } catch (const std::exception& e) {
+    } catch (const ErrorNonFatal& e) {
       // Error in one gene should not cause the failure of the entire translation step.
       // Gather and report as warnings instead.
       warnings.push_back(
