@@ -15,6 +15,7 @@ import type { Sorting } from 'src/helpers/sortResults'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
+import { setViewedGene } from 'src/state/ui/ui.actions'
 
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
@@ -246,6 +247,7 @@ const TableRowMemo = memo(TableRowComponent, areEqual)
 const mapStateToProps = (state: State) => ({
   resultsFiltered: state.algorithm.resultsFiltered,
   filterPanelCollapsed: state.ui.filterPanelCollapsed,
+  viewedGene: state.ui.viewedGene,
 })
 
 const mapDispatchToProps = {
@@ -286,6 +288,8 @@ const mapDispatchToProps = {
 
   sortByTotalGapsAsc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.asc }),
   sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
+
+  setViewedGene,
 }
 
 export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected))
@@ -293,6 +297,7 @@ export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToPro
 export interface ResultProps {
   resultsFiltered: SequenceAnalysisState[]
   filterPanelCollapsed: boolean
+  viewedGene: string
 
   sortByIdAsc(): void
 
@@ -325,6 +330,8 @@ export interface ResultProps {
   sortByTotalGapsAsc(): void
 
   sortByTotalGapsDesc(): void
+
+  setViewedGene(viewedGene: string): void
 }
 
 export function ResultsTableDisconnected({
@@ -346,9 +353,10 @@ export function ResultsTableDisconnected({
   sortByTotalNsDesc,
   sortByTotalGapsAsc,
   sortByTotalGapsDesc,
+  viewedGene,
+  setViewedGene,
 }: ResultProps) {
   const { t } = useTranslation()
-  const [viewedGene, setViewedGene] = useState(GENE_OPTION_NUC_SEQUENCE)
 
   const data = resultsFiltered
   const rowData: TableRowDatum[] = data.map((datum) => ({ ...datum, viewedGene }))

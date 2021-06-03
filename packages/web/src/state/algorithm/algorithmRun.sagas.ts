@@ -15,7 +15,7 @@ import fsaSaga from 'src/state/util/fsaSaga'
 
 import type { AnalysisThread, NextcladeResult, NextcladeWasmParams } from 'src/workers/worker.analyze'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
-import type { Gene, SequenceParserResult } from 'src/algorithms/types'
+import type { SequenceParserResult } from 'src/algorithms/types'
 import {
   addNextcladeResult,
   addParsedSequence,
@@ -24,7 +24,6 @@ import {
   setFasta,
   setGeneMapObject,
   setGenomeSize,
-  setRootSeq,
   setTreeResult,
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
@@ -38,6 +37,7 @@ import {
   selectRefSeq,
   selectRefTreeStr,
 } from 'src/state/algorithm/algorithm.selectors'
+import { resetViewedGene } from 'src/state/ui/ui.actions'
 import {
   createAnalysisThreadPool,
   createThreadParseSequencesStreaming,
@@ -391,6 +391,7 @@ export function* getQuerySequences(queryInput?: AlgorithmInput) {
  */
 export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.loadingData))
+  yield* put(resetViewedGene())
   yield* put(push('/results'))
 
   const { refStr, refName } = yield* getRefSequence()

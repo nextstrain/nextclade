@@ -2,10 +2,12 @@ import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import { uiDefaultState } from 'src/state/ui/ui.state'
 import {
+  resetViewedGene,
   setFilterPanelCollapsed,
   setShowNewRunPopup,
   setShowWhatsnew,
   setTreeFilterPanelCollapsed,
+  setViewedGene,
 } from 'src/state/ui/ui.actions'
 
 export const uiReducer = reducerWithInitialState(uiDefaultState)
@@ -23,4 +25,12 @@ export const uiReducer = reducerWithInitialState(uiDefaultState)
 
   .icase(setShowNewRunPopup, (draft, showNewRunPopup) => {
     draft.showNewRunPopup = showNewRunPopup
+  })
+
+  .icase(setViewedGene, (draft, viewedGene) => {
+    draft.viewedGene = viewedGene
+  })
+
+  .icase(resetViewedGene, (draft) => {
+    draft.viewedGene = uiDefaultState.viewedGene
   })

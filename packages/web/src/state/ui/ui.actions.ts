@@ -9,3 +9,6 @@ export const setTreeFilterPanelCollapsed = action<boolean>('setTreeFilterPanelCo
 export const setShowWhatsnew = action<boolean>('setShowWhatsnew')
 
 export const setShowNewRunPopup = action<boolean>('setShowNewRunPopup')
+
+export const setViewedGene = action<string>('setViewedGene')
+export const resetViewedGene = action('resetViewedGene')
