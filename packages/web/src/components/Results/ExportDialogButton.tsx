@@ -1,23 +1,25 @@
 import React, { useCallback, useState } from 'react'
 
 import { connect } from 'react-redux'
-import { useTranslation } from 'react-i18next'
+import styled from 'styled-components'
 import {
   Button,
   Card,
   Col,
+  ListGroup,
+  ListGroupItem,
   Modal,
   ModalBody,
   ModalFooter,
-  ModalHeader,
+  ModalHeader as ReactstrapModalHeader,
   Row,
-  ListGroup,
-  ListGroupItem,
 } from 'reactstrap'
 import { MdFileDownload } from 'react-icons/md'
 
 import type { State } from 'src/state/reducer'
 import type { ExportParams } from 'src/state/algorithm/algorithm.state'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { PanelButton } from 'src/components/Results/PanelButton'
 import {
   exportAll,
   exportCsvTrigger,
@@ -36,6 +38,19 @@ import {
 } from 'src/components/Main/UploaderFileIcons'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { selectExportParams } from 'src/state/algorithm/algorithm.selectors'
+
+export const DownloadIcon = styled(MdFileDownload)`
+  width: 25px;
+  height: 25px;
+  margin-left: -1px;
+  display: inline;
+`
+export const ModalHeader = styled(ReactstrapModalHeader)`
+  .modal-title {
+    display: flex;
+    width: 100%;
+  }
+`
 
 export interface ExportElementProps {
   Icon: React.ReactNode
@@ -69,7 +84,7 @@ export function ExportFileElement({
 
       <div className="d-inline-block ml-auto my-auto">
         <Button color="primary" disabled={!hasFilename} title={HelpDownload} onClick={handleDownload}>
-          <MdFileDownload size={30} />
+          <DownloadIcon />
         </Button>
       </div>
     </ListGroupItem>
@@ -77,7 +92,6 @@ export function ExportFileElement({
 }
 
 export interface ExportDialogButtonProps {
-  buttonSize: number
   exportAllTrigger: () => void
   exportCsvTrigger: (filename: string) => void
   exportFastaTrigger: (filename: string) => void
@@ -103,7 +117,6 @@ const mapDispatchToProps = {
 }
 
 export function ExportDialogButtonDisconnected({
-  buttonSize,
   exportAllTrigger,
   exportCsvTrigger,
   exportFastaTrigger,
@@ -113,7 +126,7 @@ export function ExportDialogButtonDisconnected({
   exportTsvTrigger,
   exportParams,
 }: ExportDialogButtonProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslationSafe()
   const [isOpen, setIsOpen] = useState<boolean>(false)
 
   function toggleOpen() {
@@ -130,13 +143,15 @@ export function ExportDialogButtonDisconnected({
 
   return (
     <>
-      <Button type="button" color="secondary" onClick={open} title={t('Download results')}>
-        <MdFileDownload size={buttonSize} />
-      </Button>
+      <PanelButton type="button" onClick={open} title={t('Download results')}>
+        <DownloadIcon />
+      </PanelButton>
       <Modal centered isOpen={isOpen} toggle={toggleOpen} fade={false} size="lg">
-        <ModalHeader toggle={close} tag="div">
-          <MdFileDownload size={30} />
-          <h3 className="ml-2 d-inline align-middle">{t('Download results')}</h3>
+        <ModalHeader toggle={close} tag="div" className="d-flex">
+          <h4 className="mx-auto">
+            <DownloadIcon />
+            {t('Download results')}
+          </h4>
         </ModalHeader>
         <ModalBody>
           <Row>

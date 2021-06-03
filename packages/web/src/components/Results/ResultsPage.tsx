@@ -81,13 +81,10 @@ export function ResultsPage() {
               <ButtonFilter />
             </HeaderRightContainer>
             <HeaderRightContainer>
-              <ExportDialogButton buttonSize={30} />
+              <ExportDialogButton />
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonTree />
-            </HeaderRightContainer>
-            <HeaderRightContainer>
-              <SettingsButton />
             </HeaderRightContainer>
           </HeaderRight>
         </Header>
