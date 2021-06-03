@@ -2,9 +2,9 @@ import 'regenerator-runtime'
 
 import { expose } from 'threads/worker'
 
-import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
+import { loadWasmModule, runWasmModule, WasmModule } from 'src/workers/wasmModule'
 
-export interface parsePcrPrimerCsvRowsStrWasmModule {
+export interface parsePcrPrimerCsvRowsStrWasmModule extends WasmModule {
   parsePcrPrimerCsvRowsStr(pcrPrimersCsvRowsStrRaw: string, pcrPrimersFilename: string): string
 }
 

@@ -36,14 +36,7 @@ import {
   setGeneMapObject,
   setGenomeSize,
 } from './algorithm.actions'
-import {
-  algorithmDefaultState,
-  AlgorithmGlobalStatus,
-  AlgorithmParams,
-  AlgorithmSequenceStatus,
-  ResultsFilters,
-  SequenceAnalysisState,
-} from './algorithm.state'
+import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setGenomeSize, (draft, { genomeSize }) => {
@@ -153,9 +146,9 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(setQcSettings.started, (draft, input) => {
-    draft.params.raw.qcConfig = input
+    draft.params.raw.qcRulesConfig = input
     draft.params.strings.qcConfigStr = undefined
-    draft.params.errors.qcConfig = []
+    draft.params.errors.qcRulesConfig = []
   })
 
   .icase(setGeneMap.started, (draft, input) => {
@@ -193,7 +186,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setQcSettings.done, (draft, { result: { qcConfigStr } }) => {
     draft.params.strings.qcConfigStr = qcConfigStr
-    draft.params.errors.qcConfig = []
+    draft.params.errors.qcRulesConfig = []
   })
 
   .icase(setGeneMap.done, (draft, { result: { geneMapStr } }) => {
@@ -228,7 +221,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setQcSettings.failed, (draft, { error }) => {
     draft.params.strings.qcConfigStr = undefined
-    draft.params.errors.qcConfig = [error]
+    draft.params.errors.qcRulesConfig = [error]
   })
 
   .icase(setGeneMap.failed, (draft, { error }) => {
@@ -261,8 +254,8 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(removeQcSettings, (draft) => {
-    draft.params.raw.qcConfig = undefined
-    draft.params.errors.qcConfig = []
+    draft.params.raw.qcRulesConfig = undefined
+    draft.params.errors.qcRulesConfig = []
   })
 
   .icase(removeGeneMap, (draft) => {
@@ -305,7 +298,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.errors = []
   })
 
-  .icase(algorithmRunAsync.failed, (draft, { params, error }) => {
+  .icase(algorithmRunAsync.failed, (draft, { error }) => {
     draft.status = AlgorithmGlobalStatus.failed
     draft.errors = [error.message]
   })

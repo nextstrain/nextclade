@@ -3,9 +3,9 @@ import 'regenerator-runtime'
 import { expose } from 'threads/worker'
 
 import type { SequenceParserResult } from 'src/algorithms/types'
-import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
+import { loadWasmModule, runWasmModule, WasmModule } from 'src/workers/wasmModule'
 
-export interface ParseRefSequenceWasmModule {
+export interface ParseRefSequenceWasmModule extends WasmModule {
   parseRefSequence(fastaStr: string, refFastaName: string): SequenceParserResult
 }
 

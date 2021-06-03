@@ -48,13 +48,6 @@ export const selectQcConfigStr = (state: State) => state.algorithm.params.string
 export const selectGeneMap = (state: State) => state.algorithm.params.final?.geneMap
 export const selectGenomeSize = (state: State) => state.algorithm.params.final?.genomeSize
 
-export interface StatusDisplay {
-  percent: number
-  statusText: string
-  failureText?: string
-  hasFailures: boolean
-}
-
 export function selectStatus(state: State) {
   const numThreads = selectNumThreads(state)
   const statusGlobal = state.algorithm.status
@@ -138,6 +131,7 @@ export function selectStatus(state: State) {
     default:
       if (process.env.NODE_ENV !== 'production') {
         throw new Error(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           `This switch-case block should be exhaustive, but has reached the default case. The value was ${statusGlobal}. This is an internal error. Please report it to developers.`,
         )
       }

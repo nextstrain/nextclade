@@ -5,7 +5,6 @@ import styled from 'styled-components'
 
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
-import { SettingsButton } from 'src/components/Settings/SettingsButton'
 
 import { ExportDialogButton } from 'src/components/Results/ExportDialogButton'
 import { ButtonBack } from './ButtonBack'

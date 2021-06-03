@@ -2,9 +2,9 @@ import 'regenerator-runtime'
 
 import { expose } from 'threads/worker'
 
-import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
+import { loadWasmModule, runWasmModule, WasmModule } from 'src/workers/wasmModule'
 
-export interface ParseTreeWasmModule {
+export interface ParseTreeWasmModule extends WasmModule {
   parseTree(treeStr: string): string
 }
 

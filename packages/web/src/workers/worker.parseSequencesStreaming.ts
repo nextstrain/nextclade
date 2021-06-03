@@ -4,7 +4,7 @@ import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
 import type { SequenceParserResult } from 'src/algorithms/types'
-import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
+import { loadWasmModule, runWasmModule, WasmModule } from 'src/workers/wasmModule'
 
 const gSubject = new Subject<SequenceParserResult>()
 
@@ -20,7 +20,7 @@ function onError(error: Error) {
   gSubject?.error(error)
 }
 
-export interface ParseSequencesStreamingWasmModule {
+export interface ParseSequencesStreamingWasmModule extends WasmModule {
   parseSequencesStreaming(
     fastaStr: string,
     fastaName: string,

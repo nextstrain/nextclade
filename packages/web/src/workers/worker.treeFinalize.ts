@@ -2,9 +2,9 @@ import 'regenerator-runtime'
 
 import { expose } from 'threads/worker'
 
-import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
+import { loadWasmModule, runWasmModule, WasmModule } from 'src/workers/wasmModule'
 
-export interface TreeFinalizeSequencesWasmModule {
+export interface TreeFinalizeSequencesWasmModule extends WasmModule {
   treeFinalize(treeStr: string, refFastaStr: string, analysisResultsStr: string): string
 }
 

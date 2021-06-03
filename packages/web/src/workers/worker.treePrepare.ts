@@ -2,14 +2,14 @@ import 'regenerator-runtime'
 
 import { expose } from 'threads/worker'
 
-import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
+import { loadWasmModule, runWasmModule, WasmModule } from 'src/workers/wasmModule'
 
-export interface TreePrepareWasmModule {
+export interface TreePrepareWasmModule extends WasmModule {
   treePrepare(treeStr: string, refStr: string): string
 }
 
 export async function treePrepare(treeStr: string, refStr: string) {
-  const module = await loadWasmModule<TreePrepareThread>('nextclade_wasm')
+  const module = await loadWasmModule<TreePrepareWasmModule>('nextclade_wasm')
   return runWasmModule<TreePrepareWasmModule, string>(module, (module) => {
     return module.treePrepare(treeStr, refStr)
   })

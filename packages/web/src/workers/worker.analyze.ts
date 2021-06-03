@@ -4,7 +4,7 @@ import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
 import type { AnalysisResult, Peptide, SequenceParserResult } from 'src/algorithms/types'
-import type { Vector } from './wasmModule'
+import type { Vector, WasmModule } from './wasmModule'
 import { loadWasmModule, runWasmModule, vectorToArray } from './wasmModule'
 
 export interface NextcladeWasmParams {
@@ -20,7 +20,7 @@ export interface NextcladeWasmParams {
 
 export interface NextcladeWasmResult {
   index: number
-  ref: string
+  ref?: string
   query: string
   queryPeptides: string
   analysisResult: string
@@ -58,7 +58,7 @@ export interface NextcladeWasmClass {
   delete(): void
 }
 
-export interface NextcladeAnalysisModule {
+export interface NextcladeAnalysisModule extends WasmModule {
   NextcladeWasm: NextcladeWasmClass
 }
 
@@ -113,10 +113,10 @@ export async function analyze(seq: SequenceParserResult) {
     if (result.hasError) {
       return {
         index: seq.index,
-        ref: undefined,
-        query: undefined,
+        ref: (undefined as unknown) as string, // HACK
+        query: (undefined as unknown) as string, // HACK
         queryPeptides: [],
-        analysisResult: undefined,
+        analysisResult: (undefined as unknown) as AnalysisResult,
         warnings,
         hasError: result.hasError,
         error: result.error,
@@ -125,7 +125,7 @@ export async function analyze(seq: SequenceParserResult) {
 
     return {
       index: seq.index,
-      ref: result.ref,
+      ref: result.ref as string, // HACK
       query: result.query,
       queryPeptides: parsePeptides(result.queryPeptides),
       analysisResult: parseAnalysisResult(result.analysisResult),

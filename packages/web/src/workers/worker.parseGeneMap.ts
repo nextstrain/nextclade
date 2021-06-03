@@ -1,9 +1,9 @@
 import 'regenerator-runtime'
 
 import { expose } from 'threads/worker'
-import { loadWasmModule, runWasmModule } from 'src/workers/wasmModule'
+import { loadWasmModule, runWasmModule, WasmModule } from 'src/workers/wasmModule'
 
-export interface ParseGenMapWasmModule {
+export interface ParseGenMapWasmModule extends WasmModule {
   parseGeneMapGffString(geneMapStr: string, geneMapName: string): string
 }
 
