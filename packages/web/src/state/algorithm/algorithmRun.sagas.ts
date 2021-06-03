@@ -198,7 +198,6 @@ export function* runAnalysisLoop(
       if (seq) {
         // Queue the received sequence for the analysis in the worker pool.
         // This returns immediately and the analysis result will be emitted into the analysis event channel.
-        console.log({ seq })
         void poolAnalyze.queue((worker) => worker.analyze(seq))
         yield* put(addParsedSequence({ index: seq.index, seqName: seq.seqName }))
       }
@@ -237,7 +236,6 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
       }
 
       if (nextcladeResult) {
-        console.log({ nextcladeResult })
         nextcladeResults.push(nextcladeResult)
         yield* put(addNextcladeResult({ nextcladeResult }))
       }
@@ -419,8 +417,6 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     qcConfigStr,
   })
 
-  console.log({ nextcladeResults })
-
   const analysisResults = nextcladeResults
     .filter((nextcladeResult) => !nextcladeResult.hasError)
     .map((nextcladeResult) => nextcladeResult.analysisResult)
@@ -431,8 +427,6 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
     const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
     const tree = parseAuspiceJsonV2(treeFinalStr)
-
-    console.log({ tree })
 
     yield* setAuspiceState(tree)
     yield* put(setTreeResult({ treeStr: treeFinalStr }))
