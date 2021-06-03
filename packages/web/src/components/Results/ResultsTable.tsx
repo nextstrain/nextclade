@@ -441,7 +441,6 @@ export function ResultsTableDisconnected({
 
           <TableHeaderCell grow={20}>
             <TableHeaderCellContent>
-              <TableCellText>{t('Sequence view')}</TableCellText>
               <SequenceSelector viewedGene={viewedGene} setViewedGene={setViewedGene} />
             </TableHeaderCellContent>
             <ButtonHelp identifier="btn-help-col-seq-view">
