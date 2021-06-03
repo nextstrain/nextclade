@@ -12,6 +12,7 @@ import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
 import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
 
 import { ColFlexHorizontal } from 'src/components/Main/FilePicker'
+import { selectCanRun, selectHasRequiredInputs } from 'src/state/algorithm/algorithm.selectors'
 
 const RowButtonsAdvanced = styled(Row)`
   margin: 5px 7px;
@@ -45,6 +46,7 @@ export function ButtonsAdvanced({ canRun, run }: { canRun: boolean; run(): void 
 
 export interface MainSectionHeroControlsAdvancedProps {
   canRun: boolean
+  hasRequiredInputs: boolean
 
   algorithmRunTrigger(_0: unknown): void
 
@@ -52,7 +54,8 @@ export interface MainSectionHeroControlsAdvancedProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  canRun: state.algorithm.params.seqData !== undefined,
+  canRun: selectCanRun(state),
+  hasRequiredInputs: selectHasRequiredInputs(state),
 })
 
 const mapDispatchToProps = {
@@ -67,6 +70,7 @@ export const MainSectionHeroControlsAdvanced = connect(
 
 export function MainSectionHeroControlsAdvancedDisconnected({
   canRun,
+  hasRequiredInputs,
   algorithmRunTrigger,
   setShowNewRunPopup,
 }: MainSectionHeroControlsAdvancedProps) {
@@ -78,9 +82,9 @@ export function MainSectionHeroControlsAdvancedDisconnected({
   return (
     <Row noGutters>
       <Col>
-        <ButtonsAdvanced canRun={canRun} run={run} />
+        <ButtonsAdvanced canRun={canRun && hasRequiredInputs} run={run} />
         <FilePickerAdvanced />
-        <ButtonsAdvanced canRun={canRun} run={run} />
+        <ButtonsAdvanced canRun={canRun && hasRequiredInputs} run={run} />
       </Col>
     </Row>
   )

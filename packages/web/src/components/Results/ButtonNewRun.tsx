@@ -22,6 +22,7 @@ import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
 import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
 import { FilePickerAdvanced } from 'src/components/Main/FilePickerAdvanced'
 import { ButtonsAdvanced } from 'src/components/Main/MainSectionHeroControlsAdvanced'
+import { selectCanRun } from 'src/state/algorithm/algorithm.selectors'
 
 export const ButtonClose = styled(Button)<ButtonProps>`
   width: 100px;
@@ -76,7 +77,7 @@ export interface ButtonNewRunProps extends PanelButtonProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  canRun: state.algorithm.params.seqData !== undefined,
+  canRun: selectCanRun(state),
   showNewRunPopup: state.ui.showNewRunPopup,
 })
 
@@ -106,7 +107,11 @@ export function ButtonNewRunDisconnected({
 
   return (
     <>
-      <PanelButton onClick={open} title={t('New run: opens a dialog where you can start a new analysis')}>
+      <PanelButton
+        onClick={open}
+        title={t('New run: opens a dialog where you can start a new analysis')}
+        disabled={!canRun}
+      >
         <FaFile className="mr-xl-2 mb-1" />
       </PanelButton>
 

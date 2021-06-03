@@ -37,7 +37,7 @@ import {
   FileIconZip,
 } from 'src/components/Main/UploaderFileIcons'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { selectExportParams } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanDownload, selectExportParams } from 'src/state/algorithm/algorithm.selectors'
 
 export const DownloadIcon = styled(MdFileDownload)`
   width: 25px;
@@ -100,10 +100,12 @@ export interface ExportDialogButtonProps {
   exportTreeJsonTrigger: (filename: string) => void
   exportTsvTrigger: (filename: string) => void
   exportParams: ExportParams
+  canDownload: boolean
 }
 
 const mapStateToProps = (state: State) => ({
   exportParams: selectExportParams(state),
+  canDownload: selectCanDownload(state),
 })
 
 const mapDispatchToProps = {
@@ -125,6 +127,7 @@ export function ExportDialogButtonDisconnected({
   exportTreeJsonTrigger,
   exportTsvTrigger,
   exportParams,
+  canDownload,
 }: ExportDialogButtonProps) {
   const { t } = useTranslationSafe()
   const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -143,7 +146,7 @@ export function ExportDialogButtonDisconnected({
 
   return (
     <>
-      <PanelButton type="button" onClick={open} title={t('Download results')}>
+      <PanelButton type="button" onClick={open} title={t('Download results')} disabled={!canDownload}>
         <DownloadIcon />
       </PanelButton>
       <Modal centered isOpen={isOpen} toggle={toggleOpen} fade={false} size="lg">

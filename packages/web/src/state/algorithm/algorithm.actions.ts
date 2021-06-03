@@ -5,7 +5,6 @@ import { actionCreatorFactory } from 'src/state/util/fsaActions'
 import type { NextcladeResult } from 'src/workers/worker.analyze'
 import type { AlgorithmGlobalStatus, AlgorithmInput, ExportParams } from './algorithm.state'
 
-
 const action = actionCreatorFactory('Algorithm')
 
 export const setNumThreads = action<number>('setNumThreads')

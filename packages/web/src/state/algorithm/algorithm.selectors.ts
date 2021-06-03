@@ -13,7 +13,18 @@ export const selectResultsArray = (state: State) => state.algorithm.results.map(
 
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
-export const selectCanExport = (state: State): boolean => state.algorithm.status === AlgorithmGlobalStatus.done
+export const selectHasRequiredInputs = (state: State): boolean => selectQueryStr(state) !== undefined
+
+export const selectCanRun = (state: State): boolean =>
+  state.algorithm.status === AlgorithmGlobalStatus.idle ||
+  state.algorithm.status === AlgorithmGlobalStatus.done ||
+  state.algorithm.status === AlgorithmGlobalStatus.failed
+
+export const selectCanDownload = (state: State): boolean =>
+  state.algorithm.status === AlgorithmGlobalStatus.done &&
+  state.algorithm.results !== undefined &&
+  state.algorithm.results.length > 0 &&
+  state.algorithm.treeStr !== undefined
 
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.treeStr
 

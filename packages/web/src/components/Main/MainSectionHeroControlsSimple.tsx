@@ -20,7 +20,7 @@ import {
   setFasta,
   setIsDirty,
 } from 'src/state/algorithm/algorithm.actions'
-import { selectCanExport, selectParams } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanDownload, selectParams } from 'src/state/algorithm/algorithm.selectors'
 import { FileIconFasta } from './UploaderFileIcons'
 
 export const FilePickerSimple = styled(FilePicker)`
@@ -44,7 +44,7 @@ export interface MainSectionHeroControlsProps {
 
 const mapStateToProps = (state: State) => ({
   params: selectParams(state),
-  canExport: selectCanExport(state),
+  canExport: selectCanDownload(state),
 })
 
 const mapDispatchToProps = {

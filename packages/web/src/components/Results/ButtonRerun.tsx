@@ -6,11 +6,12 @@ import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 
 import type { State } from 'src/state/reducer'
+import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import type { PanelButtonProps } from 'src/components/Results/PanelButton'
 import { PanelButton } from 'src/components/Results/PanelButton'
-import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
 import { MdRefresh } from 'react-icons/md'
+import { selectCanRun } from 'src/state/algorithm/algorithm.selectors'
 
 export const RefreshIcon = styled(MdRefresh)`
   width: 22px;
@@ -19,12 +20,11 @@ export const RefreshIcon = styled(MdRefresh)`
 `
 
 const mapStateToProps = (state: State) => ({
-  canRun:
-    state.algorithm.status === AlgorithmGlobalStatus.done || state.algorithm.status === AlgorithmGlobalStatus.idle,
+  canRun: selectCanRun(state),
 })
 
 const mapDispatchToProps = {
-  algorithmRunTrigger: () => algorithmRunAsync.trigger,
+  algorithmRunTrigger: algorithmRunAsync.trigger,
 }
 
 export const ButtonRerun = connect(mapStateToProps, mapDispatchToProps)(ButtonRerunDisconnected)
@@ -32,7 +32,7 @@ export const ButtonRerun = connect(mapStateToProps, mapDispatchToProps)(ButtonRe
 export interface ButtonRerunProps extends PanelButtonProps {
   canRun: boolean
 
-  algorithmRunTrigger(_0: void): void
+  algorithmRunTrigger(input?: AlgorithmInput): void
 }
 
 export function ButtonRerunDisconnected({ algorithmRunTrigger, canRun }: ButtonRerunProps) {
