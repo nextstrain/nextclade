@@ -8,7 +8,13 @@ export interface WasmModule {
   getExceptionMessage(errorPtr: number): string
 }
 
-type EmscriptenRuntimeModule = any
+export interface EmscriptenRuntimeModuleParams {
+  locateFile(path: string): string
+
+  onRuntimeInitialized(): void
+}
+
+export type EmscriptenRuntimeModule<MyModule> = (params: EmscriptenRuntimeModuleParams) => MyModule
 
 export class WasmNativeError extends Error {}
 
@@ -40,7 +46,7 @@ export async function runWasmModule<MyModule extends WasmModule, T>(
 
 export async function loadWasmModule<MyModule>(name: string): Promise<MyModule> {
   return new Promise((resolve) => {
-    const js = emscriptenJsRaw as EmscriptenRuntimeModule
+    const js = emscriptenJsRaw as EmscriptenRuntimeModule<MyModule>
     const module = js({
       locateFile: (path: string) => {
         return /* path.includes(name) && */ path.endsWith('.wasm') ? wasmPath : path
@@ -54,6 +60,7 @@ export async function loadWasmModule<MyModule>(name: string): Promise<MyModule> 
 
 export interface Vector<T> {
   size(): number
+
   get(index: number): T
 }
 

@@ -83,7 +83,7 @@ export async function parseSequencesStreaming(
   const thread = await createThreadParseSequencesStreaming()
   const subscription = thread.values().subscribe(onSequence, onError, onComplete)
   await thread.parseSequencesStreaming(fastaStr, fastaName)
-  await subscription.unsubscribe()
+  await subscription.unsubscribe() // eslint-disable-line @typescript-eslint/await-thenable
 }
 
 export async function parseRefSequence(refFastaStr: string, refFastaName: string) {

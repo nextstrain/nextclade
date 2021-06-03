@@ -166,7 +166,7 @@ const config = withPlugins(
     [withFriendlyConsole],
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
     [withLodash],
-    // [withTypeChecking],
+    [withTypeChecking],
     [withTranspileModules],
     PRODUCTION && [withStaticComprression],
     PROFILE && [withoutMinification],

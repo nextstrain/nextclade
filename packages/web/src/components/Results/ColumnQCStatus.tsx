@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import type { QcResult } from 'src/algorithms/types'
-import type { AnalysisResult } from 'src/algorithms/types'
+import type { QcResult, AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'

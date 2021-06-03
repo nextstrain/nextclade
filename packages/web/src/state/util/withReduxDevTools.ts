@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
+// noinspection JSUnusedGlobalSymbols,SuspiciousTypeOfGuard
+
 import { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import type { DeepPartial, StrictOmit } from 'ts-essentials'
 import { composeWithDevTools } from 'redux-devtools-extension'
@@ -8,7 +10,7 @@ import { isType } from 'src/state/util/fsaActions'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmParams, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import type { AuspiceEntropyState, AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeState } from 'auspice'
+import type { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
 import {
   setFasta,
   setTreeResult,
@@ -29,14 +31,6 @@ function truncate(x?: string) {
   }
 
   return x.slice(0, 48) + TRUNCATED
-}
-
-function truncateStringOrFile(x?: string | File) {
-  if (!x || typeof x !== 'string') {
-    return undefined
-  }
-
-  return truncate(x)
 }
 
 function truncateContent(input?: DeepPartial<AlgorithmInput>) {
