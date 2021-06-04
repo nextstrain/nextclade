@@ -3,16 +3,19 @@ import React, { SVGProps, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Row, Col, Table as ReactstrapTable } from 'reactstrap'
 import styled from 'styled-components'
+import { connect } from 'react-redux'
 
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 
 import type { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
-
-import { formatAAMutation } from 'src/helpers/formatMutation'
+import type { Gene } from 'src/algorithms/types'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getSafeId } from 'src/helpers/getSafeId'
+import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { PeptideContext } from './PeptideContext'
+import { State } from 'src/state/reducer'
+import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 
 export const Table = styled(ReactstrapTable)`
   & td {
@@ -47,12 +50,20 @@ export interface PeptideMarkerMutationGroupProps extends SVGProps<SVGSVGElement>
   seqName: string
   group: AminoacidChangesGroup
   pixelsPerAa: number
+  geneMap?: Gene[]
 }
 
-function PeptideMarkerMutationGroupUnmemoed({
+const mapStateToProps = (state: State) => ({
+  geneMap: selectGeneMap(state),
+})
+
+const mapDispatchToProps = {}
+
+function PeptideMarkerMutationGroupDisconnected({
   seqName,
   group,
   pixelsPerAa,
+  geneMap,
   ...restProps
 }: PeptideMarkerMutationGroupProps) {
   const { t } = useTranslation()
@@ -93,7 +104,7 @@ function PeptideMarkerMutationGroupUnmemoed({
                     <tr key={change.codon}>
                       <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
                       <td>
-                        <pre className="my-0">{formatAAMutation(change)}</pre>
+                        <AminoacidMutationBadge mutation={change} geneMap={geneMap ?? []} />
                       </td>
                     </tr>
                   ))}
@@ -122,5 +133,10 @@ function PeptideMarkerMutationGroupUnmemoed({
     </g>
   )
 }
+
+export const PeptideMarkerMutationGroupUnmemoed = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(PeptideMarkerMutationGroupDisconnected)
 
 export const PeptideMarkerMutationGroup = React.memo(PeptideMarkerMutationGroupUnmemoed)
