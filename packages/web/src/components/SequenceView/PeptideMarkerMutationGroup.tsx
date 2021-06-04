@@ -58,7 +58,7 @@ function PeptideMarkerMutationGroupUnmemoed({
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { gene, changes, codonAaRange, queryContext, refContext, contextNucRange } = group
+  const { gene, changes, codonAaRange } = group
   const id = getSafeId('aa-mutation-group-marker', { seqName, gene, begin: codonAaRange.begin })
   const x = codonAaRange.begin * pixelsPerAa
   const width = changes.length * Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
@@ -72,7 +72,7 @@ function PeptideMarkerMutationGroupUnmemoed({
             <PeptideMarkerMutation key={change.codon} change={change} parentGroup={group} pixelsPerAa={pixelsPerAa} />
           ))}
 
-          <Tooltip target={id} isOpen={showTooltip} wide>
+          <Tooltip target={id} isOpen={showTooltip} wide fullWidth>
             <Table borderless className="mb-1">
               <thead />
               <tbody>
@@ -99,19 +99,23 @@ function PeptideMarkerMutationGroupUnmemoed({
                   ))}
                 </>
 
-                <PeptideContext queryContext={queryContext} refContext={refContext} contextNucRange={contextNucRange} />
+                <tr>
+                  <td colSpan={2}>
+                    <Row noGutters className="mt-3">
+                      <Col>
+                        <h6>{'Context*'}</h6>
+                      </Col>
+                    </Row>
+
+                    <Row noGutters>
+                      <Col>
+                        <PeptideContext group={group} />
+                      </Col>
+                    </Row>
+                  </td>
+                </tr>
               </tbody>
             </Table>
-
-            <Row noGutter className="mt-2 mx-1">
-              <Col style={{ lineHeight: '90%' }}>
-                <small>
-                  {t(
-                    '* - Context shows nucleotide triplets corresponding to the changes in aminoacids, as well as surrounding triplets: one on the left and one on the right',
-                  )}
-                </small>
-              </Col>
-            </Row>
           </Tooltip>
         </g>
       </svg>
