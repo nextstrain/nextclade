@@ -16,6 +16,7 @@ import { getSafeId } from 'src/helpers/getSafeId'
 import { getAxisLength } from 'src/components/GeneMap/getAxisLength'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { ColoredSquare } from 'src/components/Common/ColoredSquare'
 
 export const GENE_MAP_HEIGHT_PX = 35
 export const GENE_HEIGHT_PX = 15
@@ -49,12 +50,6 @@ export const GeneMapSVG = styled.svg`
   height: 100%;
   padding: 0;
   margin: 0 auto;
-`
-
-export const ColoredSquare = styled.div<{ size: string; color: string }>`
-  width: ${(props) => props.size};
-  height: ${(props) => props.size};
-  background-color: ${(props) => props.color};
 `
 
 export interface GeneViewProps extends SVGProps<SVGRectElement> {

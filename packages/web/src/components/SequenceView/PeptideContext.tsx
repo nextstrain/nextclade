@@ -1,10 +1,24 @@
 import React from 'react'
 
-import { Row, Col } from 'reactstrap'
+import { Table as ReactstrapTable } from 'reactstrap'
+import styled from 'styled-components'
 
 import { Range } from 'src/algorithms/types'
 import { formatRange } from 'src/helpers/formatRange'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+
+export const Table = styled(ReactstrapTable)`
+  margin-bottom: 2px;
+
+  & td {
+    padding: 0 0.5rem;
+  }
+
+  & tr {
+    margin: 0;
+    padding: 0;
+  }
+`
 
 export interface PeptideContextProps {
   queryContext: string
@@ -20,36 +34,26 @@ export function PeptideContext({ queryContext, refContext, contextNucRange }: Pe
 
   return (
     <>
-      <Row>
-        <Col>{t('Context range*')}</Col>
-        <Col>
-          <pre className="my-0">{formatRange(contextNucRange.begin, contextNucRange.end)}</pre>
-        </Col>
-      </Row>
-
-      <Row>
-        <Col>{t('Reference context*')}</Col>
-        <Col>
+      <tr>
+        <td>{t('Reference context*')}</td>
+        <td>
           <pre className="my-0">{refContextPrettier}</pre>
-        </Col>
-      </Row>
+        </td>
+      </tr>
 
-      <Row>
-        <Col>{t('Query context*')}</Col>
-        <Col>
+      <tr>
+        <td>{t('Query context*')}</td>
+        <td>
           <pre className="my-0">{queryContextPrettier}</pre>
-        </Col>
-      </Row>
+        </td>
+      </tr>
 
-      <Row className="mt-2">
-        <Col>
-          <small>
-            {t(
-              '* - Displays the nucleotide triplet corresponding to the codon of the mutation, as well as surrounding triplets on the left and right of it (if any)',
-            )}
-          </small>
-        </Col>
-      </Row>
+      <tr>
+        <td>{t('Context range*')}</td>
+        <td>
+          <pre className="my-0">{formatRange(contextNucRange.begin, contextNucRange.end)}</pre>
+        </td>
+      </tr>
     </>
   )
 }

@@ -3,14 +3,14 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 
-import type { State } from 'src/state/reducer'
 import type { AnalysisResult, Gene } from 'src/algorithms/types'
+import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
-import { PeptideMarkerGap } from './PeptideMarkerGap'
-import { PeptideMarkerMutation } from './PeptideMarkerMutation'
+import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
+import { groupAdjacentAminoacidChanges } from './groupAdjacentAminoacidChanges'
 
 export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
@@ -45,39 +45,26 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, geneMap, viewe
     )
   }
 
+  const { seqName } = sequence
+  const pixelsPerAa = width / Math.round(gene.length / 3)
   const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
   const aaDeletions = sequence.aaDeletions.filter((aaSub) => aaSub.gene === viewedGene)
-
-  const pixelsPerAa = width / Math.round(gene.length / 3)
-
-  const mutationViews = aaSubstitutions.map((aaSubstitution) => {
-    return (
-      <PeptideMarkerMutation
-        key={aaSubstitution.codon}
-        seqName={sequence.seqName}
-        aaSubstitution={aaSubstitution}
-        pixelsPerAa={pixelsPerAa}
-      />
-    )
-  })
-
-  const deletionViews = aaDeletions.map((aaDeletion) => {
-    return (
-      <PeptideMarkerGap
-        key={aaDeletion.codon}
-        seqName={sequence.seqName}
-        aaDeletion={aaDeletion}
-        pixelsPerAa={pixelsPerAa}
-      />
-    )
-  })
+  const groups = groupAdjacentAminoacidChanges(aaSubstitutions, aaDeletions)
 
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
         <rect fill="transparent" x={0} y={-10} width={gene.length} height="30" />
-        {mutationViews}
-        {deletionViews}
+        {groups.map((group) => {
+          return (
+            <PeptideMarkerMutationGroup
+              key={group.codonAaRange.begin}
+              seqName={seqName}
+              group={group}
+              pixelsPerAa={pixelsPerAa}
+            />
+          )
+        })}
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )

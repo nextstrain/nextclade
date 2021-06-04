@@ -15,6 +15,7 @@ export const MS_TILE_COLOR = '#2b5797' as const
 
 export const UNKNOWN_VALUE = `Unknown ` // HACK: keep space at the end: workaround for Auspice filtering out "Unknown"
 export const BASE_MIN_WIDTH_PX = 4 as const
+export const AA_MIN_WIDTH_PX = 4 as const
 
 export const URL_GITHUB = 'https://github.com/nextstrain/nextclade' as const
 export const URL_GITHUB_FRIENDLY = 'github.com/nextstrain/nextclade' as const
