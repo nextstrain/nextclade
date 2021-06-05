@@ -7,15 +7,15 @@ import { connect } from 'react-redux'
 
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 
-import type { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
 import type { Gene } from 'src/algorithms/types'
+import type { State } from 'src/state/reducer'
+import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getSafeId } from 'src/helpers/getSafeId'
+import type { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { PeptideContext } from './PeptideContext'
-import { State } from 'src/state/reducer'
-import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 
 export const Table = styled(ReactstrapTable)`
   & td {
