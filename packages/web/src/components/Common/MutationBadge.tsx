@@ -68,6 +68,7 @@ export function AminoacidMutationBadge({ mutation, geneMap }: MutationBadgeProps
   const geneColor = gene?.color ?? '#999'
   const refColor = getAminoacidColor(refAA)
   const queryColor = getAminoacidColor(queryAA)
+  const codonOneBased = codon + 1
 
   return (
     <MutationBadgeBox>
@@ -77,7 +78,7 @@ export function AminoacidMutationBadge({ mutation, geneMap }: MutationBadgeProps
           <span>{':'}</span>
         </GeneText>
         <ColoredText $color={refColor}>{refAA}</ColoredText>
-        <PositionText>{codon}</PositionText>
+        <PositionText>{codonOneBased}</PositionText>
         <ColoredText $color={queryColor}>{queryAA}</ColoredText>
       </MutationWrapper>
     </MutationBadgeBox>
