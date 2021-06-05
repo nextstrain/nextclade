@@ -17,8 +17,6 @@ const Select = styled.select`
   height: 30px;
   min-width: 150px;
   text-align-last: center;
-  background-color: #495057;
-  color: #e7e7e7;
 `
 
 export interface SequenceSelectorProps {
