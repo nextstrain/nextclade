@@ -1,12 +1,13 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useCallback, useEffect, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Table as ReactstrapTable } from 'reactstrap'
-import { selectGeneMap, selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX, GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
+
+import { selectGeneMap, selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
 
 import type { Gene } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
@@ -17,6 +18,7 @@ import { getAxisLength } from 'src/components/GeneMap/getAxisLength'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ColoredSquare } from 'src/components/Common/ColoredSquare'
+import { setViewedGene } from 'src/state/ui/ui.actions'
 
 export const GENE_MAP_HEIGHT_PX = 35
 export const GENE_HEIGHT_PX = 15
@@ -56,16 +58,50 @@ export interface GeneViewProps extends SVGProps<SVGRectElement> {
   gene: Gene
   single: boolean
   pixelsPerBase: number
+
+  setViewedGene(viewedGene: string): void
 }
 
-export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps) {
+// eslint-disable-next-line react-redux/connect-prefer-named-arguments
+export const GeneView = connect(() => ({}), { setViewedGene })(GeneViewDisconnected)
+
+export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGene, ...rest }: GeneViewProps) {
   const { t } = useTranslationSafe()
 
+  const [hovered, setHovered] = useState(false)
+  const [timeoutId, setTimeoutId] = useState<number | undefined>(undefined)
   const [showTooltip, setShowTooltip] = useState(false)
+
+  useEffect(() => {
+    if (!hovered && timeoutId) {
+      clearInterval(timeoutId)
+    }
+  }, [hovered, timeoutId])
+
+  const setHoveredSmart = useCallback(
+    (value) => {
+      let timeout
+      if (value === true) {
+        setHovered(true)
+        timeout = setInterval(() => {
+          setShowTooltip(true)
+        }, 2000)
+
+        setTimeoutId(timeout)
+      } else {
+        setHovered(false)
+        setShowTooltip(false)
+      }
+    },
+    [setHovered, setShowTooltip],
+  )
+
   const { geneName, color, start, end, length, frame } = gene // prettier-ignore
   const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
   const x = single ? 0 : start * pixelsPerBase
   const id = getSafeId('gene', { ...gene, single })
+
+  const stroke = hovered ? '#222' : undefined
 
   return (
     <rect
@@ -75,11 +111,25 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
       y={-10 + 7.5 * frame}
       width={width}
       height={GENE_HEIGHT_PX}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={() => setHoveredSmart(true)}
+      onMouseLeave={() => setHoveredSmart(false)}
+      onClick={() => {
+        clearInterval(timeoutId)
+        setHovered(false)
+        setViewedGene(geneName)
+      }}
+      stroke={stroke}
+      strokeWidth={1}
+      cursor="pointer"
       {...rest}
     >
-      <Tooltip target={id} isOpen={showTooltip}>
+      <Tooltip
+        target={id}
+        isOpen={showTooltip}
+        onClick={() => {
+          setShowTooltip(false)
+        }}
+      >
         <Table borderless>
           <tr>
             <td>{t('Gene')}</td>
@@ -107,6 +157,12 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
           <tr>
             <td>{t('Frame')}</td>
             <td>{frame + 1}</td>
+          </tr>
+
+          <tr>
+            <td colSpan={2}>
+              <small>{t('Click on a gene or its tooltip to switch to gene view.')}</small>
+            </td>
           </tr>
         </Table>
       </Tooltip>
