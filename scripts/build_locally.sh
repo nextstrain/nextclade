@@ -214,13 +214,15 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
     -s MODULARIZE=1 \
     -s EXPORT_ES6=1 \
     -s WASM=1 \
-    -s DISABLE_EXCEPTION_CATCHING=0 \
+    -s DISABLE_EXCEPTION_CATCHING=2 \
     -s DEMANGLE_SUPPORT=1 \
     -s ALLOW_MEMORY_GROWTH=1 \
     -s MALLOC=emmalloc \
     -s ENVIRONMENT=worker \
   "
 
+  #  -fexceptions \
+  #  -s DISABLE_EXCEPTION_CATCHING=2 \
   #  -s ALIASING_FUNCTION_POINTERS=0 \
   #  --profiling \
   #  -s EXCEPTION_DEBUG=1 \
