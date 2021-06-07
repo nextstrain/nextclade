@@ -8,7 +8,6 @@ export interface ButtonTransparentProps extends ButtonProps {
 }
 
 export const ButtonTransparent = styled(Button)<ButtonTransparentProps>`
-  display: block;
   width: ${(props) => props.width ?? props.height};
   height: ${(props) => props.height};
   line-height: ${(props) => props.height};
