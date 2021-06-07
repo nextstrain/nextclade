@@ -131,39 +131,41 @@ export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGen
         }}
       >
         <Table borderless>
-          <tr>
-            <td>{t('Gene')}</td>
-            <td className="d-flex">
-              <ColoredSquare color={color} size="1rem" />
-              <span className="ml-2">{geneName}</span>
-            </td>
-          </tr>
+          <tbody>
+            <tr>
+              <td>{t('Gene')}</td>
+              <td className="d-flex">
+                <ColoredSquare color={color} size="1rem" />
+                <span className="ml-2">{geneName}</span>
+              </td>
+            </tr>
 
-          <tr>
-            <td>{t('Nuc. range')}</td>
-            <td>{formatRange(start, end)}</td>
-          </tr>
+            <tr>
+              <td>{t('Nuc. range')}</td>
+              <td>{formatRange(start, end)}</td>
+            </tr>
 
-          <tr>
-            <td>{t('Length (nuc)')}</td>
-            <td>{length}</td>
-          </tr>
+            <tr>
+              <td>{t('Length (nuc)')}</td>
+              <td>{length}</td>
+            </tr>
 
-          <tr>
-            <td>{t('Length (AA)')}</td>
-            <td>{Math.round(length / 3)}</td>
-          </tr>
+            <tr>
+              <td>{t('Length (AA)')}</td>
+              <td>{Math.round(length / 3)}</td>
+            </tr>
 
-          <tr>
-            <td>{t('Frame')}</td>
-            <td>{frame + 1}</td>
-          </tr>
+            <tr>
+              <td>{t('Frame')}</td>
+              <td>{frame + 1}</td>
+            </tr>
 
-          <tr>
-            <td colSpan={2}>
-              <small>{t('Click on a gene or its tooltip to switch to gene view.')}</small>
-            </td>
-          </tr>
+            <tr>
+              <td colSpan={2}>
+                <small>{t('Click on a gene or its tooltip to switch to gene view.')}</small>
+              </td>
+            </tr>
+          </tbody>
         </Table>
       </Tooltip>
     </rect>
