@@ -99,7 +99,7 @@ export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGen
   const { geneName, color, start, end, length, frame } = gene // prettier-ignore
   const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
   const x = single ? 0 : start * pixelsPerBase
-  const id = getSafeId('gene', { ...gene, single })
+  const id = getSafeId('gene', { ...gene })
 
   const stroke = hovered ? '#222' : undefined
 
