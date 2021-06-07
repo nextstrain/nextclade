@@ -121,6 +121,11 @@ export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; 
   padding-left: 5px;
 `
 
+export const TableCellAlignedLeft = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
+  text-align: left;
+  padding-left: 5px;
+`
+
 export const TableRowPending = styled(TableRow)`
   background-color: #d2d2d2;
   color: #818181;
@@ -203,9 +208,9 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <ColumnQCStatus sequence={sequence} qc={qc} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
+      <TableCellAlignedLeft basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
         <ColumnClade sequence={sequence} />
-      </TableCell>
+      </TableCellAlignedLeft>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
         <ColumnMutations sequence={sequence} />
