@@ -133,6 +133,7 @@
     "react-i18next": "11.7.3",
     "react-icons": "3.11.0",
     "react-if": "3.4.3",
+    "react-loader-spinner": "4.0.0",
     "react-no-ssr": "1.1.0",
     "react-redux": "7.2.1",
     "react-resize-detector": "5.0.7",

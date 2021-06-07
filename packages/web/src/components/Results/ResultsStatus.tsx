@@ -5,6 +5,7 @@ import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
 import { selectStatus } from 'src/state/algorithm/algorithm.selectors'
+import { Spinner } from 'src/components/Common/Spinner'
 
 const ResultsStatusWrapper = styled.div`
   height: 32px;
@@ -24,7 +25,7 @@ const mapDispatchToProps = {}
 export const ResultsStatus = connect(mapStateToProps, mapDispatchToProps)(ResultsStatusDisconnected)
 
 export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
-  const { statusText, failureText } = status
+  const { statusText, failureText, percent } = status
 
   let text = <span>{statusText}</span>
   if (failureText) {
@@ -39,7 +40,8 @@ export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
 
   return (
     <ResultsStatusWrapper>
-      <div className="text-right">{text}</div>
+      {percent !== 100 && <Spinner color="#222" size={24} />}
+      <span className="ml-2">{text}</span>
     </ResultsStatusWrapper>
   )
 }
