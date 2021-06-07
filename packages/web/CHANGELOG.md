@@ -1,3 +1,16 @@
+## [0.14.4](https://github.com/nextstrain/nextclade/compare/1.0.0-alpha.9...0.14.4) (2021-06-07)
+
+This version updates [the default SARS-CoV-2 reference tree](https://raw.githubusercontent.com/nextstrain/nextclade/0.14.4/data/sars-cov-2/tree.json) with new Nextstrain clade designations and alias names for the WHO VoC and VoI names, so that Nextclade now can detect these clades.
+
+See also:
+
+ - Original change in Nextstrain: [nextstrain/ncov#650](https://github.com/nextstrain/ncov/pull/650)
+
+ - Current clade definitions in Nextstrain: [clades.tsv](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv)
+
+ - World Health Organization: [Tracking SARS-CoV-2 variants](https://www.who.int/en/activities/tracking-SARS-CoV-2-variants/)
+
+
 ## [0.14.3](https://github.com/nextstrain/nextclade/compare/1.0.0-alpha.8...0.14.3) (2021-05-20)
 
 The [default SARS-CoV-2 reference tree](https://raw.githubusercontent.com/nextstrain/nextclade/0.14.3/data/sars-cov-2/tree.json) is updated. It allows Nextclade to detect the new Nextstrain clade 21A.
