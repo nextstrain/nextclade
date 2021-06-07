@@ -46,7 +46,7 @@ export const RESULTS_TABLE_FLEX_BASIS = {
   id: 50,
   seqName: 300,
   qc: 100,
-  clade: 90,
+  clade: 125,
   mut: 60,
   nonACGTN: 70,
   ns: 60,
@@ -117,6 +117,11 @@ export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: nu
 `
 
 export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
+  text-align: left;
+  padding-left: 5px;
+`
+
+export const TableCellAlignedLeft = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
   text-align: left;
   padding-left: 5px;
 `
@@ -203,9 +208,9 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <ColumnQCStatus sequence={sequence} qc={qc} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
+      <TableCellAlignedLeft basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
         <ColumnClade sequence={sequence} />
-      </TableCell>
+      </TableCellAlignedLeft>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
         <ColumnMutations sequence={sequence} />
