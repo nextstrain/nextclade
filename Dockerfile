@@ -14,6 +14,7 @@ RUN set -x \
   cmake \
   coreutils \
   cppcheck \
+  curl \
   file \
   g++ \
   gcc \
@@ -24,6 +25,7 @@ RUN set -x \
   python3-pip \
   python3-setuptools \
   python3-wheel \
+  unzip \
   xz-utils \
 >/dev/null \
 && apt-get autoremove --yes >/dev/null \
@@ -37,10 +39,6 @@ RUN set -x \
   cpplint \
 && rm -rf ~/.cache/pip/*
 
-ARG USER=user
-ARG GROUP=user
-ARG UID
-ARG GID
 ARG NEXTCLADE_EMSDK_VERSION
 
 COPY scripts/install_emscripten.sh /
@@ -48,25 +46,54 @@ COPY scripts/install_emscripten.sh /
 RUN set -x \
 && /install_emscripten.sh "/emsdk" "${NEXTCLADE_EMSDK_VERSION}"
 
-ENV USER=$USER
-ENV GROUP=$GROUP
-ENV UID=$UID
-ENV GID=$GID
 ENV TERM="xterm-256color"
 ENV HOME="/home/${USER}"
 ENV NEXTCLADE_EMSDK_DIR="/emsdk"
 ENV NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION}
 
-USER ${USER}
-
 WORKDIR /src
 
-ENTRYPOINT ["make", "prod"]
+#-------------------------------------------------------------------------------
+
+# Target: web
+# Purpose: web environment used for production web build
+FROM builder as web
+
+ARG NEXTCLADE_NODE_VERSION
+
+ENV TERM="xterm-256color"
+ENV NVM_DIR="/opt/nvm"
+ENV PATH="${NVM_DIR}/versions/node/default/bin:$PATH"
+ENV NEXTCLADE_NVM_DIR="/opt/nvm"
+ENV NEXTCLADE_NODE_VERSION="${NEXTCLADE_NODE_VERSION}"
+
+COPY scripts/install_node.sh /
+
+RUN set -x \
+&& /install_node.sh "/opt/nvm" "${NEXTCLADE_NODE_VERSION}"
+
+RUN set -x \
+&& mkdir /awscli-tmp \
+&& cd /awscli-tmp \
+&& curl -fsS "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+&& unzip -oqq awscliv2.zip \
+&& ./aws/install --update \
+&& rm -rf /awscli-tmp
+
+ENV PATH="${NEXTCLADE_NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
+
+RUN set -x \
+&& mkdir -p "/home/.config/yarn" \
+&& npm install -g \
+  nodemon@2.0.7 \
+  yarn@1.22.10
+
+WORKDIR /src
 
 #-------------------------------------------------------------------------------
 
 # Target: developer
-# Purpose: development environment used for the routine development tasks
+# Purpose: development environment used for the routine C++ development tasks
 FROM builder as developer
 
 USER 0

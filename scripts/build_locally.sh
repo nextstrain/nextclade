@@ -81,6 +81,9 @@ OSX_MIN_VER=${OSX_MIN_VER:=10.12}
 # Build type (default: Release)
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
 
+# Whether to produce Webassembly with Emscripten
+export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
+
 # Debug wasm build is too slow, always do optimized build
 if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
   CMAKE_BUILD_TYPE="Release"
@@ -116,9 +119,6 @@ USE_LIBCPP="${USE_LIBCPP:=0}"
 USE_MINGW="${USE_MINGW:=0}"
 
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
-
-# Whether to produce Webassembly with Emscripten
-export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
 
 NEXTALIGN_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
 NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
@@ -197,9 +197,12 @@ EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
 EMCMAKE=""
 EMMAKE=""
 CONAN_COMPILER_SETTINGS=""
+CONANFILE="${PROJECT_ROOT_DIR}/conanfile.txt"
 NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=""
 BUILD_SUFFIX=""
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  CONANFILE="${PROJECT_ROOT_DIR}/conanfile.wasm.txt"
+
   CONAN_COMPILER_SETTINGS="\
     --profile="${PROJECT_ROOT_DIR}/config/conan/conan_profile_emscripten_wasm.txt" \
     -s compiler=clang \
@@ -219,6 +222,7 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
     -s ALLOW_MEMORY_GROWTH=1 \
     -s MALLOC=emmalloc \
     -s ENVIRONMENT=worker \
+    -s DYNAMIC_EXECUTION=0 \
   "
 
   #  -fexceptions \
@@ -458,7 +462,7 @@ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-co
 # At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
 # This will build a local conan package and put it into local conan cache, if not present yet.
 # On `conan install` step this local package will be used, instead of querying conan remote servers.
-if [ "${NEXTCLADE_BUILD_WASM}" == "1" ] && [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
+if [ "${NEXTCLADE_BUILD_WASM}" != "1" ] && [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
   # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
   print 56 "Build Intel TBB";
   pushd "3rdparty/tbb" > /dev/null
@@ -475,7 +479,7 @@ mkdir -p "${BUILD_DIR}"
 pushd "${BUILD_DIR}" > /dev/null
 
   print 56 "Install dependencies";
-  conan install "${PROJECT_ROOT_DIR}" \
+  conan install "${CONANFILE}" \
     -s build_type="${CONAN_BUILD_TYPE}" \
     ${CONAN_COMPILER_SETTINGS} \
     ${CONAN_STATIC_BUILD_FLAGS} \
