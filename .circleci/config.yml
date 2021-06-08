@@ -4,13 +4,15 @@ version: 2.1
 release_only: &release_only
   filters:
     branches:
-      only: cli-release
+      only:
+        - cli-release
+        - ci_wasm
 
 major_branches_only: &major_branches_only
   filters:
     branches:
-      only: /(ci_wasm)/
-
+      only:
+        - ci_wasm
 
 jobs:
 #  Update-Builder-Container:
