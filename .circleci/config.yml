@@ -13,7 +13,7 @@ major_branches_only: &major_branches_only
 
 
 jobs:
-  Prepare-Builder-Container:
+  Update-Builder-container:
     resource_class: medium
 
     machine:
@@ -28,12 +28,12 @@ jobs:
             echo "" > checksum.txt
 
       - restore_cache:
-          name: 'Restore checksum.txt'
+          name: 'Restore previous checksum.txt from cache'
           keys:
             - cache-nextclade-builder-container-v1-cache-{{ checksum "checksum.txt" }}
 
       - run:
-          name: 'Restore previous checksum.txt from cache, compare, halt if no changes'
+          name: 'Compare checksum.txt to cached one, halt if no changes'
           command: |
             set -x
             cat Dockerfile scripts/*.sh .nvmrc .dockerignore .gitignore Makefile .circleci/* | md5sum > checksum.new.txt
@@ -275,19 +275,19 @@ workflows:
   version: 2
   build:
     jobs:
-      - Prepare-Builder-Container:
+      - Update-Builder-container:
           <<: *major_branches_only
 
       - Build-Web:
           context: nextclade_web_<< pipeline.git.branch >>
           <<: *major_branches_only
           requires:
-            - Prepare-Builder-Container
+            - Update-Builder-container
 
       - Build-Linux-x86_64:
           <<: *release_only
           requires:
-            - Prepare-Builder-Container
+            - Update-Builder-container
 
       - Build-MacOS:
           matrix:
