@@ -23,30 +23,29 @@ jobs:
       - checkout
 
       - run:
-          name: 'Create blank checksum.txt'
+          name: 'Calculate current checksum.txt'
           command: |
-            echo "" > checksum.txt
+            ./scripts/docker_build_checksum.sh > "checksum.current.txt"
 
       - restore_cache:
           name: 'Restore previous checksum.txt from cache'
           keys:
-            - cache-nextclade-builder-container-v1-cache-{{ checksum "checksum.txt" }}
+            - cache-nextclade-builder-container-v1-cache-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare checksum.txt to cached one, halt if no changes'
           command: |
             set -x
-            cat Dockerfile scripts/install*.sh .nvmrc .dockerignore .gitignore Makefile .circleci/* | md5sum > checksum.new.txt
-            CHECKSUM_OLD=$(cat checksum.txt)
-            CHECKSUM_NEW=$(cat checksum.new.txt)
+            CHECKSUM_OLD="$(cat checksum.previous.txt)"
+            CHECKSUM_NEW="$(cat checksum.current.txt)"
             if [ "${CHECKSUM_OLD}" == "${CHECKSUM_NEW}" ]; then
               circleci step halt
             fi
-            mv checksum.new.txt checksum.txt
+            mv checksum.current.txt checksum.previous.txt
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-nextclade-builder-container-v1-cache-{{ checksum "checksum.txt" }}
+          key: cache-nextclade-builder-container-v1-cache-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.txt
 
@@ -58,6 +57,7 @@ jobs:
       - run:
           name: 'Build "Web" container image'
           command: |
+            set -x
             ./scripts/docker_builder_image_build.sh "web"
 
       - run:
