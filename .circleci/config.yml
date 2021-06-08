@@ -14,38 +14,38 @@ major_branches_only: &major_branches_only
       only: /(ci-wasm)/
 
 jobs:
-  Prepare-Builder-Container:
-    resource_class: medium
-
-    machine:
-      image: ubuntu-2004:202010-01
-
-    steps:
-      - checkout
-
-      - run:
-          name: 'Pull container images'
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/docker_builder_image_pull.sh "builder" || true
-            ./scripts/docker_builder_image_pull.sh "web" || true
-
-      - run:
-          name: 'Build "Builder" container image'
-          command: |
-            ./scripts/docker_builder_image_build.sh "builder"
-
-      - run:
-          name: 'Build "Web" container image'
-          command: |
-            ./scripts/docker_builder_image_build.sh "web"
-
-      - run:
-          name: 'Push container images'
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/docker_builder_image_push.sh "builder"
-            ./scripts/docker_builder_image_push.sh "web"
+#  Prepare-Builder-Container:
+#    resource_class: medium
+#
+#    machine:
+#      image: ubuntu-2004:202010-01
+#
+#    steps:
+#      - checkout
+#
+#      - run:
+#          name: 'Pull container images'
+#          command: |
+#            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+#            ./scripts/docker_builder_image_pull.sh "builder" || true
+#            ./scripts/docker_builder_image_pull.sh "web" || true
+#
+#      - run:
+#          name: 'Build "Builder" container image'
+#          command: |
+#            ./scripts/docker_builder_image_build.sh "builder"
+#
+#      - run:
+#          name: 'Build "Web" container image'
+#          command: |
+#            ./scripts/docker_builder_image_build.sh "web"
+#
+#      - run:
+#          name: 'Push container images'
+#          command: |
+#            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+#            ./scripts/docker_builder_image_push.sh "builder"
+#            ./scripts/docker_builder_image_push.sh "web"
 
   Build-Web:
     resource_class: medium
@@ -265,8 +265,8 @@ workflows:
       - Build-Web:
           context: nextclade_web_<< pipeline.git.branch >>
           <<: *major_branches_only
-          requires:
-            - Prepare-Builder-Container
+#          requires:
+#            - Prepare-Builder-Container
 
       - Build-Linux-x86_64:
           <<: *release_only
