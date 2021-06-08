@@ -66,8 +66,10 @@ clang-tidy:
 dev-wasm: prod-wasm
 
 prod-wasm:
-	@NEXTCLADE_BUILD_WASM=1 $(MAKE) dev
+	@NEXTCLADE_BUILD_WASM=1 $(MAKE) --no-print-directory dev
 
+prod-wasm-nowatch:
+	@NEXTCLADE_BUILD_WASM=1 $(MAKE)  --no-print-directory prod
 
 # Web
 
