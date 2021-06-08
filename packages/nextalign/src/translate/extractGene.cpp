@@ -102,8 +102,8 @@ void stripGeneInPlace(NucleotideSequence& seq) {
 /**
  * Extracts gene from the query sequence according to coordinate map relative to the reference sequence
  */
-NucleotideSequence extractGeneQuery(
-  const NucleotideSequenceView& query, const Gene& gene, const std::vector<int>& coordMap) {
+ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
+  const std::vector<int>& coordMap) {
   precondition_less(gene.start, coordMap.size());
   precondition_less_equal(gene.end, coordMap.size());
   precondition_less(gene.start, gene.end);
@@ -128,13 +128,42 @@ NucleotideSequence extractGeneQuery(
   const auto resultLength = safe_cast<int>(result.size());
 
   if (resultLength == 0) {
-    throw ErrorExtractStrippedGeneEmpty(gene, resultLengthPreStrip);
+    auto error = fmt::format(                                                                              //
+      "When extracting gene \"{:s}\": The gene ended up being empty after being stripped from insertions. "//
+      "Before stripping insertions this gene had length {:d}. "                                            //
+      "The gene map contained the following information: "                                                 //
+      "start: {:d}, end: {:d}, length: {:d}"                                                               //
+      ,
+      gene.geneName, resultLengthPreStrip, gene.start, gene.end, gene.length);
+
+    return ExtractGeneStatus{
+      .status = Status::Error,
+      .error = std::move(error),
+      .result = {},
+    };
   }
 
   if (resultLength % 3 != 0) {
-    throw ErrorExtractGeneStrippedLengthNonMul3(gene, resultLength, resultLengthPreStrip);
+    auto error = fmt::format(                                                                                //
+      "When extracting gene \"{:s}\": Genes are expected to have length that is a "                          //
+      "multiple of 3, but the extracted Gene \"{:s}\" after being stripped from insertions has length {:d}. "//
+      "Before stripping insertions this gene had length {:d}. "                                              //
+      "The gene map contained the following information: "                                                   //
+      "start: {:d}, end: {:d}, length: {:d}"                                                                 //
+      ,
+      gene.geneName, gene.geneName, resultLength, resultLengthPreStrip, gene.start, gene.end, gene.length);
+
+    return ExtractGeneStatus{
+      .status = Status::Error,
+      .error = std::move(error),
+      .result = {},
+    };
   }
 
   invariant_less_equal(result.size(), query.size());// Length of the gene should not exceed the length of the sequence
-  return result;
+  return ExtractGeneStatus{
+    .status = Status::Success,
+    .error = {},
+    .result = std::move(result),
+  };
 }

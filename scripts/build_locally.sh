@@ -20,13 +20,26 @@ PROJECT_ROOT_DIR="$(realpath ${THIS_DIR}/..)"
 source "${THIS_DIR}/lib/set_locales.sh"
 source "${THIS_DIR}/lib/is_ci.sh"
 
+[ -n "${NEXTCLADE_EMSDK_DIR:=}" ] && NEXTCLADE_EMSDK_DIR_FROM_ENV="${NEXTCLADE_EMSDK_DIR}"
+[ -n "${NEXTCLADE_EMSDK_VERSION:=}" ] && NEXTCLADE_EMSDK_VERSION_FROM_ENV="${NEXTCLADE_EMSDK_VERSION}"
+
 source "${PROJECT_ROOT_DIR}/.env.example"
 if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
+[ -n "${NEXTCLADE_EMSDK_DIR_FROM_ENV:=}" ] && NEXTCLADE_EMSDK_DIR="${NEXTCLADE_EMSDK_DIR_FROM_ENV}"
+[ -n "${NEXTCLADE_EMSDK_VERSION_FROM_ENV:=}" ] && NEXTCLADE_EMSDK_VERSION="${NEXTCLADE_EMSDK_VERSION_FROM_ENV}"
+
 PROJECT_NAME="nextalign"
 BUILD_PREFIX=""
+
+export NEXTCLADE_EMSDK_VERSION_DEFAULT=2.0.6
+export NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION:=${NEXTCLADE_EMSDK_VERSION_DEFAULT}}
+export NEXTCLADE_EMSDK_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk-${NEXTCLADE_EMSDK_VERSION}"
+export NEXTCLADE_EMSDK_DIR=${NEXTCLADE_EMSDK_DIR:=${NEXTCLADE_EMSDK_DIR_DEFAULT}}
+export NEXTCLADE_EMSDK_CACHE_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
+export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_DEFAULT}}"
 
 export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
 export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/.ccache}"
@@ -68,6 +81,11 @@ OSX_MIN_VER=${OSX_MIN_VER:=10.12}
 # Build type (default: Release)
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
 
+# Debug wasm build is too slow, always do optimized build
+if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  CMAKE_BUILD_TYPE="Release"
+fi
+
 # Deduce conan build type from cmake build type
 CONAN_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 case ${CMAKE_BUILD_TYPE} in
@@ -97,6 +115,17 @@ USE_LIBCPP="${USE_LIBCPP:=0}"
 # Whether to use MinGW GCC C++ compiler for croww-compiling for Windows (default: no)
 USE_MINGW="${USE_MINGW:=0}"
 
+INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
+
+# Whether to produce Webassembly with Emscripten
+export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
+
+NEXTALIGN_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
+NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
+NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
+NEXTCLADE_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
+NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=1}
+NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=1}
 
 CONAN_COMPILER_SETTINGS="-s arch=${HOST_ARCH}"
 if [ "${HOST_OS}" == "MacOS" ] && [ "${HOST_ARCH}" == "arm64" ]; then
@@ -164,9 +193,61 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   BUILD_SUFFIX="-Clang"
 fi
 
+EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
+EMCMAKE=""
+EMMAKE=""
+CONAN_COMPILER_SETTINGS=""
+NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=""
+BUILD_SUFFIX=""
+if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  CONAN_COMPILER_SETTINGS="\
+    --profile="${PROJECT_ROOT_DIR}/config/conan/conan_profile_emscripten_wasm.txt" \
+    -s compiler=clang \
+    -s compiler.version=${EMSDK_CLANG_VERSION} \
+  "
+
+  NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=" \
+    -frtti \
+    -fexceptions \
+    --bind \
+    --source-map-base './' \
+    -s MODULARIZE=1 \
+    -s EXPORT_ES6=1 \
+    -s WASM=1 \
+    -s DISABLE_EXCEPTION_CATCHING=2 \
+    -s DEMANGLE_SUPPORT=1 \
+    -s ALLOW_MEMORY_GROWTH=1 \
+    -s MALLOC=emmalloc \
+    -s ENVIRONMENT=worker \
+  "
+
+  #  -fexceptions \
+  #  -s DISABLE_EXCEPTION_CATCHING=2 \
+  #  -s ALIASING_FUNCTION_POINTERS=0 \
+  #  --profiling \
+  #  -s EXCEPTION_DEBUG=1 \
+  #  -g4 \
+  #  -O0 \
+  #  -s ASSERTIONS=1 \
+  #  -s SAFE_HEAP=1 \
+  #  -s STACK_OVERFLOW_CHECK=2 \
+
+  BUILD_SUFFIX="-Wasm"
+  INSTALL_DIR="${PROJECT_ROOT_DIR}/packages/web/src/generated/"
+
+  EMCMAKE="emcmake"
+  EMMAKE="emmake"
+
+  NEXTALIGN_BUILD_CLI=0
+  NEXTALIGN_BUILD_BENCHMARKS=0
+  NEXTALIGN_BUILD_TESTS=0
+  NEXTCLADE_BUILD_CLI=0
+  NEXTCLADE_BUILD_BENCHMARKS=0
+  NEXTCLADE_BUILD_TESTS=0
+fi
+
 BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
-INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
 
 function get_cli() {
   NAME=${1}
@@ -214,11 +295,6 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
   CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
 fi
 
-
-NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
-NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
-NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=1}
-NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=1}
 if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   NEXTALIGN_BUILD_BENCHMARKS=0
   NEXTALIGN_BUILD_TESTS=0
@@ -327,6 +403,11 @@ echo "CMAKE_BUILD_TYPE         = ${CMAKE_BUILD_TYPE:=}"
 echo "CONAN_BUILD_TYPE         = ${CONAN_BUILD_TYPE:=}"
 echo "NEXTALIGN_STATIC_BUILD   = ${NEXTALIGN_STATIC_BUILD:=}"
 echo ""
+echo "NEXTCLADE_BUILD_WASM     = ${NEXTCLADE_BUILD_WASM}"
+echo "NEXTCLADE_EMSDK_VERSION  = ${NEXTCLADE_EMSDK_VERSION}"
+echo "NEXTCLADE_EMSDK_DIR      = ${NEXTCLADE_EMSDK_DIR}"
+echo ""
+echo ""
 echo "USE_COLOR                = ${USE_COLOR:=}"
 echo "USE_CLANG                = ${USE_CLANG:=}"
 echo "CLANG_VERSION            = ${CLANG_VERSION:=}"
@@ -354,6 +435,21 @@ echo "NEXTALIGN_CLI            = ${NEXTALIGN_CLI}"
 echo "NEXTCLADE_CLI            = ${NEXTCLADE_CLI}"
 echo "-------------------------------------------------------------------------"
 
+if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  print 92 "Install Emscripten SDK";
+
+  if [ ! -d "${NEXTCLADE_EMSDK_DIR}" ]; then
+    ./scripts/install_emscripten.sh "${NEXTCLADE_EMSDK_DIR}" "${NEXTCLADE_EMSDK_VERSION}"
+  else
+    echo "Emscripten SDK already found in '${NEXTCLADE_EMSDK_DIR}'. Skipping install."
+  fi
+
+  print 92 "Prepare Emscripten SDK environment";
+  source "${NEXTCLADE_EMSDK_DIR}/emsdk_env.sh"
+
+  export EM_CACHE="${NEXTCLADE_EMSDK_CACHE}"
+fi
+
 # Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
@@ -362,7 +458,7 @@ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-co
 # At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
 # This will build a local conan package and put it into local conan cache, if not present yet.
 # On `conan install` step this local package will be used, instead of querying conan remote servers.
-if [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
+if [ "${NEXTCLADE_BUILD_WASM}" == "1" ] && [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
   # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
   print 56 "Build Intel TBB";
   pushd "3rdparty/tbb" > /dev/null
@@ -386,7 +482,7 @@ pushd "${BUILD_DIR}" > /dev/null
     --build missing \
 
   print 92 "Generate build files";
-  ${CLANG_ANALYZER} cmake "${PROJECT_ROOT_DIR}" \
+  ${CLANG_ANALYZER} ${EMCMAKE} cmake "${PROJECT_ROOT_DIR}" \
     -DCMAKE_MODULE_PATH="${BUILD_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
@@ -401,12 +497,18 @@ pushd "${BUILD_DIR}" > /dev/null
     -DCMAKE_OSX_ARCHITECTURES="${HOST_ARCH}" \
     -DCMAKE_OSX_DEPLOYMENT_TARGET="${OSX_MIN_VER}" \
     -DNEXTCLADE_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
+    -DNEXTALIGN_BUILD_CLI=${NEXTALIGN_BUILD_CLI} \
+    -DNEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS} \
+    -DNEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS} \
+    -DNEXTCLADE_BUILD_CLI=${NEXTCLADE_BUILD_CLI} \
     -DNEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS} \
     -DNEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS} \
+    -DNEXTCLADE_BUILD_WASM=${NEXTCLADE_BUILD_WASM} \
+    -DNEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS="${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS}" \
     ${MORE_CMAKE_FLAGS}
 
   print 12 "Build";
-  ${CLANG_ANALYZER} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
+  ${CLANG_ANALYZER} ${EMMAKE} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
 
   function strip_executable() {
     CLI=${1}
@@ -434,7 +536,7 @@ pushd "${BUILD_DIR}" > /dev/null
     file ${CLI}
   }
 
-  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+  if [ "${CMAKE_BUILD_TYPE}" == "Release" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
     print 30 "Install executable";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
@@ -442,6 +544,14 @@ pushd "${BUILD_DIR}" > /dev/null
 
     strip_executable "${NEXTCLADE_CLI}"
 
+  fi
+
+  if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+    print 31 "Install WebAssembly module";
+    cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}"
+
+    print 31 "Patch WebAssembly helper script";
+    sed -i 's/var _scriptDir = import.meta.url;/var _scriptDir = false;/g' "${INSTALL_DIR}/wasm/nextclade_wasm.js"
   fi
 
 popd > /dev/null
@@ -475,12 +585,15 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
     ulimit -s unlimited
   fi
 
+  # if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
   # print 27 "Run Nextalign CLI";
   # eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+  # fi
 
-  print 27 "Run Nextclade CLI";
-  eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
-
+   if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
+     print 27 "Run Nextclade CLI";
+     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+   fi
   print 22 "Done";
 
 popd > /dev/null

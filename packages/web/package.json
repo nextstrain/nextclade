@@ -84,8 +84,7 @@
     "run:node": "cross-env NODE_ENV=development BABEL_ENV=development babel-node --extensions '.ts'",
     "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --extensions '.ts'",
     "monkey-patch": "bash tools/auspice-monkey-patch.sh && bash tools/patch-next.sh",
-    "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
-    "convert:primers": "yarn run:node tools/primers/convert.ts"
+    "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1"
   },
   "dependencies": {
     "@mdx-js/loader": "1.6.16",
@@ -114,6 +113,7 @@
     "immer": "7.0.8",
     "immutable": "3.8.2",
     "jsonexport": "3.0.1",
+    "jszip": "3.6.0",
     "lodash": "4.17.20",
     "marked": "1.1.1",
     "memoize-one": "5.1.1",
@@ -133,6 +133,7 @@
     "react-i18next": "11.7.3",
     "react-icons": "3.11.0",
     "react-if": "3.4.3",
+    "react-loader-spinner": "4.0.0",
     "react-no-ssr": "1.1.0",
     "react-redux": "7.2.1",
     "react-resize-detector": "5.0.7",
@@ -205,6 +206,7 @@
     "@types/jest": "26.0.12",
     "@types/jest-axe": "3.5.0",
     "@types/js-yaml": "3.12.5",
+    "@types/jszip": "3.4.1",
     "@types/lodash": "4.14.161",
     "@types/lodash-webpack-plugin": "0.11.4",
     "@types/mdx-js__react": "1.5.2",

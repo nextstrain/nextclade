@@ -11,9 +11,15 @@
 #include "../utils/safe_cast.h"
 
 namespace {
-  class ErrorAminoacidInvalid : public std::runtime_error {
+  class ErrorAminoacidInvalid : public ErrorNonFatal {
   public:
-    explicit ErrorAminoacidInvalid(char aa) : std::runtime_error(fmt::format("Invalid aminoacid: \"{:c}\"", aa)) {}
+    explicit ErrorAminoacidInvalid(char aa) : ErrorNonFatal(fmt::format("Invalid aminoacid: \"{:c}\"", aa)) {}
+  };
+
+  class ErrorAminoacidStringInvalid : public ErrorNonFatal {
+  public:
+    explicit ErrorAminoacidStringInvalid(const std::string& aa)
+        : ErrorNonFatal(fmt::format("Invalid aminoacid: \"{:s}\"", aa)) {}
   };
 
   constexpr const frozen::map<char, Aminoacid, 28> charToAminoacid = {
@@ -87,6 +93,13 @@ Aminoacid charToAa(char aa) {
     throw ErrorAminoacidInvalid(aa);
   }
   return it->second;
+}
+
+Aminoacid stringToAa(const std::string& aa) {
+  if (aa.size() != 1) {
+    throw ErrorAminoacidStringInvalid(aa);
+  }
+  return charToAa(aa[0]);
 }
 
 char aaToChar(Aminoacid aa) {

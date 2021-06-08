@@ -15,14 +15,16 @@ RUN set -x \
   coreutils \
   cppcheck \
   file \
-  gdb \
   g++ \
   gcc \
+  gdb \
+  git \
   make \
   python3 \
   python3-pip \
   python3-setuptools \
   python3-wheel \
+  xz-utils \
 >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && apt-get clean autoclean >/dev/null \
@@ -39,6 +41,12 @@ ARG USER=user
 ARG GROUP=user
 ARG UID
 ARG GID
+ARG NEXTCLADE_EMSDK_VERSION
+
+COPY scripts/install_emscripten.sh /
+
+RUN set -x \
+&& /install_emscripten.sh "/emsdk" "${NEXTCLADE_EMSDK_VERSION}"
 
 ENV USER=$USER
 ENV GROUP=$GROUP
@@ -46,6 +54,8 @@ ENV UID=$UID
 ENV GID=$GID
 ENV TERM="xterm-256color"
 ENV HOME="/home/${USER}"
+ENV NEXTCLADE_EMSDK_DIR="/emsdk"
+ENV NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION}
 
 USER ${USER}
 
@@ -70,7 +80,6 @@ RUN set -x \
   clang-tidy \
   clang-tools-10 \
   curl \
-  git \
   libclang-common-10-dev \
   llvm-10 \
   sudo \

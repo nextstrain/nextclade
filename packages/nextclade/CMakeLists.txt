@@ -15,8 +15,6 @@ find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
-find_package(RapidJSON 1.1.0 REQUIRED)
-find_package(type_safe 0.2.1 REQUIRED)
 
 set(SOURCE_FILES
   include/nextclade/nextclade.h
@@ -49,11 +47,16 @@ set(SOURCE_FILES
   src/io/formatQcStatus.h
   src/io/jsonStringify.cpp
   src/io/jsonStringify.h
+  src/io/parseAnalysisResults.cpp
   src/io/parseCsv.h
+  src/io/parseGeneMap.cpp
   src/io/parseMutation.cpp
   src/io/parseMutation.h
   src/io/parseQcConfig.cpp
   src/io/parseQcConfig.h
+  src/io/serializeGeneMap.cpp
+  src/io/serializeQcConfig.cpp
+  src/io/serializeQcConfig.h
   src/io/serializeResults.cpp
   src/io/serializeResults.h
   src/nextclade.cpp
@@ -94,61 +97,15 @@ set(SOURCE_FILES
   src/utils/safe_cast.h
   )
 
+add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-  add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-
-  set(EMSCRIPTEN_COMPILER_FLAGS "\
-    -frtti \
-    --bind \
-    --source-map-base './' \
-    -s MODULARIZE=1 \
-    -s EXPORT_ES6=1 \
-    -s WASM=1 \
-    -s DEMANGLE_SUPPORT=1 \
-    -s ALIASING_FUNCTION_POINTERS=0 \
-    -s ALLOW_MEMORY_GROWTH=1 \
-    -s MALLOC=emmalloc \
-    -s DISABLE_EXCEPTION_CATCHING=2 \
-    -s ENVIRONMENT=worker \
-  ")
-
-  set(EMSCRIPTEN_COMPILER_FLAGS_DEBUG "\
-    -g4 \
-    -O0 \
-    -s ASSERTIONS=1 \
-    -s SAFE_HEAP=1 \
-    -s STACK_OVERFLOW_CHECK=2 \
-  ")
-
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${EMSCRIPTEN_COMPILER_FLAGS})
-  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS ${EMSCRIPTEN_COMPILER_FLAGS})
-
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS_DEBUG ${EMSCRIPTEN_COMPILER_FLAGS_DEBUG})
-  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_DEBUG ${EMSCRIPTEN_COMPILER_FLAGS_DEBUG})
-
-  install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION wasm)
-
-  install(
-    FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.js
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.wasm
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.wasm.map
-    DESTINATION wasm
-  )
-
-else ()
-  add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS})
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS ${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS})
 endif ()
-
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-
-if (MSVC)
-  target_compile_options(${PROJECT_NAME} PRIVATE /arch:SSE4.2)
-else ()
-  target_compile_options(${PROJECT_NAME} PRIVATE -msse4.2)
-endif ()
 
 
 target_compile_definitions(${PROJECT_NAME}
@@ -193,10 +150,8 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
   Boost::headers
   Microsoft.GSL::GSL
-  RapidJSON::RapidJSON
   fast-cpp-csv-parser::fast-cpp-csv-parser
   fmt::fmt-header-only
-  type_safe::type_safe
   )
 
 set(NEXTCLADE_BUILD_TESTS ON CACHE BOOL "Build unit tests")

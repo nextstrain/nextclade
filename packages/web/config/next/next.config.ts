@@ -29,6 +29,7 @@ import withThreads from './withThreads'
 import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
+import withWebassembly from './withWebassembly'
 
 const {
   // BABEL_ENV,
@@ -114,6 +115,7 @@ const withTypeChecking = getWithTypeChecking({
   typeChecking: ENABLE_TYPE_CHECKS,
   eslint: ENABLE_ESLINT,
   memoryLimit: 2048,
+  exclude: ['src/generated'],
 })
 
 const transpilationListDev = [
@@ -159,6 +161,7 @@ const config = withPlugins(
     [withImages],
     [withRaw],
     [withJson],
+    [withWebassembly],
     // ANALYZE && [withBundleAnalyzer],
     [withFriendlyConsole],
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],

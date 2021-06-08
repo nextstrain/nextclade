@@ -33,8 +33,9 @@ struct NextalignResultInternal {
   std::vector<std::string> warnings;
 };
 
-
 Nucleotide toNucleotide(char nuc);
+
+Nucleotide stringToNuc(const std::string& nuc);
 
 char nucToChar(Nucleotide nuc);
 
@@ -42,6 +43,8 @@ std::string nucToString(Nucleotide nuc);
 
 
 Aminoacid charToAa(char aa);
+
+Aminoacid stringToAa(const std::string& aa);
 
 char aaToChar(Aminoacid aa);
 

@@ -171,7 +171,7 @@ namespace Nextclade {
   }
 
   ErrorGeneNotFound::ErrorGeneNotFound(const std::string& geneName, const GeneMap& geneMap)
-      : std::runtime_error(fmt::format(//
+      : ErrorNonFatal(fmt::format(//
           "When searching for aminoacid mutations: gene \"{:s}\" in gene map, but was not found. The "
           "genes present in the gene map were: {}. This could be a programming mistake. Please report this to "
           "project maintainers.",

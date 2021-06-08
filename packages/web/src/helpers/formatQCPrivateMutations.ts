@@ -2,22 +2,22 @@ import { round } from 'lodash'
 
 import type { DeepReadonly } from 'ts-essentials'
 
-import type { QCResultPrivateMutations } from 'src/algorithms/QC/rulePrivateMutations'
+import type { QcResultPrivateMutations } from 'src/algorithms/types'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
-import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
+import { QcStatus } from 'src/algorithms/types'
 
 export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
   t: TFunction,
-  privateMutations?: DeepReadonly<QCResultPrivateMutations>,
+  privateMutations?: DeepReadonly<QcResultPrivateMutations>,
 ) {
-  if (!privateMutations || privateMutations.status === QCRuleStatus.good) {
+  if (!privateMutations || privateMutations.status === QcStatus.good) {
     return undefined
   }
 
   const { score, total, excess, cutoff, status } = privateMutations
 
   let message = t('')
-  if (status === QCRuleStatus.bad) {
+  if (status === QcStatus.bad) {
     message = t('Too many private mutations. ')
   }
 

@@ -29,53 +29,53 @@ constexpr const auto GFF_COLUMNS_REQUIRED = {
 
 constexpr const auto GFF_ATTRIB_KEY_GENE_NAME = "gene_name";
 
-class ErrorGffParserMissingColumn : public std::runtime_error {
+class ErrorGffParserMissingColumn : public ErrorFatal {
 public:
   explicit ErrorGffParserMissingColumn(const std::string& colName)
-      : std::runtime_error(fmt::format("GFF parser: column \"{:s}\" is missing", colName)) {}
+      : ErrorFatal(fmt::format("GFF parser: column \"{:s}\" is missing", colName)) {}
 };
 
-class ErrorGffParserInvalidAttribute : public std::runtime_error {
+class ErrorGffParserInvalidAttribute : public ErrorFatal {
 public:
   explicit ErrorGffParserInvalidAttribute(const std::string& attrib)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "GFF parser: unable to parse attribute: expected a key-value pair format is `key \"value\"`, got `{:s}`,",
           attrib)) {}
 };
 
 
-class ErrorGffParserMissingGeneName : public std::runtime_error {
+class ErrorGffParserMissingGeneName : public ErrorFatal {
 public:
-  explicit ErrorGffParserMissingGeneName()
-      : std::runtime_error(fmt::format("GFF parser: expected attribute `${:s}` is missing", GFF_ATTRIB_KEY_GENE_NAME)) {
+  ErrorGffParserMissingGeneName()
+      : ErrorFatal(fmt::format("GFF parser: expected attribute `${:s}` is missing", GFF_ATTRIB_KEY_GENE_NAME)) {
   }
 };
 
-class ErrorGffParserGenNameEmpty : public std::runtime_error {
+class ErrorGffParserGenNameEmpty : public ErrorFatal {
 public:
-  explicit ErrorGffParserGenNameEmpty()
-      : std::runtime_error(fmt::format("GFF parser: empty gene names are not allowed")) {}
+  ErrorGffParserGenNameEmpty()
+      : ErrorFatal(fmt::format("GFF parser: empty gene names are not allowed")) {}
 };
 
-class ErrorGffParserGeneRangeInvalid : public std::runtime_error {
+class ErrorGffParserGeneRangeInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneRangeInvalid(const std::string& geneName, int start, int end)
-      : std::runtime_error(
+      : ErrorFatal(
           fmt::format("GFF parser: in gene \"{:s}\": range is invalid: ({:d}, {:d})", geneName, start, end)) {}
 };
 
-class ErrorGffParserGeneLengthInvalid : public std::runtime_error {
+class ErrorGffParserGeneLengthInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneLengthInvalid(const std::string& geneName, int length, int start, int end)
-      : std::runtime_error(
+      : ErrorFatal(
           fmt::format("GFF parser: gene \"{:s}\": length {:d} is not divisible by 3. Start: {:d}, end: {:d}", geneName,
             length, start, end)) {}
 };
 
-class ErrorGffParserGeneStrandInvalid : public std::runtime_error {
+class ErrorGffParserGeneStrandInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneStrandInvalid(const std::string& geneName, const std::string& strand)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           R"(GFF parser: in gene "{:s}": gene strand is invalid: "{:s}", expected "+" or "-")", geneName, strand)) {}
 };
 

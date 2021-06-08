@@ -41,7 +41,7 @@ namespace Nextclade {
       j.emplace("begin", nucRange.begin);
       j.emplace("end", nucRange.end);
       j.emplace("length", nucRange.length);
-      j.emplace("nuc", nucRange.nuc);
+      j.emplace("nuc", nucToString(nucRange.nuc));
       return j;
     }
 
@@ -57,12 +57,16 @@ namespace Nextclade {
       return j;
     }
 
+    json serializePcrPrimers(const std::vector<PcrPrimer>& pcrPrimers) {
+      return serializeArray(pcrPrimers, serializePcrPrimer);
+    }
+
     json serializeMutation(const NucleotideSubstitution& mut) {
       auto j = json::object();
       j.emplace("refNuc", nucToString(mut.refNuc));
       j.emplace("pos", mut.pos);
       j.emplace("queryNuc", nucToString(mut.queryNuc));
-      j.emplace("pcrPrimersChanged", serializeArray(mut.pcrPrimersChanged, serializePcrPrimer));
+      j.emplace("pcrPrimersChanged", serializePcrPrimers(mut.pcrPrimersChanged));
       return j;
     }
 
@@ -77,7 +81,7 @@ namespace Nextclade {
       auto j = json::object();
       j.emplace("pos", ins.pos);
       j.emplace("length", ins.length);
-      j.emplace("ins", ins.ins);
+      j.emplace("ins", toString(ins.ins));
       return j;
     }
 
@@ -86,6 +90,7 @@ namespace Nextclade {
       j.emplace("begin", missing.begin);
       j.emplace("end", missing.end);
       j.emplace("length", missing.length);
+      j.emplace("nuc", nucToString(Nucleotide::N));
       return j;
     }
 
@@ -188,6 +193,13 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeNucleotideComposition(const std::map<Nucleotide, int>& nucleotideComposition) {
+      json j = json::object();
+      for (const auto& [nuc, num] : nucleotideComposition) {
+        j.emplace(nucToString(nuc), num);
+      }
+      return j;
+    }
 
     json serializeResult(const AnalysisResult& result) {
       auto j = json::object();
@@ -217,11 +229,31 @@ namespace Nextclade {
       j.emplace("aaSubstitutions", serializeArray(result.aaSubstitutions, serializeAminoacidMutation));
       j.emplace("aaDeletions", serializeArray(result.aaDeletions, serializeAminoacidDeletion));
 
+      j.emplace("nearestNodeId", result.nearestNodeId);
+
       j.emplace("qc", serializeQcResult(result.qc));
+      j.emplace("nucleotideComposition", serializeNucleotideComposition(result.nucleotideComposition));
 
       return j;
     }
   }// namespace
+
+  json serializePeptide(const Peptide& peptide) {
+    auto j = json::object();
+    j.emplace("name", peptide.name);
+    j.emplace("seq", peptide.seq);
+    return j;
+  }
+
+  std::string serializePeptidesToString(const std::vector<Peptide>& peptides) {
+    json j = serializeArray(peptides, serializePeptide);
+    return jsonStringify(j);
+  }
+
+  std::string serializeResultToString(const AnalysisResult& result) {
+    auto j = serializeResult(result);
+    return jsonStringify(j);
+  }
 
   std::string serializeResults(const std::vector<AnalysisResult>& results) {
     auto j = json::array();
@@ -230,4 +262,19 @@ namespace Nextclade {
     }
     return jsonStringify(j);
   }
+
+  json serializePcrPrimerCsvRow(const PcrPrimerCsvRow& pcrPrimer) {
+    auto j = json::object();
+    j.emplace("name", pcrPrimer.name);
+    j.emplace("target", pcrPrimer.target);
+    j.emplace("source", pcrPrimer.source);
+    j.emplace("primerOligonuc", pcrPrimer.primerOligonuc);
+    return j;
+  }
+
+  std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers) {
+    json j = serializeArray(pcrPrimers, serializePcrPrimerCsvRow);
+    return jsonStringify(j);
+  }
+
 }// namespace Nextclade

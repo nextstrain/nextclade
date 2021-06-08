@@ -42,12 +42,7 @@ export function sortByName(results: SequenceAnalysisState[], direction: SortDire
 export function sortByQcIssues(results: SequenceAnalysisState[], direction: SortDirection) {
   // Only sort sequences that are ready (succeeded or failed). Put sequences still being analyzed sequences at the bottom.
   const [ready, rest] = partition(results, (res) =>
-    [
-      AlgorithmSequenceStatus.analysisDone,
-      AlgorithmSequenceStatus.analysisFailed,
-      AlgorithmSequenceStatus.qcDone,
-      AlgorithmSequenceStatus.qcFailed,
-    ].includes(res.status),
+    [AlgorithmSequenceStatus.done, AlgorithmSequenceStatus.failed].includes(res.status),
   )
 
   const readySorted = orderBy(

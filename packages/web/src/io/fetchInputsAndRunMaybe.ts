@@ -5,7 +5,7 @@ import type { Dispatch } from 'redux'
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import { AlgorithmInputString, HttpRequestError } from 'src/io/AlgorithmInput'
 import { errorAdd } from 'src/state/error/error.actions'
-import { algorithmRunWithSequencesAsync, setIsDirty, setRootSeq, setTree } from 'src/state/algorithm/algorithm.actions'
+import { algorithmRunAsync, setIsDirty, setRootSeq, setTree } from 'src/state/algorithm/algorithm.actions'
 
 export async function fetchMaybe(url?: string): Promise<string | undefined> {
   if (url) {
@@ -52,7 +52,7 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
 
   if (inputFasta) {
     dispatch(setIsDirty(true))
-    dispatch(algorithmRunWithSequencesAsync.trigger(new AlgorithmInputString(inputFasta, inputFastaUrl)))
+    dispatch(algorithmRunAsync.trigger(new AlgorithmInputString(inputFasta, inputFastaUrl)))
     await router.replace('/results')
   }
 }

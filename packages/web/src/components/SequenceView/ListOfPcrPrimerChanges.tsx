@@ -1,6 +1,5 @@
 import React from 'react'
 
-import type { DeepReadonly } from 'ts-essentials'
 import { useTranslation } from 'react-i18next'
 
 import type { PcrPrimerChange } from 'src/algorithms/types'
@@ -8,8 +7,8 @@ import { Li, Ul } from 'src/components/Common/List'
 import { formatMutation } from 'src/helpers/formatMutation'
 
 export interface ListOfPcrPrimerChangesProps {
-  readonly pcrPrimerChanges: DeepReadonly<PcrPrimerChange[]>
-  readonly totalPcrPrimerChanges: number
+  pcrPrimerChanges: PcrPrimerChange[]
+  totalPcrPrimerChanges: number
 }
 
 export function ListOfPcrPrimerChanges({ pcrPrimerChanges, totalPcrPrimerChanges }: ListOfPcrPrimerChangesProps) {

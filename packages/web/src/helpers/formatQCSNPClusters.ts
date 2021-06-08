@@ -2,22 +2,22 @@ import { round } from 'lodash'
 
 import type { DeepReadonly } from 'ts-essentials'
 
-import type { QCResultSNPClusters } from 'src/algorithms/QC/ruleSnpClusters'
+import type { QcResultSnpClusters } from 'src/algorithms/types'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
-import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
+import { QcStatus } from 'src/algorithms/types'
 
 export function formatQCSNPClusters<TFunction extends TFunctionInterface>(
   t: TFunction,
-  snpClusters?: DeepReadonly<QCResultSNPClusters>,
+  snpClusters?: DeepReadonly<QcResultSnpClusters>,
 ) {
-  if (!snpClusters || snpClusters.status === QCRuleStatus.good) {
+  if (!snpClusters || snpClusters.status === QcStatus.good) {
     return undefined
   }
 
   const { score, totalSNPs, status } = snpClusters
 
   let message = t('Mutation clusters found')
-  if (status === QCRuleStatus.bad) {
+  if (status === QcStatus.bad) {
     message = t('Too many mutation clusters found')
   }
 

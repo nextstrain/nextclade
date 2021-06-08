@@ -140,7 +140,7 @@ namespace Nextclade {
     int pos;
     Nucleotide queryNuc;
     std::vector<PcrPrimer> pcrPrimersChanged;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
+    std::vector<AminoacidSubstitution> aaSubstitutions;// FIXME: unused and should be removed
   };
 
   inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
@@ -160,8 +160,8 @@ namespace Nextclade {
   struct NucleotideDeletion {
     int start;
     int length;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
+    std::vector<AminoacidSubstitution> aaSubstitutions;// FIXME: unused and should be removed
+    std::vector<AminoacidDeletion> aaDeletions;        // FIXME: unused and should be removed
   };
 
   inline bool operator==(const NucleotideDeletion& lhs, const NucleotideDeletion& rhs) {
@@ -246,6 +246,13 @@ namespace Nextclade {
     );
   }
 
+  struct PcrPrimerCsvRow {
+    /* 1 */ std::string source;
+    /* 2 */ std::string target;
+    /* 3 */ std::string name;
+    /* 4 */ std::string primerOligonuc;
+  };
+
   struct PcrPrimer {
     std::string name;
     std::string target;
@@ -314,6 +321,8 @@ namespace Nextclade {
 
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& seq);
 
+    const Tree& getTree() const;
+
     const Tree& finalize(const std::vector<AnalysisResult>& results);
 
     // Destructor is required when using pimpl idiom with unique_ptr.
@@ -328,19 +337,30 @@ namespace Nextclade {
 
   QcConfig parseQcConfig(const std::string& qcConfigJsonStr);
 
-  std::vector<PcrPrimer> parsePcrPrimersCsv(      //
+  std::vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,       //
-    const std::string& filename,                  //
-    const NucleotideSequence& rootSeq,            //
-    /* inout */ std::vector<std::string>& warnings//
+    const std::string& filename                   //
   );
 
-  class ErrorPcrPrimersCsvParserMissingColumn : public std::runtime_error {
+  std::vector<PcrPrimer> convertPcrPrimerRows(           //
+    const std::vector<PcrPrimerCsvRow>& pcrPrimerCsvRows,//
+    const NucleotideSequence& rootSeq,                   //
+    /* inout */ std::vector<std::string>& warnings       //
+  );
+
+  std::vector<PcrPrimer> parseAndConvertPcrPrimersCsv(//
+    const std::string& pcrPrimersCsvString,           //
+    const std::string& filename,                      //
+    const NucleotideSequence& rootSeq,                //
+    /* inout */ std::vector<std::string>& warnings    //
+  );
+
+  class ErrorPcrPrimersCsvParserMissingColumn : public ErrorFatal {
   public:
     explicit ErrorPcrPrimersCsvParserMissingColumn(const std::string& colName);
   };
 
-  class ErrorPcrPrimersCsvParserComplementUnknownNucleotide : public std::runtime_error {
+  class ErrorPcrPrimersCsvParserComplementUnknownNucleotide : public ErrorFatal {
   public:
     explicit ErrorPcrPrimersCsvParserComplementUnknownNucleotide(const std::string& nuc);
   };
@@ -382,10 +402,26 @@ namespace Nextclade {
     // "Item 22: When using the Pimpl Idiom, define special member functions in the implementation file".
     ~Tree();
     Tree(const Tree& other) = delete;
-    Tree(Tree&& other) noexcept = delete;
     Tree& operator=(const Tree& other) = delete;
-    Tree& operator=(Tree&& other) noexcept = delete;
+    Tree(Tree&& other) noexcept;
+    Tree& operator=(Tree&& other) noexcept;
   };
+
+  GeneMap parseGeneMap(const std::string& geneMapStr);
+
+  std::vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr);
+
+  std::vector<AnalysisResult> parseAnalysisResults(const std::string& analysisResultsStr);
+
+  std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers);
+
+  std::string serializeGeneMap(const GeneMap& geneMap);
+
+  std::string serializeQcConfig(Nextclade::QcConfig& qcConfig);
+
+  std::string serializePeptidesToString(const std::vector<Peptide>& peptides);
+
+  std::string serializeResultToString(const AnalysisResult& result);
 
   std::string serializeResults(const std::vector<AnalysisResult>& results);
 

@@ -38,31 +38,29 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
   const auto gapOpenCloseNuc = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
   const auto gapOpenCloseAA = getGapOpenCloseScoresFlat(ref, options);
 
-  const auto alignment = alignPairwise(query, ref, gapOpenCloseNuc, options.alignment, options.seedNuc);
+  const auto alignmentStatus = alignPairwise(query, ref, gapOpenCloseNuc, options.alignment, options.seedNuc);
+  if (alignmentStatus.status != Status::Success) {
+    throw ErrorNonFatal(*alignmentStatus.error);
+  }
 
   std::vector<PeptideInternal> queryPeptides;
   std::vector<PeptideInternal> refPeptides;
   std::vector<std::string> warnings;
   if (!geneMap.empty()) {
-    try {
-      auto peptidesInternal = translateGenes(alignment.query, alignment.ref, geneMap, gapOpenCloseAA, options);
-      concat_move(peptidesInternal.queryPeptides, queryPeptides);
-      concat_move(peptidesInternal.refPeptides, refPeptides);
-      concat_move(peptidesInternal.warnings, warnings);
-    } catch (const std::exception& e) {
-      // Errors in translation should not cause sequence alignment failure.
-      // Gather and report as warnings instead.
-      warnings.emplace_back(e.what());
-    }
+    auto peptidesInternal =
+      translateGenes(alignmentStatus.result->query, alignmentStatus.result->ref, geneMap, gapOpenCloseAA, options);
+    concat_move(peptidesInternal.queryPeptides, queryPeptides);
+    concat_move(peptidesInternal.refPeptides, refPeptides);
+    concat_move(peptidesInternal.warnings, warnings);
   }
 
-  const auto stripped = stripInsertions(alignment.ref, alignment.query);
+  const auto stripped = stripInsertions(alignmentStatus.result->ref, alignmentStatus.result->query);
   const auto refStripped = removeGaps(ref);
 
   return NextalignResultInternal{
     .query = stripped.queryStripped,
     .ref = refStripped,
-    .alignmentScore = alignment.alignmentScore,
+    .alignmentScore = alignmentStatus.result->alignmentScore,
     .refPeptides = refPeptides,
     .queryPeptides = queryPeptides,
     .insertions = stripped.insertions,

@@ -9,6 +9,35 @@
 #include <string_view>
 #include <vector>
 
+
+/**
+ * Catching exceptions in WebAssembly requires enabling it in Emscripten
+ * explicitly and leads to a significant performance penalty. In order to
+ * avoid that, we use status codes in the portion of the code
+ * which was previously throwing and catching exceptions.
+ */
+enum class Status : int {
+  Success = 0,
+  Error = 1,
+};
+
+
+class Error : public std::runtime_error {
+public:
+  explicit Error(const std::string& message) : std::runtime_error(message) {}
+};
+
+class ErrorFatal : public Error {
+public:
+  explicit ErrorFatal(const std::string& message) : Error(message) {}
+};
+
+class ErrorNonFatal : public Error {
+public:
+  explicit ErrorNonFatal(const std::string& message) : Error(message) {}
+};
+
+
 template<typename Letter>
 using Sequence = std::basic_string<Letter>;
 

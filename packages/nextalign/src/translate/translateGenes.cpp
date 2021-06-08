@@ -18,16 +18,6 @@
 #include "utils/contract.h"
 
 
-class ErrorGeneMapGeneNotFound : std::runtime_error {
-  static std::string formatError(const std::string& geneName) {
-    return fmt::format("Error: gene '{:s}' not found in gene map", geneName);
-  }
-
-public:
-  explicit ErrorGeneMapGeneNotFound(const std::string& geneName) : std::runtime_error(formatError(geneName)) {}
-};
-
-
 PeptidesInternal translateGenes(         //
   const NucleotideSequence& query,       //
   const NucleotideSequence& ref,         //
@@ -54,47 +44,58 @@ PeptidesInternal translateGenes(         //
 
   // For each gene in the requested subset
   for (const auto& [geneName, _] : geneMap) {
-    try {
-
-      const auto& found = geneMap.find(geneName);
-      if (found == geneMap.end()) {
-        throw ErrorGeneMapGeneNotFound(geneName);
-      }
-
-      const auto& gene = found->second;
-
-      // TODO: can be done once during initialization
-      const auto& refGene = extractGeneQuery(ref, gene, coordMap);
-      auto refPeptide = translate(refGene);
-
-      const auto& queryGene = extractGeneQuery(query, gene, coordMap);
-      const auto queryPeptide = translate(queryGene);
-
-      const auto geneAlignment =
-        alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
-      auto stripped = stripInsertions(geneAlignment.ref, geneAlignment.query);
-
-
-      queryPeptides.emplace_back(PeptideInternal{
-        .name = geneName,                           //
-        .seq = std::move(stripped.queryStripped),   //
-        .insertions = std::move(stripped.insertions)//
-      });
-
-      refPeptides.emplace_back(PeptideInternal{
-        .name = geneName,            //
-        .seq = std::move(refPeptide),//
-        .insertions = {}             //
-      });
-
-    } catch (const std::exception& e) {
-      // Error in one gene should not cause the failure of the entire translation step.
-      // Gather and report as warnings instead.
+    const auto& found = geneMap.find(geneName);
+    if (found == geneMap.end()) {
       warnings.push_back(
-        fmt::format("When processing gene \"{:s}\": {:>16s}. Note that this gene will not be included in the results "
-                    "of the sequence",
-          geneName, e.what()));
+        fmt::format("When processing gene \"{:s}\": "
+                    "Gene \"{}\" was not found in the gene map. "
+                    "Note that this gene will not be included in the results "
+                    "of the sequence.",
+          geneName, geneName));
+      continue;
     }
+
+    const auto& gene = found->second;
+
+    // TODO: can be done once during initialization
+    const auto& extractRefGeneStatus = extractGeneQuery(ref, gene, coordMap);
+    if (extractRefGeneStatus.status != Status::Success) {
+      warnings.push_back(*extractRefGeneStatus.error);
+    }
+
+
+    const auto& extractQueryGeneStatus = extractGeneQuery(query, gene, coordMap);
+    if (extractQueryGeneStatus.status != Status::Success) {
+      warnings.push_back(*extractQueryGeneStatus.error);
+    }
+
+    auto refPeptide = translate(*extractRefGeneStatus.result);
+    const auto queryPeptide = translate(*extractQueryGeneStatus.result);
+    const auto geneAlignmentStatus =
+      alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
+
+    if (geneAlignmentStatus.status != Status::Success) {
+      warnings.push_back(
+        fmt::format("When processing gene \"{:s}\": {:>16s}. "
+                    "Note that this gene will not be included in the results "
+                    "of the sequence.",
+          geneName, *geneAlignmentStatus.error));
+      continue;
+    }
+
+    auto stripped = stripInsertions(geneAlignmentStatus.result->ref, geneAlignmentStatus.result->query);
+
+    queryPeptides.emplace_back(PeptideInternal{
+      .name = geneName,                           //
+      .seq = std::move(stripped.queryStripped),   //
+      .insertions = std::move(stripped.insertions)//
+    });
+
+    refPeptides.emplace_back(PeptideInternal{
+      .name = geneName,            //
+      .seq = std::move(refPeptide),//
+      .insertions = {}             //
+    });
   }
 
   return PeptidesInternal{
