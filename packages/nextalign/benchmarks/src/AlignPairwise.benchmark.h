@@ -42,7 +42,7 @@ protected:
 
 BENCHMARK_DEFINE_F(AlignPairwiseAverageBench, Average)(benchmark::State& st) {
   const auto n = NUM_SEQUENCES_AVG;
-  NucleotideAlignmentResult aln;
+  NucleotideAlignmentStatus aln;
   st.SetComplexityN(totalNucs);
 
   for (const auto _ : st) {
