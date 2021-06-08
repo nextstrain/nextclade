@@ -140,6 +140,10 @@ export const TableRowError = styled(TableRow)<{ even?: boolean }>`
   color: #962d26;
 `
 
+export const ButtonHelpStyled = styled(ButtonHelp)`
+  display: block;
+`
+
 const highlightRowsWithIssues = true
 
 export interface TableRowDatum extends SequenceAnalysisState {
@@ -375,9 +379,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('ID')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-seq-id">
+            <ButtonHelpStyled identifier="btn-help-col-seq-id">
               <HelpTipsColumnId />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
@@ -385,9 +389,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Sequence name')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-seq-name">
+            <ButtonHelpStyled identifier="btn-help-col-seq-name">
               <HelpTipsColumnSeqName />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
@@ -395,9 +399,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('QC')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-qc">
+            <ButtonHelpStyled identifier="btn-help-col-qc">
               <HelpTipsColumnQC />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
@@ -405,9 +409,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Clade')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-clade" wide>
+            <ButtonHelpStyled identifier="btn-help-col-clade" wide>
               <HelpTipsColumnClade />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
@@ -415,9 +419,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Mut.')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-mut">
+            <ButtonHelpStyled identifier="btn-help-col-mut">
               <HelpTipsColumnMut />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.nonACGTN} grow={0} shrink={0}>
@@ -425,11 +429,11 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('non-ACGTN')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-nonacgtn">
+            <ButtonHelpStyled identifier="btn-help-col-nonacgtn">
               <div className="d-flex w-100">
                 <HelpTipsColumnNonAcgtn />
               </div>
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.ns} grow={0} shrink={0}>
@@ -437,9 +441,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Ns')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-missing">
+            <ButtonHelpStyled identifier="btn-help-col-missing">
               <HelpTipsColumnMissing />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.gaps} grow={0} shrink={0}>
@@ -447,18 +451,18 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Gaps')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-gaps">
+            <ButtonHelpStyled identifier="btn-help-col-gaps">
               <HelpTipsColumnGaps />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell grow={20}>
             <TableHeaderCellContent>
               <SequenceSelector viewedGene={viewedGene} setViewedGene={setViewedGene} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-seq-view">
+            <ButtonHelpStyled identifier="btn-help-col-seq-view" tooltipWidth="600px">
               <HelpTipsColumnSeqView />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
         </TableHeaderRow>
 

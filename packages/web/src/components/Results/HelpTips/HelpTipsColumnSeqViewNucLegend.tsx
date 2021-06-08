@@ -1,16 +1,17 @@
 import React from 'react'
 import styled from 'styled-components'
+import { Col, Row } from 'reactstrap'
 
-import { NUCLEOTIDE_COLORS } from '../../../helpers/getNucleotideColor'
+import { NUCLEOTIDE_COLORS } from 'src/helpers/getNucleotideColor'
 
 const SIZE = 20
 
-export const Legend = styled.div`
+export const Legend = styled(Row)`
   width: 100%;
   margin-bottom: 10px;
 `
 
-export const LegendItem = styled.div`
+export const LegendItem = styled(Col)`
   display: flex;
 `
 
@@ -23,7 +24,7 @@ export const LegendColorBox = styled.span`
   margin-left: 10px;
 `
 
-export function HelpTipsColumnSeqViewLegend() {
+export function HelpTipsColumnSeqViewNucLegend() {
   return (
     <Legend>
       {Object.entries(NUCLEOTIDE_COLORS).map(([nuc, color]) => (

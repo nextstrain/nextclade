@@ -8,22 +8,25 @@ const PopoverBody = styled(ReactstrapPopoverBody)`
   width: 100%;
 `
 
-export const Popover = styled(ReactstrapPopover)<PopoverProps & { $wide?: boolean; $fullWidth?: boolean }>`
+export const Popover = styled(ReactstrapPopover)<
+  PopoverProps & { $wide?: boolean; $fullWidth?: boolean; $width: string }
+>`
   & .popover {
-    max-width: ${(props) => props.$fullWidth && '100%'};
+    max-width: ${(props) => (props.$width ? props.$width : props.$fullWidth && '100%')};
   }
 
   & .popover.show.bs-popover-auto {
-    min-width: ${(props) => props.$wide && '350px'};
+    min-width: ${(props) => (props.$width ? props.$width : props.$wide && '350px')};
   }
 `
 
 export interface TooltipProps extends PropsWithChildren<PopoverProps> {
   wide?: boolean
   fullWidth?: boolean
+  tooltipWidth?: string
 }
 
-export function Tooltip({ children, placement, hideArrow, wide, fullWidth, ...restProps }: TooltipProps) {
+export function Tooltip({ children, placement, hideArrow, wide, fullWidth, tooltipWidth, ...restProps }: TooltipProps) {
   return (
     <Popover
       placement={placement ?? 'auto'}
@@ -32,6 +35,7 @@ export function Tooltip({ children, placement, hideArrow, wide, fullWidth, ...re
       fade={false}
       $wide={wide}
       $fullWidth={fullWidth}
+      $width={tooltipWidth}
       {...restProps}
     >
       <PopoverBody>{children}</PopoverBody>

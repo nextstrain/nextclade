@@ -18,10 +18,18 @@ export const ButtonHelpStyle = styled(ButtonTransparent)`
 export interface ButtonHelpProps extends PropsWithChildren<ButtonProps> {
   identifier: string
   wide?: boolean
+  tooltipWidth?: string
   tooltipPlacement?: PopoverProps['placement']
 }
 
-export function ButtonHelpSimple({ identifier, children, wide, tooltipPlacement = 'bottom-end' }: ButtonHelpProps) {
+export function ButtonHelpSimple({
+  identifier,
+  children,
+  wide,
+  tooltipWidth,
+  tooltipPlacement = 'bottom-end',
+  ...restProps
+}: ButtonHelpProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
   return (
@@ -29,10 +37,17 @@ export function ButtonHelpSimple({ identifier, children, wide, tooltipPlacement 
       id={identifier}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
+      {...restProps}
     >
       {'?'}
       {children && (
-        <Tooltip isOpen={showTooltip} target={identifier} placement={tooltipPlacement} wide={wide}>
+        <Tooltip
+          isOpen={showTooltip}
+          target={identifier}
+          placement={tooltipPlacement}
+          wide={wide}
+          $width={tooltipWidth}
+        >
           {children}
         </Tooltip>
       )}
@@ -40,7 +55,14 @@ export function ButtonHelpSimple({ identifier, children, wide, tooltipPlacement 
   )
 }
 
-export function ButtonHelp({ identifier, children, wide, tooltipPlacement = 'bottom-end' }: ButtonHelpProps) {
+export function ButtonHelp({
+  identifier,
+  children,
+  wide,
+  tooltipWidth,
+  tooltipPlacement = 'bottom-end',
+  ...restProps
+}: ButtonHelpProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
   return (
@@ -48,10 +70,17 @@ export function ButtonHelp({ identifier, children, wide, tooltipPlacement = 'bot
       id={identifier}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
+      {...restProps}
     >
       {'?'}
       {children && (
-        <Tooltip isOpen={showTooltip} target={identifier} placement={tooltipPlacement} wide={wide}>
+        <Tooltip
+          isOpen={showTooltip}
+          target={identifier}
+          placement={tooltipPlacement}
+          wide={wide}
+          $width={tooltipWidth}
+        >
           {children}
         </Tooltip>
       )}
