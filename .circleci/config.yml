@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  aws-s3: circleci/aws-s3@2.0.0
-
 release_only: &release_only
   filters:
     branches:
