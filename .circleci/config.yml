@@ -259,8 +259,8 @@ workflows:
   version: 2
   build:
     jobs:
-      - Prepare-Builder-Container:
-          <<: *major_branches_only
+#      - Prepare-Builder-Container:
+#          <<: *major_branches_only
 
       - Build-Web:
           context: nextclade_web_<< pipeline.git.branch >>
@@ -270,8 +270,8 @@ workflows:
 
       - Build-Linux-x86_64:
           <<: *release_only
-          requires:
-            - Prepare-Builder-Container
+#          requires:
+#            - Prepare-Builder-Container
 
       - Build-MacOS:
           matrix:
