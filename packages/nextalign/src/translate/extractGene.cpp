@@ -122,19 +122,16 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
 
 
   auto result = NucleotideSequence(details::substr(query, start, length));
-  const auto resultLengthPreStrip = safe_cast<int>(result.size());
-
   stripGeneInPlace(result);
   const auto resultLength = safe_cast<int>(result.size());
 
   if (resultLength == 0) {
     auto error = fmt::format(                                                                              //
-      "When extracting gene \"{:s}\": The gene ended up being empty after being stripped from insertions. "//
-      "Before stripping insertions this gene had length {:d}. "                                            //
-      "The gene map contained the following information: "                                                 //
+      "When extracting gene \"{:s}\": The gene ended up being empty after gap stripping. "                 //
+      "Gene coordinates: "                                                                                 //
       "start: {:d}, end: {:d}, length: {:d}"                                                               //
       ,
-      gene.geneName, resultLengthPreStrip, gene.start, gene.end, gene.length);
+      gene.geneName, gene.start, gene.end, gene.length);
 
     return ExtractGeneStatus{
       .status = Status::Error,
@@ -146,12 +143,11 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
   if (resultLength % 3 != 0) {
     auto error = fmt::format(                                                                                //
       "When extracting gene \"{:s}\": Genes are expected to have length that is a "                          //
-      "multiple of 3, but the extracted Gene \"{:s}\" after being stripped from insertions has length {:d}. "//
-      "Before stripping insertions this gene had length {:d}. "                                              //
-      "The gene map contained the following information: "                                                   //
+      "multiple of 3, but the extracted sequence has length {:d} after gap stripping. "                      //
+      "Gene coordinates: "                                                                                   //
       "start: {:d}, end: {:d}, length: {:d}"                                                                 //
       ,
-      gene.geneName, gene.geneName, resultLength, resultLengthPreStrip, gene.start, gene.end, gene.length);
+      gene.geneName, resultLength, gene.start, gene.end, gene.length);
 
     return ExtractGeneStatus{
       .status = Status::Error,
