@@ -146,7 +146,7 @@ jobs:
               --cache-control "no-cache" \
               --metadata-directive REPLACE \
                 $1 \
-                s3://${AWS_S3_BUCKET}/${1%.html}' \
+                s3://${AWS_S3_BUCKET}/${1}' \
             - "{}" \;
 
       - run:
