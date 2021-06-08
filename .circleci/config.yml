@@ -44,7 +44,7 @@ jobs:
     resource_class: medium
 
     docker:
-      - image: nextstrain/nextclade_builder
+      - image: nextstrain/nextclade_builder:web
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASS
