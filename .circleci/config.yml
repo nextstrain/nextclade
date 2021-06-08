@@ -306,15 +306,15 @@ workflows:
 #          requires:
 #            - Update-Builder-Container
 
-      - Build-Linux-x86_64:
-          <<: *release_only
-#          requires:
-#            - Update-Builder-Container
-
-      - Build-MacOS:
-          matrix:
-            parameters:
-              macos_arch:
-                - x86_64
-                - arm64
-          <<: *release_only
+#      - Build-Linux-x86_64:
+#          <<: *release_only
+##          requires:
+##            - Update-Builder-Container
+#
+#      - Build-MacOS:
+#          matrix:
+#            parameters:
+#              macos_arch:
+#                - x86_64
+#                - arm64
+#          <<: *release_only
