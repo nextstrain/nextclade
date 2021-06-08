@@ -41,17 +41,11 @@ jobs:
               CHECKSUM_NEW="$(cat checksum.current.txt)"
               if [ "${CHECKSUM_OLD}" == "${CHECKSUM_NEW}" ]; then
                 echo "Checksum did not change. Halting the job."
-                circleci step halt
+                circleci-agent step halt
               fi
             fi
             mv checksum.current.txt checksum.previous.txt
             echo "Checksum changed. Continuing the job."
-
-      - save_cache:
-          name: 'Save new checksum.txt to cache'
-          key: cache-nextclade-builder-container-v1-cache-{{ checksum "checksum.previous.txt" }}
-          paths:
-            - checksum.previous.txt
 
       - run:
           name: 'Build "Builder" container image'
@@ -70,6 +64,12 @@ jobs:
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             ./scripts/docker_builder_image_push.sh "builder"
             ./scripts/docker_builder_image_push.sh "web"
+
+      - save_cache:
+          name: 'Save new checksum.txt to cache'
+          key: cache-nextclade-builder-container-v1-cache-{{ checksum "checksum.previous.txt" }}
+          paths:
+            - checksum.previous.txt
 
   Build-Web:
     resource_class: medium
