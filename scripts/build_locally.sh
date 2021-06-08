@@ -222,6 +222,7 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
     -s ALLOW_MEMORY_GROWTH=1 \
     -s MALLOC=emmalloc \
     -s ENVIRONMENT=worker \
+    -s DYNAMIC_EXECUTION=0 \
   "
 
   #  -fexceptions \
