@@ -84,14 +84,25 @@ jobs:
       - checkout
 
       - restore_cache:
-          name: 'Restore build cache'
+          name: 'Restore WebAssembly module build cache'
           keys:
-            - cache-nextclade-web-v2-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}-{{ checksum "packages/web/yarn.lock" }}
+            - cache-nextclade-web-wasm-v1-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
 
       - run:
           name: 'Build WebAssembly module'
           command: |
             make prod-wasm-nowatch
+
+      - save_cache:
+          name: 'Save WebAssembly module build cache'
+          key: cache-nextclade-web-wasm-v1-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+          paths:
+            - .cache
+
+      - restore_cache:
+          name: 'Restore web application build cache'
+          keys:
+            - cache-nextclade-web-js-v1-cache-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
 
       - run:
           name: 'Build web application'
@@ -100,10 +111,9 @@ jobs:
             make prod-web-nowatch
 
       - save_cache:
-          name: 'Save build cache'
-          key: cache-nextclade-web-v2-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}-{{ checksum "packages/web/yarn.lock" }}
+          name: 'Save web application build cache'
+          key: cache-nextclade-web-js-v1-cache-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
           paths:
-            - .cache
             - packages/web/.cache
             - packages/web/.build/production/tmp/cache
 
