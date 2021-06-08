@@ -81,6 +81,9 @@ OSX_MIN_VER=${OSX_MIN_VER:=10.12}
 # Build type (default: Release)
 CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
 
+# Whether to produce Webassembly with Emscripten
+export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
+
 # Debug wasm build is too slow, always do optimized build
 if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
   CMAKE_BUILD_TYPE="Release"
@@ -116,9 +119,6 @@ USE_LIBCPP="${USE_LIBCPP:=0}"
 USE_MINGW="${USE_MINGW:=0}"
 
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
-
-# Whether to produce Webassembly with Emscripten
-export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
 
 NEXTALIGN_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
 NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
@@ -197,9 +197,12 @@ EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
 EMCMAKE=""
 EMMAKE=""
 CONAN_COMPILER_SETTINGS=""
+CONANFILE="${PROJECT_ROOT_DIR}/conanfile.txt"
 NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=""
 BUILD_SUFFIX=""
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  CONANFILE="${PROJECT_ROOT_DIR}/conanfile.wasm.txt"
+
   CONAN_COMPILER_SETTINGS="\
     --profile="${PROJECT_ROOT_DIR}/config/conan/conan_profile_emscripten_wasm.txt" \
     -s compiler=clang \
@@ -475,7 +478,7 @@ mkdir -p "${BUILD_DIR}"
 pushd "${BUILD_DIR}" > /dev/null
 
   print 56 "Install dependencies";
-  conan install "${PROJECT_ROOT_DIR}" \
+  conan install "${CONANFILE}" \
     -s build_type="${CONAN_BUILD_TYPE}" \
     ${CONAN_COMPILER_SETTINGS} \
     ${CONAN_STATIC_BUILD_FLAGS} \
