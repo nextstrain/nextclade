@@ -458,7 +458,7 @@ conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-co
 # At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
 # This will build a local conan package and put it into local conan cache, if not present yet.
 # On `conan install` step this local package will be used, instead of querying conan remote servers.
-if [ "${NEXTCLADE_BUILD_WASM}" == "1" ] && [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
+if [ "${NEXTCLADE_BUILD_WASM}" != "1" ] && [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
   # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
   print 56 "Build Intel TBB";
   pushd "3rdparty/tbb" > /dev/null
