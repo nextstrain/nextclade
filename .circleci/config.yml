@@ -120,24 +120,24 @@ jobs:
             - packages/web/.build/production/tmp/cache
 
       - run:
-          name: 'Clear AWS S3 bucket ("${CIRCLE_BRANCH}")'
+          name: 'Clear AWS S3 bucket (branch << pipeline.git.branch >>)'
           command: |
             aws s3 rm s3://${AWS_S3_BUCKET} --recursive
 
       - run:
-          name: 'Deploy web bundle to AWS S3 ("${CIRCLE_BRANCH}")'
+          name: 'Deploy web bundle to AWS S3 (branch << pipeline.git.branch >>)'
           command: |
             cd packages/web/.build/production/web
             aws s3 cp --recursive --cache-control "max-age=2592000, public" "_next/" "s3://${AWS_S3_BUCKET}/_next/"
 
       - run:
-          name: 'Deploy web root to AWS S3 ("${CIRCLE_BRANCH}")'
+          name: 'Deploy web root to AWS S3 (branch << pipeline.git.branch >>)'
           command: |
             cd packages/web/.build/production/web
             aws s3 cp --recursive --exclude "_next" --exclude "*.html" "./" "s3://${AWS_S3_BUCKET}/"
 
       - run:
-          name: 'Deploy html files to AWS S3, removing extension ("${CIRCLE_BRANCH}")'
+          name: 'Deploy html files to AWS S3 (branch << pipeline.git.branch >>)'
           command: |
             cd packages/web/.build/production/web
             find * -type f -name "*.html" -exec bash -c '\
