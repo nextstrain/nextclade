@@ -21,7 +21,7 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
-TARGET="builder"
+TARGET="${1:-builder}"
 
 DOCKERHUB_ORG="nextstrain"
 DOCKERHUB_PROJECT="nextclade_builder"
