@@ -13,7 +13,7 @@ major_branches_only: &major_branches_only
 
 
 jobs:
-  Update-Builder-container:
+  Update-Builder-Container:
     resource_class: medium
 
     machine:
@@ -36,18 +36,22 @@ jobs:
           name: 'Compare checksum.txt to cached one, halt if no changes'
           command: |
             set -x
-            CHECKSUM_OLD="$(cat checksum.previous.txt)"
-            CHECKSUM_NEW="$(cat checksum.current.txt)"
-            if [ "${CHECKSUM_OLD}" == "${CHECKSUM_NEW}" ]; then
-              circleci step halt
+            if [ -f "checksum.previous.txt" ]; then
+              CHECKSUM_OLD="$(cat checksum.previous.txt)"
+              CHECKSUM_NEW="$(cat checksum.current.txt)"
+              if [ "${CHECKSUM_OLD}" == "${CHECKSUM_NEW}" ]; then
+                echo "Checksum did not change. Halting the job."
+                circleci step halt
+              fi
             fi
             mv checksum.current.txt checksum.previous.txt
+            echo "Checksum changed. Continuing the job."
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
           key: cache-nextclade-builder-container-v1-cache-{{ checksum "checksum.previous.txt" }}
           paths:
-            - checksum.txt
+            - checksum.previous.txt
 
       - run:
           name: 'Build "Builder" container image'
@@ -275,19 +279,19 @@ workflows:
   version: 2
   build:
     jobs:
-      - Update-Builder-container:
+      - Update-Builder-Container:
           <<: *major_branches_only
 
       - Build-Web:
           context: nextclade_web_<< pipeline.git.branch >>
           <<: *major_branches_only
           requires:
-            - Update-Builder-container
+            - Update-Builder-Container
 
       - Build-Linux-x86_64:
           <<: *release_only
           requires:
-            - Update-Builder-container
+            - Update-Builder-Container
 
       - Build-MacOS:
           matrix:
