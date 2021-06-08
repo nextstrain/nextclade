@@ -77,7 +77,8 @@ dev-web:
 prod-web:
 	cd packages/web && yarn prod:watch
 
-
+prod-web-nowatch:
+	cd packages/web && yarn prod:build
 
 # Docker-based builds
 
@@ -94,7 +95,7 @@ docker-builder-push:
 # Builds and runs development container
 docker-dev:
 	./scripts/docker_builder_image_build.sh "developer"
-	./scripts/docker_builder_image_run.sh "developer"
+	./scripts/docker_builder_image_run.sh "developer" "make dev"
 
 # Builds and runs development container for wasm
 docker-dev-wasm:
@@ -105,14 +106,22 @@ docker-builder:
 	./scripts/docker_builder_image_build.sh "builder"
 
 docker-builder-run:
-	./scripts/docker_builder_image_run.sh "builder"
+	./scripts/docker_builder_image_run.sh "builder" "make prod"
 
-docker-builder-wasm-run:
-	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "builder"
+docker-builder-run-wasm:
+	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "builder" "make prod"
+
+docker-builder-web:
+	./scripts/docker_builder_image_build.sh "web"
+
+docker-builder-run-web:
+	./scripts/docker_builder_image_run.sh "web" "make prod-web-nowatch"
 
 docker-prod: docker-builder docker-builder-run
 
-docker-prod-wasm: docker-builder docker-builder-wasm-run
+docker-prod-wasm: docker-builder docker-builder-run-wasm
+
+docker-prod-web: docker-builder-web docker-builder-run-wasm docker-builder-run-web
 
 # Checks if attempted release version is valid
 check-release-version:

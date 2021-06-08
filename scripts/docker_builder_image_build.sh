@@ -28,20 +28,22 @@ if [ ${TARGET} == "release" ]; then
 fi
 
 DOCKERHUB_ORG="nextstrain"
-DOCKERHUB_PROJECT="nextalign"
-DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}_${TARGET}"
+DOCKERHUB_PROJECT="nextclade_builder"
+DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}"
 
 COMMIT_HASH=${CIRCLE_SHA1:=$(git rev-parse --short HEAD)}
 
 USER_ID=${UID:=$(id -u)}
 GROUP_ID=${GID:=$(id -g)}
 
+NEXTCLADE_NODE_VERSION="$(cat "${PROJECT_ROOT_DIR}"/.nvmrc)"
+
 docker build -f "${PROJECT_ROOT_DIR}/Dockerfile" \
   --target="${TARGET}" \
   --build-arg UID="${USER_ID}" \
   --build-arg GID="${GROUP_ID}" \
-  --build-arg=NEXTCLADE_EMSDK_DIR="${NEXTCLADE_EMSDK_DIR}" \
   --build-arg=NEXTCLADE_EMSDK_VERSION="${NEXTCLADE_EMSDK_VERSION}" \
-  --tag ${DOCKERHUB_REPO}:latest \
-  --tag ${DOCKERHUB_REPO}:${COMMIT_HASH} \
+  --build-arg=NEXTCLADE_NODE_VERSION="${NEXTCLADE_NODE_VERSION}" \
+  --tag ${DOCKERHUB_REPO}:${TARGET} \
+  --tag ${DOCKERHUB_REPO}:${TARGET}-${COMMIT_HASH} \
   .

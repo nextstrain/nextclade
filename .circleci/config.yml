@@ -1,14 +1,123 @@
 version: 2.1
 
+orbs:
+  aws-s3: circleci/aws-s3@2.0.0
 
-# Reference. Allows to restrict a job to release branch
 release_only: &release_only
   filters:
     branches:
       only: cli-release
 
+major_branches_only: &major_branches_only
+  filters:
+    branches:
+      only: /(ci-wasm)/
 
 jobs:
+  Prepare-Builder-Container:
+    resource_class: medium
+
+    machine:
+      image: ubuntu-2004:202010-01
+
+    steps:
+      - checkout
+
+      - run:
+          name: 'Pull container images'
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/docker_builder_image_pull.sh "builder" || true
+            ./scripts/docker_builder_image_pull.sh "web" || true
+
+      - run:
+          name: 'Build "Builder" container image'
+          command: |
+            ./scripts/docker_builder_image_build.sh "builder"
+
+      - run:
+          name: 'Build "Web" container image'
+          command: |
+            ./scripts/docker_builder_image_build.sh "web"
+
+      - run:
+          name: 'Push container images'
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/docker_builder_image_push.sh "builder"
+            ./scripts/docker_builder_image_push.sh "web"
+
+  Build-Web:
+    resource_class: medium
+
+    machine:
+      image: ubuntu-2004:202010-01
+
+    steps:
+      - checkout
+
+      - run:
+          name: 'Pull container images'
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/docker_builder_image_pull.sh "builder"
+            ./scripts/docker_builder_image_pull.sh "web"
+
+      - restore_cache:
+          name: 'Restore build cache'
+          keys:
+            - cache-nextclade-web-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-{{ checksum "packages/web/yarn.lock" }}
+
+      - run:
+          name: 'Build WebAssembly module'
+          command: |
+            make docker-builder-run-wasm
+
+      - run:
+          name: 'Build web application'
+          command: |
+            make docker-builder-run-web
+
+      - save_cache:
+          name: 'Save build cache'
+          key: cache-nextclade-web-v1-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-{{ checksum "packages/web/yarn.lock" }}
+          paths:
+            - .cache
+            - packages/web/.cache
+            - packages/web/.build/production/tmp/cache
+
+      - run:
+          name: 'Deploy web bundle to AWS S3 ("${CIRCLE_BRANCH}")'
+          command: |
+            cd packages/web/.build/production/web
+            aws s3 cp --recursive --cache-control "max-age=2592000, public" "_next/" "s3://${AWS_S3_BUCKET}/_next/"
+
+      - run:
+          name: 'Deploy web root to AWS S3 ("${CIRCLE_BRANCH}")'
+          command: |
+            cd packages/web/.build/production/web
+            aws s3 cp --recursive --exclude "_next" --exclude "*.html" "./" "s3://${AWS_S3_BUCKET}/"
+
+      - run:
+          name: 'Deploy html files to AWS S3, removing extension ("${CIRCLE_BRANCH}")'
+          command: |
+            cd packages/web/.build/production/web
+            find * -type f -name "*.html" -exec bash -c '\
+            aws s3 cp \
+              --content-type "text/html" \
+              --cache-control "no-cache" \
+              --metadata-directive REPLACE \
+                $1 \
+                s3://${AWS_S3_BUCKET}/${1%.html}' \
+            - "{}" \;
+
+      - run:
+          name: 'Invalidate Cloudfront cache'
+          command: |
+            aws cloudfront create-invalidation \
+              --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
+              --paths "/*"
+
   Build-Linux-x86_64:
     resource_class: medium
 
@@ -150,8 +259,19 @@ workflows:
   version: 2
   build:
     jobs:
+      - Prepare-Builder-Container:
+          <<: *major_branches_only
+
+      - Build-Web:
+          context: nextclade_web_<< pipeline.git.branch >>
+          <<: *major_branches_only
+          requires:
+            - Prepare-Builder-Container
+
       - Build-Linux-x86_64:
           <<: *release_only
+          requires:
+            - Prepare-Builder-Container
 
       - Build-MacOS:
           matrix:
