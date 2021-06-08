@@ -86,7 +86,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextclade-web-v1-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}-{{ checksum "packages/web/yarn.lock" }}
+            - cache-nextclade-web-v2-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}-{{ checksum "packages/web/yarn.lock" }}
 
       - run:
           name: 'Build WebAssembly module'
@@ -100,11 +100,17 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextclade-web-v1-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}-{{ checksum "packages/web/yarn.lock" }}
+          key: cache-nextclade-web-v2-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}-{{ checksum "packages/web/yarn.lock" }}
           paths:
             - .cache
             - packages/web/.cache
             - packages/web/.build/production/tmp/cache
+
+
+      - run:
+          name: 'Clear AWS S3 bucket ("${CIRCLE_BRANCH}")'
+          command: |
+            aws s3 rm s3://${AWS_S3_BUCKET} --recursive
 
       - run:
           name: 'Deploy web bundle to AWS S3 ("${CIRCLE_BRANCH}")'
@@ -132,7 +138,7 @@ jobs:
             - "{}" \;
 
       - run:
-          name: 'Invalidate Cloudfront cache'
+          name: 'Invalidate AWS Cloudfront cache'
           command: |
             aws cloudfront create-invalidation \
               --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
