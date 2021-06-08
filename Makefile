@@ -77,9 +77,11 @@ dev-web:
 	cd packages/web && yarn dev
 
 prod-web:
+	yarn install
 	cd packages/web && yarn prod:watch
 
 prod-web-nowatch:
+	cd packages/web && yarn install --frozen-lockfile
 	cd packages/web && yarn prod:build
 
 # Docker-based builds
