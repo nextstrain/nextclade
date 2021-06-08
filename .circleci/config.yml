@@ -11,7 +11,7 @@ release_only: &release_only
 major_branches_only: &major_branches_only
   filters:
     branches:
-      only: /(ci-wasm)/
+      only: /(ci_wasm)/
 
 jobs:
 #  Prepare-Builder-Container:
