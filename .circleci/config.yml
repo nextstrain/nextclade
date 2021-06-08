@@ -50,18 +50,14 @@ jobs:
   Build-Web:
     resource_class: medium
 
-    machine:
-      image: ubuntu-2004:202010-01
+    docker:
+      - image: nextstrain/nextclade_builder:web
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
 
     steps:
       - checkout
-
-      - run:
-          name: 'Pull container images'
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/docker_builder_image_pull.sh "builder"
-            ./scripts/docker_builder_image_pull.sh "web"
 
       - restore_cache:
           name: 'Restore build cache'
@@ -71,12 +67,12 @@ jobs:
       - run:
           name: 'Build WebAssembly module'
           command: |
-            make docker-builder-run-wasm
+            make prod-wasm
 
       - run:
           name: 'Build web application'
           command: |
-            make docker-builder-run-web
+            make prod-web
 
       - save_cache:
           name: 'Save build cache'
