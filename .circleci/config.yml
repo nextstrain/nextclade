@@ -36,7 +36,7 @@ jobs:
           name: 'Compare checksum.txt to cached one, halt if no changes'
           command: |
             set -x
-            cat Dockerfile scripts/*.sh .nvmrc .dockerignore .gitignore Makefile .circleci/* | md5sum > checksum.new.txt
+            cat Dockerfile scripts/install*.sh .nvmrc .dockerignore .gitignore Makefile .circleci/* | md5sum > checksum.new.txt
             CHECKSUM_OLD=$(cat checksum.txt)
             CHECKSUM_NEW=$(cat checksum.new.txt)
             if [ "${CHECKSUM_OLD}" == "${CHECKSUM_NEW}" ]; then
