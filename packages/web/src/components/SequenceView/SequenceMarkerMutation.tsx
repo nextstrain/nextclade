@@ -99,7 +99,7 @@ function SequenceMarkerMutationDisconnected({
             {totalAaChanges > 0 && (
               <tr>
                 <td colSpan={2}>
-                  <h6 className="mt-1">{t('Aminoacid changes nearby:')}</h6>
+                  <h6 className="mt-1">{t('Affected codons:')}</h6>
                 </td>
               </tr>
             )}
