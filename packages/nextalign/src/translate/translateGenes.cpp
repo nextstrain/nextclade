@@ -61,12 +61,14 @@ PeptidesInternal translateGenes(         //
     const auto& extractRefGeneStatus = extractGeneQuery(ref, gene, coordMap);
     if (extractRefGeneStatus.status != Status::Success) {
       warnings.push_back(*extractRefGeneStatus.error);
+      continue;
     }
 
 
     const auto& extractQueryGeneStatus = extractGeneQuery(query, gene, coordMap);
     if (extractQueryGeneStatus.status != Status::Success) {
       warnings.push_back(*extractQueryGeneStatus.error);
+      continue;
     }
 
     auto refPeptide = translate(*extractRefGeneStatus.result);
