@@ -11,6 +11,8 @@ import type { Gene } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
+import { formatMutation } from 'src/helpers/formatMutation'
+import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import type { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
@@ -69,10 +71,12 @@ function PeptideMarkerMutationGroupDisconnected({
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { gene, changes, codonAaRange } = group
+  const { gene, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
   const id = getSafeId('aa-mutation-group-marker', { seqName, gene, begin: codonAaRange.begin })
   const x = codonAaRange.begin * pixelsPerAa
   const width = changes.length * Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
+
+  const totalNucChanges = nucSubstitutions.length + nucDeletions.length
 
   return (
     <g id={id}>
@@ -106,6 +110,32 @@ function PeptideMarkerMutationGroupDisconnected({
                       <td>
                         <AminoacidMutationBadge mutation={change} geneMap={geneMap ?? []} />
                       </td>
+                    </tr>
+                  ))}
+                </>
+
+                {totalNucChanges > 0 && (
+                  <tr>
+                    <td colSpan={2}>
+                      <h6 className="mt-3">{t('Nucleotide changes nearby ({{count}})', { count: totalNucChanges })}</h6>
+                    </td>
+                  </tr>
+                )}
+
+                <>
+                  {nucSubstitutions.map((mut) => (
+                    <tr key={mut.pos}>
+                      <td>{t('Substitution')}</td>
+                      <td>{formatMutation(mut)}</td>
+                    </tr>
+                  ))}
+                </>
+
+                <>
+                  {nucDeletions.map((del) => (
+                    <tr key={del.start}>
+                      <td>{t('Deletion')}</td>
+                      <td>{formatRange(del.start, del.start + del.length)}</td>
                     </tr>
                   ))}
                 </>

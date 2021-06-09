@@ -1,6 +1,5 @@
 import React from 'react'
 
-import type { DeepReadonly } from 'ts-essentials'
 import { useTranslation } from 'react-i18next'
 
 import type { AminoacidSubstitution } from 'src/algorithms/types'
@@ -10,7 +9,7 @@ import { truncateList } from 'src/components/Results/truncateList'
 const LIST_OF_AA_MUTATIONS_MAX_ITEMS = 15 as const
 
 export interface ListOfAminoacidChangesProps {
-  readonly aminoacidSubstitutions: DeepReadonly<AminoacidSubstitution[]>
+  readonly aminoacidSubstitutions: AminoacidSubstitution[]
 }
 
 export function ListOfAminoacidSubstitutions({ aminoacidSubstitutions }: ListOfAminoacidChangesProps) {

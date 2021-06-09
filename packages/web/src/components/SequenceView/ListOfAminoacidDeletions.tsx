@@ -1,6 +1,5 @@
 import React from 'react'
 
-import type { DeepReadonly } from 'ts-essentials'
 import { useTranslation } from 'react-i18next'
 
 import type { AminoacidDeletion } from 'src/algorithms/types'
@@ -10,7 +9,7 @@ import { truncateList } from 'src/components/Results/truncateList'
 const LIST_OF_AA_DELETIONS_MAX_ITEMS = 15 as const
 
 export interface ListOfAminoacidChangesProps {
-  readonly aminoacidDeletions: DeepReadonly<AminoacidDeletion[]>
+  readonly aminoacidDeletions: AminoacidDeletion[]
 }
 
 export function ListOfAminoacidDeletions({ aminoacidDeletions }: ListOfAminoacidChangesProps) {
