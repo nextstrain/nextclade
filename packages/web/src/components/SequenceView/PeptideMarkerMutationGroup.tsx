@@ -114,7 +114,7 @@ function PeptideMarkerMutationGroupDisconnected({
                   <td colSpan={2}>
                     <Row noGutters className="mt-3">
                       <Col>
-                        <h6>{'Context*'}</h6>
+                        <h6>{'Context'}</h6>
                       </Col>
                     </Row>
 
