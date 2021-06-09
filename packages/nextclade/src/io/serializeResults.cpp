@@ -80,6 +80,8 @@ namespace Nextclade {
       auto j = json::object();
       j.emplace("start", del.start);
       j.emplace("length", del.length);
+      j.emplace("aaSubstitutions", serializeArray(del.aaSubstitutions, serializeAminoacidMutation));
+      j.emplace("aaDeletions", serializeArray(del.aaDeletions, serializeAminoacidDeletion));
       return j;
     }
 

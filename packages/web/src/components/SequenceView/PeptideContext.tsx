@@ -121,7 +121,7 @@ export function PeptideContextAminoacid({ aa }: PeptideContextAminoacidProps) {
       return { color, background }
     }
     return {}
-  }, [aa])
+  }, [aa, theme])
 
   return (
     <TdAa colSpan={3} $color={color} $background={background}>
