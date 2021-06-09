@@ -134,13 +134,15 @@ namespace Nextclade {
   };
 
   struct AminoacidSubstitution;
+  struct AminoacidDeletion;
 
   struct NucleotideSubstitution {
     Nucleotide refNuc;
     int pos;
     Nucleotide queryNuc;
     std::vector<PcrPrimer> pcrPrimersChanged;
-    std::vector<AminoacidSubstitution> aaSubstitutions;// FIXME: unused and should be removed
+    std::vector<AminoacidSubstitution> aaSubstitutions;
+    std::vector<AminoacidDeletion> aaDeletions;
   };
 
   inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
@@ -155,13 +157,11 @@ namespace Nextclade {
     );
   }
 
-  struct AminoacidDeletion;
-
   struct NucleotideDeletion {
     int start;
     int length;
-    std::vector<AminoacidSubstitution> aaSubstitutions;// FIXME: unused and should be removed
-    std::vector<AminoacidDeletion> aaDeletions;        // FIXME: unused and should be removed
+    std::vector<AminoacidSubstitution> aaSubstitutions;
+    std::vector<AminoacidDeletion> aaDeletions;
   };
 
   inline bool operator==(const NucleotideDeletion& lhs, const NucleotideDeletion& rhs) {
@@ -195,6 +195,8 @@ namespace Nextclade {
     NucleotideSequence refContext;
     NucleotideSequence queryContext;
     Range contextNucRange;
+    std::vector<NucleotideSubstitution> nucSubstitutions;
+    std::vector<NucleotideDeletion> nucDeletions;
   };
 
   inline bool operator==(const AminoacidSubstitution& left, const AminoacidSubstitution& right) {
@@ -225,6 +227,8 @@ namespace Nextclade {
     NucleotideSequence refContext;
     NucleotideSequence queryContext;
     Range contextNucRange;
+    std::vector<NucleotideSubstitution> nucSubstitutions;
+    std::vector<NucleotideDeletion> nucDeletions;
   };
 
   inline bool operator==(const AminoacidDeletion& left, const AminoacidDeletion& right) {
@@ -268,11 +272,16 @@ namespace Nextclade {
     std::vector<NucleotideSubstitution> substitutions;
   };
 
-  struct NucMutationsReport {
+  struct NucleotideChangesReport {
     std::vector<NucleotideSubstitution> substitutions;
     std::vector<NucleotideDeletion> deletions;
     int alignmentStart;
     int alignmentEnd;
+  };
+
+  struct AminoacidChangesReport {
+    std::vector<AminoacidSubstitution> aaSubstitutions;
+    std::vector<AminoacidDeletion> aaDeletions;
   };
 
   struct AnalysisResult {

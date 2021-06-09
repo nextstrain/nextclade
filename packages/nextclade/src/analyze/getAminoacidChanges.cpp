@@ -124,7 +124,7 @@ namespace Nextclade {
    *
    * NOTE: Nucleotide sequences and peptides are required to be stripped from insertions
    */
-  GetAminoacidChangesResult getAminoacidChanges(      //
+  AminoacidChangesReport getAminoacidChanges(         //
     const NucleotideSequence& ref,                    //
     const NucleotideSequence& query,                  //
     const std::vector<PeptideInternal>& refPeptides,  //

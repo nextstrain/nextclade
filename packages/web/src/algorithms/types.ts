@@ -29,9 +29,14 @@ export interface NucleotideSubstitution {
   refNuc: Nucleotide
   queryNuc: Nucleotide
   pcrPrimersChanged: PcrPrimer[]
+  aaSubstitutions: AminoacidSubstitution[]
+  aaDeletions: AminoacidDeletion[]
 }
 
-export interface NucleotideDeletion extends Span {}
+export interface NucleotideDeletion extends Span {
+  aaSubstitutions: AminoacidSubstitution[]
+  aaDeletions: AminoacidDeletion[]
+}
 
 export interface NucleotideInsertion {
   pos: number
@@ -60,6 +65,8 @@ export interface AminoacidSubstitution {
   refContext: string
   queryContext: string
   contextNucRange: Range
+  nucSubstitutions: NucleotideSubstitution[]
+  nucDeletions: NucleotideDeletion[]
 }
 
 export interface AminoacidDeletion {
@@ -70,6 +77,8 @@ export interface AminoacidDeletion {
   refContext: string
   queryContext: string
   contextNucRange: Range
+  nucSubstitutions: NucleotideSubstitution[]
+  nucDeletions: NucleotideDeletion[]
 }
 
 export interface PcrPrimer {

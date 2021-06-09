@@ -1,4 +1,3 @@
-#include <analyze/getPcrPrimerChanges.h>
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
@@ -10,6 +9,8 @@
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/getAminoacidChanges.h"
 #include "analyze/getNucleotideComposition.h"
+#include "analyze/getPcrPrimerChanges.h"
+#include "analyze/linkNucAndAaChangesInPlace.h"
 #include "analyze/nucleotide.h"
 #include "qc/runQc.h"
 #include "tree/Tree.h"
@@ -64,6 +65,9 @@ namespace Nextclade {
       Range{.begin = nucChanges.alignmentStart, .end = nucChanges.alignmentEnd},//
       geneMap                                                                   //
     );
+
+    linkNucAndAaChangesInPlace(nucChanges, aaChanges);
+
     const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
     const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
 
