@@ -9,7 +9,7 @@ import type {
   NucleotideSubstitution,
 } from 'src/algorithms/types'
 
-import { sumBy } from 'lodash'
+import { sumBy, uniqBy } from 'lodash'
 
 export interface AminoacidChange extends AminoacidSubstitution {
   type: 'substitution' | 'deletion'
@@ -65,11 +65,16 @@ export class AminoacidChangesGroup {
     this.codonAaRange.end = change.codon + 1
     this.codonNucRange.end = change.contextNucRange.end
     this.changes.push(change)
-    this.nucSubstitutions = this.nucSubstitutions.concat(change.nucSubstitutions)
-    this.nucDeletions = this.nucDeletions.concat(change.nucDeletions)
     this.refContext = mergeContext(this.refContext, change.refContext)
     this.queryContext = mergeContext(this.queryContext, change.queryContext)
     this.contextNucRange.end = change.contextNucRange.end
+
+    this.nucSubstitutions = this.nucSubstitutions.concat(change.nucSubstitutions)
+    this.nucSubstitutions = uniqBy(this.nucSubstitutions, (sub) => sub.pos)
+
+    this.nucDeletions = this.nucDeletions.concat(change.nucDeletions)
+    this.nucDeletions = uniqBy(this.nucDeletions, (del) => del.start)
+
     this.updateCounts()
   }
 }
