@@ -6,8 +6,7 @@ import styled, { useTheme } from 'styled-components'
 import { AMINOACID_GAP } from 'src/constants'
 import { Aminoacid, AminoacidDeletion, AminoacidSubstitution, Gene } from 'src/algorithms/types'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
-import { getContrast } from 'polished'
-import { Theme } from 'src/theme'
+import { getTextColor } from 'src/helpers/getTextColor'
 
 export const MutationBadgeBox = styled.span`
   display: inline-block;
@@ -57,14 +56,6 @@ export const VersionText = styled.span`
   background-color: ${(props) => props.theme.gray400};
   color: ${(props) => props.theme.gray800};
 `
-
-export function getTextColor(theme: Theme, backgroundColor: string) {
-  const contrast = getContrast(backgroundColor, theme.gray100)
-  if (contrast > 5) {
-    return theme.gray100
-  }
-  return theme.gray800
-}
 
 export interface MutationBadgeProps {
   mutation: AminoacidSubstitution | AminoacidDeletion

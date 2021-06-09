@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 
-import styled from 'styled-components'
+import styled, { useTheme } from 'styled-components'
 import { Table as ReactstrapTable } from 'reactstrap'
 
 import { safeZip, safeZip3 } from 'src/helpers/safeZip'
@@ -12,7 +12,7 @@ import { Aminoacid, Nucleotide } from 'src/algorithms/types'
 
 import { desaturate, lighten } from 'polished'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
-import { AMINOACID_GAP } from 'src/constants'
+import { getTextColor } from 'src/helpers/getTextColor'
 
 const pastel = (c: string) => lighten(0.25)(desaturate(0.33)(c))
 
@@ -60,12 +60,16 @@ export const TdNuc = styled.td<{ $color?: string; $shouldHighlight?: boolean }>`
   margin: 0;
 `
 
-export const TdAa = styled.td<{ $color?: string }>`
+export const TdAa = styled.td<{ $color?: string; $background?: string }>`
   width: 20px;
   height: 20px;
-  background: ${(props) => props.$color ?? '#efefef'};
+  background: ${(props) => props.$background ?? '#efefef'};
   padding: 0;
   margin: 0;
+
+  * {
+    color: ${(props) => props.$color};
+  }
 `
 
 export const TdAxis = styled.td`
@@ -108,15 +112,19 @@ export interface PeptideContextAminoacidProps {
 }
 
 export function PeptideContextAminoacid({ aa }: PeptideContextAminoacidProps) {
-  const color = useMemo(() => {
-    if (aa && aa !== AMINOACID_GAP) {
-      return getAminoacidColor(aa)
+  const theme = useTheme()
+
+  const { color, background } = useMemo(() => {
+    if (aa) {
+      const background = getAminoacidColor(aa)
+      const color = getTextColor(theme, background)
+      return { color, background }
     }
-    return undefined
+    return {}
   }, [aa])
 
   return (
-    <TdAa colSpan={3} $color={color}>
+    <TdAa colSpan={3} $color={color} $background={background}>
       <AminoacidText>{aa}</AminoacidText>
     </TdAa>
   )
