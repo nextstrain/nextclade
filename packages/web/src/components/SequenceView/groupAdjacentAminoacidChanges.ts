@@ -65,8 +65,8 @@ export class AminoacidChangesGroup {
     this.codonAaRange.end = change.codon + 1
     this.codonNucRange.end = change.contextNucRange.end
     this.changes.push(change)
-    this.nucSubstitutions.concat(change.nucSubstitutions)
-    this.nucDeletions.concat(change.nucDeletions)
+    this.nucSubstitutions = this.nucSubstitutions.concat(change.nucSubstitutions)
+    this.nucDeletions = this.nucDeletions.concat(change.nucDeletions)
     this.refContext = mergeContext(this.refContext, change.refContext)
     this.queryContext = mergeContext(this.queryContext, change.queryContext)
     this.contextNucRange.end = change.contextNucRange.end
