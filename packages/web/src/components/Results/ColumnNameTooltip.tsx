@@ -78,14 +78,7 @@ export function ColumnNameTooltip({ seqName, result, warnings, errors }: ColumnN
         </tr>
 
         {pcrPrimerChanges.length > 0 && (
-          <tr>
-            <td colSpan={2}>
-              <ListOfPcrPrimerChanges
-                pcrPrimerChanges={pcrPrimerChanges}
-                totalPcrPrimerChanges={totalPcrPrimerChanges}
-              />
-            </td>
-          </tr>
+          <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
         )}
 
         <tr>
