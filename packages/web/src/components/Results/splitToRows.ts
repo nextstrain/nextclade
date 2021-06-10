@@ -1,5 +1,9 @@
 export function splitToRows<T>(arr: T[], { rowLength, maxRows }: { rowLength?: number; maxRows?: number }) {
   const n = arr.length
+  if (n === 0) {
+    return []
+  }
+
   const rowSize = rowLength ?? Math.ceil(maxRows ? n / maxRows : 1)
   const rows: T[][] = []
   // eslint-disable-next-line no-loops/no-loops
