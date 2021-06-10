@@ -20,6 +20,7 @@ export const PendingIcon = styled(BsFillQuestionDiamondFill)`
   filter: drop-shadow(2px 1px 2px rgba(0, 0, 0, 0.2));
 `
 export const SuccessIcon = styled(FaCheckCircle)`
+  margin-bottom: 2px;
   width: 1rem;
   height: 1rem;
   color: ${(props) => props.theme.success};

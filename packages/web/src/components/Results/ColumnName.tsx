@@ -45,8 +45,8 @@ export function ColumnName({ seqName, sequence, warnings, errors }: ColumnNamePr
       <StatusIcon />
       {seqName}
       {
-        <Tooltip wide target={id} isOpen={showTooltip} placement="right-start">
-          <ColumnNameTooltip seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
+        <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
+          <ColumnNameTooltip seqName={seqName} result={sequence} warnings={warnings} errors={errors} />
         </Tooltip>
       }
     </SequenceName>
