@@ -208,11 +208,11 @@ export interface QcResult {
 export interface AnalysisResult {
   seqName: string
   substitutions: NucleotideSubstitution[]
-  totalMutations: number
+  totalSubstitutions: number
   insertions: NucleotideInsertion[]
   totalInsertions: number
   deletions: NucleotideDeletion[]
-  totalGaps: number
+  totalDeletions: number
   missing: NucleotideMissing[]
   totalMissing: number
   nonACGTNs: NucleotideRange[]

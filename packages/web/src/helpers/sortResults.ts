@@ -67,7 +67,7 @@ export function sortByClade(results: SequenceAnalysisState[], direction: SortDir
 }
 
 export function sortByMutations(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalMutations ?? defaultNumber(direction), direction)
+  return orderBy(results, (res) => res.result?.totalSubstitutions ?? defaultNumber(direction), direction)
 }
 
 export function sortByNonACGTNs(results: SequenceAnalysisState[], direction: SortDirection) {
@@ -79,7 +79,7 @@ export function sortByMissing(results: SequenceAnalysisState[], direction: SortD
 }
 
 export function sortByGaps(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalGaps ?? defaultNumber(direction), direction)
+  return orderBy(results, (res) => res.result?.totalDeletions ?? defaultNumber(direction), direction)
 }
 
 export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) {
