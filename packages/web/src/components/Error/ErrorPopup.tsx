@@ -33,15 +33,23 @@ export const ButtonOk = styled(Button)<ButtonProps>`
   width: 100px;
 `
 
-export function GenericError({ error }: { error: Error }) {
+export function getErrorDetaials(error: Error | string): { name: string; message: string } {
+  if (error instanceof Error) {
+    return { name: error.name, message: error.message }
+  }
+  return { name: 'Error', message: error }
+}
+
+export function GenericError({ error }: { error: Error | string }) {
   const { t } = useTranslation()
+  const { name, message } = getErrorDetaials(error)
 
   return (
     <ErrorContainer>
-      <h5>{t('Error: {{errorName}}', { errorName: error.name })}</h5>
+      <h5>{t('Error: {{errorName}}', { errorName: name })}</h5>
 
       <section className="mt-3">
-        <div>{error.message}</div>
+        <div>{message}</div>
       </section>
     </ErrorContainer>
   )
@@ -138,7 +146,7 @@ export function AxiosErrorFailed({ url, status, statusText }: { url: string; sta
   )
 }
 
-export function ErrorContent({ error }: { error: Error }) {
+export function ErrorContent({ error }: { error: Error | string }) {
   if (error instanceof HttpRequestError) {
     const url = error.request.url ?? 'Unknown URL'
     const status = error.response?.status
@@ -153,13 +161,15 @@ export function ErrorContent({ error }: { error: Error }) {
 }
 
 export interface ErrorPopupProps {
-  error?: Error
+  globalError?: Error
+  algorithmErrors: string[]
 
   errorDismiss(): void
 }
 
 const mapStateToProps = (state: State) => ({
-  error: state.error?.error,
+  globalError: state.error?.error,
+  algorithmErrors: state.algorithm.errors,
 })
 
 const mapDispatchToProps = {
@@ -168,19 +178,21 @@ const mapDispatchToProps = {
 
 export const ErrorPopup = connect(mapStateToProps, mapDispatchToProps)(ErrorPopupDisconnected)
 
-export function ErrorPopupDisconnected({ error, errorDismiss }: ErrorPopupProps) {
+export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDismiss }: ErrorPopupProps) {
   const { t } = useTranslation()
 
-  if (error === undefined) {
+  if (globalError === undefined && algorithmErrors.length === 0) {
     return null
   }
+
+  const error = globalError ?? algorithmErrors[0]
 
   return (
     <Modal centered isOpen backdrop="static" toggle={errorDismiss} fade={false} size="lg">
       <ModalHeader toggle={errorDismiss} tag="div">
         <h3>{t('Error')}</h3>
       </ModalHeader>
-      {error?.message && (
+      {error && (
         <ModalBody>
           <ErrorContent error={error} />
           <section className="mt-3">
