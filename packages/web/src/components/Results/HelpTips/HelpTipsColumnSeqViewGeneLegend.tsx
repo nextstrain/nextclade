@@ -30,7 +30,7 @@ export function splitToColumns(obj: { [key: string]: string }, colSize: number) 
   const cols: { [key: string]: string }[] = []
   // eslint-disable-next-line no-loops/no-loops
   for (let i = 0; ; i += colSize) {
-    const col = Object.fromEntries(Object.entries(AMINOACID_COLORS).slice(i, i + colSize))
+    const col = Object.fromEntries(Object.entries(obj).slice(i, i + colSize))
     cols.push(col)
     if (i > n) {
       break
