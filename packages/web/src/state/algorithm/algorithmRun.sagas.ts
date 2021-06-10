@@ -57,6 +57,8 @@ import {
 import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 import { selectNumThreads } from 'src/state/settings/settings.selectors'
 import { prepareGeneMap } from 'src/io/prepareGeneMap'
+import { errorAdd } from 'src/state/error/error.actions'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 
 export interface SequenceParserChannelElement {
   seq?: SequenceParserResult
@@ -191,7 +193,7 @@ export function* runAnalysisLoop(
       }
 
       if (error) {
-        console.error(error) // TODO: handle this sequence parsing error properly
+        yield put(errorAdd({ error }))
         continue
       }
 
@@ -202,6 +204,9 @@ export function* runAnalysisLoop(
         yield* put(addParsedSequence({ index: seq.index, seqName: seq.seqName }))
       }
     }
+  } catch (error_: unknown) {
+    const error = sanitizeError(error_)
+    yield put(errorAdd({ error }))
   } finally {
     sequenceParserEventChannel.close()
   }
@@ -231,7 +236,7 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
       }
 
       if (error) {
-        console.error(error) // TODO: handle this sequence parsing error properly
+        yield put(errorAdd({ error }))
         continue
       }
 
@@ -240,6 +245,9 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
         yield* put(addNextcladeResult({ nextcladeResult }))
       }
     }
+  } catch (error_: unknown) {
+    const error = sanitizeError(error_)
+    yield put(errorAdd({ error }))
   } finally {
     analysisEventChannel.close()
   }
