@@ -63,8 +63,8 @@ inline std::optional<std::pair<int, int>> intersection(std::pair<int, int> x, st
  * Returns an std::optional of std::pair containing half-open range [begin, end) of the overlap.
  * If there's no overlap, returns std::nullopt.
  */
-inline bool intersection(const Nextclade::Range& x, const Nextclade::Range& y) {
-  return static_cast<bool>(intersection(x.begin, x.end, y.begin, y.end));
+inline std::optional<std::pair<int, int>> intersection(const Nextclade::Range& x, const Nextclade::Range& y) {
+  return intersection(x.begin, x.end, y.begin, y.end);
 }
 
 /**
