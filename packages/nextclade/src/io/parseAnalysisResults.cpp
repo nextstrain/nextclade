@@ -23,7 +23,7 @@ namespace Nextclade {
   public:
     explicit ErrorAnalysisResultsRootTypeInvalid(const std::string& type)
         : ErrorNonFatal(fmt::format(
-            "When parsing analysis results JSON: Expected to find an array as the root entry, but found \"{:s}\"",
+            "When parsing analysis results JSON: Expected to find an object as the root entry, but found \"{:s}\"",
             type)) {}
   };
 
@@ -312,12 +312,18 @@ namespace Nextclade {
     };
   }
 
-  std::vector<Nextclade::AnalysisResult> parseAnalysisResults(const std::string& analysisResultsStr) {
+  AnalysisResults parseAnalysisResults(const std::string& analysisResultsStr) {
     const auto j = json::parse(analysisResultsStr);
-    if (!j.is_array()) {
+    if (!j.is_object()) {
       throw ErrorAnalysisResultsRootTypeInvalid(j.type_name());
     }
-    return parseArray<AnalysisResult>(j, parseAnalysisResult);
+
+    return AnalysisResults{
+      .schemaVersion = at(j, "schemaVersion"),
+      .nextcladeVersion = at(j, "nextcladeVersion"),
+      .timestamp = at(j, "timestamp"),
+      .results = parseArray<AnalysisResult>(j, "results", parseAnalysisResult),
+    };
   }
 
   PcrPrimerCsvRow parsePcrPrimerCsvRow(const json& j) {
