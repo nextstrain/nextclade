@@ -320,6 +320,8 @@ namespace Nextclade {
     int totalAminoacidSubstitutions;
     std::vector<AminoacidDeletion> aaDeletions;
     int totalAminoacidDeletions;
+    std::vector<GeneAminoacidRange> unknownAaRanges;
+    int totalUnknownAa;
     int alignmentStart;
     int alignmentEnd;
     int alignmentScore;
