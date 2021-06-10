@@ -430,9 +430,7 @@ export function ResultsTableDisconnected({
               <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
             </TableHeaderCellContent>
             <ButtonHelpStyled identifier="btn-help-col-nonacgtn">
-              <div className="d-flex w-100">
-                <HelpTipsColumnNonAcgtn />
-              </div>
+              <HelpTipsColumnNonAcgtn />
             </ButtonHelpStyled>
           </TableHeaderCell>
 
