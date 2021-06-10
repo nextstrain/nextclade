@@ -2,9 +2,11 @@
 
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
+#include <nextclade/private/nextclade_private.h>
 
 #include <vector>
 
+#include "analyze/calculateTotalLength.h"
 #include "utils/safe_cast.h"
 
 
@@ -66,5 +68,22 @@ namespace Nextclade {
 
   std::vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str, Aminoacid aa) {
     return findAminoacidRanges(str, [&aa](const Aminoacid& candidate) { return candidate == aa; });
+  }
+
+  std::vector<GeneAminoacidRange> findAminoacidRangesPerGene(const std::vector<PeptideInternal>& peptides,
+    Aminoacid aa) {
+    std::vector<GeneAminoacidRange> geneAminoacidRanges;
+    for (const auto& peptide : peptides) {
+      auto ranges = findAminoacidRanges(peptide.seq, aa);
+      const auto length = calculateTotalLength(ranges);
+      geneAminoacidRanges.push_back(GeneAminoacidRange{
+        .geneName = peptide.name,
+        .character = aa,
+        .ranges = std::move(ranges),
+        .length = length,
+      });
+    }
+
+    return geneAminoacidRanges;
   }
 }// namespace Nextclade

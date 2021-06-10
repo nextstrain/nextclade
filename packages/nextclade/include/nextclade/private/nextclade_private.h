@@ -54,7 +54,17 @@ namespace Nextclade {
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideRange& val) {
     os << "{ ";
-    os << "nuc: " << nucToString(val.nuc) << ", ";
+    os << "nuc: " << nucToString(val.character) << ", ";
+    os << "begin: " << val.begin << ", ";
+    os << "end: " << val.end << ", ";
+    os << "length: " << val.length;
+    os << " }";
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const AminoacidRange& val) {
+    os << "{ ";
+    os << "nuc: " << aaToString(val.character) << ", ";
     os << "begin: " << val.begin << ", ";
     os << "end: " << val.end << ", ";
     os << "length: " << val.length;

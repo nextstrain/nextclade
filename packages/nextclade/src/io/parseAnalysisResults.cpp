@@ -155,7 +155,7 @@ namespace Nextclade {
       .begin = at(j, "begin").get<int>(),
       .end = at(j, "end").get<int>(),
       .length = at(j, "length").get<int>(),
-      .nuc = stringToNuc(at(j, "nuc")),
+      .character = stringToNuc(at(j, "character")),
     };
   }
 

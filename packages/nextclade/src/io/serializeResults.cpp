@@ -41,7 +41,7 @@ namespace Nextclade {
       j.emplace("begin", nucRange.begin);
       j.emplace("end", nucRange.end);
       j.emplace("length", nucRange.length);
-      j.emplace("nuc", nucToString(nucRange.nuc));
+      j.emplace("nuc", nucToString(nucRange.character));
       return j;
     }
 

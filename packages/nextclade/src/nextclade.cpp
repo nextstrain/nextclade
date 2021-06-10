@@ -5,6 +5,7 @@
 #include <numeric>
 #include <vector>
 
+#include "analyze/calculateTotalLength.h"
 #include "analyze/findNucChanges.h"
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/getAminoacidChanges.h"
@@ -21,12 +22,6 @@
 #include "utils/safe_cast.h"
 
 namespace Nextclade {
-  template<typename T>
-  int calculateTotalLength(const std::vector<T>& items) {
-    return std::accumulate(items.cbegin(), items.cend(), 0,//
-      [](int result, const auto& item) { return result + item.length; });
-  }
-
   NextcladeResult analyzeOneSequence(        //
     const std::string& seqName,              //
     const NucleotideSequence& ref,           //
@@ -68,18 +63,7 @@ namespace Nextclade {
 
     linkNucAndAaChangesInPlace(nucChanges, aaChanges);
 
-    std::vector<GeneAminoacdRange> geneAminoacidRanges;
-    for (const auto& peptide : alignment.queryPeptides) {
-      const auto character = Aminoacid::X;
-      auto ranges = findAminoacidRanges(peptide.seq, character);
-      const auto length = calculateTotalLength(ranges);
-      geneAminoacidRanges.push_back(GeneAminoacdRange{
-        .geneName = peptide.name,
-        .character = character,
-        .ranges = std::move(ranges),
-        .length = length,
-      });
-    }
+    const auto geneAminoacidRanges = findAminoacidRangesPerGene(alignment.queryPeptides, Aminoacid::X);
     const int totalAaUnknown = calculateTotalLength(geneAminoacidRanges);
 
     const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());

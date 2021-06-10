@@ -45,7 +45,7 @@ namespace Nextclade {
 
   std::string formatNonAcgtn(const NucleotideRange& nonAcgtn) {
     const auto range = formatRange({.begin = nonAcgtn.begin, .end = nonAcgtn.end});
-    return fmt::format("{}:{}", nucToString(nonAcgtn.nuc), range);
+    return fmt::format("{}:{}", nucToString(nonAcgtn.character), range);
   }
 
   std::string formatPcrPrimerChange(const PcrPrimerChange& primerChange) {

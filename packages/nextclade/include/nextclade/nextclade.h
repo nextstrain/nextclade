@@ -181,7 +181,7 @@ namespace Nextclade {
   using NucleotideRange = CharacterRange<Nucleotide>;
   using AminoacidRange = CharacterRange<Aminoacid>;
 
-  struct GeneAminoacdRange {
+  struct GeneAminoacidRange {
     std::string geneName;
     Aminoacid character;
     std::vector<AminoacidRange> ranges;
