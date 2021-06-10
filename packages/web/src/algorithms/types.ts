@@ -45,8 +45,18 @@ export interface NucleotideInsertion {
 
 export interface NucleotideMissing extends Range {}
 
-export interface NucleotideRange extends Range {
-  nuc: Nucleotide
+export interface CharacterRange<Letter> extends Range {
+  character: Letter
+}
+
+export type NucleotideRange = CharacterRange<Nucleotide>
+export type AminoacidRange = CharacterRange<Aminoacid>
+
+export interface GeneAminoacidRange {
+  geneName: string
+  character: Aminoacid
+  ranges: AminoacidRange[]
+  length: number
 }
 
 export type Clades = Record<string, NucleotideLocation[]>
@@ -211,6 +221,8 @@ export interface AnalysisResult {
   totalAminoacidSubstitutions: number
   aaDeletions: AminoacidDeletion[]
   totalAminoacidDeletions: number
+  unknownAaRanges: GeneAminoacidRange[]
+  totalUnknownAa: number
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number

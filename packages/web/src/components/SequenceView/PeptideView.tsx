@@ -11,6 +11,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
 import { groupAdjacentAminoacidChanges } from './groupAdjacentAminoacidChanges'
+import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
 
 export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
@@ -45,16 +46,24 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, geneMap, viewe
     )
   }
 
-  const { seqName } = sequence
+  const { seqName, unknownAaRanges } = sequence
   const pixelsPerAa = width / Math.round(gene.length / 3)
   const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
   const aaDeletions = sequence.aaDeletions.filter((aaSub) => aaSub.gene === viewedGene)
   const groups = groupAdjacentAminoacidChanges(aaSubstitutions, aaDeletions)
 
+  const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
+
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
         <rect fill="transparent" x={0} y={-10} width={gene.length} height="30" />
+
+        {unknownAaRangesForGene &&
+          unknownAaRangesForGene.ranges.map((range) => (
+            <PeptideMarkerUnknown key={range.begin} seqName={seqName} range={range} pixelsPerAa={pixelsPerAa} />
+          ))}
+
         {groups.map((group) => {
           return (
             <PeptideMarkerMutationGroup
