@@ -1,8 +1,7 @@
 import React, { SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { Row, Col, Table as ReactstrapTable } from 'reactstrap'
-import styled from 'styled-components'
+import { Row, Col } from 'reactstrap'
 import { connect } from 'react-redux'
 
 import { AA_MIN_WIDTH_PX } from 'src/constants'
@@ -16,19 +15,9 @@ import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import type { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
+import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { PeptideContext } from './PeptideContext'
-
-export const Table = styled(ReactstrapTable)`
-  & td {
-    padding: 0 0.5rem;
-  }
-
-  & tr {
-    margin: 0;
-    padding: 0;
-  }
-`
 
 export interface PeptideMarkerMutationProps {
   change: AminoacidChange
@@ -88,7 +77,7 @@ function PeptideMarkerMutationGroupDisconnected({
           ))}
 
           <Tooltip target={id} isOpen={showTooltip} wide fullWidth>
-            <Table borderless className="mb-1">
+            <TableSlim borderless className="mb-1">
               <thead />
               <tbody>
                 <tr>
@@ -156,7 +145,7 @@ function PeptideMarkerMutationGroupDisconnected({
                   </td>
                 </tr>
               </tbody>
-            </Table>
+            </TableSlim>
           </Tooltip>
         </g>
       </svg>

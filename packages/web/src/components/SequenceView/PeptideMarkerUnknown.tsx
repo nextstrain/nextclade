@@ -2,27 +2,15 @@ import React, { SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { AMINOACID_UNKNOWN, AA_MIN_WIDTH_PX } from 'src/constants'
-import { Table as ReactstrapTable } from 'reactstrap'
-import styled from 'styled-components'
 
 import type { AminoacidRange } from 'src/algorithms/types'
+import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 const unknownAaColor = getAminoacidColor(AMINOACID_UNKNOWN)
-
-export const Table = styled(ReactstrapTable)`
-  & td {
-    padding: 0 0.5rem;
-  }
-
-  & tr {
-    margin: 0;
-    padding: 0;
-  }
-`
 
 export interface PeptideMarkerUnknownProps extends SVGProps<SVGRectElement> {
   seqName: string
@@ -57,7 +45,7 @@ export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...r
       {...rest}
     >
       <Tooltip target={id} isOpen={showTooltip} fullWidth>
-        <Table borderless className="mb-1">
+        <TableSlim borderless className="mb-1">
           <thead />
           <tbody>
             <tr>
@@ -76,7 +64,7 @@ export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...r
               <td>{length}</td>
             </tr>
           </tbody>
-        </Table>
+        </TableSlim>
       </Tooltip>
     </rect>
   )

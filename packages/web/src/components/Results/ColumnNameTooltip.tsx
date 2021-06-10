@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Alert as ReactstrapAlert, Table as ReactstrapTable } from 'reactstrap'
+import { Alert as ReactstrapAlert } from 'reactstrap'
 import styled from 'styled-components'
 
 import type { AnalysisResult } from 'src/algorithms/types'
@@ -8,21 +8,11 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { formatRange } from 'src/helpers/formatRange'
 import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
 import { ErrorIcon, getStatusIconAndText, WarningIcon } from 'src/components/Results/getStatusIconAndText'
+import { TableSlim } from 'src/components/Common/TableSlim'
 
 const Alert = styled(ReactstrapAlert)`
   box-shadow: ${(props) => props.theme.shadows.slight};
   max-width: 400px;
-`
-
-export const Table = styled(ReactstrapTable)`
-  & td {
-    padding: 0 0.5rem;
-  }
-
-  & tr {
-    margin: 0;
-    padding: 0;
-  }
 `
 
 export interface ColumnNameTooltipProps {
@@ -49,7 +39,7 @@ export function ColumnNameTooltip({ seqName, result, warnings, errors }: ColumnN
   const { clade, alignmentStart, alignmentEnd, alignmentScore, pcrPrimerChanges, totalPcrPrimerChanges } = result
 
   return (
-    <Table borderless className="mb-1">
+    <TableSlim borderless className="mb-1">
       <thead />
       <tbody>
         <tr>
@@ -115,6 +105,6 @@ export function ColumnNameTooltip({ seqName, result, warnings, errors }: ColumnN
           </td>
         </tr>
       </tbody>
-    </Table>
+    </TableSlim>
   )
 }

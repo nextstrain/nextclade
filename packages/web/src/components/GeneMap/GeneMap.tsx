@@ -2,7 +2,6 @@ import React, { SVGProps, useCallback, useEffect, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
-import { Table as ReactstrapTable } from 'reactstrap'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX, GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
@@ -15,6 +14,7 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { getAxisLength } from 'src/components/GeneMap/getAxisLength'
+import { TableSlim } from 'src/components/Common/TableSlim'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ColoredSquare } from 'src/components/Common/ColoredSquare'
@@ -23,19 +23,6 @@ import { setViewedGene } from 'src/state/ui/ui.actions'
 export const GENE_MAP_HEIGHT_PX = 35
 export const GENE_HEIGHT_PX = 15
 export const geneMapY = -GENE_MAP_HEIGHT_PX / 2
-
-export const Table = styled(ReactstrapTable)`
-  margin-bottom: 2px;
-
-  & td {
-    padding: 0 0.5rem;
-  }
-
-  & tr {
-    margin: 0;
-    padding: 0;
-  }
-`
 
 export const GeneMapWrapper = styled.div`
   display: flex;
@@ -130,7 +117,7 @@ export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGen
           setShowTooltip(false)
         }}
       >
-        <Table borderless>
+        <TableSlim borderless>
           <tbody>
             <tr>
               <td>{t('Gene')}</td>
@@ -166,7 +153,7 @@ export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGen
               </td>
             </tr>
           </tbody>
-        </Table>
+        </TableSlim>
       </Tooltip>
     </rect>
   )
