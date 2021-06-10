@@ -1,34 +1,58 @@
 import React from 'react'
 
-import { useTranslation } from 'react-i18next'
-
 import type { NucleotideSubstitution } from 'src/algorithms/types'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { formatMutation } from 'src/helpers/formatMutation'
-import { truncateList } from 'src/components/Results/truncateList'
-import { Li, Ul } from 'src/components/Common/List'
+import { splitToRows } from 'src/components/Results/splitToRows'
+import { TableSlim } from 'src/components/Common/TableSlim'
 
-const LIST_OF_MUTATIONS_MAX_ITEMS = 10 as const
-
-export interface ListOfMutations {
+export interface ListOfMutationsProps {
   substitutions: NucleotideSubstitution[]
 }
 
-export function ListOfMutations({ substitutions }: ListOfMutations) {
-  const { t } = useTranslation()
+export function ListOfMutations({ substitutions }: ListOfMutationsProps) {
+  const { t } = useTranslationSafe()
 
   const totalMutations = substitutions.length
+  const maxRows = 6
+  const substitutionsSelected = substitutions.slice(0, 20)
+  const columns = splitToRows(substitutionsSelected, { maxRows })
 
-  let mutationItems = substitutions.map((sub) => {
-    const mut = formatMutation(sub)
-    return <Li key={mut}>{mut}</Li>
-  })
-
-  mutationItems = truncateList(mutationItems, LIST_OF_MUTATIONS_MAX_ITEMS, t('...more'))
+  let moreText
+  if (totalMutations > substitutionsSelected.length) {
+    moreText = t('(truncated)')
+  }
 
   return (
-    <div>
-      <div>{t('Mutations ({{totalMutations}})', { totalMutations })}</div>
-      <Ul>{mutationItems}</Ul>
-    </div>
+    <>
+      <tr>
+        <td colSpan={2}>{t('Nucleotide mutations ({{totalMutations}})', { totalMutations })}</td>
+      </tr>
+
+      <tr>
+        <td colSpan={2}>
+          <TableSlim>
+            <tbody>
+              {columns.map((col, i) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <tr key={i}>
+                  {col.map((item) => (
+                    <td key={item.pos}>{formatMutation(item)}</td>
+                  ))}
+                </tr>
+              ))}
+
+              {moreText && (
+                <tr>
+                  <td colSpan={maxRows} className="text-center">
+                    {moreText}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </TableSlim>
+        </td>
+      </tr>
+    </>
   )
 }

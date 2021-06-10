@@ -2,8 +2,6 @@ import React, { SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
-import { Table as ReactstrapTable } from 'reactstrap'
-import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
 
@@ -13,23 +11,13 @@ import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { Tooltip } from 'src/components/Results/Tooltip'
+import { TableSlim } from 'src/components/Common/TableSlim'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 
 const gapColor = getNucleotideColor(GAP)
-
-export const Table = styled(ReactstrapTable)`
-  & td {
-    padding: 0 0.5rem;
-  }
-
-  & tr {
-    margin: 0;
-    padding: 0;
-  }
-`
 
 export interface MissingViewProps extends SVGProps<SVGRectElement> {
   seqName: string
@@ -80,7 +68,7 @@ function SequenceMarkerGapDisconnected({ seqName, deletion, pixelsPerBase, geneM
       onMouseLeave={() => setShowTooltip(false)}
     >
       <Tooltip target={id} isOpen={showTooltip} fullWidth>
-        <Table borderless className="mb-1">
+        <TableSlim borderless className="mb-1">
           <thead />
           <tbody>
             <tr>
@@ -119,7 +107,7 @@ function SequenceMarkerGapDisconnected({ seqName, deletion, pixelsPerBase, geneM
               ))}
             </>
           </tbody>
-        </Table>
+        </TableSlim>
       </Tooltip>
     </rect>
   )

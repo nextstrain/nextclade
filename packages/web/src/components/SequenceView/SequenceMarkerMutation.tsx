@@ -1,8 +1,7 @@
 import React, { SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { Row, Col, Table as ReactstrapTable } from 'reactstrap'
-import styled from 'styled-components'
+import { Row, Col } from 'reactstrap'
 import { connect } from 'react-redux'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -19,17 +18,7 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ListOfPcrPrimersChanged } from 'src/components/SequenceView/ListOfPcrPrimersChanged'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
-
-export const Table = styled(ReactstrapTable)`
-  & td {
-    padding: 0 0.5rem;
-  }
-
-  & tr {
-    margin: 0;
-    padding: 0;
-  }
-`
+import { TableSlim } from 'src/components/Common/TableSlim'
 
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   seqName: string
@@ -87,7 +76,7 @@ function SequenceMarkerMutationDisconnected({
       onMouseLeave={() => setShowTooltip(false)}
     >
       <Tooltip target={id} isOpen={showTooltip} fullWidth>
-        <Table borderless className="mb-1">
+        <TableSlim borderless className="mb-1">
           <thead />
           <tbody>
             <tr>
@@ -138,7 +127,7 @@ function SequenceMarkerMutationDisconnected({
               </td>
             </tr>
           </tbody>
-        </Table>
+        </TableSlim>
       </Tooltip>
     </rect>
   )

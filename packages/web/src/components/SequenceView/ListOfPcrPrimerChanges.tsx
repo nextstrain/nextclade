@@ -30,9 +30,16 @@ export function ListOfPcrPrimerChanges({ pcrPrimerChanges, totalPcrPrimerChanges
   })
 
   return (
-    <div>
-      {t('PCR primer changes ({{totalChanges}})', { totalChanges: totalPcrPrimerChanges })}
-      <Ul>{items}</Ul>
-    </div>
+    <>
+      <tr>
+        <td colSpan={2}>{t('PCR primer changes ({{totalChanges}})', { totalChanges: totalPcrPrimerChanges })}</td>
+      </tr>
+
+      <tr>
+        <td colSpan={2}>
+          <Ul>{items}</Ul>
+        </td>
+      </tr>
+    </>
   )
 }
