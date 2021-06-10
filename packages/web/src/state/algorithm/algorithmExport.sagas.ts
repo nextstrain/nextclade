@@ -4,7 +4,7 @@ import { call, select, takeEvery } from 'typed-redux-saga'
 import type { ZipFileDescription } from 'src/helpers/saveFile'
 
 import { saveFile, saveZip } from 'src/helpers/saveFile'
-import { serializeResultsToCsv, serializeResultsToJson } from 'src/io/serializeResults'
+import { serializeResults, serializeResultsToJson } from 'src/io/serializeResults'
 import {
   exportAll,
   exportCsvTrigger,
@@ -20,13 +20,17 @@ import {
   selectOutputSequences,
   selectOutputTree,
   selectResults,
+  selectResultsArray,
 } from 'src/state/algorithm/algorithm.selectors'
 import fsaSaga from 'src/state/util/fsaSaga'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
+import { serializeToCsv } from 'src/workers/run'
 
 export function* prepareResultsCsvStr() {
-  const results = yield* select(selectResults)
-  return yield* call(serializeResultsToCsv, results, ';')
+  const results = yield* select(selectResultsArray)
+  const resultsGood = results.filter(notUndefinedOrNull)
+  const resultsGoodStr = serializeResults(resultsGood)
+  return yield* call(serializeToCsv, resultsGoodStr, ';')
 }
 
 export function* exportCsv() {
@@ -36,8 +40,10 @@ export function* exportCsv() {
 }
 
 export function* prepareResultsTsvStr() {
-  const results = yield* select(selectResults)
-  return yield* call(serializeResultsToCsv, results, '\t')
+  const results = yield* select(selectResultsArray)
+  const resultsGood = results.filter(notUndefinedOrNull)
+  const resultsGoodStr = serializeResults(resultsGood)
+  return yield* call(serializeToCsv, resultsGoodStr, '\t')
 }
 
 export function* exportTsv() {

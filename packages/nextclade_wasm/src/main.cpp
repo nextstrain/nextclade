@@ -199,6 +199,16 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
   return tree.serialize(0);
 }
 
+std::string serializeToCsv(const std::string& analysisResultsStr, const std::string& delimiter) {
+  const auto analysisResults = Nextclade::parseAnalysisResults(analysisResultsStr);
+  std::stringstream outputCsvStream;
+  Nextclade::CsvWriter csv{outputCsvStream, Nextclade::CsvWriterOptions{.delimiter = delimiter[0]}};
+  for (const auto& result : analysisResults.results) {
+    csv.addRow(result);
+  }
+  return outputCsvStream.str();
+}
+
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::register_vector<std::string>("std::vector<std::string>");
@@ -238,4 +248,6 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::function("parseRefSequence", &parseRefSequence);
   emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
   emscripten::function("treeFinalize", &treeFinalize);
+
+  emscripten::function("serializeToCsv", &serializeToCsv);
 }

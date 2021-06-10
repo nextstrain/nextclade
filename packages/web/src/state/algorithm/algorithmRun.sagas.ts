@@ -59,6 +59,7 @@ import { selectNumThreads } from 'src/state/settings/settings.selectors'
 import { prepareGeneMap } from 'src/io/prepareGeneMap'
 import { errorAdd } from 'src/state/error/error.actions'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import { serializeResults } from 'src/io/serializeResults'
 
 export interface SequenceParserChannelElement {
   seq?: SequenceParserResult
@@ -430,7 +431,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     .map((nextcladeResult) => nextcladeResult.analysisResult)
 
   if (analysisResults.length > 0) {
-    const analysisResultsStr = JSON.stringify(analysisResults)
+    const analysisResultsStr = serializeResults(analysisResults)
 
     yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
     const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)

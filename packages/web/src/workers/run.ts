@@ -12,6 +12,7 @@ import type { ParseRefSequenceThread } from 'src/workers/worker.parseRefSeq'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
 import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
+import type { SerializeToCsvThread } from 'src/workers/worker.serializeToCsv'
 
 /**
  * Creates and initializes the analysis webworker pool.
@@ -134,4 +135,11 @@ export async function treeFinalize(treePreparedStr: string, refStr: string, anal
     new Worker('src/workers/worker.treeFinalize.ts', { name: 'worker.treeFinalize' }),
   )
   return thread.treeFinalize(treePreparedStr, refStr, analysisResultsStr)
+}
+
+export async function serializeToCsv(analysisResultsStr: string, delimiter: string) {
+  const thread = await spawn<SerializeToCsvThread>(
+    new Worker('src/workers/worker.serializeToCsv.ts', { name: 'worker.serializeToCsv' }),
+  )
+  return thread.serializeToCsv(analysisResultsStr, delimiter)
 }
