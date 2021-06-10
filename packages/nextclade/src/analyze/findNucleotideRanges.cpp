@@ -76,12 +76,14 @@ namespace Nextclade {
     for (const auto& peptide : peptides) {
       auto ranges = findAminoacidRanges(peptide.seq, aa);
       const auto length = calculateTotalLength(ranges);
-      geneAminoacidRanges.push_back(GeneAminoacidRange{
-        .geneName = peptide.name,
-        .character = aa,
-        .ranges = std::move(ranges),
-        .length = length,
-      });
+      if (length > 0) {
+        geneAminoacidRanges.push_back(GeneAminoacidRange{
+          .geneName = peptide.name,
+          .character = aa,
+          .ranges = std::move(ranges),
+          .length = length,
+        });
+      }
     }
 
     return geneAminoacidRanges;
