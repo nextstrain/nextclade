@@ -17,4 +17,17 @@ namespace Nextclade {
   * Finds all contiguous ranges of a given character in a given sequence.
   */
   std::vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str, Nucleotide nuc);
+
+
+  /**
+  * Finds all contiguous ranges of a given character in a given sequence.
+  */
+  std::vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str,
+    const std::function<bool(const Aminoacid&)>& pred);
+
+  /**
+  * Finds all contiguous ranges of a given character in a given sequence.
+  */
+  std::vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str, Aminoacid aa);
+
 }// namespace Nextclade

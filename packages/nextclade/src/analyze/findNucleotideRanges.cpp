@@ -10,34 +10,36 @@
 
 namespace Nextclade {
 
-  std::vector<NucleotideRange> findNucleotideRanges(
-    const NucleotideSequence& str, const std::function<bool(const Nucleotide&)>& pred) {
+  template<typename Letter>
+  std::vector<CharacterRange<Letter>> findCharacterRanges(const Sequence<Letter>& str,
+    const std::function<bool(const Letter&)>& pred) {
     const auto& length = safe_cast<int>(str.length());
-    std::vector<NucleotideRange> result;
+    std::vector<CharacterRange<Letter>> result;
 
     int i = 0;
-    std::optional<Nucleotide> foundNuc;
+    std::optional<Letter> found;
     int begin = 0;
     while (i < length) {
-      Nucleotide nuc = str[i];
+      auto c = str[i];
 
       // find beginning of matching range
-      if (pred(nuc)) {
+      if (pred(c)) {
         begin = i;
-        foundNuc = nuc;
+        found = c;
       }
 
-      if (foundNuc) {
+      if (found) {
         // rewind forward to the end of matching range
         // TODO: the `i < length` was added to avoid buffer overrun. Double-check algorithmic correctness.
-        while ((nuc == *foundNuc) && (i < length)) {
+        while ((c == *found) && (i < length)) {
           ++i;
-          nuc = str[i];
+          c = str[i];
         }
 
         const auto& end = i;
-        result.push_back({.begin = begin, .end = end, .length = end - begin, .nuc = *foundNuc});
-        foundNuc = {};
+        result.push_back(
+          CharacterRange<Letter>{.begin = begin, .end = end, .length = end - begin, .character = *found});
+        found = {};
 
         // TODO: the `i < length` was added to avoid buffer overrun. Double-check algorithmic correctness.
       } else if (i < length) {
@@ -48,7 +50,21 @@ namespace Nextclade {
     return result;
   }
 
+  std::vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str,
+    const std::function<bool(const Nucleotide&)>& pred) {
+    return findCharacterRanges<Nucleotide>(str, pred);
+  }
+
   std::vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str, Nucleotide nuc) {
     return findNucleotideRanges(str, [&nuc](const Nucleotide& candidate) { return candidate == nuc; });
+  }
+
+  std::vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str,
+    const std::function<bool(const Aminoacid&)>& pred) {
+    return findCharacterRanges<Aminoacid>(str, pred);
+  }
+
+  std::vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str, Aminoacid aa) {
+    return findAminoacidRanges(str, [&aa](const Aminoacid& candidate) { return candidate == aa; });
   }
 }// namespace Nextclade

@@ -68,6 +68,20 @@ namespace Nextclade {
 
     linkNucAndAaChangesInPlace(nucChanges, aaChanges);
 
+    std::vector<GeneAminoacdRange> geneAminoacidRanges;
+    for (const auto& peptide : alignment.queryPeptides) {
+      const auto character = Aminoacid::X;
+      auto ranges = findAminoacidRanges(peptide.seq, character);
+      const auto length = calculateTotalLength(ranges);
+      geneAminoacidRanges.push_back(GeneAminoacdRange{
+        .geneName = peptide.name,
+        .character = character,
+        .ranges = std::move(ranges),
+        .length = length,
+      });
+    }
+    const int totalAaUnknown = calculateTotalLength(geneAminoacidRanges);
+
     const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
     const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
 
