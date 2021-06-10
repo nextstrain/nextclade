@@ -82,17 +82,21 @@ export const ModalBody = styled(ReactstrapModalBody)`
 export const ModalFooter = styled(ReactstrapModalFooter)``
 
 export const H1 = styled.h1`
-  font-size: 1.25rem;
+  font-size: 2rem;
 `
 
 export const H2 = styled.h2`
   border-top: #ccc solid 1px;
   padding-top: 1rem;
   margin-top: 2rem;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 `
 
 export const H3 = styled.h2`
+  font-size: 1.2rem;
+`
+
+export const H4 = styled.h2`
   font-size: 1rem;
 `
 
@@ -102,18 +106,7 @@ export const Blockquote = styled.blockquote`
   background-color: #f4ebbd;
 `
 
-export const Pre = styled.pre`
-  padding: 6px 8px;
-  border-radius: 3px;
-  background-color: #ccc;
-
-  code {
-    border: none;
-    border-radius: 0;
-    margin: 0;
-    padding: 0;
-  }
-`
+const components = { h1: H1, h2: H2, h3: H3, a: LinkExternal, blockquote: Blockquote }
 
 export interface WhatsNewButtonProps {
   showWhatsnew: boolean
@@ -172,7 +165,7 @@ export function WhatsNewButtonDisconnected({
         </ModalHeader>
 
         <ModalBody>
-          <MDXProvider components={{ h1: H1, h2: H2, h3: H3, a: LinkExternal, blockquote: Blockquote, pre: Pre }}>
+          <MDXProvider components={components}>
             <Changelog />
           </MDXProvider>
         </ModalBody>
@@ -187,8 +180,14 @@ export function WhatsNewButtonDisconnected({
                 <LinkExternal href={URL_GITHUB_COMMITS}>{t('recent GitHub commit history')}</LinkExternal>
                 {t('. ')}
                 {t(
-                  'If you want to ask a question, to request a feature, or to report a bug, reach out to developers by creating a GitHub issue.',
+                  'If you want to ask a question, to request a feature, or to report a bug, reach out to developers by creating a ',
                 )}
+                <LinkExternal href={`${URL_GITHUB_ISSUES}/new`}>{t('GitHub issue')}</LinkExternal>
+                {t(' or by posting on ')}
+                <LinkExternal href="https://discussion.nextstrain.org">
+                  {t('Nextstrain discussion forums')}
+                </LinkExternal>
+                {t('. ')}
               </Col>
             </Row>
 

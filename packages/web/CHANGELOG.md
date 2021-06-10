@@ -1,3 +1,87 @@
+## [1.0.0](https://github.com/nextstrain/nextclade/compare/1.0.0...0.14.4) (2021-06-11)
+
+This major release brings many new features and bug fixes.
+
+We release new versions of all of the tools in Nextclade family: Nextclade web application, Nextclade CLI and Nextalign CLI.
+
+> With this major release we introduce breaking changes. In particular, changes to input and output file formats as well as to arguments of command-line tools. The breaking changes are marked with "💥 **BREAKING CHANGE**" prefix. It is recommended to review these changes.
+
+Below is a description of changes compared to version 0.14.4.
+
+### General
+
+Changes that affect all tools:
+
+ - The underlying algorithm has been completely rewritten in C++ (versions 0.x were implemented in JavaScript), to make it faster, more reliable and to produce better results. Web application now uses WebAssembly modules to be able to run the algorithm.
+
+ - 💥 **BREAKING CHANGE:** Nextclade now uses Nextalign algorithm for the alignment and translation of sequences. This means that nucleotide alignment is now aware of codon boundaries. Alignment results and some of the analysis results might be slightly different, depending on input sequences.
+
+ - Similarly to Nextalign, Nextclade can now output aligned peptides. In general, Nextclade is a superset of Nextalign and can do everything Nextalign can, plus more (for the price of additional computation).
+
+ - 💥 **BREAKING CHANGE:** Gene maps are now only accepted in [GFF3 format](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md). See an example at [GitHub](https://github.com/nextstrain/nextclade/blob/master/data/sars-cov-2/genemap.gff). Migration path: use provided default gene map or convert your custom gene map to GFF3 format.
+
+ - 💥 **BREAKING CHANGE:** JSON results file format has changed. It now contains an object instead of an array as a root element. The array of results is now attached to the `results` property of the root object. Migration path: instead of using `output` array directly use `output.results` now.
+
+ - 💥 **BREAKING CHANGE:** JSON fields and CSV/TSV columns `totalMutations` and `totalGaps` were renamed to `totalSubstitutions` and `totalDeletions`, for consistency. Migration path: use new JSON property or column names. 
+
+### Nextclade web application v1
+
+Web application mostly maintains it previous interface, with small improvements and with adjustments to the new underlying algorithm implementation. 
+
+ - New "Download" dialog was introduced, which replaces the old "Export" dropdown menu. It can be toggled by clicking on "Download" button on "results" page.
+
+ - Aligned sequences now can be downloaded in the new "Download" dialog.
+
+ - Translated aligned peptides now can be downloaded in the new "Download" dialog.
+
+ - "Sequence view" column of the results table now can be switched between "Nucleotide sequence" view and "Gene" view. In "Gene" view, aminoacid mutations and deletions are displayed for a particular gene.
+
+ - "Sequence view" can also be switched by clicking on a gene in "Genome annotation" panel below the results table.
+
+ - Results table tooltips has been cleaned up, information was spread between corresponding columns, in order to fit the tooltips fully to common screen sizes. For example, list of mutations is now only available when mouse over the "Mut." column.
+
+ - The tooltips to explore diversity have become much more informative. For amino acid changes, we now provide a nucleotide context view that is particularly helpful for complex mutations. Consecutive changes are merged into one tooltip.
+
+
+
+### Nextclade CLI v1
+
+Nextclade CLI v1 is a replacement for Nextclade CLI v0. It is recommended for advanced users, batch processing and for integration into pipelines.
+
+ - Nextclade CLI 1.0.0 is available on [GitHub Releases](https://github.com/nextstrain/nextclade/releases) and on [DockerHub](https://hub.docker.com/r/nextstrain/nextclade):
+
+ - Node.js is no longer required. Nextclade is now distributed as a standalone native executable file and is ready to be used after download. The latest version is available for major platforms at [Github Releases page](https://github.com/nextstrain/nextclade/releases).
+
+ - The limitation of Node.js on maximum input file size (500 MB) is now removed. Nextclade should be able to handle large files and to use I/O resources more efficiently. Nextclade will stream sequence data to reduce memory consumption.
+
+ - Nextclade CLI is much faster now. Depending on conditions, we measured speedups up to 5x compared to the old implementation.
+
+  - 💥 **BREAKING CHANGE:** Nextclade no longer includes any default data. The following flags for input files were previously optional but are now required: `--input-root-seq`, `--input-tree`, `--input-qc-config`. The `--input-gene-map` flag is optional, but is highly recommended, because without gene map, the alignment will not be informed by codon boundaries and translation, peptide output and aminoacid change detection will not be available. The example SARS-CoV-2 data can be downloaded from [GitHub](https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2) and used as a starting point. Refer to built-in help for more details (`--help`). Migration path: download the default data add new flags if you you were previously not using them.
+
+ - 💥 **BREAKING CHANGE:** Reference (root) sequence is no longer being written into outputs by default. Add `--include-reference` flag to include it. Reference peptides will also be included in this case. Migration path: use the mentioned flag if you need reference sequence results included into the outputs.
+
+ - 💥 **BREAKING CHANGE:** Nextclade might write aligned sequences into output files in the order that is different from the order of sequences in the input file. If order is important, use flag `--in-order` to enforce the initial order of sequences. This results in a small runtime performance penalty. Refer to built-in help for more details (`--help`). Migration path: use the mentioned flag if you need results to be written in order.
+
+
+### Nextalign CLI v1
+
+Nextalign is a new tool that contains only the alignment and translation part of the algorithm, without sequence analysis, quality control, tree placement or other features of Nextclade (making it faster). It is available on [Github Releases page](https://github.com/nextstrain/nextclade/releases). Refer to built-in help for more details (`--help`).
+
+
+### Deprecation of Nextclade CLI v0
+
+ - Nextclade CLI 0.x is now deprecated and not recommended for general use. We recommend all users to migrate to version 1.x. Old versions will still be available on NPM and Docker Hub, but there are no plans to release new versions. Please reach out to developers if you still need support for versions 0.x.
+
+ - Container images hosted on Docker Hub will now resolve to Nextclade family v1. In order to pull the version of family 0.x, use tag `:0` or a full version explicitly, for example `:0.14.4`:
+
+  ```
+  docker pull nextstrain/nextclade:0
+  docker pull nextstrain/nextclade:0.14.4
+  ```
+
+We hope you enjoy the new release and as always, don't hesitate to reach out to Nextstrain team on [Nextstrain discussion forums](https://discussion.nextstrain.org/) or on [GitHub](https://github.com/nextstrain/nextclade/issues/new/choose).
+
+
 ## [0.14.4](https://github.com/nextstrain/nextclade/compare/1.0.0-alpha.9...0.14.4) (2021-06-07)
 
 This version updates [the default SARS-CoV-2 reference tree](https://raw.githubusercontent.com/nextstrain/nextclade/0.14.4/data/sars-cov-2/tree.json) with new Nextstrain clade designations and alias names for the WHO VoC and VoI names, so that Nextclade now can detect these clades.
