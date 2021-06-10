@@ -41,7 +41,16 @@ namespace Nextclade {
       j.emplace("begin", nucRange.begin);
       j.emplace("end", nucRange.end);
       j.emplace("length", nucRange.length);
-      j.emplace("nuc", nucToString(nucRange.nuc));
+      j.emplace("character", nucToString(nucRange.character));
+      return j;
+    }
+
+    json serializeAminoacidRange(const AminoacidRange& aaRange) {
+      auto j = json::object();
+      j.emplace("begin", aaRange.begin);
+      j.emplace("end", aaRange.end);
+      j.emplace("length", aaRange.length);
+      j.emplace("character", aaToString(aaRange.character));
       return j;
     }
 
@@ -94,12 +103,7 @@ namespace Nextclade {
     }
 
     json serializeMissing(const NucleotideRange& missing) {
-      auto j = json::object();
-      j.emplace("begin", missing.begin);
-      j.emplace("end", missing.end);
-      j.emplace("length", missing.length);
-      j.emplace("nuc", nucToString(Nucleotide::N));
-      return j;
+      return serializeNucleotideRange(missing);
     }
 
     json serializeNonAcgtn(const NucleotideRange& nonAcgt) {
@@ -139,6 +143,15 @@ namespace Nextclade {
       j.emplace("contextNucRange", serializeRange(del.contextNucRange));
       j.emplace("nucSubstitutions", serializeArray(del.nucSubstitutions, serializeMutation));
       j.emplace("nucDeletions", serializeArray(del.nucDeletions, serializeDeletion));
+      return j;
+    }
+
+    json serializeGeneAminoacidRange(const GeneAminoacidRange& range) {
+      auto j = json::object();
+      j.emplace("geneName", range.geneName);
+      j.emplace("character", aaToString(range.character));
+      j.emplace("ranges", serializeArray(range.ranges, serializeAminoacidRange));
+      j.emplace("length", range.length);
       return j;
     }
 
@@ -231,6 +244,7 @@ namespace Nextclade {
       j.emplace("totalPcrPrimerChanges", result.totalPcrPrimerChanges);
       j.emplace("totalAminoacidSubstitutions", result.totalAminoacidSubstitutions);
       j.emplace("totalAminoacidDeletions", result.totalAminoacidDeletions);
+      j.emplace("totalUnknownAa", result.totalUnknownAa);
 
       j.emplace("substitutions", serializeArray(result.substitutions, serializeMutation));
       j.emplace("deletions", serializeArray(result.deletions, serializeDeletion));
@@ -240,6 +254,7 @@ namespace Nextclade {
       j.emplace("pcrPrimerChanges", serializeArray(result.pcrPrimerChanges, serializePcrPrimerChange));
       j.emplace("aaSubstitutions", serializeArray(result.aaSubstitutions, serializeAminoacidMutation));
       j.emplace("aaDeletions", serializeArray(result.aaDeletions, serializeAminoacidDeletion));
+      j.emplace("unknownAaRanges", serializeArray(result.unknownAaRanges, serializeGeneAminoacidRange));
 
       j.emplace("nearestNodeId", result.nearestNodeId);
 

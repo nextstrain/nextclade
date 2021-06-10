@@ -170,19 +170,39 @@ namespace Nextclade {
 
   using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
-  struct NucleotideRange {
+  template<typename Letter>
+  struct CharacterRange {
     int begin;
     int end;
     int length;
-    Nucleotide nuc;
+    Letter character;
+  };
+
+  using NucleotideRange = CharacterRange<Nucleotide>;
+  using AminoacidRange = CharacterRange<Aminoacid>;
+
+  struct GeneAminoacidRange {
+    std::string geneName;
+    Aminoacid character;
+    std::vector<AminoacidRange> ranges;
+    int length;
   };
 
   inline bool operator==(const NucleotideRange& left, const NucleotideRange& right) {
-    return (                        //
-      left.begin == right.begin &&  //
-      left.end == right.end &&      //
-      left.length == right.length &&//
-      left.nuc == right.nuc         //
+    return (                           //
+      left.begin == right.begin &&     //
+      left.end == right.end &&         //
+      left.length == right.length &&   //
+      left.character == right.character//
+    );
+  }
+
+  inline bool operator==(const AminoacidRange& left, const AminoacidRange& right) {
+    return (                           //
+      left.begin == right.begin &&     //
+      left.end == right.end &&         //
+      left.length == right.length &&   //
+      left.character == right.character//
     );
   }
 
@@ -300,6 +320,8 @@ namespace Nextclade {
     int totalAminoacidSubstitutions;
     std::vector<AminoacidDeletion> aaDeletions;
     int totalAminoacidDeletions;
+    std::vector<GeneAminoacidRange> unknownAaRanges;
+    int totalUnknownAa;
     int alignmentStart;
     int alignmentEnd;
     int alignmentScore;

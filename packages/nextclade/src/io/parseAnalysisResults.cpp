@@ -32,7 +32,7 @@ namespace Nextclade {
     explicit ErrorAnalysisResultsTypeInvalid(const std::string& key, const std::string& typeExpected,
       const std::string& typeActual)
         : ErrorNonFatal(fmt::format("When parsing analysis results JSON: When parsing property \"{:s}\": Expected "
-                                         "to find \"{:s}\", but found \"{:s}\"",
+                                    "to find \"{:s}\", but found \"{:s}\"",
             key, typeExpected, typeActual)) {}
   };
 
@@ -125,6 +125,17 @@ namespace Nextclade {
     };
   }
 
+  AminoacidRange parseAminoacidRange(const json& j);
+
+  GeneAminoacidRange parseGeneAminoacidRange(const json& j) {
+    return GeneAminoacidRange{
+      .geneName = at(j, "geneName"),
+      .character = stringToAa(at(j, "character")),
+      .ranges = parseArray<AminoacidRange>(j, "ranges", parseAminoacidRange),
+      .length = at(j, "length"),
+    };
+  }
+
   NucleotideSubstitution parseNucleotideSubstitution(const json& j) {
     return NucleotideSubstitution{
       .refNuc = stringToNuc(at(j, "refNuc")),
@@ -155,7 +166,16 @@ namespace Nextclade {
       .begin = at(j, "begin").get<int>(),
       .end = at(j, "end").get<int>(),
       .length = at(j, "length").get<int>(),
-      .nuc = stringToNuc(at(j, "nuc")),
+      .character = stringToNuc(at(j, "character")),
+    };
+  }
+
+  AminoacidRange parseAminoacidRange(const json& j) {
+    return AminoacidRange{
+      .begin = at(j, "begin").get<int>(),
+      .end = at(j, "end").get<int>(),
+      .length = at(j, "length").get<int>(),
+      .character = stringToAa(at(j, "character")),
     };
   }
 
@@ -278,6 +298,8 @@ namespace Nextclade {
       .totalAminoacidSubstitutions = at(j, "totalAminoacidSubstitutions"),
       .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
       .totalAminoacidDeletions = at(j, "totalAminoacidDeletions"),
+      .unknownAaRanges = parseArray<GeneAminoacidRange>(j, "unknownAaRanges", parseGeneAminoacidRange),
+      .totalUnknownAa = at(j, "totalUnknownAa"),
       .alignmentStart = at(j, "alignmentStart"),
       .alignmentEnd = at(j, "alignmentEnd"),
       .alignmentScore = at(j, "alignmentScore"),
