@@ -77,6 +77,18 @@ export const ModalBody = styled(ReactstrapModalBody)`
     padding-top: 0;
     margin-top: 0;
   }
+
+  code {
+    padding: 2px;
+    background-color: #eaeaea;
+    border-radius: 2px;
+  }
+
+  pre {
+    padding: 2px;
+    background-color: #eaeaea;
+    border-radius: 2px;
+  }
 `
 
 export const ModalFooter = styled(ReactstrapModalFooter)``
