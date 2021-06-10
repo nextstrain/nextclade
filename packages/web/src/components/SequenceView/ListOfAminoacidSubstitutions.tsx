@@ -39,7 +39,7 @@ export function ListOfAminoacidMutationsDisconnected({
 
   const totalMutations = aminoacidSubstitutions.length
   const maxRows = 6
-  let substitutionsSelected = aminoacidSubstitutions.slice(0, 20)
+  const substitutionsSelected = aminoacidSubstitutions.slice(0, 20)
 
   const columns = splitToRows(substitutionsSelected, { maxRows })
 
