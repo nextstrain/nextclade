@@ -129,7 +129,7 @@ function SequenceMarkerMutationDisconnected({
             <tr>
               <td colSpan={2}>
                 {pcrPrimersChanged.length > 0 && (
-                  <Row noGutters>
+                  <Row noGutters className="mt-2">
                     <Col>
                       <ListOfPcrPrimersChanged pcrPrimersChanged={pcrPrimersChanged} />
                     </Col>
