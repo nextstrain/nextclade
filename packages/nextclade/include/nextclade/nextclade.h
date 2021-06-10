@@ -333,6 +333,14 @@ namespace Nextclade {
     QcResult qc;
   };
 
+
+  struct AnalysisResults {
+    std::string schemaVersion;
+    std::string nextcladeVersion;
+    std::uint64_t timestamp;
+    std::vector<Nextclade::AnalysisResult> results;
+  };
+
   struct NextcladeResult {
     std::string ref;
     std::string query;
@@ -442,7 +450,7 @@ namespace Nextclade {
 
   std::vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr);
 
-  std::vector<AnalysisResult> parseAnalysisResults(const std::string& analysisResultsStr);
+  AnalysisResults parseAnalysisResults(const std::string& analysisResultsStr);
 
   std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers);
 

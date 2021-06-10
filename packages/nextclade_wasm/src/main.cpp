@@ -194,7 +194,7 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
   const auto ref = toNucleotideSequence(refStr);
   const auto analysisResults = Nextclade::parseAnalysisResults(analysisResultsStr);
   auto tree = Nextclade::Tree{treeStr};
-  treeAttachNodes(tree, ref, analysisResults);
+  treeAttachNodes(tree, ref, analysisResults.results);
   treePostprocess(tree);
   return tree.serialize(0);
 }

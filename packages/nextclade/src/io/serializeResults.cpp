@@ -3,6 +3,7 @@
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
 
+#include <chrono>
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -282,11 +283,26 @@ namespace Nextclade {
     return jsonStringify(j);
   }
 
-  std::string serializeResults(const std::vector<AnalysisResult>& results) {
+  json serializeResultsArray(const std::vector<AnalysisResult>& results) {
     auto j = json::array();
     for (const auto& result : results) {
       j.emplace_back(serializeResult(result));
     }
+    return j;
+  }
+
+  auto getTimestampNow() {
+    const auto p1 = std::chrono::system_clock::now();
+    return std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count();
+  }
+
+  std::string serializeResults(const std::vector<AnalysisResult>& results) {
+    const std::string SCHEMA_VERSION = "1.0.0";
+    auto j = json::object();
+    j.emplace("schemaVersion", SCHEMA_VERSION);
+    j.emplace("nextcladeVersion", Nextclade::getVersion());
+    j.emplace("timestamp", getTimestampNow());
+    j.emplace("results", serializeResultsArray(results));
     return jsonStringify(j);
   }
 
