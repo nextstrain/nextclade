@@ -24,7 +24,7 @@ export const AMINOACID_COLORS: Record<string, string> = {
   'S': '#e583d8',
   'T': '#e5b3cc',
   'W': '#4aa7e5',
-  'X': '#e54c4c',
+  'X': '#aaaaaa',
   'Y': '#57cfe5',
   'Z': '#777777',
   '*': '#777777',
