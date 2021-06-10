@@ -36,6 +36,8 @@ set(SOURCE_FILES
   src/analyze/isMatch.h
   src/analyze/isSequenced.cpp
   src/analyze/isSequenced.h
+  src/analyze/linkNucAndAaChangesInPlace.cpp
+  src/analyze/linkNucAndAaChangesInPlace.h
   src/analyze/nucleotide.cpp
   src/analyze/nucleotide.h
   src/io/CsvWriter.cpp

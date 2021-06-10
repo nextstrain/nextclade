@@ -3,7 +3,7 @@ import React, { SVGProps, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
-import type { NucleotideDeletion } from 'src/algorithms/types'
+import type { Span } from 'src/algorithms/types'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -12,7 +12,7 @@ const missingEndColor = '#BBBBBB'
 
 export interface MissingEndsViewProps extends SVGProps<SVGRectElement> {
   seqName: string
-  deletion: NucleotideDeletion
+  deletion: Span
   pixelsPerBase: number
 }
 

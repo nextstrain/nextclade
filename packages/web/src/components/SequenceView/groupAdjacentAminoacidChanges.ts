@@ -1,9 +1,15 @@
 /* eslint-disable no-loops/no-loops,no-plusplus */
 import copy from 'fast-copy'
 import { AMINOACID_GAP } from 'src/constants'
-import type { AminoacidDeletion, AminoacidSubstitution, Range } from 'src/algorithms/types'
+import type {
+  AminoacidDeletion,
+  AminoacidSubstitution,
+  Range,
+  NucleotideDeletion,
+  NucleotideSubstitution,
+} from 'src/algorithms/types'
 
-import { sumBy } from 'lodash'
+import { sumBy, uniqBy } from 'lodash'
 
 export interface AminoacidChange extends AminoacidSubstitution {
   type: 'substitution' | 'deletion'
@@ -24,6 +30,8 @@ export class AminoacidChangesGroup {
   public codonAaRange: Range
   public codonNucRange: Range
   public changes: AminoacidChange[]
+  public nucSubstitutions: NucleotideSubstitution[]
+  public nucDeletions: NucleotideDeletion[]
   public refContext: string
   public queryContext: string
   public contextNucRange: Range
@@ -40,6 +48,8 @@ export class AminoacidChangesGroup {
     this.codonAaRange = { begin: change.codon, end: change.codon + 1 }
     this.codonNucRange = copy(change.codonNucRange)
     this.changes = [copy(change)]
+    this.nucSubstitutions = copy(change.nucSubstitutions)
+    this.nucDeletions = copy(change.nucDeletions)
     this.queryContext = change.queryContext
     this.refContext = copy(change.refContext)
     this.contextNucRange = copy(change.contextNucRange)
@@ -58,6 +68,13 @@ export class AminoacidChangesGroup {
     this.refContext = mergeContext(this.refContext, change.refContext)
     this.queryContext = mergeContext(this.queryContext, change.queryContext)
     this.contextNucRange.end = change.contextNucRange.end
+
+    this.nucSubstitutions = this.nucSubstitutions.concat(change.nucSubstitutions)
+    this.nucSubstitutions = uniqBy(this.nucSubstitutions, (sub) => sub.pos)
+
+    this.nucDeletions = this.nucDeletions.concat(change.nucDeletions)
+    this.nucDeletions = uniqBy(this.nucDeletions, (del) => del.start)
+
     this.updateCounts()
   }
 }
