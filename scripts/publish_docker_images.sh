@@ -56,14 +56,10 @@ function publish_one_project() {
   fi
 
   TAGS=" \
-    ${DOCKER_ORG}/${PROJECT_NAME}:${VERSION_MAJOR}\
-    ${DOCKER_ORG}/${PROJECT_NAME}:${VERSION}
+    ${DOCKER_ORG}/${PROJECT_NAME}:${VERSION_MAJOR} \
+    ${DOCKER_ORG}/${PROJECT_NAME}:${VERSION} \
+    ${DOCKER_ORG}/${PROJECT_NAME}:latest \
     "
-
-  # Nextclade's `latest` tag should still point to version 0.x, so omit it here
-  if [ "${PROJECT_NAME}" != "nextclade" ]; then
-    TAGS="${TAGS} ${DOCKER_ORG}/${PROJECT_NAME}:latest"
-  fi
 
   # Make a string containing of tags for `docker build` command
   TAGS_FOR_DOCKER_BUILD=""
