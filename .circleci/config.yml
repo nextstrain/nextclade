@@ -172,17 +172,6 @@ jobs:
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             ./scripts/docker_builder_image_pull.sh || true
 
-      - run:
-          name: 'Build "Builder" container image'
-          command: |
-            make docker-builder
-
-      - run:
-          name: 'Push "Builder" container image'
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/docker_builder_image_push.sh
-
       - restore_cache:
           name: 'Restore build cache'
           keys:
