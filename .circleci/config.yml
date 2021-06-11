@@ -299,6 +299,7 @@ workflows:
   build:
     jobs:
       - Update-Builder-Container:
+          <<: *release_only
           <<: *major_branches_only
 
       - Build-Web:
