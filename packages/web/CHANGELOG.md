@@ -1,3 +1,13 @@
+## [1.0.0](https://github.com/nextstrain/nextclade/compare/1.0.1...1.0.0) (2021-06-11)
+
+### Nextclade web application
+
+This release fixes a problem in Nextclade web application where non-fatal errors during sequence processing (such as sequence alignment failures) were crashing the whole application, displaying an error dialog window.
+
+Now sequence analysis errors are reported right in the table, as before.
+
+Thanks Joan Gibert ([@Tato14](https://github.com/Tato14)) for the bug report ([#434](https://github.com/nextstrain/nextclade/issues/434))
+
 ## [1.0.0](https://github.com/nextstrain/nextclade/compare/1.0.0...0.14.4) (2021-06-11)
 
 This major release brings many new features and bug fixes.
