@@ -1,7 +1,7 @@
 version: 2.1
 
 
-release_only: &release_only
+release_cli_only: &release_cli_only
   filters:
     branches:
       only:
@@ -14,6 +14,16 @@ major_branches_only: &major_branches_only
         - master
         - staging
         - release
+
+major_branchesan_cli_release_only: &major_branchesan_cli_release_only
+  filters:
+    branches:
+      only:
+        - master
+        - staging
+        - release
+        - release-cli
+
 
 jobs:
   Update-Builder-Container:
@@ -288,8 +298,7 @@ workflows:
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *release_only
-          <<: *major_branches_only
+          <<: *major_branchesan_cli_release_only
 
       - Build-Web:
           context: nextclade_web_<< pipeline.git.branch >>
@@ -298,7 +307,7 @@ workflows:
             - Update-Builder-Container
 
       - Build-Linux-x86_64:
-          <<: *release_only
+          <<: *release_cli_only
           requires:
             - Update-Builder-Container
 
@@ -308,4 +317,4 @@ workflows:
               macos_arch:
                 - x86_64
                 - arm64
-          <<: *release_only
+          <<: *release_cli_only
