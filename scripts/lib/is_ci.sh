@@ -28,3 +28,11 @@ function is_ci() {
     echo "0"
   fi
 }
+
+function is_docker() {
+    if [ -f /.dockerenv ]; then
+      echo "1"
+    else
+      echo "0"
+    fi
+}

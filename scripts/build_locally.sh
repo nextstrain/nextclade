@@ -32,7 +32,6 @@ fi
 [ -n "${NEXTCLADE_EMSDK_VERSION_FROM_ENV:=}" ] && NEXTCLADE_EMSDK_VERSION="${NEXTCLADE_EMSDK_VERSION_FROM_ENV}"
 
 PROJECT_NAME="nextalign"
-BUILD_PREFIX=""
 
 export NEXTCLADE_EMSDK_VERSION_DEFAULT=2.0.6
 export NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION:=${NEXTCLADE_EMSDK_VERSION_DEFAULT}}
@@ -43,6 +42,9 @@ export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_D
 
 # Check whether we are running on a Continuous integration server
 IS_CI=${IS_CI:=$(is_ci)}
+
+# Check whether we are running in a Docker container
+IS_DOCKER=${IS_DOCKER:=$(is_docker)}
 
 # Name of the operating system we are running this script on: Linux, Darwin (we rename it to MacOS below)
 BUILD_OS="$(uname -s)"
@@ -140,8 +142,9 @@ if [ "${HOST_OS}" == "MacOS" ]; then
   "
 fi
 
-
+BUILD_PREFIX=""
 BUILD_SUFFIX=""
+
 MORE_CMAKE_FLAGS=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CC="${CC:-clang}"
@@ -196,7 +199,6 @@ EMMAKE=""
 CONAN_COMPILER_SETTINGS="${CONAN_COMPILER_SETTINGS:=}"
 CONANFILE="${PROJECT_ROOT_DIR}/conanfile.txt"
 NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=""
-BUILD_SUFFIX=""
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
   CONANFILE="${PROJECT_ROOT_DIR}/conanfile.wasm.txt"
 
@@ -247,6 +249,9 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
   NEXTCLADE_BUILD_TESTS=0
 fi
 
+if [ "${IS_DOCKER}" == "1" ];then
+  BUILD_PREFIX="Docker-"
+fi
 
 export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}}-conan"
 export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}}-ccache"
@@ -393,6 +398,7 @@ echo "uname -a       = $(uname -a)"
 echo "uname -s       = $(uname -s)"
 echo "uname -p       = $(uname -p)"
 echo "uname -m       = $(uname -m)"
+echo "IS_DOCKER      = ${IS_DOCKER}"
 echo ""
 echo "HOST_OS        = ${HOST_OS:=}"
 echo "HOST_ARCH      = ${HOST_ARCH:=}"
