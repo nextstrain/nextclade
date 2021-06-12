@@ -1,20 +1,33 @@
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
-clean:
-	rm -rf .build .out tmp packages/web/.build packages/web/src/generated
+# Cleanup
+# 	"clean":  remove build artifacts
+# 	"cleanest": remove build artifacts, caches and installed dependencies
 
-cleanest: clean
-	rm -rf .cache packages/web/.cache
+clean: clean-cpp clean-web
+
+cleanest: cleanest-cpp cleanest-web
+
+clean-cpp:
+	rm -rf .build .out .reports tmp
+
+cleanest-cpp: clean-cpp
+	rm -rf .cache
+
+clean-web:
+	rm -rf packages/web/.build packages/web/src/generated
+
+cleanest-web: clean-web
+	rm -rf packages/web/.cache
 
 
 # Command-line tools
-
 dev:
 	@$(MAKE) --no-print-directory dev-impl
 
 dev-impl:
-	@nodemon
+	@nodemon --config config/nodemon/nodemon.json
 
 dev-nowatch:
 	@scripts/build_locally.sh
@@ -35,10 +48,10 @@ dev-clang-analyzer:
 	@USE_CLANG_ANALYZER=1 scripts/build_locally.sh
 
 prod:
-	@CMAKE_BUILD_TYPE=Release scripts/build_locally.sh
+	@CMAKE_BUILD_TYPE=Release nodemon --config config/nodemon/nodemon.json
 
-prod-watch:
-	@CMAKE_BUILD_TYPE=Release nodemon
+prod-nowatch:
+	@CMAKE_BUILD_TYPE=Release scripts/build_locally.sh
 
 profile:
 	@CMAKE_BUILD_TYPE=RelWithDebInfo scripts/build_locally.sh
@@ -47,7 +60,7 @@ benchmarks:
 	@$(MAKE) --no-print-directory benchmarks-impl
 
 benchmarks-impl:
-	@nodemon --config nodemon.benchmarks.json
+	@nodemon --config config/nodemon/nodemon.benchmarks.json
 
 benchmarks-nowatch:
 	@scripts/benchmarks.sh
@@ -62,7 +75,7 @@ clang-tidy:
 
 # WebAssembly
 
-# There is no dev build for wasm
+# There is no dev build for wasm (it is too slow)
 dev-wasm: prod-wasm
 
 prod-wasm:
@@ -81,6 +94,8 @@ prod-web:
 
 prod-web-nowatch:
 	cd packages/web && yarn install --frozen-lockfile && yarn prod:build
+
+
 
 # Docker-based builds
 
@@ -102,16 +117,16 @@ docker-dev:
 # Builds and runs development container for wasm
 docker-dev-wasm:
 	scripts/docker_builder_image_build.sh "developer"
-	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "developer" "make prod-watch"
+	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "developer" "make prod"
 
 docker-builder:
 	./scripts/docker_builder_image_build.sh "builder"
 
 docker-builder-run:
-	./scripts/docker_builder_image_run.sh "builder" "make prod"
+	./scripts/docker_builder_image_run.sh "builder" "make prod-nowatch"
 
 docker-builder-run-wasm:
-	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "builder" "make prod"
+	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "builder" "make prod-nowatch"
 
 docker-builder-web:
 	./scripts/docker_builder_image_build.sh "web"
