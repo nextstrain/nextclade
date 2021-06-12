@@ -15,7 +15,7 @@ major_branches_only: &major_branches_only
         - staging
         - release
 
-major_branchesan_cli_release_only: &major_branchesan_cli_release_only
+major_branches_and_cli_release_only: &major_branches_and_cli_release_only
   filters:
     branches:
       only:
@@ -298,20 +298,30 @@ workflows:
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *major_branchesan_cli_release_only
+          context:
+            - nextclade_docker
+          <<: *major_branches_and_cli_release_only
 
       - Build-Web:
-          context: nextclade_web_<< pipeline.git.branch >>
-          <<: *major_branches_only
           requires:
             - Update-Builder-Container
+          context:
+            - nextclade_github
+            - nextclade_docker
+            - nextclade_web_<< pipeline.git.branch >>
+          <<: *major_branches_only
 
       - Build-Linux-x86_64:
-          <<: *release_cli_only
           requires:
             - Update-Builder-Container
+          context:
+            - nextclade_docker
+            - nextclade_github
+          <<: *release_cli_only
 
       - Build-MacOS:
+          context:
+            - nextclade_github
           matrix:
             parameters:
               macos_arch:
