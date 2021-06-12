@@ -104,7 +104,7 @@ jobs:
       - run:
           name: 'Build WebAssembly module'
           command: |
-            make prod-wasm-nowatch
+            make prod-wasm-ci
 
       - save_cache:
           name: 'Save WebAssembly module build cache'
@@ -121,7 +121,7 @@ jobs:
           name: 'Build web application'
           command: |
             ( cd packages/web && cp .env.example .env )
-            make prod-web-nowatch
+            make prod-web-ci
 
       - save_cache:
           name: 'Save web application build cache'

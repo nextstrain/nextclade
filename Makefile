@@ -151,3 +151,16 @@ e2e-compare:
 	python3 packages/nextclade/e2e/compare_js_and_cpp.py
 
 e2e: e2e-run e2e-compare
+
+
+# TODO: Not implemented
+lint-wasm-nowatch:
+	echo ""
+
+lint-web-nowatch:
+	cd packages/web && yarn install && yarn lint:ci
+
+make prod-wasm-ci: lint-wasm-nowatch prod-wasm-nowatch
+
+make prod-web-ci: lint-web-nowatch prod-web-nowatch
+
