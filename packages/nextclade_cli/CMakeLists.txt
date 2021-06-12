@@ -3,7 +3,6 @@ cmake_policy(SET CMP0069 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
 include(CFlags)
-include(Quiet)
 include(Sanitizers)
 
 project(nextclade_cli DESCRIPTION "C++ tool for viral genome analysis")

@@ -4,7 +4,6 @@ cmake_policy(SET CMP0069 NEW)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
 include(packages/cmake/CCache.cmake)
 include(packages/cmake/CFlags.cmake)
-include(packages/cmake/Quiet.cmake)
 include(packages/cmake/Sanitizers.cmake)
 
 file(STRINGS "VERSION" NEXTCLADE_CPP_VERSION)
