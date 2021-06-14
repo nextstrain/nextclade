@@ -40,18 +40,19 @@ PeptidesInternal translateGenes(         //
   std::vector<PeptideInternal> refPeptides;
   refPeptides.reserve(geneMap.size());
 
-  std::vector<std::string> warnings;
+  Warnings warnings;
 
   // For each gene in the requested subset
   for (const auto& [geneName, _] : geneMap) {
     const auto& found = geneMap.find(geneName);
     if (found == geneMap.end()) {
-      warnings.push_back(
-        fmt::format("When processing gene \"{:s}\": "
-                    "Gene \"{}\" was not found in the gene map. "
-                    "Note that this gene will not be included in the results "
-                    "of the sequence.",
-          geneName, geneName));
+      const auto message = fmt::format(
+        "When processing gene \"{:s}\": "
+        "Gene \"{}\" was not found in the gene map. "
+        "Note that this gene will not be included in the results "
+        "of the sequence.",
+        geneName, geneName);
+      warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
       continue;
     }
 
@@ -60,14 +61,16 @@ PeptidesInternal translateGenes(         //
     // TODO: can be done once during initialization
     const auto& extractRefGeneStatus = extractGeneQuery(ref, gene, coordMap);
     if (extractRefGeneStatus.status != Status::Success) {
-      warnings.push_back(*extractRefGeneStatus.error);
+      const auto message = *extractRefGeneStatus.error;
+      warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
       continue;
     }
 
 
     const auto& extractQueryGeneStatus = extractGeneQuery(query, gene, coordMap);
     if (extractQueryGeneStatus.status != Status::Success) {
-      warnings.push_back(*extractQueryGeneStatus.error);
+      const auto message = *extractQueryGeneStatus.error;
+      warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
       continue;
     }
 
@@ -77,11 +80,12 @@ PeptidesInternal translateGenes(         //
       alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
 
     if (geneAlignmentStatus.status != Status::Success) {
-      warnings.push_back(
-        fmt::format("When processing gene \"{:s}\": {:>16s}. "
-                    "Note that this gene will not be included in the results "
-                    "of the sequence.",
-          geneName, *geneAlignmentStatus.error));
+      const auto message = fmt::format(
+        "When processing gene \"{:s}\": {:>16s}. "
+        "Note that this gene will not be included in the results "
+        "of the sequence.",
+        geneName, *geneAlignmentStatus.error);
+      warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
       continue;
     }
 

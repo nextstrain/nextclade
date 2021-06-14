@@ -23,6 +23,11 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeString(const std::string& s) {
+      return json{s};
+    }
+
+
     json serializeRange(const Range& range) {
       auto j = json::object();
       j.emplace("begin", range.begin);
@@ -317,6 +322,20 @@ namespace Nextclade {
 
   std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers) {
     json j = serializeArray(pcrPrimers, serializePcrPrimerCsvRow);
+    return jsonStringify(j);
+  }
+
+  json serializeGeneWarning(const GeneWarning& geneWarning) {
+    auto j = json::object();
+    j.emplace("geneName", geneWarning.geneName);
+    j.emplace("message", geneWarning.message);
+    return j;
+  }
+
+  std::string serializeWarningsToString(const Warnings& warnings) {
+    auto j = json::object();
+    j.emplace("global", serializeArray(warnings.global, serializeString));
+    j.emplace("inGenes", serializeArray(warnings.inGenes, serializeGeneWarning));
     return jsonStringify(j);
   }
 

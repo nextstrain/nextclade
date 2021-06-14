@@ -55,7 +55,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
       result: undefined,
       query: undefined,
       queryPeptides: undefined,
-      warnings: [],
+      warnings: { global: [], inGenes: [] },
       errors: [],
     }
     draft.resultsFiltered = runFilters(current(draft))

@@ -45,13 +45,14 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
 
   std::vector<PeptideInternal> queryPeptides;
   std::vector<PeptideInternal> refPeptides;
-  std::vector<std::string> warnings;
+  Warnings warnings;
   if (!geneMap.empty()) {
     auto peptidesInternal =
       translateGenes(alignmentStatus.result->query, alignmentStatus.result->ref, geneMap, gapOpenCloseAA, options);
     concat_move(peptidesInternal.queryPeptides, queryPeptides);
     concat_move(peptidesInternal.refPeptides, refPeptides);
-    concat_move(peptidesInternal.warnings, warnings);
+    concat_move(peptidesInternal.warnings.global, warnings.global);
+    concat_move(peptidesInternal.warnings.inGenes, warnings.inGenes);
   }
 
   const auto stripped = stripInsertions(alignmentStatus.result->ref, alignmentStatus.result->query);

@@ -255,3 +255,13 @@ export interface SequenceParserResult {
   seqName: string
   seq: string
 }
+
+export interface GeneWarning {
+  geneName: string
+  message: string
+}
+
+export interface Warnings {
+  global: string[]
+  inGenes: GeneWarning[]
+}
