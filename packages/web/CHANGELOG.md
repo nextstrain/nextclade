@@ -1,4 +1,4 @@
-## [1.0.1](https://github.com/nextstrain/nextclade/compare/1.1.0...1.0.1) (2021-06-11)
+## [1.1.0](https://github.com/nextstrain/nextclade/compare/1.1.0...1.0.1) (2021-06-11)
 
 ### Nextclade web application
 
