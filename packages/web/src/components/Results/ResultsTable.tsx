@@ -244,7 +244,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
           <SequenceView key={seqName} sequence={sequence} />
         ) : (
-          <PeptideView key={seqName} sequence={sequence} viewedGene={viewedGene} />
+          <PeptideView key={seqName} sequence={sequence} viewedGene={viewedGene} warnings={warnings} />
         )}
       </TableCell>
     </TableRow>

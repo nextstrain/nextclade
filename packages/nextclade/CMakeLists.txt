@@ -87,6 +87,8 @@ set(SOURCE_FILES
   src/tree/treePostprocess.h
   src/tree/treePreprocess.cpp
   src/tree/treePreprocess.h
+  src/utils/concat.h
+  src/utils/concat_move.h
   src/utils/config.h
   src/utils/contains.h
   src/utils/contract.h

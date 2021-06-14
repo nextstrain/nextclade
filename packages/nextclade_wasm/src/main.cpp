@@ -7,6 +7,8 @@
 #include <exception>
 #include <utility>
 
+// FIXME: don't include private files from other packages
+#include "../../nextclade/src/utils/concat.h"
 #include "../../packages/nextclade/src/tree/treeAttachNodes.h"
 #include "../../packages/nextclade/src/tree/treePostprocess.h"
 #include "../../packages/nextclade/src/tree/treePreprocess.h"
@@ -23,7 +25,7 @@ struct NextcladeWasmState {
   GeneMap geneMap;
   Nextclade::QcConfig qcRulesConfig;
   std::vector<Nextclade::PcrPrimer> pcrPrimers;
-  std::vector<std::string> warnings;// TODO: report warnings
+  Warnings warnings;
 };
 
 NextcladeWasmState makeNextcladeWasmState(//
@@ -42,8 +44,8 @@ NextcladeWasmState makeNextcladeWasmState(//
   auto qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
 
   auto pcrPrimerRows = Nextclade::parsePcrPrimerCsvRowsStr(pcrPrimerRowsStr);
-  std::vector<std::string> warnings;
-  auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, warnings);
+  Warnings warnings;
+  auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, warnings.global);
 
   return NextcladeWasmState{
     .ref = std::move(ref),
@@ -60,7 +62,7 @@ struct NextcladeWasmResult {
   std::string query;
   std::string queryPeptides;
   std::string analysisResult;
-  std::vector<std::string> warnings;
+  std::string warnings;
   bool hasError;
   std::string error;
 };
@@ -93,7 +95,11 @@ public:
     const std::string& queryName,//
     const std::string& queryStr  //
   ) {
-    std::vector<std::string> warnings = state.warnings;
+
+    Warnings warnings{
+      .global = merge(state.warnings.global, warnings.global),
+      .inGenes = merge(state.warnings.inGenes, warnings.inGenes),
+    };
 
     try {
       const auto query = toNucleotideSequence(queryStr);
@@ -112,16 +118,15 @@ public:
         nextalignOptions                     //
       );
 
-      for (const auto& warning : result.warnings) {
-        warnings.emplace_back(warning);
-      }
+      warnings.global = merge(warnings.global, result.warnings.global);
+      warnings.inGenes = merge(warnings.inGenes, result.warnings.inGenes);
 
       return NextcladeWasmResult{
         .ref = result.ref,
         .query = result.query,
         .queryPeptides = Nextclade::serializePeptidesToString(result.queryPeptides),
         .analysisResult = serializeResultToString(result.analysisResult),
-        .warnings = warnings,
+        .warnings = Nextclade::serializeWarningsToString(warnings),
         .hasError = false,
         .error = {},
       };
@@ -131,7 +136,7 @@ public:
         .query = {},
         .queryPeptides = "",
         .analysisResult = {},
-        .warnings = warnings,
+        .warnings = Nextclade::serializeWarningsToString(warnings),
         .hasError = true,
         .error = e.what(),
       };
@@ -211,8 +216,6 @@ std::string serializeToCsv(const std::string& analysisResultsStr, const std::str
 
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 EMSCRIPTEN_BINDINGS(nextclade_wasm) {
-  emscripten::register_vector<std::string>("std::vector<std::string>");
-
   emscripten::function("getExceptionMessage", &getExceptionMessage);
 
   emscripten::function("parseGeneMapGffString", &parseGeneMapGffString);

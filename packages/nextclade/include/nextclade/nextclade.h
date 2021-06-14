@@ -341,12 +341,13 @@ namespace Nextclade {
     std::vector<Nextclade::AnalysisResult> results;
   };
 
+
   struct NextcladeResult {
     std::string ref;
     std::string query;
     std::vector<Peptide> refPeptides;
     std::vector<Peptide> queryPeptides;
-    std::vector<std::string> warnings;
+    Warnings warnings;
     AnalysisResult analysisResult;
   };
 
@@ -453,6 +454,8 @@ namespace Nextclade {
   AnalysisResults parseAnalysisResults(const std::string& analysisResultsStr);
 
   std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers);
+
+  std::string serializeWarningsToString(const Warnings& warnings);
 
   std::string serializeGeneMap(const GeneMap& geneMap);
 

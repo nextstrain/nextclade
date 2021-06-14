@@ -1,4 +1,4 @@
-import type { Virus, AnalysisResult, Gene, Peptide } from 'src/algorithms/types'
+import type { Virus, AnalysisResult, Gene, Peptide, Warnings } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
@@ -28,7 +28,7 @@ export interface SequenceAnalysisState {
   result?: AnalysisResult
   query?: string
   queryPeptides?: Peptide[]
-  warnings: string[]
+  warnings: Warnings
   errors: string[]
 }
 
