@@ -712,8 +712,12 @@ void run(
       logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} |",//
         index, seqName, alignmentScore, insertions.size());
 
-      for (const auto &warning : warnings) {
+      for (const auto &warning : warnings.global) {
         logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
+      }
+
+      for (const auto &warning : warnings.inGenes) {
+        logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning.message);
       }
 
       // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
