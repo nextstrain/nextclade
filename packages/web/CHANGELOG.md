@@ -1,3 +1,14 @@
+## [1.0.1](https://github.com/nextstrain/nextclade/compare/1.1.0...1.0.1) (2021-06-11)
+
+### Nextclade web application
+
+This release make gene translation failures more apparent in Nextclade Web application.
+
+Previously, when a gene failed to be translated, Nextclade show blank row in Gene view in the results table and it was hard to understand whether there are no aminoacid changes or the translation failed. Now, these rows will be colored in dark grey, contain a message, and some detailed information in the tooltip.
+
+This should hopefully make it clearer which genes are missing from the results and why.
+
+
 ## [1.0.1](https://github.com/nextstrain/nextclade/compare/1.0.1...1.0.0) (2021-06-11)
 
 ### Nextclade web application
