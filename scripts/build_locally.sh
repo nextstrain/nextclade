@@ -352,12 +352,14 @@ if [ "${USE_VALGRIND}" == "1" ] || [ "${USE_VALGRIND}" == "true" ]; then
 fi
 
 USE_MASSIF="${USE_MASSIF:=0}"
+MASSIF_REPORT_FILE="${PROJECT_ROOT_DIR}/.reports/massif.txt"
 if [ "${USE_MASSIF}" == "1" ] || [ "${USE_MASSIF}" == "true" ]; then
   NEXTALIGN_STATIC_BUILD=0
 
   VALGRIND_DEFAULT="\
   valgrind \
   --tool=massif \
+  --massif-out-file="${MASSIF_REPORT_FILE}" \
   --error-limit=no \
   "
 
