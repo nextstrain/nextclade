@@ -38,7 +38,7 @@ GROUP_ID=${GID:=$(id -g)}
 
 NEXTCLADE_NODE_VERSION="$(cat "${PROJECT_ROOT_DIR}"/.nvmrc)"
 
-docker build -f "${PROJECT_ROOT_DIR}/Dockerfile" \
+docker build --rm -f "${PROJECT_ROOT_DIR}/Dockerfile" \
   --target="${TARGET}" \
   --build-arg UID="${USER_ID}" \
   --build-arg GID="${GROUP_ID}" \
