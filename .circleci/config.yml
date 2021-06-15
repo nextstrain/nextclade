@@ -186,48 +186,60 @@ jobs:
       NUM_THREADS: 4
 
     steps:
-      - checkout
-
-      - setup_remote_docker:
-          version: 20.10.6
-
-      - restore_cache:
-          name: 'Restore build cache'
-          keys:
-            - cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+#      - checkout
 
       - run:
-          name: 'Run build: Linux-x86_64'
+          name: 'Create fake binaries'
           command: |
-            make prod-nowatch
+            mkdir -p .out/bin/
+            touch .out/bin/nextalign-Linux-x86_64
+            touch .out/bin/nextclade-Linux-x86_64
 
-      - save_cache:
-          name: 'Save build cache'
-          key: cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+      - persist_to_workspace:
+          name: 'Persist build artifacts into workspace'
+          root: .out/bin/
           paths:
-            - .cache
+            - .out/bin/nextalign-Linux-x86_64
+            - .out/bin/nextclade-Linux-x86_64
 
-      - store_artifacts:
-          name: 'Store artifacts: nextalign-Linux-x86_64'
-          path: .out/bin/nextalign-Linux-x86_64
-          destination: nextalign-Linux-x86_64
 
-      - store_artifacts:
-          name: 'Store artifacts: nextclade-Linux-x86_64'
-          path: .out/bin/nextclade-Linux-x86_64
-          destination: nextclade-Linux-x86_64
+#      - restore_cache:
+#          name: 'Restore build cache'
+#          keys:
+#            - cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+#
+#      - run:
+#          name: 'Run build: Linux-x86_64'
+#          command: |
+#            make prod-nowatch
+#
+#      - save_cache:
+#          name: 'Save build cache'
+#          key: cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+#          paths:
+#            - .cache
+#
+#      - store_artifacts:
+#          name: 'Store artifacts: nextalign-Linux-x86_64'
+#          path: .out/bin/nextalign-Linux-x86_64
+#          destination: nextalign-Linux-x86_64
+#
+#      - store_artifacts:
+#          name: 'Store artifacts: nextclade-Linux-x86_64'
+#          path: .out/bin/nextclade-Linux-x86_64
+#          destination: nextclade-Linux-x86_64
+#
+#      - run:
+#          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
+#          command: |
+#            OS=linux ./scripts/download_github_release_tool.sh
+##            ./scripts/publish_github_releases.sh
 
-      - run:
-          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
-          command: |
-            OS=linux ./scripts/download_github_release_tool.sh
-#            ./scripts/publish_github_releases.sh
-
-      - run:
-          name: 'Publish Docker images to DockerHub'
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/publish_docker_images.sh
+#      - run:
+#          name: 'Publish Docker images to DockerHub'
+#          command: |
+#            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+#            ./scripts/publish_docker_images.sh
 
   Build-MacOS:
     parameters:
@@ -242,65 +254,111 @@ jobs:
       TERM: xterm-256color
 
     steps:
-      - checkout
-
-      - restore_cache:
-          name: 'Restore homebrew cache'
-          keys:
-            - cache-nextclade-v2-homebrew-{{ arch }}
-
       - run:
-          name: 'Install build tools'
+          name: 'Create fake binaries'
           command: |
-            set -x
-            brew install -q ccache cmake conan coreutils cppcheck ghr
-            conan profile new default --detect
-            conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
-          environment:
-            HOMEBREW_NO_AUTO_UPDATE: 1
-            CONAN_USER_HOME: '/Users/distiller/project/.cache'
+            mkdir -p .out/bin/
+            touch .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
+            touch .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
 
-      - save_cache:
-          name: 'Save homebrew cache'
-          key: cache-nextclade-v2-homebrew-{{ arch }}
+      - persist_to_workspace:
+          name: 'Persist build artifacts into workspace'
+          root: .out/bin/
           paths:
-            - '~/Library/Caches/Homebrew'
-            - '/usr/local/Homebrew'
+            - .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
+            - .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
 
-      - restore_cache:
-          name: 'Restore build cache'
-          keys:
-            - cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+
+#      - checkout
+#
+#      - restore_cache:
+#          name: 'Restore homebrew cache'
+#          keys:
+#            - cache-nextclade-v2-homebrew-{{ arch }}
+#
+#      - run:
+#          name: 'Install build tools'
+#          command: |
+#            set -x
+#            brew install -q ccache cmake conan coreutils cppcheck ghr
+#            conan profile new default --detect
+#            conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+#          environment:
+#            HOMEBREW_NO_AUTO_UPDATE: 1
+#            CONAN_USER_HOME: '/Users/distiller/project/.cache'
+#
+#      - save_cache:
+#          name: 'Save homebrew cache'
+#          key: cache-nextclade-v2-homebrew-{{ arch }}
+#          paths:
+#            - '~/Library/Caches/Homebrew'
+#            - '/usr/local/Homebrew'
+#
+#      - restore_cache:
+#          name: 'Restore build cache'
+#          keys:
+#            - cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+#
+#      - run:
+#          name: Run macOS << parameters.macos_arch >> build
+#          command: |
+#            make prod-nowatch
+#          environment:
+#            CONAN_USER_HOME: '/Users/distiller/project/.cache'
+#            HOST_ARCH: << parameters.macos_arch >>
+#
+#      - save_cache:
+#          name: 'Save build cache'
+#          key: cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+#          paths:
+#            - .cache
+#
+#      - store_artifacts:
+#          name: 'Store artifacts: nextalign-MacOS-<< parameters.macos_arch >>'
+#          path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
+#          destination: nextalign-MacOS-<< parameters.macos_arch >>
+#
+#      - store_artifacts:
+#          name: 'Store artifacts: nextclade-MacOS-<< parameters.macos_arch >>'
+#          path: .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
+#          destination: nextclade-MacOS-<< parameters.macos_arch >>
+#
+#      - run:
+#          name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
+#          command: |
+#            OS=darwin ./scripts/download_github_release_tool.sh
+##            ./scripts/publish_github_releases.sh
+
+  Publish-Github-Release:
+    docker:
+      - image: nextstrain/nextclade_builder:builder
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
+
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: /tmp/workspace
 
       - run:
-          name: Run macOS << parameters.macos_arch >> build
+          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
           command: |
-            make prod-nowatch
-          environment:
-            CONAN_USER_HOME: '/Users/distiller/project/.cache'
-            HOST_ARCH: << parameters.macos_arch >>
+            OS=linux ./scripts/download_github_release_tool.sh
+        #./scripts/publish_github_releases.sh
 
-      - save_cache:
-          name: 'Save build cache'
-          key: cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
-          paths:
-            - .cache
 
-      - store_artifacts:
-          name: 'Store artifacts: nextalign-MacOS-<< parameters.macos_arch >>'
-          path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
-          destination: nextalign-MacOS-<< parameters.macos_arch >>
 
-      - store_artifacts:
-          name: 'Store artifacts: nextclade-MacOS-<< parameters.macos_arch >>'
-          path: .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
-          destination: nextclade-MacOS-<< parameters.macos_arch >>
+  Publish-Docker-Images:
+      resource_class: medium
 
-      - run:
-          name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
-          command: |
-            OS=darwin ./scripts/download_github_release_tool.sh
-#            ./scripts/publish_github_releases.sh
+      machine:
+        image: ubuntu-2004:202010-01
+
+      steps:
+        - checkout
+
+
 
 workflows:
   version: 2
@@ -311,14 +369,14 @@ workflows:
             - nextclade_docker
           <<: *major_branches_and_cli_release_only
 
-      - Build-Web:
-          requires:
-            - Update-Builder-Container
-          context:
-            - nextclade_github
-            - nextclade_docker
-            - nextclade_web_<< pipeline.git.branch >>
-          <<: *major_branches_only
+#      - Build-Web:
+#          requires:
+#            - Update-Builder-Container
+#          context:
+#            - nextclade_github
+#            - nextclade_docker
+#            - nextclade_web_<< pipeline.git.branch >>
+#          <<: *major_branches_only
 
       - Build-Linux-x86_64:
           requires:
@@ -337,3 +395,13 @@ workflows:
                 - x86_64
                 - arm64
           <<: *release_cli_only
+
+      - Publish-Github-Release:
+          requires:
+            - Build-MacOS
+            - Build-Linux-x86_64
+
+      - Publish-Docker-Images:
+          requires:
+            - Build-MacOS
+            - Build-Linux-x86_64
