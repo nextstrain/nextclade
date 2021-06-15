@@ -40,6 +40,12 @@ export NEXTCLADE_EMSDK_DIR=${NEXTCLADE_EMSDK_DIR:=${NEXTCLADE_EMSDK_DIR_DEFAULT}
 export NEXTCLADE_EMSDK_CACHE_DEFAULT="${PROJECT_ROOT_DIR}/.cache/emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
 export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_DEFAULT}}"
 
+NUM_THREADS_DEFAULT="$(nproc)"
+NUM_THREADS=${NUM_THREADS:=${NUM_THREADS_DEFAULT}}
+
+CMAKE_BUILD_PARALLEL_LEVEL="${NUM_THREADS}"
+MAKEFLAGS="-j${NUM_THREADS}"
+
 # Check whether we are running on a Continuous integration server
 IS_CI=${IS_CI:=$(is_ci)}
 
@@ -401,6 +407,7 @@ echo "uname -s       = $(uname -s)"
 echo "uname -p       = $(uname -p)"
 echo "uname -m       = $(uname -m)"
 echo "IS_DOCKER      = ${IS_DOCKER}"
+echo "NUM_THREADS    = ${NUM_THREADS}"
 echo ""
 echo "HOST_OS        = ${HOST_OS:=}"
 echo "HOST_ARCH      = ${HOST_ARCH:=}"
@@ -521,7 +528,7 @@ pushd "${BUILD_DIR}" > /dev/null
     ${MORE_CMAKE_FLAGS}
 
   print 12 "Build";
-  ${CLANG_ANALYZER} ${EMMAKE} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j$(($(nproc) - 1))
+  ${CLANG_ANALYZER} ${EMMAKE} cmake --build "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" -- -j${NUM_THREADS}
 
   function strip_executable() {
     CLI=${1}
