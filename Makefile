@@ -172,10 +172,10 @@ dev-wasm: prod-wasm
 # WebAssembly: Release build
 
 prod-wasm:
-	@NEXTCLADE_BUILD_WASM=1 $(MAKE) --no-print-directory dev
+	@NEXTCLADE_BUILD_WASM=1 $(MAKE) --no-print-directory prod
 
 prod-wasm-nowatch:
-	@NEXTCLADE_BUILD_WASM=1 $(MAKE)  --no-print-directory prod
+	@NEXTCLADE_BUILD_WASM=1 $(MAKE)  --no-print-directory prod-nowatch
 
 # TODO: Not implemented
 lint-wasm-nowatch:
