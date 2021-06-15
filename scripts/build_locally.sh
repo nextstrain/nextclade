@@ -607,12 +607,12 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
 
    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
      print 27 "Run Nextalign CLI";
-     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+     eval "${GDB}" ${NEXTALIGN_CLI} --jobs="${NUM_THREADS}" ${DEV_CLI_OPTIONS} || cd .
    fi
 
    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
      print 27 "Run Nextclade CLI";
-     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+     eval "${GDB}" ${NEXTCLADE_CLI} --jobs="${NUM_THREADS}" ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
    fi
   print 22 "Done";
 

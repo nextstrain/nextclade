@@ -89,6 +89,9 @@ jobs:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASS
 
+    environment:
+      NUM_THREADS: 4
+
     steps:
       - checkout
 
@@ -178,6 +181,9 @@ jobs:
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASS
+
+    environment:
+      NUM_THREADS: 4
 
     steps:
       - checkout
