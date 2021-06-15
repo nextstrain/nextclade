@@ -1,9 +1,9 @@
-<h1 id="nextalign" align="center">
-Nextalign
+<h1 id="nextclade" align="center">
+Nextclade
 </h1>
 
-<h4 id="nextalign" align="center">
-Viral genome alignment
+<h4 id="nextclade" align="center">
+Viral genome alignment, mutation calling, clade assignment, quality checks and phylogenetic placement
 </h4>
 
 <p align="center">
@@ -20,7 +20,7 @@ by Nextstrain team
     />
   </a>
 
-  <a href="https://hub.docker.com/r/nextstrain/nextalign">
+  <a href="https://hub.docker.com/r/nextstrain/nextclade">
     <img height="30px"
       src="https://img.shields.io/badge/%F0%9F%90%8B%20%20%20Docker-%231188cc.svg"
       alt="Docker version"
@@ -58,8 +58,8 @@ by Nextstrain team
     <img src="https://img.shields.io/github/v/release/nextstrain/nextclade?logo=github" alt="GitHub releases">
   </a>
 
-  <a href="https://hub.docker.com/r/nextstrain/nextalign">
-    <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextalign">
+  <a href="https://hub.docker.com/r/nextstrain/nextclade">
+    <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextclade">
   </a>
 </p>
 
@@ -69,15 +69,9 @@ by Nextstrain team
 👋 About
 </h2>
 
-Nextalign is a viral genome sequence alignment algorithm used in [Nextclade](https://github.com/nextstrain/nextclade), ported to C++ and made into the standalone command-line tool.
-
-Nextalign performs pairwise alignment of provided sequences against a given reference sequence using banded local alignment algorithm with affine gap-cost. Band width and rough relative positions are determined through seed matching.
-
-Nextalign will strip insertions relative to the reference and output them in a separate CSV file.
-
-Optionally, when provided with a gene map and a list of genes, Nextalign can perform translation of these genes.
-
-Currently Nextalign primarily focuses on SARS-CoV-2 genome, but it can be used on any virus, given a sufficiently similar reference sequence (less than a 5% divergence).
+Nextclade is a tool that identifies differences between your sequences and a reference sequence used by Nextstrain,
+uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data.
+You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
 
 ---
 
@@ -92,18 +86,18 @@ Currently Nextalign primarily focuses on SARS-CoV-2 genome, but it can be used o
 #### 🤏 Download manually
 
 
-You can download Nextalign executables on Github Releases page:
+You can download Nextclade executables on Github Releases page:
 
 https://github.com/nextstrain/nextclade/releases
 
-> ⚠️ Note that macOS executables are not currently signed with a developer certificate. Recent versions of macOS might refuse to run it. Before invoking Nextalign on command line, follow these steps to add Nextalign to the exclude list:
+> ⚠️ Note that macOS executables are not currently signed with a developer certificate. Recent versions of macOS might refuse to run it. Before invoking Nextclade on command line, follow these steps to add Nextclade to the exclude list:
 > <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac">
 macOS User Guide: Open a Mac app from an unidentified developer</a>, or, if this does not work, check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
 Security settings</a>.
 
 #### 🖥️ Download from command line
 
-The following commands can be used to download nextalign from command line, from shell scripts and inside dockerfiles (click to expand):
+The following commands can be used to download nextclade from command line, from shell scripts and inside dockerfiles (click to expand):
 
 <p>
 <details>
@@ -114,13 +108,13 @@ The following commands can be used to download nextalign from command line, from
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-Linux-x86_64" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-Linux-x86_64" -o "nextclade" && chmod +x nextclade
 ```
 
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-Linux-x86_64" -o "nextalign" && chmod +x nextalign
+NEXTCLADE_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-Linux-x86_64" -o "nextclade" && chmod +x nextclade
 ```
 </details>
 </p>
@@ -134,13 +128,13 @@ NEXTALIGN_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/r
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-MacOS-x86_64" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-x86_64" -o "nextclade" && chmod +x nextclade
 ```
 
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-x86_64" -o "nextalign" && chmod +x nextalign
+NEXTCLADE_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-MacOS-x86_64" -o "nextclade" && chmod +x nextclade
 ```
 </details>
 </p>
@@ -154,13 +148,13 @@ NEXTALIGN_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/r
 Download latest version:
 
 ```bash
-curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-MacOS-arm64" -o "nextalign" && chmod +x nextalign
+curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-arm64" -o "nextclade" && chmod +x nextclade
 ```
 
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-arm64" -o "nextalign" && chmod +x nextalign
+NEXTCLADE_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-MacOS-arm64" -o "nextclade" && chmod +x nextclade
 ```
 </details>
 </p>
@@ -176,19 +170,19 @@ Native Windows executables are not available at this time. Windows users can try
 #### 🐋 With docker
 
 
-Container images are available at Docker Hub: https://hub.docker.com/repository/docker/nextstrain/nextalign
+Container images are available at Docker Hub: https://hub.docker.com/repository/docker/nextstrain/nextclade
 
 Pull and run the latest version with:
 
 ```
-docker pull nextstrain/nextalign:latest
-docker run -it --rm nextstrain/nextalign:latest nextalign --help
+docker pull nextstrain/nextclade:latest
+docker run -it --rm nextstrain/nextclade:latest nextclade --help
 ```
 
 Pull and run a specific version with:
 
 ```
-docker run -it --rm nextstrain/nextalign:1.0.0 nextalign --help
+docker run -it --rm nextstrain/nextclade:1.0.0 nextclade --help
 ```
 
 Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
@@ -196,10 +190,10 @@ Don't forget to mount necessary volumes to be able to supply the data inside the
 
 #### 🔋 Usage
 
-Refer to help prompt for usage of Nextalign:
+Refer to help prompt for usage of Nextclade:
 
 ```
-nextalign --help
+nextclade --help
 ```
 
 Quick Example:
@@ -211,23 +205,38 @@ Quick Example:
  2. Run:
 
     ```
-    nextalign \
-      --sequences=sequences.fasta \
-      --reference=reference.fasta \
-      --genemap=genemap.gff \
-      --genes=E,M,N,ORF10,ORF14,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+    nextclade \
+      --input-fasta=sequences.fasta \
+      --input-root-seq=reference.fasta \
+      --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+      --input-gene-map=genemap.gff \
+      --input-tree=tree.json \
+      --input-qc-config=qc.json \
+      --input-pcr-primers=primers.csv \
+      --output-json=output/nextclade.json \
+      --output-csv=output/nextclade.csv \
+      --output-tsv=output/nextclade.tsv \
+      --output-tree=output/nextclade.auspice.json \
       --output-dir=output/ \
-      --output-basename=nextalign
+      --output-basename=nextclade
     ```
 
-    Add `--verbose` flag to show more information in the console. Add `--write-ref` flag to also write gap-stripped reference sequence and peptides into outputs.
+    Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
 
- 3. Find the output files in the `output/` directory
+ 3. Find the output files in the `output/` directory:
+
+    - nextclade.aligned.fasta - aligned input sequences
+    - nextclade.gene.<gene_name>.fasta - peptides corresponding to each gene
+    - nextclade.insertions.csv - list of stripped insertions for each input sequence
+    - nextclade.tsv - results of the analysis in TSV format
+    - nextclade.csv - same results, but in CSV format
+    - nextclade.json - detailed results of the analysis in JSON format
+    - nextclade.auspice.json - same as input tree, but with the input sequences placed onto it
 
 
 #### 💬 Feedback
 
-Do you find Nextalign useful? Tell us about your use-case and experience with it.
+Do you find Nextclade useful? Tell us about your use-case and experience with it.
 
 If you want to report an error or request a new feature, please open a [new Github Issue](https://github.com/nextstrain/nextclade/issues/new).
 
