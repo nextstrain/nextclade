@@ -66,17 +66,10 @@ jobs:
             ./scripts/docker_builder_image_build.sh "builder"
 
       - run:
-          name: 'Build "Web" container image'
-          command: |
-            set -x
-            ./scripts/docker_builder_image_build.sh "web"
-
-      - run:
           name: 'Push container images'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             ./scripts/docker_builder_image_push.sh "builder"
-            ./scripts/docker_builder_image_push.sh "web"
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
@@ -104,7 +97,8 @@ jobs:
       - run:
           name: 'Build WebAssembly module'
           command: |
-            make prod-wasm-ci
+            make lint-wasm-nowatch
+            make prod-wasm-nowatch
 
       - save_cache:
           name: 'Save WebAssembly module build cache'
@@ -121,7 +115,8 @@ jobs:
           name: 'Build web application'
           command: |
             ( cd packages/web && cp .env.example .env )
-            make prod-web-ci
+            make lint-web-nowatch
+            make prod-web-nowatch
 
       - save_cache:
           name: 'Save web application build cache'
@@ -170,17 +165,17 @@ jobs:
   Build-Linux-x86_64:
     resource_class: medium
 
-    machine:
-      image: ubuntu-2004:202010-01
+    docker:
+      - image: nextstrain/nextclade_builder:builder
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
 
     steps:
       - checkout
 
-      - run:
-          name: 'Pull "Builder" container image'
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/docker_builder_image_pull.sh || true
+      - setup_remote_docker:
+          version: 20.10.6
 
       - restore_cache:
           name: 'Restore build cache'
@@ -188,9 +183,9 @@ jobs:
             - cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
-          name: 'Run "Builder" container'
+          name: 'Run build: Linux-x86_64'
           command: |
-            make docker-builder-run
+            make prod-nowatch
 
       - save_cache:
           name: 'Save build cache'
@@ -266,7 +261,7 @@ jobs:
       - run:
           name: Run macOS << parameters.macos_arch >> build
           command: |
-            make prod
+            make prod-nowatch
           environment:
             CONAN_USER_HOME: '/Users/distiller/project/.cache'
             HOST_ARCH: << parameters.macos_arch >>

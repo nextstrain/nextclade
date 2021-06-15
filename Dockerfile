@@ -5,6 +5,14 @@
 # https://hub.docker.com/layers/ubuntu/library/ubuntu/focal-20210119/images/sha256-3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e?context=explore
 FROM ubuntu@sha256:3093096ee188f8ff4531949b8f6115af4747ec1c58858c091c8cb4579c39cc4e as builder
 
+ARG NEXTCLADE_NODE_VERSION
+ARG NEXTCLADE_EMSDK_VERSION
+
+ENV TERM="xterm-256color"
+ENV NEXTCLADE_NVM_DIR="/opt/nvm"
+ENV NEXTCLADE_NODE_VERSION="${NEXTCLADE_NODE_VERSION}"
+ENV PATH="${NEXTCLADE_NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
+
 RUN set -x \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
@@ -39,8 +47,31 @@ RUN set -x \
   cpplint \
 && rm -rf ~/.cache/pip/*
 
-ARG NEXTCLADE_EMSDK_VERSION
 
+# AWS CLI
+RUN set -x \
+&& mkdir /awscli-tmp \
+&& cd /awscli-tmp \
+&& curl -fsS "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+&& unzip -oqq awscliv2.zip \
+&& ./aws/install --update \
+&& rm -rf /awscli-tmp
+
+
+# Node.js
+COPY scripts/install_node.sh /
+
+RUN set -x \
+&& /install_node.sh "/opt/nvm" "${NEXTCLADE_NODE_VERSION}"
+
+RUN set -x \
+&& mkdir -p "/home/.config/yarn" \
+&& npm install -g \
+  nodemon@2.0.7 \
+  yarn@1.22.10
+
+
+# Emscripten SDK
 COPY scripts/install_emscripten.sh /
 
 RUN set -x \
@@ -51,52 +82,14 @@ ENV HOME="/home/${USER}"
 ENV NEXTCLADE_EMSDK_DIR="/emsdk"
 ENV NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION}
 
-WORKDIR /src
-
-#-------------------------------------------------------------------------------
-
-# Target: web
-# Purpose: web environment used for production web build
-FROM builder as web
-
-ARG NEXTCLADE_NODE_VERSION
-
-ENV TERM="xterm-256color"
-ENV NVM_DIR="/opt/nvm"
-ENV PATH="${NVM_DIR}/versions/node/default/bin:$PATH"
-ENV NEXTCLADE_NVM_DIR="/opt/nvm"
-ENV NEXTCLADE_NODE_VERSION="${NEXTCLADE_NODE_VERSION}"
-
-COPY scripts/install_node.sh /
-
-RUN set -x \
-&& /install_node.sh "/opt/nvm" "${NEXTCLADE_NODE_VERSION}"
-
-RUN set -x \
-&& mkdir /awscli-tmp \
-&& cd /awscli-tmp \
-&& curl -fsS "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
-&& unzip -oqq awscliv2.zip \
-&& ./aws/install --update \
-&& rm -rf /awscli-tmp
-
-ENV PATH="${NEXTCLADE_NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
-
-RUN set -x \
-&& mkdir -p "/home/.config/yarn" \
-&& npm install -g \
-  nodemon@2.0.7 \
-  yarn@1.22.10
 
 WORKDIR /src
 
 #-------------------------------------------------------------------------------
 
 # Target: developer
-# Purpose: development environment used for the routine C++ development tasks
+# Purpose: development environment used for the routine development tasks
 FROM builder as developer
-
-USER 0
 
 RUN set -x \
 && export DEBIAN_FRONTEND=noninteractive \
@@ -125,10 +118,9 @@ ENV GROUP=$GROUP
 ENV UID=$UID
 ENV GID=$GID
 ENV TERM="xterm-256color"
-ENV HOME="/home/${USER}"
-
-ENV NVM_DIR="${HOME}/.nvm"
-ENV PATH="${NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
+ENV NEXTCLADE_NVM_DIR="/opt/nvm"
+ENV NEXTCLADE_NODE_VERSION="${NEXTCLADE_NODE_VERSION}"
+ENV PATH="${NEXTCLADE_NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
 
 RUN addgroup --system --gid ${GID} ${GROUP}
 
@@ -145,23 +137,10 @@ ${USER} \
 && touch ${HOME}/.hushlogin
 
 RUN set -x \
-&& git clone --recursive https://github.com/creationix/nvm.git ${NVM_DIR}
-
-RUN . ${NVM_DIR}/nvm.sh \
-&& export NODE_VERSION=$(nvm version-remote --lts) \
-&& nvm install ${NODE_VERSION} \
-&& nvm alias default ${NODE_VERSION} || true \
-&& cd ${NVM_DIR}/versions/node >/dev/null \
-&& ln -s ${NODE_VERSION} default \
-&& npm install -g nodemon@2.0.7
-
-RUN set -x \
 && chown -R ${USER}:${GROUP} ${HOME}
 
 USER ${USER}
 
 WORKDIR /src
-
-ENTRYPOINT ["make", "dev"]
 
 #-------------------------------------------------------------------------------

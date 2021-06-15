@@ -1,9 +1,55 @@
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
-# Cleanup
-# 	"clean":  remove build artifacts
-# 	"cleanest": remove build artifacts, caches and installed dependencies
+all:
+	@echo "There is no default make target."
+	@echo ""
+	@echo "TL;DR:"
+	@echo "  If you are just starting with Nextclade CLI, you probably need:"
+	@echo ""
+	@echo "    make dev"
+	@echo ""
+	@echo "  If you want to build Nextclade Web Application, you are probably looking for:"
+	@echo ""
+	@echo "    make dev-wasm"
+	@echo "    make dev-web"
+	@echo "  (in two separate terminal windows)"
+	@echo ""
+	@echo ""
+	@echo ""
+	@echo "List of most important make targets"
+	@echo ""
+	@echo "Nextclade and Nextalign CLI:"
+	@echo ""
+	@echo "  make dev                 Build and run Nextclade and Nextalign CLI in development mode (locally)"
+	@echo "  make prod                Build and run Nextclade and Nextalign CLI in production mode (locally)"
+	@echo ""
+	@echo "  make docker-dev          Build and run Nextclade and Nextalign CLI in development mode (inside Docker container)"
+	@echo "  make docker-prod         Build and run Nextclade and Nextalign CLI in production mode (inside Docker container)"
+	@echo ""
+	@echo "  make benchmarks          Build and run Nextclade and Nextalign benchmarks"
+	@echo "  make profile             Build and run Nextclade and Nextalign with profiling"
+	@echo "  make dev-valgrind        Build and run Nextclade and Nextalign with valgrind"
+	@echo "  make dev-massif          Build and run Nextclade and Nextalign with massif"
+	@echo "  make dev-asan            Build and run Nextclade and Nextalign CLI with Address Sanitizer"
+	@echo "  make dev-msan            Build and run Nextclade and Nextalign CLI with Memory Sanitizer"
+	@echo "  make dev-tsan            Build and run Nextclade and Nextalign CLI with Thread Sanitizer"
+	@echo "  make dev-ubsan           Build and run Nextclade and Nextalign CLI with Undefined Behavior Sanitizer"
+	@echo "  make dev-clang-analyzer  Build Nextclade and Nextalign CLI and run Clang Analyzer"
+	@echo ""
+	@echo "Nextclade Web Application and Nextclade WebAssembly module:"
+	@echo ""
+	@echo "  make dev-wasm            Build Nextclade WebAssembly module in development mode"
+	@echo "  make prod-wasm           Build Nextclade WebAssembly module in production mode"
+	@echo "  make dev-web             Build Nextclade Web Application and run development server"
+	@echo "  make prod-web            Build Nextclade Web Application production bundle and run local static server"
+	@echo ""
+	@echo "General:"
+	@echo "  make clean               Delete build artifacts"
+	@echo "  make cleanest            Delete build artifacts, caches and installed dependencies"
+	@echo ""
+
+# General
 
 clean: clean-cpp clean-web
 
@@ -22,7 +68,8 @@ cleanest-web: clean-web
 	rm -rf packages/web/.cache
 
 
-# Command-line tools
+
+# CLI: Development build
 dev:
 	@$(MAKE) --no-print-directory dev-impl
 
@@ -31,6 +78,40 @@ dev-impl:
 
 dev-nowatch:
 	@scripts/build_locally.sh
+
+
+
+# CLI: Production build
+prod:
+	@CMAKE_BUILD_TYPE=Release nodemon --config config/nodemon/nodemon.json
+
+prod-nowatch:
+	@CMAKE_BUILD_TYPE=Release scripts/build_locally.sh
+
+
+# CLI: Development build (docker)
+docker-dev: docker-developer-image-build
+	./scripts/docker_builder_image_run.sh "developer" "make dev"
+
+
+# CLI: Production build (docker)
+docker-prod: docker-developer-image-build
+	./scripts/docker_builder_image_run.sh "developer" "make prod"
+
+
+# CLI: Static analysis
+
+dev-clang-analyzer:
+	@USE_CLANG_ANALYZER=1 scripts/build_locally.sh
+
+dev-clang-tidy:
+	@scripts/clang-tidy.sh
+
+format:
+	@scripts/format.sh
+
+
+# CLI: Runtime analysis
 
 dev-asan:
 	@CMAKE_BUILD_TYPE=ASAN $(MAKE) dev
@@ -44,17 +125,14 @@ dev-tsan:
 dev-ubsan:
 	@CMAKE_BUILD_TYPE=UBSAN $(MAKE) dev
 
-dev-clang-analyzer:
-	@USE_CLANG_ANALYZER=1 scripts/build_locally.sh
+dev-valgrind:
+	@USE_VALGRIND=1 $(MAKE) dev
 
-prod:
-	@CMAKE_BUILD_TYPE=Release nodemon --config config/nodemon/nodemon.json
+dev-massif:
+	@USE_MASSIF=1 $(MAKE) dev
 
-prod-nowatch:
-	@CMAKE_BUILD_TYPE=Release scripts/build_locally.sh
 
-profile:
-	@CMAKE_BUILD_TYPE=RelWithDebInfo scripts/build_locally.sh
+# CLI: Performance
 
 benchmarks:
 	@$(MAKE) --no-print-directory benchmarks-impl
@@ -65,84 +143,12 @@ benchmarks-impl:
 benchmarks-nowatch:
 	@scripts/benchmarks.sh
 
-format:
-	@scripts/format.sh
-
-clang-tidy:
-	@scripts/clang-tidy.sh
+profile:
+	@CMAKE_BUILD_TYPE=RelWithDebInfo scripts/build_locally.sh
 
 
 
-# WebAssembly
-
-# There is no dev build for wasm (it is too slow)
-dev-wasm: prod-wasm
-
-prod-wasm:
-	@NEXTCLADE_BUILD_WASM=1 $(MAKE) --no-print-directory dev
-
-prod-wasm-nowatch:
-	@NEXTCLADE_BUILD_WASM=1 $(MAKE)  --no-print-directory prod
-
-# Web
-
-dev-web:
-	cd packages/web && yarn dev
-
-prod-web:
-	cd packages/web && yarn install && yarn prod:watch
-
-prod-web-nowatch:
-	cd packages/web && yarn install --frozen-lockfile && yarn prod:build
-
-
-
-# Docker-based builds
-
-# Pulls "Builder" docker container from Docker Hub
-docker-builder-pull:
-	./scripts/docker_builder_image_pull.sh
-
-# Pushes "Builder" docker container to Docker Hub
-docker-builder-push:
-	./scripts/docker_builder_image_push.sh
-
-
-
-# Builds and runs development container
-docker-dev:
-	./scripts/docker_builder_image_build.sh "developer"
-	./scripts/docker_builder_image_run.sh "developer" "make dev"
-
-# Builds and runs development container for wasm
-docker-dev-wasm:
-	scripts/docker_builder_image_build.sh "developer"
-	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "developer" "make prod"
-
-docker-builder:
-	./scripts/docker_builder_image_build.sh "builder"
-
-docker-builder-run:
-	./scripts/docker_builder_image_run.sh "builder" "make prod-nowatch"
-
-docker-builder-run-wasm:
-	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "builder" "make prod-nowatch"
-
-docker-builder-web:
-	./scripts/docker_builder_image_build.sh "web"
-
-docker-builder-run-web:
-	./scripts/docker_builder_image_run.sh "web" "make prod-web-nowatch"
-
-docker-prod: docker-builder docker-builder-run
-
-docker-prod-wasm: docker-builder docker-builder-run-wasm
-
-docker-prod-web: docker-builder-web docker-builder-run-wasm docker-builder-run-web
-
-# Checks if attempted release version is valid
-check-release-version:
-	scripts/check_release_version.sh
+# CLI: End-to-end tests
 
 e2e-run:
 	packages/nextclade/e2e/run.sh
@@ -153,14 +159,100 @@ e2e-compare:
 e2e: e2e-run e2e-compare
 
 
+
+
+
+
+
+# WebAssembly: Debug build
+
+# There is no dev build for wasm (it is too slow)
+dev-wasm: prod-wasm
+
+# WebAssembly: Release build
+
+prod-wasm:
+	@NEXTCLADE_BUILD_WASM=1 $(MAKE) --no-print-directory dev
+
+prod-wasm-nowatch:
+	@NEXTCLADE_BUILD_WASM=1 $(MAKE)  --no-print-directory prod
+
 # TODO: Not implemented
 lint-wasm-nowatch:
-	echo ""
+	@echo ""
+
+
+# WebAssembly: Development build (docker)
+# There is no dev build for wasm (it is too slow)
+docker-dev-wasm: docker-prod-wasm
+
+
+# WebAssembly: Production build (docker)
+docker-prod-wasm: docker-developer-image-build
+	@NEXTCLADE_BUILD_WASM=1 scripts/docker_builder_image_run.sh "developer" "make prod-wasm"
+
+
+
+
+# Web: Development build
+
+dev-web:
+	cd packages/web && yarn dev
+
+
+# Web: Production build
+
+prod-web:
+	cd packages/web && yarn install && yarn prod:watch
+
+prod-web-nowatch:
+	cd packages/web && yarn install --frozen-lockfile && yarn prod:build
+
+
+# Web: Static analysis
+
+lint-web:
+	cd packages/web && yarn install && yarn lint
 
 lint-web-nowatch:
 	cd packages/web && yarn install && yarn lint:ci
 
-make prod-wasm-ci: lint-wasm-nowatch prod-wasm-nowatch
 
-make prod-web-ci: lint-web-nowatch prod-web-nowatch
+# Web: Development build (docker)
+docker-dev-web: docker-developer-image-build
+	scripts/docker_builder_image_run.sh "developer" "make dev-web"
 
+# Web: Production build (docker)
+docker-prod-web: docker-developer-image-build
+	scripts/docker_builder_image_run.sh "developer" "make prod-web"
+
+
+
+
+# Docker "builder" and "developer" images:
+
+docker-builder-image-build:
+	scripts/docker_builder_image_build.sh "builder"
+
+docker-developer-image-build:
+	scripts/docker_builder_image_build.sh "developer"
+
+
+
+
+# Continuous Integration
+
+ci-cli:
+	make prod-nowatch
+
+ci-web:
+	make lint-wasm-nowatch
+	make prod-wasm-nowatch
+	make lint-web-nowatch
+	make prod-web-nowatch
+
+check-release-version:
+	scripts/check_release_version.sh
+
+check-circleci-config:
+	circleci config process .circleci/config.yml
