@@ -72,10 +72,10 @@ function publish_one_project() {
     ${TAGS_FOR_DOCKER_BUILD} \
     ${PROJECT_ROOT_DIR}
 
-  # Push each tag separately (`docker push` does not support pushing multiple)
-  for tag in ${TAGS}; do
-    docker push ${tag}
-  done
+#  # Push each tag separately (`docker push` does not support pushing multiple)
+#  for tag in ${TAGS}; do
+#    docker push ${tag}
+#  done
 }
 
 check_version_consistency nextalign

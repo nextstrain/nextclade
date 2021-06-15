@@ -6,6 +6,7 @@ release_cli_only: &release_cli_only
     branches:
       only:
         - release-cli
+        - chore/cleanup
 
 major_branches_only: &major_branches_only
   filters:
@@ -14,6 +15,7 @@ major_branches_only: &major_branches_only
         - master
         - staging
         - release
+        - chore/cleanup
 
 major_branches_and_cli_release_only: &major_branches_and_cli_release_only
   filters:
@@ -23,6 +25,7 @@ major_branches_and_cli_release_only: &major_branches_and_cli_release_only
         - staging
         - release
         - release-cli
+        - chore/cleanup
 
 
 jobs:
@@ -131,36 +134,41 @@ jobs:
             aws s3 rm s3://${AWS_S3_BUCKET} --recursive
 
       - run:
-          name: 'Deploy web bundle to AWS S3 (branch << pipeline.git.branch >>)'
           command: |
             cd packages/web/.build/production/web
-            aws s3 cp --recursive --cache-control "max-age=2592000, public" "_next/" "s3://${AWS_S3_BUCKET}/_next/"
+            ls -al
 
-      - run:
-          name: 'Deploy web root to AWS S3 (branch << pipeline.git.branch >>)'
-          command: |
-            cd packages/web/.build/production/web
-            aws s3 cp --recursive --exclude "_next" --exclude "*.html" "./" "s3://${AWS_S3_BUCKET}/"
-
-      - run:
-          name: 'Deploy html files to AWS S3 (branch << pipeline.git.branch >>)'
-          command: |
-            cd packages/web/.build/production/web
-            find * -type f -name "*.html" -exec bash -c '\
-            aws s3 cp \
-              --content-type "text/html" \
-              --cache-control "no-cache" \
-              --metadata-directive REPLACE \
-                $1 \
-                s3://${AWS_S3_BUCKET}/${1}' \
-            - "{}" \;
-
-      - run:
-          name: 'Invalidate AWS Cloudfront cache'
-          command: |
-            aws cloudfront create-invalidation \
-              --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
-              --paths "/*"
+#      - run:
+#          name: 'Deploy web bundle to AWS S3 (branch << pipeline.git.branch >>)'
+#          command: |
+#            cd packages/web/.build/production/web
+#            aws s3 cp --recursive --cache-control "max-age=2592000, public" "_next/" "s3://${AWS_S3_BUCKET}/_next/"
+#
+#      - run:
+#          name: 'Deploy web root to AWS S3 (branch << pipeline.git.branch >>)'
+#          command: |
+#            cd packages/web/.build/production/web
+#            aws s3 cp --recursive --exclude "_next" --exclude "*.html" "./" "s3://${AWS_S3_BUCKET}/"
+#
+#      - run:
+#          name: 'Deploy html files to AWS S3 (branch << pipeline.git.branch >>)'
+#          command: |
+#            cd packages/web/.build/production/web
+#            find * -type f -name "*.html" -exec bash -c '\
+#            aws s3 cp \
+#              --content-type "text/html" \
+#              --cache-control "no-cache" \
+#              --metadata-directive REPLACE \
+#                $1 \
+#                s3://${AWS_S3_BUCKET}/${1}' \
+#            - "{}" \;
+#
+#      - run:
+#          name: 'Invalidate AWS Cloudfront cache'
+#          command: |
+#            aws cloudfront create-invalidation \
+#              --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
+#              --paths "/*"
 
   Build-Linux-x86_64:
     resource_class: medium
@@ -207,7 +215,7 @@ jobs:
           name: 'Publish binaries to GitHub Releases: Linux-x86_64'
           command: |
             OS=linux ./scripts/download_github_release_tool.sh
-            ./scripts/publish_github_releases.sh
+#            ./scripts/publish_github_releases.sh
 
       - run:
           name: 'Publish Docker images to DockerHub'
@@ -286,7 +294,7 @@ jobs:
           name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
           command: |
             OS=darwin ./scripts/download_github_release_tool.sh
-            ./scripts/publish_github_releases.sh
+#            ./scripts/publish_github_releases.sh
 
 workflows:
   version: 2
