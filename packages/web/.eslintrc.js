@@ -105,7 +105,7 @@ module.exports = {
     'lodash/preferred-alias': 'off',
     'lodash/prop-shorthand': 'off',
     'max-classes-per-file': 'off',
-    'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
+    'no-console': ['warn', { allow: ['info', 'warn', 'error', 'memory'] }],
     'no-loops/no-loops': 'warn',
     'no-param-reassign': ['warn', { ignorePropertyModificationsFor: ['draft'] }],
     'no-secrets/no-secrets': ['warn', { tolerance: 5 }],
