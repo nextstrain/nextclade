@@ -1,6 +1,8 @@
-const DEFAULT_NUM_THREADS = 4
-const MINIMUM_NUM_THREADS = 2
-const MEMORY_MB_PER_THREAD_MINIMUM = 200
+import { useEffect, useState } from 'react'
+
+export const DEFAULT_NUM_THREADS = 4
+export const MINIMUM_NUM_THREADS = 2
+export const MEMORY_BYTES_PER_THREAD_MINIMUM = 200 * 1000 * 1000
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -14,13 +16,23 @@ export function getMemoryMbAvailable(): number | undefined {
       const consoleObject = window.console as ConsoleExtended
       if (
         typeof consoleObject.memory === 'object' &&
-        typeof consoleObject.memory?.jsHeapSizeLimit === 'object' &&
+        typeof consoleObject.memory?.jsHeapSizeLimit === 'number' &&
         Number.isFinite(consoleObject.memory?.jsHeapSizeLimit)
       ) {
-        return consoleObject.memory?.jsHeapSizeLimit / 1024 / 1024
+        return consoleObject.memory?.jsHeapSizeLimit
       }
     }
   } catch {} // eslint-disable-line no-empty
+  return undefined
+}
+
+export function guessNumThreads() {
+  const memoryMbAvailable = getMemoryMbAvailable()
+  if (memoryMbAvailable && Number.isFinite(memoryMbAvailable)) {
+    const numThreadsMax = Math.floor(memoryMbAvailable / MEMORY_BYTES_PER_THREAD_MINIMUM)
+    const numThreads = Math.max(numThreadsMax, MINIMUM_NUM_THREADS)
+    return { memoryAvailable: memoryMbAvailable, numThreads }
+  }
   return undefined
 }
 
@@ -33,12 +45,28 @@ export function getNumThreads() {
   numThreads = Math.max(numThreads, DEFAULT_NUM_THREADS)
 
   // Detect how much memory is available and adjust number of threads if per-thread memory is too low
-  const memoryMbAvailable = getMemoryMbAvailable()
-  if (memoryMbAvailable && Number.isFinite(memoryMbAvailable)) {
-    const numThreadsMax = Math.floor(memoryMbAvailable / MEMORY_MB_PER_THREAD_MINIMUM)
-    numThreads = Math.min(numThreads, numThreadsMax)
-    numThreads = Math.max(numThreads, MINIMUM_NUM_THREADS)
+  const guess = guessNumThreads()
+  if (guess?.numThreads) {
+    numThreads = guess.numThreads
   }
 
   return numThreads
+}
+
+export function useGuessNumThreads() {
+  const [numThreads, setNumThreads] = useState<number | undefined>(undefined)
+  const [memoryMbAvailable, setMemoryMbAvailable] = useState<number | undefined>(undefined)
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const guess = guessNumThreads()
+      if (guess?.numThreads && guess?.memoryAvailable) {
+        setNumThreads(guess?.numThreads)
+        setMemoryMbAvailable(guess.memoryAvailable)
+      }
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [setNumThreads, setMemoryMbAvailable])
+
+  return { numThreads, memoryAvailable: memoryMbAvailable }
 }

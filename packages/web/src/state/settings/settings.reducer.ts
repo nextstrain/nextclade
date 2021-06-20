@@ -1,12 +1,15 @@
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import {
+  resetNumThreads,
   setLastVersionSeen,
   setLocale,
+  setNumThreads,
   setShowAdvancedControls,
   setShowWhatsnewOnUpdate,
 } from 'src/state/settings/settings.actions'
 import { settingsDefaultState } from 'src/state/settings/settings.state'
+import { getNumThreads } from 'src/helpers/getNumThreads'
 
 export const settingsReducer = reducerWithInitialState(settingsDefaultState)
   .icase(setLocale, (draft, localeKey) => {
@@ -23,4 +26,12 @@ export const settingsReducer = reducerWithInitialState(settingsDefaultState)
 
   .icase(setShowAdvancedControls, (draft, showAdvancedControls) => {
     draft.showAdvancedControls = showAdvancedControls
+  })
+
+  .icase(setNumThreads, (draft, numThreads) => {
+    draft.numThreadsV2 = numThreads
+  })
+
+  .icase(resetNumThreads, (draft) => {
+    draft.numThreadsV2 = getNumThreads()
   })
