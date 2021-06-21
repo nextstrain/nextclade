@@ -155,10 +155,10 @@ export function* prepareErrorsCsvStr() {
   for (const result of results) {
     const { seqName, errors } = result
 
-    const geneWarnings = result?.warnings.inGenes.flatMap((w) => w.message)
-    const warnings = [...(result?.warnings.global ?? []), ...geneWarnings]
+    const geneWarnings = result.warnings.inGenes.flatMap((w) => w.message)
+    const warnings = [...(result.warnings.global ?? []), ...geneWarnings]
 
-    let failedGeneNames = result?.warnings.inGenes.flatMap((w) => w.geneName)
+    let failedGeneNames = result.warnings.inGenes.flatMap((w) => w.geneName)
     if (errors.length > 0) {
       failedGeneNames = ['<<ALL>>']
     }
