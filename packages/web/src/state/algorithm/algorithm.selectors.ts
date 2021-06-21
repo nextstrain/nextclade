@@ -11,6 +11,8 @@ export const selectResults = (state: State) => state.algorithm.results
 
 export const selectResultsArray = (state: State) => state.algorithm.results.map((result) => result.result)
 
+export const selectResultsState = (state: State) => state.algorithm.results
+
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
 export const selectHasRequiredInputs = (state: State): boolean => selectQueryStr(state) !== undefined

@@ -29,6 +29,7 @@ import {
   exportTreeJsonTrigger,
   exportTsvTrigger,
   exportInsertionsCsvTrigger,
+  exportErrorsCsvTrigger,
 } from 'src/state/algorithm/algorithm.actions'
 import {
   FileIconCsv,
@@ -101,6 +102,7 @@ export interface ExportDialogButtonProps {
   exportTreeJsonTrigger: (filename: string) => void
   exportTsvTrigger: (filename: string) => void
   exportInsertionsCsvTrigger: (filename: string) => void
+  exportErrorsCsvTrigger: (filename: string) => void
   exportParams: ExportParams
   canDownload: boolean
 }
@@ -119,6 +121,7 @@ const mapDispatchToProps = {
   exportTreeJsonTrigger: () => exportTreeJsonTrigger(),
   exportTsvTrigger: () => exportTsvTrigger(),
   exportInsertionsCsvTrigger: () => exportInsertionsCsvTrigger(),
+  exportErrorsCsvTrigger: () => exportErrorsCsvTrigger(),
 }
 
 export function ExportDialogButtonDisconnected({
@@ -130,6 +133,7 @@ export function ExportDialogButtonDisconnected({
   exportTreeJsonTrigger,
   exportTsvTrigger,
   exportInsertionsCsvTrigger,
+  exportErrorsCsvTrigger,
   exportParams,
   canDownload,
 }: ExportDialogButtonProps) {
@@ -245,6 +249,17 @@ export function ExportDialogButtonDisconnected({
                     HelpDetails={t('Contains insertions stripped from aligned sequences.')}
                     HelpDownload={t('Download insertions in CSV format')}
                     onDownload={exportInsertionsCsvTrigger}
+                  />
+
+                  <ExportFileElement
+                    Icon={<FileIconCsv />}
+                    filename={exportParams.filenameErrorsCsv}
+                    HelpMain={t('Errors, warnings, and failed genes in CSV format.')}
+                    HelpDetails={t(
+                      'Contains a list of errors, a list of warnings and a list of genes that failed processing, per sequence, in CSV format.',
+                    )}
+                    HelpDownload={t('Download warnings, and failed genes in CSV format')}
+                    onDownload={exportErrorsCsvTrigger}
                   />
 
                   <ExportFileElement
