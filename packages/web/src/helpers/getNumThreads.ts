@@ -67,7 +67,7 @@ export function useGuessNumThreads(numThreadsBase: number | undefined) {
       }
     }, 1000)
     return () => clearTimeout(timer)
-  }, [setNumThreads, setMemoryAvailable])
+  }, [setNumThreads, setMemoryAvailable, numThreads])
 
   return { numThreads, memoryAvailable }
 }
