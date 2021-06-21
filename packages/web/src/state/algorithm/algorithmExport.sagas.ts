@@ -9,6 +9,7 @@ import {
   exportAll,
   exportCsvTrigger,
   exportFastaTrigger,
+  exportInsertionsCsvTrigger,
   exportJsonTrigger,
   exportPeptides,
   exportTreeJsonTrigger,
@@ -24,7 +25,7 @@ import {
 } from 'src/state/algorithm/algorithm.selectors'
 import fsaSaga from 'src/state/util/fsaSaga'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
-import { serializeToCsv } from 'src/workers/run'
+import { serializeInsertionsToCsv, serializeToCsv } from 'src/workers/run'
 
 export function* prepareResultsCsvStr() {
   const results = yield* select(selectResultsArray)
@@ -151,6 +152,19 @@ export function* exportAllWorker() {
   yield* call(saveZip, { files: allFiles, filename: exportParams.filenameZip })
 }
 
+export function* prepareInsertionsCsvStr() {
+  const results = yield* select(selectResultsArray)
+  const resultsGood = results.filter(notUndefinedOrNull)
+  const resultsGoodStr = serializeResults(resultsGood)
+  return yield* call(serializeInsertionsToCsv, resultsGoodStr)
+}
+
+export function* exportInsertionsCsv() {
+  const exportParams = yield* select(selectExportParams)
+  const csvStr = yield* prepareInsertionsCsvStr()
+  saveFile(csvStr, exportParams.filenameInsertionsCsv, 'text/csv;charset=utf-8')
+}
+
 export default [
   takeEvery(exportCsvTrigger, exportCsv),
   takeEvery(exportTsvTrigger, exportTsv),
@@ -158,5 +172,6 @@ export default [
   takeEvery(exportTreeJsonTrigger, exportTreeJson),
   takeEvery(exportFastaTrigger, exportFasta),
   takeEvery(exportPeptides.trigger, fsaSaga(exportPeptides, exportPeptidesWorker)),
+  takeEvery(exportInsertionsCsvTrigger, exportInsertionsCsv),
   takeEvery(exportAll.trigger, fsaSaga(exportAll, exportAllWorker)),
 ]

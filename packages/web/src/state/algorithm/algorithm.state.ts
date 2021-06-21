@@ -62,6 +62,7 @@ export interface ExportParams {
   filenameTreeJson: string
   filenameFasta: string
   filenamePeptidesZip: string
+  filenameInsertionsCsv: string
   filenamePeptidesTemplate: string
 }
 
@@ -125,6 +126,7 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameTreeJson: 'nextclade.auspice.json',
   filenameFasta: 'nextclade.aligned.fasta',
   filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
+  filenameInsertionsCsv: 'nextclade.insertions.csv',
   filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 

@@ -28,6 +28,7 @@ import {
   exportPeptides,
   exportTreeJsonTrigger,
   exportTsvTrigger,
+  exportInsertionsCsvTrigger,
 } from 'src/state/algorithm/algorithm.actions'
 import {
   FileIconCsv,
@@ -99,6 +100,7 @@ export interface ExportDialogButtonProps {
   exportPeptidesTrigger: (filename: string) => void
   exportTreeJsonTrigger: (filename: string) => void
   exportTsvTrigger: (filename: string) => void
+  exportInsertionsCsvTrigger: (filename: string) => void
   exportParams: ExportParams
   canDownload: boolean
 }
@@ -116,6 +118,7 @@ const mapDispatchToProps = {
   exportPeptidesTrigger: () => exportPeptides.trigger(),
   exportTreeJsonTrigger: () => exportTreeJsonTrigger(),
   exportTsvTrigger: () => exportTsvTrigger(),
+  exportInsertionsCsvTrigger: () => exportInsertionsCsvTrigger(),
 }
 
 export function ExportDialogButtonDisconnected({
@@ -126,6 +129,7 @@ export function ExportDialogButtonDisconnected({
   exportPeptidesTrigger,
   exportTreeJsonTrigger,
   exportTsvTrigger,
+  exportInsertionsCsvTrigger,
   exportParams,
   canDownload,
 }: ExportDialogButtonProps) {
@@ -232,6 +236,15 @@ export function ExportDialogButtonDisconnected({
                       'Download aligned peptides in FASTA format, one file per gene, all in a zip archive.',
                     )}
                     onDownload={exportPeptidesTrigger}
+                  />
+
+                  <ExportFileElement
+                    Icon={<FileIconCsv />}
+                    filename={exportParams.filenameInsertionsCsv}
+                    HelpMain={t('Insertions in CSV format.')}
+                    HelpDetails={t('Contains insertions stripped from aligned sequences.')}
+                    HelpDownload={t('Download insertions in CSV format')}
+                    onDownload={exportInsertionsCsvTrigger}
                   />
 
                   <ExportFileElement

@@ -214,6 +214,18 @@ std::string serializeToCsv(const std::string& analysisResultsStr, const std::str
   return outputCsvStream.str();
 }
 
+std::string serializeInsertionsToCsv(const std::string& analysisResultsStr) {
+  const auto analysisResults = Nextclade::parseAnalysisResults(analysisResultsStr);
+  std::stringstream outputInsertionsStream;
+  outputInsertionsStream << "seqName,insertions\n";
+  for (const auto& result : analysisResults.results) {
+    const auto& seqName = result.seqName;
+    const auto& insertions = result.insertions;
+    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, Nextclade::formatInsertions(insertions));
+  }
+  return outputInsertionsStream.str();
+}
+
 // NOLINTNEXTLINE(cert-err58-cpp,cppcoreguidelines-avoid-non-const-global-variables)
 EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::function("getExceptionMessage", &getExceptionMessage);
@@ -253,4 +265,5 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::function("treeFinalize", &treeFinalize);
 
   emscripten::function("serializeToCsv", &serializeToCsv);
+  emscripten::function("serializeInsertionsToCsv", &serializeInsertionsToCsv);
 }
