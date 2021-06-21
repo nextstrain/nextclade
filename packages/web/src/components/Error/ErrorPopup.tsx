@@ -174,7 +174,7 @@ export function BadAllocErrorMessage() {
       <section className="mt-3">
         <div>
           {t(
-            'Nextclade algorithm runs on this computer (and not on remote server or in the cloud) and may require large amounts of computational resources to perform calculations. Please make sure that there is enough system memory available for Nextclade to operate.',
+            'The Nextclade algorithm runs entirely locally in this Browser (and not on a remote server or in the cloud) and may thus require large amounts of local computational resources to perform calculations. Please make sure that there is enough system memory (RAM) available for Nextclade to operate.',
           )}
           <sup>1</sup>
         </div>
