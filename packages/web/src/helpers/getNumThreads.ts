@@ -47,7 +47,7 @@ export function getNumThreads() {
   // Detect how much memory is available and adjust number of threads if per-thread memory is too low
   const guess = guessNumThreads()
   if (guess?.numThreads) {
-    numThreads = guess.numThreads
+    numThreads = Math.min(numThreads, guess.numThreads)
   }
 
   return numThreads
