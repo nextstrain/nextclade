@@ -9,6 +9,7 @@ import {
   exportAll,
   exportCsvTrigger,
   exportFastaTrigger,
+  exportInsertionsCsvTrigger,
   exportJsonTrigger,
   exportPeptides,
   exportTreeJsonTrigger,
@@ -24,7 +25,7 @@ import {
 } from 'src/state/algorithm/algorithm.selectors'
 import fsaSaga from 'src/state/util/fsaSaga'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
-import { serializeToCsv } from 'src/workers/run'
+import { serializeInsertionsToCsv, serializeToCsv } from 'src/workers/run'
 
 export function* prepareResultsCsvStr() {
   const results = yield* select(selectResultsArray)
@@ -128,6 +129,19 @@ export function* exportPeptidesWorker() {
   yield* call(saveZip, { files, filename: exportParams.filenamePeptidesZip })
 }
 
+export function* prepareInsertionsCsvStr() {
+  const results = yield* select(selectResultsArray)
+  const resultsGood = results.filter(notUndefinedOrNull)
+  const resultsGoodStr = serializeResults(resultsGood)
+  return yield* call(serializeInsertionsToCsv, resultsGoodStr)
+}
+
+export function* exportInsertionsCsv() {
+  const exportParams = yield* select(selectExportParams)
+  const csvStr = yield* prepareInsertionsCsvStr()
+  saveFile(csvStr, exportParams.filenameInsertionsCsv, 'text/csv;charset=utf-8')
+}
+
 export function* exportAllWorker() {
   const exportParams = yield* select(selectExportParams)
 
@@ -136,6 +150,7 @@ export function* exportAllWorker() {
   const jsonStr = yield* prepareResultsJsonStr()
   const treeJsonStr = yield* prepareResultTreeJsonStr()
   const fastaStr = yield* prepareResultFastaStr()
+  const insertionsCsvStr = yield* prepareInsertionsCsvStr()
 
   const peptideFiles = yield* prepareResultPeptideFiles()
 
@@ -146,6 +161,7 @@ export function* exportAllWorker() {
     { filename: exportParams.filenameJson, data: jsonStr },
     { filename: exportParams.filenameTreeJson, data: treeJsonStr },
     { filename: exportParams.filenameFasta, data: fastaStr },
+    { filename: exportParams.filenameInsertionsCsv, data: insertionsCsvStr },
   ]
 
   yield* call(saveZip, { files: allFiles, filename: exportParams.filenameZip })
@@ -158,5 +174,6 @@ export default [
   takeEvery(exportTreeJsonTrigger, exportTreeJson),
   takeEvery(exportFastaTrigger, exportFasta),
   takeEvery(exportPeptides.trigger, fsaSaga(exportPeptides, exportPeptidesWorker)),
+  takeEvery(exportInsertionsCsvTrigger, exportInsertionsCsv),
   takeEvery(exportAll.trigger, fsaSaga(exportAll, exportAllWorker)),
 ]
