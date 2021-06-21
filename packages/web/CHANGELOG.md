@@ -1,4 +1,15 @@
-## [1.1.0](https://github.com/nextstrain/nextclade/compare/1.1.0...1.0.1) (2021-06-11)
+## [1.2.0](https://github.com/nextstrain/nextclade/compare/1.2.0...1.1.0) (2021-06-21)
+
+### Nextclade web application
+
+In this release we improve handling of low-memory conditions in Nextclade web application. From now on, when Nextclade runs out of system memory (RAM), you will receive an extensive error message with a list of possible ways to address the issue.
+
+The settings dialog was added that allows changing number of CPU threads. It can be opened using the new "Settings" button on the top panel. In Chrome and other Chromium-based browsers the dialog also displays amount of memory available and suggests number of CPU threads based on it, for optimal performance.
+
+Note that these settings persist across Nextclade runs, page refreshes and versions.
+
+
+## [1.1.0](https://github.com/nextstrain/nextclade/compare/1.1.0...1.0.1) (2021-06-15)
 
 ### Nextclade web application
 
@@ -9,7 +20,7 @@ Previously, when a gene failed to be translated, Nextclade show blank row in Gen
 This should hopefully make it clearer which genes are missing from the results and why.
 
 
-## [1.0.1](https://github.com/nextstrain/nextclade/compare/1.0.1...1.0.0) (2021-06-11)
+## [1.0.1](https://github.com/nextstrain/nextclade/compare/1.0.1...1.0.0) (2021-06-12)
 
 ### Nextclade web application
 
