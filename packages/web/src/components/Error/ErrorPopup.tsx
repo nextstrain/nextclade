@@ -298,7 +298,7 @@ export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDism
             </div>
             <div>
               {t(
-                'so that developers could investigate this problem. Please provide as much details as possible about your input data, operating system, browser version, computer configuration. include other details you deem useful for the diagnostics. Share the example sequence data that allows to reproduce the problem, if possible.',
+                'so that developers can investigate this problem. Please provide as much details as possible about your input data, operating system, browser version and computer configuration. Include other details you deem useful for diagnostics. Share the example sequence data that allows to reproduce the problem, if possible.',
               )}
             </div>
           </section>
