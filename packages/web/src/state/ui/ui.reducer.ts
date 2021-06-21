@@ -2,6 +2,7 @@ import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import { uiDefaultState } from 'src/state/ui/ui.state'
 import {
+  setIsSettingsDialogOpen,
   resetViewedGene,
   setFilterPanelCollapsed,
   setShowNewRunPopup,
@@ -11,6 +12,10 @@ import {
 } from 'src/state/ui/ui.actions'
 
 export const uiReducer = reducerWithInitialState(uiDefaultState)
+  .icase(setIsSettingsDialogOpen, (draft, isSettingsDialogOpen) => {
+    draft.isSettingsDialogOpen = isSettingsDialogOpen
+  })
+
   .icase(setFilterPanelCollapsed, (draft, filterPanelCollapsed) => {
     draft.filterPanelCollapsed = filterPanelCollapsed
   })

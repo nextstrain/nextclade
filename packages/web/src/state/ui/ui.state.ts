@@ -1,6 +1,7 @@
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 
 export interface UiState {
+  isSettingsDialogOpen: boolean
   filterPanelCollapsed: boolean
   treeFilterPanelCollapsed: boolean
   showWhatsnew: boolean
@@ -9,6 +10,7 @@ export interface UiState {
 }
 
 export const uiDefaultState: UiState = {
+  isSettingsDialogOpen: false,
   filterPanelCollapsed: true,
   treeFilterPanelCollapsed: true,
   showWhatsnew: false,

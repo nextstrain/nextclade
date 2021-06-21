@@ -38,7 +38,7 @@ export interface State extends AuspiceState {
   error: ErrorState
 }
 
-const SETTINGS_VERSION = 1
+const SETTINGS_VERSION = 2
 const settingsReducerPersisted = persistReducer(
   { key: 'settings', version: SETTINGS_VERSION, storage, timeout: 3000 },
   settingsReducer,

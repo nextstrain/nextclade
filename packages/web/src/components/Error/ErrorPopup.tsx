@@ -1,7 +1,15 @@
 import React from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { Button, ButtonProps, Modal, ModalBody, ModalFooter, ModalHeader as ReactstrapModalHeader } from 'reactstrap'
+import {
+  Alert,
+  Button,
+  ButtonProps,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader as ReactstrapModalHeader,
+} from 'reactstrap'
 import { connect } from 'react-redux'
 import { Li, Ul } from 'src/components/Common/List'
 import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
@@ -33,7 +41,7 @@ export const ButtonOk = styled(Button)<ButtonProps>`
   width: 100px;
 `
 
-export function getErrorDetaials(error: Error | string): { name: string; message: string } {
+export function getErrorDetails(error: Error | string): { name: string; message: string } {
   if (error instanceof Error) {
     return { name: error.name, message: error.message }
   }
@@ -42,11 +50,16 @@ export function getErrorDetaials(error: Error | string): { name: string; message
 
 export function GenericError({ error }: { error: Error | string }) {
   const { t } = useTranslation()
-  const { name, message } = getErrorDetaials(error)
+  const { name, message } = getErrorDetails(error)
+
+  let errorText = t('An error has occurred: {{errorName}}', { errorName: name })
+  if (name.toLowerCase().trim() === 'error') {
+    errorText = t('An error has occurred.')
+  }
 
   return (
     <ErrorContainer>
-      <h5>{t('Error: {{errorName}}', { errorName: name })}</h5>
+      <h5>{errorText}</h5>
 
       <section className="mt-3">
         <div>{message}</div>
@@ -60,7 +73,7 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
 
   return (
     <ErrorContainer>
-      <h5>{t('Error: Network connection failed')}</h5>
+      <h5>{t('An error has occurred: Network connection failed')}</h5>
 
       <section className="mt-3">
         <div>{t('We tried to download the file from')}</div>
@@ -132,7 +145,7 @@ export function AxiosErrorFailed({ url, status, statusText }: { url: string; sta
 
   return (
     <ErrorContainer>
-      <h5>{t('Error: Network request failed')}</h5>
+      <h5>{t('An error has occurred: Network request failed')}</h5>
 
       <section className="mt-3">
         <div>{t('We tried to download the file from')}</div>
@@ -141,6 +154,79 @@ export function AxiosErrorFailed({ url, status, statusText }: { url: string; sta
         </div>
         <div>{t('and the connection was successful, but the remote server replied with the following error:')}</div>
         <div className="text-danger">{statusMessage}</div>
+      </section>
+    </ErrorContainer>
+  )
+}
+
+export function BadAllocErrorMessage() {
+  const { t } = useTranslation()
+  return (
+    <ErrorContainer>
+      <h5>{t('An error has occurred: out of memory (std::bad_alloc).')}</h5>
+
+      <section className="mt-3">
+        <Alert color="danger" fade={false}>
+          {t('Nextclade tried to allocate system memory, but no additional memory could be allocated.')}
+        </Alert>
+      </section>
+
+      <section className="mt-3">
+        <div>
+          {t(
+            'The Nextclade algorithm runs entirely locally in this Browser (and not on a remote server or in the cloud) and may thus require large amounts of local computational resources to perform calculations. Please make sure that there is enough system memory (RAM) available for Nextclade to operate.',
+          )}
+          <sup>1</sup>
+        </div>
+      </section>
+
+      <section className="mt-3">
+        {t('Possible solutions:')}
+        <Ul>
+          <Li>{t('Close unused web browser tabs, other applications and documents, to free up some memory.')}</Li>
+          <Li>
+            {t('Reduce number of processing threads in Nextclade\'s "Settings" dialog.')}
+            <sup>2</sup>
+          </Li>
+          <Li>
+            {t('Reduce the amount of analyzed data. For example, split large .fasta file to multiple smaller ones.')}
+          </Li>
+          <Li>
+            {t('Consider updating your web browser. Nextclade runs best on the latest versions of {{ browserList }}')}
+            <LinkExternal href="https://www.google.com/chrome">{t('Chrome')}</LinkExternal>
+            {' and '}
+            <LinkExternal href="https://www.mozilla.org/">{t('Firefox')}</LinkExternal>
+            {'.'}
+          </Li>
+          <Li>
+            {t(
+              'Consider disabling ad blocking browser extensions or adding Nextclade to their exceptions list. These extensions may cause increased memory consumption and malfunctions in Nextclade.',
+            )}
+            <sup>3</sup>
+          </Li>
+          <Li>{t('Try to run Nextclade on another computer with more system memory, if available.')}</Li>
+        </Ul>
+      </section>
+
+      <section className="mt-3">
+        <p>
+          <sup>1</sup>
+          <small> {t('System memory (RAM) is not to be confused with disk storage .')}</small>
+        </p>
+
+        <p>
+          <sup>2</sup>{' '}
+          <small>
+            {t(
+              'Nextclade runs multiple algorithm instances in parallel, to take advantage of multiple CPU cores and threads on your computer. Each thread consumes a certain amount of memory. The more threads there is, the faster the analysis, and the more memory is needed. After reducing number of threads, Nextclade will run slower, but will consume less memory.',
+            )}
+          </small>
+        </p>
+
+        <p>
+          <sup>3</sup>
+          <small>{t('Nextclade respects user privacy, does not serve ads, and does not track its users.')}</small>
+        </p>
       </section>
     </ErrorContainer>
   )
@@ -155,6 +241,12 @@ export function ErrorContent({ error }: { error: Error | string }) {
     }
     const statusText = error.response?.statusText ?? 'Unknown status'
     return <AxiosErrorFailed url={url} status={status} statusText={statusText} />
+  }
+
+  const { message } = getErrorDetails(error)
+
+  if (message === 'std::bad_alloc') {
+    return <BadAllocErrorMessage />
   }
 
   return <GenericError error={error} />
@@ -197,14 +289,18 @@ export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDism
           <ErrorContent error={error} />
           <section className="mt-3">
             <div>
-              {t('If you think it might be a bug in {{appName}}, please create a new issue at:', {
+              {t('If you think it is a bug in {{appName}}, report it at', {
                 appName: PROJECT_NAME,
               })}
             </div>
             <div>
               <LinkExternal href={URL_GITHUB_ISSUES}>{URL_GITHUB_ISSUES_FRIENDLY}</LinkExternal>
             </div>
-            <div>{t('The developers will be happy to investigate this problem.')}</div>
+            <div>
+              {t(
+                'so that developers can investigate this problem. Please provide as much details as possible about your input data, operating system, browser version and computer configuration. Include other details you deem useful for diagnostics. Share the example sequence data that allows to reproduce the problem, if possible.',
+              )}
+            </div>
           </section>
         </ModalBody>
       )}
