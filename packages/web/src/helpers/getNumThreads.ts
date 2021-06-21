@@ -26,11 +26,12 @@ export function getMemoryMbAvailable(): number | undefined {
   return undefined
 }
 
-export function guessNumThreads() {
+export function guessNumThreads(numThreadsBase: number | undefined) {
   const memoryMbAvailable = getMemoryMbAvailable()
   if (memoryMbAvailable && Number.isFinite(memoryMbAvailable)) {
     const numThreadsMax = Math.floor(memoryMbAvailable / MEMORY_BYTES_PER_THREAD_MINIMUM)
-    const numThreads = Math.max(numThreadsMax, MINIMUM_NUM_THREADS)
+    let numThreads = Math.max(numThreadsMax, MINIMUM_NUM_THREADS)
+    numThreads = Math.min(numThreads, numThreadsBase ?? Number.POSITIVE_INFINITY)
     return { memoryAvailable: memoryMbAvailable, numThreads }
   }
   return undefined
@@ -45,7 +46,7 @@ export function getNumThreads() {
   numThreads = Math.max(numThreads, DEFAULT_NUM_THREADS)
 
   // Detect how much memory is available and adjust number of threads if per-thread memory is too low
-  const guess = guessNumThreads()
+  const guess = guessNumThreads(numThreads)
   if (guess?.numThreads) {
     numThreads = Math.min(numThreads, guess.numThreads)
   }
@@ -53,13 +54,13 @@ export function getNumThreads() {
   return numThreads
 }
 
-export function useGuessNumThreads() {
-  const [numThreads, setNumThreads] = useState<number | undefined>(undefined)
+export function useGuessNumThreads(numThreadsBase: number | undefined) {
+  const [numThreads, setNumThreads] = useState<number | undefined>(numThreadsBase)
   const [memoryMbAvailable, setMemoryMbAvailable] = useState<number | undefined>(undefined)
 
   useEffect(() => {
     const timer = setInterval(() => {
-      const guess = guessNumThreads()
+      const guess = guessNumThreads(numThreads)
       if (guess?.numThreads && guess?.memoryAvailable) {
         setNumThreads(guess.numThreads)
         setMemoryMbAvailable(guess.memoryAvailable)
