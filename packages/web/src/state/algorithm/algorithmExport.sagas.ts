@@ -145,7 +145,7 @@ export function* exportInsertionsCsv() {
 }
 
 export function joinEntries(entries: string[]) {
-  return entries.join(';').replace('"', '""')
+  return entries.join(';').replace(/"/g, '""')
 }
 
 export function* prepareErrorsCsvStr() {
