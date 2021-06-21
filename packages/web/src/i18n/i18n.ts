@@ -90,7 +90,7 @@ export class PrettyBytes {
   }
 
   public format(numBytes: number, options?: PrettyBytesOptions) {
-    return prettyBytesOriginal(numBytes, { ...(options ?? {}), locale: this.localeKey })
+    return prettyBytesOriginal(numBytes, { binary: true, ...(options ?? {}), locale: this.localeKey })
   }
 }
 
