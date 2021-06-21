@@ -61,7 +61,7 @@ export function useGuessNumThreads() {
     const timer = setInterval(() => {
       const guess = guessNumThreads()
       if (guess?.numThreads && guess?.memoryAvailable) {
-        setNumThreads(guess?.numThreads)
+        setNumThreads(guess.numThreads)
         setMemoryMbAvailable(guess.memoryAvailable)
       }
     }, 1000)
