@@ -30,8 +30,7 @@ export function guessNumThreads(numThreadsBase: number | undefined) {
   const memoryBytesAvailable = getMemoryBytesAvailable()
   if (memoryBytesAvailable && Number.isFinite(memoryBytesAvailable)) {
     const numThreadsMax = Math.floor(memoryBytesAvailable / MEMORY_BYTES_PER_THREAD_MINIMUM)
-    let numThreads = Math.max(numThreadsMax, MINIMUM_NUM_THREADS)
-    numThreads = Math.min(numThreads, numThreadsBase ?? Number.POSITIVE_INFINITY)
+    const numThreads = Math.max(numThreadsMax, MINIMUM_NUM_THREADS)
     return { memoryAvailable: memoryBytesAvailable, numThreads }
   }
   return undefined
@@ -62,7 +61,7 @@ export function useGuessNumThreads(numThreadsBase: number | undefined) {
     const timer = setInterval(() => {
       const guess = guessNumThreads(numThreads)
       if (guess?.numThreads && guess?.memoryAvailable) {
-        setNumThreads(guess.numThreads)
+        setNumThreads((numThreads) => (numThreads ? Math.min(numThreads, guess.numThreads) : guess.numThreads))
         setMemoryAvailable(guess.memoryAvailable)
       }
     }, 1000)
