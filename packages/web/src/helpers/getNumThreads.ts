@@ -10,7 +10,7 @@ export interface ConsoleExtended extends Console {
   memory?: { jsHeapSizeLimit?: number }
 }
 
-export function getMemoryMbAvailable(): number | undefined {
+export function getMemoryBytesAvailable(): number | undefined {
   try {
     if (typeof window === 'object' && typeof window.console == 'object') {
       const consoleObject = window.console as ConsoleExtended
@@ -27,12 +27,12 @@ export function getMemoryMbAvailable(): number | undefined {
 }
 
 export function guessNumThreads(numThreadsBase: number | undefined) {
-  const memoryMbAvailable = getMemoryMbAvailable()
-  if (memoryMbAvailable && Number.isFinite(memoryMbAvailable)) {
-    const numThreadsMax = Math.floor(memoryMbAvailable / MEMORY_BYTES_PER_THREAD_MINIMUM)
+  const memoryBytesAvailable = getMemoryBytesAvailable()
+  if (memoryBytesAvailable && Number.isFinite(memoryBytesAvailable)) {
+    const numThreadsMax = Math.floor(memoryBytesAvailable / MEMORY_BYTES_PER_THREAD_MINIMUM)
     let numThreads = Math.max(numThreadsMax, MINIMUM_NUM_THREADS)
     numThreads = Math.min(numThreads, numThreadsBase ?? Number.POSITIVE_INFINITY)
-    return { memoryAvailable: memoryMbAvailable, numThreads }
+    return { memoryAvailable: memoryBytesAvailable, numThreads }
   }
   return undefined
 }
@@ -56,18 +56,18 @@ export function getNumThreads() {
 
 export function useGuessNumThreads(numThreadsBase: number | undefined) {
   const [numThreads, setNumThreads] = useState<number | undefined>(numThreadsBase)
-  const [memoryMbAvailable, setMemoryMbAvailable] = useState<number | undefined>(undefined)
+  const [memoryAvailable, setMemoryAvailable] = useState<number | undefined>(undefined)
 
   useEffect(() => {
     const timer = setInterval(() => {
       const guess = guessNumThreads(numThreads)
       if (guess?.numThreads && guess?.memoryAvailable) {
         setNumThreads(guess.numThreads)
-        setMemoryMbAvailable(guess.memoryAvailable)
+        setMemoryAvailable(guess.memoryAvailable)
       }
     }, 1000)
     return () => clearTimeout(timer)
-  }, [setNumThreads, setMemoryMbAvailable])
+  }, [setNumThreads, setMemoryAvailable])
 
-  return { numThreads, memoryAvailable: memoryMbAvailable }
+  return { numThreads, memoryAvailable }
 }
