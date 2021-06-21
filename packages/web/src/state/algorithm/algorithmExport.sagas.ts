@@ -129,29 +129,6 @@ export function* exportPeptidesWorker() {
   yield* call(saveZip, { files, filename: exportParams.filenamePeptidesZip })
 }
 
-export function* exportAllWorker() {
-  const exportParams = yield* select(selectExportParams)
-
-  const csvStr = yield* prepareResultsCsvStr()
-  const tsvStr = yield* prepareResultsTsvStr()
-  const jsonStr = yield* prepareResultsJsonStr()
-  const treeJsonStr = yield* prepareResultTreeJsonStr()
-  const fastaStr = yield* prepareResultFastaStr()
-
-  const peptideFiles = yield* prepareResultPeptideFiles()
-
-  const allFiles: ZipFileDescription[] = [
-    ...peptideFiles,
-    { filename: exportParams.filenameCsv, data: csvStr },
-    { filename: exportParams.filenameTsv, data: tsvStr },
-    { filename: exportParams.filenameJson, data: jsonStr },
-    { filename: exportParams.filenameTreeJson, data: treeJsonStr },
-    { filename: exportParams.filenameFasta, data: fastaStr },
-  ]
-
-  yield* call(saveZip, { files: allFiles, filename: exportParams.filenameZip })
-}
-
 export function* prepareInsertionsCsvStr() {
   const results = yield* select(selectResultsArray)
   const resultsGood = results.filter(notUndefinedOrNull)
@@ -163,6 +140,31 @@ export function* exportInsertionsCsv() {
   const exportParams = yield* select(selectExportParams)
   const csvStr = yield* prepareInsertionsCsvStr()
   saveFile(csvStr, exportParams.filenameInsertionsCsv, 'text/csv;charset=utf-8')
+}
+
+export function* exportAllWorker() {
+  const exportParams = yield* select(selectExportParams)
+
+  const csvStr = yield* prepareResultsCsvStr()
+  const tsvStr = yield* prepareResultsTsvStr()
+  const jsonStr = yield* prepareResultsJsonStr()
+  const treeJsonStr = yield* prepareResultTreeJsonStr()
+  const fastaStr = yield* prepareResultFastaStr()
+  const insertionsCsvStr = yield* prepareInsertionsCsvStr()
+
+  const peptideFiles = yield* prepareResultPeptideFiles()
+
+  const allFiles: ZipFileDescription[] = [
+    ...peptideFiles,
+    { filename: exportParams.filenameCsv, data: csvStr },
+    { filename: exportParams.filenameTsv, data: tsvStr },
+    { filename: exportParams.filenameJson, data: jsonStr },
+    { filename: exportParams.filenameTreeJson, data: treeJsonStr },
+    { filename: exportParams.filenameFasta, data: fastaStr },
+    { filename: exportParams.filenameInsertionsCsv, data: insertionsCsvStr },
+  ]
+
+  yield* call(saveZip, { files: allFiles, filename: exportParams.filenameZip })
 }
 
 export default [
