@@ -63,6 +63,7 @@ export interface ExportParams {
   filenameFasta: string
   filenamePeptidesZip: string
   filenameInsertionsCsv: string
+  filenameErrorsCsv: string
   filenamePeptidesTemplate: string
 }
 
@@ -127,6 +128,7 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameFasta: 'nextclade.aligned.fasta',
   filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
   filenameInsertionsCsv: 'nextclade.insertions.csv',
+  filenameErrorsCsv: 'nextclade.errors.csv',
   filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 
