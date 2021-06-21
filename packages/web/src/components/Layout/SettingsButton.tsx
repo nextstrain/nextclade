@@ -147,7 +147,7 @@ export function SettingsButtonDisconnected({
   resetNumThreads,
 }: SettingsButtonProps) {
   const { t } = useTranslationSafe()
-  const guess = useGuessNumThreads()
+  const guess = useGuessNumThreads(numThreads)
 
   const toggleOpen = useCallback(() => setIsSettingsDialogOpen(!isSettingsDialogOpen), [
     setIsSettingsDialogOpen,
