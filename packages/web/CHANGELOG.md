@@ -1,3 +1,15 @@
+## Nextclade Web 1.3.0, Nextclade CLI 1.1.0, Nextalign CLI 1.1.0 (2021-06-22)
+
+
+This series of releases adds the new output file, `nextclade.errors.csv` for all tools and adds the file `nextclade.insertions.csv` to Nextclade Web (this file was already available for users of CLI tools).
+
+`nextclade.insertions.csv` contains the following columns: `seqName`, `insertions`. The column `insertions` contains a list of nucleotide insertion entries delimited by semicolon. Each entry consists of the position of the first nucleotide and the inserted fragment, delimited by colon.
+
+`nextclade.errors.csv`: includes columns `seqName`, `errors`, `warnings`, `failedGenes`, which contains list of errors, list of warnings and list of genes that failed processing. All lists are semicolon-delimited.
+
+In both files, each row corresponds to one sequence, named by `seqName`.
+
+
 ## [1.2.0](https://github.com/nextstrain/nextclade/compare/1.2.0...1.1.0) (2021-06-21)
 
 ### Nextclade web application
