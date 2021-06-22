@@ -40,6 +40,10 @@ namespace Nextclade {
     readValue(j, "/snpClusters/clusterCutOff", qcConfig.snpClusters.clusterCutOff);
     readValue(j, "/snpClusters/scoreWeight", qcConfig.snpClusters.scoreWeight);
 
+    readValue(j, "/frameShifts/enabled", qcConfig.frameShifts.enabled);
+
+    readValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled);
+
     return qcConfig;
   }
 

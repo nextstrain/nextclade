@@ -65,6 +65,8 @@ set(SOURCE_FILES
   src/nextclade.cpp
   src/qc/getQcRuleStatus.cpp
   src/qc/getQcRuleStatus.h
+  src/qc/ruleFrameShifts.cpp
+  src/qc/ruleFrameShifts.h
   src/qc/ruleMissingData.cpp
   src/qc/ruleMissingData.h
   src/qc/ruleMixedSites.cpp
@@ -73,6 +75,8 @@ set(SOURCE_FILES
   src/qc/rulePrivateMutations.h
   src/qc/ruleSnpClusters.cpp
   src/qc/ruleSnpClusters.h
+  src/qc/ruleStopCodons.cpp
+  src/qc/ruleStopCodons.h
   src/qc/runQc.cpp
   src/qc/runQc.h
   src/tree/Tree.cpp

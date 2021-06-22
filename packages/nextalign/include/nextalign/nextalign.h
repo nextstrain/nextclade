@@ -31,6 +31,10 @@ struct Warnings {
   std::vector<GeneWarning> inGenes;
 };
 
+struct FrameShift {
+  std::string geneName;
+};
+
 class Error : public std::runtime_error {
 public:
   explicit Error(const std::string& message) : std::runtime_error(message) {}

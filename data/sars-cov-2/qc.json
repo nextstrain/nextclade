@@ -18,5 +18,11 @@
   "mixedSites": {
     "enabled": true,
     "mixedSitesThreshold": 10
+  },
+  "frameShifts": {
+    "enabled": true
+  },
+  "stopCodons": {
+    "enabled": true
   }
 }

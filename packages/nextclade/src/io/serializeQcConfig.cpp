@@ -36,6 +36,10 @@ namespace Nextclade {
     writeValue(j, "/snpClusters/clusterCutOff", qcConfig.snpClusters.clusterCutOff);
     writeValue(j, "/snpClusters/scoreWeight", qcConfig.snpClusters.scoreWeight);
 
+    writeValue(j, "/frameShifts/enabled", qcConfig.frameShifts.enabled);
+
+    writeValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled);
+
     return jsonStringify(j);
   }
 }// namespace Nextclade

@@ -270,12 +270,40 @@ namespace Nextclade {
     };
   }
 
+  std::optional<QcResultFrameShifts> parseQcFrameShifts(const json& j) {
+    return QcResultFrameShifts{
+      .score = parseDouble(j, "score"),
+      .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
+      .totalFrameShifts = parseInt(j, "totalFrameShifts"),
+    };
+  }
+
+
+  StopCodonLocation parseStopCodonLocation(const json& j) {
+    return StopCodonLocation{
+      .geneName = at(j, "geneName"),
+      .codon = parseInt(j, "codon"),
+    };
+  }
+
+  std::optional<QcResultStopCodons> parseQcStopCodons(const json& j) {
+    return QcResultStopCodons{
+      .score = parseDouble(j, "score"),
+      .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
+      .stopCodons = parseArray<StopCodonLocation>(j, "stopCodons", parseStopCodonLocation),
+      .totalStopCodons = parseInt(j, "totalStopCodons"),
+    };
+  }
+
+
   QcResult parseQcResult(const json& j) {
     return QcResult{
       .missingData = parseQcMissingData(at(j, "missingData")),
       .mixedSites = parseQcMixedSites(at(j, "mixedSites")),
       .privateMutations = parseQcPrivateMutations(at(j, "privateMutations")),
       .snpClusters = parseQcSnpClusters(at(j, "snpClusters")),
+      .frameShifts = parseQcFrameShifts(at(j, "frameShifts")),
+      .stopCodons = parseQcStopCodons(at(j, "stopCodons")),
       .overallScore = parseDouble(j, "overallScore"),
       .overallStatus = parseQcStatus(frozen::string{j["overallStatus"].get<std::string>()}),
     };

@@ -38,11 +38,22 @@ namespace Nextclade {
     double scoreWeight;
   };
 
+  struct QCRulesConfigFrameShifts {
+    bool enabled;
+  };
+
+
+  struct QCRulesConfigStopCodons {
+    bool enabled;
+  };
+
   struct QcConfig {
     QCRulesConfigMissingData missingData;
     QCRulesConfigMixedSites mixedSites;
     QCRulesConfigPrivateMutations privateMutations;
     QCRulesConfigSnpClusters snpClusters;
+    QCRulesConfigFrameShifts frameShifts;
+    QCRulesConfigStopCodons stopCodons;
   };
 
   enum class QcStatus : char {
@@ -87,12 +98,31 @@ namespace Nextclade {
     double cutoff;
   };
 
+  struct QcResultFrameShifts {
+    double score;
+    QcStatus status;
+    int totalFrameShifts;
+  };
+
+  struct StopCodonLocation {
+    std::string geneName;
+    int codon;
+  };
+
+  struct QcResultStopCodons {
+    double score;
+    QcStatus status;
+    std::vector<StopCodonLocation> stopCodons;
+    int totalStopCodons;
+  };
 
   struct QcResult {
     std::optional<QcResultMissingData> missingData;
     std::optional<QCResultMixedSites> mixedSites;
     std::optional<QcResultPrivateMutations> privateMutations;
     std::optional<QCResultSnpClusters> snpClusters;
+    std::optional<QcResultFrameShifts> frameShifts;
+    std::optional<QcResultStopCodons> stopCodons;
     double overallScore;
     QcStatus overallStatus;
   };

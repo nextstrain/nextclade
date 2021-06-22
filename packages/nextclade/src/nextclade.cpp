@@ -115,7 +115,7 @@ namespace Nextclade {
     result.analysisResult.nearestNodeId = nearestNodeId;
     result.analysisResult.clade = nearestNodeClade;
 
-    result.analysisResult.qc = runQc(result.analysisResult, privateMutations, qcRulesConfig);
+    result.analysisResult.qc = runQc(alignment, result.analysisResult, privateMutations, qcRulesConfig);
 
     return result;
   }
