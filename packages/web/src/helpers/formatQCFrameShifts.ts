@@ -4,16 +4,19 @@ import { QcStatus } from 'src/algorithms/types'
 
 export function formatQCFrameShifts<TFunction extends TFunctionInterface>(
   t: TFunction,
-  frameShifts?: QcResultFrameShifts,
+  qcFrameShifts?: QcResultFrameShifts,
 ) {
-  if (!frameShifts || frameShifts.status === QcStatus.good) {
+  if (!qcFrameShifts || qcFrameShifts.status === QcStatus.good) {
     return undefined
   }
 
-  const { score, totalFrameShifts } = frameShifts
+  const { score, frameShifts, totalFrameShifts } = qcFrameShifts
 
-  return t('{{numFrameShifts}} frame shift(s) detected. QC score: {{score}}', {
+  const geneList = frameShifts.map((frameShift) => frameShift.geneName).join(', ')
+
+  return t('{{numFrameShifts}} frame shift(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}', {
     numFrameShifts: totalFrameShifts,
+    geneList,
     score,
   })
 }

@@ -213,6 +213,7 @@ export interface FrameShift {
 export interface QcResultFrameShifts {
   score: number
   status: QcStatus
+  frameShifts: FrameShift[]
   totalFrameShifts: number
 }
 

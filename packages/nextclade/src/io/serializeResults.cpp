@@ -169,10 +169,16 @@ namespace Nextclade {
       return j;
     }
 
-    json serializeStopCodon(const StopCodonLocation& snp) {
+    json serializeStopCodon(const StopCodonLocation& stopCodon) {
       auto j = json::object();
-      j.emplace("geneName", snp.geneName);
-      j.emplace("codon", snp.codon);
+      j.emplace("geneName", stopCodon.geneName);
+      j.emplace("codon", stopCodon.codon);
+      return j;
+    }
+
+    json serializeFrameShift(const FrameShift& frameShift) {
+      auto j = json::object();
+      j.emplace("geneName", frameShift.geneName);
       return j;
     }
 
@@ -234,6 +240,7 @@ namespace Nextclade {
             {
               {"score", qc.frameShifts->score},
               {"status", formatQcStatus(qc.frameShifts->status)},
+              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShift)},
               {"totalFrameShifts", qc.frameShifts->totalFrameShifts},
             }));
       }
