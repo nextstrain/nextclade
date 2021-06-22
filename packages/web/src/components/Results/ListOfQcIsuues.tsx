@@ -60,7 +60,7 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
     { name: t('Private Mutations'), shortName: 'P', value: privateMutations, message: formatQCPrivateMutations(t, privateMutations) }, // prettier-ignore
     { name: t('Mutation Clusters'), shortName: 'C', value: snpClusters, message: formatQCSNPClusters(t, snpClusters) }, // prettier-ignore
     { name: t('Frame shifts'), shortName: 'F', value: frameShifts, message: formatQCFrameShifts(t, frameShifts) }, // prettier-ignore
-    { name: t('Stop codons'), shortName: 'F', value: stopCodons, message: formatQCStopCodons(t, stopCodons) }, // prettier-ignore
+    { name: t('Stop codons'), shortName: 'S', value: stopCodons, message: formatQCStopCodons(t, stopCodons) }, // prettier-ignore
   ].filter((value) => notUndefined(value))
 
   const issues = rules.map(({ name, shortName, value, message }, i) => {
