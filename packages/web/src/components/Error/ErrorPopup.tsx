@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import {
@@ -11,20 +11,22 @@ import {
   ModalHeader as ReactstrapModalHeader,
 } from 'reactstrap'
 import { connect } from 'react-redux'
-import { Li, Ul } from 'src/components/Common/List'
-import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
 import styled from 'styled-components'
-import { lighten } from 'polished'
 
+import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
 import type { State } from 'src/state/reducer'
+import { Li, Ul } from 'src/components/Common/List'
 import { errorDismiss } from 'src/state/error/error.actions'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getHttpStatusText } from 'src/helpers/getHttpStatusText'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { HttpRequestError } from 'src/io/AlgorithmInput'
+import { useRouter } from 'next/router'
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
-  color: ${(props) => props.theme.danger};
-  background-color: ${(props) => lighten(0.45, props.theme.danger)};
+  .modal-title {
+    width: 100%;
+  }
 `
 
 export const ErrorContainer = styled.div`
@@ -39,6 +41,7 @@ export const ErrorContainer = styled.div`
 
 export const ButtonOk = styled(Button)<ButtonProps>`
   width: 100px;
+  margin: 5px;
 `
 
 export function getErrorDetails(error: Error | string): { name: string; message: string } {
@@ -271,7 +274,14 @@ const mapDispatchToProps = {
 export const ErrorPopup = connect(mapStateToProps, mapDispatchToProps)(ErrorPopupDisconnected)
 
 export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDismiss }: ErrorPopupProps) {
-  const { t } = useTranslation()
+  const [shouldShutdown, setShouldShutdown] = useState<boolean>(false)
+  const { t } = useTranslationSafe()
+  const router = useRouter()
+
+  if (shouldShutdown) {
+    // trigger React suspense forever, to display loading spinner until the page is refreshed
+    throw new Promise(() => {})
+  }
 
   if (globalError === undefined && algorithmErrors.length === 0) {
     return null
@@ -282,8 +292,9 @@ export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDism
   return (
     <Modal centered isOpen backdrop="static" toggle={errorDismiss} fade={false} size="lg">
       <ModalHeader toggle={errorDismiss} tag="div">
-        <h3>{t('Error')}</h3>
+        <h3 className="text-center text-danger">{t('Error')}</h3>
       </ModalHeader>
+
       {error && (
         <ModalBody>
           <ErrorContent error={error} />
@@ -306,8 +317,19 @@ export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDism
       )}
       <ModalFooter>
         <div className="ml-auto">
-          <ButtonOk type="button" color="secondary" onClick={errorDismiss}>
-            {t('OK')}
+          <Button
+            type="button"
+            color="danger"
+            title={t('Reload the page and start Nextclade fresh')}
+            onClick={() => {
+              setShouldShutdown(true)
+              router.reload()
+            }}
+          >
+            {t('Restart Nextclade')}
+          </Button>
+          <ButtonOk type="button" color="secondary" title={t('Close this dialog window')} onClick={errorDismiss}>
+            {t('Dismiss')}
           </ButtonOk>
         </div>
       </ModalFooter>
