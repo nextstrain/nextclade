@@ -32,7 +32,7 @@ Nextclade expects the following input data:
 
 - (required) Reference phylogenetic tree, rooted at the reference (root) sequence.
 
-  CLI flag: `--input-root-sequence`
+  CLI flag: `--input-tree`
 
   It is used to assign clades and as a target for phylogenetic placement. The tree is expected to be sufficiently diverse and to meet clade assignment expectations of a particular use-case, study or experiment. Only clades present on the reference tree will be assigned. For more details see "Clade assignment" and "Phylogenetic placement" sections below).
 
@@ -53,6 +53,14 @@ Nextclade expects the following input data:
   It is used for the improved codon-aware alignment, for gene translation, calling of aminoacid mutations. Without Gene map, peptides will not be output and aminoacid mutations will not be detected. Also, without Gene map the nucleotide alignment step will not be informed by the codon information.
 
   Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)
+
+- (required) Only in CLI. A subset of genes to use during analysis.
+
+  Only these genes will be translated and only in these genes the aminoacid mutations will be detected.
+
+  Accepted formats: comma-delimited list of gene names. All gene names in the list MUST be present in the gene map (see `--input-gene-map`).
+
+  CLI flag: `--genes`
 
 - (optional) Table of PCR primers - a table that describes a set of PCR primers that might be used for PCR tests of the virus.
 
