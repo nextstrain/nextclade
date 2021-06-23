@@ -45,6 +45,7 @@ namespace Nextclade {
 
   struct QCRulesConfigStopCodons {
     bool enabled;
+    std::vector<StopCodonLocation> knownStops;
   };
 
   struct QcConfig {
@@ -115,6 +116,7 @@ namespace Nextclade {
     QcStatus status;
     std::vector<StopCodonLocation> stopCodons;
     int totalStopCodons;
+    int problematicStopCodons;
   };
 
   struct QcResult {

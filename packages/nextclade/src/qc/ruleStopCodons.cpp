@@ -21,19 +21,24 @@ namespace Nextclade {
     }
 
     int totalStopCodons = 0;
+    int problematicStopCodons = 0;
     std::vector<StopCodonLocation> stopCodons;
     for (const auto& peptide : alignment.queryPeptides) {
       auto lengthMinusOne = safe_cast<int>(peptide.seq.size() - 1);// Minus one to ignore valid stop codon at the end
       for (int codon = 0; codon < lengthMinusOne; ++codon) {
         const auto& aa = peptide.seq[codon];
         if (aa == Aminoacid::STOP) {
-          stopCodons.emplace_back(StopCodonLocation{.geneName = peptide.name, .codon = codon});
+          auto stopCodon = StopCodonLocation{.geneName = peptide.name, .codon = codon};
+          stopCodons.emplace_back(stopCodon);
           totalStopCodons += 1;
+          if (!std::count(config.knownStops.begin(), config.knownStops.begin(), stopCodon)) {
+            problematicStopCodons += 1;
+          }
         }
       }
     }
 
-    const double score = totalStopCodons > 0 ? 100.0 : 0.0;
+    const double score = problematicStopCodons > 0 ? 100.0 : 0.0;
     const auto& status = getQcRuleStatus(score);
 
     return QcResultStopCodons{
@@ -41,6 +46,7 @@ namespace Nextclade {
       .status = status,
       .stopCodons = stopCodons,
       .totalStopCodons = totalStopCodons,
+      .problematicStopCodons = problematicStopCodons,
     };
   }
 }// namespace Nextclade
