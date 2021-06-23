@@ -524,5 +524,9 @@ namespace Nextclade {
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp);
 
+  std::string formatFrameShift(const FrameShift& frameShift);
+
+  std::string formatStopCodon(const StopCodonLocation& stopCodon);
+
   const char* getVersion();
 }// namespace Nextclade
