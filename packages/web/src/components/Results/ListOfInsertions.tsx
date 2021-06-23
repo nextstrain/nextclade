@@ -44,7 +44,7 @@ export function ListOfInsertions({ insertions, totalInsertions }: ListOfInsertio
         <TableSlimWithBorders className="mb-1">
           <thead>
             <tr>
-              <th className="text-center">{t('1st nuc.')}</th>
+              <th className="text-center">{t('After pos.')}</th>
               <th className="text-center">{t('Length')}</th>
               <th className="text-center">{t('Nuc. fragment')}</th>
             </tr>
