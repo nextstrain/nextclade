@@ -24,6 +24,6 @@
   },
   "stopCodons": {
     "enabled": true,
-    "knownStopCodons": [ {"geneName":"ORF8", "codon": 26} ]
+    "knownStopCodons": [{"geneName": "ORF8", "codon": 26}]
   }
 }

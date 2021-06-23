@@ -42,10 +42,11 @@ namespace Nextclade {
     bool enabled;
   };
 
+  struct StopCodonLocation;
 
   struct QCRulesConfigStopCodons {
     bool enabled;
-    std::vector<StopCodonLocation> knownStops;
+    std::vector<StopCodonLocation> knownStopCodons;
   };
 
   struct QcConfig {
@@ -111,12 +112,15 @@ namespace Nextclade {
     int codon;
   };
 
+  inline bool operator==(const StopCodonLocation& left, const StopCodonLocation& right) {
+    return (left.codon == right.codon && left.geneName == right.geneName);
+  }
+
   struct QcResultStopCodons {
     double score;
     QcStatus status;
     std::vector<StopCodonLocation> stopCodons;
     int totalStopCodons;
-    int problematicStopCodons;
   };
 
   struct QcResult {
