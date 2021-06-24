@@ -415,6 +415,8 @@ namespace Nextclade {
 
   QcConfig parseQcConfig(const std::string& qcConfigJsonStr);
 
+  bool isQcConfigVersionRecent(const QcConfig& qcConfig);
+
   std::vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,       //
     const std::string& filename                   //
