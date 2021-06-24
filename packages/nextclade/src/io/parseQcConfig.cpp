@@ -89,7 +89,7 @@ namespace Nextclade {
 
       readValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled, false);
       if (qcConfig.stopCodons.enabled) {
-        readArray(j, "/stopCodons/knownStopCodons", qcConfig.stopCodons.knownStopCodons, parseStopCodonLocation);
+        readArray(j, "/stopCodons/ignoredStopCodons", qcConfig.stopCodons.ignoredStopCodons, parseStopCodonLocation);
       }
 
       return qcConfig;
