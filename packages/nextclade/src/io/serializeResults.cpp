@@ -11,18 +11,14 @@
 #include "formatQcStatus.h"
 
 namespace Nextclade {
-  using json = nlohmann::ordered_json;
+  json serializeStopCodon(const StopCodonLocation& stopCodon) {
+    auto j = json::object();
+    j.emplace("geneName", stopCodon.geneName);
+    j.emplace("codon", stopCodon.codon);
+    return j;
+  }
 
   namespace {
-    template<typename Container, typename Serializer>
-    json serializeArray(const Container& container, Serializer serializer) {
-      auto j = json::array();
-      for (const auto& elem : container) {
-        j.template emplace_back(serializer(elem));
-      }
-      return j;
-    }
-
     json serializeString(const std::string& s) {
       return json{s};
     }
@@ -169,6 +165,12 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeFrameShift(const FrameShift& frameShift) {
+      auto j = json::object();
+      j.emplace("geneName", frameShift.geneName);
+      return j;
+    }
+
     json serializeQcResult(const QcResult& qc) {
       auto j = json::object(//
         {
@@ -218,6 +220,28 @@ namespace Nextclade {
               {"score", qc.snpClusters->score},
               {"status", formatQcStatus(qc.snpClusters->status)},
               {"totalSNPs", qc.snpClusters->totalSNPs},
+            }));
+      }
+
+      if (qc.frameShifts) {
+        j.emplace("frameShifts",//
+          json::object(         //
+            {
+              {"score", qc.frameShifts->score},
+              {"status", formatQcStatus(qc.frameShifts->status)},
+              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShift)},
+              {"totalFrameShifts", qc.frameShifts->totalFrameShifts},
+            }));
+      }
+
+      if (qc.stopCodons) {
+        j.emplace("stopCodons",//
+          json::object(        //
+            {
+              {"score", qc.stopCodons->score},
+              {"status", formatQcStatus(qc.stopCodons->status)},
+              {"stopCodons", serializeArray(qc.stopCodons->stopCodons, serializeStopCodon)},
+              {"totalStopCodons", qc.stopCodons->totalStopCodons},
             }));
       }
 

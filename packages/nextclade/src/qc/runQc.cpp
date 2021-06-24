@@ -1,5 +1,6 @@
 #include "runQc.h"
 
+#include <fmt/core.h>
 #include <nextclade/nextclade.h>
 
 #include <cmath>
@@ -19,7 +20,8 @@ namespace Nextclade {
   }
 
   QcResult runQc(                                               //
-    const AnalysisResult& analysisResult,                      //
+    const ::NextalignResultInternal& alignment,                 //
+    const AnalysisResult& analysisResult,                       //
     const std::vector<NucleotideSubstitution>& privateMutations,//
     const QcConfig& qcRulesConfig                               //
   ) {
@@ -28,6 +30,8 @@ namespace Nextclade {
       .mixedSites = ruleMixedSites(analysisResult, privateMutations, qcRulesConfig.mixedSites),
       .privateMutations = rulePrivateMutations(analysisResult, privateMutations, qcRulesConfig.privateMutations),
       .snpClusters = ruleSnpClusters(analysisResult, privateMutations, qcRulesConfig.snpClusters),
+      .frameShifts = ruleFrameShifts(alignment, qcRulesConfig.frameShifts),
+      .stopCodons = ruleStopCodons(alignment, qcRulesConfig.stopCodons),
       .overallScore = 0,              // Will be overwritten below
       .overallStatus = QcStatus::good,// Will be overwritten below
     };
@@ -36,6 +40,8 @@ namespace Nextclade {
     result.overallScore += addScore(result.mixedSites);
     result.overallScore += addScore(result.privateMutations);
     result.overallScore += addScore(result.snpClusters);
+    result.overallScore += addScore(result.frameShifts);
+    result.overallScore += addScore(result.stopCodons);
 
     result.overallStatus = getQcRuleStatus(result.overallScore);
 

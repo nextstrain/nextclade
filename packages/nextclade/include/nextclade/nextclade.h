@@ -38,11 +38,24 @@ namespace Nextclade {
     double scoreWeight;
   };
 
+  struct QCRulesConfigFrameShifts {
+    bool enabled;
+  };
+
+  struct StopCodonLocation;
+
+  struct QCRulesConfigStopCodons {
+    bool enabled;
+    std::vector<StopCodonLocation> knownStopCodons;
+  };
+
   struct QcConfig {
     QCRulesConfigMissingData missingData;
     QCRulesConfigMixedSites mixedSites;
     QCRulesConfigPrivateMutations privateMutations;
     QCRulesConfigSnpClusters snpClusters;
+    QCRulesConfigFrameShifts frameShifts;
+    QCRulesConfigStopCodons stopCodons;
   };
 
   enum class QcStatus : char {
@@ -87,12 +100,36 @@ namespace Nextclade {
     double cutoff;
   };
 
+  struct QcResultFrameShifts {
+    double score;
+    QcStatus status;
+    std::vector<FrameShift> frameShifts;
+    int totalFrameShifts;
+  };
+
+  struct StopCodonLocation {
+    std::string geneName;
+    int codon;
+  };
+
+  inline bool operator==(const StopCodonLocation& left, const StopCodonLocation& right) {
+    return (left.codon == right.codon && left.geneName == right.geneName);
+  }
+
+  struct QcResultStopCodons {
+    double score;
+    QcStatus status;
+    std::vector<StopCodonLocation> stopCodons;
+    int totalStopCodons;
+  };
 
   struct QcResult {
     std::optional<QcResultMissingData> missingData;
     std::optional<QCResultMixedSites> mixedSites;
     std::optional<QcResultPrivateMutations> privateMutations;
     std::optional<QCResultSnpClusters> snpClusters;
+    std::optional<QcResultFrameShifts> frameShifts;
+    std::optional<QcResultStopCodons> stopCodons;
     double overallScore;
     QcStatus overallStatus;
   };
@@ -492,6 +529,10 @@ namespace Nextclade {
   std::string formatAminoacidDeletion(const AminoacidDeletion& del);
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp);
+
+  std::string formatFrameShift(const FrameShift& frameShift);
+
+  std::string formatStopCodon(const StopCodonLocation& stopCodon);
 
   const char* getVersion();
 }// namespace Nextclade

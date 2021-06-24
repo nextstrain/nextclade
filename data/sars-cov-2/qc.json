@@ -18,5 +18,12 @@
   "mixedSites": {
     "enabled": true,
     "mixedSitesThreshold": 10
+  },
+  "frameShifts": {
+    "enabled": true
+  },
+  "stopCodons": {
+    "enabled": true,
+    "knownStopCodons": [{"geneName": "ORF8", "codon": 26}]
   }
 }

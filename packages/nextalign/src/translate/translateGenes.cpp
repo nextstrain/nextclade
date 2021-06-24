@@ -41,6 +41,7 @@ PeptidesInternal translateGenes(         //
   refPeptides.reserve(geneMap.size());
 
   Warnings warnings;
+  std::vector<FrameShift> frameShifts;
 
   // For each gene in the requested subset
   for (const auto& [geneName, _] : geneMap) {
@@ -71,6 +72,11 @@ PeptidesInternal translateGenes(         //
     if (extractQueryGeneStatus.status != Status::Success) {
       const auto message = *extractQueryGeneStatus.error;
       warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
+
+      if (extractQueryGeneStatus.reason == ExtractGeneStatusReason::GeneLengthNonMul3) {
+        frameShifts.emplace_back(FrameShift{.geneName = geneName});
+      }
+
       continue;
     }
 
@@ -107,6 +113,7 @@ PeptidesInternal translateGenes(         //
   return PeptidesInternal{
     .queryPeptides = queryPeptides,//
     .refPeptides = refPeptides,    //
-    .warnings = warnings           //
+    .warnings = warnings,          //
+    .frameShifts = frameShifts,    //
   };
 }
