@@ -15,6 +15,14 @@
 
 namespace Nextclade {
   namespace {
+    template<typename Func>
+    void repeat(int times, Func f) {
+      while (times > 0) {
+        f();
+        times--;
+      }
+    }
+
     auto maybeSurroundWithQuotes(char delimiter) {
       return [delimiter](const std::string& str) {
         constexpr frozen::string CHARS_TO_QUOTE = "\r\n \"";
@@ -159,6 +167,8 @@ namespace Nextclade {
       columns.emplace_back(std::to_string(result.qc.missingData->score));
       columns.emplace_back(formatQcStatus(result.qc.missingData->status));
       columns.emplace_back(std::to_string(result.qc.missingData->totalMissing));
+    } else {
+      repeat(4, [&columns]() { columns.emplace_back(""); });
     }
 
     if (result.qc.mixedSites) {
@@ -166,6 +176,8 @@ namespace Nextclade {
       columns.emplace_back(std::to_string(result.qc.mixedSites->score));
       columns.emplace_back(formatQcStatus(result.qc.mixedSites->status));
       columns.emplace_back(std::to_string(result.qc.mixedSites->totalMixedSites));
+    } else {
+      repeat(4, [&columns]() { columns.emplace_back(""); });
     }
 
     if (result.qc.privateMutations) {
@@ -174,6 +186,8 @@ namespace Nextclade {
       columns.emplace_back(std::to_string(result.qc.privateMutations->score));
       columns.emplace_back(formatQcStatus(result.qc.privateMutations->status));
       columns.emplace_back(std::to_string(result.qc.privateMutations->total));
+    } else {
+      repeat(5, [&columns]() { columns.emplace_back(""); });// NOLINT(cppcoreguidelines-avoid-magic-numbers)
     }
 
     if (result.qc.snpClusters) {
@@ -181,6 +195,8 @@ namespace Nextclade {
       columns.emplace_back(std::to_string(result.qc.snpClusters->score));
       columns.emplace_back(formatQcStatus(result.qc.snpClusters->status));
       columns.emplace_back(std::to_string(result.qc.snpClusters->totalSNPs));
+    } else {
+      repeat(4, [&columns]() { columns.emplace_back(""); });
     }
 
     if (result.qc.frameShifts) {
@@ -188,6 +204,8 @@ namespace Nextclade {
       columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShifts));
       columns.emplace_back(std::to_string(result.qc.frameShifts->score));
       columns.emplace_back(formatQcStatus(result.qc.frameShifts->status));
+    } else {
+      repeat(4, [&columns]() { columns.emplace_back(""); });
     }
 
     if (result.qc.stopCodons) {
@@ -195,6 +213,8 @@ namespace Nextclade {
       columns.emplace_back(std::to_string(result.qc.stopCodons->totalStopCodons));
       columns.emplace_back(std::to_string(result.qc.stopCodons->score));
       columns.emplace_back(formatQcStatus(result.qc.stopCodons->status));
+    } else {
+      repeat(4, [&columns]() { columns.emplace_back(""); });
     }
 
     auto row = prepareRow(columns);
