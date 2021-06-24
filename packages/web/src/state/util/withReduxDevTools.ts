@@ -68,6 +68,14 @@ export function sanitizeParams(params?: AlgorithmParams) {
       pcrPrimerCsvRowsStr: truncate(params.strings?.pcrPrimerCsvRowsStr),
       qcConfigStr: truncate(params.strings?.qcConfigStr),
     },
+    virus: {
+      ...params.virus,
+      queryStr: truncate(params?.virus.queryStr),
+      refFastaStr: truncate(params?.virus.refFastaStr),
+      qcConfigRaw: truncate(params?.virus.qcConfigRaw),
+      geneMapStrRaw: truncate(params?.virus.geneMapStrRaw),
+      treeJson: truncate(params?.virus.treeJson),
+    },
   }
 }
 
