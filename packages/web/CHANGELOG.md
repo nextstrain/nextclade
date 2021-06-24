@@ -3,7 +3,7 @@
 
 ### Nextclade Web and Nextclade CLI
 
-#### New Quality control (QC) rules: "Frame shifts" (F) and "Stop codons" (S)
+#### [New feature] Quality control (QC) rules: "Frame shifts" (F) and "Stop codons" (S)
 
 We have added two additional QC rules designed to flag sequences that likely do not correspond to functional viruses.
 
@@ -11,46 +11,46 @@ We have added two additional QC rules designed to flag sequences that likely do 
 
 Checks if any of genes have premature stop codons. A stop codon within a gene will now result in a QC warning, unless it is one of the very common stop codons in ORF8 at positions 27 or 68. This list of ignored stop codons is defined in [the `stopCodons.ignoredStopCodons` property of the QC configuration file (`qc.json`)](https://github.com/nextstrain/nextclade/blob/e885faa1d605742e2d546b286caa3eafe6e76b7d/data/sars-cov-2/qc.json#L28-L31) and can be adjusted. The default list might be extended in the future.
 
-Results of this check are available in JSON, CSV, and TSV output files as `qc.stopCodons`. In Nextclade Web it is displayed in "QC" column of the results table as a circle with letter "S" in it.
+Results of this check are available in JSON, CSV, and TSV output files as `qc.stopCodons`. In Nextclade Web it is displayed in the "QC" column of the results table as a circle with letter "S" in it.
 
 
 ##### "Frame shifts" rule (F)
 
-Checks if any of genes have length that is not divisible by 3 and reports it. If at least one is detected, the check is considered "bad". Failure of this check also means that the gene is likely failed to translate.
+Checks and reports if any of the genes have a length that is not divisible by 3. If at least one such gene length is detected, the check is considered "bad". Failure of this check means that the gene likely fails to translate.
 
-Results of this check are available in JSON, CSV, and TSV output files as `qc.frameShifts`. In Nextclade Web it is displayed in "QC" column of the results table as a circle with letter "F" in it.
+Results of this check are available in JSON, CSV, and TSV output files as `qc.frameShifts`. In Nextclade Web it is displayed in the "QC" column of the results table as a circle with letter "F" in it.
 
 
-#### Changes to the Quality control (QC) configuration file
+#### [Change] Quality control (QC) configuration file updated
 
-New entries were added to the QC configuration file (`qc.json`) for the new rules. For Nextclade CLI users we recommend to download the new file from our [`data/` directory on GitHub](https://github.com/nextstrain/nextclade/tree/master/data).
+New entries were added to the QC configuration file (`qc.json`) for the two new rules. For Nextclade CLI users, we recommend to download the new file from our [`data/` directory on GitHub](https://github.com/nextstrain/nextclade/tree/master/data).
 
-This file is now versioned using the new `schemaVersion` property. If the version of `qc.json` is older than the version of Nextclade CLI itself, user will now receive a warning.
+This file is now versioned using the new `schemaVersion` property. If the version of `qc.json` is less than the version of Nextclade CLI itself, users will now receive a warning.
 
-All QC checks are now optional, so that if some of the rule config objects are missing, the rule is considered disabled.
+All QC checks are now optional: a rule that has no corresponding config object is automatically disabled.
 
-#### Correction of CSV/TSV file format
+#### [Bug fix] CSV/TSV output files corrected
 
-Thi release corrects a few issues with CSV results output:
+This release corrects a few issues with CSV/TSV output files:
  
- - escape quotation marks correctly
- - surround with quotes when there are special characters
- - use CRLF line endings for better compatibility and consistency with Nextclade 0.x
- - prevents column shift in CSV/TSV results when some of the QC checks are disabled by simply writing empty strings for every missing column.
+ - quotation marks are now escaped correctly
+ - special characters are now surrounded with quotes
+ - line breaks are now encoded as `CR LF` for better compatibility and consistency with Nextclade 0.x
+ - column shifts are now prevented in CSV/TSV results when some of the QC checks are disabled, as disabled checks return empty strings as result
 
 
 ### Nextclade Web
 
 
-#### Fixed ranges
+#### [Bug fix] Ranges displayed off-by-one in GUI
 
-The ranges in Nextclade Web were not displayed correctly due to an off-by-one error in the program. The ends of ranges (right boundaries) were extending one unit too far. This means that alignment ranges, missing nucleotide ranges, ranges of gaps, not-sequenced ranges, were all displayed 1 unit longer than they should be. This release fixes this problem. 
+Ranges displayed in Nextclade Web were off-by-one due to a front-end bug. Ends of ranges (right boundaries) were extending one unit too far. This means that alignment ranges, missing nucleotide ranges, ranges of gaps, not-sequenced ranges, were all displayed 1 unit longer than they should have been be. This release fixes this problem. 
 
-Only the display in the results table in Nextclade Web is affected. None of the output files, either produced by Nextclade CLI or by Nextclade Web are affected.
+Only the display in the results table of Nextclade Web is affected. None of the output files, either produced by Nextclade CLI or by Nextclade Web are affected.
 
-#### Insertions in the results table
+#### [New feature] Insertions displayed in the results table
 
-"Ins." (short for "Insertions") column was added to the results table of Nextclade Web. It displays information about inserted fragments in each sequence. This information was already available in the output files, and now also is shown in the UI.
+A new column for insertions (abbreviated as "Ins.") was added to the results table of Nextclade Web. It shows the total number of inserted nucleotides. Hovering reveals more details about each insertion. This information was already available in the output files, and is now also shown in the GUI.
 
 
 ### Nextalign CLI
@@ -62,33 +62,33 @@ There are no changes in Nextalign in this release, but we keep versions of Nexta
 ## Nextclade Web 1.3.0, Nextclade CLI 1.1.0, Nextalign CLI 1.1.0 (2021-06-22)
 
 
-This series of releases adds the new output file, `nextclade.errors.csv` for all tools and adds the file `nextclade.insertions.csv` to Nextclade Web (this file was already available for users of CLI tools).
+This series of releases adds a new output file `nextclade.errors.csv` to all tools and adds the output file `nextclade.insertions.csv` to Nextclade Web (it has already been available for users of CLI tools).
 
-`nextclade.insertions.csv` contains the following columns: `seqName`, `insertions`. The column `insertions` contains a list of nucleotide insertion entries delimited by semicolon. Each entry consists of the position of the first nucleotide and the inserted fragment, delimited by colon.
+`nextclade.insertions.csv` contains information about insertions in the following columns: `seqName`, `insertions`. The column `insertions` contains a list of nucleotide insertion entries delimited by semicolon. Each nucleotide insertion entry consists of the position of the first nucleotide and the inserted fragment, delimited by colon.
 
-`nextclade.errors.csv`: includes columns `seqName`, `errors`, `warnings`, `failedGenes`, which contains list of errors, list of warnings and list of genes that failed processing. All lists are semicolon-delimited.
+`nextclade.errors.csv` contains information about errors, warnings and gene processing failures in the following columns: `seqName`, `errors`, `warnings`, `failedGenes`. All lists are semicolon-delimited.
 
-In both files, each row corresponds to one sequence, named by `seqName`.
+In both files, each row corresponds to one sequence, identified by `seqName`.
 
 
 ## [1.2.0](https://github.com/nextstrain/nextclade/compare/1.2.0...1.1.0) (2021-06-21)
 
 ### Nextclade web application
 
-In this release we improve handling of low-memory conditions in Nextclade web application. From now on, when Nextclade runs out of system memory (RAM), you will receive an extensive error message with a list of possible ways to address the issue.
+In this release we improve how low-memory conditions are handled in the Nextclade web application. From now on, when Nextclade runs out of system memory (RAM), you will receive an extensive error message with a list of possible ways to address the issue.
 
-The settings dialog was added that allows changing number of CPU threads. It can be opened using the new "Settings" button on the top panel. In Chrome and other Chromium-based browsers the dialog also displays amount of memory available and suggests number of CPU threads based on it, for optimal performance.
+A settings dialog was added, allowing the user to change the number of CPU threads. It can be opened using the new "Settings" button on the top panel. In Chrome and other Chromium-based browsers (Edge, Brave, etc.) the dialog also displays the amount of memory available and on this basis provides a suggestion for the number of CPU threads for optimal performance.
 
-Note that these settings persist across Nextclade runs, page refreshes and versions.
+Note that these user settings persist across browsing sessions, Nextclade runs, page refreshes and Nextclade version updates.
 
 
 ## [1.1.0](https://github.com/nextstrain/nextclade/compare/1.1.0...1.0.1) (2021-06-15)
 
 ### Nextclade web application
 
-This release make gene translation failures more apparent in Nextclade Web application.
+This release makes gene translation failures more apparent in Nextclade Web application.
 
-Previously, when a gene failed to be translated, Nextclade show blank row in Gene view in the results table and it was hard to understand whether there are no aminoacid changes or the translation failed. Now, these rows will be colored in dark grey, contain a message, and some detailed information in the tooltip.
+Previously, when a gene failed to be translated, Nextclade showed a blank row in the gene view in the results table and it was hard to understand whether there were no aminoacid changes or the translation had failed. Now, these rows will be colored in dark grey, contain a message, and some detailed information in the tooltip.
 
 This should hopefully make it clearer which genes are missing from the results and why.
 
