@@ -11,18 +11,14 @@
 #include "formatQcStatus.h"
 
 namespace Nextclade {
-  using json = nlohmann::ordered_json;
+  json serializeStopCodon(const StopCodonLocation& stopCodon) {
+    auto j = json::object();
+    j.emplace("geneName", stopCodon.geneName);
+    j.emplace("codon", stopCodon.codon);
+    return j;
+  }
 
   namespace {
-    template<typename Container, typename Serializer>
-    json serializeArray(const Container& container, Serializer serializer) {
-      auto j = json::array();
-      for (const auto& elem : container) {
-        j.template emplace_back(serializer(elem));
-      }
-      return j;
-    }
-
     json serializeString(const std::string& s) {
       return json{s};
     }
@@ -166,13 +162,6 @@ namespace Nextclade {
       j.emplace("start", snp.start);
       j.emplace("end", snp.end);
       j.emplace("numberOfSNPs", snp.numberOfSNPs);
-      return j;
-    }
-
-    json serializeStopCodon(const StopCodonLocation& stopCodon) {
-      auto j = json::object();
-      j.emplace("geneName", stopCodon.geneName);
-      j.emplace("codon", stopCodon.codon);
       return j;
     }
 

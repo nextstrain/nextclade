@@ -1,3 +1,5 @@
+#include "parseAnalysisResults.h"
+
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
@@ -16,32 +18,38 @@ namespace Nextclade {
   class ErrorAnalysisResultsKeyNotFound : public ErrorNonFatal {
   public:
     explicit ErrorAnalysisResultsKeyNotFound(const std::string& key)
-        : ErrorNonFatal(fmt::format("When parsing analysis results JSON: key not found: \"{:s}\"", key)) {}
+        : ErrorNonFatal(fmt::format("Key not found: \"{:s}\"", key)) {}
   };
 
   class ErrorAnalysisResultsRootTypeInvalid : public ErrorNonFatal {
   public:
     explicit ErrorAnalysisResultsRootTypeInvalid(const std::string& type)
-        : ErrorNonFatal(fmt::format(
-            "When parsing analysis results JSON: Expected to find an object as the root entry, but found \"{:s}\"",
-            type)) {}
+        : ErrorNonFatal(fmt::format("Expected to find an object as the root entry, but found \"{:s}\"", type)) {}
   };
 
-  class ErrorAnalysisResultsTypeInvalid : public ErrorNonFatal {
-  public:
-    explicit ErrorAnalysisResultsTypeInvalid(const std::string& key, const std::string& typeExpected,
-      const std::string& typeActual)
-        : ErrorNonFatal(fmt::format("When parsing analysis results JSON: When parsing property \"{:s}\": Expected "
-                                    "to find \"{:s}\", but found \"{:s}\"",
-            key, typeExpected, typeActual)) {}
-  };
+  ErrorJsonTypeInvalid::ErrorJsonTypeInvalid(const std::string& key, const std::string& typeExpected,
+    const std::string& typeActual)
+      : ErrorNonFatal(fmt::format("When parsing property \"{:s}\": Expected "
+                                  "to find \"{:s}\", but found \"{:s}\"",
+          key, typeExpected, typeActual)) {}
 
   class ErrorAnalysisResultsQcStatusInvalid : public ErrorNonFatal {
   public:
     explicit ErrorAnalysisResultsQcStatusInvalid(const std::string& statusStr)
-        : ErrorNonFatal(
-            fmt::format("When parsing analysis results JSON: QC status not recognized: \"{:s}\"", statusStr)) {}
+        : ErrorNonFatal(fmt::format("QC status not recognized: \"{:s}\"", statusStr)) {}
   };
+
+  const json& at(const json& j, const json_pointer& jptr) {
+    if (!j.is_object()) {
+      throw ErrorAnalysisResultsKeyNotFound(jptr.to_string());
+    }
+
+    if (!j.contains(jptr)) {
+      throw ErrorAnalysisResultsKeyNotFound(jptr.to_string());
+    }
+
+    return j[jptr];
+  }
 
   const json& at(const json& j, const std::string& key) {
     if (!j.is_object()) {
@@ -53,24 +61,6 @@ namespace Nextclade {
     }
 
     return j[key];
-  }
-
-  template<typename T, typename Parser = std::function<T(const json&)>>
-  std::vector<T> parseArray(const json& arr, const Parser& parser) {
-    std::vector<T> vec;
-
-    for (const auto& elem : arr) {
-      vec.push_back(parser(elem));
-    }
-    return vec;
-  }
-  template<typename T, typename Parser = std::function<T(const json&)>>
-  std::vector<T> parseArray(const json& obj, const std::string& key, const Parser& parser) {
-    const auto& arr = at(obj, key);
-    if (!arr.is_array()) {
-      throw ErrorAnalysisResultsTypeInvalid(key, "array", arr.type_name());
-    }
-    return parseArray<T>(arr, parser);
   }
 
 
@@ -204,7 +194,7 @@ namespace Nextclade {
       if (typeName == std::string{"number"}) {
         typeName = "floating-point number";
       }
-      throw ErrorAnalysisResultsTypeInvalid(key, "integer", typeName);
+      throw ErrorJsonTypeInvalid(key, "integer", typeName);
     }
     return val.get<int>();
   }
@@ -212,7 +202,7 @@ namespace Nextclade {
   double parseDouble(const json& j, const std::string& key) {
     const auto& val = at(j, key);
     if (!val.is_number()) {
-      throw ErrorAnalysisResultsTypeInvalid(key, "number", val.type_name());
+      throw ErrorJsonTypeInvalid(key, "number", val.type_name());
     }
     return val.get<double>();
   }
@@ -225,7 +215,11 @@ namespace Nextclade {
     return *status;
   }
 
-  std::optional<QcResultMissingData> parseQcMissingData(const json& j) {
+  std::optional<QcResultMissingData> parseQcMissingData(const json& jj) {
+    if (!jj.contains("missingData")) {
+      return {};
+    }
+    const auto& j = at(jj, "missingData");
     return QcResultMissingData{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
@@ -234,7 +228,11 @@ namespace Nextclade {
     };
   }
 
-  std::optional<QCResultMixedSites> parseQcMixedSites(const json& j) {
+  std::optional<QCResultMixedSites> parseQcMixedSites(const json& jj) {
+    if (!jj.contains("mixedSites")) {
+      return {};
+    }
+    const auto& j = at(jj, "mixedSites");
     return QCResultMixedSites{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
@@ -243,7 +241,11 @@ namespace Nextclade {
     };
   }
 
-  std::optional<QcResultPrivateMutations> parseQcPrivateMutations(const json& j) {
+  std::optional<QcResultPrivateMutations> parseQcPrivateMutations(const json& jj) {
+    if (!jj.contains("privateMutations")) {
+      return {};
+    }
+    const auto& j = at(jj, "privateMutations");
     return QcResultPrivateMutations{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
@@ -261,7 +263,11 @@ namespace Nextclade {
     };
   }
 
-  std::optional<QCResultSnpClusters> parseQcSnpClusters(const json& j) {
+  std::optional<QCResultSnpClusters> parseQcSnpClusters(const json& jj) {
+    if (!jj.contains("snpClusters")) {
+      return {};
+    }
+    const auto& j = at(jj, "snpClusters");
     return QCResultSnpClusters{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
@@ -276,7 +282,11 @@ namespace Nextclade {
     };
   }
 
-  std::optional<QcResultFrameShifts> parseQcFrameShifts(const json& j) {
+  std::optional<QcResultFrameShifts> parseQcFrameShifts(const json& jj) {
+    if (!jj.contains("frameShifts")) {
+      return {};
+    }
+    const auto& j = at(jj, "frameShifts");
     return QcResultFrameShifts{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
@@ -285,7 +295,6 @@ namespace Nextclade {
     };
   }
 
-
   StopCodonLocation parseStopCodonLocation(const json& j) {
     return StopCodonLocation{
       .geneName = at(j, "geneName"),
@@ -293,7 +302,11 @@ namespace Nextclade {
     };
   }
 
-  std::optional<QcResultStopCodons> parseQcStopCodons(const json& j) {
+  std::optional<QcResultStopCodons> parseQcStopCodons(const json& jj) {
+    if (!jj.contains("stopCodons")) {
+      return {};
+    }
+    const auto& j = at(jj, "stopCodons");
     return QcResultStopCodons{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
@@ -302,63 +315,70 @@ namespace Nextclade {
     };
   }
 
-
   QcResult parseQcResult(const json& j) {
     return QcResult{
-      .missingData = parseQcMissingData(at(j, "missingData")),
-      .mixedSites = parseQcMixedSites(at(j, "mixedSites")),
-      .privateMutations = parseQcPrivateMutations(at(j, "privateMutations")),
-      .snpClusters = parseQcSnpClusters(at(j, "snpClusters")),
-      .frameShifts = parseQcFrameShifts(at(j, "frameShifts")),
-      .stopCodons = parseQcStopCodons(at(j, "stopCodons")),
+      .missingData = parseQcMissingData(j),
+      .mixedSites = parseQcMixedSites(j),
+      .privateMutations = parseQcPrivateMutations(j),
+      .snpClusters = parseQcSnpClusters(j),
+      .frameShifts = parseQcFrameShifts(j),
+      .stopCodons = parseQcStopCodons(j),
       .overallScore = parseDouble(j, "overallScore"),
       .overallStatus = parseQcStatus(frozen::string{j["overallStatus"].get<std::string>()}),
     };
   }
 
   AnalysisResult parseAnalysisResult(const json& j) {
-    return AnalysisResult{
-      .seqName = at(j, "seqName").get<std::string>(),
-      .substitutions = parseArray<NucleotideSubstitution>(j, "substitutions", parseNucleotideSubstitution),
-      .totalSubstitutions = at(j, "totalSubstitutions"),
-      .deletions = parseArray<NucleotideDeletion>(j, "deletions", parseNucleotideDeletion),
-      .totalDeletions = at(j, "totalDeletions"),
-      .insertions = parseArray<NucleotideInsertion>(j, "insertions", parseNucleotideInsertion),
-      .totalInsertions = at(j, "totalInsertions"),
-      .missing = parseArray<NucleotideRange>(j, "missing", parseNucleotideRange),
-      .totalMissing = at(j, "totalMissing"),
-      .nonACGTNs = parseArray<NucleotideRange>(j, "nonACGTNs", parseNucleotideRange),
-      .totalNonACGTNs = at(j, "totalNonACGTNs"),
-      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
-      .totalAminoacidSubstitutions = at(j, "totalAminoacidSubstitutions"),
-      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
-      .totalAminoacidDeletions = at(j, "totalAminoacidDeletions"),
-      .unknownAaRanges = parseArray<GeneAminoacidRange>(j, "unknownAaRanges", parseGeneAminoacidRange),
-      .totalUnknownAa = at(j, "totalUnknownAa"),
-      .alignmentStart = at(j, "alignmentStart"),
-      .alignmentEnd = at(j, "alignmentEnd"),
-      .alignmentScore = at(j, "alignmentScore"),
-      .nucleotideComposition = parseNucleotideComposition(at(j, "nucleotideComposition")),
-      .pcrPrimerChanges = parseArray<PcrPrimerChange>(j, "pcrPrimerChanges", parsePcrPrimerChange),
-      .totalPcrPrimerChanges = at(j, "totalPcrPrimerChanges"),
-      .nearestNodeId = at(j, "nearestNodeId"),
-      .clade = at(j, "clade"),
-      .qc = parseQcResult(at(j, "qc")),
-    };
+    try {
+      return AnalysisResult{
+        .seqName = at(j, "seqName").get<std::string>(),
+        .substitutions = parseArray<NucleotideSubstitution>(j, "substitutions", parseNucleotideSubstitution),
+        .totalSubstitutions = at(j, "totalSubstitutions"),
+        .deletions = parseArray<NucleotideDeletion>(j, "deletions", parseNucleotideDeletion),
+        .totalDeletions = at(j, "totalDeletions"),
+        .insertions = parseArray<NucleotideInsertion>(j, "insertions", parseNucleotideInsertion),
+        .totalInsertions = at(j, "totalInsertions"),
+        .missing = parseArray<NucleotideRange>(j, "missing", parseNucleotideRange),
+        .totalMissing = at(j, "totalMissing"),
+        .nonACGTNs = parseArray<NucleotideRange>(j, "nonACGTNs", parseNucleotideRange),
+        .totalNonACGTNs = at(j, "totalNonACGTNs"),
+        .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+        .totalAminoacidSubstitutions = at(j, "totalAminoacidSubstitutions"),
+        .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
+        .totalAminoacidDeletions = at(j, "totalAminoacidDeletions"),
+        .unknownAaRanges = parseArray<GeneAminoacidRange>(j, "unknownAaRanges", parseGeneAminoacidRange),
+        .totalUnknownAa = at(j, "totalUnknownAa"),
+        .alignmentStart = at(j, "alignmentStart"),
+        .alignmentEnd = at(j, "alignmentEnd"),
+        .alignmentScore = at(j, "alignmentScore"),
+        .nucleotideComposition = parseNucleotideComposition(at(j, "nucleotideComposition")),
+        .pcrPrimerChanges = parseArray<PcrPrimerChange>(j, "pcrPrimerChanges", parsePcrPrimerChange),
+        .totalPcrPrimerChanges = at(j, "totalPcrPrimerChanges"),
+        .nearestNodeId = at(j, "nearestNodeId"),
+        .clade = at(j, "clade"),
+        .qc = parseQcResult(at(j, "qc")),
+      };
+    } catch (const std::exception& e) {
+      throw ErrorFatal(fmt::format("When parsing analysis result json (for one sequence): {:s}", e.what()));
+    }
   }
 
   AnalysisResults parseAnalysisResults(const std::string& analysisResultsStr) {
-    const auto j = json::parse(analysisResultsStr);
-    if (!j.is_object()) {
-      throw ErrorAnalysisResultsRootTypeInvalid(j.type_name());
-    }
+    try {
+      const auto j = json::parse(analysisResultsStr);
+      if (!j.is_object()) {
+        throw ErrorAnalysisResultsRootTypeInvalid(j.type_name());
+      }
 
-    return AnalysisResults{
-      .schemaVersion = at(j, "schemaVersion"),
-      .nextcladeVersion = at(j, "nextcladeVersion"),
-      .timestamp = at(j, "timestamp"),
-      .results = parseArray<AnalysisResult>(j, "results", parseAnalysisResult),
-    };
+      return AnalysisResults{
+        .schemaVersion = at(j, "schemaVersion"),
+        .nextcladeVersion = at(j, "nextcladeVersion"),
+        .timestamp = at(j, "timestamp"),
+        .results = parseArray<AnalysisResult>(j, "results", parseAnalysisResult),
+      };
+    } catch (const std::exception& e) {
+      throw ErrorFatal(fmt::format("When parsing analysis results json (for multiple sequences): {:s}", e.what()));
+    }
   }
 
   PcrPrimerCsvRow parsePcrPrimerCsvRow(const json& j) {

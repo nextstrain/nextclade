@@ -11,12 +11,11 @@ export interface Exportable extends StrictOmit<AnalysisResult, 'alignedQuery' | 
 }
 
 export function serializeResults(analysisResults: AnalysisResult[]) {
-  // eslint-disable-next-line prefer-destructuring
-  const PACKAGE_VERSION = process.env.PACKAGE_VERSION
+  const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? 'unknown'
 
   const finalResult = {
-    schemaVersion: '1.0.0',
-    nextcladeVersion: PACKAGE_VERSION,
+    schemaVersion: '1.2.0',
+    nextcladeVersion: `web-${PACKAGE_VERSION}`,
     timestamp: Math.floor(Date.now() / 1000),
     results: analysisResults,
   }

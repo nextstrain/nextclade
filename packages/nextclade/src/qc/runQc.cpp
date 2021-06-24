@@ -1,5 +1,6 @@
 #include "runQc.h"
 
+#include <fmt/core.h>
 #include <nextclade/nextclade.h>
 
 #include <cmath>
@@ -19,7 +20,7 @@ namespace Nextclade {
   }
 
   QcResult runQc(                                               //
-    const ::NextalignResultInternal& alignment,                   //
+    const ::NextalignResultInternal& alignment,                 //
     const AnalysisResult& analysisResult,                       //
     const std::vector<NucleotideSubstitution>& privateMutations,//
     const QcConfig& qcRulesConfig                               //
@@ -39,6 +40,8 @@ namespace Nextclade {
     result.overallScore += addScore(result.mixedSites);
     result.overallScore += addScore(result.privateMutations);
     result.overallScore += addScore(result.snpClusters);
+    result.overallScore += addScore(result.frameShifts);
+    result.overallScore += addScore(result.stopCodons);
 
     result.overallStatus = getQcRuleStatus(result.overallScore);
 

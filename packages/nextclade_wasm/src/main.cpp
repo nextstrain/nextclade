@@ -19,6 +19,32 @@ std::string getExceptionMessage(std::intptr_t exceptionPtr) {// NOLINT(misc-unus
   return e->what();
 }
 
+/**
+ * Wraps function into try/catch block to improve error message.
+ * It is not possible to do this inside the function itself, because exception catching is disabled in that module.
+ */
+Nextclade::QcConfig wrappedParseQcConfig(const std::string& qcConfigStr, const std::string& context) {
+  try {
+    return Nextclade::parseQcConfig(qcConfigStr);
+  } catch (const std::exception& e) {
+    throw ErrorFatal(fmt::format("When parsing QC configuration in {:s}: {:s}", context, e.what()));
+  }
+}
+
+/**
+ * Wraps function into try/catch block to improve error message.
+ * It is not possible to do this inside the function itself, because exception catching is disabled in that module.
+ */
+Nextclade::AnalysisResults wrappedParseAnalysisResults(const std::string& analysisResultsStr,
+  const std::string& context) {
+  try {
+    return Nextclade::parseAnalysisResults(analysisResultsStr);
+  } catch (const std::exception& e) {
+    throw ErrorFatal(fmt::format("When parsing analysis results in {:s}: {:s}", context, e.what()));
+  }
+}
+
+
 struct NextcladeWasmState {
   NucleotideSequence ref;
   Nextclade::Tree tree;
@@ -41,8 +67,7 @@ NextcladeWasmState makeNextcladeWasmState(//
   Nextclade::treePreprocess(tree, ref);
 
   auto geneMap = Nextclade::parseGeneMap(geneMapStr);
-  auto qcRulesConfig = Nextclade::parseQcConfig(qcConfigStr);
-
+  auto qcRulesConfig = wrappedParseQcConfig(qcConfigStr, "'makeNextcladeWasmState'");
   auto pcrPrimerRows = Nextclade::parsePcrPrimerCsvRowsStr(pcrPrimerRowsStr);
   Warnings warnings;
   auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, warnings.global);
@@ -164,7 +189,7 @@ std::string parseGeneMapGffString(const std::string& geneMapStr, const std::stri
 }
 
 std::string parseQcConfigString(const std::string& qcConfigStr) {
-  Nextclade::QcConfig qcConfig = Nextclade::parseQcConfig(qcConfigStr);
+  auto qcConfig = wrappedParseQcConfig(qcConfigStr, "'parseQcConfigString'");
   return Nextclade::serializeQcConfig(qcConfig);
 }
 
@@ -197,7 +222,7 @@ std::string treePrepare(const std::string& treeStr, const std::string& refStr) {
 
 std::string treeFinalize(const std::string& treeStr, const std::string& refStr, const std::string& analysisResultsStr) {
   const auto ref = toNucleotideSequence(refStr);
-  const auto analysisResults = Nextclade::parseAnalysisResults(analysisResultsStr);
+  const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'treeFinalize'");
   auto tree = Nextclade::Tree{treeStr};
   treeAttachNodes(tree, ref, analysisResults.results);
   treePostprocess(tree);
@@ -205,7 +230,7 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
 }
 
 std::string serializeToCsv(const std::string& analysisResultsStr, const std::string& delimiter) {
-  const auto analysisResults = Nextclade::parseAnalysisResults(analysisResultsStr);
+  const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'serializeToCsv'");
   std::stringstream outputCsvStream;
   Nextclade::CsvWriter csv{outputCsvStream, Nextclade::CsvWriterOptions{.delimiter = delimiter[0]}};
   for (const auto& result : analysisResults.results) {
@@ -215,7 +240,7 @@ std::string serializeToCsv(const std::string& analysisResultsStr, const std::str
 }
 
 std::string serializeInsertionsToCsv(const std::string& analysisResultsStr) {
-  const auto analysisResults = Nextclade::parseAnalysisResults(analysisResultsStr);
+  const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'serializeInsertionsToCsv'");
   std::stringstream outputInsertionsStream;
   outputInsertionsStream << "seqName,insertions\n";
   for (const auto& result : analysisResults.results) {

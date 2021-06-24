@@ -51,6 +51,7 @@ set(SOURCE_FILES
   src/io/jsonStringify.cpp
   src/io/jsonStringify.h
   src/io/parseAnalysisResults.cpp
+  src/io/parseAnalysisResults.h
   src/io/parseCsv.h
   src/io/parseGeneMap.cpp
   src/io/parseMutation.cpp
