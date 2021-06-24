@@ -100,16 +100,31 @@ export const H1 = styled.h1`
 export const H2 = styled.h2`
   border-top: #ccc solid 1px;
   padding-top: 1rem;
+  font-size: 2rem;
   margin-top: 2rem;
-  font-size: 1.5rem;
 `
 
-export const H3 = styled.h2`
-  font-size: 1.2rem;
+export const H3 = styled.h3`
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin-top: 3rem;
 `
 
-export const H4 = styled.h2`
+export const H4 = styled.h4`
+  font-size: 1.33rem;
+  font-weight: bold;
+  margin-top: 2rem;
+`
+
+export const H5 = styled.h5`
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-top: 1.1rem;
+`
+
+export const H6 = styled.h6`
   font-size: 1rem;
+  font-weight: bold;
 `
 
 export const Blockquote = styled.blockquote`
@@ -118,7 +133,7 @@ export const Blockquote = styled.blockquote`
   background-color: #f4ebbd;
 `
 
-const components = { h1: H1, h2: H2, h3: H3, a: LinkExternal, blockquote: Blockquote }
+const components = { h1: H1, h2: H2, h3: H3, h4: H4, h5: H5, h6: H6, a: LinkExternal, blockquote: Blockquote }
 
 export interface WhatsNewButtonProps {
   showWhatsnew: boolean

@@ -1,3 +1,64 @@
+## Nextclade Web 1.4.0, Nextclade CLI 1.2.0, Nextalign CLI 1.2.0 (2021-06-24)
+
+
+### Nextclade Web and Nextclade CLI
+
+#### New Quality control (QC) rules: "Frame shifts" (F) and "Stop codons" (S)
+
+We have added two additional QC rules designed to flag sequences that likely do not correspond to functional viruses.
+
+##### "Stop codons" rule (S) 
+
+Checks if any of genes have premature stop codons. A stop codon within a gene will now result in a QC warning, unless it is one of the very common stop codons in ORF8 at positions 27 or 68. This list of ignored stop codons is defined in [the `stopCodons.ignoredStopCodons` property of the QC configuration file (`qc.json`)](https://github.com/nextstrain/nextclade/blob/e885faa1d605742e2d546b286caa3eafe6e76b7d/data/sars-cov-2/qc.json#L28-L31) and can be adjusted. The default list might be extended in the future.
+
+Results of this check are available in JSON, CSV, and TSV output files as `qc.stopCodons`. In Nextclade Web it is displayed in "QC" column of the results table as a circle with letter "S" in it.
+
+
+##### "Frame shifts" rule (F)
+
+Checks if any of genes have length that is not divisible by 3 and reports it. If at least one is detected, the check is considered "bad". Failure of this check also means that the gene is likely failed to translate.
+
+Results of this check are available in JSON, CSV, and TSV output files as `qc.frameShifts`. In Nextclade Web it is displayed in "QC" column of the results table as a circle with letter "F" in it.
+
+
+#### Changes to the Quality control (QC) configuration file
+
+New entries were added to the QC configuration file (`qc.json`) for the new rules. For Nextclade CLI users we recommend to download the new file from our [`data/` directory on GitHub](https://github.com/nextstrain/nextclade/tree/master/data).
+
+This file is now versioned using the new `schemaVersion` property. If the version of `qc.json` is older than the version of Nextclade CLI itself, user will now receive a warning.
+
+All QC checks are now optional, so that if some of the rule config objects are missing, the rule is considered disabled.
+
+#### Correction of CSV/TSV file format
+
+Thi release corrects a few issues with CSV results output:
+ 
+ - escape quotation marks correctly
+ - surround with quotes when there are special characters
+ - use CRLF line endings for better compatibility and consistency with Nextclade 0.x
+ - prevents column shift in CSV/TSV results when some of the QC checks are disabled by simply writing empty strings for every missing column.
+
+
+### Nextclade Web
+
+
+#### Fixed ranges
+
+The ranges in Nextclade Web were not displayed correctly due to an off-by-one error in the program. The ends of ranges (right boundaries) were extending one unit too far. This means that alignment ranges, missing nucleotide ranges, ranges of gaps, not-sequenced ranges, were all displayed 1 unit longer than they should be. This release fixes this problem. 
+
+Only the display in the results table in Nextclade Web is affected. None of the output files, either produced by Nextclade CLI or by Nextclade Web are affected.
+
+#### Insertions in the results table
+
+"Ins." (short for "Insertions") column was added to the results table of Nextclade Web. It displays information about inserted fragments in each sequence. This information was already available in the output files, and now also is shown in the UI.
+
+
+### Nextalign CLI
+
+There are no changes in Nextalign in this release, but we keep versions of Nextalign and Nextclade in sync.
+
+
+
 ## Nextclade Web 1.3.0, Nextclade CLI 1.1.0, Nextalign CLI 1.1.0 (2021-06-22)
 
 
