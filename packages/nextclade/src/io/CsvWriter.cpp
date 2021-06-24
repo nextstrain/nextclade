@@ -1,10 +1,10 @@
 #include <fmt/format.h>
-#include <frozen/algorithm.h>
 #include <frozen/string.h>
 #include <nextclade/nextclade.h>
 
 #include <array>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/replace.hpp>
 #include <string>
 #include <vector>
 
@@ -17,18 +17,19 @@ namespace Nextclade {
   namespace {
     auto maybeSurroundWithQuotes(char delimiter) {
       return [delimiter](const std::string& str) {
-        constexpr frozen::string CHARS_TO_QUOTE = "\n \"";
+        constexpr frozen::string CHARS_TO_QUOTE = "\r\n \"";
         const auto containsQuotable = std::any_of(CHARS_TO_QUOTE.data(),
           CHARS_TO_QUOTE.data() + CHARS_TO_QUOTE.size(),// NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
           [&str](char c) { return contains(str, c); });
 
-        auto s = std::string{str.data(), str.size()};
-        if (contains(s, delimiter) || containsQuotable) {
-          return fmt::format("\"{}\"", s);
+        if (contains(str, delimiter) || containsQuotable) {
+          return fmt::format("\"{}\"", str);
         }
-        return s;
+        return str;
       };
     }
+
+    constexpr frozen::string NEWLINE = "\r\n";
 
     constexpr std::array<frozen::string, 49> COLUMN_NAMES = {
       "seqName",
@@ -105,16 +106,21 @@ namespace Nextclade {
         return std::string{s.data(), s.size()};
       });
     auto row = prepareRow(columns);
-    outputStream << row << "\n";
+    outputStream << row << NEWLINE.data();
     return row;
   }
 
   std::string CsvWriter::prepareRow(const std::vector<std::string>& columns) const {
+    std::vector<std::string> columnsEscaped;
+    std::transform(columns.cbegin(), columns.cend(), std::inserter(columnsEscaped, columnsEscaped.end()),
+      [](const std::string& column) { return boost::replace_all_copy(column, "\"", "\"\""); });
+
     std::vector<std::string> columnsQuoted;
-    std::transform(columns.begin(), columns.end(), std::inserter(columnsQuoted, columnsQuoted.end()),
+    std::transform(columnsEscaped.cbegin(), columnsEscaped.cend(), std::inserter(columnsQuoted, columnsQuoted.end()),
       maybeSurroundWithQuotes(options.delimiter));
-    const auto rowFrozen = boost::algorithm::join(columnsQuoted, std::string{options.delimiter});
-    return std::string{rowFrozen.data(), rowFrozen.size()};
+
+    auto row = boost::algorithm::join(columnsQuoted, std::string{options.delimiter});
+    return std::string{row.data(), row.size()};
   }
 
   std::string CsvWriter::addRow(const AnalysisResult& result) {
@@ -191,9 +197,8 @@ namespace Nextclade {
       columns.emplace_back(formatQcStatus(result.qc.stopCodons->status));
     }
 
-    std::for_each(columns.begin(), columns.end(), maybeSurroundWithQuotes(options.delimiter));
-    auto row = boost::algorithm::join(columns, std::string{options.delimiter});
-    outputStream << row << "\n";
+    auto row = prepareRow(columns);
+    outputStream << row << NEWLINE.data();
     return row;
   }
 
@@ -204,9 +209,8 @@ namespace Nextclade {
     columns[0] = seqName;
     columns[columns.size() - 1] = errorFormatted;// NOTE: Assumes that the "error" column is the last one
 
-    std::for_each(columns.begin(), columns.end(), maybeSurroundWithQuotes(options.delimiter));
-    auto row = boost::algorithm::join(columns, std::string{options.delimiter});
-    outputStream << row << "\n";
+    auto row = prepareRow(columns);
+    outputStream << row << NEWLINE.data();
     return row;
   }
 
