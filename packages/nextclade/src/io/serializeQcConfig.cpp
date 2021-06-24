@@ -24,6 +24,8 @@ namespace Nextclade {
   std::string serializeQcConfig(Nextclade::QcConfig& qcConfig) {
     auto j = json::object();
 
+    writeValue(j, "/schemaVersion", std::string{Nextclade::getVersion()});
+
     writeValue(j, "/missingData/enabled", qcConfig.missingData.enabled);
     if (qcConfig.missingData.enabled) {
       writeValue(j, "/missingData/missingDataThreshold", qcConfig.missingData.missingDataThreshold);

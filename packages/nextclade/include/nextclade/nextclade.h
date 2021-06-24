@@ -50,6 +50,7 @@ namespace Nextclade {
   };
 
   struct QcConfig {
+    std::string schemaVersion;
     QCRulesConfigMissingData missingData;
     QCRulesConfigMixedSites mixedSites;
     QCRulesConfigPrivateMutations privateMutations;

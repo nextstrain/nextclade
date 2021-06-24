@@ -139,6 +139,7 @@ export interface QCRulesConfigStopCodons {
 }
 
 export interface QcConfig {
+  schemaVersion: string
   missingData: QCRulesConfigMissingData
   mixedSites: QCRulesConfigMixedSites
   privateMutations: QCRulesConfigPrivateMutations
