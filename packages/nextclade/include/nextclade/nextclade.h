@@ -50,6 +50,7 @@ namespace Nextclade {
   };
 
   struct QcConfig {
+    std::string schemaVersion;
     QCRulesConfigMissingData missingData;
     QCRulesConfigMixedSites mixedSites;
     QCRulesConfigPrivateMutations privateMutations;
@@ -413,6 +414,8 @@ namespace Nextclade {
   };
 
   QcConfig parseQcConfig(const std::string& qcConfigJsonStr);
+
+  bool isQcConfigVersionRecent(const QcConfig& qcConfig);
 
   std::vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,       //

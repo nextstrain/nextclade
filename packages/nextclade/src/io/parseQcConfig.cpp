@@ -4,8 +4,10 @@
 #include <nextclade/nextclade.h>
 
 #include <nlohmann/json.hpp>
+#include <semver.hpp>
 
 #include "parseAnalysisResults.h"
+#include "qc/isQcConfigVersionRecent.h"
 
 
 namespace Nextclade {
@@ -53,6 +55,11 @@ namespace Nextclade {
       json j = json::parse(qcConfigJsonStr);
 
       QcConfig qcConfig{};
+
+      // Version prior to 1.2.0 did not include "schemaVersion" field.
+      // Treat files without this field as them as "1.1.0".
+      readValue(j, "/schemaVersion", qcConfig.schemaVersion, std::string{"1.1.0"});
+
 
       readValue(j, "/missingData/enabled", qcConfig.missingData.enabled, false);
       if (qcConfig.missingData.enabled) {

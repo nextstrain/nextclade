@@ -1028,6 +1028,13 @@ int main(int argc, char *argv[]) {
 
     const auto qcJsonString = readFile(cliParams.inputQcConfig);
     const auto qcRulesConfig = Nextclade::parseQcConfig(qcJsonString);
+    if (!Nextclade::isQcConfigVersionRecent(qcRulesConfig)) {
+      logger.warn(
+        "The QC configuration file \"{:s}\" version ({:s}) is older than the version of Nextclade ({:s}). You might be "
+        "missing out on new features. It is recommended to download the latest configuration file. Alternatively, to "
+        "silence this warning, add/change property \"schemaVersion\": \"{:s}\" in your file.",
+        cliParams.inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getVersion(), Nextclade::getVersion());
+    }
 
     const auto treeString = readFile(cliParams.inputTree);
 
