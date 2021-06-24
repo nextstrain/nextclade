@@ -14,6 +14,7 @@ find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
+find_package(semver 0.3.0 REQUIRED)
 
 set(SOURCE_FILES
   include/nextclade/nextclade.h
@@ -50,6 +51,7 @@ set(SOURCE_FILES
   src/io/jsonStringify.cpp
   src/io/jsonStringify.h
   src/io/parseAnalysisResults.cpp
+  src/io/parseAnalysisResults.h
   src/io/parseCsv.h
   src/io/parseGeneMap.cpp
   src/io/parseMutation.cpp
@@ -64,6 +66,10 @@ set(SOURCE_FILES
   src/nextclade.cpp
   src/qc/getQcRuleStatus.cpp
   src/qc/getQcRuleStatus.h
+  src/qc/isQcConfigVersionRecent.cpp
+  src/qc/isQcConfigVersionRecent.h
+  src/qc/ruleFrameShifts.cpp
+  src/qc/ruleFrameShifts.h
   src/qc/ruleMissingData.cpp
   src/qc/ruleMissingData.h
   src/qc/ruleMixedSites.cpp
@@ -72,6 +78,8 @@ set(SOURCE_FILES
   src/qc/rulePrivateMutations.h
   src/qc/ruleSnpClusters.cpp
   src/qc/ruleSnpClusters.h
+  src/qc/ruleStopCodons.cpp
+  src/qc/ruleStopCodons.h
   src/qc/runQc.cpp
   src/qc/runQc.h
   src/tree/Tree.cpp
@@ -86,6 +94,8 @@ set(SOURCE_FILES
   src/tree/treePostprocess.h
   src/tree/treePreprocess.cpp
   src/tree/treePreprocess.h
+  src/utils/concat.h
+  src/utils/concat_move.h
   src/utils/config.h
   src/utils/contains.h
   src/utils/contract.h
@@ -154,6 +164,7 @@ target_link_libraries(${PROJECT_NAME}
   Microsoft.GSL::GSL
   fast-cpp-csv-parser::fast-cpp-csv-parser
   fmt::fmt-header-only
+  semver::semver
   )
 
 set(NEXTCLADE_BUILD_TESTS ON CACHE BOOL "Build unit tests")

@@ -86,4 +86,12 @@ namespace Nextclade {
     const auto numberOfSNPs = std::to_string(csnp.numberOfSNPs);
     return fmt::format("{}:{}", range, numberOfSNPs);
   }
+
+  std::string formatFrameShift(const FrameShift& frameShift) {
+    return frameShift.geneName;
+  }
+
+  std::string formatStopCodon(const StopCodonLocation& stopCodon) {
+    return fmt::format("{}:{}", stopCodon.geneName, stopCodon.codon);
+  }
 }// namespace Nextclade

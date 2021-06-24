@@ -6,7 +6,7 @@ export interface SettingsState {
   showWhatsnewOnUpdate: boolean
   lastVersionSeen: string
   showAdvancedControls: boolean
-  numThreads: number
+  numThreadsV2: number
 }
 
 export const settingsDefaultState: SettingsState = {
@@ -14,5 +14,5 @@ export const settingsDefaultState: SettingsState = {
   showWhatsnewOnUpdate: true,
   lastVersionSeen: '',
   showAdvancedControls: false,
-  numThreads: getNumThreads(),
+  numThreadsV2: getNumThreads(),
 }

@@ -5,6 +5,7 @@ import type { Gene } from 'src/algorithms/types'
 import { sortResults } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
 
+import { errorDismiss } from 'src/state/error/error.actions'
 import {
   algorithmRunAsync,
   resultsSortTrigger,
@@ -55,7 +56,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
       result: undefined,
       query: undefined,
       queryPeptides: undefined,
-      warnings: [],
+      warnings: { global: [], inGenes: [] },
       errors: [],
     }
     draft.resultsFiltered = runFilters(current(draft))
@@ -307,4 +308,8 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setTreeResult, (draft, { treeStr }) => {
     draft.treeStr = treeStr
+  })
+
+  .icase(errorDismiss, (draft) => {
+    draft.errors = []
   })

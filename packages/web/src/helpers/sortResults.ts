@@ -11,6 +11,7 @@ export enum SortCategory {
   totalNonACGTNs = 'totalNonACGTNs',
   totalMissing = 'totalMissing',
   totalGaps = 'totalGaps',
+  totalInsertions = 'totalInsertions',
 }
 
 export enum SortDirection {
@@ -82,6 +83,10 @@ export function sortByGaps(results: SequenceAnalysisState[], direction: SortDire
   return orderBy(results, (res) => res.result?.totalDeletions ?? defaultNumber(direction), direction)
 }
 
+export function sortByInsertions(results: SequenceAnalysisState[], direction: SortDirection) {
+  return orderBy(results, (res) => res.result?.totalInsertions ?? defaultNumber(direction), direction)
+}
+
 export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) {
   const { category, direction } = sorting
 
@@ -109,6 +114,9 @@ export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) 
 
     case SortCategory.totalGaps:
       return sortByGaps(results, direction)
+
+    case SortCategory.totalInsertions:
+      return sortByInsertions(results, direction)
   }
 
   return results

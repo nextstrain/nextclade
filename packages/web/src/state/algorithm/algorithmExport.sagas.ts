@@ -1,4 +1,4 @@
-/* eslint-disable no-loops/no-loops,no-continue */
+/* eslint-disable no-loops/no-loops,no-continue,sonarjs/no-duplicate-string */
 import { call, select, takeEvery } from 'typed-redux-saga'
 
 import type { ZipFileDescription } from 'src/helpers/saveFile'
@@ -8,7 +8,9 @@ import { serializeResults, serializeResultsToJson } from 'src/io/serializeResult
 import {
   exportAll,
   exportCsvTrigger,
+  exportErrorsCsvTrigger,
   exportFastaTrigger,
+  exportInsertionsCsvTrigger,
   exportJsonTrigger,
   exportPeptides,
   exportTreeJsonTrigger,
@@ -21,10 +23,11 @@ import {
   selectOutputTree,
   selectResults,
   selectResultsArray,
+  selectResultsState,
 } from 'src/state/algorithm/algorithm.selectors'
 import fsaSaga from 'src/state/util/fsaSaga'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
-import { serializeToCsv } from 'src/workers/run'
+import { serializeInsertionsToCsv, serializeToCsv } from 'src/workers/run'
 
 export function* prepareResultsCsvStr() {
   const results = yield* select(selectResultsArray)
@@ -128,6 +131,51 @@ export function* exportPeptidesWorker() {
   yield* call(saveZip, { files, filename: exportParams.filenamePeptidesZip })
 }
 
+export function* prepareInsertionsCsvStr() {
+  const results = yield* select(selectResultsArray)
+  const resultsGood = results.filter(notUndefinedOrNull)
+  const resultsGoodStr = serializeResults(resultsGood)
+  return yield* call(serializeInsertionsToCsv, resultsGoodStr)
+}
+
+export function* exportInsertionsCsv() {
+  const exportParams = yield* select(selectExportParams)
+  const csvStr = yield* prepareInsertionsCsvStr()
+  saveFile(csvStr, exportParams.filenameInsertionsCsv, 'text/csv;charset=utf-8')
+}
+
+export function joinEntries(entries: string[]) {
+  return entries.join(';').replace(/"/g, '""')
+}
+
+export function* prepareErrorsCsvStr() {
+  const results = yield* select(selectResultsState)
+
+  let csv = 'seqName,errors,warnings,failedGenes'
+  for (const result of results) {
+    const { seqName, errors } = result
+
+    const geneWarnings = result.warnings.inGenes.flatMap((w) => w.message) ?? []
+    const warnings = [...(result.warnings.global ?? []), ...geneWarnings]
+
+    let failedGeneNames = result.warnings.inGenes.flatMap((w) => w.geneName)
+    if (errors.length > 0) {
+      failedGeneNames = ['<<ALL>>']
+    }
+
+    const row = `"${seqName}","${joinEntries(errors)}","${joinEntries(warnings)}","${joinEntries(failedGeneNames)}"`
+    csv = `${csv}\r\n${row}`
+  }
+
+  return csv
+}
+
+export function* exportErrorsCsv() {
+  const exportParams = yield* select(selectExportParams)
+  const csvStr = yield* prepareErrorsCsvStr()
+  saveFile(csvStr, exportParams.filenameErrorsCsv, 'text/csv;charset=utf-8')
+}
+
 export function* exportAllWorker() {
   const exportParams = yield* select(selectExportParams)
 
@@ -136,6 +184,8 @@ export function* exportAllWorker() {
   const jsonStr = yield* prepareResultsJsonStr()
   const treeJsonStr = yield* prepareResultTreeJsonStr()
   const fastaStr = yield* prepareResultFastaStr()
+  const insertionsCsvStr = yield* prepareInsertionsCsvStr()
+  const errorsCsvStr = yield* prepareErrorsCsvStr()
 
   const peptideFiles = yield* prepareResultPeptideFiles()
 
@@ -146,6 +196,8 @@ export function* exportAllWorker() {
     { filename: exportParams.filenameJson, data: jsonStr },
     { filename: exportParams.filenameTreeJson, data: treeJsonStr },
     { filename: exportParams.filenameFasta, data: fastaStr },
+    { filename: exportParams.filenameInsertionsCsv, data: insertionsCsvStr },
+    { filename: exportParams.filenameErrorsCsv, data: errorsCsvStr },
   ]
 
   yield* call(saveZip, { files: allFiles, filename: exportParams.filenameZip })
@@ -158,5 +210,7 @@ export default [
   takeEvery(exportTreeJsonTrigger, exportTreeJson),
   takeEvery(exportFastaTrigger, exportFasta),
   takeEvery(exportPeptides.trigger, fsaSaga(exportPeptides, exportPeptidesWorker)),
+  takeEvery(exportInsertionsCsvTrigger, exportInsertionsCsv),
+  takeEvery(exportErrorsCsvTrigger, exportErrorsCsv),
   takeEvery(exportAll.trigger, fsaSaga(exportAll, exportAllWorker)),
 ]

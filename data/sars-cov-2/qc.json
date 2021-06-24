@@ -1,4 +1,5 @@
 {
+  "schemaVersion": "1.2.0",
   "privateMutations": {
     "enabled": true,
     "typical": 8,
@@ -18,5 +19,12 @@
   "mixedSites": {
     "enabled": true,
     "mixedSitesThreshold": 10
+  },
+  "frameShifts": {
+    "enabled": true
+  },
+  "stopCodons": {
+    "enabled": true,
+    "ignoredStopCodons": [{"geneName": "ORF8", "codon": 26}]
   }
 }

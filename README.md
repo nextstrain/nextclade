@@ -50,15 +50,20 @@ by Nextstrain team
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.org/github/nextstrain/nextclade/branches">
-    <img src="https://img.shields.io/travis/nextstrain/nextclade/release?label=build%3Aproduction" alt="Travis CI production" />
-  </a>
-  <a href="https://travis-ci.org/github/nextstrain/nextclade/branches">
-    <img src="https://img.shields.io/travis/nextstrain/nextclade/master?label=build%3Astaging" alt="Travis CI staging" />
+  <a href="https://app.circleci.com/pipelines/github/nextstrain/nextclade?branch=master">
+    <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/master?label=build%3Amaster" alt="CircleCI master branch">
   </a>
 
-  <a href="https://travis-ci.org/github/nextstrain/nextclade/branches">
-    <img src="https://img.shields.io/travis/nextstrain/nextclade/master?label=build%3Amaster" alt="Travis CI master" />
+  <a href="https://app.circleci.com/pipelines/github/nextstrain/nextclade?branch=staging">
+    <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/staging?label=build%3Astaging" alt="CircleCI staging branch">
+  </a>
+
+  <a href="https://app.circleci.com/pipelines/github/nextstrain/nextclade?branch=release">
+    <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/release?label=build%3Arelease" alt="CircleCI release branch">
+  </a>
+
+  <a href="https://app.circleci.com/pipelines/github/nextstrain/nextclade?branch=release-cli">
+    <img src="https://img.shields.io/circleci/build/github/nextstrain/nextclade/release-cli?label=build%3Arelease-cli" alt="CircleCI release-cli branch">
   </a>
 
   <a href="https://securityheaders.com/?q=clades.nextstrain.org&followRedirects=on">
@@ -113,6 +118,22 @@ by Nextstrain team
 
 </p>
 
+<p align="center">
+
+  <a href="https://github.com/nextstrain/nextclade/releases">
+    <img src="https://img.shields.io/github/v/release/nextstrain/nextclade?logo=github" alt="GitHub releases">
+  </a>
+
+  <a href="https://hub.docker.com/r/nextstrain/nextalign">
+      <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextalign">
+  </a>
+  
+  <a href="https://hub.docker.com/r/nextstrain/nextclade">
+      <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextclade">
+  </a>
+
+</p>
+
 
 ---
 
@@ -158,13 +179,32 @@ by Nextstrain team
 
 This repository consists of a set of packages presented in the table below. Refer to README files of individual packages for more details.
 
-| Package                                  | Type           | Get                                                                    | Docker images                                                        |
-| ---------------------------------------- | -------------- | ---------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| [nextclade_web](/packages/web)           | Web App        | 🌎 [clades.nextstrain.org](https://clades.nextstrain.org)              |                                                                      |
-| [nextclade_cli](/packages/cli)           | Node.js CLI    | 📦 [@nextstrain/nextclade](@nextstrain/nextclade)                          | 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade) |
-| [nextalign](/packages/nextalign)         | C++ library    |                                                                        |                                                                      |
-| [nextalign_cli](/packages/nextalign_cli) | C++ executable | 📥 [Github Releases](https://github.com/nextstrain/nextclade/releases) | 🐋 [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign) |
+| Package                                    | Type               | Get                                                                    | Docker images                                                            |
+| -------------------------------------------| -------------------| ---------------------------------------------------------------------- | -------------------------------------------------------------------------|
+| [nextalign](/packages/nextalign)           | C++ library        |                                                                        |                                                                          |
+| [nextalign_cli](/packages/nextalign_cli)   | C++ executable     | 📥 [Github Releases](https://github.com/nextstrain/nextclade/releases) | 🐋 [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign) |
+| [nextclade](/packages/nextclade)           | C++ library        |                                                                        |                                                                          |
+| [nextclade_cli](/packages/nextclade_cli)   | C++ executable     | 📥 [Github Releases](https://github.com/nextstrain/nextclade/releases) | 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade) |
+| [nextclade_wasm](/packages/nextclade_wasm) | WebAssembly module |                                                                        |                                                                          |
+| [nextclade_web](/packages/web)             | Web App            | 🌎 [clades.nextstrain.org](https://clades.nextstrain.org)              |                                                                          |
 
+
+<h2 id="documentation" align="center">
+📗 Documentation
+</h2>
+
+> TODO: add user documentation links
+
+
+<h2 id="documentation" align="center">
+🧑‍💻 Development
+</h2>
+
+If you are a developer, curious about how Nextclade and Nextalign work, want to modify it or contribute new features or fixes, check out out developer's guides:
+
+ - ["Developer's guide: Nextclade CLI and Nextalign CLI"](docs/dev/developers-guide-cli.md)
+
+ - ["Developer's guide: Nextclade Web"](docs/dev/developers-guide-web.md)
 
 
 <h2 id="team" align="center">
@@ -278,4 +318,6 @@ Vercel for sponsoring Nextclade builds on their platform
 ⚖️ License
 </h2>
 
-<a target="_blank" rel="noopener noreferrer" href="../LICENSE" alt="License file">MIT License</a>
+<p align="center">
+  <a target="_blank" rel="noopener noreferrer" href="../../LICENSE" alt="License file">MIT License</a>
+</p>

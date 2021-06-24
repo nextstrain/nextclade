@@ -39,12 +39,14 @@ struct CliParams {
   std::optional<std::string> outputBasename;
   std::optional<std::string> outputFasta;
   std::optional<std::string> outputInsertions;
+  std::optional<std::string> outputErrors;
   bool writeReference{};
 };
 
 struct Paths {
   fs::path outputFasta;
   fs::path outputInsertions;
+  fs::path outputErrors;
   std::map<std::string, fs::path> outputGenes;
 };
 
@@ -307,6 +309,13 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
     )
 
     (
+      "E,output-errors",
+      "(optional, string) Path to output errors and warnings occurred during processing, in CSV format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+      cxxopts::value<std::string>(),
+      "OUTPUT_ERRORS"
+    )
+
+    (
       "min-length",
       "(optional, integer, non-negative) Minimum length of nucleotide sequence to consider for alignment. If a sequence is shorter than that, alignment will not be attempted and a warning will be emitted. When adjusting this parameter, note that alignment of short sequences can be unreliable.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().alignment.minimalLength)),
@@ -450,6 +459,7 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
     cliParams.outputFasta = getParamOptional<std::string>(cxxOptsParsed, "output-fasta");
     cliParams.writeReference = getParamRequiredDefaulted<bool>(cxxOptsParsed, "include-reference");
     cliParams.outputInsertions = getParamOptional<std::string>(cxxOptsParsed, "output-insertions");
+    cliParams.outputErrors = getParamOptional<std::string>(cxxOptsParsed, "output-errors");
 
     cliParams.inputFasta = getParamRequired<std::string>(cxxOptsParsed, "input-fasta");
     cliParams.inputRootSeq = getParamRequired<std::string>(cxxOptsParsed, "input-root-seq");
@@ -631,6 +641,12 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     outputInsertions = *cliParams.outputInsertions;
   }
 
+  auto outputErrors = outDir / baseName;
+  outputErrors += ".errors.csv";
+  if (cliParams.outputErrors) {
+    outputErrors = *cliParams.outputErrors;
+  }
+
   std::map<std::string, fs::path> outputGenes;
   for (const auto &gene : genes) {
     auto outputGene = outDir / baseName;
@@ -641,6 +657,7 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
   return {
     .outputFasta = outputFasta,
     .outputInsertions = outputInsertions,
+    .outputErrors = outputErrors,
     .outputGenes = outputGenes,
   };
 }
@@ -715,6 +732,7 @@ void run(
   /* out */ std::unique_ptr<std::ostream> &outputTreeStream,
   /* out */ std::ostream &outputFastaStream,
   /* out */ std::ostream &outputInsertionsStream,
+  /* out */ std::ostream &outputErrorsFile,
   /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
   /* in */ bool shouldWriteReference,
   /* out */ Logger &logger) {
@@ -786,8 +804,9 @@ void run(
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
-    [&refName, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &csv, &tsv, &refsHaveBeenWritten,
-      &logger, &resultsConcurrent, &outputJsonStream, &outputTreeStream](const Nextclade::AlgorithmOutput &output) {
+    [&refName, &outputFastaStream, &outputInsertionsStream, &outputErrorsFile, &outputGeneStreams, &csv, &tsv,
+      &refsHaveBeenWritten, &logger, &resultsConcurrent, &outputJsonStream,
+      &outputTreeStream](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
       const auto &refAligned = output.result.ref;
@@ -811,6 +830,7 @@ void run(
           const std::string &errorMessage = e.what();
           logger.warn("Warning: In sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.",
             seqName, errorMessage);
+          outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, e.what(), "", "<<ALL>>");
           if (csv) {
             csv->addErrorRow(seqName, errorMessage);
           }
@@ -820,9 +840,27 @@ void run(
           return;
         }
       } else {
-        for (const auto &warning : warnings) {
+        std::vector<std::string> warningsCombined;
+        std::vector<std::string> failedGeneNames;
+        for (const auto &warning : warnings.global) {
           logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
+          warningsCombined.push_back(warning);
         }
+
+        for (const auto &warning : warnings.inGenes) {
+          logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning.message);
+          warningsCombined.push_back(warning.message);
+          failedGeneNames.push_back(warning.geneName);
+        }
+
+        auto warningsJoined = boost::join(warningsCombined, ";");
+        boost::replace_all(warningsJoined, R"(")", R"("")");// escape double quotes
+
+        auto failedGeneNamesJoined = boost::join(failedGeneNames, ";");
+        boost::replace_all(failedGeneNamesJoined, R"(")", R"("")");// escape double quotes
+
+        outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, "", warningsJoined,
+          failedGeneNamesJoined);
 
         // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
         if (!refsHaveBeenWritten) {
@@ -990,6 +1028,13 @@ int main(int argc, char *argv[]) {
 
     const auto qcJsonString = readFile(cliParams.inputQcConfig);
     const auto qcRulesConfig = Nextclade::parseQcConfig(qcJsonString);
+    if (!Nextclade::isQcConfigVersionRecent(qcRulesConfig)) {
+      logger.warn(
+        "The QC configuration file \"{:s}\" version ({:s}) is older than the version of Nextclade ({:s}). You might be "
+        "missing out on new features. It is recommended to download the latest configuration file. Alternatively, to "
+        "silence this warning, add/change property \"schemaVersion\": \"{:s}\" in your file.",
+        cliParams.inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getVersion(), Nextclade::getVersion());
+    }
 
     const auto treeString = readFile(cliParams.inputTree);
 
@@ -1015,6 +1060,13 @@ int main(int argc, char *argv[]) {
     std::ofstream outputInsertionsStream;
     openOutputFile(paths.outputInsertions, outputInsertionsStream);
     outputInsertionsStream << "seqName,insertions\n";
+
+    std::ofstream outputErrorsFile(paths.outputErrors);
+    if (!outputErrorsFile.good()) {
+      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", paths.outputErrors.string()));
+    }
+    outputErrorsFile << "seqName,errors,warnings,failedGenes\n";
+
 
     std::map<std::string, std::ofstream> outputGeneStreams;
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
@@ -1057,7 +1109,7 @@ int main(int argc, char *argv[]) {
     try {
       run(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap, options,
         outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream, outputInsertionsStream,
-        outputGeneStreams, shouldWriteReference, logger);
+        outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |", e.what());
     }

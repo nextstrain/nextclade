@@ -28,12 +28,14 @@ import { ColumnMutations } from './ColumnMutations'
 import { ColumnNonACGTNs } from './ColumnNonACGTNs'
 import { ColumnMissing } from './ColumnMissing'
 import { ColumnGaps } from './ColumnGaps'
+import { ColumnInsertions } from './ColumnInsertions'
 import { ResultsControlsSort } from './ResultsControlsSort'
 import { ButtonHelp } from './ButtonHelp'
 
 import HelpTipsColumnClade from './HelpTips/HelpTipsColumnClade.mdx'
 import HelpTipsColumnGaps from './HelpTips/HelpTipsColumnGaps.mdx'
 import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
+import HelpTipsColumnInsertions from './HelpTips/HelpTipsColumnInsertions.mdx'
 import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
 import HelpTipsColumnMut from './HelpTips/HelpTipsColumnMut.mdx'
 import HelpTipsColumnNonAcgtn from './HelpTips/HelpTipsColumnNonAcgtn.mdx'
@@ -49,12 +51,13 @@ const HEADER_ROW_CONTENT_HEIGHT = 60
 export const RESULTS_TABLE_FLEX_BASIS = {
   id: 50,
   seqName: 300,
-  qc: 100,
+  qc: 130,
   clade: 125,
   mut: 60,
   nonACGTN: 70,
   ns: 60,
   gaps: 60,
+  insertions: 60,
 } as const
 
 export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
@@ -240,11 +243,15 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <ColumnGaps sequence={sequence} />
       </TableCell>
 
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.insertions} grow={0} shrink={0}>
+        <ColumnInsertions sequence={sequence} />
+      </TableCell>
+
       <TableCell grow={20} shrink={20}>
         {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
           <SequenceView key={seqName} sequence={sequence} />
         ) : (
-          <PeptideView key={seqName} sequence={sequence} viewedGene={viewedGene} />
+          <PeptideView key={seqName} sequence={sequence} viewedGene={viewedGene} warnings={warnings} />
         )}
       </TableCell>
     </TableRow>
@@ -298,6 +305,17 @@ const mapDispatchToProps = {
   sortByTotalGapsAsc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.asc }),
   sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
 
+  sortByTotalInsertionsAsc: () =>
+    resultsSortTrigger({
+      category: SortCategory.totalInsertions,
+      direction: SortDirection.asc,
+    }),
+  sortByTotalInsertionsDesc: () =>
+    resultsSortTrigger({
+      category: SortCategory.totalInsertions,
+      direction: SortDirection.desc,
+    }),
+
   setViewedGene,
 }
 
@@ -340,6 +358,10 @@ export interface ResultProps {
 
   sortByTotalGapsDesc(): void
 
+  sortByTotalInsertionsAsc(): void
+
+  sortByTotalInsertionsDesc(): void
+
   setViewedGene(viewedGene: string): void
 }
 
@@ -362,6 +384,8 @@ export function ResultsTableDisconnected({
   sortByTotalNsDesc,
   sortByTotalGapsAsc,
   sortByTotalGapsDesc,
+  sortByTotalInsertionsAsc,
+  sortByTotalInsertionsDesc,
   viewedGene,
   setViewedGene,
 }: ResultProps) {
@@ -451,6 +475,16 @@ export function ResultsTableDisconnected({
             </TableHeaderCellContent>
             <ButtonHelpStyled identifier="btn-help-col-gaps">
               <HelpTipsColumnGaps />
+            </ButtonHelpStyled>
+          </TableHeaderCell>
+
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.insertions} grow={0} shrink={0}>
+            <TableHeaderCellContent>
+              <TableCellText>{t('Ins.')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByTotalInsertionsAsc} sortDesc={sortByTotalInsertionsDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelpStyled identifier="btn-help-col-insertions">
+              <HelpTipsColumnInsertions />
             </ButtonHelpStyled>
           </TableHeaderCell>
 

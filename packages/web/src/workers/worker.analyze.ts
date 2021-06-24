@@ -3,9 +3,9 @@ import 'regenerator-runtime'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 
-import type { AnalysisResult, Peptide, SequenceParserResult } from 'src/algorithms/types'
-import type { Vector, WasmModule } from './wasmModule'
-import { loadWasmModule, runWasmModule, vectorToArray } from './wasmModule'
+import type { AnalysisResult, Peptide, SequenceParserResult, Warnings } from 'src/algorithms/types'
+import type { WasmModule } from './wasmModule'
+import { loadWasmModule, runWasmModule } from './wasmModule'
 
 export interface NextcladeWasmParams {
   refStr: string
@@ -24,7 +24,7 @@ export interface NextcladeWasmResult {
   query: string
   queryPeptides: string
   analysisResult: string
-  warnings: Vector<string>
+  warnings: string
   hasError: boolean
   error: string
 }
@@ -35,7 +35,7 @@ export interface NextcladeResult {
   query: string
   queryPeptides: Peptide[]
   analysisResult: AnalysisResult
-  warnings: string[]
+  warnings: Warnings
   hasError: boolean
   error: string
 }
@@ -108,7 +108,7 @@ export async function analyze(seq: SequenceParserResult) {
   return runWasmModule<NextcladeAnalysisModule, NextcladeResult>(gModule, () => {
     const result = nextcladeWasm.analyze(seq.seqName, seq.seq)
 
-    const warnings = vectorToArray(result.warnings)
+    const warnings = JSON.parse(result.warnings) as Warnings
 
     if (result.hasError) {
       return {

@@ -1,4 +1,4 @@
-import type { Virus, AnalysisResult, Gene, Peptide } from 'src/algorithms/types'
+import type { Virus, AnalysisResult, Gene, Peptide, Warnings } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
@@ -28,7 +28,7 @@ export interface SequenceAnalysisState {
   result?: AnalysisResult
   query?: string
   queryPeptides?: Peptide[]
-  warnings: string[]
+  warnings: Warnings
   errors: string[]
 }
 
@@ -62,6 +62,8 @@ export interface ExportParams {
   filenameTreeJson: string
   filenameFasta: string
   filenamePeptidesZip: string
+  filenameInsertionsCsv: string
+  filenameErrorsCsv: string
   filenamePeptidesTemplate: string
 }
 
@@ -125,6 +127,8 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
   filenameTreeJson: 'nextclade.auspice.json',
   filenameFasta: 'nextclade.aligned.fasta',
   filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
+  filenameInsertionsCsv: 'nextclade.insertions.csv',
+  filenameErrorsCsv: 'nextclade.errors.csv',
   filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 

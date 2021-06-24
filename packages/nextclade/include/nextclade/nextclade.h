@@ -38,11 +38,25 @@ namespace Nextclade {
     double scoreWeight;
   };
 
+  struct QCRulesConfigFrameShifts {
+    bool enabled;
+  };
+
+  struct StopCodonLocation;
+
+  struct QCRulesConfigStopCodons {
+    bool enabled;
+    std::vector<StopCodonLocation> ignoredStopCodons;
+  };
+
   struct QcConfig {
+    std::string schemaVersion;
     QCRulesConfigMissingData missingData;
     QCRulesConfigMixedSites mixedSites;
     QCRulesConfigPrivateMutations privateMutations;
     QCRulesConfigSnpClusters snpClusters;
+    QCRulesConfigFrameShifts frameShifts;
+    QCRulesConfigStopCodons stopCodons;
   };
 
   enum class QcStatus : char {
@@ -87,12 +101,36 @@ namespace Nextclade {
     double cutoff;
   };
 
+  struct QcResultFrameShifts {
+    double score;
+    QcStatus status;
+    std::vector<FrameShift> frameShifts;
+    int totalFrameShifts;
+  };
+
+  struct StopCodonLocation {
+    std::string geneName;
+    int codon;
+  };
+
+  inline bool operator==(const StopCodonLocation& left, const StopCodonLocation& right) {
+    return (left.codon == right.codon && left.geneName == right.geneName);
+  }
+
+  struct QcResultStopCodons {
+    double score;
+    QcStatus status;
+    std::vector<StopCodonLocation> stopCodons;
+    int totalStopCodons;
+  };
 
   struct QcResult {
     std::optional<QcResultMissingData> missingData;
     std::optional<QCResultMixedSites> mixedSites;
     std::optional<QcResultPrivateMutations> privateMutations;
     std::optional<QCResultSnpClusters> snpClusters;
+    std::optional<QcResultFrameShifts> frameShifts;
+    std::optional<QcResultStopCodons> stopCodons;
     double overallScore;
     QcStatus overallStatus;
   };
@@ -341,12 +379,13 @@ namespace Nextclade {
     std::vector<Nextclade::AnalysisResult> results;
   };
 
+
   struct NextcladeResult {
     std::string ref;
     std::string query;
     std::vector<Peptide> refPeptides;
     std::vector<Peptide> queryPeptides;
-    std::vector<std::string> warnings;
+    Warnings warnings;
     AnalysisResult analysisResult;
   };
 
@@ -375,6 +414,8 @@ namespace Nextclade {
   };
 
   QcConfig parseQcConfig(const std::string& qcConfigJsonStr);
+
+  bool isQcConfigVersionRecent(const QcConfig& qcConfig);
 
   std::vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,       //
@@ -454,6 +495,8 @@ namespace Nextclade {
 
   std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers);
 
+  std::string serializeWarningsToString(const Warnings& warnings);
+
   std::string serializeGeneMap(const GeneMap& geneMap);
 
   std::string serializeQcConfig(Nextclade::QcConfig& qcConfig);
@@ -489,6 +532,10 @@ namespace Nextclade {
   std::string formatAminoacidDeletion(const AminoacidDeletion& del);
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp);
+
+  std::string formatFrameShift(const FrameShift& frameShift);
+
+  std::string formatStopCodon(const StopCodonLocation& stopCodon);
 
   const char* getVersion();
 }// namespace Nextclade
