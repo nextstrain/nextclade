@@ -252,6 +252,7 @@ jobs:
     environment:
       CLICOLOR: 1
       TERM: xterm-256color
+      NUM_THREADS: 4
 
     steps:
       - run:
