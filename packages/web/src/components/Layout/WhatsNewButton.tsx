@@ -90,7 +90,7 @@ export const Modal = styled(ReactstrapModal)`
 
 export const ModalBody = styled(ReactstrapModalBody)`
   @media (min-width: 991.98px) {
-    max-height: 80vh;
+    max-height: 66vh;
     margin: auto;
   }
 
