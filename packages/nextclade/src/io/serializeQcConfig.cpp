@@ -54,7 +54,7 @@ namespace Nextclade {
 
     writeValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled);
     if (qcConfig.stopCodons.enabled) {
-      writeArray(j, "/stopCodons/knownStopCodons", qcConfig.stopCodons.knownStopCodons, serializeStopCodon);
+      writeArray(j, "/stopCodons/ignoredStopCodons", qcConfig.stopCodons.ignoredStopCodons, serializeStopCodon);
     }
 
     return jsonStringify(j);
