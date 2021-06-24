@@ -30,7 +30,7 @@ namespace Nextclade {
       };
     }
 
-    constexpr std::array<frozen::string, 41> COLUMN_NAMES = {
+    constexpr std::array<frozen::string, 49> COLUMN_NAMES = {
       "seqName",
       "clade",
 
@@ -79,6 +79,16 @@ namespace Nextclade {
       "qc.snpClusters.score",
       "qc.snpClusters.status",
       "qc.snpClusters.totalSNPs",
+
+      "qc.frameShifts.frameShifts",
+      "qc.frameShifts.totalFrameShifts",
+      "qc.frameShifts.score",
+      "qc.frameShifts.status",
+
+      "qc.stopCodons.stopCodons",
+      "qc.stopCodons.totalStopCodons",
+      "qc.stopCodons.score",
+      "qc.stopCodons.status",
 
       "errors",
     };
@@ -165,6 +175,20 @@ namespace Nextclade {
       columns.emplace_back(std::to_string(result.qc.snpClusters->score));
       columns.emplace_back(formatQcStatus(result.qc.snpClusters->status));
       columns.emplace_back(std::to_string(result.qc.snpClusters->totalSNPs));
+    }
+
+    if (result.qc.frameShifts) {
+      columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShifts, formatFrameShift, ","));
+      columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShifts));
+      columns.emplace_back(std::to_string(result.qc.frameShifts->score));
+      columns.emplace_back(formatQcStatus(result.qc.frameShifts->status));
+    }
+
+    if (result.qc.stopCodons) {
+      columns.emplace_back(formatAndJoin(result.qc.stopCodons->stopCodons, formatStopCodon, ","));
+      columns.emplace_back(std::to_string(result.qc.stopCodons->totalStopCodons));
+      columns.emplace_back(std::to_string(result.qc.stopCodons->score));
+      columns.emplace_back(formatQcStatus(result.qc.stopCodons->status));
     }
 
     std::for_each(columns.begin(), columns.end(), maybeSurroundWithQuotes(options.delimiter));

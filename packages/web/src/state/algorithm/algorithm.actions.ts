@@ -40,6 +40,8 @@ export const exportJsonTrigger = action<void>('exportJsonTrigger')
 export const exportTreeJsonTrigger = action<void>('exportTreeJsonTrigger')
 export const exportFastaTrigger = action<void>('exportFastaTrigger')
 export const exportPeptides = action.async<void, void, Error>('exportPeptidesTrigger')
+export const exportInsertionsCsvTrigger = action<void>('exportInsertionsCsvTrigger')
+export const exportErrorsCsvTrigger = action<void>('exportErrorsCsvTrigger')
 export const exportAll = action.async<void, void, Error>('exportAllTrigger')
 export const setExportFilenames = action<ExportParams>('setExportFilenames')
 

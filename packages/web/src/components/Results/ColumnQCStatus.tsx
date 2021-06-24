@@ -31,13 +31,15 @@ export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
     )
   }
 
-  const { missingData, privateMutations, mixedSites, snpClusters } = qc
+  const { missingData, privateMutations, mixedSites, snpClusters, frameShifts, stopCodons } = qc
 
   const rules = [
     { value: missingData, name: 'N' },
     { value: mixedSites, name: 'M' },
     { value: privateMutations, name: 'P' },
     { value: snpClusters, name: 'C' },
+    { value: frameShifts, name: 'F' },
+    { value: stopCodons, name: 'S' },
   ].filter((value) => notUndefined(value))
 
   const icons = rules.map(({ name, value }, i) => {

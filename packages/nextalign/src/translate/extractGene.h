@@ -12,8 +12,11 @@ struct Gene;
 
 NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene);
 
+enum ExtractGeneStatusReason { GeneEmpty, GeneLengthNonMul3 };
+
 struct ExtractGeneStatus {
   Status status;
+  std::optional<ExtractGeneStatusReason> reason;
   std::optional<std::string> error;
   std::optional<NucleotideSequence> result;
 };

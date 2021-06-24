@@ -130,11 +130,22 @@ export interface QCRulesConfigSnpClusters {
   scoreWeight: number
 }
 
+export interface QCRulesConfigFrameShifts {
+  enabled: boolean
+}
+
+export interface QCRulesConfigStopCodons {
+  enabled: boolean
+}
+
 export interface QcConfig {
+  schemaVersion: string
   missingData: QCRulesConfigMissingData
   mixedSites: QCRulesConfigMixedSites
   privateMutations: QCRulesConfigPrivateMutations
   snpClusters: QCRulesConfigSnpClusters
+  frameShifts: QCRulesConfigFrameShifts
+  stopCodons: QCRulesConfigStopCodons
 }
 
 export interface Virus {
@@ -196,11 +207,36 @@ export interface QcResultPrivateMutations {
   cutoff: number
 }
 
+export interface FrameShift {
+  geneName: string
+}
+
+export interface QcResultFrameShifts {
+  score: number
+  status: QcStatus
+  frameShifts: FrameShift[]
+  totalFrameShifts: number
+}
+
+export interface StopCodonLocation {
+  geneName: string
+  codon: number
+}
+
+export interface QcResultStopCodons {
+  score: number
+  status: QcStatus
+  stopCodons: StopCodonLocation[]
+  totalStopCodons: number
+}
+
 export interface QcResult {
   missingData?: QcResultMissingData
   mixedSites?: QcResultMixedSites
   privateMutations?: QcResultPrivateMutations
   snpClusters?: QcResultSnpClusters
+  frameShifts?: QcResultFrameShifts
+  stopCodons?: QcResultStopCodons
   overallScore: number
   overallStatus: QcStatus
 }
@@ -254,4 +290,14 @@ export interface SequenceParserResult {
   index: number
   seqName: string
   seq: string
+}
+
+export interface GeneWarning {
+  geneName: string
+  message: string
+}
+
+export interface Warnings {
+  global: string[]
+  inGenes: GeneWarning[]
 }

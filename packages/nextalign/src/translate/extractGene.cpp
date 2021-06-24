@@ -135,6 +135,7 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
 
     return ExtractGeneStatus{
       .status = Status::Error,
+      .reason = ExtractGeneStatusReason::GeneEmpty,
       .error = std::move(error),
       .result = {},
     };
@@ -151,6 +152,7 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
 
     return ExtractGeneStatus{
       .status = Status::Error,
+      .reason = ExtractGeneStatusReason::GeneLengthNonMul3,
       .error = std::move(error),
       .result = {},
     };
@@ -159,6 +161,7 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
   invariant_less_equal(result.size(), query.size());// Length of the gene should not exceed the length of the sequence
   return ExtractGeneStatus{
     .status = Status::Success,
+    .reason = {},
     .error = {},
     .result = std::move(result),
   };

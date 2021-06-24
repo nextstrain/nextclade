@@ -5,4 +5,4 @@ export const selectLocaleKey = (state: State): LocaleKey => state.settings.local
 
 export const selectLocale = (state: State): LocaleWithKey => getLocaleWithKey(selectLocaleKey(state))
 
-export const selectNumThreads = (state: State) => state.settings.numThreads
+export const selectNumThreads = (state: State) => state.settings.numThreadsV2

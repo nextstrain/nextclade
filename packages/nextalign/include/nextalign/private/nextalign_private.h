@@ -30,7 +30,8 @@ struct NextalignResultInternal {
   std::vector<PeptideInternal> refPeptides;
   std::vector<PeptideInternal> queryPeptides;
   std::vector<InsertionInternal<Nucleotide>> insertions;
-  std::vector<std::string> warnings;
+  Warnings warnings;
+  std::vector<FrameShift> frameShifts;
 };
 
 Nucleotide toNucleotide(char nuc);

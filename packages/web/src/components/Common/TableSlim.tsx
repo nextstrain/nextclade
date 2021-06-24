@@ -10,4 +10,19 @@ export const TableSlim = styled(ReactstrapTable)`
     margin: 0;
     padding: 0;
   }
+
+  & th {
+    margin: 0;
+    padding: 0 0.5rem;
+  }
+`
+
+export const TableSlimWithBorders = styled(TableSlim)`
+  & td {
+    border: 1px solid #ccc;
+  }
+
+  & th {
+    border: 1px solid #ccc;
+  }
 `

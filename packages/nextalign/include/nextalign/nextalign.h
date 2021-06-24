@@ -21,6 +21,19 @@ enum class Status : int {
   Error = 1,
 };
 
+struct GeneWarning {
+  std::string geneName;
+  std::string message;
+};
+
+struct Warnings {
+  std::vector<std::string> global;
+  std::vector<GeneWarning> inGenes;
+};
+
+struct FrameShift {
+  std::string geneName;
+};
 
 class Error : public std::runtime_error {
 public:
@@ -197,7 +210,7 @@ struct NextalignResult {
   std::vector<Peptide> refPeptides;
   std::vector<Peptide> queryPeptides;
   std::vector<Insertion> insertions;
-  std::vector<std::string> warnings;
+  Warnings warnings;
 };
 
 struct AlgorithmOutput {
