@@ -48,6 +48,7 @@ export const ModalHeader = styled(ReactstrapModalHeader)`
   @media (max-width: 992px) {
     padding: 0.25rem;
     margin: 0.5rem;
+    margin-bottom: 0;
   }
 `
 
