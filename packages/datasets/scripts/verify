@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+BASH_DEBUG="${BASH_DEBUG:=}"
+([ "${BASH_DEBUG}" == "true" ] || [ "${BASH_DEBUG}" == "1" ] ) && set -o xtrace
+set -o errexit
+set -o nounset
+set -o pipefail
+shopt -s dotglob
+trap "exit" INT
+
+# Directory where this script resides
+THIS_DIR=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
+
+# Where the source code is
+PROJECT_ROOT_DIR="$(realpath ${THIS_DIR}/../../..)"
+
+source "${PROJECT_ROOT_DIR}/.env.example"
+if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
+  source "${PROJECT_ROOT_DIR}/.env"
+fi
+
+: "${DATA_FULL_DOMAIN:?The DATA_FULL_DOMAIN environment variable is required.}"
+
+DATA_LOCAL_DIR="${PROJECT_ROOT_DIR}/data_local"
+
+DATASETS_JSON_REL_PATH="_generated/datasets.json"
+DATASETS_JSON_LOCAL_PATH="${DATA_LOCAL_DIR}/${DATASETS_JSON_REL_PATH}"
+DATASETS_JSON_URL="${DATA_FULL_DOMAIN}/${DATASETS_JSON_REL_PATH}"
+
+function checksum() {
+  sha256sum 2>/dev/null | awk '{ print $1 }'
+}
+
+# Compare checksums of the deployed file (from Cloudfront) and the local file
+SHA_LOCAL=$(cat "${DATASETS_JSON_LOCAL_PATH}" | checksum)
+SHA_REMOTE=$(curl -fsSL "${DATASETS_JSON_URL}" | checksum)
+
+if [ "${SHA_REMOTE}" != "${SHA_REMOTE}" ]; then
+  echo "${0}: checksum mismatch for \"${DATASETS_JSON_REL_PATH}\""
+  exit 1
+fi

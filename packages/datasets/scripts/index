@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+import json
+import os
+import fnmatch
+
+from typing import List
+
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+PROJECT_ROOT_DIR = os.path.realpath(os.path.join(THIS_DIR, "..", "..", ".."))
+
+DATA_LOCAL_DIR = os.path.realpath(os.path.join(PROJECT_ROOT_DIR, "data_local"))
+DATASETS_JSON_PATH = os.path.realpath(os.path.join(DATA_LOCAL_DIR, "_generated", "datasets.json"))
+SETTINGS_JSON_PATH = os.path.realpath(os.path.join(DATA_LOCAL_DIR, "settings.json"))
+
+
+def find_files(pattern, here):
+    for path, dirs, files in os.walk(os.path.abspath(here)):
+        for filename in fnmatch.filter(files, pattern):
+            yield os.path.join(path, filename)
+
+
+def find_dirs(here):
+    for path, dirs, _ in os.walk(os.path.abspath(here)):
+        for dirr in dirs:
+            yield os.path.join(path, dirr)
+
+
+def find_dirs_here(here):
+    return filter(os.path.isdir, [os.path.join(here, e) for e in os.listdir(here)])
+
+
+if __name__ == '__main__':
+    datasets = []
+    for dataset_json_path in find_files(pattern="dataset.json", here=DATA_LOCAL_DIR):
+        with open(dataset_json_path, 'r') as f:
+            dataset_json: dict = json.load(f)
+
+        versions: List[dict] = dataset_json["versions"]
+
+        datasets.append(dataset_json)
+
+    with open(SETTINGS_JSON_PATH, 'r') as f:
+        settings = json.load(f)
+
+    datasets_json = dict()
+    datasets_json.update({"settings": settings})
+    datasets_json.update({"datasets": datasets})
+    os.makedirs(os.path.dirname(DATASETS_JSON_PATH), exist_ok=True)
+    with open(DATASETS_JSON_PATH, "w") as f:
+        json.dump(datasets_json, f, indent=2)
