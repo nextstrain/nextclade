@@ -76,6 +76,9 @@ prod-wasm-nowatch:
 dev-web:
 	cd packages/web && yarn dev
 
+serve-data:
+	cd packages/web && yarn serve-data
+
 prod-web:
 	cd packages/web && yarn install && yarn prod:watch
 

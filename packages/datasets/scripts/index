@@ -35,7 +35,12 @@ if __name__ == '__main__':
         with open(dataset_json_path, 'r') as f:
             dataset_json: dict = json.load(f)
 
+        dataset_name = dataset_json["name"]
         versions: List[dict] = dataset_json["versions"]
+        for version in versions:
+            version_datetime = version["datetime"]
+            files = [f"{dataset_name}/versions/{version_datetime}/files/{file}"  for file in version['files']]
+            version.update({ "files": files })
 
         datasets.append(dataset_json)
 

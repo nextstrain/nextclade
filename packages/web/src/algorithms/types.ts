@@ -301,3 +301,35 @@ export interface Warnings {
   global: string[]
   inGenes: GeneWarning[]
 }
+
+export interface DatasetsSettings {
+  defaultDataset: string
+}
+
+export interface DatasetVersion {
+  datetime: string
+  comment: string
+  compatibility: {
+    'nextclade-cli-version': {
+      min?: string
+      max?: string
+    }
+    'nextclade-web-version': {
+      min?: string
+      max?: string
+    }
+  }
+  files: string[]
+}
+
+export interface Dataset {
+  'name': string
+  'name-friendly': string
+  'description': string
+  'versions': DatasetVersion[]
+}
+
+export interface DatasetsJson {
+  settings: DatasetsSettings
+  datasets: Dataset[]
+}

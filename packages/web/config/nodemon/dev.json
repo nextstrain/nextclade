@@ -3,7 +3,7 @@
   "legacyWatch": false,
   "delay": 0.1,
   "watch": [
-    "../.env",
+    "../../../.env",
     ".browserslistrc",
     ".editorconfig",
     ".env",

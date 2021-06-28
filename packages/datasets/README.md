@@ -136,3 +136,34 @@ These are the tools for curating public Nextclade datasets.
     It may take up to 15 minutes for Cloudfront cache to propagate to all edge locations, but if the verification fails after 15 minutes, something went wrong. 
 
  7. You did a great job! Take a break, come back in a few weeks, and add/update another dataset. Start from step (3).
+
+
+
+<h2 id="test-datasets-locally" align="center">
+🧪💾 Test datasets locally
+</h2>
+
+In order to serve the local datasets, run
+
+```bash
+make serve-data
+```
+
+from the project root. The server then can be reached by default from 
+
+```
+http://localhost:27722
+```
+
+(the port number is controled by `DATA_LOCAL_PORT` environmnemt variable)
+
+
+In oder for the application to use the local data, set environmnemt variable
+
+```
+DATA_FULL_DOMAIN=http://localhost:27722
+```
+
+(adjust port number for `DATA_LOCAL_PORT` if changed)
+
+Rebuild the application and it will use the local datasets instead of the ones on AWS.
