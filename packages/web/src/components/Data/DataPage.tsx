@@ -12,7 +12,7 @@ import semver from 'semver'
 
 import { LayoutMain } from 'src/components/Layout/LayoutMain'
 import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
-import type { Dataset, DatasetsJson, DatasetVersion } from 'src/algorithms/types'
+import type { Dataset, DatasetFiles, DatasetsJson, DatasetVersion } from 'src/algorithms/types'
 
 const DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
 const DATA_DATASETS_FILE = '_generated/datasets.json'
@@ -69,15 +69,15 @@ export function DatasetFile({ file }: DatasetFileProps) {
 }
 
 export interface DatasetFilesProps {
-  files: string[]
+  files: DatasetFiles
 }
 
-export function DatasetFiles({ files }: DatasetFilesProps) {
+export function DatasetFilesView({ files }: DatasetFilesProps) {
   return (
     <Ul>
-      {files.map((file) => (
-        <Li key={file}>
-          <DatasetFile file={file} />
+      {Object.entries(files).map(([filetype, url]) => (
+        <Li key={filetype}>
+          <DatasetFile file={url} />
         </Li>
       ))}
     </Ul>
@@ -106,7 +106,7 @@ export function DatasetVersionView({ version }: DatasetVersionProps) {
       <td>{formatVersion(webMin, webMax)}</td>
       <td>{isCompatible ? t('Yes') : t('No')}</td>
       <td>
-        <DatasetFiles files={version.files} />
+        <DatasetFilesView files={version.files} />
       </td>
     </tr>
   )
@@ -158,7 +158,7 @@ export interface DatasetListProps {
 }
 
 export function DatasetList({ datasetsJson }: DatasetListProps) {
-  const defaultDatasetName = datasetsJson.settings.defaultDataset
+  const { defaultDatasetName } = datasetsJson.settings
 
   return (
     <div>

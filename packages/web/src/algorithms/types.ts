@@ -148,18 +148,6 @@ export interface QcConfig {
   stopCodons: QCRulesConfigStopCodons
 }
 
-export interface Virus {
-  name: string
-  minimalLength: number
-  queryStr: string
-  treeJson: string
-  refFastaStr: string
-  qcConfigRaw: string
-  qcConfigJson: QcConfig
-  geneMapStrRaw: string
-  pcrPrimersStrRaw: string
-}
-
 export interface ClusteredSNPs {
   start: number
   end: number
@@ -303,7 +291,17 @@ export interface Warnings {
 }
 
 export interface DatasetsSettings {
-  defaultDataset: string
+  defaultDatasetName: string
+  defaultDatasetNameFriendly: string
+}
+
+export interface DatasetFiles {
+  geneMap: string
+  primers: string
+  qc: string
+  reference: string
+  sequences: string
+  tree: string
 }
 
 export interface DatasetVersion {
@@ -319,7 +317,7 @@ export interface DatasetVersion {
       max?: string
     }
   }
-  files: string[]
+  files: DatasetFiles
 }
 
 export interface Dataset {
@@ -333,3 +331,5 @@ export interface DatasetsJson {
   settings: DatasetsSettings
   datasets: Dataset[]
 }
+
+export interface DatasetFlat extends Dataset, DatasetVersion {}

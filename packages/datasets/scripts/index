@@ -30,22 +30,32 @@ def find_dirs_here(here):
 
 
 if __name__ == '__main__':
+    with open(SETTINGS_JSON_PATH, 'r') as f:
+        settings_json = json.load(f)
+
+    settings = settings_json
+    defaultDatasetName = settings['defaultDatasetName']
+    defaultDatasetNameFriendly = None
+
     datasets = []
     for dataset_json_path in find_files(pattern="dataset.json", here=DATA_LOCAL_DIR):
         with open(dataset_json_path, 'r') as f:
             dataset_json: dict = json.load(f)
 
         dataset_name = dataset_json["name"]
+        if dataset_name == defaultDatasetName:
+            defaultDatasetNameFriendly = dataset_json['name-friendly']
+
         versions: List[dict] = dataset_json["versions"]
         for version in versions:
             version_datetime = version["datetime"]
-            files = [f"{dataset_name}/versions/{version_datetime}/files/{file}"  for file in version['files']]
-            version.update({ "files": files })
+            files = {f"{filetype}": f"/{dataset_name}/versions/{version_datetime}/files/{filename}" for
+                     filetype, filename in version['files'].items()}
+            version.update({"files": files})
 
         datasets.append(dataset_json)
 
-    with open(SETTINGS_JSON_PATH, 'r') as f:
-        settings = json.load(f)
+    settings.update({'defaultDatasetNameFriendly': defaultDatasetNameFriendly})
 
     datasets_json = dict()
     datasets_json.update({"settings": settings})
