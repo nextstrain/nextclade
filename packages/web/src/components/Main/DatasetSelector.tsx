@@ -68,7 +68,7 @@ const ErrorText = styled.div`
 `
 
 export function fileUrlsToAbsolute(files: DatasetFiles): DatasetFiles {
-  return mapValues(files, (file: string) => `${DATA_FULL_DOMAIN}/${file}`)
+  return mapValues(files, (file: string) => urljoin(DATA_FULL_DOMAIN, file))
 }
 
 export function getCompatibleDatasets(datasetsJson?: DatasetsJson): Dataset[] {
