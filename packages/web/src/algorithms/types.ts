@@ -302,6 +302,7 @@ export interface DatasetFiles {
   reference: string
   sequences: string
   tree: string
+  [k: string]: string
 }
 
 export interface DatasetVersion {

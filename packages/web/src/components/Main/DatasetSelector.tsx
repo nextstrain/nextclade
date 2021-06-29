@@ -106,7 +106,7 @@ export function getLatestCompatibleDatasets(datasetsJson?: DatasetsJson) {
 
   let defaultDatasetNameFriendly = ''
   if (defaultDataset) {
-    defaultDatasetNameFriendly = defaultDataset['name-friendly']
+    defaultDatasetNameFriendly = defaultDataset['name-friendly'] // eslint-disable-line sonarjs/no-duplicate-string
   } else if (latestDatasetsFlat.length > 0) {
     defaultDatasetNameFriendly = latestDatasetsFlat[0]['name-friendly']
   }
