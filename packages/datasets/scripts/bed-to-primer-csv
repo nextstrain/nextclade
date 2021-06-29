@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+import csv
+import os
+import re
+
+THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+PROJECT_ROOT_DIR = os.path.realpath(os.path.join(THIS_DIR, "..", "..", ".."))
+
+# Converts "ARTICnetwork nCoV-2019" primers from .bed into Nextclade primers.csv format
+# https://github.com/artic-network/artic-ncov2019/blob/master/primer_schemes/nCoV-2019/V4/SARS-CoV-2.primer.bed
+
+if __name__ == '__main__':
+    with open('../misc/SARS-CoV-2.primer.bed') as input_f:
+        with open('../misc/primers.csv', 'w') as output_f:
+            reader = csv.reader(input_f, delimiter="\t", quotechar='"')
+            writer = csv.writer(output_f, delimiter=",", quotechar='"')
+
+            institute = "ARTICnetwork nCoV-2019 V4"
+
+            writer.writerow(["Country (Institute)", "Target", "Oligonucleotide", "Sequence"])
+            for row in reader:
+                target = row[3]
+                direction_sign = row[5]
+                sequence = row[6]
+
+                institute_safe = re.sub('[^0-9a-zA-Z]+', '_', institute)
+                target_short = target.replace("SARS-CoV-2_", "")
+                direction = "F" if direction_sign == "+" else "R"  # assume "+" is "forward" primer, and "-" is "reverse" primer
+                oligonucleotide = f"{institute_safe}_{target_short}_{direction}"
+
+                writer.writerow([institute, target, oligonucleotide, sequence])
