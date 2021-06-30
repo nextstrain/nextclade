@@ -186,21 +186,22 @@ jobs:
       NUM_THREADS: 4
 
     steps:
-#      - checkout
+      - checkout
 
       - run:
           name: 'Create fake binaries'
           command: |
             mkdir -p .out/bin/
-            touch .out/bin/nextalign-Linux-x86_64
-            touch .out/bin/nextclade-Linux-x86_64
+            echo "Hello" > .out/bin/nextalign-Linux-x86_64
+            echo "Hello" > .out/bin/nextclade-Linux-x86_64
+            ls -alR .out/bin/
 
       - persist_to_workspace:
           name: 'Persist build artifacts into workspace'
-          root: .out/bin/
+          root: .out/bin
           paths:
-            - .out/bin/nextalign-Linux-x86_64
-            - .out/bin/nextclade-Linux-x86_64
+            - nextalign-Linux-x86_64
+            - nextclade-Linux-x86_64
 
 
 #      - restore_cache:
@@ -259,15 +260,16 @@ jobs:
           name: 'Create fake binaries'
           command: |
             mkdir -p .out/bin/
-            touch .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
-            touch .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
+            echo "Hello" > .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
+            echo "Hello" > .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
+            ls -alR .out/bin/
 
       - persist_to_workspace:
           name: 'Persist build artifacts into workspace'
-          root: .out/bin/
+          root: .out/bin
           paths:
-            - .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
-            - .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
+            - nextalign-MacOS-<< parameters.macos_arch >>
+            - nextclade-MacOS-<< parameters.macos_arch >>
 
 
 #      - checkout
@@ -338,16 +340,21 @@ jobs:
           password: $DOCKERHUB_PASS
 
     steps:
+      - checkout
+
       - attach_workspace:
-          # Must be absolute path or relative path from working_directory
-          at: /tmp/workspace
+          at: .out/bin
 
       - run:
           name: 'Publish binaries to GitHub Releases: Linux-x86_64'
           command: |
-            OS=linux ./scripts/download_github_release_tool.sh
-        #./scripts/publish_github_releases.sh
+            ls -alR .out/bin
 
+#      - run:
+#          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
+#          command: |
+#            OS=linux ./scripts/download_github_release_tool.sh
+##            ./scripts/publish_github_releases.sh
 
 
   Publish-Docker-Images:
@@ -359,6 +366,19 @@ jobs:
       steps:
         - checkout
 
+        - attach_workspace:
+            at:  .out/bin
+
+        - run:
+            name: 'Publish binaries to GitHub Releases: Linux-x86_64'
+            command: |
+              ls -alR .out/bin
+
+#        - run:
+#            name: 'Publish Docker images to DockerHub'
+#            command: |
+#              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+#              ./scripts/publish_docker_images.sh
 
 
 workflows:
@@ -380,8 +400,8 @@ workflows:
 #          <<: *major_branches_only
 
       - Build-Linux-x86_64:
-          requires:
-            - Update-Builder-Container
+#          requires:
+#            - Update-Builder-Container
           context:
             - nextclade_docker
             - nextclade_github

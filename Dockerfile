@@ -77,6 +77,22 @@ COPY scripts/install_emscripten.sh /
 RUN set -x \
 && /install_emscripten.sh "/emsdk" "${NEXTCLADE_EMSDK_VERSION}"
 
+
+# github-release
+RUN set -x \
+&& export GITHUB_RELEASE_VERSION="0.10.0" \
+&& export FILENAME="linux-amd64-github-release" \
+&& export ARCHIVE_NAME="${FILENAME}.bz2" \
+&& export URL="https://github.com/github-release/github-release/releases/download/v${GITHUB_RELEASE_VERSION}/${ARCHIVE_NAME}" \
+&& cd /tmp \
+&& curl -fsSL "${URL}" -o "${ARCHIVE_NAME}" \
+&& bzip2 -d "${ARCHIVE_NAME}" \
+&& chmod +x "${FILENAME}" \
+&& cp "${FILENAME}" "/usr/local/bin/github-release" \
+&& rm -rf /tmp/*
+
+
+
 ENV TERM="xterm-256color"
 ENV HOME="/home/${USER}"
 ENV NEXTCLADE_EMSDK_DIR="/emsdk"
