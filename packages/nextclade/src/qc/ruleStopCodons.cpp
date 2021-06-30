@@ -12,9 +12,10 @@
 
 namespace Nextclade {
   namespace details {
-    bool isignoredStopCodon(const StopCodonLocation& stopCodon, const std::vector<StopCodonLocation>& ignoredStopCodons) {
+    bool isIgnoredStopCodon(const StopCodonLocation& stopCodon,
+      const std::vector<StopCodonLocation>& ignoredStopCodons) {
       return std::any_of(ignoredStopCodons.cbegin(), ignoredStopCodons.end(),
-        [&stopCodon](const auto& ignoredStopCodon) { return stopCodon == ignoredStopCodon; });
+        [&stopCodon](const StopCodonLocation& ignoredStopCodon) { return stopCodon == ignoredStopCodon; });
     }
   }// namespace details
 
@@ -37,7 +38,7 @@ namespace Nextclade {
         const auto& aa = peptide.seq[codon];
         if (aa == Aminoacid::STOP) {
           auto stopCodon = StopCodonLocation{.geneName = peptide.name, .codon = codon};
-          if (details::isignoredStopCodon(stopCodon, config.ignoredStopCodons)) {
+          if (!details::isIgnoredStopCodon(stopCodon, config.ignoredStopCodons)) {
             totalStopCodons += 1;
             stopCodons.emplace_back(stopCodon);
           }
