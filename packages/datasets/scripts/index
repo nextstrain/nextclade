@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
         dataset_name = dataset_json["name"]
         if dataset_name == defaultDatasetName:
-            defaultDatasetNameFriendly = dataset_json['name-friendly']
+            defaultDatasetNameFriendly = dataset_json['nameFriendly']
 
         versions: List[dict] = dataset_json["versions"]
         for version in versions:

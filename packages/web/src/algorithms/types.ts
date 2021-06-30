@@ -309,11 +309,11 @@ export interface DatasetVersion {
   datetime: string
   comment: string
   compatibility: {
-    'nextclade-cli-version': {
+    nextcladeCli: {
       min?: string
       max?: string
     }
-    'nextclade-web-version': {
+    nextcladeWeb: {
       min?: string
       max?: string
     }
@@ -322,10 +322,10 @@ export interface DatasetVersion {
 }
 
 export interface Dataset {
-  'name': string
-  'name-friendly': string
-  'description': string
-  'versions': DatasetVersion[]
+  name: string
+  nameFriendly: string
+  description: string
+  versions: DatasetVersion[]
 }
 
 export interface DatasetsJson {

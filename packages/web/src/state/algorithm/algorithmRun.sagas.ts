@@ -402,7 +402,7 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
   }
 
   queryStr = yield* call(async () => axiosFetchRaw(dataset.files.sequences))
-  queryName = `${dataset['name-friendly']}, ${dataset.datetime}`
+  queryName = `${dataset.nameFriendly}, ${dataset.datetime}`
 
   return { queryStr, queryName }
 }

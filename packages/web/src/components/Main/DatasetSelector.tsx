@@ -77,7 +77,7 @@ export function getCompatibleDatasets(datasetsJson?: DatasetsJson): Dataset[] {
   for (const dataset of datasetsJson?.datasets ?? []) {
     let compatibleVersions: DatasetVersion[] = []
     for (const version of dataset.versions) {
-      if (isCompatible(version.compatibility['nextclade-web-version'])) {
+      if (isCompatible(version.compatibility.nextcladeWeb)) {
         compatibleVersions.push(version)
       }
     }
@@ -106,9 +106,9 @@ export function getLatestCompatibleDatasets(datasetsJson?: DatasetsJson) {
 
   let defaultDatasetNameFriendly = ''
   if (defaultDataset) {
-    defaultDatasetNameFriendly = defaultDataset['name-friendly'] // eslint-disable-line sonarjs/no-duplicate-string
+    defaultDatasetNameFriendly = defaultDataset.nameFriendly
   } else if (latestDatasetsFlat.length > 0) {
-    defaultDatasetNameFriendly = latestDatasetsFlat[0]['name-friendly']
+    defaultDatasetNameFriendly = latestDatasetsFlat[0].nameFriendly
   }
 
   return { datasets: latestDatasetsFlat, defaultDatasetName, defaultDatasetNameFriendly }
@@ -142,7 +142,7 @@ export function DatasetSelectorDisconnected({ setDataset }: DatasetSelectorProps
   const { datasets, defaultDatasetNameFriendly } =
     useMemo(() => getLatestCompatibleDatasets(datasetsJson), [datasetsJson]) // prettier-ignore
 
-  const datasetNames = useMemo(() => datasets.map((dataset) => dataset['name-friendly']), [datasets])
+  const datasetNames = useMemo(() => datasets.map((dataset) => dataset.nameFriendly), [datasets])
   const virusNameOptionDefault = useMemo(() => stringToOption(defaultDatasetNameFriendly), [defaultDatasetNameFriendly])
   const virusNameOptions = useMemo(() => datasetNames.map((datasetName) => stringToOption(datasetName)), [datasetNames])
   const [current, setCurrent] = useState<DropdownOption<string>>(virusNameOptionDefault)
@@ -152,7 +152,7 @@ export function DatasetSelectorDisconnected({ setDataset }: DatasetSelectorProps
   }, [virusNameOptionDefault])
 
   useEffect(() => {
-    const dataset = datasets.find((dataset) => dataset['name-friendly'] === current.label)
+    const dataset = datasets.find((dataset) => dataset.nameFriendly === current.label)
     setDataset(dataset)
   }, [current, datasets, setDataset])
 

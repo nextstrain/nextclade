@@ -91,10 +91,10 @@ export interface DatasetVersionProps {
 export function DatasetVersionView({ version }: DatasetVersionProps) {
   const { t } = useTranslationSafe()
 
-  const cliMin = version.compatibility['nextclade-cli-version'].min
-  const cliMax = version.compatibility['nextclade-cli-version'].max
-  const webMin = version.compatibility['nextclade-web-version'].min
-  const webMax = version.compatibility['nextclade-web-version'].max
+  const cliMin = version.compatibility.nextcladeCli.min
+  const cliMax = version.compatibility.nextcladeCli.max
+  const webMin = version.compatibility.nextcladeWeb.min
+  const webMax = version.compatibility.nextcladeWeb.max
 
   const isCompatible = semver.gte(thisVersion, webMin ?? thisVersion) && semver.lte(thisVersion, webMax ?? thisVersion)
 
@@ -124,7 +124,7 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
     <Row noGutters className="mt-3">
       <Col>
         <h3>
-          {dataset['name-friendly']}
+          {dataset.nameFriendly}
           {isDefault && <sup className="text-small ml-2">{t('(default)')}</sup>}
         </h3>
         <p>{dataset.description}</p>
