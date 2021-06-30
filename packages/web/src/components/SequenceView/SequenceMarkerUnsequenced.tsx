@@ -32,7 +32,7 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
 
   if (begin >= end) {
     console.warn(
-      `SequenceMarker: Attmpted to draw an invalid marker for range: \`[${begin}; ${end})\`. This is probably a bug.`,
+      `SequenceMarker: Attempted to draw an invalid marker for range: \`[${begin}; ${end})\`. This is probably a bug.`,
     )
     return null
   }
