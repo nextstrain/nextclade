@@ -11,15 +11,19 @@
  * is safe to replace them with these empty stubs.
  */
 
+extern "C" {
 
-int getpwuid_r(void) {
-  return 0;
-}
+// clang-format off
 
-int getservbyname_r(void) {
-  return 0;
-}
+int dlopen(void) { return 0; }
 
-int getservbyport_r(void) {
-  return 0;
+int gethostbyname(void) { return 0; }
+
+int getpwuid_r(void) { return 0; }
+
+int getservbyname_r(void) { return 0; }
+
+int getservbyport_r(void) { return 0; }
+
+// clang-format on
 }

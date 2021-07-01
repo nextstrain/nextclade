@@ -28,6 +28,12 @@
     "packages/nextclade/tests/CMakeLists.txt",
     "packages/nextclade_cli/CMakeLists.txt",
     "packages/nextclade_cli/src/*",
+    "packages/nextclade_common/CMakeLists.txt",
+    "packages/nextclade_common/include/nextclade_common/*",
+    "packages/nextclade_common/src/*",
+    "packages/nextclade_json/CMakeLists.txt",
+    "packages/nextclade_json/include/nextclade_json/*",
+    "packages/nextclade_json/src/*",
     "packages/nextclade_wasm/CMakeLists.txt",
     "packages/nextclade_wasm/src/*",
     "scripts/*"

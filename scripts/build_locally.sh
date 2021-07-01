@@ -292,18 +292,21 @@ CONAN_TBB_STATIC_BUILD_FLAGS=""
 if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   CONAN_STATIC_BUILD_FLAGS="\
     ${CONAN_STATIC_BUILD_FLAGS} \
-    -o tbb:shared=False \
-    -o gtest:shared=True \
-    -o cpr:shared=False \
-    -o cpr:fPIC=False \
-    -o libcurl:shared=False \
-    -o libcurl:fPIC=False \
-    -o libcurl:with_zlib=False \
-    -o libcurl:with_ssl=False \
-    -o libcurl:with_c_ares=True \
     -o c-ares:shared=False \
-    -o c-ares:fPIC=False \
+    -o cpr:shared=False \
+    -o cpr:with_ssl=openssl \
+    -o gtest:shared=True \
+    -o libcurl:shared=False \
+    -o libcurl:with_c_ares=True \
+    -o libcurl:with_ssl=openssl \
+    -o libcurl:with_zlib=True \
+    -o openssl:shared=False \
+    -o tbb:shared=False \
+    -o zlib:shared=False \
   "
+#     -o cpr:fPIC=False \
+#    -o libcurl:fPIC=False \
+#    -o c-ares:fPIC=False \
 
   CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
 fi

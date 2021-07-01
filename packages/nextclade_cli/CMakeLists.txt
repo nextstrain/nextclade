@@ -13,7 +13,6 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(TBB REQUIRED)
-find_package(cpr 1.6.2 REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(date 3.0.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
@@ -40,11 +39,8 @@ if (APPLE)
 endif ()
 
 add_executable(${PROJECT_NAME}
-  src/_libc_workarounds.c
   src/cli.cpp
   src/description.h
-  src/fetch.cpp
-  src/fetch.h
   src/filesystem.h
   )
 
@@ -76,18 +72,19 @@ target_include_directories(${PROJECT_NAME} SYSTEM
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-  nextclade
 
   PRIVATE
   ${STATIC_BUILD_FLAGS}
   Boost::headers
   TBB::tbb
-  cpr::cpr
   cxxopts::cxxopts
   date::date
   fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
   semver::semver
+
+  nextclade_common
+  nextclade
   )
 
 install(

@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
+#include <nextclade_json/nextclade_json.h>
 #include <utils/mapFind.h>
 
 #include <nlohmann/json.hpp>
@@ -10,7 +11,6 @@
 #include <vector>
 
 #include "formatQcStatus.h"
-#include "jsonParse.h"
 
 namespace Nextclade {
   using json = nlohmann::ordered_json;

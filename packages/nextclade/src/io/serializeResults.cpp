@@ -2,12 +2,12 @@
 
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
+#include <nextclade_json/nextclade_json.h>
 
 #include <chrono>
 #include <nlohmann/json.hpp>
 #include <string>
 
-#include "../io/jsonStringify.h"
 #include "formatQcStatus.h"
 
 namespace Nextclade {

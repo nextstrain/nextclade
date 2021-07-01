@@ -49,10 +49,6 @@ set(SOURCE_FILES
   src/io/formatMutation.h
   src/io/formatQcStatus.cpp
   src/io/formatQcStatus.h
-  src/io/jsonParse.cpp
-  src/io/jsonParse.h
-  src/io/jsonStringify.cpp
-  src/io/jsonStringify.h
   src/io/parseAnalysisResults.cpp
   src/io/parseAnalysisResults.h
   src/io/parseCsv.h
@@ -160,6 +156,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+  nextclade_json
   nextalign
 
   PRIVATE

@@ -1,4 +1,4 @@
-#include "jsonStringify.h"
+#include <nextclade_json/nextclade_json.h>
 
 #include <nlohmann/json.hpp>
 #include <string>

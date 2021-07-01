@@ -1,6 +1,7 @@
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
+#include <nextclade_common/fetch.h>
 #include <tbb/concurrent_vector.h>
 #include <tbb/global_control.h>
 #include <tbb/parallel_pipeline.h>
@@ -13,7 +14,6 @@
 
 #include "Logger.h"
 #include "description.h"
-#include "fetch.h"
 #include "filesystem.h"
 
 
@@ -967,13 +967,18 @@ std::unique_ptr<std::ostream> openOutputFileMaybe(const std::optional<std::strin
 int main(int argc, char *argv[]) {
   Logger logger{Logger::Options{.linePrefix = "Nextclade", .verbosity = Logger::Verbosity::warn}};
 
-  //  const auto datasetsJson = fetchDatasetsJson();
-  //  const auto datasets = getLatestCompatibleDatasets(datasetsJson.datasets);
-  //
-  //  fmt::print("{:s}\n", datasetsJson.settings.defaultDatasetNameFriendly);
-  //  fflush(stdout);
-  //
-  //  std::exit(0);
+  //  //  const std::string url = "https://d2y3t6seg8c135.cloudfront.net/_generated/datasets.json";
+  //  const std::string url = "http://localhost:27722/_generated/datasets.json";
+  //  const auto res = fetch(url);
+  //  fmt::print("{:s}\n", res);
+
+  const auto datasetsJson = Nextclade::fetchDatasetsJson();
+  const auto datasets = Nextclade::getLatestCompatibleDatasets(datasetsJson.datasets, Nextclade::getVersion());
+
+  fmt::print("{:s}\n", datasetsJson.settings.defaultDatasetNameFriendly);
+  fflush(stdout);
+
+  std::exit(0);
 
   try {
     const auto [cliParams, options] = parseCommandLine(argc, argv);
