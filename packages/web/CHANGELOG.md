@@ -9,7 +9,7 @@ Note, that gene ORF3a of clade 21H has a 4-base deletion towards the end of the 
 
 #### [Change] Adjusted Quality control (QC) scores for "Frame shifts" (F) and "Stop codons" (S) rules
 
-We adjusted QC score calculation for "Stop codons" and "Frame shifts" rules, such that each detection (of a misplaced stop codon or a frame shift, respectively) results in adding 75 to the score (the higher the score the worse). This lowes the score for sequences with only 1 frame shift and 1 stop codon. This is to account for the findings is clade 21H, as described above.
+We adjusted QC score calculation for "Stop codons" and "Frame shifts" rules, such that each detection (of a misplaced stop codon or a frame shift, respectively) results in adding 75 to the score (the higher the score the worse). This lowers the score for sequences with only 1 frame shift and 1 stop codon. This is to account for the findings is clade 21H, as described above.
 
 
 #### [Bug fix] Removed unsequenced regions of length 0
