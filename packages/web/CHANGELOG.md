@@ -1,3 +1,23 @@
+## Nextclade Web 1.5.0
+
+#### [New feature] New SARS-CoV-2 clades: 21G (Lambda) and 21H
+
+The updated default SARS-CoV-2 reference tree now contains the recently named Nextstrain clades 21G (Lambda) and 21H, corresponding to Pango lineage C.31 and B.1.621. This allows Nextclade Web to detect these clades. Users of Nextclade CLI are encouraged to download and use the new [tree.json](https://raw.githubusercontent.com/nextstrain/nextclade/d80124010d022a16c59977f97f563522a3ca67e1/data/sars-cov-2/tree.json).
+
+Note, that gene ORF3a of clade 21H has a 4-base deletion towards the end of the coding sequence, resulting in a frameshift and a protein truncation. This frameshift is currently flagged as a potential QC issue though it likely is biological (present in the viral genome).
+
+
+#### [Change] Adjusted Quality control (QC) scores for "Frame shifts" (F) and "Stop codons" (S) rules
+
+We adjusted QC score calculation for "Stop codons" and "Frame shifts" rules, such that each detection (of a misplaced stop codon or a frame shift, respectively) results in adding 75 to the score (the higher the score the worse). This lowers the score for sequences with only 1 frame shift and 1 stop codon. This is to account for the findings is clade 21H, as described above.
+
+
+#### [Bug fix] Removed unsequenced regions of length 0
+
+We fixed a bug where the empty unsequenced regions on either ends of a fully sequenced sample, were incorrectly displayed as ranges of length 1 in nucleotide sequence view. Now, in case of full sequences, there will be no unsequenced areas drawn, as expected.
+
+
+
 ## Nextclade Web 1.4.0, Nextclade CLI 1.2.0, Nextalign CLI 1.2.0 (2021-06-24)
 
 
