@@ -46,7 +46,7 @@ namespace Nextclade {
       }
     }
 
-    const double score = totalStopCodons > 0 ? 100.0 : 0.0;
+    const double score = totalStopCodons * 75;
     const auto& status = getQcRuleStatus(score);
 
     return QcResultStopCodons{
