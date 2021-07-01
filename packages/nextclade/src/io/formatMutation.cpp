@@ -6,8 +6,16 @@
 
 #include <string>
 
+#include "utils/contract.h"
+
 namespace Nextclade {
   std::string formatRange(const Range& range) {
+    precondition_less(range.begin, range.end);
+
+    if (range.begin >= range.end) {
+      return "empty range";
+    }
+
     // NOTE: we (and C++ standard library) uses 0-based half-open ranges,
     // but bioinformaticians prefer 1-based, closed ranges
     const auto beginOne = range.begin + 1;

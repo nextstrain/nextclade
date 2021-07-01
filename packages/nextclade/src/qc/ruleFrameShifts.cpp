@@ -19,7 +19,7 @@ namespace Nextclade {
 
     int totalFrameShifts = safe_cast<int>(alignment.frameShifts.size());
 
-    const double score = totalFrameShifts > 0 ? 100.0 : 0.0;
+    const double score = totalFrameShifts * 75;
     const auto& status = getQcRuleStatus(score);
 
     return QcResultFrameShifts{

@@ -11,7 +11,7 @@ import type { AnalysisResult } from 'src/algorithms/types'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
-import { SequenceMarkerMissingEnds } from './SequenceMarkerMissingEnds'
+import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 
 export const SequenceViewWrapper = styled.div`
   display: flex;
@@ -80,20 +80,6 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
     )
   })
 
-  const missingEndViews = [
-    { start: 0, length: alignmentStart },
-    { start: alignmentEnd, length: genomeSize - alignmentEnd },
-  ].map((missingEnd) => {
-    return (
-      <SequenceMarkerMissingEnds
-        key={missingEnd.start}
-        seqName={seqName}
-        deletion={missingEnd}
-        pixelsPerBase={pixelsPerBase}
-      />
-    )
-  })
-
   const deletionViews = deletions.map((deletion) => {
     return (
       <SequenceMarkerGap key={deletion.start} seqName={seqName} deletion={deletion} pixelsPerBase={pixelsPerBase} />
@@ -104,10 +90,20 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
         <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
-        {missingEndViews}
+        <SequenceMarkerUnsequencedStart
+          seqName={seqName}
+          alignmentStart={alignmentStart}
+          pixelsPerBase={pixelsPerBase}
+        />
         {mutationViews}
         {missingViews}
         {deletionViews}
+        <SequenceMarkerUnsequencedEnd
+          seqName={seqName}
+          genomeSize={genomeSize}
+          alignmentEnd={alignmentEnd}
+          pixelsPerBase={pixelsPerBase}
+        />
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )
