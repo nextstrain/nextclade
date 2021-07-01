@@ -13,6 +13,7 @@
 
 #include "Logger.h"
 #include "description.h"
+#include "fetch.h"
 #include "filesystem.h"
 
 
@@ -965,6 +966,14 @@ std::unique_ptr<std::ostream> openOutputFileMaybe(const std::optional<std::strin
 
 int main(int argc, char *argv[]) {
   Logger logger{Logger::Options{.linePrefix = "Nextclade", .verbosity = Logger::Verbosity::warn}};
+
+  //  const auto datasetsJson = fetchDatasetsJson();
+  //  const auto datasets = getLatestCompatibleDatasets(datasetsJson.datasets);
+  //
+  //  fmt::print("{:s}\n", datasetsJson.settings.defaultDatasetNameFriendly);
+  //  fflush(stdout);
+  //
+  //  std::exit(0);
 
   try {
     const auto [cliParams, options] = parseCommandLine(argc, argv);

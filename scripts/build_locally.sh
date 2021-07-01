@@ -294,6 +294,15 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
     ${CONAN_STATIC_BUILD_FLAGS} \
     -o tbb:shared=False \
     -o gtest:shared=True \
+    -o cpr:shared=False \
+    -o cpr:fPIC=False \
+    -o libcurl:shared=False \
+    -o libcurl:fPIC=False \
+    -o libcurl:with_zlib=False \
+    -o libcurl:with_ssl=False \
+    -o libcurl:with_c_ares=True \
+    -o c-ares:shared=False \
+    -o c-ares:fPIC=False \
   "
 
   CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
