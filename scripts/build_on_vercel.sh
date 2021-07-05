@@ -21,6 +21,9 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
+# Vercel caches `node_modules/`, so let's put our caches there
+export CACHE_DIR="${PROJECT_ROOT_DIR}/node_modules"
+
 # Vercel seems to be currently using VMs provisioned with Amazon Linux, which is a derivative of RHEL,
 # so we assume that `yum` package manager and `docker` package are available.
 # If something breaks here, perhaps they've changed things.
@@ -30,11 +33,20 @@ yum install -y -q \
   curl \
   xz
 
-curl -fsSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh -b -p "${HOME}/miniconda" >/dev/null
-export PATH="${HOME}/miniconda/bin:${PATH}"
+mkdir -p "${CACHE_DIR}"
+pushd "${CACHE_DIR}" >/dev/null
+  if [ ! -f "Miniconda3-latest-Linux-x86_64.sh" ]; then
+    curl -fsSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o Miniconda3-latest-Linux-x86_64.sh
+  fi
+
+  if [ ! -d "${CACHE_DIR}/miniconda" ]; then
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p "${CACHE_DIR}/miniconda" >/dev/null
+  fi
+popd
+
+export PATH="${CACHE_DIR}/miniconda/bin:${PATH}"
 set +x
-source "${HOME}/miniconda/bin/activate"
+source "${CACHE_DIR}/miniconda/bin/activate"
 set -x
 
 conda config --add channels conda-forge
@@ -48,11 +60,10 @@ conda install --yes --quiet \
   cpplint \
 
 
-# Vercel caches `node_modules`, so let's put our caches there
-export NEXTCLADE_EMSDK_DIR="node_modules/emscripten/emsdk-${NEXTCLADE_EMSDK_VERSION}"
-export NEXTCLADE_EMSDK_CACHE="node_modules/emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
-export CONAN_USER_HOME="node_modules/conan"
-export CCACHE_DIR="node_modules/ccache"
+export NEXTCLADE_EMSDK_DIR="${CACHE_DIR}/emscripten/emsdk-${NEXTCLADE_EMSDK_VERSION}"
+export NEXTCLADE_EMSDK_CACHE="${CACHE_DIR}/emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
+export CONAN_USER_HOME="${CACHE_DIR}/conan"
+export CCACHE_DIR="${CACHE_DIR}/ccache"
 export NEXTCLADE_EMSDK_USE_CACHE="0"
 
 make prod-wasm-nowatch
