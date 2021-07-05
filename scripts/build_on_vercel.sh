@@ -56,9 +56,9 @@ conda install --yes --quiet \
   cpplint \
 
 
-export NEXTCLADE_EMSDK_DIR="${CACHE_DIR}/emscripten/emsdk-${NEXTCLADE_EMSDK_VERSION}"
+#export NEXTCLADE_EMSDK_DIR="${CACHE_DIR}/emscripten/emsdk-${NEXTCLADE_EMSDK_VERSION}"
+#export CONAN_USER_HOME="${CACHE_DIR}/conan"
 export NEXTCLADE_EMSDK_CACHE="${CACHE_DIR}/emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
-export CONAN_USER_HOME="${CACHE_DIR}/conan"
 export CCACHE_DIR="${CACHE_DIR}/ccache"
 export NEXTCLADE_EMSDK_USE_CACHE="0"
 
