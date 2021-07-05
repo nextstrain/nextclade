@@ -40,32 +40,37 @@ IS_DOCKER="$(is_docker)"
 
 export PATH="/usr/sbin/:$PATH"
 
-which modprobe
-find / -iname "modprobe" 2>/dev/null
+#which modprobe
+#find / -iname "modprobe" 2>/dev/null
 
 yum update -y -q >/dev/null
-yum install -y -q yum-utils iptables iptables-services sysctl sudo >/dev/nul
+#yum install -y -q yum-utils iptables iptables-services sysctl sudo >/dev/nul
 amazon-linux-extras install -q docker >/dev/null
 #yum install -y -q docker
 #usermod -a -G docker ${USER}
-sudo service iptables start || true
-sudo systemctl start iptables || true
+#sudo service iptables start || true
+#sudo systemctl start iptables || true
 
 
-ip link del docker0 || true
-rm -rf /var/docker/network/*
-mkdir -p /var/docker/network/files  || true
+#ip link del docker0 || true
+#rm -rf /var/docker/network/*
+#mkdir -p /var/docker/network/files  || true
 
-sudo service docker start || true
-sudo systemctl start docker || true
+#sudo service docker start || true
+#sudo systemctl start docker || true
+
 #sysctl net.ipv4.ip_forward=1
 #nohup dockerd --host=unix:///var/run/docker.sock
-sudo dockerd --host=unix:///var/run/docker.sock \
+
+#
+nohup dockerd --host=unix:///var/run/docker.sock \
   --max-concurrent-downloads=1 \
   --max-concurrent-uploads=1 \
   --ip-forward=false \
   --iptables=false \
   --bridge=none \
+&
+
 # --iptables=false
 #--host=tcp://127.0.0.1:2375 --storage-driver=devicemapper &
 
