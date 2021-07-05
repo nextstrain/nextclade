@@ -56,12 +56,13 @@ yum install -y -q \
   device-mapper-persistent-data \
   sudo \
   curl wget unzip awscli aws-cfn-bootstrap nfs-utils chrony conntrack jq ec2-instance-connect socat \
+  fuse-overlayfs \
 >/dev/nul
 
 amazon-linux-extras enable docker
 
-export DOCKER_VERSION="19.03.6ce-4.amzn2"
-#export DOCKER_VERSION="20.10.4-1.amzn2"
+#export DOCKER_VERSION="19.03.6ce-4.amzn2"
+export DOCKER_VERSION="20.10.4-1.amzn2"
 #amazon-linux-extras install -q docker-${DOCKER_VERSION}* >/dev/null
 yum install -y -q docker-${DOCKER_VERSION}
 
@@ -99,6 +100,7 @@ sudo systemctl start iptables || true
 
 docker --version
 
+#  --experimental=true \
 nohup dockerd --host=unix:///var/run/docker.sock \
   --max-concurrent-downloads=1 \
   --max-concurrent-uploads=1 \
@@ -106,7 +108,7 @@ nohup dockerd --host=unix:///var/run/docker.sock \
   --iptables=false \
   --bridge=none \
   --log-driver=json-file \
-  --storage-driver=devicemapper \
+  --storage-driver=fuse-overlayfs \
 &
 #  --storage-driver=overlay \
 
