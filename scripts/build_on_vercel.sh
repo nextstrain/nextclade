@@ -60,8 +60,8 @@ yum install -y -q \
 
 amazon-linux-extras enable docker
 
-#export DOCKER_VERSION="19.03.6ce-4.amzn2"
-export DOCKER_VERSION="20.10.4-1.amzn2"
+export DOCKER_VERSION="19.03.6ce-4.amzn2"
+#export DOCKER_VERSION="20.10.4-1.amzn2"
 #amazon-linux-extras install -q docker-${DOCKER_VERSION}* >/dev/null
 yum install -y -q docker-${DOCKER_VERSION}
 
@@ -105,9 +105,11 @@ nohup dockerd --host=unix:///var/run/docker.sock \
   --ip-forward=false \
   --iptables=false \
   --bridge=none \
+  --log-driver=json-file \
+  --storage-driver=devicemapper \
 &
-
 #  --storage-driver=overlay \
+
 
 # --iptables=false
 #--host=tcp://127.0.0.1:2375 --storage-driver=devicemapper &
