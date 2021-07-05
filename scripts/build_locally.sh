@@ -38,8 +38,13 @@ export NEXTCLADE_EMSDK_VERSION_DEFAULT=2.0.6
 export NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION:=${NEXTCLADE_EMSDK_VERSION_DEFAULT}}
 export NEXTCLADE_EMSDK_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk-${NEXTCLADE_EMSDK_VERSION}"
 export NEXTCLADE_EMSDK_DIR=${NEXTCLADE_EMSDK_DIR:=${NEXTCLADE_EMSDK_DIR_DEFAULT}}
-export NEXTCLADE_EMSDK_CACHE_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
-export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_DEFAULT}}"
+export NEXTCLADE_EMSDK_USE_CACHE="${NEXTCLADE_EMSDK_USE_CACHE:=1}"
+
+NEXTCLADE_EMSDK_CACHE=""
+if [ "${NEXTCLADE_EMSDK_USE_CACHE}" == "1" ]; then
+  export NEXTCLADE_EMSDK_CACHE_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
+  export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_DEFAULT}}"
+fi
 
 export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
 export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/.ccache}"
@@ -381,10 +386,13 @@ GTPP="${GTPP:=${GTTP_DEFAULT}}"
 # Generate a semicolon-delimited list of arguments for cppcheck
 # (to run during cmake build). The arguments are taken from the file
 # `.cppcheck` in the source root
-CMAKE_CXX_CPPCHECK="cppcheck;--template=gcc"
-while IFS='' read -r flag; do
-  CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
-done<"${THIS_DIR}/../.cppcheck"
+CMAKE_CXX_CPPCHECK=""
+if command -v "cppcheck"; then
+  CMAKE_CXX_CPPCHECK="cppcheck;--template=gcc"
+  while IFS='' read -r flag; do
+    CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
+  done<"${THIS_DIR}/../.cppcheck"
+fi
 
 # Print coloured message
 function print() {
@@ -419,10 +427,11 @@ echo "CMAKE_BUILD_TYPE         = ${CMAKE_BUILD_TYPE:=}"
 echo "CONAN_BUILD_TYPE         = ${CONAN_BUILD_TYPE:=}"
 echo "NEXTALIGN_STATIC_BUILD   = ${NEXTALIGN_STATIC_BUILD:=}"
 echo ""
-echo "NEXTCLADE_BUILD_WASM     = ${NEXTCLADE_BUILD_WASM}"
-echo "NEXTCLADE_EMSDK_VERSION  = ${NEXTCLADE_EMSDK_VERSION}"
-echo "NEXTCLADE_EMSDK_DIR      = ${NEXTCLADE_EMSDK_DIR}"
-echo ""
+echo "NEXTCLADE_BUILD_WASM        = ${NEXTCLADE_BUILD_WASM}"
+echo "NEXTCLADE_EMSDK_VERSION     = ${NEXTCLADE_EMSDK_VERSION}"
+echo "NEXTCLADE_EMSDK_DIR         = ${NEXTCLADE_EMSDK_DIR}"
+echo "NEXTCLADE_EMSDK_USE_CACHE   = ${NEXTCLADE_EMSDK_USE_CACHE}"
+echo "NEXTCLADE_EMSDK_CACHE       = ${NEXTCLADE_EMSDK_CACHE}"
 echo ""
 echo "USE_COLOR                = ${USE_COLOR:=}"
 echo "USE_CLANG                = ${USE_CLANG:=}"
@@ -572,8 +581,12 @@ pushd "${BUILD_DIR}" > /dev/null
 
 popd > /dev/null
 
-print 25 "Run cppcheck";
-. "${THIS_DIR}/cppcheck.sh"
+if command -v "cppcheck"; then
+  print 25 "Run cppcheck";
+  . "${THIS_DIR}/cppcheck.sh"
+else
+  print 25 "Skipping cppcheck: not found";
+fi
 
 
 if [ "${CROSS}" == "1" ]; then
