@@ -375,7 +375,7 @@ GTPP="${GTPP:=${GTTP_DEFAULT}}"
 # (to run during cmake build). The arguments are taken from the file
 # `.cppcheck` in the source root
 CMAKE_CXX_CPPCHECK=""
-if ! command -v "cppcheck"; then
+if command -v "cppcheck"; then
   CMAKE_CXX_CPPCHECK="cppcheck;--template=gcc"
   while IFS='' read -r flag; do
     CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
@@ -569,8 +569,12 @@ pushd "${BUILD_DIR}" > /dev/null
 
 popd > /dev/null
 
-print 25 "Run cppcheck";
-. "${THIS_DIR}/cppcheck.sh"
+if command -v "cppcheck"; then
+  print 25 "Run cppcheck";
+  . "${THIS_DIR}/cppcheck.sh"
+else
+  print 25 "Skipping cppcheck: not found";
+fi
 
 
 if [ "${CROSS}" == "1" ]; then

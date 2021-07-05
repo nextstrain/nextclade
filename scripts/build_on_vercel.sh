@@ -28,9 +28,8 @@ export CACHE_DIR="${PROJECT_ROOT_DIR}/node_modules"
 
 export DEPS_DIR="${PROJECT_ROOT_DIR}/deps"
 
-# Vercel seems to be currently using VMs provisioned with Amazon Linux, which is a derivative of RHEL,
-# so we assume that `yum` package manager and `docker` package are available.
-# If something breaks here, perhaps they've changed things.
+# Vercel seems to be currently using VMs provisioned with Amazon Linux 2, which is a derivative of RHEL 7,
+# If something breaks, perhaps they've changed things.
 cat /etc/os-release
 cat /etc/image-id
 cat /etc/system-release
@@ -45,9 +44,11 @@ printf "[main]\nenabled=0\n" > "/etc/yum/pluginconf.d/fastestmirror.conf"
 rm /lib64/libvips-cpp.so.42
 rm /lib64/libvips.so.42
 
+rm -rf /usr/local/bin/python3.6
+rm -rf /usr/local/lib/python3.6
+
 mkdir -p "${CACHE_DIR}"
 mkdir -p "${DEPS_DIR}"
-
 
 printf "[main]\nenabled=0\n" > "/etc/yum/pluginconf.d/fastestmirror.conf"
 
@@ -65,11 +66,13 @@ yum install -y -q --enablerepo=ius \
   python36u python36u-libs python36u-devel python36u-pip \
   xz
 
-
 alternatives --install /usr/bin/python python /usr/bin/python3.6 60 || true
 alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 60 || true
 alternatives --install /usr/local/bin/python3 python3 /usr/bin/python3.6 60 || true
 alternatives --install /usr/bin/python3.6 python3.6 /usr/bin/python3.6 60 || true
+
+ln -s /usr/bin/python3.6 /usr/local/bin/python3.6 || true
+ln -s /usr/lib/python3.6 /usr/local/lib/python3.6 || true
 
 which "python"
 python -c "import sqlite3; print(sqlite3.sqlite_version)" || true
