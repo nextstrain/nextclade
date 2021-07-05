@@ -109,6 +109,7 @@ nohup dockerd --host=unix:///var/run/docker.sock \
   --bridge=none \
   --log-driver=json-file \
   --storage-driver=vfs \
+  --exec-opt native.cgroupdriver=systemd \
 &
 #  --storage-driver=overlay \
 
