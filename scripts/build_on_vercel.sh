@@ -37,6 +37,7 @@ IS_DOCKER="$(is_docker)"
 # Vercel seems to be currently using VMs provisioned with Amazon Linux, which is a derivative of RHEL,
 # so we assume that `yum` package manager and `docker` package are available.
 # If something breaks here, perhaps they've changed things.
+cat /etc/os-release
 
 export PATH="/usr/sbin/:$PATH"
 
@@ -46,15 +47,45 @@ export PATH="/usr/sbin/:$PATH"
 yum update -y -q >/dev/null
 #yum install -y -q yum-utils iptables iptables-services sysctl sudo >/dev/nul
 
-yum list docker --showduplicates | sort -r
+
+#yum list docker --showduplicates | sort -r
 #yum list containerd.io --showduplicates | sort -r
 
-yum install -y -q yum-utils sudo >/dev/nul
-amazon-linux-extras install -q docker >/dev/null
+yum install -y -q \
+  yum-utils \
+  device-mapper-persistent-data \
+  sudo \
+  curl wget unzip awscli aws-cfn-bootstrap nfs-utils chrony conntrack jq ec2-instance-connect socat \
+>/dev/nul
+
+amazon-linux-extras enable docker
+
+export DOCKER_VERSION="19.03.6ce-4.amzn2"
+#amazon-linux-extras install -q docker-${DOCKER_VERSION}* >/dev/null
+yum install -y -q docker-${DOCKER_VERSION}
+
+
+#yum list docker --showduplicates | sort -r || true
+#yum list containerd.io --showduplicates | sort -r || true
+
 #yum install -y -q docker
 usermod -a -G docker $(id -un)
 #sudo service iptables start || true
 #sudo systemctl start iptables || true
+newgrp docker
+
+sudo tee /etc/docker/daemon.json<<EOF
+{
+  "bridge": "none",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "10"
+  },
+  "live-restore": true,
+  "max-concurrent-downloads": 10
+}
+EOF
 
 
 #ip link del docker0 || true
@@ -67,15 +98,16 @@ usermod -a -G docker $(id -un)
 #sysctl net.ipv4.ip_forward=1
 #nohup dockerd --host=unix:///var/run/docker.sock
 
-#
+
 nohup dockerd --host=unix:///var/run/docker.sock \
   --max-concurrent-downloads=1 \
   --max-concurrent-uploads=1 \
   --ip-forward=false \
   --iptables=false \
   --bridge=none \
-  --storage-driver=overlay \
 &
+
+#  --storage-driver=overlay \
 
 # --iptables=false
 #--host=tcp://127.0.0.1:2375 --storage-driver=devicemapper &
