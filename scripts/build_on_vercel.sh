@@ -135,7 +135,14 @@ sudo -E su $USER -c 'docker info'
 
 #sudo docker run --privileged=true --cap-add=SYS_ADMIN hello-world
 
-sudo -E su $USER -c 'docker run --privileged=true --cap-add=SYS_ADMIN hello-world'
+sudo docker pull hello-world:latest
+
+
+#sudo -E su $USER -c 'docker pull hello-world:latest'
+
+#sudo -E su $USER -c 'docker run --privileged=true --cap-add=SYS_ADMIN hello-world:latest'
+
+#sudo -E su $USER -c 'docker run --privileged=true --cap-add=SYS_ADMIN hello-world:latest'
 
 #yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 #yum list docker-ce --showduplicates | sort -r
