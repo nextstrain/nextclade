@@ -45,7 +45,7 @@ export PATH="/usr/sbin/:$PATH"
 #find / -iname "modprobe" 2>/dev/null
 
 yum update -y -q >/dev/null
-#yum install -y -q yum-utils iptables iptables-services sysctl sudo >/dev/nul
+yum install -y -q yum-utils iptables iptables-services sysctl sudo >/dev/nul
 
 
 #yum list docker --showduplicates | sort -r
@@ -60,7 +60,8 @@ yum install -y -q \
 
 amazon-linux-extras enable docker
 
-export DOCKER_VERSION="19.03.6ce-4.amzn2"
+#export DOCKER_VERSION="19.03.6ce-4.amzn2"
+export DOCKER_VERSION="20.10.4-1.amzn2"
 #amazon-linux-extras install -q docker-${DOCKER_VERSION}* >/dev/null
 yum install -y -q docker-${DOCKER_VERSION}
 
@@ -69,21 +70,21 @@ yum install -y -q docker-${DOCKER_VERSION}
 #yum list containerd.io --showduplicates | sort -r || true
 
 #yum install -y -q docker
-#sudo service iptables start || true
-#sudo systemctl start iptables || true
+sudo service iptables start || true
+sudo systemctl start iptables || true
 
-sudo tee /etc/docker/daemon.json<<EOF
-{
-  "bridge": "none",
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "10m",
-    "max-file": "10"
-  },
-  "live-restore": true,
-  "max-concurrent-downloads": 10
-}
-EOF
+#sudo tee /etc/docker/daemon.json<<EOF
+#{
+#  "bridge": "none",
+#  "log-driver": "json-file",
+#  "log-opts": {
+#    "max-size": "10m",
+#    "max-file": "10"
+#  },
+#  "live-restore": true,
+#  "max-concurrent-downloads": 10
+#}
+#EOF
 
 
 #ip link del docker0 || true
@@ -96,6 +97,7 @@ EOF
 #sysctl net.ipv4.ip_forward=1
 #nohup dockerd --host=unix:///var/run/docker.sock
 
+docker --version
 
 nohup dockerd --host=unix:///var/run/docker.sock \
   --max-concurrent-downloads=1 \
@@ -110,21 +112,26 @@ nohup dockerd --host=unix:///var/run/docker.sock \
 # --iptables=false
 #--host=tcp://127.0.0.1:2375 --storage-driver=devicemapper &
 
-#sleep 3
+sleep 5
 #
 #service docker status || true
 #systemctl status docker || true
 #
 #sleep 3
 
+
 USER=$(id -un)
 usermod -a -G docker $USER
 
-docker --version
 
-sudo -E su $USER -c 'docker info'
+sudo docker info
 
-sudo -E su $USER -c 'docker run --privileged=true --cap-add=SYS_ADMIN hello-world'
+#sudo -E su $USER -c 'docker info'
+
+
+sudo docker run --privileged=true --cap-add=SYS_ADMIN hello-world
+
+#sudo -E su $USER -c 'docker run --privileged=true --cap-add=SYS_ADMIN hello-world'
 
 #yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 #yum list docker-ce --showduplicates | sort -r
