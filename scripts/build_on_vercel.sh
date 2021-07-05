@@ -62,6 +62,7 @@ export NEXTCLADE_EMSDK_CACHE="${CACHE_DIR}/emscripten/emsdk_cache-${NEXTCLADE_EM
 export CCACHE_DIR="${CACHE_DIR}/ccache"
 export NEXTCLADE_EMSDK_USE_CACHE="0"
 
+export BASH_DEBUG=1
 make prod-wasm-nowatch
 
 pushd packages/web >/dev/null
