@@ -34,15 +34,11 @@ yum install -y -q \
   xz
 
 mkdir -p "${CACHE_DIR}"
-pushd "${CACHE_DIR}" >/dev/null
-  if [ ! -f "Miniconda3-latest-Linux-x86_64.sh" ]; then
-    curl -fsSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o Miniconda3-latest-Linux-x86_64.sh
-  fi
 
-  if [ ! -d "${CACHE_DIR}/miniconda" ]; then
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p "${CACHE_DIR}/miniconda" >/dev/null
-  fi
-popd
+if [ ! -d "${CACHE_DIR}/miniconda" ]; then
+  curl -fsSL https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -o Miniconda3-latest-Linux-x86_64.sh
+  bash Miniconda3-latest-Linux-x86_64.sh -b -p "${CACHE_DIR}/miniconda" >/dev/null
+fi
 
 export PATH="${CACHE_DIR}/miniconda/bin:${PATH}"
 set +x
