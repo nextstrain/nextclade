@@ -45,6 +45,7 @@ export PATH="/usr/sbin/:$PATH"
 
 yum update -y -q >/dev/null
 #yum install -y -q yum-utils iptables iptables-services sysctl sudo >/dev/nul
+yum install -y -q yum-utils sudo >/dev/nul
 amazon-linux-extras install -q docker >/dev/null
 #yum install -y -q docker
 #usermod -a -G docker ${USER}
@@ -83,7 +84,7 @@ sleep 3
 
 docker --version
 docker info
-docker run hello-world
+sudo docker run --privileged --cap-add=SYS_ADMIN hello-world
 
 #yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 #yum list docker-ce --showduplicates | sort -r
