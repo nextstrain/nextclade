@@ -40,6 +40,7 @@ export NEXTCLADE_EMSDK_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk
 export NEXTCLADE_EMSDK_DIR=${NEXTCLADE_EMSDK_DIR:=${NEXTCLADE_EMSDK_DIR_DEFAULT}}
 export NEXTCLADE_EMSDK_USE_CACHE="${NEXTCLADE_EMSDK_USE_CACHE:=1}"
 
+NEXTCLADE_EMSDK_CACHE=""
 if [ "${NEXTCLADE_EMSDK_USE_CACHE}" == "1" ]; then
   export NEXTCLADE_EMSDK_CACHE_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
   export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_DEFAULT}}"
@@ -373,10 +374,13 @@ GTPP="${GTPP:=${GTTP_DEFAULT}}"
 # Generate a semicolon-delimited list of arguments for cppcheck
 # (to run during cmake build). The arguments are taken from the file
 # `.cppcheck` in the source root
-CMAKE_CXX_CPPCHECK="cppcheck;--template=gcc"
-while IFS='' read -r flag; do
-  CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
-done<"${THIS_DIR}/../.cppcheck"
+CMAKE_CXX_CPPCHECK=""
+if ! command -v "cppcheck"; then
+  CMAKE_CXX_CPPCHECK="cppcheck;--template=gcc"
+  while IFS='' read -r flag; do
+    CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
+  done<"${THIS_DIR}/../.cppcheck"
+fi
 
 # Print coloured message
 function print() {
