@@ -56,10 +56,7 @@ yum install -y -q \
   device-mapper-persistent-data \
   sudo \
   curl wget unzip awscli aws-cfn-bootstrap nfs-utils chrony conntrack jq ec2-instance-connect socat \
-  policycoreutils-python-utils \
 >/dev/nul
-
-semanage permissive -a iptables_t
 
 amazon-linux-extras enable docker
 
@@ -109,10 +106,9 @@ nohup dockerd --host=unix:///var/run/docker.sock \
   --iptables=false \
   --bridge=none \
   --log-driver=json-file \
-  --storage-driver=overlay \
+  --storage-driver=devicemapper \
 &
-
-#  --storage-driver=devicemapper \
+#  --storage-driver=overlay \
 
 
 # --iptables=false
