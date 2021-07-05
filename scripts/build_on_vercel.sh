@@ -70,6 +70,7 @@ nohup dockerd --host=unix:///var/run/docker.sock \
   --ip-forward=false \
   --iptables=false \
   --bridge=none \
+  --storage-driver=overlay \
 &
 
 # --iptables=false
