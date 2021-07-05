@@ -69,10 +69,8 @@ yum install -y -q docker-${DOCKER_VERSION}
 #yum list containerd.io --showduplicates | sort -r || true
 
 #yum install -y -q docker
-usermod -a -G docker $(id -un)
 #sudo service iptables start || true
 #sudo systemctl start iptables || true
-newgrp docker
 
 sudo tee /etc/docker/daemon.json<<EOF
 {
@@ -112,16 +110,21 @@ nohup dockerd --host=unix:///var/run/docker.sock \
 # --iptables=false
 #--host=tcp://127.0.0.1:2375 --storage-driver=devicemapper &
 
-sleep 3
+#sleep 3
+#
+#service docker status || true
+#systemctl status docker || true
+#
+#sleep 3
 
-service docker status || true
-systemctl status docker || true
-
-sleep 3
+USER=$(id -un)
+usermod -a -G docker $USER
 
 docker --version
-docker info
-sudo docker run --privileged=true --cap-add=SYS_ADMIN hello-world
+
+sudo -E su $USER -c 'docker info'
+
+sudo -E su $USER -c 'docker run --privileged=true --cap-add=SYS_ADMIN hello-world'
 
 #yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 #yum list docker-ce --showduplicates | sort -r
