@@ -108,7 +108,7 @@ nohup dockerd --host=unix:///var/run/docker.sock \
   --iptables=false \
   --bridge=none \
   --log-driver=json-file \
-  --storage-driver=fuse-overlayfs \
+  --storage-driver=vfs \
 &
 #  --storage-driver=overlay \
 
