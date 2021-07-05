@@ -1,5 +1,7 @@
 #include "alignPairwise.h"
 
+#include <fmt/format.h>
+
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -95,6 +97,66 @@ std::vector<int> getMapToGoodPositions(const Sequence<Letter>& query, int seedLe
   return mapToGoodPositions;
 }
 
+struct SeedParams {
+  int nSeeds;
+  int margin;
+  int meanShift;
+  int bandWidth;
+};
+
+
+template<typename Letter>
+inline SeedParams getSeedParams(int querySize, int refSize, const NextalignSeedOptions& options);
+
+
+template<>
+inline SeedParams getSeedParams<Nucleotide>(int querySize, int refSize, const NextalignSeedOptions& options) {
+  // clang-format off
+  const int nSeeds = refSize > options.minSeeds * options.seedSpacing ? refSize / options.seedSpacing : options.minSeeds;
+  // clang-format on
+
+  const int margin = details::round(refSize / (nSeeds * 3.0));
+  const int bandWidth = details::round((refSize + querySize) * 0.5) - 3;
+  const int meanShift = details::round((refSize - querySize) * 0.5);
+
+  fmt::print("Nuc nSeeds   : {}\n", nSeeds);
+  fmt::print("Nuc margin   : {}\n", margin);
+  fmt::print("Nuc bandWidth: {}\n", bandWidth);
+  fmt::print("Nuc meanShift: {}\n", meanShift);
+  fmt::print("\n");
+
+  return SeedParams{
+    .nSeeds = nSeeds,
+    .margin = margin,
+    .meanShift = meanShift,
+    .bandWidth = bandWidth,
+  };
+}
+
+template<>
+inline SeedParams getSeedParams<Aminoacid>(int querySize, int refSize, const NextalignSeedOptions& options) {
+  // clang-format off
+  const int nSeeds = refSize > options.minSeeds * options.seedSpacing ? refSize / options.seedSpacing : options.minSeeds;
+  // clang-format on
+
+  const int margin = details::round(refSize / (nSeeds * 3.0));
+  const int bandWidth = details::round((refSize + querySize) * 0.5) - 3;
+  const int meanShift = details::round((refSize - querySize) * 0.5);
+
+  fmt::print("AA  nSeeds   : {}\n", nSeeds);
+  fmt::print("AA  margin   : {}\n", margin);
+  fmt::print("AA  bandWidth: {}\n", bandWidth);
+  fmt::print("AA  meanShift: {}\n", meanShift);
+  fmt::print("\n");
+
+  return SeedParams{
+    .nSeeds = nSeeds,
+    .margin = margin,
+    .meanShift = meanShift,
+    .bandWidth = bandWidth,
+  };
+}
+
 
 template<typename Letter>
 SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<Letter>& ref,
@@ -102,21 +164,18 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
   const int querySize = safe_cast<int>(query.size());
   const int refSize = safe_cast<int>(ref.size());
 
-  // clang-format off
-  const int nSeeds = refSize > options.minSeeds * options.seedSpacing ? refSize / options.seedSpacing : options.minSeeds;
-  const int margin = details::round(refSize / (nSeeds * 3.0));
-  const int bandWidth = details::round((refSize + querySize) * 0.5) - 3;
-  // clang-format on
+  const SeedParams seedParams = getSeedParams<Letter>(querySize, refSize, options);
+  const auto nSeeds = seedParams.nSeeds;
+  const auto margin = seedParams.margin;
+  const auto bandWidth = seedParams.bandWidth;
+  const auto meanShift = seedParams.meanShift;
 
   int start_pos = 0;
-  if (bandWidth < 2 * options.seedLength) {
+  if (seedParams.bandWidth < 2 * options.seedLength) {
     return SeedAlignmentStatus{
       .status = Status::Success,
       .error = {},
-      .result = std::make_optional<SeedAlignment>({
-        .meanShift = details::round((refSize - querySize) * 0.5),// NOLINT: cppcoreguidelines-avoid-magic-numbers
-        .bandWidth = bandWidth                                   //
-      }),
+      .result = std::make_optional<SeedAlignment>({.meanShift = meanShift, .bandWidth = bandWidth}),
     };
   }
 
@@ -178,12 +237,12 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
     }
   }
 
-  const int meanShift = details::round(0.5 * (minShift + maxShift));
+  const int meanShiftFinal = details::round(0.5 * (minShift + maxShift));
   const int bandWidthFinal = maxShift - minShift + 9;
   return SeedAlignmentStatus{
     .status = Status::Success,
     .error = {},
-    .result = std::make_optional<SeedAlignment>({.meanShift = meanShift, .bandWidth = bandWidthFinal}),
+    .result = std::make_optional<SeedAlignment>({.meanShift = meanShiftFinal, .bandWidth = bandWidthFinal}),
   };
 }
 

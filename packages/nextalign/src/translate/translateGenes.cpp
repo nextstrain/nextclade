@@ -82,6 +82,7 @@ PeptidesInternal translateGenes(         //
 
     auto refPeptide = translate(*extractRefGeneStatus.result);
     const auto queryPeptide = translate(*extractQueryGeneStatus.result);
+    fmt::print("Aligning gene: {}\n", geneName);
     const auto geneAlignmentStatus =
       alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
 
