@@ -1,13 +1,20 @@
+#include <Poco/URI.h>
 #include <cpr/cpr.h>
+#include <frozen/string.h>
 #include <nextclade_common/datasets.h>
 #include <nextclade_common/fetch.h>
 #include <nextclade_json/nextclade_json.h>
 
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/trim.hpp>
 #include <nlohmann/json.hpp>
 #include <semver.hpp>
 #include <string>
 
 namespace Nextclade {
+
+  constexpr const frozen::string DATA_FULL_DOMAIN = "https://d2y3t6seg8c135.cloudfront.net";
+  // constexpr const frozen::string DATA_FULL_DOMAIN = "http://localhost:27722";
 
   namespace {
     using json = nlohmann::ordered_json;
@@ -33,14 +40,22 @@ namespace Nextclade {
       };
     }
 
+
+    std::string toAbsoluteUrl(const std::string& url, const std::string& fullDomain) {
+      if (!Poco::URI(url).isRelative()) {
+        return url;
+      }
+      return Poco::URI(Poco::URI(fullDomain), url).toString();
+    }
+
     DatasetFiles parseDatasetFiles(const json& j) {
       return DatasetFiles{
-        .geneMap = at(j, "geneMap"),
-        .primers = at(j, "primers"),
-        .qc = at(j, "qc"),
-        .reference = at(j, "reference"),
-        .sequences = at(j, "sequences"),
-        .tree = at(j, "tree"),
+        .geneMap = toAbsoluteUrl(at(j, "geneMap"), DATA_FULL_DOMAIN.data()),
+        .primers = toAbsoluteUrl(at(j, "primers"), DATA_FULL_DOMAIN.data()),
+        .qc = toAbsoluteUrl(at(j, "qc"), DATA_FULL_DOMAIN.data()),
+        .reference = toAbsoluteUrl(at(j, "reference"), DATA_FULL_DOMAIN.data()),
+        .sequences = toAbsoluteUrl(at(j, "sequences"), DATA_FULL_DOMAIN.data()),
+        .tree = toAbsoluteUrl(at(j, "tree"), DATA_FULL_DOMAIN.data()),
       };
     }
 
@@ -80,10 +95,8 @@ namespace Nextclade {
 
   }//namespace
 
-
   DatasetsJson fetchDatasetsJson() {
-    const std::string url = "https://d2y3t6seg8c135.cloudfront.net/_generated/datasets.json";
-    //  const std::string url = "http://localhost:27722/_generated/datasets.json";
+    const std::string url = toAbsoluteUrl("/_generated/datasets.json", DATA_FULL_DOMAIN.data());
     const auto& datasetsJsonStr = fetch(url);
     return parseDatasetsJson(datasetsJsonStr);
   }

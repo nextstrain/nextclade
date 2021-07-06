@@ -13,6 +13,7 @@ libcurl/7.69.1
 ms-gsl/3.1.0
 neargye-semver/0.3.0
 openssl/1.1.1k
+poco/1.11.0
 tbb/2021.2.0-rc@local/stable
 zlib/1.2.11
 

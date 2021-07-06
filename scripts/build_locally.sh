@@ -308,6 +308,31 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
     -o openssl:shared=False \
     -o tbb:shared=False \
     -o zlib:shared=False \
+    -o poco:shared=False \
+    -o poco:enable_apacheconnector=False \
+    -o poco:enable_cppparser=False \
+    -o poco:enable_crypto=True \
+    -o poco:enable_data=True \
+    -o poco:enable_data_mysql=False \
+    -o poco:enable_data_odbc=False \
+    -o poco:enable_data_postgresql=False \
+    -o poco:enable_data_sqlite=False \
+    -o poco:enable_encodings=False \
+    -o poco:enable_json=False \
+    -o poco:enable_jwt=False \
+    -o poco:enable_mongodb=False \
+    -o poco:enable_net=True \
+    -o poco:enable_netssl=True \
+    -o poco:enable_pdf=False \
+    -o poco:enable_pagecompiler=False \
+    -o poco:enable_pagecompiler_file2page=False \
+    -o poco:enable_pocodoc=False \
+    -o poco:enable_redis=False \
+    -o poco:enable_sevenzip=False \
+    -o poco:enable_util=True \
+    -o poco:enable_xml=True \
+    -o poco:enable_zip=False \
+    -o poco:enable_active_record=True \
   "
 #     -o cpr:fPIC=False \
 #    -o libcurl:fPIC=False \
@@ -478,7 +503,7 @@ fi
 # Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
+#conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
 
 # At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
 # This will build a local conan package and put it into local conan cache, if not present yet.

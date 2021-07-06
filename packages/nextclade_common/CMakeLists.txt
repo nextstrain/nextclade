@@ -21,6 +21,7 @@ find_package(OpenSSL REQUIRED)
 find_package(ZLIB 1.2.11 REQUIRED)
 find_package(c-ares 1.17.1 REQUIRED)
 find_package(cpr 1.6.2 REQUIRED)
+find_package(Poco 1.11.0 REQUIRED)
 
 set(SOURCE_FILES
   include/nextclade_common/datasets.h
@@ -84,4 +85,5 @@ target_link_libraries(${PROJECT_NAME}
   ZLIB::ZLIB
   cpr::cpr
   c-ares::c-ares
+  Poco::Poco
   )
