@@ -1,7 +1,7 @@
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
-#include <nextclade_common/fetch.h>
+#include <nextclade_common/datasets.h>
 #include <tbb/concurrent_vector.h>
 #include <tbb/global_control.h>
 #include <tbb/parallel_pipeline.h>
@@ -964,18 +964,61 @@ std::unique_ptr<std::ostream> openOutputFileMaybe(const std::optional<std::strin
   return stream;
 }
 
+std::string formatVersionCompatibility(const Nextclade::DatasetCompatibilityRange &compat) {
+  if (!compat.min && compat.max) {
+    return fmt::format("up to {:}", *compat.max);
+  }
+
+  if (compat.min && !compat.max) {
+    return fmt::format("from {:}", *compat.min);
+  }
+
+  if (compat.min && compat.max) {
+    return fmt::format("from {:} to {:}", *compat.min, *compat.max);
+  }
+
+  return "unknown";
+}
+
+std::string formatDatasets(const std::vector<Nextclade::Dataset> &datasets) {
+  fmt::memory_buffer buf;
+  for (const auto &dataset : datasets) {
+    fmt::format_to(buf, "{:s} (id: {:s})\n", dataset.nameFriendly, dataset.name);
+    fmt::format_to(buf, "{:s}\n", dataset.description);
+    fmt::format_to(buf, "Versions ({:d}):\n\n", dataset.versions.size());
+    for (const auto &version : dataset.versions) {
+      fmt::format_to(buf, "  Datetime              : {:s}\n", version.datetime);
+      fmt::format_to(buf, "  Comment               : {:s}\n", version.comment);
+      fmt::format_to(buf, "  Nextclade CLI compat. : {:s}\n",
+        formatVersionCompatibility(version.compatibility.nextcladeCli));
+      fmt::format_to(buf, "  Nextclade Web compat. : {:s}\n",
+        formatVersionCompatibility(version.compatibility.nextcladeWeb));
+      fmt::format_to(buf, "\n");
+    }
+    fmt::format_to(buf, "\n");
+  }
+  return fmt::to_string(buf);
+}
+
 int main(int argc, char *argv[]) {
   Logger logger{Logger::Options{.linePrefix = "Nextclade", .verbosity = Logger::Verbosity::warn}};
 
-  //  //  const std::string url = "https://d2y3t6seg8c135.cloudfront.net/_generated/datasets.json";
-  //  const std::string url = "http://localhost:27722/_generated/datasets.json";
-  //  const auto res = fetch(url);
-  //  fmt::print("{:s}\n", res);
-
   const auto datasetsJson = Nextclade::fetchDatasetsJson();
-  const auto datasets = Nextclade::getLatestCompatibleDatasets(datasetsJson.datasets, Nextclade::getVersion());
 
-  fmt::print("{:s}\n", datasetsJson.settings.defaultDatasetNameFriendly);
+  const std::string thisVersion = Nextclade::getVersion();
+
+  fmt::print("All datasets:\n\n");
+  fmt::print("{:s}\n", formatDatasets(datasetsJson.datasets));
+
+  fmt::print("Latest datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
+  fmt::print("{:s}\n", formatDatasets(Nextclade::getLatestCompatibleDatasets(datasetsJson.datasets, thisVersion)));
+
+  fmt::print("Latest datasets:\n\n");
+  fmt::print("{:s}\n", formatDatasets(Nextclade::getLatestDatasets(datasetsJson.datasets)));
+
+  fmt::print("Datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
+  fmt::print("{:s}\n", formatDatasets(Nextclade::getCompatibleDatasets(datasetsJson.datasets, thisVersion)));
+
   fflush(stdout);
 
   std::exit(0);

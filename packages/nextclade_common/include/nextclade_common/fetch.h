@@ -5,62 +5,26 @@
 #include <string>
 #include <vector>
 
+namespace cpr {
+  struct Response;
+}// namespace cpr
+
 namespace Nextclade {
-
-  struct DatasetsSettings {
-    std::string defaultDatasetName;
-    std::string defaultDatasetNameFriendly;
+  class ErrorHttp : public std::runtime_error {
+  public:
+    explicit ErrorHttp(const std::string& message) : std::runtime_error(message) {}
   };
 
-  struct DatasetFiles {
-    std::string geneMap;
-    std::string primers;
-    std::string qc;
-    std::string reference;
-    std::string sequences;
-    std::string tree;
+  class ErrorHttpConnectionFailed : public ErrorHttp {
+  public:
+    ErrorHttpConnectionFailed(const std::string& url, const cpr::Response& response);
   };
 
-  struct DatasetCompatibilityRange {
-    std::optional<std::string> min;
-    std::optional<std::string> max;
+  class ErrorHttpRequestFailed : public ErrorHttp {
+  public:
+    explicit ErrorHttpRequestFailed(const std::string& url, const cpr::Response& response);
   };
 
-  struct DatasetCompatibility {
-    DatasetCompatibilityRange nextcladeCli;
-    DatasetCompatibilityRange nextcladeWeb;
-  };
-
-  struct DatasetVersion {
-    std::string datetime;
-    std::string comment;
-    DatasetCompatibility compatibility;
-    DatasetFiles files;
-  };
-
-  struct Dataset {
-    std::string name;
-    std::string nameFriendly;
-    std::string description;
-    std::vector<DatasetVersion> versions;
-  };
-
-  struct DatasetsJson {
-    DatasetsSettings settings;
-    std::vector<Dataset> datasets;
-  };
-
-  struct DatasetFlat {};
 
   std::string fetch(const std::string& url);
-
-  DatasetsJson fetchDatasetsJson();
-
-  std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion);
-
-  std::vector<Dataset> getLatestDatasets(const std::vector<Dataset>& datasets);
-
-  std::vector<Dataset> getLatestCompatibleDatasets(const std::vector<Dataset>& datasets,
-    const std::string& thisVersion);
-
 }// namespace Nextclade

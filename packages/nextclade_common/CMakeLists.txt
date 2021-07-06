@@ -23,7 +23,9 @@ find_package(c-ares 1.17.1 REQUIRED)
 find_package(cpr 1.6.2 REQUIRED)
 
 set(SOURCE_FILES
+  include/nextclade_common/datasets.h
   include/nextclade_common/fetch.h
+  src/datasets.cpp
   src/fetch.cpp
 
   src/_libc_workarounds.cpp

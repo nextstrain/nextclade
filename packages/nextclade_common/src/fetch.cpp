@@ -1,164 +1,79 @@
 #include <cpr/cpr.h>
+#include <fmt/format.h>
+#include <frozen/string.h>
 #include <nextclade_common/fetch.h>
-#include <nextclade_json/nextclade_json.h>
 
-#include <nlohmann/json.hpp>
-#include <semver.hpp>
 #include <string>
 
 namespace Nextclade {
+  constexpr frozen::string DEFAULT_CONNECTION_ERROR_MESSAGE =
+    "Please verify the correctness of the address, check your internet connection and try again later.";
 
-  namespace {
-    using json = nlohmann::ordered_json;
+  constexpr frozen::string DEFAULT_REQUEST_ERROR_MESSAGE =
+    "Please verify the correctness of the address, check your internet connection and try again later. "
+    "Make sure that you have a permission to access the requested resource and that CORS is enabled on the server.";
 
-    DatasetsSettings parseDatasetSettings(const json& j) {
-      return DatasetsSettings{
-        .defaultDatasetName = at(j, "defaultDatasetName"),
-        .defaultDatasetNameFriendly = at(j, "defaultDatasetNameFriendly"),
-      };
+  std::string getCprErrorMessage(const cpr::Response& response) {
+    if (response.error.message.empty()) {
+      return DEFAULT_CONNECTION_ERROR_MESSAGE.data();
     }
+    return response.error.message;
+  }
 
-    DatasetCompatibilityRange parseCompatibilityRange(const json& j) {
-      return DatasetCompatibilityRange{
-        .min = parseOptionalString(j, "min"),
-        .max = parseOptionalString(j, "max"),
-      };
+  std::string getCprErrorString(const cpr::Response& response) {
+    // clang-format off
+    switch (response.error.code) {
+      case cpr::ErrorCode::OK: return "OK";
+      case cpr::ErrorCode::CONNECTION_FAILURE: return "CONNECTION_FAILURE";
+      case cpr::ErrorCode::EMPTY_RESPONSE: return "EMPTY_RESPONSE";
+      case cpr::ErrorCode::HOST_RESOLUTION_FAILURE: return "HOST_RESOLUTION_FAILURE";
+      case cpr::ErrorCode::INTERNAL_ERROR: return "INTERNAL_ERROR";
+      case cpr::ErrorCode::INVALID_URL_FORMAT: return "INVALID_URL_FORMAT";
+      case cpr::ErrorCode::NETWORK_RECEIVE_ERROR: return "NETWORK_RECEIVE_ERROR";
+      case cpr::ErrorCode::NETWORK_SEND_FAILURE: return "NETWORK_SEND_FAILURE";
+      case cpr::ErrorCode::OPERATION_TIMEDOUT: return "OPERATION_TIMEDOUT";
+      case cpr::ErrorCode::PROXY_RESOLUTION_FAILURE: return "PROXY_RESOLUTION_FAILURE";
+      case cpr::ErrorCode::SSL_CONNECT_ERROR: return "SSL_CONNECT_ERROR";
+      case cpr::ErrorCode::SSL_LOCAL_CERTIFICATE_ERROR: return "SSL_LOCAL_CERTIFICATE_ERROR";
+      case cpr::ErrorCode::SSL_REMOTE_CERTIFICATE_ERROR: return "SSL_REMOTE_CERTIFICATE_ERROR";
+      case cpr::ErrorCode::SSL_CACERT_ERROR: return "SSL_CACERT_ERROR";
+      case cpr::ErrorCode::GENERIC_SSL_ERROR: return "GENERIC_SSL_ERROR";
+      case cpr::ErrorCode::UNSUPPORTED_PROTOCOL: return "UNSUPPORTED_PROTOCOL";
+      case cpr::ErrorCode::REQUEST_CANCELLED: return "REQUEST_CANCELLED";
+      case cpr::ErrorCode::UNKNOWN_ERROR: return "UNKNOWN_ERROR";
+      default: break;
     }
+    // clang-format on
+    return "UNKNOWN_ERROR";
+  }
 
-    DatasetCompatibility parseDatasetCompatibility(const json& j) {
-      return DatasetCompatibility{
-        .nextcladeCli = parseCompatibilityRange(at(j, "nextcladeCli")),
-        .nextcladeWeb = parseCompatibilityRange(at(j, "nextcladeWeb")),
-      };
-    }
 
-    DatasetFiles parseDatasetFiles(const json& j) {
-      return DatasetFiles{
-        .geneMap = at(j, "geneMap"),
-        .primers = at(j, "primers"),
-        .qc = at(j, "qc"),
-        .reference = at(j, "reference"),
-        .sequences = at(j, "sequences"),
-        .tree = at(j, "tree"),
-      };
-    }
+  ErrorHttpConnectionFailed::ErrorHttpConnectionFailed(const std::string& url, const cpr::Response& response)
+      : ErrorHttp(fmt::format("When fetching a file \"{:}\": received an error: {:} (error code: {:}): {:}",//
+          url, getCprErrorString(response), response.error.code, getCprErrorMessage(response))) {}
 
-    DatasetVersion parseVersion(const json& j) {
-      return DatasetVersion{
-        .datetime = at(j, "datetime"),
-        .comment = at(j, "comment"),
-        .compatibility = parseDatasetCompatibility(at(j, "compatibility")),
-        .files = parseDatasetFiles(at(j, "files")),
-      };
-    }
-
-    Dataset parseDataset(const json& j) {
-      return Dataset{
-        .name = at(j, "name"),
-        .nameFriendly = at(j, "nameFriendly"),
-        .description = at(j, "description"),
-        .versions = parseArray<DatasetVersion>(j, "versions", parseVersion),
-      };
-    }
-
-    DatasetsJson parseDatasetsJson(const std::string& datasetsJsonStr) {
-      const auto j = json::parse(datasetsJsonStr);
-
-      return DatasetsJson{
-        .settings = parseDatasetSettings(at(j, "settings")),
-        .datasets = parseArray<Dataset>(j, "datasets", parseDataset),
-      };
-    }
-
-    bool isDatasetVersionCompatible(const DatasetVersion& version, const std::string& thisVersionStr) {
-      const auto thisVersion = semver::from_string(thisVersionStr);
-      const auto min = semver::from_string(version.compatibility.nextcladeCli.min.value_or(thisVersionStr));
-      const auto max = semver::from_string(version.compatibility.nextcladeCli.max.value_or(thisVersionStr));
-      return (thisVersion > min && thisVersion < max);
-    }
-
-  }//namespace
-
+  ErrorHttpRequestFailed::ErrorHttpRequestFailed(const std::string& url, const cpr::Response& response)
+      : ErrorHttp(fmt::format("When fetching a file \"{:}\": received an error: {:} (status code: {:}): {:}",//
+          url, response.reason, response.status_code, DEFAULT_REQUEST_ERROR_MESSAGE.data())) {}
 
   std::string fetch(const std::string& url) {
-    //    cpr::SslOptions sslOpts = cpr::Ssl(cpr::ssl::TLSv1_3{});
-    auto response = cpr::Get(cpr::Url{url});
 
-    fmt::print("response.error.code:    {:d}\n", response.error.code);
-    fmt::print("response.error.message: {:s}\n", response.error.message);
-    fmt::print("response.reason:        {:s}\n", response.reason);
-    fmt::print("response.status_code:   {:d}\n", response.status_code);
-    fmt::print("response.status_line:   {:s}\n", response.status_line);
-    //  fmt::format("response.text:          {:s}\n", response.text.c_str());
-    //  fflush(stdout);
+    auto session = cpr::Session();
+    session.SetUrl(cpr::Url{url});
+    session.SetSslOptions(cpr::Ssl(cpr::ssl::TLSv1_3{}));
+    session.SetRedirect(true);
+    session.SetMaxRedirects(cpr::MaxRedirects{10});
 
+    auto response = session.Get();
+
+    if (response.error.code != cpr::ErrorCode::OK) {
+      throw ErrorHttpConnectionFailed(url, response);
+    }
+
+    if (response.status_code != cpr::status::HTTP_OK) {
+      throw ErrorHttpRequestFailed(url, response);
+    }
 
     return response.text;
   }
-
-
-  DatasetsJson fetchDatasetsJson() {
-    const std::string url = "https://d2y3t6seg8c135.cloudfront.net/_generated/datasets.json";
-    //  const std::string url = "http://localhost:27722/_generated/datasets.json";
-    const auto& datasetsJsonStr = fetch(url);
-    std::exit(0);
-    return parseDatasetsJson(datasetsJsonStr);
-  }
-
-  std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion) {
-    std::vector<Dataset> datasetsCompatible;
-    for (const auto& dataset : datasets) {
-
-      // Find compatible versions
-      std::vector<DatasetVersion> versionsCompatible;
-      for (const auto& version : dataset.versions) {
-        if (isDatasetVersionCompatible(version, thisVersion)) {
-          versionsCompatible.push_back(version);
-        }
-      }
-
-      auto datasetCompatible = Dataset{dataset};
-      datasetCompatible.versions = {std::move(versionsCompatible)};
-
-      // Dataset is compatible if there is at least one compatible version
-      if (!datasetCompatible.versions.empty()) {
-        datasetsCompatible.push_back(datasetCompatible);
-      }
-    }
-
-    return datasetsCompatible;
-  }
-
-  std::vector<Dataset> getLatestDatasets(const std::vector<Dataset>& datasets) {
-    std::vector<Dataset> datasetsLatest;
-    for (const auto& dataset : datasets) {
-      if (dataset.versions.empty()) {
-        continue;
-      }
-
-      // Find latest version
-      auto latestVersion = dataset.versions[0];
-      for (const auto& version : dataset.versions) {
-        if (version.datetime > latestVersion.datetime) {
-          latestVersion = version;
-        }
-      }
-
-      auto datasetLatest = Dataset{dataset};
-      datasetLatest.versions = {std::move(latestVersion)};
-
-      // Dataset is compatible if there is at least one compatible version
-      if (!dataset.versions.empty()) {
-        datasetsLatest.push_back(datasetLatest);
-      }
-    }
-
-    return datasetsLatest;
-  }
-
-  std::vector<Dataset> getLatestCompatibleDatasets(const std::vector<Dataset>& datasets,
-    const std::string& thisVersion) {
-    return getLatestDatasets(getCompatibleDatasets(datasets, thisVersion));
-  }
-
 }// namespace Nextclade
