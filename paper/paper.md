@@ -9,6 +9,10 @@ authors:
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
   - name: Emma B. Hodcroft
     affiliation: "2, 3"
+  - name: Cornelius Roemer
+    affiliation: "1"
+  - name: John Huddleston
+    affiliation: "4"
   - name: James Hadfield
     affiliation: "4"
   - name: Trevor Bedford
