@@ -995,6 +995,12 @@ std::string formatDatasets(const std::vector<Nextclade::Dataset> &datasets) {
       fmt::format_to(buf, "  Nextclade Web compat. : {:s}\n",
         formatVersionCompatibility(version.compatibility.nextcladeWeb));
 
+      fmt::format_to(buf, "\n");
+
+      fmt::format_to(buf, "  Zip bundle            : {:s}\n", version.zipBundle);
+
+      fmt::format_to(buf, "\n");
+
       fmt::format_to(buf, "  Files:\n");
       fmt::format_to(buf, "    Reference sequence  : {:s}\n", version.files.reference);
       fmt::format_to(buf, "    Reference tree      : {:s}\n", version.files.tree);

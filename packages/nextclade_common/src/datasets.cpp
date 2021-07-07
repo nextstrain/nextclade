@@ -65,6 +65,7 @@ namespace Nextclade {
         .comment = at(j, "comment"),
         .compatibility = parseDatasetCompatibility(at(j, "compatibility")),
         .files = parseDatasetFiles(at(j, "files")),
+        .zipBundle =  toAbsoluteUrl(at(j, "zipBundle"), DATA_FULL_DOMAIN.data()),
       };
     }
 

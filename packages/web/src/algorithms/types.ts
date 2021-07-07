@@ -319,6 +319,7 @@ export interface DatasetVersion {
     }
   }
   files: DatasetFiles
+  zipBundle: string
 }
 
 export interface Dataset {

@@ -65,7 +65,11 @@ export interface DatasetFileProps {
 }
 
 export function DatasetFile({ file }: DatasetFileProps) {
-  return <LinkExternal href={`${DATA_FULL_DOMAIN}/${file}`}>{last(file.split('/'))}</LinkExternal>
+  return (
+    <LinkExternal download href={urljoin(DATA_FULL_DOMAIN, file)}>
+      {last(file.split('/'))}
+    </LinkExternal>
+  )
 }
 
 export interface DatasetFilesProps {
@@ -108,6 +112,13 @@ export function DatasetVersionView({ version }: DatasetVersionProps) {
       <td>
         <DatasetFilesView files={version.files} />
       </td>
+      <td>
+        {
+          <LinkExternal download href={urljoin(DATA_FULL_DOMAIN, version.zipBundle)}>
+            {last(version.zipBundle.split('/'))}
+          </LinkExternal>
+        }
+      </td>
     </tr>
   )
 }
@@ -140,6 +151,7 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
               <th>{t('Compat. Web version')}</th>
               <th>{t('Compatible')}</th>
               <th>{t('Files')}</th>
+              <th>{t('Zip bundle')}</th>
             </tr>
           </thead>
           <tbody>

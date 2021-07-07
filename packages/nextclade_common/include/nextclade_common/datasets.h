@@ -36,6 +36,7 @@ namespace Nextclade {
     std::string comment;
     DatasetCompatibility compatibility;
     DatasetFiles files;
+    std::string zipBundle;
   };
 
   struct Dataset {
