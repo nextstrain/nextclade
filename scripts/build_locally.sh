@@ -15,7 +15,7 @@ trap "exit" INT
 THIS_DIR=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
 
 # Where the source code is
-PROJECT_ROOT_DIR="$(realpath ${THIS_DIR}/..)"
+PROJECT_ROOT_DIR="$(realpath --logical --no-symlinks ${THIS_DIR}/..)"
 
 source "${THIS_DIR}/lib/set_locales.sh"
 source "${THIS_DIR}/lib/is_ci.sh"
