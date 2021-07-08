@@ -62,4 +62,8 @@ namespace Nextclade {
   std::vector<Dataset> getLatestCompatibleDatasets(const std::vector<Dataset>& datasets,
     const std::string& thisVersion);
 
+  std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat);
+
+  std::string formatDatasets(const std::vector<Dataset>& datasets);
+
 }// namespace Nextclade

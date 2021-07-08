@@ -531,6 +531,22 @@ pushd "${BUILD_DIR}" > /dev/null
     ${CONAN_STATIC_BUILD_FLAGS} \
     --build missing \
 
+  print 57 "Generate source files";
+  python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
+      --input_json=${PROJECT_ROOT_DIR}/packages/nextclade_cli/cli.json \
+      --output_cpp=${PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/cli.cpp \
+      --output_h=${PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/cli.h \
+
+  find "${PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -exec clang-format -style=file -i {} \;
+
+#  python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
+#      --input_json=${PROJECT_ROOT_DIR}/packages/nextalign_cli/cli.json \
+#      --output_cpp=${PROJECT_ROOT_DIR}/packages/nextalign_cli/src/generated/cli.cpp \
+#      --output_h=${PROJECT_ROOT_DIR}/packages/nextalign_cli/src/generated/cli.h \
+#
+#   find "${PROJECT_ROOT_DIR}/packages/nextalign_cli/src/generated/" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -exec clang-format -style=file -i {} \;
+
+
   print 92 "Generate build files";
   ${CLANG_ANALYZER} ${EMCMAKE} cmake "${PROJECT_ROOT_DIR}" \
     -DCMAKE_MODULE_PATH="${BUILD_DIR}" \

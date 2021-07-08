@@ -4,11 +4,14 @@
 #include <frozen/string.h>// NOLINT(modernize-deprecated-headers) // false positive
 
 #include <array>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/join.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <utility>
 
 class ErrorVerbosityLevelInvalid : public ErrorFatal {
 public:
-  explicit ErrorVerbosityLevelInvalid(const std::string& verb);
+  inline explicit ErrorVerbosityLevelInvalid(const std::string& verb);
 };
 
 
@@ -88,9 +91,9 @@ private:
 
 
 public:
-  Logger() = default;
+  inline Logger() = default;
 
-  explicit Logger(Options loggerOptions) : options(std::move(loggerOptions)) {}
+  inline explicit Logger(Options loggerOptions) : options(std::move(loggerOptions)) {}
 
   inline Verbosity getVerbosity() const {
     return options.verbosity;
@@ -129,6 +132,6 @@ public:
   }
 };
 
-ErrorVerbosityLevelInvalid::ErrorVerbosityLevelInvalid(const std::string& verb)
+inline ErrorVerbosityLevelInvalid::ErrorVerbosityLevelInvalid(const std::string& verb)
     : ErrorFatal(fmt::format("Verbosity level is invalid: \"{:s}\". Possible verbosity levels are: {}", verb,
         Logger::getVerbosityLevels())) {}

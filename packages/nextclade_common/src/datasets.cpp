@@ -1,5 +1,6 @@
 #include <Poco/URI.h>
 #include <cpr/cpr.h>
+#include <fmt/format.h>
 #include <frozen/string.h>
 #include <nextclade_common/datasets.h>
 #include <nextclade_common/fetch.h>
@@ -65,7 +66,7 @@ namespace Nextclade {
         .comment = at(j, "comment"),
         .compatibility = parseDatasetCompatibility(at(j, "compatibility")),
         .files = parseDatasetFiles(at(j, "files")),
-        .zipBundle =  toAbsoluteUrl(at(j, "zipBundle"), DATA_FULL_DOMAIN.data()),
+        .zipBundle = toAbsoluteUrl(at(j, "zipBundle"), DATA_FULL_DOMAIN.data()),
       };
     }
 
@@ -156,6 +157,59 @@ namespace Nextclade {
   std::vector<Dataset> getLatestCompatibleDatasets(const std::vector<Dataset>& datasets,
     const std::string& thisVersion) {
     return getLatestDatasets(getCompatibleDatasets(datasets, thisVersion));
+  }
+
+
+  std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat) {
+    if (!compat.min && compat.max) {
+      return fmt::format("up to {:}", *compat.max);
+    }
+
+    if (compat.min && !compat.max) {
+      return fmt::format("from {:}", *compat.min);
+    }
+
+    if (compat.min && compat.max) {
+      return fmt::format("from {:} to {:}", *compat.min, *compat.max);
+    }
+
+    return "unknown";
+  }
+
+  std::string formatDatasets(const std::vector<Dataset>& datasets) {
+    fmt::memory_buffer buf;
+    for (const auto& dataset : datasets) {
+      fmt::format_to(buf, "{:s} (id: {:s})\n", dataset.nameFriendly, dataset.name);
+      fmt::format_to(buf, "{:s}\n", dataset.description);
+      fmt::format_to(buf, "Versions ({:d}):\n\n", dataset.versions.size());
+      for (const auto& version : dataset.versions) {
+        fmt::format_to(buf, "  Datetime              : {:s}\n", version.datetime);
+        fmt::format_to(buf, "  Comment               : {:s}\n", version.comment);
+
+        fmt::format_to(buf, "  Nextclade CLI compat. : {:s}\n",
+          formatVersionCompatibility(version.compatibility.nextcladeCli));
+        fmt::format_to(buf, "  Nextclade Web compat. : {:s}\n",
+          formatVersionCompatibility(version.compatibility.nextcladeWeb));
+
+        fmt::format_to(buf, "\n");
+
+        fmt::format_to(buf, "  Zip bundle            : {:s}\n", version.zipBundle);
+
+        fmt::format_to(buf, "\n");
+
+        fmt::format_to(buf, "  Files:\n");
+        fmt::format_to(buf, "    Reference sequence  : {:s}\n", version.files.reference);
+        fmt::format_to(buf, "    Reference tree      : {:s}\n", version.files.tree);
+        fmt::format_to(buf, "    Gene map            : {:s}\n", version.files.geneMap);
+        fmt::format_to(buf, "    QC configuration    : {:s}\n", version.files.qc);
+        fmt::format_to(buf, "    PCR primers         : {:s}\n", version.files.primers);
+        fmt::format_to(buf, "    Example sequences   : {:s}\n", version.files.sequences);
+
+        fmt::format_to(buf, "\n");
+      }
+      fmt::format_to(buf, "\n");
+    }
+    return fmt::to_string(buf);
   }
 
 }// namespace Nextclade

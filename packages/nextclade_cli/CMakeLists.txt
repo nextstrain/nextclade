@@ -12,6 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
+find_package(CLI11 1.9.1 REQUIRED)
 find_package(TBB REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(date 3.0.1 REQUIRED)
@@ -39,9 +40,19 @@ if (APPLE)
 endif ()
 
 add_executable(${PROJECT_NAME}
-  src/cli.cpp
+  src/io/filesystem.h
+  src/io/readFile.h
+  src/io/openOutputFile.h
+  src/io/format.h
   src/description.h
-  src/filesystem.h
+  src/io/Logger.h
+  src/io/parseGeneMapGffFile.h
+  src/main.cpp
+  src/io/getPaths.h
+  src/io/parseRefFastaFile.h
+  src/generated/cli.cpp
+  src/generated/cli.h
+  src/run.h
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY
@@ -76,6 +87,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
   ${STATIC_BUILD_FLAGS}
   Boost::headers
+  CLI11::CLI11
   TBB::tbb
   cxxopts::cxxopts
   date::date

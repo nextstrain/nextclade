@@ -1,0 +1,12 @@
+{
+  "name": "Nextclade",
+  "root_options": [
+    {
+      "flags": ["-v", "--verbose"],
+      "desc": "",
+      "cppName": "verbose",
+      "cppType": "bool",
+      "isOptional": true
+    }
+  ]
+}
