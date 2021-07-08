@@ -1,12 +1,105 @@
 {
-  "name": "Nextclade",
-  "root_options": [
+  "name": "root",
+  "desc": "",
+  "cppStructName": "CliParamsRun",
+  "callbackName": "runNextclade",
+  "options": [
     {
-      "flags": ["-v", "--verbose"],
+      "flags": ["-v", "--version"],
       "desc": "",
-      "cppName": "verbose",
+      "cppName": "version",
       "cppType": "bool",
+      "defaultValue": "false",
       "isOptional": true
+    },
+    {
+      "flags": ["--version-detailed"],
+      "desc": "",
+      "cppName": "versionDetailed",
+      "cppType": "bool",
+      "defaultValue": "false",
+      "isOptional": true
+    },
+    {
+      "flags": ["--in-order"],
+      "desc": "",
+      "cppName": "inOrder",
+      "cppType": "bool",
+      "defaultValue": "false",
+      "isOptional": true
+    }
+  ],
+  "subcommands": [
+    {
+      "name": "dataset",
+      "desc": "",
+      "requireSubcommand": 1,
+      "cppStructName": null,
+      "callbackName": null,
+      "subcommands": [
+        {
+          "name": "fetch",
+          "desc": "",
+          "cppStructName": "CliParamsDatasetFetch",
+          "callbackName": "datasetFetch",
+          "options": [
+            {
+              "flags": ["--name"],
+              "desc": "",
+              "cppName": "name",
+              "cppType": "std::string",
+              "isOptional": false
+            },
+            {
+              "flags": ["--version"],
+              "desc": "",
+              "cppName": "version",
+              "cppType": "std::string",
+              "defaultValue": "\"latest\"",
+              "isOptional": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "desc": "",
+          "cppStructName": "CliParamsDatasetList",
+          "callbackName": "datasetList",
+          "options": [
+            {
+              "flags": ["--name"],
+              "desc": "",
+              "cppName": "name",
+              "cppType": "std::string",
+              "isOptional": false
+            },
+            {
+              "flags": ["--version"],
+              "desc": "",
+              "cppName": "version",
+              "cppType": "std::string",
+              "defaultValue": "\"latest\"",
+              "isOptional": true
+            },
+            {
+              "flags": ["--include-incompatible"],
+              "desc": "",
+              "cppName": "inlcudeIncompatible",
+              "cppType": "bool",
+              "defaultValue": "false",
+              "isOptional": true
+            },
+            {
+              "flags": ["--only-latest"],
+              "desc": "",
+              "cppName": "onlyLatest",
+              "cppType": "bool",
+              "defaultValue": "true",
+              "isOptional": true
+            }
+          ]
+        }
+      ]
     }
   ]
 }
