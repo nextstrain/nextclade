@@ -25,15 +25,15 @@ using namespace Nextclade;
 //namespace Nextclade {
 
 
-void runNextclade(const CliParamsRun& params) {
+void runNextclade(const CliParamsRun& cliParams) {
   fmt::print("callback: run\n");
 }
 
-void datasetFetch(const CliParamsDatasetFetch& params) {
+void datasetFetch(const CliParamsDatasetFetch& cliParams) {
   fmt::print("callback: dataset fetch\n");
 }
 
-void datasetList(const CliParamsDatasetList& params) {
+void datasetList(const CliParamsDatasetList& cliParams) {
   fmt::print("callback: dataset list\n");
 
   //  const auto datasetsJson = Nextclade::fetchDatasetsJson();

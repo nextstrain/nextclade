@@ -38,7 +38,7 @@ def parse_args():
 COMMON_FLAGS = [
     {
         "flags": ["--verbosity"],
-        "desc": "",
+        "desc": "Set minimum verbosity level of console output. Possible values are: silent, error, warn, info, debug",
         "cppName": "verbosity",
         "cppType": "std::string",
         "defaultValue": "\"warn\"",
@@ -46,7 +46,7 @@ COMMON_FLAGS = [
     },
     {
         "flags": ["--verbose"],
-        "desc": "",
+        "desc": "Increase verbosity of the console output. Same as --verbosity=info",
         "cppName": "verbose",
         "cppType": "bool",
         "defaultValue": "false",
@@ -54,7 +54,7 @@ COMMON_FLAGS = [
     },
     {
         "flags": ["--silent"],
-        "desc": "",
+        "desc": "Disable console output entirely. --verbosity=silent",
         "cppName": "silent",
         "cppType": "bool",
         "defaultValue": "false",
@@ -219,15 +219,19 @@ def generate_cpp_code_recursive(parent, parents, command, cpp):
 
         flags_joined = ",".join(flags)
 
+        required = ""
+        if not is_optional:
+            required = "->required()"
+
         if cpp_type == "bool":
             cpp += f"""
             {params_var_name}->{cpp_name} = {default_value};
-            {command_name}->add_flag("{flags_joined}", {params_var_name}->{cpp_name}, "{desc}");
+            {command_name}->add_flag("{flags_joined}", {params_var_name}->{cpp_name}, "{desc}"){required};
             """
         else:
             cpp += f"""
             {params_var_name}->{cpp_name} = {default_value};
-            {command_name}->add_option("{flags_joined}", {params_var_name}->{cpp_name}, "{desc}")->capture_default_str();
+            {command_name}->add_option("{flags_joined}", {params_var_name}->{cpp_name}, "{desc}"){required}->capture_default_str();
             """
 
     cpp += "\n\n"
