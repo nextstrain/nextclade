@@ -1,4 +1,5 @@
 #include <fmt/format.h>
+#include <frozen/set.h>
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
 #include <nextclade_common/datasets.h>
@@ -24,6 +25,14 @@ using namespace Nextclade;
 
 //namespace Nextclade {
 
+void runRoot(const CliParamsRoot& cliParams) {
+  fmt::print("callback: root\n");
+  if (cliParams.version) {
+    fmt::print("callback: root: version\n");
+  } else if (cliParams.versionDetailed) {
+    fmt::print("callback: root: versionDetailed\n");
+  }
+}
 
 void runNextclade(const CliParamsRun& cliParams) {
   fmt::print("callback: run\n");
@@ -56,20 +65,58 @@ void datasetList(const CliParamsDatasetList& cliParams) {
 }
 
 
+bool isRootArg(const std::string& s) {
+  constexpr auto ROOT_ARGS = frozen::make_set<frozen::string>({
+    "-h",
+    "-v",
+    "--help",
+    "--version",
+    "--version-detailed",
+  });
+
+  return ROOT_ARGS.find(frozen::string{s}) != ROOT_ARGS.end();
+}
+
+
+/**
+ * HACK: Prepends "run" subcommand to the command line, to be able to use subcommands (`dataset fetch`,
+ * `dataset list`) while preserving the user interface and not introducing breaking changes.
+ *
+ * Reason: There seem to be no way of stopping required flags of the root command to propagate to subcommands,
+ * so for example `dataset fetch` subcommand will fail if `--input-fasta` is required in the root. We moved
+ * `--input-fasta` to the "run" subcommand. However, in order to preserve the old interface we now need to fake the
+ * "run" command when it's not there. Without it users would have to prepend "run" subcommand to all Nextclade
+ * invocations in the existing scripts and pipelines. Might be dropped in the next major release.
+ */
+std::vector<char*> preprocessArgs(int argc, char** argv) {
+  // Be careful with pointers and constness here!
+  constexpr const char* RUN_COMMAND = "run";
+  std::vector<char*> args{argv, argv + argc};
+  if (argc > 1 && (boost::starts_with(argv[1], "-") && argv[1] != RUN_COMMAND && !isRootArg(argv[1]))) {
+    fmt::print("argc: {:d}, argv[1]: {:s}\n", argc, argv[1]);
+    args.insert(args.begin() + 1, const_cast<char*>(RUN_COMMAND));
+  }
+  return args;
+}
+
 int main(int argc, char* argv[]) {
-  //  std::exit(0);
+  auto args = preprocessArgs(argc, argv);
 
-  Logger logger{Logger::Options{.linePrefix = "Nextclade", .verbosity = Logger::Verbosity::warn}};
+  for (int i = 0; i < args.size(); ++i) {
+    fmt::print("[{:d}] {:s}\n", i, args[i]);
+    fflush(stdout);
+  }
 
-  //  try {
   const CliCallbacks callbacks = {
+    .runRoot = runRoot,
     .runNextclade = runNextclade,
     .datasetFetch = datasetFetch,
     .datasetList = datasetList,
   };
 
-  return parseCommandLine(argc, argv, /* PROJECT_DESCRIPTION */ "", callbacks);
+  return parseCommandLine(args.size(), args.data(), /* PROJECT_DESCRIPTION */ "", callbacks);
 
+  Logger logger{Logger::Options{.linePrefix = "Nextclade", .verbosity = Logger::Verbosity::warn}};
 
   //    auto verbosity = Logger::convertVerbosity(cliParams.verbosity);
   //    if (cliParams.verbose) {
