@@ -1,4 +1,11 @@
-## Nextclade Web 1.5.0
+## Nextclade Web [1.5.1](https://github.com/nextstrain/nextclade/compare/web-1.5.0...web-1.5.1) (2021-07-08)
+
+#### [Bug fix] Better clade assignment
+
+In this release we updated the default reference tree. The previous tree had several basal 20A branches misplaced in clade 20C, resulting in incorrect clade calls. The new tree addresses this issue and generally improves the quality of the tree by removing outlier sequences. Nextclade Web already have the new tree, and users of Nextclade CLI are encouraged to download and use the new [tree.json](https://raw.githubusercontent.com/nextstrain/nextclade/64cb47c1be99b82e1f25c9ebbee6ce2441d9cb2b/data/sars-cov-2/tree.json).
+
+
+## Nextclade Web [1.5.0](https://github.com/nextstrain/nextclade/compare/web-1.4.0...web-1.5.0) (2021-07-01)
 
 #### [New feature] New SARS-CoV-2 clades: 21G (Lambda) and 21H
 
@@ -15,6 +22,18 @@ We adjusted QC score calculation for "Stop codons" and "Frame shifts" rules, suc
 #### [Bug fix] Removed unsequenced regions of length 0
 
 We fixed a bug where the empty unsequenced regions on either ends of a fully sequenced sample, were incorrectly displayed as ranges of length 1 in nucleotide sequence view. Now, in case of full sequences, there will be no unsequenced areas drawn, as expected.
+
+
+### Bug Fixes
+
+* adjust definition of 21H ([1015438](https://github.com/nextstrain/nextclade/commit/101543871bba7089e7ddb0485303c7b2a5e7a180))
+* avoid drawing empty unsequenced regions, improve range formatting ([7fff263](https://github.com/nextstrain/nextclade/commit/7fff263cb4a57aa9efa3a5fddf6c0e628929c137))
+* correct spelling ([f404943](https://github.com/nextstrain/nextclade/commit/f404943d1aad825d6e50f4a6679fceb81220502d))
+* typo in changelog ([fcc6e9e](https://github.com/nextstrain/nextclade/commit/fcc6e9ea04066c5510855527cc4f85f9efd20bbe))
+
+### Features
+
+* adjust QC scores for frame shits and stop codons ([d62cfac](https://github.com/nextstrain/nextclade/commit/d62cfac49b42c66ff5a8e70876ebbd33d4e8a1da))
 
 
 
