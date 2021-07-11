@@ -92,6 +92,8 @@ jobs:
         auth:
           username: $DOCKERHUB_USERNAME
           password: $DOCKERHUB_PASS
+    environment:
+      AWS_PAGER: ''
 
     steps:
       - checkout
