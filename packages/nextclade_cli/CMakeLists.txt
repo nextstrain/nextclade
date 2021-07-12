@@ -53,6 +53,7 @@ add_executable(${PROJECT_NAME}
   src/io/Logger.h
   src/io/filesystem.h
   src/io/format.h
+  src/io/getNextalignOptions.h
   src/io/getPaths.h
   src/io/openOutputFile.h
   src/io/parseGeneMapGffFile.h

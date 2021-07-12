@@ -12,11 +12,16 @@ namespace Nextclade {
       .silent = cliParams.silent,
     }};
 
-    fmt::print("callback: root\n");
+    const std::string versionNextalign = NEXTALIGN_VERSION;
+
     if (cliParams.version) {
-      fmt::print("callback: root: version\n");
+      const std::string versionShort = PROJECT_VERSION;
+      fmt::print("{:s}\n", versionShort);
     } else if (cliParams.versionDetailed) {
-      fmt::print("callback: root: versionDetailed\n");
+      const std::string versionDetailed =
+        fmt::format("nextclade {:s}\nbased on libnextclade {:s}\nbased on libnexalign {:s}", PROJECT_VERSION,
+          Nextclade::getVersion(), NEXTALIGN_VERSION);
+      fmt::print("{:s}\n", versionDetailed);
     }
   }
 }// namespace Nextclade

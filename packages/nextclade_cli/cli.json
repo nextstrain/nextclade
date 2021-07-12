@@ -52,7 +52,7 @@
         },
         {
           "flags": ["-r", "--input-root-seq", "--reference"],
-          "desc": "ath to a .fasta or a .txt file containing root sequence. Must contain only 1 sequence",
+          "desc": "Path to a .fasta or a .txt file containing root sequence. Must contain only 1 sequence",
           "cppName": "inputRootSeq",
           "cppType": "std::string",
           "isOptional": false
@@ -227,6 +227,13 @@
           "isOptional": true
         },
         {
+          "flags": ["--nuc-min-seeds"],
+          "desc": "Minimum number of seeds to search for during nucleotide alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--nuc-seed-spacing`.",
+          "cppName": "nucMinSeeds",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
           "flags": ["--nuc-seed-spacing"],
           "desc": "Spacing between seeds during nucleotide alignment.",
           "cppName": "nucSeedSpacing",
@@ -315,7 +322,7 @@
             },
             {
               "flags": ["--version"],
-              "desc": "Version os the dataset. List only datasets with this version.",
+              "desc": "Version of the dataset. List only datasets with this version.",
               "cppName": "version",
               "cppType": "std::string",
               "isOptional": true

@@ -17,7 +17,7 @@ namespace Nextclade {
   /**
   * Runs nextclade algorithm in a parallel pipeline
   */
-  inline void run(
+  void runNextclade(
     /* in  */ int parallelism,
     /* in  */ bool inOrder,
     /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,

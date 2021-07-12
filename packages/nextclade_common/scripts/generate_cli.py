@@ -65,6 +65,8 @@ COMMON_FLAGS = [
 ##########
 
 H_HEADING = """
+#pragma once
+
 #include "../io/Logger.h"
 #include <string>
 #include <CLI/CLI.hpp>
@@ -77,7 +79,7 @@ namespace Nextclade {
 
 H_FOOTER = """
 
-int parseCommandLine(int argc, char* argv[], const std::string& appDescription, const CliCallbacks& callbacks);
+int parseCommandLine(int argc, char* argv[], const std::string& appDescription, const CliCallbacks& callbacks, const CliParamsAll& defaults);
 
 }// namespace Nextclade
 
@@ -92,7 +94,7 @@ CPP_HEADING = """
 
 namespace Nextclade {
 
-  int parseCommandLine(int argc, char* argv[], const std::string& appDescription, const CliCallbacks& callbacks) {
+  int parseCommandLine(int argc, char* argv[], const std::string& appDescription, const CliCallbacks& callbacks, const CliParamsAll& defaults) {
 
     auto app = CLI::App(appDescription);
     auto* root = &app;
@@ -165,7 +167,7 @@ def generate_header_file_types_recursive(parent, command, h):
     options = command.get("options", [])
     if len(options) > 0 and struct_name is not None:
         h += f"""
-        // command "{command_name}": {command_desc}
+        // Parameters for command "{command_name}": {command_desc}
         struct {struct_name} {{"""
 
     for option in options:
@@ -182,6 +184,28 @@ def generate_header_file_types_recursive(parent, command, h):
     #     h += f"""{subcommand_type} {subcommand_name};"""
 
     if len(options) > 0:
+        h += "};\n\n"
+
+    return h
+
+
+def generate_header_file_main_type_recursive(parent, command, h):
+    """
+    Generates a struct with callbacks, one callback for each subcommand.
+    These callbacks are called when user issues a subcommand.
+    """
+    if parent is None:
+        h += "struct CliParamsAll {\n"
+
+    command_name = command.get("name", None)
+    struct_name = command.get("cppStructName", None)
+    if command_name is not None and struct_name is not None:
+        h += f"{struct_name} {command_name};\n"
+
+    for subcommand in command.get("subcommands", []):
+        h = generate_header_file_main_type_recursive("<not root>", subcommand, h)
+
+    if parent is None:
         h += "};\n\n"
 
     return h
@@ -222,7 +246,7 @@ def generate_cpp_code_recursive(parent, parents, command, cpp):
         cpp_name = option["cppName"]
         cpp_type = option["cppType"]
         is_optional = option["isOptional"]
-        default_value = option.get("defaultValue", "{}")
+        default_value = option.get("defaultValue", f"defaults.{command_name}.{cpp_name}")
 
         flags_joined = ",".join(flags)
 
@@ -284,6 +308,9 @@ def generate_code(command):
 
     parent = None
     h = generate_header_file_callbacks_recursive(parent, command, h)
+
+    parent = None
+    h = generate_header_file_main_type_recursive(parent, command, h)
 
     parent = None
     parents = []
