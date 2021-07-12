@@ -159,6 +159,13 @@ namespace Nextclade {
     return getLatestDatasets(getCompatibleDatasets(datasets, thisVersion));
   }
 
+  std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
+    const std::string& datasetNameDesired) {
+    std::vector<Dataset> datasetsFiltered;
+    std::copy_if(datasets.cbegin(), datasets.cend(), std::back_inserter(datasetsFiltered),
+      [&datasetNameDesired](const Dataset& dataset) { return dataset.name == datasetNameDesired; });
+    return datasetsFiltered;
+  }
 
   std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat) {
     if (!compat.min && compat.max) {

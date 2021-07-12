@@ -318,21 +318,22 @@
               "desc": "Name of the dataset. List only datasets with this name.",
               "cppName": "name",
               "cppType": "std::string",
-              "isOptional": false
+              "isOptional": true
             },
             {
               "flags": ["--version"],
               "desc": "Version of the dataset. List only datasets with this version.",
               "cppName": "version",
               "cppType": "std::string",
+              "defaultValue": "\"latest\"",
               "isOptional": true
             },
             {
-              "flags": ["--include-incompatible"],
+              "flags": ["--only-compatible"],
               "desc": "Include into the list the datasets that are incompatible with this version of Nextclade.",
-              "cppName": "includeIncompatible",
+              "cppName": "onlyCompatible",
               "cppType": "bool",
-              "defaultValue": "false",
+              "defaultValue": "true",
               "isOptional": true
             },
             {

@@ -1,4 +1,5 @@
 #include <fmt/format.h>
+#include <nextclade_common/datasets.h>
 
 #include "../generated/cli.h"
 #include "commands.h"
@@ -12,24 +13,29 @@ namespace Nextclade {
       .silent = cliParams.silent,
     }};
 
-    fmt::print("callback: dataset list\n");
+    const auto datasetsJson = fetchDatasetsJson();
+    const std::string thisVersion = getVersion();
 
-    //  const auto datasetsJson = Nextclade::fetchDatasetsJson();
+    auto datasets = datasetsJson.datasets;
+    if (cliParams.onlyCompatible && cliParams.onlyLatest) {
+      fmt::print("Latest datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
+      datasets = getLatestCompatibleDatasets(datasetsJson.datasets, thisVersion);
+    } else if (cliParams.onlyLatest) {
+      fmt::print("Latest datasets:\n\n");
+      datasets = getLatestDatasets(datasetsJson.datasets);
+    } else if (cliParams.onlyCompatible) {
+      fmt::print("Datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
+      datasets = getCompatibleDatasets(datasetsJson.datasets, thisVersion);
+    } else {
+      fmt::print("All datasets:\n\n");
+    }
 
-    //  const std::string thisVersion = Nextclade::getVersion();
+    if (!cliParams.name.empty()) {
+      datasets = filterDatasetsByName(datasets, cliParams.name);
+    }
 
-    //  fmt::print("All datasets:\n\n");
-    //  fmt::print("{:s}\n", formatDatasets(datasetsJson.datasets));
-    //
-    //  fmt::print("Latest datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-    //  fmt::print("{:s}\n", formatDatasets(Nextclade::getLatestCompatibleDatasets(datasetsJson.datasets, thisVersion)));
-    //
-    //  fmt::print("Latest datasets:\n\n");
-    //  fmt::print("{:s}\n", formatDatasets(Nextclade::getLatestDatasets(datasetsJson.datasets)));
-    //
-    //  fmt::print("Datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-    //  fmt::print("{:s}\n", formatDatasets(Nextclade::getCompatibleDatasets(datasetsJson.datasets, thisVersion)));
-
-    //  fflush(stdout);
+    if (!datasets.empty()) {
+      fmt::print("{:s}\n", formatDatasets(datasets));
+    }
   }
 }// namespace Nextclade
