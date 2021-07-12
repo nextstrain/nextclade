@@ -1,15 +1,19 @@
-#pragma once
+#include "runNextclade.h"
 
+#include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
 #include <tbb/concurrent_vector.h>
-#include <tbb/global_control.h>
 #include <tbb/parallel_pipeline.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <stdexcept>
+#include <map>
+#include <memory>
 #include <string>
+#include <vector>
+
+#include "../io/Logger.h"
+#include "../io/parseRefFastaFile.h"
 
 
 namespace Nextclade {
@@ -29,9 +33,9 @@ namespace Nextclade {
     /* in  */ bool inOrder,
     /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
     /* in  */ const ReferenceSequenceData &refData,
-    /* in  */ const Nextclade::QcConfig &qcRulesConfig,
+    /* in  */ const QcConfig &qcRulesConfig,
     /* in  */ const std::string &treeString,
-    /* in  */ const std::vector<Nextclade::PcrPrimer> &pcrPrimers,
+    /* in  */ const std::vector<PcrPrimer> &pcrPrimers,
     /* in  */ const GeneMap &geneMap,
     /* in  */ const NextalignOptions &nextalignOptions,
     /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
@@ -50,17 +54,17 @@ namespace Nextclade {
     const auto &ref = refData.seq;
     const auto &refName = refData.name;
 
-    std::optional<Nextclade::CsvWriter> csv;
+    std::optional<CsvWriter> csv;
     if (outputCsvStream) {
-      csv.emplace(Nextclade::CsvWriter(*outputCsvStream, Nextclade::CsvWriterOptions{.delimiter = ';'}));
+      csv.emplace(CsvWriter(*outputCsvStream, CsvWriterOptions{.delimiter = ';'}));
     }
 
-    std::optional<Nextclade::CsvWriter> tsv;
+    std::optional<CsvWriter> tsv;
     if (outputTsvStream) {
-      tsv.emplace(Nextclade::CsvWriter(*outputTsvStream, Nextclade::CsvWriterOptions{.delimiter = '\t'}));
+      tsv.emplace(CsvWriter(*outputTsvStream, CsvWriterOptions{.delimiter = '\t'}));
     }
 
-    const Nextclade::NextcladeOptions options = {
+    const NextcladeOptions options = {
       .ref = ref,
       .treeString = treeString,
       .pcrPrimers = pcrPrimers,
@@ -69,11 +73,11 @@ namespace Nextclade {
       .nextalignOptions = nextalignOptions,
     };
 
-    Nextclade::NextcladeAlgorithm nextclade{options};
+    NextcladeAlgorithm nextclade{options};
 
     // TODO(perf): consider using a thread-safe queue instead of a vector,
     //  or restructuring code to avoid concurrent access entirely
-    tbb::concurrent_vector<Nextclade::AnalysisResult> resultsConcurrent;
+    tbb::concurrent_vector<AnalysisResult> resultsConcurrent;
 
     /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
@@ -90,20 +94,19 @@ namespace Nextclade {
     /** A set of parallel transform filter functions, each accepts a parsed sequence from the input filter,
    * runs nextclade algorithm sequentially and returns its result.
    * The number of filters is determined by the `--jobs` CLI argument */
-    const auto transformFilters =
-      tbb::make_filter<AlgorithmInput, Nextclade::AlgorithmOutput>(tbb::filter_mode::parallel,//
-        [&nextclade](const AlgorithmInput &input) -> Nextclade::AlgorithmOutput {
-          const auto &seqName = input.seqName;
+    const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter_mode::parallel,//
+      [&nextclade](const AlgorithmInput &input) -> AlgorithmOutput {
+        const auto &seqName = input.seqName;
 
-          try {
-            const auto seq = toNucleotideSequence(input.seq);
-            const auto result = nextclade.run(seqName, seq);
-            return {.index = input.index, .seqName = seqName, .hasError = false, .result = result, .error = nullptr};
-          } catch (const std::exception &e) {
-            const auto &error = std::current_exception();
-            return {.index = input.index, .seqName = seqName, .hasError = true, .result = {}, .error = error};
-          }
-        });
+        try {
+          const auto seq = toNucleotideSequence(input.seq);
+          const auto result = nextclade.run(seqName, seq);
+          return {.index = input.index, .seqName = seqName, .hasError = false, .result = result, .error = nullptr};
+        } catch (const std::exception &e) {
+          const auto &error = std::current_exception();
+          return {.index = input.index, .seqName = seqName, .hasError = true, .result = {}, .error = error};
+        }
+      });
 
     // HACK: prevent aligned ref and ref genes from being written multiple times
     // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
@@ -111,10 +114,10 @@ namespace Nextclade {
 
     /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
-    const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
+    const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(ioFiltersMode,//
       [&refName, &outputFastaStream, &outputInsertionsStream, &outputErrorsFile, &outputGeneStreams, &csv, &tsv,
         &refsHaveBeenWritten, &logger, &resultsConcurrent, &outputJsonStream,
-        &outputTreeStream](const Nextclade::AlgorithmOutput &output) {
+        &outputTreeStream](const AlgorithmOutput &output) {
         const auto index = output.index;
         const auto &seqName = output.seqName;
         const auto &refAligned = output.result.ref;
@@ -189,8 +192,7 @@ namespace Nextclade {
             outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
           }
 
-          outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName,
-            Nextclade::formatInsertions(insertions));
+          outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
 
           if (outputJsonStream || outputTreeStream) {
             resultsConcurrent.push_back(output.result.analysisResult);
@@ -213,7 +215,7 @@ namespace Nextclade {
 
     if (outputJsonStream || outputTreeStream) {
       // TODO: try to avoid copy here
-      std::vector<Nextclade::AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
+      std::vector<AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
 
       if (outputJsonStream) {
         *outputJsonStream << serializeResults(results);

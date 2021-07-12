@@ -323,7 +323,7 @@
             {
               "flags": ["--include-incompatible"],
               "desc": "Include into the list the datasets that are incompatible with this version of Nextclade.",
-              "cppName": "inlcudeIncompatible",
+              "cppName": "includeIncompatible",
               "cppType": "bool",
               "defaultValue": "false",
               "isOptional": true

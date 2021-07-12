@@ -1,69 +1,15 @@
+#include <commands/commands.h>
 #include <fmt/format.h>
 #include <frozen/set.h>
-#include <nextalign/nextalign.h>
-#include <nextclade/nextclade.h>
 #include <nextclade_common/datasets.h>
 
-#include <functional>
-#include <map>
-
-#include "description.h"
 #include "io/Logger.h"
-#include "io/format.h"
-#include "io/getPaths.h"
-#include "io/openOutputFile.h"
 #include "io/parseGeneMapGffFile.h"
-#include "io/parseRefFastaFile.h"
-#include "io/readFile.h"
-#include "run.h"
 
 // Goes last
 #include "generated/cli.h"
 
-
 using namespace Nextclade;
-
-//namespace Nextclade {
-
-void runRoot(const CliParamsRoot& cliParams) {
-  fmt::print("callback: root\n");
-  if (cliParams.version) {
-    fmt::print("callback: root: version\n");
-  } else if (cliParams.versionDetailed) {
-    fmt::print("callback: root: versionDetailed\n");
-  }
-}
-
-void runNextclade(const CliParamsRun& cliParams) {
-  fmt::print("callback: run\n");
-}
-
-void datasetFetch(const CliParamsDatasetFetch& cliParams) {
-  fmt::print("callback: dataset fetch\n");
-}
-
-void datasetList(const CliParamsDatasetList& cliParams) {
-  fmt::print("callback: dataset list\n");
-
-  //  const auto datasetsJson = Nextclade::fetchDatasetsJson();
-
-  //  const std::string thisVersion = Nextclade::getVersion();
-
-  //  fmt::print("All datasets:\n\n");
-  //  fmt::print("{:s}\n", formatDatasets(datasetsJson.datasets));
-  //
-  //  fmt::print("Latest datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-  //  fmt::print("{:s}\n", formatDatasets(Nextclade::getLatestCompatibleDatasets(datasetsJson.datasets, thisVersion)));
-  //
-  //  fmt::print("Latest datasets:\n\n");
-  //  fmt::print("{:s}\n", formatDatasets(Nextclade::getLatestDatasets(datasetsJson.datasets)));
-  //
-  //  fmt::print("Datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-  //  fmt::print("{:s}\n", formatDatasets(Nextclade::getCompatibleDatasets(datasetsJson.datasets, thisVersion)));
-
-  //  fflush(stdout);
-}
-
 
 bool isRootArg(const std::string& s) {
   constexpr auto ROOT_ARGS = frozen::make_set<frozen::string>({
@@ -76,7 +22,6 @@ bool isRootArg(const std::string& s) {
 
   return ROOT_ARGS.find(frozen::string{s}) != ROOT_ARGS.end();
 }
-
 
 /**
  * HACK: Prepends "run" subcommand to the command line, to be able to use subcommands (`dataset fetch`,
@@ -108,26 +53,13 @@ int main(int argc, char* argv[]) {
   }
 
   const CliCallbacks callbacks = {
-    .runRoot = runRoot,
-    .runNextclade = runNextclade,
-    .datasetFetch = datasetFetch,
-    .datasetList = datasetList,
+    .runRoot = executeCommandRoot,
+    .runNextclade = executeCommandRun,
+    .datasetFetch = executeCommandDatasetFetch,
+    .datasetList = executeCommandDatasetList,
   };
 
   return parseCommandLine(args.size(), args.data(), /* PROJECT_DESCRIPTION */ "", callbacks);
-
-  Logger logger{Logger::Options{.linePrefix = "Nextclade", .verbosity = Logger::Verbosity::warn}};
-
-  //    auto verbosity = Logger::convertVerbosity(cliParams.verbosity);
-  //    if (cliParams.verbose) {
-  //      verbosity = Logger::Verbosity::info;
-  //    }
-  //
-  //    if (cliParams.silent) {
-  //      verbosity = Logger::Verbosity::silent;
-  //    }
-  //
-  //    logger.setVerbosity(verbosity);
 
   //      logger.info(formatCliParams(cliParams));
   //

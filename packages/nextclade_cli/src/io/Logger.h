@@ -40,7 +40,9 @@ namespace Nextclade {
 
     struct Options {
       std::string linePrefix;
-      Verbosity verbosity;
+      Verbosity verbosity = Verbosity::warn;
+      bool verbose = false;
+      bool silent = false;
     };
 
     static inline std::string getVerbosityLevels() {
@@ -96,7 +98,15 @@ namespace Nextclade {
   public:
     inline Logger() = default;
 
-    inline explicit Logger(Options loggerOptions) : options(std::move(loggerOptions)) {}
+    inline explicit Logger(const Options& loggerOptions) : options(loggerOptions) {
+      if (loggerOptions.verbose) {
+        options.verbosity = Logger::Verbosity::info;
+      }
+
+      if (loggerOptions.silent) {
+        options.verbosity = Logger::Verbosity::silent;
+      }
+    }
 
     inline Verbosity getVerbosity() const {
       return options.verbosity;

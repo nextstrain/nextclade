@@ -40,19 +40,25 @@ if (APPLE)
 endif ()
 
 add_executable(${PROJECT_NAME}
-  src/io/filesystem.h
-  src/io/readFile.h
-  src/io/openOutputFile.h
-  src/io/format.h
+  src/algorithm/runNextclade.cpp
+  src/algorithm/runNextclade.h
+  src/commands/commands.h
+  src/commands/executeCommandDatasetFetch.cpp
+  src/commands/executeCommandDatasetList.cpp
+  src/commands/executeCommandRoot.cpp
+  src/commands/executeCommandRun.cpp
   src/description.h
-  src/io/Logger.h
-  src/io/parseGeneMapGffFile.h
-  src/main.cpp
-  src/io/getPaths.h
-  src/io/parseRefFastaFile.h
   src/generated/cli.cpp
   src/generated/cli.h
-  src/run.h
+  src/io/Logger.h
+  src/io/filesystem.h
+  src/io/format.h
+  src/io/getPaths.h
+  src/io/openOutputFile.h
+  src/io/parseGeneMapGffFile.h
+  src/io/parseRefFastaFile.h
+  src/io/readFile.h
+  src/main.cpp
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY

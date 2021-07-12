@@ -5,9 +5,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <fstream>
 #include <set>
 #include <string>
-
 
 namespace Nextclade {
 
