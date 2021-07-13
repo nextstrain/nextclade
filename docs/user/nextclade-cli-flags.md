@@ -1,5 +1,5 @@
 
-### Command-line interface (CLI)
+# Nextclade Command-line interface (CLI)
 
 Nextclade CLI is available as a self-contained executable for the most popular platforms.
 
@@ -17,7 +17,7 @@ After obtaining the Nextclade CLI, type `nextclade --help` to display built-in h
 Nextclade expects the following input data:
 
 - (required) Sequences to be analyzed.
-  
+
   CLI flag: `--input-fasta`
 
   Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text (one sequence per line).
@@ -46,7 +46,7 @@ Nextclade expects the following input data:
 
   Accepted formats: JSON
 
-- (optional, recommended) Gene map (genome annotations) - a table describing the genes of the virus (frame, position, etc.). 
+- (optional, recommended) Gene map (genome annotations) - a table describing the genes of the virus (frame, position, etc.).
 
   CLI flag: `--input-gene-map`
 
@@ -137,7 +137,7 @@ TODO: write this section
 
 Nextclade is free and opensource. The source code for the algorithms, web application and CLI is available on [Github](https://github.com/nextstrain/nextclade). You can build Nextclade yourself and run web application locally. For details, refer to the readme file in the repository.
 
-## How to contribute to Nextclade?
+### How to contribute to Nextclade?
 
 We welcome contributions in any form.
 
