@@ -1,5 +1,5 @@
 
-### Web application
+# Nextclade web app
 
 Nextclade Web is available online at [clades.nextstrain.org](https://clades.nextstrain.org). This is the easiest way of using it and is a recommended way to get started.
 
