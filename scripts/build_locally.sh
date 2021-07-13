@@ -120,16 +120,16 @@ USE_CLANG="${USE_CLANG:=0}"
 # Whether to use libc++ as a C++ standard library implementation
 USE_LIBCPP="${USE_LIBCPP:=0}"
 
-# Whether to use MinGW GCC C++ compiler for croww-compiling for Windows (default: no)
+# Whether to use MinGW GCC C++ compiler for cross-compiling for Windows (default: no)
 USE_MINGW="${USE_MINGW:=0}"
 
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
 
 NEXTALIGN_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
-NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
+NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=0}
 NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
 NEXTCLADE_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
-NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=1}
+NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=0}
 NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=1}
 
 CONAN_COMPILER_SETTINGS="-s arch=${HOST_ARCH}"
@@ -300,7 +300,8 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
     -o c-ares:shared=False \
     -o cpr:shared=False \
     -o cpr:with_ssl=openssl \
-    -o gtest:shared=True \
+    -o gtest:shared=False \
+    -o gtest:hide_symbols=True \
     -o libcurl:shared=False \
     -o libcurl:with_c_ares=True \
     -o libcurl:with_ssl=openssl \
@@ -309,10 +310,11 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
     -o tbb:shared=False \
     -o zlib:shared=False \
     -o poco:shared=False \
+    -o poco:enable_active_record=False \
     -o poco:enable_apacheconnector=False \
     -o poco:enable_cppparser=False \
     -o poco:enable_crypto=True \
-    -o poco:enable_data=True \
+    -o poco:enable_data=False \
     -o poco:enable_data_mysql=False \
     -o poco:enable_data_odbc=False \
     -o poco:enable_data_postgresql=False \
@@ -323,16 +325,15 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
     -o poco:enable_mongodb=False \
     -o poco:enable_net=True \
     -o poco:enable_netssl=True \
-    -o poco:enable_pdf=False \
     -o poco:enable_pagecompiler=False \
     -o poco:enable_pagecompiler_file2page=False \
+    -o poco:enable_pdf=False \
     -o poco:enable_pocodoc=False \
     -o poco:enable_redis=False \
     -o poco:enable_sevenzip=False \
     -o poco:enable_util=True \
-    -o poco:enable_xml=True \
+    -o poco:enable_xml=False \
     -o poco:enable_zip=False \
-    -o poco:enable_active_record=True \
   "
 #     -o cpr:fPIC=False \
 #    -o libcurl:fPIC=False \
@@ -340,6 +341,44 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
 
   CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
 fi
+
+
+GCC_DIR="${PROJECT_ROOT_DIR}/.cache/gcc"
+target_host=x86_64-linux-musl
+cc_compiler=gcc
+cxx_compiler=g++
+
+export CONAN_CMAKE_FIND_ROOT_PATH="${GCC_DIR}"
+export CHOST="$GCC_DIR/bin/$target_host"
+export AR="$GCC_DIR/bin/$target_host-ar"
+export AS="$GCC_DIR/bin/$target_host-as"
+export RANLIB="$GCC_DIR/bin/$target_host-ranlib"
+export CC="$GCC_DIR/bin/$target_host-$cc_compiler"
+export CXX="$GCC_DIR/bin/$target_host-$cxx_compiler"
+export STRIP="$GCC_DIR/bin/$target_host-strip"
+export LD="$GCC_DIR/bin/$target_host-ld"
+export NM="$GCC_DIR/bin/$target_host-nm"
+export OBJCOPY="$GCC_DIR/bin/$target_host-objcopy"
+export OBJDUMP="$GCC_DIR/bin/$target_host-objdump"
+export STRIP="$GCC_DIR/bin/$target_host-strip"
+
+export LDFLAGS="-static"
+export PKG_CONFIG="pkg-config --static"
+export curl_LDFLAGS=-all-static
+
+if [ ! -f "${GCC_DIR}/bin/x86_64-linux-musl-gcc" ]; then
+  mkdir -p "${GCC_DIR}"
+  pushd "${GCC_DIR}" >/dev/null
+    GCC_URL="https://github.com/ivan-aksamentov/musl-cross-make/releases/download/v1/gcc-x86_64-linux-musl.tar.gz"
+    echo "Downloading GCC from ${GCC_URL}"
+    curl -fsSL "${GCC_URL}" | tar xfz - --strip-components=1
+  popd >/dev/null
+fi
+
+CONAN_STATIC_BUILD_FLAGS="\
+  ${CONAN_STATIC_BUILD_FLAGS} \
+  --profile ${PROJECT_ROOT_DIR}/config/conan/conan_profile_gcc_musl.txt \
+"
 
 if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   NEXTALIGN_BUILD_BENCHMARKS=0
@@ -505,20 +544,34 @@ print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
 #conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
 
-# At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
-# This will build a local conan package and put it into local conan cache, if not present yet.
-# On `conan install` step this local package will be used, instead of querying conan remote servers.
-if [ "${NEXTCLADE_BUILD_WASM}" != "1" ] && [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
-  # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
-  print 56 "Build Intel TBB";
-  pushd "3rdparty/tbb" > /dev/null
-      conan create . local/stable \
-      -s build_type="${CONAN_BUILD_TYPE}" \
-      ${CONAN_COMPILER_SETTINGS} \
-      ${CONAN_STATIC_BUILD_FLAGS} \
-      ${CONAN_TBB_STATIC_BUILD_FLAGS} \
 
-  popd > /dev/null
+function conan_create_custom_package() {
+  # This will build a local conan package (from `$PACKAGE_PATH`) and put it into local conan cache
+  # under name `$PACKAGE_REF`. The build is only done once and if the package is in cache, it will not rebuild.
+  # On `conan install` step the local package will be used, instead of querying conan remote servers, because the
+  # `$PACKAGE_REF` is used in `conanfile.txt`.
+  PACKAGE_PATH=$1
+  PACKAGE_REF=$2
+
+  if [ -z "$(conan search | grep ${PACKAGE_REF})" ]; then
+    print 56 "Build dependency: ${PACKAGE_PATH}";
+    pushd "${PACKAGE_PATH}" > /dev/null
+        conan create . local/stable \
+        -s build_type="${CONAN_BUILD_TYPE}" \
+        ${CONAN_COMPILER_SETTINGS} \
+        ${CONAN_STATIC_BUILD_FLAGS} \
+        ${CONAN_TBB_STATIC_BUILD_FLAGS}
+    popd > /dev/null
+  fi
+}
+
+if [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
+  # Order is important to ensure interdependencies are picked up correctly
+  conan_create_custom_package "3rdparty/openssl"  "openssl/1.1.1k@local/stable"
+  conan_create_custom_package "3rdparty/c-ares"   "c-ares/1.17.1@local/stable"
+  conan_create_custom_package "3rdparty/libcurl"  "libcurl/7.77.0@local/stable"
+  conan_create_custom_package "3rdparty/poco"     "poco/1.11.0@local/stable"
+  conan_create_custom_package "3rdparty/tbb"      "tbb/2021.3.0@local/stable"
 fi
 
 mkdir -p "${BUILD_DIR}"
@@ -655,10 +708,10 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
     ulimit -s unlimited
   fi
 
-#   if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-#     print 27 "Run Nextalign CLI";
-#     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-#   fi
+   if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+     print 27 "Run Nextalign CLI";
+     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+   fi
 
    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
      print 27 "Run Nextclade CLI";

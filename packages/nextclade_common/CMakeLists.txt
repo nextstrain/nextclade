@@ -28,8 +28,6 @@ set(SOURCE_FILES
   include/nextclade_common/fetch.h
   src/datasets.cpp
   src/fetch.cpp
-
-  src/_libc_workarounds.cpp
   )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
