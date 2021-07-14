@@ -109,13 +109,9 @@ CPP_FOOTER = """
 
     CLI11_PARSE(app, argc, argv);
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wreturn-type"
-#pragma gcc diagnostic push
-#pragma gcc diagnostic ignored "-Wreturn-type"
+    return 0;
 }
-#pragma gcc diagnostic pop
-#pragma clang diagnostic pop
+
 
 }// namespace Nextclade
 
