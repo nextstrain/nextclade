@@ -289,7 +289,7 @@ def generate_cpp_code_recursive(parent, parents, command, cpp):
             """
 
         cpp += f"""
-        {command_name}->callback([{params_var_name}, callbacks]() {{
+        {command_name}->callback([{params_var_name}, &callbacks, hasRanSubcommand]() {{
           {callback_body}
         }});
         """
