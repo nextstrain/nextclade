@@ -265,9 +265,9 @@ function get_cli() {
   CLI_EXE="${NAME}-${HOST_OS}-${HOST_ARCH}"
 
   CLI="${CLI_DIR}/${CLI_EXE}"
-  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-    CLI=${INSTALL_DIR}/bin/${CLI_EXE}
-  fi
+#  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+#    CLI=${INSTALL_DIR}/bin/${CLI_EXE}
+#  fi
 
   echo "${CLI}"
 }
@@ -291,6 +291,38 @@ elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] 
 fi
 NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
 
+CONAN_STATIC_BUILD_FLAGS="\
+  -o cpr:with_ssl=openssl \
+  -o gtest:hide_symbols=True \
+  -o libcurl:with_c_ares=True \
+  -o libcurl:with_ssl=openssl \
+  -o libcurl:with_zlib=True \
+  -o poco:enable_active_record=False \
+  -o poco:enable_apacheconnector=False \
+  -o poco:enable_cppparser=False \
+  -o poco:enable_crypto=True \
+  -o poco:enable_data=False \
+  -o poco:enable_data_mysql=False \
+  -o poco:enable_data_odbc=False \
+  -o poco:enable_data_postgresql=False \
+  -o poco:enable_data_sqlite=False \
+  -o poco:enable_encodings=False \
+  -o poco:enable_json=False \
+  -o poco:enable_jwt=False \
+  -o poco:enable_mongodb=False \
+  -o poco:enable_net=True \
+  -o poco:enable_netssl=True \
+  -o poco:enable_pagecompiler=False \
+  -o poco:enable_pagecompiler_file2page=False \
+  -o poco:enable_pdf=False \
+  -o poco:enable_pocodoc=False \
+  -o poco:enable_redis=False \
+  -o poco:enable_sevenzip=False \
+  -o poco:enable_util=True \
+  -o poco:enable_xml=False \
+  -o poco:enable_zip=False \
+"
+
 # Add flags necessary for static build
 CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True -o fmt:header_only=True"
 CONAN_TBB_STATIC_BUILD_FLAGS=""
@@ -299,41 +331,12 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
     ${CONAN_STATIC_BUILD_FLAGS} \
     -o c-ares:shared=False \
     -o cpr:shared=False \
-    -o cpr:with_ssl=openssl \
     -o gtest:shared=False \
-    -o gtest:hide_symbols=True \
     -o libcurl:shared=False \
-    -o libcurl:with_c_ares=True \
-    -o libcurl:with_ssl=openssl \
-    -o libcurl:with_zlib=True \
     -o openssl:shared=False \
     -o tbb:shared=False \
     -o zlib:shared=False \
     -o poco:shared=False \
-    -o poco:enable_active_record=False \
-    -o poco:enable_apacheconnector=False \
-    -o poco:enable_cppparser=False \
-    -o poco:enable_crypto=True \
-    -o poco:enable_data=False \
-    -o poco:enable_data_mysql=False \
-    -o poco:enable_data_odbc=False \
-    -o poco:enable_data_postgresql=False \
-    -o poco:enable_data_sqlite=False \
-    -o poco:enable_encodings=False \
-    -o poco:enable_json=False \
-    -o poco:enable_jwt=False \
-    -o poco:enable_mongodb=False \
-    -o poco:enable_net=True \
-    -o poco:enable_netssl=True \
-    -o poco:enable_pagecompiler=False \
-    -o poco:enable_pagecompiler_file2page=False \
-    -o poco:enable_pdf=False \
-    -o poco:enable_pocodoc=False \
-    -o poco:enable_redis=False \
-    -o poco:enable_sevenzip=False \
-    -o poco:enable_util=True \
-    -o poco:enable_xml=False \
-    -o poco:enable_zip=False \
   "
 #     -o cpr:fPIC=False \
 #    -o libcurl:fPIC=False \
@@ -343,42 +346,45 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
 fi
 
 
-GCC_DIR="${PROJECT_ROOT_DIR}/.cache/gcc"
-target_host=x86_64-linux-musl
-cc_compiler=gcc
-cxx_compiler=g++
+if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
+  GCC_DIR="${PROJECT_ROOT_DIR}/.cache/gcc"
+  target_host=x86_64-linux-musl
+  cc_compiler=gcc
+  cxx_compiler=g++
 
-export CONAN_CMAKE_FIND_ROOT_PATH="${GCC_DIR}"
-export CHOST="$GCC_DIR/bin/$target_host"
-export AR="$GCC_DIR/bin/$target_host-ar"
-export AS="$GCC_DIR/bin/$target_host-as"
-export RANLIB="$GCC_DIR/bin/$target_host-ranlib"
-export CC="$GCC_DIR/bin/$target_host-$cc_compiler"
-export CXX="$GCC_DIR/bin/$target_host-$cxx_compiler"
-export STRIP="$GCC_DIR/bin/$target_host-strip"
-export LD="$GCC_DIR/bin/$target_host-ld"
-export NM="$GCC_DIR/bin/$target_host-nm"
-export OBJCOPY="$GCC_DIR/bin/$target_host-objcopy"
-export OBJDUMP="$GCC_DIR/bin/$target_host-objdump"
-export STRIP="$GCC_DIR/bin/$target_host-strip"
+  export CONAN_CMAKE_FIND_ROOT_PATH="${GCC_DIR}"
+  export CHOST="$GCC_DIR/bin/$target_host"
+  export AR="$GCC_DIR/bin/$target_host-ar"
+  export AS="$GCC_DIR/bin/$target_host-as"
+  export RANLIB="$GCC_DIR/bin/$target_host-ranlib"
+  export CC="$GCC_DIR/bin/$target_host-$cc_compiler"
+  export CXX="$GCC_DIR/bin/$target_host-$cxx_compiler"
+  export STRIP="$GCC_DIR/bin/$target_host-strip"
+  export LD="$GCC_DIR/bin/$target_host-ld"
+  export NM="$GCC_DIR/bin/$target_host-nm"
+  export OBJCOPY="$GCC_DIR/bin/$target_host-objcopy"
+  export OBJDUMP="$GCC_DIR/bin/$target_host-objdump"
+  export STRIP="$GCC_DIR/bin/$target_host-strip"
 
-export LDFLAGS="-static"
-export PKG_CONFIG="pkg-config --static"
-export curl_LDFLAGS=-all-static
+  export LDFLAGS="-static"
+  export PKG_CONFIG="pkg-config --static"
+  export curl_LDFLAGS=-all-static
 
-if [ ! -f "${GCC_DIR}/bin/x86_64-linux-musl-gcc" ]; then
-  mkdir -p "${GCC_DIR}"
-  pushd "${GCC_DIR}" >/dev/null
-    GCC_URL="https://github.com/ivan-aksamentov/musl-cross-make/releases/download/v1/gcc-x86_64-linux-musl.tar.gz"
-    echo "Downloading GCC from ${GCC_URL}"
-    curl -fsSL "${GCC_URL}" | tar xfz - --strip-components=1
-  popd >/dev/null
+  if [ ! -f "${GCC_DIR}/bin/x86_64-linux-musl-gcc" ]; then
+    mkdir -p "${GCC_DIR}"
+    pushd "${GCC_DIR}" >/dev/null
+      GCC_URL="https://github.com/ivan-aksamentov/musl-cross-make/releases/download/v1/gcc-x86_64-linux-musl.tar.gz"
+      echo "Downloading GCC from ${GCC_URL}"
+      curl -fsSL "${GCC_URL}" | tar xfz - --strip-components=1
+    popd >/dev/null
+  fi
+
+  CONAN_STATIC_BUILD_FLAGS="\
+    ${CONAN_STATIC_BUILD_FLAGS} \
+    --profile ${PROJECT_ROOT_DIR}/config/conan/conan_profile_gcc_musl.txt \
+  "
 fi
 
-CONAN_STATIC_BUILD_FLAGS="\
-  ${CONAN_STATIC_BUILD_FLAGS} \
-  --profile ${PROJECT_ROOT_DIR}/config/conan/conan_profile_gcc_musl.txt \
-"
 
 if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   NEXTALIGN_BUILD_BENCHMARKS=0
@@ -555,12 +561,15 @@ function conan_create_custom_package() {
 
   if [ -z "$(conan search | grep ${PACKAGE_REF})" ]; then
     print 56 "Build dependency: ${PACKAGE_PATH}";
+
     pushd "${PACKAGE_PATH}" > /dev/null
         conan create . local/stable \
         -s build_type="${CONAN_BUILD_TYPE}" \
         ${CONAN_COMPILER_SETTINGS} \
         ${CONAN_STATIC_BUILD_FLAGS} \
-        ${CONAN_TBB_STATIC_BUILD_FLAGS}
+        ${CONAN_TBB_STATIC_BUILD_FLAGS} \
+        --build=missing \
+
     popd > /dev/null
   fi
 }
@@ -708,10 +717,10 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
     ulimit -s unlimited
   fi
 
-   if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-     print 27 "Run Nextalign CLI";
-     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-   fi
+#   if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+#     print 27 "Run Nextalign CLI";
+#     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+#   fi
 
    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
      print 27 "Run Nextclade CLI";
