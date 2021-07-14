@@ -1,24 +1,24 @@
 ## High-level overview of the pipeline
 
-Nextclade's workflow is pipeline, which consists of a several steps. This section describes these steps, rougly in their order of execution.
+Nextclade's workflow is a pipeline which consists of several steps. This section describes these steps, rougly in their order of execution.
 
-Note: A standalone command-line tool "Nextalign" is available, that performs only the alignment (1) and translation (2) steps, without any of the subsequent analysis steps.
+Note: A standalone command-line tool, *Nextalign*, is available that performs only the alignment (1) and translation (2) steps, without any of the subsequent analysis steps.
 
 ### 1. Sequence alignment
 
 In order for sequences to be analyzed, they need to be arranged in a way that allows for comparing similar regions. This process is called [sequence alignment](https://en.wikipedia.org/wiki/Sequence_alignment).
 
-Nextclade performs pairwise alignment of the provided (query) sequences against a given reference (root) sequence using banded local alignment algorithm with affine gap-cost. Width of the band and rough relative positions are determined through seed matching. This algorithm can be considered a variation of [Smith–Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) algorithm. Seed matching consists of finding several small fragments, "seeds", sufficiently similar in reference and query sequence. The number of seeds, as well as their length, spacing and number of allowed mismatched nucleotides in them are configurable. Nextclade strips insertions relative to the reference from the aligned sequences.
+Nextclade performs pairwise alignment of the provided (query) sequences against a given reference (root) sequence using a banded local alignment algorithm with affine gap-cost. The width of the band and rough relative positions <!--- Positions of what? --> are determined through seed matching. Seed matching consists of finding several small fragments, *seeds*, of sufficient similarity in the reference and query sequences. The number of seeds, as well as their length, spacing and the allowed number of mismatched nucleotides in them are configurable. This algorithm can be considered a variation of the [Smith–Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) algorithm. Nextclade strips insertions relative to the reference from the aligned sequences and lists them in a separate file.  
 
 <!-- TODO: explain codon-aware alignment -->
 
-This strategy aims to be sufficiently fast for running in the internet browser on an average consumer computer hardware and trades accuracy of the alignment for runtime performance. We found that it works well for most sequences.
+The algorithm aims to be sufficiently fast for running in the internet browser of an average consumer computer, by trading reduced alignment accuracy for improved runtime performance. We found that it works well for most sequences.
 
-Alignment is only attempted on sequences longer than 100 nucleotides (configurable), because alignment of shorter sequences might be unreliable.
+By default, alignment is only attempted on sequences longer than 100 nucleotides (configurable), because alignment of shorter sequences may be unreliable.
 
-Alignment may fail for a variety of reasons. If the query sequence is too divergent from reference sequence (that is, if there are many changes in the sequence compared to reference), seed matching step might not be able to find required number of sufficiently similar regions. This may happen due to usage of incorrect reference sequence (e.g. from another virus or a virus from another host organism), if analysed sequences are of very low quality (containing a lot of missing regions or with a lot of ambiguous nucleotides) or are very short compared to the reference sequence.
+Alignment may fail if the query sequence is too divergent from the reference sequence, i.e. if there are many dfferences between the query and reference sequence. The seed matching step may then not be able to find a sufficient number of similar regions. This may happen due to usage of an incorrect reference sequence (e.g. from a different virus or a virus from a different host organism), if analysed sequences are of very low quality (e.g. containing a lot of missing regions or with a lot of ambiguous nucleotides) or are very short compared to the reference sequence.
 
-Note: the subsequent analysis steps will ignore regions before and after alignment, as well as unsequenced regions (consecutive `-` character ranges on the 5' and 3' ends). The exact alignment range is indicated in the [analysis results]() as `alignmentStart` and `alignmentEnd`.
+Note: analysis steps that follow alignment will ignore regions before and after the alignment <!--- what do before and after alignment mean? -->, as well as unsequenced regions ( indicated by consecutive `-` character ranges on the 5' and 3' ends). The exact alignment range is indicated in the [analysis results]() as `alignmentStart` and `alignmentEnd`.
 
 ### 2. Translation
 
