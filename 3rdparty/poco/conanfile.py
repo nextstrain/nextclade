@@ -37,29 +37,29 @@ class PocoConan(ConanFile):
         "PocoCppParser": _PocoComponent("enable_cppparser", False, ("PocoFoundation", ), False),
         # "PocoCppUnit": _PocoComponent("enable_cppunit", False, ("PocoFoundation", ), False)),
         "PocoCrypto": _PocoComponent("enable_crypto", True, ("PocoFoundation", ), True),    # also external openssl
-        "PocoData": _PocoComponent("enable_data", True, ("PocoFoundation", ), True),
-        "PocoDataMySQL": _PocoComponent("enable_data_mysql", True, ("PocoData", ), True),
+        "PocoData": _PocoComponent("enable_data", False, ("PocoFoundation", ), True),
+        "PocoDataMySQL": _PocoComponent("enable_data_mysql", False, ("PocoData", ), True),
         "PocoDataODBC": _PocoComponent("enable_data_odbc", False, ("PocoData", ), True),
-        "PocoDataPostgreSQL": _PocoComponent("enable_data_postgresql", True, ("PocoData", ), True),    # also external postgresql
-        "PocoDataSQLite": _PocoComponent("enable_data_sqlite", True, ("PocoData", ), True),  # also external sqlite3
+        "PocoDataPostgreSQL": _PocoComponent("enable_data_postgresql", False, ("PocoData", ), True),    # also external postgresql
+        "PocoDataSQLite": _PocoComponent("enable_data_sqlite", False, ("PocoData", ), True),  # also external sqlite3
         "PocoEncodings": _PocoComponent("enable_encodings", True, ("PocoFoundation", ), True),
         # "PocoEncodingsCompiler": _PocoComponent("enable_encodingscompiler", False, ("PocoNet", "PocoUtil", ), False),
         "PocoFoundation": _PocoComponent(None, "PocoFoundation", (), True),
         "PocoJSON": _PocoComponent("enable_json", True, ("PocoFoundation", ), True),
-        "PocoJWT": _PocoComponent("enable_jwt", True, ("PocoJSON", "PocoCrypto", ), True),
-        "PocoMongoDB": _PocoComponent("enable_mongodb", True, ("PocoNet", ), True),
+        "PocoJWT": _PocoComponent("enable_jwt", False, ("PocoJSON", "PocoCrypto", ), True),
+        "PocoMongoDB": _PocoComponent("enable_mongodb", False, ("PocoNet", ), True),
         "PocoNet": _PocoComponent("enable_net", True, ("PocoFoundation", ), True),
         "PocoNetSSL": _PocoComponent("enable_netssl", True, ("PocoCrypto", "PocoUtil", "PocoNet", ), True),    # also external openssl
-        "PocoNetSSLWin": _PocoComponent("enable_netssl_win", True, ("PocoNet", "PocoUtil", ), True),
+        "PocoNetSSLWin": _PocoComponent("enable_netssl_win", False, ("PocoNet", "PocoUtil", ), True),
         "PocoPDF": _PocoComponent("enable_pdf", False, ("PocoXML", "PocoUtil", ), True),
         "PocoPageCompiler": _PocoComponent("enable_pagecompiler", False, ("PocoNet", "PocoUtil", ), False),
         "PocoFile2Page": _PocoComponent("enable_pagecompiler_file2page", False, ("PocoNet", "PocoUtil", "PocoXML", "PocoJSON", ), False),
         "PocoPocoDoc": _PocoComponent("enable_pocodoc", False, ("PocoUtil", "PocoXML", "PocoCppParser", ), False),
-        "PocoRedis": _PocoComponent("enable_redis", True, ("PocoNet", ), True),
+        "PocoRedis": _PocoComponent("enable_redis", False, ("PocoNet", ), True),
         "PocoSevenZip": _PocoComponent("enable_sevenzip", False, ("PocoUtil", "PocoXML", ), True),
         "PocoUtil": _PocoComponent("enable_util", True, ("PocoFoundation", "PocoXML", "PocoJSON", ), True),
-        "PocoXML": _PocoComponent("enable_xml", True, ("PocoFoundation", ), True),
-        "PocoZip": _PocoComponent("enable_zip", True, ("PocoUtil", "PocoXML", ), True),
+        "PocoXML": _PocoComponent("enable_xml", False, ("PocoFoundation", ), True),
+        "PocoZip": _PocoComponent("enable_zip", False, ("PocoUtil", "PocoXML", ), True),
         "PocoActiveRecord": _PocoComponent("enable_active_record", False, ("PocoFoundation", "PocoData", ), True),
     }
 
@@ -163,7 +163,7 @@ class PocoConan(ConanFile):
         if self.options.get_safe("enable_netssl", False) or \
                 self.options.enable_crypto or \
                 self.options.get_safe("enable_jwt", False):
-            self.requires("openssl/1.1.1k")
+            self.requires("openssl/1.1.1k@local/stable")
         if self.options.enable_data_odbc and self.settings.os != "Windows":
             self.requires("odbc/2.3.9")
         if self.options.get_safe("enable_data_postgresql", False):
