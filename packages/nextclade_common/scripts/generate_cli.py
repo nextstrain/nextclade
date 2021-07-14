@@ -99,8 +99,6 @@ namespace Nextclade {
     auto app = CLI::App(appDescription);
     auto* root = &app;
 
-    // Allows to avoid running root command is any of the subcommands ran
-    auto hasRanSubcommand = std::make_shared<bool>(false);
 """
 
 ##########
@@ -143,7 +141,7 @@ def generate_header_file_callbacks_recursive(parent, command, h):
     callback_name = command.get("callbackName", None)
     if callback_name is not None:
         struct_name = command.get("cppStructName", None)
-        h += f"std::function<void({struct_name})> {callback_name};\n"
+        h += f"std::function<void(const std::shared_ptr<{struct_name}>&)> {callback_name};\n"
 
     for subcommand in command.get("subcommands", []):
         h = generate_header_file_callbacks_recursive("<not root>", subcommand, h)
@@ -273,23 +271,10 @@ def generate_cpp_code_recursive(parent, parents, command, cpp):
     callback_name = command.get("callbackName", None)
     if callback_name is not None:
 
-        callback_body = f"callbacks.{callback_name}(*{params_var_name});"
-        if command_name == "root":
-            callback_body = f"""
-                // only run root callback is none of the commands ran
-                if(!*hasRanSubcommand) {{
-                    {callback_body}
-                }}
-            """
-        else:
-            callback_body = f"""
-                {callback_body}
-                // only run root callback is none of the commands ran
-                *hasRanSubcommand = true;
-            """
+        callback_body = f"callbacks.{callback_name}({params_var_name});"
 
         cpp += f"""
-        {command_name}->callback([{params_var_name}, callbacks, hasRanSubcommand]() {{
+        {command_name}->callback([{params_var_name}, callbacks]() {{
           {callback_body}
         }});
         """

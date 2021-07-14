@@ -23,34 +23,34 @@ namespace Nextclade {
   };
 
 
-  void executeCommandRun(const CliParamsRun& cliParams) {
+  void executeCommandRun(const std::shared_ptr<CliParamsRun>& cliParams) {
     Logger logger{Logger::Options{
       .linePrefix = "Nextclade",
-      .verbosity = Logger::convertVerbosity(cliParams.verbosity),
-      .verbose = cliParams.verbose,
-      .silent = cliParams.silent,
+      .verbosity = Logger::convertVerbosity(cliParams->verbosity),
+      .verbose = cliParams->verbose,
+      .silent = cliParams->silent,
     }};
 
     try {
-      const auto refData = parseRefFastaFile(cliParams.inputRootSeq);
-      const auto shouldWriteReference = cliParams.includeReference;
+      const auto refData = parseRefFastaFile(cliParams->inputRootSeq);
+      const auto shouldWriteReference = cliParams->includeReference;
       logger.info(formatRef(refData, shouldWriteReference));
 
-      if (!cliParams.genes.empty() && cliParams.inputGeneMap.empty()) {
+      if (!cliParams->genes.empty() && cliParams->inputGeneMap.empty()) {
         throw ErrorCliOptionInvalidValue("Parameter `--genes` requires parameter `--input-gene-map` to be specified.");
       }
 
       GeneMap geneMap;
       std::set<std::string> genes;
-      if (!cliParams.inputGeneMap.empty()) {
-        geneMap = parseGeneMapGffFile(cliParams.inputGeneMap);
+      if (!cliParams->inputGeneMap.empty()) {
+        geneMap = parseGeneMapGffFile(cliParams->inputGeneMap);
 
-        if (cliParams.genes.empty()) {
+        if (cliParams->genes.empty()) {
           // If `--genes` are omitted or empty, use all genes in the gene map
           std::transform(geneMap.cbegin(), geneMap.cend(), std::inserter(genes, genes.end()),
             [](const auto& it) { return it.first; });
         } else {
-          genes = parseGenes(cliParams.genes);
+          genes = parseGenes(cliParams->genes);
         }
 
         validateGenes(genes, geneMap);
@@ -62,24 +62,24 @@ namespace Nextclade {
 
       if (!genes.empty()) {
         // penaltyGapOpenOutOfFrame > penaltyGapOpenInFrame > penaltyGapOpen
-        const auto isInFrameGreater = cliParams.penaltyGapOpenInFrame > cliParams.penaltyGapOpen;
-        const auto isOutOfFrameEvenGreater = cliParams.penaltyGapOpenOutOfFrame > cliParams.penaltyGapOpenInFrame;
+        const auto isInFrameGreater = cliParams->penaltyGapOpenInFrame > cliParams->penaltyGapOpen;
+        const auto isOutOfFrameEvenGreater = cliParams->penaltyGapOpenOutOfFrame > cliParams->penaltyGapOpenInFrame;
         if (!(isInFrameGreater && isOutOfFrameEvenGreater)) {
           throw ErrorCliOptionInvalidValue(fmt::format(
             "Should verify the condition `--penalty-gap-open-out-of-frame` > `--penalty-gap-open-in-frame` > "
             "`--penalty-gap-open`, but got {:d} > {:d} > {:d}, which is false",
-            cliParams.penaltyGapOpenOutOfFrame, cliParams.penaltyGapOpenInFrame, cliParams.penaltyGapOpen));
+            cliParams->penaltyGapOpenOutOfFrame, cliParams->penaltyGapOpenInFrame, cliParams->penaltyGapOpen));
         }
       }
 
-      std::ifstream fastaFile(cliParams.inputFasta);
-      auto inputFastaStream = makeFastaStream(fastaFile, cliParams.inputFasta);
+      std::ifstream fastaFile(cliParams->inputFasta);
+      auto inputFastaStream = makeFastaStream(fastaFile, cliParams->inputFasta);
       if (!fastaFile.good()) {
-        logger.error("Error: unable to read \"{:s}\"", cliParams.inputFasta);
+        logger.error("Error: unable to read \"{:s}\"", cliParams->inputFasta);
         std::exit(1);
       }
 
-      const auto qcJsonString = readFile(cliParams.inputQcConfig);
+      const auto qcJsonString = readFile(cliParams->inputQcConfig);
       const auto qcRulesConfig = Nextclade::parseQcConfig(qcJsonString);
       if (!Nextclade::isQcConfigVersionRecent(qcRulesConfig)) {
         logger.warn(
@@ -87,26 +87,26 @@ namespace Nextclade {
           "be "
           "missing out on new features. It is recommended to download the latest configuration file. Alternatively, to "
           "silence this warning, add/change property \"schemaVersion\": \"{:s}\" in your file.",
-          cliParams.inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getVersion(), Nextclade::getVersion());
+          cliParams->inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getVersion(), Nextclade::getVersion());
       }
 
-      const auto treeString = readFile(cliParams.inputTree);
+      const auto treeString = readFile(cliParams->inputTree);
 
       std::vector<Nextclade::PcrPrimer> pcrPrimers;
-      if (!cliParams.inputPcrPrimers.empty()) {
-        const auto pcrPrimersCsvString = readFile(cliParams.inputPcrPrimers);
+      if (!cliParams->inputPcrPrimers.empty()) {
+        const auto pcrPrimersCsvString = readFile(cliParams->inputPcrPrimers);
         std::vector<std::string> warnings;
-        pcrPrimers = Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, cliParams.inputPcrPrimers,
+        pcrPrimers = Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, cliParams->inputPcrPrimers,
           refData.seq, warnings);
       }
 
-      const auto paths = getPaths(cliParams, genes);
+      const auto paths = getPaths(*cliParams, genes);
       logger.info(formatPaths(paths));
 
-      auto outputJsonStream = openOutputFileMaybe(cliParams.outputJson);
-      auto outputCsvStream = openOutputFileMaybe(cliParams.outputCsv);
-      auto outputTsvStream = openOutputFileMaybe(cliParams.outputTsv);
-      auto outputTreeStream = openOutputFileMaybe(cliParams.outputTree);
+      auto outputJsonStream = openOutputFileMaybe(cliParams->outputJson);
+      auto outputCsvStream = openOutputFileMaybe(cliParams->outputCsv);
+      auto outputTsvStream = openOutputFileMaybe(cliParams->outputTsv);
+      auto outputTreeStream = openOutputFileMaybe(cliParams->outputTree);
 
       std::ofstream outputFastaStream;
       openOutputFile(paths.outputFasta, outputFastaStream);
@@ -127,17 +127,17 @@ namespace Nextclade {
       }
 
       int parallelism = static_cast<int>(std::thread::hardware_concurrency());
-      if (cliParams.jobs > 0) {
+      if (cliParams->jobs > 0) {
         tbb::global_control globalControl{tbb::global_control::max_allowed_parallelism,
-          static_cast<size_t>(cliParams.jobs)};
-        parallelism = cliParams.jobs;
+          static_cast<size_t>(cliParams->jobs)};
+        parallelism = cliParams->jobs;
       }
 
       logger.info("\nParallelism: {:d}\n", parallelism);
 
-      bool inOrder = cliParams.inOrder;
+      bool inOrder = cliParams->inOrder;
 
-      if (cliParams.inputGeneMap.empty()) {
+      if (cliParams->inputGeneMap.empty()) {
         logger.warn(
           "Warning: Parameter `--input-gene-map` was not specified. Without a gene map sequences will not be "
           "translated, there will be no peptides in output files, aminoacid mutations will not be detected and "
@@ -158,7 +158,7 @@ namespace Nextclade {
       logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
 
-      NextalignOptions options = cliOptionsToNextalignOptions(cliParams);
+      NextalignOptions options = cliOptionsToNextalignOptions(*cliParams);
 
       try {
         runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap,
