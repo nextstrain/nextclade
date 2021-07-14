@@ -99,6 +99,8 @@ namespace Nextclade {
     auto app = CLI::App(appDescription);
     auto* root = &app;
 
+    // Allows to avoid running root command is any of the subcommands ran
+    auto hasRanSubcommand = std::make_shared<bool>(false);
 """
 
 ##########
@@ -272,6 +274,19 @@ def generate_cpp_code_recursive(parent, parents, command, cpp):
     if callback_name is not None:
 
         callback_body = f"callbacks.{callback_name}({params_var_name});"
+        if command_name == "root":
+            callback_body = f"""
+                // only run root callback if none of the commands ran
+                if(!*hasRanSubcommand) {{
+                    {callback_body}
+                }}
+            """
+        else:
+            callback_body = f"""
+                {callback_body}
+                // only run root callback if none of the commands ran
+                *hasRanSubcommand = true;
+            """
 
         cpp += f"""
         {command_name}->callback([{params_var_name}, callbacks]() {{
