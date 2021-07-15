@@ -67,11 +67,11 @@ This step only runs if a PCR primer table is provided. It can fail if PCR primer
 ### 6. Phylogenetic placement
 
 After reference alignment and mutation calling, Nextclade places each sequence on a phylogenetic tree.
-The root of this phylogenetic tree HAS to be the same as the reference (root) sequence.
-The phylogenetic placement is achieved by comparing the mutations of the query sequence relative to the reference to the mutations of every node in the tree and finding the closest match.
-Mutation that separate the query sequence and the closest match are designated "private mutations" and are used as an additional QC metric.
-Sequencing errors and sequence assembly problems are expected to give rise to such rare 'private' and an excess of such mutations is therefor a useful QC metric.
-In addition to the overall number of such private mutations, Nextclade also assesses whether they cluster in specific regions of the genome, as such clusters are again indicative of quality issues.
+The root of this phylogenetic tree *must* be the same as the reference (root) sequence.
+Phylogenetic placement is done by comparing the mutations of the query sequence (relative to the reference) with the mutations of every node and tip in the tree and finding the closest match.
+Mutations that separate the query sequence and the closest match are designated "private mutations". 
+Sequencing errors and sequence assembly problems are expected to give rise to more private mutations than usual. Thus, an excess of such mutations is a useful quality control (QC) metric.
+In addition to the overall number of such private mutations, Nextclade also assesses whether they cluster in specific regions of the genome, as such clusters give more fine grained indications of potential quality issues.
 
 ### 7. Clade assignment
 
