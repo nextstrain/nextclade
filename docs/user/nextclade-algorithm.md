@@ -32,7 +32,7 @@ Note: analysis steps that follow alignment will ignore regions before and after 
 
 ### 2. Translation
 
-In order to detect changes in protein structure of the virus, aminoacid sequences (peptides) need to be computed from the nucleotide sequence regions corresponding to [genes](https://en.wikipedia.org/wiki/Gene). This process is called [translation](<https://en.wikipedia.org/wiki/Translation_(biology)>). Peptides then need to be aligned, in order to make them comparable, similarly to how it's done with nucleotide sequences.
+In order to detect changes in viral proteins, aminoacid sequences (peptides) need to be computed from the nucleotide sequence regions corresponding to [genes](https://en.wikipedia.org/wiki/Gene). This process is called [translation](<https://en.wikipedia.org/wiki/Translation_(biology)>). Protein sequences then need to be aligned, in order to make them comparable, similarly to how it's done with nucleotide sequences.
 
 Nextclade performs translation separately for every gene (the list of genes to be considered for translation is configurable).
 Genes are specified via a genome annotation in GFF3 format (gene map).
@@ -42,13 +42,12 @@ This step only runs if a `gene-map` is provided.
 
 ### 3. Nucleotide mutation calling and statistics
 
-Aligned nucleotide sequence are compared against reference sequence.
-Mismatches are noted and later reported as mutations: in case the nucleotide has changed to `-`
-(a "gap", meaning that the nucleotide was present in reference sequence, but is not present in the query sequence), a nucleotide deletion is reported, otherwise a nucleotide substitution (for example a change from `A` to `G`).
-Insertions in the query sequence are stripped from the alignment and kept in a separate data structure linking the position in the reference after which the insertion occured to the sequence that was inserted like `{22030: 'ACT'}`.
-These insertions are optionally written to a tabular file.
+Aligned nucleotide sequences are compared one-by-one with the reference sequence.
+Mismatches between the query and reference sequences are indicated differently, depending on their nature:
+Nucleotide deletions ("gaps", meaning that a nucleotide was such as `A` was present in the reference sequence, but is not present in the query sequence) are indicated by `-` in the alignment output. Substitutions (for example a change from `A` in the reference sequence to `G` in the query sequence) are also visible directly in the alignment output.
+Insertions (additional nucleotides in the query sequence that were not present in the reference sequence) are stripped from the alignment and reported in a separate output file, linking the position in the reference after which the insertion occured to the sequence that was inserted. `{22030: 'ACT'}` would indicate that the query sequence has the three bases `ACT` inserted between position `22030` and `22031` in the reference sequence.
 
-Nextclade also gathers and reports other useful statistics, such as all contiguous ranges of `N` (missing) and non-ACGTN (ambiguous) nucleotides, as well as total numbers of substitutions, deletions, missing and ambiguous nucleotides.
+Nextclade also gathers and reports other useful statistics, such as the number of contiguous ranges of `N` (missing) and non-ACGTN (ambiguous) nucleotides, as well as the total counts of substituted, deleted, missing and ambiguous nucleotides.
 
 ### 4. Aminoacid mutation calling and statistics
 
@@ -58,12 +57,12 @@ This step only runs if gene map is provided.
 
 ### 5. PCR primer changes detection
 
-[Polymerase chain reaction (PCR)](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) uses small nucleotide sequence snippets, [complementary](<https://en.wikipedia.org/wiki/Complementarity_(molecular_biology)>) to a specific region of the virus genome. Complementarity is essential for PCR to work, and changes in the virus genome can interfere with the process. If provided with a table of PCR primers (in CSV format), Nextclade can analyze these regions in sequences and detect and report changes.
+[Polymerase chain reactions (PCR)](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) uses small nucleotide sequence snippets called primers that are [complementary](<https://en.wikipedia.org/wiki/Complementarity_(molecular_biology)>) to a specific region of the virus genome. A high similarity between primers and the genome region they are supposed to bind to is essential for PCRs to work. Changes in the virus genome can interfere with this requirement. If Nextclade is provided with a table of PCR primers (in CSV format), Nextclade can analyze these regions in query sequences and report changes that may indicate reduced primer binding.
 
 For each primer, Nextclade finds and records a corresponding range in the reference sequence.
-Later, it verifies if any of the mutations in aligned query sequence (found during "Nucleotide mutation calling" step) fall to any of these ranges, and if so, reports these mutations as PCR primer changes.
+It then verifies if any of the mutations in the aligned query sequence (identified in the "Nucleotide mutation calling" step) fall in any of these primer ranges, and if so, reports these mutations as PCR primer changes.
 
-This step only runs if PCR primers table is provided. It can fail if PCR primers provided don't correspond to the reference sequence used.
+This step only runs if a PCR primer table is provided. It can fail if PCR primers provided do not have high similarity with any part of the reference sequence.
 
 ### 6. Phylogenetic placement
 
