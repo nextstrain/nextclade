@@ -85,7 +85,7 @@ Note: Nextclade only considers those clades which are present in the reference t
 
    <!-- TODO: Possibly update this section -->
 
-At the moment of writing Nextstrain defines 11 major clades (see [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming) for details):
+By the end of 2020, Nextstrain had defined 11 major clades (see [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming) for details):
 
 - 19A and 19B emerged in Wuhan and have been dominating the early outbreak
 
@@ -97,7 +97,7 @@ At the moment of writing Nextstrain defines 11 major clades (see [this blog post
 
    <!-- TODO: add clade schema -->
 
-You can find the exact clade definitions in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).
+You can find the exact, up-to-date clade definitions in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).
 
 ### 8. Quality Control (QC)
 
