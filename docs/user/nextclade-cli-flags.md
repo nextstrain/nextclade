@@ -1,14 +1,15 @@
 
 # Nextclade Command-line interface (CLI)
 
-Nextclade CLI is available as a self-contained executable for the most popular platforms.
+Nextclade CLI is available as a self-contained executable for Linux and Mac (both Intel and ARM).
 
 The latest downloads are available at https://github.com/nextstrain/nextclade/releases
+
+<!--- Add information on npm install -->
 
 Docker container images are available at https://hub.docker.com/r/nextstrain/nextclade
 
 After obtaining the Nextclade CLI, type `nextclade --help` to display built-in help with the description of command-line flags and usage example.
-
 
 ## Inputs
 
@@ -16,74 +17,76 @@ After obtaining the Nextclade CLI, type `nextclade --help` to display built-in h
 
 Nextclade expects the following input data:
 
-- (required) Sequences to be analyzed.
+- (required) Path of query sequences to be analyzed.
 
-  CLI flag: `--input-fasta`
-
-  Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text (one sequence per line).
-
-- (required) Reference (root) sequence. Required to be the root of the provided reference phylogenetic tree (see below).
-
-  CLI flag: `--input-root-sequence`
-
-  It is used as a reference for alignment and for mutation calling. Reference sequence is expected to be of a very high quality, preferably a complete (fill length of the genome, no missing data) and unambiguous (no ambiguous nucleotides).
+  CLI flag: `(-i | --input-fasta) PATH`
 
   Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text (one sequence per line).
 
-- (required) Reference phylogenetic tree, rooted at the reference (root) sequence.
+- (required) Path of reference (root) sequence. Required to be the root of the provided reference phylogenetic tree (see below).
 
-  CLI flag: `--input-tree`
+  CLI flag: `(-r | --input-root-sequence) PATH`
 
-  It is used to assign clades and as a target for phylogenetic placement. The tree is expected to be sufficiently diverse and to meet clade assignment expectations of a particular use-case, study or experiment. Only clades present on the reference tree will be assigned. For more details see "Clade assignment" and "Phylogenetic placement" sections below).
+  It is used as a reference for alignment and for mutation calling. The reference sequence is expected to be of a very high quality, preferably complete and unambiguous (spans entire genome and has no ambiguous nucleotides).
 
-  Accepted formats: Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain (produced by Augur and consumed by Auspice).
+  Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text (one sequence on one line).
+<!--- Do you need to provided exactly one sentence? -->
 
-- (required) Quality control configuration.
+- (required) Path of phylogenetic reference tree, rooted at the reference sequence specified by `-r`.
 
-  CLI flag: `--input-qc-config`
+  CLI flag: `(-a | --input-tree) PATH`
+
+  The reference tree is used to assign clades and as a target for phylogenetic placement. The tree is expected to be sufficiently diverse and to meet clade assignment expectations of a particular use-case, study or experiment. Only clades present on the reference tree will be assigned. For more details see "Clade assignment" and "Phylogenetic placement" sections below.
+
+  Accepted formats: Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain (produced by Augur and consumed by Auspice). The tree *must* contain a clade definition for every tip and internal node.
+
+- (required) Path to quality control configuration file.
+<!--- In the CLI options `nextclade --help` this is optional, not required -->
+  CLI flag: `(-q | --input-qc-config) PATH`
 
   A set of parameters and thresholds used to configure the QC checks. These should be tuned for the particular study or experiment, considering quality and tolerances of sequencing results of a given laboratory.
 
   Accepted formats: JSON
+  <!--- What are the possible parameters and thresholds that can be set? -->
 
-- (optional, recommended) Gene map (genome annotations) - a table describing the genes of the virus (frame, position, etc.).
+- (optional, recommended) Path to gene map (genome annotations) - a table describing the genes of the virus (frame, position, etc.).
 
-  CLI flag: `--input-gene-map`
+  CLI flag: `(-g | --input-gene-map) PATH`
 
-  It is used for the improved codon-aware alignment, for gene translation, calling of aminoacid mutations. Without Gene map, peptides will not be output and aminoacid mutations will not be detected. Also, without Gene map the nucleotide alignment step will not be informed by the codon information.
+  The gene map is required for codon-aware alignment, for gene translation and calling of aminoacid mutations. Without gene map, peptides will not be output and aminoacid mutations will not be detected. Also, without gene map the nucleotide alignment step will not be informed by codon information.
 
   Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)
 
-- (required) Only in CLI. A subset of genes to use during analysis.
+- (required only in CLI). A subset of genes to use during analysis.
+ <!--- only in CLI is confusing, because this is the CLI documentation, so kind of redundant -->
+  CLI flag: `--genes "A [,B [,...]]"`
+  <!--- Shouldn't we add an alternative here, like --all-genes ?-->
 
   Only these genes will be translated and only in these genes the aminoacid mutations will be detected.
 
   Accepted formats: comma-delimited list of gene names. All gene names in the list MUST be present in the gene map (see `--input-gene-map`).
 
-  CLI flag: `--genes`
+- (optional) Path to a csv file of PCR primers - a table that describes a set of PCR primers that might be used for PCR tests of the virus.
 
-- (optional) Table of PCR primers - a table that describes a set of PCR primers that might be used for PCR tests of the virus.
+  CLI flag: `(-p | --input-pcr-primers) PATH`
 
-  CLI flag: `--input-pcr-primers`
+  Used to detect changes in PCR primer regions. Without this table these checks will not be performed.
 
-  Used to detect changes in PCR primer regions. Without this table these checks will not be  performed.
+  Accepted formats: CSV with the following 4 columns "Institute (Country),TargetGene,PrimerName,Sequence"
 
-  Accepted formats: CSV
-
-  Note: the primers are processed differently depending on the primer type. The type is deduced from the primer's name suffix. Conventions that are used:
+  Note: the primers are processed differently depending on the primer type. The type is deduced from the suffix of primer's name (3rd column). Conventions that are used:
 
   - `_F` - forward primer
   - `_R` - reverse primer
   - `_P` - probe
 
+<!--- Need to add CLI options for: jobs, output files -->
+
 ### Example data
 
-Nextclade GitHub repository contains example data in the `data/` directory. Maintainers periodically update these files (including the reference trees), and these is the recommended starting point for your experiments.
+Nextclade's GitHub repository contains example data in the `data/` directory. The maintainers periodically update these files (including the reference trees), and this is the recommended starting point for your experiments.
 
 https://github.com/nextstrain/nextclade/tree/master/data
-
-
-
 
 ## Results and interpretation
 
