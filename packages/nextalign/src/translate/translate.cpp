@@ -13,7 +13,6 @@ AminoacidSequence translate(const NucleotideSequenceView& seq) {
   const int seqLength = safe_cast<int>(seq.size());
   const int peptideLength = seqLength / 3;
 
-
   AminoacidSequence peptide(peptideLength, Aminoacid::GAP);
   for (int i_aa = 0; i_aa < peptideLength; ++i_aa) {
     const auto i_nuc = i_aa * 3;
@@ -22,9 +21,16 @@ AminoacidSequence translate(const NucleotideSequenceView& seq) {
 
     invariant_less(i_aa, peptide.size());
     peptide[i_aa] = aminoacid;
+    if (aminoacid==Aminoacid::STOP) {
+      for (int j_aa = i_aa+1; j_aa < peptideLength; ++j_aa) {
+          peptide[j_aa] = Aminoacid::X;
+      }
+      break;
+    }
   }
 
-  postcondition_equal(peptide.size(), peptideLength);
-  postcondition_equal(seq.size(), peptide.size() * 3);
+  // I'd like to return the truncated peptide here.
+  //postcondition_equal(peptide.size(), peptideLength);
+  //postcondition_equal(seq.size(), peptide.size() * 3);
   return peptide;
 }

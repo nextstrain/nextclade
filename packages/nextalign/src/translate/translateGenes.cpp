@@ -81,7 +81,24 @@ PeptidesInternal translateGenes(         //
     }
 
     auto refPeptide = translate(*extractRefGeneStatus.result);
-    const auto queryPeptide = translate(*extractQueryGeneStatus.result);
+    auto queryPeptide = translate(*extractQueryGeneStatus.result);
+    const int queryLength = extractQueryGeneStatus.result->size();
+    const int expectedPeptideLength = queryLength / 3;
+    const int peptideLength = queryPeptide.size();
+
+    // I wanted to check for a truncated peptide here, but translate
+    // returns a gap-padded (now X-padded) full length peptide
+    // if (expectedPeptideLength>peptideLength){
+    //   queryPeptide.resize(expectedPeptideLength);
+      // for (int j_aa = queryPeptide.size()+1; j_aa < expectedPeptideLength; ++j_aa) {
+      //     queryPeptide[j_aa] = Aminoacid::X;
+      // }
+    // this is a hack, as it will also trigger in cases where the nucleotide sequence is `NNN`
+    // if (queryPeptide[queryPeptide.size()-1]==Aminoacid::X){
+    //   const auto message = fmt::format("When processing gene \"{:s}\": permature STOP codon.", geneName);
+    //   warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
+    // }
+
     const auto geneAlignmentStatus =
       alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
 
