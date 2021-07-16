@@ -314,6 +314,9 @@ class LibcurlConan(ConanFile):
         if self._has_zstd_option:
             params.append("--with-zstd={}".format(yes_no(self.options.with_zstd)))
 
+        if self.settings.os == "Linux" and not self.options.shared:
+            params.append("--host=x86_64-linux-musl")
+
         # Cross building flags
         if tools.cross_building(self.settings):
             if self.settings.os == "Linux" and "arm" in self.settings.arch:

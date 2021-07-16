@@ -265,9 +265,9 @@ function get_cli() {
   CLI_EXE="${NAME}-${HOST_OS}-${HOST_ARCH}"
 
   CLI="${CLI_DIR}/${CLI_EXE}"
-#  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-#    CLI=${INSTALL_DIR}/bin/${CLI_EXE}
-#  fi
+  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+    CLI=${INSTALL_DIR}/bin/${CLI_EXE}
+  fi
 
   echo "${CLI}"
 }
@@ -283,7 +283,7 @@ fi
 DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 
 # Whether to build a standalone static executable
-NEXTALIGN_STATIC_BUILD_DEFAULT=1
+NEXTALIGN_STATIC_BUILD_DEFAULT=0
 if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
 elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "TSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
@@ -293,7 +293,6 @@ NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAUL
 
 CONAN_STATIC_BUILD_FLAGS="\
   -o cpr:with_ssl=openssl \
-  -o gtest:hide_symbols=True \
   -o libcurl:with_c_ares=True \
   -o libcurl:with_ssl=openssl \
   -o libcurl:with_zlib=True \
@@ -326,7 +325,8 @@ CONAN_STATIC_BUILD_FLAGS="\
 # Add flags necessary for static build
 CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True -o fmt:header_only=True"
 CONAN_TBB_STATIC_BUILD_FLAGS=""
-if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
+TARGET_TRIPLET="x86_64-linux-gnu"
+if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   CONAN_STATIC_BUILD_FLAGS="\
     ${CONAN_STATIC_BUILD_FLAGS} \
     -o c-ares:shared=False \
@@ -338,38 +338,13 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" ==
     -o zlib:shared=False \
     -o poco:shared=False \
   "
-#     -o cpr:fPIC=False \
-#    -o libcurl:fPIC=False \
-#    -o c-ares:fPIC=False \
 
   CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
-fi
 
+  if [ "${HOST_OS}" == "Linux" ]  && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
 
-if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
+  # Download libmusl-based GCC
   GCC_DIR="${PROJECT_ROOT_DIR}/.cache/gcc"
-  target_host=x86_64-linux-musl
-  cc_compiler=gcc
-  cxx_compiler=g++
-
-  export CONAN_CMAKE_FIND_ROOT_PATH="${GCC_DIR}"
-  export CHOST="$GCC_DIR/bin/$target_host"
-  export AR="$GCC_DIR/bin/$target_host-ar"
-  export AS="$GCC_DIR/bin/$target_host-as"
-  export RANLIB="$GCC_DIR/bin/$target_host-ranlib"
-  export CC="$GCC_DIR/bin/$target_host-$cc_compiler"
-  export CXX="$GCC_DIR/bin/$target_host-$cxx_compiler"
-  export STRIP="$GCC_DIR/bin/$target_host-strip"
-  export LD="$GCC_DIR/bin/$target_host-ld"
-  export NM="$GCC_DIR/bin/$target_host-nm"
-  export OBJCOPY="$GCC_DIR/bin/$target_host-objcopy"
-  export OBJDUMP="$GCC_DIR/bin/$target_host-objdump"
-  export STRIP="$GCC_DIR/bin/$target_host-strip"
-
-  export LDFLAGS="-static"
-  export PKG_CONFIG="pkg-config --static"
-  export curl_LDFLAGS=-all-static
-
   if [ ! -f "${GCC_DIR}/bin/x86_64-linux-musl-gcc" ]; then
     mkdir -p "${GCC_DIR}"
     pushd "${GCC_DIR}" >/dev/null
@@ -379,12 +354,66 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
     popd >/dev/null
   fi
 
+  export PATH="${GCC_DIR}/bin:${PATH}"
+
+  TARGET_TRIPLET="x86_64-linux-musl"
+  export CONAN_CMAKE_SYSROOT="${GCC_DIR}"
+  export CONAN_CMAKE_FIND_ROOT_PATH="${GCC_DIR}"
+
+  pushd "${GCC_DIR}/bin" >/dev/null
+    if [ ! -e "gcc" ]    ; then ln -s "${TARGET_TRIPLET}-gcc" gcc           ;fi
+    if [ ! -e "g++" ]    ; then ln -s "${TARGET_TRIPLET}-g++" g++           ;fi
+    if [ ! -e "ar" ]     ; then ln -s "${TARGET_TRIPLET}-gcc-ar" ar         ;fi
+    if [ ! -e "nm" ]     ; then ln -s "${TARGET_TRIPLET}-gcc-nm" nm         ;fi
+    if [ ! -e "ranlib" ] ; then ln -s "${TARGET_TRIPLET}-gcc-ranlib" ranlib ;fi
+    if [ ! -e "as" ]     ; then ln -s "${TARGET_TRIPLET}-as" as             ;fi
+    if [ ! -e "strip" ]  ; then ln -s "${TARGET_TRIPLET}-strip" strip       ;fi
+    if [ ! -e "ld" ]     ; then ln -s "${TARGET_TRIPLET}-ld" ld             ;fi
+    if [ ! -e "objcopy" ]; then ln -s "${TARGET_TRIPLET}-objcopy" objcopy   ;fi
+    if [ ! -e "objdump" ]; then ln -s "${TARGET_TRIPLET}-objdump" objdump   ;fi
+  popd >/dev/null
+
+  export CHOST="${TARGET_TRIPLET}"
+  export CC="${GCC_DIR}/bin/gcc"
+  export CXX="${GCC_DIR}/bin/g++"
+  export AR="${GCC_DIR}/bin/ar"
+  export NM="${GCC_DIR}/bin/nm"
+  export RANLIB="${GCC_DIR}/bin/ranlib"
+  export AS="${GCC_DIR}/bin/as"
+  export STRIP="${GCC_DIR}/bin/strip"
+  export LD="${GCC_DIR}/bin/ld"
+  export OBJCOPY="${GCC_DIR}/bin/objcopy"
+  export OBJDUMP="${GCC_DIR}/bin/objdump"
+
+  export CMAKE_TOOLCHAIN_FILE="${PROJECT_ROOT_DIR}/config/cmake/musl.toolchain.cmake"
+  export CONAN_CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}"
+
+  export AC_CANONICAL_HOST="${TARGET_TRIPLET}"
+
   CONAN_STATIC_BUILD_FLAGS="\
     ${CONAN_STATIC_BUILD_FLAGS} \
-    --profile ${PROJECT_ROOT_DIR}/config/conan/conan_profile_gcc_musl.txt \
+    -e PATH=${PATH} \
+    -e CHOST=${CHOST} \
+    -e HOST=${TARGET_TRIPLET} \
+    -e AC_CANONICAL_HOST=${TARGET_TRIPLET} \
+    -e CC=${CC} \
+    -e CXX=${CXX} \
+    -e AS=${AS} \
+    -e AR=${AR} \
+    -e RANLIB=${RANLIB} \
+    -e STRIP=${STRIP} \
+    -e LD=${LD} \
+    -e NM=${NM} \
+    -e OBJCOPY=${OBJCOPY} \
+    -e OBJDUMP=${OBJDUMP} \
+    -e STRIP=${STRIP} \
+    -s os=Linux \
+    -s arch=x86_64 \
+    -s compiler=gcc \
+    -s compiler.libcxx=libstdc++11 \
   "
+  fi
 fi
-
 
 if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   NEXTALIGN_BUILD_BENCHMARKS=0
@@ -462,7 +491,7 @@ if command -v "cppcheck"; then
   while IFS='' read -r flag; do
     CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
   done<"${THIS_DIR}/../.cppcheck"
-fi
+fi > /dev/null
 
 # Print coloured message
 function print() {
@@ -528,6 +557,21 @@ echo "BUILD_DIR                = ${BUILD_DIR:=}"
 echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
 echo "NEXTALIGN_CLI            = ${NEXTALIGN_CLI}"
 echo "NEXTCLADE_CLI            = ${NEXTCLADE_CLI}"
+
+if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ] && [ "${HOST_OS}" == "Linux" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
+echo ""
+echo "CC                       = $(which ${CC})"
+echo "CXX                      = $(which ${CXX})"
+echo "AR                       = $(which ${AR})"
+echo "AS                       = $(which ${AS})"
+echo "RANLIB                   = $(which ${RANLIB})"
+echo "LD                       = $(which ${LD})"
+echo "NM                       = $(which ${NM})"
+echo "OBJCOPY                  = $(which ${OBJCOPY})"
+echo "OBJDUMP                  = $(which ${OBJDUMP})"
+echo "STRIP                    = $(which ${STRIP})"
+fi
+
 echo "-------------------------------------------------------------------------"
 
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
@@ -548,8 +592,10 @@ fi
 # Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
-#conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
-
+CONAN_V2_MODE=1 conan config init
+if [ "${HOST_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
+  printf "\n\nlibc: [None, \"glibc\", \"musl\"]\n" >> "${PROJECT_ROOT_DIR}/.cache/.conan/settings.yml"
+fi
 
 function conan_create_custom_package() {
   # This will build a local conan package (from `$PACKAGE_PATH`) and put it into local conan cache
@@ -633,6 +679,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS} \
     -DNEXTCLADE_BUILD_WASM=${NEXTCLADE_BUILD_WASM} \
     -DNEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS="${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS}" \
+    -DBUILD_SHARED_LIBS="${NEXTALIGN_STATIC_BUILD}" \
     ${MORE_CMAKE_FLAGS}
 
   print 12 "Build";
@@ -662,6 +709,19 @@ pushd "${BUILD_DIR}" > /dev/null
 
     print 28 "Print executable info";
     file ${CLI}
+
+    if [ "${BUILD_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
+      LINKAGE=$(ldd ${CLI} | awk '{$1=$1};1')
+      OBJDUMP_RESULT="$(objdump -p ${CLI} || true)"
+      function c1grep() { grep "$@" || test $? = 1; }
+      NEEDED="$( echo "${OBJDUMP_RESULT}" | c1grep -e 'NEEDED' -e 'RPATH')"
+      if [ "${LINKAGE}" != "statically linked" ] || [ "${NEEDED}" != "" ]; then
+        echo "Error: Executable is not statically linked: '${CLI}'."
+        echo "Objdump:"
+        echo "${NEEDED}"
+        exit 1
+      fi
+    fi
   }
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
@@ -698,29 +758,26 @@ if [ "${CROSS}" == "1" ]; then
 fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
-
-#  if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
-#
-#     if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
-#       print 23 "Run Nextalign tests";
-#       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-#     fi
-#
-#    if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
-#      print 23 "Run Nextclade tests";
-#      eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-#    fi
-#  fi
+   if [ ${CMAKE_BUILD_TYPE} != "Release" ] && [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
+     if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
+       print 23 "Run Nextalign tests";
+       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+     fi
+     if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
+       print 23 "Run Nextclade tests";
+       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+     fi
+   fi
 
   if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
     # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
     ulimit -s unlimited
   fi
 
-#   if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-#     print 27 "Run Nextalign CLI";
-#     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-#   fi
+   if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+     print 27 "Run Nextalign CLI";
+     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+   fi
 
    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
      print 27 "Run Nextclade CLI";
