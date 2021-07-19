@@ -29,8 +29,27 @@ Nextclade implements a variety of quality control metrics to quickly spot proble
 
 Every icon corresponds to a different metric.
 
-### Clades
+<!--- TODO: Describe metrics -->
+
+### Table data
+
+Nextclade automatically infers the (probable) clade a sequence belongs to and displays the result in the table. Clades are determined by identifying the clade of the neares neighbour on a reference tree. 
+
+The result table further displays for each sequence: 
+- "Mut.": number of mutations with respect to the root of the reference tree
+- "non-ACGTN": number of ambiguous nucleotides that are not *N*
+- "Ns": number of missing nucleotides indicated by *N*
+- "Gaps": number of nucleotides that are deleted with respect to the reference sequence
+- "Ins.": number of nucleotides that are inserted with respect to the reference sequence
+
+Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference. Changes in bases that are used by common primers are also displayed.
 
 ### Alignment viewer
 
 ### Tree
+
+### Download data
+
+### Custom upload
+
+
