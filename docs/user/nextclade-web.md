@@ -15,3 +15,22 @@ The quickest way to explore Nextclade web is to open [clades.nextstrain.org](htt
 
 ![Show me an exmaple](assets/web_show-example.png)
 
+If you decide to use your own data, you can choose between a file upload, a link to a file on the internet or simply pate from a clipboard. For now, only SARS-CoV-2 sequences are supported.
+
+## Analysis
+
+Nextclade now analysis your sequences locally, right in your Browser, with results appearing sequence by sequence.
+
+### QC metrics
+
+Nextclade implements a variety of quality control metrics to quickly spot problems in your sequencing/assembly pipeline. You can get a quick idea which of your sequences are having problems by sorting the results table from bad to good (click on the upper arrow in the column QC). Bad sequences are colored red, mediocre ones yellow and good ones white. You can view detailed results of the QC metrics by hovering your mouse over a sequences QC entry:
+
+![QC hover](assets/web_QC.png)
+
+Every icon corresponds to a different metric.
+
+### Clades
+
+### Alignment viewer
+
+### Tree
