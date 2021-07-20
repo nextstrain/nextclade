@@ -334,6 +334,8 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   TARGET_TRIPLET="x86_64-linux-musl"
   export CONAN_CMAKE_SYSROOT="${GCC_DIR}"
   export CONAN_CMAKE_FIND_ROOT_PATH="${GCC_DIR}"
+  export C_INCLUDE_PATH="${GCC_DIR}/x86_64-linux-musl/include:${LD_LIBRARY_PATH}"
+  export LD_LIBRARY_PATH="${GCC_DIR}/x86_64-linux-musl/lib:${LD_LIBRARY_PATH}"
 
   pushd "${GCC_DIR}/bin" >/dev/null
     if [ ! -e "gcc" ]    ; then ln -s "${TARGET_TRIPLET}-gcc" gcc           ;fi
@@ -606,7 +608,7 @@ print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
 CONAN_V2_MODE=1 conan config init
 if [ "${HOST_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
-  printf "\n\nlibc: [None, \"glibc\", \"musl\"]\n" >> "${CONAN_USER_HOME}/settings.yml"
+  printf "\n\nlibc: [None, \"glibc\", \"musl\"]\n" >> "${CONAN_USER_HOME}/.conan/settings.yml"
 fi
 
 function conan_create_custom_package() {
