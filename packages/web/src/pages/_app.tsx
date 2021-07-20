@@ -9,7 +9,7 @@ import 'src/helpers/functionPrototypeTojson' // to visualize Function in Redux D
 
 import { enableES5 } from 'immer'
 
-import React, { useEffect, useState, Suspense } from 'react'
+import React, { useEffect, useState, Suspense, useMemo } from 'react'
 
 import { AppProps } from 'next/app'
 import type { Store } from 'redux'
@@ -22,6 +22,8 @@ import { Provider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
 import { PersistGate } from 'redux-persist/integration/react'
 import { MDXProvider } from '@mdx-js/react'
+import { QueryClient, QueryClientProvider } from 'react-query'
+import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { initialize } from 'src/initialize'
 import i18n from 'src/i18n/i18n'
@@ -42,6 +44,7 @@ export interface AppState {
 }
 
 export default function MyApp({ Component, pageProps, router }: AppProps) {
+  const queryClient = useMemo(() => new QueryClient(), [])
   const [state, setState] = useState<AppState | undefined>()
 
   useEffect(() => {
@@ -64,13 +67,16 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
         <ConnectedRouter>
           <ThemeProvider theme={theme}>
             <MDXProvider components={{ a: LinkExternal }}>
-              <PersistGate loading={null} persistor={persistor}>
-                <I18nextProvider i18n={i18n}>
-                  <SEO />
-                  <Component {...pageProps} />
-                  <ErrorPopup />
-                </I18nextProvider>
-              </PersistGate>
+              <QueryClientProvider client={queryClient}>
+                <PersistGate loading={null} persistor={persistor}>
+                  <I18nextProvider i18n={i18n}>
+                    <SEO />
+                    <Component {...pageProps} />
+                    <ErrorPopup />
+                    <ReactQueryDevtools initialIsOpen={false} />
+                  </I18nextProvider>
+                </PersistGate>
+              </QueryClientProvider>
             </MDXProvider>
           </ThemeProvider>
         </ConnectedRouter>

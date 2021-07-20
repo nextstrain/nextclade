@@ -1,9 +1,8 @@
 #include <nextclade/nextclade.h>
+#include <nextclade_json/nextclade_json.h>
 
 #include <nlohmann/json.hpp>
 #include <string>
-
-#include "jsonStringify.h"
 
 namespace Nextclade {
   using json = nlohmann::ordered_json;

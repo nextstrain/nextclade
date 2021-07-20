@@ -12,10 +12,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
+find_package(CLI11 1.9.1 REQUIRED)
 find_package(TBB REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
+find_package(date 3.0.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
+find_package(jemalloc 5.2.1 REQUIRED)
+find_package(semver 0.3.0 REQUIRED)
 
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   if (MINGW)
@@ -37,9 +41,26 @@ if (APPLE)
 endif ()
 
 add_executable(${PROJECT_NAME}
-  src/cli.cpp
+  src/algorithm/runNextclade.cpp
+  src/algorithm/runNextclade.h
+  src/commands/commands.h
+  src/commands/executeCommandDatasetFetch.cpp
+  src/commands/executeCommandDatasetList.cpp
+  src/commands/executeCommandRoot.cpp
+  src/commands/executeCommandRun.cpp
   src/description.h
-  src/filesystem.h
+  src/generated/cli.cpp
+  src/generated/cli.h
+  src/io/Logger.h
+  src/io/filesystem.h
+  src/io/format.h
+  src/io/getNextalignOptions.h
+  src/io/getPaths.h
+  src/io/parseGeneMapGffFile.h
+  src/io/parseRefFastaFile.h
+  src/io/readFile.h
+  src/main.cpp
+  src/malloc_conf.h
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY
@@ -65,19 +86,26 @@ target_include_directories(${PROJECT_NAME} SYSTEM
   PRIVATE
   "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
   "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
+  "${CMAKE_SOURCE_DIR}/3rdparty/json/include"
   )
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-  nextclade
 
   PRIVATE
+  ${STATIC_BUILD_FLAGS}
   Boost::headers
+  CLI11::CLI11
   TBB::tbb
   cxxopts::cxxopts
+  date::date
   fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
-  ${STATIC_BUILD_FLAGS}
+  semver::semver
+  jemalloc::jemalloc
+
+  nextclade_common
+  nextclade
   )
 
 install(

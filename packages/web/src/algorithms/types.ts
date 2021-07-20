@@ -148,18 +148,6 @@ export interface QcConfig {
   stopCodons: QCRulesConfigStopCodons
 }
 
-export interface Virus {
-  name: string
-  minimalLength: number
-  queryStr: string
-  treeJson: string
-  refFastaStr: string
-  qcConfigRaw: string
-  qcConfigJson: QcConfig
-  geneMapStrRaw: string
-  pcrPrimersStrRaw: string
-}
-
 export interface ClusteredSNPs {
   start: number
   end: number
@@ -301,3 +289,49 @@ export interface Warnings {
   global: string[]
   inGenes: GeneWarning[]
 }
+
+export interface DatasetsSettings {
+  defaultDatasetName: string
+  defaultDatasetNameFriendly: string
+}
+
+export interface DatasetFiles {
+  geneMap: string
+  primers: string
+  qc: string
+  reference: string
+  sequences: string
+  tree: string
+  [k: string]: string
+}
+
+export interface DatasetVersion {
+  datetime: string
+  comment: string
+  compatibility: {
+    nextcladeCli: {
+      min?: string
+      max?: string
+    }
+    nextcladeWeb: {
+      min?: string
+      max?: string
+    }
+  }
+  files: DatasetFiles
+  zipBundle: string
+}
+
+export interface Dataset {
+  name: string
+  nameFriendly: string
+  description: string
+  versions: DatasetVersion[]
+}
+
+export interface DatasetsJson {
+  settings: DatasetsSettings
+  datasets: Dataset[]
+}
+
+export interface DatasetFlat extends Dataset, DatasetVersion {}

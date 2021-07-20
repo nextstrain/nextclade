@@ -2,7 +2,7 @@ export UID=$(shell id -u)
 export GID=$(shell id -g)
 
 clean:
-	rm -rf .build .out tmp packages/web/.build packages/web/src/generated
+	rm -rf .build .out tmp packages/nextclade_cli/src/generated packages/nextalign_cli/src/generated packages/web/.build packages/web/src/generated
 
 cleanest: clean
 	rm -rf .cache packages/web/.cache
@@ -75,6 +75,9 @@ prod-wasm-nowatch:
 
 dev-web:
 	cd packages/web && yarn dev
+
+serve-data:
+	cd packages/web && yarn serve-data
 
 prod-web:
 	cd packages/web && yarn install && yarn prod:watch

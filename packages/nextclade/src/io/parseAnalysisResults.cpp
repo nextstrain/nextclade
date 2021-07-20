@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
+#include <nextclade_json/nextclade_json.h>
 #include <utils/mapFind.h>
 
 #include <nlohmann/json.hpp>
@@ -15,11 +16,6 @@ namespace Nextclade {
   using json = nlohmann::ordered_json;
   using json_pointer = json::json_pointer;
 
-  class ErrorAnalysisResultsKeyNotFound : public ErrorNonFatal {
-  public:
-    explicit ErrorAnalysisResultsKeyNotFound(const std::string& key)
-        : ErrorNonFatal(fmt::format("Key not found: \"{:s}\"", key)) {}
-  };
 
   class ErrorAnalysisResultsRootTypeInvalid : public ErrorNonFatal {
   public:
@@ -27,41 +23,12 @@ namespace Nextclade {
         : ErrorNonFatal(fmt::format("Expected to find an object as the root entry, but found \"{:s}\"", type)) {}
   };
 
-  ErrorJsonTypeInvalid::ErrorJsonTypeInvalid(const std::string& key, const std::string& typeExpected,
-    const std::string& typeActual)
-      : ErrorNonFatal(fmt::format("When parsing property \"{:s}\": Expected "
-                                  "to find \"{:s}\", but found \"{:s}\"",
-          key, typeExpected, typeActual)) {}
 
   class ErrorAnalysisResultsQcStatusInvalid : public ErrorNonFatal {
   public:
     explicit ErrorAnalysisResultsQcStatusInvalid(const std::string& statusStr)
         : ErrorNonFatal(fmt::format("QC status not recognized: \"{:s}\"", statusStr)) {}
   };
-
-  const json& at(const json& j, const json_pointer& jptr) {
-    if (!j.is_object()) {
-      throw ErrorAnalysisResultsKeyNotFound(jptr.to_string());
-    }
-
-    if (!j.contains(jptr)) {
-      throw ErrorAnalysisResultsKeyNotFound(jptr.to_string());
-    }
-
-    return j[jptr];
-  }
-
-  const json& at(const json& j, const std::string& key) {
-    if (!j.is_object()) {
-      throw ErrorAnalysisResultsKeyNotFound(key);
-    }
-
-    if (!j.contains(key)) {
-      throw ErrorAnalysisResultsKeyNotFound(key);
-    }
-
-    return j[key];
-  }
 
 
   NucleotideLocation parseNucleotideLocation(const json& j) {
@@ -187,25 +154,6 @@ namespace Nextclade {
     return nucComp;
   }
 
-  int parseInt(const json& j, const std::string& key) {
-    const auto& val = at(j, key);
-    if (!val.is_number_integer()) {
-      auto typeName = std::string{val.type_name()};
-      if (typeName == std::string{"number"}) {
-        typeName = "floating-point number";
-      }
-      throw ErrorJsonTypeInvalid(key, "integer", typeName);
-    }
-    return val.get<int>();
-  }
-
-  double parseDouble(const json& j, const std::string& key) {
-    const auto& val = at(j, key);
-    if (!val.is_number()) {
-      throw ErrorJsonTypeInvalid(key, "number", val.type_name());
-    }
-    return val.get<double>();
-  }
 
   QcStatus parseQcStatus(const frozen::string& statusStr) {
     const auto status = mapFind(qcStringsStatus, statusStr);

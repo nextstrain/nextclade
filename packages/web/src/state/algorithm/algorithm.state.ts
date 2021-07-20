@@ -1,7 +1,6 @@
-import type { Virus, AnalysisResult, Gene, Peptide, Warnings } from 'src/algorithms/types'
+import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
-import { getVirus } from 'src/algorithms/defaults/viruses'
 
 export enum AlgorithmGlobalStatus {
   idle = 'idle',
@@ -68,6 +67,7 @@ export interface ExportParams {
 }
 
 export interface AlgorithmParams {
+  dataset?: DatasetFlat
   raw: {
     seqData?: AlgorithmInput
     auspiceData?: AlgorithmInput
@@ -99,7 +99,6 @@ export interface AlgorithmParams {
     pcrPrimers: Error[]
   }
   seqData?: string
-  virus: Virus
 }
 
 export interface AlgorithmState {
@@ -135,6 +134,7 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
 export const algorithmDefaultState: AlgorithmState = {
   status: AlgorithmGlobalStatus.idle,
   params: {
+    dataset: undefined,
     raw: {},
     strings: {},
     final: {},
@@ -147,7 +147,6 @@ export const algorithmDefaultState: AlgorithmState = {
       pcrPrimers: [],
     },
     seqData: undefined,
-    virus: getVirus(),
   },
   isDirty: true,
   results: [],

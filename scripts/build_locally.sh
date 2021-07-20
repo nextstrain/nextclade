@@ -32,7 +32,8 @@ fi
 [ -n "${NEXTCLADE_EMSDK_VERSION_FROM_ENV:=}" ] && NEXTCLADE_EMSDK_VERSION="${NEXTCLADE_EMSDK_VERSION_FROM_ENV}"
 
 PROJECT_NAME="nextalign"
-BUILD_PREFIX=""
+BUILD_PREFIX="${BUILD_PREFIX:-}"
+BUILD_SUFFIX="${BUILD_SUFFIX:-}"
 
 export NEXTCLADE_EMSDK_VERSION_DEFAULT=2.0.6
 export NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION:=${NEXTCLADE_EMSDK_VERSION_DEFAULT}}
@@ -45,9 +46,6 @@ if [ "${NEXTCLADE_EMSDK_USE_CACHE}" == "1" ]; then
   export NEXTCLADE_EMSDK_CACHE_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
   export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_DEFAULT}}"
 fi
-
-export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
-export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/.ccache}"
 
 # Check whether we are running on a Continuous integration server
 IS_CI=${IS_CI:=$(is_ci)}
@@ -120,16 +118,16 @@ USE_CLANG="${USE_CLANG:=0}"
 # Whether to use libc++ as a C++ standard library implementation
 USE_LIBCPP="${USE_LIBCPP:=0}"
 
-# Whether to use MinGW GCC C++ compiler for croww-compiling for Windows (default: no)
+# Whether to use MinGW GCC C++ compiler for cross-compiling for Windows (default: no)
 USE_MINGW="${USE_MINGW:=0}"
 
 INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
 
 NEXTALIGN_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
-NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=1}
+NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=0}
 NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
 NEXTCLADE_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
-NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=1}
+NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=0}
 NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=1}
 
 CONAN_COMPILER_SETTINGS="-s arch=${HOST_ARCH}"
@@ -149,7 +147,6 @@ if [ "${HOST_OS}" == "MacOS" ]; then
 fi
 
 
-BUILD_SUFFIX=""
 MORE_CMAKE_FLAGS=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CC="${CC:-clang}"
@@ -195,7 +192,7 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
     "
   fi
 
-  BUILD_SUFFIX="-Clang"
+  BUILD_SUFFIX="${BUILD_SUFFIX:-}-Clang"
 fi
 
 EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
@@ -204,7 +201,6 @@ EMMAKE=""
 CONAN_COMPILER_SETTINGS="${CONAN_COMPILER_SETTINGS:=}"
 CONANFILE="${PROJECT_ROOT_DIR}/conanfile.txt"
 NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=""
-BUILD_SUFFIX=""
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
   CONANFILE="${PROJECT_ROOT_DIR}/conanfile.wasm.txt"
 
@@ -241,7 +237,7 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
   #  -s SAFE_HEAP=1 \
   #  -s STACK_OVERFLOW_CHECK=2 \
 
-  BUILD_SUFFIX="-Wasm"
+  BUILD_SUFFIX="${BUILD_SUFFIX:-}-Wasm"
   INSTALL_DIR="${PROJECT_ROOT_DIR}/packages/web/src/generated/"
 
   EMCMAKE="emcmake"
@@ -255,8 +251,176 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
   NEXTCLADE_BUILD_TESTS=0
 fi
 
-BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
+
+USE_COLOR="${USE_COLOR:=1}"
+if [ "${IS_CI}" == "1" ] || [ "${IS_CI}" == "true" ]; then
+  USE_COLOR="0"
+fi
+
+# Whether to build a standalone static executable
+NEXTALIGN_STATIC_BUILD_DEFAULT=0
+if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+  NEXTALIGN_STATIC_BUILD_DEFAULT=1
+elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "TSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
+  NEXTALIGN_STATIC_BUILD_DEFAULT=0
+fi
+NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
+
+CONAN_STATIC_BUILD_FLAGS="\
+  -o cpr:with_ssl=openssl \
+  -o libcurl:with_c_ares=True \
+  -o libcurl:with_ssl=openssl \
+  -o libcurl:with_zlib=True \
+  -o poco:enable_active_record=False \
+  -o poco:enable_apacheconnector=False \
+  -o poco:enable_cppparser=False \
+  -o poco:enable_crypto=True \
+  -o poco:enable_data=False \
+  -o poco:enable_data_mysql=False \
+  -o poco:enable_data_odbc=False \
+  -o poco:enable_data_postgresql=False \
+  -o poco:enable_data_sqlite=False \
+  -o poco:enable_encodings=False \
+  -o poco:enable_json=False \
+  -o poco:enable_jwt=False \
+  -o poco:enable_mongodb=False \
+  -o poco:enable_net=True \
+  -o poco:enable_netssl=True \
+  -o poco:enable_pagecompiler=False \
+  -o poco:enable_pagecompiler_file2page=False \
+  -o poco:enable_pdf=False \
+  -o poco:enable_pocodoc=False \
+  -o poco:enable_redis=False \
+  -o poco:enable_sevenzip=False \
+  -o poco:enable_util=True \
+  -o poco:enable_xml=False \
+  -o poco:enable_zip=False \
+"
+
+# Add flags necessary for static build
+CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True -o fmt:header_only=True"
+CONAN_TBB_STATIC_BUILD_FLAGS=""
+TARGET_TRIPLET="x86_64-linux-gnu"
+if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
+  CONAN_STATIC_BUILD_FLAGS="\
+    ${CONAN_STATIC_BUILD_FLAGS} \
+    -o c-ares:shared=False \
+    -o cpr:shared=False \
+    -o gtest:shared=False \
+    -o libcurl:shared=False \
+    -o openssl:shared=False \
+    -o tbb:shared=False \
+    -o zlib:shared=False \
+    -o poco:shared=False \
+  "
+
+  CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
+
+  if [ "${HOST_OS}" == "Linux" ]  && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
+
+  # Download libmusl-based GCC
+  GCC_DIR="${PROJECT_ROOT_DIR}/.cache/gcc"
+  if [ ! -f "${GCC_DIR}/bin/x86_64-linux-musl-gcc" ]; then
+    mkdir -p "${GCC_DIR}"
+    pushd "${GCC_DIR}" >/dev/null
+      GCC_URL="https://github.com/ivan-aksamentov/musl-cross-make/releases/download/v1/gcc-x86_64-linux-musl.tar.gz"
+      echo "Downloading GCC from ${GCC_URL}"
+      curl -fsSL "${GCC_URL}" | tar xfz - --strip-components=1
+    popd >/dev/null
+  fi
+
+  export PATH="${GCC_DIR}/bin:${PATH}"
+
+  TARGET_TRIPLET="x86_64-linux-musl"
+  export CONAN_CMAKE_SYSROOT="${GCC_DIR}"
+  export CONAN_CMAKE_FIND_ROOT_PATH="${GCC_DIR}"
+  export C_INCLUDE_PATH="${GCC_DIR}/x86_64-linux-musl/include:${LD_LIBRARY_PATH}"
+  export LD_LIBRARY_PATH="${GCC_DIR}/x86_64-linux-musl/lib:${LD_LIBRARY_PATH}"
+
+  pushd "${GCC_DIR}/bin" >/dev/null
+    if [ ! -e "gcc" ]    ; then ln -s "${TARGET_TRIPLET}-gcc" gcc           ;fi
+    if [ ! -e "g++" ]    ; then ln -s "${TARGET_TRIPLET}-g++" g++           ;fi
+    if [ ! -e "ar" ]     ; then ln -s "${TARGET_TRIPLET}-gcc-ar" ar         ;fi
+    if [ ! -e "nm" ]     ; then ln -s "${TARGET_TRIPLET}-gcc-nm" nm         ;fi
+    if [ ! -e "ranlib" ] ; then ln -s "${TARGET_TRIPLET}-gcc-ranlib" ranlib ;fi
+    if [ ! -e "as" ]     ; then ln -s "${TARGET_TRIPLET}-as" as             ;fi
+    if [ ! -e "strip" ]  ; then ln -s "${TARGET_TRIPLET}-strip" strip       ;fi
+    if [ ! -e "ld" ]     ; then ln -s "${TARGET_TRIPLET}-ld" ld             ;fi
+    # if [ ! -e "ldd"     ]; then ln -s "ld" ldd                              ;fi
+    if [ ! -e "objcopy" ]; then ln -s "${TARGET_TRIPLET}-objcopy" objcopy   ;fi
+    if [ ! -e "objdump" ]; then ln -s "${TARGET_TRIPLET}-objdump" objdump   ;fi
+  popd >/dev/null
+
+  export CHOST="${TARGET_TRIPLET}"
+  export CC="${GCC_DIR}/bin/gcc"
+  export CXX="${GCC_DIR}/bin/g++"
+  export AR="${GCC_DIR}/bin/ar"
+  export NM="${GCC_DIR}/bin/nm"
+  export RANLIB="${GCC_DIR}/bin/ranlib"
+  export AS="${GCC_DIR}/bin/as"
+  export STRIP="${GCC_DIR}/bin/strip"
+  export LD="${GCC_DIR}/bin/ld"
+  export OBJCOPY="${GCC_DIR}/bin/objcopy"
+  export OBJDUMP="${GCC_DIR}/bin/objdump"
+
+  export CFLAGS="-D__MUSL__"
+  export CXXFLAGS="-D__MUSL__"
+  export CMAKE_C_FLAGS="${CFLAGS}"
+  export CMAKE_CXX_FLAGS="${CXXFLAGS}"
+
+  export CMAKE_TOOLCHAIN_FILE="${PROJECT_ROOT_DIR}/config/cmake/musl.toolchain.cmake"
+  export CONAN_CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}"
+
+  export AC_CANONICAL_HOST="${TARGET_TRIPLET}"
+
+  CONAN_STATIC_BUILD_FLAGS="\
+    ${CONAN_STATIC_BUILD_FLAGS} \
+    -e PATH=${PATH} \
+    -e CHOST=${CHOST} \
+    -e HOST=${TARGET_TRIPLET} \
+    -e AC_CANONICAL_HOST=${TARGET_TRIPLET} \
+    -e CC=${CC} \
+    -e CXX=${CXX} \
+    -e AS=${AS} \
+    -e AR=${AR} \
+    -e RANLIB=${RANLIB} \
+    -e STRIP=${STRIP} \
+    -e LD=${LD} \
+    -e NM=${NM} \
+    -e OBJCOPY=${OBJCOPY} \
+    -e OBJDUMP=${OBJDUMP} \
+    -e STRIP=${STRIP} \
+    -s os=Linux \
+    -s arch=x86_64 \
+    -s compiler=gcc \
+    -s compiler.libcxx=libstdc++11 \
+  "
+
+  BUILD_SUFFIX="${BUILD_SUFFIX:-}-Static"
+
+  fi
+fi
+
+if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
+  NEXTALIGN_BUILD_BENCHMARKS=0
+  NEXTALIGN_BUILD_TESTS=0
+
+  NEXTCLADE_BUILD_BENCHMARKS=0
+  NEXTCLADE_BUILD_TESTS=0
+
+  CONAN_STATIC_BUILD_FLAGS="\
+    ${CONAN_STATIC_BUILD_FLAGS} \
+    --profile ${PROJECT_ROOT_DIR}/config/conan/mingw-profile.txt \
+  "
+fi
+
+
+BUILD_TYPE_EXTENDED=${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}
+export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache/${BUILD_TYPE_EXTENDED}}"
+export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/${BUILD_TYPE_EXTENDED}/.ccache}"
+BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_TYPE_EXTENDED}"
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
+
 
 function get_cli() {
   NAME=${1}
@@ -275,47 +439,8 @@ function get_cli() {
 NEXTALIGN_CLI=$(get_cli "nextalign")
 NEXTCLADE_CLI=$(get_cli "nextclade")
 
-USE_COLOR="${USE_COLOR:=1}"
-if [ "${IS_CI}" == "1" ] || [ "${IS_CI}" == "true" ]; then
-  USE_COLOR="0"
-fi
 
 DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
-
-# Whether to build a standalone static executable
-NEXTALIGN_STATIC_BUILD_DEFAULT=1
-if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-  NEXTALIGN_STATIC_BUILD_DEFAULT=1
-elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "TSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
-  NEXTALIGN_STATIC_BUILD_DEFAULT=0
-fi
-NEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD:=${NEXTALIGN_STATIC_BUILD_DEFAULT}}
-
-# Add flags necessary for static build
-CONAN_STATIC_BUILD_FLAGS="-o boost:header_only=True -o fmt:header_only=True"
-CONAN_TBB_STATIC_BUILD_FLAGS=""
-if [ "${NEXTALIGN_STATIC_BUILD}" == "true" ] || [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
-  CONAN_STATIC_BUILD_FLAGS="\
-    ${CONAN_STATIC_BUILD_FLAGS} \
-    -o tbb:shared=False \
-    -o gtest:shared=True \
-  "
-
-  CONAN_TBB_STATIC_BUILD_FLAGS="-o shared=False"
-fi
-
-if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
-  NEXTALIGN_BUILD_BENCHMARKS=0
-  NEXTALIGN_BUILD_TESTS=0
-
-  NEXTCLADE_BUILD_BENCHMARKS=0
-  NEXTCLADE_BUILD_TESTS=0
-
-  CONAN_STATIC_BUILD_FLAGS="\
-    ${CONAN_STATIC_BUILD_FLAGS} \
-    --profile ${PROJECT_ROOT_DIR}/config/conan/mingw-profile.txt \
-  "
-fi
 
 # gdb (or lldb) command with arguments
 GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
@@ -380,7 +505,7 @@ if command -v "cppcheck"; then
   while IFS='' read -r flag; do
     CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
   done<"${THIS_DIR}/../.cppcheck"
-fi
+fi > /dev/null
 
 # Print coloured message
 function print() {
@@ -446,6 +571,21 @@ echo "BUILD_DIR                = ${BUILD_DIR:=}"
 echo "INSTALL_DIR              = ${INSTALL_DIR:=}"
 echo "NEXTALIGN_CLI            = ${NEXTALIGN_CLI}"
 echo "NEXTCLADE_CLI            = ${NEXTCLADE_CLI}"
+
+if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ] && [ "${HOST_OS}" == "Linux" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
+echo ""
+echo "CC                       = $(which ${CC})"
+echo "CXX                      = $(which ${CXX})"
+echo "AR                       = $(which ${AR})"
+echo "AS                       = $(which ${AS})"
+echo "RANLIB                   = $(which ${RANLIB})"
+echo "LD                       = $(which ${LD})"
+echo "NM                       = $(which ${NM})"
+echo "OBJCOPY                  = $(which ${OBJCOPY})"
+echo "OBJDUMP                  = $(which ${OBJDUMP})"
+echo "STRIP                    = $(which ${STRIP})"
+fi
+
 echo "-------------------------------------------------------------------------"
 
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
@@ -466,22 +606,42 @@ fi
 # Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
+CONAN_V2_MODE=1 conan config init
+if [ "${HOST_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
+  printf "\n\nlibc: [None, \"glibc\", \"musl\"]\n" >> "${CONAN_USER_HOME}/.conan/settings.yml"
+fi
 
-# At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
-# This will build a local conan package and put it into local conan cache, if not present yet.
-# On `conan install` step this local package will be used, instead of querying conan remote servers.
-if [ "${NEXTCLADE_BUILD_WASM}" != "1" ] && [ -z "$(conan search | grep 'tbb/2021.2.0-rc@local/stable')" ]; then
-  # Create Intel TBB package patched for Apple Silicon and put it under `@local/stable` reference
-  print 56 "Build Intel TBB";
-  pushd "3rdparty/tbb" > /dev/null
-      conan create . local/stable \
-      -s build_type="${CONAN_BUILD_TYPE}" \
-      ${CONAN_COMPILER_SETTINGS} \
-      ${CONAN_STATIC_BUILD_FLAGS} \
-      ${CONAN_TBB_STATIC_BUILD_FLAGS} \
+function conan_create_custom_package() {
+  # This will build a local conan package (from `$PACKAGE_PATH`) and put it into local conan cache
+  # under name `$PACKAGE_REF`. The build is only done once and if the package is in cache, it will not rebuild.
+  # On `conan install` step the local package will be used, instead of querying conan remote servers, because the
+  # `$PACKAGE_REF` is used in `conanfile.txt`.
+  PACKAGE_PATH=$1
+  PACKAGE_REF=$2
 
-  popd > /dev/null
+  if [ -z "$(conan search | grep ${PACKAGE_REF})" ]; then
+    print 56 "Build dependency: ${PACKAGE_PATH}";
+
+    pushd "${PACKAGE_PATH}" > /dev/null
+        conan create . local/stable \
+        -s build_type="${CONAN_BUILD_TYPE}" \
+        ${CONAN_COMPILER_SETTINGS} \
+        ${CONAN_STATIC_BUILD_FLAGS} \
+        ${CONAN_TBB_STATIC_BUILD_FLAGS} \
+        --build=missing \
+
+    popd > /dev/null
+  fi
+}
+
+if [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
+  # Order is important to ensure interdependencies are picked up correctly
+  conan_create_custom_package "3rdparty/jemalloc" "jemalloc/5.2.1@local/stable"
+  conan_create_custom_package "3rdparty/openssl"  "openssl/1.1.1k@local/stable"
+  conan_create_custom_package "3rdparty/c-ares"   "c-ares/1.17.1@local/stable"
+  conan_create_custom_package "3rdparty/libcurl"  "libcurl/7.77.0@local/stable"
+  conan_create_custom_package "3rdparty/poco"     "poco/1.11.0@local/stable"
+  conan_create_custom_package "3rdparty/tbb"      "tbb/2021.3.0@local/stable"
 fi
 
 mkdir -p "${BUILD_DIR}"
@@ -493,6 +653,22 @@ pushd "${BUILD_DIR}" > /dev/null
     ${CONAN_COMPILER_SETTINGS} \
     ${CONAN_STATIC_BUILD_FLAGS} \
     --build missing \
+
+  print 57 "Generate source files";
+  python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
+      --input_json=${PROJECT_ROOT_DIR}/packages/nextclade_cli/cli.json \
+      --output_cpp=${PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/cli.cpp \
+      --output_h=${PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/cli.h \
+
+  find "${PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -exec clang-format -style=file -i {} \;
+
+#  python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
+#      --input_json=${PROJECT_ROOT_DIR}/packages/nextalign_cli/cli.json \
+#      --output_cpp=${PROJECT_ROOT_DIR}/packages/nextalign_cli/src/generated/cli.cpp \
+#      --output_h=${PROJECT_ROOT_DIR}/packages/nextalign_cli/src/generated/cli.h \
+#
+#   find "${PROJECT_ROOT_DIR}/packages/nextalign_cli/src/generated/" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -exec clang-format -style=file -i {} \;
+
 
   print 92 "Generate build files";
   ${CLANG_ANALYZER} ${EMCMAKE} cmake "${PROJECT_ROOT_DIR}" \
@@ -518,6 +694,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS} \
     -DNEXTCLADE_BUILD_WASM=${NEXTCLADE_BUILD_WASM} \
     -DNEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS="${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS}" \
+    -DBUILD_SHARED_LIBS="${NEXTALIGN_STATIC_BUILD}" \
     ${MORE_CMAKE_FLAGS}
 
   print 12 "Build";
@@ -547,6 +724,19 @@ pushd "${BUILD_DIR}" > /dev/null
 
     print 28 "Print executable info";
     file ${CLI}
+
+    if [ "${BUILD_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
+      LINKAGE=$(ldd ${CLI} | awk '{$1=$1};1')
+      OBJDUMP_RESULT="$(objdump -p ${CLI} || true)"
+      function c1grep() { grep "$@" || test $? = 1; }
+      NEEDED="$( echo "${OBJDUMP_RESULT}" | c1grep -e 'NEEDED' -e 'RPATH')"
+      if [ "${LINKAGE}" != "statically linked" ] || [ "${NEEDED}" != "" ]; then
+        echo "Error: Executable is not statically linked: '${CLI}'."
+        echo "Objdump:"
+        echo "${NEEDED}"
+        exit 1
+      fi
+    fi
   }
 
   if [ "${CMAKE_BUILD_TYPE}" == "Release" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
@@ -583,19 +773,16 @@ if [ "${CROSS}" == "1" ]; then
 fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
-
-  if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
-
+   if [ ${CMAKE_BUILD_TYPE} != "Release" ] && [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
      if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
        print 23 "Run Nextalign tests";
        eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
      fi
-
-    if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
-      print 23 "Run Nextclade tests";
-      eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-    fi
-  fi
+     if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
+       print 23 "Run Nextclade tests";
+       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+     fi
+   fi
 
   if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
     # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer

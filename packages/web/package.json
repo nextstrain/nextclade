@@ -84,7 +84,8 @@
     "run:node": "cross-env NODE_ENV=development BABEL_ENV=development babel-node --extensions '.ts'",
     "run:node:prod": "cross-env NODE_ENV=production BABEL_ENV=production babel-node --extensions '.ts'",
     "monkey-patch": "bash tools/auspice-monkey-patch.sh && bash tools/patch-next.sh",
-    "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1"
+    "changelog": "yarn conventional-changelog -p angular -i CHANGELOG.md -s -r 1",
+    "serve-data": "babel-node --extensions \".ts\" ./tools/server/dataServer.ts"
   },
   "dependencies": {
     "@mdx-js/loader": "1.6.16",
@@ -116,6 +117,7 @@
     "jsonexport": "3.0.1",
     "jszip": "3.6.0",
     "lodash": "4.17.20",
+    "luxon": "1.27.0",
     "marked": "1.1.1",
     "memoize-one": "5.1.1",
     "moment": "2.27.0",
@@ -161,6 +163,7 @@
     "threads": "1.6.3",
     "threads-plugin": "1.3.3",
     "typeface-lato": "0.0.75",
+    "url-join": "4.0.1",
     "use-debounce": "3.4.3",
     "uuid": "8.3.0",
     "yargs": "15.4.1"
@@ -211,6 +214,7 @@
     "@types/jszip": "3.4.1",
     "@types/lodash": "4.14.161",
     "@types/lodash-webpack-plugin": "0.11.4",
+    "@types/luxon": "1.27.0",
     "@types/mdx-js__react": "1.5.2",
     "@types/node": "14.6.2",
     "@types/papaparse": "5.2.2",
@@ -234,6 +238,7 @@
     "@types/serialize-javascript": "4.0.0",
     "@types/styled-components": "5.1.2",
     "@types/terser-webpack-plugin": "4.1.0",
+    "@types/url-join": "4.0.0",
     "@types/uuid": "8.3.0",
     "@types/webpack": "4.41.22",
     "@types/webpackbar": "4.0.0",
@@ -328,6 +333,7 @@
     "prettier": "2.1.1",
     "raw-loader": "4.0.1",
     "react-dropzone": "11.0.3",
+    "react-query": "3.17.2",
     "redux-devtools-extension": "2.13.8",
     "redux-immutable-state-invariant": "2.1.0",
     "redux-testkit": "1.0.6",

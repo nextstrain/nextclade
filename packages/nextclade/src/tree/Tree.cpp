@@ -2,11 +2,11 @@
 
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
+#include <nextclade_json/nextclade_json.h>
 
 #include <string>
 
 #include "../io/formatQcStatus.h"
-#include "../io/jsonStringify.h"
 #include "TreeNode.h"
 
 

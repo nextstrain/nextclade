@@ -27,6 +27,7 @@ export function Dropdown({
   onOptionChange,
   onValueChange,
   onBlur,
+  placeholder = '',
   ...restProps
 }: DropdownProps) {
   return (
@@ -50,6 +51,7 @@ export function Dropdown({
         }
       }}
       onBlur={onBlur}
+      placeholder={placeholder}
       {...restProps}
     />
   )

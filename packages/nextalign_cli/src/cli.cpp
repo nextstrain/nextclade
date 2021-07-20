@@ -12,7 +12,7 @@
 #include "Logger.h"
 #include "description.h"
 #include "filesystem.h"
-
+#include "malloc_conf.h"
 
 struct CliParams {
   int jobs{};
