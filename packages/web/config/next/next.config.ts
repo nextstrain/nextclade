@@ -30,6 +30,9 @@ import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
 import withWebassembly from './withWebassembly'
+import withLimitTerserParallelism from './withLimitTerserParallelism'
+
+const CIRCLECI = process.env.CIRCLECI ?? 'false'
 
 const {
   // BABEL_ENV,
@@ -173,6 +176,7 @@ const config = withPlugins(
     PRODUCTION && [withStaticComprression],
     PROFILE && [withoutMinification],
     [withFriendlyChunkNames],
+    CIRCLECI === 'true' && [withLimitTerserParallelism],
   ].filter(Boolean),
   nextConfig,
 )

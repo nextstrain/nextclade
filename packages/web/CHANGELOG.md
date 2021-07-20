@@ -1,3 +1,18 @@
+## Nextclade Web [1.5.2](https://github.com/nextstrain/nextclade/compare/1.5.1...1.5.2) (2021-07-11)
+
+
+#### [Bug fix] Workarounds for Safari web browser
+
+The following problems are addressed:
+
+ - crash due to Safari requiring incorrect Content Security Policy when using WebAssembly modules (see issue [#476](https://github.com/nextstrain/nextclade/issues/476))
+ - results table and tree not being displayed correctly or at all, due to flexbox layout bugs in older versions of Safari 
+
+These patches only affect users of Safari web browser, and should not affect other users.
+
+Despite these fixes, for best experience and speed, we still recommend using Nextclade with Chrome or Firefox web browsers instead of Safari.
+
+
 ## Nextclade Web [1.5.1](https://github.com/nextstrain/nextclade/compare/web-1.5.0...web-1.5.1) (2021-07-08)
 
 #### [Bug fix] Better clade assignment
@@ -22,19 +37,6 @@ We adjusted QC score calculation for "Stop codons" and "Frame shifts" rules, suc
 #### [Bug fix] Removed unsequenced regions of length 0
 
 We fixed a bug where the empty unsequenced regions on either ends of a fully sequenced sample, were incorrectly displayed as ranges of length 1 in nucleotide sequence view. Now, in case of full sequences, there will be no unsequenced areas drawn, as expected.
-
-
-### Bug Fixes
-
-* adjust definition of 21H ([1015438](https://github.com/nextstrain/nextclade/commit/101543871bba7089e7ddb0485303c7b2a5e7a180))
-* avoid drawing empty unsequenced regions, improve range formatting ([7fff263](https://github.com/nextstrain/nextclade/commit/7fff263cb4a57aa9efa3a5fddf6c0e628929c137))
-* correct spelling ([f404943](https://github.com/nextstrain/nextclade/commit/f404943d1aad825d6e50f4a6679fceb81220502d))
-* typo in changelog ([fcc6e9e](https://github.com/nextstrain/nextclade/commit/fcc6e9ea04066c5510855527cc4f85f9efd20bbe))
-
-### Features
-
-* adjust QC scores for frame shits and stop codons ([d62cfac](https://github.com/nextstrain/nextclade/commit/d62cfac49b42c66ff5a8e70876ebbd33d4e8a1da))
-
 
 
 ## Nextclade Web 1.4.0, Nextclade CLI 1.2.0, Nextalign CLI 1.2.0 (2021-06-24)

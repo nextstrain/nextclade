@@ -49,7 +49,8 @@ const HeaderRightContainer = styled.div`
 `
 
 const MainContent = styled.main`
-  flex-grow: 1;
+  flex: 1;
+  flex-basis: 100%;
   overflow: auto;
   border: none;
 `
