@@ -9,6 +9,8 @@
 // Goes last
 #include "generated/cli.h"
 
+#include "malloc_conf.h"
+
 using namespace Nextclade;
 
 bool isRootArg(const std::string& s) {

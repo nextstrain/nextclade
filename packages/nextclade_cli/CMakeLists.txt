@@ -25,7 +25,7 @@ if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   if (MINGW)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
-    set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc jemalloc::jemalloc")
+    set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
   endif ()
 endif ()
 
@@ -61,6 +61,7 @@ add_executable(${PROJECT_NAME}
   src/io/parseRefFastaFile.h
   src/io/readFile.h
   src/main.cpp
+  src/malloc_conf.h
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY
@@ -93,6 +94,7 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
 
   PRIVATE
+  ${STATIC_BUILD_FLAGS}
   Boost::headers
   CLI11::CLI11
   TBB::tbb
@@ -101,7 +103,7 @@ target_link_libraries(${PROJECT_NAME}
   fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
   semver::semver
-  ${STATIC_BUILD_FLAGS}
+  jemalloc::jemalloc
 
   nextclade_common
   nextclade
