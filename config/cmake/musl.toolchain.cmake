@@ -5,9 +5,12 @@ set(WIN32)
 set(APPLE)
 set(UNIX 1)
 set(MUSL 1)
+set(__MUSL__ 1)
 set(TARGET_TRIPLET "x86_64-linux-musl")
 
 set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS FALSE)
+
+add_compile_definitions("__MUSL__")
 
 set(CMAKE_SHARED_LIBRARY_SONAME_C_FLAG "-Wl,-soname,")
 set(CMAKE_SHARED_LIBRARY_SONAME_CXX_FLAG "-Wl,-soname,")

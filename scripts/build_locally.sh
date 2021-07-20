@@ -369,6 +369,7 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
     if [ ! -e "as" ]     ; then ln -s "${TARGET_TRIPLET}-as" as             ;fi
     if [ ! -e "strip" ]  ; then ln -s "${TARGET_TRIPLET}-strip" strip       ;fi
     if [ ! -e "ld" ]     ; then ln -s "${TARGET_TRIPLET}-ld" ld             ;fi
+    # if [ ! -e "ldd"     ]; then ln -s "ld" ldd                              ;fi
     if [ ! -e "objcopy" ]; then ln -s "${TARGET_TRIPLET}-objcopy" objcopy   ;fi
     if [ ! -e "objdump" ]; then ln -s "${TARGET_TRIPLET}-objdump" objdump   ;fi
   popd >/dev/null
@@ -384,6 +385,11 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   export LD="${GCC_DIR}/bin/ld"
   export OBJCOPY="${GCC_DIR}/bin/objcopy"
   export OBJDUMP="${GCC_DIR}/bin/objdump"
+
+  export CFLAGS="-D__MUSL__"
+  export CXXFLAGS="-D__MUSL__"
+  export CMAKE_C_FLAGS="${CFLAGS}"
+  export CMAKE_CXX_FLAGS="${CXXFLAGS}"
 
   export CMAKE_TOOLCHAIN_FILE="${PROJECT_ROOT_DIR}/config/cmake/musl.toolchain.cmake"
   export CONAN_CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}"
