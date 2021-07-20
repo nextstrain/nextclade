@@ -8,7 +8,6 @@
 
 // Goes last
 #include "generated/cli.h"
-
 #include "malloc_conf.h"
 
 using namespace Nextclade;
@@ -114,5 +113,19 @@ int main(int argc, char* argv[]) {
     .list = {},
   };
 
-  return parseCommandLine(args.size(), args.data(), /* PROJECT_DESCRIPTION */ "", callbacks, defaults);
+  Logger logger{Logger::Options{
+    .linePrefix = "Nextclade",
+    .verbosity = Logger::convertVerbosity("error"),
+  }};
+
+
+  try {
+    return parseCommandLine(args.size(), args.data(), /* PROJECT_DESCRIPTION */ "", callbacks, defaults);
+  } catch (const std::exception& e) {
+    logger.error(e.what());
+    return 1;
+  } catch (...) {
+    logger.error("Unknown error. This is probably a bug. Please report it to developers.");
+    return 1;
+  }
 }
