@@ -1,4 +1,5 @@
 #include <fmt/format.h>
+#include <nextclade_common/openOutputFile.h>
 #include <tbb/global_control.h>
 
 #include <map>
@@ -10,7 +11,6 @@
 #include "../generated/cli.h"
 #include "../io/format.h"
 #include "../io/getNextalignOptions.h"
-#include "../io/openOutputFile.h"
 #include "../io/parseGeneMapGffFile.h"
 #include "../io/parseRefFastaFile.h"
 #include "../io/readFile.h"

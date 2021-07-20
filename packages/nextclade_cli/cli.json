@@ -291,19 +291,26 @@
           "callbackName": "datasetFetch",
           "options": [
             {
-              "flags": ["--name"],
+              "flags": ["-n", "--name"],
               "desc": "Name of the dataset to fetch.",
               "cppName": "name",
               "cppType": "std::string",
               "isOptional": false
             },
             {
-              "flags": ["--version"],
-              "desc": "Version of the dataset to fetch.",
+              "flags": ["-v", "--version"],
+              "desc": "Version of the dataset to fetch. If this flag is not provided or is 'latest', then the latest version is fetched.",
               "cppName": "version",
               "cppType": "std::string",
               "defaultValue": "\"latest\"",
               "isOptional": true
+            },
+            {
+              "flags": ["-o", "--output-dir"],
+              "desc": "Directory to write dataset files to.",
+              "cppName": "outputDir",
+              "cppType": "std::string",
+              "isOptional": false
             }
           ]
         },
@@ -314,14 +321,14 @@
           "callbackName": "datasetList",
           "options": [
             {
-              "flags": ["--name"],
+              "flags": ["-n", "--name"],
               "desc": "Name of the dataset. List only datasets with this name.",
               "cppName": "name",
               "cppType": "std::string",
               "isOptional": true
             },
             {
-              "flags": ["--version"],
+              "flags": ["-v", "--version"],
               "desc": "Version of the dataset. List only datasets with this version.",
               "cppName": "version",
               "cppType": "std::string",

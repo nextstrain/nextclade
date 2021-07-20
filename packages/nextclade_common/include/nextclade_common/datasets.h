@@ -55,6 +55,8 @@ namespace Nextclade {
 
   DatasetsJson fetchDatasetsJson();
 
+  void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir);
+
   std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion);
 
   std::vector<Dataset> getLatestDatasets(const std::vector<Dataset>& datasets);
@@ -64,6 +66,9 @@ namespace Nextclade {
 
   std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
     const std::string& datasetNameDesired);
+
+  std::vector<Dataset> filterDatasetsByVersion(const std::vector<Dataset>& datasets,
+    const std::string& datasetVersionDesired);
 
   std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat);
 

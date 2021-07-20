@@ -1,16 +1,16 @@
 #pragma once
 
+#include <nextclade_common/filesystem.h>
+
 #include <fstream>
 #include <memory>
 #include <string>
 
-#include "filesystem.h"
-
 namespace Nextclade {
 
-  class ErrorIoUnableToWrite : public ErrorFatal {
+  class ErrorIoUnableToWrite : public std::runtime_error {
   public:
-    inline explicit ErrorIoUnableToWrite(const std::string &message) : ErrorFatal(message) {}
+    inline explicit ErrorIoUnableToWrite(const std::string &message) : std::runtime_error(message) {}
   };
 
   /**

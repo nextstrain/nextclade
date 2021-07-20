@@ -26,6 +26,8 @@ find_package(Poco 1.11.0 REQUIRED)
 set(SOURCE_FILES
   include/nextclade_common/datasets.h
   include/nextclade_common/fetch.h
+  include/nextclade_common/filesystem.h
+  include/nextclade_common/openOutputFile.h
   src/datasets.cpp
   src/fetch.cpp
   )

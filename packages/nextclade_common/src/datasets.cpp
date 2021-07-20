@@ -4,6 +4,7 @@
 #include <frozen/string.h>
 #include <nextclade_common/datasets.h>
 #include <nextclade_common/fetch.h>
+#include <nextclade_common/openOutputFile.h>
 #include <nextclade_json/nextclade_json.h>
 
 #include <boost/algorithm/string/predicate.hpp>
@@ -103,6 +104,19 @@ namespace Nextclade {
     return parseDatasetsJson(datasetsJsonStr);
   }
 
+  void writeFile(const std::string& filepath, const std::string& content) {
+    auto stream = openOutputFileMaybe(filepath);
+    (*stream) << content;
+  }
+
+  void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir) {
+    writeFile(fs::path(outDir) / "reference.fasta", fetch(version.files.reference));
+    writeFile(fs::path(outDir) / "tree.json", fetch(version.files.tree));
+    writeFile(fs::path(outDir) / "geneMap.gff", fetch(version.files.geneMap));
+    writeFile(fs::path(outDir) / "primers.csv", fetch(version.files.primers));
+    writeFile(fs::path(outDir) / "qc.json", fetch(version.files.qc));
+  }
+
   std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion) {
     std::vector<Dataset> datasetsCompatible;
     for (const auto& dataset : datasets) {
@@ -165,6 +179,25 @@ namespace Nextclade {
     std::copy_if(datasets.cbegin(), datasets.cend(), std::back_inserter(datasetsFiltered),
       [&datasetNameDesired](const Dataset& dataset) { return dataset.name == datasetNameDesired; });
     return datasetsFiltered;
+  }
+
+  std::vector<Dataset> filterDatasetsByVersion(const std::vector<Dataset>& datasets,
+    const std::string& datasetVersionDesired) {
+    std::vector<Dataset> datasetsVersioned;
+    for (const auto& dataset : datasets) {
+      // Extract only the requested version
+      const auto& found = std::find_if(dataset.versions.cbegin(), dataset.versions.cend(),
+        [&datasetVersionDesired](const DatasetVersion& version) { return version.datetime == datasetVersionDesired; });
+
+      if (found != dataset.versions.cend()) {
+        // Remember this dataset, but only among all versions in it only keep the desired version
+        Dataset datasetVersioned{dataset};
+        datasetVersioned.versions = {DatasetVersion{*found}};
+        datasetsVersioned.emplace_back(datasetVersioned);
+      }
+    }
+
+    return datasetsVersioned;
   }
 
   std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat) {

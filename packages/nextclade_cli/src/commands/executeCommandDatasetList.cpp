@@ -19,13 +19,13 @@ namespace Nextclade {
     auto datasets = datasetsJson.datasets;
     if (cliParams->onlyCompatible && cliParams->onlyLatest) {
       fmt::print("Latest datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-      datasets = getLatestCompatibleDatasets(datasetsJson.datasets, thisVersion);
+      datasets = getLatestCompatibleDatasets(datasets, thisVersion);
     } else if (cliParams->onlyLatest) {
       fmt::print("Latest datasets:\n\n");
-      datasets = getLatestDatasets(datasetsJson.datasets);
+      datasets = getLatestDatasets(datasets);
     } else if (cliParams->onlyCompatible) {
       fmt::print("Datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-      datasets = getCompatibleDatasets(datasetsJson.datasets, thisVersion);
+      datasets = getCompatibleDatasets(datasets, thisVersion);
     } else {
       fmt::print("All datasets:\n\n");
     }
@@ -34,7 +34,7 @@ namespace Nextclade {
       datasets = filterDatasetsByName(datasets, cliParams->name);
     }
 
-    if (!datasets.empty()) {
+    if (datasets.empty()) {
       fmt::print("{:s}\n", formatDatasets(datasets));
     }
   }
