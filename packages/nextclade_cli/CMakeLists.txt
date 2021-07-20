@@ -18,13 +18,14 @@ find_package(cxxopts 2.2.1 REQUIRED)
 find_package(date 3.0.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
+find_package(jemalloc 5.2.1 REQUIRED)
 find_package(semver 0.3.0 REQUIRED)
 
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   if (MINGW)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
-    set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
+    set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc jemalloc::jemalloc")
   endif ()
 endif ()
 
@@ -92,7 +93,6 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
 
   PRIVATE
-  ${STATIC_BUILD_FLAGS}
   Boost::headers
   CLI11::CLI11
   TBB::tbb
@@ -101,6 +101,7 @@ target_link_libraries(${PROJECT_NAME}
   fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
   semver::semver
+  ${STATIC_BUILD_FLAGS}
 
   nextclade_common
   nextclade

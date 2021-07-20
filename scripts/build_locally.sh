@@ -32,7 +32,8 @@ fi
 [ -n "${NEXTCLADE_EMSDK_VERSION_FROM_ENV:=}" ] && NEXTCLADE_EMSDK_VERSION="${NEXTCLADE_EMSDK_VERSION_FROM_ENV}"
 
 PROJECT_NAME="nextalign"
-BUILD_PREFIX=""
+BUILD_PREFIX="${BUILD_PREFIX:-}"
+BUILD_SUFFIX="${BUILD_SUFFIX:-}"
 
 export NEXTCLADE_EMSDK_VERSION_DEFAULT=2.0.6
 export NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION:=${NEXTCLADE_EMSDK_VERSION_DEFAULT}}
@@ -45,9 +46,6 @@ if [ "${NEXTCLADE_EMSDK_USE_CACHE}" == "1" ]; then
   export NEXTCLADE_EMSDK_CACHE_DEFAULT="${PROJECT_ROOT_DIR}/.cache/.emscripten/emsdk_cache-${NEXTCLADE_EMSDK_VERSION}"
   export NEXTCLADE_EMSDK_CACHE="${NEXTCLADE_EMSDK_CACHE:=${NEXTCLADE_EMSDK_CACHE_DEFAULT}}"
 fi
-
-export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
-export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/.ccache}"
 
 # Check whether we are running on a Continuous integration server
 IS_CI=${IS_CI:=$(is_ci)}
@@ -149,7 +147,6 @@ if [ "${HOST_OS}" == "MacOS" ]; then
 fi
 
 
-BUILD_SUFFIX=""
 MORE_CMAKE_FLAGS=""
 if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   export CC="${CC:-clang}"
@@ -195,7 +192,7 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
     "
   fi
 
-  BUILD_SUFFIX="-Clang"
+  BUILD_SUFFIX="${BUILD_SUFFIX:-}-Clang"
 fi
 
 EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
@@ -204,7 +201,6 @@ EMMAKE=""
 CONAN_COMPILER_SETTINGS="${CONAN_COMPILER_SETTINGS:=}"
 CONANFILE="${PROJECT_ROOT_DIR}/conanfile.txt"
 NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=""
-BUILD_SUFFIX=""
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
   CONANFILE="${PROJECT_ROOT_DIR}/conanfile.wasm.txt"
 
@@ -241,7 +237,7 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
   #  -s SAFE_HEAP=1 \
   #  -s STACK_OVERFLOW_CHECK=2 \
 
-  BUILD_SUFFIX="-Wasm"
+  BUILD_SUFFIX="${BUILD_SUFFIX:-}-Wasm"
   INSTALL_DIR="${PROJECT_ROOT_DIR}/packages/web/src/generated/"
 
   EMCMAKE="emcmake"
@@ -255,32 +251,11 @@ if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1"
   NEXTCLADE_BUILD_TESTS=0
 fi
 
-BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}"
-BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
-
-function get_cli() {
-  NAME=${1}
-
-  CLI_DIR="${BUILD_DIR}/packages/${NAME}_cli"
-  CLI_EXE="${NAME}-${HOST_OS}-${HOST_ARCH}"
-
-  CLI="${CLI_DIR}/${CLI_EXE}"
-  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
-    CLI=${INSTALL_DIR}/bin/${CLI_EXE}
-  fi
-
-  echo "${CLI}"
-}
-
-NEXTALIGN_CLI=$(get_cli "nextalign")
-NEXTCLADE_CLI=$(get_cli "nextclade")
 
 USE_COLOR="${USE_COLOR:=1}"
 if [ "${IS_CI}" == "1" ] || [ "${IS_CI}" == "true" ]; then
   USE_COLOR="0"
 fi
-
-DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 
 # Whether to build a standalone static executable
 NEXTALIGN_STATIC_BUILD_DEFAULT=0
@@ -418,6 +393,9 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
     -s compiler=gcc \
     -s compiler.libcxx=libstdc++11 \
   "
+
+  BUILD_SUFFIX="${BUILD_SUFFIX:-}-Static"
+
   fi
 fi
 
@@ -433,6 +411,34 @@ if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
     --profile ${PROJECT_ROOT_DIR}/config/conan/mingw-profile.txt \
   "
 fi
+
+
+BUILD_TYPE_EXTENDED=${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}
+export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache/${BUILD_TYPE_EXTENDED}}"
+export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/${BUILD_TYPE_EXTENDED}/.ccache}"
+BUILD_DIR_DEFAULT="${PROJECT_ROOT_DIR}/.build/${BUILD_TYPE_EXTENDED}"
+BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
+
+
+function get_cli() {
+  NAME=${1}
+
+  CLI_DIR="${BUILD_DIR}/packages/${NAME}_cli"
+  CLI_EXE="${NAME}-${HOST_OS}-${HOST_ARCH}"
+
+  CLI="${CLI_DIR}/${CLI_EXE}"
+  if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+    CLI=${INSTALL_DIR}/bin/${CLI_EXE}
+  fi
+
+  echo "${CLI}"
+}
+
+NEXTALIGN_CLI=$(get_cli "nextalign")
+NEXTCLADE_CLI=$(get_cli "nextclade")
+
+
+DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 
 # gdb (or lldb) command with arguments
 GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
@@ -600,7 +606,7 @@ print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
 CONAN_V2_MODE=1 conan config init
 if [ "${HOST_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ] && [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
-  printf "\n\nlibc: [None, \"glibc\", \"musl\"]\n" >> "${PROJECT_ROOT_DIR}/.cache/.conan/settings.yml"
+  printf "\n\nlibc: [None, \"glibc\", \"musl\"]\n" >> "${CONAN_USER_HOME}/settings.yml"
 fi
 
 function conan_create_custom_package() {
@@ -628,6 +634,7 @@ function conan_create_custom_package() {
 
 if [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
   # Order is important to ensure interdependencies are picked up correctly
+  conan_create_custom_package "3rdparty/jemalloc" "jemalloc/5.2.1@local/stable"
   conan_create_custom_package "3rdparty/openssl"  "openssl/1.1.1k@local/stable"
   conan_create_custom_package "3rdparty/c-ares"   "c-ares/1.17.1@local/stable"
   conan_create_custom_package "3rdparty/libcurl"  "libcurl/7.77.0@local/stable"
