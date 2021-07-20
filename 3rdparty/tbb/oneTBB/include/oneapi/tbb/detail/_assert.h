@@ -14,39 +14,45 @@
     limitations under the License.
 */
 
-#ifndef __TBB_detail__assert_H
-#define __TBB_detail__assert_H
+#pragma once
 
-#include "_config.h"
+//#ifndef __TBB_detail__assert_H
+//#define __TBB_detail__assert_H
+//
+//#include "_config.h"
+//
+//namespace tbb {
+//namespace detail {
+//namespace r1 {
+////! Process an assertion failure.
+///** Normally called from __TBB_ASSERT macro.
+//  If assertion handler is null, print message for assertion failure and abort.
+//  Otherwise call the assertion handler. */
+//void __TBB_EXPORTED_FUNC assertion_failure(const char* location, int line, const char* expression, const char* comment);
+//} // namespace r1
+//} // namespace detail
+//} // namespace tbb
+//
+////! Release version of assertions
+//#define __TBB_ASSERT_RELEASE(predicate,message) ((predicate)?((void)0) : tbb::detail::r1::assertion_failure(__func__,__LINE__,#predicate,message))
+//
+//#if TBB_USE_ASSERT
+//    //! Assert that predicate is true.
+//    /** If predicate is false, print assertion failure message.
+//        If the comment argument is not NULL, it is printed as part of the failure message.
+//        The comment argument has no other effect. */
+//    #define __TBB_ASSERT(predicate,message) __TBB_ASSERT_RELEASE(predicate,message)
+//    //! "Extended" version
+//    #define __TBB_ASSERT_EX __TBB_ASSERT
+//#else
+//    //! No-op version of __TBB_ASSERT.
+//    #define __TBB_ASSERT(predicate,comment) ((void)0)
+//    //! "Extended" version is useful to suppress warnings if a variable is only used with an assert
+//    #define __TBB_ASSERT_EX(predicate,comment) ((void)(1 && (predicate)))
+//#endif // TBB_USE_ASSERT
+//
+//#endif // __TBB_detail__assert_H
 
-namespace tbb {
-namespace detail {
-namespace r1 {
-//! Process an assertion failure.
-/** Normally called from __TBB_ASSERT macro.
-  If assertion handler is null, print message for assertion failure and abort.
-  Otherwise call the assertion handler. */
-void __TBB_EXPORTED_FUNC assertion_failure(const char* location, int line, const char* expression, const char* comment);
-} // namespace r1
-} // namespace detail
-} // namespace tbb
-
-//! Release version of assertions
-#define __TBB_ASSERT_RELEASE(predicate,message) ((predicate)?((void)0) : tbb::detail::r1::assertion_failure(__func__,__LINE__,#predicate,message))
-
-#if TBB_USE_ASSERT
-    //! Assert that predicate is true.
-    /** If predicate is false, print assertion failure message.
-        If the comment argument is not NULL, it is printed as part of the failure message.
-        The comment argument has no other effect. */
-    #define __TBB_ASSERT(predicate,message) __TBB_ASSERT_RELEASE(predicate,message)
-    //! "Extended" version
-    #define __TBB_ASSERT_EX __TBB_ASSERT
-#else
-    //! No-op version of __TBB_ASSERT.
-    #define __TBB_ASSERT(predicate,comment) ((void)0)
-    //! "Extended" version is useful to suppress warnings if a variable is only used with an assert
-    #define __TBB_ASSERT_EX(predicate,comment) ((void)(1 && (predicate)))
-#endif // TBB_USE_ASSERT
-
-#endif // __TBB_detail__assert_H
+#define __TBB_ASSERT(predicate,message) ((void)0)
+#define __TBB_ASSERT_EX(predicate,message)  ((void)(1 && (predicate)))
+#define __TBB_ASSERT_RELEASE(predicate,message)  __TBB_ASSERT(predicate,message)

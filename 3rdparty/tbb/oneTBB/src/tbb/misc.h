@@ -33,6 +33,8 @@
 #endif
 
 #include <atomic>
+#include <cstring>
+#include <cstdarg>
 
 // Does the operating system have a system call to pin a thread to a set of OS processors?
 #define __TBB_OS_AFFINITY_SYSCALL_PRESENT ((__linux__ && !__ANDROID__) || (__FreeBSD_version >= 701000))
@@ -44,7 +46,13 @@ namespace tbb {
 namespace detail {
 namespace r1 {
 
-void runtime_warning(const char* format, ... );
+inline void runtime_warning( const char* format, ... ) {
+    char str[1024]; std::memset(str, 0, 1024);
+    va_list args; va_start(args, format);
+    vsnprintf( str, 1024-1, format, args);
+    va_end(args);
+    fprintf(stderr, "TBB Warning: %s\n", str);
+}
 
 #if __TBB_ARENA_BINDING
 class task_arena;

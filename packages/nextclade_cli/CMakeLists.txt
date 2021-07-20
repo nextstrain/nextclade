@@ -96,6 +96,8 @@ target_link_libraries(${PROJECT_NAME}
   Boost::headers
   CLI11::CLI11
   TBB::tbb
+  TBB::tbbmalloc_proxy
+  TBB::tbbmalloc
   cxxopts::cxxopts
   date::date
   fmt::fmt-header-only

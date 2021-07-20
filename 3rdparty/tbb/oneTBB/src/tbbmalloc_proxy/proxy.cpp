@@ -19,6 +19,10 @@
 #include <cstddef>
 // include <features.h> indirectly so that <stdlib.h> is not included
 #include <unistd.h>
+
+#ifdef __MUSL__
+#include <malloc.h>
+#else
 // Working around compiler issue with Anaconda's gcc 7.3 compiler package.
 // New gcc ported for old libc may provide their inline implementation
 // of aligned_alloc as required by new C++ standard, this makes it hard to
@@ -33,6 +37,8 @@
 #include <cstdlib>
 #undef aligned_alloc
 #endif // defined(__GLIBC_PREREQ)&&!__GLIBC_PREREQ(2, 16)&&_GLIBCXX_HAVE_ALIGNED_ALLOC
+#endif
+
 #endif // __linux__ && !__ANDROID__
 
 #include "proxy.h"
@@ -256,13 +262,14 @@ int mallopt(int /*param*/, int /*value*/) __THROW
     return 1;
 }
 
-struct mallinfo mallinfo() __THROW
-{
-    struct mallinfo m;
-    memset(&m, 0, sizeof(struct mallinfo));
 
-    return m;
-}
+//struct mallinfo mallinfo() __THROW
+//{
+//    struct mallinfo m;
+//    memset(&m, 0, sizeof(struct mallinfo));
+//
+//    return m;
+//}
 
 #if __ANDROID__
 // Android doesn't have malloc_usable_size, provide it to be compatible
