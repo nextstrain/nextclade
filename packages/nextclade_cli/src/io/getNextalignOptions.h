@@ -3,12 +3,6 @@
 #include "../generated/cli.h"
 
 namespace Nextclade {
-  inline CliParamsRun nextalignOptionsToCliOptions(const NextalignOptions& options) {
-    return CliParamsRun{
-
-    };
-  }
-
   inline NextalignOptions cliOptionsToNextalignOptions(const CliParamsRun& cliParams) {
     return NextalignOptions{
       .alignment =
