@@ -13,6 +13,7 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
+find_package(TBB REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
 find_package(semver 0.3.0 REQUIRED)
@@ -82,6 +83,7 @@ target_link_libraries(${PROJECT_NAME}
   fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
   semver::semver
+  TBB::tbb
   CURL::libcurl
   OpenSSL::OpenSSL
   ZLIB::ZLIB

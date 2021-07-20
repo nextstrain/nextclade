@@ -6,6 +6,7 @@
 #include <nextclade_common/fetch.h>
 #include <nextclade_common/openOutputFile.h>
 #include <nextclade_json/nextclade_json.h>
+#include <tbb/task_group.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
@@ -110,11 +111,13 @@ namespace Nextclade {
   }
 
   void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir) {
-    writeFile(fs::path(outDir) / "reference.fasta", fetch(version.files.reference));
-    writeFile(fs::path(outDir) / "tree.json", fetch(version.files.tree));
-    writeFile(fs::path(outDir) / "geneMap.gff", fetch(version.files.geneMap));
-    writeFile(fs::path(outDir) / "primers.csv", fetch(version.files.primers));
-    writeFile(fs::path(outDir) / "qc.json", fetch(version.files.qc));
+    tbb::task_group taskGroup;
+    taskGroup.run([&] { writeFile(fs::path(outDir) / "reference.fasta", fetch(version.files.reference)); });
+    taskGroup.run([&] { writeFile(fs::path(outDir) / "tree.json", fetch(version.files.tree)); });
+    taskGroup.run([&] { writeFile(fs::path(outDir) / "geneMap.gff", fetch(version.files.geneMap)); });
+    taskGroup.run([&] { writeFile(fs::path(outDir) / "primers.csv", fetch(version.files.primers)); });
+    taskGroup.run([&] { writeFile(fs::path(outDir) / "qc.json", fetch(version.files.qc)); });
+    taskGroup.wait();
   }
 
   std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion) {
