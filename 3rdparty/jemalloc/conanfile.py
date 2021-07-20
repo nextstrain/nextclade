@@ -41,7 +41,7 @@ class JemallocConan(ConanFile):
         "enable_lazy_lock": False,
         "enable_debug_logging": False,
         "enable_initial_exec_tls": True,
-        "enable_libdl": True,
+        "enable_libdl": False,
         "enable_prof": False,
     }
     exports_sources = ["patches/**"]
