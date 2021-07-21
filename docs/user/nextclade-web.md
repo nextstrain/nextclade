@@ -1,6 +1,3 @@
-
-# Nextclade web app
-
 Nextclade web is available online at [clades.nextstrain.org](https://clades.nextstrain.org). This is the easiest way of using Nextclade and is the recommended way to get started.
 
 Drag a fasta file onto the "upload" box, provide a url or paste sequence data directly into the text box. The sequences will then be analyzed right in your browser - data never leaves your computer (i.e. no actual "upload" is happening). Since your computer is doing the computational work rather than a remote server, it is advisable to analyze at most a few hundred of sequences at a time, depending on yor hardware.
@@ -19,7 +16,18 @@ If you decide to use your own data, you can choose between a file upload, a link
 
 ## Analysis
 
-Nextclade now analysis your sequences locally, right in your Browser, with results appearing sequence by sequence.
+Nextclade analyzes your sequences locally in your browser. That means, sequences never leave your computer, ensuring full privacy by design.
+
+The analysis pipeline comprises the following steps:
+1. Alignment: Sequences are aligned to the reference genome using its custom Nextalign alignment algorithm.
+2. Translation: Nucleotide sequences are translated into amino acid sequences.
+3. Mutation calling: Nucleotide and amino acid changes are identified
+4. PCR primer changes are computed
+5. Phylogenetic placement: Sequences are placed on a reference tree, clades assigned to nearest neighbour.
+6. Quality control: Quality control metrics are calculated
+
+You can get a quick overview of the results screen in the screenshot below:
+![Results overview](assets/web_overview.png)
 
 ### QC metrics
 
@@ -44,7 +52,21 @@ The result table further displays for each sequence:
 
 Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference. Changes in bases that are used by common primers are also displayed.
 
+![Mutations tooltip](assets/web_mut-tooltip.png)
+
 ### Alignment viewer
+
+To the right of the table you can see the alignment with mutations and regions with missing data highlighted in color. You can quickly check how segments of missing data are distributed on the genome - whether it's a few big chunks clustering in one area or many small missing segments.
+
+![Alignment view](assets/web_alignment.png)
+
+You can zoom into a gene by clicking on the respective gene at the bottom.
+
+![Select Gene](assets/web_click-gene.png)
+
+In sequence view, one can observe mutations in a particular gene. One of Nextclade's strengths is that nucleotide and amino acid changes are visualised in the tooltip in a codon-aware way as you can see in the example below
+
+![Alignment tooltip](assets/web_alignment-tip.png)
 
 ### Tree
 
