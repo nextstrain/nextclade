@@ -334,8 +334,7 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
   TARGET_TRIPLET="x86_64-linux-musl"
   export CONAN_CMAKE_SYSROOT="${GCC_DIR}"
   export CONAN_CMAKE_FIND_ROOT_PATH="${GCC_DIR}"
-  export C_INCLUDE_PATH="${GCC_DIR}/x86_64-linux-musl/include:${LD_LIBRARY_PATH}"
-  export LD_LIBRARY_PATH="${GCC_DIR}/x86_64-linux-musl/lib:${LD_LIBRARY_PATH}"
+  export LD_LIBRARY_PATH="${GCC_DIR}/x86_64-linux-musl/lib:${LD_LIBRARY_PATH:-}"
 
   pushd "${GCC_DIR}/bin" >/dev/null
     if [ ! -e "gcc" ]    ; then ln -s "${TARGET_TRIPLET}-gcc" gcc           ;fi
