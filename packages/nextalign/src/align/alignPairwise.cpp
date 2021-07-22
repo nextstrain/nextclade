@@ -32,14 +32,14 @@ constexpr const int END_OF_SEQUENCE = -1;
 // This start position is set be the previous match. It is this sensitive to a seed matching in the wrong
 // part of the sequence and this is likely to produce errors for genomes with repeated sequence
 template<typename Letter>
-SeedMatch seedMatch(const Sequence<Letter>& kmer, const Sequence<Letter>& ref, const int start_pos,
+SeedMatch seedMatch(const Sequence<Letter>& kmer, const Sequence<Letter>& ref, const int prevprev_plausible_match_pos,
   const int mismatchesAllowed) {
   const int refSize = safe_cast<int>(ref.size());
   const int kmerSize = safe_cast<int>(kmer.size());
   int tmpScore = 0;
   int maxScore = 0;
   int maxShift = -1;
-  for (int shift = start_pos; shift < refSize - kmerSize; ++shift) {
+  for (int shift = prevprev_plausible_match_pos; shift < refSize - kmerSize; ++shift) {
     tmpScore = 0;
     for (int pos = 0; pos < kmerSize; ++pos) {
       if (kmer[pos] == ref[shift + pos]) {
@@ -108,7 +108,6 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
   const int bandWidth = details::round((refSize + querySize) * 0.5) - 3;
   // clang-format on
 
-  int start_pos = 0;
   if (bandWidth < 2 * options.seedLength) {
     return SeedAlignmentStatus{
       .status = Status::Success,
@@ -139,6 +138,8 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
     };
   }
 
+  int prevprev_plausible_match_pos = 0;
+  int prev_plausible_match_pos = 1;
   for (int ni = 0; ni < nSeeds; ++ni) {
 
     const auto goodPositionIndex = details::round(margin + (kmerSpacing * ni));
@@ -146,12 +147,15 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
     const int qPos = mapToGoodPositions[goodPositionIndex];
     // FIXME: query.substr() creates a new string. Use string view instead.
     const auto seed = query.substr(qPos, options.seedLength);
-    const auto tmpMatch = seedMatch(seed, ref, start_pos, options.mismatchesAllowed);
+    const auto tmpMatch = seedMatch(seed, ref, prevprev_plausible_match_pos, options.mismatchesAllowed);
 
     // only use seeds with at most allowed_mismatches
     if (tmpMatch.score >= options.seedLength - options.mismatchesAllowed) {
       seedMatches.push_back({qPos, tmpMatch.shift, tmpMatch.shift - qPos, tmpMatch.score});
-      start_pos = tmpMatch.shift;
+      if ((prevprev_plausible_match_pos < prev_plausible_match_pos) && (prev_plausible_match_pos < tmpMatch.shift)){
+        prevprev_plausible_match_pos = prev_plausible_match_pos;
+        prev_plausible_match_pos = tmpMatch.shift;
+      }
     }
   }
   if (seedMatches.size() < 2) {
@@ -162,20 +166,35 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
     };
   }
 
-  // given the seed matches, determine the maximal and minimal shifts
-  // this shift is the typical amount the query needs shifting to match ref
+  // given the seed matches, determine the 1st and 2nd biggest shifts
+  // these shift is the typical amount the query needs shifting to match ref
   // ref:   ACTCTACTGC-TCAGAC
   // query: ----TCACTCATCT-ACACCGAT  => shift = 4, then 3, 4 again
-
+  // the reason to use the 2nd smallest/biggest is that few erroneous matches
+  // sometimes happen
   int minShift = refSize;
   int maxShift = -refSize;
+  int nextMinShift = refSize;
+  int nextMaxShift = -refSize;
   for (auto& seedMatch : seedMatches) {
     if (seedMatch[2] < minShift) {
+      nextMinShift = minShift;
       minShift = seedMatch[2];
+    } else if (seedMatch[2] < nextMinShift) {
+      nextMinShift = seedMatch[2];
     }
     if (seedMatch[2] > maxShift) {
+      nextMaxShift = maxShift;
       maxShift = seedMatch[2];
+    } else if (seedMatch[2] > nextMaxShift) {
+      nextMaxShift = seedMatch[2];
     }
+  }
+  if (nextMinShift - minShift > refSize/4) { //implausible shift
+    minShift = nextMinShift;
+  }
+  if (maxShift - nextMaxShift > refSize/4) { //implausible shift
+    maxShift = nextMaxShift;
   }
 
   const int meanShift = details::round(0.5 * (minShift + maxShift));
