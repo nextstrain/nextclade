@@ -34,7 +34,7 @@ namespace Nextclade {
       datasets = filterDatasetsByName(datasets, cliParams->name);
     }
 
-    if (datasets.empty()) {
+    if (!datasets.empty()) {
       fmt::print("{:s}\n", formatDatasets(datasets));
     }
   }
