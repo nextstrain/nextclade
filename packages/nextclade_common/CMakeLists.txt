@@ -32,6 +32,8 @@ set(SOURCE_FILES
   include/nextclade_common/openOutputFile.h
   src/datasets.cpp
   src/fetch.cpp
+  src/generated/cainfo.h
+  src/getCurlCodeString.h
   )
 
 add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})

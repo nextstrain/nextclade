@@ -662,6 +662,12 @@ pushd "${BUILD_DIR}" > /dev/null
 
   find "${PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -exec clang-format -style=file -i {} \;
 
+  print 57 "Generate source files";
+  python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cainfo_blob.py" \
+      --input_pem=${PROJECT_ROOT_DIR}/packages/nextclade_common/data/cacert.pem \
+      --output_h=${PROJECT_ROOT_DIR}/packages/nextclade_common/src/generated/cainfo.h \
+#      --output_cpp=${PROJECT_ROOT_DIR}/packages/nextclade_common/src/generated/cainfo.cpp \
+
 #  python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
 #      --input_json=${PROJECT_ROOT_DIR}/packages/nextalign_cli/cli.json \
 #      --output_cpp=${PROJECT_ROOT_DIR}/packages/nextalign_cli/src/generated/cli.cpp \

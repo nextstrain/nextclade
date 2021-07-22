@@ -1,79 +1,97 @@
-#include <cpr/cpr.h>
+#include <curl/curl.h>
 #include <fmt/format.h>
-#include <frozen/string.h>
 #include <nextclade_common/fetch.h>
 
 #include <string>
 
+#if __linux__
+// Custom CA certificate blob. See comment inside the file.
+#include "generated/cainfo.h"
+#endif
+
+#include "getCurlCodeString.h"
+
 namespace Nextclade {
-  constexpr frozen::string DEFAULT_CONNECTION_ERROR_MESSAGE =
-    "Please verify the correctness of the address, check your internet connection and try again later.";
 
-  constexpr frozen::string DEFAULT_REQUEST_ERROR_MESSAGE =
-    "Please verify the correctness of the address, check your internet connection and try again later. "
-    "Make sure that you have a permission to access the requested resource and that CORS is enabled on the server.";
 
-  std::string getCprErrorMessage(const cpr::Response& response) {
-    if (response.error.message.empty()) {
-      return DEFAULT_CONNECTION_ERROR_MESSAGE.data();
+  ErrorHttpConnectionFailed::ErrorHttpConnectionFailed(const std::string& url, int ret)
+      : ErrorHttp(fmt::format(
+          "When fetching a file \"{:}\": {:}: {:}. "
+          "Please verify the correctness of the address, check your internet connection and try again later. "
+          "Make sure that you have a permission to access the requested resource.",
+          url, getCurlCodeString(ret), curl_easy_strerror(static_cast<CURLcode>(ret)))) {}
+
+  ErrorHttpRequestFailed::ErrorHttpRequestFailed(const std::string& url, int status)
+      : ErrorHttp(fmt::format(
+          "When fetching a file \"{:}\": received HTTP status code {:}. "
+          "Please verify the correctness of the address, check your internet connection and try again later. "
+          "Make sure that you have a permission to access the requested resource.",
+          url, status)) {}
+
+  struct CurlResult {
+    int status;
+    std::string body;
+  };
+
+  class Curl {
+    CURL* curl = nullptr;
+
+    inline static size_t writeResult(char* contents, size_t size, size_t nmemb, void* userp) {
+      (reinterpret_cast<std::string*>(userp))->append(contents, size * nmemb);
+      return size * nmemb;
     }
-    return response.error.message;
-  }
 
-  std::string getCprErrorString(const cpr::Response& response) {
-    // clang-format off
-    switch (response.error.code) {
-      case cpr::ErrorCode::OK: return "OK";
-      case cpr::ErrorCode::CONNECTION_FAILURE: return "CONNECTION_FAILURE";
-      case cpr::ErrorCode::EMPTY_RESPONSE: return "EMPTY_RESPONSE";
-      case cpr::ErrorCode::HOST_RESOLUTION_FAILURE: return "HOST_RESOLUTION_FAILURE";
-      case cpr::ErrorCode::INTERNAL_ERROR: return "INTERNAL_ERROR";
-      case cpr::ErrorCode::INVALID_URL_FORMAT: return "INVALID_URL_FORMAT";
-      case cpr::ErrorCode::NETWORK_RECEIVE_ERROR: return "NETWORK_RECEIVE_ERROR";
-      case cpr::ErrorCode::NETWORK_SEND_FAILURE: return "NETWORK_SEND_FAILURE";
-      case cpr::ErrorCode::OPERATION_TIMEDOUT: return "OPERATION_TIMEDOUT";
-      case cpr::ErrorCode::PROXY_RESOLUTION_FAILURE: return "PROXY_RESOLUTION_FAILURE";
-      case cpr::ErrorCode::SSL_CONNECT_ERROR: return "SSL_CONNECT_ERROR";
-      case cpr::ErrorCode::SSL_LOCAL_CERTIFICATE_ERROR: return "SSL_LOCAL_CERTIFICATE_ERROR";
-      case cpr::ErrorCode::SSL_REMOTE_CERTIFICATE_ERROR: return "SSL_REMOTE_CERTIFICATE_ERROR";
-      case cpr::ErrorCode::SSL_CACERT_ERROR: return "SSL_CACERT_ERROR";
-      case cpr::ErrorCode::GENERIC_SSL_ERROR: return "GENERIC_SSL_ERROR";
-      case cpr::ErrorCode::UNSUPPORTED_PROTOCOL: return "UNSUPPORTED_PROTOCOL";
-      case cpr::ErrorCode::REQUEST_CANCELLED: return "REQUEST_CANCELLED";
-      case cpr::ErrorCode::UNKNOWN_ERROR: return "UNKNOWN_ERROR";
-      default: break;
+    inline void setCustomCaInfo() {
+#if __linux__
+      // Not all Linux distributions have CA certificates setup consistently. Individual systems can also be misconfigured.
+      // For example CentOS 7 gives an error "Problem with the SSL CA cert (path? access rights?)".
+      // To mitigate, here we set custom CA certificate blob to override system settings.
+      // See: https://curl.se/docs/caextract.html
+      // See: https://curl.se/libcurl/c/CURLOPT_CAINFO_BLOB.html
+      struct curl_blob blob;
+      blob.data = const_cast<char*>(cainfo_blob);
+      blob.len = strlen(cainfo_blob);
+      blob.flags = CURL_BLOB_COPY;
+      curl_easy_setopt(curl, CURLOPT_CAINFO_BLOB, &blob);
+#endif
     }
-    // clang-format on
-    return "UNKNOWN_ERROR";
-  }
 
+  public:
+    inline Curl() : curl(curl_easy_init()) {
+      if (!curl) {
+        throw ErrorHttp(fmt::format("libcurl: initialization failed\n"));
+      }
+      setCustomCaInfo();
+    }
 
-  ErrorHttpConnectionFailed::ErrorHttpConnectionFailed(const std::string& url, const cpr::Response& response)
-      : ErrorHttp(fmt::format("When fetching a file \"{:}\": received an error: {:} (error code: {:}): {:}",//
-          url, getCprErrorString(response), response.error.code, getCprErrorMessage(response))) {}
+    inline ~Curl() {
+      curl_easy_cleanup(curl);
+    }
 
-  ErrorHttpRequestFailed::ErrorHttpRequestFailed(const std::string& url, const cpr::Response& response)
-      : ErrorHttp(fmt::format("When fetching a file \"{:}\": received an error: {:} (status code: {:}): {:}",//
-          url, response.reason, response.status_code, DEFAULT_REQUEST_ERROR_MESSAGE.data())) {}
+    inline CurlResult get(const std::string& url) {
+      curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+      CurlResult result = {};
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &(result.body));
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &Curl::writeResult);
+
+      auto ret = curl_easy_perform(curl);
+      if (ret) {
+        throw ErrorHttpConnectionFailed(url, ret);
+      } else {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &(result.status));
+        if (result.status >= 400) {
+          throw ErrorHttpRequestFailed(url, result.status);
+        }
+      }
+
+      return result;
+    }
+  };
 
   std::string fetch(const std::string& url) {
-
-    auto session = cpr::Session();
-    session.SetUrl(cpr::Url{url});
-    session.SetSslOptions(cpr::Ssl(cpr::ssl::TLSv1_3{}));
-    session.SetRedirect(true);
-    session.SetMaxRedirects(cpr::MaxRedirects{10});
-
-    auto response = session.Get();
-
-    if (response.error.code != cpr::ErrorCode::OK) {
-      throw ErrorHttpConnectionFailed(url, response);
-    }
-
-    if (response.status_code != cpr::status::HTTP_OK) {
-      throw ErrorHttpRequestFailed(url, response);
-    }
-
-    return response.text;
+    Curl curl;
+    const auto result = curl.get(url);
+    return result.body;
   }
 }// namespace Nextclade

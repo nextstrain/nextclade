@@ -17,12 +17,12 @@ namespace Nextclade {
 
   class ErrorHttpConnectionFailed : public ErrorHttp {
   public:
-    ErrorHttpConnectionFailed(const std::string& url, const cpr::Response& response);
+    explicit ErrorHttpConnectionFailed(const std::string& url, int ret);
   };
 
   class ErrorHttpRequestFailed : public ErrorHttp {
   public:
-    explicit ErrorHttpRequestFailed(const std::string& url, const cpr::Response& response);
+    explicit ErrorHttpRequestFailed(const std::string& url, int status);
   };
 
 
