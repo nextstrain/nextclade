@@ -1,4 +1,3 @@
-
 # Nextclade Command-line interface (CLI)
 
 Nextclade CLI is available as a self-contained executable for Linux and Mac (both Intel and ARM).
