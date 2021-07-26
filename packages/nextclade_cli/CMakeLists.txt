@@ -44,7 +44,7 @@ add_executable(${PROJECT_NAME}
   src/algorithm/runNextclade.cpp
   src/algorithm/runNextclade.h
   src/commands/commands.h
-  src/commands/executeCommandDatasetFetch.cpp
+  src/commands/executeCommandDatasetGet.cpp
   src/commands/executeCommandDatasetList.cpp
   src/commands/executeCommandRoot.cpp
   src/commands/executeCommandRun.cpp

@@ -21,7 +21,7 @@ namespace Nextclade {
   };
 
 
-  void executeCommandDatasetFetch(const std::shared_ptr<CliParamsDatasetFetch>& cliParams) {
+  void executeCommandDatasetGet(const std::shared_ptr<CliParamsDatasetGet>& cliParams) {
     Logger logger{Logger::Options{
       .linePrefix = "Nextclade",
       .verbosity = Logger::convertVerbosity(cliParams->verbosity),

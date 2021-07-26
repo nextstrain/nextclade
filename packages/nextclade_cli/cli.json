@@ -285,21 +285,21 @@
       "callbackName": null,
       "subcommands": [
         {
-          "name": "fetch",
-          "desc": "Download a dataset from remote server.",
-          "cppStructName": "CliParamsDatasetFetch",
-          "callbackName": "datasetFetch",
+          "name": "get",
+          "desc": "Download a dataset from the remote server.",
+          "cppStructName": "CliParamsDatasetGet",
+          "callbackName": "datasetGet",
           "options": [
             {
               "flags": ["-n", "--name"],
-              "desc": "Name of the dataset to fetch.",
+              "desc": "Name of the dataset to download.",
               "cppName": "name",
               "cppType": "std::string",
               "isOptional": false
             },
             {
               "flags": ["-v", "--version"],
-              "desc": "Version of the dataset to fetch. If this flag is not provided or is 'latest', then the latest version is fetched.",
+              "desc": "Version of the dataset to download. If this flag is not provided or is 'latest', then the latest version is download.",
               "cppName": "version",
               "cppType": "std::string",
               "defaultValue": "\"latest\"",

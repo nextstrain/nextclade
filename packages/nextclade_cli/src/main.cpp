@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
   const CliCallbacks callbacks = {
     .runRoot = executeCommandRoot,
     .runNextclade = executeCommandRun,
-    .datasetFetch = executeCommandDatasetFetch,
+    .datasetGet = executeCommandDatasetGet,
     .datasetList = executeCommandDatasetList,
   };
 
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         .silent = {},
 
       },
-    .fetch = {},
+    .get = {},
     .list = {},
   };
 
