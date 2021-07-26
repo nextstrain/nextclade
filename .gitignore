@@ -17,7 +17,7 @@ Thumbs.db
 \.temp
 \.tmp
 \.vscode
-/data_local/
+/data_local*
 dist/
 ehthumbs.db
 generated/

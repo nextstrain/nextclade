@@ -20,8 +20,13 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
 fi
 
 
+export AWS_PAGER=''
 DATA_LOCAL_DIR="${PROJECT_ROOT_DIR}/data_local"
 
 : "${DATA_AWS_S3_BUCKET:?The DATA_AWS_S3_BUCKET environment variable is required.}"
 
 aws s3 sync "${DATA_AWS_S3_BUCKET}" "${DATA_LOCAL_DIR}"
+
+pushd "${DATA_LOCAL_DIR}" >/dev/null
+  find . -type f -name "*.gz" -exec gzip -df {} \;
+popd >/dev/null
