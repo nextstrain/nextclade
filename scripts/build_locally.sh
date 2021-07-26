@@ -638,6 +638,7 @@ if [ "${NEXTCLADE_BUILD_WASM}" != "1" ]; then
   conan_create_custom_package "3rdparty/jemalloc" "jemalloc/5.2.1@local/stable"
   conan_create_custom_package "3rdparty/openssl"  "openssl/1.1.1k@local/stable"
   conan_create_custom_package "3rdparty/c-ares"   "c-ares/1.17.1@local/stable"
+  conan_create_custom_package "3rdparty/zlib"     "zlib/1.2.11@local/stable"
   conan_create_custom_package "3rdparty/libcurl"  "libcurl/7.77.0@local/stable"
   conan_create_custom_package "3rdparty/poco"     "poco/1.11.0@local/stable"
   conan_create_custom_package "3rdparty/tbb"      "tbb/2021.3.0@local/stable"

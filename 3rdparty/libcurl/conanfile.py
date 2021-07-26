@@ -58,9 +58,9 @@ class LibcurlConan(ConanFile):
         "with_largemaxwritesize": False,
         "with_nghttp2": False,
         "with_zlib": True,
-        "with_brotli": False,
+        "with_brotli": True,
         "with_zstd": False,
-        "with_c_ares": False,
+        "with_c_ares": True,
     }
 
     _autotools = None
@@ -152,8 +152,8 @@ class LibcurlConan(ConanFile):
             self.requires("libnghttp2/1.43.0")
         if self.options.with_libssh2:
             self.requires("libssh2/1.9.0")
-        if self.options.with_zlib:
-            self.requires("zlib/1.2.11")
+        # if self.options.with_zlib:
+        self.requires("zlib/1.2.11@local/stable")
         if self.options.with_brotli:
             self.requires("brotli/1.0.9")
         if self.options.get_safe("with_zstd"):
@@ -226,15 +226,15 @@ class LibcurlConan(ConanFile):
         if not self._is_mingw:
             return
         # patch for zlib naming in mingw
-        if self.options.with_zlib:
-            configure_ac = os.path.join(self._source_subfolder, "configure.ac")
-            zlib_name = self.deps_cpp_info["zlib"].libs[0]
-            tools.replace_in_file(configure_ac,
-                                  "AC_CHECK_LIB(z,",
-                                  "AC_CHECK_LIB({},".format(zlib_name))
-            tools.replace_in_file(configure_ac,
-                                  "-lz ",
-                                  "-l{} ".format(zlib_name))
+        # if self.options.with_zlib:
+        #     configure_ac = os.path.join(self._source_subfolder, "configure.ac")
+        #     zlib_name = self.deps_cpp_info["zlib"].libs[0]
+        #     tools.replace_in_file(configure_ac,
+        #                           "AC_CHECK_LIB(z,",
+        #                           "AC_CHECK_LIB({},".format(zlib_name))
+        #     tools.replace_in_file(configure_ac,
+        #                           "-lz ",
+        #                           "-l{} ".format(zlib_name))
 
         if self.options.shared:
             # for mingw builds - do not compile curl tool, just library
@@ -306,10 +306,10 @@ class LibcurlConan(ConanFile):
         else:
             params.append("--without-nghttp2")
 
-        if self.options.with_zlib:
-            params.append("--with-zlib={}".format(tools.unix_path(self.deps_cpp_info["zlib"].rootpath)))
-        else:
-            params.append("--without-zlib")
+        # if self.options.with_zlib:
+        params.append("--with-zlib={}".format(tools.unix_path(self.deps_cpp_info["zlib"].rootpath)))
+        # else:
+        #     params.append("--without-zlib")
 
         if self._has_zstd_option:
             params.append("--with-zstd={}".format(yes_no(self.options.with_zstd)))
@@ -427,7 +427,7 @@ class LibcurlConan(ConanFile):
         if tools.Version(self.version) >= "7.70.0":
             self._cmake.definitions["CMAKE_USE_WOLFSSL"] = self.options.with_ssl == "wolfssl"
         self._cmake.definitions["USE_NGHTTP2"] = self.options.with_nghttp2
-        self._cmake.definitions["CURL_ZLIB"] = self.options.with_zlib
+        self._cmake.definitions["CURL_ZLIB"] = 1
         self._cmake.definitions["CURL_BROTLI"] = self.options.with_brotli
         if self._has_zstd_option:
             self._cmake.definitions["CURL_ZSTD"] = self.options.with_zstd
@@ -515,8 +515,8 @@ class LibcurlConan(ConanFile):
             self.cpp_info.components["curl"].requires.append("libnghttp2::libnghttp2")
         if self.options.with_libssh2:
             self.cpp_info.components["curl"].requires.append("libssh2::libssh2")
-        if self.options.with_zlib:
-            self.cpp_info.components["curl"].requires.append("zlib::zlib")
+        # if self.options.with_zlib:
+        self.cpp_info.components["curl"].requires.append("zlib::zlib")
         if self.options.with_brotli:
             self.cpp_info.components["curl"].requires.append("brotli::brotli")
         if self.options.get_safe("with_zstd"):

@@ -70,6 +70,7 @@ namespace Nextclade {
 
     inline CurlResult get(const std::string& url) {
       curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+      curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
 
       CurlResult result = {};
       curl_easy_setopt(curl, CURLOPT_WRITEDATA, &(result.body));
