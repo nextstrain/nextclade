@@ -32,7 +32,7 @@ namespace Nextclade {
  * Opens a file stream, if the given optional filepath contains value, returns nullptr otherwise
  */
   inline std::unique_ptr<std::ostream> openOutputFileMaybe(const std::optional<std::string> &filepath) {
-    if (!filepath) {
+    if (!filepath || filepath->empty()) {
       return nullptr;
     }
 
