@@ -51,25 +51,32 @@
           "isOptional": false
         },
         {
+          "flags": ["--input-dataset"],
+          "desc": "Path to a directory containing a dataset. See `nextclade dataset --help` on how to obtain datasets. If this flag is not provided, the paths for the following individual inputs files are required: `--input-root-seq`, `--input-tree`, `--input-qc-config`, and the paths for the following individual input files are recommended: `--input-gene-map`, `--input-pcr-primers`. If both the `--input-dataset` and individual paths are provided, each individual flag overrides the corresponding file in the dataset.",
+          "cppName": "inputDataset",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
           "flags": ["-r", "--input-root-seq", "--reference"],
-          "desc": "Path to a .fasta or a .txt file containing root sequence. Must contain only 1 sequence",
+          "desc": "Path to a .fasta or a .txt file containing root sequence. Must contain only 1 sequence. Overrides path to `reference.fasta` provided by `--input-dataset`.",
           "cppName": "inputRootSeq",
           "cppType": "std::string",
-          "isOptional": false
+          "isOptional": true
         },
         {
           "flags": ["-a", "--input-tree"],
-          "desc": "Path to Auspice JSON v2 file containing reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats.",
+          "desc": "Path to Auspice JSON v2 file containing reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats. Overrides path to `tree.json` provided by `--input-dataset`.",
           "cppName": "inputTree",
           "cppType": "std::string",
-          "isOptional": false
+          "isOptional": true
         },
         {
           "flags": ["-q", "--input-qc-config"],
-          "desc": "Path to a JSON file containing configuration of Quality Control rules.",
+          "desc": "Path to a JSON file containing configuration of Quality Control rules. Overrides path to `qc.json` provided by `--input-dataset`.",
           "cppName": "inputQcConfig",
           "cppType": "std::string",
-          "isOptional": false
+          "isOptional": true
         },
         {
           "flags": ["--genes"],
@@ -80,14 +87,14 @@
         },
         {
           "flags": ["-g", "--input-gene-map"],
-          "desc": "Path to a .gff file containing gene map. Gene map (sometimes also called 'gene annotations') is used to find gene regions. If not supplied, sequences will not be translated, peptides will not be emitted, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by codon boundaries.",
+          "desc": "Path to a .gff file containing gene map. Overrides path to `genemap.gff` provided by `--input-dataset`. Gene map (sometimes also called 'gene annotations') is used to find gene regions. If not supplied, sequences will not be translated, peptides will not be emitted, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by codon boundaries.",
           "cppName": "inputGeneMap",
           "cppType": "std::string",
           "isOptional": true
         },
         {
           "flags": ["-p", "--input-pcr-primers"],
-          "desc": "Path to a CSV file containing a list of custom PCR primer sites. These are used to report mutations in these sites.",
+          "desc": "Path to a CSV file containing a list of custom PCR primer sites. Overrides path to `primers.csv` provided by `--input-dataset`. PCR primer information are used to report mutations in these sites.",
           "cppName": "inputPcrPrimers",
           "cppType": "std::string",
           "isOptional": true

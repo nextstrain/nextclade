@@ -10,7 +10,9 @@
 #include "../algorithm/runNextclade.h"
 #include "../generated/cli.h"
 #include "../io/format.h"
+#include "../io/getInputPaths.h"
 #include "../io/getNextalignOptions.h"
+#include "../io/getOutputPaths.h"
 #include "../io/parseGeneMapGffFile.h"
 #include "../io/parseRefFastaFile.h"
 #include "../io/readFile.h"
@@ -22,7 +24,6 @@ namespace Nextclade {
     inline explicit ErrorCliOptionInvalidValue(const std::string& message) : ErrorFatal(message) {}
   };
 
-
   void executeCommandRun(const std::shared_ptr<CliParamsRun>& cliParams) {
     Logger logger{Logger::Options{
       .linePrefix = "Nextclade",
@@ -32,18 +33,28 @@ namespace Nextclade {
     }};
 
     try {
-      const auto refData = parseRefFastaFile(cliParams->inputRootSeq);
+      const InputPaths inputPaths = getInputPaths(cliParams, logger);
+      logger.info(formatInputPaths(inputPaths));
+
+      const auto& inputFasta = inputPaths.inputFasta;
+      const auto& inputRootSeq = inputPaths.inputRootSeq;
+      const auto& inputGeneMap = inputPaths.inputGeneMap;
+      const auto& inputQcConfig = inputPaths.inputQcConfig;
+      const auto& inputTree = inputPaths.inputTree;
+      const auto& inputPcrPrimers = inputPaths.inputPcrPrimers;
+
+      const auto refData = parseRefFastaFile(inputRootSeq);
       const auto shouldWriteReference = cliParams->includeReference;
       logger.info(formatRef(refData, shouldWriteReference));
 
-      if (!cliParams->genes.empty() && cliParams->inputGeneMap.empty()) {
+      if (!cliParams->genes.empty() && !inputGeneMap) {
         throw ErrorCliOptionInvalidValue("Parameter `--genes` requires parameter `--input-gene-map` to be specified.");
       }
 
       GeneMap geneMap;
       std::set<std::string> genes;
-      if (!cliParams->inputGeneMap.empty()) {
-        geneMap = parseGeneMapGffFile(cliParams->inputGeneMap);
+      if (inputGeneMap) {
+        geneMap = parseGeneMapGffFile(*inputGeneMap);
 
         if (cliParams->genes.empty()) {
           // If `--genes` are omitted or empty, use all genes in the gene map
@@ -72,14 +83,14 @@ namespace Nextclade {
         }
       }
 
-      std::ifstream fastaFile(cliParams->inputFasta);
-      auto inputFastaStream = makeFastaStream(fastaFile, cliParams->inputFasta);
+      std::ifstream fastaFile(inputFasta);
+      auto inputFastaStream = makeFastaStream(fastaFile, inputFasta);
       if (!fastaFile.good()) {
-        logger.error("Error: unable to read \"{:s}\"", cliParams->inputFasta);
+        logger.error("Error: unable to read \"{:s}\"", inputFasta);
         std::exit(1);
       }
 
-      const auto qcJsonString = readFile(cliParams->inputQcConfig);
+      const auto qcJsonString = readFile(inputQcConfig);
       const auto qcRulesConfig = Nextclade::parseQcConfig(qcJsonString);
       if (!Nextclade::isQcConfigVersionRecent(qcRulesConfig)) {
         logger.warn(
@@ -87,21 +98,21 @@ namespace Nextclade {
           "be "
           "missing out on new features. It is recommended to download the latest configuration file. Alternatively, to "
           "silence this warning, add/change property \"schemaVersion\": \"{:s}\" in your file.",
-          cliParams->inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getVersion(), Nextclade::getVersion());
+          inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getVersion(), Nextclade::getVersion());
       }
 
-      const auto treeString = readFile(cliParams->inputTree);
+      const auto treeString = readFile(inputTree);
 
       std::vector<Nextclade::PcrPrimer> pcrPrimers;
-      if (!cliParams->inputPcrPrimers.empty()) {
-        const auto pcrPrimersCsvString = readFile(cliParams->inputPcrPrimers);
+      if (inputPcrPrimers) {
+        const auto pcrPrimersCsvString = readFile(*inputPcrPrimers);
         std::vector<std::string> warnings;
-        pcrPrimers = Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, cliParams->inputPcrPrimers,
-          refData.seq, warnings);
+        pcrPrimers =
+          Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, *inputPcrPrimers, refData.seq, warnings);
       }
 
-      const auto paths = getPaths(*cliParams, genes);
-      logger.info(formatPaths(paths));
+      const auto outputPaths = getOutputPaths(*cliParams, genes);
+      logger.info(formatOutputPaths(outputPaths));
 
       auto outputJsonStream = openOutputFileMaybe(cliParams->outputJson);
       auto outputCsvStream = openOutputFileMaybe(cliParams->outputCsv);
@@ -109,18 +120,18 @@ namespace Nextclade {
       auto outputTreeStream = openOutputFileMaybe(cliParams->outputTree);
 
       std::ofstream outputFastaStream;
-      openOutputFile(paths.outputFasta, outputFastaStream);
+      openOutputFile(outputPaths.outputFasta, outputFastaStream);
 
       std::ofstream outputInsertionsStream;
-      openOutputFile(paths.outputInsertions, outputInsertionsStream);
+      openOutputFile(outputPaths.outputInsertions, outputInsertionsStream);
       outputInsertionsStream << "seqName,insertions\n";
 
       std::ofstream outputErrorsFile;
-      openOutputFile(paths.outputErrors, outputErrorsFile);
+      openOutputFile(outputPaths.outputErrors, outputErrorsFile);
       outputErrorsFile << "seqName,errors,warnings,failedGenes\n";
 
       std::map<std::string, std::ofstream> outputGeneStreams;
-      for (const auto& [geneName, outputGenePath] : paths.outputGenes) {
+      for (const auto& [geneName, outputGenePath] : outputPaths.outputGenes) {
         auto result = outputGeneStreams.emplace(std::make_pair(geneName, std::ofstream{}));
         auto& outputGeneFile = result.first->second;
         openOutputFile(outputGenePath, outputGeneFile);
@@ -137,7 +148,7 @@ namespace Nextclade {
 
       bool inOrder = cliParams->inOrder;
 
-      if (cliParams->inputGeneMap.empty()) {
+      if (!inputGeneMap) {
         logger.warn(
           "Warning: Parameter `--input-gene-map` was not specified. Without a gene map sequences will not be "
           "translated, there will be no peptides in output files, aminoacid mutations will not be detected and "

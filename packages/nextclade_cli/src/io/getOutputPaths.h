@@ -1,17 +1,19 @@
 #pragma once
+#include <fmt/format.h>
+
 #include <string>
 
-#include "filesystem.h"
+#include <nextclade_common/filesystem.h>
 
 namespace Nextclade {
-  struct Paths {
+  struct OutputPaths {
     fs::path outputFasta;
     fs::path outputInsertions;
     fs::path outputErrors;
     std::map<std::string, fs::path> outputGenes;
   };
 
-  inline Paths getPaths(const CliParamsRun &cliParams, const std::set<std::string> &genes) {
+  inline OutputPaths getOutputPaths(const CliParamsRun &cliParams, const std::set<std::string> &genes) {
     fs::path sequencesPath = cliParams.inputFasta;
 
     auto outDir = fs::canonical(fs::current_path());

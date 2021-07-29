@@ -17,7 +17,6 @@ find_package(TBB REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(date 3.0.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
-find_package(ghcFilesystem 1.4.0 REQUIRED)
 find_package(jemalloc 5.2.1 REQUIRED)
 find_package(semver 0.3.0 REQUIRED)
 
@@ -52,10 +51,9 @@ add_executable(${PROJECT_NAME}
   src/generated/cli.cpp
   src/generated/cli.h
   src/io/Logger.h
-  src/io/filesystem.h
   src/io/format.h
   src/io/getNextalignOptions.h
-  src/io/getPaths.h
+  src/io/getOutputPaths.h
   src/io/parseGeneMapGffFile.h
   src/io/parseRefFastaFile.h
   src/io/readFile.h
@@ -100,7 +98,6 @@ target_link_libraries(${PROJECT_NAME}
   cxxopts::cxxopts
   date::date
   fmt::fmt-header-only
-  ghcFilesystem::ghc_filesystem
   semver::semver
   jemalloc::jemalloc
 

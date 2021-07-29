@@ -78,12 +78,12 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   nextclade_json
+  ghcFilesystem::ghc_filesystem
 
   PRIVATE
   Boost::headers
   Microsoft.GSL::GSL
   fmt::fmt-header-only
-  ghcFilesystem::ghc_filesystem
   semver::semver
   TBB::tbb
   CURL::libcurl

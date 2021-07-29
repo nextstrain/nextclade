@@ -4,16 +4,30 @@
 
 #include <string>
 
-#include "getPaths.h"
+#include "getInputPaths.h"
+#include "getOutputPaths.h"
 #include "parseRefFastaFile.h"
 
 namespace Nextclade {
 
-  inline std::string formatPaths(const Paths &paths) {
+  inline std::string formatInputPaths(const InputPaths &paths) {
+    fmt::memory_buffer buf;
+    fmt::format_to(buf, "\nInput files:\n");
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Sequences (query)", paths.inputFasta);
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Root (reference) sequence", paths.inputRootSeq);
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Reference tree", paths.inputTree);
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Quality control configuration", paths.inputQcConfig);
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Gene map", paths.inputGeneMap.value_or("-"));
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "PCR primers", paths.inputPcrPrimers.value_or("-"));
+    return fmt::to_string(buf);
+  }
+
+  inline std::string formatOutputPaths(const OutputPaths &paths) {
     fmt::memory_buffer buf;
     fmt::format_to(buf, "\nOutput files:\n");
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Errors and warnings", paths.outputErrors.string());
 
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
       fmt::memory_buffer bufGene;

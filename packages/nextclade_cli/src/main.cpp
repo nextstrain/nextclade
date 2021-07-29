@@ -48,11 +48,6 @@ std::vector<char*> preprocessArgs(int argc, char** argv) {
 int main(int argc, char* argv[]) {
   auto args = preprocessArgs(argc, argv);
 
-  //  for (int i = 0; i < args.size(); ++i) {
-  //    fmt::print("[{:d}] {:s}\n", i, args[i]);
-  //    fflush(stdout);
-  //  }
-
   const CliCallbacks callbacks = {
     .runRoot = executeCommandRoot,
     .runNextclade = executeCommandRun,
@@ -68,6 +63,7 @@ int main(int argc, char* argv[]) {
         .jobs = {},
         .inOrder = {},
         .inputFasta = {},
+        .inputDataset = {},
         .inputRootSeq = {},
         .inputTree = {},
         .inputQcConfig = {},
