@@ -1,3 +1,8 @@
+-include .env.example
+-include .env
+export $(shell bash -c "sed 's/=.*//' .env.example || true" )
+export $(shell bash -c "sed 's/=.*//' .env || true" )
+
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
@@ -17,7 +22,7 @@ dev-impl:
 	@nodemon
 
 dev-nowatch:
-	@scripts/build_locally.sh
+	@CMAKE_BUILD_TYPE=Debug scripts/build_locally.sh
 
 dev-asan:
 	@CMAKE_BUILD_TYPE=ASAN $(MAKE) dev
@@ -139,3 +144,15 @@ e2e-compare:
 	python3 packages/nextclade/e2e/compare_js_and_cpp.py
 
 e2e: e2e-run e2e-compare
+
+
+# Synchronize source files using rsync
+sync:
+	@$(MAKE) --no-print-directory sync-impl
+
+sync-impl:
+	@nodemon --config config/nodemon/nodemon_sync.json
+
+.ONESHELL:
+sync-nowatch:
+	rsync -arvz --no-owner --no-group --exclude=.git --exclude=.volumes --exclude=.idea --exclude=.vscode* --exclude=.ignore* --exclude=.cache --exclude=.build --exclude=packages/web/.build --exclude=packages/web/.cache --exclude=packages/web/node_modules --exclude=packages/nextclade_cli/src/generated --exclude=.out --exclude=tmp --exclude=.reports $(shell pwd) $${SYNC_DESTINATION}

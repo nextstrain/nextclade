@@ -3,6 +3,7 @@
 #include <tbb/global_control.h>
 
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <thread>

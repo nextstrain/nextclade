@@ -4,7 +4,7 @@
 
 #include <string>
 
-#if __linux__
+#ifdef __linux__
 // Custom CA certificate blob. See comment inside the file.
 #include "generated/cainfo.h"
 #endif
@@ -42,7 +42,7 @@ namespace Nextclade {
     }
 
     inline void setCustomCaInfo() {
-#if __linux__
+#ifdef __linux__
       // Not all Linux distributions have CA certificates setup consistently. Individual systems can also be misconfigured.
       // For example CentOS 7 gives an error "Problem with the SSL CA cert (path? access rights?)".
       // To mitigate, here we set custom CA certificate blob to override system settings.

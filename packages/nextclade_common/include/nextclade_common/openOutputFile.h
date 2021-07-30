@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace Nextclade {

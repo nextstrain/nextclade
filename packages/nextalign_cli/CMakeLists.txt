@@ -23,6 +23,10 @@ if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
+    set(DEPENDENCIES
+      ${DEPENDENCIES}
+      jemalloc::jemalloc
+    )
   endif ()
 endif ()
 
@@ -80,7 +84,7 @@ target_link_libraries(${PROJECT_NAME}
   cxxopts::cxxopts
   fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
-  jemalloc::jemalloc
+  ${DEPENDENCIES}
   )
 
 install(

@@ -3,7 +3,6 @@ benchmark/1.5.2
 boost/1.75.0
 c-ares/1.17.1@local/stable
 cli11/1.9.1
-cpr/1.6.2
 cxxopts/2.2.1
 date/3.0.1
 fast-cpp-csv-parser/20191004

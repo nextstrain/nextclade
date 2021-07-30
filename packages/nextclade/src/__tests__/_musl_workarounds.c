@@ -1,9 +1,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-/** Symbols that are missing in libmusl, but required in Google Test */
+/** Symbols that are missing in libmusl, but required */
 
-#if !defined(__GLIBC__)
+#if defined __linux__ && !defined(__GLIBC__)
 int __printf_chk(int flag, const char *format, ...) {
   va_list ap;
   int ret;

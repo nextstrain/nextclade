@@ -63,7 +63,7 @@ The easiest way to start the development is to use the included docker container
       python3-setuptools \
       python3-wheel \
 
-    pip3 install --user --upgrade conan cppcheck
+    pip3 install --user --upgrade conan cppcheck colorama
     ```
     </details>
     </p>
@@ -79,9 +79,9 @@ The easiest way to start the development is to use the included docker container
     ```
     xcode-select --install
 
-    brew install ccache cmake coreutils python
+    cd nextclade
+    brew bundle --file=Brewfile
 
-    pip3 install --user --upgrade conan cppcheck
     ```
     </details>
     </p>

@@ -5,10 +5,6 @@
 #include <string>
 #include <vector>
 
-namespace cpr {
-  struct Response;
-}// namespace cpr
-
 namespace Nextclade {
   class ErrorHttp : public std::runtime_error {
   public:

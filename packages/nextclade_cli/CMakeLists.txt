@@ -25,6 +25,10 @@ if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
+    set(DEPENDENCIES
+      ${DEPENDENCIES}
+      jemalloc::jemalloc
+    )
   endif ()
 endif ()
 
@@ -99,7 +103,7 @@ target_link_libraries(${PROJECT_NAME}
   date::date
   fmt::fmt-header-only
   semver::semver
-  jemalloc::jemalloc
+  ${DEPENDENCIES}
 
   nextclade_common
   nextclade

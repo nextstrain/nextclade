@@ -1,5 +1,4 @@
 #include <Poco/URI.h>
-#include <cpr/cpr.h>
 #include <fmt/format.h>
 #include <frozen/string.h>
 #include <nextclade_common/datasets.h>

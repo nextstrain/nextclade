@@ -130,10 +130,10 @@ NEXTCLADE_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
 NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=0}
 NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=1}
 
-CONAN_COMPILER_SETTINGS="-s arch=${HOST_ARCH}"
+CONAN_ARCH_SETTINGS="-s arch=${HOST_ARCH}"
 if [ "${HOST_OS}" == "MacOS" ] && [ "${HOST_ARCH}" == "arm64" ]; then
   # Conan uses different name for macOS arm64 architecture
-  CONAN_COMPILER_SETTINGS="\
+  CONAN_ARCH_SETTINGS="\
     -s arch=armv8 \
   "
 fi
@@ -141,7 +141,7 @@ fi
 if [ "${HOST_OS}" == "MacOS" ]; then
   # Conan uses different name for macOS arm64 architecture
   CONAN_COMPILER_SETTINGS="\
-    ${CONAN_COMPILER_SETTINGS} \
+    ${CONAN_COMPILER_SETTINGS:-} \
     -s os.version=${OSX_MIN_VER} \
   "
 fi
@@ -158,7 +158,7 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
   CLANG_VERSION=${CLANG_VERSION:=${CLANG_VERSION_DETECTED}}
 
   CONAN_COMPILER_SETTINGS="\
-    ${CONAN_COMPILER_SETTINGS}
+    ${CONAN_COMPILER_SETTINGS:-}
     -s compiler=clang \
     -s compiler.version=${CLANG_VERSION} \
   "
@@ -175,19 +175,19 @@ if [ "${USE_CLANG}" == "true" ] || [ "${USE_CLANG}" == "1" ]; then
     export CMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++"
 
     CONAN_COMPILER_SETTINGS="\
-      ${CONAN_COMPILER_SETTINGS}
+      ${CONAN_COMPILER_SETTINGS:-}
       -s compiler.libcxx=libc++ \
     "
 
     MORE_CMAKE_FLAGS="\
       ${MORE_CMAKE_FLAGS} \
-      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} \
+      -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS:-} \
       -DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS} \
       -DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS} \
     "
   else
     CONAN_COMPILER_SETTINGS="\
-      ${CONAN_COMPILER_SETTINGS}
+      ${CONAN_COMPILER_SETTINGS:-}
       -s compiler.libcxx=libstdc++11 \
     "
   fi
@@ -274,7 +274,7 @@ CONAN_STATIC_BUILD_FLAGS="\
   -o poco:enable_active_record=False \
   -o poco:enable_apacheconnector=False \
   -o poco:enable_cppparser=False \
-  -o poco:enable_crypto=True \
+  -o poco:enable_crypto=False \
   -o poco:enable_data=False \
   -o poco:enable_data_mysql=False \
   -o poco:enable_data_odbc=False \
@@ -284,15 +284,15 @@ CONAN_STATIC_BUILD_FLAGS="\
   -o poco:enable_json=False \
   -o poco:enable_jwt=False \
   -o poco:enable_mongodb=False \
-  -o poco:enable_net=True \
-  -o poco:enable_netssl=True \
+  -o poco:enable_net=False \
+  -o poco:enable_netssl=False \
   -o poco:enable_pagecompiler=False \
   -o poco:enable_pagecompiler_file2page=False \
   -o poco:enable_pdf=False \
   -o poco:enable_pocodoc=False \
   -o poco:enable_redis=False \
   -o poco:enable_sevenzip=False \
-  -o poco:enable_util=True \
+  -o poco:enable_util=False \
   -o poco:enable_xml=False \
   -o poco:enable_zip=False \
 "
@@ -364,8 +364,8 @@ if [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
 
   export CFLAGS="-D__MUSL__"
   export CXXFLAGS="-D__MUSL__"
-  export CMAKE_C_FLAGS="${CFLAGS}"
-  export CMAKE_CXX_FLAGS="${CXXFLAGS}"
+  export CMAKE_C_FLAGS="${CFLAGS:-}"
+  export CMAKE_CXX_FLAGS="${CXXFLAGS:-}"
 
   export CMAKE_TOOLCHAIN_FILE="${PROJECT_ROOT_DIR}/config/cmake/musl.toolchain.cmake"
   export CONAN_CMAKE_TOOLCHAIN_FILE="${CMAKE_TOOLCHAIN_FILE}"
@@ -413,6 +413,17 @@ if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   "
 fi
 
+if [ "${HOST_OS}" == "MacOS" ]; then
+  # Avoid compiler error:
+  # error: aligned deallocation function of type 'void (void *, std::size_t, std::align_val_t) noexcept' is only available on macOS 10.14 or newer
+  # note: if you supply your own aligned allocation functions, use -faligned-allocation to silence this diagnostic
+  export CXX_FLAGS="${CXX_FLAGS:-} -faligned-allocation"
+  export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS:-} -faligned-allocation"
+
+  ADDITIONAL_PATH="/local/opt/m4/bin"
+  export PATH="${ADDITIONAL_PATH}${PATH:+:$PATH}"
+fi
+
 
 BUILD_TYPE_EXTENDED=${BUILD_PREFIX}${CMAKE_BUILD_TYPE}${BUILD_SUFFIX}
 export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache/${BUILD_TYPE_EXTENDED}}"
@@ -442,7 +453,15 @@ NEXTCLADE_CLI=$(get_cli "nextclade")
 DEV_CLI_OPTIONS="${DEV_CLI_OPTIONS:=}"
 
 # gdb (or lldb) command with arguments
-GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
+GDB_DEFAULT=
+
+if [ "${BUILD_OS}" == "MacOS" ]; then
+  if command -v "lldb"; then
+    GDB_DEFAULT="lldb --batch --source-on-crash ${THIS_DIR}/lib/.lldb-on-crash --source ${THIS_DIR}/lib/.lldb-source --"
+  fi > /dev/null
+elif command -v "gdb"; then
+  GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
+fi > /dev/null
 
 # AddressSanitizer and MemorySanitizer don't work with gdb
 case ${CMAKE_BUILD_TYPE} in
@@ -489,31 +508,42 @@ fi
 
 
 # gttp (Google Test Pretty Printer) command
-GTTP_DEFAULT="${THIS_DIR}/lib/gtpp.py"
+GTTP_DEFAULT=
+if python3 -c "import colorama" 2>/dev/null; then
+  GTTP_DEFAULT="${THIS_DIR}/lib/gtpp.py"
+fi >/dev/null
+
 if [ "${IS_CI}" == "1" ]; then
   GTTP_DEFAULT=""
 fi
 GTPP="${GTPP:=${GTTP_DEFAULT}}"
 
-# Generate a semicolon-delimited list of arguments for cppcheck
-# (to run during cmake build). The arguments are taken from the file
-# `.cppcheck` in the source root
-CMAKE_CXX_CPPCHECK=""
-if command -v "cppcheck"; then
-  CMAKE_CXX_CPPCHECK="cppcheck;--template=gcc"
-  while IFS='' read -r flag; do
-    CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
-  done<"${THIS_DIR}/../.cppcheck"
-fi > /dev/null
+## Generate a semicolon-delimited list of arguments for cppcheck
+## (to run during cmake build). The arguments are taken from the file
+## `.cppcheck` in the source root
+#CMAKE_CXX_CPPCHECK=""
+#if command -v "cppcheck"; then
+#  CMAKE_CXX_CPPCHECK="cppcheck;--template=gcc"
+#  while IFS='' read -r flag; do
+#    CMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK};${flag}"
+#  done<"${THIS_DIR}/../.cppcheck"
+#fi > /dev/null
 
 # Print coloured message
 function print() {
   if [ ! -z "${USE_COLOR}" ] && [ "${USE_COLOR}" != "false" ] && [ "${USE_COLOR}" != "0" ]; then
-    echo -en "\n\e[48;5;${1}m - ${2} \t\e[0m\n";
+    echo -en "\n\033[48;5;${1}m - ${2} \t\033[0m\n";
   else
     printf "\n${2}\n";
   fi
 }
+
+export COMPILER_FLAGS="-fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free"
+
+export CFLAGS="${CFLAGS:-} ${COMPILER_FLAGS}"
+export CXXFLAGS="${CXXFLAGS:-} ${COMPILER_FLAGS}"
+export CMAKE_C_FLAGS="${CMAKE_C_FLAGS:-} ${COMPILER_FLAGS}"
+export CMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS:-} ${COMPILER_FLAGS}"
 
 echo "-------------------------------------------------------------------------"
 echo "PROJECT_NAME   = ${PROJECT_NAME:=}"
@@ -558,6 +588,7 @@ echo "USE_VALGRIND             = ${USE_VALGRIND:=}"
 echo "USE_MASSIF               = ${USE_MASSIF:=}"
 echo "GDB                      = ${GDB:=}"
 echo ""
+echo "CONAN_ARCH_SETTINGS          = ${CONAN_ARCH_SETTINGS:=}"
 echo "CONAN_COMPILER_SETTINGS      = ${CONAN_COMPILER_SETTINGS:=}"
 echo "CONAN_STATIC_BUILD_FLAGS     = ${CONAN_STATIC_BUILD_FLAGS:=}"
 echo "CONAN_TBB_STATIC_BUILD_FLAGS = ${CONAN_TBB_STATIC_BUILD_FLAGS:=}"
@@ -624,7 +655,8 @@ function conan_create_custom_package() {
     pushd "${PACKAGE_PATH}" > /dev/null
         conan create . local/stable \
         -s build_type="${CONAN_BUILD_TYPE}" \
-        ${CONAN_COMPILER_SETTINGS} \
+        ${CONAN_ARCH_SETTINGS} \
+        ${CONAN_COMPILER_SETTINGS:-} \
         ${CONAN_STATIC_BUILD_FLAGS} \
         ${CONAN_TBB_STATIC_BUILD_FLAGS} \
         --build=missing \
@@ -650,7 +682,8 @@ pushd "${BUILD_DIR}" > /dev/null
   print 56 "Install dependencies";
   conan install "${CONANFILE}" \
     -s build_type="${CONAN_BUILD_TYPE}" \
-    ${CONAN_COMPILER_SETTINGS} \
+    ${CONAN_ARCH_SETTINGS} \
+    ${CONAN_COMPILER_SETTINGS:-} \
     ${CONAN_STATIC_BUILD_FLAGS} \
     --build missing \
 
@@ -676,13 +709,13 @@ pushd "${BUILD_DIR}" > /dev/null
 #   find "${PROJECT_ROOT_DIR}/packages/nextalign_cli/src/generated/" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -exec clang-format -style=file -i {} \;
 
 
+#    -DCMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK}" \
   print 92 "Generate build files";
   ${CLANG_ANALYZER} ${EMCMAKE} cmake "${PROJECT_ROOT_DIR}" \
     -DCMAKE_MODULE_PATH="${BUILD_DIR}" \
     -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
     -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
     -DCMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}" \
-    -DCMAKE_CXX_CPPCHECK="${CMAKE_CXX_CPPCHECK}" \
     -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE:=0} \
     -DCMAKE_COLOR_MAKEFILE=${CMAKE_COLOR_MAKEFILE:=1} \
     -DNEXTALIGN_STATIC_BUILD=${NEXTALIGN_STATIC_BUILD} \
@@ -765,12 +798,12 @@ pushd "${BUILD_DIR}" > /dev/null
 
 popd > /dev/null
 
-if command -v "cppcheck"; then
-  print 25 "Run cppcheck";
-  . "${THIS_DIR}/cppcheck.sh"
-else
-  print 25 "Skipping cppcheck: not found";
-fi
+#if command -v "cppcheck"; then
+#  print 25 "Run cppcheck";
+#  . "${THIS_DIR}/cppcheck.sh"
+#else
+#  print 25 "Skipping cppcheck: not found";
+#fi
 
 
 if [ "${CROSS}" == "1" ]; then
@@ -779,7 +812,7 @@ if [ "${CROSS}" == "1" ]; then
 fi
 
 pushd "${PROJECT_ROOT_DIR}" > /dev/null
-   if [ ${CMAKE_BUILD_TYPE} != "Release" ] && [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
+   if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
      if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
        print 23 "Run Nextalign tests";
        eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
