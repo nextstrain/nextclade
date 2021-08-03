@@ -1,4 +1,4 @@
-<h1 id="developers-guide-cli" align="center">
+<h1 id="dataset-curation" align="center">
 💾 Dataset curation
 </h1>
 
@@ -155,10 +155,10 @@ from the project root. The server then can be reached by default from
 http://localhost:27722
 ```
 
-(the port number is controled by `DATA_LOCAL_PORT` environmnemt variable)
+(the port number is controlled by `DATA_LOCAL_PORT` environment variable)
 
 
-In oder for the application to use the local data, set environmnemt variable
+In oder for the application to use the local data, set environment variable
 
 ```
 DATA_FULL_DOMAIN=http://localhost:27722
