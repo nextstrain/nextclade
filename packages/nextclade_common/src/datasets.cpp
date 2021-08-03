@@ -15,8 +15,8 @@
 
 namespace Nextclade {
 
-  constexpr const frozen::string DATA_FULL_DOMAIN = "https://d2y3t6seg8c135.cloudfront.net";
-  // constexpr const frozen::string DATA_FULL_DOMAIN = "http://localhost:27722";
+  // The macro `DATA_FULL_DOMAIN` comes from the build system and can be set in the root `.env` file
+  constexpr const frozen::string dataFullDomain = DATA_FULL_DOMAIN;
 
   namespace {
     using json = nlohmann::ordered_json;
@@ -52,12 +52,12 @@ namespace Nextclade {
 
     DatasetFiles parseDatasetFiles(const json& j) {
       return DatasetFiles{
-        .geneMap = toAbsoluteUrl(at(j, "geneMap"), DATA_FULL_DOMAIN.data()),
-        .primers = toAbsoluteUrl(at(j, "primers"), DATA_FULL_DOMAIN.data()),
-        .qc = toAbsoluteUrl(at(j, "qc"), DATA_FULL_DOMAIN.data()),
-        .reference = toAbsoluteUrl(at(j, "reference"), DATA_FULL_DOMAIN.data()),
-        .sequences = toAbsoluteUrl(at(j, "sequences"), DATA_FULL_DOMAIN.data()),
-        .tree = toAbsoluteUrl(at(j, "tree"), DATA_FULL_DOMAIN.data()),
+        .geneMap = toAbsoluteUrl(at(j, "geneMap"), dataFullDomain.data()),
+        .primers = toAbsoluteUrl(at(j, "primers"), dataFullDomain.data()),
+        .qc = toAbsoluteUrl(at(j, "qc"), dataFullDomain.data()),
+        .reference = toAbsoluteUrl(at(j, "reference"), dataFullDomain.data()),
+        .sequences = toAbsoluteUrl(at(j, "sequences"), dataFullDomain.data()),
+        .tree = toAbsoluteUrl(at(j, "tree"), dataFullDomain.data()),
       };
     }
 
@@ -67,7 +67,7 @@ namespace Nextclade {
         .comment = at(j, "comment"),
         .compatibility = parseDatasetCompatibility(at(j, "compatibility")),
         .files = parseDatasetFiles(at(j, "files")),
-        .zipBundle = toAbsoluteUrl(at(j, "zipBundle"), DATA_FULL_DOMAIN.data()),
+        .zipBundle = toAbsoluteUrl(at(j, "zipBundle"), dataFullDomain.data()),
       };
     }
 
@@ -99,7 +99,7 @@ namespace Nextclade {
   }//namespace
 
   DatasetsJson fetchDatasetsJson() {
-    const std::string url = toAbsoluteUrl("/_generated/datasets.json", DATA_FULL_DOMAIN.data());
+    const std::string url = toAbsoluteUrl("/_generated/datasets.json", dataFullDomain.data());
     const auto& datasetsJsonStr = fetch(url);
     return parseDatasetsJson(datasetsJsonStr);
   }
