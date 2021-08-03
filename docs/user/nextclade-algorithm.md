@@ -1,6 +1,6 @@
 ## High-level overview of the pipeline
 
-Nextclade's workflow is a pipeline which consists of several steps. This section describes these steps, rougly in their order of execution.
+Nextclade's workflow is a pipeline which consists of several steps. This section describes these steps, roughly in their order of execution.
 
 Note: A standalone command-line tool, *Nextalign*, is available that performs only the alignment (1) and translation (2) steps, without any of the subsequent analysis steps.
 
@@ -8,7 +8,7 @@ Note: A standalone command-line tool, *Nextalign*, is available that performs on
 
 In order for sequences to be analyzed, they need to be arranged in a way that allows for comparing homologous regions. This process is called [sequence alignment](https://en.wikipedia.org/wiki/Sequence_alignment).
 
-Nextclade performs pairwise alignment of the provided (query) sequences against a given reference (root) sequence using a banded local alignment algorithm with affine gap-cost. The width of the band and rough relative positions <!--- Positions of what? --> are determined through seed matching. Seed matching consists of finding several small fragments, *seeds*, of sufficient similarity in the reference and query sequences. The number of seeds, as well as their length, spacing and the allowed number of mismatched nucleotides in them are configurable. This algorithm can be considered a variation of the [Smith–Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) algorithm. Nextclade strips insertions relative to the reference from the aligned sequences and lists them in a separate file.  
+Nextclade performs pairwise alignment of the provided (query) sequences against a given reference (root) sequence using a banded local alignment algorithm with affine gap-cost. The band width and rough relative positions <!--- Positions of what? --> are determined through seed matching. Seed matching consists of finding several small fragments, *seeds*, of sufficient similarity in the reference and query sequences. The number of seeds, as well as their length, spacing and the allowed number of mismatched nucleotides in them are configurable. This algorithm can be considered a variation of the [Smith–Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) algorithm. Nextclade strips insertions relative to the reference from the aligned sequences and lists them in a separate file.  
 
 The algorithm aims to be sufficiently fast for running in the internet browser of an average consumer computer, by trading reduced alignment accuracy for improved runtime performance. We found that it works well for most sequences.
 
