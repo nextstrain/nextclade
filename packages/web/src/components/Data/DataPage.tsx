@@ -203,7 +203,7 @@ export function DataPage() {
           </Row>
 
           <Row noGutters>
-            <Col>{isError && error && <span className="text-danger">{`${error?.name}: ${error?.message}`}</span>}</Col>
+            <Col>{isError && error && <span className="text-danger">{`${error.name}: ${error.message}`}</span>}</Col>
           </Row>
 
           {datasetsJson && <DatasetList datasetsJson={datasetsJson} />}

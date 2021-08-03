@@ -8,7 +8,7 @@ export interface LinkExternalProps extends React.HTMLProps<HTMLAnchorElement> {
 export function LinkExternal({ url, href, children, ...restProps }: PropsWithChildren<LinkExternalProps>) {
   let target: string | undefined = '_blank'
   let rel: string | undefined = 'noopener noreferrer'
-  if (restProps?.download) {
+  if (restProps.download) {
     target = undefined
     rel = undefined
   }

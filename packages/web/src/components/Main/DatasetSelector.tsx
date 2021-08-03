@@ -168,7 +168,7 @@ export function DatasetSelectorDisconnected({ setDataset }: DatasetSelectorProps
       />
       {isError && error && (
         <DropdownLoadingOverlay>
-          <ErrorText>{`${error?.name}: ${error?.message}`}</ErrorText>
+          <ErrorText>{`${error.name}: ${error.message}`}</ErrorText>
         </DropdownLoadingOverlay>
       )}
 

@@ -4,7 +4,6 @@
 
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
-  const headers = request.headers
 
   // All dataset files except .zip are gzip-compressed.
   // Here we rewrite the URL to get the corresponding .gz files.
