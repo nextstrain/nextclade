@@ -11,11 +11,11 @@ User's guide
 
     nextclade-web
 
-    nextalign-cli-flags
-    nextalign-cli-tutorial
-
     nextclade-cli-flags
     nextclade-cli-tutorial
+
+    nextalign-cli-flags
+    nextalign-cli-tutorial
 
     nextclade-algorithm
     nextclade-implementation
