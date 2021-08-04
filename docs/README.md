@@ -8,7 +8,7 @@ This is the Readthedocs subproject for docs.nextstrain.org. More details:
 
 Once you have [Docker](https://docs.docker.com/get-docker/) installed, run from the root of the project:
 
-    make docker-html
+    make docker-docs
 
 The HTML files will appear in `docs/build/html/` (for manual inspection) and served on `http://localhost:8000`. The package `sphinx-autobuild` will watch the files, rebuild the HTML and reload the page in the browser on changes. 
 
