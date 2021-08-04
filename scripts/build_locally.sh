@@ -466,7 +466,6 @@ fi
 # Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
 
 # At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
 # This will build a local conan package and put it into local conan cache, if not present yet.

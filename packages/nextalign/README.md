@@ -13,7 +13,7 @@ by Nextstrain team
 
 This package contains static library called `libnextalign`, which contains the implementation of Nextalign algorithms.
 
-You are probably more interested in the command-line executable, which is in package <a href="../../nextalign_cli">nextalign_cli</a>. See readme file there for more details.
+You are probably more interested in the command-line executable, which is in package <a href="../nextalign_cli">nextalign_cli</a>. See readme file there for more details.
 
 See also ["Developer's guide: Nextclade CLI and Nextalign CLI"](../../docs/dev/developers-guide-cli.md) for instructions on how to build and run the CLI modules.
 
