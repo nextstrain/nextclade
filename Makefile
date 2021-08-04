@@ -157,7 +157,7 @@ docker-docs:
 	--build-arg GID=$(shell id -g) \
 	docs/
 	docker run -it --rm \
-	--name=nextstrain-docs-builder-$(shell date +%s) \
+	--name=nextclade-docs-builder-$(shell date +%s) \
 	--init \
 	--user=$(shell id -u):$(shell id -g) \
 	--volume=$(shell pwd)/docs:/home/user/src \
