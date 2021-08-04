@@ -1,8 +1,9 @@
 ======================================
-Developer's guide
+Developer's Guide
 ======================================
 
 This documentation is suited for developers who want to contribute to Nextclade project.
+
 For documentation about how to use Nextclade check `User's guide <../user>`_ instead.
 
 ..  toctree::

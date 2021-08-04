@@ -1,4 +1,4 @@
-# 🧑‍💻 Developer's guide: Nextclade CLI and Nextalign CLI
+# Developer's guide: Nextclade CLI and Nextalign CLI
 
 This guide describes how to setup a development environment for building and running Nextclade CLI and Nextalign CLI executables, how to contribute to Nextclade C++ code, maintain and release the CLI tools. If you are interested in Nextclade Web Application, see: ["Developer's guide: Nextclade Web"](docs/dev/developers-guide-web.md).
 

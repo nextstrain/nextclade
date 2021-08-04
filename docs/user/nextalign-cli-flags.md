@@ -1,1 +1,1 @@
-# Nextalign Command-line interface (CLI)
+# Nextalign CLI

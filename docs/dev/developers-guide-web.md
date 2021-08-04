@@ -1,4 +1,4 @@
-# 🧑‍💻 Developer's guide: Nextclade Web
+# Developer's guide: Nextclade Web
 
 This guide describes how to setup a development environment for building and running Nextclade Web Application, how to contribute to Nextclade frontend and WebAssembly module, maintain, release and deploy the Nextclade web application. If you are interested in developing Nextclade CLI or Nextalign CLI, see: ["Developer's guide: Nextclade CLI and Nextalign CLI"](docs/dev/developers-guide-cli.md).
 

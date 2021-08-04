@@ -1,6 +1,10 @@
 ======================================
-User's guide
+User's Guide
 ======================================
+
+This section describes how to use Nextclade Web and Nextclade CLI.
+
+If you are looking for developer documentation, see `Developer's Guide <../dev>`_ instead.
 
 ..  toctree::
     :maxdepth: 4
