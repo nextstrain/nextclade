@@ -1,43 +1,28 @@
-
-
-<h2 id="about" align="center">
-👋 About
-</h2>
+## Nextclade CLI
 
 Nextclade is a tool that identifies differences between your sequences and a reference sequence used by Nextstrain,
 uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data.
 You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
 
----
+### Installation
 
-<h2 id="users-guide" align="center">
-👩‍🔬 User's guide
-</h2>
+#### Download manually
 
-<h3 id="installation" align="center">
-💿 Installation
-</h3>
-
-#### 🤏 Download manually
-
-
-You can download Nextclade executables on Github Releases page:
-
-https://github.com/nextstrain/nextclade/releases
+You can download Nextclade executables on [Github Releases page](https://github.com/nextstrain/nextclade/releases)
 
 > ⚠️ Note that macOS executables are not currently signed with a developer certificate. Recent versions of macOS might refuse to run it. Before invoking Nextclade on command line, follow these steps to add Nextclade to the exclude list:
 > <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac">
 macOS User Guide: Open a Mac app from an unidentified developer</a>, or, if this does not work, check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
 Security settings</a>.
 
-#### 🖥️ Download from command line
+####  Download from command line
 
 The following commands can be used to download nextclade from command line, from shell scripts and inside dockerfiles (click to expand):
 
 <p>
 <details>
 <summary>
-🐧 Linux x86_64
+🐧 Linux x86_64 (click to expand)
 </summary>
 
 Download latest version:
@@ -57,7 +42,7 @@ NEXTCLADE_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/r
 <p>
 <details>
 <summary>
-🍏 macOS Intel
+🍏 macOS Intel (click to expand)
 </summary>
 
 Download latest version:
@@ -77,7 +62,7 @@ NEXTCLADE_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/r
 <p>
 <details>
 <summary>
-🍎 macOS Apple Silicon
+🍎 macOS Apple Silicon (click to expand)
 </summary>
 
 Download latest version:
@@ -123,7 +108,7 @@ docker run -it --rm nextstrain/nextclade:1.0.0 nextclade --help
 Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
 
 
-#### 🔋 Usage
+### 🔋 Usage
 
 Refer to help prompt for usage of Nextclade:
 
@@ -169,27 +154,10 @@ Quick Example:
     - nextclade.auspice.json - same as input tree, but with the input sequences placed onto it
 
 
-#### 💬 Feedback
+### 💬 Feedback
 
 Do you find Nextclade useful? Tell us about your use-case and experience with it.
 
 If you want to report an error or request a new feature, please open a [new Github Issue](https://github.com/nextstrain/nextclade/issues/new).
 
 For a general conversation, feel free to join Nextstrain Discussion at [discussion.nextstrain.org](https://discussion.nextstrain.org/).
-
-
-<h2 id="documentation" align="center">
-🧑‍💻 Development
-</h2>
-
-See: ["Developer's guide: Nextclade CLI and Nextalign CLI"](docs/dev/developers-guide-cli.md)
-
-
-
-<h3 id="license" align="center">
-⚖️ License
-</h3>
-
-<p align="center">
-  <a target="_blank" rel="noopener noreferrer" href="../../LICENSE" alt="License file">MIT License</a>
-</p>

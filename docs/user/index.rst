@@ -18,7 +18,6 @@ If you are looking for developer documentation, see `Developer's Guide <../dev>`
     nextclade-cli-flags
     nextclade-cli-tutorial
 
-    nextalign-cli-flags
     nextalign-cli-tutorial
 
     nextclade-algorithm
