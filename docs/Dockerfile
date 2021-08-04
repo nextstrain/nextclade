@@ -38,13 +38,13 @@ COPY environment.yml ${HOME}/src/
 WORKDIR ${HOME}/src
 
 RUN set -x \
-  && conda env create docs.nextstrain.org
+  && conda env create "docs.clades.nextstrain.org"
 
 USER ${USER}
 
 RUN set -x \
   && conda init bash \
-  && echo "conda activate docs.nextstrain.org" >> ${HOME}/.bashrc
+  && echo "conda activate docs.clades.nextstrain.org" >> ${HOME}/.bashrc
 
 CMD bash -c "set -x \
   && source ${HOME}/.bashrc \
