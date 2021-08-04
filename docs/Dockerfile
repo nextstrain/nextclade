@@ -39,4 +39,6 @@ RUN set -x \
 CMD bash -c "set -x \
   && source ${HOME}/.bashrc \
   && make html \
+  && sphinx-autobuild --help \
+  && sphinx-autobuild --host=0.0.0.0 --port=8000 . build/html \
   "

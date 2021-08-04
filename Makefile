@@ -161,6 +161,7 @@ docker-docs:
 	--init \
 	--user=$(shell id -u):$(shell id -g) \
 	--volume=$(shell pwd)/docs:/home/user/src \
+	--publish=8000:8000 \
 	--workdir=/home/user/src \
 	--env 'TERM=xterm-256colors' \
 	nextclade-docs-builder
