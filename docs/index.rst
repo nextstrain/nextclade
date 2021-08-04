@@ -8,11 +8,20 @@ It is available as a web application at `clades.nextstrain.org <https://clades.n
 Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source project to harness the scientific and public health potential of pathogen genome data. All source code is available on `GitHub <https://github.com/nextstrain/nextclade>`_.
 
 ..  toctree::
-    :maxdepth: 4
+    :maxdepth: 2
     :titlesonly:
     :caption: Table of contents
 
-    user/index
-    dev/index
+    user/nextclade-intro
 
+    user/nextclade-web
 
+    user/nextclade-cli-flags
+    user/nextclade-cli-tutorial
+
+    user/nextalign-cli-tutorial
+
+    user/nextclade-algorithm
+    user/nextclade-implementation
+
+    user/nextclade-faq
