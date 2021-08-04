@@ -38,7 +38,7 @@ COPY environment.yml ${HOME}/src/
 WORKDIR ${HOME}/src
 
 RUN set -x \
-  && conda env create "docs.clades.nextstrain.org"
+  && conda env create docs.clades.nextstrain.org
 
 USER ${USER}
 

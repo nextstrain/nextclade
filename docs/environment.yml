@@ -1,4 +1,4 @@
-name: docs.nextstrain.org
+name: docs.clades.nextstrain.org
 channels:
   - defaults
 dependencies:

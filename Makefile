@@ -151,11 +151,13 @@ docs-clean:
 .ONESHELL:
 docker-docs:
 	set -euox
+
 	docker build -t nextclade-docs-builder \
 	--network=host \
 	--build-arg UID=$(shell id -u) \
 	--build-arg GID=$(shell id -g) \
 	docs/
+
 	docker run -it --rm \
 	--name=nextclade-docs-builder-$(shell date +%s) \
 	--init \
