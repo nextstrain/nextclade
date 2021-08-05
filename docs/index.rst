@@ -9,7 +9,6 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
 
 ..  toctree::
     :maxdepth: 2
-    :titlesonly:
     :caption: Table of contents
 
     user/nextclade-intro
@@ -25,3 +24,5 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
     user/nextclade-implementation
 
     user/nextclade-faq
+
+    changes/index

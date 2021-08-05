@@ -48,5 +48,7 @@ RUN set -x \
 
 CMD bash -c "set -x \
   && source ${HOME}/.bashrc \
+  && cd ${HOME}/src/docs \
+  && rm -rf build \
   && make autobuild \
   "
