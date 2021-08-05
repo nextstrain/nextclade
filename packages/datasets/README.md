@@ -2,7 +2,7 @@
 💾 Dataset curation
 </h1>
 
-These are the tools for curating public Nextclade datasets.
+These are the tools for curating public Nextclade datasets. The documentation for using available datasets through Nextclade CLI is [here](../../docs/user/datasets.md).
 
 
 > ⚠️ Note that the data is shared among all users of Nextclade, including CLI and Web users. Data corruption or incorrect format or content of JSON files will break Nextclade for everyone on the planet.
