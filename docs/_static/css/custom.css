@@ -1,0 +1,8 @@
+blockquote {
+  background-color: #c0d8e2;
+  padding: 1em;
+}
+
+blockquote p {
+  margin-bottom: 0;
+}
