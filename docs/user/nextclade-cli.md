@@ -108,7 +108,7 @@ docker run -it --rm nextstrain/nextclade:1.0.0 nextclade --help
 Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
 
 
-### 🔋 Usage
+### Usage
 
 Refer to help prompt for usage of Nextclade:
 
@@ -152,15 +152,6 @@ Quick Example:
     - nextclade.csv - same results, but in CSV format
     - nextclade.json - detailed results of the analysis in JSON format
     - nextclade.auspice.json - same as input tree, but with the input sequences placed onto it
-
-
-### 💬 Feedback
-
-Do you find Nextclade useful? Tell us about your use-case and experience with it.
-
-If you want to report an error or request a new feature, please open a [new Github Issue](https://github.com/nextstrain/nextclade/issues/new).
-
-For a general conversation, feel free to join Nextstrain Discussion at [discussion.nextstrain.org](https://discussion.nextstrain.org/).
 
 
 ### Reference

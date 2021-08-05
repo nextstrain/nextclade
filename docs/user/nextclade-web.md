@@ -1,4 +1,4 @@
-# Nextclade Web Tutorial
+# Nextclade Web
 
 Nextclade web is available online at [clades.nextstrain.org](https://clades.nextstrain.org). This is the easiest way of using Nextclade and is the recommended way to get started.
 
