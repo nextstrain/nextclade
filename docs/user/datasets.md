@@ -93,4 +93,4 @@ Nextclade team hosts a public file server containing all the dataset file themse
 
 ## Dataset updates
 
-Maintainers add and update the datasets periodically. The dataset curation procedure is described in the [Dataset curation guide](packages/datasets/README.md).
+Maintainers add and update the datasets periodically. The dataset curation procedure is described in the [Dataset curation guide](../../packages/datasets/README.md).
