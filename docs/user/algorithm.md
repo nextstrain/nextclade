@@ -106,10 +106,15 @@ Some parts of the sequence might be missing and the bioinformatic analysis pipel
 
 Many such problems can be fixed by tweaking the pipeline or removing contaminants. It is therefore useful to spot these problems as early as possible. Nextclade will scans sequences for issues that indicate problems that may have occured during sequencing or bioinformatic assembly. We have implemented several metrics to flag sequences as potentially problematic.
 Individual metrics are calibrated such that 0 is best, and 100 corresponds to a bad sequence, with 30 being the warning threshold. <!--- Is 100 a fixed max or can QC metrics go above 100? -->
-Different metrics are aggregated as
-$$
-\text{qc.overallScore} = \sum_i \frac{score_i^2}{100}
-$$
+
+The final QC score is calculated as follows:
+
+```math
+s = \sum_i \frac{s_i^2}{100}
+```
+
+where ``$` s_i `$`` is the score for an individual QC rule ``$` i `$``.
+
 With this quadratic aggregation, multiple mildly concerning scores don't result in a bad overall score, but a single bad score guarantees a bad overall score.
 
 

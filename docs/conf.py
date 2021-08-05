@@ -15,6 +15,9 @@ import sys
 from datetime import datetime
 sys.path.insert(0, os.path.abspath('.'))
 
+# At top on conf.py (with other import statements)
+import recommonmark
+from recommonmark.transform import AutoStructify
 
 # -- Project information -----------------------------------------------------
 
@@ -31,6 +34,7 @@ author = 'The Nextstrain Team'
 extensions = [
     'recommonmark',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.mathjax',
     'sphinx_markdown_tables',
     'sphinxarg.ext',
     'sphinx.ext.autodoc',
@@ -73,3 +77,14 @@ html_theme_options = {
 
 intersphinx_mapping = {
 }
+
+
+# At the bottom of conf.py
+def setup(app):
+    app.add_config_value('recommonmark_config', {
+        'url_resolver': lambda url: github_doc_root + url,
+        'auto_toc_tree_section': 'Contents',
+        'enable_math': True,
+        'enable_inline_math': True,
+    }, True)
+    app.add_transform(AutoStructify)
