@@ -111,8 +111,6 @@ namespace Nextclade {
       for (auto& coloring : colorings) {
         const auto& key = coloring.at("key");
         if (key == "region" || key == "country" || key == "division") {
-          const auto& title = coloring.at("title");
-          const auto& type = coloring.at("type");
           const auto& oldScale = get(coloring, "scale", json::array());
 
           auto scale = json::array({
@@ -124,12 +122,7 @@ namespace Nextclade {
             scale.push_back(sc);
           }
 
-          coloring = json::object({
-            {"key", key},
-            {"scale", scale},
-            {"title", title},
-            {"type", type},
-          });
+          coloring.at("scale") = scale;
         }
       }
 
