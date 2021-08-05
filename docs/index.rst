@@ -11,18 +11,15 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
     :maxdepth: 2
     :caption: Table of contents
 
-    user/nextclade-intro
+    user/intro
 
     user/nextclade-web
+    user/nextclade-cli
+    user/nextalign-cli
 
-    user/nextclade-cli-flags
-    user/nextclade-cli-tutorial
+    user/algorithm
+    user/implementation
 
-    user/nextalign-cli-tutorial
-
-    user/nextclade-algorithm
-    user/nextclade-implementation
-
-    user/nextclade-faq
+    user/faq
 
     changes/index
