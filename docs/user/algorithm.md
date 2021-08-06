@@ -2,10 +2,7 @@
 
 Internally, Nextclade is implemented as a parallel pipeline which consists of several steps. This section describes these steps, roughly in their order of execution.
 
-> 💡 Note: A standalone command-line tool [Nextalign CLI](nextalign-cli) is available that performs only the [alignment (1)](#1-sequence-alignment) and [translation (2)](#2-translation) steps, without any of the subsequent analysis steps.
-
-
-
+> 💡 Note: A standalone command-line tool [Nextalign CLI](nextalign-cli) is available that performs only the [(1) alignment](#sequence-alignment) and [(2) translation](#translation) steps, without any of the subsequent analysis steps. It is slightly faster, because it performs less computation and is recommended if you only need the alignment or translation results.
 
 ## Algorithm steps
 
@@ -21,15 +18,15 @@ The algorithm aims to be sufficiently fast for running in the internet browser o
 
 By default, alignment is only attempted on sequences longer than 100 nucleotides (configurable), because alignment of shorter sequences may be unreliable.
 
-Nextclade can use a genome annotation to make the alignment more interpretable.
-Sometimes, the placement of a sequence deletion or insertion is ambiguous as in the following example.
-The gap could be moved forward or backward by one base with the same number of matches:
+Nextclade can use a genome annotation to make the alignment more interpretable. Sometimes, the placement of a sequence deletion or insertion is ambiguous as in the following example. The gap could be moved forward or backward by one base with the same number of matches:
+
 ```
 reference  : ...GTT.TAT.TAC... 
 alignment 1: ...GTT.---.TAC... 
 alignment 2: ...GT-.--T.TAC... 
 alignment 3: ...GTT.T--.-AC... 
 ```
+
 If a genome annotation is provided, Nextclade will use a lower gap-open-penalty at the beginning of a codon (marked by a `.`), thereby locking a gap in-frame if possible. Similarly, nextalign preferentially places gaps outside of genes in case of ambiguities.
 
 Alignment may fail if the query sequence is too divergent from the reference sequence, i.e. if there are many differences between the query and reference sequence. The seed matching step may then not be able to find a sufficient number of similar regions. This may happen due to usage of an incorrect reference sequence (e.g. from a different virus or a virus from a different host organism), if analysed sequences are of very low quality (e.g. containing a lot of missing regions or with a lot of ambiguous nucleotides) or are very short compared to the reference sequence.
@@ -52,11 +49,11 @@ This step only runs if the gene map is provided.
 
 In order to detect nucleotide mutations, aligned nucleotide sequences are compared with the reference nucleotide sequence, one nucleotide at a time. Mismatches between the query and reference sequences are indicated differently, depending on their nature:
 
- - Nucleotide substitutions: a change from one character to another. For example a change from `A` in the reference sequence to `G` in the query sequence. They are shown in sequence views in [Nextclade Web](nextclade-web) as colored markers, where color signifies the resulting character (in query sequence).
+- Nucleotide substitutions: a change from one character to another. For example a change from `A` in the reference sequence to `G` in the query sequence. They are shown in sequence views in [Nextclade Web](nextclade-web) as colored markers, where color signifies the resulting character (in query sequence).
 
- - Nucleotide deletions ("gaps"): nucleotide was present in the reference sequence, but is not present in the query sequence. These are indicated by `-` in the alignment sequence. They are shown in sequence views in [Nextclade Web](nextclade-web) as dark-grey markers. In the output files deletions are represented as numeric ranges, signifying the start and end of the deleted fragment (for example: `21765-21770`)
+- Nucleotide deletions ("gaps"): nucleotide was present in the reference sequence, but is not present in the query sequence. These are indicated by `-` in the alignment sequence. They are shown in sequence views in [Nextclade Web](nextclade-web) as dark-grey markers. In the output files deletions are represented as numeric ranges, signifying the start and end of the deleted fragment (for example: `21765-21770`)
 
- - Nucleotide insertions (additional nucleotides in the query sequence that were not present in the reference sequence) are stripped from the alignment and reported in a separate output file, linking the position in the reference after which the insertion occured to the sequence that was inserted. `{22030: 'ACT'}` would indicate that the query sequence has the three bases `ACT` inserted between position `22030` and `22031` in the reference sequence.
+- Nucleotide insertions (additional nucleotides in the query sequence that were not present in the reference sequence) are stripped from the alignment and reported in a separate output file, linking the position in the reference after which the insertion occured to the sequence that was inserted. `{22030: 'ACT'}` would indicate that the query sequence has the three bases `ACT` inserted between position `22030` and `22031` in the reference sequence.
 
 Nextclade also gathers and reports other useful statistics, such as the number of contiguous ranges of `N` (missing) and non-ACGTN (ambiguous) nucleotides, as well as the total counts of substituted, deleted, missing and ambiguous nucleotides.
 
@@ -70,19 +67,13 @@ This step only runs if gene map is provided.
 
 [Polymerase chain reactions (PCR)](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) uses small nucleotide sequence snippets called primers that are [complementary](<https://en.wikipedia.org/wiki/Complementarity_(molecular_biology)>) to a specific region of the virus genome. A high similarity between primers and the genome region they are supposed to bind to is essential for PCRs to work. Changes in the virus genome can interfere with this requirement. If Nextclade is provided with a table of PCR primers (in CSV format), Nextclade can analyze these regions in query sequences and report changes that may indicate reduced primer binding.
 
-For each primer, Nextclade finds and records a corresponding range in the reference sequence.
-It then verifies if any of the mutations in the aligned query sequence (identified in the "Nucleotide mutation calling" step) fall in any of these primer ranges, and if so, reports these mutations as PCR primer changes.
+For each primer, Nextclade finds and records a corresponding range in the reference sequence. It then verifies if any of the mutations in the aligned query sequence (identified in the "Nucleotide mutation calling" step) fall in any of these primer ranges, and if so, reports these mutations as PCR primer changes.
 
 This step only runs if a PCR primer table is provided. It can fail if PCR primers provided do not have high similarity with any part of the reference sequence.
 
 ### 6. Phylogenetic placement
 
-After reference alignment and mutation calling, Nextclade places each sequence on a phylogenetic tree.
-The root of this phylogenetic tree *must* be the same as the reference (root) sequence.
-Phylogenetic placement is done by comparing the mutations of the query sequence (relative to the reference) with the mutations of every node and tip in the tree and finding the closest match.
-Mutations that separate the query sequence and the closest match are designated "private mutations". 
-Sequencing errors and sequence assembly problems are expected to give rise to more private mutations than usual. Thus, an excess of such mutations is a useful quality control (QC) metric.
-In addition to the overall number of such private mutations, Nextclade also assesses whether they cluster in specific regions of the genome, as such clusters give more fine grained indications of potential quality issues.
+After reference alignment and mutation calling, Nextclade places each sequence on a phylogenetic tree. The root of this phylogenetic tree *must* be the same as the reference (root) sequence. Phylogenetic placement is done by comparing the mutations of the query sequence (relative to the reference) with the mutations of every node and tip in the tree and finding the closest match. Mutations that separate the query sequence and the closest match are designated "private mutations". Sequencing errors and sequence assembly problems are expected to give rise to more private mutations than usual. Thus, an excess of such mutations is a useful quality control (QC) metric. In addition to the overall number of such private mutations, Nextclade also assesses whether they cluster in specific regions of the genome, as such clusters give more fine grained indications of potential quality issues.
 
 ### 7. Clade assignment
 
@@ -112,11 +103,9 @@ You can find the exact, up-to-date clade definitions in [github.com/nextstrain/n
 
 ### 8. Quality Control (QC)
 
-Whole-genome sequencing of viruses is not a push-button operation -- in particular from scarce or degraded input material.
-Some parts of the sequence might be missing and the bioinformatic analysis pipelines that turn raw data into a consensus genome sometimes produce artefacts. Such artefacts typically manifest in spurious differences of the sequence from the reference. If such problematic sequences are included in a phylogenetic analysis, they can distort the resulting tree. The Nextstrain analysis pipeline therefore excludes sequences deemed problematic.
+Whole-genome sequencing of viruses is not a push-button operation -- in particular from scarce or degraded input material. Some parts of the sequence might be missing and the bioinformatic analysis pipelines that turn raw data into a consensus genome sometimes produce artefacts. Such artefacts typically manifest in spurious differences of the sequence from the reference. If such problematic sequences are included in a phylogenetic analysis, they can distort the resulting tree. The Nextstrain analysis pipeline therefore excludes sequences deemed problematic.
 
-Many such problems can be fixed by tweaking the pipeline or removing contaminants. It is therefore useful to spot these problems as early as possible. Nextclade will scans sequences for issues that indicate problems that may have occured during sequencing or bioinformatic assembly. We have implemented several metrics to flag sequences as potentially problematic.
-Individual metrics are calibrated such that 0 is best, and 100 corresponds to a bad sequence, with 30 being the warning threshold. <!--- Is 100 a fixed max or can QC metrics go above 100? -->
+Many such problems can be fixed by tweaking the pipeline or removing contaminants. It is therefore useful to spot these problems as early as possible. Nextclade will scans sequences for issues that indicate problems that may have occured during sequencing or bioinformatic assembly. We have implemented several metrics to flag sequences as potentially problematic. Individual metrics are calibrated such that 0 is best, and 100 corresponds to a bad sequence, with 30 being the warning threshold. <!--- Is 100 a fixed max or can QC metrics go above 100? -->
 
 The final QC score is calculated as follows:
 
@@ -128,26 +117,19 @@ where ``$` s_i `$`` is the score for an individual QC rule ``$` i `$``.
 
 With this quadratic aggregation, multiple mildly concerning scores don't result in a bad overall score, but a single bad score guarantees a bad overall score.
 
-
 For SARS-CoV-2, we currently implement the following metrics:
 
 - Missing data: If your sequence misses more than 3000 sites (`N`s), it will be flagged as `bad` <!--- what happens if it's 2900 Ns? What's the function, linear from 0 to 100 from 0 to 3000 and capped thereafter? -->
 
-- Private mutations: Sequences with more than 24 mutations relative to the closest sequence in the reference tree are flagged as `bad`.
-  We will revise this threshold as diversity of the SARS-CoV-2 population increases.<!--- Same Q as above, is it linearly increasing till threshold and constant afterwards? -->  
+- Private mutations: Sequences with more than 24 mutations relative to the closest sequence in the reference tree are flagged as `bad`. We will revise this threshold as diversity of the SARS-CoV-2 population increases.<!--- Same Q as above, is it linearly increasing till threshold and constant afterwards? -->
 
-- Ambiguous nucleotides: mixed states (such as `R`, `Y`, etc) are indicative of contamination (or
-  superinfection) and more than 10 such non-ACGTN characters will result in a QC flag `bad`.
+- Ambiguous nucleotides: mixed states (such as `R`, `Y`, etc) are indicative of contamination (or superinfection) and more than 10 such non-ACGTN characters will result in a QC flag `bad`.
 
 - Clustered differences: If your sequence has clusters with 6 or more private differences in 100 bases, it will be flagged as `bad`.
 
-- Stop codons: replicating viruses can not have premature stop codons in essential genes and such premature stops are hence an indicator of problematic sequences.
-  However, some stop codons are known to be common even in functional viruses.
-  Our stop codon rule excludes such known stop codons and assigns a QC score of 75 to each additional premature stop. <!--- How does this work with 2 stop codons? Score of 150? But I thought 100 is max. -->
+- Stop codons: replicating viruses can not have premature stop codons in essential genes and such premature stops are hence an indicator of problematic sequences. However, some stop codons are known to be common even in functional viruses. Our stop codon rule excludes such known stop codons and assigns a QC score of 75 to each additional premature stop. <!--- How does this work with 2 stop codons? Score of 150? But I thought 100 is max. -->
 
-- Frame shift mutations: frame shifting insertions or deletions typically result in a garbled translation or a premature stop.
-  Nextalign currently doesn't translate frame shifted coding sequences and each frame shift is assigned a QC score 75.
-  Note, however, that clade 21H has a frame shift towards the end of ORF3a that results in a premature stop.
+- Frame shift mutations: frame shifting insertions or deletions typically result in a garbled translation or a premature stop. Nextalign currently doesn't translate frame shifted coding sequences and each frame shift is assigned a QC score 75. Note, however, that clade 21H has a frame shift towards the end of ORF3a that results in a premature stop.
 
 These warnings don't necessarily mean your sequences are problematic, but these issues warrant closer examination. The [Nextstrain SARS-CoV-2 pipeline](https://github.com/nextstrain/ncov) uses similar (more lenient) QC criteria. For example, Nextstrain will exclude your sequence if it has fewer than 27000 valid bases (corresponding to roughly 3000 Ns) and <!--- should this be `but` instead of `and`? --> doesn't check for ambiguous characters. Sequences flagged for excess divergence and SNP clusters by Nextclade are likely excluded <!--- should this be `included` or `excluded`? --> by Nextstrain.
 

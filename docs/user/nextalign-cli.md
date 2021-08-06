@@ -1,33 +1,58 @@
 # Nextalign CLI
 
-Nextalign is a viral genome sequence alignment algorithm used in [Nextclade](https://github.com/nextstrain/nextclade), ported to C++ and made into the standalone command-line tool.
+Nextalign CLI is a viral genome sequence alignment tool for command line. It uses the same algorithm that is used in [Nextclade Web](nextclade-web) and [Nextclade CLI](nextclade-cli).
 
-Nextalign performs pairwise alignment of provided sequences against a given reference sequence using banded local alignment algorithm with affine gap-cost. Band width and rough relative positions are determined through seed matching.
+You can learn more about the algorithm in the [Algorithm: Sequence alignment](algorithm.html#sequence-alignment) section.
 
-Nextalign will strip insertions relative to the reference and output them in a separate CSV file.
+### Installation (with docker)
 
-Optionally, when provided with a gene map and a list of genes, Nextalign can perform translation of these genes.
+Container images are available at Docker Hub: 🐋 [nextstrain/nextalign](https://hub.docker.com/repository/docker/nextstrain/nextalign)
 
-Currently Nextalign primarily focuses on SARS-CoV-2 genome, but it can be used on any virus, given a sufficiently similar reference sequence (less than a 5% divergence).
+Pull and run the latest version with:
 
----
+```bash
+docker pull nextstrain/nextalign:latest
+docker run -it --rm nextstrain/nextalign:latest nextalign --help
+```
 
+Pull and run a specific version with:
 
-### Installation
+```bash
+docker run -it --rm nextstrain/nextalign:1.0.0 nextalign --help
+```
+
+Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
+
+### Installation (local)
 
 #### Download manually
 
+You can download the latest version of Nextalign CLI for your platform using one of these direct links:
 
-You can download Nextalign executables on [Github Releases page](https://github.com/nextstrain/nextclade/releases)
+- ⬇️ [Nextalign for Linux (x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-Linux-x86_64)
+- ⬇️ [Nextalign for macOS (Intel, x86_64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-MacOS-x86_64)
+- ⬇️ [Nextalign for macOS (Apple Silicon, ARM64)](https://github.com/nextstrain/nextalign/releases/latest/download/nextalign-MacOS-arm64)
 
-> ⚠️ Note that macOS executables are not currently signed with a developer certificate. Recent versions of macOS might refuse to run it. Before invoking Nextalign on command line, follow these steps to add Nextalign to the exclude list:
+All versions and their release notes are available on 🐈 [Github Releases](https://github.com/nextstrain/nextclade/releases).
+
+These executables are self-contained and don't require any dependencies. They can be renamed and moved freely. It is convenient to rename the executable to `nextclade` and to move to one of the directories included in system `$PATH`, so that it's available from any directory in the console.
+
+> ⚠️ Note that macOS executables are not currently signed with a developer certificate (it requires maintaining a paid Apple developer account). Recent versions of macOS might refuse to run the executable. Before invoking Nextalign on command line, follow these steps to add Nextalign to the exclude list:
 > <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac">
-macOS User Guide: Open a Mac app from an unidentified developer</a>, or, if this does not work, check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
-Security settings</a>.
+macOS User Guide: Open a Mac app from an unidentified developer</a>, and check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
+Security settings</a>. Refer to the latest macOS documentation if none of this works.
 
-####  Download from command line
+> ⚠️ Native Windows executables are not available at this time. Windows users can try one of the following:
+>
+> - Download the Linux executable (see above) and run it under [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+> - Use [Docker container image](#installation-with-docker)
+> - Rent a Linux machine, for example at a cloud compute provider or on premises of your organization or university
+>
 
-The following commands can be used to download nextalign from command line, from shell scripts and inside dockerfiles (click to expand):
+
+#### Download from command line
+
+The following commands can be used to download Nextalign from command line, from shell scripts and inside dockerfiles:
 
 <p>
 <details>
@@ -44,8 +69,9 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-Linux-x86_64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-Linux-x86_64" -o "nextalign" && chmod +x nextalign
 ```
+
 </details>
 </p>
 
@@ -64,8 +90,9 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-x86_64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-x86_64" -o "nextalign" && chmod +x nextalign
 ```
+
 </details>
 </p>
 
@@ -84,66 +111,47 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTALIGN_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-arm64" -o "nextalign" && chmod +x nextalign
+NEXTALIGN_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextalign-${NEXTALIGN_VERSION}/nextalign-MacOS-arm64" -o "nextalign" && chmod +x nextalign
 ```
+
 </details>
 </p>
 
 
 Native Windows executables are not available at this time. Windows users can try one of the following:
 
- - Downloading and running Linux executable from [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
- - Running docker container (see below)
- - Renting a Linux machine, for example at any cloud compute provider
-
-
-#### 🐋 With docker
-
-
-Container images are available at Docker Hub: https://hub.docker.com/repository/docker/nextstrain/nextalign
-
-Pull and run the latest version with:
-
-```
-docker pull nextstrain/nextalign:latest
-docker run -it --rm nextstrain/nextalign:latest nextalign --help
-```
-
-Pull and run a specific version with:
-
-```
-docker run -it --rm nextstrain/nextalign:1.0.0 nextalign --help
-```
-
-Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
-
+- Downloading and running Linux executable from [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+- Running docker container (see below)
+- Renting a Linux machine, for example at any cloud compute provider
 
 ### Usage
 
 Refer to help prompt for usage of Nextalign:
 
-```
+```bash
 nextalign --help
 ```
 
-Quick Example:
+## Quick Example
 
- 1. Download the example SARS-CoV-2 data files from:
-    https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2
+1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2)
     (You can also try other viruses in the `data/` directory)
 
- 2. Run:
+2. Run:
 
-    ```
-    nextalign \
-      --sequences=sequences.fasta \
-      --reference=reference.fasta \
-      --genemap=genemap.gff \
-      --genes=E,M,N,ORF10,ORF14,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-      --output-dir=output/ \
-      --output-basename=nextalign
-    ```
+   ```bash
+   nextalign \
+    --sequences=data/sars-cov-2/sequences.fasta \
+    --reference=data/sars-cov-2/reference.fasta \
+    --genemap=data/sars-cov-2/genemap.gff \
+    --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+    --output-dir=output/ \
+    --output-basename=nextalign
+   ```
 
-    Add `--verbose` flag to show more information in the console. Add `--write-ref` flag to also write gap-stripped reference sequence and peptides into outputs.
+   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
 
- 3. Find the output files in the `output/` directory
+3. Find the output files in the `output/` directory:
+
+    - `nextalign.aligned.fasta` - aligned input sequences
+    - `nextalign.gene.<gene_name>.fasta` - aligned peptides corresponding to each gene

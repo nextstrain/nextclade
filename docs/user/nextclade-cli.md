@@ -1,28 +1,60 @@
-## Nextclade CLI
+# Nextclade CLI
 
-Nextclade is a tool that identifies differences between your sequences and a reference sequence used by Nextstrain,
-uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data.
-You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
+Nextclade is a tool that identifies differences between your sequences and a reference sequence used by Nextstrain, uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data. You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
 
-### Installation
+## Installation (with docker)
 
-#### Download manually
+Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/repository/docker/nextstrain/nextclade)
 
-You can download Nextclade executables on [Github Releases page](https://github.com/nextstrain/nextclade/releases)
+Pull and run the latest version with:
 
-> ⚠️ Note that macOS executables are not currently signed with a developer certificate. Recent versions of macOS might refuse to run it. Before invoking Nextclade on command line, follow these steps to add Nextclade to the exclude list:
+```bash
+docker pull nextstrain/nextclade:latest
+docker run -it --rm nextstrain/nextclade:latest nextclade --help
+```
+
+Pull and run a specific version with:
+
+```bash
+docker run -it --rm nextstrain/nextclade:1.0.0 nextclade --help
+```
+
+Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
+
+## Installation (local)
+
+### Download manually
+
+You can download the latest version of Nextclade CLI for your platform using one of these direct links:
+
+- ⬇️ [Nextclade for Linux (x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-Linux-x86_64)
+- ⬇️ [Nextclade for macOS (Intel, x86_64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-x86_64)
+- ⬇️ [Nextclade for macOS (Apple Silicon, ARM64)](https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-arm64)
+
+All versions and their release notes are available on 🐈 [Github Releases](https://github.com/nextstrain/nextclade/releases).
+
+These executables are self-contained and don't require any dependencies. They can be renamed and moved freely. It is convenient to rename the executable to `nextclade` and to move to one of the directories included in system `$PATH`, so that it's available from any directory in the console.
+
+> ⚠️ Note that macOS executables are not currently signed with a developer certificate (it requires maintaining a paid Apple developer account). Recent versions of macOS might refuse to run the executable. Before invoking Nextclade on command line, follow these steps to add Nextclade to the exclude list:
 > <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac">
-macOS User Guide: Open a Mac app from an unidentified developer</a>, or, if this does not work, check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
-Security settings</a>.
+macOS User Guide: Open a Mac app from an unidentified developer</a>, and check <a target="_blank" rel="noopener noreferrer" href="https://support.apple.com/en-us/HT202491">
+Security settings</a>. Refer to the latest macOS documentation if none of this works.
 
-####  Download from command line
+> ⚠️ Native Windows executables are not available at this time. Windows users can try one of the following:
+>
+> - Download the Linux executable (see above) and run it under [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+> - Use [Docker container image](#installation-with-docker)
+> - Rent a Linux machine, for example at a cloud compute provider or on premises of your organization or university
+>
 
-The following commands can be used to download nextclade from command line, from shell scripts and inside dockerfiles (click to expand):
+### Download from command line
+
+The following commands can be used to download nextclade from command line, from shell scripts and inside dockerfiles:
 
 <p>
 <details>
 <summary>
-🐧 Linux x86_64 (click to expand)
+🐧 Linux (x86_64) (click to expand)
 </summary>
 
 Download latest version:
@@ -34,15 +66,16 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-Linux-x86_64" -o "nextclade" && chmod +x nextclade
+NEXTCLADE_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-Linux-x86_64" -o "nextclade" && chmod +x nextclade
 ```
+
 </details>
 </p>
 
 <p>
 <details>
 <summary>
-🍏 macOS Intel (click to expand)
+🍏 macOS (Intel, x86_64) (click to expand)
 </summary>
 
 Download latest version:
@@ -54,15 +87,16 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-MacOS-x86_64" -o "nextclade" && chmod +x nextclade
+NEXTCLADE_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-MacOS-x86_64" -o "nextclade" && chmod +x nextclade
 ```
+
 </details>
 </p>
 
 <p>
 <details>
 <summary>
-🍎 macOS Apple Silicon (click to expand)
+🍎 macOS (Apple Silicon, ARM64) (click to expand)
 </summary>
 
 Download latest version:
@@ -74,99 +108,57 @@ curl -fsSL "https://github.com/nextstrain/nextclade/releases/latest/download/nex
 Download specific version:
 
 ```bash
-NEXTCLADE_VERSION=1.0.0 && curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-MacOS-arm64" -o "nextclade" && chmod +x nextclade
+NEXTCLADE_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/releases/download/nextclade-${NEXTCLADE_VERSION}/nextclade-MacOS-arm64" -o "nextclade" && chmod +x nextclade
 ```
+
 </details>
 </p>
 
-
-Native Windows executables are not available at this time. Windows users can try one of the following:
-
- - Downloading and running Linux executable from [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
- - Running docker container (see below)
- - Renting a Linux machine, for example at any cloud compute provider
-
-
-#### 🐋 With docker
-
-
-Container images are available at Docker Hub: https://hub.docker.com/repository/docker/nextstrain/nextclade
-
-Pull and run the latest version with:
-
-```
-docker pull nextstrain/nextclade:latest
-docker run -it --rm nextstrain/nextclade:latest nextclade --help
-```
-
-Pull and run a specific version with:
-
-```
-docker run -it --rm nextstrain/nextclade:1.0.0 nextclade --help
-```
-
-Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
-
-
-### Usage
+## Usage
 
 Refer to help prompt for usage of Nextclade:
 
-```
+```bash
 nextclade --help
 ```
 
-Quick Example:
+## Quick Example
 
- 1. Download the example SARS-CoV-2 data files from:
-    https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2
-    (You can also try other viruses in the `data/` directory)
+1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2)
 
- 2. Run:
+2. Run:
 
-    ```
-    nextclade \
-      --input-fasta=sequences.fasta \
-      --input-root-seq=reference.fasta \
+   ```bash
+   nextclade \
+      --in-order \
+      --input-fasta=data/sars-cov-2/sequences.fasta \
+      --input-root-seq=data/sars-cov-2/reference.fasta \
       --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-      --input-gene-map=genemap.gff \
-      --input-tree=tree.json \
-      --input-qc-config=qc.json \
-      --input-pcr-primers=primers.csv \
+      --input-gene-map=data/sars-cov-2/genemap.gff \
+      --input-tree=data/sars-cov-2/tree.json \
+      --input-qc-config=data/sars-cov-2/qc.json \
+      --input-pcr-primers=data/sars-cov-2/primers.csv \
       --output-json=output/nextclade.json \
       --output-csv=output/nextclade.csv \
       --output-tsv=output/nextclade.tsv \
       --output-tree=output/nextclade.auspice.json \
       --output-dir=output/ \
       --output-basename=nextclade
-    ```
+   ```
 
-    Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
+   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
 
- 3. Find the output files in the `output/` directory:
+3. Find the output files in the `output/` directory:
 
-    - nextclade.aligned.fasta - aligned input sequences
-    - nextclade.gene.<gene_name>.fasta - peptides corresponding to each gene
-    - nextclade.insertions.csv - list of stripped insertions for each input sequence
-    - nextclade.tsv - results of the analysis in TSV format
-    - nextclade.csv - same results, but in CSV format
-    - nextclade.json - detailed results of the analysis in JSON format
-    - nextclade.auspice.json - same as input tree, but with the input sequences placed onto it
+    - `nextclade.aligned.fasta` - aligned input sequences
+    - `nextclade.gene.<gene_name>.fasta` - aligned peptides corresponding to each gene
+    - `nextclade.insertions.csv` - list of stripped insertions, for each input sequence
+    - `nextclade.tsv` - results of the analysis in TSV format
+    - `nextclade.csv` - same results, but in CSV format
+    - `nextclade.json` - detailed results of the analysis in JSON format
+    - `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it
 
-
-### Reference
-
-Nextclade CLI is available as a self-contained executable for Linux and Mac (both Intel and ARM).
-
-The latest downloads are available at https://github.com/nextstrain/nextclade/releases
-
-<!--- Add information on npm install -->
-
-Docker container images are available at https://hub.docker.com/r/nextstrain/nextclade
-
-After obtaining the Nextclade CLI, type `nextclade --help` to display built-in help with the description of command-line flags and usage example.
-
-#### Inputs
+### Inputs
 
 #### Description of the input data
 
@@ -185,6 +177,7 @@ Nextclade expects the following input data:
   It is used as a reference for alignment and for mutation calling. The reference sequence is expected to be of a very high quality, preferably complete and unambiguous (spans entire genome and has no ambiguous nucleotides).
 
   Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text (one sequence on one line).
+
 <!--- Do you need to provided exactly one sentence? -->
 
 - (required) Path of phylogenetic reference tree, rooted at the reference sequence specified by `-r`.
@@ -196,12 +189,13 @@ Nextclade expects the following input data:
   Accepted formats: Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain (produced by Augur and consumed by Auspice). The tree *must* contain a clade definition for every tip and internal node.
 
 - (required) Path to quality control configuration file.
+
 <!--- In the CLI options `nextclade --help` this is optional, not required -->
-  CLI flag: `(-q | --input-qc-config) PATH`
+CLI flag: `(-q | --input-qc-config) PATH`
 
-  A set of parameters and thresholds used to configure the QC checks. These should be tuned for the particular study or experiment, considering quality and tolerances of sequencing results of a given laboratory.
+A set of parameters and thresholds used to configure the QC checks. These should be tuned for the particular study or experiment, considering quality and tolerances of sequencing results of a given laboratory.
 
-  Accepted formats: JSON
+Accepted formats: JSON
   <!--- What are the possible parameters and thresholds that can be set? -->
 
 - (optional, recommended) Path to gene map (genome annotations) - a table describing the genes of the virus (frame, position, etc.).
@@ -213,13 +207,14 @@ Nextclade expects the following input data:
   Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)
 
 - (required only in CLI). A subset of genes to use during analysis.
+
  <!--- only in CLI is confusing, because this is the CLI documentation, so kind of redundant -->
-  CLI flag: `--genes "A [,B [,...]]"`
+CLI flag: `--genes "A [,B [,...]]"`
   <!--- Shouldn't we add an alternative here, like --all-genes ?-->
 
-  Only these genes will be translated and only in these genes the aminoacid mutations will be detected.
+Only these genes will be translated and only in these genes the aminoacid mutations will be detected.
 
-  Accepted formats: comma-delimited list of gene names. All gene names in the list MUST be present in the gene map (see `--input-gene-map`).
+Accepted formats: comma-delimited list of gene names. All gene names in the list MUST be present in the gene map (see `--input-gene-map`).
 
 - (optional) Path to a csv file of PCR primers - a table that describes a set of PCR primers that might be used for PCR tests of the virus.
 
@@ -288,23 +283,3 @@ The file contains the following columns (delimited by commas):
 ##### Output phylogenetic tree
 
 TODO: write this section
-
-
-
-#### Source code
-
-Nextclade is free and opensource. The source code for the algorithms, web application and CLI is available on [Github](https://github.com/nextstrain/nextclade). You can build Nextclade yourself and run web application locally. For details, refer to the readme file in the repository.
-
-#### How to contribute to Nextclade?
-
-We welcome contributions in any form.
-
-Please report bugs and request features using GitHub Issues:
-https://github.com/nextstrain/nextclade/issues/new
-
-For questions and general discussion join Nextstrain discussion forum:
-https://discussion.nextstrain.org
-
-If you are a developer, head to https://github.com/nextstrain/nextclade for the source code and developer's guide.
-
-

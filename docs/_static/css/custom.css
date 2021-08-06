@@ -6,3 +6,19 @@ blockquote {
 blockquote p {
   margin-bottom: 0;
 }
+
+details {
+  background-color: #dbdfe2;
+  border: #93979b solid 1px;
+  border-radius: 5px;
+  padding: 0.5em 1em;
+}
+
+details p {
+  padding-top: 1em;
+}
+
+details pre * {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
