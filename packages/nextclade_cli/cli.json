@@ -323,39 +323,39 @@
         },
         {
           "name": "list",
-          "desc": "List datasets available for download.",
+          "desc": "List datasets available for download. By default only the most recent compatible dataset version is returned.",
           "cppStructName": "CliParamsDatasetList",
           "callbackName": "datasetList",
           "options": [
             {
               "flags": ["-n", "--name"],
-              "desc": "Name of the dataset. List only datasets with this name.",
+              "desc": "Name of the dataset. List only datasets with this name, e.g. 'sars-cov-2'",
               "cppName": "name",
               "cppType": "std::string",
               "isOptional": true
             },
             {
-              "flags": ["-v", "--version"],
-              "desc": "Version of the dataset. List only datasets with this version.",
-              "cppName": "version",
+              "flags": ["-t", "--tag"],
+              "desc": "List only datasets with this version. 'latest' is alias for most recent version (incompatible or not). Can return 'none' if the tag is incompatible with this Nextclade version and",
+              "cppName": "tag",
               "cppType": "std::string",
-              "defaultValue": "\"latest\"",
+              "isOptional": true,
+              "comment": "would be nice if there was a default value (latest), but only if -t appears "
+            },
+            {
+              "flags": ["-i","--include-incompatible"],
+              "desc": "Include datasets that are incompatible with this version of Nextclade CLI.",
+              "cppName": "includeIncompatible",
+              "cppType": "bool",
+              "defaultValue": "false",
               "isOptional": true
             },
             {
-              "flags": ["--only-compatible"],
-              "desc": "Include into the list the datasets that are incompatible with this version of Nextclade.",
-              "cppName": "onlyCompatible",
+              "flags": ["-m","--multiple-versions"],
+              "desc": "Include all compatible versions (and also incompatible if `-i` is set), not just the most recent version. Incompatible with '-t'",
+              "cppName": "multipleVersions",
               "cppType": "bool",
-              "defaultValue": "true",
-              "isOptional": true
-            },
-            {
-              "flags": ["--only-latest"],
-              "desc": "Include into the list only the latest available datasets.",
-              "cppName": "onlyLatest",
-              "cppType": "bool",
-              "defaultValue": "true",
+              "defaultValue": "false",
               "isOptional": true
             }
           ]

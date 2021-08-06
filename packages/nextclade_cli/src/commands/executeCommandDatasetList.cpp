@@ -16,23 +16,44 @@ namespace Nextclade {
     const auto datasetsJson = fetchDatasetsJson();
     const std::string thisVersion = getVersion();
 
+    // Print list of datasets
+    // fmt::print("Only compatible is {}\n", cliParams->onlyCompatible);
+    // fmt::print("Only latest is {}\n", cliParams->onlyLatest);
+
     auto datasets = datasetsJson.datasets;
-    if (cliParams->onlyCompatible && cliParams->onlyLatest) {
-      fmt::print("Latest datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-      datasets = getLatestCompatibleDatasets(datasets, thisVersion);
-    } else if (cliParams->onlyLatest) {
-      fmt::print("Latest datasets:\n\n");
-      datasets = getLatestDatasets(datasets);
-    } else if (cliParams->onlyCompatible) {
-      fmt::print("Datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-      datasets = getCompatibleDatasets(datasets, thisVersion);
-    } else {
-      fmt::print("All datasets:\n\n");
-    }
+    
+    // datasets = getAllDatasets(datsets);
+    fmt::print("Returning datasets:\n");
 
     if (!cliParams->name.empty()) {
-      datasets = filterDatasetsByName(datasets, cliParams->name);
+      // datasets = filterDatasetsByName(datasets, cliParams->name);
+      fmt::print("- with name ({}):\n", cliParams->name);
     }
+
+    if (!cliParams->tag.empty()) {
+      if (cliParams->tag == "latest") {
+        // datasets = selectMostRecentDataset(datasets);
+      } else {
+        // datasets = filterDatasetsByTag(datasets, cliParams->tag);
+      }
+      fmt::print("- with tag: {}\n", cliParams->tag);
+    }
+    
+    // Needs to come before `selectMostRecentDataset` due to non-commutativity
+    if (!cliParams->includeIncompatible) {
+      // datasets = filterDatasetsByCompatibility(datasets, thisVersion); //TODO: implement, if all incompatible add incompatibility text
+      fmt::print("- compatible with this version of Nextclade ({:s}):\n", thisVersion);
+    }
+    else {
+      fmt::print("- both compatible and incompatible with this version of Nextclade ({:s}):\n", thisVersion); 
+    }
+
+    if (!cliParams->multipleVersions) {
+      // datasets = selectMostRecentDataset(datasets); // TODO: implement
+      fmt::print("- that are the most recent\n");
+    }
+
+    fmt::print("\n");
 
     if (!datasets.empty()) {
       fmt::print("{:s}\n", formatDatasets(datasets));

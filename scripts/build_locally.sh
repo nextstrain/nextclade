@@ -812,32 +812,32 @@ if [ "${CROSS}" == "1" ]; then
   exit 0
 fi
 
-pushd "${PROJECT_ROOT_DIR}" > /dev/null
-   if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
-     if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
-       print 23 "Run Nextalign tests";
-       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-     fi
-     if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
-       print 23 "Run Nextclade tests";
-       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
-     fi
-   fi
+# pushd "${PROJECT_ROOT_DIR}" > /dev/null
+#    if [ "${CMAKE_BUILD_TYPE}" != "MSAN" ]; then
+#      if [ "${NEXTALIGN_BUILD_TESTS}" != "0" ]; then
+#        print 23 "Run Nextalign tests";
+#        eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+#      fi
+#      if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
+#        print 23 "Run Nextclade tests";
+#        eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/tests.xml || cd .
+#      fi
+#    fi
 
-  if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
-    # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
-    ulimit -s unlimited
-  fi
+#   if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
+#     # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
+#     ulimit -s unlimited
+#   fi
 
-   if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-     print 27 "Run Nextalign CLI";
-     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-   fi
+#    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+#      print 27 "Run Nextalign CLI";
+#      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+#    fi
 
-   if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
-     print 27 "Run Nextclade CLI";
-     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
-   fi
-  print 22 "Done";
+#    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
+#      print 27 "Run Nextclade CLI";
+#      eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+#    fi
+print 22 "Done";
 
-popd > /dev/null
+# popd > /dev/null
