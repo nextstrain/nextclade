@@ -1,5 +1,7 @@
 # Terminology
 
+<!-- TODO: this section needs to be extended  -->
+
 The terminology in bioinformatics is often ambiguous, with some terms not being defined well and some terms having different meaning, depending on context and research area.
 
 In order to improve understanding of this documentation and of the source code of the project, in this section we try to summarize the terminology used by Nextclade, including possible synonyms. This terminology is not perfect or complete, and some of the definitions are purposefully simplified, to narrow down the scope to the topics relevant for the project.
@@ -132,7 +134,9 @@ Numeric range of nucleotide positions signifying begin and end of the [aligned s
 
 ### Clade
 
-[..]
+A virus variant, typically one of a several co-circulating. in Nextstrain, clades are defined by their combination of signature mutations.
+
+See also: [Wikipedia: Clade](https://en.wikipedia.org/wiki/Clade) 
 
 ### Phylogenetic placement
 

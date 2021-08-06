@@ -13,16 +13,31 @@ By default, alignment is only attempted on sequences longer than 100 nucleotides
 Nextclade can use a genome annotation to make the alignment more interpretable. Sometimes, the placement of a sequence deletion or insertion is ambiguous as in the following example. The gap could be moved forward or backward by one base with the same number of matches:
 
 ```
+Reference  : ... | GTT | TAT | TAC | ... 
+Alignment 1: ... | GTT | --- | TAC | ... 
+Alignment 2: ... | GT- | --T | TAC | ... 
+Alignment 3: ... | GTT | T-- | -AC | ... 
+```
+
+<!-- 
+
+```
 reference  : ...GTT.TAT.TAC... 
 alignment 1: ...GTT.---.TAC... 
 alignment 2: ...GT-.--T.TAC... 
 alignment 3: ...GTT.T--.-AC... 
 ```
 
-If a genome annotation is provided, Nextclade will use a lower gap-open-penalty at the beginning of a codon (marked by a `.`), thereby locking a gap in-frame if possible. Similarly, nextalign preferentially places gaps outside of genes in case of ambiguities.
+-->
+
+If a genome annotation is provided, Nextclade will use a lower gap-open-penalty at the beginning of a codon (delimited by the `|` characters in the schema above), thereby locking a gap in-frame if possible. Similarly, nextalign preferentially places gaps outside of genes in case of ambiguities.
 
 Alignment may fail if the query sequence is too divergent from the reference sequence, i.e. if there are many differences between the query and reference sequence. The seed matching step may then not be able to find a sufficient number of similar regions. This may happen due to usage of an incorrect reference sequence (e.g. from a different virus or a virus from a different host organism), if analysed sequences are of very low quality (e.g. containing a lot of missing regions or with a lot of ambiguous nucleotides) or are very short compared to the reference sequence.
 
-> ⚠️ Analysis steps that follow the step alignment will ignore sequence regions before and after the alignment range, as well as unsequenced regions (consecutive gap (`-`) character ranges on the 5' and 3' ends). The exact alignment range is indicated as "Alignment range" in the analysis results table of [Nextclade Web](nextclade-web) and `alignmentStart` and `alignmentEnd` in the output files of [Nextclade Web](nextclade-web) and [Nextclade CLI](nextclade-cli).
+> ⚠️ Analysis steps that follow the step alignment will ignore sequence regions before and after the alignment range, as well as unsequenced regions (consecutive gap (`-`) character ranges on the 5' and 3' ends). The exact alignment range is indicated as "Alignment range" in the analysis results table of [Nextclade Web](../nextclade-web) and `alignmentStart` and `alignmentEnd` in the output files of [Nextclade Web](../nextclade-web) and [Nextclade CLI](../nextclade-cli).
 
-The alignment step results in aligned sequences, which are produced in the form of fasta files.
+### Results
+
+The alignment step results in aligned nucleotide sequences, which are being produced in the form of a fasta files.
+
+This file is written by [Nextclade CLI](../nextclade-cli) and can be downloaded in the "Download" dialog of [Nextclade Web](../nextclade-web).
