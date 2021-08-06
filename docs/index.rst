@@ -36,5 +36,6 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
     user/implementation
 
     user/faq
+    user/terminology
 
     changes/index
