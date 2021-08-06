@@ -2,6 +2,9 @@
 
 Nextclade is a tool that identifies differences between your sequences and a reference sequence used by Nextstrain, uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data. You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
 
+You can learn more about the algorithm in the [Algorithm](algorithm) section.
+
+
 ## Installation (with docker)
 
 Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/repository/docker/nextstrain/nextclade)
@@ -283,3 +286,17 @@ The file contains the following columns (delimited by commas):
 ##### Output phylogenetic tree
 
 TODO: write this section
+
+
+## What's next?
+
+Congratulations, You have learned how to use Nextclade CLI!
+
+Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](algorithm)
+section.
+
+For a more convenient online tool, check out [Nextclade Web](nextclade-web).
+
+Nextclade is an open-source project. We welcome ideas and contributions. Head to
+our [GitHub repository](https://github.com/nextstrain/nextclade) if you want to obtain source code and contribute to the
+project.
