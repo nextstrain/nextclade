@@ -32,7 +32,7 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
     user/nextclade-cli
     user/nextalign-cli
 
-    user/algorithm
+    user/algorithm/index
     user/implementation
 
     user/faq
