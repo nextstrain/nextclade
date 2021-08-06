@@ -1,14 +1,21 @@
-## High-level overview of the pipeline
+# Algorithm
 
-Nextclade's workflow is a pipeline which consists of several steps. This section describes these steps, roughly in their order of execution.
+Internally, Nextclade is implemented as a parallel pipeline which consists of several steps. This section describes these steps, roughly in their order of execution.
 
-Note: A standalone command-line tool, *Nextalign*, is available that performs only the alignment (1) and translation (2) steps, without any of the subsequent analysis steps.
+> 💡 Note: A standalone command-line tool [Nextalign CLI](nextalign-cli) is available that performs only the [alignment (1)](#1-sequence-alignment) and [translation (2)](#2-translation) steps, without any of the subsequent analysis steps.
+
+
+
+
+## Algorithm steps
 
 ### 1. Sequence alignment
 
 In order for sequences to be analyzed, they need to be arranged in a way that allows for comparing homologous regions. This process is called [sequence alignment](https://en.wikipedia.org/wiki/Sequence_alignment).
 
-Nextclade performs pairwise alignment of the provided (query) sequences against a given reference (root) sequence using a banded local alignment algorithm with affine gap-cost. The band width and rough relative positions <!--- Positions of what? --> are determined through seed matching. Seed matching consists of finding several small fragments, *seeds*, of sufficient similarity in the reference and query sequences. The number of seeds, as well as their length, spacing and the allowed number of mismatched nucleotides in them are configurable. This algorithm can be considered a variation of the [Smith–Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) algorithm. Nextclade strips insertions relative to the reference from the aligned sequences and lists them in a separate file.  
+Nextclade performs pairwise alignment of the provided (query) sequences against a given reference (root) sequence using a banded local alignment algorithm with affine gap-cost. The band width and rough relative positions <!--- Positions of what? --> are determined through seed matching. Seed matching consists of finding several small fragments, *seeds*, of sufficient similarity in the reference and query sequences. The number of seeds, as well as their length, spacing and the allowed number of mismatched nucleotides in them are configurable in [Nextclade CLI](nextclade-cli). This algorithm can be considered a variation of the [Smith–Waterman](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm) algorithm.
+
+Nextclade strips insertions relative to the reference from the aligned sequences and lists them in a separate file.
 
 The algorithm aims to be sufficiently fast for running in the internet browser of an average consumer computer, by trading reduced alignment accuracy for improved runtime performance. We found that it works well for most sequences.
 
@@ -23,29 +30,33 @@ alignment 1: ...GTT.---.TAC...
 alignment 2: ...GT-.--T.TAC... 
 alignment 3: ...GTT.T--.-AC... 
 ```
-If a genome annotation is provided, Nextclade will use a lower gap-open-penalty at the beginning of a codon (marked by a `.`), thereby locking a gap in-frame if possible.
-Similarly, nextalign preferentially places gaps outside of genes in case of ambiguities.
+If a genome annotation is provided, Nextclade will use a lower gap-open-penalty at the beginning of a codon (marked by a `.`), thereby locking a gap in-frame if possible. Similarly, nextalign preferentially places gaps outside of genes in case of ambiguities.
 
-Alignment may fail if the query sequence is too divergent from the reference sequence, i.e. if there are many dfferences between the query and reference sequence. The seed matching step may then not be able to find a sufficient number of similar regions. This may happen due to usage of an incorrect reference sequence (e.g. from a different virus or a virus from a different host organism), if analysed sequences are of very low quality (e.g. containing a lot of missing regions or with a lot of ambiguous nucleotides) or are very short compared to the reference sequence.
+Alignment may fail if the query sequence is too divergent from the reference sequence, i.e. if there are many differences between the query and reference sequence. The seed matching step may then not be able to find a sufficient number of similar regions. This may happen due to usage of an incorrect reference sequence (e.g. from a different virus or a virus from a different host organism), if analysed sequences are of very low quality (e.g. containing a lot of missing regions or with a lot of ambiguous nucleotides) or are very short compared to the reference sequence.
 
-Note: analysis steps that follow alignment will ignore regions before and after the alignment <!--- what do before and after alignment mean? -->, as well as unsequenced regions (consecutive `-` character ranges on the 5' and 3' ends). The exact alignment range is indicated in the [analysis results]() as `alignmentStart` and `alignmentEnd`.
+> ⚠️ Analysis steps that follow the step alignment will ignore sequence regions before and after the alignment range, as well as unsequenced regions (consecutive gap (`-`) character ranges on the 5' and 3' ends). The exact alignment range is indicated as "Alignment range" in the analysis results table of [Nextclade Web](nextclade-web) and `alignmentStart` and `alignmentEnd` in the output files of [Nextclade Web](nextclade-web) and [Nextclade CLI](nextclade-cli).
+
+The alignment step results in aligned sequences, which are produced in the form of fasta files.
 
 ### 2. Translation
 
 In order to detect changes in viral proteins, aminoacid sequences (peptides) need to be computed from the nucleotide sequence regions corresponding to [genes](https://en.wikipedia.org/wiki/Gene). This process is called [translation](<https://en.wikipedia.org/wiki/Translation_(biology)>). Protein sequences then need to be aligned, in order to make them comparable, similarly to how it's done with nucleotide sequences.
 
-Nextclade performs translation separately for every gene (the list of genes to be considered for translation is configurable).
-Genes are specified via a genome annotation in GFF3 format (gene map).
-For each coding sequence annotated in the reference, Nextclade extracts the corresponding query sequence from the nucleotide alignment, and then generates peptides by taking every triplet of nucleotides (codon) and translating it into a corresponding aminoacid. It then aligns the resulting peptides against the corresponding reference peptides (translated from reference sequence), using the same alignment algorithm as for nucleotide sequences.
+Nextclade performs translation separately for every gene. Genes are specified in a genome annotation file, also called "gene map". In simple mode [Nextclade Web](nextclade-web) uses the default gene map for each virus. In advanced mode [Nextclade Web](nextclade-web) allows to supply a custom gene map. [Nextclade CLI](nextclade-cli) and [Nextalign CLI](nextalign-cli) allow to specify the gene map file or to omit it (in which case translation step does not run). The list of genes to be considered for translation is also configurable in [Nextclade CLI](nextclade-cli) and if it's not specified, all genes found in the gene map are translated.
 
-This step only runs if a `gene-map` is provided.
+For each coding sequence in the gene map, Nextclade extracts the corresponding sequence from the nucleotide alignment, and then generates peptides by taking every triplet of nucleotides (codon) and translating it into a corresponding aminoacid. It then aligns the resulting peptides against the corresponding reference peptides (translated from reference sequence), using the same alignment algorithm as for nucleotide sequences.
+
+This step only runs if the gene map is provided.
 
 ### 3. Nucleotide mutation calling and statistics
 
-Aligned nucleotide sequences are compared one-by-one with the reference sequence.
-Mismatches between the query and reference sequences are indicated differently, depending on their nature:
-Nucleotide deletions ("gaps", meaning that a nucleotide was such as `A` was present in the reference sequence, but is not present in the query sequence) are indicated by `-` in the alignment output. Substitutions (for example a change from `A` in the reference sequence to `G` in the query sequence) are also visible directly in the alignment output.
-Insertions (additional nucleotides in the query sequence that were not present in the reference sequence) are stripped from the alignment and reported in a separate output file, linking the position in the reference after which the insertion occured to the sequence that was inserted. `{22030: 'ACT'}` would indicate that the query sequence has the three bases `ACT` inserted between position `22030` and `22031` in the reference sequence.
+In order to detect nucleotide mutations, aligned nucleotide sequences are compared with the reference nucleotide sequence, one nucleotide at a time. Mismatches between the query and reference sequences are indicated differently, depending on their nature:
+
+ - Nucleotide substitutions: a change from one character to another. For example a change from `A` in the reference sequence to `G` in the query sequence. They are shown in sequence views in [Nextclade Web](nextclade-web) as colored markers, where color signifies the resulting character (in query sequence).
+
+ - Nucleotide deletions ("gaps"): nucleotide was present in the reference sequence, but is not present in the query sequence. These are indicated by `-` in the alignment sequence. They are shown in sequence views in [Nextclade Web](nextclade-web) as dark-grey markers. In the output files deletions are represented as numeric ranges, signifying the start and end of the deleted fragment (for example: `21765-21770`)
+
+ - Nucleotide insertions (additional nucleotides in the query sequence that were not present in the reference sequence) are stripped from the alignment and reported in a separate output file, linking the position in the reference after which the insertion occured to the sequence that was inserted. `{22030: 'ACT'}` would indicate that the query sequence has the three bases `ACT` inserted between position `22030` and `22031` in the reference sequence.
 
 Nextclade also gathers and reports other useful statistics, such as the number of contiguous ranges of `N` (missing) and non-ACGTN (ambiguous) nucleotides, as well as the total counts of substituted, deleted, missing and ambiguous nucleotides.
 
