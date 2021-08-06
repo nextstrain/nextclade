@@ -28,6 +28,8 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
     :maxdepth: 2
     :caption: Table of contents
 
+    Home <self>
+
     user/nextclade-web
     user/nextclade-cli
     user/nextalign-cli
