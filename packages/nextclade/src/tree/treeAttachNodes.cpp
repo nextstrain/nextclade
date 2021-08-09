@@ -262,8 +262,10 @@ namespace Nextclade {
 
     newNode.setNodeAttr("Has PCR primer changes", result.totalPcrPrimerChanges > 0 ? "Yes" : "No");
 
-    newNode.setNodeAttr("PCR primer changes",
-      formatAndJoinMaybeEmpty(result.pcrPrimerChanges, formatPcrPrimerChange, ", "));
+    if (result.totalPcrPrimerChanges > 0) {
+      newNode.setNodeAttr("PCR primer changes",
+        formatAndJoinMaybeEmpty(result.pcrPrimerChanges, formatPcrPrimerChange, ", "));
+    }
 
     newNode.setNodeAttr("QC Status", formatQcStatus(result.qc.overallStatus));
 
