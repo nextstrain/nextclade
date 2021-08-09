@@ -32,12 +32,6 @@ by Nextstrain team
     <img src="https://img.shields.io/github/license/nextstrain/nextclade" alt="License" />
   </a>
 
-  <a href="packages/web/package.json">
-    <img
-      src="https://img.shields.io/github/package-json/v/nextstrain/nextclade/master/packages/web?label=version&logo=npm"
-      alt="package.json version"
-    />
-  </a>
   <a href="https://clades.nextstrain.org/">
     <img src="https://img.shields.io/website?url=https%3A%2F%2Fclades.nextstrain.org&logo=circle&logoColor=white&label=clades.nextstrain.org" />
   </a>
@@ -120,8 +114,15 @@ by Nextstrain team
 
 <p align="center">
 
+  <a href="packages/web/package.json">
+    <img
+      src="https://img.shields.io/github/package-json/v/nextstrain/nextclade/master/packages/web?label=web&logo=npm"
+      alt="package.json version"
+    />
+  </a>
+
   <a href="https://github.com/nextstrain/nextclade/releases">
-    <img src="https://img.shields.io/github/v/release/nextstrain/nextclade?logo=github" alt="GitHub releases">
+    <img src="https://img.shields.io/github/v/release/nextstrain/nextclade?logo=github&label=cli" alt="GitHub releases">
   </a>
 
   <a href="https://hub.docker.com/r/nextstrain/nextalign">
@@ -134,19 +135,26 @@ by Nextstrain team
 
 </p>
 
-
 ---
 
 <p align="center">
   <a href="https://clades.nextstrain.org" target="_blank" rel="noopener noreferrer" >
     <img height="50px"
       src="https://img.shields.io/badge/%F0%9F%8C%8E%20Visit%20clades.nextstrain.org-%23aa1718.svg"
-      alt="Download button"
+      alt="Visit clades.nextstrain.org button"
     />
   </a>
 </p>
 
 <p align="center">
+
+  <a href="https://nextclade.readthedocs.io">
+    <img height="30px"
+      src="https://img.shields.io/badge/%F0%9F%93%97%20Documentation-%231773B2.svg"
+      alt="Documentation button"
+    />
+  </a>
+
   <a href="https://github.com/nextstrain/nextclade/issues/new">
     <img height="30px"
       src="https://img.shields.io/badge/%F0%9F%93%A2%20Report%20Issue-%2317992a.svg"
@@ -172,6 +180,24 @@ by Nextstrain team
 ---
 
 
+<h2 id="documentation" align="center">
+📗 Documentation
+</h2>
+
+ - Documentation for Nextclade: https://nextclade.readthedocs.io
+ - Documentation for the parent project, Nextstrain: https://docs.nextstrain.org
+
+
+<h2 id="documentation" align="center">
+🧑‍💻 Development
+</h2>
+
+If you are a developer, curious about how Nextclade and Nextalign work, want to modify it or contribute new features or fixes, check out out developer's guides:
+
+ - ["Developer's guide: Nextclade CLI and Nextalign CLI"](docs/dev/developers-guide-cli.md)
+
+ - ["Developer's guide: Nextclade Web"](docs/dev/developers-guide-web.md)
+
 <h2 id="packages" align="center">
 📦 Packages
 </h2>
@@ -187,24 +213,6 @@ This repository consists of a set of packages presented in the table below. Refe
 | [nextclade_cli](/packages/nextclade_cli)   | C++ executable     | 📥 [Github Releases](https://github.com/nextstrain/nextclade/releases) | 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade) |
 | [nextclade_wasm](/packages/nextclade_wasm) | WebAssembly module |                                                                        |                                                                          |
 | [nextclade_web](/packages/web)             | Web App            | 🌎 [clades.nextstrain.org](https://clades.nextstrain.org)              |                                                                          |
-
-
-<h2 id="documentation" align="center">
-📗 Documentation
-</h2>
-
-> TODO: add user documentation links
-
-
-<h2 id="documentation" align="center">
-🧑‍💻 Development
-</h2>
-
-If you are a developer, curious about how Nextclade and Nextalign work, want to modify it or contribute new features or fixes, check out out developer's guides:
-
- - ["Developer's guide: Nextclade CLI and Nextalign CLI"](docs/dev/developers-guide-cli.md)
-
- - ["Developer's guide: Nextclade Web"](docs/dev/developers-guide-web.md)
 
 
 <h2 id="team" align="center">
