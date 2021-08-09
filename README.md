@@ -148,7 +148,7 @@ by Nextstrain team
 
 <p align="center">
 
-  <a href="https://nextclade.readthedocs.io">
+  <a href="https://docs.nextstrain.org/projects/nextclade/en/latest/">
     <img height="30px"
       src="https://img.shields.io/badge/%F0%9F%93%97%20Documentation-%231773B2.svg"
       alt="Documentation button"
@@ -184,7 +184,7 @@ by Nextstrain team
 📗 Documentation
 </h2>
 
- - Documentation for Nextclade: https://nextclade.readthedocs.io
+ - Documentation for Nextclade: https://docs.nextstrain.org/projects/nextclade
  - Documentation for the parent project, Nextstrain: https://docs.nextstrain.org
 
 
