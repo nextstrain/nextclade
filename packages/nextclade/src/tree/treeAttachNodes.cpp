@@ -267,8 +267,6 @@ namespace Nextclade {
 
     newNode.setNodeAttr("QC Status", formatQcStatus(result.qc.overallStatus));
 
-    newNode.setNodeAttr("QC Flags", formatQcFlags(result.qc));
-
     auto tempMutations = node.mutations();
     for (const auto& mutStr : nucMutations) {
       // TODO: This parsing seems redundant. Can we avoid converting these to strings in upstream code?
