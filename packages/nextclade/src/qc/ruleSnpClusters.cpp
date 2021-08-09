@@ -39,6 +39,10 @@ namespace Nextclade {
       previousPos = pos;
     }
 
+    for (auto& cluster : allClusters) {
+      std::sort(cluster.begin(), cluster.end());
+    }
+
     return allClusters;
   }
 
