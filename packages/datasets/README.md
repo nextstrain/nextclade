@@ -4,6 +4,8 @@
 
 These are the tools for curating public Nextclade datasets. The documentation for using available datasets through Nextclade CLI is [here](../../docs/user/datasets.md).
 
+> ⚠️ This functionality is meant for the maintainers of Nextclade. We do not support using this outside of the team, but you can try anyways (you will need your own server infrastructure for that).
+
 
 > ⚠️ Note that the data is shared among all users of Nextclade, including CLI and Web users. Data corruption or incorrect format or content of JSON files will break Nextclade for everyone on the planet.
 
@@ -45,7 +47,7 @@ These are the tools for curating public Nextclade datasets. The documentation fo
 
  4. Study, add, modify or remove data.
 
-    The `data_local/` directory will appear in project root (or will be updated if already exist), containing something like this:
+    The `data_local/` directory will appear in the project root (or will be updated if already exist), containing something like this:
 
     ```
     data_local
@@ -124,7 +126,7 @@ These are the tools for curating public Nextclade datasets. The documentation fo
     ./scripts/upload
     ```
 
-    > ⚠️ This script will NOT delete all files from S3 bucket that don't exist in `data_local/`. Make a backup if they are still needed.
+    > ⚠️ This script will NOT delete files from S3 bucket that don't exist in `data_local/`. This is to avoid losing data. If something needs to be deleted, do this manually.
 
 
  6. Verify that the `dataset.json` was uploaded correctly and the new version is served through Cloudfront in your edge location:
@@ -133,9 +135,11 @@ These are the tools for curating public Nextclade datasets. The documentation fo
     ./scripts/verify
     ```
 
-    It may take up to 15 minutes for Cloudfront cache to propagate to all edge locations, but if the verification fails after 15 minutes, something went wrong. 
+    It may take up to 15 minutes for Cloudfront cache to propagate to all edge locations, but if the verification fails after 15 minutes, something went wrong.
 
- 7. You did a great job! Take a break, come back in a few weeks, and add/update another dataset. Start from step (3).
+ 7. Verify that the new data appeared in the production deployment (https://clades.nextstrain.org) as well as reachable with the latest released version of Nextclade CLI (https://github.com/nextstrain/nextclade/releases).
+
+ 8. You did a great job today! Take a break, come back in a few weeks, and add/update another dataset. Start from step 3.
 
 
 
@@ -143,22 +147,41 @@ These are the tools for curating public Nextclade datasets. The documentation fo
 🧪💾 Test datasets locally
 </h2>
 
-In order to serve the local datasets, run
+In order to serve the local datasets:
 
-```bash
-make serve-data
-```
+ - Install Node 14 (we recommend using [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions)
 
-from the project root. The server then can be reached by default from 
+ - Install dependencies once:
+    ```bash
+    cd nextclade/packages/web
+    yarn install
+    ```
+
+ - Start the server:
+   
+    ```bash
+    cd <root of the project>
+    make serve-data
+    ```
+
+The server then can be reached from 
 
 ```
 http://localhost:27722
 ```
 
-(the port number is controlled by `DATA_LOCAL_PORT` environment variable)
+(the port number can be configured using `DATA_LOCAL_PORT` environment variable)
+
+To test, paste this address to the browser:
+
+```
+http://localhost:27722/_generated/datasets.json
+```
+
+It should display the datasets JSON index file.
 
 
-In oder for the application to use the local data, set environment variable
+In oder for the application to use this local data, set this environment variable in `.env` file in the root of the project:
 
 ```
 DATA_FULL_DOMAIN=http://localhost:27722
@@ -167,3 +190,17 @@ DATA_FULL_DOMAIN=http://localhost:27722
 (adjust port number for `DATA_LOCAL_PORT` if changed)
 
 Rebuild the application and it will use the local datasets instead of the ones on AWS.
+
+
+<h2 id="test-datasets-with-another-server" align="center">
+🧪💾 Test datasets with another server
+</h2>
+
+You can set this variable in `.env` file in the root of the project to the full domain of your server:
+```
+DATA_FULL_DOMAIN=https://example.com
+```
+
+and rebuild Nextclade Web or Nextclade CLI. After that, they will be using the new server URL.
+
+Note that [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) should be enabled on your server. 
