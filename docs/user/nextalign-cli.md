@@ -156,16 +156,12 @@ nextalign --help
     - `nextalign.aligned.fasta` - aligned input sequences
     - `nextalign.gene.<gene_name>.fasta` - aligned peptides corresponding to each gene
 
-
 ## What's next?
 
 Congratulations, You have learned how to use Nextalign CLI!
 
-Going further, you might want to learn about the science behind the Nextalign internals in the [Algorithm](algorithm)
-section.
+Going further, you might want to learn about the science behind the Nextalign internals in the [Algorithm](algorithm) section. The required input data is described in [Input files](input-files) section. And produced files are described in [Output files](output-files) section.
 
 For a more convenient online tool, check out [Nextclade Web](nextclade-web).
 
-Nextclade is an open-source project. We welcome ideas and contributions. Head to
-our [GitHub repository](https://github.com/nextstrain/nextclade) if you want to obtain source code and contribute to the
-project.
+Nextclade is an open-source project. We welcome ideas and contributions. Head to our [GitHub repository](https://github.com/nextstrain/nextclade) if you want to obtain source code and contribute to the project.
