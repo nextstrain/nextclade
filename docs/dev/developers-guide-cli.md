@@ -1,13 +1,8 @@
-<h2 id="developers-guide-cli" align="center">
-🧑‍💻 Developer's guide: Nextclade CLI and Nextalign CLI
-</h2>
+# Developer's guide: Nextclade CLI and Nextalign CLI
 
+This guide describes how to setup a development environment for building and running Nextclade CLI and Nextalign CLI executables, how to contribute to Nextclade C++ code, maintain and release the CLI tools. If you are interested in Nextclade Web Application, see: ["Developer's guide: Nextclade Web"](../../docs/dev/developers-guide-web.md).
 
-This guide describes how to setup a development environment for building and running Nextclade CLI and Nextalign CLI executables, how to contribute to Nextclade C++ code, maintain and release the CLI tools. If you are interested in Nextclade Web Application, see: ["Developer's guide: Nextclade Web"](docs/dev/developers-guide-web.md).
-
-<h3 id="implementation-notes" align="center">
-🧠 Implementation notes
-</h3>
+### 🧠 Implementation notes
 
 Nextclade CLI and Nextalign CLI are the executables are written in C++. The build system is based on CMake. Most of the algorithm code is separated in a separate static library CMake module. And the executable CMake modules link against the libraries. The default build scripts use Conan package manager to manage the dependencies. However this i not mandatory and you can obtain the dependencies any way you like, as long as they are discoverable by CMake, as in any CMake project.
 
@@ -16,9 +11,7 @@ There is a convenience Makefile in the root of the project that launches the bui
 The easiest way to start the development is to use the included docker container option, described in the next section. The same environment can, of course, be setup on a local machine, but that requires some manual steps, also described further.
 
 
-<h3 id="develop-inside-docker" align="center">
-✨ Develop inside a docker container
-</h3>
+### ✨ Develop inside a docker container
 
 1. Get [docker](https://docs.docker.com/get-docker/)
 
@@ -30,9 +23,7 @@ The easiest way to start the development is to use the included docker container
     make docker-dev
     ```
 
-<h3 id="develop-locally" align="center">
-✨ Develop locally
-</h3>
+### ✨ Develop locally
 
 > 💡 The instructions below and the provided dev scripts are for convenience only and by no means are mandatory. The project is based on CMake, so if you are familiar with CMake, you don't need further instructions and can build the project as usual - just run CMake CLI or CMake GUI and point them to the root of the project.
 
@@ -79,9 +70,7 @@ The easiest way to start the development is to use the included docker container
     ```
     xcode-select --install
 
-    brew install ccache cmake coreutils python
-
-    pip3 install --user --upgrade conan cppcheck
+    brew install ccache cmake coreutils python conan cppcheck
     ```
     </details>
     </p>
@@ -186,9 +175,7 @@ The easiest way to start the development is to use the included docker container
 
 ---
 
-<h3 id="production-build" align="center">
-⏩ Production build
-</h3>
+### ⏩ Production build
 
 This section describes how to build the "production" or "release" versions of Nextclade CLI and Nextalign CLI. This are the builds that are shipped to end users. Production builds have performance optimizations enabled are are much faster, but it's harder to debug them.
 
@@ -225,9 +212,7 @@ as well as the final, stripped executables in
 
 ---
 
-<h3 id="assessment-of-correctness" align="center">
-✅ Assessment of correctness
-</h3>
+### ✅ Assessment of correctness
 
 #### 🧪 Unit tests
 
@@ -253,9 +238,7 @@ The default dev scripts run the Nextalign CLI and Nextclade CLI under GDB (if in
 
 ---
 
-<h3 id="static-analysis" align="center">
-🔬 Static analysis
-</h3>
+### 🔬 Static analysis
 
 We use the following static analysis tools.
 
@@ -282,9 +265,7 @@ contains arguments passed to `cppcheck`.
 
 ---
 
-<h3 id="runtime-analysis" align="center">
-🔥 Runtime analysis
-</h3>
+### 🔥 Runtime analysis
 
 We use the following tools to perform runtime analysis of the builds.
 
@@ -347,9 +328,7 @@ ms_print massif.out.263799
 ---
 
 
-<h3 id="runtime-performance-assessment" align="center">
-⏱️ Runtime performance assessment
-</h3>
+### ⏱️ Runtime performance assessment
 
 #### 🪑 Microbenchmarks
 
@@ -431,9 +410,7 @@ make profile
 
 ---
 
-<h3 id="use-non-default-compiler" align="center">
-⚙️ Use non-default compiler
-</h3>
+### ⚙️ Use non-default compiler
 
 #### Building with Clang
 
@@ -454,9 +431,7 @@ In this case, binaries will be produced in directories postfixed with `-Clang`, 
 
 ---
 
-<h3 id="distribution" align="center">
-🚢 Distribution
-</h3>
+### 🚢 Distribution
 
 #### 1️⃣ Standalone static build
 
@@ -487,9 +462,7 @@ executable.
 > TODO: setup profile-guided optimization based on CLI executable or e2e tests
 
 
-<h3 id="releasing" align="center">
-🚀 Creating a new release
-</h3>
+### 🚀 Creating a new release
 
 - Increment version in `VERSION` file in the root directory
 

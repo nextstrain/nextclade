@@ -18,8 +18,9 @@ Thumbs.db
 \.tmp
 \.vscode
 dist/
-generated/
+docs/build
 ehthumbs.db
+generated/
 nextalign_benchmarks.json
 node_modules
 tmp
