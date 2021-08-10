@@ -8,9 +8,13 @@ Nextclade CLI writes these files into paths specified with a family of `--output
 
 ## Aligned nucleotide sequences
 
+Nextclade CLI, Nextalign CLI flags: `--output-fasta`
+
 Aligned sequences are produced as a result of the [Sequence alignment](algorithm/01-sequence-alignment) step and are being output in FASTA format. The file contains the aligned reference sequence as the first entry (requires `--include-reference` flag in CLI version), followed by the aligned query sequences.
 
 ## Aligned peptides
+
+Nextclade CLI, Nextalign CLI flags: `--output-dir`
 
 Aligned peptides are produced as a result of the [Translation and peptide alignment](algorithm/02-translation) step and are being output in FASTA format. There are multiple files, one for each gene. Each file contains the aligned reference peptide as the first entry (requires `--include-reference` flag in CLI version), followed by the aligned query sequences.
 
@@ -19,6 +23,8 @@ Aligned peptides are produced as a result of the [Translation and peptide alignm
 The results of mutation calling, clade assignment, quality control and PCR primer changes can be obtained in either TSV, CSV, or JSON format.
 
 **Tabular (CSV/TSV) results**
+
+Nextclade CLI flags: `--output-csv`, `--output-tsv`
 
 TSV and CSV files are equivalent and only differ in the column delimiter (tabs vs semicolons), for better compatibility with spreadsheet software and data-science packages. Tabular format of TSV/CSV files are somewhat more human-friendly, are convenient for the immediate inspection and for simple automated processing.
 
@@ -78,11 +84,23 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 
 **JSON results**
 
+Nextclade CLI flag: `--output-json`
+
 JSON results file is best for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format.
 
-TODO: add JSON schema
+## Output phylogenetic tree
+
+Nextclade CLI flags: `--output-tree`
+
+Output phylogenetic tree. This is the input [reference tree](terminology.html#reference-tree-concept), with [Query Sequences](terminology.html#query-sequence) placed onto it.
+
+Accepted formats: Auspice JSON v2 ([description](https://nextstrain.org/docs/bioinformatics/data-formats), [schema](https://github.com/nextstrain/augur/blob/master/augur/data/schema-export-v2.json)) - this is the same format that is used in Nextstrain. And the same as for the input [reference tree](terminology.html#reference-tree-concept).
+
+The tree can be viewed in [auspice.us](https://auspice.us).
 
 ## Stripped insertions
+
+Nextclade CLI flag: `--output-insertions`
 
 Nextclade strips insertions relative to the reference from aligned query sequences, so that they no longer appear in the output sequences. It outputs information about these insertions in CSV format.
 
@@ -92,6 +110,8 @@ The file contains the following columns (delimited by commas):
 
 - `insertions` - A string containing semicolon-separated insertions. Each insertion is in format `<begin>:<seq>`, where `<begin>` is the starting position of the insertion in the aligned sequence, `<seq>` is the nucleotide sequence fragment that was removed.
 
-## Output phylogenetic tree
+## List of errors and warnings
 
-TODO: write this section
+Nextclade CLI flag: `--output-errors`
+
+A table that, for each sequence, contains a list of warnings, errors as well as a list of genes affected by error. The genes in this table are omitted from translation, analysis and FASTA outputs.

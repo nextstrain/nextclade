@@ -16,7 +16,7 @@ Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain tex
 
 ## Reference (root) sequence
 
-Viral nucleotide sequences which serves as a reference for alignment and the analysis. Mutations are called relative to the reference sequence. It is expected to be the root of the [reference tree](#reference-tree). The best results are obtained when the reference sequence is a well-known consensus genome, of a very high quality, preferably complete and unambiguous (spans entire genome and has no ambiguous nucleotides).
+Viral nucleotide sequence which serves as a reference for alignment and the analysis. Mutations are called relative to the reference sequence. It is expected to be the root of the [reference tree](#reference-tree). The best results are obtained when the reference sequence is a well-known consensus genome, of a very high quality, preferably complete and unambiguous (spans entire genome and has no ambiguous nucleotides).
 
 Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text. The file is expected to contain only 1 sequence.
 
