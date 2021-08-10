@@ -19,10 +19,21 @@ docker run -it --rm nextstrain/nextclade:latest nextclade --help
 Pull and run a specific version with:
 
 ```bash
-docker run -it --rm nextstrain/nextclade:1.0.0 nextclade --help
+docker run -it --rm nextstrain/nextclade:1.2.1 nextclade --help
 ```
 
 Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
+
+Docker images are available based on:
+
+ - `debian` (default): Nextclade executable + a set of basic Linux utilities, such as `bash`, `curl` and `wget`, to facilitate usage in workflows
+ - `alpine`: pure Alpine + Nextclade executable
+ - `scratch`: empty image + Nextclade executable
+
+You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:1.2.1`) or only major version (e.g. `:1`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:1.2.1-debian`), or mix and match.
+
+Tag `:latest` points to `:debian`. 
+
 
 ## Installation (local)
 
