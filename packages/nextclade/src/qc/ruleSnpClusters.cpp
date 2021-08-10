@@ -2,6 +2,7 @@
 
 #include <nextclade/nextclade.h>
 
+#include <algorithm>
 #include <deque>
 #include <optional>
 #include <vector>
