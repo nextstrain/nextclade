@@ -79,8 +79,19 @@ namespace Nextclade {
     auto inputTree = std::string{cliParams->inputTree};
     auto inputPcrPrimers = std::string{cliParams->inputPcrPrimers};
 
-    auto inputDataset = std::string{cliParams->inputDataset};
+    if (cliParams->inputDataset.empty() && inputRootSeq.empty()) {
+      throw ErrorFatal(
+        "Either `--input-dataset` or `--input-root-sequence` is required. Cannot proceed without reference sequence.");
+    }
+
+    if (cliParams->inputDataset.empty() && inputTree.empty()) {
+      throw ErrorFatal(
+        "Either `--input-dataset` or `--input-tree` is required. Cannot proceed without reference tree.");
+    }
+
     if (!cliParams->inputDataset.empty()) {
+      auto inputDataset = std::string{cliParams->inputDataset};
+
       if (!inputRootSeq.empty() && !inputGeneMap.empty() && !inputQcConfig.empty() && !inputTree.empty() &&
           !inputPcrPrimers.empty()) {
         logger.warn(
