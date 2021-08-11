@@ -31,6 +31,7 @@ import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
 import withWebassembly from './withWebassembly'
 import withLimitTerserParallelism from './withLimitTerserParallelism'
+import getWithResolve from './withResolve'
 
 const CIRCLECI = process.env.CIRCLECI ?? 'false'
 
@@ -157,8 +158,13 @@ const transpilationListProd = uniq([
 
 const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
 
+const withResolve = getWithResolve([
+  path.resolve(moduleRoot, '..', '..'), // root of the repo, for `CHANGELOG.md`
+])
+
 const config = withPlugins(
   [
+    [withResolve],
     [withIgnore],
     [withExtraWatch],
     [withThreads],

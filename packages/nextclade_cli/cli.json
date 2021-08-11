@@ -293,7 +293,7 @@
       "subcommands": [
         {
           "name": "get",
-          "desc": "Download a dataset from the remote server.",
+          "desc": "Download the latest compatible dataset directory for a specified pathogen from the data server.",
           "cppStructName": "CliParamsDatasetGet",
           "callbackName": "datasetGet",
           "options": [
@@ -305,57 +305,63 @@
               "isOptional": false
             },
             {
-              "flags": ["-v", "--version"],
-              "desc": "Version of the dataset to download. If this flag is not provided or is 'latest', then the latest version is download.",
-              "cppName": "version",
+              "flags": ["-t", "--tag"],
+              "desc": "Version tag of the dataset to download. If this flag is not provided or is 'latest', then the latest compatible version is downloaded.",
+              "cppName": "tag",
               "cppType": "std::string",
               "defaultValue": "\"latest\"",
               "isOptional": true
             },
             {
               "flags": ["-o", "--output-dir"],
-              "desc": "Directory to write dataset files to.",
+              "desc": "Path to parent directory to write dataset directory to. If the directory tree does not exist, it will be created.",
               "cppName": "outputDir",
               "cppType": "std::string",
               "isOptional": false
+            },
+            {
+              "flags": ["-O", "--output-dirname"],
+              "desc": "Name of the output dataset directory. If the directory tree does not exist, it will be created. Default: '{dataset_name}_{dataset_tag}'.",
+              "cppName": "outputDirname",
+              "cppType": "std::string",
+              "isOptional": true
             }
           ]
         },
         {
           "name": "list",
-          "desc": "List datasets available for download.",
+          "desc": "List latest compatible datasets available for download.",
           "cppStructName": "CliParamsDatasetList",
           "callbackName": "datasetList",
           "options": [
             {
               "flags": ["-n", "--name"],
-              "desc": "Name of the dataset. List only datasets with this name.",
+              "desc": "List only datasets with this name.",
               "cppName": "name",
               "cppType": "std::string",
               "isOptional": true
             },
             {
-              "flags": ["-v", "--version"],
-              "desc": "Version of the dataset. List only datasets with this version.",
-              "cppName": "version",
+              "flags": ["-t", "--tag"],
+              "desc": "List only datasets with this version tag.",
+              "cppName": "tag",
               "cppType": "std::string",
-              "defaultValue": "\"latest\"",
               "isOptional": true
             },
             {
-              "flags": ["--only-compatible"],
-              "desc": "Include into the list the datasets that are incompatible with this version of Nextclade.",
-              "cppName": "onlyCompatible",
+              "flags": ["--include-incompatible"],
+              "desc": "Include dataset version tags that are incompatible with this version of Nextclade CLI.",
+              "cppName": "includeIncompatible",
               "cppType": "bool",
-              "defaultValue": "true",
+              "defaultValue": "false",
               "isOptional": true
             },
             {
-              "flags": ["--only-latest"],
-              "desc": "Include into the list only the latest available datasets.",
-              "cppName": "onlyLatest",
+              "flags": ["--include-old"],
+              "desc": "Include older dataset version tags, additional to the latest.",
+              "cppName": "includeOld",
               "cppType": "bool",
-              "defaultValue": "true",
+              "defaultValue": "false",
               "isOptional": true
             }
           ]

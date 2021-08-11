@@ -47,6 +47,8 @@ add_executable(${PROJECT_NAME}
   src/algorithm/runNextclade.cpp
   src/algorithm/runNextclade.h
   src/commands/commands.h
+  src/commands/datasetGet.h
+  src/commands/datasetList.h
   src/commands/executeCommandDatasetGet.cpp
   src/commands/executeCommandDatasetList.cpp
   src/commands/executeCommandRoot.cpp
@@ -114,3 +116,9 @@ install(
   CONFIGURATIONS Release
   RUNTIME DESTINATION bin
 )
+
+set(NEXTCLADE_CLI_BUILD_TESTS ON CACHE BOOL "Build Nextclade CLI unit tests")
+if (${NEXTCLADE_CLI_BUILD_TESTS})
+  enable_testing()
+  add_subdirectory(src/__tests__)
+endif ()

@@ -23,7 +23,7 @@ import { setShowWhatsnewOnUpdate } from 'src/state/settings/settings.actions'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Toggle } from 'src/components/Common/Toggle'
-import Changelog from '../../../CHANGELOG.md'
+import Changelog from '../../../../../CHANGELOG.md'
 
 export const ButtonWhatsNewBase = styled(ButtonTransparent)<ButtonProps>`
   margin: 2px 2px;
