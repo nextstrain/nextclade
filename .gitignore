@@ -1,4 +1,5 @@
 *.log
+/data_local*
 3rdparty/binutils
 3rdparty/gcc
 3rdparty/llvm
@@ -17,8 +18,8 @@ Thumbs.db
 \.temp
 \.tmp
 \.vscode
-/data_local*
 dist/
+docs/build
 ehthumbs.db
 generated/
 nextalign_benchmarks.json

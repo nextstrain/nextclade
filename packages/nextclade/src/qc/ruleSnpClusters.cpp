@@ -2,18 +2,24 @@
 
 #include <nextclade/nextclade.h>
 
+#include <algorithm>
 #include <deque>
 #include <optional>
 #include <vector>
 
+#include "../utils/contract.h"
 #include "../utils/safe_cast.h"
 #include "getQcRuleStatus.h"
 
+
 namespace Nextclade {
-  std::vector<std::vector<int>> findSnpClusters(                //
-    const std::vector<NucleotideSubstitution>& privateMutations,//
-    const QCRulesConfigSnpClusters& config                      //
+  std::vector<std::vector<int>> findSnpClusters(                   //
+    const std::vector<NucleotideSubstitution>& privateMutationsRaw,//
+    const QCRulesConfigSnpClusters& config                         //
   ) {
+    auto privateMutations = privateMutationsRaw;
+    std::sort(privateMutations.begin(), privateMutations.end());
+
     const auto clusterCutOff = safe_cast<size_t>(config.clusterCutOff);
     std::deque<int> currentCluster;
     std::vector<std::vector<int>> allClusters;
@@ -39,6 +45,10 @@ namespace Nextclade {
       previousPos = pos;
     }
 
+    for (auto& cluster : allClusters) {
+      std::sort(cluster.begin(), cluster.end());
+    }
+
     return allClusters;
   }
 
@@ -56,7 +66,7 @@ namespace Nextclade {
   }
 
   std::optional<QCResultSnpClusters> ruleSnpClusters(           //
-    const AnalysisResult&,                                     //
+    const AnalysisResult&,                                      //
     const std::vector<NucleotideSubstitution>& privateMutations,//
     const QCRulesConfigSnpClusters& config                      //
   ) {
