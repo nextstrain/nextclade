@@ -43,6 +43,7 @@ if __name__ == '__main__':
 
     datasets = []
     for dataset_json_path in find_files(pattern="dataset.json", here=DATA_LOCAL_DIR):
+        print(f"dataset_json_path: {dataset_json_path}")
         with open(dataset_json_path, 'r') as f:
             dataset_json: dict = json.load(f)
 
@@ -53,6 +54,7 @@ if __name__ == '__main__':
         dir = os.path.dirname(dataset_json_path)
         versions: List[dict] = []
         for meta_path in find_files("metadata.json",dir):
+            print(f"meta_path: {meta_path}")
             with open(meta_path, 'r') as f:
                 version_json: dict = json.load(f)
             versions.append(version_json)
