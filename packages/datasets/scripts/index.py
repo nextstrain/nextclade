@@ -50,7 +50,15 @@ if __name__ == '__main__':
         if dataset_name == defaultDatasetName:
             defaultDatasetNameFriendly = dataset_json['nameFriendly']
 
-        versions: List[dict] = dataset_json["versions"]
+        dir = os.path.dirname(dataset_json_path)
+        versions: List[dict] = []
+        for meta_path in find_files("metadata.json",dir):
+            with open(meta_path, 'r') as f:
+                version_json: dict = json.load(f)
+            versions.append(version_json)
+        versions.sort(key=lambda x: x["datetime"],reverse=True)
+        dataset_json["versions"] = versions
+
         for version in versions:
             version_datetime = version["datetime"]
             versions_dir = f"{dataset_name}/versions"

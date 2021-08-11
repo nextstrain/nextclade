@@ -21,7 +21,7 @@ fi
 
 : "${DATA_FULL_DOMAIN:?The DATA_FULL_DOMAIN environment variable is required.}"
 
-DATA_LOCAL_DIR="${PROJECT_ROOT_DIR}/data_local"
+DATA_LOCAL_DIR="${PROJECT_ROOT_DIR}/${DATA_LOCAL_RELATIVE:-data_local}"
 
 DATASETS_JSON_REL_PATH="_generated/datasets.json"
 DATASETS_JSON_LOCAL_PATH="${DATA_LOCAL_DIR}/${DATASETS_JSON_REL_PATH}"
