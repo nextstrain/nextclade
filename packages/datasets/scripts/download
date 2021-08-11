@@ -21,7 +21,7 @@ fi
 
 
 export AWS_PAGER=''
-DATA_LOCAL_DIR="${PROJECT_ROOT_DIR}/data_local"
+DATA_LOCAL_DIR="${PROJECT_ROOT_DIR}/${DATA_LOCAL_RELATIVE:-data_local}"
 
 : "${DATA_AWS_S3_BUCKET:?The DATA_AWS_S3_BUCKET environment variable is required.}"
 

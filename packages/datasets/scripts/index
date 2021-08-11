@@ -20,6 +20,6 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
 fi
 
 
-export DATA_LOCAL_DIR="${PROJECT_ROOT_DIR}/${DATA_LOCAL_RELATIVE-data_local}"
+export DATA_LOCAL_DIR="${PROJECT_ROOT_DIR}/${DATA_LOCAL_RELATIVE:-data_local}"
 
 "${THIS_DIR}/index.py"
