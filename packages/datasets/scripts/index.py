@@ -9,10 +9,12 @@ from typing import List
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PROJECT_ROOT_DIR = os.path.realpath(os.path.join(THIS_DIR, "..", "..", ".."))
 
-DATA_LOCAL_DIR = os.path.realpath(os.path.join(PROJECT_ROOT_DIR, "data_local"))
+data_local = os.environ.get("DATA_LOCAL_RELATIVE", "data_local")
+DATA_LOCAL_DIR = os.environ.get("DATA_LOCAL_DIR",os.path.realpath(os.path.join(PROJECT_ROOT_DIR,"data_local")))
 DATASETS_JSON_PATH = os.path.realpath(os.path.join(DATA_LOCAL_DIR, "_generated", "datasets.json"))
 SETTINGS_JSON_PATH = os.path.realpath(os.path.join(DATA_LOCAL_DIR, "settings.json"))
 
+print(f"DATA_LOCAL_DIR = {DATA_LOCAL_DIR}")
 
 def find_files(pattern, here):
     for path, dirs, files in os.walk(os.path.abspath(here)):
@@ -31,6 +33,7 @@ def find_dirs_here(here):
 
 
 if __name__ == '__main__':
+    print("indexing...")
     with open(SETTINGS_JSON_PATH, 'r') as f:
         settings_json = json.load(f)
 
@@ -86,3 +89,5 @@ if __name__ == '__main__':
     os.makedirs(os.path.dirname(DATASETS_JSON_PATH), exist_ok=True)
     with open(DATASETS_JSON_PATH, "w") as f:
         json.dump(datasets_json, f, indent=2)
+    
+    print(f"dumped index to {DATASETS_JSON_PATH}")
