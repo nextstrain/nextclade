@@ -2,6 +2,7 @@
 
 
 #include <optional>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -74,4 +75,20 @@ namespace Nextclade {
 
   std::string formatDatasets(const std::vector<Dataset>& datasets);
 
+
+  bool operator==(const DatasetCompatibilityRange& left, const DatasetCompatibilityRange& right);
+
+  std::ostream& operator<<(std::ostream& os, const DatasetCompatibilityRange& range);
+
+  bool operator==(const DatasetCompatibility& left, const DatasetCompatibility& right);
+
+  std::ostream& operator<<(std::ostream& os, const DatasetCompatibility& compat);
+
+  bool operator==(const DatasetVersion& left, const DatasetVersion& right);
+
+  std::ostream& operator<<(std::ostream& os, const DatasetVersion& ver);
+
+  bool operator==(const Dataset& left, const Dataset& right);
+
+  std::ostream& operator<<(std::ostream& os, const Dataset& dataset);
 }// namespace Nextclade

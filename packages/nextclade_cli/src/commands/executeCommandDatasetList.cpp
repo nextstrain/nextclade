@@ -3,6 +3,7 @@
 
 #include "../generated/cli.h"
 #include "commands.h"
+#include "datasetList.h"
 
 namespace Nextclade {
   void executeCommandDatasetList(const std::shared_ptr<CliParamsDatasetList>& cliParams) {
@@ -16,16 +17,14 @@ namespace Nextclade {
     const auto datasetsJson = fetchDatasetsJson();
     const std::string thisVersion = getVersion();
 
-    auto datasets = datasetsJson.datasets;
-    if (cliParams->onlyCompatible && cliParams->onlyLatest) {
+    auto datasets = datasetListFilter(datasetsJson.datasets, cliParams, thisVersion);
+
+    if (!cliParams->includeIncompatible && !cliParams->includeOld) {
       fmt::print("Latest datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-      datasets = getLatestCompatibleDatasets(datasets, thisVersion);
-    } else if (cliParams->onlyLatest) {
+    } else if (!cliParams->includeIncompatible) {
       fmt::print("Latest datasets:\n\n");
-      datasets = getLatestDatasets(datasets);
-    } else if (cliParams->onlyCompatible) {
+    } else if (!cliParams->includeOld) {
       fmt::print("Datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);
-      datasets = getCompatibleDatasets(datasets, thisVersion);
     } else {
       fmt::print("All datasets:\n\n");
     }
@@ -36,6 +35,8 @@ namespace Nextclade {
 
     if (!datasets.empty()) {
       fmt::print("{:s}\n", formatDatasets(datasets));
+    } else {
+      fmt::print("Nothing found\n");
     }
   }
 }// namespace Nextclade

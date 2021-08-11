@@ -69,7 +69,6 @@ H_HEADING = """
 
 #include "../io/Logger.h"
 #include <string>
-#include <CLI/CLI.hpp>
 
 namespace Nextclade {
 

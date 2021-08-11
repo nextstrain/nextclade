@@ -254,4 +254,64 @@ namespace Nextclade {
     return fmt::to_string(buf);
   }
 
+
+  bool operator==(const DatasetCompatibilityRange& left, const DatasetCompatibilityRange& right) {
+    return left.min == right.min && left.max == right.max;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const DatasetCompatibilityRange& range) {
+    os << "{ " << range.min.value_or("*") << " ; " << range.max.value_or("*") << " }";
+    return os;
+  }
+
+  bool operator==(const DatasetCompatibility& left, const DatasetCompatibility& right) {
+    return left.nextcladeCli == right.nextcladeCli && left.nextcladeWeb == right.nextcladeWeb;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const DatasetCompatibility& compat) {
+    os << "cli: " << compat.nextcladeCli << ", ";
+    os << "web: " << compat.nextcladeWeb << "";
+    return os;
+  }
+
+  bool operator==(const DatasetVersion& left, const DatasetVersion& right) {
+    return left.datetime == right.datetime && left.compatibility == right.compatibility;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const DatasetVersion& ver) {
+    os << "{ "
+       << "\n";
+    os << "  "
+       << "datetime: " << ver.datetime << "\n";
+    os << "  "
+       << "comment: " << ver.comment << "\n";
+    os << "  "
+       << "compatibility: " << ver.compatibility << "\n";
+    os << "}";
+    return os;
+  }
+
+  bool operator==(const Dataset& left, const Dataset& right) {
+    return left.name == right.name && left.versions == right.versions;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const Dataset& dataset) {
+    os << "\n{\n";
+    os << "  "
+          "name: "
+       << dataset.name << "\n";
+    os << "  "
+          "nameFriendly: "
+       << dataset.nameFriendly << "\n";
+    os << "  "
+          "description: "
+       << dataset.description << "\n";
+    os << "  "
+          "versions: [\n";
+    for (const auto& version : dataset.versions) {
+      os << version << ",\n";
+    }
+    os << "}\n";
+    return os;
+  }
 }// namespace Nextclade
