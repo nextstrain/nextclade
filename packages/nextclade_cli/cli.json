@@ -122,21 +122,21 @@
         },
         {
           "flags": ["-T", "--output-tree"],
-          "desc": "Path to output Auspice JSON V2 results file. If the three is not needed, omitting this flag reduces processing time and memory consumption. For file format description see: https://nextstrain.org/docs/bioinformatics/data-formats",
+          "desc": "Path to output Auspice JSON V2 results file. If the tree is not needed, omitting this flag reduces processing time and memory consumption. For file format description see: https://nextstrain.org/docs/bioinformatics/data-formats",
           "cppName": "outputTree",
           "cppType": "std::string",
           "isOptional": true
         },
         {
           "flags": ["-d", "--output-dir"],
-          "desc": "Write output files to this directory. The base filename can be set using `--output-basename` flag. The paths can be overridden on a per-file basis using `--output-*` flags. If the required directory tree does not exist, it will be created.",
+          "desc": "Write output alignment and peptide files to this directory. The base filename can be set using `--output-basename` flag. The paths can be overridden on a per-file basis using `--output-*` flags. If the required directory tree does not exist, it will be created.",
           "cppName": "outputDir",
           "cppType": "std::string",
           "isOptional": true
         },
         {
           "flags": ["-n", "--output-basename"],
-          "desc": "Set the base filename to use for output files. To be used together with `--output-dir` flag. By default uses the filename of the sequences file (provided with `--sequences`). The paths can be overridden on a per-file basis using `--output-*` flags.",
+          "desc": "Set the base filename to use for output alignment and peptide files. To be used together with `--output-dir` flag. By default uses the filename of the sequences file (provided with `--sequences`). The paths can be overridden on a per-file basis using `--output-*` flags.",
           "cppName": "outputBasename",
           "cppType": "std::string",
           "isOptional": true
@@ -286,7 +286,7 @@
     },
     {
       "name": "dataset",
-      "desc": "Operations on datasets.",
+      "desc": "Operations on datasets: view and download available datasets, which can be used with `run` command.",
       "requireSubcommand": 1,
       "cppStructName": null,
       "callbackName": null,
