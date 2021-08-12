@@ -38,6 +38,7 @@ def format_jsons(pattern, here):
             f.seek(0)
             f.truncate()
             json.dump(data, f, indent=2, sort_keys=True) 
+            f.write("\n")
 
 
 if __name__ == '__main__':
@@ -102,5 +103,6 @@ if __name__ == '__main__':
     os.makedirs(os.path.dirname(DATASETS_JSON_PATH), exist_ok=True)
     with open(DATASETS_JSON_PATH, "w") as f:
         json.dump(datasets_json, f, indent=2, sort_keys=True)
+        f.write("\n")
     
     print(f"dumped index to {DATASETS_JSON_PATH}")
