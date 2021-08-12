@@ -1,5 +1,6 @@
 #include <fmt/format.h>
 #include <nextclade_common/datasets.h>
+#include <nextclade_common/filesystem.h>
 
 #include "../generated/cli.h"
 #include "commands.h"
@@ -38,20 +39,28 @@ namespace Nextclade {
       throw ErrorDatasetVersionedNotFound(cliParams->name, cliParams->tag);
     }
 
-    if (!cliParams->outputDir.empty()) {
-      if (datasets.size() > 1) {
-        throw ErrorFatal(
-          "When running dataset get filter: Returned more than 1 dataset."
-          " This is a bug. Please report it to developers.");
-      }
 
-      if (datasets[0].versions.size() > 1) {
-        throw ErrorFatal(
-          "When running dataset get filter: Returned more than 1 version."
-          " This is a bug. Please report it to developers.");
-      }
-
-      fetchDatasetVersion(datasets[0].versions[0], cliParams->outputDir);
+    if (datasets.size() > 1) {
+      throw ErrorFatal(
+        "When running dataset get filter: Returned more than 1 dataset."
+        " This is a bug. Please report it to developers.");
     }
+
+    if (datasets[0].versions.size() > 1) {
+      throw ErrorFatal(
+        "When running dataset get filter: Returned more than 1 version."
+        " This is a bug. Please report it to developers.");
+    }
+
+    const auto& dataset = datasets[0];
+    const auto& version = datasets[0].versions[0];
+
+    auto outputSubdir = cliParams->outputSubdir;
+    if (outputSubdir.empty()) {
+      outputSubdir = fmt::format("{}_{}", dataset.name, version.datetime);
+    }
+
+    const auto outputPath = (fs::path(cliParams->outputDir) / outputSubdir).string();
+    fetchDatasetVersion(datasets[0].versions[0], outputPath);
   }
 }// namespace Nextclade

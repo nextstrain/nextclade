@@ -320,9 +320,9 @@
               "isOptional": false
             },
             {
-              "flags": ["-O", "--output-dirname"],
-              "desc": "Name of the output dataset directory. If the directory tree does not exist, it will be created. Default: '{dataset_name}_{dataset_tag}'.",
-              "cppName": "outputDirname",
+              "flags": ["-O", "--output-subdir"],
+              "desc": "Name of the output dataset subdirectory, nested under the path provided by `--output-dir`. If the directory tree does not exist, it will be created. If omitted, the default is: '{name}_{tag}', evaluated dynamically depending on the dataset name and version tag.",
+              "cppName": "outputSubdir",
               "cppType": "std::string",
               "isOptional": true
             }
