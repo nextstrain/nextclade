@@ -10,6 +10,7 @@ RUN set -x \
 && apt-get install -qq --no-install-recommends --yes \
   bash \
   curl \
+  procps \
   wget \
 >/dev/null \
 && apt-get autoremove --yes >/dev/null \
