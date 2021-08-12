@@ -1,4 +1,15 @@
-## Nextclade Web 1.5.3, Nextclade CLI 1.2.1, Nextalign CLI 1.2.1
+## Nextclade CLI 1.2.2, Nextalign CLI 1.2.2 (2021-08-12)
+
+This release only affects docker images. There are no actual changes in Nextclade CLI, Nextalign CLI or Nextclade Web. They should behave the same as their previous versions.
+
+#### [Change] Add `ps` utility into Debian docker images
+
+This adds `ps` utility into the Debian docker images. For better compatibility with nextflow workflows. 
+
+These are the default images when you pull `nextstrain/nextclade` and `nextstrain/nextalign` without specifying a tag or specifying one of the `debian` tags.
+
+
+## Nextclade Web 1.5.3, Nextclade CLI 1.2.1, Nextalign CLI 1.2.1 (2021-08-10)
 
 #### [Bug fix] Incorrect ranges in "SNP clusters" QC rule
 
