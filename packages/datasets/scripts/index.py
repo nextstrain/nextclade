@@ -9,7 +9,6 @@ from typing import List
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PROJECT_ROOT_DIR = os.path.realpath(os.path.join(THIS_DIR, "..", "..", ".."))
 
-data_local = os.environ.get("DATA_LOCAL_RELATIVE", "data_local")
 DATA_LOCAL_DIR = os.environ.get("DATA_LOCAL_DIR",os.path.realpath(os.path.join(PROJECT_ROOT_DIR,"data_local")))
 DATASETS_JSON_PATH = os.path.realpath(os.path.join(DATA_LOCAL_DIR, "_generated", "datasets.json"))
 SETTINGS_JSON_PATH = os.path.realpath(os.path.join(DATA_LOCAL_DIR, "settings.json"))
