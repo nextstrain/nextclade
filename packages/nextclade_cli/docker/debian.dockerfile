@@ -9,6 +9,7 @@ RUN set -x \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
   bash \
+  ca-certificates \
   curl \
   procps \
   wget \
