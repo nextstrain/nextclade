@@ -1,3 +1,10 @@
+/* eslint-disable prefer-destructuring */
+// Adds additional headers to the response, including security headers.
+// Suited for websites.
+//
+// Usage: Create an AWS Lambda@Edge function and attach it to "Viewer Response" event of a Cloudfront distribution
+
+
 const FEATURE_POLICY = {
   'accelerometer': `'none'`,
   'autoplay': `'none'`,

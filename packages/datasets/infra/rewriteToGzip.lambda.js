@@ -1,6 +1,6 @@
 // Implements rewrite of non-gz to gz URLs using AWS Lambda@Edge.
 //
-// Usage: Create an AWS Lambda function and attach this to "Viewer Request" event of a Cloudfront distribution
+// Usage: Create an AWS Lambda function and attach it to "Viewer Request" event of a Cloudfront distribution
 
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
