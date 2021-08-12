@@ -30,8 +30,20 @@ def find_dirs(here):
 def find_dirs_here(here):
     return filter(os.path.isdir, [os.path.join(here, e) for e in os.listdir(here)])
 
+def format_jsons(pattern, here):
+    for json_file in find_files(pattern, here):
+        print(f"Formatting {json_file}")
+        with open(json_file, "r+") as f:
+            data = json.load(f)
+            f.seek(0)
+            f.truncate()
+            json.dump(data, f, indent=2, sort_keys=True) 
+
 
 if __name__ == '__main__':
+    format_jsons("settings.json",DATA_LOCAL_DIR)
+    format_jsons("dataset.json",DATA_LOCAL_DIR)
+
     print("indexing...")
     with open(SETTINGS_JSON_PATH, 'r') as f:
         settings_json = json.load(f)
@@ -89,6 +101,6 @@ if __name__ == '__main__':
     datasets_json.update({"datasets": datasets})
     os.makedirs(os.path.dirname(DATASETS_JSON_PATH), exist_ok=True)
     with open(DATASETS_JSON_PATH, "w") as f:
-        json.dump(datasets_json, f, indent=2)
+        json.dump(datasets_json, f, indent=2, sort_keys=True)
     
     print(f"dumped index to {DATASETS_JSON_PATH}")
