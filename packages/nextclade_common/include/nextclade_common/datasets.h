@@ -47,14 +47,14 @@ namespace Nextclade {
     std::vector<DatasetVersion> versions;
   };
 
-  struct DatasetsJson {
+  struct DatasetsIndexJson {
     DatasetsSettings settings;
     std::vector<Dataset> datasets;
   };
 
   struct DatasetFlat {};
 
-  DatasetsJson fetchDatasetsJson();
+  DatasetsIndexJson fetchDatasetsIndexJson();
 
   void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir);
 

@@ -8,7 +8,7 @@ import semver from 'semver'
 import styled from 'styled-components'
 
 import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
-import type { Dataset, DatasetFiles, DatasetFlat, DatasetsJson, DatasetVersion } from 'src/algorithms/types'
+import type { Dataset, DatasetFiles, DatasetFlat, DatasetsIndexJson, DatasetVersion } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { setDataset } from 'src/state/algorithm/algorithm.actions'
 import { Dropdown as DropdownBase } from 'src/components/Common/Dropdown'
@@ -17,8 +17,8 @@ import { stringToOption } from 'src/components/Common/DropdownOption'
 import { SpinnerWrapped } from 'src/components/Common/Spinner'
 
 const DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
-const DATA_DATASETS_FILE = '_generated/datasets.json'
-const DATA_DATASETS_FILE_FULL_URL = urljoin(DATA_FULL_DOMAIN, DATA_DATASETS_FILE)
+const DATA_INDEX_FILE = 'index.json'
+const DATA_INDEX_FILE_FULL_URL = urljoin(DATA_FULL_DOMAIN, DATA_INDEX_FILE)
 const thisVersion = process.env.PACKAGE_VERSION ?? ''
 
 export function isCompatible({ min, max }: { min?: string; max?: string }) {
@@ -71,10 +71,10 @@ export function fileUrlsToAbsolute(files: DatasetFiles): DatasetFiles {
   return mapValues(files, (file: string) => urljoin(DATA_FULL_DOMAIN, file))
 }
 
-export function getCompatibleDatasets(datasetsJson?: DatasetsJson): Dataset[] {
+export function getCompatibleDatasets(datasetsIndexJson?: DatasetsIndexJson): Dataset[] {
   const compatibleDatasets: Dataset[] = []
 
-  for (const dataset of datasetsJson?.datasets ?? []) {
+  for (const dataset of datasetsIndexJson?.datasets ?? []) {
     let compatibleVersions: DatasetVersion[] = []
     for (const version of dataset.versions) {
       if (isCompatible(version.compatibility.nextcladeWeb)) {
@@ -92,16 +92,16 @@ export function getCompatibleDatasets(datasetsJson?: DatasetsJson): Dataset[] {
   return compatibleDatasets
 }
 
-export function getLatestCompatibleDatasets(datasetsJson?: DatasetsJson) {
+export function getLatestCompatibleDatasets(datasetsIndexJson?: DatasetsIndexJson) {
   const latestDatasetsFlat: DatasetFlat[] = []
-  for (const dataset of getCompatibleDatasets(datasetsJson)) {
+  for (const dataset of getCompatibleDatasets(datasetsIndexJson)) {
     const latestVersion = maxBy(dataset.versions, (version) => version.datetime)
     if (latestVersion) {
       latestDatasetsFlat.push({ ...dataset, ...latestVersion })
     }
   }
 
-  const defaultDatasetName = datasetsJson?.settings.defaultDatasetName ?? ''
+  const defaultDatasetName = datasetsIndexJson?.settings.defaultDatasetName ?? ''
   const defaultDataset = latestDatasetsFlat.find((dataset) => dataset.name === defaultDatasetName)
 
   let defaultDatasetNameFriendly = ''
@@ -134,13 +134,13 @@ export function removeBoolean<T>(value: boolean | undefined | T): T | undefined 
 }
 
 export function DatasetSelectorDisconnected({ setDataset }: DatasetSelectorProps) {
-  const { data: datasetsJson, error, isLoading, isFetching, isError } =
-    useAxiosQuery<DatasetsJson>(DATA_DATASETS_FILE_FULL_URL) // prettier-ignore
+  const { data: datasetsIndexJson, error, isLoading, isFetching, isError } =
+    useAxiosQuery<DatasetsIndexJson>(DATA_INDEX_FILE_FULL_URL) // prettier-ignore
 
   const isBusy = isLoading || isFetching
 
   const { datasets, defaultDatasetNameFriendly } =
-    useMemo(() => getLatestCompatibleDatasets(datasetsJson), [datasetsJson]) // prettier-ignore
+    useMemo(() => getLatestCompatibleDatasets(datasetsIndexJson), [datasetsIndexJson]) // prettier-ignore
 
   const datasetNames = useMemo(() => datasets.map((dataset) => dataset.nameFriendly), [datasets])
   const virusNameOptionDefault = useMemo(() => stringToOption(defaultDatasetNameFriendly), [defaultDatasetNameFriendly])

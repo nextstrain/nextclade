@@ -25,7 +25,8 @@ import { modifyHeaders } from '../../infra/lambda-at-edge/modifyOutgoingHeaders.
 
 const { moduleRoot } = findModuleRoot()
 
-const buildDir = path.join(moduleRoot, '..', '..', 'data_local')
+const DATA_OUTPUT_DIR_RELATIVE = getenv('DATA_OUTPUT_DIR_RELATIVE')
+const DATA_OUTPUT_DIR = path.join(moduleRoot, '..', '..', DATA_OUTPUT_DIR_RELATIVE)
 
 export interface NewHeaders {
   [key: string]: { key: string; value: string }[]
@@ -50,7 +51,7 @@ function main() {
   app.use(history())
   app.get(
     '*',
-    expressStaticGzip(buildDir, {
+    expressStaticGzip(DATA_OUTPUT_DIR, {
       enableBrotli: false,
       serveStatic: {
         setHeaders: (res: Response) =>
@@ -66,7 +67,7 @@ function main() {
 
   const port = getenv('DATA_LOCAL_PORT')
   app.listen(port, () => {
-    console.info(`Server is listening on port ${port}`)
+    console.info(`Serving ${DATA_OUTPUT_DIR} on http://localhost:${port}`)
   })
 }
 

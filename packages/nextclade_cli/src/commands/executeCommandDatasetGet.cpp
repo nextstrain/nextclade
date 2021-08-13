@@ -28,10 +28,10 @@ namespace Nextclade {
       .silent = cliParams->silent,
     }};
 
-    const auto datasetsJson = fetchDatasetsJson();
+    const auto datasetsIndexJson = fetchDatasetsIndexJson();
     const std::string thisVersion = getVersion();
 
-    auto datasets = datasetGetFilter(datasetsJson.datasets, cliParams, thisVersion);
+    auto datasets = datasetGetFilter(datasetsIndexJson.datasets, cliParams, thisVersion);
 
     logger.info("Downloading dataset:\n{:s}\n", formatDatasets(datasets));
 

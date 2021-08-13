@@ -12,11 +12,11 @@ import semver from 'semver'
 
 import { LayoutMain } from 'src/components/Layout/LayoutMain'
 import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
-import type { Dataset, DatasetFiles, DatasetsJson, DatasetVersion } from 'src/algorithms/types'
+import type { Dataset, DatasetFiles, DatasetsIndexJson, DatasetVersion } from 'src/algorithms/types'
 
 const DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
-const DATA_DATASETS_FILE = '_generated/datasets.json'
-const DATA_DATASETS_FILE_FULL_URL = urljoin(DATA_FULL_DOMAIN, DATA_DATASETS_FILE)
+const DATA_INDEX_FILE = 'index.json'
+const DATA_INDEX_FILE_FULL_URL = urljoin(DATA_FULL_DOMAIN, DATA_INDEX_FILE)
 const thisVersion = process.env.PACKAGE_VERSION ?? ''
 
 export const Ul = styled.ul`
@@ -166,15 +166,15 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
 }
 
 export interface DatasetListProps {
-  datasetsJson: DatasetsJson
+  datasetsIndexJson: DatasetsIndexJson
 }
 
-export function DatasetList({ datasetsJson }: DatasetListProps) {
-  const { defaultDatasetName } = datasetsJson.settings
+export function DatasetList({ datasetsIndexJson }: DatasetListProps) {
+  const { defaultDatasetName } = datasetsIndexJson.settings
 
   return (
     <div>
-      {datasetsJson.datasets.map((dataset) => (
+      {datasetsIndexJson.datasets.map((dataset) => (
         <DatasetView key={dataset.name} dataset={dataset} isDefault={dataset.name === defaultDatasetName} />
       ))}
     </div>
@@ -184,8 +184,8 @@ export function DatasetList({ datasetsJson }: DatasetListProps) {
 export function DataPage() {
   const { t } = useTranslationSafe()
 
-  const { data: datasetsJson, error, isLoading, isFetching, isError } = useAxiosQuery<DatasetsJson>(
-    DATA_DATASETS_FILE_FULL_URL,
+  const { data: datasetsIndexJson, error, isLoading, isFetching, isError } = useAxiosQuery<DatasetsIndexJson>(
+    DATA_INDEX_FILE_FULL_URL,
   )
 
   return (
@@ -206,7 +206,7 @@ export function DataPage() {
             <Col>{isError && error && <span className="text-danger">{`${error.name}: ${error.message}`}</span>}</Col>
           </Row>
 
-          {datasetsJson && <DatasetList datasetsJson={datasetsJson} />}
+          {datasetsIndexJson && <DatasetList datasetsIndexJson={datasetsIndexJson} />}
         </Col>
       </Row>
     </LayoutMain>

@@ -302,6 +302,7 @@ export interface DatasetFiles {
   reference: string
   sequences: string
   tree: string
+
   [k: string]: string
 }
 
@@ -329,7 +330,7 @@ export interface Dataset {
   versions: DatasetVersion[]
 }
 
-export interface DatasetsJson {
+export interface DatasetsIndexJson {
   settings: DatasetsSettings
   datasets: Dataset[]
 }
