@@ -43,8 +43,7 @@ export interface NucleotideInsertion {
   ins: string
 }
 
-export interface NucleotideMissing extends Range {
-}
+export interface NucleotideMissing extends Range {}
 
 export interface CharacterRange<Letter> extends Range {
   character: Letter
@@ -336,5 +335,4 @@ export interface DatasetsIndexJson {
   datasets: Dataset[]
 }
 
-export interface DatasetFlat extends Dataset, DatasetVersion {
-}
+export interface DatasetFlat extends Dataset, DatasetVersion {}

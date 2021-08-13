@@ -159,7 +159,7 @@ export function DatasetSelectorDisconnected({ setDataset }: DatasetSelectorProps
   return (
     <DropdownContainer>
       <Dropdown
-        identifier='dataset.name'
+        identifier="dataset.name"
         options={removeBoolean(!isBusy && virusNameOptions) ?? []}
         defaultOption={removeBoolean(!isBusy && virusNameOptionDefault)}
         value={removeBoolean(!isBusy && current)}
@@ -172,7 +172,7 @@ export function DatasetSelectorDisconnected({ setDataset }: DatasetSelectorProps
         </DropdownLoadingOverlay>
       )}
 
-      {isBusy && <DropdownLoadingOverlay>{<Spinner type='ThreeDots' size={20} color='#aaa' />}</DropdownLoadingOverlay>}
+      {isBusy && <DropdownLoadingOverlay>{<Spinner type="ThreeDots" size={20} color="#aaa" />}</DropdownLoadingOverlay>}
     </DropdownContainer>
   )
 }

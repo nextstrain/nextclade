@@ -25,7 +25,7 @@ import { modifyHeaders } from '../../infra/lambda-at-edge/modifyOutgoingHeaders.
 
 const { moduleRoot } = findModuleRoot()
 
-const DATA_OUTPUT_DIR_RELATIVE = getenv("DATA_OUTPUT_DIR_RELATIVE")
+const DATA_OUTPUT_DIR_RELATIVE = getenv('DATA_OUTPUT_DIR_RELATIVE')
 const DATA_OUTPUT_DIR = path.join(moduleRoot, '..', '..', DATA_OUTPUT_DIR_RELATIVE)
 
 export interface NewHeaders {

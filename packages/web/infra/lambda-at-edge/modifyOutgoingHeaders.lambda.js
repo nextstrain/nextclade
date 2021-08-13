@@ -4,7 +4,6 @@
 //
 // Usage: Create an AWS Lambda@Edge function and attach it to "Viewer Response" event of a Cloudfront distribution
 
-
 const FEATURE_POLICY = {
   'accelerometer': `'none'`,
   'autoplay': `'none'`,

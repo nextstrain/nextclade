@@ -132,11 +132,11 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
   const { t } = useTranslationSafe()
 
   return (
-    <Row noGutters className='mt-3'>
+    <Row noGutters className="mt-3">
       <Col>
         <h3>
           {dataset.nameFriendly}
-          {isDefault && <sup className='text-small ml-2'>{t('(default)')}</sup>}
+          {isDefault && <sup className="text-small ml-2">{t('(default)')}</sup>}
         </h3>
         <p>{dataset.description}</p>
 
@@ -190,20 +190,20 @@ export function DataPage() {
 
   return (
     <LayoutMain>
-      <Row noGutters className='landing-page-row mx-auto'>
+      <Row noGutters className="landing-page-row mx-auto">
         <Col>
           <Row noGutters>
             <Col>
-              <h2 className='text-center'>{t('Datasets')}</h2>
+              <h2 className="text-center">{t('Datasets')}</h2>
             </Col>
           </Row>
 
           <Row noGutters>
-            <Col>{(isLoading || isFetching) && <span className='text-info'>{'Loading...'}</span>}</Col>
+            <Col>{(isLoading || isFetching) && <span className="text-info">{'Loading...'}</span>}</Col>
           </Row>
 
           <Row noGutters>
-            <Col>{isError && error && <span className='text-danger'>{`${error.name}: ${error.message}`}</span>}</Col>
+            <Col>{isError && error && <span className="text-danger">{`${error.name}: ${error.message}`}</span>}</Col>
           </Row>
 
           {datasetsIndexJson && <DatasetList datasetsIndexJson={datasetsIndexJson} />}
