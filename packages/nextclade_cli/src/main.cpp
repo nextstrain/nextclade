@@ -7,6 +7,7 @@
 #include "io/parseGeneMapGffFile.h"
 
 // Goes last
+#include "description.h"
 #include "generated/cli.h"
 #include "malloc_conf.h"
 
@@ -116,7 +117,7 @@ int main(int argc, char* argv[]) {
 
 
   try {
-    return parseCommandLine(args.size(), args.data(), /* PROJECT_DESCRIPTION */ "", callbacks, defaults);
+    return parseCommandLine(args.size(), args.data(), PROJECT_DESCRIPTION, callbacks, defaults);
   } catch (const std::exception& e) {
     logger.error(e.what());
     return 1;
