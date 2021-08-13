@@ -14,10 +14,10 @@ namespace Nextclade {
       .silent = cliParams->silent,
     }};
 
-    const auto datasetsJson = fetchDatasetsJson();
+    const auto datasetsIndexJson = fetchDatasetsIndexJson();
     const std::string thisVersion = getVersion();
 
-    auto datasets = datasetListFilter(datasetsJson.datasets, cliParams, thisVersion);
+    auto datasets = datasetListFilter(datasetsIndexJson.datasets, cliParams, thisVersion);
 
     if (!cliParams->includeIncompatible && !cliParams->includeOld) {
       fmt::print("Latest datasets compatible with this version of Nextclade ({:s}):\n\n", thisVersion);

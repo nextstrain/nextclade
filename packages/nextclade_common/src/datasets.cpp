@@ -80,10 +80,10 @@ namespace Nextclade {
       };
     }
 
-    DatasetsJson parseDatasetsJson(const std::string& datasetsJsonStr) {
-      const auto j = json::parse(datasetsJsonStr);
+    DatasetsIndexJson parseDatasetsJson(const std::string& datasetsIndexJsonStr) {
+      const auto j = json::parse(datasetsIndexJsonStr);
 
-      return DatasetsJson{
+      return DatasetsIndexJson{
         .settings = parseDatasetSettings(at(j, "settings")),
         .datasets = parseArray<Dataset>(j, "datasets", parseDataset),
       };
@@ -98,10 +98,10 @@ namespace Nextclade {
 
   }//namespace
 
-  DatasetsJson fetchDatasetsJson() {
-    const std::string url = toAbsoluteUrl("/_generated/datasets.json", dataFullDomain.data());
-    const auto& datasetsJsonStr = fetch(url);
-    return parseDatasetsJson(datasetsJsonStr);
+  DatasetsIndexJson fetchDatasetsIndexJson() {
+    const std::string url = toAbsoluteUrl("/index.json", dataFullDomain.data());
+    const auto& datasetsIndexJsonStr = fetch(url);
+    return parseDatasetsJson(datasetsIndexJsonStr);
   }
 
   void writeFile(const std::string& filepath, const std::string& content) {
