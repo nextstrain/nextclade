@@ -33,6 +33,7 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
     user/nextclade-web
     user/nextclade-cli
     user/nextalign-cli
+    user/datasets
 
     user/input-files
     user/output-files

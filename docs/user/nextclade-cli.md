@@ -4,7 +4,6 @@ Nextclade is a tool that identifies differences between your sequences and a ref
 
 You can learn more about the algorithm in the [Algorithm](algorithm) section.
 
-
 ## Installation (with docker)
 
 Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/repository/docker/nextstrain/nextclade)
@@ -22,18 +21,17 @@ Pull and run a specific version with:
 docker run -it --rm nextstrain/nextclade:1.2.1 nextclade --help
 ```
 
-Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
+Don't forget to mount necessary volumes to be able to supply the data into container and to access the results.
 
 Docker images are available based on:
 
- - `debian` (default): Nextclade executable + a set of basic Linux utilities, such as `bash`, `curl` and `wget`, to facilitate usage in workflows
- - `alpine`: pure Alpine + Nextclade executable
- - `scratch`: empty image + Nextclade executable
+- `debian` (default): Nextclade executable + a set of basic Linux utilities, such as `bash`, `curl` and `wget`, to facilitate usage in workflows
+- `alpine`: pure Alpine + Nextclade executable
+- `scratch`: empty image + Nextclade executable
 
 You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:1.2.1`) or only major version (e.g. `:1`), or a base image (e.g. `:debian`) or both version and base image (e.g. `:1.2.1-debian`), or mix and match.
 
-Tag `:latest` points to `:debian`. 
-
+Tag `:latest` points to `:debian`.
 
 ## Installation (local)
 
@@ -138,9 +136,28 @@ nextclade --help
 
 ## Quick Example
 
-1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2)
+1. Download SARS-CoV-2 dataset:
 
-2. Run:
+    ```bash
+    nextclade dataset get --name='sars-cov-2' --output-dir='data' --output-subdir='sars-cov-2'
+    ```
+
+   Observe dataset files in `data/sars-cov-2`
+
+2. Run using the downloaded dataset:
+
+   ```bash
+   nextclade \
+      --in-order \
+      --input-fasta=data/sars-cov-2/sequences.fasta \
+      --input-dataset=data/sars-cov-2/reference.fasta \
+      --output-tsv=output/nextclade.tsv \
+      --output-tree=output/nextclade.auspice.json \
+      --output-dir=output/ \
+      --output-basename=nextclade
+   ```
+
+   Alternatively, specify input files explicitly and/or add more flags for output files:
 
    ```bash
    nextclade \
@@ -162,21 +179,26 @@ nextclade --help
 
    Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
 
+   The `--input-dataset` flag can be combined with individual `--input*` flags. In this case, individual flags override the corresponding files in the dataset.
+
+   You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for the detailed description of each flag.
+
+
 3. Find the output files in the `output/` directory:
 
-    - `nextclade.aligned.fasta` - aligned input sequences
-    - `nextclade.gene.<gene_name>.fasta` - aligned peptides corresponding to each gene
-    - `nextclade.insertions.csv` - list of stripped insertions, for each input sequence
-    - `nextclade.tsv` - results of the analysis in TSV format
-    - `nextclade.csv` - same results, but in CSV format
-    - `nextclade.json` - detailed results of the analysis in JSON format
-    - `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it
+  - `nextclade.aligned.fasta` - aligned input sequences
+  - `nextclade.gene.<gene_name>.fasta` - aligned peptides corresponding to each gene
+  - `nextclade.insertions.csv` - list of stripped insertions, for each input sequence
+  - `nextclade.tsv` - results of the analysis in TSV format
+  - `nextclade.csv` - same results, but in CSV format
+  - `nextclade.json` - detailed results of the analysis in JSON format
+  - `nextclade.auspice.json` - same as input tree, but with the input sequences placed onto it
 
 ## What's next?
 
 Congratulations, You have learned how to use Nextclade CLI!
 
-Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](algorithm) section. The required input data is described in [Input files](input-files) section. And produced files are described in [Output files](output-files) section.
+Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](algorithm) section. The required input data is described in [Input files](input-files) section. And produced files are described in [Output files](output-files) section. The datasets are described in more details in the [Nextclade datasets](datasets) section.
 
 For a more convenient online tool, check out [Nextclade Web](nextclade-web).
 
