@@ -80,8 +80,9 @@ PeptidesInternal translateGenes(         //
       continue;
     }
 
-    auto refPeptide = translate(*extractRefGeneStatus.result);
-    const auto queryPeptide = translate(*extractQueryGeneStatus.result);
+    auto refPeptide = translate(*extractRefGeneStatus.result, options.translatePastStop);
+    auto queryPeptide = translate(*extractQueryGeneStatus.result, options.translatePastStop);
+
     const auto geneAlignmentStatus =
       alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
 

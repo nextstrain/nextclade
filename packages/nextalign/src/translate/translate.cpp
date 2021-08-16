@@ -7,7 +7,7 @@
 #include "decode.h"
 
 
-AminoacidSequence translate(const NucleotideSequenceView& seq) {
+AminoacidSequence translate(const NucleotideSequenceView& seq, bool translatePastStop /* = false */) {
   precondition_divisible_by(seq.size(), 3);
 
   const int seqLength = safe_cast<int>(seq.size());
@@ -22,9 +22,11 @@ AminoacidSequence translate(const NucleotideSequenceView& seq) {
 
     invariant_less(i_aa, peptide.size());
     peptide[i_aa] = aminoacid;
+
+    if (!translatePastStop && aminoacid == Aminoacid::STOP) {
+      break;
+    }
   }
 
-  postcondition_equal(peptide.size(), peptideLength);
-  postcondition_equal(seq.size(), peptide.size() * 3);
   return peptide;
 }
