@@ -1,3 +1,10 @@
+## Nextclade Web 1.5.4 (2021-08-16)
+
+#### [Feature] Add "Docs" link
+
+Top navigation bar now contain an new link "Docs", which points to Nextclade Documentation site (https://docs.nextstrain.org/projects/nextclade).
+
+
 ## Nextclade CLI 1.2.3, Nextalign CLI 1.2.3 (2021-08-12)
 
 This release only affects docker images. There are no actual changes in Nextclade CLI, Nextalign CLI or Nextclade Web. They should behave the same as their previous versions.
