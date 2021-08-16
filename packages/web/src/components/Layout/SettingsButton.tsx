@@ -43,11 +43,11 @@ import { TableSlim } from 'src/components/Common/TableSlim'
 export const ButtonSettingsBase = styled(ButtonTransparent)<ButtonProps>`
   margin: 2px 2px;
   height: 38px;
-  width: 50px;
   color: ${(props) => props.theme.gray700};
 
+  width: 50px;
   @media (min-width: 1200px) {
-    width: 150px;
+    width: 100px;
   }
 `
 

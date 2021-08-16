@@ -32,7 +32,7 @@ export const ButtonWhatsNewBase = styled(ButtonTransparent)<ButtonProps>`
   color: ${(props) => props.theme.gray700};
 
   @media (min-width: 1200px) {
-    width: 150px;
+    width: 100px;
   }
 `
 
