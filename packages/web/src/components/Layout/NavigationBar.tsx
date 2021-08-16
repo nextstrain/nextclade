@@ -48,7 +48,11 @@ export function DocsLink() {
 
   return (
     <NavLinkContainer className="text-center">
-      <NavLinkGrey href="https://docs.nextstrain.org/projects/nextclade">
+      <NavLinkGrey
+        href="https://docs.nextstrain.org/projects/nextclade"
+        alt={t('Documentation')}
+        title={t('Documentation')}
+      >
         <IoMdBook className="mr-xl-2" />
         <span className="d-none d-xl-inline">{t('Docs')}</span>
       </NavLinkGrey>
