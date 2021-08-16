@@ -8,6 +8,7 @@ import styled from 'styled-components'
 
 import { State } from 'src/state/reducer'
 import { selectPathname } from 'src/state/router/router.selectors'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 import { Link } from 'src/components/Link/Link'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -43,11 +44,13 @@ export const NavLinkGrey = styled(LinkExternal)`
 `
 
 export function DocsLink() {
+  const { t } = useTranslationSafe()
+
   return (
     <NavLinkContainer className="text-center">
       <NavLinkGrey href="https://docs.nextstrain.org/projects/nextclade">
         <IoMdBook className="mr-xl-2" />
-        <span className="d-none d-xl-inline">{'Docs'}</span>
+        <span className="d-none d-xl-inline">{t('Docs')}</span>
       </NavLinkGrey>
     </NavLinkContainer>
   )
