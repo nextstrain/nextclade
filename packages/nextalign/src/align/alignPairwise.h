@@ -11,11 +11,17 @@
 
 struct NextalignOptions;
 
+struct FrameShiftRange {
+  int begin;
+  int end;
+};
+
 template<typename Letter>
 struct AlignmentResult {
   Sequence<Letter> query;
   Sequence<Letter> ref;
   int alignmentScore;
+  std::vector<FrameShiftRange> frameShifts;
 };
 
 template<typename Letter>

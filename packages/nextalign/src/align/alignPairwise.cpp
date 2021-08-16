@@ -1,5 +1,7 @@
 #include "alignPairwise.h"
 
+#include <fmt/format.h>
+
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -26,6 +28,48 @@ constexpr const int qryGAPmatrix = 1 << 2;
 constexpr const int refGAPextend = 1 << 3;
 constexpr const int qryGAPextend = 1 << 4;
 constexpr const int END_OF_SEQUENCE = -1;
+
+
+class FrameShiftState {
+  // NOTE: we detect frameshifts during backward pass, so positions are counted in reverse order
+
+  std::vector<FrameShiftRange> frameShifts;
+  bool isInFrameShift = false;
+  int end = -1;
+  int frame = -1;
+
+  void update(int pos) {
+    if (!isInFrameShift) {
+      isInFrameShift = true;
+      end = pos;
+    }
+  }
+
+public:
+  explicit FrameShiftState(int startFrame) : frame(startFrame) {}
+
+  [[nodiscard]] std::vector<FrameShiftRange> getFrameShifts() const {
+    return frameShifts;
+  }
+
+  void addInsertion(int pos) {
+    frame += 1;
+    update(pos);
+  }
+
+  void addDeletion(int pos) {
+    frame -= 1;
+    update(pos);
+  }
+
+  void reset(int pos) {
+    if (isInFrameShift) {
+      frameShifts.push_back(FrameShiftRange{.begin = pos, .end = end - 1});
+      isInFrameShift = false;
+      end = -1;
+    }
+  }
+};
 
 // determine the position where a particular kmer (string of length k) matches the reference sequence
 // TODO: this function accepts a start position and will not search for matches before this position.
@@ -372,6 +416,8 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   }
 
   // do backtrace for aligned region
+  const auto frame = rPos % 3;
+  auto frameShiftState = FrameShiftState(frame);
   while (rPos >= 0 && qPos >= 0) {
     origin = paths(si, rPos + 1);
     // std::cout<<si<<" "<<rPos<<" "<<origin<<" "<<currentMatrix<<"\n";
@@ -381,10 +427,12 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
       aln_ref += ref[rPos];
       qPos--;
       rPos--;
+      frameShiftState.reset(rPos);
     } else if ((origin & refGAPmatrix && currentMatrix == 0) || currentMatrix == refGAPmatrix) {
       // insertion in ref -- decrement query, increase shift
       aln_query += query[qPos];
       aln_ref += Letter::GAP;
+      frameShiftState.addDeletion(rPos);
       qPos--;
       si++;
       if (origin & refGAPextend) {
@@ -398,6 +446,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
       // deletion in query -- decrement reference, reduce shift
       aln_query += Letter::GAP;
       aln_ref += ref[rPos];
+      frameShiftState.addInsertion(rPos);
       rPos--;
       si--;
       if (origin & qryGAPextend) {
@@ -430,6 +479,12 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   std::reverse(aln_query.begin(), aln_query.end());
   std::reverse(aln_ref.begin(), aln_ref.end());
 
+
+  for (const auto& frameShift : frameShiftState.getFrameShifts()) {
+    fmt::print("{}-{}\n", frameShift.begin, frameShift.end);
+  }
+
+
   return AlignmentStatus<Letter>{
     .status = Status::Success,
     .error = {},
@@ -438,6 +493,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
         .query = aln_query,
         .ref = aln_ref,
         .alignmentScore = bestScore,
+        .frameShifts = frameShiftState.getFrameShifts(),
       },
   };
 }
