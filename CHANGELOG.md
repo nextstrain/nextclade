@@ -1,3 +1,95 @@
+## Nextclade Web 1.5.4 (2021-08-16)
+
+#### [Feature] Add "Docs" link
+
+Top navigation bar now contain an new link "Docs", which points to Nextclade Documentation site (https://docs.nextstrain.org/projects/nextclade).
+
+
+## Nextclade CLI 1.2.3, Nextalign CLI 1.2.3 (2021-08-12)
+
+This release only affects docker images. There are no actual changes in Nextclade CLI, Nextalign CLI or Nextclade Web. They should behave the same as their previous versions.
+
+#### [Change] Add `ca-certificates` package into Debian docker images
+
+For better compatibility with workflows, this adds CA certificates into the Debian docker images. They are necessary for SSL/TLS to be working, in particular when fetching data.  
+
+These are the default images when you pull `nextstrain/nextclade` and `nextstrain/nextalign` without specifying a tag or specifying one of the `debian` tags. Issue `docker pull nextstrain/nextclade` to refresh the local image to the latest version.
+
+
+## Nextclade CLI 1.2.2, Nextalign CLI 1.2.2 (2021-08-12)
+
+This release only affects docker images. There are no actual changes in Nextclade CLI, Nextalign CLI or Nextclade Web. They should behave the same as their previous versions.
+
+#### [Change] Add `ps` utility into Debian docker images
+
+This adds `ps` utility into the Debian docker images. For better compatibility with nextflow workflows. 
+
+These are the default images when you pull `nextstrain/nextclade` and `nextstrain/nextalign` without specifying a tag or specifying one of the `debian` tags.
+
+
+## Nextclade Web 1.5.3, Nextclade CLI 1.2.1, Nextalign CLI 1.2.1 (2021-08-10)
+
+#### [Bug fix] Incorrect ranges in "SNP clusters" QC rule
+
+"SNP clusters" QC rule could sometimes produce ranges of SNP clusters with incorrect boundaries (begin/end). This is now fixed.
+
+
+#### [Bug fix] Crash with incorrect colorings in the input reference tree
+
+Fixed a rare crash in Nextclade CLI and Nextclade Web when input reference tree contained incorrect fields in "colorings" section of the tree JSON file.
+
+#### [Change] Cleanup the tree node info dialog
+
+Removed redundant text entries in the tree node info dialog (when clicking on a node in the tree view). All these entries are still presented in the results table.
+
+#### [Change] Cleanup the tree node info dialog
+
+Improved wording of the message in the "Private mutations" QC rule tooltip.
+
+#### [Change] New docker container images for Nextclade CLI and Nextalign CLI
+
+New Docker images are available based on Debian 10 and Alpine 3.14. Debian images contain a set of basic utilities, such as `bash`, `curl` and `wget`, to facilitate usage in workflows.
+
+You can choose to use the latest available version (`:latest` or no tag), or to freeze a specific version (e.g. `:1.2.1`) or only major version (e.g. `:1`), or a base image (e.g. `:debian`) or both version and base image (`:1.2.1-debian`), or mix and match. 
+
+Tag `:latest` now points to `:debian`. For previous behavior, where `:latest` tag pointed to `FROM scratch` image, use tag `:scratch`.
+
+Full list of tags is below.
+
+Image based on Debian 10 is tagged:
+```
+nextstrain/nextclade
+nextstrain/nextclade:latest
+nextstrain/nextclade:1
+nextstrain/nextclade:1.2.1
+
+nextstrain/nextclade:debian
+nextstrain/nextclade:latest-debian
+nextstrain/nextclade:1-debian
+nextstrain/nextclade:1.2.1-debian
+```
+
+Image based on Alpine 3.14 tagged:
+```
+nextstrain/nextclade:alpine
+nextstrain/nextclade:latest-alpine
+nextstrain/nextclade:1-alpine
+nextstrain/nextclade:1.2.1-alpine
+```
+
+Previously default `FROM scratch` image is tagged:
+```
+nextstrain/nextclade:scratch
+nextstrain/nextclade:latest-scratch
+nextstrain/nextclade:1-scratch
+nextstrain/nextclade:1.2.1-scratch
+```
+
+
+
+
+
+
 ## Nextclade Web [1.5.2](https://github.com/nextstrain/nextclade/compare/1.5.1...1.5.2) (2021-07-11)
 
 

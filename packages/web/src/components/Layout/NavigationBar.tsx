@@ -3,9 +3,12 @@ import { useTranslation } from 'react-i18next'
 
 import { connect } from 'react-redux'
 import { FaDocker, FaGithub, FaNpm, FaTwitter } from 'react-icons/fa'
+import { IoMdBook } from 'react-icons/io'
+import styled from 'styled-components'
 
 import { State } from 'src/state/reducer'
 import { selectPathname } from 'src/state/router/router.selectors'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 import { Link } from 'src/components/Link/Link'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -16,6 +19,46 @@ import { WhatsNewButton } from './WhatsNewButton'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { NavigationLogo } from './NavigationLogo'
 import { SettingsButton } from './SettingsButton'
+
+export const NavLinkContainer = styled.div`
+  width: 50px;
+  @media (min-width: 1200px) {
+    width: 100px;
+  }
+`
+
+export const NavLinkGrey = styled(LinkExternal)`
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  &.active,
+  &:active,
+  &:hover,
+  &:focus,
+  &:focus-within {
+    color: initial;
+    text-decoration: none;
+    cursor: pointer;
+  }
+`
+
+export function DocsLink() {
+  const { t } = useTranslationSafe()
+
+  return (
+    <NavLinkContainer className="text-center">
+      <NavLinkGrey
+        href="https://docs.nextstrain.org/projects/nextclade"
+        alt={t('Documentation')}
+        title={t('Documentation')}
+      >
+        <IoMdBook className="mr-xl-2" />
+        <span className="d-none d-xl-inline">{t('Docs')}</span>
+      </NavLinkGrey>
+    </NavLinkContainer>
+  )
+}
 
 export interface NavigationBarProps {
   pathname: string
@@ -74,6 +117,10 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
       </Link>
 
       <ul className="navbar-nav ml-auto d-flex">
+        <li className="nav-item mx-2 my-auto">
+          <DocsLink />
+        </li>
+
         <li className="nav-item mx-2 my-auto">
           <SettingsButton />
         </li>

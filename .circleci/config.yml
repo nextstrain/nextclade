@@ -248,7 +248,6 @@ jobs:
             set -x
             brew install -q ccache cmake conan coreutils cppcheck ghr
             conan profile new default --detect
-            conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
           environment:
             HOMEBREW_NO_AUTO_UPDATE: 1
             CONAN_USER_HOME: '/Users/distiller/project/.cache'
