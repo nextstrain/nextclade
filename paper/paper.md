@@ -90,6 +90,7 @@ $$
 \text{qc.overallScore} = \sum_i \frac{score_i^2}{100}
 $$
 With this quadratic aggregation, multiple mildly concerning scores don't result in a bad overall score, but a single bad score guarantees a bad overall score.
+Details of the algorithm and the different QC metrics are described in the documentation.
 
 ## Web interface
 
@@ -98,9 +99,9 @@ Nextclade enables this via a completely client side web-application onto which u
 The results are displayed in an interactive viewer that highlights QC results nucleotide mutations (see \autoref{overview}) and allows to explore the effects of complex mutations on the viral proteins (see \autoref{fig:tooltip}).
 The QC results, variant calls, and the full alignment can be retrieved from the web application for further analysis.
 
-![Overview of the QC results and nucleotide mutation view.\label{fig:screenshot_overview}](figures/overview.png)
+![Overview of the results page with clade assignements, QC metrics, and the nucleotide mutation view. The results can be explored interactively and exported in standard tabular file formats.\label{fig:screenshot_overview}](figures/overview.png)
 
-![Mutations in each gene can be explored interactively and show how the changes in the nucleotide sequence correspond to changes in the viral protein.\label{fig:tooltip}](figures/tooltip.png)
+![Mutations in each gene can be explored interactively using tool-tips that show how the changes in the nucleotide sequence correspond to changes in the viral proteins. This is particularly useful when complex mutations such as the six base deletion in the above example affect multiple codons. \label{fig:tooltip}](figures/tooltip.png)
 
 ## Nextclade datasets
 
