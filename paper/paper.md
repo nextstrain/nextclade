@@ -10,7 +10,7 @@ authors:
   - name: Emma B. Hodcroft
     affiliation: "2, 3"
   - name: Cornelius Roemer
-    affiliation: "1"
+    affiliation: "1, 2"
   - name: John Huddleston
     affiliation: "4"
   - name: James Hadfield
@@ -38,10 +38,10 @@ bibliography: paper.bib
 
 # Summary
 
-The variants of concern (VoCs) of SARS-CoV-2 have highlighted the need for a global molecular surveillance via whole genomes sequencing.
-This sequencing is performed by hundreds of labs across the globe some of which have limited capacity for quality control and further analysis.
+The variants of concern (VoCs) of SARS-CoV-2 have highlighted the need for a global molecular surveillance of pathogens via whole genomes sequencing.
+This sequencing, for SARS-CoV-2 and other pathogens, is performed by hundreds of labs across the globe some of which have limited capacity for quality control and further analysis.
 Nextclade aligns viral genomes to a reference sequence, calculates several QC metrics, assigns sequences to a clade or variant, and identifies changes of the viral proteins relative to the reference sequence.
-Nextclade is available as a commandline tool and as a web application with completely client based processing such that sequence data doesn't leave the user's browser.
+Nextclade is available as a command-line tool and as a web application with completely client based processing such that sequence data doesn't leave the user's browser.
 
 
 # Statement of need
@@ -59,7 +59,7 @@ The first four are implemented in C++ and represent the libary and CLI component
 The web-tool uses web assembly to compile the C++ code and interfaces it with a React application written in type-script.
 All tools are meant to align several (many) sequences to one common reference sequence.
 
-## nextalign
+## Nextalign
 
 Nextalign implementes a banded pairwise Smith-Waterman alignment with an affine gap cost.
 The bandwidth and relative shift of the two sequences are determined by seed matching.
@@ -72,11 +72,11 @@ In the following example, the gap could be moved forward or backward by one base
 ```
 Similarly, nextalign preferentially places gaps outside of genes in case of ambiguities.
 
-In addition to nucleotide alignments, `nextalign` will extract the aligned coding sequences, translates them, and perform pairwise amino acid alignments.
+In addition to nucleotide alignments, `nextalign` will extract the aligned coding sequences, translate them, and perform pairwise amino acid alignments.
 These amino acid alignments are produced along side the nucleotide alignment and are used by `nextclade` to determine amino acid changes.
 All alignment parameters can be configured via CLI flags.
 
-## nextclade
+## Nextclade
 
 `Nextclade` uses `nextalign` to determine all mutations of each sequence relative to the reference sequence.
 With this set of mutations, it performs an exhaustive search for the closest match on a phylogenetic tree of representing the diversity of the population, and deduces a clade annotation from the placement on the phylogeny.
@@ -84,16 +84,14 @@ In addition, it determines the mutations separating the closest match from the q
 This set of ``private mutations'' are used as a QC metric: many private mutations are often a sign of sequencing errors or miscalled bases.
 If such private mutations cluster in short stretches on the genome, this is an additional sign of concern.
 The private mutation count, a measure of SNP clusters, as well as rules quantifying sequence completeness, characters indicating ambiguous bases, stop-codons, and frame-shifts are used to quantify sequence quality individually and via an aggregate score.
-The individual scores are calibrated such that 0 is best, 100 corresponds to a bad sequence, and 30 starts to warrant a warning.
+The individual scores are calibrated such that 0 is best, 100 corresponds to a bad sequence, and a score above 30 warrants a warning.
 These scores are aggregated as
 $$
 \text{qc.overallScore} = \sum_i \frac{score_i^2}{100}
 $$
 With this quadratic aggregation, multiple mildly concerning scores don't result in a bad overall score, but a single bad score guarantees a bad overall score.
 
-The Nextstrain clade annotations for SARS-CoV-2 follow a year-letter pattern like `20A` and are coupled to the WHO variant label were available (e.g. `21A (Delta)`) [@konings_sars-cov-2_2021].
-
-## web interface
+## Web interface
 
 While CLI tools are most appropriate for bulk processing, processing of up to a few hundreds of sequences is feasible and possibly more convenient via a graphical interface coupled to a visualization.
 Nextclade enables this via a completely client side web-application onto which users can drop a fasta files with sequences.
@@ -104,23 +102,30 @@ The QC results, variant calls, and the full alignment can be retrieved from the 
 
 ![Mutations in each gene can be explored interactively and show how the changes in the nucleotide sequence correspond to changes in the viral protein.\label{fig:tooltip}](figures/tooltip.png)
 
+## Nextclade datasets
 
-# Discussion and Outlook
+To run Nextclade, the user needs to provide a reference sequence, an annotation, a labeled tree, a QC configuration and optionally a set of primers.
+We maintain such data sets for SARS-CoV-2 and the four seasonal influenza viruses and implemented a dataset `list` and `get` functionality in the `nextclade` CLI tool.
+The SARS-CoV-2 tree ius labeled with the Nextstrain clade annotations for SARS-CoV-2 following a year-letter pattern like `20A` and are coupled to the WHO variant label were available (e.g. `21A (Delta)`) [@konings_sars-cov-2_2021].
+Influenza trees are labeled with clades currently used by the WHO collaborating centers to discuss circulating influenza virus diversiy.
 
-Nextclade was implemented to respond to the increasing need for laboratories around the world to quickly assess the quality of their newly generated data, categorize them into different variants and clades, and investigate their mutational profiles.
+
+# Discussion
+
+Nextclade was implemented to respond to the increasing need for laboratories around the world to quickly assess the quality of their newly generated SARS-CoV-2 sequences, categorize them into different variants and clades, and investigate their mutational profiles.
 While Nextclade has some similarities to UShER [@turakhia_ultrafast_2021], these two tools address different use cases.
 UShER allows to place sequences on a comprehensive tree of 100s of thousands of leaves and further refines the phylogenetic relationship of the user supplied sequences to analyze the fine-scale relationship of the user supplied sequences and other publicly available data.
 Nextclade provides a completely client side analysis of sequences with a focus on QC, clade assignment, and investigation of variation.
+Nextalign was written for a very specific use case: pairwise alignment of similar sequences ($<10\%$ divergence) with limited insertions and deletions.
+For more diverse data sets, tools like `mafft` or `minimap2` are likely more robust.
 
-Nextalign was written for a very specific use case: pairwise alignment of similar sequences ($<10%$ divergence) with limited insertions and deletions.
-For more general use cases, tools like `mafft` or `minimap2` are likely more robust and further improvements to the alignment algorithms are possible.
-
-Going forward, we plan to extend Nextclade to other viruses including the different seasonal influenza viruses.
+As sequencing of pathogens becomes more wide-spread, bioinformatic analyses of such data increasingly becomes a bottleneck.
+We aim to increase the number of pathogens covered by `Nextclade` and hope that it will help users with variable to get as much insight into their own data as easily as possible.
 
 
 # Acknowledgements
 
-We gratefully acknowledge the generous publicly sharing of sequence data by many labs around the world that make tools like Nextclade useful.
+We gratefully acknowledge the generous publicly sharing of sequence data by many labs around the world that make tools like Nextclade possible and useful.
 We are also grateful for feedback from the Nextstrain team and the wider community for critical feedback and suggestions on how to improve the tools.
 
 # References
