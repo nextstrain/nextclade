@@ -1,4 +1,6 @@
-/* eslint-disable camelcase,@typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// noinspection JSUnusedGlobalSymbols,SuspiciousTypeOfGuard
+
 import { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import type { DeepPartial, StrictOmit } from 'ts-essentials'
 import { composeWithDevTools } from 'redux-devtools-extension'
@@ -8,17 +10,18 @@ import { isType } from 'src/state/util/fsaActions'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmParams, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import type { AuspiceEntropyState, AuspiceJsonV2, AuspiceTreeNode, AuspiceTreeState } from 'auspice'
+import type { AuspiceEntropyState, AuspiceTreeState } from 'auspice'
 import {
-  analyzeAsync,
   setFasta,
-  setOutputTree,
+  setTreeResult,
   setRootSeq,
   setTree,
-  treeBuildAsync,
-  parseAsync,
-  treeFinalizeAsync,
+  addNextcladeResult,
+  setQcSettings,
+  setGeneMap,
+  setPcrPrimers,
 } from 'src/state/algorithm/algorithm.actions'
+import { Peptide } from 'src/algorithms/types'
 
 const TRUNCATED = ' ... (truncated)' as const
 
@@ -30,14 +33,6 @@ function truncate(x?: string) {
   return x.slice(0, 48) + TRUNCATED
 }
 
-function truncateStringOrFile(x?: string | File) {
-  if (!x || typeof x !== 'string') {
-    return undefined
-  }
-
-  return truncate(x)
-}
-
 function truncateContent(input?: DeepPartial<AlgorithmInput>) {
   if (!input) {
     return undefined
@@ -45,44 +40,6 @@ function truncateContent(input?: DeepPartial<AlgorithmInput>) {
 
   // @ts-ignore
   return { ...input, content: input.content ? truncate(input.content) : undefined }
-}
-
-interface AuspiceTreeNodeTruncated {
-  name?: string
-  node_attrs: 'truncated'
-  branch_attrs: 'truncated'
-  children: 'truncated'
-}
-
-interface AuspiceJsonV2Truncated {
-  version?: string
-  meta: 'truncated'
-  tree?: AuspiceTreeNodeTruncated
-}
-
-function truncateTreeNode(node?: AuspiceTreeNode): AuspiceTreeNodeTruncated | undefined {
-  if (!node) {
-    return undefined
-  }
-
-  return {
-    name: node.name,
-    branch_attrs: 'truncated',
-    node_attrs: 'truncated',
-    children: 'truncated',
-  }
-}
-
-function truncateTreeJson(tree?: AuspiceJsonV2): AuspiceJsonV2Truncated | undefined {
-  if (!tree) {
-    return undefined
-  }
-
-  return {
-    ...tree,
-    meta: 'truncated',
-    tree: truncateTreeNode(tree.tree),
-  }
 }
 
 export function sanitizeParams(params?: AlgorithmParams) {
@@ -102,32 +59,45 @@ export function sanitizeParams(params?: AlgorithmParams) {
       geneMap: truncateContent(params.raw?.geneMap),
       pcrPrimers: truncateContent(params.raw?.pcrPrimers),
     },
+    strings: {
+      ...params.strings,
+      queryStr: truncate(params.strings?.queryStr),
+      refStr: truncate(params.strings?.refStr),
+      geneMapStr: truncate(params.strings?.geneMapStr),
+      treeStr: truncate(params.strings?.treeStr),
+      pcrPrimerCsvRowsStr: truncate(params.strings?.pcrPrimerCsvRowsStr),
+      qcConfigStr: truncate(params.strings?.qcConfigStr),
+    },
     virus: {
       ...params.virus,
-      rootSeq: truncate(params.virus?.rootSeq),
-      auspiceData: truncateTreeJson(params.virus?.auspiceData),
+      queryStr: truncate(params?.virus.queryStr),
+      refFastaStr: truncate(params?.virus.refFastaStr),
+      qcConfigRaw: truncate(params?.virus.qcConfigRaw),
+      geneMapStrRaw: truncate(params?.virus.geneMapStrRaw),
+      treeJson: truncate(params?.virus.treeJson),
     },
   }
 }
 
-export function sanitizeResult(result?: { alignedQuery: string }) {
+export function sanitizeResult(result?: { query?: string; queryPeptides?: Peptide[] }) {
   if (!result) {
     return undefined
   }
 
-  const alignedQuery = result.alignedQuery ? TRUNCATED : undefined
+  const query = truncate(result.query)
+  const queryPeptides = result?.queryPeptides?.map(({ name, seq }) => ({ name, seq: truncate(seq) }))
 
-  return { ...result, alignedQuery }
+  return { ...result, query, queryPeptides }
 }
 
 export function sanitizeResults(results: SequenceAnalysisState[] = []) {
   let newResults = results
   if (results && results.length > 20) {
-    return TRUNCATED
+    newResults = newResults.slice(0, 20)
   }
 
   // @ts-ignore
-  newResults = newResults?.map((result) => ({ ...result, result: sanitizeResult(result.result) }))
+  newResults = newResults?.map(sanitizeResult)
   return newResults
 }
 
@@ -166,9 +136,15 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
         isType(action, setFasta.trigger) ||
         isType(action, setTree.trigger) ||
         isType(action, setRootSeq.trigger) ||
+        isType(action, setGeneMap.trigger) ||
+        isType(action, setQcSettings.trigger) ||
+        isType(action, setPcrPrimers.trigger) ||
         isType(action, setFasta.started) ||
         isType(action, setTree.started) ||
-        isType(action, setRootSeq.started)
+        isType(action, setRootSeq.started) ||
+        isType(action, setGeneMap.started) ||
+        isType(action, setQcSettings.started) ||
+        isType(action, setPcrPrimers.started)
       ) {
         return {
           ...action,
@@ -184,7 +160,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
             params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
-              seqData: truncate(action.payload.result.seqData),
+              queryStr: truncate(action.payload.result.queryStr),
             },
           },
         }
@@ -198,7 +174,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
             params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
-              rootSeq: truncate(action.payload.result.rootSeq),
+              refStr: truncate(action.payload.result.refStr),
             },
           },
         }
@@ -212,138 +188,75 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
             params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
-              auspiceData: truncateTreeJson(action.payload.result.auspiceData),
+              treeStr: truncate(action.payload.result.treeStr),
             },
           },
         }
       }
 
-      if (isType(action, analyzeAsync.started)) {
+      if (isType(action, setQcSettings.done)) {
         return {
           ...action,
           payload: {
             ...action.payload,
-            seq: truncate(action.payload.seq),
-            rootSeq: truncate(action.payload.rootSeq),
-            auspiceData: truncateTreeJson(action.payload.auspiceData),
-            geneMap: TRUNCATED,
-            pcrPrimers: TRUNCATED,
-          },
-        }
-      }
-
-      if (isType(action, analyzeAsync.done)) {
-        return {
-          ...action,
-          payload: {
-            params: {
-              ...action.payload.params,
-              seq: truncate(action.payload.params.seq),
-              rootSeq: truncate(action.payload.params.rootSeq),
-              auspiceData: truncateTreeJson(action.payload.params.auspiceData),
-              geneMap: TRUNCATED,
-              pcrPrimers: TRUNCATED,
-            },
-            result: sanitizeResult(action.payload.result),
-          },
-        }
-      }
-
-      if (isType(action, parseAsync.started)) {
-        return {
-          ...action,
-          payload: truncateStringOrFile(action.payload),
-        }
-      }
-
-      if (isType(action, parseAsync.done)) {
-        return {
-          ...action,
-          payload: {
-            ...action.payload,
-            params: truncateStringOrFile(action.payload.params),
+            params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
+              qcConfigStr: truncate(action.payload.result.qcConfigStr),
             },
           },
         }
       }
 
-      if (isType(action, setOutputTree)) {
-        return { ...action, payload: truncate(action.payload) }
-      }
-
-      if (isType(action, treeBuildAsync.done)) {
+      if (isType(action, setGeneMap.done)) {
         return {
           ...action,
           payload: {
             ...action.payload,
-            params: {
-              ...action.payload.params,
-              rootSeq: truncate(action.payload.params.rootSeq),
-              analysisResults: sanitizeResult(action.payload.params.analysisResult),
-              auspiceData: truncateTreeJson(action.payload.params.auspiceData),
-            },
+            params: truncateContent(action.payload.params),
             result: {
               ...action.payload.result,
-              match: truncateTreeNode(action.payload.result.match),
+              geneMapStr: truncate(action.payload.result.geneMapStr),
             },
           },
         }
       }
 
-      if (isType(action, analyzeAsync.started)) {
+      if (isType(action, setPcrPrimers.done)) {
         return {
           ...action,
           payload: {
             ...action.payload,
-            seq: truncate(action.payload.seq),
-            rootSeq: truncate(action.payload.rootSeq),
-            auspiceData: truncateTreeJson(action.payload.auspiceData),
-          },
-        }
-      }
-
-      if (isType(action, analyzeAsync.done)) {
-        return {
-          ...action,
-          payload: {
-            ...action.payload,
-            params: {
-              ...action.payload.params,
-              seq: truncate(action.payload.params.seq),
-              rootSeq: truncate(action.payload.params.rootSeq),
-              auspiceData: truncateTreeJson(action.payload.params.auspiceData),
+            params: truncateContent(action.payload.params),
+            result: {
+              ...action.payload.result,
+              pcrPrimerCsvRowsStr: truncate(action.payload.result.pcrPrimerCsvRowsStr),
             },
-            result: sanitizeResult(action.payload.result),
           },
         }
       }
 
-      if (isType(action, treeFinalizeAsync.started)) {
+      if (isType(action, setTreeResult)) {
         return {
           ...action,
           payload: {
             ...action.payload,
-            rootSeq: truncate(action.payload.rootSeq),
-            results: TRUNCATED,
-            auspiceData: truncateTreeJson(action.payload.auspiceData),
+            treeStr: truncate(action.payload.treeStr),
           },
         }
       }
 
-      if (isType(action, treeFinalizeAsync.done)) {
+      if (isType(action, addNextcladeResult)) {
         return {
           ...action,
           payload: {
             ...action.payload,
-            params: {
-              ...action.payload.params,
-              rootSeq: truncate(action.payload.params.rootSeq),
-              results: TRUNCATED,
-              auspiceData: truncateTreeJson(action.payload.params.auspiceData),
+            nextcladeResult: {
+              ...action.payload.nextcladeResult,
+              ref: TRUNCATED,
+              query: TRUNCATED,
+              queryPeptides: TRUNCATED,
             },
-            result: truncateTreeJson(action.payload.result),
           },
         }
       }
@@ -359,7 +272,7 @@ export function withReduxDevTools<StoreEnhancerIn, StoreEnhancerOut>(
           params: sanitizeParams(state.algorithm.params),
           results: sanitizeResults(state.algorithm.results),
           resultsFiltered: sanitizeResults(state.algorithm.results),
-          outputTree: truncate(state.algorithm.outputTree),
+          treeStr: truncate(state.algorithm.treeStr),
         },
         tree: sanitizeTree(state.tree),
         entropy: sanitizeEntropy(state.controls),

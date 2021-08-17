@@ -1,3 +1,6 @@
+import type { Nucleotide } from 'src/algorithms/types'
+import { Aminoacid } from 'src/algorithms/types'
+
 export const PROJECT_NAME = 'Nextclade' as const
 export const PROJECT_DESCRIPTION = 'Clade assignment, mutation calling, and sequence quality checks' as const
 export const COPYRIGHT_YEAR_START = 2020 as const
@@ -12,10 +15,7 @@ export const MS_TILE_COLOR = '#2b5797' as const
 
 export const UNKNOWN_VALUE = `Unknown ` // HACK: keep space at the end: workaround for Auspice filtering out "Unknown"
 export const BASE_MIN_WIDTH_PX = 4 as const
-export const EXPORT_CSV_FILENAME = 'nextclade.csv' as const
-export const EXPORT_TSV_FILENAME = 'nextclade.tsv' as const
-export const EXPORT_JSON_FILENAME = 'nextclade.json' as const
-export const EXPORT_AUSPICE_JSON_V2_FILENAME = 'nextclade.auspice.json' as const
+export const AA_MIN_WIDTH_PX = 4 as const
 
 export const URL_GITHUB = 'https://github.com/nextstrain/nextclade' as const
 export const URL_GITHUB_FRIENDLY = 'github.com/nextstrain/nextclade' as const
@@ -56,3 +56,17 @@ export const TITLE_COLORS = [
   '#E67030',
   '#DE3C26',
 ] as const
+
+export const A = 'A' as Nucleotide
+export const T = 'T' as Nucleotide
+export const G = 'G' as Nucleotide
+export const C = 'C' as Nucleotide
+export const N = 'N' as Nucleotide
+export const X = 'X' as Nucleotide
+export const GAP = '-' as Nucleotide
+export const ANY = '.' as const
+
+export const AMINOACID_UNKNOWN = ('X' as const) as Aminoacid
+export const AMINOACID_GAP = ('-' as const) as Aminoacid
+
+export const GENE_OPTION_NUC_SEQUENCE = 'Sequence' // Show nucleotide sequence in sequence view (as opposed to a gene)

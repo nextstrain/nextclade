@@ -72,14 +72,6 @@ namespace Nextclade {
     /* 4 */ "Sequence",
   };
 
-  struct PcrPrimerCsvRow {
-    /* 1 */ std::string source;
-    /* 2 */ std::string target;
-    /* 3 */ std::string name;
-    /* 4 */ std::string primerOligonuc;
-  };
-
-
   bool isNotAcgtChar(char c) {
     return c != 'A' && c != 'C' && c != 'G' && c != 'T';
   }
@@ -208,14 +200,15 @@ namespace Nextclade {
     });
   }
 
+
   /**
-   * Parses PCR primer CSV string from an input stream and returns a list of PCR primers
+   * Parses PCR primer CSV string from an input stream and returns a list of PCR primer row data.
+   * Each row is a raw temporary representation of a PCR primer and it needs to be further converted into internal
+   * representation in order to be useful.
    */
-  std::vector<PcrPrimer> parsePcrPrimersCsv(      //
+  std::vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,       //
-    const std::string& filename,                  //
-    const NucleotideSequence& rootSeq,            //
-    /* inout */ std::vector<std::string>& warnings//
+    const std::string& filename                   //
   ) {
     std::stringstream is{pcrPrimersCsvString};
     CsvReader reader(filename, is);
@@ -239,15 +232,31 @@ namespace Nextclade {
     /* 3 */ std::string name;
     /* 4 */ std::string primerOligonuc;
 
-    std::vector<PcrPrimer> pcrPrimers;
+    std::vector<PcrPrimerCsvRow> pcrPrimerCsvRows;
     while (reader.read_row(source, target, name, primerOligonuc)) {
-      auto row = PcrPrimerCsvRow{
+      pcrPrimerCsvRows.emplace_back(PcrPrimerCsvRow{
         .source = source,
         .target = target,
         .name = name,
         .primerOligonuc = primerOligonuc,
-      };
+      });
+    }
+    return pcrPrimerCsvRows;
+  }
 
+
+  /**
+   * Coverts PCR primer rows (which were previously parsed from CSV) into the internal representation,
+   * which can be used by the algorithms.
+   */
+  std::vector<PcrPrimer> convertPcrPrimerRows(           //
+    const std::vector<PcrPrimerCsvRow>& pcrPrimerCsvRows,//
+    const NucleotideSequence& rootSeq,                   //
+    /* inout */ std::vector<std::string>& warnings       //
+  ) {
+
+    std::vector<PcrPrimer> pcrPrimers;
+    for (const auto& row : pcrPrimerCsvRows) {
       const auto primer = convertPcrPrimer(row, rootSeq, warnings);
       if (primer) {
         pcrPrimers.emplace_back(*primer);
@@ -257,13 +266,27 @@ namespace Nextclade {
     return pcrPrimers;
   }
 
+
+  /**
+   * Parses and converts PCR primer CSV string from an input stream and returns a list of PCR primers in the internal
+   * representation
+   */
+  std::vector<PcrPrimer> parseAndConvertPcrPrimersCsv(//
+    const std::string& pcrPrimersCsvString,           //
+    const std::string& filename,                      //
+    const NucleotideSequence& rootSeq,                //
+    /* inout */ std::vector<std::string>& warnings    //
+  ) {
+    std::vector<PcrPrimerCsvRow> pcrPrimerCsvRows = parsePcrPrimersCsv(pcrPrimersCsvString, filename);
+    return convertPcrPrimerRows(pcrPrimerCsvRows, rootSeq, warnings);
+  }
+
   ErrorPcrPrimersCsvParserComplementUnknownNucleotide::ErrorPcrPrimersCsvParserComplementUnknownNucleotide(
     const std::string& nuc)
-      : std::runtime_error(
-          fmt::format("When parsing PCR primers CSV: When performing primer oligonucleotide complement: "
-                      "Found unknown nucleotide: \"{:s}\"",
-            nuc)) {}
+      : ErrorFatal(fmt::format("When parsing PCR primers CSV: When performing primer oligonucleotide complement: "
+                               "Found unknown nucleotide: \"{:s}\"",
+          nuc)) {}
 
   ErrorPcrPrimersCsvParserMissingColumn::ErrorPcrPrimersCsvParserMissingColumn(const std::string& colName)
-      : std::runtime_error(fmt::format("When parsing PCR primers CSV: Missing required column: \"{:s}\"", colName)) {}
+      : ErrorFatal(fmt::format("When parsing PCR primers CSV: Missing required column: \"{:s}\"", colName)) {}
 }// namespace Nextclade

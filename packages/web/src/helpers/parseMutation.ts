@@ -1,7 +1,6 @@
 /* eslint-disable security/detect-unsafe-regex */
 import type { Nucleotide, NucleotideSubstitution } from 'src/algorithms/types'
-import { ANY } from 'src/algorithms/nucleotides'
-
+import { ANY } from 'src/constants'
 import { parsePosition } from './parsePosition'
 
 export function parseNucleotide(raw: string | undefined | null) {

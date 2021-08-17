@@ -1,6 +1,6 @@
 import React, { PropsWithChildren, useState } from 'react'
 
-import type { ButtonProps } from 'reactstrap'
+import type { ButtonProps, PopoverProps } from 'reactstrap'
 import styled from 'styled-components'
 
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
@@ -18,9 +18,51 @@ export const ButtonHelpStyle = styled(ButtonTransparent)`
 export interface ButtonHelpProps extends PropsWithChildren<ButtonProps> {
   identifier: string
   wide?: boolean
+  tooltipWidth?: string
+  tooltipPlacement?: PopoverProps['placement']
 }
 
-export function ButtonHelp({ identifier, children, wide }: ButtonHelpProps) {
+export function ButtonHelpSimple({
+  identifier,
+  children,
+  wide,
+  tooltipWidth,
+  tooltipPlacement = 'bottom-end',
+  ...restProps
+}: ButtonHelpProps) {
+  const [showTooltip, setShowTooltip] = useState(false)
+
+  return (
+    <ButtonTransparent
+      id={identifier}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+      {...restProps}
+    >
+      {'?'}
+      {children && (
+        <Tooltip
+          isOpen={showTooltip}
+          target={identifier}
+          placement={tooltipPlacement}
+          wide={wide}
+          $width={tooltipWidth}
+        >
+          {children}
+        </Tooltip>
+      )}
+    </ButtonTransparent>
+  )
+}
+
+export function ButtonHelp({
+  identifier,
+  children,
+  wide,
+  tooltipWidth,
+  tooltipPlacement = 'bottom-end',
+  ...restProps
+}: ButtonHelpProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
   return (
@@ -28,10 +70,17 @@ export function ButtonHelp({ identifier, children, wide }: ButtonHelpProps) {
       id={identifier}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
+      {...restProps}
     >
       {'?'}
       {children && (
-        <Tooltip isOpen={showTooltip} target={identifier} placement="bottom-end" wide={wide}>
+        <Tooltip
+          isOpen={showTooltip}
+          target={identifier}
+          placement={tooltipPlacement}
+          wide={wide}
+          $width={tooltipWidth}
+        >
           {children}
         </Tooltip>
       )}

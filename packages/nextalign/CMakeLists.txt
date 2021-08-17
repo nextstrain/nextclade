@@ -15,7 +15,6 @@ find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
-find_package(type_safe 0.2.1 REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
   include/nextalign/nextalign.h
@@ -63,6 +62,11 @@ add_library(${PROJECT_NAME} STATIC
   src/utils/vector2d.h
   )
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS})
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS ${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS})
+endif ()
+
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
@@ -104,7 +108,6 @@ target_link_libraries(${PROJECT_NAME}
   Boost::headers
   fast-cpp-csv-parser::fast-cpp-csv-parser
   fmt::fmt-header-only
-  type_safe::type_safe
   )
 
 set(NEXTALIGN_BUILD_TESTS ON CACHE BOOL "Build unit tests")

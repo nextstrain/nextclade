@@ -1,30 +1,25 @@
-import produce, { current } from 'immer'
-import { getVirus } from 'src/algorithms/defaults/viruses'
+import { current } from 'immer'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
-import type { QCResult } from 'src/algorithms/QC/types'
-import { mergeByWith } from 'src/helpers/mergeByWith'
+import type { Gene } from 'src/algorithms/types'
 import { sortResults } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
 
+import { errorDismiss } from 'src/state/error/error.actions'
 import {
   algorithmRunAsync,
-  analyzeAsync,
-  setClades,
-  parseAsync,
   resultsSortTrigger,
   setAAFilter,
   setAlgorithmGlobalStatus,
   setCladesFilter,
   setIsDirty,
   setMutationsFilter,
-  setQcResults,
   setSeqNamesFilter,
   setShowGood,
   setShowErrors,
   setShowBad,
   setShowMediocre,
-  setOutputTree,
+  setTreeResult,
   setFasta,
   setTree,
   setGeneMap,
@@ -37,34 +32,53 @@ import {
   removeTree,
   removeQcSettings,
   removeRootSeq,
+  addParsedSequence,
+  addNextcladeResult,
+  setGeneMapObject,
+  setGenomeSize,
 } from './algorithm.actions'
-import {
-  algorithmDefaultState,
-  AlgorithmGlobalStatus,
-  AlgorithmSequenceStatus,
-  CladeAssignmentResult,
-  SequenceAnalysisState,
-} from './algorithm.state'
-
-const haveSameSeqName = (x: { seqName: string }, y: { seqName: string }) => x.seqName === y.seqName
-
-const mergeCladesIntoResults = (result: SequenceAnalysisState, cladeResult: CladeAssignmentResult) =>
-  produce(result, (draft) => {
-    if (draft.result) {
-      draft.result.clade = cladeResult.clade
-    }
-    return draft
-  })
-
-const mergeQcIntoResults = (result: SequenceAnalysisState, qc: QCResult) =>
-  produce(result, (draft) => {
-    if (draft.result) {
-      draft.result.qc = qc
-    }
-    return draft
-  })
+import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
+  .icase(setGenomeSize, (draft, { genomeSize }) => {
+    draft.params.final.genomeSize = genomeSize
+  })
+
+  .icase(setGeneMapObject, (draft, { geneMap }) => {
+    draft.params.final.geneMap = geneMap
+  })
+
+  .icase(addParsedSequence, (draft, { index, seqName }) => {
+    draft.results[index] = {
+      status: AlgorithmSequenceStatus.queued,
+      id: index,
+      seqName,
+      result: undefined,
+      query: undefined,
+      queryPeptides: undefined,
+      warnings: { global: [], inGenes: [] },
+      errors: [],
+    }
+    draft.resultsFiltered = runFilters(current(draft))
+  })
+
+  .icase(addNextcladeResult, (draft, { nextcladeResult }) => {
+    draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
+    draft.results[nextcladeResult.index].query = nextcladeResult.query
+    draft.results[nextcladeResult.index].queryPeptides = nextcladeResult.queryPeptides
+    draft.results[nextcladeResult.index].warnings = nextcladeResult.warnings
+
+    if (nextcladeResult.hasError) {
+      draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.failed
+      draft.results[nextcladeResult.index].errors = [nextcladeResult.error]
+    } else {
+      draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.done
+      draft.results[nextcladeResult.index].errors = []
+    }
+
+    draft.resultsFiltered = runFilters(current(draft))
+  })
+
   .icase(resultsSortTrigger, (draft, sorting) => {
     draft.filters.sorting = sorting
     draft.results = sortResults(current(draft).results, sorting)
@@ -111,85 +125,118 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.resultsFiltered = runFilters(current(draft))
   })
 
+  // ******************
+
   .icase(setFasta.started, (draft, input) => {
     draft.params.raw.seqData = input
+    draft.params.strings.queryStr = undefined
     draft.params.errors.seqData = []
   })
 
   .icase(setTree.started, (draft, input) => {
     draft.params.raw.auspiceData = input
+    draft.params.strings.treeStr = undefined
     draft.params.errors.auspiceData = []
   })
 
   .icase(setRootSeq.started, (draft, input) => {
     draft.params.raw.rootSeq = input
+    draft.params.strings.refStr = undefined
+    draft.params.final.genomeSize = undefined
     draft.params.errors.rootSeq = []
   })
 
   .icase(setQcSettings.started, (draft, input) => {
     draft.params.raw.qcRulesConfig = input
+    draft.params.strings.qcConfigStr = undefined
     draft.params.errors.qcRulesConfig = []
   })
 
   .icase(setGeneMap.started, (draft, input) => {
     draft.params.raw.geneMap = input
+    draft.params.strings.geneMapStr = undefined
+    draft.params.final.geneMap = undefined
     draft.params.errors.geneMap = []
   })
 
   .icase(setPcrPrimers.started, (draft, input) => {
     draft.params.raw.pcrPrimers = input
+    draft.params.strings.pcrPrimerCsvRowsStr = undefined
     draft.params.errors.pcrPrimers = []
   })
 
-  .icase(setFasta.done, (draft, { result: { seqData } }) => {
-    draft.params.seqData = seqData
+  // ******************
+
+  .icase(setFasta.done, (draft, { result: { queryStr, queryName } }) => {
+    draft.params.strings.queryStr = queryStr
+    draft.params.strings.queryName = queryName
+    draft.params.errors.seqData = []
   })
 
-  .icase(setTree.done, (draft, { result: { auspiceData, geneMap } }) => {
-    draft.params.virus.auspiceData = auspiceData
-    draft.params.virus.geneMap = geneMap
+  .icase(setTree.done, (draft, { result: { treeStr } }) => {
+    draft.params.strings.treeStr = treeStr
+    draft.params.errors.auspiceData = []
   })
 
-  .icase(setRootSeq.done, (draft, { result: { rootSeq } }) => {
-    draft.params.virus.rootSeq = rootSeq
-    draft.params.virus.genomeSize = rootSeq.length
+  .icase(setRootSeq.done, (draft, { result: { refStr, refName } }) => {
+    draft.params.strings.refStr = refStr
+    draft.params.strings.refName = refName
+    draft.params.final.genomeSize = refStr.length
+    draft.params.errors.rootSeq = []
   })
 
-  .icase(setQcSettings.done, (draft, { result: { qcRulesConfig } }) => {
-    draft.params.virus.qcRulesConfig = qcRulesConfig
+  .icase(setQcSettings.done, (draft, { result: { qcConfigStr } }) => {
+    draft.params.strings.qcConfigStr = qcConfigStr
+    draft.params.errors.qcRulesConfig = []
   })
 
-  .icase(setGeneMap.done, (draft, { result: { geneMap } }) => {
-    draft.params.virus.geneMap = geneMap
+  .icase(setGeneMap.done, (draft, { result: { geneMapStr } }) => {
+    const geneMap = JSON.parse(geneMapStr) as Gene[]
+    draft.params.strings.geneMapStr = geneMapStr
+    draft.params.final.geneMap = geneMap
+    draft.params.errors.geneMap = []
   })
 
-  .icase(setPcrPrimers.done, (draft, { result: { pcrPrimers } }) => {
-    draft.params.virus.pcrPrimers = pcrPrimers
+  .icase(setPcrPrimers.done, (draft, { result: { pcrPrimerCsvRowsStr } }) => {
+    draft.params.strings.pcrPrimerCsvRowsStr = pcrPrimerCsvRowsStr
+    draft.params.errors.pcrPrimers = []
   })
 
-  .icase(setFasta.failed, (draft, { params: input, error }) => {
+  // ******************
+
+  .icase(setFasta.failed, (draft, { error }) => {
+    draft.params.strings.queryStr = undefined
     draft.params.errors.seqData = [error]
   })
 
-  .icase(setTree.failed, (draft, { params: input, error }) => {
+  .icase(setTree.failed, (draft, { error }) => {
+    draft.params.strings.treeStr = undefined
     draft.params.errors.auspiceData = [error]
   })
 
-  .icase(setRootSeq.failed, (draft, { params: input, error }) => {
+  .icase(setRootSeq.failed, (draft, { error }) => {
+    draft.params.strings.refStr = undefined
+    draft.params.final.genomeSize = undefined
     draft.params.errors.rootSeq = [error]
   })
 
-  .icase(setQcSettings.failed, (draft, { params: input, error }) => {
+  .icase(setQcSettings.failed, (draft, { error }) => {
+    draft.params.strings.qcConfigStr = undefined
     draft.params.errors.qcRulesConfig = [error]
   })
 
-  .icase(setGeneMap.failed, (draft, { params: input, error }) => {
+  .icase(setGeneMap.failed, (draft, { error }) => {
+    draft.params.strings.pcrPrimerCsvRowsStr = undefined
+    draft.params.final.geneMap = undefined
     draft.params.errors.geneMap = [error]
   })
 
-  .icase(setPcrPrimers.failed, (draft, { params: input, error }) => {
+  .icase(setPcrPrimers.failed, (draft, { error }) => {
+    draft.params.strings.pcrPrimerCsvRowsStr = undefined
     draft.params.errors.pcrPrimers = [error]
   })
+
+  // ******************
 
   .icase(removeFasta, (draft) => {
     draft.params.raw.seqData = undefined
@@ -200,123 +247,69 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(removeTree, (draft) => {
     draft.params.raw.auspiceData = undefined
     draft.params.errors.auspiceData = []
-    draft.params.virus.auspiceData = getVirus(draft.params.virus.name).auspiceData
   })
 
   .icase(removeRootSeq, (draft) => {
     draft.params.raw.rootSeq = undefined
     draft.params.errors.rootSeq = []
-    draft.params.virus.rootSeq = getVirus(draft.params.virus.name).rootSeq
   })
 
   .icase(removeQcSettings, (draft) => {
     draft.params.raw.qcRulesConfig = undefined
     draft.params.errors.qcRulesConfig = []
-    draft.params.virus.qcRulesConfig = getVirus(draft.params.virus.name).qcRulesConfig
   })
 
   .icase(removeGeneMap, (draft) => {
     draft.params.raw.geneMap = undefined
     draft.params.errors.geneMap = []
-    draft.params.virus.geneMap = getVirus(draft.params.virus.name).geneMap
   })
 
   .icase(removePcrPrimers, (draft) => {
     draft.params.raw.pcrPrimers = undefined
     draft.params.errors.pcrPrimers = []
-    draft.params.virus.pcrPrimers = getVirus(draft.params.virus.name).pcrPrimers
   })
 
+  // ******************
+
   .icase(setIsDirty, (draft, isDirty) => {
-    draft.status = AlgorithmGlobalStatus.idling
+    draft.status = AlgorithmGlobalStatus.idle
     draft.isDirty = isDirty
   })
 
   .icase(algorithmRunAsync.started, (draft) => {
+    draft.status = AlgorithmGlobalStatus.idle
     draft.isDirty = false
     draft.results = []
     draft.resultsFiltered = []
+    draft.treeStr = undefined
+    draft.errors = []
   })
 
   .icase(setAlgorithmGlobalStatus, (draft, status) => {
     draft.status = status
   })
 
+  .icase(algorithmRunAsync.trigger, (draft) => {
+    draft.status = AlgorithmGlobalStatus.idle
+    draft.errors = []
+  })
+
   .icase(algorithmRunAsync.done, (draft) => {
-    draft.status = AlgorithmGlobalStatus.allDone
+    draft.status = AlgorithmGlobalStatus.done
+    draft.errors = []
   })
 
-  .icase(algorithmRunAsync.failed, (draft, { params }) => {})
-
-  // parse
-  .icase(parseAsync.started, (draft) => {})
-
-  .icase(parseAsync.done, (draft, { result }) => {
-    draft.results = result.map((seqName, id) => ({
-      status: AlgorithmSequenceStatus.idling,
-      id,
-      seqName,
-      errors: [],
-    }))
-
-    draft.resultsFiltered = runFilters(current(draft))
+  .icase(algorithmRunAsync.failed, (draft, { error }) => {
+    draft.status = AlgorithmGlobalStatus.failed
+    draft.errors = [error.message]
   })
 
-  .icase(parseAsync.failed, (draft, { error }) => {
-    draft.errors.push(error.message)
+  // ******************
+
+  .icase(setTreeResult, (draft, { treeStr }) => {
+    draft.treeStr = treeStr
   })
 
-  // analyze
-  .icase(analyzeAsync.started, (draft, { seqName }) => {
-    draft.results = draft.results.map((result) => {
-      if (result.seqName === seqName) {
-        return { ...result, status: AlgorithmSequenceStatus.analysisStarted }
-      }
-      return result
-    })
-
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  .icase(analyzeAsync.done, (draft, { params: { seqName }, result }) => {
-    draft.results = draft.results.map((oldResult) => {
-      if (oldResult.seqName === seqName) {
-        return { ...oldResult, errors: [], result, status: AlgorithmSequenceStatus.analysisDone }
-      }
-      return oldResult
-    })
-
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  .icase(analyzeAsync.failed, (draft, { params: { seqName }, error }) => {
-    draft.results = draft.results.map((oldResult) => {
-      if (oldResult.seqName === seqName) {
-        return {
-          ...oldResult,
-          errors: [error.message],
-          result: undefined,
-          status: AlgorithmSequenceStatus.analysisFailed,
-        }
-      }
-      return oldResult
-    })
-
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  // Assign clades
-  .icase(setClades, (draft, clades) => {
-    draft.results = mergeByWith(draft.results, clades, haveSameSeqName, mergeCladesIntoResults)
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  // QC
-  .icase(setQcResults, (draft, qcResults) => {
-    draft.results = mergeByWith(draft.results, qcResults, haveSameSeqName, mergeQcIntoResults)
-    draft.resultsFiltered = runFilters(current(draft))
-  })
-
-  .icase(setOutputTree, (draft, auspiceData) => {
-    draft.outputTree = auspiceData
+  .icase(errorDismiss, (draft) => {
+    draft.errors = []
   })

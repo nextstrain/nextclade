@@ -14,15 +14,19 @@ RUN set -x \
   cmake \
   coreutils \
   cppcheck \
+  curl \
   file \
-  gdb \
   g++ \
   gcc \
+  gdb \
+  git \
   make \
   python3 \
   python3-pip \
   python3-setuptools \
   python3-wheel \
+  unzip \
+  xz-utils \
 >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && apt-get clean autoclean >/dev/null \
@@ -35,28 +39,61 @@ RUN set -x \
   cpplint \
 && rm -rf ~/.cache/pip/*
 
-ARG USER=user
-ARG GROUP=user
-ARG UID
-ARG GID
+ARG NEXTCLADE_EMSDK_VERSION
 
-ENV USER=$USER
-ENV GROUP=$GROUP
-ENV UID=$UID
-ENV GID=$GID
+COPY scripts/install_emscripten.sh /
+
+RUN set -x \
+&& /install_emscripten.sh "/emsdk" "${NEXTCLADE_EMSDK_VERSION}"
+
 ENV TERM="xterm-256color"
 ENV HOME="/home/${USER}"
-
-USER ${USER}
+ENV NEXTCLADE_EMSDK_DIR="/emsdk"
+ENV NEXTCLADE_EMSDK_VERSION=${NEXTCLADE_EMSDK_VERSION}
 
 WORKDIR /src
 
-ENTRYPOINT ["make", "prod"]
+#-------------------------------------------------------------------------------
+
+# Target: web
+# Purpose: web environment used for production web build
+FROM builder as web
+
+ARG NEXTCLADE_NODE_VERSION
+
+ENV TERM="xterm-256color"
+ENV NVM_DIR="/opt/nvm"
+ENV PATH="${NVM_DIR}/versions/node/default/bin:$PATH"
+ENV NEXTCLADE_NVM_DIR="/opt/nvm"
+ENV NEXTCLADE_NODE_VERSION="${NEXTCLADE_NODE_VERSION}"
+
+COPY scripts/install_node.sh /
+
+RUN set -x \
+&& /install_node.sh "/opt/nvm" "${NEXTCLADE_NODE_VERSION}"
+
+RUN set -x \
+&& mkdir /awscli-tmp \
+&& cd /awscli-tmp \
+&& curl -fsS "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" \
+&& unzip -oqq awscliv2.zip \
+&& ./aws/install --update \
+&& rm -rf /awscli-tmp
+
+ENV PATH="${NEXTCLADE_NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
+
+RUN set -x \
+&& mkdir -p "/home/.config/yarn" \
+&& npm install -g \
+  nodemon@2.0.7 \
+  yarn@1.22.10
+
+WORKDIR /src
 
 #-------------------------------------------------------------------------------
 
 # Target: developer
-# Purpose: development environment used for the routine development tasks
+# Purpose: development environment used for the routine C++ development tasks
 FROM builder as developer
 
 USER 0
@@ -70,7 +107,6 @@ RUN set -x \
   clang-tidy \
   clang-tools-10 \
   curl \
-  git \
   libclang-common-10-dev \
   llvm-10 \
   sudo \
@@ -94,14 +130,24 @@ ENV HOME="/home/${USER}"
 ENV NVM_DIR="${HOME}/.nvm"
 ENV PATH="${NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
 
-RUN addgroup --system --gid ${GID} ${GROUP}
-
-RUN useradd --system --create-home --home-dir ${HOME} \
---shell /bin/bash \
---gid ${GROUP} \
---groups sudo \
---uid ${UID} \
-${USER} \
+RUN set -x \
+&& \
+  if [ -z "$(getent group ${GID})" ]; then \
+    addgroup --system --gid ${GID} ${GROUP}; \
+  else \
+    groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
+  fi \
+&& \
+  if [ -z "$(getent passwd ${UID})" ]; then \
+    useradd \
+      --system \
+      --create-home --home-dir ${HOME} \
+      --shell /bin/bash \
+      --gid ${GROUP} \
+      --groups sudo \
+      --uid ${UID} \
+      ${USER}; \
+  fi \
 && sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD: ALL/g' \
 && sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD: ALL/g' \
 && sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \

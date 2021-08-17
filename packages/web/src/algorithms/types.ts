@@ -1,10 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
-import type { AuspiceJsonV2 } from 'auspice'
-import type { StrictOmit } from 'ts-essentials'
-
 import type { Tagged } from 'src/helpers/types'
-import type { AuspiceJsonV2Extended } from 'src/algorithms/tree/types'
-import type { QCResult, QCRulesConfig } from 'src/algorithms/QC/types'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -33,9 +28,15 @@ export interface NucleotideSubstitution {
   pos: number
   refNuc: Nucleotide
   queryNuc: Nucleotide
+  pcrPrimersChanged: PcrPrimer[]
+  aaSubstitutions: AminoacidSubstitution[]
+  aaDeletions: AminoacidDeletion[]
 }
 
-export interface NucleotideDeletion extends Span {}
+export interface NucleotideDeletion extends Span {
+  aaSubstitutions: AminoacidSubstitution[]
+  aaDeletions: AminoacidDeletion[]
+}
 
 export interface NucleotideInsertion {
   pos: number
@@ -44,8 +45,18 @@ export interface NucleotideInsertion {
 
 export interface NucleotideMissing extends Range {}
 
-export interface NucleotideRange extends Range {
-  nuc: Nucleotide
+export interface CharacterRange<Letter> extends Range {
+  character: Letter
+}
+
+export type NucleotideRange = CharacterRange<Nucleotide>
+export type AminoacidRange = CharacterRange<Aminoacid>
+
+export interface GeneAminoacidRange {
+  geneName: string
+  character: Aminoacid
+  ranges: AminoacidRange[]
+  length: number
 }
 
 export type Clades = Record<string, NucleotideLocation[]>
@@ -57,28 +68,27 @@ export interface CladesGrouped {
 
 export interface AminoacidSubstitution {
   refAA: Aminoacid
-  queryAA: Aminoacid
   codon: number
+  queryAA: Aminoacid
   gene: string
-  nucRange: Range
-  refCodon: string
-  queryCodon: string
+  codonNucRange: Range
+  refContext: string
+  queryContext: string
+  contextNucRange: Range
+  nucSubstitutions: NucleotideSubstitution[]
+  nucDeletions: NucleotideDeletion[]
 }
 
 export interface AminoacidDeletion {
+  gene: string
   refAA: Aminoacid
   codon: number
-  gene: string
-  nucRange: Range
-  refCodon: string
-}
-
-export interface NucleotideSubstitutionWithAminoacids extends NucleotideSubstitution {
-  aaSubstitutions: AminoacidSubstitution[]
-}
-
-export interface NucleotideDeletionWithAminoacids extends NucleotideDeletion {
-  aaDeletions: AminoacidDeletion[]
+  codonNucRange: Range
+  refContext: string
+  queryContext: string
+  contextNucRange: Range
+  nucSubstitutions: NucleotideSubstitution[]
+  nucDeletions: NucleotideDeletion[]
 }
 
 export interface PcrPrimer {
@@ -96,22 +106,59 @@ export interface PcrPrimerChange {
   substitutions: NucleotideSubstitution[]
 }
 
-export interface SubstitutionsWithPrimers extends NucleotideSubstitutionWithAminoacids {
-  pcrPrimersChanged: PcrPrimer[]
+export interface QCRulesConfigMissingData {
+  enabled: boolean
+  missingDataThreshold: number
+  scoreBias: number
+}
+
+export interface QCRulesConfigMixedSites {
+  enabled: boolean
+  mixedSitesThreshold: number
+}
+
+export interface QCRulesConfigPrivateMutations {
+  enabled: boolean
+  typical: number
+  cutoff: number
+}
+
+export interface QCRulesConfigSnpClusters {
+  enabled: boolean
+  windowSize: number
+  clusterCutOff: number
+  scoreWeight: number
+}
+
+export interface QCRulesConfigFrameShifts {
+  enabled: boolean
+}
+
+export interface QCRulesConfigStopCodons {
+  enabled: boolean
+}
+
+export interface QcConfig {
+  schemaVersion: string
+  missingData: QCRulesConfigMissingData
+  mixedSites: QCRulesConfigMixedSites
+  privateMutations: QCRulesConfigPrivateMutations
+  snpClusters: QCRulesConfigSnpClusters
+  frameShifts: QCRulesConfigFrameShifts
+  stopCodons: QCRulesConfigStopCodons
 }
 
 export interface Virus {
   name: string
-  genomeSize: number
   minimalLength: number
-  geneMap: Gene[]
-  rootSeq: string
-  auspiceData: AuspiceJsonV2
-  pcrPrimers: PcrPrimer[]
-  qcRulesConfig: QCRulesConfig
+  queryStr: string
+  treeJson: string
+  refFastaStr: string
+  qcConfigRaw: string
+  qcConfigJson: QcConfig
+  geneMapStrRaw: string
+  pcrPrimersStrRaw: string
 }
-
-export type VirusRaw = StrictOmit<Virus, 'genomeSize'>
 
 export interface ClusteredSNPs {
   start: number
@@ -119,14 +166,89 @@ export interface ClusteredSNPs {
   numberOfSNPs: number
 }
 
-export interface AnalysisResultWithoutClade {
+export enum QcStatus {
+  good = 'good',
+  mediocre = 'mediocre',
+  bad = 'bad',
+}
+
+export interface QcResultMixedSites {
+  score: number
+  status: QcStatus
+  totalMixedSites: number
+  mixedSitesThreshold: number
+}
+
+export interface ClusteredSnp {
+  start: number
+  end: number
+  numberOfSNPs: number
+}
+
+export interface QcResultSnpClusters {
+  score: number
+  status: QcStatus
+  totalSNPs: number
+  clusteredSNPs: ClusteredSnp[]
+}
+
+export interface QcResultMissingData {
+  score: number
+  status: QcStatus
+  totalMissing: number
+  missingDataThreshold: number
+}
+
+export interface QcResultPrivateMutations {
+  score: number
+  status: QcStatus
+  total: number
+  excess: number
+  cutoff: number
+}
+
+export interface FrameShift {
+  geneName: string
+}
+
+export interface QcResultFrameShifts {
+  score: number
+  status: QcStatus
+  frameShifts: FrameShift[]
+  totalFrameShifts: number
+}
+
+export interface StopCodonLocation {
+  geneName: string
+  codon: number
+}
+
+export interface QcResultStopCodons {
+  score: number
+  status: QcStatus
+  stopCodons: StopCodonLocation[]
+  totalStopCodons: number
+}
+
+export interface QcResult {
+  missingData?: QcResultMissingData
+  mixedSites?: QcResultMixedSites
+  privateMutations?: QcResultPrivateMutations
+  snpClusters?: QcResultSnpClusters
+  frameShifts?: QcResultFrameShifts
+  stopCodons?: QcResultStopCodons
+  overallScore: number
+  overallStatus: QcStatus
+}
+
+export interface AnalysisResult {
   seqName: string
-  substitutions: SubstitutionsWithPrimers[]
-  totalMutations: number
+  substitutions: NucleotideSubstitution[]
+  totalSubstitutions: number
   insertions: NucleotideInsertion[]
   totalInsertions: number
-  deletions: NucleotideDeletionWithAminoacids[]
-  totalGaps: number
+  deletions: NucleotideDeletion[]
+  totalDeletions: number
   missing: NucleotideMissing[]
   totalMissing: number
   nonACGTNs: NucleotideRange[]
@@ -135,6 +257,8 @@ export interface AnalysisResultWithoutClade {
   totalAminoacidSubstitutions: number
   aaDeletions: AminoacidDeletion[]
   totalAminoacidDeletions: number
+  unknownAaRanges: GeneAminoacidRange[]
+  totalUnknownAa: number
   alignmentStart: number
   alignmentEnd: number
   alignmentScore: number
@@ -142,40 +266,38 @@ export interface AnalysisResultWithoutClade {
   nucleotideComposition: Record<string, number>
   pcrPrimerChanges: PcrPrimerChange[]
   totalPcrPrimerChanges: number
-}
-
-export interface AnalysisResultWithClade extends AnalysisResultWithoutClade {
   clade: string
+  qc: QcResult
 }
 
-export interface AnalysisResult extends AnalysisResultWithClade {
-  qc: QCResult
-}
-
-export interface AnalysisResultWithMatch extends AnalysisResult {
-  nearestTreeNodeId: number
-}
-
-export interface ParseResult {
-  input: string
-  parsedSequences: Record<string, string>
-}
-
-export interface AnalysisParams {
-  seqName: string
+export interface Peptide {
+  name: string
   seq: string
-  minimalLength: number
-  geneMap: Gene[]
-  rootSeq: string
-  auspiceData: AuspiceJsonV2Extended
-  pcrPrimers: PcrPrimer[]
-  qcRulesConfig: QCRulesConfig
 }
 
 /** Represents a named interval in the genome */
 export interface Gene {
-  name: string
+  geneName: string
   color: string
-  range: Range
+  start: number
+  end: number
+  length: number
   frame: number
+  strand: string
+}
+
+export interface SequenceParserResult {
+  index: number
+  seqName: string
+  seq: string
+}
+
+export interface GeneWarning {
+  geneName: string
+  message: string
+}
+
+export interface Warnings {
+  global: string[]
+  inGenes: GeneWarning[]
 }

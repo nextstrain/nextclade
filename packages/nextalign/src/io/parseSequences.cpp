@@ -12,19 +12,19 @@ namespace {
 }// namespace
 
 
-class ErrorFastaStreamIllegalNextCall : public std::runtime_error {
+class ErrorFastaStreamIllegalNextCall : public ErrorFatal {
 public:
   explicit ErrorFastaStreamIllegalNextCall(const std::string& filename)
-      : std::runtime_error(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is in non-readable state,"
+      : ErrorFatal(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is in non-readable state,"
                                        " the next line cannot be retrieved. Aborting.",
           filename)) {}
 };
 
 
-class ErrorFastaStreamInvalidState : public std::runtime_error {
+class ErrorFastaStreamInvalidState : public ErrorFatal {
 public:
   explicit ErrorFastaStreamInvalidState(const std::string& filename)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "When parsing input sequences: Input stream (\"{:s}\") is empty or corrupted. Aborting.", filename)) {}
 };
 

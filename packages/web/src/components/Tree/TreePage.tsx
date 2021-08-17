@@ -13,6 +13,8 @@ import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
 
 export const Container = styled.div`
+  flex: 1;
+  flex-basis: 100%;
   width: 100%;
   height: 100%;
   min-width: 1000px;
@@ -38,12 +40,15 @@ const HeaderCenter = styled.header`
 `
 
 const MainContent = styled.main`
-  flex-grow: 1;
+  flex: 1;
+  flex-basis: 100%;
   overflow-y: hidden;
 `
 
 const AuspiceContainer = styled.div`
   display: flex;
+  flex: 1;
+  flex-basis: 100%;
   height: 100%;
 `
 

@@ -28,19 +28,21 @@ Since its emergence in late 2019, SARS-CoV-2 has diversified into several differ
 facilitate discussion of these variants, we have grouped them into __clades__ which are defined by specific
 signature mutations.
 
-We currently define 11 major clades (see [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming)
+We currently define 18 major clades (see [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming)
 for details):
 
 - 19A and 19B emerged in Wuhan and have been dominating the early outbreak
 - 20A emerged from 19A out of dominated the European outbreak in March and has since spread globally
 - 20B and 20C are large genetically distinct subclades 20A emerged in early 2020
-- 20D to 20I have emerged over the summer of 2020 and include two "variants of concern" (VOC) with signature mutations S:N501Y.
+- 20D to 20I have emerged over the summer of 2020 and include three "Variants of Concern" (VoC).
+- 21A to 21F include the VoC __delta__ and several Variants of Interest (VoI).
 
 <CladeSchema />
 
 Within Nextstrain, we define each clade by its combination of signature mutations.
 You can find the exact clade definition in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).
 Nextclade assigns your sequences to these clades by placing them on a phylogenetic tree annotated with these clade definitions.
+When available, we will include [WHO labels for VoCs and VoIs](https://www.who.int/en/activities/tracking-SARS-CoV-2-variants/).
 
 ### Quality Control (QC)
 
@@ -63,6 +65,7 @@ We currently implemented four metrics to flag a sequence as potentially problema
 - clustered differences: If your sequence has clusters with 6 or more differences in 100 bases (excluding known clusters
   like positions 28881-28883), it will be flagged.
 
+In addition, we flag sequences in which some of the major genes fail to translate because of frame shifting insertions or deletions.
 These warnings don't necessarily mean your sequences are problematic, but these issues warrant closer examination.
 The [Nextstrain pipeline](https://github.com/nextstrain/ncov) uses similar (more lenient) QC criteria.
 Nextstrain will exclude your sequence if it has fewer than 27000 valid bases (corresponding to roughly 3000 Ns) and doesn't check for ambiguous characters.
@@ -80,25 +83,27 @@ Once the sequences are aligned, we can identify differences between them and use
 
 To meaningfully compare two sequences and identify mutations between them, they need to be [aligned to each other](https://en.wikipedia.org/wiki/Sequence_alignment).
 While many tools exist to compute pairwise or multiple sequence alignments, they typically run on the command line.
-For Nextclade, we therefore implemented a banded-pairwise alignment algorithm in javascript that will run in your browser.
+For Nextclade, we therefore compiled the C++ code of nextalign into a web-assembly module that runs in your browser.
 
 We roughly estimate the alignment of your sequences to the reference one-by-one using short seeds (21-mers) along the sequence.
 With this rough overall alignment, we perform a [banded Smith-Waterman alignment](https://github.com/nextstrain/nextclade/blob/master/packages/web/src/algorithms/alignPairwise.ts) with an affine gap-penalty.
+The alignment is codon aware in the sense that it preferentially opens gaps at the beginning of a codon is this is possible.
 
 If the seed matches are poor or suggest gaps in excess of 400 bases, we won't attempt to align -- your sequence won't be
 scored.
 Large gaps require a lot of memory and computation in our current implementation.
-For most sequences, however, this alignment strategy works well and takes less than a second per sequence.
+For most sequences, however, this alignment strategy works well and takes much less than a second per sequence.
 
+In addition to alignments of the nucleotide sequences, nextclade extracts sequences of genes (open reading frames) and separately aligns their translations to translations of the reference sequence.
+This allows an unambiguous assignment of amino acid mutations.
+
+The alignments can be downloaded for further analysis.
 
 ### Clade Assignment
 Clades are groups of related sequences that share a common ancestor.
-The analysis on [nextstrain.org/ncov](https://nextstrain.org/ncov) uses the phylogenetic context to assign clades.
-Nextclade can not do such phylogenetic analysis in the browser.
-Instead, we perform clade assignment sequence-by-sequence on the basis of signature mutations.
-This is expected to be slightly less sensitive, but will still give the correct answer in most cases.
-Sometimes, however, clade assignment will fail and those sequences will remain unassigned.
-The [clade-defining mutations](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv) are chosen such that assignment on the basis of genotype works in most cases.
+Nextclade assigns clades by placing your sequence in a tree representing currently circulating SARS-CoV-2.
+The clade is then inferred from the point in the tree the sequences attaches to.
+On the reference tree, clades are assigned using lists of [clade-defining mutations](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv) via the [augur](https://github.com/nextstrain/augur) workflow.
 
 <!--
 ## How can I help?

@@ -26,8 +26,8 @@ TARGET="${1:-builder}"
 COMMAND="${2:-}"
 
 DOCKERHUB_ORG="nextstrain"
-DOCKERHUB_PROJECT="nextalign"
-DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}_${TARGET}"
+DOCKERHUB_PROJECT="nextclade_builder"
+DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}"
 
 CONTAINER_NAME="${DOCKERHUB_PROJECT}_${TARGET}"
 
@@ -37,15 +37,16 @@ GROUP_ID=${GID:=$(id -g)}
 IS_CI=${IS_CI:=$(is_ci)}
 
 docker run -it --rm \
+  --init \
   --name="${CONTAINER_NAME}" \
   --user="${USER_ID}:${GROUP_ID}" \
   --env UID="${USER_ID}" \
   --env GID="${GROUP_ID}" \
   --env IS_CI="${IS_CI}" \
   --env TERM=xterm-256color \
+  --env NEXTCLADE_BUILD_WASM=${NEXTCLADE_BUILD_WASM:=0} \
   --volume=${PWD}/:/src \
   --volume=/etc/timezone:/etc/timezone:ro \
   --volume=/etc/localtime:/etc/localtime:ro \
-  --init \
-  ${DOCKERHUB_REPO}:latest \
+  ${DOCKERHUB_REPO}:${TARGET} \
   ${COMMAND:=}

@@ -1,33 +1,24 @@
-import type { StrictOmit } from 'ts-essentials'
-import type { AuspiceJsonV2 } from 'auspice'
-
-import type { Virus, AnalysisResultWithMatch, AnalysisResult } from 'src/algorithms/types'
+import type { Virus, AnalysisResult, Gene, Peptide, Warnings } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 import { getVirus } from 'src/algorithms/defaults/viruses'
 
-export type AlgorithmParamsPartial = Partial<AlgorithmParams>
-
 export enum AlgorithmGlobalStatus {
-  idling = 'idling',
+  idle = 'idle',
+  loadingData = 'loadingData',
+  initWorkers = 'initWorkers',
   started = 'started',
-  parsing = 'parsing',
-  analysis = 'analysis',
-  treeBuild = 'treeBuild',
-  assignClades = 'assignClades',
-  qc = 'qc',
-  treeFinalization = 'treeFinalization',
-  allDone = 'allDone',
+  buildingTree = 'buildingTree',
+  done = 'done',
+  failed = 'failed',
 }
 
 export enum AlgorithmSequenceStatus {
   idling = 'idling',
-  analysisStarted = 'analysisStarted',
-  analysisDone = 'analysisDone',
-  analysisFailed = 'analysisFailed',
-  qcStarted = 'qcStarted',
-  qcDone = 'qcDone',
-  qcFailed = 'qcFailed',
+  queued = 'queued',
+  started = 'started',
+  done = 'done',
+  failed = 'failed',
 }
 
 export interface SequenceAnalysisState {
@@ -35,11 +26,10 @@ export interface SequenceAnalysisState {
   seqName: string
   status: AlgorithmSequenceStatus
   result?: AnalysisResult
+  query?: string
+  queryPeptides?: Peptide[]
+  warnings: Warnings
   errors: string[]
-}
-
-export interface SequenceAnalysisStateWithMatch extends StrictOmit<SequenceAnalysisState, 'result'> {
-  result?: AnalysisResultWithMatch
 }
 
 export interface ResultsFilters extends QCFilters {
@@ -64,6 +54,19 @@ export interface AlgorithmInput {
   getContent(): Promise<string>
 }
 
+export interface ExportParams {
+  filenameZip: string
+  filenameCsv: string
+  filenameTsv: string
+  filenameJson: string
+  filenameTreeJson: string
+  filenameFasta: string
+  filenamePeptidesZip: string
+  filenameInsertionsCsv: string
+  filenameErrorsCsv: string
+  filenamePeptidesTemplate: string
+}
+
 export interface AlgorithmParams {
   raw: {
     seqData?: AlgorithmInput
@@ -72,6 +75,20 @@ export interface AlgorithmParams {
     qcRulesConfig?: AlgorithmInput
     geneMap?: AlgorithmInput
     pcrPrimers?: AlgorithmInput
+  }
+  strings: {
+    queryStr?: string
+    queryName?: string
+    refStr?: string
+    refName?: string
+    geneMapStr?: string
+    treeStr?: string
+    pcrPrimerCsvRowsStr?: string
+    qcConfigStr?: string
+  }
+  final: {
+    geneMap?: Gene[]
+    genomeSize?: number
   }
   errors: {
     seqData: Error[]
@@ -91,10 +108,10 @@ export interface AlgorithmState {
   isDirty: boolean
   results: SequenceAnalysisState[]
   resultsFiltered: SequenceAnalysisState[]
-  tree: AuspiceJsonV2
+  treeStr?: string
   errors: string[]
   filters: ResultsFilters
-  outputTree?: string
+  exportParams: ExportParams
 }
 
 export interface CladeAssignmentResult {
@@ -102,10 +119,25 @@ export interface CladeAssignmentResult {
   clade: string
 }
 
+export const DEFAULT_EXPORT_PARAMS: ExportParams = {
+  filenameZip: 'nextclade.zip',
+  filenameCsv: 'nextclade.csv',
+  filenameTsv: 'nextclade.tsv',
+  filenameJson: 'nextclade.json',
+  filenameTreeJson: 'nextclade.auspice.json',
+  filenameFasta: 'nextclade.aligned.fasta',
+  filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
+  filenameInsertionsCsv: 'nextclade.insertions.csv',
+  filenameErrorsCsv: 'nextclade.errors.csv',
+  filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
+}
+
 export const algorithmDefaultState: AlgorithmState = {
-  status: AlgorithmGlobalStatus.idling,
+  status: AlgorithmGlobalStatus.idle,
   params: {
     raw: {},
+    strings: {},
+    final: {},
     errors: {
       seqData: [],
       auspiceData: [],
@@ -120,7 +152,7 @@ export const algorithmDefaultState: AlgorithmState = {
   isDirty: true,
   results: [],
   resultsFiltered: [],
-  tree: {},
+  treeStr: undefined,
   errors: [],
   filters: {
     showGood: true,
@@ -128,5 +160,5 @@ export const algorithmDefaultState: AlgorithmState = {
     showBad: true,
     showErrors: true,
   },
-  outputTree: undefined,
+  exportParams: DEFAULT_EXPORT_PARAMS,
 }

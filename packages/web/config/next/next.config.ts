@@ -29,6 +29,11 @@ import withThreads from './withThreads'
 import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
+import withWebassembly from './withWebassembly'
+import withLimitTerserParallelism from './withLimitTerserParallelism'
+import getWithResolve from './withResolve'
+
+const CIRCLECI = process.env.CIRCLECI ?? 'false'
 
 const {
   // BABEL_ENV,
@@ -114,6 +119,7 @@ const withTypeChecking = getWithTypeChecking({
   typeChecking: ENABLE_TYPE_CHECKS,
   eslint: ENABLE_ESLINT,
   memoryLimit: 2048,
+  exclude: ['src/generated'],
 })
 
 const transpilationListDev = [
@@ -150,8 +156,13 @@ const transpilationListProd = uniq([
 
 const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
 
+const withResolve = getWithResolve([
+  path.resolve(moduleRoot, '..', '..'), // root of the repo, for `CHANGELOG.md`
+])
+
 const config = withPlugins(
   [
+    [withResolve],
     [withIgnore],
     [withExtraWatch],
     [withThreads],
@@ -159,6 +170,7 @@ const config = withPlugins(
     [withImages],
     [withRaw],
     [withJson],
+    [withWebassembly],
     // ANALYZE && [withBundleAnalyzer],
     [withFriendlyConsole],
     [withMDX, { pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'] }],
@@ -168,6 +180,7 @@ const config = withPlugins(
     PRODUCTION && [withStaticComprression],
     PROFILE && [withoutMinification],
     [withFriendlyChunkNames],
+    CIRCLECI === 'true' && [withLimitTerserParallelism],
   ].filter(Boolean),
   nextConfig,
 )

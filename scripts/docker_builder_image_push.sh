@@ -21,14 +21,13 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
-
-TARGET="builder"
+TARGET="${1:-builder}"
 
 DOCKERHUB_ORG="nextstrain"
-DOCKERHUB_PROJECT="nextalign"
-DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}_${TARGET}"
+DOCKERHUB_PROJECT="nextclade_builder"
+DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}"
 
 COMMIT_HASH=${CIRCLE_SHA1:=$(git rev-parse --short HEAD)}
 
-docker push ${DOCKERHUB_REPO}:latest
-docker push ${DOCKERHUB_REPO}:${COMMIT_HASH}
+docker push ${DOCKERHUB_REPO}:${TARGET}
+docker push ${DOCKERHUB_REPO}:${TARGET}-${COMMIT_HASH}

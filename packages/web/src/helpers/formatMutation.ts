@@ -1,5 +1,5 @@
 import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucleotideSubstitution } from 'src/algorithms/types'
-import { AMINOACID_GAP } from 'src/algorithms/codonTable'
+import { AMINOACID_GAP } from 'src/constants'
 
 export function formatMutation({ pos, queryNuc, refNuc }: NucleotideSubstitution) {
   // NOTE: by convention, nucleotides are numbered starting from 1, however our arrays are 0-based

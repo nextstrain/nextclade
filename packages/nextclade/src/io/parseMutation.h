@@ -1,22 +1,24 @@
 #pragma once
 
+#include <nextalign/nextalign.h>
+
 #include <stdexcept>
 #include <string>
 
 namespace Nextclade {
   struct NucleotideSubstitution;
 
-  class ErrorParseMutationInvalidPosition : public std::runtime_error {
+  class ErrorParseMutationInvalidPosition : public ErrorNonFatal {
   public:
     explicit ErrorParseMutationInvalidPosition(const std::string& posStr);
   };
 
-  class ErrorParseMutationInvalidNucleotide : public std::runtime_error {
+  class ErrorParseMutationInvalidNucleotide : public ErrorNonFatal {
   public:
     explicit ErrorParseMutationInvalidNucleotide(const std::string& mut);
   };
 
-  class ErrorParseMutationInvalidFormat : public std::runtime_error {
+  class ErrorParseMutationInvalidFormat : public ErrorNonFatal {
   public:
     explicit ErrorParseMutationInvalidFormat(const std::string_view& mut);
   };
