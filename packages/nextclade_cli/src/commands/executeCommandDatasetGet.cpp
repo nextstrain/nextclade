@@ -57,7 +57,7 @@ namespace Nextclade {
 
     auto outputSubdir = cliParams->outputSubdir;
     if (outputSubdir.empty()) {
-      outputSubdir = fmt::format("{}_{}", dataset.name, version.datetime);
+      outputSubdir = fmt::format("{}_{}", dataset.name, version.tag);
     }
 
     const auto outputPath = (fs::path(cliParams->outputDir) / outputSubdir).string();

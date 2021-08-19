@@ -58,13 +58,16 @@ namespace Nextclade {
         .reference = toAbsoluteUrl(at(j, "reference"), dataFullDomain.data()),
         .sequences = toAbsoluteUrl(at(j, "sequences"), dataFullDomain.data()),
         .tree = toAbsoluteUrl(at(j, "tree"), dataFullDomain.data()),
+        .tag = toAbsoluteUrl(at(j, "tag"), dataFullDomain.data()),
       };
     }
 
     DatasetVersion parseVersion(const json& j) {
       return DatasetVersion{
-        .datetime = at(j, "datetime"),
+        .enabled = at(j, "enabled"),
+        .tag = at(j, "tag"),
         .comment = at(j, "comment"),
+        .referenceSequence = at(j, "referenceSequence"),
         .compatibility = parseDatasetCompatibility(at(j, "compatibility")),
         .files = parseDatasetFiles(at(j, "files")),
         .zipBundle = toAbsoluteUrl(at(j, "zipBundle"), dataFullDomain.data()),
@@ -73,6 +76,7 @@ namespace Nextclade {
 
     Dataset parseDataset(const json& j) {
       return Dataset{
+        .enabled = at(j, "enabled"),
         .name = at(j, "name"),
         .nameFriendly = at(j, "nameFriendly"),
         .description = at(j, "description"),
@@ -116,6 +120,7 @@ namespace Nextclade {
     taskGroup.run([&] { writeFile(fs::path(outDir) / "genemap.gff", fetch(version.files.geneMap)); });
     taskGroup.run([&] { writeFile(fs::path(outDir) / "primers.csv", fetch(version.files.primers)); });
     taskGroup.run([&] { writeFile(fs::path(outDir) / "qc.json", fetch(version.files.qc)); });
+    taskGroup.run([&] { writeFile(fs::path(outDir) / "tag.json", fetch(version.files.tag)); });
     taskGroup.wait();
   }
 
@@ -153,7 +158,7 @@ namespace Nextclade {
       // Find latest version
       auto latestVersion = dataset.versions[0];
       for (const auto& version : dataset.versions) {
-        if (version.datetime > latestVersion.datetime) {
+        if (version.tag > latestVersion.tag) {
           latestVersion = version;
         }
       }
@@ -189,7 +194,7 @@ namespace Nextclade {
     for (const auto& dataset : datasets) {
       // Extract only the requested version
       const auto& found = std::find_if(dataset.versions.cbegin(), dataset.versions.cend(),
-        [&datasetVersionDesired](const DatasetVersion& version) { return version.datetime == datasetVersionDesired; });
+        [&datasetVersionDesired](const DatasetVersion& version) { return version.tag == datasetVersionDesired; });
 
       if (found != dataset.versions.cend()) {
         // Remember this dataset, but only among all versions in it only keep the desired version
@@ -221,11 +226,11 @@ namespace Nextclade {
   std::string formatDatasets(const std::vector<Dataset>& datasets) {
     fmt::memory_buffer buf;
     for (const auto& dataset : datasets) {
-      fmt::format_to(buf, "{:s} (id: {:s})\n", dataset.nameFriendly, dataset.name);
+      fmt::format_to(buf, "{:s} (name: {:s})\n", dataset.nameFriendly, dataset.name);
       fmt::format_to(buf, "{:s}\n", dataset.description);
       fmt::format_to(buf, "Versions ({:d}):\n\n", dataset.versions.size());
       for (const auto& version : dataset.versions) {
-        fmt::format_to(buf, "  Datetime              : {:s}\n", version.datetime);
+        fmt::format_to(buf, "  Tag                   : {:s}\n", version.tag);
         fmt::format_to(buf, "  Comment               : {:s}\n", version.comment);
 
         fmt::format_to(buf, "  Nextclade CLI compat. : {:s}\n",
@@ -236,6 +241,10 @@ namespace Nextclade {
         fmt::format_to(buf, "\n");
 
         fmt::format_to(buf, "  Zip bundle            : {:s}\n", version.zipBundle);
+
+        fmt::format_to(buf, "\n");
+
+        fmt::format_to(buf, "  Version tag file      : {:s}\n", version.files.tag);
 
         fmt::format_to(buf, "\n");
 
@@ -275,14 +284,14 @@ namespace Nextclade {
   }
 
   bool operator==(const DatasetVersion& left, const DatasetVersion& right) {
-    return left.datetime == right.datetime && left.compatibility == right.compatibility;
+    return left.tag == right.tag && left.compatibility == right.compatibility;
   }
 
   std::ostream& operator<<(std::ostream& os, const DatasetVersion& ver) {
     os << "{ "
        << "\n";
     os << "  "
-       << "datetime: " << ver.datetime << "\n";
+       << "tag: " << ver.tag << "\n";
     os << "  "
        << "comment: " << ver.comment << "\n";
     os << "  "

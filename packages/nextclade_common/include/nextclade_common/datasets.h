@@ -20,6 +20,7 @@ namespace Nextclade {
     std::string reference;
     std::string sequences;
     std::string tree;
+    std::string tag;
   };
 
   struct DatasetCompatibilityRange {
@@ -33,14 +34,17 @@ namespace Nextclade {
   };
 
   struct DatasetVersion {
-    std::string datetime;
+    bool enabled;
+    std::string tag;
     std::string comment;
+    std::string referenceSequence;
     DatasetCompatibility compatibility;
     DatasetFiles files;
     std::string zipBundle;
   };
 
   struct Dataset {
+    bool enabled;
     std::string name;
     std::string nameFriendly;
     std::string description;

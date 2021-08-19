@@ -27,10 +27,10 @@ const auto one = Dataset{
   .name = "dataset-number-one",
   .versions =
     {
-      DatasetVersion{.datetime = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
-      DatasetVersion{.datetime = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.datetime = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.datetime = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
+      DatasetVersion{.tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
+      DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
     },
 };
 
@@ -38,10 +38,10 @@ const auto two = Dataset{
   .name = "dataset-number-two",
   .versions =
     {
-      DatasetVersion{.datetime = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
-      DatasetVersion{.datetime = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.datetime = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.datetime = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
+      DatasetVersion{.tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
+      DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
     },
 };
 
@@ -49,10 +49,10 @@ const auto three = Dataset{
   .name = "dataset-number-three",
   .versions =
     {
-      DatasetVersion{.datetime = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
-      DatasetVersion{.datetime = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.datetime = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.datetime = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
+      DatasetVersion{.tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
+      DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
     },
 };
 
@@ -70,7 +70,7 @@ TEST(DatasetGetFilter, DefaultsToGettingLatestCompatibleTag) {
       .name = "dataset-number-two",
       .versions =
         {
-          DatasetVersion{.datetime = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+          DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
         },
     },
   };
@@ -94,7 +94,7 @@ TEST(DatasetGetFilter, GetsSpecifiedTag) {
       .name = "dataset-number-two",
       .versions =
         {
-          DatasetVersion{.datetime = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+          DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
         },
     },
   };
@@ -118,7 +118,7 @@ TEST(DatasetGetFilter, GetsSpecifiedIncompatibleTag) {
       .name = "dataset-number-two",
       .versions =
         {
-          DatasetVersion{.datetime = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
+          DatasetVersion{.tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
         },
     },
   };
