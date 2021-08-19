@@ -107,7 +107,7 @@ namespace Nextclade {
       }
 
       inputRootSeq = takeFilenameFromDatasetMaybe(inputRootSeq, inputDataset, "reference.fasta");
-      inputGeneMap = takeFilenameFromDatasetMaybe(inputGeneMap, inputDataset, "geneMap.gff");
+      inputGeneMap = takeFilenameFromDatasetMaybe(inputGeneMap, inputDataset, "genemap.gff");
       inputQcConfig = takeFilenameFromDatasetMaybe(inputQcConfig, inputDataset, "qc.json");
       inputTree = takeFilenameFromDatasetMaybe(inputTree, inputDataset, "tree.json");
       inputPcrPrimers = takeFilenameFromDatasetMaybe(inputPcrPrimers, inputDataset, "primers.csv");

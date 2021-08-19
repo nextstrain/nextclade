@@ -113,7 +113,7 @@ namespace Nextclade {
     tbb::task_group taskGroup;
     taskGroup.run([&] { writeFile(fs::path(outDir) / "reference.fasta", fetch(version.files.reference)); });
     taskGroup.run([&] { writeFile(fs::path(outDir) / "tree.json", fetch(version.files.tree)); });
-    taskGroup.run([&] { writeFile(fs::path(outDir) / "geneMap.gff", fetch(version.files.geneMap)); });
+    taskGroup.run([&] { writeFile(fs::path(outDir) / "genemap.gff", fetch(version.files.geneMap)); });
     taskGroup.run([&] { writeFile(fs::path(outDir) / "primers.csv", fetch(version.files.primers)); });
     taskGroup.run([&] { writeFile(fs::path(outDir) / "qc.json", fetch(version.files.qc)); });
     taskGroup.wait();
