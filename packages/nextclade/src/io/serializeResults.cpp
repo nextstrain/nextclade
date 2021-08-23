@@ -326,9 +326,8 @@ namespace Nextclade {
   }
 
   std::string serializeResults(const std::vector<AnalysisResult>& results) {
-    const std::string SCHEMA_VERSION = "1.0.0";
     auto j = json::object();
-    j.emplace("schemaVersion", SCHEMA_VERSION);
+    j.emplace("schemaVersion", Nextclade::getAnalysisResultsJsonSchemaVersion());
     j.emplace("nextcladeVersion", Nextclade::getVersion());
     j.emplace("timestamp", getTimestampNow());
     j.emplace("results", serializeResultsArray(results));
