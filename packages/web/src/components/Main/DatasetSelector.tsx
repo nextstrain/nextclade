@@ -116,19 +116,23 @@ export function getCompatibleDatasets(datasets?: Dataset[]): Dataset[] {
   return compatibleDatasets
 }
 
-export function getLatestDatasets(datasets?: Dataset[]): DatasetFlat[] {
+export function getLatestDatasetsFlat(datasets?: Dataset[]): DatasetFlat[] {
   const latestDatasetsFlat: DatasetFlat[] = []
   for (const dataset of datasets ?? []) {
     const latestVersion = maxBy(dataset.versions, (version) => version.tag)
     if (latestVersion) {
-      latestDatasetsFlat.push({ ...dataset, ...latestVersion })
+      latestDatasetsFlat.push({
+        ...dataset,
+        ...latestVersion,
+        nameFriendly: `${dataset.nameFriendly} (${dataset.referenceSequence})`,
+      })
     }
   }
   return latestDatasetsFlat
 }
 
 export function getLatestCompatibleEnabledDatasets(datasetsIndexJson?: DatasetsIndexJson) {
-  const datasets = getLatestDatasets(getCompatibleDatasets(getEnabledDatasets(datasetsIndexJson?.datasets)))
+  const datasets = getLatestDatasetsFlat(getCompatibleDatasets(getEnabledDatasets(datasetsIndexJson?.datasets)))
 
   const defaultDatasetName = datasetsIndexJson?.settings.defaultDatasetName ?? ''
   const defaultDataset = datasets.find((dataset) => dataset.name === defaultDatasetName)
