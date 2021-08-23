@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <map>
 #include <optional>
 #include <ostream>
 #include <string>
@@ -13,15 +14,7 @@ namespace Nextclade {
     std::string defaultDatasetNameFriendly;
   };
 
-  struct DatasetFiles {
-    std::string geneMap;
-    std::string primers;
-    std::string qc;
-    std::string reference;
-    std::string sequences;
-    std::string tree;
-    std::string tag;
-  };
+  using DatasetFiles = std::map<std::string, std::string>;
 
   struct DatasetCompatibilityRange {
     std::optional<std::string> min;

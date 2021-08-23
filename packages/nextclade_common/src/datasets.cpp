@@ -51,15 +51,13 @@ namespace Nextclade {
     }
 
     DatasetFiles parseDatasetFiles(const json& j) {
-      return DatasetFiles{
-        .geneMap = toAbsoluteUrl(at(j, "geneMap"), dataFullDomain.data()),
-        .primers = toAbsoluteUrl(at(j, "primers"), dataFullDomain.data()),
-        .qc = toAbsoluteUrl(at(j, "qc"), dataFullDomain.data()),
-        .reference = toAbsoluteUrl(at(j, "reference"), dataFullDomain.data()),
-        .sequences = toAbsoluteUrl(at(j, "sequences"), dataFullDomain.data()),
-        .tree = toAbsoluteUrl(at(j, "tree"), dataFullDomain.data()),
-        .tag = toAbsoluteUrl(at(j, "tag"), dataFullDomain.data()),
-      };
+      auto files = j.get<std::map<std::string, std::string>>();
+
+      for (auto& [key, value] : files) {
+        value = toAbsoluteUrl(value, dataFullDomain.data());
+      }
+
+      return files;
     }
 
     DatasetVersion parseVersion(const json& j) {
@@ -115,12 +113,12 @@ namespace Nextclade {
 
   void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir) {
     tbb::task_group taskGroup;
-    taskGroup.run([&] { writeFile(fs::path(outDir) / "reference.fasta", fetch(version.files.reference)); });
-    taskGroup.run([&] { writeFile(fs::path(outDir) / "tree.json", fetch(version.files.tree)); });
-    taskGroup.run([&] { writeFile(fs::path(outDir) / "genemap.gff", fetch(version.files.geneMap)); });
-    taskGroup.run([&] { writeFile(fs::path(outDir) / "primers.csv", fetch(version.files.primers)); });
-    taskGroup.run([&] { writeFile(fs::path(outDir) / "qc.json", fetch(version.files.qc)); });
-    taskGroup.run([&] { writeFile(fs::path(outDir) / "tag.json", fetch(version.files.tag)); });
+
+    for (const auto& [key, value] : version.files) {
+      const auto filename = fs::path{value}.filename();
+      taskGroup.run([&] { writeFile(fs::path(outDir) / filename, fetch(value)); });
+    }
+
     taskGroup.wait();
   }
 
@@ -266,17 +264,18 @@ namespace Nextclade {
 
         fmt::format_to(buf, "\n");
 
-        fmt::format_to(buf, "  Version tag file      : {:s}\n", version.files.tag);
+        fmt::format_to(buf, "  Version tag file      : {:s}\n", version.files.at("tag"));
 
         fmt::format_to(buf, "\n");
 
         fmt::format_to(buf, "  Files:\n");
-        fmt::format_to(buf, "    Reference sequence  : {:s}\n", version.files.reference);
-        fmt::format_to(buf, "    Reference tree      : {:s}\n", version.files.tree);
-        fmt::format_to(buf, "    Gene map            : {:s}\n", version.files.geneMap);
-        fmt::format_to(buf, "    QC configuration    : {:s}\n", version.files.qc);
-        fmt::format_to(buf, "    PCR primers         : {:s}\n", version.files.primers);
-        fmt::format_to(buf, "    Example sequences   : {:s}\n", version.files.sequences);
+        fmt::format_to(buf, "    Reference sequence  : {:s}\n", version.files.at("reference"));
+        fmt::format_to(buf, "    Reference tree      : {:s}\n", version.files.at("tree"));
+        fmt::format_to(buf, "    Gene map            : {:s}\n", version.files.at("geneMap"));
+        fmt::format_to(buf, "    QC configuration    : {:s}\n", version.files.at("qc"));
+        fmt::format_to(buf, "    PCR primers         : {:s}\n", version.files.at("primers"));
+        fmt::format_to(buf, "    Example sequences   : {:s}\n", version.files.at("sequences"));
+
 
         fmt::format_to(buf, "\n");
       }
