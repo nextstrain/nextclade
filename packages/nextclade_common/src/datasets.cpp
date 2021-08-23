@@ -67,7 +67,6 @@ namespace Nextclade {
         .enabled = at(j, "enabled"),
         .tag = at(j, "tag"),
         .comment = at(j, "comment"),
-        .referenceSequence = at(j, "referenceSequence"),
         .compatibility = parseDatasetCompatibility(at(j, "compatibility")),
         .files = parseDatasetFiles(at(j, "files")),
         .zipBundle = toAbsoluteUrl(at(j, "zipBundle"), dataFullDomain.data()),
@@ -80,6 +79,7 @@ namespace Nextclade {
         .name = at(j, "name"),
         .nameFriendly = at(j, "nameFriendly"),
         .description = at(j, "description"),
+        .referenceSequence = at(j, "referenceSequence"),
         .versions = parseArray<DatasetVersion>(j, "versions", parseVersion),
       };
     }

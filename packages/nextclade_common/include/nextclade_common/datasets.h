@@ -37,7 +37,6 @@ namespace Nextclade {
     bool enabled;
     std::string tag;
     std::string comment;
-    std::string referenceSequence;
     DatasetCompatibility compatibility;
     DatasetFiles files;
     std::string zipBundle;
@@ -48,6 +47,7 @@ namespace Nextclade {
     std::string name;
     std::string nameFriendly;
     std::string description;
+    std::string referenceSequence;
     std::vector<DatasetVersion> versions;
   };
 
