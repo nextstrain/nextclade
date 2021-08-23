@@ -48,5 +48,6 @@ docker run -it --rm \
   --volume=${PWD}/:/src \
   --volume=/etc/timezone:/etc/timezone:ro \
   --volume=/etc/localtime:/etc/localtime:ro \
+  --network=host \
   ${DOCKERHUB_REPO}:${TARGET} \
   ${COMMAND:=}

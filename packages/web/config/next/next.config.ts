@@ -50,6 +50,7 @@ const {
   ENABLE_REDUX_LOGGER,
   DEBUG_SET_INITIAL_DATA,
   DOMAIN,
+  DATA_FULL_DOMAIN,
 } = getEnvVars()
 
 const { pkg, moduleRoot } = findModuleRoot()
@@ -65,6 +66,7 @@ const clientEnv = {
   TRAVIS_BUILD_WEB_URL: getBuildUrl(),
   COMMIT_HASH: getGitCommitHash(),
   DOMAIN,
+  DATA_FULL_DOMAIN,
 }
 
 console.info(`Client-side Environment:\n${JSON.stringify(clientEnv, null, 2)}`)

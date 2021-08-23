@@ -2,7 +2,7 @@
 // Implements basic authentication using AWS Lambda@Edge
 // This is insecure due to hardcoded credentials and is only suited for blocking crawlers
 //
-// Usage: Create an AWS Lambda function and attach this to "Viewer Request" event of a Cloudfront distribution
+// Usage: Create an AWS Lambda@Edge function and attach it to "Viewer Request" event of a Cloudfront distribution
 
 const USERNAME = 'nextstrain'
 const PASSWORD = 'nextstrain'

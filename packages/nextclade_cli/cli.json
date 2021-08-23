@@ -1,0 +1,372 @@
+{
+  "name": "root",
+  "desc": "",
+  "cppStructName": "CliParamsRoot",
+  "callbackName": "runRoot",
+  "options": [
+    {
+      "flags": ["-v", "--version"],
+      "desc": "Show version",
+      "cppName": "version",
+      "cppType": "bool",
+      "defaultValue": "false",
+      "isOptional": true
+    },
+    {
+      "flags": ["--version-detailed"],
+      "desc": "Show detailed version",
+      "cppName": "versionDetailed",
+      "cppType": "bool",
+      "defaultValue": "false",
+      "isOptional": true
+    }
+  ],
+  "subcommands": [
+    {
+      "name": "run",
+      "desc": "Run the analysis.",
+      "cppStructName": "CliParamsRun",
+      "callbackName": "runNextclade",
+      "options": [
+        {
+          "flags": ["-j", "--jobs"],
+          "desc": "Number of CPU threads used by the algorithm. If not specified or if a non-positive value specified, the algorithm will use all the available threads",
+          "cppName": "jobs",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--in-order"],
+          "desc": "Force parallel processing in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag.",
+          "cppName": "inOrder",
+          "cppType": "bool",
+          "defaultValue": "false",
+          "isOptional": true
+        },
+        {
+          "flags": ["-i", "--input-fasta", "--sequences"],
+          "desc": "Path to a .fasta or a .txt file with input sequences",
+          "cppName": "inputFasta",
+          "cppType": "std::string",
+          "isOptional": false
+        },
+        {
+          "flags": ["--input-dataset"],
+          "desc": "Path to a directory containing a dataset. See `nextclade dataset --help` on how to obtain datasets. If this flag is not provided, the paths for the following individual inputs files are required: `--input-root-seq`, `--input-tree`, `--input-qc-config`, and the paths for the following individual input files are recommended: `--input-gene-map`, `--input-pcr-primers`. If both the `--input-dataset` and individual paths are provided, each individual flag overrides the corresponding file in the dataset.",
+          "cppName": "inputDataset",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-r", "--input-root-seq", "--reference"],
+          "desc": "Path to a .fasta or a .txt file containing root sequence. Must contain only 1 sequence. Overrides path to `reference.fasta` provided by `--input-dataset`.",
+          "cppName": "inputRootSeq",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-a", "--input-tree"],
+          "desc": "Path to Auspice JSON v2 file containing reference tree. See https://nextstrain.org/docs/bioinformatics/data-formats. Overrides path to `tree.json` provided by `--input-dataset`.",
+          "cppName": "inputTree",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-q", "--input-qc-config"],
+          "desc": "Path to a JSON file containing configuration of Quality Control rules. Overrides path to `qc.json` provided by `--input-dataset`.",
+          "cppName": "inputQcConfig",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["--genes"],
+          "desc": "Comma-separated list of names of genes to use. This defines which peptides will be written into outputs, and which genes will be taken into account during codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the gene map. If this flag is not supplied or its value is an empty string, then all genes found in the gene map will be used. Requires `--input-gene-map` to be specified.",
+          "cppName": "genes",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-g", "--input-gene-map"],
+          "desc": "Path to a .gff file containing gene map. Overrides path to `genemap.gff` provided by `--input-dataset`. Gene map (sometimes also called 'gene annotations') is used to find gene regions. If not supplied, sequences will not be translated, peptides will not be emitted, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by codon boundaries.",
+          "cppName": "inputGeneMap",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-p", "--input-pcr-primers"],
+          "desc": "Path to a CSV file containing a list of custom PCR primer sites. Overrides path to `primers.csv` provided by `--input-dataset`. PCR primer information are used to report mutations in these sites.",
+          "cppName": "inputPcrPrimers",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-o", "--output-json"],
+          "desc": "Path to output JSON results file",
+          "cppName": "outputJson",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-c", "--output-csv"],
+          "desc": "Path to output CSV results file.",
+          "cppName": "outputCsv",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-t", "--output-tsv"],
+          "desc": "Path to output TSV results file.",
+          "cppName": "outputTsv",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-T", "--output-tree"],
+          "desc": "Path to output Auspice JSON V2 results file. If the tree is not needed, omitting this flag reduces processing time and memory consumption. For file format description see: https://nextstrain.org/docs/bioinformatics/data-formats",
+          "cppName": "outputTree",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-d", "--output-dir"],
+          "desc": "Write output alignment and peptide files to this directory. The base filename can be set using `--output-basename` flag. The paths can be overridden on a per-file basis using `--output-*` flags. If the required directory tree does not exist, it will be created.",
+          "cppName": "outputDir",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-n", "--output-basename"],
+          "desc": "Set the base filename to use for output alignment and peptide files. To be used together with `--output-dir` flag. By default uses the filename of the sequences file (provided with `--sequences`). The paths can be overridden on a per-file basis using `--output-*` flags.",
+          "cppName": "outputBasename",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["--include-reference"],
+          "desc": "Whether to include aligned reference nucleotide sequence into output nucleotide sequence fasta file and reference peptides into output peptide files.",
+          "cppName": "includeReference",
+          "cppType": "bool",
+          "defaultValue": "false",
+          "isOptional": true
+        },
+        {
+          "flags": ["--output-fasta"],
+          "desc": "Path to output aligned sequences in FASTA format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+          "cppName": "outputFasta",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-I", "--output-insertions"],
+          "desc": "Path to output stripped insertions data in CSV format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+          "cppName": "outputInsertions",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["-E", "--output-errors"],
+          "desc": "Path to output errors and warnings occurred during processing, in CSV format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+          "cppName": "outputErrors",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
+          "flags": ["--min-length"],
+          "desc": "Minimum length of nucleotide sequence to consider for alignment. If a sequence is shorter than that, alignment will not be attempted and a warning will be emitted. When adjusting this parameter, note that alignment of short sequences can be unreliable.",
+          "cppName": "minimalLength",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--penalty-gap-extend"],
+          "desc": "Penalty for extending a gap. If zero, all gaps regardless of length incur the same penalty.",
+          "cppName": "penaltyGapExtend",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--penalty-gap-open"],
+          "desc": "Penalty for opening of a gap. A higher penalty results in fewer gaps and more mismatches. Should be less than `--penalty-gap-open-in-frame` to avoid gaps in genes.",
+          "cppName": "penaltyGapOpen",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--penalty-gap-open-in-frame"],
+          "desc": "As `--penalty-gap-open`, but for opening gaps at the beginning of a codon. Should be greater than `--penalty-gap-open` and less than `--penalty-gap-open-out-of-frame`, to avoid gaps in genes, but favor gaps that align with codons.",
+          "cppName": "penaltyGapOpenInFrame",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--penalty-gap-open-out-of-frame"],
+          "desc": "As `--penalty-gap-open`, but for opening gaps in the body of a codon. Should be greater than `--penalty-gap-open-in-frame` to favor gaps that align with codons.",
+          "cppName": "penaltyGapOpenOutOfFrame",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--penalty-mismatch"],
+          "desc": "Penalty for aligned nucleotides or amino acids that differ in state during alignment. Note that this is redundantly parameterized with `--score-match`.",
+          "cppName": "penaltyMismatch",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--score-match"],
+          "desc": "Score for encouraging aligned nucleotides or amino acids with matching state.",
+          "cppName": "scoreMatch",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--max-indel"],
+          "desc": "Maximum length of insertions or deletions allowed to proceed with alignment. Alignments with long indels are slow to compute and require substantial memory in the current implementation. Alignment of sequences with indels longer that this value, will not be attempted and a warning will be emitted.",
+          "cppName": "maxIndel",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--nuc-seed-length"],
+          "desc": "Seed length for nucleotide alignment. Seeds should be long enough to be unique, but short enough to match with high probability.",
+          "cppName": "nucSeedLength",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--nuc-min-seeds"],
+          "desc": "Minimum number of seeds to search for during nucleotide alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--nuc-seed-spacing`.",
+          "cppName": "nucMinSeeds",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--nuc-seed-spacing"],
+          "desc": "Spacing between seeds during nucleotide alignment.",
+          "cppName": "nucSeedSpacing",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--nuc-mismatches-allowed"],
+          "desc": "Maximum number of mismatching nucleotides allowed for a seed to be considered a match.",
+          "cppName": "nucMismatchesAllowed",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--aa-seed-length"],
+          "desc": "Seed length for aminoacid alignment.",
+          "cppName": "aaSeedLength",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--aa-min-seeds"],
+          "desc": "Minimum number of seeds to search for during aminoacid alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--aa-seed-spacing`.",
+          "cppName": "aaMinSeeds",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--aa-seed-spacing"],
+          "desc": "Spacing between seeds during aminoacid alignment.",
+          "cppName": "aaSeedSpacing",
+          "cppType": "int",
+          "isOptional": true
+        },
+        {
+          "flags": ["--aa-mismatches-allowed"],
+          "desc": "Maximum number of mismatching amino acids allowed for a seed to be considered a match.",
+          "cppName": "aaMismatchesAllowed",
+          "cppType": "int",
+          "isOptional": true
+        }
+      ]
+    },
+    {
+      "name": "dataset",
+      "desc": "Operations on datasets: view and download available datasets, which can be used with `run` command.",
+      "requireSubcommand": 1,
+      "cppStructName": null,
+      "callbackName": null,
+      "subcommands": [
+        {
+          "name": "get",
+          "desc": "Download the latest compatible dataset directory for a specified pathogen from the data server.",
+          "cppStructName": "CliParamsDatasetGet",
+          "callbackName": "datasetGet",
+          "options": [
+            {
+              "flags": ["-n", "--name"],
+              "desc": "Name of the dataset to download.",
+              "cppName": "name",
+              "cppType": "std::string",
+              "isOptional": false
+            },
+            {
+              "flags": ["-t", "--tag"],
+              "desc": "Version tag of the dataset to download. If this flag is not provided or is 'latest', then the latest compatible version is downloaded.",
+              "cppName": "tag",
+              "cppType": "std::string",
+              "defaultValue": "\"latest\"",
+              "isOptional": true
+            },
+            {
+              "flags": ["-o", "--output-dir"],
+              "desc": "Path to parent directory to write dataset directory to. If the directory tree does not exist, it will be created.",
+              "cppName": "outputDir",
+              "cppType": "std::string",
+              "isOptional": false
+            },
+            {
+              "flags": ["-O", "--output-subdir"],
+              "desc": "Name of the output dataset subdirectory, nested under the path provided by `--output-dir`. If the directory tree does not exist, it will be created. If omitted, the default is: '{name}_{tag}', evaluated dynamically depending on the dataset name and version tag.",
+              "cppName": "outputSubdir",
+              "cppType": "std::string",
+              "isOptional": true
+            }
+          ]
+        },
+        {
+          "name": "list",
+          "desc": "List latest compatible datasets available for download.",
+          "cppStructName": "CliParamsDatasetList",
+          "callbackName": "datasetList",
+          "options": [
+            {
+              "flags": ["-n", "--name"],
+              "desc": "List only datasets with this name.",
+              "cppName": "name",
+              "cppType": "std::string",
+              "isOptional": true
+            },
+            {
+              "flags": ["-t", "--tag"],
+              "desc": "List only datasets with this version tag.",
+              "cppName": "tag",
+              "cppType": "std::string",
+              "isOptional": true
+            },
+            {
+              "flags": ["--include-incompatible"],
+              "desc": "Include dataset version tags that are incompatible with this version of Nextclade CLI.",
+              "cppName": "includeIncompatible",
+              "cppType": "bool",
+              "defaultValue": "false",
+              "isOptional": true
+            },
+            {
+              "flags": ["--include-old"],
+              "desc": "Include older dataset version tags, additional to the latest.",
+              "cppName": "includeOld",
+              "cppType": "bool",
+              "defaultValue": "false",
+              "isOptional": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -15,7 +15,7 @@ major_branches_only: &major_branches_only
         - staging
         - release
 
-major_branchesan_cli_release_only: &major_branchesan_cli_release_only
+major_branches_and_cli_release_only: &major_branches_and_cli_release_only
   filters:
     branches:
       only:
@@ -43,7 +43,7 @@ jobs:
       - restore_cache:
           name: 'Restore previous checksum.txt from cache'
           keys:
-            - cache-nextclade-builder-container-v2-cache-{{ checksum "checksum.current.txt" }}
+            - cache-nextclade-builder-container-v3-cache-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare checksum.txt to cached one, halt if no changes'
@@ -80,7 +80,7 @@ jobs:
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-nextclade-builder-container-v2-cache-{{ checksum "checksum.previous.txt" }}
+          key: cache-nextclade-builder-container-v3-cache-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -101,7 +101,7 @@ jobs:
       - restore_cache:
           name: 'Restore WebAssembly module build cache'
           keys:
-            - cache-nextclade-web-wasm-v2-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+            - cache-nextclade-web-wasm-v3-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
 
       - run:
           name: 'Build WebAssembly module'
@@ -110,14 +110,14 @@ jobs:
 
       - save_cache:
           name: 'Save WebAssembly module build cache'
-          key: cache-nextclade-web-wasm-v2-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+          key: cache-nextclade-web-wasm-v3-cache-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
           paths:
             - .cache
 
       - restore_cache:
           name: 'Restore web application build cache'
           keys:
-            - cache-nextclade-web-js-v2-cache-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+            - cache-nextclade-web-js-v3-cache-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
 
       - run:
           name: 'Build web application'
@@ -127,7 +127,7 @@ jobs:
 
       - save_cache:
           name: 'Save web application build cache'
-          key: cache-nextclade-web-js-v2-cache-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+          key: cache-nextclade-web-js-v3-cache-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
           paths:
             - packages/web/.cache
             - packages/web/.build/production/tmp/cache
@@ -187,7 +187,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+            - cache-nextclade-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
@@ -196,7 +196,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+          key: cache-nextclade-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
@@ -240,13 +240,13 @@ jobs:
       - restore_cache:
           name: 'Restore homebrew cache'
           keys:
-            - cache-nextclade-v2-homebrew-{{ arch }}
+            - cache-nextclade-v5-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
 
       - run:
           name: 'Install build tools'
           command: |
             set -x
-            brew install -q ccache cmake conan coreutils cppcheck ghr
+            brew bundle
             conan profile new default --detect
           environment:
             HOMEBREW_NO_AUTO_UPDATE: 1
@@ -254,7 +254,7 @@ jobs:
 
       - save_cache:
           name: 'Save homebrew cache'
-          key: cache-nextclade-v2-homebrew-{{ arch }}
+          key: cache-nextclade-v5-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
           paths:
             - '~/Library/Caches/Homebrew'
             - '/usr/local/Homebrew'
@@ -262,7 +262,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+            - cache-nextclade-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
 
       - run:
           name: Run macOS << parameters.macos_arch >> build
@@ -274,7 +274,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextclade-v2-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+          key: cache-nextclade-v5-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
           paths:
             - .cache
 
@@ -299,7 +299,7 @@ workflows:
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *major_branchesan_cli_release_only
+          <<: *major_branches_and_cli_release_only
 
       - Build-Web:
           context: nextclade_web_<< pipeline.git.branch >>

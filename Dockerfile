@@ -16,8 +16,6 @@ RUN set -x \
   cppcheck \
   curl \
   file \
-  g++ \
-  gcc \
   gdb \
   git \
   make \
