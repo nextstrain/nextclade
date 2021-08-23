@@ -106,6 +106,7 @@ export function DatasetVersionView({ version }: DatasetVersionProps) {
     <tr>
       <td>{formatDateIsoUtcSimple(version.tag)}</td>
       <td>{version.comment}</td>
+      <td>{version.enabled ? t('Yes') : t('No')}</td>
       <td>{formatVersion(cliMin, cliMax)}</td>
       <td>{formatVersion(webMin, webMax)}</td>
       <td>{isCompatible ? t('Yes') : t('No')}</td>
@@ -147,6 +148,7 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
             <tr>
               <th>{t('Released (UTC)')}</th>
               <th>{t('Changes')}</th>
+              <th>{t('Enabled')}</th>
               <th>{t('Compat. CLI version')}</th>
               <th>{t('Compat. Web version')}</th>
               <th>{t('Compatible')}</th>

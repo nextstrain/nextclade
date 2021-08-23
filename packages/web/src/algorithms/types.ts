@@ -327,10 +327,12 @@ export interface DatasetVersion {
 }
 
 export interface Dataset {
+  enabled: boolean
   name: string
   nameFriendly: string
   description: string
   versions: DatasetVersion[]
+  referenceSequence: string
 }
 
 export interface DatasetsIndexJson {

@@ -71,10 +71,34 @@ export function fileUrlsToAbsolute(files: DatasetFiles): DatasetFiles {
   return mapValues(files, (file: string) => urljoin(DATA_FULL_DOMAIN, file))
 }
 
-export function getCompatibleDatasets(datasetsIndexJson?: DatasetsIndexJson): Dataset[] {
+export function getEnabledDatasets(datasets?: Dataset[]): Dataset[] {
+  const enbledDatasets: Dataset[] = []
+  for (const dataset of datasets ?? []) {
+    if (!dataset.enabled) {
+      continue // eslint-disable-line no-continue
+    }
+
+    const enabledDataset: Dataset = { ...dataset }
+    enabledDataset.versions = []
+
+    for (const version of dataset.versions) {
+      if (version.enabled) {
+        enabledDataset.versions.push(version)
+      }
+    }
+
+    if (enabledDataset.versions.length > 0) {
+      enbledDatasets.push(enabledDataset)
+    }
+  }
+
+  return enbledDatasets
+}
+
+export function getCompatibleDatasets(datasets?: Dataset[]): Dataset[] {
   const compatibleDatasets: Dataset[] = []
 
-  for (const dataset of datasetsIndexJson?.datasets ?? []) {
+  for (const dataset of datasets ?? []) {
     let compatibleVersions: DatasetVersion[] = []
     for (const version of dataset.versions) {
       if (isCompatible(version.compatibility.nextcladeWeb)) {
@@ -92,26 +116,30 @@ export function getCompatibleDatasets(datasetsIndexJson?: DatasetsIndexJson): Da
   return compatibleDatasets
 }
 
-export function getLatestCompatibleDatasets(datasetsIndexJson?: DatasetsIndexJson) {
+export function getLatestDatasets(datasets?: Dataset[]): DatasetFlat[] {
   const latestDatasetsFlat: DatasetFlat[] = []
-  for (const dataset of getCompatibleDatasets(datasetsIndexJson)) {
+  for (const dataset of datasets ?? []) {
     const latestVersion = maxBy(dataset.versions, (version) => version.tag)
     if (latestVersion) {
       latestDatasetsFlat.push({ ...dataset, ...latestVersion })
     }
   }
+  return latestDatasetsFlat
+}
+
+export function getLatestCompatibleEnabledDatasets(datasetsIndexJson?: DatasetsIndexJson) {
+  const datasets = getLatestDatasets(getCompatibleDatasets(getEnabledDatasets(datasetsIndexJson?.datasets)))
 
   const defaultDatasetName = datasetsIndexJson?.settings.defaultDatasetName ?? ''
-  const defaultDataset = latestDatasetsFlat.find((dataset) => dataset.name === defaultDatasetName)
-
+  const defaultDataset = datasets.find((dataset) => dataset.name === defaultDatasetName)
   let defaultDatasetNameFriendly = ''
   if (defaultDataset) {
     defaultDatasetNameFriendly = defaultDataset.nameFriendly
-  } else if (latestDatasetsFlat.length > 0) {
-    defaultDatasetNameFriendly = latestDatasetsFlat[0].nameFriendly
+  } else if (datasets.length > 0) {
+    defaultDatasetNameFriendly = datasets[0].nameFriendly
   }
 
-  return { datasets: latestDatasetsFlat, defaultDatasetName, defaultDatasetNameFriendly }
+  return { datasets, defaultDatasetName, defaultDatasetNameFriendly }
 }
 
 export interface DatasetSelectorProps {
@@ -140,7 +168,7 @@ export function DatasetSelectorDisconnected({ setDataset }: DatasetSelectorProps
   const isBusy = isLoading || isFetching
 
   const { datasets, defaultDatasetNameFriendly } =
-    useMemo(() => getLatestCompatibleDatasets(datasetsIndexJson), [datasetsIndexJson]) // prettier-ignore
+    useMemo(() => getLatestCompatibleEnabledDatasets(datasetsIndexJson), [datasetsIndexJson]) // prettier-ignore
 
   const datasetNames = useMemo(() => datasets.map((dataset) => dataset.nameFriendly), [datasets])
   const virusNameOptionDefault = useMemo(() => stringToOption(defaultDatasetNameFriendly), [defaultDatasetNameFriendly])
