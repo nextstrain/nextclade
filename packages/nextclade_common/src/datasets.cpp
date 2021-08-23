@@ -124,6 +124,28 @@ namespace Nextclade {
     taskGroup.wait();
   }
 
+  std::vector<Dataset> getEnabledDatasets(const std::vector<Dataset>& datasets) {
+    std::vector<Dataset> datasetsEnabled;
+    for (const auto& dataset : datasets) {
+      if (!dataset.enabled) {
+        continue;
+      }
+
+      auto enabledDataset = Dataset{dataset};
+      enabledDataset.versions = {};
+      for (const auto& version : dataset.versions) {
+        if (version.enabled) {
+          enabledDataset.versions.push_back(version);
+        }
+      }
+
+      if (!enabledDataset.versions.empty()) {
+        datasetsEnabled.push_back(dataset);
+      }
+    }
+    return datasetsEnabled;
+  }
+
   std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion) {
     std::vector<Dataset> datasetsCompatible;
     for (const auto& dataset : datasets) {
@@ -284,12 +306,15 @@ namespace Nextclade {
   }
 
   bool operator==(const DatasetVersion& left, const DatasetVersion& right) {
-    return left.tag == right.tag && left.compatibility == right.compatibility;
+    return left.enabled == right.enabled && left.tag == right.tag && left.compatibility == right.compatibility;
   }
 
   std::ostream& operator<<(std::ostream& os, const DatasetVersion& ver) {
     os << "{ "
        << "\n";
+    os << "  "
+          "enabled: "
+       << ver.enabled << "\n";
     os << "  "
        << "tag: " << ver.tag << "\n";
     os << "  "
@@ -310,11 +335,17 @@ namespace Nextclade {
           "name: "
        << dataset.name << "\n";
     os << "  "
+          "enabled: "
+       << dataset.enabled << "\n";
+    os << "  "
           "nameFriendly: "
        << dataset.nameFriendly << "\n";
     os << "  "
           "description: "
        << dataset.description << "\n";
+    os << "  "
+          "referenceSequence: "
+       << dataset.referenceSequence << "\n";
     os << "  "
           "versions: [\n";
     for (const auto& version : dataset.versions) {

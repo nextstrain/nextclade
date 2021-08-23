@@ -12,6 +12,8 @@ namespace Nextclade {
   ) {
     auto outputDatasets = inputDatasets;
 
+    outputDatasets = getEnabledDatasets(outputDatasets);
+
     if (!cliParams->includeIncompatible) {
       outputDatasets = getCompatibleDatasets(outputDatasets, thisVersion);
     }

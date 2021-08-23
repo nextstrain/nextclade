@@ -16,6 +16,7 @@ namespace Nextclade {
 
     if (cliParams->tag.empty() || cliParams->tag == "latest") {
       outputDatasets = getLatestCompatibleDatasets(outputDatasets, thisVersion);
+      outputDatasets = getEnabledDatasets(outputDatasets);
     } else {
       outputDatasets = filterDatasetsByVersion(outputDatasets, cliParams->tag);
     }

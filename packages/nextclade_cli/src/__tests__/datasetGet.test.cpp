@@ -24,35 +24,38 @@ namespace {
 const std::string thisVersion = "1.2.1";
 
 const auto one = Dataset{
+  .enabled = true,
   .name = "dataset-number-one",
   .versions =
     {
-      DatasetVersion{.tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
-      DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
     },
 };
 
 const auto two = Dataset{
+  .enabled = true,
   .name = "dataset-number-two",
   .versions =
     {
-      DatasetVersion{.tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
-      DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
     },
 };
 
 const auto three = Dataset{
+  .enabled = true,
   .name = "dataset-number-three",
   .versions =
     {
-      DatasetVersion{.tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
-      DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
-      DatasetVersion{.tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-01-01T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.2.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-02-11T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+      DatasetVersion{.enabled = true, .tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
     },
 };
 
@@ -67,10 +70,11 @@ TEST(DatasetGetFilter, DefaultsToGettingLatestCompatibleTag) {
 
   const std::vector<Dataset> expected = {
     Dataset{
+      .enabled = true,
       .name = "dataset-number-two",
       .versions =
         {
-          DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+          DatasetVersion{.enabled = true, .tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
         },
     },
   };
@@ -91,10 +95,11 @@ TEST(DatasetGetFilter, GetsSpecifiedTag) {
 
   const std::vector<Dataset> expected = {
     Dataset{
+      .enabled = true,
       .name = "dataset-number-two",
       .versions =
         {
-          DatasetVersion{.tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
+          DatasetVersion{.enabled = true, .tag = "2021-03-22T00:00:00Z", .compatibility = makeCompat("1.0.0", "1.3.0")},
         },
     },
   };
@@ -115,10 +120,11 @@ TEST(DatasetGetFilter, GetsSpecifiedIncompatibleTag) {
 
   const std::vector<Dataset> expected = {
     Dataset{
+      .enabled = true,
       .name = "dataset-number-two",
       .versions =
         {
-          DatasetVersion{.tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
+          DatasetVersion{.enabled = true, .tag = "2021-04-31T00:00:00Z", .compatibility = makeCompat("1.3.0", "1.4.0")},
         },
     },
   };

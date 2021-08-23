@@ -62,6 +62,8 @@ namespace Nextclade {
 
   void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir);
 
+  std::vector<Dataset> getEnabledDatasets(const std::vector<Dataset>& datasets);
+
   std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion);
 
   std::vector<Dataset> getLatestDatasets(const std::vector<Dataset>& datasets);
