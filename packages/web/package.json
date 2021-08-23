@@ -303,7 +303,7 @@
     "express-static-gzip": "2.0.8",
     "extra-watch-webpack-plugin": "1.0.3",
     "file-loader": "6.1.0",
-    "fork-ts-checker-webpack-plugin": "5.1.0",
+    "fork-ts-checker-webpack-plugin": "6.3.2",
     "fs-extra": "9.0.1",
     "i18next-parser": "3.3.0",
     "identity-obj-proxy": "3.0.0",
