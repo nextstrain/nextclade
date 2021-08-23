@@ -106,6 +106,8 @@ jobs:
       - run:
           name: 'Build WebAssembly module'
           command: |
+            echo "FULL_DOMAIN=${FULL_DOMAIN}" >> .env
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
             make prod-wasm-nowatch
 
       - save_cache:
@@ -122,7 +124,6 @@ jobs:
       - run:
           name: 'Build web application'
           command: |
-            ( cd packages/web && cp .env.example .env )
             make prod-web-nowatch
 
       - save_cache:
@@ -192,6 +193,7 @@ jobs:
       - run:
           name: 'Run "Builder" container'
           command: |
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
             make docker-builder-run
 
       - save_cache:
@@ -267,6 +269,7 @@ jobs:
       - run:
           name: Run macOS << parameters.macos_arch >> build
           command: |
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
             make prod
           environment:
             CONAN_USER_HOME: '/Users/distiller/project/.cache'
@@ -308,11 +311,13 @@ workflows:
             - Update-Builder-Container
 
       - Build-Linux-x86_64:
+          context: nextclade_web_<< pipeline.git.branch >>
           <<: *release_cli_only
           requires:
             - Update-Builder-Container
 
       - Build-MacOS:
+          context: nextclade_web_<< pipeline.git.branch >>
           matrix:
             parameters:
               macos_arch:
