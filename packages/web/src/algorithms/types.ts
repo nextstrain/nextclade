@@ -302,12 +302,15 @@ export interface DatasetFiles {
   reference: string
   sequences: string
   tree: string
+  tag: string
 
   [k: string]: string
 }
 
 export interface DatasetVersion {
-  datetime: string
+  enabled: boolean
+  metadata: Record<string, unknown>
+  tag: string
   comment: string
   compatibility: {
     nextcladeCli: {

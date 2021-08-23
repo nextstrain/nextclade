@@ -104,7 +104,7 @@ export function DatasetVersionView({ version }: DatasetVersionProps) {
 
   return (
     <tr>
-      <td>{formatDateIsoUtcSimple(version.datetime)}</td>
+      <td>{formatDateIsoUtcSimple(version.tag)}</td>
       <td>{version.comment}</td>
       <td>{formatVersion(cliMin, cliMax)}</td>
       <td>{formatVersion(webMin, webMax)}</td>
@@ -156,7 +156,7 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
           </thead>
           <tbody>
             {dataset.versions.map((version) => (
-              <DatasetVersionView key={version.datetime} version={version} />
+              <DatasetVersionView key={version.tag} version={version} />
             ))}
           </tbody>
         </TableSlimWithBorders>

@@ -95,7 +95,7 @@ export function getCompatibleDatasets(datasetsIndexJson?: DatasetsIndexJson): Da
 export function getLatestCompatibleDatasets(datasetsIndexJson?: DatasetsIndexJson) {
   const latestDatasetsFlat: DatasetFlat[] = []
   for (const dataset of getCompatibleDatasets(datasetsIndexJson)) {
-    const latestVersion = maxBy(dataset.versions, (version) => version.datetime)
+    const latestVersion = maxBy(dataset.versions, (version) => version.tag)
     if (latestVersion) {
       latestDatasetsFlat.push({ ...dataset, ...latestVersion })
     }
