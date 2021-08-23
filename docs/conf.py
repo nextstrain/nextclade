@@ -72,8 +72,7 @@ html_css_files = [
 html_favicon = '_static/favicon.ico'
 
 html_theme_options = {
-    'display_version': False,
-    'logo_only': True,
+    'logo_only': False,
     'collapse_navigation': False,
     'titles_only': True,
 }

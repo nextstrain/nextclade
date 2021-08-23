@@ -1,3 +1,21 @@
+## Nextclade Web 1.5.4 (2021-08-16)
+
+#### [Feature] Add "Docs" link
+
+Top navigation bar now contain an new link "Docs", which points to Nextclade Documentation site (https://docs.nextstrain.org/projects/nextclade).
+
+
+## Nextclade CLI 1.2.3, Nextalign CLI 1.2.3 (2021-08-12)
+
+This release only affects docker images. There are no actual changes in Nextclade CLI, Nextalign CLI or Nextclade Web. They should behave the same as their previous versions.
+
+#### [Change] Add `ca-certificates` package into Debian docker images
+
+For better compatibility with workflows, this adds CA certificates into the Debian docker images. They are necessary for SSL/TLS to be working, in particular when fetching data.  
+
+These are the default images when you pull `nextstrain/nextclade` and `nextstrain/nextalign` without specifying a tag or specifying one of the `debian` tags. Issue `docker pull nextstrain/nextclade` to refresh the local image to the latest version.
+
+
 ## Nextclade CLI 1.2.2, Nextalign CLI 1.2.2 (2021-08-12)
 
 This release only affects docker images. There are no actual changes in Nextclade CLI, Nextalign CLI or Nextclade Web. They should behave the same as their previous versions.

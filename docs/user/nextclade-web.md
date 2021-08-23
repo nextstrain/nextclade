@@ -18,7 +18,7 @@ Open [clades.nextstrain.org](https://clades.nextstrain.org) in your browser.
 
 For a demonstration of capabilities of Nextclade click on "Show me an example" link.
 
-![Show me an exmaple](assets/web_show-example.png)
+![Show me an example](assets/web_show-example.png)
 
 In order to run the analysis on your own data, prepare a [FASTA](https://en.wikipedia.org/wiki/FASTA_format) file with your sequences and drag & drop it onto the "upload" area marked "Sequences". The analysis starts immediately and you will be redirected to the results page.
 
