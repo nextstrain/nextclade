@@ -312,6 +312,7 @@ export interface DatasetVersion {
   metadata: Record<string, unknown>
   tag: string
   comment: string
+  latest: boolean
   compatibility: {
     nextcladeCli: {
       min?: string
@@ -326,13 +327,26 @@ export interface DatasetVersion {
   zipBundle: string
 }
 
+export interface DatasetRefSeq {
+  accession: string
+  source: string
+  strainName: string
+}
+
+export interface DatasetRef {
+  enabled: boolean
+  metadata: Record<string, unknown>
+  reference: DatasetRefSeq
+  versions: DatasetVersion[]
+}
+
 export interface Dataset {
   enabled: boolean
   name: string
   nameFriendly: string
   description: string
-  versions: DatasetVersion[]
-  referenceSequence: string
+  datasetRefs: DatasetRef[]
+  defaultRef: string
 }
 
 export interface DatasetsIndexJson {
@@ -340,4 +354,4 @@ export interface DatasetsIndexJson {
   datasets: Dataset[]
 }
 
-export interface DatasetFlat extends Dataset, DatasetVersion {}
+export interface DatasetFlat extends Dataset, DatasetRef, DatasetVersion {}

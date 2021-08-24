@@ -8,7 +8,14 @@ import semver from 'semver'
 import styled from 'styled-components'
 
 import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
-import type { Dataset, DatasetFiles, DatasetFlat, DatasetsIndexJson, DatasetVersion } from 'src/algorithms/types'
+import type {
+  Dataset,
+  DatasetFiles,
+  DatasetFlat,
+  DatasetRef,
+  DatasetsIndexJson,
+  DatasetVersion,
+} from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { setDataset } from 'src/state/algorithm/algorithm.actions'
 import { Dropdown as DropdownBase } from 'src/components/Common/Dropdown'
@@ -71,45 +78,73 @@ export function fileUrlsToAbsolute(files: DatasetFiles): DatasetFiles {
   return mapValues(files, (file: string) => urljoin(DATA_FULL_DOMAIN, file))
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function getEnabledDatasets(datasets?: Dataset[]): Dataset[] {
-  const enbledDatasets: Dataset[] = []
+  const enabledDatasets: Dataset[] = []
   for (const dataset of datasets ?? []) {
     if (!dataset.enabled) {
       continue // eslint-disable-line no-continue
     }
 
     const enabledDataset: Dataset = { ...dataset }
-    enabledDataset.versions = []
+    enabledDataset.datasetRefs = []
 
-    for (const version of dataset.versions) {
-      if (version.enabled) {
-        enabledDataset.versions.push(version)
+    for (const datasetRef of dataset.datasetRefs) {
+      if (!datasetRef.enabled) {
+        continue // eslint-disable-line no-continue
+      }
+
+      const enabledDatasetRef: DatasetRef = { ...datasetRef }
+      enabledDatasetRef.versions = []
+
+      for (const version of datasetRef.versions) {
+        if (version.enabled) {
+          enabledDatasetRef.versions.push(version)
+        }
+      }
+
+      if (enabledDatasetRef.versions.length > 0) {
+        enabledDataset.datasetRefs.push(enabledDatasetRef)
       }
     }
 
-    if (enabledDataset.versions.length > 0) {
-      enbledDatasets.push(enabledDataset)
+    if (enabledDataset.datasetRefs.length > 0) {
+      enabledDatasets.push(enabledDataset)
     }
   }
 
-  return enbledDatasets
+  return enabledDatasets
 }
 
 export function getCompatibleDatasets(datasets?: Dataset[]): Dataset[] {
   const compatibleDatasets: Dataset[] = []
 
   for (const dataset of datasets ?? []) {
-    let compatibleVersions: DatasetVersion[] = []
-    for (const version of dataset.versions) {
-      if (isCompatible(version.compatibility.nextcladeWeb)) {
-        compatibleVersions.push(version)
+    const compatibleDatasetRefs: DatasetRef[] = []
+
+    for (const datasetRef of dataset.datasetRefs) {
+      let compatibleVersions: DatasetVersion[] = []
+      for (const version of datasetRef.versions) {
+        if (isCompatible(version.compatibility.nextcladeWeb)) {
+          compatibleVersions.push(version)
+        }
+      }
+
+      compatibleVersions = compatibleVersions.map((ver) => ({ ...ver, files: fileUrlsToAbsolute(ver.files) }))
+
+      if (compatibleVersions.length > 0) {
+        compatibleDatasetRefs.push({
+          ...datasetRef,
+          versions: compatibleVersions,
+        })
       }
     }
 
-    compatibleVersions = compatibleVersions.map((ver) => ({ ...ver, files: fileUrlsToAbsolute(ver.files) }))
-
-    if (compatibleVersions.length > 0) {
-      compatibleDatasets.push({ ...dataset, versions: compatibleVersions })
+    if (compatibleDatasetRefs.length > 0) {
+      compatibleDatasets.push({
+        ...dataset,
+        datasetRefs: compatibleDatasetRefs,
+      })
     }
   }
 
@@ -119,15 +154,19 @@ export function getCompatibleDatasets(datasets?: Dataset[]): Dataset[] {
 export function getLatestDatasetsFlat(datasets?: Dataset[]): DatasetFlat[] {
   const latestDatasetsFlat: DatasetFlat[] = []
   for (const dataset of datasets ?? []) {
-    const latestVersion = maxBy(dataset.versions, (version) => version.tag)
-    if (latestVersion) {
-      latestDatasetsFlat.push({
-        ...dataset,
-        ...latestVersion,
-        nameFriendly: `${dataset.nameFriendly} (${dataset.referenceSequence})`,
-      })
+    for (const datasetRef of dataset.datasetRefs) {
+      const latestVersion = maxBy(datasetRef.versions, (version) => version.tag)
+      if (latestVersion) {
+        latestDatasetsFlat.push({
+          ...dataset,
+          ...datasetRef,
+          ...latestVersion,
+          nameFriendly: `${dataset.nameFriendly} (${datasetRef.reference.strainName})`,
+        })
+      }
     }
   }
+
   return latestDatasetsFlat
 }
 
