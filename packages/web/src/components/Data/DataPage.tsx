@@ -12,7 +12,7 @@ import semver from 'semver'
 
 import { LayoutMain } from 'src/components/Layout/LayoutMain'
 import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
-import type { Dataset, DatasetFiles, DatasetsIndexJson, DatasetVersion } from 'src/algorithms/types'
+import type { Dataset, DatasetFiles, DatasetRef, DatasetsIndexJson, DatasetVersion } from 'src/algorithms/types'
 
 const DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
 const DATA_INDEX_FILE = 'index.json'
@@ -124,22 +124,17 @@ export function DatasetVersionView({ version }: DatasetVersionProps) {
   )
 }
 
-export interface DatasetViewProps {
-  dataset: Dataset
-  isDefault: boolean
+export interface DatasetRefViewProps {
+  datasetRef: DatasetRef
 }
 
-export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
+export function DatasetRefView({ datasetRef }: DatasetRefViewProps) {
   const { t } = useTranslationSafe()
-
+  const { strainName, accession, source } = datasetRef.reference
   return (
-    <Row noGutters className="mt-3">
+    <Row>
       <Col>
-        <h3>
-          {dataset.nameFriendly}
-          {isDefault && <sup className="text-small ml-2">{t('(default)')}</sup>}
-        </h3>
-        <p>{dataset.description}</p>
+        <h4>{`Reference: ${strainName} (${source}: ${accession})`}</h4>
 
         <h5>{t('Versions')}</h5>
 
@@ -157,11 +152,36 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
             </tr>
           </thead>
           <tbody>
-            {dataset.versions.map((version) => (
+            {datasetRef.versions.map((version) => (
               <DatasetVersionView key={version.tag} version={version} />
             ))}
           </tbody>
         </TableSlimWithBorders>
+      </Col>
+    </Row>
+  )
+}
+
+export interface DatasetViewProps {
+  dataset: Dataset
+  isDefault: boolean
+}
+
+export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
+  const { t } = useTranslationSafe()
+
+  return (
+    <Row noGutters className="mt-3">
+      <Col>
+        <h3>
+          {dataset.nameFriendly}
+          {isDefault && <sup className="text-small ml-2">{t('(default)')}</sup>}
+        </h3>
+        <p>{dataset.description}</p>
+
+        {dataset.datasetRefs.map((ref) => (
+          <DatasetRefView key={ref.reference.accession} datasetRef={ref} />
+        ))}
       </Col>
     </Row>
   )
