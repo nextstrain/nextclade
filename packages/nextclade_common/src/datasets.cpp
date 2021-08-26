@@ -243,6 +243,43 @@ namespace Nextclade {
     return getLatestDatasets(getCompatibleDatasets(datasets, thisVersion));
   }
 
+  std::vector<Dataset> filterDatasetsByReference(const std::vector<Dataset>& datasets,
+    const std::string& datasetReferenceDesired) {
+    std::vector<Dataset> datasetsFiltered;
+    for (const auto& dataset : datasets) {
+      auto datasetFiltered = Dataset{dataset};
+      datasetFiltered.datasetRefs = {};
+      for (const auto& datasetRef : dataset.datasetRefs) {
+        if (datasetRef.reference.accession == datasetReferenceDesired) {
+          datasetFiltered.datasetRefs.push_back(datasetRef);
+        }
+      }
+
+      if (!datasetFiltered.datasetRefs.empty()) {
+        datasetsFiltered.push_back(datasetFiltered);
+      }
+    }
+    return datasetsFiltered;
+  }
+
+  std::vector<Dataset> filterDatasetsByDefaultReference(const std::vector<Dataset>& datasets) {
+    std::vector<Dataset> datasetsFiltered;
+    for (const auto& dataset : datasets) {
+      auto datasetFiltered = Dataset{dataset};
+      datasetFiltered.datasetRefs = {};
+      for (const auto& datasetRef : dataset.datasetRefs) {
+        if (datasetRef.reference.accession == dataset.defaultRef) {
+          datasetFiltered.datasetRefs.push_back(datasetRef);
+        }
+      }
+
+      if (!datasetFiltered.datasetRefs.empty()) {
+        datasetsFiltered.push_back(datasetFiltered);
+      }
+    }
+    return datasetsFiltered;
+  }
+
   std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
     const std::string& datasetNameDesired) {
     std::vector<Dataset> datasetsFiltered;
