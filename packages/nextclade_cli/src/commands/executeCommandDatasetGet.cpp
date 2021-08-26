@@ -46,14 +46,20 @@ namespace Nextclade {
         " This is a bug. Please report it to developers.");
     }
 
-    if (datasets[0].versions.size() > 1) {
+    if (datasets[0].datasetRefs.size() > 1) {
+      throw ErrorFatal(
+        "When running dataset get filter: Returned more than 1 dataset ref."
+        " This is a bug. Please report it to developers.");
+    }
+
+    if (datasets[0].datasetRefs[0].versions.size() > 1) {
       throw ErrorFatal(
         "When running dataset get filter: Returned more than 1 version."
         " This is a bug. Please report it to developers.");
     }
 
     const auto& dataset = datasets[0];
-    const auto& version = datasets[0].versions[0];
+    const auto& version = datasets[0].datasetRefs[0].versions[0];
 
     auto outputSubdir = cliParams->outputSubdir;
     if (outputSubdir.empty()) {
@@ -61,6 +67,6 @@ namespace Nextclade {
     }
 
     const auto outputPath = (fs::path(cliParams->outputDir) / outputSubdir).string();
-    fetchDatasetVersion(datasets[0].versions[0], outputPath);
+    fetchDatasetVersion(version, outputPath);
   }
 }// namespace Nextclade

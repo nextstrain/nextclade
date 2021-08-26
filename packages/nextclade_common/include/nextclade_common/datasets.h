@@ -35,21 +35,31 @@ namespace Nextclade {
     std::string zipBundle;
   };
 
+  struct DatasetRefSeq {
+    std::string accession;
+    std::string source;
+    std::string strainName;
+  };
+
+  struct DatasetRef {
+    bool enabled;
+    DatasetRefSeq reference;
+    std::vector<DatasetVersion> versions;
+  };
+
   struct Dataset {
     bool enabled;
     std::string name;
     std::string nameFriendly;
     std::string description;
-    std::string referenceSequence;
-    std::vector<DatasetVersion> versions;
+    std::vector<DatasetRef> datasetRefs;
+    std::string defaultRef;
   };
 
   struct DatasetsIndexJson {
     DatasetsSettings settings;
     std::vector<Dataset> datasets;
   };
-
-  struct DatasetFlat {};
 
   DatasetsIndexJson fetchDatasetsIndexJson();
 
@@ -67,8 +77,8 @@ namespace Nextclade {
   std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
     const std::string& datasetNameDesired);
 
-  std::vector<Dataset> filterDatasetsByVersion(const std::vector<Dataset>& datasets,
-    const std::string& datasetVersionDesired);
+  std::vector<Dataset> filterDatasetsByTag(const std::vector<Dataset>& datasets,
+    const std::string& versionTagDesired);
 
   std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat);
 

@@ -71,14 +71,30 @@ namespace Nextclade {
       };
     }
 
+    DatasetRefSeq parseRefSeq(const json& j) {
+      return DatasetRefSeq{
+        .accession = at(j, "accession"),
+        .source = at(j, "source"),
+        .strainName = at(j, "strainName"),
+      };
+    }
+
+    DatasetRef parseDatasetRef(const json& j) {
+      return DatasetRef{
+        .enabled = at(j, "enabled"),
+        .reference = parseRefSeq(at(j, "reference")),
+        .versions = parseArray<DatasetVersion>(j, "versions", parseVersion),
+      };
+    }
+
     Dataset parseDataset(const json& j) {
       return Dataset{
         .enabled = at(j, "enabled"),
         .name = at(j, "name"),
         .nameFriendly = at(j, "nameFriendly"),
         .description = at(j, "description"),
-        .referenceSequence = at(j, "referenceSequence"),
-        .versions = parseArray<DatasetVersion>(j, "versions", parseVersion),
+        .datasetRefs = parseArray<DatasetRef>(j, "datasetRefs", parseDatasetRef),
+        .defaultRef = at(j, "defaultRef"),
       };
     }
 
@@ -130,15 +146,24 @@ namespace Nextclade {
       }
 
       auto enabledDataset = Dataset{dataset};
-      enabledDataset.versions = {};
-      for (const auto& version : dataset.versions) {
-        if (version.enabled) {
-          enabledDataset.versions.push_back(version);
+      enabledDataset.datasetRefs = {};
+      for (const auto& datasetRef : dataset.datasetRefs) {
+        auto enabledDatasetRef = DatasetRef{datasetRef};
+        enabledDatasetRef.versions = {};
+
+        for (const auto& version : datasetRef.versions) {
+          if (version.enabled) {
+            enabledDatasetRef.versions.push_back(version);
+          }
+        }
+
+        if (!enabledDatasetRef.versions.empty()) {
+          enabledDataset.datasetRefs.push_back(enabledDatasetRef);
         }
       }
 
-      if (!enabledDataset.versions.empty()) {
-        datasetsEnabled.push_back(dataset);
+      if (!enabledDataset.datasetRefs.empty()) {
+        datasetsEnabled.push_back(enabledDataset);
       }
     }
     return datasetsEnabled;
@@ -148,19 +173,30 @@ namespace Nextclade {
     std::vector<Dataset> datasetsCompatible;
     for (const auto& dataset : datasets) {
 
-      // Find compatible versions
-      std::vector<DatasetVersion> versionsCompatible;
-      for (const auto& version : dataset.versions) {
-        if (isDatasetVersionCompatible(version, thisVersion)) {
-          versionsCompatible.push_back(version);
+      auto datasetCompatible = Dataset{dataset};
+      datasetCompatible.datasetRefs = {};
+
+      for (const auto& datasetRef : dataset.datasetRefs) {
+
+        auto datasetRefCompatible = DatasetRef{datasetRef};
+        datasetRefCompatible.versions = {};
+
+        // Find compatible versions
+        std::vector<DatasetVersion> versionsCompatible;
+        for (const auto& version : datasetRef.versions) {
+          if (isDatasetVersionCompatible(version, thisVersion)) {
+            datasetRefCompatible.versions.push_back(version);
+          }
+        }
+
+        // DatasetRef is compatible if there is at least one compatible version
+        if (!datasetRefCompatible.versions.empty()) {
+          datasetCompatible.datasetRefs.push_back(datasetRefCompatible);
         }
       }
 
-      auto datasetCompatible = Dataset{dataset};
-      datasetCompatible.versions = {std::move(versionsCompatible)};
-
-      // Dataset is compatible if there is at least one compatible version
-      if (!datasetCompatible.versions.empty()) {
+      // Dataset is compatible if there is at least one compatible DatasetRef
+      if (!datasetCompatible.datasetRefs.empty()) {
         datasetsCompatible.push_back(datasetCompatible);
       }
     }
@@ -171,23 +207,28 @@ namespace Nextclade {
   std::vector<Dataset> getLatestDatasets(const std::vector<Dataset>& datasets) {
     std::vector<Dataset> datasetsLatest;
     for (const auto& dataset : datasets) {
-      if (dataset.versions.empty()) {
-        continue;
-      }
-
-      // Find latest version
-      auto latestVersion = dataset.versions[0];
-      for (const auto& version : dataset.versions) {
-        if (version.tag > latestVersion.tag) {
-          latestVersion = version;
-        }
-      }
-
       auto datasetLatest = Dataset{dataset};
-      datasetLatest.versions = {std::move(latestVersion)};
+      datasetLatest.datasetRefs = {};
 
-      // Dataset is compatible if there is at least one compatible version
-      if (!dataset.versions.empty()) {
+      for (const auto& datasetRef : dataset.datasetRefs) {
+        if (datasetRef.versions.empty()) {
+          continue;
+        }
+
+        // Find latest version
+        auto latestVersion = datasetRef.versions[0];
+        for (const auto& version : datasetRef.versions) {
+          if (version.tag > latestVersion.tag) {
+            latestVersion = version;
+          }
+        }
+
+        auto datasetRefLatest = DatasetRef{datasetRef};
+        datasetRefLatest.versions = {std::move(latestVersion)};
+        datasetLatest.datasetRefs.push_back(datasetRefLatest);
+      }
+
+      if (!datasetLatest.datasetRefs.empty()) {
         datasetsLatest.push_back(datasetLatest);
       }
     }
@@ -208,19 +249,27 @@ namespace Nextclade {
     return datasetsFiltered;
   }
 
-  std::vector<Dataset> filterDatasetsByVersion(const std::vector<Dataset>& datasets,
-    const std::string& datasetVersionDesired) {
+  std::vector<Dataset> filterDatasetsByTag(const std::vector<Dataset>& datasets, const std::string& versionTagDesired) {
     std::vector<Dataset> datasetsVersioned;
     for (const auto& dataset : datasets) {
-      // Extract only the requested version
-      const auto& found = std::find_if(dataset.versions.cbegin(), dataset.versions.cend(),
-        [&datasetVersionDesired](const DatasetVersion& version) { return version.tag == datasetVersionDesired; });
+      auto datasetVersioned = Dataset{dataset};
+      datasetVersioned.datasetRefs = {};
 
-      if (found != dataset.versions.cend()) {
-        // Remember this dataset, but only among all versions in it only keep the desired version
-        Dataset datasetVersioned{dataset};
-        datasetVersioned.versions = {DatasetVersion{*found}};
-        datasetsVersioned.emplace_back(datasetVersioned);
+      for (const auto& datasetRef : dataset.datasetRefs) {
+        // Extract only the requested version
+        const auto& found = std::find_if(datasetRef.versions.cbegin(), datasetRef.versions.cend(),
+          [&versionTagDesired](const DatasetVersion& version) { return version.tag == versionTagDesired; });
+
+        if (found != datasetRef.versions.cend()) {
+          // Remember this dataset ref, but among all versions in it only keep the desired version
+          DatasetRef datasetRefVersioned{datasetRef};
+          datasetRefVersioned.versions = {DatasetVersion{*found}};
+          datasetVersioned.datasetRefs.emplace_back(std::move(datasetRefVersioned));
+        }
+      }
+
+      if (!datasetVersioned.datasetRefs.empty()) {
+        datasetsVersioned.emplace_back(std::move(datasetVersioned));
       }
     }
 
@@ -247,37 +296,55 @@ namespace Nextclade {
     fmt::memory_buffer buf;
     for (const auto& dataset : datasets) {
       fmt::format_to(buf, "{:s} (name: {:s})\n", dataset.nameFriendly, dataset.name);
-      fmt::format_to(buf, "{:s}\n", dataset.description);
-      fmt::format_to(buf, "Versions ({:d}):\n\n", dataset.versions.size());
-      for (const auto& version : dataset.versions) {
-        fmt::format_to(buf, "  Tag                   : {:s}\n", version.tag);
-        fmt::format_to(buf, "  Comment               : {:s}\n", version.comment);
+      fmt::format_to(buf, "{:s}\n\n", dataset.description);
 
-        fmt::format_to(buf, "  Nextclade CLI compat. : {:s}\n",
-          formatVersionCompatibility(version.compatibility.nextcladeCli));
-        fmt::format_to(buf, "  Nextclade Web compat. : {:s}\n",
-          formatVersionCompatibility(version.compatibility.nextcladeWeb));
+      for (const auto& datasetRef : dataset.datasetRefs) {
+        const auto& ref = datasetRef.reference;
+        fmt::format_to(buf, "  Reference: {:s} ({:s}: {:s})\n\n", ref.strainName, ref.source, ref.accession);
 
-        fmt::format_to(buf, "\n");
+        fmt::format_to(buf,
+          "  Fetch the latest version of this dataset with:\n\n    nextclade dataset get --name='{}' "
+          "--reference='{}'\n\n",
+          dataset.name, ref.accession);
 
-        fmt::format_to(buf, "  Zip bundle            : {:s}\n", version.zipBundle);
+        fmt::format_to(buf, "  Versions ({:d}):\n\n", datasetRef.versions.size());
+        for (const auto& version : datasetRef.versions) {
+          fmt::format_to(buf, "    Tag                   : {:s}\n", version.tag);
+          fmt::format_to(buf, "    Comment               : {:s}\n", version.comment);
 
-        fmt::format_to(buf, "\n");
+          fmt::format_to(buf, "    Nextclade CLI compat. : {:s}\n",
+            formatVersionCompatibility(version.compatibility.nextcladeCli));
+          fmt::format_to(buf, "    Nextclade Web compat. : {:s}\n",
+            formatVersionCompatibility(version.compatibility.nextcladeWeb));
 
-        fmt::format_to(buf, "  Version tag file      : {:s}\n", version.files.at("tag"));
+          fmt::format_to(buf, "\n");
 
-        fmt::format_to(buf, "\n");
+          fmt::format_to(buf, "    Zip bundle            : {:s}\n", version.zipBundle);
 
-        fmt::format_to(buf, "  Files:\n");
-        fmt::format_to(buf, "    Reference sequence  : {:s}\n", version.files.at("reference"));
-        fmt::format_to(buf, "    Reference tree      : {:s}\n", version.files.at("tree"));
-        fmt::format_to(buf, "    Gene map            : {:s}\n", version.files.at("geneMap"));
-        fmt::format_to(buf, "    QC configuration    : {:s}\n", version.files.at("qc"));
-        fmt::format_to(buf, "    PCR primers         : {:s}\n", version.files.at("primers"));
-        fmt::format_to(buf, "    Example sequences   : {:s}\n", version.files.at("sequences"));
+          fmt::format_to(buf, "\n");
+
+          fmt::format_to(buf, "    Version tag file      : {:s}\n", version.files.at("tag"));
+
+          fmt::format_to(buf, "\n");
+
+          fmt::format_to(buf, "    Files:\n");
+          fmt::format_to(buf, "      Reference sequence  : {:s}\n", version.files.at("reference"));
+          fmt::format_to(buf, "      Reference tree      : {:s}\n", version.files.at("tree"));
+          fmt::format_to(buf, "      Gene map            : {:s}\n", version.files.at("geneMap"));
+          fmt::format_to(buf, "      QC configuration    : {:s}\n", version.files.at("qc"));
+          fmt::format_to(buf, "      PCR primers         : {:s}\n", version.files.at("primers"));
+          fmt::format_to(buf, "      Example sequences   : {:s}\n", version.files.at("sequences"));
+
+          fmt::format_to(buf, "\n");
+
+          fmt::format_to(buf,
+            "    Fetch this particular version of this dataset with:\n\n    nextclade dataset get --name='{}' "
+            "--reference='{}' --tag='{}'\n\n",
+            dataset.name, ref.accession, version.tag);
 
 
-        fmt::format_to(buf, "\n");
+          fmt::format_to(buf, "\n");
+        }
       }
       fmt::format_to(buf, "\n");
     }
@@ -324,8 +391,49 @@ namespace Nextclade {
     return os;
   }
 
+  bool operator==(const DatasetRefSeq& left, const DatasetRefSeq& right) {
+    return left.accession == right.accession && left.source == right.source && left.strainName == right.strainName;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const DatasetRefSeq& datasetRef) {
+    os << "\n{\n";
+    os << "  "
+          "accession: "
+       << datasetRef.accession << "\n";
+    os << "  "
+          "strainName: "
+       << datasetRef.strainName << "\n";
+    os << "  "
+          "source: "
+       << datasetRef.source << "\n";
+    os << "}\n";
+    return os;
+  }
+
+
+  bool operator==(const DatasetRef& left, const DatasetRef& right) {
+    return left.reference == right.reference && left.reference == right.reference;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const DatasetRef& datasetRef) {
+    os << "\n{\n";
+    os << "  "
+          "reference: "
+       << datasetRef.reference << "\n";
+    os << "  "
+          "enabled: "
+       << datasetRef.enabled << "\n";
+    os << "  "
+          "versions: [\n";
+    for (const auto& version : datasetRef.versions) {
+      os << version << ",\n";
+    }
+    os << "}\n";
+    return os;
+  }
+
   bool operator==(const Dataset& left, const Dataset& right) {
-    return left.name == right.name && left.versions == right.versions;
+    return left.name == right.name && left.datasetRefs == right.datasetRefs;
   }
 
   std::ostream& operator<<(std::ostream& os, const Dataset& dataset) {
@@ -343,12 +451,9 @@ namespace Nextclade {
           "description: "
        << dataset.description << "\n";
     os << "  "
-          "referenceSequence: "
-       << dataset.referenceSequence << "\n";
-    os << "  "
-          "versions: [\n";
-    for (const auto& version : dataset.versions) {
-      os << version << ",\n";
+          "datasetRefs: [\n";
+    for (const auto& datasetRef : dataset.datasetRefs) {
+      os << datasetRef << ",\n";
     }
     os << "}\n";
     return os;

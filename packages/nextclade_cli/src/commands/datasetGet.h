@@ -18,7 +18,7 @@ namespace Nextclade {
       outputDatasets = getLatestCompatibleDatasets(outputDatasets, thisVersion);
       outputDatasets = getEnabledDatasets(outputDatasets);
     } else {
-      outputDatasets = filterDatasetsByVersion(outputDatasets, cliParams->tag);
+      outputDatasets = filterDatasetsByTag(outputDatasets, cliParams->tag);
     }
 
     return outputDatasets;
