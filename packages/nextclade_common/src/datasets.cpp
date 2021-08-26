@@ -414,7 +414,7 @@ namespace Nextclade {
 
 
   bool operator==(const DatasetRef& left, const DatasetRef& right) {
-    return left.reference == right.reference && left.reference == right.reference;
+    return left.reference == right.reference && left.versions == right.versions;
   }
 
   std::ostream& operator<<(std::ostream& os, const DatasetRef& datasetRef) {
