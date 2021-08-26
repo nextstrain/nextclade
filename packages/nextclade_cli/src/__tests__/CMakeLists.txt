@@ -10,8 +10,9 @@ find_package(fmt 7.1.0 REQUIRED)
 
 add_executable(${PROJECT_NAME}
   _musl_workarounds.c
-  datasetList.test.cpp
   datasetGet.test.cpp
+  datasetList.test.cpp
+  makeTestDatasets.h
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
