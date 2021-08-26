@@ -7,8 +7,8 @@
 #include <nextclade_json/nextclade_json.h>
 #include <tbb/task_group.h>
 
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <nlohmann/json.hpp>
 #include <semver.hpp>
 #include <string>
@@ -131,7 +131,9 @@ namespace Nextclade {
     tbb::task_group taskGroup;
 
     for (const auto& [key, value] : version.files) {
-      const auto filename = fs::path{value}.filename();
+      std::vector<std::string> urlParts;
+      boost::algorithm::split(urlParts, value, boost::is_any_of("/"));
+      const auto filename = urlParts.back();
       taskGroup.run([&] { writeFile(fs::path(outDir) / filename, fetch(value)); });
     }
 
