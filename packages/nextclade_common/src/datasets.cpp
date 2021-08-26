@@ -150,6 +150,10 @@ namespace Nextclade {
       auto enabledDataset = Dataset{dataset};
       enabledDataset.datasetRefs = {};
       for (const auto& datasetRef : dataset.datasetRefs) {
+        if (!datasetRef.enabled) {
+          continue;
+        }
+
         auto enabledDatasetRef = DatasetRef{datasetRef};
         enabledDatasetRef.versions = {};
 
