@@ -374,7 +374,7 @@ namespace Nextclade {
   }
 
   bool operator==(const DatasetVersion& left, const DatasetVersion& right) {
-    return left.enabled == right.enabled && left.tag == right.tag && left.compatibility == right.compatibility;
+    return left.tag == right.tag && left.compatibility == right.compatibility;
   }
 
   std::ostream& operator<<(std::ostream& os, const DatasetVersion& ver) {
