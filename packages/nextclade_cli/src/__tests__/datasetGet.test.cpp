@@ -11,7 +11,7 @@
 
 #define EXPECT_ARR_EQ(expected, actual) ASSERT_THAT(actual, ::testing::ElementsAreArray(expected));
 
-using namespace Nextclade;// NOLINT(google-build-using-namespace)
+using namespace Nextclade;
 
 const std::string thisVersion = "1.2.1";
 

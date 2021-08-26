@@ -305,6 +305,13 @@
               "isOptional": false
             },
             {
+              "flags": ["-r", "--reference"],
+              "desc": "Download dataset based on this reference sequence. Accession ID is used to specify the reference sequence. If not specified, will download dataset based on current default reference sequence, as defined by dataset maintainers. The default reference sequence can change over time. Use `dataset list` command to view available options.",
+              "cppName": "reference",
+              "cppType": "std::string",
+              "isOptional": true
+            },
+            {
               "flags": ["-t", "--tag"],
               "desc": "Version tag of the dataset to download. If this flag is not provided or is 'latest', then the latest compatible version is downloaded.",
               "cppName": "tag",
@@ -338,6 +345,13 @@
               "flags": ["-n", "--name"],
               "desc": "List only datasets with this name.",
               "cppName": "name",
+              "cppType": "std::string",
+              "isOptional": true
+            },
+            {
+              "flags": ["-r", "--reference"],
+              "desc": "List only datasets based on this reference sequence. Accession ID is used to specify the reference sequence. Use `dataset list` command to view available options.",
+              "cppName": "reference",
               "cppType": "std::string",
               "isOptional": true
             },
