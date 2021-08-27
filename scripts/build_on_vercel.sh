@@ -93,8 +93,4 @@ export NEXTCLADE_EMSDK_USE_CACHE="0"
 
 make prod-wasm-nowatch
 
-pushd packages/web >/dev/null
-  cp .env.vercel .env
-popd >/dev/null
-
 make prod-web-nowatch
