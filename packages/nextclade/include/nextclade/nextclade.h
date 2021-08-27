@@ -538,4 +538,8 @@ namespace Nextclade {
   std::string formatStopCodon(const StopCodonLocation& stopCodon);
 
   const char* getVersion();
+
+  const char* getAnalysisResultsJsonSchemaVersion();
+
+  const char* getQcConfigJsonSchemaVersion();
 }// namespace Nextclade

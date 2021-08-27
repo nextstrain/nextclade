@@ -1,9 +1,8 @@
 import React, { HTMLProps, ReactNode } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { FaApple, FaDocker, FaGithub, FaLinux, FaNpm } from 'react-icons/fa'
+import { FaApple, FaBook, FaDocker, FaGithub, FaGlobeAmericas, FaLinux } from 'react-icons/fa'
 import {
-  Badge,
   Card as ReactstrapCard,
   CardBody as ReactstrapCardBody,
   CardFooter as ReactstrapCardFooter,
@@ -58,22 +57,15 @@ export function DownloadLink({ Icon, text, url, ...restProps }: DownloadLinkProp
   )
 }
 
-const BadgeDeprecated = styled(Badge)`
-  position: relative;
-  top: -12px;
-  font-size: 0.8rem;
-`
-
 export function Downloads() {
   const { t } = useTranslation()
 
   return (
-    <Row noGutters>
+    <Row noGutters className="mt-5">
       <Col>
         <Row noGutters>
           <Col>
-            <h3 className="text-center">{t('Downloads')}</h3>
-            <p className="text-center mx-2">{t('For advanced use-cases check out these command-line tools:')}</p>
+            <h3 className="text-center mx-2">{t('For more advanced use-cases:')}</h3>
           </Col>
         </Row>
 
@@ -83,18 +75,21 @@ export function Downloads() {
               <CardHeader>
                 <h4 className="text-center">
                   <span>
-                    <span>{t('Nextclade CLI (v1)')}</span>
-                    <BadgeDeprecated color="primary">{t('Recommended')}</BadgeDeprecated>
+                    <span>{t('Nextclade CLI')}</span>
                   </span>
                 </h4>
               </CardHeader>
 
               <CardBody>
-                <span className="text-justify mx-2">
+                <p className="text-justify mx-2">
+                  {t('Nextclade CLI is a command line version of this web application.')}
+                </p>
+
+                <p className="text-justify mx-2">
                   {t(
-                    'Nextclade CLI is a command line version of Nextclade in the form of a standalone executable. It consumes the same inputs and the same outputs as this web application, but is faster, more configuable and more convenient for scripting, automation, and integration into bioinformatics pipelines. Nextclade CLI is available for as a single-file download for different platforms and as a Docker container image. After download, type "nextclade --help" to get started.',
+                    'It is a single-file, standalone executable, consumes the same inputs and the same outputs as this web application, but is faster, more configurable and more convenient for scripting, automation, and integration into bioinformatics pipelines. Nextclade CLI is available for as a single-file download for different platforms and as a Docker container image. After download, type "nextclade --help" to get started.',
                   )}
-                </span>
+                </p>
               </CardBody>
 
               <CardFooter>
@@ -127,6 +122,11 @@ export function Downloads() {
                     text={t('nextstrain/nextclade')}
                     url="https://hub.docker.com/r/nextstrain/nextclade"
                   />
+                  <DownloadLink
+                    Icon={<FaBook color="#777777" size={20} />}
+                    text={t('Documentation')}
+                    url="https://docs.nextstrain.org/projects/nextclade/nextclade-cli"
+                  />
                 </DownloadLinkList>
               </CardFooter>
             </Card>
@@ -137,17 +137,19 @@ export function Downloads() {
               <CardHeader>
                 <h4 className="text-center">
                   <span>
-                    <span>{t('Nextalign CLI (v1)')}</span>
+                    <span>{t('Nextalign CLI')}</span>
                   </span>
                 </h4>
               </CardHeader>
 
               <CardBody>
-                <span className="text-justify mx-2">
+                <p className="text-justify mx-2">{t('Nextalign CLI is a sequence reference alignment tool.')}</p>
+
+                <p className="text-justify mx-2">
                   {t(
-                    'Nextalign CLI is a sequence reference alignment tool which uses the same alignment algorithm as Nextclade. Use it if you only need sequence alignedment and translated peptides, without full analysis and quality control features. It is available as a set of static executables for different platforms and as a Docker container image. After download, type "nextalign --help" to get started.',
+                    'It uses the same alignment algorithm as Nextclade. Useful if you only need sequence alignment and translated peptides, without full analysis and quality control features. It is available as a set of static executables for different platforms and as a Docker container image. After download, type "nextalign --help" to get started.',
                   )}
-                </span>
+                </p>
               </CardBody>
 
               <CardFooter>
@@ -180,6 +182,11 @@ export function Downloads() {
                     text={t('nextstrain/nextalign')}
                     url="https://hub.docker.com/r/nextstrain/nextalign"
                   />
+                  <DownloadLink
+                    Icon={<FaBook color="#777777" size={20} />}
+                    text={t('Documentation')}
+                    url="https://docs.nextstrain.org/projects/nextclade/nextalign-cli"
+                  />
                 </DownloadLinkList>
               </CardFooter>
             </Card>
@@ -190,31 +197,61 @@ export function Downloads() {
               <CardHeader>
                 <h4 className="text-center">
                   <span>
-                    <span>{t('Nextclade CLI (v0)')}</span>
-                    <BadgeDeprecated color="secondary">{t('Deprecated')}</BadgeDeprecated>
+                    <span>{t('Nextstrain')}</span>
                   </span>
                 </h4>
               </CardHeader>
 
               <CardBody>
-                <span className="text-justify mx-2">
+                <p className="text-justify mx-2">{t('Nextclade is a part of Nextstrain project.')}</p>
+
+                <p className="text-justify mx-2">
                   {t(
-                    "Nextclade CLI v0 is the previous implementation of Nextclade's algorithm. For all new experiements, it is now recommended to use Nextxclade CLI v1. Use v0 only if you have to. It is available as an NPM package and as a Docker container image.",
+                    'Nextstrain is an open-source project to harness the scientific and public health potential of pathogen genome data. It provides continually-updated view of publicly available data with powerful analyses and visualizations showing pathogen evolution and epidemic spread. The goal is to aid epidemiological understanding and improve outbreak response.',
                   )}
-                </span>
+                </p>
+
+                <p className="text-justify mx-2">
+                  {t('Learn more about Nextstrain project as a whole, and about its subprojects.')}
+                </p>
               </CardBody>
 
               <CardFooter>
                 <DownloadLinkList>
                   <DownloadLink
-                    Icon={<FaDocker color="#369cec" size={20} />}
-                    text="nextstrain/nextclade"
-                    url="https://hub.docker.com/r/nextstrain/nextclade"
+                    Icon={<FaGlobeAmericas color="#4f88b0" size={20} />}
+                    text={t('nextstrain.org')}
+                    url="https://nextstrain.org/"
                   />
                   <DownloadLink
-                    Icon={<FaNpm color="#cc5555" size={20} />}
-                    text="@nextstrain/nextclade on NPM"
-                    url="https://www.npmjs.com/package/@nextstrain/nextclade"
+                    Icon={<FaGithub color="444" size={18} />}
+                    text={t('Source code')}
+                    url="https://github.com/nextstrain"
+                  />
+                  <DownloadLink
+                    Icon={<FaBook color="#777777" size={20} />}
+                    text={t('Documentation: Home')}
+                    url="https://docs.nextstrain.org/"
+                  />
+                  <DownloadLink
+                    Icon={<FaBook color="#777777" size={20} />}
+                    text={t('Documentation: Augur')}
+                    url="https://docs.nextstrain.org/projects/augur"
+                  />
+                  <DownloadLink
+                    Icon={<FaBook color="#777777" size={20} />}
+                    text={t('Documentation: Auspice')}
+                    url="https://docs.nextstrain.org/projects/auspice"
+                  />
+                  <DownloadLink
+                    Icon={<FaBook color="#777777" size={20} />}
+                    text={t('Documentation: Nextstrain CLI')}
+                    url="https://docs.nextstrain.org/projects/cli"
+                  />
+                  <DownloadLink
+                    Icon={<FaGlobeAmericas color="#4f88b0" size={20} />}
+                    text={t('auspice.us')}
+                    url="https://auspice.us/"
                   />
                 </DownloadLinkList>
               </CardFooter>
