@@ -3,6 +3,8 @@ import React from 'react'
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
 
+import wasmPath from 'src/generated/wasm/nextclade_wasm.wasm'
+
 import {
   PROJECT_NAME,
   PROJECT_DESCRIPTION,
@@ -83,6 +85,8 @@ export default class Document extends NextDocument {
 
           <link rel="manifest" href={URL_MANIFEST_JSON} />
           <link rel="shortcut icon" href={URL_FAVICON} />
+
+          <link rel="prefetch" href={wasmPath} />
 
           {GenericIcons}
 

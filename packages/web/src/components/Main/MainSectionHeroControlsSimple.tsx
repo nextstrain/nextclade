@@ -1,26 +1,24 @@
-import React, { useRef } from 'react'
+import React, { useCallback, useRef } from 'react'
 
 import { delay } from 'lodash'
 import { connect } from 'react-redux'
 import { push } from 'connected-next-router'
 import { useTranslation } from 'react-i18next'
-import { Button, Col, Row } from 'reactstrap'
-import { AlgorithmInputString } from 'src/io/AlgorithmInput'
+import { Button, Col, Container, Row } from 'reactstrap'
 import styled from 'styled-components'
 
-import { getSequenceDatum } from 'src/algorithms/defaults/viruses'
 import { FilePicker } from 'src/components/Main/FilePicker'
 
 import type { State } from 'src/state/reducer'
 import type { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import {
-  algorithmRunWithSequencesAsync,
+  algorithmRunAsync,
   exportCsvTrigger,
   removeFasta,
   setFasta,
   setIsDirty,
 } from 'src/state/algorithm/algorithm.actions'
-import { selectCanExport, selectParams } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanDownload, selectParams } from 'src/state/algorithm/algorithm.selectors'
 import { FileIconFasta } from './UploaderFileIcons'
 
 export const FilePickerSimple = styled(FilePicker)`
@@ -37,24 +35,21 @@ export interface MainSectionHeroControlsProps {
 
   setIsDirty(isDirty: boolean): void
 
-  algorithmRunTrigger(_0: unknown): void
-
-  algorithmRunWithSequencesTrigger(input: AlgorithmInput): void
+  algorithmRunAsyncTrigger(input: AlgorithmInput): void
 
   goToResults(): void
 }
 
 const mapStateToProps = (state: State) => ({
   params: selectParams(state),
-  canExport: selectCanExport(state),
+  canExport: selectCanDownload(state),
 })
 
 const mapDispatchToProps = {
   setIsDirty,
   setFasta: setFasta.trigger,
   removeFasta,
-  algorithmRunTrigger: algorithmRunWithSequencesAsync.trigger,
-  algorithmRunWithSequencesTrigger: algorithmRunWithSequencesAsync.trigger,
+  algorithmRunAsyncTrigger: algorithmRunAsync.trigger,
   exportTrigger: () => exportCsvTrigger(),
   goToResults: () => push('/results'),
 }
@@ -68,8 +63,7 @@ export function MainSectionHeroControlsDisconnected({
   params,
   canExport,
   setIsDirty,
-  algorithmRunTrigger,
-  algorithmRunWithSequencesTrigger,
+  algorithmRunAsyncTrigger,
   goToResults,
   setFasta,
   removeFasta,
@@ -77,22 +71,20 @@ export function MainSectionHeroControlsDisconnected({
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  function loadDefaultData() {
+  const runExample = useCallback(() => {
     setIsDirty(true)
     inputRef?.current?.focus()
-    const seqData = getSequenceDatum(params.virus.name)
-    setFasta(new AlgorithmInputString(seqData, t('Example sequences')))
-    delay(algorithmRunWithSequencesTrigger, 250, new AlgorithmInputString(seqData, t('Example sequences')))
-  }
+    delay(algorithmRunAsyncTrigger, 1000)
+  }, [algorithmRunAsyncTrigger, setIsDirty])
 
   async function onUpload(input: AlgorithmInput) {
     setIsDirty(true)
-    algorithmRunWithSequencesTrigger(input)
+    algorithmRunAsyncTrigger(input)
   }
 
   return (
-    <div>
-      <Row>
+    <Container fluid className="p-0">
+      <Row noGutters>
         <Col>
           <FilePickerSimple
             canCollapse={false}
@@ -110,13 +102,13 @@ export function MainSectionHeroControlsDisconnected({
         </Col>
       </Row>
 
-      <Row>
+      <Row noGutters>
         <Col>
-          <Button color="link" onClick={loadDefaultData}>
+          <Button color="link" onClick={runExample}>
             <small>{t('Show me an Example')}</small>
           </Button>
         </Col>
       </Row>
-    </div>
+    </Container>
   )
 }

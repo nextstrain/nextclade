@@ -1,11 +1,10 @@
 import { intersectionWith } from 'lodash'
-import { AMINOACID_GAP } from 'src/algorithms/codonTable'
 
+import { AMINOACID_GAP } from 'src/constants'
 import { parseAminoacidChange } from 'src/helpers/parseAminoacidChange'
 import { notUndefined } from 'src/helpers/notUndefined'
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { AminoacidSubstitution } from 'src/algorithms/types'
-
 import { splitFilterString } from './splitFilterString'
 
 export function aminoacidChangesAreEqual(filter: Partial<AminoacidSubstitution>, actual: AminoacidSubstitution) {

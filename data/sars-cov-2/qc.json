@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "1.2.0",
+  "privateMutations": {
+    "enabled": true,
+    "typical": 8,
+    "cutoff": 24
+  },
+  "missingData": {
+    "enabled": true,
+    "missingDataThreshold": 2700,
+    "scoreBias": 300
+  },
+  "snpClusters": {
+    "enabled": true,
+    "windowSize": 100,
+    "clusterCutOff": 6,
+    "scoreWeight": 50
+  },
+  "mixedSites": {
+    "enabled": true,
+    "mixedSitesThreshold": 10
+  },
+  "frameShifts": {
+    "enabled": true
+  },
+  "stopCodons": {
+    "enabled": true,
+    "ignoredStopCodons": [
+      {"geneName": "ORF8", "codon": 26},
+      {"geneName": "ORF8", "codon": 67}
+    ]
+  }
+}

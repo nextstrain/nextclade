@@ -1,30 +1,27 @@
-export enum ExportFormat {
-  CSV = 'CSV',
-  TSV = 'TSV',
-  JSON = 'JSON',
-  TREE_JSON = 'Auspice',
-}
+import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 
 export interface UiState {
+  isSettingsDialogOpen: boolean
   sequenceView: {
     zoom: number
     pan: number
   }
   filterPanelCollapsed: boolean
   treeFilterPanelCollapsed: boolean
-  exportFormat: ExportFormat
   showWhatsnew: boolean
   showNewRunPopup: boolean
+  viewedGene: string
 }
 
 export const uiDefaultState: UiState = {
+  isSettingsDialogOpen: false,
   sequenceView: {
     zoom: 1,
     pan: 0,
   },
   filterPanelCollapsed: true,
   treeFilterPanelCollapsed: true,
-  exportFormat: ExportFormat.CSV,
   showWhatsnew: false,
   showNewRunPopup: false,
+  viewedGene: GENE_OPTION_NUC_SEQUENCE,
 }

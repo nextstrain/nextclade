@@ -8,15 +8,19 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
 
-import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
+import { QcStatus } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { Sorting } from 'src/helpers/sortResults'
+import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
+import { setViewedGene } from 'src/state/ui/ui.actions'
 import { setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
 
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
+import { PeptideView } from 'src/components/SequenceView/PeptideView'
+import { SequenceSelector } from 'src/components/SequenceView/SequenceSelector'
 
 import { ColumnName } from './ColumnName'
 import { ColumnQCStatus } from './ColumnQCStatus'
@@ -25,12 +29,14 @@ import { ColumnMutations } from './ColumnMutations'
 import { ColumnNonACGTNs } from './ColumnNonACGTNs'
 import { ColumnMissing } from './ColumnMissing'
 import { ColumnGaps } from './ColumnGaps'
+import { ColumnInsertions } from './ColumnInsertions'
 import { ResultsControlsSort } from './ResultsControlsSort'
 import { ButtonHelp } from './ButtonHelp'
 
 import HelpTipsColumnClade from './HelpTips/HelpTipsColumnClade.mdx'
 import HelpTipsColumnGaps from './HelpTips/HelpTipsColumnGaps.mdx'
 import HelpTipsColumnId from './HelpTips/HelpTipsColumnId.mdx'
+import HelpTipsColumnInsertions from './HelpTips/HelpTipsColumnInsertions.mdx'
 import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
 import HelpTipsColumnMut from './HelpTips/HelpTipsColumnMut.mdx'
 import HelpTipsColumnNonAcgtn from './HelpTips/HelpTipsColumnNonAcgtn.mdx'
@@ -46,12 +52,13 @@ const HEADER_ROW_CONTENT_HEIGHT = 60
 export const RESULTS_TABLE_FLEX_BASIS = {
   id: 50,
   seqName: 300,
-  qc: 100,
-  clade: 60,
+  qc: 130,
+  clade: 125,
   mut: 60,
   nonACGTN: 70,
   ns: 60,
   gaps: 60,
+  insertions: 60,
 } as const
 
 export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
@@ -123,6 +130,11 @@ export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; 
   padding-left: 5px;
 `
 
+export const TableCellAlignedLeft = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
+  text-align: left;
+  padding-left: 5px;
+`
+
 export const TableRowPending = styled(TableRow)`
   background-color: #d2d2d2;
   color: #818181;
@@ -133,16 +145,24 @@ export const TableRowError = styled(TableRow)<{ even?: boolean }>`
   color: #962d26;
 `
 
+export const ButtonHelpStyled = styled(ButtonHelp)`
+  display: block;
+`
+
 const highlightRowsWithIssues = true
 
+export interface TableRowDatum extends SequenceAnalysisState {
+  viewedGene: string
+}
+
 export interface RowProps extends ListChildComponentProps {
-  data: SequenceAnalysisState[]
+  data: TableRowDatum[]
 }
 
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { id, seqName, errors, result: sequence } = data[index]
+  const { id, seqName, warnings, errors, result: sequence, viewedGene } = data[index]
   const qc = sequence?.qc
 
   if (errors.length > 0) {
@@ -153,7 +173,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         </TableCell>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
+          <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
         </TableCellName>
 
         <TableCell grow={20} shrink={20}>
@@ -171,7 +191,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         </TableCell>
 
         <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
+          <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
         </TableCellName>
 
         <TableCell grow={20} shrink={20}>
@@ -184,9 +204,9 @@ function TableRowComponent({ index, style, data }: RowProps) {
   const even = index % 2 === 0
   let color = even ? '#ededed' : '#fcfcfc'
   if (highlightRowsWithIssues && qc) {
-    if (qc.overallStatus === QCRuleStatus.mediocre) {
+    if (qc.overallStatus === QcStatus.mediocre) {
       color = mix(0.5, color, '#ffeeaa')
-    } else if (qc.overallStatus === QCRuleStatus.bad) {
+    } else if (qc.overallStatus === QcStatus.bad) {
       color = mix(0.5, color, '#eeaaaa')
     }
   }
@@ -198,16 +218,16 @@ function TableRowComponent({ index, style, data }: RowProps) {
       </TableCell>
 
       <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
-        <ColumnName seqName={seqName} sequence={sequence} qc={qc} />
+        <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
       </TableCellName>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
         <ColumnQCStatus sequence={sequence} qc={qc} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
+      <TableCellAlignedLeft basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
         <ColumnClade sequence={sequence} />
-      </TableCell>
+      </TableCellAlignedLeft>
 
       <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
         <ColumnMutations sequence={sequence} />
@@ -225,8 +245,16 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <ColumnGaps sequence={sequence} />
       </TableCell>
 
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.insertions} grow={0} shrink={0}>
+        <ColumnInsertions sequence={sequence} />
+      </TableCell>
+
       <TableCell grow={20} shrink={20}>
-        <SequenceView key={seqName} sequence={sequence} />
+        {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
+          <SequenceView key={seqName} sequence={sequence} />
+        ) : (
+          <PeptideView key={seqName} sequence={sequence} viewedGene={viewedGene} warnings={warnings} />
+        )}
       </TableCell>
     </TableRow>
   )
@@ -237,6 +265,7 @@ const TableRowMemo = memo(TableRowComponent, areEqual)
 const mapStateToProps = (state: State) => ({
   resultsFiltered: state.algorithm.resultsFiltered,
   filterPanelCollapsed: state.ui.filterPanelCollapsed,
+  viewedGene: state.ui.viewedGene,
   sequenceViewZoom: state.ui.sequenceView.zoom,
   sequenceViewPan: state.ui.sequenceView.pan,
 })
@@ -256,17 +285,42 @@ const mapDispatchToProps = {
   sortByCladeAsc: () => resultsSortTrigger({ category: SortCategory.clade, direction: SortDirection.asc }),
   sortByCladeDesc: () => resultsSortTrigger({ category: SortCategory.clade, direction: SortDirection.desc }),
 
-  sortByTotalMutationsAsc: () => resultsSortTrigger({ category: SortCategory.totalMutations, direction: SortDirection.asc }), // prettier-ignore
-  sortByTotalMutationsDesc: () => resultsSortTrigger({ category: SortCategory.totalMutations, direction: SortDirection.desc }), // prettier-ignore
+  sortByTotalMutationsAsc: () => resultsSortTrigger({
+    category: SortCategory.totalMutations,
+    direction: SortDirection.asc,
+  }), // prettier-ignore
+  sortByTotalMutationsDesc: () => resultsSortTrigger({
+    category: SortCategory.totalMutations,
+    direction: SortDirection.desc,
+  }), // prettier-ignore
 
-  sortByTotalNonAcgtnAsc: () => resultsSortTrigger({ category: SortCategory.totalNonACGTNs, direction: SortDirection.asc }), // prettier-ignore
-  sortByTotalNonAcgtnDesc: () => resultsSortTrigger({ category: SortCategory.totalNonACGTNs, direction: SortDirection.desc }), // prettier-ignore
+  sortByTotalNonAcgtnAsc: () => resultsSortTrigger({
+    category: SortCategory.totalNonACGTNs,
+    direction: SortDirection.asc,
+  }), // prettier-ignore
+  sortByTotalNonAcgtnDesc: () => resultsSortTrigger({
+    category: SortCategory.totalNonACGTNs,
+    direction: SortDirection.desc,
+  }), // prettier-ignore
 
   sortByTotalNsAsc: () => resultsSortTrigger({ category: SortCategory.totalMissing, direction: SortDirection.asc }),
   sortByTotalNsDesc: () => resultsSortTrigger({ category: SortCategory.totalMissing, direction: SortDirection.desc }),
 
   sortByTotalGapsAsc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.asc }),
   sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
+
+  sortByTotalInsertionsAsc: () =>
+    resultsSortTrigger({
+      category: SortCategory.totalInsertions,
+      direction: SortDirection.asc,
+    }),
+  sortByTotalInsertionsDesc: () =>
+    resultsSortTrigger({
+      category: SortCategory.totalInsertions,
+      direction: SortDirection.desc,
+    }),
+
+  setViewedGene,
 
   setSequenceViewZoom,
   setSequenceViewPan,
@@ -277,25 +331,52 @@ export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToPro
 export interface ResultProps {
   resultsFiltered: SequenceAnalysisState[]
   filterPanelCollapsed: boolean
+  viewedGene: string
+
   sortByIdAsc(): void
+
   sortByIdDesc(): void
+
   sortByNameAsc(): void
+
   sortByNameDesc(): void
+
   sortByQcIssuesAsc(): void
+
   sortByQcIssuesDesc(): void
+
   sortByCladeAsc(): void
+
   sortByCladeDesc(): void
+
   sortByTotalMutationsAsc(): void
+
   sortByTotalMutationsDesc(): void
+
   sortByTotalNonAcgtnAsc(): void
+
   sortByTotalNonAcgtnDesc(): void
+
   sortByTotalNsAsc(): void
+
   sortByTotalNsDesc(): void
+
   sortByTotalGapsAsc(): void
+
   sortByTotalGapsDesc(): void
+
+  sortByTotalInsertionsAsc(): void
+
+  sortByTotalInsertionsDesc(): void
+
+  setViewedGene(viewedGene: string): void
+
   sequenceViewZoom: number
+
   setSequenceViewZoom(zoom: number): void
+
   sequenceViewPan: number
+
   setSequenceViewPan(zoom: number): void
 }
 
@@ -318,6 +399,10 @@ export function ResultsTableDisconnected({
   sortByTotalNsDesc,
   sortByTotalGapsAsc,
   sortByTotalGapsDesc,
+  sortByTotalInsertionsAsc,
+  sortByTotalInsertionsDesc,
+  viewedGene,
+  setViewedGene,
   sequenceViewZoom,
   setSequenceViewZoom,
   sequenceViewPan,
@@ -325,6 +410,7 @@ export function ResultsTableDisconnected({
 }: ResultProps) {
   const { t } = useTranslation()
   const data = resultsFiltered
+  const rowData: TableRowDatum[] = data.map((datum) => ({ ...datum, viewedGene }))
 
   const handleZoomChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -375,9 +461,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('ID')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-seq-id">
+            <ButtonHelpStyled identifier="btn-help-col-seq-id">
               <HelpTipsColumnId />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
@@ -385,9 +471,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Sequence name')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-seq-name">
+            <ButtonHelpStyled identifier="btn-help-col-seq-name">
               <HelpTipsColumnSeqName />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
@@ -395,9 +481,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('QC')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-qc">
+            <ButtonHelpStyled identifier="btn-help-col-qc">
               <HelpTipsColumnQC />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
@@ -405,9 +491,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Clade')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-clade" wide>
+            <ButtonHelpStyled identifier="btn-help-col-clade" wide>
               <HelpTipsColumnClade />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
@@ -415,9 +501,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Mut.')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-mut">
+            <ButtonHelpStyled identifier="btn-help-col-mut">
               <HelpTipsColumnMut />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.nonACGTN} grow={0} shrink={0}>
@@ -425,11 +511,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('non-ACGTN')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-nonacgtn">
-              <div className="d-flex w-100">
-                <HelpTipsColumnNonAcgtn />
-              </div>
-            </ButtonHelp>
+            <ButtonHelpStyled identifier="btn-help-col-nonacgtn">
+              <HelpTipsColumnNonAcgtn />
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.ns} grow={0} shrink={0}>
@@ -437,9 +521,9 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Ns')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-missing">
+            <ButtonHelpStyled identifier="btn-help-col-missing">
               <HelpTipsColumnMissing />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.gaps} grow={0} shrink={0}>
@@ -447,18 +531,28 @@ export function ResultsTableDisconnected({
               <TableCellText>{t('Gaps')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-gaps">
+            <ButtonHelpStyled identifier="btn-help-col-gaps">
               <HelpTipsColumnGaps />
-            </ButtonHelp>
+            </ButtonHelpStyled>
+          </TableHeaderCell>
+
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.insertions} grow={0} shrink={0}>
+            <TableHeaderCellContent>
+              <TableCellText>{t('Ins.')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByTotalInsertionsAsc} sortDesc={sortByTotalInsertionsDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelpStyled identifier="btn-help-col-insertions">
+              <HelpTipsColumnInsertions />
+            </ButtonHelpStyled>
           </TableHeaderCell>
 
           <TableHeaderCell grow={20}>
             <TableHeaderCellContent>
-              <TableCellText>{t('Sequence view')}</TableCellText>
+              <SequenceSelector viewedGene={viewedGene} setViewedGene={setViewedGene} />
             </TableHeaderCellContent>
-            <ButtonHelp identifier="btn-help-col-seq-view">
+            <ButtonHelpStyled identifier="btn-help-col-seq-view" tooltipWidth="600px">
               <HelpTipsColumnSeqView />
-            </ButtonHelp>
+            </ButtonHelpStyled>
           </TableHeaderCell>
         </TableHeaderRow>
 
@@ -472,7 +566,7 @@ export function ResultsTableDisconnected({
                 height={height - HEADER_ROW_HEIGHT}
                 itemCount={data.length}
                 itemSize={ROW_HEIGHT}
-                itemData={data}
+                itemData={rowData}
               >
                 {TableRowMemo}
               </FixedSizeList>

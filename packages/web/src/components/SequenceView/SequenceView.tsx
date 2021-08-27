@@ -4,14 +4,16 @@ import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import styled from 'styled-components'
 
+import { selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
 import type { State } from 'src/state/reducer'
 import { setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
 import { HorizontalDragScroll } from 'src/components/Common/HorizontalDragScroll'
 import type { AnalysisResult } from 'src/algorithms/types'
+
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
-import { SequenceMarkerMissingEnds } from './SequenceMarkerMissingEnds'
+import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 
 export const SequenceViewWrapper = styled(HorizontalDragScroll)`
   display: flex;
@@ -31,7 +33,7 @@ export const SequenceViewSVG = styled.svg`
 
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
-  genomeSize: number
+  genomeSize?: number
   zoom: number
   pan: number
   setSequenceViewPan(pan: number): void
@@ -39,7 +41,7 @@ export interface SequenceViewProps extends ReactResizeDetectorDimensions {
 }
 
 const mapStateToProps = (state: State) => ({
-  genomeSize: state.algorithm.params.virus.genomeSize,
+  genomeSize: selectGenomeSize(state),
   zoom: state.ui.sequenceView.zoom,
   pan: state.ui.sequenceView.pan,
 })
@@ -76,7 +78,7 @@ export function SequenceViewUnsizedDisconnected({
     [zoom, setSequenceViewZoom],
   )
 
-  if (!width) {
+  if (!width || !genomeSize) {
     return (
       <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
         <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
@@ -109,20 +111,6 @@ export function SequenceViewUnsizedDisconnected({
     )
   })
 
-  const missingEndViews = [
-    { start: 0, length: alignmentStart },
-    { start: alignmentEnd, length: genomeSize - alignmentEnd },
-  ].map((missingEnd) => {
-    return (
-      <SequenceMarkerMissingEnds
-        key={missingEnd.start}
-        seqName={seqName}
-        deletion={missingEnd}
-        pixelsPerBase={pixelsPerBase}
-      />
-    )
-  })
-
   const deletionViews = deletions.map((deletion) => {
     return (
       <SequenceMarkerGap key={deletion.start} seqName={seqName} deletion={deletion} pixelsPerBase={pixelsPerBase} />
@@ -133,10 +121,20 @@ export function SequenceViewUnsizedDisconnected({
     <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
       <SequenceViewSVG width={width} height={30} viewBox={`${pixelPan} 0 ${width * zoom} 10`}>
         <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
-        {missingEndViews}
+        <SequenceMarkerUnsequencedStart
+          seqName={seqName}
+          alignmentStart={alignmentStart}
+          pixelsPerBase={pixelsPerBase}
+        />
         {mutationViews}
         {missingViews}
         {deletionViews}
+        <SequenceMarkerUnsequencedEnd
+          seqName={seqName}
+          genomeSize={genomeSize}
+          alignmentEnd={alignmentEnd}
+          pixelsPerBase={pixelsPerBase}
+        />
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )

@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 
-import { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import { getSafeId } from 'src/helpers/getSafeId'
+import { TableSlim } from 'src/components/Common/TableSlim'
+import { ColumnCladeProps } from 'src/components/Results/ColumnClade'
 import { ListOfMutations } from 'src/components/Results/ListOfMutations'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfAminoacidSubstitutions } from 'src/components/SequenceView/ListOfAminoacidSubstitutions'
@@ -18,11 +19,16 @@ export function ColumnMutations({ sequence }: ColumnCladeProps) {
   return (
     <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
       {totalMutations}
-      <Tooltip isOpen={showTooltip} target={id}>
-        <ListOfMutations substitutions={substitutions} />
-        <ListOfAminoacidSubstitutions aminoacidSubstitutions={aaSubstitutions} />
-        <ListOfAminoacidDeletions aminoacidDeletions={aaDeletions} />
-        <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
+      <Tooltip isOpen={showTooltip} target={id} wide fullWidth>
+        <TableSlim borderless className="mb-1">
+          <thead />
+          <tbody>
+            <ListOfMutations substitutions={substitutions} />
+            <ListOfAminoacidSubstitutions aminoacidSubstitutions={aaSubstitutions} />
+            <ListOfAminoacidDeletions aminoacidDeletions={aaDeletions} />
+            <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
+          </tbody>
+        </TableSlim>
       </Tooltip>
     </div>
   )

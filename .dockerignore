@@ -1,0 +1,5 @@
+**/*
+!.out/bin/nextalign-Linux-x86_64
+!.out/bin/nextclade-Linux-x86_64
+!scripts/install_emscripten.sh
+!scripts/install_node.sh
