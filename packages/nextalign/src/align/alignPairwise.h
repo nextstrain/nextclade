@@ -18,10 +18,15 @@ struct AlignmentResult {
   int alignmentScore;
 };
 
-using NucleotideAlignmentResult = AlignmentResult<Nucleotide>;
+template<typename Letter>
+struct AlignmentStatus {
+  Status status;
+    std::optional<std::string> error;
+  std::optional<AlignmentResult<Letter>> result;
+};
 
-using AminoacidAlignmentResult = AlignmentResult<Aminoacid>;
-
+using NucleotideAlignmentStatus = AlignmentStatus<Nucleotide>;
+using AminoacidAlignmentStatus = AlignmentStatus<Aminoacid>;
 
 struct SeedMatch {
   int shift;
@@ -33,32 +38,34 @@ struct SeedAlignment {
   int bandWidth;
 };
 
+struct SeedAlignmentStatus {
+  Status status;
+  std::optional<std::string> error;
+  std::optional<SeedAlignment> result;
+};
+
 struct ForwardTrace {
   vector2d<int> scores;
   vector2d<int> paths;
 };
 
-
-struct AlignmentParameters {
-  int gapExtend;
-  int gapOpen;
-  int misMatch;
-  int match;
-};
-
+template<typename Letter>
+SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<Letter>& ref,
+  const NextalignSeedOptions& options);
 
 template<typename Letter>
-SeedAlignment seedAlignment(const std::string& query, const std::string& ref);
+ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& ref,
+  const std::vector<int>& gapOpenClose, int bandWidth, int meanShift,
+  const NextalignAlignmentOptions& alignmentOptions);
 
 template<typename Letter>
-ForwardTrace scoreMatrix(const std::string& query, const std::string& ref, int bandWidth, int meanShift);
+AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<Letter>& ref,
+  const vector2d<int>& scores, const vector2d<int>& paths, int meanShift);
 
-template<typename Letter>
-AlignmentResult<Letter> backTrace(const std::string& query, const std::string& ref, const vector2d<int>& scores,
-  const vector2d<int>& paths, int meanShift);
+NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const NucleotideSequence& ref,
+  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
+  const NextalignSeedOptions& seedOptions);
 
-NucleotideAlignmentResult alignPairwise(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const std::vector<int>& gapOpenClose, int minimalLength);
-
-AminoacidAlignmentResult alignPairwise(const AminoacidSequence& query, const AminoacidSequence& ref,
-  const std::vector<int>& gapOpenClose, int minimalLength);
+AminoacidAlignmentStatus alignPairwise(const AminoacidSequence& query, const AminoacidSequence& ref,
+  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
+  const NextalignSeedOptions& seedOptions);

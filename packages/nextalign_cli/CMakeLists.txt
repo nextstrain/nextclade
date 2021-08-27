@@ -3,12 +3,11 @@ cmake_policy(SET CMP0069 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/packages/cmake" ${CMAKE_MODULE_PATH})
-# include(CFlags)
+include(CFlags)
 include(Quiet)
 include(Sanitizers)
 
-project(nextalign_cli DESCRIPTION "Viral genome reference alignment")
-file(STRINGS "VERSION" PROJECT_VERSION)
+project(nextalign_cli DESCRIPTION "C++ tool for viral genome reference alignment")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
@@ -18,6 +17,7 @@ find_package(TBB REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
+find_package(jemalloc 5.2.1 REQUIRED)
 
 add_executable(${PROJECT_NAME}
   src/cli.cpp
@@ -33,6 +33,10 @@ if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE AND NOT WIN32)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
+    set(DEPENDENCIES
+      ${DEPENDENCIES}
+      jemalloc::jemalloc
+    )
   endif ()
 endif ()
 
@@ -47,14 +51,23 @@ if (APPLE)
   set(PROCESSOR_NAME "${NEXTALIGN_MACOS_ARCH}")
 endif ()
 
+add_executable(${PROJECT_NAME}
+  src/Logger.h
+  src/cli.cpp
+  src/description.h
+  src/filesystem.h
+  src/malloc_conf.h
+  )
+
 set_property(TARGET ${PROJECT_NAME} PROPERTY
   OUTPUT_NAME nextalign-${SYSTEM_NAME}-${PROCESSOR_NAME})
 
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
   -DPROJECT_NAME="${PROJECT_NAME}"
-  -DPROJECT_VERSION="${PROJECT_VERSION}"
-  -DPROJECT_DESCRIPTION="${PROJECT_DESCRIPTION}"
+  -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
+
+  -DFMT_HEADER_ONLY=1
   )
 
 target_include_directories(${PROJECT_NAME}
@@ -64,17 +77,21 @@ target_include_directories(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} SYSTEM
   PRIVATE
   "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
+  "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
   )
 
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE
+  PUBLIC
   nextalign
+
+  PRIVATE
+  ${STATIC_BUILD_FLAGS}
   Boost::headers
   TBB::tbb
   cxxopts::cxxopts
-  fmt::fmt
+  fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
-  ${STATIC_BUILD_FLAGS}
+  ${DEPENDENCIES}
   )
 
 install(

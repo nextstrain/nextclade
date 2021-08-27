@@ -26,9 +26,11 @@ that have future-proof scalability"""
         "tbbmalloc": False,
         "tbbproxy": False
     }
-    version = "2021.2.0-rc"
-    src_url = "https://github.com/oneapi-src/oneTBB/archive/v2021.2.0-rc.tar.gz"
-    src_dirname = "oneTBB-2021.2.0-rc"
+    version = "2021.3.0"
+    # src_url = "https://github.com/oneapi-src/oneTBB/archive/v2021.3.0.tar.gz"
+    src_dirname = "oneTBB-2021.3.0"
+
+    exports_sources = "oneTBB/*"
 
     mingw = False
 
@@ -43,8 +45,14 @@ that have future-proof scalability"""
             git = tools.Git(folder=self._source_subfolder)
             git.clone("https://github.com/ivan-aksamentov/oneTBB", branch="clang-cl-2019", shallow=True)
         else:
-            tools.get(url=self.src_url)
-            os.rename(self.src_dirname, self._source_subfolder)
+            # tools.get(url=self.src_url)
+            # os.rename(self.src_dirname, self._source_subfolder)
+            shutil.copytree(f'oneTBB', self._source_subfolder)
+
+        if self.mingw:
+            # shutil.copytree('/path/to/oneTBB', self._source_subfolder)
+            git = tools.Git(folder=self._source_subfolder)
+            git.clone("https://github.com/ivan-aksamentov/oneTBB", branch="mingw", shallow=True)
 
     def _configure_cmake(self):
         if self._cmake:
@@ -56,8 +64,8 @@ that have future-proof scalability"""
 
         if not self.options.shared:
             self._cmake.definitions["BUILD_SHARED_LIBS"] = False
-            self._cmake.definitions["CMAKE_C_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0'
-            self._cmake.definitions["CMAKE_CXX_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0'
+            self._cmake.definitions["CMAKE_C_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0 -D__TBB_WEAK_SYMBOLS_PRESENT=0'
+            self._cmake.definitions["CMAKE_CXX_FLAGS"] = '-D__TBB_DYNAMIC_LOAD_ENABLED=0 -D__TBB_WEAK_SYMBOLS_PRESENT=0'
 
         if tools.os_info.is_windows:
             compiler_flags_windows_clang = " ".join([

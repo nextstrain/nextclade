@@ -21,10 +21,10 @@ if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
   source "${PROJECT_ROOT_DIR}/.env"
 fi
 
-TARGET="builder"
+TARGET="${1:-builder}"
 
 DOCKERHUB_ORG="nextstrain"
-DOCKERHUB_PROJECT="nextalign"
-DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}_${TARGET}"
+DOCKERHUB_PROJECT="nextclade_builder"
+DOCKERHUB_REPO="${DOCKERHUB_ORG}/${DOCKERHUB_PROJECT}"
 
-docker pull ${DOCKERHUB_REPO}:latest
+docker pull ${DOCKERHUB_REPO}:${TARGET}

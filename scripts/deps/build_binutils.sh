@@ -12,7 +12,7 @@ echo "On Ubuntu you will need these dependencies:"
 echo "sudo apt-get install sharutils texi2html"
 echo ""
 
-VERSION=2.35.1
+VERSION=2.36.1
 
 THIS_DIR=$(
   cd $(dirname "${BASH_SOURCE[0]}")

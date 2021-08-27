@@ -24,93 +24,84 @@ constexpr const auto GFF_COLUMNS_REQUIRED = {
   "start",
   "end",
   "strand",
-  "frame",
   "attribute",
 };
 
 constexpr const auto GFF_ATTRIB_KEY_GENE_NAME = "gene_name";
 
-class ErrorGffParserMissingColumn : public std::runtime_error {
+class ErrorGffParserMissingColumn : public ErrorFatal {
 public:
   explicit ErrorGffParserMissingColumn(const std::string& colName)
-      : std::runtime_error(fmt::format("GFF parser: column \"{:s}\" is missing", colName)) {}
+      : ErrorFatal(fmt::format("GFF parser: column \"{:s}\" is missing", colName)) {}
 };
 
-class ErrorGffParserInvalidAttribute : public std::runtime_error {
+class ErrorGffParserInvalidAttribute : public ErrorFatal {
 public:
   explicit ErrorGffParserInvalidAttribute(const std::string& attrib)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "GFF parser: unable to parse attribute: expected a key-value pair format is `key \"value\"`, got `{:s}`,",
           attrib)) {}
 };
 
 
-class ErrorGffParserMissingGeneName : public std::runtime_error {
+class ErrorGffParserMissingGeneName : public ErrorFatal {
 public:
-  explicit ErrorGffParserMissingGeneName()
-      : std::runtime_error(fmt::format("GFF parser: expected attribute `${:s}` is missing", GFF_ATTRIB_KEY_GENE_NAME)) {
+  ErrorGffParserMissingGeneName()
+      : ErrorFatal(fmt::format("GFF parser: expected attribute `${:s}` is missing", GFF_ATTRIB_KEY_GENE_NAME)) {
   }
 };
 
-class ErrorGffParserGenNameEmpty : public std::runtime_error {
+class ErrorGffParserGenNameEmpty : public ErrorFatal {
 public:
-  explicit ErrorGffParserGenNameEmpty()
-      : std::runtime_error(fmt::format("GFF parser: empty gene names are not allowed")) {}
+  ErrorGffParserGenNameEmpty()
+      : ErrorFatal(fmt::format("GFF parser: empty gene names are not allowed")) {}
 };
 
-class ErrorGffParserGeneRangeInvalid : public std::runtime_error {
+class ErrorGffParserGeneRangeInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneRangeInvalid(const std::string& geneName, int start, int end)
-      : std::runtime_error(
+      : ErrorFatal(
           fmt::format("GFF parser: in gene \"{:s}\": range is invalid: ({:d}, {:d})", geneName, start, end)) {}
 };
 
-class ErrorGffParserGeneLengthInvalid : public std::runtime_error {
+class ErrorGffParserGeneLengthInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneLengthInvalid(const std::string& geneName, int length, int start, int end)
-      : std::runtime_error(
+      : ErrorFatal(
           fmt::format("GFF parser: gene \"{:s}\": length {:d} is not divisible by 3. Start: {:d}, end: {:d}", geneName,
             length, start, end)) {}
 };
 
-class ErrorGffParserGeneFrameInvalid : public std::runtime_error {
-public:
-  explicit ErrorGffParserGeneFrameInvalid(const std::string& geneName, int frame)
-      : std::runtime_error(fmt::format(
-          R"(GFF parser: in gene "{:s}": frame "{:d}" is invalid, expected an integer 1, 2, or 3 (NOTE: indices in GFF files are one-based))",
-          geneName, frame)) {}
-};
-
-class ErrorGffParserGeneFrameInconsistent : public std::runtime_error {
-public:
-  explicit ErrorGffParserGeneFrameInconsistent(const std::string& geneName, int frame, int start, int frameExpected)
-      : std::runtime_error(fmt::format(
-          R"(GFF parser: in gene "{:s}": frame "{:d}" is inconsistent: with gene start position ${:d}" it is expected to be in frame "{:d}". (NOTE: indices in GFF files are one-based))",
-          geneName, frame, start, frameExpected)) {}
-};
-
-
-class ErrorGffParserGeneStrandInvalid : public std::runtime_error {
+class ErrorGffParserGeneStrandInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneStrandInvalid(const std::string& geneName, const std::string& strand)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           R"(GFF parser: in gene "{:s}": gene strand is invalid: "{:s}", expected "+" or "-")", geneName, strand)) {}
 };
 
 
 std::pair<std::string, std::string> parseAttribute(const std ::string& keyValStr) {
+  std::string separator = "=";
+
+  // If there are no equal signs, then we use spaces as separator,
+  // for backwards compatibility with the old, non-compliant parser
+  // See: https://github.com/nextstrain/nextclade/pull/388
+  if (keyValStr.find(separator) == std::string::npos) {
+    separator = " ";
+  }
+
   std::vector<std::string> keyVal;
-  boost::split(keyVal, keyValStr, boost::is_any_of(" "));
+  boost::split(keyVal, keyValStr, boost::is_any_of(separator));
 
   if (keyVal.size() != 2) {
     throw ErrorGffParserInvalidAttribute(keyValStr);
   }
 
   auto& key = keyVal[0];
-  key = boost::remove_erase_if(key, boost::is_any_of(R"('" )"));
+  key = boost::trim_copy_if(key, boost::is_any_of(R"('" )"));// trim spaces and quotation marks on both ends
 
   auto& val = keyVal[1];
-  val = boost::remove_erase_if(val, boost::is_any_of(R"('" )"));
+  val = boost::trim_copy_if(val, boost::is_any_of(R"('" )"));// trim spaces and quotation marks on both ends
 
   if (key.empty() || val.empty()) {
     throw ErrorGffParserInvalidAttribute(keyValStr);
@@ -157,22 +148,13 @@ void validateGene(const Gene& gene) {
     throw ErrorGffParserGeneLengthInvalid(gene.geneName, length, gene.start, gene.end);
   }
 
-  if (gene.frame < 1 || gene.frame > 3) {
-    throw ErrorGffParserGeneFrameInvalid(gene.geneName, gene.frame);
-  }
-
-  const auto frameExpected = (gene.start % 3) + 1;
-  if (gene.frame != frameExpected) {
-    throw ErrorGffParserGeneFrameInconsistent(gene.geneName, gene.frame, gene.start, frameExpected);
-  }
-
   if (gene.strand != "+" && gene.strand != "-") {
     throw ErrorGffParserGeneStrandInvalid(gene.geneName, gene.strand);
   }
 }
 
-GeneMap parseGeneMapGff(std::istream& is) {
-  GffReader reader("file", is);
+GeneMap parseGeneMapGff(std::istream& is, const std::string& name) {
+  GffReader reader(name, is);
 
   reader.set_header(
     /* 1 */ "seqname",
@@ -198,7 +180,7 @@ GeneMap parseGeneMapGff(std::istream& is) {
   /* 5 */ int end;  // NOLINT(cppcoreguidelines-init-variables)
   /* 6 */ [[maybe_unused]] std::string score;
   /* 7 */ std::string strand;
-  /* 8 */ int frame;// NOLINT(cppcoreguidelines-init-variables)
+  /* 8 */ [[maybe_unused]] std::string frame;
   /* 9 */ [[maybe_unused]] std::string attribute;
 
   GeneMap geneMap;
@@ -215,7 +197,7 @@ GeneMap parseGeneMapGff(std::istream& is) {
       .start = start,           // 1-based
       .end = end,               // 1-based, open (upper bound included)
       .strand = strand,         //
-      .frame = frame,           // // 1-based
+      .frame = 0,               //
       .length = end - start + 1,// This is how you find length of a 1-based, open range
     };
 
@@ -228,8 +210,7 @@ GeneMap parseGeneMapGff(std::istream& is) {
     // "+1": convert to semi-open range (exclude upper bound)
     gene.end = gene.end - 1 + 1;
 
-    // "-1": convert to zero-based indices
-    gene.frame = gene.frame - 1;
+    gene.frame = gene.start % 3;
 
     postcondition_equal(gene.length, gene.end - gene.start);
     geneMap.emplace(geneName, gene);

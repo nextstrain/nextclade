@@ -24,9 +24,6 @@ $NEXTALIGN_STATIC_BUILD=1
 conan profile new default --detect --force
 ThrowOnNativeFailure
 
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
-ThrowOnNativeFailure
-
 pushd "$PROJECT_ROOT_DIR/3rdparty/tbb"
 conan create . local/stable -s build_type="$CMAKE_BUILD_TYPE" -o shared=False --profile "$PROJECT_ROOT_DIR/config/conan/clang-cl.txt"
 ThrowOnNativeFailure

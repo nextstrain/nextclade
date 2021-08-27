@@ -11,11 +11,39 @@ builds:
 
 custom_rules:
   - nextstrain_profiles/nextstrain/subsampling_ranges.smk
-  - nextstrain_profiles/nextstrain/download_preprocessed.smk
 
 title: 'Your samples placed on a SARS-CoV-2 phylogeny'
 
-S3_BUCKET: "nextstrain-ncov-private"
+# These parameters are only used by the `export_for_nextstrain` rule and shouldn't need to be modified.
+# To modify the s3 _source_ bucket, specify this directly in the `inputs` section of the config.
+# P.S. These are intentionally set as top-level keys as this allows command-line overrides.
+S3_DST_BUCKET: "nextstrain-ncov-private"
+S3_DST_COMPRESSION: "xz"
+S3_DST_ORIGINS: ["gisaid"]
+
+genes: ["ORF1a", "ORF1b", "S", "ORF3a", "M", "N"]
+use_nextalign: true
+
+# NOTE for shepherds -- there are commented out inputs here, you can
+# uncomment them to start the pipeline at that stage.
+# E.g. if you uncomment `filtered` then the pipeline
+# will start by downloading that file and proceeding straight to
+# subsampling
+inputs:
+  - name: gisaid
+    metadata: "s3://nextstrain-ncov-private/metadata.tsv.gz"
+    sequences: "s3://nextstrain-ncov-private/sequences.fasta.gz"
+    # ---------------------- NOTE --------------------------
+    # PR 550 changed the path of intermediate files on
+    # the S3 bucket to include the origin (e.g. _gisaid).
+    # Some of these files may not yet exist!
+    # ------------------------------------------------------
+    # metadata: "s3://nextstrain-ncov-private/metadata_gisaid.tsv.gz"
+    # sequences: "s3://nextstrain-ncov-private/sequences_gisaid.fasta.gz"
+    # aligned: "s3://nextstrain-ncov-private/aligned_gisaid.fasta.xz"
+    # to-exclude: "s3://nextstrain-ncov-private/to-exclude_gisaid.txt.xz"
+    # masked: "s3://nextstrain-ncov-private/masked_gisaid.fasta.fasta.xz"
+    # filtered: "s3://nextstrain-ncov-private/filtered_gisaid.fasta.xz"
 
 filter:
   min_length: 28500
@@ -36,7 +64,7 @@ subsampling:
   nextclade:
     global_late:
       group_by: 'country year month'
-      max_sequences: 1000
+      max_sequences: 1500
     global_early:
       group_by: 'region year month'
       max_sequences: 500

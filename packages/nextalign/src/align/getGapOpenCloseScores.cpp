@@ -1,7 +1,7 @@
 #include "getGapOpenCloseScores.h"
 
 #include <fmt/format.h>
-#include <nextalign_private.h>
+#include <nextalign/private/nextalign_private.h>
 
 #include <vector>
 
@@ -18,8 +18,8 @@ std::vector<int> getGapOpenCloseScoresFlat(//
   /* in */ const NucleotideSequence& ref,  //
   /* in */ const NextalignOptions& options //
 ) {
-  std::vector<int> gapOpenClose(ref.size()+2);
-  std::fill(gapOpenClose.begin(), gapOpenClose.end(), options.gapOpenOutOfFrame);
+  std::vector<int> gapOpenClose(ref.size() + 2);
+  std::fill(gapOpenClose.begin(), gapOpenClose.end(), options.alignment.penaltyGapOpen);
   return gapOpenClose;
 }
 
@@ -30,18 +30,13 @@ std::vector<int> getGapOpenCloseScoresCodonAware(//
 ) {
   auto gapOpenClose = getGapOpenCloseScoresFlat(ref, options);
 
-  for (const auto& geneName : options.genes) {
-    // TODO: Should probably validate gene names before even running
-    const auto& found = geneMap.find(geneName);
-    if (found == geneMap.end()) {
-      throw ErrorGeneMapGeneNotFound(geneName);
-    }
-
-    const auto& gene = found->second;
+  for (const auto& [geneName, gene] : geneMap) {
 
     // TODO: might use std::fill()
-    for (int i = gene.start; i <= gene.end; i += 3) {
-      gapOpenClose[i] = options.gapOpenInFrame;
+    for (int i = gene.start; i < gene.end - 2; i += 3) {
+      gapOpenClose[i] = options.alignment.penaltyGapOpenInFrame;
+      gapOpenClose[i + 1] = options.alignment.penaltyGapOpenOutOfFrame;
+      gapOpenClose[i + 2] = options.alignment.penaltyGapOpenOutOfFrame;
     }
   }
 

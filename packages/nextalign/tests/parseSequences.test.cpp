@@ -43,7 +43,7 @@ X Y:)Z
   )"  ;
   // clang-format on
 
-  const auto results = parseSequences(input);
+  const auto results = parseSequences(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Hello/Sequence/ID1234", "ABC?DEF.GHL*MNOPXYZ"},
@@ -62,7 +62,7 @@ TEST(parseSequences, ConvertsSequencesToUppercase) {
   Cheers!
   )";
 
-  const auto results = parseSequences(input);
+  const auto results = parseSequences(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Some/Sequence", "HICANYOUMAKEITUPPERCASEPLEASE?CHEERS"},
@@ -91,7 +91,7 @@ TEST(parseSequences, DeduplicatesSequenceNames) {
     OPQRS
   )";
 
-  const auto results = parseSequences(input);
+  const auto results = parseSequences(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Hello", "ABCD"},
@@ -114,7 +114,7 @@ TEST(parseSequences, AssignsSequenceNameToUntitledSequences) {
     EFGH
   )";
 
-  const auto results = parseSequences(input);
+  const auto results = parseSequences(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Untitled", "ABCD"},
@@ -132,7 +132,7 @@ TEST(parseSequences, AllowsPlainText) {
     plain text!
   )";
 
-  const auto results = parseSequences(input);
+  const auto results = parseSequences(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Untitled", "THISISPLAINTEXT"},

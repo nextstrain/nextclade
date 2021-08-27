@@ -18,6 +18,7 @@ protected:
   int totalNucs;
   GeneMap geneMap;
   std::set<std::string> genes;
+  NextalignOptions options = getDefaultOptions();
 
   NextalignAverageBench() {
     const auto [sequences, reference, GENE_MAP, TOTAL_NUCS, GENES] = getData();
@@ -38,7 +39,6 @@ protected:
 
 BENCHMARK_DEFINE_F(NextalignAverageBench, Average)(benchmark::State& st) {
   const auto n = NUM_SEQUENCES_AVG;
-  const NextalignOptions options = {};
   st.SetComplexityN(totalNucs);
 
   for (const auto _ : st) {

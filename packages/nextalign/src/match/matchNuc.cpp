@@ -7,7 +7,7 @@
 
 namespace {
   // clang-format off
-  static constexpr const std::array<int, to_underlying(Nucleotide::SIZE) * to_underlying(Nucleotide::SIZE)> scoringMatrixNuc = {
+  constexpr const std::array<int, to_underlying(Nucleotide::SIZE) * to_underlying(Nucleotide::SIZE)> scoringMatrixNuc = {
   /*           00  01  02  03  04  05  06  07  08  09  10  11  12  13  14  15  16 */
   /*            U   T   A   W   C   Y   M   H   G   K   R   D   S   B   V   N   - */
   /* 00   U */  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,

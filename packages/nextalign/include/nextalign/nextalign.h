@@ -9,6 +9,48 @@
 #include <string_view>
 #include <vector>
 
+
+/**
+ * Catching exceptions in WebAssembly requires enabling it in Emscripten
+ * explicitly and leads to a significant performance penalty. In order to
+ * avoid that, we use status codes in the portion of the code
+ * which was previously throwing and catching exceptions.
+ */
+enum class Status : int {
+  Success = 0,
+  Error = 1,
+};
+
+struct GeneWarning {
+  std::string geneName;
+  std::string message;
+};
+
+struct Warnings {
+  std::vector<std::string> global;
+  std::vector<GeneWarning> inGenes;
+};
+
+struct FrameShift {
+  std::string geneName;
+};
+
+class Error : public std::runtime_error {
+public:
+  explicit Error(const std::string& message) : std::runtime_error(message) {}
+};
+
+class ErrorFatal : public Error {
+public:
+  explicit ErrorFatal(const std::string& message) : Error(message) {}
+};
+
+class ErrorNonFatal : public Error {
+public:
+  explicit ErrorNonFatal(const std::string& message) : Error(message) {}
+};
+
+
 template<typename Letter>
 using Sequence = std::basic_string<Letter>;
 
@@ -96,10 +138,29 @@ struct AlgorithmInput {
   std::string seq;
 };
 
+
+struct NextalignSeedOptions {
+  int seedLength;
+  int minSeeds;
+  int seedSpacing;
+  int mismatchesAllowed;
+};
+
+struct NextalignAlignmentOptions {
+  int minimalLength;
+  int penaltyGapExtend;
+  int penaltyGapOpen;
+  int penaltyGapOpenInFrame;
+  int penaltyGapOpenOutOfFrame;
+  int penaltyMismatch;
+  int scoreMatch;
+  int maxIndel;
+};
+
 struct NextalignOptions {
-  int gapOpenInFrame = -5;
-  int gapOpenOutOfFrame = -6;
-  std::set<std::string> genes;
+  NextalignAlignmentOptions alignment;
+  NextalignSeedOptions seedNuc;
+  NextalignSeedOptions seedAa;
 };
 
 struct Gene {
@@ -124,19 +185,32 @@ struct Peptide {
   std::string seq;
 };
 
+template<typename Letter>
+struct InsertionInternal {
+  int pos;
+  int length;
+  Sequence<Letter> ins;
+};
+
+template<typename Letter>
+inline bool operator==(const InsertionInternal<Letter>& lhs, const InsertionInternal<Letter>& rhs) {
+  return lhs.pos == rhs.pos && lhs.ins == rhs.ins && lhs.length == rhs.length;
+}
+
 struct Insertion {
-  int begin;
-  int end;
-  std::string seq;
+  int pos;
+  int length;
+  std::string ins;
 };
 
 struct NextalignResult {
+  std::string ref;
   std::string query;
   int alignmentScore;
   std::vector<Peptide> refPeptides;
   std::vector<Peptide> queryPeptides;
   std::vector<Insertion> insertions;
-  std::vector<std::string> warnings;
+  Warnings warnings;
 };
 
 struct AlgorithmOutput {
@@ -151,12 +225,14 @@ struct AlgorithmOutput {
 NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref, const GeneMap& geneMap,
   const NextalignOptions& options);
 
+NextalignOptions getDefaultOptions();
+
 /**
  * Parses genemap in GFF format from a file or string stream
  *
  * @see GFF format reference at https://www.ensembl.org/info/website/upload/gff.html
  */
-GeneMap parseGeneMapGff(std::istream& is);
+GeneMap parseGeneMapGff(std::istream& is, const std::string& name = "filestream");
 
 class FastaStream {
 public:
@@ -180,9 +256,9 @@ public:
 };
 
 /** Creates an instance of fasta stream, given a file or string stream */
-std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream);
+std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream, std::string filename);
 
 /** Parses all sequences of a given file or string stream */
-std::vector<AlgorithmInput> parseSequences(std::istream& istream);
+std::vector<AlgorithmInput> parseSequences(std::istream& istream, std::string filename);
 
 const char* getVersion();
