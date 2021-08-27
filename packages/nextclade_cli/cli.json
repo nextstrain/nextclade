@@ -305,6 +305,13 @@
               "isOptional": false
             },
             {
+              "flags": ["-r", "--reference"],
+              "desc": "Download dataset based on this reference sequence (given its accession ID). If this flag is not provided or is 'default', will download dataset based on current default reference sequence, as defined by dataset maintainers. The default reference sequence can change over time. Use `dataset list` command to view available options.",
+              "cppName": "reference",
+              "cppType": "std::string",
+              "isOptional": true
+            },
+            {
               "flags": ["-t", "--tag"],
               "desc": "Version tag of the dataset to download. If this flag is not provided or is 'latest', then the latest compatible version is downloaded.",
               "cppName": "tag",
@@ -336,21 +343,28 @@
           "options": [
             {
               "flags": ["-n", "--name"],
-              "desc": "List only datasets with this name.",
+              "desc": "Restrict list to only datasets with this name.",
               "cppName": "name",
               "cppType": "std::string",
               "isOptional": true
             },
             {
+              "flags": ["-r", "--reference"],
+              "desc": "Restrict list to only datasets based on this reference sequence (given its accession ID)",
+              "cppName": "reference",
+              "cppType": "std::string",
+              "isOptional": true
+            },
+            {
               "flags": ["-t", "--tag"],
-              "desc": "List only datasets with this version tag.",
+              "desc": "Restrict list to only datasets with this version tag.",
               "cppName": "tag",
               "cppType": "std::string",
               "isOptional": true
             },
             {
               "flags": ["--include-incompatible"],
-              "desc": "Include dataset version tags that are incompatible with this version of Nextclade CLI.",
+              "desc": "Include dataset version tags that are incompatible with this version of Nextclade CLI. By default the incompatible versions are omitted.",
               "cppName": "includeIncompatible",
               "cppType": "bool",
               "defaultValue": "false",
@@ -358,7 +372,7 @@
             },
             {
               "flags": ["--include-old"],
-              "desc": "Include older dataset version tags, additional to the latest.",
+              "desc": "Include older dataset version tags, additional to the latest.  By default the old versions are omitted.",
               "cppName": "includeOld",
               "cppType": "bool",
               "defaultValue": "false",

@@ -150,6 +150,10 @@ namespace Nextclade {
       auto enabledDataset = Dataset{dataset};
       enabledDataset.datasetRefs = {};
       for (const auto& datasetRef : dataset.datasetRefs) {
+        if (!datasetRef.enabled) {
+          continue;
+        }
+
         auto enabledDatasetRef = DatasetRef{datasetRef};
         enabledDatasetRef.versions = {};
 
@@ -243,6 +247,43 @@ namespace Nextclade {
     return getLatestDatasets(getCompatibleDatasets(datasets, thisVersion));
   }
 
+  std::vector<Dataset> filterDatasetsByReference(const std::vector<Dataset>& datasets,
+    const std::string& datasetReferenceDesired) {
+    std::vector<Dataset> datasetsFiltered;
+    for (const auto& dataset : datasets) {
+      auto datasetFiltered = Dataset{dataset};
+      datasetFiltered.datasetRefs = {};
+      for (const auto& datasetRef : dataset.datasetRefs) {
+        if (datasetRef.reference.accession == datasetReferenceDesired) {
+          datasetFiltered.datasetRefs.push_back(datasetRef);
+        }
+      }
+
+      if (!datasetFiltered.datasetRefs.empty()) {
+        datasetsFiltered.push_back(datasetFiltered);
+      }
+    }
+    return datasetsFiltered;
+  }
+
+  std::vector<Dataset> filterDatasetsByDefaultReference(const std::vector<Dataset>& datasets) {
+    std::vector<Dataset> datasetsFiltered;
+    for (const auto& dataset : datasets) {
+      auto datasetFiltered = Dataset{dataset};
+      datasetFiltered.datasetRefs = {};
+      for (const auto& datasetRef : dataset.datasetRefs) {
+        if (datasetRef.reference.accession == dataset.defaultRef) {
+          datasetFiltered.datasetRefs.push_back(datasetRef);
+        }
+      }
+
+      if (!datasetFiltered.datasetRefs.empty()) {
+        datasetsFiltered.push_back(datasetFiltered);
+      }
+    }
+    return datasetsFiltered;
+  }
+
   std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
     const std::string& datasetNameDesired) {
     std::vector<Dataset> datasetsFiltered;
@@ -294,56 +335,93 @@ namespace Nextclade {
     return "unknown";
   }
 
-  std::string formatDatasets(const std::vector<Dataset>& datasets) {
+  std::string formatDatasets(const std::vector<Dataset>& datasets, bool verbose /* = false */) {
     fmt::memory_buffer buf;
     for (const auto& dataset : datasets) {
-      fmt::format_to(buf, "{:s} (name: {:s})\n", dataset.nameFriendly, dataset.name);
-      fmt::format_to(buf, "{:s}\n\n", dataset.description);
+      fmt::format_to(buf, "Dataset\n");
+      fmt::format_to(buf, "-------\n");
+      fmt::format_to(buf, "Friendly name     : {:s}\n", dataset.nameFriendly);
+      fmt::format_to(buf, "Safe name         : {:s}\n", dataset.name);
+      fmt::format_to(buf, "Description       : {:s}\n", dataset.description);
+      fmt::format_to(buf, "Default reference : {:s}\n\n", dataset.defaultRef);
+
+      fmt::format_to(buf,
+        "Command to download the latest version of this dataset based on the default reference sequence:\n\n"
+        "    nextclade dataset get --name='{}' --output-dir='data/{}'\n\n",
+        dataset.name, dataset.name);
+
+      fmt::format_to(buf,
+        "(In this case, repeated downloads may produce updated files in the future: after releases of new versions of "
+        "this dataset or when dataset's default reference sequence changes. This is recommended. If you want to use a "
+        "specific reference sequence and/or specific version tag see sections \"Specific reference sequences\" and "
+        "\"Specific versions\" below.)\n\n",
+        dataset.defaultRef);
+
+      auto numRefs = std::to_string(dataset.datasetRefs.size());
+      fmt::format_to(buf, "Specific reference sequences ({:}):\n", numRefs);
+      fmt::format_to(buf, "-----------------------------" + std::string{"-", numRefs.size() + 3} + "\n\n");
 
       for (const auto& datasetRef : dataset.datasetRefs) {
         const auto& ref = datasetRef.reference;
-        fmt::format_to(buf, "  Reference: {:s} ({:s}: {:s})\n\n", ref.strainName, ref.source, ref.accession);
+        fmt::format_to(buf, "    Reference\n");
+        fmt::format_to(buf, "    ---------\n");
+        fmt::format_to(buf, "    Strain name  : {:s}\n", ref.strainName);
+        fmt::format_to(buf, "    Accession    : {:s}\n", ref.accession);
+        fmt::format_to(buf, "    Description  : {:s}\n", ref.source);
+
+        fmt::format_to(buf, "\n");
 
         fmt::format_to(buf,
-          "  Fetch the latest version of this dataset with:\n\n    nextclade dataset get --name='{}' "
-          "--reference='{}'\n\n",
-          dataset.name, ref.accession);
+          "    Command to download the latest compatible version of this dataset with this particular reference:\n\n"
+          "        nextclade dataset get --name='{}' --reference='{}' --output-dir='data/{}_{}'\n\n",
+          dataset.name, ref.accession, dataset.name, ref.accession);
 
-        fmt::format_to(buf, "  Versions ({:d}):\n\n", datasetRef.versions.size());
+        fmt::format_to(buf,
+          "    (In this case, repeated downloads may produce updated files in the future: after releases of new "
+          "versions of this dataset. Reference sequence will stay the same even if the dataset's default changes. "
+          "If you want to use a specific version, see section \"Specific versions\" below.)\n\n",
+          dataset.defaultRef);
+
+        auto numTags = std::to_string(datasetRef.versions.size());
+        fmt::format_to(buf, "    Specific versions ({:}):\n", datasetRef.versions.size());
+        fmt::format_to(buf, "    ------------------" + std::string{"-", numTags.size() + 3} + "\n\n");
+
         for (const auto& version : datasetRef.versions) {
-          fmt::format_to(buf, "    Tag                   : {:s}\n", version.tag);
-          fmt::format_to(buf, "    Comment               : {:s}\n", version.comment);
-
-          fmt::format_to(buf, "    Nextclade CLI compat. : {:s}\n",
+          fmt::format_to(buf, "        Version\n");
+          fmt::format_to(buf, "        -------\n");
+          fmt::format_to(buf, "        Tag                   : {:s}\n", version.tag);
+          fmt::format_to(buf, "        Comment               : {:s}\n", version.comment);
+          fmt::format_to(buf, "        Nextclade CLI compat. : {:s}\n",
             formatVersionCompatibility(version.compatibility.nextcladeCli));
-          fmt::format_to(buf, "    Nextclade Web compat. : {:s}\n",
+          fmt::format_to(buf, "        Nextclade Web compat. : {:s}\n",
             formatVersionCompatibility(version.compatibility.nextcladeWeb));
+          fmt::format_to(buf, "        Zip bundle URL        : {:s}\n", version.zipBundle);
 
           fmt::format_to(buf, "\n");
 
-          fmt::format_to(buf, "    Zip bundle            : {:s}\n", version.zipBundle);
+          if (verbose) {
+            fmt::format_to(buf, "    Version tag file      : {:s}\n", version.files.at("tag"));
+            fmt::format_to(buf, "\n");
 
-          fmt::format_to(buf, "\n");
+            fmt::format_to(buf, "    Files:\n");
+            fmt::format_to(buf, "      Reference sequence  : {:s}\n", version.files.at("reference"));
+            fmt::format_to(buf, "      Reference tree      : {:s}\n", version.files.at("tree"));
+            fmt::format_to(buf, "      Gene map            : {:s}\n", version.files.at("geneMap"));
+            fmt::format_to(buf, "      QC configuration    : {:s}\n", version.files.at("qc"));
+            fmt::format_to(buf, "      PCR primers         : {:s}\n", version.files.at("primers"));
+            fmt::format_to(buf, "      Example sequences   : {:s}\n", version.files.at("sequences"));
 
-          fmt::format_to(buf, "    Version tag file      : {:s}\n", version.files.at("tag"));
-
-          fmt::format_to(buf, "\n");
-
-          fmt::format_to(buf, "    Files:\n");
-          fmt::format_to(buf, "      Reference sequence  : {:s}\n", version.files.at("reference"));
-          fmt::format_to(buf, "      Reference tree      : {:s}\n", version.files.at("tree"));
-          fmt::format_to(buf, "      Gene map            : {:s}\n", version.files.at("geneMap"));
-          fmt::format_to(buf, "      QC configuration    : {:s}\n", version.files.at("qc"));
-          fmt::format_to(buf, "      PCR primers         : {:s}\n", version.files.at("primers"));
-          fmt::format_to(buf, "      Example sequences   : {:s}\n", version.files.at("sequences"));
-
-          fmt::format_to(buf, "\n");
+            fmt::format_to(buf, "\n");
+          }
 
           fmt::format_to(buf,
-            "    Fetch this particular version of this dataset with:\n\n    nextclade dataset get --name='{}' "
-            "--reference='{}' --tag='{}'\n\n",
-            dataset.name, ref.accession, version.tag);
+            "        Command to download this version of this dataset, based on particular reference "
+            "sequence:\n\n            nextclade dataset get --name='{}' --reference='{}' --tag='{}' "
+            "--output-dir='data/{}_{}_{}'\n\n",
+            dataset.name, ref.accession, version.tag, dataset.name, ref.accession, version.tag);
 
+          fmt::format_to(buf, "        (In this case repeated downloads will always produce the same files. This is only recommended if you need strictly reproducible results. Note that with stale data, updated clades and other features will not be available. We recommend to update data periodically.)\n\n",
+            dataset.defaultRef);
 
           fmt::format_to(buf, "\n");
         }

@@ -77,12 +77,16 @@ namespace Nextclade {
   std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
     const std::string& datasetNameDesired);
 
-  std::vector<Dataset> filterDatasetsByTag(const std::vector<Dataset>& datasets,
-    const std::string& versionTagDesired);
+  std::vector<Dataset> filterDatasetsByReference(const std::vector<Dataset>& datasets,
+    const std::string& datasetReferenceDesired);
+
+  std::vector<Dataset> filterDatasetsByDefaultReference(const std::vector<Dataset>& datasets);
+
+  std::vector<Dataset> filterDatasetsByTag(const std::vector<Dataset>& datasets, const std::string& versionTagDesired);
 
   std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat);
 
-  std::string formatDatasets(const std::vector<Dataset>& datasets);
+  std::string formatDatasets(const std::vector<Dataset>& datasets, bool verbose = false);
 
 
   bool operator==(const DatasetCompatibilityRange& left, const DatasetCompatibilityRange& right);

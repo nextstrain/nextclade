@@ -8,16 +8,21 @@
 
 namespace Nextclade {
   class ErrorDatasetVersionedNotFound : public std::runtime_error {
-    static inline std::string formatMessage(const std::string& name, const std::string& version) {
-      if (version.empty()) {
-        return fmt::format(R"(Dataset not found: "{:s}")", name);
+    static inline std::string formatMessage(const std::string& name, const std::string& ref, const std::string& tag) {
+      auto msg = fmt::format("Dataset not found: name='{:s}'", name);
+      if (!ref.empty()) {
+        msg += fmt::format(", reference='{:s}'", ref);
       }
-      return fmt::format(R"(Dataset not found: "{:s}" version "{:s}")", name, version);
+      if (!tag.empty()) {
+        msg += fmt::format(", tag='{:s}'", tag);
+      }
+      return msg;
     }
 
   public:
-    inline explicit ErrorDatasetVersionedNotFound(const std::string& name, const std::string& version)
-        : std::runtime_error(formatMessage(name, version)) {}
+    inline explicit ErrorDatasetVersionedNotFound(const std::string& name, const std::string& ref,
+      const std::string& tag)
+        : std::runtime_error(formatMessage(name, ref, tag)) {}
   };
 
   void executeCommandDatasetGet(const std::shared_ptr<CliParamsDatasetGet>& cliParams) {
@@ -36,7 +41,7 @@ namespace Nextclade {
     logger.info("Downloading dataset:\n{:s}\n", formatDatasets(datasets));
 
     if (datasets.empty()) {
-      throw ErrorDatasetVersionedNotFound(cliParams->name, cliParams->tag);
+      throw ErrorDatasetVersionedNotFound(cliParams->name, cliParams->reference, cliParams->tag);
     }
 
 

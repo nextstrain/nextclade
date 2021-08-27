@@ -5,21 +5,31 @@
 #include "commands.h"
 
 namespace Nextclade {
-  std::vector<Dataset> datasetListFilter(                  //
+  inline std::vector<Dataset> datasetListFilter(           //
     const std::vector<Dataset>& inputDatasets,             //
     const std::shared_ptr<CliParamsDatasetList>& cliParams,//
     const std::string& thisVersion                         //
   ) {
     auto outputDatasets = inputDatasets;
 
-    outputDatasets = getEnabledDatasets(outputDatasets);
+    if (!cliParams->tag.empty()) {
+      // NOTE: if a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
+      outputDatasets = filterDatasetsByTag(outputDatasets, cliParams->tag);
+    } else {
+      // NOTE: if no concrete version `tag` is specified, we perform 'enabled', 'compatibility' and 'latest' checks
+      outputDatasets = getEnabledDatasets(outputDatasets);
 
-    if (!cliParams->includeIncompatible) {
-      outputDatasets = getCompatibleDatasets(outputDatasets, thisVersion);
+      if (!cliParams->includeIncompatible) {
+        outputDatasets = getCompatibleDatasets(outputDatasets, thisVersion);
+      }
+
+      if (!cliParams->includeOld) {
+        outputDatasets = getLatestDatasets(outputDatasets);
+      }
     }
 
-    if (!cliParams->includeOld) {
-      outputDatasets = getLatestDatasets(outputDatasets);
+    if (!cliParams->reference.empty()) {
+      outputDatasets = filterDatasetsByReference(outputDatasets, cliParams->reference);
     }
 
     if (!cliParams->name.empty()) {
