@@ -7,6 +7,8 @@ import { selectNumThreads } from 'src/state/settings/settings.selectors'
 
 export const selectParams = (state: State) => state.algorithm.params
 
+export const selectCurrentDataset = (state: State) => selectParams(state).dataset
+
 export const selectResults = (state: State) => state.algorithm.results
 
 export const selectResultsArray = (state: State) => state.algorithm.results.map((result) => result.result)

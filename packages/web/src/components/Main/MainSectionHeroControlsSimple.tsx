@@ -1,14 +1,12 @@
-import React, { useRef } from 'react'
+import React, { useCallback, useRef } from 'react'
 
 import { delay } from 'lodash'
 import { connect } from 'react-redux'
 import { push } from 'connected-next-router'
 import { useTranslation } from 'react-i18next'
 import { Button, Col, Container, Row } from 'reactstrap'
-import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 import styled from 'styled-components'
 
-import { getSequenceDatum } from 'src/algorithms/defaults/viruses'
 import { FilePicker } from 'src/components/Main/FilePicker'
 
 import type { State } from 'src/state/reducer'
@@ -73,13 +71,11 @@ export function MainSectionHeroControlsDisconnected({
   const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement | null>(null)
 
-  function loadDefaultData() {
+  const runExample = useCallback(() => {
     setIsDirty(true)
     inputRef?.current?.focus()
-    const seqData = getSequenceDatum(params.virus.name)
-    setFasta(new AlgorithmInputString(seqData, t('Example sequences')))
-    delay(algorithmRunAsyncTrigger, 1000, new AlgorithmInputString(seqData, t('Example sequences')))
-  }
+    delay(algorithmRunAsyncTrigger, 1000)
+  }, [algorithmRunAsyncTrigger, setIsDirty])
 
   async function onUpload(input: AlgorithmInput) {
     setIsDirty(true)
@@ -108,7 +104,7 @@ export function MainSectionHeroControlsDisconnected({
 
       <Row noGutters>
         <Col>
-          <Button color="link" onClick={loadDefaultData}>
+          <Button color="link" onClick={runExample}>
             <small>{t('Show me an Example')}</small>
           </Button>
         </Col>

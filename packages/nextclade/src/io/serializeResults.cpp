@@ -2,12 +2,12 @@
 
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
+#include <nextclade_json/nextclade_json.h>
 
 #include <chrono>
 #include <nlohmann/json.hpp>
 #include <string>
 
-#include "../io/jsonStringify.h"
 #include "formatQcStatus.h"
 
 namespace Nextclade {
@@ -326,9 +326,8 @@ namespace Nextclade {
   }
 
   std::string serializeResults(const std::vector<AnalysisResult>& results) {
-    const std::string SCHEMA_VERSION = "1.0.0";
     auto j = json::object();
-    j.emplace("schemaVersion", SCHEMA_VERSION);
+    j.emplace("schemaVersion", Nextclade::getAnalysisResultsJsonSchemaVersion());
     j.emplace("nextcladeVersion", Nextclade::getVersion());
     j.emplace("timestamp", getTimestampNow());
     j.emplace("results", serializeResultsArray(results));

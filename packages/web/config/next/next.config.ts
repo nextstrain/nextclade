@@ -30,6 +30,10 @@ import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
 import withWebassembly from './withWebassembly'
+import withLimitTerserParallelism from './withLimitTerserParallelism'
+import getWithResolve from './withResolve'
+
+const CIRCLECI = process.env.CIRCLECI ?? 'false'
 
 const {
   // BABEL_ENV,
@@ -46,6 +50,7 @@ const {
   ENABLE_REDUX_LOGGER,
   DEBUG_SET_INITIAL_DATA,
   DOMAIN,
+  DATA_FULL_DOMAIN,
 } = getEnvVars()
 
 const { pkg, moduleRoot } = findModuleRoot()
@@ -61,6 +66,7 @@ const clientEnv = {
   TRAVIS_BUILD_WEB_URL: getBuildUrl(),
   COMMIT_HASH: getGitCommitHash(),
   DOMAIN,
+  DATA_FULL_DOMAIN,
 }
 
 console.info(`Client-side Environment:\n${JSON.stringify(clientEnv, null, 2)}`)
@@ -114,7 +120,7 @@ const withStaticComprression = getWithStaticComprression({ brotli: false })
 const withTypeChecking = getWithTypeChecking({
   typeChecking: ENABLE_TYPE_CHECKS,
   eslint: ENABLE_ESLINT,
-  memoryLimit: 2048,
+  memoryLimit: 1024,
   exclude: ['src/generated'],
 })
 
@@ -152,8 +158,13 @@ const transpilationListProd = uniq([
 
 const withTranspileModules = getWithTranspileModules(PRODUCTION ? transpilationListProd : transpilationListDev)
 
+const withResolve = getWithResolve([
+  path.resolve(moduleRoot, '..', '..'), // root of the repo, for `CHANGELOG.md`
+])
+
 const config = withPlugins(
   [
+    [withResolve],
     [withIgnore],
     [withExtraWatch],
     [withThreads],
@@ -171,6 +182,7 @@ const config = withPlugins(
     PRODUCTION && [withStaticComprression],
     PROFILE && [withoutMinification],
     [withFriendlyChunkNames],
+    CIRCLECI === 'true' && [withLimitTerserParallelism],
   ].filter(Boolean),
   nextConfig,
 )

@@ -1,4 +1,4 @@
-import type { Gene } from 'src/algorithms/types'
+import type { DatasetFlat, Gene } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
@@ -10,6 +10,8 @@ const action = actionCreatorFactory('Algorithm')
 export const setNumThreads = action<number>('setNumThreads')
 
 export const setIsDirty = action<boolean>('setIsDirty')
+
+export const setDataset = action<DatasetFlat | undefined>('setDataset')
 
 export const setFasta = action.async<AlgorithmInput, { queryStr: string; queryName: string }, Error>('setFasta')
 export const setTree = action.async<AlgorithmInput, { treeStr: string }, Error>('setTree')

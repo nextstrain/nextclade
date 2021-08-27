@@ -16,8 +16,6 @@ RUN set -x \
   cppcheck \
   curl \
   file \
-  g++ \
-  gcc \
   gdb \
   git \
   make \
@@ -130,14 +128,24 @@ ENV HOME="/home/${USER}"
 ENV NVM_DIR="${HOME}/.nvm"
 ENV PATH="${NVM_DIR}/versions/node/default/bin:${HOME}/.local/bin:$PATH"
 
-RUN addgroup --system --gid ${GID} ${GROUP}
-
-RUN useradd --system --create-home --home-dir ${HOME} \
---shell /bin/bash \
---gid ${GROUP} \
---groups sudo \
---uid ${UID} \
-${USER} \
+RUN set -x \
+&& \
+  if [ -z "$(getent group ${GID})" ]; then \
+    addgroup --system --gid ${GID} ${GROUP}; \
+  else \
+    groupmod -n ${GROUP} $(getent group ${GID} | cut -d: -f1); \
+  fi \
+&& \
+  if [ -z "$(getent passwd ${UID})" ]; then \
+    useradd \
+      --system \
+      --create-home --home-dir ${HOME} \
+      --shell /bin/bash \
+      --gid ${GROUP} \
+      --groups sudo \
+      --uid ${UID} \
+      ${USER}; \
+  fi \
 && sed -i /etc/sudoers -re 's/^%sudo.*/%sudo ALL=(ALL:ALL) NOPASSWD: ALL/g' \
 && sed -i /etc/sudoers -re 's/^root.*/root ALL=(ALL:ALL) NOPASSWD: ALL/g' \
 && sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \
