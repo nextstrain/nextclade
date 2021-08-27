@@ -18,9 +18,9 @@ export interface ListOfNonACGTNsProps {
 export function ListOfNonACGTNs({ nonACGTNs, totalNonACGTNs }: ListOfNonACGTNsProps) {
   const { t } = useTranslation()
 
-  let nonACGTNsItems = nonACGTNs.map(({ nuc, begin, end }) => {
+  let nonACGTNsItems = nonACGTNs.map(({ character, begin, end }) => {
     const range = formatRange(begin, end)
-    const value = `${nuc}: ${range}`
+    const value = `${character}: ${range}`
     return <Li key={value}>{value}</Li>
   })
 

@@ -4,6 +4,7 @@
 #include <boost/algorithm/string.hpp>
 #include <map>
 #include <regex>
+#include <utility>
 
 namespace {
   using regex = std::regex;
@@ -11,17 +12,20 @@ namespace {
 }// namespace
 
 
-class ErrorFastaStreamIllegalNextCall : public std::runtime_error {
+class ErrorFastaStreamIllegalNextCall : public ErrorFatal {
 public:
-  ErrorFastaStreamIllegalNextCall()
-      : std::runtime_error("Fasta stream: stream is in non-readable state, the next item cannot be retrieved") {}
+  explicit ErrorFastaStreamIllegalNextCall(const std::string& filename)
+      : ErrorFatal(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is in non-readable state,"
+                                       " the next line cannot be retrieved. Aborting.",
+          filename)) {}
 };
 
 
-class ErrorFastaStreamInvalidState : public std::runtime_error {
+class ErrorFastaStreamInvalidState : public ErrorFatal {
 public:
-  ErrorFastaStreamInvalidState()
-      : std::runtime_error("Fasta stream: stream reached an invalid state which should not be reached") {}
+  explicit ErrorFastaStreamInvalidState(const std::string& filename)
+      : ErrorFatal(fmt::format(
+          "When parsing input sequences: Input stream (\"{:s}\") is empty or corrupted. Aborting.", filename)) {}
 };
 
 
@@ -49,6 +53,7 @@ auto sanitizeSequence(std::string seq) {
 
 class FastaStreamImpl : public FastaStream {
   std::istream& istream;
+  std::string filename;
   std::map<std::string, int> seqNames;
 
   int currentIndex = 0;
@@ -80,7 +85,7 @@ class FastaStreamImpl : public FastaStream {
 public:
   FastaStreamImpl() = delete;
 
-  explicit FastaStreamImpl(std::istream& is) : istream(is) {}
+  explicit FastaStreamImpl(std::istream& is, std::string fileName) : istream(is), filename(std::move(fileName)) {}
 
   ~FastaStreamImpl() override = default;
 
@@ -100,7 +105,7 @@ public:
 
   AlgorithmInput next() override {
     if (!good()) {
-      throw ErrorFastaStreamIllegalNextCall();
+      throw ErrorFastaStreamIllegalNextCall(filename);
     }
 
     std::string line;
@@ -128,18 +133,18 @@ public:
       return prepareResult();
     }
 
-    throw ErrorFastaStreamInvalidState();
+    throw ErrorFastaStreamInvalidState(filename);
   }
 };
 
-std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream) {
-  return std::make_unique<FastaStreamImpl>(istream);
+std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream, std::string filename) {
+  return std::make_unique<FastaStreamImpl>(istream, std::move(filename));
 }
 
-std::vector<AlgorithmInput> parseSequences(std::istream& istream) {
+std::vector<AlgorithmInput> parseSequences(std::istream& istream, std::string filename) {
   std::vector<AlgorithmInput> seqs;
 
-  auto fastaStream = makeFastaStream(istream);
+  auto fastaStream = makeFastaStream(istream, std::move(filename));
   while (fastaStream->good()) {
     seqs.emplace_back(fastaStream->next());
   }

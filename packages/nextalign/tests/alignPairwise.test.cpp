@@ -29,9 +29,9 @@ TEST_F(AlignPairwise, MatchesIdenticalStrings) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(27, result.alignmentScore);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qry), toString(result.query));
+  EXPECT_EQ(27, result.result->alignmentScore);
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qry), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, PadsMissingLeft) {
@@ -44,9 +44,9 @@ TEST_F(AlignPairwise, PadsMissingLeft) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(18, result.alignmentScore);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(18, result.result->alignmentScore);
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, PadsMissingLeftSingleMismatch) {
@@ -59,9 +59,9 @@ TEST_F(AlignPairwise, PadsMissingLeftSingleMismatch) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(16, result.alignmentScore);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(16, result.result->alignmentScore);
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, PadsMissingRightSingleMismatch) {
@@ -74,9 +74,9 @@ TEST_F(AlignPairwise, PadsMissingRightSingleMismatch) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(16, result.alignmentScore);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(16, result.result->alignmentScore);
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, PadsMissingRightSingleMismatchRevere) {
@@ -89,9 +89,9 @@ TEST_F(AlignPairwise, PadsMissingRightSingleMismatchRevere) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(16, result.alignmentScore);
-  EXPECT_EQ(toString(qry), toString(result.query));
-  EXPECT_EQ(toString(refAln), toString(result.ref));
+  EXPECT_EQ(16, result.result->alignmentScore);
+  EXPECT_EQ(toString(qry), toString(result.result->query));
+  EXPECT_EQ(toString(refAln), toString(result.result->ref));
 }
 
 TEST_F(AlignPairwise, PadsMissingLeftSingle) {
@@ -104,9 +104,9 @@ TEST_F(AlignPairwise, PadsMissingLeftSingle) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(24, result.alignmentScore);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(24, result.result->alignmentScore);
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, PadsMissingLeftMismatch) {
@@ -119,9 +119,9 @@ TEST_F(AlignPairwise, PadsMissingLeftMismatch) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(28, result.alignmentScore);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(28, result.result->alignmentScore);
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, PadsMissingRight) {
@@ -134,8 +134,8 @@ TEST_F(AlignPairwise, PadsMissingRight) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, HandlesQueryContainedInRef) {
@@ -148,8 +148,8 @@ TEST_F(AlignPairwise, HandlesQueryContainedInRef) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, HandlesRefContainedInQuery) {
@@ -162,8 +162,8 @@ TEST_F(AlignPairwise, HandlesRefContainedInQuery) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(toString(refAln), toString(result.ref));
-  EXPECT_EQ(toString(qry), toString(result.query));
+  EXPECT_EQ(toString(refAln), toString(result.result->ref));
+  EXPECT_EQ(toString(qry), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, AddsGapsWhenOneMismatch) {
@@ -176,9 +176,9 @@ TEST_F(AlignPairwise, AddsGapsWhenOneMismatch) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(20, result.alignmentScore);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(20, result.result->alignmentScore);
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, AddsGapsInRefWhenOneAmbiguousButMatchingChar) {
@@ -191,8 +191,8 @@ TEST_F(AlignPairwise, AddsGapsInRefWhenOneAmbiguousButMatchingChar) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(toString(refAln), toString(result.ref));
-  EXPECT_EQ(toString(qry), toString(result.query));
+  EXPECT_EQ(toString(refAln), toString(result.result->ref));
+  EXPECT_EQ(toString(qry), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, CorrectlyAlignsAmbiguousGapPlacingCase) {
@@ -205,9 +205,9 @@ TEST_F(AlignPairwise, CorrectlyAlignsAmbiguousGapPlacingCase) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(18, result.alignmentScore);
-  EXPECT_EQ(toString(ref), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(18, result.result->alignmentScore);
+  EXPECT_EQ(toString(ref), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }
 
 
@@ -221,9 +221,9 @@ TEST_F(AlignPairwise, CorrectlyAlignsAmbiguousGapPlacingCaseReversed) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(18, result.alignmentScore);
-  EXPECT_EQ(toString(refAln), toString(result.ref));
-  EXPECT_EQ(toString(qry), toString(result.query));
+  EXPECT_EQ(18, result.result->alignmentScore);
+  EXPECT_EQ(toString(refAln), toString(result.result->ref));
+  EXPECT_EQ(toString(qry), toString(result.result->query));
 }
 
 TEST_F(AlignPairwise, CorrectlyAlignsLongComplexQuery) {
@@ -237,6 +237,6 @@ TEST_F(AlignPairwise, CorrectlyAlignsLongComplexQuery) {
   // clang-format on
 
   const auto result = alignPairwise(qry, ref, gapOpenClose, options.alignment, options.seedNuc);
-  EXPECT_EQ(toString(refAln), toString(result.ref));
-  EXPECT_EQ(toString(qryAln), toString(result.query));
+  EXPECT_EQ(toString(refAln), toString(result.result->ref));
+  EXPECT_EQ(toString(qryAln), toString(result.result->query));
 }

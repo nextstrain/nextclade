@@ -1,17 +1,35 @@
-import { HelpTipsColumnSeqViewLegend } from './HelpTipsColumnSeqViewLegend'
+import { HelpTipsColumnSeqViewNucLegend } from './HelpTipsColumnSeqViewNucLegend'
+import { HelpTipsColumnSeqViewGeneLegend } from './HelpTipsColumnSeqViewGeneLegend'
 
 ##### Column: sequence view
 
+In sequence view column, each row displays a schema of the corresponding sequence, highlighting the differences compared to the reference sequence.<br/>
 
-Each row displays a schema of the corresponding sequence by highlighting the differences to the reference Wuhan-Hu-1 along the genome.
+Either "Nucleotide sequence" view or any of the "Gene" views can be selected using the dropdown box.
 
-Positions are 1-based.
+---
 
-Line markers on sequence views represent mutations colored by the resulting nucleotide:
+###### Nucleotide Sequence mode
 
-<HelpTipsColumnSeqViewLegend />
+In "Nucleotide Sequence" mode, the whole nucleotide sequence is shown. Line markers represent nucleotide mutations. They are colored by the resulting (query) nucleotide:
 
-Unsequenced regions at the 5' and 3' end are indicated as light gray shading.
-For a mapping between positions in the sequence, genes and clade-defining mutations, see Genome Annotation view below the table.
-Note that sometimes mutations are so close to each other that they overlap.
+<HelpTipsColumnSeqViewNucLegend />
 
+Mouse hover on a mutation marker to show details of that mutation.<br/>
+Unsequenced regions at the 5' and 3' end are indicated as light gray areas on both ends.<br/>
+For a mapping between positions in the sequence and genes, see Genome Annotation view below the table.<br/>
+
+---
+
+###### Gene mode
+
+When a gene is selected, each row displays a schema of the corresponding sequence by highlighting the differences compared to the reference sequence along the genome.<br/>
+Line markers on sequence views represent aminoacid mutations colored by the resulting (query) aminoacid:
+
+<HelpTipsColumnSeqViewGeneLegend />
+
+
+---
+
+Note: Sometimes mutations are so close to each other that they overlap.<br/>
+Note: Positions are 1-based.<br/>

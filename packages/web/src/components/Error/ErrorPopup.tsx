@@ -1,22 +1,32 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { Button, ButtonProps, Modal, ModalBody, ModalFooter, ModalHeader as ReactstrapModalHeader } from 'reactstrap'
+import {
+  Alert,
+  Button,
+  ButtonProps,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader as ReactstrapModalHeader,
+} from 'reactstrap'
 import { connect } from 'react-redux'
-import { Li, Ul } from 'src/components/Common/List'
-import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
 import styled from 'styled-components'
-import { lighten } from 'polished'
 
+import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
 import type { State } from 'src/state/reducer'
+import { Li, Ul } from 'src/components/Common/List'
 import { errorDismiss } from 'src/state/error/error.actions'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getHttpStatusText } from 'src/helpers/getHttpStatusText'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { HttpRequestError } from 'src/io/AlgorithmInput'
+import { useRouter } from 'next/router'
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
-  color: ${(props) => props.theme.danger};
-  background-color: ${(props) => lighten(0.45, props.theme.danger)};
+  .modal-title {
+    width: 100%;
+  }
 `
 
 export const ErrorContainer = styled.div`
@@ -31,17 +41,31 @@ export const ErrorContainer = styled.div`
 
 export const ButtonOk = styled(Button)<ButtonProps>`
   width: 100px;
+  margin: 5px;
 `
 
-export function GenericError({ error }: { error: Error }) {
+export function getErrorDetails(error: Error | string): { name: string; message: string } {
+  if (error instanceof Error) {
+    return { name: error.name, message: error.message }
+  }
+  return { name: 'Error', message: error }
+}
+
+export function GenericError({ error }: { error: Error | string }) {
   const { t } = useTranslation()
+  const { name, message } = getErrorDetails(error)
+
+  let errorText = t('An error has occurred: {{errorName}}', { errorName: name })
+  if (name.toLowerCase().trim() === 'error') {
+    errorText = t('An error has occurred.')
+  }
 
   return (
     <ErrorContainer>
-      <h5>{t('Error: {{errorName}}', { errorName: error.name })}</h5>
+      <h5>{errorText}</h5>
 
       <section className="mt-3">
-        <div>{error.message}</div>
+        <div>{message}</div>
       </section>
     </ErrorContainer>
   )
@@ -52,7 +76,7 @@ export function AxiosErrorDisconnected({ url }: { url: string }) {
 
   return (
     <ErrorContainer>
-      <h5>{t('Error: Network connection failed')}</h5>
+      <h5>{t('An error has occurred: Network connection failed')}</h5>
 
       <section className="mt-3">
         <div>{t('We tried to download the file from')}</div>
@@ -124,7 +148,7 @@ export function AxiosErrorFailed({ url, status, statusText }: { url: string; sta
 
   return (
     <ErrorContainer>
-      <h5>{t('Error: Network request failed')}</h5>
+      <h5>{t('An error has occurred: Network request failed')}</h5>
 
       <section className="mt-3">
         <div>{t('We tried to download the file from')}</div>
@@ -138,7 +162,80 @@ export function AxiosErrorFailed({ url, status, statusText }: { url: string; sta
   )
 }
 
-export function ErrorContent({ error }: { error: Error }) {
+export function BadAllocErrorMessage() {
+  const { t } = useTranslation()
+  return (
+    <ErrorContainer>
+      <h5>{t('An error has occurred: out of memory (std::bad_alloc).')}</h5>
+
+      <section className="mt-3">
+        <Alert color="danger" fade={false}>
+          {t('Nextclade tried to allocate system memory, but no additional memory could be allocated.')}
+        </Alert>
+      </section>
+
+      <section className="mt-3">
+        <div>
+          {t(
+            'The Nextclade algorithm runs entirely locally in this Browser (and not on a remote server or in the cloud) and may thus require large amounts of local computational resources to perform calculations. Please make sure that there is enough system memory (RAM) available for Nextclade to operate.',
+          )}
+          <sup>1</sup>
+        </div>
+      </section>
+
+      <section className="mt-3">
+        {t('Possible solutions:')}
+        <Ul>
+          <Li>{t('Close unused web browser tabs, other applications and documents, to free up some memory.')}</Li>
+          <Li>
+            {t('Reduce number of processing threads in Nextclade\'s "Settings" dialog.')}
+            <sup>2</sup>
+          </Li>
+          <Li>
+            {t('Reduce the amount of analyzed data. For example, split large .fasta file to multiple smaller ones.')}
+          </Li>
+          <Li>
+            {t('Consider updating your web browser. Nextclade runs best on the latest versions of {{ browserList }}')}
+            <LinkExternal href="https://www.google.com/chrome">{t('Chrome')}</LinkExternal>
+            {' and '}
+            <LinkExternal href="https://www.mozilla.org/">{t('Firefox')}</LinkExternal>
+            {'.'}
+          </Li>
+          <Li>
+            {t(
+              'Consider disabling ad blocking browser extensions or adding Nextclade to their exceptions list. These extensions may cause increased memory consumption and malfunctions in Nextclade.',
+            )}
+            <sup>3</sup>
+          </Li>
+          <Li>{t('Try to run Nextclade on another computer with more system memory, if available.')}</Li>
+        </Ul>
+      </section>
+
+      <section className="mt-3">
+        <p>
+          <sup>1</sup>
+          <small> {t('System memory (RAM) is not to be confused with disk storage .')}</small>
+        </p>
+
+        <p>
+          <sup>2</sup>{' '}
+          <small>
+            {t(
+              'Nextclade runs multiple algorithm instances in parallel, to take advantage of multiple CPU cores and threads on your computer. Each thread consumes a certain amount of memory. The more threads there is, the faster the analysis, and the more memory is needed. After reducing number of threads, Nextclade will run slower, but will consume less memory.',
+            )}
+          </small>
+        </p>
+
+        <p>
+          <sup>3</sup>
+          <small>{t('Nextclade respects user privacy, does not serve ads, and does not track its users.')}</small>
+        </p>
+      </section>
+    </ErrorContainer>
+  )
+}
+
+export function ErrorContent({ error }: { error: Error | string }) {
   if (error instanceof HttpRequestError) {
     const url = error.request.url ?? 'Unknown URL'
     const status = error.response?.status
@@ -149,17 +246,25 @@ export function ErrorContent({ error }: { error: Error }) {
     return <AxiosErrorFailed url={url} status={status} statusText={statusText} />
   }
 
+  const { message } = getErrorDetails(error)
+
+  if (message === 'std::bad_alloc') {
+    return <BadAllocErrorMessage />
+  }
+
   return <GenericError error={error} />
 }
 
 export interface ErrorPopupProps {
-  error?: Error
+  globalError?: Error
+  algorithmErrors: string[]
 
   errorDismiss(): void
 }
 
 const mapStateToProps = (state: State) => ({
-  error: state.error?.error,
+  globalError: state.error?.error,
+  algorithmErrors: state.algorithm.errors,
 })
 
 const mapDispatchToProps = {
@@ -168,38 +273,63 @@ const mapDispatchToProps = {
 
 export const ErrorPopup = connect(mapStateToProps, mapDispatchToProps)(ErrorPopupDisconnected)
 
-export function ErrorPopupDisconnected({ error, errorDismiss }: ErrorPopupProps) {
-  const { t } = useTranslation()
+export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDismiss }: ErrorPopupProps) {
+  const [shouldShutdown, setShouldShutdown] = useState<boolean>(false)
+  const { t } = useTranslationSafe()
+  const router = useRouter()
 
-  if (error === undefined) {
+  if (shouldShutdown) {
+    // trigger React suspense forever, to display loading spinner until the page is refreshed
+    throw new Promise(() => {})
+  }
+
+  if (globalError === undefined && algorithmErrors.length === 0) {
     return null
   }
+
+  const error = globalError ?? algorithmErrors[0]
 
   return (
     <Modal centered isOpen backdrop="static" toggle={errorDismiss} fade={false} size="lg">
       <ModalHeader toggle={errorDismiss} tag="div">
-        <h3>{t('Error')}</h3>
+        <h3 className="text-center text-danger">{t('Error')}</h3>
       </ModalHeader>
-      {error?.message && (
+
+      {error && (
         <ModalBody>
           <ErrorContent error={error} />
           <section className="mt-3">
             <div>
-              {t('If you think it might be a bug in {{appName}}, please create a new issue at:', {
+              {t('If you think it is a bug in {{appName}}, report it at', {
                 appName: PROJECT_NAME,
               })}
             </div>
             <div>
               <LinkExternal href={URL_GITHUB_ISSUES}>{URL_GITHUB_ISSUES_FRIENDLY}</LinkExternal>
             </div>
-            <div>{t('The developers will be happy to investigate this problem.')}</div>
+            <div>
+              {t(
+                'so that developers can investigate this problem. Please provide as much details as possible about your input data, operating system, browser version and computer configuration. Include other details you deem useful for diagnostics. Share the example sequence data that allows to reproduce the problem, if possible.',
+              )}
+            </div>
           </section>
         </ModalBody>
       )}
       <ModalFooter>
         <div className="ml-auto">
-          <ButtonOk type="button" color="secondary" onClick={errorDismiss}>
-            {t('OK')}
+          <Button
+            type="button"
+            color="danger"
+            title={t('Reload the page and start Nextclade fresh')}
+            onClick={() => {
+              setShouldShutdown(true)
+              router.reload()
+            }}
+          >
+            {t('Restart Nextclade')}
+          </Button>
+          <ButtonOk type="button" color="secondary" title={t('Close this dialog window')} onClick={errorDismiss}>
+            {t('Dismiss')}
           </ButtonOk>
         </div>
       </ModalFooter>

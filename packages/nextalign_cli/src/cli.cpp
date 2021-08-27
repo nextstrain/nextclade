@@ -12,12 +12,14 @@
 #include "Logger.h"
 #include "description.h"
 #include "filesystem.h"
-
+#include "malloc_conf.h"
 
 struct CliParams {
-  int jobs;
-  bool verbose;
-  bool inOrder;
+  int jobs{};
+  std::string verbosity;
+  bool verbose{};
+  bool silent{};
+  bool inOrder{};
   std::string sequences;
   std::string reference;
   std::optional<std::string> genemap;
@@ -26,28 +28,30 @@ struct CliParams {
   std::optional<std::string> outputBasename;
   std::optional<std::string> outputFasta;
   std::optional<std::string> outputInsertions;
+  std::optional<std::string> outputErrors;
+  bool writeReference{};
 };
 
 struct Paths {
   fs::path outputFasta;
   fs::path outputInsertions;
+  fs::path outputErrors;
   std::map<std::string, fs::path> outputGenes;
 };
 
 
-class ErrorCliOptionInvalidValue : public std::runtime_error {
+class ErrorCliOptionInvalidValue : public ErrorFatal {
 public:
-  explicit ErrorCliOptionInvalidValue(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorCliOptionInvalidValue(const std::string &message) : ErrorFatal(message) {}
 };
 
-class ErrorIoUnableToWrite : public std::runtime_error {
+class ErrorIoUnableToWrite : public ErrorFatal {
 public:
-  explicit ErrorIoUnableToWrite(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorIoUnableToWrite(const std::string &message) : ErrorFatal(message) {}
 };
 
 template<typename Result>
-Result getParamRequired(
-  const cxxopts::Options &cxxOpts, const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
+Result getParamRequired(const cxxopts::ParseResult &cxxOptsParsed, const std::string &name) {
   if (!cxxOptsParsed.count(name)) {
     throw ErrorCliOptionInvalidValue(fmt::format("Error: argument `--{:s}` is required\n\n", name));
   }
@@ -123,8 +127,8 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
 }
 
 
-std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
-  int argc, char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
+std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(int argc,
+  char *argv[]) {// NOLINT(cppcoreguidelines-avoid-c-arrays)
   const std::string versionShort = PROJECT_VERSION;
   const std::string versionDetailed =
     fmt::format("nextalign {:s}\nbased on libnextalign {:s}", PROJECT_VERSION, getVersion());
@@ -149,8 +153,23 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     )
 
     (
+      "verbosity",
+      fmt::format("(optional, string) Set minimum verbosity level of console output."
+        " Possible values are (from least verbose to most verbose): {}."
+        " Default: 'warn' (only errors and warnings are shown).",
+        Logger::getVerbosityLevels()),
+      cxxopts::value<std::string>()->default_value(Logger::getVerbosityDefaultLevel()),
+      "VERBOSITY"
+    )
+
+    (
       "verbose",
-      "Increase verbosity of the console output. By default only errors and warnings are shown. With this option more information will be printed."
+      "(optional, boolean) Increase verbosity of the console output. Same as --verbosity=info."
+    )
+
+    (
+      "silent",
+      "(optional, boolean) Disable console output entirely. --verbosity=silent."
     )
 
     (
@@ -162,7 +181,7 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 
     (
       "in-order",
-      "Force parallel processing in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag."
+      "Force parallel processing in-order. With this flag the program will wait for results from the previous sequences to be written to the output files before writing the results of the next sequences, preserving the same order as in the input file. Due to variable sequence processing times, this might introduce unnecessary waiting times, but ensures that the resulting sequences are written in the same order as they occur in the inputs (except for sequences which have errors). By default, without this flag, processing might happen out of order, which is faster, due to the elimination of waiting, but might also lead to results written out of order - the order of results is not specified and depends on thread scheduling and processing times of individual sequences. This option is only relevant when `--jobs` is greater than 1 or is omitted. Note: the sequences which trigger errors during processing will be omitted from outputs, regardless of this flag."
     )
 
     (
@@ -197,21 +216,28 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
       "d,output-dir",
       "(optional, string) Write output files to this directory. The base filename can be set using `--output-basename` flag. The paths can be overridden on a per-file basis using `--output-*` flags. If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
-      "OUTPUT"
+      "OUTPUT_DIR"
     )
 
     (
       "n,output-basename",
       "(optional, string) Set the base filename to use for output files. To be used together with `--output-dir` flag. By default uses the filename of the sequences file (provided with `--sequences`). The paths can be overridden on a per-file basis using `--output-*` flags.",
       cxxopts::value<std::string>(),
-      "OUTPUT"
+      "OUTPUT_BASENAME"
+    )
+
+    (
+      "include-reference",
+      "(optional, boolean) Whether to include aligned reference nucleotide sequence into output nucleotide sequence fasta file and reference peptides into output peptide files.",
+      cxxopts::value<bool>(),
+      "WRITE_REF"
     )
 
     (
       "o,output-fasta",
-      "(required, string) Path to output aligned sequences in FASTA format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+      "(optional, string) Path to output aligned sequences in FASTA format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
-      "OUTPUT"
+      "OUTPUT_FASTA"
     )
 
     (
@@ -219,6 +245,13 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
       "(optional, string) Path to output stripped insertions data in CSV format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
       "OUTPUT_INSERTIONS"
+    )
+
+    (
+      "E,output-errors",
+      "(optional, string) Path to output errors and warnings occurred during processing, in CSV format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+      cxxopts::value<std::string>(),
+      "OUTPUT_ERRORS"
     )
 
     (
@@ -356,15 +389,20 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
     CliParams cliParams;
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
     cliParams.inOrder = getParamRequiredDefaulted<bool>(cxxOptsParsed, "in-order");
+    cliParams.verbosity = getParamRequiredDefaulted<std::string>(cxxOptsParsed, "verbosity");
     cliParams.verbose = getParamRequiredDefaulted<bool>(cxxOptsParsed, "verbose");
-    cliParams.sequences = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "sequences");
-    cliParams.reference = getParamRequired<std::string>(cxxOpts, cxxOptsParsed, "reference");
+    cliParams.silent = getParamRequiredDefaulted<bool>(cxxOptsParsed, "silent");
+
+    cliParams.sequences = getParamRequired<std::string>(cxxOptsParsed, "sequences");
+    cliParams.reference = getParamRequired<std::string>(cxxOptsParsed, "reference");
     cliParams.genemap = getParamOptional<std::string>(cxxOptsParsed, "genemap");
     cliParams.genes = getParamOptional<std::string>(cxxOptsParsed, "genes");
     cliParams.outputDir = getParamOptional<std::string>(cxxOptsParsed, "output-dir");
     cliParams.outputBasename = getParamOptional<std::string>(cxxOptsParsed, "output-basename");
     cliParams.outputFasta = getParamOptional<std::string>(cxxOptsParsed, "output-fasta");
+    cliParams.writeReference = getParamRequiredDefaulted<bool>(cxxOptsParsed, "include-reference");
     cliParams.outputInsertions = getParamOptional<std::string>(cxxOptsParsed, "output-insertions");
+    cliParams.outputErrors = getParamOptional<std::string>(cxxOptsParsed, "output-errors");
 
     if (bool(cliParams.genes) != bool(cliParams.genemap)) {
       throw ErrorCliOptionInvalidValue(
@@ -395,30 +433,39 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(
 }
 
 
-class ErrorFastaReader : public std::runtime_error {
+class ErrorFastaReader : public ErrorFatal {
 public:
-  explicit ErrorFastaReader(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorFastaReader(const std::string &message) : ErrorFatal(message) {}
 };
 
-AlgorithmInput parseRefFastaFile(const std::string &filename) {
+struct ReferenceSequenceData {
+  const NucleotideSequence seq;
+  const std::string name;
+  const int length;
+};
+
+ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
   std::ifstream file(filename);
   if (!file.good()) {
     throw ErrorFastaReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
   }
 
-  const auto refSeqs = parseSequences(file);
+  const auto refSeqs = parseSequences(file, filename);
   if (refSeqs.size() != 1) {
     throw ErrorFastaReader(
       fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
   }
 
-  return *(refSeqs.begin());
+  const auto &refSeq = refSeqs.front();
+  const auto &seq = toNucleotideSequence(refSeq.seq);
+  const auto length = static_cast<int>(seq.size());
+  return {.seq = seq, .name = refSeq.seqName, .length = length};
 }
 
 
-class ErrorGffReader : public std::runtime_error {
+class ErrorGffReader : public ErrorFatal {
 public:
-  explicit ErrorGffReader(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorGffReader(const std::string &message) : ErrorFatal(message) {}
 };
 
 GeneMap parseGeneMapGffFile(const std::string &filename) {
@@ -435,7 +482,7 @@ GeneMap parseGeneMapGffFile(const std::string &filename) {
   return geneMap;
 }
 
-std::set<std::string> parseGenes(const CliParams &cliParams, const GeneMap &geneMap) {
+std::set<std::string> parseGenes(const CliParams &cliParams) {
   std::set<std::string> genes;
 
   if (cliParams.genes && !(cliParams.genes->empty())) {
@@ -444,9 +491,10 @@ std::set<std::string> parseGenes(const CliParams &cliParams, const GeneMap &gene
 
   return genes;
 }
-class ErrorGeneMapValidationFailure : public std::runtime_error {
+
+class ErrorGeneMapValidationFailure : public ErrorFatal {
 public:
-  explicit ErrorGeneMapValidationFailure(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorGeneMapValidationFailure(const std::string &message) : ErrorFatal(message) {}
 };
 
 void validateGenes(const std::set<std::string> &genes, const GeneMap &geneMap) {
@@ -497,6 +545,10 @@ std::string formatCliParams(const CliParams &cliParams) {
     fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-insertions", *cliParams.outputInsertions);
   }
 
+  if (cliParams.outputErrors) {
+    fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-errors", *cliParams.outputErrors);
+  }
+
   return fmt::to_string(buf);
 }
 
@@ -529,6 +581,12 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     outputInsertions = *cliParams.outputInsertions;
   }
 
+  auto outputErrors = outDir / baseName;
+  outputErrors += ".errors.csv";
+  if (cliParams.outputErrors) {
+    outputErrors = *cliParams.outputErrors;
+  }
+
   std::map<std::string, fs::path> outputGenes;
   for (const auto &gene : genes) {
     auto outputGene = outDir / baseName;
@@ -536,7 +594,12 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     outputGenes.emplace(gene, outputGene);
   }
 
-  return {.outputFasta = outputFasta, .outputInsertions = outputInsertions, .outputGenes = outputGenes};
+  return {
+    .outputFasta = outputFasta,
+    .outputInsertions = outputInsertions,
+    .outputErrors = outputErrors,
+    .outputGenes = outputGenes,
+  };
 }
 
 std::string formatPaths(const Paths &paths) {
@@ -554,8 +617,9 @@ std::string formatPaths(const Paths &paths) {
   return fmt::to_string(buf);
 }
 
-std::string formatRef(const std::string &refName, const std::string &ref) {
-  return fmt::format("\nReference:\n  name: \"{:s}\"\n  length: {:d}\n", refName, ref.size());
+std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteReference) {
+  return fmt::format("\nReference:\n  name: \"{:s}\"\n  Length: {:d}\n  Write: {:s}", refData.name, refData.length,
+    shouldWriteReference ? "yes" : "no");
 }
 
 std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &genes) {
@@ -569,7 +633,7 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
   fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
   for (const auto &[geneName, gene] : geneMap) {
     const auto selected = std::find(genes.cbegin(), genes.cend(), geneName) != genes.cend();
-    const auto selectedStr = selected ? "  yes" : " ";
+    const std::string selectedStr = selected ? "  yes" : " ";
     fmt::format_to(buf, "| {:8s} | {:16s} | {:8d} | {:8d} | {:8d} | {:8d} | {:8s} |\n", selectedStr, geneName,
       gene.start + 1, gene.end, gene.length, gene.frame + 1, gene.strand);
   }
@@ -579,8 +643,9 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
 
 std::string formatInsertions(const std::vector<Insertion> &insertions) {
   std::vector<std::string> insertionStrings;
+  insertionStrings.reserve(insertions.size());
   for (const auto &insertion : insertions) {
-    insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.begin, insertion.seq));
+    insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.pos, insertion.ins));
   }
 
   return boost::algorithm::join(insertionStrings, ";");
@@ -592,19 +657,21 @@ std::string formatInsertions(const std::vector<Insertion> &insertions) {
 void run(
   /* in  */ int parallelism,
   /* in  */ bool inOrder,
-  /* in  */ const CliParams &cliParams,
   /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
-  /* in  */ const std::string &refStr,
+  /* in  */ const ReferenceSequenceData &refData,
   /* in  */ const GeneMap &geneMap,
   /* in  */ const NextalignOptions &options,
   /* out */ std::ostream &outputFastaStream,
   /* out */ std::ostream &outputInsertionsStream,
+  /* out */ std::ostream &outputErrorsFile,
   /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
+  /* in */ bool shouldWriteReference,
   /* out */ Logger &logger) {
   tbb::task_group_context context;
   const auto ioFiltersMode = inOrder ? tbb::filter_mode::serial_in_order : tbb::filter_mode::serial_out_of_order;
 
-  const auto ref = toNucleotideSequence(refStr);
+  const auto &ref = refData.seq;
+  const auto &refName = refData.name;
 
   /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
@@ -634,15 +701,15 @@ void run(
       }
     });
 
-  // HACK: prevent ref genes from being written multiple times
+  // HACK: prevent aligned ref and ref genes from being written multiple times
   // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
-  bool refGenesHaveBeenWritten = false;
+  bool refsHaveBeenWritten = !shouldWriteReference;
 
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(ioFiltersMode,//
-    [&outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &refGenesHaveBeenWritten, &logger](
-      const AlgorithmOutput &output) {
+    [&refName, &outputFastaStream, &outputInsertionsStream, &outputErrorsFile, &outputGeneStreams, &refsHaveBeenWritten,
+      &logger](const AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
 
@@ -651,73 +718,103 @@ void run(
         try {
           std::rethrow_exception(error);
         } catch (const std::exception &e) {
-          logger.warn("Warning: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n",
+          logger.warn("Warning: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.",
             seqName, e.what());
+          outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, e.what(), "", "<<ALL>>");
           return;
         }
       }
 
-      const auto &query = output.result.query;
+      const auto &refAligned = output.result.ref;
+      const auto &queryAligned = output.result.query;
       const auto &alignmentScore = output.result.alignmentScore;
       const auto &insertions = output.result.insertions;
       const auto &queryPeptides = output.result.queryPeptides;
       const auto &refPeptides = output.result.refPeptides;
       const auto &warnings = output.result.warnings;
-      logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} | \n",//
+      logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} |",//
         index, seqName, alignmentScore, insertions.size());
 
-      for (const auto &warning : warnings) {
-        logger.warn("Warning: in sequence \"{:s}\": {:s}\n", seqName, warning);
+      std::vector<std::string> warningsCombined;
+      std::vector<std::string> failedGeneNames;
+      for (const auto &warning : warnings.global) {
+        logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
+        warningsCombined.push_back(warning);
       }
 
-      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, query);
+      for (const auto &warning : warnings.inGenes) {
+        logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning.message);
+        warningsCombined.push_back(warning.message);
+        failedGeneNames.push_back(warning.geneName);
+      }
 
-      outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+      auto warningsJoined = boost::join(warningsCombined, ";");
+      boost::replace_all(warningsJoined, R"(")", R"("")");// escape double quotes
+
+      auto failedGeneNamesJoined = boost::join(failedGeneNames, ";");
+      boost::replace_all(failedGeneNamesJoined, R"(")", R"("")");// escape double quotes
+
+      outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, "", warningsJoined,
+        failedGeneNamesJoined);
 
       // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
-      if (!refGenesHaveBeenWritten) {
+      if (!refsHaveBeenWritten && !error) {
+        outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, refAligned);
+        outputFastaStream.flush();
+
         for (const auto &peptide : refPeptides) {
-          outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", "Reference", peptide.seq);
+          outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", refName, peptide.seq);
+          outputGeneStreams[peptide.name].flush();
         }
-        refGenesHaveBeenWritten = true;
+
+        refsHaveBeenWritten = true;
       }
+
+
+      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, queryAligned);
 
       for (const auto &peptide : queryPeptides) {
         outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
       }
+
+      outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
     });
 
   try {
     tbb::parallel_pipeline(parallelism, inputFilter & transformFilters & outputFilter, context);
   } catch (const std::exception &e) {
-    logger.error("Error: when running the pipeline: {:s}\n", e.what());
+    logger.error("Error: when running the internal parallel pipeline: {:s}", e.what());
   }
 }
 
 int main(int argc, char *argv[]) {
+  Logger logger{Logger::Options{.linePrefix = "Nextalign", .verbosity = Logger::Verbosity::warn}};
+
   try {
     const auto [cliParams, cxxOpts, options] = parseCommandLine(argc, argv);
     const auto helpText = cxxOpts.help();
 
-    Logger::Options loggerOptions;
+    auto verbosity = Logger::convertVerbosity(cliParams.verbosity);
     if (cliParams.verbose) {
-      loggerOptions.verbosity = Logger::Verbosity::info;
+      verbosity = Logger::Verbosity::info;
     }
 
-    Logger logger{loggerOptions};
+    if (cliParams.silent) {
+      verbosity = Logger::Verbosity::silent;
+    }
 
+    logger.setVerbosity(verbosity);
     logger.info(formatCliParams(cliParams));
 
-    const auto refInput = parseRefFastaFile(cliParams.reference);
-    const auto &refName = refInput.seqName;
-    const auto &ref = refInput.seq;
-    logger.info(formatRef(refName, ref));
+    const auto refData = parseRefFastaFile(cliParams.reference);
+    const auto shouldWriteReference = cliParams.writeReference;
+    logger.info(formatRef(refData, shouldWriteReference));
 
     GeneMap geneMap;
     std::set<std::string> genes;
     if (cliParams.genes && cliParams.genemap) {
       geneMap = parseGeneMapGffFile(*cliParams.genemap);
-      genes = parseGenes(cliParams, geneMap);
+      genes = parseGenes(cliParams);
       validateGenes(genes, geneMap);
       geneMap = filterGeneMap(genes, geneMap);
       logger.info(formatGeneMap(geneMap, genes));
@@ -738,9 +835,9 @@ int main(int argc, char *argv[]) {
     }
 
     std::ifstream fastaFile(cliParams.sequences);
-    auto fastaStream = makeFastaStream(fastaFile);
+    auto fastaStream = makeFastaStream(fastaFile, cliParams.sequences);
     if (!fastaFile.good()) {
-      logger.error("Error: unable to read \"{:s}\"\n", cliParams.sequences);
+      logger.error("Error: unable to read \"{:s}\"", cliParams.sequences);
       std::exit(1);
     }
 
@@ -757,33 +854,44 @@ int main(int argc, char *argv[]) {
       fs::create_directories(outputInsertionsParent);
     }
 
+    const auto outputErrorsParent = paths.outputErrors.parent_path();
+    if (!outputErrorsParent.empty()) {
+      fs::create_directories(outputErrorsParent);
+    }
+
     std::ofstream outputFastaFile(paths.outputFasta);
     if (!outputFastaFile.good()) {
-      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputFasta.string()));
+      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", paths.outputFasta.string()));
     }
 
     std::ofstream outputInsertionsFile(paths.outputInsertions);
     if (!outputInsertionsFile.good()) {
-      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", paths.outputInsertions.string()));
+      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", paths.outputInsertions.string()));
     }
     outputInsertionsFile << "seqName,insertions\n";
 
+    std::ofstream outputErrorsFile(paths.outputErrors);
+    if (!outputErrorsFile.good()) {
+      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", paths.outputErrors.string()));
+    }
+    outputErrorsFile << "seqName,errors,warnings,failedGenes\n";
+
     std::map<std::string, std::ofstream> outputGeneFiles;
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
-      const auto result = outputGeneFiles.emplace(
-        std::piecewise_construct, std::forward_as_tuple(geneName), std::forward_as_tuple(outputGenePath));
+      const auto result = outputGeneFiles.emplace(std::piecewise_construct, std::forward_as_tuple(geneName),
+        std::forward_as_tuple(outputGenePath));
 
       const auto &outputGeneFile = result.first->second;
 
       if (!outputGeneFile.good()) {
-        throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"\n", outputGenePath.string()));
+        throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", outputGenePath.string()));
       }
     }
 
-    int parallelism = -1;
+    auto parallelism = std::thread::hardware_concurrency();
     if (cliParams.jobs > 0) {
-      tbb::global_control globalControl{
-        tbb::global_control::max_allowed_parallelism, static_cast<size_t>(cliParams.jobs)};
+      tbb::global_control globalControl{tbb::global_control::max_allowed_parallelism,
+        static_cast<size_t>(cliParams.jobs)};
       parallelism = cliParams.jobs;
     }
 
@@ -792,21 +900,21 @@ int main(int argc, char *argv[]) {
     logger.info("\nParallelism: {:d}\n", parallelism);
 
     constexpr const auto TABLE_WIDTH = 86;
-    logger.info("\nSequences:\n");
-    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
-    logger.info("| {:5s} | {:40s} | {:16s} | {:12s} |\n", "Index", "Seq. name", "Align. score", "Insertions");
-    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
+    logger.info("\nSequences:");
+    logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
+    logger.info("| {:5s} | {:40s} | {:16s} | {:12s} |", "Index", "Seq. name", "Align. score", "Insertions");
+    logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, cliParams, fastaStream, ref, geneMap, options, outputFastaFile, outputInsertionsFile,
-        outputGeneFiles, logger);
+      run(parallelism, inOrder, fastaStream, refData, geneMap, options, outputFastaFile, outputInsertionsFile,
+        outputErrorsFile, outputGeneFiles, shouldWriteReference, logger);
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
     }
 
-    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
+    logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
   } catch (const std::exception &e) {
-    fmt::print(stderr, "Error: {:s}\n", e.what());
+    logger.error("Error: {:s}", e.what());
     std::exit(1);
   }
 }

@@ -10,75 +10,75 @@
 
 using NucleotideSequenceFrozen = frozen::basic_string<Nucleotide>;
 
+// clang-format off
+constexpr const Nucleotide GAP_GAP_GAP[3] = {Nucleotide::GAP, Nucleotide::GAP, Nucleotide::GAP}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide AAA[3] = {Nucleotide::A, Nucleotide::A, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide AAC[3] = {Nucleotide::A, Nucleotide::A, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide AAG[3] = {Nucleotide::A, Nucleotide::A, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide AAT[3] = {Nucleotide::A, Nucleotide::A, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide ACA[3] = {Nucleotide::A, Nucleotide::C, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide ACC[3] = {Nucleotide::A, Nucleotide::C, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide ACG[3] = {Nucleotide::A, Nucleotide::C, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide ACT[3] = {Nucleotide::A, Nucleotide::C, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide AGA[3] = {Nucleotide::A, Nucleotide::G, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide AGC[3] = {Nucleotide::A, Nucleotide::G, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide AGG[3] = {Nucleotide::A, Nucleotide::G, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide AGT[3] = {Nucleotide::A, Nucleotide::G, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide ATA[3] = {Nucleotide::A, Nucleotide::T, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide ATC[3] = {Nucleotide::A, Nucleotide::T, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide ATG[3] = {Nucleotide::A, Nucleotide::T, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide ATT[3] = {Nucleotide::A, Nucleotide::T, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CAA[3] = {Nucleotide::C, Nucleotide::A, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CAC[3] = {Nucleotide::C, Nucleotide::A, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CAG[3] = {Nucleotide::C, Nucleotide::A, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CAT[3] = {Nucleotide::C, Nucleotide::A, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CCA[3] = {Nucleotide::C, Nucleotide::C, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CCC[3] = {Nucleotide::C, Nucleotide::C, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CCG[3] = {Nucleotide::C, Nucleotide::C, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CCT[3] = {Nucleotide::C, Nucleotide::C, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CGA[3] = {Nucleotide::C, Nucleotide::G, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CGC[3] = {Nucleotide::C, Nucleotide::G, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CGG[3] = {Nucleotide::C, Nucleotide::G, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CGT[3] = {Nucleotide::C, Nucleotide::G, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CTA[3] = {Nucleotide::C, Nucleotide::T, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CTC[3] = {Nucleotide::C, Nucleotide::T, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CTG[3] = {Nucleotide::C, Nucleotide::T, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide CTT[3] = {Nucleotide::C, Nucleotide::T, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GAA[3] = {Nucleotide::G, Nucleotide::A, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GAC[3] = {Nucleotide::G, Nucleotide::A, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GAG[3] = {Nucleotide::G, Nucleotide::A, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GAT[3] = {Nucleotide::G, Nucleotide::A, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GCA[3] = {Nucleotide::G, Nucleotide::C, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GCC[3] = {Nucleotide::G, Nucleotide::C, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GCG[3] = {Nucleotide::G, Nucleotide::C, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GCT[3] = {Nucleotide::G, Nucleotide::C, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GGA[3] = {Nucleotide::G, Nucleotide::G, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GGC[3] = {Nucleotide::G, Nucleotide::G, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GGG[3] = {Nucleotide::G, Nucleotide::G, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GGT[3] = {Nucleotide::G, Nucleotide::G, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GTA[3] = {Nucleotide::G, Nucleotide::T, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GTC[3] = {Nucleotide::G, Nucleotide::T, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GTG[3] = {Nucleotide::G, Nucleotide::T, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide GTT[3] = {Nucleotide::G, Nucleotide::T, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TAA[3] = {Nucleotide::T, Nucleotide::A, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TAC[3] = {Nucleotide::T, Nucleotide::A, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TAG[3] = {Nucleotide::T, Nucleotide::A, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TAT[3] = {Nucleotide::T, Nucleotide::A, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TCA[3] = {Nucleotide::T, Nucleotide::C, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TCC[3] = {Nucleotide::T, Nucleotide::C, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TCG[3] = {Nucleotide::T, Nucleotide::C, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TCT[3] = {Nucleotide::T, Nucleotide::C, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TGA[3] = {Nucleotide::T, Nucleotide::G, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TGC[3] = {Nucleotide::T, Nucleotide::G, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TGG[3] = {Nucleotide::T, Nucleotide::G, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TGT[3] = {Nucleotide::T, Nucleotide::G, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TTA[3] = {Nucleotide::T, Nucleotide::T, Nucleotide::A}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TTC[3] = {Nucleotide::T, Nucleotide::T, Nucleotide::C}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TTG[3] = {Nucleotide::T, Nucleotide::T, Nucleotide::G}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+constexpr const Nucleotide TTT[3] = {Nucleotide::T, Nucleotide::T, Nucleotide::T}; // NOLINT(cppcoreguidelines-avoid-c-arrays)
+// clang-format on
 
-constexpr const Nucleotide GAP_GAP_GAP[3] = {Nucleotide::GAP, Nucleotide::GAP, Nucleotide::GAP};
-constexpr const Nucleotide AAA[3] = {Nucleotide::A, Nucleotide::A, Nucleotide::A};
-constexpr const Nucleotide AAC[3] = {Nucleotide::A, Nucleotide::A, Nucleotide::C};
-constexpr const Nucleotide AAG[3] = {Nucleotide::A, Nucleotide::A, Nucleotide::G};
-constexpr const Nucleotide AAT[3] = {Nucleotide::A, Nucleotide::A, Nucleotide::T};
-constexpr const Nucleotide ACA[3] = {Nucleotide::A, Nucleotide::C, Nucleotide::A};
-constexpr const Nucleotide ACC[3] = {Nucleotide::A, Nucleotide::C, Nucleotide::C};
-constexpr const Nucleotide ACG[3] = {Nucleotide::A, Nucleotide::C, Nucleotide::G};
-constexpr const Nucleotide ACT[3] = {Nucleotide::A, Nucleotide::C, Nucleotide::T};
-constexpr const Nucleotide AGA[3] = {Nucleotide::A, Nucleotide::G, Nucleotide::A};
-constexpr const Nucleotide AGC[3] = {Nucleotide::A, Nucleotide::G, Nucleotide::C};
-constexpr const Nucleotide AGG[3] = {Nucleotide::A, Nucleotide::G, Nucleotide::G};
-constexpr const Nucleotide AGT[3] = {Nucleotide::A, Nucleotide::G, Nucleotide::T};
-constexpr const Nucleotide ATA[3] = {Nucleotide::A, Nucleotide::T, Nucleotide::A};
-constexpr const Nucleotide ATC[3] = {Nucleotide::A, Nucleotide::T, Nucleotide::C};
-constexpr const Nucleotide ATG[3] = {Nucleotide::A, Nucleotide::T, Nucleotide::G};
-constexpr const Nucleotide ATT[3] = {Nucleotide::A, Nucleotide::T, Nucleotide::T};
-constexpr const Nucleotide CAA[3] = {Nucleotide::C, Nucleotide::A, Nucleotide::A};
-constexpr const Nucleotide CAC[3] = {Nucleotide::C, Nucleotide::A, Nucleotide::C};
-constexpr const Nucleotide CAG[3] = {Nucleotide::C, Nucleotide::A, Nucleotide::G};
-constexpr const Nucleotide CAT[3] = {Nucleotide::C, Nucleotide::A, Nucleotide::T};
-constexpr const Nucleotide CCA[3] = {Nucleotide::C, Nucleotide::C, Nucleotide::A};
-constexpr const Nucleotide CCC[3] = {Nucleotide::C, Nucleotide::C, Nucleotide::C};
-constexpr const Nucleotide CCG[3] = {Nucleotide::C, Nucleotide::C, Nucleotide::G};
-constexpr const Nucleotide CCT[3] = {Nucleotide::C, Nucleotide::C, Nucleotide::T};
-constexpr const Nucleotide CGA[3] = {Nucleotide::C, Nucleotide::G, Nucleotide::A};
-constexpr const Nucleotide CGC[3] = {Nucleotide::C, Nucleotide::G, Nucleotide::C};
-constexpr const Nucleotide CGG[3] = {Nucleotide::C, Nucleotide::G, Nucleotide::G};
-constexpr const Nucleotide CGT[3] = {Nucleotide::C, Nucleotide::G, Nucleotide::T};
-constexpr const Nucleotide CTA[3] = {Nucleotide::C, Nucleotide::T, Nucleotide::A};
-constexpr const Nucleotide CTC[3] = {Nucleotide::C, Nucleotide::T, Nucleotide::C};
-constexpr const Nucleotide CTG[3] = {Nucleotide::C, Nucleotide::T, Nucleotide::G};
-constexpr const Nucleotide CTT[3] = {Nucleotide::C, Nucleotide::T, Nucleotide::T};
-constexpr const Nucleotide GAA[3] = {Nucleotide::G, Nucleotide::A, Nucleotide::A};
-constexpr const Nucleotide GAC[3] = {Nucleotide::G, Nucleotide::A, Nucleotide::C};
-constexpr const Nucleotide GAG[3] = {Nucleotide::G, Nucleotide::A, Nucleotide::G};
-constexpr const Nucleotide GAT[3] = {Nucleotide::G, Nucleotide::A, Nucleotide::T};
-constexpr const Nucleotide GCA[3] = {Nucleotide::G, Nucleotide::C, Nucleotide::A};
-constexpr const Nucleotide GCC[3] = {Nucleotide::G, Nucleotide::C, Nucleotide::C};
-constexpr const Nucleotide GCG[3] = {Nucleotide::G, Nucleotide::C, Nucleotide::G};
-constexpr const Nucleotide GCT[3] = {Nucleotide::G, Nucleotide::C, Nucleotide::T};
-constexpr const Nucleotide GGA[3] = {Nucleotide::G, Nucleotide::G, Nucleotide::A};
-constexpr const Nucleotide GGC[3] = {Nucleotide::G, Nucleotide::G, Nucleotide::C};
-constexpr const Nucleotide GGG[3] = {Nucleotide::G, Nucleotide::G, Nucleotide::G};
-constexpr const Nucleotide GGT[3] = {Nucleotide::G, Nucleotide::G, Nucleotide::T};
-constexpr const Nucleotide GTA[3] = {Nucleotide::G, Nucleotide::T, Nucleotide::A};
-constexpr const Nucleotide GTC[3] = {Nucleotide::G, Nucleotide::T, Nucleotide::C};
-constexpr const Nucleotide GTG[3] = {Nucleotide::G, Nucleotide::T, Nucleotide::G};
-constexpr const Nucleotide GTT[3] = {Nucleotide::G, Nucleotide::T, Nucleotide::T};
-constexpr const Nucleotide TAA[3] = {Nucleotide::T, Nucleotide::A, Nucleotide::A};
-constexpr const Nucleotide TAC[3] = {Nucleotide::T, Nucleotide::A, Nucleotide::C};
-constexpr const Nucleotide TAG[3] = {Nucleotide::T, Nucleotide::A, Nucleotide::G};
-constexpr const Nucleotide TAT[3] = {Nucleotide::T, Nucleotide::A, Nucleotide::T};
-constexpr const Nucleotide TCA[3] = {Nucleotide::T, Nucleotide::C, Nucleotide::A};
-constexpr const Nucleotide TCC[3] = {Nucleotide::T, Nucleotide::C, Nucleotide::C};
-constexpr const Nucleotide TCG[3] = {Nucleotide::T, Nucleotide::C, Nucleotide::G};
-constexpr const Nucleotide TCT[3] = {Nucleotide::T, Nucleotide::C, Nucleotide::T};
-constexpr const Nucleotide TGA[3] = {Nucleotide::T, Nucleotide::G, Nucleotide::A};
-constexpr const Nucleotide TGC[3] = {Nucleotide::T, Nucleotide::G, Nucleotide::C};
-constexpr const Nucleotide TGG[3] = {Nucleotide::T, Nucleotide::G, Nucleotide::G};
-constexpr const Nucleotide TGT[3] = {Nucleotide::T, Nucleotide::G, Nucleotide::T};
-constexpr const Nucleotide TTA[3] = {Nucleotide::T, Nucleotide::T, Nucleotide::A};
-constexpr const Nucleotide TTC[3] = {Nucleotide::T, Nucleotide::T, Nucleotide::C};
-constexpr const Nucleotide TTG[3] = {Nucleotide::T, Nucleotide::T, Nucleotide::G};
-constexpr const Nucleotide TTT[3] = {Nucleotide::T, Nucleotide::T, Nucleotide::T};
-
-
-static constexpr const frozen::map<NucleotideSequenceFrozen, Aminoacid, 65> codonTable = {
+constexpr const frozen::map<NucleotideSequenceFrozen, Aminoacid, 65> codonTable = {
   {NucleotideSequenceFrozen{GAP_GAP_GAP, 3}, Aminoacid::GAP},
   {NucleotideSequenceFrozen{AAA, 3}, Aminoacid::K},
   {NucleotideSequenceFrozen{AAC, 3}, Aminoacid::N},
@@ -149,7 +149,7 @@ static constexpr const frozen::map<NucleotideSequenceFrozen, Aminoacid, 65> codo
 Aminoacid decode(const NucleotideSequenceView& codon) {
   invariant_equal(3, codon.size());
 
-  const auto it = codonTable.find(codon);
+  const auto* it = codonTable.find(codon);
   if (it != codonTable.end()) {
     return it->second;
   }

@@ -7,7 +7,6 @@ include(Quiet)
 include(Sanitizers)
 
 project(nextalign DESCRIPTION "C++ library for viral genome reference alignment")
-file(STRINGS "VERSION" PROJECT_VERSION)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
@@ -16,10 +15,10 @@ find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
-find_package(type_safe 0.2.1 REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
   include/nextalign/nextalign.h
+  include/nextalign/private/nextalign_private.h
   src/align/alignPairwise.cpp
   src/align/alignPairwise.h
   src/align/getGapOpenCloseScores.cpp
@@ -37,7 +36,6 @@ add_library(${PROJECT_NAME} STATIC
   src/match/matchNuc.cpp
   src/match/matchNuc.h
   src/nextalign.cpp
-  src/nextalign_private.h
   src/options/options.cpp
   src/strip/stripInsertions.h
   src/translate/decode.cpp
@@ -64,6 +62,11 @@ add_library(${PROJECT_NAME} STATIC
   src/utils/vector2d.h
   )
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS})
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS ${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS})
+endif ()
+
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
@@ -71,7 +74,9 @@ target_compile_definitions(${PROJECT_NAME}
   PRIVATE
 
   -DPROJECT_NAME="${PROJECT_NAME}"
-  -DPROJECT_VERSION="${PROJECT_VERSION}"
+  -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
+
+  -DFMT_HEADER_ONLY=1
 
   # Workaround for GCC 9 error in type_safe.
   # See: https://github.com/foonathan/debug_assert/issues/17
@@ -92,20 +97,21 @@ target_include_directories(${PROJECT_NAME} SYSTEM
   "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
   )
 
-target_link_libraries(${PROJECT_NAME}
+target_include_directories(${PROJECT_NAME}
   PUBLIC
+  include
+  )
 
+target_link_libraries(${PROJECT_NAME}
   PRIVATE
   Microsoft.GSL::GSL
   Boost::headers
   fast-cpp-csv-parser::fast-cpp-csv-parser
-  fmt::fmt
-  type_safe::type_safe
+  fmt::fmt-header-only
   )
 
 set(NEXTALIGN_BUILD_TESTS ON CACHE BOOL "Build unit tests")
 if (${NEXTALIGN_BUILD_TESTS})
-  include(CTest)
   enable_testing()
   add_subdirectory(tests)
 endif ()

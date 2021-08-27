@@ -1,0 +1,2 @@
+thread backtrace -c 30
+quit

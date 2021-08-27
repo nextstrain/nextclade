@@ -1,4 +1,4 @@
-import { ANY } from 'src/algorithms/nucleotides'
+import { ANY } from 'src/constants'
 
 export function parsePosition(raw: string | undefined | null) {
   if (!raw || raw.length === 0 || raw === ANY) {

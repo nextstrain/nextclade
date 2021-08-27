@@ -14,7 +14,7 @@ constexpr const int NUM_SEQUENCES_VAR = 10;// Number of sequences to process per
 auto getData() {
   std::vector<AlgorithmInput> sequences;
   std::ifstream fastaFile("data/example/sequences.fasta");
-  const auto sequencesMap = parseSequences(fastaFile);
+  const auto sequencesMap = parseSequences(fastaFile, "data/example/sequences.fasta");
   std::copy(sequencesMap.cbegin(), sequencesMap.cend(), back_inserter(sequences));
 
   assert(sequences.size() >= NUM_SEQUENCES_VAR);
@@ -25,11 +25,11 @@ auto getData() {
     });
 
   std::ifstream refFile("data/example/reference.txt");
-  const auto refSeqs = parseSequences(refFile);
+  const auto refSeqs = parseSequences(refFile, "data/example/reference.txt");
   const auto ref = refSeqs.begin()->seq;
 
   std::ifstream genemapFile("data/example/genemap.gff");
-  const auto GENE_MAP = parseGeneMapGff(genemapFile);
+  const auto GENE_MAP = parseGeneMapGff(genemapFile, "data/example/genemap.gff");
 
   std::set<std::string> GENES;
   for (const auto& [geneName, _] : GENE_MAP) {

@@ -23,8 +23,9 @@ mkdir -p "${BUILD_DIR_DEFAULT}"
 BUILD_DIR_DEFAULT=$(realpath "${BUILD_DIR_DEFAULT}")
 BUILD_DIR="${BUILD_DIR:=${BUILD_DIR_DEFAULT}}"
 
-find "${SOURCE_DIR}" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -print0 | xargs -0 \
-  run-clang-tidy \
+find "${PACKAGES_DIR}" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -print0 | xargs -0 \
+  python3 ${THIS_DIR}/lib/run-clang-tidy.py \
     -quiet \
     -p=.build/Debug \
+    -p=${BUILD_DIR} \
     || true

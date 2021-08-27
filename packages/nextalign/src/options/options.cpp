@@ -28,7 +28,7 @@ namespace {
         .mismatchesAllowed = 2,
       },
   };
-}
+}//namespace
 
 NextalignOptions getDefaultOptions() {
   return OPTIONS_DEFAULT;
