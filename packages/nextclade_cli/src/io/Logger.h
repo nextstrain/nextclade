@@ -116,6 +116,10 @@ namespace Nextclade {
       options.verbosity = verbosityLevel;
     }
 
+    inline bool isVerbose() const {
+      return options.verbosity >= Logger::Verbosity::info;
+    }
+
     template<typename S, typename... Args>
     inline void debug(const S& format_str, Args&&... args) const {
       if (options.verbosity >= Verbosity::debug) {

@@ -14,6 +14,8 @@ namespace Nextclade {
       .silent = cliParams->silent,
     }};
 
+    const auto verbose = logger.isVerbose();
+
     const auto datasetsIndexJson = fetchDatasetsIndexJson();
     const std::string thisVersion = getVersion();
 
@@ -34,7 +36,7 @@ namespace Nextclade {
     }
 
     if (!datasets.empty()) {
-      fmt::print("{:s}\n", formatDatasets(datasets));
+      fmt::print("{:s}\n", formatDatasets(datasets, verbose));
     } else {
       fmt::print("Nothing found\n");
     }

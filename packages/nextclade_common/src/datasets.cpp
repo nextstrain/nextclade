@@ -412,16 +412,16 @@ namespace Nextclade {
           fmt::format_to(buf, "\n");
 
           if (verbose) {
-            fmt::format_to(buf, "    Version tag file      : {:s}\n", version.files.at("tag"));
+            fmt::format_to(buf, "        Version tag file      : {:s}\n", version.files.at("tag"));
             fmt::format_to(buf, "\n");
 
-            fmt::format_to(buf, "    Files:\n");
-            fmt::format_to(buf, "      Reference sequence  : {:s}\n", version.files.at("reference"));
-            fmt::format_to(buf, "      Reference tree      : {:s}\n", version.files.at("tree"));
-            fmt::format_to(buf, "      Gene map            : {:s}\n", version.files.at("geneMap"));
-            fmt::format_to(buf, "      QC configuration    : {:s}\n", version.files.at("qc"));
-            fmt::format_to(buf, "      PCR primers         : {:s}\n", version.files.at("primers"));
-            fmt::format_to(buf, "      Example sequences   : {:s}\n", version.files.at("sequences"));
+            fmt::format_to(buf, "        Files:\n");
+            fmt::format_to(buf, "            Reference sequence  : {:s}\n", version.files.at("reference"));
+            fmt::format_to(buf, "            Reference tree      : {:s}\n", version.files.at("tree"));
+            fmt::format_to(buf, "            Gene map            : {:s}\n", version.files.at("geneMap"));
+            fmt::format_to(buf, "            QC configuration    : {:s}\n", version.files.at("qc"));
+            fmt::format_to(buf, "            PCR primers         : {:s}\n", version.files.at("primers"));
+            fmt::format_to(buf, "            Example sequences   : {:s}\n", version.files.at("sequences"));
 
             fmt::format_to(buf, "\n");
           }
@@ -432,7 +432,10 @@ namespace Nextclade {
             "--output-dir='data/{}_{}_{}'\n\n",
             dataset.name, ref.accession, version.tag, dataset.name, ref.accession, version.tag);
 
-          fmt::format_to(buf, "        (In this case repeated downloads will always produce the same files. This is only recommended if you need strictly reproducible results. Note that with stale data, updated clades and other features will not be available. We recommend to update data periodically.)\n\n",
+          fmt::format_to(buf,
+            "        (In this case repeated downloads will always produce the same files. This is only recommended if "
+            "you need strictly reproducible results. Note that with stale data, updated clades and other features will "
+            "not be available. We recommend to update data periodically.)\n\n",
             dataset.defaultRef);
 
           fmt::format_to(buf, "\n");

@@ -38,7 +38,8 @@ namespace Nextclade {
 
     auto datasets = datasetGetFilter(datasetsIndexJson.datasets, cliParams, thisVersion);
 
-    logger.info("Downloading dataset:\n{:s}\n", formatDatasets(datasets));
+    logger.info("Requested dataset: name='{}', reference='{}', tag='{}'", cliParams->name, cliParams->reference,
+      cliParams->tag);
 
     if (datasets.empty()) {
       throw ErrorDatasetVersionedNotFound(cliParams->name, cliParams->reference, cliParams->tag);
@@ -63,8 +64,14 @@ namespace Nextclade {
         " This is a bug. Please report it to developers.");
     }
 
+    const auto& dataset = datasets[0];
+    const auto& reference = datasets[0].datasetRefs[0].reference;
     const auto& version = datasets[0].datasetRefs[0].versions[0];
+    logger.info("Downloading dataset: name='{}', reference='{}', tag='{}'", dataset.name, reference.accession,
+      version.tag);
 
     fetchDatasetVersion(version, cliParams->outputDir);
+
+    logger.info("Dataset written to {}", cliParams->outputDir);
   }
 }// namespace Nextclade
