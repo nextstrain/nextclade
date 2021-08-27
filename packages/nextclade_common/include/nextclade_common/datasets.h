@@ -86,7 +86,7 @@ namespace Nextclade {
 
   std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat);
 
-  std::string formatDatasets(const std::vector<Dataset>& datasets);
+  std::string formatDatasets(const std::vector<Dataset>& datasets, bool verbose = false);
 
 
   bool operator==(const DatasetCompatibilityRange& left, const DatasetCompatibilityRange& right);
