@@ -2,7 +2,7 @@
 
 This guide describes how to change dataset server URL in Nextclade CLI and Nextclade Web and how to run your own local dataset server. This is useful for the development of datasets functionality and for testing new datasets locally.
 
-See https://github.com/neherlab/nextclade_data on how create a custom dataset repository directory.
+See https://github.com/nextstrain/nextclade_data on how create a custom dataset repository directory.
 
 ## Use custom dataset server
 
@@ -33,13 +33,13 @@ In order to run and use the server:
    yarn install
    ```
 
-- Set `DATA_OUTPUT_DIR_RELATIVE` variable in `.env` file to a relative path of a Nextclade dataset repository build (see `.env.example`). For the default data curation workflow (https://github.com/neherlab/nextclade_data) this will be the `data_output/` directory of the `nextclade_data` project:
+- Set `DATA_OUTPUT_DIR_RELATIVE` variable in `.env` file to a relative path of a Nextclade dataset repository build (see `.env.example`). For the default data curation workflow (https://github.com/nextstrain/nextclade_data) this will be the `data_output/` directory of the `nextclade_data` project:
 
   ```
   DATA_OUTPUT_DIR_RELATIVE=../nextclade_data/data_output
   ```
 
-  Make sure you rebuild the datasets in order for `data_output/` directory to appear. Refer to documentation in https://github.com/neherlab/nextclade_data for more details.
+  Make sure you rebuild the datasets in order for `data_output/` directory to appear. Refer to documentation in https://github.com/nextstrain/nextclade_data for more details.
 
 - Start the server:
 
