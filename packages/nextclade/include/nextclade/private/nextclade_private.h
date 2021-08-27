@@ -11,6 +11,17 @@
 
 
 namespace Nextclade {
+  NextcladeResult analyzeOneSequence(        //
+    const std::string& seqName,              //
+    const NucleotideSequence& ref,           //
+    const NucleotideSequence& query,         //
+    const GeneMap& geneMap,                  //
+    const std::vector<PcrPrimer>& pcrPrimers,//
+    const QcConfig& qcRulesConfig,           //
+    const Tree& tree,                        //
+    const NextalignOptions& nextalignOptions //
+  );
+
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {
     os << "{ ";
@@ -43,7 +54,17 @@ namespace Nextclade {
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideRange& val) {
     os << "{ ";
-    os << "nuc: " << nucToString(val.nuc) << ", ";
+    os << "nuc: " << nucToString(val.character) << ", ";
+    os << "begin: " << val.begin << ", ";
+    os << "end: " << val.end << ", ";
+    os << "length: " << val.length;
+    os << " }";
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const AminoacidRange& val) {
+    os << "{ ";
+    os << "nuc: " << aaToString(val.character) << ", ";
     os << "begin: " << val.begin << ", ";
     os << "end: " << val.end << ", ";
     os << "length: " << val.length;

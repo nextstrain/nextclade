@@ -2,11 +2,11 @@
 
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
+#include <nextclade_json/nextclade_json.h>
 
 #include <string>
 
 #include "../io/formatQcStatus.h"
-#include "../io/jsonStringify.h"
 #include "TreeNode.h"
 
 
@@ -111,8 +111,6 @@ namespace Nextclade {
       for (auto& coloring : colorings) {
         const auto& key = coloring.at("key");
         if (key == "region" || key == "country" || key == "division") {
-          const auto& title = coloring.at("title");
-          const auto& type = coloring.at("type");
           const auto& oldScale = get(coloring, "scale", json::array());
 
           auto scale = json::array({
@@ -124,12 +122,7 @@ namespace Nextclade {
             scale.push_back(sc);
           }
 
-          coloring = json::object({
-            {"key", key},
-            {"scale", scale},
-            {"title", title},
-            {"type", type},
-          });
+          coloring.at("scale") = scale;
         }
       }
 
@@ -165,6 +158,13 @@ namespace Nextclade {
 
   Tree::Tree(const std::string& auspiceJsonV2) : pimpl(std::make_unique<TreeImpl>(auspiceJsonV2)) {}
 
+  Tree::Tree(Tree&& other) noexcept : pimpl(std::move(other.pimpl)) {}
+
+  Tree& Tree::operator=(Tree&& other) noexcept {
+    this->pimpl = std::move(other.pimpl);
+    return *this;
+  }
+
   Tree::~Tree() {}// NOLINT(modernize-use-equals-default)
 
   TreeNode Tree::root() const {
@@ -180,13 +180,13 @@ namespace Nextclade {
   }
 
   ErrorAuspiceJsonV2Invalid::ErrorAuspiceJsonV2Invalid(const json& node)
-      : std::runtime_error(
+      : ErrorFatal(
           fmt::format("When accessing Auspice Json v2 tree: format is invalid: expected to find an object, but found: "
                       "\"{}\"",
             node.dump())) {}
 
   ErrorAuspiceJsonV2TreeNotFound::ErrorAuspiceJsonV2TreeNotFound(const json& node)
-      : std::runtime_error(fmt::format(
+      : ErrorFatal(fmt::format(
           "When parsing Auspice Json v2 tree: format is invalid: `tree` is expected to be an object, but found: "
           "\"{}\"",
           node.dump())) {}

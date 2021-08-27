@@ -180,17 +180,17 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${C_CXX_FLAGS} ${CXX_FLAGS}")
 
+#  -fstack-protector-all \
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} \
   -DDEBUG=1 \
-  -fstack-protector-all \
   -fno-inline \
   -fno-omit-frame-pointer \
   -fno-optimize-sibling-calls \
   ")
 
+#  -fstack-protector-all \
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
   -DDEBUG=1 \
-  -fstack-protector-all \
   -fno-inline \
   -fno-omit-frame-pointer \
   -fno-optimize-sibling-calls \

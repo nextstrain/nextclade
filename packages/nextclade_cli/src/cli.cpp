@@ -18,7 +18,9 @@
 
 struct CliParams {
   int jobs{};
+  std::string verbosity;
   bool verbose{};
+  bool silent{};
   bool inOrder{};
 
   std::string inputFasta;
@@ -37,24 +39,26 @@ struct CliParams {
   std::optional<std::string> outputBasename;
   std::optional<std::string> outputFasta;
   std::optional<std::string> outputInsertions;
+  std::optional<std::string> outputErrors;
   bool writeReference{};
 };
 
 struct Paths {
   fs::path outputFasta;
   fs::path outputInsertions;
+  fs::path outputErrors;
   std::map<std::string, fs::path> outputGenes;
 };
 
 
-class ErrorCliOptionInvalidValue : public std::runtime_error {
+class ErrorCliOptionInvalidValue : public ErrorFatal {
 public:
-  explicit ErrorCliOptionInvalidValue(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorCliOptionInvalidValue(const std::string &message) : ErrorFatal(message) {}
 };
 
-class ErrorIoUnableToWrite : public std::runtime_error {
+class ErrorIoUnableToWrite : public ErrorFatal {
 public:
-  explicit ErrorIoUnableToWrite(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorIoUnableToWrite(const std::string &message) : ErrorFatal(message) {}
 };
 
 template<typename Result>
@@ -162,8 +166,23 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
     )
 
     (
+      "verbosity",
+      fmt::format("(optional, string) Set minimum verbosity level of console output."
+        " Possible values are (from least verbose to most verbose): {}."
+        " Default: 'warn' (only errors and warnings are shown).",
+        Logger::getVerbosityLevels()),
+      cxxopts::value<std::string>()->default_value(Logger::getVerbosityDefaultLevel()),
+      "VERBOSITY"
+    )
+
+    (
       "verbose",
-      "(optional, boolean) Increase verbosity of the console output. By default only errors and warnings are shown. With this option more information will be printed."
+      "(optional, boolean) Increase verbosity of the console output. Same as --verbosity=info."
+    )
+
+    (
+      "silent",
+      "(optional, boolean) Disable console output entirely. --verbosity=silent."
     )
 
     (
@@ -287,6 +306,13 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
       "(optional, string) Path to output stripped insertions data in CSV format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
       cxxopts::value<std::string>(),
       "OUTPUT_INSERTIONS"
+    )
+
+    (
+      "E,output-errors",
+      "(optional, string) Path to output errors and warnings occurred during processing, in CSV format (overrides paths given with `--output-dir` and `--output-basename`). If the required directory tree does not exist, it will be created.",
+      cxxopts::value<std::string>(),
+      "OUTPUT_ERRORS"
     )
 
     (
@@ -424,13 +450,16 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
     CliParams cliParams;
     cliParams.jobs = getParamRequiredDefaulted<int>(cxxOptsParsed, "jobs");
     cliParams.inOrder = getParamRequiredDefaulted<bool>(cxxOptsParsed, "in-order");
+    cliParams.verbosity = getParamRequiredDefaulted<std::string>(cxxOptsParsed, "verbosity");
     cliParams.verbose = getParamRequiredDefaulted<bool>(cxxOptsParsed, "verbose");
+    cliParams.silent = getParamRequiredDefaulted<bool>(cxxOptsParsed, "silent");
 
     cliParams.outputDir = getParamOptional<std::string>(cxxOptsParsed, "output-dir");
     cliParams.outputBasename = getParamOptional<std::string>(cxxOptsParsed, "output-basename");
     cliParams.outputFasta = getParamOptional<std::string>(cxxOptsParsed, "output-fasta");
     cliParams.writeReference = getParamRequiredDefaulted<bool>(cxxOptsParsed, "include-reference");
     cliParams.outputInsertions = getParamOptional<std::string>(cxxOptsParsed, "output-insertions");
+    cliParams.outputErrors = getParamOptional<std::string>(cxxOptsParsed, "output-errors");
 
     cliParams.inputFasta = getParamRequired<std::string>(cxxOptsParsed, "input-fasta");
     cliParams.inputRootSeq = getParamRequired<std::string>(cxxOptsParsed, "input-root-seq");
@@ -472,9 +501,9 @@ std::tuple<CliParams, NextalignOptions> parseCommandLine(int argc,
 }
 
 
-class ErrorFastaReader : public std::runtime_error {
+class ErrorFastaReader : public ErrorFatal {
 public:
-  explicit ErrorFastaReader(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorFastaReader(const std::string &message) : ErrorFatal(message) {}
 };
 
 struct ReferenceSequenceData {
@@ -489,7 +518,7 @@ ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
     throw ErrorFastaReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
   }
 
-  const auto refSeqs = parseSequences(file);
+  const auto refSeqs = parseSequences(file, filename);
   if (refSeqs.size() != 1) {
     throw ErrorFastaReader(
       fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
@@ -502,9 +531,9 @@ ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
 }
 
 
-class ErrorGffReader : public std::runtime_error {
+class ErrorGffReader : public ErrorFatal {
 public:
-  explicit ErrorGffReader(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorGffReader(const std::string &message) : ErrorFatal(message) {}
 };
 
 GeneMap parseGeneMapGffFile(const std::string &filename) {
@@ -536,9 +565,9 @@ std::set<std::string> parseGenes(const std::string &genesString) {
   return result;
 }
 
-class ErrorGeneMapValidationFailure : public std::runtime_error {
+class ErrorGeneMapValidationFailure : public ErrorFatal {
 public:
-  explicit ErrorGeneMapValidationFailure(const std::string &message) : std::runtime_error(message) {}
+  explicit ErrorGeneMapValidationFailure(const std::string &message) : ErrorFatal(message) {}
 };
 
 void validateGenes(const std::set<std::string> &genes, const GeneMap &geneMap) {
@@ -612,6 +641,12 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
     outputInsertions = *cliParams.outputInsertions;
   }
 
+  auto outputErrors = outDir / baseName;
+  outputErrors += ".errors.csv";
+  if (cliParams.outputErrors) {
+    outputErrors = *cliParams.outputErrors;
+  }
+
   std::map<std::string, fs::path> outputGenes;
   for (const auto &gene : genes) {
     auto outputGene = outDir / baseName;
@@ -622,6 +657,7 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
   return {
     .outputFasta = outputFasta,
     .outputInsertions = outputInsertions,
+    .outputErrors = outputErrors,
     .outputGenes = outputGenes,
   };
 }
@@ -696,6 +732,7 @@ void run(
   /* out */ std::unique_ptr<std::ostream> &outputTreeStream,
   /* out */ std::ostream &outputFastaStream,
   /* out */ std::ostream &outputInsertionsStream,
+  /* out */ std::ostream &outputErrorsFile,
   /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
   /* in */ bool shouldWriteReference,
   /* out */ Logger &logger) {
@@ -767,8 +804,9 @@ void run(
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<Nextclade::AlgorithmOutput, void>(ioFiltersMode,//
-    [&refName, &outputFastaStream, &outputInsertionsStream, &outputGeneStreams, &csv, &tsv, &refsHaveBeenWritten,
-      &logger, &resultsConcurrent, &outputJsonStream, &outputTreeStream](const Nextclade::AlgorithmOutput &output) {
+    [&refName, &outputFastaStream, &outputInsertionsStream, &outputErrorsFile, &outputGeneStreams, &csv, &tsv,
+      &refsHaveBeenWritten, &logger, &resultsConcurrent, &outputJsonStream,
+      &outputTreeStream](const Nextclade::AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
       const auto &refAligned = output.result.ref;
@@ -779,7 +817,7 @@ void run(
       const auto &warnings = output.result.warnings;
 
       const auto &result = output.result;
-      logger.info("| {:5d} | {:40s} | {:7d} | {:7d} | {:7d} | {:7d} |\n",//
+      logger.info("| {:5d} | {:40s} | {:7d} | {:7d} | {:7d} | {:7d} |",//
         index, seqName, result.analysisResult.alignmentScore, result.analysisResult.alignmentStart,
         result.analysisResult.alignmentEnd, result.analysisResult.totalInsertions//
       );
@@ -790,8 +828,9 @@ void run(
           std::rethrow_exception(error);
         } catch (const std::exception &e) {
           const std::string &errorMessage = e.what();
-          logger.warn("Warning: In sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.\n",
+          logger.warn("Warning: In sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.",
             seqName, errorMessage);
+          outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, e.what(), "", "<<ALL>>");
           if (csv) {
             csv->addErrorRow(seqName, errorMessage);
           }
@@ -801,9 +840,27 @@ void run(
           return;
         }
       } else {
-        for (const auto &warning : warnings) {
-          logger.warn("Warning: in sequence \"{:s}\": {:s}\n", seqName, warning);
+        std::vector<std::string> warningsCombined;
+        std::vector<std::string> failedGeneNames;
+        for (const auto &warning : warnings.global) {
+          logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
+          warningsCombined.push_back(warning);
         }
+
+        for (const auto &warning : warnings.inGenes) {
+          logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning.message);
+          warningsCombined.push_back(warning.message);
+          failedGeneNames.push_back(warning.geneName);
+        }
+
+        auto warningsJoined = boost::join(warningsCombined, ";");
+        boost::replace_all(warningsJoined, R"(")", R"("")");// escape double quotes
+
+        auto failedGeneNamesJoined = boost::join(failedGeneNames, ";");
+        boost::replace_all(failedGeneNamesJoined, R"(")", R"("")");// escape double quotes
+
+        outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, "", warningsJoined,
+          failedGeneNamesJoined);
 
         // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
         if (!refsHaveBeenWritten) {
@@ -842,7 +899,7 @@ void run(
   try {
     tbb::parallel_pipeline(parallelism, inputFilter & transformFilters & outputFilter, context);
   } catch (const std::exception &e) {
-    logger.error("Error: when running the pipeline: {:s}\n", e.what());
+    logger.error("Error: when running the internal parallel pipeline: {:s}", e.what());
   }
 
   if (outputJsonStream || outputTreeStream) {
@@ -863,7 +920,7 @@ void run(
 std::string readFile(const std::string &filepath) {
   std::ifstream stream(filepath);
   if (!stream.good()) {
-    throw std::runtime_error(fmt::format("Error: unable to read \"{:s}\"\n", filepath));
+    throw std::runtime_error(fmt::format("Error: unable to read \"{:s}\"", filepath));
   }
   std::stringstream buffer;
   buffer << stream.rdbuf();
@@ -881,7 +938,7 @@ void openOutputFile(const std::string &filepath, std::ofstream &stream) {
 
   stream.open(filepath);
   if (!stream.is_open()) {
-    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}\n", filepath, strerror(errno)));
+    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}", filepath, strerror(errno)));
   }
 }
 
@@ -900,23 +957,28 @@ std::unique_ptr<std::ostream> openOutputFileMaybe(const std::optional<std::strin
 
   auto stream = std::make_unique<std::ofstream>(*filepath);
   if (!stream->is_open()) {
-    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}\n", *filepath, strerror(errno)));
+    throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\": {:s}", *filepath, strerror(errno)));
   }
 
   return stream;
 }
 
 int main(int argc, char *argv[]) {
+  Logger logger{Logger::Options{.linePrefix = "Nextclade", .verbosity = Logger::Verbosity::warn}};
+
   try {
     const auto [cliParams, options] = parseCommandLine(argc, argv);
 
-    Logger::Options loggerOptions;
+    auto verbosity = Logger::convertVerbosity(cliParams.verbosity);
     if (cliParams.verbose) {
-      loggerOptions.verbosity = Logger::Verbosity::info;
+      verbosity = Logger::Verbosity::info;
     }
 
-    Logger logger{loggerOptions};
+    if (cliParams.silent) {
+      verbosity = Logger::Verbosity::silent;
+    }
 
+    logger.setVerbosity(verbosity);
     logger.info(formatCliParams(cliParams));
 
     const auto refData = parseRefFastaFile(cliParams.inputRootSeq);
@@ -958,14 +1020,21 @@ int main(int argc, char *argv[]) {
     }
 
     std::ifstream fastaFile(cliParams.inputFasta);
-    auto inputFastaStream = makeFastaStream(fastaFile);
+    auto inputFastaStream = makeFastaStream(fastaFile, cliParams.inputFasta);
     if (!fastaFile.good()) {
-      logger.error("Error: unable to read \"{:s}\"\n", cliParams.inputFasta);
+      logger.error("Error: unable to read \"{:s}\"", cliParams.inputFasta);
       std::exit(1);
     }
 
     const auto qcJsonString = readFile(cliParams.inputQcConfig);
     const auto qcRulesConfig = Nextclade::parseQcConfig(qcJsonString);
+    if (!Nextclade::isQcConfigVersionRecent(qcRulesConfig)) {
+      logger.warn(
+        "The version of QC configuration file \"{:s}\" (`\"schemaVersion\": \"{:s}\"`) is older than the QC "
+        "configuration version expected by Nextclade ({:s}). "
+        "You might be missing out on new features. It is recommended to download the latest QC configuration file.",
+        cliParams.inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getQcConfigJsonSchemaVersion());
+    }
 
     const auto treeString = readFile(cliParams.inputTree);
 
@@ -974,7 +1043,7 @@ int main(int argc, char *argv[]) {
       const auto pcrPrimersCsvString = readFile(*cliParams.inputPcrPrimers);
       std::vector<std::string> warnings;
       pcrPrimers =
-        Nextclade::parsePcrPrimersCsv(pcrPrimersCsvString, *cliParams.inputPcrPrimers, refData.seq, warnings);
+        Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, *cliParams.inputPcrPrimers, refData.seq, warnings);
     }
 
     const auto paths = getPaths(cliParams, genes);
@@ -992,6 +1061,13 @@ int main(int argc, char *argv[]) {
     openOutputFile(paths.outputInsertions, outputInsertionsStream);
     outputInsertionsStream << "seqName,insertions\n";
 
+    std::ofstream outputErrorsFile(paths.outputErrors);
+    if (!outputErrorsFile.good()) {
+      throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", paths.outputErrors.string()));
+    }
+    outputErrorsFile << "seqName,errors,warnings,failedGenes\n";
+
+
     std::map<std::string, std::ofstream> outputGeneStreams;
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
       auto result = outputGeneStreams.emplace(std::make_pair(geneName, std::ofstream{}));
@@ -1008,39 +1084,39 @@ int main(int argc, char *argv[]) {
 
     bool inOrder = cliParams.inOrder;
 
-    logger.info("\nParallelism: {:d}\n\n", parallelism);
+    logger.info("\nParallelism: {:d}\n", parallelism);
 
     if (!cliParams.inputGeneMap) {
       logger.warn(
         "Warning: Parameter `--input-gene-map` was not specified. Without a gene map sequences will not be "
         "translated, there will be no peptides in output files, aminoacid mutations will not be detected and "
-        "nucleotide sequence alignment will not be informed by codon boundaries.\n");
+        "nucleotide sequence alignment will not be informed by codon boundaries.");
     } else if (geneMap.empty()) {
       logger.warn(
         "Warning: Provided gene map is empty. Sequences will not be translated, there will be no peptides in output "
         "files, aminoacid mutations will not be detected and nucleotide sequence alignment will not be informed by "
-        "codon boundaries.\n");
+        "codon boundaries.");
     }
 
     constexpr const auto TABLE_WIDTH = 92;
-    logger.info("\nSequences:\n");
-    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
-    logger.info("| {:5s} | {:40s} | {:7s} | {:7s} | {:7s} | {:7s} |\n",//
-      "Index", "Seq. name", "A.score", "A.start", "A.end", "Insert."   //
+    logger.info("\nSequences:");
+    logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
+    logger.info("| {:5s} | {:40s} | {:7s} | {:7s} | {:7s} | {:7s} |",//
+      "Index", "Seq. name", "A.score", "A.start", "A.end", "Insert." //
     );
     logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
 
     try {
       run(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap, options,
         outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream, outputInsertionsStream,
-        outputGeneStreams, shouldWriteReference, logger);
+        outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
     } catch (const std::exception &e) {
-      logger.error("Error: {:>16s} |\n", e.what());
+      logger.error("Error: {:>16s} |", e.what());
     }
 
-    logger.info("{:s}\n", std::string(TABLE_WIDTH, '-'));
+    logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
   } catch (const std::exception &e) {
-    fmt::print(stderr, "Error: {:s}\n", e.what());
+    logger.error("Error: {:s}", e.what());
     std::exit(1);
   }
 }

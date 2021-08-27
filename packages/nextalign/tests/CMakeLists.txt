@@ -9,6 +9,7 @@ find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 
 add_executable(${PROJECT_NAME}
+  _musl_workarounds.c
   alignPairwise.test.cpp
   alignPairwiseWithCodons.test.cpp
   data/sampleGeneMap.h

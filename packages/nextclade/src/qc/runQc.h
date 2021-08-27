@@ -2,10 +2,12 @@
 
 #include <vector>
 
+#include "ruleFrameShifts.h"
 #include "ruleMissingData.h"
 #include "ruleMixedSites.h"
 #include "rulePrivateMutations.h"
 #include "ruleSnpClusters.h"
+#include "ruleStopCodons.h"
 
 namespace Nextclade {
   struct QcResult;
@@ -14,7 +16,8 @@ namespace Nextclade {
   struct QcConfig;
 
   QcResult runQc(                                               //
-    const AnalysisResult& analysisResult,                      //
+    const ::NextalignResultInternal& alignment,                   //
+    const AnalysisResult& analysisResult,                       //
     const std::vector<NucleotideSubstitution>& privateMutations,//
     const QcConfig& qcRulesConfig                               //
   );                                                            //

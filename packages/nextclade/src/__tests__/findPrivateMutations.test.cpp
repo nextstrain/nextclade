@@ -33,7 +33,7 @@ namespace {
         throw std::runtime_error(fmt::format("Error: unable to read \"{:s}\"\n", filename));
       }
 
-      const auto refSeqs = parseSequences(file);
+      const auto refSeqs = parseSequences(file, filename);
       if (refSeqs.size() != 1) {
         throw std::runtime_error(
           fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
@@ -130,8 +130,7 @@ TEST_F(FindPrivateMutations, Returns_Set_Difference_In_General_Case) {
       "C679N",
     });
 
-  Nextclade::AnalysisResult
-    seq = makeQuery(//
+  Nextclade::AnalysisResult seq = makeQuery(//
     {
       "C679Y",
       "C123B",

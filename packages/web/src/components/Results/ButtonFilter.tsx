@@ -1,24 +1,13 @@
 import React, { useCallback } from 'react'
 
-import styled from 'styled-components'
 import { connect } from 'react-redux'
-import { Button, ButtonProps } from 'reactstrap'
-import { useTranslation } from 'react-i18next'
 import { FaFilter } from 'react-icons/fa'
 
-import { State } from 'src/state/reducer'
+import type { State } from 'src/state/reducer'
+import type { PanelButtonProps } from 'src/components/Results/PanelButton'
+import { PanelButton } from 'src/components/Results/PanelButton'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { setFilterPanelCollapsed } from 'src/state/ui/ui.actions'
-
-export const ButtonStyled = styled(Button)`
-  margin: 2px 2px;
-  height: 38px;
-  width: 50px;
-  color: ${(props) => props.theme.gray700};
-
-  @media (min-width: 1200px) {
-    width: 100px;
-  }
-`
 
 const mapStateToProps = (state: State) => ({
   filterPanelCollapsed: state.ui.filterPanelCollapsed,
@@ -30,27 +19,21 @@ const mapDispatchToProps = {
 
 export const ButtonFilter = connect(mapStateToProps, mapDispatchToProps)(ButtonFilterDisconnected)
 
-export interface ButtonFilterProps extends ButtonProps {
+export interface ButtonFilterProps extends PanelButtonProps {
   filterPanelCollapsed: boolean
   setFilterPanelCollapsed(filterPanelCollapsed: boolean): void
 }
 
-export function ButtonFilterDisconnected({
-  onClick,
-  goBack,
-  filterPanelCollapsed,
-  setFilterPanelCollapsed,
-}: ButtonFilterProps) {
-  const { t } = useTranslation()
+export function ButtonFilterDisconnected({ filterPanelCollapsed, setFilterPanelCollapsed }: ButtonFilterProps) {
+  const { t } = useTranslationSafe()
   const toggleFilterPanel = useCallback(() => setFilterPanelCollapsed(!filterPanelCollapsed), [
     filterPanelCollapsed,
     setFilterPanelCollapsed,
   ])
 
   return (
-    <ButtonStyled onClick={toggleFilterPanel}>
-      <FaFilter className="mr-xl-2 mb-1" />
-      <span className="d-none d-xl-inline">{t('Filter')}</span>
-    </ButtonStyled>
+    <PanelButton onClick={toggleFilterPanel} title={t('Filter: opens panel where you can apply table row filtering')}>
+      <FaFilter size={15} />
+    </PanelButton>
   )
 }

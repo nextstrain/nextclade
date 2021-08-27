@@ -15,8 +15,7 @@ find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
-find_package(RapidJSON 1.1.0 REQUIRED)
-find_package(type_safe 0.2.1 REQUIRED)
+find_package(semver 0.3.0 REQUIRED)
 
 set(SOURCE_FILES
   include/nextclade/nextclade.h
@@ -24,6 +23,7 @@ set(SOURCE_FILES
   include/nextclade/private/nextclade_private.h
   src/analyze/aminoacid.cpp
   src/analyze/aminoacid.h
+  src/analyze/calculateTotalLength.h
   src/analyze/findNucChanges.cpp
   src/analyze/findNucChanges.h
   src/analyze/findNucleotideRanges.cpp
@@ -38,6 +38,8 @@ set(SOURCE_FILES
   src/analyze/isMatch.h
   src/analyze/isSequenced.cpp
   src/analyze/isSequenced.h
+  src/analyze/linkNucAndAaChangesInPlace.cpp
+  src/analyze/linkNucAndAaChangesInPlace.h
   src/analyze/nucleotide.cpp
   src/analyze/nucleotide.h
   src/io/CsvWriter.cpp
@@ -47,18 +49,26 @@ set(SOURCE_FILES
   src/io/formatMutation.h
   src/io/formatQcStatus.cpp
   src/io/formatQcStatus.h
-  src/io/jsonStringify.cpp
-  src/io/jsonStringify.h
+  src/io/parseAnalysisResults.cpp
+  src/io/parseAnalysisResults.h
   src/io/parseCsv.h
+  src/io/parseGeneMap.cpp
   src/io/parseMutation.cpp
   src/io/parseMutation.h
   src/io/parseQcConfig.cpp
   src/io/parseQcConfig.h
+  src/io/serializeGeneMap.cpp
+  src/io/serializeQcConfig.cpp
+  src/io/serializeQcConfig.h
   src/io/serializeResults.cpp
   src/io/serializeResults.h
   src/nextclade.cpp
   src/qc/getQcRuleStatus.cpp
   src/qc/getQcRuleStatus.h
+  src/qc/isQcConfigVersionRecent.cpp
+  src/qc/isQcConfigVersionRecent.h
+  src/qc/ruleFrameShifts.cpp
+  src/qc/ruleFrameShifts.h
   src/qc/ruleMissingData.cpp
   src/qc/ruleMissingData.h
   src/qc/ruleMixedSites.cpp
@@ -67,6 +77,8 @@ set(SOURCE_FILES
   src/qc/rulePrivateMutations.h
   src/qc/ruleSnpClusters.cpp
   src/qc/ruleSnpClusters.h
+  src/qc/ruleStopCodons.cpp
+  src/qc/ruleStopCodons.h
   src/qc/runQc.cpp
   src/qc/runQc.h
   src/tree/Tree.cpp
@@ -81,6 +93,8 @@ set(SOURCE_FILES
   src/tree/treePostprocess.h
   src/tree/treePreprocess.cpp
   src/tree/treePreprocess.h
+  src/utils/concat.h
+  src/utils/concat_move.h
   src/utils/config.h
   src/utils/contains.h
   src/utils/contract.h
@@ -94,61 +108,15 @@ set(SOURCE_FILES
   src/utils/safe_cast.h
   )
 
+add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-  add_executable(${PROJECT_NAME} ${SOURCE_FILES})
-
-  set(EMSCRIPTEN_COMPILER_FLAGS "\
-    -frtti \
-    --bind \
-    --source-map-base './' \
-    -s MODULARIZE=1 \
-    -s EXPORT_ES6=1 \
-    -s WASM=1 \
-    -s DEMANGLE_SUPPORT=1 \
-    -s ALIASING_FUNCTION_POINTERS=0 \
-    -s ALLOW_MEMORY_GROWTH=1 \
-    -s MALLOC=emmalloc \
-    -s DISABLE_EXCEPTION_CATCHING=2 \
-    -s ENVIRONMENT=worker \
-  ")
-
-  set(EMSCRIPTEN_COMPILER_FLAGS_DEBUG "\
-    -g4 \
-    -O0 \
-    -s ASSERTIONS=1 \
-    -s SAFE_HEAP=1 \
-    -s STACK_OVERFLOW_CHECK=2 \
-  ")
-
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${EMSCRIPTEN_COMPILER_FLAGS})
-  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS ${EMSCRIPTEN_COMPILER_FLAGS})
-
-  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS_DEBUG ${EMSCRIPTEN_COMPILER_FLAGS_DEBUG})
-  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_DEBUG ${EMSCRIPTEN_COMPILER_FLAGS_DEBUG})
-
-  install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION wasm)
-
-  install(
-    FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.js
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.wasm
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.wasm.map
-    DESTINATION wasm
-  )
-
-else ()
-  add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})
+  set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS ${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS})
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS ${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS})
 endif ()
-
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
-
-if (MSVC)
-  target_compile_options(${PROJECT_NAME} PRIVATE /arch:SSE4.2)
-else ()
-  target_compile_options(${PROJECT_NAME} PRIVATE -msse4.2)
-endif ()
 
 
 target_compile_definitions(${PROJECT_NAME}
@@ -189,15 +157,15 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+  nextclade_json
   nextalign
 
   PRIVATE
   Boost::headers
   Microsoft.GSL::GSL
-  RapidJSON::RapidJSON
   fast-cpp-csv-parser::fast-cpp-csv-parser
   fmt::fmt-header-only
-  type_safe::type_safe
+  semver::semver
   )
 
 set(NEXTCLADE_BUILD_TESTS ON CACHE BOOL "Build unit tests")

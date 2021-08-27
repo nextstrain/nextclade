@@ -7,7 +7,7 @@
 
 
 namespace Nextclade {
-  NucMutationsReport findNucChanges(       //
+  NucleotideChangesReport findNucChanges(  //
     const NucleotideSequence& refStripped, //
     const NucleotideSequence& queryStripped//
   ) {

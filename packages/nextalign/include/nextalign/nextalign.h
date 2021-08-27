@@ -9,6 +9,48 @@
 #include <string_view>
 #include <vector>
 
+
+/**
+ * Catching exceptions in WebAssembly requires enabling it in Emscripten
+ * explicitly and leads to a significant performance penalty. In order to
+ * avoid that, we use status codes in the portion of the code
+ * which was previously throwing and catching exceptions.
+ */
+enum class Status : int {
+  Success = 0,
+  Error = 1,
+};
+
+struct GeneWarning {
+  std::string geneName;
+  std::string message;
+};
+
+struct Warnings {
+  std::vector<std::string> global;
+  std::vector<GeneWarning> inGenes;
+};
+
+struct FrameShift {
+  std::string geneName;
+};
+
+class Error : public std::runtime_error {
+public:
+  explicit Error(const std::string& message) : std::runtime_error(message) {}
+};
+
+class ErrorFatal : public Error {
+public:
+  explicit ErrorFatal(const std::string& message) : Error(message) {}
+};
+
+class ErrorNonFatal : public Error {
+public:
+  explicit ErrorNonFatal(const std::string& message) : Error(message) {}
+};
+
+
 template<typename Letter>
 using Sequence = std::basic_string<Letter>;
 
@@ -168,7 +210,7 @@ struct NextalignResult {
   std::vector<Peptide> refPeptides;
   std::vector<Peptide> queryPeptides;
   std::vector<Insertion> insertions;
-  std::vector<std::string> warnings;
+  Warnings warnings;
 };
 
 struct AlgorithmOutput {
@@ -214,9 +256,9 @@ public:
 };
 
 /** Creates an instance of fasta stream, given a file or string stream */
-std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream);
+std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream, std::string filename);
 
 /** Parses all sequences of a given file or string stream */
-std::vector<AlgorithmInput> parseSequences(std::istream& istream);
+std::vector<AlgorithmInput> parseSequences(std::istream& istream, std::string filename);
 
 const char* getVersion();

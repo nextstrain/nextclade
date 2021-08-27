@@ -2,22 +2,22 @@ import { round } from 'lodash'
 
 import type { DeepReadonly } from 'ts-essentials'
 
-import type { QCResultMissingData } from 'src/algorithms/QC/ruleMissingData'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
-import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
+import type { QcResultMissingData } from 'src/algorithms/types'
+import { QcStatus } from 'src/algorithms/types'
 
 export function formatQCMissingData<TFunction extends TFunctionInterface>(
   t: TFunction,
-  missingData?: DeepReadonly<QCResultMissingData>,
+  missingData?: DeepReadonly<QcResultMissingData>,
 ) {
-  if (!missingData || missingData.status === QCRuleStatus.good) {
+  if (!missingData || missingData.status === QcStatus.good) {
     return undefined
   }
 
   const { score, totalMissing, missingDataThreshold, status } = missingData
 
   let message = t('Missing data found')
-  if (status === QCRuleStatus.bad) {
+  if (status === QcStatus.bad) {
     message = t('Too much missing data found')
   }
 

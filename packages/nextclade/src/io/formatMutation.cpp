@@ -6,8 +6,16 @@
 
 #include <string>
 
+#include "utils/contract.h"
+
 namespace Nextclade {
   std::string formatRange(const Range& range) {
+    precondition_less(range.begin, range.end);
+
+    if (range.begin >= range.end) {
+      return "empty range";
+    }
+
     // NOTE: we (and C++ standard library) uses 0-based half-open ranges,
     // but bioinformaticians prefer 1-based, closed ranges
     const auto beginOne = range.begin + 1;
@@ -45,7 +53,7 @@ namespace Nextclade {
 
   std::string formatNonAcgtn(const NucleotideRange& nonAcgtn) {
     const auto range = formatRange({.begin = nonAcgtn.begin, .end = nonAcgtn.end});
-    return fmt::format("{}:{}", nucToString(nonAcgtn.nuc), range);
+    return fmt::format("{}:{}", nucToString(nonAcgtn.character), range);
   }
 
   std::string formatPcrPrimerChange(const PcrPrimerChange& primerChange) {
@@ -85,5 +93,13 @@ namespace Nextclade {
     const auto range = formatRange(Range{.begin = csnp.start, .end = csnp.end});
     const auto numberOfSNPs = std::to_string(csnp.numberOfSNPs);
     return fmt::format("{}:{}", range, numberOfSNPs);
+  }
+
+  std::string formatFrameShift(const FrameShift& frameShift) {
+    return frameShift.geneName;
+  }
+
+  std::string formatStopCodon(const StopCodonLocation& stopCodon) {
+    return fmt::format("{}:{}", stopCodon.geneName, stopCodon.codon);
   }
 }// namespace Nextclade

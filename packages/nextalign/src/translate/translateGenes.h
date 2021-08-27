@@ -9,7 +9,8 @@
 struct PeptidesInternal {
   std::vector<PeptideInternal> queryPeptides;
   std::vector<PeptideInternal> refPeptides;
-  std::vector<std::string> warnings;
+  Warnings warnings;
+  std::vector<FrameShift> frameShifts;
 };
 
 PeptidesInternal translateGenes(         //

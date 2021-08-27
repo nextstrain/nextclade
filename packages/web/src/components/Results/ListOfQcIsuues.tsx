@@ -4,12 +4,14 @@ import { round } from 'lodash'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import type { QCResult } from 'src/algorithms/QC/types'
+import type { QcResult } from 'src/algorithms/types'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { formatQCPrivateMutations } from 'src/helpers/formatQCPrivateMutations'
 import { formatQCSNPClusters } from 'src/helpers/formatQCSNPClusters'
 import { formatQCMissingData } from 'src/helpers/formatQCMissingData'
 import { formatQCMixedSites } from 'src/helpers/formatQCMixedSites'
+import { formatQCFrameShifts } from 'src/helpers/formatQCFrameShifts'
+import { formatQCStopCodons } from 'src/helpers/formatQCStopCodons'
 import { Circle, CircleProps } from 'src/components/Results/Circle'
 
 export const QcList = styled.ul`
@@ -36,18 +38,29 @@ export function QcListItem({ status, text, children }: QcListItem) {
 }
 
 export interface ListOfQcIssuesProps {
-  qc: QCResult
+  qc: QcResult
 }
 
 export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
   const { t } = useTranslation()
-  const { overallScore, overallStatus, privateMutations, snpClusters, mixedSites, missingData } = qc
+  const {
+    overallScore,
+    overallStatus,
+    privateMutations,
+    snpClusters,
+    mixedSites,
+    missingData,
+    frameShifts,
+    stopCodons,
+  } = qc
 
   const rules = [
     { name: t('Missing Data'), shortName: 'N', value: missingData, message: formatQCMissingData(t, missingData) }, // prettier-ignore
     { name: t('Mixed Sites'), shortName: 'M', value: mixedSites, message: formatQCMixedSites(t, mixedSites) }, // prettier-ignore
     { name: t('Private Mutations'), shortName: 'P', value: privateMutations, message: formatQCPrivateMutations(t, privateMutations) }, // prettier-ignore
     { name: t('Mutation Clusters'), shortName: 'C', value: snpClusters, message: formatQCSNPClusters(t, snpClusters) }, // prettier-ignore
+    { name: t('Frame shifts'), shortName: 'F', value: frameShifts, message: formatQCFrameShifts(t, frameShifts) }, // prettier-ignore
+    { name: t('Stop codons'), shortName: 'S', value: stopCodons, message: formatQCStopCodons(t, stopCodons) }, // prettier-ignore
   ].filter((value) => notUndefined(value))
 
   const issues = rules.map(({ name, shortName, value, message }, i) => {

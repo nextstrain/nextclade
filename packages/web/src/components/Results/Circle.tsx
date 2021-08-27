@@ -1,13 +1,13 @@
 import styled from 'styled-components'
-import { QCRuleStatus } from 'src/algorithms/QC/QCRuleStatus'
+import { QcStatus } from 'src/algorithms/types'
 import React from 'react'
 
 const CIRCLE_SZE_PX = 20
 
 const statusColors = {
-  [QCRuleStatus.good]: '#68b844',
-  [QCRuleStatus.mediocre]: '#e4902f',
-  [QCRuleStatus.bad]: '#da4e3c',
+  [QcStatus.good]: '#68b844',
+  [QcStatus.mediocre]: '#e4902f',
+  [QcStatus.bad]: '#da4e3c',
 }
 
 export const CircleBase = styled.div<{ color: string }>`
@@ -37,7 +37,7 @@ export const CircleText = styled.div`
 `
 
 export interface CircleProps {
-  status: QCRuleStatus
+  status: QcStatus
   text: string
 }
 

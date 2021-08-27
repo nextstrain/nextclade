@@ -21,7 +21,7 @@ import {
   setRootSeq,
   setTree,
 } from 'src/state/algorithm/algorithm.actions'
-import { selectCanExport, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
+import { selectCanRun, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
 import { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 
 import { State } from 'src/state/reducer'
@@ -64,9 +64,8 @@ export interface FilePickerAdvancedProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  canRun: state.algorithm.params.seqData !== undefined,
+  canRun: selectCanRun(state),
   params: selectParams(state),
-  canExport: selectCanExport(state),
   isDirty: selectIsDirty(state),
 })
 
@@ -91,10 +90,7 @@ const mapDispatchToProps = {
 export const FilePickerAdvanced = connect(mapStateToProps, mapDispatchToProps)(FilePickerAdvancedDisconnected)
 
 export function FilePickerAdvancedDisconnected({
-  canRun,
   params,
-  isDirty,
-  setIsDirty,
   setFasta,
   setTree,
   setRootSeq,
@@ -107,8 +103,6 @@ export function FilePickerAdvancedDisconnected({
   removeQcSettings,
   removeGeneMap,
   removePcrPrimers,
-  algorithmRunTrigger,
-  setShowNewRunPopup,
 }: FilePickerAdvancedProps) {
   const { t } = useTranslation()
 
