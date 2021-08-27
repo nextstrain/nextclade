@@ -65,6 +65,7 @@ VAR_NAMES=(
   AWS_DEFAULT_REGION
   ENV_NAME
   FULL_DOMAIN
+  DATA_FULL_DOMAIN
 )
 
 # Make all the key-value pairs per branch

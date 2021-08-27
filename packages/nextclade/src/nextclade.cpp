@@ -179,4 +179,13 @@ namespace Nextclade {
   const char* getVersion() {
     return PROJECT_VERSION;
   }
+
+  const char* getAnalysisResultsJsonSchemaVersion() {
+    return "1.0.0";
+  }
+
+  const char* getQcConfigJsonSchemaVersion() {
+    return "1.2.0";
+  }
+
 }// namespace Nextclade
