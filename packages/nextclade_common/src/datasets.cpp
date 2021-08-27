@@ -127,14 +127,26 @@ namespace Nextclade {
     (*stream) << content;
   }
 
+  std::string getFilenameFromUrl(const std::string& url) {
+    std::vector<std::string> urlParts;
+    boost::algorithm::split(urlParts, url, boost::is_any_of("/"));
+    if (urlParts.empty()) {
+      throw std::runtime_error(
+        fmt::format("When attempted to get filename from URL: URL format is incorrect: '{}'", url));
+    }
+    return urlParts.back();
+  }
+
   void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir) {
     tbb::task_group taskGroup;
 
-    for (const auto& [key, value] : version.files) {
-      std::vector<std::string> urlParts;
-      boost::algorithm::split(urlParts, value, boost::is_any_of("/"));
-      const auto filename = urlParts.back();
-      taskGroup.run([&] { writeFile(fs::path(outDir) / filename, fetch(value)); });
+    for (const auto& fileEntry : version.files) {
+      taskGroup.run([outDir, fileEntry = std::move(fileEntry)] {
+        const auto& url = fileEntry.second;
+        auto filename = getFilenameFromUrl(url);
+        auto content = fetch(url);
+        writeFile(fs::path(outDir) / filename, content);
+      });
     }
 
     taskGroup.wait();
