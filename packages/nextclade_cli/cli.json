@@ -321,17 +321,10 @@
             },
             {
               "flags": ["-o", "--output-dir"],
-              "desc": "Path to parent directory to write dataset directory to. If the directory tree does not exist, it will be created.",
+              "desc": "Path to directory to write dataset files to. If the target directory tree does not exist, it will be created.",
               "cppName": "outputDir",
               "cppType": "std::string",
               "isOptional": false
-            },
-            {
-              "flags": ["-O", "--output-subdir"],
-              "desc": "Name of the output dataset subdirectory, nested under the path provided by `--output-dir`. If the directory tree does not exist, it will be created. If omitted, the default is: '{name}_{tag}', evaluated dynamically depending on the dataset name and version tag.",
-              "cppName": "outputSubdir",
-              "cppType": "std::string",
-              "isOptional": true
             }
           ]
         },
