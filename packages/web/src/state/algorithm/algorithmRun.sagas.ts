@@ -1,6 +1,7 @@
 /* eslint-disable no-loops/no-loops,no-continue,no-void */
 import type { EventChannel } from 'redux-saga'
 import { buffers, eventChannel } from 'redux-saga'
+import { axiosFetchRaw } from 'src/helpers/useAxiosQuery'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
 import { all, apply, call, fork, join, put, select, take, takeEvery } from 'typed-redux-saga'
@@ -15,7 +16,7 @@ import fsaSaga from 'src/state/util/fsaSaga'
 
 import type { AnalysisThread, NextcladeResult, NextcladeWasmParams } from 'src/workers/worker.analyze'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
-import type { SequenceParserResult } from 'src/algorithms/types'
+import type { DatasetFlat, SequenceParserResult } from 'src/algorithms/types'
 import {
   addNextcladeResult,
   addParsedSequence,
@@ -28,6 +29,7 @@ import {
 } from 'src/state/algorithm/algorithm.actions'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import {
+  selectCurrentDataset,
   selectGeneMapStr,
   selectPcrPrimersStr,
   selectQcConfigStr,
@@ -45,7 +47,6 @@ import {
   treeFinalize,
   treePrepare,
 } from 'src/workers/run'
-import { getVirus } from 'src/algorithms/defaults/viruses'
 import {
   loadFasta,
   loadGeneMap,
@@ -337,27 +338,7 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
   return ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
 }
 
-/** Retrieves input data (except for query sequences), either from provided source, or from defaults */
-export function* getInputs() {
-  const virus = getVirus()
-  const { treeJson, qcConfigRaw, geneMapStrRaw, pcrPrimersStrRaw } = virus
-
-  const geneMapStr =
-    (yield* select(selectGeneMapStr)) ?? (yield* loadGeneMap(new AlgorithmInputString(geneMapStrRaw))).geneMapStr
-
-  const treeStr = (yield* select(selectRefTreeStr)) ?? (yield* loadTree(new AlgorithmInputString(treeJson))).treeStr
-
-  const pcrPrimerCsvRowsStr =
-    (yield* select(selectPcrPrimersStr)) ??
-    (yield* loadPcrPrimers(new AlgorithmInputString(pcrPrimersStrRaw))).pcrPrimerCsvRowsStr
-
-  const qcConfigStr =
-    (yield* select(selectQcConfigStr)) ?? (yield* loadQcSettings(new AlgorithmInputString(qcConfigRaw))).qcConfigStr
-
-  return { geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr }
-}
-
-export function* getRefSequence() {
+export function* getRefSequence(dataset: DatasetFlat) {
   // Load ref sequence from current state, in case it was set by the user previously
   const refStr = yield* select(selectRefSeq)
   const refName = yield* select(selectRefName)
@@ -366,13 +347,47 @@ export function* getRefSequence() {
     return { refStr, refName }
   }
 
-  // If not, load the default ref sequence
-  const virus = getVirus()
-  const { refFastaStr } = virus
+  const refFastaStr = yield* call(async () => axiosFetchRaw(dataset.files.reference))
   return yield* loadRootSeq(new AlgorithmInputString(refFastaStr, 'reference.fasta'))
 }
 
-export function* getQuerySequences(queryInput?: AlgorithmInput) {
+export function* getGeneMap(dataset: DatasetFlat) {
+  const geneMapStr = yield* select(selectGeneMapStr)
+  if (geneMapStr) {
+    return geneMapStr
+  }
+  const geneMapStrRaw = yield* call(async () => axiosFetchRaw(dataset.files.geneMap))
+  return (yield* loadGeneMap(new AlgorithmInputString(geneMapStrRaw))).geneMapStr
+}
+
+export function* getTree(dataset: DatasetFlat) {
+  const treeStr = yield* select(selectRefTreeStr)
+  if (treeStr) {
+    return treeStr
+  }
+  const treeStrRaw = yield* call(async () => axiosFetchRaw(dataset.files.tree))
+  return (yield* loadTree(new AlgorithmInputString(treeStrRaw))).treeStr
+}
+
+export function* getPcrPrimers(dataset: DatasetFlat) {
+  const pcrPrimersStr = yield* select(selectPcrPrimersStr)
+  if (pcrPrimersStr) {
+    return pcrPrimersStr
+  }
+  const pcrPrimersStrRaw = yield* call(async () => axiosFetchRaw(dataset.files.primers))
+  return (yield* loadPcrPrimers(new AlgorithmInputString(pcrPrimersStrRaw))).pcrPrimerCsvRowsStr
+}
+
+export function* getQcConfig(dataset: DatasetFlat) {
+  const qcConfigStr = yield* select(selectQcConfigStr)
+  if (qcConfigStr) {
+    return qcConfigStr
+  }
+  const qcConfigStrRaw = yield* call(async () => axiosFetchRaw(dataset.files.qc))
+  return (yield* loadQcSettings(new AlgorithmInputString(qcConfigStrRaw))).qcConfigStr
+}
+
+export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmInput) {
   // If sequence data is provided explicitly, load it
   if (queryInput) {
     const loadSequences = fsaSaga(setFasta, loadFasta)
@@ -380,17 +395,16 @@ export function* getQuerySequences(queryInput?: AlgorithmInput) {
   }
 
   // If not provided, maybe the previously used sequence data is of any good?
-  const queryStr = yield* select(selectQueryStr)
-  const queryName = yield* select(selectQueryName)
+  let queryStr = yield* select(selectQueryStr)
+  let queryName = yield* select(selectQueryName)
   if (queryStr && queryName) {
     return { queryStr, queryName }
   }
 
-  // If not, something is wrong here
-  throw new Error(
-    'When running Nextclade algorithm: No sequence data provided. ' +
-      'This is an internal error. Please report it to developers',
-  )
+  queryStr = yield* call(async () => axiosFetchRaw(dataset.files.sequences))
+  queryName = `${dataset.nameFriendly}, ${dataset.tag}`
+
+  return { queryStr, queryName }
 }
 
 /**
@@ -401,9 +415,26 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(resetViewedGene())
   yield* put(push('/results'))
 
-  const { refStr, refName } = yield* getRefSequence()
-  const { queryStr, queryName } = yield* getQuerySequences(queryInput)
-  const { geneMapStr, treeStr, pcrPrimerCsvRowsStr, qcConfigStr } = yield* getInputs()
+  const dataset = yield* select(selectCurrentDataset)
+  if (!dataset) {
+    throw new Error('No dataset is selected. Unable to proceed. This is an internal error and might indicate a bug.')
+  }
+
+  const {
+    ref: { refStr, refName },
+    query: { queryStr, queryName },
+    geneMapStr,
+    treeStr,
+    pcrPrimerCsvRowsStr,
+    qcConfigStr,
+  } = yield* all({
+    ref: getRefSequence(dataset),
+    query: getQuerySequences(dataset, queryInput),
+    geneMapStr: getGeneMap(dataset),
+    treeStr: getTree(dataset),
+    pcrPrimerCsvRowsStr: getPcrPrimers(dataset),
+    qcConfigStr: getQcConfig(dataset),
+  })
 
   const genomeSize = refStr.length
   yield* put(setGenomeSize({ genomeSize }))

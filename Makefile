@@ -1,10 +1,15 @@
+-include .env.example
+-include .env
+export $(shell bash -c "sed 's/=.*//' .env.example || true" )
+export $(shell bash -c "sed 's/=.*//' .env || true" )
+
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
 .PHONY: docs docker-docs
 
 clean:
-	rm -rf .build .out tmp packages/web/.build packages/web/src/generated
+	rm -rf .build .out tmp packages/nextclade_cli/src/generated packages/nextalign_cli/src/generated packages/web/.build packages/web/src/generated
 
 cleanest: clean
 	rm -rf .cache packages/web/.cache
@@ -19,7 +24,7 @@ dev-impl:
 	@nodemon
 
 dev-nowatch:
-	@scripts/build_locally.sh
+	@CMAKE_BUILD_TYPE=Debug scripts/build_locally.sh
 
 dev-asan:
 	@CMAKE_BUILD_TYPE=ASAN $(MAKE) dev
@@ -77,6 +82,9 @@ prod-wasm-nowatch:
 
 dev-web:
 	cd packages/web && yarn dev
+
+serve-data:
+	cd packages/web && yarn serve-data
 
 prod-web:
 	cd packages/web && yarn install && yarn prod:watch
@@ -139,7 +147,6 @@ e2e-compare:
 
 e2e: e2e-run e2e-compare
 
-
 # Documentation
 
 docs:
@@ -167,3 +174,15 @@ docker-docs:
 	--workdir=/home/user/src \
 	--env 'TERM=xterm-256colors' \
 	nextclade-docs-builder
+
+
+# Synchronize source files using rsync
+sync:
+	@$(MAKE) --no-print-directory sync-impl
+
+sync-impl:
+	@nodemon --config config/nodemon/nodemon_sync.json
+
+.ONESHELL:
+sync-nowatch:
+	rsync -arvz --no-owner --no-group --exclude=.git --exclude=.volumes --exclude=.idea --exclude=.vscode* --exclude=.ignore* --exclude=.cache --exclude=.build --exclude=packages/web/.build --exclude=packages/web/.cache --exclude=packages/web/node_modules --exclude=packages/nextclade_cli/src/generated --exclude=.out --exclude=tmp --exclude=.reports $(shell pwd) $${SYNC_DESTINATION}
