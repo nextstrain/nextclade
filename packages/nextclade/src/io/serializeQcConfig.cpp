@@ -1,9 +1,9 @@
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
+#include <nextclade_json/nextclade_json.h>
 
 #include <nlohmann/json.hpp>
 
-#include "jsonStringify.h"
 #include "serializeResults.h"
 
 namespace Nextclade {

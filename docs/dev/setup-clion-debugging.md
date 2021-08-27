@@ -1,4 +1,4 @@
-# Setup debugging in CLion
+# Developer's guide: Setup C++ debugging in CLion
 
 This guide describes how to setup [Jetbrains CLion IDE](https://www.jetbrains.com/clion/) debugger for this project.
 

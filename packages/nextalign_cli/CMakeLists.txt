@@ -16,12 +16,17 @@ find_package(TBB REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
+find_package(jemalloc 5.2.1 REQUIRED)
 
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   if (MINGW)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
+    set(DEPENDENCIES
+      ${DEPENDENCIES}
+      jemalloc::jemalloc
+    )
   endif ()
 endif ()
 
@@ -41,6 +46,7 @@ add_executable(${PROJECT_NAME}
   src/cli.cpp
   src/description.h
   src/filesystem.h
+  src/malloc_conf.h
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY
@@ -72,12 +78,13 @@ target_link_libraries(${PROJECT_NAME}
   nextalign
 
   PRIVATE
+  ${STATIC_BUILD_FLAGS}
   Boost::headers
   TBB::tbb
   cxxopts::cxxopts
   fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
-  ${STATIC_BUILD_FLAGS}
+  ${DEPENDENCIES}
   )
 
 install(

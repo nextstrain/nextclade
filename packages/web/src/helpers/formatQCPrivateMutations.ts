@@ -22,7 +22,7 @@ export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
   }
 
   return t(
-    '{{message}}{{total}} private mutations seen, {{excess}} more than expected (more than {{cutoff}} is considered problematic). QC score: {{score}}',
+    '{{message}}{{total}} private mutations seen. Up to {{excess}} is expected, {{cutoff}} or more is considered problematic.',
     {
       message,
       total,

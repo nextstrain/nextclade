@@ -1,13 +1,5 @@
 import { CladeSchema } from 'src/components/Main/CladeSchema.tsx'
 
-<!-- TODO: Why we built the tool the way we did? -->
-<!-- TODO: What are the trade-offs we have to choose? -->
-<!-- TODO: What are the limitations? -->
-<!-- TODO: What are the advantages of this tool compared to the existing alternatives? -->
-<!-- TODO: How this tool complements the traditional workflow? -->
-
-<!-- FIXME: what is "calls mutations"? We may want to explain this better -->
-
 ## What is Nextclade?
 
 Nextclade is a tool that identifies differences between your sequences and a reference sequence used by Nextstrain,
@@ -19,10 +11,14 @@ These sequences will then be analyzed in your browser -- data never leave your c
 Since your computer is doing the work rather than a server, it is advisable to analyze at most a few hundred sequences at a time.
 Nextclade currently only supports SARS-CoV-2, but we will hopefully extend the tool to other pathogens on Nextstrain.
 
-The source code for the application and algorithms is opensource and is available on [Github](https://github.com/nextstrain/nextclade).
+The source code for the application and algorithms is opensource and is available on [GitHub](https://github.com/nextstrain/nextclade). User manual is available at [docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade).
 
 
 ### What are the clades?
+
+Nextclade was originally developed during COVID-19 pandemic, historically primarily focused on SARS-CoV-2, and at the time of writing, this is still the main use-case. This section describes clades with application to SARS-CoV-2, but Nextclade can analyse other pathogens too.
+
+<CladeSchema />
 
 Since its emergence in late 2019, SARS-CoV-2 has diversified into several different co-circulating variants. To
 facilitate discussion of these variants, we have grouped them into __clades__ which are defined by specific
@@ -37,100 +33,11 @@ for details):
 - 20D to 20I have emerged over the summer of 2020 and include three "Variants of Concern" (VoC).
 - 21A to 21F include the VoC __delta__ and several Variants of Interest (VoI).
 
-<CladeSchema />
-
 Within Nextstrain, we define each clade by its combination of signature mutations.
-You can find the exact clade definition in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).
-Nextclade assigns your sequences to these clades by placing them on a phylogenetic tree annotated with these clade definitions.
-When available, we will include [WHO labels for VoCs and VoIs](https://www.who.int/en/activities/tracking-SARS-CoV-2-variants/).
+You can find the exact clade definition in [github.com/nextstrain/ncov/defaults/clades.tsv](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv). When available, we will include [WHO labels for VoCs and VoIs](https://www.who.int/en/activities/tracking-SARS-CoV-2-variants/).
 
-### Quality Control (QC)
-
-Whole genome sequencing of RNA viruses is not a push-button operation -- in particular from scarce or degraded input material.
-Some parts of the sequence might be missing and the bioinformatic analysis pipelines that turn the raw data into a consensus genome sometimes produce artefacts.
-Such artefacts typically manifest in spurious differences of the sequence from the reference.
-If such problematic sequences are included in phylogenetic analysis, they can distort the tree.
-The Nextstrain analysis pipeline therefore excludes sequences deemed problematic.
-
-Many such problems can be fixed by tweaking the pipeline or by removing primers or contaminants.
-It is therefore useful to spot these problems early.
-Nextclade will scan your sequences for issues that indicate problems during sequencing or bioinformatic assembly.
-We currently implemented four metrics to flag a sequence as potentially problematic:
-
-- too much missing data: If your sequence misses more than 1000 sites (`N`s), it will be flagged
-- too high divergence: Sequences with more than 20 mutations relative to the reference sequence are flagged.
-  We will revise this threshold as diversity of the SARS-CoV-2 population increases.
-- too many ambiguous nucleotides: mixed states (such as `R`, `Y`, etc) are indicative of contamination (or
-  superinfection) and more than 10 such non-ACGTN characters will result in a QC warning.
-- clustered differences: If your sequence has clusters with 6 or more differences in 100 bases (excluding known clusters
-  like positions 28881-28883), it will be flagged.
-
-In addition, we flag sequences in which some of the major genes fail to translate because of frame shifting insertions or deletions.
-These warnings don't necessarily mean your sequences are problematic, but these issues warrant closer examination.
-The [Nextstrain pipeline](https://github.com/nextstrain/ncov) uses similar (more lenient) QC criteria.
-Nextstrain will exclude your sequence if it has fewer than 27000 valid bases (corresponding to roughly 3000 Ns) and doesn't check for ambiguous characters.
-But sequences flagged for excess divergence and SNP clusters by Nextclade are likely excluded by Nextstrain.
-Note that there are many additional potential problems Nextclade does not check for.
-These include for example: primer sequences, adaptaters, or chimeras between divergent SARS-CoV-2 strains.
-
-
-## How does it work?
-
-At the core of Nextclade is a pairwise sequence alignment between the reference sequence and each of the sequences in your data.
-Once the sequences are aligned, we can identify differences between them and use these differences to place the sequence on the phylogeny and identify quality issues.
-
-### Sequence Alignment
-
-To meaningfully compare two sequences and identify mutations between them, they need to be [aligned to each other](https://en.wikipedia.org/wiki/Sequence_alignment).
-While many tools exist to compute pairwise or multiple sequence alignments, they typically run on the command line.
-For Nextclade, we therefore compiled the C++ code of nextalign into a web-assembly module that runs in your browser.
-
-We roughly estimate the alignment of your sequences to the reference one-by-one using short seeds (21-mers) along the sequence.
-With this rough overall alignment, we perform a [banded Smith-Waterman alignment](https://github.com/nextstrain/nextclade/blob/master/packages/web/src/algorithms/alignPairwise.ts) with an affine gap-penalty.
-The alignment is codon aware in the sense that it preferentially opens gaps at the beginning of a codon is this is possible.
-
-If the seed matches are poor or suggest gaps in excess of 400 bases, we won't attempt to align -- your sequence won't be
-scored.
-Large gaps require a lot of memory and computation in our current implementation.
-For most sequences, however, this alignment strategy works well and takes much less than a second per sequence.
-
-In addition to alignments of the nucleotide sequences, nextclade extracts sequences of genes (open reading frames) and separately aligns their translations to translations of the reference sequence.
-This allows an unambiguous assignment of amino acid mutations.
-
-The alignments can be downloaded for further analysis.
-
-### Clade Assignment
-Clades are groups of related sequences that share a common ancestor.
-Nextclade assigns clades by placing your sequence in a tree representing currently circulating SARS-CoV-2.
-The clade is then inferred from the point in the tree the sequences attaches to.
-On the reference tree, clades are assigned using lists of [clade-defining mutations](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv) via the [augur](https://github.com/nextstrain/augur) workflow.
-
+Learn more about how Nextclade assigns clades in the [documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/algorithm/).
 
 ### Credits
 
  - Artic ncov-2019 Primers are CC-BY licensed. Source: [GitHub](https://github.com/artic-network/artic-ncov2019/blob/b3f2dda5e6d95bc1c5d95a04d4ef37d304479477/primer_schemes/nCoV-2019/V4/SARS-CoV-2.primer.bed#L1).
-
-
-<!--
-## How can I help?
-
-Our project is free and open-source and we welcome contributions in any form.
-
-We are glad to hear from you!
-If you have encountered a problem or have an idea for an improvement: TODO
-This will help us to identify problems and possibilities for improvements and to develop the project further.
-
-If you want to participate in the discussion of the project feel free to join: TODO
-
-Help us to translate the tool in your language: TODO
-
-If you are a developer, take a look at:
- - our source code repository at githubL TODO
- - currently reported issues and feature requests: TODO
- - our developer's guide at: TODO
- -->
-
-<!--
-## Who are the authors?
-
- -->
