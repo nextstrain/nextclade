@@ -2,18 +2,63 @@ import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { connect } from 'react-redux'
-import { FaGithub, FaTwitter } from 'react-icons/fa'
+import { FaDocker, FaGithub, FaTwitter } from 'react-icons/fa'
+import { IoMdBook } from 'react-icons/io'
+import styled from 'styled-components'
 
 import { State } from 'src/state/reducer'
 import { selectPathname } from 'src/state/router/router.selectors'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 import { Link } from 'src/components/Link/Link'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
 import { ReactComponent as BrandLogo } from 'src/assets/img/nextstrain_logo.svg'
 
+import { WhatsNewButton } from './WhatsNewButton'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { NavigationLogo } from './NavigationLogo'
+import { SettingsButton } from './SettingsButton'
+
+export const NavLinkContainer = styled.div`
+  width: 50px;
+  @media (min-width: 1200px) {
+    width: 100px;
+  }
+`
+
+export const NavLinkGrey = styled(LinkExternal)`
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  &.active,
+  &:active,
+  &:hover,
+  &:focus,
+  &:focus-within {
+    color: initial;
+    text-decoration: none;
+    cursor: pointer;
+  }
+`
+
+export function DocsLink() {
+  const { t } = useTranslationSafe()
+
+  return (
+    <NavLinkContainer className="text-center">
+      <NavLinkGrey
+        href="https://docs.nextstrain.org/projects/nextclade"
+        alt={t('Documentation')}
+        title={t('Documentation')}
+      >
+        <IoMdBook className="mr-xl-2" />
+        <span className="d-none d-xl-inline">{t('Docs')}</span>
+      </NavLinkGrey>
+    </NavLinkContainer>
+  )
+}
 
 export interface NavigationBarProps {
   pathname: string
@@ -39,8 +84,14 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
         icon: <FaTwitter size={28} color="#aaa" />,
       },
       {
+        title: t('Our containers at Docker Hub'),
+        url: 'https://hub.docker.com/r/nextstrain/nextclade',
+        alt: t('Link to our Docker containers'),
+        icon: <FaDocker size={28} color="#aaa" />,
+      },
+      {
         title: t('GitHub'),
-        url: 'https://github.com/neherlab/webclades',
+        url: 'https://github.com/nextstrain/nextclade',
         alt: t('Link to our Github page'),
         icon: <FaGithub size={28} color="#aaa" />,
       },
@@ -60,6 +111,18 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
       </Link>
 
       <ul className="navbar-nav ml-auto d-flex">
+        <li className="nav-item mx-2 my-auto">
+          <DocsLink />
+        </li>
+
+        <li className="nav-item mx-2 my-auto">
+          <SettingsButton />
+        </li>
+
+        <li className="nav-item mx-2 my-auto">
+          <WhatsNewButton />
+        </li>
+
         <li className="nav-item mx-2 my-auto">
           <LanguageSwitcher />
         </li>

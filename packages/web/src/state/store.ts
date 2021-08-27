@@ -11,11 +11,8 @@ import { createRouterMiddleware, initialRouterState } from 'connected-next-route
 import { persistStore } from 'redux-persist'
 import { createLogger } from 'redux-logger'
 
-import type { WorkerPools } from 'src/workers/types'
-
-import { auspiceInitialState } from './auspice/auspice.state'
 import { withReduxDevTools } from './util/withReduxDevTools'
-import createRootReducer, { State } from './reducer'
+import createRootReducer from './reducer'
 import createRootSaga from './sagas'
 
 export function persistStoreAsync(store: Store, options: PersistorOptions): Promise<Persistor> {
@@ -26,14 +23,11 @@ export function persistStoreAsync(store: Store, options: PersistorOptions): Prom
 
 export interface ConfigureStoreParams {
   router: Router
-  workerPools: WorkerPools
 }
 
-export async function configureStore({ router, workerPools }: ConfigureStoreParams) {
+export async function configureStore({ router }: ConfigureStoreParams) {
   const routerMiddleware = createRouterMiddleware()
-  const sagaMiddleware = createSagaMiddleware({
-    context: { workerPools },
-  })
+  const sagaMiddleware = createSagaMiddleware()
 
   let middlewares: Middleware<string>[] = [routerMiddleware, thunk, sagaMiddleware].filter(Boolean)
 
@@ -50,7 +44,7 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
   enhancer = withReduxDevTools(enhancer)
 
   const { asPath, pathname, query } = router
-  let initialState = { ...auspiceInitialState } as State
+  let initialState = {}
   if (asPath) {
     const url = format({ pathname, query })
     initialState = {
@@ -66,7 +60,7 @@ export async function configureStore({ router, workerPools }: ConfigureStorePara
 
   if (module.hot) {
     // Setup hot reloading of root reducer
-    module.hot.accept(() => {
+    module.hot.accept('./reducer', () => {
       store.replaceReducer(createRootReducer())
       console.info('[HMR] root reducer reloaded successfully')
     })

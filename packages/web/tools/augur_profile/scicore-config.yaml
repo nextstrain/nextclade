@@ -1,2 +1,2 @@
 
-localrules: "augur_profile/localrules.smk"
+localrules: "clades_profile/localrules.smk"

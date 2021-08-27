@@ -1,32 +1,41 @@
-import { reducerWithInitialState } from 'typescript-fsa-reducers'
+import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import { uiDefaultState } from 'src/state/ui/ui.state'
-
-import immerCase from '../util/fsaImmerReducer'
-
-import { setExportFormat, setShowInputBox, setFilterPanelCollapsed, setTreeFilterPanelCollapsed } from './ui.actions'
+import {
+  setIsSettingsDialogOpen,
+  resetViewedGene,
+  setFilterPanelCollapsed,
+  setShowNewRunPopup,
+  setShowWhatsnew,
+  setTreeFilterPanelCollapsed,
+  setViewedGene,
+} from 'src/state/ui/ui.actions'
 
 export const uiReducer = reducerWithInitialState(uiDefaultState)
-  .withHandling(
-    immerCase(setShowInputBox, (draft, showInputBox) => {
-      draft.showInputBox = showInputBox
-    }),
-  )
+  .icase(setIsSettingsDialogOpen, (draft, isSettingsDialogOpen) => {
+    draft.isSettingsDialogOpen = isSettingsDialogOpen
+  })
 
-  .withHandling(
-    immerCase(setExportFormat, (draft, exportFormat) => {
-      draft.exportFormat = exportFormat
-    }),
-  )
+  .icase(setFilterPanelCollapsed, (draft, filterPanelCollapsed) => {
+    draft.filterPanelCollapsed = filterPanelCollapsed
+  })
 
-  .withHandling(
-    immerCase(setFilterPanelCollapsed, (draft, filterPanelCollapsed) => {
-      draft.filterPanelCollapsed = filterPanelCollapsed
-    }),
-  )
+  .icase(setTreeFilterPanelCollapsed, (draft, treeFilterPanelCollapsed) => {
+    draft.treeFilterPanelCollapsed = treeFilterPanelCollapsed
+  })
 
-  .withHandling(
-    immerCase(setTreeFilterPanelCollapsed, (draft, treeFilterPanelCollapsed) => {
-      draft.treeFilterPanelCollapsed = treeFilterPanelCollapsed
-    }),
-  )
+  .icase(setShowWhatsnew, (draft, showWhatsnew) => {
+    draft.showWhatsnew = showWhatsnew
+  })
+
+  .icase(setShowNewRunPopup, (draft, showNewRunPopup) => {
+    draft.showNewRunPopup = showNewRunPopup
+  })
+
+  .icase(setViewedGene, (draft, viewedGene) => {
+    draft.viewedGene = viewedGene
+  })
+
+  .icase(resetViewedGene, (draft) => {
+    draft.viewedGene = uiDefaultState.viewedGene
+  })

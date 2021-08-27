@@ -1,77 +1,116 @@
+import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
-
-import { DEFAULT_ROOT_SEQUENCE } from 'src/algorithms/getRootSeq'
-// import { getFakeResults } from 'src/assets/data/getFakeResults'
-import { AuspiceJsonV2 } from 'auspice'
-import { QCResult } from 'src/algorithms/QC/runQC'
-import { AnalysisResultWithoutClade } from 'src/algorithms/types'
-
-export interface InputFile {
-  name: string
-  size: number
-}
-
-export interface AlgorithmParams {
-  input: string
-  rootSeq: string
-}
+import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
 export enum AlgorithmGlobalStatus {
-  idling = 'idling',
+  idle = 'idle',
+  loadingData = 'loadingData',
+  initWorkers = 'initWorkers',
   started = 'started',
-  parsing = 'parsing',
-  analysis = 'analysis',
-  treeBuild = 'treeBuild',
-  assignClades = 'assignClades',
-  qc = 'qc',
-  treeFinalization = 'treeFinalization',
-  allDone = 'allDone',
+  buildingTree = 'buildingTree',
+  done = 'done',
+  failed = 'failed',
 }
 
 export enum AlgorithmSequenceStatus {
   idling = 'idling',
-  analysisStarted = 'analysisStarted',
-  analysisDone = 'analysisDone',
-  analysisFailed = 'analysisFailed',
-  qcStarted = 'qcStarted',
-  qcDone = 'qcDone',
-  qcFailed = 'qcFailed',
-}
-
-export interface AnalysisResultState extends AnalysisResultWithoutClade {
-  clade?: string
+  queued = 'queued',
+  started = 'started',
+  done = 'done',
+  failed = 'failed',
 }
 
 export interface SequenceAnalysisState {
   id: number
   seqName: string
   status: AlgorithmSequenceStatus
-  result?: AnalysisResultState
-  qc?: QCResult
+  result?: AnalysisResult
+  query?: string
+  queryPeptides?: Peptide[]
+  warnings: Warnings
   errors: string[]
 }
 
-export interface ResultsFilters {
+export interface ResultsFilters extends QCFilters {
   seqNamesFilter?: string
   mutationsFilter?: string
   aaFilter?: string
   cladesFilter?: string
-  hasNoQcIssuesFilter: boolean
-  hasQcIssuesFilter: boolean
-  hasErrorsFilter: boolean
   sorting?: Sorting
+}
+
+export enum AlgorithmInputType {
+  File = 'FileInput',
+  Url = 'Url',
+  String = 'String',
+}
+
+export interface AlgorithmInput {
+  type: AlgorithmInputType
+  name: string
+  description: string
+
+  getContent(): Promise<string>
+}
+
+export interface ExportParams {
+  filenameZip: string
+  filenameCsv: string
+  filenameTsv: string
+  filenameJson: string
+  filenameTreeJson: string
+  filenameFasta: string
+  filenamePeptidesZip: string
+  filenameInsertionsCsv: string
+  filenameErrorsCsv: string
+  filenamePeptidesTemplate: string
+}
+
+export interface AlgorithmParams {
+  dataset?: DatasetFlat
+  raw: {
+    seqData?: AlgorithmInput
+    auspiceData?: AlgorithmInput
+    rootSeq?: AlgorithmInput
+    qcRulesConfig?: AlgorithmInput
+    geneMap?: AlgorithmInput
+    pcrPrimers?: AlgorithmInput
+  }
+  strings: {
+    queryStr?: string
+    queryName?: string
+    refStr?: string
+    refName?: string
+    geneMapStr?: string
+    treeStr?: string
+    pcrPrimerCsvRowsStr?: string
+    qcConfigStr?: string
+  }
+  final: {
+    geneMap?: Gene[]
+    genomeSize?: number
+  }
+  errors: {
+    seqData: Error[]
+    auspiceData: Error[]
+    rootSeq: Error[]
+    qcRulesConfig: Error[]
+    geneMap: Error[]
+    pcrPrimers: Error[]
+  }
+  seqData?: string
 }
 
 export interface AlgorithmState {
   status: AlgorithmGlobalStatus
-  inputFile?: InputFile
   params: AlgorithmParams
   isDirty: boolean
   results: SequenceAnalysisState[]
   resultsFiltered: SequenceAnalysisState[]
-  tree: AuspiceJsonV2
+  treeStr?: string
   errors: string[]
   filters: ResultsFilters
+  exportParams: ExportParams
 }
 
 export interface CladeAssignmentResult {
@@ -79,28 +118,46 @@ export interface CladeAssignmentResult {
   clade: string
 }
 
-const fakeState: Partial<AlgorithmState> = {}
-if (process.env.DEBUG_SET_INITIAL_DATA === 'true') {
-  // fakeState.results = getFakeResults()
-  // fakeState.resultsFiltered = fakeState.results
-  // fakeState.status = AlgorithmGlobalStatus.done
+export const DEFAULT_EXPORT_PARAMS: ExportParams = {
+  filenameZip: 'nextclade.zip',
+  filenameCsv: 'nextclade.csv',
+  filenameTsv: 'nextclade.tsv',
+  filenameJson: 'nextclade.json',
+  filenameTreeJson: 'nextclade.auspice.json',
+  filenameFasta: 'nextclade.aligned.fasta',
+  filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
+  filenameInsertionsCsv: 'nextclade.insertions.csv',
+  filenameErrorsCsv: 'nextclade.errors.csv',
+  filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 
 export const algorithmDefaultState: AlgorithmState = {
-  status: AlgorithmGlobalStatus.idling,
+  status: AlgorithmGlobalStatus.idle,
   params: {
-    input: '',
-    rootSeq: DEFAULT_ROOT_SEQUENCE,
+    dataset: undefined,
+    raw: {},
+    strings: {},
+    final: {},
+    errors: {
+      seqData: [],
+      auspiceData: [],
+      rootSeq: [],
+      qcRulesConfig: [],
+      geneMap: [],
+      pcrPrimers: [],
+    },
+    seqData: undefined,
   },
   isDirty: true,
   results: [],
   resultsFiltered: [],
-  tree: {},
+  treeStr: undefined,
   errors: [],
   filters: {
-    hasNoQcIssuesFilter: true,
-    hasQcIssuesFilter: true,
-    hasErrorsFilter: true,
+    showGood: true,
+    showMediocre: true,
+    showBad: true,
+    showErrors: true,
   },
-  ...fakeState,
+  exportParams: DEFAULT_EXPORT_PARAMS,
 }

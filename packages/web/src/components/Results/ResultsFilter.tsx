@@ -21,15 +21,17 @@ import { connect } from 'react-redux'
 
 import { State } from 'src/state/reducer'
 import {
-  setSeqNamesFilter,
-  setMutationsFilter,
   setAAFilter,
   setCladesFilter,
-  setHasErrorsFilter,
-  setHasNoQcIssuesFilter,
-  setHasQcIssuesFilter,
+  setMutationsFilter,
+  setSeqNamesFilter,
+  setShowBad,
+  setShowErrors,
+  setShowGood,
+  setShowMediocre,
 } from 'src/state/algorithm/algorithm.actions'
 import { setFilterPanelCollapsed } from 'src/state/ui/ui.actions'
+import { QCFilters } from 'src/filtering/filterByQCIssues'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
   box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
@@ -93,9 +95,10 @@ const mapStateToProps = (state: State) => ({
   mutationsFilter: state.algorithm.filters.mutationsFilter ?? '',
   aaFilter: state.algorithm.filters.aaFilter ?? '',
   cladesFilter: state.algorithm.filters.cladesFilter ?? '',
-  hasNoQcIssuesFilter: state.algorithm.filters.hasNoQcIssuesFilter,
-  hasQcIssuesFilter: state.algorithm.filters.hasQcIssuesFilter,
-  hasErrorsFilter: state.algorithm.filters.hasErrorsFilter,
+  showGood: state.algorithm.filters.showGood,
+  showMediocre: state.algorithm.filters.showMediocre,
+  showBad: state.algorithm.filters.showBad,
+  showErrors: state.algorithm.filters.showErrors,
 })
 
 const mapDispatchToProps = {
@@ -104,30 +107,29 @@ const mapDispatchToProps = {
   setMutationsFilter,
   setAAFilter,
   setCladesFilter,
-  setHasNoQcIssuesFilter,
-  setHasQcIssuesFilter,
-  setHasErrorsFilter,
+  setShowGood,
+  setShowMediocre,
+  setShowBad,
+  setShowErrors,
 }
 
 export const ResultsFilter = connect(mapStateToProps, mapDispatchToProps)(ResultsFilterDisconnected)
 
-export interface ResultsFilterProps {
+export interface ResultsFilterProps extends QCFilters {
   filterPanelCollapsed: boolean
   seqNamesFilter: string
   mutationsFilter: string
   aaFilter: string
   cladesFilter: string
-  hasQcIssuesFilter: boolean
-  hasNoQcIssuesFilter: boolean
-  hasErrorsFilter: boolean
   setFilterPanelCollapsed(collapsed: boolean): void
   setSeqNamesFilter(namesFilter?: string): void
   setMutationsFilter(mutationsFilter?: string): void
   setAAFilter(aaFilter?: string): void
   setCladesFilter(cladesFilter?: string): void
-  setHasNoQcIssuesFilter(checked: boolean): void
-  setHasQcIssuesFilter(checked: boolean): void
-  setHasErrorsFilter(checked: boolean): void
+  setShowGood(checked: boolean): void
+  setShowMediocre(checked: boolean): void
+  setShowBad(checked: boolean): void
+  setShowErrors(checked: boolean): void
 }
 
 export function ResultsFilterDisconnected({
@@ -137,16 +139,18 @@ export function ResultsFilterDisconnected({
   setSeqNamesFilter,
   mutationsFilter,
   aaFilter,
-  hasQcIssuesFilter,
-  hasNoQcIssuesFilter,
-  hasErrorsFilter,
+  showGood,
+  showMediocre,
+  showBad,
+  showErrors,
   setMutationsFilter,
   setAAFilter,
   cladesFilter,
   setCladesFilter,
-  setHasNoQcIssuesFilter,
-  setHasQcIssuesFilter,
-  setHasErrorsFilter,
+  setShowGood,
+  setShowMediocre,
+  setShowBad,
+  setShowErrors,
 }: ResultsFilterProps) {
   const { t } = useTranslation()
 
@@ -170,19 +174,24 @@ export function ResultsFilterDisconnected({
     setCladesFilter(value)
   }
 
-  function handleHasNoQcIssuesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleSetShowGood(event: React.ChangeEvent<HTMLInputElement>) {
     const { checked } = event.target
-    setHasNoQcIssuesFilter(checked)
+    setShowGood(checked)
   }
 
-  function handleHasQcIssuesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleSetShowMediocre(event: React.ChangeEvent<HTMLInputElement>) {
     const { checked } = event.target
-    setHasQcIssuesFilter(checked)
+    setShowMediocre(checked)
   }
 
-  function handleHasErrorsFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleSetShowBad(event: React.ChangeEvent<HTMLInputElement>) {
     const { checked } = event.target
-    setHasErrorsFilter(checked)
+    setShowBad(checked)
+  }
+
+  function handleSetShowErrors(event: React.ChangeEvent<HTMLInputElement>) {
+    const { checked } = event.target
+    setShowErrors(checked)
   }
 
   return (
@@ -230,7 +239,7 @@ export function ResultsFilterDisconnected({
               {t('By aminoacid changes')}
               <InputText
                 type="text"
-                placeholder="Ex.: ORF1b:P314L, S:, :84"
+                placeholder="Ex.: ORF1b:P314L, S:, :84, ORF1b:P314-"
                 value={aaFilter}
                 onChange={handleAAFilterChange}
                 autoComplete="off"
@@ -261,28 +270,31 @@ export function ResultsFilterDisconnected({
 
           <FormSection>
             <Label>
-              {t('By QC status')}
+              {t('By quality')}
               <FormGroup check>
                 <Label check>
-                  <InputCheckbox
-                    type="checkbox"
-                    checked={hasNoQcIssuesFilter}
-                    onChange={handleHasNoQcIssuesFilterChange}
-                  />
-                  {t('Has no issues')}
+                  <InputCheckbox type="checkbox" checked={showGood} onChange={handleSetShowGood} />
+                  {t('Good quality')}
                 </Label>
               </FormGroup>
 
               <FormGroup check>
                 <Label check>
-                  <InputCheckbox type="checkbox" checked={hasQcIssuesFilter} onChange={handleHasQcIssuesFilterChange} />
-                  {t('Has issues')}
+                  <InputCheckbox type="checkbox" checked={showMediocre} onChange={handleSetShowMediocre} />
+                  {t('Mediocre quality')}
                 </Label>
               </FormGroup>
 
               <FormGroup check>
                 <Label check>
-                  <InputCheckbox type="checkbox" checked={hasErrorsFilter} onChange={handleHasErrorsFilterChange} />
+                  <InputCheckbox type="checkbox" checked={showBad} onChange={handleSetShowBad} />
+                  {t('Bad quality')}
+                </Label>
+              </FormGroup>
+
+              <FormGroup check>
+                <Label check>
+                  <InputCheckbox type="checkbox" checked={showErrors} onChange={handleSetShowErrors} />
                   {t('Has errors')}
                 </Label>
               </FormGroup>

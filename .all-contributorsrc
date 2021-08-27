@@ -1,65 +1,13 @@
 {
-  "projectName": "webclades",
-  "projectOwner": "neherlab",
+  "projectName": "nextclade",
+  "projectOwner": "nextstrain",
   "files": [
     "README.md"
   ],
   "imageSize": 100,
-  "contributorsSortAlphabetically": true,
-  "skipCi": true,
+  "contributorsSortAlphabetically": false,
+  "skipCi": false,
   "contributors": [
-    {
-      "login": "rneher",
-      "name": "Richard Neher",
-      "avatar_url": "https://avatars3.githubusercontent.com/u/8379168?v=4",
-      "profile": "https://github.com/rneher",
-      "contributions": [
-        "bug",
-        "code",
-        "content",
-        "data",
-        "design",
-        "doc",
-        "ideas",
-        "infra",
-        "maintenance",
-        "review",
-        "security",
-        "talk",
-        "test",
-        "translation"
-      ]
-    },
-    {
-      "login": "ivan-aksamentov",
-      "name": "Ivan Aksamentov",
-      "avatar_url": "https://avatars0.githubusercontent.com/u/9403403?v=4",
-      "profile": "https://github.com/ivan-aksamentov",
-      "contributions": [
-        "code",
-        "data",
-        "design",
-        "ideas",
-        "bug",
-        "content",
-        "doc",
-        "maintenance",
-        "translation",
-        "test",
-        "talk",
-        "review"
-      ]
-    },
-    {
-      "login": "stroudn1",
-      "name": "Natalie Stroud",
-      "avatar_url": "https://avatars3.githubusercontent.com/u/17433156?v=4",
-      "profile": "http://www.natalieastroud.com/",
-      "contributions": [
-        "content",
-        "translation"
-      ]
-    },
     {
       "login": "emmahodcroft",
       "name": "Emma Hodcroft",
@@ -80,6 +28,52 @@
       "contributions": [
         "infra",
         "security"
+      ]
+    },
+    {
+      "login": "theosanderson",
+      "name": "Theo Sanderson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19732295?v=4",
+      "profile": "http://theo.io/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "stroudn1",
+      "name": "Natalie Stroud",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/17433156?v=4",
+      "profile": "http://www.natalieastroud.com/",
+      "contributions": [
+        "content",
+        "translation"
+      ]
+    },
+    {
+      "login": "iskandr",
+      "name": "Alex Rubinsteyn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/48441?v=4",
+      "profile": "http://www.rubinsteyn.com/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "molecules",
+      "name": "Christopher Bottoms",
+      "avatar_url": "https://avatars.githubusercontent.com/u/345060?v=4",
+      "profile": "https://github.com/molecules",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "fmaguire",
+      "name": "Finlay Maguire",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1698629?v=4",
+      "profile": "http://finlaymagui.re/",
+      "contributions": [
+        "doc"
       ]
     }
   ],

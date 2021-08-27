@@ -15,7 +15,6 @@
 @import './components/MdxWrapper';
 @import './components/NavigationBar';
 @import './components/Results';
-@import './components/UploadZone';
 
 html,
 body {
@@ -27,8 +26,6 @@ html {
 }
 
 body {
-  // HACK: workaround for bootstrap modal adding padding-right when open
-  padding: 0 !important;
   background-color: $body-bg;
 }
 
@@ -48,13 +45,6 @@ body {
     font-size: 8px;
     line-height: 8px;
   }
-}
-
-code {
-  padding: 2px 4px;
-  background-color: #ccc;
-  border: 1px solid #aaaa;
-  border-radius: 2px;
 }
 
 p {
@@ -145,4 +135,8 @@ p {
 
 .icon.fill-green {
   fill: $green;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }

@@ -3,16 +3,18 @@ import React from 'react'
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 
+import FiltersSummary from 'auspice/src/components/info/filtersSummary'
+
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
 
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
-import { TreeFilter } from './TreeFilter'
-import { ButtonTreeFilter } from './ButtonTreeFilter'
 
 export const Container = styled.div`
+  flex: 1;
+  flex-basis: 100%;
   width: 100%;
   height: 100%;
   min-width: 1000px;
@@ -37,22 +39,16 @@ const HeaderCenter = styled.header`
   border-radius: 5px;
 `
 
-const HeaderRight = styled.header`
-  flex: 0;
-  display: flex;
-`
-
-const HeaderRightContainer = styled.div`
-  flex: 0;
-`
-
 const MainContent = styled.main`
-  flex-grow: 1;
+  flex: 1;
+  flex-basis: 100%;
   overflow-y: hidden;
 `
 
 const AuspiceContainer = styled.div`
   display: flex;
+  flex: 1;
+  flex-basis: 100%;
   height: 100%;
 `
 
@@ -77,15 +73,7 @@ function TreePage() {
           </HeaderLeft>
 
           <HeaderCenter />
-
-          <HeaderRight>
-            <HeaderRightContainer>
-              <ButtonTreeFilter />
-            </HeaderRightContainer>
-          </HeaderRight>
         </Header>
-
-        <TreeFilter />
 
         <MainContent>
           <AuspiceContainer>
@@ -94,6 +82,10 @@ function TreePage() {
                 <Sidebar />
               </SidebarContainer>
               <TreeContainer>
+                <span>
+                  <FiltersSummary />
+                </span>
+
                 <Tree />
               </TreeContainer>
             </I18nextProvider>

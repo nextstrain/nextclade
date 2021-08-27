@@ -1,0 +1,3 @@
+##gff-version 3
+##sequence-region CY019714.1 1 2352
+CY019714.1	feature	gene	2	2314	.	+	.	gene_name "PB2"

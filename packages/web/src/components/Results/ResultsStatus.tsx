@@ -1,25 +1,19 @@
 import React from 'react'
 
-import { Progress } from 'reactstrap'
 import { connect } from 'react-redux'
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
-import type { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { selectStatus } from 'src/state/algorithm/algorithm.selectors'
+import { Spinner } from 'src/components/Common/Spinner'
 
 const ResultsStatusWrapper = styled.div`
   height: 32px;
   margin: 0;
 `
 
-export interface SequenceStatus {
-  seqName: string
-  status: AlgorithmSequenceStatus
-}
-
 export interface ResultsStatusProps {
-  status: { percent: number; statusText: string; failureText?: string }
+  status: { percent: number; statusText: string; failureText?: string; hasFailures: boolean }
 }
 
 const mapStateToProps = (state: State) => ({
@@ -31,12 +25,7 @@ const mapDispatchToProps = {}
 export const ResultsStatus = connect(mapStateToProps, mapDispatchToProps)(ResultsStatusDisconnected)
 
 export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
-  const { percent, statusText, failureText } = status
-
-  let color = percent === 0 || percent === 100 ? 'transparent' : undefined
-  if (failureText) {
-    color = 'danger'
-  }
+  const { statusText, failureText, percent } = status
 
   let text = <span>{statusText}</span>
   if (failureText) {
@@ -51,8 +40,8 @@ export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
 
   return (
     <ResultsStatusWrapper>
-      <div className="text-right">{text}</div>
-      <Progress color={color} value={percent} />
+      {percent !== 100 && <Spinner color="#222" size={24} />}
+      <span className="ml-2">{text}</span>
     </ResultsStatusWrapper>
   )
 }

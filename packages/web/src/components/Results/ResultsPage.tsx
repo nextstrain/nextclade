@@ -1,13 +1,14 @@
 import React from 'react'
+import { ButtonNewRun } from 'src/components/Results/ButtonNewRun'
 
 import styled from 'styled-components'
 
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 
+import { ExportDialogButton } from 'src/components/Results/ExportDialogButton'
 import { ButtonBack } from './ButtonBack'
 import { ButtonFilter } from './ButtonFilter'
-import { ButtonExport } from './ButtonExport'
 import { ButtonTree } from './ButtonTree'
 import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
@@ -48,7 +49,8 @@ const HeaderRightContainer = styled.div`
 `
 
 const MainContent = styled.main`
-  flex-grow: 1;
+  flex: 1;
+  flex-basis: 100%;
   overflow: auto;
   border: none;
 `
@@ -73,10 +75,13 @@ export function ResultsPage() {
               <ButtonRunStop />
             </HeaderRightContainer>
             <HeaderRightContainer>
+              <ButtonNewRun />
+            </HeaderRightContainer>
+            <HeaderRightContainer>
               <ButtonFilter />
             </HeaderRightContainer>
             <HeaderRightContainer>
-              <ButtonExport />
+              <ExportDialogButton />
             </HeaderRightContainer>
             <HeaderRightContainer>
               <ButtonTree />

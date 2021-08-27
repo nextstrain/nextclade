@@ -1,11 +1,11 @@
-import actionCreatorFactory from 'typescript-fsa'
+import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
-const action = actionCreatorFactory('ERROR')
+const action = actionCreatorFactory('Error')
 
 export interface GenericErrorParams {
   error: Error
 }
 
-export const errorAdd = action<GenericErrorParams>('ERROR_ADD')
+export const errorAdd = action<GenericErrorParams>('errorAdd')
 
-export const errorDismiss = action<unknown>('ERROR_DISMISS')
+export const errorDismiss = action('errorDismiss')

@@ -1,18 +1,13 @@
 import React, { useCallback } from 'react'
 
-import styled from 'styled-components'
 import { connect } from 'react-redux'
-import { Button, ButtonProps } from 'reactstrap'
-import { useTranslation } from 'react-i18next'
 import { FaFilter } from 'react-icons/fa'
 
-import { State } from 'src/state/reducer'
+import type { State } from 'src/state/reducer'
+import type { PanelButtonProps } from 'src/components/Results/PanelButton'
+import { PanelButton } from 'src/components/Results/PanelButton'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { setFilterPanelCollapsed } from 'src/state/ui/ui.actions'
-
-export const ButtonStyled = styled(Button)`
-  width: 100px;
-  margin: 0 5px;
-`
 
 const mapStateToProps = (state: State) => ({
   filterPanelCollapsed: state.ui.filterPanelCollapsed,
@@ -24,27 +19,21 @@ const mapDispatchToProps = {
 
 export const ButtonFilter = connect(mapStateToProps, mapDispatchToProps)(ButtonFilterDisconnected)
 
-export interface ButtonFilterProps extends ButtonProps {
+export interface ButtonFilterProps extends PanelButtonProps {
   filterPanelCollapsed: boolean
   setFilterPanelCollapsed(filterPanelCollapsed: boolean): void
 }
 
-export function ButtonFilterDisconnected({
-  onClick,
-  goBack,
-  filterPanelCollapsed,
-  setFilterPanelCollapsed,
-}: ButtonFilterProps) {
-  const { t } = useTranslation()
+export function ButtonFilterDisconnected({ filterPanelCollapsed, setFilterPanelCollapsed }: ButtonFilterProps) {
+  const { t } = useTranslationSafe()
   const toggleFilterPanel = useCallback(() => setFilterPanelCollapsed(!filterPanelCollapsed), [
     filterPanelCollapsed,
     setFilterPanelCollapsed,
   ])
 
   return (
-    <ButtonStyled color="secondary" onClick={toggleFilterPanel}>
-      <FaFilter className="mr-2" />
-      {t('Filter')}
-    </ButtonStyled>
+    <PanelButton onClick={toggleFilterPanel} title={t('Filter: opens panel where you can apply table row filtering')}>
+      <FaFilter size={15} />
+    </PanelButton>
   )
 }

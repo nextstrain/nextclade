@@ -2,26 +2,40 @@ import React, { useState } from 'react'
 
 import styled from 'styled-components'
 
-import type { QCResult } from 'src/algorithms/QC/runQC'
-import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
+import type { AnalysisResult, Warnings } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+
 import { ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
+import { Tooltip } from 'src/components/Results/Tooltip'
+import { getStatusIconAndText } from 'src/components/Results/getStatusIconAndText'
 
 export const SequenceName = styled.div`
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
 `
 
 export interface ColumnNameProps {
   seqName: string
-  sequence?: AnalysisResultState
-  qc?: QCResult
+  sequence?: AnalysisResult
+  warnings: Warnings
+  errors: string[]
 }
 
-export function ColumnName({ seqName, sequence, qc }: ColumnNameProps) {
+export function ColumnName({ seqName, sequence, warnings, errors }: ColumnNameProps) {
+  const { t } = useTranslationSafe()
+
   const [showTooltip, setShowTooltip] = useState(false)
   const id = getSafeId('sequence-label', { seqName })
+
+  const allWarnings = warnings.global.concat(warnings.inGenes.map((warn) => warn.message))
+
+  const { StatusIcon } = getStatusIconAndText({
+    t,
+    isDone: !!sequence,
+    hasWarnings: allWarnings.length > 0,
+    hasErrors: errors.length > 0,
+  })
 
   return (
     <SequenceName
@@ -30,8 +44,13 @@ export function ColumnName({ seqName, sequence, qc }: ColumnNameProps) {
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
+      <StatusIcon />
       {seqName}
-      {sequence && <ColumnNameTooltip showTooltip={showTooltip} sequence={sequence} qc={qc} />}
+      {
+        <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
+          <ColumnNameTooltip seqName={seqName} result={sequence} warnings={allWarnings} errors={errors} />
+        </Tooltip>
+      }
     </SequenceName>
   )
 }

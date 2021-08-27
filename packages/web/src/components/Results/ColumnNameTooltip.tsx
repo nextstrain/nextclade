@@ -1,73 +1,103 @@
 import React from 'react'
-import { Popover, PopoverBody } from 'reactstrap'
-import { useTranslation } from 'react-i18next'
 
-import type { QCResult } from 'src/algorithms/QC/runQC'
-import type { AnalysisResultState } from 'src/state/algorithm/algorithm.state'
-import { getSafeId } from 'src/helpers/getSafeId'
-import { ListOfGaps } from 'src/components/Results/ListOfGaps'
-import { ListOfMissing } from 'src/components/Results/ListOfMissing'
-import { ListOfMutations } from 'src/components/Results/ListOfMutations'
-import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
-import { ListOfAminoacidChanges } from 'src/components/SequenceView/ListOfAminoacidChanges'
-import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
-import { ListOfInsertions } from './ListOfInsertions'
+import { Alert as ReactstrapAlert } from 'reactstrap'
+import styled from 'styled-components'
+
+import type { AnalysisResult } from 'src/algorithms/types'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { formatRange } from 'src/helpers/formatRange'
+import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
+import { ErrorIcon, getStatusIconAndText, WarningIcon } from 'src/components/Results/getStatusIconAndText'
+import { TableSlim } from 'src/components/Common/TableSlim'
+
+const Alert = styled(ReactstrapAlert)`
+  box-shadow: ${(props) => props.theme.shadows.slight};
+  max-width: 400px;
+`
 
 export interface ColumnNameTooltipProps {
-  showTooltip: boolean
-  sequence: AnalysisResultState
-  qc?: QCResult
+  seqName: string
+  result?: AnalysisResult
+  warnings: string[]
+  errors: string[]
 }
 
-export function ColumnNameTooltip({ sequence, qc, showTooltip }: ColumnNameTooltipProps) {
-  const {
-    seqName,
-    clade,
-    substitutions,
-    aminoacidChanges,
-    deletions,
-    insertions,
-    missing,
-    totalMissing,
-    nonACGTNs,
-    totalNonACGTNs,
-    alignmentStart,
-    alignmentEnd,
-    alignmentScore,
-  } = sequence
-  const { t } = useTranslation()
+export function ColumnNameTooltip({ seqName, result, warnings, errors }: ColumnNameTooltipProps) {
+  const { t } = useTranslationSafe()
 
-  const id = getSafeId('sequence-label', { seqName })
-  const alnStartOneBased = alignmentStart + 1
-  const alnEndOneBased = alignmentEnd + 1
-  const cladeText = clade ?? t('Pending...')
+  if (!result) {
+    return null
+  }
+
+  const { StatusIcon, statusText } = getStatusIconAndText({
+    t,
+    isDone: !!result,
+    hasWarnings: warnings.length > 0,
+    hasErrors: errors.length > 0,
+  })
+
+  const { clade, alignmentStart, alignmentEnd, alignmentScore, pcrPrimerChanges, totalPcrPrimerChanges } = result
 
   return (
-    <Popover
-      className="popover-mutation"
-      target={id}
-      placement="auto"
-      isOpen={showTooltip}
-      hideArrow
-      delay={0}
-      fade={false}
-    >
-      <PopoverBody>
-        <div className="mb-4">{t('Sequence: {{seqName}}', { seqName })}</div>
+    <TableSlim borderless className="mb-1">
+      <thead />
+      <tbody>
+        <tr>
+          <td colSpan={2}>
+            <h5 className="mb-2">{seqName}</h5>
+          </td>
+        </tr>
 
-        <div className="my-2">{t('Alignment score: {{alignmentScore}}', { alignmentScore })}</div>
-        <div className="my-2">{t('Alignment start: {{alnStart}}', { alnStart: alnStartOneBased })}</div>
-        <div className="my-2">{t('Alignment end: {{alnEnd}}', { alnEnd: alnEndOneBased })}</div>
-        <div className="my-2">{t('Clade: {{cladeText}}', { cladeText })}</div>
+        <tr>
+          <td>{t('Analysis status')}</td>
+          <td>
+            <StatusIcon size={18} />
+            {statusText}
+          </td>
+        </tr>
 
-        <ListOfMutations substitutions={substitutions} />
-        <ListOfAminoacidChanges aminoacidChanges={aminoacidChanges} />
-        <ListOfGaps deletions={deletions} />
-        <ListOfMissing missing={missing} totalMissing={totalMissing} />
-        <ListOfInsertions insertions={insertions} />
-        <ListOfNonACGTNs nonACGTNs={nonACGTNs} totalNonACGTNs={totalNonACGTNs} />
-        {qc && <ListOfQcIssues qc={qc} />}
-      </PopoverBody>
-    </Popover>
+        <tr>
+          <td>{t('Clade')}</td>
+          <td>{clade}</td>
+        </tr>
+
+        <tr>
+          <td>{t('Alignment range')}</td>
+          <td>{formatRange(alignmentStart, alignmentEnd)}</td>
+        </tr>
+
+        <tr>
+          <td>{t('Alignment score')}</td>
+          <td>{alignmentScore}</td>
+        </tr>
+
+        <tr>
+          <td colSpan={2}>
+            <div className="mt-2" />
+          </td>
+        </tr>
+
+        {pcrPrimerChanges.length > 0 && (
+          <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
+        )}
+
+        <tr>
+          <td colSpan={2}>
+            {errors.map((error) => (
+              <Alert key={error} color="danger" fade={false} className="px-2 py-1 my-1">
+                <ErrorIcon />
+                {error}
+              </Alert>
+            ))}
+            {warnings.map((warning) => (
+              <Alert key={warning} color="warning" fade={false} className="px-2 py-1 my-1">
+                <WarningIcon />
+                {warning}
+              </Alert>
+            ))}
+          </td>
+        </tr>
+      </tbody>
+    </TableSlim>
   )
 }

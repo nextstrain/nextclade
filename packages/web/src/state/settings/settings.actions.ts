@@ -1,20 +1,19 @@
-import actionCreatorFactory from 'typescript-fsa'
+import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
-import type { LocaleKey } from '../../i18n/i18n'
+import type { LocaleKey } from 'src/i18n/i18n'
 
-const action = actionCreatorFactory('SETTINGS')
+const action = actionCreatorFactory('Settings')
 
-export const toggleAutorun = action('TOGGLE_AUTORUN')
-export const toggleLogScale = action('TOGGLE_LOG_SCALE')
-export const toggleFormatNumbers = action('TOGGLE_FORMAT_NUMBERS')
-export const toggleResultsMaximized = action('TOGGLE_RESULTS_MAXIMIZED')
+export const setLocale = action<LocaleKey>('setLocale')
 
-export const setAutorun = action<boolean>('SET_AUTORUN')
-export const setLogScale = action<boolean>('SET_LOG_SCALE')
-export const setFormatNumbers = action<boolean>('SET_FORMAT_NUMBERS')
-export const setResultsMaximized = action<boolean>('SET_RESULTS_MAXIMIZED')
+export const setLastVersionSeen = action<string>('setLastVersionSeen')
 
-export const setDisclaimerVersionAccepted = action<number>('SET_DISCLAIMER_VERSION_ACCEPTED')
-export const toggleDisclaimerShouldSuppress = action('TOGGLE_DISCLAIMER_SHOULD_SUPPRESS')
+export const setShowWhatsnew = action<boolean>('setShowWhatsnew')
 
-export const setLocale = action<LocaleKey>('SET_LOCALE')
+export const setShowWhatsnewOnUpdate = action<boolean>('setShowWhatsnewOnUpdate')
+
+export const setShowAdvancedControls = action<boolean>('setShowAdvancedControls')
+
+export const setNumThreads = action<number>('setNumThreads')
+
+export const resetNumThreads = action('resetNumThreads')

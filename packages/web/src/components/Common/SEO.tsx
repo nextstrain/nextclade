@@ -5,7 +5,7 @@ import Head from 'next/head'
 import { connect } from 'react-redux'
 import { Helmet } from 'react-helmet'
 
-import { DOMAIN, PROJECT_DESCRIPTION, PROJECT_NAME, URL_SOCIAL_IMAGE, TWITTER_USERNAME } from 'src/constants'
+import { DOMAIN, PROJECT_DESCRIPTION, PROJECT_NAME, URL_SOCIAL_IMAGE, TWITTER_USERNAME_FRIENDLY } from 'src/constants'
 
 import { getLocaleWithKey, LocaleKey } from 'src/i18n/i18n'
 import { State } from 'src/state/reducer'
@@ -15,7 +15,7 @@ export interface SEOProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  localeKey: state.settings.localeKey,
+  localeKey: state.settings.localeKeyV2,
 })
 
 const mapDispatchToProps = {}
@@ -53,7 +53,7 @@ export function SEODisconnected({ localeKey }: SEOProps) {
         <meta name="twitter:image:alt" content={PROJECT_DESCRIPTION} />
         <meta name="twitter:title" content={PROJECT_NAME} />
         <meta name="twitter:url" content={DOMAIN} />
-        <meta name="twitter:site" content={TWITTER_USERNAME} />
+        <meta name="twitter:site" content={TWITTER_USERNAME_FRIENDLY} />
       </Head>
     </>
   )

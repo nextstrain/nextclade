@@ -3,12 +3,14 @@ import React from 'react'
 import NextDocument, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from 'next/document'
 import { ServerStyleSheet } from 'styled-components'
 
+import wasmPath from 'src/generated/wasm/nextclade_wasm.wasm'
+
 import {
   PROJECT_NAME,
   PROJECT_DESCRIPTION,
   URL_SOCIAL_IMAGE,
   DOMAIN,
-  TWITTER_USERNAME,
+  TWITTER_USERNAME_FRIENDLY,
   URL_MANIFEST_JSON,
   URL_FAVICON,
 } from 'src/constants'
@@ -84,6 +86,8 @@ export default class Document extends NextDocument {
           <link rel="manifest" href={URL_MANIFEST_JSON} />
           <link rel="shortcut icon" href={URL_FAVICON} />
 
+          <link rel="prefetch" href={wasmPath} />
+
           {GenericIcons}
 
           {AppleIcons}
@@ -111,7 +115,7 @@ export default class Document extends NextDocument {
           <meta name="twitter:image:alt" content={PROJECT_DESCRIPTION} />
           <meta name="twitter:title" content={PROJECT_NAME} />
           <meta name="twitter:url" content={DOMAIN} />
-          <meta name="twitter:site" content={TWITTER_USERNAME} />
+          <meta name="twitter:site" content={TWITTER_USERNAME_FRIENDLY} />
         </Head>
 
         <body>

@@ -6,6 +6,7 @@ import type { DeepReadonly } from 'ts-essentials'
 import type { NucleotideMissing } from 'src/algorithms/types'
 import { formatRange } from 'src/helpers/formatRange'
 import { truncateList } from 'src/components/Results/truncateList'
+import { Li, Ul } from 'src/components/Common/List'
 
 const LIST_OF_TOOLTIP_MAX_ITEMS = 10 as const
 
@@ -19,7 +20,7 @@ export function ListOfMissing({ missing, totalMissing }: ListOfMissingProps) {
 
   let missingItems = missing.map(({ begin, end }) => {
     const range = formatRange(begin, end)
-    return <li key={range}>{range}</li>
+    return <Li key={range}>{range}</Li>
   })
 
   missingItems = truncateList(missingItems, LIST_OF_TOOLTIP_MAX_ITEMS, t('...more'))
@@ -27,7 +28,7 @@ export function ListOfMissing({ missing, totalMissing }: ListOfMissingProps) {
   return (
     <div>
       <div>{t('Missing ({{totalMissing}})', { totalMissing })}</div>
-      <ul>{missingItems}</ul>
+      <Ul>{missingItems}</Ul>
     </div>
   )
 }

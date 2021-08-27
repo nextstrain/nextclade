@@ -22,7 +22,7 @@ module.exports = {
   transform: {
     '^.+\\.[t|j]sx?$': 'ts-jest',
     '^.+\\.(md|mdx)$': 'jest-transformer-mdx',
-    '\\.txt': 'jest-raw-loader',
+    '\\.(txt|fasta|csv|tsv)': 'jest-raw-loader',
   },
   testMatch: [
     '<rootDir>/src/**/*.(spec|test).{js,jsx,ts,tsx}',

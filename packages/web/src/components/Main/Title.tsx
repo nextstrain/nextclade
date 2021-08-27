@@ -1,6 +1,5 @@
 import React from 'react'
 
-import { Badge } from 'reactstrap'
 import styled from 'styled-components'
 
 import { TITLE_COLORS } from 'src/constants'
@@ -32,36 +31,8 @@ const TitleH1 = styled.h1`
   }
 `
 
-const VersionMaturityBadge = styled(Badge)`
-  display: inline;
-  position: relative;
-  top: -50px;
-  left: -5px;
-  font-size: 1.1rem;
-
-  @media (max-width: 780px) {
-    top: -40px;
-    left: -4px;
-    font-size: 0.75rem;
-  }
-
-  @media (max-width: 560px) {
-    top: -30px;
-    left: -3px;
-    font-size: 0.66rem;
-  }
-
-  @media (max-width: 490px) {
-    top: -25px;
-    left: -2px;
-    font-size: 0.5rem;
-  }
-`
-
 const VersionNumberBadge = styled.p`
   display: inline;
-  position: relative;
-  left: -50px;
   font-size: 0.85rem;
   color: #7b838a;
 
@@ -95,7 +66,6 @@ export const Title = () => (
         </LetterSpan>
       ))}
     </TitleH1>
-    <VersionMaturityBadge color="secondary">{'beta'}</VersionMaturityBadge>
     {PACKAGE_VERSION && <VersionNumberBadge color="secondary">{`v${PACKAGE_VERSION}`}</VersionNumberBadge>}
   </span>
 )

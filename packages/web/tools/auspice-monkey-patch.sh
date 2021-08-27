@@ -7,8 +7,9 @@ trap "exit" INT
 
 # Removes CSS imports
 # Reason: Next.js forbids CSS imports outside `_app.js`.
-sed -i.bak '/import "\.\.\/\.\.\/css\/awesomplete\.css";/d' node_modules/auspice/src/components/controls/search.js
 sed -i.bak '/import "\.\.\/\.\.\/css\/entropy\.css";/d' node_modules/auspice/src/components/entropy/index.js
+sed -i.bak '/import "react-select\/dist\/react-select.css";/d' node_modules/auspice/src/components/controls/filter.js
+sed -i.bak '/import "react-virtualized-select\/styles.css";/d' node_modules/auspice/src/components/controls/filter.js
 
 # Removes requires for '@extensions' modules from `extensions.js`
 # Reason: We don't use extensions and don't want to setup webpack aliases for that.

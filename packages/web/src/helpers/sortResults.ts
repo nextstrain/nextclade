@@ -11,6 +11,7 @@ export enum SortCategory {
   totalNonACGTNs = 'totalNonACGTNs',
   totalMissing = 'totalMissing',
   totalGaps = 'totalGaps',
+  totalInsertions = 'totalInsertions',
 }
 
 export enum SortDirection {
@@ -42,20 +43,15 @@ export function sortByName(results: SequenceAnalysisState[], direction: SortDire
 export function sortByQcIssues(results: SequenceAnalysisState[], direction: SortDirection) {
   // Only sort sequences that are ready (succeeded or failed). Put sequences still being analyzed sequences at the bottom.
   const [ready, rest] = partition(results, (res) =>
-    [
-      AlgorithmSequenceStatus.analysisDone,
-      AlgorithmSequenceStatus.analysisFailed,
-      AlgorithmSequenceStatus.qcDone,
-      AlgorithmSequenceStatus.qcFailed,
-    ].includes(res.status),
+    [AlgorithmSequenceStatus.done, AlgorithmSequenceStatus.failed].includes(res.status),
   )
 
   const readySorted = orderBy(
     ready,
     (res) => {
       // Sort errored sequences as having very bad QC results
-      const errorScore = res.errors.length * 10e3
-      const qcScore = res.qc?.score ?? defaultNumber(direction)
+      const errorScore = res.errors.length * 1e9
+      const qcScore = res.result?.qc?.overallScore ?? defaultNumber(direction)
       return errorScore + qcScore
     },
     direction,
@@ -72,7 +68,7 @@ export function sortByClade(results: SequenceAnalysisState[], direction: SortDir
 }
 
 export function sortByMutations(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalMutations ?? defaultNumber(direction), direction)
+  return orderBy(results, (res) => res.result?.totalSubstitutions ?? defaultNumber(direction), direction)
 }
 
 export function sortByNonACGTNs(results: SequenceAnalysisState[], direction: SortDirection) {
@@ -84,7 +80,11 @@ export function sortByMissing(results: SequenceAnalysisState[], direction: SortD
 }
 
 export function sortByGaps(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalGaps ?? defaultNumber(direction), direction)
+  return orderBy(results, (res) => res.result?.totalDeletions ?? defaultNumber(direction), direction)
+}
+
+export function sortByInsertions(results: SequenceAnalysisState[], direction: SortDirection) {
+  return orderBy(results, (res) => res.result?.totalInsertions ?? defaultNumber(direction), direction)
 }
 
 export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) {
@@ -114,6 +114,9 @@ export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) 
 
     case SortCategory.totalGaps:
       return sortByGaps(results, direction)
+
+    case SortCategory.totalInsertions:
+      return sortByInsertions(results, direction)
   }
 
   return results

@@ -26,6 +26,8 @@ import { settingsReducer } from './settings/settings.reducer'
 import { uiReducer } from './ui/ui.reducer'
 import { UiState } from './ui/ui.state'
 
+import { errorReducer, ErrorState } from './error/error.reducer'
+
 import { auspiceGeneralReducer, auspiceQueryReducer } from './auspice/auspice.reducer'
 
 export interface State extends AuspiceState {
@@ -33,9 +35,10 @@ export interface State extends AuspiceState {
   settings: SettingsState & PersistedState
   router: RouterState
   ui: UiState
+  error: ErrorState
 }
 
-const SETTINGS_VERSION = 1
+const SETTINGS_VERSION = 2
 const settingsReducerPersisted = persistReducer(
   { key: 'settings', version: SETTINGS_VERSION, storage, timeout: 3000 },
   settingsReducer,
@@ -47,6 +50,7 @@ const rootReducer = () =>
     settings: settingsReducerPersisted,
     router: routerReducer,
     ui: uiReducer,
+    error: errorReducer,
 
     // BEGIN reducers from auspice
     metadata,

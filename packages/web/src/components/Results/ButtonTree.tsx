@@ -1,35 +1,22 @@
-import React, { memo } from 'react'
+import React from 'react'
 
 import styled from 'styled-components'
 import { connect } from 'react-redux'
-import { Button, ButtonProps } from 'reactstrap'
 import { useTranslation } from 'react-i18next'
 import { push } from 'connected-next-router'
 
-import { RectangularTree } from 'auspice/src/components/framework/svg-icons'
-
-import { State } from 'src/state/reducer'
+import type { State } from 'src/state/reducer'
+import type { PanelButtonProps } from 'src/components/Results/PanelButton'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
+import { PanelButton } from 'src/components/Results/PanelButton'
+import { TreeIcon } from 'src/components/Tree/TreeIcon'
 
 const IconContainer = styled.span`
   margin-right: 0.5rem;
 `
 
-export function TreeIconRaw() {
-  const size = 20
-  const theme = { unselectedColor: '#fff' }
-  return <RectangularTree theme={theme} width={size} />
-}
-
-const TreeIcon = memo(TreeIconRaw)
-
-export const ButtonStyled = styled(Button)<ButtonProps>`
-  width: 150px;
-  margin: 0 5px;
-`
-
 const mapStateToProps = (state: State) => ({
-  hasTree: state.algorithm.status === AlgorithmGlobalStatus.allDone,
+  hasTree: state.algorithm.status === AlgorithmGlobalStatus.done && state.algorithm.treeStr !== undefined,
 })
 
 const mapDispatchToProps = {
@@ -38,19 +25,21 @@ const mapDispatchToProps = {
 
 export const ButtonTree = connect(mapStateToProps, mapDispatchToProps)(ButtonTreeDisconnected)
 
-export interface ButtonTreeProps extends ButtonProps {
+export interface ButtonTreeProps extends PanelButtonProps {
   hasTree: boolean
+
   showTree(_0: void): void
 }
 
 export function ButtonTreeDisconnected({ showTree, hasTree }: ButtonTreeProps) {
   const { t } = useTranslation()
+  const text = t('Show phylogenetic tree')
+
   return (
-    <ButtonStyled color="success" onClick={showTree} disabled={false}>
+    <PanelButton onClick={showTree} disabled={!hasTree} title={text}>
       <IconContainer>
         <TreeIcon />
       </IconContainer>
-      {t('Show Tree')}
-    </ButtonStyled>
+    </PanelButton>
   )
 }

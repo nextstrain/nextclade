@@ -1,3 +1,5 @@
+@use "sass:map";
+
 // Some of the things are borrowed from bootswatch Materia theme
 // https://github.com/thomaspark/bootswatch
 
@@ -20,7 +22,6 @@ $container-max-widths: (
   xxl: 1950px,
 );
 
-@use "sass:map";
 $width-xs: map.get($grid-breakpoints, 'xs');
 $width-sm: map.get($grid-breakpoints, 'sm');
 $width-md: map.get($grid-breakpoints, 'md');
@@ -97,6 +98,7 @@ $link-decoration: none;
 $navbar-padding-y: unset;
 
 $input-padding-y: 0.5rem;
+$input-placeholder-color: $gray-500;
 
 $nav-link-disabled-color: $gray-500;
 

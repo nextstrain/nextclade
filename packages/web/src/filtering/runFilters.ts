@@ -15,9 +15,10 @@ export function runFilters(state: AlgorithmState) {
     mutationsFilter,
     aaFilter,
     cladesFilter,
-    hasQcIssuesFilter,
-    hasNoQcIssuesFilter,
-    hasErrorsFilter,
+    showGood,
+    showMediocre,
+    showBad,
+    showErrors,
   } = filters
 
   let filtered = results
@@ -37,7 +38,7 @@ export function runFilters(state: AlgorithmState) {
     filtered = filtered.filter(filterByClades(cladesFilter))
   }
 
-  filtered = filtered.filter(filterByQCIssues({ hasNoQcIssuesFilter, hasQcIssuesFilter, hasErrorsFilter }))
+  filtered = filtered.filter(filterByQCIssues({ showGood, showMediocre, showBad, showErrors }))
 
   return filtered as DeepWritable<typeof filtered>
 }

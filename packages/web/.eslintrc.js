@@ -37,7 +37,6 @@ module.exports = {
     'plugin:sonarjs/recommended',
     'plugin:unicorn/recommended',
 
-    // prettier should go last
     'plugin:prettier/recommended',
     'prettier/react',
     'prettier/@typescript-eslint',
@@ -66,7 +65,6 @@ module.exports = {
 
     '@typescript-eslint',
 
-    // prettier should go last
     'prettier',
   ],
   reportUnusedDisableDirectives: true,
@@ -104,9 +102,10 @@ module.exports = {
     'lodash/prefer-lodash-method': 'off',
     'lodash/prefer-lodash-typecheck': 'off',
     'lodash/prefer-noop': 'off',
+    'lodash/preferred-alias': 'off',
     'lodash/prop-shorthand': 'off',
     'max-classes-per-file': 'off',
-    'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
+    'no-console': ['warn', { allow: ['info', 'warn', 'error', 'memory'] }],
     'no-loops/no-loops': 'warn',
     'no-param-reassign': ['warn', { ignorePropertyModificationsFor: ['draft'] }],
     'no-secrets/no-secrets': ['warn', { tolerance: 5 }],
@@ -218,6 +217,12 @@ module.exports = {
         'global-require': 'off',
         'security/detect-child-process': 'off',
         'sonarjs/cognitive-complexity': ['warn', 50],
+      },
+    },
+    {
+      files: ['config/jest/mocks/**/*.js'],
+      rules: {
+        'react/display-name': 'off',
       },
     },
     {

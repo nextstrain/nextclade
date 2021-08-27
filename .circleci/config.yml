@@ -1,0 +1,326 @@
+version: 2.1
+
+
+release_cli_only: &release_cli_only
+  filters:
+    branches:
+      only:
+        - release-cli
+
+major_branches_only: &major_branches_only
+  filters:
+    branches:
+      only:
+        - master
+        - staging
+        - release
+
+major_branches_and_cli_release_only: &major_branches_and_cli_release_only
+  filters:
+    branches:
+      only:
+        - master
+        - staging
+        - release
+        - release-cli
+
+
+jobs:
+  Update-Builder-Container:
+    resource_class: medium
+
+    machine:
+      image: ubuntu-2004:202010-01
+
+    steps:
+      - checkout
+
+      - run:
+          name: 'Calculate current checksum.txt'
+          command: |
+            ./scripts/docker_build_checksum.sh > "checksum.current.txt"
+
+      - restore_cache:
+          name: 'Restore previous checksum.txt from cache'
+          keys:
+            - cache-nextclade-v6-builder-container-{{ checksum "checksum.current.txt" }}
+
+      - run:
+          name: 'Compare checksum.txt to cached one, halt if no changes'
+          command: |
+            set -x
+            if [ -f "checksum.previous.txt" ]; then
+              CHECKSUM_OLD="$(cat checksum.previous.txt)"
+              CHECKSUM_NEW="$(cat checksum.current.txt)"
+              if [ "${CHECKSUM_OLD}" == "${CHECKSUM_NEW}" ]; then
+                echo "Checksum did not change. Halting the job."
+                circleci-agent step halt
+              fi
+            fi
+            mv checksum.current.txt checksum.previous.txt
+            echo "Checksum changed. Continuing the job."
+
+      - run:
+          name: 'Build "Builder" container image'
+          command: |
+            ./scripts/docker_builder_image_build.sh "builder"
+
+      - run:
+          name: 'Build "Web" container image'
+          command: |
+            set -x
+            ./scripts/docker_builder_image_build.sh "web"
+
+      - run:
+          name: 'Push container images'
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/docker_builder_image_push.sh "builder"
+            ./scripts/docker_builder_image_push.sh "web"
+
+      - save_cache:
+          name: 'Save new checksum.txt to cache'
+          key: cache-nextclade-v6-builder-container-{{ checksum "checksum.previous.txt" }}
+          paths:
+            - checksum.previous.txt
+
+  Build-Web:
+    resource_class: medium
+
+    docker:
+      - image: nextstrain/nextclade_builder:web
+        auth:
+          username: $DOCKERHUB_USERNAME
+          password: $DOCKERHUB_PASS
+    environment:
+      AWS_PAGER: ''
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: 'Restore WebAssembly module build cache'
+          keys:
+            - cache-nextclade-v6-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+
+      - run:
+          name: 'Build WebAssembly module'
+          command: |
+            echo "FULL_DOMAIN=${FULL_DOMAIN}" >> .env
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
+            make prod-wasm-nowatch
+
+      - save_cache:
+          name: 'Save WebAssembly module build cache'
+          key: cache-nextclade-v6-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+          paths:
+            - .cache
+
+      - restore_cache:
+          name: 'Restore web application build cache'
+          keys:
+            - cache-nextclade-v6-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+
+      - run:
+          name: 'Build web application'
+          command: |
+            make prod-web-nowatch
+
+      - save_cache:
+          name: 'Save web application build cache'
+          key: cache-nextclade-v6-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+          paths:
+            - packages/web/.cache
+            - packages/web/.build/production/tmp/cache
+
+      - run:
+          name: 'Clear AWS S3 bucket (branch << pipeline.git.branch >>)'
+          command: |
+            aws s3 rm s3://${AWS_S3_BUCKET} --recursive
+
+      - run:
+          name: 'Deploy web bundle to AWS S3 (branch << pipeline.git.branch >>)'
+          command: |
+            cd packages/web/.build/production/web
+            aws s3 cp --recursive --cache-control "max-age=2592000, public" "_next/" "s3://${AWS_S3_BUCKET}/_next/"
+
+      - run:
+          name: 'Deploy web root to AWS S3 (branch << pipeline.git.branch >>)'
+          command: |
+            cd packages/web/.build/production/web
+            aws s3 cp --recursive --exclude "_next" --exclude "*.html" "./" "s3://${AWS_S3_BUCKET}/"
+
+      - run:
+          name: 'Deploy html files to AWS S3 (branch << pipeline.git.branch >>)'
+          command: |
+            cd packages/web/.build/production/web
+            find * -type f -name "*.html" -exec bash -c '\
+            aws s3 cp \
+              --content-type "text/html" \
+              --cache-control "no-cache" \
+              --metadata-directive REPLACE \
+                $1 \
+                s3://${AWS_S3_BUCKET}/${1}' \
+            - "{}" \;
+
+      - run:
+          name: 'Invalidate AWS Cloudfront cache'
+          command: |
+            aws cloudfront create-invalidation \
+              --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
+              --paths "/*"
+
+  Build-Linux-x86_64:
+    resource_class: medium
+
+    machine:
+      image: ubuntu-2004:202010-01
+
+    steps:
+      - checkout
+
+      - run:
+          name: 'Pull "Builder" container image'
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/docker_builder_image_pull.sh || true
+
+      - restore_cache:
+          name: 'Restore build cache'
+          keys:
+            - cache-nextclade-v6-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+
+      - run:
+          name: 'Run "Builder" container'
+          command: |
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
+            make docker-builder-run
+
+      - save_cache:
+          name: 'Save build cache'
+          key: cache-nextclade-v6-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+          paths:
+            - .cache
+
+      - store_artifacts:
+          name: 'Store artifacts: nextalign-Linux-x86_64'
+          path: .out/bin/nextalign-Linux-x86_64
+          destination: nextalign-Linux-x86_64
+
+      - store_artifacts:
+          name: 'Store artifacts: nextclade-Linux-x86_64'
+          path: .out/bin/nextclade-Linux-x86_64
+          destination: nextclade-Linux-x86_64
+
+      - run:
+          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
+          command: |
+            OS=linux ./scripts/download_github_release_tool.sh
+            ./scripts/publish_github_releases.sh
+
+      - run:
+          name: 'Publish Docker images to DockerHub'
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./scripts/publish_docker_images.sh
+
+  Build-MacOS:
+    parameters:
+      macos_arch:
+        type: string
+
+    macos:
+      xcode: "12.4.0"
+
+    environment:
+      CLICOLOR: 1
+      TERM: xterm-256color
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          name: 'Restore homebrew cache'
+          keys:
+            - cache-nextclade-v6-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
+
+      - run:
+          name: 'Install build tools'
+          command: |
+            set -x
+            brew bundle
+            conan profile new default --detect
+          environment:
+            HOMEBREW_NO_AUTO_UPDATE: 1
+            CONAN_USER_HOME: '/Users/distiller/project/.cache'
+
+      - save_cache:
+          name: 'Save homebrew cache'
+          key: cache-nextclade-v6-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
+          paths:
+            - '~/Library/Caches/Homebrew'
+            - '/usr/local/Homebrew'
+
+      - restore_cache:
+          name: 'Restore build cache'
+          keys:
+            - cache-nextclade-v6-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+
+      - run:
+          name: Run macOS << parameters.macos_arch >> build
+          command: |
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
+            make prod
+          environment:
+            CONAN_USER_HOME: '/Users/distiller/project/.cache'
+            HOST_ARCH: << parameters.macos_arch >>
+
+      - save_cache:
+          name: 'Save build cache'
+          key: cache-nextclade-v6-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+          paths:
+            - .cache
+
+      - store_artifacts:
+          name: 'Store artifacts: nextalign-MacOS-<< parameters.macos_arch >>'
+          path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
+          destination: nextalign-MacOS-<< parameters.macos_arch >>
+
+      - store_artifacts:
+          name: 'Store artifacts: nextclade-MacOS-<< parameters.macos_arch >>'
+          path: .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
+          destination: nextclade-MacOS-<< parameters.macos_arch >>
+
+      - run:
+          name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
+          command: |
+            OS=darwin ./scripts/download_github_release_tool.sh
+            ./scripts/publish_github_releases.sh
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - Update-Builder-Container:
+          <<: *major_branches_and_cli_release_only
+
+      - Build-Web:
+          context: nextclade_web_<< pipeline.git.branch >>
+          <<: *major_branches_only
+          requires:
+            - Update-Builder-Container
+
+      - Build-Linux-x86_64:
+          context: nextclade_web_<< pipeline.git.branch >>
+          <<: *release_cli_only
+          requires:
+            - Update-Builder-Container
+
+      - Build-MacOS:
+          context: nextclade_web_<< pipeline.git.branch >>
+          matrix:
+            parameters:
+              macos_arch:
+                - x86_64
+                - arm64
+          <<: *release_cli_only
