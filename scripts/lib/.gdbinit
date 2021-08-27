@@ -420,8 +420,8 @@ class Dashboard(gdb.Command):
         if self.is_running() and not self.output and len(enabled_modules) > 0:
             width, _ = Dashboard.get_term_size()
             gdb.write(Dashboard.clear_screen())
-            gdb.write(divider(width, 'Output/messages', True))
-            gdb.write('\n')
+            # gdb.write(divider(width, 'Output/messages', True))
+            # gdb.write('\n')
             gdb.flush()
 
     def on_stop(self, _):

@@ -3,8 +3,8 @@ import React, { useCallback } from 'react'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
 import {
-  Button,
   ButtonProps,
+  Button,
   Col,
   Modal as ReactstrapModal,
   ModalBody as ReactstrapModalBody,
@@ -15,22 +15,14 @@ import {
 import { FaFile } from 'react-icons/fa'
 
 import type { State } from 'src/state/reducer'
+import type { PanelButtonProps } from 'src/components/Results/PanelButton'
+import { PanelButton } from 'src/components/Results/PanelButton'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
 import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
 import { FilePickerAdvanced } from 'src/components/Main/FilePickerAdvanced'
 import { ButtonsAdvanced } from 'src/components/Main/MainSectionHeroControlsAdvanced'
-
-export const ButtonStyled = styled(Button)`
-  margin: 2px 2px;
-  height: 38px;
-  width: 50px;
-  color: ${(props) => props.theme.gray700};
-
-  @media (min-width: 1200px) {
-    width: 100px;
-  }
-`
+import { selectCanRun } from 'src/state/algorithm/algorithm.selectors'
 
 export const ButtonClose = styled(Button)<ButtonProps>`
   width: 100px;
@@ -75,7 +67,7 @@ export const Scrollable = styled.div`
 
 export const ModalFooter = styled(ReactstrapModalFooter)``
 
-export interface ButtonNewRunProps extends ButtonProps {
+export interface ButtonNewRunProps extends PanelButtonProps {
   canRun: boolean
   showNewRunPopup: boolean
 
@@ -85,7 +77,7 @@ export interface ButtonNewRunProps extends ButtonProps {
 }
 
 const mapStateToProps = (state: State) => ({
-  canRun: state.algorithm.params.seqData !== undefined,
+  canRun: selectCanRun(state),
   showNewRunPopup: state.ui.showNewRunPopup,
 })
 
@@ -113,18 +105,19 @@ export function ButtonNewRunDisconnected({
     algorithmRunTrigger(undefined)
   }, [algorithmRunTrigger, setShowNewRunPopup])
 
-  const headerText = t('New run')
-
   return (
     <>
-      <ButtonStyled onClick={open} title={t('Opens a dialog where you can start a new analysis')}>
+      <PanelButton
+        onClick={open}
+        title={t('New run: opens a dialog where you can start a new analysis')}
+        disabled={!canRun}
+      >
         <FaFile className="mr-xl-2 mb-1" />
-        <span className="d-none d-xl-inline">{t('New')}</span>
-      </ButtonStyled>
+      </PanelButton>
 
       <Modal centered isOpen={showNewRunPopup} toggle={toggleOpen} fade={false} size="lg">
         <ModalHeader toggle={close} tag="div">
-          <h3 className="text-center">{headerText}</h3>
+          <h3 className="text-center">{t('New run')}</h3>
         </ModalHeader>
 
         <ModalBody>

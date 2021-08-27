@@ -81,6 +81,15 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
   ")
+
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} \
+  -fstandalone-debug \
+  ")
+
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
+  -fstandalone-debug \
+  ")
+
 endif ()
 
 if (APPLE)
@@ -149,7 +158,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   -Wno-sign-conversion \
   -Wno-strict-overflow \
   -Wno-unused-parameter \
-  -Wno-useless-cast \
   ")
 
   set(C_FLAGS " ${C_FLAGS} \
@@ -173,20 +181,20 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${C_CXX_FLAGS} ${CXX_FLAGS}")
 
+#  -fstack-protector-all \
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} \
   -DDEBUG=1 \
-  -g \
-  -Og \
-  -fstack-protector-all \
   -fno-inline \
+  -fno-omit-frame-pointer \
+  -fno-optimize-sibling-calls \
   ")
 
+#  -fstack-protector-all \
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} \
   -DDEBUG=1 \
-  -g \
-  -Og \
-  -fstack-protector-all \
   -fno-inline \
+  -fno-omit-frame-pointer \
+  -fno-optimize-sibling-calls \
   ")
 
   set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} \

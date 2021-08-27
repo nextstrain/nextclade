@@ -1,30 +1,19 @@
-import { getVirus } from 'src/algorithms/defaults/viruses'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import {
-  resetQcRulesConfig,
+  resetNumThreads,
   setLastVersionSeen,
   setLocale,
-  setQcRulesConfig,
+  setNumThreads,
   setShowAdvancedControls,
   setShowWhatsnewOnUpdate,
 } from 'src/state/settings/settings.actions'
 import { settingsDefaultState } from 'src/state/settings/settings.state'
+import { getNumThreads } from 'src/helpers/getNumThreads'
 
 export const settingsReducer = reducerWithInitialState(settingsDefaultState)
   .icase(setLocale, (draft, localeKey) => {
     draft.localeKeyV2 = localeKey
-  })
-
-  .icase(setQcRulesConfig, (draft, qcRulesConfig) => {
-    draft.qcRulesConfig = qcRulesConfig
-  })
-
-  .icase(resetQcRulesConfig, (draft) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('TODO: remove this action')
-    }
-    draft.qcRulesConfig = getVirus().qcRulesConfig
   })
 
   .icase(setShowWhatsnewOnUpdate, (draft, showWhatsnewOnUpdate) => {
@@ -37,4 +26,12 @@ export const settingsReducer = reducerWithInitialState(settingsDefaultState)
 
   .icase(setShowAdvancedControls, (draft, showAdvancedControls) => {
     draft.showAdvancedControls = showAdvancedControls
+  })
+
+  .icase(setNumThreads, (draft, numThreads) => {
+    draft.numThreadsV2 = numThreads
+  })
+
+  .icase(resetNumThreads, (draft) => {
+    draft.numThreadsV2 = getNumThreads()
   })

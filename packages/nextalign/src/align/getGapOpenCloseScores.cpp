@@ -1,7 +1,7 @@
 #include "getGapOpenCloseScores.h"
 
 #include <fmt/format.h>
-#include <nextalign_private.h>
+#include <nextalign/private/nextalign_private.h>
 
 #include <vector>
 
@@ -26,17 +26,17 @@ std::vector<int> getGapOpenCloseScoresFlat(//
 std::vector<int> getGapOpenCloseScoresCodonAware(//
   /* in */ const NucleotideSequence& ref,        //
   /* in */ const GeneMap& geneMap,               //
-  /* in */ const NextalignOptions& options      //
+  /* in */ const NextalignOptions& options       //
 ) {
   auto gapOpenClose = getGapOpenCloseScoresFlat(ref, options);
 
   for (const auto& [geneName, gene] : geneMap) {
 
     // TODO: might use std::fill()
-    for (int i = gene.start; i < gene.end-2; i += 3) {
+    for (int i = gene.start; i < gene.end - 2; i += 3) {
       gapOpenClose[i] = options.alignment.penaltyGapOpenInFrame;
-      gapOpenClose[i+1] = options.alignment.penaltyGapOpenOutOfFrame;
-      gapOpenClose[i+2] = options.alignment.penaltyGapOpenOutOfFrame;
+      gapOpenClose[i + 1] = options.alignment.penaltyGapOpenOutOfFrame;
+      gapOpenClose[i + 2] = options.alignment.penaltyGapOpenOutOfFrame;
     }
   }
 

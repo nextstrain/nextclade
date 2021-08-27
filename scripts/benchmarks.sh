@@ -32,6 +32,7 @@ export CONAN_USER_HOME="${CONAN_USER_HOME:=${PROJECT_ROOT_DIR}/.cache}"
 export CCACHE_DIR="${CCACHE_DIR:=${PROJECT_ROOT_DIR}/.cache/.ccache}"
 
 BENCHMARK_OPTIONS="${BENCHMARK_OPTIONS:=$@}"
+USE_GDB=0
 
 # Check whether we are running on a Continuous integration server
 IS_CI=${IS_CI:=$(is_ci)}
@@ -180,17 +181,23 @@ if [ "${USE_MINGW}" == "true" ] || [ "${USE_MINGW}" == "1" ]; then
   "
 fi
 
-# AddressSanitizer and MemorySanitizer don't work with gdb
-case ${CMAKE_BUILD_TYPE} in
-  ASAN|MSAN) GDB_DEFAULT="" ;;
-  *) ;;
-esac
 
 # gdb (or lldb) command with arguments
 GDB_DEFAULT="gdb --quiet -ix ${THIS_DIR}/lib/.gdbinit -x ${THIS_DIR}/lib/.gdbexec --args"
 if [ "${IS_CI}" == "1" ]; then
   GDB_DEFAULT=""
 fi
+
+# AddressSanitizer and MemorySanitizer don't work with gdb
+case ${CMAKE_BUILD_TYPE} in
+  ASAN|MSAN) GDB_DEFAULT="" ;;
+  *) ;;
+esac
+
+if [ "${USE_GDB}" != "1" ] || [ "${USE_GDB}" != "true" ]; then
+  GDB_DEFAULT=""
+fi
+
 GDB="${GDB:=${GDB_DEFAULT}}"
 
 # gttp (Google Test Pretty Printer) command
@@ -266,7 +273,6 @@ echo "-------------------------------------------------------------------------"
 # Setup conan profile in CONAN_USER_HOME
 print 56 "Create conan profile";
 CONAN_V2_MODE=1 conan profile new default --detect --force
-conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan --force
 
 # At the time of writing this, the newer version of Intel TBB with CMake build system was not available in conan packages.
 # This will build a local conan package and put it into local conan cache, if not present yet.
@@ -333,4 +339,4 @@ pushd ${PROJECT_ROOT_DIR} >/dev/null
 
   print 22 "Done";
 
-popd
+popd >/dev/null

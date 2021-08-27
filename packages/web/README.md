@@ -52,73 +52,23 @@ by Nextstrain team
 
 ---
 
-## 🖥️ Developers guide
+<h2 id="users-guide" align="center">
+👩‍🔬 User's guide
+</h2>
 
-### Quick start
-
-Install the requirements:
-
-- <a target="_blank" rel="noopener noreferrer" href="https://git-scm.com/downloads">Git</a> >= 2.0
-- <a target="_blank" rel="noopener noreferrer" href="https://nodejs.org/">Node.js</a> >= 12 (we recommend installation through <a target="_blank" rel="noopener noreferrer" href="https://github.com/nvm-sh/nvm">nvm</a> or
-  <a target="_blank" rel="noopener noreferrer" href="https://github.com/coreybutler/nvm-windows">nvm-windows</a>)
-- 1.0 < yarn < 2.0
-
-In order to run the application in development mode, run:
-
-```bash
-git clone https://github.com/nextstrain/nextclade
-cd nextclade/packages/web
-cp .env.example .env
-yarn install
-```
-
-then start the development server with:
-
-```bash
-yarn dev
-```
-
-for Windows, (without Linux Subsystem), try:
-
-```bash
-yarn dev:start_win
-```
-
-and substitute `cp` with `copy`.
-
-This will trigger the development server and build process. Wait for the build to finish, then navigate to
-`http://localhost:3000` in a browser (last 5 versions of Chrome or Firefox are supported in development mode).
-
-### Production build
-
-In order to replicate the production build locally, use this command:
-
-```bash
-
-yarn prod:watch
-
-```
-
-This should build the application in production mode and start a static server that will serve the app on
-`http://localhost:8080` (by default)
-
-### Translations
-
-Translations are done using react-i18n. It is convenient to use Machine translation feature of GitLocalize.
-
-The list of languages at the moment of writing:
-
-- [ar](https://gitlocalize.com/repo/4819/ar/packages/web/src/i18n/resources/en/common.json)
-- [de](https://gitlocalize.com/repo/4819/de/packages/web/src/i18n/resources/en/common.json)
-- [es](https://gitlocalize.com/repo/4819/es/packages/web/src/i18n/resources/en/common.json)
-- [fr](https://gitlocalize.com/repo/4819/fr/packages/web/src/i18n/resources/en/common.json)
-- [it](https://gitlocalize.com/repo/4819/it/packages/web/src/i18n/resources/en/common.json)
-- [ko](https://gitlocalize.com/repo/4819/ko/packages/web/src/i18n/resources/en/common.json)
-- [pt](https://gitlocalize.com/repo/4819/pt/packages/web/src/i18n/resources/en/common.json)
-- [ru](https://gitlocalize.com/repo/4819/ru/packages/web/src/i18n/resources/en/common.json)
-- [zh](https://gitlocalize.com/repo/4819/zh/packages/web/src/i18n/resources/en/common.json)
+For details on how to use Nextclade, visit documentation website: [User's Guide](https://docs.nextstrain.org/projects/nextclade)
 
 
-## License
+<h2 id="developers-guide" align="center">
+🧑‍💻 Developer's guide
+</h2>
 
-<a target="_blank" rel="noopener noreferrer" href="LICENSE" alt="License file">MIT License</a>
+For details on how to build, develop and release Nextclade see: [Developer's guide: Nextclade Web](../../docs/dev/developers-guide-web.md)
+
+<h3 id="license" align="center">
+⚖️ License
+</h3>
+
+<p align="center">
+  <a target="_blank" rel="noopener noreferrer" href="../../LICENSE" alt="License file">MIT License</a>
+</p>

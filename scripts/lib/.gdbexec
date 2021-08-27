@@ -1,4 +1,7 @@
 
+set startup-with-shell off
+set auto-load local-gdbinit on
+add-auto-load-safe-path /
 set confirm off
 # catch throw
 catch signal
@@ -8,6 +11,8 @@ catch signal
 
 dashboard -layout stack source variables
 dashboard source -style height 20
+
+break malloc_error_break
 
 run
 quit

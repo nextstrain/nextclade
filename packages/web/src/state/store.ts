@@ -11,8 +11,6 @@ import { createRouterMiddleware, initialRouterState } from 'connected-next-route
 import { persistStore } from 'redux-persist'
 import { createLogger } from 'redux-logger'
 
-import type { WorkerPools } from 'src/workers/types'
-
 import { withReduxDevTools } from './util/withReduxDevTools'
 import createRootReducer from './reducer'
 import createRootSaga from './sagas'
@@ -25,14 +23,11 @@ export function persistStoreAsync(store: Store, options: PersistorOptions): Prom
 
 export interface ConfigureStoreParams {
   router: Router
-  workerPools: WorkerPools
 }
 
-export async function configureStore({ router, workerPools }: ConfigureStoreParams) {
+export async function configureStore({ router }: ConfigureStoreParams) {
   const routerMiddleware = createRouterMiddleware()
-  const sagaMiddleware = createSagaMiddleware({
-    context: { workerPools },
-  })
+  const sagaMiddleware = createSagaMiddleware()
 
   let middlewares: Middleware<string>[] = [routerMiddleware, thunk, sagaMiddleware].filter(Boolean)
 

@@ -6,8 +6,7 @@ include(CFlags)
 include(Quiet)
 include(Sanitizers)
 
-project(nextalign_cli)
-file(STRINGS "VERSION" PROJECT_VERSION)
+project(nextalign_cli DESCRIPTION "C++ tool for viral genome reference alignment")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
@@ -17,12 +16,17 @@ find_package(TBB REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
+find_package(jemalloc 5.2.1 REQUIRED)
 
 if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
   if (MINGW)
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc -lrt -ltbbmalloc -ltbbmalloc_proxy")
   else ()
     set(STATIC_BUILD_FLAGS "-static -static-libstdc++ -static-libgcc")
+    set(DEPENDENCIES
+      ${DEPENDENCIES}
+      jemalloc::jemalloc
+    )
   endif ()
 endif ()
 
@@ -42,6 +46,7 @@ add_executable(${PROJECT_NAME}
   src/cli.cpp
   src/description.h
   src/filesystem.h
+  src/malloc_conf.h
   )
 
 if (DEFINED CLI_EXE)
@@ -56,7 +61,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 target_compile_definitions(${PROJECT_NAME}
   PRIVATE
   -DPROJECT_NAME="${PROJECT_NAME}"
-  -DPROJECT_VERSION="${PROJECT_VERSION}"
+  -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
+
+  -DFMT_HEADER_ONLY=1
   )
 
 target_include_directories(${PROJECT_NAME}
@@ -66,17 +73,21 @@ target_include_directories(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} SYSTEM
   PRIVATE
   "${CMAKE_SOURCE_DIR}/3rdparty/boost/include"
+  "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
   )
 
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE
+  PUBLIC
   nextalign
+
+  PRIVATE
+  ${STATIC_BUILD_FLAGS}
   Boost::headers
   TBB::tbb
   cxxopts::cxxopts
-  fmt::fmt
+  fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem
-  ${STATIC_BUILD_FLAGS}
+  ${DEPENDENCIES}
   )
 
 install(

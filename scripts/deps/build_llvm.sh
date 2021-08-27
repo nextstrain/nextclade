@@ -27,7 +27,7 @@ fi
 
 NAME="llvm"
 URL="https://github.com/llvm/llvm-project"
-VERSION_DEFAULT="11.0.0"
+VERSION_DEFAULT="12.0.0-rc3"
 GIT_TAG_PREFIX="llvmorg-"
 
 VERSION=${1:-${VERSION_DEFAULT}}
@@ -67,18 +67,24 @@ export CPLUS_INCLUDE_PATH="${ADDITIONAL_INCLUDE_PATH}${CPLUS_INCLUDE_PATH:+:$CPL
 
 cmake "${SOURCE_DIR}/llvm" \
   -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
+  -DLLVM_OCAML_INSTALL_PATH="${INSTALL_DIR}/lib/ocaml" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_VERBOSE_MAKEFILE=0 \
   -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;compiler-rt;flang;libclc;libcxx;libcxxabi;libunwind;lld;lldb;openmp;polly" \
-  -DLLVM_TOOL_LLDB_BUILD=1 \
+  -DLLVM_ENABLE_RUNTIME="all" \
+  -DLLVM_ENABLE_LIBCXX=1 \
   -DLLVM_TOOL_LLD_BUILD=1 \
+  -DLLVM_TOOL_LLDB_BUILD=1 \
   -DLLVM_ENABLE_FFI=1 \
   -DLLVM_CCACHE_BUILD=1 \
-  -DLLVM_ENABLE_LLD=1 \
-  -DLLVM_ENABLE_DOXYGEN=1 \
+  -DLLVM_ENABLE_DOXYGEN=0 \
+  -DLLVM_ENABLE_OCAMLDOC=0 \
+  -DLIBCXX_ENABLE_PARALLEL_ALGORITHMS=0 \
   -DCMAKE_C_FLAGS="-I/usr/include/x86_64-linux-gnu" \
   -DCMAKE_CXX_FLAGS="-I/usr/include/x86_64-linux-gnu" \
   -DLLVM_BINUTILS_INCDIR="${PROJECT_ROOT_DIR}/3rdparty/binutils/include"
+
+#  -DLLVM_ENABLE_LLD=1 \
 
 make -j ${NUM_JOBS}
 make install

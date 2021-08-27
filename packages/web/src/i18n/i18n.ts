@@ -1,5 +1,6 @@
 import { ElementType } from 'react'
 
+import type { StrictOmit } from 'ts-essentials'
 import { mapValues } from 'lodash'
 
 import i18nOriginal, { i18n as I18N } from 'i18next'
@@ -8,6 +9,7 @@ import { initReactI18next } from 'react-i18next'
 import moment from 'moment'
 import numbro from 'numbro'
 import { languages } from 'countries-list'
+import prettyBytesOriginal, { Options as PrettyBytesOptionsOriginal } from 'pretty-bytes'
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -78,6 +80,22 @@ export interface I18NInitParams {
   localeKey: LocaleKey
 }
 
+export type PrettyBytesOptions = StrictOmit<PrettyBytesOptionsOriginal, 'locale'>
+
+export class PrettyBytes {
+  private localeKey: LocaleKey = DEFAULT_LOCALE_KEY
+
+  public setLocale(localeKey: LocaleKey) {
+    this.localeKey = localeKey
+  }
+
+  public format(numBytes: number, options?: PrettyBytesOptions) {
+    return prettyBytesOriginal(numBytes, { binary: true, ...(options ?? {}), locale: this.localeKey })
+  }
+}
+
+const prettyBytes = new PrettyBytes()
+
 export function i18nInit({ localeKey }: I18NInitParams) {
   const enUS = numbro.languages()['en-US']
   const allNumbroLanguages = numbroLanguages as numbro.NumbroLanguage
@@ -116,6 +134,7 @@ export async function changeLocale(i18n: I18N, localeKey: LocaleKey) {
     moment.locale(localeKey)
     numbro.setLanguage(locale.full)
     await i18n.changeLanguage(localeKey)
+    prettyBytes.setLocale(localeKey)
     return true
   }
   return false
@@ -124,5 +143,7 @@ export async function changeLocale(i18n: I18N, localeKey: LocaleKey) {
 const i18n = i18nInit({ localeKey: DEFAULT_LOCALE_KEY })
 
 export { numbro }
+
+export { prettyBytes }
 
 export default i18n
