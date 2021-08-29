@@ -11,7 +11,13 @@ export const setNumThreads = action<number>('setNumThreads')
 
 export const setIsDirty = action<boolean>('setIsDirty')
 
-export const setDataset = action<DatasetFlat | undefined>('setDataset')
+export const setDatasets = action<{
+  defaultDatasetName: string
+  defaultDatasetNameFriendly: string
+  datasets: DatasetFlat[]
+}>('setDatasets')
+
+export const setCurrentDataset = action<DatasetFlat | undefined>('setCurrentDataset')
 
 export const setFasta = action.async<AlgorithmInput, { queryStr: string; queryName: string }, Error>('setFasta')
 export const setTree = action.async<AlgorithmInput, { treeStr: string }, Error>('setTree')
