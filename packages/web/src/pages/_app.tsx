@@ -16,6 +16,8 @@ import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
 import type { Persistor } from 'redux-persist'
 import { ErrorPopup } from 'src/components/Error/ErrorPopup'
+import { initializeDatasets } from 'src/io/fetchDatasets'
+import { fetchInputsAndRunMaybe } from 'src/io/fetchInputsAndRunMaybe'
 import { ThemeProvider } from 'styled-components'
 
 import { Provider } from 'react-redux'
@@ -46,6 +48,8 @@ export interface AppState {
 export default function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(), [])
   const [state, setState] = useState<AppState | undefined>()
+  const store = state?.store
+  const dispatch = store?.dispatch
 
   useEffect(() => {
     initialize({ router })
@@ -55,15 +59,26 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
       })
   }, [router])
 
+  useEffect(() => {
+    if (router.query && dispatch) {
+      Promise.resolve()
+        .then(() => initializeDatasets(dispatch, router))
+        .then(() => fetchInputsAndRunMaybe(dispatch, router))
+        .catch((error: Error) => {
+          throw error
+        })
+    }
+  }, [router, router.query, state, dispatch, store])
+
   if (!state) {
     return <Loading />
   }
 
-  const { store, persistor } = state
+  const { store: storeNonNil, persistor } = state
 
   return (
     <Suspense fallback={<Loading />}>
-      <Provider store={store}>
+      <Provider store={storeNonNil}>
         <ConnectedRouter>
           <ThemeProvider theme={theme}>
             <MDXProvider components={{ a: LinkExternal }}>

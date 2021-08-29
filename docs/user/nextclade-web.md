@@ -123,17 +123,37 @@ Once Nextclade has finished its analysis, you can download the results in a vari
 ### URL parameters
 
 Input files can be specified in the URL parameters. The name of the parameters match the corresponding `--input*`
-command-line flags of [Nextclade CLI](nextclade-cli). This way third party applications can hotlink to Nextclade and trigger the analysis.
+flags of [Nextclade CLI](nextclade-cli) and flags of the `dataset get` command for datasets.
 
-Nextclade is the client-side only, single page web application, hosted on a static server. We do not set any usage limits for the analyses triggered this way. All the computation triggered this way will happen on the end-user machine.
+You can learn more about input files and datasets in sections: [Input files](input-files), and [Nextclade datasets](datasets).
+
+If `input-fasta` URL parameter is provided, Nextclade Web automatically starts the analysis after all input and dataset files are downloaded.
+
+All parameters are optional.
+
+| URL parameter      | Meaning |
+|--------------------|---------|
+| input-fasta        | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. 
+| input-root-seq     | URL to a fasta file containing reference (root) sequence.
+| input-tree         | URL to a Auspice JSON v2 file containing reference tree.
+| input-pcr-primers  | URL to a CSV file containing PCR primers.
+| input-qc-config    | URL to a JSON file containing QC onfiguration.
+| input-gene-map     | URL to a GFF3 file containing gene map.
+| dataset-name       | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`
+| dataset-reference  | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.
+| dataset-tag        | Version tag of the dataset to use.
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
 
 ```
-https://clades.nextstrain.org?input-fasta=https://example.com/sequences.fasta
+https://clades.nextstrain.org
+    ?input-fasta=https://example.com/sequences.fasta
 ```
 
-In this case, Nextclade will skip the home page and will automatically start the analysis.
+(the newlines and the indentation are added here for readability, they should not be present in the URL)
+
+In this case, Nextclade will download the default dataset (currently: SARS-CoV2 based on MN908947 reference), thill download the privided file, will skip the home page and will automatically start the analysis.
+
 
 Multiple files can be specified, for example the sequences and the reference tree:
 
@@ -143,11 +163,28 @@ https://clades.nextstrain.org
     &input-tree=https://example.com/tree.json
 ```
 
-(the newlines and the indentation are added here for readability, they should not be present in the URL)
+Another dataset can be specified with `dataset-name`:
 
-The linked resources should be available for fetching by a web browser on the client machine. Make sure [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled on your file server as well as that all required authentication (if any) is included into the file URL itself.
+```
+https://clades.nextstrain.org
+    ?dataset-name=flu_h3n2_ha
+    &input-fasta=https://example.com/flu_sequences.fasta
+```
 
-The URLs might get quite complex, so don't forget to [encode the special characters](https://en.wikipedia.org/wiki/Percent-encoding), to keep the URLs valid.
+Another dataset based on a particular reference sequence can be specified with a combination of `dataset-name` and `dataset-reference`:
+
+```
+https://clades.nextstrain.org
+    ?dataset-name=flu_h3n2_ha
+    &dataset-reference=CY034116
+    &input-fasta=https://example.com/flu_sequences.fasta
+```
+
+> 💡 Nextclade is a client-side-only, single-page web application, hosted on a static server. We do not set any usage limits for the analyses triggered. Note that all the computation will happen on the end-user machine.
+
+> ⚠️The linked resources should be available for fetching by a web browser on the client machine. Make sure [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled on your file server as well as that all required authentication (if any) is included into the file URL itself.
+
+> ⚠️The URLs might get quite complex, so don't forget to [encode the special characters](https://en.wikipedia.org/wiki/Percent-encoding), to keep the URLs valid.
 
 ## What's next?
 

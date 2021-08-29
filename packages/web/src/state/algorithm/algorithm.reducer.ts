@@ -36,13 +36,20 @@ import {
   addNextcladeResult,
   setGeneMapObject,
   setGenomeSize,
-  setDataset,
+  setCurrentDataset,
+  setDatasets,
 } from './algorithm.actions'
 import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
-  .icase(setDataset, (draft, dataset) => {
-    draft.params.dataset = dataset
+  .icase(setDatasets, (draft, { defaultDatasetName, defaultDatasetNameFriendly, datasets }) => {
+    draft.params.defaultDatasetName = defaultDatasetName
+    draft.params.defaultDatasetNameFriendly = defaultDatasetNameFriendly
+    draft.params.datasets = datasets
+  })
+
+  .icase(setCurrentDataset, (draft, dataset) => {
+    draft.params.datasetCurrent = dataset
   })
 
   .icase(setGenomeSize, (draft, { genomeSize }) => {

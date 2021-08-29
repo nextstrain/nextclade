@@ -1,7 +1,6 @@
 /* eslint-disable no-loops/no-loops,no-continue,no-void */
 import type { EventChannel } from 'redux-saga'
 import { buffers, eventChannel } from 'redux-saga'
-import { axiosFetchRaw } from 'src/helpers/useAxiosQuery'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
 import { all, apply, call, fork, join, put, select, take, takeEvery } from 'typed-redux-saga'
@@ -10,6 +9,7 @@ import { push } from 'connected-next-router/actions'
 import type { AuspiceJsonV2 } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
+import { axiosFetchRaw } from 'src/io/axiosFetch'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import fsaSaga from 'src/state/util/fsaSaga'
