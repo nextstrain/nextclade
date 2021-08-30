@@ -39,7 +39,7 @@ import {
   selectRefSeq,
   selectRefTreeStr,
 } from 'src/state/algorithm/algorithm.selectors'
-import { resetViewedGene } from 'src/state/ui/ui.actions'
+import { setViewedGene } from 'src/state/ui/ui.actions'
 import {
   createAnalysisThreadPool,
   createThreadParseSequencesStreaming,
@@ -412,13 +412,14 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
  */
 export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.loadingData))
-  yield* put(resetViewedGene())
   yield* put(push('/results'))
 
   const dataset = yield* select(selectCurrentDataset)
   if (!dataset) {
     throw new Error('No dataset is selected. Unable to proceed. This is an internal error and might indicate a bug.')
   }
+
+  yield* put(setViewedGene(dataset.defaultGene))
 
   const {
     ref: { refStr, refName },
