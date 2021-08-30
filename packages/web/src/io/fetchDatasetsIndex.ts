@@ -102,7 +102,6 @@ export function getLatestDatasetsFlat(datasets?: Dataset[]): DatasetFlat[] {
           ...dataset,
           ...datasetRef,
           ...latestVersion,
-          nameFriendly: `${dataset.nameFriendly} (${datasetRef.reference.strainName})`,
         })
       }
     }

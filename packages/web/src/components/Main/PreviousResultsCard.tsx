@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 import styled from 'styled-components'
 import { FaClock } from 'react-icons/fa'
@@ -52,10 +53,18 @@ export const PreviousResultsHeaderIcon = styled(FaClock)`
 `
 
 export function PreviousResultsCard() {
+  const { t } = useTranslationSafe()
+
   return (
     <FillVertical>
       <CardL1>
         <CardL1Body>
+          <Row>
+            <Col>
+              <h5 className="mb-0">{t('Datasets')}</h5>
+              <p className="mt-0">{t('Select a dataset to run the analysis against')}</p>
+            </Col>
+          </Row>
           <Row>
             <Col>
               <DatasetSelector />

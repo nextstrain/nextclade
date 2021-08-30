@@ -13,20 +13,9 @@ import type { DatasetFlat } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
 import { SpinnerWrapped } from 'src/components/Common/Spinner'
-import { DatasetSelectorDropdown } from './DatasetSelectorDropdown'
+import { DatasetSelectorList } from './DatasetSelectorList'
 
-const DropdownContainer = styled.div`
-  position: relative;
-  flex: 0 0 235px;
-  margin-right: auto;
-  margin-left: 5px;
-  height: 40px;
-
-  @media (max-width: 767.98px) {
-    margin-left: auto;
-    margin-right: auto;
-  }
-`
+const DatasetSelectorContainer = styled.div``
 
 const DropdownLoadingOverlay = styled.div`
   position: absolute;
@@ -79,9 +68,9 @@ export function DatasetSelectorDisconnected({
   const isBusy = datasets.length === 0 || !datasetCurrent
 
   return (
-    <DropdownContainer>
+    <DatasetSelectorContainer>
       {datasetCurrent && (
-        <DatasetSelectorDropdown
+        <DatasetSelectorList
           datasets={datasets}
           datasetCurrent={datasetCurrent}
           setDatasetCurrent={setDatasetCurrent}
@@ -89,6 +78,6 @@ export function DatasetSelectorDisconnected({
       )}
 
       {isBusy && <DropdownLoadingOverlay>{<Spinner type="ThreeDots" size={20} color="#aaa" />}</DropdownLoadingOverlay>}
-    </DropdownContainer>
+    </DatasetSelectorContainer>
   )
 }
