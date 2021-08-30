@@ -1,4 +1,4 @@
-import { Router } from 'next/router'
+import { ParsedUrlQuery } from 'querystring'
 import { Dispatch } from 'redux'
 
 import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } from 'src/io/fetchDatasetsIndex'
@@ -6,7 +6,7 @@ import { getQueryParam } from 'src/io/fetchInputsAndRunMaybe'
 import { setCurrentDataset, setDatasets } from 'src/state/algorithm/algorithm.actions'
 import { errorAdd } from 'src/state/error/error.actions'
 
-export async function initializeDatasets(dispatch: Dispatch, router: Router) {
+export async function initializeDatasets(dispatch: Dispatch, urlQuery: ParsedUrlQuery) {
   let datasets
   let defaultDatasetName
   let defaultDatasetNameFriendly
@@ -28,15 +28,17 @@ export async function initializeDatasets(dispatch: Dispatch, router: Router) {
   }
 
   if (hasError || !datasets || !defaultDatasetName || !defaultDatasetNameFriendly) {
-    return
+    return false
   }
 
-  const datasetName = getQueryParam(router, 'dataset-name') ?? defaultDatasetName
-  const datasetRef = getQueryParam(router, 'dataset-reference')
-  const datasetTag = getQueryParam(router, 'dataset-tag')
+  const datasetName = getQueryParam(urlQuery, 'dataset-name') ?? defaultDatasetName
+  const datasetRef = getQueryParam(urlQuery, 'dataset-reference')
+  const datasetTag = getQueryParam(urlQuery, 'dataset-tag')
 
   const dataset = findDataset(datasets, datasetName, datasetRef, datasetTag)
 
   dispatch(setDatasets({ defaultDatasetName, defaultDatasetNameFriendly, datasets }))
   dispatch(setCurrentDataset(dataset))
+
+  return true
 }
