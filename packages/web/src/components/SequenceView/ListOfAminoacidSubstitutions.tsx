@@ -1,5 +1,6 @@
 import React from 'react'
 
+import copy from 'fast-copy'
 import { connect } from 'react-redux'
 
 import type { AminoacidSubstitution, Gene } from 'src/algorithms/types'
@@ -9,15 +10,17 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
-import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
+import { selectCurrentDataset, selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 
 export interface ListOfAminoacidMutationsProps {
   aminoacidSubstitutions: AminoacidSubstitution[]
   geneMap?: Gene[]
+  geneOrderPreference: string[]
 }
 
 const mapStateToProps = (state: State) => ({
   geneMap: selectGeneMap(state),
+  geneOrderPreference: selectCurrentDataset(state)?.geneOrderPreference ?? [],
 })
 
 const mapDispatchToProps = {}
@@ -30,6 +33,7 @@ export const ListOfAminoacidSubstitutions = connect(
 export function ListOfAminoacidMutationsDisconnected({
   aminoacidSubstitutions,
   geneMap,
+  geneOrderPreference,
 }: ListOfAminoacidMutationsProps) {
   const { t } = useTranslationSafe()
 
@@ -39,7 +43,9 @@ export function ListOfAminoacidMutationsDisconnected({
 
   const totalMutations = aminoacidSubstitutions.length
   const maxRows = 6
-  const substitutionsSelected = aminoacidSubstitutions.slice(0, 20)
+  const substitutionsSelected = copy(aminoacidSubstitutions)
+    .sort((left, right) => geneOrderPreference.indexOf(left.gene) - geneOrderPreference.indexOf(right.gene))
+    .slice(0, 90)
 
   const columns = splitToRows(substitutionsSelected, { maxRows })
 

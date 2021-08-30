@@ -348,6 +348,7 @@ export interface Dataset {
   datasetRefs: DatasetRef[]
   defaultRef: string
   defaultGene: string
+  geneOrderPreference: string[]
 }
 
 export interface DatasetsIndexJson {

@@ -1,5 +1,6 @@
 import React from 'react'
 
+import copy from 'fast-copy'
 import { connect } from 'react-redux'
 
 import type { AminoacidDeletion, Gene } from 'src/algorithms/types'
@@ -8,16 +9,18 @@ import { formatAADeletion } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
-import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
+import { selectCurrentDataset, selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 
 export interface ListOfAminoacidDeletionsProps {
   aminoacidDeletions: AminoacidDeletion[]
   geneMap?: Gene[]
+  geneOrderPreference: string[]
 }
 
 const mapStateToProps = (state: State) => ({
   geneMap: selectGeneMap(state),
+  geneOrderPreference: selectCurrentDataset(state)?.geneOrderPreference ?? [],
 })
 
 const mapDispatchToProps = {}
@@ -27,7 +30,11 @@ export const ListOfAminoacidDeletions = connect(
   mapDispatchToProps,
 )(ListOfAminoacidDeletionsDisconnected)
 
-export function ListOfAminoacidDeletionsDisconnected({ aminoacidDeletions, geneMap }: ListOfAminoacidDeletionsProps) {
+export function ListOfAminoacidDeletionsDisconnected({
+  aminoacidDeletions,
+  geneMap,
+  geneOrderPreference,
+}: ListOfAminoacidDeletionsProps) {
   const { t } = useTranslationSafe()
 
   if (!geneMap) {
@@ -36,7 +43,9 @@ export function ListOfAminoacidDeletionsDisconnected({ aminoacidDeletions, geneM
 
   const totalDeletions = aminoacidDeletions.length
   const maxRows = 6
-  const deletionsSelected = aminoacidDeletions.slice(0, 20)
+  const deletionsSelected = copy(aminoacidDeletions)
+    .sort((left, right) => geneOrderPreference.indexOf(left.gene) - geneOrderPreference.indexOf(right.gene))
+    .slice(0, 90)
 
   const columns = splitToRows(deletionsSelected, { maxRows })
 
