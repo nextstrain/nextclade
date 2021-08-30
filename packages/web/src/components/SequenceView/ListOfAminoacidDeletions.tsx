@@ -11,6 +11,7 @@ import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { selectCurrentDataset, selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
+import { sortByGenes } from './sortByGenes'
 
 export interface ListOfAminoacidDeletionsProps {
   aminoacidDeletions: AminoacidDeletion[]
@@ -43,9 +44,7 @@ export function ListOfAminoacidDeletionsDisconnected({
 
   const totalDeletions = aminoacidDeletions.length
   const maxRows = 6
-  const deletionsSelected = copy(aminoacidDeletions)
-    .sort((left, right) => geneOrderPreference.indexOf(left.gene) - geneOrderPreference.indexOf(right.gene))
-    .slice(0, 90)
+  const deletionsSelected = copy(aminoacidDeletions).sort(sortByGenes(geneOrderPreference)).slice(0, 90)
 
   const columns = splitToRows(deletionsSelected, { maxRows })
 
