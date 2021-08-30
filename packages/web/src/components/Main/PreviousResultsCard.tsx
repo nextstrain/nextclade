@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 import styled from 'styled-components'
@@ -11,7 +11,7 @@ import {
 } from 'src/components/Common/Card'
 
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
-import { Col, Row } from 'reactstrap'
+import { Col, Input, Row } from 'reactstrap'
 
 export const FillVertical = styled.div`
   display: flex;
@@ -55,6 +55,13 @@ export const PreviousResultsHeaderIcon = styled(FaClock)`
 export function PreviousResultsCard() {
   const { t } = useTranslationSafe()
 
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const onSearchTermChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target
+    setSearchTerm(value)
+  }, [])
+
   return (
     <FillVertical>
       <CardL1>
@@ -64,10 +71,23 @@ export function PreviousResultsCard() {
               <h5 className="mb-0">{t('Datasets')}</h5>
               <p className="mt-0">{t('Select a dataset to run the analysis against')}</p>
             </Col>
+            <Col>
+              <Input
+                type="text"
+                title="Search datasets"
+                placeholder="Search datasets"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-gramm="false"
+                onChange={onSearchTermChange}
+              />
+            </Col>
           </Row>
           <Row>
             <Col>
-              <DatasetSelector />
+              <DatasetSelector searchTerm={searchTerm} />
             </Col>
           </Row>
         </CardL1Body>

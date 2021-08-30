@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import { connect } from 'react-redux'
 import {
@@ -33,6 +33,7 @@ const Spinner = styled(SpinnerWrapped)`
 `
 
 export interface DatasetSelectorProps {
+  searchTerm: string
   datasets: DatasetFlat[]
   defaultDatasetName?: string
   datasetCurrent?: DatasetFlat
@@ -60,6 +61,7 @@ export function removeBoolean<T>(value: boolean | undefined | T): T | undefined 
 }
 
 export function DatasetSelectorDisconnected({
+  searchTerm,
   datasets,
   defaultDatasetName,
   datasetCurrent,
@@ -67,11 +69,31 @@ export function DatasetSelectorDisconnected({
 }: DatasetSelectorProps) {
   const isBusy = datasets.length === 0 || !datasetCurrent
 
+  const datasetsFiltered = useMemo(() => {
+    if (searchTerm.trim().length < 0) {
+      return datasets
+    }
+
+    return datasets.filter((dataset) => {
+      const candidates = [
+        dataset.name,
+        dataset.reference.strainName,
+        dataset.reference.accession,
+      ].map((searchTermWord) => searchTermWord.toLowerCase().trim())
+
+      const searchTermWords = searchTerm.split(' ').map((searchTermWord) => searchTermWord.toLowerCase().trim())
+
+      return candidates.some((candidate) =>
+        searchTermWords.some((searchTermWord) => candidate.trim().toLowerCase().includes(searchTermWord)),
+      )
+    })
+  }, [datasets, searchTerm])
+
   return (
     <DatasetSelectorContainer>
       {datasetCurrent && (
         <DatasetSelectorList
-          datasets={datasets}
+          datasets={datasetsFiltered}
           datasetCurrent={datasetCurrent}
           setDatasetCurrent={setDatasetCurrent}
         />
