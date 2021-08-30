@@ -1,14 +1,16 @@
+import { delay } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { Button, Col, Row } from 'reactstrap'
 import { FilePickerAdvanced } from 'src/components/Main/FilePickerAdvanced'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import styled from 'styled-components'
 
 import type { State } from 'src/state/reducer'
 
-import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
+import { algorithmRunAsync, setIsDirty } from 'src/state/algorithm/algorithm.actions'
 import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
 
 import { ColFlexHorizontal } from 'src/components/Main/FilePicker'
@@ -51,6 +53,8 @@ export interface MainSectionHeroControlsAdvancedProps {
   algorithmRunTrigger(_0: unknown): void
 
   setShowNewRunPopup(showNewRunPopup: boolean): void
+
+  setIsDirty(isDirty: boolean): void
 }
 
 const mapStateToProps = (state: State) => ({
@@ -61,6 +65,7 @@ const mapStateToProps = (state: State) => ({
 const mapDispatchToProps = {
   algorithmRunTrigger: algorithmRunAsync.trigger,
   setShowNewRunPopup,
+  setIsDirty,
 }
 
 export const MainSectionHeroControlsAdvanced = connect(
@@ -73,15 +78,22 @@ export function MainSectionHeroControlsAdvancedDisconnected({
   hasRequiredInputs,
   algorithmRunTrigger,
   setShowNewRunPopup,
+  setIsDirty,
 }: MainSectionHeroControlsAdvancedProps) {
+  const { t } = useTranslationSafe()
+
   const run = useCallback(() => {
     setShowNewRunPopup(false)
-    algorithmRunTrigger(undefined)
-  }, [algorithmRunTrigger, setShowNewRunPopup])
+    setIsDirty(true)
+    delay(algorithmRunTrigger, 1000)
+  }, [algorithmRunTrigger, setShowNewRunPopup, setIsDirty])
 
   return (
     <Row noGutters>
       <Col>
+        <Button color="link" onClick={run}>
+          <small>{t('Show example')}</small>
+        </Button>
         <ButtonsAdvanced canRun={canRun && hasRequiredInputs} run={run} />
         <FilePickerAdvanced />
         <ButtonsAdvanced canRun={canRun && hasRequiredInputs} run={run} />
