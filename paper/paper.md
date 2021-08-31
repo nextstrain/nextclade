@@ -7,10 +7,10 @@ tags:
 authors:
   - name: Ivan Aksamentov
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Emma B. Hodcroft
-    affiliation: "2, 3"
   - name: Cornelius Roemer
     affiliation: "1, 2"
+  - name: Emma B. Hodcroft
+    affiliation: "2, 3"
   - name: John Huddleston
     affiliation: "4"
   - name: James Hadfield
@@ -38,8 +38,8 @@ bibliography: paper.bib
 
 # Summary
 
-The variants of concern (VoCs) of SARS-CoV-2 have highlighted the need for a global molecular surveillance of pathogens via whole genomes sequencing.
-This sequencing, for SARS-CoV-2 and other pathogens, is performed by hundreds of labs across the globe some of which have limited capacity for quality control and further analysis.
+The variants of concern (VoCs) of SARS-CoV-2 have highlighted the need for a global molecular surveillance of pathogens via whole genome sequencing.
+Such sequencing, for SARS-CoV-2 and other pathogens, is performed by an ever increasing number of labs across the globe resulting in an increased need for an easy, fast, and decentralized analysis of initial data.
 Nextclade aligns viral genomes to a reference sequence, calculates several QC metrics, assigns sequences to a clade or variant, and identifies changes of the viral proteins relative to the reference sequence.
 Nextclade is available as a command-line tool and as a web application with completely client based processing such that sequence data doesn't leave the user's browser.
 
@@ -90,7 +90,7 @@ $$
 \text{qc.overallScore} = \sum_i \frac{score_i^2}{100}
 $$
 With this quadratic aggregation, multiple mildly concerning scores don't result in a bad overall score, but a single bad score guarantees a bad overall score.
-Details of the algorithm and the different QC metrics are described in the documentation.
+Details of the algorithm and the different QC metrics are described in the documentation at [docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade/en/stable/).
 
 ## Web interface
 
@@ -106,9 +106,10 @@ The QC results, variant calls, and the full alignment can be retrieved from the 
 ## Nextclade datasets
 
 To run Nextclade, the user needs to provide a reference sequence, an annotation, a labeled tree, a QC configuration and optionally a set of primers.
-We maintain such data sets for SARS-CoV-2 and the four seasonal influenza viruses and implemented a dataset `list` and `get` functionality in the `nextclade` CLI tool.
-The SARS-CoV-2 tree ius labeled with the Nextstrain clade annotations for SARS-CoV-2 following a year-letter pattern like `20A` and are coupled to the WHO variant label were available (e.g. `21A (Delta)`) [@konings_sars-cov-2_2021].
-Influenza trees are labeled with clades currently used by the WHO collaborating centers to discuss circulating influenza virus diversiy.
+We currently maintain such data sets for SARS-CoV-2 and the four seasonal influenza viruses.
+The `nextclade` CLI tool includes `dataset list` and `dataset get` commands to explore and download available datasets.
+The SARS-CoV-2 tree is labeled with the Nextstrain clade annotations for SARS-CoV-2 following a year-letter pattern like `20A` and are coupled to the WHO variant label were available (e.g. `21A (Delta)`) [@konings_sars-cov-2_2021].
+Influenza trees are labeled with clades currently used by the WHO collaborating centers to discuss circulating influenza virus diversity.
 
 
 # Discussion
