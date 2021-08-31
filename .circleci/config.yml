@@ -311,13 +311,13 @@ workflows:
             - Update-Builder-Container
 
       - Build-Linux-x86_64:
-          context: nextclade_web_<< pipeline.git.branch >>
+          context: nextclade_cli_<< pipeline.git.branch >>
           <<: *release_cli_only
           requires:
             - Update-Builder-Container
 
       - Build-MacOS:
-          context: nextclade_web_<< pipeline.git.branch >>
+          context: nextclade_cli_<< pipeline.git.branch >>
           matrix:
             parameters:
               macos_arch:
