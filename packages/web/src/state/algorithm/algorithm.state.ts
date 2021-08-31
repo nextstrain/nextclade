@@ -67,7 +67,10 @@ export interface ExportParams {
 }
 
 export interface AlgorithmParams {
-  dataset?: DatasetFlat
+  datasets: DatasetFlat[]
+  defaultDatasetName?: string
+  defaultDatasetNameFriendly?: string
+  datasetCurrent?: DatasetFlat
   raw: {
     seqData?: AlgorithmInput
     auspiceData?: AlgorithmInput
@@ -134,7 +137,9 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
 export const algorithmDefaultState: AlgorithmState = {
   status: AlgorithmGlobalStatus.idle,
   params: {
-    dataset: undefined,
+    datasets: [],
+    defaultDatasetName: undefined,
+    datasetCurrent: undefined,
     raw: {},
     strings: {},
     final: {},
