@@ -14,7 +14,7 @@ The dropdown menu in **Nextclade Web** now allows user to chose between availabl
 
  - `nextclade dataset list` command allows to list available datasets 
  - `nextclade dataset get` command allows to download a dataset to a directory
- - `nextclade run` command runs the analysis (for compatibility with old version the word `run` can be omitted) and the new `--input-dataset` allows to specify the directory of the previously downloaded dataset
+ - `nextclade run` command runs the analysis (for compatibility with old version the word `run` can be omitted) and the new `--input-dataset` flag allows to specify the directory of the previously downloaded dataset
 
 ##### Quick example
 
@@ -32,7 +32,7 @@ nextclade run \
 See [Nextclade CLI](https://docs.nextstrain.org/projects/nextclade/en/latest/user/nextclade-cli.html) documentation for example usage and [Nextclade Datasets](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) documentation for more details about datasets.
 
 
-Note, data updates and additions are now decoupled from Nextclade releases. The datasets will be updated independently.
+Note, data updates and additions are now decoupled from Nextclade releases. The datasets will be updated independently.  Read [datasets documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) on dataset versioning and a tradeoff between reproducibility or results vs lastest features (e.g. clades and QC checks).
 
 
 ### [Feature] Flu datasets in Nextclade
