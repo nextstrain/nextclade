@@ -53,7 +53,7 @@ Nextclade Datasets feature simplifies adding new pathogens in Nextclade and we h
 
 The files in [`/data`](https://github.com/nextstrain/nextclade/tree/37f07156118cbff252b5784fe2261bccdb580943/data/) directory of the Nextclade GitHub repository are now deprecated in favor of Nextclade Datasets feature. 
 
-These files will be deleted from repository on October 21st 2021, but will be still available in git history. We do not recommend to use these files, as they will no longer be updated.
+These files will be deleted from repository on October 31st 2021, but will be still available in git history. We do not recommend to use these files, as they will no longer be updated.
 
 
 ## Nextclade Web 1.5.4 (2021-08-16)
