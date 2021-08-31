@@ -23,6 +23,7 @@ RUN set -x \
   libtool \
   make \
   meson \
+  musl \
   pkg-config \
   pkg-config \
   python3 \
