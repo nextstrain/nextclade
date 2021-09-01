@@ -96,9 +96,9 @@ by Nextstrain team
 </p>
 
 <p align="center">
-  <a href="https://anaconda.org/bioconda/nextclade_js">
+  <a href="https://anaconda.org/bioconda/nextclade">
     <img
-      src="https://anaconda.org/bioconda/nextclade_js/badges/version.svg"
+      src="https://anaconda.org/bioconda/nextclade/badges/version.svg"
       alt="Nextclade"
     />
   </a>

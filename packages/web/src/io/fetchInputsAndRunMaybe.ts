@@ -1,5 +1,5 @@
-import type { Router } from 'next/router'
 import type { Dispatch } from 'redux'
+import type { ParsedUrlQuery } from 'querystring'
 
 import { takeFirstMaybe } from 'src/helpers/takeFirstMaybe'
 import { AlgorithmInputString } from 'src/io/AlgorithmInput'
@@ -15,17 +15,17 @@ import {
   setTree,
 } from 'src/state/algorithm/algorithm.actions'
 
-export function getQueryParam(router: Router, param: string): string | undefined {
-  return takeFirstMaybe(router.query?.[param]) ?? undefined
+export function getQueryParam(urlQuery: ParsedUrlQuery, param: string): string | undefined {
+  return takeFirstMaybe(urlQuery?.[param]) ?? undefined
 }
 
-export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router) {
-  const inputFastaUrl = getQueryParam(router, 'input-fasta')
-  const inputRootSeqUrl = getQueryParam(router, 'input-root-seq')
-  const inputTreeUrl = getQueryParam(router, 'input-tree')
-  const inputPcrPrimersUrl = getQueryParam(router, 'input-pcr-primers')
-  const inputQcConfigUrl = getQueryParam(router, 'input-qc-config')
-  const inputGeneMapUrl = getQueryParam(router, 'input-gene-map')
+export async function fetchInputsAndRunMaybe(dispatch: Dispatch, urlQuery: ParsedUrlQuery) {
+  const inputFastaUrl = getQueryParam(urlQuery, 'input-fasta')
+  const inputRootSeqUrl = getQueryParam(urlQuery, 'input-root-seq')
+  const inputTreeUrl = getQueryParam(urlQuery, 'input-tree')
+  const inputPcrPrimersUrl = getQueryParam(urlQuery, 'input-pcr-primers')
+  const inputQcConfigUrl = getQueryParam(urlQuery, 'input-qc-config')
+  const inputGeneMapUrl = getQueryParam(urlQuery, 'input-gene-map')
 
   let inputFasta: string | undefined
   let inputRootSeq: string | undefined
@@ -56,7 +56,7 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
   }
 
   if (hasError) {
-    return
+    return false
   }
 
   // TODO: we could use AlgorithmInputUrl instead. User experience should be improved: e.g. show progress indicator
@@ -83,6 +83,7 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, router: Router)
   if (inputFasta) {
     dispatch(setIsDirty(true))
     dispatch(algorithmRunAsync.trigger(new AlgorithmInputString(inputFasta, inputFastaUrl)))
-    await router.replace('/results')
   }
+
+  return true
 }

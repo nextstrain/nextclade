@@ -15,11 +15,7 @@ import { AppProps } from 'next/app'
 import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
 import type { Persistor } from 'redux-persist'
-import { ErrorPopup } from 'src/components/Error/ErrorPopup'
-import { initializeDatasets } from 'src/io/fetchDatasets'
-import { fetchInputsAndRunMaybe } from 'src/io/fetchInputsAndRunMaybe'
 import { ThemeProvider } from 'styled-components'
-
 import { Provider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
 import { PersistGate } from 'redux-persist/integration/react'
@@ -28,12 +24,14 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { initialize } from 'src/initialize'
-import i18n from 'src/i18n/i18n'
-
+import { parseUrl } from 'src/helpers/parseUrl'
+import { initializeDatasets } from 'src/io/fetchDatasets'
+import { fetchInputsAndRunMaybe } from 'src/io/fetchInputsAndRunMaybe'
+import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import Loading from 'src/components/Loading/Loading'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { SEO } from 'src/components/Common/SEO'
-
+import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 
 import 'src/styles/global.scss'
@@ -48,27 +46,38 @@ export interface AppState {
 export default function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(), [])
   const [state, setState] = useState<AppState | undefined>()
+  const [initDone, setInitDone] = useState(false)
+  const [fetchDone, setFetchDone] = useState(false)
   const store = state?.store
   const dispatch = store?.dispatch
 
-  useEffect(() => {
-    initialize({ router })
-      .then(setState)
-      .catch((error: Error) => {
-        throw error
-      })
-  }, [router])
+  // NOTE: Do manual parsing, becuase router.query is randomly empty on the first few renders and on repeated renders.
+  // This is important, because various states depend on query, and when it changes back and forth,
+  // the state also changes unexpectedly.
+  const { query } = useMemo(() => parseUrl(router.asPath), [router.asPath])
 
   useEffect(() => {
-    if (router.query && dispatch) {
-      Promise.resolve()
-        .then(() => initializeDatasets(dispatch, router))
-        .then(() => fetchInputsAndRunMaybe(dispatch, router))
+    if (!initDone) {
+      initialize({ router })
+        .then(setState)
+        .then(() => setInitDone(true))
         .catch((error: Error) => {
           throw error
         })
     }
-  }, [router, router.query, state, dispatch, store])
+  }, [initDone, router])
+
+  useEffect(() => {
+    if (!fetchDone && query && dispatch) {
+      Promise.resolve()
+        .then(() => initializeDatasets(dispatch, query))
+        .then(async (success) => (await fetchInputsAndRunMaybe(dispatch, query)) && success)
+        .then((success) => setFetchDone(success))
+        .catch((error: Error) => {
+          throw error
+        })
+    }
+  }, [fetchDone, query, state, dispatch, store])
 
   if (!state) {
     return <Loading />
