@@ -9,6 +9,8 @@ RUN set -x \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
+  autoconf \
+  automake \
   bash \
   ccache \
   cmake \
@@ -18,7 +20,12 @@ RUN set -x \
   file \
   gdb \
   git \
+  libtool \
   make \
+  meson \
+  musl \
+  pkg-config \
+  pkg-config \
   python3 \
   python3-pip \
   python3-setuptools \

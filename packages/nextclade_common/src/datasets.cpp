@@ -92,7 +92,6 @@ namespace Nextclade {
         .enabled = at(j, "enabled"),
         .name = at(j, "name"),
         .nameFriendly = at(j, "nameFriendly"),
-        .description = at(j, "description"),
         .datasetRefs = parseArray<DatasetRef>(j, "datasetRefs", parseDatasetRef),
         .defaultRef = at(j, "defaultRef"),
       };
@@ -354,7 +353,6 @@ namespace Nextclade {
       fmt::format_to(buf, "-------\n");
       fmt::format_to(buf, "Friendly name     : {:s}\n", dataset.nameFriendly);
       fmt::format_to(buf, "Safe name         : {:s}\n", dataset.name);
-      fmt::format_to(buf, "Description       : {:s}\n", dataset.description);
       fmt::format_to(buf, "Default reference : {:s}\n\n", dataset.defaultRef);
 
       fmt::format_to(buf,
@@ -379,7 +377,7 @@ namespace Nextclade {
         fmt::format_to(buf, "    ---------\n");
         fmt::format_to(buf, "    Strain name  : {:s}\n", ref.strainName);
         fmt::format_to(buf, "    Accession    : {:s}\n", ref.accession);
-        fmt::format_to(buf, "    Description  : {:s}\n", ref.source);
+        fmt::format_to(buf, "    Source       : {:s}\n", ref.source);
 
         fmt::format_to(buf, "\n");
 
@@ -542,9 +540,6 @@ namespace Nextclade {
     os << "  "
           "nameFriendly: "
        << dataset.nameFriendly << "\n";
-    os << "  "
-          "description: "
-       << dataset.description << "\n";
     os << "  "
           "datasetRefs: [\n";
     for (const auto& datasetRef : dataset.datasetRefs) {

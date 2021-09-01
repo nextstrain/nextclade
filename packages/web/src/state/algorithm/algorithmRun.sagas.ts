@@ -1,7 +1,6 @@
 /* eslint-disable no-loops/no-loops,no-continue,no-void */
 import type { EventChannel } from 'redux-saga'
 import { buffers, eventChannel } from 'redux-saga'
-import { axiosFetchRaw } from 'src/helpers/useAxiosQuery'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
 import { all, apply, call, fork, join, put, select, take, takeEvery } from 'typed-redux-saga'
@@ -10,6 +9,7 @@ import { push } from 'connected-next-router/actions'
 import type { AuspiceJsonV2 } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
+import { axiosFetchRaw } from 'src/io/axiosFetch'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import fsaSaga from 'src/state/util/fsaSaga'
@@ -39,7 +39,7 @@ import {
   selectRefSeq,
   selectRefTreeStr,
 } from 'src/state/algorithm/algorithm.selectors'
-import { resetViewedGene } from 'src/state/ui/ui.actions'
+import { setViewedGene } from 'src/state/ui/ui.actions'
 import {
   createAnalysisThreadPool,
   createThreadParseSequencesStreaming,
@@ -412,13 +412,14 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
  */
 export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.loadingData))
-  yield* put(resetViewedGene())
   yield* put(push('/results'))
 
   const dataset = yield* select(selectCurrentDataset)
   if (!dataset) {
     throw new Error('No dataset is selected. Unable to proceed. This is an internal error and might indicate a bug.')
   }
+
+  yield* put(setViewedGene(dataset.defaultGene))
 
   const {
     ref: { refStr, refName },

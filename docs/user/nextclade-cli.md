@@ -134,30 +134,41 @@ Refer to help prompt for usage of Nextclade:
 nextclade --help
 ```
 
+Each subcommand has its own help prompt:
+
+```bash
+nextclade dataset --help
+nextclade dataset list --help
+nextclade dataset get --help
+nextclade run --help
+```
+
 ## Quick Example
 
 1. Download SARS-CoV-2 dataset:
 
     ```bash
-    nextclade dataset get --name='sars-cov-2' --output-dir='data' --output-subdir='sars-cov-2'
+    nextclade dataset get --name='sars-cov-2' --output-dir='data/sars-cov-2'
     ```
 
-   Observe dataset files in `data/sars-cov-2`
+   Observe downloaded dataset files in the directory `data/sars-cov-2/`
 
-2. Run using the downloaded dataset:
+2. Run using the downloaded dataset and its example sequences (`data/sars-cov-2/sequences.fasta`):
 
    ```bash
    nextclade \
       --in-order \
       --input-fasta=data/sars-cov-2/sequences.fasta \
-      --input-dataset=data/sars-cov-2/reference.fasta \
+      --input-dataset=data/sars-cov-2 \
       --output-tsv=output/nextclade.tsv \
       --output-tree=output/nextclade.auspice.json \
       --output-dir=output/ \
       --output-basename=nextclade
    ```
 
-   Alternatively, specify input files explicitly and/or add more flags for output files:
+   To run the analysis on our own sequences, provide `--input-fasta=` flag with a path to your fasta file.
+
+   For more controls, specify input files explicitly and/or add more flags for output files:
 
    ```bash
    nextclade \
@@ -177,7 +188,7 @@ nextclade --help
       --output-basename=nextclade
    ```
 
-   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
+   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and reference peptides into outputs.
 
    The `--input-dataset` flag can be combined with individual `--input*` flags. In this case, individual flags override the corresponding files in the dataset.
 

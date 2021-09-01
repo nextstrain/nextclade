@@ -1,3 +1,61 @@
+## Nextclade Web 1.6.0, Nextclade CLI 1.3.0, Nextalign CLI 1.3.0 (2021-08-31)
+
+### [Feature] Nextclade Datasets
+
+In this release we introduce Nextclade Datasets, a convenient way of downloading files required for Nextclade analysis. Now data files (such as reference sequences, reference tree and others) are served for all users from a **central dataset repository**.
+
+#### Datasets in Nextclade Web
+
+The dropdown menu in **Nextclade Web** now allows user to chose between available datasets before analysis and automatically fetches the latest files from the central dataset repository.
+
+#### Datasets in Nextclade CLI
+
+**Nextclade CLI** gained new commands and flags to manage datasets:
+
+ - `nextclade dataset list` command allows to list available datasets 
+ - `nextclade dataset get` command allows to download a dataset to a directory
+ - `nextclade run` command runs the analysis (for compatibility with old version the word `run` can be omitted) and the new `--input-dataset` flag allows to specify the directory of the previously downloaded dataset
+
+##### Quick example
+
+```
+nextclade dataset get --name=sars-cov-2 --output-dir=data/sars-cov-2
+
+nextclade run \
+  --input-fasta=data/sars-cov-2/sequences.fasta \
+  --input-dataset=data/sars-cov-2 \
+  --output-tsv=output/nextclade.tsv \
+  --output-tree=output/nextclade.auspice.json \
+  --output-dir=output/
+```
+
+See [Nextclade CLI](https://docs.nextstrain.org/projects/nextclade/en/latest/user/nextclade-cli.html) documentation for example usage and [Nextclade Datasets](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) documentation for more details about datasets.
+
+
+Note, data updates and additions are now decoupled from Nextclade releases. The datasets will be updated independently.  Read [datasets documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) on dataset versioning and a tradeoff between reproducibility or results vs lastest features (e.g. clades and QC checks).
+
+
+### [Feature] Flu datasets in Nextclade
+
+With this release, additionally to the previously available SARS-CoV-2 dataset, we introduce 4 new Influenza datasets: 
+
+ - Influenza A H1N1pdm (rooted at "A/California/07/2009")
+ - Influenza A H3N2 (rooted at "A/Wisconsin/67/2005")
+ - Influenza B Victoria (rooted at "B/Brisbane/60/2008")
+ - Influenza B Yamagata (rooted at "B/Wisconsin/01/2010")
+
+These datasets allow Nextclade to analyze sequences for these pathogens.
+
+Nextclade Datasets feature simplifies adding new pathogens in Nextclade and we hope to add new datasets in the future.
+
+
+### [Deprecation] Data files in Nextclade GitHub repository are deprecated 
+
+The files in [`/data`](https://github.com/nextstrain/nextclade/tree/37f07156118cbff252b5784fe2261bccdb580943/data/) directory of the Nextclade GitHub repository are now deprecated in favor of Nextclade Datasets feature. 
+
+These files will be deleted from repository on October 31st 2021, but will be still available in git history. We do not recommend to use these files, as they will no longer be updated.
+
+
 ## Nextclade Web 1.5.4 (2021-08-16)
 
 #### [Feature] Add "Docs" link
