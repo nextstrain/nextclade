@@ -12,7 +12,5 @@ catch signal
 dashboard -layout stack source variables
 dashboard source -style height 20
 
-break malloc_error_break
-
 run
 quit

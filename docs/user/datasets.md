@@ -10,17 +10,28 @@ Nextclade dataset is a set of input data files required for Nextclade to run the
 
 Dataset might also include example sequence data (to be analyzed).
 
-Datasets are specific to a given virus. For example, a dataset for H1N1 flu is not suitable for analysing SARS-CoV-2 sequences and vice versa. Mixing incompatible datasets and sequences will produce incorrect results.
+An instance of a dataset is a directory containing the dataset files.
 
-Datasets are versioned to ensure correctness when running with different versions of Nextclade as well as reproducibility of results.
+## Datasets names, reference sequences and version tags
+
+There are 3 concepts that are important to understand in order to work with Nextclade datasets:
+
+1. **Dataset name** - identifies dataset purpose. Typically indicates name of the pathogen. Examples: `sars-cov-2`, `flu_h3n2_ha`. Each dataset is specific to a given virus. For example, a dataset for H1N1 flu is not suitable for analysing SARS-CoV-2 sequences and vice versa. Mixing incompatible datasets and sequences will produce incorrect results.
+
+2. **Dataset's reference sequence**: each dataset can have multiple flavors, depending on the reference sequence it is based on. For example, one `sars-cov-2` reference dataset can be based on `MN908947 (Wuhan-Hu-1/2019)` or reference sequences, and `flu_h3n2_ha` can be based on `CY034116 (A/Wisconsin/67/2005)` or other reference sequences. For each dataset name, among all available reference sequences, there is a default reference sequence defined (by dataset maintainers). It is used when no concrete reference sequence is specified. The dataset reference is specified using the corresponding accession ID.
+
+3. **Dataset version and version tag**: each reference dataset can have multiple versions. New versions are produced during dataset updates. Datasets are versioned to ensure correctness when running with different versions of Nextclade as well as reproducibility of results. For each reference in dataset there is exactly one latest version. It is used as a default when no version is specified. Version tag is the name unique to a given version.
+
+A combination of (1) name, (2) reference sequence accession, (3) version tag uniquely identifies a downloaded dataset instance. These parameters are described in the file `tag.json` in the dataset directory.
 
 ## Using datasets
 
 ### Datasets in Nextclade Web
 
-Nextclade Web loads the latest compatible datasets automatically. User can choose one of the datasets before starting the analysis.
+Nextclade Web loads the latest compatible datasets automatically. User can choose one of the datasets before starting the analysis using dataset selector.
 
-The datasets page (`https://clades.nextstrain.org/data`) displays all the available datasets and allows to download them (individual files or grouped inside a zip archive). These downloaded datasets can be used with Nextclade Web in advanced mode or with Nextclade CLI. They can also serve as a starting point for creating your own datasets.
+
+<!-- The datasets page &#40;`https://clades.nextstrain.org/data`&#41; displays all the available datasets and allows to download them &#40;individual files or grouped inside a zip archive&#41;. These downloaded datasets can be used with Nextclade Web in advanced mode or with Nextclade CLI. They can also serve as a starting point for creating your own datasets. -->
 
 ### Datasets in Nextclade CLI
 
@@ -38,30 +49,59 @@ This will print a list of available datasets to console. More options are availa
 
 #### Download a dataset
 
-The datasets can be downloaded with the `dataset get` subcommand:
+##### Latest dataset
 
-```
-nextclade dataset get --name='sars-cov-2' --output-dir='datasets/'
-```
+The datasets can be downloaded with the `dataset get` subcommand. For example SARS-CoV-2 dataset can be downloaded as follows:
 
-The requested dataset is then downloaded into a subdirectory `datasets/sars-cov-2_{latest_version_tag}`. Where `{latest_version_tag}` is the unique string that identifies the version of the dataset.
-
-If you want to override the subdirectory name, to make paths deterministic (for example for integration into a workflow), use both `--output-dir` and `--output-subdir` flags:
-
-```
-nextclade dataset get --name='sars-cov-2' --output-dir='datasets' --output-subdir='sars-cov-2'
+```bash
+nextclade dataset get --name='sars-cov-2' --output-dir='data/sars-cov-2'
 ```
 
-The latest SARS-CoV-2 dataset will then be downloaded into `datasets/sars-cov-2`.
+The dataset files will be downloaded to the directory `data/sars-cov-2` relative to the working directory.
 
-More options are available to control the exact version being downloaded. See: `nextclade dataset get --help`
+##### Dataset with a specific reference sequence
+
+You can set a reference sequence of the dataset explicitly, for example to always use `MN908947 (Wuhan-Hu-1/2019)` for SARS-CoV-2:
+
+```bash
+nextclade dataset get --name='sars-cov-2' --reference='MN908947' --output-dir='data/sars-cov-2_MN908947'
+```
+
+If using this commands, repeated downloads may produce updated files in the future: after releases of new versions of this dataset. Reference sequence will stay the same even if the SARS-CoV-2 dataset's default reference sequence changes in the future.
+
+> ⚠️ We recommend to give descriptive names to dataset directories to avoid confusion. Currently Nextclade cannot verify that a given batch of user-provided sequences is compatible with a given dataset, and it will silently produce incorrect results.
+
+##### Dataset with a specific reference sequence and version tag
+
+You can set a version tag explicitly. For example to always use the SARS-CoV-2 dataset based on reference sequence `MN908947 (Wuhan-Hu-1/2019)` and a version released on June 25th 2021 (`2021-06-25T00:00:00Z`):
+
+```bash
+nextclade dataset get \
+  --name='sars-cov-2' \
+  --reference='MN908947' \
+  --tag='2021-06-25T00:00:00Z' \
+  --output-dir='data/sars-cov-2_MN908947_2021-06-25T00:00:00Z'
+```
+
+In this case repeated downloads will always produce the same files. This is only recommended if you need strictly reproducible results and don't care about updates. Note that with stale data, new clades and other new features will not be available. For general use, we recommend to periodically download the latest version.
+
+> 💡️ Nextclade project hosts datasets on a very affordable file hosting, with edge caching. We don't impose any rate limits. You are free to download these files reasonably often. For example, for a daily automated workflow it is recommended to download a fresh version of the dataset before every run.
+
+##### Identify already downloaded dataset
+
+Navigate to the dataset directory and find a file named `tag.json`. It contains information about the dataset: name, reference sequence, version tag and some other parameters.
 
 #### Run the analysis with the downloaded dataset
 
-The individual `--input-*` flags can still be use (as if without using datasets feature), but the new `--input-dataset` flag can be used to point Nextclade CLI to a dataset directory:
+The flag `--input-dataset` can be used to point Nextclade CLI to a dataset directory:
 
-```
-nextclade run --input-dataset='datasets/sars-cov-2' --input-fasta='my_sequences.fasta' --output-tsv='output/nextclade.tsv' --output-tree='output/tree.json' --output-dir='output/'
+```bash
+nextclade run \
+  --input-dataset='data/sars-cov-2' \
+  --input-fasta='my_sequences.fasta' \
+  --output-tsv='output/nextclade.tsv' \
+  --output-tree='output/tree.json' \
+  --output-dir='output/'
 ```
 
 This will use all the required files from the dataset, so that the individual paths don't need to be specified explicitly.
@@ -70,9 +110,17 @@ If `--input-dataset` as well as other `--input-*` flags for individual files are
 
 For example, to use a downloaded dataset but to override the reference tree file in it, you could run nextclade as follows:
 
+```bash
+nextclade run \
+  --input-dataset='datasets/sars-cov-2' \
+  --input-fasta='my_sequences.fasta' \
+  --input-tree='my_tree.json' \
+  --output-tsv='output/nextclade.tsv' \
+  --output-tree='output/tree.json' \
+  --output-dir='output/'
 ```
-nextclade run --input-dataset='datasets/sars-cov-2' --input-fasta='my_sequences.fasta' --input-tree='my_tree.json' --output-tsv='output/nextclade.tsv' --output-tree='output/tree.json' --output-dir='output/'
-```
+
+> ⚠️ When overriding dataset files make sure that the individual files are compatible with the dataset (in particular the pathogen and the reference sequence)
 
 See `nextclade run --help` for all the flags related to analysis runs.
 
@@ -100,23 +148,24 @@ Nextclade team hosts a public file server containing all the dataset file themse
 
 At this time we do not support the usage of the dataset repository outside of Nextclade. We cannot guarantee stability of the index file format or of the filesystem structure. They can change without notice.
 
-The code and source data for datasets generation is in the GitHub repository [neherlab/nextclade_data](https://github.com/neherlab/nextclade_data).
+The code and source data for datasets generation is in the GitHub repository: [https://github.com/nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data)
 
 ## Dataset updates
 
-Maintainers add new datasets and dataset versions periodically to the online dataset repository, taking care to ensure compatibility with various versions of Nextclade software in use.  
+Maintainers add new datasets and dataset versions periodically to the online dataset repository, taking care to ensure compatibility with various versions of Nextclade software in use.
 
 A dataset is uniquely identified by its name, e.g. `sars-cov-2` or `flu_vic_ha`.
 
 A version of a given dataset is uniquely identified by:
- - the name of the dataset it belongs to, e.g. `sars-cov-2` or `flu_vic_ha`
- - the version tag, e.g. `2021-06-20T00:00:00Z`
+
+- the name of the dataset it belongs to, e.g. `sars-cov-2` or `flu_vic_ha`
+- the version tag, e.g. `2021-06-20T00:00:00Z`
 
 The dataset version tags are immutable: once a tag released the data for that tag stays the same, and downloads of this specific tag produce the same set of files.
 
 If you need reproducible results, you should:
 
- - "freeze" the version of Nextclade CLI, that is keep the same version of Nextclade CLI across runs (check `nextclade --version`)
- - "freeze" the version tag of the dataset, that is keep the same dataset directory across runs or to redownload it with the specific `--tag`.
+- "freeze" the version of Nextclade CLI, that is keep the same version of Nextclade CLI across runs (check `nextclade --version`)
+- "freeze" the version tag of the dataset, that is keep the same dataset directory across runs or to redownload it with the specific `--tag`.
 
 Nextclade Web always uses the latest versions of datasets available at the moment of loading the main page (reload the page for updates).

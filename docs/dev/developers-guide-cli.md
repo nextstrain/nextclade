@@ -36,26 +36,16 @@ The easiest way to start the development is to use the included docker container
     💡 Quick install for Ubuntu (click to expand)
     </summary>
 
-    You can install required dependencies from 
+    You can install required dependencies with 
 
     ```
-    sudo apt-get install 
-      bash \
-      ccache \
-      cmake \
-      coreutils \
-      file \
-      gdb \
-      g++ \
-      gcc \
-      make \
-      python3 \
-      python3-pip \
-      python3-setuptools \
-      python3-wheel \
+    xargs -a apt-packages.txt sudo apt-get install
 
-    pip3 install --user --upgrade conan cppcheck colorama
+    pip3 install --user --upgrade -r requirements.txt
     ```
+    
+    See `apt-packages.txt` and `requirements.txt` in the root of the project for the full list.
+
     </details>
     </p>
 
