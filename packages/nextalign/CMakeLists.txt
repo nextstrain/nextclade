@@ -40,6 +40,8 @@ add_library(${PROJECT_NAME} STATIC
   src/strip/stripInsertions.h
   src/translate/decode.cpp
   src/translate/decode.h
+  src/translate/detectFrameShifts.cpp
+  src/translate/detectFrameShifts.h
   src/translate/extractGene.cpp
   src/translate/extractGene.h
   src/translate/mapCoordinates.cpp

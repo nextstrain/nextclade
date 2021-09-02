@@ -31,6 +31,11 @@ struct Warnings {
   std::vector<GeneWarning> inGenes;
 };
 
+struct FrameShiftRange {
+  int begin;
+  int end;
+};
+
 struct FrameShift {
   std::string geneName;
 };
