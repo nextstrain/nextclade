@@ -11,10 +11,6 @@
 
 struct NextalignOptions;
 
-struct FrameShiftRange {
-  int begin;
-  int end;
-};
 
 template<typename Letter>
 struct AlignmentResult {

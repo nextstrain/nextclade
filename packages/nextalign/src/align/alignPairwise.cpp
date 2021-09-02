@@ -1,6 +1,7 @@
 #include "alignPairwise.h"
 
 #include <fmt/format.h>
+#include <utils/to_underlying.h>
 
 #include <cmath>
 #include <iostream>
@@ -30,44 +31,50 @@ constexpr const int qryGAPextend = 1 << 4;
 constexpr const int END_OF_SEQUENCE = -1;
 
 
-class FrameShiftState {
+class FrameShiftDetector {
   // NOTE: we detect frameshifts during backward pass, so positions are counted in reverse order
 
-  std::vector<FrameShiftRange> frameShifts;
-  bool isInFrameShift = false;
-  int end = -1;
-  int frame = -1;
+  enum class FrameShiftDirection : int {
+    Deletion = -1,
+    None = 0,
+    Insertion = 1,
+  };
 
-  void update(int pos) {
-    if (!isInFrameShift) {
-      isInFrameShift = true;
+  std::vector<FrameShiftRange> frameShifts;
+  int end = 0;
+  int frame = 0;
+
+  void update(FrameShiftDirection direction, int pos) {
+    int shift = to_underlying(direction);
+    int oldFrame = frame;
+
+    frame += shift;
+    frame %= 3;
+    frame = std::abs(frame);
+
+    if (oldFrame == 0 && frame != 0) {
+      // Passing from no shift to shift: remember the end position of this shift (we iterate backwards)
       end = pos;
+    } else if (oldFrame != 0 && frame == 0) {
+      // Passing from shift to no shift: the shift is over, add it to the array
+      int begin = pos;
+      frameShifts.emplace_back(FrameShiftRange{.begin = begin, .end = end});
     }
   }
 
 public:
-  explicit FrameShiftState(int startFrame) : frame(startFrame) {}
+  explicit FrameShiftDetector(int startFrame) : frame(startFrame) {}
 
   [[nodiscard]] std::vector<FrameShiftRange> getFrameShifts() const {
     return frameShifts;
   }
 
   void addInsertion(int pos) {
-    frame += 1;
-    update(pos);
+    update(FrameShiftDirection::Insertion, pos);
   }
 
   void addDeletion(int pos) {
-    frame -= 1;
-    update(pos);
-  }
-
-  void reset(int pos) {
-    if (isInFrameShift) {
-      frameShifts.push_back(FrameShiftRange{.begin = pos, .end = end - 1});
-      isInFrameShift = false;
-      end = -1;
-    }
+    update(FrameShiftDirection::Deletion, pos);
   }
 };
 
@@ -417,7 +424,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
 
   // do backtrace for aligned region
   const auto frame = rPos % 3;
-  auto frameShiftState = FrameShiftState(frame);
+  auto frameShiftState = FrameShiftDetector(frame);
   while (rPos >= 0 && qPos >= 0) {
     origin = paths(si, rPos + 1);
     // std::cout<<si<<" "<<rPos<<" "<<origin<<" "<<currentMatrix<<"\n";
@@ -427,7 +434,6 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
       aln_ref += ref[rPos];
       qPos--;
       rPos--;
-      frameShiftState.reset(rPos);
     } else if ((origin & refGAPmatrix && currentMatrix == 0) || currentMatrix == refGAPmatrix) {
       // insertion in ref -- decrement query, increase shift
       aln_query += query[qPos];
