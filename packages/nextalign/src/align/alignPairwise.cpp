@@ -1,7 +1,6 @@
 #include "alignPairwise.h"
 
 #include <fmt/format.h>
-#include <utils/to_underlying.h>
 
 #include <cmath>
 #include <iostream>
@@ -11,7 +10,8 @@
 #include "../match/matchAa.h"
 #include "../match/matchNuc.h"
 #include "../utils/safe_cast.h"
-
+#include "../utils/to_underlying.h"
+#include "../utils/wraparound.h"
 
 namespace details {
   inline int round(double x) {
@@ -49,16 +49,16 @@ class FrameShiftDetector {
     int oldFrame = frame;
 
     frame += shift;
-    frame %= 3;
-    frame = std::abs(frame);
+    frame = wraparound(frame, 3);
 
     if (oldFrame == 0 && frame != 0) {
       // Passing from no shift to shift: remember the end position of this shift (we iterate backwards)
-      end = pos;
+      frameShifts.emplace_back(FrameShiftRange{.begin = pos - 1, .end = pos});
     } else if (oldFrame != 0 && frame == 0) {
+      invariant_greater(frameShifts.size(), 0);
       // Passing from shift to no shift: the shift is over, add it to the array
-      int begin = pos;
-      frameShifts.emplace_back(FrameShiftRange{.begin = begin, .end = end});
+      auto& last = frameShifts.back();
+      last.begin = pos - 1;
     }
   }
 
@@ -423,8 +423,8 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   }
 
   // do backtrace for aligned region
-  const auto frame = rPos % 3;
-  auto frameShiftState = FrameShiftDetector(frame);
+  //  const auto frame = rPos % 3;
+  auto frameShiftState = FrameShiftDetector(/*frame*/ 0);
   while (rPos >= 0 && qPos >= 0) {
     origin = paths(si, rPos + 1);
     // std::cout<<si<<" "<<rPos<<" "<<origin<<" "<<currentMatrix<<"\n";
@@ -438,7 +438,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
       // insertion in ref -- decrement query, increase shift
       aln_query += query[qPos];
       aln_ref += Letter::GAP;
-      frameShiftState.addDeletion(rPos);
+      frameShiftState.addDeletion(qPos);
       qPos--;
       si++;
       if (origin & refGAPextend) {
@@ -452,7 +452,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
       // deletion in query -- decrement reference, reduce shift
       aln_query += Letter::GAP;
       aln_ref += ref[rPos];
-      frameShiftState.addInsertion(rPos);
+      frameShiftState.addInsertion(qPos);
       rPos--;
       si--;
       if (origin & qryGAPextend) {
