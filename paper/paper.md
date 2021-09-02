@@ -113,7 +113,7 @@ Nextalign was written for a very specific use case: pairwise alignment of simila
 For more diverse data sets, tools like `mafft` or `minimap2` are likely more robust.
 
 As sequencing of pathogens becomes more wide-spread, bioinformatic analyses of such data increasingly becomes a bottleneck.
-We aim to increase the number of pathogens covered by `Nextclade` and hope that it will help users with variable (???) to gain as much insight into their own data as easily as possible.
+We aim to increase the number of pathogens covered by `Nextclade` and hope that it will help users with variable experience levels to gain as much insight into their own data as easily as possible.
 
 
 # Acknowledgements
