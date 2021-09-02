@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME}
   removeGaps.test.cpp
   stripInsertions.test.cpp
   translate.test.cpp
+  wraparound.test.cpp
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
