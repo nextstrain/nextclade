@@ -62,6 +62,7 @@ add_library(${PROJECT_NAME} STATIC
   src/utils/safe_cast.h
   src/utils/to_underlying.h
   src/utils/vector2d.h
+  src/utils/wraparound.h
   )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
