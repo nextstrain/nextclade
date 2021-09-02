@@ -2,6 +2,7 @@
 
 /**
  * Wraps given integer `x` (positive or negative) around `period`.
+ * Negative values are wrapped backwards.
  *
  * Examples with period=3:
  *   6 --> 0

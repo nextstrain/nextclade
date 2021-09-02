@@ -36,6 +36,10 @@ struct FrameShiftRange {
   int end;
 };
 
+inline bool operator==(const FrameShiftRange& left, const FrameShiftRange& right) {
+  return left.begin == right.begin && left.end == right.end;
+}
+
 struct FrameShift {
   std::string geneName;
 };
