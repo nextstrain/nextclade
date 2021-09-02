@@ -13,7 +13,7 @@ class FrameShiftDetector {
 
   std::vector<FrameShiftRange> frameShifts;
   int frame = 0;
-  int end = 0;
+  int end = -1;
 
   /** Remembers a new frame shift */
   void addNewShift(int begin) {
