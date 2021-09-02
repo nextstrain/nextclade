@@ -11,12 +11,6 @@ authors:
     affiliation: "1, 2"
   - name: Emma B. Hodcroft
     affiliation: "2, 3"
-  - name: John Huddleston
-    affiliation: "4"
-  - name: James Hadfield
-    affiliation: "4"
-  - name: Trevor Bedford
-    affiliation: "4, 5"
   - name: Richard A. Neher^[corresponding author]
     affiliation: "1, 2"
     orcid: 0000-0003-2525-1407
@@ -27,11 +21,7 @@ affiliations:
    index: 2
  - name: Institute of Social and Preventive Medicine, University of Bern, Bern, Switzerland
    index: 3
- - name: Molecular and Cellular Biology Program, University of Washington, Seattle, WA, USA
-   index: 4
- - name: Vaccine and Infectious Disease Division, Fred Hutchinson Cancer Research Center, Seattle, WA, USA
-   index: 5
-date: 15 July 2021
+date: 3 September 2021
 bibliography: paper.bib
 
 ---
