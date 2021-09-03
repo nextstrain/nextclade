@@ -48,7 +48,7 @@ During the SARS-CoV-2 pandemic, `Nextclade` has already allowed countless users 
 
 # Implementation
 
-`Nextclade` family of tools consists of:
+The `Nextclade` tool family consists of:
 
  - Nextclade Web
  - Nextclade CLI
