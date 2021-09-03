@@ -7,6 +7,7 @@ tags:
 authors:
   - name: Ivan Aksamentov
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
+    orcid: 0000-0002-7557-9673
   - name: Cornelius Roemer
     affiliation: "1, 2"
     orcid: 0000-0002-6138-6539
