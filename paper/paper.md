@@ -73,7 +73,7 @@ In the following example, the gap could be moved forward or backward by one base
 Similarly, `Nextalign` preferentially places gaps outside of genes in case of ambiguities.
 
 In addition to nucleotide alignments, `Nextalign` will extract the aligned coding sequences, translate them, and perform pairwise amino-acid alignments.
-These amino-acid alignments are produced along side the nucleotide alignment and are used by `Nextclade` to determine amino-acid changes.
+These amino-acid alignments are produced alongside the nucleotide alignment and are used by `Nextclade` to determine amino-acid changes.
 All alignment parameters can be configured via CLI flags.
 
 ## Nextclade
