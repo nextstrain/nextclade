@@ -1,5 +1,5 @@
 ---
-title: 'Nextclade: clade assignment, mutation calling and QC for viral genomes'
+title: 'Nextclade: clade assignment, mutation calling and quality control for viral genomes'
 tags:
   - phylogenetics
   - typing
@@ -30,7 +30,7 @@ bibliography: paper.bib
 
 The variants of concern (VoCs) of SARS-CoV-2 have highlighted the need for a global molecular surveillance of pathogens via whole genome sequencing.
 Such sequencing, for SARS-CoV-2 and other pathogens, is performed by an ever increasing number of labs across the globe, resulting in an increased need for an easy, fast, and decentralized analysis of initial data.
-`Nextclade` aligns viral genomes to a reference sequence, calculates several QC metrics, assigns sequences to a clade or variant, and identifies changes in the viral proteins relative to the reference sequence.
+`Nextclade` aligns viral genomes to a reference sequence, calculates several quality control (QC) metrics, assigns sequences to a clade or variant, and identifies changes in the viral proteins relative to the reference sequence.
 `Nextclade` is available as a command-line tool and as a web application with completely client based processing, meaning that sequence data doesn't leave the user's browser.
 
 
