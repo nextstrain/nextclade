@@ -58,7 +58,7 @@ All tools are meant to align multiple sequences to one common reference sequence
 
 ## Nextalign
 
-`Nextalign` implements a banded pairwise Smith-Waterman alignment with an affine gap cost.
+`Nextalign` implements a banded pairwise Smith-Waterman alignment with an affine gap cost [@smith_identifying_1981].
 The bandwidth and relative shift of the two sequences are determined by seed matching.
 In contrast to most other existing tools (e.g.~`minimap2` [@li_minimap2_2018] or `mafft` [@katoh_mafft_2013]), `Nextalign` can ingest a genome annotation specifying coding regions and will then make the gap-opening penalty dependent on the reading frame.
 This allows `Nextalign` to choose the most biologically interpretable gap-placing between otherwise equivalent alignments.
@@ -103,7 +103,7 @@ To run the `Nextclade` CLI, the user needs to provide a reference sequence, an a
 We currently maintain such data sets for SARS-CoV-2 and the four seasonal influenza viruses, and these are automatically available in the web tool.
 The `nextclade` CLI tool includes `dataset list` and `dataset get` commands to explore and download available datasets.
 The SARS-CoV-2 tree is labeled with the Nextstrain clade annotations for SARS-CoV-2 following a year-letter pattern like `20A` and are coupled to the WHO variant label were available (e.g. `21A (Delta)`) [@konings_sars-cov-2_2021].
-Influenza trees are labeled with clades currently used by the WHO collaborating centers to describe(?) circulating influenza virus diversity.
+Influenza trees are labeled with clades currently used on Nextstrain to describe circulating influenza virus diversity.
 
 
 # Discussion
