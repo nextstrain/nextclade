@@ -90,7 +90,7 @@ Details of the algorithm and the different QC metrics are described in the docum
 
 ## Web interface
 
-While CLI tools are most appropriate for bulk processing, processing of up to a few hundreds of sequences is feasible and possibly more convenient via a graphical interface coupled to a visualization.
+While CLI tools are most appropriate for bulk processing, analyzing up to a few hundred sequences is feasible and possibly more convenient via a graphical interface coupled to a visualization.
 Nextclade enables this via a completely client side web-application onto which users can drop a fasta file with sequences.
 The results are displayed in an interactive viewer that highlights QC results and nucleotide mutations (see \autoref{fig:screenshot_overview}), and allows users to explore the effects of complex mutations on the viral proteins (see \autoref{fig:tooltip}).
 The QC results, variant calls, and the full alignment can be downloaded from the web application for further analysis.
