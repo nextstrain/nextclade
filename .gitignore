@@ -27,3 +27,4 @@ node_modules
 paper/paper.pdf
 tmp
 build/
+*.bak
