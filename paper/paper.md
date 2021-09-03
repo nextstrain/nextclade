@@ -58,7 +58,7 @@ All tools are meant to align multiple sequences to one common reference sequence
 
 ## Nextalign
 
-`Nextalign` implements a banded pairwise Smith-Waterman alignment with an affine gap cost [@smith_identifying_1981].
+`Nextalign` implements a banded pairwise Smith-Waterman alignment with an affine gap cost [@smith_identification_1981].
 The bandwidth and relative shift of the two sequences are determined by seed matching.
 In contrast to most other existing tools (e.g.~`minimap2` [@li_minimap2_2018] or `mafft` [@katoh_mafft_2013]), `Nextalign` can ingest a genome annotation specifying coding regions and will then make the gap-opening penalty dependent on the reading frame.
 This allows `Nextalign` to choose the most biologically interpretable gap-placing between otherwise equivalent alignments.
