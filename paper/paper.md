@@ -45,13 +45,13 @@ During the SARS-CoV-2 pandemic, `Nextclade` has already allowed countless users 
 
 # Implementation
 `Nextclade` consists of the packages `nextalign`, `nextalign_cli`, `nextclade`, `nextclade_cli`, and the `web` tool.
-The first four are implemented in C++ and represent the libary and CLI components of the two tools `nextalign` and `nextclade`.
+The first four are implemented in C++ and represent the library and CLI components of the two tools `nextalign` and `nextclade`.
 The web-tool uses web assembly to compile the C++ code and interfaces it with a React application written in type-script.
 All tools are meant to align multiple sequences to one common reference sequence.
 
 ## Nextalign
 
-`Nextalign` implementes a banded pairwise Smith-Waterman alignment with an affine gap cost.
+`Nextalign` implements a banded pairwise Smith-Waterman alignment with an affine gap cost.
 The bandwidth and relative shift of the two sequences are determined by seed matching.
 In contrast to most other existing tools (e.g.~`minimap2` [@li_minimap2_2018] or `mafft` [@katoh_mafft_2013]), `Nextalign` can ingest a genome annotation specifying coding regions and will then make the gap-opening penalty dependent on the reading frame.
 This allows `Nextalign` to choose the most biologically interpretable gap-placing between otherwise equivalent alignments.
@@ -90,7 +90,7 @@ The results are displayed in an interactive viewer that highlights QC results an
 The QC results, variant calls, and the full alignment can be downloaded from the web application for further analysis.
 Users can also view the placement of the query sequences in the reference tree through an interactive interface.
 
-![Overview of the results page with clade assignements, QC metrics, and the nucleotide mutation view. The results can be explored interactively and exported in standard tabular file formats.\label{fig:screenshot_overview}](figures/overview.png)
+![Overview of the results page with clade assignments, QC metrics, and the nucleotide mutation view. The results can be explored interactively and exported in standard tabular file formats.\label{fig:screenshot_overview}](figures/overview.png)
 
 ![Mutations in each gene can be explored interactively using tool-tips that show how the changes in the nucleotide sequence correspond to changes in the viral proteins. This is particularly useful when complex mutations, such as the six base deletion in the above example, affect multiple codons. \label{fig:tooltip}](figures/tooltip.png)
 
