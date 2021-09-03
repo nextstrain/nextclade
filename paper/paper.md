@@ -113,10 +113,10 @@ Influenza trees are labeled with the clades currently used by Nextstrain to desc
 
 `Nextclade` was developed in response to the increasing need for laboratories around the world to quickly assess the quality of their newly generated SARS-CoV-2 sequences, categorize them into different variants and clades, and investigate their mutational profiles.
 While `Nextclade` has some similarities to UShER [@turakhia_ultrafast_2021], these two tools address different use cases.
-UShER places sequences on a comprehensive tree with hundreds of thousands of leaves and further refines the phylogenetic relationship of the user supplied sequences to analyze the fine-scale relationship between the user supplied sequences and other publicly available data. Supplied sequences need to be uploaded to UShER's servers where processing takes place. 
+UShER places sequences on a comprehensive tree with hundreds of thousands of leaves and further refines the phylogenetic relationship of the user supplied sequences to analyze the fine-scale relationship between the user supplied sequences and other publicly available data. Supplied sequences need to be uploaded to UShER's servers where processing takes place.
 `Nextclade` provides a completely client-side analysis of sequences with a focus on QC, clade assignment, and investigation of variation.
 Nextalign was written for a very specific use case: fast pairwise alignment of similar sequences ($<10\%$ divergence) with limited insertions and deletions.
-For more diverse data sets, tools like `mafft` or `minimap2` are likely more robust but at a cost of increased runtime.
+For more diverse data sets, tools like `mafft` or `minimap2` are likely more robust.
 
 As sequencing of pathogens becomes more wide-spread, bioinformatic analyses of such data increasingly becomes a bottleneck.
 We aim to increase the number of pathogens for which `Nextclade` datasets are provided and hope that it will help users with variable experience levels easily gain as much insight into their own data as possible.
