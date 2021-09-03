@@ -92,8 +92,8 @@ Details of the algorithm and the different QC metrics are described in the docum
 
 While CLI tools are most appropriate for bulk processing, analyzing up to a few hundred sequences is feasible and possibly more convenient via a graphical interface coupled to a visualization.
 Nextclade enables this via a completely client side web-application onto which users can drop a fasta file with sequences.
-The results are displayed in an interactive viewer that highlights QC results and nucleotide mutations (see \autoref{fig:screenshot_overview}), and allows users to explore the effects of complex mutations on the viral proteins (see \autoref{fig:tooltip}).
-The QC results, variant calls, and the full alignment can be downloaded from the web application for further analysis.
+The results are displayed in an interactive viewer that highlights QC metrics and nucleotide mutations (see \autoref{fig:screenshot_overview}), and allows users to explore the effects of complex mutations on viral proteins (see \autoref{fig:tooltip}).
+QC results, variant calls, and the full alignment can be downloaded from the web application for further analysis.
 Users can also view the placement of the query sequences in the reference tree through an interactive interface.
 
 ![Overview of the results page with clade assignments, QC metrics, and the nucleotide mutation view. The results can be explored interactively and exported in standard tabular file formats.\label{fig:screenshot_overview}](figures/overview.png)
@@ -103,28 +103,29 @@ Users can also view the placement of the query sequences in the reference tree t
 ## Nextclade datasets
 
 To run the `Nextclade` CLI, the user needs to provide a reference sequence, an annotation, a labeled tree, a QC configuration and optionally a set of primers.
-We currently maintain such data sets for SARS-CoV-2 and the four seasonal influenza viruses, and these are automatically available in the web tool.
+We currently maintain such data sets for SARS-CoV-2 and the four seasonal influenza viruses. These are automatically available in the web tool.
 The `nextclade` CLI tool includes `dataset list` and `dataset get` commands to explore and download available datasets.
-The SARS-CoV-2 tree is labeled with the Nextstrain clade annotations for SARS-CoV-2 following a year-letter pattern like `20A` and are coupled to the WHO variant label were available (e.g. `21A (Delta)`) [@konings_sars-cov-2_2021].
-Influenza trees are labeled with clades currently used on Nextstrain to describe circulating influenza virus diversity.
+The SARS-CoV-2 tree is labeled with the Nextstrain clade annotations for SARS-CoV-2 which follow a year-letter pattern (e.g. `20A`) and coupled with the corresponding WHO variant label where available (e.g. `21A (Delta)`) [@konings_sars-cov-2_2021].
+Influenza trees are labeled with the clades currently used by Nextstrain to describe circulating influenza virus diversity.
 
 
 # Discussion
 
-`Nextclade` was implemented to respond to the increasing need for laboratories around the world to quickly assess the quality of their newly generated SARS-CoV-2 sequences, categorize them into different variants and clades, and investigate their mutational profiles.
+`Nextclade` was developed in response to the increasing need for laboratories around the world to quickly assess the quality of their newly generated SARS-CoV-2 sequences, categorize them into different variants and clades, and investigate their mutational profiles.
 While `Nextclade` has some similarities to UShER [@turakhia_ultrafast_2021], these two tools address different use cases.
-UShER allows to place sequences on a comprehensive tree of hundreds of thousands of leaves and further refines the phylogenetic relationship of the user supplied sequences to analyze the fine-scale relationship between the user supplied sequences and other publicly available data.
+UShER places sequences on a comprehensive tree with hundreds of thousands of leaves and further refines the phylogenetic relationship of the user supplied sequences to analyze the fine-scale relationship between the user supplied sequences and other publicly available data. Supplied sequences need to be uploaded to UShER's servers where processing takes place. 
 `Nextclade` provides a completely client-side analysis of sequences with a focus on QC, clade assignment, and investigation of variation.
-Nextalign was written for a very specific use case: pairwise alignment of similar sequences ($<10\%$ divergence) with limited insertions and deletions.
-For more diverse data sets, tools like `mafft` or `minimap2` are likely more robust.
+Nextalign was written for a very specific use case: fast pairwise alignment of similar sequences ($<10\%$ divergence) with limited insertions and deletions.
+For more diverse data sets, tools like `mafft` or `minimap2` are likely more robust but at a cost of increased runtime.
 
 As sequencing of pathogens becomes more wide-spread, bioinformatic analyses of such data increasingly becomes a bottleneck.
-We aim to increase the number of pathogens covered by `Nextclade` and hope that it will help users with variable experience levels to gain as much insight into their own data as easily as possible.
+We aim to increase the number of pathogens for which `Nextclade` datasets are provided and hope that it will help users with variable experience levels easily gain as much insight into their own data as possible.
 
 
 # Acknowledgments
 
 We gratefully acknowledge the generous public sharing of sequence data by many labs around the world that make tools like `Nextclade` possible and useful.
 We are also grateful for feedback from the `Nextstrain` team and the wider community for critical feedback and suggestions on how to improve the tools.
+Calculations were performed at sciCORE (http://scicore.unibas.ch/) scientific computing center at the University of Basel.
 
 # References
