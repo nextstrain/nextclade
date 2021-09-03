@@ -6,37 +6,20 @@
 #include <utils/wraparound.h>
 
 class FrameShiftDetector {
-  enum class FrameShiftDirection : int {
-    Deletion = -1,
-    Insertion = 1,
-  };
+  static constexpr int POSITION_INVALID = -1;
 
   std::vector<FrameShiftRange> frameShifts;
+  int oldFrame = 0;
   int frame = 0;
-  int end = -1;
+  int begin = POSITION_INVALID;
+  int end = POSITION_INVALID;
+  bool dirty = false;
 
-  /** Remembers a new frame shift */
-  void addNewShift(int begin) {
-    frameShifts.emplace_back(FrameShiftRange{.begin = begin, .end = end});
-  }
-
-  /** Takes last remembered frame shift and extends it */
-  void extendLastShift() {
-    invariant_greater(frameShifts.size(), 0);
-    auto& last = frameShifts.back();
-    last.end = end;
-  }
-
-  /** Updates detector's state, potentially adds new shifts, and extends previous ones */
-  void update(FrameShiftDirection direction, int pos) {
-    int shift = to_underlying(direction);
-
-    const int oldFrame = frame;
-    frame += shift;
+  /** Updates detector's state */
+  void update(int shift, int pos) {
+    oldFrame = frame;
+    frame -= shift;
     frame = wraparound(frame, 3);
-
-    const int oldEnd = end;
-    end = pos + 1;
 
     // Whether transitioned from no shift to shift
     const bool toShift = oldFrame == 0 && frame != 0;
@@ -44,20 +27,18 @@ class FrameShiftDetector {
     // Whether transitioned from shift to no shift
     const bool toNoShift = oldFrame != 0 && frame == 0;
 
-    // Whether this shift is adjacent to another shift before it
-    const bool isAdjacent = end - oldEnd == 1;
+    if (toNoShift) {
+      end = pos;
+    }
 
-    // If we just transitioned to shifted state and there is no adjacent shift, then we should add a new shift object.
-    if (toShift && !isAdjacent) {
-      addNewShift(pos);
+    if (toShift || toNoShift) {
+      dirty = true;
     }
-    // If we:
-    //  - just transitioned to non-shifted state
-    //  - or we are still in shifted state and there is an adjacent shift preceding
-    // then extend the last remembered shift
-    else if (toNoShift || isAdjacent) {
-      extendLastShift();
-    }
+  }
+
+  void reset() {
+    begin = POSITION_INVALID;
+    end = POSITION_INVALID;
   }
 
 public:
@@ -68,21 +49,38 @@ public:
   }
 
   void addInsertion(int pos) {
-    update(FrameShiftDirection::Insertion, pos);
+    update(-1, pos);
   }
 
   void addDeletion(int pos) {
-    update(FrameShiftDirection::Deletion, pos);
+    update(+1, pos);
+  }
+
+  void advance(int pos) {
+    if (!dirty) {
+      return;
+    }
+
+    if (frame == 0 && begin != POSITION_INVALID) {
+      frameShifts.push_back(FrameShiftRange{.begin = begin, .end = end});
+      reset();
+    }
+
+    if (frame != 0) {
+      begin = pos;
+    }
+
+    dirty = false;
   }
 
   void done(int pos) {
-    end = pos + 1;
-    if (frame != 0) {
-      // We are at the end of sequence. If we are still in shift, terminate it.
-      extendLastShift();
+    if (begin != POSITION_INVALID) {
+      frameShifts.push_back(FrameShiftRange{.begin = begin, .end = pos + 1});
+      reset();
     }
   }
 };
+
 
 FrameShiftResults detectFrameShifts(const NucleotideSequence& ref, const NucleotideSequence& query) {
   precondition_equal(ref.size(), query.size());
@@ -94,6 +92,8 @@ FrameShiftResults detectFrameShifts(const NucleotideSequence& ref, const Nucleot
       frameShiftDetector.addInsertion(pos);
     } else if (query[pos] == Nucleotide::GAP) {
       frameShiftDetector.addDeletion(pos);
+    } else {
+      frameShiftDetector.advance(pos);
     }
   }
   frameShiftDetector.done(length - 1);

@@ -34,72 +34,107 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfNoIndels) {
   EXPECT_EQ(actual, expected);
 }
 
-//TEST_F(DetectFrameShifts, DetectsNoShiftsIf3xDelsAdjacent) {
-//  std::stringstream input;
-//
-//  // clang-format off
-//  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
-//  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTAT---TAACAGAACATTCTTGGAATGCTGATC" );
-//  // clang-format on
-//
-//  const auto result = detectFrameShifts(refAln, qryAln);
-//  const auto& actual = result.frameShifts;
-//
-//  const std::vector<FrameShiftRange> expected = {};
-//
-//  EXPECT_EQ(actual, expected);
-//}
-//
-//
-//TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletaionsAreModulo3) {
-//  std::stringstream input;
-//
-//  // clang-format off
-//  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
-//  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCG---CTATAGATAACAGAACA---TTGGAATGCTGATC" );
-//  // clang-format on
-//
-//  const auto result = detectFrameShifts(refAln, qryAln);
-//  const auto& actual = result.frameShifts;
-//
-//  const std::vector<FrameShiftRange> expected = {};
-//
-//  EXPECT_EQ(actual, expected);
-//}
-//
-//
-//TEST_F(DetectFrameShifts, DetectsNoShiftsIf3xInsertionsAdjacent) {
-//  std::stringstream input;
-//
-//  // clang-format off
-//  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
-//  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTAT---TAACAGAACATTCTTGGAATGCTGATC" );
-//  // clang-format on
-//
-//  const auto result = detectFrameShifts(refAln, qryAln);
-//  const auto& actual = result.frameShifts;
-//
-//  const std::vector<FrameShiftRange> expected = {};
-//
-//  EXPECT_EQ(actual, expected);
-//}
-//
-//
-//TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3) {
-//  std::stringstream input;
-//
-//  // clang-format off
-//  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCG---CTATAGATAACAGAACA---TTGGAATGCTGATC" );
-//  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
-//  // clang-format on
-//
-//  const auto result = detectFrameShifts(refAln, qryAln);
-//  const auto& actual = result.frameShifts;
-//
-//  const std::vector<FrameShiftRange> expected = {};
-//
-//  EXPECT_EQ(actual, expected);
-//}
+TEST_F(DetectFrameShifts, DetectsNoShiftsIf3xDelsAdjacent) {
+  std::stringstream input;
+
+  // clang-format off
+  //                                                   10        20        30        40        50
+  //                                                   |         |         |         |         |
+  //                                         012345678901234567890123456789012345678901234567890
+  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
+  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTAT---TAACAGAACATTCTTGGAATGCTGATC" );
+  // frame                                   00000000000000000000120000000000000000000000000000
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {};
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletaionsAreModulo3) {
+  std::stringstream input;
+
+  // clang-format off
+  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
+  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCG---CTATAGATAACAGAACA---TTGGAATGCTGATC" );
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {};
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletaionsAreModulo3Adjacent) {
+  std::stringstream input;
+
+  // clang-format off
+  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
+  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCG------TAGATAACAGAACA---TTGGAATGCTGATC" );
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {};
+
+  EXPECT_EQ(actual, expected);
+}
+
+
+TEST_F(DetectFrameShifts, DetectsNoShiftsIf3xInsertionsAdjacent) {
+  std::stringstream input;
+
+  // clang-format off
+  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
+  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTAT---TAACAGAACATTCTTGGAATGCTGATC" );
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {};
+
+  EXPECT_EQ(actual, expected);
+}
+
+
+TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3) {
+  std::stringstream input;
+
+  // clang-format off
+  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCG---CTATAGATAACAGAACA---TTGGAATGCTGATC" );
+  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {};
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent) {
+  std::stringstream input;
+
+  // clang-format off
+  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCG---CTATAGATAACAGAACA---TTGGAATGCTGATC" );
+  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {};
+
+  EXPECT_EQ(actual, expected);
+}
 
 
 TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xDeletion) {
@@ -112,17 +147,16 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xDeletion) {
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAACATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "-TAGATAACAGAACATTCTTGGAATGCTGATC" );
   // frame                                                        11111111111111111111111111111111
-  // frame shift ranges                                           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-  //
-  //                                                              ^                               ^
-  //                                                             18                               50
+  // frame shift ranges                                            xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  //                                                               ^                              ^
+  //                                                               19                             50
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 50},
+    FrameShiftRange{.begin = 19, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -138,17 +172,17 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentDeletions) {
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAACATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "--AGATAACAGAACATTCTTGGAATGCTGATC" );
   // frame                                                        12222222222222222222222222222222
-  // frame shift ranges                                           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  // frame shift ranges                                             xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   //
-  //                                                              ^                               ^
-  //                                                             18                               50
+  //                                                                ^                             ^
+  //                                                                20                            50
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 50},
+    FrameShiftRange{.begin = 20, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -164,16 +198,16 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2Deletions) {
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAAC" "ATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "--AGATAACAGAA-" "ATTCTTGGAATGCTGATC" );
   // frame                                   000000000000000000   12222222222220   000000000000000000
-  // frame shift ranges                                           xxxxxxxxxxxxxx
-  //                                                              ^             ^
-  //                                                             18             32
+  // frame shift ranges                                             xxxxxxxxxxx
+  //                                                                ^          ^
+  //                                                                20         31
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 32},
+    FrameShiftRange{.begin = 20, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -190,16 +224,16 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo3Deletions) {
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAAC" "ATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "-TAGAT-ACAGAA-" "ATTCTTGGAATGCTGATC" );
   // frame                                   000000000000000000   11111122222220   000000000000000000
-  // frame shift ranges                                           xxxxxxxxxxxxxx
-  //                                                              ^             ^
-  //                                                             18             32
+  // frame shift ranges                                            xxxxxxxxxxxx
+  //                                                               ^           ^
+  //                                                               19          31
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 32},
+    FrameShiftRange{.begin = 19, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -216,21 +250,45 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentDeletionsLeadi
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "--TGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
   // frame                                   12222222222222222222222222222222222222222222222222
-  // frame shift ranges                      xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-  //
-  //                                         ^                                                 ^
-  //                                         0                                                 50
+  // frame shift ranges                        xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  //                                           ^                                               ^
+  //                                           2                                               50
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 0, .end = 50},
+    FrameShiftRange{.begin = 2, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
 }
+
+
+TEST_F(DetectFrameShifts, DetectsNoShiftDueTo2xAdjacentDeletionsTrailing) {
+  std::stringstream input;
+
+  // clang-format off
+  //                                                   10        20        30        40        50
+  //                                                   |         |         |         |         |
+  //                                         012345678901234567890123456789012345678901234567890
+  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
+  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGA--" );
+  // frame                                   00000000000000000000000000000000000000000000000012
+  // frame shift ranges                                                                      xx
+  //                                                                                         ^  ^
+  //                                                                                         48 50
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {};
+
+  EXPECT_EQ(actual, expected);
+}
+
 
 TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xInsertion) {
   std::stringstream input;
@@ -241,18 +299,18 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xInsertion) {
   //                                         012345678901234567   890123456789012345678901234567890
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "-TAGATAACAGAACATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAACATTCTTGGAATGCTGATC" );
-  // frame                                                        11111111111111111111111111111111
-  // frame shift ranges                                           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  // frame                                                        22222222222222222222222222222222
+  // frame shift ranges                                            xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   //
-  //                                                              ^                               ^
-  //                                                             18                               50
+  //                                                               ^                             ^
+  //                                                               19                            50
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 50},
+    FrameShiftRange{.begin = 19, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -268,17 +326,16 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentInsertions) {
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "--AGATAACAGAACATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAACATTCTTGGAATGCTGATC" );
   // frame                                                        12222222222222222222222222222222
-  // frame shift ranges                                           xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-  //
-  //                                                              ^                               ^
-  //                                                             18                               50
+  // frame shift ranges                                             xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  //                                                                ^                             ^
+  //                                                                20                            50
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 50},
+    FrameShiftRange{.begin = 20, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -294,16 +351,16 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2Insertions) {
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "--AGATAACAGAA-" "ATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAAC" "ATTCTTGGAATGCTGATC" );
   // frame                                   000000000000000000   12222222222220   000000000000000000
-  // frame shift ranges                                           xxxxxxxxxxxxxx
-  //                                                              ^             ^
-  //                                                             18             32
+  // frame shift ranges                                             xxxxxxxxxxx
+  //                                                                ^          ^
+  //                                                               20          31
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 32},
+    FrameShiftRange{.begin = 20, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -320,16 +377,16 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo3Insertions) {
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "-TAGAT-ACAGAA-" "ATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAAC" "ATTCTTGGAATGCTGATC" );
   // frame                                   000000000000000000   11111122222220   000000000000000000
-  // frame shift ranges                                           xxxxxxxxxxxxxx
-  //                                                              ^             ^
-  //                                                             18             32
+  // frame shift ranges                                            xxxxxxxxxxxx
+  //                                                               ^           ^
+  //                                                               19          31
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 32},
+    FrameShiftRange{.begin = 19, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -346,21 +403,44 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentInsertionsLead
   const auto refAln = toNucleotideSequence( "--TGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
   // frame                                   12222222222222222222222222222222222222222222222222
-  // frame shift ranges                      xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  // frame shift ranges                        xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   //
-  //                                         ^                                                 ^
-  //                                         0                                                 50
+  //                                           ^                                               ^
+  //                                           2                                               50
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 0, .end = 50},
+    FrameShiftRange{.begin = 2, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
 }
+
+
+TEST_F(DetectFrameShifts, DetectsNoShiftDueTo2xAdjacentInsertionsTrailing) {
+  std::stringstream input;
+
+  // clang-format off
+  //                                                   10        20        30        40        50
+  //                                                   |         |         |         |         |
+  //                                         012345678901234567890123456789012345678901234567890
+  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGA--" );
+  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
+  // frame                                   00000000000000000000000000000000000000000000000012
+  // frame shift ranges
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {};
+
+  EXPECT_EQ(actual, expected);
+}
+
 
 TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueToInsertionAndDeletion) {
   std::stringstream input;
@@ -372,72 +452,72 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueToInsertionAndDeletion) {
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "-TAGATAACAGAAC" "ATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAA-" "ATTCTTGGAATGCTGATC" );
   // frame                                   000000000000000000   11111111111110   000000000000000000
-  // frame shift ranges                                           xxxxxxxxxxxxxx
-  //                                                              ^             ^
-  //                                                             18             32
+  // frame shift ranges                                            xxxxxxxxxxxx
+  //                                                               ^           ^
+  //                                                               19          31
   // clang-format on
 
   const auto result = detectFrameShifts(refAln, qryAln);
   const auto& actual = result.frameShifts;
 
   const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 32},
+    FrameShiftRange{.begin = 19, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
 }
 
 
-TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2xInsertionsAnd2xDeletions) {
-  std::stringstream input;
-
-  // clang-format off
-  //                                                   10           20        30           40        50
-  //                                                   |            |         |            |         |
-  //                                         012345678901234567   89012345678901   2345678901234567890
-  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "--AGATAACAGAAC" "ATTCTTGGAATGCTGATC" );
-  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGA--" "ATTCTTGGAATGCTGATC" );
-  // frame                                   000000000000000000   12222222222210   000000000000000000
-  // frame shift ranges                                           xxxxxxxxxxxxxx
-  //                                                              ^             ^
-  //                                                             18             32
-  // clang-format on
-
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
-
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 32},
-  };
-
-  EXPECT_EQ(actual, expected);
-}
-
-
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAnd1xDeletion) {
-  std::stringstream input;
-
-  // clang-format off
-  //                                                   10           20        30           40        50
-  //                                                   |            |         |            |         |
-  //                                         012345678901234567   89012345678901   2345678901234567890
-  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "--AGATAACAGAAC" "ATTCTTGGAATGCTGATC" );
-  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAA-" "ATTCTTGGAATGCTGATC" );
-  // frame                                   000000000000000000   12222222222211   111111111111111111
-  // frame shift ranges                                           xxxxxxxxxxxxxx
-  //                                                              ^                                  ^
-  //                                                             18                                  50
-  // clang-format on
-
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
-
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 18, .end = 50},
-  };
-
-  EXPECT_EQ(actual, expected);
-}
+//TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2xInsertionsAnd2xDeletions) {
+//  std::stringstream input;
+//
+//  // clang-format off
+//  //                                                   10           20        30           40        50
+//  //                                                   |            |         |            |         |
+//  //                                         012345678901234567   89012345678901   2345678901234567890
+//  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "--AGATAACAGAAC" "ATTCTTGGAATGCTGATC" );
+//  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGA--" "ATTCTTGGAATGCTGATC" );
+//  // frame                                   000000000000000000   12222222222210   000000000000000000
+//  // frame shift ranges                                             xxxxxxxxxx
+//  //                                                                ^         ^
+//  //                                                                20        30
+//  // clang-format on
+//
+//  const auto result = detectFrameShifts(refAln, qryAln);
+//  const auto& actual = result.frameShifts;
+//
+//  const std::vector<FrameShiftRange> expected = {
+//    FrameShiftRange{.begin = 20, .end = 30},
+//  };
+//
+//  EXPECT_EQ(actual, expected);
+//}
+//
+//
+//TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAnd1xDeletion) {
+//  std::stringstream input;
+//
+//  // clang-format off
+//  //                                                   10           20        30           40        50
+//  //                                                   |            |         |            |         |
+//  //                                         012345678901234567   890123456789012345678901234567890
+//  const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "--AGATAACAGAACATTCTTGGAATGCTGATC" );
+//  const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCT" "ATAGATAACAGAA-ATTCTTGGAATGCTGATC" );
+//  // frame                                   000000000000000000   122222222222111111111111111111111
+//  // frame shift ranges                                             xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+//  //                                                              ^                               ^
+//  //                                                             18                               50
+//  // clang-format on
+//
+//  const auto result = detectFrameShifts(refAln, qryAln);
+//  const auto& actual = result.frameShifts;
+//
+//  const std::vector<FrameShiftRange> expected = {
+//    FrameShiftRange{.begin = 18, .end = 50},
+//  };
+//
+//  EXPECT_EQ(actual, expected);
+//}
 
 
 //TEST_F(DetectFrameShifts, CorrectlyDetectsFrameShiftsInLongComplexQuery1) {
