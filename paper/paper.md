@@ -78,13 +78,13 @@ All alignment parameters can be configured via CLI flags.
 
 ## Nextclade
 
-`Nextclade` analysis uses the results of `Nextalign` to determine all mutations of each sequence relative to the reference sequence.
-With this set of mutations, it performs an exhaustive search for the closest match on a phylogenetic tree representing the diversity of the population, and deduces a clade annotation from it.
+`Nextclade` uses the results of `Nextalign` to determine all mutations of each query sequence relative to the reference sequence.
+With this set of mutations, it performs an exhaustive search for the closest match on a phylogenetic tree representing the diversity of the population. The clade of the closest match is assigned to the query sequence.
 
-In addition, it determines the mutations separating the closest match from the query sequence.
-This set of "private mutations" are used as a QC metric: having many private mutations is often a sign of sequencing errors or miscalled bases.
+In addition, `Nextclade` determines the mutations separating the closest match from the query sequence.
+This set of *private mutations* is used as a QC metric: having many private mutations is often a sign of sequencing errors or miscalled bases.
 If such private mutations cluster in short stretches on the genome, this is an additional sign of concern.
-The private mutation count, a measure of SNP clusters, as well as rules quantifying sequence completeness, ambiguous bases, stop-codons, and frame-shifts are used to quantify sequence quality individually and via an aggregate score.
+The private mutation count, a measure of SNP clusters, as well as rules quantifying sequence completeness, ambiguous bases, stop-codons, and frame-shifts are used to quantify sequence quality, individually for each metric and via an aggregate score.
 
 Details of the algorithm and the different QC metrics are described in the documentation at [docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade/en/stable/).
 
