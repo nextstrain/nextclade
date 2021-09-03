@@ -68,18 +68,14 @@ All alignment parameters can be configured via CLI flags.
 
 ## Nextclade
 
-`Nextclade` uses `nextalign` to determine all mutations of each sequence relative to the reference sequence.
-With this set of mutations, it performs an exhaustive search for the closest match on a phylogenetic tree representing the diversity of the population, and deduces a clade annotation from the placement on the phylogeny.
+`Nextclade` analysis uses the results of `Nextalign` to determine all mutations of each sequence relative to the reference sequence.
+With this set of mutations, it performs an exhaustive search for the closest match on a phylogenetic tree representing the diversity of the population, and deduces a clade annotation from it.
+
 In addition, it determines the mutations separating the closest match from the query sequence.
-This set of ``private mutations" are used as a QC metric: having many private mutations is often a sign of sequencing errors or miscalled bases.
+This set of "private mutations" are used as a QC metric: having many private mutations is often a sign of sequencing errors or miscalled bases.
 If such private mutations cluster in short stretches on the genome, this is an additional sign of concern.
 The private mutation count, a measure of SNP clusters, as well as rules quantifying sequence completeness, ambiguous bases, stop-codons, and frame-shifts are used to quantify sequence quality individually and via an aggregate score.
-The individual scores are calibrated such that 0 is best, 100 corresponds to a bad sequence, and a score above 30 warrants a warning.
-These scores are aggregated as
-$$
-\text{qc.overallScore} = \sum_i \frac{score_i^2}{100}
-$$
-With this quadratic aggregation, multiple mildly concerning scores don't result in a bad overall score, but a single bad score guarantees a bad overall score.
+
 Details of the algorithm and the different QC metrics are described in the documentation at [docs.nextstrain.org/projects/nextclade](https://docs.nextstrain.org/projects/nextclade/en/stable/).
 
 ## Web interface
