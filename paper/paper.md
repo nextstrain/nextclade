@@ -63,8 +63,8 @@ All tools are meant to align multiple sequences to one common reference sequence
 
 `Nextalign` implements a banded pairwise Smith-Waterman alignment with an affine gap cost [@smith_identification_1981].
 The bandwidth and relative shift of the two sequences are determined by seed matching.
-In contrast to most other existing tools (e.g.~`minimap2` [@li_minimap2_2018] or `mafft` [@katoh_mafft_2013]), `Nextalign` can ingest a genome annotation specifying coding regions and will then make the gap-opening penalty dependent on the reading frame.
-This allows `Nextalign` to choose the most biologically interpretable gap-placing between otherwise equivalent alignments.
+In contrast to most other existing tools (e.g.~`minimap2` [@li_minimap2_2018] or `mafft` [@katoh_mafft_2013]), `Nextalign` can use a genome annotation specifying coding regions to make the gap-opening penalty dependent on the reading frame.
+This allows `Nextalign` to choose the most biologically interpretable gap-placement between otherwise equivalent alignments.
 In the following example, the gap could be moved forward or backward by one base with the same number of matches, but a frame-dependent gap-opening penalty locks the gap in-frame:
 ```
 ...GTT.TAT.TAC...
@@ -73,7 +73,7 @@ In the following example, the gap could be moved forward or backward by one base
 Similarly, `Nextalign` preferentially places gaps outside of genes in case of ambiguities.
 
 In addition to nucleotide alignments, `Nextalign` will extract the aligned coding sequences, translate them, and perform pairwise amino-acid alignments.
-These amino-acid alignments are produced along side the nucleotide alignment and are used by `Nextclade` to determine amino-acid changes.
+These amino-acid alignments are produced alongside the nucleotide alignment and are used by `Nextclade` to determine amino-acid changes.
 All alignment parameters can be configured via CLI flags.
 
 ## Nextclade
