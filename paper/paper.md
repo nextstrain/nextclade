@@ -9,8 +9,10 @@ authors:
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
   - name: Cornelius Roemer
     affiliation: "1, 2"
+    orcid: 0000-0002-6138-6539
   - name: Emma B. Hodcroft
     affiliation: "2, 3"
+    orcid: 0000-0002-0078-2212
   - name: Richard A. Neher^[corresponding author]
     affiliation: "1, 2"
     orcid: 0000-0003-2525-1407
