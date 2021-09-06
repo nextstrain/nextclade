@@ -229,6 +229,16 @@ export interface QcResult {
   overallStatus: QcStatus
 }
 
+export interface FrameShiftRange {
+  begin: number
+  end: number
+}
+
+export interface FrameShiftResult {
+  geneName: string
+  frameShiftRange: FrameShiftRange
+}
+
 export interface AnalysisResult {
   seqName: string
   substitutions: NucleotideSubstitution[]
@@ -237,6 +247,8 @@ export interface AnalysisResult {
   totalInsertions: number
   deletions: NucleotideDeletion[]
   totalDeletions: number
+  frameShifts: FrameShiftResult[]
+  totalFrameShifts: number
   missing: NucleotideMissing[]
   totalMissing: number
   nonACGTNs: NucleotideRange[]

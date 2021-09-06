@@ -12,6 +12,7 @@ import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
+import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 
 export const SequenceViewWrapper = styled.div`
   display: flex;
@@ -46,7 +47,7 @@ const mapDispatchToProps = {}
 export const SequenceViewUnsized = connect(mapStateToProps, mapDispatchToProps)(SequenceViewUnsizedDisconnected)
 
 export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }: SequenceViewProps) {
-  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd } = sequence
+  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts } = sequence
 
   if (!width || !genomeSize) {
     return (
@@ -86,6 +87,15 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
     )
   })
 
+  const frameShiftMarkers = frameShifts.map((frameShift) => (
+    <SequenceMarkerFrameShift
+      key={`${frameShift.geneName}_${frameShift.frameShiftRange.begin}`}
+      seqName={seqName}
+      frameShift={frameShift}
+      pixelsPerBase={pixelsPerBase}
+    />
+  ))
+
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
@@ -104,6 +114,7 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
           alignmentEnd={alignmentEnd}
           pixelsPerBase={pixelsPerBase}
         />
+        {frameShiftMarkers}
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )
