@@ -1,6 +1,5 @@
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
-#include <utils/concat_move.h>
 
 #include <string>
 
@@ -8,8 +7,10 @@
 #include "align/getGapOpenCloseScores.h"
 #include "alphabet/nucleotides.h"
 #include "strip/stripInsertions.h"
+#include "translate/detectFrameShifts.h"
 #include "translate/removeGaps.h"
 #include "translate/translateGenes.h"
+#include "utils/concat_move.h"
 #include "utils/contract.h"
 #include "utils/map.h"
 #include "utils/safe_cast.h"
@@ -43,6 +44,9 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
     throw ErrorNonFatal(*alignmentStatus.error);
   }
 
+  const auto frameShiftResult = detectFrameShifts(alignmentStatus.result->ref, alignmentStatus.result->query);
+  const auto& frameShiftRanges = frameShiftResult.frameShifts;
+
   std::vector<PeptideInternal> queryPeptides;
   std::vector<PeptideInternal> refPeptides;
   std::vector<FrameShift> frameShifts;
@@ -69,6 +73,7 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
     .insertions = stripped.insertions,
     .warnings = warnings,
     .frameShifts = frameShifts,
+    .frameShiftRanges = frameShiftRanges,
   };
 }
 

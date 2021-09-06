@@ -14,7 +14,6 @@
 #include "./mapCoordinates.h"
 #include "./translate.h"
 #include "align/alignPairwise.h"
-#include "detectFrameShifts.h"
 #include "utils/contains.h"
 #include "utils/contract.h"
 
@@ -80,9 +79,6 @@ PeptidesInternal translateGenes(         //
 
     const auto& refGene = *extractRefGeneStatus.result;
     const auto& queryGene = *extractQueryGeneStatus.result;
-
-    const auto frameShiftResult = detectFrameShifts(refGene, queryGene);
-    const auto& frameShifts = frameShiftResult.frameShifts;
 
     auto refPeptide = translate(*extractRefGeneStatus.result);
     const auto queryPeptide = translate(*extractQueryGeneStatus.result);

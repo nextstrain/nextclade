@@ -32,6 +32,7 @@ struct NextalignResultInternal {
   std::vector<InsertionInternal<Nucleotide>> insertions;
   Warnings warnings;
   std::vector<FrameShift> frameShifts;
+  std::vector<FrameShiftRange> frameShiftRanges;
 };
 
 Nucleotide toNucleotide(char nuc);
