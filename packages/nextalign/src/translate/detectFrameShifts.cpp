@@ -20,7 +20,7 @@ class FrameShiftDetector {
   /** Updates detector's state */
   void update(int shift, int pos) {
     oldFrame = frame;
-    frame -= shift;
+    frame += shift;
     frame = wraparound(frame, 3);
 
     // Whether transitioned from no shift to shift
