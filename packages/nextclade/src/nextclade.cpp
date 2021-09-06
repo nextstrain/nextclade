@@ -33,11 +33,13 @@ namespace Nextclade {
     const NextalignOptions& nextalignOptions //
   ) {
     const auto alignment = nextalignInternal(query, ref, geneMap, nextalignOptions);
+    const auto& frameShiftRanges = alignment.frameShiftRanges;
 
     auto nucChanges = findNucChanges(alignment.ref, alignment.query);
     const int totalSubstitutions = safe_cast<int>(nucChanges.substitutions.size());
     const int totalDeletions = calculateTotalLength(nucChanges.deletions);
     const int totalInsertions = calculateTotalLength(alignment.insertions);
+    const int totalFrameShifts = safe_cast<int>(alignment.frameShiftRanges.size());
 
     const auto missing = findNucleotideRanges(alignment.query, Nucleotide::N);
     const int totalMissing = calculateTotalLength(missing);
@@ -84,6 +86,8 @@ namespace Nextclade {
         .totalDeletions = totalDeletions,
         .insertions = alignment.insertions,
         .totalInsertions = totalInsertions,
+        .frameShiftRanges = alignment.frameShiftRanges,
+        .totalFrameShifts = totalFrameShifts,
         .missing = missing,
         .totalMissing = totalMissing,
         .nonACGTNs = nonACGTNs,

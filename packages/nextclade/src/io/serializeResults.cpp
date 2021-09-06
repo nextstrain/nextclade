@@ -104,6 +104,13 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeFrameShiftRange(const FrameShiftRange& fsr) {
+      auto j = json::object();
+      j.emplace("begin", fsr.begin);
+      j.emplace("end", fsr.end);
+      return j;
+    }
+
     json serializeMissing(const NucleotideRange& missing) {
       return serializeNucleotideRange(missing);
     }
@@ -269,6 +276,7 @@ namespace Nextclade {
       j.emplace("totalSubstitutions", result.totalSubstitutions);
       j.emplace("totalDeletions", result.totalDeletions);
       j.emplace("totalInsertions", result.totalInsertions);
+      j.emplace("totalFrameShifts", result.totalFrameShifts);
       j.emplace("totalMissing", result.totalMissing);
       j.emplace("totalNonACGTNs", result.totalNonACGTNs);
       j.emplace("totalPcrPrimerChanges", result.totalPcrPrimerChanges);
@@ -279,6 +287,7 @@ namespace Nextclade {
       j.emplace("substitutions", serializeArray(result.substitutions, serializeMutation));
       j.emplace("deletions", serializeArray(result.deletions, serializeDeletion));
       j.emplace("insertions", serializeArray(result.insertions, serializeInsertion));
+      j.emplace("frameShiftRanges", serializeArray(result.frameShiftRanges, serializeFrameShiftRange));
       j.emplace("missing", serializeArray(result.missing, serializeMissing));
       j.emplace("nonACGTNs", serializeArray(result.nonACGTNs, serializeNonAcgtn));
       j.emplace("pcrPrimerChanges", serializeArray(result.pcrPrimerChanges, serializePcrPrimerChange));

@@ -350,6 +350,8 @@ namespace Nextclade {
     int totalDeletions;
     std::vector<NucleotideInsertion> insertions;
     int totalInsertions;
+    std::vector<FrameShiftRange> frameShiftRanges;
+    int totalFrameShifts;
     std::vector<NucleotideRange> missing;
     int totalMissing;
     std::vector<NucleotideRange> nonACGTNs;
