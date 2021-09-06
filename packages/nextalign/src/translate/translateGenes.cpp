@@ -15,6 +15,7 @@
 #include "./translate.h"
 #include "align/alignPairwise.h"
 #include "detectFrameShifts.h"
+#include "removeGaps.h"
 #include "utils/contains.h"
 #include "utils/contract.h"
 
@@ -61,14 +62,14 @@ PeptidesInternal translateGenes(         //
     const auto& gene = found->second;
 
     // TODO: can be done once during initialization
-    const auto& extractRefGeneStatus = extractGeneQuery(ref, gene, coordMap);
+    auto extractRefGeneStatus = extractGeneQuery(ref, gene, coordMap);
     if (extractRefGeneStatus.status != Status::Success) {
       const auto message = *extractRefGeneStatus.error;
       warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
     }
 
 
-    const auto& extractQueryGeneStatus = extractGeneQuery(query, gene, coordMap);
+    auto extractQueryGeneStatus = extractGeneQuery(query, gene, coordMap);
     if (extractQueryGeneStatus.status != Status::Success) {
       const auto message = *extractQueryGeneStatus.error;
       warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
@@ -78,14 +79,18 @@ PeptidesInternal translateGenes(         //
       }
     }
 
-    const auto& refGene = *extractRefGeneStatus.result;
-    const auto& queryGene = *extractQueryGeneStatus.result;
+    auto& refGene = *extractRefGeneStatus.result;
+    auto& queryGene = *extractQueryGeneStatus.result;
 
     const auto frameShiftResult = detectFrameShifts(refGene, queryGene);
-    const auto& frameShifts = frameShiftResult.frameShifts;
+    const auto& frameShiftRanges = frameShiftResult.frameShifts;
 
-    auto refPeptide = translate(*extractRefGeneStatus.result);
-    const auto queryPeptide = translate(*extractQueryGeneStatus.result);
+    // Remove all GAP characters to "forget" gaps introduced during alignment
+    stripGeneInPlace(refGene);
+    stripGeneInPlace(queryGene);
+
+    auto refPeptide = translate(refGene);
+    const auto queryPeptide = translate(queryGene);
     const auto geneAlignmentStatus =
       alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
 
@@ -102,15 +107,17 @@ PeptidesInternal translateGenes(         //
     auto stripped = stripInsertions(geneAlignmentStatus.result->ref, geneAlignmentStatus.result->query);
 
     queryPeptides.emplace_back(PeptideInternal{
-      .name = geneName,                           //
-      .seq = std::move(stripped.queryStripped),   //
-      .insertions = std::move(stripped.insertions)//
+      .name = geneName,                            //
+      .seq = std::move(stripped.queryStripped),    //
+      .insertions = std::move(stripped.insertions),//
+      .frameShiftRanges = frameShiftRanges,
     });
 
     refPeptides.emplace_back(PeptideInternal{
       .name = geneName,            //
       .seq = std::move(refPeptide),//
-      .insertions = {}             //
+      .insertions = {},            //
+      .frameShiftRanges = {},
     });
   }
 

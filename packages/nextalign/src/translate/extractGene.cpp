@@ -122,7 +122,6 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
 
 
   auto result = NucleotideSequence(details::substr(query, start, length));
-  stripGeneInPlace(result);
   const auto resultLength = safe_cast<int>(result.size());
 
   if (resultLength == 0) {
