@@ -8,16 +8,7 @@
 #include "../src/translate/detectFrameShifts.h"
 
 
-class DetectFrameShifts : public ::testing::Test {
-protected:
-  NextalignOptions options = getDefaultOptions();
-
-  DetectFrameShifts() {
-    options.alignment.minimalLength = 3;
-  }
-};
-
-TEST_F(DetectFrameShifts, DetectsNoShiftsIfEmpty) {
+TEST(DetectFrameShifts, DetectsNoShiftsIfEmpty) {
   // clang-format off
   const auto refAln = toNucleotideSequence( "" );
   const auto qryAln = toNucleotideSequence( "" );
@@ -31,7 +22,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfEmpty) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIfnoIndels) {
+TEST(DetectFrameShifts, DetectsNoShiftsIfnoIndels) {
   // clang-format off
   const auto refAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
@@ -45,7 +36,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfnoIndels) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIf3xDelsetionsAdjacent) {
+TEST(DetectFrameShifts, DetectsNoShiftsIf3xDelsetionsAdjacent) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -64,7 +55,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIf3xDelsetionsAdjacent) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent) {
+TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -83,7 +74,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent2) {
+TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent2) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -103,7 +94,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent2) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIf3xInsertionsAdjacent) {
+TEST(DetectFrameShifts, DetectsNoShiftsIf3xInsertionsAdjacent) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -122,7 +113,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIf3xInsertionsAdjacent) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent) {
+TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -141,7 +132,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent2) {
+TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent2) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -160,7 +151,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent2) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletionsAndInsertionsAreModulo3AndAdjacent) {
+TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAndInsertionsAreModulo3AndAdjacent) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -179,7 +170,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfDeletionsAndInsertionsAreModulo3AndAd
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAndDeletionsAreModulo3AndAdjacent) {
+TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAndDeletionsAreModulo3AndAdjacent) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -198,7 +189,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftsIfInsertionsAndDeletionsAreModulo3AndAd
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xDeletion) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xDeletion) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -222,7 +213,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xDeletion) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentDeletions) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentDeletions) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -246,7 +237,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentDeletions) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2Deletions) {
+TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2Deletions) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -270,7 +261,7 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2Deletions) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo3Deletions) {
+TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo3Deletions) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -294,7 +285,7 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo3Deletions) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueToDeletionLeading) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueToDeletionLeading) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -318,7 +309,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueToDeletionLeading) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsAdjacentLeading) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsAdjacentLeading) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -342,7 +333,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsAdjacentLeadi
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsLeading) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsLeading) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -366,7 +357,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsLeading) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftDueTo2xAdjacentDeletionsTrailing) {
+TEST(DetectFrameShifts, DetectsNoShiftDueTo2xAdjacentDeletionsTrailing) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -388,7 +379,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftDueTo2xAdjacentDeletionsTrailing) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xInsertion) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xInsertion) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -412,7 +403,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xInsertion) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentInsertions) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentInsertions) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -436,7 +427,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentInsertions) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2Insertions) {
+TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2Insertions) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -460,7 +451,7 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2Insertions) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo3Insertions) {
+TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo3Insertions) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -484,7 +475,7 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo3Insertions) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueToInsertionLeading) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueToInsertionLeading) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -508,7 +499,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueToInsertionLeading) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAdjacentLeading) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAdjacentLeading) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -533,7 +524,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAdjacentLead
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsLeading) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsLeading) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -557,7 +548,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsLeading) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftDueToInsertionTrailing) {
+TEST(DetectFrameShifts, DetectsNoShiftDueToInsertionTrailing) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -577,7 +568,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftDueToInsertionTrailing) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsNoShiftDueTo2xInsertionsAdjacentTrailing) {
+TEST(DetectFrameShifts, DetectsNoShiftDueTo2xInsertionsAdjacentTrailing) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -597,7 +588,7 @@ TEST_F(DetectFrameShifts, DetectsNoShiftDueTo2xInsertionsAdjacentTrailing) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueToInsertionAndDeletion) {
+TEST(DetectFrameShifts, DetectsCompensatedShiftDueToInsertionAndDeletion) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -621,7 +612,7 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueToInsertionAndDeletion) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2xInsertionsAnd2xDeletions) {
+TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2xInsertionsAnd2xDeletions) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -645,7 +636,7 @@ TEST_F(DetectFrameShifts, DetectsCompensatedShiftDueTo2xInsertionsAnd2xDeletions
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAnd1xDeletion) {
+TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAnd1xDeletion) {
   // clang-format off
   //                                                   10        20        30        40        50
   //                                                   |         |         |         |         |
@@ -669,7 +660,7 @@ TEST_F(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAnd1xDeletio
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase1) {
+TEST(DetectFrameShifts, CorrectlyHandlesComplexCase1) {
   // clang-format off
   //                                         0         10        20        30        40        50        60        70        80        90
   //                                         |         |         |         |         |         |         |         |         |         |
@@ -693,7 +684,7 @@ TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase1) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase2) {
+TEST(DetectFrameShifts, CorrectlyHandlesComplexCase2) {
   // clang-format off
   //                                         0         10        20        30        40        50        60        70        80        90
   //                                         |         |         |         |         |         |         |         |         |         |
@@ -717,7 +708,7 @@ TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase2) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase3) {
+TEST(DetectFrameShifts, CorrectlyHandlesComplexCase3) {
   // clang-format off
   //                                         0         10        20        30        40        50        60        70        80        90
   //                                         |         |         |         |         |         |         |         |         |         |
@@ -741,7 +732,7 @@ TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase3) {
   EXPECT_EQ(actual, expected);
 }
 
-TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase4) {
+TEST(DetectFrameShifts, CorrectlyHandlesComplexCase4) {
   // clang-format off
   //                                         0         10        20        30        40        50        60        70        80        90
   //                                         |         |         |         |         |         |         |         |         |         |
