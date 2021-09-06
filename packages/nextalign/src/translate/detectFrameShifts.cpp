@@ -85,7 +85,7 @@ public:
       reset();
     }
 
-    if (frame != 0) {
+    if (frame != 0 && begin == POSITION_INVALID) {
       // We are in the frame shift. This *might* be the the beginning of a shifted range. Note that it might also not
       // be, because there might be more non-shifting characters ahead before .
       begin = pos;
