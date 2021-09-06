@@ -118,6 +118,20 @@ namespace Nextclade {
     };
   }
 
+  FrameShiftRange parseFrameShiftRange(const json& j) {
+    return FrameShiftRange{
+      .begin = at(j, "begin").get<int>(),
+      .end = at(j, "end").get<int>(),
+    };
+  }
+
+  FrameShiftResult parseFrameShiftResult(const json& j) {
+    return FrameShiftResult{
+      .geneName = at(j, "geneName").get<std::string>(),
+      .frameShiftRange = parseFrameShiftRange(at(j, "frameShiftRange")),
+    };
+  }
+
   NucleotideRange parseNucleotideRange(const json& j) {
     return NucleotideRange{
       .begin = at(j, "begin").get<int>(),
@@ -286,6 +300,8 @@ namespace Nextclade {
         .totalDeletions = at(j, "totalDeletions"),
         .insertions = parseArray<NucleotideInsertion>(j, "insertions", parseNucleotideInsertion),
         .totalInsertions = at(j, "totalInsertions"),
+        .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
+        .totalFrameShifts = at(j, "totalFrameShifts"),
         .missing = parseArray<NucleotideRange>(j, "missing", parseNucleotideRange),
         .totalMissing = at(j, "totalMissing"),
         .nonACGTNs = parseArray<NucleotideRange>(j, "nonACGTNs", parseNucleotideRange),

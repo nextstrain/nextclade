@@ -208,6 +208,11 @@ namespace Nextclade {
 
   using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
+  struct FrameShiftResult {
+    std::string geneName;
+    FrameShiftRange frameShiftRange;
+  };
+
   template<typename Letter>
   struct CharacterRange {
     int begin;
@@ -350,6 +355,8 @@ namespace Nextclade {
     int totalDeletions;
     std::vector<NucleotideInsertion> insertions;
     int totalInsertions;
+    std::vector<FrameShiftResult> frameShifts;
+    int totalFrameShifts;
     std::vector<NucleotideRange> missing;
     int totalMissing;
     std::vector<NucleotideRange> nonACGTNs;
