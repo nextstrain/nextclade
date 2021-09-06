@@ -726,3 +726,58 @@ TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase2) {
 
   EXPECT_EQ(actual, expected);
 }
+
+TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase3) {
+  std::stringstream input;
+
+  // clang-format off
+  //                                         0         10        20        30        40        50        60        70        80        90
+  //                                         |         |         |         |         |         |         |         |         |         |
+  //                                         012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345
+  const auto refAln = toNucleotideSequence( "CTTGGAGGT--C-TGGCTATA" );
+  const auto qryAln = toNucleotideSequence( "CTTGG-GGTTCCG--GCTATA" );
+  // indel                                        d   ii idd
+  // frame                                   000001111022120000000
+  // frame shift                                   xxxxxx
+  //                                               ^     ^
+  //                                               6     12
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {
+    FrameShiftRange{.begin = 6, .end = 12},
+  };
+
+  EXPECT_EQ(actual, expected);
+}
+
+TEST_F(DetectFrameShifts, CorrectlyHandlesComplexCase4) {
+  std::stringstream input;
+
+  // clang-format off
+  //                                         0         10        20        30        40        50        60        70        80        90
+  //                                         |         |         |         |         |         |         |         |         |         |
+  //                                         012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345
+  const auto refAln = toNucleotideSequence( "CTTGGAGGT--C-TGGCTATAAAG-TAACAGAACATT-TTGGAATGCTG---TTTATAAG-TCATGC---ACTTCGCATGGTG---AGCCTTTGT" );
+  const auto qryAln = toNucleotideSequence( "CTTGG-GGTTCCG--GCTATAAA-ATAACAGA-CATTCTTGGAA-GCTGATCTTTA-AAGCTCATGGGACANNNNNC--GGTGGACAGCC-TTGT" );
+  // indel                                        d   ii idd        di       d    i      d    iii    d   i      iii       dd    iii    d
+  // frame                                   00000111102212000000000100000000111110000000111110211111222211111110211111111200000210000011111
+  // frame shift                                   xxxxxx                     xxxx        xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx              xxxx
+  //                                               ^     ^                    ^   ^       ^                               ^             ^   ^
+  //                                               6     12                   33  37      45                              77           91   95
+  // clang-format on
+
+  const auto result = detectFrameShifts(refAln, qryAln);
+  const auto& actual = result.frameShifts;
+
+  const std::vector<FrameShiftRange> expected = {
+    FrameShiftRange{.begin = 6, .end = 12},
+    FrameShiftRange{.begin = 33, .end = 37},
+    FrameShiftRange{.begin = 45, .end = 77},
+    FrameShiftRange{.begin = 91, .end = 95},
+  };
+
+  EXPECT_EQ(actual, expected);
+}
