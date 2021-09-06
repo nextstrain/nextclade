@@ -20,6 +20,7 @@ struct PeptideInternal {
   std::string name;
   AminoacidSequence seq;
   std::vector<InsertionInternal<Aminoacid>> insertions;
+  std::vector<FrameShiftRange> frameShiftRanges;
 };
 
 

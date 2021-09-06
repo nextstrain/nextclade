@@ -192,6 +192,7 @@ struct Alignment {
 struct Peptide {
   std::string name;
   std::string seq;
+  std::vector<FrameShiftRange> frameShiftRanges;
 };
 
 template<typename Letter>
