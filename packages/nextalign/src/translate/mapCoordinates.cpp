@@ -35,7 +35,7 @@ std::vector<int> mapCoordinates(const NucleotideSequence& ref) {
 
 /**
  * Makes a map from alignment coordinates to reference coordinates
- * (Excluding the gaps in reference).
+ * (reverse coordinate map).
  *
  * Example:
  *   aln pos: 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14
@@ -45,16 +45,19 @@ std::vector<int> mapCoordinates(const NucleotideSequence& ref) {
 std::vector<int> mapReverseCoordinates(const NucleotideSequence& ref) {
   const auto refLength = safe_cast<int>(ref.size());
 
-  std::vector<int> coordMap;
-  coordMap.reserve(refLength);
-  int refPos = -1;
+  std::vector<int> revCoordMap;
+  revCoordMap.reserve(refLength);
+  int refPos = 0;
   for (int i = 0; i < refLength; ++i) {
-    if (ref[i] != Nucleotide::GAP) {
-      refPos++;
+    if (ref[i] == Nucleotide::GAP) {
+      const auto& prev = revCoordMap.back();
+      revCoordMap.push_back(prev);
+    } else {
+      revCoordMap.push_back(refPos);
+      ++refPos;
     }
-    coordMap.push_back(refPos);
   }
 
-  coordMap.shrink_to_fit();
-  return coordMap;
+  revCoordMap.shrink_to_fit();
+  return revCoordMap;
 }
