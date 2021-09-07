@@ -5,6 +5,8 @@
 #include <utils/to_underlying.h>
 #include <utils/wraparound.h>
 
+#include "../utils/at.h"
+
 class FrameShiftDetector {
   // Invalid/unset positions are set with this value
   static constexpr auto POSITION_INVALID = std::numeric_limits<int>::min();
@@ -103,8 +105,14 @@ public:
   }
 };
 
-
-FrameShiftResults detectFrameShifts(const NucleotideSequence& ref, const NucleotideSequence& query) {
+/**
+ * Detects nucleotide frame shift in the query nucleotide sequence
+ * and the corresponding aminoacid frame shifts in the query peptide
+ */
+std::vector<FrameShiftRange> detectFrameShifts(//
+  const NucleotideSequence& ref,               //
+  const NucleotideSequence& query              //
+) {
   precondition_equal(ref.size(), query.size());
   int length = safe_cast<int>(ref.size());
 
@@ -120,7 +128,41 @@ FrameShiftResults detectFrameShifts(const NucleotideSequence& ref, const Nucleot
   }
   frameShiftDetector.done(length);
 
-  return FrameShiftResults{
-    .frameShifts = frameShiftDetector.getFrameShifts(),
-  };
+  return frameShiftDetector.getFrameShifts();
+}
+
+/**
+ * Converts relative nucleotide frame shifts to the final result, including
+ * relative and absolute nucleotide frame shifts and relative aminoacid frame shifts
+ */
+std::vector<FrameShiftResult> translateFrameShifts(     //
+  const std::vector<FrameShiftRange>& nucRelFrameShifts,//
+  const std::vector<int>& coordMap,                     //
+  const Gene& gene                                      //
+) {
+  precondition_less(gene.start, coordMap.size());
+  precondition_less_equal(gene.end, coordMap.size());
+  precondition_less(gene.start, gene.end);
+
+  std::vector<FrameShiftResult> frameShifts;
+  frameShifts.reserve(nucRelFrameShifts.size());
+  for (const auto& nucRangeRel : nucRelFrameShifts) {
+    // Absolute positions will change after gap stripping according to the coordinate map
+    const auto geneStart = at(coordMap, gene.start);
+    auto nucRangeAbs = nucRangeRel.offsetBy(geneStart);
+
+    auto codonRange = FrameShiftRange{
+      .begin = nucRangeRel.begin / 3,
+      .end = nucRangeRel.end / 3,
+    };
+
+    frameShifts.push_back(FrameShiftResult{
+      .geneName = gene.geneName,
+      .nucRel = nucRangeRel,
+      .nucAbs = nucRangeAbs,
+      .codon = codonRange,
+    });
+  }
+
+  return frameShifts;
 }

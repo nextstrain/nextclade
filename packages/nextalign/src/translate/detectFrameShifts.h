@@ -3,9 +3,13 @@
 #include <nextalign/nextalign.h>
 
 
-struct FrameShiftResults {
-  std::vector<FrameShiftRange> frameShifts;
+std::vector<FrameShiftRange> detectFrameShifts(//
+  const NucleotideSequence& ref,               //
+  const NucleotideSequence& query              //
+);
 
-};
-
-FrameShiftResults detectFrameShifts(const NucleotideSequence& ref, const NucleotideSequence& query);
+std::vector<FrameShiftResult> translateFrameShifts(     //
+  const std::vector<FrameShiftRange>& nucRelFrameShifts,//
+  const std::vector<int>& coordMap,                     //
+  const Gene& gene                                      //
+);

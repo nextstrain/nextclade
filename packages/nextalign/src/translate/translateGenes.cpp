@@ -79,23 +79,25 @@ PeptidesInternal translateGenes(         //
       }
     }
 
-    auto& refGene = *extractRefGeneStatus.result;
-    auto& queryGene = *extractQueryGeneStatus.result;
+    auto& refGeneSeq = *extractRefGeneStatus.result;
+    auto& queryGeneSeq = *extractQueryGeneStatus.result;
 
     // Make sure subsequent gap stripping does not introduce frame shift
-    protectFirstCodonInPlace(refGene);
-    protectFirstCodonInPlace(queryGene);
+    protectFirstCodonInPlace(refGeneSeq);
+    protectFirstCodonInPlace(queryGeneSeq);
 
     // NOTE: frame shift detection should be performed on unstripped genes
-    const auto frameShiftResult = detectFrameShifts(refGene, queryGene);
-    const auto& frameShiftRanges = frameShiftResult.frameShifts;
+    const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
+    const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMap, gene);
 
     // Strip all GAP characters to "forget" gaps introduced during alignment
-    removeGapsInPlace(refGene);
-    removeGapsInPlace(queryGene);
+    removeGapsInPlace(refGeneSeq);
+    removeGapsInPlace(queryGeneSeq);
 
-    auto refPeptide = translate(refGene);
-    const auto queryPeptide = translate(queryGene);
+    auto refPeptide = translate(refGeneSeq);
+    const auto queryPeptide = translate(queryGeneSeq);
+
+
     const auto geneAlignmentStatus =
       alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
 
@@ -115,14 +117,14 @@ PeptidesInternal translateGenes(         //
       .name = geneName,                            //
       .seq = std::move(stripped.queryStripped),    //
       .insertions = std::move(stripped.insertions),//
-      .frameShiftRanges = frameShiftRanges,
+      .frameShiftResults = frameShiftResults,
     });
 
     refPeptides.emplace_back(PeptideInternal{
       .name = geneName,            //
       .seq = std::move(refPeptide),//
       .insertions = {},            //
-      .frameShiftRanges = {},
+      .frameShiftResults = {},
     });
   }
 

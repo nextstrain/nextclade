@@ -43,7 +43,8 @@ export interface NucleotideInsertion {
   ins: string
 }
 
-export interface NucleotideMissing extends Range {}
+export interface NucleotideMissing extends Range {
+}
 
 export interface CharacterRange<Letter> extends Range {
   character: Letter
@@ -229,14 +230,11 @@ export interface QcResult {
   overallStatus: QcStatus
 }
 
-export interface FrameShiftRange {
-  begin: number
-  end: number
-}
-
 export interface FrameShiftResult {
   geneName: string
-  frameShiftRange: FrameShiftRange
+  nucRel: Range
+  nucAbs: Range
+  codon: Range
 }
 
 export interface AnalysisResult {
@@ -368,4 +366,5 @@ export interface DatasetsIndexJson {
   datasets: Dataset[]
 }
 
-export interface DatasetFlat extends Dataset, DatasetRef, DatasetVersion {}
+export interface DatasetFlat extends Dataset, DatasetRef, DatasetVersion {
+}

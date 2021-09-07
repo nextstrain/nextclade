@@ -14,8 +14,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfEmpty) {
   const auto qryAln = toNucleotideSequence( "" );
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -28,8 +27,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfnoIndels) {
   const auto qryAln = toNucleotideSequence( "CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC" );
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -47,8 +45,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIf3xDelsetionsAdjacent) {
   // frame                                                       120
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -66,8 +63,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent) {
   // frame                                                120                 120
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -86,8 +82,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent2) {
   // clang-format on
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -105,8 +100,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIf3xInsertionsAdjacent) {
   // frame                                                       210
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -124,8 +118,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent) {
   // frame                                                210                 210
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -143,8 +136,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent2) {
   // frame                                                210210              210
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -162,8 +154,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAndInsertionsAreModulo3AndAdja
   // frame                                                120210
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -181,8 +172,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAndDeletionsAreModulo3AndAdja
   // frame                                                210120
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -203,8 +193,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xDeletion) {
   //                                                            19                             50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 19, .end = 50},
@@ -227,8 +216,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentDeletions) {
   //                                                             20                            50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 20, .end = 50},
@@ -251,8 +239,7 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2Deletions) {
   //                                                             20         31
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 20, .end = 31},
@@ -275,8 +262,7 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo3Deletions) {
   //                                                            19          31
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 19, .end = 31},
@@ -299,8 +285,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueToDeletionLeading) {
   //                                          1                                               50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 1, .end = 50},
@@ -323,8 +308,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsAdjacentLeading
   //                                           2                                               50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 2, .end = 50},
@@ -347,8 +331,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsLeading) {
   //                                          1                                               50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 1, .end = 50},
@@ -371,8 +354,7 @@ TEST(DetectFrameShifts, DetectsNoShiftDueTo2xAdjacentDeletionsTrailing) {
   //                                                                                        48 50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -393,8 +375,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xInsertion) {
   //                                                            19                            50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 19, .end = 50},
@@ -417,8 +398,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentInsertions) {
   //                                                             20                            50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 20, .end = 50},
@@ -441,8 +421,7 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2Insertions) {
   //                                                            20          31
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 20, .end = 31},
@@ -465,8 +444,7 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo3Insertions) {
   //                                                            19          31
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 19, .end = 31},
@@ -489,8 +467,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueToInsertionLeading) {
   //                                          1                                               50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 1, .end = 50},
@@ -514,8 +491,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAdjacentLeadin
   //                                           2                                               50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 2, .end = 50},
@@ -538,8 +514,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsLeading) {
   //                                          1                                               50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 1, .end = 50},
@@ -560,8 +535,7 @@ TEST(DetectFrameShifts, DetectsNoShiftDueToInsertionTrailing) {
   // frame shift ranges
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -580,8 +554,7 @@ TEST(DetectFrameShifts, DetectsNoShiftDueTo2xInsertionsAdjacentTrailing) {
   // frame shift ranges
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {};
 
@@ -602,8 +575,7 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueToInsertionAndDeletion) {
   //                                                            19          31
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 19, .end = 31},
@@ -626,8 +598,7 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2xInsertionsAnd2xDeletions) 
   //                                                             20        30
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 20, .end = 30},
@@ -650,8 +621,7 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAnd1xDeletion)
   //                                                            20                              50
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 20, .end = 50},
@@ -674,8 +644,7 @@ TEST(DetectFrameShifts, CorrectlyHandlesComplexCase1) {
   //                                                              22                                                                        95
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 22, .end = 95},
@@ -698,8 +667,7 @@ TEST(DetectFrameShifts, CorrectlyHandlesComplexCase2) {
   //                                                              22                                                                        95
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 22, .end = 95},
@@ -722,8 +690,7 @@ TEST(DetectFrameShifts, CorrectlyHandlesComplexCase3) {
   //                                               6     12
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 6, .end = 12},
@@ -746,8 +713,7 @@ TEST(DetectFrameShifts, CorrectlyHandlesComplexCase4) {
   //                                               6     12                   33  37      45                              77           91   95
   // clang-format on
 
-  const auto result = detectFrameShifts(refAln, qryAln);
-  const auto& actual = result.frameShifts;
+  const auto actual = detectFrameShifts(refAln, qryAln);
 
   const std::vector<FrameShiftRange> expected = {
     FrameShiftRange{.begin = 6, .end = 12},

@@ -23,7 +23,7 @@ std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<
 }
 
 Peptide toPeptideExternal(const PeptideInternal& peptide) {
-  return Peptide{.name = peptide.name, .seq = toString(peptide.seq), .frameShiftRanges = peptide.frameShiftRanges};
+  return Peptide{.name = peptide.name, .seq = toString(peptide.seq), .frameShiftResults = peptide.frameShiftResults};
 }
 
 std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& peptides) {

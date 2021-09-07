@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../align/alignPairwise.h"
+#include "../utils/at.h"
 #include "../utils/safe_cast.h"
 #include "./removeGaps.h"
 
@@ -27,15 +28,6 @@ namespace details {
     invariant_less_equal(start + length, s.size());
     return s.subspan(safe_cast<size_t>(start), safe_cast<size_t>(length));
   }
-
-  template<typename Container, typename Index>
-  inline const typename Container::value_type& at(const Container& container, Index index) {
-    const auto i = safe_cast<typename Container::size_type>(index);
-    invariant_greater_equal(i, 0);
-    invariant_less(i, container.size());
-    return container[i];
-  }
-
 }// namespace details
 
 NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene) {
@@ -71,7 +63,7 @@ void protectFirstCodonInPlace(NucleotideSequence& seq) {
   NucleotideSequenceSpan seqSpan = seq;
 
   for (int i = 0; i < end; ++i) {
-    if (at(seqSpan, i) != Nucleotide::GAP) {
+    if (::at(seqSpan, i) != Nucleotide::GAP) {
       const auto codonBegin = i - (i % 3);
       invariant_greater_equal(codonBegin, 0);
       invariant_less(codonBegin + 2, length);
@@ -93,12 +85,12 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
   precondition_less(gene.start, gene.end);
 
   // Transform gene coordinates according to coordinate map
-  const auto start = details::at(coordMap, gene.start);
+  const auto start = at(coordMap, gene.start);
   // gene.end is the position after the last base of the gene (0-based indexing)
   // the corresponding base in the query is hence found by coordMap[gene.end-1]
   // we add 1 to make that end be again after the last base of the gene.
   // with this addition: length = end - start
-  const auto end = details::at(coordMap, gene.end - 1) + 1;
+  const auto end = at(coordMap, gene.end - 1) + 1;
   const auto length = end - start;
   // Start and end should be within bounds
   invariant_less(start, query.size());

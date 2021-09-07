@@ -114,7 +114,9 @@ namespace Nextclade {
     json serializeFrameShiftResult(const FrameShiftResult& fs) {
       auto j = json::object();
       j.emplace("geneName", fs.geneName);
-      j.emplace("frameShiftRange", serializeFrameShiftRange(fs.frameShiftRange));
+      j.emplace("nucRel", serializeFrameShiftRange(fs.nucRel));
+      j.emplace("nucAbs", serializeFrameShiftRange(fs.nucAbs));
+      j.emplace("codon", serializeFrameShiftRange(fs.codon));
       return j;
     }
 
@@ -315,7 +317,7 @@ namespace Nextclade {
     auto j = json::object();
     j.emplace("name", peptide.name);
     j.emplace("seq", peptide.seq);
-    j.emplace("frameShiftRanges", serializeArray(peptide.frameShiftRanges, serializeFrameShiftRange));
+    j.emplace("frameShiftResults", serializeArray(peptide.frameShiftResults, serializeFrameShiftResult));
     return j;
   }
 

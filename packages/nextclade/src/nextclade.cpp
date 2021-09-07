@@ -62,7 +62,7 @@ namespace Nextclade {
       geneMap                                                                   //
     );
 
-    const auto& frameShifts = getFrameShifts(alignment.queryPeptides);
+    const auto& frameShifts = flattenFrameShifts(alignment.queryPeptides);
     const auto totalFrameShifts = safe_cast<int>(frameShifts.size());
 
     linkNucAndAaChangesInPlace(nucChanges, aaChanges);

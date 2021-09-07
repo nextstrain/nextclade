@@ -51,6 +51,7 @@ add_library(${PROJECT_NAME} STATIC
   src/translate/translate.h
   src/translate/translateGenes.cpp
   src/translate/translateGenes.h
+  src/utils/at.h
   src/utils/concat_move.h
   src/utils/config.h
   src/utils/contains.h

@@ -208,11 +208,6 @@ namespace Nextclade {
 
   using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
-  struct FrameShiftResult {
-    std::string geneName;
-    FrameShiftRange frameShiftRange;
-  };
-
   template<typename Letter>
   struct CharacterRange {
     int begin;

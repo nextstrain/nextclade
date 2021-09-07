@@ -4,9 +4,9 @@
 #include <vector>
 
 struct PeptideInternal;
+struct FrameShiftResult;
 
 namespace Nextclade {
-  struct FrameShiftResult;
 
-  std::vector<FrameShiftResult> getFrameShifts(const std::vector<PeptideInternal>& queryPeptides);
+  std::vector<FrameShiftResult> flattenFrameShifts(const std::vector<PeptideInternal>& queryPeptides);
 }// namespace Nextclade

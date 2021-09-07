@@ -7,13 +7,13 @@
 #include <vector>
 
 namespace Nextclade {
-  std::vector<FrameShiftResult> getFrameShifts(const std::vector<PeptideInternal>& queryPeptides) {
-    std::vector<FrameShiftResult> result;
+  std::vector<FrameShiftResult> flattenFrameShifts(const std::vector<PeptideInternal>& queryPeptides) {
+    std::vector<FrameShiftResult> results;
     for (const auto& peptide : queryPeptides) {
-      for (const auto& frameShiftRange : peptide.frameShiftRanges) {
-        result.emplace_back(FrameShiftResult{.geneName = peptide.name, .frameShiftRange = frameShiftRange});
+      for (const auto& result : peptide.frameShiftResults) {
+        results.push_back(result);
       }
     }
-    return result;
+    return results;
   }
 }// namespace Nextclade

@@ -89,7 +89,7 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
 
   const frameShiftMarkers = frameShifts.map((frameShift) => (
     <SequenceMarkerFrameShift
-      key={`${frameShift.geneName}_${frameShift.frameShiftRange.begin}`}
+      key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
       seqName={seqName}
       frameShift={frameShift}
       pixelsPerBase={pixelsPerBase}

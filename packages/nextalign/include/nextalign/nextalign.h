@@ -34,11 +34,25 @@ struct Warnings {
 struct FrameShiftRange {
   int begin;
   int end;
+
+  [[nodiscard]] FrameShiftRange offsetBy(int offset) const {
+    return FrameShiftRange{
+      .begin = begin + offset,
+      .end = end + offset,
+    };
+  }
 };
 
 inline bool operator==(const FrameShiftRange& left, const FrameShiftRange& right) {
   return left.begin == right.begin && left.end == right.end;
 }
+
+struct FrameShiftResult {
+  std::string geneName;
+  FrameShiftRange nucRel;
+  FrameShiftRange nucAbs;
+  FrameShiftRange codon;
+};
 
 struct FrameShift {
   std::string geneName;
@@ -192,7 +206,7 @@ struct Alignment {
 struct Peptide {
   std::string name;
   std::string seq;
-  std::vector<FrameShiftRange> frameShiftRanges;
+  std::vector<FrameShiftResult> frameShiftResults;
 };
 
 template<typename Letter>

@@ -17,10 +17,10 @@ import { getSafeId } from 'src/helpers/getSafeId'
 const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
 
-export interface MissingViewProps extends SVGProps<SVGRectElement> {
+export interface PeptideMarkerFrameShiftProps extends SVGProps<SVGRectElement> {
   seqName: string
   frameShift: FrameShiftResult
-  pixelsPerBase: number
+  pixelsPerAa: number
   geneMap?: Gene[]
 }
 
@@ -30,18 +30,18 @@ const mapStateToProps = (state: State) => ({
 
 const mapDispatchToProps = {}
 
-export const SequenceMarkerFrameShiftUnmemoed = connect(
+export const PeptideMarkerFrameShiftUnmemoed = connect(
   mapStateToProps,
   mapDispatchToProps,
-)(SequenceMarkerFrameShiftDisconnected)
+)(PeptideMarkerFrameShiftDisconnected)
 
-function SequenceMarkerFrameShiftDisconnected({
+function PeptideMarkerFrameShiftDisconnected({
   seqName,
   frameShift,
-  pixelsPerBase,
+  pixelsPerAa,
   geneMap,
   ...rest
-}: MissingViewProps) {
+}: PeptideMarkerFrameShiftProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
@@ -50,7 +50,7 @@ function SequenceMarkerFrameShiftDisconnected({
   }
 
   const { geneName, nucAbs, codon } = frameShift
-  const id = getSafeId('frame-shift-nuc-marker', { seqName, ...frameShift })
+  const id = getSafeId('frame-shift-aa-marker', { seqName, ...frameShift })
 
   const gene = geneMap.find((gene) => geneName === gene.geneName)
   if (!gene) {
@@ -60,8 +60,8 @@ function SequenceMarkerFrameShiftDisconnected({
   const nucLength = nucAbs.end - nucAbs.begin
   const codonLength = codon.end - codon.begin
 
-  const x = nucAbs.begin * pixelsPerBase
-  let width = nucLength * pixelsPerBase
+  const x = codon.begin * pixelsPerAa
+  let width = codonLength * pixelsPerAa
   width = Math.max(width, BASE_MIN_WIDTH_PX)
 
   const codonRangeStr = formatRange(codon.begin, codon.end)
@@ -127,4 +127,4 @@ function SequenceMarkerFrameShiftDisconnected({
   )
 }
 
-export const SequenceMarkerFrameShift = React.memo(SequenceMarkerFrameShiftUnmemoed)
+export const PeptideMarkerFrameShift = React.memo(PeptideMarkerFrameShiftUnmemoed)

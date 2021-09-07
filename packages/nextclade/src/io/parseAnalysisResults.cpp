@@ -128,7 +128,9 @@ namespace Nextclade {
   FrameShiftResult parseFrameShiftResult(const json& j) {
     return FrameShiftResult{
       .geneName = at(j, "geneName").get<std::string>(),
-      .frameShiftRange = parseFrameShiftRange(at(j, "frameShiftRange")),
+      .nucRel = parseFrameShiftRange(at(j, "nucRel")),
+      .nucAbs = parseFrameShiftRange(at(j, "nucAbs")),
+      .codon = parseFrameShiftRange(at(j, "codon")),
     };
   }
 
