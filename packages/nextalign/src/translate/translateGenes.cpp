@@ -35,6 +35,7 @@ PeptidesInternal translateGenes(         //
   NucleotideSequenceSpan newRef{newRefMemory};
 
   const auto coordMap = mapCoordinates(ref);
+  const auto coordMapReverse = mapReverseCoordinates(ref);
 
   std::vector<PeptideInternal> queryPeptides;
   queryPeptides.reserve(geneMap.size());
@@ -88,7 +89,7 @@ PeptidesInternal translateGenes(         //
 
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
-    const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMap, gene);
+    const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMapReverse, gene);
 
     // Strip all GAP characters to "forget" gaps introduced during alignment
     removeGapsInPlace(refGeneSeq);

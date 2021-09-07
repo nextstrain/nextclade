@@ -137,19 +137,20 @@ std::vector<FrameShiftRange> detectFrameShifts(//
  */
 std::vector<FrameShiftResult> translateFrameShifts(     //
   const std::vector<FrameShiftRange>& nucRelFrameShifts,//
-  const std::vector<int>& coordMap,                     //
+  const std::vector<int>& coordMapReverse,              //
   const Gene& gene                                      //
 ) {
-  precondition_less(gene.start, coordMap.size());
-  precondition_less_equal(gene.end, coordMap.size());
+  precondition_less(gene.start, coordMapReverse.size());
+  precondition_less_equal(gene.end, coordMapReverse.size());
   precondition_less(gene.start, gene.end);
 
   std::vector<FrameShiftResult> frameShifts;
   frameShifts.reserve(nucRelFrameShifts.size());
   for (const auto& nucRangeRel : nucRelFrameShifts) {
-    // Absolute positions will change after gap stripping according to the coordinate map
-    const auto geneStart = at(coordMap, gene.start);
-    auto nucRangeAbs = nucRangeRel.offsetBy(geneStart);
+    // Absolute positions will change after gap stripping according to the reverse coordinate map
+    FrameShiftRange nucRangeAbs{};
+    nucRangeAbs.begin = at(coordMapReverse, nucRangeRel.begin + gene.start);
+    nucRangeAbs.end = at(coordMapReverse, nucRangeRel.end + gene.start);
 
     auto codonRange = FrameShiftRange{
       .begin = nucRangeRel.begin / 3,
