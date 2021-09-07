@@ -60,12 +60,16 @@ void protectCodonInPlace(SpanIterator it) {
   }
 }
 
-void stripGeneInPlace(NucleotideSequence& seq) {
+/**
+ * Find the first non-GAP nucleotide and replace GAPs in the corresponding codon with Ns,
+ * so that it's not getting stripped. This is to ensure the first codon is complete
+ * and no shift is introduced during subsequent gap-stripping
+ */
+void protectFirstCodonInPlace(NucleotideSequence& seq) {
   const auto& length = safe_cast<int>(seq.size());
   const auto end = length - (length % 3);
   NucleotideSequenceSpan seqSpan = seq;
 
-  // Find the first non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
   for (int i = 0; i < end; ++i) {
     if (at(seqSpan, i) != Nucleotide::GAP) {
       const auto codonBegin = i - (i % 3);
@@ -77,26 +81,6 @@ void stripGeneInPlace(NucleotideSequence& seq) {
       break;
     }
   }
-
-  // Find the last non-GAP nucleotide and replace GAPs in the corresponding codon with Ns, so that it's not getting stripped
-  // NOTE: Due to insertions elsewhere in the sequence, the beginning of a codon is not necessarily
-  // a position with i % 3 == 0. Assuming the 3' end of the gene is in frame, we use
-  // the frame a the end (lastFrame) as the reference frame for the end of the gene
-  const auto& lastFrame = length % 3;
-  for (int i = length - 1; i >= 0; --i) {
-    if (at(seqSpan, i) != Nucleotide::GAP) {
-      const auto codonBegin = i - ((i - lastFrame) % 3);
-      invariant_greater_equal(codonBegin, 0);
-      invariant_less(codonBegin + 2, length);
-
-      const auto codon = details::subspan(seqSpan, codonBegin, 3);
-      protectCodonInPlace(codon.rbegin());// Note: reverse iterator - going from end to begin
-      break;
-    }
-  }
-
-  // Remove all GAP characters from everywhere (Note: including the full gap-only codons at the edges)
-  removeGapsInPlace(seq);
 }
 
 /**

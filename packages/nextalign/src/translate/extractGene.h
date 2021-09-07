@@ -24,4 +24,4 @@ struct ExtractGeneStatus {
 ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
   const std::vector<int>& coordMap);
 
-void stripGeneInPlace(NucleotideSequence& seq);
+void protectFirstCodonInPlace(NucleotideSequence& seq);

@@ -82,12 +82,17 @@ PeptidesInternal translateGenes(         //
     auto& refGene = *extractRefGeneStatus.result;
     auto& queryGene = *extractQueryGeneStatus.result;
 
+    // Make sure subsequent gap stripping does not introduce frame shift
+    protectFirstCodonInPlace(refGene);
+    protectFirstCodonInPlace(queryGene);
+
+    // NOTE: frame shift detection should be performed on unstripped genes
     const auto frameShiftResult = detectFrameShifts(refGene, queryGene);
     const auto& frameShiftRanges = frameShiftResult.frameShifts;
 
-    // Remove all GAP characters to "forget" gaps introduced during alignment
-    stripGeneInPlace(refGene);
-    stripGeneInPlace(queryGene);
+    // Strip all GAP characters to "forget" gaps introduced during alignment
+    removeGapsInPlace(refGene);
+    removeGapsInPlace(queryGene);
 
     auto refPeptide = translate(refGene);
     const auto queryPeptide = translate(queryGene);
