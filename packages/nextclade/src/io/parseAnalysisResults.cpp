@@ -240,12 +240,6 @@ namespace Nextclade {
     };
   }
 
-  FrameShift parseFrameShift(const json& j) {
-    return FrameShift{
-      .geneName = at(j, "geneName"),
-    };
-  }
-
   std::optional<QcResultFrameShifts> parseQcFrameShifts(const json& jj) {
     if (!jj.contains("frameShifts")) {
       return {};
@@ -254,7 +248,7 @@ namespace Nextclade {
     return QcResultFrameShifts{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
-      .frameShifts = parseArray<FrameShift>(j, "frameShifts", parseFrameShift),
+      .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
       .totalFrameShifts = parseInt(j, "totalFrameShifts"),
     };
   }

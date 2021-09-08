@@ -104,7 +104,7 @@ namespace Nextclade {
   struct QcResultFrameShifts {
     double score;
     QcStatus status;
-    std::vector<FrameShift> frameShifts;
+    std::vector<FrameShiftResult> frameShifts;
     int totalFrameShifts;
   };
 
@@ -535,7 +535,7 @@ namespace Nextclade {
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp);
 
-  std::string formatFrameShift(const FrameShift& frameShift);
+  std::string formatFrameShift(const FrameShiftResult& frameShift);
 
   std::string formatStopCodon(const StopCodonLocation& stopCodon);
 

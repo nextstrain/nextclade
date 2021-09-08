@@ -39,7 +39,7 @@ namespace Nextclade {
 
     constexpr frozen::string NEWLINE = "\r\n";
 
-    constexpr std::array<frozen::string, 49> COLUMN_NAMES = {
+    constexpr std::array<frozen::string, 51> COLUMN_NAMES = {
       "seqName",
       "clade",
 
@@ -49,6 +49,7 @@ namespace Nextclade {
       "totalSubstitutions",
       "totalDeletions",
       "totalInsertions",
+      "totalFrameShifts",
       "totalAminoacidSubstitutions",
       "totalAminoacidDeletions",
       "totalMissing",
@@ -58,6 +59,7 @@ namespace Nextclade {
       "substitutions",
       "deletions",
       "insertions",
+      "frameShifts",
       "aaSubstitutions",
       "aaDeletions",
       "missing",
@@ -143,6 +145,7 @@ namespace Nextclade {
     columns.emplace_back(std::to_string(result.totalSubstitutions));
     columns.emplace_back(std::to_string(result.totalDeletions));
     columns.emplace_back(std::to_string(result.totalInsertions));
+    columns.emplace_back(std::to_string(result.totalFrameShifts));
     columns.emplace_back(std::to_string(result.totalAminoacidSubstitutions));
     columns.emplace_back(std::to_string(result.totalAminoacidDeletions));
     columns.emplace_back(std::to_string(result.totalMissing));
@@ -152,6 +155,7 @@ namespace Nextclade {
     columns.emplace_back(formatAndJoin(result.substitutions, formatMutation, ","));
     columns.emplace_back(formatAndJoin(result.deletions, formatDeletion, ","));
     columns.emplace_back(formatAndJoin(result.insertions, formatInsertion, ","));
+    columns.emplace_back(formatAndJoin(result.frameShifts, formatFrameShift, ","));
     columns.emplace_back(formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));
     columns.emplace_back(formatAndJoin(result.aaDeletions, formatAminoacidDeletion, ","));
     columns.emplace_back(formatAndJoin(result.missing, formatMissing, ","));

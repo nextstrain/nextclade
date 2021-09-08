@@ -43,8 +43,7 @@ export interface NucleotideInsertion {
   ins: string
 }
 
-export interface NucleotideMissing extends Range {
-}
+export interface NucleotideMissing extends Range {}
 
 export interface CharacterRange<Letter> extends Range {
   character: Letter
@@ -198,6 +197,9 @@ export interface QcResultPrivateMutations {
 
 export interface FrameShift {
   geneName: string
+  nucRel: Range
+  nucAbs: Range
+  codon: Range
 }
 
 export interface QcResultFrameShifts {
@@ -230,13 +232,6 @@ export interface QcResult {
   overallStatus: QcStatus
 }
 
-export interface FrameShiftResult {
-  geneName: string
-  nucRel: Range
-  nucAbs: Range
-  codon: Range
-}
-
 export interface AnalysisResult {
   seqName: string
   substitutions: NucleotideSubstitution[]
@@ -245,7 +240,7 @@ export interface AnalysisResult {
   totalInsertions: number
   deletions: NucleotideDeletion[]
   totalDeletions: number
-  frameShifts: FrameShiftResult[]
+  frameShifts: FrameShift[]
   totalFrameShifts: number
   missing: NucleotideMissing[]
   totalMissing: number
@@ -366,5 +361,4 @@ export interface DatasetsIndexJson {
   datasets: Dataset[]
 }
 
-export interface DatasetFlat extends Dataset, DatasetRef, DatasetVersion {
-}
+export interface DatasetFlat extends Dataset, DatasetRef, DatasetVersion {}

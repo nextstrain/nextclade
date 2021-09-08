@@ -181,12 +181,6 @@ namespace Nextclade {
       return j;
     }
 
-    json serializeFrameShift(const FrameShift& frameShift) {
-      auto j = json::object();
-      j.emplace("geneName", frameShift.geneName);
-      return j;
-    }
-
     json serializeQcResult(const QcResult& qc) {
       auto j = json::object(//
         {
@@ -245,7 +239,7 @@ namespace Nextclade {
             {
               {"score", qc.frameShifts->score},
               {"status", formatQcStatus(qc.frameShifts->status)},
-              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShift)},
+              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShiftResult)},
               {"totalFrameShifts", qc.frameShifts->totalFrameShifts},
             }));
       }

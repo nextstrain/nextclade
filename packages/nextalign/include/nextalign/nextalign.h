@@ -62,10 +62,6 @@ inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& rig
     ;
 }
 
-struct FrameShift {
-  std::string geneName;
-};
-
 class Error : public std::runtime_error {
 public:
   explicit Error(const std::string& message) : std::runtime_error(message) {}

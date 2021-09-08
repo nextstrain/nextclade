@@ -26,6 +26,10 @@ namespace Nextclade {
     return fmt::format("{}-{}", beginOne, endOne);
   }
 
+  std::string formatFrameShiftRange(const FrameShiftRange& range) {
+    return formatRange(Range{.begin = range.begin, .end = range.end});
+  }
+
   std::string formatMutation(const NucleotideSubstitution& mut) {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto positionOneBased = mut.pos + 1;
@@ -95,8 +99,8 @@ namespace Nextclade {
     return fmt::format("{}:{}", range, numberOfSNPs);
   }
 
-  std::string formatFrameShift(const FrameShift& frameShift) {
-    return frameShift.geneName;
+  std::string formatFrameShift(const FrameShiftResult& frameShift) {
+    return fmt::format("{}:{}", frameShift.geneName, formatFrameShiftRange(frameShift.codon));
   }
 
   std::string formatStopCodon(const StopCodonLocation& stopCodon) {

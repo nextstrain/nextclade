@@ -10,23 +10,21 @@
 
 namespace Nextclade {
   std::optional<QcResultFrameShifts> ruleFrameShifts(//
-    const NextalignResultInternal& alignment,        //
+    const AnalysisResult& analysisResult,            //
     const QCRulesConfigFrameShifts& config           //
   ) {
     if (!config.enabled) {
       return {};
     }
 
-    int totalFrameShifts = safe_cast<int>(alignment.frameShifts.size());
-
-    const double score = totalFrameShifts * 75;
+    const double score = analysisResult.totalFrameShifts * 75;
     const auto& status = getQcRuleStatus(score);
 
     return QcResultFrameShifts{
       .score = score,
       .status = status,
-      .frameShifts = alignment.frameShifts,
-      .totalFrameShifts = totalFrameShifts,
+      .frameShifts = analysisResult.frameShifts,
+      .totalFrameShifts = analysisResult.totalFrameShifts,
     };
   }
 }// namespace Nextclade

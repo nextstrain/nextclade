@@ -10,7 +10,7 @@
 
 struct Gene;
 
-enum ExtractGeneStatusReason { GeneEmpty, GeneLengthNonMul3 };
+enum ExtractGeneStatusReason { GeneEmpty };
 
 struct ExtractGeneStatus {
   Status status;
