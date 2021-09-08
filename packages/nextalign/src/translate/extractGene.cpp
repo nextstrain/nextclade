@@ -16,7 +16,7 @@ namespace details {
     invariant_greater_equal(start, 0);
     invariant_less(start, s.size());
     invariant_greater_equal(length, 0);
-    invariant_less(start + length, s.size());
+    invariant_less_equal(start + length, s.size());
     return s.substr(safe_cast<size_t>(start), safe_cast<size_t>(length));
   }
 
