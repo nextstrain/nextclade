@@ -11,5 +11,6 @@ std::vector<FrameShiftRange> detectFrameShifts(//
 std::vector<FrameShiftResult> translateFrameShifts(     //
   const std::vector<FrameShiftRange>& nucRelFrameShifts,//
   const std::vector<int>& coordMap,                     //
+  const std::vector<int>& coordMapReverse,              //
   const Gene& gene                                      //
 );

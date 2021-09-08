@@ -54,6 +54,14 @@ struct FrameShiftResult {
   FrameShiftRange codon;
 };
 
+inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& right) {
+  return left.geneName == right.geneName//
+         && left.nucRel == right.nucRel //
+         && left.nucAbs == right.nucAbs //
+         && left.codon == right.codon   //
+    ;
+}
+
 struct FrameShift {
   std::string geneName;
 };

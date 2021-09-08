@@ -1,5 +1,6 @@
 #include "detectFrameShifts.h"
 
+#include <fmt/format.h>
 #include <utils/contract.h>
 #include <utils/safe_cast.h>
 #include <utils/to_underlying.h>
@@ -137,6 +138,7 @@ std::vector<FrameShiftRange> detectFrameShifts(//
  */
 std::vector<FrameShiftResult> translateFrameShifts(     //
   const std::vector<FrameShiftRange>& nucRelFrameShifts,//
+  const std::vector<int>& coordMap,                     //
   const std::vector<int>& coordMapReverse,              //
   const Gene& gene                                      //
 ) {
@@ -147,14 +149,27 @@ std::vector<FrameShiftResult> translateFrameShifts(     //
   std::vector<FrameShiftResult> frameShifts;
   frameShifts.reserve(nucRelFrameShifts.size());
   for (const auto& nucRangeRel : nucRelFrameShifts) {
-    // Absolute positions will change after gap stripping according to the reverse coordinate map
-    FrameShiftRange nucRangeAbs{};
-    // nucRangeAbs.begin = at(coordMapReverse, nucRangeRel.begin + gene.start);
-    // nucRangeAbs.end = at(coordMapReverse, nucRangeRel.end + gene.start);
-    nucRangeAbs.begin = nucRangeRel.begin + gene.start;
-    nucRangeAbs.end = nucRangeRel.end + gene.start;
+    // Relative nuc range is in alignment coordinates. However, after insertions are stripped,
+    // absolute positions may change - so in order to get absolute range, we need to convert range boundaries
+    // from alignment coordinates (as in aligned reference sequence, with gaps) to reference coordinates
+    // (as in the original reference coordinates, with gaps stripped).
 
-    auto codonRange = FrameShiftRange{
+    const auto geneStartAln = at(coordMap, gene.start);// Gene start in alignment coordinates
+
+    // Offset by gene start, all operands are in alignment coordinates
+    const auto beginAbsAln = nucRangeRel.begin + geneStartAln;
+    const auto endAbsAln = nucRangeRel.end + geneStartAln;
+
+    // Convert to reference coordinates
+    const auto beginAbsRef = at(coordMapReverse, beginAbsAln);
+    const auto endAbsRef = at(coordMapReverse, endAbsAln);
+
+    FrameShiftRange nucRangeAbs{
+      .begin = beginAbsRef,
+      .end = endAbsRef,
+    };
+
+    FrameShiftRange codonRange{
       .begin = nucRangeRel.begin / 3,
       .end = nucRangeRel.end / 3,
     };

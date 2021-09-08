@@ -93,3 +93,14 @@ inline std::ostream& operator<<(std::ostream& os, const FrameShiftRange& f) {
   os << "{ " << f.begin << ", " << f.end << " }";
   return os;
 }
+
+inline std::ostream& operator<<(std::ostream& os, const FrameShiftResult& f) {
+  os << "{ "                                  //
+     << "geneName: \"" << f.geneName << "\", "//
+     << "nucRel: " << f.nucRel << ", "        //
+     << "nucAbs: " << f.nucAbs << ", "        //
+     << "codon: " << f.codon << ", "          //
+     << " }"                                  //
+    ;
+  return os;
+}

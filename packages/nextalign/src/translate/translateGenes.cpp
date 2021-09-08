@@ -91,7 +91,7 @@ PeptidesInternal translateGenes(         //
 
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
-    const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMapReverse, gene);
+    const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMap, coordMapReverse, gene);
 
     // Strip all GAP characters to "forget" gaps introduced during alignment
     removeGapsInPlace(refGeneSeq);

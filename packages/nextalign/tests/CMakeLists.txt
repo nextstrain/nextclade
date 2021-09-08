@@ -23,6 +23,7 @@ add_executable(${PROJECT_NAME}
   removeGaps.test.cpp
   stripInsertions.test.cpp
   translate.test.cpp
+  translateGenes.test.cpp
   wraparound.test.cpp
   )
 
