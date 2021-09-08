@@ -89,7 +89,7 @@ public:
 
     if (frame != 0 && begin == POSITION_INVALID) {
       // We are in the frame shift. This *might* be the the beginning of a shifted range. Note that it might also not
-      // be, because there might be more non-shifting characters ahead before .
+      // be, because there might be more non-shifting characters ahead.
       begin = pos;
     }
 
@@ -149,8 +149,10 @@ std::vector<FrameShiftResult> translateFrameShifts(     //
   for (const auto& nucRangeRel : nucRelFrameShifts) {
     // Absolute positions will change after gap stripping according to the reverse coordinate map
     FrameShiftRange nucRangeAbs{};
-    nucRangeAbs.begin = at(coordMapReverse, nucRangeRel.begin + gene.start);
-    nucRangeAbs.end = at(coordMapReverse, nucRangeRel.end + gene.start);
+    // nucRangeAbs.begin = at(coordMapReverse, nucRangeRel.begin + gene.start);
+    // nucRangeAbs.end = at(coordMapReverse, nucRangeRel.end + gene.start);
+    nucRangeAbs.begin = nucRangeRel.begin + gene.start;
+    nucRangeAbs.end = nucRangeRel.end + gene.start;
 
     auto codonRange = FrameShiftRange{
       .begin = nucRangeRel.begin / 3,
