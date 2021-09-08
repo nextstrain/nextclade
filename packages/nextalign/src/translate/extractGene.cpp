@@ -96,33 +96,16 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
   const auto resultLength = safe_cast<int>(result.size());
 
   if (resultLength == 0) {
-    auto error = fmt::format(                                                                              //
-      "When extracting gene \"{:s}\": The gene ended up being empty after gap stripping. "                 //
-      "Gene coordinates: "                                                                                 //
-      "start: {:d}, end: {:d}, length: {:d}"                                                               //
+    auto error = fmt::format(                                                             //
+      "When extracting gene \"{:s}\": The gene ended up being empty after gap stripping. "//
+      "Gene coordinates: "                                                                //
+      "start: {:d}, end: {:d}, length: {:d}"                                              //
       ,
       gene.geneName, gene.start, gene.end, gene.length);
 
     return ExtractGeneStatus{
       .status = Status::Error,
       .reason = ExtractGeneStatusReason::GeneEmpty,
-      .error = std::move(error),
-      .result = {},
-    };
-  }
-
-  if (resultLength % 3 != 0) {
-    auto error = fmt::format(                                                                                //
-      "When extracting gene \"{:s}\": Genes are expected to have length that is a "                          //
-      "multiple of 3, but the extracted sequence has length {:d} after gap stripping. "                      //
-      "Gene coordinates: "                                                                                   //
-      "start: {:d}, end: {:d}, length: {:d}"                                                                 //
-      ,
-      gene.geneName, resultLength, gene.start, gene.end, gene.length);
-
-    return ExtractGeneStatus{
-      .status = Status::Error,
-      .reason = ExtractGeneStatusReason::GeneLengthNonMul3,
       .error = std::move(error),
       .result = {},
     };

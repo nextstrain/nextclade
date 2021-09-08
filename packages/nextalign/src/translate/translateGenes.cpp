@@ -67,6 +67,7 @@ PeptidesInternal translateGenes(         //
     if (extractRefGeneStatus.status != Status::Success) {
       const auto message = *extractRefGeneStatus.error;
       warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
+      continue;
     }
 
 
@@ -78,6 +79,7 @@ PeptidesInternal translateGenes(         //
       if (extractQueryGeneStatus.reason == ExtractGeneStatusReason::GeneLengthNonMul3) {
         frameShifts.emplace_back(FrameShift{.geneName = geneName});
       }
+      continue;
     }
 
     auto& refGeneSeq = *extractRefGeneStatus.result;
