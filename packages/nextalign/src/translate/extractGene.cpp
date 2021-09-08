@@ -30,11 +30,6 @@ namespace details {
   }
 }// namespace details
 
-NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene) {
-  precondition_less(gene.length, ref.size());
-  precondition_less_equal(gene.length, ref.size());
-  return details::substr(ref, gene.start, gene.length);
-}
 
 /**
  * Replaces first or second gap in a not-all-gap codon with N

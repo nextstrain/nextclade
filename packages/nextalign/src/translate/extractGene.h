@@ -10,8 +10,6 @@
 
 struct Gene;
 
-NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene);
-
 enum ExtractGeneStatusReason { GeneEmpty, GeneLengthNonMul3 };
 
 struct ExtractGeneStatus {
