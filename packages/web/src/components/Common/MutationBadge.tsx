@@ -1,10 +1,11 @@
 import React from 'react'
 
 import { get } from 'lodash'
+import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import styled, { useTheme } from 'styled-components'
 
 import { AMINOACID_GAP } from 'src/constants'
-import { Aminoacid, AminoacidDeletion, AminoacidSubstitution, Gene } from 'src/algorithms/types'
+import { Aminoacid, AminoacidDeletion, AminoacidSubstitution, Gene, NucleotideSubstitution } from 'src/algorithms/types'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'
 
@@ -42,7 +43,7 @@ export const GeneText = styled.span<{ $background?: string; $color?: string }>`
 export const ColoredText = styled.span<{ $background?: string; $color?: string }>`
   padding: 1px 2px;
   background-color: ${(props) => props.$background};
-  color: ${(props) => props.$color ?? props.theme.gray100};
+  color: ${(props) => props.$color ?? props.theme.black};
 `
 
 export const PositionText = styled.span`
@@ -57,12 +58,45 @@ export const VersionText = styled.span`
   color: ${(props) => props.theme.gray800};
 `
 
-export interface MutationBadgeProps {
+export interface NucleotideMutationBadgeProps {
+  mutation: NucleotideSubstitution
+}
+
+export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgeProps) {
+  const theme = useTheme()
+  const { refNuc, pos, queryNuc } = mutation
+
+  const refBg = getNucleotideColor(refNuc)
+  const refFg = getTextColor(theme, refBg)
+  const queryBg = getNucleotideColor(queryNuc)
+  const queryFg = getTextColor(theme, queryBg)
+  const posOneBased = pos + 1
+
+  return (
+    <MutationBadgeBox>
+      <MutationWrapper>
+        {refNuc && (
+          <ColoredText $background={refBg} $color={refFg}>
+            {refNuc}
+          </ColoredText>
+        )}
+        {pos && <PositionText>{posOneBased}</PositionText>}
+        {queryNuc && (
+          <ColoredText $background={queryBg} $color={queryFg}>
+            {queryNuc}
+          </ColoredText>
+        )}
+      </MutationWrapper>
+    </MutationBadgeBox>
+  )
+}
+
+export interface AminoacidMutationBadgeProps {
   mutation: AminoacidSubstitution | AminoacidDeletion
   geneMap: Gene[]
 }
 
-export function AminoacidMutationBadge({ mutation, geneMap }: MutationBadgeProps) {
+export function AminoacidMutationBadge({ mutation, geneMap }: AminoacidMutationBadgeProps) {
   const theme = useTheme()
 
   const { gene: geneName, refAA, codon } = mutation
