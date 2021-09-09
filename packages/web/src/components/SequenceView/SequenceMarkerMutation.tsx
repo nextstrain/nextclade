@@ -17,7 +17,7 @@ import { formatMutation } from 'src/helpers/formatMutation'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ListOfPcrPrimersChanged } from 'src/components/SequenceView/ListOfPcrPrimersChanged'
-import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
+import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
@@ -81,7 +81,13 @@ function SequenceMarkerMutationDisconnected({
           <tbody>
             <tr>
               <td colSpan={2}>
-                <h6>{t('Nucleotide substitution: {{mutation}}', { mutation: mut })}</h6>
+                <h6>
+                  <span>{t('Nucleotide substitution')}</span>
+                  <span> </span>
+                  <span>
+                    <NucleotideMutationBadge mutation={substitution} />
+                  </span>
+                </h6>
               </td>
             </tr>
 
