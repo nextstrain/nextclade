@@ -20,7 +20,7 @@
 #include "utils/contract.h"
 
 
-void maskFrameShiftsInPlace(NucleotideSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
+void maskNucFrameShiftsInPlace(NucleotideSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
   for (const auto& frameShift : frameShifts) {
     auto current = frameShift.nucRel.begin;
     const auto end = frameShift.nucRel.end;
@@ -34,6 +34,26 @@ void maskFrameShiftsInPlace(NucleotideSequence& seq, const std::vector<FrameShif
     }
   }
 }
+
+/**
+ * Mask gaps in frame shifted regions of the peptide.
+ * This region is likely misaligned, so these gaps added during peptide alignment don't make sense.
+ */
+void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
+  for (const auto& frameShift : frameShifts) {
+    auto current = frameShift.codon.begin;
+    const auto end = frameShift.codon.end;
+    invariant_greater(current, 0);
+    invariant_less_equal(end, seq.size());
+    while (current < end) {
+      if (seq[current] == Aminoacid::GAP) {
+        seq[current] = Aminoacid::X;
+      }
+      ++current;
+    }
+  }
+}
+
 
 PeptidesInternal translateGenes(         //
   const NucleotideSequence& query,       //
@@ -103,7 +123,7 @@ PeptidesInternal translateGenes(         //
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
     const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMap, coordMapReverse, gene);
 
-    maskFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
+    maskNucFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
 
     // Strip all GAP characters to "forget" gaps introduced during alignment
     removeGapsInPlace(refGeneSeq);
@@ -127,6 +147,8 @@ PeptidesInternal translateGenes(         //
     }
 
     auto stripped = stripInsertions(geneAlignmentStatus.result->ref, geneAlignmentStatus.result->query);
+
+    maskPeptideFrameShiftsInPlace(stripped.queryStripped, frameShiftResults);
 
     queryPeptides.emplace_back(PeptideInternal{
       .name = geneName,                            //
