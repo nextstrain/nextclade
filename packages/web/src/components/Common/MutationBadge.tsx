@@ -1,11 +1,12 @@
 import React from 'react'
 
 import { get } from 'lodash'
-import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import styled, { useTheme } from 'styled-components'
+import { shade } from 'polished'
 
 import { AMINOACID_GAP } from 'src/constants'
 import { Aminoacid, AminoacidDeletion, AminoacidSubstitution, Gene, NucleotideSubstitution } from 'src/algorithms/types'
+import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'
 
@@ -66,9 +67,9 @@ export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgePro
   const theme = useTheme()
   const { refNuc, pos, queryNuc } = mutation
 
-  const refBg = getNucleotideColor(refNuc)
+  const refBg = shade(0.25)(getNucleotideColor(refNuc))
   const refFg = getTextColor(theme, refBg)
-  const queryBg = getNucleotideColor(queryNuc)
+  const queryBg = shade(0.25)(getNucleotideColor(queryNuc))
   const queryFg = getTextColor(theme, queryBg)
   const posOneBased = pos + 1
 
