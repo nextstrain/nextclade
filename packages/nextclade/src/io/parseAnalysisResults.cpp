@@ -118,8 +118,8 @@ namespace Nextclade {
     };
   }
 
-  FrameShiftRange parseFrameShiftRange(const json& j) {
-    return FrameShiftRange{
+  Range parseFrameShiftRange(const json& j) {
+    return Range{
       .begin = at(j, "begin").get<int>(),
       .end = at(j, "end").get<int>(),
     };

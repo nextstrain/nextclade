@@ -26,7 +26,7 @@ namespace Nextclade {
     return fmt::format("{}-{}", beginOne, endOne);
   }
 
-  std::string formatFrameShiftRange(const FrameShiftRange& range) {
+  std::string formatFrameShiftRange(const Range& range) {
     return formatRange(Range{.begin = range.begin, .end = range.end});
   }
 

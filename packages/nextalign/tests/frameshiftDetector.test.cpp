@@ -16,7 +16,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfEmpty) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -29,7 +29,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfnoIndels) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -47,7 +47,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIf3xDelsetionsAdjacent) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -65,7 +65,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -84,7 +84,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAreModulo3Adjacent2) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -102,7 +102,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIf3xInsertionsAdjacent) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -120,7 +120,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -138,7 +138,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAreModulo3Adjacent2) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -156,7 +156,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfDeletionsAndInsertionsAreModulo3AndAdja
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -174,7 +174,7 @@ TEST(DetectFrameShifts, DetectsNoShiftsIfInsertionsAndDeletionsAreModulo3AndAdja
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -195,8 +195,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xDeletion) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 19, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 19, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -218,8 +218,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentDeletions) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 20, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 20, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -241,8 +241,8 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2Deletions) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 20, .end = 31},
+  const std::vector<Range> expected = {
+    Range{.begin = 20, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -264,8 +264,8 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo3Deletions) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 19, .end = 31},
+  const std::vector<Range> expected = {
+    Range{.begin = 19, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -287,8 +287,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueToDeletionLeading) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 1, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 1, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -310,8 +310,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsAdjacentLeading
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 2, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 2, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -333,8 +333,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xDeletionsLeading) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 1, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 1, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -356,7 +356,7 @@ TEST(DetectFrameShifts, DetectsNoShiftDueTo2xAdjacentDeletionsTrailing) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -377,8 +377,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo1xInsertion) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 19, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 19, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -400,8 +400,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xAdjacentInsertions) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 20, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 20, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -423,8 +423,8 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2Insertions) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 20, .end = 31},
+  const std::vector<Range> expected = {
+    Range{.begin = 20, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -446,8 +446,8 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo3Insertions) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 19, .end = 31},
+  const std::vector<Range> expected = {
+    Range{.begin = 19, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -469,8 +469,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueToInsertionLeading) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 1, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 1, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -493,8 +493,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAdjacentLeadin
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 2, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 2, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -516,8 +516,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsLeading) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 1, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 1, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -537,7 +537,7 @@ TEST(DetectFrameShifts, DetectsNoShiftDueToInsertionTrailing) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -556,7 +556,7 @@ TEST(DetectFrameShifts, DetectsNoShiftDueTo2xInsertionsAdjacentTrailing) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {};
+  const std::vector<Range> expected = {};
 
   EXPECT_EQ(actual, expected);
 }
@@ -577,8 +577,8 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueToInsertionAndDeletion) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 19, .end = 31},
+  const std::vector<Range> expected = {
+    Range{.begin = 19, .end = 31},
   };
 
   EXPECT_EQ(actual, expected);
@@ -600,8 +600,8 @@ TEST(DetectFrameShifts, DetectsCompensatedShiftDueTo2xInsertionsAnd2xDeletions) 
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 20, .end = 30},
+  const std::vector<Range> expected = {
+    Range{.begin = 20, .end = 30},
   };
 
   EXPECT_EQ(actual, expected);
@@ -623,8 +623,8 @@ TEST(DetectFrameShifts, DetectsUncompensatedShiftDueTo2xInsertionsAnd1xDeletion)
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 20, .end = 50},
+  const std::vector<Range> expected = {
+    Range{.begin = 20, .end = 50},
   };
 
   EXPECT_EQ(actual, expected);
@@ -646,8 +646,8 @@ TEST(DetectFrameShifts, CorrectlyHandlesComplexCase1) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 22, .end = 95},
+  const std::vector<Range> expected = {
+    Range{.begin = 22, .end = 95},
   };
 
   EXPECT_EQ(actual, expected);
@@ -669,8 +669,8 @@ TEST(DetectFrameShifts, CorrectlyHandlesComplexCase2) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 22, .end = 95},
+  const std::vector<Range> expected = {
+    Range{.begin = 22, .end = 95},
   };
 
   EXPECT_EQ(actual, expected);
@@ -692,8 +692,8 @@ TEST(DetectFrameShifts, CorrectlyHandlesComplexCase3) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 6, .end = 12},
+  const std::vector<Range> expected = {
+    Range{.begin = 6, .end = 12},
   };
 
   EXPECT_EQ(actual, expected);
@@ -715,11 +715,11 @@ TEST(DetectFrameShifts, CorrectlyHandlesComplexCase4) {
 
   const auto actual = detectFrameShifts(refAln, qryAln);
 
-  const std::vector<FrameShiftRange> expected = {
-    FrameShiftRange{.begin = 6, .end = 12},
-    FrameShiftRange{.begin = 33, .end = 37},
-    FrameShiftRange{.begin = 45, .end = 77},
-    FrameShiftRange{.begin = 91, .end = 95},
+  const std::vector<Range> expected = {
+    Range{.begin = 6, .end = 12},
+    Range{.begin = 33, .end = 37},
+    Range{.begin = 45, .end = 77},
+    Range{.begin = 91, .end = 95},
   };
 
   EXPECT_EQ(actual, expected);

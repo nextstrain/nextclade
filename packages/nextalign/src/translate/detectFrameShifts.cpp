@@ -12,7 +12,7 @@ class FrameShiftDetector {
   // Invalid/unset positions are set with this value
   static constexpr auto POSITION_INVALID = std::numeric_limits<int>::min();
 
-  std::vector<FrameShiftRange> frameShifts;// List of detected frame shifts
+  std::vector<Range> frameShifts;// List of detected frame shifts
   int frame = 0;                           // Frame of the previously processed character (not necessarily n-1!)
   int oldFrame = 0;                        // Frame of the character before previous (not necessarily n-2!)
   int begin = POSITION_INVALID;            // Remembers potential begin of the current frame shift range
@@ -60,7 +60,7 @@ public:
   explicit FrameShiftDetector(int startFrame) : frame(startFrame) {}
 
   /** Returns frame shifts detected so far */
-  [[nodiscard]] std::vector<FrameShiftRange> getFrameShifts() const {
+  [[nodiscard]] std::vector<Range> getFrameShifts() const {
     return frameShifts;
   }
 
@@ -84,7 +84,7 @@ public:
 
     if (frame == 0 && begin != POSITION_INVALID) {
       // We are not in shift and `begin` was set previously. This is the end of the shift range. Remember the range.
-      frameShifts.push_back(FrameShiftRange{.begin = begin, .end = end});
+      frameShifts.push_back(Range{.begin = begin, .end = end});
       reset();
     }
 
@@ -100,7 +100,7 @@ public:
   /** Run this after sequence iteration is over, with the length of the sequence */
   void done(int pos) {
     if (begin != POSITION_INVALID) {
-      frameShifts.push_back(FrameShiftRange{.begin = begin, .end = pos});
+      frameShifts.push_back(Range{.begin = begin, .end = pos});
       reset();
     }
   }
@@ -110,7 +110,7 @@ public:
  * Detects nucleotide frame shift in the query nucleotide sequence
  * and the corresponding aminoacid frame shifts in the query peptide
  */
-std::vector<FrameShiftRange> detectFrameShifts(//
+std::vector<Range> detectFrameShifts(//
   const NucleotideSequence& ref,               //
   const NucleotideSequence& query              //
 ) {
@@ -137,7 +137,7 @@ std::vector<FrameShiftRange> detectFrameShifts(//
  * relative and absolute nucleotide frame shifts and relative aminoacid frame shifts
  */
 std::vector<FrameShiftResult> translateFrameShifts(     //
-  const std::vector<FrameShiftRange>& nucRelFrameShifts,//
+  const std::vector<Range>& nucRelFrameShifts,//
   const std::vector<int>& coordMap,                     //
   const std::vector<int>& coordMapReverse,              //
   const Gene& gene                                      //
@@ -164,12 +164,12 @@ std::vector<FrameShiftResult> translateFrameShifts(     //
     const auto beginAbsRef = at(coordMapReverse, beginAbsAln);
     const auto endAbsRef = at(coordMapReverse, endAbsAln);
 
-    FrameShiftRange nucRangeAbs{
+    Range nucRangeAbs{
       .begin = beginAbsRef,
       .end = endAbsRef,
     };
 
-    FrameShiftRange codonRange{
+    Range codonRange{
       .begin = nucRangeRel.begin / 3,
       .end = nucRangeRel.end / 3,
     };

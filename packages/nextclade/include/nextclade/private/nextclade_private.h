@@ -72,14 +72,6 @@ namespace Nextclade {
     return os;
   }
 
-  inline std::ostream& operator<<(std::ostream& os, const Range& val) {
-    os << "{ ";
-    os << "begin: " << val.begin << ", ";
-    os << "end: " << val.end;
-    os << " }";
-    return os;
-  }
-
   inline std::ostream& operator<<(std::ostream& os, const AminoacidSubstitution& val) {
     os << "{ ";
     os << "gene: \"" << val.gene << "\", ";

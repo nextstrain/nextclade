@@ -88,7 +88,7 @@ inline std::ostream& operator<<(std::ostream& os, const AminoacidSequence& seq) 
   return os;
 }
 
-inline std::ostream& operator<<(std::ostream& os, const FrameShiftRange& f) {
+inline std::ostream& operator<<(std::ostream& os, const Range& f) {
   os << "{ " << f.begin << ", " << f.end << " }";
   return os;
 }

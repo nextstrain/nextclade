@@ -31,27 +31,24 @@ struct Warnings {
   std::vector<GeneWarning> inGenes;
 };
 
-struct FrameShiftRange {
+struct Range {
   int begin;
   int end;
 
-  [[nodiscard]] FrameShiftRange offsetBy(int offset) const {
-    return FrameShiftRange{
-      .begin = begin + offset,
-      .end = end + offset,
-    };
+  bool contains(int x) const {
+    return x >= begin && x < end;
   }
 };
 
-inline bool operator==(const FrameShiftRange& left, const FrameShiftRange& right) {
+inline bool operator==(const Range& left, const Range& right) {
   return left.begin == right.begin && left.end == right.end;
 }
 
 struct FrameShiftResult {
   std::string geneName;
-  FrameShiftRange nucRel;
-  FrameShiftRange nucAbs;
-  FrameShiftRange codon;
+  Range nucRel;
+  Range nucAbs;
+  Range codon;
 };
 
 inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& right) {

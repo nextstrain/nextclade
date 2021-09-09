@@ -104,7 +104,7 @@ namespace Nextclade {
       return j;
     }
 
-    json serializeFrameShiftRange(const FrameShiftRange& fs) {
+    json serializeFrameShiftRange(const Range& fs) {
       auto j = json::object();
       j.emplace("begin", fs.begin);
       j.emplace("end", fs.end);

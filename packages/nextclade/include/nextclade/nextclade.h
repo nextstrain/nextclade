@@ -135,26 +135,6 @@ namespace Nextclade {
     QcStatus overallStatus;
   };
 
-  /** Represents a numeric interval bounded by begin and end. Similar to `Span`, but different representation. */
-  struct Range {
-    int begin;
-    int end;
-
-    bool contains(int x) const {
-      return x >= begin && x < end;
-    }
-  };
-
-  inline bool operator==(const Range& left, const Range& right) {
-    return (left.begin == right.begin && left.end == right.end);
-  }
-
-  /** Represents a numeric interval bounded by start and length. Similar to `Range`, but different representation. */
-  struct Span {
-    int start;
-    int length;
-  };
-
   struct NucleotideLocation {
     int pos;
     Nucleotide nuc;

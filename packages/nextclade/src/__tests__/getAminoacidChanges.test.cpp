@@ -13,7 +13,7 @@ namespace {
   using Nextclade::AminoacidDeletion;
   using Nextclade::AminoacidSubstitution;
   using Nextclade::getAminoacidChanges;
-  using Nextclade::Range;
+  using ::Range;
 }// namespace
 
 
