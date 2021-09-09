@@ -12,7 +12,6 @@ import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
-import { formatMutation } from 'src/helpers/formatMutation'
 
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -54,8 +53,6 @@ function SequenceMarkerMutationDisconnected({
 
   const { pos, queryNuc, aaSubstitutions, aaDeletions, pcrPrimersChanged } = substitution
   const id = getSafeId('mutation-marker', { seqName, ...substitution })
-
-  const mut = formatMutation(substitution)
 
   const fill = getNucleotideColor(queryNuc)
   const x = pos * pixelsPerBase
