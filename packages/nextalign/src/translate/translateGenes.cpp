@@ -20,6 +20,21 @@
 #include "utils/contract.h"
 
 
+void maskFrameShiftsInPlace(NucleotideSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
+  for (const auto& frameShift : frameShifts) {
+    auto current = frameShift.nucRel.begin;
+    const auto end = frameShift.nucRel.end;
+    invariant_greater(current, 0);
+    invariant_less_equal(end, seq.size());
+    while (current < end) {
+      if (seq[current] != Nucleotide::GAP) {
+        seq[current] = Nucleotide::N;
+      }
+      ++current;
+    }
+  }
+}
+
 PeptidesInternal translateGenes(         //
   const NucleotideSequence& query,       //
   const NucleotideSequence& ref,         //
@@ -87,6 +102,8 @@ PeptidesInternal translateGenes(         //
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
     const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMap, coordMapReverse, gene);
+
+    maskFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
 
     // Strip all GAP characters to "forget" gaps introduced during alignment
     removeGapsInPlace(refGeneSeq);
