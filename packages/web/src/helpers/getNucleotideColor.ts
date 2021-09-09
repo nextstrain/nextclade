@@ -3,10 +3,10 @@ import { get } from 'lodash'
 import { Nucleotide } from 'src/algorithms/types'
 
 export const NUCLEOTIDE_COLORS: Record<string, string> = {
-  'A': '#bf2b18',
-  'C': '#162ebc',
+  'A': '#B54330',
+  'C': '#3C5BD6',
   'G': '#bcaf27',
-  'T': '#18b924',
+  'T': '#43A846',
   'N': '#555555',
   '-': '#777777',
 } as const
