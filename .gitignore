@@ -24,4 +24,7 @@ ehthumbs.db
 generated/
 nextalign_benchmarks.json
 node_modules
+paper/paper.pdf
 tmp
+build/
+*.bak

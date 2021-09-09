@@ -10,11 +10,10 @@ import type { Gene } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
-import { formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import type { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
-import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
+import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { PeptideContext } from './PeptideContext'
@@ -115,7 +114,7 @@ function PeptideMarkerMutationGroupDisconnected({
                   {nucSubstitutions.map((mut) => (
                     <tr key={mut.pos}>
                       <td>{t('Substitution')}</td>
-                      <td>{formatMutation(mut)}</td>
+                      <td>{<NucleotideMutationBadge mutation={mut} />}</td>
                     </tr>
                   ))}
                 </>

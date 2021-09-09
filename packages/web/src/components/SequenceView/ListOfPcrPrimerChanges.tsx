@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { PcrPrimerChange } from 'src/algorithms/types'
 import { Li, Ul } from 'src/components/Common/List'
+import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { formatMutation } from 'src/helpers/formatMutation'
 
 export interface ListOfPcrPrimerChangesProps {
@@ -22,7 +23,7 @@ export function ListOfPcrPrimerChanges({ pcrPrimerChanges, totalPcrPrimerChanges
         <Ul>
           {substitutions.map((mut) => {
             const notation = formatMutation(mut)
-            return <Li key={notation}>{notation}</Li>
+            return <Li key={notation}>{<NucleotideMutationBadge mutation={mut} />}</Li>
           })}
         </Ul>
       </Li>
