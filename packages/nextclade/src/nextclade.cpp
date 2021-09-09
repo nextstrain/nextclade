@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "analyze/calculateTotalLength.h"
+#include "analyze/filterAminoacidChanges.h"
 #include "analyze/findNucChanges.h"
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/getAminoacidChanges.h"
@@ -64,6 +65,8 @@ namespace Nextclade {
 
     const auto& frameShifts = flattenFrameShifts(alignment.queryPeptides);
     const auto totalFrameShifts = safe_cast<int>(frameShifts.size());
+
+    aaChanges = filterAminoacidChanges(aaChanges, frameShifts);
 
     linkNucAndAaChangesInPlace(nucChanges, aaChanges);
 
