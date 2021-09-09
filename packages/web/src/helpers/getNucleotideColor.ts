@@ -5,8 +5,8 @@ import { Nucleotide } from 'src/algorithms/types'
 export const NUCLEOTIDE_COLORS: Record<string, string> = {
   'A': '#B54330',
   'C': '#3C5BD6',
-  'G': '#bcaf27',
-  'T': '#43A846',
+  'G': '#9C8D1C',
+  'T': '#409543',
   'N': '#555555',
   '-': '#777777',
 } as const
