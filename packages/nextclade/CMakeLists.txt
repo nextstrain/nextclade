@@ -24,8 +24,6 @@ set(SOURCE_FILES
   src/analyze/aminoacid.cpp
   src/analyze/aminoacid.h
   src/analyze/calculateTotalLength.h
-  src/analyze/filterAminoacidChanges.cpp
-  src/analyze/filterAminoacidChanges.h
   src/analyze/findNucChanges.cpp
   src/analyze/findNucChanges.h
   src/analyze/findNucleotideRanges.cpp
