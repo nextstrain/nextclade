@@ -66,7 +66,7 @@ namespace Nextclade {
     const auto& frameShifts = flattenFrameShifts(alignment.queryPeptides);
     const auto totalFrameShifts = safe_cast<int>(frameShifts.size());
 
-    filterAminoacidChangesInPlace(aaChanges, frameShifts);
+    aaChanges = filterAminoacidChanges(aaChanges, frameShifts);
 
     linkNucAndAaChangesInPlace(nucChanges, aaChanges);
 

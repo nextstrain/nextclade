@@ -7,6 +7,6 @@ struct FrameShiftResult;
 namespace Nextclade {
   struct AminoacidChangesReport;
 
-  void filterAminoacidChangesInPlace(AminoacidChangesReport& aaChanges,
+  AminoacidChangesReport filterAminoacidChanges(const AminoacidChangesReport& aaChanges,
     const std::vector<FrameShiftResult>& frameShits);
 }// namespace Nextclade
