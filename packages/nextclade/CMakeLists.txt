@@ -109,6 +109,7 @@ set(SOURCE_FILES
   src/utils/map.h
   src/utils/mapFind.h
   src/utils/range.h
+  src/utils/removeInPlace.h
   src/utils/safe_cast.h
   )
 

@@ -3,27 +3,29 @@
 #include <nextclade/nextclade.h>
 
 #include "utils/range.h"
+#include "utils/removeInPlace.h"
 
 
 namespace Nextclade {
-  AminoacidChangesReport filterAminoacidChanges(const AminoacidChangesReport& aaChanges,
+  void filterAminoacidChangesInPlace(AminoacidChangesReport& aaChanges,
     const std::vector<FrameShiftResult>& frameShits) {
-    AminoacidChangesReport result;
 
-    for (const auto& frameShift : frameShits) {
-      for (const auto& sub : result.aaSubstitutions) {
-        if (sub.queryAA == Aminoacid::STOP || !inRange(sub.codon, frameShift.codon)) {
-          result.aaSubstitutions.push_back(sub);
+    removeInPlaceIf(aaChanges.aaSubstitutions, [&frameShits](const AminoacidSubstitution& sub) {
+      for (const auto& frameShift : frameShits) {
+        if (inRange(sub.codon, frameShift.codon) && sub.queryAA != Aminoacid::STOP) {
+          return true;
         }
       }
+      return false;
+    });
 
-      for (const auto& del : result.aaDeletions) {
-        if (!inRange(del.codon, frameShift.codon)) {
-          result.aaDeletions.push_back(del);
+    removeInPlaceIf(aaChanges.aaDeletions, [&frameShits](const AminoacidDeletion& del) {
+      for (const auto& frameShift : frameShits) {
+        if (inRange(del.codon, frameShift.codon)) {
+          return true;
         }
       }
-    }
-
-    return result;
+      return false;
+    });
   }
 }// namespace Nextclade
