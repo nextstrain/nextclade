@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Col, Row } from 'reactstrap'
+import { Col, Container, Row } from 'reactstrap'
 import styled from 'styled-components'
 import { connect } from 'react-redux'
 
@@ -35,22 +35,24 @@ export const MainSectionControls = connect(mapStateToProps, mapDispatchToProps)(
 
 export function MainSectionHeroDisconnected({ showAdvancedControls, setShowAdvancedControls }: MainSectionHeroProps) {
   return (
-    <Row noGutters>
-      <Col xl={6}>
-        <PreviousResultsCard />
-      </Col>
+    <Container fluid className="p-0">
+      <Row noGutters>
+        <Col xl={6}>
+          <PreviousResultsCard />
+        </Col>
 
-      <Col xl={6}>
-        <CardL1>
-          <CardL1Body>
-            <Row noGutters>
-              <Col>
-                <MainSectionHeroControlsAdvanced />
-              </Col>
-            </Row>
-          </CardL1Body>
-        </CardL1>
-      </Col>
-    </Row>
+        <Col xl={6}>
+          <CardL1>
+            <CardL1Body>
+              <Row noGutters>
+                <Col>
+                  <MainSectionHeroControlsAdvanced />
+                </Col>
+              </Row>
+            </CardL1Body>
+          </CardL1>
+        </Col>
+      </Row>
+    </Container>
   )
 }
