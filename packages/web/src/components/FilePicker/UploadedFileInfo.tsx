@@ -3,26 +3,13 @@ import React, { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
-
-import { ErrorContent } from 'src/components/Error/ErrorPopup'
-
-import {
-  Tab as TabBase,
-  TabList,
-  TabPanel as TabPanelBase,
-  Tabs,
-  TextContainer,
-} from 'src/components/Main/FilePickerTabs'
-
-import { theme } from 'src/theme'
 import styled from 'styled-components'
 
-export const Tab = styled(TabBase)`
-  display: none;
-`
+import { theme } from 'src/theme'
+import { ErrorContent } from 'src/components/Error/ErrorPopup'
 
-export const TabPanel = styled(TabPanelBase)`
-  //height: 300px;
+const Container = styled.div`
+  width: 100%;
 `
 
 export const UploadZoneWrapper = styled.div`
@@ -129,43 +116,36 @@ export function UploadedFileInfo({ name, description, errors, onRemove }: Upload
   // NOTE: This currently uses the Tab layout, even there's no tabs (1 invisible tab).
   // This is in order to match the style of the main component's state, with tabs.
   return (
-    <Tabs>
-      <TabList>
-        <TextContainer>{name}</TextContainer>
-        <Tab />
-      </TabList>
+    <Container>
+      <UploadZoneWrapper>
+        <UploadZone>
+          <Row noGutters className="my-auto">
+            <Col>
+              <FileIconsContainer>
+                <FileStatusIcon hasErrors={hasErrors} />
+              </FileIconsContainer>
+            </Col>
+          </Row>
 
-      <TabPanel>
-        <UploadZoneWrapper>
-          <UploadZone>
-            <Row noGutters className="my-auto">
-              <Col>
-                <FileIconsContainer>
-                  <FileStatusIcon hasErrors={hasErrors} />
-                </FileIconsContainer>
-              </Col>
-            </Row>
+          <Row noGutters className="my-auto">
+            <Col>
+              <UploadZoneTextContainer>
+                <UploadZoneDescription>{description}</UploadZoneDescription>
+              </UploadZoneTextContainer>
+            </Col>
+          </Row>
 
-            <Row noGutters className="my-auto">
-              <Col>
-                <UploadZoneTextContainer>
-                  <UploadZoneDescription>{description}</UploadZoneDescription>
-                </UploadZoneTextContainer>
-              </Col>
-            </Row>
-
-            <Row noGutters className="my-auto">
-              <Col>
-                <UploadZoneButtonContainer>
-                  <UploadZoneButton color="secondary" onClick={onRemove}>
-                    {t('Remove')}
-                  </UploadZoneButton>
-                </UploadZoneButtonContainer>
-              </Col>
-            </Row>
-          </UploadZone>
-        </UploadZoneWrapper>
-      </TabPanel>
+          <Row noGutters className="my-auto">
+            <Col>
+              <UploadZoneButtonContainer>
+                <UploadZoneButton color="secondary" onClick={onRemove}>
+                  {t('Remove')}
+                </UploadZoneButton>
+              </UploadZoneButtonContainer>
+            </Col>
+          </Row>
+        </UploadZone>
+      </UploadZoneWrapper>
 
       <Row noGutters>
         <Col>
@@ -174,6 +154,6 @@ export function UploadedFileInfo({ name, description, errors, onRemove }: Upload
           ))}
         </Col>
       </Row>
-    </Tabs>
+    </Container>
   )
 }

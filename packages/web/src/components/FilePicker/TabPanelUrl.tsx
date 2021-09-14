@@ -1,21 +1,10 @@
 import React, { useMemo, useState } from 'react'
 
-import { Col } from 'reactstrap'
-// eslint-disable-next-line import/no-cycle
-import {
-  ButtonClear,
-  ButtonContainer,
-  ButtonDownload,
-  ColFlexHorizontal,
-  ColFlexVertical,
-  Footnote,
-  Form,
-  Label,
-  Row,
-  RowFill,
-  TextInputMonospace,
-} from 'src/components/Main/FilePicker'
+import { Button, Col, Label, Row } from 'reactstrap'
+
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { ButtonContainer, ColFlexHorizontal, ColFlexVertical, Footnote, Form, RowFill } from './FilePickerStyles'
+import { TextInputMonospace } from './TextInputMonospace'
 
 export interface TabPanelUrlProps {
   exampleUrl: string
@@ -34,9 +23,9 @@ export function TabPanelUrl({ exampleUrl, onConfirm }: TabPanelUrlProps) {
 
   return (
     <Form>
-      <RowFill noGutter>
+      <RowFill noGutters>
         <ColFlexVertical>
-          <Row noGutter>
+          <Row noGutters>
             <Col className="d-flex">
               <Label className="mr-auto" htmlFor="tree-url-text-input">
                 {t('Enter URL to a file to fetch')}
@@ -44,7 +33,7 @@ export function TabPanelUrl({ exampleUrl, onConfirm }: TabPanelUrlProps) {
             </Col>
           </Row>
 
-          <RowFill noGutter>
+          <RowFill noGutters>
             <ColFlexVertical>
               <TextInputMonospace
                 wrap="hard"
@@ -70,10 +59,10 @@ export function TabPanelUrl({ exampleUrl, onConfirm }: TabPanelUrlProps) {
             </ColFlexHorizontal>
           </Row>
 
-          <Row noGutter>
+          <Row noGutters>
             <ColFlexHorizontal>
               <ButtonContainer>
-                <ButtonClear
+                <Button
                   disabled={!hasUrl}
                   type="button"
                   color="secondary"
@@ -81,9 +70,9 @@ export function TabPanelUrl({ exampleUrl, onConfirm }: TabPanelUrlProps) {
                   onClick={clear}
                 >
                   {t('Clear')}
-                </ButtonClear>
+                </Button>
 
-                <ButtonDownload
+                <Button
                   disabled={!hasUrl}
                   type="button"
                   color="primary"
@@ -91,7 +80,7 @@ export function TabPanelUrl({ exampleUrl, onConfirm }: TabPanelUrlProps) {
                   onClick={confirm}
                 >
                   {t('Download')}
-                </ButtonDownload>
+                </Button>
               </ButtonContainer>
             </ColFlexHorizontal>
           </Row>

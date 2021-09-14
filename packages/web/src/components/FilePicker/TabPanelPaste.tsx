@@ -1,20 +1,10 @@
 import React, { Ref, useState } from 'react'
 
-import { Col } from 'reactstrap'
-// eslint-disable-next-line import/no-cycle
-import {
-  ButtonClear,
-  ButtonContainer,
-  ButtonDownload,
-  ColFlexHorizontal,
-  ColFlexVertical,
-  Form,
-  Label,
-  Row,
-  RowFill,
-  TextInputMonospace,
-} from 'src/components/Main/FilePicker'
+import { Button, Col, Label, Row } from 'reactstrap'
+
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { ButtonContainer, ColFlexHorizontal, ColFlexVertical, Form, RowFill } from './FilePickerStyles'
+import { TextInputMonospace } from './TextInputMonospace'
 
 export interface TabPanelPasteProps {
   pasteInstructions: string
@@ -34,9 +24,9 @@ export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPan
 
   return (
     <Form>
-      <RowFill noGutter>
+      <RowFill noGutters>
         <ColFlexVertical>
-          <Row noGutter>
+          <Row noGutters>
             <Col className="d-flex">
               <Label className="mr-auto" htmlFor="sequence-input">
                 {pasteInstructions}
@@ -44,7 +34,7 @@ export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPan
             </Col>
           </Row>
 
-          <RowFill noGutter>
+          <RowFill noGutters>
             <Col className="d-flex flex-sm-column">
               <TextInputMonospace
                 id="sequence-input"
@@ -64,20 +54,20 @@ export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPan
             </Col>
           </RowFill>
 
-          <Row noGutter>
+          <Row noGutters>
             <ColFlexHorizontal>
               <ButtonContainer>
-                <ButtonClear
+                <Button
                   disabled={!hasSeqData}
                   type="button"
-                  color="secondary"
+                  color="link"
                   title={t('Clear the text field')}
                   onClick={clear}
                 >
                   {t('Clear')}
-                </ButtonClear>
+                </Button>
 
-                <ButtonDownload
+                <Button
                   disabled={!hasSeqData}
                   type="button"
                   color="primary"
@@ -85,7 +75,7 @@ export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPan
                   onClick={confirm}
                 >
                   {t('OK')}
-                </ButtonDownload>
+                </Button>
               </ButtonContainer>
             </ColFlexHorizontal>
           </Row>
