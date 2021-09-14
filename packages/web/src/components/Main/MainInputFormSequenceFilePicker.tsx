@@ -3,7 +3,7 @@ import React, { useCallback, useMemo } from 'react'
 
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { Button, Col, Row } from 'reactstrap'
+import { Button, Col, Container, Row } from 'reactstrap'
 import { FileIconFasta } from 'src/components/Main/UploaderFileIcons'
 import { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
@@ -94,25 +94,33 @@ export function MainInputFormSequenceFilePickerDisconnected({
   }, [algorithmRunTrigger, setShowNewRunPopup, setIsDirty])
 
   return (
-    <Row noGutters>
-      <Col>
-        <FilePicker
-          icon={<FileIconFasta />}
-          text={t('Sequences')}
-          exampleUrl="https://example.com/sequences.fasta"
-          pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
-          canCollapse={false}
-          defaultCollapsed={false}
-          input={params.raw.seqData}
-          errors={params.errors.seqData}
-          onRemove={removeFasta}
-          onInput={setFasta}
-        />
-        <Button color="link" onClick={run}>
-          <small>{t('Show example')}</small>
-        </Button>
-        <ButtonsAdvanced canRun={canRun && hasRequiredInputs} run={run} />
-      </Col>
-    </Row>
+    <Container fluid className="mt-3 px-0">
+      <Row noGutters>
+        <Col>
+          <h3>{t('Provide sequences')}</h3>
+        </Col>
+      </Row>
+
+      <Row noGutters>
+        <Col>
+          <FilePicker
+            icon={<FileIconFasta />}
+            text={t('Sequences')}
+            exampleUrl="https://example.com/sequences.fasta"
+            pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
+            canCollapse={false}
+            defaultCollapsed={false}
+            input={params.raw.seqData}
+            errors={params.errors.seqData}
+            onRemove={removeFasta}
+            onInput={setFasta}
+          />
+          <Button color="link" onClick={run}>
+            <small>{t('Show example')}</small>
+          </Button>
+          <ButtonsAdvanced canRun={canRun && hasRequiredInputs} run={run} />
+        </Col>
+      </Row>
+    </Container>
   )
 }
