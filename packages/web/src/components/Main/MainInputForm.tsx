@@ -19,7 +19,7 @@ export const Container = styled(ContainerBase)`
 
 export const Centered = styled.section`
   margin: auto;
-  max-width: 700px;
+  max-width: 800px;
 `
 
 export interface MainInputFormProps {

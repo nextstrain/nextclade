@@ -32,7 +32,6 @@ export const TabsPanelStyled = styled(TabsPanel)``
 
 export interface FilePickerProps {
   icon: ReactNode
-  text: ReactNode
   exampleUrl: string
   pasteInstructions: string
   input?: AlgorithmInput
@@ -45,7 +44,6 @@ export interface FilePickerProps {
 
 export function FilePicker({
   icon,
-  text,
   exampleUrl,
   pasteInstructions,
   input,
@@ -108,7 +106,7 @@ export function FilePicker({
     return (
       <Row noGutters>
         <Col>
-          <UploadedFileInfo name={text} description={input.description} errors={errors} onRemove={clearAndRemove} />
+          <UploadedFileInfo description={input.description} errors={errors} onRemove={clearAndRemove} />
         </Col>
       </Row>
     )

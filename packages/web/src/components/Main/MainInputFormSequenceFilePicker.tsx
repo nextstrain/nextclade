@@ -2,7 +2,7 @@ import { delay } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 
 import { connect } from 'react-redux'
-import { Button, Col, Container, Row } from 'reactstrap'
+import { Button } from 'reactstrap'
 import { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
 import styled from 'styled-components'
 
@@ -13,6 +13,13 @@ import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
 import { selectCanRun, selectHasRequiredInputs, selectParams } from 'src/state/algorithm/algorithm.selectors'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
+
+const SequenceFilePickerContainer = styled.section`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+`
 
 const ButtonRunStyled = styled(Button)`
   min-width: 100px;
@@ -75,29 +82,24 @@ export function MainInputFormSequenceFilePickerDisconnected({
   )
 
   return (
-    <Container fluid className="mt-3 px-0">
-      <Row noGutters>
-        <Col>
-          <FilePicker
-            icon={<FileIconFasta />}
-            text={t('Sequences')}
-            exampleUrl="https://example.com/sequences.fasta"
-            pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
-            input={params.raw.seqData}
-            errors={params.errors.seqData}
-            onRemove={removeFasta}
-            onInput={setFasta}
-          />
+    <SequenceFilePickerContainer>
+      <FilePicker
+        icon={<FileIconFasta />}
+        exampleUrl="https://example.com/sequences.fasta"
+        pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
+        input={params.raw.seqData}
+        errors={params.errors.seqData}
+        onRemove={removeFasta}
+        onInput={setFasta}
+      />
 
-          <Button color="link" onClick={run}>
-            <small>{t('Load example')}</small>
-          </Button>
+      <Button color="link" onClick={run}>
+        <small>{t('Load example')}</small>
+      </Button>
 
-          <ButtonRunStyled disabled={!canRun} color={color} onClick={run} title={title}>
-            {t('Run')}
-          </ButtonRunStyled>
-        </Col>
-      </Row>
-    </Container>
+      <ButtonRunStyled disabled={!canRun} color={color} onClick={run} title={title}>
+        {t('Run')}
+      </ButtonRunStyled>
+    </SequenceFilePickerContainer>
   )
 }

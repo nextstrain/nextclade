@@ -1,6 +1,6 @@
-import classNames from 'classnames'
 import React, { useCallback, useState } from 'react'
 
+import classNames from 'classnames'
 import { connect } from 'react-redux'
 import { Button, Col, Container, Input, Row } from 'reactstrap'
 import styled from 'styled-components'
@@ -13,7 +13,17 @@ import { SpinnerWrapped } from 'src/components/Common/Spinner'
 import { selectDatasets, selectCurrentDataset, selectDefaultDataset } from 'src/state/algorithm/algorithm.selectors'
 import { DatasetSelectorList } from './DatasetSelectorList'
 
-const DatasetSelectorContainer = styled.div`
+const DatasetSelectorContainer = styled(Container)`
+  width: 100%;
+  height: 100%;
+  padding: 0;
+`
+
+const DatasetSelectorTitle = styled.h3`
+  flex: 1 1 100%;
+`
+
+const DatasetSelectorListContainer = styled.section`
   display: flex;
   width: 100%;
   height: 300px;
@@ -78,13 +88,13 @@ export function DatasetSelectorDisconnected({
   const isBusy = datasets.length === 0
 
   return (
-    <Container fluid className="m-0 p-0 w-100">
+    <DatasetSelectorContainer fluid>
       <Row noGutters>
-        <Col>
-          <h3 className="mb-0">{t('Select a pathogen')}</h3>
+        <Col sm={6}>
+          <DatasetSelectorTitle>{t('Select a pathogen')}</DatasetSelectorTitle>
         </Col>
 
-        <Col>
+        <Col sm={6}>
           <Input
             type="text"
             title="Search pathogens"
@@ -101,7 +111,7 @@ export function DatasetSelectorDisconnected({
       </Row>
 
       <Row noGutters className="mt-2">
-        <DatasetSelectorContainer>
+        <DatasetSelectorListContainer>
           {!isBusy && (
             <DatasetSelectorList
               datasets={datasets}
@@ -112,7 +122,7 @@ export function DatasetSelectorDisconnected({
           )}
 
           {isBusy && <Spinner type="ThreeDots" size={20} color="#aaa" />}
-        </DatasetSelectorContainer>
+        </DatasetSelectorListContainer>
       </Row>
 
       <Row noGutters className="mt-2">
@@ -128,6 +138,6 @@ export function DatasetSelectorDisconnected({
           </Button>
         </Col>
       </Row>
-    </Container>
+    </DatasetSelectorContainer>
   )
 }

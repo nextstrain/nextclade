@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
@@ -101,14 +101,12 @@ function FileError({ error }: { error: Error }) {
 }
 
 export interface UploadedFileInfoProps {
-  name: ReactNode
   description: string
   errors: Error[]
-
   onRemove(): void
 }
 
-export function UploadedFileInfo({ name, description, errors, onRemove }: UploadedFileInfoProps) {
+export function UploadedFileInfo({ description, errors, onRemove }: UploadedFileInfoProps) {
   const { t } = useTranslation()
 
   const hasErrors = errors.length > 0

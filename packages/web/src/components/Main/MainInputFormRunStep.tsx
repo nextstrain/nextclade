@@ -1,12 +1,23 @@
 import React from 'react'
+
 import { Col, Container, Row } from 'reactstrap'
+import styled from 'styled-components'
 
 import { MainInputFormSequenceFilePicker } from 'src/components/Main/MainInputFormSequenceFilePicker'
 import { DatasetCurrent } from './DatasetCurrent'
 
+const MainInputFormContainer = styled(Container)`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+`
+
 export function MainInputFormRunStep() {
   return (
-    <Container>
+    <MainInputFormContainer fluid>
       <Row noGutters>
         <Col>
           <DatasetCurrent />
@@ -18,6 +29,6 @@ export function MainInputFormRunStep() {
           <MainInputFormSequenceFilePicker />
         </Col>
       </Row>
-    </Container>
+    </MainInputFormContainer>
   )
 }

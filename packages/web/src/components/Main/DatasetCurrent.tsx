@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 
 import { connect } from 'react-redux'
-import { Button, Col, Container, ListGroupItem, Row } from 'reactstrap'
+import { Button } from 'reactstrap'
 
 import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
@@ -12,19 +12,21 @@ import type { DatasetFlat } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import styled from 'styled-components'
 
-export const DatasetSelectorContainer = styled.div`
-  flex: 1 0 100%;
+export const CurrentDatasetInfoContainer = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  width: 100%;
   height: 100%;
-  border: 1px #ccc9 solid;
-  border-radius: 5px;
+  margin-bottom: 2rem;
 `
 
-export const DatasetSelectorLi = styled(ListGroupItem)`
+export const CurrentDatasetInfo = styled.section`
+  display: flex;
   margin: 0;
   padding: 0.5rem;
+  border: 1px #ccc9 solid;
+  border-radius: 5px;
 `
 
 export const DatasetName = styled.h6`
@@ -62,44 +64,32 @@ export function DatasetCurrentDisconnected({ datasetCurrent, setCurrentDataset }
   }
 
   return (
-    <Container fluid className="m-0 p-0 w-100">
-      <Row noGutters className="w-100 d-flex">
-        <div className="flex-1">
-          <h3>{t('Selected pathogen')}</h3>
+    <CurrentDatasetInfoContainer>
+      <h3>{t('Selected pathogen')}</h3>
+
+      <CurrentDatasetInfo>
+        <div>
+          <DatasetName>{datasetCurrent.nameFriendly}</DatasetName>
+          <div>{datasetCurrent.description}</div>
+          <div className="small">
+            {t('Reference: {{ ref }} ({{ source }}: {{ accession }})', {
+              ref: datasetCurrent.reference.strainName,
+              source: datasetCurrent.reference.source,
+              accession: datasetCurrent.reference.accession,
+            })}
+          </div>
+          <div className="small">{formatDateIsoUtcSimple(datasetCurrent.tag)}</div>
         </div>
-      </Row>
 
-      <Row noGutters>
-        <Col>
-          <DatasetSelectorContainer>
-            <DatasetSelectorLi>
-              <Row noGutters className="w-100 d-flex">
-                <div>
-                  <DatasetName>{datasetCurrent.nameFriendly}</DatasetName>
-                  <div>{datasetCurrent.description}</div>
-                  <div className="small">
-                    {t('Reference: {{ ref }} ({{ source }}: {{ accession }})', {
-                      ref: datasetCurrent.reference.strainName,
-                      source: datasetCurrent.reference.source,
-                      accession: datasetCurrent.reference.accession,
-                    })}
-                  </div>
-                  <div className="small">{formatDateIsoUtcSimple(datasetCurrent.tag)}</div>
-                </div>
-
-                <div className="ml-auto">
-                  <Button className="mx-1" type="button" color="link" onClick={onCustomizeClicked}>
-                    {t('Customize')}
-                  </Button>
-                  <Button className="mx-1" type="button" onClick={onChangeClicked}>
-                    {t('Change')}
-                  </Button>
-                </div>
-              </Row>
-            </DatasetSelectorLi>
-          </DatasetSelectorContainer>
-        </Col>
-      </Row>
-    </Container>
+        <div className="ml-auto">
+          <Button className="mx-1" type="button" color="link" onClick={onCustomizeClicked}>
+            {t('Customize')}
+          </Button>
+          <Button className="mx-1" type="button" onClick={onChangeClicked}>
+            {t('Change')}
+          </Button>
+        </div>
+      </CurrentDatasetInfo>
+    </CurrentDatasetInfoContainer>
   )
 }
