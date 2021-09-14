@@ -15,6 +15,12 @@ export const selectDatasets = (state: State) => selectParams(state).datasets
 
 export const selectCurrentDataset = (state: State) => selectParams(state).datasetCurrent
 
+export const selectDefaultDataset = (state: State) => {
+  const datasets = selectDatasets(state)
+  const defaultDatasetName = selectDefaultDatasetName(state)
+  return datasets.find((dataset) => dataset.name === defaultDatasetName)
+}
+
 export const selectResults = (state: State) => state.algorithm.results
 
 export const selectResultsArray = (state: State) => state.algorithm.results.map((result) => result.result)

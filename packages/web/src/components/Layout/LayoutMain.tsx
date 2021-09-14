@@ -2,7 +2,7 @@ import React, { PropsWithChildren, HTMLProps } from 'react'
 
 import { connect } from 'react-redux'
 import styled from 'styled-components'
-import { Button } from 'reactstrap'
+import { Button, Container as ContainerBase } from 'reactstrap'
 import { push } from 'connected-next-router'
 import { useTranslation } from 'react-i18next'
 import { FaCaretRight } from 'react-icons/fa'
@@ -13,10 +13,8 @@ import { State } from 'src/state/reducer'
 import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
 
-export const Container = styled.div`
-  max-width: 1700px;
-  min-width: 500px;
-  margin: 0 auto;
+export const Container = styled(ContainerBase)`
+  max-width: ${(props) => props.theme.containerMaxWidths.xl};
 `
 
 const Header = styled.header``

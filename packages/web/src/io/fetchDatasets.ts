@@ -31,14 +31,16 @@ export async function initializeDatasets(dispatch: Dispatch, urlQuery: ParsedUrl
     return false
   }
 
-  const datasetName = getQueryParam(urlQuery, 'dataset-name') ?? defaultDatasetName
+  const datasetName = getQueryParam(urlQuery, 'dataset-name')
   const datasetRef = getQueryParam(urlQuery, 'dataset-reference')
   const datasetTag = getQueryParam(urlQuery, 'dataset-tag')
 
   const dataset = findDataset(datasets, datasetName, datasetRef, datasetTag)
 
   dispatch(setDatasets({ defaultDatasetName, defaultDatasetNameFriendly, datasets }))
-  dispatch(setCurrentDataset(dataset))
+  if (dataset) {
+    dispatch(setCurrentDataset(dataset))
+  }
 
   return true
 }

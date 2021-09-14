@@ -5,7 +5,6 @@ import {
   setLastVersionSeen,
   setLocale,
   setNumThreads,
-  setShowAdvancedControls,
   setShowWhatsnewOnUpdate,
 } from 'src/state/settings/settings.actions'
 import { settingsDefaultState } from 'src/state/settings/settings.state'
@@ -22,10 +21,6 @@ export const settingsReducer = reducerWithInitialState(settingsDefaultState)
 
   .icase(setLastVersionSeen, (draft, lastVersionSeen) => {
     draft.lastVersionSeen = lastVersionSeen
-  })
-
-  .icase(setShowAdvancedControls, (draft, showAdvancedControls) => {
-    draft.showAdvancedControls = showAdvancedControls
   })
 
   .icase(setNumThreads, (draft, numThreads) => {

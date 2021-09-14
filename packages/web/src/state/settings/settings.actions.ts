@@ -12,8 +12,6 @@ export const setShowWhatsnew = action<boolean>('setShowWhatsnew')
 
 export const setShowWhatsnewOnUpdate = action<boolean>('setShowWhatsnewOnUpdate')
 
-export const setShowAdvancedControls = action<boolean>('setShowAdvancedControls')
-
 export const setNumThreads = action<number>('setNumThreads')
 
 export const resetNumThreads = action('resetNumThreads')

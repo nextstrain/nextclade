@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo } from 'react'
 
-import { Button, Col, Container, ListGroup, ListGroupItem, Row } from 'reactstrap'
+import { Col, Container, ListGroup, ListGroupItem, Row } from 'reactstrap'
 import styled from 'styled-components'
 
+import type { DatasetFlat } from 'src/algorithms/types'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-
-import type { DatasetFlat } from 'src/algorithms/types'
 import { search } from 'src/helpers/search'
 
 export const DatasetSelectorContainer = styled.div`
@@ -15,40 +14,37 @@ export const DatasetSelectorContainer = styled.div`
   flex-direction: column;
   overflow: hidden;
   height: 100%;
+  border: 1px #ccc solid;
+  border-radius: 5px;
+`
+
+export const DatasetSelectorUl = styled(ListGroup)`
+  flex: 1;
+  overflow-y: scroll;
 
   // prettier-ignore
   background:
-    linear-gradient(#eaeaea 50%, rgba(255,255,255, 0)),
+    linear-gradient(#eaeaea 25%, rgba(255,255,255, 0)),
     linear-gradient(rgba(255,255,255, 0), #eaeaea 90%) 0 100%,
-    radial-gradient(farthest-side at 50% 0, rgba(100,100,100, 0.5), rgba(0,0,0,0)),
-    radial-gradient(farthest-side at 50% 100%, rgba(100,100,100, 0.5), rgba(0,0,0,0)) 0 100%;
-  background-color: #eaeaea;
+    radial-gradient(farthest-side at 50% 0, rgba(100,100,100, 0.25), rgba(0,0,0,0)),
+    radial-gradient(farthest-side at 50% 100%, rgba(100,100,100, 0.25), rgba(0,0,0,0)) 0 100%;
+  background-color: transparent;
   background-repeat: no-repeat;
   background-attachment: local, local, scroll, scroll;
   background-size: 100% 70px, 100% 70px, 100% 30px, 100% 30px;
 `
 
-export const DatasetSelectorUl = styled(ListGroup)`
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-
-  overflow-y: auto;
-`
-
-export const DatasetSelectorLi = styled(ListGroupItem)<{ $isCurrent?: boolean; $isDimmed?: boolean }>`
+export const DatasetSelectorLi = styled(ListGroupItem)<{ $isDimmed?: boolean }>`
   list-style: none;
   margin: 0;
   padding: 0.5rem;
   cursor: pointer;
   opacity: ${(props) => props.$isDimmed && 0.33};
+  background-color: transparent;
 `
 
-export const DatasetSelectorLiButton = styled(Button)``
-
-export const DatasetName = styled.p`
-  font-size: 1.2rem;
+export const DatasetName = styled.h6`
+  font-size: 1.3rem;
   font-weight: bold;
   padding: 0;
   margin: 0;
@@ -58,20 +54,14 @@ export interface DatasetSelectorListItemProps {
   dataset: DatasetFlat
   isCurrent?: boolean
   isDimmed?: boolean
-  onSelect?: () => void
+  onClick?: () => void
 }
 
-export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onSelect }: DatasetSelectorListItemProps) {
+export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick }: DatasetSelectorListItemProps) {
   const { t } = useTranslationSafe()
 
   return (
-    <DatasetSelectorLi
-      $isCurrent={isCurrent}
-      $isDimmed={isDimmed}
-      aria-current={isCurrent}
-      active={isCurrent}
-      onClick={onSelect}
-    >
+    <DatasetSelectorLi $isDimmed={isDimmed} aria-current={isCurrent} active={isCurrent} onClick={onClick}>
       <Container fluid className="m-0 p-0">
         <Row noGutters>
           <Col>
@@ -96,18 +86,18 @@ export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onSelect
 
 export interface DatasetSelectorListProps {
   datasets: DatasetFlat[]
-  datasetCurrent: DatasetFlat
+  datasetHighlighted?: DatasetFlat
   searchTerm: string
-  setDatasetCurrent(dataset?: DatasetFlat): void
+  onDatasetHighlighted(dataset?: DatasetFlat): void
 }
 
 export function DatasetSelectorList({
   datasets,
-  datasetCurrent,
+  datasetHighlighted,
   searchTerm,
-  setDatasetCurrent,
+  onDatasetHighlighted,
 }: DatasetSelectorListProps) {
-  const onSelect = useCallback((dataset: DatasetFlat) => () => setDatasetCurrent(dataset), [setDatasetCurrent])
+  const onItemClick = useCallback((dataset: DatasetFlat) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = useMemo(() => {
     if (searchTerm.trim().length === 0) {
@@ -130,8 +120,8 @@ export function DatasetSelectorList({
             <DatasetSelectorListItem
               key={dataset.name}
               dataset={dataset}
-              onSelect={onSelect(dataset)}
-              isCurrent={dataset.name === datasetCurrent.name}
+              onClick={onItemClick(dataset)}
+              isCurrent={dataset.name === datasetHighlighted?.name}
             />
           )),
         )}
@@ -141,8 +131,8 @@ export function DatasetSelectorList({
             <DatasetSelectorListItem
               key={dataset.name}
               dataset={dataset}
-              onSelect={onSelect(dataset)}
-              isCurrent={dataset.name === datasetCurrent.name}
+              onClick={onItemClick(dataset)}
+              isCurrent={dataset.name === datasetHighlighted?.name}
               isDimmed
             />
           )),

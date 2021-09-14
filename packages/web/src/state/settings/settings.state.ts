@@ -5,7 +5,6 @@ export interface SettingsState {
   localeKeyV2: LocaleKey
   showWhatsnewOnUpdate: boolean
   lastVersionSeen: string
-  showAdvancedControls: boolean
   numThreadsV2: number
 }
 
@@ -13,6 +12,5 @@ export const settingsDefaultState: SettingsState = {
   localeKeyV2: DEFAULT_LOCALE_KEY,
   showWhatsnewOnUpdate: true,
   lastVersionSeen: '',
-  showAdvancedControls: false,
   numThreadsV2: getNumThreads(),
 }

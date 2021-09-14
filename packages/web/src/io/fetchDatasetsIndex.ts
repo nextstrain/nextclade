@@ -138,8 +138,8 @@ export class DatasetNotFoundError extends Error {
   }
 }
 
-export function findDataset(datasets: DatasetFlat[], name: string, refAccession?: string, tag?: string) {
-  const found = datasets.find((dataset) => {
+export function findDataset(datasets: DatasetFlat[], name?: string, refAccession?: string, tag?: string) {
+  return datasets.find((dataset) => {
     const ref = refAccession ?? dataset.defaultRef
     let isMatch = dataset.name === name && dataset.reference.accession === ref
     if (tag) {
@@ -147,12 +147,6 @@ export function findDataset(datasets: DatasetFlat[], name: string, refAccession?
     }
     return isMatch
   })
-
-  if (!found) {
-    throw new DatasetNotFoundError(name, refAccession, tag)
-  }
-
-  return found
 }
 
 export async function fetchDatasetsIndex() {
