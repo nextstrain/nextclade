@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo } from 'react'
 
-import { Col, Container, ListGroup, ListGroupItem, Row } from 'reactstrap'
+import { ListGroup, ListGroupItem } from 'reactstrap'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
-import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { search } from 'src/helpers/search'
+import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 
 export const DatasetSelectorContainer = styled.div`
   flex: 1 0 100%;
@@ -58,28 +57,9 @@ export interface DatasetSelectorListItemProps {
 }
 
 export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick }: DatasetSelectorListItemProps) {
-  const { t } = useTranslationSafe()
-
   return (
     <DatasetSelectorLi $isDimmed={isDimmed} aria-current={isCurrent} active={isCurrent} onClick={onClick}>
-      <Container fluid className="m-0 p-0">
-        <Row noGutters>
-          <Col>
-            <DatasetName>{dataset.nameFriendly}</DatasetName>
-            <div>{dataset.description}</div>
-            <div className="small">
-              {t('Reference: {{ ref }} ({{ source }}: {{ accession }})', {
-                ref: dataset.reference.strainName,
-                source: dataset.reference.source,
-                accession: dataset.reference.accession,
-              })}
-            </div>
-          </Col>
-          <Col md={2}>
-            <div className="small">{formatDateIsoUtcSimple(dataset.tag)}</div>
-          </Col>
-        </Row>
-      </Container>
+      <DatasetInfo dataset={dataset} />
     </DatasetSelectorLi>
   )
 }
