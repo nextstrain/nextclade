@@ -5,15 +5,11 @@ export function formatDateIsoUtcSimple(dateTimeStr: string) {
 
   const date = utc.toISODate()
 
-  let time = utc.toISOTime({
+  const time = utc.toISOTime({
     suppressMilliseconds: true,
     suppressSeconds: true,
     includeOffset: false,
   })
 
-  if (time === '00:00') {
-    time = ''
-  }
-
-  return [date, time].join(' ')
+  return [date, time, `(${utc.zoneName})`].join(' ')
 }
