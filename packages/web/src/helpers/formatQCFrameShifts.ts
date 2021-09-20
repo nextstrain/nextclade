@@ -37,9 +37,5 @@ export function formatQCFrameShifts<TFunction extends TFunctionInterface>(
     scoreStr = t('QC score: {{score}}', { score })
   }
 
-  const result = [unexpected, ignored, scoreStr].filter(notUndefined).join('. ')
-
-  console.log({ frameShifts, frameShiftsIgnored, frameShiftsList, frameShiftsIgnoredList, unexpected, ignored })
-
-  return result
+  return [unexpected, ignored, scoreStr].filter(notUndefined).join('. ')
 }
