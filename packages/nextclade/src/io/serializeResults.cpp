@@ -245,8 +245,8 @@ namespace Nextclade {
             {
               {"score", qc.frameShifts->score},
               {"status", formatQcStatus(qc.frameShifts->status)},
-              {"frameShiftsReported", serializeArray(qc.frameShifts->frameShiftsReported, serializeFrameShiftResult)},
-              {"frameShiftsReported", qc.frameShifts->totalFrameShiftsReported},
+              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShiftResult)},
+              {"frameShifts", qc.frameShifts->totalFrameShifts},
               {"totalFrameShiftsIgnored",
                 serializeArray(qc.frameShifts->frameShiftsIgnored, serializeFrameShiftResult)},
               {"frameShiftsIgnored", qc.frameShifts->totalFrameShiftsIgnored},

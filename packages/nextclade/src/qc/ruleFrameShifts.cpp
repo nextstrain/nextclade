@@ -47,8 +47,8 @@ namespace Nextclade {
     return QcResultFrameShifts{
       .score = score,
       .status = status,
-      .frameShiftsReported = frameShiftsReported,
-      .totalFrameShiftsReported = totalFrameShiftsReported,
+      .frameShifts = frameShiftsReported,
+      .totalFrameShifts = totalFrameShiftsReported,
       .frameShiftsIgnored = frameShiftsIgnored,
       .totalFrameShiftsIgnored = totalFrameShiftsIgnored,
     };
