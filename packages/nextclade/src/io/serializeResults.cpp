@@ -11,6 +11,20 @@
 #include "formatQcStatus.h"
 
 namespace Nextclade {
+  json serializeRange(const Range& range) {
+    auto j = json::object();
+    j.emplace("begin", range.begin);
+    j.emplace("end", range.end);
+    return j;
+  }
+
+  json serializeFrameShiftLocation(const FrameShiftLocation& fs) {
+    auto j = json::object();
+    j.emplace("geneName", fs.geneName);
+    j.emplace("codonRange", serializeRange(fs.codonRange));
+    return j;
+  }
+
   json serializeStopCodon(const StopCodonLocation& stopCodon) {
     auto j = json::object();
     j.emplace("geneName", stopCodon.geneName);
@@ -21,14 +35,6 @@ namespace Nextclade {
   namespace {
     json serializeString(const std::string& s) {
       return json{s};
-    }
-
-
-    json serializeRange(const Range& range) {
-      auto j = json::object();
-      j.emplace("begin", range.begin);
-      j.emplace("end", range.end);
-      return j;
     }
 
     json serializeNucleotideLocation(const NucleotideLocation& loc) {
@@ -239,8 +245,11 @@ namespace Nextclade {
             {
               {"score", qc.frameShifts->score},
               {"status", formatQcStatus(qc.frameShifts->status)},
-              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShiftResult)},
-              {"totalFrameShifts", qc.frameShifts->totalFrameShifts},
+              {"frameShiftsReported", serializeArray(qc.frameShifts->frameShiftsReported, serializeFrameShiftResult)},
+              {"frameShiftsReported", qc.frameShifts->totalFrameShiftsReported},
+              {"totalFrameShiftsIgnored",
+                serializeArray(qc.frameShifts->frameShiftsIgnored, serializeFrameShiftResult)},
+              {"frameShiftsIgnored", qc.frameShifts->totalFrameShiftsIgnored},
             }));
       }
 

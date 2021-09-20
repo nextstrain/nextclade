@@ -47,8 +47,16 @@ namespace Nextclade {
         throw ErrorParseQcConfigInvalid(path);
       }
     }
-  }// namespace
 
+    template<typename T, typename Parser>
+    void readArrayMaybe(const json& j, const std::string& path, std::vector<T>& value, Parser parser) {
+      if (j.contains(json::json_pointer{path})) {
+        value = parseArray<T>(j, json::json_pointer{path}, parser);
+      } else {
+        value = std::vector<T>{};
+      }
+    }
+  }// namespace
 
   QcConfig parseQcConfig(const std::string& qcConfigJsonStr) {
     try {
@@ -86,6 +94,10 @@ namespace Nextclade {
       }
 
       readValue(j, "/frameShifts/enabled", qcConfig.frameShifts.enabled, false);
+      if (qcConfig.frameShifts.enabled) {
+        readArrayMaybe(j, "/frameShifts/ignoredFrameShifts", qcConfig.frameShifts.ignoredFrameShifts,
+          parseFrameShiftLocation);
+      }
 
       readValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled, false);
       if (qcConfig.stopCodons.enabled) {

@@ -39,7 +39,7 @@ namespace Nextclade {
 
     constexpr frozen::string NEWLINE = "\r\n";
 
-    constexpr std::array<frozen::string, 51> COLUMN_NAMES = {
+    constexpr std::array<frozen::string, 53> COLUMN_NAMES = {
       "seqName",
       "clade",
 
@@ -91,8 +91,11 @@ namespace Nextclade {
       "qc.snpClusters.status",
       "qc.snpClusters.totalSNPs",
 
-      "qc.frameShifts.frameShifts",
-      "qc.frameShifts.totalFrameShifts",
+      "qc.frameShifts.frameShiftsReported",
+      "qc.frameShifts.totalFrameShiftsReported",
+      "qc.frameShifts.frameShiftsIgnored",
+      "qc.frameShifts.totalFrameShiftsIgnored",
+
       "qc.frameShifts.score",
       "qc.frameShifts.status",
 
@@ -204,8 +207,10 @@ namespace Nextclade {
     }
 
     if (result.qc.frameShifts) {
-      columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShifts, formatFrameShift, ","));
-      columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShifts));
+      columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShiftsReported, formatFrameShift, ","));
+      columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShiftsReported));
+      columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShiftsIgnored, formatFrameShift, ","));
+      columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShiftsIgnored));
       columns.emplace_back(std::to_string(result.qc.frameShifts->score));
       columns.emplace_back(formatQcStatus(result.qc.frameShifts->status));
     } else {

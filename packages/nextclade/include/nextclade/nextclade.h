@@ -38,8 +38,14 @@ namespace Nextclade {
     double scoreWeight;
   };
 
+  struct FrameShiftLocation {
+    std::string geneName;
+    Range codonRange;
+  };
+
   struct QCRulesConfigFrameShifts {
     bool enabled;
+    std::vector<FrameShiftLocation> ignoredFrameShifts;
   };
 
   struct StopCodonLocation;
@@ -104,8 +110,10 @@ namespace Nextclade {
   struct QcResultFrameShifts {
     double score;
     QcStatus status;
-    std::vector<FrameShiftResult> frameShifts;
-    int totalFrameShifts;
+    std::vector<FrameShiftResult> frameShiftsReported;
+    int totalFrameShiftsReported;
+    std::vector<FrameShiftResult> frameShiftsIgnored;
+    int totalFrameShiftsIgnored;
   };
 
   struct StopCodonLocation {
