@@ -176,6 +176,22 @@ docker-docs:
 	nextclade-docs-builder
 
 
+.ONESHELL:
+docker-paper:
+	set -euox
+
+	docker run -it --rm \
+	--name=nextclade-paper-builder-$(shell date +%s) \
+	--init \
+	--user=$(shell id -u):$(shell id -g) \
+	--volume=$(shell pwd)/paper:/data \
+	--publish=8000:8000 \
+	--workdir=/data \
+	--env 'TERM=xterm-256colors' \
+	--env 'JOURNAL=joss' \
+	openjournals/paperdraft
+
+
 # Synchronize source files using rsync
 sync:
 	@$(MAKE) --no-print-directory sync-impl
