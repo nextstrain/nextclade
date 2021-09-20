@@ -121,6 +121,8 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
   options.seedAa.minSeeds = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-min-seeds", ensurePositive);
   options.seedAa.seedSpacing = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-seed-spacing", ensureNonNegative);
   options.seedAa.mismatchesAllowed = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-mismatches-allowed", ensureNonNegative);
+
+  options.translatePastStop = !getParamOptional<bool>(cxxOptsParsed, "no-translate-past-stop").value_or(true);
   // clang-format on
 
   return options;
@@ -364,6 +366,13 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(int a
       "(optional, integer, non-negative) Maximum number of mismatching aminoacids allowed for a seed to be considered a match.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.mismatchesAllowed)),
       "AA_MISMATCHES_ALLOWED"
+    )
+
+    (
+      "no-translate-past-stop",
+      "(optional, boolean) Whether to stop gene translation after first stop codon. It will cut the genes in places cases where mutations resulted in premature stop codons. If this flag is present, the aminoacid sequences wil be truncated at the first stop codon and analysis of aminoacid mutations will not be available for the regions after first stop codon.",
+      cxxopts::value<bool>(),
+      "WRITE_REF"
     )
   ;
   // clang-format on
