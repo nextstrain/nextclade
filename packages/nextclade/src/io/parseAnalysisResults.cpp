@@ -255,8 +255,8 @@ namespace Nextclade {
     return QcResultFrameShifts{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
-      .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
-      .totalFrameShifts = parseInt(j, "totalFrameShifts"),
+      .frameShiftsReported = parseArray<FrameShiftResult>(j, "frameShiftsReported", parseFrameShiftResult),
+      .totalFrameShiftsReported = parseInt(j, "totalFrameShiftsReported"),
       .frameShiftsIgnored = parseArray<FrameShiftResult>(j, "frameShiftsIgnored", parseFrameShiftResult),
       .totalFrameShiftsIgnored = parseInt(j, "totalFrameShiftsIgnored"),
     };

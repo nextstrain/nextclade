@@ -91,8 +91,8 @@ namespace Nextclade {
       "qc.snpClusters.status",
       "qc.snpClusters.totalSNPs",
 
-      "qc.frameShifts.frameShifts",
-      "qc.frameShifts.totalFrameShifts",
+      "qc.frameShifts.frameShiftsReported",
+      "qc.frameShifts.totalFrameShiftsReported",
       "qc.frameShifts.frameShiftsIgnored",
       "qc.frameShifts.totalFrameShiftsIgnored",
 
@@ -207,8 +207,8 @@ namespace Nextclade {
     }
 
     if (result.qc.frameShifts) {
-      columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShifts, formatFrameShift, ","));
-      columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShifts));
+      columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShiftsReported, formatFrameShift, ","));
+      columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShiftsReported));
       columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShiftsIgnored, formatFrameShift, ","));
       columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShiftsIgnored));
       columns.emplace_back(std::to_string(result.qc.frameShifts->score));

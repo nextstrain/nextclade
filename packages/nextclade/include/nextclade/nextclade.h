@@ -110,8 +110,8 @@ namespace Nextclade {
   struct QcResultFrameShifts {
     double score;
     QcStatus status;
-    std::vector<FrameShiftResult> frameShifts;
-    int totalFrameShifts;
+    std::vector<FrameShiftResult> frameShiftsReported;
+    int totalFrameShiftsReported;
     std::vector<FrameShiftResult> frameShiftsIgnored;
     int totalFrameShiftsIgnored;
   };
