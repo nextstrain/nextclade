@@ -9,23 +9,26 @@
 #include "getQcRuleStatus.h"
 
 namespace Nextclade {
-  bool isFrameShiftIgnored(const FrameShiftResult& frameShift, const FrameShiftLocation& ignoredFrameShift) {
-    return frameShift.geneName == ignoredFrameShift.geneName && frameShift.codon == ignoredFrameShift.codonRange;
+  bool isFrameShiftIgnored(const FrameShiftResult& frameShift,
+    const std::vector<FrameShiftLocation>& ignoredFrameShifts) {
+    for (const auto& ignoredFrameShift : ignoredFrameShifts) {
+      if (frameShift.geneName == ignoredFrameShift.geneName && frameShift.codon == ignoredFrameShift.codonRange) {
+        return true;
+      }
+    }
+    return false;
   }
 
   void filterFrameShifts(const std::vector<FrameShiftResult>& frameShifts, const QCRulesConfigFrameShifts& config,
     std::vector<FrameShiftResult>& frameShiftsReported, std::vector<FrameShiftResult>& frameShiftsIgnored) {
-    for (const auto& ignoredFrameShift : config.ignoredFrameShifts) {
-      for (const auto& frameShift : frameShifts) {
-        if (!isFrameShiftIgnored(frameShift, ignoredFrameShift)) {
-          frameShiftsReported.push_back(frameShift);
-        } else {
-          frameShiftsIgnored.push_back(frameShift);
-        }
+    for (const auto& frameShift : frameShifts) {
+      if (isFrameShiftIgnored(frameShift, config.ignoredFrameShifts)) {
+        frameShiftsIgnored.push_back(frameShift);
+      } else {
+        frameShiftsReported.push_back(frameShift);
       }
     }
   }
-
 
   std::optional<QcResultFrameShifts> ruleFrameShifts(//
     const AnalysisResult& analysisResult,            //

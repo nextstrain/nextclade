@@ -207,6 +207,8 @@ export interface QcResultFrameShifts {
   status: QcStatus
   frameShifts: FrameShift[]
   totalFrameShifts: number
+  frameShiftsIgnored: FrameShift[]
+  totalFrameShiftsIgnored: number
 }
 
 export interface StopCodonLocation {
