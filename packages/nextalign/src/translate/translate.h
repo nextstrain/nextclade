@@ -4,4 +4,4 @@
 
 #include <string>
 
-AminoacidSequence translate(const NucleotideSequenceView& seq);
+AminoacidSequence translate(const NucleotideSequenceView& seq, bool translatePastStop = false);

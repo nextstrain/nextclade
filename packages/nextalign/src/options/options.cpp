@@ -27,6 +27,7 @@ namespace {
         .seedSpacing = 100,
         .mismatchesAllowed = 2,
       },
+    .translatePastStop = false,
   };
 }//namespace
 
