@@ -122,7 +122,7 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
   options.seedAa.seedSpacing = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-seed-spacing", ensureNonNegative);
   options.seedAa.mismatchesAllowed = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-mismatches-allowed", ensureNonNegative);
 
-  options.translatePastStop = !getParamOptional<bool>(cxxOptsParsed, "no-translate-past-stop").value_or(true);
+  options.translatePastStop = !(getParamOptional<bool>(cxxOptsParsed, "no-translate-past-stop").value_or(false));
   // clang-format on
 
   return options;
