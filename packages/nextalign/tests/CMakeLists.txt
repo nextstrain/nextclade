@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
   data/sampleGeneMap.h
   decode.test.cpp
   extractGene.test.cpp
+  frameshiftDetector.test.cpp
   mapCoordinates.test.cpp
   nucToString.test.cpp
   parseGeneMapGff.test.cpp
@@ -22,6 +23,8 @@ add_executable(${PROJECT_NAME}
   removeGaps.test.cpp
   stripInsertions.test.cpp
   translate.test.cpp
+  translateGenes.test.cpp
+  wraparound.test.cpp
   )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)

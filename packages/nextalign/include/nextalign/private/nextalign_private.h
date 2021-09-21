@@ -20,6 +20,7 @@ struct PeptideInternal {
   std::string name;
   AminoacidSequence seq;
   std::vector<InsertionInternal<Aminoacid>> insertions;
+  std::vector<FrameShiftResult> frameShiftResults;
 };
 
 
@@ -31,7 +32,6 @@ struct NextalignResultInternal {
   std::vector<PeptideInternal> queryPeptides;
   std::vector<InsertionInternal<Nucleotide>> insertions;
   Warnings warnings;
-  std::vector<FrameShift> frameShifts;
 };
 
 Nucleotide toNucleotide(char nuc);
@@ -85,5 +85,21 @@ inline std::ostream& operator<<(std::ostream& os, const AminoacidSequence& seq) 
     os << aaToString(aa);
   }
   os << "\"";
+  return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const Range& f) {
+  os << "{ " << f.begin << ", " << f.end << " }";
+  return os;
+}
+
+inline std::ostream& operator<<(std::ostream& os, const FrameShiftResult& f) {
+  os << "{ "                                  //
+     << "geneName: \"" << f.geneName << "\", "//
+     << "nucRel: " << f.nucRel << ", "        //
+     << "nucAbs: " << f.nucAbs << ", "        //
+     << "codon: " << f.codon << ", "          //
+     << " }"                                  //
+    ;
   return os;
 }

@@ -30,7 +30,7 @@ namespace Nextclade {
       .mixedSites = ruleMixedSites(analysisResult, privateMutations, qcRulesConfig.mixedSites),
       .privateMutations = rulePrivateMutations(analysisResult, privateMutations, qcRulesConfig.privateMutations),
       .snpClusters = ruleSnpClusters(analysisResult, privateMutations, qcRulesConfig.snpClusters),
-      .frameShifts = ruleFrameShifts(alignment, qcRulesConfig.frameShifts),
+      .frameShifts = ruleFrameShifts(analysisResult, qcRulesConfig.frameShifts),
       .stopCodons = ruleStopCodons(alignment, qcRulesConfig.stopCodons),
       .overallScore = 0,              // Will be overwritten below
       .overallStatus = QcStatus::good,// Will be overwritten below

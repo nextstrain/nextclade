@@ -11,6 +11,20 @@
 #include "formatQcStatus.h"
 
 namespace Nextclade {
+  json serializeRange(const Range& range) {
+    auto j = json::object();
+    j.emplace("begin", range.begin);
+    j.emplace("end", range.end);
+    return j;
+  }
+
+  json serializeFrameShiftLocation(const FrameShiftLocation& fs) {
+    auto j = json::object();
+    j.emplace("geneName", fs.geneName);
+    j.emplace("codonRange", serializeRange(fs.codonRange));
+    return j;
+  }
+
   json serializeStopCodon(const StopCodonLocation& stopCodon) {
     auto j = json::object();
     j.emplace("geneName", stopCodon.geneName);
@@ -21,14 +35,6 @@ namespace Nextclade {
   namespace {
     json serializeString(const std::string& s) {
       return json{s};
-    }
-
-
-    json serializeRange(const Range& range) {
-      auto j = json::object();
-      j.emplace("begin", range.begin);
-      j.emplace("end", range.end);
-      return j;
     }
 
     json serializeNucleotideLocation(const NucleotideLocation& loc) {
@@ -104,6 +110,22 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeFrameShiftRange(const Range& fs) {
+      auto j = json::object();
+      j.emplace("begin", fs.begin);
+      j.emplace("end", fs.end);
+      return j;
+    }
+
+    json serializeFrameShiftResult(const FrameShiftResult& fs) {
+      auto j = json::object();
+      j.emplace("geneName", fs.geneName);
+      j.emplace("nucRel", serializeFrameShiftRange(fs.nucRel));
+      j.emplace("nucAbs", serializeFrameShiftRange(fs.nucAbs));
+      j.emplace("codon", serializeFrameShiftRange(fs.codon));
+      return j;
+    }
+
     json serializeMissing(const NucleotideRange& missing) {
       return serializeNucleotideRange(missing);
     }
@@ -165,12 +187,6 @@ namespace Nextclade {
       return j;
     }
 
-    json serializeFrameShift(const FrameShift& frameShift) {
-      auto j = json::object();
-      j.emplace("geneName", frameShift.geneName);
-      return j;
-    }
-
     json serializeQcResult(const QcResult& qc) {
       auto j = json::object(//
         {
@@ -229,8 +245,10 @@ namespace Nextclade {
             {
               {"score", qc.frameShifts->score},
               {"status", formatQcStatus(qc.frameShifts->status)},
-              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShift)},
+              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShiftResult)},
               {"totalFrameShifts", qc.frameShifts->totalFrameShifts},
+              {"frameShiftsIgnored", serializeArray(qc.frameShifts->frameShiftsIgnored, serializeFrameShiftResult)},
+              {"totalFrameShiftsIgnored", qc.frameShifts->totalFrameShiftsIgnored},
             }));
       }
 
@@ -242,6 +260,8 @@ namespace Nextclade {
               {"status", formatQcStatus(qc.stopCodons->status)},
               {"stopCodons", serializeArray(qc.stopCodons->stopCodons, serializeStopCodon)},
               {"totalStopCodons", qc.stopCodons->totalStopCodons},
+              {"stopCodonsIgnored", serializeArray(qc.stopCodons->stopCodonsIgnored, serializeStopCodon)},
+              {"totalStopCodonsIgnored", qc.stopCodons->totalStopCodonsIgnored},
             }));
       }
 
@@ -269,6 +289,7 @@ namespace Nextclade {
       j.emplace("totalSubstitutions", result.totalSubstitutions);
       j.emplace("totalDeletions", result.totalDeletions);
       j.emplace("totalInsertions", result.totalInsertions);
+      j.emplace("totalFrameShifts", result.totalFrameShifts);
       j.emplace("totalMissing", result.totalMissing);
       j.emplace("totalNonACGTNs", result.totalNonACGTNs);
       j.emplace("totalPcrPrimerChanges", result.totalPcrPrimerChanges);
@@ -279,6 +300,7 @@ namespace Nextclade {
       j.emplace("substitutions", serializeArray(result.substitutions, serializeMutation));
       j.emplace("deletions", serializeArray(result.deletions, serializeDeletion));
       j.emplace("insertions", serializeArray(result.insertions, serializeInsertion));
+      j.emplace("frameShifts", serializeArray(result.frameShifts, serializeFrameShiftResult));
       j.emplace("missing", serializeArray(result.missing, serializeMissing));
       j.emplace("nonACGTNs", serializeArray(result.nonACGTNs, serializeNonAcgtn));
       j.emplace("pcrPrimerChanges", serializeArray(result.pcrPrimerChanges, serializePcrPrimerChange));
@@ -299,6 +321,7 @@ namespace Nextclade {
     auto j = json::object();
     j.emplace("name", peptide.name);
     j.emplace("seq", peptide.seq);
+    j.emplace("frameShiftResults", serializeArray(peptide.frameShiftResults, serializeFrameShiftResult));
     return j;
   }
 

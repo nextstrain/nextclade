@@ -118,6 +118,22 @@ namespace Nextclade {
     };
   }
 
+  Range parseFrameShiftRange(const json& j) {
+    return Range{
+      .begin = at(j, "begin").get<int>(),
+      .end = at(j, "end").get<int>(),
+    };
+  }
+
+  FrameShiftResult parseFrameShiftResult(const json& j) {
+    return FrameShiftResult{
+      .geneName = at(j, "geneName").get<std::string>(),
+      .nucRel = parseFrameShiftRange(at(j, "nucRel")),
+      .nucAbs = parseFrameShiftRange(at(j, "nucAbs")),
+      .codon = parseFrameShiftRange(at(j, "codon")),
+    };
+  }
+
   NucleotideRange parseNucleotideRange(const json& j) {
     return NucleotideRange{
       .begin = at(j, "begin").get<int>(),
@@ -224,9 +240,10 @@ namespace Nextclade {
     };
   }
 
-  FrameShift parseFrameShift(const json& j) {
-    return FrameShift{
+  FrameShiftLocation parseFrameShiftLocation(const json& j) {
+    return FrameShiftLocation{
       .geneName = at(j, "geneName"),
+      .codonRange = parseRange(at(j, "codonRange")),
     };
   }
 
@@ -238,8 +255,10 @@ namespace Nextclade {
     return QcResultFrameShifts{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
-      .frameShifts = parseArray<FrameShift>(j, "frameShifts", parseFrameShift),
+      .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
       .totalFrameShifts = parseInt(j, "totalFrameShifts"),
+      .frameShiftsIgnored = parseArray<FrameShiftResult>(j, "frameShiftsIgnored", parseFrameShiftResult),
+      .totalFrameShiftsIgnored = parseInt(j, "totalFrameShiftsIgnored"),
     };
   }
 
@@ -260,6 +279,8 @@ namespace Nextclade {
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
       .stopCodons = parseArray<StopCodonLocation>(j, "stopCodons", parseStopCodonLocation),
       .totalStopCodons = parseInt(j, "totalStopCodons"),
+      .stopCodonsIgnored = parseArray<StopCodonLocation>(j, "stopCodonsIgnored", parseStopCodonLocation),
+      .totalStopCodonsIgnored = parseInt(j, "totalStopCodonsIgnored"),
     };
   }
 
@@ -286,6 +307,8 @@ namespace Nextclade {
         .totalDeletions = at(j, "totalDeletions"),
         .insertions = parseArray<NucleotideInsertion>(j, "insertions", parseNucleotideInsertion),
         .totalInsertions = at(j, "totalInsertions"),
+        .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
+        .totalFrameShifts = at(j, "totalFrameShifts"),
         .missing = parseArray<NucleotideRange>(j, "missing", parseNucleotideRange),
         .totalMissing = at(j, "totalMissing"),
         .nonACGTNs = parseArray<NucleotideRange>(j, "nonACGTNs", parseNucleotideRange),

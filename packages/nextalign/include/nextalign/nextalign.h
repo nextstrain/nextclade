@@ -31,9 +31,33 @@ struct Warnings {
   std::vector<GeneWarning> inGenes;
 };
 
-struct FrameShift {
-  std::string geneName;
+struct Range {
+  int begin;
+  int end;
+
+  bool contains(int x) const {
+    return x >= begin && x < end;
+  }
 };
+
+inline bool operator==(const Range& left, const Range& right) {
+  return left.begin == right.begin && left.end == right.end;
+}
+
+struct FrameShiftResult {
+  std::string geneName;
+  Range nucRel;
+  Range nucAbs;
+  Range codon;
+};
+
+inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& right) {
+  return left.geneName == right.geneName//
+         && left.nucRel == right.nucRel //
+         && left.nucAbs == right.nucAbs //
+         && left.codon == right.codon   //
+    ;
+}
 
 class Error : public std::runtime_error {
 public:
@@ -184,6 +208,7 @@ struct Alignment {
 struct Peptide {
   std::string name;
   std::string seq;
+  std::vector<FrameShiftResult> frameShiftResults;
 };
 
 template<typename Letter>

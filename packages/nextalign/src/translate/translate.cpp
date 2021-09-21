@@ -8,9 +8,10 @@
 
 
 AminoacidSequence translate(const NucleotideSequenceView& seq, bool translatePastStop /* = false */) {
-  precondition_divisible_by(seq.size(), 3);
-
   const int seqLength = safe_cast<int>(seq.size());
+
+  // NOTE: rounds the result to the multiple of 3 (floor),
+  // so that translation does not overrun the buffer
   const int peptideLength = seqLength / 3;
 
 

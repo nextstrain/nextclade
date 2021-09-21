@@ -9,6 +9,7 @@
 #include "analyze/findNucChanges.h"
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/getAminoacidChanges.h"
+#include "analyze/getFrameShifts.h"
 #include "analyze/getNucleotideComposition.h"
 #include "analyze/getPcrPrimerChanges.h"
 #include "analyze/linkNucAndAaChangesInPlace.h"
@@ -61,6 +62,9 @@ namespace Nextclade {
       geneMap                                                                   //
     );
 
+    const auto& frameShifts = flattenFrameShifts(alignment.queryPeptides);
+    const auto totalFrameShifts = safe_cast<int>(frameShifts.size());
+
     linkNucAndAaChangesInPlace(nucChanges, aaChanges);
 
     const auto unknownAaRanges = findAminoacidRangesPerGene(alignment.queryPeptides, Aminoacid::X);
@@ -84,6 +88,8 @@ namespace Nextclade {
         .totalDeletions = totalDeletions,
         .insertions = alignment.insertions,
         .totalInsertions = totalInsertions,
+        .frameShifts = frameShifts,
+        .totalFrameShifts = totalFrameShifts,
         .missing = missing,
         .totalMissing = totalMissing,
         .nonACGTNs = nonACGTNs,

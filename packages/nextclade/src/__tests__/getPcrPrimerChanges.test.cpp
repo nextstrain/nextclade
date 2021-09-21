@@ -13,7 +13,7 @@ namespace {
   using ::Nextclade::NucleotideLocation;
   using ::Nextclade::NucleotideSubstitution;
   using ::Nextclade::PcrPrimer;
-  using ::Nextclade::Range;
+  using ::Range;
   using ::Nextclade::shouldReportPrimerMutation;
 
   NucleotideSubstitution makeMutation(int pos, char query) {

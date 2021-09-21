@@ -10,9 +10,7 @@
 
 struct Gene;
 
-NucleotideSequenceView extractGeneRef(const NucleotideSequenceView& ref, const Gene& gene);
-
-enum ExtractGeneStatusReason { GeneEmpty, GeneLengthNonMul3 };
+enum ExtractGeneStatusReason { GeneEmpty };
 
 struct ExtractGeneStatus {
   Status status;
@@ -23,3 +21,5 @@ struct ExtractGeneStatus {
 
 ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
   const std::vector<int>& coordMap);
+
+void protectFirstCodonInPlace(NucleotideSequence& seq);

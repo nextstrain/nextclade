@@ -38,8 +38,14 @@ namespace Nextclade {
     double scoreWeight;
   };
 
+  struct FrameShiftLocation {
+    std::string geneName;
+    Range codonRange;
+  };
+
   struct QCRulesConfigFrameShifts {
     bool enabled;
+    std::vector<FrameShiftLocation> ignoredFrameShifts;
   };
 
   struct StopCodonLocation;
@@ -104,8 +110,10 @@ namespace Nextclade {
   struct QcResultFrameShifts {
     double score;
     QcStatus status;
-    std::vector<FrameShift> frameShifts;
+    std::vector<FrameShiftResult> frameShifts;
     int totalFrameShifts;
+    std::vector<FrameShiftResult> frameShiftsIgnored;
+    int totalFrameShiftsIgnored;
   };
 
   struct StopCodonLocation {
@@ -122,6 +130,8 @@ namespace Nextclade {
     QcStatus status;
     std::vector<StopCodonLocation> stopCodons;
     int totalStopCodons;
+    std::vector<StopCodonLocation> stopCodonsIgnored;
+    int totalStopCodonsIgnored;
   };
 
   struct QcResult {
@@ -133,26 +143,6 @@ namespace Nextclade {
     std::optional<QcResultStopCodons> stopCodons;
     double overallScore;
     QcStatus overallStatus;
-  };
-
-  /** Represents a numeric interval bounded by begin and end. Similar to `Span`, but different representation. */
-  struct Range {
-    int begin;
-    int end;
-
-    bool contains(int x) const {
-      return x >= begin && x < end;
-    }
-  };
-
-  inline bool operator==(const Range& left, const Range& right) {
-    return (left.begin == right.begin && left.end == right.end);
-  }
-
-  /** Represents a numeric interval bounded by start and length. Similar to `Range`, but different representation. */
-  struct Span {
-    int start;
-    int length;
   };
 
   struct NucleotideLocation {
@@ -350,6 +340,8 @@ namespace Nextclade {
     int totalDeletions;
     std::vector<NucleotideInsertion> insertions;
     int totalInsertions;
+    std::vector<FrameShiftResult> frameShifts;
+    int totalFrameShifts;
     std::vector<NucleotideRange> missing;
     int totalMissing;
     std::vector<NucleotideRange> nonACGTNs;
@@ -533,7 +525,7 @@ namespace Nextclade {
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp);
 
-  std::string formatFrameShift(const FrameShift& frameShift);
+  std::string formatFrameShift(const FrameShiftResult& frameShift);
 
   std::string formatStopCodon(const StopCodonLocation& stopCodon);
 

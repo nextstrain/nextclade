@@ -30,6 +30,8 @@ set(SOURCE_FILES
   src/analyze/findNucleotideRanges.h
   src/analyze/getAminoacidChanges.cpp
   src/analyze/getAminoacidChanges.h
+  src/analyze/getFrameShifts.cpp
+  src/analyze/getFrameShifts.h
   src/analyze/getNucleotideComposition.cpp
   src/analyze/getNucleotideComposition.h
   src/analyze/getPcrPrimerChanges.cpp

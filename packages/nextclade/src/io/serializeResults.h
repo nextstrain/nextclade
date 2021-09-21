@@ -17,6 +17,7 @@ namespace Nextclade {
     return j;
   }
 
+  json serializeFrameShiftLocation(const FrameShiftLocation& fs);
   json serializeStopCodon(const StopCodonLocation& stopCodon);
 
 }// namespace Nextclade

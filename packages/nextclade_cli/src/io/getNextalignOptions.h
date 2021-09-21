@@ -30,6 +30,7 @@ namespace Nextclade {
           .seedSpacing = cliParams.aaSeedSpacing,
           .mismatchesAllowed = cliParams.aaMismatchesAllowed,
         },
+      .translatePastStop = !cliParams.noTranslatePastStop,
     };
   }
 

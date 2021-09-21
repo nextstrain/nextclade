@@ -39,7 +39,7 @@ namespace Nextclade {
 
     constexpr frozen::string NEWLINE = "\r\n";
 
-    constexpr std::array<frozen::string, 49> COLUMN_NAMES = {
+    constexpr std::array<frozen::string, 53> COLUMN_NAMES = {
       "seqName",
       "clade",
 
@@ -49,6 +49,7 @@ namespace Nextclade {
       "totalSubstitutions",
       "totalDeletions",
       "totalInsertions",
+      "totalFrameShifts",
       "totalAminoacidSubstitutions",
       "totalAminoacidDeletions",
       "totalMissing",
@@ -58,6 +59,7 @@ namespace Nextclade {
       "substitutions",
       "deletions",
       "insertions",
+      "frameShifts",
       "aaSubstitutions",
       "aaDeletions",
       "missing",
@@ -91,6 +93,9 @@ namespace Nextclade {
 
       "qc.frameShifts.frameShifts",
       "qc.frameShifts.totalFrameShifts",
+      "qc.frameShifts.frameShiftsIgnored",
+      "qc.frameShifts.totalFrameShiftsIgnored",
+
       "qc.frameShifts.score",
       "qc.frameShifts.status",
 
@@ -143,6 +148,7 @@ namespace Nextclade {
     columns.emplace_back(std::to_string(result.totalSubstitutions));
     columns.emplace_back(std::to_string(result.totalDeletions));
     columns.emplace_back(std::to_string(result.totalInsertions));
+    columns.emplace_back(std::to_string(result.totalFrameShifts));
     columns.emplace_back(std::to_string(result.totalAminoacidSubstitutions));
     columns.emplace_back(std::to_string(result.totalAminoacidDeletions));
     columns.emplace_back(std::to_string(result.totalMissing));
@@ -152,6 +158,7 @@ namespace Nextclade {
     columns.emplace_back(formatAndJoin(result.substitutions, formatMutation, ","));
     columns.emplace_back(formatAndJoin(result.deletions, formatDeletion, ","));
     columns.emplace_back(formatAndJoin(result.insertions, formatInsertion, ","));
+    columns.emplace_back(formatAndJoin(result.frameShifts, formatFrameShift, ","));
     columns.emplace_back(formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));
     columns.emplace_back(formatAndJoin(result.aaDeletions, formatAminoacidDeletion, ","));
     columns.emplace_back(formatAndJoin(result.missing, formatMissing, ","));
@@ -202,6 +209,8 @@ namespace Nextclade {
     if (result.qc.frameShifts) {
       columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShifts, formatFrameShift, ","));
       columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShifts));
+      columns.emplace_back(formatAndJoin(result.qc.frameShifts->frameShiftsIgnored, formatFrameShift, ","));
+      columns.emplace_back(std::to_string(result.qc.frameShifts->totalFrameShiftsIgnored));
       columns.emplace_back(std::to_string(result.qc.frameShifts->score));
       columns.emplace_back(formatQcStatus(result.qc.frameShifts->status));
     } else {

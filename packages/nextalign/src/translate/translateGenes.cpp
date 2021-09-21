@@ -14,8 +14,45 @@
 #include "./mapCoordinates.h"
 #include "./translate.h"
 #include "align/alignPairwise.h"
+#include "detectFrameShifts.h"
+#include "removeGaps.h"
 #include "utils/contains.h"
 #include "utils/contract.h"
+
+
+void maskNucFrameShiftsInPlace(NucleotideSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
+  for (const auto& frameShift : frameShifts) {
+    auto current = frameShift.nucRel.begin;
+    const auto end = frameShift.nucRel.end;
+    invariant_greater(current, 0);
+    invariant_less_equal(end, seq.size());
+    while (current < end) {
+      if (seq[current] != Nucleotide::GAP) {
+        seq[current] = Nucleotide::N;
+      }
+      ++current;
+    }
+  }
+}
+
+/**
+ * Mask gaps in frame shifted regions of the peptide.
+ * This region is likely misaligned, so these gaps added during peptide alignment don't make sense.
+ */
+void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
+  for (const auto& frameShift : frameShifts) {
+    auto current = frameShift.codon.begin;
+    const auto end = frameShift.codon.end;
+    invariant_greater(current, 0);
+    invariant_less_equal(end, seq.size());
+    while (current < end) {
+      if (seq[current] == Aminoacid::GAP) {
+        seq[current] = Aminoacid::X;
+      }
+      ++current;
+    }
+  }
+}
 
 
 PeptidesInternal translateGenes(         //
@@ -33,6 +70,7 @@ PeptidesInternal translateGenes(         //
   NucleotideSequenceSpan newRef{newRefMemory};
 
   const auto coordMap = mapCoordinates(ref);
+  const auto coordMapReverse = mapReverseCoordinates(ref);
 
   std::vector<PeptideInternal> queryPeptides;
   queryPeptides.reserve(geneMap.size());
@@ -41,7 +79,6 @@ PeptidesInternal translateGenes(         //
   refPeptides.reserve(geneMap.size());
 
   Warnings warnings;
-  std::vector<FrameShift> frameShifts;
 
   // For each gene in the requested subset
   for (const auto& [geneName, _] : geneMap) {
@@ -60,7 +97,7 @@ PeptidesInternal translateGenes(         //
     const auto& gene = found->second;
 
     // TODO: can be done once during initialization
-    const auto& extractRefGeneStatus = extractGeneQuery(ref, gene, coordMap);
+    auto extractRefGeneStatus = extractGeneQuery(ref, gene, coordMap);
     if (extractRefGeneStatus.status != Status::Success) {
       const auto message = *extractRefGeneStatus.error;
       warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
@@ -68,20 +105,33 @@ PeptidesInternal translateGenes(         //
     }
 
 
-    const auto& extractQueryGeneStatus = extractGeneQuery(query, gene, coordMap);
+    auto extractQueryGeneStatus = extractGeneQuery(query, gene, coordMap);
     if (extractQueryGeneStatus.status != Status::Success) {
       const auto message = *extractQueryGeneStatus.error;
       warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
-
-      if (extractQueryGeneStatus.reason == ExtractGeneStatusReason::GeneLengthNonMul3) {
-        frameShifts.emplace_back(FrameShift{.geneName = geneName});
-      }
-
       continue;
     }
 
-    auto refPeptide = translate(*extractRefGeneStatus.result, options.translatePastStop);
-    auto queryPeptide = translate(*extractQueryGeneStatus.result, options.translatePastStop);
+    auto& refGeneSeq = *extractRefGeneStatus.result;
+    auto& queryGeneSeq = *extractQueryGeneStatus.result;
+
+    // Make sure subsequent gap stripping does not introduce frame shift
+    protectFirstCodonInPlace(refGeneSeq);
+    protectFirstCodonInPlace(queryGeneSeq);
+
+    // NOTE: frame shift detection should be performed on unstripped genes
+    const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
+    const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMap, coordMapReverse, gene);
+
+    maskNucFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
+
+    // Strip all GAP characters to "forget" gaps introduced during alignment
+    removeGapsInPlace(refGeneSeq);
+    removeGapsInPlace(queryGeneSeq);
+
+    auto refPeptide = translate(refGeneSeq, options.translatePastStop);
+    const auto queryPeptide = translate(queryGeneSeq, options.translatePastStop);
+
 
     const auto geneAlignmentStatus =
       alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
@@ -98,16 +148,20 @@ PeptidesInternal translateGenes(         //
 
     auto stripped = stripInsertions(geneAlignmentStatus.result->ref, geneAlignmentStatus.result->query);
 
+    maskPeptideFrameShiftsInPlace(stripped.queryStripped, frameShiftResults);
+
     queryPeptides.emplace_back(PeptideInternal{
-      .name = geneName,                           //
-      .seq = std::move(stripped.queryStripped),   //
-      .insertions = std::move(stripped.insertions)//
+      .name = geneName,                            //
+      .seq = std::move(stripped.queryStripped),    //
+      .insertions = std::move(stripped.insertions),//
+      .frameShiftResults = frameShiftResults,
     });
 
     refPeptides.emplace_back(PeptideInternal{
       .name = geneName,            //
       .seq = std::move(refPeptide),//
-      .insertions = {}             //
+      .insertions = {},            //
+      .frameShiftResults = {},
     });
   }
 
@@ -115,6 +169,5 @@ PeptidesInternal translateGenes(         //
     .queryPeptides = queryPeptides,//
     .refPeptides = refPeptides,    //
     .warnings = warnings,          //
-    .frameShifts = frameShifts,    //
   };
 }
