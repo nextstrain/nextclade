@@ -129,8 +129,8 @@ PeptidesInternal translateGenes(         //
     removeGapsInPlace(refGeneSeq);
     removeGapsInPlace(queryGeneSeq);
 
-    auto refPeptide = translate(refGeneSeq);
-    const auto queryPeptide = translate(queryGeneSeq);
+    auto refPeptide = translate(refGeneSeq, options.translatePastStop);
+    const auto queryPeptide = translate(queryGeneSeq, options.translatePastStop);
 
 
     const auto geneAlignmentStatus =

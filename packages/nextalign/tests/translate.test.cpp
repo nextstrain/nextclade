@@ -95,3 +95,35 @@ TEST(translate, TranslatesModulo3Plus2) {
 
   EXPECT_EQ(toString(translate(toNucleotideSequence(nucs))), "TRANSLATIQN");
 }
+
+TEST(translate, TranslatesUntilStop) {
+  constexpr const auto* const nucs =
+    "ACG"// T
+    "AGG"// R
+    "GCG"// A
+    "AAT"// N
+    "TAG"// STOP
+    "CTC"// L
+    "GCT"// A
+    "ACA"// T
+    "GAA"// E
+    ;
+
+  EXPECT_EQ(toString(translate(toNucleotideSequence(nucs))), "TRAN*----");
+}
+
+TEST(translate, TranslatesAfterStop) {
+  constexpr const auto* const nucs =
+    "ACG"// T
+    "AGG"// R
+    "GCG"// A
+    "AAT"// N
+    "TAG"// STOP
+    "CTC"// L
+    "GCT"// A
+    "ACA"// T
+    "GAA"// E
+    ;
+
+  EXPECT_EQ(toString(translate(toNucleotideSequence(nucs), /* translatePastStop = */ true)), "TRAN*LATE");
+}

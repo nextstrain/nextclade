@@ -185,6 +185,7 @@ struct NextalignOptions {
   NextalignAlignmentOptions alignment;
   NextalignSeedOptions seedNuc;
   NextalignSeedOptions seedAa;
+  bool translatePastStop;
 };
 
 struct Gene {
