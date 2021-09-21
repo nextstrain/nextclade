@@ -130,6 +130,8 @@ namespace Nextclade {
     QcStatus status;
     std::vector<StopCodonLocation> stopCodons;
     int totalStopCodons;
+    std::vector<StopCodonLocation> stopCodonsIgnored;
+    int totalStopCodonsIgnored;
   };
 
   struct QcResult {

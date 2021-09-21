@@ -279,6 +279,8 @@ namespace Nextclade {
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
       .stopCodons = parseArray<StopCodonLocation>(j, "stopCodons", parseStopCodonLocation),
       .totalStopCodons = parseInt(j, "totalStopCodons"),
+      .stopCodonsIgnored = parseArray<StopCodonLocation>(j, "stopCodonsIgnored", parseStopCodonLocation),
+      .totalStopCodonsIgnored = parseInt(j, "totalStopCodonsIgnored"),
     };
   }
 

@@ -260,6 +260,8 @@ namespace Nextclade {
               {"status", formatQcStatus(qc.stopCodons->status)},
               {"stopCodons", serializeArray(qc.stopCodons->stopCodons, serializeStopCodon)},
               {"totalStopCodons", qc.stopCodons->totalStopCodons},
+              {"stopCodonsIgnored", serializeArray(qc.stopCodons->stopCodonsIgnored, serializeStopCodon)},
+              {"totalStopCodonsIgnored", qc.stopCodons->totalStopCodonsIgnored},
             }));
       }
 

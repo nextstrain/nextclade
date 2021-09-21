@@ -221,6 +221,8 @@ export interface QcResultStopCodons {
   status: QcStatus
   stopCodons: StopCodonLocation[]
   totalStopCodons: number
+  stopCodonsIgnored: StopCodonLocation[]
+  totalStopCodonsIgnored: number
 }
 
 export interface QcResult {

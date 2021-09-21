@@ -31,6 +31,9 @@ namespace Nextclade {
 
     int totalStopCodons = 0;
     std::vector<StopCodonLocation> stopCodons;
+
+    int totalStopCodonsIgnored = 0;
+    std::vector<StopCodonLocation> stopCodonsIgnored;
     for (const auto& peptide : alignment.queryPeptides) {
       auto lengthMinusOne = safe_cast<int>(peptide.seq.size() - 1);// Minus one to ignore valid stop codon at the end
 
@@ -41,6 +44,9 @@ namespace Nextclade {
           if (!details::isIgnoredStopCodon(stopCodon, config.ignoredStopCodons)) {
             totalStopCodons += 1;
             stopCodons.emplace_back(stopCodon);
+          } else {
+            totalStopCodonsIgnored += 1;
+            stopCodonsIgnored.emplace_back(stopCodon);
           }
         }
       }
@@ -54,6 +60,8 @@ namespace Nextclade {
       .status = status,
       .stopCodons = stopCodons,
       .totalStopCodons = totalStopCodons,
+      .stopCodonsIgnored = stopCodonsIgnored,
+      .totalStopCodonsIgnored = totalStopCodonsIgnored,
     };
   }
 }// namespace Nextclade
