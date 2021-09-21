@@ -80,7 +80,7 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShift) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("SKV*Y--");
+  const auto peptideExpected = toAminoacidSequence("SKXXXXX");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -113,7 +113,7 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShiftWithPriorInsertion) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("SKV*Y--");
+  const auto peptideExpected = toAminoacidSequence("SKXXXXX");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -146,7 +146,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShift) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("-SNSVI*");
+  const auto peptideExpected = toAminoacidSequence("-SXXXI*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -179,7 +179,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithPriorInsertion) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("-SNSVI*");
+  const auto peptideExpected = toAminoacidSequence("-SXXXI*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -217,7 +217,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithInsertion) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("-SIPVI*");
+  const auto peptideExpected = toAminoacidSequence("-SXXXI*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
