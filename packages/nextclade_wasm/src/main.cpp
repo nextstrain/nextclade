@@ -130,7 +130,8 @@ public:
       const auto query = toNucleotideSequence(queryStr);
 
       // FIXME: pass options from JS
-      const auto nextalignOptions = getDefaultOptions();
+      auto nextalignOptions = getDefaultOptions();
+      nextalignOptions.translatePastStop = true;
 
       const auto result = analyzeOneSequence(//
         queryName,                           //
