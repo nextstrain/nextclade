@@ -64,6 +64,13 @@ function PeptideMarkerMutationGroupDisconnected({
   const x = codonAaRange.begin * pixelsPerAa
   const width = changes.length * Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
 
+  let changesHead = changes
+  let changesTail: typeof changes = []
+  if (changes.length > 6) {
+    changesHead = changes.slice(0, 3)
+    changesTail = changes.slice(-3)
+  }
+
   const totalNucChanges = nucSubstitutions.length + nucDeletions.length
 
   return (
@@ -92,7 +99,7 @@ function PeptideMarkerMutationGroupDisconnected({
                 </tr>
 
                 <>
-                  {changes.map((change) => (
+                  {changesHead.map((change) => (
                     <tr key={change.codon}>
                       <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
                       <td>
@@ -100,6 +107,25 @@ function PeptideMarkerMutationGroupDisconnected({
                       </td>
                     </tr>
                   ))}
+                </>
+
+                {changesTail.length > 0 && (
+                  <tr>
+                    <td>{'...'}</td>
+                    <td>{'...'}</td>
+                  </tr>
+                )}
+
+                <>
+                  {changesTail.length > 0 &&
+                    changesTail.map((change) => (
+                      <tr key={change.codon}>
+                        <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+                        <td>
+                          <AminoacidMutationBadge mutation={change} geneMap={geneMap ?? []} />
+                        </td>
+                      </tr>
+                    ))}
                 </>
 
                 {totalNucChanges > 0 && (
