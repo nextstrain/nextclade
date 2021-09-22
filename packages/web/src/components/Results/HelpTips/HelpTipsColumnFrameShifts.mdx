@@ -1,9 +1,7 @@
 ##### Column: frame shifts
 
-Displays total length of unexpected reading frame shifts in the sequence. Shifted ranges are expressed in codon coordinates of the affected gene.
+Displays total number of unexpected reading frame shifts in the sequence. Shifted ranges are expressed in codon coordinates of the affected gene.
 
-Hovering mouse over a cell in this column will display a tooltip with detailed information about the detected frame shift ranges for each gene.
-
-Note that the dataset authors may define a list of known good (expected) frame shifts in the quality control (QC) configuration. These frame shifts are not included in the displayed number and are listed separately in the tooltip.
+Displayed in parentheses are the total number of frame shifts, including known ones. Dataset authors may define a list of known good (expected) frame shifts in the quality control (QC) configuration to prevent them from causing a bad QC score. These frame shifts are only counted in the number in parentheses.
 
 Positions are 1-based.

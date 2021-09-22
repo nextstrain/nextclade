@@ -19,7 +19,7 @@ export function ColumnStopCodons({ sequence }: ColumnCladeProps) {
   const { totalStopCodons, totalStopCodonsIgnored } = sequence.qc.stopCodons
   const grandTotal = totalStopCodons + totalStopCodonsIgnored
   const shouldShowTooltip = grandTotal > 0
-  const value = grandTotal === 0 ? 0 : `${totalStopCodons} + ${totalStopCodonsIgnored}`
+  const value = grandTotal === 0 ? 0 : `${totalStopCodons} (${grandTotal})`
 
   return (
     <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>

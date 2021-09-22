@@ -19,7 +19,7 @@ export function ColumnFrameShifts({ sequence }: ColumnCladeProps) {
   const { totalFrameShifts, totalFrameShiftsIgnored } = sequence.qc.frameShifts
   const grandTotal = totalFrameShiftsIgnored + totalFrameShifts
   const shouldShowTooltip = grandTotal > 0
-  const value = grandTotal === 0 ? 0 : `${totalFrameShifts} + ${totalFrameShiftsIgnored}`
+  const value = grandTotal === 0 ? 0 : `${totalFrameShifts} (${grandTotal})`
 
   return (
     <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
