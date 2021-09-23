@@ -59,6 +59,17 @@ inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& rig
     ;
 }
 
+struct InternalFrameShiftResultWithMask {
+  FrameShiftResult frameShift;
+  Range codonMask;// used internally during translation to mask undesired regions around the frame shift
+};
+
+inline bool operator==(const InternalFrameShiftResultWithMask& left, const InternalFrameShiftResultWithMask& right) {
+  return left.frameShift == right.frameShift //
+         && left.codonMask == right.codonMask//
+    ;
+}
+
 class Error : public std::runtime_error {
 public:
   explicit Error(const std::string& message) : std::runtime_error(message) {}

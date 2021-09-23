@@ -16,6 +16,7 @@
 #include "align/alignPairwise.h"
 #include "detectFrameShifts.h"
 #include "removeGaps.h"
+#include "utils/at.h"
 #include "utils/contains.h"
 #include "utils/contract.h"
 
@@ -39,10 +40,11 @@ void maskNucFrameShiftsInPlace(NucleotideSequence& seq, const std::vector<FrameS
  * Mask gaps in frame shifted regions of the peptide.
  * This region is likely misaligned, so these gaps added during peptide alignment don't make sense.
  */
-void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
+void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq,
+  const std::vector<InternalFrameShiftResultWithMask>& frameShifts) {
   for (const auto& frameShift : frameShifts) {
-    auto current = frameShift.codon.begin;
-    const auto end = frameShift.codon.end;
+    auto current = frameShift.codonMask.begin;
+    const auto end = frameShift.codonMask.end;
     invariant_greater(current, 0);
     invariant_less_equal(end, seq.size());
     while (current < end) {
@@ -52,6 +54,68 @@ void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq, const std::vector<Fra
       ++current;
     }
   }
+}
+
+/**
+ * Find beginning nucleotide position of a deletion that immedeatly preceeds and adjacent to the frame shift
+ */
+int findMaskBegin(const NucleotideSequence& seq, const FrameShiftResult& frameShift) {
+  // From begin, rewind back to find the first adjacent nuc deletion
+  int begin = frameShift.nucRel.begin;
+  auto nuc = seq[begin];
+  while (nuc == Nucleotide::GAP && begin >= 0) {
+    --begin;
+    nuc = seq[begin];
+  }
+  return begin;
+}
+
+/**
+ * Find ending nucleotide position of a deletion that immedeatly follows and adjacent to the frame shift
+ */
+int findMaskEnd(const NucleotideSequence& seq, const FrameShiftResult& frameShift) {
+  int length = safe_cast<int>(seq.size());
+  // From end, rewind forward to find the last adjacent nuc deletion
+  int end = frameShift.nucRel.end;
+  if (end < length) {
+    auto nuc = seq[end];
+    while (nuc == Nucleotide::GAP && end < length) {
+      ++end;
+      nuc = seq[end];
+    }
+  }
+  return end;
+}
+
+/**
+ * Finds boundaries for frame shift masking range in codon coordinates.
+ */
+std::vector<InternalFrameShiftResultWithMask> findPeptideMask(//
+  const NucleotideSequence& seq,                              //
+  const std::vector<FrameShiftResult>& frameShifts,           //
+  const std::vector<int>& coordMap,                           //
+  const std::vector<int>& coordMapReverse,                    //
+  const Gene& gene                                            //
+) {
+  // TODO: deduplicate coordinate translation code with the similar code in `translateFrameShifts()`
+  std::vector<InternalFrameShiftResultWithMask> result;
+  for (const auto& frameShift : frameShifts) {
+    auto nucRangeRel = Range{
+      .begin = findMaskBegin(seq, frameShift),
+      .end = findMaskEnd(seq, frameShift),
+    };
+
+    Range codonRange{
+      .begin = nucRangeRel.begin / 3,
+      .end = nucRangeRel.end / 3,
+    };
+
+    result.emplace_back(InternalFrameShiftResultWithMask{
+      .frameShift = frameShift,
+      .codonMask = codonRange,
+    });
+  }
+  return result;
 }
 
 
@@ -122,6 +186,7 @@ PeptidesInternal translateGenes(         //
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
     const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMap, coordMapReverse, gene);
+    auto frameShiftResultsWithMask = findPeptideMask(queryGeneSeq, frameShiftResults, coordMap, coordMapReverse, gene);
 
     maskNucFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
 
@@ -148,7 +213,7 @@ PeptidesInternal translateGenes(         //
 
     auto stripped = stripInsertions(geneAlignmentStatus.result->ref, geneAlignmentStatus.result->query);
 
-    maskPeptideFrameShiftsInPlace(stripped.queryStripped, frameShiftResults);
+    maskPeptideFrameShiftsInPlace(stripped.queryStripped, frameShiftResultsWithMask);
 
     queryPeptides.emplace_back(PeptideInternal{
       .name = geneName,                            //
