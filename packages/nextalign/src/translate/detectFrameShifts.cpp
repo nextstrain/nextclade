@@ -218,6 +218,20 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
       .end = maskNucRangeRel.end / 3,
     };
 
+    FrameShiftContext gapsLeading{
+      .codon{
+        .begin = codonMask.begin,
+        .end = codonRange.begin,
+      },
+    };
+
+    FrameShiftContext gapsTrailing{
+      .codon{
+        .begin = codonRange.end,
+        .end = codonMask.end,
+      },
+    };
+
     frameShifts.push_back(InternalFrameShiftResultWithMask{
       .frameShift =
         FrameShiftResult{
@@ -225,6 +239,8 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
           .nucRel = nucRangeRel,
           .nucAbs = nucRangeAbs,
           .codon = codonRange,
+          .gapsLeading = gapsLeading,
+          .gapsTraling = gapsTrailing,
         },
       .codonMask = codonMask,
     });

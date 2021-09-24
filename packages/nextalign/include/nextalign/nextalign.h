@@ -44,18 +44,31 @@ inline bool operator==(const Range& left, const Range& right) {
   return left.begin == right.begin && left.end == right.end;
 }
 
+struct FrameShiftContext {
+  Range codon;
+};
+
+inline bool operator==(const FrameShiftContext& left, const FrameShiftContext& right) {
+  return left.codon == right.codon//
+    ;
+}
+
 struct FrameShiftResult {
   std::string geneName;
   Range nucRel;
   Range nucAbs;
   Range codon;
+  FrameShiftContext gapsLeading;
+  FrameShiftContext gapsTraling;
 };
 
 inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& right) {
-  return left.geneName == right.geneName//
-         && left.nucRel == right.nucRel //
-         && left.nucAbs == right.nucAbs //
-         && left.codon == right.codon   //
+  return left.geneName == right.geneName         //
+         && left.nucRel == right.nucRel          //
+         && left.nucAbs == right.nucAbs          //
+         && left.codon == right.codon            //
+         && left.gapsLeading == right.gapsLeading//
+         && left.gapsTraling == right.gapsTraling//
     ;
 }
 
