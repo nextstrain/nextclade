@@ -90,7 +90,7 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShift) {
     .nucAbs = {.begin = 19, .end = 30},
     .codon = {.begin = 3, .end = 7},
     .gapsLeading = {.codon = {.begin = 2, .end = 3}},
-    .gapsTraling = {.codon = {.begin = 7, .end = 7}},
+    .gapsTrailing = {.codon = {.begin = 7, .end = 7}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -125,7 +125,7 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShiftWithPriorInsertion) {
     .nucAbs = {.begin = 19, .end = 30},
     .codon = {.begin = 3, .end = 7},
     .gapsLeading = {.codon = {.begin = 2, .end = 3}},
-    .gapsTraling = {.codon = {.begin = 7, .end = 7}},
+    .gapsTrailing = {.codon = {.begin = 7, .end = 7}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -160,7 +160,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShift) {
     .nucAbs = {.begin = 14, .end = 22},
     .codon = {.begin = 1, .end = 4},
     .gapsLeading = {.codon = {.begin = 1, .end = 1}},
-    .gapsTraling = {.codon = {.begin = 4, .end = 5}},
+    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -195,7 +195,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithPriorInsertion) {
     .nucAbs = {.begin = 14, .end = 22},
     .codon = {.begin = 1, .end = 4},
     .gapsLeading = {.codon = {.begin = 1, .end = 1}},
-    .gapsTraling = {.codon = {.begin = 4, .end = 5}},
+    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -235,7 +235,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithInsertion) {
     .nucAbs = {.begin = 15, .end = 22},
     .codon = {.begin = 2, .end = 4},
     .gapsLeading = {.codon = {.begin = 1, .end = 2}},
-    .gapsTraling = {.codon = {.begin = 4, .end = 5}},
+    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }

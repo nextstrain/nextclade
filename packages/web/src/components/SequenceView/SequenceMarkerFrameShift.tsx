@@ -49,7 +49,7 @@ function SequenceMarkerFrameShiftDisconnected({
     return null
   }
 
-  const { geneName, nucAbs, codon, gapsTraling, gapsLeading } = frameShift
+  const { geneName, nucAbs, codon, gapsTrailing, gapsLeading } = frameShift
   const id = getSafeId('frame-shift-nuc-marker', { seqName, ...frameShift })
 
   const gene = geneMap.find((gene) => geneName === gene.geneName)
@@ -129,7 +129,7 @@ function SequenceMarkerFrameShiftDisconnected({
 
               <tr>
                 <td>{t('Trailing gaps codon range')}</td>
-                <td>{formatRangeMaybeEmpty(gapsTraling.codon.begin, gapsTraling.codon.end)}</td>
+                <td>{formatRangeMaybeEmpty(gapsTrailing.codon.begin, gapsTrailing.codon.end)}</td>
               </tr>
             </tbody>
           </TableSlim>

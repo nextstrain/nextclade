@@ -59,7 +59,7 @@ struct FrameShiftResult {
   Range nucAbs;
   Range codon;
   FrameShiftContext gapsLeading;
-  FrameShiftContext gapsTraling;
+  FrameShiftContext gapsTrailing;
 };
 
 inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& right) {
@@ -68,7 +68,7 @@ inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& rig
          && left.nucAbs == right.nucAbs          //
          && left.codon == right.codon            //
          && left.gapsLeading == right.gapsLeading//
-         && left.gapsTraling == right.gapsTraling//
+         && left.gapsTrailing == right.gapsTrailing//
     ;
 }
 

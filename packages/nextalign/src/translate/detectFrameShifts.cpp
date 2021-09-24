@@ -245,7 +245,7 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
           .nucAbs = nucRangeAbs,
           .codon = codonRange,
           .gapsLeading = gapsLeading,
-          .gapsTraling = gapsTrailing,
+          .gapsTrailing = gapsTrailing,
         },
       .codonMask = codonMask,
     });

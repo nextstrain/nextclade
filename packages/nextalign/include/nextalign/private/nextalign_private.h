@@ -109,7 +109,7 @@ inline std::ostream& operator<<(std::ostream& os, const FrameShiftResult& f) {
      << "nucAbs: " << f.nucAbs << ", "          //
      << "codon: " << f.codon << ", "            //
      << "gapsLeading: " << f.gapsLeading << ", "//
-     << "gapsTraling: " << f.gapsTraling << ", "//
+     << "gapsTrailing: " << f.gapsTrailing << ", "//
      << " }"                                    //
     ;
   return os;

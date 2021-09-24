@@ -205,7 +205,7 @@ export interface FrameShift {
   nucAbs: Range
   codon: Range
   gapsLeading: FrameShiftContext
-  gapsTraling: FrameShiftContext
+  gapsTrailing: FrameShiftContext
 }
 
 export interface QcResultFrameShifts {
