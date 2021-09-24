@@ -15,3 +15,11 @@ export function formatRange(begin: number, end: number) {
   }
   return `${beginOne}-${endOne}`
 }
+
+export function formatRangeMaybeEmpty(begin: number, end: number) {
+  if (begin >= end) {
+    return '-'
+  }
+
+  return formatRange(begin, end)
+}

@@ -10,8 +10,8 @@ import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 
 import { Tooltip } from 'src/components/Results/Tooltip'
-import { TableSlim } from 'src/components/Common/TableSlim'
-import { formatRange } from 'src/helpers/formatRange'
+import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
+import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 
 const frameShiftColor = '#eb0d2a'
@@ -49,7 +49,7 @@ function SequenceMarkerFrameShiftDisconnected({
     return null
   }
 
-  const { geneName, nucAbs, codon } = frameShift
+  const { geneName, nucAbs, codon, gapsTraling, gapsLeading } = frameShift
   const id = getSafeId('frame-shift-nuc-marker', { seqName, ...frameShift })
 
   const gene = geneMap.find((gene) => geneName === gene.geneName)
@@ -115,9 +115,21 @@ function SequenceMarkerFrameShiftDisconnected({
                 <td>{codonRangeStr}</td>
               </tr>
 
-              <tr>
+              <tr className="pb-3">
                 <td>{t('Codon length')}</td>
                 <td>{codonLength}</td>
+              </tr>
+
+              <TableRowSpacer />
+
+              <tr>
+                <td>{t('Leading gaps codon range')}</td>
+                <td>{formatRangeMaybeEmpty(gapsLeading.codon.begin, gapsLeading.codon.end)}</td>
+              </tr>
+
+              <tr>
+                <td>{t('Trailing gaps codon range')}</td>
+                <td>{formatRangeMaybeEmpty(gapsTraling.codon.begin, gapsTraling.codon.end)}</td>
               </tr>
             </tbody>
           </TableSlim>

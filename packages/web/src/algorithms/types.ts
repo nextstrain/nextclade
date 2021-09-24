@@ -195,11 +195,17 @@ export interface QcResultPrivateMutations {
   cutoff: number
 }
 
+export interface FrameShiftContext {
+  codon: Range
+}
+
 export interface FrameShift {
   geneName: string
   nucRel: Range
   nucAbs: Range
   codon: Range
+  gapsLeading: FrameShiftContext
+  gapsTraling: FrameShiftContext
 }
 
 export interface QcResultFrameShifts {
