@@ -37,6 +37,19 @@ void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
   }
 }
 
+
+template<typename Letter>
+void fillRangeInplace(Sequence<Letter>& seq, const Range& range, Letter letter) {
+  auto current = range.begin;
+  const auto end = range.end;
+  invariant_greater(current, 0);
+  invariant_less_equal(end, seq.size());
+  while (current < end) {
+    seq[current] = letter;
+    ++current;
+  }
+}
+
 /**
  * Mask gaps in frame shifted regions of the peptide.
  * This region is likely misaligned, so these gaps added during peptide alignment don't make sense.
@@ -44,16 +57,13 @@ void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
 void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq,
   const std::vector<InternalFrameShiftResultWithMask>& frameShifts) {
   for (const auto& frameShift : frameShifts) {
-    auto current = frameShift.codonMask.begin;
-    const auto end = frameShift.codonMask.end;
-    invariant_greater(current, 0);
-    invariant_less_equal(end, seq.size());
-    while (current < end) {
-      if (seq[current] == Aminoacid::GAP) {
-        seq[current] = Aminoacid::X;
-      }
-      ++current;
-    }
+    const auto& gapsLeading = frameShift.frameShift.gapsLeading.codon;
+    const auto& frameShiftBody = frameShift.frameShift.codon;
+    const auto& gapsTraling = frameShift.frameShift.gapsTraling.codon;
+
+    fillRangeInplace(seq, gapsLeading, Aminoacid::GAP);
+    fillRangeInplace(seq, frameShiftBody, Aminoacid::X);
+    fillRangeInplace(seq, gapsTraling, Aminoacid::GAP);
   }
 }
 
