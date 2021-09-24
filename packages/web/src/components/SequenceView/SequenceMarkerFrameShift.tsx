@@ -123,12 +123,12 @@ function SequenceMarkerFrameShiftDisconnected({
               <TableRowSpacer />
 
               <tr>
-                <td>{t('Leading gaps codon range')}</td>
+                <td>{t('Leading deleted codon range')}</td>
                 <td>{formatRangeMaybeEmpty(gapsLeading.codon.begin, gapsLeading.codon.end)}</td>
               </tr>
 
               <tr>
-                <td>{t('Trailing gaps codon range')}</td>
+                <td>{t('Trailing deleted codon range')}</td>
                 <td>{formatRangeMaybeEmpty(gapsTrailing.codon.begin, gapsTrailing.codon.end)}</td>
               </tr>
             </tbody>
