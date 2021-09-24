@@ -26,9 +26,9 @@ void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
   for (const auto& frameShift : frameShifts) {
     auto current = frameShift.frameShift.nucRel.begin;
     const auto end = frameShift.frameShift.nucRel.end;
-    invariant_greater(current, 0);
-    invariant_less_equal(end, seq.size());
     while (current < end) {
+      invariant_greater(current, 0);
+      invariant_less_equal(current, seq.size());
       if (seq[current] != Nucleotide::GAP) {
         seq[current] = Nucleotide::N;
       }
@@ -46,9 +46,9 @@ void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq,
   for (const auto& frameShift : frameShifts) {
     auto current = frameShift.codonMask.begin;
     const auto end = frameShift.codonMask.end;
-    invariant_greater(current, 0);
-    invariant_less_equal(end, seq.size());
     while (current < end) {
+      invariant_greater(current, 0);
+      invariant_less_equal(current, seq.size());
       if (seq[current] == Aminoacid::GAP) {
         seq[current] = Aminoacid::X;
       }
