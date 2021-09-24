@@ -138,7 +138,7 @@ namespace Nextclade {
       .nucAbs = parseFrameShiftRange(at(j, "nucAbs")),
       .codon = parseFrameShiftRange(at(j, "codon")),
       .gapsLeading = parseFrameShiftContext(at(j, "gapsLeading")),
-      .gapsTraling = parseFrameShiftContext(at(j, "gapsTraling")),
+      .gapsTrailing = parseFrameShiftContext(at(j, "gapsTrailing")),
     };
   }
 

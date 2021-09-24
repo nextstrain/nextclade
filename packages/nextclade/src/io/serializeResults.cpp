@@ -130,7 +130,7 @@ namespace Nextclade {
       j.emplace("nucAbs", serializeFrameShiftRange(fs.nucAbs));
       j.emplace("codon", serializeFrameShiftRange(fs.codon));
       j.emplace("gapsLeading", serializeFrameShiftContext(fs.gapsLeading));
-      j.emplace("gapsTraling", serializeFrameShiftContext(fs.gapsTraling));
+      j.emplace("gapsTrailing", serializeFrameShiftContext(fs.gapsTrailing));
       return j;
     }
 
