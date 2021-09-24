@@ -15,3 +15,7 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
   const std::vector<int>& coordMapReverse,                         //
   const Gene& gene                                                 //
 );
+
+int findMaskBegin(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel);
+
+int findMaskEnd(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel);

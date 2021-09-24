@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
   data/sampleGeneMap.h
   decode.test.cpp
   extractGene.test.cpp
+  findMask.test.cpp
   frameshiftDetector.test.cpp
   mapCoordinates.test.cpp
   nucToString.test.cpp

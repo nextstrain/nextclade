@@ -145,7 +145,10 @@ int findMaskBegin(const NucleotideSequence& seq, const Range& frameShiftNucRange
       nuc = seq[begin];
     }
   }
-  return begin;
+
+  // `begin` now points to the nuc that is 1 to the right of the deletion.
+  // Go back one nuc to make it point to the deletion.
+  return begin + 1;
 }
 
 /**
@@ -162,6 +165,8 @@ int findMaskEnd(const NucleotideSequence& seq, const Range& frameShiftNucRangeRe
       nuc = seq[end];
     }
   }
+
+  // `end` now points to the nuc that is 1 to the left of the deletion. Which is correct - we use semi-open ranges.
   return end;
 }
 
