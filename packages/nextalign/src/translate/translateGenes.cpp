@@ -59,7 +59,7 @@ void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq,
   for (const auto& frameShift : frameShifts) {
     const auto& gapsLeading = frameShift.frameShift.gapsLeading.codon;
     const auto& frameShiftBody = frameShift.frameShift.codon;
-    const auto& gapsTraling = frameShift.frameShift.gapsTraling.codon;
+    const auto& gapsTraling = frameShift.frameShift.gapsTrailing.codon;
 
     fillRangeInplace(seq, gapsLeading, Aminoacid::GAP);
     fillRangeInplace(seq, frameShiftBody, Aminoacid::X);
