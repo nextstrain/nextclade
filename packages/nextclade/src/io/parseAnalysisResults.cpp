@@ -125,12 +125,20 @@ namespace Nextclade {
     };
   }
 
+  FrameShiftContext parseFrameShiftContext(const json& j) {
+    return FrameShiftContext{
+      .codon = parseFrameShiftRange(at(j, "codon")),
+    };
+  }
+
   FrameShiftResult parseFrameShiftResult(const json& j) {
     return FrameShiftResult{
       .geneName = at(j, "geneName").get<std::string>(),
       .nucRel = parseFrameShiftRange(at(j, "nucRel")),
       .nucAbs = parseFrameShiftRange(at(j, "nucAbs")),
       .codon = parseFrameShiftRange(at(j, "codon")),
+      .gapsLeading = parseFrameShiftContext(at(j, "gapsLeading")),
+      .gapsTraling = parseFrameShiftContext(at(j, "gapsTraling")),
     };
   }
 

@@ -117,12 +117,20 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeFrameShiftContext(const FrameShiftContext& fsc) {
+      auto j = json::object();
+      j.emplace("codon", serializeFrameShiftRange(fsc.codon));
+      return j;
+    }
+
     json serializeFrameShiftResult(const FrameShiftResult& fs) {
       auto j = json::object();
       j.emplace("geneName", fs.geneName);
       j.emplace("nucRel", serializeFrameShiftRange(fs.nucRel));
       j.emplace("nucAbs", serializeFrameShiftRange(fs.nucAbs));
       j.emplace("codon", serializeFrameShiftRange(fs.codon));
+      j.emplace("gapsLeading", serializeFrameShiftContext(fs.gapsLeading));
+      j.emplace("gapsTraling", serializeFrameShiftContext(fs.gapsTraling));
       return j;
     }
 
