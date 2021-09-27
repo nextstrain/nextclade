@@ -139,14 +139,12 @@ int findMaskBegin(const NucleotideSequence& seq, const Range& frameShiftNucRange
   // From begin, rewind back to find the first adjacent nuc deletion
   int begin = frameShiftNucRangeRel.begin - 1;
   if (begin > 0) {
-    auto nuc = seq[begin];
-    while (nuc == Nucleotide::GAP && begin >= 0) {
+    while (begin >= 0 && seq[begin] == Nucleotide::GAP) {
       --begin;
-      nuc = seq[begin];
     }
   }
 
-  // `begin` now points to the nuc that is 1 to the left of the deletion.
+  // `begin` now points to the nuc that is immediately before the deletion.
   // Go back one nuc to make it point to the deletion.
   return begin + 1;
 }
@@ -158,15 +156,11 @@ int findMaskEnd(const NucleotideSequence& seq, const Range& frameShiftNucRangeRe
   int length = safe_cast<int>(seq.size());
   // From end, rewind forward to find the last adjacent nuc deletion
   int end = frameShiftNucRangeRel.end;
-  if (end < length) {
-    auto nuc = seq[end];
-    while (nuc == Nucleotide::GAP && end < length) {
-      ++end;
-      nuc = seq[end];
-    }
+  while (end < length && seq[end] == Nucleotide::GAP) {
+    ++end;
   }
 
-  // `end` now points to the nuc that is 1 to the right of the deletion. Which is correct - we use semi-open ranges.
+  // `end` now points to the nuc that is 1 past the deletion. Which is correct - we use semi-open ranges.
   return end;
 }
 
