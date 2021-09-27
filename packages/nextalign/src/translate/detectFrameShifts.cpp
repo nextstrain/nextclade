@@ -214,8 +214,8 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
     };
 
     Range maskNucRangeRel{
-      .begin = findMaskBegin(query, nucRangeRel),
-      .end = findMaskEnd(query, nucRangeRel),
+      .begin = at(coordMapReverse, findMaskBegin(query, nucRangeRel)),
+      .end = at(coordMapReverse, findMaskEnd(query, nucRangeRel)),
     };
 
     Range codonMask{
