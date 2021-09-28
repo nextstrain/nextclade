@@ -21,5 +21,9 @@ public:
 
   [[nodiscard]] int alnToRef(int alnPos) const;
 
+  [[nodiscard]] Range alnToRef(const Range& alnRange) const;
+
   [[nodiscard]] int refToAln(int refPos) const;
+
+  [[nodiscard]] Range refToAln(const Range& refRange) const;
 };

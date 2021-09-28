@@ -21,7 +21,7 @@ namespace {
   };
 }//namespace
 
-TEST(mapCoordCoordinateMappe, MapsRefToAlnSimple) {
+TEST(mapCoordinates, MapsRefToAlnSimple) {
   // ref pos: 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14
   // ref    : A  C  T  C  -  -  -  C  G  T  G  -  -  -  A
   // aln pos: 0  1  2  3           7  8  9  10          14
@@ -67,4 +67,38 @@ TEST(mapCoordinates, MapsAlnToRefWithLeadingInsertions) {
   const auto& actual = coordMap.getAlnToRefMap();
   const auto expected = std::vector<int>{0, 0, 0, 1, 2, 3, 3, 3, 3, 4, 5, 6, 7, 7, 7, 7, 8};
   EXPECT_THAT(actual, testing::ElementsAreArray(expected));
+}
+
+
+TEST(mapCoordinates, MapsRangeRefToAlnSimple) {
+  const auto ref = toNucleotideSequence("ACTC---CGTG---A");
+  CoordinateMapperExposed coordMap(ref);
+  const Range actual = coordMap.refToAln({.begin = 3, .end = 6});
+  const Range expected{.begin = 3, .end = 9};
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(mapCoordinates, MapsRangeAlnToRefSimple) {
+  const auto ref = toNucleotideSequence("ACTC---CGTG---A");
+  CoordinateMapperExposed coordMap(ref);
+  const Range actual = coordMap.alnToRef({.begin = 3, .end = 9});
+  const Range expected{.begin = 3, .end = 6};
+  EXPECT_EQ(actual, expected);
+}
+
+
+TEST(mapCoordinates, MapsRangeRefToAlnWithLeadingInsertions) {
+  const auto ref = toNucleotideSequence("--ACTC---CGTG---A");
+  CoordinateMapperExposed coordMap(ref);
+  const Range actual = coordMap.refToAln({.begin = 3, .end = 6});
+  const Range expected{.begin = 5, .end = 11};
+  EXPECT_EQ(actual, expected);
+}
+
+TEST(mapCoordinates, MapsRangeAlnToRefWithLeadingInsertions) {
+  const auto ref = toNucleotideSequence("--ACTC---CGTG---A");
+  CoordinateMapperExposed coordMap(ref);
+  const Range actual = coordMap.alnToRef({.begin = 5, .end = 11});
+  const Range expected{.begin = 3, .end = 6};
+  EXPECT_EQ(actual, expected);
 }
