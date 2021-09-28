@@ -156,7 +156,7 @@ PeptidesInternal translateGenes(         //
     const auto queryPeptide = translate(queryGeneSeq, options.translatePastStop);
 
 
-    const auto geneAlignmentStatus =
+    auto geneAlignmentStatus =
       alignPairwise(queryPeptide, refPeptide, gapOpenCloseAA, options.alignment, options.seedAa);
 
     if (geneAlignmentStatus.status != Status::Success) {
@@ -169,9 +169,9 @@ PeptidesInternal translateGenes(         //
       continue;
     }
 
-    auto stripped = stripInsertions(geneAlignmentStatus.result->ref, geneAlignmentStatus.result->query);
+    maskPeptideFrameShiftsInPlace(geneAlignmentStatus.result->query, frameShiftResults);
 
-    maskPeptideFrameShiftsInPlace(stripped.queryStripped, frameShiftResults);
+    auto stripped = stripInsertions(geneAlignmentStatus.result->ref, geneAlignmentStatus.result->query);
 
     std::vector<FrameShiftResult> frameShiftResultsFinal = toExternal(frameShiftResults);
 
