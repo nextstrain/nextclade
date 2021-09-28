@@ -21,7 +21,7 @@ Pull and run a specific version with:
 docker run -it --rm nextstrain/nextclade:1.2.1 nextclade --help
 ```
 
-Don't forget to mount necessary volumes to be able to supply the data into container and to access the results.
+> ⚠️ You need to mount or bind necessary volumes to be able to use your files in the container and to access the results (see [Docker documentation on storage](https://docs.docker.com/storage/)).
 
 Docker images are available based on:
 
