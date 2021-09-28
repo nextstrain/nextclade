@@ -134,7 +134,7 @@ std::vector<Range> detectFrameShifts(//
 }
 
 /**
- * Find beginning nucleotide position of a deletion that immedeatly preceeds and adjacent to the frame shift
+ * Find beginning nucleotide position of a deletion that immediately proceeds and adjacent to the frame shift
  */
 int findMaskBegin(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel) {
   // From begin, rewind back to find the first adjacent nuc deletion
@@ -151,7 +151,7 @@ int findMaskBegin(const NucleotideSequence& seq, const Range& frameShiftNucRange
 }
 
 /**
- * Find ending nucleotide position of a deletion that immedeatly follows and adjacent to the frame shift
+ * Find ending nucleotide position of a deletion that immediately follows and adjacent to the frame shift
  */
 int findMaskEnd(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel) {
   int length = safe_cast<int>(seq.size());
