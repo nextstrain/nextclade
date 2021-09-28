@@ -133,6 +133,8 @@ PeptidesInternal translateGenes(         //
       continue;
     }
 
+    bool isBreak = geneName == "ORF6";
+
     auto& refGeneSeq = *extractRefGeneStatus.result;
     auto& queryGeneSeq = *extractQueryGeneStatus.result;
 
@@ -142,8 +144,7 @@ PeptidesInternal translateGenes(         //
 
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
-    const auto frameShiftResults =
-      translateFrameShifts(query, nucRelFrameShifts, coordMap, gene);
+    const auto frameShiftResults = translateFrameShifts(query, nucRelFrameShifts, coordMap, gene);
 
     maskNucFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
 
