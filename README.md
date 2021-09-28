@@ -139,8 +139,9 @@ by Nextstrain team
 
   <a href="https://joss.theoj.org/papers/b0e8e7f231ddfc61616de6b56f32b79f">
     <img 
-      src="https://joss.theoj.org/papers/b0e8e7f231ddfc61616de6b56f32b79f/status.svg">
+      src="https://joss.theoj.org/papers/b0e8e7f231ddfc61616de6b56f32b79f/status.svg"
       alt="JOSS submission status"
+    />
   </a>
 
 </p>
