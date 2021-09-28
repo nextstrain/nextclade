@@ -96,21 +96,21 @@ inline std::ostream& operator<<(std::ostream& os, const Range& f) {
 inline std::ostream& operator<<(std::ostream& os, const FrameShiftContext& f) {
   os << "{ "                        //
      << "codon: " << f.codon << ", "//
-     << " }"                        //
+     << "}"                         //
     ;
   return os;
 }
 
 
 inline std::ostream& operator<<(std::ostream& os, const FrameShiftResult& f) {
-  os << "{ "                                    //
-     << "geneName: \"" << f.geneName << "\", "  //
-     << "nucRel: " << f.nucRel << ", "          //
-     << "nucAbs: " << f.nucAbs << ", "          //
-     << "codon: " << f.codon << ", "            //
-     << "gapsLeading: " << f.gapsLeading << ", "//
+  os << "{ "                                      //
+     << "geneName: \"" << f.geneName << "\", "    //
+     << "nucRel: " << f.nucRel << ", "            //
+     << "nucAbs: " << f.nucAbs << ", "            //
+     << "codon: " << f.codon << ", "              //
+     << "gapsLeading: " << f.gapsLeading << ", "  //
      << "gapsTrailing: " << f.gapsTrailing << ", "//
-     << " }"                                    //
+     << "}"                                       //
     ;
   return os;
 }
