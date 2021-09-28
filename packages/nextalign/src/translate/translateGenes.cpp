@@ -26,9 +26,9 @@ void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
   for (const auto& frameShift : frameShifts) {
     auto current = frameShift.frameShift.nucRel.begin;
     const auto end = frameShift.frameShift.nucRel.end;
-    invariant_greater(current, 0);
-    invariant_less_equal(end, seq.size());
     while (current < end) {
+      invariant_greater(current, 0);
+      invariant_less_equal(current, seq.size());
       if (seq[current] != Nucleotide::GAP) {
         seq[current] = Nucleotide::N;
       }
@@ -91,8 +91,7 @@ PeptidesInternal translateGenes(         //
   NucleotideSequence newRefMemory(ref.size(), Nucleotide::GAP);
   NucleotideSequenceSpan newRef{newRefMemory};
 
-  const auto coordMap = mapCoordinates(ref);
-  const auto coordMapReverse = mapReverseCoordinates(ref);
+  const CoordinateMapper coordMap{ref};
 
   std::vector<PeptideInternal> queryPeptides;
   queryPeptides.reserve(geneMap.size());
@@ -144,7 +143,7 @@ PeptidesInternal translateGenes(         //
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
     const auto frameShiftResults =
-      translateFrameShifts(queryGeneSeq, nucRelFrameShifts, coordMap, coordMapReverse, gene);
+      translateFrameShifts(query, nucRelFrameShifts, coordMap, gene);
 
     maskNucFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
 

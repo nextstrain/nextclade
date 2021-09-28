@@ -29,7 +29,7 @@ TEST(extractGeneQuery, ExtractsQueryGene) {
     .length = 12,
   };
 
-  const auto coordMap = mapCoordinates(toNucleotideSequence(ref));
+  const CoordinateMapper coordMap{toNucleotideSequence(ref)};
   const auto gene_query = extractGeneQuery(toNucleotideSequence(query_aligned), gene, coordMap);
 
   EXPECT_EQ(toString(*gene_query.result), expected_gene_query);
