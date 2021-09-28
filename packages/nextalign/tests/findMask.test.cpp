@@ -73,8 +73,7 @@ TEST(FindMask, Detects2xDeletionLeading1xTralingAroundCompensatedShift) {
   // clang-format on
 
   const Range frameShiftNucRangeRel = {.begin = 20, .end = 31};
-  const auto begin = findMaskBegin(qryAln, frameShiftNucRangeRel);
-  const auto end = findMaskEnd(qryAln, frameShiftNucRangeRel);
-  EXPECT_EQ(begin, 18);
-  EXPECT_EQ(end, 32);
+  const auto actual = findMask(qryAln, frameShiftNucRangeRel);
+  const auto expected = Range{.begin = 18, .end = 32};
+  EXPECT_EQ(actual, expected);
 }

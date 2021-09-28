@@ -165,6 +165,14 @@ int findMaskEnd(const NucleotideSequence& seq, const Range& frameShiftNucRangeRe
   return end;
 }
 
+
+Range findMask(const NucleotideSequence& query, const Range& frameShiftNucRangeRel) {
+  return Range{
+    .begin = findMaskBegin(query, frameShiftNucRangeRel),
+    .end = findMaskEnd(query, frameShiftNucRangeRel),
+  };
+}
+
 /**
  * Converts relative nucleotide frame shifts to the final result, including
  * relative and absolute nucleotide frame shifts and relative aminoacid frame shifts
