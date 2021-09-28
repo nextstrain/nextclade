@@ -9,6 +9,7 @@
 #include "nextalign/private/nextalign_private.h"
 
 struct Gene;
+class CoordinateMapper;
 
 enum ExtractGeneStatusReason { GeneEmpty };
 
@@ -20,6 +21,6 @@ struct ExtractGeneStatus {
 };
 
 ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
-  const std::vector<int>& coordMap);
+  const CoordinateMapper& coordMap);
 
 void protectFirstCodonInPlace(NucleotideSequence& seq);
