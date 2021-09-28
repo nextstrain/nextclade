@@ -187,57 +187,33 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
 
   std::vector<InternalFrameShiftResultWithMask> frameShifts;
   frameShifts.reserve(nucRelFrameShifts.size());
-  for (const auto& nucRangeRelAln : nucRelFrameShifts) {
+  for (const auto& nucRelAln : nucRelFrameShifts) {
     // Relative nuc range is in alignment coordinates. However, after insertions are stripped,
     // absolute positions may change - so in order to get absolute range, we need to convert range boundaries
     // from alignment coordinates (as in aligned reference sequence, with gaps) to reference coordinates
     // (as in the original reference coordinates, with gaps stripped).
 
+    const auto geneStartRef = gene.start;
     const auto geneStartAln = coordMap.refToAln(gene.start);// Gene start in alignment coordinates
 
-    // Offset by gene start, all operands are in alignment coordinates
-    Range nucRangeAbsAln{
-      .begin = nucRangeRelAln.begin + geneStartAln,
-      .end = nucRangeRelAln.end + geneStartAln,
-    };
+    Range nucAbsAln = nucRelAln + geneStartAln;
+    Range nucAbsRef = coordMap.alnToRef(nucAbsAln);
+    Range codon = nucRelAln / 3;
 
-    // Convert to reference coordinates
-    Range nucRangeAbs{
-      .begin = coordMap.alnToRef(nucRangeAbsAln.begin),
-      .end = coordMap.alnToRef(nucRangeAbsAln.end),
-    };
-
-    Range codonRange{
-      .begin = nucRangeRelAln.begin / 3,
-      .end = nucRangeRelAln.end / 3,
-    };
-
-    Range maskNucRangeAbs{
-      .begin = findMaskBegin(query, nucRangeAbs),
-      .end = findMaskEnd(query, nucRangeAbs),
-    };
-
-    Range maskNucRangeRel{
-      .begin = coordMap.alnToRef(maskNucRangeAbs.begin),
-      .end = coordMap.alnToRef(maskNucRangeAbs.end),
-    };
-
-    Range codonMask{
-      .begin = maskNucRangeRel.begin / 3,
-      .end = maskNucRangeRel.end / 3,
-    };
+    Range maskNucRelAln = findMask(query, nucRelAln);
+    Range maskCodon = maskNucRelAln / 3;
 
     FrameShiftContext gapsLeading{
       .codon{
-        .begin = codonMask.begin,
-        .end = codonRange.begin,
+        .begin = maskCodon.begin,
+        .end = codon.begin,
       },
     };
 
     FrameShiftContext gapsTrailing{
       .codon{
-        .begin = codonRange.end,
-        .end = codonMask.end,
+        .begin = codon.end,
+        .end = maskCodon.end,
       },
     };
 
@@ -245,13 +221,13 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
       .frameShift =
         FrameShiftResult{
           .geneName = gene.geneName,
-          .nucRel = nucRangeRelAln,
-          .nucAbs = nucRangeAbs,
-          .codon = codonRange,
+          .nucRel = nucRelAln,
+          .nucAbs = nucAbsRef,
+          .codon = codon,
           .gapsLeading = gapsLeading,
           .gapsTrailing = gapsTrailing,
         },
-      .codonMask = codonMask,
+      .codonMask = maskCodon,
     });
   }
 
