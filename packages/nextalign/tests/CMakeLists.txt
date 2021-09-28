@@ -21,6 +21,7 @@ add_executable(${PROJECT_NAME}
   nucToString.test.cpp
   parseGeneMapGff.test.cpp
   parseSequences.test.cpp
+  range.test.cpp
   removeGaps.test.cpp
   stripInsertions.test.cpp
   translate.test.cpp
