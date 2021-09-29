@@ -140,7 +140,7 @@ PeptidesInternal translateGenes(         //
 
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
-    const auto frameShiftResults = translateFrameShifts(query, nucRelFrameShifts, coordMap, gene);
+    const auto frameShiftResults = translateFrameShifts(queryGeneSeq, nucRelFrameShifts, coordMap, gene);
 
     maskNucFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
 
