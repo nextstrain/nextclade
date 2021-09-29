@@ -27,10 +27,8 @@ void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
     auto current = frameShift.frameShift.nucRel.begin;
     const auto end = frameShift.frameShift.nucRel.end;
     while (current < end) {
-      invariant_greater(current, 0);
-      invariant_less_equal(current, seq.size());
-      if (seq[current] != Nucleotide::GAP) {
-        seq[current] = Nucleotide::N;
+      if (at(seq, current) != Nucleotide::GAP) {
+        at(seq, current) = Nucleotide::N;
       }
       ++current;
     }
@@ -42,10 +40,8 @@ template<typename Letter>
 void fillRangeInplace(Sequence<Letter>& seq, const Range& range, Letter letter) {
   auto current = range.begin;
   const auto end = range.end;
-  invariant_greater(current, 0);
-  invariant_less_equal(end, seq.size());
   while (current < end) {
-    seq[current] = letter;
+    at(seq, current) = letter;
     ++current;
   }
 }
