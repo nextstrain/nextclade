@@ -2,15 +2,22 @@
 
 #include <nextalign/nextalign.h>
 
+class CoordinateMapper;
 
 std::vector<Range> detectFrameShifts(//
-  const NucleotideSequence& ref,               //
-  const NucleotideSequence& query              //
+  const NucleotideSequence& ref,     //
+  const NucleotideSequence& query    //
 );
 
-std::vector<FrameShiftResult> translateFrameShifts(     //
-  const std::vector<Range>& nucRelFrameShifts,//
-  const std::vector<int>& coordMap,                     //
-  const std::vector<int>& coordMapReverse,              //
-  const Gene& gene                                      //
+std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
+  const NucleotideSequence& query,                                 //
+  const std::vector<Range>& nucRelFrameShifts,                     //
+  const CoordinateMapper& coordMap,                                //
+  const Gene& gene                                                 //
 );
+
+int findMaskBegin(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel);
+
+int findMaskEnd(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel);
+
+Range findMask(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel);

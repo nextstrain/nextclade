@@ -7,18 +7,19 @@
 #include <utils/wraparound.h>
 
 #include "../utils/at.h"
+#include "mapCoordinates.h"
 
 class FrameShiftDetector {
   // Invalid/unset positions are set with this value
   static constexpr auto POSITION_INVALID = std::numeric_limits<int>::min();
 
-  std::vector<Range> frameShifts;// List of detected frame shifts
-  int frame = 0;                           // Frame of the previously processed character (not necessarily n-1!)
-  int oldFrame = 0;                        // Frame of the character before previous (not necessarily n-2!)
-  int begin = POSITION_INVALID;            // Remembers potential begin of the current frame shift range
-  int end = POSITION_INVALID;              // Remembers potential end of the current frame shift range
-  int lastIndel = POSITION_INVALID;        // Remembers position of the last insertion of deletion
-  bool dirty = false;                      // Allows to avoid full run in `advance()` on every character
+  std::vector<Range> frameShifts;  // List of detected frame shifts
+  int frame = 0;                   // Frame of the previously processed character (not necessarily n-1!)
+  int oldFrame = 0;                // Frame of the character before previous (not necessarily n-2!)
+  int begin = POSITION_INVALID;    // Remembers potential begin of the current frame shift range
+  int end = POSITION_INVALID;      // Remembers potential end of the current frame shift range
+  int lastIndel = POSITION_INVALID;// Remembers position of the last insertion of deletion
+  bool dirty = false;              // Allows to avoid full run in `advance()` on every character
 
   /** Updates detector's state */
   void update(int shift, int pos) {
@@ -111,8 +112,8 @@ public:
  * and the corresponding aminoacid frame shifts in the query peptide
  */
 std::vector<Range> detectFrameShifts(//
-  const NucleotideSequence& ref,               //
-  const NucleotideSequence& query              //
+  const NucleotideSequence& ref,     //
+  const NucleotideSequence& query    //
 ) {
   precondition_equal(ref.size(), query.size());
   int length = safe_cast<int>(ref.size());
@@ -133,52 +134,104 @@ std::vector<Range> detectFrameShifts(//
 }
 
 /**
+ * Find beginning nucleotide position of a deletion that immediately proceeds and adjacent to the frame shift
+ */
+int findMaskBegin(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel) {
+  // From begin, rewind back to find the first adjacent nuc deletion
+  int begin = frameShiftNucRangeRel.begin - 1;
+  if (begin > 0) {
+    while (begin >= 0 && seq[begin] == Nucleotide::GAP) {
+      --begin;
+    }
+  }
+
+  // `begin` now points to the nuc that is immediately before the deletion.
+  // Go back one nuc to make it point to the deletion.
+  return begin + 1;
+}
+
+/**
+ * Find ending nucleotide position of a deletion that immediately follows and adjacent to the frame shift
+ */
+int findMaskEnd(const NucleotideSequence& seq, const Range& frameShiftNucRangeRel) {
+  int length = safe_cast<int>(seq.size());
+  // From end, rewind forward to find the last adjacent nuc deletion
+  int end = frameShiftNucRangeRel.end;
+  while (end < length && seq[end] == Nucleotide::GAP) {
+    ++end;
+  }
+
+  // `end` now points to the nuc that is 1 past the deletion. Which is correct - we use semi-open ranges.
+  return end;
+}
+
+
+Range findMask(const NucleotideSequence& query, const Range& frameShiftNucRangeRel) {
+  return Range{
+    .begin = findMaskBegin(query, frameShiftNucRangeRel),
+    .end = findMaskEnd(query, frameShiftNucRangeRel),
+  };
+}
+
+/**
  * Converts relative nucleotide frame shifts to the final result, including
  * relative and absolute nucleotide frame shifts and relative aminoacid frame shifts
  */
-std::vector<FrameShiftResult> translateFrameShifts(     //
-  const std::vector<Range>& nucRelFrameShifts,//
-  const std::vector<int>& coordMap,                     //
-  const std::vector<int>& coordMapReverse,              //
-  const Gene& gene                                      //
+std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
+  const NucleotideSequence& query,                                 //
+  const std::vector<Range>& nucRelFrameShifts,                     //
+  const CoordinateMapper& coordMap,                                //
+  const Gene& gene                                                 //
 ) {
-  precondition_less(gene.start, coordMapReverse.size());
-  precondition_less_equal(gene.end, coordMapReverse.size());
   precondition_less(gene.start, gene.end);
 
-  std::vector<FrameShiftResult> frameShifts;
+  std::vector<InternalFrameShiftResultWithMask> frameShifts;
   frameShifts.reserve(nucRelFrameShifts.size());
-  for (const auto& nucRangeRel : nucRelFrameShifts) {
+  for (const auto& nucRelAln : nucRelFrameShifts) {
     // Relative nuc range is in alignment coordinates. However, after insertions are stripped,
     // absolute positions may change - so in order to get absolute range, we need to convert range boundaries
     // from alignment coordinates (as in aligned reference sequence, with gaps) to reference coordinates
     // (as in the original reference coordinates, with gaps stripped).
 
-    const auto geneStartAln = at(coordMap, gene.start);// Gene start in alignment coordinates
+    const auto geneStartRef = gene.start;
+    const auto geneStartAln = coordMap.refToAln(gene.start);// Gene start in alignment coordinates
 
-    // Offset by gene start, all operands are in alignment coordinates
-    const auto beginAbsAln = nucRangeRel.begin + geneStartAln;
-    const auto endAbsAln = nucRangeRel.end + geneStartAln;
+    Range nucAbsAln = nucRelAln + geneStartAln;
+    Range nucAbsRef = coordMap.alnToRef(nucAbsAln);
+    Range nucRelRef =  nucAbsRef - geneStartRef;
+    Range codon = nucRelRef / 3;
 
-    // Convert to reference coordinates
-    const auto beginAbsRef = at(coordMapReverse, beginAbsAln);
-    const auto endAbsRef = at(coordMapReverse, endAbsAln);
+    Range maskNucRelAln = findMask(query, nucRelAln);
+    Range maskNucAbsAln = maskNucRelAln + geneStartAln;
+    Range maskNucAbsRef = coordMap.alnToRef(maskNucAbsAln);
+    Range maskNucRelRef = maskNucAbsRef - geneStartRef;
+    Range maskCodon = maskNucRelRef / 3;
 
-    Range nucRangeAbs{
-      .begin = beginAbsRef,
-      .end = endAbsRef,
+    FrameShiftContext gapsLeading{
+      .codon{
+        .begin = maskCodon.begin,
+        .end = codon.begin,
+      },
     };
 
-    Range codonRange{
-      .begin = nucRangeRel.begin / 3,
-      .end = nucRangeRel.end / 3,
+    FrameShiftContext gapsTrailing{
+      .codon{
+        .begin = codon.end,
+        .end = maskCodon.end,
+      },
     };
 
-    frameShifts.push_back(FrameShiftResult{
-      .geneName = gene.geneName,
-      .nucRel = nucRangeRel,
-      .nucAbs = nucRangeAbs,
-      .codon = codonRange,
+    frameShifts.push_back(InternalFrameShiftResultWithMask{
+      .frameShift =
+        FrameShiftResult{
+          .geneName = gene.geneName,
+          .nucRel = nucRelAln,
+          .nucAbs = nucAbsRef,
+          .codon = codon,
+          .gapsLeading = gapsLeading,
+          .gapsTrailing = gapsTrailing,
+        },
+      .codonMask = maskCodon,
     });
   }
 

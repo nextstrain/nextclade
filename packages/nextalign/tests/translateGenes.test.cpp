@@ -80,7 +80,7 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShift) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("SKXXXXX");
+  const auto peptideExpected = toAminoacidSequence("SK-XXXX");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -89,6 +89,8 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShift) {
     .nucRel = {.begin = 10, .end = 21},
     .nucAbs = {.begin = 19, .end = 30},
     .codon = {.begin = 3, .end = 7},
+    .gapsLeading = {.codon = {.begin = 2, .end = 3}},
+    .gapsTrailing = {.codon = {.begin = 7, .end = 7}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -113,7 +115,7 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShiftWithPriorInsertion) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("SKXXXXX");
+  const auto peptideExpected = toAminoacidSequence("SK-XXXX");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -122,6 +124,8 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShiftWithPriorInsertion) {
     .nucRel = {.begin = 10, .end = 21},
     .nucAbs = {.begin = 19, .end = 30},
     .codon = {.begin = 3, .end = 7},
+    .gapsLeading = {.codon = {.begin = 2, .end = 3}},
+    .gapsTrailing = {.codon = {.begin = 7, .end = 7}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -146,7 +150,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShift) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("-SXXXI*");
+  const auto peptideExpected = toAminoacidSequence("-XXX-I*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -155,6 +159,8 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShift) {
     .nucRel = {.begin = 5, .end = 13},
     .nucAbs = {.begin = 14, .end = 22},
     .codon = {.begin = 1, .end = 4},
+    .gapsLeading = {.codon = {.begin = 1, .end = 1}},
+    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -179,7 +185,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithPriorInsertion) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("-SXXXI*");
+  const auto peptideExpected = toAminoacidSequence("-XXX-I*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -188,6 +194,8 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithPriorInsertion) {
     .nucRel = {.begin = 5, .end = 13},
     .nucAbs = {.begin = 14, .end = 22},
     .codon = {.begin = 1, .end = 4},
+    .gapsLeading = {.codon = {.begin = 1, .end = 1}},
+    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -217,7 +225,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithInsertion) {
   const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("-SXXXI*");
+  const auto peptideExpected = toAminoacidSequence("--XX-I*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -226,6 +234,8 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithInsertion) {
     .nucRel = {.begin = 6, .end = 14},
     .nucAbs = {.begin = 15, .end = 22},
     .codon = {.begin = 2, .end = 4},
+    .gapsLeading = {.codon = {.begin = 1, .end = 2}},
+    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }

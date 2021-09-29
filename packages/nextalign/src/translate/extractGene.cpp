@@ -9,6 +9,7 @@
 #include "../utils/at.h"
 #include "../utils/safe_cast.h"
 #include "./removeGaps.h"
+#include "mapCoordinates.h"
 
 namespace details {
   template<typename IntS, typename IntL>
@@ -74,23 +75,20 @@ void protectFirstCodonInPlace(NucleotideSequence& seq) {
  * Extracts gene from the query sequence according to coordinate map relative to the reference sequence
  */
 ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
-  const std::vector<int>& coordMap) {
-  precondition_less(gene.start, coordMap.size());
-  precondition_less_equal(gene.end, coordMap.size());
+  const CoordinateMapper& coordMap) {
   precondition_less(gene.start, gene.end);
 
   // Transform gene coordinates according to coordinate map
-  const auto start = at(coordMap, gene.start);
+  const auto start = coordMap.refToAln(gene.start);
   // gene.end is the position after the last base of the gene (0-based indexing)
   // the corresponding base in the query is hence found by coordMap[gene.end-1]
   // we add 1 to make that end be again after the last base of the gene.
   // with this addition: length = end - start
-  const auto end = at(coordMap, gene.end - 1) + 1;
+  const auto end = coordMap.refToAln(gene.end - 1) + 1;
   const auto length = end - start;
   // Start and end should be within bounds
   invariant_less(start, query.size());
   invariant_less_equal(end, query.size());
-
 
   auto result = NucleotideSequence(details::substr(query, start, length));
   const auto resultLength = safe_cast<int>(result.size());

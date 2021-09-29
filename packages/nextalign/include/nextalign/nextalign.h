@@ -35,13 +35,42 @@ struct Range {
   int begin;
   int end;
 
-  bool contains(int x) const {
+  [[nodiscard]] bool contains(int x) const {
     return x >= begin && x < end;
   }
 };
 
-inline bool operator==(const Range& left, const Range& right) {
+[[nodiscard]] inline bool operator==(const Range& left, const Range& right) {
   return left.begin == right.begin && left.end == right.end;
+}
+
+[[nodiscard]] inline bool operator!=(const Range& left, const Range& right) {
+  return left.begin != right.begin && left.end != right.end;
+}
+
+[[nodiscard]] inline Range operator+(const Range& r, int add) {
+  return Range{.begin = r.begin + add, .end = r.end + add};
+}
+
+[[nodiscard]] inline Range operator-(const Range& r, int sub) {
+  return Range{.begin = r.begin - sub, .end = r.end - sub};
+}
+
+[[nodiscard]] inline Range operator*(const Range& r, int mul) {
+  return Range{.begin = r.begin * mul, .end = r.end * mul};
+}
+
+[[nodiscard]] inline Range operator/(const Range& r, int div) {
+  return Range{.begin = r.begin / div, .end = r.end / div};
+}
+
+struct FrameShiftContext {
+  Range codon;
+};
+
+inline bool operator==(const FrameShiftContext& left, const FrameShiftContext& right) {
+  return left.codon == right.codon//
+    ;
 }
 
 struct FrameShiftResult {
@@ -49,13 +78,28 @@ struct FrameShiftResult {
   Range nucRel;
   Range nucAbs;
   Range codon;
+  FrameShiftContext gapsLeading;
+  FrameShiftContext gapsTrailing;
 };
 
 inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& right) {
-  return left.geneName == right.geneName//
-         && left.nucRel == right.nucRel //
-         && left.nucAbs == right.nucAbs //
-         && left.codon == right.codon   //
+  return left.geneName == right.geneName           //
+         && left.nucRel == right.nucRel            //
+         && left.nucAbs == right.nucAbs            //
+         && left.codon == right.codon              //
+         && left.gapsLeading == right.gapsLeading  //
+         && left.gapsTrailing == right.gapsTrailing//
+    ;
+}
+
+struct InternalFrameShiftResultWithMask {
+  FrameShiftResult frameShift;
+  Range codonMask;// used internally during translation to mask undesired regions around the frame shift
+};
+
+inline bool operator==(const InternalFrameShiftResultWithMask& left, const InternalFrameShiftResultWithMask& right) {
+  return left.frameShift == right.frameShift //
+         && left.codonMask == right.codonMask//
     ;
 }
 

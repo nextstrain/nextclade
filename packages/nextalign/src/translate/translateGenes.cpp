@@ -16,22 +16,33 @@
 #include "align/alignPairwise.h"
 #include "detectFrameShifts.h"
 #include "removeGaps.h"
+#include "utils/at.h"
 #include "utils/contains.h"
 #include "utils/contract.h"
 
 
-void maskNucFrameShiftsInPlace(NucleotideSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
+void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
+  const std::vector<InternalFrameShiftResultWithMask>& frameShifts) {
   for (const auto& frameShift : frameShifts) {
-    auto current = frameShift.nucRel.begin;
-    const auto end = frameShift.nucRel.end;
-    invariant_greater(current, 0);
-    invariant_less_equal(end, seq.size());
+    auto current = frameShift.frameShift.nucRel.begin;
+    const auto end = frameShift.frameShift.nucRel.end;
     while (current < end) {
-      if (seq[current] != Nucleotide::GAP) {
-        seq[current] = Nucleotide::N;
+      if (at(seq, current) != Nucleotide::GAP) {
+        at(seq, current) = Nucleotide::N;
       }
       ++current;
     }
+  }
+}
+
+
+template<typename Letter>
+void fillRangeInplace(Sequence<Letter>& seq, const Range& range, Letter letter) {
+  auto current = range.begin;
+  const auto end = range.end;
+  while (current < end) {
+    at(seq, current) = letter;
+    ++current;
   }
 }
 
@@ -39,21 +50,28 @@ void maskNucFrameShiftsInPlace(NucleotideSequence& seq, const std::vector<FrameS
  * Mask gaps in frame shifted regions of the peptide.
  * This region is likely misaligned, so these gaps added during peptide alignment don't make sense.
  */
-void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq, const std::vector<FrameShiftResult>& frameShifts) {
+void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq,
+  const std::vector<InternalFrameShiftResultWithMask>& frameShifts) {
   for (const auto& frameShift : frameShifts) {
-    auto current = frameShift.codon.begin;
-    const auto end = frameShift.codon.end;
-    invariant_greater(current, 0);
-    invariant_less_equal(end, seq.size());
-    while (current < end) {
-      if (seq[current] == Aminoacid::GAP) {
-        seq[current] = Aminoacid::X;
-      }
-      ++current;
-    }
+    const auto& gapsLeading = frameShift.frameShift.gapsLeading.codon;
+    const auto& frameShiftBody = frameShift.frameShift.codon;
+    const auto& gapsTrailing = frameShift.frameShift.gapsTrailing.codon;
+
+    fillRangeInplace(seq, gapsLeading, Aminoacid::GAP);
+    fillRangeInplace(seq, frameShiftBody, Aminoacid::X);
+    fillRangeInplace(seq, gapsTrailing, Aminoacid::GAP);
   }
 }
 
+/** Converts frame shift internal representation to external representation  */
+std::vector<FrameShiftResult> toExternal(const std::vector<InternalFrameShiftResultWithMask>& frameShiftResults) {
+  std::vector<FrameShiftResult> result;
+  result.reserve(frameShiftResults.size());
+  for (const auto& fsr : frameShiftResults) {
+    result.push_back(fsr.frameShift);
+  }
+  return result;
+}
 
 PeptidesInternal translateGenes(         //
   const NucleotideSequence& query,       //
@@ -69,8 +87,7 @@ PeptidesInternal translateGenes(         //
   NucleotideSequence newRefMemory(ref.size(), Nucleotide::GAP);
   NucleotideSequenceSpan newRef{newRefMemory};
 
-  const auto coordMap = mapCoordinates(ref);
-  const auto coordMapReverse = mapReverseCoordinates(ref);
+  const CoordinateMapper coordMap{ref};
 
   std::vector<PeptideInternal> queryPeptides;
   queryPeptides.reserve(geneMap.size());
@@ -112,6 +129,8 @@ PeptidesInternal translateGenes(         //
       continue;
     }
 
+    bool isBreak = geneName == "ORF6";
+
     auto& refGeneSeq = *extractRefGeneStatus.result;
     auto& queryGeneSeq = *extractQueryGeneStatus.result;
 
@@ -121,7 +140,7 @@ PeptidesInternal translateGenes(         //
 
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
-    const auto frameShiftResults = translateFrameShifts(nucRelFrameShifts, coordMap, coordMapReverse, gene);
+    const auto frameShiftResults = translateFrameShifts(queryGeneSeq, nucRelFrameShifts, coordMap, gene);
 
     maskNucFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
 
@@ -150,11 +169,13 @@ PeptidesInternal translateGenes(         //
 
     maskPeptideFrameShiftsInPlace(stripped.queryStripped, frameShiftResults);
 
+    std::vector<FrameShiftResult> frameShiftResultsFinal = toExternal(frameShiftResults);
+
     queryPeptides.emplace_back(PeptideInternal{
-      .name = geneName,                            //
-      .seq = std::move(stripped.queryStripped),    //
-      .insertions = std::move(stripped.insertions),//
-      .frameShiftResults = frameShiftResults,
+      .name = geneName,                                      //
+      .seq = std::move(stripped.queryStripped),              //
+      .insertions = std::move(stripped.insertions),          //
+      .frameShiftResults = std::move(frameShiftResultsFinal),//
     });
 
     refPeptides.emplace_back(PeptideInternal{
