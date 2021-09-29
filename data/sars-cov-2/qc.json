@@ -21,13 +21,36 @@
     "mixedSitesThreshold": 10
   },
   "frameShifts": {
-    "enabled": true
+    "enabled": true,
+    "ignoredFrameShifts": [
+      { "geneName": "ORF3a", "codonRange": {"begin": 256, "end": 276} },
+      { "geneName": "ORF3a", "codonRange": {"begin": 258, "end": 276} },
+      { "geneName": "ORF7a", "codonRange": {"begin": 61, "end": 122} },
+      { "geneName": "ORF7a", "codonRange": {"begin": 62, "end": 122} },
+      { "geneName": "ORF7a", "codonRange": {"begin": 76, "end": 122} },
+      { "geneName": "ORF7a", "codonRange": {"begin": 101, "end": 122} },
+      { "geneName": "ORF7b", "codonRange": {"begin": 41, "end": 44} },
+      { "geneName": "ORF8", "codonRange": {"begin": 107, "end": 122} },
+      { "geneName": "ORF8", "codonRange": {"begin": 119, "end": 122} },
+      { "geneName": "ORF8", "codonRange": {"begin": 120, "end": 122} },
+      { "geneName": "ORF8", "codonRange": {"begin": 121, "end": 123} }
+    ]
   },
   "stopCodons": {
     "enabled": true,
     "ignoredStopCodons": [
+      {"geneName": "ORF7a", "codon": 61},
+      {"geneName": "ORF7a", "codon": 93},
+      {"geneName": "ORF7b", "codon": 32},
+      {"geneName": "ORF7b", "codon": 38},
+      {"geneName": "ORF8", "codon": 17},
+      {"geneName": "ORF8", "codon": 18},
+      {"geneName": "ORF8", "codon": 25},
       {"geneName": "ORF8", "codon": 26},
-      {"geneName": "ORF8", "codon": 67}
+      {"geneName": "ORF8", "codon": 58},
+      {"geneName": "ORF8", "codon": 66},
+      {"geneName": "ORF8", "codon": 67},
+      {"geneName": "ORF8", "codon": 105}
     ]
   }
 }
