@@ -1,3 +1,31 @@
+## Nextclade Web 1.7.0, Nextclade CLI 1.4.0, Nextalign CLI 1.4.0 (2021-09-30)
+
+### [Feature] Frame shift detection
+
+Nextclade now can detect reading frame shifts in the analyzed sequences. Frame shift occurs when a sequence contains deletions and/or insertions of length that is not divisible by 3. In this case the grouping of nucleotides into codons change and the shift manifests in the protein as a range consisting almost entirely from mutations.
+
+Often frame shifts can be found towards the end of genes, and they often span until the gene end.
+Sometimes, when indels occur in multiple places, the following indels can compensate (cancel) the frame shift caused by the previous ones.
+
+After sequence alignment phase, Nextclade finds deletions and insertions that can cause frame shifts and frame shift compensations and determines the ranges where frame shifts occur.
+
+Frame shifted ranges are represented in the sequence and gene views of Nextclade Web as red horizontal lines with yellow border. They are also reported in CSV, TSV results under `frameShifts` column and in JSON results under `frameShifts` property.
+
+
+### [Feature] Improved frame shift quality control (QC) rule
+
+Previously, frame shift quality control rule (denoted as "F" in Nextclade Web) was relying on gene length to reason about frame shifts - if a gene had length not divisible by 3 - a warning was reported.
+
+Now this rule uses detected frame shift ranges to make the decision. We simultaneously release a new version of SARS-CoV-2 dataset, which contains a set of frame shift ranges to ignore. These are the known frame shifts that appear often in SARS-CoV-2 sequences.
+
+The improved QC rule now also allow to account for compensated frame shifts, which were previously undetected.
+
+
+### [Feature] Optional translation beyond first stop codon
+
+By default Nextalign CLI and Nextclade CLI translate the whole genes, even if stop codons appear during translation. In this release we added a flag `--no-translate-past-stop`, which if present, makes translation to stop on first encountered stop codon. The remainder of the peptide is the filled with gap (`-`) character. This might be useful in some cases when a more biological behavior of translation is required.
+
+
 ## Nextclade Web 1.6.0, Nextclade CLI 1.3.0, Nextalign CLI 1.3.0 (2021-08-31)
 
 ### [Feature] Nextclade Datasets
