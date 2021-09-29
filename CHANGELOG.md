@@ -26,6 +26,11 @@ The improved QC rule now also allow to account for compensated frame shifts, whi
 By default Nextalign CLI and Nextclade CLI translate the whole genes, even if stop codons appear during translation. In this release we added a flag `--no-translate-past-stop`, which if present, makes translation to stop on first encountered stop codon. The remainder of the peptide is the filled with gap (`-`) character. This might be useful in some cases when a more biological behavior of translation is required.
 
 
+### [Feature] The new version of SARS-CoV-2 dataset
+
+We simultaneously release a new version of SARS-CoV-2 dataset. For more details, see the [changelog](https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md) document in the nextclade_data Github repository.
+
+
 ## Nextclade Web 1.6.0, Nextclade CLI 1.3.0, Nextalign CLI 1.3.0 (2021-08-31)
 
 ### [Feature] Nextclade Datasets
