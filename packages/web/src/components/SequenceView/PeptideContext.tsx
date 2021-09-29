@@ -219,11 +219,12 @@ export function PeptideContextEllipsis() {
     <td>
       <TableNuc>
         <TableBodyNuc>
-          {Array(6).fill(
-            <TrNuc>
+          {Array(6).map((_0, i) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <TrNuc key={i}>
               <TdNuc colSpan={3}>{'...'}</TdNuc>
-            </TrNuc>,
-          )}
+            </TrNuc>
+          ))}
         </TableBodyNuc>
       </TableNuc>
     </td>
