@@ -198,10 +198,14 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
 
     Range nucAbsAln = nucRelAln + geneStartAln;
     Range nucAbsRef = coordMap.alnToRef(nucAbsAln);
-    Range codon = nucRelAln / 3;
+    Range nucRelRef =  nucAbsRef - geneStartRef;
+    Range codon = nucRelRef / 3;
 
     Range maskNucRelAln = findMask(query, nucRelAln);
-    Range maskCodon = maskNucRelAln / 3;
+    Range maskNucAbsAln = maskNucRelAln + geneStartAln;
+    Range maskNucAbsRef = coordMap.alnToRef(maskNucAbsAln);
+    Range maskNucRelRef = maskNucAbsRef - geneStartRef;
+    Range maskCodon = maskNucRelRef / 3;
 
     FrameShiftContext gapsLeading{
       .codon{
