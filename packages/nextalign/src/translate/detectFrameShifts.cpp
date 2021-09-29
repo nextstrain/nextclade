@@ -180,7 +180,7 @@ Range findMask(const NucleotideSequence& query, const Range& frameShiftNucRangeR
 std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
   const NucleotideSequence& query,                                 //
   const std::vector<Range>& nucRelFrameShifts,                     //
-  const CoordinateMapper& coordMap,                                //
+  const CoordinateMapper<Nucleotide>& coordMap,                    //
   const Gene& gene                                                 //
 ) {
   precondition_less(gene.start, gene.end);

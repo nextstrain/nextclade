@@ -75,7 +75,7 @@ void protectFirstCodonInPlace(NucleotideSequence& seq) {
  * Extracts gene from the query sequence according to coordinate map relative to the reference sequence
  */
 ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Gene& gene,
-  const CoordinateMapper& coordMap) {
+  const CoordinateMapper<Nucleotide>& coordMap) {
   precondition_less(gene.start, gene.end);
 
   // Transform gene coordinates according to coordinate map

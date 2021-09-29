@@ -2,7 +2,8 @@
 
 #include <nextalign/nextalign.h>
 
-class CoordinateMapper;
+#include "mapCoordinates.h"
+
 
 std::vector<Range> detectFrameShifts(//
   const NucleotideSequence& ref,     //
@@ -12,7 +13,7 @@ std::vector<Range> detectFrameShifts(//
 std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
   const NucleotideSequence& query,                                 //
   const std::vector<Range>& nucRelFrameShifts,                     //
-  const CoordinateMapper& coordMap,                                //
+  const CoordinateMapper<Nucleotide>& coordMap,                    //
   const Gene& gene                                                 //
 );
 

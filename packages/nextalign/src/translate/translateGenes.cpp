@@ -91,7 +91,7 @@ PeptidesInternal translateGenes(         //
   NucleotideSequence newRefMemory(ref.size(), Nucleotide::GAP);
   NucleotideSequenceSpan newRef{newRefMemory};
 
-  const CoordinateMapper coordMap{ref};
+  const CoordinateMapper<Nucleotide> coordMap{ref};
 
   std::vector<PeptideInternal> queryPeptides;
   queryPeptides.reserve(geneMap.size());
@@ -144,7 +144,7 @@ PeptidesInternal translateGenes(         //
 
     // NOTE: frame shift detection should be performed on unstripped genes
     const auto nucRelFrameShifts = detectFrameShifts(refGeneSeq, queryGeneSeq);
-    const auto frameShiftResults = translateFrameShifts(query, nucRelFrameShifts, coordMap, gene);
+    auto frameShiftResults = translateFrameShifts(queryGeneSeq, nucRelFrameShifts, coordMap, gene);
 
     maskNucFrameShiftsInPlace(queryGeneSeq, frameShiftResults);
 
@@ -169,9 +169,22 @@ PeptidesInternal translateGenes(         //
       continue;
     }
 
-    maskPeptideFrameShiftsInPlace(geneAlignmentStatus.result->query, frameShiftResults);
+    auto& queryPeptideAln = geneAlignmentStatus.result->query;
+    auto& refPeptideAln = geneAlignmentStatus.result->ref;
 
-    auto stripped = stripInsertions(geneAlignmentStatus.result->ref, geneAlignmentStatus.result->query);
+    maskPeptideFrameShiftsInPlace(queryPeptideAln, frameShiftResults);
+
+    auto stripped = stripInsertions(refPeptideAln, queryPeptideAln);
+
+
+    const CoordinateMapper<Aminoacid> peptideCoordMap{refPeptideAln};
+
+    for (auto& fsr : frameShiftResults) {
+      fsr.frameShift.codon = peptideCoordMap.alnToRef(fsr.frameShift.codon);
+      fsr.frameShift.gapsLeading.codon = peptideCoordMap.alnToRef(fsr.frameShift.gapsLeading.codon);
+      fsr.frameShift.gapsTrailing.codon = peptideCoordMap.alnToRef(fsr.frameShift.gapsTrailing.codon);
+      fsr.codonMask = peptideCoordMap.alnToRef(fsr.codonMask);
+    }
 
     std::vector<FrameShiftResult> frameShiftResultsFinal = toExternal(frameShiftResults);
 

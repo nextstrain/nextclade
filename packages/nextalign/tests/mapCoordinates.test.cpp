@@ -7,7 +7,7 @@
 
 namespace {
   /** Wraps the original class to expose internal arrays for testing purposes */
-  class CoordinateMapperExposed : public CoordinateMapper {
+  class CoordinateMapperExposed : public CoordinateMapper<Nucleotide> {
   public:
     explicit CoordinateMapperExposed(const NucleotideSequence& refAln) : CoordinateMapper(refAln) {}
 
