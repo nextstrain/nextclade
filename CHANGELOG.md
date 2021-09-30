@@ -2,7 +2,7 @@
 
 ### [Feature] Frame shift detection
 
-Nextclade now can detect reading frame shifts in the analyzed sequences and report them in output files. Previously, when a frame shift was detected in a gene, the entire gene was not translated. New behaviour is to translate the gene but only report mutations in non-frame-shifted regions. This is a major improvement over previous behaviour. 
+Nextclade now can detect reading frame shifts in the analyzed sequences and report them in the web interface as well as in the output files. Previously, when a frame shift was detected in a gene, the entire gene was not translated, a warning was issued and the aminoacid changes in that gene could not be detected and reported. The new behaviour is to translate the gene but only report mutations in non-frame-shifted regions.
 
 > Background on frame shifts: Frame shifts are defined as deletions or insertions (indels) of a length that is not divisible by 3. In this case the grouping of nucleotides into codons change and the shift manifests in the protein as a range consisting almost entirely of amino acid substitutions.
 
