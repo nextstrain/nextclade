@@ -1,3 +1,58 @@
+## Nextclade Web 1.7.0, Nextclade CLI 1.4.0, Nextalign CLI 1.4.0 (2021-09-30)
+
+### [Feature] Frame shift detection
+
+Nextclade now can detect [reading frame shifts](https://en.wikipedia.org/wiki/Frameshift_mutation) in the analyzed sequences and report them in the web interface as well as in the output files.
+
+#### Background
+
+Frame shift occurs when a sequence contains a range of indels (deletions and/or insertions) and the total length of this range is not divisible by 3. In this case the grouping of nucleotides into codons changes compared to the reference genome and the translation of this region manifests in the peptide as a range consisting almost entirely from aminoacid mutations.
+
+Frame shifts can often be found towards the end of genes, spanning until or beyond the gene end. Sometimes, when indels occur in multiple places, the ones that follow can compensate (cancel) the frame shift caused by the previous ones, resulting in frame shift that spans a range in the middle of the gene. In these cases, due to extreme changes in the corresponding protein, the virus is often not viable, and are often a sign of sequencing errors, however, cases of biological frame shifts are also known. Sometimes, frame shifts can also introduce premature stop codons, causing the gene to be truncated. The premature stop codons within frame shifts are currently not (yet) detected by Nextclade.
+
+#### Previous behavior
+
+Previously, Nextclade was not able to detect frame shifts ranges specifically. Instead, a frame shift was suspected in a gene when the gene length was not divisible by 3 (hinting to indels of a total length not divisible by 3). In these cases the entire gene was omitted from translation, a warning was issued, and aminoacid changes in that gene could not be detected and reported.
+
+#### New behavior
+
+Now that Nextclade knows the exact shifted ranges for each gene, it translates the genes with frame shifts, but masks shifted regions with aminoacid `X` (unknown aminoacid). The aminoacid changes in non-frame-shifted regions within such genes are now reported. This means that in some sequences Nextclade can now detect more mutations than previously. The affected genes are now emitted into the output fasta files instead of being discarded.
+
+#### Frame shifts report in Nextclade Web
+
+Frame shifted ranges are denoted as red horizontal (strikethrough) lines with yellow highlights in the "Sequence view" and "Gene view" columns of the results table of Nextclade Web. The new "FS" column shows number of detected frame shifts: unexpected and known (ignored) ones (see the QC changes below for more details).
+
+#### Frame shifts report in the output files
+
+Frame shifted ranges (in codon coordinates) are reported in CSV and TSV output files in column named `frameShifts` and in JSON output file under `frameShifts` property.
+
+
+### [Feature] Improved frame shift quality control (QC) rule
+
+Previously, frame shift quality control rule (denoted as "F" in Nextclade Web) was relying on gene length to reason about the presence of frame shifts - if a gene had length not divisible by 3 - a warning was reported.
+
+Now this rule uses the detected frame shift ranges to make the decision. There now can be more than one frame shift detection per gene and Nextclade now accounts for compensated frame shifts, which were previously undetected.
+
+In the new implementation of the Frame Shift QC rule, some of the frame shift ranges are considered "ignored" or "known" (as defined in `qc.json` file of the dataset). These frame shifts don't cause QC score penalty.
+
+
+### [Feature] New version of SARS-CoV-2 dataset
+
+We simultaneously release a new version of SARS-CoV-2 dataset, which contains an updated tree and clades, as well as a new set of frame shift ranges and stop codons to ignore. For the details refer to the [dataset changelog](https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md).
+
+Nextclade Web uses the latest version of the datasets by default and CLI users are encouraged to update their SARS-CoV-2 dataset with the `nextclade dataset get` command.
+
+
+### [Feature] Optional translation beyond first stop codon
+
+By default Nextalign CLI and Nextclade CLI translate the whole genes, even if stop codons appear during translation. In this release we added a flag `--no-translate-past-stop`, which if present, makes translation to stop on first encountered stop codon. The remainder of the peptide is the filled with gap (`-`) character. This might be useful in some cases when a more biological behavior of translation is desired.
+
+
+### [Feature] The new version of SARS-CoV-2 dataset
+
+We simultaneously release a new version of SARS-CoV-2 dataset. For more details, see the [changelog](https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md) document in the nextclade_data Github repository.
+
+
 ## Nextclade Web 1.6.0, Nextclade CLI 1.3.0, Nextalign CLI 1.3.0 (2021-08-31)
 
 ### [Feature] Nextclade Datasets
@@ -32,7 +87,7 @@ nextclade run \
 See [Nextclade CLI](https://docs.nextstrain.org/projects/nextclade/en/latest/user/nextclade-cli.html) documentation for example usage and [Nextclade Datasets](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) documentation for more details about datasets.
 
 
-Note, data updates and additions are now decoupled from Nextclade releases. The datasets will be updated independently.  Read [datasets documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) on dataset versioning and a tradeoff between reproducibility or results vs lastest features (e.g. clades and QC checks).
+Note, data updates and additions are now decoupled from Nextclade releases. The datasets will be updated independently.  Read [datasets documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) on dataset versioning and a trade-off between reproducibility or results vs latest features (e.g. clades and QC checks).
 
 
 ### [Feature] Flu datasets in Nextclade
@@ -279,7 +334,7 @@ Note that these user settings persist across browsing sessions, Nextclade runs, 
 
 This release makes gene translation failures more apparent in Nextclade Web application.
 
-Previously, when a gene failed to be translated, Nextclade showed a blank row in the gene view in the results table and it was hard to understand whether there were no aminoacid changes or the translation had failed. Now, these rows will be colored in dark grey, contain a message, and some detailed information in the tooltip.
+Previously, when a gene failed to be translated, Nextclade showed a blank row in the gene view in the results table and it was hard to understand whether there were no aminoacid changes or the translation had failed. Now, these rows will be colored in dark gray, contain a message, and some detailed information in the tooltip.
 
 This should hopefully make it clearer which genes are missing from the results and why.
 
