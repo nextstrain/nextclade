@@ -65,7 +65,7 @@ nextclade run \
 See [Nextclade CLI](https://docs.nextstrain.org/projects/nextclade/en/latest/user/nextclade-cli.html) documentation for example usage and [Nextclade Datasets](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) documentation for more details about datasets.
 
 
-Note, data updates and additions are now decoupled from Nextclade releases. The datasets will be updated independently.  Read [datasets documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) on dataset versioning and a tradeoff between reproducibility or results vs lastest features (e.g. clades and QC checks).
+Note, data updates and additions are now decoupled from Nextclade releases. The datasets will be updated independently.  Read [datasets documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/datasets.html) on dataset versioning and a trade-off between reproducibility or results vs latest features (e.g. clades and QC checks).
 
 
 ### [Feature] Flu datasets in Nextclade
@@ -312,7 +312,7 @@ Note that these user settings persist across browsing sessions, Nextclade runs, 
 
 This release makes gene translation failures more apparent in Nextclade Web application.
 
-Previously, when a gene failed to be translated, Nextclade showed a blank row in the gene view in the results table and it was hard to understand whether there were no aminoacid changes or the translation had failed. Now, these rows will be colored in dark grey, contain a message, and some detailed information in the tooltip.
+Previously, when a gene failed to be translated, Nextclade showed a blank row in the gene view in the results table and it was hard to understand whether there were no aminoacid changes or the translation had failed. Now, these rows will be colored in dark gray, contain a message, and some detailed information in the tooltip.
 
 This should hopefully make it clearer which genes are missing from the results and why.
 
