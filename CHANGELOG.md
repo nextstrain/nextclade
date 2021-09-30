@@ -2,23 +2,46 @@
 
 ### [Feature] Frame shift detection
 
-Nextclade now can detect reading frame shifts in the analyzed sequences and report them in the web interface as well as in the output files. Previously, when a frame shift was detected in a gene, the entire gene was not translated, a warning was issued and the aminoacid changes in that gene could not be detected and reported. The new behaviour is to translate the gene but only report mutations in non-frame-shifted regions.
+Nextclade now can detect [reading frame shifts](https://en.wikipedia.org/wiki/Frameshift_mutation) in the analyzed sequences and report them in the web interface as well as in the output files.
 
-> Background on frame shifts: Frame shifts are defined as deletions or insertions (indels) of a length that is not divisible by 3. In this case the grouping of nucleotides into codons change and the shift manifests in the protein as a range consisting almost entirely of amino acid substitutions.
+#### Background
 
-> Frame shifts can often be found towards the end of genes, spanning until or beyond the gene end. Frame shifts can also occur in other places, but in these cases the virus is often not viable and thus does not end up getting sequenced. Sometimes, when indels occur in separate but nearby places, the frame shift stops at some point through compensation (cancellation). Other times, frame shifts introduce premature stop codons, causing the gene to be truncated. These premature stop codons are currently not (yet) detected by Nextclade.
+Frame shift occurs when a sequence contains a range of indels (deletions and/or insertions) and the total length of this range is not divisible by 3. In this case the grouping of nucleotides into codons changes compared to the reference genome and the translation of this region manifests in the peptide as a range consisting almost entirely from aminoacid mutations.
 
-Implementation: After nucleotide sequence alignment, Nextclade finds deletions and insertions that can cause frame shifts and frame shift compensations and determines the ranges where frame shifts occur. Frame shifted ranges are represented in the sequence and gene views of Nextclade Web as red horizontal lines with yellow border. They are also reported in CSV, TSV results under `frameShifts` column and in JSON results under `frameShifts` property.
+Frame shifts can often be found towards the end of genes, spanning until or beyond the gene end. Sometimes, when indels occur in multiple places, the ones that follow can compensate (cancel) the frame shift caused by the previous ones, resulting in frame shift that spans a range in the middle of the gene. In these cases, due to extreme changes in the corresponding protein, the virus is often not viable, and are often a sign of sequencing errors, however, cases of biological frame shifts are also known. Sometimes, frame shifts can also introduce premature stop codons, causing the gene to be truncated. The premature stop codons within frame shifts are currently not (yet) detected by Nextclade.
+
+#### Previous behavior
+
+Previously, Nextclade was not able to detect frame shifts ranges specifically. Instead, a frame shift was suspected in a gene when the gene length was not divisible by 3 (hinting to indels of a total length not divisible by 3). In these cases the entire gene was omitted from translation, a warning was issued, and aminoacid changes in that gene could not be detected and reported.
+
+#### New behavior
+
+Now that Nextclade knows the exact shifted ranges for each gene, it translates the genes with frame shifts, but masks shifted regions with aminoacid `X` (unknown aminoacid). The aminoacid changes in non-frame-shifted regions within such genes are now reported. This means that in some sequences Nextclade can now detect more mutations than previously. The affected genes are now emitted into the output fasta files instead of being discarded.
+
+#### Frame shifts report in Nextclade Web
+
+Frame shifted ranges are denoted as red horizontal (strikethrough) lines with yellow highlights in the "Sequence view" and "Gene view" columns of the results table of Nextclade Web. The new "FS" column shows number of detected frame shifts: unexpected and known (ignored) ones (see the QC changes below for more details).
+
+#### Frame shifts report in the output files
+
+Frame shifted ranges (in codon coordinates) are reported in CSV and TSV output files in column named `frameShifts` and in JSON output file under `frameShifts` property.
+
 
 ### [Feature] Improved frame shift quality control (QC) rule
 
-Previously, frame shift quality control rule (denoted as "F" in Nextclade Web) was relying on gene length to reason about frame shifts - if a gene had length not divisible by 3 - a warning was reported.
+Previously, frame shift quality control rule (denoted as "F" in Nextclade Web) was relying on gene length to reason about the presence of frame shifts - if a gene had length not divisible by 3 - a warning was reported.
 
-Now this rule uses detected frame shift ranges to make the decision. We simultaneously release a new version of SARS-CoV-2 dataset, which contains a set of frame shift ranges to ignore. These are the known frame shifts that appear often in SARS-CoV-2 sequences.
+Now this rule uses the detected frame shift ranges to make the decision. There now can be more than one frame shift detection per gene and Nextclade now accounts for compensated frame shifts, which were previously undetected.
 
-The improved QC rule now also allow to account for compensated frame shifts, which were previously undetected.
+In the new implementation of the Frame Shift QC rule, some of the frame shift ranges are considered "ignored" or "known" (as defined in `qc.json` file of the dataset). These frame shifts don't cause QC score penalty.
 
-You can read about the exact list of ignored/known frame shifts and how they were chosen in the [dataset changelog](https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md).
+
+### [Feature] New version of SARS-CoV-2 dataset
+
+We simultaneously release a new version of SARS-CoV-2 dataset, which contains an updated tree and clades, as well as a new set of frame shift ranges and stop codons to ignore. For the details refer to the [dataset changelog](https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md).
+
+Nextclade Web uses the latest version of the datasets by default and CLI users are encouraged to update their SARS-CoV-2 dataset with the `nextclade dataset get` command.
+
 
 ### [Feature] Optional translation beyond first stop codon
 
