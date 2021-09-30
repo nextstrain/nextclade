@@ -2,15 +2,13 @@
 
 ### [Feature] Frame shift detection
 
-Nextclade now can detect reading frame shifts in the analyzed sequences. Frame shift occurs when a sequence contains deletions and/or insertions of length that is not divisible by 3. In this case the grouping of nucleotides into codons change and the shift manifests in the protein as a range consisting almost entirely from mutations.
+Nextclade now can detect reading frame shifts in the analyzed sequences and report them in output files. Previously, when a frame shift was detected in a gene, the entire gene was not translated. New behaviour is to translate the gene but only report mutations in non-frame-shifted regions. This is a major improvement over previous behaviour. 
 
-Often frame shifts can be found towards the end of genes, and they often span until the gene end.
-Sometimes, when indels occur in multiple places, the following indels can compensate (cancel) the frame shift caused by the previous ones.
+> Background on frame shifts: Frame shifts are defined as deletions or insertions (indels) of a length that is not divisible by 3. In this case the grouping of nucleotides into codons change and the shift manifests in the protein as a range consisting almost entirely of amino acid substitutions.
 
-After sequence alignment phase, Nextclade finds deletions and insertions that can cause frame shifts and frame shift compensations and determines the ranges where frame shifts occur.
+> Frame shifts can often be found towards the end of genes, spanning until or beyond the gene end. Frame shifts can also occur in other places, but in these cases the virus is often not viable and thus does not end up getting sequenced. Sometimes, when indels occur in separate but nearby places, the frame shift stops at some point through compensation (cancellation). Other times, frame shifts introduce premature stop codons, causing the gene to be truncated. These premature stop codons are currently not (yet) detected by Nextclade.
 
-Frame shifted ranges are represented in the sequence and gene views of Nextclade Web as red horizontal lines with yellow border. They are also reported in CSV, TSV results under `frameShifts` column and in JSON results under `frameShifts` property.
-
+Implementation: After nucleotide sequence alignment, Nextclade finds deletions and insertions that can cause frame shifts and frame shift compensations and determines the ranges where frame shifts occur. Frame shifted ranges are represented in the sequence and gene views of Nextclade Web as red horizontal lines with yellow border. They are also reported in CSV, TSV results under `frameShifts` column and in JSON results under `frameShifts` property.
 
 ### [Feature] Improved frame shift quality control (QC) rule
 
