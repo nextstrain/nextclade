@@ -29,8 +29,8 @@ constexpr const int END_OF_SEQUENCE = -1;
 
 // determine the position where a particular kmer (string of length k) matches the reference sequence
 // TODO: this function accepts a start position and will not search for matches before this position.
-// This start position is set be the previous match. It is this sensitive to a seed matching in the wrong
-// part of the sequence and this is likely to produce errors for genomes with repeated sequence
+// This start position is set by the previous match. It is thus sensitive to a seed matching in the wrong
+// part of the sequence and is thus likely to produce errors for genomes with repeated sequence
 template<typename Letter>
 SeedMatch seedMatch(const Sequence<Letter>& kmer, const Sequence<Letter>& ref, const int start_pos,
   const int mismatchesAllowed) {
