@@ -18,10 +18,11 @@ Now this rule uses detected frame shift ranges to make the decision. We simultan
 
 The improved QC rule now also allow to account for compensated frame shifts, which were previously undetected.
 
+You can read about the exact list of ignored/known frame shifts and how they were chosen in the [dataset changelog](https://github.com/nextstrain/nextclade_data/blob/release/CHANGELOG.md).
 
 ### [Feature] Optional translation beyond first stop codon
 
-By default Nextalign CLI and Nextclade CLI translate the whole genes, even if stop codons appear during translation. In this release we added a flag `--no-translate-past-stop`, which if present, makes translation to stop on first encountered stop codon. The remainder of the peptide is the filled with gap (`-`) character. This might be useful in some cases when a more biological behavior of translation is required.
+By default Nextalign CLI and Nextclade CLI translate the whole genes, even if stop codons appear during translation. In this release we added a flag `--no-translate-past-stop`, which if present, makes translation to stop on first encountered stop codon. The remainder of the peptide is the filled with gap (`-`) character. This might be useful in some cases when a more biological behavior of translation is desired.
 
 
 ### [Feature] The new version of SARS-CoV-2 dataset
