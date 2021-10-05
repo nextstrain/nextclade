@@ -149,6 +149,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM
   PRIVATE
   "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
   "${CMAKE_SOURCE_DIR}/3rdparty/json/include"
+  "${CMAKE_SOURCE_DIR}/3rdparty/rapidcsv/src"
   )
 
 target_include_directories(${PROJECT_NAME}

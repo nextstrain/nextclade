@@ -846,6 +846,11 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
    print 27 "Run Nextclade CLI";
    eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
   fi
+
+  print 25 "Validate CSV/TSV outputs";
+  ./scripts/csv-validator.sh
+  ./scripts/csvlint.sh
+
   print 22 "Done";
 
 popd > /dev/null
