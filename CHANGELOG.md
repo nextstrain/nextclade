@@ -1,3 +1,9 @@
+## Nextclade Web 1.7.1, Nextclade CLI 1.4.1 (2021-10-05)
+
+### [Fix] Format of CSV/TSV output files
+
+We fixed a few mistakes in CSV and TSV output files, such as missing last delimiter when the "errors" column is empty, inconsistent application of quotation marks and incorrect numeric formats - decimals when integers should be.
+
 ## Nextclade Web 1.7.0, Nextclade CLI 1.4.0, Nextalign CLI 1.4.0 (2021-09-30)
 
 ### [Feature] Frame shift detection
