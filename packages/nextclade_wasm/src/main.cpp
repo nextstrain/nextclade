@@ -233,10 +233,11 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
 std::string serializeToCsv(const std::string& analysisResultsStr, const std::string& delimiter) {
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'serializeToCsv'");
   std::stringstream outputCsvStream;
-  Nextclade::CsvWriter csv{outputCsvStream, Nextclade::CsvWriterOptions{.delimiter = delimiter[0]}};
+  auto csv = Nextclade::createCsvWriter(Nextclade::CsvWriterOptions{.delimiter = delimiter[0]});
   for (const auto& result : analysisResults.results) {
-    csv.addRow(result);
+    csv->addRow(result);
   }
+  csv->write(outputCsvStream);
   return outputCsvStream.str();
 }
 
