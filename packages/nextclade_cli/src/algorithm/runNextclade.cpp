@@ -54,14 +54,14 @@ namespace Nextclade {
     const auto &ref = refData.seq;
     const auto &refName = refData.name;
 
-    std::optional<CsvWriter> csv;
+    std::unique_ptr<Nextclade::CsvWriterAbstract> csv;
     if (outputCsvStream) {
-      csv.emplace(CsvWriter(*outputCsvStream, CsvWriterOptions{.delimiter = ';'}));
+      csv = createCsvWriter(CsvWriterOptions{.delimiter = ';'});
     }
 
-    std::optional<CsvWriter> tsv;
+    std::unique_ptr<Nextclade::CsvWriterAbstract> tsv;
     if (outputTsvStream) {
-      tsv.emplace(CsvWriter(*outputTsvStream, CsvWriterOptions{.delimiter = '\t'}));
+      tsv = createCsvWriter(CsvWriterOptions{.delimiter = '\t'});
     }
 
     const NextcladeOptions options = {
@@ -211,6 +211,14 @@ namespace Nextclade {
       tbb::parallel_pipeline(parallelism, inputFilter & transformFilters & outputFilter, context);
     } catch (const std::exception &e) {
       logger.error("Error: when running the internal parallel pipeline: {:s}", e.what());
+    }
+
+    if (csv && outputCsvStream) {
+      csv->write(*outputCsvStream);
+    }
+
+    if (tsv && outputTsvStream) {
+      tsv->write(*outputTsvStream);
     }
 
     if (outputJsonStream || outputTreeStream) {
