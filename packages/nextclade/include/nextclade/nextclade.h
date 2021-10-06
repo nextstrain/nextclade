@@ -441,21 +441,23 @@ namespace Nextclade {
     char delimiter = ';';
   };
 
-  class CsvWriter {
-    CsvWriterOptions options;
-    std::ostream& outputStream;
-
-    std::string prepareRow(const std::vector<std::string>& columns) const;
-
+  class CsvWriterAbstract {
   public:
-    explicit CsvWriter(std::ostream& outputStream, const CsvWriterOptions& options = {});
+    CsvWriterAbstract() = default;
+    virtual ~CsvWriterAbstract() = default;
+    CsvWriterAbstract(const CsvWriterAbstract& other) = delete;
+    CsvWriterAbstract(CsvWriterAbstract&& other) noexcept = delete;
+    CsvWriterAbstract& operator=(const CsvWriterAbstract& other) = delete;
+    CsvWriterAbstract& operator=(CsvWriterAbstract&& other) noexcept = delete;
 
-    std::string addHeader();
+    virtual void addRow(const AnalysisResult& result) = 0;
 
-    std::string addRow(const AnalysisResult& result);
+    virtual void addErrorRow(const std::string& seqName, const std::string& errorFormatted) = 0;
 
-    std::string addErrorRow(const std::string& seqName, const std::string& errorFormatted);
+    virtual void write(std::ostream& outputStream) = 0;
   };
+
+  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options = {});
 
   class Tree {
     std::unique_ptr<TreeImpl> pimpl;

@@ -50,6 +50,7 @@ const {
   ENABLE_REDUX_LOGGER,
   DEBUG_SET_INITIAL_DATA,
   DOMAIN,
+  DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
 } = getEnvVars()
 
@@ -66,6 +67,7 @@ const clientEnv = {
   TRAVIS_BUILD_WEB_URL: getBuildUrl(),
   COMMIT_HASH: getGitCommitHash(),
   DOMAIN,
+  DOMAIN_STRIPPED,
   DATA_FULL_DOMAIN,
 }
 
