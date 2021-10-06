@@ -832,24 +832,27 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
      fi
    fi
 
-  if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
-    # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
-    ulimit -s unlimited
-  fi
+  if [ "${NEXTCLADE_BUILD_WASM}" != "1" ] && [ "${CROSS}" != "1" ]; then
 
-  if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-   print 27 "Run Nextalign CLI";
-   eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-  fi
+    if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
+      # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
+      ulimit -s unlimited
+    fi
 
-  if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
-   print 27 "Run Nextclade CLI";
-   eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
-  fi
+    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+     print 27 "Run Nextalign CLI";
+     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+    fi
 
-  print 25 "Validate CSV/TSV outputs";
-  ./scripts/csv-validator.sh
-  ./scripts/csvlint.sh
+    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
+     print 27 "Run Nextclade CLI";
+     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+    fi
+
+      print 25 "Validate CSV/TSV outputs";
+      ./scripts/csv-validator.sh
+      ./scripts/csvlint.sh
+    fi
 
   print 22 "Done";
 
