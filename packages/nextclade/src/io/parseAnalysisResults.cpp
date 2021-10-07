@@ -99,7 +99,8 @@ namespace Nextclade {
       .pos = at(j, "pos").get<int>(),
       .queryNuc = stringToNuc(at(j, "queryNuc")),
       .pcrPrimersChanged = parseArray<PcrPrimer>(j, "pcrPrimersChanged", parsePcrPrimer),
-      .aaSubstitutions = {},
+      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
     };
   }
 
@@ -107,6 +108,8 @@ namespace Nextclade {
     return NucleotideDeletion{
       .start = at(j, "start").get<int>(),
       .length = at(j, "length").get<int>(),
+      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
     };
   }
 
