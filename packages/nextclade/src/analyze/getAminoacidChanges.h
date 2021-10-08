@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+struct RefPeptideInternal;
 struct PeptideInternal;
 
 namespace Nextclade {
@@ -15,13 +16,19 @@ namespace Nextclade {
     ErrorGeneNotFound(const std::string& geneName, const GeneMap& geneMap);
   };
 
-  AminoacidChangesReport getAminoacidChanges(         //
-    const NucleotideSequence& ref,                    //
-    const NucleotideSequence& query,                  //
-    const std::vector<PeptideInternal>& refPeptides,  //
-    const std::vector<PeptideInternal>& queryPeptides,//
-    const Range& alignmentRange,                      //
-    const GeneMap& geneMap                            //
+  class ErrorRefPeptideNotFound : public ErrorNonFatal {
+  public:
+    explicit ErrorRefPeptideNotFound(const std::string& name);
+  };
+
+
+  AminoacidChangesReport getAminoacidChanges(                    //
+    const NucleotideSequence& ref,                               //
+    const NucleotideSequence& query,                             //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,//
+    const std::vector<PeptideInternal>& queryPeptides,           //
+    const Range& alignmentRange,                                 //
+    const GeneMap& geneMap                                       //
   );
 
 }// namespace Nextclade
