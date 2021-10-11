@@ -1,5 +1,7 @@
 *.log
 /data_local*
+/e2e/cli/snapshots
+/e2e/cli/tmp
 3rdparty/binutils
 3rdparty/gcc
 3rdparty/llvm

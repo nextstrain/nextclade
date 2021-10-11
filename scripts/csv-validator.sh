@@ -24,7 +24,7 @@ THIS_DIR=$(
 PROJECT_ROOT_DIR="$(realpath --logical --no-symlinks ${THIS_DIR}/..)"
 
 TSV_SCHEMA_PATH="packages/schemas/nextclade_tsv.csvs"
-CSV_SCHEMA_PATH="tmp/nextclade_csv.csvs"
+CSV_SCHEMA_PATH=".cache/nextclade_csv.csvs"
 
 REPORT_OUTPUT_DIR=".reports/csv-validator"
 
