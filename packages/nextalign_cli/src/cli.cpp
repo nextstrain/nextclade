@@ -661,6 +661,26 @@ std::string formatInsertions(const std::vector<Insertion> &insertions) {
 }
 
 /**
+ * Writes reference sequence to the given stream, translates reference sequence to peptides, writes reference peptides
+ * to the given peptide streams
+ */
+void writeReference(                                           //
+  const std::string &refName,                                  //
+  const NucleotideSequence &ref,                               //
+  const std::map<std::string, RefPeptideInternal> &refPeptides,//
+  std::ostream &outputFastaStream,                             //
+  std::map<std::string, std::ofstream> &outputGeneStreams      //
+) {
+  outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, toString(ref));
+  outputFastaStream.flush();
+
+  for (const auto &[name, peptide] : refPeptides) {
+    outputGeneStreams[peptide.geneName] << fmt::format(">{:s}\n{:s}\n", refName, toString(peptide.peptide));
+    outputGeneStreams[peptide.geneName].flush();
+  }
+}
+
+/**
  * Runs nextalign algorithm in a parallel pipeline
  */
 void run(
@@ -682,6 +702,12 @@ void run(
   const auto &ref = refData.seq;
   const auto &refName = refData.name;
 
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+
+  if (shouldWriteReference) {
+    writeReference(refName, ref, refPeptides, outputFastaStream, outputGeneStreams);
+  }
+
   /** Input filter is a serial input filter function, which accepts an input stream,
    * reads and parses the contents of it, and returns parsed sequences */
   const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(ioFiltersMode,//
@@ -699,10 +725,10 @@ void run(
    * runs nextalign algorithm sequentially and returning its result.
    * The number of filters is determined by the `--jobs` CLI argument */
   const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter_mode::parallel,//
-    [&ref, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
+    [&ref, &refPeptides, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
       try {
         const auto query = toNucleotideSequence(input.seq);
-        const auto result = nextalign(query, ref, geneMap, options);
+        const auto result = nextalign(query, ref, refPeptides, geneMap, options);
         return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
       } catch (const std::exception &e) {
         const auto &error = std::current_exception();
@@ -710,15 +736,11 @@ void run(
       }
     });
 
-  // HACK: prevent aligned ref and ref genes from being written multiple times
-  // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
-  bool refsHaveBeenWritten = !shouldWriteReference;
-
   /** Output filter is a serial ordered filter function which accepts the results from transform filters,
    * one at a time, displays and writes them to output streams */
   const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(ioFiltersMode,//
-    [&refName, &outputFastaStream, &outputInsertionsStream, &outputErrorsFile, &outputGeneStreams, &refsHaveBeenWritten,
-      &logger](const AlgorithmOutput &output) {
+    [&outputFastaStream, &outputInsertionsStream, &outputErrorsFile, &outputGeneStreams, &logger](
+      const AlgorithmOutput &output) {
       const auto index = output.index;
       const auto &seqName = output.seqName;
 
@@ -734,12 +756,10 @@ void run(
         }
       }
 
-      const auto &refAligned = output.result.ref;
       const auto &queryAligned = output.result.query;
       const auto &alignmentScore = output.result.alignmentScore;
       const auto &insertions = output.result.insertions;
       const auto &queryPeptides = output.result.queryPeptides;
-      const auto &refPeptides = output.result.refPeptides;
       const auto &warnings = output.result.warnings;
       logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} |",//
         index, seqName, alignmentScore, insertions.size());
@@ -765,20 +785,6 @@ void run(
 
       outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, "", warningsJoined,
         failedGeneNamesJoined);
-
-      // TODO: hoist ref sequence transforms - process and write results only once, outside of main loop
-      if (!refsHaveBeenWritten && !error) {
-        outputFastaStream << fmt::format(">{:s}\n{:s}\n", refName, refAligned);
-        outputFastaStream.flush();
-
-        for (const auto &peptide : refPeptides) {
-          outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", refName, peptide.seq);
-          outputGeneStreams[peptide.name].flush();
-        }
-
-        refsHaveBeenWritten = true;
-      }
-
 
       outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, queryAligned);
 

@@ -255,6 +255,17 @@ struct Peptide {
   std::vector<FrameShiftResult> frameShiftResults;
 };
 
+struct RefPeptide {
+  std::string name;
+  std::string seq;
+};
+
+struct RefPeptideInternal {
+  std::string geneName;
+  AminoacidSequence peptide;
+};
+
+
 template<typename Letter>
 struct InsertionInternal {
   int pos;
@@ -277,7 +288,6 @@ struct NextalignResult {
   std::string ref;
   std::string query;
   int alignmentScore;
-  std::vector<Peptide> refPeptides;
   std::vector<Peptide> queryPeptides;
   std::vector<Insertion> insertions;
   Warnings warnings;
@@ -291,8 +301,14 @@ struct AlgorithmOutput {
   std::exception_ptr error;
 };
 
+std::map<std::string, RefPeptideInternal> translateGenesRef(//
+  const NucleotideSequence& ref,                            //
+  const GeneMap& geneMap,                                   //
+  const NextalignOptions& options                           //
+);
 
-NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref, const GeneMap& geneMap,
+NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref,
+  const std::map<std::string, RefPeptideInternal>& refPeptides, const GeneMap& geneMap,
   const NextalignOptions& options);
 
 NextalignOptions getDefaultOptions();

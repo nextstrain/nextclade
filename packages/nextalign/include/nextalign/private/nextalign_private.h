@@ -23,12 +23,15 @@ struct PeptideInternal {
   std::vector<FrameShiftResult> frameShiftResults;
 };
 
+struct PeptidesInternal {
+  std::vector<PeptideInternal> queryPeptides;
+  Warnings warnings;
+};
 
 struct NextalignResultInternal {
   NucleotideSequence query;
   NucleotideSequence ref;
   int alignmentScore;
-  std::vector<PeptideInternal> refPeptides;
   std::vector<PeptideInternal> queryPeptides;
   std::vector<InsertionInternal<Nucleotide>> insertions;
   Warnings warnings;
@@ -56,8 +59,11 @@ std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<
 
 std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& peptides);
 
+std::vector<RefPeptide> toRefPeptidesExternal(const std::vector<RefPeptideInternal>& peptides);
+
 NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const GeneMap& geneMap, const NextalignOptions& options);
+  const std::map<std::string, RefPeptideInternal>& refPeptides, const GeneMap& geneMap,
+  const NextalignOptions& options);
 
 
 inline std::ostream& operator<<(std::ostream& os, const Nucleotide& nuc) {

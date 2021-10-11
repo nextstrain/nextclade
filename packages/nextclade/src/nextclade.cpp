@@ -23,17 +23,19 @@
 #include "utils/safe_cast.h"
 
 namespace Nextclade {
-  NextcladeResult analyzeOneSequence(        //
-    const std::string& seqName,              //
-    const NucleotideSequence& ref,           //
-    const NucleotideSequence& query,         //
-    const GeneMap& geneMap,                  //
-    const std::vector<PcrPrimer>& pcrPrimers,//
-    const QcConfig& qcRulesConfig,           //
-    const Tree& tree,                        //
-    const NextalignOptions& nextalignOptions //
+  NextcladeResult analyzeOneSequence(                            //
+    const std::string& seqName,                                  //
+    const NucleotideSequence& ref,                               //
+    const NucleotideSequence& query,                             //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,//
+    const std::vector<RefPeptideInternal>& refPeptidesArr,       //
+    const GeneMap& geneMap,                                      //
+    const std::vector<PcrPrimer>& pcrPrimers,                    //
+    const QcConfig& qcRulesConfig,                               //
+    const Tree& tree,                                            //
+    const NextalignOptions& nextalignOptions                     //
   ) {
-    const auto alignment = nextalignInternal(query, ref, geneMap, nextalignOptions);
+    const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, nextalignOptions);
 
     auto nucChanges = findNucChanges(alignment.ref, alignment.query);
     const int totalSubstitutions = safe_cast<int>(nucChanges.substitutions.size());
@@ -56,7 +58,7 @@ namespace Nextclade {
     auto aaChanges = getAminoacidChanges(                                       //
       alignment.ref,                                                            //
       alignment.query,                                                          //
-      alignment.refPeptides,                                                    //
+      refPeptides,                                                              //
       alignment.queryPeptides,                                                  //
       Range{.begin = nucChanges.alignmentStart, .end = nucChanges.alignmentEnd},//
       geneMap                                                                   //
@@ -75,7 +77,7 @@ namespace Nextclade {
 
     NextcladeResult result = {.ref = toString(alignment.ref),
       .query = toString(alignment.query),
-      .refPeptides = toPeptidesExternal(alignment.refPeptides),
+      .refPeptides = toRefPeptidesExternal(refPeptidesArr),
       .queryPeptides = toPeptidesExternal(alignment.queryPeptides),
       .warnings = alignment.warnings,
 
@@ -126,12 +128,29 @@ namespace Nextclade {
     return result;
   }
 
+  std::vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides) {
+    std::vector<RefPeptideInternal> result;
+    result.reserve(refPeptides.size());
+    for (const auto& refPeptide : refPeptides) {
+      result.emplace_back(refPeptide.second);
+    }
+    return result;
+  }
+
   class NextcladeAlgorithmImpl {
     const NextcladeOptions options;
     Tree tree;
+    std::map<std::string, RefPeptideInternal> refPeptides;
+
+    // FIXME: this contains duplicate content of `refPeptides`. Deduplicate and change the downstream code to use `refPeptides` if possible please.
+    std::vector<RefPeptideInternal> refPeptidesArr;
 
   public:
-    explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt) : options(opt), tree(opt.treeString) {
+    explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt)
+        : options(opt),
+          tree(opt.treeString),
+          refPeptides(translateGenesRef(opt.ref, opt.geneMap, opt.nextalignOptions)),
+          refPeptidesArr(getRefPeptidesArray(refPeptides)) {
       treePreprocess(tree, opt.ref);
     }
 
@@ -145,6 +164,8 @@ namespace Nextclade {
         seqName,                //
         ref,                    //
         query,                  //
+        refPeptides,            //
+        refPeptidesArr,         //
         geneMap,                //
         pcrPrimers,             //
         qcRulesConfig,          //

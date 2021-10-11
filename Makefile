@@ -6,7 +6,7 @@ export $(shell bash -c "sed 's/=.*//' .env || true" )
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
-.PHONY: docs docker-docs
+.PHONY: docs docker-docs e2e
 
 clean:
 	rm -rf .build .out tmp packages/nextclade_cli/src/generated packages/nextalign_cli/src/generated packages/web/.build packages/web/src/generated
@@ -138,6 +138,17 @@ docker-prod-web: docker-builder-web docker-builder-run-wasm docker-builder-run-w
 # Checks if attempted release version is valid
 check-release-version:
 	scripts/check_release_version.sh
+
+e2e: e2e-cli-run
+
+e2e-cli-get-snapshots:
+	e2e/cli/get_snapshots.sh
+
+e2e-cli-run: e2e-cli-get-snapshots
+	e2e/cli/test.sh
+
+e2e-cli-update-snapshots:
+	e2e/cli/update_snapshots.sh
 
 e2e-run:
 	packages/nextclade/e2e/run.sh
