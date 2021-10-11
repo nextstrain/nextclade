@@ -11,16 +11,20 @@
 
 
 namespace Nextclade {
-  NextcladeResult analyzeOneSequence(        //
-    const std::string& seqName,              //
-    const NucleotideSequence& ref,           //
-    const NucleotideSequence& query,         //
-    const GeneMap& geneMap,                  //
-    const std::vector<PcrPrimer>& pcrPrimers,//
-    const QcConfig& qcRulesConfig,           //
-    const Tree& tree,                        //
-    const NextalignOptions& nextalignOptions //
+  NextcladeResult analyzeOneSequence(                            //
+    const std::string& seqName,                                  //
+    const NucleotideSequence& ref,                               //
+    const NucleotideSequence& query,                             //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,//
+    const std::vector<RefPeptideInternal>& refPeptidesArr,       //
+    const GeneMap& geneMap,                                      //
+    const std::vector<PcrPrimer>& pcrPrimers,                    //
+    const QcConfig& qcRulesConfig,                               //
+    const Tree& tree,                                            //
+    const NextalignOptions& nextalignOptions                     //
   );
+
+  std::vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides);
 
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {

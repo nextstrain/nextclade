@@ -224,9 +224,44 @@ and [Google Mock documentation](https://github.com/google/googletest/blob/master
 
 #### 💥 End-to-end tests
 
-The default dev scripts run the Nextalign CLI and Nextclade CLI under GDB (if installed), which serves a smoke test.
+##### 🚬 Smoke tests
 
-> TODO: setup proper e2e tests. Compare results to known-well previous results and assert on differences.
+The default dev scripts run the Nextalign CLI and Nextclade CLI under GDB (if installed) with default dataset and example data. This serves as a smoke test and indicate immediately visible failures.
+
+The results are in `tmp/`
+
+The environment variables control what flags are passed for CLI invocation:
+
+ - `DEV_CLI_OPTIONS` for Nextalign
+ - `DEV_NEXTCLADE_CLI_OPTIONS` for Nextclade
+
+
+##### 📸 Snapshot tests
+
+We can check the results of the smoke test against known good outputs (a snapshot). The snapshot files are in the `e2e/cli/snapshots` directory and are compressed-decompressed as needed.
+
+In order to perform the check, run:
+
+```
+make e2e-cli-run
+```
+
+In order to update snapshots, run:
+
+```
+make e2e-cli-update-snapshots
+```
+
+This will copy the outputs of the last smoke test and they will become the new snapshot
+
+```
+make e2e-cli-update-snapshots
+```
+
+The resulting compressed archive needs to be committed to the source control.
+
+TODO: consider storing the snapshots outside of repository.
+
 
 ---
 

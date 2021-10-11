@@ -375,7 +375,7 @@ namespace Nextclade {
   struct NextcladeResult {
     std::string ref;
     std::string query;
-    std::vector<Peptide> refPeptides;
+    std::vector<RefPeptide> refPeptides;
     std::vector<Peptide> queryPeptides;
     Warnings warnings;
     AnalysisResult analysisResult;

@@ -46,12 +46,17 @@ Nextclade::AnalysisResults wrappedParseAnalysisResults(const std::string& analys
 
 
 struct NextcladeWasmState {
+  NextalignOptions nextalignOptions;
   NucleotideSequence ref;
   Nextclade::Tree tree;
   GeneMap geneMap;
   Nextclade::QcConfig qcRulesConfig;
   std::vector<Nextclade::PcrPrimer> pcrPrimers;
   Warnings warnings;
+  std::map<std::string, RefPeptideInternal> refPeptides;
+
+  // FIXME: this contains duplicate content of `refPeptides`. Deduplicate and change the downstream code to use `refPeptides` if possible please.
+  std::vector<RefPeptideInternal> refPeptidesArr;
 };
 
 NextcladeWasmState makeNextcladeWasmState(//
@@ -72,13 +77,23 @@ NextcladeWasmState makeNextcladeWasmState(//
   Warnings warnings;
   auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, warnings.global);
 
+  // FIXME: pass options from JS
+  auto nextalignOptions = getDefaultOptions();
+  nextalignOptions.translatePastStop = true;
+
+  auto refPeptides = translateGenesRef(ref, geneMap, nextalignOptions);
+  auto refPeptidesArr = Nextclade::getRefPeptidesArray(refPeptides);
+
   return NextcladeWasmState{
+    .nextalignOptions = nextalignOptions,
     .ref = std::move(ref),
     .tree = std::move(tree),
     .geneMap = std::move(geneMap),
     .qcRulesConfig = qcRulesConfig,
     .pcrPrimers = std::move(pcrPrimers),
     .warnings = std::move(warnings),
+    .refPeptides = refPeptides,
+    .refPeptidesArr = refPeptidesArr,
   };
 }
 
@@ -129,19 +144,18 @@ public:
     try {
       const auto query = toNucleotideSequence(queryStr);
 
-      // FIXME: pass options from JS
-      auto nextalignOptions = getDefaultOptions();
-      nextalignOptions.translatePastStop = true;
 
       const auto result = analyzeOneSequence(//
         queryName,                           //
         state.ref,                           //
         query,                               //
+        state.refPeptides,                   //
+        state.refPeptidesArr,                //
         state.geneMap,                       //
         state.pcrPrimers,                    //
         state.qcRulesConfig,                 //
         state.tree,                          //
-        nextalignOptions                     //
+        state.nextalignOptions               //
       );
 
       warnings.global = merge(warnings.global, result.warnings.global);

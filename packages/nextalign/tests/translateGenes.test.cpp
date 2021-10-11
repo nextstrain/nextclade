@@ -5,12 +5,12 @@
 #include "../src/align/getGapOpenCloseScores.h"
 
 class TranslateGenes : public ::testing::Test {
-  NucleotideSequence ref;
-
 protected:
+  NucleotideSequence ref;
   GeneMap geneMap;
   NextalignOptions options = getDefaultOptions();
   std::vector<int> gapOpenCloseAA;
+  std::map<std::string, RefPeptideInternal> refPeptides;
 
   TranslateGenes() {
     options.alignment.minimalLength = 3;
@@ -33,6 +33,8 @@ protected:
 #pragma GCC diagnostic pop
 
     gapOpenCloseAA = getGapOpenCloseScoresFlat(ref, options);
+
+    refPeptides = translateGenesRef(ref, geneMap, options);
   }
 };
 
@@ -53,7 +55,7 @@ TEST_F(TranslateGenes, ExtractsAndTranslatesSimpleCase) {
   //                                                 9                    30       41                            71                99                   120
   // clang-format on
 
-  const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
   const auto peptideExpected = toAminoacidSequence("SKFCVI*");
@@ -77,7 +79,7 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShift) {
   //                                                 9                    30
   // clang-format on
 
-  const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
   const auto peptideExpected = toAminoacidSequence("SK-XXXX");
@@ -112,7 +114,7 @@ TEST_F(TranslateGenes, DetectsTrailingFrameShiftWithPriorInsertion) {
   //                                                  10                   31
   // clang-format on
 
-  const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
   const auto peptideExpected = toAminoacidSequence("SK-XXXX");
@@ -147,7 +149,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShift) {
   //                                                 9                    30
   // clang-format on
 
-  const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
   const auto peptideExpected = toAminoacidSequence("-XXX-I*");
@@ -182,7 +184,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithPriorInsertion) {
   //                                                  10                   31
   // clang-format on
 
-  const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
   const auto peptideExpected = toAminoacidSequence("-XXX-I*");
@@ -222,7 +224,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithInsertion) {
   // coord map reverse                      01234567890123456778901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
   //                                                         ^^
 
-  const auto peptides = translateGenes(qryAln, refAln, geneMap, gapOpenCloseAA, options);
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
   const auto peptideExpected = toAminoacidSequence("--XX-I*");

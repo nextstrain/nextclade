@@ -10,10 +10,10 @@
 
 
 namespace {
+  using ::Range;
   using Nextclade::AminoacidDeletion;
   using Nextclade::AminoacidSubstitution;
   using Nextclade::getAminoacidChanges;
-  using ::Range;
 }// namespace
 
 
@@ -41,15 +41,17 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
     },
   };
 
+
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
   options.translatePastStop = true;
-  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+  const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, options);
 
   const auto aaChanges = getAminoacidChanges(              //
     alignment.ref,                                         //
     alignment.query,                                       //
-    alignment.refPeptides,                                 //
+    refPeptides,                                           //
     alignment.queryPeptides,                               //
     Range{.begin = 0, .end = safe_cast<int>(query.size())},//
     geneMap                                                //
@@ -101,12 +103,14 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
   options.translatePastStop = true;
-  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+  const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, options);
 
   const auto aaChanges = getAminoacidChanges(              //
     alignment.ref,                                         //
     alignment.query,                                       //
-    alignment.refPeptides,                                 //
+    refPeptides,                                           //
     alignment.queryPeptides,                               //
     Range{.begin = 0, .end = safe_cast<int>(query.size())},//
     geneMap                                                //
@@ -162,12 +166,14 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Right) {
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
   options.translatePastStop = true;
-  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+  const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, options);
 
   const auto aaChanges = getAminoacidChanges(              //
     alignment.ref,                                         //
     alignment.query,                                       //
-    alignment.refPeptides,                                 //
+    refPeptides,                                           //
     alignment.queryPeptides,                               //
     Range{.begin = 0, .end = safe_cast<int>(query.size())},//
     geneMap                                                //
@@ -239,12 +245,14 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Left) {
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
   options.translatePastStop = true;
-  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+  const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, options);
 
   const auto aaChanges = getAminoacidChanges(              //
     alignment.ref,                                         //
     alignment.query,                                       //
-    alignment.refPeptides,                                 //
+    refPeptides,                                           //
     alignment.queryPeptides,                               //
     Range{.begin = 0, .end = safe_cast<int>(query.size())},//
     geneMap                                                //
