@@ -19,6 +19,8 @@ namespace Nextclade {
   using json = nlohmann::ordered_json;
 
   struct NucleotideSubstitution;
+  struct AminoacidSubstitution;
+  struct AminoacidSubstitutionWithoutGene;
   class TreeNodeImpl;
 
   class TreeNode {
@@ -59,11 +61,17 @@ namespace Nextclade {
 
     std::map<int, Nucleotide> mutations() const;
 
+    std::vector<NucleotideSubstitution> nucleotideMutations() const;
+
+    std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> aminoacidMutations() const;
+
     void setMutations(const std::map<int, Nucleotide>& data);
 
     void setSubstitutions(const std::map<int, Nucleotide>& data);
 
-    std::vector<NucleotideSubstitution> nucleotideMutations() const;
+    void setAaMutations(const std::map<std::string, std::map<int, Aminoacid>>& aaMutationMap);
+
+    void setAaSubstitutions(const std::map<std::string, std::map<int, Aminoacid>>& aaSubstitutionMap);
 
     void setNucleotideMutationsEmpty();
 

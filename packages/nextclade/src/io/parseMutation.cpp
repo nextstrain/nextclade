@@ -37,6 +37,20 @@ namespace Nextclade {
     }
   }
 
+  Aminoacid parseAminoacid(const std::string& raw) {
+    if (raw.size() != 1) {
+      throw ErrorParseMutationInvalidAminoacid(raw);
+    }
+
+    try {
+      const char c = safe_cast<char>(std::toupper(raw[0]));
+      return charToAa(c);
+    } catch (...) {
+      throw ErrorParseMutationInvalidAminoacid(raw);
+    }
+  }
+
+
   NucleotideSubstitution parseMutation(const std::string& mut) {
     if (mut.size() < 3) {
       throw ErrorParseMutationInvalidFormat(mut);
@@ -70,6 +84,39 @@ namespace Nextclade {
       .queryNuc = queryNuc,
       .pcrPrimersChanged = {},
       .aaSubstitutions = {},
+      .aaDeletions = {},
+    };
+  }
+
+  AminoacidSubstitutionWithoutGene parseAminoacidMutationWithoutGene(const std::string& mut) {
+    if (mut.size() < 3) {
+      throw ErrorParseAminoacidMutationInvalidFormat(mut);
+    }
+
+    using boost::xpressive::smatch;
+    using boost::xpressive::sregex;
+
+    const auto regex = sregex::compile(R"((?P<refAa>[A-Z-*])(?P<pos>\d{1,10})(?P<queryAa>[A-Z-*]))");
+
+    const auto upper = boost::to_upper_copy(mut);
+
+    smatch matches;
+    if (!regex_match(upper, matches, regex)) {
+      throw ErrorParseAminoacidMutationInvalidFormat(mut);
+    }
+
+    const auto& refAaStr = std::string{matches["refAa"]};
+    const auto& posStr = std::string{matches["pos"]};
+    const auto& queryAaStr = std::string{matches["queryAa"]};
+
+    const auto& refAa = parseAminoacid(refAaStr);
+    const auto& pos = parsePosition(posStr);
+    const auto& queryAa = parseAminoacid(queryAaStr);
+
+    return AminoacidSubstitutionWithoutGene{
+      .refAa = refAa,
+      .pos = pos,
+      .queryAa = queryAa,
     };
   }
 
@@ -80,6 +127,13 @@ namespace Nextclade {
       : ErrorNonFatal(fmt::format("When parsing mutation: Unable to parse position: \"{:s}\"", posStr)) {}
 
   ErrorParseMutationInvalidFormat::ErrorParseMutationInvalidFormat(const std::string_view& mut)
+      : ErrorNonFatal(
+          fmt::format("When parsing mutation: Unable to parse mutation. The format is invalid: \"{:s}\"", mut)) {}
+
+  ErrorParseMutationInvalidAminoacid::ErrorParseMutationInvalidAminoacid(const std::string& mut)
+      : ErrorNonFatal(fmt::format("When parsing mutation: Unable to parse aminoacid: \"{}\"", mut)) {}
+
+  ErrorParseAminoacidMutationInvalidFormat::ErrorParseAminoacidMutationInvalidFormat(const std::string_view& mut)
       : ErrorNonFatal(
           fmt::format("When parsing mutation: Unable to parse mutation. The format is invalid: \"{:s}\"", mut)) {}
 }// namespace Nextclade

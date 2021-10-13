@@ -15,6 +15,7 @@
 #include "../utils/mapFind.h"
 #include "Tree.h"
 #include "TreeNode.h"
+#include "nextalign/private/nextalign_private.h"
 
 namespace Nextclade {
   namespace {
@@ -47,11 +48,6 @@ namespace Nextclade {
       );
     }
 
-    struct GetDifferencesResult {
-      std::map<std::string, std::vector<std::string>> mutations;
-      std::vector<std::string> nucMutations;
-      double divergence;
-    };
 
   }// namespace
 
@@ -106,6 +102,8 @@ namespace Nextclade {
     // TODO: The private mutations gathered are mostly similar to the ones
     //  gathered in `findPrivateMutations()` in `treeFindNearestNodes.cpp`. Investigate and deduplicate.
 
+//    fmt::print("{} | {}\n", result.seqName, node.name(), node.id());
+
     const auto nodeMutations = node.mutations();
 
     std::set<int> positionsCovered;
@@ -140,6 +138,7 @@ namespace Nextclade {
           .queryNuc = queryNuc,
           .pcrPrimersChanged = {},
           .aaSubstitutions = {},
+          .aaDeletions = {},
         });
         nucMutations.push_back(mut);
         totalNucMutations += 1;
@@ -228,6 +227,11 @@ namespace Nextclade {
 
     eraseDuplicatesInPlace(aminoacidMutationEntries);
     const auto mutations = groupFormattedMutationsByGene(nucMutations, aminoacidMutationEntries);
+
+    fmt::print("\nmutations after groupFormattedMutationsByGene\n");
+    for (const auto& mut : mutations) {
+      fmt::print("{}: {}\n", mut.first, mut.second.size());
+    }
 
     return {
       .mutations = mutations,

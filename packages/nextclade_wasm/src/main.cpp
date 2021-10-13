@@ -240,7 +240,9 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'treeFinalize'");
   auto tree = Nextclade::Tree{treeStr};
   treeAttachNodes(tree, ref, analysisResults.results);
+//  tree.debug("treeAttachNodes");
   treePostprocess(tree);
+//  tree.debug("treePostprocess");
   return tree.serialize(0);
 }
 

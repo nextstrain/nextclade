@@ -5,5 +5,6 @@
 namespace Nextclade {
   class Tree;
 
-  void treePreprocess(Tree& tree, const NucleotideSequence& rootSeq);
+  void treePreprocess(Tree& tree, const NucleotideSequence& rootSeq,
+    const std::map<std::string, RefPeptideInternal>& refPeptides);
 }// namespace Nextclade

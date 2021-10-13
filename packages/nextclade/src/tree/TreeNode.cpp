@@ -2,8 +2,8 @@
 
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
+#include <nextclade/private/nextclade_private.h>
 
-#include <iostream>
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -199,6 +199,32 @@ namespace Nextclade {
       return setMutationsOrSubstitutions("substitutions", data);
     }
 
+    void setAaMutationsOrSubstitutions(const std::string& what,
+      const std::map<std::string, std::map<int, Aminoacid>>& data) {
+      ensureIsObject();
+
+      const auto path = json_pointer{fmt::format("/tmp/{}", what)};
+      auto geneObj = json::object();
+      for (const auto& [geneName, muts] : data) {
+        auto mutObj = json::object();
+        for (const auto& [pos, aa] : muts) {
+          const auto posStr = std::to_string(pos);
+          const auto nucStr = aaToString(aa);
+          mutObj.emplace(posStr, nucStr);
+        }
+        geneObj[geneName] = mutObj;
+      }
+      j[path] = geneObj;
+    }
+
+    void setAaMutations(const std::map<std::string, std::map<int, Aminoacid>>& aaMutationMap) {
+      return setAaMutationsOrSubstitutions("aaMutations", aaMutationMap);
+    }
+
+    void setAaSubstitutions(const std::map<std::string, std::map<int, Aminoacid>>& aaSubstitutionMap) {
+      return setAaMutationsOrSubstitutions("aaSubstitutions", aaSubstitutionMap);
+    }
+
     std::vector<NucleotideSubstitution> nucleotideMutations() const {
       ensureIsObject();
 
@@ -229,9 +255,35 @@ namespace Nextclade {
       return result;
     }
 
-    void setNucleotideMutations() {
+    std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> aminoacidMutations() {
       ensureIsObject();
-      j[json_pointer{"/branch_attrs/mutations/nuc"}] = json::array();
+
+      const auto path = json_pointer{"/branch_attrs/mutations"};
+
+      if (!j.contains(path)) {
+        return {};
+      }
+
+      auto aaMuts = j.at(path);
+      if (!aaMuts.is_object()) {
+        return {};
+      }
+
+      std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> result;
+      for (const auto& [geneName, aaMutsForGene] : aaMuts.items()) {
+        if (geneName == "nuc") {
+          continue;
+        }
+
+        for (const auto& mutStrValue : aaMutsForGene) {
+          if (!mutStrValue.is_string()) {
+            return {};
+          }
+          const auto mutStr = mutStrValue.get<std::string>();
+          result[geneName].emplace_back(parseAminoacidMutationWithoutGene(mutStr));
+        }
+      }
+      return result;
     }
 
     void setNucleotideMutationsEmpty() {
@@ -259,12 +311,13 @@ namespace Nextclade {
     }
 
     std::optional<double> divergence() const {
-      ensureIsObject();
-      const auto div = j.value(json_pointer{"/node_attrs/div"}, json());
-      if (div.is_number()) {
-        return std::make_optional(div.get<double>());
-      }
-      return {};
+      //      ensureIsObject();
+      //      const auto div = j.value(json_pointer{"/node_attrs/div"}, json());
+      //      if (div.is_number()) {
+      //        return std::make_optional(div.get<double>());
+      //      }
+      //      return {};
+      return 0.0;
     }
 
     void setDivergence(double div) {
@@ -385,6 +438,26 @@ namespace Nextclade {
     return pimpl->nucleotideMutations();
   }
 
+  std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> TreeNode::aminoacidMutations() const {
+    return pimpl->aminoacidMutations();
+  }
+
+  void TreeNode::setMutations(const std::map<int, Nucleotide>& data) {
+    return pimpl->setMutations(data);
+  }
+
+  void TreeNode::setSubstitutions(const std::map<int, Nucleotide>& data) {
+    return pimpl->setSubstitutions(data);
+  }
+
+  void TreeNode::setAaMutations(const std::map<std::string, std::map<int, Aminoacid>>& aaMutationMap) {
+    return pimpl->setAaMutations(aaMutationMap);
+  }
+
+  void TreeNode::setAaSubstitutions(const std::map<std::string, std::map<int, Aminoacid>>& aaSubstitutionMap) {
+    return pimpl->setAaSubstitutions(aaSubstitutionMap);
+  }
+
   void TreeNode::setNucleotideMutationsEmpty() {
     pimpl->setNucleotideMutationsEmpty();
   }
@@ -439,14 +512,6 @@ namespace Nextclade {
 
   void TreeNode::setNodeAttr(const std::string& name, const std::string& val) {
     return pimpl->setNodeAttr(name, val);
-  }
-
-  void TreeNode::setMutations(const std::map<int, Nucleotide>& data) {
-    return pimpl->setMutations(data);
-  }
-
-  void TreeNode::setSubstitutions(const std::map<int, Nucleotide>& data) {
-    return pimpl->setSubstitutions(data);
   }
 
   void TreeNode::removeNodeAttr(const std::string& name) {

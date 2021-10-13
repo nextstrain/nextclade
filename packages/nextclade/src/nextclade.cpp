@@ -151,7 +151,7 @@ namespace Nextclade {
           tree(opt.treeString),
           refPeptides(translateGenesRef(opt.ref, opt.geneMap, opt.nextalignOptions)),
           refPeptidesArr(getRefPeptidesArray(refPeptides)) {
-      treePreprocess(tree, opt.ref);
+      treePreprocess(tree, opt.ref, refPeptides);
     }
 
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& query) {

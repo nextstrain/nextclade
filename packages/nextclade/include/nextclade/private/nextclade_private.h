@@ -11,6 +11,27 @@
 
 
 namespace Nextclade {
+  struct NucleotideSubstitutionSimple {
+    Nucleotide refNuc;
+    int pos;
+    Nucleotide queryNuc;
+  };
+
+  struct AminoacidSubstitutionWithoutGene {
+    Aminoacid refAa;
+    int pos;
+    Aminoacid queryAa;
+  };
+
+  /** Maps a position to Nucleotide */
+  using PosToNucMap = std::map<int, NucleotideSubstitutionSimple>;
+
+  /** Maps a position to Aminoacid */
+  using PosToAaMapForGene = std::map<int, AminoacidSubstitutionWithoutGene>;
+
+  /** Aminoacid maps for all the genes */
+  using PosToAaMap = std::map<std::string, PosToAaMapForGene>;
+
   NextcladeResult analyzeOneSequence(                            //
     const std::string& seqName,                                  //
     const NucleotideSequence& ref,                               //
