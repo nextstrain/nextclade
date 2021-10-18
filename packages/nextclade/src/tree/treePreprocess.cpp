@@ -158,8 +158,49 @@ namespace Nextclade {
     });
   }
 
+
   /**
-   * Prepares reference tree in order to prepare it for further algorithm stages.
+   * Finds maximum divergence value in the tree
+   */
+  double getMaxDivergenceRecursively(const TreeNode& node) {
+    constexpr auto NEGATIVE_INFINITY = -std::numeric_limits<double>::infinity();
+
+    const auto divergence = node.divergence().value_or(NEGATIVE_INFINITY);
+
+    // Repeat for children recursively
+    // TODO: can we simplify and use `divergence` variable directly instead of this?
+    auto childMaxDivergence = NEGATIVE_INFINITY;
+    node.forEachChildNode([&childMaxDivergence](const TreeNode& child) {
+      const auto childDivergence = getMaxDivergenceRecursively(child);
+      childMaxDivergence = std::max(childDivergence, childMaxDivergence);
+    });
+
+    return std::max(divergence, childMaxDivergence);
+  }
+
+  /**
+   * Guesses the unit of measurement of divergence, based on the greatest value of divergence on the tree
+   */
+  DivergenceUnits guessDivergenceUnits(double maxDivergence) {
+    // FIXME: This should be fixed upstream in augur & auspice, but it is hard to do without breaking Auspice JSON v2 format.
+    // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
+    // Quote from there:
+    //  > Prior to Jan 2020, the divergence measure was always "subs per site per year"
+    //  >    however certain datasets chaged this to "subs per year" across entire sequence.
+    //  >    This distinction is not set in the JSON, so in order to correctly display the rate
+    //  >    we will "guess" this here. A future augur update will export this in a JSON key,
+    //  >    removing the need to guess
+    //
+    // HACK: Arbitrary threshold to make a guess
+    constexpr const auto HACK_MAX_DIVERGENCE_THRESHOLD = 5;
+    if (maxDivergence <= HACK_MAX_DIVERGENCE_THRESHOLD) {
+      return DivergenceUnits::NumSubstitutionsPerYearPerSite;
+    }
+    return DivergenceUnits::NumSubstitutionsPerYear;
+  }
+
+  /**
+   * Prepares reference tree for further algorithm stages.
    * This operation mutates the tree, adding temporary data to nodes. This data will be removed during tree postprocessing.
    */
   void treePreprocess(Tree& tree, const NucleotideSequence& rootSeq,
@@ -170,6 +211,12 @@ namespace Nextclade {
     const std::map<std::string, std::map<int, Aminoacid>> aaMutationMap;
     int id = 0;
     treePreprocessInPlaceRecursive(rootSeq, refPeptides, nucMutationMap, aaMutationMap, root, id);
+
+    // TODO: Avoid second full tree iteration by merging it into the one that is just above
+    const auto maxDivergence = getMaxDivergenceRecursively(root);
+    const divergenceUnits = guessDivergenceUnits(maxDivergence);
+    tree.setTmpMaxDivergence(maxDivergence);
+    tree.setTmpDivergenceUnits(divergenceUnits);
   }
 
 }// namespace Nextclade

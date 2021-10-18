@@ -381,6 +381,14 @@ namespace Nextclade {
     AnalysisResult analysisResult;
   };
 
+  /**
+   * Represents unit of measurement of divergence
+   */
+  enum class DivergenceUnits : int {
+    NumSubstitutionsPerYear,       // number of substitutions per year
+    NumSubstitutionsPerYearPerSite,// number of substitutions per year per site (i.e. divided by sequence length)
+  };
+
   class NextcladeAlgorithmImpl;
 
   class NextcladeAlgorithm {
@@ -468,6 +476,16 @@ namespace Nextclade {
     TreeNode root() const;
 
     void addMetadata();
+
+    double tmpMaxDivergence() const;
+
+    void setTmpMaxDivergence(double maxDivergence);
+
+    DivergenceUnits tmpDivergenceUnits() const;
+
+    void setTmpDivergenceUnits(DivergenceUnits divergenceUnits);
+
+    void removeTemporaries();
 
     std::string serialize(int spaces = 2) const;
 
