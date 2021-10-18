@@ -16,6 +16,8 @@
 #include "analyze/nucleotide.h"
 #include "qc/runQc.h"
 #include "tree/Tree.h"
+#include "tree/calculateDivergence.h"
+#include "tree/findPrivateNucMutations.h"
 #include "tree/treeAttachNodes.h"
 #include "tree/treeFindNearestNodes.h"
 #include "tree/treePostprocess.h"
@@ -75,57 +77,68 @@ namespace Nextclade {
     const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
     const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
 
-    NextcladeResult result = {.ref = toString(alignment.ref),
+    auto analysisResult = AnalysisResult{
+      .seqName = seqName,
+
+      .substitutions = nucChanges.substitutions,
+      .totalSubstitutions = totalSubstitutions,
+      .deletions = nucChanges.deletions,
+      .totalDeletions = totalDeletions,
+      .insertions = alignment.insertions,
+      .totalInsertions = totalInsertions,
+      .frameShifts = frameShifts,
+      .totalFrameShifts = totalFrameShifts,
+      .missing = missing,
+      .totalMissing = totalMissing,
+      .nonACGTNs = nonACGTNs,
+      .totalNonACGTNs = totalNonACGTNs,
+
+      .aaSubstitutions = aaChanges.aaSubstitutions,
+      .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
+      .aaDeletions = aaChanges.aaDeletions,
+      .totalAminoacidDeletions = totalAminoacidDeletions,
+
+      .unknownAaRanges = unknownAaRanges,
+      .totalUnknownAa = totalUnknownAa,
+
+      .alignmentStart = nucChanges.alignmentStart,
+      .alignmentEnd = nucChanges.alignmentEnd,
+      .alignmentScore = alignment.alignmentScore,
+      .nucleotideComposition = nucleotideComposition,
+      .pcrPrimerChanges = pcrPrimerChanges,
+      .totalPcrPrimerChanges = totalPcrPrimerChanges,
+
+      // NOTE: these fields are not properly initialized here. They must be initialized below.
+      .nearestNodeId = 0,
+      .clade = "",
+      .privateSubstitutions = {},
+      .privateDeletions = {},
+      .divergence = 0.0,
+      .qc = {},
+    };
+
+
+    const auto& nearestNode = treeFindNearestNode(tree, analysisResult);
+    analysisResult.nearestNodeId = nearestNode.id();
+    analysisResult.clade = nearestNode.clade();
+
+    auto privateNucMutationsResult = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
+    analysisResult.privateSubstitutions = privateNucMutationsResult.privateSubstitutions;
+    analysisResult.privateDeletions = privateNucMutationsResult.privateDeletions;
+
+    analysisResult.divergence =
+      calculateDivergence(nearestNode, analysisResult, tree.tmpDivergenceUnits(), safe_cast<int>(ref.size()));
+
+    analysisResult.qc = runQc(alignment, analysisResult, qcRulesConfig);
+
+    return NextcladeResult{
+      .ref = toString(alignment.ref),
       .query = toString(alignment.query),
       .refPeptides = toRefPeptidesExternal(refPeptidesArr),
       .queryPeptides = toPeptidesExternal(alignment.queryPeptides),
       .warnings = alignment.warnings,
-
-      .analysisResult = AnalysisResult{
-        .seqName = seqName,
-
-        .substitutions = nucChanges.substitutions,
-        .totalSubstitutions = totalSubstitutions,
-        .deletions = nucChanges.deletions,
-        .totalDeletions = totalDeletions,
-        .insertions = alignment.insertions,
-        .totalInsertions = totalInsertions,
-        .frameShifts = frameShifts,
-        .totalFrameShifts = totalFrameShifts,
-        .missing = missing,
-        .totalMissing = totalMissing,
-        .nonACGTNs = nonACGTNs,
-        .totalNonACGTNs = totalNonACGTNs,
-
-        .aaSubstitutions = aaChanges.aaSubstitutions,
-        .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
-        .aaDeletions = aaChanges.aaDeletions,
-        .totalAminoacidDeletions = totalAminoacidDeletions,
-
-        .unknownAaRanges = unknownAaRanges,
-        .totalUnknownAa = totalUnknownAa,
-
-        .alignmentStart = nucChanges.alignmentStart,
-        .alignmentEnd = nucChanges.alignmentEnd,
-        .alignmentScore = alignment.alignmentScore,
-        .nucleotideComposition = nucleotideComposition,
-        .pcrPrimerChanges = pcrPrimerChanges,
-        .totalPcrPrimerChanges = totalPcrPrimerChanges,
-
-        // NOTE: these fields are not properly initialized here. They must be initialized below.
-        .nearestNodeId = 0,
-        .clade = "",
-        .qc = {},
-      }};
-
-    const auto [nearestNodeId, nearestNodeClade, privateMutations] =
-      treeFindNearestNode(result.analysisResult, ref, tree);
-    result.analysisResult.nearestNodeId = nearestNodeId;
-    result.analysisResult.clade = nearestNodeClade;
-
-    result.analysisResult.qc = runQc(alignment, result.analysisResult, privateMutations, qcRulesConfig);
-
-    return result;
+      .analysisResult = std::move(analysisResult),
+    };
   }
 
   std::vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides) {
@@ -179,7 +192,7 @@ namespace Nextclade {
     }
 
     const Tree& finalize(const std::vector<AnalysisResult>& results) {
-      treeAttachNodes(tree, options.ref, results);
+      treeAttachNodes(tree, results);
       treePostprocess(tree);
       return tree;
     }

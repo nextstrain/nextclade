@@ -30,10 +30,18 @@ namespace Nextclade {
     return formatRange(Range{.begin = range.begin, .end = range.end});
   }
 
-  std::string formatMutation(const NucleotideSubstitution& mut) {
+  std::string formatMutationSimple(const NucleotideSubstitutionSimple& mut) {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto positionOneBased = mut.pos + 1;
     return fmt::format("{}{}{}", nucToString(mut.refNuc), positionOneBased, nucToString(mut.queryNuc));
+  }
+
+  std::string formatMutation(const NucleotideSubstitution& mut) {
+    return formatMutationSimple(NucleotideSubstitutionSimple{
+      .refNuc = mut.refNuc,
+      .pos = mut.pos,
+      .queryNuc = mut.queryNuc,
+    });
   }
 
   std::string formatDeletion(const NucleotideDeletion& del) {

@@ -184,12 +184,12 @@ namespace Nextclade {
   DivergenceUnits guessDivergenceUnits(double maxDivergence) {
     // FIXME: This should be fixed upstream in augur & auspice, but it is hard to do without breaking Auspice JSON v2 format.
     // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
-    // Quote from there:
+    // A quote from there:
     //  > Prior to Jan 2020, the divergence measure was always "subs per site per year"
-    //  >    however certain datasets chaged this to "subs per year" across entire sequence.
-    //  >    This distinction is not set in the JSON, so in order to correctly display the rate
-    //  >    we will "guess" this here. A future augur update will export this in a JSON key,
-    //  >    removing the need to guess
+    //  > however certain datasets chaged this to "subs per year" across entire sequence.
+    //  > This distinction is not set in the JSON, so in order to correctly display the rate
+    //  > we will "guess" this here. A future augur update will export this in a JSON key,
+    //  > removing the need to guess
     //
     // HACK: Arbitrary threshold to make a guess
     constexpr const auto HACK_MAX_DIVERGENCE_THRESHOLD = 5;
@@ -214,7 +214,7 @@ namespace Nextclade {
 
     // TODO: Avoid second full tree iteration by merging it into the one that is just above
     const auto maxDivergence = getMaxDivergenceRecursively(root);
-    const divergenceUnits = guessDivergenceUnits(maxDivergence);
+    const auto divergenceUnits = guessDivergenceUnits(maxDivergence);
     tree.setTmpMaxDivergence(maxDivergence);
     tree.setTmpDivergenceUnits(divergenceUnits);
   }

@@ -161,6 +161,29 @@ namespace Nextclade {
     NextalignOptions nextalignOptions;
   };
 
+  struct NucleotideSubstitutionSimple {
+    Nucleotide refNuc;
+    int pos;
+    Nucleotide queryNuc;
+  };
+
+  inline bool operator==(const NucleotideSubstitutionSimple& lhs, const NucleotideSubstitutionSimple& rhs) {
+    return lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc == rhs.queryNuc;
+  }
+
+  inline bool operator<(const NucleotideSubstitutionSimple& lhs, const NucleotideSubstitutionSimple& rhs) {
+    return (                                                                         //
+      lhs.pos < rhs.pos ||                                                           //
+      (lhs.pos == rhs.pos && lhs.refNuc < rhs.refNuc) ||                             //
+      (lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc < rhs.queryNuc)//
+    );
+  }
+
+  struct NucleotideDeletionSimple {
+    Nucleotide refNuc;
+    int pos;
+  };
+
   struct AminoacidSubstitution;
   struct AminoacidDeletion;
 
@@ -360,6 +383,9 @@ namespace Nextclade {
     int totalPcrPrimerChanges;
     int nearestNodeId;
     std::string clade;
+    std::vector<NucleotideSubstitutionSimple> privateSubstitutions;
+    std::vector<NucleotideDeletionSimple> privateDeletions;
+    double divergence;
     QcResult qc;
   };
 
@@ -520,6 +546,8 @@ namespace Nextclade {
   std::string serializeResults(const std::vector<AnalysisResult>& results);
 
   std::string formatRange(const Range& range);
+
+  std::string formatMutationSimple(const NucleotideSubstitutionSimple& mut);
 
   std::string formatMutation(const NucleotideSubstitution& mut);
 

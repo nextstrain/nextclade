@@ -18,6 +18,7 @@ enum class Nucleotide : char;
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
+  struct NucleotideSubstitutionSimple;
   struct NucleotideSubstitution;
   struct AminoacidSubstitution;
   struct AminoacidSubstitutionWithoutGene;
@@ -75,7 +76,7 @@ namespace Nextclade {
 
     void setNucleotideMutationsEmpty();
 
-    void setBranchAttrMutations(const std::map<std::string, std::vector<std::string>>& mutations);
+    void setBranchAttrNucMutations(const std::vector<NucleotideSubstitutionSimple>& mutations);
 
     std::optional<double> divergence() const;
 

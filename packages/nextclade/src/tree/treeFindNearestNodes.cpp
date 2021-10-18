@@ -2,13 +2,9 @@
 
 #include <nextclade/nextclade.h>
 
-#include <algorithm>
-
 #include "../analyze/isSequenced.h"
 #include "../utils/mapFind.h"
-#include "../utils/range.h"
 #include "../utils/safe_cast.h"
-#include "Tree.h"
 #include "TreeNode.h"
 
 
@@ -52,12 +48,12 @@ namespace Nextclade {
     return numMutNode + numMutSeq - 2 * shared_differences - shared_sites - undetermined_sites;
   }
 
-  struct ClosestMatchResult {
+  struct FindNearestNodeResult {
     int distance;
     TreeNode nearestNode;
   };
 
-  ClosestMatchResult treeFindNearestNodeRecursively(TreeNode& node, const AnalysisResult& analysisResult) {
+  FindNearestNodeResult treeFindNearestNodeRecursively(TreeNode& node, const AnalysisResult& analysisResult) {
     int distance = calculateDistance(node, analysisResult);
     TreeNode nearestNode = TreeNode{node};
 
@@ -73,59 +69,11 @@ namespace Nextclade {
   }
 
   /**
-   * Finds mutations that are present in the new sequence, but not present in the matching reference tree node
-   */
-  std::vector<NucleotideSubstitution> findPrivateMutations(const TreeNode& node, const AnalysisResult& seq,
-    const NucleotideSequence& rootSeq) {
-
-    const auto nodeSubstitutions = node.substitutions();
-    const auto& seqSubstitutions = seq.substitutions;
-
-    std::vector<NucleotideSubstitution> privateMutations;
-    for (const auto& seqSub : seqSubstitutions) {
-      const auto nodeSub = mapFind(nodeSubstitutions, seqSub.pos);
-      const auto isSharedMutation = (nodeSub && (*nodeSub == seqSub.queryNuc));
-      if (!isSharedMutation) {
-        privateMutations.push_back(seqSub);
-      }
-    }
-
-    std::set<int> mutatedPositions;
-    for (const auto& seqSub : seqSubstitutions) {
-      mutatedPositions.insert(seqSub.pos);
-    }
-
-    for (const auto& [pos, refNuc] : nodeSubstitutions) {
-      if (!has(mutatedPositions, pos) && isSequenced(pos, seq)) {
-        const auto& queryNuc = rootSeq[pos];
-        privateMutations.emplace_back(NucleotideSubstitution{
-          .refNuc = refNuc,
-          .pos = pos,
-          .queryNuc = queryNuc,
-          .pcrPrimersChanged = {},
-          .aaSubstitutions = {},
-        });
-      }
-    }
-
-    return privateMutations;
-  }
-
-  /**
    * For a given new sequence, finds a reference tree node that has the least distance metric
    * (as defined by `calculateDistance()`), as well as enumerates sequence's private mutations relative to that node
    */
-  TreeFindNearestNodesResult treeFindNearestNode(const AnalysisResult& analysisResult,
-    const NucleotideSequence& rootSeq, const Tree& tree) {
-
+  TreeNode treeFindNearestNode(const Tree& tree, const AnalysisResult& analysisResult) {
     auto root = tree.root();
-    const auto nearestNode = treeFindNearestNodeRecursively(root, analysisResult).nearestNode;
-    const auto privateMutations = findPrivateMutations(nearestNode, analysisResult, rootSeq);
-
-    return {
-      .nearestNodeId = nearestNode.id(),
-      .nearestNodeClade = nearestNode.clade(),
-      .privateMutations = privateMutations,
-    };
+    return treeFindNearestNodeRecursively(root, analysisResult).nearestNode;
   }
 }// namespace Nextclade

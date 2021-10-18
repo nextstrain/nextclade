@@ -11,12 +11,6 @@
 
 
 namespace Nextclade {
-  struct NucleotideSubstitutionSimple {
-    Nucleotide refNuc;
-    int pos;
-    Nucleotide queryNuc;
-  };
-
   struct AminoacidSubstitutionWithoutGene {
     Aminoacid refAa;
     int pos;

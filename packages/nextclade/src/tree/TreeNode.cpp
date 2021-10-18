@@ -291,17 +291,15 @@ namespace Nextclade {
       j[json_pointer{"/branch_attrs/mutations/nuc"}] = json::array();
     }
 
-    void setBranchAttrMutations(const std::map<std::string, std::vector<std::string>>& mutations) {
+    void setBranchAttrNucMutations(const std::vector<NucleotideSubstitutionSimple>& mutations) {
       auto mutObj = json::object();
 
-      for (const auto& [gene, muts] : mutations) {
-        if (!muts.empty()) {
-          if (!mutObj.contains(gene)) {
-            mutObj[gene] = json::array();
-          }
-          for (const auto& mut : muts) {
-            mutObj[gene].push_back(mut);
-          }
+      if (!mutations.empty()) {
+        if (!mutObj.contains("nuc")) {
+          mutObj["nuc"] = json::array();
+        }
+        for (const auto& mut : mutations) {
+          mutObj["nuc"].push_back(formatMutationSimple(mut));
         }
       }
 
@@ -311,13 +309,12 @@ namespace Nextclade {
     }
 
     std::optional<double> divergence() const {
-      //      ensureIsObject();
-      //      const auto div = j.value(json_pointer{"/node_attrs/div"}, json());
-      //      if (div.is_number()) {
-      //        return std::make_optional(div.get<double>());
-      //      }
-      //      return {};
-      return 0.0;
+      ensureIsObject();
+      const auto div = j.value(json_pointer{"/node_attrs/div"}, json());
+      if (div.is_number()) {
+        return std::make_optional(div.get<double>());
+      }
+      return {};
     }
 
     void setDivergence(double div) {
@@ -462,8 +459,8 @@ namespace Nextclade {
     pimpl->setNucleotideMutationsEmpty();
   }
 
-  void TreeNode::setBranchAttrMutations(const std::map<std::string, std::vector<std::string>>& mutations) {
-    pimpl->setBranchAttrMutations(mutations);
+  void TreeNode::setBranchAttrNucMutations(const std::vector<NucleotideSubstitutionSimple>& mutations) {
+    pimpl->setBranchAttrNucMutations(mutations);
   }
 
   std::optional<double> TreeNode::divergence() const {
