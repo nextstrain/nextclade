@@ -14,7 +14,7 @@ namespace Nextclade {
 
   PrivateMutations findPrivateNucMutations(     //
     const std::map<int, Nucleotide>& nodeMutMap,//
-    const AnalysisResult& query,                //
+    const AnalysisResult& seq,                //
     const NucleotideSequence& refSeq            //
   );
 }// namespace Nextclade
