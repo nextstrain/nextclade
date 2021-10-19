@@ -51,6 +51,24 @@ namespace Nextclade {
     return os;
   }
 
+  inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitutionSimple& val) {
+    os << "{ ";
+    os << "refNuc: " << nucToString(val.refNuc) << ", ";
+    os << "pos: " << val.pos << ", ";
+    os << "queryNuc: " << nucToString(val.queryNuc);
+    os << " }";
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const NucleotideDeletionSimple& val) {
+    os << "{ ";
+    os << "refNuc: " << nucToString(val.refNuc) << ", ";
+    os << "pos: " << val.pos;
+    os << " }";
+    return os;
+  }
+
+
   inline std::ostream& operator<<(std::ostream& os, const NucleotideInsertion& val) {
     os << "{ ";
     os << "pos: " << val.pos << ", ";

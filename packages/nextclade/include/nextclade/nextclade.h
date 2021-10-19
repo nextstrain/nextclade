@@ -184,6 +184,17 @@ namespace Nextclade {
     int pos;
   };
 
+  inline bool operator==(const NucleotideDeletionSimple& lhs, const NucleotideDeletionSimple& rhs) {
+    return lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc;
+  }
+
+  inline bool operator<(const NucleotideDeletionSimple& lhs, const NucleotideDeletionSimple& rhs) {
+    return (                                         //
+      lhs.pos < rhs.pos ||                           //
+      (lhs.pos == rhs.pos && lhs.refNuc < rhs.refNuc)//
+    );
+  }
+
   struct AminoacidSubstitution;
   struct AminoacidDeletion;
 

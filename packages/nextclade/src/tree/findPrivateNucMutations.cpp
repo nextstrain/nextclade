@@ -5,9 +5,10 @@
 #include <map>
 #include <vector>
 
-#include "analyze/isSequenced.h"
-#include "analyze/nucleotide.h"
-#include "utils/mapFind.h"
+#include "../analyze/isSequenced.h"
+#include "../analyze/nucleotide.h"
+#include "../utils/eraseDuplicates.h"
+#include "../utils/mapFind.h"
 
 namespace Nextclade {
   /**
@@ -22,14 +23,14 @@ namespace Nextclade {
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
    * |   |                          Case                                | Private |      From     |     To       |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
-   * | 1 | mutation in sequence and in node, same query character       |   no    |               |              |
+   * | 1 | mutation in sequence and in node, same query character       |   no    |      N/A      |     N/A      |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
    * | 2 | mutation in sequence and in node, but not the same character |   yes   | node.queryNuc | seq.queryNuc |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
    * | 3 | mutation in sequence but not in node                         |   yes   | seq.refNuc    | seq.queryNuc |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
    * | 4 | mutation in node, but not in sequence                        |   yes   | node.queryNuc | node.refNuc  |
-   * |   | (mutation in sequence that reverts the character to ref)     |         |               |              |
+   * |   | (mutation in sequence that reverts the character to ref seq) |         |               |              |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
    */
   PrivateMutations findPrivateNucMutations(     //
@@ -39,39 +40,38 @@ namespace Nextclade {
   ) {
 
     std::vector<NucleotideSubstitutionSimple> privateSubstitutions;
-    privateSubstitutions.reserve(seq.substitutions.size());
+    privateSubstitutions.reserve(seq.totalSubstitutions + nodeMutMap.size());
 
     std::vector<NucleotideDeletionSimple> privateDeletions;
-    privateDeletions.reserve(seq.deletions.size());
+    privateDeletions.reserve(seq.totalDeletions + nodeMutMap.size());
 
+    // Remember which positions we cover while iterating sequence mutations,
+    // to be able to skip them when we iterate over node mutations
     std::set<int> seqPositionsCovered;
 
-    for (const auto& qmut : seq.substitutions) {
-      const auto& pos = qmut.pos;
-      const auto& queryNuc = qmut.queryNuc;
+    // Process sequence substitutions
+    for (const auto& seqMut : seq.substitutions) {
+      const auto& pos = seqMut.pos;
+      const auto& nodeQueryNuc = mapFind(nodeMutMap, pos);
       seqPositionsCovered.insert(pos);
-      const auto der = mapFind(nodeMutMap, pos);
 
-      std::optional<Nucleotide> refNuc;
-      if (der) {
-        if (queryNuc != der) {
-          // shared site but states of node and seq differ
-          refNuc = der;
-        }
-      } else {
-        // node does not have a mutation, but seq does -> compare to root
-        refNuc = refSeq[pos];
+      if (!nodeQueryNuc) {
+        // Case 3: Mutation in sequence but not in node, i.e. a newly occurred mutation.
+        // Action: Add the sequence mutation itself.
+        privateSubstitutions.emplace_back(
+          NucleotideSubstitutionSimple{.refNuc = seqMut.refNuc, .pos = pos, .queryNuc = seqMut.queryNuc});
+      } else if (seqMut.queryNuc != nodeQueryNuc) {
+        // Case 2: Mutation in sequence and in node, but the query character is not the same.
+        // Action: Add mutation from node query character to sequence query character.
+        privateSubstitutions.emplace_back(
+          NucleotideSubstitutionSimple{.refNuc = *nodeQueryNuc, .pos = pos, .queryNuc = seqMut.queryNuc});
       }
 
-      if (refNuc) {
-        privateSubstitutions.push_back(NucleotideSubstitutionSimple{
-          .refNuc = *refNuc,
-          .pos = pos,
-          .queryNuc = queryNuc,
-        });
-      }
+      // Otherwise case 1: mutation in sequence and in node, same query character, i.e. the mutation is not private:
+      // nothing to do.
     }
 
+    // Process sequence deletions
     for (const auto& del : seq.deletions) {
       const auto& start = del.start;
       const auto& end = del.start + del.length;
@@ -80,37 +80,39 @@ namespace Nextclade {
         const auto& nodeQueryNuc = mapFind(nodeMutMap, pos);
         seqPositionsCovered.insert(pos);
 
-        std::optional<Nucleotide> refNuc;
-        if (nodeQueryNuc) {
-          if (isGap(*nodeQueryNuc)) {
-            // shared site but states of node and seq differ
-            refNuc = nodeQueryNuc;
-          }
+        if (!nodeQueryNuc) {
+          // Case 3: Deletion in sequence but not in node, i.e. a newly occurred deletion.
+          // Action: Add the sequence deletion itself (take refNuc from reference sequence).
+          const auto& refNuc = refSeq[pos];
+          privateDeletions.emplace_back(NucleotideDeletionSimple{.refNuc = refNuc, .pos = pos});
+        } else if (!isGap(*nodeQueryNuc)) {
+          // Case 2: Mutation in node but deletion in sequence (mutation to '-'), i.e. the query character is not the
+          // same. Action: Add deletion of node query character.
+          privateDeletions.emplace_back(NucleotideDeletionSimple{.refNuc = *nodeQueryNuc, .pos = pos});
+        }
+
+        // Otherwise case 1: mutation in sequence and in node, same query character, i.e. the mutation is not private:
+        // nothing to do.
+      }
+    }
+
+    // Process node substitutions and deletions
+    for (const auto& [pos, nodeQueryNuc] : nodeMutMap) {
+      if (!has(seqPositionsCovered, pos) && isSequenced(pos, seq) && nodeQueryNuc != Nucleotide::GAP) {
+        // Case 4: Mutation in node, but not in sequence, i.e. mutation in sequence reverts the character to ref seq.
+        // Action: Add mutation from node query character to character in reference sequence.
+        const auto& refNuc = refSeq[pos];
+        if (isGap(refNuc)) {
+          privateDeletions.emplace_back(NucleotideDeletionSimple{.refNuc = nodeQueryNuc, .pos = pos});
         } else {
-          // node does not have a mutation, but seq does -> compare to root
-          refNuc = refSeq[pos];
-        }
-
-        if (refNuc) {
-          privateDeletions.push_back(NucleotideDeletionSimple{
-            .refNuc = *refNuc,
-            .pos = pos,
-          });
+          privateSubstitutions.emplace_back(
+            NucleotideSubstitutionSimple{.refNuc = nodeQueryNuc, .pos = pos, .queryNuc = refNuc});
         }
       }
     }
 
-    for (const auto& [nodePos, nodeQueryNuc] : nodeMutMap) {
-      // mutation in node that is not present in sequence
-      if (!has(seqPositionsCovered, nodePos) && isSequenced(nodePos, seq) && nodeQueryNuc != Nucleotide::GAP) {
-        const auto& refNuc = refSeq[nodePos];
-        privateSubstitutions.push_back(NucleotideSubstitutionSimple{
-          .refNuc = nodeQueryNuc,
-          .pos = nodePos,
-          .queryNuc = refNuc,
-        });
-      }
-    }
+    eraseDuplicatesInPlace(privateSubstitutions);
+    eraseDuplicatesInPlace(privateDeletions);
 
     privateSubstitutions.shrink_to_fit();
     privateDeletions.shrink_to_fit();
