@@ -45,7 +45,8 @@ namespace Nextclade {
     newNode.setName(fmt::format("{}_new", result.seqName));
     newNode.setClade(result.clade);
     newNode.setNodeType("New");
-    newNode.setBranchAttrNucMutations(result.privateSubstitutions);
+    newNode.setBranchAttrNucMutations(result.privateNucMutations.privateSubstitutions);
+    newNode.setBranchAttrAaMutations(result.privateAaMutations);
     newNode.setDivergence(result.divergence);
     newNode.setNodeAttr("region", UNKNOWN_VALUE);
     newNode.setNodeAttr("country", UNKNOWN_VALUE);

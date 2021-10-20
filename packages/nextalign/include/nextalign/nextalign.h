@@ -320,6 +320,11 @@ NextalignOptions getDefaultOptions();
  */
 GeneMap parseGeneMapGff(std::istream& is, const std::string& name = "filestream");
 
+template<typename Letter>
+bool isGap(Letter nuc) {
+  return nuc == Letter::GAP;
+}
+
 class FastaStream {
 public:
   FastaStream() = default;

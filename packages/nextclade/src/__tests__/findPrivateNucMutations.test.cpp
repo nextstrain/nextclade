@@ -39,7 +39,7 @@ namespace {
       std::map<int, Nucleotide> result;
       for (const auto& mutStr : mutStrings) {
         auto sub = parseMutation(mutStr);
-        result[sub.pos] = sub.queryNuc;
+        result[sub.pos] = sub.qry;
       }
       return result;
     }
@@ -74,9 +74,9 @@ namespace {
       for (const auto& sub : substitutions) {
         const auto mut = parseMutation(sub);
         muts.emplace_back(NucleotideSubstitutionSimple{
-          .refNuc = mut.refNuc,
+          .ref = mut.ref,
           .pos = mut.pos,
-          .queryNuc = mut.queryNuc,
+          .qry = mut.qry,
         });
       }
       return muts;
@@ -87,7 +87,7 @@ namespace {
       for (const auto& sub : deletions) {
         const auto mut = parseMutation(sub);
         muts.emplace_back(NucleotideDeletionSimple{
-          .refNuc = mut.refNuc,
+          .ref = mut.ref,
           .pos = mut.pos,
         });
       }
@@ -196,7 +196,7 @@ TEST_F(FindPrivateNucMutations, NoMutationsInSeqSomeMutationsInNode) {
 }
 
 TEST_F(FindPrivateNucMutations, NoMutationsInSeqSomeDeletionsInNode) {
-  // This scenario is handle differently and I currently don't know why.
+  // This scenario is handled differently and I currently don't know why.
   //
   // No mutations in sequence, but 2 deletions in node. Deletions reverted back (inserted?) to what was in ref sequence.
   // Expected to find 2 insertions from node to ref sequence. The characters in reference sequence are as follows:

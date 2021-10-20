@@ -12,9 +12,9 @@
 
 namespace Nextclade {
   struct AminoacidSubstitutionWithoutGene {
-    Aminoacid refAa;
+    Aminoacid ref;
     int pos;
-    Aminoacid queryAa;
+    Aminoacid qry;
   };
 
   /** Maps a position to Nucleotide */
@@ -44,25 +44,25 @@ namespace Nextclade {
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {
     os << "{ ";
-    os << "refNuc: " << nucToString(val.refNuc) << ", ";
+    os << "refNuc: " << nucToString(val.ref) << ", ";
     os << "pos: " << val.pos << ", ";
-    os << "queryNuc: " << nucToString(val.queryNuc);
+    os << "queryNuc: " << nucToString(val.qry);
     os << " }";
     return os;
   }
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitutionSimple& val) {
     os << "{ ";
-    os << "refNuc: " << nucToString(val.refNuc) << ", ";
+    os << "refNuc: " << nucToString(val.ref) << ", ";
     os << "pos: " << val.pos << ", ";
-    os << "queryNuc: " << nucToString(val.queryNuc);
+    os << "queryNuc: " << nucToString(val.qry);
     os << " }";
     return os;
   }
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideDeletionSimple& val) {
     os << "{ ";
-    os << "refNuc: " << nucToString(val.refNuc) << ", ";
+    os << "refNuc: " << nucToString(val.ref) << ", ";
     os << "pos: " << val.pos;
     os << " }";
     return os;
@@ -112,9 +112,9 @@ namespace Nextclade {
   inline std::ostream& operator<<(std::ostream& os, const AminoacidSubstitution& val) {
     os << "{ ";
     os << "gene: \"" << val.gene << "\", ";
-    os << "refAA: " << val.refAA << ", ";
-    os << "queryAA: " << val.queryAA << ", ";
-    os << "codon: " << val.codon << ", ";
+    os << "refAA: " << val.ref << ", ";
+    os << "queryAA: " << val.qry << ", ";
+    os << "codon: " << val.pos << ", ";
     os << "codonNucRange: " << val.codonNucRange << ", ";
     os << "refContext: " << val.refContext << ", ";
     os << "queryContext: " << val.queryContext << ", ";
@@ -126,8 +126,8 @@ namespace Nextclade {
   inline std::ostream& operator<<(std::ostream& os, const AminoacidDeletion& val) {
     os << "{ ";
     os << "gene: \"" << val.gene << "\", ";
-    os << "refAA: " << val.refAA << ", ";
-    os << "codon: " << val.codon << ", ";
+    os << "refAA: " << val.ref << ", ";
+    os << "codon: " << val.pos << ", ";
     os << "codonNucRange: " << val.codonNucRange << ", ";
     os << "refContext: " << val.refContext << ", ";
     os << "contextNucRange: " << val.contextNucRange;

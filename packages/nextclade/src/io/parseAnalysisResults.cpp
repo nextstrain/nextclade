@@ -60,9 +60,9 @@ namespace Nextclade {
   AminoacidSubstitution parseAminoacidSubstitution(const json& j) {
     return AminoacidSubstitution{
       .gene = at(j, "gene"),
-      .refAA = stringToAa(at(j, "refAA")),
-      .codon = at(j, "codon").get<int>(),
-      .queryAA = stringToAa(at(j, "queryAA")),
+      .ref = stringToAa(at(j, "refAA")),
+      .pos = at(j, "codon").get<int>(),
+      .qry = stringToAa(at(j, "queryAA")),
       .codonNucRange = parseRange(at(j, "codonNucRange")),
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
@@ -73,8 +73,8 @@ namespace Nextclade {
   AminoacidDeletion parseAminoacidDeletion(const json& j) {
     return AminoacidDeletion{
       .gene = at(j, "gene"),
-      .refAA = stringToAa(at(j, "refAA")),
-      .codon = at(j, "codon").get<int>(),
+      .ref = stringToAa(at(j, "refAA")),
+      .pos = at(j, "codon").get<int>(),
       .codonNucRange = parseRange(at(j, "codonNucRange")),
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
@@ -95,9 +95,9 @@ namespace Nextclade {
 
   NucleotideSubstitution parseNucleotideSubstitution(const json& j) {
     return NucleotideSubstitution{
-      .refNuc = stringToNuc(at(j, "refNuc")),
+      .ref = stringToNuc(at(j, "refNuc")),
       .pos = at(j, "pos").get<int>(),
-      .queryNuc = stringToNuc(at(j, "queryNuc")),
+      .qry = stringToNuc(at(j, "queryNuc")),
       .pcrPrimersChanged = parseArray<PcrPrimer>(j, "pcrPrimersChanged", parsePcrPrimer),
       .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
       .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),

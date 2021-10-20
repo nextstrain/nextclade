@@ -79,9 +79,9 @@ namespace Nextclade {
     const auto& queryNuc = parseNucleotide(queryNucStr);
 
     return NucleotideSubstitution{
-      .refNuc = refNuc,
+      .ref = refNuc,
       .pos = pos,
-      .queryNuc = queryNuc,
+      .qry = queryNuc,
       .pcrPrimersChanged = {},
       .aaSubstitutions = {},
       .aaDeletions = {},
@@ -114,9 +114,9 @@ namespace Nextclade {
     const auto& queryAa = parseAminoacid(queryAaStr);
 
     return AminoacidSubstitutionWithoutGene{
-      .refAa = refAa,
+      .ref = refAa,
       .pos = pos,
-      .queryAa = queryAa,
+      .qry = queryAa,
     };
   }
 

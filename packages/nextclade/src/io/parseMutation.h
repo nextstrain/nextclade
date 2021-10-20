@@ -1,12 +1,12 @@
 #pragma once
 
 #include <nextalign/nextalign.h>
+#include <nextclade/nextclade.h>
 
 #include <stdexcept>
 #include <string>
 
 namespace Nextclade {
-  struct NucleotideSubstitution;
   struct AminoacidSubstitutionWithoutGene;
 
   class ErrorParseMutationInvalidPosition : public ErrorNonFatal {

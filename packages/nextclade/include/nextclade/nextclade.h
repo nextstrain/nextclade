@@ -161,76 +161,50 @@ namespace Nextclade {
     NextalignOptions nextalignOptions;
   };
 
-  struct NucleotideSubstitutionSimple {
-    Nucleotide refNuc;
+  template<typename Letter>
+  struct SubstitutionSimple {
+    Letter ref;
     int pos;
-    Nucleotide queryNuc;
+    Letter qry;
   };
 
-  inline bool operator==(const NucleotideSubstitutionSimple& lhs, const NucleotideSubstitutionSimple& rhs) {
-    return lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc == rhs.queryNuc;
-  }
-
-  inline bool operator<(const NucleotideSubstitutionSimple& lhs, const NucleotideSubstitutionSimple& rhs) {
-    return (                                                                         //
-      lhs.pos < rhs.pos ||                                                           //
-      (lhs.pos == rhs.pos && lhs.refNuc < rhs.refNuc) ||                             //
-      (lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc < rhs.queryNuc)//
-    );
-  }
-
-  struct NucleotideDeletionSimple {
-    Nucleotide refNuc;
+  template<typename Letter>
+  struct DeletionSimple {
+    Letter ref;
     int pos;
   };
 
-  inline bool operator==(const NucleotideDeletionSimple& lhs, const NucleotideDeletionSimple& rhs) {
-    return lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc;
+  using NucleotideSubstitutionSimple = SubstitutionSimple<Nucleotide>;
+  using NucleotideDeletionSimple = DeletionSimple<Nucleotide>;
+  using AminoacidSubstitutionSimple = SubstitutionSimple<Aminoacid>;
+  using AminoacidDeletionSimple = DeletionSimple<Aminoacid>;
+
+  template<typename Letter>
+  inline bool operator==(const SubstitutionSimple<Letter>& lhs, const SubstitutionSimple<Letter>& rhs) {
+    return lhs.pos == rhs.pos && lhs.ref == rhs.ref && lhs.qry == rhs.qry;
   }
 
-  inline bool operator<(const NucleotideDeletionSimple& lhs, const NucleotideDeletionSimple& rhs) {
-    return (                                         //
-      lhs.pos < rhs.pos ||                           //
-      (lhs.pos == rhs.pos && lhs.refNuc < rhs.refNuc)//
+  template<typename Letter>
+  inline bool operator<(const SubstitutionSimple<Letter>& lhs, const SubstitutionSimple<Letter>& rhs) {
+    return (                                                         //
+      lhs.pos < rhs.pos ||                                           //
+      (lhs.pos == rhs.pos && lhs.ref < rhs.ref) ||                   //
+      (lhs.pos == rhs.pos && lhs.ref == rhs.ref && lhs.qry < rhs.qry)//
     );
   }
 
-  struct AminoacidSubstitution;
-  struct AminoacidDeletion;
-
-  struct NucleotideSubstitution {
-    Nucleotide refNuc;
-    int pos;
-    Nucleotide queryNuc;
-    std::vector<PcrPrimer> pcrPrimersChanged;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
-  };
-
-  inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
-    return lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc == rhs.queryNuc;
+  template<typename Letter>
+  inline bool operator==(const DeletionSimple<Letter>& lhs, const DeletionSimple<Letter>& rhs) {
+    return lhs.pos == rhs.pos && lhs.ref == rhs.ref;
   }
 
-  inline bool operator<(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
-    return (                                                                         //
-      lhs.pos < rhs.pos ||                                                           //
-      (lhs.pos == rhs.pos && lhs.refNuc < rhs.refNuc) ||                             //
-      (lhs.pos == rhs.pos && lhs.refNuc == rhs.refNuc && lhs.queryNuc < rhs.queryNuc)//
+  template<typename Letter>
+  inline bool operator<(const DeletionSimple<Letter>& lhs, const DeletionSimple<Letter>& rhs) {
+    return (                                   //
+      lhs.pos < rhs.pos ||                     //
+      (lhs.pos == rhs.pos && lhs.ref < rhs.ref)//
     );
   }
-
-  struct NucleotideDeletion {
-    int start;
-    int length;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
-  };
-
-  inline bool operator==(const NucleotideDeletion& lhs, const NucleotideDeletion& rhs) {
-    return lhs.start == rhs.start && lhs.length == rhs.length;
-  }
-
-  using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
   template<typename Letter>
   struct CharacterRange {
@@ -268,11 +242,60 @@ namespace Nextclade {
     );
   }
 
-  struct AminoacidSubstitution {
+
+  template<typename Letter>
+  struct Substitution {};
+
+  template<typename Letter>
+  struct Deletion {};
+
+  using NucleotideDeletion = Deletion<Nucleotide>;
+  using NucleotideSubstitution = Substitution<Nucleotide>;
+  using AminoacidSubstitution = Substitution<Aminoacid>;
+  using AminoacidDeletion = Deletion<Aminoacid>;
+
+  template<>
+  struct Substitution<Nucleotide> {
+    Nucleotide ref;
+    int pos;
+    Nucleotide qry;
+    std::vector<PcrPrimer> pcrPrimersChanged;
+    std::vector<AminoacidSubstitution> aaSubstitutions;
+    std::vector<AminoacidDeletion> aaDeletions;
+  };
+
+  inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
+    return lhs.pos == rhs.pos && lhs.ref == rhs.ref && lhs.qry == rhs.qry;
+  }
+
+  inline bool operator<(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
+    return (                                                         //
+      lhs.pos < rhs.pos ||                                           //
+      (lhs.pos == rhs.pos && lhs.ref < rhs.ref) ||                   //
+      (lhs.pos == rhs.pos && lhs.ref == rhs.ref && lhs.qry < rhs.qry)//
+    );
+  }
+
+  template<>
+  struct Deletion<Nucleotide> {
+    int start;
+    int length;
+    std::vector<AminoacidSubstitution> aaSubstitutions;
+    std::vector<AminoacidDeletion> aaDeletions;
+  };
+
+  inline bool operator==(const NucleotideDeletion& lhs, const NucleotideDeletion& rhs) {
+    return lhs.start == rhs.start && lhs.length == rhs.length;
+  }
+
+  using NucleotideInsertion = InsertionInternal<Nucleotide>;
+
+  template<>
+  struct Substitution<Aminoacid> {
     std::string gene;
-    Aminoacid refAA;
-    int codon;
-    Aminoacid queryAA;
+    Aminoacid ref;
+    int pos;
+    Aminoacid qry;
     Range codonNucRange;
     NucleotideSequence refContext;
     NucleotideSequence queryContext;
@@ -284,9 +307,9 @@ namespace Nextclade {
   inline bool operator==(const AminoacidSubstitution& left, const AminoacidSubstitution& right) {
     return (                                       //
       left.gene == right.gene &&                   //
-      left.refAA == right.refAA &&                 //
-      left.codon == right.codon &&                 //
-      left.queryAA == right.queryAA &&             //
+      left.ref == right.ref &&                     //
+      left.pos == right.pos &&                     //
+      left.qry == right.qry &&                     //
       left.codonNucRange == right.codonNucRange && //
       left.refContext == right.refContext &&       //
       left.queryContext == right.queryContext &&   //
@@ -295,16 +318,17 @@ namespace Nextclade {
   }
 
   inline bool operator<(const AminoacidSubstitution& left, const AminoacidSubstitution& right) {
-    return (                                               //
-      left.gene < right.gene ||                            //
-      (left.gene == right.gene && left.codon < right.codon)//
+    return (                                           //
+      left.gene < right.gene ||                        //
+      (left.gene == right.gene && left.pos < right.pos)//
     );
   }
 
-  struct AminoacidDeletion {
+  template<>
+  struct Deletion<Aminoacid> {
     std::string gene;
-    Aminoacid refAA;
-    int codon;
+    Aminoacid ref;
+    int pos;
     Range codonNucRange;
     NucleotideSequence refContext;
     NucleotideSequence queryContext;
@@ -316,8 +340,8 @@ namespace Nextclade {
   inline bool operator==(const AminoacidDeletion& left, const AminoacidDeletion& right) {
     return (                                       //
       left.gene == right.gene &&                   //
-      left.refAA == right.refAA &&                 //
-      left.codon == right.codon &&                 //
+      left.ref == right.ref &&                     //
+      left.pos == right.pos &&                     //
       left.codonNucRange == right.codonNucRange && //
       left.refContext == right.refContext &&       //
       left.queryContext == right.queryContext &&   //
@@ -326,11 +350,21 @@ namespace Nextclade {
   }
 
   inline bool operator<(const AminoacidDeletion& left, const AminoacidDeletion& right) {
-    return (                                               //
-      left.gene < right.gene ||                            //
-      (left.gene == right.gene && left.codon < right.codon)//
+    return (                                           //
+      left.gene < right.gene ||                        //
+      (left.gene == right.gene && left.pos < right.pos)//
     );
   }
+
+  template<typename Letter>
+  struct PrivateMutations {
+    std::vector<SubstitutionSimple<Letter>> privateSubstitutions;
+    std::vector<DeletionSimple<Letter>> privateDeletions;
+  };
+
+  using PrivateNucleotideMutations = PrivateMutations<Nucleotide>;
+  using PrivateAminoacidMutations = PrivateMutations<Aminoacid>;
+
 
   struct PcrPrimerCsvRow {
     /* 1 */ std::string source;
@@ -394,8 +428,8 @@ namespace Nextclade {
     int totalPcrPrimerChanges;
     int nearestNodeId;
     std::string clade;
-    std::vector<NucleotideSubstitutionSimple> privateSubstitutions;
-    std::vector<NucleotideDeletionSimple> privateDeletions;
+    PrivateNucleotideMutations privateNucMutations;
+    std::map<std::string, PrivateAminoacidMutations> privateAaMutations;
     double divergence;
     QcResult qc;
   };
@@ -559,6 +593,10 @@ namespace Nextclade {
   std::string formatRange(const Range& range);
 
   std::string formatMutationSimple(const NucleotideSubstitutionSimple& mut);
+
+  std::string formatAminoacidMutationSimpleWithoutGene(const AminoacidSubstitutionSimple& mut);
+
+  std::string formatAminoacidDeletionSimpleWithoutGene(const AminoacidDeletionSimple& del);
 
   std::string formatMutation(const NucleotideSubstitution& mut);
 

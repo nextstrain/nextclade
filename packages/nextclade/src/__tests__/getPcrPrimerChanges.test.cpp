@@ -19,7 +19,7 @@ namespace {
   NucleotideSubstitution makeMutation(int pos, char query) {
     return {
       .pos = pos,
-      .queryNuc = toNucleotide(query),
+      .qry = toNucleotide(query),
     };
   }
 

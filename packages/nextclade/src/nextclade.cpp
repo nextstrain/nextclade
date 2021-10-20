@@ -111,8 +111,8 @@ namespace Nextclade {
       // NOTE: these fields are not properly initialized here. They must be initialized below.
       .nearestNodeId = 0,
       .clade = "",
-      .privateSubstitutions = {},
-      .privateDeletions = {},
+      .privateNucMutations = {},
+      .privateAaMutations = {},
       .divergence = 0.0,
       .qc = {},
     };
@@ -122,9 +122,9 @@ namespace Nextclade {
     analysisResult.nearestNodeId = nearestNode.id();
     analysisResult.clade = nearestNode.clade();
 
-    auto privateNucMutationsResult = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
-    analysisResult.privateSubstitutions = privateNucMutationsResult.privateSubstitutions;
-    analysisResult.privateDeletions = privateNucMutationsResult.privateDeletions;
+    analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
+
+    analysisResult.privateAaMutations = findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides);
 
     analysisResult.divergence =
       calculateDivergence(nearestNode, analysisResult, tree.tmpDivergenceUnits(), safe_cast<int>(ref.size()));

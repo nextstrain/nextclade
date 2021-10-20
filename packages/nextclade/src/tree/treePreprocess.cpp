@@ -21,7 +21,7 @@ namespace Nextclade {
             fmt::format(                                                         //
               "When attaching mutations: Mutation is inconsistent: \"{}\": "     //
               "current nucleotide: \"{}\", previously seen: \"{}\"",             //
-              formatMutation(mut), nucToString(mut.refNuc), nucToString(previous)//
+              formatMutation(mut), nucToString(mut.ref), nucToString(previous)//
               )                                                                  //
           ) {}
   };
@@ -71,15 +71,15 @@ namespace Nextclade {
     const auto nucleotideMutations = node.nucleotideMutations();
     for (const auto& mut : nucleotideMutations) {
       const auto& previousNuc = mapFind(mutationMap, mut.pos);
-      if (previousNuc.has_value() && (*previousNuc != mut.refNuc)) {
+      if (previousNuc.has_value() && (*previousNuc != mut.ref)) {
         throw ErrorAttachMutationsInconsistentMutation(mut, *previousNuc);
       }
 
       // If mutation reverts nucleotide back to what reference had, remove it from the map
-      if (at(rootSeq, mut.pos) == mut.queryNuc) {
+      if (at(rootSeq, mut.pos) == mut.qry) {
         mutationMap.erase(mut.pos);
       } else {
-        mutationMap[mut.pos] = mut.queryNuc;// NOTE: make sure the entry is overwritten
+        mutationMap[mut.pos] = mut.qry;// NOTE: make sure the entry is overwritten
       }
     }
 
@@ -102,7 +102,7 @@ namespace Nextclade {
         }
         const auto& previousAa = mapFind(previousMap.value(), mut.pos);
 
-        if (previousAa.has_value() && (*previousAa != mut.refAa)) {
+        if (previousAa.has_value() && (*previousAa != mut.ref)) {
           continue;
         }
 
@@ -112,10 +112,10 @@ namespace Nextclade {
         }
 
         // If mutation reverts aminoacid back to what reference had, remove it from the map
-        if (at(refPeptide->peptide, mut.pos) == mut.queryAa) {
+        if (at(refPeptide->peptide, mut.pos) == mut.qry) {
           mutationMap[geneName].erase(mut.pos);
         } else {
-          mutationMap[geneName][mut.pos] = mut.queryAa;// NOTE: make sure the entry is overwritten
+          mutationMap[geneName][mut.pos] = mut.qry;// NOTE: make sure the entry is overwritten
         }
       }
     }

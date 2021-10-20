@@ -23,7 +23,7 @@ namespace Nextclade {
       const auto der = mapFind(nodeSubstitutions, qmut.pos);
       if (der) {
         // position is also mutated in node
-        if (qmut.queryNuc == *der) {
+        if (qmut.qry == *der) {
           shared_differences += 1;// the exact mutation is shared between node and seq
         } else {
           shared_sites += 1;// the same position is mutated, but the states are different

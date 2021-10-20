@@ -5,7 +5,6 @@
 
 namespace Nextclade {
   struct AnalysisResult;
-  struct NucleotideSubstitution;
   struct QcResultPrivateMutations;
   struct QCRulesConfigPrivateMutations;
 

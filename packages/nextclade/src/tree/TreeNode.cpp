@@ -1,6 +1,7 @@
 #include "TreeNode.h"
 
 #include <fmt/format.h>
+#include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
 
@@ -34,6 +35,19 @@ namespace Nextclade {
       }
 
       return toNucleotide(nucStr[0]);
+    }
+
+    Aminoacid parseAminoacid(const json& aaJsonStr) {
+      if (!aaJsonStr.is_string()) {
+        throw ErrorTreeNodeMutationAminoacidInvalid(aaJsonStr);
+      }
+
+      const auto aaStr = aaJsonStr.get<std::string>();
+      if (aaStr.size() != 1) {
+        throw ErrorTreeNodeMutationAminoacidInvalid(aaStr);
+      }
+
+      return charToAa(aaStr[0]);
     }
   }// namespace
 
@@ -158,15 +172,15 @@ namespace Nextclade {
 
       const auto path = json_pointer{fmt::format("/tmp/{}", what)};
       const auto& substitutionsObject = j[path];
-      std::map<int, Nucleotide> substitutions;
+      std::map<int, Nucleotide> result;
       if (substitutionsObject.is_object()) {
         for (const auto& [posStr, nucJsonStr] : substitutionsObject.items()) {
           const auto pos = parsePosition(posStr);
           const auto nuc = parseNucleotide(nucJsonStr);
-          substitutions.insert({pos, nuc});
+          result.insert({pos, nuc});
         }
       }
-      return substitutions;
+      return result;
     }
 
     std::map<int, Nucleotide> substitutions() const {
@@ -177,6 +191,36 @@ namespace Nextclade {
     std::map<int, Nucleotide> mutations() const {
       ensureIsObject();
       return getMutationsOrSubstitutions("mutations");
+    }
+
+    std::map<std::string, std::map<int, Aminoacid>> getAaMutationsOrSubstitutions(const std::string& what) const {
+      ensureIsObject();
+
+      const auto path = json_pointer{fmt::format("/tmp/{}", what)};
+      const auto& aaMutsObj = j[path];
+      std::map<std::string, std::map<int, Aminoacid>> result;
+      if (aaMutsObj.is_object()) {
+        for (const auto& [geneName, aaMutsForGeneObj] : aaMutsObj.items()) {
+          if (!aaMutsForGeneObj.is_object()) {
+            continue;
+          }
+
+          for (const auto& [posStr, aaJsonStr] : aaMutsForGeneObj.items()) {
+            const auto pos = parsePosition(posStr);
+            const auto aa = parseAminoacid(aaJsonStr);
+            result[geneName][pos] = aa;
+          }
+        }
+      }
+      return result;
+    }
+
+    std::map<std::string, std::map<int, Aminoacid>> aaSubstitutions() const {
+      return getAaMutationsOrSubstitutions("aaSubstitutions");
+    }
+
+    std::map<std::string, std::map<int, Aminoacid>> aaMutations() const {
+      return getAaMutationsOrSubstitutions("aaMutations");
     }
 
     void setMutationsOrSubstitutions(const std::string& what, const std::map<int, Nucleotide>& data) {
@@ -308,6 +352,33 @@ namespace Nextclade {
       }
     }
 
+    void setBranchAttrAaMutations(const std::map<std::string, PrivateAminoacidMutations>& aaMutations) {
+      auto mutObj = json::object();
+
+      if (aaMutations.empty()) {
+        return;
+      }
+
+      for (const auto& [geneName, aaMutationsForGene] : aaMutations) {
+        if (!mutObj.contains(geneName)) {
+          mutObj[geneName] = json::array();
+        }
+
+        for (const auto& mut : aaMutationsForGene.privateSubstitutions) {
+          mutObj[geneName].push_back(formatAminoacidMutationSimpleWithoutGene(mut));
+        }
+
+        for (const auto& mut : aaMutationsForGene.privateDeletions) {
+          mutObj[geneName].push_back(formatAminoacidDeletionSimpleWithoutGene(mut));
+        }
+      }
+
+      if (!mutObj.empty()) {
+        j[json_pointer{"/branch_attrs/mutations"}] = std::move(mutObj);
+      }
+    }
+
+
     std::optional<double> divergence() const {
       ensureIsObject();
       const auto div = j.value(json_pointer{"/node_attrs/div"}, json());
@@ -431,6 +502,14 @@ namespace Nextclade {
     return pimpl->mutations();
   }
 
+  std::map<std::string, std::map<int, Aminoacid>> TreeNode::aaSubstitutions() const {
+    return pimpl->aaSubstitutions();
+  }
+
+  std::map<std::string, std::map<int, Aminoacid>> TreeNode::aaMutations() const {
+    return pimpl->aaMutations();
+  }
+
   std::vector<NucleotideSubstitution> TreeNode::nucleotideMutations() const {
     return pimpl->nucleotideMutations();
   }
@@ -461,6 +540,10 @@ namespace Nextclade {
 
   void TreeNode::setBranchAttrNucMutations(const std::vector<NucleotideSubstitutionSimple>& mutations) {
     pimpl->setBranchAttrNucMutations(mutations);
+  }
+
+  void TreeNode::setBranchAttrAaMutations(const std::map<std::string, PrivateAminoacidMutations>& aaMutations) {
+    pimpl->setBranchAttrAaMutations(aaMutations);
   }
 
   std::optional<double> TreeNode::divergence() const {
@@ -535,6 +618,13 @@ namespace Nextclade {
   ErrorTreeNodeMutationNucleotideInvalid::ErrorTreeNodeMutationNucleotideInvalid(const json& node)
       : ErrorFatal(fmt::format(
           "When accessing Tree Node Mutation nucleotide: the nucleotide is invalid: \"{}\". This is an internal "
+          "issue. Please report this to developers, providing data and parameters you used, in order to replicate "
+          "the error.",
+          node.dump())) {}
+
+  ErrorTreeNodeMutationAminoacidInvalid::ErrorTreeNodeMutationAminoacidInvalid(const json& node)
+      : ErrorFatal(fmt::format(
+          "When accessing Tree Node Mutation aminoacid: the aminoacid is invalid: \"{}\". This is an internal "
           "issue. Please report this to developers, providing data and parameters you used, in order to replicate "
           "the error.",
           node.dump())) {}

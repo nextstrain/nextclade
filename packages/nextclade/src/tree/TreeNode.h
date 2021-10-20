@@ -5,6 +5,7 @@
 // clang-format on
 
 #include <nextalign/nextalign.h>
+#include <nextclade/nextclade.h>
 
 #include <functional>
 #include <map>
@@ -18,9 +19,6 @@ enum class Nucleotide : char;
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
-  struct NucleotideSubstitutionSimple;
-  struct NucleotideSubstitution;
-  struct AminoacidSubstitution;
   struct AminoacidSubstitutionWithoutGene;
   class TreeNodeImpl;
 
@@ -62,6 +60,10 @@ namespace Nextclade {
 
     std::map<int, Nucleotide> mutations() const;
 
+    std::map<std::string, std::map<int, Aminoacid>> aaSubstitutions() const;
+
+    std::map<std::string, std::map<int, Aminoacid>> aaMutations() const;
+
     std::vector<NucleotideSubstitution> nucleotideMutations() const;
 
     std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> aminoacidMutations() const;
@@ -77,6 +79,8 @@ namespace Nextclade {
     void setNucleotideMutationsEmpty();
 
     void setBranchAttrNucMutations(const std::vector<NucleotideSubstitutionSimple>& mutations);
+
+    void setBranchAttrAaMutations(const std::map<std::string, PrivateAminoacidMutations>& aaMutations);
 
     std::optional<double> divergence() const;
 
@@ -116,6 +120,11 @@ namespace Nextclade {
   class ErrorTreeNodeMutationNucleotideInvalid : public ErrorFatal {
   public:
     explicit ErrorTreeNodeMutationNucleotideInvalid(const json& node);
+  };
+
+  class ErrorTreeNodeMutationAminoacidInvalid : public ErrorFatal {
+  public:
+    explicit ErrorTreeNodeMutationAminoacidInvalid(const json& node);
   };
 
   class ErrorTreeNodeIdInvalid : public ErrorFatal {

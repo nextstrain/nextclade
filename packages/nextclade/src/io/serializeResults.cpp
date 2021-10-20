@@ -84,9 +84,9 @@ namespace Nextclade {
 
     json serializeMutation(const NucleotideSubstitution& mut) {
       auto j = json::object();
-      j.emplace("refNuc", nucToString(mut.refNuc));
+      j.emplace("refNuc", nucToString(mut.ref));
       j.emplace("pos", mut.pos);
-      j.emplace("queryNuc", nucToString(mut.queryNuc));
+      j.emplace("queryNuc", nucToString(mut.qry));
       j.emplace("aaSubstitutions", serializeArray(mut.aaSubstitutions, serializeAminoacidMutation));
       j.emplace("aaDeletions", serializeArray(mut.aaDeletions, serializeAminoacidDeletion));
       j.emplace("pcrPrimersChanged", serializePcrPrimers(mut.pcrPrimersChanged));
@@ -152,9 +152,9 @@ namespace Nextclade {
     json serializeAminoacidMutation(const AminoacidSubstitution& mut) {
       auto j = json::object();
       j.emplace("gene", mut.gene);
-      j.emplace("refAA", aaToString(mut.refAA));
-      j.emplace("codon", mut.codon);
-      j.emplace("queryAA", aaToString(mut.queryAA));
+      j.emplace("refAA", aaToString(mut.ref));
+      j.emplace("codon", mut.pos);
+      j.emplace("queryAA", aaToString(mut.qry));
       j.emplace("codonNucRange", serializeRange(mut.codonNucRange));
       j.emplace("refContext", toString(mut.refContext));
       j.emplace("queryContext", toString(mut.queryContext));
@@ -167,8 +167,8 @@ namespace Nextclade {
     json serializeAminoacidDeletion(const AminoacidDeletion& del) {
       auto j = json::object();
       j.emplace("gene", del.gene);
-      j.emplace("refAA", aaToString(del.refAA));
-      j.emplace("codon", del.codon);
+      j.emplace("refAA", aaToString(del.ref));
+      j.emplace("codon", del.pos);
       j.emplace("codonNucRange", serializeRange(del.codonNucRange));
       j.emplace("refContext", toString(del.refContext));
       j.emplace("queryContext", toString(del.queryContext));
