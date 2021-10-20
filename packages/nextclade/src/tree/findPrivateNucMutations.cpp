@@ -171,11 +171,11 @@ namespace Nextclade {
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
    * | 1 | mutation in sequence and in node, same query character       |   no    |      N/A      |     N/A      |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
-   * | 2 | mutation in sequence and in node, but not the same character |   yes   | node.qry | seq.qry |
+   * | 2 | mutation in sequence and in node, but not the same character |   yes   |    node.qry   |   seq.qry    |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
-   * | 3 | mutation in sequence but not in node                         |   yes   | seq.ref    | seq.qry |
+   * | 3 | mutation in sequence but not in node                         |   yes   |    seq.ref    |   seq.qry    |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
-   * | 4 | mutation in node, but not in sequence                        |   yes   | node.qry | node.ref  |
+   * | 4 | mutation in node, but not in sequence                        |   yes   |    node.qry   |   node.ref   |
    * |   | (mutation in sequence that reverts the character to ref seq) |         |               |              |
    * |---|--------------------------------------------------------------|---------|---------------|--------------|
    */
