@@ -121,6 +121,32 @@ namespace Nextclade {
     };
   }
 
+  template<typename Letter>
+  SubstitutionSimple<Letter> parseSubstitutionSimple(const json& j) {
+    return SubstitutionSimple<Letter>{
+      .ref = stringToLetter<Letter>(at(j, "ref"), LetterTag<Letter>{}),
+      .pos = at(j, "pos").get<int>(),
+      .qry = stringToLetter<Letter>(at(j, "qry"), LetterTag<Letter>{}),
+    };
+  }
+
+  template<typename Letter>
+  DeletionSimple<Letter> parseDeletionSimple(const json& j) {
+    return DeletionSimple<Letter>{
+      .ref = stringToLetter(at(j, "ref"), LetterTag<Letter>{}),
+      .pos = at(j, "pos").get<int>(),
+    };
+  }
+
+  template<typename Letter>
+  PrivateMutations<Letter> parsePrivateMutations(const json& j) {
+    return PrivateMutations<Letter>{
+      .privateSubstitutions =
+        parseArray<SubstitutionSimple<Letter>>(j, "privateSubstitutions", parseSubstitutionSimple<Letter>),
+      .privateDeletions = parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
+    };
+  }
+
   Range parseFrameShiftRange(const json& j) {
     return Range{
       .begin = at(j, "begin").get<int>(),
@@ -338,6 +364,10 @@ namespace Nextclade {
         .totalPcrPrimerChanges = at(j, "totalPcrPrimerChanges"),
         .nearestNodeId = at(j, "nearestNodeId"),
         .clade = at(j, "clade"),
+        .privateNucMutations = parsePrivateMutations<Nucleotide>(at(j, "privateNucMutations")),
+        .privateAaMutations =
+          parseMap<std::string, PrivateAminoacidMutations>(j, "privateAaMutations", parsePrivateMutations<Aminoacid>),
+        .divergence = at(j, "divergence"),
         .qc = parseQcResult(at(j, "qc")),
       };
     } catch (const std::exception& e) {

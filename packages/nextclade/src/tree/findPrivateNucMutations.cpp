@@ -14,9 +14,6 @@
 
 namespace Nextclade {
   template<typename Letter>
-  struct LetterTag {};
-
-  template<typename Letter>
   bool isSequencedGeneric(int pos, const AnalysisResult& seq, LetterTag<Letter>);
 
   template<>

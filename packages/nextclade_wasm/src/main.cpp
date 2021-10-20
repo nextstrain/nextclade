@@ -68,9 +68,6 @@ NextcladeWasmState makeNextcladeWasmState(//
 ) {
   auto ref = toNucleotideSequence(refStr);
 
-  Nextclade::Tree tree{treeStr};
-  Nextclade::treePreprocess(tree, ref);
-
   auto geneMap = Nextclade::parseGeneMap(geneMapStr);
   auto qcRulesConfig = wrappedParseQcConfig(qcConfigStr, "'makeNextcladeWasmState'");
   auto pcrPrimerRows = Nextclade::parsePcrPrimerCsvRowsStr(pcrPrimerRowsStr);
@@ -83,6 +80,9 @@ NextcladeWasmState makeNextcladeWasmState(//
 
   auto refPeptides = translateGenesRef(ref, geneMap, nextalignOptions);
   auto refPeptidesArr = Nextclade::getRefPeptidesArray(refPeptides);
+
+  Nextclade::Tree tree{treeStr};
+  Nextclade::treePreprocess(tree, ref, refPeptides);
 
   return NextcladeWasmState{
     .nextalignOptions = nextalignOptions,
@@ -182,6 +182,10 @@ public:
       };
     }
   }
+
+  std::string getTree() const {
+    return state.tree.serialize(0);
+  }
 };
 
 AlgorithmInput parseRefSequence(const std::string& refFastaStr, const std::string& refFastaName) {
@@ -228,21 +232,12 @@ std::string parseTree(const std::string& treeStr) {
   return tree.serialize(0);
 }
 
-std::string treePrepare(const std::string& treeStr, const std::string& refStr) {
-  const auto ref = toNucleotideSequence(refStr);
-  auto tree = Nextclade::Tree{treeStr};
-  Nextclade::treePreprocess(tree, ref);
-  return tree.serialize(0);
-}
-
 std::string treeFinalize(const std::string& treeStr, const std::string& refStr, const std::string& analysisResultsStr) {
   const auto ref = toNucleotideSequence(refStr);
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'treeFinalize'");
   auto tree = Nextclade::Tree{treeStr};
-  treeAttachNodes(tree, ref, analysisResults.results);
-//  tree.debug("treeAttachNodes");
+  treeAttachNodes(tree, analysisResults.results);
   treePostprocess(tree);
-//  tree.debug("treePostprocess");
   return tree.serialize(0);
 }
 
@@ -291,6 +286,7 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::class_<NextcladeWasm>("NextcladeWasm")                                                         //
     .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string>()//
     .function("analyze", &NextcladeWasm::analyze)                                                            //
+    .function("getTree", &NextcladeWasm::getTree)                                                            //
     ;                                                                                                        //
 
   emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
@@ -302,7 +298,6 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("hasError", &NextcladeWasmResult::hasError)
     .field("error", &NextcladeWasmResult::error);
 
-  emscripten::function("treePrepare", &treePrepare);
   emscripten::function("parseRefSequence", &parseRefSequence);
   emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
   emscripten::function("treeFinalize", &treeFinalize);

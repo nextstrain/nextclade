@@ -8,9 +8,20 @@
 #include <nlohmann/json.hpp>
 #include <string>
 
+#include "../utils/safe_cast.h"
 #include "formatQcStatus.h"
 
 namespace Nextclade {
+  json serializeNumber(double x) {
+    // If the number is almost integer, we want to round it down, so that it looks the same as JSON generated in the browser.
+    auto integral = safe_cast<std::int64_t>(x);
+    double fractional = x - safe_cast<double>(integral);// NOLINT(cppcoreguidelines-narrowing-conversions)
+                                                        //    if (integral != 0 && fractional < 1e-4) {
+    return integral;
+    //    }
+    //    return x;
+  }
+
   json serializeRange(const Range& range) {
     auto j = json::object();
     j.emplace("begin", range.begin);
@@ -178,6 +189,31 @@ namespace Nextclade {
       return j;
     }
 
+    template<typename Letter>
+    json serializeSubstitutionSimple(const SubstitutionSimple<Letter>& sub) {
+      auto j = json::object();
+      j.emplace("ref", letterToString(sub.ref));
+      j.emplace("pos", sub.pos);
+      j.emplace("qry", letterToString(sub.qry));
+      return j;
+    }
+
+    template<typename Letter>
+    json serializeDeletionSimple(const DeletionSimple<Letter>& del) {
+      auto j = json::object();
+      j.emplace("ref", letterToString(del.ref));
+      j.emplace("pos", del.pos);
+      return j;
+    }
+
+    template<typename Letter>
+    json serializePrivateMutations(const PrivateMutations<Letter>& pm) {
+      auto j = json::object();
+      j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Letter>));
+      j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Letter>));
+      return j;
+    }
+
     json serializeGeneAminoacidRange(const GeneAminoacidRange& range) {
       auto j = json::object();
       j.emplace("geneName", range.geneName);
@@ -317,6 +353,10 @@ namespace Nextclade {
       j.emplace("unknownAaRanges", serializeArray(result.unknownAaRanges, serializeGeneAminoacidRange));
 
       j.emplace("nearestNodeId", result.nearestNodeId);
+
+      j.emplace("privateNucMutations", serializePrivateMutations(result.privateNucMutations));
+      j.emplace("privateAaMutations", serializeMap(result.privateAaMutations, serializePrivateMutations<Aminoacid>));
+      j.emplace("divergence", serializeNumber(result.divergence));
 
       j.emplace("qc", serializeQcResult(result.qc));
       j.emplace("nucleotideComposition", serializeNucleotideComposition(result.nucleotideComposition));
