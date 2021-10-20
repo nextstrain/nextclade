@@ -243,8 +243,8 @@ TEST_F(FindPrivateNucMutations, DisjointSets) {
 
 TEST_F(FindPrivateNucMutations, GeneralCase) {
   // General case. A combination of various previous cases.
-  const auto nodeMutMap = makeTestNode({"T12A", "G13A", "C31T", "T45G"});
-  const auto seq = makeTestSeq({"A9C", "T12A", "T16C", "A32G", "T45G", "A47C"}, {13, 21, 42});
+  const auto nodeMutMap = makeTestNode({"T12A", "G13A", "C31T", "T34-", "T38-", "T45G"});
+  const auto seq = makeTestSeq({"A9C", "T12A", "T16C", "A32G", "T45G", "A47C"}, {13, 21, 34, 42});
   const auto expectedSubs = makeSubstitutionList({"A9C", "T16C", "T31A", "A32G", "A47C"});
   const auto expectedDels = makeDeletionList({"A13-", "A21-", "A42-"});
   const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq);
