@@ -394,7 +394,6 @@ namespace Nextclade {
 
         auto numTags = std::to_string(datasetRef.versions.size());
         fmt::format_to(buf, "    Specific versions ({:}):\n", datasetRef.versions.size());
-        fmt::format_to(buf, "    ------------------" + std::string{"-", numTags.size() + 3} + "\n\n");
 
         for (const auto& version : datasetRef.versions) {
           fmt::format_to(buf, "        Version\n");
