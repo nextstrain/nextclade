@@ -747,13 +747,9 @@ pushd "${BUILD_DIR}" > /dev/null
   function strip_executable() {
     CLI=${1}
 
-    print 29 "Strip executable";
-    # Strip works differently on mac
-    if [ "${BUILD_OS}" == "MacOS" ]; then
-      strip ${CLI}
+    if [ "${BUILD_OS}" == "Linux" ]; then
+      print 29 "Strip executable";
 
-      ls -l ${CLI}
-    elif [ "${BUILD_OS}" == "Linux" ]; then
       strip -s \
         --strip-unneeded \
         --remove-section=.note.gnu.gold-version \
@@ -763,10 +759,12 @@ pushd "${BUILD_DIR}" > /dev/null
         --remove-section=.note.ABI-tag \
         ${CLI}
 
-        ls --human-readable --kibibytes -Sl ${CLI}
     fi
 
     print 28 "Print executable info";
+
+    ls --human-readable --kibibytes -Sl ${CLI}
+
     file ${CLI}
 
     if [ "${BUILD_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
@@ -787,9 +785,9 @@ pushd "${BUILD_DIR}" > /dev/null
     print 30 "Install executable";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
-#    strip_executable "${NEXTALIGN_CLI}"
+    strip_executable "${NEXTALIGN_CLI}"
 
-#    strip_executable "${NEXTCLADE_CLI}"
+    strip_executable "${NEXTCLADE_CLI}"
 
   fi
 
