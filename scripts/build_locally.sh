@@ -787,9 +787,9 @@ pushd "${BUILD_DIR}" > /dev/null
     print 30 "Install executable";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
-    strip_executable "${NEXTALIGN_CLI}"
+#    strip_executable "${NEXTALIGN_CLI}"
 
-    strip_executable "${NEXTCLADE_CLI}"
+#    strip_executable "${NEXTCLADE_CLI}"
 
   fi
 
