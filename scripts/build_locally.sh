@@ -261,7 +261,7 @@ fi
 
 # Whether to build a standalone static executable
 NEXTALIGN_STATIC_BUILD_DEFAULT=0
-if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+if [ "${BUILD_OS}" == "Linux" ] && [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
 elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "TSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=0
