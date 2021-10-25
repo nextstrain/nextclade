@@ -291,36 +291,36 @@ jobs:
           path: .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
           destination: nextclade-MacOS-<< parameters.macos_arch >>
 
-      - run:
-          name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
-          command: |
-            OS=darwin ./scripts/download_github_release_tool.sh
-            ./scripts/publish_github_releases.sh
+#      - run:
+#          name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
+#          command: |
+#            OS=darwin ./scripts/download_github_release_tool.sh
+#            ./scripts/publish_github_releases.sh
 
 workflows:
   version: 2
   build:
     jobs:
-      - Update-Builder-Container:
-          <<: *major_branches_and_cli_release_only
-
-      - Build-Web:
-          context: nextclade_web_<< pipeline.git.branch >>
-          <<: *major_branches_only
-          requires:
-            - Update-Builder-Container
-
-      - Build-Linux-x86_64:
-          context: nextclade_cli_<< pipeline.git.branch >>
-          <<: *release_cli_only
-          requires:
-            - Update-Builder-Container
+#      - Update-Builder-Container:
+#          <<: *major_branches_and_cli_release_only
+#
+#      - Build-Web:
+#          context: nextclade_web_<< pipeline.git.branch >>
+#          <<: *major_branches_only
+#          requires:
+#            - Update-Builder-Container
+#
+#      - Build-Linux-x86_64:
+#          context: nextclade_cli_<< pipeline.git.branch >>
+#          <<: *release_cli_only
+#          requires:
+#            - Update-Builder-Container
 
       - Build-MacOS:
-          context: nextclade_cli_<< pipeline.git.branch >>
+#          context: nextclade_cli_<< pipeline.git.branch >>
           matrix:
             parameters:
               macos_arch:
                 - x86_64
-                - arm64
-          <<: *release_cli_only
+#                - arm64
+#          <<: *release_cli_only
