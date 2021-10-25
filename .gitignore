@@ -30,3 +30,4 @@ paper/paper.pdf
 tmp
 build/
 *.bak
+Brewfile.lock.json
