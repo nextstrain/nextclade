@@ -347,7 +347,9 @@ namespace Nextclade {
   }
 
   std::string formatDatasets(const std::vector<Dataset>& datasets, bool verbose /* = false */) {
-    fmt::memory_buffer buf;
+    fmt::memory_buffer bufRaw;
+    auto buf = std::back_inserter(bufRaw);
+
     for (const auto& dataset : datasets) {
       fmt::format_to(buf, "Dataset\n");
       fmt::format_to(buf, "-------\n");
@@ -369,7 +371,7 @@ namespace Nextclade {
 
       auto numRefs = std::to_string(dataset.datasetRefs.size());
       fmt::format_to(buf, "Specific reference sequences ({:}):\n", numRefs);
-      fmt::format_to(buf, "-----------------------------" + std::string{"-", numRefs.size() + 3} + "\n\n");
+      // fmt::format_to(buf, "-----------------------------" + std::string{"-", numRefs.size() + 3} + "\n\n");
 
       for (const auto& datasetRef : dataset.datasetRefs) {
         const auto& ref = datasetRef.reference;
@@ -440,7 +442,7 @@ namespace Nextclade {
       }
       fmt::format_to(buf, "\n");
     }
-    return fmt::to_string(buf);
+    return fmt::to_string(bufRaw);
   }
 
 
