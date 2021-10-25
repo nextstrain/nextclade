@@ -371,7 +371,6 @@ namespace Nextclade {
 
       auto numRefs = std::to_string(dataset.datasetRefs.size());
       fmt::format_to(buf, "Specific reference sequences ({:}):\n", numRefs);
-      // fmt::format_to(buf, "-----------------------------" + std::string{"-", numRefs.size() + 3} + "\n\n");
 
       for (const auto& datasetRef : dataset.datasetRefs) {
         const auto& ref = datasetRef.reference;

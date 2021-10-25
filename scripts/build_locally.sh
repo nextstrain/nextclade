@@ -15,7 +15,7 @@ trap "exit" INT
 THIS_DIR=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
 
 # Where the source code is
-PROJECT_ROOT_DIR="$(realpath --logical --no-symlinks ${THIS_DIR}/..)"
+PROJECT_ROOT_DIR="$(realpath --logical --no-symlinks "${THIS_DIR}/..")"
 
 source "${THIS_DIR}/lib/set_locales.sh"
 source "${THIS_DIR}/lib/is_ci.sh"
@@ -261,7 +261,7 @@ fi
 
 # Whether to build a standalone static executable
 NEXTALIGN_STATIC_BUILD_DEFAULT=0
-if [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
+if [ "${BUILD_OS}" == "Linux" ] && [ "${CMAKE_BUILD_TYPE}" == "Release" ]; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=1
 elif [ "${CMAKE_BUILD_TYPE}" == "ASAN" ] || [ "${CMAKE_BUILD_TYPE}" == "MSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "TSAN" ] || [ "${CMAKE_BUILD_TYPE}" == "UBSAN" ] ; then
   NEXTALIGN_STATIC_BUILD_DEFAULT=0
@@ -747,13 +747,9 @@ pushd "${BUILD_DIR}" > /dev/null
   function strip_executable() {
     CLI=${1}
 
-    print 29 "Strip executable";
-    # Strip works differently on mac
-    if [ "${BUILD_OS}" == "MacOS" ]; then
-      strip ${CLI}
+    if [ "${BUILD_OS}" == "Linux" ]; then
+      print 29 "Strip executable";
 
-      ls -l ${CLI}
-    elif [ "${BUILD_OS}" == "Linux" ]; then
       strip -s \
         --strip-unneeded \
         --remove-section=.note.gnu.gold-version \
@@ -763,10 +759,12 @@ pushd "${BUILD_DIR}" > /dev/null
         --remove-section=.note.ABI-tag \
         ${CLI}
 
-        ls --human-readable --kibibytes -Sl ${CLI}
     fi
 
     print 28 "Print executable info";
+
+    ls --human-readable --kibibytes -Sl ${CLI}
+
     file ${CLI}
 
     if [ "${BUILD_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
@@ -787,9 +785,9 @@ pushd "${BUILD_DIR}" > /dev/null
     print 30 "Install executable";
     cmake --install "${BUILD_DIR}" --config "${CMAKE_BUILD_TYPE}" --strip
 
-#    strip_executable "${NEXTALIGN_CLI}"
+    strip_executable "${NEXTALIGN_CLI}"
 
-#    strip_executable "${NEXTCLADE_CLI}"
+    strip_executable "${NEXTCLADE_CLI}"
 
   fi
 
