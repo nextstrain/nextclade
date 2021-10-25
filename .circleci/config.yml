@@ -249,7 +249,14 @@ jobs:
           command: |
             set -x
             brew bundle
+
+            mkdir -p .cache
+            python3 -m venv .cache/venv
+            source .cache/venv/bin/activate
+            pip3 install --upgrade -r requirements.txt
+
             conan profile new default --detect
+
           environment:
             HOMEBREW_NO_AUTO_UPDATE: 1
             CONAN_USER_HOME: '/Users/distiller/project/.cache'
@@ -269,7 +276,8 @@ jobs:
       - run:
           name: Run macOS << parameters.macos_arch >> build
           command: |
-            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
+            source .cache/venv/bin/activate
+            echo "DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org" >> .env
             make prod
           environment:
             CONAN_USER_HOME: '/Users/distiller/project/.cache'
