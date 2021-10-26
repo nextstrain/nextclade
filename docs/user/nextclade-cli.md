@@ -148,7 +148,7 @@ nextclade run --help
 1. Download SARS-CoV-2 dataset:
 
     ```bash
-    nextclade dataset get --name='sars-cov-2' --output-dir='data/sars-cov-2'
+    nextclade dataset get --name 'sars-cov-2' --output-dir 'data/sars-cov-2'
     ```
 
    Observe downloaded dataset files in the directory `data/sars-cov-2/`
@@ -158,34 +158,34 @@ nextclade run --help
    ```bash
    nextclade \
       --in-order \
-      --input-fasta=data/sars-cov-2/sequences.fasta \
-      --input-dataset=data/sars-cov-2 \
-      --output-tsv=output/nextclade.tsv \
-      --output-tree=output/nextclade.auspice.json \
-      --output-dir=output/ \
-      --output-basename=nextclade
+      --input-fasta data/sars-cov-2/sequences.fasta \
+      --input-dataset data/sars-cov-2 \
+      --output-tsv output/nextclade.tsv \
+      --output-tree output/nextclade.auspice.json \
+      --output-dir output/ \
+      --output-basename nextclade
    ```
 
-   To run the analysis on our own sequences, provide `--input-fasta=` flag with a path to your fasta file.
+   To run the analysis on our own sequences, provide `--input-fasta` flag with a path to your fasta file.
 
    For more controls, specify input files explicitly and/or add more flags for output files:
 
    ```bash
    nextclade \
       --in-order \
-      --input-fasta=data/sars-cov-2/sequences.fasta \
-      --input-root-seq=data/sars-cov-2/reference.fasta \
-      --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-      --input-gene-map=data/sars-cov-2/genemap.gff \
-      --input-tree=data/sars-cov-2/tree.json \
-      --input-qc-config=data/sars-cov-2/qc.json \
-      --input-pcr-primers=data/sars-cov-2/primers.csv \
-      --output-json=output/nextclade.json \
-      --output-csv=output/nextclade.csv \
-      --output-tsv=output/nextclade.tsv \
-      --output-tree=output/nextclade.auspice.json \
-      --output-dir=output/ \
-      --output-basename=nextclade
+      --input-fasta data/sars-cov-2/sequences.fasta \
+      --input-root-seq data/sars-cov-2/reference.fasta \
+      --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+      --input-gene-map data/sars-cov-2/genemap.gff \
+      --input-tree data/sars-cov-2/tree.json \
+      --input-qc-config data/sars-cov-2/qc.json \
+      --input-pcr-primers data/sars-cov-2/primers.csv \
+      --output-json output/nextclade.json \
+      --output-csv output/nextclade.csv \
+      --output-tsv output/nextclade.tsv \
+      --output-tree output/nextclade.auspice.json \
+      --output-dir output/ \
+      --output-basename nextclade
    ```
 
    Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and reference peptides into outputs.
