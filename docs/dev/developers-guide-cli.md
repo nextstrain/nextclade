@@ -55,13 +55,18 @@ The easiest way to start the development is to use the included docker container
     💡 Quick install for macOS  (click to expand)
     </summary>
 
-    You need to install XCode command line tools. After that you can install remaining required dependencies using [Homebrew](https://brew.sh/) and pip
+    You need to install XCode command line tools. After that you can install remaining required dependencies using [Homebrew](https://brew.sh/) and pip (into a Python virtual environment)
 
     ```
     xcode-select --install
 
     cd nextclade
     brew bundle --file=Brewfile
+
+    mkdir -p .cache
+    python3 -m venv .cache/venv
+    source .cache/venv/bin/activate
+    pip3 install --upgrade -r requirements.txt
 
     ```
     </details>
