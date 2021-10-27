@@ -63,7 +63,7 @@ jobs:
 
           export AUSPICE_VERSION="${{ steps.check-auspice-version.outputs.AUSPICE_VERSION }}"
 
-          yarn install auspice@${AUSPICE_VERSION}
+          yarn add auspice@${AUSPICE_VERSION}
 
           git add package.json yarn.lock
           git commit -m "feat: update Auspice to version ${AUSPICE_VERSION}"
