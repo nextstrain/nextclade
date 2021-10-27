@@ -6,6 +6,9 @@ export $(shell bash -c "sed 's/=.*//' .env || true" )
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
+SHELL:=bash
+.ONESHELL:
+
 .PHONY: docs docker-docs e2e
 
 clean:
@@ -202,6 +205,48 @@ docker-paper:
 	--env 'JOURNAL=joss' \
 	openjournals/paperdraft
 
+
+paper-preprint:
+	@set -euxo pipefail
+
+	@cd paper/
+
+	pandoc \
+		--verbose \
+		--filter pandoc-citeproc \
+		--bibliography=paper.bib \
+		--variable classoption=twocolumn \
+		--variable papersize=a4paper \
+		--standalone \
+		--output preprint.pdf \
+		paper.md
+
+docker-paper-preprint:
+	@set -euxo pipefail
+
+	@export CONTAINER_IMAGE_NAME=nextclade-paper-builder
+
+	@docker build -t "$${CONTAINER_IMAGE_NAME}" \
+	--network=host \
+	--build-arg USER=$(shell id -un) \
+	--build-arg GROUP=$(shell id -gn) \
+	--build-arg UID=$(shell id -u) \
+	--build-arg GID=$(shell id -g) \
+	paper/
+
+	@docker run -it --rm \
+	--init \
+	--name="$${CONTAINER_IMAGE_NAME}-$(shell date +%s)" \
+	--user="$(shell id -un):$(shell id -gn)" \
+	--volume="$(shell pwd):/home/user/src" \
+	--workdir="/home/user/src" \
+	--env "TERM=xterm-256colors" \
+	--env "USER=$(shell id -un)" \
+	--env "GROUP=$(shell id -gn)" \
+	--env "UID=$(shell id -u)" \
+	--env "GID=$(shell id -g)" \
+	"$${CONTAINER_IMAGE_NAME}" \
+		make paper-preprint
 
 # Synchronize source files using rsync
 sync:
