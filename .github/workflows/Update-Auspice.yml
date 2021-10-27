@@ -74,7 +74,9 @@ jobs:
           popd >/dev/null
 
           # Revert any other changes so that they don't get commited by the next step
-          git reset --hard
+          git add -A
+          git reset --hard HEAD
+          git clean -dfx
 
       - name: "Create Pull Request"
         id: create-pull-request
