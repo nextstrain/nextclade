@@ -217,6 +217,7 @@ paper-preprint:
 		--bibliography=paper.bib \
 		--variable classoption=twocolumn \
 		--variable papersize=a4paper \
+		--variable geometry:margin=2cm \
 		--standalone \
 		--output preprint.pdf \
 		paper.md
