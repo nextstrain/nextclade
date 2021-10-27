@@ -42,7 +42,7 @@ jobs:
           export SHOULD_UPDATE=$(node -e "\
             const semver = require('semver'); \
             const pkg = require('./packages/web/package.json'); \
-            console.log(semver.gt(${AUSPICE_VERSION}, pkg.dependencies.auspice)) \
+            console.log(semver.gt('${AUSPICE_VERSION}', pkg.dependencies.auspice)) \
           ")
 
           echo "::set-output name=AUSPICE_VERSION::${AUSPICE_VERSION}"
