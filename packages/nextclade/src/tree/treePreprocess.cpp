@@ -17,12 +17,12 @@ namespace Nextclade {
   class ErrorAttachMutationsInconsistentMutation : public ErrorFatal {
   public:
     ErrorAttachMutationsInconsistentMutation(const NucleotideSubstitution& mut, const Nucleotide& previous)
-        : ErrorFatal(                                                            //
-            fmt::format(                                                         //
-              "When attaching mutations: Mutation is inconsistent: \"{}\": "     //
-              "current nucleotide: \"{}\", previously seen: \"{}\"",             //
+        : ErrorFatal(                                                         //
+            fmt::format(                                                      //
+              "When attaching mutations: Mutation is inconsistent: \"{}\": "  //
+              "current nucleotide: \"{}\", previously seen: \"{}\"",          //
               formatMutation(mut), nucToString(mut.ref), nucToString(previous)//
-              )                                                                  //
+              )                                                               //
           ) {}
   };
 
@@ -96,12 +96,15 @@ namespace Nextclade {
     const auto aminoacidMutations = node.aminoacidMutations();
     for (const auto& [geneName, aminoacidMutationsForGene] : aminoacidMutations) {
       for (const auto& mut : aminoacidMutationsForGene) {
-        const auto& previousMap = mapFind(mutationMap, geneName);
-        if (!previousMap) {
-          continue;
+        auto previousMapFound = mutationMap.find(geneName);
+        if (previousMapFound == mutationMap.end()) {
+          mutationMap[geneName] = {};
         }
-        const auto& previousAa = mapFind(previousMap.value(), mut.pos);
 
+        previousMapFound = mutationMap.find(geneName);
+        auto& mutationMapForGene = previousMapFound->second;
+
+        const auto& previousAa = mapFind(mutationMapForGene, mut.pos);
         if (previousAa.has_value() && (*previousAa != mut.ref)) {
           continue;
         }
@@ -112,10 +115,11 @@ namespace Nextclade {
         }
 
         // If mutation reverts aminoacid back to what reference had, remove it from the map
-        if (at(refPeptide->peptide, mut.pos) == mut.qry) {
-          mutationMap[geneName].erase(mut.pos);
+        const auto ref = at(refPeptide->peptide, mut.pos);
+        if (ref == mut.qry) {
+          mutationMapForGene.erase(mut.pos);
         } else {
-          mutationMap[geneName][mut.pos] = mut.qry;// NOTE: make sure the entry is overwritten
+          mutationMapForGene[mut.pos] = mut.qry;// NOTE: make sure the entry is overwritten
         }
       }
     }
