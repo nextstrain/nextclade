@@ -763,8 +763,6 @@ pushd "${BUILD_DIR}" > /dev/null
 
     print 28 "Print executable info";
 
-    ls --human-readable --kibibytes -Sl ${CLI}
-
     file ${CLI}
 
     if [ "${BUILD_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then

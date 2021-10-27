@@ -1,3 +1,17 @@
+## Nextclade CLI 1.4.2 (2021-10-26)
+
+This is a small bugfix release and only affects Nextclade CLI. Nextclade Web and Nextalign CLI are unchanged.
+
+### [Fix] Crash in dataset list command on macOS
+
+Nextclade CLI could sometimes crash on macOS when issued a `dataset list` command due to an internal error. This was now fixed.
+
+
+### [Fix] Uninformative error message when QC config is missing
+
+When both `--input-dataset` and `--input-qc-config` flags are omitted Nextclade CLI now produces a more informative error message, as was intended. Thanks Peter Menzel ([@pmenzel](https://github.com/pmenzel)) for the report.
+
+
 ## Nextclade Web 1.7.1, Nextclade CLI 1.4.1 (2021-10-05)
 
 ### [Fix] Format of CSV/TSV output files

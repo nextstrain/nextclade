@@ -141,12 +141,12 @@ nextalign --help
 
    ```bash
    nextalign \
-    --sequences=data/sars-cov-2/sequences.fasta \
-    --reference=data/sars-cov-2/reference.fasta \
-    --genemap=data/sars-cov-2/genemap.gff \
-    --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-    --output-dir=output/ \
-    --output-basename=nextalign
+    --sequences data/sars-cov-2/sequences.fasta \
+    --reference data/sars-cov-2/reference.fasta \
+    --genemap data/sars-cov-2/genemap.gff \
+    --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+    --output-dir output/ \
+    --output-basename nextalign
    ```
 
    Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.

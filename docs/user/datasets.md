@@ -42,7 +42,7 @@ Nextclade CLI implements subcommands allowing to list and to download datasets. 
 The datasets can be listed with the `dataset list` subcommand:
 
 ```
-nextclade dataset list --name=sars-cov-2
+nextclade dataset list --name sars-cov-2
 ```
 
 This will print a list of available datasets to console. More options are available to control listing older and incompatible versions of datasets, as well as specific tags. See: `nextclade dataset list --help`
@@ -54,7 +54,7 @@ This will print a list of available datasets to console. More options are availa
 The datasets can be downloaded with the `dataset get` subcommand. For example SARS-CoV-2 dataset can be downloaded as follows:
 
 ```bash
-nextclade dataset get --name='sars-cov-2' --output-dir='data/sars-cov-2'
+nextclade dataset get --name 'sars-cov-2' --output-dir 'data/sars-cov-2'
 ```
 
 The dataset files will be downloaded to the directory `data/sars-cov-2` relative to the working directory.
@@ -64,7 +64,7 @@ The dataset files will be downloaded to the directory `data/sars-cov-2` relative
 You can set a reference sequence of the dataset explicitly, for example to always use `MN908947 (Wuhan-Hu-1/2019)` for SARS-CoV-2:
 
 ```bash
-nextclade dataset get --name='sars-cov-2' --reference='MN908947' --output-dir='data/sars-cov-2_MN908947'
+nextclade dataset get --name 'sars-cov-2' --reference 'MN908947' --output-dir 'data/sars-cov-2_MN908947'
 ```
 
 If using this commands, repeated downloads may produce updated files in the future: after releases of new versions of this dataset. Reference sequence will stay the same even if the SARS-CoV-2 dataset's default reference sequence changes in the future.
@@ -77,10 +77,10 @@ You can set a version tag explicitly. For example to always use the SARS-CoV-2 d
 
 ```bash
 nextclade dataset get \
-  --name='sars-cov-2' \
-  --reference='MN908947' \
-  --tag='2021-06-25T00:00:00Z' \
-  --output-dir='data/sars-cov-2_MN908947_2021-06-25T00:00:00Z'
+  --name 'sars-cov-2' \
+  --reference 'MN908947' \
+  --tag '2021-06-25T00:00:00Z' \
+  --output-dir 'data/sars-cov-2_MN908947_2021-06-25T00:00:00Z'
 ```
 
 In this case repeated downloads will always produce the same files. This is only recommended if you need strictly reproducible results and don't care about updates. Note that with stale data, new clades and other new features will not be available. For general use, we recommend to periodically download the latest version.
@@ -97,11 +97,11 @@ The flag `--input-dataset` can be used to point Nextclade CLI to a dataset direc
 
 ```bash
 nextclade run \
-  --input-dataset='data/sars-cov-2' \
-  --input-fasta='my_sequences.fasta' \
-  --output-tsv='output/nextclade.tsv' \
-  --output-tree='output/tree.json' \
-  --output-dir='output/'
+  --input-dataset 'data/sars-cov-2' \
+  --input-fasta 'my_sequences.fasta' \
+  --output-tsv 'output/nextclade.tsv' \
+  --output-tree 'output/tree.json' \
+  --output-dir 'output/'
 ```
 
 This will use all the required files from the dataset, so that the individual paths don't need to be specified explicitly.
@@ -112,12 +112,12 @@ For example, to use a downloaded dataset but to override the reference tree file
 
 ```bash
 nextclade run \
-  --input-dataset='datasets/sars-cov-2' \
-  --input-fasta='my_sequences.fasta' \
-  --input-tree='my_tree.json' \
-  --output-tsv='output/nextclade.tsv' \
-  --output-tree='output/tree.json' \
-  --output-dir='output/'
+  --input-dataset 'datasets/sars-cov-2' \
+  --input-fasta 'my_sequences.fasta' \
+  --input-tree 'my_tree.json' \
+  --output-tsv 'output/nextclade.tsv' \
+  --output-tree 'output/tree.json' \
+  --output-dir 'output/'
 ```
 
 > ⚠️ When overriding dataset files make sure that the individual files are compatible with the dataset (in particular the pathogen and the reference sequence)
