@@ -7,7 +7,7 @@ trap "exit" INT
 OPENJOURNALS_PATH="/usr/local/share/openjournals"
 
 PDF_INFILE="paper.md"
-PDF_LOGO="${OPENJOURNALS_PATH}/joss/logo.png"
+PDF_LOGO="figures/empty.png"
 PDF_TEMPLATE="${OPENJOURNALS_PATH}/latex.template"
 PDF_OUTFILE="preprint.pdf"
 
