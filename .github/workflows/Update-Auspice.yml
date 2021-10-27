@@ -92,7 +92,7 @@ jobs:
           body: |
             Updates Auspice to version ${{ steps.check-auspice-version.outputs.AUSPICE_VERSION }}.
 
-            The changelog for the new version should be here: https://github.com/nextstrain/auspice/releases/tag/v${{ steps.check-auspice-version.outputs.AUSPICE_VERSION }}
+            The changelog for the new version should be here: https://github.com/nextstrain/auspice/releases/tag/v${{ steps.check-auspice-version.outputs.AUSPICE_VERSION }} and/or here: https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md
 
             Please check the `/tree` page of the Nextclade Web app. An automated Vercel deployment should be available below. Note that when even newer version is available, this PR will be overwritten, so a new check will be needed.
 
