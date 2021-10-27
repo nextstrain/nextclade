@@ -87,8 +87,8 @@ jobs:
           author: 'nextstrain-bot <nextstrain-bot@users.noreply.github.com>'
           committer: 'nextstrain-bot <nextstrain-bot@users.noreply.github.com>'
           branch: 'chore/update-auspice'
-          commit-message: "feat: update Auspice"
-          title: '[bot] Update Auspice"'
+          commit-message: "feat: bump Auspice version"
+          title: '[bot] bump Auspice version'
           body: |
             Updates Auspice to version ${{ steps.check-auspice-version.outputs.AUSPICE_VERSION }}.
 
