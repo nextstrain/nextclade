@@ -8,7 +8,7 @@ OPENJOURNALS_PATH="/usr/local/share/openjournals"
 
 PDF_INFILE="paper.md"
 PDF_LOGO="figures/empty.png"
-PDF_TEMPLATE="${OPENJOURNALS_PATH}/latex.template"
+PDF_TEMPLATE="preprint.template.latex"
 PDF_OUTFILE="preprint.pdf"
 
 authors="$(ob-paper get ${PDF_INFILE} authors:name)"
