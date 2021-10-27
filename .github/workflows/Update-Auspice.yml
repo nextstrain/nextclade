@@ -103,7 +103,7 @@ jobs:
             ```
 
           labels: |
-            s:nextclade_web
+            package: nextclade_web
             bot
           delete-branch: true
 
