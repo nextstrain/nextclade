@@ -134,7 +134,7 @@ nextalign --help
 
 ## Quick Example
 
-1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2)
+1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2021-10-11T19:00:32Z/files)
     (You can also try other viruses in the `data/` directory)
 
 2. Run:
