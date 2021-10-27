@@ -220,6 +220,7 @@ paper-preprint:
 		--variable geometry:margin=2cm \
 		--lua-filter=scholarly-metadata.lua \
 		--lua-filter=author-info-blocks.lua \
+		--template=preprint.template.latex \
 		--pdf-engine=xelatex \
 		--standalone \
 		--output preprint.pdf \
