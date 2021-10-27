@@ -22,6 +22,7 @@ RUN set -euxo pipefail >dev/null \
   texlive-fonts-recommended \
   texlive-latex-base \
   texlive-latex-extra \
+  texlive-xetex \
 >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && apt-get clean autoclean >/dev/null \
@@ -64,6 +65,12 @@ RUN set -euxo pipefail >dev/null \
 && sed -i /etc/sudoers -re 's/^#includedir.*/## **Removed the include directive** ##"/g' \
 && echo "foo ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
 && touch ${HOME}/.hushlogin
+
+RUN set -euxo pipefail >dev/null \
+  && mkdir -p "${HOME}/.pandoc/filters" \
+  && cd "${HOME}/.pandoc" \
+  && curl -fsSL "https://github.com/pandoc/lua-filters/releases/download/v2020-11-30/lua-filters.tar.gz" | tar --strip-components=1 -xzf - \
+  && ls -al "${HOME}/.pandoc/filters"
 
 #COPY .nvmrc /
 

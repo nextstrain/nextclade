@@ -218,6 +218,9 @@ paper-preprint:
 		--variable classoption=twocolumn \
 		--variable papersize=a4paper \
 		--variable geometry:margin=2cm \
+		--lua-filter=scholarly-metadata.lua \
+		--lua-filter=author-info-blocks.lua \
+		--pdf-engine=xelatex \
 		--standalone \
 		--output preprint.pdf \
 		paper.md
