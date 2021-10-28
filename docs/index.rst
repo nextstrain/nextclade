@@ -23,6 +23,7 @@ If you use results obtained with Nextclade in a publication, we suggest you cite
 
 **Nextclade: clade assignment, mutation calling and quality control for viral genomes**
 /Ivan Aksamentov; Cornelius Roemer; Emma B Hodcroft; Richard A Neher/
+
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg
    :target: https://doi.org/10.5281/zenodo.5607694
 
