@@ -11,6 +11,7 @@
 #include "../../../nextalign/src/alphabet/nucleotides.h"
 #include "../io/parseMutation.h"
 #include "../utils/contract.h"
+#include "../utils/safe_cast.h"
 
 namespace Nextclade {
   using json_pointer = json::json_pointer;
@@ -360,15 +361,23 @@ namespace Nextclade {
       }
 
       for (const auto& [geneName, aaMutationsForGene] : aaMutations) {
+        const auto& privateSubstitutions = aaMutationsForGene.privateSubstitutions;
+        const auto& privateDeletions = aaMutationsForGene.privateDeletions;
+        const int totalMutations = safe_cast<int>(privateSubstitutions.size() + privateDeletions.size());
+
+        if (totalMutations == 0) {
+          continue;
+        }
+
         if (!mutObj.contains(geneName)) {
           mutObj[geneName] = json::array();
         }
 
-        for (const auto& mut : aaMutationsForGene.privateSubstitutions) {
+        for (const auto& mut : privateSubstitutions) {
           mutObj[geneName].push_back(formatAminoacidMutationSimpleWithoutGene(mut));
         }
 
-        for (const auto& mut : aaMutationsForGene.privateDeletions) {
+        for (const auto& mut : privateDeletions) {
           mutObj[geneName].push_back(formatAminoacidDeletionSimpleWithoutGene(mut));
         }
       }
