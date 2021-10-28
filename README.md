@@ -324,8 +324,9 @@ This project follows the <a target="_blank" rel="noopener noreferrer" href="http
 <h2 id="citation" align="center">
   Referring to Nextclade in a publication
 </h2>
-If you use results obtained with Nextclade in a publication, we suggest you cite our preprint
+If you use results obtained with Nextclade in a publication, we suggest you cite our preprint:
 
+<br>
 <b>Nextclade: clade assignment, mutation calling and quality control for viral genomes</b><br>
 <i> Ivan Aksamentov; Cornelius Roemer; Emma B Hodcroft; Richard A Neher</i><br>
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg)](https://doi.org/10.5281/zenodo.5607694)
