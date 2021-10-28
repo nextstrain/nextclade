@@ -143,6 +143,13 @@ by Nextstrain team
       alt="JOSS submission status"
     />
   </a>
+  
+  <a href="https://doi.org/10.5281/zenodo.5607694">
+    <img 
+      src="https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg" 
+      alt="Zenodo DOI">
+  </a>
+
 
 </p>
 
