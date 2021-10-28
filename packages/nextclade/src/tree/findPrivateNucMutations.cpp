@@ -11,6 +11,7 @@
 #include "../utils/at.h"
 #include "../utils/concat_move.h"
 #include "../utils/eraseDuplicates.h"
+#include "../utils/filter.h"
 #include "../utils/mapFind.h"
 
 namespace Nextclade {
@@ -249,8 +250,14 @@ namespace Nextclade {
       }
       const auto& refPeptide = peptideFound->second.peptide;
 
+      const auto aaSubstitutions =
+        filter(seq.aaSubstitutions, [&geneName](const AminoacidSubstitution& aaSub) { return aaSub.gene == geneName; });
+
+      const auto aaDeletions =
+        filter(seq.aaDeletions, [&geneName](const AminoacidDeletion& aaDel) { return aaDel.gene == geneName; });
+
       result[geneName] =
-        findPrivateMutations<Aminoacid>(nodeMutMapForGene, seq, seq.aaSubstitutions, seq.aaDeletions, refPeptide);
+        findPrivateMutations<Aminoacid>(nodeMutMapForGene, seq, aaSubstitutions, aaDeletions, refPeptide);
     }
 
     return result;

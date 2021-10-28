@@ -104,6 +104,7 @@ set(SOURCE_FILES
   src/utils/contract.h
   src/utils/debugbreak.h
   src/utils/eraseDuplicates.h
+  src/utils/filter.h
   src/utils/ieee754_comparison.h
   src/utils/macro_overload.h
   src/utils/map.h
