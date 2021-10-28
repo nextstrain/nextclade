@@ -31,3 +31,4 @@ tmp
 build/
 *.bak
 Brewfile.lock.json
+assets/
