@@ -8,9 +8,10 @@
 
 #include "../analyze/isSequenced.h"
 #include "../analyze/nucleotide.h"
+#include "../utils/at.h"
+#include "../utils/concat_move.h"
 #include "../utils/eraseDuplicates.h"
 #include "../utils/mapFind.h"
-#include "utils/concat_move.h"
 
 namespace Nextclade {
   template<typename Letter>
@@ -118,7 +119,7 @@ namespace Nextclade {
       if (!nodeQueryNuc) {
         // Case 3: Deletion in sequence but not in node, i.e. a newly occurred deletion.
         // Action: Add the sequence deletion itself (take refNuc from reference sequence).
-        const auto& refNuc = refSeq[pos];
+        const auto& refNuc = at(refSeq, pos);
         privateDeletions.emplace_back(DeletionSimple<Aminoacid>{.ref = refNuc, .pos = pos});
       } else if (!isGap(*nodeQueryNuc)) {
         // Case 2: Mutation in node but deletion in sequence (mutation to '-'), i.e. the query character is not the
