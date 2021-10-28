@@ -835,15 +835,15 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
       ulimit -s unlimited
     fi
 
-  #  if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-  #   print 27 "Run Nextalign CLI";
-  #   eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-  #  fi
+    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+     print 27 "Run Nextalign CLI";
+     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+    fi
 
-#    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
-#     print 27 "Run Nextclade CLI";
-#     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
-#    fi
+    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
+     print 27 "Run Nextclade CLI";
+     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+    fi
 
 #      print 25 "Validate CSV/TSV outputs";
 #      ./scripts/csv-validator.sh
