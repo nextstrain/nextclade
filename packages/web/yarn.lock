@@ -3556,10 +3556,10 @@ attr-accept@^2.0.0:
   resolved "https://registry.yarnpkg.com/attr-accept/-/attr-accept-2.2.1.tgz#89b48de019ed4342f1865626b4389c666b3ed231"
   integrity sha512-GpefLMsbH5ojNgfTW+OBin2xKzuHfyeNA+qCktzZojBhbA/lPZdCFMWdwk5ajb989Ok7ZT+EADqvW3TAFNMjhA==
 
-auspice@2.31.0:
-  version "2.31.0"
-  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.31.0.tgz#eccc79fe1745705defb95d020dbd0df82279348f"
-  integrity sha512-RnZ1uMf1blgEtocDZv5aug0WGBkqZpplE2ow2pK2sdDk5b5B9Lv3YLMMC2FG+kHd/WSGb0R3sojb1SL+aTQR2A==
+auspice@2.32.0:
+  version "2.32.0"
+  resolved "https://registry.yarnpkg.com/auspice/-/auspice-2.32.0.tgz#2335169dfddd19e95716c2c9d73413e88b33ff73"
+  integrity sha512-fFRv4Zrhn/QBSfZX7fIeZtLmhk/MpbV5z/reALNf1ZIucyVYW3ZKBx8UwUSbAqgwZ0yecRu9EjwPy57PR9as5Q==
   dependencies:
     "@babel/core" "^7.3.4"
     "@babel/plugin-proposal-class-properties" "^7.3.4"
@@ -3623,6 +3623,7 @@ auspice@2.31.0:
     query-string "^4.2.3"
     react "^16.8.6"
     react-addons-css-transition-group "^15.6.0"
+    react-collapsible "^2.8.4"
     react-dom "^16.8.6"
     react-ga "^2.2.0"
     react-helmet "^5.2.1"
@@ -13602,6 +13603,11 @@ react-awesome-popover@6.1.1:
   integrity sha512-jBLcTpd6NaCBwWVfONzDqry4rowBgnHh7DW4bWJAd2GxMif6XAbIIBk2UDBWLjLqjhaFeL/c0QCLGElJpyDPZg==
   dependencies:
     react "^16.9.0"
+
+react-collapsible@^2.8.4:
+  version "2.8.4"
+  resolved "https://registry.yarnpkg.com/react-collapsible/-/react-collapsible-2.8.4.tgz#319ff7471138c4381ce0afa3ac308ccde7f4e09f"
+  integrity sha512-oG4yOk6AGKswe0OD/8t3/nf4Rgj4UhlZUUvqL5jop0/ez02B3dBDmNvs3sQz0PcTpJvt0ai8zF7Atd1SzN/UNw==
 
 react-dom@16.13.1, react-dom@^16.8.6:
   version "16.13.1"
