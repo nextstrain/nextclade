@@ -128,7 +128,7 @@ by Nextstrain team
   <a href="https://hub.docker.com/r/nextstrain/nextalign">
       <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextalign">
   </a>
-  
+
   <a href="https://hub.docker.com/r/nextstrain/nextclade">
       <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextclade">
   </a>
@@ -138,15 +138,15 @@ by Nextstrain team
 <p align="center">
 
   <a href="https://joss.theoj.org/papers/b0e8e7f231ddfc61616de6b56f32b79f">
-    <img 
+    <img
       src="https://joss.theoj.org/papers/b0e8e7f231ddfc61616de6b56f32b79f/status.svg"
       alt="JOSS submission status"
     />
   </a>
-  
+
   <a href="https://doi.org/10.5281/zenodo.5607694">
-    <img 
-      src="https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg" 
+    <img
+      src="https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg"
       alt="Zenodo DOI">
   </a>
 
@@ -232,13 +232,12 @@ This repository consists of a set of packages presented in the table below. Refe
 | [nextclade_wasm](/packages/nextclade_wasm) | WebAssembly module |                                                                        |                                                                          |
 | [nextclade_web](/packages/web)             | Web App            | 🌎 [clades.nextstrain.org](https://clades.nextstrain.org)              |                                                                          |
 
-
 <h2 id="team" align="center">
  ✨ Team
 </h2>
 
 <p>
-Nextclade is a part of 
+Nextclade is a part of
 <a target="_blank" rel="noopener noreferrer" href="https://nextstrain.org">
 <img height="15px"
   src="https://github.com/nextstrain/nextclade/blob/master/docs/assets/nextstrain_logo.svg"
@@ -258,7 +257,7 @@ It is maintained by:
   <p align="center">
     <a href="https://github.com/ivan-aksamentov">
       <img src="https://avatars.githubusercontent.com/u/9403403?s=100&&v=4" width="100px;" alt=""/>
-    </a> 
+    </a>
   </p>
   <p align="center">
     <p align="center">
@@ -277,7 +276,7 @@ It is maintained by:
   <p align="center">
     <a href="https://github.com/rneher">
       <img src="https://avatars.githubusercontent.com/u/8379168?s=100&&v=4" width="100px;" alt=""/>
-    </a> 
+    </a>
   </p>
   <p align="center">
     <p align="center">
@@ -294,6 +293,7 @@ It is maintained by:
 </td>
   </tr>
 </table>
+
 
 We are thankful to all our contributors, no matter how they contribute: in ideas, science, code, documentation or otherwise. Thanks goes to these people (<a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">emoji key</a>):
 
@@ -318,6 +318,17 @@ We are thankful to all our contributors, no matter how they contribute: in ideas
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the <a target="_blank" rel="noopener noreferrer" href="https://github.com/all-contributors/all-contributors">all-contributors</a> specification. Contributions of any kind welcome!
+
+
+
+<h2 id="citation" align="center">
+  Referring to Nextclade in a publication
+</h2>
+If you use results obtained with Nextclade in a publication, we suggest you cite our preprint
+
+<b>Nextclade: clade assignment, mutation calling and quality control for viral genomes</b><br>
+<i> Ivan Aksamentov; Cornelius Roemer; Emma B Hodcroft; Richard A Neher</i><br>
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg)](https://doi.org/10.5281/zenodo.5607694)
 
 
 <h2 id="sponsors" align="center">
