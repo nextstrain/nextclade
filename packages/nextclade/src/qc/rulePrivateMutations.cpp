@@ -17,11 +17,8 @@ namespace Nextclade {
       return {};
     }
 
-    const auto& insertions = result.insertions;
-    const auto& deletions = result.deletions;
-    const auto totalNumberOfMutations =
-      // TODO: should we also account for result.privateDeletions here?
-      safe_cast<double>(result.privateNucMutations.privateSubstitutions.size() + insertions.size() + deletions.size());
+    const auto totalNumberOfMutations = safe_cast<double>(
+      result.privateNucMutations.privateSubstitutions.size() + result.privateNucMutations.privateDeletions.size());
 
     // the score hits 100 if the excess mutations equals the cutoff value
     const auto score = (std::max(0.0, totalNumberOfMutations - config.typical) * 100.0) / config.cutoff;
