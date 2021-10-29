@@ -12,16 +12,6 @@
 #include "formatQcStatus.h"
 
 namespace Nextclade {
-  json serializeNumber(double x) {
-    // If the number is almost integer, we want to round it down, so that it looks the same as JSON generated in the browser.
-    auto integral = safe_cast<std::int64_t>(x);
-    double fractional = x - safe_cast<double>(integral);// NOLINT(cppcoreguidelines-narrowing-conversions)
-                                                        //    if (integral != 0 && fractional < 1e-4) {
-    return integral;
-    //    }
-    //    return x;
-  }
-
   json serializeRange(const Range& range) {
     auto j = json::object();
     j.emplace("begin", range.begin);
@@ -357,7 +347,7 @@ namespace Nextclade {
       j.emplace("privateNucMutations", serializePrivateMutations(result.privateNucMutations));
       j.emplace("privateAaMutations", serializeMap(result.privateAaMutations, serializePrivateMutations<Aminoacid>));
       j.emplace("missingGenes", serializeArray(result.missingGenes));
-      j.emplace("divergence", serializeNumber(result.divergence));
+      j.emplace("divergence", result.divergence);
 
       j.emplace("qc", serializeQcResult(result.qc));
       j.emplace("nucleotideComposition", serializeNucleotideComposition(result.nucleotideComposition));
