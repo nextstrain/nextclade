@@ -15,6 +15,7 @@ import { LinkExternal } from 'src/components/Link/LinkExternal'
 
 import { ReactComponent as BrandLogo } from 'src/assets/img/nextstrain_logo.svg'
 
+import { CitationButton } from 'src/components/Citation/CitationButton'
 import { WhatsNewButton } from './WhatsNewButton'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { NavigationLogo } from './NavigationLogo'
@@ -111,6 +112,10 @@ export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
       </Link>
 
       <ul className="navbar-nav ml-auto d-flex">
+        <li className="nav-item mx-2 my-auto">
+          <CitationButton />
+        </li>
+
         <li className="nav-item mx-2 my-auto">
           <DocsLink />
         </li>
