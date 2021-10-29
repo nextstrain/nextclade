@@ -594,6 +594,8 @@ namespace Nextclade {
 
   std::string formatMutationSimple(const NucleotideSubstitutionSimple& mut);
 
+  std::string formatDeletionSimple(const NucleotideDeletionSimple& del);
+
   std::string formatAminoacidMutationSimpleWithoutGene(const AminoacidSubstitutionSimple& mut);
 
   std::string formatAminoacidDeletionSimpleWithoutGene(const AminoacidDeletionSimple& del);

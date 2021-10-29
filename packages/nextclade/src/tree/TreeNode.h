@@ -78,9 +78,8 @@ namespace Nextclade {
 
     void setNucleotideMutationsEmpty();
 
-    void setBranchAttrNucMutations(const std::vector<NucleotideSubstitutionSimple>& mutations);
-
-    void setBranchAttrAaMutations(const std::map<std::string, PrivateAminoacidMutations>& aaMutations);
+    void setBranchAttrMutations(const PrivateNucleotideMutations& nucMutations,
+      const std::map<std::string, PrivateAminoacidMutations>& aaMutations);
 
     std::optional<double> divergence() const;
 
