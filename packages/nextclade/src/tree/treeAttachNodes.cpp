@@ -18,12 +18,17 @@ namespace Nextclade {
     // https://github.com/nextstrain/auspice/blob/797090f8092ffe1291b58efd113d2c5def8b092a/src/util/globals.js#L182
     constexpr const char* const UNKNOWN_VALUE = "Unknown ";
 
-    template<typename T, typename Formatter, typename Delimiter>
-    std::string formatAndJoinMaybeEmpty(const std::vector<T>& elements, Formatter formatter, Delimiter delimiter) {
+    template<typename Container, typename Formatter, typename Delimiter>
+    std::string formatAndJoinMaybeEmpty(const Container& elements, Formatter formatter, Delimiter delimiter) {
       if (elements.empty()) {
         return "None";
       }
       return formatAndJoin(elements, formatter, delimiter);
+    }
+
+    template<typename T>
+    inline const T& identity(const T& t) noexcept {
+      return t;
     }
   }// namespace
 
@@ -68,6 +73,8 @@ namespace Nextclade {
     }
 
     newNode.setNodeAttr("QC Status", formatQcStatus(result.qc.overallStatus));
+
+    newNode.setNodeAttr("Missing genes", formatAndJoinMaybeEmpty(result.missingGenes, identity<std::string>, ", "));
   }
 
   /**

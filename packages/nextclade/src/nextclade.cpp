@@ -39,6 +39,11 @@ namespace Nextclade {
   ) {
     const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, nextalignOptions);
 
+    std::set<std::string> missingGenes;
+    for (const auto& geneWarning : alignment.warnings.inGenes) {
+      missingGenes.emplace(geneWarning.geneName);
+    }
+
     auto nucChanges = findNucChanges(alignment.ref, alignment.query);
     const int totalSubstitutions = safe_cast<int>(nucChanges.substitutions.size());
     const int totalDeletions = calculateTotalLength(nucChanges.deletions);
@@ -113,6 +118,7 @@ namespace Nextclade {
       .clade = "",
       .privateNucMutations = {},
       .privateAaMutations = {},
+      .missingGenes = missingGenes,
       .divergence = 0.0,
       .qc = {},
     };

@@ -356,6 +356,7 @@ namespace Nextclade {
 
       j.emplace("privateNucMutations", serializePrivateMutations(result.privateNucMutations));
       j.emplace("privateAaMutations", serializeMap(result.privateAaMutations, serializePrivateMutations<Aminoacid>));
+      j.emplace("missingGenes", serializeArray(result.missingGenes));
       j.emplace("divergence", serializeNumber(result.divergence));
 
       j.emplace("qc", serializeQcResult(result.qc));

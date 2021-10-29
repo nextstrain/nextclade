@@ -430,6 +430,7 @@ namespace Nextclade {
     std::string clade;
     PrivateNucleotideMutations privateNucMutations;
     std::map<std::string, PrivateAminoacidMutations> privateAaMutations;
+    std::set<std::string> missingGenes;
     double divergence;
     QcResult qc;
   };

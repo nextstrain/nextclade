@@ -276,6 +276,16 @@ namespace Nextclade {
     // Aminoacid mutations are grouped by gene, and these groups should be handled independently
     for (const auto& nodeMutMapEntry : nodeMutMap) {
       const auto& geneName = nodeMutMapEntry.first;
+
+      // Only process amino acid mutations if the peptide is not missing (i.e. gene was properly translated and aligned)
+      // In missing peptides all aminoacid mutations are also missing. We want to avoid treating these missing mutations
+      // as reversals (mutations from node back to ref). Detecting reversals makes sense  under normal circumstances
+      // when a single mutation is not present in a peptide, but not when all mutations are missing because the entire
+      // gene processing failed.
+      if (has(seq.missingGenes, geneName)) {
+        continue;
+      }
+
       const auto& nodeMutMapForGene = nodeMutMapEntry.second;
 
       auto peptideFound = refPeptides.find(geneName);
@@ -286,6 +296,7 @@ namespace Nextclade {
 
       const auto aaSubstitutions =
         filter(seq.aaSubstitutions, [&geneName](const AminoacidSubstitution& aaSub) { return aaSub.gene == geneName; });
+
 
       const auto aaDeletions =
         filter(seq.aaDeletions, [&geneName](const AminoacidDeletion& aaDel) { return aaDel.gene == geneName; });

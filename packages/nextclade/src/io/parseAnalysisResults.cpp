@@ -367,6 +367,7 @@ namespace Nextclade {
         .privateNucMutations = parsePrivateMutations<Nucleotide>(at(j, "privateNucMutations")),
         .privateAaMutations =
           parseMap<std::string, PrivateAminoacidMutations>(j, "privateAaMutations", parsePrivateMutations<Aminoacid>),
+        .missingGenes = parseSet<std::string>(at(j, "missingGenes")),
         .divergence = at(j, "divergence"),
         .qc = parseQcResult(at(j, "qc")),
       };
