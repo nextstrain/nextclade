@@ -17,6 +17,23 @@ Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source pr
 
 
 ..  note::
+
+  **Referring to Nextclade in a publication**
+
+  If you use results obtained with Nextclade in a publication, please
+
+  - cite our preprint:
+
+      Ivan Aksamentov, Cornelius Roemer, Emma B Hodcroft, & Richard A Neher. (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. https://doi.org/10.5281/zenodo.5607694
+
+    `bibtex <https://zenodo.org/record/5607694/export/hx>`_
+
+  - where possible, provide a link to Nextclade Web:
+
+      https://clades.nextstrain.org
+
+
+..  note::
   Do you find Nextclade useful? Tell us about your use-case and experience with it.
 
   For a general conversation, feel free to join Nextstrain Discussion at `discussion.nextstrain.org <https://discussion.nextstrain.org>`_.
