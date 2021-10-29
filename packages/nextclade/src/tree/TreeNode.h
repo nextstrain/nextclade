@@ -44,8 +44,6 @@ namespace Nextclade {
 
     TreeNode addChildFromCopy(const TreeNode& node);
 
-    void assign(const TreeNode& node);
-
     TreeNode addChild();
 
     void forEachChildNode(const std::function<void(const TreeNode&)>& action) const;

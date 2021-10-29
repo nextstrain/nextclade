@@ -108,10 +108,6 @@ namespace Nextclade {
       return TreeNode{childJson};
     }
 
-    void assign(const TreeNode& node) {
-      j.update(node.pimpl->j);// Deep clone
-    }
-
     TreeNode addChild() {
       ensureIsObject();
 
@@ -336,23 +332,6 @@ namespace Nextclade {
       j[json_pointer{"/branch_attrs/mutations/nuc"}] = json::array();
     }
 
-    void setBranchAttrNucMutations(const std::vector<NucleotideSubstitutionSimple>& mutations) {
-      auto mutObj = json::object();
-
-      if (!mutations.empty()) {
-        if (!mutObj.contains("nuc")) {
-          mutObj["nuc"] = json::array();
-        }
-        for (const auto& mut : mutations) {
-          mutObj["nuc"].push_back(formatMutationSimple(mut));
-        }
-      }
-
-      if (!mutObj.empty()) {
-        j[json_pointer{"/branch_attrs/mutations"}] = std::move(mutObj);
-      }
-    }
-
     void setBranchAttrAaMutations(                                       //
       const PrivateNucleotideMutations& nucMutations,                    //
       const std::map<std::string, PrivateAminoacidMutations>& aaMutations//
@@ -490,13 +469,8 @@ namespace Nextclade {
 
   TreeNode::TreeNode(json& js) : pimpl(std::make_shared<TreeNodeImpl>(js)) {}
 
-
   TreeNode TreeNode::addChildFromCopy(const TreeNode& node) {
     return pimpl->addChildFromCopy(node);
-  }
-
-  void TreeNode::assign(const TreeNode& node) {
-    pimpl->assign(node);
   }
 
   TreeNode TreeNode::addChild() {
