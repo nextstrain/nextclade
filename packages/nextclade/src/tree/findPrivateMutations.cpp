@@ -25,7 +25,7 @@
 * analysis steps.
 *
 */
-#include "findPrivateNucMutations.h"
+#include "findPrivateMutations.h"
 
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>

@@ -17,7 +17,7 @@
 #include "qc/runQc.h"
 #include "tree/Tree.h"
 #include "tree/calculateDivergence.h"
-#include "tree/findPrivateNucMutations.h"
+#include "tree/findPrivateMutations.h"
 #include "tree/treeAttachNodes.h"
 #include "tree/treeFindNearestNodes.h"
 #include "tree/treePostprocess.h"

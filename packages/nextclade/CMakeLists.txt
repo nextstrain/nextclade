@@ -87,8 +87,8 @@ set(SOURCE_FILES
   src/tree/TreeNode.h
   src/tree/calculateDivergence.cpp
   src/tree/calculateDivergence.h
-  src/tree/findPrivateNucMutations.cpp
-  src/tree/findPrivateNucMutations.h
+  src/tree/findPrivateMutations.cpp
+  src/tree/findPrivateMutations.h
   src/tree/treeAttachNodes.cpp
   src/tree/treeAttachNodes.h
   src/tree/treeFindNearestNodes.cpp

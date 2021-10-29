@@ -9,7 +9,7 @@
 #include "../io/formatQcStatus.h"
 #include "../utils/contract.h"
 #include "TreeNode.h"
-#include "findPrivateNucMutations.h"
+#include "findPrivateMutations.h"
 
 
 namespace Nextclade {

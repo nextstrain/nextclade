@@ -1,5 +1,3 @@
-#include "../../src/tree/findPrivateNucMutations.h"
-
 #include <gtest/gtest.h>
 
 #include <exception>
@@ -8,6 +6,7 @@
 #include "../../include/nextclade/private/nextclade_private.h"
 #include "../../src/io/parseMutation.h"
 #include "../../src/tree/TreeNode.h"
+#include "../../src/tree/findPrivateMutations.h"
 #include "../../src/tree/treePreprocess.h"
 #include "../../src/utils/safe_cast.h"
 
