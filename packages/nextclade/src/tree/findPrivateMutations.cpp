@@ -77,9 +77,15 @@ namespace Nextclade {
     ) {
       for (const auto& seqMut : substitutions) {
         const auto& pos = seqMut.pos;
-        const auto& nodeQueryChar = mapFind(nodeMutMap, pos);
         seqPositionsCovered.insert(pos);
 
+        if (isUnknown(seqMut.qry)) {
+          // Skip nucleotide N and aminoacid X in sequence. We don't know whether they match the node character or not,
+          // so we decide to not take them into account.
+          continue;
+        }
+
+        const auto& nodeQueryChar = mapFind(nodeMutMap, pos);
         if (!nodeQueryChar) {
           // Case 3: Mutation in sequence but not in node, i.e. a newly occurred mutation.
           // Action: Add the sequence mutation itself.

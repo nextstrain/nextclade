@@ -325,6 +325,14 @@ bool isGap(Letter nuc) {
   return nuc == Letter::GAP;
 }
 
+inline bool isUnknown(const Nucleotide& nuc) {
+  return nuc == Nucleotide::N;
+}
+
+inline bool isUnknown(const Aminoacid& aa) {
+  return aa == Aminoacid::N;
+}
+
 class FastaStream {
 public:
   FastaStream() = default;
