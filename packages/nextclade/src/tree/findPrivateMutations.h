@@ -17,7 +17,8 @@ namespace Nextclade {
   std::map<std::string, PrivateAminoacidMutations> findPrivateAaMutations(//
     const std::map<std::string, std::map<int, Aminoacid>>& nodeMutMap,    //
     const AnalysisResult& seq,                                            //
-    const std::map<std::string, RefPeptideInternal>& refPeptides          //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,         //
+    const GeneMap& geneMap                                                //
   );
 
   class ErrorFindPrivateMutsRefPeptideNotFound : public ErrorNonFatal {

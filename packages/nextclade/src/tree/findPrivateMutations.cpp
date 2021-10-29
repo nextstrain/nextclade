@@ -17,7 +17,7 @@
 * |---|--------------------------------------------------------------|---------|---------------|--------------|
 * | 3 | mutation in sequence but not in node                         |   yes   |    seq.ref    |   seq.qry    |
 * |---|--------------------------------------------------------------|---------|---------------|--------------|
-* | 4 | mutation in node, but not in sequence                        |   yes   |    node.qry   |   node.ref   |
+* | 4 | mutation in node, but not in sequence, aka "reversal"        |   yes   |    node.qry   |   node.ref   |
 * |   | (mutation in sequence that reverts the character to ref seq) |         |               |              |
 * |---|--------------------------------------------------------------|---------|---------------|--------------|
 *
@@ -197,7 +197,8 @@ namespace Nextclade {
         const bool notCoveredYet = !has(seqPositionsCovered, pos);
         const bool isSequenced = isSequencedGeneric(pos, seq, LetterTag<Letter>{});
         if (notCoveredYet && isSequenced && !isGap(nodeQueryNuc)) {
-          // Case 4: Mutation in node, but not in sequence, i.e. mutation in sequence reverts the character to ref seq.
+          // Case 4: Mutation in node, but not in sequence. This is a so-called reversal. Mutation in sequence reverts
+          // the character to ref seq.
           // Action: Add mutation from node query character to character in reference sequence.
           const auto& refNuc = refSeq[pos];
           if (isGap<Letter>(refNuc)) {
@@ -269,35 +270,44 @@ namespace Nextclade {
   std::map<std::string, PrivateAminoacidMutations> findPrivateAaMutations(//
     const std::map<std::string, std::map<int, Aminoacid>>& nodeMutMap,    //
     const AnalysisResult& seq,                                            //
-    const std::map<std::string, RefPeptideInternal>& refPeptides          //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,         //
+    const GeneMap& geneMap                                                //
   ) {
     std::map<std::string, PrivateAminoacidMutations> result;
 
     // Aminoacid mutations are grouped by gene, and these groups should be handled independently
-    for (const auto& nodeMutMapEntry : nodeMutMap) {
-      const auto& geneName = nodeMutMapEntry.first;
+    for (const auto& geneMapEntry : geneMap) {
+      const auto& geneName = geneMapEntry.first;
 
       // Only process amino acid mutations if the peptide is not missing (i.e. gene was properly translated and aligned)
       // In missing peptides all aminoacid mutations are also missing. We want to avoid treating these missing mutations
-      // as reversals (mutations from node back to ref). Detecting reversals makes sense  under normal circumstances
-      // when a single mutation is not present in a peptide, but not when all mutations are missing because the entire
+      // as reversals (Case 4). Detecting reversals makes sense under normal circumstances
+      // when a single mutation is not present in a well-formed peptide, but not when all mutations are missing because
       // gene processing failed.
       if (has(seq.missingGenes, geneName)) {
         continue;
       }
 
-      const auto& nodeMutMapForGene = nodeMutMapEntry.second;
+      // Find out if node has mutations in this gene. If not, create an empty map. This way we can still account for
+      // new amino acid mutations in sequence.
+      auto nodeMutMapFound = nodeMutMap.find(geneName);
+      auto nodeMutMapForGene = std::map<int, Aminoacid>{};
+      if (nodeMutMapFound != nodeMutMap.end()) {
+        nodeMutMapForGene = nodeMutMapFound->second;
+      }
 
+      // Reference peptide should always be there for all genes in the gene map. If it's not it's a bug.
       auto peptideFound = refPeptides.find(geneName);
       if (peptideFound == refPeptides.end()) {
         throw ErrorFindPrivateMutsRefPeptideNotFound(geneName);
       }
       const auto& refPeptide = peptideFound->second.peptide;
 
+      // Filter out sequence substitutions which are only in this gene
       const auto aaSubstitutions =
         filter(seq.aaSubstitutions, [&geneName](const AminoacidSubstitution& aaSub) { return aaSub.gene == geneName; });
 
-
+      // Filter out sequence deletions which are only in this gene
       const auto aaDeletions =
         filter(seq.aaDeletions, [&geneName](const AminoacidDeletion& aaDel) { return aaDel.gene == geneName; });
 

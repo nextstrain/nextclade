@@ -130,7 +130,8 @@ namespace Nextclade {
 
     analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
 
-    analysisResult.privateAaMutations = findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides);
+    analysisResult.privateAaMutations =
+      findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides, geneMap);
 
     analysisResult.divergence =
       calculateDivergence(nearestNode, analysisResult, tree.tmpDivergenceUnits(), safe_cast<int>(ref.size()));
