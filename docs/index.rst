@@ -15,17 +15,21 @@ All tools are powered by the same algorithms, they consume the same inputs and p
 
 Nextclade is a part of `Nextstrain <https://nextstrain.org>`_, an open-source project to harness the scientific and public health potential of pathogen genome data. All source code is available on `GitHub <https://github.com/nextstrain/nextclade>`_.
 
----------------------------------------
-Referring to Nextclade in a publication
----------------------------------------
 
-If you use results obtained with Nextclade in a publication, we suggest you cite our preprint:
+..  note::
 
-| **Nextclade: clade assignment, mutation calling and quality control for viral genomes**
-| /Ivan Aksamentov; Cornelius Roemer; Emma B Hodcroft; Richard A Neher/
+  **Referring to Nextclade in a publication**
 
-.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg
-   :target: https://doi.org/10.5281/zenodo.5607694
+  If you use results obtained with Nextclade in a publication, please
+
+  - cite our preprint:
+
+      Ivan Aksamentov, Cornelius Roemer, Emma B Hodcroft, & Richard A Neher. (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. https://doi.org/10.5281/zenodo.5607694
+
+  - where possible, provide a link to Nextclade Web:
+
+      https://clades.nextstrain.org
+
 
 ..  note::
   Do you find Nextclade useful? Tell us about your use-case and experience with it.

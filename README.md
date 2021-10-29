@@ -195,7 +195,20 @@ by Nextstrain team
   </a>
 </p>
 
----
+<h2 id="citation" align="center">
+📜️ Citation
+</h2>
+
+If you use results obtained with Nextclade in a publication, please
+
+ - cite our preprint:
+
+    > Ivan Aksamentov, Cornelius Roemer, Emma B Hodcroft, & Richard A Neher. (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. https://doi.org/10.5281/zenodo.5607694
+
+
+ - where possible, provide a link to Nextclade Web:
+
+    > https://clades.nextstrain.org
 
 
 <h2 id="documentation" align="center">
@@ -318,17 +331,6 @@ We are thankful to all our contributors, no matter how they contribute: in ideas
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the <a target="_blank" rel="noopener noreferrer" href="https://github.com/all-contributors/all-contributors">all-contributors</a> specification. Contributions of any kind welcome!
-
-
-
-<h2 id="citation" align="center">
-  Referring to Nextclade in a publication
-</h2>
-If you use results obtained with Nextclade in a publication, we suggest you cite our preprint:
-
-<b>Nextclade: clade assignment, mutation calling and quality control for viral genomes</b><br>
-<i> Ivan Aksamentov; Cornelius Roemer; Emma B Hodcroft; Richard A Neher</i><br>
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg)](https://doi.org/10.5281/zenodo.5607694)
 
 
 <h2 id="sponsors" align="center">
