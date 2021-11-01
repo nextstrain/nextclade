@@ -92,8 +92,8 @@ TEST(FindNucleotideRanges, With_Predicate) {
 }
 
 TEST(FindNucleotideRanges, With_Predicate_Multiple_Nucs) {
-  std::set<Nucleotide> GOOD_NUCLEOTIDES = {
-    Nucleotide::A, Nucleotide::C, Nucleotide::G, Nucleotide::T, Nucleotide::N, Nucleotide::GAP};
+  std::set<Nucleotide> GOOD_NUCLEOTIDES = {Nucleotide::A, Nucleotide::C, Nucleotide::G, Nucleotide::T, Nucleotide::N,
+    Nucleotide::GAP};
 
   const auto isNotGoodNuc = [&GOOD_NUCLEOTIDES](Nucleotide nuc) {//
     return GOOD_NUCLEOTIDES.find(nuc) == GOOD_NUCLEOTIDES.end();
@@ -109,8 +109,8 @@ TEST(FindNucleotideRanges, With_Predicate_Multiple_Nucs) {
 }
 
 TEST(FindNucleotideRanges, Consecutive_Ranges) {
-  std::set<Nucleotide> GOOD_NUCLEOTIDES = {
-    Nucleotide::A, Nucleotide::C, Nucleotide::G, Nucleotide::T, Nucleotide::N, Nucleotide::GAP};
+  std::set<Nucleotide> GOOD_NUCLEOTIDES = {Nucleotide::A, Nucleotide::C, Nucleotide::G, Nucleotide::T, Nucleotide::N,
+    Nucleotide::GAP};
 
   const auto isNotGoodNuc = [&GOOD_NUCLEOTIDES](Nucleotide nuc) {//
     return GOOD_NUCLEOTIDES.find(nuc) == GOOD_NUCLEOTIDES.end();

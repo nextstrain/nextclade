@@ -41,8 +41,8 @@ TEST(FindNucChanges, ReportsSubstitutions) {
   const auto results = findNucChanges(ref, query);
 
   const auto expected = std::vector<NucleotideSubstitution>({
-    {.refNuc = Nucleotide::C, .pos = 0, .queryNuc = Nucleotide::A},
-    {.refNuc = Nucleotide::A, .pos = 3, .queryNuc = Nucleotide::T},
+    {.ref = Nucleotide::C, .pos = 0, .qry = Nucleotide::A},
+    {.ref = Nucleotide::A, .pos = 3, .qry = Nucleotide::T},
   });
 
   EXPECT_ARR_EQ(expected, results.substitutions)

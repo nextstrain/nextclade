@@ -5,6 +5,7 @@
 // clang-format on
 
 #include <nextalign/nextalign.h>
+#include <nextclade/nextclade.h>
 
 #include <functional>
 #include <map>
@@ -18,7 +19,7 @@ enum class Nucleotide : char;
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
-  struct NucleotideSubstitution;
+  struct AminoacidSubstitutionWithoutGene;
   class TreeNodeImpl;
 
   class TreeNode {
@@ -43,8 +44,6 @@ namespace Nextclade {
 
     TreeNode addChildFromCopy(const TreeNode& node);
 
-    void assign(const TreeNode& node);
-
     TreeNode addChild();
 
     void forEachChildNode(const std::function<void(const TreeNode&)>& action) const;
@@ -59,15 +58,26 @@ namespace Nextclade {
 
     std::map<int, Nucleotide> mutations() const;
 
+    std::map<std::string, std::map<int, Aminoacid>> aaSubstitutions() const;
+
+    std::map<std::string, std::map<int, Aminoacid>> aaMutations() const;
+
+    std::vector<NucleotideSubstitution> nucleotideMutations() const;
+
+    std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> aminoacidMutations() const;
+
     void setMutations(const std::map<int, Nucleotide>& data);
 
     void setSubstitutions(const std::map<int, Nucleotide>& data);
 
-    std::vector<NucleotideSubstitution> nucleotideMutations() const;
+    void setAaMutations(const std::map<std::string, std::map<int, Aminoacid>>& aaMutationMap);
+
+    void setAaSubstitutions(const std::map<std::string, std::map<int, Aminoacid>>& aaSubstitutionMap);
 
     void setNucleotideMutationsEmpty();
 
-    void setBranchAttrMutations(const std::map<std::string, std::vector<std::string>>& mutations);
+    void setBranchAttrMutations(const PrivateNucleotideMutations& nucMutations,
+      const std::map<std::string, PrivateAminoacidMutations>& aaMutations);
 
     std::optional<double> divergence() const;
 
@@ -107,6 +117,11 @@ namespace Nextclade {
   class ErrorTreeNodeMutationNucleotideInvalid : public ErrorFatal {
   public:
     explicit ErrorTreeNodeMutationNucleotideInvalid(const json& node);
+  };
+
+  class ErrorTreeNodeMutationAminoacidInvalid : public ErrorFatal {
+  public:
+    explicit ErrorTreeNodeMutationAminoacidInvalid(const json& node);
   };
 
   class ErrorTreeNodeIdInvalid : public ErrorFatal {

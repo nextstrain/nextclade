@@ -7,15 +7,14 @@
 #include <optional>
 #include <vector>
 
-#include "../utils/contract.h"
 #include "../utils/safe_cast.h"
 #include "getQcRuleStatus.h"
 
 
 namespace Nextclade {
-  std::vector<std::vector<int>> findSnpClusters(                   //
-    const std::vector<NucleotideSubstitution>& privateMutationsRaw,//
-    const QCRulesConfigSnpClusters& config                         //
+  std::vector<std::vector<int>> findSnpClusters(                         //
+    const std::vector<NucleotideSubstitutionSimple>& privateMutationsRaw,//
+    const QCRulesConfigSnpClusters& config                               //
   ) {
     auto privateMutations = privateMutationsRaw;
     std::sort(privateMutations.begin(), privateMutations.end());
@@ -65,16 +64,16 @@ namespace Nextclade {
     return result;
   }
 
-  std::optional<QCResultSnpClusters> ruleSnpClusters(           //
-    const AnalysisResult&,                                      //
-    const std::vector<NucleotideSubstitution>& privateMutations,//
-    const QCRulesConfigSnpClusters& config                      //
+  std::optional<QCResultSnpClusters> ruleSnpClusters(//
+    const AnalysisResult& query,                     //
+    const QCRulesConfigSnpClusters& config           //
   ) {
     if (!config.enabled) {
       return {};
     }
 
-    const auto snpClusters = findSnpClusters(privateMutations, config);
+    // TODO: should we also account for result. privateDeletions here
+    const auto snpClusters = findSnpClusters(query.privateNucMutations.privateSubstitutions, config);
     const auto totalClusters = safe_cast<double>(snpClusters.size());
 
     auto clusteredSnps = processSnpClusters(snpClusters);

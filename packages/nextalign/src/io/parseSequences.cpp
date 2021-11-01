@@ -16,7 +16,7 @@ class ErrorFastaStreamIllegalNextCall : public ErrorFatal {
 public:
   explicit ErrorFastaStreamIllegalNextCall(const std::string& filename)
       : ErrorFatal(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is in non-readable state,"
-                                       " the next line cannot be retrieved. Aborting.",
+                               " the next line cannot be retrieved. Aborting.",
           filename)) {}
 };
 
@@ -24,8 +24,8 @@ public:
 class ErrorFastaStreamInvalidState : public ErrorFatal {
 public:
   explicit ErrorFastaStreamInvalidState(const std::string& filename)
-      : ErrorFatal(fmt::format(
-          "When parsing input sequences: Input stream (\"{:s}\") is empty or corrupted. Aborting.", filename)) {}
+      : ErrorFatal(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is empty or corrupted. Aborting.",
+          filename)) {}
 };
 
 

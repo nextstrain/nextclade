@@ -47,36 +47,32 @@ public:
 class ErrorGffParserMissingGeneName : public ErrorFatal {
 public:
   ErrorGffParserMissingGeneName()
-      : ErrorFatal(fmt::format("GFF parser: expected attribute `${:s}` is missing", GFF_ATTRIB_KEY_GENE_NAME)) {
-  }
+      : ErrorFatal(fmt::format("GFF parser: expected attribute `${:s}` is missing", GFF_ATTRIB_KEY_GENE_NAME)) {}
 };
 
 class ErrorGffParserGenNameEmpty : public ErrorFatal {
 public:
-  ErrorGffParserGenNameEmpty()
-      : ErrorFatal(fmt::format("GFF parser: empty gene names are not allowed")) {}
+  ErrorGffParserGenNameEmpty() : ErrorFatal(fmt::format("GFF parser: empty gene names are not allowed")) {}
 };
 
 class ErrorGffParserGeneRangeInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneRangeInvalid(const std::string& geneName, int start, int end)
-      : ErrorFatal(
-          fmt::format("GFF parser: in gene \"{:s}\": range is invalid: ({:d}, {:d})", geneName, start, end)) {}
+      : ErrorFatal(fmt::format("GFF parser: in gene \"{:s}\": range is invalid: ({:d}, {:d})", geneName, start, end)) {}
 };
 
 class ErrorGffParserGeneLengthInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneLengthInvalid(const std::string& geneName, int length, int start, int end)
-      : ErrorFatal(
-          fmt::format("GFF parser: gene \"{:s}\": length {:d} is not divisible by 3. Start: {:d}, end: {:d}", geneName,
-            length, start, end)) {}
+      : ErrorFatal(fmt::format("GFF parser: gene \"{:s}\": length {:d} is not divisible by 3. Start: {:d}, end: {:d}",
+          geneName, length, start, end)) {}
 };
 
 class ErrorGffParserGeneStrandInvalid : public ErrorFatal {
 public:
   explicit ErrorGffParserGeneStrandInvalid(const std::string& geneName, const std::string& strand)
-      : ErrorFatal(fmt::format(
-          R"(GFF parser: in gene "{:s}": gene strand is invalid: "{:s}", expected "+" or "-")", geneName, strand)) {}
+      : ErrorFatal(fmt::format(R"(GFF parser: in gene "{:s}": gene strand is invalid: "{:s}", expected "+" or "-")",
+          geneName, strand)) {}
 };
 
 

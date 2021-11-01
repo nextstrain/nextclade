@@ -1,8 +1,8 @@
 
+#include "../src/translate/removeGaps.h"
+
 #include <gtest/gtest.h>
 #include <nextalign/nextalign.h>
-
-#include "../src/translate/removeGaps.h"
 
 const auto INPUT = toAminoacidSequence("--MY-SPACEBAR---IS--BROKEN-SEND---HELP-");
 constexpr const auto OUTPUT = "MYSPACEBARISBROKENSENDHELP";

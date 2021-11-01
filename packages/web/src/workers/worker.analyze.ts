@@ -12,7 +12,7 @@ export interface NextcladeWasmParams {
   refName: string
   geneMapStr: string
   geneMapName: string
-  treePreparedStr: string
+  treeStr: string
   pcrPrimerCsvRowsStr: string
   pcrPrimersFilename: string
   qcConfigStr: string
@@ -55,6 +55,8 @@ export interface NextcladeWasmClass {
 
   analyze(seqName: string, seq: string): NextcladeWasmResult
 
+  getTree(): string
+
   delete(): void
 }
 
@@ -79,7 +81,7 @@ export async function init(params: NextcladeWasmParams) {
       params.refStr,
       params.geneMapStr,
       params.geneMapName,
-      params.treePreparedStr,
+      params.treeStr,
       params.pcrPrimerCsvRowsStr,
       params.pcrPrimersFilename,
       params.qcConfigStr,
@@ -98,9 +100,7 @@ export function parsePeptides(peptidesStr: string): Peptide[] {
 /** Runs the Nextclade analysis step. Requires `init()` to be called first. */
 export async function analyze(seq: SequenceParserResult) {
   if (!gModule || !gNextcladeWasm) {
-    throw new TypeError(
-      'Developer error: this WebWorker module has not been initialized yet. Make sure to call `module.init()` function.',
-    )
+    throw new ErrorModuleNotInitialized()
   }
 
   const nextcladeWasm = gNextcladeWasm
@@ -136,14 +136,21 @@ export async function analyze(seq: SequenceParserResult) {
   })
 }
 
+export async function getTree(): Promise<string> {
+  if (!gModule || !gNextcladeWasm) {
+    throw new ErrorModuleNotInitialized()
+  }
+
+  const nextcladeWasm = gNextcladeWasm
+  return nextcladeWasm.getTree()
+}
+
 export async function destroy() {
   const module = gModule
   const nextcladeWasm = gNextcladeWasm
 
   if (!module || !nextcladeWasm) {
-    throw new TypeError(
-      'Developer error: this WebWorker module has not been initialized yet. Make sure to call `module.init()` function.',
-    )
+    throw new ErrorModuleNotInitialized()
   }
 
   return runWasmModule<NextcladeAnalysisModule, void>(module, () => {
@@ -151,7 +158,15 @@ export async function destroy() {
   })
 }
 
-const analysisWorker = { init, analyze, destroy }
+export class ErrorModuleNotInitialized extends Error {
+  constructor() {
+    super(
+      'Developer error: this WebWorker module has not been initialized yet. Make sure to call `module.init()` function.',
+    )
+  }
+}
+
+const analysisWorker = { init, analyze, getTree, destroy }
 export type AnalysisWorker = typeof analysisWorker
 export type AnalysisThread = AnalysisWorker & Thread
 

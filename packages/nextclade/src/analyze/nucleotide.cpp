@@ -26,11 +26,6 @@ namespace Nextclade {
 
   }// namespace
 
-
-  bool isGap(Nucleotide nuc) {
-    return nuc == Nucleotide::GAP;
-  }
-
   bool isAcgt(Nucleotide nuc) {
     return has(ACGT, nuc);
   }

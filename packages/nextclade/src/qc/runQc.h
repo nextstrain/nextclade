@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "ruleFrameShifts.h"
 #include "ruleMissingData.h"
 #include "ruleMixedSites.h"
@@ -12,13 +10,11 @@
 namespace Nextclade {
   struct QcResult;
   struct AnalysisResult;
-  struct NucleotideSubstitution;
   struct QcConfig;
 
-  QcResult runQc(                                               //
-    const ::NextalignResultInternal& alignment,                   //
-    const AnalysisResult& analysisResult,                       //
-    const std::vector<NucleotideSubstitution>& privateMutations,//
-    const QcConfig& qcRulesConfig                               //
-  );                                                            //
+  QcResult runQc(                              //
+    const ::NextalignResultInternal& alignment,//
+    const AnalysisResult& analysisResult,      //
+    const QcConfig& qcRulesConfig              //
+  );                                           //
 }// namespace Nextclade
