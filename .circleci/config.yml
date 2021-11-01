@@ -215,9 +215,9 @@ jobs:
           destination: nextclade-Linux-x86_64
 
       - run:
-          name: Halt if not on cli-release branch
+          name: Halt if not on release-cli branch
           command: |
-            if [ "$CIRCLE_BRANCH" != "cli-release" ]; then
+            if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
                 circleci-agent step halt
             fi
 
@@ -309,9 +309,9 @@ jobs:
           destination: nextclade-MacOS-<< parameters.macos_arch >>
 
       - run:
-          name: Halt if not on cli-release branch
+          name: Halt if not on release-cli branch
           command: |
-            if [ "$CIRCLE_BRANCH" != "cli-release" ]; then
+            if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
                 circleci-agent step halt
             fi
 
