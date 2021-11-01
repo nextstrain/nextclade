@@ -2,7 +2,13 @@
 
 #include <fmt/format.h>
 
+#include <map>
+#include <set>
+#include <vector>
+
+// clang-format off
 #include <nlohmann/json.hpp>
+// clang-format on
 
 namespace Nextclade {
   using json = nlohmann::ordered_json;
@@ -35,6 +41,15 @@ namespace Nextclade {
 
   double parseDouble(const json& j, const std::string& key);
 
+  template<typename T>
+  std::set<T> parseSet(const json& arr) {
+    std::set<T> set;
+    for (const auto& elem : arr) {
+      set.emplace(elem);
+    }
+    return set;
+  }
+
   template<typename T, typename Parser>
   std::vector<T> parseArray(const json& arr, const Parser& parser) {
     std::vector<T> vec;
@@ -61,6 +76,20 @@ namespace Nextclade {
       throw ErrorJsonTypeInvalid(jptr.to_string(), "array", arr.type_name());
     }
     return parseArray<T>(arr, parser);
+  }
+
+  template<typename Key, typename Val, typename Parser>
+  std::map<Key, Val> parseMap(const json& parent, const std::string& parentKey, const Parser& parser) {
+    const auto& obj = at(parent, parentKey);
+    if (!obj.is_object()) {
+      throw ErrorJsonTypeInvalid(parentKey, "object", parent.type_name());
+    }
+
+    std::map<Key, Val> result;
+    for (const auto& [key, value] : obj.items()) {
+      result[key] = parser(value);
+    }
+    return result;
   }
 
 

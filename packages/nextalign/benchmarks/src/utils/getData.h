@@ -18,8 +18,8 @@ auto getData() {
   std::copy(sequencesMap.cbegin(), sequencesMap.cend(), back_inserter(sequences));
 
   assert(sequences.size() >= NUM_SEQUENCES_VAR);
-  const auto TOTAL_NUCS = std::accumulate(
-    sequences.cbegin(), sequences.cbegin() + NUM_SEQUENCES_VAR, 0, [](int total, const AlgorithmInput& input) {
+  const auto TOTAL_NUCS = std::accumulate(sequences.cbegin(), sequences.cbegin() + NUM_SEQUENCES_VAR, 0,
+    [](int total, const AlgorithmInput& input) {
       total += input.seq.size();
       return total;
     });

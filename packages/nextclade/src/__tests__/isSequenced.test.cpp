@@ -5,8 +5,8 @@
 #include <nextclade/private/nextclade_private.h>
 
 namespace {
-  using Nextclade::isSequenced;
   using Nextclade::AnalysisResult;
+  using Nextclade::isSequenced;
   using Nextclade::NucleotideRange;
 }//namespace
 

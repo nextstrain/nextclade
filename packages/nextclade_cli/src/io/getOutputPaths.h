@@ -1,9 +1,8 @@
 #pragma once
 #include <fmt/format.h>
+#include <nextclade_common/filesystem.h>
 
 #include <string>
-
-#include <nextclade_common/filesystem.h>
 
 namespace Nextclade {
   struct OutputPaths {

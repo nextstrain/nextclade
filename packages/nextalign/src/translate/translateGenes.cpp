@@ -72,13 +72,13 @@ std::vector<FrameShiftResult> toExternal(const std::vector<InternalFrameShiftRes
   return result;
 }
 
-PeptidesInternal translateGenes(                       //
-  const NucleotideSequence& query,                     //
-  const NucleotideSequence& ref,                       //
+PeptidesInternal translateGenes(                               //
+  const NucleotideSequence& query,                             //
+  const NucleotideSequence& ref,                               //
   const std::map<std::string, RefPeptideInternal>& refPeptides,//
-  const GeneMap& geneMap,                              //
-  const std::vector<int>& gapOpenCloseAA,              //
-  const NextalignOptions& options                      //
+  const GeneMap& geneMap,                                      //
+  const std::vector<int>& gapOpenCloseAA,                      //
+  const NextalignOptions& options                              //
 ) {
 
   NucleotideSequence newQueryMemory(ref.size(), Nucleotide::GAP);
