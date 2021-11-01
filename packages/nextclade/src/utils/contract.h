@@ -180,8 +180,8 @@ struct op_divisible_by {
   } while (0);
 
 template<typename T, typename U, typename Stream>
-inline void debug_assert_print_impl(
-  const T& left, const U& right, const char* left_str, const char* right_str, const char* op_str, Stream& ss) {
+inline void debug_assert_print_impl(const T& left, const U& right, const char* left_str, const char* right_str,
+  const char* op_str, Stream& ss) {
   ss << "expected " << left_str << " " << op_str << " " << right_str << ", but got:\n"
      << left_str << " is " << left << "\n"
      << "and\n"
@@ -189,15 +189,15 @@ inline void debug_assert_print_impl(
 }
 
 template<typename T, typename U>
-inline std::string debug_assert_print(
-  const T& left, const U& right, const char* left_str, const char* right_str, const char* op_str) {
+inline std::string debug_assert_print(const T& left, const U& right, const char* left_str, const char* right_str,
+  const char* op_str) {
   std::stringstream ss;
   debug_assert_print_impl(left, right, left_str, right_str, op_str, ss);
   return ss.str();
 }
 
-inline std::string debug_assert_print(
-  float left, float right, const char* left_str, const char* right_str, const char* op_str) {
+inline std::string debug_assert_print(float left, float right, const char* left_str, const char* right_str,
+  const char* op_str) {
   std::stringstream ss;
   ss << std::fixed << std::setw(10) << std::setprecision(10);
   debug_assert_print_impl(left, right, left_str, right_str, op_str, ss);
@@ -205,8 +205,8 @@ inline std::string debug_assert_print(
   return ss.str();
 }
 
-inline std::string debug_assert_print(
-  double left, double right, const char* left_str, const char* right_str, const char* op_str) {
+inline std::string debug_assert_print(double left, double right, const char* left_str, const char* right_str,
+  const char* op_str) {
   std::stringstream ss;
   ss << std::fixed << std::setw(20) << std::setprecision(20);
   debug_assert_print_impl(left, right, left_str, right_str, op_str, ss);

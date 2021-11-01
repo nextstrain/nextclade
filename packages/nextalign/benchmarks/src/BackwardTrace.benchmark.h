@@ -23,8 +23,8 @@ protected:
     for (int i = 0; i < n; ++i) {
       const auto& input = sequences[i];
       seedAlignments[i] = seedAlignment(input.seq, reference);
-      forwardTraces[i] = scoreMatrix(
-        input.seq, reference, &lookupNucMatchScore, seedAlignments[i].bandWidth, seedAlignments[i].meanShift);
+      forwardTraces[i] = scoreMatrix(input.seq, reference, &lookupNucMatchScore, seedAlignments[i].bandWidth,
+        seedAlignments[i].meanShift);
     }
   }
 };
@@ -73,8 +73,8 @@ protected:
     for (int i = 0; i < n; ++i) {
       const auto& input = sequences[i];
       seedAlignments[i] = seedAlignment(input.seq, reference);
-      forwardTraces[i] = scoreMatrix(
-        input.seq, reference, &lookupNucMatchScore, seedAlignments[i].bandWidth, seedAlignments[i].meanShift);
+      forwardTraces[i] = scoreMatrix(input.seq, reference, &lookupNucMatchScore, seedAlignments[i].bandWidth,
+        seedAlignments[i].meanShift);
     }
   }
 };
