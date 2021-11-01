@@ -3,14 +3,14 @@
 #include <optional>
 #include <vector>
 
-struct NextalignResultInternal;
 
 namespace Nextclade {
+  struct AnalysisResult;
   struct QCRulesConfigFrameShifts;
   struct QcResultFrameShifts;
 
   std::optional<QcResultFrameShifts> ruleFrameShifts(//
-    const ::NextalignResultInternal& alignment,      //
+    const AnalysisResult& analysisResult,            //
     const QCRulesConfigFrameShifts& config           //
   );
 }// namespace Nextclade

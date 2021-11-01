@@ -23,6 +23,7 @@ import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
+import { DOMAIN_STRIPPED } from 'src/constants'
 import { initialize } from 'src/initialize'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { initializeDatasets } from 'src/io/fetchDatasets'
@@ -31,6 +32,7 @@ import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import Loading from 'src/components/Loading/Loading'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { SEO } from 'src/components/Common/SEO'
+import { Plausible } from 'src/components/Common/Plausible'
 import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 
@@ -91,6 +93,7 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
         <ConnectedRouter>
           <ThemeProvider theme={theme}>
             <MDXProvider components={{ a: LinkExternal }}>
+              <Plausible domain={DOMAIN_STRIPPED} />
               <QueryClientProvider client={queryClient}>
                 <PersistGate loading={null} persistor={persistor}>
                   <I18nextProvider i18n={i18n}>

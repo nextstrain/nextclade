@@ -1,5 +1,7 @@
 *.log
 /data_local*
+/e2e/cli/snapshots
+/e2e/cli/tmp
 3rdparty/binutils
 3rdparty/gcc
 3rdparty/llvm
@@ -25,6 +27,10 @@ generated/
 nextalign_benchmarks.json
 node_modules
 paper/paper.pdf
+paper/preprint.pdf
+paper/tex2pdf*
 tmp
 build/
 *.bak
+Brewfile.lock.json
+assets/

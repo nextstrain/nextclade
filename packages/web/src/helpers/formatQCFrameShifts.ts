@@ -1,22 +1,41 @@
 import type { QcResultFrameShifts } from 'src/algorithms/types'
+import { notUndefined } from 'src/helpers/notUndefined'
 import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
-import { QcStatus } from 'src/algorithms/types'
+import { formatFrameShift } from 'src/helpers/formatFrameShift'
 
 export function formatQCFrameShifts<TFunction extends TFunctionInterface>(
   t: TFunction,
   qcFrameShifts?: QcResultFrameShifts,
 ) {
-  if (!qcFrameShifts || qcFrameShifts.status === QcStatus.good) {
+  if (!qcFrameShifts) {
     return undefined
   }
 
-  const { score, frameShifts, totalFrameShifts } = qcFrameShifts
+  const { score, frameShifts, totalFrameShifts, frameShiftsIgnored, totalFrameShiftsIgnored } = qcFrameShifts
 
-  const geneList = frameShifts.map((frameShift) => frameShift.geneName).join(', ')
+  const frameShiftsList = frameShifts.map((frameShift) => formatFrameShift(frameShift)).join(', ')
+  const frameShiftsIgnoredList = frameShiftsIgnored.map((frameShift) => formatFrameShift(frameShift)).join(', ')
 
-  return t('{{numFrameShifts}} frame shift(s) detected. Affected gene(s): {{geneList}}. QC score: {{score}}', {
-    numFrameShifts: totalFrameShifts,
-    geneList,
-    score,
-  })
+  let unexpected: string | undefined
+  if (frameShiftsList.length > 0) {
+    unexpected = t('Unexpected {{numFrameShifts}} frame shift(s) detected: {{frameShiftsList}}', {
+      numFrameShifts: totalFrameShifts,
+      frameShiftsList,
+    })
+  }
+
+  let ignored: string | undefined
+  if (frameShiftsIgnoredList.length > 0) {
+    ignored = t('Ignored {{numIgnored}} known frame shift(s): {{frameShiftsIgnoredList}}', {
+      numIgnored: totalFrameShiftsIgnored,
+      frameShiftsIgnoredList,
+    })
+  }
+
+  let scoreStr: string | undefined
+  if (unexpected || ignored) {
+    scoreStr = t('QC score: {{score}}', { score })
+  }
+
+  return [unexpected, ignored, scoreStr].filter(notUndefined).join('. ')
 }

@@ -40,9 +40,9 @@ namespace Nextclade {
       const auto& refNuc = refStripped[i];
       if (!isGap(d) && (d != refNuc) && isAcgt(d)) {
         substitutions.emplace_back(NucleotideSubstitution{
-          .refNuc = refNuc,
+          .ref = refNuc,
           .pos = i,
-          .queryNuc = d,
+          .qry = d,
           .pcrPrimersChanged = {},
           .aaSubstitutions = {},
         });

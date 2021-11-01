@@ -31,9 +31,77 @@ struct Warnings {
   std::vector<GeneWarning> inGenes;
 };
 
-struct FrameShift {
-  std::string geneName;
+struct Range {
+  int begin;
+  int end;
+
+  [[nodiscard]] bool contains(int x) const {
+    return x >= begin && x < end;
+  }
 };
+
+[[nodiscard]] inline bool operator==(const Range& left, const Range& right) {
+  return left.begin == right.begin && left.end == right.end;
+}
+
+[[nodiscard]] inline bool operator!=(const Range& left, const Range& right) {
+  return left.begin != right.begin && left.end != right.end;
+}
+
+[[nodiscard]] inline Range operator+(const Range& r, int add) {
+  return Range{.begin = r.begin + add, .end = r.end + add};
+}
+
+[[nodiscard]] inline Range operator-(const Range& r, int sub) {
+  return Range{.begin = r.begin - sub, .end = r.end - sub};
+}
+
+[[nodiscard]] inline Range operator*(const Range& r, int mul) {
+  return Range{.begin = r.begin * mul, .end = r.end * mul};
+}
+
+[[nodiscard]] inline Range operator/(const Range& r, int div) {
+  return Range{.begin = r.begin / div, .end = r.end / div};
+}
+
+struct FrameShiftContext {
+  Range codon;
+};
+
+inline bool operator==(const FrameShiftContext& left, const FrameShiftContext& right) {
+  return left.codon == right.codon//
+    ;
+}
+
+struct FrameShiftResult {
+  std::string geneName;
+  Range nucRel;
+  Range nucAbs;
+  Range codon;
+  FrameShiftContext gapsLeading;
+  FrameShiftContext gapsTrailing;
+};
+
+inline bool operator==(const FrameShiftResult& left, const FrameShiftResult& right) {
+  return left.geneName == right.geneName           //
+         && left.nucRel == right.nucRel            //
+         && left.nucAbs == right.nucAbs            //
+         && left.codon == right.codon              //
+         && left.gapsLeading == right.gapsLeading  //
+         && left.gapsTrailing == right.gapsTrailing//
+    ;
+}
+
+struct InternalFrameShiftResultWithMask {
+  FrameShiftResult frameShift;
+  Range codonMask;// used internally during translation to mask undesired regions around the frame shift
+};
+
+inline bool operator==(const InternalFrameShiftResultWithMask& left, const InternalFrameShiftResultWithMask& right) {
+  return left.frameShift == right.frameShift //
+         && left.codonMask == right.codonMask//
+    ;
+}
 
 class Error : public std::runtime_error {
 public:
@@ -161,6 +229,7 @@ struct NextalignOptions {
   NextalignAlignmentOptions alignment;
   NextalignSeedOptions seedNuc;
   NextalignSeedOptions seedAa;
+  bool translatePastStop;
 };
 
 struct Gene {
@@ -183,7 +252,19 @@ struct Alignment {
 struct Peptide {
   std::string name;
   std::string seq;
+  std::vector<FrameShiftResult> frameShiftResults;
 };
+
+struct RefPeptide {
+  std::string name;
+  std::string seq;
+};
+
+struct RefPeptideInternal {
+  std::string geneName;
+  AminoacidSequence peptide;
+};
+
 
 template<typename Letter>
 struct InsertionInternal {
@@ -207,7 +288,6 @@ struct NextalignResult {
   std::string ref;
   std::string query;
   int alignmentScore;
-  std::vector<Peptide> refPeptides;
   std::vector<Peptide> queryPeptides;
   std::vector<Insertion> insertions;
   Warnings warnings;
@@ -221,8 +301,14 @@ struct AlgorithmOutput {
   std::exception_ptr error;
 };
 
+std::map<std::string, RefPeptideInternal> translateGenesRef(//
+  const NucleotideSequence& ref,                            //
+  const GeneMap& geneMap,                                   //
+  const NextalignOptions& options                           //
+);
 
-NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref, const GeneMap& geneMap,
+NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref,
+  const std::map<std::string, RefPeptideInternal>& refPeptides, const GeneMap& geneMap,
   const NextalignOptions& options);
 
 NextalignOptions getDefaultOptions();
@@ -233,6 +319,19 @@ NextalignOptions getDefaultOptions();
  * @see GFF format reference at https://www.ensembl.org/info/website/upload/gff.html
  */
 GeneMap parseGeneMapGff(std::istream& is, const std::string& name = "filestream");
+
+template<typename Letter>
+bool isGap(Letter nuc) {
+  return nuc == Letter::GAP;
+}
+
+inline bool isUnknown(const Nucleotide& nuc) {
+  return nuc == Nucleotide::N;
+}
+
+inline bool isUnknown(const Aminoacid& aa) {
+  return aa == Aminoacid::N;
+}
 
 class FastaStream {
 public:

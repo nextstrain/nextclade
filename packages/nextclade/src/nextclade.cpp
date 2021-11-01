@@ -9,12 +9,15 @@
 #include "analyze/findNucChanges.h"
 #include "analyze/findNucleotideRanges.h"
 #include "analyze/getAminoacidChanges.h"
+#include "analyze/getFrameShifts.h"
 #include "analyze/getNucleotideComposition.h"
 #include "analyze/getPcrPrimerChanges.h"
 #include "analyze/linkNucAndAaChangesInPlace.h"
 #include "analyze/nucleotide.h"
 #include "qc/runQc.h"
 #include "tree/Tree.h"
+#include "tree/calculateDivergence.h"
+#include "tree/findPrivateMutations.h"
 #include "tree/treeAttachNodes.h"
 #include "tree/treeFindNearestNodes.h"
 #include "tree/treePostprocess.h"
@@ -22,17 +25,24 @@
 #include "utils/safe_cast.h"
 
 namespace Nextclade {
-  NextcladeResult analyzeOneSequence(        //
-    const std::string& seqName,              //
-    const NucleotideSequence& ref,           //
-    const NucleotideSequence& query,         //
-    const GeneMap& geneMap,                  //
-    const std::vector<PcrPrimer>& pcrPrimers,//
-    const QcConfig& qcRulesConfig,           //
-    const Tree& tree,                        //
-    const NextalignOptions& nextalignOptions //
+  NextcladeResult analyzeOneSequence(                            //
+    const std::string& seqName,                                  //
+    const NucleotideSequence& ref,                               //
+    const NucleotideSequence& query,                             //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,//
+    const std::vector<RefPeptideInternal>& refPeptidesArr,       //
+    const GeneMap& geneMap,                                      //
+    const std::vector<PcrPrimer>& pcrPrimers,                    //
+    const QcConfig& qcRulesConfig,                               //
+    const Tree& tree,                                            //
+    const NextalignOptions& nextalignOptions                     //
   ) {
-    const auto alignment = nextalignInternal(query, ref, geneMap, nextalignOptions);
+    const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, nextalignOptions);
+
+    std::set<std::string> missingGenes;
+    for (const auto& geneWarning : alignment.warnings.inGenes) {
+      missingGenes.emplace(geneWarning.geneName);
+    }
 
     auto nucChanges = findNucChanges(alignment.ref, alignment.query);
     const int totalSubstitutions = safe_cast<int>(nucChanges.substitutions.size());
@@ -55,11 +65,14 @@ namespace Nextclade {
     auto aaChanges = getAminoacidChanges(                                       //
       alignment.ref,                                                            //
       alignment.query,                                                          //
-      alignment.refPeptides,                                                    //
+      refPeptides,                                                              //
       alignment.queryPeptides,                                                  //
       Range{.begin = nucChanges.alignmentStart, .end = nucChanges.alignmentEnd},//
       geneMap                                                                   //
     );
+
+    const auto& frameShifts = flattenFrameShifts(alignment.queryPeptides);
+    const auto totalFrameShifts = safe_cast<int>(frameShifts.size());
 
     linkNucAndAaChangesInPlace(nucChanges, aaChanges);
 
@@ -69,64 +82,96 @@ namespace Nextclade {
     const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
     const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
 
-    NextcladeResult result = {.ref = toString(alignment.ref),
+    auto analysisResult = AnalysisResult{
+      .seqName = seqName,
+
+      .substitutions = nucChanges.substitutions,
+      .totalSubstitutions = totalSubstitutions,
+      .deletions = nucChanges.deletions,
+      .totalDeletions = totalDeletions,
+      .insertions = alignment.insertions,
+      .totalInsertions = totalInsertions,
+      .frameShifts = frameShifts,
+      .totalFrameShifts = totalFrameShifts,
+      .missing = missing,
+      .totalMissing = totalMissing,
+      .nonACGTNs = nonACGTNs,
+      .totalNonACGTNs = totalNonACGTNs,
+
+      .aaSubstitutions = aaChanges.aaSubstitutions,
+      .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
+      .aaDeletions = aaChanges.aaDeletions,
+      .totalAminoacidDeletions = totalAminoacidDeletions,
+
+      .unknownAaRanges = unknownAaRanges,
+      .totalUnknownAa = totalUnknownAa,
+
+      .alignmentStart = nucChanges.alignmentStart,
+      .alignmentEnd = nucChanges.alignmentEnd,
+      .alignmentScore = alignment.alignmentScore,
+      .nucleotideComposition = nucleotideComposition,
+      .pcrPrimerChanges = pcrPrimerChanges,
+      .totalPcrPrimerChanges = totalPcrPrimerChanges,
+
+      // NOTE: these fields are not properly initialized here. They must be initialized below.
+      .nearestNodeId = 0,
+      .clade = "",
+      .privateNucMutations = {},
+      .privateAaMutations = {},
+      .missingGenes = missingGenes,
+      .divergence = 0.0,
+      .qc = {},
+    };
+
+
+    const auto& nearestNode = treeFindNearestNode(tree, analysisResult);
+    analysisResult.nearestNodeId = nearestNode.id();
+    analysisResult.clade = nearestNode.clade();
+
+    analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
+
+    analysisResult.privateAaMutations =
+      findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides, geneMap);
+
+    analysisResult.divergence =
+      calculateDivergence(nearestNode, analysisResult, tree.tmpDivergenceUnits(), safe_cast<int>(ref.size()));
+
+    analysisResult.qc = runQc(alignment, analysisResult, qcRulesConfig);
+
+    return NextcladeResult{
+      .ref = toString(alignment.ref),
       .query = toString(alignment.query),
-      .refPeptides = toPeptidesExternal(alignment.refPeptides),
+      .refPeptides = toRefPeptidesExternal(refPeptidesArr),
       .queryPeptides = toPeptidesExternal(alignment.queryPeptides),
       .warnings = alignment.warnings,
+      .analysisResult = std::move(analysisResult),
+    };
+  }
 
-      .analysisResult = AnalysisResult{
-        .seqName = seqName,
-
-        .substitutions = nucChanges.substitutions,
-        .totalSubstitutions = totalSubstitutions,
-        .deletions = nucChanges.deletions,
-        .totalDeletions = totalDeletions,
-        .insertions = alignment.insertions,
-        .totalInsertions = totalInsertions,
-        .missing = missing,
-        .totalMissing = totalMissing,
-        .nonACGTNs = nonACGTNs,
-        .totalNonACGTNs = totalNonACGTNs,
-
-        .aaSubstitutions = aaChanges.aaSubstitutions,
-        .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
-        .aaDeletions = aaChanges.aaDeletions,
-        .totalAminoacidDeletions = totalAminoacidDeletions,
-
-        .unknownAaRanges = unknownAaRanges,
-        .totalUnknownAa = totalUnknownAa,
-
-        .alignmentStart = nucChanges.alignmentStart,
-        .alignmentEnd = nucChanges.alignmentEnd,
-        .alignmentScore = alignment.alignmentScore,
-        .nucleotideComposition = nucleotideComposition,
-        .pcrPrimerChanges = pcrPrimerChanges,
-        .totalPcrPrimerChanges = totalPcrPrimerChanges,
-
-        // NOTE: these fields are not properly initialized here. They must be initialized below.
-        .nearestNodeId = 0,
-        .clade = "",
-        .qc = {},
-      }};
-
-    const auto [nearestNodeId, nearestNodeClade, privateMutations] =
-      treeFindNearestNode(result.analysisResult, ref, tree);
-    result.analysisResult.nearestNodeId = nearestNodeId;
-    result.analysisResult.clade = nearestNodeClade;
-
-    result.analysisResult.qc = runQc(alignment, result.analysisResult, privateMutations, qcRulesConfig);
-
+  std::vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides) {
+    std::vector<RefPeptideInternal> result;
+    result.reserve(refPeptides.size());
+    for (const auto& refPeptide : refPeptides) {
+      result.emplace_back(refPeptide.second);
+    }
     return result;
   }
 
   class NextcladeAlgorithmImpl {
     const NextcladeOptions options;
     Tree tree;
+    std::map<std::string, RefPeptideInternal> refPeptides;
+
+    // FIXME: this contains duplicate content of `refPeptides`. Deduplicate and change the downstream code to use `refPeptides` if possible please.
+    std::vector<RefPeptideInternal> refPeptidesArr;
 
   public:
-    explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt) : options(opt), tree(opt.treeString) {
-      treePreprocess(tree, opt.ref);
+    explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt)
+        : options(opt),
+          tree(opt.treeString),
+          refPeptides(translateGenesRef(opt.ref, opt.geneMap, opt.nextalignOptions)),
+          refPeptidesArr(getRefPeptidesArray(refPeptides)) {
+      treePreprocess(tree, opt.ref, refPeptides);
     }
 
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& query) {
@@ -139,6 +184,8 @@ namespace Nextclade {
         seqName,                //
         ref,                    //
         query,                  //
+        refPeptides,            //
+        refPeptidesArr,         //
         geneMap,                //
         pcrPrimers,             //
         qcRulesConfig,          //
@@ -152,7 +199,7 @@ namespace Nextclade {
     }
 
     const Tree& finalize(const std::vector<AnalysisResult>& results) {
-      treeAttachNodes(tree, options.ref, results);
+      treeAttachNodes(tree, results);
       treePostprocess(tree);
       return tree;
     }

@@ -7,5 +7,5 @@
 namespace Nextclade {
   class Tree;
 
-  void treeAttachNodes(Tree& tree, const NucleotideSequence& rootSeq, const std::vector<AnalysisResult>& results);
+  void treeAttachNodes(Tree& tree, const std::vector<AnalysisResult>& results);
 }// namespace Nextclade

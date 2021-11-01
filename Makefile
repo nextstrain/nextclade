@@ -6,7 +6,10 @@ export $(shell bash -c "sed 's/=.*//' .env || true" )
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
-.PHONY: docs docker-docs
+SHELL:=bash
+.ONESHELL:
+
+.PHONY: docs docker-docs e2e
 
 clean:
 	rm -rf .build .out tmp packages/nextclade_cli/src/generated packages/nextalign_cli/src/generated packages/web/.build packages/web/src/generated
@@ -139,6 +142,17 @@ docker-prod-web: docker-builder-web docker-builder-run-wasm docker-builder-run-w
 check-release-version:
 	scripts/check_release_version.sh
 
+e2e: e2e-cli-run
+
+e2e-cli-get-snapshots:
+	e2e/cli/get_snapshots.sh
+
+e2e-cli-run: e2e-cli-get-snapshots
+	e2e/cli/test.sh
+
+e2e-cli-update-snapshots:
+	e2e/cli/update_snapshots.sh
+
 e2e-run:
 	packages/nextclade/e2e/run.sh
 
@@ -191,6 +205,30 @@ docker-paper:
 	--env 'JOURNAL=joss' \
 	openjournals/paperdraft
 
+
+paper-preprint:
+	@set -euxo pipefail
+	@cd paper/
+	./scripts/build_preprint.sh
+
+docker-paper-preprint:
+	@set -euxo pipefail
+
+	@export CONTAINER_IMAGE_NAME=nextclade-preprint-builder
+
+	@docker build -t "$${CONTAINER_IMAGE_NAME}" \
+	--network=host \
+	paper/
+
+	@docker run -it --rm \
+	--init \
+	--name="$${CONTAINER_IMAGE_NAME}-$(shell date +%s)" \
+	--user="$(shell id -u):$(shell id -g)" \
+	--volume="$(shell pwd):/home/user/src" \
+	--workdir="/home/user/src" \
+	--env "TERM=xterm-256colors" \
+	"$${CONTAINER_IMAGE_NAME}" \
+		bash -c "make paper-preprint"
 
 # Synchronize source files using rsync
 sync:

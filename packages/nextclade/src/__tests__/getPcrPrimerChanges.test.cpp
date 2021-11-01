@@ -1,3 +1,5 @@
+#include "../analyze/getPcrPrimerChanges.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -5,21 +7,20 @@
 
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
-#include "../analyze/getPcrPrimerChanges.h"
 
 #define EXPECT_ARR_EQ(expected, actual) ASSERT_THAT(actual, ::testing::ElementsAreArray(expected))
 
 namespace {
+  using ::Range;
   using ::Nextclade::NucleotideLocation;
   using ::Nextclade::NucleotideSubstitution;
   using ::Nextclade::PcrPrimer;
-  using ::Nextclade::Range;
   using ::Nextclade::shouldReportPrimerMutation;
 
   NucleotideSubstitution makeMutation(int pos, char query) {
     return {
       .pos = pos,
-      .queryNuc = toNucleotide(query),
+      .qry = toNucleotide(query),
     };
   }
 

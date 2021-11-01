@@ -1,9 +1,10 @@
 #pragma once
 
+#include <nextclade/nextclade.h>
+
 #include <vector>
 
 namespace Nextclade {
-  struct NucleotideSubstitution;
   struct PcrPrimer;
   struct PcrPrimerChange;
 

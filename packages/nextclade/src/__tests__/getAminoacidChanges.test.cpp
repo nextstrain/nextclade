@@ -10,10 +10,10 @@
 
 
 namespace {
+  using ::Range;
   using Nextclade::AminoacidDeletion;
   using Nextclade::AminoacidSubstitution;
   using Nextclade::getAminoacidChanges;
-  using Nextclade::Range;
 }// namespace
 
 
@@ -41,14 +41,17 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
     },
   };
 
+
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
-  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+  options.translatePastStop = true;
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+  const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, options);
 
   const auto aaChanges = getAminoacidChanges(              //
     alignment.ref,                                         //
     alignment.query,                                       //
-    alignment.refPeptides,                                 //
+    refPeptides,                                           //
     alignment.queryPeptides,                               //
     Range{.begin = 0, .end = safe_cast<int>(query.size())},//
     geneMap                                                //
@@ -57,9 +60,9 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
   const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
       .gene = "Hello",
-      .refAA = Aminoacid::L,
-      .codon = 0,
-      .queryAA = Aminoacid::I,
+      .ref = Aminoacid::L,
+      .pos = 0,
+      .qry = Aminoacid::I,
       .codonNucRange = {.begin = 30, .end = 33},
       .refContext = toNucleotideSequence("GGACTACCA"),
       .queryContext = toNucleotideSequence("GGAATTCCA"),
@@ -99,12 +102,15 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
 
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
-  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+  options.translatePastStop = true;
+
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+  const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, options);
 
   const auto aaChanges = getAminoacidChanges(              //
     alignment.ref,                                         //
     alignment.query,                                       //
-    alignment.refPeptides,                                 //
+    refPeptides,                                           //
     alignment.queryPeptides,                               //
     Range{.begin = 0, .end = safe_cast<int>(query.size())},//
     geneMap                                                //
@@ -113,8 +119,8 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
   const std::vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
       .gene = "Hello",
-      .refAA = Aminoacid::Q,
-      .codon = 3,
+      .ref = Aminoacid::Q,
+      .pos = 3,
       .codonNucRange = {.begin = 39, .end = 42},
       .refContext = toNucleotideSequence("ACTCAAACT"),
       .queryContext = toNucleotideSequence("ACT---ACT"),
@@ -159,12 +165,15 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Right) {
 
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
-  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+  options.translatePastStop = true;
+
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+  const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, options);
 
   const auto aaChanges = getAminoacidChanges(              //
     alignment.ref,                                         //
     alignment.query,                                       //
-    alignment.refPeptides,                                 //
+    refPeptides,                                           //
     alignment.queryPeptides,                               //
     Range{.begin = 0, .end = safe_cast<int>(query.size())},//
     geneMap                                                //
@@ -173,9 +182,9 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Right) {
   const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
       .gene = "Foo",
-      .refAA = Aminoacid::Q,
-      .codon = 3,
-      .queryAA = Aminoacid::L,
+      .ref = Aminoacid::Q,
+      .pos = 3,
+      .qry = Aminoacid::L,
       .codonNucRange = {.begin = 39, .end = 42},
       .refContext = toNucleotideSequence("TTTCAAACT"),
       .queryContext = toNucleotideSequence("TT---AACT"),
@@ -186,8 +195,8 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Right) {
   const std::vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
       .gene = "Foo",
-      .refAA = Aminoacid::F,
-      .codon = 2,
+      .ref = Aminoacid::F,
+      .pos = 2,
       .codonNucRange = {.begin = 36, .end = 39},
       .refContext = toNucleotideSequence("CCATTTCAA"),
       .queryContext = toNucleotideSequence("CCATT---A"),
@@ -235,12 +244,15 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Left) {
 
   auto options = getDefaultOptions();
   options.alignment.minimalLength = 0;
-  const auto alignment = nextalignInternal(query, ref, geneMap, options);
+  options.translatePastStop = true;
+
+  const auto refPeptides = translateGenesRef(ref, geneMap, options);
+  const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, options);
 
   const auto aaChanges = getAminoacidChanges(              //
     alignment.ref,                                         //
     alignment.query,                                       //
-    alignment.refPeptides,                                 //
+    refPeptides,                                           //
     alignment.queryPeptides,                               //
     Range{.begin = 0, .end = safe_cast<int>(query.size())},//
     geneMap                                                //
@@ -249,9 +261,9 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Left) {
   const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
       .gene = "Foo",
-      .refAA = Aminoacid::Q,
-      .codon = 3,
-      .queryAA = Aminoacid::STOP,
+      .ref = Aminoacid::Q,
+      .pos = 3,
+      .qry = Aminoacid::STOP,
       .codonNucRange = {.begin = 39, .end = 42},
       .refContext = toNucleotideSequence("TTTCAAACT"),
       .queryContext = toNucleotideSequence("T---AAACT"),
@@ -262,8 +274,8 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Left) {
   const std::vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
       .gene = "Foo",
-      .refAA = Aminoacid::F,
-      .codon = 2,
+      .ref = Aminoacid::F,
+      .pos = 2,
       .codonNucRange = {.begin = 36, .end = 39},
       .refContext = toNucleotideSequence("CCATTTCAA"),
       .queryContext = toNucleotideSequence("CCAT---AA"),

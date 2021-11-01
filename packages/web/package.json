@@ -1,6 +1,6 @@
 {
   "name": "@nextstrain/nextclade-web",
-  "version": "1.6.0",
+  "version": "1.7.2",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -92,7 +92,7 @@
     "@types/react-virtualized-auto-sizer": "1.0.0",
     "@types/react-window": "1.8.2",
     "animate.css": "4.1.0",
-    "auspice": "2.23.0",
+    "auspice": "2.32.0",
     "autoprefixer": "9.8.6",
     "awesomplete": "1.1.5",
     "axios": "0.20.0",
@@ -134,7 +134,7 @@
     "react-file-icon": "1.0.0",
     "react-helmet": "6.1.0",
     "react-i18next": "11.7.3",
-    "react-icons": "3.11.0",
+    "react-icons": "4.3.1",
     "react-if": "3.4.3",
     "react-loader-spinner": "4.0.0",
     "react-no-ssr": "1.1.0",

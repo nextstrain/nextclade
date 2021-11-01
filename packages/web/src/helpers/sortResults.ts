@@ -12,6 +12,8 @@ export enum SortCategory {
   totalMissing = 'totalMissing',
   totalGaps = 'totalGaps',
   totalInsertions = 'totalInsertions',
+  totalFrameShifts = 'totalFrameShifts',
+  totalStopCodons = 'totalStopCodons',
 }
 
 export enum SortDirection {
@@ -87,6 +89,14 @@ export function sortByInsertions(results: SequenceAnalysisState[], direction: So
   return orderBy(results, (res) => res.result?.totalInsertions ?? defaultNumber(direction), direction)
 }
 
+export function sortByFrameShifts(ress: SequenceAnalysisState[], direction: SortDirection) {
+  return orderBy(ress, (res) => res.result?.qc.frameShifts?.totalFrameShifts ?? defaultNumber(direction), direction)
+}
+
+export function sortByStopCodons(ress: SequenceAnalysisState[], direction: SortDirection) {
+  return orderBy(ress, (res) => res.result?.qc.stopCodons?.totalStopCodons ?? defaultNumber(direction), direction)
+}
+
 export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) {
   const { category, direction } = sorting
 
@@ -117,6 +127,12 @@ export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) 
 
     case SortCategory.totalInsertions:
       return sortByInsertions(results, direction)
+
+    case SortCategory.totalFrameShifts:
+      return sortByFrameShifts(results, direction)
+
+    case SortCategory.totalStopCodons:
+      return sortByStopCodons(results, direction)
   }
 
   return results

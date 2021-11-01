@@ -29,6 +29,8 @@ import { ColumnNonACGTNs } from './ColumnNonACGTNs'
 import { ColumnMissing } from './ColumnMissing'
 import { ColumnGaps } from './ColumnGaps'
 import { ColumnInsertions } from './ColumnInsertions'
+import { ColumnFrameShifts } from './ColumnFrameShifts'
+import { ColumnStopCodons } from './ColumnStopCodons'
 import { ResultsControlsSort } from './ResultsControlsSort'
 import { ButtonHelp } from './ButtonHelp'
 
@@ -40,6 +42,8 @@ import HelpTipsColumnMissing from './HelpTips/HelpTipsColumnMissing.mdx'
 import HelpTipsColumnMut from './HelpTips/HelpTipsColumnMut.mdx'
 import HelpTipsColumnNonAcgtn from './HelpTips/HelpTipsColumnNonAcgtn.mdx'
 import HelpTipsColumnQC from './HelpTips/HelpTipsColumnQC.mdx'
+import HelpTipsColumnFrameShifts from './HelpTips/HelpTipsColumnFrameShifts.mdx'
+import HelpTipsColumnStopCodons from './HelpTips/HelpTipsColumnStopCodons.mdx'
 import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
 import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
 
@@ -58,6 +62,8 @@ export const RESULTS_TABLE_FLEX_BASIS = {
   ns: 60,
   gaps: 60,
   insertions: 60,
+  frameShifts: 60,
+  stopCodons: 60,
 } as const
 
 export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
@@ -247,6 +253,14 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <ColumnInsertions sequence={sequence} />
       </TableCell>
 
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.frameShifts} grow={0} shrink={0}>
+        <ColumnFrameShifts sequence={sequence} />
+      </TableCell>
+
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.stopCodons} grow={0} shrink={0}>
+        <ColumnStopCodons sequence={sequence} />
+      </TableCell>
+
       <TableCell grow={20} shrink={20}>
         {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
           <SequenceView key={seqName} sequence={sequence} />
@@ -306,15 +320,19 @@ const mapDispatchToProps = {
   sortByTotalGapsDesc: () => resultsSortTrigger({ category: SortCategory.totalGaps, direction: SortDirection.desc }),
 
   sortByTotalInsertionsAsc: () =>
-    resultsSortTrigger({
-      category: SortCategory.totalInsertions,
-      direction: SortDirection.asc,
-    }),
+    resultsSortTrigger({ category: SortCategory.totalInsertions, direction: SortDirection.asc }),
   sortByTotalInsertionsDesc: () =>
-    resultsSortTrigger({
-      category: SortCategory.totalInsertions,
-      direction: SortDirection.desc,
-    }),
+    resultsSortTrigger({ category: SortCategory.totalInsertions, direction: SortDirection.desc }),
+
+  sortByTotalFrameShiftsAsc: () =>
+    resultsSortTrigger({ category: SortCategory.totalFrameShifts, direction: SortDirection.asc }),
+  sortByTotalFrameShiftsDesc: () =>
+    resultsSortTrigger({ category: SortCategory.totalFrameShifts, direction: SortDirection.desc }),
+
+  sortByTotalStopCodonsAsc: () =>
+    resultsSortTrigger({ category: SortCategory.totalStopCodons, direction: SortDirection.asc }),
+  sortByTotalStopCodonsDesc: () =>
+    resultsSortTrigger({ category: SortCategory.totalStopCodons, direction: SortDirection.desc }),
 
   setViewedGene,
 }
@@ -362,6 +380,14 @@ export interface ResultProps {
 
   sortByTotalInsertionsDesc(): void
 
+  sortByTotalFrameShiftsAsc(): void
+
+  sortByTotalFrameShiftsDesc(): void
+
+  sortByTotalStopCodonsAsc(): void
+
+  sortByTotalStopCodonsDesc(): void
+
   setViewedGene(viewedGene: string): void
 }
 
@@ -386,6 +412,10 @@ export function ResultsTableDisconnected({
   sortByTotalGapsDesc,
   sortByTotalInsertionsAsc,
   sortByTotalInsertionsDesc,
+  sortByTotalFrameShiftsAsc,
+  sortByTotalFrameShiftsDesc,
+  sortByTotalStopCodonsAsc,
+  sortByTotalStopCodonsDesc,
   viewedGene,
   setViewedGene,
 }: ResultProps) {
@@ -485,6 +515,26 @@ export function ResultsTableDisconnected({
             </TableHeaderCellContent>
             <ButtonHelpStyled identifier="btn-help-col-insertions">
               <HelpTipsColumnInsertions />
+            </ButtonHelpStyled>
+          </TableHeaderCell>
+
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.frameShifts} grow={0} shrink={0}>
+            <TableHeaderCellContent>
+              <TableCellText>{t('FS')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByTotalFrameShiftsAsc} sortDesc={sortByTotalFrameShiftsDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelpStyled identifier="btn-help-col-frame-shifts">
+              <HelpTipsColumnFrameShifts />
+            </ButtonHelpStyled>
+          </TableHeaderCell>
+
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.stopCodons} grow={0} shrink={0}>
+            <TableHeaderCellContent>
+              <TableCellText>{t('SC')}</TableCellText>
+              <ResultsControlsSort sortAsc={sortByTotalStopCodonsAsc} sortDesc={sortByTotalStopCodonsDesc} />
+            </TableHeaderCellContent>
+            <ButtonHelpStyled identifier="btn-help-col-stop-codons">
+              <HelpTipsColumnStopCodons />
             </ButtonHelpStyled>
           </TableHeaderCell>
 

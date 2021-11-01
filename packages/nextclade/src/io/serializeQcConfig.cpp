@@ -51,6 +51,10 @@ namespace Nextclade {
     }
 
     writeValue(j, "/frameShifts/enabled", qcConfig.frameShifts.enabled);
+    if (qcConfig.frameShifts.enabled) {
+      writeArray(j, "/frameShifts/ignoredFrameShifts", qcConfig.frameShifts.ignoredFrameShifts,
+        serializeFrameShiftLocation);
+    }
 
     writeValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled);
     if (qcConfig.stopCodons.enabled) {

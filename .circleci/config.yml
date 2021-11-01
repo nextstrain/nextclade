@@ -1,11 +1,12 @@
 version: 2.1
 
 
-release_cli_only: &release_cli_only
+release_cli_only: &cli_only
   filters:
     branches:
       only:
         - release-cli
+        - staging-cli
 
 major_branches_only: &major_branches_only
   filters:
@@ -15,7 +16,7 @@ major_branches_only: &major_branches_only
         - staging
         - release
 
-major_branches_and_cli_release_only: &major_branches_and_cli_release_only
+major_branches_and_cli_release_only: &major_branches_and_cli_only
   filters:
     branches:
       only:
@@ -23,6 +24,7 @@ major_branches_and_cli_release_only: &major_branches_and_cli_release_only
         - staging
         - release
         - release-cli
+        - staging-cli
 
 
 jobs:
@@ -43,7 +45,7 @@ jobs:
       - restore_cache:
           name: 'Restore previous checksum.txt from cache'
           keys:
-            - cache-nextclade-v6-builder-container-{{ checksum "checksum.current.txt" }}
+            - cache-nextclade-v7-builder-container-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare checksum.txt to cached one, halt if no changes'
@@ -80,7 +82,7 @@ jobs:
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-nextclade-v6-builder-container-{{ checksum "checksum.previous.txt" }}
+          key: cache-nextclade-v7-builder-container-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -101,7 +103,7 @@ jobs:
       - restore_cache:
           name: 'Restore WebAssembly module build cache'
           keys:
-            - cache-nextclade-v6-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+            - cache-nextclade-v7-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
 
       - run:
           name: 'Build WebAssembly module'
@@ -112,14 +114,14 @@ jobs:
 
       - save_cache:
           name: 'Save WebAssembly module build cache'
-          key: cache-nextclade-v6-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+          key: cache-nextclade-v7-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
           paths:
             - .cache
 
       - restore_cache:
           name: 'Restore web application build cache'
           keys:
-            - cache-nextclade-v6-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+            - cache-nextclade-v7-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
 
       - run:
           name: 'Build web application'
@@ -128,7 +130,7 @@ jobs:
 
       - save_cache:
           name: 'Save web application build cache'
-          key: cache-nextclade-v6-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+          key: cache-nextclade-v7-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
           paths:
             - packages/web/.cache
             - packages/web/.build/production/tmp/cache
@@ -188,7 +190,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextclade-v6-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+            - cache-nextclade-v7-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
@@ -198,7 +200,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextclade-v6-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+          key: cache-nextclade-v7-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
@@ -211,6 +213,13 @@ jobs:
           name: 'Store artifacts: nextclade-Linux-x86_64'
           path: .out/bin/nextclade-Linux-x86_64
           destination: nextclade-Linux-x86_64
+
+      - run:
+          name: Halt if not on cli-release branch
+          command: |
+            if [ "$CIRCLE_BRANCH" != "cli-release" ]; then
+                circleci-agent step halt
+            fi
 
       - run:
           name: 'Publish binaries to GitHub Releases: Linux-x86_64'
@@ -242,21 +251,28 @@ jobs:
       - restore_cache:
           name: 'Restore homebrew cache'
           keys:
-            - cache-nextclade-v6-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
+            - cache-nextclade-v7-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
 
       - run:
           name: 'Install build tools'
           command: |
             set -x
             brew bundle
+
+            mkdir -p .cache
+            python3 -m venv .cache/venv
+            source .cache/venv/bin/activate
+            pip3 install --upgrade -r requirements.txt
+
             conan profile new default --detect
+
           environment:
             HOMEBREW_NO_AUTO_UPDATE: 1
             CONAN_USER_HOME: '/Users/distiller/project/.cache'
 
       - save_cache:
           name: 'Save homebrew cache'
-          key: cache-nextclade-v6-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
+          key: cache-nextclade-v7-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
           paths:
             - '~/Library/Caches/Homebrew'
             - '/usr/local/Homebrew'
@@ -264,11 +280,12 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextclade-v6-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+            - cache-nextclade-v7-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
 
       - run:
           name: Run macOS << parameters.macos_arch >> build
           command: |
+            source .cache/venv/bin/activate
             echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
             make prod
           environment:
@@ -277,7 +294,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextclade-v6-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+          key: cache-nextclade-v7-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
           paths:
             - .cache
 
@@ -292,6 +309,13 @@ jobs:
           destination: nextclade-MacOS-<< parameters.macos_arch >>
 
       - run:
+          name: Halt if not on cli-release branch
+          command: |
+            if [ "$CIRCLE_BRANCH" != "cli-release" ]; then
+                circleci-agent step halt
+            fi
+
+      - run:
           name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
           command: |
             OS=darwin ./scripts/download_github_release_tool.sh
@@ -302,7 +326,7 @@ workflows:
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *major_branches_and_cli_release_only
+          <<: *major_branches_and_cli_only
 
       - Build-Web:
           context: nextclade_web_<< pipeline.git.branch >>
@@ -312,7 +336,7 @@ workflows:
 
       - Build-Linux-x86_64:
           context: nextclade_cli_<< pipeline.git.branch >>
-          <<: *release_cli_only
+          <<: *cli_only
           requires:
             - Update-Builder-Container
 
@@ -323,4 +347,4 @@ workflows:
               macos_arch:
                 - x86_64
                 - arm64
-          <<: *release_cli_only
+          <<: *cli_only

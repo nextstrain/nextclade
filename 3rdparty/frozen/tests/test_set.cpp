@@ -190,7 +190,7 @@ TEST_CASE("triple frozen set", "[set]") {
   REQUIRE(cbegin == (cend - ze_set.size()));
 
   std::for_each(ze_set.begin(), ze_set.end(), [](int) {});
-  REQUIRE(std::distance(ze_set.rbegin(), ze_set.rend()) == ze_set.size());
+  REQUIRE((std::size_t)std::distance(ze_set.rbegin(), ze_set.rend()) == ze_set.size());
   REQUIRE(std::count(ze_set.crbegin(), ze_set.crend(), 3) == 0);
   REQUIRE(std::count(ze_set.crbegin(), ze_set.crend(), 20) == 1);
 }
@@ -227,6 +227,8 @@ TEST_CASE("frozen::set <> std::set", "[set]") {
 TEST_CASE("frozen::set <> frozen::make_set", "[set]") {
   constexpr frozen::set<int, 128> frozen_set = { INIT_SEQ };
   constexpr auto frozen_set2 = frozen::make_set<int>({INIT_SEQ});
+  constexpr auto frozen_set3 = frozen::make_set(std::array<int, 128>{{INIT_SEQ}});
+  REQUIRE(std::equal(frozen_set2.begin(), frozen_set2.end(), frozen_set3.begin()));
 
   SECTION("checking size and content") {
     REQUIRE(frozen_set.size() == frozen_set2.size());

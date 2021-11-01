@@ -3,8 +3,6 @@
 
 namespace Nextclade {
 
-  bool isGap(Nucleotide nuc);
-
   bool isAcgt(Nucleotide nuc);
 
   bool isNotAcgt(Nucleotide nuc);

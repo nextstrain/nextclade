@@ -195,8 +195,17 @@ export interface QcResultPrivateMutations {
   cutoff: number
 }
 
+export interface FrameShiftContext {
+  codon: Range
+}
+
 export interface FrameShift {
   geneName: string
+  nucRel: Range
+  nucAbs: Range
+  codon: Range
+  gapsLeading: FrameShiftContext
+  gapsTrailing: FrameShiftContext
 }
 
 export interface QcResultFrameShifts {
@@ -204,6 +213,8 @@ export interface QcResultFrameShifts {
   status: QcStatus
   frameShifts: FrameShift[]
   totalFrameShifts: number
+  frameShiftsIgnored: FrameShift[]
+  totalFrameShiftsIgnored: number
 }
 
 export interface StopCodonLocation {
@@ -216,6 +227,8 @@ export interface QcResultStopCodons {
   status: QcStatus
   stopCodons: StopCodonLocation[]
   totalStopCodons: number
+  stopCodonsIgnored: StopCodonLocation[]
+  totalStopCodonsIgnored: number
 }
 
 export interface QcResult {
@@ -237,6 +250,8 @@ export interface AnalysisResult {
   totalInsertions: number
   deletions: NucleotideDeletion[]
   totalDeletions: number
+  frameShifts: FrameShift[]
+  totalFrameShifts: number
   missing: NucleotideMissing[]
   totalMissing: number
   nonACGTNs: NucleotideRange[]

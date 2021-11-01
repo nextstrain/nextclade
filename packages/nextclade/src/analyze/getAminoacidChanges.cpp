@@ -5,14 +5,11 @@
 #include <nextclade/private/nextclade_private.h>
 
 #include <boost/algorithm/string/join.hpp>
-#include <boost/range/combine.hpp>
 #include <vector>
 
 #include "../utils/contract.h"
 #include "../utils/mapFind.h"
-#include "../utils/range.h"
 #include "../utils/safe_cast.h"
-#include "aminoacid.h"
 
 namespace {
   std::vector<std::string> surroundWithQuotes(const std::vector<std::string>& m) {
@@ -93,8 +90,8 @@ namespace Nextclade {
         // Gap in the ref sequence means that this is a deletion in the query sequence
         aaDeletions.emplace_back(AminoacidDeletion{
           .gene = gene.geneName,
-          .refAA = refAa,
-          .codon = codon,
+          .ref = refAa,
+          .pos = codon,
           .codonNucRange = Range{.begin = codonBegin, .end = codonEnd},
           .refContext = std::move(refContext),
           .queryContext = std::move(queryContext),
@@ -106,9 +103,9 @@ namespace Nextclade {
           // If not a gap and the state has changed, than it's a substitution
           aaSubstitutions.emplace_back(AminoacidSubstitution{
             .gene = gene.geneName,
-            .refAA = refAa,
-            .codon = codon,
-            .queryAA = queryAa,
+            .ref = refAa,
+            .pos = codon,
+            .qry = queryAa,
             .codonNucRange = Range{.begin = codonBegin, .end = codonEnd},
             .refContext = std::move(refContext),
             .queryContext = std::move(queryContext),
@@ -124,38 +121,35 @@ namespace Nextclade {
    *
    * NOTE: Nucleotide sequences and peptides are required to be stripped from insertions
    */
-  AminoacidChangesReport getAminoacidChanges(         //
-    const NucleotideSequence& ref,                    //
-    const NucleotideSequence& query,                  //
-    const std::vector<PeptideInternal>& refPeptides,  //
-    const std::vector<PeptideInternal>& queryPeptides,//
-    const Range& alignmentRange,                      //
-    const GeneMap& geneMap                            //
+  AminoacidChangesReport getAminoacidChanges(                    //
+    const NucleotideSequence& ref,                               //
+    const NucleotideSequence& query,                             //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,//
+    const std::vector<PeptideInternal>& queryPeptides,           //
+    const Range& alignmentRange,                                 //
+    const GeneMap& geneMap                                       //
   ) {
-    precondition_equal(refPeptides.size(), queryPeptides.size());
-    precondition_equal(query.size(), ref.size());
-
     std::vector<AminoacidSubstitution> aaSubstitutions;
     std::vector<AminoacidDeletion> aaDeletions;
 
-    const auto peptideZip = boost::combine(refPeptides, queryPeptides);
-    for (const auto [refPeptide, queryPeptide] : peptideZip) {
-      invariant_equal(refPeptide.name, queryPeptide.name);
-      invariant_equal(refPeptide.seq.size(), queryPeptide.seq.size());
-
-      const auto& geneName = refPeptide.name;
+    for (const auto& queryPeptide : queryPeptides) {
+      const auto& geneName = queryPeptide.name;
+      auto found = mapFind(refPeptides, geneName);
+      if (!found) {
+        throw ErrorRefPeptideNotFound(geneName);
+      }
+      const auto& refPeptide = found->peptide;
+      invariant_equal(refPeptide.size(), queryPeptide.seq.size());
 
       const auto gene = mapFind(geneMap, geneName);
       if (!gene) {
         throw ErrorGeneNotFound(geneName, geneMap);
       }
 
-      invariant_equal(refPeptide.name, queryPeptide.name);
-
       getAminoacidChangesForGene(//
         ref,                     //
         query,                   //
-        refPeptide.seq,          //
+        refPeptide,              //
         queryPeptide.seq,        //
         *gene,                   //
         alignmentRange,          //
@@ -170,10 +164,17 @@ namespace Nextclade {
     };
   }
 
+  ErrorRefPeptideNotFound::ErrorRefPeptideNotFound(const std::string& name)
+      : ErrorNonFatal(fmt::format(//
+          "When searching for aminoacid mutations: peptide \"{:s}\" was requested, but was not found among reference "
+          "peptides. This is an internal issue. Please report this to developers, providing data and parameters you "
+          "used, in order to replicate the error.",
+          name)) {}
+
   ErrorGeneNotFound::ErrorGeneNotFound(const std::string& geneName, const GeneMap& geneMap)
       : ErrorNonFatal(fmt::format(//
-          "When searching for aminoacid mutations: gene \"{:s}\" in gene map, but was not found. The "
-          "genes present in the gene map were: {}. This could be a programming mistake. Please report this to "
-          "project maintainers.",
+          "When searching for aminoacid mutations: gene \"{:s}\" was requested, but was not found in the gene map. The "
+          "genes present in the gene map were: {}. This is an internal issue. Please report this to developers, "
+          "providing data and parameters you used, in order to replicate the error.",
           geneName, boost::join(surroundWithQuotes(keys(geneMap)), ", "))) {}
 }// namespace Nextclade

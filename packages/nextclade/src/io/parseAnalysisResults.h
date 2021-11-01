@@ -7,6 +7,8 @@
 #include <string>
 
 namespace Nextclade {
+  struct FrameShiftLocation;
   struct StopCodonLocation;
+  FrameShiftLocation parseFrameShiftLocation(const json& j);
   StopCodonLocation parseStopCodonLocation(const json& j);
 }// namespace Nextclade

@@ -73,7 +73,7 @@ export function* prepareResultTreeJsonStr() {
       'When preparing tree JSON for download: Unable to find the tree data. This is an internal error. Please report it to developers.',
     )
   }
-  return treeStr
+  return JSON.stringify(JSON.parse(treeStr), null, 2)
 }
 
 export function* exportTreeJson() {

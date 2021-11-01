@@ -40,6 +40,8 @@ add_library(${PROJECT_NAME} STATIC
   src/strip/stripInsertions.h
   src/translate/decode.cpp
   src/translate/decode.h
+  src/translate/detectFrameShifts.cpp
+  src/translate/detectFrameShifts.h
   src/translate/extractGene.cpp
   src/translate/extractGene.h
   src/translate/mapCoordinates.cpp
@@ -49,6 +51,9 @@ add_library(${PROJECT_NAME} STATIC
   src/translate/translate.h
   src/translate/translateGenes.cpp
   src/translate/translateGenes.h
+  src/translate/translateGenesRef.cpp
+  src/translate/translateGenesRef.h
+  src/utils/at.h
   src/utils/concat_move.h
   src/utils/config.h
   src/utils/contains.h
@@ -60,6 +65,7 @@ add_library(${PROJECT_NAME} STATIC
   src/utils/safe_cast.h
   src/utils/to_underlying.h
   src/utils/vector2d.h
+  src/utils/wraparound.h
   )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")

@@ -21,7 +21,7 @@ struct AlignmentResult {
 template<typename Letter>
 struct AlignmentStatus {
   Status status;
-    std::optional<std::string> error;
+  std::optional<std::string> error;
   std::optional<AlignmentResult<Letter>> result;
 };
 
