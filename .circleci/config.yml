@@ -1,11 +1,12 @@
 version: 2.1
 
 
-release_cli_only: &release_cli_only
+release_cli_only: &cli_only
   filters:
     branches:
       only:
         - release-cli
+        - staging-cli
 
 major_branches_only: &major_branches_only
   filters:
@@ -15,7 +16,7 @@ major_branches_only: &major_branches_only
         - staging
         - release
 
-major_branches_and_cli_release_only: &major_branches_and_cli_release_only
+major_branches_and_cli_release_only: &major_branches_and_cli_only
   filters:
     branches:
       only:
@@ -23,6 +24,7 @@ major_branches_and_cli_release_only: &major_branches_and_cli_release_only
         - staging
         - release
         - release-cli
+        - staging-cli
 
 
 jobs:
@@ -219,6 +221,13 @@ jobs:
             ./scripts/publish_github_releases.sh
 
       - run:
+          name: Halt if not on cli-release branch
+          command: |
+            if [ "$CIRCLE_BRANCH" != "cli-release" ]; then
+                circleci-agent step halt
+            fi
+
+      - run:
           name: 'Publish Docker images to DockerHub'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
@@ -300,6 +309,13 @@ jobs:
           destination: nextclade-MacOS-<< parameters.macos_arch >>
 
       - run:
+          name: Halt if not on cli-release branch
+          command: |
+            if [ "$CIRCLE_BRANCH" != "cli-release" ]; then
+                circleci-agent step halt
+            fi
+
+      - run:
           name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
           command: |
             OS=darwin ./scripts/download_github_release_tool.sh
@@ -310,7 +326,7 @@ workflows:
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *major_branches_and_cli_release_only
+          <<: *major_branches_and_cli_only
 
       - Build-Web:
           context: nextclade_web_<< pipeline.git.branch >>
@@ -320,7 +336,7 @@ workflows:
 
       - Build-Linux-x86_64:
           context: nextclade_cli_<< pipeline.git.branch >>
-          <<: *release_cli_only
+          <<: *cli_only
           requires:
             - Update-Builder-Container
 
@@ -331,4 +347,4 @@ workflows:
               macos_arch:
                 - x86_64
                 - arm64
-          <<: *release_cli_only
+          <<: *cli_only
