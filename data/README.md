@@ -23,7 +23,7 @@ But this set of files is not sufficient to run Nextclade.
 
 ### Migration
 
-Since Nextclade version 1.3.0, the full up-to-date data bundles for various pathogens are now distributed in the form of so called "datasets". Please see:
+Since Nextclade version 1.3.0, the full up-to-date data bundles for various pathogens are distributed in the form of so called "datasets". Please see:
 
 - [Nextclade CLI](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html) documentation for example usage
 - [Nextclade Datasets](https://docs.nextstrain.org/projects/nextclade/en/stable/user/datasets.html) documentation for more details
@@ -32,8 +32,8 @@ Since Nextclade version 1.3.0, the full up-to-date data bundles for various path
 ### Timeline
 
 - Aug 31, 2021 - Nextclade 1.3.0 is released, the files in GitHub repository are deprecated and set to be deleted on October 31, 2021. The community was notified on various channels.
-- October 31, 2021 - the deletion deadline have been extended to November 9, 2021. The community was reminded on various channels.
-- November 9, 2021 the files are deleted from the repository after consultation with some of the community members.
+- October 31, 2021 - the deletion deadline have been extended to November 10, 2021. The community was reminded on various channels.
+- November 10, 2021 the files are deleted from the repository after consultation with some of the community members.
 
 ### Issues
 
