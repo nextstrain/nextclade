@@ -1,3 +1,14 @@
+## Nextclade Web 1.7.2, Nextclade CLI 1.4.3 (2021-11-01)
+
+This is a bugfix release for nextclade Web and Nextclade CLI.
+
+### [Fix] Properly display private aminoacid mutations on the tree
+
+This release ensures that both nucleotide and aminoacid mutations on the branches of the phylogenetic tree leading to the nodes representing analyzed sequences are properly displayed and that the corresponding information is correctly written to the output tree JSON. Similarly to how it's done in the main Nextstrain project, these mutations are private, i.e. called relative to the parent node.
+
+The internal reorganization of the code responsible for finding private mutations might also make Nextclade slightly faster and to consume less memory.
+
+
 ## Nextclade CLI 1.4.2 (2021-10-26)
 
 This is a small bugfix release and only affects Nextclade CLI. Nextclade Web and Nextalign CLI are unchanged.
