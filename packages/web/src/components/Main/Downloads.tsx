@@ -203,7 +203,7 @@ export function Downloads() {
               </CardHeader>
 
               <CardBody>
-                <p className="text-justify mx-2">{t('Nextclade is a part of Nextstrain project.')}</p>
+                <p className="text-justify mx-2">{t('Nextclade is part of Nextstrain.')}</p>
 
                 <p className="text-justify mx-2">
                   {t(
