@@ -27,6 +27,8 @@ generated/
 nextalign_benchmarks.json
 node_modules
 paper/paper.pdf
+paper/preprint.pdf
+paper/tex2pdf*
 tmp
 build/
 *.bak
