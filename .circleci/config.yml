@@ -215,17 +215,17 @@ jobs:
           destination: nextclade-Linux-x86_64
 
       - run:
-          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
-          command: |
-            OS=linux ./scripts/download_github_release_tool.sh
-            ./scripts/publish_github_releases.sh
-
-      - run:
           name: Halt if not on cli-release branch
           command: |
             if [ "$CIRCLE_BRANCH" != "cli-release" ]; then
                 circleci-agent step halt
             fi
+
+      - run:
+          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
+          command: |
+            OS=linux ./scripts/download_github_release_tool.sh
+            ./scripts/publish_github_releases.sh
 
       - run:
           name: 'Publish Docker images to DockerHub'
