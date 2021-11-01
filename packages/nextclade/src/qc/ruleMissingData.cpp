@@ -11,7 +11,6 @@
 namespace Nextclade {
   std::optional<QcResultMissingData> ruleMissingData(//
     const AnalysisResult& result,                    //
-    const std::vector<NucleotideSubstitution>&,      //
     const QCRulesConfigMissingData& config           //
   ) {
     if (!config.enabled) {

@@ -19,5 +19,6 @@ namespace Nextclade {
     treePostprocessInPlaceRecursive(root);
 
     tree.addMetadata();
+    tree.removeTemporaries();
   }
 }// namespace Nextclade

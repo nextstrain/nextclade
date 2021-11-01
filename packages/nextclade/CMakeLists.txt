@@ -21,8 +21,6 @@ set(SOURCE_FILES
   include/nextclade/nextclade.h
   include/nextclade/private/__generated__/types.h
   include/nextclade/private/nextclade_private.h
-  src/analyze/aminoacid.cpp
-  src/analyze/aminoacid.h
   src/analyze/calculateTotalLength.h
   src/analyze/findNucChanges.cpp
   src/analyze/findNucChanges.h
@@ -87,6 +85,10 @@ set(SOURCE_FILES
   src/tree/Tree.h
   src/tree/TreeNode.cpp
   src/tree/TreeNode.h
+  src/tree/calculateDivergence.cpp
+  src/tree/calculateDivergence.h
+  src/tree/findPrivateMutations.cpp
+  src/tree/findPrivateMutations.h
   src/tree/treeAttachNodes.cpp
   src/tree/treeAttachNodes.h
   src/tree/treeFindNearestNodes.cpp
@@ -102,6 +104,7 @@ set(SOURCE_FILES
   src/utils/contract.h
   src/utils/debugbreak.h
   src/utils/eraseDuplicates.h
+  src/utils/filter.h
   src/utils/ieee754_comparison.h
   src/utils/macro_overload.h
   src/utils/map.h

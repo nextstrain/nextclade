@@ -6,6 +6,9 @@ export $(shell bash -c "sed 's/=.*//' .env || true" )
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
+SHELL:=bash
+.ONESHELL:
+
 .PHONY: docs docker-docs e2e
 
 clean:
@@ -202,6 +205,30 @@ docker-paper:
 	--env 'JOURNAL=joss' \
 	openjournals/paperdraft
 
+
+paper-preprint:
+	@set -euxo pipefail
+	@cd paper/
+	./scripts/build_preprint.sh
+
+docker-paper-preprint:
+	@set -euxo pipefail
+
+	@export CONTAINER_IMAGE_NAME=nextclade-preprint-builder
+
+	@docker build -t "$${CONTAINER_IMAGE_NAME}" \
+	--network=host \
+	paper/
+
+	@docker run -it --rm \
+	--init \
+	--name="$${CONTAINER_IMAGE_NAME}-$(shell date +%s)" \
+	--user="$(shell id -u):$(shell id -g)" \
+	--volume="$(shell pwd):/home/user/src" \
+	--workdir="/home/user/src" \
+	--env "TERM=xterm-256colors" \
+	"$${CONTAINER_IMAGE_NAME}" \
+		bash -c "make paper-preprint"
 
 # Synchronize source files using rsync
 sync:

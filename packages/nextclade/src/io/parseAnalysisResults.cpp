@@ -60,9 +60,9 @@ namespace Nextclade {
   AminoacidSubstitution parseAminoacidSubstitution(const json& j) {
     return AminoacidSubstitution{
       .gene = at(j, "gene"),
-      .refAA = stringToAa(at(j, "refAA")),
-      .codon = at(j, "codon").get<int>(),
-      .queryAA = stringToAa(at(j, "queryAA")),
+      .ref = stringToAa(at(j, "refAA")),
+      .pos = at(j, "codon").get<int>(),
+      .qry = stringToAa(at(j, "queryAA")),
       .codonNucRange = parseRange(at(j, "codonNucRange")),
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
@@ -73,8 +73,8 @@ namespace Nextclade {
   AminoacidDeletion parseAminoacidDeletion(const json& j) {
     return AminoacidDeletion{
       .gene = at(j, "gene"),
-      .refAA = stringToAa(at(j, "refAA")),
-      .codon = at(j, "codon").get<int>(),
+      .ref = stringToAa(at(j, "refAA")),
+      .pos = at(j, "codon").get<int>(),
       .codonNucRange = parseRange(at(j, "codonNucRange")),
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
@@ -95,11 +95,12 @@ namespace Nextclade {
 
   NucleotideSubstitution parseNucleotideSubstitution(const json& j) {
     return NucleotideSubstitution{
-      .refNuc = stringToNuc(at(j, "refNuc")),
+      .ref = stringToNuc(at(j, "refNuc")),
       .pos = at(j, "pos").get<int>(),
-      .queryNuc = stringToNuc(at(j, "queryNuc")),
+      .qry = stringToNuc(at(j, "queryNuc")),
       .pcrPrimersChanged = parseArray<PcrPrimer>(j, "pcrPrimersChanged", parsePcrPrimer),
-      .aaSubstitutions = {},
+      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
     };
   }
 
@@ -107,6 +108,8 @@ namespace Nextclade {
     return NucleotideDeletion{
       .start = at(j, "start").get<int>(),
       .length = at(j, "length").get<int>(),
+      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
     };
   }
 
@@ -115,6 +118,32 @@ namespace Nextclade {
       .pos = at(j, "pos").get<int>(),
       .length = at(j, "length").get<int>(),
       .ins = toNucleotideSequence(at(j, "ins")),
+    };
+  }
+
+  template<typename Letter>
+  SubstitutionSimple<Letter> parseSubstitutionSimple(const json& j) {
+    return SubstitutionSimple<Letter>{
+      .ref = stringToLetter<Letter>(at(j, "ref"), LetterTag<Letter>{}),
+      .pos = at(j, "pos").get<int>(),
+      .qry = stringToLetter<Letter>(at(j, "qry"), LetterTag<Letter>{}),
+    };
+  }
+
+  template<typename Letter>
+  DeletionSimple<Letter> parseDeletionSimple(const json& j) {
+    return DeletionSimple<Letter>{
+      .ref = stringToLetter(at(j, "ref"), LetterTag<Letter>{}),
+      .pos = at(j, "pos").get<int>(),
+    };
+  }
+
+  template<typename Letter>
+  PrivateMutations<Letter> parsePrivateMutations(const json& j) {
+    return PrivateMutations<Letter>{
+      .privateSubstitutions =
+        parseArray<SubstitutionSimple<Letter>>(j, "privateSubstitutions", parseSubstitutionSimple<Letter>),
+      .privateDeletions = parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
     };
   }
 
@@ -335,6 +364,11 @@ namespace Nextclade {
         .totalPcrPrimerChanges = at(j, "totalPcrPrimerChanges"),
         .nearestNodeId = at(j, "nearestNodeId"),
         .clade = at(j, "clade"),
+        .privateNucMutations = parsePrivateMutations<Nucleotide>(at(j, "privateNucMutations")),
+        .privateAaMutations =
+          parseMap<std::string, PrivateAminoacidMutations>(j, "privateAaMutations", parsePrivateMutations<Aminoacid>),
+        .missingGenes = parseSet<std::string>(at(j, "missingGenes")),
+        .divergence = at(j, "divergence"),
         .qc = parseQcResult(at(j, "qc")),
       };
     } catch (const std::exception& e) {

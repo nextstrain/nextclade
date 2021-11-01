@@ -18,10 +18,8 @@ namespace Nextclade {
     }
 
     // Don't report mutation if primer contains matching ambiguous nucleotide at this position
-    const auto allowed =
-      std::any_of(primer.nonAcgts.cbegin(), primer.nonAcgts.cend(), [&mut](const NucleotideLocation& nonACGT) {
-        return mut.pos == nonACGT.pos && isMatch(nonACGT.nuc, mut.queryNuc);
-      });
+    const auto allowed = std::any_of(primer.nonAcgts.cbegin(), primer.nonAcgts.cend(),
+      [&mut](const NucleotideLocation& nonACGT) { return mut.pos == nonACGT.pos && isMatch(nonACGT.nuc, mut.qry); });
 
     // Report otherwise
     return !allowed;

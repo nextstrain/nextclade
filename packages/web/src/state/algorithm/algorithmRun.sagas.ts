@@ -45,7 +45,7 @@ import {
   createThreadParseSequencesStreaming,
   destroyAnalysisThreadPool,
   treeFinalize,
-  treePrepare,
+  // treePrepare,
 } from 'src/workers/run'
 import {
   loadFasta,
@@ -214,6 +214,20 @@ export function* runAnalysisLoop(
   }
 }
 
+export function* runGetTree(poolAnalyze: Pool<AnalysisThread>) {
+  // Retrieve the first worker from the pool. All workers have the same tree, but we arbitrarily chose the first
+  // worker here
+  const worker = yield* call(async () => {
+    // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return (await poolAnalyze.workers?.[0]?.init) as AnalysisThread
+  })
+
+  return yield* call(worker.getTree)
+}
+
 /**
  * Repeatedly retrieves the results of the analysis from the analysis event channel
  * and emits corresponding redux actions
@@ -328,14 +342,21 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
 
     // Loop 1: Launch sequence parser loop and wait until it finishes parsing the input string.
     call(runParserLoop, sequenceParserThread, queryStr, queryInputName),
+
+    // Wait until the analysis is completed
+    call(async () => poolAnalyze.completed()),
   ])
-  // When `all()` effect resolves, we know that parsing is done. However, the analysis is still running.
+
+  // Retrieve the prepared (preprocessed) tree from one of the workers
+  const treePreparedStr = yield* call(runGetTree, poolAnalyze)
 
   // Destroy analysis pool as it is no longer needed
   yield* call(destroyAnalysisThreadPool, poolAnalyze)
 
   // Return array of results aggregated in the results retrieval loop
-  return ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
+  const nextcladeResults = ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
+
+  return { nextcladeResults, treePreparedStr }
 }
 
 export function* getRefSequence(dataset: DatasetFlat) {
@@ -443,16 +464,14 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   const geneMap = prepareGeneMap(geneMapStr)
   yield* put(setGeneMapObject({ geneMap }))
 
-  const treePreparedStr = yield* call(treePrepare, treeStr, refStr)
-
   const geneMapName = ''
   const pcrPrimersFilename = ''
-  const nextcladeResults = yield* runSequenceAnalysis(queryStr, queryName, {
+  const { nextcladeResults, treePreparedStr } = yield* runSequenceAnalysis(queryStr, queryName, {
     refStr,
     refName,
     geneMapStr,
     geneMapName,
-    treePreparedStr,
+    treeStr,
     pcrPrimerCsvRowsStr,
     pcrPrimersFilename,
     qcConfigStr,

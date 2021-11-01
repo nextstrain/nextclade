@@ -7,6 +7,7 @@
 #include <string>
 
 #include "../io/formatQcStatus.h"
+#include "../utils/to_underlying.h"
 #include "TreeNode.h"
 
 
@@ -19,6 +20,40 @@
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
+  class ErrorTreeNotObject : public ErrorFatal {
+  public:
+    explicit ErrorTreeNotObject(const json& tree)
+        : ErrorFatal(fmt::format(
+            "When accessing json node: The node is expected to be an object, but found this instead: \"{}\"",
+            tree.dump())) {}
+  };
+
+  class ErrorTreeTmpMaxDivergenceNotSet : public ErrorFatal {
+  public:
+    explicit ErrorTreeTmpMaxDivergenceNotSet(const json& j)
+        : ErrorFatal(fmt::format("When accessing /tmp/maxDivergence: expected to find a number, but found this: "
+                                 "\"{}\". It's an internal error. Please report it to developers.",
+            j.dump())) {}
+  };
+
+  class ErrorTreeTmpDivergenceUnitsNotSet : public ErrorFatal {
+  public:
+    explicit ErrorTreeTmpDivergenceUnitsNotSet(const json& j)
+        : ErrorFatal(fmt::format("When accessing /tmp/divergenceUnits: expected to find an integer that corresponds to "
+                                 "one of the DivergenceUnits, but found this: \"{}\". It's an internal error. Please "
+                                 "report it to developers.",
+            j.dump())) {}
+  };
+
+  class ErrorTreeTmpDivergenceUnitsInvalid : public ErrorFatal {
+  public:
+    explicit ErrorTreeTmpDivergenceUnitsInvalid(int divergenceUnitsInt)
+        : ErrorFatal(fmt::format("When accessing /tmp/divergenceUnits: expected to find an integer that corresponds to "
+                                 "one of the DivergenceUnits, but found this: \"{}\". It's an internal error. Please "
+                                 "report it to developers.",
+            divergenceUnitsInt)) {}
+  };
+
   json& get(json& js, const std::string& key, const json& defaultValue = json::object()) {
     if (!js.contains(key)) {
       js[key] = defaultValue;
@@ -28,6 +63,12 @@ namespace Nextclade {
 
   class TreeImpl {
     json j;
+
+    void ensureIsObject() const {
+      if (!j.is_object()) {
+        throw ErrorTreeNotObject(j);
+      }
+    }
 
   public:
     explicit TreeImpl(const std::string& auspiceJsonV2) : j(json::parse(auspiceJsonV2)) {}
@@ -151,6 +192,48 @@ namespace Nextclade {
       filters = newFilters;
     }
 
+    double tmpMaxDivergence() {
+      ensureIsObject();
+      const auto maxDivergence = j.value(json_pointer{"/tmp/maxDivergence"}, json());
+      if (!maxDivergence.is_number()) {
+        throw ErrorTreeTmpMaxDivergenceNotSet(maxDivergence);
+      }
+      return maxDivergence.get<double>();
+    }
+
+    void setTmpMaxDivergence(double maxDivergence) {
+      ensureIsObject();
+      j[json_pointer{"/tmp/maxDivergence"}] = maxDivergence;
+    }
+
+    DivergenceUnits tmpDivergenceUnits() {
+      ensureIsObject();
+      const auto divergenceUnits = j.value(json_pointer{"/tmp/divergenceUnits"}, json());
+      if (!divergenceUnits.is_number_integer()) {
+        throw ErrorTreeTmpDivergenceUnitsNotSet(divergenceUnits);
+      }
+      int divergenceUnitsInt = divergenceUnits.get<int>();
+      switch (divergenceUnitsInt) {
+        case 0:
+          return DivergenceUnits::NumSubstitutionsPerYear;
+        case 1:
+          return DivergenceUnits::NumSubstitutionsPerYearPerSite;
+        default:
+          break;
+      }
+      throw ErrorTreeTmpDivergenceUnitsInvalid(divergenceUnits);
+    }
+
+    void setTmpDivergenceUnits(DivergenceUnits divergenceUnits) {
+      ensureIsObject();
+      j[json_pointer{"/tmp/divergenceUnits"}] = to_underlying(divergenceUnits);
+    }
+
+    void removeTemporaries() {
+      ensureIsObject();
+      j.erase("tmp");
+    }
+
     std::string serialize(int spaces = 4) const {
       return jsonStringify(j, spaces);
     }
@@ -173,6 +256,27 @@ namespace Nextclade {
 
   void Tree::addMetadata() {
     return pimpl->addMetadata();
+  }
+
+
+  double Tree::tmpMaxDivergence() const {
+    return pimpl->tmpMaxDivergence();
+  }
+
+  void Tree::setTmpMaxDivergence(double maxDivergence) {
+    pimpl->setTmpMaxDivergence(maxDivergence);
+  }
+
+  DivergenceUnits Tree::tmpDivergenceUnits() const {
+    return pimpl->tmpDivergenceUnits();
+  }
+
+  void Tree::setTmpDivergenceUnits(DivergenceUnits divergenceUnits) {
+    pimpl->setTmpDivergenceUnits(divergenceUnits);
+  }
+
+  void Tree::removeTemporaries() {
+    pimpl->removeTemporaries();
   }
 
   std::string Tree::serialize(int spaces) const {

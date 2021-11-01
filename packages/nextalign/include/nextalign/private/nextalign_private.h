@@ -54,6 +54,34 @@ char aaToChar(Aminoacid aa);
 
 std::string aaToString(Aminoacid aa);
 
+template<typename Letter>
+struct LetterTag {};
+
+template<typename Letter>
+inline Letter stringToLetter(const std::string& str, LetterTag<Letter>);
+
+template<>
+inline Nucleotide stringToLetter<Nucleotide>(const std::string& str, LetterTag<Nucleotide>) {
+  return stringToNuc(str);
+}
+
+template<>
+inline Aminoacid stringToLetter<Aminoacid>(const std::string& str, LetterTag<Aminoacid>) {
+  return stringToAa(str);
+}
+
+template<typename Letter>
+inline std::string letterToString(Letter letter);
+
+template<>
+inline std::string letterToString(Nucleotide letter) {
+  return nucToString(letter);
+}
+
+template<>
+inline std::string letterToString(Aminoacid letter) {
+  return aaToString(letter);
+}
 
 std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<Nucleotide>>& insertions);
 

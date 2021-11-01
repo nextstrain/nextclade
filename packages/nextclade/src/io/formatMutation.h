@@ -7,8 +7,8 @@
 #include <vector>
 
 namespace Nextclade {
-  template<typename T, typename Formatter, typename Delimiter>
-  std::string formatAndJoin(const std::vector<T>& elements, Formatter formatter, Delimiter delimiter) {
+  template<typename Container, typename Formatter, typename Delimiter>
+  std::string formatAndJoin(const Container& elements, Formatter formatter, Delimiter delimiter) {
     std::vector<std::string> formatted;
     std::transform(elements.cbegin(), elements.cend(), std::back_inserter(formatted), formatter);
     return boost::algorithm::join(formatted, delimiter);

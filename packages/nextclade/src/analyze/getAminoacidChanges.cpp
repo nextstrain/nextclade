@@ -10,7 +10,6 @@
 #include "../utils/contract.h"
 #include "../utils/mapFind.h"
 #include "../utils/safe_cast.h"
-#include "aminoacid.h"
 
 namespace {
   std::vector<std::string> surroundWithQuotes(const std::vector<std::string>& m) {
@@ -91,8 +90,8 @@ namespace Nextclade {
         // Gap in the ref sequence means that this is a deletion in the query sequence
         aaDeletions.emplace_back(AminoacidDeletion{
           .gene = gene.geneName,
-          .refAA = refAa,
-          .codon = codon,
+          .ref = refAa,
+          .pos = codon,
           .codonNucRange = Range{.begin = codonBegin, .end = codonEnd},
           .refContext = std::move(refContext),
           .queryContext = std::move(queryContext),
@@ -104,9 +103,9 @@ namespace Nextclade {
           // If not a gap and the state has changed, than it's a substitution
           aaSubstitutions.emplace_back(AminoacidSubstitution{
             .gene = gene.geneName,
-            .refAA = refAa,
-            .codon = codon,
-            .queryAA = queryAa,
+            .ref = refAa,
+            .pos = codon,
+            .qry = queryAa,
             .codonNucRange = Range{.begin = codonBegin, .end = codonEnd},
             .refContext = std::move(refContext),
             .queryContext = std::move(queryContext),
