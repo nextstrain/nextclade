@@ -1,3 +1,11 @@
+## Nextclade CLI 1.4.4 (2021-11-01)
+
+This is a bugfix release for Nextclade CLI.
+
+### [Fix] Prevent Nextclade CLI failing with error "Library not loaded"
+
+The mistake in the Nextclade CLI build was fixed and now it should not look for external libraries on macOS.
+
 ## Nextclade Web 1.7.2, Nextclade CLI 1.4.3 (2021-11-01)
 
 This is a bugfix release for nextclade Web and Nextclade CLI.
