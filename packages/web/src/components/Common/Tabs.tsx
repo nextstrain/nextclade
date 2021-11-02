@@ -1,10 +1,26 @@
 import React, { ReactNode, useCallback, useState } from 'react'
 
 import type { StrictOmit } from 'ts-essentials'
-import { Nav as NavBase, NavItem, NavItemProps, NavLink, NavProps, TabContent, TabPane } from 'reactstrap'
+import {
+  Nav as NavBase,
+  NavItem,
+  NavItemProps,
+  NavLink,
+  NavProps,
+  TabContent as TabContentBase,
+  TabPane as TabPaneBase,
+} from 'reactstrap'
 import styled from 'styled-components'
 
-const TabsContainer = styled.section``
+const TabsPanelContainer = styled.div`
+  flex: 1;
+`
+
+const TabContent = styled(TabContentBase)``
+
+const TabPane = styled(TabPaneBase)`
+  height: 100%;
+`
 
 const Nav = styled(NavBase)`
   cursor: pointer;
@@ -24,10 +40,10 @@ export function Tabs({ tabs }: TabsProps) {
   const [activeTab, setActiveTab] = useState<string>('file')
 
   return (
-    <TabsContainer>
+    <TabsPanelContainer>
       <TabsPanel tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       <TabsContent tabs={tabs} activeTab={activeTab} />
-    </TabsContainer>
+    </TabsPanelContainer>
   )
 }
 
@@ -74,9 +90,9 @@ export interface TabsContentProps {
   activeTab: string
 }
 
-export function TabsContent({ tabs, activeTab }: TabsContentProps) {
+export function TabsContent({ tabs, activeTab, ...props }: TabsContentProps) {
   return (
-    <TabContent activeTab={activeTab}>
+    <TabContent activeTab={activeTab} {...props}>
       {tabs.map((tab, i) => (
         <TabPane tabId={tab.name} key={tab.name}>
           {tab.body}

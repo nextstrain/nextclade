@@ -151,7 +151,7 @@ export interface UploaderGenericProps {
   onUpload(file: File): void
 }
 
-export function UploaderGeneric({ onUpload, children }: PropsWithChildren<UploaderGenericProps>) {
+export function UploaderGeneric({ onUpload, children, ...props }: PropsWithChildren<UploaderGenericProps>) {
   const { t } = useTranslation()
   const [errors, setErrors] = useState<string[]>([])
 
@@ -191,7 +191,7 @@ export function UploaderGeneric({ onUpload, children }: PropsWithChildren<Upload
   )
 
   return (
-    <UploadZoneWrapper {...getRootProps()}>
+    <UploadZoneWrapper {...getRootProps()} {...props}>
       <UploadZoneInput type="file" {...getInputProps()} />
       <UploadZone state={state}>
         <UploadZoneLeft>{<FileIconsContainer>{children}</FileIconsContainer>}</UploadZoneLeft>

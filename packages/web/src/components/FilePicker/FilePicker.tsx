@@ -30,6 +30,11 @@ export const FilePickerTitle = styled.h3`
 
 export const TabsPanelStyled = styled(TabsPanel)``
 
+const TabsContentStyled = styled(TabsContent)`
+  flex: 1;
+  min-height: 200px;
+`
+
 export interface FilePickerProps {
   icon: ReactNode
   exampleUrl: string
@@ -116,10 +121,10 @@ export function FilePicker({
     <FilePickerContainer>
       <FilePickerHeader>
         <FilePickerTitle>{t('Provide sequences')}</FilePickerTitle>
-        <TabsPanel tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+        <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </FilePickerHeader>
 
-      <TabsContent tabs={tabs} activeTab={activeTab} />
+      <TabsContentStyled tabs={tabs} activeTab={activeTab} />
     </FilePickerContainer>
   )
 }
