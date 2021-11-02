@@ -8,7 +8,8 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/io/AlgorithmInput'
 import { TabsContent, TabsPanel } from 'src/components/Common/Tabs'
-import { UploaderGeneric } from './UploaderGeneric'
+import { UploadBox } from './UploadBox'
+import { UploadBoxCompact } from './UploadBoxCompact'
 import { TabPanelUrl } from './TabPanelUrl'
 import { TabPanelPaste } from './TabPanelPaste'
 import { UploadedFileInfo } from './UploadedFileInfo'
@@ -25,17 +26,19 @@ export const FilePickerHeader = styled.div`
 
 export const FilePickerTitle = styled.h4`
   flex: 1;
+  padding-top: 0.75rem;
   margin: auto 0;
 `
 
 export const TabsPanelStyled = styled(TabsPanel)``
 
-const TabsContentStyled = styled(TabsContent)`
+const TabsContentStyled = styled(TabsContent)<{ $compact?: boolean }>`
   flex: 1;
-  min-height: 200px;
+  min-height: ${(props) => (props.$compact ? '100px' : '200px')};
 `
 
 export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, 'onInput' | 'onError' | 'as' | 'ref'> {
+  compact?: boolean
   title: string
   icon: ReactNode
   exampleUrl: string
@@ -49,6 +52,7 @@ export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, '
 }
 
 export function FilePicker({
+  compact,
   title,
   icon,
   exampleUrl,
@@ -94,7 +98,11 @@ export function FilePicker({
       {
         name: 'file',
         title: t('File'),
-        body: <UploaderGeneric onUpload={onFile}>{icon}</UploaderGeneric>,
+        body: compact ? (
+          <UploadBoxCompact onUpload={onFile}>{icon}</UploadBoxCompact>
+        ) : (
+          <UploadBox onUpload={onFile}>{icon}</UploadBox>
+        ),
       },
       {
         name: 'link',
@@ -107,7 +115,7 @@ export function FilePicker({
         body: <TabPanelPaste onConfirm={onPaste} pasteInstructions={pasteInstructions} inputRef={inputRef} />,
       },
     ],
-    [exampleUrl, icon, inputRef, onFile, onPaste, onUrl, pasteInstructions, t],
+    [compact, exampleUrl, icon, inputRef, onFile, onPaste, onUrl, pasteInstructions, t],
   )
 
   if (input) {
@@ -127,7 +135,7 @@ export function FilePicker({
         <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </FilePickerHeader>
 
-      <TabsContentStyled tabs={tabs} activeTab={activeTab} />
+      <TabsContentStyled tabs={tabs} activeTab={activeTab} $compact={compact} />
     </FilePickerContainer>
   )
 }

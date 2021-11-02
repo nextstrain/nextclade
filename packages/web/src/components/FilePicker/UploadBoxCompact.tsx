@@ -84,6 +84,9 @@ export function getUploadZoneTheme(props: { state: UploadZoneState; theme: Defau
 }
 
 export const UploadZoneWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+
   width: 100%;
   height: 100%;
 
@@ -96,6 +99,7 @@ export const UploadZoneWrapper = styled.div`
 
 export const UploadZone = styled.div<{ state: UploadZoneState }>`
   display: flex;
+  width: 100%;
   height: 100%;
   cursor: pointer;
   border-radius: 5px;
@@ -109,18 +113,14 @@ export const UploadZoneInput = styled.input``
 
 export const UploadZoneLeft = styled.div`
   display: flex;
-  flex: 1 1 40%;
-  margin: auto;
-  margin-right: 20px;
+  flex: 0 0;
+  height: 100%;
 `
 
 export const UploadZoneRight = styled.div`
   display: flex;
-  flex: 1 0 60%;
-`
-
-export const FileIconsContainer = styled.div`
-  margin-left: auto;
+  flex: 1 1 100%;
+  height: 100%;
 `
 
 export const UploadZoneTextContainer = styled.div`
@@ -129,29 +129,22 @@ export const UploadZoneTextContainer = styled.div`
   margin-left: 20px;
 `
 
-export const UploadZoneText = styled.div`
+export const UploadZoneText = styled.span`
+  text-align: center;
   font-size: 1.1rem;
   text-align: center;
 `
 
-export const UploadZoneTextOr = styled.div`
-  margin-top: 10px;
-  font-size: 0.9rem;
-  font-weight: light;
-  text-align: center;
-`
-
 export const UploadZoneButton = styled(Button)`
-  margin-top: 10px;
-  min-width: 160px;
-  min-height: 50px;
+  //min-width: 160px;
+  //min-height: 50px;
 `
 
-export interface UploaderGenericProps {
+export interface UploaderCompactProps {
   onUpload(file: File): void
 }
 
-export function UploaderGeneric({ onUpload, children, ...props }: PropsWithChildren<UploaderGenericProps>) {
+export function UploadBoxCompact({ onUpload, children, ...props }: PropsWithChildren<UploaderCompactProps>) {
   const { t } = useTranslation()
   const [errors, setErrors] = useState<string[]>([])
 
@@ -173,8 +166,8 @@ export function UploaderGeneric({ onUpload, children, ...props }: PropsWithChild
   const normal = useMemo(
     () => (
       <UploadZoneTextContainer>
-        <UploadZoneText>{t('Drag & Drop a file here')}</UploadZoneText>
-        <UploadZoneTextOr>{t('or')}</UploadZoneTextOr>
+        <UploadZoneText>{t('Drag & drop a file or ')}</UploadZoneText>
+
         <UploadZoneButton color="primary">{t('Select a file')}</UploadZoneButton>
       </UploadZoneTextContainer>
     ),
@@ -191,12 +184,12 @@ export function UploaderGeneric({ onUpload, children, ...props }: PropsWithChild
   )
 
   return (
-    <UploadZoneWrapper {...getRootProps()} {...props}>
-      <UploadZoneInput type="file" {...getInputProps()} />
-      <UploadZone state={state}>
-        <UploadZoneLeft>{<FileIconsContainer>{children}</FileIconsContainer>}</UploadZoneLeft>
-        <UploadZoneRight>{isDragActive ? active : normal}</UploadZoneRight>
-      </UploadZone>
+    <UploadZoneWrapper {...getRootProps()} {...props} title={t('Drag & drop or select a file')}>
+      <UploadZoneLeft>{children}</UploadZoneLeft>
+      <UploadZoneRight>
+        <UploadZoneInput type="file" {...getInputProps()} />
+        <UploadZone state={state}>{isDragActive ? active : normal}</UploadZone>
+      </UploadZoneRight>
     </UploadZoneWrapper>
   )
 }

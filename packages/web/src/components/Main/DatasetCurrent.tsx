@@ -1,11 +1,12 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
 import { connect } from 'react-redux'
-import { Button } from 'reactstrap'
+import { Button, Collapse } from 'reactstrap'
 
 import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { selectCurrentDataset } from 'src/state/algorithm/algorithm.selectors'
+import { FilePickerAdvanced } from 'src/components/FilePicker/FilePickerAdvanced'
 
 import type { DatasetFlat } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
@@ -49,6 +50,8 @@ export const CustomizeButton = styled(Button)`
   height: 1.6rem;
   font-size: 0.85rem;
   padding: 0;
+  margin-top: 5px;
+  margin-bottom: 3px;
 `
 
 export interface DatasetCurrentProps {
@@ -68,12 +71,15 @@ export const DatasetCurrent = connect(mapStateToProps, mapDispatchToProps)(Datas
 
 export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: DatasetCurrentProps) {
   const { t } = useTranslationSafe()
+  const [advancedOpen, setAdvancedOpen] = useState(false)
 
   const onChangeClicked = useCallback(() => {
     setCurrentDataset(undefined)
   }, [setCurrentDataset])
 
-  const onCustomizeClicked = useCallback(() => {}, [])
+  const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
+
+  const customizeButtonText = useMemo(() => (advancedOpen ? t('Hide files') : t('Show files')), [advancedOpen, t])
 
   if (!dataset) {
     return null
@@ -92,9 +98,15 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
         <DatasetInfo dataset={dataset} />
         <div>
           <CustomizeButton type="button" color="link" onClick={onCustomizeClicked}>
-            {t('Customize (advanced)')}
+            {customizeButtonText}
           </CustomizeButton>
         </div>
+        <Collapse isOpen={advancedOpen}>
+          <FilePickerAdvanced />
+          <CustomizeButton type="button" color="link" onClick={onCustomizeClicked}>
+            {customizeButtonText}
+          </CustomizeButton>
+        </Collapse>
       </CurrentDatasetInfoBody>
     </CurrentDatasetInfoContainer>
   )
