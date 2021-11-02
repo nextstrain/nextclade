@@ -1,10 +1,10 @@
-import React, { ReactNode, Ref, useCallback, useMemo, useState } from 'react'
+import React, { HTMLProps, ReactNode, Ref, useCallback, useMemo, useState } from 'react'
 
 import styled from 'styled-components'
 import { Col, Row } from 'reactstrap'
+import { StrictOmit } from 'ts-essentials'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/io/AlgorithmInput'
 import { TabsContent, TabsPanel } from 'src/components/Common/Tabs'
@@ -13,17 +13,17 @@ import { TabPanelUrl } from './TabPanelUrl'
 import { TabPanelPaste } from './TabPanelPaste'
 import { UploadedFileInfo } from './UploadedFileInfo'
 
-export const FilePickerContainer = styled.section`
+export const FilePickerContainer = styled.div`
   display: flex;
   flex-direction: column;
 `
 
-export const FilePickerHeader = styled.header`
+export const FilePickerHeader = styled.div`
   display: flex;
   margin-bottom: 0.5rem;
 `
 
-export const FilePickerTitle = styled.h3`
+export const FilePickerTitle = styled.h4`
   flex: 1;
   margin-bottom: 0;
 `
@@ -35,7 +35,8 @@ const TabsContentStyled = styled(TabsContent)`
   min-height: 200px;
 `
 
-export interface FilePickerProps {
+export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, 'onInput' | 'onError' | 'as' | 'ref'> {
+  title: string
   icon: ReactNode
   exampleUrl: string
   pasteInstructions: string
@@ -48,6 +49,7 @@ export interface FilePickerProps {
 }
 
 export function FilePicker({
+  title,
   icon,
   exampleUrl,
   pasteInstructions,
@@ -57,6 +59,7 @@ export function FilePicker({
   onRemove,
   onError,
   inputRef,
+  ...props
 }: FilePickerProps) {
   const { t } = useTranslationSafe()
   const [activeTab, setActiveTab] = useState<string>('file')
@@ -118,9 +121,9 @@ export function FilePicker({
   }
 
   return (
-    <FilePickerContainer>
+    <FilePickerContainer {...props}>
       <FilePickerHeader>
-        <FilePickerTitle>{t('Provide sequences')}</FilePickerTitle>
+        <FilePickerTitle>{title}</FilePickerTitle>
         <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </FilePickerHeader>
 

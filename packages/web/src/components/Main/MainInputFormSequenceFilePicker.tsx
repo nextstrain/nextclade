@@ -84,6 +84,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
   return (
     <SequenceFilePickerContainer>
       <FilePicker
+        title={t('Provide Sequences')}
         icon={<FileIconFasta />}
         exampleUrl="https://example.com/sequences.fasta"
         pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
