@@ -25,6 +25,11 @@ export const CurrentDatasetInfoHeader = styled.section`
   margin-bottom: 0.5rem;
 `
 
+const DatasetInfoH4 = styled.h4`
+  flex: 1;
+  margin: auto 0;
+`
+
 export const CurrentDatasetInfoBody = styled.section`
   display: flex;
   flex-direction: column;
@@ -77,7 +82,7 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
   return (
     <CurrentDatasetInfoContainer>
       <CurrentDatasetInfoHeader>
-        <h3>{t('Selected pathogen')}</h3>
+        <DatasetInfoH4>{t('Selected pathogen')}</DatasetInfoH4>
         <ChangeButton className="ml-auto" type="button" color="secondary" onClick={onChangeClicked}>
           {t('Change')}
         </ChangeButton>

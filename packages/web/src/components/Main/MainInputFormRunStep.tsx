@@ -24,7 +24,7 @@ export function MainInputFormRunStep() {
         </Col>
       </Row>
 
-      <Row noGutters>
+      <Row noGutters className="my-3">
         <Col>
           <MainInputFormSequenceFilePicker />
         </Col>

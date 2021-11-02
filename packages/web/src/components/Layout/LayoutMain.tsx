@@ -15,6 +15,16 @@ import FooterContent from './Footer'
 
 export const Container = styled(ContainerBase)`
   max-width: ${(props) => props.theme.containerMaxWidths.xl};
+
+  @media (max-width: 991.98px) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  @media (max-width: 767.98px) {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
 `
 
 const Header = styled.header``

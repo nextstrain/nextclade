@@ -25,7 +25,7 @@ export const FilePickerHeader = styled.div`
 
 export const FilePickerTitle = styled.h4`
   flex: 1;
-  margin-bottom: 0;
+  margin: auto 0;
 `
 
 export const TabsPanelStyled = styled(TabsPanel)``

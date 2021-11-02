@@ -19,6 +19,16 @@ export const Container = styled(ContainerBase)`
 
 export const Centered = styled.section`
   margin: auto;
+
+  @media (min-width: 768px) {
+    min-width: 600px;
+  }
+
+  @media (max-width: 767.98px) {
+    margin: 0;
+    width: 100%;
+  }
+
   max-width: 800px;
 `
 

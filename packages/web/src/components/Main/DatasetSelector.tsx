@@ -14,13 +14,16 @@ import { selectDatasets, selectCurrentDataset, selectDefaultDataset } from 'src/
 import { DatasetSelectorList } from './DatasetSelectorList'
 
 const DatasetSelectorContainer = styled(Container)`
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
   padding: 0;
 `
 
-const DatasetSelectorTitle = styled.h3`
-  flex: 1 1 100%;
+const DatasetSelectorTitle = styled.h4`
+  flex: 1;
+  margin: auto 0;
 `
 
 const DatasetSelectorListContainer = styled.section`
@@ -90,7 +93,7 @@ export function DatasetSelectorDisconnected({
   return (
     <DatasetSelectorContainer fluid>
       <Row noGutters>
-        <Col sm={6}>
+        <Col sm={6} className="d-flex">
           <DatasetSelectorTitle>{t('Select a pathogen')}</DatasetSelectorTitle>
         </Col>
 
