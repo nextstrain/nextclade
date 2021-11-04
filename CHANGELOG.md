@@ -1,3 +1,9 @@
+## Nextclade Web 1.7.3, Nextclade CLI 1.4.5 (2021-11-04)
+
+This is a bugfix release for Nextclade Web and Nextclade CLI.
+
+After Nextclade Web version 1.7.3 and Nextclade CLI version 1.4.3 the "Private mutations" QC check was incorrectly counting individual deletions, rather than contiguous ranges of deletions, as it was before that. This resulted in QC score being too high for sequences that have many deletions. In this version we ensure again that the deletion ranges are counted. This should now bring the "Private mutations" QC score back to what is expected.
+
 ## Nextclade CLI 1.4.4 (2021-11-01)
 
 This is a bugfix release for Nextclade CLI.
