@@ -64,6 +64,14 @@ namespace Nextclade {
       }
     }
 
+    // Terminate the last range with the last deletion
+    if (!privateDeletionsSorted.empty()) {
+      const auto end = privateDeletionsSorted.back().pos;
+      const auto length = end - *begin;
+      deletionRanges.emplace_back(
+        NucleotideRange{.begin = *begin, .end = end, .length = length, .character = Nucleotide::GAP});
+    }
+
     return deletionRanges;
   }
 
