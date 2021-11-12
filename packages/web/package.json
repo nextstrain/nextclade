@@ -92,7 +92,7 @@
     "@types/react-virtualized-auto-sizer": "1.0.0",
     "@types/react-window": "1.8.2",
     "animate.css": "4.1.0",
-    "auspice": "2.32.0",
+    "auspice": "2.32.1",
     "autoprefixer": "9.8.6",
     "awesomplete": "1.1.5",
     "axios": "0.20.0",
