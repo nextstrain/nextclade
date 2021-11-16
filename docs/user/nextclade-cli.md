@@ -4,9 +4,16 @@ Nextclade is a tool that identifies differences between your sequences and a ref
 
 You can learn more about the algorithm in the [Algorithm](algorithm) section.
 
+This section describes:
+
+- how to install Nextclade CLI - using Docker container and natively
+- how to run Nextclade CLI with sample data
+- what other sections of the documentation are worth checking after that
+
+
 ## Installation (with docker)
 
-Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/repository/docker/nextstrain/nextclade)
+Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade)
 
 Pull and run the latest version with:
 

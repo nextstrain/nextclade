@@ -4,9 +4,15 @@ Nextalign CLI is a viral genome sequence alignment tool for command line. It use
 
 You can learn more about the algorithm in the [Algorithm: Sequence alignment](algorithm.html#sequence-alignment) section.
 
+This section describes:
+
+- how to install Nextalign CLI - using Docker container and natively
+- how to run Nextalign CLI with sample data
+- what other sections of the documentation are worth checking after that
+
 ### Installation (with docker)
 
-Container images are available at Docker Hub: 🐋 [nextstrain/nextalign](https://hub.docker.com/repository/docker/nextstrain/nextalign)
+Container images are available at Docker Hub: 🐋 [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign)
 
 Pull and run the latest version with:
 
