@@ -64,6 +64,8 @@ export const selectQcConfigStr = (state: State) => state.algorithm.params.string
 export const selectGeneMap = (state: State) => state.algorithm.params.final?.geneMap
 export const selectGenomeSize = (state: State) => state.algorithm.params.final?.genomeSize
 
+export const selectUrlParams = (state: State) => state.algorithm.params.urlParams
+
 export function selectStatus(state: State) {
   const numThreads = selectNumThreads(state)
   const statusGlobal = state.algorithm.status
