@@ -1,3 +1,16 @@
+## Nextclade Web 1.7.4 (2021-11-16)
+
+This is a bugfix release for Nextclade Web.
+
+### [Fix] Ensure that URL parameters always have effect
+
+Due to an internal error in Nextclade Web, sometimes inputs provided using URL parameters were ignored. This has been fixed now. Only users and external integrations which explicitly use URL parameters to pass data into Nextclade Web were affected. See [documentation for Nextclade Web: URL parameters](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web.html#url-parameters) for more details.
+
+### [Feature] Update Auspice
+
+In this release we updated Nextstrain Auspice (the tree visualization package) to version v2.32.1, with the new features and bug fixes. See [Auspice project's changelog](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md#version-2321---20211111) for more details.
+
+
 ## Nextclade Web 1.7.3, Nextclade CLI 1.4.5 (2021-11-04)
 
 This is a bugfix release for Nextclade Web and Nextclade CLI.
