@@ -20,6 +20,8 @@ PROJECT_ROOT_DIR="$(realpath --logical --no-symlinks "${THIS_DIR}/..")"
 source "${THIS_DIR}/lib/set_locales.sh"
 source "${THIS_DIR}/lib/is_ci.sh"
 
+DATA_DIR="${PROJECT_ROOT_DIR}/data_dev"
+
 [ -n "${NEXTCLADE_EMSDK_DIR:=}" ] && NEXTCLADE_EMSDK_DIR_FROM_ENV="${NEXTCLADE_EMSDK_DIR}"
 [ -n "${NEXTCLADE_EMSDK_VERSION:=}" ] && NEXTCLADE_EMSDK_VERSION_FROM_ENV="${NEXTCLADE_EMSDK_VERSION}"
 
@@ -836,12 +838,17 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
     fi
 
     if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-     print 27 "Run Nextalign CLI";
-     eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+      print 27 "Run Nextalign CLI";
+      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
     fi
 
     if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
-     print 27 "Run Nextclade CLI";
+      if [ ! -d "${DATA_DIR}" ]; then
+        print 27 "Download Nextclade dataset";
+        ${NEXTCLADE_CLI} dataset get --name="sars-cov-2" --output-dir="${DATA_DIR}" || cd .
+      fi
+
+      print 27 "Run Nextclade CLI";
      eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
     fi
 
