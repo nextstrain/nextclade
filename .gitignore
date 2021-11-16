@@ -34,3 +34,4 @@ build/
 *.bak
 Brewfile.lock.json
 assets/
+/data_dev/
