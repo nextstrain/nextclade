@@ -38,6 +38,7 @@ import {
   setGenomeSize,
   setCurrentDataset,
   setDatasets,
+  setInputUrlParams,
 } from './algorithm.actions'
 import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
 
@@ -50,6 +51,10 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setCurrentDataset, (draft, dataset) => {
     draft.params.datasetCurrent = dataset
+  })
+
+  .icase(setInputUrlParams, (draft, urlParams) => {
+    draft.params.urlParams = urlParams
   })
 
   .icase(setGenomeSize, (draft, { genomeSize }) => {
