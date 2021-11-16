@@ -372,3 +372,11 @@ export interface DatasetsIndexJson {
 }
 
 export interface DatasetFlat extends Dataset, DatasetRef, DatasetVersion {}
+
+export interface UrlParams {
+  inputRootSeq?: string
+  inputTree?: string
+  inputPcrPrimers?: string
+  inputQcConfig?: string
+  inputGeneMap?: string
+}

@@ -1,3 +1,4 @@
+import { UrlParams } from 'src/algorithms/types'
 import type { DatasetFlat, Gene } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
@@ -18,6 +19,7 @@ export const setDatasets = action<{
 }>('setDatasets')
 
 export const setCurrentDataset = action<DatasetFlat | undefined>('setCurrentDataset')
+export const setInputUrlParams = action<UrlParams>('setInputUrlParams')
 
 export const setFasta = action.async<AlgorithmInput, { queryStr: string; queryName: string }, Error>('setFasta')
 export const setTree = action.async<AlgorithmInput, { treeStr: string }, Error>('setTree')

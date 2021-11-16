@@ -1,4 +1,4 @@
-import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat } from 'src/algorithms/types'
+import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat, UrlParams } from 'src/algorithms/types'
 import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
@@ -71,6 +71,7 @@ export interface AlgorithmParams {
   defaultDatasetName?: string
   defaultDatasetNameFriendly?: string
   datasetCurrent?: DatasetFlat
+  urlParams: UrlParams
   raw: {
     seqData?: AlgorithmInput
     auspiceData?: AlgorithmInput
@@ -140,6 +141,7 @@ export const algorithmDefaultState: AlgorithmState = {
     datasets: [],
     defaultDatasetName: undefined,
     datasetCurrent: undefined,
+    urlParams: {},
     raw: {},
     strings: {},
     final: {},
