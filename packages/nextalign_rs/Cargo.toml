@@ -8,3 +8,9 @@ publish = false
 
 [dependencies]
 bio = "0.39.0"
+jemallocator-global = "0.3.2"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+panic = "abort"
