@@ -1,7 +1,9 @@
 use bio::alignment::pairwise::banded::Aligner;
 use bio::alignment::pairwise::{Scoring, MIN_SCORE};
 use bio::alignment::sparse::{hash_kmers, HashMapFx};
-use bio::utils::TextSlice;
+use bio::io::fasta;
+use bio::io::fasta::FastaRead;
+use std::error::Error;
 
 pub type BioKmerPrehash<'a> = HashMapFx<&'a [u8], Vec<u32>>;
 
@@ -94,55 +96,77 @@ pub fn score(a: u8, b: u8) -> i32 {
   }
 }
 
-pub fn align<'a>(qry_seq: &'a [u8], ref_seq: &'a [u8], ref_kmers_hash: &BioKmerPrehash, params: &NextalignParams) {
-  println!("Params: {:#?}", params);
+pub fn read_one_fasta(filepath: &str) -> Result<Vec<u8>, Box<dyn Error>> {
+  let mut reader = fasta::Reader::from_file(filepath)?;
+  let mut record = fasta::Record::new();
+  reader.read(&mut record)?;
+  Ok(record.seq().to_owned())
+}
 
-  let scoring = Scoring::new(params.gap_open_score, params.gap_extension_score, &score)
+fn main() -> Result<(), Box<dyn Error>> {
+  let params = NextalignParams {
+    gap_open_score: -5,
+    gap_extension_score: -1,
+    kmer_size: 50,
+    band_size: 8,
+    score_fn: score,
+    qry_clip_penalty_prefix: MIN_SCORE,
+    qry_clip_penalty_suffix: MIN_SCORE,
+    ref_clip_penalty_prefix: MIN_SCORE,
+    ref_clip_penalty_suffix: MIN_SCORE,
+  };
+
+  let ref_path = "../../data/sars-cov-2/reference.fasta";
+  let qry_path = "../../data/sars-cov-2/sequences.fasta";
+  let out_path = "sequences.aligned.fasta";
+
+  println!("Ref   : {}", &ref_path);
+  println!("Qry   : {}", &qry_path);
+  println!("Out   : {}", &out_path);
+  println!("Params:\n{:#?}", &params);
+
+  println!("Reading ref sequence");
+  let ref_seq = &read_one_fasta(ref_path)?;
+
+  println!("Hashing kmers");
+  let ref_kmers_hash = &hash_kmers(ref_seq, params.kmer_size);
+
+  println!("Creating aligner");
+  let scoring = Scoring::new(params.gap_open_score, params.gap_extension_score, &params.score_fn)
     .xclip_prefix(params.qry_clip_penalty_prefix)
     .xclip_suffix(params.qry_clip_penalty_suffix)
     .yclip_prefix(params.ref_clip_penalty_prefix)
     .yclip_suffix(params.ref_clip_penalty_suffix);
 
   let mut aligner = Aligner::with_scoring(scoring, params.kmer_size, params.band_size);
-  let alignment = aligner.custom_with_prehash(qry_seq, ref_seq, ref_kmers_hash);
 
-  println!("{:#?}", alignment.score);
-  println!("{:}", alignment.pretty(qry_seq, ref_seq));
-}
+  println!("Creating readers");
+  let mut reader = fasta::Reader::from_file(qry_path)?;
+  let mut writer = fasta::Writer::to_file(out_path)?;
+  let mut record = fasta::Record::new();
 
-fn main() {
-  let qry_seq: &[u8] = b"AGCACACGTGTGCGCTATACAGTAAGTAGTAGTACACGTGTCACAGTTGTACTAGCATGAC";
-  let ref_seq: &[u8] = b"AGCACACGTGTGCGCTATACAGTACACGTGTCACAGTTGTACTAGCATGAC";
+  println!("Starting main loop");
+  while let Ok(()) = reader.read(&mut record) {
+    if record.is_empty() {
+      break;
+    }
 
-  let params_semiglobal = NextalignParams {
-    gap_open_score: -5,
-    gap_extension_score: -1,
-    kmer_size: 8,
-    band_size: 6,
-    score_fn: score,
+    println!("Reading  '{}'", &record.id());
+    let qry_seq: &[u8] = record.seq();
 
-    // Local
-    // qry_clip_penalty_prefix: 0,
-    // qry_clip_penalty_suffix: 0,
-    // ref_clip_penalty_prefix: 0,
-    // ref_clip_penalty_suffix: 0,
+    println!("Aligning '{}'", &record.id());
+    aligner.custom_with_prehash(qry_seq, ref_seq, ref_kmers_hash);
 
-    // Semiglobal
-    qry_clip_penalty_prefix: MIN_SCORE,
-    qry_clip_penalty_suffix: MIN_SCORE,
-    ref_clip_penalty_prefix: 0,
-    ref_clip_penalty_suffix: 0,
-    //
-    // Global
-    // qry_clip_penalty_prefix: MIN_SCORE,
-    // qry_clip_penalty_suffix: MIN_SCORE,
-    // ref_clip_penalty_prefix: MIN_SCORE,
-    // ref_clip_penalty_suffix: MIN_SCORE,
-  };
+    // println!("{:}", alignment.pretty(qry_seq, ref_seq));
+    // let mut alignment_for_display = alignment.clone();
+    // alignment_for_display.operations = vec![]; // Too noisy
+    // println!("{:#?}", alignment_for_display);
 
-  let ref_kmers_hash = hash_kmers(ref_seq, params_semiglobal.kmer_size);
+    println!("Writing  '{}'", &record.id());
+    writer.write(record.id(), record.desc(), qry_seq)?;
+  }
 
-  align(qry_seq, ref_seq, &ref_kmers_hash, &params_semiglobal);
+  println!("Done '{}'", &record.id());
 
-  println!("Done");
+  Ok(())
 }
