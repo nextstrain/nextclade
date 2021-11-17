@@ -107,18 +107,18 @@ fn main() -> Result<(), Box<dyn Error>> {
   let params = NextalignParams {
     gap_open_score: -5,
     gap_extension_score: -1,
-    kmer_size: 50,
-    band_size: 8,
+    kmer_size: 8,
+    band_size: 3,
     score_fn: score,
     qry_clip_penalty_prefix: MIN_SCORE,
     qry_clip_penalty_suffix: MIN_SCORE,
-    ref_clip_penalty_prefix: MIN_SCORE,
-    ref_clip_penalty_suffix: MIN_SCORE,
+    ref_clip_penalty_prefix: 0,
+    ref_clip_penalty_suffix: 0,
   };
 
   let ref_path = "../../data/sars-cov-2/reference.fasta";
   let qry_path = "../../data/sars-cov-2/sequences.fasta";
-  let out_path = "sequences.aligned.fasta";
+  let out_path = "../../tmp/sequences.aligned.fasta";
 
   println!("Ref   : {}", &ref_path);
   println!("Qry   : {}", &qry_path);
