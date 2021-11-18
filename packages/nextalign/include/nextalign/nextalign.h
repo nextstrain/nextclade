@@ -38,13 +38,15 @@ struct Range {
   [[nodiscard]] bool contains(int x) const {
     return x >= begin && x < end;
   }
-
-  void ensureSizeOfAtLeastOne() {
-    if (begin == end) {
-      end += 1;
-    }
-  }
 };
+
+[[nodiscard]] inline Range nucRangeToCodonRange(const Range& range) {
+  return Range{
+    .begin = range.begin / 3,
+    // Make sure the right boundary is aligned to codon boundary
+    .end = (range.end + (3 - range.end % 3) % 3) / 3,
+  };
+}
 
 [[nodiscard]] inline bool operator==(const Range& left, const Range& right) {
   return left.begin == right.begin && left.end == right.end;
