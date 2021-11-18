@@ -1,3 +1,7 @@
+## Nextclade Dataset Update (2021-11-16)
+
+Update of SARS-CoV-2 reference tree with recent sequences and pango lineages. Recombinant lineages (`XA` etc.) are now excluded for a cleaner reference tree. List of known and acceptable stop codons and frame shifts has been extended. [See the full changelog](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md#2021-11-16).
+
 ## Nextclade Web 1.7.4 (2021-11-16)
 
 This is a bugfix release for Nextclade Web.
