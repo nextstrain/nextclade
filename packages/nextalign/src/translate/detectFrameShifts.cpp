@@ -85,6 +85,7 @@ public:
 
     if (frame == 0 && begin != POSITION_INVALID) {
       // We are not in shift and `begin` was set previously. This is the end of the shift range. Remember the range.
+      invariant_less(begin, end);
       frameShifts.push_back(Range{.begin = begin, .end = end});
       reset();
     }
@@ -101,6 +102,7 @@ public:
   /** Run this after sequence iteration is over, with the length of the sequence */
   void done(int pos) {
     if (begin != POSITION_INVALID) {
+      invariant_less(begin, pos);
       frameShifts.push_back(Range{.begin = begin, .end = pos});
       reset();
     }
@@ -129,6 +131,10 @@ std::vector<Range> detectFrameShifts(//
     }
   }
   frameShiftDetector.done(length);
+
+  for (const auto& frameShift : frameShiftDetector.getFrameShifts()) {
+    invariant_less(frameShift.begin, frameShift.end);
+  }
 
   return frameShiftDetector.getFrameShifts();
 }
@@ -167,10 +173,13 @@ int findMaskEnd(const NucleotideSequence& seq, const Range& frameShiftNucRangeRe
 
 
 Range findMask(const NucleotideSequence& query, const Range& frameShiftNucRangeRel) {
-  return Range{
+  precondition_less(frameShiftNucRangeRel.begin, frameShiftNucRangeRel.end);
+  const Range mask{
     .begin = findMaskBegin(query, frameShiftNucRangeRel),
     .end = findMaskEnd(query, frameShiftNucRangeRel),
   };
+  postcondition_less(mask.begin, mask.end);
+  return mask;
 }
 
 /**
@@ -188,6 +197,8 @@ std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
   std::vector<InternalFrameShiftResultWithMask> frameShifts;
   frameShifts.reserve(nucRelFrameShifts.size());
   for (const auto& nucRelAln : nucRelFrameShifts) {
+    invariant_less(nucRelAln.begin, nucRelAln.end);
+
     // Relative nuc range is in alignment coordinates. However, after insertions are stripped,
     // absolute positions may change - so in order to get absolute range, we need to convert range boundaries
     // from alignment coordinates (as in aligned reference sequence, with gaps) to reference coordinates

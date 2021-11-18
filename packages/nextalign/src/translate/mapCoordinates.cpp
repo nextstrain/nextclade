@@ -158,15 +158,21 @@ int CoordinateMapper::refToAln(int refPos) const {
 }
 
 Range CoordinateMapper::alnToRef(const Range& alnRange) const {
-  return Range{
+  precondition_less(alnRange.begin, alnRange.end);
+  const Range refRange{
     .begin = alnToRef(alnRange.begin),
     .end = alnToRef(alnRange.end),
   };
+  postcondition_less(refRange.begin, refRange.end);
+  return refRange;
 }
 
 Range CoordinateMapper::refToAln(const Range& refRange) const {
-  return Range{
+  precondition_less(refRange.begin, refRange.end);
+  const Range alnRange{
     .begin = refToAln(refRange.begin),
     .end = refToAln(refRange.end),
   };
+  postcondition_less(alnRange.begin, alnRange.end);
+  return alnRange;
 }
