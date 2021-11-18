@@ -38,6 +38,12 @@ struct Range {
   [[nodiscard]] bool contains(int x) const {
     return x >= begin && x < end;
   }
+
+  void ensureSizeOfAtLeastOne() {
+    if (begin == end) {
+      end += 1;
+    }
+  }
 };
 
 [[nodiscard]] inline bool operator==(const Range& left, const Range& right) {
