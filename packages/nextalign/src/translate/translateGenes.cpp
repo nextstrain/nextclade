@@ -11,6 +11,7 @@
 #include "../alphabet/nucleotides.h"
 #include "../strip/stripInsertions.h"
 #include "../utils/at.h"
+#include "../utils/debug_trace.h"
 #include "../utils/mapFind.h"
 #include "./extractGene.h"
 #include "./mapCoordinates.h"
@@ -130,8 +131,10 @@ PeptidesInternal translateGenes(                               //
     // Strip all GAP characters to "forget" gaps introduced during alignment
     removeGapsInPlace(queryGeneSeq);
 
+    debug_trace("Translating gene '{:}'\n", geneName);
     const auto queryPeptide = translate(queryGeneSeq, options.translatePastStop);
 
+    debug_trace("Aligning peptide '{:}'\n", geneName);
     const auto geneAlignmentStatus =
       alignPairwise(queryPeptide, refPeptide->peptide, gapOpenCloseAA, options.alignment, options.seedAa);
 

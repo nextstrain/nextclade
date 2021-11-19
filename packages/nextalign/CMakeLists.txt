@@ -58,6 +58,7 @@ add_library(${PROJECT_NAME} STATIC
   src/utils/config.h
   src/utils/contains.h
   src/utils/contract.h
+  src/utils/debug_trace.h
   src/utils/debugbreak.h
   src/utils/ieee754_comparison.h
   src/utils/macro_overload.h
