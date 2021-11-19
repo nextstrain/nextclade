@@ -45,6 +45,7 @@ namespace Nextclade {
           .qry = d,
           .pcrPrimersChanged = {},
           .aaSubstitutions = {},
+          .aaDeletions = {},
         });
       } else if (isGap(d) && !beforeAlignment) {
         if (!nDel) {
