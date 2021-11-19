@@ -12,7 +12,5 @@ PeptidesInternal translateGenes(                               //
   const std::map<std::string, RefPeptideInternal>& refPeptides,//
   const GeneMap& geneMap,                                      //
   const std::vector<int>& gapOpenCloseAA,                      //
-  const NextalignOptions& options,                             //
-  const int bandWidth,                                         //
-  const int shift                                              //
+  const NextalignOptions& options                              //
 );

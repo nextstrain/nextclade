@@ -20,6 +20,12 @@
 #include "detectFrameShifts.h"
 #include "removeGaps.h"
 
+namespace {
+  template<typename T>
+  inline T copy(const T& t) {
+    return T(t);
+  }
+}// namespace
 
 void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
   const std::vector<InternalFrameShiftResultWithMask>& frameShifts) {
@@ -79,9 +85,7 @@ PeptidesInternal translateGenes(                               //
   const std::map<std::string, RefPeptideInternal>& refPeptides,//
   const GeneMap& geneMap,                                      //
   const std::vector<int>& gapOpenCloseAA,                      //
-  const NextalignOptions& options,                             //
-  const int bandWidth,                                         //
-  const int shift                                              //
+  const NextalignOptions& options                              //
 ) {
 
   NucleotideSequence newQueryMemory(ref.size(), Nucleotide::GAP);
@@ -118,7 +122,9 @@ PeptidesInternal translateGenes(                               //
     }
 
     auto& refGeneSeq = *extractRefGeneStatus.result;
+    const auto refGeneSize = safe_cast<int>(refGeneSeq.size());
     auto& queryGeneSeq = *extractQueryGeneStatus.result;
+    const auto queryGeneSize = safe_cast<int>(queryGeneSeq.size());
 
     // Make sure subsequent gap stripping does not introduce frame shift
     protectFirstCodonInPlace(refGeneSeq);
@@ -133,8 +139,18 @@ PeptidesInternal translateGenes(                               //
     // Strip all GAP characters to "forget" gaps introduced during alignment
     removeGapsInPlace(queryGeneSeq);
 
+    auto refGeneSeqTmp = copy(refGeneSeq);
+    removeGapsInPlace(refGeneSeqTmp);
+    const auto queryGeneStrippedSize = safe_cast<int>(queryGeneSeq.size());
+    const auto refGeneStrippedSize = safe_cast<int>(refGeneSeqTmp.size());
+
     debug_trace("Translating gene '{:}'\n", geneName);
     const auto queryPeptide = translate(queryGeneSeq, options.translatePastStop);
+
+    const int bandWidth =
+      safe_cast<int>(std::max(queryGeneSize - queryGeneStrippedSize, refGeneSize - refGeneStrippedSize) / 3 + 3);
+    const int shift = bandWidth / 2;
+    debug_trace("Deduced alignment params: bandWidth={:}, shift={:}\n", bandWidth, shift);
 
     debug_trace("Aligning peptide '{:}'\n", geneName);
     const auto geneAlignmentStatus = alignPairwise(queryPeptide, refPeptide->peptide, gapOpenCloseAA, options.alignment,

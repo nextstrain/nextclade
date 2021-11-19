@@ -55,16 +55,8 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
   std::vector<PeptideInternal> queryPeptides;
   Warnings warnings;
   if (!geneMap.empty()) {
-    const auto querySize = safe_cast<int>(alignmentStatus.result->query.size());
-    const auto queryStrippedSize = safe_cast<int>(stripped.queryStripped.size());
-    const auto refSize = safe_cast<int>(alignmentStatus.result->ref.size());
-    const auto refStrippedSize = safe_cast<int>(refStripped.size());
-
-    const int bandWidth = safe_cast<int>(std::max(querySize - queryStrippedSize, refSize - refStrippedSize) / 3 + 3);
-    const int shift = bandWidth / 2;
-
     auto peptidesInternal = translateGenes(alignmentStatus.result->query, alignmentStatus.result->ref, refPeptides,
-      geneMap, gapOpenCloseAA, options, bandWidth, shift);
+      geneMap, gapOpenCloseAA, options);
     concat_move(peptidesInternal.queryPeptides, queryPeptides);
     concat_move(peptidesInternal.warnings.global, warnings.global);
     concat_move(peptidesInternal.warnings.inGenes, warnings.inGenes);
