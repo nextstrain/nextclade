@@ -177,7 +177,6 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
           {dataset.nameFriendly}
           {isDefault && <sup className="text-small ml-2">{t('(default)')}</sup>}
         </h3>
-        <p>{dataset.description}</p>
 
         {dataset.datasetRefs.map((ref) => (
           <DatasetRefView key={ref.reference.accession} datasetRef={ref} />

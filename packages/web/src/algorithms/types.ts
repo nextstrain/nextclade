@@ -359,7 +359,6 @@ export interface Dataset {
   enabled: boolean
   name: string
   nameFriendly: string
-  description: string
   datasetRefs: DatasetRef[]
   defaultRef: string
   defaultGene: string

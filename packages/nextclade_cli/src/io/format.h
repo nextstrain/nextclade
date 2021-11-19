@@ -1,7 +1,9 @@
 #pragma once
 
+#include <fmt/format.h>
 #include <nextclade/nextclade.h>
 
+#include <iterator>
 #include <string>
 
 #include "getInputPaths.h"
@@ -11,7 +13,8 @@
 namespace Nextclade {
 
   inline std::string formatInputPaths(const InputPaths &paths) {
-    fmt::memory_buffer buf;
+    fmt::memory_buffer bufRaw;
+    auto buf = std::back_inserter(bufRaw);
     fmt::format_to(buf, "\nInput files:\n");
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Sequences (query)", paths.inputFasta);
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Root (reference) sequence", paths.inputRootSeq);
@@ -19,23 +22,25 @@ namespace Nextclade {
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Quality control configuration", paths.inputQcConfig);
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Gene map", paths.inputGeneMap.value_or("-"));
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "PCR primers", paths.inputPcrPrimers.value_or("-"));
-    return fmt::to_string(buf);
+    return fmt::to_string(bufRaw);
   }
 
   inline std::string formatOutputPaths(const OutputPaths &paths) {
-    fmt::memory_buffer buf;
+    fmt::memory_buffer bufRaw;
+    auto buf = std::back_inserter(bufRaw);
     fmt::format_to(buf, "\nOutput files:\n");
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
     fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Errors and warnings", paths.outputErrors.string());
 
     for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
-      fmt::memory_buffer bufGene;
+      fmt::memory_buffer bufRawGene;
+      auto bufGene = std::back_inserter(bufRawGene);
       fmt::format_to(bufGene, "{:s} {:>10s}", "Translated genes", geneName);
-      fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufGene), outputGenePath.string());
+      fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufRawGene), outputGenePath.string());
     }
 
-    return fmt::to_string(buf);
+    return fmt::to_string(bufRaw);
   }
 
   inline std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteReference) {
@@ -46,7 +51,8 @@ namespace Nextclade {
   inline std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &genes) {
     constexpr const auto TABLE_WIDTH = 86;
 
-    fmt::memory_buffer buf;
+    fmt::memory_buffer bufRaw;
+    auto buf = std::back_inserter(bufRaw);
     fmt::format_to(buf, "\nGene map:\n");
     fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
     fmt::format_to(buf, "| {:8s} | {:16s} | {:8s} | {:8s} | {:8s} | {:8s} | {:8s} |\n", "Selected", "   Gene Name",
@@ -59,7 +65,7 @@ namespace Nextclade {
         gene.start + 1, gene.end, gene.length, gene.frame + 1, gene.strand);
     }
     fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
-    return fmt::to_string(buf);
+    return fmt::to_string(bufRaw);
   }
 
 }// namespace Nextclade
