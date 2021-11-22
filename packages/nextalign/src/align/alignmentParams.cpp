@@ -36,7 +36,7 @@ GapCounts countGaps(const NucleotideSequence& seq) {
 
   // Rewind backwards starting from the end, until the first non-gap
   int end = len - 1;
-  while (end >= 0 && isGap(seq[end])) {
+  while (end > begin && isGap(seq[end])) {
     --end;
   }
 
