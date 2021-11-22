@@ -143,6 +143,27 @@ GapCounts countGaps(const NucleotideSequence& seq) {
   };
 }
 
+struct AlignmentParams {
+  int bandWidth;
+  int shift;
+};
+
+AlignmentParams calculateAlignmentParams(const GapCounts& queryGapCounts, const GapCounts& refGapCounts) {
+  constexpr int BASE_BAND_WIDTH = 3;// An arbitrary magic number to give some additional room for alignment
+
+  const int bandWidth = std::max(queryGapCounts.internal, refGapCounts.internal) / 3 + BASE_BAND_WIDTH;
+  const int shift = queryGapCounts.leading + bandWidth / 2;
+
+  debug_trace("Deduced alignment params: bandWidth={:}, shift={:}\n", bandWidth, shift);
+
+  return AlignmentParams{
+    .bandWidth = bandWidth,
+    .shift = shift,
+  };
+  ;
+}
+
+
 PeptidesInternal translateGenes(                               //
   const NucleotideSequence& query,                             //
   const NucleotideSequence& ref,                               //
@@ -204,10 +225,7 @@ PeptidesInternal translateGenes(                               //
       continue;
     }
 
-    // NOTE: `+ 3` here is a magic number to give some additional space
-    const int bandWidth = safe_cast<int>(std::max(queryGapCounts.internal, refGapCounts.internal) / 3 + 3);
-    const int shift = queryGapCounts.leading + bandWidth / 2;
-    debug_trace("Deduced alignment params: bandWidth={:}, shift={:}\n", bandWidth, shift);
+    const AlignmentParams alignmentParams = calculateAlignmentParams(queryGapCounts, refGapCounts);
 
     // Make sure subsequent gap stripping does not introduce frame shift
     protectFirstCodonInPlace(refGeneSeq);
@@ -228,7 +246,7 @@ PeptidesInternal translateGenes(                               //
 
     debug_trace("Aligning peptide '{:}'\n", geneName);
     const auto geneAlignmentStatus = alignPairwise(queryPeptide, refPeptide->peptide, gapOpenCloseAA, options.alignment,
-      options.seedAa, bandWidth, shift);
+      options.seedAa, alignmentParams.bandWidth, alignmentParams.shift);
 
     if (geneAlignmentStatus.status != Status::Success) {
       const auto message = fmt::format(
