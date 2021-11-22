@@ -12,6 +12,7 @@ add_executable(${PROJECT_NAME}
   _musl_workarounds.c
   alignPairwise.test.cpp
   alignPairwiseWithCodons.test.cpp
+  alignmentParams.test.cpp
   data/sampleGeneMap.h
   decode.test.cpp
   extractGene.test.cpp
