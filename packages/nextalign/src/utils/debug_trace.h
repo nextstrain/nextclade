@@ -4,7 +4,7 @@
 #include <vector>
 
 
-#define debug_trace(format_string, ...) fmt::print(format_string, __VA_ARGS__)
+#define debug_trace(format_string, ...) // fmt::print(format_string, __VA_ARGS__)
 
 template<typename T>
 struct fmt::formatter<std::vector<T>> {

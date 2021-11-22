@@ -79,6 +79,70 @@ std::vector<FrameShiftResult> toExternal(const std::vector<InternalFrameShiftRes
   return result;
 }
 
+
+struct GapCounts {
+  int leading;
+  int internal;
+  int trailing;
+  int total;
+};
+
+/** Returns number of leading, internal and trailing gaps, as well as total count */
+GapCounts countGaps(const NucleotideSequence& seq) {
+  int len = safe_cast<int>(seq.size());
+
+  if (len == 0) {
+    return GapCounts{
+      .leading = 0,
+      .internal = 0,
+      .trailing = 0,
+      .total = 0,
+    };
+  }
+
+  if (len == 1) {
+    return GapCounts{
+      .leading = isGap(seq[0]) ? 1 : 0,
+      .internal = 0,
+      .trailing = 0,
+      .total = 0,
+    };
+  }
+
+  // Rewind forward until the first non-gap
+  int begin = 0;
+  while (begin < len && isGap(seq[begin])) {
+    ++begin;
+  }
+
+
+  // Rewind backwards starting from the end, until the first non-gap
+  int end = len - 1;
+  while (end >= 0 && isGap(seq[end])) {
+    --end;
+  }
+
+  // Count gaps in the internal region
+  int totalInternalGaps = 0;
+  for (int i = begin; i < end; ++i) {
+    if (isGap(seq[i])) {
+      ++totalInternalGaps;
+    }
+  }
+
+  int leading = begin;
+  int internal = totalInternalGaps;
+  int trailing = len - end;
+  int total = leading + internal + trailing;
+
+  return GapCounts{
+    .leading = leading,
+    .internal = internal,
+    .trailing = trailing,
+    .total = total,
+  };
+}
+
 PeptidesInternal translateGenes(                               //
   const NucleotideSequence& query,                             //
   const NucleotideSequence& ref,                               //
@@ -122,9 +186,28 @@ PeptidesInternal translateGenes(                               //
     }
 
     auto& refGeneSeq = *extractRefGeneStatus.result;
-    const auto refGeneSize = safe_cast<int>(refGeneSeq.size());
+    const auto refGapCounts = countGaps(refGeneSeq);
+
     auto& queryGeneSeq = *extractQueryGeneStatus.result;
     const auto queryGeneSize = safe_cast<int>(queryGeneSeq.size());
+
+    const auto queryGapCounts = countGaps(queryGeneSeq);
+    const bool queryIsAllGaps = queryGapCounts.total >= queryGeneSize;
+
+    // Handle the case when the query gene is completely missing
+    if (queryGeneSeq.empty() || queryIsAllGaps) {
+      const auto message = fmt::format(
+        "When processing gene \"{:s}\": The gene consists entirely from gaps. "
+        "Note that this gene will not be included in the results of the sequence.",
+        geneName);
+      warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
+      continue;
+    }
+
+    // NOTE: `+ 3` here is a magic number to give some additional space
+    const int bandWidth = safe_cast<int>(std::max(queryGapCounts.internal, refGapCounts.internal) / 3 + 3);
+    const int shift = queryGapCounts.leading + bandWidth / 2;
+    debug_trace("Deduced alignment params: bandWidth={:}, shift={:}\n", bandWidth, shift);
 
     // Make sure subsequent gap stripping does not introduce frame shift
     protectFirstCodonInPlace(refGeneSeq);
@@ -139,18 +222,9 @@ PeptidesInternal translateGenes(                               //
     // Strip all GAP characters to "forget" gaps introduced during alignment
     removeGapsInPlace(queryGeneSeq);
 
-    auto refGeneSeqTmp = copy(refGeneSeq);
-    removeGapsInPlace(refGeneSeqTmp);
-    const auto queryGeneStrippedSize = safe_cast<int>(queryGeneSeq.size());
-    const auto refGeneStrippedSize = safe_cast<int>(refGeneSeqTmp.size());
-
     debug_trace("Translating gene '{:}'\n", geneName);
     const auto queryPeptide = translate(queryGeneSeq, options.translatePastStop);
 
-    const int bandWidth =
-      safe_cast<int>(std::max(queryGeneSize - queryGeneStrippedSize, refGeneSize - refGeneStrippedSize) / 3 + 3);
-    const int shift = bandWidth / 2;
-    debug_trace("Deduced alignment params: bandWidth={:}, shift={:}\n", bandWidth, shift);
 
     debug_trace("Aligning peptide '{:}'\n", geneName);
     const auto geneAlignmentStatus = alignPairwise(queryPeptide, refPeptide->peptide, gapOpenCloseAA, options.alignment,
