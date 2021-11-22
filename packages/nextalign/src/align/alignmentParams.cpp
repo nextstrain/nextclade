@@ -65,7 +65,7 @@ AlignmentParams calculateAaAlignmentParams(const GapCounts& queryGapCounts, cons
   constexpr int BASE_BAND_WIDTH = 3;// An arbitrary magic number to give some additional room for alignment
 
   const int bandWidth = std::max(queryGapCounts.internal, refGapCounts.internal) / 3 + BASE_BAND_WIDTH;
-  const int shift = queryGapCounts.leading + bandWidth / 2;
+  const int shift = queryGapCounts.leading / 3 + bandWidth / 2;
 
   debug_trace("Deduced alignment params: bandWidth={:}, shift={:}\n", bandWidth, shift);
 
