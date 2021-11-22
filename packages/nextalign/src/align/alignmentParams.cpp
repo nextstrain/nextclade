@@ -50,7 +50,7 @@ GapCounts countGaps(const NucleotideSequence& seq) {
 
   int leading = begin;
   int internal = totalInternalGaps;
-  int trailing = len - end;
+  int trailing = len - end - 1;
   int total = leading + internal + trailing;
 
   return GapCounts{
