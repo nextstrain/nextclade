@@ -17,6 +17,7 @@
 #include "./mapCoordinates.h"
 #include "./translate.h"
 #include "align/alignPairwise.h"
+#include "align/alignmentParams.h"
 #include "detectFrameShifts.h"
 #include "removeGaps.h"
 
@@ -79,91 +80,6 @@ std::vector<FrameShiftResult> toExternal(const std::vector<InternalFrameShiftRes
   return result;
 }
 
-
-struct GapCounts {
-  int leading;
-  int internal;
-  int trailing;
-  int total;
-};
-
-/** Returns number of leading, internal and trailing gaps, as well as total count */
-GapCounts countGaps(const NucleotideSequence& seq) {
-  int len = safe_cast<int>(seq.size());
-
-  if (len == 0) {
-    return GapCounts{
-      .leading = 0,
-      .internal = 0,
-      .trailing = 0,
-      .total = 0,
-    };
-  }
-
-  if (len == 1) {
-    return GapCounts{
-      .leading = isGap(seq[0]) ? 1 : 0,
-      .internal = 0,
-      .trailing = 0,
-      .total = 0,
-    };
-  }
-
-  // Rewind forward until the first non-gap
-  int begin = 0;
-  while (begin < len && isGap(seq[begin])) {
-    ++begin;
-  }
-
-
-  // Rewind backwards starting from the end, until the first non-gap
-  int end = len - 1;
-  while (end >= 0 && isGap(seq[end])) {
-    --end;
-  }
-
-  // Count gaps in the internal region
-  int totalInternalGaps = 0;
-  for (int i = begin; i < end; ++i) {
-    if (isGap(seq[i])) {
-      ++totalInternalGaps;
-    }
-  }
-
-  int leading = begin;
-  int internal = totalInternalGaps;
-  int trailing = len - end;
-  int total = leading + internal + trailing;
-
-  return GapCounts{
-    .leading = leading,
-    .internal = internal,
-    .trailing = trailing,
-    .total = total,
-  };
-}
-
-struct AlignmentParams {
-  int bandWidth;
-  int shift;
-};
-
-AlignmentParams calculateAlignmentParams(const GapCounts& queryGapCounts, const GapCounts& refGapCounts) {
-  constexpr int BASE_BAND_WIDTH = 3;// An arbitrary magic number to give some additional room for alignment
-
-  const int bandWidth = std::max(queryGapCounts.internal, refGapCounts.internal) / 3 + BASE_BAND_WIDTH;
-  const int shift = queryGapCounts.leading + bandWidth / 2;
-
-  debug_trace("Deduced alignment params: bandWidth={:}, shift={:}\n", bandWidth, shift);
-
-  return AlignmentParams{
-    .bandWidth = bandWidth,
-    .shift = shift,
-  };
-  ;
-}
-
-
 PeptidesInternal translateGenes(                               //
   const NucleotideSequence& query,                             //
   const NucleotideSequence& ref,                               //
@@ -225,8 +141,6 @@ PeptidesInternal translateGenes(                               //
       continue;
     }
 
-    const AlignmentParams alignmentParams = calculateAlignmentParams(queryGapCounts, refGapCounts);
-
     // Make sure subsequent gap stripping does not introduce frame shift
     protectFirstCodonInPlace(refGeneSeq);
     protectFirstCodonInPlace(queryGeneSeq);
@@ -245,6 +159,7 @@ PeptidesInternal translateGenes(                               //
 
 
     debug_trace("Aligning peptide '{:}'\n", geneName);
+    const AlignmentParams alignmentParams = calculateAaAlignmentParams(queryGapCounts, refGapCounts);
     const auto geneAlignmentStatus = alignPairwise(queryPeptide, refPeptide->peptide, gapOpenCloseAA, options.alignment,
       options.seedAa, alignmentParams.bandWidth, alignmentParams.shift);
 
