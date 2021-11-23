@@ -36,6 +36,8 @@ endif ()
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC -DAPP_NAME="${PROJECT_NAME}"
 
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
+
   -DFMT_HEADER_ONLY=1
   )
 
