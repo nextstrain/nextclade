@@ -6,10 +6,14 @@
 #define NOOP ({ (void) 0; })
 
 // If `ENABLE_DEBUG_TRACE` is set to `1`, the `debug_trace()` statements throughout the codebase
-// will be printing messages to the console. Useful for algorithm development.
+// will be printing messages about the internal workings to the terminal and browser console.
+// Useful for algorithm development.
+// At the same time you may want to add `--jobs=1` and `--in-order` flags to the Nextalign and Nextclade
+// command line invocations (below), to make the console traces more readable.
 // If disabled, `debug_trace()` evaluates to a no-op, a dummy statement which should be
-// optimized-away by the compiler.
+// optimized away from the executable by the compiler.
 // Enabling `debug_trace()` incurs significant performance penalty. Do not enable in production!
+// It may also crash in the browser, if there are too many console messages.
 #ifndef ENABLE_DEBUG_TRACE
 #define ENABLE_DEBUG_TRACE 0
 #endif
