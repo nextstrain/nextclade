@@ -3,6 +3,7 @@ import React, { useCallback, useState } from 'react'
 import classNames from 'classnames'
 import { connect } from 'react-redux'
 import { Button, Col, Container, Input, Row } from 'reactstrap'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
@@ -126,6 +127,14 @@ export function DatasetSelectorDisconnected({
 
           {isBusy && <Spinner type="ThreeDots" size={20} color="#aaa" />}
         </DatasetSelectorListContainer>
+      </Row>
+
+      <Row noGutters>
+        <Col className="py-1">
+          <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md">
+            <small>{t('Recent dataset changes')}</small>
+          </LinkExternal>
+        </Col>
       </Row>
 
       <Row noGutters className="mt-2">

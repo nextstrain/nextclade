@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { Button, Collapse } from 'reactstrap'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
 
 import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -96,6 +97,11 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
 
       <CurrentDatasetInfoBody>
         <DatasetInfo dataset={dataset} />
+
+        <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md">
+          <small>{t('Recent dataset changes')}</small>
+        </LinkExternal>
+
         <div>
           <CustomizeButton type="button" color="link" onClick={onCustomizeClicked}>
             {customizeButtonText}
