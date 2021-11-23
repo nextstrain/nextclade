@@ -11,6 +11,7 @@ import { getVersionString } from 'src/helpers/getVersionString'
 
 import { ReactComponent as LogoBedfordlab } from 'src/assets/img/bedfordlab.svg'
 import { ReactComponent as LogoBiozentrum } from 'src/assets/img/biozentrum_square.svg'
+import { ReactComponent as LogoSib } from 'src/assets/img/sib.logo.svg'
 import { ReactComponent as LogoFredHutch } from 'src/assets/img/fred_hutch.svg'
 import { ReactComponent as LogoNeherlab } from 'src/assets/img/neherlab.svg'
 // import { ReactComponent as LogoNextstrain } from 'src/assets/img/nextstrain_logo.svg'
@@ -98,6 +99,10 @@ export default function Footer() {
 
             <LogoLink url="https://www.biozentrum.unibas.ch">
               <LogoBiozentrum />
+            </LogoLink>
+
+            <LogoLink url="https://www.sib.swiss">
+              <LogoSib />
             </LogoLink>
 
             <LogoLink url="https://bedford.io">
