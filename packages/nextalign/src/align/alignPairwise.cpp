@@ -1,5 +1,7 @@
 #include "alignPairwise.h"
 
+#include <fmt/format.h>
+
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -7,6 +9,7 @@
 
 #include "../match/matchAa.h"
 #include "../match/matchNuc.h"
+#include "../utils/debug_trace.h"
 #include "../utils/safe_cast.h"
 
 
@@ -108,14 +111,22 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
   const int bandWidth = details::round((refSize + querySize) * 0.5) - 3;
   // clang-format on
 
+  debug_trace("Seed alignment: started: querySize={:}, refSize={:}, nSeeds={:}, margin={:}, bandWidth={:}\n", querySize,
+    refSize, nSeeds, margin, bandWidth);
+
   int start_pos = 0;
   if (bandWidth < 2 * options.seedLength) {
+    const auto meanShift = details::round((refSize - querySize) * 0.5);
+    debug_trace(
+      "Seed alignment succeeded: the condition `bandWidth < 2 * options.seedLength` is fulfilled: bandWidth={:}, "
+      "meanShift={:}, options.seedLength={:}\n",
+      bandWidth, meanShift, options.seedLength);
     return SeedAlignmentStatus{
       .status = Status::Success,
       .error = {},
       .result = std::make_optional<SeedAlignment>({
-        .meanShift = details::round((refSize - querySize) * 0.5),// NOLINT: cppcoreguidelines-avoid-magic-numbers
-        .bandWidth = bandWidth                                   //
+        .meanShift = meanShift,// NOLINT: cppcoreguidelines-avoid-magic-numbers
+        .bandWidth = bandWidth //
       }),
     };
   }
@@ -132,6 +143,8 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
   const double kmerSpacing = (seedCover - 1.0) / (nSeeds - 1.0);
 
   if (seedCover < 0.0 || kmerSpacing < 0.0) {
+    debug_trace("Seed alignment: failed: No seed matches: seedCover={:}, kmerSpacing={:}. Aborting.\n", seedCover,
+      kmerSpacing);
     return SeedAlignmentStatus{
       .status = Status::Error,
       .error = "Unable to align: no seed matches",
@@ -154,7 +167,12 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
       start_pos = tmpMatch.shift;
     }
   }
+
+  debug_trace("Seed matches:\n{:}\n", seedMatches);
+
   if (seedMatches.size() < 2) {
+    debug_trace("Seed alignment: failed: No seed matches: seedMatches.size={:}, which is less than 2. Aborting.\n",
+      seedMatches.size());
     return SeedAlignmentStatus{
       .status = Status::Error,
       .error = "Unable to align: no seed matches",
@@ -178,8 +196,12 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
     }
   }
 
+  debug_trace("Seed alignment: minShift={:}, maxShift={:}\n", minShift, maxShift);
+
   const int meanShift = details::round(0.5 * (minShift + maxShift));
   const int bandWidthFinal = maxShift - minShift + 9;
+
+  debug_trace("Seed alignment succeeded: bandWidth={:}, meanShift={:}\n", bandWidthFinal, meanShift);
   return SeedAlignmentStatus{
     .status = Status::Success,
     .error = {},
@@ -196,6 +218,10 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
   const int refSize = safe_cast<int>(ref.size());
   const int n_rows = bandWidth * 2 + 1;
   const int n_cols = refSize + 1;
+
+  debug_trace(
+    "Score matrix: stared: querySize={:}, refSize={:}, bandWidth={:}, meanShift={:}, n_rows={:}, n_cols={:}\n",
+    querySize, refSize, bandWidth, meanShift, n_rows, n_cols);
 
   vector2d<int> paths(n_rows, n_cols);
   // TODO: these could be reduced to vectors
@@ -299,6 +325,10 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
     }
     // std::cout <<"\n";
   }
+
+  debug_trace(
+    "Score matrix: succeeded: scores.num_rows={:}, scores.num_cols={:}, paths.num_rows={:}, paths.num_cols={:}\n",
+    scores.num_rows(), scores.num_cols(), paths.num_rows(), paths.num_cols());
 
   return {.scores = scores, .paths = paths};
 }
@@ -450,6 +480,15 @@ AlignmentStatus<Letter> alignPairwise(const Sequence<Letter>& query, const Seque
   const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
   const NextalignSeedOptions& seedOptions, AlignPairwiseTag) {
 
+  debug_trace(
+    "Align pairwise: started:\n  minimalLength={:},\n  penaltyGapExtend={:},\n  penaltyGapOpen={:},\n  "
+    "penaltyGapOpenInFrame={:},\n  penaltyGapOpenOutOfFrame={:},\n  penaltyMismatch={:},\n  scoreMatch={:},\n  "
+    "maxIndel={:},\n  seedLength={:},\n  minSeeds={:},\n  seedSpacing={:},\n  mismatchesAllowed={:}\n",
+    alignmentOptions.minimalLength, alignmentOptions.penaltyGapExtend, alignmentOptions.penaltyGapOpen,
+    alignmentOptions.penaltyGapOpenInFrame, alignmentOptions.penaltyGapOpenOutOfFrame, alignmentOptions.penaltyMismatch,
+    alignmentOptions.scoreMatch, alignmentOptions.maxIndel, seedOptions.seedLength, seedOptions.minSeeds,
+    seedOptions.seedSpacing, seedOptions.mismatchesAllowed);
+
   const SeedAlignmentStatus& seedAlignmentStatus = seedAlignment(query, ref, seedOptions);
   if (seedAlignmentStatus.status != Status::Success) {
     return AlignmentStatus<Letter>{
@@ -461,8 +500,11 @@ AlignmentStatus<Letter> alignPairwise(const Sequence<Letter>& query, const Seque
 
   const auto& bandWidth = seedAlignmentStatus.result->bandWidth;
   const auto& meanShift = seedAlignmentStatus.result->meanShift;
+  debug_trace("Align pairwise: after seed alignment: bandWidth={:}, meanShift={:}\n", bandWidth, meanShift);
 
   if (bandWidth > alignmentOptions.maxIndel) {
+    debug_trace("Align pairwise: failed: `bandWidth > alignmentOptions.maxIndel`, where bandWidth={:}, maxIndel={:}\n",
+      bandWidth, alignmentOptions.maxIndel);
     return AlignmentStatus<Letter>{
       .status = Status::Error,
       .error = "Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches",
@@ -472,6 +514,7 @@ AlignmentStatus<Letter> alignPairwise(const Sequence<Letter>& query, const Seque
   const ForwardTrace& forwardTrace = scoreMatrix(query, ref, gapOpenClose, bandWidth, meanShift, alignmentOptions);
   const auto& scores = forwardTrace.scores;
   const auto& paths = forwardTrace.paths;
+  // debug_trace("Align pairwise: after score matrix: scores={:}, paths={:}\n", scores, paths);
 
   return backTrace<Letter>(query, ref, scores, paths, meanShift);
 }

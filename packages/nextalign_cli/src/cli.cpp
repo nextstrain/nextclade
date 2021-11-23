@@ -527,7 +527,9 @@ GeneMap filterGeneMap(const std::set<std::string> &genes, const GeneMap &geneMap
 }
 
 std::string formatCliParams(const CliParams &cliParams) {
-  fmt::memory_buffer buf;
+  fmt::memory_buffer bufRaw;
+  auto buf = std::back_inserter(bufRaw);
+
   fmt::format_to(buf, "\nCLI Parameters:\n");
   fmt::format_to(buf, "{:>20s}=\"{:<d}\"\n", "--jobs", cliParams.jobs);
   fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--sequences", cliParams.sequences);
@@ -558,7 +560,7 @@ std::string formatCliParams(const CliParams &cliParams) {
     fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-errors", *cliParams.outputErrors);
   }
 
-  return fmt::to_string(buf);
+  return fmt::to_string(bufRaw);
 }
 
 Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
@@ -612,18 +614,21 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
 }
 
 std::string formatPaths(const Paths &paths) {
-  fmt::memory_buffer buf;
+  fmt::memory_buffer bufRaw;
+  auto buf = std::back_inserter(bufRaw);
+
   fmt::format_to(buf, "\nOutput files:\n");
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
 
   for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
-    fmt::memory_buffer bufGene;
+    fmt::memory_buffer bufRawGene;
+    auto bufGene = std::back_inserter(bufRawGene);
     fmt::format_to(bufGene, "{:s} {:>10s}", "Translated genes", geneName);
-    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufGene), outputGenePath.string());
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufRawGene), outputGenePath.string());
   }
 
-  return fmt::to_string(buf);
+  return fmt::to_string(bufRaw);
 }
 
 std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteReference) {
@@ -634,7 +639,9 @@ std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteRefe
 std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &genes) {
   constexpr const auto TABLE_WIDTH = 86;
 
-  fmt::memory_buffer buf;
+  fmt::memory_buffer bufRaw;
+  auto buf = std::back_inserter(bufRaw);
+
   fmt::format_to(buf, "\nGene map:\n");
   fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
   fmt::format_to(buf, "| {:8s} | {:16s} | {:8s} | {:8s} | {:8s} | {:8s} | {:8s} |\n", "Selected", "   Gene Name",
@@ -647,7 +654,8 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
       gene.start + 1, gene.end, gene.length, gene.frame + 1, gene.strand);
   }
   fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
-  return fmt::to_string(buf);
+
+  return fmt::to_string(bufRaw);
 }
 
 std::string formatInsertions(const std::vector<Insertion> &insertions) {

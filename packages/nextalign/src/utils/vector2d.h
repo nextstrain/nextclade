@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fmt/format.h>
+
 #include <vector>
 
 #include "contract.h"
@@ -91,5 +93,23 @@ public:
     m_data.resize(rows * cols);
     m_rows = rows;
     m_cols = cols;
+  }
+};
+
+template<typename T>
+struct fmt::formatter<vector2d<T>> {
+  constexpr auto parse(fmt::format_parse_context& ctx) {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const vector2d<T>& vec, FormatContext& ctx) {
+    for (int col = 0; col < vec.num_cols(); ++col) {
+      for (int row = 0; row < vec.num_rows(); ++row) {
+        fmt::format_to(ctx.out(), " {:2d},", vec(row, col));
+      }
+      fmt::format_to(ctx.out(), "\n");
+    }
+    return ctx.out();
   }
 };
