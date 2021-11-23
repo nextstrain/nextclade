@@ -101,6 +101,8 @@ int main(int argc, char* argv[]) {
         .aaSeedSpacing = options.seedAa.seedSpacing,
         .aaMismatchesAllowed = options.seedAa.mismatchesAllowed,
 
+        .noTranslatePastStop = !options.translatePastStop,
+
         .verbosity = {},
         .verbose = {},
         .silent = {},
