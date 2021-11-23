@@ -32,7 +32,6 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
   return (
     <DatasetinfoContainer>
       <DatasetName>{dataset.nameFriendly}</DatasetName>
-      <DatasetInfoLine>{dataset.description}</DatasetInfoLine>
       <DatasetInfoLine>
         {t('Reference: {{ ref }} ({{ source }}: {{ accession }})', {
           ref: dataset.reference.strainName,
