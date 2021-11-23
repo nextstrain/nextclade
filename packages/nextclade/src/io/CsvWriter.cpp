@@ -234,7 +234,6 @@ namespace Nextclade {
     }
 
     void addErrorRow(const std::string& seqName, const std::string& errorFormatted) override {
-      const auto& rowIndex = numRows;
       doc.SetCell(getColumnIndex("seqName"), numRows, seqName);
       doc.SetCell(getColumnIndex("errors"), numRows, errorFormatted);
       ++numRows;

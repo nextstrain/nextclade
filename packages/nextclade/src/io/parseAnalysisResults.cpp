@@ -67,6 +67,8 @@ namespace Nextclade {
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
       .contextNucRange = parseRange(at(j, "contextNucRange")),
+      .nucSubstitutions = {},// FIXME: this field is not parsed. Looks like it was forgotten.
+      .nucDeletions = {},    // FIXME: this field is not parsed. Looks like it was forgotten.
     };
   }
 
@@ -79,6 +81,8 @@ namespace Nextclade {
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
       .contextNucRange = parseRange(at(j, "contextNucRange")),
+      .nucSubstitutions = {},// FIXME: this field is not parsed. Looks like it was forgotten.
+      .nucDeletions = {},    // FIXME: this field is not parsed. Looks like it was forgotten.
     };
   }
 

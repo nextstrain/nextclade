@@ -51,7 +51,6 @@ namespace Nextclade {
     bool enabled;
     std::string name;
     std::string nameFriendly;
-    std::string description;
     std::vector<DatasetRef> datasetRefs;
     std::string defaultRef;
   };
