@@ -6,6 +6,7 @@
 #include "strip/stripInsertions.h"
 #include "translate/removeGaps.h"
 #include "translate/translateGenes.h"
+#include "utils/debug_trace.h"
 #include "utils/map.h"
 
 Insertion toInsertionExternal(const InsertionInternal<Nucleotide>& ins) {
@@ -40,6 +41,7 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
   const auto gapOpenCloseNuc = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
   const auto gapOpenCloseAA = getGapOpenCloseScoresFlat(ref, options);
 
+  debug_trace("Aligning nucleotide sequence\n", "");
   const auto alignmentStatus = alignPairwise(query, ref, gapOpenCloseNuc, options.alignment, options.seedNuc);
   if (alignmentStatus.status != Status::Success) {
     throw ErrorNonFatal(*alignmentStatus.error);

@@ -10,14 +10,6 @@
 
 
 namespace {
-
-  /*****************************************************************************
-   *
-   *                 OLD IMPLEMENTATIONS
-   *
-   ****************************************************************************/
-
-
   /**
  * Makes the "alingnment to reference" coordinate map: from alignment coordinates to reference coordinates.
  *
@@ -71,71 +63,12 @@ namespace {
     coordMap.shrink_to_fit();
     return coordMap;
   }
-
-
-  /*****************************************************************************
-   *
-   *                 NEW IMPLEMENTATIONS
-   *
-   ****************************************************************************/
-
-
-  /**
- * Makes the "alingnment to reference" coordinate map: from alignment coordinates to reference coordinates.
- *
- * Given a position of a letter in the aligned sequence, the "alingnment to reference" coordinate map allows to
- * lookup the position of the corresponding letter in the reference sequence.
- *
- * @param refAln  Aligned reference sequence
- * @return        Coordinate map from alignment coordinates to reference coordinates
- */
-  std::vector<int> makeAlnToRefMap(const NucleotideSequence& refAln) {
-    int alnLength = safe_cast<int>(refAln.size());
-    std::vector<int> alnToRefMap(alnLength);// TODO: Slow
-    int refPos = -1;
-    for (int alnPos = 0; alnPos < alnLength; ++alnPos) {
-      if (refAln[alnPos] != Nucleotide::GAP) {
-        refPos += 1;
-      }
-      alnToRefMap[alnPos] = refPos;
-    }
-    return alnToRefMap;
-  }
-
-  /**
- * Makes the "reference to alingnment" coordinate map: from alignment coordinates to reference coordinates.
- *
- * Given a position of a letter in the reference sequence, the "reference to alingnment" coordinate map allows to
- * lookup the position of the corresponding letter in the aligned sequence.
- *
- * @param refAln  Aligned reference sequence
- * @return        Coordinate map from alignment coordinates to reference coordinates
- */
-  std::vector<int> makeRefToAlnMap(const NucleotideSequence& refAln, const std::vector<int>& alnToRef) {
-    int refLength = safe_cast<int>(alnToRef.size());
-    std::vector<int> refToAlnMap(refLength);// TODO: Slow
-    int refPos = -1;
-    for (int alnPos = 0; alnPos < refLength; ++alnPos) {
-      if (refAln[alnPos] != Nucleotide::GAP) {
-        refPos = alnToRef[alnPos];
-        refToAlnMap[refPos] = alnPos;
-      }
-    }
-    // truncate unused values in the tail
-    refToAlnMap.resize(refPos + 1);// TODO: slow
-    return refToAlnMap;
-  }
 }// namespace
 
 CoordinateMapper::CoordinateMapper(const NucleotideSequence& refAln)
     // old implementation
     : alnToRefMap(makeAlnToRefMapOld(refAln)),
       refToAlnMap(makeRefToAlnMapOld(refAln)) {}
-
-// new implementation
-//  : alnToRefMap(makeAlnToRefMap(refAln)),
-//    refToAlnMap(makeRefToAlnMap(refAln, alnToRefMap)) {}
-
 
 /**
  * Converts position from alignment coordinates to reference coordianates

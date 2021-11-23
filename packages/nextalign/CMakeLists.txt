@@ -58,6 +58,7 @@ add_library(${PROJECT_NAME} STATIC
   src/utils/config.h
   src/utils/contains.h
   src/utils/contract.h
+  src/utils/debug_trace.h
   src/utils/debugbreak.h
   src/utils/ieee754_comparison.h
   src/utils/macro_overload.h
@@ -81,6 +82,8 @@ target_compile_definitions(${PROJECT_NAME}
 
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
+
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
 
   -DFMT_HEADER_ONLY=1
 

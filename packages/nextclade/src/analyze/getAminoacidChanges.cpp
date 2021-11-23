@@ -96,6 +96,8 @@ namespace Nextclade {
           .refContext = std::move(refContext),
           .queryContext = std::move(queryContext),
           .contextNucRange = Range{.begin = contextBegin, .end = contextEnd},
+          .nucSubstitutions = {},
+          .nucDeletions = {},
         });
       } else {
         // TODO: we might account for ambiguous aminoacids in this condition
@@ -110,6 +112,8 @@ namespace Nextclade {
             .refContext = std::move(refContext),
             .queryContext = std::move(queryContext),
             .contextNucRange = Range{.begin = contextBegin, .end = contextEnd},
+            .nucSubstitutions = {},
+            .nucDeletions = {},
           });
         }
       }
