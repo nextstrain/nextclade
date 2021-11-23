@@ -374,6 +374,7 @@ namespace Nextclade {
         .missingGenes = parseSet<std::string>(at(j, "missingGenes")),
         .divergence = at(j, "divergence"),
         .qc = parseQcResult(at(j, "qc")),
+        .customNodeAttributes = parseMap<std::string, std::string>(j, "customNodeAttributes"),
       };
     } catch (const std::exception& e) {
       throw ErrorFatal(fmt::format("When parsing analysis result json (for one sequence): {:s}", e.what()));

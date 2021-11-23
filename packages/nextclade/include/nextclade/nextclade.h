@@ -433,6 +433,7 @@ namespace Nextclade {
     std::set<std::string> missingGenes;
     double divergence;
     QcResult qc;
+    std::map<std::string, std::string> customNodeAttributes;
   };
 
 

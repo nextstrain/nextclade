@@ -352,6 +352,8 @@ namespace Nextclade {
       j.emplace("qc", serializeQcResult(result.qc));
       j.emplace("nucleotideComposition", serializeNucleotideComposition(result.nucleotideComposition));
 
+      j.emplace("customNodeAttributes", serializeMap(result.customNodeAttributes));
+
       return j;
     }
   }// namespace

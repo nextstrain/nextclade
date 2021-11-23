@@ -121,6 +121,7 @@ namespace Nextclade {
       .missingGenes = missingGenes,
       .divergence = 0.0,
       .qc = {},
+      .customNodeAttributes = {},
     };
 
 
@@ -128,6 +129,16 @@ namespace Nextclade {
     analysisResult.nearestNodeId = nearestNode.id();
     analysisResult.clade = nearestNode.clade();
 
+    // FIXME: node attributes should be dynamic. Should they come from a dataset? From the tree `.meta` perhaps?
+    const std::vector<std::string> customNodeAttrKeys = {
+      "GISAID_clade",
+      "Nextstrain_clade",
+      "WHO_name",
+      "clade",
+      "clade_shortname",
+      "pango_lineage",
+    };
+    analysisResult.customNodeAttributes = nearestNode.customNodeAttributes(customNodeAttrKeys);
     analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
 
     analysisResult.privateAaMutations =
