@@ -11,8 +11,10 @@
 #include <vector>
 
 #include "../utils/at.h"
+#include "../utils/concat.h"
 #include "../utils/contains.h"
 #include "../utils/contract.h"
+#include "../utils/eraseDuplicates.h"
 #include "../utils/safe_cast.h"
 #include "formatMutation.h"
 #include "formatQcStatus.h"
@@ -20,87 +22,92 @@
 namespace Nextclade {
 
   namespace {
-    constexpr auto COLUMN_NAMES = frozen::make_map<frozen::string, int>({
-      {"seqName", 0},
-      {"clade", 1},
 
-      {"qc.overallScore", 2},
-      {"qc.overallStatus", 3},
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
+    inline std::vector<std::string> getDefaultColumnNames() {
+      return std::vector<std::string>{
+        "seqName",
+        "clade",
 
-      {"totalSubstitutions", 4},
-      {"totalDeletions", 5},
-      {"totalInsertions", 6},
-      {"totalFrameShifts", 7},
-      {"totalAminoacidSubstitutions", 8},
-      {"totalAminoacidDeletions", 9},
-      {"totalMissing", 10},
-      {"totalNonACGTNs", 11},
-      {"totalPcrPrimerChanges", 12},
+        "qc.overallScore",
+        "qc.overallStatus",
 
-      {"substitutions", 13},
-      {"deletions", 14},
-      {"insertions", 15},
-      {"frameShifts", 16},
-      {"aaSubstitutions", 17},
-      {"aaDeletions", 18},
-      {"missing", 19},
-      {"nonACGTNs", 20},
-      {"pcrPrimerChanges", 21},
+        "totalSubstitutions",
+        "totalDeletions",
+        "totalInsertions",
+        "totalFrameShifts",
+        "totalAminoacidSubstitutions",
+        "totalAminoacidDeletions",
+        "totalMissing",
+        "totalNonACGTNs",
+        "totalPcrPrimerChanges",
 
-      {"alignmentScore", 22},
-      {"alignmentStart", 23},
-      {"alignmentEnd", 24},
+        "substitutions",
+        "deletions",
+        "insertions",
+        "frameShifts",
+        "aaSubstitutions",
+        "aaDeletions",
+        "missing",
+        "nonACGTNs",
+        "pcrPrimerChanges",
 
-      {"qc.missingData.missingDataThreshold", 25},
-      {"qc.missingData.score", 26},
-      {"qc.missingData.status", 27},
-      {"qc.missingData.totalMissing", 28},
+        "alignmentScore",
+        "alignmentStart",
+        "alignmentEnd",
 
-      {"qc.mixedSites.mixedSitesThreshold", 29},
-      {"qc.mixedSites.score", 30},
-      {"qc.mixedSites.status", 31},
-      {"qc.mixedSites.totalMixedSites", 32},
+        "qc.missingData.missingDataThreshold",
+        "qc.missingData.score",
+        "qc.missingData.status",
+        "qc.missingData.totalMissing",
 
-      {"qc.privateMutations.cutoff", 33},
-      {"qc.privateMutations.excess", 34},
-      {"qc.privateMutations.score", 35},
-      {"qc.privateMutations.status", 36},
-      {"qc.privateMutations.total", 37},
+        "qc.mixedSites.mixedSitesThreshold",
+        "qc.mixedSites.score",
+        "qc.mixedSites.status",
+        "qc.mixedSites.totalMixedSites",
 
-      {"qc.snpClusters.clusteredSNPs", 38},
-      {"qc.snpClusters.score", 39},
-      {"qc.snpClusters.status", 40},
-      {"qc.snpClusters.totalSNPs", 41},
+        "qc.privateMutations.cutoff",
+        "qc.privateMutations.excess",
+        "qc.privateMutations.score",
+        "qc.privateMutations.status",
+        "qc.privateMutations.total",
 
-      {"qc.frameShifts.frameShifts", 42},
-      {"qc.frameShifts.totalFrameShifts", 43},
-      {"qc.frameShifts.frameShiftsIgnored", 44},
-      {"qc.frameShifts.totalFrameShiftsIgnored", 45},
+        "qc.snpClusters.clusteredSNPs",
+        "qc.snpClusters.score",
+        "qc.snpClusters.status",
+        "qc.snpClusters.totalSNPs",
 
-      {"qc.frameShifts.score", 46},
-      {"qc.frameShifts.status", 47},
+        "qc.frameShifts.frameShifts",
+        "qc.frameShifts.totalFrameShifts",
+        "qc.frameShifts.frameShiftsIgnored",
+        "qc.frameShifts.totalFrameShiftsIgnored",
 
-      {"qc.stopCodons.stopCodons", 48},
-      {"qc.stopCodons.totalStopCodons", 49},
-      {"qc.stopCodons.score", 50},
-      {"qc.stopCodons.status", 51},
+        "qc.frameShifts.score",
+        "qc.frameShifts.status",
 
-      {"errors", 52},
-    });
+        "qc.stopCodons.stopCodons",
+        "qc.stopCodons.totalStopCodons",
+        "qc.stopCodons.score",
+        "qc.stopCodons.status",
+
+        "errors",
+      };
+    }
+#pragma clang diagnostic pop
   }//namespace
-
-  int getColumnIndex(const std::string& columnName) {
-    const auto name = frozen::string{columnName};
-    const auto index = COLUMN_NAMES.at(name);
-    return index;
-  }
 
   class CSVWriter : public CsvWriterAbstract {
     rapidcsv::Document doc;
     size_t numRows = 1;
+    std::map<std::string, int> columnNames;
+
+    int getColumnIndex(const std::string& columnName) {
+      return columnNames.at(columnName);
+    }
 
   public:
-    explicit CSVWriter(const CsvWriterOptions& opt)
+    explicit CSVWriter(const CsvWriterOptions& opt, const std::vector<std::string>& customNodeAttrKeys)
         : doc{
             "",
             rapidcsv::LabelParams{/* pColumnNameIdx */ -1, /* pRowNameIdx */ -1},
@@ -117,21 +124,29 @@ namespace Nextclade {
               /* pCommentPrefix */ '#',    //
               /* pSkipEmptyLines  */ true  //
             },
-
           } {
 
+      // Merge default column names with the incoming custom ones
+      auto columnNamesVec = merge(getDefaultColumnNames(), customNodeAttrKeys);
+
+      // We want to avoid duplicate column names because std::map cannot have them.
+      // The loop below will produce incorrect indices and out-of-bounds errors can happen if there are duplicates.
+      eraseDuplicatesUnsortedInPlace(columnNamesVec);
+
+      // Insert headers row and build a map from column name to column index for lookups when writing data rows
       doc.InsertRow<std::string>(0);
-      for (const auto& column : COLUMN_NAMES) {
-        const auto& [name, i] = column;
-        const auto columnIndex = safe_cast<size_t>(i);
-        const auto& columnName = std::string{name.data()};
+      int columnIndex = 0;
+      for (const auto& columnName : columnNamesVec) {
+        columnNames[columnName] = columnIndex;
         doc.SetCell(columnIndex, 0, columnName);
+        ++columnIndex;
       }
     }
 
     void addRow(const AnalysisResult& result) override {
       const auto& rowName = numRows;
-      const std::vector<std::string> rowData(COLUMN_NAMES.size(), "");
+      const auto numColumns = columnNames.size();
+      const std::vector<std::string> rowData(numColumns, "");
       doc.InsertRow<std::string>(numRows, rowData);
 
       doc.SetCell(getColumnIndex("seqName"), rowName, result.seqName);
@@ -230,6 +245,11 @@ namespace Nextclade {
         doc.SetCell(getColumnIndex("qc.stopCodons.status"), rowName, formatQcStatus(result.qc.stopCodons->status));
       }
 
+      for (const auto& [key, value] : result.customNodeAttributes) {
+        const auto columnIndex = getColumnIndex(key);
+        doc.SetCell(columnIndex, rowName, value);
+      }
+
       ++numRows;
     }
 
@@ -245,8 +265,9 @@ namespace Nextclade {
   };
 
 
-  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options) {
-    return std::make_unique<CSVWriter>(options);
+  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options,
+    const std::vector<std::string>& customNodeAttrKeys) {
+    return std::make_unique<CSVWriter>(options, customNodeAttrKeys);
   }
 
 }// namespace Nextclade

@@ -54,14 +54,24 @@ namespace Nextclade {
     const auto &ref = refData.seq;
     const auto &refName = refData.name;
 
+    // FIXME: node attributes should be dynamic. Should they come from a dataset? From the tree `.meta` perhaps?
+    const std::vector<std::string> customNodeAttrKeys = {
+      "GISAID_clade",
+      "Nextstrain_clade",
+      "WHO_name",
+      "clade",
+      "clade_shortname",
+      "pango_lineage",
+    };
+
     std::unique_ptr<Nextclade::CsvWriterAbstract> csv;
     if (outputCsvStream) {
-      csv = createCsvWriter(CsvWriterOptions{.delimiter = ';'});
+      csv = createCsvWriter(CsvWriterOptions{.delimiter = ';'}, customNodeAttrKeys);
     }
 
     std::unique_ptr<Nextclade::CsvWriterAbstract> tsv;
     if (outputTsvStream) {
-      tsv = createCsvWriter(CsvWriterOptions{.delimiter = '\t'});
+      tsv = createCsvWriter(CsvWriterOptions{.delimiter = '\t'}, customNodeAttrKeys);
     }
 
     const NextcladeOptions options = {
@@ -71,6 +81,7 @@ namespace Nextclade {
       .geneMap = geneMap,
       .qcRulesConfig = qcRulesConfig,
       .nextalignOptions = nextalignOptions,
+      .customNodeAttrKeys = customNodeAttrKeys,
     };
 
     NextcladeAlgorithm nextclade{options};

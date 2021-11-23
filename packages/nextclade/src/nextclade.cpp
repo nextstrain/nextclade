@@ -35,7 +35,8 @@ namespace Nextclade {
     const std::vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
     const Tree& tree,                                            //
-    const NextalignOptions& nextalignOptions                     //
+    const NextalignOptions& nextalignOptions,                    //
+    const std::vector<std::string>& customNodeAttrKeys           //
   ) {
     const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, nextalignOptions);
 
@@ -129,15 +130,6 @@ namespace Nextclade {
     analysisResult.nearestNodeId = nearestNode.id();
     analysisResult.clade = nearestNode.clade();
 
-    // FIXME: node attributes should be dynamic. Should they come from a dataset? From the tree `.meta` perhaps?
-    const std::vector<std::string> customNodeAttrKeys = {
-      "GISAID_clade",
-      "Nextstrain_clade",
-      "WHO_name",
-      "clade",
-      "clade_shortname",
-      "pango_lineage",
-    };
     analysisResult.customNodeAttributes = nearestNode.customNodeAttributes(customNodeAttrKeys);
     analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
 
@@ -191,17 +183,18 @@ namespace Nextclade {
       const auto& geneMap = options.geneMap;
       const auto& qcRulesConfig = options.qcRulesConfig;
 
-      return analyzeOneSequence(//
-        seqName,                //
-        ref,                    //
-        query,                  //
-        refPeptides,            //
-        refPeptidesArr,         //
-        geneMap,                //
-        pcrPrimers,             //
-        qcRulesConfig,          //
-        tree,                   //
-        options.nextalignOptions//
+      return analyzeOneSequence(  //
+        seqName,                  //
+        ref,                      //
+        query,                    //
+        refPeptides,              //
+        refPeptidesArr,           //
+        geneMap,                  //
+        pcrPrimers,               //
+        qcRulesConfig,            //
+        tree,                     //
+        options.nextalignOptions, //
+        options.customNodeAttrKeys//
       );
     }
 

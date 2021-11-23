@@ -159,6 +159,7 @@ namespace Nextclade {
     GeneMap geneMap;
     QcConfig qcRulesConfig;
     NextalignOptions nextalignOptions;
+    std::vector<std::string> customNodeAttrKeys;
   };
 
   template<typename Letter>
@@ -538,7 +539,8 @@ namespace Nextclade {
     virtual void write(std::ostream& outputStream) = 0;
   };
 
-  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options = {});
+  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options = {},
+    const std::vector<std::string>& customNodeAttrKeys = {});
 
   class Tree {
     std::unique_ptr<TreeImpl> pimpl;
