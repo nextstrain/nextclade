@@ -160,13 +160,13 @@ int CoordinateMapper::refToAln(int refPos) const {
 Range CoordinateMapper::alnToRef(const Range& alnRange) const {
   return Range{
     .begin = alnToRef(alnRange.begin),
-    .end = alnToRef(alnRange.end),
+    .end = alnToRef(alnRange.end - 1) + 1,
   };
 }
 
 Range CoordinateMapper::refToAln(const Range& refRange) const {
   return Range{
     .begin = refToAln(refRange.begin),
-    .end = refToAln(refRange.end),
+    .end = refToAln(refRange.end - 1) + 1,
   };
 }
