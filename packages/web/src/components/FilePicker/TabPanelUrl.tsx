@@ -79,7 +79,7 @@ export function TabPanelUrl({ exampleUrl, onConfirm }: TabPanelUrlProps) {
                   title={hasUrl ? 'Start downloading this file' : 'Provide a URL before downloading is possible'}
                   onClick={confirm}
                 >
-                  {t('Download')}
+                  {t('OK')}
                 </Button>
               </ButtonContainer>
             </ColFlexHorizontal>

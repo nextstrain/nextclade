@@ -1,8 +1,7 @@
 import React, { HTMLProps, ReactNode, Ref, useCallback, useMemo, useState } from 'react'
 
+import type { StrictOmit } from 'ts-essentials'
 import styled from 'styled-components'
-import { Col, Row } from 'reactstrap'
-import { StrictOmit } from 'ts-essentials'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
@@ -13,10 +12,12 @@ import { UploadBoxCompact } from './UploadBoxCompact'
 import { TabPanelUrl } from './TabPanelUrl'
 import { TabPanelPaste } from './TabPanelPaste'
 import { UploadedFileInfo } from './UploadedFileInfo'
+import { UploadedFileInfoCompact } from './UploadedFileInfoCompact'
 
 export const FilePickerContainer = styled.div`
   display: flex;
   flex-direction: column;
+  margin: 10px;
 `
 
 export const FilePickerHeader = styled.div`
@@ -33,8 +34,8 @@ export const FilePickerTitle = styled.h4`
 export const TabsPanelStyled = styled(TabsPanel)``
 
 const TabsContentStyled = styled(TabsContent)<{ $compact?: boolean }>`
-  flex: 1;
-  min-height: ${(props) => (props.$compact ? '100px' : '200px')};
+  min-height: ${(props) => !props.$compact && '200px'};
+  height: 100%;
 `
 
 export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, 'onInput' | 'onError' | 'as' | 'ref'> {
@@ -118,24 +119,26 @@ export function FilePicker({
     [compact, exampleUrl, icon, inputRef, onFile, onPaste, onUrl, pasteInstructions, t],
   )
 
-  if (input) {
-    return (
-      <Row noGutters>
-        <Col>
-          <UploadedFileInfo description={input.description} errors={errors} onRemove={clearAndRemove} />
-        </Col>
-      </Row>
-    )
-  }
+  const FileUploadOrFileInfo = useMemo(() => {
+    if (input) {
+      return compact ? (
+        <UploadedFileInfoCompact description={input.description} errors={errors} onRemove={clearAndRemove}>
+          {icon}
+        </UploadedFileInfoCompact>
+      ) : (
+        <UploadedFileInfo description={input.description} errors={errors} onRemove={clearAndRemove} />
+      )
+    }
+    return <TabsContentStyled tabs={tabs} activeTab={activeTab} $compact={compact} />
+  }, [activeTab, clearAndRemove, compact, errors, icon, input, tabs])
 
   return (
     <FilePickerContainer {...props}>
       <FilePickerHeader>
         <FilePickerTitle>{title}</FilePickerTitle>
-        <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+        <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} disabled={!!input} />
       </FilePickerHeader>
-
-      <TabsContentStyled tabs={tabs} activeTab={activeTab} $compact={compact} />
+      {FileUploadOrFileInfo}
     </FilePickerContainer>
   )
 }

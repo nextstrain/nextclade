@@ -1,10 +1,15 @@
 import React, { Ref, useState } from 'react'
 
-import { Button, Col, Label, Row } from 'reactstrap'
+import { Button, ButtonGroup, Col, Label, Row } from 'reactstrap'
+import styled from 'styled-components'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ButtonContainer, ColFlexHorizontal, ColFlexVertical, Form, RowFill } from './FilePickerStyles'
 import { TextInputMonospace } from './TextInputMonospace'
+
+const ButtonStyled = styled(Button)`
+  width: 100px;
+`
 
 export interface TabPanelPasteProps {
   pasteInstructions: string
@@ -58,6 +63,7 @@ export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPan
             <ColFlexHorizontal>
               <ButtonContainer>
                 <Button
+                  className="mr-auto"
                   disabled={!hasSeqData}
                   type="button"
                   color="link"
@@ -67,7 +73,8 @@ export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPan
                   {t('Clear')}
                 </Button>
 
-                <Button
+                <ButtonStyled
+                  className="ml-auto"
                   disabled={!hasSeqData}
                   type="button"
                   color="primary"
@@ -75,7 +82,7 @@ export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPan
                   onClick={confirm}
                 >
                   {t('OK')}
-                </Button>
+                </ButtonStyled>
               </ButtonContainer>
             </ColFlexHorizontal>
           </Row>

@@ -53,7 +53,7 @@ export interface TabComponentProps extends StrictOmit<NavItemProps, 'onChange'> 
   onChange(tabName: string): void
 }
 
-export function TabComponent({ tab, activeTab, onChange }: TabComponentProps) {
+export function TabComponent({ tab, activeTab, onChange, disabled, ...props }: TabComponentProps) {
   const onClick = useCallback(() => {
     if (activeTab !== tab.name) {
       onChange(tab.name)
@@ -62,7 +62,7 @@ export function TabComponent({ tab, activeTab, onChange }: TabComponentProps) {
 
   return (
     <NavItem>
-      <NavLink active={activeTab === tab.name} onClick={onClick}>
+      <NavLink active={!disabled && activeTab === tab.name} onClick={onClick} disabled={disabled} {...props}>
         {tab.title}
       </NavLink>
     </NavItem>
@@ -72,14 +72,15 @@ export function TabComponent({ tab, activeTab, onChange }: TabComponentProps) {
 export interface TabsPanelProps extends StrictOmit<NavProps, 'tabs'> {
   tabs: TabDesc[]
   activeTab: string
+  disabled?: boolean
   onChange(tabName: string): void
 }
 
-export function TabsPanel({ tabs, activeTab, onChange, ...restProps }: TabsPanelProps) {
+export function TabsPanel({ tabs, activeTab, onChange, disabled, ...restProps }: TabsPanelProps) {
   return (
     <Nav tabs {...restProps}>
       {tabs.map((tab, i) => (
-        <TabComponent key={tab.name} tab={tab} activeTab={activeTab} onChange={onChange} />
+        <TabComponent key={tab.name} tab={tab} activeTab={activeTab} onChange={onChange} disabled={disabled} />
       ))}
     </Nav>
   )

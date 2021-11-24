@@ -44,6 +44,11 @@ export const ButtonOk = styled(Button)<ButtonProps>`
   margin: 5px;
 `
 
+export const Message = styled.p`
+  overflow-wrap: break-word;
+  word-break: normal;
+`
+
 export function getErrorDetails(error: Error | string): { name: string; message: string } {
   if (error instanceof Error) {
     return { name: error.name, message: error.message }
@@ -63,10 +68,7 @@ export function GenericError({ error }: { error: Error | string }) {
   return (
     <ErrorContainer>
       <h5>{errorText}</h5>
-
-      <section className="mt-3">
-        <div>{message}</div>
-      </section>
+      <Message>{message}</Message>
     </ErrorContainer>
   )
 }

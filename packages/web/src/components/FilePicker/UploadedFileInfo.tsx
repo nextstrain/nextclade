@@ -76,7 +76,7 @@ export const FileErrorStyled = styled(Alert)`
   margin: 5px 5px;
 
   :first-child {
-    margin-top: 0;
+    //margin-top: 0;
   }
 
   box-shadow: ${(props) => props.theme.shadows.slight};

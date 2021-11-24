@@ -101,6 +101,7 @@ export const UploadZone = styled.div<{ state: UploadZoneState }>`
   display: flex;
   width: 100%;
   height: 100%;
+  min-height: 57px;
   cursor: pointer;
   border-radius: 5px;
   border: ${(props) => getUploadZoneTheme(props, 'border')};
@@ -124,21 +125,42 @@ export const UploadZoneRight = styled.div`
 `
 
 export const UploadZoneTextContainer = styled.div`
-  display: block;
-  margin: auto;
-  margin-left: 20px;
+  flex: 1;
+  display: flex;
 `
 
 export const UploadZoneText = styled.span`
+  flex: 1;
+  margin: auto;
   text-align: center;
   font-size: 1.1rem;
-  text-align: center;
 `
 
 export const UploadZoneButton = styled(Button)`
-  //min-width: 160px;
-  //min-height: 50px;
+  flex: 0 0 120px;
+  margin-left: auto;
 `
+
+// export interface UploaderCompactProps {
+//   onUpload(file: File): void
+// }
+
+// export const UploadZoneTextContainer = styled.div`
+//   flex: 1;
+//   display: flex;
+// `
+//
+// export const UploadZoneText = styled.span`
+//   flex: 1;
+//   margin: auto;
+//   text-align: center;
+//   font-size: 1.1rem;
+// `
+//
+// export const UploadZoneButton = styled(Button)`
+//   flex: 0 0 120px;
+//   margin-left: auto;
+// `
 
 export interface UploaderCompactProps {
   onUpload(file: File): void
@@ -166,8 +188,7 @@ export function UploadBoxCompact({ onUpload, children, ...props }: PropsWithChil
   const normal = useMemo(
     () => (
       <UploadZoneTextContainer>
-        <UploadZoneText>{t('Drag & drop a file or ')}</UploadZoneText>
-
+        <UploadZoneText>{t('Drag & drop a file ')}</UploadZoneText>
         <UploadZoneButton color="primary">{t('Select a file')}</UploadZoneButton>
       </UploadZoneTextContainer>
     ),
