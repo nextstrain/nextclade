@@ -132,7 +132,7 @@ export function DatasetSelectorDisconnected({
       <Row noGutters>
         <Col className="py-1">
           <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md">
-            <small>{t('Recent dataset changes')}</small>
+            <small>{t('Recent dataset updates')}</small>
           </LinkExternal>
         </Col>
       </Row>
