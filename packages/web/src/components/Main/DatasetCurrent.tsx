@@ -79,7 +79,10 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
 
   const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
 
-  const customizeButtonText = useMemo(() => (advancedOpen ? t('Hide files') : t('Show files')), [advancedOpen, t])
+  const customizeButtonText = useMemo(() => (advancedOpen ? t('Hide dataset files') : t('Show dataset files')), [
+    advancedOpen,
+    t,
+  ])
 
   if (!dataset) {
     return null
