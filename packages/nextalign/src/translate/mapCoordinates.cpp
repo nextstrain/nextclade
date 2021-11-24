@@ -128,13 +128,13 @@ namespace {
 }// namespace
 
 CoordinateMapper::CoordinateMapper(const NucleotideSequence& refAln)
-    // old implementation
-    : alnToRefMap(makeAlnToRefMapOld(refAln)),
-      refToAlnMap(makeRefToAlnMapOld(refAln)) {}
+    //    // old implementation
+    //    : alnToRefMap(makeAlnToRefMapOld(refAln)),
+    //      refToAlnMap(makeRefToAlnMapOld(refAln)) {}
 
-// new implementation
-//  : alnToRefMap(makeAlnToRefMap(refAln)),
-//    refToAlnMap(makeRefToAlnMap(refAln, alnToRefMap)) {}
+    // new implementation
+    : alnToRefMap(makeAlnToRefMap(refAln)),
+      refToAlnMap(makeRefToAlnMap(refAln, alnToRefMap)) {}
 
 
 /**
