@@ -40,6 +40,14 @@ struct Range {
   }
 };
 
+[[nodiscard]] inline Range nucRangeToCodonRange(const Range& range) {
+  return Range{
+    .begin = range.begin / 3,
+    // Make sure the right boundary is aligned to codon boundary
+    .end = (range.end + (3 - range.end % 3) % 3) / 3,
+  };
+}
+
 [[nodiscard]] inline bool operator==(const Range& left, const Range& right) {
   return left.begin == right.begin && left.end == right.end;
 }
