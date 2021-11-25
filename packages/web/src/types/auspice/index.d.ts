@@ -201,7 +201,7 @@ declare module 'auspice' {
     description?: string
     build_url?: string
     maintainers?: { name?: string; url?: string }[]
-    data_provenance?: DataProvenance
+    data_provenance?: DataProvenance[]
     updated?: string
     colorings: { key?: string; title?: string; type?: string; scale?: string[][] }[]
     display_defaults: {
