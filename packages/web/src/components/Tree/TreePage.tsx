@@ -8,6 +8,7 @@ import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
+import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
 
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
@@ -63,6 +64,25 @@ const TreeContainer = styled.div`
   overflow-y: scroll;
 `
 
+const TreeTopPanel = styled.div`
+  display: flex;
+`
+
+const FiltersSummaryWrapper = styled.div`
+  flex: 1 1 100%;
+`
+
+const LogoGisaidWrapper = styled.div`
+  display: flex;
+  flex: 0 0 auto;
+  margin: 0 auto;
+  margin-right: 2.25rem;
+`
+
+const LogoGisaid = styled(LogoGisaidBase)`
+  margin-top: auto;
+`
+
 function TreePage() {
   return (
     <LayoutResults>
@@ -82,10 +102,14 @@ function TreePage() {
                 <Sidebar />
               </SidebarContainer>
               <TreeContainer>
-                <span>
-                  <FiltersSummary />
-                </span>
-
+                <TreeTopPanel>
+                  <FiltersSummaryWrapper>
+                    <FiltersSummary />
+                  </FiltersSummaryWrapper>
+                  <LogoGisaidWrapper>
+                    <LogoGisaid />
+                  </LogoGisaidWrapper>
+                </TreeTopPanel>
                 <Tree />
               </TreeContainer>
             </I18nextProvider>
