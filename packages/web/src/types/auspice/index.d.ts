@@ -199,12 +199,12 @@ declare module 'auspice' {
   export declare interface AuspiceMetadata {
     title?: string
     description?: string
-    build_url?: string
+    buildUrl?: string
     maintainers?: { name?: string; url?: string }[]
-    data_provenance?: DataProvenance[]
+    dataProvenance?: DataProvenance[]
     updated?: string
     colorings: { key?: string; title?: string; type?: string; scale?: string[][] }[]
-    display_defaults: {
+    displayDefaults: {
       branch_label?: string
       color_by?: string
       distance_measure?: string
@@ -213,8 +213,8 @@ declare module 'auspice' {
       transmission_lines?: boolean
     }
     filters?: string[]
-    genome_annotations?: GeneMapJson
-    geo_resolutions?: { demes?: Record<string, { latitude?: number; longitude?: number }>; key?: string }[]
+    genomeAnnotations?: GeneMapJson
+    geoResolutions?: { demes?: Record<string, { latitude?: number; longitude?: number }>; key?: string }[]
     panels?: string[]
   }
 

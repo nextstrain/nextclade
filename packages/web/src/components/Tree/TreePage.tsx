@@ -98,7 +98,7 @@ export const TreePage = connect(mapStateToProps, null)(TreePageDisconnected)
 
 function TreePageDisconnected({ treeMeta }: TreePageProps) {
   const isDataFromGisaid = useMemo(
-    () => treeMeta?.data_provenance?.some((provenance) => provenance.name?.toLowerCase() === 'gisaid'),
+    () => treeMeta?.dataProvenance?.some((provenance) => provenance.name?.toLowerCase() === 'gisaid'),
     [treeMeta],
   )
 
