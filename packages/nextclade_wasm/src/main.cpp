@@ -13,18 +13,6 @@
 #include "../../packages/nextclade/src/tree/treePostprocess.h"
 #include "../../packages/nextclade/src/tree/treePreprocess.h"
 
-// FIXME: node attributes should be dynamic. Should they come from a dataset? From the tree `.meta` perhaps?
-std::vector<std::string> getCustomNodeAttrKeys() {
-  return {
-    "GISAID_clade",
-    "Nextstrain_clade",
-    "WHO_name",
-    "clade",
-    "clade_shortname",
-    "pango_lineage",
-  };
-}
-
 std::string getExceptionMessage(std::intptr_t exceptionPtr) {// NOLINT(misc-unused-parameters)
   // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast,cppcoreguidelines-init-variables,performance-no-int-to-ptr)
   const std::exception* e = reinterpret_cast<std::runtime_error*>(exceptionPtr);
@@ -168,7 +156,7 @@ public:
         state.qcRulesConfig,                 //
         state.tree,                          //
         state.nextalignOptions,              //
-        getCustomNodeAttrKeys()              //
+        state.tree.getCladeNodeAttrKeys()    //
       );
 
       warnings.global = merge(warnings.global, result.warnings.global);
@@ -257,8 +245,8 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
 std::string serializeToCsv(const std::string& analysisResultsStr, const std::string& delimiter) {
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'serializeToCsv'");
   std::stringstream outputCsvStream;
-  auto csv =
-    Nextclade::createCsvWriter(Nextclade::CsvWriterOptions{.delimiter = delimiter[0]}, getCustomNodeAttrKeys());
+  auto csv = Nextclade::createCsvWriter(Nextclade::CsvWriterOptions{.delimiter = delimiter[0]},
+    analysisResults.cladeNodeAttrKeys);
   for (const auto& result : analysisResults.results) {
     csv->addRow(result);
   }
