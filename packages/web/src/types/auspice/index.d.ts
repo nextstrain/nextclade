@@ -192,11 +192,16 @@ declare module 'auspice' {
 
   export type GeneMapJson = { [key: string]: GeneMapJsonEntry }
 
+  export interface DataProvenance {
+    name?: string
+  }
+
   export declare interface AuspiceMetadata {
     title?: string
     description?: string
     build_url?: string
     maintainers?: { name?: string; url?: string }[]
+    data_provenance?: DataProvenance
     updated?: string
     colorings: { key?: string; title?: string; type?: string; scale?: string[][] }[]
     display_defaults: {

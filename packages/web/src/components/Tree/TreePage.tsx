@@ -1,10 +1,13 @@
-import React from 'react'
+import { AuspiceMetadata } from 'auspice'
+import React, { useMemo } from 'react'
 
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
+import { connect } from 'react-redux'
 
 import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 
+import type { State } from 'src/state/reducer'
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
@@ -83,7 +86,19 @@ const LogoGisaid = styled(LogoGisaidBase)`
   margin-top: auto;
 `
 
-function TreePage() {
+export interface TreePageProps {
+  treeMeta?: AuspiceMetadata
+}
+
+const mapStateToProps = (state: State) => ({
+  treeMeta: state.metadata,
+})
+
+export const TreePage = connect(mapStateToProps, null)(TreePageDisconnected)
+
+function TreePageDisconnected({ treeMeta }: TreePageProps) {
+  const isDataFromGisaid = useMemo(() => treeMeta?.data_provenance?.name?.toLowerCase() === 'gisaid', [treeMeta])
+
   return (
     <LayoutResults>
       <Container>
@@ -106,9 +121,11 @@ function TreePage() {
                   <FiltersSummaryWrapper>
                     <FiltersSummary />
                   </FiltersSummaryWrapper>
-                  <LogoGisaidWrapper>
-                    <LogoGisaid />
-                  </LogoGisaidWrapper>
+                  {isDataFromGisaid && (
+                    <LogoGisaidWrapper>
+                      <LogoGisaid />
+                    </LogoGisaidWrapper>
+                  )}
                 </TreeTopPanel>
                 <Tree />
               </TreeContainer>
