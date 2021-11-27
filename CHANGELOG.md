@@ -1,3 +1,19 @@
+## Nextclade Web 1.8.0, Nextclade CLI 1.5.0 (2021-11-27)
+
+### [Feature] Improve peptide alignment
+
+We improved the algorithm for peptide alignment. Instead of performing seed matching in order to estimate width of the band and shift parameters for peptide alignment, we now deduce these parameters from the nucleotide alignment results. This allows Nextclade to align and analyse some of the peptides that would fail previously, including for low quality gene sequences and sequences with large deletions or deletions close to the beginning.
+
+### [Fix] Account for the partially covered last codon in frame shift
+
+Nextclade previously did not account for the last codon in a frame shift if that codon was covered by the shift only partially. In this version we count the partial codons. This solves an issue with empty frame shift codon ranges being reported in rare cases. This change may result in some of the frame shifts to be longer by 1 codon in the new version compared to previous versions of Nextclade. The nucleotide length of frame shifts stays the same.
+
+None of the ignored frame shift ranges in the QC configurations of the exising dataset are affected byt this change. But if you use a custom QC configuration, some of the frame shifts in the list of ignored frame shifts might need to be be adjusted.
+
+### [Fix] Fix crashes with Nextclade CLI on macOS
+
+In this version we fixed a crash with segmentation fault that could sometimes happen with Nextclade CLI on macOS.
+
 ## Nextclade Web 1.7.4 (2021-11-16)
 
 This is a bugfix release for Nextclade Web.
