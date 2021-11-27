@@ -27,8 +27,12 @@ namespace {
     int refPos = 0;
     for (int i = 0; i < alnLength; ++i) {
       if (ref[i] == Nucleotide::GAP) {
-        const auto& prev = revCoordMap.back();
-        revCoordMap.push_back(prev);
+        if (revCoordMap.empty()) {
+          revCoordMap.push_back(0);
+        } else {
+          const auto& prev = revCoordMap.back();
+          revCoordMap.push_back(prev);
+        }
       } else {
         revCoordMap.push_back(refPos);
         ++refPos;
