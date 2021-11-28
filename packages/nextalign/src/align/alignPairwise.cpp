@@ -343,7 +343,7 @@ struct BestAlignmentResult {
   int bestScore;
   int si;
   int rPos;
-  int shift;
+  int qPos;
 };
 
 /** Determine the best alignment by picking the optimal score at the end of the query */
@@ -378,10 +378,13 @@ inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int ro
     }
   }
 
-  int rPos = lastIndexByShift[si] - 1;
   int shift = indexToShift(bandWidth, meanShift, si);
 
-  return BestAlignmentResult{.bestScore = bestScore, .si = si, .rPos = rPos, .shift = shift};
+  // determine position tuple qPos, rPos corresponding to the place in the matrix
+  int rPos = lastIndexByShift[si] - 1;
+  int qPos = rPos - shift;
+
+  return BestAlignmentResult{.bestScore = bestScore, .si = si, .rPos = rPos, .qPos = qPos};
 }
 
 template<typename Letter>
@@ -405,10 +408,9 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   int bestScore = bestAlignment.bestScore;
   int si = bestAlignment.si;
   int rPos = bestAlignment.rPos;
-  int shift = bestAlignment.shift;
+  int qPos = bestAlignment.qPos;
 
-  // determine position tuple qPos, rPos corresponding to the place it the matrix
-  int qPos = rPos - shift;
+
   // add right overhang, i.e. unaligned parts of the query or reference the right end
   if (rPos < refSize - 1) {
     for (int ii = refSize - 1; ii > rPos; ii--) {
