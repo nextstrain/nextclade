@@ -346,6 +346,7 @@ struct BestAlignmentResult {
   int shift;
 };
 
+/** Determine the best alignment by picking the optimal score at the end of the query */
 inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int rowLength, int querySize, int bandWidth,
   int meanShift) {
   const int scoresSize = safe_cast<int>(scores.num_rows());
@@ -358,7 +359,6 @@ inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int ro
   lastScoreByShift.resize(scores.num_rows());
   lastIndexByShift.resize(scores.num_rows());
 
-  // Determine the best alignment by picking the optimal score at the end of the query
   int si = 0;
   int bestScore = 0;
   debug_trace("backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n", rowLength, querySize, scoresSize);
