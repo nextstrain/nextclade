@@ -369,7 +369,7 @@ inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int ro
     const auto& index = lastIndexByShift[i];
     auto& score = lastScoreByShift[i];
 
-    if (index >= 0 && index < scoresSize) {
+    if (index >= 0 && index < rowLength) {
       score = scores(i, index);
       if (score > bestScore) {
         bestScore = score;
