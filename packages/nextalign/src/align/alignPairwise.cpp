@@ -362,9 +362,8 @@ inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int ro
   int bestScore = 0;
   debug_trace("backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n", rowLength, querySize, scoresSize);
   for (int i = 0; i < scoresSize; i++) {
-    const auto is = indexToShift(bandWidth, meanShift, i);
     // Determine the last index
-    lastIndexByShift[i] = std::min(rowLength - 1, querySize + is);
+    lastIndexByShift[i] = std::min(rowLength - 1, querySize + indexToShift(bandWidth, meanShift, i));
 
     const auto& index = lastIndexByShift[i];
     auto& score = lastScoreByShift[i];
