@@ -374,7 +374,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   for (int i = 0; i < scoresSize; i++) {
     const auto is = indexToShift(i);
     // Determine the last index
-    lastIndexByShift[i] = rowLength - 1 < querySize + is ? rowLength - 1 : querySize + is;
+    lastIndexByShift[i] = std::min(rowLength - 1, querySize + is);
 
     if (lastIndexByShift[i]>=0 && lastIndexByShift[i]<scores.num_cols()) {
       // invariant_greater(lastIndexByShift[i], 0);
