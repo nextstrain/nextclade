@@ -343,6 +343,7 @@ struct BestAlignmentResult {
   int bestScore;
   int si;
   int rPos;
+  int shift;
 };
 
 inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int rowLength, int querySize, int bandWidth,
@@ -378,8 +379,9 @@ inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int ro
   }
 
   int rPos = lastIndexByShift[si] - 1;
+  int shift = indexToShift(bandWidth, meanShift, si);
 
-  return BestAlignmentResult{.bestScore = bestScore, .si = si, .rPos = rPos};
+  return BestAlignmentResult{.bestScore = bestScore, .si = si, .rPos = rPos, .shift = shift};
 }
 
 template<typename Letter>
@@ -403,8 +405,8 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   int bestScore = bestAlignment.bestScore;
   int si = bestAlignment.si;
   int rPos = bestAlignment.rPos;
+  int shift = bestAlignment.shift;
 
-  const int shift = indexToShift(bandWidth, meanShift, bestAlignment.si);
   int origin;//NOLINT(cppcoreguidelines-init-variables)
 
   // determine position tuple qPos, rPos corresponding to the place it the matrix
