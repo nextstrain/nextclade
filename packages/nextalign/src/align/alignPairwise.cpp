@@ -356,8 +356,8 @@ inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int ro
 
   std::vector<int> lastScoreByShift;
   std::vector<int> lastIndexByShift;
-  lastScoreByShift.resize(scores.num_rows());
-  lastIndexByShift.resize(scores.num_rows());
+  lastScoreByShift.resize(scoresSize);
+  lastIndexByShift.resize(scoresSize);
 
   int si = 0;
   int bestScore = 0;
