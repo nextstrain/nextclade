@@ -405,7 +405,6 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   aln_query.reserve(rowLength + 3 * bandWidth);
 
   const auto bestAlignment = findBestAlignment(scores, rowLength, querySize, bandWidth, meanShift);
-  int bestScore = bestAlignment.bestScore;
   int si = bestAlignment.si;
   int rPos = bestAlignment.rPos;
   int qPos = bestAlignment.qPos;
@@ -490,7 +489,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
       AlignmentResult<Letter>{
         .query = aln_query,
         .ref = aln_ref,
-        .alignmentScore = bestScore,
+        .alignmentScore = bestAlignment.bestScore,
       },
   };
 }
