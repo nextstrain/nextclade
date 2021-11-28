@@ -65,8 +65,8 @@ namespace Nextclade {
       }
     }
 
-    // Terminate the last range with the last deletion
-    if (!privateDeletionsSorted.empty()) {
+    // Terminate the last range if any (there is an open range if `begin` is set)
+    if (!privateDeletionsSorted.empty() && begin) {
       const auto end = privateDeletionsSorted.back().pos;
       const auto length = end - *begin;
       deletionRanges.emplace_back(
