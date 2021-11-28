@@ -407,8 +407,6 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   int rPos = bestAlignment.rPos;
   int shift = bestAlignment.shift;
 
-  int origin;//NOLINT(cppcoreguidelines-init-variables)
-
   // determine position tuple qPos, rPos corresponding to the place it the matrix
   int qPos = rPos - shift;
   // add right overhang, i.e. unaligned parts of the query or reference the right end
@@ -426,7 +424,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
 
   // do backtrace for aligned region
   while (rPos >= 0 && qPos >= 0) {
-    origin = paths(si, rPos + 1);
+    const int origin = paths(si, rPos + 1);
     // std::cout<<si<<" "<<rPos<<" "<<origin<<" "<<currentMatrix<<"\n";
     if (origin & MATCH && currentMatrix == 0) {
       // match -- decrement both strands and add match to alignment
