@@ -61,7 +61,7 @@ namespace Nextclade {
           begin = std::optional<int>{};
         }
 
-        // Otherwise (deletion is adjacent), extend the existing range (by simply not terminating it)
+        // Otherwise, deletion is adjacent: extend the existing range (by simply not terminating it)
       }
     }
 
