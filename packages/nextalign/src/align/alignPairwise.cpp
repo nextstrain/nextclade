@@ -333,29 +333,21 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
   return {.scores = scores, .paths = paths};
 }
 
-template<typename Letter>
-AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<Letter>& ref,
-  const vector2d<int>& scores, const vector2d<int>& paths, int meanShift) {
-  const int rowLength = safe_cast<int>(scores.num_cols());
+
+inline int indexToShift(int bandWidth, int meanShift, int si) {
+  return si - bandWidth + meanShift;
+}
+
+
+struct BestAlignmentResult {
+  int bestScore;
+  int si;
+  int rPos;
+};
+
+inline BestAlignmentResult findBestAlignment(const vector2d<int>& scores, int rowLength, int querySize, int bandWidth,
+  int meanShift) {
   const int scoresSize = safe_cast<int>(scores.num_rows());
-  const int querySize = safe_cast<int>(query.size());
-  const int refSize = safe_cast<int>(ref.size());
-  const int bandWidth = (scoresSize - 1) / 2;
-  int currentMatrix = 0;
-
-  // TODO: Avoid creating this lambda function
-  const auto indexToShift = [&bandWidth, &meanShift]//
-    (int si) {                                      //
-      return si - bandWidth + meanShift;
-    };
-
-
-  std::vector<std::pair<char, char>> aln;
-  Sequence<Letter> aln_ref;
-  Sequence<Letter> aln_query;
-  aln_ref.reserve(rowLength + 3 * bandWidth);
-  aln_query.reserve(rowLength + 3 * bandWidth);
-
   // const lastIndexByShift = scores.map((d, i) = > Math.min(rowLength - 1, querySize + indexToShift(i)));
   // const lastScoreByShift = scores.map((d, i) = > d[lastIndexByShift[i]]);
 
@@ -370,7 +362,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   int bestScore = 0;
   debug_trace("backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n", rowLength, querySize, scoresSize);
   for (int i = 0; i < scoresSize; i++) {
-    const auto is = indexToShift(i);
+    const auto is = indexToShift(bandWidth, meanShift, i);
     // Determine the last index
     lastIndexByShift[i] = std::min(rowLength - 1, querySize + is);
 
@@ -386,11 +378,37 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
     }
   }
 
-  const int shift = indexToShift(si);
+  int rPos = lastIndexByShift[si] - 1;
+
+  return BestAlignmentResult{.bestScore = bestScore, .si = si, .rPos = rPos};
+}
+
+template<typename Letter>
+AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<Letter>& ref,
+  const vector2d<int>& scores, const vector2d<int>& paths, int meanShift) {
+  const int rowLength = safe_cast<int>(scores.num_cols());
+  const int scoresSize = safe_cast<int>(scores.num_rows());
+  const int querySize = safe_cast<int>(query.size());
+  const int refSize = safe_cast<int>(ref.size());
+  const int bandWidth = (scoresSize - 1) / 2;
+  int currentMatrix = 0;
+
+
+  std::vector<std::pair<char, char>> aln;
+  Sequence<Letter> aln_ref;
+  Sequence<Letter> aln_query;
+  aln_ref.reserve(rowLength + 3 * bandWidth);
+  aln_query.reserve(rowLength + 3 * bandWidth);
+
+  const auto bestAlignment = findBestAlignment(scores, rowLength, querySize, bandWidth, meanShift);
+  int bestScore = bestAlignment.bestScore;
+  int si = bestAlignment.si;
+  int rPos = bestAlignment.rPos;
+
+  const int shift = indexToShift(bandWidth, meanShift, bestAlignment.si);
   int origin;//NOLINT(cppcoreguidelines-init-variables)
 
   // determine position tuple qPos, rPos corresponding to the place it the matrix
-  int rPos = lastIndexByShift[si] - 1;
   int qPos = rPos - shift;
   // add right overhang, i.e. unaligned parts of the query or reference the right end
   if (rPos < refSize - 1) {
