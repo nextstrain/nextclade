@@ -69,8 +69,10 @@ namespace Nextclade {
     if (!privateDeletionsSorted.empty() && begin) {
       const auto end = privateDeletionsSorted.back().pos;
       const auto length = end - *begin;
-      deletionRanges.emplace_back(
-        NucleotideRange{.begin = *begin, .end = end, .length = length, .character = Nucleotide::GAP});
+      if (length > 0) {
+        deletionRanges.emplace_back(
+          NucleotideRange{.begin = *begin, .end = end, .length = length, .character = Nucleotide::GAP});
+      }
     }
 
     return deletionRanges;
