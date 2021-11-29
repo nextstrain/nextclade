@@ -368,17 +368,26 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   // Determine the best alignment by picking the optimal score at the end of the query
   int si = 0;
   int bestScore = 0;
+  debug_trace(
+    "backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n",
+    rowLength, querySize, scoresSize);
   for (int i = 0; i < scoresSize; i++) {
     const auto is = indexToShift(i);
+    // Determine the last index
     lastIndexByShift[i] = rowLength - 1 < querySize + is ? rowLength - 1 : querySize + is;
 
-    invariant_greater(lastIndexByShift[i], 0);
-    invariant_less(lastIndexByShift[i], scores.num_cols());
+    if (lastIndexByShift[i]>=0 && lastIndexByShift[i]<scores.num_cols()) {
+      // invariant_greater(lastIndexByShift[i], 0);
+      // invariant_less(lastIndexByShift[i], scores.num_cols());
+      // debug_trace(
+      //   "backtrace: i={:}, is={:}, lastIndexByShift={:}, bestScore={:}, score={:}\n",
+      //   i, is, lastIndexByShift[i], bestScore, scores(i, lastIndexByShift[i]));
 
-    lastScoreByShift[i] = scores(i, lastIndexByShift[i]);
-    if (lastScoreByShift[i] > bestScore) {
-      bestScore = lastScoreByShift[i];
-      si = i;
+      lastScoreByShift[i] = scores(i, lastIndexByShift[i]);
+      if (lastScoreByShift[i] > bestScore) {
+        bestScore = lastScoreByShift[i];
+        si = i;
+      }
     }
   }
 
