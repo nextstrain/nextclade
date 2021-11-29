@@ -152,7 +152,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShift) {
   const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("-XXX-I*");
+  const auto peptideExpected = toAminoacidSequence("-XXXXI*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -160,9 +160,9 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShift) {
     .geneName = "Gene1",
     .nucRel = {.begin = 5, .end = 13},
     .nucAbs = {.begin = 14, .end = 22},
-    .codon = {.begin = 1, .end = 4},
+    .codon = {.begin = 1, .end = 5},
     .gapsLeading = {.codon = {.begin = 1, .end = 1}},
-    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
+    .gapsTrailing = {.codon = {.begin = 5, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -187,7 +187,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithPriorInsertion) {
   const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("-XXX-I*");
+  const auto peptideExpected = toAminoacidSequence("-XXXXI*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -195,9 +195,9 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithPriorInsertion) {
     .geneName = "Gene1",
     .nucRel = {.begin = 5, .end = 13},
     .nucAbs = {.begin = 14, .end = 22},
-    .codon = {.begin = 1, .end = 4},
+    .codon = {.begin = 1, .end = 5},
     .gapsLeading = {.codon = {.begin = 1, .end = 1}},
-    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
+    .gapsTrailing = {.codon = {.begin = 5, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
@@ -227,7 +227,7 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithInsertion) {
   const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
 
   const auto peptideActual = peptides.queryPeptides[0].seq;
-  const auto peptideExpected = toAminoacidSequence("--XX-I*");
+  const auto peptideExpected = toAminoacidSequence("--XXXI*");
   EXPECT_EQ(peptideActual, peptideExpected);
 
   const auto frameShiftResult = peptides.queryPeptides[0].frameShiftResults[0];
@@ -235,9 +235,9 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithInsertion) {
     .geneName = "Gene1",
     .nucRel = {.begin = 6, .end = 14},
     .nucAbs = {.begin = 15, .end = 22},
-    .codon = {.begin = 2, .end = 4},
+    .codon = {.begin = 2, .end = 5},
     .gapsLeading = {.codon = {.begin = 1, .end = 2}},
-    .gapsTrailing = {.codon = {.begin = 4, .end = 5}},
+    .gapsTrailing = {.codon = {.begin = 5, .end = 5}},
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }

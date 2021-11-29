@@ -55,7 +55,7 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
 
 template<typename Letter>
 ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& ref,
-  const std::vector<int>& gapOpenClose, int bandWidth, int meanShift,
+  const std::vector<int>& gapOpenClose, const int bandWidth, const int meanShift,
   const NextalignAlignmentOptions& alignmentOptions);
 
 template<typename Letter>
@@ -68,4 +68,4 @@ NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const N
 
 AminoacidAlignmentStatus alignPairwise(const AminoacidSequence& query, const AminoacidSequence& ref,
   const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
-  const NextalignSeedOptions& seedOptions);
+  const NextalignSeedOptions& seedOptions, const int bandWidth, const int shift);
