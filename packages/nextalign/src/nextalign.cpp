@@ -1,6 +1,8 @@
 #include <nextalign/nextalign.h>
 #include <utils/concat_move.h>
 
+#include <algorithm>
+
 #include "align/alignPairwise.h"
 #include "align/getGapOpenCloseScores.h"
 #include "strip/stripInsertions.h"
@@ -47,6 +49,9 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
     throw ErrorNonFatal(*alignmentStatus.error);
   }
 
+  const auto stripped = stripInsertions(alignmentStatus.result->ref, alignmentStatus.result->query);
+  const auto refStripped = removeGaps(ref);
+
   std::vector<PeptideInternal> queryPeptides;
   Warnings warnings;
   if (!geneMap.empty()) {
@@ -56,9 +61,6 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
     concat_move(peptidesInternal.warnings.global, warnings.global);
     concat_move(peptidesInternal.warnings.inGenes, warnings.inGenes);
   }
-
-  const auto stripped = stripInsertions(alignmentStatus.result->ref, alignmentStatus.result->query);
-  const auto refStripped = removeGaps(ref);
 
   return NextalignResultInternal{
     .query = stripped.queryStripped,

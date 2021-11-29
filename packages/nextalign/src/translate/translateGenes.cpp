@@ -17,9 +17,16 @@
 #include "./mapCoordinates.h"
 #include "./translate.h"
 #include "align/alignPairwise.h"
+#include "align/alignmentParams.h"
 #include "detectFrameShifts.h"
 #include "removeGaps.h"
 
+namespace {
+  template<typename T>
+  inline T copy(const T& t) {
+    return T(t);
+  }
+}// namespace
 
 void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
   const std::vector<InternalFrameShiftResultWithMask>& frameShifts) {
@@ -116,7 +123,23 @@ PeptidesInternal translateGenes(                               //
     }
 
     auto& refGeneSeq = *extractRefGeneStatus.result;
+    const auto refGapCounts = countGaps(refGeneSeq);
+
     auto& queryGeneSeq = *extractQueryGeneStatus.result;
+    const auto queryGeneSize = safe_cast<int>(queryGeneSeq.size());
+
+    const auto queryGapCounts = countGaps(queryGeneSeq);
+    const bool queryIsAllGaps = queryGapCounts.total >= queryGeneSize;
+
+    // Handle the case when the query gene is completely missing
+    if (queryGeneSeq.empty() || queryIsAllGaps) {
+      const auto message = fmt::format(
+        "When processing gene \"{:s}\": The gene consists entirely from gaps. "
+        "Note that this gene will not be included in the results of the sequence.",
+        geneName);
+      warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
+      continue;
+    }
 
     // Make sure subsequent gap stripping does not introduce frame shift
     protectFirstCodonInPlace(refGeneSeq);
@@ -134,9 +157,11 @@ PeptidesInternal translateGenes(                               //
     debug_trace("Translating gene '{:}'\n", geneName);
     const auto queryPeptide = translate(queryGeneSeq, options.translatePastStop);
 
+
     debug_trace("Aligning peptide '{:}'\n", geneName);
-    const auto geneAlignmentStatus =
-      alignPairwise(queryPeptide, refPeptide->peptide, gapOpenCloseAA, options.alignment, options.seedAa);
+    const AlignmentParams alignmentParams = calculateAaAlignmentParams(queryGapCounts, refGapCounts);
+    const auto geneAlignmentStatus = alignPairwise(queryPeptide, refPeptide->peptide, gapOpenCloseAA, options.alignment,
+      options.seedAa, alignmentParams.bandWidth, alignmentParams.shift);
 
     if (geneAlignmentStatus.status != Status::Success) {
       const auto message = fmt::format(

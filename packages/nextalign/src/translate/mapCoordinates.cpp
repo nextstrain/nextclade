@@ -27,8 +27,12 @@ namespace {
     int refPos = 0;
     for (int i = 0; i < alnLength; ++i) {
       if (ref[i] == Nucleotide::GAP) {
-        const auto& prev = revCoordMap.back();
-        revCoordMap.push_back(prev);
+        if (revCoordMap.empty()) {
+          revCoordMap.push_back(0);
+        } else {
+          const auto& prev = revCoordMap.back();
+          revCoordMap.push_back(prev);
+        }
       } else {
         revCoordMap.push_back(refPos);
         ++refPos;
@@ -91,15 +95,21 @@ int CoordinateMapper::refToAln(int refPos) const {
 }
 
 Range CoordinateMapper::alnToRef(const Range& alnRange) const {
-  return Range{
+  precondition_less(alnRange.begin, alnRange.end);
+  const Range refRange{
     .begin = alnToRef(alnRange.begin),
     .end = alnToRef(alnRange.end),
   };
+  postcondition_less(refRange.begin, refRange.end);
+  return refRange;
 }
 
 Range CoordinateMapper::refToAln(const Range& refRange) const {
-  return Range{
+  precondition_less(refRange.begin, refRange.end);
+  const Range alnRange{
     .begin = refToAln(refRange.begin),
     .end = refToAln(refRange.end),
   };
+  postcondition_less(alnRange.begin, alnRange.end);
+  return alnRange;
 }
