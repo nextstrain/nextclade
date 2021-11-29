@@ -30,6 +30,7 @@
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 
+#include <algorithm>
 #include <map>
 #include <vector>
 
@@ -40,6 +41,7 @@
 #include "../utils/eraseDuplicates.h"
 #include "../utils/filter.h"
 #include "../utils/mapFind.h"
+#include "../utils/range.h"
 
 
 namespace Nextclade {
@@ -60,6 +62,19 @@ namespace Nextclade {
     bool isSequencedGeneric(int /*pos*/, const AnalysisResult& /*seq*/, LetterTag<Aminoacid>) {
       // For aminoacid sequences there is no concept of being not sequences currently. They are always sequenced.
       return true;
+    }
+
+    /** Check if this position is included into one of the ranges with unknown aminoacids (aminoacid `X`) */
+    bool isUnknownAa(int pos, const std::vector<GeneAminoacidRange>& unknownAaRanges) {
+      // If in any of the genes
+      // (should be only 1 gene at this point, but there might be multiple entries for same gene)...
+      return std::any_of(unknownAaRanges.cbegin(), unknownAaRanges.end(), [pos](const GeneAminoacidRange& geneUnk) {
+        // ...if any of the unknown AA ranges within that gene...
+        return std::any_of(geneUnk.ranges.cbegin(), geneUnk.ranges.end(), [pos](const AminoacidRange& unk) {
+          // ...includes the given position, then this position contains an unknown aminoacid
+          return inRange(pos, Range{unk.begin, unk.end});
+        });
+      });
     }
 
 
@@ -317,8 +332,26 @@ namespace Nextclade {
       const auto aaDeletions =
         filter(seq.aaDeletions, [&geneName](const AminoacidDeletion& aaDel) { return aaDel.gene == geneName; });
 
-      result[geneName] =
+      const auto unknownAaRanges =
+        filter(seq.unknownAaRanges, [&geneName](const GeneAminoacidRange& unk) { return unk.geneName == geneName; });
+
+      auto resultForGene =
         findPrivateMutations<Aminoacid>(nodeMutMapForGene, seq, aaSubstitutions, aaDeletions, refPeptide);
+
+      // Filter out substitutions and deletions from results, where positions fall into ranges with
+      // aminoacid X in query peptide.
+      // In these cases the information is simply missing from the query and in the `processNodeMutations()` above
+      // if a substitution or a deletion is missing from query, but present in the node, a reversion is added to the
+      // results (a mutation from the node all the way to what was in the ref seq). We chose to remove these,
+      // because we believe that a reversion is a less likely event and most of these are the sequencing errors
+      // followed by uncertainty in translation.
+      resultForGene.privateSubstitutions = filter(resultForGene.privateSubstitutions,
+        [&unknownAaRanges](const AminoacidSubstitutionSimple& sub) { return !isUnknownAa(sub.pos, unknownAaRanges); });
+
+      resultForGene.privateDeletions = filter(resultForGene.privateDeletions,
+        [&unknownAaRanges](const AminoacidDeletionSimple& del) { return !isUnknownAa(del.pos, unknownAaRanges); });
+
+      result[geneName] = resultForGene;
     }
 
     return result;
