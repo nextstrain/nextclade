@@ -47,8 +47,8 @@ TEST(AlignmentParams, QueryHasOnlyInternalGaps) {
   EXPECT_EQ(6, queryGapCounts.total);
 
   const auto alignmentParams = calculateAaAlignmentParams(queryGapCounts, refGapCounts);
-  EXPECT_EQ(5, alignmentParams.bandWidth);
-  EXPECT_EQ(2, alignmentParams.shift);
+  EXPECT_EQ(7, alignmentParams.bandWidth);
+  EXPECT_EQ(1, alignmentParams.shift);
 }
 
 
@@ -67,8 +67,8 @@ TEST(AlignmentParams, QueryHasLeadingInternalAndTrailingGaps) {
   EXPECT_EQ(16, queryGapCounts.total);
 
   const auto alignmentParams = calculateAaAlignmentParams(queryGapCounts, refGapCounts);
-  EXPECT_EQ(5, alignmentParams.bandWidth);
-  EXPECT_EQ(3, alignmentParams.shift);
+  EXPECT_EQ(7, alignmentParams.bandWidth);
+  EXPECT_EQ(2, alignmentParams.shift);
 }
 
 
@@ -87,8 +87,8 @@ TEST(AlignmentParams, QueryHasLeadingInternalAndTrailingGapsNonContiguous) {
   EXPECT_EQ(16, queryGapCounts.total);
 
   const auto alignmentParams = calculateAaAlignmentParams(queryGapCounts, refGapCounts);
-  EXPECT_EQ(5, alignmentParams.bandWidth);
-  EXPECT_EQ(3, alignmentParams.shift);
+  EXPECT_EQ(7, alignmentParams.bandWidth);
+  EXPECT_EQ(2, alignmentParams.shift);
 }
 
 
@@ -113,6 +113,6 @@ TEST(AlignmentParams, GeneralCase) {
   EXPECT_EQ(16, queryGapCounts.total);
 
   const auto alignmentParams = calculateAaAlignmentParams(queryGapCounts, refGapCounts);
-  EXPECT_EQ(5, alignmentParams.bandWidth);
-  EXPECT_EQ(3, alignmentParams.shift);
+  EXPECT_EQ(10, alignmentParams.bandWidth);
+  EXPECT_EQ(1, alignmentParams.shift);
 }
