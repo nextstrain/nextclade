@@ -13,7 +13,8 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(CLI11 1.9.1 REQUIRED)
-find_package(TBB REQUIRED)
+find_package(MPMCQueue 1.0 REQUIRED)
+find_package(ThreadPool 20140926 REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(date 3.0.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
@@ -102,7 +103,8 @@ target_link_libraries(${PROJECT_NAME}
   ${STATIC_BUILD_FLAGS}
   Boost::headers
   CLI11::CLI11
-  TBB::tbb
+  ThreadPool::ThreadPool
+  MPMCQueue::MPMCQueue
   cxxopts::cxxopts
   date::date
   fmt::fmt-header-only

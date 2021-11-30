@@ -13,7 +13,8 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(Microsoft.GSL 3.1.0 REQUIRED)
-find_package(TBB REQUIRED)
+find_package(MPMCQueue 1.0 REQUIRED)
+find_package(ThreadPool 20140926 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
 find_package(semver 0.3.0 REQUIRED)
@@ -93,7 +94,8 @@ target_link_libraries(${PROJECT_NAME}
   Microsoft.GSL::GSL
   fmt::fmt-header-only
   semver::semver
-  TBB::tbb
+  ThreadPool::ThreadPool
+  MPMCQueue::MPMCQueue
   CURL::libcurl
   OpenSSL::OpenSSL
   ZLIB::ZLIB

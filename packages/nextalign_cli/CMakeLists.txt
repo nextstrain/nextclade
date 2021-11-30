@@ -12,7 +12,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
-find_package(TBB REQUIRED)
+find_package(MPMCQueue 1.0 REQUIRED)
+find_package(ThreadPool 20140926 REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
 find_package(ghcFilesystem 1.4.0 REQUIRED)
@@ -26,7 +27,7 @@ if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
     set(DEPENDENCIES
       ${DEPENDENCIES}
       jemalloc::jemalloc
-    )
+      )
   endif ()
 endif ()
 
@@ -82,7 +83,8 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
   ${STATIC_BUILD_FLAGS}
   Boost::headers
-  TBB::tbb
+  ThreadPool::ThreadPool
+  MPMCQueue::MPMCQueue
   cxxopts::cxxopts
   fmt::fmt-header-only
   ghcFilesystem::ghc_filesystem

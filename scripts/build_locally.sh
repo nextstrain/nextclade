@@ -127,11 +127,11 @@ INSTALL_DIR="${PROJECT_ROOT_DIR}/.out"
 
 NEXTALIGN_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
 NEXTALIGN_BUILD_BENCHMARKS=${NEXTALIGN_BUILD_BENCHMARKS:=0}
-NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=1}
-NEXTCLADE_BUILD_CLI=${NEXTALIGN_BUILD_CLI:=1}
+NEXTALIGN_BUILD_TESTS=${NEXTALIGN_BUILD_TESTS:=0}
+NEXTCLADE_BUILD_CLI=${NEXTCLADE_BUILD_CLI:=0}
 #NEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS:=0}
-NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=1}
-NEXTCLADE_CLI_BUILD_TESTS=${NEXTCLADE_CLI_BUILD_TESTS:=1}
+NEXTCLADE_BUILD_TESTS=${NEXTCLADE_BUILD_TESTS:=0}
+NEXTCLADE_CLI_BUILD_TESTS=${NEXTCLADE_CLI_BUILD_TESTS:=0}
 
 CONAN_ARCH_SETTINGS="-s arch=${HOST_ARCH}"
 if [ "${HOST_OS}" == "MacOS" ] && [ "${HOST_ARCH}" == "arm64" ]; then
@@ -843,19 +843,19 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
       eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
     fi
 
-    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
-      if [ ! -d "${DATA_DIR}" ]; then
-        print 27 "Download Nextclade dataset";
-        ${NEXTCLADE_CLI} dataset get --name="sars-cov-2" --output-dir="${DATA_DIR}" || cd .
-      fi
+#    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
+#      if [ ! -d "${DATA_DIR}" ]; then
+#        print 27 "Download Nextclade dataset";
+#        ${NEXTCLADE_CLI} dataset get --name="sars-cov-2" --output-dir="${DATA_DIR}" || cd .
+#      fi
+#
+#      print 27 "Run Nextclade CLI";
+#     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+#    fi
 
-      print 27 "Run Nextclade CLI";
-     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
-    fi
-
-    print 25 "Validate CSV/TSV outputs";
-    ./scripts/csv-validator.sh
-    ./scripts/csvlint.sh
+#    print 25 "Validate CSV/TSV outputs";
+#    ./scripts/csv-validator.sh
+#    ./scripts/csvlint.sh
     fi
 
   print 22 "Done";

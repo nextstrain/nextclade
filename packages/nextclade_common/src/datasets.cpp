@@ -5,7 +5,6 @@
 #include <nextclade_common/fetch.h>
 #include <nextclade_common/openOutputFile.h>
 #include <nextclade_json/nextclade_json.h>
-#include <tbb/task_group.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -137,18 +136,18 @@ namespace Nextclade {
   }
 
   void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir) {
-    tbb::task_group taskGroup;
-
-    for (const auto& fileEntry : version.files) {
-      taskGroup.run([outDir, fileEntry = std::move(fileEntry)] {
-        const auto& url = fileEntry.second;
-        auto filename = getFilenameFromUrl(url);
-        auto content = fetch(url);
-        writeFile(fs::path(outDir) / filename, content);
-      });
-    }
-
-    taskGroup.wait();
+//    tbb::task_group taskGroup;
+//
+//    for (const auto& fileEntry : version.files) {
+//      taskGroup.run([outDir, fileEntry = std::move(fileEntry)] {
+//        const auto& url = fileEntry.second;
+//        auto filename = getFilenameFromUrl(url);
+//        auto content = fetch(url);
+//        writeFile(fs::path(outDir) / filename, content);
+//      });
+//    }
+//
+//    taskGroup.wait();
   }
 
   std::vector<Dataset> getEnabledDatasets(const std::vector<Dataset>& datasets) {

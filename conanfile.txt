@@ -8,14 +8,15 @@ date/3.0.1
 fast-cpp-csv-parser/20191004
 fmt/8.0.1
 ghc-filesystem/1.4.0
-gtest/1.10.0
+gtest/1.11.0
 jemalloc/5.2.1@local/stable
 libcurl/7.77.0@local/stable
+mpmcqueue/1.0
 ms-gsl/3.1.0
 neargye-semver/0.3.0
 openssl/1.1.1k@local/stable
 poco/1.11.0@local/stable
-tbb/2021.3.0@local/stable
+threadpool/20140926
 zlib/1.2.11@local/stable
 
 [generators]

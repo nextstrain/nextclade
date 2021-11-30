@@ -1,18 +1,25 @@
+#include <ThreadPool/ThreadPool.h>
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
+#include <rigtorp/MPMCQueue.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <condition_variable>
 #include <cxxopts.hpp>
 #include <fstream>
+#include <future>
+#include <mutex>
 #include <thread>
+#include <vector>
 
 #include "Logger.h"
 #include "description.h"
 #include "filesystem.h"
 #include "malloc_conf.h"
 #include "utils/safe_cast.h"
+
 
 struct CliParams {
   int jobs{};
@@ -784,13 +791,153 @@ public:
   }
 
   void runConcurrently(int parallelism, bool inOrder) {
-    // TODO: implement concurrency
-    std::optional<AlgorithmInput> input = readInput();
-    while (input) {
-      const auto output = runAlgorithm(*input);
-      writeOutput(output);
-      input = readInput();
+    constexpr int INPUT_QUEUE_SIZE = 10;
+    constexpr int OUTPUT_QUEUE_SIZE = 10;
+
+    const int numWorkers = parallelism;
+
+
+    bool isReaderThreadDone = false;
+    bool areAlgorithmThreadsDone = false;
+
+    std::mutex inputMutex;
+    std::condition_variable inputCond;
+    rigtorp::mpmc::Queue<AlgorithmInput> inputQueue(INPUT_QUEUE_SIZE);
+
+    std::mutex outputMutex;
+    std::condition_variable outputCond;
+    rigtorp::mpmc::Queue<AlgorithmOutput> outputQueue(OUTPUT_QUEUE_SIZE);
+
+    // Schedule 1 input reader
+    auto readerThread = std::thread([this, &inputQueue, &inputCond]() {
+      // fmt::print("reader start\n");
+      std::optional<AlgorithmInput> input = readInput();
+      int i = 0;
+      while (input) {
+        // Attempt to push the newly produced input and block if the input queue is full, waiting until there's room
+        // fmt::print("reader push: {:2d}\n", i);
+        inputQueue.emplace(std::move(*input));
+        inputCond.notify_one();
+        input = readInput();
+        ++i;
+      }
+      // fmt::print("reader done\n");
+    });
+
+
+    // Schedule desired number of algorithm workers
+    std::vector<std::thread> algorithmThreads;
+    algorithmThreads.reserve(numWorkers);
+    for (int i = 0; i < numWorkers; ++i) {
+      algorithmThreads.emplace_back(
+        std::thread([this, &inputQueue, &outputQueue, &isReaderThreadDone, i, &inputMutex, &inputCond, &outputCond]() {
+          // fmt::print("worker {:2d} start\n", i);
+
+          // While reader is not done and is still pushing new items into the input queue
+          while (true) {
+            // Attempt to pop an item from input queue and block if there isn't any, waiting until new items appear
+            // fmt::print("worker {:2d} pop: start\n", i);
+
+            AlgorithmInput input;
+            bool hasItem = false;
+
+            {
+              std::unique_lock<std::mutex> lock(inputMutex);
+              inputCond.wait(lock, [&hasItem, &inputQueue, &input, &isReaderThreadDone]() {
+                hasItem = inputQueue.try_pop(input);
+                auto shouldContinue = hasItem || isReaderThreadDone;
+                return shouldContinue;
+              });
+            }
+
+            if (!hasItem) {
+              break;
+            }
+
+            // fmt::print("worker {:2d} pop: ok\n", i);
+
+            auto output = runAlgorithm(input);
+
+            // Attempt to push the result and block if the output queue is full, waiting until there's room
+            // fmt::print("worker {:2d} push1: start\n", i);
+            outputQueue.emplace(std::move(output));
+            outputCond.notify_one();
+            // fmt::print("worker {:2d} push1: ok\n", i);
+          }
+
+          // fmt::print("worker {:2d} done\n", i);
+        }));
     }
+
+
+    // Schedule 1 output writer
+    auto writerThread = std::thread([this, &outputQueue, &areAlgorithmThreadsDone, &outputMutex, &outputCond]() {
+      // fmt::print("writer start\n");
+
+      // While algorithm workers are not done and are still pushing new items into the output queue
+      while (true) {
+
+        // fmt::print("writer pop: start\n");
+
+        // Wait until condition variable is notified and attempt to pop an item from output queue.
+        // One of the following is possible:
+        //  - there was an item in the queue, and we popped it => proceed, process the item
+        //  - there were no items in the queue and algorithm threads are still running => continue waiting
+        //  - there were no items in the queue and algorithm threads are done => proceed, we are done
+        bool hasItem = false;
+        AlgorithmOutput output;
+        {
+          std::unique_lock<std::mutex> lock(outputMutex);
+          outputCond.wait(lock, [&outputQueue, &output, &hasItem, &areAlgorithmThreadsDone]() {
+            hasItem = outputQueue.try_pop(output);
+            auto shouldContinue = hasItem || areAlgorithmThreadsDone;
+            return shouldContinue;
+          });
+        }
+
+        // If we are here (after the conditional variable wait) and there are no items, then it must be that algorithm
+        // threads are done and there will be no more items, so we are done too.
+        if (!hasItem) {
+          break;
+        }
+
+        // If we are here, then there was an item. Process it and continue iteration.
+        // fmt::print("writer pop: ok\n");
+        writeOutput(output);
+      }
+
+      // fmt::print("writer done\n");
+    });
+
+
+    // Wait until reader is done
+    readerThread.join();
+
+    // fmt::print("after readerThread.join()\n");
+
+    // Signal that reader is done and that there will be no more new items pushed into the input queue
+    {
+      std::unique_lock<std::mutex> lock(inputMutex);
+      isReaderThreadDone = true;
+      inputCond.notify_all();
+    }
+
+    // Wait until all workers are done
+    for (auto &algorithmThread : algorithmThreads) {
+      algorithmThread.join();
+    }
+
+    // fmt::print("after algorithmThread.join()\n");
+
+    // Signal that workers are done and that there will be no more new items pushed into the output queue
+    {
+      std::unique_lock<std::mutex> lock(outputMutex);
+      areAlgorithmThreadsDone = true;
+      outputCond.notify_all();
+    }
+
+    // Wait until writer is done
+    writerThread.join();
   }
 };
 
@@ -916,9 +1063,9 @@ int main(int argc, char *argv[]) {
         outputErrorsFile, outputGeneFiles, shouldWriteReference, logger);
 
       if (parallelism > 1) {
-        nextalign.runSequentially();
-      } else {
         nextalign.runConcurrently(parallelism, inOrder);
+      } else {
+        nextalign.runSequentially();
       }
 
     } catch (const std::exception &e) {
