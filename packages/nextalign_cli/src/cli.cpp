@@ -677,9 +677,6 @@ class Nextalign {
 
   /** Reads contents of the input stream, parses it and and returns next parsed sequence */
   std::optional<AlgorithmInput> readInput() {
-    if (!inputFastaStream->good()) {
-      return std::optional<AlgorithmInput>{};
-    }
     return inputFastaStream->next();
   }
 
@@ -791,8 +788,8 @@ public:
   }
 
   void runConcurrently(int parallelism, bool inOrder) {
-    constexpr int INPUT_QUEUE_SIZE = 10;
-    constexpr int OUTPUT_QUEUE_SIZE = 10;
+    constexpr int INPUT_QUEUE_SIZE = 100;
+    constexpr int OUTPUT_QUEUE_SIZE = 100;
 
     const int numWorkers = parallelism;
 
@@ -812,12 +809,20 @@ public:
     auto readerThread = std::thread([this, &inputQueue, &inputCond]() {
       // fmt::print("reader start\n");
       std::optional<AlgorithmInput> input = readInput();
+      //      AlgorithmInput foo = *input;
+
       int i = 0;
       while (input) {
+
+        //        if (i == 10000) {
+        //          break;
+        //        }
+
         // Attempt to push the newly produced input and block if the input queue is full, waiting until there's room
         // fmt::print("reader push: {:2d}\n", i);
         inputQueue.emplace(std::move(*input));
         inputCond.notify_one();
+        //        input = foo;
         input = readInput();
         ++i;
       }

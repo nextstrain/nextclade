@@ -2,9 +2,13 @@
 #include <nextalign/nextalign.h>
 
 #include <boost/algorithm/string.hpp>
+#include <cstdio>
 #include <map>
 #include <regex>
 #include <utility>
+
+#include "kseq.h"
+KSEQ_INIT(int, read)
 
 namespace {
   using regex = std::regex;
@@ -52,42 +56,22 @@ auto sanitizeSequence(std::string seq) {
 
 
 class FastaStreamImpl : public FastaStream {
-  std::istream& istream;
-  std::string filename;
-  std::map<std::string, int> seqNames;
-
-  int currentIndex = 0;
-  std::string currentSeqName;
-  std::string currentSeq;
-
-  /**
-   * Keeps track of sequence names for deduplication
-   * and prepares (seqName, seq) entry for returning as the next element of the stream.
-   */
-  AlgorithmInput prepareResult() {
-    if (currentSeqName.empty()) {
-      currentSeqName = "Untitled";
-    }
-
-    auto it = seqNames.find(currentSeqName);
-    if (it != seqNames.end()) {
-      const auto nameCount = it->second;
-      currentSeqName = fmt::format("{:s} ({:d})", currentSeqName, nameCount);
-      it->second += 1;
-    } else {
-      seqNames.emplace(currentSeqName, 1);
-    }
-
-    return {.index = currentIndex, .seqName = currentSeqName, .seq = sanitizeSequence(currentSeq)};
-  }
-
+  FILE* fp = nullptr;
+  kseq_t* kseq = nullptr;
+  bool isDone = false;
+  int index = 0;
 
 public:
   FastaStreamImpl() = delete;
 
-  explicit FastaStreamImpl(std::istream& is, std::string fileName) : istream(is), filename(std::move(fileName)) {}
+  explicit FastaStreamImpl(std::istream& is, std::string fileName)
+      : fp(fopen(fileName.c_str(), "re")),
+        kseq(kseq_init(fileno(fp))) {}
 
-  ~FastaStreamImpl() override = default;
+  ~FastaStreamImpl() override {
+    kseq_destroy(kseq);
+    fclose(fp);
+  }
 
   FastaStreamImpl(const FastaStreamImpl& other) = delete;
 
@@ -99,41 +83,25 @@ public:
 
 
   [[nodiscard]] bool good() const override {
-    return istream.good();
+    return isDone;
   }
 
 
-  AlgorithmInput next() override {
-    if (!good()) {
-      throw ErrorFastaStreamIllegalNextCall(filename);
+  std::optional<AlgorithmInput> next() override {
+    isDone = kseq_read(kseq) < 0;
+    if (!kseq || isDone) {
+      return {};
     }
 
-    std::string line;
-    while (std::getline(istream, line)) {
-      line = sanitizeLine(line);
+    const AlgorithmInput result{
+      .index = index,
+      .seqName = std::string{kseq->name.s},
+      .seq = std::string{kseq->seq.s},
+    };
 
-      if (boost::starts_with(line, ">")) {
-        if (!currentSeq.empty()) {
-          auto result = prepareResult();
-          ++currentIndex;
-          currentSeq = "";
-          currentSeqName = sanitizeSequenceName(line);
-          return result;
-        }
+    ++index;
 
-        currentSeqName = sanitizeSequenceName(line);
-        currentSeq = "";
-
-      } else if (!line.empty()) {
-        currentSeq += line;
-      }
-    }
-
-    if (!currentSeq.empty()) {
-      return prepareResult();
-    }
-
-    throw ErrorFastaStreamInvalidState(filename);
+    return result;
   }
 };
 
@@ -145,8 +113,11 @@ std::vector<AlgorithmInput> parseSequences(std::istream& istream, std::string fi
   std::vector<AlgorithmInput> seqs;
 
   auto fastaStream = makeFastaStream(istream, std::move(filename));
-  while (fastaStream->good()) {
-    seqs.emplace_back(fastaStream->next());
+
+  std::optional<AlgorithmInput> input = fastaStream->next();
+  while (input) {
+    seqs.emplace_back(std::move(*input));
+    input = fastaStream->next();
   }
 
   return seqs;

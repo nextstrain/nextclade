@@ -358,7 +358,7 @@ public:
   [[nodiscard]] virtual bool good() const = 0;
 
   /** Retrieves the next sequence in the stream */
-  virtual AlgorithmInput next() = 0;
+  virtual std::optional<AlgorithmInput> next() = 0;
 };
 
 /** Creates an instance of fasta stream, given a file or string stream */
