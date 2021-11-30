@@ -1,18 +1,18 @@
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
-#include <tbb/global_control.h>
-#include <tbb/parallel_pipeline.h>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <cxxopts.hpp>
 #include <fstream>
+#include <thread>
 
 #include "Logger.h"
 #include "description.h"
 #include "filesystem.h"
 #include "malloc_conf.h"
+#include "utils/safe_cast.h"
 
 struct CliParams {
   int jobs{};
@@ -655,127 +655,145 @@ void writeReference(                                           //
   }
 }
 
-/**
- * Runs nextalign algorithm in a parallel pipeline
- */
-void run(
-  /* in  */ int parallelism,
-  /* in  */ bool inOrder,
-  /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
-  /* in  */ const ReferenceSequenceData &refData,
-  /* in  */ const GeneMap &geneMap,
-  /* in  */ const NextalignOptions &options,
-  /* out */ std::ostream &outputFastaStream,
-  /* out */ std::ostream &outputInsertionsStream,
-  /* out */ std::ostream &outputErrorsFile,
-  /* out */ std::map<std::string, std::ofstream> &outputGeneStreams,
-  /* in */ bool shouldWriteReference,
-  /* out */ Logger &logger) {
-  tbb::task_group_context context;
-  const auto ioFiltersMode = inOrder ? tbb::filter_mode::serial_in_order : tbb::filter_mode::serial_out_of_order;
+class Nextalign {
+  std::unique_ptr<FastaStream> &inputFastaStream;
+  const GeneMap &geneMap;
+  const NextalignOptions &options;
+  std::ostream &outputFastaStream;
+  std::ostream &outputInsertionsStream;
+  std::ostream &outputErrorsFile;
+  std::map<std::string, std::ofstream> &outputGeneStreams;
+  Logger &logger;
+  const NucleotideSequence ref;
+  const std::string refName;
+  std::map<std::string, RefPeptideInternal> refPeptides;
 
-  const auto &ref = refData.seq;
-  const auto &refName = refData.name;
-
-  const auto refPeptides = translateGenesRef(ref, geneMap, options);
-
-  if (shouldWriteReference) {
-    writeReference(refName, ref, refPeptides, outputFastaStream, outputGeneStreams);
+  /** Reads contents of the input stream, parses it and and returns next parsed sequence */
+  std::optional<AlgorithmInput> readInput() {
+    if (!inputFastaStream->good()) {
+      return std::optional<AlgorithmInput>{};
+    }
+    return inputFastaStream->next();
   }
 
-  /** Input filter is a serial input filter function, which accepts an input stream,
-   * reads and parses the contents of it, and returns parsed sequences */
-  const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(ioFiltersMode,//
-    [&inputFastaStream](tbb::flow_control &fc) -> AlgorithmInput {
-      if (!inputFastaStream->good()) {
-        fc.stop();
-        return {};
-      }
+  /** Runs algorithm for 1 sequence */
+  AlgorithmOutput runAlgorithm(const AlgorithmInput &input) {
+    try {
+      const auto query = toNucleotideSequence(input.seq);
+      const auto result = nextalign(query, ref, refPeptides, geneMap, options);
+      return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
+    } catch (const std::exception &e) {
+      const auto &error = std::current_exception();
+      return {.index = input.index, .seqName = input.seqName, .hasError = true, .result = {}, .error = error};
+    }
+  }
 
-      return inputFastaStream->next();
-    });
+  /** Writes outputs for 1 result */
+  void writeOutput(const AlgorithmOutput &output) {
+    const auto index = output.index;
+    const auto &seqName = output.seqName;
 
-
-  /** A set of parallel transform filter functions, each accepts a parsed sequence from the input filter,
-   * runs nextalign algorithm sequentially and returning its result.
-   * The number of filters is determined by the `--jobs` CLI argument */
-  const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter_mode::parallel,//
-    [&ref, &refPeptides, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
+    const auto &error = output.error;
+    if (error) {
       try {
-        const auto query = toNucleotideSequence(input.seq);
-        const auto result = nextalign(query, ref, refPeptides, geneMap, options);
-        return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
+        std::rethrow_exception(error);
       } catch (const std::exception &e) {
-        const auto &error = std::current_exception();
-        return {.index = input.index, .seqName = input.seqName, .hasError = true, .result = {}, .error = error};
+        logger.warn("Warning: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.",
+          seqName, e.what());
+        outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, e.what(), "", "<<ALL>>");
+        return;
       }
-    });
+    }
 
-  /** Output filter is a serial ordered filter function which accepts the results from transform filters,
-   * one at a time, displays and writes them to output streams */
-  const auto outputFilter = tbb::make_filter<AlgorithmOutput, void>(ioFiltersMode,//
-    [&outputFastaStream, &outputInsertionsStream, &outputErrorsFile, &outputGeneStreams, &logger](
-      const AlgorithmOutput &output) {
-      const auto index = output.index;
-      const auto &seqName = output.seqName;
+    const auto &queryAligned = output.result.query;
+    const auto &alignmentScore = output.result.alignmentScore;
+    const auto &insertions = output.result.insertions;
+    const auto &queryPeptides = output.result.queryPeptides;
+    const auto &warnings = output.result.warnings;
+    logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} |",//
+      index, seqName, alignmentScore, insertions.size());
 
-      const auto &error = output.error;
-      if (error) {
-        try {
-          std::rethrow_exception(error);
-        } catch (const std::exception &e) {
-          logger.warn("Warning: in sequence \"{:s}\": {:s}. Note that this sequence will be excluded from results.",
-            seqName, e.what());
-          outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, e.what(), "", "<<ALL>>");
-          return;
-        }
-      }
+    std::vector<std::string> warningsCombined;
+    std::vector<std::string> failedGeneNames;
+    for (const auto &warning : warnings.global) {
+      logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
+      warningsCombined.push_back(warning);
+    }
 
-      const auto &queryAligned = output.result.query;
-      const auto &alignmentScore = output.result.alignmentScore;
-      const auto &insertions = output.result.insertions;
-      const auto &queryPeptides = output.result.queryPeptides;
-      const auto &warnings = output.result.warnings;
-      logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} |",//
-        index, seqName, alignmentScore, insertions.size());
+    for (const auto &warning : warnings.inGenes) {
+      logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning.message);
+      warningsCombined.push_back(warning.message);
+      failedGeneNames.push_back(warning.geneName);
+    }
 
-      std::vector<std::string> warningsCombined;
-      std::vector<std::string> failedGeneNames;
-      for (const auto &warning : warnings.global) {
-        logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
-        warningsCombined.push_back(warning);
-      }
+    auto warningsJoined = boost::join(warningsCombined, ";");
+    boost::replace_all(warningsJoined, R"(")", R"("")");// escape double quotes
 
-      for (const auto &warning : warnings.inGenes) {
-        logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning.message);
-        warningsCombined.push_back(warning.message);
-        failedGeneNames.push_back(warning.geneName);
-      }
+    auto failedGeneNamesJoined = boost::join(failedGeneNames, ";");
+    boost::replace_all(failedGeneNamesJoined, R"(")", R"("")");// escape double quotes
 
-      auto warningsJoined = boost::join(warningsCombined, ";");
-      boost::replace_all(warningsJoined, R"(")", R"("")");// escape double quotes
+    outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, "", warningsJoined,
+      failedGeneNamesJoined);
 
-      auto failedGeneNamesJoined = boost::join(failedGeneNames, ";");
-      boost::replace_all(failedGeneNamesJoined, R"(")", R"("")");// escape double quotes
+    outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, queryAligned);
 
-      outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, "", warningsJoined,
-        failedGeneNamesJoined);
+    for (const auto &peptide : queryPeptides) {
+      outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
+    }
 
-      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, queryAligned);
-
-      for (const auto &peptide : queryPeptides) {
-        outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
-      }
-
-      outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
-    });
-
-  try {
-    tbb::parallel_pipeline(parallelism, inputFilter & transformFilters & outputFilter, context);
-  } catch (const std::exception &e) {
-    logger.error("Error: when running the internal parallel pipeline: {:s}", e.what());
+    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
   }
-}
+
+public:
+  Nextalign(
+    /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,         //
+    /* in    */ const ReferenceSequenceData &refData,                   //
+    /* in    */ const GeneMap &geneMap,                                 //
+    /* in    */ const NextalignOptions &options,                        //
+    /* out   */ std::ostream &outputFastaStream,                        //
+    /* out   */ std::ostream &outputInsertionsStream,                   //
+    /* out   */ std::ostream &outputErrorsFile,                         //
+    /* out   */ std::map<std::string, std::ofstream> &outputGeneStreams,//
+    /* in    */ bool shouldWriteReference,                              //
+    /* out   */ Logger &logger                                          //
+    )                                                                   //
+      : inputFastaStream(inputFastaStream),                             //
+        geneMap(geneMap),                                               //
+        options(options),                                               //
+        outputFastaStream(outputFastaStream),                           //
+        outputInsertionsStream(outputInsertionsStream),                 //
+        outputErrorsFile(outputErrorsFile),                             //
+        outputGeneStreams(outputGeneStreams),                           //
+        logger(logger),                                                 //
+        ref(refData.seq),                                               //
+        refName(refData.name),                                          //
+        refPeptides(translateGenesRef(refData.seq, geneMap, options)    //
+        ) {
+    if (shouldWriteReference) {
+      writeReference(refName, ref, refPeptides, outputFastaStream, outputGeneStreams);
+    }
+  }
+
+  void runSequentially() {
+    std::optional<AlgorithmInput> input = readInput();
+    while (input) {
+      const auto output = runAlgorithm(*input);
+      writeOutput(output);
+      input = readInput();
+    }
+  }
+
+  void runConcurrently(int parallelism, bool inOrder) {
+    // TODO: implement concurrency
+    std::optional<AlgorithmInput> input = readInput();
+    while (input) {
+      const auto output = runAlgorithm(*input);
+      writeOutput(output);
+      input = readInput();
+    }
+  }
+};
+
 
 int main(int argc, char *argv[]) {
   Logger logger{Logger::Options{.linePrefix = "Nextalign", .verbosity = Logger::Verbosity::warn}};
@@ -878,10 +896,8 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    auto parallelism = std::thread::hardware_concurrency();
+    int parallelism = safe_cast<int>(std::thread::hardware_concurrency());
     if (cliParams.jobs > 0) {
-      tbb::global_control globalControl{tbb::global_control::max_allowed_parallelism,
-        static_cast<size_t>(cliParams.jobs)};
       parallelism = cliParams.jobs;
     }
 
@@ -896,8 +912,15 @@ int main(int argc, char *argv[]) {
     logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
 
     try {
-      run(parallelism, inOrder, fastaStream, refData, geneMap, options, outputFastaFile, outputInsertionsFile,
+      auto nextalign = Nextalign(fastaStream, refData, geneMap, options, outputFastaFile, outputInsertionsFile,
         outputErrorsFile, outputGeneFiles, shouldWriteReference, logger);
+
+      if (parallelism > 1) {
+        nextalign.runSequentially();
+      } else {
+        nextalign.runConcurrently(parallelism, inOrder);
+      }
+
     } catch (const std::exception &e) {
       logger.error("Error: {:>16s} |\n", e.what());
     }

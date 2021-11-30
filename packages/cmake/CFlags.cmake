@@ -27,6 +27,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   -Wstringop-truncation \
   -Wvector-operation-performance \
   -Wvla-larger-than=1 \
+  -Wno-shadow \
   ")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
@@ -44,7 +45,7 @@ endif ()
 
 ####################### Clang ##################################################
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(C_CXX_FLAGS "${C_CXX_FLAGS} \
+  set(C_CXX_FLAGS "\
   -Reverything \
   -Wabsolute-value \
   -Wbitwise-conditional-parentheses \
@@ -73,6 +74,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   -Wxor-used-as-pow \
   -fdouble-square-bracket-attributes \
   -fstrict-vtable-pointers \
+  ${C_CXX_FLAGS} \
   ")
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
@@ -102,7 +104,6 @@ endif ()
 ####################### GCC and CLANG ##########################################
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(C_CXX_FLAGS " \
-  ${C_CXX_FLAGS} \
   -Wall \
   -Wextra \
   -fdiagnostics-color \
@@ -147,6 +148,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang"
   -Wuninitialized \
   -Wunreachable-code \
   -Wwrite-strings \
+  ${C_CXX_FLAGS} \
   ")
 
   # TODO: remove these and fix the warnings!
