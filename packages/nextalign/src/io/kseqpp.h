@@ -49,16 +49,15 @@ namespace klibpp {
     constexpr static char_type SEP_LINE = 2; // line separator: "\n" (Unix) or "\r\n" (Windows)
     constexpr static char_type SEP_MAX = 2;
 
-    char_type* buf;  /**< @brief character buffer */
-    int64_t bufsize; /**< @brief buffer size */
-    int64_t begin;   /**< @brief begin buffer index */
-    int64_t end;     /**< @brief end buffer index or error flag if -1 */
-    bool is_eof;     /**< @brief eof flag */
-    bool is_tqs;     /**< @brief truncated quality string flag */
-    bool is_ready;   /**< @brief next record ready flag */
-    bool last;       /**< @brief last read was successful */
-    TFile f;         /**< @brief file handler */
-    TFunc func;      /**< @brief read function */
+    std::basic_string<char_type> buf; /**< @brief character buffer */
+    int64_t begin;                    /**< @brief begin buffer index */
+    int64_t end;                      /**< @brief end buffer index or error flag if -1 */
+    bool is_eof;                      /**< @brief eof flag */
+    bool is_tqs;                      /**< @brief truncated quality string flag */
+    bool is_ready;                    /**< @brief next record ready flag */
+    bool last;                        /**< @brief last read was successful */
+    TFile f;                          /**< @brief file handler */
+    TFunc func;                       /**< @brief read function */
 
     inline bool is_char_allowed(char_type c) {
       return std::isalpha(c) || c == '.' || c == '?' || c == '*';
@@ -66,20 +65,15 @@ namespace klibpp {
 
   public:
     KStream(TFile f_, TFunc func_)// ks_init
-        : buf(new char_type[DEFAULT_BUFSIZE]),
-          bufsize(DEFAULT_BUFSIZE),
-          f(std::move(f_)),
+        : f(std::move(f_)),
           func(std::move(func_)) {
+      this->buf.resize(DEFAULT_BUFSIZE);
       this->begin = 0;
       this->end = 0;
       this->is_eof = false;
       this->is_tqs = false;
       this->is_ready = false;
       this->last = false;
-    }
-
-    ~KStream() noexcept {
-      delete[] this->buf;
     }
 
     inline bool err() const// ks_err
@@ -149,7 +143,7 @@ namespace klibpp {
       // fetch
       if (this->begin >= this->end) {
         this->begin = 0;
-        this->end = this->func(this->f, this->buf, this->bufsize);
+        this->end = this->func(this->f, this->buf.data(), this->buf.size());
         if (this->end <= 0) {// err if end == -1 and eof if 0
           this->is_eof = true;
           return 0;
@@ -205,7 +199,7 @@ namespace klibpp {
         }
 
         gotany = true;
-        str.append(this->buf + this->begin, i - this->begin);
+        str.append(this->buf.data() + this->begin, i - this->begin);
         this->begin = i + 1;
       } while (i >= this->end);
 
