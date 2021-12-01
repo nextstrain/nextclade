@@ -59,6 +59,8 @@ namespace klibpp {
     TFile f;                          /**< @brief file handler */
     TFunc func;                       /**< @brief read function */
 
+    int64_t index = 0;
+
     inline bool is_char_allowed(char_type c) {
       return std::isalpha(c) || c == '.' || c == '?' || c == '*';
     }
@@ -112,6 +114,8 @@ namespace klibpp {
       // reset all members
       rec.seqName.clear();
       rec.seq.clear();
+      rec.index = index;
+      ++index;
 
       if (!this->getuntil(KStream::SEP_LINE, rec.seqName, &c)) {
         return !this->fail();

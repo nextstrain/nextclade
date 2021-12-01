@@ -17,7 +17,6 @@ class FastaStreamImpl : public FastaStream {
   KStream kstream;
 
   bool isDone = false;
-  int index = 0;
 
 public:
   FastaStreamImpl() = delete;
@@ -45,13 +44,10 @@ public:
 
   std::optional<AlgorithmInput> next() override {
     AlgorithmInput record;
-
     if (!kstream.next(record)) {
       isDone = true;
       return {};
     }
-    record.index = index;
-    ++index;
     return record;
   }
 };
