@@ -122,7 +122,7 @@ namespace klibpp {
         if (c == '\n') {
           continue;// skip empty lines
         }
-        rec.seq += c;
+        rec.seq += toupper(c);
         this->getuntil(KStream::SEP_LINE, rec.seq, nullptr, true);// read the rest of the line
       }
       this->last = true;
