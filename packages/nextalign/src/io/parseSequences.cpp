@@ -99,7 +99,6 @@ public:
       return {};
     }
 
-    boost::trim(record.seqName);
     record.seq = sanitizeSequence(record.seq);
     record.index = index;
 
