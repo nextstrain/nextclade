@@ -3,56 +3,9 @@
 #include <nextalign/nextalign.h>
 #include <unistd.h>
 
-#include <boost/algorithm/string.hpp>
 #include <cstdio>
-#include <map>
-#include <regex>
-#include <utility>
 
 #include "kseqpp.h"
-
-
-namespace {
-  using regex = std::regex;
-  using std::regex_replace;
-}// namespace
-
-
-class ErrorFastaStreamIllegalNextCall : public ErrorFatal {
-public:
-  explicit ErrorFastaStreamIllegalNextCall(const std::string& filename)
-      : ErrorFatal(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is in non-readable state,"
-                               " the next line cannot be retrieved. Aborting.",
-          filename)) {}
-};
-
-
-class ErrorFastaStreamInvalidState : public ErrorFatal {
-public:
-  explicit ErrorFastaStreamInvalidState(const std::string& filename)
-      : ErrorFatal(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is empty or corrupted. Aborting.",
-          filename)) {}
-};
-
-
-auto sanitizeLine(std::string line) {
-  line = regex_replace(line, regex("\r\n"), "\n");
-  line = regex_replace(line, regex("\r"), "\n");
-  boost::trim(line);
-  return line;
-}
-
-auto sanitizeSequenceName(std::string seqName) {
-  boost::trim(seqName);
-  return seqName;
-}
-
-auto sanitizeSequence(std::string seq) {
-  // NOTE: Strip all characters except capital letters, asterisks, dots and question marks
-  const auto re = regex("[^.?*A-Z]");
-  seq = regex_replace(seq, re, "", std::regex_constants::match_any);
-  return seq;
-}
 
 
 class FastaStreamImpl : public FastaStream {
