@@ -354,17 +354,14 @@ public:
 
   FastaStream& operator=(const FastaStream&& other) = delete;
 
-  /** Checks that the stream is in valid state and the next element can be retrieved from it */
-  [[nodiscard]] virtual bool good() const = 0;
-
-  /** Retrieves the next sequence in the stream */
-  virtual AlgorithmInput next() = 0;
+  /** Retrieves the next sequence in the stream. Returns `false` if there are no more sequences */
+  virtual bool next(AlgorithmInput& input) = 0;
 };
 
 /** Creates an instance of fasta stream, given a file or string stream */
-std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream, std::string filename);
+std::unique_ptr<FastaStream> makeFastaStream(const std::string& filename);
 
 /** Parses all sequences of a given file or string stream */
-std::vector<AlgorithmInput> parseSequences(std::istream& istream, std::string filename);
+std::vector<AlgorithmInput> parseSequences(const std::string& filename);
 
 const char* getVersion();
