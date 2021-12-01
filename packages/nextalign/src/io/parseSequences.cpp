@@ -57,9 +57,12 @@ auto sanitizeSequence(std::string seq) {
 
 
 class FastaStreamImpl : public FastaStream {
-  //  mio::mmap_source m;
-  int fp;
-  klibpp::KStream<int, ssize_t (*)(int, void*, size_t), klibpp::mode::In_> kstream;
+  using read_function_fd_t = int;
+  using read_function_t = ssize_t (*)(int, void*, size_t);
+  using KStream = klibpp::KStream<read_function_fd_t, read_function_t>;
+
+  read_function_fd_t fd;
+  KStream kstream;
 
   bool isDone = false;
   int index = 0;
@@ -68,10 +71,12 @@ public:
   FastaStreamImpl() = delete;
 
   explicit FastaStreamImpl(std::istream& is, const std::string& fileName)
-      : fp(open(fileName.c_str(), O_RDONLY | O_CLOEXEC)),
-        kstream(klibpp::make_kstream(fp, read, klibpp::mode::in)) {}
+      : fd(open(fileName.c_str(), O_RDONLY | O_CLOEXEC)),
+        kstream(fd, read) {}
 
-  ~FastaStreamImpl() override = default;
+  ~FastaStreamImpl() override {
+    close(fd);
+  }
 
   FastaStreamImpl(const FastaStreamImpl& other) = delete;
 
@@ -87,22 +92,19 @@ public:
   }
 
   std::optional<AlgorithmInput> next() override {
-    klibpp::KSeq record;
+    AlgorithmInput record;
+
     if (!(kstream >> record)) {
       isDone = true;
       return {};
     }
 
-    boost::trim(record.name);
+    boost::trim(record.seqName);
     record.seq = sanitizeSequence(record.seq);
+    record.index = index;
 
-    const AlgorithmInput result{
-      .index = index,
-      .seqName = std::move(record.name),
-      .seq = std::move(record.seq),
-    };
     ++index;
-    return result;
+    return record;
   }
 };
 
