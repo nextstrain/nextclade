@@ -101,7 +101,7 @@ namespace klibpp {
     }
 
     template<typename OutputType>
-    inline KStream& operator>>(OutputType& rec)// kseq_read
+    inline bool next(OutputType& rec)// kseq_read
     {
       char_type c;// NOLINT(cppcoreguidelines-init-variables)
       this->last = false;
@@ -110,7 +110,7 @@ namespace klibpp {
           ;
         }
         if (this->fail()) {
-          return *this;
+          return !this->fail();
         }
         this->is_ready = true;
       }// else: the first header char has been read in the previous call
@@ -120,7 +120,7 @@ namespace klibpp {
       rec.seq.clear();
 
       if (!this->getuntil(KStream::SEP_LINE, rec.seqName, &c)) {
-        return *this;
+        return !this->fail();
       }
 
       while ((c = this->getc()) && c != '>') {
@@ -136,10 +136,6 @@ namespace klibpp {
       if (c == '>') {
         this->is_ready = true;// the first header char has been read
       }
-      return *this;
-    }
-
-    operator bool() const {
       return !this->fail();
     }
 

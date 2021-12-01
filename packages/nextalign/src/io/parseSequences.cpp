@@ -93,7 +93,7 @@ public:
   std::optional<AlgorithmInput> next() override {
     AlgorithmInput record;
 
-    if (!(kstream >> record)) {
+    if (!kstream.next(record)) {
       isDone = true;
       return {};
     }
