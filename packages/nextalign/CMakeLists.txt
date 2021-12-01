@@ -31,7 +31,7 @@ add_library(${PROJECT_NAME} STATIC
   src/alphabet/nucleotides.h
   src/io/gene.io.cpp
   src/io/gene.io.h
-  src/io/kseq.h
+  src/io/kseqpp.h
   src/io/parseGeneMapGff.cpp
   src/io/parseSequences.cpp
   src/match/matchAa.cpp

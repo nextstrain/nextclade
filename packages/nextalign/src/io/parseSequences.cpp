@@ -1,5 +1,7 @@
+#include <fcntl.h>
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
+#include <unistd.h>
 
 #include <boost/algorithm/string.hpp>
 #include <cstdio>
@@ -7,8 +9,8 @@
 #include <regex>
 #include <utility>
 
-#include "kseq.h"
-KSEQ_INIT(int, read)
+#include "kseqpp.h"
+
 
 namespace {
   using regex = std::regex;
@@ -41,7 +43,6 @@ auto sanitizeLine(std::string line) {
 }
 
 auto sanitizeSequenceName(std::string seqName) {
-  seqName = seqName.substr(1, seqName.size());
   boost::trim(seqName);
   return seqName;
 }
@@ -56,22 +57,21 @@ auto sanitizeSequence(std::string seq) {
 
 
 class FastaStreamImpl : public FastaStream {
-  FILE* fp = nullptr;
-  kseq_t* kseq = nullptr;
+  //  mio::mmap_source m;
+  int fp;
+  klibpp::KStream<int, ssize_t (*)(int, void*, size_t), klibpp::mode::In_> kstream;
+
   bool isDone = false;
   int index = 0;
 
 public:
   FastaStreamImpl() = delete;
 
-  explicit FastaStreamImpl(std::istream& is, std::string fileName)
-      : fp(fopen(fileName.c_str(), "re")),
-        kseq(kseq_init(fileno(fp))) {}
+  explicit FastaStreamImpl(std::istream& is, const std::string& fileName)
+      : fp(open(fileName.c_str(), O_RDONLY | O_CLOEXEC)),
+        kstream(klibpp::make_kstream(fp, read, klibpp::mode::in)) {}
 
-  ~FastaStreamImpl() override {
-    kseq_destroy(kseq);
-    fclose(fp);
-  }
+  ~FastaStreamImpl() override = default;
 
   FastaStreamImpl(const FastaStreamImpl& other) = delete;
 
@@ -86,21 +86,22 @@ public:
     return isDone;
   }
 
-
   std::optional<AlgorithmInput> next() override {
-    isDone = kseq_read(kseq) < 0;
-    if (!kseq || isDone) {
+    klibpp::KSeq record;
+    if (!(kstream >> record)) {
+      isDone = true;
       return {};
     }
 
+    boost::trim(record.name);
+    record.seq = sanitizeSequence(record.seq);
+
     const AlgorithmInput result{
       .index = index,
-      .seqName = std::string{kseq->name.s},
-      .seq = std::string{kseq->seq.s},
+      .seqName = std::move(record.name),
+      .seq = std::move(record.seq),
     };
-
     ++index;
-
     return result;
   }
 };
