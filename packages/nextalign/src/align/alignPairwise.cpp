@@ -368,15 +368,13 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   // Determine the best alignment by picking the optimal score at the end of the query
   int si = 0;
   int bestScore = 0;
-  debug_trace(
-    "backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n",
-    rowLength, querySize, scoresSize);
+  debug_trace("backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n", rowLength, querySize, scoresSize);
   for (int i = 0; i < scoresSize; i++) {
     const auto is = indexToShift(i);
     // Determine the last index
     lastIndexByShift[i] = rowLength - 1 < querySize + is ? rowLength - 1 : querySize + is;
 
-    if (lastIndexByShift[i]>=0 && lastIndexByShift[i]<scores.num_cols()) {
+    if (lastIndexByShift[i] >= 0 && lastIndexByShift[i] < scores.num_cols()) {
       // invariant_greater(lastIndexByShift[i], 0);
       // invariant_less(lastIndexByShift[i], scores.num_cols());
       // debug_trace(
@@ -486,8 +484,8 @@ struct AlignPairwiseTag {};
 
 template<typename Letter>
 AlignmentStatus<Letter> alignPairwise(const Sequence<Letter>& query, const Sequence<Letter>& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
-  const NextalignSeedOptions& seedOptions, int bandWidth, int shift, AlignPairwiseTag) {
+  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, int bandWidth, int shift,
+  AlignPairwiseTag) {
 
   debug_trace(
     "Align pairwise: started:\n  minimalLength={:},\n  penaltyGapExtend={:},\n  penaltyGapOpen={:},\n  "
@@ -543,12 +541,10 @@ NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const N
   const auto& meanShift = seedAlignmentStatus.result->meanShift;
   debug_trace("Align pairwise: after seed alignment: bandWidth={:}, meanShift={:}\n", bandWidth, meanShift);
 
-  return alignPairwise(query, ref, gapOpenClose, alignmentOptions, seedOptions, bandWidth, meanShift,
-    AlignPairwiseTag{});
+  return alignPairwise(query, ref, gapOpenClose, alignmentOptions, bandWidth, meanShift, AlignPairwiseTag{});
 }
 
 AminoacidAlignmentStatus alignPairwise(const AminoacidSequence& query, const AminoacidSequence& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
-  const NextalignSeedOptions& seedOptions, int bandWidth, int shift) {
-  return alignPairwise(query, ref, gapOpenClose, alignmentOptions, seedOptions, bandWidth, shift, AlignPairwiseTag{});
+  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, int bandWidth, int shift) {
+  return alignPairwise(query, ref, gapOpenClose, alignmentOptions, bandWidth, shift, AlignPairwiseTag{});
 }
