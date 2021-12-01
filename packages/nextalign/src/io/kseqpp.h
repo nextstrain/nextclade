@@ -59,6 +59,11 @@ namespace klibpp {
     bool last;       /**< @brief last read was successful */
     TFile f;         /**< @brief file handler */
     TFunc func;      /**< @brief read function */
+
+    inline bool is_char_allowed(char_type c) {
+      return std::isalpha(c) || c == '.' || c == '?' || c == '*';
+    }
+
   public:
     KStream(TFile f_, TFunc func_)// ks_init
         : buf(new char_type[DEFAULT_BUFSIZE]),
@@ -119,10 +124,11 @@ namespace klibpp {
       }
 
       while ((c = this->getc()) && c != '>') {
-        if (c == '\n') {
-          continue;// skip empty lines
+        if (!is_char_allowed(c)) {
+          continue;
         }
-        rec.seq += toupper(c);
+        c = static_cast<char_type>(std::toupper(c));
+        rec.seq += c;
         this->getuntil(KStream::SEP_LINE, rec.seq, nullptr, true);// read the rest of the line
       }
       this->last = true;

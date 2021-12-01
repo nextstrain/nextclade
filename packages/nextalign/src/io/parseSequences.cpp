@@ -97,10 +97,7 @@ public:
       isDone = true;
       return {};
     }
-
-    record.seq = sanitizeSequence(record.seq);
     record.index = index;
-
     ++index;
     return record;
   }
