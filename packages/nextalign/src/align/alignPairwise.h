@@ -67,5 +67,5 @@ NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const N
   const NextalignSeedOptions& seedOptions);
 
 AminoacidAlignmentStatus alignPairwise(const AminoacidSequence& query, const AminoacidSequence& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
-  const NextalignSeedOptions& seedOptions, const int bandWidth, const int shift);
+  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, const int bandWidth,
+  const int shift);
