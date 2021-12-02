@@ -137,19 +137,9 @@ by Nextstrain team
 
 <p align="center">
 
-  <a href="https://joss.theoj.org/papers/b0e8e7f231ddfc61616de6b56f32b79f">
-    <img
-      src="https://joss.theoj.org/papers/b0e8e7f231ddfc61616de6b56f32b79f/status.svg"
-      alt="JOSS submission status"
-    />
+  <a style="border-width:0" href="https://doi.org/10.21105/joss.03773">
+    <img src="https://joss.theoj.org/papers/10.21105/joss.03773/status.svg" alt="JOSS publication" >
   </a>
-
-  <a href="https://doi.org/10.5281/zenodo.5607694">
-    <img
-      src="https://zenodo.org/badge/DOI/10.5281/zenodo.5607694.svg"
-      alt="Zenodo DOI">
-  </a>
-
 
 </p>
 
@@ -203,9 +193,9 @@ If you use results obtained with Nextclade in a publication, please
 
  - cite our preprint:
 
-    > Ivan Aksamentov, Cornelius Roemer, Emma B Hodcroft, & Richard A Neher. (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. https://doi.org/10.5281/zenodo.5607694
+    > Aksamentov, I., Roemer, C., Hodcroft, E. B., & Neher, R. A., (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. Journal of Open Source Software, 6(67), 3773, https://doi.org/10.21105/joss.03773
 
-   ([bibtex](https://zenodo.org/record/5607694/export/hx))
+   ([bibtex](https://clades.nextstrain.org/citation.bib))
 
  - where possible, provide a link to Nextclade Web:
 

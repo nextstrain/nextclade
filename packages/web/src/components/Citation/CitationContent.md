@@ -2,9 +2,9 @@ If you use results obtained with Nextclade in a publication, please
 
 - cite our preprint:
 
-  > Ivan Aksamentov, Cornelius Roemer, Emma B Hodcroft, & Richard A Neher. (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. https://doi.org/10.5281/zenodo.5607694
+  > Aksamentov, I., Roemer, C., Hodcroft, E. B., & Neher, R. A., (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. Journal of Open Source Software, 6(67), 3773, https://doi.org/10.21105/joss.03773
 
-  ([bibtex](https://zenodo.org/record/5607694/export/hx))
+  ([bibtex](/citation.bib))
 
 - where possible, provide a link to Nextclade Web:
 
