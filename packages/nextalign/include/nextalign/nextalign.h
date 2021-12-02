@@ -358,10 +358,28 @@ public:
   virtual bool next(AlgorithmInput& input) = 0;
 };
 
-/** Creates an instance of fasta stream, given a file or string stream */
+/**
+ * Creates an instance of fasta stream, given a filename.
+ * This version is faster, but does not support reading from a C++ stream.
+ */
 std::unique_ptr<FastaStream> makeFastaStream(const std::string& filename);
 
-/** Parses all sequences of a given file or string stream */
+/**
+ *  Creates an instance of fasta stream, given a filename.
+ *  This version is slower, but supports reading from a C++ stream.
+ */
+std::unique_ptr<FastaStream> makeFastaStreamSlow(std::istream& istream, const std::string& filename);
+
+/**
+ * Parses all sequences in a file, given its filename.
+ * This version is faster, but does not support reading from a C++ stream.
+ */
 std::vector<AlgorithmInput> parseSequences(const std::string& filename);
+
+/**
+ *  Parses all sequences in a given file- or string stream.
+ *  Slower, but supports reading from a stream.
+ */
+std::vector<AlgorithmInput> parseSequencesSlow(std::istream& istream, const std::string& filename);
 
 const char* getVersion();
