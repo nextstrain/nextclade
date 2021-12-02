@@ -23,13 +23,6 @@ namespace Nextclade {
           .seedSpacing = cliParams.nucSeedSpacing,
           .mismatchesAllowed = cliParams.nucMismatchesAllowed,
         },
-      .seedAa =
-        {
-          .seedLength = cliParams.aaSeedLength,
-          .minSeeds = cliParams.aaMinSeeds,
-          .seedSpacing = cliParams.aaSeedSpacing,
-          .mismatchesAllowed = cliParams.aaMismatchesAllowed,
-        },
       .translatePastStop = !cliParams.noTranslatePastStop,
     };
   }
