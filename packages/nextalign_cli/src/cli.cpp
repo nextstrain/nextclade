@@ -117,11 +117,6 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
   options.seedNuc.seedSpacing = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-seed-spacing", ensureNonNegative);
   options.seedNuc.mismatchesAllowed = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-mismatches-allowed", ensureNonNegative);
 
-  options.seedAa.seedLength = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-seed-length", ensurePositive);
-  options.seedAa.minSeeds = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-min-seeds", ensurePositive);
-  options.seedAa.seedSpacing = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-seed-spacing", ensureNonNegative);
-  options.seedAa.mismatchesAllowed = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-mismatches-allowed", ensureNonNegative);
-
   options.translatePastStop = !(getParamOptional<bool>(cxxOptsParsed, "no-translate-past-stop").value_or(false));
   // clang-format on
 
@@ -338,34 +333,6 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(int a
       "(optional, integer, non-negative) Maximum number of mismatching nucleotides allowed for a seed to be considered a match.",
       cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedNuc.mismatchesAllowed)),
       "NUC_MISMATCHES_ALLOWED"
-    )
-
-    (
-      "aa-seed-length",
-      "(optional, integer, positive) Seed length for aminoacid alignment.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.seedLength)),
-      "AA_SEED_LENGTH"
-    )
-
-    (
-      "aa-min-seeds",
-      "(optional, integer, positive) Minimum number of seeds to search for during aminoacid alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--aa-seed-spacing`.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.minSeeds)),
-      "AA_MIN_SEEDS"
-    )
-
-    (
-      "aa-seed-spacing",
-      "(optional, integer, non-negative) Spacing between seeds during aminoacid alignment.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.seedSpacing)),
-      "AA_SEED_SPACING"
-    )
-
-    (
-      "aa-mismatches-allowed",
-      "(optional, integer, non-negative) Maximum number of mismatching aminoacids allowed for a seed to be considered a match.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.mismatchesAllowed)),
-      "AA_MISMATCHES_ALLOWED"
     )
 
     (

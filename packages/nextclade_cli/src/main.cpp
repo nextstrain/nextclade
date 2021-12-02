@@ -96,11 +96,6 @@ int main(int argc, char* argv[]) {
         .nucSeedSpacing = options.seedNuc.seedSpacing,
         .nucMismatchesAllowed = options.seedNuc.mismatchesAllowed,
 
-        .aaSeedLength = options.seedAa.seedLength,
-        .aaMinSeeds = options.seedAa.minSeeds,
-        .aaSeedSpacing = options.seedAa.seedSpacing,
-        .aaMismatchesAllowed = options.seedAa.mismatchesAllowed,
-
         .noTranslatePastStop = !options.translatePastStop,
 
         .verbosity = {},

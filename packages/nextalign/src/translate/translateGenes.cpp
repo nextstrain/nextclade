@@ -161,7 +161,7 @@ PeptidesInternal translateGenes(                               //
     debug_trace("Aligning peptide '{:}'\n", geneName);
     const AlignmentParams alignmentParams = calculateAaAlignmentParams(queryGapCounts, refGapCounts);
     const auto geneAlignmentStatus = alignPairwise(queryPeptide, refPeptide->peptide, gapOpenCloseAA, options.alignment,
-      options.seedAa, alignmentParams.bandWidth, alignmentParams.shift);
+      alignmentParams.bandWidth, alignmentParams.shift);
 
     if (geneAlignmentStatus.status != Status::Success) {
       const auto message = fmt::format(
