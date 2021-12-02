@@ -490,11 +490,10 @@ AlignmentStatus<Letter> alignPairwise(const Sequence<Letter>& query, const Seque
   debug_trace(
     "Align pairwise: started:\n  minimalLength={:},\n  penaltyGapExtend={:},\n  penaltyGapOpen={:},\n  "
     "penaltyGapOpenInFrame={:},\n  penaltyGapOpenOutOfFrame={:},\n  penaltyMismatch={:},\n  scoreMatch={:},\n  "
-    "maxIndel={:},\n  seedLength={:},\n  minSeeds={:},\n  seedSpacing={:},\n  mismatchesAllowed={:}\n",
+    "maxIndel={:}",
     alignmentOptions.minimalLength, alignmentOptions.penaltyGapExtend, alignmentOptions.penaltyGapOpen,
     alignmentOptions.penaltyGapOpenInFrame, alignmentOptions.penaltyGapOpenOutOfFrame, alignmentOptions.penaltyMismatch,
-    alignmentOptions.scoreMatch, alignmentOptions.maxIndel, seedOptions.seedLength, seedOptions.minSeeds,
-    seedOptions.seedSpacing, seedOptions.mismatchesAllowed);
+    alignmentOptions.scoreMatch, alignmentOptions.maxIndel);
 
 
   if (bandWidth > alignmentOptions.maxIndel) {
