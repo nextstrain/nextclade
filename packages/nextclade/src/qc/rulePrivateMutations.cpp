@@ -61,16 +61,18 @@ namespace Nextclade {
           begin = std::optional<int>{};
         }
 
-        // Otherwise (deletion is adjacent), extend the existing range (by simply not terminating it)
+        // Otherwise, deletion is adjacent: extend the existing range (by simply not terminating it)
       }
     }
 
-    // Terminate the last range with the last deletion
-    if (!privateDeletionsSorted.empty()) {
+    // Terminate the last range if any (there is an open range if `begin` is set)
+    if (!privateDeletionsSorted.empty() && begin) {
       const auto end = privateDeletionsSorted.back().pos;
       const auto length = end - *begin;
-      deletionRanges.emplace_back(
-        NucleotideRange{.begin = *begin, .end = end, .length = length, .character = Nucleotide::GAP});
+      if (length > 0) {
+        deletionRanges.emplace_back(
+          NucleotideRange{.begin = *begin, .end = end, .length = length, .character = Nucleotide::GAP});
+      }
     }
 
     return deletionRanges;
