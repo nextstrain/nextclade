@@ -422,4 +422,12 @@ namespace Nextclade {
     return jsonStringify(j);
   }
 
+  std::string serializeCladeNodeAttrKeys(const std::vector<std::string>& keys) {
+    auto j = json::array();
+    for (const auto& key : keys) {
+      j.push_back(key);
+    }
+    return jsonStringify(j);
+  }
+
 }// namespace Nextclade

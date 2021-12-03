@@ -39,6 +39,8 @@ import {
   setCurrentDataset,
   setDatasets,
   setInputUrlParams,
+  setResultsJsonStr,
+  setCladeNodeAttrKeys,
 } from './algorithm.actions'
 import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
 
@@ -325,6 +327,14 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setTreeResult, (draft, { treeStr }) => {
     draft.treeStr = treeStr
+  })
+
+  .icase(setResultsJsonStr, (draft, { resultsJsonStr }) => {
+    draft.resultsJsonStr = resultsJsonStr
+  })
+
+  .icase(setCladeNodeAttrKeys, (draft, { cladeNodeAttrKeys }) => {
+    draft.cladeNodeAttrKeys = cladeNodeAttrKeys
   })
 
   .icase(errorDismiss, (draft) => {

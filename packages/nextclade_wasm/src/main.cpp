@@ -187,6 +187,10 @@ public:
   std::string getTree() const {
     return state.tree.serialize(0);
   }
+
+  std::string getCladeNodeAttrKeysStr() const {
+    return Nextclade::serializeCladeNodeAttrKeys(state.tree.getCladeNodeAttrKeys());
+  }
 };
 
 AlgorithmInput parseRefSequence(const std::string& refFastaStr, const std::string& refFastaName) {
@@ -289,7 +293,7 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string>()//
     .function("analyze", &NextcladeWasm::analyze)                                                            //
     .function("getTree", &NextcladeWasm::getTree)                                                            //
-    ;                                                                                                        //
+    .function("getCladeNodeAttrKeysStr", &NextcladeWasm::getCladeNodeAttrKeysStr);                           //
 
   emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
     .field("ref", &NextcladeWasmResult::ref)

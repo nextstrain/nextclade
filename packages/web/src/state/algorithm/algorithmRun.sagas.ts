@@ -22,6 +22,7 @@ import {
   addParsedSequence,
   algorithmRunAsync,
   setAlgorithmGlobalStatus,
+  setCladeNodeAttrKeys,
   setFasta,
   setGeneMapObject,
   setGenomeSize,
@@ -229,6 +230,20 @@ export function* runGetTree(poolAnalyze: Pool<AnalysisThread>) {
   return yield* call(worker.getTree)
 }
 
+export function* runGetCladeNodeAttrKeys(poolAnalyze: Pool<AnalysisThread>) {
+  // Retrieve the first worker from the pool. All workers have the same tree, but we arbitrarily chose the first
+  // worker here
+  const worker = yield* call(async () => {
+    // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return (await poolAnalyze.workers?.[0]?.init) as AnalysisThread
+  })
+
+  return yield* call(worker.getCladeNodeAttrKeysStr)
+}
+
 /**
  * Repeatedly retrieves the results of the analysis from the analysis event channel
  * and emits corresponding redux actions
@@ -351,13 +366,17 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
   // Retrieve the prepared (preprocessed) tree from one of the workers
   const treePreparedStr = yield* call(runGetTree, poolAnalyze)
 
+  // Retrieve the  tree from one of the workers
+  const cladeNodeAttrKeysStr = yield* call(runGetCladeNodeAttrKeys, poolAnalyze)
+  const cladeNodeAttrKeys = JSON.parse(cladeNodeAttrKeysStr) as string[]
+
   // Destroy analysis pool as it is no longer needed
   yield* call(destroyAnalysisThreadPool, poolAnalyze)
 
   // Return array of results aggregated in the results retrieval loop
   const nextcladeResults = ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
 
-  return { nextcladeResults, treePreparedStr }
+  return { nextcladeResults, treePreparedStr, cladeNodeAttrKeys }
 }
 
 export function* getRefSequence(dataset: DatasetFlat, urlParams: UrlParams) {
@@ -469,7 +488,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
 
   const geneMapName = ''
   const pcrPrimersFilename = ''
-  const { nextcladeResults, treePreparedStr } = yield* runSequenceAnalysis(queryStr, queryName, {
+  const { nextcladeResults, treePreparedStr, cladeNodeAttrKeys } = yield* runSequenceAnalysis(queryStr, queryName, {
     refStr,
     refName,
     geneMapStr,
@@ -485,7 +504,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     .map((nextcladeResult) => nextcladeResult.analysisResult)
 
   if (analysisResults.length > 0) {
-    const analysisResultsStr = serializeResults(analysisResults)
+    const analysisResultsStr = serializeResults(analysisResults, cladeNodeAttrKeys)
 
     yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
     const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
@@ -493,6 +512,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
 
     yield* setAuspiceState(tree)
     yield* put(setTreeResult({ treeStr: treeFinalStr }))
+    yield* put(setCladeNodeAttrKeys({ cladeNodeAttrKeys }))
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.done))

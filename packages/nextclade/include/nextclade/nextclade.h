@@ -588,6 +588,8 @@ namespace Nextclade {
 
   std::string serializeWarningsToString(const Warnings& warnings);
 
+  std::string serializeCladeNodeAttrKeys(const std::vector<std::string>& keys);
+
   std::string serializeGeneMap(const GeneMap& geneMap);
 
   std::string serializeQcConfig(Nextclade::QcConfig& qcConfig);

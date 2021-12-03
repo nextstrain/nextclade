@@ -112,6 +112,8 @@ export interface AlgorithmState {
   results: SequenceAnalysisState[]
   resultsFiltered: SequenceAnalysisState[]
   treeStr?: string
+  resultsJsonStr?: string
+  cladeNodeAttrKeys: string[]
   errors: string[]
   filters: ResultsFilters
   exportParams: ExportParams
@@ -159,6 +161,7 @@ export const algorithmDefaultState: AlgorithmState = {
   results: [],
   resultsFiltered: [],
   treeStr: undefined,
+  cladeNodeAttrKeys: [],
   errors: [],
   filters: {
     showGood: true,

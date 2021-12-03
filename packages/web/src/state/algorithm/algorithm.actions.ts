@@ -43,6 +43,8 @@ export const setGeneMapObject = action<{ geneMap: Gene[] }>('setGeneMapObject')
 export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')
 export const addNextcladeResult = action<{ nextcladeResult: NextcladeResult }>('addNextcladeResult')
 export const setTreeResult = action<{ treeStr: string }>('setTreeResult')
+export const setCladeNodeAttrKeys = action<{ cladeNodeAttrKeys: string[] }>('setCladeNodeAttrKeys')
+export const setResultsJsonStr = action<{ resultsJsonStr: string }>('setResultsJsonStr')
 
 export const exportCsvTrigger = action<void>('exportCsvTrigger')
 export const exportTsvTrigger = action<void>('exportTsvTrigger')
