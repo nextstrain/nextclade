@@ -8,7 +8,7 @@ import { BsArrowReturnLeft } from 'react-icons/bs'
 import type { State } from 'src/state/reducer'
 import { setViewedGene } from 'src/state/ui/ui.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { geneMapNameBasisPx, Table, TableCell, TableCellName, TableRow } from 'src/components/Results/ResultsTable'
+import { Table, TableCell, TableCellName, TableRow } from 'src/components/Results/ResultsTable'
 import { GeneMap, GENE_MAP_HEIGHT_PX } from 'src/components/GeneMap/GeneMap'
 import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
@@ -40,6 +40,7 @@ export const GeneMapBackButton = styled(ButtonTransparent)`
 `
 
 export interface GeneMapTableProps {
+  geneMapNameWidthPx: string
   isInNucleotideView: boolean
 
   switchToNucleotideView(): void
@@ -57,13 +58,17 @@ export const GeneMapTable = connect(mapStateToProps, mapDispatchToProps)(GeneMap
 
 export const GeneMapTableCell = styled(TableCellName)``
 
-export function GeneMapTableDisconnected({ isInNucleotideView, switchToNucleotideView }: GeneMapTableProps) {
+export function GeneMapTableDisconnected({
+  geneMapNameWidthPx,
+  isInNucleotideView,
+  switchToNucleotideView,
+}: GeneMapTableProps) {
   const { t } = useTranslationSafe()
 
   return (
     <GeneMapTableContent>
       <GeneMapTableRow>
-        <GeneMapTableCell basis={geneMapNameBasisPx} shrink={0}>
+        <GeneMapTableCell basis={geneMapNameWidthPx} shrink={0}>
           <div className="mx-auto">
             <span className="ml-auto mr-2">{t('Genome annotation')}</span>
             <ButtonHelpSimple identifier="btn-help-gene-map" tooltipPlacement="auto">
@@ -87,7 +92,7 @@ export function GeneMapTableDisconnected({ isInNucleotideView, switchToNucleotid
       </GeneMapTableRow>
 
       <GeneMapAxisTableRow>
-        <TableCellName basis={geneMapNameBasisPx} shrink={0} />
+        <TableCellName basis={geneMapNameWidthPx} shrink={0} />
         <TableCell grow={1} shrink={1} className="w-100">
           <GeneMapAxis />
         </TableCell>

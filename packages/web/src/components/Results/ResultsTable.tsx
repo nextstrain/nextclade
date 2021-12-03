@@ -1,6 +1,5 @@
 import React, { memo } from 'react'
 
-import { sum } from 'lodash'
 import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
@@ -46,32 +45,7 @@ import HelpTipsColumnFrameShifts from './HelpTips/HelpTipsColumnFrameShifts.mdx'
 import HelpTipsColumnStopCodons from './HelpTips/HelpTipsColumnStopCodons.mdx'
 import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
 import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
-
-const ROW_HEIGHT = 30
-const HEADER_ROW_HEIGHT = 75
-const HEADER_ROW_CONTENT_HEIGHT = 60
-
-// TODO: This should be passed through the theme context to styled-components
-export const RESULTS_TABLE_FLEX_BASIS = {
-  id: 50,
-  seqName: 300,
-  qc: 130,
-  clade: 125,
-  mut: 60,
-  nonACGTN: 70,
-  ns: 60,
-  gaps: 60,
-  insertions: 60,
-  frameShifts: 60,
-  stopCodons: 60,
-} as const
-
-export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
-  Object.entries(RESULTS_TABLE_FLEX_BASIS).map(([item, fb]) => [item, `${fb}px`]),
-) as Record<keyof typeof RESULTS_TABLE_FLEX_BASIS, string>
-
-export const geneMapNameBasis = sum(Object.values(RESULTS_TABLE_FLEX_BASIS))
-export const geneMapNameBasisPx = `${geneMapNameBasis}px`
+import { COLUMN_WIDTHS, HEADER_ROW_CONTENT_HEIGHT, HEADER_ROW_HEIGHT, ROW_HEIGHT } from './ResultsTableStyle'
 
 export const Table = styled.div<{ rounded?: boolean }>`
   font-size: 0.8rem;
@@ -157,6 +131,8 @@ const highlightRowsWithIssues = true
 
 export interface TableRowDatum extends SequenceAnalysisState {
   viewedGene: string
+  columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
+  dynamicColumnWidthPx: string
 }
 
 export interface RowProps extends ListChildComponentProps {
@@ -166,17 +142,19 @@ export interface RowProps extends ListChildComponentProps {
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { id, seqName, warnings, errors, result: sequence, viewedGene } = data[index]
+  const { id, seqName, warnings, errors, result: sequence, viewedGene, columnWidthsPx, dynamicColumnWidthPx } = data[
+    index
+  ]
   const qc = sequence?.qc
 
   if (errors.length > 0) {
     return (
       <TableRowError style={style} even={index % 2 === 0}>
-        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
+        <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
           <TableCellText>{id}</TableCellText>
         </TableCell>
 
-        <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
+        <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
           <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
         </TableCellName>
 
@@ -190,11 +168,11 @@ function TableRowComponent({ index, style, data }: RowProps) {
   if (!sequence) {
     return (
       <TableRowPending style={style} even={index % 2 === 0}>
-        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
+        <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
           <TableCellText>{id}</TableCellText>
         </TableCell>
 
-        <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
+        <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
           <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
         </TableCellName>
 
@@ -217,47 +195,47 @@ function TableRowComponent({ index, style, data }: RowProps) {
 
   return (
     <TableRow style={style} backgroundColor={color} even={even}>
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
         <TableCellText>{id}</TableCellText>
       </TableCell>
 
-      <TableCellName basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
+      <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
         <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
       </TableCellName>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.qc} grow={0} shrink={0}>
         <ColumnQCStatus sequence={sequence} qc={qc} />
       </TableCell>
 
-      <TableCellAlignedLeft basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
+      <TableCellAlignedLeft basis={columnWidthsPx.clade} grow={0} shrink={0}>
         <ColumnClade sequence={sequence} />
       </TableCellAlignedLeft>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
         <ColumnMutations sequence={sequence} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.nonACGTN} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.nonACGTN} grow={0} shrink={0}>
         <ColumnNonACGTNs sequence={sequence} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.ns} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.ns} grow={0} shrink={0}>
         <ColumnMissing sequence={sequence} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.gaps} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.gaps} grow={0} shrink={0}>
         <ColumnGaps sequence={sequence} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.insertions} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.insertions} grow={0} shrink={0}>
         <ColumnInsertions sequence={sequence} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.frameShifts} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.frameShifts} grow={0} shrink={0}>
         <ColumnFrameShifts sequence={sequence} />
       </TableCell>
 
-      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.stopCodons} grow={0} shrink={0}>
+      <TableCell basis={columnWidthsPx.stopCodons} grow={0} shrink={0}>
         <ColumnStopCodons sequence={sequence} />
       </TableCell>
 
@@ -340,6 +318,9 @@ const mapDispatchToProps = {
 export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected))
 
 export interface ResultProps {
+  columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
+  dynamicColumnWidthPx: string
+
   resultsFiltered: SequenceAnalysisState[]
   filterPanelCollapsed: boolean
   viewedGene: string
@@ -392,6 +373,8 @@ export interface ResultProps {
 }
 
 export function ResultsTableDisconnected({
+  columnWidthsPx,
+  dynamicColumnWidthPx,
   resultsFiltered,
   filterPanelCollapsed,
   sortByIdAsc,
@@ -422,13 +405,13 @@ export function ResultsTableDisconnected({
   const { t } = useTranslation()
 
   const data = resultsFiltered
-  const rowData: TableRowDatum[] = data.map((datum) => ({ ...datum, viewedGene }))
+  const rowData: TableRowDatum[] = data.map((datum) => ({ ...datum, viewedGene, columnWidthsPx, dynamicColumnWidthPx }))
 
   return (
     <>
       <Table rounded={!filterPanelCollapsed}>
         <TableHeaderRow>
-          <TableHeaderCell first basis={RESULTS_TABLE_FLEX_BASIS_PX.id} grow={0} shrink={0}>
+          <TableHeaderCell first basis={columnWidthsPx.id} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('ID')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
@@ -438,7 +421,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.seqName} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.seqName} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('Sequence name')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByNameAsc} sortDesc={sortByNameDesc} />
@@ -448,7 +431,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.qc} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.qc} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('QC')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByQcIssuesAsc} sortDesc={sortByQcIssuesDesc} />
@@ -458,7 +441,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.clade} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.clade} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('Clade')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByCladeAsc} sortDesc={sortByCladeDesc} />
@@ -468,7 +451,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.mut} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('Mut.')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalMutationsAsc} sortDesc={sortByTotalMutationsDesc} />
@@ -478,7 +461,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.nonACGTN} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.nonACGTN} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('non-ACGTN')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalNonAcgtnAsc} sortDesc={sortByTotalNonAcgtnDesc} />
@@ -488,7 +471,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.ns} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.ns} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('Ns')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalNsAsc} sortDesc={sortByTotalNsDesc} />
@@ -498,7 +481,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.gaps} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.gaps} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('Gaps')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalGapsAsc} sortDesc={sortByTotalGapsDesc} />
@@ -508,7 +491,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.insertions} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.insertions} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('Ins.')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalInsertionsAsc} sortDesc={sortByTotalInsertionsDesc} />
@@ -518,7 +501,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.frameShifts} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.frameShifts} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('FS')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalFrameShiftsAsc} sortDesc={sortByTotalFrameShiftsDesc} />
@@ -528,7 +511,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.stopCodons} grow={0} shrink={0}>
+          <TableHeaderCell basis={columnWidthsPx.stopCodons} grow={0} shrink={0}>
             <TableHeaderCellContent>
               <TableCellText>{t('SC')}</TableCellText>
               <ResultsControlsSort sortAsc={sortByTotalStopCodonsAsc} sortDesc={sortByTotalStopCodonsDesc} />

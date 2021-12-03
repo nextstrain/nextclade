@@ -1,12 +1,14 @@
-import React from 'react'
-import { ButtonNewRun } from 'src/components/Results/ButtonNewRun'
+import React, { useMemo } from 'react'
 
+import { sum } from 'lodash'
 import styled from 'styled-components'
+import { useSelector } from 'react-redux'
 
+import { selectCladeNodeAttrKeys, selectResults } from 'src/state/algorithm/algorithm.selectors'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
-
 import { ExportDialogButton } from 'src/components/Results/ExportDialogButton'
+import { ButtonNewRun } from 'src/components/Results/ButtonNewRun'
 import { ButtonBack } from './ButtonBack'
 import { ButtonFilter } from './ButtonFilter'
 import { ButtonTree } from './ButtonTree'
@@ -14,6 +16,7 @@ import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
 import { ResultsTable } from './ResultsTable'
 import { ButtonRerun } from './ButtonRerun'
+import { COLUMN_WIDTHS } from './ResultsTableStyle'
 
 export const Container = styled.div`
   width: 100%;
@@ -60,6 +63,36 @@ const Footer = styled.footer`
 `
 
 export function ResultsPage() {
+  const analysisResults = useSelector(selectResults)
+  const cladeNodeAttrKeys = useSelector(selectCladeNodeAttrKeys)
+
+  const nonEmptyCladeNodeAttrKeys = useMemo(
+    () =>
+      // Get node attribute keys that has at least 1 value in the results
+      cladeNodeAttrKeys.filter((key) => analysisResults.some((result) => !!result.result?.customNodeAttributes[key])),
+    [analysisResults, cladeNodeAttrKeys],
+  )
+
+  const { columnWidthsPx, dynamicColumnWidthPx, geneMapNameWidthPx } = useMemo(() => {
+    const columnWidthsPx = Object.fromEntries(
+      Object.entries(COLUMN_WIDTHS).map(([item, fb]) => [item, `${fb}px`]),
+    ) as Record<keyof typeof COLUMN_WIDTHS, string>
+
+    const dynamicColumnWidth = 100
+    const dynamicColumnWidthPx = `${dynamicColumnWidth}px`
+
+    const dynamicColumnsWidth = nonEmptyCladeNodeAttrKeys.length * dynamicColumnWidth
+
+    const geneMapNamewidth = sum(Object.values(COLUMN_WIDTHS)) + dynamicColumnsWidth
+    const geneMapNameWidthPx = `${geneMapNamewidth}px`
+
+    return {
+      columnWidthsPx,
+      dynamicColumnWidthPx,
+      geneMapNameWidthPx,
+    }
+  }, [nonEmptyCladeNodeAttrKeys])
+
   return (
     <LayoutResults>
       <Container>
@@ -92,11 +125,11 @@ export function ResultsPage() {
         <ResultsFilter />
 
         <MainContent>
-          <ResultsTable />
+          <ResultsTable columnWidthsPx={columnWidthsPx} dynamicColumnWidthPx={dynamicColumnWidthPx} />
         </MainContent>
 
         <Footer>
-          <GeneMapTable />
+          <GeneMapTable geneMapNameWidthPx={geneMapNameWidthPx} />
         </Footer>
       </Container>
     </LayoutResults>
