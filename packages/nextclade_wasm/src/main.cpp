@@ -259,7 +259,7 @@ std::string serializeInsertionsToCsv(const std::string& analysisResultsStr) {
   for (const auto& result : analysisResults.results) {
     const auto& seqName = result.seqName;
     const auto& insertions = result.insertions;
-    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, Nextclade::formatInsertions(insertions));
+    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
   }
   return outputInsertionsStream.str();
 }

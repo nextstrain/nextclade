@@ -66,17 +66,6 @@ namespace Nextclade {
     return formatRange(Range{.begin = del.start, .end = del.start + del.length});
   }
 
-  std::string formatInsertion(const NucleotideInsertion& insertion) {
-    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
-    const auto positionOneBased = insertion.pos + 1;
-    const auto insertedSequence = toString(insertion.ins);
-    return fmt::format("{}:{}", positionOneBased, insertedSequence);
-  }
-
-  std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions) {
-    return formatAndJoin(insertions, formatInsertion, ";");
-  }
-
   std::string formatMissing(const NucleotideRange& missing) {
     return formatRange({.begin = missing.begin, .end = missing.end});
   }

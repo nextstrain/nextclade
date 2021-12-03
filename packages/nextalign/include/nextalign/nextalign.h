@@ -1,5 +1,8 @@
 #pragma once
 
+
+#include <algorithm>
+#include <boost/algorithm/string/join.hpp>
 #include <istream>
 #include <map>
 #include <memory>
@@ -285,28 +288,26 @@ inline bool operator==(const InsertionInternal<Letter>& lhs, const InsertionInte
   return lhs.pos == rhs.pos && lhs.ins == rhs.ins && lhs.length == rhs.length;
 }
 
+using NucleotideInsertion = InsertionInternal<Nucleotide>;
+
+
+template<typename Container, typename Formatter, typename Delimiter>
+std::string formatAndJoin(const Container& elements, Formatter formatter, Delimiter delimiter) {
+  std::vector<std::string> formatted;
+  std::transform(elements.cbegin(), elements.cend(), std::back_inserter(formatted), formatter);
+  return boost::algorithm::join(formatted, delimiter);
+}
+
+std::string formatInsertion(const NucleotideInsertion& insertion);
+
+std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions);
+
 struct Insertion {
   int pos;
   int length;
   std::string ins;
 };
 
-struct NextalignResult {
-  std::string ref;
-  std::string query;
-  int alignmentScore;
-  std::vector<Peptide> queryPeptides;
-  std::vector<Insertion> insertions;
-  Warnings warnings;
-};
-
-struct AlgorithmOutput {
-  int index;
-  std::string seqName;
-  bool hasError;
-  NextalignResult result;
-  std::exception_ptr error;
-};
 
 std::map<std::string, RefPeptideInternal> translateGenesRef(//
   const NucleotideSequence& ref,                            //
@@ -314,9 +315,39 @@ std::map<std::string, RefPeptideInternal> translateGenesRef(//
   const NextalignOptions& options                           //
 );
 
-NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref,
+
+struct PeptideInternal {
+  std::string name;
+  AminoacidSequence seq;
+  std::vector<InsertionInternal<Aminoacid>> insertions;
+  std::vector<FrameShiftResult> frameShiftResults;
+};
+
+struct PeptidesInternal {
+  std::vector<PeptideInternal> queryPeptides;
+  Warnings warnings;
+};
+
+struct NextalignResultInternal {
+  NucleotideSequence query;
+  NucleotideSequence ref;
+  int alignmentScore;
+  std::vector<PeptideInternal> queryPeptides;
+  std::vector<InsertionInternal<Nucleotide>> insertions;
+  Warnings warnings;
+};
+
+NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const NucleotideSequence& ref,
   const std::map<std::string, RefPeptideInternal>& refPeptides, const GeneMap& geneMap,
   const NextalignOptions& options);
+
+struct AlgorithmOutput {
+  int index;
+  std::string seqName;
+  bool hasError;
+  NextalignResultInternal result;
+  std::exception_ptr error;
+};
 
 NextalignOptions getDefaultOptions();
 
