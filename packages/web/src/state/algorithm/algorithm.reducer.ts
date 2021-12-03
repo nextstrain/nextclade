@@ -2,7 +2,7 @@ import { current } from 'immer'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import type { Gene } from 'src/algorithms/types'
-import { sortResults } from 'src/helpers/sortResults'
+import { sortResults, sortResultsByKey } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
 
 import { errorDismiss } from 'src/state/error/error.actions'
@@ -41,6 +41,7 @@ import {
   setInputUrlParams,
   setResultsJsonStr,
   setCladeNodeAttrKeys,
+  resultsSortByKeyTrigger,
 } from './algorithm.actions'
 import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
 
@@ -99,8 +100,12 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(resultsSortTrigger, (draft, sorting) => {
-    draft.filters.sorting = sorting
     draft.results = sortResults(current(draft).results, sorting)
+    draft.resultsFiltered = runFilters(current(draft))
+  })
+
+  .icase(resultsSortByKeyTrigger, (draft, sorting) => {
+    draft.results = sortResultsByKey(current(draft).results, sorting)
     draft.resultsFiltered = runFilters(current(draft))
   })
 

@@ -1,5 +1,4 @@
 import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat, UrlParams } from 'src/algorithms/types'
-import type { Sorting } from 'src/helpers/sortResults'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
 export enum AlgorithmGlobalStatus {
@@ -36,7 +35,6 @@ export interface ResultsFilters extends QCFilters {
   mutationsFilter?: string
   aaFilter?: string
   cladesFilter?: string
-  sorting?: Sorting
 }
 
 export enum AlgorithmInputType {

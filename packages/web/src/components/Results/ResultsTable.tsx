@@ -1,37 +1,39 @@
 import React, { memo } from 'react'
 
-import { connect } from 'react-redux'
 import { useTranslation } from 'react-i18next'
+import { connect } from 'react-redux'
 import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
 
 import { QcStatus } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import type { Sorting } from 'src/helpers/sortResults'
+import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
+import { PeptideView } from 'src/components/SequenceView/PeptideView'
+import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
+import type { Sorting, SortingKeyBased } from 'src/helpers/sortResults'
+import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import type { State } from 'src/state/reducer'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
-import { resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
+import { resultsSortByKeyTrigger, resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
 import { setViewedGene } from 'src/state/ui/ui.actions'
 
-import { SequenceView } from 'src/components/SequenceView/SequenceView'
-import { PeptideView } from 'src/components/SequenceView/PeptideView'
-import { SequenceSelector } from 'src/components/SequenceView/SequenceSelector'
-
-import { ColumnName } from './ColumnName'
-import { ColumnQCStatus } from './ColumnQCStatus'
+import { ButtonHelp } from './ButtonHelp'
 import { ColumnClade } from './ColumnClade'
-import { ColumnMutations } from './ColumnMutations'
-import { ColumnNonACGTNs } from './ColumnNonACGTNs'
-import { ColumnMissing } from './ColumnMissing'
+import { ColumnFrameShifts } from './ColumnFrameShifts'
 import { ColumnGaps } from './ColumnGaps'
 import { ColumnInsertions } from './ColumnInsertions'
-import { ColumnFrameShifts } from './ColumnFrameShifts'
+import { ColumnMissing } from './ColumnMissing'
+import { ColumnMutations } from './ColumnMutations'
+
+import { ColumnName } from './ColumnName'
+import { ColumnNonACGTNs } from './ColumnNonACGTNs'
+import { ColumnQCStatus } from './ColumnQCStatus'
 import { ColumnStopCodons } from './ColumnStopCodons'
+
 import { ResultsControlsSort } from './ResultsControlsSort'
-import { ButtonHelp } from './ButtonHelp'
+import { COLUMN_WIDTHS, HEADER_ROW_CONTENT_HEIGHT, HEADER_ROW_HEIGHT, ROW_HEIGHT } from './ResultsTableStyle'
 
 import HelpTipsColumnClade from './HelpTips/HelpTipsColumnClade.mdx'
 import HelpTipsColumnGaps from './HelpTips/HelpTipsColumnGaps.mdx'
@@ -45,7 +47,7 @@ import HelpTipsColumnFrameShifts from './HelpTips/HelpTipsColumnFrameShifts.mdx'
 import HelpTipsColumnStopCodons from './HelpTips/HelpTipsColumnStopCodons.mdx'
 import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
 import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
-import { COLUMN_WIDTHS, HEADER_ROW_CONTENT_HEIGHT, HEADER_ROW_HEIGHT, ROW_HEIGHT } from './ResultsTableStyle'
+import { SequenceSelector } from '../SequenceView/SequenceSelector'
 
 export const Table = styled.div<{ rounded?: boolean }>`
   font-size: 0.8rem;
@@ -133,6 +135,7 @@ export interface TableRowDatum extends SequenceAnalysisState {
   viewedGene: string
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicColumnWidthPx: string
+  cladeNodeAttrKeys: string[]
 }
 
 export interface RowProps extends ListChildComponentProps {
@@ -142,9 +145,17 @@ export interface RowProps extends ListChildComponentProps {
 function TableRowComponent({ index, style, data }: RowProps) {
   const { t } = useTranslation()
 
-  const { id, seqName, warnings, errors, result: sequence, viewedGene, columnWidthsPx, dynamicColumnWidthPx } = data[
-    index
-  ]
+  const {
+    id,
+    seqName,
+    warnings,
+    errors,
+    result: sequence,
+    viewedGene,
+    columnWidthsPx,
+    dynamicColumnWidthPx,
+    cladeNodeAttrKeys,
+  } = data[index]
   const qc = sequence?.qc
 
   if (errors.length > 0) {
@@ -211,6 +222,12 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <ColumnClade sequence={sequence} />
       </TableCellAlignedLeft>
 
+      {cladeNodeAttrKeys.map((attrKey) => (
+        <TableCellAlignedLeft key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+          <ColumnCustomNodeAttr sequence={sequence} attrKey={attrKey} />
+        </TableCellAlignedLeft>
+      ))}
+
       <TableCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
         <ColumnMutations sequence={sequence} />
       </TableCell>
@@ -260,6 +277,8 @@ const mapStateToProps = (state: State) => ({
 
 const mapDispatchToProps = {
   resultsSortTrigger: (sorting: Sorting) => resultsSortTrigger(sorting),
+
+  resultsSortByKeyTrigger,
 
   sortByIdAsc: () => resultsSortTrigger({ category: SortCategory.id, direction: SortDirection.asc }),
   sortByIdDesc: () => resultsSortTrigger({ category: SortCategory.id, direction: SortDirection.desc }),
@@ -320,10 +339,13 @@ export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToPro
 export interface ResultProps {
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicColumnWidthPx: string
+  cladeNodeAttrKeys: string[]
 
   resultsFiltered: SequenceAnalysisState[]
   filterPanelCollapsed: boolean
   viewedGene: string
+
+  resultsSortByKeyTrigger(sorting: SortingKeyBased): void
 
   sortByIdAsc(): void
 
@@ -375,6 +397,7 @@ export interface ResultProps {
 export function ResultsTableDisconnected({
   columnWidthsPx,
   dynamicColumnWidthPx,
+  cladeNodeAttrKeys,
   resultsFiltered,
   filterPanelCollapsed,
   sortByIdAsc,
@@ -405,7 +428,13 @@ export function ResultsTableDisconnected({
   const { t } = useTranslation()
 
   const data = resultsFiltered
-  const rowData: TableRowDatum[] = data.map((datum) => ({ ...datum, viewedGene, columnWidthsPx, dynamicColumnWidthPx }))
+  const rowData: TableRowDatum[] = data.map((datum) => ({
+    ...datum,
+    viewedGene,
+    columnWidthsPx,
+    dynamicColumnWidthPx,
+    cladeNodeAttrKeys,
+  }))
 
   return (
     <>
@@ -450,6 +479,23 @@ export function ResultsTableDisconnected({
               <HelpTipsColumnClade />
             </ButtonHelpStyled>
           </TableHeaderCell>
+
+          {cladeNodeAttrKeys.map((attrKey) => {
+            const sortAsc = () => resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.asc })
+            const sortDesc = () => resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.desc })
+
+            return (
+              <TableHeaderCell key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+                <TableHeaderCellContent>
+                  <TableCellText>{attrKey}</TableCellText>
+                  <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+                </TableHeaderCellContent>
+                <ButtonHelpStyled identifier="btn-help-col-clade" wide>
+                  <HelpTipsColumnClade />
+                </ButtonHelpStyled>
+              </TableHeaderCell>
+            )
+          })}
 
           <TableHeaderCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
             <TableHeaderCellContent>

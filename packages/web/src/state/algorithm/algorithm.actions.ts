@@ -1,5 +1,6 @@
 import { UrlParams } from 'src/algorithms/types'
 import type { DatasetFlat, Gene } from 'src/algorithms/types'
+import { SortingKeyBased } from 'src/helpers/sortResults'
 import type { Sorting } from 'src/helpers/sortResults'
 import { actionCreatorFactory } from 'src/state/util/fsaActions'
 
@@ -68,3 +69,4 @@ export const setShowBad = action<boolean>('setShowBad')
 export const setShowErrors = action<boolean>('setShowErrors')
 
 export const resultsSortTrigger = action<Sorting>('resultsSortTrigger')
+export const resultsSortByKeyTrigger = action<SortingKeyBased>('resultsSortByKeyTrigger')

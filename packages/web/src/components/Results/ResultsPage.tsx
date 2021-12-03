@@ -4,7 +4,7 @@ import { sum } from 'lodash'
 import styled from 'styled-components'
 import { useSelector } from 'react-redux'
 
-import { selectCladeNodeAttrKeys, selectResults } from 'src/state/algorithm/algorithm.selectors'
+import { selectCladeNodeAttrKeys } from 'src/state/algorithm/algorithm.selectors'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 import { ExportDialogButton } from 'src/components/Results/ExportDialogButton'
@@ -63,15 +63,7 @@ const Footer = styled.footer`
 `
 
 export function ResultsPage() {
-  const analysisResults = useSelector(selectResults)
   const cladeNodeAttrKeys = useSelector(selectCladeNodeAttrKeys)
-
-  const nonEmptyCladeNodeAttrKeys = useMemo(
-    () =>
-      // Get node attribute keys that has at least 1 value in the results
-      cladeNodeAttrKeys.filter((key) => analysisResults.some((result) => !!result.result?.customNodeAttributes[key])),
-    [analysisResults, cladeNodeAttrKeys],
-  )
 
   const { columnWidthsPx, dynamicColumnWidthPx, geneMapNameWidthPx } = useMemo(() => {
     const columnWidthsPx = Object.fromEntries(
@@ -81,7 +73,7 @@ export function ResultsPage() {
     const dynamicColumnWidth = 100
     const dynamicColumnWidthPx = `${dynamicColumnWidth}px`
 
-    const dynamicColumnsWidth = nonEmptyCladeNodeAttrKeys.length * dynamicColumnWidth
+    const dynamicColumnsWidth = cladeNodeAttrKeys.length * dynamicColumnWidth
 
     const geneMapNamewidth = sum(Object.values(COLUMN_WIDTHS)) + dynamicColumnsWidth
     const geneMapNameWidthPx = `${geneMapNamewidth}px`
@@ -91,7 +83,7 @@ export function ResultsPage() {
       dynamicColumnWidthPx,
       geneMapNameWidthPx,
     }
-  }, [nonEmptyCladeNodeAttrKeys])
+  }, [cladeNodeAttrKeys])
 
   return (
     <LayoutResults>
@@ -125,7 +117,11 @@ export function ResultsPage() {
         <ResultsFilter />
 
         <MainContent>
-          <ResultsTable columnWidthsPx={columnWidthsPx} dynamicColumnWidthPx={dynamicColumnWidthPx} />
+          <ResultsTable
+            columnWidthsPx={columnWidthsPx}
+            dynamicColumnWidthPx={dynamicColumnWidthPx}
+            cladeNodeAttrKeys={cladeNodeAttrKeys}
+          />
         </MainContent>
 
         <Footer>
