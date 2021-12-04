@@ -32,7 +32,7 @@ export function PeptideMarkerMutation({ change, parentGroup, pixelsPerAa, ...res
   const x = pos * pixelsPerAa
   const fill = getAminoacidColor(queryAA)
 
-  return <rect fill={fill} stroke="#777a" strokeWidth={0.5} x={x} width={width} height="30" {...restProps} />
+  return <rect fill={fill} stroke="#777a" strokeWidth={0.5} x={x} width={pixelsPerAa} height="30" {...restProps} />
 }
 
 export interface PeptideMarkerMutationGroupProps extends SVGProps<SVGSVGElement> {
