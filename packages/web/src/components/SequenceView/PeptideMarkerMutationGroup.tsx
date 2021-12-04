@@ -29,8 +29,7 @@ export function PeptideMarkerMutation({ change, parentGroup, pixelsPerAa, ...res
   const { codonAaRange } = parentGroup
 
   const pos = codon - codonAaRange.begin
-  const x = pos * Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
-  const width = Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
+  const x = pos * pixelsPerAa
   const fill = getAminoacidColor(queryAA)
 
   return <rect fill={fill} stroke="#777a" strokeWidth={0.5} x={x} width={width} height="30" {...restProps} />
@@ -62,7 +61,9 @@ function PeptideMarkerMutationGroupDisconnected({
   const { gene, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
   const id = getSafeId('aa-mutation-group-marker', { seqName, gene, begin: codonAaRange.begin })
   const x = codonAaRange.begin * pixelsPerAa
-  const width = changes.length * Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
+  const minWidth = AA_MIN_WIDTH_PX*3/(2+changes.length)
+  const pixelsPerAaAdjusted = Math.max(minWidth,pixelsPerAa)
+  const width = changes.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
 
   let changesHead = changes
   let changesTail: typeof changes = []
@@ -79,7 +80,7 @@ function PeptideMarkerMutationGroupDisconnected({
       <svg x={x} y={-9.5} height={29} {...restProps}>
         <g onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
           {changes.map((change) => (
-            <PeptideMarkerMutation key={change.codon} change={change} parentGroup={group} pixelsPerAa={pixelsPerAa} />
+            <PeptideMarkerMutation key={change.codon} change={change} parentGroup={group} pixelsPerAa={pixelsPerAaAdjusted} />
           ))}
 
           <Tooltip target={id} isOpen={showTooltip} wide fullWidth>
