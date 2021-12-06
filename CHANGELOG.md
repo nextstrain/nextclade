@@ -1,3 +1,42 @@
+## Nextclade Web 1.9.0, Nextclade CLI 1.6.0 (2021-12-07)
+
+
+### [BREAKING CHANGE] [Fix] Remove unused CLI flags for aminoacid seed alignment
+
+Seed matching step was removed in Nextalign and Nextclade CLI 1.5.0, however the command-line parameters previously providing configuration options for this step were not. In this version, the now unused family of `--aa-*` CLI flags is removed. Migration path: remove these flags from Nextclade CLI invocation.
+
+### [Feature] Make "results" and "tree" pages full-width in Nextclade Web
+
+The content in "results" and "tree" pages of Nextclade Web now occupies entire width available in the browser window, so that more useful information can be presented. In particular, sequence views should be more readable, especially on larger screens.
+
+### [Feature] Dynamically adjust width of AA mutation markers
+
+Nextclade Web now dynamically adjusts width of AA mutation markers in sequence views to avoid overly long mutation groups that may obscure other mutations. This is particularly important for sequences with high density of mutations.
+
+### [Feature] Reduce probability of WebWorker timeout errors
+
+On low-end computers, computers with slow internet connection or computers under heavy background resource utilization Nextclade Web could sometimes produce WebWorker timeout errors. This has been addressed by increasing the timeout interval from 10 seconds to 1 minute. 
+
+If this is not enough, consider freeing up system memory and CPU resources by closing unused applications and browser tabs, processing sequences in smaller batches, or using Nextclade CLI. 
+
+### [Fix] Fix off-by-one errors in insertion positions
+
+Nextclade Web, Nextclade CLI and Nextalign could sometime produce incorrect positions for nucleotide insertions - off by 1 nucleotide to either direction. This was fixed in the new version.
+
+### [Fix] Don't add private reversions when query aminoacid is unknown
+
+In previous versions, if a query sequence, for one reason or another, had aminoacid X at the position where the parent tree node had a private mutation, Nextclade was incorrectly calling a new reversion at this position. This is now fixed and Nextclade will not report a reversion. We assume that in these situations the sequencing defect is more likely than a reversion.
+
+### [Fix] Avoid potential dereference of nullopt
+
+This is an internal fix of a problem that might have lead to a crash, but never manifested so far.
+
+
+### [Fix] Avoid error when `--genes` flag contains a subset of genes
+
+Nextclade 1.8.0 introduced an error when `--genes` flag contained only a subset of genes from the gene map. This is now resolved.
+
+
 ## Nextclade Web 1.8.1, Nextclade CLI 1.5.1 (2021-11-27)
 
 
