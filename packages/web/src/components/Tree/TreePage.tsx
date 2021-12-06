@@ -21,7 +21,7 @@ export const Container = styled.div`
   flex-basis: 100%;
   width: 100%;
   height: 100%;
-  min-width: 1000px;
+  min-width: 1080px;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -52,7 +52,7 @@ const MainContent = styled.main`
 const AuspiceContainer = styled.div`
   display: flex;
   flex: 1;
-  flex-basis: 100%;
+  flex-basis: 99%;
   height: 100%;
 `
 
