@@ -6,8 +6,9 @@ import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
 
 export const LayoutContainer = styled.div`
-  max-width: 1700px;
-  margin: 0 auto;
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0;
   width: 100%;
   height: 100%;
   display: flex;
