@@ -34,7 +34,9 @@ inline StripInsertionsResult<Letter> stripInsertions(const Sequence<Letter>& ref
     if (c == Letter::GAP) {
       if (currentInsertion.empty()) {
         currentInsertion = query[i];
-        insertionStart = i;
+        // NOTE: by convention we set position of insertion to be the index of a character that precedes the insertion,
+        // i.e. a position of reference nucleotide *after* which the insertion have happened.
+        insertionStart = i - 1;
       } else {
         currentInsertion += query[i];
       }
