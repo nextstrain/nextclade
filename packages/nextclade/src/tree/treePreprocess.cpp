@@ -111,7 +111,7 @@ namespace Nextclade {
 
         const auto& refPeptide = mapFind(refPeptides, geneName);
         if (!refPeptide) {
-          throw RefPeptideNotFound(geneName);
+          continue;
         }
 
         // If mutation reverts aminoacid back to what reference had, remove it from the map
