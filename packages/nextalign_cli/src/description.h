@@ -1,7 +1,11 @@
 #pragma once
 
 inline constexpr const char *PROJECT_DESCRIPTION = R"desc(
-Nextclade is a part of Nextstrain project: https://nextstrain.org
+Nextalign is a part of Nextstrain project: https://nextstrain.org
+
+Documentation: https://docs.nextstrain.org/projects/nextclade
+Nextclade Web: https://clades.nextstrain.org
+Publication:   https://doi.org/10.21105/joss.03773
 
 Nextalign is a viral genome sequence alignment tool. It performs pairwise alignment of provided sequences against a given reference sequence using banded local alignment algorithm with affine gap-cost. Band width and rough relative positions are determined through seed matching.
 
