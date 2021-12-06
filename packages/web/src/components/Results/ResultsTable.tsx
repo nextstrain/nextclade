@@ -71,7 +71,7 @@ export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
   Object.entries(RESULTS_TABLE_FLEX_BASIS).map(([item, fb]) => [item, `${fb}px`]),
 ) as Record<keyof typeof RESULTS_TABLE_FLEX_BASIS, string>
 
-export const geneMapNameBasis = sum(Object.values(RESULTS_TABLE_FLEX_BASIS))
+export const geneMapNameBasis = sum(Object.values(RESULTS_TABLE_FLEX_BASIS)) - RESULTS_TABLE_FLEX_BASIS.sequenceView
 export const geneMapNameBasisPx = `${geneMapNameBasis}px`
 
 export const Table = styled.div<{ rounded?: boolean }>`
