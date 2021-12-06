@@ -20,6 +20,10 @@
 * | 4 | mutation in node, but not in sequence, aka "reversal"        |   yes   |    node.qry   |   node.ref   |
 * |   | (mutation in sequence that reverts the character to ref seq) |         |               |              |
 * |---|--------------------------------------------------------------|---------|---------------|--------------|
+* | 5 | unknown in sequence, mutation in node                        |   no    |      N/A      |     N/A      |
+* |---|--------------------------------------------------------------|---------|---------------|--------------|
+* | 6 | unknown in sequence, no mutation in node                     |   no    |      N/A      |     N/A      |
+* |---|--------------------------------------------------------------|---------|---------------|--------------|
 *
 * At this point sequence have not yet become a new node on the tree, but is described by the results of the previous
 * analysis steps.
@@ -95,8 +99,10 @@ namespace Nextclade {
         seqPositionsCovered.insert(pos);
 
         if (isUnknown(seqMut.qry)) {
-          // Skip nucleotide N and aminoacid X in sequence. We don't know whether they match the node character or not,
-          // so we decide to not take them into account.
+          // Cases 5/6: Unknown in sequence
+          // Action: Skip nucleotide N and aminoacid X in sequence.
+          //         We don't know whether they match the node character or not,
+          //         so we decide to not take them into account.
           continue;
         }
 
