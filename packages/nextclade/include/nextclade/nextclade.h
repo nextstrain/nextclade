@@ -288,8 +288,6 @@ namespace Nextclade {
     return lhs.start == rhs.start && lhs.length == rhs.length;
   }
 
-  using NucleotideInsertion = InsertionInternal<Nucleotide>;
-
   template<>
   struct Substitution<Aminoacid> {
     std::string gene;
@@ -604,10 +602,6 @@ namespace Nextclade {
   std::string formatMutation(const NucleotideSubstitution& mut);
 
   std::string formatDeletion(const NucleotideDeletion& del);
-
-  std::string formatInsertion(const NucleotideInsertion& insertion);
-
-  std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions);
 
   std::string formatMissing(const NucleotideRange& missing);
 

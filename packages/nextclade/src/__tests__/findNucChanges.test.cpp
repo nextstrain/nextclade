@@ -13,7 +13,6 @@
 
 using Nextclade::findNucChanges;
 using Nextclade::NucleotideDeletion;
-using Nextclade::NucleotideInsertion;
 using Nextclade::NucleotideSubstitution;
 
 TEST(FindNucChanges, ReportsAlignmentStartAndEnd) {
