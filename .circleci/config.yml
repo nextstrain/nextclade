@@ -133,6 +133,7 @@ jobs:
       - run:
           name: 'Build web application'
           command: |
+            make lint-web
             make prod-web-nowatch
 
       - save_cache:
