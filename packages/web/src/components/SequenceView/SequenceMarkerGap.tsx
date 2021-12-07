@@ -47,7 +47,7 @@ function SequenceMarkerGapDisconnected({ seqName, deletion, pixelsPerBase, geneM
 
   const id = getSafeId('gap-marker', { seqName, ...deletion })
 
-  const x = begin * pixelsPerBase
+  const x = begin * pixelsPerBase - pixelsPerBase / 2
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
 

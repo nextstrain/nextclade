@@ -24,7 +24,7 @@ export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase,
   const { begin, end } = missing // prettier-ignore
 
   const id = getSafeId('missing-marker', { seqName, ...missing })
-  const x = begin * pixelsPerBase
+  const x = begin * pixelsPerBase - pixelsPerBase / 2
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
 
