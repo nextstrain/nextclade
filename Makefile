@@ -95,6 +95,9 @@ prod-web:
 prod-web-nowatch:
 	cd packages/web && yarn install --frozen-lockfile && yarn prod:build
 
+lint-web:
+	cd packages/web && yarn install --frozen-lockfile && yarn lint:ci
+
 # Docker-based builds
 
 # Pulls "Builder" docker container from Docker Hub

@@ -1,5 +1,5 @@
 #include <fmt/format.h>
-#include <nextalign/nextalign.h>
+#include <nextalign/private/nextalign_private.h>
 #include <tbb/global_control.h>
 #include <tbb/parallel_pipeline.h>
 
@@ -698,7 +698,7 @@ void run(
     [&ref, &refPeptides, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
       try {
         const auto query = toNucleotideSequence(input.seq);
-        const auto result = nextalign(query, ref, refPeptides, geneMap, options);
+        const auto result = nextalignInternal(query, ref, refPeptides, geneMap, options);
         return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
       } catch (const std::exception &e) {
         const auto &error = std::current_exception();
@@ -756,10 +756,10 @@ void run(
       outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, "", warningsJoined,
         failedGeneNamesJoined);
 
-      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, queryAligned);
+      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, toString(queryAligned));
 
       for (const auto &peptide : queryPeptides) {
-        outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
+        outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, toString(peptide.seq));
       }
 
       outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));

@@ -64,13 +64,14 @@ export const RESULTS_TABLE_FLEX_BASIS = {
   insertions: 60,
   frameShifts: 60,
   stopCodons: 60,
+  sequenceView: 600,
 } as const
 
 export const RESULTS_TABLE_FLEX_BASIS_PX = Object.fromEntries(
   Object.entries(RESULTS_TABLE_FLEX_BASIS).map(([item, fb]) => [item, `${fb}px`]),
 ) as Record<keyof typeof RESULTS_TABLE_FLEX_BASIS, string>
 
-export const geneMapNameBasis = sum(Object.values(RESULTS_TABLE_FLEX_BASIS))
+export const geneMapNameBasis = sum(Object.values(RESULTS_TABLE_FLEX_BASIS)) - RESULTS_TABLE_FLEX_BASIS.sequenceView
 export const geneMapNameBasisPx = `${geneMapNameBasis}px`
 
 export const Table = styled.div<{ rounded?: boolean }>`
@@ -180,7 +181,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
           <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
         </TableCellName>
 
-        <TableCell grow={20} shrink={20}>
+        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.sequenceView} grow={1} shrink={0}>
           <TableCellText>{errors}</TableCellText>
         </TableCell>
       </TableRowError>
@@ -198,7 +199,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
           <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
         </TableCellName>
 
-        <TableCell grow={20} shrink={20}>
+        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.sequenceView} grow={1} shrink={0}>
           <TableCellText>{t('Analyzing...')}</TableCellText>
         </TableCell>
       </TableRowPending>
@@ -261,7 +262,7 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <ColumnStopCodons sequence={sequence} />
       </TableCell>
 
-      <TableCell grow={20} shrink={20}>
+      <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.sequenceView} grow={1} shrink={0}>
         {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
           <SequenceView key={seqName} sequence={sequence} />
         ) : (
@@ -538,7 +539,7 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          <TableHeaderCell grow={20}>
+          <TableHeaderCell basis={RESULTS_TABLE_FLEX_BASIS_PX.sequenceView} grow={1} shrink={0}>
             <TableHeaderCellContent>
               <SequenceSelector viewedGene={viewedGene} setViewedGene={setViewedGene} />
             </TableHeaderCellContent>
