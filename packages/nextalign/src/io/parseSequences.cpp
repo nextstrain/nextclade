@@ -4,36 +4,73 @@
 #include <unistd.h>
 
 #include <cstdio>
+#include <utility>
 
 #include "kseqpp.h"
 
 
-class FastaStreamImpl : public FastaStream {
-  using read_function_fd_t = int;
-  using read_function_t = ssize_t (*)(int, void*, size_t);
-  using KStream = klibpp::KStream<read_function_fd_t, read_function_t>;
+class ErrorUnableToOpenFile : public std::runtime_error {
+public:
+  explicit ErrorUnableToOpenFile(const std::string& filePath)
+      : std::runtime_error(fmt::format("Unable to open file: \"{:s}\": {:}", filePath, strerror(errno))) {}
+};
 
-  read_function_fd_t fd;
+class ErrorUnableToReadFile : public std::runtime_error {
+public:
+  explicit ErrorUnableToReadFile(const std::string& filePath)
+      : std::runtime_error(fmt::format("Unable to read file: \"{:s}\": {:}", filePath, strerror(errno))) {}
+};
+
+
+/** Reference-counted file descriptor */
+class FileDescriptor {
+  static void close_file_descriptor(const int* fd) {
+    close(*fd);
+    delete fd;// NOLINT(cppcoreguidelines-owning-memory)
+  }
+
+  std::unique_ptr<int, decltype(&FileDescriptor::close_file_descriptor)> pfd;
+
+public:
+  explicit FileDescriptor(int fd) : pfd(new int(fd), &FileDescriptor::close_file_descriptor) {}
+
+  operator int() const {// NOLINT(google-explicit-constructor)
+    return *pfd;
+  }
+};
+
+
+class FileReader {
+  std::string filePath;
+  FileDescriptor fd;
+
+public:
+  explicit FileReader(std::string filePath_)
+      : filePath(std::move(filePath_)),
+        fd(::open(filePath.c_str(), O_RDONLY | O_CLOEXEC)) {
+    if (fd < 0) {
+      throw ErrorUnableToOpenFile(filePath);
+    }
+  }
+
+  ssize_t read(void* buf, size_t nBytes) const {
+    ssize_t nBytesRead = ::read(fd, buf, nBytes);
+    if (nBytesRead < 0) {
+      throw ErrorUnableToReadFile(filePath);
+    }
+    return nBytesRead;
+  }
+};
+
+class FastaStreamImpl : public FastaStream {
+  using KStream = klibpp::KStream<FileReader>;
   KStream kstream;
 
 public:
   FastaStreamImpl() = delete;
 
-  explicit FastaStreamImpl(const std::string& fileName)
-      : fd(open(fileName.c_str(), O_RDONLY | O_CLOEXEC)),
-        kstream(fd, read) {}
+  explicit FastaStreamImpl(const std::string& filePath) : kstream(FileReader(filePath)) {}
 
-  ~FastaStreamImpl() override {
-    close(fd);
-  }
-
-  FastaStreamImpl(const FastaStreamImpl& other) = delete;
-
-  FastaStreamImpl operator=(const FastaStreamImpl& other) = delete;
-
-  FastaStreamImpl(FastaStreamImpl&& other) = delete;
-
-  FastaStreamImpl operator=(const FastaStreamImpl&& other) = delete;
 
   bool next(AlgorithmInput& record) override {
     return kstream.next(record);

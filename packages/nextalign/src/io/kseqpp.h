@@ -36,7 +36,7 @@
 
 namespace klibpp {
 
-  template<typename TFile, typename TFunc>
+  template<typename Reader>
   class KStream {// kstream_t
   public:
     using char_type = char;
@@ -56,8 +56,8 @@ namespace klibpp {
     bool is_tqs;                      /**< @brief truncated quality string flag */
     bool is_ready;                    /**< @brief next record ready flag */
     bool last;                        /**< @brief last read was successful */
-    TFile f;                          /**< @brief file handler */
-    TFunc func;                       /**< @brief read function */
+
+    Reader reader;
 
     int64_t index = 0;
 
@@ -66,9 +66,7 @@ namespace klibpp {
     }
 
   public:
-    KStream(TFile f_, TFunc func_)// ks_init
-        : f(std::move(f_)),
-          func(std::move(func_)) {
+    explicit KStream(Reader reader_) : reader(std::move(reader_)) {
       this->buf.resize(DEFAULT_BUFSIZE);
       this->begin = 0;
       this->end = 0;
@@ -147,7 +145,7 @@ namespace klibpp {
       // fetch
       if (this->begin >= this->end) {
         this->begin = 0;
-        this->end = this->func(this->f, this->buf.data(), this->buf.size());
+        this->end = this->reader.read(this->buf.data(), this->buf.size());
         if (this->end <= 0) {// err if end == -1 and eof if 0
           this->is_eof = true;
           return 0;
