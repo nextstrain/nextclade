@@ -66,7 +66,7 @@ namespace klibpp {
     }
 
   public:
-    explicit KStream(Reader reader_) : reader(std::move(reader_)) {
+    explicit KStream(Reader&& reader_) : reader{std::move(reader_)} {
       this->buf.resize(DEFAULT_BUFSIZE);
       this->begin = 0;
       this->end = 0;
@@ -75,6 +75,12 @@ namespace klibpp {
       this->is_ready = false;
       this->last = false;
     }
+
+    ~KStream() = default;
+    KStream(const KStream&) = delete;
+    const KStream& operator=(const KStream&) = delete;
+    KStream(const KStream&&) = delete;
+    const KStream& operator=(const KStream&&) = delete;
 
     inline bool err() const// ks_err
     {

@@ -393,7 +393,7 @@ public:
  * Creates an instance of fasta stream, given a filename.
  * This version is faster, but does not support reading from a C++ stream.
  */
-std::unique_ptr<FastaStream> makeFastaStream(const std::string& filename);
+std::unique_ptr<FastaStream> makeFastaStream(const std::string& filePath);
 
 /**
  *  Creates an instance of fasta stream, given a filename.

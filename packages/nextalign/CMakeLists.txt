@@ -15,6 +15,8 @@ find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
 find_package(fast-cpp-csv-parser 20191004 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
+find_package(LibLZMA 5.2.5 REQUIRED)
+find_package(ZLIB 1.2.11 REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
   include/nextalign/nextalign.h
@@ -29,6 +31,10 @@ add_library(${PROJECT_NAME} STATIC
   src/alphabet/aminoacids.h
   src/alphabet/nucleotides.cpp
   src/alphabet/nucleotides.h
+  src/io/FileReaderGz.h
+  src/io/FileReaderPlain.h
+  src/io/FileReaderXz.h
+  src/io/filesystem.h
   src/io/gene.io.cpp
   src/io/gene.io.h
   src/io/parseGeneMapGff.cpp
@@ -120,6 +126,10 @@ target_link_libraries(${PROJECT_NAME}
   Boost::headers
   fast-cpp-csv-parser::fast-cpp-csv-parser
   fmt::fmt-header-only
+
+  PUBLIC
+  LibLZMA::LibLZMA
+  ZLIB::ZLIB
   )
 
 set(NEXTALIGN_BUILD_TESTS ON CACHE BOOL "Build unit tests")

@@ -16,6 +16,7 @@ neargye-semver/0.3.0
 openssl/1.1.1k@local/stable
 poco/1.11.0@local/stable
 tbb/2021.3.0@local/stable
+xz_utils/5.2.5
 zlib/1.2.11@local/stable
 
 [generators]
