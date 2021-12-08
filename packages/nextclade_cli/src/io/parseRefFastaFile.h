@@ -18,12 +18,7 @@ namespace Nextclade {
   };
 
   inline ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
-    std::ifstream file(filename);
-    if (!file.good()) {
-      throw ErrorFastaReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
-    }
-
-    const auto refSeqs = parseSequences(file, filename);
+    const auto refSeqs = parseSequences(filename);
     if (refSeqs.size() != 1) {
       throw ErrorFastaReader(
         fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));

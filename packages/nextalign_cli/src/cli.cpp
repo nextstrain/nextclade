@@ -421,12 +421,7 @@ struct ReferenceSequenceData {
 };
 
 ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
-  std::ifstream file(filename);
-  if (!file.good()) {
-    throw ErrorFastaReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
-  }
-
-  const auto refSeqs = parseSequences(file, filename);
+  const auto refSeqs = parseSequences(filename);
   if (refSeqs.size() != 1) {
     throw ErrorFastaReader(
       fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
@@ -687,12 +682,12 @@ void run(
    * reads and parses the contents of it, and returns parsed sequences */
   const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(ioFiltersMode,//
     [&inputFastaStream](tbb::flow_control &fc) -> AlgorithmInput {
-      if (!inputFastaStream->good()) {
+      AlgorithmInput input;
+      if (!inputFastaStream->next(input)) {
         fc.stop();
         return {};
       }
-
-      return inputFastaStream->next();
+      return input;
     });
 
 
@@ -824,12 +819,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    std::ifstream fastaFile(cliParams.sequences);
-    auto fastaStream = makeFastaStream(fastaFile, cliParams.sequences);
-    if (!fastaFile.good()) {
-      logger.error("Error: unable to read \"{:s}\"", cliParams.sequences);
-      std::exit(1);
-    }
+    auto fastaStream = makeFastaStream(cliParams.sequences);
 
     const auto paths = getPaths(cliParams, genes);
     logger.info(formatPaths(paths));
