@@ -41,6 +41,10 @@ struct Range {
   [[nodiscard]] bool contains(int x) const {
     return x >= begin && x < end;
   }
+
+  [[nodiscard]] int length() const {
+    return end - begin;
+  }
 };
 
 [[nodiscard]] inline Range nucRangeToCodonRange(const Range& range) {
