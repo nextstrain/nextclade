@@ -79,18 +79,13 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
   precondition_less(gene.start, gene.end);
 
   // Transform gene coordinates according to coordinate map
-  const auto start = coordMap.refToAln(gene.start);
-  // gene.end is the position after the last base of the gene (0-based indexing)
-  // the corresponding base in the query is hence found by coordMap[gene.end-1]
-  // we add 1 to make that end be again after the last base of the gene.
-  // with this addition: length = end - start
-  const auto end = coordMap.refToAln(gene.end - 1) + 1;
-  const auto length = end - start;
-  // Start and end should be within bounds
-  invariant_less(start, query.size());
-  invariant_less_equal(end, query.size());
+  const auto geneAln = coordMap.refToAln(Range{gene.start, gene.end});
 
-  auto result = NucleotideSequence(details::substr(query, start, length));
+  // Start and end should be within bounds
+  invariant_less(geneAln.begin, query.size());
+  invariant_less_equal(geneAln.end, query.size());
+
+  auto result = NucleotideSequence(details::substr(query, geneAln.begin, geneAln.length()));
   const auto resultLength = safe_cast<int>(result.size());
 
   if (resultLength == 0) {
