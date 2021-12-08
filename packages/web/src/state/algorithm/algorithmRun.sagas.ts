@@ -480,6 +480,10 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     qcConfigStr: getQcConfig(dataset, urlParams),
   })
 
+  const tree = JSON.parse(treeStr) as AuspiceJsonV2
+  const cladeNodeAttrKeys = tree.meta?.extensions?.nextclade?.clade_node_attrs_keys ?? []
+  yield* put(setCladeNodeAttrKeys({ cladeNodeAttrKeys }))
+
   const genomeSize = refStr.length
   yield* put(setGenomeSize({ genomeSize }))
 
@@ -488,7 +492,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
 
   const geneMapName = ''
   const pcrPrimersFilename = ''
-  const { nextcladeResults, treePreparedStr, cladeNodeAttrKeys } = yield* runSequenceAnalysis(queryStr, queryName, {
+  const { nextcladeResults, treePreparedStr } = yield* runSequenceAnalysis(queryStr, queryName, {
     refStr,
     refName,
     geneMapStr,
@@ -512,7 +516,6 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
 
     yield* setAuspiceState(tree)
     yield* put(setTreeResult({ treeStr: treeFinalStr }))
-    yield* put(setCladeNodeAttrKeys({ cladeNodeAttrKeys }))
   }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.done))
