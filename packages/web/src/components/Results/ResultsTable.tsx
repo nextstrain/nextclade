@@ -130,12 +130,12 @@ export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: nu
   border-left: 1px solid #b3b3b3;
 `
 
-export const TableCellName = styled(TableCell) <{ basis?: string; grow?: number; shrink?: number }>`
+export const TableCellName = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
   text-align: left;
   padding-left: 5px;
 `
 
-export const TableCellAlignedLeft = styled(TableCell) <{ basis?: string; grow?: number; shrink?: number }>`
+export const TableCellAlignedLeft = styled(TableCell)<{ basis?: string; grow?: number; shrink?: number }>`
   text-align: left;
   padding-left: 5px;
 `
@@ -145,7 +145,7 @@ export const TableRowPending = styled(TableRow)`
   color: #818181;
 `
 
-export const TableRowError = styled(TableRow) <{ even?: boolean }>`
+export const TableRowError = styled(TableRow)<{ even?: boolean }>`
   background-color: #f0a9a9;
   color: #962d26;
 `
