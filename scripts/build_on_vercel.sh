@@ -75,6 +75,17 @@ ln -s /usr/lib/python3.6 /usr/local/lib/python3.6 || true
 export PYTHONPATH=/usr/lib/python3.6${PYTHONPATH:+":$PYTHONPATH"}
 
 
+find / -iname "python" 2>/dev/null || true
+find / -iname "python3" 2>/dev/null || true
+find / -iname "python3.6" 2>/dev/null || true
+find / -iname "python3.9" 2>/dev/null || true
+
+which "python" || true
+which "python3" || true
+which "python3.6" || true
+which "python3.9" || true
+
+
 # Make sure Python has SQLite module enabled
 which "python3"
 python3 -c "import sqlite3; print(sqlite3.sqlite_version)" || true
