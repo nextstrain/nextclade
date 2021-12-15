@@ -95,20 +95,24 @@ int CoordinateMapper::refToAln(int refPos) const {
 }
 
 Range CoordinateMapper::alnToRef(const Range& alnRange) const {
-  precondition_less(alnRange.begin, alnRange.end);
+  if (alnRange.begin >= alnRange.end) {
+    return Range{alnRange.begin, alnRange.begin};
+  }
   const Range refRange{
     .begin = alnToRef(alnRange.begin),
-    .end = alnToRef(alnRange.end),
+    .end = alnToRef(alnRange.end - 1) + 1,
   };
   postcondition_less(refRange.begin, refRange.end);
   return refRange;
 }
 
 Range CoordinateMapper::refToAln(const Range& refRange) const {
-  precondition_less(refRange.begin, refRange.end);
+  if (refRange.begin >= refRange.end) {
+    return Range{refRange.begin, refRange.begin};
+  }
   const Range alnRange{
     .begin = refToAln(refRange.begin),
-    .end = refToAln(refRange.end),
+    .end = refToAln(refRange.end - 1) + 1,
   };
   postcondition_less(alnRange.begin, alnRange.end);
   return alnRange;

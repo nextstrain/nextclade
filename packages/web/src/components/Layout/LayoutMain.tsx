@@ -14,8 +14,9 @@ import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
 
 export const Container = styled.div`
-  max-width: 1700px;
-  min-width: 500px;
+  max-width: 100vw;
+  max-height: 100vh;
+  min-width: 700px;
   margin: 0 auto;
 `
 

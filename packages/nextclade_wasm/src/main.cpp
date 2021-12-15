@@ -195,7 +195,7 @@ public:
 
 AlgorithmInput parseRefSequence(const std::string& refFastaStr, const std::string& refFastaName) {
   std::stringstream refFastaStream{refFastaStr};
-  const auto parsed = parseSequences(refFastaStream, refFastaName);
+  const auto parsed = parseSequencesSlow(refFastaStream, refFastaName);
 
   if (parsed.size() != 1) {
     throw std::runtime_error(fmt::format("Error: {:d} sequences found in reference sequence file ('{:s}'), expected 1",
@@ -225,9 +225,10 @@ std::string parsePcrPrimerCsvRowsStr(const std::string& pcrPrimersStr, const std
 void parseSequencesStreaming(const std::string& queryFastaStr, const std::string& queryFastaName,
   const emscripten::val& onSequence, const emscripten::val& onComplete) {
   std::stringstream queryFastaStringstream{queryFastaStr};
-  auto inputFastaStream = makeFastaStream(queryFastaStringstream, queryFastaName);
-  while (inputFastaStream->good()) {
-    onSequence(inputFastaStream->next());
+  auto inputFastaStream = makeFastaStreamSlow(queryFastaStringstream, queryFastaName);
+  AlgorithmInput input;
+  while (inputFastaStream->next(input)) {
+    onSequence(std::move(input));
   }
   onComplete();
 }
@@ -265,7 +266,7 @@ std::string serializeInsertionsToCsv(const std::string& analysisResultsStr) {
   for (const auto& result : analysisResults.results) {
     const auto& seqName = result.seqName;
     const auto& insertions = result.insertions;
-    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, Nextclade::formatInsertions(insertions));
+    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
   }
   return outputInsertionsStream.str();
 }

@@ -68,7 +68,7 @@ export function GeneMapTableDisconnected({
   return (
     <GeneMapTableContent>
       <GeneMapTableRow>
-        <GeneMapTableCell basis={geneMapNameWidthPx} shrink={0}>
+        <GeneMapTableCell basis={geneMapNameWidthPx} grow={0} shrink={0}>
           <div className="mx-auto">
             <span className="ml-auto mr-2">{t('Genome annotation')}</span>
             <ButtonHelpSimple identifier="btn-help-gene-map" tooltipPlacement="auto">
@@ -86,14 +86,14 @@ export function GeneMapTableDisconnected({
             </GeneMapBackButton>
           )}
         </GeneMapTableCell>
-        <TableCell grow={1} shrink={1} className="w-100">
+        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.sequenceView} grow={1} shrink={0}>
           <GeneMap />
         </TableCell>
       </GeneMapTableRow>
 
       <GeneMapAxisTableRow>
-        <TableCellName basis={geneMapNameWidthPx} shrink={0} />
-        <TableCell grow={1} shrink={1} className="w-100">
+        <TableCellName basis={geneMapNameWidthPx} grow={0} shrink={0} />
+        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.sequenceView} grow={1} shrink={0}>
           <GeneMapAxis />
         </TableCell>
       </GeneMapAxisTableRow>

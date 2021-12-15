@@ -84,12 +84,7 @@ namespace Nextclade {
         }
       }
 
-      std::ifstream fastaFile(inputFasta);
-      auto inputFastaStream = makeFastaStream(fastaFile, inputFasta);
-      if (!fastaFile.good()) {
-        logger.error("Error: unable to read \"{:s}\"", inputFasta);
-        std::exit(1);
-      }
+      auto inputFastaStream = makeFastaStream(inputFasta);
 
       const auto qcJsonString = readFile(inputQcConfig);
       const auto qcRulesConfig = Nextclade::parseQcConfig(qcJsonString);

@@ -1,4 +1,4 @@
-#include <nextalign/nextalign.h>
+#include <nextalign/private/nextalign_private.h>
 #include <utils/concat_move.h>
 
 #include <algorithm>
@@ -30,6 +30,18 @@ std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& pept
 RefPeptide toRefPeptideExternal(const RefPeptideInternal& peptide) {
   return RefPeptide{.name = peptide.geneName, .seq = toString(peptide.peptide)};
 }
+
+std::string formatInsertion(const NucleotideInsertion& insertion) {
+  // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+  const auto positionOneBased = insertion.pos + 1;
+  const auto insertedSequence = toString(insertion.ins);
+  return fmt::format("{}:{}", positionOneBased, insertedSequence);
+}
+
+std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions) {
+  return formatAndJoin(insertions, formatInsertion, ";");
+}
+
 
 std::vector<RefPeptide> toRefPeptidesExternal(const std::vector<RefPeptideInternal>& peptides) {
   return map(peptides, std::function<RefPeptide(RefPeptideInternal)>(toRefPeptideExternal));
@@ -71,22 +83,6 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
     .warnings = warnings,
   };
 }
-
-NextalignResult nextalign(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const std::map<std::string, RefPeptideInternal>& refPeptides, const GeneMap& geneMap,
-  const NextalignOptions& options) {
-  const auto resultInternal = nextalignInternal(query, ref, refPeptides, geneMap, options);
-
-  return NextalignResult{
-    .ref = toString(resultInternal.ref),
-    .query = toString(resultInternal.query),
-    .alignmentScore = resultInternal.alignmentScore,
-    .queryPeptides = toPeptidesExternal(resultInternal.queryPeptides),
-    .insertions = toInsertionsExternal(resultInternal.insertions),
-    .warnings = resultInternal.warnings,
-  };
-}
-
 
 const char* getVersion() {
   return PROJECT_VERSION;

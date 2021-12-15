@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-#include "nextalign/private/nextalign_private.h"
 
 template<typename Letter>
 using SequenceSpan = gsl::basic_string_span<Letter, gsl::dynamic_extent>;
@@ -15,27 +14,6 @@ using NucleotideSequenceSpan = SequenceSpan<Nucleotide>;
 
 using AminoacidSequenceSpan = SequenceSpan<Aminoacid>;
 
-
-struct PeptideInternal {
-  std::string name;
-  AminoacidSequence seq;
-  std::vector<InsertionInternal<Aminoacid>> insertions;
-  std::vector<FrameShiftResult> frameShiftResults;
-};
-
-struct PeptidesInternal {
-  std::vector<PeptideInternal> queryPeptides;
-  Warnings warnings;
-};
-
-struct NextalignResultInternal {
-  NucleotideSequence query;
-  NucleotideSequence ref;
-  int alignmentScore;
-  std::vector<PeptideInternal> queryPeptides;
-  std::vector<InsertionInternal<Nucleotide>> insertions;
-  Warnings warnings;
-};
 
 Nucleotide toNucleotide(char nuc);
 
@@ -88,10 +66,6 @@ std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<
 std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& peptides);
 
 std::vector<RefPeptide> toRefPeptidesExternal(const std::vector<RefPeptideInternal>& peptides);
-
-NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const std::map<std::string, RefPeptideInternal>& refPeptides, const GeneMap& geneMap,
-  const NextalignOptions& options);
 
 
 inline std::ostream& operator<<(std::ostream& os, const Nucleotide& nuc) {
