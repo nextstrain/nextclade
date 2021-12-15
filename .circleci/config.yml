@@ -110,6 +110,13 @@ jobs:
           command: |
             echo "FULL_DOMAIN=${FULL_DOMAIN}" >> .env
             echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
+            echo "PROD_ENABLE_SOURCE_MAPS=0" >> .env
+            echo "PROD_ENABLE_TYPE_CHECKS=0" >> .env
+            echo "PROD_ENABLE_ESLINT=0" >> .env
+            echo "PROD_ENABLE_STYLELINT=0" >> .env
+            echo "PROD_ENABLE_REDUX_DEV_TOOLS=0" >> .env
+            echo "PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT=0" >> .env
+            echo "PROD_ENABLE_REDUX_LOGGER=0" >> .env
             make prod-wasm-nowatch
 
       - save_cache:
@@ -126,6 +133,7 @@ jobs:
       - run:
           name: 'Build web application'
           command: |
+            make lint-web
             make prod-web-nowatch
 
       - save_cache:

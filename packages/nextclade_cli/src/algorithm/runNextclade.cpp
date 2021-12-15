@@ -83,12 +83,12 @@ namespace Nextclade {
    * reads and parses the contents of it, and returns parsed sequences */
     const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(ioFiltersMode,//
       [&inputFastaStream](tbb::flow_control &fc) -> AlgorithmInput {
-        if (!inputFastaStream->good()) {
+        AlgorithmInput input;
+        if (!inputFastaStream->next(input)) {
           fc.stop();
           return {};
         }
-
-        return inputFastaStream->next();
+        return input;
       });
 
     /** A set of parallel transform filter functions, each accepts a parsed sequence from the input filter,
