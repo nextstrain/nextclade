@@ -43,6 +43,7 @@ export enum AlgorithmInputType {
   File = 'FileInput',
   Url = 'Url',
   String = 'String',
+  Default = 'Default',
 }
 
 export interface AlgorithmInput {
