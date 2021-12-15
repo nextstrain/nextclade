@@ -1,4 +1,5 @@
 import { current } from 'immer'
+import { WritableDraft } from 'immer/dist/types/types-external'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import type { Gene } from 'src/algorithms/types'
@@ -40,7 +41,67 @@ import {
   setDatasets,
   setInputUrlParams,
 } from './algorithm.actions'
-import { algorithmDefaultState, AlgorithmGlobalStatus, AlgorithmSequenceStatus } from './algorithm.state'
+import {
+  algorithmDefaultState,
+  AlgorithmGlobalStatus,
+  AlgorithmSequenceStatus,
+  AlgorithmState,
+} from './algorithm.state'
+
+function removeFastaImpl(draft: WritableDraft<AlgorithmState>) {
+  draft.params.raw.seqData = undefined
+  draft.params.strings.queryName = undefined
+  draft.params.strings.queryStr = undefined
+  draft.params.errors.seqData = []
+  draft.params.seqData = undefined
+  return draft
+}
+
+function removeTreeImpl(draft: WritableDraft<AlgorithmState>) {
+  draft.params.raw.auspiceData = undefined
+  draft.params.strings.treeStr = undefined
+  draft.params.errors.auspiceData = []
+  return draft
+}
+
+function removeRootSeqImpl(draft: WritableDraft<AlgorithmState>) {
+  draft.params.raw.rootSeq = undefined
+  draft.params.strings.refStr = undefined
+  draft.params.final.genomeSize = undefined
+  draft.params.errors.rootSeq = []
+  return draft
+}
+
+function removeQcSettingsImpl(draft: WritableDraft<AlgorithmState>) {
+  draft.params.raw.qcRulesConfig = undefined
+  draft.params.strings.qcConfigStr = undefined
+  draft.params.errors.qcRulesConfig = []
+  return draft
+}
+
+function removeGeneMapImpl(draft: WritableDraft<AlgorithmState>) {
+  draft.params.raw.geneMap = undefined
+  draft.params.strings.geneMapStr = undefined
+  draft.params.final.geneMap = undefined
+  draft.params.errors.geneMap = []
+  return draft
+}
+
+function removePcrPrimersImpl(draft: WritableDraft<AlgorithmState>) {
+  draft.params.raw.pcrPrimers = undefined
+  draft.params.strings.pcrPrimerCsvRowsStr = undefined
+  draft.params.errors.pcrPrimers = []
+  return draft
+}
+
+function removeAll(draft: WritableDraft<AlgorithmState>) {
+  removeFastaImpl(draft)
+  removeTreeImpl(draft)
+  removeRootSeqImpl(draft)
+  removeQcSettingsImpl(draft)
+  removeGeneMapImpl(draft)
+  removePcrPrimersImpl(draft)
+}
 
 export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setDatasets, (draft, { defaultDatasetName, defaultDatasetNameFriendly, datasets }) => {
@@ -50,6 +111,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(setCurrentDataset, (draft, dataset) => {
+    removeAll(draft)
     draft.params.datasetCurrent = dataset
   })
 
@@ -145,40 +207,38 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   // ******************
 
   .icase(setFasta.started, (draft, input) => {
+    removeFastaImpl(draft)
     draft.params.raw.seqData = input
-    draft.params.strings.queryStr = undefined
     draft.params.errors.seqData = []
   })
 
   .icase(setTree.started, (draft, input) => {
+    removeTreeImpl(draft)
     draft.params.raw.auspiceData = input
-    draft.params.strings.treeStr = undefined
     draft.params.errors.auspiceData = []
   })
 
   .icase(setRootSeq.started, (draft, input) => {
+    removeRootSeqImpl(draft)
     draft.params.raw.rootSeq = input
-    draft.params.strings.refStr = undefined
-    draft.params.final.genomeSize = undefined
     draft.params.errors.rootSeq = []
   })
 
   .icase(setQcSettings.started, (draft, input) => {
+    removeQcSettingsImpl(draft)
     draft.params.raw.qcRulesConfig = input
-    draft.params.strings.qcConfigStr = undefined
     draft.params.errors.qcRulesConfig = []
   })
 
   .icase(setGeneMap.started, (draft, input) => {
+    removeGeneMapImpl(draft)
     draft.params.raw.geneMap = input
-    draft.params.strings.geneMapStr = undefined
-    draft.params.final.geneMap = undefined
     draft.params.errors.geneMap = []
   })
 
   .icase(setPcrPrimers.started, (draft, input) => {
+    removePcrPrimersImpl(draft)
     draft.params.raw.pcrPrimers = input
-    draft.params.strings.pcrPrimerCsvRowsStr = undefined
     draft.params.errors.pcrPrimers = []
   })
 
@@ -222,78 +282,43 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   // ******************
 
   .icase(setFasta.failed, (draft, { error }) => {
-    draft.params.strings.queryStr = undefined
+    removeFastaImpl(draft)
     draft.params.errors.seqData = [error]
   })
 
   .icase(setTree.failed, (draft, { error }) => {
-    draft.params.strings.treeStr = undefined
+    removeTreeImpl(draft)
     draft.params.errors.auspiceData = [error]
   })
 
   .icase(setRootSeq.failed, (draft, { error }) => {
-    draft.params.strings.refStr = undefined
-    draft.params.final.genomeSize = undefined
+    removeRootSeqImpl(draft)
     draft.params.errors.rootSeq = [error]
   })
 
   .icase(setQcSettings.failed, (draft, { error }) => {
-    draft.params.strings.qcConfigStr = undefined
+    removeQcSettingsImpl(draft)
     draft.params.errors.qcRulesConfig = [error]
   })
 
   .icase(setGeneMap.failed, (draft, { error }) => {
-    draft.params.strings.pcrPrimerCsvRowsStr = undefined
-    draft.params.final.geneMap = undefined
+    removeGeneMapImpl(draft)
     draft.params.errors.geneMap = [error]
   })
 
   .icase(setPcrPrimers.failed, (draft, { error }) => {
-    draft.params.strings.pcrPrimerCsvRowsStr = undefined
+    removePcrPrimersImpl(draft)
     draft.params.errors.pcrPrimers = [error]
   })
 
   // ******************
 
-  .icase(removeFasta, (draft) => {
-    draft.params.raw.seqData = undefined
-    draft.params.strings.queryName = undefined
-    draft.params.strings.queryStr = undefined
-    draft.params.errors.seqData = []
-    draft.params.seqData = undefined
-  })
-
-  .icase(removeTree, (draft) => {
-    draft.params.raw.auspiceData = undefined
-    draft.params.strings.treeStr = undefined
-    draft.params.errors.auspiceData = []
-  })
-
-  .icase(removeRootSeq, (draft) => {
-    draft.params.raw.rootSeq = undefined
-    draft.params.strings.refStr = undefined
-    draft.params.final.genomeSize = undefined
-    draft.params.errors.rootSeq = []
-  })
-
-  .icase(removeQcSettings, (draft) => {
-    draft.params.raw.qcRulesConfig = undefined
-    draft.params.strings.qcConfigStr = undefined
-    draft.params.errors.qcRulesConfig = []
-  })
-
-  .icase(removeGeneMap, (draft) => {
-    draft.params.raw.geneMap = undefined
-    draft.params.strings.geneMapStr = undefined
-    draft.params.final.geneMap = undefined
-    draft.params.errors.geneMap = []
-  })
-
-  .icase(removePcrPrimers, (draft) => {
-    draft.params.raw.pcrPrimers = undefined
-    draft.params.strings.pcrPrimerCsvRowsStr = undefined
-    draft.params.errors.pcrPrimers = []
-  })
+  .icase(removeFasta, removeFastaImpl)
+  .icase(removeTree, removeTreeImpl)
+  .icase(removeRootSeq, removeRootSeqImpl)
+  .icase(removeQcSettings, removeQcSettingsImpl)
+  .icase(removeGeneMap, removeGeneMapImpl)
+  .icase(removePcrPrimers, removePcrPrimersImpl)
 
   // ******************
 
