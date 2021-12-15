@@ -1,3 +1,14 @@
+## Nextclade Web 1.10.0, Nextclade CLI 1.7.0 (2021-12-09)
+
+### [Performance] Optimize FASTA parser
+
+The new optimized FASTA parser makes Nextclade CLI up to 60% faster and Nextalign CLI up to 500% faster when used on high-core-count machines. Nextalign and Nextclade now scale much better with number of available threads and rely less on I/O speed. See [#632](https://github.com/nextstrain/nextclade/pull/632) for more details.
+
+### [Fix] Avoid crash fur to buffer overflow
+
+This is an internal fix of a problem that might have lead to a crash in rare cases, when coordinate map array was accessed beyond it's size.
+
+
 ## Nextclade Web 1.9.0, Nextclade CLI 1.6.0 (2021-12-07)
 
 
