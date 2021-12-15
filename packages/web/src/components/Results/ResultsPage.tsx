@@ -18,7 +18,7 @@ import { ButtonRerun } from './ButtonRerun'
 export const Container = styled.div`
   width: 100%;
   height: 100%;
-  min-width: 1000px;
+  min-width: 1650px;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;

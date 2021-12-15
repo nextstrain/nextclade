@@ -45,7 +45,7 @@ jobs:
       - restore_cache:
           name: 'Restore previous checksum.txt from cache'
           keys:
-            - cache-nextclade-v7-builder-container-{{ checksum "checksum.current.txt" }}
+            - cache-nextclade-v8-builder-container-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare checksum.txt to cached one, halt if no changes'
@@ -82,7 +82,7 @@ jobs:
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-nextclade-v7-builder-container-{{ checksum "checksum.previous.txt" }}
+          key: cache-nextclade-v8-builder-container-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -103,34 +103,42 @@ jobs:
       - restore_cache:
           name: 'Restore WebAssembly module build cache'
           keys:
-            - cache-nextclade-v7-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+            - cache-nextclade-v8-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
 
       - run:
           name: 'Build WebAssembly module'
           command: |
             echo "FULL_DOMAIN=${FULL_DOMAIN}" >> .env
             echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
+            echo "PROD_ENABLE_SOURCE_MAPS=0" >> .env
+            echo "PROD_ENABLE_TYPE_CHECKS=0" >> .env
+            echo "PROD_ENABLE_ESLINT=0" >> .env
+            echo "PROD_ENABLE_STYLELINT=0" >> .env
+            echo "PROD_ENABLE_REDUX_DEV_TOOLS=0" >> .env
+            echo "PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT=0" >> .env
+            echo "PROD_ENABLE_REDUX_LOGGER=0" >> .env
             make prod-wasm-nowatch
 
       - save_cache:
           name: 'Save WebAssembly module build cache'
-          key: cache-nextclade-v7-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+          key: cache-nextclade-v8-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
           paths:
             - .cache
 
       - restore_cache:
           name: 'Restore web application build cache'
           keys:
-            - cache-nextclade-v7-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+            - cache-nextclade-v8-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
 
       - run:
           name: 'Build web application'
           command: |
+            make lint-web
             make prod-web-nowatch
 
       - save_cache:
           name: 'Save web application build cache'
-          key: cache-nextclade-v7-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+          key: cache-nextclade-v8-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
           paths:
             - packages/web/.cache
             - packages/web/.build/production/tmp/cache
@@ -190,7 +198,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextclade-v7-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+            - cache-nextclade-v8-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
 
       - run:
           name: 'Run "Builder" container'
@@ -200,7 +208,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextclade-v7-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
+          key: cache-nextclade-v8-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
           paths:
             - .cache
 
@@ -251,7 +259,7 @@ jobs:
       - restore_cache:
           name: 'Restore homebrew cache'
           keys:
-            - cache-nextclade-v7-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
+            - cache-nextclade-v8-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
 
       - run:
           name: 'Install build tools'
@@ -272,7 +280,7 @@ jobs:
 
       - save_cache:
           name: 'Save homebrew cache'
-          key: cache-nextclade-v7-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
+          key: cache-nextclade-v8-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
           paths:
             - '~/Library/Caches/Homebrew'
             - '/usr/local/Homebrew'
@@ -280,7 +288,7 @@ jobs:
       - restore_cache:
           name: 'Restore build cache'
           keys:
-            - cache-nextclade-v7-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+            - cache-nextclade-v8-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
 
       - run:
           name: Run macOS << parameters.macos_arch >> build
@@ -294,7 +302,7 @@ jobs:
 
       - save_cache:
           name: 'Save build cache'
-          key: cache-nextclade-v7-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
+          key: cache-nextclade-v8-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
           paths:
             - .cache
 

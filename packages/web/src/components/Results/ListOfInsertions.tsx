@@ -44,7 +44,7 @@ export function ListOfInsertions({ insertions, totalInsertions }: ListOfInsertio
         <TableSlimWithBorders className="mb-1">
           <thead>
             <tr>
-              <th className="text-center">{t('After pos.')}</th>
+              <th className="text-center">{t('After ref pos.')}</th>
               <th className="text-center">{t('Length')}</th>
               <th className="text-center">{t('Nuc. fragment')}</th>
             </tr>
@@ -53,7 +53,7 @@ export function ListOfInsertions({ insertions, totalInsertions }: ListOfInsertio
           <tbody>
             {insertions.map(({ pos, ins }) => (
               <tr key={pos}>
-                <td className="text-center">{pos}</td>
+                <td className="text-center">{pos + 1}</td>
                 <td className="text-center">{ins.length}</td>
                 <td className="text-left">{truncateString(ins, INSERTION_MAX_LENGTH)}</td>
               </tr>

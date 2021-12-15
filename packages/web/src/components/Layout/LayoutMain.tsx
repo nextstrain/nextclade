@@ -14,7 +14,10 @@ import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
 
 export const Container = styled(ContainerBase)`
-  max-width: ${(props) => props.theme.containerMaxWidths.xl};
+  max-width: 100vw;
+  max-height: 100vh;
+  min-width: 700px;
+  margin: 0 auto;
 
   @media (max-width: 991.98px) {
     padding-left: 10px;
