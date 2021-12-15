@@ -257,32 +257,41 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(removeFasta, (draft) => {
     draft.params.raw.seqData = undefined
+    draft.params.strings.queryName = undefined
+    draft.params.strings.queryStr = undefined
     draft.params.errors.seqData = []
     draft.params.seqData = undefined
   })
 
   .icase(removeTree, (draft) => {
     draft.params.raw.auspiceData = undefined
+    draft.params.strings.treeStr = undefined
     draft.params.errors.auspiceData = []
   })
 
   .icase(removeRootSeq, (draft) => {
     draft.params.raw.rootSeq = undefined
+    draft.params.strings.refStr = undefined
+    draft.params.final.genomeSize = undefined
     draft.params.errors.rootSeq = []
   })
 
   .icase(removeQcSettings, (draft) => {
     draft.params.raw.qcRulesConfig = undefined
+    draft.params.strings.qcConfigStr = undefined
     draft.params.errors.qcRulesConfig = []
   })
 
   .icase(removeGeneMap, (draft) => {
     draft.params.raw.geneMap = undefined
+    draft.params.strings.geneMapStr = undefined
+    draft.params.final.geneMap = undefined
     draft.params.errors.geneMap = []
   })
 
   .icase(removePcrPrimers, (draft) => {
     draft.params.raw.pcrPrimers = undefined
+    draft.params.strings.pcrPrimerCsvRowsStr = undefined
     draft.params.errors.pcrPrimers = []
   })
 
