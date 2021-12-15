@@ -41,6 +41,7 @@ export const GeneMapBackButton = styled(ButtonTransparent)`
 
 export interface GeneMapTableProps {
   geneMapNameWidthPx: string
+  columnWidthsPx: Record<string, string>
   isInNucleotideView: boolean
 
   switchToNucleotideView(): void
@@ -60,6 +61,7 @@ export const GeneMapTableCell = styled(TableCellName)``
 
 export function GeneMapTableDisconnected({
   geneMapNameWidthPx,
+  columnWidthsPx,
   isInNucleotideView,
   switchToNucleotideView,
 }: GeneMapTableProps) {
@@ -86,14 +88,14 @@ export function GeneMapTableDisconnected({
             </GeneMapBackButton>
           )}
         </GeneMapTableCell>
-        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.sequenceView} grow={1} shrink={0}>
+        <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
           <GeneMap />
         </TableCell>
       </GeneMapTableRow>
 
       <GeneMapAxisTableRow>
         <TableCellName basis={geneMapNameWidthPx} grow={0} shrink={0} />
-        <TableCell basis={RESULTS_TABLE_FLEX_BASIS_PX.sequenceView} grow={1} shrink={0}>
+        <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
           <GeneMapAxis />
         </TableCell>
       </GeneMapAxisTableRow>

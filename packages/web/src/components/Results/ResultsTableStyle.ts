@@ -16,4 +16,5 @@ export const COLUMN_WIDTHS = {
   insertions: 60,
   frameShifts: 60,
   stopCodons: 60,
+  sequenceView: 600,
 } as const

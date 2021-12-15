@@ -75,8 +75,8 @@ export function ResultsPage() {
 
     const dynamicColumnsWidth = cladeNodeAttrKeys.length * dynamicColumnWidth
 
-    const geneMapNamewidth = sum(Object.values(COLUMN_WIDTHS)) + dynamicColumnsWidth
-    const geneMapNameWidthPx = `${geneMapNamewidth}px`
+    const geneMapNameWidth = sum(Object.values(COLUMN_WIDTHS)) - COLUMN_WIDTHS.sequenceView + dynamicColumnsWidth
+    const geneMapNameWidthPx = `${geneMapNameWidth}px`
 
     return {
       columnWidthsPx,
@@ -125,7 +125,7 @@ export function ResultsPage() {
         </MainContent>
 
         <Footer>
-          <GeneMapTable geneMapNameWidthPx={geneMapNameWidthPx} />
+          <GeneMapTable geneMapNameWidthPx={geneMapNameWidthPx} columnWidthsPx={columnWidthsPx} />
         </Footer>
       </Container>
     </LayoutResults>
