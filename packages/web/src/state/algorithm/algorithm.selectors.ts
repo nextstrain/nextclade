@@ -31,6 +31,13 @@ export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
 export const selectHasRequiredInputs = (state: State): boolean => selectQueryStr(state) !== undefined
 
+export const selectIsInProgressFasta = (state: State) => state.algorithm.params.inProgress.seqData !== 0
+export const selectIsInProgressTree = (state: State) => state.algorithm.params.inProgress.auspiceData !== 0
+export const selectIsInProgressRootSeq = (state: State) => state.algorithm.params.inProgress.rootSeq !== 0
+export const selectIsInProgressQcSettings = (state: State) => state.algorithm.params.inProgress.qcRulesConfig !== 0
+export const selectIsInProgressGeneMap = (state: State) => state.algorithm.params.inProgress.geneMap !== 0
+export const selectIsInProgressPcrPrimers = (state: State) => state.algorithm.params.inProgress.pcrPrimers !== 0
+
 export const selectCanRun = (state: State): boolean =>
   state.algorithm.status === AlgorithmGlobalStatus.idle ||
   state.algorithm.status === AlgorithmGlobalStatus.done ||

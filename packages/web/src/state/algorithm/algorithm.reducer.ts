@@ -210,36 +210,42 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     removeFastaImpl(draft)
     draft.params.raw.seqData = input
     draft.params.errors.seqData = []
+    draft.params.inProgress.seqData += 1
   })
 
   .icase(setTree.started, (draft, input) => {
     removeTreeImpl(draft)
     draft.params.raw.auspiceData = input
     draft.params.errors.auspiceData = []
+    draft.params.inProgress.auspiceData += 1
   })
 
   .icase(setRootSeq.started, (draft, input) => {
     removeRootSeqImpl(draft)
     draft.params.raw.rootSeq = input
     draft.params.errors.rootSeq = []
+    draft.params.inProgress.rootSeq += 1
   })
 
   .icase(setQcSettings.started, (draft, input) => {
     removeQcSettingsImpl(draft)
     draft.params.raw.qcRulesConfig = input
     draft.params.errors.qcRulesConfig = []
+    draft.params.inProgress.qcRulesConfig += 1
   })
 
   .icase(setGeneMap.started, (draft, input) => {
     removeGeneMapImpl(draft)
     draft.params.raw.geneMap = input
     draft.params.errors.geneMap = []
+    draft.params.inProgress.geneMap += 1
   })
 
   .icase(setPcrPrimers.started, (draft, input) => {
     removePcrPrimersImpl(draft)
     draft.params.raw.pcrPrimers = input
     draft.params.errors.pcrPrimers = []
+    draft.params.inProgress.pcrPrimers += 1
   })
 
   // ******************
@@ -248,11 +254,13 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.strings.queryStr = queryStr
     draft.params.strings.queryName = queryName
     draft.params.errors.seqData = []
+    draft.params.inProgress.seqData -= 1
   })
 
   .icase(setTree.done, (draft, { result: { treeStr } }) => {
     draft.params.strings.treeStr = treeStr
     draft.params.errors.auspiceData = []
+    draft.params.inProgress.auspiceData -= 1
   })
 
   .icase(setRootSeq.done, (draft, { result: { refStr, refName } }) => {
@@ -260,11 +268,13 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.strings.refName = refName
     draft.params.final.genomeSize = refStr.length
     draft.params.errors.rootSeq = []
+    draft.params.inProgress.rootSeq -= 1
   })
 
   .icase(setQcSettings.done, (draft, { result: { qcConfigStr } }) => {
     draft.params.strings.qcConfigStr = qcConfigStr
     draft.params.errors.qcRulesConfig = []
+    draft.params.inProgress.qcRulesConfig -= 1
   })
 
   .icase(setGeneMap.done, (draft, { result: { geneMapStr } }) => {
@@ -272,11 +282,13 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.strings.geneMapStr = geneMapStr
     draft.params.final.geneMap = geneMap
     draft.params.errors.geneMap = []
+    draft.params.inProgress.geneMap -= 1
   })
 
   .icase(setPcrPrimers.done, (draft, { result: { pcrPrimerCsvRowsStr } }) => {
     draft.params.strings.pcrPrimerCsvRowsStr = pcrPrimerCsvRowsStr
     draft.params.errors.pcrPrimers = []
+    draft.params.inProgress.pcrPrimers -= 1
   })
 
   // ******************
@@ -284,31 +296,37 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setFasta.failed, (draft, { error }) => {
     removeFastaImpl(draft)
     draft.params.errors.seqData = [error]
+    draft.params.inProgress.seqData -= 1
   })
 
   .icase(setTree.failed, (draft, { error }) => {
     removeTreeImpl(draft)
     draft.params.errors.auspiceData = [error]
+    draft.params.inProgress.auspiceData -= 1
   })
 
   .icase(setRootSeq.failed, (draft, { error }) => {
     removeRootSeqImpl(draft)
     draft.params.errors.rootSeq = [error]
+    draft.params.inProgress.rootSeq -= 1
   })
 
   .icase(setQcSettings.failed, (draft, { error }) => {
     removeQcSettingsImpl(draft)
     draft.params.errors.qcRulesConfig = [error]
+    draft.params.inProgress.qcRulesConfig -= 1
   })
 
   .icase(setGeneMap.failed, (draft, { error }) => {
     removeGeneMapImpl(draft)
     draft.params.errors.geneMap = [error]
+    draft.params.inProgress.geneMap -= 1
   })
 
   .icase(setPcrPrimers.failed, (draft, { error }) => {
     removePcrPrimersImpl(draft)
     draft.params.errors.pcrPrimers = [error]
+    draft.params.inProgress.pcrPrimers -= 1
   })
 
   // ******************

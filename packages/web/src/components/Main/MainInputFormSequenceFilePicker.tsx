@@ -17,6 +17,7 @@ import {
   selectCurrentDataset,
   selectHasRequiredInputs,
   selectParams,
+  selectIsInProgressFasta,
 } from 'src/state/algorithm/algorithm.selectors'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
@@ -38,6 +39,7 @@ export interface MainInputFormSequenceFilePickerProps {
   datasetCurrent?: DatasetFlat
   canRun: boolean
   hasRequiredInputs: boolean
+  isInProgressFasta: boolean
   algorithmRunTrigger(_0: unknown): void
   setShowNewRunPopup(showNewRunPopup: boolean): void
   setIsDirty(isDirty: boolean): void
@@ -50,6 +52,7 @@ const mapStateToProps = (state: State) => ({
   datasetCurrent: selectCurrentDataset(state),
   canRun: selectCanRun(state),
   hasRequiredInputs: selectHasRequiredInputs(state),
+  isInProgressFasta: selectIsInProgressFasta(state),
 })
 
 const mapDispatchToProps = {
@@ -73,6 +76,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
   algorithmRunTrigger,
   setFasta,
   removeFasta,
+  isInProgressFasta,
   setShowNewRunPopup,
   setIsDirty,
 }: MainInputFormSequenceFilePickerProps) {
@@ -102,6 +106,17 @@ export function MainInputFormSequenceFilePickerDisconnected({
     }
   }, [canRun, hasRequiredInputs, t])
 
+  const LoadExampleLink = useMemo(() => {
+    if (hasRequiredInputs || isInProgressFasta) {
+      return null
+    }
+    return (
+      <Button color="link" onClick={setExampleSequences}>
+        <small>{t('Load example')}</small>
+      </Button>
+    )
+  }, [hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
+
   return (
     <SequenceFilePickerContainer>
       <FilePicker
@@ -111,15 +126,12 @@ export function MainInputFormSequenceFilePickerDisconnected({
         pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
         input={params.raw.seqData}
         errors={params.errors.seqData}
+        isInProgress={isInProgressFasta}
         onRemove={removeFasta}
         onInput={setFasta}
       />
 
-      {!hasRequiredInputs && (
-        <Button color="link" onClick={setExampleSequences}>
-          <small>{t('Load example')}</small>
-        </Button>
-      )}
+      {LoadExampleLink}
 
       <ButtonRunStyled disabled={isRunButtonDisabled} color={runButtonColor} onClick={run} title={runButtonTooltip}>
         {t('Run')}

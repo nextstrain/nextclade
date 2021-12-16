@@ -1,4 +1,6 @@
 import React, { HTMLProps, ReactNode, Ref, useCallback, useMemo, useState } from 'react'
+import { Spinner } from 'src/components/Common/Spinner'
+import { UploadedFileLoadingInfo } from 'src/components/FilePicker/UploadedFileLoadingInfo'
 
 import type { StrictOmit } from 'ts-essentials'
 import styled from 'styled-components'
@@ -46,6 +48,7 @@ export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, '
   pasteInstructions: string
   input?: AlgorithmInput
   errors: Error[]
+  isInProgress?: boolean
   inputRef?: Ref<HTMLInputElement | null>
   onInput(input: AlgorithmInput): void
   onRemove(_0: unknown): void
@@ -60,6 +63,7 @@ export function FilePicker({
   pasteInstructions,
   input,
   errors,
+  isInProgress,
   onInput,
   onRemove,
   onError,
@@ -120,6 +124,10 @@ export function FilePicker({
   )
 
   const FileUploadOrFileInfo = useMemo(() => {
+    if (isInProgress) {
+      return <UploadedFileLoadingInfo />
+    }
+
     if (input) {
       return compact ? (
         <UploadedFileInfoCompact description={input.description} errors={errors} onRemove={clearAndRemove}>
@@ -130,13 +138,13 @@ export function FilePicker({
       )
     }
     return <TabsContentStyled tabs={tabs} activeTab={activeTab} $compact={compact} />
-  }, [activeTab, clearAndRemove, compact, errors, icon, input, tabs])
+  }, [activeTab, clearAndRemove, compact, errors, icon, input, isInProgress, tabs])
 
   return (
     <FilePickerContainer {...props}>
       <FilePickerHeader>
         <FilePickerTitle>{title}</FilePickerTitle>
-        <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} disabled={!!input} />
+        <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} disabled={!!input || isInProgress} />
       </FilePickerHeader>
       {FileUploadOrFileInfo}
     </FilePickerContainer>
