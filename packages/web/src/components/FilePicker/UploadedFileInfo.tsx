@@ -3,13 +3,18 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
+import { FlexCenter } from 'src/components/FilePicker/FilePickerStyles'
 import styled from 'styled-components'
 
 import { theme } from 'src/theme'
 import { ErrorContent } from 'src/components/Error/ErrorPopup'
 
 const Container = styled.div`
+  display: flex;
   width: 100%;
+  height: 100%;
+  border: ${(props) => props.theme.filePicker.border.normal};
+  border-radius:  ${(props) => props.theme.filePicker.borderRadius};
 `
 
 export const UploadZoneWrapper = styled.div`
@@ -115,43 +120,47 @@ export function UploadedFileInfo({ description, errors, onRemove }: UploadedFile
   // This is in order to match the style of the main component's state, with tabs.
   return (
     <Container>
-      <UploadZoneWrapper>
-        <UploadZone>
-          <Row noGutters className="my-auto">
-            <Col>
-              <FileIconsContainer>
-                <FileStatusIcon hasErrors={hasErrors} />
-              </FileIconsContainer>
-            </Col>
-          </Row>
+      <FlexCenter>
+        <Row noGutters>
+          <Col>
+            <UploadZone>
+              <Row noGutters className="my-auto">
+                <Col>
+                  <FileIconsContainer>
+                    <FileStatusIcon hasErrors={hasErrors} />
+                  </FileIconsContainer>
+                </Col>
+              </Row>
 
-          <Row noGutters className="my-auto">
-            <Col>
-              <UploadZoneTextContainer>
-                <UploadZoneDescription>{description}</UploadZoneDescription>
-              </UploadZoneTextContainer>
-            </Col>
-          </Row>
+              <Row noGutters className="my-auto">
+                <Col>
+                  <UploadZoneTextContainer>
+                    <UploadZoneDescription>{description}</UploadZoneDescription>
+                  </UploadZoneTextContainer>
+                </Col>
+              </Row>
 
-          <Row noGutters className="my-auto">
-            <Col>
-              <UploadZoneButtonContainer>
-                <UploadZoneButton color="secondary" onClick={onRemove}>
-                  {t('Remove')}
-                </UploadZoneButton>
-              </UploadZoneButtonContainer>
-            </Col>
-          </Row>
-        </UploadZone>
-      </UploadZoneWrapper>
+              <Row noGutters className="my-auto">
+                <Col>
+                  <UploadZoneButtonContainer>
+                    <UploadZoneButton color="secondary" onClick={onRemove}>
+                      {t('Remove')}
+                    </UploadZoneButton>
+                  </UploadZoneButtonContainer>
+                </Col>
+              </Row>
+            </UploadZone>
+          </Col>
+        </Row>
 
-      <Row noGutters>
-        <Col>
-          {errors.map((error) => (
-            <FileError key={error.message} error={error} />
-          ))}
-        </Col>
-      </Row>
+        <Row noGutters>
+          <Col>
+            {errors.map((error) => (
+              <FileError key={error.message} error={error} />
+            ))}
+          </Col>
+        </Row>
+      </FlexCenter>
     </Container>
   )
 }

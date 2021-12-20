@@ -136,7 +136,7 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
 
             <Collapse isOpen={advancedOpen}>
               <FilePickerAdvanced />
-              <CustomizeButton type="button" color="link" onClick={onCustomizeClicked}>
+              <CustomizeButton className="mt-2" type="button" color="link" onClick={onCustomizeClicked}>
                 {customizeButtonText}
               </CustomizeButton>
             </Collapse>

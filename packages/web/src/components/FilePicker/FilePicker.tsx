@@ -1,6 +1,4 @@
 import React, { HTMLProps, ReactNode, Ref, useCallback, useMemo, useState } from 'react'
-import { Spinner } from 'src/components/Common/Spinner'
-import { UploadedFileLoadingInfo } from 'src/components/FilePicker/UploadedFileLoadingInfo'
 
 import type { StrictOmit } from 'ts-essentials'
 import styled from 'styled-components'
@@ -9,6 +7,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/io/AlgorithmInput'
 import { TabsContent, TabsPanel } from 'src/components/Common/Tabs'
+import { UploadedFileLoadingInfo } from 'src/components/FilePicker/UploadedFileLoadingInfo'
 import { UploadBox } from './UploadBox'
 import { UploadBoxCompact } from './UploadBoxCompact'
 import { TabPanelUrl } from './TabPanelUrl'
@@ -19,12 +18,18 @@ import { UploadedFileInfoCompact } from './UploadedFileInfoCompact'
 export const FilePickerContainer = styled.div`
   display: flex;
   flex-direction: column;
-  margin: 10px;
 `
 
 export const FilePickerHeader = styled.div`
   display: flex;
   margin-bottom: 0.5rem;
+`
+
+export const FilePickerBody = styled.div<{ $compact?: boolean }>`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: ${(props) => !props.$compact && props.theme.filePicker.minHeight};
 `
 
 export const FilePickerTitle = styled.h4`
@@ -35,8 +40,7 @@ export const FilePickerTitle = styled.h4`
 
 export const TabsPanelStyled = styled(TabsPanel)``
 
-const TabsContentStyled = styled(TabsContent)<{ $compact?: boolean }>`
-  min-height: ${(props) => !props.$compact && '200px'};
+const TabsContentStyled = styled(TabsContent)`
   height: 100%;
 `
 
@@ -137,7 +141,7 @@ export function FilePicker({
         <UploadedFileInfo description={input.description} errors={errors} onRemove={clearAndRemove} />
       )
     }
-    return <TabsContentStyled tabs={tabs} activeTab={activeTab} $compact={compact} />
+    return <TabsContentStyled tabs={tabs} activeTab={activeTab} />
   }, [activeTab, clearAndRemove, compact, errors, icon, input, isInProgress, tabs])
 
   return (
@@ -146,7 +150,7 @@ export function FilePicker({
         <FilePickerTitle>{title}</FilePickerTitle>
         <TabsPanelStyled tabs={tabs} activeTab={activeTab} onChange={setActiveTab} disabled={!!input || isInProgress} />
       </FilePickerHeader>
-      {FileUploadOrFileInfo}
+      <FilePickerBody $compact={compact}>{FileUploadOrFileInfo}</FilePickerBody>
     </FilePickerContainer>
   )
 }

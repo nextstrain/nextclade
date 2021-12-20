@@ -87,6 +87,7 @@ export function FilePickerAdvancedDisconnected({
     <Row noGutters>
       <Col>
         <FilePicker
+          className="my-3"
           compact
           icon={<FileIconJson size={30} />}
           title={t('Reference tree')}
@@ -99,6 +100,7 @@ export function FilePickerAdvancedDisconnected({
         />
 
         <FilePicker
+          className="my-3"
           compact
           icon={<FileIconFasta size={30} />}
           title={t('Root sequence')}
@@ -111,6 +113,7 @@ export function FilePickerAdvancedDisconnected({
         />
 
         <FilePicker
+          className="my-3"
           compact
           icon={<FileIconJson size={30} />}
           title={t('Quality control')}
@@ -123,6 +126,7 @@ export function FilePickerAdvancedDisconnected({
         />
 
         <FilePicker
+          className="my-3"
           compact
           icon={<FileIconJson size={30} />}
           title={t('Gene map')}
@@ -135,6 +139,7 @@ export function FilePickerAdvancedDisconnected({
         />
 
         <FilePicker
+          className="my-3"
           compact
           icon={<FileIconCsv size={30} />}
           title={t('PCR primers')}

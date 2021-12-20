@@ -16,7 +16,9 @@ const TabsPanelContainer = styled.div`
   flex: 1;
 `
 
-const TabContent = styled(TabContentBase)``
+const TabContent = styled(TabContentBase)`
+  height: 100%;
+`
 
 const TabPane = styled(TabPaneBase)`
   height: 100%;

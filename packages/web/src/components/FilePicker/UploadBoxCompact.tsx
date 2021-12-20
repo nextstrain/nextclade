@@ -206,9 +206,9 @@ export function UploadBoxCompact({ onUpload, children, ...props }: PropsWithChil
 
   return (
     <UploadZoneWrapper {...getRootProps()} {...props} title={t('Drag & drop or select a file')}>
+      <UploadZoneInput type="file" {...getInputProps()} />
       <UploadZoneLeft>{children}</UploadZoneLeft>
       <UploadZoneRight>
-        <UploadZoneInput type="file" {...getInputProps()} />
         <UploadZone state={state}>{isDragActive ? active : normal}</UploadZone>
       </UploadZoneRight>
     </UploadZoneWrapper>

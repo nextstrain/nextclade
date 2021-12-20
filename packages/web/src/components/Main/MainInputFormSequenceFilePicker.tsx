@@ -31,7 +31,9 @@ const SequenceFilePickerContainer = styled.section`
 `
 
 const ButtonRunStyled = styled(Button)`
-  min-width: 100px;
+  min-width: 160px;
+  min-height: 50px;
+  margin-left: 1rem;
 `
 
 export interface MainInputFormSequenceFilePickerProps {
@@ -131,7 +133,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
         onInput={setFasta}
       />
 
-      <Row noGutters>
+      <Row noGutters className="mt-2">
         <Col className="w-100 d-flex">
           <FlexRight>
             {LoadExampleLink}

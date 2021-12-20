@@ -72,3 +72,8 @@ export const ColFlexHorizontal = styled(Col)`
   flex-direction: row;
   width: 100%;
 `
+
+export const FlexCenter = styled.div`
+  display: flex;
+  margin: auto;
+`
