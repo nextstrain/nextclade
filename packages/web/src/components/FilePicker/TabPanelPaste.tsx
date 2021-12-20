@@ -4,22 +4,28 @@ import { Button, Col, Label, Row } from 'reactstrap'
 import styled from 'styled-components'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { ButtonContainer, ColFlexHorizontal, ColFlexVertical, Form, RowFill } from './FilePickerStyles'
+import { ButtonContainer, Form as FormBase } from './FilePickerStyles'
 import { TextInputMonospace } from './TextInputMonospace'
 
 const ButtonStyled = styled(Button)`
   width: 100px;
 `
 
+const Form = styled(FormBase)`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+`
+
 export interface TabPanelPasteProps {
-  pasteInstructions: string
+  instructions: string
 
   inputRef?: Ref<HTMLInputElement | null>
 
   onConfirm(seqData: string): void
 }
 
-export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPanelPasteProps) {
+export function TabPanelPaste({ onConfirm, instructions, inputRef }: TabPanelPasteProps) {
   const { t } = useTranslationSafe()
   const [seqData, setSeqData] = useState<string>('')
   const hasSeqData = seqData.length > 0
@@ -29,65 +35,51 @@ export function TabPanelPaste({ onConfirm, pasteInstructions, inputRef }: TabPan
 
   return (
     <Form>
-      <RowFill noGutters>
-        <ColFlexVertical>
-          <Row noGutters>
-            <Col className="d-flex">
-              <Label className="mr-auto" htmlFor="sequence-input">
-                {pasteInstructions}
-              </Label>
-            </Col>
-          </Row>
+      <Row noGutters className="w-100 h-100">
+        <Col className="w-100 h-100 d-flex flex-column">
+          <Label className="w-100 h-100 d-flex flex-column flex-1">
+            <span className="w-100 flex-grow-0">{instructions}</span>
+            <TextInputMonospace
+              className="w-100 flex-grow-1"
+              type="textarea"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-gramm="false"
+              wrap="hard"
+              data-gramm_editor="false"
+              value={seqData}
+              onChange={change}
+              innerRef={inputRef}
+            />
+          </Label>
 
-          <RowFill noGutters>
-            <Col className="d-flex flex-sm-column">
-              <TextInputMonospace
-                id="sequence-input"
-                className="flex-grow-1"
-                type="textarea"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-                data-gramm="false"
-                wrap="hard"
-                data-gramm_editor="false"
-                value={seqData}
-                onChange={change}
-                innerRef={inputRef}
-              />
-            </Col>
-          </RowFill>
+          <ButtonContainer>
+            <Button
+              className="mr-auto"
+              disabled={!hasSeqData}
+              type="button"
+              color="link"
+              title={t('Clear the text field')}
+              onClick={clear}
+            >
+              {t('Clear')}
+            </Button>
 
-          <Row noGutters>
-            <ColFlexHorizontal>
-              <ButtonContainer>
-                <Button
-                  className="mr-auto"
-                  disabled={!hasSeqData}
-                  type="button"
-                  color="link"
-                  title={t('Clear the text field')}
-                  onClick={clear}
-                >
-                  {t('Clear')}
-                </Button>
-
-                <ButtonStyled
-                  className="ml-auto"
-                  disabled={!hasSeqData}
-                  type="button"
-                  color="primary"
-                  title={hasSeqData ? t('Accept the data') : t('Please provide the data first')}
-                  onClick={confirm}
-                >
-                  {t('OK')}
-                </ButtonStyled>
-              </ButtonContainer>
-            </ColFlexHorizontal>
-          </Row>
-        </ColFlexVertical>
-      </RowFill>
+            <ButtonStyled
+              className="ml-auto"
+              disabled={!hasSeqData}
+              type="button"
+              color="primary"
+              title={hasSeqData ? t('Accept the data') : t('Please provide the data first')}
+              onClick={confirm}
+            >
+              {t('OK')}
+            </ButtonStyled>
+          </ButtonContainer>
+        </Col>
+      </Row>
     </Form>
   )
 }

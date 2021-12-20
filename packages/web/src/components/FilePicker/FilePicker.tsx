@@ -121,7 +121,7 @@ export function FilePicker({
       {
         name: 'text',
         title: t('Text'),
-        body: <TabPanelPaste onConfirm={onPaste} pasteInstructions={pasteInstructions} inputRef={inputRef} />,
+        body: <TabPanelPaste onConfirm={onPaste} instructions={pasteInstructions} inputRef={inputRef} />,
       },
     ],
     [compact, exampleUrl, icon, inputRef, onFile, onPaste, onUrl, pasteInstructions, t],
