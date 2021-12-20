@@ -20,7 +20,6 @@ export const InfoWrapper = styled.div`
   height: 100%;
   border: ${(props) => props.theme.filePicker.border.normal};
   border-radius: ${(props) => props.theme.filePicker.borderRadius};
-  margin-bottom: 1rem;
   min-height: ${(props) => props.theme.filePicker.minHeight};
 `
 
@@ -34,6 +33,7 @@ export const InfoWrapperInternal = styled.div`
 export const ErrorWrapper = styled.div`
   width: 100%;
   height: 100%;
+  margin-top: 1rem;
 `
 
 export const ErrorWrapperInternal = styled.div`
@@ -138,13 +138,15 @@ export function UploadedFileInfo({ description, errors, onRemove }: UploadedFile
         </InfoWrapperInternal>
       </InfoWrapper>
 
-      <ErrorWrapper>
-        <ErrorWrapperInternal>
-          {errors.map((error) => (
-            <FileError key={error.message} error={error} />
-          ))}
-        </ErrorWrapperInternal>
-      </ErrorWrapper>
+      {errors.length > 0 && (
+        <ErrorWrapper>
+          <ErrorWrapperInternal>
+            {errors.map((error) => (
+              <FileError key={error.message} error={error} />
+            ))}
+          </ErrorWrapperInternal>
+        </ErrorWrapper>
+      )}
     </Container>
   )
 }
