@@ -23,13 +23,19 @@ namespace Nextclade {
 
   namespace {
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "cppcoreguidelines-avoid-magic-numbers"
-    inline std::vector<std::string> getDefaultColumnNames() {
+
+    // Lists column names up to and including "clade" column
+    inline std::vector<std::string> getDefaultColumnNamesUpToClades() {
       return std::vector<std::string>{
         "seqName",
         "clade",
+      };
+    }
 
+    // Lists column names after "clade" column
+    // The separation is needed because we want to put some more dynamic columns between these.
+    inline std::vector<std::string> getDefaultColumnNamesAfterClades() {
+      return std::vector<std::string>{
         "qc.overallScore",
         "qc.overallStatus",
 
@@ -94,7 +100,6 @@ namespace Nextclade {
         "errors",
       };
     }
-#pragma clang diagnostic pop
   }//namespace
 
   class CSVWriter : public CsvWriterAbstract {
@@ -127,7 +132,8 @@ namespace Nextclade {
           } {
 
       // Merge default column names with the incoming custom ones
-      auto columnNamesVec = merge(getDefaultColumnNames(), customNodeAttrKeys);
+      auto columnNamesVec = merge(getDefaultColumnNamesUpToClades(), customNodeAttrKeys);
+      columnNamesVec = merge(columnNamesVec, getDefaultColumnNamesAfterClades());
 
       // We want to avoid duplicate column names because std::map cannot have them.
       // The loop below will produce incorrect indices and out-of-bounds errors can happen if there are duplicates.
@@ -151,6 +157,11 @@ namespace Nextclade {
 
       doc.SetCell(getColumnIndex("seqName"), rowName, result.seqName);
       doc.SetCell(getColumnIndex("clade"), rowName, result.clade);
+
+      for (const auto& [key, value] : result.customNodeAttributes) {
+        const auto columnIndex = getColumnIndex(key);
+        doc.SetCell(columnIndex, rowName, value);
+      }
 
       doc.SetCell(getColumnIndex("qc.overallScore"), rowName, std::to_string(result.qc.overallScore));
       doc.SetCell(getColumnIndex("qc.overallStatus"), rowName, formatQcStatus(result.qc.overallStatus));
@@ -243,11 +254,6 @@ namespace Nextclade {
           std::to_string(result.qc.stopCodons->totalStopCodons));
         doc.SetCell(getColumnIndex("qc.stopCodons.score"), rowName, std::to_string(result.qc.stopCodons->score));
         doc.SetCell(getColumnIndex("qc.stopCodons.status"), rowName, formatQcStatus(result.qc.stopCodons->status));
-      }
-
-      for (const auto& [key, value] : result.customNodeAttributes) {
-        const auto columnIndex = getColumnIndex(key);
-        doc.SetCell(columnIndex, rowName, value);
       }
 
       ++numRows;
