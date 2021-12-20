@@ -52,6 +52,7 @@ export function Tabs({ tabs }: TabsProps) {
 export interface TabComponentProps extends StrictOmit<NavItemProps, 'onChange'> {
   tab: TabDesc
   activeTab: string
+  disabled?: boolean
   onChange(tabName: string): void
 }
 

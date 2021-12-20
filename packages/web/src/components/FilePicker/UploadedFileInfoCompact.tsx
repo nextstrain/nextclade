@@ -1,13 +1,9 @@
-import React, { PropsWithChildren, ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
-import {
-  getUploadZoneTheme,
-  UploadZoneState,
-  UploadZoneTextContainer,
-} from 'src/components/FilePicker/UploadBoxCompact'
+import { UploadZoneTextContainer } from 'src/components/FilePicker/UploadBoxCompact'
 
 import styled from 'styled-components'
 

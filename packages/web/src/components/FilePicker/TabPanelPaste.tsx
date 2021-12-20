@@ -1,6 +1,6 @@
 import React, { Ref, useState } from 'react'
 
-import { Button, ButtonGroup, Col, Label, Row } from 'reactstrap'
+import { Button, Col, Label, Row } from 'reactstrap'
 import styled from 'styled-components'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'

@@ -14,7 +14,7 @@ const Container = styled.div`
   width: 100%;
   height: 100%;
   border: ${(props) => props.theme.filePicker.border.normal};
-  border-radius:  ${(props) => props.theme.filePicker.borderRadius};
+  border-radius: ${(props) => props.theme.filePicker.borderRadius};
 `
 
 export const UploadZoneWrapper = styled.div`
