@@ -84,6 +84,8 @@ export function MainInputFormSequenceFilePickerDisconnected({
 }: MainInputFormSequenceFilePickerProps) {
   const { t } = useTranslationSafe()
 
+  const hasErrors = useMemo(() => params.errors.seqData.length > 0, [params.errors.seqData.length])
+
   const run = useCallback(() => {
     setShowNewRunPopup(false)
     setIsDirty(true)
@@ -109,15 +111,13 @@ export function MainInputFormSequenceFilePickerDisconnected({
   }, [canRun, hasRequiredInputs, t])
 
   const LoadExampleLink = useMemo(() => {
-    if (hasRequiredInputs || isInProgressFasta) {
-      return null
-    }
+    const cannotLoadExample = hasRequiredInputs || isInProgressFasta || hasErrors
     return (
-      <Button color="link" onClick={setExampleSequences}>
+      <Button color="link" onClick={setExampleSequences} disabled={cannotLoadExample}>
         <small>{t('Load example')}</small>
       </Button>
     )
-  }, [hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
+  }, [hasErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
 
   return (
     <SequenceFilePickerContainer>
