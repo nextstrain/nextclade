@@ -2,7 +2,8 @@ import { delay } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 
 import { connect } from 'react-redux'
-import { Button } from 'reactstrap'
+import { Button, Col, Row } from 'reactstrap'
+import { FlexRight } from 'src/components/FilePicker/FilePickerStyles'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
@@ -31,7 +32,6 @@ const SequenceFilePickerContainer = styled.section`
 
 const ButtonRunStyled = styled(Button)`
   min-width: 100px;
-  margin-left: auto;
 `
 
 export interface MainInputFormSequenceFilePickerProps {
@@ -131,11 +131,22 @@ export function MainInputFormSequenceFilePickerDisconnected({
         onInput={setFasta}
       />
 
-      {LoadExampleLink}
+      <Row noGutters>
+        <Col className="w-100 d-flex">
+          <FlexRight>
+            {LoadExampleLink}
 
-      <ButtonRunStyled disabled={isRunButtonDisabled} color={runButtonColor} onClick={run} title={runButtonTooltip}>
-        {t('Run')}
-      </ButtonRunStyled>
+            <ButtonRunStyled
+              disabled={isRunButtonDisabled}
+              color={runButtonColor}
+              onClick={run}
+              title={runButtonTooltip}
+            >
+              {t('Run')}
+            </ButtonRunStyled>
+          </FlexRight>
+        </Col>
+      </Row>
     </SequenceFilePickerContainer>
   )
 }
