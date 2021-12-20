@@ -1,4 +1,4 @@
-import { delay } from 'lodash'
+import { delay, sumBy } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 
 import { connect } from 'react-redux'
@@ -84,7 +84,10 @@ export function MainInputFormSequenceFilePickerDisconnected({
 }: MainInputFormSequenceFilePickerProps) {
   const { t } = useTranslationSafe()
 
-  const hasErrors = useMemo(() => params.errors.seqData.length > 0, [params.errors.seqData.length])
+  const hasErrors = useMemo(() => {
+    const numErrors = sumBy(Object.values(params.errors), (err) => err.length)
+    return numErrors > 0
+  }, [params.errors])
 
   const run = useCallback(() => {
     setShowNewRunPopup(false)
@@ -100,7 +103,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
   }, [datasetCurrent, setFasta])
 
   const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
-    const isRunButtonDisabled = !(canRun && hasRequiredInputs)
+    const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasErrors
     return {
       isRunButtonDisabled,
       runButtonColor: isRunButtonDisabled ? 'secondary' : 'success',
@@ -108,7 +111,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
         ? t('Please provide input files for the algorithm')
         : t('Launch the algorithm!'),
     }
-  }, [canRun, hasRequiredInputs, t])
+  }, [canRun, hasErrors, hasRequiredInputs, t])
 
   const LoadExampleLink = useMemo(() => {
     const cannotLoadExample = hasRequiredInputs || isInProgressFasta || hasErrors
