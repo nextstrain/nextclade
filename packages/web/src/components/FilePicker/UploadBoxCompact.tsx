@@ -141,27 +141,6 @@ export const UploadZoneButton = styled(Button)`
   margin-left: auto;
 `
 
-// export interface UploaderCompactProps {
-//   onUpload(file: File): void
-// }
-
-// export const UploadZoneTextContainer = styled.div`
-//   flex: 1;
-//   display: flex;
-// `
-//
-// export const UploadZoneText = styled.span`
-//   flex: 1;
-//   margin: auto;
-//   text-align: center;
-//   font-size: 1.1rem;
-// `
-//
-// export const UploadZoneButton = styled(Button)`
-//   flex: 0 0 120px;
-//   margin-left: auto;
-// `
-
 export interface UploaderCompactProps {
   onUpload(file: File): void
 }

@@ -36,12 +36,6 @@ export const Right = styled.div`
   height: 100%;
 `
 
-// export const ContentWrapper = styled.div`
-//   display: flex;
-//   flex: 1 1 100%;
-//   margin: auto;
-// `
-
 export const ContentWrapper = styled.div<{ $hasErrors: boolean }>`
   display: flex;
   width: 100%;
@@ -69,10 +63,6 @@ export const FileIconsContainer = styled.div`
   margin: auto;
   margin-left: 7px;
 `
-
-// export const UploadZoneButtonContainer = styled.div`
-//   text-align: center;
-// `
 
 export const UploadZoneButton = styled(Button)`
   flex: 0 0 120px;

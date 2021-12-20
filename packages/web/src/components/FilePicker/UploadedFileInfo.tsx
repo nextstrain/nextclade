@@ -3,7 +3,6 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
-import { FlexCenter } from 'src/components/FilePicker/FilePickerStyles'
 import styled from 'styled-components'
 
 import { theme } from 'src/theme'
@@ -65,12 +64,6 @@ export const Description = styled.div`
   text-overflow: ellipsis;
   text-align: center;
 `
-
-// export const UploadZoneTextOr = styled.div`
-//   margin-top: 10px;
-//   font-size: 0.9rem;
-//   font-weight: light;
-// `
 
 export const RemoveButton = styled(Button)`
   margin-top: 10px;
