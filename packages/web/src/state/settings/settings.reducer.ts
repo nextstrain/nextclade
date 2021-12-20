@@ -2,6 +2,7 @@ import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import {
   resetNumThreads,
+  setLastDataset,
   setLastVersionSeen,
   setLocale,
   setNumThreads,
@@ -29,4 +30,8 @@ export const settingsReducer = reducerWithInitialState(settingsDefaultState)
 
   .icase(resetNumThreads, (draft) => {
     draft.numThreadsV2 = getNumThreads()
+  })
+
+  .icase(setLastDataset, (draft, dataset) => {
+    draft.lastDataset = dataset
   })

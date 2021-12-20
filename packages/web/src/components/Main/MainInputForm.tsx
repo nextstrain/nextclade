@@ -6,7 +6,6 @@ import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
-import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
 import { selectCurrentDataset } from 'src/state/algorithm/algorithm.selectors'
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 import { MainInputFormRunStep } from 'src/components/Main/MainInputFormRunStep'
@@ -34,18 +33,13 @@ export const Centered = styled.section`
 
 export interface MainInputFormProps {
   currentDataset?: DatasetFlat
-  setCurrentDataset(dataset: DatasetFlat): void
 }
 
 const mapStateToProps = (state: State) => ({
   currentDataset: selectCurrentDataset(state),
 })
 
-const mapDispatchToProps = {
-  setCurrentDataset,
-}
-
-export const MainInputForm = connect(mapStateToProps, mapDispatchToProps)(MainInputFormDisconnected)
+export const MainInputForm = connect(mapStateToProps, null)(MainInputFormDisconnected)
 
 export function MainInputFormDisconnected({ currentDataset }: MainInputFormProps) {
   const [searchTerm, setSearchTerm] = useState('')

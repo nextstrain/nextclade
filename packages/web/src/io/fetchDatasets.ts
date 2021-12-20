@@ -1,12 +1,13 @@
-import { ParsedUrlQuery } from 'querystring'
-import { Dispatch } from 'redux'
+import type { Dispatch, Store } from 'redux'
+import type { ParsedUrlQuery } from 'querystring'
 
+import type { State } from 'src/state/reducer'
 import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } from 'src/io/fetchDatasetsIndex'
 import { getQueryParam } from 'src/io/fetchInputsAndRunMaybe'
 import { setCurrentDataset, setDatasets } from 'src/state/algorithm/algorithm.actions'
 import { errorAdd } from 'src/state/error/error.actions'
 
-export async function initializeDatasets(dispatch: Dispatch, urlQuery: ParsedUrlQuery) {
+export async function initializeDatasets(dispatch: Dispatch, urlQuery: ParsedUrlQuery, store: Store<State>) {
   let datasets
   let defaultDatasetName
   let defaultDatasetNameFriendly
@@ -31,9 +32,12 @@ export async function initializeDatasets(dispatch: Dispatch, urlQuery: ParsedUrl
     return false
   }
 
-  const datasetName = getQueryParam(urlQuery, 'dataset-name')
-  const datasetRef = getQueryParam(urlQuery, 'dataset-reference')
-  const datasetTag = getQueryParam(urlQuery, 'dataset-tag')
+  const state = store.getState()
+  const { lastDataset } = state.settings
+
+  const datasetName = getQueryParam(urlQuery, 'dataset-name') ?? lastDataset?.name
+  const datasetRef = getQueryParam(urlQuery, 'dataset-reference') ?? lastDataset?.reference.accession
+  const datasetTag = getQueryParam(urlQuery, 'dataset-tag') ?? lastDataset?.tag
 
   const dataset = findDataset(datasets, datasetName, datasetRef, datasetTag)
 

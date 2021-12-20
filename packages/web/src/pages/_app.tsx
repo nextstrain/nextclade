@@ -24,6 +24,7 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { DOMAIN_STRIPPED } from 'src/constants'
+import type { State } from 'src/state/reducer'
 import { initialize } from 'src/initialize'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { initializeDatasets } from 'src/io/fetchDatasets'
@@ -42,7 +43,7 @@ enableES5()
 
 export interface AppState {
   persistor: Persistor
-  store: Store
+  store: Store<State>
 }
 
 export default function MyApp({ Component, pageProps, router }: AppProps) {
@@ -53,7 +54,7 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
   const store = state?.store
   const dispatch = store?.dispatch
 
-  // NOTE: Do manual parsing, becuase router.query is randomly empty on the first few renders and on repeated renders.
+  // NOTE: Do manual parsing, because router.query is randomly empty on the first few renders and on repeated renders.
   // This is important, because various states depend on query, and when it changes back and forth,
   // the state also changes unexpectedly.
   const { query } = useMemo(() => parseUrl(router.asPath), [router.asPath])
@@ -70,9 +71,9 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
   }, [initDone, router])
 
   useEffect(() => {
-    if (!fetchDone && query && dispatch) {
+    if (!fetchDone && query && dispatch && store) {
       Promise.resolve()
-        .then(() => initializeDatasets(dispatch, query))
+        .then(() => initializeDatasets(dispatch, query, store))
         .then(async (success) => (await fetchInputsAndRunMaybe(dispatch, query)) && success)
         .then((success) => setFetchDone(success))
         .catch((error: Error) => {

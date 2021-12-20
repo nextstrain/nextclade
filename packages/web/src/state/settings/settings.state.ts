@@ -1,3 +1,4 @@
+import type { DatasetFlat } from 'src/algorithms/types'
 import { DEFAULT_LOCALE_KEY, LocaleKey } from 'src/i18n/i18n'
 import { getNumThreads } from 'src/helpers/getNumThreads'
 
@@ -6,6 +7,7 @@ export interface SettingsState {
   showWhatsnewOnUpdate: boolean
   lastVersionSeen: string
   numThreadsV2: number
+  lastDataset?: DatasetFlat
 }
 
 export const settingsDefaultState: SettingsState = {
