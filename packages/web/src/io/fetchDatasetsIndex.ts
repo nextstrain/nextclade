@@ -140,8 +140,12 @@ export class DatasetNotFoundError extends Error {
 
 export function findDataset(datasets: DatasetFlat[], name?: string, refAccession?: string, tag?: string) {
   return datasets.find((dataset) => {
-    const ref = refAccession ?? dataset.defaultRef
-    let isMatch = dataset.name === name && dataset.reference.accession === ref
+    let isMatch = dataset.name === name
+
+    if (refAccession) {
+      isMatch = isMatch && dataset.reference.accession === refAccession
+    }
+
     if (tag) {
       isMatch = isMatch && dataset.tag === tag
     }

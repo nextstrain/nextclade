@@ -74,7 +74,7 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
     if (!fetchDone && query && dispatch && store) {
       Promise.resolve()
         .then(() => initializeDatasets(dispatch, query, store))
-        .then(async (success) => (await fetchInputsAndRunMaybe(dispatch, query)) && success)
+        .then(async (success) => success && fetchInputsAndRunMaybe(dispatch, query))
         .then((success) => setFetchDone(success))
         .catch((error: Error) => {
           throw error
