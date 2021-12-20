@@ -16,7 +16,7 @@ import FooterContent from './Footer'
 export const Container = styled(ContainerBase)`
   max-width: 100vw;
   max-height: 100vh;
-  min-width: 700px;
+  max-width: ${(props) => props.theme.xl};
   margin: 0 auto;
 
   @media (max-width: 991.98px) {
