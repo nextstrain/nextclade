@@ -49,9 +49,9 @@ export async function getLastUsedDataset(store: Store<State>, datasets: DatasetF
     return undefined
   }
 
-  const datasetName = lastDataset?.name
-  const datasetRef = lastDataset?.reference?.accession
-  const datasetTag = lastDataset?.tag
+  const datasetName = lastDataset.name
+  const datasetRef = lastDataset.reference?.accession
+  const datasetTag = lastDataset.tag
   return findDataset(datasets, datasetName, datasetRef, datasetTag)
 }
 
@@ -59,7 +59,6 @@ export async function initializeDatasets(dispatch: Dispatch, urlQuery: ParsedUrl
   let datasets
   let defaultDatasetName
   let defaultDatasetNameFriendly
-  let hasError
 
   try {
     const datasetsIndexJson = await fetchDatasetsIndex()
@@ -67,7 +66,7 @@ export async function initializeDatasets(dispatch: Dispatch, urlQuery: ParsedUrl
       datasetsIndexJson,
     ))
 
-    if (hasError || !datasets || !defaultDatasetName || !defaultDatasetNameFriendly) {
+    if (!datasets || !defaultDatasetName || !defaultDatasetNameFriendly) {
       return false
     }
 
