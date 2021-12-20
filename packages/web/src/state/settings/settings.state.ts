@@ -8,6 +8,7 @@ export interface SettingsState {
   lastVersionSeen: string
   numThreadsV2: number
   lastDataset?: DatasetFlat
+  shouldRunAutomatically: boolean
 }
 
 export const settingsDefaultState: SettingsState = {
@@ -15,4 +16,5 @@ export const settingsDefaultState: SettingsState = {
   showWhatsnewOnUpdate: true,
   lastVersionSeen: '',
   numThreadsV2: getNumThreads(),
+  shouldRunAutomatically: false,
 }

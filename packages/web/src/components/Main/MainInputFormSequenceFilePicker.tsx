@@ -2,15 +2,17 @@ import { delay, sumBy } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
 
 import { connect } from 'react-redux'
-import { Button, Col, Row } from 'reactstrap'
-import { FlexRight } from 'src/components/FilePicker/FilePickerStyles'
+import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import type { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
-import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
+import { Toggle } from 'src/components/Common/Toggle'
+import { FlexLeft, FlexRight } from 'src/components/FilePicker/FilePickerStyles'
+import { setShouldRunAutomatically } from 'src/state/settings/settings.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { algorithmRunAsync, removeFasta, setFasta, setIsDirty } from 'src/state/algorithm/algorithm.actions'
 import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
 import {
@@ -22,6 +24,7 @@ import {
 } from 'src/state/algorithm/algorithm.selectors'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
+import { selectShouldRunAutomatically } from 'src/state/settings/settings.selectors'
 
 const SequenceFilePickerContainer = styled.section`
   display: flex;
@@ -42,11 +45,13 @@ export interface MainInputFormSequenceFilePickerProps {
   canRun: boolean
   hasRequiredInputs: boolean
   isInProgressFasta: boolean
+  shouldRunAutomatically: boolean
   algorithmRunTrigger(_0: unknown): void
   setShowNewRunPopup(showNewRunPopup: boolean): void
   setIsDirty(isDirty: boolean): void
   setFasta(input: AlgorithmInput): void
   removeFasta(_0: unknown): void
+  setShouldRunAutomatically(shouldRunAutomatically: boolean): void
 }
 
 const mapStateToProps = (state: State) => ({
@@ -55,6 +60,7 @@ const mapStateToProps = (state: State) => ({
   canRun: selectCanRun(state),
   hasRequiredInputs: selectHasRequiredInputs(state),
   isInProgressFasta: selectIsInProgressFasta(state),
+  shouldRunAutomatically: selectShouldRunAutomatically(state),
 })
 
 const mapDispatchToProps = {
@@ -63,6 +69,7 @@ const mapDispatchToProps = {
   algorithmRunTrigger: algorithmRunAsync.trigger,
   setShowNewRunPopup,
   setIsDirty,
+  setShouldRunAutomatically,
 }
 
 export const MainInputFormSequenceFilePicker = connect(
@@ -81,6 +88,8 @@ export function MainInputFormSequenceFilePickerDisconnected({
   isInProgressFasta,
   setShowNewRunPopup,
   setIsDirty,
+  shouldRunAutomatically,
+  setShouldRunAutomatically,
 }: MainInputFormSequenceFilePickerProps) {
   const { t } = useTranslationSafe()
 
@@ -95,12 +104,28 @@ export function MainInputFormSequenceFilePickerDisconnected({
     delay(algorithmRunTrigger, 1000)
   }, [algorithmRunTrigger, setShowNewRunPopup, setIsDirty])
 
+  const setSequences = useCallback(
+    (input: AlgorithmInput) => {
+      setFasta(input)
+
+      if (shouldRunAutomatically) {
+        run()
+      }
+    },
+    [run, setFasta, shouldRunAutomatically],
+  )
+
   const setExampleSequences = useCallback(() => {
     if (!datasetCurrent) {
       throw new Error('Internal error: dataset is not ready')
     }
+
     setFasta(new AlgorithmInputDefault(datasetCurrent))
-  }, [datasetCurrent, setFasta])
+
+    if (shouldRunAutomatically) {
+      run()
+    }
+  }, [datasetCurrent, run, setFasta, shouldRunAutomatically])
 
   const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
     const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasErrors
@@ -122,6 +147,10 @@ export function MainInputFormSequenceFilePickerDisconnected({
     )
   }, [hasErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
 
+  const onToggleRunAutomatically = useCallback(() => {
+    setShouldRunAutomatically(!shouldRunAutomatically)
+  }, [setShouldRunAutomatically, shouldRunAutomatically])
+
   return (
     <SequenceFilePickerContainer>
       <FilePicker
@@ -133,11 +162,27 @@ export function MainInputFormSequenceFilePickerDisconnected({
         errors={params.errors.seqData}
         isInProgress={isInProgressFasta}
         onRemove={removeFasta}
-        onInput={setFasta}
+        onInput={setSequences}
       />
 
       <Row noGutters className="mt-2">
         <Col className="w-100 d-flex">
+          <FlexLeft>
+            <Form className="d-flex h-100 mt-1">
+              <FormGroup className="my-auto">
+                <Toggle
+                  identifier="toggle-run-automatically"
+                  checked={shouldRunAutomatically}
+                  onCheckedChanged={onToggleRunAutomatically}
+                >
+                  <span title="Run Nextclade automatically after sequence data is provided">
+                    {t('Run automatically')}
+                  </span>
+                </Toggle>
+              </FormGroup>
+            </Form>
+          </FlexLeft>
+
           <FlexRight>
             {LoadExampleLink}
 

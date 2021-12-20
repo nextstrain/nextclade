@@ -6,6 +6,7 @@ import {
   setLastVersionSeen,
   setLocale,
   setNumThreads,
+  setShouldRunAutomatically,
   setShowWhatsnewOnUpdate,
 } from 'src/state/settings/settings.actions'
 import { settingsDefaultState } from 'src/state/settings/settings.state'
@@ -34,4 +35,8 @@ export const settingsReducer = reducerWithInitialState(settingsDefaultState)
 
   .icase(setLastDataset, (draft, dataset) => {
     draft.lastDataset = dataset
+  })
+
+  .icase(setShouldRunAutomatically, (draft, shouldRunAutomatically) => {
+    draft.shouldRunAutomatically = shouldRunAutomatically
   })

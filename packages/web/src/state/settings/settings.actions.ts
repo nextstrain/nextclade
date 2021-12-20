@@ -18,3 +18,5 @@ export const setNumThreads = action<number>('setNumThreads')
 export const resetNumThreads = action('resetNumThreads')
 
 export const setLastDataset = action<DatasetFlat>('setLastDataset')
+
+export const setShouldRunAutomatically = action<boolean>('setShouldRunAutomatically')
