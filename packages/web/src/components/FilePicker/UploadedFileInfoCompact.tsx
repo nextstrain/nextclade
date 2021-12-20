@@ -97,7 +97,7 @@ export const FileErrorStyled = styled(Alert)`
   display: flex;
   text-align: left;
   margin: 5px auto;
-  max-width: 550px;
+  max-width: 600px;
   box-shadow: ${(props) => props.theme.shadows.slight};
 `
 

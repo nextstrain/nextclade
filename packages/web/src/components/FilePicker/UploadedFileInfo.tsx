@@ -11,50 +11,54 @@ import { ErrorContent } from 'src/components/Error/ErrorPopup'
 
 const Container = styled.div`
   display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+`
+
+export const InfoWrapper = styled.div`
   width: 100%;
   height: 100%;
   border: ${(props) => props.theme.filePicker.border.normal};
   border-radius: ${(props) => props.theme.filePicker.borderRadius};
+  margin-bottom: 1rem;
+  min-height: ${(props) => props.theme.filePicker.minHeight};
 `
 
-export const UploadZoneWrapper = styled.div`
+export const InfoWrapperInternal = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: auto;
+`
+
+export const ErrorWrapper = styled.div`
   width: 100%;
   height: 100%;
 `
 
-export const UploadZone = styled.div`
+export const ErrorWrapperInternal = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
-`
-
-export const UploadZoneLeft = styled.div`
-  display: flex;
-  flex: 1 1 40%;
   margin: auto;
-  margin-right: 20px;
 `
 
-export const UploadZoneRight = styled.div`
-  display: flex;
-  flex: 1 0 60%;
-`
-
-export const FileIconsContainer = styled.div`
+export const IconsContainer = styled.div`
   text-align: center;
 `
 
-export const UploadZoneTextContainer = styled.div`
+export const TextContainer = styled.div`
   display: block;
   margin: auto;
   text-align: center;
 `
 
-export const UploadZoneButtonContainer = styled.div`
+export const ButtonContainer = styled.div`
   text-align: center;
 `
 
-export const UploadZoneDescription = styled.div`
+export const Description = styled.div`
   font-size: 1.1rem;
   white-space: nowrap;
   overflow: hidden;
@@ -62,13 +66,13 @@ export const UploadZoneDescription = styled.div`
   text-align: center;
 `
 
-export const UploadZoneTextOr = styled.div`
-  margin-top: 10px;
-  font-size: 0.9rem;
-  font-weight: light;
-`
+// export const UploadZoneTextOr = styled.div`
+//   margin-top: 10px;
+//   font-size: 0.9rem;
+//   font-weight: light;
+// `
 
-export const UploadZoneButton = styled(Button)`
+export const RemoveButton = styled(Button)`
   margin-top: 10px;
   min-width: 160px;
   min-height: 50px;
@@ -77,13 +81,6 @@ export const UploadZoneButton = styled(Button)`
 export const FileErrorStyled = styled(Alert)`
   display: flex;
   text-align: left;
-
-  margin: 5px 5px;
-
-  :first-child {
-    //margin-top: 0;
-  }
-
   box-shadow: ${(props) => props.theme.shadows.slight};
 `
 
@@ -116,51 +113,45 @@ export function UploadedFileInfo({ description, errors, onRemove }: UploadedFile
 
   const hasErrors = errors.length > 0
 
-  // NOTE: This currently uses the Tab layout, even there's no tabs (1 invisible tab).
-  // This is in order to match the style of the main component's state, with tabs.
   return (
     <Container>
-      <FlexCenter>
-        <Row noGutters>
-          <Col>
-            <UploadZone>
-              <Row noGutters className="my-auto">
-                <Col>
-                  <FileIconsContainer>
-                    <FileStatusIcon hasErrors={hasErrors} />
-                  </FileIconsContainer>
-                </Col>
-              </Row>
+      <InfoWrapper>
+        <InfoWrapperInternal>
+          <Row noGutters className="my-auto">
+            <Col>
+              <IconsContainer>
+                <FileStatusIcon hasErrors={hasErrors} />
+              </IconsContainer>
+            </Col>
+          </Row>
 
-              <Row noGutters className="my-auto">
-                <Col>
-                  <UploadZoneTextContainer>
-                    <UploadZoneDescription>{description}</UploadZoneDescription>
-                  </UploadZoneTextContainer>
-                </Col>
-              </Row>
+          <Row noGutters className="my-auto">
+            <Col>
+              <TextContainer>
+                <Description>{description}</Description>
+              </TextContainer>
+            </Col>
+          </Row>
 
-              <Row noGutters className="my-auto">
-                <Col>
-                  <UploadZoneButtonContainer>
-                    <UploadZoneButton color="secondary" onClick={onRemove}>
-                      {t('Remove')}
-                    </UploadZoneButton>
-                  </UploadZoneButtonContainer>
-                </Col>
-              </Row>
-            </UploadZone>
-          </Col>
-        </Row>
+          <Row noGutters className="my-auto">
+            <Col>
+              <ButtonContainer>
+                <RemoveButton color="secondary" onClick={onRemove}>
+                  {t('Remove')}
+                </RemoveButton>
+              </ButtonContainer>
+            </Col>
+          </Row>
+        </InfoWrapperInternal>
+      </InfoWrapper>
 
-        <Row noGutters>
-          <Col>
-            {errors.map((error) => (
-              <FileError key={error.message} error={error} />
-            ))}
-          </Col>
-        </Row>
-      </FlexCenter>
+      <ErrorWrapper>
+        <ErrorWrapperInternal>
+          {errors.map((error) => (
+            <FileError key={error.message} error={error} />
+          ))}
+        </ErrorWrapperInternal>
+      </ErrorWrapper>
     </Container>
   )
 }
