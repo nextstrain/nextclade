@@ -294,37 +294,31 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   // ******************
 
   .icase(setFasta.failed, (draft, { error }) => {
-    removeFastaImpl(draft)
     draft.params.errors.seqData = [error]
     draft.params.inProgress.seqData -= 1
   })
 
   .icase(setTree.failed, (draft, { error }) => {
-    removeTreeImpl(draft)
     draft.params.errors.auspiceData = [error]
     draft.params.inProgress.auspiceData -= 1
   })
 
   .icase(setRootSeq.failed, (draft, { error }) => {
-    removeRootSeqImpl(draft)
     draft.params.errors.rootSeq = [error]
     draft.params.inProgress.rootSeq -= 1
   })
 
   .icase(setQcSettings.failed, (draft, { error }) => {
-    removeQcSettingsImpl(draft)
     draft.params.errors.qcRulesConfig = [error]
     draft.params.inProgress.qcRulesConfig -= 1
   })
 
   .icase(setGeneMap.failed, (draft, { error }) => {
-    removeGeneMapImpl(draft)
     draft.params.errors.geneMap = [error]
     draft.params.inProgress.geneMap -= 1
   })
 
   .icase(setPcrPrimers.failed, (draft, { error }) => {
-    removePcrPrimersImpl(draft)
     draft.params.errors.pcrPrimers = [error]
     draft.params.inProgress.pcrPrimers -= 1
   })
