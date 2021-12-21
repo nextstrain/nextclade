@@ -3,7 +3,7 @@ import { WritableDraft } from 'immer/dist/types/types-external'
 import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import type { Gene } from 'src/algorithms/types'
-import { sortResults } from 'src/helpers/sortResults'
+import { sortResults, sortResultsByKey } from 'src/helpers/sortResults'
 import { runFilters } from 'src/filtering/runFilters'
 
 import { errorDismiss } from 'src/state/error/error.actions'
@@ -40,6 +40,9 @@ import {
   setCurrentDataset,
   setDatasets,
   setInputUrlParams,
+  setResultsJsonStr,
+  setCladeNodeAttrKeys,
+  resultsSortByKeyTrigger,
 } from './algorithm.actions'
 import {
   algorithmDefaultState,
@@ -159,8 +162,12 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(resultsSortTrigger, (draft, sorting) => {
-    draft.filters.sorting = sorting
     draft.results = sortResults(current(draft).results, sorting)
+    draft.resultsFiltered = runFilters(current(draft))
+  })
+
+  .icase(resultsSortByKeyTrigger, (draft, sorting) => {
+    draft.results = sortResultsByKey(current(draft).results, sorting)
     draft.resultsFiltered = runFilters(current(draft))
   })
 
@@ -371,6 +378,14 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   .icase(setTreeResult, (draft, { treeStr }) => {
     draft.treeStr = treeStr
+  })
+
+  .icase(setResultsJsonStr, (draft, { resultsJsonStr }) => {
+    draft.resultsJsonStr = resultsJsonStr
+  })
+
+  .icase(setCladeNodeAttrKeys, (draft, { cladeNodeAttrKeys }) => {
+    draft.cladeNodeAttrKeys = cladeNodeAttrKeys
   })
 
   .icase(errorDismiss, (draft) => {

@@ -36,7 +36,8 @@ namespace Nextclade {
     const std::vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
     const Tree& tree,                                            //
-    const NextalignOptions& nextalignOptions                     //
+    const NextalignOptions& nextalignOptions,                    //
+    const std::vector<std::string>& customNodeAttrKeys           //
   );
 
   std::vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides);

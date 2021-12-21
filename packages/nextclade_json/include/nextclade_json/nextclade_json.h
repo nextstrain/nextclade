@@ -78,6 +78,20 @@ namespace Nextclade {
     return parseArray<T>(arr, parser);
   }
 
+  template<typename Key, typename Val>
+  std::map<Key, Val> parseMap(const json& parent, const std::string& parentKey) {
+    const auto& obj = at(parent, parentKey);
+    if (!obj.is_object()) {
+      throw ErrorJsonTypeInvalid(parentKey, "object", parent.type_name());
+    }
+
+    std::map<Key, Val> result;
+    for (const auto& [key, value] : obj.items()) {
+      result[key] = value;
+    }
+    return result;
+  }
+
   template<typename Key, typename Val, typename Parser>
   std::map<Key, Val> parseMap(const json& parent, const std::string& parentKey, const Parser& parser) {
     const auto& obj = at(parent, parentKey);

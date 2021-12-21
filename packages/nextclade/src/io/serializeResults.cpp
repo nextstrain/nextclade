@@ -4,7 +4,6 @@
 #include <nextclade/private/nextclade_private.h>
 #include <nextclade_json/nextclade_json.h>
 
-#include <chrono>
 #include <nlohmann/json.hpp>
 #include <string>
 
@@ -352,6 +351,8 @@ namespace Nextclade {
       j.emplace("qc", serializeQcResult(result.qc));
       j.emplace("nucleotideComposition", serializeNucleotideComposition(result.nucleotideComposition));
 
+      j.emplace("customNodeAttributes", serializeMap(result.customNodeAttributes));
+
       return j;
     }
   }// namespace
@@ -382,17 +383,14 @@ namespace Nextclade {
     return j;
   }
 
-  auto getTimestampNow() {
-    const auto p1 = std::chrono::system_clock::now();
-    return std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count();
-  }
 
-  std::string serializeResults(const std::vector<AnalysisResult>& results) {
+  std::string serializeResults(const AnalysisResults& analysisResults) {
     auto j = json::object();
-    j.emplace("schemaVersion", Nextclade::getAnalysisResultsJsonSchemaVersion());
-    j.emplace("nextcladeVersion", Nextclade::getVersion());
-    j.emplace("timestamp", getTimestampNow());
-    j.emplace("results", serializeResultsArray(results));
+    j.emplace("schemaVersion", analysisResults.schemaVersion);
+    j.emplace("nextcladeVersion", analysisResults.nextcladeVersion);
+    j.emplace("timestamp", analysisResults.timestamp);
+    j.emplace("cladeNodeAttrKeys", serializeArray(analysisResults.cladeNodeAttrKeys));
+    j.emplace("results", serializeResultsArray(analysisResults.results));
     return jsonStringify(j);
   }
 
@@ -421,6 +419,14 @@ namespace Nextclade {
     auto j = json::object();
     j.emplace("global", serializeArray(warnings.global, serializeString));
     j.emplace("inGenes", serializeArray(warnings.inGenes, serializeGeneWarning));
+    return jsonStringify(j);
+  }
+
+  std::string serializeCladeNodeAttrKeys(const std::vector<std::string>& keys) {
+    auto j = json::array();
+    for (const auto& key : keys) {
+      j.push_back(key);
+    }
     return jsonStringify(j);
   }
 

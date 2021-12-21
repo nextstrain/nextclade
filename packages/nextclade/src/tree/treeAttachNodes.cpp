@@ -75,6 +75,8 @@ namespace Nextclade {
     newNode.setNodeAttr("QC Status", formatQcStatus(result.qc.overallStatus));
 
     newNode.setNodeAttr("Missing genes", formatAndJoinMaybeEmpty(result.missingGenes, identity<std::string>, ", "));
+
+    newNode.setCustomNodeAttributes(result.customNodeAttributes);
   }
 
   /**

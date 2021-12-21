@@ -50,6 +50,7 @@ export const selectCanDownload = (state: State): boolean =>
   state.algorithm.treeStr !== undefined
 
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.treeStr
+export const selectCladeNodeAttrKeys = (state: State): string[] => state.algorithm.cladeNodeAttrKeys
 
 export const selectOutputSequences = (state: State) =>
   state.algorithm.results.map((result) => ({ seqName: result.seqName, query: result.query }))
