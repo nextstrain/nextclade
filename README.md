@@ -254,49 +254,65 @@ Nextclade is a part of
 
 It is maintained by:
 
-<table>
-  <tr>
-  <td align="center">
 <p align="center">
+<table>
+<tr>
+<td>
   <p align="center">
     <a href="https://github.com/ivan-aksamentov">
-      <img src="https://avatars.githubusercontent.com/u/9403403?s=100&&v=4" width="100px;" alt=""/>
+      <img alt="" src="https://avatars.githubusercontent.com/u/9403403?s=100&&v=4" width="100px;" />
     </a>
   </p>
-  <p align="center">
-    <p align="center">
-      <a href="https://github.com/ivan-aksamentov">
-      Ivan Aksamentov
-      </a>
-    </p>
-    <p align="center">
-      <small>Senior Software Engineer</small></br>
-      <small>NeherLab, Biozentrum, University of Basel</small></br>
-    </p>
-  </p>
-  </td>
 
-  <td align="center">
+  <p align="center">
+    <a href="https://github.com/ivan-aksamentov">Ivan Aksamentov</a>
+  </p>
+
+  <p align="center">
+    <small>Senior Software Engineer</small><br />
+    <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
+  </p>
+</td>
+
+<td>
   <p align="center">
     <a href="https://github.com/rneher">
-      <img src="https://avatars.githubusercontent.com/u/8379168?s=100&&v=4" width="100px;" alt=""/>
+      <img alt="" src="https://avatars.githubusercontent.com/u/8379168?s=100&&v=4" width="100px;" />
     </a>
   </p>
+
   <p align="center">
-    <p align="center">
-      <a href="https://github.com/rneher">
-      Richard Neher
-      </a>
-    </p>
-    <p align="center">
-      <small>Principal Investigator</small></br>
-      <small>NeherLab, Biozentrum, University of Basel</small></br>
-    </p>
+    <a href="https://github.com/rneher">Richard Neher</a>
   </p>
-</p>
+
+  <p align="center">
+    <small>Principal Investigator</small><br />
+    <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
+  </p>
 </td>
-  </tr>
+
+<td>
+  <p align="center">
+    <a href="https://github.com/corneliusroemer">
+      <img alt="" src="https://avatars.githubusercontent.com/u/25161793?s=100&&v=4" width="100px;" />
+    </a>
+  </p>
+
+  <p align="center">
+    <a href="https://github.com/corneliusroemer">Cornelius Roemer</a>
+  </p>
+
+  <p align="center">
+    <small>Staff Scientist</small><br />
+    <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
+  </p>
+</td>
+</tr>
 </table>
+</p>
 
 
 We are thankful to all our contributors, no matter how they contribute: in ideas, science, code, documentation or otherwise. Thanks goes to these people (<a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">emoji key</a>):
