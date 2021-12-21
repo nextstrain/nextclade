@@ -22,7 +22,7 @@ import { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.s
 
 import { State } from 'src/state/reducer'
 import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
-import { FileIconCsv, FileIconFasta, FileIconJson } from '../Common/FileIcons'
+import { FileIconCsv, FileIconFasta, FileIconGff, FileIconJson } from '../Common/FileIcons'
 import { FilePicker } from './FilePicker'
 
 export interface FilePickerAdvancedProps {
@@ -128,7 +128,7 @@ export function FilePickerAdvancedDisconnected({
         <FilePicker
           className="my-3"
           compact
-          icon={<FileIconJson size={30} />}
+          icon={<FileIconGff size={30} />}
           title={t('Gene map')}
           exampleUrl="https://example.com/gene_map.json"
           pasteInstructions={t('Enter gene map data in JSON format')}
