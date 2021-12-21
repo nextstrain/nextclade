@@ -142,7 +142,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
     const cannotLoadExample = hasRequiredInputs || isInProgressFasta || hasErrors
     return (
       <Button color="link" onClick={setExampleSequences} disabled={cannotLoadExample}>
-        <small>{t('Load example')}</small>
+        {t('Load example')}
       </Button>
     )
   }, [hasErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
