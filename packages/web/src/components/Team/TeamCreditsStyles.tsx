@@ -25,11 +25,11 @@ export const Flex = styled.section`
 
   @media (min-width: 992px) {
     &:first-child {
-      padding-left: 80px;
+      padding-left: 70px;
     }
 
     &:last-child {
-      padding-right: 80px;
+      padding-right: 70px;
     }
   }
 
