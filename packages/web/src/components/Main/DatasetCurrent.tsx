@@ -2,17 +2,17 @@ import React, { useCallback, useMemo, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { Button, Col, Collapse, Row } from 'reactstrap'
-import { LinkExternal } from 'src/components/Link/LinkExternal'
+import styled from 'styled-components'
 
+import type { DatasetFlat } from 'src/algorithms/types'
+import type { State } from 'src/state/reducer'
 import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { selectCurrentDataset } from 'src/state/algorithm/algorithm.selectors'
 import { FilePickerAdvanced } from 'src/components/FilePicker/FilePickerAdvanced'
-
-import type { DatasetFlat } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import styled from 'styled-components'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { DatasetInfo } from './DatasetInfo'
+import AdvancedModeExplanationContent from './AdvancedModeExplanation.mdx'
 
 export const CurrentDatasetInfoContainer = styled.div`
   display: flex;
@@ -65,6 +65,16 @@ export const CustomizeButton = styled(Button)`
   font-size: 0.85rem;
   padding: 0;
   margin: 0;
+`
+
+export const AdvancedModeExplanationWrapper = styled.div`
+  max-width: 550px;
+
+  margin-top: 1rem;
+
+  > p {
+    margin: 0;
+  }
 `
 
 export interface DatasetCurrentProps {
@@ -135,6 +145,10 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
             </CustomizeButton>
 
             <Collapse isOpen={advancedOpen}>
+              <AdvancedModeExplanationWrapper>
+                <AdvancedModeExplanationContent />
+              </AdvancedModeExplanationWrapper>
+
               <FilePickerAdvanced />
               <CustomizeButton className="mt-2" type="button" color="link" onClick={onCustomizeClicked}>
                 {customizeButtonText}
