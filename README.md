@@ -271,6 +271,7 @@ It is maintained by:
   <p align="center">
     <small>Senior Software Engineer</small><br />
     <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
   </p>
 </td>
 
@@ -288,6 +289,7 @@ It is maintained by:
   <p align="center">
     <small>Principal Investigator</small><br />
     <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
   </p>
 </td>
 
@@ -305,6 +307,7 @@ It is maintained by:
   <p align="center">
     <small>Staff Scientist</small><br />
     <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
   </p>
 </td>
 </tr>

@@ -15,7 +15,7 @@ export interface MaintainerInfo {
   name: string
   portraitUrl: string
   title: string
-  affiliation: string
+  affiliations: string[]
   links: MaintainerInfoLink[]
 }
 
@@ -24,14 +24,18 @@ export interface MaintainerProps {
 }
 
 export function Maintainer({ maintainer }: MaintainerProps) {
-  const { name, portraitUrl, title, affiliation, links } = maintainer
+  const { name, portraitUrl, title, affiliations, links } = maintainer
   const alt = useMemo(() => `Portrait of '${PROJECT_NAME}' maintainer, ${name}`, [name])
+  const affiliationComponents = useMemo(
+    () => affiliations.map((affiliation) => <AffiliationText key={affiliation}>{affiliation}</AffiliationText>),
+    [affiliations],
+  )
   return (
     <Flex>
       <Portrait src={portraitUrl} alt={alt} />
       <NameText>{name}</NameText>
       <AffiliationText>{title}</AffiliationText>
-      <AffiliationText>{affiliation}</AffiliationText>
+      {affiliationComponents}
       <Ul>
         {links.map(({ title, url, alt, icon }) => (
           <Li key={title}>

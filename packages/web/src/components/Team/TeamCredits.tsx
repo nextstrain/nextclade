@@ -21,7 +21,7 @@ const maintainers: MaintainerInfo[] = [
     name: 'Ivan Aksamentov',
     portraitUrl: 'https://avatars3.githubusercontent.com/u/9403403?s=400',
     title: 'Senior Software Engineer',
-    affiliation: 'NeherLab, Biozentrum, University of Basel',
+    affiliations: ['NeherLab, Biozentrum, University of Basel', 'Swiss Institute of Bioinformatics'],
     links: [
       {
         title: 'GitHub',
@@ -35,7 +35,7 @@ const maintainers: MaintainerInfo[] = [
     name: 'Richard Neher',
     portraitUrl: 'https://avatars3.githubusercontent.com/u/8379168?s=400',
     title: 'Principal Investigator',
-    affiliation: 'NeherLab, Biozentrum, University of Basel',
+    affiliations: ['NeherLab, Biozentrum, University of Basel', 'Swiss Institute of Bioinformatics'],
     links: [
       {
         title: 'Website',
@@ -61,7 +61,7 @@ const maintainers: MaintainerInfo[] = [
     name: 'Cornelius Roemer',
     portraitUrl: 'https://avatars1.githubusercontent.com/u/25161793?v=4',
     title: 'Staff Scientist',
-    affiliation: 'NeherLab, Biozentrum, University of Basel',
+    affiliations: ['NeherLab, Biozentrum, University of Basel', 'Swiss Institute of Bioinformatics'],
     links: [
       {
         title: 'GitHub',
