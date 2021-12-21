@@ -102,7 +102,6 @@ export function getLatestDatasetsFlat(datasets?: Dataset[]): DatasetFlat[] {
           ...dataset,
           ...datasetRef,
           ...latestVersion,
-          nameFriendly: `${dataset.nameFriendly} (${datasetRef.reference.strainName})`,
         })
       }
     }
@@ -139,21 +138,19 @@ export class DatasetNotFoundError extends Error {
   }
 }
 
-export function findDataset(datasets: DatasetFlat[], name: string, refAccession?: string, tag?: string) {
-  const found = datasets.find((dataset) => {
-    const ref = refAccession ?? dataset.defaultRef
-    let isMatch = dataset.name === name && dataset.reference.accession === ref
+export function findDataset(datasets: DatasetFlat[], name?: string, refAccession?: string, tag?: string) {
+  return datasets.find((dataset) => {
+    let isMatch = dataset.name === name
+
+    if (refAccession) {
+      isMatch = isMatch && dataset.reference.accession === refAccession
+    }
+
     if (tag) {
       isMatch = isMatch && dataset.tag === tag
     }
     return isMatch
   })
-
-  if (!found) {
-    throw new DatasetNotFoundError(name, refAccession, tag)
-  }
-
-  return found
 }
 
 export async function fetchDatasetsIndex() {

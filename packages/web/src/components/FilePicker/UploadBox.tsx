@@ -85,7 +85,6 @@ export function getUploadZoneTheme(props: { state: UploadZoneState; theme: Defau
 
 export const UploadZoneWrapper = styled.div`
   width: 100%;
-  height: 100%;
 
   &:focus-within {
     border: none;
@@ -97,12 +96,14 @@ export const UploadZoneWrapper = styled.div`
 export const UploadZone = styled.div<{ state: UploadZoneState }>`
   display: flex;
   height: 100%;
+  width: 100%;
   cursor: pointer;
-  border-radius: 5px;
   border: ${(props) => getUploadZoneTheme(props, 'border')};
+  border-radius: ${(props) => props.theme.filePicker.borderRadius};
   color: ${(props) => getUploadZoneTheme(props, 'color')};
   background-color: ${(props) => getUploadZoneTheme(props, 'background')};
   box-shadow: ${(props) => getUploadZoneTheme(props, 'box-shadow')};
+  min-height: ${(props) => props.theme.filePicker.minHeight};
 `
 
 export const UploadZoneInput = styled.input``
@@ -151,7 +152,7 @@ export interface UploaderGenericProps {
   onUpload(file: File): void
 }
 
-export function UploaderGeneric({ onUpload, children }: PropsWithChildren<UploaderGenericProps>) {
+export function UploadBox({ onUpload, children, ...props }: PropsWithChildren<UploaderGenericProps>) {
   const { t } = useTranslation()
   const [errors, setErrors] = useState<string[]>([])
 
@@ -191,7 +192,7 @@ export function UploaderGeneric({ onUpload, children }: PropsWithChildren<Upload
   )
 
   return (
-    <UploadZoneWrapper {...getRootProps()}>
+    <UploadZoneWrapper {...props} {...getRootProps()}>
       <UploadZoneInput type="file" {...getInputProps()} />
       <UploadZone state={state}>
         <UploadZoneLeft>{<FileIconsContainer>{children}</FileIconsContainer>}</UploadZoneLeft>

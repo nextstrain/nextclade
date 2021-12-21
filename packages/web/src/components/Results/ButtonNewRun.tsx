@@ -20,8 +20,6 @@ import { PanelButton } from 'src/components/Results/PanelButton'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
 import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
-import { FilePickerAdvanced } from 'src/components/Main/FilePickerAdvanced'
-import { ButtonsAdvanced } from 'src/components/Main/MainSectionHeroControlsAdvanced'
 import { selectCanRun } from 'src/state/algorithm/algorithm.selectors'
 
 export const ButtonClose = styled(Button)<ButtonProps>`
@@ -100,10 +98,10 @@ export function ButtonNewRunDisconnected({
   const close = useCallback(() => setShowNewRunPopup(false), [setShowNewRunPopup])
   const toggleOpen = useCallback(() => setShowNewRunPopup(!showNewRunPopup), [setShowNewRunPopup, showNewRunPopup])
 
-  const run = useCallback(() => {
-    setShowNewRunPopup(false)
-    algorithmRunTrigger(undefined)
-  }, [algorithmRunTrigger, setShowNewRunPopup])
+  // const run = useCallback(() => {
+  //   setShowNewRunPopup(false)
+  //   algorithmRunTrigger(undefined)
+  // }, [algorithmRunTrigger, setShowNewRunPopup])
 
   return (
     <>
@@ -121,16 +119,12 @@ export function ButtonNewRunDisconnected({
         </ModalHeader>
 
         <ModalBody>
-          <Scrollable>
-            <FilePickerAdvanced />
-          </Scrollable>
+          <Scrollable>{/* <FilePickerAdvanced /> */}</Scrollable>
         </ModalBody>
 
         <ModalFooter>
           <Row noGutters>
-            <Col>
-              <ButtonsAdvanced canRun={canRun} run={run} />
-            </Col>
+            <Col>{/* <ButtonsAdvanced canRun={canRun} run={run} /> */}</Col>
           </Row>
         </ModalFooter>
       </Modal>

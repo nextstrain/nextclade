@@ -417,16 +417,13 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
   }
 
   // If not provided, maybe the previously used sequence data is of any good?
-  let queryStr = yield* select(selectQueryStr)
-  let queryName = yield* select(selectQueryName)
+  const queryStr = yield* select(selectQueryStr)
+  const queryName = yield* select(selectQueryName)
   if (queryStr && queryName) {
     return { queryStr, queryName }
   }
 
-  queryStr = yield* call(async () => axiosFetchRaw(dataset.files.sequences))
-  queryName = `${dataset.nameFriendly}, ${dataset.tag}`
-
-  return { queryStr, queryName }
+  throw new Error('Internal error: sequence data is not available')
 }
 
 /**

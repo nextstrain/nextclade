@@ -43,6 +43,7 @@ export enum AlgorithmInputType {
   File = 'FileInput',
   Url = 'Url',
   String = 'String',
+  Default = 'Default',
 }
 
 export interface AlgorithmInput {
@@ -93,6 +94,14 @@ export interface AlgorithmParams {
   final: {
     geneMap?: Gene[]
     genomeSize?: number
+  }
+  inProgress: {
+    seqData: number
+    auspiceData: number
+    rootSeq: number
+    qcRulesConfig: number
+    geneMap: number
+    pcrPrimers: number
   }
   errors: {
     seqData: Error[]
@@ -145,6 +154,14 @@ export const algorithmDefaultState: AlgorithmState = {
     raw: {},
     strings: {},
     final: {},
+    inProgress: {
+      seqData: 0,
+      auspiceData: 0,
+      rootSeq: 0,
+      qcRulesConfig: 0,
+      geneMap: 0,
+      pcrPrimers: 0,
+    },
     errors: {
       seqData: [],
       auspiceData: [],

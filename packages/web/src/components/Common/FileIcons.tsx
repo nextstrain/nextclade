@@ -18,6 +18,7 @@ export const DEFAULT_ICON_COLORS = {
   csv: '#55aa55',
   tsv: '#7777cc',
   json: '#bb7e38',
+  gff: '#6b29bb',
   zip: '#91640f',
 } as const
 
@@ -116,6 +117,16 @@ export const FileIconTsv = ({ size }: FileIconProps) => (
     type="spreadsheet"
     labelColor={DEFAULT_ICON_COLORS.tsv}
     glyphColor={DEFAULT_ICON_COLORS.tsv}
+  />
+)
+
+export const FileIconGff = ({ size }: FileIconProps) => (
+  <FileIconBase
+    size={size}
+    extension={'gff'}
+    type="spreadsheet"
+    labelColor={DEFAULT_ICON_COLORS.gff}
+    glyphColor={DEFAULT_ICON_COLORS.gff}
   />
 )
 
