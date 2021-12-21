@@ -69,8 +69,7 @@ export const CustomizeButton = styled(Button)`
 
 export const AdvancedModeExplanationWrapper = styled.div`
   max-width: 550px;
-
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 
   > p {
     margin: 0;
