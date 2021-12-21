@@ -2,8 +2,8 @@ import React, { memo } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
-import { areEqual, FixedSizeList, ListChildComponentProps } from 'react-window'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import { areEqual, FixedSizeList as FixedSizeListBase, FixedSizeListProps, ListChildComponentProps } from 'react-window'
+import AutoSizerBase from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
 
@@ -59,11 +59,18 @@ export const Table = styled.div<{ rounded?: boolean }>`
   transition: border-radius 250ms linear;
 `
 
+export const AutoSizer = styled(AutoSizerBase)``
+
+export const FixedSizeList = styled(FixedSizeListBase)<FixedSizeListProps>`
+  overflow-x: hidden !important;
+`
+
 export const TableHeaderRow = styled.div`
   display: flex;
   align-items: stretch;
   height: ${HEADER_ROW_HEIGHT}px;
   overflow-y: scroll;
+  overflow-x: hidden;
   background-color: #495057;
   color: #e7e7e7;
 `
