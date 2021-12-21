@@ -16,12 +16,12 @@ import { ResultsStatus } from './ResultsStatus'
 import { ResultsFilter } from './ResultsFilter'
 import { ResultsTable } from './ResultsTable'
 import { ButtonRerun } from './ButtonRerun'
-import { COLUMN_WIDTHS } from './ResultsTableStyle'
+import { COLUMN_WIDTHS, DYNAMIC_COLUMN_WIDTH } from './ResultsTableStyle'
 
-export const Container = styled.div`
+export const Container = styled.div<{ $minWidth: number }>`
   width: 100%;
   height: 100%;
-  min-width: 1650px;
+  min-width: ${(props) => props.$minWidth}px;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -65,20 +65,21 @@ const Footer = styled.footer`
 export function ResultsPage() {
   const cladeNodeAttrKeys = useSelector(selectCladeNodeAttrKeys)
 
-  const { columnWidthsPx, dynamicColumnWidthPx, geneMapNameWidthPx } = useMemo(() => {
+  const { totalWidth, columnWidthsPx, dynamicColumnWidthPx, geneMapNameWidthPx } = useMemo(() => {
     const columnWidthsPx = Object.fromEntries(
       Object.entries(COLUMN_WIDTHS).map(([item, fb]) => [item, `${fb}px`]),
     ) as Record<keyof typeof COLUMN_WIDTHS, string>
 
-    const dynamicColumnWidth = 100
-    const dynamicColumnWidthPx = `${dynamicColumnWidth}px`
+    const dynamicColumnWidthPx = `${DYNAMIC_COLUMN_WIDTH}px`
+    const dynamicColumnsWidthTotal = cladeNodeAttrKeys.length * DYNAMIC_COLUMN_WIDTH
 
-    const dynamicColumnsWidth = cladeNodeAttrKeys.length * dynamicColumnWidth
+    const totalWidth = sum(Object.values(COLUMN_WIDTHS)) + dynamicColumnsWidthTotal
 
-    const geneMapNameWidth = sum(Object.values(COLUMN_WIDTHS)) - COLUMN_WIDTHS.sequenceView + dynamicColumnsWidth
+    const geneMapNameWidth = totalWidth - COLUMN_WIDTHS.sequenceView
     const geneMapNameWidthPx = `${geneMapNameWidth}px`
 
     return {
+      totalWidth,
       columnWidthsPx,
       dynamicColumnWidthPx,
       geneMapNameWidthPx,
@@ -87,7 +88,7 @@ export function ResultsPage() {
 
   return (
     <LayoutResults>
-      <Container>
+      <Container $minWidth={totalWidth}>
         <Header>
           <HeaderLeft>
             <ButtonBack />
