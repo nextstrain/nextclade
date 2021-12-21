@@ -64,6 +64,12 @@ const maintainers: MaintainerInfo[] = [
     affiliations: ['NeherLab, Biozentrum, University of Basel', 'Swiss Institute of Bioinformatics'],
     links: [
       {
+        title: 'Twitter',
+        url: `https://twitter.com/corneliusroemer`,
+        alt: 'Link to Twitter, with blue Twitter bird logo',
+        icon: <FaTwitter size={25} color="#08a0e9" />,
+      },
+      {
         title: 'GitHub',
         url: 'https://github.com/corneliusroemer',
         alt: 'Link to Github page, with grey Github Octocat logo',
