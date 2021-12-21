@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { Button, Col, Collapse, Row } from 'reactstrap'
+import { ButtonCustomize } from 'src/components/Main/ButtonCustomize'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
@@ -62,7 +63,6 @@ export const ChangeButton = styled(Button)`
 
 export const CustomizeButton = styled(Button)`
   height: 1.6rem;
-  font-size: 0.85rem;
   padding: 0;
   margin: 0;
 `
@@ -102,11 +102,6 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
 
   const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
 
-  const customizeButtonText = useMemo(() => (advancedOpen ? t('Hide dataset files') : t('Show dataset files')), [
-    advancedOpen,
-    t,
-  ])
-
   if (!dataset) {
     return null
   }
@@ -140,9 +135,7 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
 
         <Row noGutters>
           <Col>
-            <CustomizeButton type="button" color="link" onClick={onCustomizeClicked}>
-              {customizeButtonText}
-            </CustomizeButton>
+            <ButtonCustomize isOpen={advancedOpen} onClick={onCustomizeClicked} />
 
             <Collapse isOpen={advancedOpen}>
               <AdvancedModeExplanationWrapper>
@@ -150,9 +143,6 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
               </AdvancedModeExplanationWrapper>
 
               <FilePickerAdvanced />
-              <CustomizeButton className="mt-2" type="button" color="link" onClick={onCustomizeClicked}>
-                {customizeButtonText}
-              </CustomizeButton>
             </Collapse>
           </Col>
         </Row>

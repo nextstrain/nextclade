@@ -150,6 +150,9 @@ export const uploadZone = {
 }
 
 export const theme = {
+  bodyColor: basicColors.gray700,
+  bodyBg: basicColors.white,
+
   ...auspiceSidebarTheme,
   ...basicColors,
   ...themeColors,
