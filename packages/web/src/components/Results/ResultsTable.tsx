@@ -400,6 +400,7 @@ export function ResultsTableDisconnected({
   cladeNodeAttrKeys,
   resultsFiltered,
   filterPanelCollapsed,
+  resultsSortByKeyTrigger,
   sortByIdAsc,
   sortByIdDesc,
   sortByNameAsc,
