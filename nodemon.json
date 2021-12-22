@@ -10,6 +10,7 @@
     "CMakeLists.txt",
     "Makefile",
     "conanfile.txt",
+    "conanfile.py",
     "config/*",
     "packages/cmake",
     "packages/nextalign/CMakeLists.txt",

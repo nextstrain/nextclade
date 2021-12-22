@@ -52,6 +52,17 @@ fi
 # Check whether we are running on a Continuous integration server
 IS_CI=${IS_CI:=$(is_ci)}
 
+# Build type (default: Release)
+CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
+
+# Whether to produce Webassembly with Emscripten
+export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
+
+# Debug wasm build is too slow, always do optimized build
+if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  CMAKE_BUILD_TYPE="Release"
+fi
+
 # Name of the operating system we are running this script on: Linux, Darwin (we rename it to MacOS below)
 BUILD_OS="$(uname -s)"
 if [ "${BUILD_OS}" == "Darwin" ]; then
@@ -73,6 +84,9 @@ fi
 
 # Name of the processor architecture for which we will build the binaries. Default is the same as build arch
 HOST_ARCH=${HOST_ARCH:=${BUILD_ARCH}}
+if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
+  HOST_ARCH="wasm"
+fi
 
 # Whether we are cross-compiling for another operating system or another processor architecture
 CROSS=0
@@ -83,16 +97,6 @@ fi
 # Minimum target version of macOS. End up in `-mmacosx-version-min=` flag of AppleClang
 OSX_MIN_VER=${OSX_MIN_VER:=10.12}
 
-# Build type (default: Release)
-CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE:=Release}"
-
-# Whether to produce Webassembly with Emscripten
-export NEXTCLADE_BUILD_WASM="${NEXTCLADE_BUILD_WASM:=0}"
-
-# Debug wasm build is too slow, always do optimized build
-if [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
-  CMAKE_BUILD_TYPE="Release"
-fi
 
 # Deduce conan build type from cmake build type
 CONAN_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -202,11 +206,9 @@ EMSDK_CLANG_VERSION="${EMSDK_CLANG_VERSION:=11}"
 EMCMAKE=""
 EMMAKE=""
 CONAN_COMPILER_SETTINGS="${CONAN_COMPILER_SETTINGS:=}"
-CONANFILE="${PROJECT_ROOT_DIR}/conanfile.txt"
+CONANFILE="${PROJECT_ROOT_DIR}/conanfile.py"
 NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS=""
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
-  CONANFILE="${PROJECT_ROOT_DIR}/conanfile.wasm.txt"
-
   CONAN_COMPILER_SETTINGS="\
     --profile="${PROJECT_ROOT_DIR}/config/conan/conan_profile_emscripten_wasm.txt" \
     -s compiler=clang \
