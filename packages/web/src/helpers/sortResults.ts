@@ -26,6 +26,11 @@ export interface Sorting {
   direction: SortDirection
 }
 
+export interface SortingKeyBased {
+  key: string
+  direction: SortDirection
+}
+
 export function defaultNumber(direction: SortDirection) {
   return direction === SortDirection.asc ? Infinity : 0
 }
@@ -136,4 +141,9 @@ export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) 
   }
 
   return results
+}
+
+export function sortResultsByKey(results: SequenceAnalysisState[], sorting: SortingKeyBased) {
+  const { key, direction } = sorting
+  return orderBy(results, (res) => res.result?.customNodeAttributes[key], direction)
 }

@@ -155,7 +155,8 @@ public:
         state.pcrPrimers,                    //
         state.qcRulesConfig,                 //
         state.tree,                          //
-        state.nextalignOptions               //
+        state.nextalignOptions,              //
+        state.tree.getCladeNodeAttrKeys()    //
       );
 
       warnings.global = merge(warnings.global, result.warnings.global);
@@ -185,6 +186,10 @@ public:
 
   std::string getTree() const {
     return state.tree.serialize(0);
+  }
+
+  std::string getCladeNodeAttrKeysStr() const {
+    return Nextclade::serializeCladeNodeAttrKeys(state.tree.getCladeNodeAttrKeys());
   }
 };
 
@@ -245,7 +250,8 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
 std::string serializeToCsv(const std::string& analysisResultsStr, const std::string& delimiter) {
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'serializeToCsv'");
   std::stringstream outputCsvStream;
-  auto csv = Nextclade::createCsvWriter(Nextclade::CsvWriterOptions{.delimiter = delimiter[0]});
+  auto csv = Nextclade::createCsvWriter(Nextclade::CsvWriterOptions{.delimiter = delimiter[0]},
+    analysisResults.cladeNodeAttrKeys);
   for (const auto& result : analysisResults.results) {
     csv->addRow(result);
   }
@@ -288,7 +294,7 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string>()//
     .function("analyze", &NextcladeWasm::analyze)                                                            //
     .function("getTree", &NextcladeWasm::getTree)                                                            //
-    ;                                                                                                        //
+    .function("getCladeNodeAttrKeysStr", &NextcladeWasm::getCladeNodeAttrKeysStr);                           //
 
   emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
     .field("ref", &NextcladeWasmResult::ref)

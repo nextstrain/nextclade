@@ -19,6 +19,7 @@ const containerMaxWidths = {
   xxl: '1950px',
 }
 
+export const transparent = '#ffffff00'
 export const white = '#ffffff'
 export const gray100 = '#f8f9fa'
 export const gray150 = '#eff1f3'
@@ -56,6 +57,7 @@ export const light = white
 export const dark = gray700
 
 export const basicColors = {
+  transparent,
   white,
   gray100,
   gray150,
@@ -112,12 +114,20 @@ export const shadows = {
 
 const uploadZoneBxoShadow = `1px 1px 3px 3px ${rgba(gray700, 0.25)}`
 
+const filePicker = {
+  minHeight: '200px',
+  borderRadius: '5px',
+  border: {
+    normal: `4px ${rgba(basicColors.gray500, 0.33)} solid`,
+  },
+}
+
 export const uploadZone = {
   'background': {
-    normal: basicColors.gray100,
+    normal: basicColors.transparent,
     accept: rgba(themeColors.success, 0.25),
     reject: rgba(themeColors.danger, 0.25),
-    hover: basicColors.white,
+    hover: basicColors.transparent,
   },
   'color': {
     normal: basicColors.gray700,
@@ -140,6 +150,9 @@ export const uploadZone = {
 }
 
 export const theme = {
+  bodyColor: basicColors.gray700,
+  bodyBg: basicColors.white,
+
   ...auspiceSidebarTheme,
   ...basicColors,
   ...themeColors,
@@ -147,6 +160,7 @@ export const theme = {
   containerMaxWidths,
   font,
   shadows,
+  filePicker,
   uploadZone,
 }
 

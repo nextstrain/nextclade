@@ -431,6 +431,7 @@ namespace Nextclade {
     std::set<std::string> missingGenes;
     double divergence;
     QcResult qc;
+    std::map<std::string, std::string> customNodeAttributes;
   };
 
 
@@ -438,6 +439,7 @@ namespace Nextclade {
     std::string schemaVersion;
     std::string nextcladeVersion;
     std::uint64_t timestamp;
+    std::vector<std::string> cladeNodeAttrKeys;
     std::vector<Nextclade::AnalysisResult> results;
   };
 
@@ -466,6 +468,8 @@ namespace Nextclade {
 
   public:
     explicit NextcladeAlgorithm(const NextcladeOptions& options);
+
+    std::vector<std::string> getCladeNodeAttrKeys() const;
 
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& seq);
 
@@ -535,7 +539,8 @@ namespace Nextclade {
     virtual void write(std::ostream& outputStream) = 0;
   };
 
-  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options = {});
+  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options = {},
+    const std::vector<std::string>& customNodeAttrKeys = {});
 
   class Tree {
     std::unique_ptr<TreeImpl> pimpl;
@@ -544,6 +549,8 @@ namespace Nextclade {
     explicit Tree(const std::string& auspiceJsonV2);
 
     TreeNode root() const;
+
+    std::vector<std::string> getCladeNodeAttrKeys() const;
 
     void addMetadata();
 
@@ -579,6 +586,8 @@ namespace Nextclade {
 
   std::string serializeWarningsToString(const Warnings& warnings);
 
+  std::string serializeCladeNodeAttrKeys(const std::vector<std::string>& keys);
+
   std::string serializeGeneMap(const GeneMap& geneMap);
 
   std::string serializeQcConfig(Nextclade::QcConfig& qcConfig);
@@ -587,7 +596,7 @@ namespace Nextclade {
 
   std::string serializeResultToString(const AnalysisResult& result);
 
-  std::string serializeResults(const std::vector<AnalysisResult>& results);
+  std::string serializeResults(const AnalysisResults& results);
 
   std::string formatRange(const Range& range);
 

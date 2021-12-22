@@ -31,13 +31,7 @@ import {
   exportInsertionsCsvTrigger,
   exportErrorsCsvTrigger,
 } from 'src/state/algorithm/algorithm.actions'
-import {
-  FileIconCsv,
-  FileIconTsv,
-  FileIconFasta,
-  FileIconJson,
-  FileIconZip,
-} from 'src/components/Main/UploaderFileIcons'
+import { FileIconCsv, FileIconTsv, FileIconFasta, FileIconJson, FileIconZip } from 'src/components/Common/FileIcons'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { selectCanDownload, selectExportParams } from 'src/state/algorithm/algorithm.selectors'
 

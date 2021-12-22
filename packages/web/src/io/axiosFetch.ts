@@ -1,6 +1,15 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 
-import { HttpRequestError } from 'src/io/AlgorithmInput'
+export class HttpRequestError extends Error {
+  public readonly request: AxiosRequestConfig
+  public readonly response?: AxiosResponse
+
+  constructor(error_: AxiosError) {
+    super(error_.message)
+    this.request = error_.config
+    this.response = error_.response
+  }
+}
 
 export async function axiosFetch<TData = unknown>(url: string, options?: AxiosRequestConfig): Promise<TData> {
   let res
