@@ -26,12 +26,7 @@ import { useFormikContext, Formik, Form, FormikHelpers, FormikErrors } from 'for
 import type { State } from 'src/state/reducer'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { Toggle } from 'src/components/Common/Toggle'
-import {
-  resetNumThreads,
-  setNumThreads,
-  setShowAdvancedControls,
-  setShowWhatsnewOnUpdate,
-} from 'src/state/settings/settings.actions'
+import { resetNumThreads, setNumThreads, setShowWhatsnewOnUpdate } from 'src/state/settings/settings.actions'
 import { setIsSettingsDialogOpen } from 'src/state/ui/ui.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Input } from 'src/components/Common/NumericField'
@@ -104,30 +99,21 @@ export interface SettingsFormValues {
 export interface SettingsButtonProps {
   isSettingsDialogOpen: boolean
   showWhatsnewOnUpdate: boolean
-  showAdvancedControls: boolean
   numThreads: number
-
   setIsSettingsDialogOpen(isOpen: boolean): void
-
   setShowWhatsnewOnUpdate(setShowWhatsnewOnUpdate: boolean): void
-
-  setShowAdvancedControls(setShowAdvancedControls: boolean): void
-
   setNumThreads(setNumThreads: number): void
-
   resetNumThreads(): void
 }
 
 const mapStateToProps = (state: State) => ({
   isSettingsDialogOpen: state.ui.isSettingsDialogOpen,
   showWhatsnewOnUpdate: state.settings.showWhatsnewOnUpdate,
-  showAdvancedControls: state.settings.showAdvancedControls,
   numThreads: state.settings.numThreadsV2,
 })
 
 const mapDispatchToProps = {
   setShowWhatsnewOnUpdate,
-  setShowAdvancedControls,
   setNumThreads,
   setIsSettingsDialogOpen,
   resetNumThreads: () => resetNumThreads(),
@@ -138,11 +124,9 @@ export const SettingsButton = connect(mapStateToProps, mapDispatchToProps)(Setti
 export function SettingsButtonDisconnected({
   isSettingsDialogOpen,
   showWhatsnewOnUpdate,
-  showAdvancedControls,
   numThreads,
   setIsSettingsDialogOpen,
   setShowWhatsnewOnUpdate,
-  setShowAdvancedControls,
   setNumThreads,
   resetNumThreads,
 }: SettingsButtonProps) {
@@ -283,16 +267,6 @@ export function SettingsButtonDisconnected({
                             </Alert>
                           )}
                         </Label>
-                      </FormGroup>
-
-                      <FormGroup>
-                        <Toggle
-                          identifier={'settings-show-advanced-toggle'}
-                          checked={showAdvancedControls}
-                          onCheckedChanged={setShowAdvancedControls}
-                        >
-                          {t('Show advanced controls on main page')}
-                        </Toggle>
                       </FormGroup>
 
                       <FormGroup>

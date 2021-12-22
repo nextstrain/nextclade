@@ -1,65 +1,107 @@
+import React, { ReactNode, useCallback, useState } from 'react'
+
+import type { StrictOmit } from 'ts-essentials'
+import {
+  Nav as NavBase,
+  NavItem,
+  NavItemProps,
+  NavLink,
+  NavProps,
+  TabContent as TabContentBase,
+  TabPane as TabPaneBase,
+} from 'reactstrap'
 import styled from 'styled-components'
-import { Tab as ReactTab, TabList as ReactTabList, TabPanel as ReactTabPanel, Tabs as ReactTabs } from 'react-tabs'
 
-export const Tab = styled(ReactTab)`
-  display: inline-block;
-  border: 1px solid transparent;
-  border-bottom: none;
-  bottom: -1px;
-  position: relative;
-  list-style: none;
-  padding: 6px 12px;
+const TabsPanelContainer = styled.div`
+  flex: 1;
+`
+
+const TabContent = styled(TabContentBase)`
+  height: 100%;
+`
+
+const TabPane = styled(TabPaneBase)`
+  height: 100%;
+`
+
+const Nav = styled(NavBase)`
   cursor: pointer;
-  border-radius: 3px 3px 0 0;
-  margin: 10px 10px;
-
-  &.react-tabs__tab--selected {
-    background: #fff;
-    border-color: #aaa;
-    color: #222;
-  }
-
-  .react-tabs__tab--disabled {
-    color: GrayText;
-    cursor: default;
-  }
-
-  &:focus {
-    box-shadow: 0 0 5px hsl(208, 99%, 50%);
-    border-color: hsl(208, 99%, 50%);
-    outline: none;
-  }
-
-  &:focus:after {
-    content: '';
-    position: absolute;
-    height: 5px;
-    left: -4px;
-    right: -4px;
-    bottom: -5px;
-    background: #fff;
-  }
 `
 
-export const TabContainer = styled.div`
-  text-align: center;
-`
+export interface TabDesc {
+  name: string
+  title: ReactNode
+  body?: ReactNode
+}
 
-export const TabList = styled(ReactTabList)`
-  border-bottom: 1px solid #aaa;
-  margin: 0 0 10px;
-  padding: 5px 5px;
-  height: 42px;
-`
+export interface TabsProps {
+  tabs: TabDesc[]
+}
 
-export const TabPanel = styled(ReactTabPanel)`
-  display: none;
+export function Tabs({ tabs }: TabsProps) {
+  const [activeTab, setActiveTab] = useState<string>('file')
 
-  &.react-tabs__tab-panel--selected {
-    display: flex;
-  }
-`
+  return (
+    <TabsPanelContainer>
+      <TabsPanel tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      <TabsContent tabs={tabs} activeTab={activeTab} />
+    </TabsPanelContainer>
+  )
+}
 
-export const Tabs = styled(ReactTabs)`
-  -webkit-tap-highlight-color: transparent;
-`
+export interface TabComponentProps extends StrictOmit<NavItemProps, 'onChange'> {
+  tab: TabDesc
+  activeTab: string
+  disabled?: boolean
+  onChange(tabName: string): void
+}
+
+export function TabComponent({ tab, activeTab, onChange, disabled, ...props }: TabComponentProps) {
+  const onClick = useCallback(() => {
+    if (activeTab !== tab.name) {
+      onChange(tab.name)
+    }
+  }, [activeTab, onChange, tab.name])
+
+  return (
+    <NavItem>
+      <NavLink active={!disabled && activeTab === tab.name} onClick={onClick} disabled={disabled} {...props}>
+        {tab.title}
+      </NavLink>
+    </NavItem>
+  )
+}
+
+export interface TabsPanelProps extends StrictOmit<NavProps, 'tabs'> {
+  tabs: TabDesc[]
+  activeTab: string
+  disabled?: boolean
+  onChange(tabName: string): void
+}
+
+export function TabsPanel({ tabs, activeTab, onChange, disabled, ...restProps }: TabsPanelProps) {
+  return (
+    <Nav tabs {...restProps}>
+      {tabs.map((tab, i) => (
+        <TabComponent key={tab.name} tab={tab} activeTab={activeTab} onChange={onChange} disabled={disabled} />
+      ))}
+    </Nav>
+  )
+}
+
+export interface TabsContentProps {
+  tabs: TabDesc[]
+  activeTab: string
+}
+
+export function TabsContent({ tabs, activeTab, ...props }: TabsContentProps) {
+  return (
+    <TabContent activeTab={activeTab} {...props}>
+      {tabs.map((tab, i) => (
+        <TabPane tabId={tab.name} key={tab.name}>
+          {tab.body}
+        </TabPane>
+      ))}
+    </TabContent>
+  )
+}

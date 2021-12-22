@@ -1,20 +1,11 @@
-import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import Axios, { AxiosError } from 'axios'
+import { DatasetFlat } from 'src/algorithms/types'
+import { axiosFetchRaw, HttpRequestError } from 'src/io/axiosFetch'
 
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { AlgorithmInputType } from 'src/state/algorithm/algorithm.state'
 import { readFile } from 'src/helpers/readFile'
 import { numbro } from 'src/i18n/i18n'
-
-export class HttpRequestError extends Error {
-  public readonly request: AxiosRequestConfig
-  public readonly response?: AxiosResponse
-
-  constructor(error_: AxiosError) {
-    super(error_.message)
-    this.request = error_.config
-    this.response = error_.response
-  }
-}
 
 function formatBytes(bytes: number) {
   let mantissa = 1
@@ -103,5 +94,27 @@ export class AlgorithmInputString implements AlgorithmInput {
 
   public async getContent(): Promise<string> {
     return this.content
+  }
+}
+
+export class AlgorithmInputDefault implements AlgorithmInput {
+  public readonly type: AlgorithmInputType = AlgorithmInputType.Default as const
+
+  public dataset: DatasetFlat
+
+  constructor(dataset: DatasetFlat) {
+    this.dataset = dataset
+  }
+
+  public get name(): string {
+    return `${this.dataset.nameFriendly} example`
+  }
+
+  public get description(): string {
+    return `${this.name}`
+  }
+
+  public async getContent(): Promise<string> {
+    return axiosFetchRaw(this.dataset.files.sequences)
   }
 }

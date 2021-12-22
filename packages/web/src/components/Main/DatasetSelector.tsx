@@ -1,40 +1,36 @@
-import React from 'react'
+import React, { useCallback, useState } from 'react'
 
+import classNames from 'classnames'
 import { connect } from 'react-redux'
-import {
-  selectDefaultDatasetName,
-  selectDatasets,
-  selectDefaultDatasetNameFriendly,
-  selectCurrentDataset,
-} from 'src/state/algorithm/algorithm.selectors'
+import { Button, Col, Container, Input, Row } from 'reactstrap'
+import { LinkExternal } from 'src/components/Link/LinkExternal'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
 import { SpinnerWrapped } from 'src/components/Common/Spinner'
-import { DatasetSelectorDropdown } from './DatasetSelectorDropdown'
+import { selectDatasets, selectCurrentDataset, selectDefaultDataset } from 'src/state/algorithm/algorithm.selectors'
+import { DatasetSelectorList } from './DatasetSelectorList'
 
-const DropdownContainer = styled.div`
-  position: relative;
-  flex: 0 0 235px;
-  margin-right: auto;
-  margin-left: 5px;
-  height: 40px;
-
-  @media (max-width: 767.98px) {
-    margin-left: auto;
-    margin-right: auto;
-  }
-`
-
-const DropdownLoadingOverlay = styled.div`
-  position: absolute;
+const DatasetSelectorContainer = styled(Container)`
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  top: 0;
-  left: 0;
-  margin: auto;
+  padding: 0;
+`
+
+const DatasetSelectorTitle = styled.h4`
+  flex: 1;
+  margin: auto 0;
+`
+
+const DatasetSelectorListContainer = styled.section`
+  display: flex;
+  width: 100%;
+  height: 300px;
 `
 
 const Spinner = styled(SpinnerWrapped)`
@@ -44,16 +40,17 @@ const Spinner = styled(SpinnerWrapped)`
 `
 
 export interface DatasetSelectorProps {
+  searchTerm: string
   datasets: DatasetFlat[]
-  defaultDatasetName?: string
+  datasetDefault?: DatasetFlat
   datasetCurrent?: DatasetFlat
   setDatasetCurrent(dataset?: DatasetFlat): void
+  setSearchTerm(searchTerm: string): void
 }
 
 const mapStateToProps = (state: State) => ({
   datasets: selectDatasets(state),
-  defaultDatasetName: selectDefaultDatasetName(state),
-  defaultDatasetNameFriendly: selectDefaultDatasetNameFriendly(state),
+  datasetDefault: selectDefaultDataset(state),
   datasetCurrent: selectCurrentDataset(state),
 })
 
@@ -63,32 +60,96 @@ const mapDispatchToProps = {
 
 export const DatasetSelector = connect(mapStateToProps, mapDispatchToProps)(DatasetSelectorDisconnected)
 
-export function removeBoolean<T>(value: boolean | undefined | T): T | undefined {
-  if (typeof value === 'boolean') {
-    return undefined
-  }
-  return value
-}
-
 export function DatasetSelectorDisconnected({
+  searchTerm,
   datasets,
-  defaultDatasetName,
+  datasetDefault,
   datasetCurrent,
   setDatasetCurrent,
+  setSearchTerm,
 }: DatasetSelectorProps) {
-  const isBusy = datasets.length === 0 || !datasetCurrent
+  const { t } = useTranslationSafe()
+  const [error, setError] = useState<string | undefined>()
+  const [datasetHighlighted, setDatasetHighlighted] = useState<DatasetFlat | undefined>(datasetDefault)
+
+  const onSearchTermChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target
+      setSearchTerm(value)
+    },
+    [setSearchTerm],
+  )
+
+  const onNextClicked = useCallback(() => {
+    if (datasetHighlighted) {
+      setDatasetCurrent(datasetHighlighted)
+      setError(undefined)
+    } else {
+      setError(t('Please select a pathogen first'))
+    }
+  }, [datasetHighlighted, setDatasetCurrent, t])
+
+  const isBusy = datasets.length === 0
 
   return (
-    <DropdownContainer>
-      {datasetCurrent && (
-        <DatasetSelectorDropdown
-          datasets={datasets}
-          datasetCurrent={datasetCurrent}
-          setDatasetCurrent={setDatasetCurrent}
-        />
-      )}
+    <DatasetSelectorContainer fluid>
+      <Row noGutters>
+        <Col sm={6} className="d-flex">
+          <DatasetSelectorTitle>{t('Select a pathogen')}</DatasetSelectorTitle>
+        </Col>
 
-      {isBusy && <DropdownLoadingOverlay>{<Spinner type="ThreeDots" size={20} color="#aaa" />}</DropdownLoadingOverlay>}
-    </DropdownContainer>
+        <Col sm={6}>
+          <Input
+            type="text"
+            title="Search pathogens"
+            placeholder="Search pathogens"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+            data-gramm="false"
+            value={searchTerm}
+            onChange={onSearchTermChange}
+          />
+        </Col>
+      </Row>
+
+      <Row noGutters className="mt-2">
+        <DatasetSelectorListContainer>
+          {!isBusy && (
+            <DatasetSelectorList
+              datasets={datasets}
+              datasetHighlighted={datasetHighlighted}
+              searchTerm={searchTerm}
+              onDatasetHighlighted={setDatasetHighlighted}
+            />
+          )}
+
+          {isBusy && <Spinner type="ThreeDots" size={20} color="#aaa" />}
+        </DatasetSelectorListContainer>
+      </Row>
+
+      <Row noGutters>
+        <Col className="py-1">
+          <LinkExternal href="https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md">
+            <small>{t('Recent dataset updates')}</small>
+          </LinkExternal>
+        </Col>
+      </Row>
+
+      <Row noGutters className="mt-2">
+        <Col className="d-flex">
+          {error && <p className="m-0 p-0 flex-1 text-danger">{error}</p>}
+          <Button
+            className={classNames('ml-auto', !datasetHighlighted && 'disabled')}
+            type="button"
+            color={datasetHighlighted ? 'primary' : 'secondary'}
+            onClick={onNextClicked}
+          >
+            {t('Next')}
+          </Button>
+        </Col>
+      </Row>
+    </DatasetSelectorContainer>
   )
 }

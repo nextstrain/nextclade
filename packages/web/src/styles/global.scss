@@ -11,7 +11,6 @@
 
 @import './components/About';
 @import './components/LanguageSwitcher';
-@import './components/Main';
 @import './components/MdxWrapper';
 @import './components/NavigationBar';
 @import './components/Results';
@@ -31,12 +30,6 @@ body {
 
 #__next {
   height: 100%;
-}
-
-.main-container {
-  height: 100%;
-  background-color: $body-bg;
-  min-width: 320px;
 }
 
 .progress {

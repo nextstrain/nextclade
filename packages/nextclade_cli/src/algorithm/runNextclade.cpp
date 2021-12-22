@@ -14,6 +14,8 @@
 
 #include "../io/Logger.h"
 #include "../io/parseRefFastaFile.h"
+#include "../utils/datetime.h"
+#include "../utils/safe_cast.h"
 
 
 namespace Nextclade {
@@ -54,16 +56,6 @@ namespace Nextclade {
     const auto &ref = refData.seq;
     const auto &refName = refData.name;
 
-    std::unique_ptr<Nextclade::CsvWriterAbstract> csv;
-    if (outputCsvStream) {
-      csv = createCsvWriter(CsvWriterOptions{.delimiter = ';'});
-    }
-
-    std::unique_ptr<Nextclade::CsvWriterAbstract> tsv;
-    if (outputTsvStream) {
-      tsv = createCsvWriter(CsvWriterOptions{.delimiter = '\t'});
-    }
-
     const NextcladeOptions options = {
       .ref = ref,
       .treeString = treeString,
@@ -74,6 +66,17 @@ namespace Nextclade {
     };
 
     NextcladeAlgorithm nextclade{options};
+    const auto cladeNodeAttrKeys = nextclade.getCladeNodeAttrKeys();
+
+    std::unique_ptr<Nextclade::CsvWriterAbstract> csv;
+    if (outputCsvStream) {
+      csv = createCsvWriter(CsvWriterOptions{.delimiter = ';'}, cladeNodeAttrKeys);
+    }
+
+    std::unique_ptr<Nextclade::CsvWriterAbstract> tsv;
+    if (outputTsvStream) {
+      tsv = createCsvWriter(CsvWriterOptions{.delimiter = '\t'}, cladeNodeAttrKeys);
+    }
 
     // TODO(perf): consider using a thread-safe queue instead of a vector,
     //  or restructuring code to avoid concurrent access entirely
@@ -226,7 +229,13 @@ namespace Nextclade {
       std::vector<AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
 
       if (outputJsonStream) {
-        *outputJsonStream << serializeResults(results);
+        *outputJsonStream << serializeResults(AnalysisResults{
+          .schemaVersion = Nextclade::getAnalysisResultsJsonSchemaVersion(),
+          .nextcladeVersion = Nextclade::getVersion(),
+          .timestamp = safe_cast<uint64_t>(getTimestampNow()),
+          .cladeNodeAttrKeys = cladeNodeAttrKeys,
+          .results = results,
+        });
       }
 
       if (outputTreeStream) {

@@ -2,10 +2,11 @@ import { reducerWithInitialState } from 'src/state/util/fsaReducer'
 
 import {
   resetNumThreads,
+  setLastDataset,
   setLastVersionSeen,
   setLocale,
   setNumThreads,
-  setShowAdvancedControls,
+  setShouldRunAutomatically,
   setShowWhatsnewOnUpdate,
 } from 'src/state/settings/settings.actions'
 import { settingsDefaultState } from 'src/state/settings/settings.state'
@@ -24,14 +25,18 @@ export const settingsReducer = reducerWithInitialState(settingsDefaultState)
     draft.lastVersionSeen = lastVersionSeen
   })
 
-  .icase(setShowAdvancedControls, (draft, showAdvancedControls) => {
-    draft.showAdvancedControls = showAdvancedControls
-  })
-
   .icase(setNumThreads, (draft, numThreads) => {
     draft.numThreadsV2 = numThreads
   })
 
   .icase(resetNumThreads, (draft) => {
     draft.numThreadsV2 = getNumThreads()
+  })
+
+  .icase(setLastDataset, (draft, dataset) => {
+    draft.lastDataset = dataset
+  })
+
+  .icase(setShouldRunAutomatically, (draft, shouldRunAutomatically) => {
+    draft.shouldRunAutomatically = shouldRunAutomatically
   })
