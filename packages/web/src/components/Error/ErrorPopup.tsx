@@ -12,16 +12,16 @@ import {
 } from 'reactstrap'
 import { connect } from 'react-redux'
 import styled from 'styled-components'
+import { useRouter } from 'next/router'
 
 import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
 import type { State } from 'src/state/reducer'
+import { HttpRequestError } from 'src/io/axiosFetch'
 import { Li, Ul } from 'src/components/Common/List'
 import { errorDismiss } from 'src/state/error/error.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getHttpStatusText } from 'src/helpers/getHttpStatusText'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { HttpRequestError } from 'src/io/AlgorithmInput'
-import { useRouter } from 'next/router'
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
   .modal-title {
@@ -44,6 +44,11 @@ export const ButtonOk = styled(Button)<ButtonProps>`
   margin: 5px;
 `
 
+export const Message = styled.p`
+  overflow-wrap: break-word;
+  word-break: normal;
+`
+
 export function getErrorDetails(error: Error | string): { name: string; message: string } {
   if (error instanceof Error) {
     return { name: error.name, message: error.message }
@@ -63,10 +68,7 @@ export function GenericError({ error }: { error: Error | string }) {
   return (
     <ErrorContainer>
       <h5>{errorText}</h5>
-
-      <section className="mt-3">
-        <div>{message}</div>
-      </section>
+      <Message>{message}</Message>
     </ErrorContainer>
   )
 }

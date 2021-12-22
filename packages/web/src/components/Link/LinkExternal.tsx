@@ -1,21 +1,29 @@
-import React, { PropsWithChildren } from 'react'
+import React, { HTMLProps, PropsWithChildren } from 'react'
+import styled from 'styled-components'
+import { StrictOmit } from 'ts-essentials'
 
-export interface LinkExternalProps extends React.HTMLProps<HTMLAnchorElement> {
+const A = styled.a`
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+`
+
+export interface LinkExternalProps extends StrictOmit<HTMLProps<HTMLAnchorElement>, 'as' | 'ref' | 'download'> {
   url?: string
   href?: string
+  download?: boolean
 }
 
-export function LinkExternal({ url, href, children, ...restProps }: PropsWithChildren<LinkExternalProps>) {
+export function LinkExternal({ url, href, children, download, ...restProps }: PropsWithChildren<LinkExternalProps>) {
   let target: string | undefined = '_blank'
   let rel: string | undefined = 'noopener noreferrer'
-  if (restProps.download) {
+  if (download) {
     target = undefined
     rel = undefined
   }
 
   return (
-    <a target={target} rel={rel} href={url ?? href} {...restProps}>
+    <A target={target} rel={rel} href={url ?? href} download={download} {...restProps}>
       {children}
-    </a>
+    </A>
   )
 }

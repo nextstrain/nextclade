@@ -57,6 +57,8 @@ export interface NextcladeWasmClass {
 
   getTree(): string
 
+  getCladeNodeAttrKeysStr(): string
+
   delete(): void
 }
 
@@ -145,6 +147,15 @@ export async function getTree(): Promise<string> {
   return nextcladeWasm.getTree()
 }
 
+export async function getCladeNodeAttrKeysStr(): Promise<string> {
+  if (!gModule || !gNextcladeWasm) {
+    throw new ErrorModuleNotInitialized()
+  }
+
+  const nextcladeWasm = gNextcladeWasm
+  return nextcladeWasm.getCladeNodeAttrKeysStr()
+}
+
 export async function destroy() {
   const module = gModule
   const nextcladeWasm = gNextcladeWasm
@@ -166,7 +177,7 @@ export class ErrorModuleNotInitialized extends Error {
   }
 }
 
-const analysisWorker = { init, analyze, getTree, destroy }
+const analysisWorker = { init, analyze, getTree, getCladeNodeAttrKeysStr, destroy }
 export type AnalysisWorker = typeof analysisWorker
 export type AnalysisThread = AnalysisWorker & Thread
 

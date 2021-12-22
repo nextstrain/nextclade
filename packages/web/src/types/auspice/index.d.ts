@@ -216,6 +216,11 @@ declare module 'auspice' {
     genomeAnnotations?: GeneMapJson
     geoResolutions?: { demes?: Record<string, { latitude?: number; longitude?: number }>; key?: string }[]
     panels?: string[]
+    extensions?: {
+      nextclade?: {
+        clade_node_attrs_keys: string[]
+      }
+    }
   }
 
   export declare interface AuspiceJsonV2 {

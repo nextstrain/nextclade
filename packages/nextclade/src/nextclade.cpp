@@ -35,7 +35,8 @@ namespace Nextclade {
     const std::vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
     const Tree& tree,                                            //
-    const NextalignOptions& nextalignOptions                     //
+    const NextalignOptions& nextalignOptions,                    //
+    const std::vector<std::string>& customNodeAttrKeys           //
   ) {
     const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, nextalignOptions);
 
@@ -121,6 +122,7 @@ namespace Nextclade {
       .missingGenes = missingGenes,
       .divergence = 0.0,
       .qc = {},
+      .customNodeAttributes = {},
     };
 
 
@@ -128,6 +130,7 @@ namespace Nextclade {
     analysisResult.nearestNodeId = nearestNode.id();
     analysisResult.clade = nearestNode.clade();
 
+    analysisResult.customNodeAttributes = nearestNode.customNodeAttributes(customNodeAttrKeys);
     analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
 
     analysisResult.privateAaMutations =
@@ -174,23 +177,28 @@ namespace Nextclade {
       treePreprocess(tree, opt.ref, refPeptides);
     }
 
+    std::vector<std::string> getCladeNodeAttrKeys() const {
+      return tree.getCladeNodeAttrKeys();
+    }
+
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& query) {
       const auto& ref = options.ref;
       const auto& pcrPrimers = options.pcrPrimers;
       const auto& geneMap = options.geneMap;
       const auto& qcRulesConfig = options.qcRulesConfig;
 
-      return analyzeOneSequence(//
-        seqName,                //
-        ref,                    //
-        query,                  //
-        refPeptides,            //
-        refPeptidesArr,         //
-        geneMap,                //
-        pcrPrimers,             //
-        qcRulesConfig,          //
-        tree,                   //
-        options.nextalignOptions//
+      return analyzeOneSequence(   //
+        seqName,                   //
+        ref,                       //
+        query,                     //
+        refPeptides,               //
+        refPeptidesArr,            //
+        geneMap,                   //
+        pcrPrimers,                //
+        qcRulesConfig,             //
+        tree,                      //
+        options.nextalignOptions,  //
+        tree.getCladeNodeAttrKeys()//
       );
     }
 
@@ -209,6 +217,10 @@ namespace Nextclade {
       : pimpl(std::make_unique<NextcladeAlgorithmImpl>(options)) {}
 
   NextcladeAlgorithm::~NextcladeAlgorithm() {}// NOLINT(modernize-use-equals-default)
+
+  std::vector<std::string> NextcladeAlgorithm::getCladeNodeAttrKeys() const {
+    return pimpl->getCladeNodeAttrKeys();
+  }
 
   NextcladeResult NextcladeAlgorithm::run(const std::string& seqName, const NucleotideSequence& seq) {
     return pimpl->run(seqName, seq);

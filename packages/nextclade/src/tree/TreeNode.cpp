@@ -403,6 +403,32 @@ namespace Nextclade {
       j[json_pointer{"/node_attrs/clade_membership/value"}] = clade;
     }
 
+    std::map<std::string, std::string> customNodeAttributes(const std::vector<std::string>& customNodeAttrKeys) const {
+      ensureIsObject();
+
+      std::map<std::string, std::string> attrs;
+      for (const auto& key : customNodeAttrKeys) {
+        const auto& jptr = json_pointer{fmt::format("/node_attrs/{}/value", key)};
+        if (!j.contains(jptr)) {
+          continue;
+        }
+
+        const auto value = j.value(jptr, json());
+        if (value.is_string()) {
+          attrs.insert({key, value.get<std::string>()});
+        }
+      }
+
+      return attrs;
+    }
+
+    void setCustomNodeAttributes(const std::map<std::string, std::string>& attrs) {
+      ensureIsObject();
+      for (const auto& [key, value] : attrs) {
+        setNodeAttr(key, value);
+      }
+    }
+
     bool isReferenceNode() const {
       ensureIsObject();
 
@@ -556,6 +582,15 @@ namespace Nextclade {
 
   void TreeNode::setClade(const std::string& clade) {
     pimpl->setClade(clade);
+  }
+
+  std::map<std::string, std::string> TreeNode::customNodeAttributes(
+    const std::vector<std::string>& customNodeAttrKeys) const {
+    return pimpl->customNodeAttributes(customNodeAttrKeys);
+  }
+
+  void TreeNode::setCustomNodeAttributes(const std::map<std::string, std::string>& attrs) const {
+    pimpl->setCustomNodeAttributes(attrs);
   }
 
   bool TreeNode::isReferenceNode() const {

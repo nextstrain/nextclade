@@ -15,6 +15,12 @@ export const selectDatasets = (state: State) => selectParams(state).datasets
 
 export const selectCurrentDataset = (state: State) => selectParams(state).datasetCurrent
 
+export const selectDefaultDataset = (state: State) => {
+  const datasets = selectDatasets(state)
+  const defaultDatasetName = selectDefaultDatasetName(state)
+  return datasets.find((dataset) => dataset.name === defaultDatasetName)
+}
+
 export const selectResults = (state: State) => state.algorithm.results
 
 export const selectResultsArray = (state: State) => state.algorithm.results.map((result) => result.result)
@@ -24,6 +30,13 @@ export const selectResultsState = (state: State) => state.algorithm.results
 export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
 
 export const selectHasRequiredInputs = (state: State): boolean => selectQueryStr(state) !== undefined
+
+export const selectIsInProgressFasta = (state: State) => state.algorithm.params.inProgress.seqData !== 0
+export const selectIsInProgressTree = (state: State) => state.algorithm.params.inProgress.auspiceData !== 0
+export const selectIsInProgressRootSeq = (state: State) => state.algorithm.params.inProgress.rootSeq !== 0
+export const selectIsInProgressQcSettings = (state: State) => state.algorithm.params.inProgress.qcRulesConfig !== 0
+export const selectIsInProgressGeneMap = (state: State) => state.algorithm.params.inProgress.geneMap !== 0
+export const selectIsInProgressPcrPrimers = (state: State) => state.algorithm.params.inProgress.pcrPrimers !== 0
 
 export const selectCanRun = (state: State): boolean =>
   state.algorithm.status === AlgorithmGlobalStatus.idle ||
@@ -37,6 +50,7 @@ export const selectCanDownload = (state: State): boolean =>
   state.algorithm.treeStr !== undefined
 
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.treeStr
+export const selectCladeNodeAttrKeys = (state: State): string[] => state.algorithm.cladeNodeAttrKeys
 
 export const selectOutputSequences = (state: State) =>
   state.algorithm.results.map((result) => ({ seqName: result.seqName, query: result.query }))

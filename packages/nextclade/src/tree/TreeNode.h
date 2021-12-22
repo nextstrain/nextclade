@@ -87,6 +87,10 @@ namespace Nextclade {
 
     void setClade(const std::string& clade);
 
+    std::map<std::string, std::string> customNodeAttributes(const std::vector<std::string>& customNodeAttrKeys) const;
+
+    void setCustomNodeAttributes(const std::map<std::string, std::string>& attrs) const;
+
     bool isReferenceNode() const;
 
     void setNodeType(const std::string& nodeType);

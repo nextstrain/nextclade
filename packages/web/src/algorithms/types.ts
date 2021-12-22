@@ -271,6 +271,7 @@ export interface AnalysisResult {
   totalPcrPrimerChanges: number
   clade: string
   qc: QcResult
+  customNodeAttributes: Record<string, string>
 }
 
 export interface Peptide {

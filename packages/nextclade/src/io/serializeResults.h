@@ -26,6 +26,15 @@ namespace Nextclade {
     return j;
   }
 
+  template<typename Container>
+  inline json serializeMap(const Container& container) {
+    auto j = json::object();
+    for (const auto& [key, val] : container) {
+      j[key] = val;
+    }
+    return j;
+  }
+
   template<typename Container, typename Serializer>
   inline json serializeMap(const Container& container, Serializer serializer) {
     auto j = json::object();

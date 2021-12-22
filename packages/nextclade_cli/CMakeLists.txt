@@ -63,6 +63,7 @@ add_executable(${PROJECT_NAME}
   src/io/parseGeneMapGffFile.h
   src/io/parseRefFastaFile.h
   src/io/readFile.h
+  src/utils/datetime.h
   src/main.cpp
   src/malloc_conf.h
   )
