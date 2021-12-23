@@ -1,5 +1,6 @@
 *.bak
 *.log
+*.pyc
 /3rdparty/binutils/
 /3rdparty/gcc/
 /3rdparty/llvm/
