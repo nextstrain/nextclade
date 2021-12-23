@@ -3,3 +3,4 @@
 !.out/bin/nextclade-Linux-x86_64
 !scripts/install_emscripten.sh
 !scripts/install_node.sh
+!requirements.txt

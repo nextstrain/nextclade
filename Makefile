@@ -6,66 +6,84 @@ export $(shell bash -c "sed 's/=.*//' .env || true" )
 export UID=$(shell id -u)
 export GID=$(shell id -g)
 
-SHELL:=bash
+SHELL := bash
 .ONESHELL:
 
 .PHONY: docs docker-docs e2e
 
 clean:
+	@set -euxo pipefail
 	rm -rf .build .out tmp packages/nextclade_cli/src/generated packages/nextalign_cli/src/generated packages/web/.build packages/web/src/generated
 
 cleanest: clean
+	@set -euxo pipefail
 	rm -rf .cache packages/web/.cache
 
 
 # Command-line tools
 
 dev:
+	@set -euxo pipefail
 	@$(MAKE) --no-print-directory dev-impl
 
 dev-impl:
+	@set -euxo pipefail
 	@nodemon
 
 dev-nowatch:
+	@set -euxo pipefail
 	@CMAKE_BUILD_TYPE=Debug scripts/build_locally.sh
 
 dev-asan:
+	@set -euxo pipefail
 	@CMAKE_BUILD_TYPE=ASAN $(MAKE) dev
 
 dev-msan:
+	@set -euxo pipefail
 	@CMAKE_BUILD_TYPE=MSAN USE_CLANG=1 $(MAKE) dev
 
 dev-tsan:
+	@set -euxo pipefail
 	@CMAKE_BUILD_TYPE=TSAN $(MAKE) dev
 
 dev-ubsan:
+	@set -euxo pipefail
 	@CMAKE_BUILD_TYPE=UBSAN $(MAKE) dev
 
 dev-clang-analyzer:
+	@set -euxo pipefail
 	@USE_CLANG_ANALYZER=1 scripts/build_locally.sh
 
 prod:
+	@set -euxo pipefail
 	@CMAKE_BUILD_TYPE=Release scripts/build_locally.sh
 
 prod-watch:
+	@set -euxo pipefail
 	@CMAKE_BUILD_TYPE=Release nodemon
 
 profile:
+	@set -euxo pipefail
 	@CMAKE_BUILD_TYPE=RelWithDebInfo scripts/build_locally.sh
 
 benchmarks:
+	@set -euxo pipefail
 	@$(MAKE) --no-print-directory benchmarks-impl
 
 benchmarks-impl:
+	@set -euxo pipefail
 	@nodemon --config nodemon.benchmarks.json
 
 benchmarks-nowatch:
+	@set -euxo pipefail
 	@scripts/benchmarks.sh
 
 format:
+	@set -euxo pipefail
 	@scripts/format.sh
 
 clang-tidy:
+	@set -euxo pipefail
 	@scripts/clang-tidy.sh
 
 
@@ -76,63 +94,79 @@ clang-tidy:
 dev-wasm: prod-wasm
 
 prod-wasm:
+	@set -euxo pipefail
 	@NEXTCLADE_BUILD_WASM=1 $(MAKE) --no-print-directory dev
 
 prod-wasm-nowatch:
+	@set -euxo pipefail
 	@NEXTCLADE_BUILD_WASM=1 $(MAKE)  --no-print-directory prod
 
 # Web
 
 dev-web:
+	@set -euxo pipefail
 	cd packages/web && yarn dev
 
 serve-data:
+	@set -euxo pipefail
 	cd packages/web && yarn serve-data
 
 prod-web:
+	@set -euxo pipefail
 	cd packages/web && yarn install && yarn prod:watch
 
 prod-web-nowatch:
+	@set -euxo pipefail
 	cd packages/web && yarn install --frozen-lockfile && yarn prod:build
 
 lint-web:
+	@set -euxo pipefail
 	cd packages/web && yarn install --frozen-lockfile && yarn lint:ci
 
 # Docker-based builds
 
 # Pulls "Builder" docker container from Docker Hub
 docker-builder-pull:
+	@set -euxo pipefail
 	./scripts/docker_builder_image_pull.sh
 
 # Pushes "Builder" docker container to Docker Hub
 docker-builder-push:
+	@set -euxo pipefail
 	./scripts/docker_builder_image_push.sh
 
 
 
 # Builds and runs development container
 docker-dev:
+	@set -euxo pipefail
 	./scripts/docker_builder_image_build.sh "developer"
 	./scripts/docker_builder_image_run.sh "developer" "make dev"
 
 # Builds and runs development container for wasm
 docker-dev-wasm:
+	@set -euxo pipefail
 	scripts/docker_builder_image_build.sh "developer"
 	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "developer" "make prod-watch"
 
 docker-builder:
+	@set -euxo pipefail
 	./scripts/docker_builder_image_build.sh "builder"
 
 docker-builder-run:
+	@set -euxo pipefail
 	./scripts/docker_builder_image_run.sh "builder" "make prod"
 
 docker-builder-run-wasm:
+	@set -euxo pipefail
 	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "builder" "make prod"
 
 docker-builder-web:
+	@set -euxo pipefail
 	./scripts/docker_builder_image_build.sh "web"
 
 docker-builder-run-web:
+	@set -euxo pipefail
 	./scripts/docker_builder_image_run.sh "web" "make prod-web-nowatch"
 
 docker-prod: docker-builder docker-builder-run
@@ -148,18 +182,23 @@ check-release-version:
 e2e: e2e-cli-run
 
 e2e-cli-get-snapshots:
+	@set -euxo pipefail
 	e2e/cli/get_snapshots.sh
 
 e2e-cli-run: e2e-cli-get-snapshots
+	@set -euxo pipefail
 	e2e/cli/test.sh
 
 e2e-cli-update-snapshots:
+	@set -euxo pipefail
 	e2e/cli/update_snapshots.sh
 
 e2e-run:
+	@set -euxo pipefail
 	packages/nextclade/e2e/run.sh
 
 e2e-compare:
+	@set -euxo pipefail
 	python3 packages/nextclade/e2e/compare_js_and_cpp.py
 
 e2e: e2e-run e2e-compare
@@ -167,14 +206,16 @@ e2e: e2e-run e2e-compare
 # Documentation
 
 docs:
+	@set -euxo pipefail
 	@$(MAKE) --no-print-directory -C docs/ html
 
 docs-clean:
+	@set -euxo pipefail
 	rm -rf docs/build
 
 .ONESHELL:
 docker-docs:
-	set -euox
+	@set -euxo pipefail
 
 	docker build -t nextclade-docs-builder \
 	--network=host \
@@ -195,9 +236,9 @@ docker-docs:
 
 .ONESHELL:
 docker-paper:
-	set -euox
+	@set -euxo pipefail
 
-	docker run -it --rm \
+	@docker run -it --rm \
 	--name=nextclade-paper-builder-$(shell date +%s) \
 	--init \
 	--user=$(shell id -u):$(shell id -g) \
@@ -235,11 +276,14 @@ docker-paper-preprint:
 
 # Synchronize source files using rsync
 sync:
+	@set -euxo pipefail
 	@$(MAKE) --no-print-directory sync-impl
 
 sync-impl:
+	@set -euxo pipefail
 	@nodemon --config config/nodemon/nodemon_sync.json
 
 .ONESHELL:
 sync-nowatch:
+	@set -euxo pipefail
 	rsync -arvz --no-owner --no-group --exclude=.git --exclude=.volumes --exclude=.idea --exclude=.vscode* --exclude=.ignore* --exclude=.cache --exclude=.build --exclude=packages/web/.build --exclude=packages/web/.cache --exclude=packages/web/node_modules --exclude=packages/nextclade_cli/src/generated --exclude=.out --exclude=tmp --exclude=.reports $(shell pwd) $${SYNC_DESTINATION}

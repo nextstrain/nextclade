@@ -25,7 +25,6 @@ RUN set -x \
   meson \
   musl \
   pkg-config \
-  pkg-config \
   python3 \
   python3-pip \
   python3-setuptools \
@@ -37,11 +36,10 @@ RUN set -x \
 && apt-get clean autoclean >/dev/null \
 && rm -rf /var/lib/apt/lists/*
 
+COPY requirements.txt /requirements.txt
+
 RUN set -x \
-&& pip3 install --upgrade --quiet \
-  colorama \
-  conan \
-  cpplint \
+&& pip3 install --upgrade --quiet -r /requirements.txt \
 && rm -rf ~/.cache/pip/*
 
 ARG NEXTCLADE_EMSDK_VERSION
@@ -107,13 +105,10 @@ RUN set -x \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
-  build-essential \
   clang-format-10 \
-  clang-tidy \
-  clang-tools-10 \
+  clang-tidy-10 \
   curl \
   default-jre-headless \
-  libclang-common-10-dev \
   llvm-10 \
   sudo \
 >/dev/null \

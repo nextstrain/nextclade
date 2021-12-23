@@ -1,3 +1,4 @@
 colorama
 conan
 cpplint
+python-dotenv
