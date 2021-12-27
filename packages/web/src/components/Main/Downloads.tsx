@@ -125,7 +125,7 @@ export function Downloads() {
                   <DownloadLink
                     Icon={<FaBook color="#777777" size={20} />}
                     text={t('Documentation')}
-                    url="https://docs.nextstrain.org/projects/nextclade/nextclade-cli"
+                    url="https://docs.nextstrain.org/projects/nextclade/en/latest/user/nextclade-cli.html"
                   />
                 </DownloadLinkList>
               </CardFooter>
@@ -185,7 +185,7 @@ export function Downloads() {
                   <DownloadLink
                     Icon={<FaBook color="#777777" size={20} />}
                     text={t('Documentation')}
-                    url="https://docs.nextstrain.org/projects/nextclade/nextalign-cli"
+                    url="https://docs.nextstrain.org/projects/nextclade/en/latest/user/nextalign-cli.html"
                   />
                 </DownloadLinkList>
               </CardFooter>
