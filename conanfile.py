@@ -489,9 +489,13 @@ def conan_create_custom_package(config, package_path, package_ref):
   """
   search_result = run_and_get_stdout(f"CONAN_USER_HOME={config.CONAN_USER_HOME} conan search | grep {package_ref}",
                                      cwd=PROJECT_ROOT_DIR)
-  print("search_result", search_result)
+
+  config_env = {k: str(v) for k, v in config._asdict().items()}
+  env = {**os.environ, **config_env}
+
   if search_result == "":
-    subprocess.call(f"""
+    subprocess.check_call(f"""
+        set -euxo pipefail;
         CONAN_USER_HOME={config.CONAN_USER_HOME} \
         conan create . local/stable \
         -s build_type="{config.CONAN_BUILD_TYPE}" \
@@ -500,7 +504,7 @@ def conan_create_custom_package(config, package_path, package_ref):
         {config.CONAN_STATIC_BUILD_FLAGS} \
         {config.CONAN_TBB_STATIC_BUILD_FLAGS} \
         --build=missing \
-    """, cwd=package_path, env={**os.environ, **config._asdict()}, shell=True)
+    """, cwd=package_path, env=env, shell=True, executable="bash", check=True)
 
 
 if __name__ == '__main__':
