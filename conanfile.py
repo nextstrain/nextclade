@@ -1,23 +1,22 @@
 import os
-import re
 import subprocess
 import sys
+import re
 from collections import namedtuple
-from io import StringIO
-
 from conans.client.runner import ConanRunner
+from conans import ConanFile
+from conans.tools import cpu_count
+from dotenv import dotenv_values
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PROJECT_ROOT_DIR = THIS_DIR
 
 sys.path.append(os.path.join(THIS_DIR, "scripts", "lib"))
 
-from conans import ConanFile
-from conans.tools import cpu_count
-from dotenv import dotenv_values
-
 from get_machine_info import get_machine_info
 from is_ci import check_is_ci
+from run_command import run, run_and_get_stdout
+from namedtuple import dict_to_namedtuple
 
 os.environ = {
   **os.environ,
@@ -26,25 +25,6 @@ os.environ = {
 }
 
 is_ci = check_is_ci()
-
-runner = ConanRunner(print_commands_to_output=False)
-
-
-def run(command, output=True, log_filepath=None, cwd=None, subprocess=False):
-  command = re.sub(r'\s+', ' ', command).strip()
-  sys.stdout.write(f"$ {command}\n")
-  runner(command, output, log_filepath, cwd, subprocess)
-
-
-def run_and_get_stdout(command, log_filepath=None, cwd=None, subprocess=False):
-  output = StringIO()
-  run(command, output, log_filepath, cwd, subprocess)
-  output.seek(0)
-  return output.read().strip()
-
-
-def dict_to_namedtuple(name: str, dic: dict):
-  return namedtuple(name, dic.keys())(*dic.values())
 
 
 def configure():
