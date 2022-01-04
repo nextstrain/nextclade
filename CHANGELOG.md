@@ -1,10 +1,33 @@
+## Nextclade Web 1.11.0, Nextclade CLI 1.8.0 (2022-01-04)
+
+### [Feature] Better dataset selector
+
+Nextclade Web has got the new dataset selector on the main page, which clearly presents all available dataset and is more convenient to use. The last selected dataset is remembered, so that it dow not need to be selected again on subsequent runs. This also fixes rare problems and inconsistencies, when incorrect dataset might have been used despite another dataset is being selected.
+
+### [Feature] Dynamic node attributes
+
+Nextclade CLI and Nextclade Web now can assign multiple clade-like attributes to the analyzed sequences.
+
+If input reference tree JSON contains an array of attribute keys attached to the
+
+```
+meta.extensions.nextclade.clade_node_attrs_keys = ["my_clades", "other_clades"]
+```
+
+For each query sequence, during clade assignment step, Nextclade will lookup values of these keys from `.node.node_attrs` property of the nearest reference tree node and assign them to the corresponding properties of the newly attached nodes, just like it happens with the usual Nextstrain clades. This feature is currently not used with the default datasets, but we are planning to extend the reference trees in these datasets to take advantage of this feature. Curious users can start experimenting with their own reference trees and custom nomenclatures. Learn more about clade assignment in Nextclade in the [documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/algorithm/06-clade-assignment.html).
+
+### [Performance] Optimize match table lookups
+
+In this version, alignment algorithm behind Nextclade and Nextalign is now up to 10% faster due to performance improvements in nucleotide and aminoacid table lookups.
+
+
 ## Nextclade Web 1.10.0, Nextclade CLI 1.7.0 (2021-12-09)
 
 ### [Performance] Optimize FASTA parser
 
 The new optimized FASTA parser makes Nextclade CLI up to 60% faster and Nextalign CLI up to 500% faster when used on high-core-count machines. Nextalign and Nextclade now scale much better with number of available threads and rely less on I/O speed. See [#632](https://github.com/nextstrain/nextclade/pull/632) for more details.
 
-### [Fix] Avoid crash fur to buffer overflow
+### [Fix] Avoid crash due to buffer overflow
 
 This is an internal fix of a problem that might have lead to a crash in rare cases, when coordinate map array was accessed beyond it's size.
 
