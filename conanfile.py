@@ -8,12 +8,15 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 PROJECT_ROOT_DIR = THIS_DIR
 
 sys.path.append(os.path.join(THIS_DIR, "scripts", "lib"))
+sys.path.append(os.path.join(THIS_DIR, "scripts", "build"))
+sys.path.append(os.path.join(THIS_DIR, "scripts", "build", "lib"))
 
 from get_machine_info import get_machine_info
 from is_ci import check_is_ci
 from is_truthy import is_truthy
 from namedtuple import dict_to_namedtuple
 from run_command import run, Shell, join_path_var, run_and_get_stdout
+from parse_args import parse_args
 
 os.environ = {
   **os.environ,
@@ -24,13 +27,15 @@ os.environ = {
 is_ci = check_is_ci()
 
 
-def configure():
+def configure(args=None):
   PATH = []
   LD_LIBRARY_PATH = []
 
   BUILD_PREFIX = ""
   BUILD_SUFFIX = ""
-  CMAKE_BUILD_TYPE = os.environ["CMAKE_BUILD_TYPE"]
+  CMAKE_BUILD_TYPE = os.environ.get("CMAKE_BUILD_TYPE") or (
+    "Release" if args.release else "Debug"
+  )
 
   # Emscripten SDK
   NEXTCLADE_EMSDK_VERSION = os.environ["NEXTCLADE_EMSDK_VERSION"]
@@ -314,6 +319,7 @@ def configure():
     "CCACHE_DIR": CCACHE_DIR,
     "CFLAGS": CFLAGS,
     "CLANG_ANALYZER": CLANG_ANALYZER,
+    "CMAKE_BUILD_TYPE": CMAKE_BUILD_TYPE,
     "CMAKE_COLOR_MAKEFILE": CMAKE_COLOR_MAKEFILE,
     "CMAKE_CXX_FLAGS": CMAKE_CXX_FLAGS,
     "CMAKE_C_FLAGS": CMAKE_C_FLAGS,
@@ -428,6 +434,9 @@ NEXTCLADE_CLI_DEPS = NEXTCLADE_WASM_DEPS + [
 
 
 class TheConanFile(ConanFile):
+  """
+  Configures Conan C++ package manager
+  """
   name = "nextclade"
   version = "1.7.0"
   settings = "os", "compiler", "build_type", "arch"
@@ -448,6 +457,9 @@ class TheConanFile(ConanFile):
   no_copy_source = True
 
   def requirements(self):
+    """
+    Dynamically adds packages names for Conan to consider during `conan install` invocation.
+    """
     if self.settings.arch == "wasm":
       for dep in NEXTCLADE_WASM_DEPS:
         self.requires(dep)
@@ -456,6 +468,10 @@ class TheConanFile(ConanFile):
         self.requires(dep)
 
   def build(self):
+    """
+    Runs when `conan build` command is issued. Configures and/or builds the C++ project.
+    """
+
     config, shell = configure()
 
     cmake = CMake(self, parallel=True)
@@ -486,35 +502,37 @@ class TheConanFile(ConanFile):
     cmake.definitions["NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS"] = config.NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS
     cmake.definitions["NEXTCLADE_STATIC_BUILD"] = config.NEXTALIGN_STATIC_BUILD
 
+    # Runs when `conan build` is invoked with `--configure` flag
     if self.should_configure:
+      # Runs `cmake`, which generates the build makefiles
       cmake.configure()
 
+    # Runs when `conan build` is invoked with `--build` flag
     if self.should_build:
+      # Runs cmake-generated makefiles, which performs the actual compilation and linking
       cmake.build(args=["-j 20"])
-      self.postbuild(config)
 
-  def postbuild(self, config):
-    shell = Shell(config=config, cwd=PROJECT_ROOT_DIR)
+      # Installs the freshly built binaries into the expected locations
+      if self.settings.build_type == "Release":
+        STRIP = "" if config.NEXTCLADE_BUILD_WASM else "--strip"
+        shell(f"""
+          cmake --install '{self.build_folder}' \
+            --config '{self.settings.build_type}' \
+            --prefix '{config.INSTALL_DIR}' \
+            {STRIP} \
+        """, cwd=self.build_folder)
 
-    if self.settings.build_type == "Release":
-      STRIP = "" if config.NEXTCLADE_BUILD_WASM else "--strip"
-      shell(f"""
-        cmake --install '{self.build_folder}' \
-          --config '{self.settings.build_type}' \
-          --prefix '{config.INSTALL_DIR}' \
-          {STRIP} \
-      """, cwd=self.build_folder)
-
-    if config.NEXTCLADE_BUILD_WASM:
-      # Patch WASM helper JS script, to make sure it plays well with our Webpack setup
-      shell(
-        f"sed -i 's/var _scriptDir = import.meta.url;/var _scriptDir = false;/g' '{config.INSTALL_DIR}/wasm/nextclade_wasm.js'"
-      )
+      if config.NEXTCLADE_BUILD_WASM:
+        # Patch WASM helper JS script, to make sure it plays well with our Webpack setup
+        shell(
+          f"sed -i 's/var _scriptDir = import.meta.url;/var _scriptDir = false;/g' '{config.INSTALL_DIR}/wasm/nextclade_wasm.js'"
+        )
 
 
 def install_emscripten(config, shell, force=False):
   """
-  Installs Emscripten if not already installed
+  Installs Emscripten, if not already installed. Emscripten is a C++ toolchain, which allows producing WebAssembly
+  modules. See: https://emscripten.org/
   """
   if force or not os.path.isdir(config.NEXTCLADE_EMSDK_DIR):
     shell(f"./scripts/install_emscripten.sh '{config.NEXTCLADE_EMSDK_DIR}' '{config.NEXTCLADE_EMSDK_VERSION}'")
@@ -523,6 +541,7 @@ def install_emscripten(config, shell, force=False):
 def create_conan_profile(config, shell):
   """
   Setup Conan C++ package manager profile in $CONAN_USER_HOME, if not already there.
+  See: https://conan.io/
   """
   if not os.path.exists(f"{config.CONAN_USER_HOME}/.conan/remotes.json"):
     run(f"CONAN_USER_HOME={config.CONAN_USER_HOME} CONAN_V2_MODE=1 conan profile new default --detect --force")
@@ -584,15 +603,21 @@ def conan_create_custom_packages(config, shell):
 
 
 def install_deps(config, shell):
+  """
+  Installs dependencies
+  """
+
+  # Install Emscripten toolchain for WebAssembly builds
   if config.NEXTCLADE_BUILD_WASM:
     install_emscripten(config, shell)
 
+  # Configure Conan C++ package manager
   create_conan_profile(config, shell)
 
+  # Build customized 3rdparty dependencies and create local Conan packages
   conan_create_custom_packages(config, shell)
 
-  os.makedirs(config.BUILD_DIR, exist_ok=True)
-
+  # Install Conan packages into build directory, so that they can be picked up by Cmake later on
   shell(f"""
     conan install "{config.CONANFILE}" \
       -s build_type="{config.CONAN_BUILD_TYPE}" \
@@ -674,9 +699,26 @@ def run_build(config, shell):
 
 
 if __name__ == '__main__':
-  config, shell = configure()
+  args = parse_args()
+  print(args)
 
-  install_deps(config, shell)
-  run_codegen(config, shell)
-  configure_build(config, shell)
-  run_build(config, shell)
+  config, shell = configure(args)
+
+  os.makedirs(config.BUILD_DIR, exist_ok=True)
+
+  # Configure build tools, install 3rd-party dependencies
+  # and ensure they can be found by the subsequent steps
+  if 'install_deps' in args.commands:
+    install_deps(config, shell)
+
+  # Generate autogenerated code
+  if 'codegen' in args.commands:
+    run_codegen(config, shell)
+
+  # Configure project build system and prepare makefiles
+  if 'configure' in args.commands:
+    configure_build(config, shell)
+
+  # Run makefiles, compile and link binaries and copy them into the final location
+  if 'build' in args.commands:
+    run_build(config, shell)
