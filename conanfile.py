@@ -1,11 +1,7 @@
 import os
-import subprocess
 import sys
-import re
-from collections import namedtuple
-from conans.client.runner import ConanRunner
-from conans import ConanFile
-from conans.tools import cpu_count
+
+from conans import ConanFile, CMake
 from dotenv import dotenv_values
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -15,8 +11,9 @@ sys.path.append(os.path.join(THIS_DIR, "scripts", "lib"))
 
 from get_machine_info import get_machine_info
 from is_ci import check_is_ci
-from run_command import run, run_and_get_stdout
+from is_truthy import is_truthy
 from namedtuple import dict_to_namedtuple
+from run_command import run, run_and_get_stdout, Shell, join_path_var
 
 os.environ = {
   **os.environ,
@@ -28,21 +25,22 @@ is_ci = check_is_ci()
 
 
 def configure():
-  PROJECT_NAME = "nextclade"
+  PATH = []
+  LD_LIBRARY_PATH = []
+
   BUILD_PREFIX = ""
   BUILD_SUFFIX = ""
   CMAKE_BUILD_TYPE = os.environ["CMAKE_BUILD_TYPE"]
 
   # Emscripten SDK
-  NEXTCLADE_EMSDK_VERSION_DEFAULT = "2.0.6"
   NEXTCLADE_EMSDK_VERSION = os.environ["NEXTCLADE_EMSDK_VERSION"]
-  NEXTCLADE_EMSDK_DIR = os.environ["NEXTCLADE_EMSDK_DIR"]
-  NEXTCLADE_EMSDK_USE_CACHE = os.environ["NEXTCLADE_EMSDK_USE_CACHE"]
-  if NEXTCLADE_EMSDK_USE_CACHE:
-    NEXTCLADE_EMSDK_CACHE = os.path.join(PROJECT_ROOT_DIR, ".cache", ".emscripten",
-                                         f"emsdk_cache-{NEXTCLADE_EMSDK_VERSION}")
+  EMSDK_CLANG_VERSION = os.environ["EMSDK_CLANG_VERSION"]
+  NEXTCLADE_EMSDK_DIR = os.path.join(PROJECT_ROOT_DIR, os.environ["NEXTCLADE_EMSDK_DIR"])
+  NEXTCLADE_EMSDK_USE_CACHE = is_truthy(os.environ.get("NEXTCLADE_EMSDK_USE_CACHE"))
+  NEXTCLADE_EMSDK_CACHE = os.path.join(PROJECT_ROOT_DIR, ".cache", ".emscripten",
+                                       f"emsdk_cache-{NEXTCLADE_EMSDK_VERSION}")
 
-  NEXTCLADE_BUILD_WASM = os.environ["NEXTCLADE_BUILD_WASM"]
+  NEXTCLADE_BUILD_WASM = is_truthy(os.environ.get("NEXTCLADE_BUILD_WASM"))
   if NEXTCLADE_BUILD_WASM:
     # WASM Debug build is too slow, even for dev purposes
     CMAKE_BUILD_TYPE = "Release"
@@ -66,48 +64,49 @@ def configure():
   else:
     CONAN_BUILD_TYPE = "Release"
 
-  # TODO: use this from Python somehow
-  ADDITIONAL_PATH = f"{PROJECT_ROOT_DIR}/3rdparty/binutils/bin:{PROJECT_ROOT_DIR}/3rdparty/gcc/bin:{PROJECT_ROOT_DIR}/3rdparty/llvm/bin"
-  PATH = f"{ADDITIONAL_PATH}${{PATH:+:$PATH}}"
+  PATH.extend([
+    NEXTCLADE_EMSDK_DIR,
+    f"{PROJECT_ROOT_DIR}/3rdparty/binutils/bin",
+    f"{PROJECT_ROOT_DIR}/3rdparty/gcc/bin",
+    f"{PROJECT_ROOT_DIR}/3rdparty/llvm/bin",
+  ])
 
   # Clang
-  USE_CLANG = 0
-  USE_LIBCPP = 0
+  USE_CLANG = is_truthy(os.environ.get('USE_CLANG'))
+  USE_LIBCPP = is_truthy(os.environ.get('USE_LIBCPP'))
 
   # Clang Analyzer
-  USE_CLANG_ANALYZER = 0
+  USE_CLANG_ANALYZER = is_truthy(os.environ.get('USE_CLANG_ANALYZER'))
   CLANG_ANALYZER = ""
   if USE_CLANG_ANALYZER:
-    CLANG_ANALYZER = "scan-build -v --keep-going -o ${PROJECT_ROOT_DIR}/.reports/clang-analyzer"
+    USE_CLANG = True
+    CLANG_ANALYZER = f"scan-build -v --keep-going -o {PROJECT_ROOT_DIR}/.reports/clang-analyzer"
     os.makedirs(f"{PROJECT_ROOT_DIR}/.reports/clang-analyzer", exist_ok=True)
-    USE_CLANG = 1
 
   INSTALL_DIR = f"{PROJECT_ROOT_DIR}/.out"
-
-  EMCMAKE = ""
-  EMMAKE = ""
 
   CMAKE_VERBOSE_MAKEFILE = 0
   CMAKE_COLOR_MAKEFILE = 1
 
   # Whether to build a standalone static executable
-  NEXTALIGN_STATIC_BUILD = CMAKE_BUILD_TYPE == "Release" and not CMAKE_BUILD_TYPE in ["ASAN", "MSAN", "TSAN", "UBSAN"]
+  NEXTALIGN_STATIC_BUILD = is_truthy(os.environ.get('NEXTALIGN_STATIC_BUILD')) or (
+      CMAKE_BUILD_TYPE == "Release"
+      and not CMAKE_BUILD_TYPE in ["ASAN", "MSAN", "TSAN", "UBSAN"]
+      and not NEXTCLADE_BUILD_WASM
+  )
 
   NEXTALIGN_BUILD_BENCHMARKS = 0
   NEXTALIGN_BUILD_TESTS = 0
   NEXTCLADE_BUILD_TESTS = 0
   NEXTCLADE_CLI_BUILD_TESTS = 0
 
-  NEXTCLADE_BUILD_WASM = 0
   NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS = ""
 
   NEXTALIGN_BUILD_CLI = 1
   NEXTCLADE_BUILD_CLI = 1
 
-  DATA_FULL_DOMAIN = ""
-  ENABLE_DEBUG_TRACE = 0
-
-  MORE_CMAKE_FLAGS = ""
+  DATA_FULL_DOMAIN = os.environ['DATA_FULL_DOMAIN']
+  ENABLE_DEBUG_TRACE = is_truthy(os.environ.get('ENABLE_DEBUG_TRACE'))
 
   COMPILER_FLAGS = ""
   CFLAGS = ""
@@ -123,47 +122,6 @@ def configure():
 
   if HOST_OS == "MacOS":
     CONAN_COMPILER_SETTINGS = f"{CONAN_COMPILER_SETTINGS} -s os.version={OSX_MIN_VER}"
-
-  EMSDK_CLANG_VERSION = os.environ["EMSDK_CLANG_VERSION"]
-  CONANFILE = f"{PROJECT_ROOT_DIR}/conanfile.py"
-  CONAN_WASM_PROFILE = f"{PROJECT_ROOT_DIR}/config/conan/conan_profile_emscripten_wasm.txt"
-  NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS = ""
-  if NEXTCLADE_BUILD_WASM:
-    CONAN_COMPILER_SETTINGS = f"\
-      --profile={CONAN_WASM_PROFILE} \
-      -s compiler=clang \
-      -s compiler.version={EMSDK_CLANG_VERSION} \
-    "
-
-    NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS = " \
-      -frtti \
-      -fexceptions \
-      --bind \
-      --source-map-base './' \
-      -s MODULARIZE=1 \
-      -s EXPORT_ES6=1 \
-      -s WASM=1 \
-      -s DISABLE_EXCEPTION_CATCHING=2 \
-      -s DEMANGLE_SUPPORT=1 \
-      -s ALLOW_MEMORY_GROWTH=1 \
-      -s MALLOC=emmalloc \
-      -s ENVIRONMENT=worker \
-      -s DYNAMIC_EXECUTION=0 \
-    "
-
-    BUILD_SUFFIX = f"{BUILD_SUFFIX}-Wasm"
-    INSTALL_DIR = f"{PROJECT_ROOT_DIR}/packages/web/src/generated/"
-
-    EMCMAKE = "emcmake"
-    EMMAKE = "emmake"
-
-    NEXTALIGN_BUILD_CLI = 0
-    NEXTALIGN_BUILD_BENCHMARKS = 0
-    NEXTALIGN_BUILD_TESTS = 0
-    NEXTCLADE_BUILD_CLI = 0
-    NEXTCLADE_BUILD_BENCHMARKS = 0
-    NEXTCLADE_BUILD_TESTS = 0
-    NEXTCLADE_CLI_BUILD_TESTS = 0
 
   CONAN_STATIC_BUILD_FLAGS = "\
     -o cpr:with_ssl=openssl \
@@ -201,8 +159,118 @@ def configure():
 
   CONAN_TBB_STATIC_BUILD_FLAGS = ""
 
-  if NEXTALIGN_STATIC_BUILD and HOST_OS == "Linux" and not NEXTCLADE_BUILD_WASM:
-    TARGET_TRIPLET = "x86_64-linux-gnu"
+  CONANFILE = f"{PROJECT_ROOT_DIR}/conanfile.py"
+
+  if NEXTCLADE_BUILD_WASM:
+    TOOLCHAIN_ROOT_DIR = f"{NEXTCLADE_EMSDK_DIR}/upstream"
+    TARGET_TRIPLET = "wasm32-unknown-emscripten"
+    CONAN_CMAKE_SYSROOT = TOOLCHAIN_ROOT_DIR
+    CONAN_CMAKE_FIND_ROOT_PATH = TOOLCHAIN_ROOT_DIR
+
+    PATH.extend([f"{TOOLCHAIN_ROOT_DIR}/bin"])
+    LD_LIBRARY_PATH.extend([f"{TOOLCHAIN_ROOT_DIR}/lib"])
+
+    CC = f"{TOOLCHAIN_ROOT_DIR}/bin/clang"
+    CXX = f"{TOOLCHAIN_ROOT_DIR}/bin/clang++"
+    AR = f"{TOOLCHAIN_ROOT_DIR}/bin/llvm-ar"
+    NM = f"{TOOLCHAIN_ROOT_DIR}/bin/llvm-nm"
+    RANLIB = f"{TOOLCHAIN_ROOT_DIR}/bin/llvm-ranlib"
+    AS = f"{TOOLCHAIN_ROOT_DIR}/bin/llvm-as"
+    STRIP = f"{TOOLCHAIN_ROOT_DIR}/bin/llvm-strip"
+    LD = f"{TOOLCHAIN_ROOT_DIR}/bin/lld"
+    OBJCOPY = f"{TOOLCHAIN_ROOT_DIR}/bin/llvm-objcopy"
+    OBJDUMP = f"{TOOLCHAIN_ROOT_DIR}/bin/llvm-objdump"
+
+    CHOST = f"{TARGET_TRIPLET}"
+    AC_CANONICAL_HOST = TARGET_TRIPLET
+    CMAKE_C_COMPILER = CC
+    CMAKE_CXX_COMPILER = CXX
+
+    COMPILER_FLAGS = "-fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free"
+    CFLAGS = f"{COMPILER_FLAGS}"
+    CXXFLAGS = f"{COMPILER_FLAGS}"
+    CMAKE_C_FLAGS = f"'{CFLAGS}'"
+    CMAKE_CXX_FLAGS = f"'{CXXFLAGS}'"
+
+    CMAKE_TOOLCHAIN_FILE = f"{TOOLCHAIN_ROOT_DIR}/emscripten/cmake/Modules/Platform/Emscripten.cmake"
+    CONAN_CMAKE_TOOLCHAIN_FILE = CMAKE_TOOLCHAIN_FILE
+
+    CONAN_STATIC_BUILD_FLAGS = f"\
+      {CONAN_STATIC_BUILD_FLAGS} \
+      -s os=Emscripten \
+      -s arch=wasm \
+      -s compiler=clang \
+      -s compiler.libcxx=libc++ \
+      -s compiler.version={EMSDK_CLANG_VERSION} \
+    "
+
+    NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS = " \
+      -frtti \
+      -fexceptions \
+      --bind \
+      --source-map-base './' \
+      -s MODULARIZE=1 \
+      -s EXPORT_ES6=1 \
+      -s WASM=1 \
+      -s DISABLE_EXCEPTION_CATCHING=2 \
+      -s DEMANGLE_SUPPORT=1 \
+      -s ALLOW_MEMORY_GROWTH=1 \
+      -s MALLOC=emmalloc \
+      -s ENVIRONMENT=worker \
+      -s DYNAMIC_EXECUTION=0 \
+    "
+
+    BUILD_SUFFIX = f"{BUILD_SUFFIX}-Wasm"
+    INSTALL_DIR = f"{PROJECT_ROOT_DIR}/packages/web/src/generated/"
+
+    NEXTALIGN_BUILD_CLI = 0
+    NEXTALIGN_BUILD_BENCHMARKS = 0
+    NEXTALIGN_BUILD_TESTS = 0
+    NEXTCLADE_BUILD_CLI = 0
+    NEXTCLADE_BUILD_BENCHMARKS = 0
+    NEXTCLADE_BUILD_TESTS = 0
+    NEXTCLADE_CLI_BUILD_TESTS = 0
+
+  elif NEXTALIGN_STATIC_BUILD and HOST_OS == "Linux":
+    # Setup a custom GCC toolchain based on alternative C library called 'libmusl' (as opposed to GNU libc which is
+    # the default on our build machines). This ensures fully static builds portable across various Linux distributions.
+    TARGET_TRIPLET = "x86_64-linux-musl"
+    TOOLCHAIN_ROOT_DIR = f"{PROJECT_ROOT_DIR}/.cache/gcc"
+    CONAN_CMAKE_SYSROOT = TOOLCHAIN_ROOT_DIR
+    CONAN_CMAKE_FIND_ROOT_PATH = TOOLCHAIN_ROOT_DIR
+
+    PATH.extend([f"{TOOLCHAIN_ROOT_DIR}/bin"])
+    LD_LIBRARY_PATH.extend([f"{TOOLCHAIN_ROOT_DIR}/x86_64-linux-musl/lib"])
+
+    GCC_URL = "https://github.com/ivan-aksamentov/musl-cross-make/releases/download/v1/gcc-x86_64-linux-musl.tar.gz"
+    if not os.path.exists(f"{TOOLCHAIN_ROOT_DIR}/bin/x86_64-linux-musl-gcc"):
+      os.makedirs(TOOLCHAIN_ROOT_DIR, exist_ok=True)
+      run(f"curl -fsSL '{GCC_URL}' | tar xfz - --strip-components=1", cwd=TOOLCHAIN_ROOT_DIR)
+
+    CHOST = "unknown-linux-musl"
+    AC_CANONICAL_HOST = "unknown-linux-musl"
+    CC = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-gcc"
+    CXX = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-g++"
+    AR = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-ar"
+    NM = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-nm"
+    RANLIB = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-ranlib"
+    AS = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-as"
+    STRIP = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-strip"
+    LD = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-ld"
+    OBJCOPY = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-objcopy"
+    OBJDUMP = f"{TOOLCHAIN_ROOT_DIR}/bin/{TARGET_TRIPLET}-objdump"
+
+    CMAKE_C_COMPILER = CC
+    CMAKE_CXX_COMPILER = CXX
+
+    COMPILER_FLAGS = "-fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free"
+    CFLAGS = f"-D__MUSL__ {COMPILER_FLAGS}"
+    CXXFLAGS = f"-D__MUSL__ {COMPILER_FLAGS}"
+    CMAKE_C_FLAGS = f"'{CFLAGS}'"
+    CMAKE_CXX_FLAGS = f"'{CXXFLAGS}'"
+
+    CMAKE_TOOLCHAIN_FILE = f"{PROJECT_ROOT_DIR}/config/cmake/musl.toolchain.cmake"
+    CONAN_CMAKE_TOOLCHAIN_FILE = CMAKE_TOOLCHAIN_FILE
 
     CONAN_STATIC_BUILD_FLAGS = f"\
       {CONAN_STATIC_BUILD_FLAGS} \
@@ -214,88 +282,15 @@ def configure():
       -o tbb:shared=False \
       -o zlib:shared=False \
       -o poco:shared=False \
-    "
-
-    CONAN_TBB_STATIC_BUILD_FLAGS = "-o shared=False"
-
-    # Download libmusl-based GCC
-    GCC_DIR = f"{PROJECT_ROOT_DIR}/.cache/gcc"
-    GCC_URL = "https://github.com/ivan-aksamentov/musl-cross-make/releases/download/v1/gcc-x86_64-linux-musl.tar.gz"
-    if not os.path.exists(f"{GCC_DIR}/bin/x86_64-linux-musl-gcc"):
-      os.makedirs(GCC_DIR, exist_ok=True)
-      run(f"curl -fsSL '{GCC_URL}' | tar xfz - --strip-components=1", cwd=GCC_DIR)
-
-    PATH = "${GCC_DIR}/bin:${PATH}"
-
-    TARGET_TRIPLET = "x86_64-linux-musl"
-    CONAN_CMAKE_SYSROOT = GCC_DIR
-    CONAN_CMAKE_FIND_ROOT_PATH = GCC_DIR
-    LD_LIBRARY_PATH = f"{GCC_DIR}/x86_64-linux-musl/lib"
-
-    # pushd "${GCC_DIR}/bin" >/dev/null
-    #   if [ ! -e "gcc" ]    ; then ln -s "${TARGET_TRIPLET}-gcc" gcc           ;fi
-    #   if [ ! -e "g++" ]    ; then ln -s "${TARGET_TRIPLET}-g++" g++           ;fi
-    #   if [ ! -e "ar" ]     ; then ln -s "${TARGET_TRIPLET}-gcc-ar" ar         ;fi
-    #   if [ ! -e "nm" ]     ; then ln -s "${TARGET_TRIPLET}-gcc-nm" nm         ;fi
-    #   if [ ! -e "ranlib" ] ; then ln -s "${TARGET_TRIPLET}-gcc-ranlib" ranlib ;fi
-    #   if [ ! -e "as" ]     ; then ln -s "${TARGET_TRIPLET}-as" as             ;fi
-    #   if [ ! -e "strip" ]  ; then ln -s "${TARGET_TRIPLET}-strip" strip       ;fi
-    #   if [ ! -e "ld" ]     ; then ln -s "${TARGET_TRIPLET}-ld" ld             ;fi
-    #   # if [ ! -e "ldd"     ]; then ln -s "ld" ldd                              ;fi
-    #   if [ ! -e "objcopy" ]; then ln -s "${TARGET_TRIPLET}-objcopy" objcopy   ;fi
-    #   if [ ! -e "objdump" ]; then ln -s "${TARGET_TRIPLET}-objdump" objdump   ;fi
-    # popd >/dev/null
-
-    CHOST = f"{TARGET_TRIPLET}"
-    CC = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-gcc"
-    CXX = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-g++"
-    AR = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-ar"
-    NM = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-nm"
-    RANLIB = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-ranlib"
-    AS = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-as"
-    STRIP = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-strip"
-    LD = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-ld"
-    OBJCOPY = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-objcopy"
-    OBJDUMP = f"{GCC_DIR}/bin/{TARGET_TRIPLET}-objdump"
-
-    COMPILER_FLAGS = "-fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free"
-    CFLAGS = f"-D__MUSL__ {COMPILER_FLAGS}"
-    CXXFLAGS = f"-D__MUSL__ {COMPILER_FLAGS}"
-    CMAKE_C_FLAGS = f"'{CFLAGS}'"
-    CMAKE_CXX_FLAGS = f"'{CXXFLAGS}'"
-
-    CMAKE_TOOLCHAIN_FILE = "${PROJECT_ROOT_DIR}/config/cmake/musl.toolchain.cmake"
-    CONAN_CMAKE_TOOLCHAIN_FILE = "${CMAKE_TOOLCHAIN_FILE}"
-
-    AC_CANONICAL_HOST = TARGET_TRIPLET
-
-    CONAN_STATIC_BUILD_FLAGS = f"\
-      {CONAN_STATIC_BUILD_FLAGS} \
-      -e PATH={PATH} \
-      -e CHOST={CHOST} \
-      -e HOST={TARGET_TRIPLET} \
-      -e AC_CANONICAL_HOST={TARGET_TRIPLET} \
-      -e CC={CC} \
-      -e CXX={CXX} \
-      -e AS={AS} \
-      -e AR={AR} \
-      -e RANLIB={RANLIB} \
-      -e STRIP={STRIP} \
-      -e LD={LD} \
-      -e NM={NM} \
-      -e OBJCOPY={OBJCOPY} \
-      -e OBJDUMP={OBJDUMP} \
-      -e STRIP={STRIP} \
       -s os=Linux \
       -s arch=x86_64 \
       -s compiler=gcc \
       -s compiler.libcxx=libstdc++11 \
+      -s libc=musl \
     "
+    CONAN_TBB_STATIC_BUILD_FLAGS = "-o shared=False"
 
     BUILD_SUFFIX = f"{BUILD_SUFFIX}-Static"
-
-    CMAKE_C_COMPILER = CC
-    CMAKE_CXX_COMPILER = CXX
 
   if HOST_OS == "MacOS":
     # Avoid compiler error:
@@ -304,22 +299,23 @@ def configure():
     CMAKE_CXX_FLAGS = f"{CMAKE_CXX_FLAGS} -faligned-allocation"
 
   if HOST_OS == "MacOS":
-    ADDITIONAL_PATH = "/local/opt/m4/bin"
-    PATH = f"{ADDITIONAL_PATH}:{PATH}"
+    PATH.append("/local/opt/m4/bin")
 
   BUILD_TYPE_EXTENDED = f"{BUILD_PREFIX}{CMAKE_BUILD_TYPE}{BUILD_SUFFIX}"
   CONAN_USER_HOME = f"{PROJECT_ROOT_DIR}/.cache/{BUILD_TYPE_EXTENDED}"
   CCACHE_DIR = f"{PROJECT_ROOT_DIR}/.cache/{BUILD_TYPE_EXTENDED}/.ccache"
   BUILD_DIR = f"{PROJECT_ROOT_DIR}/.build/{BUILD_TYPE_EXTENDED}"
 
-  return dict_to_namedtuple("BuildConfig", {
+  PATH = join_path_var(PATH)
+  LD_LIBRARY_PATH = join_path_var(LD_LIBRARY_PATH)
+
+  config_dict = {
     "BUILD_DIR": BUILD_DIR,
-    "CC": CC,
+    "CCACHE_DIR": CCACHE_DIR,
+    "CFLAGS": CFLAGS,
     "CLANG_ANALYZER": CLANG_ANALYZER,
     "CMAKE_COLOR_MAKEFILE": CMAKE_COLOR_MAKEFILE,
-    "CMAKE_CXX_COMPILER": CMAKE_CXX_COMPILER,
     "CMAKE_CXX_FLAGS": CMAKE_CXX_FLAGS,
-    "CMAKE_C_COMPILER": CMAKE_C_COMPILER,
     "CMAKE_C_FLAGS": CMAKE_C_FLAGS,
     "CMAKE_VERBOSE_MAKEFILE": CMAKE_VERBOSE_MAKEFILE,
     "CONANFILE": CONANFILE,
@@ -329,14 +325,12 @@ def configure():
     "CONAN_STATIC_BUILD_FLAGS": CONAN_STATIC_BUILD_FLAGS,
     "CONAN_TBB_STATIC_BUILD_FLAGS": CONAN_TBB_STATIC_BUILD_FLAGS,
     "CONAN_USER_HOME": CONAN_USER_HOME,
-    "CXX": CXX,
+    "CXXFLAGS": CXXFLAGS,
     "DATA_FULL_DOMAIN": DATA_FULL_DOMAIN,
-    "EMCMAKE": EMCMAKE,
-    "EMMAKE": EMMAKE,
     "ENABLE_DEBUG_TRACE": ENABLE_DEBUG_TRACE,
     "HOST_ARCH": HOST_ARCH,
     "HOST_OS": HOST_OS,
-    "MORE_CMAKE_FLAGS": MORE_CMAKE_FLAGS,
+    "INSTALL_DIR": INSTALL_DIR,
     "NEXTALIGN_BUILD_BENCHMARKS": NEXTALIGN_BUILD_BENCHMARKS,
     "NEXTALIGN_BUILD_CLI": NEXTALIGN_BUILD_CLI,
     "NEXTALIGN_BUILD_TESTS": NEXTALIGN_BUILD_TESTS,
@@ -347,7 +341,65 @@ def configure():
     "NEXTCLADE_CLI_BUILD_TESTS": NEXTCLADE_CLI_BUILD_TESTS,
     "NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS": NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS,
     "OSX_MIN_VER": OSX_MIN_VER,
-  })
+    "PATH": PATH,
+  }
+
+  if NEXTCLADE_BUILD_WASM:
+    config_dict.update({
+      "NEXTCLADE_EMSDK_CACHE": NEXTCLADE_EMSDK_CACHE,
+      "NEXTCLADE_EMSDK_DIR": NEXTCLADE_EMSDK_DIR,
+      "NEXTCLADE_EMSDK_USE_CACHE": NEXTCLADE_EMSDK_USE_CACHE,
+      "NEXTCLADE_EMSDK_VERSION": NEXTCLADE_EMSDK_VERSION,
+      "AC_CANONICAL_HOST": AC_CANONICAL_HOST,
+      "AR": AR,
+      "AS": AS,
+      "CC": CC,
+      "CHOST": CHOST,
+      "CMAKE_CXX_COMPILER": CMAKE_CXX_COMPILER,
+      "CMAKE_C_COMPILER": CMAKE_C_COMPILER,
+      "CMAKE_TOOLCHAIN_FILE": "CMAKE_TOOLCHAIN_FILE",
+      "CONAN_CMAKE_FIND_ROOT_PATH": CONAN_CMAKE_FIND_ROOT_PATH,
+      "CONAN_CMAKE_SYSROOT": CONAN_CMAKE_SYSROOT,
+      "CONAN_CMAKE_TOOLCHAIN_FILE": CONAN_CMAKE_TOOLCHAIN_FILE,
+      "CXX": CXX,
+      "LD": LD,
+      "LD_LIBRARY_PATH": LD_LIBRARY_PATH,
+      "NM": NM,
+      "OBJCOPY": OBJCOPY,
+      "OBJDUMP": OBJDUMP,
+      "RANLIB": RANLIB,
+      "STRIP": STRIP,
+    })
+
+  if NEXTALIGN_STATIC_BUILD:
+    config_dict.update({
+      "AC_CANONICAL_HOST": AC_CANONICAL_HOST,
+      "AR": AR,
+      "AS": AS,
+      "CC": CC,
+      "CHOST": CHOST,
+      "CMAKE_CXX_COMPILER": CMAKE_CXX_COMPILER,
+      "CMAKE_C_COMPILER": CMAKE_C_COMPILER,
+      "CMAKE_TOOLCHAIN_FILE": "CMAKE_TOOLCHAIN_FILE",
+      "CONAN_CMAKE_FIND_ROOT_PATH": CONAN_CMAKE_FIND_ROOT_PATH,
+      "CONAN_CMAKE_SYSROOT": CONAN_CMAKE_SYSROOT,
+      "CONAN_CMAKE_TOOLCHAIN_FILE": CONAN_CMAKE_TOOLCHAIN_FILE,
+      "CXX": CXX,
+      "LD": LD,
+      "LD_LIBRARY_PATH": LD_LIBRARY_PATH,
+      "NM": NM,
+      "OBJCOPY": OBJCOPY,
+      "OBJDUMP": OBJDUMP,
+      "RANLIB": RANLIB,
+      "STRIP": STRIP,
+    })
+
+  # Filter out 'None' values
+  config_dict = dict(filter(lambda item: item[1] is not None, config_dict.items()))
+
+  config = dict_to_namedtuple("BuildConfig", config_dict)
+  shell = Shell(config=config, cwd=PROJECT_ROOT_DIR)
+  return config, shell
 
 
 NEXTCLADE_WASM_DEPS = [
@@ -404,111 +456,89 @@ class TheConanFile(ConanFile):
         self.requires(dep)
 
   def build(self):
-    config = configure()
+    config, shell = configure()
 
-    CLANG_ANALYZER = config.CLANG_ANALYZER
-    EMCMAKE = config.EMCMAKE
-    EMMAKE = config.EMMAKE
-    CMAKE_VERBOSE_MAKEFILE = config.CMAKE_VERBOSE_MAKEFILE
-    CMAKE_COLOR_MAKEFILE = config.CMAKE_COLOR_MAKEFILE
-    HOST_ARCH = config.HOST_ARCH
-    OSX_MIN_VER = config.OSX_MIN_VER
-    NEXTALIGN_BUILD_CLI = config.NEXTALIGN_BUILD_CLI
-    NEXTALIGN_BUILD_BENCHMARKS = config.NEXTALIGN_BUILD_BENCHMARKS
-    NEXTALIGN_BUILD_TESTS = config.NEXTALIGN_BUILD_TESTS
-    NEXTCLADE_BUILD_CLI = config.NEXTCLADE_BUILD_CLI
-    NEXTCLADE_BUILD_TESTS = config.NEXTCLADE_BUILD_TESTS
-    NEXTCLADE_CLI_BUILD_TESTS = config.NEXTCLADE_CLI_BUILD_TESTS
-    NEXTCLADE_BUILD_WASM = config.NEXTCLADE_BUILD_WASM
-    NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS = config.NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS
-    NEXTALIGN_STATIC_BUILD = config.NEXTALIGN_STATIC_BUILD
-    DATA_FULL_DOMAIN = config.DATA_FULL_DOMAIN
-    ENABLE_DEBUG_TRACE = config.ENABLE_DEBUG_TRACE
-    CMAKE_C_FLAGS = config.CMAKE_C_FLAGS
-    CMAKE_CXX_FLAGS = config.CMAKE_CXX_FLAGS
-    MORE_CMAKE_FLAGS = config.MORE_CMAKE_FLAGS
+    cmake = CMake(self, parallel=True)
+    cmake.definitions["BUILD_SHARED_LIBS"] = config.NEXTALIGN_STATIC_BUILD
+    cmake.definitions["CMAKE_BUILD_TYPE"] = self.settings.build_type
+    cmake.definitions["CMAKE_COLOR_MAKEFILE"] = config.CMAKE_COLOR_MAKEFILE
+    cmake.definitions["CMAKE_CXX_FLAGS"] = config.CMAKE_CXX_FLAGS
+    cmake.definitions["CMAKE_C_FLAGS"] = config.CMAKE_C_FLAGS
+    cmake.definitions["CMAKE_EXPORT_COMPILE_COMMANDS"] = 1
+    cmake.definitions["CMAKE_INSTALL_PREFIX"] = config.INSTALL_DIR
+    cmake.definitions["CMAKE_MODULE_PATH"] = self.build_folder
+    cmake.definitions["CMAKE_OSX_ARCHITECTURES"] = config.HOST_ARCH
+    cmake.definitions["CMAKE_OSX_DEPLOYMENT_TARGET"] = config.OSX_MIN_VER
+    cmake.definitions["CMAKE_VERBOSE_MAKEFILE"] = config.CMAKE_VERBOSE_MAKEFILE
+    cmake.definitions["DATA_FULL_DOMAIN"] = config.DATA_FULL_DOMAIN
+    cmake.definitions["ENABLE_DEBUG_TRACE"] = 1 if config.ENABLE_DEBUG_TRACE else 0
+    cmake.definitions["NEXTALIGN_BUILD_BENCHMARKS"] = config.NEXTALIGN_BUILD_BENCHMARKS
+    cmake.definitions["NEXTALIGN_BUILD_BENCHMARKS"] = config.NEXTALIGN_BUILD_BENCHMARKS
+    cmake.definitions["NEXTALIGN_BUILD_CLI"] = config.NEXTALIGN_BUILD_CLI
+    cmake.definitions["NEXTALIGN_BUILD_TESTS"] = config.NEXTALIGN_BUILD_TESTS
+    cmake.definitions["NEXTALIGN_BUILD_TESTS"] = config.NEXTALIGN_BUILD_TESTS
+    cmake.definitions["NEXTALIGN_MACOS_ARCH"] = config.HOST_ARCH
+    cmake.definitions["NEXTALIGN_STATIC_BUILD"] = config.NEXTALIGN_STATIC_BUILD
+    cmake.definitions["NEXTCLADE_BUILD_CLI"] = config.NEXTCLADE_BUILD_CLI
+    cmake.definitions["NEXTCLADE_BUILD_TESTS"] = config.NEXTCLADE_BUILD_TESTS
+    cmake.definitions["NEXTCLADE_BUILD_WASM"] = config.NEXTCLADE_BUILD_WASM
+    cmake.definitions["NEXTCLADE_CLI_BUILD_TESTS"] = config.NEXTCLADE_CLI_BUILD_TESTS
+    cmake.definitions["NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS"] = config.NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS
+    cmake.definitions["NEXTCLADE_STATIC_BUILD"] = config.NEXTALIGN_STATIC_BUILD
 
     if self.should_configure:
-      configure_command = f"""
-        {CLANG_ANALYZER} {EMCMAKE} cmake "{self.source_folder}" \
-        -DCMAKE_MODULE_PATH="{self.build_folder}" \
-        -DCMAKE_INSTALL_PREFIX="{self.install_folder}" \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
-        -DCMAKE_BUILD_TYPE="{self.settings.build_type}" \
-        -DCMAKE_VERBOSE_MAKEFILE={CMAKE_VERBOSE_MAKEFILE} \
-        -DCMAKE_COLOR_MAKEFILE={CMAKE_COLOR_MAKEFILE} \
-        -DNEXTALIGN_STATIC_BUILD={NEXTALIGN_STATIC_BUILD} \
-        -DNEXTALIGN_BUILD_BENCHMARKS={NEXTALIGN_BUILD_BENCHMARKS} \
-        -DNEXTALIGN_BUILD_TESTS={NEXTALIGN_BUILD_TESTS} \
-        -DNEXTALIGN_MACOS_ARCH="{HOST_ARCH}" \
-        -DCMAKE_OSX_ARCHITECTURES="{HOST_ARCH}" \
-        -DCMAKE_OSX_DEPLOYMENT_TARGET="{OSX_MIN_VER}" \
-        -DNEXTCLADE_STATIC_BUILD={NEXTALIGN_STATIC_BUILD} \
-        -DNEXTALIGN_BUILD_CLI={NEXTALIGN_BUILD_CLI} \
-        -DNEXTALIGN_BUILD_BENCHMARKS={NEXTALIGN_BUILD_BENCHMARKS} \
-        -DNEXTALIGN_BUILD_TESTS={NEXTALIGN_BUILD_TESTS} \
-        -DNEXTCLADE_BUILD_CLI={NEXTCLADE_BUILD_CLI} \
-        -DNEXTCLADE_BUILD_TESTS={NEXTCLADE_BUILD_TESTS} \
-        -DNEXTCLADE_CLI_BUILD_TESTS={NEXTCLADE_CLI_BUILD_TESTS} \
-        -DNEXTCLADE_BUILD_WASM={NEXTCLADE_BUILD_WASM} \
-        -DNEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS="{NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS}" \
-        -DBUILD_SHARED_LIBS="{NEXTALIGN_STATIC_BUILD}" \
-        -DDATA_FULL_DOMAIN={DATA_FULL_DOMAIN} \
-        -DENABLE_DEBUG_TRACE="{ENABLE_DEBUG_TRACE}" \
-        -DCMAKE_C_FLAGS={CMAKE_C_FLAGS} \
-        -DCMAKE_CXX_FLAGS={CMAKE_CXX_FLAGS} \
-        {MORE_CMAKE_FLAGS}
-       """
-      configure_command = re.sub(r'\s+', ' ', configure_command)
-      print(configure_command)
-      self.run(configure_command)
+      cmake.configure()
 
     if self.should_build:
-      build_command = f"""
-        {CLANG_ANALYZER} {EMMAKE} cmake --build '{self.build_folder}' --config '{self.settings.build_type}' -- --jobs={cpu_count()}
-      """
-      build_command = re.sub(r'\s+', ' ', build_command)
-      print(build_command)
-      self.run(build_command)
+      cmake.build(args=["-j 20"])
+      self.postbuild(config)
 
-    if self.should_install:
-      install_command = f"""
-        cmake --install '{self.build_folder}' --config '{self.settings.build_type}' --strip \
-        -DCMAKE_INSTALL_PREFIX="{self.install_folder}" \
-      """
-      install_command = re.sub(r'\s+', ' ', install_command)
-      print(install_command)
+  def postbuild(self, config):
+    shell = Shell(config=config, cwd=PROJECT_ROOT_DIR)
+
+    if self.settings.build_type == "Release":
+      STRIP = "" if config.NEXTCLADE_BUILD_WASM else "--strip"
+      shell(f"""
+        cmake --install '{self.build_folder}' \
+          --config '{self.settings.build_type}' \
+          --prefix '{config.INSTALL_DIR}' \
+          {STRIP} \
+      """, cwd=self.build_folder)
+
+    if config.NEXTCLADE_BUILD_WASM:
+      # Patch WASM helper JS script, to make sure it plays well with our Webpack setup
+      shell(
+        f"sed -i 's/var _scriptDir = import.meta.url;/var _scriptDir = false;/g' '{config.INSTALL_DIR}/wasm/nextclade_wasm.js'"
+      )
 
 
-def conan_create_custom_package(config, package_path, package_ref):
+def conan_create_custom_package(shell, config, package_path, package_ref):
   """
-  This will build a local conan package (from `$PACKAGE_PATH`) and put it into local conan cache
-  under name `$PACKAGE_REF`. The build is only done once and if the package is in cache, it will not rebuild.
+  This will build a local conan package (from `package_path`) and put it into local conan cache
+  under name `package_ref`. The build is only done once and if the package is in cache, it will not rebuild.
   On `conan install` step the local package will be used, instead of querying conan remote servers, because the
-  `$PACKAGE_REF` is used in `requirements` field of `conanfile.py`.
+  `package_ref` is used in `requirements` field of `conanfile.py`.
   """
   search_result = run_and_get_stdout(f"CONAN_USER_HOME={config.CONAN_USER_HOME} conan search | grep {package_ref}",
                                      cwd=PROJECT_ROOT_DIR)
 
-  config_env = {k: str(v) for k, v in config._asdict().items()}
-  env = {**os.environ, **config_env}
-
   if search_result == "":
-    subprocess.check_call(f"""
-        set -euxo pipefail;
-        CONAN_USER_HOME={config.CONAN_USER_HOME} \
-        conan create . local/stable \
+    shell(f"""
+      conan create . local/stable \
         -s build_type="{config.CONAN_BUILD_TYPE}" \
         {config.CONAN_ARCH_SETTINGS} \
         {config.CONAN_COMPILER_SETTINGS} \
         {config.CONAN_STATIC_BUILD_FLAGS} \
         {config.CONAN_TBB_STATIC_BUILD_FLAGS} \
         --build=missing \
-    """, cwd=package_path, env=env, shell=True, executable="bash", check=True)
+    """, cwd=package_path)
 
 
 if __name__ == '__main__':
-  config = configure()
+  config, shell = configure()
+
+  if config.NEXTCLADE_BUILD_WASM and not os.path.isdir(config.NEXTCLADE_EMSDK_DIR):
+    shell(f"./scripts/install_emscripten.sh '{config.NEXTCLADE_EMSDK_DIR}' '{config.NEXTCLADE_EMSDK_VERSION}'")
 
   # Setup conan profile in CONAN_USER_HOME
   if not os.path.exists(f"{config.CONAN_USER_HOME}/.conan/remotes.json"):
@@ -520,53 +550,50 @@ if __name__ == '__main__':
   # Build custom versions of packages in `3rdparty` directory
   if not config.NEXTCLADE_BUILD_WASM:
     # Order is important to ensure interdependencies are picked up correctly
-    conan_create_custom_package(config, "3rdparty/jemalloc", "jemalloc/5.2.1@local/stable")
-    conan_create_custom_package(config, "3rdparty/openssl", "openssl/1.1.1k@local/stable")
-    conan_create_custom_package(config, "3rdparty/c-ares", "c-ares/1.17.1@local/stable")
-    conan_create_custom_package(config, "3rdparty/zlib", "zlib/1.2.11@local/stable")
-    conan_create_custom_package(config, "3rdparty/libcurl", "libcurl/7.77.0@local/stable")
-    conan_create_custom_package(config, "3rdparty/poco", "poco/1.11.0@local/stable")
-    conan_create_custom_package(config, "3rdparty/tbb", "tbb/2021.3.0@local/stable")
+    conan_create_custom_package(shell, config, "3rdparty/jemalloc", "jemalloc/5.2.1@local/stable")
+    conan_create_custom_package(shell, config, "3rdparty/openssl", "openssl/1.1.1k@local/stable")
+    conan_create_custom_package(shell, config, "3rdparty/c-ares", "c-ares/1.17.1@local/stable")
+    conan_create_custom_package(shell, config, "3rdparty/zlib", "zlib/1.2.11@local/stable")
+    conan_create_custom_package(shell, config, "3rdparty/libcurl", "libcurl/7.77.0@local/stable")
+    conan_create_custom_package(shell, config, "3rdparty/poco", "poco/1.11.0@local/stable")
+    conan_create_custom_package(shell, config, "3rdparty/tbb", "tbb/2021.3.0@local/stable")
 
   os.makedirs(config.BUILD_DIR, exist_ok=True)
 
-  subprocess.call(f"""
-    CONAN_USER_HOME={config.CONAN_USER_HOME} \
+  shell(f"""
     conan install "{config.CONANFILE}" \
-    -s build_type="{config.CONAN_BUILD_TYPE}" \
-    {config.CONAN_ARCH_SETTINGS} \
-    {config.CONAN_COMPILER_SETTINGS} \
-    {config.CONAN_STATIC_BUILD_FLAGS} \
-    --build missing \
-   """, cwd=config.BUILD_DIR, env={**os.environ, "CXX": config.CXX}, shell=True)
+      -s build_type="{config.CONAN_BUILD_TYPE}" \
+      {config.CONAN_ARCH_SETTINGS} \
+      {config.CONAN_COMPILER_SETTINGS} \
+      {config.CONAN_STATIC_BUILD_FLAGS} \
+      --build missing \
+  """, cwd=config.BUILD_DIR)
 
-  subprocess.call(f"""
-    CONAN_USER_HOME={config.CONAN_USER_HOME} \
-    conan build --configure {PROJECT_ROOT_DIR} \
-      --source-folder={PROJECT_ROOT_DIR} \
-      --build-folder={config.BUILD_DIR} \
-   """, cwd=config.BUILD_DIR, env={**os.environ, "CXX": config.CXX}, shell=True)
-
-  subprocess.call(f"""
+  shell(f"""
     python3 "{PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
       --input_json={PROJECT_ROOT_DIR}/packages/nextclade_cli/cli.json \
       --output_cpp={PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/cli.cpp \
       --output_h={PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/cli.h \
-    """, cwd=config.BUILD_DIR, env={**os.environ, "CXX": config.CXX}, shell=True)
+  """, cwd=config.BUILD_DIR)
 
-  subprocess.call(f"""
+  shell(f"""
     find "{PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -exec clang-format -style=file -i {{}} \; \
-    """, cwd=config.BUILD_DIR, env={**os.environ, "CXX": config.CXX}, shell=True)
+  """, cwd=config.BUILD_DIR)
 
-  subprocess.call(f"""
+  shell(f"""
     python3 "{PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cainfo_blob.py" \
         --input_pem={PROJECT_ROOT_DIR}/packages/nextclade_common/data/cacert.pem \
         --output_h={PROJECT_ROOT_DIR}/packages/nextclade_common/src/generated/cainfo.h \
-    """, cwd=config.BUILD_DIR, env={**os.environ, "CXX": config.CXX}, shell=True)
+  """, cwd=config.BUILD_DIR)
 
-  subprocess.call(f"""
-    CONAN_USER_HOME={config.CONAN_USER_HOME} \
+  shell(f"""
+    conan build --configure {PROJECT_ROOT_DIR} \
+      --source-folder={PROJECT_ROOT_DIR} \
+      --build-folder={config.BUILD_DIR} \
+  """, cwd=config.BUILD_DIR)
+
+  shell(f"""
     conan build --build {PROJECT_ROOT_DIR} \
       --source-folder={PROJECT_ROOT_DIR} \
       --build-folder={config.BUILD_DIR} \
-   """, cwd=config.BUILD_DIR, env={**os.environ, "CXX": config.CXX}, shell=True)
+  """, cwd=config.BUILD_DIR)

@@ -1,5 +1,7 @@
 import os
 
+from is_truthy import is_truthy
+
 # Borrowed from
 # https://github.com/watson/ci-info/blob/1f890078805447ed39b17a6ad136356a7d5cd68b/vendors.json
 CI_VARS = [
@@ -50,12 +52,6 @@ CI_VARS = [
   "TRAVIS",
   "VERCEL",
 ]
-
-ADDITIONAL_FALSY = ["False", "FALSE", "false", "0", "no", "No", "NO"]
-
-
-def is_truthy(val):
-  return bool(val) and val not in ADDITIONAL_FALSY
 
 
 def check_is_ci():
