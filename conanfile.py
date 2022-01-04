@@ -13,7 +13,7 @@ from get_machine_info import get_machine_info
 from is_ci import check_is_ci
 from is_truthy import is_truthy
 from namedtuple import dict_to_namedtuple
-from run_command import run, run_and_get_stdout, Shell, join_path_var
+from run_command import run, Shell, join_path_var, run_and_get_stdout
 
 os.environ = {
   **os.environ,
@@ -512,12 +512,37 @@ class TheConanFile(ConanFile):
       )
 
 
+def install_emscripten(config, shell, force=False):
+  """
+  Installs Emscripten if not already installed
+  """
+  if force or not os.path.isdir(config.NEXTCLADE_EMSDK_DIR):
+    shell(f"./scripts/install_emscripten.sh '{config.NEXTCLADE_EMSDK_DIR}' '{config.NEXTCLADE_EMSDK_VERSION}'")
+
+
+def create_conan_profile(config, shell):
+  """
+  Setup Conan C++ package manager profile in $CONAN_USER_HOME, if not already there.
+  """
+  if not os.path.exists(f"{config.CONAN_USER_HOME}/.conan/remotes.json"):
+    run(f"CONAN_USER_HOME={config.CONAN_USER_HOME} CONAN_V2_MODE=1 conan profile new default --detect --force")
+    run(f"CONAN_USER_HOME={config.CONAN_USER_HOME} CONAN_V2_MODE=1 conan config init")
+
+    # Patch config file to add `libc` field. We use `musl` libc for static builds, so this config option is needed
+    # to make sure dependencies are correctly rebuilt.
+    if config.HOST_OS == "Linux":
+      run(f"""printf '\\n\\nlibc: [None, \"glibc\", \"musl\"]\\n' >> '{config.CONAN_USER_HOME}/.conan/settings.yml'""")
+
+
 def conan_create_custom_package(shell, config, package_path, package_ref):
   """
-  This will build a local conan package (from `package_path`) and put it into local conan cache
-  under name `package_ref`. The build is only done once and if the package is in cache, it will not rebuild.
-  On `conan install` step the local package will be used, instead of querying conan remote servers, because the
-  `package_ref` is used in `requirements` field of `conanfile.py`.
+  Build a local Conan package from `package_path` directory and puts it into local Conan cache under name `package_ref`.
+  The build is only done once, if the package is not yet in the cache. Later, when `conan install` step is running,
+  this local package will be used, instead of querying remote repos, because the `package_ref` is used in the
+  `requirements` field of `conanfile.py`.
+
+  This is needed, because some packages needed to be patched in order to work in our particular setup (mostly because of
+  whe static build).
   """
   search_result = run_and_get_stdout(f"CONAN_USER_HOME={config.CONAN_USER_HOME} conan search | grep {package_ref}",
                                      cwd=PROJECT_ROOT_DIR)
@@ -534,20 +559,19 @@ def conan_create_custom_package(shell, config, package_path, package_ref):
     """, cwd=package_path)
 
 
-if __name__ == '__main__':
-  config, shell = configure()
+def conan_create_custom_packages(config, shell):
+  """
+  Build custom versions of Conan packages from sources in `3rdparty` directory.
+  These are the subset of dependencies that we had to modify for one reason or another. We have these mostly,
+  to make sure they build and work correctly in static builds. Sometimes these modifications are just little
+  adjustments to their build system, but sometimes also patches applied to the source code original tarballs or even
+  entire modified source directories.
 
-  if config.NEXTCLADE_BUILD_WASM and not os.path.isdir(config.NEXTCLADE_EMSDK_DIR):
-    shell(f"./scripts/install_emscripten.sh '{config.NEXTCLADE_EMSDK_DIR}' '{config.NEXTCLADE_EMSDK_VERSION}'")
+  Note that this only builds binary packages and populates the cache of the Conan package manager. The actual
+  installation to the build directory happens during installation step, along with the other prebuilt packages from the
+  remote Conan repositories.
+  """
 
-  # Setup conan profile in CONAN_USER_HOME
-  if not os.path.exists(f"{config.CONAN_USER_HOME}/.conan/remotes.json"):
-    run(f"CONAN_USER_HOME={config.CONAN_USER_HOME} CONAN_V2_MODE=1 conan profile new default --detect --force")
-    run(f"CONAN_USER_HOME={config.CONAN_USER_HOME} CONAN_V2_MODE=1 conan config init")
-    if config.HOST_OS == "Linux" and config.NEXTALIGN_STATIC_BUILD and not config.NEXTCLADE_BUILD_WASM:
-      run(f"""printf '\\n\\nlibc: [None, \"glibc\", \"musl\"]\\n' >> '{config.CONAN_USER_HOME}/.conan/settings.yml'""")
-
-  # Build custom versions of packages in `3rdparty` directory
   if not config.NEXTCLADE_BUILD_WASM:
     # Order is important to ensure interdependencies are picked up correctly
     conan_create_custom_package(shell, config, "3rdparty/jemalloc", "jemalloc/5.2.1@local/stable")
@@ -557,6 +581,15 @@ if __name__ == '__main__':
     conan_create_custom_package(shell, config, "3rdparty/libcurl", "libcurl/7.77.0@local/stable")
     conan_create_custom_package(shell, config, "3rdparty/poco", "poco/1.11.0@local/stable")
     conan_create_custom_package(shell, config, "3rdparty/tbb", "tbb/2021.3.0@local/stable")
+
+
+def install_deps(config, shell):
+  if config.NEXTCLADE_BUILD_WASM:
+    install_emscripten(config, shell)
+
+  create_conan_profile(config, shell)
+
+  conan_create_custom_packages(config, shell)
 
   os.makedirs(config.BUILD_DIR, exist_ok=True)
 
@@ -569,6 +602,15 @@ if __name__ == '__main__':
       --build missing \
   """, cwd=config.BUILD_DIR)
 
+
+def run_codegen_argparse(config, shell):
+  """
+  Generate C++ code for handling of command-line arguments.
+
+  C++ arg parsing libraries are verbose, repetitive and tedious to use. So instead of writing it manually, we generate
+  the code from a JSON definition file here. At some point, if we decide it's too complex or otherwise unsuitable, we
+  could drop this step and commit the existing generated code to the source control.
+  """
   shell(f"""
     python3 "{PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
       --input_json={PROJECT_ROOT_DIR}/packages/nextclade_cli/cli.json \
@@ -576,24 +618,65 @@ if __name__ == '__main__':
       --output_h={PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/cli.h \
   """, cwd=config.BUILD_DIR)
 
+  # Let's format the generated code to make it more readable
   shell(f"""
-    find "{PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/" -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' -exec clang-format -style=file -i {{}} \; \
+    find "{PROJECT_ROOT_DIR}/packages/nextclade_cli/src/generated/" \
+    -regex '.*\.\(c\|cpp\|h\|hpp\|cc\|cxx\)' \
+    -exec clang-format -style=file -i {{}} \; \
   """, cwd=config.BUILD_DIR)
 
+
+def run_codegen_cainfo(config, shell):
+  """
+  Generate C++ file with the inlined CA certificate from Curl.
+  https://curl.se/docs/caextract.html
+
+  This ensures that networking works regardless of whether CA certificates on a particular the Linux system are
+  up-to-date. This is mostly relevant for older versions of   stable distros like Debian and CentOS.
+  """
   shell(f"""
     python3 "{PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cainfo_blob.py" \
         --input_pem={PROJECT_ROOT_DIR}/packages/nextclade_common/data/cacert.pem \
         --output_h={PROJECT_ROOT_DIR}/packages/nextclade_common/src/generated/cainfo.h \
   """, cwd=config.BUILD_DIR)
 
+
+def run_codegen(config, shell):
+  """
+  Generates some of the project's autogenerated source code files
+  """
+  run_codegen_argparse(config, shell)
+  run_codegen_cainfo(config, shell)
+
+
+def configure_build(config, shell):
+  """
+  Configures the build system to prepare for running the build.
+  This includes running Cmake and generating the actual build makefiles
+  """
   shell(f"""
     conan build --configure {PROJECT_ROOT_DIR} \
       --source-folder={PROJECT_ROOT_DIR} \
       --build-folder={config.BUILD_DIR} \
   """, cwd=config.BUILD_DIR)
 
+
+def run_build(config, shell):
+  """
+  Runs the build. Compiles and links the binaries.
+  In release mode it also installs the binaries into the install dir.
+  """
   shell(f"""
     conan build --build {PROJECT_ROOT_DIR} \
       --source-folder={PROJECT_ROOT_DIR} \
       --build-folder={config.BUILD_DIR} \
   """, cwd=config.BUILD_DIR)
+
+
+if __name__ == '__main__':
+  config, shell = configure()
+
+  install_deps(config, shell)
+  run_codegen(config, shell)
+  configure_build(config, shell)
+  run_build(config, shell)

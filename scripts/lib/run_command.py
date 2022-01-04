@@ -3,7 +3,6 @@ import re
 import subprocess
 import sys
 from io import StringIO
-from pprint import pprint
 from typing import *
 
 from conans.client.runner import ConanRunner
@@ -43,8 +42,6 @@ class Shell:
     if config is not None:
       config_env = {k: str(v) for k, v in config._asdict().items()}
 
-    pprint(config_env)
-
     # For some PATH-like variables, instead of overwriting OS values, merge the incoming values in
     env = {**os.environ, **config_env}
     for var_name in ["PATH", "C_INCLUDE_PATH", "CPLUS_INCLUDE_PATH", "CPATH", "LIBRARY_PATH", "LD_LIBRARY_PATH"]:
@@ -56,11 +53,6 @@ class Shell:
     self._env_setup_script = env_setup_script or ""
 
   def __call__(self, command, cwd=None, output=None):
-    command = re.sub(r'\s+', ' ', command).strip()
-    sys.stdout.write(f"$ {command}\n")
-
-    # pprint(self._env)
-
     subprocess.run(f"""
       {self._env_setup_script}
       set -euxo pipefail;
