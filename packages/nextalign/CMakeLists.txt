@@ -34,9 +34,7 @@ add_library(${PROJECT_NAME} STATIC
   src/io/parseGeneMapGff.cpp
   src/io/parseSequences.cpp
   src/io/parseSequencesSlow.cpp
-  src/match/matchAa.cpp
   src/match/matchAa.h
-  src/match/matchNuc.cpp
   src/match/matchNuc.h
   src/nextalign.cpp
   src/options/options.cpp
