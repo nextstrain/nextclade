@@ -111,10 +111,13 @@ def configure(args=None):
   CMAKE_COLOR_MAKEFILE = 1
 
   # Whether to build a standalone static executable
-  NEXTALIGN_STATIC_BUILD = is_truthy(os.environ.get('NEXTALIGN_STATIC_BUILD')) or (
-      CMAKE_BUILD_TYPE == "Release"
-      and not CMAKE_BUILD_TYPE in ["ASAN", "MSAN", "TSAN", "UBSAN"]
-      and not NEXTCLADE_BUILD_WASM
+  NEXTALIGN_STATIC_BUILD = \
+    is_truthy(os.environ.get('NEXTALIGN_STATIC_BUILD')) \
+    or (is_truthy(args["static"])) \
+    or (
+        CMAKE_BUILD_TYPE == "Release"
+        and not CMAKE_BUILD_TYPE in ["ASAN", "MSAN", "TSAN", "UBSAN"]
+        and not NEXTCLADE_BUILD_WASM
   )
 
   NEXTALIGN_BUILD_BENCHMARKS = 0
