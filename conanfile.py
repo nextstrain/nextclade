@@ -19,8 +19,8 @@ from get_machine_info import get_machine_info
 from is_ci import check_is_ci
 from is_truthy import is_truthy
 from namedtuple import dict_to_namedtuple
-from run_command import run, Shell, join_path_var, run_and_get_stdout
 from parse_args import parse_args
+from run_command import run, Shell, join_path_var, run_and_get_stdout
 
 # Combine system environment variables with variables read from .env files
 os.environ = {
@@ -28,9 +28,6 @@ os.environ = {
   **dotenv_values(".env.example"),
   **dotenv_values(".env"),
 }
-
-# Are we in any of continuous integration platforms?
-is_ci = check_is_ci()
 
 
 def configure(args=None):
@@ -45,6 +42,9 @@ def configure(args=None):
 
   PATH = []
   LD_LIBRARY_PATH = []
+
+  # Are we in any of continuous integration platforms?
+  IS_CI = check_is_ci()
 
   BUILD_PREFIX = ""
   BUILD_SUFFIX = ""
@@ -118,7 +118,7 @@ def configure(args=None):
         CMAKE_BUILD_TYPE == "Release"
         and not CMAKE_BUILD_TYPE in ["ASAN", "MSAN", "TSAN", "UBSAN"]
         and not NEXTCLADE_BUILD_WASM
-  )
+    )
 
   NEXTALIGN_BUILD_BENCHMARKS = 0
   NEXTALIGN_BUILD_TESTS = 0
@@ -138,7 +138,7 @@ def configure(args=None):
   CXXFLAGS = ""
   CMAKE_C_FLAGS = ""
   CMAKE_CXX_FLAGS = ""
-
+  TOOLCHAIN_CONFIG = {}
   CONAN_COMPILER_SETTINGS = ""
 
   CONAN_ARCH_SETTINGS = f"-s arch={HOST_ARCH}"
@@ -220,6 +220,29 @@ def configure(args=None):
     CMAKE_TOOLCHAIN_FILE = f"{TOOLCHAIN_ROOT_DIR}/emscripten/cmake/Modules/Platform/Emscripten.cmake"
     CONAN_CMAKE_TOOLCHAIN_FILE = CMAKE_TOOLCHAIN_FILE
 
+    TOOLCHAIN_CONFIG = {
+      "AR": AR,
+      "AS": AS,
+      "CC": CC,
+      "CXX": CXX,
+      "LD": LD,
+      "NM": NM,
+      "OBJCOPY": OBJCOPY,
+      "OBJDUMP": OBJDUMP,
+      "RANLIB": RANLIB,
+      "STRIP": STRIP,
+
+      "CHOST": CHOST,
+      "AC_CANONICAL_HOST": AC_CANONICAL_HOST,
+
+      "CMAKE_CXX_COMPILER": CMAKE_CXX_COMPILER,
+      "CMAKE_C_COMPILER": CMAKE_C_COMPILER,
+      "CMAKE_TOOLCHAIN_FILE": CMAKE_TOOLCHAIN_FILE,
+      "CONAN_CMAKE_FIND_ROOT_PATH": CONAN_CMAKE_FIND_ROOT_PATH,
+      "CONAN_CMAKE_SYSROOT": CONAN_CMAKE_SYSROOT,
+      "CONAN_CMAKE_TOOLCHAIN_FILE": CONAN_CMAKE_TOOLCHAIN_FILE,
+    }
+
     CONAN_STATIC_BUILD_FLAGS = f"\
       {CONAN_STATIC_BUILD_FLAGS} \
       -s os=Emscripten \
@@ -297,6 +320,29 @@ def configure(args=None):
     CMAKE_TOOLCHAIN_FILE = f"{PROJECT_ROOT_DIR}/config/cmake/musl.toolchain.cmake"
     CONAN_CMAKE_TOOLCHAIN_FILE = CMAKE_TOOLCHAIN_FILE
 
+    TOOLCHAIN_CONFIG = {
+      "AR": AR,
+      "AS": AS,
+      "CC": CC,
+      "CXX": CXX,
+      "LD": LD,
+      "NM": NM,
+      "OBJCOPY": OBJCOPY,
+      "OBJDUMP": OBJDUMP,
+      "RANLIB": RANLIB,
+      "STRIP": STRIP,
+
+      "CHOST": CHOST,
+      "AC_CANONICAL_HOST": AC_CANONICAL_HOST,
+
+      "CMAKE_CXX_COMPILER": CMAKE_CXX_COMPILER,
+      "CMAKE_C_COMPILER": CMAKE_C_COMPILER,
+      "CMAKE_TOOLCHAIN_FILE": CMAKE_TOOLCHAIN_FILE,
+      "CONAN_CMAKE_FIND_ROOT_PATH": CONAN_CMAKE_FIND_ROOT_PATH,
+      "CONAN_CMAKE_SYSROOT": CONAN_CMAKE_SYSROOT,
+      "CONAN_CMAKE_TOOLCHAIN_FILE": CONAN_CMAKE_TOOLCHAIN_FILE,
+    }
+
     CONAN_STATIC_BUILD_FLAGS = f"\
       {CONAN_STATIC_BUILD_FLAGS} \
       -o c-ares:shared=False \
@@ -335,28 +381,41 @@ def configure(args=None):
   LD_LIBRARY_PATH = join_path_var(LD_LIBRARY_PATH)
 
   config_dict = {
-    "BUILD_DIR": BUILD_DIR,
-    "CCACHE_DIR": CCACHE_DIR,
-    "CFLAGS": CFLAGS,
+    "IS_CI": IS_CI,
+
+    "BUILD_OS": BUILD_OS,
+    "HOST_OS": HOST_OS,
+    "BUILD_ARCH": BUILD_ARCH,
+    "HOST_ARCH": HOST_ARCH,
+    "CROSS": CROSS,
+    "OSX_MIN_VER": OSX_MIN_VER,
+
+    "USE_CLANG": USE_CLANG,
     "CLANG_ANALYZER": CLANG_ANALYZER,
+    "USE_CLANG_ANALYZER": USE_CLANG_ANALYZER,
+    "USE_LIBCPP": USE_LIBCPP,
+
     "CMAKE_BUILD_TYPE": CMAKE_BUILD_TYPE,
-    "CMAKE_COLOR_MAKEFILE": CMAKE_COLOR_MAKEFILE,
-    "CMAKE_CXX_FLAGS": CMAKE_CXX_FLAGS,
+    "CONAN_BUILD_TYPE": CONAN_BUILD_TYPE,
+
+    "CFLAGS": CFLAGS,
+    "CXXFLAGS": CXXFLAGS,
     "CMAKE_C_FLAGS": CMAKE_C_FLAGS,
+    "CMAKE_CXX_FLAGS": CMAKE_CXX_FLAGS,
+    "CMAKE_COLOR_MAKEFILE": CMAKE_COLOR_MAKEFILE,
     "CMAKE_VERBOSE_MAKEFILE": CMAKE_VERBOSE_MAKEFILE,
+
     "CONANFILE": CONANFILE,
     "CONAN_ARCH_SETTINGS": CONAN_ARCH_SETTINGS,
-    "CONAN_BUILD_TYPE": CONAN_BUILD_TYPE,
     "CONAN_COMPILER_SETTINGS": CONAN_COMPILER_SETTINGS,
     "CONAN_STATIC_BUILD_FLAGS": CONAN_STATIC_BUILD_FLAGS,
     "CONAN_TBB_STATIC_BUILD_FLAGS": CONAN_TBB_STATIC_BUILD_FLAGS,
     "CONAN_USER_HOME": CONAN_USER_HOME,
-    "CXXFLAGS": CXXFLAGS,
-    "DATA_FULL_DOMAIN": DATA_FULL_DOMAIN,
-    "ENABLE_DEBUG_TRACE": ENABLE_DEBUG_TRACE,
-    "HOST_ARCH": HOST_ARCH,
-    "HOST_OS": HOST_OS,
+
+    "BUILD_DIR": BUILD_DIR,
+    "CCACHE_DIR": CCACHE_DIR,
     "INSTALL_DIR": INSTALL_DIR,
+
     "NEXTALIGN_BUILD_BENCHMARKS": NEXTALIGN_BUILD_BENCHMARKS,
     "NEXTALIGN_BUILD_CLI": NEXTALIGN_BUILD_CLI,
     "NEXTALIGN_BUILD_TESTS": NEXTALIGN_BUILD_TESTS,
@@ -366,9 +425,14 @@ def configure(args=None):
     "NEXTCLADE_BUILD_WASM": NEXTCLADE_BUILD_WASM,
     "NEXTCLADE_CLI_BUILD_TESTS": NEXTCLADE_CLI_BUILD_TESTS,
     "NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS": NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS,
-    "OSX_MIN_VER": OSX_MIN_VER,
+    "DATA_FULL_DOMAIN": DATA_FULL_DOMAIN,
+    "ENABLE_DEBUG_TRACE": ENABLE_DEBUG_TRACE,
+
     "PATH": PATH,
+    "LD_LIBRARY_PATH": LD_LIBRARY_PATH
   }
+
+  config_dict.update(**TOOLCHAIN_CONFIG)
 
   if NEXTCLADE_BUILD_WASM:
     config_dict.update({
@@ -376,48 +440,6 @@ def configure(args=None):
       "NEXTCLADE_EMSDK_DIR": NEXTCLADE_EMSDK_DIR,
       "NEXTCLADE_EMSDK_USE_CACHE": NEXTCLADE_EMSDK_USE_CACHE,
       "NEXTCLADE_EMSDK_VERSION": NEXTCLADE_EMSDK_VERSION,
-      "AC_CANONICAL_HOST": AC_CANONICAL_HOST,
-      "AR": AR,
-      "AS": AS,
-      "CC": CC,
-      "CHOST": CHOST,
-      "CMAKE_CXX_COMPILER": CMAKE_CXX_COMPILER,
-      "CMAKE_C_COMPILER": CMAKE_C_COMPILER,
-      "CMAKE_TOOLCHAIN_FILE": "CMAKE_TOOLCHAIN_FILE",
-      "CONAN_CMAKE_FIND_ROOT_PATH": CONAN_CMAKE_FIND_ROOT_PATH,
-      "CONAN_CMAKE_SYSROOT": CONAN_CMAKE_SYSROOT,
-      "CONAN_CMAKE_TOOLCHAIN_FILE": CONAN_CMAKE_TOOLCHAIN_FILE,
-      "CXX": CXX,
-      "LD": LD,
-      "LD_LIBRARY_PATH": LD_LIBRARY_PATH,
-      "NM": NM,
-      "OBJCOPY": OBJCOPY,
-      "OBJDUMP": OBJDUMP,
-      "RANLIB": RANLIB,
-      "STRIP": STRIP,
-    })
-
-  if NEXTALIGN_STATIC_BUILD:
-    config_dict.update({
-      "AC_CANONICAL_HOST": AC_CANONICAL_HOST,
-      "AR": AR,
-      "AS": AS,
-      "CC": CC,
-      "CHOST": CHOST,
-      "CMAKE_CXX_COMPILER": CMAKE_CXX_COMPILER,
-      "CMAKE_C_COMPILER": CMAKE_C_COMPILER,
-      "CMAKE_TOOLCHAIN_FILE": "CMAKE_TOOLCHAIN_FILE",
-      "CONAN_CMAKE_FIND_ROOT_PATH": CONAN_CMAKE_FIND_ROOT_PATH,
-      "CONAN_CMAKE_SYSROOT": CONAN_CMAKE_SYSROOT,
-      "CONAN_CMAKE_TOOLCHAIN_FILE": CONAN_CMAKE_TOOLCHAIN_FILE,
-      "CXX": CXX,
-      "LD": LD,
-      "LD_LIBRARY_PATH": LD_LIBRARY_PATH,
-      "NM": NM,
-      "OBJCOPY": OBJCOPY,
-      "OBJDUMP": OBJDUMP,
-      "RANLIB": RANLIB,
-      "STRIP": STRIP,
     })
 
   # Filter out 'None' values
