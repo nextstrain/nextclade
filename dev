@@ -134,7 +134,7 @@ docker build -q -t "${DOCKER_IMAGE_NAME}:latest" \
 
 COMMAND=${*:-}
 if [ "${RUN}" == "1" ]; then
-  COMMAND="python3 conanfile.py install_deps codegen configure build ${RELEASE} ${COMMAND}"
+  COMMAND="python3 conanfile.py ${RELEASE} ${COMMAND}"
 
   if [ "${WATCH}" == "1" ]; then
     COMMAND="watchexec \

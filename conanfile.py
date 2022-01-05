@@ -23,7 +23,7 @@ from install_deps import install_deps
 from is_ci import check_is_ci
 from is_truthy import is_truthy
 from namedtuple import dict_to_namedtuple
-from parse_args import parse_args
+from parse_args import parse_args, COMMANDS
 from run_command import run, Shell, join_path_var
 
 # Combine system environment variables with variables read from .env files
@@ -581,6 +581,9 @@ if __name__ == '__main__':
   config, shell = configure(args)
 
   os.makedirs(config.BUILD_DIR, exist_ok=True)
+
+  if len(args["commands"]) == 0:
+    args["commands"] = COMMANDS
 
   # Configure build tools, install 3rd-party dependencies
   # and ensure they can be found by the subsequent steps
