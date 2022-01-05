@@ -140,34 +140,34 @@ docker-builder-push:
 # Builds and runs development container
 docker-dev:
 	@set -euxo pipefail
-	./scripts/docker_builder_image_build.sh "developer"
-	./scripts/docker_builder_image_run.sh "developer" "make dev"
+	./scripts/docker_builder_image_build.sh
+	./scripts/docker_builder_image_run.sh "make dev"
 
 # Builds and runs development container for wasm
 docker-dev-wasm:
 	@set -euxo pipefail
-	scripts/docker_builder_image_build.sh "developer"
-	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "developer" "make prod-watch"
+	scripts/docker_builder_image_build.sh
+	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "make prod-watch"
 
 docker-builder:
 	@set -euxo pipefail
-	./scripts/docker_builder_image_build.sh "builder"
+	./scripts/docker_builder_image_build.sh
 
 docker-builder-run:
 	@set -euxo pipefail
-	./scripts/docker_builder_image_run.sh "builder" "make prod"
+	./scripts/docker_builder_image_run.sh "make prod"
 
 docker-builder-run-wasm:
 	@set -euxo pipefail
-	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "builder" "make prod"
+	@NEXTCLADE_BUILD_WASM=1 ./scripts/docker_builder_image_run.sh "make prod"
 
 docker-builder-web:
 	@set -euxo pipefail
-	./scripts/docker_builder_image_build.sh "web"
+	./scripts/docker_builder_image_build.sh
 
 docker-builder-run-web:
 	@set -euxo pipefail
-	./scripts/docker_builder_image_run.sh "web" "make prod-web-nowatch"
+	./scripts/docker_builder_image_run.sh "make prod-web-nowatch"
 
 docker-prod: docker-builder docker-builder-run
 

@@ -54,5 +54,5 @@
     "temp",
     "tmp"
   ],
-  "exec": "reset; bash -c \"CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:=Debug} NEXTALIGN_STATIC_BUILD=1 NEXTCLADE_BUILD_WASM=0 python3 conanfile.py\" || cd ."
+  "exec": "reset; python3 conanfile.py install_deps codegen configure build --static --release || cd ."
 }
