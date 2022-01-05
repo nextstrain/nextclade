@@ -3,6 +3,7 @@ automake
 bash
 build-essential
 ccache
+clang-format
 clang-format-10
 clang-tidy
 clang-tidy-10
