@@ -63,7 +63,10 @@ FILES_TO_WATCH="\
 -w packages/nextclade_json/src/* \
 -w packages/nextclade_wasm/CMakeLists.txt \
 -w packages/nextclade_wasm/src/* \
--w scripts/* \
+-w scripts/ \
+-w scripts/build/ \
+-w scripts/build/lib/ \
+-w scripts/lib/ \
 "
 
 export FILES_TO_IGNORE="\
