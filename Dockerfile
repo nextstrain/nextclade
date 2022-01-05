@@ -14,6 +14,8 @@ RUN set -euxo pipefail >dev/null \
 && apt-get clean autoclean >/dev/null \
 && rm -rf /var/lib/apt/lists/*
 
+ARG WATCHEXEC_VERSION="1.17.1"
+
 ARG USER=user
 ARG GROUP=user
 ARG UID
@@ -81,6 +83,11 @@ RUN set -euxo pipefail >dev/null \
   && cp -rv "csv-validator-cmd-${CSV_VALIDATOR_VERSION}/lib" "/usr/" \
   && rm -rf /tmp/*
 
+RUN set -euxo pipefail >/dev/null \
+&& curl -sSL "https://github.com/watchexec/watchexec/releases/download/cli-v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-1.17.1-x86_64-unknown-linux-musl/watchexec" \
+&& chmod +x "/usr/bin/watchexec" \
+&& watchexec --version
+
 # Add user and group
 RUN set -euxo pipefail >dev/null \
 && \
@@ -110,5 +117,3 @@ RUN set -euxo pipefail >dev/null \
 USER ${USER}
 
 WORKDIR /src
-
-ENTRYPOINT ["make", "dev"]

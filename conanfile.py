@@ -113,7 +113,7 @@ def configure(args=None):
   # Whether to build a standalone static executable
   NEXTALIGN_STATIC_BUILD = \
     is_truthy(os.environ.get('NEXTALIGN_STATIC_BUILD')) \
-    or (is_truthy(args["static"])) \
+    or (is_truthy(args.get("static"))) \
     or (
         CMAKE_BUILD_TYPE == "Release"
         and not CMAKE_BUILD_TYPE in ["ASAN", "MSAN", "TSAN", "UBSAN"]
