@@ -5,6 +5,7 @@ COMMANDS = [
   "codegen",
   "configure",
   "build",
+  "run",
 ]
 
 ARGS = [

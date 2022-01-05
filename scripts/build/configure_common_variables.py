@@ -1,4 +1,5 @@
 import os
+from shutil import which
 
 from configure_linux_static_toolchain import configure_linux_static_toolchain
 from configure_wasm_toolchain import configure_wasm_toolchain
@@ -7,6 +8,17 @@ from is_ci import check_is_ci
 from is_truthy import is_truthy
 from namedtuple import dict_to_namedtuple
 from run_command import join_path_var, Shell
+
+
+def get_exe_full_path(proj_name, config, build_dir, install_dir):
+  cli_dir = f"{build_dir}/packages/{proj_name}_cli"
+  cli_filename = f"{proj_name}-{config.HOST_OS}-{config.HOST_ARCH}"
+
+  cli_full_path = f"{cli_dir}/{cli_filename}"
+  if config.CMAKE_BUILD_TYPE == "Release":
+    cli_full_path = f"{install_dir}/bin/{cli_filename}"
+
+  return cli_full_path
 
 
 def configure_common_variables(project_root_dir, args=None):
@@ -159,6 +171,17 @@ def configure_common_variables(project_root_dir, args=None):
   if HOST_OS == "MacOS":
     PATH.append("/local/opt/m4/bin")
 
+  # gdb (or lldb) command with arguments
+  GDB_DEFAULT = ""
+  if IS_CI:
+    GDB_DEFAULT = ""
+  elif which("lldb") is not None:
+    GDB_DEFAULT = f"lldb --batch --source-on-crash {project_root_dir}/scripts/lib/.lldb-on-crash --source {project_root_dir}/scripts/lib/.lldb-source --"
+  elif which("gdb"):
+    GDB_DEFAULT = f"gdb --quiet -ix {project_root_dir}/scripts/lib/.gdbinit -x {project_root_dir}/scripts/lib/.gdbexec --args"
+
+  GDB = os.environ.get("GDB") or GDB_DEFAULT
+
   # Gather preliminary variables. These will be used to setup toolchains.
   config_dict = {
     "PROJECT_ROOT_DIR": project_root_dir,
@@ -207,6 +230,8 @@ def configure_common_variables(project_root_dir, args=None):
     "DATA_FULL_DOMAIN": DATA_FULL_DOMAIN,
     "ENABLE_DEBUG_TRACE": ENABLE_DEBUG_TRACE,
 
+    "GDB": GDB,
+
     "PATH": PATH,
     "LD_LIBRARY_PATH": LD_LIBRARY_PATH
   }
@@ -223,15 +248,33 @@ def configure_common_variables(project_root_dir, args=None):
   config_dict.update(**toolchain_config_dict)
 
   BUILD_DIR_NAME = f"{config_dict['BUILD_PREFIX']}{config_dict['CMAKE_BUILD_TYPE']}{config_dict['BUILD_SUFFIX']}"
+  CONAN_USER_HOME = f"{project_root_dir}/.cache/{BUILD_DIR_NAME}"
+  CCACHE_DIR = f"{project_root_dir}/.cache/{BUILD_DIR_NAME}/.ccache"
+  BUILD_DIR = f"{project_root_dir}/.build/{BUILD_DIR_NAME}"
+
+  NEXTALIGN_CLI_EXE = get_exe_full_path(
+    proj_name="nextalign", config=config, build_dir=BUILD_DIR, install_dir=config.INSTALL_DIR
+  )
+  NEXTCLADE_CLI_EXE = get_exe_full_path(
+    proj_name="nextclade", config=config, build_dir=BUILD_DIR, install_dir=config.INSTALL_DIR
+  )
+  NEXTALIGN_CLI_ARGS = os.environ["NEXTALIGN_CLI_ARGS"]
+  NEXTCLADE_CLI_ARGS = os.environ["NEXTCLADE_CLI_ARGS"]
+  DATA_DIR = f"{project_root_dir}/data_dev"
 
   # Update the config with the new values
   config_dict.update(**toolchain_config_dict)
   config_dict.update({
     "PATH": join_path_var(config_dict["PATH"]),
     "LD_LIBRARY_PATH": join_path_var(config_dict["LD_LIBRARY_PATH"]),
-    "CONAN_USER_HOME": f"{project_root_dir}/.cache/{BUILD_DIR_NAME}",
-    "CCACHE_DIR": f"{project_root_dir}/.cache/{BUILD_DIR_NAME}/.ccache",
-    "BUILD_DIR": f"{project_root_dir}/.build/{BUILD_DIR_NAME}",
+    "CONAN_USER_HOME": CONAN_USER_HOME,
+    "CCACHE_DIR": CCACHE_DIR,
+    "BUILD_DIR": BUILD_DIR,
+    "DATA_DIR": DATA_DIR,
+    "NEXTALIGN_CLI_EXE": NEXTALIGN_CLI_EXE,
+    "NEXTCLADE_CLI_EXE": NEXTCLADE_CLI_EXE,
+    "NEXTALIGN_CLI_ARGS": NEXTALIGN_CLI_ARGS,
+    "NEXTCLADE_CLI_ARGS": NEXTCLADE_CLI_ARGS,
   })
 
   config_dict = dict(filter(lambda item: item[1] is not None, config_dict.items()))

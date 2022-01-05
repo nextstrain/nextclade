@@ -1,5 +1,9 @@
 """
 Implements build system for C++ parts of the project.
+
+This blends together a configuration file for Conan C++ package manager (usually 'conanfile.py') and
+a custom python build logic.
+
 """
 
 import os
@@ -18,9 +22,10 @@ sys.path.append(os.path.join(THIS_DIR, "scripts", "build", "lib"))
 from build import run_build
 from codegen import run_codegen
 from configure import configure_build
+from configure_common_variables import configure_common_variables
 from install_deps import install_deps
 from parse_args import parse_args, COMMANDS
-from configure_common_variables import configure_common_variables
+from run import run
 
 # Combine system environment variables with variables read from .env files
 os.environ = {
@@ -57,6 +62,7 @@ NEXTCLADE_CLI_DEPS = NEXTCLADE_WASM_DEPS + [
 class TheConanFile(ConanFile):
   """
   Configures Conan C++ package manager
+  See: https://docs.conan.io/en/latest/reference/conanfile.html
   """
   name = "nextclade"
   version = "1.7.0"
@@ -151,12 +157,12 @@ class TheConanFile(ConanFile):
 if __name__ == '__main__':
   args = parse_args()
 
+  if len(args["commands"]) == 0:
+    args["commands"] = COMMANDS
+
   config, shell = configure_common_variables(project_root_dir=PROJECT_ROOT_DIR, args=args)
 
   os.makedirs(config.BUILD_DIR, exist_ok=True)
-
-  if len(args["commands"]) == 0:
-    args["commands"] = COMMANDS
 
   # Configure build tools, install 3rd-party dependencies
   # and ensure they can be found by the subsequent steps
@@ -174,3 +180,6 @@ if __name__ == '__main__':
   # Run makefiles, compile and link binaries and copy them into the final location
   if 'build' in args["commands"]:
     run_build(config, shell)
+
+  if 'run' in args["commands"]:
+    run(config, shell)
