@@ -531,9 +531,7 @@ class TheConanFile(ConanFile):
     cmake.definitions["DATA_FULL_DOMAIN"] = config.DATA_FULL_DOMAIN
     cmake.definitions["ENABLE_DEBUG_TRACE"] = 1 if config.ENABLE_DEBUG_TRACE else 0
     cmake.definitions["NEXTALIGN_BUILD_BENCHMARKS"] = config.NEXTALIGN_BUILD_BENCHMARKS
-    cmake.definitions["NEXTALIGN_BUILD_BENCHMARKS"] = config.NEXTALIGN_BUILD_BENCHMARKS
     cmake.definitions["NEXTALIGN_BUILD_CLI"] = config.NEXTALIGN_BUILD_CLI
-    cmake.definitions["NEXTALIGN_BUILD_TESTS"] = config.NEXTALIGN_BUILD_TESTS
     cmake.definitions["NEXTALIGN_BUILD_TESTS"] = config.NEXTALIGN_BUILD_TESTS
     cmake.definitions["NEXTALIGN_MACOS_ARCH"] = config.HOST_ARCH
     cmake.definitions["NEXTALIGN_STATIC_BUILD"] = config.NEXTALIGN_STATIC_BUILD
