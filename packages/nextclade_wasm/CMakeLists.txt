@@ -71,6 +71,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+  common
   nextclade_json
   nextclade
 

@@ -113,6 +113,9 @@ target_include_directories(${PROJECT_NAME}
   )
 
 target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+  common
+
   PRIVATE
   Microsoft.GSL::GSL
   Boost::headers
