@@ -21,6 +21,8 @@ add_library(${PROJECT_NAME} STATIC
   include/common/debug_trace.h
   include/common/debugbreak.h
   include/common/ieee754_comparison.h
+  include/common/safe_string.h
+  include/common/safe_string_view.h
   include/common/safe_vector.h
   src/common.cpp
   )
