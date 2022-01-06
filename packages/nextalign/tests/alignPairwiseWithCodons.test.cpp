@@ -36,7 +36,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsQuery) {
   const auto qry =    toNucleotideSequence(   "CATGAATCTCAGTTTG"  );
   // clang-format on
 
-  const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
+  const safe_vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedNuc);
   EXPECT_EQ(16 * 3 - 7 - 7, result.result->alignmentScore);
@@ -64,7 +64,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsRef) {
   const auto ref =    toNucleotideSequence(   "CATGAATCTCAGTTTG"  );
   // clang-format on
 
-  const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
+  const safe_vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedNuc);
   EXPECT_EQ(16 * 3 - 7 - 7, result.result->alignmentScore);
@@ -103,7 +103,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonTwoGenes) {
   const auto qry =    toNucleotideSequence(   "CATGAATCTCAGTAATGCTTTGC"  );
   // clang-format on
 
-  const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
+  const safe_vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedNuc);
   EXPECT_EQ(20 * 3 - 7 - 7, result.result->alignmentScore);
@@ -131,7 +131,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsQuery2) {
   const auto qry =    toNucleotideSequence(  "TGGGTGTTTACCACAAAA"  );
   // clang-format on
 
-  const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
+  const safe_vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedNuc);
   EXPECT_EQ(18 * 3 - 7, result.result->alignmentScore);
@@ -159,7 +159,7 @@ TEST_F(AlignPairwiseWithCodons, AlignsCodonGapsRef2) {
   const auto ref =    toNucleotideSequence(  "TGGGTGTTTACCACAAAA"  );
   // clang-format on
 
-  const std::vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
+  const safe_vector<int> gapOpenCosts = getGapOpenCloseScoresCodonAware(ref, geneMap, options);
 
   const auto result = alignPairwise(qry, ref, gapOpenCosts, options.alignment, options.seedNuc);
   EXPECT_EQ(18 * 3 - 7, result.result->alignmentScore);

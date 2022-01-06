@@ -34,7 +34,7 @@ namespace {
     const NucleotideSequence refSeq = toNucleotideSequence("CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC");
 
 
-    std::map<int, Nucleotide> makeTestNode(const std::vector<std::string>& mutStrings) {
+    std::map<int, Nucleotide> makeTestNode(const safe_vector<std::string>& mutStrings) {
       std::map<int, Nucleotide> result;
       for (const auto& mutStr : mutStrings) {
         auto sub = parseMutation(mutStr);
@@ -43,14 +43,14 @@ namespace {
       return result;
     }
 
-    AnalysisResult makeTestSeq(const std::vector<std::string>& mutStrings, const std::vector<int>& dels) {
-      std::vector<NucleotideSubstitution> substitutions;
+    AnalysisResult makeTestSeq(const safe_vector<std::string>& mutStrings, const safe_vector<int>& dels) {
+      safe_vector<NucleotideSubstitution> substitutions;
       substitutions.reserve(mutStrings.size());
       for (const auto& mutStr : mutStrings) {
         substitutions.emplace_back(parseMutation(mutStr));
       }
 
-      std::vector<NucleotideDeletion> deletions;
+      safe_vector<NucleotideDeletion> deletions;
       deletions.reserve(dels.size());
       for (const auto& del : dels) {
         deletions.emplace_back(NucleotideDeletion{
@@ -68,8 +68,8 @@ namespace {
       };
     }
 
-    std::vector<NucleotideSubstitutionSimple> makeSubstitutionList(const std::vector<std::string>& substitutions) {
-      std::vector<NucleotideSubstitutionSimple> muts;
+    safe_vector<NucleotideSubstitutionSimple> makeSubstitutionList(const safe_vector<std::string>& substitutions) {
+      safe_vector<NucleotideSubstitutionSimple> muts;
       for (const auto& sub : substitutions) {
         const auto mut = parseMutation(sub);
         muts.emplace_back(NucleotideSubstitutionSimple{
@@ -81,8 +81,8 @@ namespace {
       return muts;
     }
 
-    std::vector<NucleotideDeletionSimple> makeDeletionList(const std::vector<std::string>& deletions) {
-      std::vector<NucleotideDeletionSimple> muts;
+    safe_vector<NucleotideDeletionSimple> makeDeletionList(const safe_vector<std::string>& deletions) {
+      safe_vector<NucleotideDeletionSimple> muts;
       for (const auto& sub : deletions) {
         const auto mut = parseMutation(sub);
         muts.emplace_back(NucleotideDeletionSimple{

@@ -90,7 +90,7 @@ namespace Nextclade {
   }//namespace
 
   std::string formatQcFlags(const QcResult& qc) {
-    std::vector<std::string> formatted;
+    safe_vector<std::string> formatted;
 
     if (qc.missingData) {
       formatted.emplace_back(formatQc(*qc.missingData));

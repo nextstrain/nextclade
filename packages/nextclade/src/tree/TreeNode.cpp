@@ -10,7 +10,7 @@
 
 #include "../../../nextalign/src/alphabet/nucleotides.h"
 #include "../io/parseMutation.h"
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "../utils/safe_cast.h"
 
 namespace Nextclade {
@@ -266,7 +266,7 @@ namespace Nextclade {
       return setAaMutationsOrSubstitutions("aaSubstitutions", aaSubstitutionMap);
     }
 
-    std::vector<NucleotideSubstitution> nucleotideMutations() const {
+    safe_vector<NucleotideSubstitution> nucleotideMutations() const {
       ensureIsObject();
 
       const auto path = json_pointer{"/branch_attrs/mutations/nuc"};
@@ -280,7 +280,7 @@ namespace Nextclade {
         // TODO: throw an exception
       }
 
-      std::vector<NucleotideSubstitution> result;
+      safe_vector<NucleotideSubstitution> result;
       result.reserve(nucMutsArray.size());
 
       for (const auto& mutStrValue : nucMutsArray) {
@@ -296,7 +296,7 @@ namespace Nextclade {
       return result;
     }
 
-    std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> aminoacidMutations() {
+    std::map<std::string, safe_vector<AminoacidSubstitutionWithoutGene>> aminoacidMutations() {
       ensureIsObject();
 
       const auto path = json_pointer{"/branch_attrs/mutations"};
@@ -310,7 +310,7 @@ namespace Nextclade {
         return {};
       }
 
-      std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> result;
+      std::map<std::string, safe_vector<AminoacidSubstitutionWithoutGene>> result;
       for (const auto& [geneName, aaMutsForGene] : aaMuts.items()) {
         if (geneName == "nuc") {
           continue;
@@ -403,7 +403,7 @@ namespace Nextclade {
       j[json_pointer{"/node_attrs/clade_membership/value"}] = clade;
     }
 
-    std::map<std::string, std::string> customNodeAttributes(const std::vector<std::string>& customNodeAttrKeys) const {
+    std::map<std::string, std::string> customNodeAttributes(const safe_vector<std::string>& customNodeAttrKeys) const {
       ensureIsObject();
 
       std::map<std::string, std::string> attrs;
@@ -527,11 +527,11 @@ namespace Nextclade {
     return pimpl->aaMutations();
   }
 
-  std::vector<NucleotideSubstitution> TreeNode::nucleotideMutations() const {
+  safe_vector<NucleotideSubstitution> TreeNode::nucleotideMutations() const {
     return pimpl->nucleotideMutations();
   }
 
-  std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> TreeNode::aminoacidMutations() const {
+  std::map<std::string, safe_vector<AminoacidSubstitutionWithoutGene>> TreeNode::aminoacidMutations() const {
     return pimpl->aminoacidMutations();
   }
 
@@ -585,7 +585,7 @@ namespace Nextclade {
   }
 
   std::map<std::string, std::string> TreeNode::customNodeAttributes(
-    const std::vector<std::string>& customNodeAttrKeys) const {
+    const safe_vector<std::string>& customNodeAttrKeys) const {
     return pimpl->customNodeAttributes(customNodeAttrKeys);
   }
 

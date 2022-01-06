@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
@@ -24,8 +24,8 @@ namespace {
     };
   }
 
-  PcrPrimer makePrimer(const Range& range, const std::vector<std::pair<int, char>>& nonACGTs) {
-    std::vector<NucleotideLocation> realNonACGTs;
+  PcrPrimer makePrimer(const Range& range, const safe_vector<std::pair<int, char>>& nonACGTs) {
+    safe_vector<NucleotideLocation> realNonACGTs;
     realNonACGTs.reserve(nonACGTs.size());
     for (const auto& nonacgt : nonACGTs) {
       realNonACGTs.emplace_back(NucleotideLocation{.pos = nonacgt.first, .nuc = toNucleotide(nonacgt.second)});

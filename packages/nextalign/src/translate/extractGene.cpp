@@ -3,7 +3,7 @@
 #include <frozen/string.h>
 #include <nextalign/nextalign.h>
 
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../align/alignPairwise.h"
 #include "../utils/at.h"

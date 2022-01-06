@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 struct RefPeptideInternal;
 struct PeptideInternal;
@@ -26,7 +26,7 @@ namespace Nextclade {
     const NucleotideSequence& ref,                               //
     const NucleotideSequence& query,                             //
     const std::map<std::string, RefPeptideInternal>& refPeptides,//
-    const std::vector<PeptideInternal>& queryPeptides,           //
+    const safe_vector<PeptideInternal>& queryPeptides,           //
     const Range& alignmentRange,                                 //
     const GeneMap& geneMap                                       //
   );

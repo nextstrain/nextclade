@@ -5,7 +5,7 @@
 #include <nextclade/nextclade.h>
 
 #include <optional>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../utils/safe_cast.h"
 #include "getQcRuleStatus.h"
@@ -13,7 +13,7 @@
 namespace Nextclade {
   namespace details {
     bool isIgnoredStopCodon(const StopCodonLocation& stopCodon,
-      const std::vector<StopCodonLocation>& ignoredStopCodons) {
+      const safe_vector<StopCodonLocation>& ignoredStopCodons) {
       return std::any_of(ignoredStopCodons.cbegin(), ignoredStopCodons.end(),
         [&stopCodon](const StopCodonLocation& ignoredStopCodon) { return stopCodon == ignoredStopCodon; });
     }
@@ -30,10 +30,10 @@ namespace Nextclade {
     }
 
     int totalStopCodons = 0;
-    std::vector<StopCodonLocation> stopCodons;
+    safe_vector<StopCodonLocation> stopCodons;
 
     int totalStopCodonsIgnored = 0;
-    std::vector<StopCodonLocation> stopCodonsIgnored;
+    safe_vector<StopCodonLocation> stopCodonsIgnored;
     for (const auto& peptide : alignment.queryPeptides) {
       auto lengthMinusOne = safe_cast<int>(peptide.seq.size() - 1);// Minus one to ignore valid stop codon at the end
 

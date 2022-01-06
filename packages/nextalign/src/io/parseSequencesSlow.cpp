@@ -131,8 +131,8 @@ std::unique_ptr<FastaStream> makeFastaStreamSlow(std::istream& istream, const st
   return std::make_unique<FastaStreamSlowImpl>(istream, filename);
 }
 
-std::vector<AlgorithmInput> parseSequencesSlow(std::istream& istream, const std::string& filename) {
-  std::vector<AlgorithmInput> seqs;
+safe_vector<AlgorithmInput> parseSequencesSlow(std::istream& istream, const std::string& filename) {
+  safe_vector<AlgorithmInput> seqs;
 
   auto fastaStream = makeFastaStreamSlow(istream, filename);
   AlgorithmInput input;

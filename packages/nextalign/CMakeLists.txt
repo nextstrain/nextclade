@@ -56,13 +56,7 @@ add_library(${PROJECT_NAME} STATIC
   src/translate/translateGenesRef.h
   src/utils/at.h
   src/utils/concat_move.h
-  src/utils/config.h
   src/utils/contains.h
-  src/utils/contract.h
-  src/utils/debug_trace.h
-  src/utils/debugbreak.h
-  src/utils/ieee754_comparison.h
-  src/utils/macro_overload.h
   src/utils/map.h
   src/utils/safe_cast.h
   src/utils/to_underlying.h

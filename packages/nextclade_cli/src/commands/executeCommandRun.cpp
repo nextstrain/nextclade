@@ -98,10 +98,10 @@ namespace Nextclade {
 
       const auto treeString = readFile(inputTree);
 
-      std::vector<Nextclade::PcrPrimer> pcrPrimers;
+      safe_vector<Nextclade::PcrPrimer> pcrPrimers;
       if (inputPcrPrimers) {
         const auto pcrPrimersCsvString = readFile(*inputPcrPrimers);
-        std::vector<std::string> warnings;
+        safe_vector<std::string> warnings;
         pcrPrimers =
           Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, *inputPcrPrimers, refData.seq, warnings);
       }

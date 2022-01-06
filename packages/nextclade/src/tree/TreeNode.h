@@ -12,7 +12,7 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 enum class Nucleotide : char;
 
@@ -62,9 +62,9 @@ namespace Nextclade {
 
     std::map<std::string, std::map<int, Aminoacid>> aaMutations() const;
 
-    std::vector<NucleotideSubstitution> nucleotideMutations() const;
+    safe_vector<NucleotideSubstitution> nucleotideMutations() const;
 
-    std::map<std::string, std::vector<AminoacidSubstitutionWithoutGene>> aminoacidMutations() const;
+    std::map<std::string, safe_vector<AminoacidSubstitutionWithoutGene>> aminoacidMutations() const;
 
     void setMutations(const std::map<int, Nucleotide>& data);
 
@@ -87,7 +87,7 @@ namespace Nextclade {
 
     void setClade(const std::string& clade);
 
-    std::map<std::string, std::string> customNodeAttributes(const std::vector<std::string>& customNodeAttrKeys) const;
+    std::map<std::string, std::string> customNodeAttributes(const safe_vector<std::string>& customNodeAttrKeys) const;
 
     void setCustomNodeAttributes(const std::map<std::string, std::string>& attrs) const;
 

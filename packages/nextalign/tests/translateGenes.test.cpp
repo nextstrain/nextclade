@@ -9,7 +9,7 @@ protected:
   NucleotideSequence ref;
   GeneMap geneMap;
   NextalignOptions options = getDefaultOptions();
-  std::vector<int> gapOpenCloseAA;
+  safe_vector<int> gapOpenCloseAA;
   std::map<std::string, RefPeptideInternal> refPeptides;
 
   TranslateGenes() {

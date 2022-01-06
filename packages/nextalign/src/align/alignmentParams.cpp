@@ -2,7 +2,7 @@
 
 #include <nextalign/nextalign.h>
 
-#include "../utils/debug_trace.h"
+#include <common/debug_trace.h>
 #include "../utils/safe_cast.h"
 
 
