@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <common/safe_string.h>
+#include <common/safe_vector.h>
+
 #include <algorithm>
 #include <boost/algorithm/string/join.hpp>
 #include <istream>
@@ -10,7 +13,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <common/safe_vector.h>
 
 
 /**
@@ -135,10 +137,10 @@ public:
 
 
 template<typename Letter>
-using Sequence = std::basic_string<Letter>;
+using Sequence = safe_string<Letter>;
 
 template<typename Letter>
-using SequenceView = std::basic_string_view<Letter>;
+using SequenceView = safe_string_view<Letter>;
 
 enum class Nucleotide : char {
   U = 0,

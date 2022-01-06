@@ -1,36 +1,35 @@
+#pragma once
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedStructInspection"
 #pragma ide diagnostic ignored "OCUnusedTypeAliasInspection"
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 
-#pragma once
 
 #include <algorithm>
 #include <memory>
-#include <vector>
+#include <string>
 
 #include "contract.h"
 #include "copy.h"
+#include "safe_string_view.h"
 
 
 /**
- * Wraps std::vector with some of the functionality removed and additional
- * debug checks (preconditions) added.
- *
- * Removed functionality:
- *
- *  - at(). Reason: operator[] provides faster access and there are
- *    preconditions in place to catch out-of-bounds accesses in debug mode.
- *
+ * Wraps std::basic_string with debug checks (preconditions) added.
+ * Only implements some of the methods, the ones we use.
  */
-template<typename T, typename Alloc = std::allocator<T>>
-class safe_vector {
-  using Base = std::vector<T, Alloc>;
+template<typename T, typename CharTraits = std::char_traits<T>, typename Alloc = std::allocator<T>>
+class safe_string {
+  using Base = std::basic_string<T, CharTraits, Alloc>;
   Base base;
 
 public:
-  template<typename Y, typename AllocY>
-  friend bool operator==(const safe_vector<Y, AllocY>& left, const safe_vector<Y, AllocY>& right);
+  template<typename Y, typename CharTraitsY, typename AllocY>
+  friend bool operator==(const safe_string<Y, CharTraitsY, AllocY>& left,
+    const safe_string<Y, CharTraitsY, AllocY>& right);
+
+  friend class safe_string_view<T, CharTraits>;
 
   using value_type = T;
   using size_type = typename Base::size_type;
@@ -45,64 +44,77 @@ public:
   using difference_type = typename Base::difference_type;
   using allocator_type = typename Base::allocator_type;
 
-  inline safe_vector() = default;
+  inline safe_string() = default;
 
-  inline explicit safe_vector(const std::vector<T, Alloc>& vec) noexcept : base(vec) {}
+  inline safe_string(const std::basic_string<T, CharTraits, Alloc>& str) noexcept : base(str) {}
 
-  inline explicit safe_vector(std::vector<T, Alloc>&& vec) noexcept : base(std::move(vec)) {}
+  inline safe_string(std::basic_string<T, CharTraits, Alloc>&& str) noexcept : base(std::move(str)) {}
 
-  inline explicit safe_vector(const allocator_type& allocator) noexcept : base(allocator) {}
+  inline safe_string(const safe_string_view<T, CharTraits>& strv) noexcept : base(strv.to_std()) {}
 
-  inline explicit safe_vector(size_type n, const allocator_type& allocator = allocator_type()) : base(n, allocator) {}
+  inline explicit safe_string(const T& t, const Alloc& alloc = Alloc()) : base(t, alloc) {}
 
-  inline safe_vector(size_type n, const value_type& value, const allocator_type& allocator = allocator_type())
+  inline explicit safe_string(const allocator_type& allocator) noexcept : base(allocator) {}
+
+  inline explicit safe_string(size_type n, const allocator_type& allocator = allocator_type()) : base(n, allocator) {}
+
+  inline safe_string(size_type n, const value_type& value, const allocator_type& allocator = allocator_type())
       : base(n, value, allocator) {}
 
-  inline safe_vector(const safe_vector& other) = default;
+  inline safe_string(const safe_string& other) = default;
 
-  inline safe_vector(safe_vector&&) noexcept = default;
+  inline safe_string(safe_string&&) noexcept = default;
 
-  inline safe_vector(const safe_vector& x, const allocator_type& allocator) : base(x, allocator) {}
+  inline safe_string(const safe_string& x, const allocator_type& allocator) : base(x, allocator) {}
 
-  inline safe_vector(safe_vector&& rv, const allocator_type& allocator) noexcept : base(std::move(rv), allocator) {}
+  inline safe_string(safe_string&& rv, const allocator_type& allocator) noexcept : base(std::move(rv), allocator) {}
 
-  inline safe_vector(std::initializer_list<value_type> list, const allocator_type& allocator = allocator_type())
+  inline safe_string(std::initializer_list<value_type> list, const allocator_type& allocator = allocator_type())
       : base(list, allocator) {}
 
   template<typename InputIterator>
-  inline safe_vector(InputIterator first, InputIterator last, const allocator_type& allocator = allocator_type())
+  inline safe_string(InputIterator first, InputIterator last, const allocator_type& allocator = allocator_type())
       : base(first, last, allocator) {}
 
-  inline ~safe_vector() noexcept = default;
+  inline ~safe_string() noexcept = default;
 
-  inline const std::vector<T, Alloc>& to_std() const {
+  operator safe_string_view<T, CharTraits>() const noexcept {// NOLINT(google-explicit-constructor)
+    return safe_string_view<T, CharTraits>{base.operator std::basic_string_view<T, CharTraits>()};
+  }
+
+  inline const std::basic_string<T, CharTraits, Alloc>& to_std() const {
     return base;
   }
 
-  inline std::vector<T, Alloc>& to_std_ref() {
+  inline std::basic_string<T, CharTraits, Alloc>& to_std_ref() {
     return base;
   }
 
-  inline void swap(safe_vector& other) {
+  inline void swap(safe_string& other) {
     using std::swap;
     base.swap(other.base);
   }
 
-  inline safe_vector& operator=(std::initializer_list<value_type> other) {
+  inline safe_string& operator=(T other) {
     base = other;
     return *this;
   }
 
-  inline safe_vector& operator=(const safe_vector& other) {
+  inline safe_string& operator=(std::initializer_list<value_type> other) {
+    base = other;
+    return *this;
+  }
+
+  inline safe_string& operator=(const safe_string& other) {
     using std::swap;
     if (this != &other) {
-      safe_vector other_copy = copy(other);
+      safe_string other_copy = copy(other);
       std::swap(base, other_copy.base);
     }
     return *this;
   }
 
-  inline safe_vector& operator=(safe_vector&& other) noexcept {
+  inline safe_string& operator=(safe_string&& other) noexcept {
     if (this != &other) {
       base = std::move(other.base);
     }
@@ -170,9 +182,14 @@ public:
     return base.crend();
   }
 
+  inline size_type length() const noexcept {
+    return size();
+  }
+
   inline size_type size() const noexcept {
     return base.size();
   }
+
 
   inline size_type max_size() const noexcept {
     return base.max_size();
@@ -286,17 +303,41 @@ public:
     base.clear();
   }
 
-  pointer data() noexcept {
+  inline pointer data() noexcept {
     return base.data();
   }
 
-  const_pointer data() const noexcept {
+  inline const_pointer data() const noexcept {
     return base.data();
+  }
+
+  inline safe_string substr(size_type pos = 0, size_type n = Base::npos) const noexcept(false) {
+    return base.substr(pos, n);
+  }
+
+  inline safe_string operator+=(const safe_string& other) {
+    return base.operator+=(other);
+  }
+
+  inline safe_string operator+=(const T c) {
+    return base.operator+=(c);
+  }
+
+  inline safe_string operator+=(const T* cp) {
+    return base.operator+=(cp);
+  }
+
+  inline size_type find(const std::basic_string<T, CharTraits, Alloc>& str, size_type pos = 0) const noexcept {
+    return base.find(str, pos);
+  }
+
+  inline size_type find(const T* c, size_type pos = 0) const noexcept {
+    return base.find(c, pos);
   }
 };
 
-template<typename T, typename Alloc>
-bool operator==(const safe_vector<T, Alloc>& left, const safe_vector<T, Alloc>& right) {
+template<typename T, typename CharTraits, typename Alloc>
+bool operator==(const safe_string<T, CharTraits, Alloc>& left, const safe_string<T, CharTraits, Alloc>& right) {
   return left.base == right.base;
 }
 

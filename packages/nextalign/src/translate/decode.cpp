@@ -149,7 +149,7 @@ constexpr const frozen::map<NucleotideSequenceFrozen, Aminoacid, 65> codonTable 
 Aminoacid decode(const NucleotideSequenceView& codon) {
   invariant_equal(3, codon.size());
 
-  const auto* it = codonTable.find(codon);
+  const auto* it = codonTable.find(codon.to_std());
   if (it != codonTable.end()) {
     return it->second;
   }
