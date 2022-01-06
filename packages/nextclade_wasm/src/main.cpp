@@ -51,12 +51,12 @@ struct NextcladeWasmState {
   Nextclade::Tree tree;
   GeneMap geneMap;
   Nextclade::QcConfig qcRulesConfig;
-  std::vector<Nextclade::PcrPrimer> pcrPrimers;
+  safe_vector<Nextclade::PcrPrimer> pcrPrimers;
   Warnings warnings;
   std::map<std::string, RefPeptideInternal> refPeptides;
 
   // FIXME: this contains duplicate content of `refPeptides`. Deduplicate and change the downstream code to use `refPeptides` if possible please.
-  std::vector<RefPeptideInternal> refPeptidesArr;
+  safe_vector<RefPeptideInternal> refPeptidesArr;
 };
 
 NextcladeWasmState makeNextcladeWasmState(//

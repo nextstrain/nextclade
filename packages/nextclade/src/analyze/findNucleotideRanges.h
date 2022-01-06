@@ -5,38 +5,38 @@
 #include <nextclade/private/nextclade_private.h>
 
 #include <functional>
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {
   /**
   * Finds all contiguous ranges in a given sequence, fulfilling given boolean predicate.
   */
-  std::vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str,
+  safe_vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str,
     const std::function<bool(const Nucleotide&)>& pred);
 
   /**
   * Finds all contiguous ranges of a given character in a given sequence.
   */
-  std::vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str, Nucleotide nuc);
+  safe_vector<NucleotideRange> findNucleotideRanges(const NucleotideSequence& str, Nucleotide nuc);
 
 
   /**
   * Finds all contiguous ranges of a given character in a given sequence.
   */
-  std::vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str,
+  safe_vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str,
     const std::function<bool(const Aminoacid&)>& pred);
 
   /**
   * Finds all contiguous ranges of a given character in a given sequence.
   */
-  std::vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str, Aminoacid aa);
+  safe_vector<AminoacidRange> findAminoacidRanges(const AminoacidSequence& str, Aminoacid aa);
 
 
   /**
   * Finds all contiguous ranges of a given character in all peptides, keeping them grouped per gene.
   */
-  std::vector<GeneAminoacidRange> findAminoacidRangesPerGene(//
-    const std::vector<PeptideInternal>& peptides,            //
+  safe_vector<GeneAminoacidRange> findAminoacidRangesPerGene(//
+    const safe_vector<PeptideInternal>& peptides,            //
     Aminoacid aa                                             //
   );
 

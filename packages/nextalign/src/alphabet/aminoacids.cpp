@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 #include "../utils/contains.h"
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "../utils/map.h"
 #include "../utils/safe_cast.h"
 

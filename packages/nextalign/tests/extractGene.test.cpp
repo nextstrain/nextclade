@@ -4,7 +4,7 @@
 #include <nextalign/nextalign.h>
 
 #include <string_view>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../src/translate/mapCoordinates.h"
 

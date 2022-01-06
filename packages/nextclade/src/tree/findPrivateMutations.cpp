@@ -36,7 +36,7 @@
 
 #include <algorithm>
 #include <map>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../analyze/isSequenced.h"
 #include "../analyze/nucleotide.h"
@@ -69,7 +69,7 @@ namespace Nextclade {
     }
 
     /** Check if this position is included into one of the ranges with unknown aminoacids (aminoacid `X`) */
-    bool isUnknownAa(int pos, const std::vector<GeneAminoacidRange>& unknownAaRanges) {
+    bool isUnknownAa(int pos, const safe_vector<GeneAminoacidRange>& unknownAaRanges) {
       // If in any of the genes
       // (should be only 1 gene at this point, but there might be multiple entries for same gene)...
       return std::any_of(unknownAaRanges.cbegin(), unknownAaRanges.end(), [pos](const GeneAminoacidRange& geneUnk) {
@@ -90,8 +90,8 @@ namespace Nextclade {
     template<typename Letter>
     void processSeqSubstitutions(                                               //
       /* in */ const std::map<int, Letter>& nodeMutMap,                         //
-      /* in */ const std::vector<Substitution<Letter>>& substitutions,          //
-      /* inout */ std::vector<SubstitutionSimple<Letter>>& privateSubstitutions,//
+      /* in */ const safe_vector<Substitution<Letter>>& substitutions,          //
+      /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateSubstitutions,//
       /* inout */ std::set<int>& seqPositionsCovered                            //
     ) {
       for (const auto& seqMut : substitutions) {
@@ -134,9 +134,9 @@ namespace Nextclade {
     template<typename Letter>
     void processSeqDeletions(                                           //
       /* in */ const std::map<int, Letter>& nodeMutMap,                 //
-      /* in */ const std::vector<Deletion<Letter>>& deletions,          //
+      /* in */ const safe_vector<Deletion<Letter>>& deletions,          //
       /* in */ const Sequence<Letter>& refSeq,                          //
-      /* inout */ std::vector<DeletionSimple<Letter>>& privateDeletions,//
+      /* inout */ safe_vector<DeletionSimple<Letter>>& privateDeletions,//
       /* inout */ std::set<int>& seqPositionsCovered                    //
     );
 
@@ -144,9 +144,9 @@ namespace Nextclade {
     template<>
     void processSeqDeletions(                                               //
       /* in */ const std::map<int, Nucleotide>& nodeMutMap,                 //
-      /* in */ const std::vector<Deletion<Nucleotide>>& deletions,          //
+      /* in */ const safe_vector<Deletion<Nucleotide>>& deletions,          //
       /* in */ const Sequence<Nucleotide>& refSeq,                          //
-      /* inout */ std::vector<DeletionSimple<Nucleotide>>& privateDeletions,//
+      /* inout */ safe_vector<DeletionSimple<Nucleotide>>& privateDeletions,//
       /* inout */ std::set<int>& seqPositionsCovered                        //
     ) {
       for (const auto& del : deletions) {
@@ -178,9 +178,9 @@ namespace Nextclade {
     template<>
     void processSeqDeletions(                                              //
       /* in */ const std::map<int, Aminoacid>& nodeMutMap,                 //
-      /* in */ const std::vector<Deletion<Aminoacid>>& deletions,          //
+      /* in */ const safe_vector<Deletion<Aminoacid>>& deletions,          //
       /* in */ const Sequence<Aminoacid>& refSeq,                          //
-      /* inout */ std::vector<DeletionSimple<Aminoacid>>& privateDeletions,//
+      /* inout */ safe_vector<DeletionSimple<Aminoacid>>& privateDeletions,//
       /* inout */ std::set<int>& seqPositionsCovered                       //
     ) {
       for (const auto& del : deletions) {
@@ -217,8 +217,8 @@ namespace Nextclade {
       /* in */ const AnalysisResult& seq,                                       //
       /* in */ const Sequence<Letter>& refSeq,                                  //
       /* in */ const std::set<int>& seqPositionsCovered,                        //
-      /* inout */ std::vector<SubstitutionSimple<Letter>>& privateSubstitutions,//
-      /* inout */ std::vector<DeletionSimple<Letter>>& privateDeletions         //
+      /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateSubstitutions,//
+      /* inout */ safe_vector<DeletionSimple<Letter>>& privateDeletions         //
     ) {
       for (const auto& [pos, nodeQueryNuc] : nodeMutMap) {
         const bool notCoveredYet = !has(seqPositionsCovered, pos);
@@ -242,15 +242,15 @@ namespace Nextclade {
     PrivateMutations<Letter> findPrivateMutations(          //
       const std::map<int, Letter>& nodeMutMap,              //
       const AnalysisResult& seq,                            //
-      const std::vector<Substitution<Letter>> substitutions,//
-      const std::vector<Deletion<Letter>> deletions,        //
+      const safe_vector<Substitution<Letter>> substitutions,//
+      const safe_vector<Deletion<Letter>> deletions,        //
       const Sequence<Letter>& refSeq                        //
     ) {
 
-      std::vector<SubstitutionSimple<Letter>> privateSubstitutions;
+      safe_vector<SubstitutionSimple<Letter>> privateSubstitutions;
       privateSubstitutions.reserve(substitutions.size() + nodeMutMap.size());
 
-      std::vector<DeletionSimple<Letter>> privateDeletions;
+      safe_vector<DeletionSimple<Letter>> privateDeletions;
       privateDeletions.reserve(deletions.size() + nodeMutMap.size());
 
       // Remember which positions we cover while iterating sequence mutations,

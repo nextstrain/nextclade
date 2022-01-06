@@ -1,6 +1,6 @@
 #include "findNucChanges.h"
 
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "nucleotide.h"
 #include "utils/safe_cast.h"
@@ -14,8 +14,8 @@ namespace Nextclade {
     int nDel = 0;
     int delPos = -1;
     bool beforeAlignment = true;
-    std::vector<NucleotideSubstitution> substitutions;
-    std::vector<NucleotideDeletion> deletions;
+    safe_vector<NucleotideSubstitution> substitutions;
+    safe_vector<NucleotideDeletion> deletions;
     int alignmentStart = -1;
     int alignmentEnd = -1;
     const auto length = safe_cast<int>(queryStripped.size());

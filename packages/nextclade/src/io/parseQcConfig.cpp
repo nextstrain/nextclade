@@ -40,7 +40,7 @@ namespace Nextclade {
     }
 
     template<typename T, typename Parser>
-    void readArray(const json& j, const std::string& path, std::vector<T>& value, Parser parser) {
+    void readArray(const json& j, const std::string& path, safe_vector<T>& value, Parser parser) {
       if (j.contains(json::json_pointer{path})) {
         value = parseArray<T>(j, json::json_pointer{path}, parser);
       } else {
@@ -49,11 +49,11 @@ namespace Nextclade {
     }
 
     template<typename T, typename Parser>
-    void readArrayMaybe(const json& j, const std::string& path, std::vector<T>& value, Parser parser) {
+    void readArrayMaybe(const json& j, const std::string& path, safe_vector<T>& value, Parser parser) {
       if (j.contains(json::json_pointer{path})) {
         value = parseArray<T>(j, json::json_pointer{path}, parser);
       } else {
-        value = std::vector<T>{};
+        value = safe_vector<T>{};
       }
     }
   }// namespace

@@ -2,7 +2,7 @@
 
 #include <nextclade/nextclade.h>
 
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "../utils/safe_cast.h"
 #include "TreeNode.h"
 

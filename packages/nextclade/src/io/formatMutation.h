@@ -3,6 +3,6 @@
 #include <nextclade/nextclade.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {}// namespace Nextclade
