@@ -367,7 +367,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
 
   // Determine the best alignment by picking the optimal score at the end of the query
   int si = 0;
-  int bestScore = 0;
+  int bestScore = END_OF_SEQUENCE;
   debug_trace("backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n", rowLength, querySize, scoresSize);
   for (int i = 0; i < scoresSize; i++) {
     const auto is = indexToShift(i);
