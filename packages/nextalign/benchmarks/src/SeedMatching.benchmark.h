@@ -3,7 +3,7 @@
 #include <benchmark/benchmark.h>
 
 #include <numeric>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../include/nextalign/nextalign.h"
 #include "../src/align/alignPairwise.cpp"

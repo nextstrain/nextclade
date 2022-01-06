@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../../include/nextclade/nextclade.h"
 #include "../../include/nextclade/private/nextclade_private.h"
@@ -39,7 +39,7 @@ TEST(FindNucChanges, ReportsSubstitutions) {
 
   const auto results = findNucChanges(ref, query);
 
-  const auto expected = std::vector<NucleotideSubstitution>({
+  const auto expected = safe_vector<NucleotideSubstitution>({
     {.ref = Nucleotide::C, .pos = 0, .qry = Nucleotide::A},
     {.ref = Nucleotide::A, .pos = 3, .qry = Nucleotide::T},
   });
@@ -57,7 +57,7 @@ TEST(FindNucChanges, ReportsDeletions) {
 
   const auto results = findNucChanges(ref, query);
 
-  const auto expected = std::vector<NucleotideDeletion>({
+  const auto expected = safe_vector<NucleotideDeletion>({
     {.start = 3, .length = 3}
   });
 

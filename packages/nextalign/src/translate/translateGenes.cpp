@@ -1,17 +1,18 @@
 #include "translateGenes.h"
 
+#include <common/copy.h>
+#include <common/debug_trace.h>
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
 
 #include <map>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "../alphabet/nucleotides.h"
 #include "../strip/stripInsertions.h"
 #include "../utils/at.h"
-#include "../utils/debug_trace.h"
 #include "../utils/mapFind.h"
 #include "./extractGene.h"
 #include "./mapCoordinates.h"
@@ -22,15 +23,9 @@
 #include "detectFrameShifts.h"
 #include "removeGaps.h"
 
-namespace {
-  template<typename T>
-  inline T copy(const T& t) {
-    return T(t);
-  }
-}// namespace
 
 void maskNucFrameShiftsInPlace(NucleotideSequence& seq,
-  const std::vector<InternalFrameShiftResultWithMask>& frameShifts) {
+  const safe_vector<InternalFrameShiftResultWithMask>& frameShifts) {
   for (const auto& frameShift : frameShifts) {
     auto current = frameShift.frameShift.nucRel.begin;
     const auto end = frameShift.frameShift.nucRel.end;
@@ -59,7 +54,7 @@ void fillRangeInplace(Sequence<Letter>& seq, const Range& range, Letter letter) 
  * This region is likely misaligned, so these gaps added during peptide alignment don't make sense.
  */
 void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq,
-  const std::vector<InternalFrameShiftResultWithMask>& frameShifts) {
+  const safe_vector<InternalFrameShiftResultWithMask>& frameShifts) {
   for (const auto& frameShift : frameShifts) {
     const auto& gapsLeading = frameShift.frameShift.gapsLeading.codon;
     const auto& frameShiftBody = frameShift.frameShift.codon;
@@ -72,8 +67,8 @@ void maskPeptideFrameShiftsInPlace(AminoacidSequence& seq,
 }
 
 /** Converts frame shift internal representation to external representation  */
-std::vector<FrameShiftResult> toExternal(const std::vector<InternalFrameShiftResultWithMask>& frameShiftResults) {
-  std::vector<FrameShiftResult> result;
+safe_vector<FrameShiftResult> toExternal(const safe_vector<InternalFrameShiftResultWithMask>& frameShiftResults) {
+  safe_vector<FrameShiftResult> result;
   result.reserve(frameShiftResults.size());
   for (const auto& fsr : frameShiftResults) {
     result.push_back(fsr.frameShift);
@@ -86,7 +81,7 @@ PeptidesInternal translateGenes(                               //
   const NucleotideSequence& ref,                               //
   const std::map<std::string, RefPeptideInternal>& refPeptides,//
   const GeneMap& geneMap,                                      //
-  const std::vector<int>& gapOpenCloseAA,                      //
+  const safe_vector<int>& gapOpenCloseAA,                      //
   const NextalignOptions& options                              //
 ) {
 
@@ -95,7 +90,7 @@ PeptidesInternal translateGenes(                               //
 
   const CoordinateMapper coordMap{ref};
 
-  std::vector<PeptideInternal> queryPeptides;
+  safe_vector<PeptideInternal> queryPeptides;
   queryPeptides.reserve(geneMap.size());
 
   Warnings warnings;
@@ -183,7 +178,7 @@ PeptidesInternal translateGenes(                               //
 
     maskPeptideFrameShiftsInPlace(stripped.queryStripped, frameShiftResults);
 
-    std::vector<FrameShiftResult> frameShiftResultsFinal = toExternal(frameShiftResults);
+    safe_vector<FrameShiftResult> frameShiftResultsFinal = toExternal(frameShiftResults);
 
     queryPeptides.emplace_back(PeptideInternal{
       .name = geneName,                                      //

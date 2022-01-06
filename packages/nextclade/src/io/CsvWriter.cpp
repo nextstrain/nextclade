@@ -8,12 +8,12 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../utils/at.h"
 #include "../utils/concat.h"
 #include "../utils/contains.h"
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "../utils/eraseDuplicates.h"
 #include "../utils/safe_cast.h"
 #include "formatMutation.h"
@@ -25,8 +25,8 @@ namespace Nextclade {
 
 
     // Lists column names up to and including "clade" column
-    inline std::vector<std::string> getDefaultColumnNamesUpToClades() {
-      return std::vector<std::string>{
+    inline safe_vector<std::string> getDefaultColumnNamesUpToClades() {
+      return safe_vector<std::string>{
         "seqName",
         "clade",
       };
@@ -34,8 +34,8 @@ namespace Nextclade {
 
     // Lists column names after "clade" column
     // The separation is needed because we want to put some more dynamic columns between these.
-    inline std::vector<std::string> getDefaultColumnNamesAfterClades() {
-      return std::vector<std::string>{
+    inline safe_vector<std::string> getDefaultColumnNamesAfterClades() {
+      return safe_vector<std::string>{
         "qc.overallScore",
         "qc.overallStatus",
 
@@ -112,7 +112,7 @@ namespace Nextclade {
     }
 
   public:
-    explicit CSVWriter(const CsvWriterOptions& opt, const std::vector<std::string>& customNodeAttrKeys)
+    explicit CSVWriter(const CsvWriterOptions& opt, const safe_vector<std::string>& customNodeAttrKeys)
         : doc{
             "",
             rapidcsv::LabelParams{/* pColumnNameIdx */ -1, /* pRowNameIdx */ -1},
@@ -152,8 +152,8 @@ namespace Nextclade {
     void addRow(const AnalysisResult& result) override {
       const auto& rowName = numRows;
       const auto numColumns = columnNames.size();
-      const std::vector<std::string> rowData(numColumns, "");
-      doc.InsertRow<std::string>(numRows, rowData);
+      const safe_vector<std::string> rowData(numColumns, "");
+      doc.InsertRow<std::string>(numRows, rowData.to_std());
 
       doc.SetCell(getColumnIndex("seqName"), rowName, result.seqName);
       doc.SetCell(getColumnIndex("clade"), rowName, result.clade);
@@ -272,7 +272,7 @@ namespace Nextclade {
 
 
   std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options,
-    const std::vector<std::string>& customNodeAttrKeys) {
+    const safe_vector<std::string>& customNodeAttrKeys) {
     return std::make_unique<CSVWriter>(options, customNodeAttrKeys);
   }
 

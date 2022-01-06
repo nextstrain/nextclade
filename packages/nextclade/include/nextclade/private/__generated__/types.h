@@ -19,7 +19,7 @@ struct Coloring {
   /**
      * Provided mapping between trait values & hex values
      */
-  std::shared_ptr<std::vector<std::vector<std::string>>> scale;
+  std::shared_ptr<safe_vector<safe_vector<std::string>>> scale;
   /**
      * Text to be displayed in the "color by" dropdown and the tree legend
      */
@@ -144,7 +144,7 @@ struct Meta {
   /**
      * Available colorBys for Auspice
      */
-  std::shared_ptr<std::vector<Coloring>> colorings;
+  std::shared_ptr<safe_vector<Coloring>> colorings;
   /**
      * Auspice displays this currently in the footer.
      */
@@ -157,7 +157,7 @@ struct Meta {
      * These appear as filters in the footer of Auspice (which populates the displayed values
      * based upon the tree)
      */
-  std::shared_ptr<std::vector<std::string>> filters;
+  std::shared_ptr<safe_vector<std::string>> filters;
   nlohmann::json frequencies;
   /**
      * Genome annotations (e.g. genes), relative to the reference genome
@@ -167,15 +167,15 @@ struct Meta {
      * The available options for the geographic resolution dropdown, and their lat/long
      * information
      */
-  std::shared_ptr<std::vector<GeoResolution>> geo_resolutions;
+  std::shared_ptr<safe_vector<GeoResolution>> geo_resolutions;
   /**
      * Who maintains this dataset?
      */
-  std::shared_ptr<std::vector<Maintainer>> maintainers;
+  std::shared_ptr<safe_vector<Maintainer>> maintainers;
   /**
      * Which panels should Auspice display?
      */
-  std::vector<Panel> panels;
+  safe_vector<Panel> panels;
   /**
      * Auspice displays this at the top of the page
      */
@@ -197,7 +197,7 @@ struct Mutations {
   /**
      * nucelotide mutations
      */
-  std::shared_ptr<std::vector<std::string>> nuc;
+  std::shared_ptr<safe_vector<std::string>> nuc;
 };
 
 /**
@@ -243,7 +243,7 @@ struct NumDate {
   /**
      * Confidence of the node date
      */
-  std::shared_ptr<std::vector<double>> confidence;
+  std::shared_ptr<safe_vector<double>> confidence;
   double value;
 };
 
@@ -267,7 +267,7 @@ struct VaccineClass {
 };
 
 using VaccineUnion =
-  std::shared_ptr<std::variant<std::vector<nlohmann::json>, bool, VaccineClass, double, int64_t, std::string>>;
+  std::shared_ptr<std::variant<safe_vector<nlohmann::json>, bool, VaccineClass, double, int64_t, std::string>>;
 
 /**
  * attributes associated with the node (sequence, date, location) as opposed to changes from
@@ -307,7 +307,7 @@ struct Tree {
   /**
      * Child nodes. Recursive structure. Terminal nodes do not have this property.
      */
-  std::shared_ptr<std::vector<Tree>> children;
+  std::shared_ptr<safe_vector<Tree>> children;
   /**
      * Strain name. Must be unique. No spaces
      */

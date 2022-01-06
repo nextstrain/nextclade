@@ -7,7 +7,7 @@
 #include <memory>
 #include <ostream>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 
 namespace Nextclade {
@@ -24,7 +24,7 @@ namespace Nextclade {
     /* in  */ const ReferenceSequenceData &refData,
     /* in  */ const QcConfig &qcRulesConfig,
     /* in  */ const std::string &treeString,
-    /* in  */ const std::vector<PcrPrimer> &pcrPrimers,
+    /* in  */ const safe_vector<PcrPrimer> &pcrPrimers,
     /* in  */ const GeneMap &geneMap,
     /* in  */ const NextalignOptions &nextalignOptions,
     /* out */ std::unique_ptr<std::ostream> &outputJsonStream,

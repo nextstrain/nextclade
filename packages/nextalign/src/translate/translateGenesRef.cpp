@@ -1,6 +1,6 @@
 #include "translateGenesRef.h"
 
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "../utils/safe_cast.h"
 #include "decode.h"
 #include "translate.h"

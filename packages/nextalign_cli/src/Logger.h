@@ -38,7 +38,7 @@ public:
   };
 
   static inline std::string getVerbosityLevels() {
-    std::vector<std::string> quoted;
+    safe_vector<std::string> quoted;
     std::transform(VERBOSITY_LEVELS.cbegin(), VERBOSITY_LEVELS.cend(), std::back_inserter(quoted),
       [](const frozen::string& x) { return fmt::format("\"{}\"", x.data()); });
     return boost::algorithm::join(quoted, ", ");
@@ -75,7 +75,7 @@ public:
       prefix = fmt::format("{:s}: ", options.linePrefix);
     }
 
-    std::vector<std::string> lines;
+    safe_vector<std::string> lines;
     boost::split(lines, message, boost::is_any_of("\n"));
     for (auto& line : lines) {
       boost::trim_if(line, boost::is_any_of("\n"));

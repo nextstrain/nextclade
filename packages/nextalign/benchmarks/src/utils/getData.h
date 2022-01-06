@@ -4,7 +4,7 @@
 #include <cassert>
 #include <fstream>
 #include <numeric>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../include/nextalign/nextalign.h"
 
@@ -12,7 +12,7 @@ constexpr const int NUM_SEQUENCES_AVG = 30;// Number of sequences to process per
 constexpr const int NUM_SEQUENCES_VAR = 10;// Number of sequences to process per "Variation" benchmark
 
 auto getData() {
-  std::vector<AlgorithmInput> sequences;
+  safe_vector<AlgorithmInput> sequences;
   std::ifstream fastaFile("data/example/sequences.fasta");
   const auto sequencesMap = parseSequences(fastaFile, "data/example/sequences.fasta");
   std::copy(sequencesMap.cbegin(), sequencesMap.cend(), back_inserter(sequences));

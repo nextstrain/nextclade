@@ -2,12 +2,12 @@
 
 #include <nextalign/nextalign.h>
 
-std::vector<int> getGapOpenCloseScoresFlat(//
+safe_vector<int> getGapOpenCloseScoresFlat(//
   /* in */ const NucleotideSequence& ref,  //
   /* in */ const NextalignOptions& options //
 );
 
-std::vector<int> getGapOpenCloseScoresCodonAware(//
+safe_vector<int> getGapOpenCloseScoresCodonAware(//
   /* in */ const NucleotideSequence& ref,        //
   /* in */ const GeneMap& geneMap,               //
   /* in */ const NextalignOptions& options       //

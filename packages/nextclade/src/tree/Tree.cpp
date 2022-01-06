@@ -93,7 +93,7 @@ namespace Nextclade {
       return TreeNode{j.at("tree")};
     }
 
-    std::vector<std::string> getCladeNodeAttrKeys() const {
+    safe_vector<std::string> getCladeNodeAttrKeys() const {
       if (!j.is_object()) {
         throw ErrorAuspiceJsonV2Invalid(j);
       }
@@ -102,7 +102,7 @@ namespace Nextclade {
       const auto& nextcladeMetaExtensions = get(metaExtensions, "nextclade", json::object());
       const auto& cladeNodeAttrKeysJson = get(nextcladeMetaExtensions, "clade_node_attrs_keys", json::array());
 
-      std::vector<std::string> cladeNodeAttrKeys;
+      safe_vector<std::string> cladeNodeAttrKeys;
       for (const auto& key : cladeNodeAttrKeysJson) {
         if (key.is_string()) {
           cladeNodeAttrKeys.push_back(key);
@@ -279,7 +279,7 @@ namespace Nextclade {
     return pimpl->root();
   }
 
-  std::vector<std::string> Tree::getCladeNodeAttrKeys() const {
+  safe_vector<std::string> Tree::getCladeNodeAttrKeys() const {
     return pimpl->getCladeNodeAttrKeys();
   }
 

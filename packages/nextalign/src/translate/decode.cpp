@@ -4,9 +4,9 @@
 #include <frozen/map.h>
 #include <frozen/set.h>
 #include <frozen/string.h>
+#include <common/contract.h>
 
 #include "../utils/mapFind.h"
-#include "utils/contract.h"
 
 
 using NucleotideSequenceFrozen = frozen::basic_string<Nucleotide>;
@@ -190,7 +190,7 @@ void reverseComplementInPlace(NucleotideSequence& seq) {
 Aminoacid decode(const NucleotideSequenceView& codon) {
   invariant_equal(3, codon.size());
 
-  const auto* it = codonTable.find(codon);
+  const auto* it = codonTable.find(codon.to_std());
   if (it != codonTable.end()) {
     return it->second;
   }

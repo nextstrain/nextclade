@@ -8,13 +8,13 @@
 #include "../src/io/gene.io.h"
 #include "data/sampleGeneMap.h"
 
-using ExpectedResults = std::vector<GeneMap::value_type>;
+using ExpectedResults = safe_vector<GeneMap::value_type>;
 
 
 std::string makeGffLine(const Gene& gene) {
   const auto attribute = fmt::format(R"( gene_name "{:s}" )", gene.geneName);
 
-  const std::vector<std::string> line = {
+  const safe_vector<std::string> line = {
     /* seqname */ ".",
     /* source */ ".",
     /* feature */ "gene",
@@ -29,8 +29,8 @@ std::string makeGffLine(const Gene& gene) {
   return boost::algorithm::join(line, "\t");
 }
 
-std::string makeGff(const std::vector<Gene>& genes) {
-  std::vector<std::string> lines;
+std::string makeGff(const safe_vector<Gene>& genes) {
+  safe_vector<std::string> lines;
   std::transform(genes.begin(), genes.end(), std::back_inserter(lines), makeGffLine);
   return boost::algorithm::join(lines, "\n") + "\n";
 }

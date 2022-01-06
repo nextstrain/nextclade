@@ -5,15 +5,15 @@
 #include <algorithm>
 #include <deque>
 #include <optional>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../utils/safe_cast.h"
 #include "getQcRuleStatus.h"
 
 
 namespace Nextclade {
-  std::vector<std::vector<int>> findSnpClusters(                         //
-    const std::vector<NucleotideSubstitutionSimple>& privateMutationsRaw,//
+  safe_vector<safe_vector<int>> findSnpClusters(                         //
+    const safe_vector<NucleotideSubstitutionSimple>& privateMutationsRaw,//
     const QCRulesConfigSnpClusters& config                               //
   ) {
     auto privateMutations = privateMutationsRaw;
@@ -21,7 +21,7 @@ namespace Nextclade {
 
     const auto clusterCutOff = safe_cast<size_t>(config.clusterCutOff);
     std::deque<int> currentCluster;
-    std::vector<std::vector<int>> allClusters;
+    safe_vector<safe_vector<int>> allClusters;
     int previousPos = -1;
     for (const auto& mut : privateMutations) {
       const auto& pos = mut.pos;
@@ -38,7 +38,7 @@ namespace Nextclade {
         ) {
           allClusters[allClusters.size() - 1].push_back(pos);
         } else {
-          allClusters.emplace_back(std::vector<int>{currentCluster.cbegin(), currentCluster.cend()});
+          allClusters.emplace_back(safe_vector<int>{currentCluster.cbegin(), currentCluster.cend()});
         }
       }
       previousPos = pos;
@@ -51,8 +51,8 @@ namespace Nextclade {
     return allClusters;
   }
 
-  std::vector<ClusteredSnp> processSnpClusters(const std::vector<std::vector<int>>& snpClusters) {
-    std::vector<ClusteredSnp> result;
+  safe_vector<ClusteredSnp> processSnpClusters(const safe_vector<safe_vector<int>>& snpClusters) {
+    safe_vector<ClusteredSnp> result;
     result.reserve(snpClusters.size());
     for (const auto& cluster : snpClusters) {
       result.emplace_back(ClusteredSnp{

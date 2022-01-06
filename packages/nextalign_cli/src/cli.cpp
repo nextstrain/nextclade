@@ -620,8 +620,8 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
   return fmt::to_string(bufRaw);
 }
 
-std::string formatInsertions(const std::vector<Insertion> &insertions) {
-  std::vector<std::string> insertionStrings;
+std::string formatInsertions(const safe_vector<Insertion> &insertions) {
+  safe_vector<std::string> insertionStrings;
   insertionStrings.reserve(insertions.size());
   for (const auto &insertion : insertions) {
     insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.pos, insertion.ins));
@@ -734,8 +734,8 @@ void run(
       logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} |",//
         index, seqName, alignmentScore, insertions.size());
 
-      std::vector<std::string> warningsCombined;
-      std::vector<std::string> failedGeneNames;
+      safe_vector<std::string> warningsCombined;
+      safe_vector<std::string> failedGeneNames;
       for (const auto &warning : warnings.global) {
         logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
         warningsCombined.push_back(warning);

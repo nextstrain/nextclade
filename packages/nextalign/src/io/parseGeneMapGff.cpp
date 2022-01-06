@@ -86,7 +86,7 @@ std::pair<std::string, std::string> parseAttribute(const std ::string& keyValStr
     separator = " ";
   }
 
-  std::vector<std::string> keyVal;
+  safe_vector<std::string> keyVal;
   boost::split(keyVal, keyValStr, boost::is_any_of(separator));
 
   if (keyVal.size() != 2) {
@@ -112,7 +112,7 @@ std::pair<std::string, std::string> parseAttribute(const std ::string& keyValStr
 }
 
 AttribMap parseAttributes(const std ::string& attribsStr) {
-  std::vector<std::string> keyValStrs;
+  safe_vector<std::string> keyValStrs;
   boost::split(keyValStrs, attribsStr, boost::is_any_of(";"));
 
   AttribMap attribMap;

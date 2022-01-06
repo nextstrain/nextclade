@@ -16,6 +16,7 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -pg")
 
+add_subdirectory(packages/common)
 add_subdirectory(packages/nextalign)
 add_subdirectory(packages/nextclade)
 

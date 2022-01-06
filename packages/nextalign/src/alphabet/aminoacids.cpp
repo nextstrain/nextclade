@@ -1,12 +1,12 @@
 #include "aminoacids.h"
 
+#include <common/contract.h>
 #include <fmt/format.h>
 #include <frozen/map.h>
 
 #include <stdexcept>
 
 #include "../utils/contains.h"
-#include "../utils/contract.h"
 #include "../utils/map.h"
 #include "../utils/safe_cast.h"
 
@@ -117,5 +117,5 @@ AminoacidSequence toAminoacidSequence(const std::string& seq) {
 }
 
 std::string toString(const AminoacidSequence& seq) {
-  return map(seq, std::function<char(Aminoacid)>(aaToChar));
+  return map(seq, std::function<char(Aminoacid)>(aaToChar)).to_std();
 }

@@ -1,9 +1,8 @@
 #include "extractGene.h"
 
+#include <common/safe_vector.h>
 #include <frozen/string.h>
 #include <nextalign/nextalign.h>
-
-#include <vector>
 
 #include "../align/alignPairwise.h"
 #include "../utils/at.h"
@@ -12,15 +11,6 @@
 #include "mapCoordinates.h"
 
 namespace details {
-  template<typename IntS, typename IntL>
-  inline NucleotideSequenceView substr(const NucleotideSequenceView& s, IntS start, IntL length) noexcept(false) {
-    invariant_greater_equal(start, 0);
-    invariant_less(start, s.size());
-    invariant_greater_equal(length, 0);
-    invariant_less_equal(start + length, s.size());
-    return s.substr(safe_cast<size_t>(start), safe_cast<size_t>(length));
-  }
-
   template<typename IntS, typename IntL>
   inline NucleotideSequenceSpan subspan(const NucleotideSequenceSpan& s, IntS start, IntL length) {
     invariant_greater_equal(start, 0);
@@ -85,7 +75,7 @@ ExtractGeneStatus extractGeneQuery(const NucleotideSequenceView& query, const Ge
   invariant_less(geneAln.begin, query.size());
   invariant_less_equal(geneAln.end, query.size());
 
-  auto result = NucleotideSequence(details::substr(query, geneAln.begin, geneAln.length()));
+  auto result = NucleotideSequence(query.substr(geneAln.begin, geneAln.length()));
   const auto resultLength = safe_cast<int>(result.size());
 
   if (resultLength == 0) {
