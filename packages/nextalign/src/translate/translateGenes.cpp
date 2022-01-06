@@ -18,6 +18,7 @@
 #include "./translate.h"
 #include "align/alignPairwise.h"
 #include "align/alignmentParams.h"
+#include "decode.h"
 #include "detectFrameShifts.h"
 #include "removeGaps.h"
 
@@ -120,6 +121,11 @@ PeptidesInternal translateGenes(                               //
       const auto message = *extractQueryGeneStatus.error;
       warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
       continue;
+    }
+
+    if (gene.strand == "-") {
+      reverseComplementInPlace(*extractRefGeneStatus.result);
+      reverseComplementInPlace(*extractQueryGeneStatus.result);
     }
 
     auto& refGeneSeq = *extractRefGeneStatus.result;
