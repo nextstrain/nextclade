@@ -17,6 +17,7 @@ find_package(fmt 7.1.0 REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC
   include/common/contract.h
+  include/common/safe_vector.h
   include/common/debugbreak.h
   include/common/ieee754_comparison.h
   src/common.cpp
