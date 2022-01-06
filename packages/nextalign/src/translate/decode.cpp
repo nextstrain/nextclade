@@ -147,7 +147,7 @@ constexpr const frozen::map<NucleotideSequenceFrozen, Aminoacid, 65> codonTable 
   {NucleotideSequenceFrozen{TTT, 3}, Aminoacid::F},
 };
 
-constexpr auto NUCLEOTIDE_COMPLEMENTS = frozen::make_map<Nucleotide, Nucleotide, 15>({
+constexpr auto NUCLEOTIDE_COMPLEMENTS = frozen::make_map<Nucleotide, Nucleotide, 16>({
   {Nucleotide::A, Nucleotide::T},
   {Nucleotide::C, Nucleotide::G},
   {Nucleotide::G, Nucleotide::C},
@@ -163,6 +163,7 @@ constexpr auto NUCLEOTIDE_COMPLEMENTS = frozen::make_map<Nucleotide, Nucleotide,
   {Nucleotide::H, Nucleotide::D},
   {Nucleotide::B, Nucleotide::V},
   {Nucleotide::N, Nucleotide::N},
+  {Nucleotide::GAP, Nucleotide::GAP},
 });
 
 /**
