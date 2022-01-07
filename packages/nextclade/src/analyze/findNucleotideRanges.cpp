@@ -33,9 +33,8 @@ namespace Nextclade {
       if (found) {
         // rewind forward to the end of matching range
         // TODO: the `i < length` was added to avoid buffer overrun. Double-check algorithmic correctness.
-        while ((c == *found) && (i < length)) {
+        while (i < length && str[i] == *found) {
           ++i;
-          c = str[i];
         }
 
         const auto& end = i;
