@@ -5,11 +5,11 @@
 #include <cmath>
 #include <iostream>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../match/matchAa.h"
 #include "../match/matchNuc.h"
-#include "../utils/debug_trace.h"
+#include <common/debug_trace.h>
 #include "../utils/safe_cast.h"
 
 
@@ -80,10 +80,10 @@ template<>
 }
 
 template<typename Letter>
-std::vector<int> getMapToGoodPositions(const Sequence<Letter>& query, int seedLength) {
+safe_vector<int> getMapToGoodPositions(const Sequence<Letter>& query, int seedLength) {
   const int querySize = safe_cast<int>(query.size());
 
-  std::vector<int> mapToGoodPositions;
+  safe_vector<int> mapToGoodPositions;
   mapToGoodPositions.reserve(querySize);
   int distanceToLastBadPos = 0;
   for (int i = 0; i < querySize; i++) {
@@ -137,7 +137,7 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
   // TODO: Maybe use something other than array? A struct with named fields to make
   //  the code in the end of the function less confusing?
   using Clamp = std::array<int, 4>;
-  std::vector<Clamp> seedMatches;
+  safe_vector<Clamp> seedMatches;
   // generate kmers equally spaced on the query
   const auto seedCover = safe_cast<double>(nGoodPositions - 2 * margin);
   const double kmerSpacing = (seedCover - 1.0) / (nSeeds - 1.0);
@@ -211,7 +211,7 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
 
 template<typename Letter>
 ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& ref,
-  const std::vector<int>& gapOpenClose, int bandWidth, int meanShift,
+  const safe_vector<int>& gapOpenClose, int bandWidth, int meanShift,
   const NextalignAlignmentOptions& alignmentOptions) {
   // allocate a matrix to record the matches
   const int querySize = safe_cast<int>(query.size());
@@ -226,7 +226,7 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
   vector2d<int> paths(n_rows, n_cols);
   // TODO: these could be reduced to vectors
   vector2d<int> scores(n_rows, n_cols);
-  std::vector<int> qryGaps(n_rows);
+  safe_vector<int> qryGaps(n_rows);
 
 
   // fill scores with alignment scores
@@ -350,7 +350,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
     };
 
 
-  std::vector<std::pair<char, char>> aln;
+  safe_vector<std::pair<char, char>> aln;
   Sequence<Letter> aln_ref;
   Sequence<Letter> aln_query;
   aln_ref.reserve(rowLength + 3 * bandWidth);
@@ -360,14 +360,14 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   // const lastScoreByShift = scores.map((d, i) = > d[lastIndexByShift[i]]);
 
 
-  std::vector<int> lastScoreByShift;
-  std::vector<int> lastIndexByShift;
+  safe_vector<int> lastScoreByShift;
+  safe_vector<int> lastIndexByShift;
   lastScoreByShift.resize(scores.num_rows());
   lastIndexByShift.resize(scores.num_rows());
 
   // Determine the best alignment by picking the optimal score at the end of the query
   int si = 0;
-  int bestScore = 0;
+  int bestScore = END_OF_SEQUENCE;
   debug_trace("backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n", rowLength, querySize, scoresSize);
   for (int i = 0; i < scoresSize; i++) {
     const auto is = indexToShift(i);
@@ -484,7 +484,7 @@ struct AlignPairwiseTag {};
 
 template<typename Letter>
 AlignmentStatus<Letter> alignPairwise(const Sequence<Letter>& query, const Sequence<Letter>& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, int bandWidth, int shift,
+  const safe_vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, int bandWidth, int shift,
   AlignPairwiseTag) {
 
   debug_trace(
@@ -515,7 +515,7 @@ AlignmentStatus<Letter> alignPairwise(const Sequence<Letter>& query, const Seque
 
 
 NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
+  const safe_vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
   const NextalignSeedOptions& seedOptions) {
 
   const int querySize = safe_cast<int>(query.size());
@@ -544,6 +544,6 @@ NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const N
 }
 
 AminoacidAlignmentStatus alignPairwise(const AminoacidSequence& query, const AminoacidSequence& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, int bandWidth, int shift) {
+  const safe_vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, int bandWidth, int shift) {
   return alignPairwise(query, ref, gapOpenClose, alignmentOptions, bandWidth, shift, AlignPairwiseTag{});
 }

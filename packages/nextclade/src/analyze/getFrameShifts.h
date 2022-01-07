@@ -1,12 +1,12 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 struct PeptideInternal;
 struct FrameShiftResult;
 
 namespace Nextclade {
 
-  std::vector<FrameShiftResult> flattenFrameShifts(const std::vector<PeptideInternal>& queryPeptides);
+  safe_vector<FrameShiftResult> flattenFrameShifts(const safe_vector<PeptideInternal>& queryPeptides);
 }// namespace Nextclade

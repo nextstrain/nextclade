@@ -5,7 +5,7 @@
 /3rdparty/llvm/
 /assets/
 /build/
-/data_dev/
+/data_dev*/
 /data_local*
 /docs/build/
 /e2e/cli/snapshots/

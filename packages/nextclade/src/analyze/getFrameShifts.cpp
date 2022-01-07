@@ -4,11 +4,11 @@
 #include <nextclade/private/nextclade_private.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {
-  std::vector<FrameShiftResult> flattenFrameShifts(const std::vector<PeptideInternal>& queryPeptides) {
-    std::vector<FrameShiftResult> results;
+  safe_vector<FrameShiftResult> flattenFrameShifts(const safe_vector<PeptideInternal>& queryPeptides) {
+    safe_vector<FrameShiftResult> results;
     for (const auto& peptide : queryPeptides) {
       for (const auto& result : peptide.frameShiftResults) {
         results.push_back(result);

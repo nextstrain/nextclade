@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-using ExpectedResults = std::vector<AlgorithmInput>;
+using ExpectedResults = safe_vector<AlgorithmInput>;
 
 
 bool operator==(const AlgorithmInput& left, const AlgorithmInput& right) {

@@ -98,6 +98,9 @@ target_include_directories(${PROJECT_NAME} SYSTEM
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+  common
+  nextclade_common
+  nextclade
 
   PRIVATE
   ${STATIC_BUILD_FLAGS}
@@ -109,9 +112,6 @@ target_link_libraries(${PROJECT_NAME}
   fmt::fmt-header-only
   semver::semver
   ${DEPENDENCIES}
-
-  nextclade_common
-  nextclade
   )
 
 install(

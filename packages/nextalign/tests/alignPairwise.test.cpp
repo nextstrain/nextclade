@@ -11,7 +11,7 @@
 class AlignPairwise : public ::testing::Test {
 protected:
   NextalignOptions options = getDefaultOptions();
-  std::vector<int> gapOpenClose;
+  safe_vector<int> gapOpenClose;
 
   AlignPairwise() {
     options.alignment.minimalLength = 3;

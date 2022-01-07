@@ -3,7 +3,7 @@
 #include <nextclade/nextclade.h>
 
 #include <numeric>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "analyze/calculateTotalLength.h"
 #include "analyze/findNucChanges.h"
@@ -30,13 +30,13 @@ namespace Nextclade {
     const NucleotideSequence& ref,                               //
     const NucleotideSequence& query,                             //
     const std::map<std::string, RefPeptideInternal>& refPeptides,//
-    const std::vector<RefPeptideInternal>& refPeptidesArr,       //
+    const safe_vector<RefPeptideInternal>& refPeptidesArr,       //
     const GeneMap& geneMap,                                      //
-    const std::vector<PcrPrimer>& pcrPrimers,                    //
+    const safe_vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
     const Tree& tree,                                            //
     const NextalignOptions& nextalignOptions,                    //
-    const std::vector<std::string>& customNodeAttrKeys           //
+    const safe_vector<std::string>& customNodeAttrKeys           //
   ) {
     const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, nextalignOptions);
 
@@ -151,8 +151,8 @@ namespace Nextclade {
     };
   }
 
-  std::vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides) {
-    std::vector<RefPeptideInternal> result;
+  safe_vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides) {
+    safe_vector<RefPeptideInternal> result;
     result.reserve(refPeptides.size());
     for (const auto& refPeptide : refPeptides) {
       result.emplace_back(refPeptide.second);
@@ -166,7 +166,7 @@ namespace Nextclade {
     std::map<std::string, RefPeptideInternal> refPeptides;
 
     // FIXME: this contains duplicate content of `refPeptides`. Deduplicate and change the downstream code to use `refPeptides` if possible please.
-    std::vector<RefPeptideInternal> refPeptidesArr;
+    safe_vector<RefPeptideInternal> refPeptidesArr;
 
   public:
     explicit NextcladeAlgorithmImpl(const NextcladeOptions& opt)
@@ -177,7 +177,7 @@ namespace Nextclade {
       treePreprocess(tree, opt.ref, refPeptides);
     }
 
-    std::vector<std::string> getCladeNodeAttrKeys() const {
+    safe_vector<std::string> getCladeNodeAttrKeys() const {
       return tree.getCladeNodeAttrKeys();
     }
 
@@ -206,7 +206,7 @@ namespace Nextclade {
       return tree;
     }
 
-    const Tree& finalize(const std::vector<AnalysisResult>& results) {
+    const Tree& finalize(const safe_vector<AnalysisResult>& results) {
       treeAttachNodes(tree, results);
       treePostprocess(tree);
       return tree;
@@ -218,7 +218,7 @@ namespace Nextclade {
 
   NextcladeAlgorithm::~NextcladeAlgorithm() {}// NOLINT(modernize-use-equals-default)
 
-  std::vector<std::string> NextcladeAlgorithm::getCladeNodeAttrKeys() const {
+  safe_vector<std::string> NextcladeAlgorithm::getCladeNodeAttrKeys() const {
     return pimpl->getCladeNodeAttrKeys();
   }
 
@@ -230,7 +230,7 @@ namespace Nextclade {
     return pimpl->getTree();
   }
 
-  const Tree& NextcladeAlgorithm::finalize(const std::vector<AnalysisResult>& results) {
+  const Tree& NextcladeAlgorithm::finalize(const safe_vector<AnalysisResult>& results) {
     return pimpl->finalize(results);
   }
 

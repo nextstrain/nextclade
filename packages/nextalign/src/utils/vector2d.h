@@ -2,20 +2,20 @@
 
 #include <fmt/format.h>
 
-#include <vector>
+#include <common/safe_vector.h>
 
-#include "contract.h"
+#include <common/contract.h>
 
 template<class T>
 class vector2d {
   size_t m_rows = 0;
   size_t m_cols = 0;
-  std::vector<T> m_data;
+  safe_vector<T> m_data;
 
 public:
   typedef T value_type;
-  typedef typename std::vector<T>::iterator iterator;
-  typedef typename std::vector<T>::const_iterator const_iterator;
+  typedef typename safe_vector<T>::iterator iterator;
+  typedef typename safe_vector<T>::const_iterator const_iterator;
 
   inline vector2d() {}
 

@@ -5,15 +5,15 @@
 #include <nextclade/private/nextclade_private.h>
 
 #include <boost/algorithm/string/join.hpp>
-#include <vector>
+#include <common/safe_vector.h>
 
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "../utils/mapFind.h"
 #include "../utils/safe_cast.h"
 
 namespace {
-  std::vector<std::string> surroundWithQuotes(const std::vector<std::string>& m) {
-    std::vector<std::string> result;
+  safe_vector<std::string> surroundWithQuotes(const safe_vector<std::string>& m) {
+    safe_vector<std::string> result;
     std::transform(m.cbegin(), m.cend(), std::back_inserter(result),
       [](const auto& x) { return fmt::format("\"{}\"", x); });
     return result;
@@ -41,8 +41,8 @@ namespace Nextclade {
     const AminoacidSequence& queryPeptide,              //
     const Gene& gene,                                   //
     const Range& alignmentRange,                        //
-    std::vector<AminoacidSubstitution>& aaSubstitutions,//
-    std::vector<AminoacidDeletion>& aaDeletions         //
+    safe_vector<AminoacidSubstitution>& aaSubstitutions,//
+    safe_vector<AminoacidDeletion>& aaDeletions         //
   ) {
     precondition_equal(queryPeptide.size(), refPeptide.size());
     precondition_equal(query.size(), ref.size());
@@ -129,12 +129,12 @@ namespace Nextclade {
     const NucleotideSequence& ref,                               //
     const NucleotideSequence& query,                             //
     const std::map<std::string, RefPeptideInternal>& refPeptides,//
-    const std::vector<PeptideInternal>& queryPeptides,           //
+    const safe_vector<PeptideInternal>& queryPeptides,           //
     const Range& alignmentRange,                                 //
     const GeneMap& geneMap                                       //
   ) {
-    std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
+    safe_vector<AminoacidSubstitution> aaSubstitutions;
+    safe_vector<AminoacidDeletion> aaDeletions;
 
     for (const auto& queryPeptide : queryPeptides) {
       const auto& geneName = queryPeptide.name;

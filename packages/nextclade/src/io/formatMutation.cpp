@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "utils/contract.h"
+#include <common/contract.h>
 
 namespace Nextclade {
   std::string formatRange(const Range& range) {

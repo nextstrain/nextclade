@@ -1,6 +1,9 @@
 #pragma once
 
 
+#include <common/safe_string.h>
+#include <common/safe_vector.h>
+
 #include <algorithm>
 #include <boost/algorithm/string/join.hpp>
 #include <istream>
@@ -10,7 +13,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <vector>
 
 
 /**
@@ -30,8 +32,8 @@ struct GeneWarning {
 };
 
 struct Warnings {
-  std::vector<std::string> global;
-  std::vector<GeneWarning> inGenes;
+  safe_vector<std::string> global;
+  safe_vector<GeneWarning> inGenes;
 };
 
 struct Range {
@@ -135,10 +137,10 @@ public:
 
 
 template<typename Letter>
-using Sequence = std::basic_string<Letter>;
+using Sequence = safe_string<Letter>;
 
 template<typename Letter>
-using SequenceView = std::basic_string_view<Letter>;
+using SequenceView = safe_string_view<Letter>;
 
 enum class Nucleotide : char {
   U = 0,
@@ -266,7 +268,7 @@ struct Alignment {
 struct Peptide {
   std::string name;
   std::string seq;
-  std::vector<FrameShiftResult> frameShiftResults;
+  safe_vector<FrameShiftResult> frameShiftResults;
 };
 
 struct RefPeptide {
@@ -297,14 +299,14 @@ using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
 template<typename Container, typename Formatter, typename Delimiter>
 std::string formatAndJoin(const Container& elements, Formatter formatter, Delimiter delimiter) {
-  std::vector<std::string> formatted;
+  safe_vector<std::string> formatted;
   std::transform(elements.cbegin(), elements.cend(), std::back_inserter(formatted), formatter);
   return boost::algorithm::join(formatted, delimiter);
 }
 
 std::string formatInsertion(const NucleotideInsertion& insertion);
 
-std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions);
+std::string formatInsertions(const safe_vector<NucleotideInsertion>& insertions);
 
 struct Insertion {
   int pos;
@@ -323,12 +325,12 @@ std::map<std::string, RefPeptideInternal> translateGenesRef(//
 struct PeptideInternal {
   std::string name;
   AminoacidSequence seq;
-  std::vector<InsertionInternal<Aminoacid>> insertions;
-  std::vector<FrameShiftResult> frameShiftResults;
+  safe_vector<InsertionInternal<Aminoacid>> insertions;
+  safe_vector<FrameShiftResult> frameShiftResults;
 };
 
 struct PeptidesInternal {
-  std::vector<PeptideInternal> queryPeptides;
+  safe_vector<PeptideInternal> queryPeptides;
   Warnings warnings;
 };
 
@@ -336,8 +338,8 @@ struct NextalignResultInternal {
   NucleotideSequence query;
   NucleotideSequence ref;
   int alignmentScore;
-  std::vector<PeptideInternal> queryPeptides;
-  std::vector<InsertionInternal<Nucleotide>> insertions;
+  safe_vector<PeptideInternal> queryPeptides;
+  safe_vector<InsertionInternal<Nucleotide>> insertions;
   Warnings warnings;
 };
 
@@ -409,12 +411,12 @@ std::unique_ptr<FastaStream> makeFastaStreamSlow(std::istream& istream, const st
  * Parses all sequences in a file, given its filename.
  * This version is faster, but does not support reading from a C++ stream.
  */
-std::vector<AlgorithmInput> parseSequences(const std::string& filename);
+safe_vector<AlgorithmInput> parseSequences(const std::string& filename);
 
 /**
  *  Parses all sequences in a given file- or string stream.
  *  Slower, but supports reading from a stream.
  */
-std::vector<AlgorithmInput> parseSequencesSlow(std::istream& istream, const std::string& filename);
+safe_vector<AlgorithmInput> parseSequencesSlow(std::istream& istream, const std::string& filename);
 
 const char* getVersion();
