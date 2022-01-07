@@ -243,3 +243,11 @@ sync-impl:
 .ONESHELL:
 sync-nowatch:
 	rsync -arvz --no-owner --no-group --exclude=.git --exclude=.volumes --exclude=.idea --exclude=.vscode* --exclude=.ignore* --exclude=.cache --exclude=.build --exclude=packages/web/.build --exclude=packages/web/.cache --exclude=packages/web/node_modules --exclude=packages/nextclade_cli/src/generated --exclude=.out --exclude=tmp --exclude=.reports $(shell pwd) $${SYNC_DESTINATION}
+
+
+update-clades-svg:
+	@set -euo pipefail
+	@export CLADES_SVG_SRC="https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg"
+	@export CLADES_SVG_DST="packages/web/src/assets/img/clades.svg"
+	@echo "Downloading clade schema from '$${CLADES_SVG_SRC}' to '$${CLADES_SVG_DST}'"
+	curl -fsSL "$${CLADES_SVG_SRC}" -o "$${CLADES_SVG_DST}"
