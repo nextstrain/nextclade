@@ -3,9 +3,9 @@
 #include <nextalign/nextalign.h>
 
 #include <string_view>
-#include <vector>
+#include <common/safe_vector.h>
 
-#include "utils/contract.h"
+#include <common/contract.h>
 #include "utils/safe_cast.h"
 
 
@@ -19,10 +19,10 @@ namespace {
  * @param refAln  Aligned reference sequence
  * @return        Coordinate map from alignment coordinates to reference coordinates
  */
-  std::vector<int> makeAlnToRefMapOld(const NucleotideSequence& ref) {
+  safe_vector<int> makeAlnToRefMapOld(const NucleotideSequence& ref) {
     const auto alnLength = safe_cast<int>(ref.size());
 
-    std::vector<int> revCoordMap;
+    safe_vector<int> revCoordMap;
     revCoordMap.reserve(alnLength);
     int refPos = 0;
     for (int i = 0; i < alnLength; ++i) {
@@ -53,10 +53,10 @@ namespace {
  * @param refAln  Aligned reference sequence
  * @return        Coordinate map from alignment coordinates to reference coordinates
  */
-  std::vector<int> makeRefToAlnMapOld(const NucleotideSequence& ref) {
+  safe_vector<int> makeRefToAlnMapOld(const NucleotideSequence& ref) {
     const auto alnLength = safe_cast<int>(ref.size());
 
-    std::vector<int> coordMap;
+    safe_vector<int> coordMap;
     coordMap.reserve(alnLength);
     for (int i = 0; i < alnLength; ++i) {
       if (ref[i] != Nucleotide::GAP) {

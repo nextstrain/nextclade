@@ -127,7 +127,7 @@ namespace Nextclade {
   }
 
   std::string getFilenameFromUrl(const std::string& url) {
-    std::vector<std::string> urlParts;
+    safe_vector<std::string> urlParts;
     boost::algorithm::split(urlParts, url, boost::is_any_of("/"));
     if (urlParts.empty()) {
       throw std::runtime_error(
@@ -151,8 +151,8 @@ namespace Nextclade {
     taskGroup.wait();
   }
 
-  std::vector<Dataset> getEnabledDatasets(const std::vector<Dataset>& datasets) {
-    std::vector<Dataset> datasetsEnabled;
+  safe_vector<Dataset> getEnabledDatasets(const safe_vector<Dataset>& datasets) {
+    safe_vector<Dataset> datasetsEnabled;
     for (const auto& dataset : datasets) {
       if (!dataset.enabled) {
         continue;
@@ -186,8 +186,8 @@ namespace Nextclade {
     return datasetsEnabled;
   }
 
-  std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion) {
-    std::vector<Dataset> datasetsCompatible;
+  safe_vector<Dataset> getCompatibleDatasets(const safe_vector<Dataset>& datasets, const std::string& thisVersion) {
+    safe_vector<Dataset> datasetsCompatible;
     for (const auto& dataset : datasets) {
 
       auto datasetCompatible = Dataset{dataset};
@@ -199,7 +199,7 @@ namespace Nextclade {
         datasetRefCompatible.versions = {};
 
         // Find compatible versions
-        std::vector<DatasetVersion> versionsCompatible;
+        safe_vector<DatasetVersion> versionsCompatible;
         for (const auto& version : datasetRef.versions) {
           if (isDatasetVersionCompatible(version, thisVersion)) {
             datasetRefCompatible.versions.push_back(version);
@@ -221,8 +221,8 @@ namespace Nextclade {
     return datasetsCompatible;
   }
 
-  std::vector<Dataset> getLatestDatasets(const std::vector<Dataset>& datasets) {
-    std::vector<Dataset> datasetsLatest;
+  safe_vector<Dataset> getLatestDatasets(const safe_vector<Dataset>& datasets) {
+    safe_vector<Dataset> datasetsLatest;
     for (const auto& dataset : datasets) {
       auto datasetLatest = Dataset{dataset};
       datasetLatest.datasetRefs = {};
@@ -253,14 +253,14 @@ namespace Nextclade {
     return datasetsLatest;
   }
 
-  std::vector<Dataset> getLatestCompatibleDatasets(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> getLatestCompatibleDatasets(const safe_vector<Dataset>& datasets,
     const std::string& thisVersion) {
     return getLatestDatasets(getCompatibleDatasets(datasets, thisVersion));
   }
 
-  std::vector<Dataset> filterDatasetsByReference(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> filterDatasetsByReference(const safe_vector<Dataset>& datasets,
     const std::string& datasetReferenceDesired) {
-    std::vector<Dataset> datasetsFiltered;
+    safe_vector<Dataset> datasetsFiltered;
     for (const auto& dataset : datasets) {
       auto datasetFiltered = Dataset{dataset};
       datasetFiltered.datasetRefs = {};
@@ -277,8 +277,8 @@ namespace Nextclade {
     return datasetsFiltered;
   }
 
-  std::vector<Dataset> filterDatasetsByDefaultReference(const std::vector<Dataset>& datasets) {
-    std::vector<Dataset> datasetsFiltered;
+  safe_vector<Dataset> filterDatasetsByDefaultReference(const safe_vector<Dataset>& datasets) {
+    safe_vector<Dataset> datasetsFiltered;
     for (const auto& dataset : datasets) {
       auto datasetFiltered = Dataset{dataset};
       datasetFiltered.datasetRefs = {};
@@ -295,16 +295,16 @@ namespace Nextclade {
     return datasetsFiltered;
   }
 
-  std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> filterDatasetsByName(const safe_vector<Dataset>& datasets,
     const std::string& datasetNameDesired) {
-    std::vector<Dataset> datasetsFiltered;
+    safe_vector<Dataset> datasetsFiltered;
     std::copy_if(datasets.cbegin(), datasets.cend(), std::back_inserter(datasetsFiltered),
       [&datasetNameDesired](const Dataset& dataset) { return dataset.name == datasetNameDesired; });
     return datasetsFiltered;
   }
 
-  std::vector<Dataset> filterDatasetsByTag(const std::vector<Dataset>& datasets, const std::string& versionTagDesired) {
-    std::vector<Dataset> datasetsVersioned;
+  safe_vector<Dataset> filterDatasetsByTag(const safe_vector<Dataset>& datasets, const std::string& versionTagDesired) {
+    safe_vector<Dataset> datasetsVersioned;
     for (const auto& dataset : datasets) {
       auto datasetVersioned = Dataset{dataset};
       datasetVersioned.datasetRefs = {};
@@ -346,7 +346,7 @@ namespace Nextclade {
     return "unknown";
   }
 
-  std::string formatDatasets(const std::vector<Dataset>& datasets, bool verbose /* = false */) {
+  std::string formatDatasets(const safe_vector<Dataset>& datasets, bool verbose /* = false */) {
     fmt::memory_buffer bufRaw;
     auto buf = std::back_inserter(bufRaw);
 

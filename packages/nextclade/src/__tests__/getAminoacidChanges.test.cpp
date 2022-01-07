@@ -4,7 +4,7 @@
 #include <nextclade/private/nextclade_private.h>
 
 #include <exception>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../utils/safe_cast.h"
 
@@ -57,7 +57,7 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Substitution) {
     geneMap                                                //
   );                                                       //
 
-  const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
+  const safe_vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
       .gene = "Hello",
       .ref = Aminoacid::L,
@@ -116,7 +116,7 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletion) {
     geneMap                                                //
   );                                                       //
 
-  const std::vector<AminoacidDeletion> aaDeletionsExpected = {
+  const safe_vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
       .gene = "Hello",
       .ref = Aminoacid::Q,
@@ -179,7 +179,7 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Right) {
     geneMap                                                //
   );                                                       //
 
-  const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
+  const safe_vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
       .gene = "Foo",
       .ref = Aminoacid::Q,
@@ -192,7 +192,7 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Right) {
     },
   };
 
-  const std::vector<AminoacidDeletion> aaDeletionsExpected = {
+  const safe_vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
       .gene = "Foo",
       .ref = Aminoacid::F,
@@ -258,7 +258,7 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Left) {
     geneMap                                                //
   );                                                       //
 
-  const std::vector<AminoacidSubstitution> aaSubstitutionsExpected = {
+  const safe_vector<AminoacidSubstitution> aaSubstitutionsExpected = {
     AminoacidSubstitution{
       .gene = "Foo",
       .ref = Aminoacid::Q,
@@ -271,7 +271,7 @@ TEST(GetAminoacidChanges, Finds_Aminoacid_Deletions_In_Adjacent_Codons_Left) {
     },
   };
 
-  const std::vector<AminoacidDeletion> aaDeletionsExpected = {
+  const safe_vector<AminoacidDeletion> aaDeletionsExpected = {
     AminoacidDeletion{
       .gene = "Foo",
       .ref = Aminoacid::F,

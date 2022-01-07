@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 #include <nextalign/private/nextalign_private.h>
 
-#include <vector>
+#include <common/safe_vector.h>
 
 class ErrorGeneMapGeneNotFound : std::runtime_error {
   static std::string formatError(const std::string& geneName) {
@@ -14,16 +14,16 @@ public:
   explicit ErrorGeneMapGeneNotFound(const std::string& geneName) : std::runtime_error(formatError(geneName)) {}
 };
 
-std::vector<int> getGapOpenCloseScoresFlat(//
+safe_vector<int> getGapOpenCloseScoresFlat(//
   /* in */ const NucleotideSequence& ref,  //
   /* in */ const NextalignOptions& options //
 ) {
-  std::vector<int> gapOpenClose(ref.size() + 2);
+  safe_vector<int> gapOpenClose(ref.size() + 2);
   std::fill(gapOpenClose.begin(), gapOpenClose.end(), options.alignment.penaltyGapOpen);
   return gapOpenClose;
 }
 
-std::vector<int> getGapOpenCloseScoresCodonAware(//
+safe_vector<int> getGapOpenCloseScoresCodonAware(//
   /* in */ const NucleotideSequence& ref,        //
   /* in */ const GeneMap& geneMap,               //
   /* in */ const NextalignOptions& options       //

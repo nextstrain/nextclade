@@ -8,7 +8,7 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "formatQcStatus.h"
 
@@ -409,7 +409,7 @@ namespace Nextclade {
     };
   }
 
-  std::vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr) {
+  safe_vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr) {
     const auto j = json::parse(pcrPrimerCsvRowsStr);
     return parseArray<PcrPrimerCsvRow>(j, parsePcrPrimerCsvRow);
   }

@@ -1,3 +1,10 @@
+## Nextclade Web 1.11.1, Nextclade CLI 1.8.1 (2022-01-07)
+
+### [Hotfix] Crash when reading JSON tree
+
+Fixed crash when reading JSON tree, that occurred since last version
+
+
 ## Nextclade Web 1.11.0, Nextclade CLI 1.8.0 (2022-01-04)
 
 ### [Feature] Better dataset selector

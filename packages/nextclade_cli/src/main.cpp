@@ -35,10 +35,10 @@ bool isRootArg(const std::string& s) {
  * "run" command when it's not there. Without it users would have to prepend "run" subcommand to all Nextclade
  * invocations in the existing scripts and pipelines. Might be dropped in the next major release.
  */
-std::vector<char*> preprocessArgs(int argc, char** argv) {
+safe_vector<char*> preprocessArgs(int argc, char** argv) {
   // Be careful with pointers and constness here!
   constexpr const char* RUN_COMMAND = "run";
-  std::vector<char*> args{argv, argv + argc};
+  safe_vector<char*> args{argv, argv + argc};
   if ((argc == 1) ||
       (argc > 1 && (boost::starts_with(argv[1], "-") && argv[1] != RUN_COMMAND && !isRootArg(argv[1])))) {
     args.insert(args.begin() + 1, const_cast<char*>(RUN_COMMAND));

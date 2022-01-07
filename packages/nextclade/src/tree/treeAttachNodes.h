@@ -2,10 +2,10 @@
 
 #include <nextclade/nextclade.h>
 
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {
   class Tree;
 
-  void treeAttachNodes(Tree& tree, const std::vector<AnalysisResult>& results);
+  void treeAttachNodes(Tree& tree, const safe_vector<AnalysisResult>& results);
 }// namespace Nextclade
