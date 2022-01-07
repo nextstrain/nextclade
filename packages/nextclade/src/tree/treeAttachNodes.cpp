@@ -3,11 +3,11 @@
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../io/formatMutation.h"
 #include "../io/formatQcStatus.h"
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "TreeNode.h"
 #include "findPrivateMutations.h"
 
@@ -97,7 +97,7 @@ namespace Nextclade {
    * Attaches new nodes to the nearest reference tree nodes,
    * according to the results of the nearest node search we ran previously for every sequence
    */
-  void attachNewNodesRecursively(TreeNode& node, const std::vector<AnalysisResult>& results) {
+  void attachNewNodesRecursively(TreeNode& node, const safe_vector<AnalysisResult>& results) {
     // Attach only to a reference node.
     // If it's not a reference node, we can stop here, because there can be no reference nodes down the tree.
     if (!node.isReferenceNode()) {
@@ -115,7 +115,7 @@ namespace Nextclade {
     }
   }
 
-  void treeAttachNodes(Tree& tree, const std::vector<AnalysisResult>& results) {
+  void treeAttachNodes(Tree& tree, const safe_vector<AnalysisResult>& results) {
     auto rootNode = tree.root();
     attachNewNodesRecursively(rootNode, results);
   }

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <optional>
 #include <type_traits>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../utils/safe_cast.h"
 #include "getQcRuleStatus.h"
@@ -19,12 +19,12 @@ namespace Nextclade {
    * form of ranges, private nucleotide deletions (the `.privateNucMutations.privateDeletions` field) are listed
    * individually. We compute the ranges for private deletions here.
    */
-  std::vector<NucleotideRange> findPrivateDeletionRanges(
-    const std::vector<NucleotideDeletionSimple>& privateDeletions) {
+  safe_vector<NucleotideRange> findPrivateDeletionRanges(
+    const safe_vector<NucleotideDeletionSimple>& privateDeletions) {
 
     // Sort deletions by position, so that later we can tell which ones are adjacent.
     // Note: it's a full sort, but we use `partial_sort_copy()` because there is no `sort_copy()`.
-    std::vector<NucleotideDeletionSimple> privateDeletionsSorted;
+    safe_vector<NucleotideDeletionSimple> privateDeletionsSorted;
     std::partial_sort_copy(                                                            //
       privateDeletions.cbegin(), privateDeletions.cend(),                              //
       privateDeletionsSorted.begin(), privateDeletionsSorted.end(),                    //
@@ -34,7 +34,7 @@ namespace Nextclade {
 
 
     // This will be the result.
-    std::vector<NucleotideRange> deletionRanges;
+    safe_vector<NucleotideRange> deletionRanges;
 
     // Remember the beginning of the current contiguous range. It's unset initially (std::nullopt)
     std::optional<int> begin;

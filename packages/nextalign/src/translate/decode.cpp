@@ -5,7 +5,7 @@
 #include <frozen/set.h>
 #include <frozen/string.h>
 
-#include "utils/contract.h"
+#include <common/contract.h>
 
 
 using NucleotideSequenceFrozen = frozen::basic_string<Nucleotide>;

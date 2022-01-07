@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include <vector>
+#include <common/safe_vector.h>
 
 struct NextalignResultInternal;
 

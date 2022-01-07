@@ -4,7 +4,7 @@
 
 #include <map>
 #include <set>
-#include <vector>
+#include <common/safe_vector.h>
 
 // clang-format off
 #include <nlohmann/json.hpp>
@@ -51,8 +51,8 @@ namespace Nextclade {
   }
 
   template<typename T, typename Parser>
-  std::vector<T> parseArray(const json& arr, const Parser& parser) {
-    std::vector<T> vec;
+  safe_vector<T> parseArray(const json& arr, const Parser& parser) {
+    safe_vector<T> vec;
 
     for (const auto& elem : arr) {
       vec.push_back(parser(elem));
@@ -61,7 +61,7 @@ namespace Nextclade {
   }
 
   template<typename T, typename Parser>
-  std::vector<T> parseArray(const json& obj, const std::string& key, const Parser& parser) {
+  safe_vector<T> parseArray(const json& obj, const std::string& key, const Parser& parser) {
     const auto& arr = at(obj, key);
     if (!arr.is_array()) {
       throw ErrorJsonTypeInvalid(key, "array", arr.type_name());
@@ -70,7 +70,7 @@ namespace Nextclade {
   }
 
   template<typename T, typename Parser>
-  std::vector<T> parseArray(const json& obj, const json_pointer& jptr, const Parser& parser) {
+  safe_vector<T> parseArray(const json& obj, const json_pointer& jptr, const Parser& parser) {
     const auto& arr = at(obj, jptr);
     if (!arr.is_array()) {
       throw ErrorJsonTypeInvalid(jptr.to_string(), "array", arr.type_name());

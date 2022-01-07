@@ -74,7 +74,7 @@ namespace Nextclade {
       return j;
     }
 
-    json serializePcrPrimers(const std::vector<PcrPrimer>& pcrPrimers) {
+    json serializePcrPrimers(const safe_vector<PcrPrimer>& pcrPrimers) {
       return serializeArray(pcrPrimers, serializePcrPrimer);
     }
 
@@ -365,7 +365,7 @@ namespace Nextclade {
     return j;
   }
 
-  std::string serializePeptidesToString(const std::vector<Peptide>& peptides) {
+  std::string serializePeptidesToString(const safe_vector<Peptide>& peptides) {
     json j = serializeArray(peptides, serializePeptide);
     return jsonStringify(j);
   }
@@ -375,7 +375,7 @@ namespace Nextclade {
     return jsonStringify(j);
   }
 
-  json serializeResultsArray(const std::vector<AnalysisResult>& results) {
+  json serializeResultsArray(const safe_vector<AnalysisResult>& results) {
     auto j = json::array();
     for (const auto& result : results) {
       j.emplace_back(serializeResult(result));
@@ -403,7 +403,7 @@ namespace Nextclade {
     return j;
   }
 
-  std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers) {
+  std::string serializePcrPrimerRowsToString(const safe_vector<PcrPrimerCsvRow>& pcrPrimers) {
     json j = serializeArray(pcrPrimers, serializePcrPrimerCsvRow);
     return jsonStringify(j);
   }
@@ -422,7 +422,7 @@ namespace Nextclade {
     return jsonStringify(j);
   }
 
-  std::string serializeCladeNodeAttrKeys(const std::vector<std::string>& keys) {
+  std::string serializeCladeNodeAttrKeys(const safe_vector<std::string>& keys) {
     auto j = json::array();
     for (const auto& key : keys) {
       j.push_back(key);

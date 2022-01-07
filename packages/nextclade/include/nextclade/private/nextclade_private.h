@@ -7,7 +7,7 @@
 
 #include <ostream>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 
 namespace Nextclade {
@@ -31,16 +31,16 @@ namespace Nextclade {
     const NucleotideSequence& ref,                               //
     const NucleotideSequence& query,                             //
     const std::map<std::string, RefPeptideInternal>& refPeptides,//
-    const std::vector<RefPeptideInternal>& refPeptidesArr,       //
+    const safe_vector<RefPeptideInternal>& refPeptidesArr,       //
     const GeneMap& geneMap,                                      //
-    const std::vector<PcrPrimer>& pcrPrimers,                    //
+    const safe_vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
     const Tree& tree,                                            //
     const NextalignOptions& nextalignOptions,                    //
-    const std::vector<std::string>& customNodeAttrKeys           //
+    const safe_vector<std::string>& customNodeAttrKeys           //
   );
 
-  std::vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides);
+  safe_vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides);
 
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {

@@ -1,7 +1,7 @@
 #include "detectFrameShifts.h"
 
 #include <fmt/format.h>
-#include <utils/contract.h>
+#include <common/contract.h>
 #include <utils/safe_cast.h>
 #include <utils/to_underlying.h>
 #include <utils/wraparound.h>
@@ -13,7 +13,7 @@ class FrameShiftDetector {
   // Invalid/unset positions are set with this value
   static constexpr auto POSITION_INVALID = std::numeric_limits<int>::min();
 
-  std::vector<Range> frameShifts;  // List of detected frame shifts
+  safe_vector<Range> frameShifts;  // List of detected frame shifts
   int frame = 0;                   // Frame of the previously processed character (not necessarily n-1!)
   int oldFrame = 0;                // Frame of the character before previous (not necessarily n-2!)
   int begin = POSITION_INVALID;    // Remembers potential begin of the current frame shift range
@@ -61,7 +61,7 @@ public:
   explicit FrameShiftDetector(int startFrame) : frame(startFrame) {}
 
   /** Returns frame shifts detected so far */
-  [[nodiscard]] std::vector<Range> getFrameShifts() const {
+  [[nodiscard]] safe_vector<Range> getFrameShifts() const {
     return frameShifts;
   }
 
@@ -113,7 +113,7 @@ public:
  * Detects nucleotide frame shift in the query nucleotide sequence
  * and the corresponding aminoacid frame shifts in the query peptide
  */
-std::vector<Range> detectFrameShifts(//
+safe_vector<Range> detectFrameShifts(//
   const NucleotideSequence& ref,     //
   const NucleotideSequence& query    //
 ) {
@@ -186,15 +186,15 @@ Range findMask(const NucleotideSequence& query, const Range& frameShiftNucRangeR
  * Converts relative nucleotide frame shifts to the final result, including
  * relative and absolute nucleotide frame shifts and relative aminoacid frame shifts
  */
-std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
+safe_vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
   const NucleotideSequence& query,                                 //
-  const std::vector<Range>& nucRelFrameShifts,                     //
+  const safe_vector<Range>& nucRelFrameShifts,                     //
   const CoordinateMapper& coordMap,                                //
   const Gene& gene                                                 //
 ) {
   precondition_less(gene.start, gene.end);
 
-  std::vector<InternalFrameShiftResultWithMask> frameShifts;
+  safe_vector<InternalFrameShiftResultWithMask> frameShifts;
   frameShifts.reserve(nucRelFrameShifts.size());
   for (const auto& nucRelAln : nucRelFrameShifts) {
     invariant_less(nucRelAln.begin, nucRelAln.end);

@@ -16,7 +16,7 @@ namespace Nextclade {
     }
 
     template<typename T, typename Serializer>
-    void writeArray(json& j, const std::string& path, const std::vector<T>& value, Serializer serializer) {
+    void writeArray(json& j, const std::string& path, const safe_vector<T>& value, Serializer serializer) {
       j[json::json_pointer{path}] = serializeArray(value, serializer);
     }
   }// namespace

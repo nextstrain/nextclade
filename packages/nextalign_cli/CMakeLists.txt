@@ -27,7 +27,7 @@ if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
     set(DEPENDENCIES
       ${DEPENDENCIES}
       jemalloc::jemalloc
-    )
+      )
   endif ()
 endif ()
 
@@ -79,6 +79,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   nextalign
+  common
 
   PRIVATE
   ${STATIC_BUILD_FLAGS}
