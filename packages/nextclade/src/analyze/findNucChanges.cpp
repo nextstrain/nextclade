@@ -7,10 +7,18 @@
 
 
 namespace Nextclade {
+  /**
+   * Finds nucleotide changes (nucleotide substitutions and deletions) as well
+   * as the beginning and end of the alignment range.
+   *
+   * @pre Precondition: sequences are expected to be stripped from insertions.
+   */
   NucleotideChangesReport findNucChanges(  //
     const NucleotideSequence& refStripped, //
     const NucleotideSequence& queryStripped//
   ) {
+    precondition_equal(refStripped.length(), queryStripped.length());
+
     int nDel = 0;
     int delPos = -1;
     bool beforeAlignment = true;
