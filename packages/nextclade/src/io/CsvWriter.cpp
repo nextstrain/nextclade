@@ -153,7 +153,7 @@ namespace Nextclade {
       const auto& rowName = numRows;
       const auto numColumns = columnNames.size();
       const safe_vector<std::string> rowData(numColumns, "");
-      doc.InsertRow<std::string>(numRows, rowData.to_std());
+      doc.InsertRow<std::string>(numRows, rowData);
 
       doc.SetCell(getColumnIndex("seqName"), rowName, result.seqName);
       doc.SetCell(getColumnIndex("clade"), rowName, result.clade);

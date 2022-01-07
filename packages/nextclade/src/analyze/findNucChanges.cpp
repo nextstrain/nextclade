@@ -1,5 +1,6 @@
 #include "findNucChanges.h"
 
+#include <common/contract.h>
 #include <common/safe_vector.h>
 
 #include "nucleotide.h"
