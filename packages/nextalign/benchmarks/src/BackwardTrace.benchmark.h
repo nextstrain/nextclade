@@ -3,7 +3,7 @@
 #include <benchmark/benchmark.h>
 
 #include <numeric>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../include/nextalign/nextalign.h"
 #include "../src/align/alignPairwise.h"
@@ -13,8 +13,8 @@
 
 class BackwardTraceBench : public benchmark::Fixture {
 protected:
-  std::vector<SeedAlignment> seedAlignments;
-  std::vector<ForwardTrace> forwardTraces;
+  safe_vector<SeedAlignment> seedAlignments;
+  safe_vector<ForwardTrace> forwardTraces;
 
   BackwardTraceBench() {
     const auto n = NUM_SEQUENCES_AVG;
@@ -63,8 +63,8 @@ BENCHMARK_REGISTER_F(BackwardTraceBench, Average)
 
 class BackwardTraceBench2 : public benchmark::Fixture {
 protected:
-  std::vector<SeedAlignment> seedAlignments;
-  std::vector<ForwardTrace> forwardTraces;
+  safe_vector<SeedAlignment> seedAlignments;
+  safe_vector<ForwardTrace> forwardTraces;
 
   BackwardTraceBench2() {
     const auto n = NUM_SEQUENCES_AVG;

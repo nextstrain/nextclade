@@ -1,6 +1,6 @@
 #pragma once
 
-#include "contract.h"
+#include <common/contract.h>
 #include "safe_cast.h"
 
 template<typename Container, typename Index>

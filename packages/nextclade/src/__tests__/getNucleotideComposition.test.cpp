@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include <vector>
+#include <common/safe_vector.h>
 
 using Nextclade::getNucleotideComposition;
 

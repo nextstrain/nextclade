@@ -5,7 +5,7 @@
 #include <optional>
 #include <ostream>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {
 
@@ -44,48 +44,48 @@ namespace Nextclade {
   struct DatasetRef {
     bool enabled;
     DatasetRefSeq reference;
-    std::vector<DatasetVersion> versions;
+    safe_vector<DatasetVersion> versions;
   };
 
   struct Dataset {
     bool enabled;
     std::string name;
     std::string nameFriendly;
-    std::vector<DatasetRef> datasetRefs;
+    safe_vector<DatasetRef> datasetRefs;
     std::string defaultRef;
   };
 
   struct DatasetsIndexJson {
     DatasetsSettings settings;
-    std::vector<Dataset> datasets;
+    safe_vector<Dataset> datasets;
   };
 
   DatasetsIndexJson fetchDatasetsIndexJson();
 
   void fetchDatasetVersion(const DatasetVersion& version, const std::string& outDir);
 
-  std::vector<Dataset> getEnabledDatasets(const std::vector<Dataset>& datasets);
+  safe_vector<Dataset> getEnabledDatasets(const safe_vector<Dataset>& datasets);
 
-  std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion);
+  safe_vector<Dataset> getCompatibleDatasets(const safe_vector<Dataset>& datasets, const std::string& thisVersion);
 
-  std::vector<Dataset> getLatestDatasets(const std::vector<Dataset>& datasets);
+  safe_vector<Dataset> getLatestDatasets(const safe_vector<Dataset>& datasets);
 
-  std::vector<Dataset> getLatestCompatibleDatasets(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> getLatestCompatibleDatasets(const safe_vector<Dataset>& datasets,
     const std::string& thisVersion);
 
-  std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> filterDatasetsByName(const safe_vector<Dataset>& datasets,
     const std::string& datasetNameDesired);
 
-  std::vector<Dataset> filterDatasetsByReference(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> filterDatasetsByReference(const safe_vector<Dataset>& datasets,
     const std::string& datasetReferenceDesired);
 
-  std::vector<Dataset> filterDatasetsByDefaultReference(const std::vector<Dataset>& datasets);
+  safe_vector<Dataset> filterDatasetsByDefaultReference(const safe_vector<Dataset>& datasets);
 
-  std::vector<Dataset> filterDatasetsByTag(const std::vector<Dataset>& datasets, const std::string& versionTagDesired);
+  safe_vector<Dataset> filterDatasetsByTag(const safe_vector<Dataset>& datasets, const std::string& versionTagDesired);
 
   std::string formatVersionCompatibility(const DatasetCompatibilityRange& compat);
 
-  std::string formatDatasets(const std::vector<Dataset>& datasets, bool verbose = false);
+  std::string formatDatasets(const safe_vector<Dataset>& datasets, bool verbose = false);
 
 
   bool operator==(const DatasetCompatibilityRange& left, const DatasetCompatibilityRange& right);

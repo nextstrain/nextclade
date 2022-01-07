@@ -57,8 +57,8 @@ inline bool have_intersection(const frozen::set<Key, N>& s1, const frozen::set<K
  * Returns array of keys of std::map
  */
 template<typename Key, typename Value>
-std::vector<Key> keys(const std::map<Key, Value>& m) {
-  std::vector<Key> result;
+safe_vector<Key> keys(const std::map<Key, Value>& m) {
+  safe_vector<Key> result;
   std::transform(m.cbegin(), m.cend(), std::back_inserter(result), [](const auto& x) { return x.first; });
   return result;
 }

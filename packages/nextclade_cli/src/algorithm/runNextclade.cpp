@@ -10,7 +10,7 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../io/Logger.h"
 #include "../io/parseRefFastaFile.h"
@@ -37,7 +37,7 @@ namespace Nextclade {
     /* in  */ const ReferenceSequenceData &refData,
     /* in  */ const QcConfig &qcRulesConfig,
     /* in  */ const std::string &treeString,
-    /* in  */ const std::vector<PcrPrimer> &pcrPrimers,
+    /* in  */ const safe_vector<PcrPrimer> &pcrPrimers,
     /* in  */ const GeneMap &geneMap,
     /* in  */ const NextalignOptions &nextalignOptions,
     /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
@@ -154,8 +154,8 @@ namespace Nextclade {
             return;
           }
         } else {
-          std::vector<std::string> warningsCombined;
-          std::vector<std::string> failedGeneNames;
+          safe_vector<std::string> warningsCombined;
+          safe_vector<std::string> failedGeneNames;
           for (const auto &warning : warnings.global) {
             logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
             warningsCombined.push_back(warning);
@@ -226,7 +226,7 @@ namespace Nextclade {
 
     if (outputJsonStream || outputTreeStream) {
       // TODO: try to avoid copy here
-      std::vector<AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
+      safe_vector<AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
 
       if (outputJsonStream) {
         *outputJsonStream << serializeResults(AnalysisResults{

@@ -4,14 +4,14 @@
 
 class CoordinateMapper;
 
-std::vector<Range> detectFrameShifts(//
+safe_vector<Range> detectFrameShifts(//
   const NucleotideSequence& ref,     //
   const NucleotideSequence& query    //
 );
 
-std::vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
+safe_vector<InternalFrameShiftResultWithMask> translateFrameShifts(//
   const NucleotideSequence& query,                                 //
-  const std::vector<Range>& nucRelFrameShifts,                     //
+  const safe_vector<Range>& nucRelFrameShifts,                     //
   const CoordinateMapper& coordMap,                                //
   const Gene& gene                                                 //
 );

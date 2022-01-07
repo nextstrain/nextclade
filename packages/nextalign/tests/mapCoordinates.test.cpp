@@ -11,11 +11,11 @@ namespace {
   public:
     explicit CoordinateMapperExposed(const NucleotideSequence& refAln) : CoordinateMapper(refAln) {}
 
-    [[nodiscard]] inline const std::vector<int>& getAlnToRefMap() const {
+    [[nodiscard]] inline const safe_vector<int>& getAlnToRefMap() const {
       return alnToRefMap;
     }
 
-    [[nodiscard]] inline const std::vector<int>& getRefToAlnMap() const {
+    [[nodiscard]] inline const safe_vector<int>& getRefToAlnMap() const {
       return refToAlnMap;
     }
   };
@@ -29,7 +29,7 @@ TEST(mapCoordinates, MapsRefToAlnSimple) {
   const auto ref = toNucleotideSequence("ACTC---CGTG---A");
   CoordinateMapperExposed coordMap(ref);
   const auto& actual = coordMap.getRefToAlnMap();
-  const auto expected = std::vector<int>{0, 1, 2, 3, 7, 8, 9, 10, 14};
+  const auto expected = safe_vector<int>{0, 1, 2, 3, 7, 8, 9, 10, 14};
   EXPECT_THAT(actual, testing::ElementsAreArray(expected));
 }
 
@@ -41,7 +41,7 @@ TEST(mapCoordinates, MapsRefToAlnWithLeadingInsertions) {
   const auto ref = toNucleotideSequence("--ACTC---CGTG---A");
   CoordinateMapperExposed coordMap(ref);
   const auto& actual = coordMap.getRefToAlnMap();
-  const auto expected = std::vector<int>{2, 3, 4, 5, 9, 10, 11, 12, 16};
+  const auto expected = safe_vector<int>{2, 3, 4, 5, 9, 10, 11, 12, 16};
   EXPECT_THAT(actual, testing::ElementsAreArray(expected));
 }
 
@@ -53,7 +53,7 @@ TEST(mapCoordinates, MapsAlnToRefSimple) {
   const auto ref = toNucleotideSequence("ACTC---CGTG---A");
   CoordinateMapperExposed coordMap(ref);
   const auto& actual = coordMap.getAlnToRefMap();
-  const auto expected = std::vector<int>{0, 1, 2, 3, 3, 3, 3, 4, 5, 6, 7, 7, 7, 7, 8};
+  const auto expected = safe_vector<int>{0, 1, 2, 3, 3, 3, 3, 4, 5, 6, 7, 7, 7, 7, 8};
   EXPECT_THAT(actual, testing::ElementsAreArray(expected));
 }
 
@@ -65,7 +65,7 @@ TEST(mapCoordinates, MapsAlnToRefWithLeadingInsertions) {
   const auto ref = toNucleotideSequence("--ACTC---CGTG---A");
   CoordinateMapperExposed coordMap(ref);
   const auto& actual = coordMap.getAlnToRefMap();
-  const auto expected = std::vector<int>{0, 0, 0, 1, 2, 3, 3, 3, 3, 4, 5, 6, 7, 7, 7, 7, 8};
+  const auto expected = safe_vector<int>{0, 0, 0, 1, 2, 3, 3, 3, 3, 4, 5, 6, 7, 7, 7, 7, 8};
   EXPECT_THAT(actual, testing::ElementsAreArray(expected));
 }
 

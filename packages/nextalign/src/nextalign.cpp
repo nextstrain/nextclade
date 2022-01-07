@@ -1,3 +1,4 @@
+#include <common/debug_trace.h>
 #include <nextalign/private/nextalign_private.h>
 #include <utils/concat_move.h>
 
@@ -8,14 +9,13 @@
 #include "strip/stripInsertions.h"
 #include "translate/removeGaps.h"
 #include "translate/translateGenes.h"
-#include "utils/debug_trace.h"
 #include "utils/map.h"
 
 Insertion toInsertionExternal(const InsertionInternal<Nucleotide>& ins) {
   return Insertion{.pos = ins.pos, .length = ins.length, .ins = toString(ins.ins)};
 }
 
-std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<Nucleotide>>& insertions) {
+safe_vector<Insertion> toInsertionsExternal(const safe_vector<InsertionInternal<Nucleotide>>& insertions) {
   return map(insertions, std::function<Insertion(InsertionInternal<Nucleotide>)>(toInsertionExternal));
 }
 
@@ -23,7 +23,7 @@ Peptide toPeptideExternal(const PeptideInternal& peptide) {
   return Peptide{.name = peptide.name, .seq = toString(peptide.seq), .frameShiftResults = peptide.frameShiftResults};
 }
 
-std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& peptides) {
+safe_vector<Peptide> toPeptidesExternal(const safe_vector<PeptideInternal>& peptides) {
   return map(peptides, std::function<Peptide(PeptideInternal)>(toPeptideExternal));
 }
 
@@ -38,12 +38,12 @@ std::string formatInsertion(const NucleotideInsertion& insertion) {
   return fmt::format("{}:{}", positionOneBased, insertedSequence);
 }
 
-std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions) {
+std::string formatInsertions(const safe_vector<NucleotideInsertion>& insertions) {
   return formatAndJoin(insertions, formatInsertion, ";");
 }
 
 
-std::vector<RefPeptide> toRefPeptidesExternal(const std::vector<RefPeptideInternal>& peptides) {
+safe_vector<RefPeptide> toRefPeptidesExternal(const safe_vector<RefPeptideInternal>& peptides) {
   return map(peptides, std::function<RefPeptide(RefPeptideInternal)>(toRefPeptideExternal));
 }
 
@@ -64,7 +64,7 @@ NextalignResultInternal nextalignInternal(const NucleotideSequence& query, const
   const auto stripped = stripInsertions(alignmentStatus.result->ref, alignmentStatus.result->query);
   const auto refStripped = removeGaps(ref);
 
-  std::vector<PeptideInternal> queryPeptides;
+  safe_vector<PeptideInternal> queryPeptides;
   Warnings warnings;
   if (!geneMap.empty()) {
     auto peptidesInternal = translateGenes(alignmentStatus.result->query, alignmentStatus.result->ref, refPeptides,

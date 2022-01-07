@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include <vector>
+#include <common/safe_vector.h>
 
 /**
  * Removes duplicates from the array.
@@ -40,6 +40,6 @@ namespace details {
  * Removes duplicates from unsorted container. O(N**2) complexity.
  */
 template<typename T>
-void eraseDuplicatesUnsortedInPlace(std::vector<T>& v) {
+void eraseDuplicatesUnsortedInPlace(safe_vector<T>& v) {
   v.erase(details::remove_duplicates(v.begin(), v.end()), v.end());
 }

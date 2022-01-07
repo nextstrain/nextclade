@@ -4,7 +4,7 @@
 #include <nextclade/private/nextclade_private.h>
 
 #include <map>
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {
 

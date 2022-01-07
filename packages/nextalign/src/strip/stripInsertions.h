@@ -3,10 +3,10 @@
 #include <nextalign/nextalign.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../alphabet/nucleotides.h"
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "../utils/safe_cast.h"
 #include "nextalign/private/nextalign_private.h"
 
@@ -14,7 +14,7 @@
 template<typename Letter>
 struct StripInsertionsResult {
   Sequence<Letter> queryStripped;
-  std::vector<InsertionInternal<Letter>> insertions;
+  safe_vector<InsertionInternal<Letter>> insertions;
 };
 
 

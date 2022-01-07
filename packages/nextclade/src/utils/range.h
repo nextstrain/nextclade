@@ -7,7 +7,7 @@
 #include <tuple>
 #include <utility>
 
-#include "contract.h"
+#include <common/contract.h>
 
 /**
  * Checks is a number x belongs to a half-open range [from; to)

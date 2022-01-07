@@ -4,7 +4,7 @@
 
 #include <gsl/string_span>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 
 template<typename Letter>
@@ -61,11 +61,11 @@ inline std::string letterToString(Aminoacid letter) {
   return aaToString(letter);
 }
 
-std::vector<Insertion> toInsertionsExternal(const std::vector<InsertionInternal<Nucleotide>>& insertions);
+safe_vector<Insertion> toInsertionsExternal(const safe_vector<InsertionInternal<Nucleotide>>& insertions);
 
-std::vector<Peptide> toPeptidesExternal(const std::vector<PeptideInternal>& peptides);
+safe_vector<Peptide> toPeptidesExternal(const safe_vector<PeptideInternal>& peptides);
 
-std::vector<RefPeptide> toRefPeptidesExternal(const std::vector<RefPeptideInternal>& peptides);
+safe_vector<RefPeptide> toRefPeptidesExternal(const safe_vector<RefPeptideInternal>& peptides);
 
 
 inline std::ostream& operator<<(std::ostream& os, const Nucleotide& nuc) {

@@ -81,8 +81,8 @@ std::unique_ptr<FastaStream> makeFastaStream(const std::string& filename) {
   return std::make_unique<FastaStreamImpl>(filename);
 }
 
-std::vector<AlgorithmInput> parseSequences(const std::string& filename) {
-  std::vector<AlgorithmInput> seqs;
+safe_vector<AlgorithmInput> parseSequences(const std::string& filename) {
+  safe_vector<AlgorithmInput> seqs;
 
   auto fastaStream = makeFastaStream(filename);
 
