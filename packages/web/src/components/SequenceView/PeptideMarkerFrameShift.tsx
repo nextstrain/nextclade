@@ -60,7 +60,7 @@ function PeptideMarkerFrameShiftDisconnected({
   const nucLength = nucAbs.end - nucAbs.begin
   const codonLength = codon.end - codon.begin
 
-  const x = codon.begin * pixelsPerAa
+  const x = codon.begin * pixelsPerAa - pixelsPerAa / 2
   let width = codonLength * pixelsPerAa
   width = Math.max(width, BASE_MIN_WIDTH_PX)
 
