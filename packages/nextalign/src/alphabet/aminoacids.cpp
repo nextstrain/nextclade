@@ -117,5 +117,5 @@ AminoacidSequence toAminoacidSequence(const std::string& seq) {
 }
 
 std::string toString(const AminoacidSequence& seq) {
-  return map(seq, std::function<char(Aminoacid)>(aaToChar)).to_std();
+  return map(seq, std::function<char(Aminoacid)>(aaToChar));
 }

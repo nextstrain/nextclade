@@ -1,16 +1,19 @@
+#pragma once
+
+#include <vector>
+
+#if !defined(NDEBUG)
+
+#include <algorithm>
+#include <memory>
+
+#include "contract.h"
+#include "copy.h"
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedStructInspection"
 #pragma ide diagnostic ignored "OCUnusedTypeAliasInspection"
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-
-#pragma once
-
-#include <algorithm>
-#include <memory>
-#include <vector>
-
-#include "contract.h"
-#include "copy.h"
 
 
 /**
@@ -286,12 +289,16 @@ public:
     base.clear();
   }
 
-  pointer data() noexcept {
+  inline pointer data() noexcept {
     return base.data();
   }
 
-  const_pointer data() const noexcept {
+  inline const_pointer data() const noexcept {
     return base.data();
+  }
+
+  inline operator std::vector<T, Alloc>() const noexcept {
+    return base;
   }
 };
 
@@ -301,3 +308,10 @@ bool operator==(const safe_vector<T, Alloc>& left, const safe_vector<T, Alloc>& 
 }
 
 #pragma clang diagnostic pop
+
+#else
+
+template<typename T, typename Alloc = std::allocator<T>>
+using safe_vector = std::vector<T, Alloc>;
+
+#endif

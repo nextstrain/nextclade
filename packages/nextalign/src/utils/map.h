@@ -16,6 +16,7 @@
 //  return result;
 //}
 
+#ifdef DEBUG
 template<typename Input, typename Output>
 inline safe_string<Output> map(const safe_string<Input>& input, std::function<Output(Input)> op) {
   safe_string<Output> result = {};
@@ -23,6 +24,7 @@ inline safe_string<Output> map(const safe_string<Input>& input, std::function<Ou
   std::transform(input.cbegin(), input.cend(), std::back_inserter(result), op);
   return result;
 }
+#endif
 
 template<typename Input, typename Output>
 inline std::basic_string<Output> map(const std::basic_string<Input>& input, std::function<Output(Input)> op) {

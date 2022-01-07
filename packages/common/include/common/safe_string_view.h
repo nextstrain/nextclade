@@ -1,20 +1,23 @@
+#pragma once
+
+#include <string_view>
+
+#if !defined(NDEBUG)
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedStructInspection"
 #pragma ide diagnostic ignored "OCUnusedTypeAliasInspection"
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 
-#pragma once
-
 #include <algorithm>
 #include <memory>
-#include <string_view>
 
 #include "contract.h"
 #include "copy.h"
 
 
 /**
- * Wraps std::basic_string with debug checks (preconditions) added.
+ * Wraps std::basic_string_view with debug checks (preconditions) added.
  * Only implements some of the methods, the ones we use.
  */
 template<typename T, typename CharTraits = std::char_traits<T>>
@@ -277,6 +280,10 @@ public:
   inline safe_string_view substr(size_type pos = 0, size_type n = Base::npos) const noexcept(false) {
     return base.substr(pos, n);
   }
+
+  inline operator std::basic_string_view<T, CharTraits>() const {// NOLINT(google-explicit-constructor)
+    return base;
+  }
 };
 
 template<typename T, typename CharTraits>
@@ -285,3 +292,10 @@ bool operator==(const safe_string_view<T, CharTraits>& left, const safe_string_v
 }
 
 #pragma clang diagnostic pop
+
+#else
+
+template<typename T, typename CharTraits = std::char_traits<T>>
+using safe_string_view = std::basic_string_view<T, CharTraits>;
+
+#endif

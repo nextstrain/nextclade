@@ -1,18 +1,21 @@
 #pragma once
 
+#include <string>
+
+#include "safe_string_view.h"
+
+#if !defined(NDEBUG)
+
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedStructInspection"
 #pragma ide diagnostic ignored "OCUnusedTypeAliasInspection"
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 
-
 #include <algorithm>
 #include <memory>
-#include <string>
 
 #include "contract.h"
 #include "copy.h"
-#include "safe_string_view.h"
 
 
 /**
@@ -342,3 +345,10 @@ bool operator==(const safe_string<T, CharTraits, Alloc>& left, const safe_string
 }
 
 #pragma clang diagnostic pop
+
+#else
+
+template<typename T, typename CharTraits = std::char_traits<T>, typename Alloc = std::allocator<T>>
+using safe_string = std::basic_string<T, CharTraits, Alloc>;
+
+#endif
