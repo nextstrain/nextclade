@@ -81,15 +81,15 @@ public:
 
   inline ~safe_string() noexcept = default;
 
-  operator safe_string_view<T, CharTraits>() const noexcept {// NOLINT(google-explicit-constructor)
+  inline operator safe_string_view<T, CharTraits>() const noexcept {// NOLINT(google-explicit-constructor)
     return safe_string_view<T, CharTraits>{base.operator std::basic_string_view<T, CharTraits>()};
   }
 
-  inline const std::basic_string<T, CharTraits, Alloc>& to_std() const {
+  inline operator const std::basic_string<T, CharTraits, Alloc>&() const {// NOLINT(google-explicit-constructor)
     return base;
   }
 
-  inline std::basic_string<T, CharTraits, Alloc>& to_std_ref() {
+  inline operator std::basic_string<T, CharTraits, Alloc>&() {// NOLINT(google-explicit-constructor)
     return base;
   }
 
