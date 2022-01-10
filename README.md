@@ -331,6 +331,9 @@ We are thankful to all our contributors, no matter how they contribute: in ideas
     <td align="center"><a href="https://github.com/molecules"><img src="https://avatars.githubusercontent.com/u/345060?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christopher Bottoms</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=molecules" title="Documentation">📖</a></td>
     <td align="center"><a href="http://finlaymagui.re/"><img src="https://avatars.githubusercontent.com/u/1698629?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Finlay Maguire</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=fmaguire" title="Documentation">📖</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/dnanto"><img src="https://avatars.githubusercontent.com/u/49757922?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dnanto</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=dnanto" title="Code">💻</a> <a href="#data-dnanto" title="Data">🔣</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

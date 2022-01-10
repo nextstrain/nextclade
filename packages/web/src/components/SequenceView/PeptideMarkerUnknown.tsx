@@ -25,7 +25,7 @@ export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...r
   const { begin, end } = range // prettier-ignore
 
   const id = getSafeId('unknown-marker', { seqName, ...range })
-  const x = begin * pixelsPerAa
+  const x = begin * pixelsPerAa - pixelsPerAa / 2
   let width = (end - begin) * pixelsPerAa
   width = Math.max(width, AA_MIN_WIDTH_PX)
 

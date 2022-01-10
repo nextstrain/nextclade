@@ -81,15 +81,15 @@ public:
 
   inline ~safe_string() noexcept = default;
 
-  operator safe_string_view<T, CharTraits>() const noexcept {// NOLINT(google-explicit-constructor)
+  inline operator safe_string_view<T, CharTraits>() const noexcept {// NOLINT(google-explicit-constructor)
     return safe_string_view<T, CharTraits>{base.operator std::basic_string_view<T, CharTraits>()};
   }
 
-  inline const std::basic_string<T, CharTraits, Alloc>& to_std() const {
+  inline operator const std::basic_string<T, CharTraits, Alloc>&() const {// NOLINT(google-explicit-constructor)
     return base;
   }
 
-  inline std::basic_string<T, CharTraits, Alloc>& to_std_ref() {
+  inline operator std::basic_string<T, CharTraits, Alloc>&() {// NOLINT(google-explicit-constructor)
     return base;
   }
 
@@ -138,50 +138,62 @@ public:
   }
 
   inline iterator begin() noexcept {
+    precondition(!base.empty());
     return base.begin();
   }
 
   inline const_iterator begin() const noexcept {
+    precondition(!base.empty());
     return base.begin();
   }
 
   inline iterator end() noexcept {
+    precondition(!base.empty());
     return base.end();
   }
 
   inline const_iterator end() const noexcept {
+    precondition(!base.empty());
     return base.end();
   }
 
   inline reverse_iterator rbegin() noexcept {
+    precondition(!base.empty());
     return base.rbegin();
   }
 
   inline const_reverse_iterator rbegin() const noexcept {
+    precondition(!base.empty());
     return base.rbegin();
   }
 
   inline reverse_iterator rend() noexcept {
+    precondition(!base.empty());
     return base.rend();
   }
 
   inline const_reverse_iterator rend() const noexcept {
+    precondition(!base.empty());
     return base.rend();
   }
 
   inline const_iterator cbegin() const noexcept {
+    precondition(!base.empty());
     return base.cbegin();
   }
 
   inline const_iterator cend() const noexcept {
+    precondition(!base.empty());
     return base.cend();
   }
 
   inline const_reverse_iterator crbegin() const noexcept {
+    precondition(!base.empty());
     return base.crbegin();
   }
 
   inline const_reverse_iterator crend() const noexcept {
+    precondition(!base.empty());
     return base.crend();
   }
 
@@ -192,7 +204,6 @@ public:
   inline size_type size() const noexcept {
     return base.size();
   }
-
 
   inline size_type max_size() const noexcept {
     return base.max_size();
@@ -307,15 +318,20 @@ public:
   }
 
   inline pointer data() noexcept {
+    precondition(!base.empty());
     return base.data();
   }
 
   inline const_pointer data() const noexcept {
+    precondition(!base.empty());
     return base.data();
   }
 
-  inline safe_string substr(size_type pos = 0, size_type n = Base::npos) const noexcept(false) {
-    return base.substr(pos, n);
+  inline safe_string substr(size_type start = 0, size_type length = Base::npos) const noexcept(false) {
+    precondition_greater_equal(start, 0);
+    precondition_less(start, base.length());
+    precondition_less_equal(length, base.length() - start);
+    return base.substr(start, length);
   }
 
   inline safe_string operator+=(const safe_string& other) {
@@ -331,6 +347,8 @@ public:
   }
 
   inline size_type find(const std::basic_string<T, CharTraits, Alloc>& str, size_type pos = 0) const noexcept {
+    precondition_greater_equal(pos, 0);
+    precondition_less(pos, base.length());
     return base.find(str, pos);
   }
 

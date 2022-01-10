@@ -2,6 +2,7 @@
 
 #include <common/contract.h>
 #include "../utils/safe_cast.h"
+#include "decode.h"
 #include "translate.h"
 
 template<typename IntS, typename IntL>
@@ -28,6 +29,9 @@ std::map<std::string, RefPeptideInternal> translateGenesRef(//
     const auto& gene = found->second;
     const auto length = gene.end - gene.start;
     auto nucSeq = substr(ref, gene.start, length);
+    if (gene.strand == "-") {
+      reverseComplementInPlace(nucSeq);
+    }
     auto peptide = translate(nucSeq, options.translatePastStop);
 
     result.emplace(gene.geneName, RefPeptideInternal{.geneName = gene.geneName, .peptide = peptide});

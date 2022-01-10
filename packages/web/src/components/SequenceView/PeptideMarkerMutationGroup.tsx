@@ -60,10 +60,14 @@ function PeptideMarkerMutationGroupDisconnected({
 
   const { gene, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
   const id = getSafeId('aa-mutation-group-marker', { seqName, gene, begin: codonAaRange.begin })
-  const x = codonAaRange.begin * pixelsPerAa
   const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + changes.length)
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
   const width = changes.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
+  // position mutation group at 'center of group' - half the group width
+  const x =
+    ((codonAaRange.begin + codonAaRange.end) * pixelsPerAa -
+      (codonAaRange.end - codonAaRange.begin) * pixelsPerAaAdjusted) /
+    2
 
   let changesHead = changes
   let changesTail: typeof changes = []
