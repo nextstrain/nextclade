@@ -241,3 +241,104 @@ TEST_F(TranslateGenes, DetectsCompensatedFrameShiftWithInsertion) {
   };
   EXPECT_EQ(frameShiftResult, frameShiftExpected);
 }
+
+TEST_F(TranslateGenes, SkipsGeneWith0Nucleotides) {
+  //                                        0         10        20        30
+  //                                        |         |         |         |
+  //                                        012345678901234567890123456789012345
+  const auto refAln = toNucleotideSequence("AGAAACTGCTCAAAATTCTGTGTGATATGAACAGAA");
+  const auto qryAln = toNucleotideSequence("AGAAACTGC---------------------CAGAAG");
+  //                                                 |       Gene 1       |
+  //                                                 xxxxxxxxxxxxxxxxxxxxx
+  //                                                 9                    30
+  // clang-format on
+
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wshadow"
+  const auto geneMap = GeneMap{
+    {"Gene1", Gene{.geneName = "Gene1", .start = 9, .end = 30, .frame = 0, .length = 21}},
+  };
+#pragma GCC diagnostic pop
+
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
+
+  // Emits oo peptide and a warning
+  EXPECT_EQ(peptides.queryPeptides.size(), 0);
+  EXPECT_EQ(peptides.warnings.inGenes.size(), 1);
+}
+
+
+TEST_F(TranslateGenes, SkipsGeneWith1Nucleotide) {
+  //                                        0         10        20        30
+  //                                        |         |         |         |
+  //                                        012345678901234567890123456789012345
+  const auto refAln = toNucleotideSequence("AGAAACTGCTCAAAATTCTGTGTGATATGAACAGAA");
+  const auto qryAln = toNucleotideSequence("AGAAACTGCT--------------------CAGAAG");
+  //                                                 |       Gene 1       |
+  //                                                 xxxxxxxxxxxxxxxxxxxxx
+  //                                                 9                    30
+  // clang-format on
+
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wshadow"
+  const auto geneMap = GeneMap{
+    {"Gene1", Gene{.geneName = "Gene1", .start = 9, .end = 30, .frame = 0, .length = 21}},
+  };
+#pragma GCC diagnostic pop
+
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
+
+  // Emits oo peptide and a warning
+  EXPECT_EQ(peptides.queryPeptides.size(), 0);
+  EXPECT_EQ(peptides.warnings.inGenes.size(), 1);
+}
+
+TEST_F(TranslateGenes, SkipsGeneWith2Nucleotides) {
+  //                                        0         10        20        30
+  //                                        |         |         |         |
+  //                                        012345678901234567890123456789012345
+  const auto refAln = toNucleotideSequence("AGAAACTGCTCAAAATTCTGTGTGATATGAACAGAA");
+  const auto qryAln = toNucleotideSequence("AGAAACTGCTC-------------------CAGAAG");
+  //                                                 |       Gene 1       |
+  //                                                 xxxxxxxxxxxxxxxxxxxxx
+  //                                                 9                    30
+  // clang-format on
+
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wshadow"
+  const auto geneMap = GeneMap{
+    {"Gene1", Gene{.geneName = "Gene1", .start = 9, .end = 30, .frame = 0, .length = 21}},
+  };
+#pragma GCC diagnostic pop
+
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
+
+  // Emits oo peptide and a warning
+  EXPECT_EQ(peptides.queryPeptides.size(), 0);
+  EXPECT_EQ(peptides.warnings.inGenes.size(), 1);
+}
+
+TEST_F(TranslateGenes, TranslatesGeneWith3Nucleotides) {
+  //                                        0         10        20        30
+  //                                        |         |         |         |
+  //                                        012345678901234567890123456789012345
+  const auto refAln = toNucleotideSequence("AGAAACTGCTCAAAATTCTGTGTGATATGAACAGAA");
+  const auto qryAln = toNucleotideSequence("AGAAACTGCTCA------------------CAGAAG");
+  //                                                 |       Gene 1       |
+  //                                                 xxxxxxxxxxxxxxxxxxxxx
+  //                                                 9                    30
+  // clang-format on
+
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+#pragma GCC diagnostic ignored "-Wshadow"
+  const auto geneMap = GeneMap{
+    {"Gene1", Gene{.geneName = "Gene1", .start = 9, .end = 30, .frame = 0, .length = 21}},
+  };
+#pragma GCC diagnostic pop
+
+  const auto peptides = translateGenes(qryAln, refAln, refPeptides, geneMap, gapOpenCloseAA, options);
+
+  // Emits oo peptide and a warning
+  EXPECT_EQ(peptides.queryPeptides.size(), 1);
+  EXPECT_EQ(peptides.warnings.inGenes.size(), 0);
+}
