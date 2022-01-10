@@ -55,8 +55,8 @@ function SequenceMarkerMutationDisconnected({
   const id = getSafeId('mutation-marker', { seqName, ...substitution })
 
   const fill = getNucleotideColor(queryNuc)
-  const x = pos * pixelsPerBase
   const width = Math.max(BASE_MIN_WIDTH_PX, pixelsPerBase)
+  const x = pos * pixelsPerBase - width / 2
 
   const totalAaChanges = aaSubstitutions.length + aaDeletions.length
 

@@ -3,22 +3,22 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import { ReactComponent as CladeSchemaSvg } from 'src/assets/img/nextstrain_clades.svg'
+import { ReactComponent as CladeSchemaSvg } from 'src/assets/img/clades.svg'
 
 const CladeSchemaFigure = styled.figure`
   display: flex;
   width: 100%;
-  max-width: 800px;
+  max-width: 850px;
   flex-direction: column;
   margin: 0 auto;
 `
 
 const CladeSchemaPicture = styled.picture`
-  flex: 1 0 100%;
+  flex: 0 1 100%;
 `
 
 const CladeSchemaFigcaption = styled.figcaption`
-  flex: 1 0 100%;
+  flex: 1 1 100%;
 `
 
 export function CladeSchema() {

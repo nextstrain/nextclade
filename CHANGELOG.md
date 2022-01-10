@@ -1,8 +1,8 @@
 ## Nextclade Web 1.11.1, Nextclade CLI 1.8.1 (2022-01-07)
 
-### [Hotfix] Crash when reading JSON tree
+### [Hotfix] Nextclade CLI crashes on macOS when reading JSON tree (#680)
 
-Fixed crash when reading JSON tree, that occurred since last version
+Fixes crash `Error: [json.exception.invalid_iterator.214] cannot get value |` when reading JSON tree on macOS
 
 
 ## Nextclade Web 1.11.0, Nextclade CLI 1.8.0 (2022-01-04)

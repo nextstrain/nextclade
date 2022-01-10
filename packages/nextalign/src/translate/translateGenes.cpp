@@ -19,6 +19,7 @@
 #include "./translate.h"
 #include "align/alignPairwise.h"
 #include "align/alignmentParams.h"
+#include "decode.h"
 #include "detectFrameShifts.h"
 #include "removeGaps.h"
 
@@ -117,6 +118,11 @@ PeptidesInternal translateGenes(                               //
       continue;
     }
 
+    if (gene.strand == "-") {
+      reverseComplementInPlace(*extractRefGeneStatus.result);
+      reverseComplementInPlace(*extractQueryGeneStatus.result);
+    }
+
     auto& refGeneSeq = *extractRefGeneStatus.result;
     const auto refGapCounts = countGaps(refGeneSeq);
 
@@ -152,6 +158,15 @@ PeptidesInternal translateGenes(                               //
     debug_trace("Translating gene '{:}'\n", geneName);
     const auto queryPeptide = translate(queryGeneSeq, options.translatePastStop);
 
+    // Bail out if the peptide is empty
+    if (queryPeptide.empty()) {
+      const auto message = fmt::format(
+        "When processing gene \"{:s}\". Translated peptide is empty. "
+        "Note that this gene will not be included in the results of the sequence.",
+        geneName);
+      warnings.inGenes.push_back(GeneWarning{.geneName = geneName, .message = message});
+      continue;
+    }
 
     debug_trace("Aligning peptide '{:}'\n", geneName);
     const AlignmentParams alignmentParams = calculateAaAlignmentParams(queryGapCounts, refGapCounts);
