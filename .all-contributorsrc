@@ -85,6 +85,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "dnanto",
+      "name": "dnanto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49757922?v=4",
+      "profile": "https://github.com/dnanto",
+      "contributions": [
+        "code",
+        "data"
+      ]
     }
   ],
   "repoType": "github",
