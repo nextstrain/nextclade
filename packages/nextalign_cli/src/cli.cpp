@@ -885,12 +885,8 @@ int main(int argc, char *argv[]) {
     logger.info("| {:5s} | {:40s} | {:16s} | {:12s} |", "Index", "Seq. name", "Align. score", "Insertions");
     logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
 
-    try {
-      run(parallelism, inOrder, fastaStream, refData, geneMap, options, outputFastaFile, outputInsertionsFile,
-        outputErrorsFile, outputGeneFiles, shouldWriteReference, logger);
-    } catch (const std::exception &e) {
-      logger.error("Error: {:>16s} |\n", e.what());
-    }
+    run(parallelism, inOrder, fastaStream, refData, geneMap, options, outputFastaFile, outputInsertionsFile,
+      outputErrorsFile, outputGeneFiles, shouldWriteReference, logger);
 
     logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
   } catch (const std::exception &e) {

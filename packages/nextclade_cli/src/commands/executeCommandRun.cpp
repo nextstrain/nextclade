@@ -166,13 +166,9 @@ namespace Nextclade {
 
       NextalignOptions options = cliOptionsToNextalignOptions(*cliParams);
 
-      try {
-        runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap,
-          options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
-          outputInsertionsStream, outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
-      } catch (const std::exception& e) {
-        logger.error("Error: {:>16s} |", e.what());
-      }
+      runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap,
+        options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
+        outputInsertionsStream, outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
 
       logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
     } catch (const std::exception& e) {
