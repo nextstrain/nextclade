@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Runs development script inside development Docker container
+
+set -euo pipefail
+
+function abspath() {
+  readlink -m "$1"
+}
+
+THIS_DIR=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)
+
+PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
+
+DOCKER_IMAGE_NAME="nextstrain/nextclade_builder"
+DOCKER_IMAGE_NAME_SAFE="${DOCKER_IMAGE_NAME//\//-}"
+DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date +%s)"
+
+USER=user
+GROUP=user
+
+docker build -q -t "${DOCKER_IMAGE_NAME}:latest" \
+  -f "${PROJECT_ROOT_DIR}/dev.dockerfile" \
+  --build-arg="UID=$(id -u)" \
+  --build-arg="GID=$(id -g)" \
+  --build-arg="USER=${USER}" \
+  --build-arg="GROUP=${GROUP}" \
+  "${PROJECT_ROOT_DIR}" \
+  >/dev/null
+
+docker run -it --rm \
+  --init \
+  --name="${DOCKER_CONTAINER_NAME}" \
+  --hostname="${DOCKER_IMAGE_NAME_SAFE}" \
+  --user="$(id -u):$(id -g)" \
+  --volume="${PWD}/:/src" \
+  --volume="/etc/timezone:/etc/timezone:ro" \
+  --volume="/etc/localtime:/etc/localtime:ro" \
+  --env="UID=$(id -u)" \
+  --env="GID=$(id -g)" \
+  --env="USER=${USER}" \
+  --env="GROUP=${GROUP}" \
+  --env="PS1=\${USER}@\${HOST}" \
+  "${DOCKER_IMAGE_NAME}" \
+  ./dev-local ${*:-}

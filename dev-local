@@ -1,0 +1,170 @@
+#!/usr/bin/env bash
+
+# Runs development script for C++ build.
+# Allows to watch for changes in source files and to rerun automatically.
+#
+# Requirements:
+#
+#  See:
+#    - nextclade/docs/dev/developers-guide-cli.md
+#    - nextclade/docs/dev/developers-guide-web.md
+#
+# Usage:
+#
+#   Build and run in Debug mode:
+#     $ ./dev-local r
+#
+#   Build and run in Debug mode, rebuild automatically on changes (requires `watchexec`):
+#     $ ./dev-local wr
+#
+#   Build and run in Release mode (with optimizations):
+#     $ ./dev-local r --release
+#   or a shortcut:
+#     $ ./dev-local rr
+#
+#   Build WebAssembly module (always in Release mode):
+#     $ ./dev-local r --wasm
+#
+#   Pass arbitrary flags to the `configure.py` script:
+#     $ ./dev-local r install_deps codegen configure --release
+
+set -euo pipefail
+
+SUCCESS="({ set +x; } 2> /dev/null && echo '🟩 Success')"
+FAILURE="({ set +x; } 2> /dev/null && echo '🟥 Failure')"
+CANCELLED="({ set +x; } 2> /dev/null && echo '🟦 Cancelled')"
+SUCCESS_OR_FAILURE="&& ${SUCCESS} || ${FAILURE}"
+HANDLE_SIGINT="trap \"${CANCELLED}; exit 0\" INT"
+
+function abspath() {
+  readlink -m "$1"
+}
+
+THIS_DIR=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)
+
+PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
+
+# Reduce process priority if `nice` is available
+NICE=""
+if command -v nice >/dev/null; then
+  NICE="${NICE} nice -15"
+fi
+# Reduce disk I/O priority if `ionice` is available
+if command -v ionice >/dev/null; then
+  NICE="${NICE} ionice -c2 -n5"
+fi
+
+EXTENSIONS_TO_WATCH="c,cpp,h,hpp,cx,cxx,txt,json,yaml,yml,py,cmake,sh,cppcheck,clang-tidy,Makefile,env,env.example"
+
+FILES_TO_WATCH="\
+-w .clang-tidy \
+-w .cppcheck \
+-w .env \
+-w .env.example \
+-w CMakeLists.txt \
+-w config/ \
+-w dev-local \
+-w packages/cmake \
+-w packages/nextalign/CMakeLists.txt \
+-w packages/nextalign/include/nextalign \
+-w packages/nextalign/src/ \
+-w packages/nextalign/tests/ \
+-w packages/nextalign/tests/.clang-tidy \
+-w packages/nextalign/tests/CMakeLists.txt \
+-w packages/nextalign_cli/CMakeLists.txt \
+-w packages/nextalign_cli/src/ \
+-w packages/nextclade/CMakeLists.txt \
+-w packages/nextclade/include/nextclade/ \
+-w packages/nextclade/src/ \
+-w packages/nextclade_cli/CMakeLists.txt \
+-w packages/nextclade_cli/cli.json \
+-w packages/nextclade_cli/src/ \
+-w packages/nextclade_common/CMakeLists.txt \
+-w packages/nextclade_common/include/nextclade_common/ \
+-w packages/nextclade_common/scripts/ \
+-w packages/nextclade_common/src/ \
+-w packages/nextclade_json/CMakeLists.txt \
+-w packages/nextclade_json/include/nextclade_json/ \
+-w packages/nextclade_json/src/ \
+-w packages/nextclade_wasm/CMakeLists.txt \
+-w packages/nextclade_wasm/src/ \
+-w scripts/ \
+-w scripts/build/ \
+-w scripts/lib/ \
+"
+
+export FILES_TO_IGNORE="\
+-i .build/ \
+-i .cache/ \
+-i .git/ \
+-i .ignore/ \
+-i .temp/ \
+-i .tmp/ \
+-i .vscode/ \
+-i 3rdparty/ \
+-i packages/nextclade_cli/src/generated/ \
+-i packages/nextclade_common/src/generated/ \
+-i temp/ \
+-i tmp/ \
+"
+
+RUN=0
+RELEASE=
+WATCH=
+
+for arg; do
+  case "$arg" in
+  "run" | "r")
+    shift
+    RUN=1
+    break
+    ;;
+  "run-release" | "rr")
+    shift
+    RUN=1
+    RELEASE="--release"
+    break
+    ;;
+  "watch-run" | "wr")
+    shift
+    RUN=1
+    WATCH=1
+    break
+    ;;
+  "watch-run-release" | "wrr")
+    shift
+    RUN=1
+    RELEASE="--release"
+    WATCH=1
+    break
+    ;;
+  esac
+done
+
+COMMAND=${*:-}
+if [ "${RUN}" == "1" ]; then
+  COMMAND="python3 configure.py ${RELEASE} ${COMMAND} ${SUCCESS_OR_FAILURE}"
+
+  AUTOREBUILD_MESSAGE='echo "⏰ Watching for file changes. Will rebuild if source files are modified. Press Ctrl+C to cancel."'
+  if [ "${WATCH}" == "1" ]; then
+    COMMAND="watchexec \
+      --no-default-ignore \
+      --clear \
+      --restart \
+      --on-busy-update=restart \
+      --no-process-group \
+      --shell=bash \
+      --debounce=10 \
+      --no-meta \
+      --no-environment \
+      --exts=${EXTENSIONS_TO_WATCH} \
+      ${FILES_TO_WATCH} \
+      ${FILES_TO_IGNORE} \
+      '${COMMAND}; ${AUTOREBUILD_MESSAGE}'"
+  fi
+fi
+
+${NICE} bash -c "${COMMAND}"

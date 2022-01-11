@@ -32,6 +32,8 @@ def configure_common_variables(project_root_dir, args=None):
   if args is None:
     args = {}
 
+  CONANFILE = os.path.join(project_root_dir, "scripts", "build", "conanfile.py")
+
   PATH = []
   LD_LIBRARY_PATH = []
 
@@ -185,6 +187,9 @@ def configure_common_variables(project_root_dir, args=None):
   # Gather preliminary variables. These will be used to setup toolchains.
   config_dict = {
     "PROJECT_ROOT_DIR": project_root_dir,
+
+    "CONANFILE": CONANFILE,
+
     "BUILD_PREFIX": BUILD_PREFIX,
     "BUILD_SUFFIX": BUILD_SUFFIX,
     "INSTALL_DIR": INSTALL_DIR,

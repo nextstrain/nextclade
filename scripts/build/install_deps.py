@@ -93,10 +93,11 @@ def install_deps(config, shell):
 
   # Install Conan packages into build directory, so that they can be picked up by Cmake later on
   shell(f"""
-    conan install {config.PROJECT_ROOT_DIR} \
+    conan install \
       -s build_type="{config.CONAN_BUILD_TYPE}" \
       {config.CONAN_ARCH_SETTINGS} \
       {config.CONAN_COMPILER_SETTINGS} \
       {config.CONAN_STATIC_BUILD_FLAGS} \
       --build missing \
+      {config.CONANFILE} \
   """, cwd=config.BUILD_DIR)

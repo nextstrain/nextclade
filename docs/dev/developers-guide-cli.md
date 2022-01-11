@@ -20,7 +20,7 @@ The easiest way to start the development is to use the included docker container
     ```bash
     git clone --recursive https://github.com/nextstrain/nextclade
     cd nextclade
-    make docker-dev
+    ./dev-docker r
     ```
 
 ### ✨ Develop locally
@@ -79,6 +79,8 @@ The easiest way to start the development is to use the included docker container
 
       > ⚠️ Only GCC >= 9 and Clang >= 10 are officially supported (but you can try older versions too and tell us how it goes)
 
+    - Python 3.6 or higher
+
     - [cmake](https://cmake.org/) >= 3.10
 
     - [conan](https://conan.io/) package manager
@@ -87,7 +89,9 @@ The easiest way to start the development is to use the included docker container
 
       > ⚠️ A version that supports C++17 is required
 
-     - coreutils
+    - coreutils
+
+    - bash
 
   - Recommended:
 
@@ -95,8 +99,8 @@ The easiest way to start the development is to use the included docker container
 
     - [gdb](https://www.gnu.org/software/gdb/) to automatically run the executables under debugger and show stack traces and other useful information in case of crashes
 
-    - [nodemon](https://www.npmjs.com/package/nodemon) for watch & rebuild feature, for better developer experience and productivity
-
+    - [watchexec](https://github.com/watchexec/watchexec) for automatic rebuild on file changes
+      
       > ⚠️ nodemon requires Node.js and npm
 
       > 💡 If you don't want to install Node.js and nodemon, or don't want the automatic watch & rebuild feature, you can use `make dev-nowatch` instead of `make dev` during development (see below).
@@ -108,7 +112,7 @@ The easiest way to start the development is to use the included docker container
     ```bash
     git clone https://github.com/nextstrain/nextclade
     cd nextclade
-    make dev
+    ./dev-local r
     ```
 
     This will:

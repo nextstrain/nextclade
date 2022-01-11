@@ -4,7 +4,8 @@ def run_build(config, shell):
   In release mode it also installs the binaries into the install dir.
   """
   shell(f"""
-    conan build --build {config.PROJECT_ROOT_DIR} \
+    conan build --build \
       --source-folder={config.PROJECT_ROOT_DIR} \
       --build-folder={config.BUILD_DIR} \
+      {config.CONANFILE} \
   """, cwd=config.BUILD_DIR)
