@@ -57,6 +57,8 @@ target_compile_definitions(${PROJECT_NAME}
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
 
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
+
   -DDATA_FULL_DOMAIN="${DATA_FULL_DOMAIN}"
 
   -DFMT_HEADER_ONLY=1
@@ -83,6 +85,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+  common
   nextclade_json
   ghcFilesystem::ghc_filesystem
 

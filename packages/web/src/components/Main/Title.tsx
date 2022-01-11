@@ -16,18 +16,14 @@ const TitleH1 = styled.h1`
   margin-bottom: 0px;
   font-weight: 300;
   letter-spacing: -1px;
-  font-size: 106px;
+  font-size: 6rem;
 
-  @media (max-width: 780px) {
-    font-size: 82px;
+  @media (max-width: 767.98px) {
+    font-size: 5rem;
   }
 
-  @media (max-width: 560px) {
-    font-size: 60px;
-  }
-
-  @media (max-width: 490px) {
-    font-size: 50px;
+  @media (max-width: 576px) {
+    font-size: 3.5rem;
   }
 `
 
@@ -36,19 +32,14 @@ const VersionNumberBadge = styled.p`
   font-size: 0.85rem;
   color: #7b838a;
 
-  @media (max-width: 780px) {
+  @media (max-width: 767.98px) {
     left: -35px;
     font-size: 0.8rem;
   }
 
-  @media (max-width: 560px) {
+  @media (max-width: 576px) {
     left: -30px;
     font-size: 0.75rem;
-  }
-
-  @media (max-width: 490px) {
-    left: -23px;
-    font-size: 0.7rem;
   }
 `
 
@@ -70,16 +61,20 @@ export const Title = () => (
   </span>
 )
 
-export const Subtitle = styled.h1`
+export const Subtitle = styled.p`
+  text-align: center;
+  font-size: 2rem;
   font-weight: 300;
-  font-size: 30px;
-  color: #555;
 
-  @media (max-width: 780px) {
-    font-size: 25px;
+  @media (max-width: 991.98px) {
+    font-size: 1.5rem;
   }
 
-  @media (max-width: 560px) {
-    font-size: 22px;
+  @media (max-width: 767.98px) {
+    font-size: 1.2rem;
+  }
+
+  @media (max-width: 576px) {
+    font-size: 1rem;
   }
 `

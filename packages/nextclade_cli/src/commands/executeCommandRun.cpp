@@ -84,12 +84,7 @@ namespace Nextclade {
         }
       }
 
-      std::ifstream fastaFile(inputFasta);
-      auto inputFastaStream = makeFastaStream(fastaFile, inputFasta);
-      if (!fastaFile.good()) {
-        logger.error("Error: unable to read \"{:s}\"", inputFasta);
-        std::exit(1);
-      }
+      auto inputFastaStream = makeFastaStream(inputFasta);
 
       const auto qcJsonString = readFile(inputQcConfig);
       const auto qcRulesConfig = Nextclade::parseQcConfig(qcJsonString);
@@ -103,10 +98,10 @@ namespace Nextclade {
 
       const auto treeString = readFile(inputTree);
 
-      std::vector<Nextclade::PcrPrimer> pcrPrimers;
+      safe_vector<Nextclade::PcrPrimer> pcrPrimers;
       if (inputPcrPrimers) {
         const auto pcrPrimersCsvString = readFile(*inputPcrPrimers);
-        std::vector<std::string> warnings;
+        safe_vector<std::string> warnings;
         pcrPrimers =
           Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, *inputPcrPrimers, refData.seq, warnings);
       }
@@ -171,13 +166,9 @@ namespace Nextclade {
 
       NextalignOptions options = cliOptionsToNextalignOptions(*cliParams);
 
-      try {
-        runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap,
-          options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
-          outputInsertionsStream, outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
-      } catch (const std::exception& e) {
-        logger.error("Error: {:>16s} |", e.what());
-      }
+      runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap,
+        options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
+        outputInsertionsStream, outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
 
       logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
     } catch (const std::exception& e) {

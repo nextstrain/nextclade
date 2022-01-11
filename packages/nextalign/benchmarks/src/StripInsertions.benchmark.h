@@ -3,7 +3,7 @@
 #include <benchmark/benchmark.h>
 
 #include <numeric>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../include/nextalign/nextalign.h"
 #include "../src/align/alignPairwise.h"
@@ -14,7 +14,7 @@
 
 class StripInsertionsBench : public benchmark::Fixture {
 protected:
-  std::vector<Alignment> alignments;
+  safe_vector<Alignment> alignments;
 
   StripInsertionsBench() {
     const auto n = NUM_SEQUENCES_AVG;

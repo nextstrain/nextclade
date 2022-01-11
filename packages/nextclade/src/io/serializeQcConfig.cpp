@@ -16,7 +16,7 @@ namespace Nextclade {
     }
 
     template<typename T, typename Serializer>
-    void writeArray(json& j, const std::string& path, const std::vector<T>& value, Serializer serializer) {
+    void writeArray(json& j, const std::string& path, const safe_vector<T>& value, Serializer serializer) {
       j[json::json_pointer{path}] = serializeArray(value, serializer);
     }
   }// namespace
@@ -51,6 +51,10 @@ namespace Nextclade {
     }
 
     writeValue(j, "/frameShifts/enabled", qcConfig.frameShifts.enabled);
+    if (qcConfig.frameShifts.enabled) {
+      writeArray(j, "/frameShifts/ignoredFrameShifts", qcConfig.frameShifts.ignoredFrameShifts,
+        serializeFrameShiftLocation);
+    }
 
     writeValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled);
     if (qcConfig.stopCodons.enabled) {

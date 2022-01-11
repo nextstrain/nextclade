@@ -7,30 +7,68 @@
 
 #include <ostream>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 
 namespace Nextclade {
-  NextcladeResult analyzeOneSequence(        //
-    const std::string& seqName,              //
-    const NucleotideSequence& ref,           //
-    const NucleotideSequence& query,         //
-    const GeneMap& geneMap,                  //
-    const std::vector<PcrPrimer>& pcrPrimers,//
-    const QcConfig& qcRulesConfig,           //
-    const Tree& tree,                        //
-    const NextalignOptions& nextalignOptions //
+  struct AminoacidSubstitutionWithoutGene {
+    Aminoacid ref;
+    int pos;
+    Aminoacid qry;
+  };
+
+  /** Maps a position to Nucleotide */
+  using PosToNucMap = std::map<int, NucleotideSubstitutionSimple>;
+
+  /** Maps a position to Aminoacid */
+  using PosToAaMapForGene = std::map<int, AminoacidSubstitutionWithoutGene>;
+
+  /** Aminoacid maps for all the genes */
+  using PosToAaMap = std::map<std::string, PosToAaMapForGene>;
+
+  NextcladeResult analyzeOneSequence(                            //
+    const std::string& seqName,                                  //
+    const NucleotideSequence& ref,                               //
+    const NucleotideSequence& query,                             //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,//
+    const safe_vector<RefPeptideInternal>& refPeptidesArr,       //
+    const GeneMap& geneMap,                                      //
+    const safe_vector<PcrPrimer>& pcrPrimers,                    //
+    const QcConfig& qcRulesConfig,                               //
+    const Tree& tree,                                            //
+    const NextalignOptions& nextalignOptions,                    //
+    const safe_vector<std::string>& customNodeAttrKeys           //
   );
+
+  safe_vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides);
 
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {
     os << "{ ";
-    os << "refNuc: " << nucToString(val.refNuc) << ", ";
+    os << "refNuc: " << nucToString(val.ref) << ", ";
     os << "pos: " << val.pos << ", ";
-    os << "queryNuc: " << nucToString(val.queryNuc);
+    os << "queryNuc: " << nucToString(val.qry);
     os << " }";
     return os;
   }
+
+  inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitutionSimple& val) {
+    os << "{ ";
+    os << "refNuc: " << nucToString(val.ref) << ", ";
+    os << "pos: " << val.pos << ", ";
+    os << "queryNuc: " << nucToString(val.qry);
+    os << " }";
+    return os;
+  }
+
+  inline std::ostream& operator<<(std::ostream& os, const NucleotideDeletionSimple& val) {
+    os << "{ ";
+    os << "refNuc: " << nucToString(val.ref) << ", ";
+    os << "pos: " << val.pos;
+    os << " }";
+    return os;
+  }
+
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideInsertion& val) {
     os << "{ ";
@@ -72,20 +110,12 @@ namespace Nextclade {
     return os;
   }
 
-  inline std::ostream& operator<<(std::ostream& os, const Range& val) {
-    os << "{ ";
-    os << "begin: " << val.begin << ", ";
-    os << "end: " << val.end;
-    os << " }";
-    return os;
-  }
-
   inline std::ostream& operator<<(std::ostream& os, const AminoacidSubstitution& val) {
     os << "{ ";
     os << "gene: \"" << val.gene << "\", ";
-    os << "refAA: " << val.refAA << ", ";
-    os << "queryAA: " << val.queryAA << ", ";
-    os << "codon: " << val.codon << ", ";
+    os << "refAA: " << val.ref << ", ";
+    os << "queryAA: " << val.qry << ", ";
+    os << "codon: " << val.pos << ", ";
     os << "codonNucRange: " << val.codonNucRange << ", ";
     os << "refContext: " << val.refContext << ", ";
     os << "queryContext: " << val.queryContext << ", ";
@@ -97,8 +127,8 @@ namespace Nextclade {
   inline std::ostream& operator<<(std::ostream& os, const AminoacidDeletion& val) {
     os << "{ ";
     os << "gene: \"" << val.gene << "\", ";
-    os << "refAA: " << val.refAA << ", ";
-    os << "codon: " << val.codon << ", ";
+    os << "refAA: " << val.ref << ", ";
+    os << "codon: " << val.pos << ", ";
     os << "codonNucRange: " << val.codonNucRange << ", ";
     os << "refContext: " << val.refContext << ", ";
     os << "contextNucRange: " << val.contextNucRange;

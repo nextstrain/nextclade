@@ -13,7 +13,7 @@ TEST(stripInsertions, StripsAnInsertion) {
 
   EXPECT_EQ(toString(res.queryStripped), toString(expected));
   EXPECT_EQ(res.insertions.size(), 1);
-  EXPECT_EQ(res.insertions[0].pos, 3);
+  EXPECT_EQ(res.insertions[0].pos, 2);
   EXPECT_EQ(res.insertions[0].length, 3);
   EXPECT_EQ(toString(res.insertions[0].ins), "GCG");
 }

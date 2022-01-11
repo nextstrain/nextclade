@@ -31,6 +31,16 @@
       ]
     },
     {
+      "login": "victorlin",
+      "name": "Victor Lin",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/13424970?v=4",
+      "profile": "https://github.com/victorlin",
+      "contributions": [
+        "code",
+        "doc"
+      ]
+    },
+    {
       "login": "theosanderson",
       "name": "Theo Sanderson",
       "avatar_url": "https://avatars.githubusercontent.com/u/19732295?v=4",
@@ -75,10 +85,20 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "dnanto",
+      "name": "dnanto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49757922?v=4",
+      "profile": "https://github.com/dnanto",
+      "contributions": [
+        "code",
+        "data"
+      ]
     }
   ],
   "repoType": "github",
-  "contributorsPerLine": 7,
+  "contributorsPerLine": 8,
   "repoHost": "https://github.com",
   "commitConvention": "angular"
 }

@@ -15,9 +15,7 @@ import { AppProps } from 'next/app'
 import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
 import type { Persistor } from 'redux-persist'
-import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import { ThemeProvider } from 'styled-components'
-
 import { Provider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
 import { PersistGate } from 'redux-persist/integration/react'
@@ -25,13 +23,18 @@ import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
+import { DOMAIN_STRIPPED } from 'src/constants'
+import type { State } from 'src/state/reducer'
 import { initialize } from 'src/initialize'
-import i18n from 'src/i18n/i18n'
-
+import { parseUrl } from 'src/helpers/parseUrl'
+import { initializeDatasets } from 'src/io/fetchDatasets'
+import { fetchInputsAndRunMaybe } from 'src/io/fetchInputsAndRunMaybe'
+import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import Loading from 'src/components/Loading/Loading'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { SEO } from 'src/components/Common/SEO'
-
+import { Plausible } from 'src/components/Common/Plausible'
+import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 
 import 'src/styles/global.scss'
@@ -40,33 +43,58 @@ enableES5()
 
 export interface AppState {
   persistor: Persistor
-  store: Store
+  store: Store<State>
 }
 
 export default function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(), [])
   const [state, setState] = useState<AppState | undefined>()
+  const [initDone, setInitDone] = useState(false)
+  const [fetchDone, setFetchDone] = useState(false)
+  const store = state?.store
+  const dispatch = store?.dispatch
+
+  // NOTE: Do manual parsing, because router.query is randomly empty on the first few renders and on repeated renders.
+  // This is important, because various states depend on query, and when it changes back and forth,
+  // the state also changes unexpectedly.
+  const { query } = useMemo(() => parseUrl(router.asPath), [router.asPath])
 
   useEffect(() => {
-    initialize({ router })
-      .then(setState)
-      .catch((error: Error) => {
-        throw error
-      })
-  }, [router])
+    if (!initDone) {
+      initialize({ router })
+        .then(setState)
+        .then(() => setInitDone(true))
+        .catch((error: Error) => {
+          throw error
+        })
+    }
+  }, [initDone, router])
+
+  useEffect(() => {
+    if (!fetchDone && query && dispatch && store) {
+      Promise.resolve()
+        .then(() => initializeDatasets(dispatch, query, store))
+        .then(async (success) => success && fetchInputsAndRunMaybe(dispatch, query))
+        .then((success) => setFetchDone(success))
+        .catch((error: Error) => {
+          throw error
+        })
+    }
+  }, [fetchDone, query, state, dispatch, store])
 
   if (!state) {
     return <Loading />
   }
 
-  const { store, persistor } = state
+  const { store: storeNonNil, persistor } = state
 
   return (
     <Suspense fallback={<Loading />}>
-      <Provider store={store}>
+      <Provider store={storeNonNil}>
         <ConnectedRouter>
           <ThemeProvider theme={theme}>
             <MDXProvider components={{ a: LinkExternal }}>
+              <Plausible domain={DOMAIN_STRIPPED} />
               <QueryClientProvider client={queryClient}>
                 <PersistGate loading={null} persistor={persistor}>
                   <I18nextProvider i18n={i18n}>

@@ -1,5 +1,4 @@
-import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat } from 'src/algorithms/types'
-import type { Sorting } from 'src/helpers/sortResults'
+import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat, UrlParams } from 'src/algorithms/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
 export enum AlgorithmGlobalStatus {
@@ -36,13 +35,13 @@ export interface ResultsFilters extends QCFilters {
   mutationsFilter?: string
   aaFilter?: string
   cladesFilter?: string
-  sorting?: Sorting
 }
 
 export enum AlgorithmInputType {
   File = 'FileInput',
   Url = 'Url',
   String = 'String',
+  Default = 'Default',
 }
 
 export interface AlgorithmInput {
@@ -67,7 +66,11 @@ export interface ExportParams {
 }
 
 export interface AlgorithmParams {
-  dataset?: DatasetFlat
+  datasets: DatasetFlat[]
+  defaultDatasetName?: string
+  defaultDatasetNameFriendly?: string
+  datasetCurrent?: DatasetFlat
+  urlParams: UrlParams
   raw: {
     seqData?: AlgorithmInput
     auspiceData?: AlgorithmInput
@@ -90,6 +93,14 @@ export interface AlgorithmParams {
     geneMap?: Gene[]
     genomeSize?: number
   }
+  inProgress: {
+    seqData: number
+    auspiceData: number
+    rootSeq: number
+    qcRulesConfig: number
+    geneMap: number
+    pcrPrimers: number
+  }
   errors: {
     seqData: Error[]
     auspiceData: Error[]
@@ -108,6 +119,8 @@ export interface AlgorithmState {
   results: SequenceAnalysisState[]
   resultsFiltered: SequenceAnalysisState[]
   treeStr?: string
+  resultsJsonStr?: string
+  cladeNodeAttrKeys: string[]
   errors: string[]
   filters: ResultsFilters
   exportParams: ExportParams
@@ -134,10 +147,21 @@ export const DEFAULT_EXPORT_PARAMS: ExportParams = {
 export const algorithmDefaultState: AlgorithmState = {
   status: AlgorithmGlobalStatus.idle,
   params: {
-    dataset: undefined,
+    datasets: [],
+    defaultDatasetName: undefined,
+    datasetCurrent: undefined,
+    urlParams: {},
     raw: {},
     strings: {},
     final: {},
+    inProgress: {
+      seqData: 0,
+      auspiceData: 0,
+      rootSeq: 0,
+      qcRulesConfig: 0,
+      geneMap: 0,
+      pcrPrimers: 0,
+    },
     errors: {
       seqData: [],
       auspiceData: [],
@@ -152,6 +176,7 @@ export const algorithmDefaultState: AlgorithmState = {
   results: [],
   resultsFiltered: [],
   treeStr: undefined,
+  cladeNodeAttrKeys: [],
   errors: [],
   filters: {
     showGood: true,

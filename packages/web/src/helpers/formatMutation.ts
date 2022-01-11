@@ -1,4 +1,10 @@
-import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucleotideSubstitution } from 'src/algorithms/types'
+import type {
+  Aminoacid,
+  AminoacidDeletion,
+  AminoacidSubstitution,
+  NucleotideSubstitution,
+  StopCodonLocation,
+} from 'src/algorithms/types'
 import { AMINOACID_GAP } from 'src/constants'
 
 export function formatMutation({ pos, queryNuc, refNuc }: NucleotideSubstitution) {
@@ -14,7 +20,7 @@ export interface FormatAAMutationWithoutGeneParams {
 }
 
 export function formatAAMutationWithoutGene({ refAA, codon, queryAA }: FormatAAMutationWithoutGeneParams) {
-  // NOTE: by convention, nucleotides are numbered starting from 1, however our arrays are 0-based
+  // NOTE: by convention, codons are numbered starting from 1, however our arrays are 0-based
   const codonOneBased = codon + 1
   return `${refAA}${codonOneBased}${queryAA}`
 }
@@ -27,4 +33,10 @@ export function formatAAMutation({ gene, refAA, codon, queryAA }: AminoacidSubst
 export function formatAADeletion({ gene, refAA, codon }: AminoacidDeletion) {
   const notation = formatAAMutationWithoutGene({ refAA, codon, queryAA: AMINOACID_GAP })
   return `${gene}:${notation}`
+}
+
+export function formatStopCodon({ geneName, codon }: StopCodonLocation) {
+  // NOTE: by convention, codons are numbered starting from 1, however our arrays are 0-based
+  const codonOneBased = codon + 1
+  return `${geneName}:${codonOneBased}`
 }

@@ -201,6 +201,38 @@ export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBe
   )
 }
 
+export function renderCodons([change, refCodon, queryCodon]: [AminoacidChange, string, string]) {
+  return (
+    <PeptideContextCodon
+      key={change.codon}
+      refCodon={refCodon}
+      queryCodon={queryCodon}
+      change={change}
+      codon={change.codon}
+      nucBegin={change.codonNucRange.begin}
+    />
+  )
+}
+
+export function PeptideContextEllipsis() {
+  return (
+    <td>
+      <TableNuc>
+        <TableBodyNuc>
+          {Array(6)
+            .fill(0)
+            .map((_0, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <TrNuc key={i}>
+                <TdNuc colSpan={3}>{'...'}</TdNuc>
+              </TrNuc>
+            ))}
+        </TableBodyNuc>
+      </TableNuc>
+    </td>
+  )
+}
+
 export interface PeptideContextProps {
   group: AminoacidChangesGroup
 }
@@ -236,7 +268,14 @@ export function PeptideContext({ group }: PeptideContextProps) {
 
   const changesAndCodons = safeZip3(changes, refCodons.slice(1, -1), queryCodons.slice(1, -1))
 
-  const width = (changes.length + 2) * 80 + 80
+  let itemsBegin = changesAndCodons
+  let itemsEnd: typeof changesAndCodons = []
+  if (changesAndCodons.length > 6) {
+    itemsBegin = changesAndCodons.slice(0, 3)
+    itemsEnd = changesAndCodons.slice(-3)
+  }
+
+  const width = (itemsBegin.length + itemsEnd.length + 2) * 80 + 80
 
   return (
     <Table borderless className="mb-1 mx-2" $width={width}>
@@ -274,16 +313,9 @@ export function PeptideContext({ group }: PeptideContextProps) {
             nucBegin={contextNucRange.begin}
           />
 
-          {changesAndCodons.map(([change, refCodon, queryCodon]) => (
-            <PeptideContextCodon
-              key={change.codon}
-              refCodon={refCodon}
-              queryCodon={queryCodon}
-              change={change}
-              codon={change.codon}
-              nucBegin={change.codonNucRange.begin}
-            />
-          ))}
+          {itemsBegin.map(renderCodons)}
+          {itemsEnd.length > 0 && <PeptideContextEllipsis />}
+          {itemsEnd.length > 0 && itemsEnd.map(renderCodons)}
 
           <PeptideContextCodon
             refCodon={lastRefCodon}

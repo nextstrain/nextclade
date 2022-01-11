@@ -2,7 +2,7 @@
 #include <nextclade_common/datasets.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {
   inline DatasetCompatibility makeCompat(const std::string& min, const std::string& max) {
@@ -11,7 +11,7 @@ namespace Nextclade {
     };
   }
 
-  inline std::vector<Dataset> makeTestDatasets() {
+  inline safe_vector<Dataset> makeTestDatasets() {
     auto one = Dataset{
       .enabled = true,
       .name = "A",
@@ -202,6 +202,6 @@ namespace Nextclade {
       .defaultRef = "C1",
     };
 
-    return std::vector<Dataset>{one, two, three};
+    return safe_vector<Dataset>{one, two, three};
   }
 }// namespace Nextclade

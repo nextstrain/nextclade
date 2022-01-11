@@ -3,7 +3,6 @@ import type { Router } from 'next/router'
 import { configureStore } from 'src/state/store'
 import { setLocale } from 'src/state/settings/settings.actions'
 import { showWhatsNewMaybe } from 'src/helpers/showWhatsNewMaybe'
-import { fetchInputsAndRunMaybe } from 'src/io/fetchInputsAndRunMaybe'
 
 export interface InitializeParams {
   router: Router
@@ -25,8 +24,6 @@ export async function initialize({ router }: InitializeParams) {
   store.dispatch(setLocale(localeKeyV2))
 
   showWhatsNewMaybe(lastVersionSeen, showWhatsnewOnUpdate, store.dispatch)
-
-  await fetchInputsAndRunMaybe(store.dispatch, router)
 
   return { persistor, store }
 }

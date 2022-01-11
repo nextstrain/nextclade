@@ -26,7 +26,7 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
 }: PropsWithChildren<SequenceMarkerProps>) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const x = begin * pixelsPerBase
+  const x = begin * pixelsPerBase - pixelsPerBase / 2
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
 

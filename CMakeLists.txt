@@ -16,11 +16,13 @@ set(CMAKE_INSTALL_MESSAGE LAZY)
 
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -pg")
 
+add_subdirectory(packages/common)
 add_subdirectory(packages/nextalign)
 add_subdirectory(packages/nextclade)
 
 
 option(NEXTALIGN_BUILD_CLI "Build Nextalign CLI executable" OFF)
+option(ENABLE_DEBUG_TRACE "Enable debug_trace() macro in the codebase" OFF)
 
 set(NEXTALIGN_BUILD_CLI ${NEXTCLADE_BUILD_CLI} CACHE BOOL "Build Nextalign CLI executable")
 if (${NEXTALIGN_BUILD_CLI})

@@ -18,6 +18,7 @@ import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
 import { groupAdjacentAminoacidChanges } from './groupAdjacentAminoacidChanges'
 import { PeptideMarkerUnknown } from './PeptideMarkerUnknown'
+import { PeptideMarkerFrameShift } from './PeptideMarkerFrameShift'
 
 const MissingRow = styled.div`
   background-color: ${(props) => props.theme.gray650};
@@ -121,6 +122,17 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
 
+  const frameShiftMarkers = sequence.frameShifts
+    .filter((frameShift) => frameShift.geneName === gene.geneName)
+    .map((frameShift) => (
+      <PeptideMarkerFrameShift
+        key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
+        seqName={seqName}
+        frameShift={frameShift}
+        pixelsPerAa={pixelsPerAa}
+      />
+    ))
+
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
@@ -141,6 +153,7 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
             />
           )
         })}
+        {frameShiftMarkers}
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )

@@ -16,7 +16,7 @@ namespace AuspiceJsonV2 {
 
   struct Coloring {
     std::string key;
-    std::shared_ptr<std::vector<std::vector<std::string>>> scale;
+    std::shared_ptr<safe_vector<safe_vector<std::string>>> scale;
     std::shared_ptr<std::string> title;
     Type type;
   };
@@ -58,22 +58,22 @@ namespace AuspiceJsonV2 {
 
   struct Meta {
     std::shared_ptr<std::string> build_url;
-    std::shared_ptr<std::vector<Coloring>> colorings;
+    std::shared_ptr<safe_vector<Coloring>> colorings;
     std::shared_ptr<std::string> description;
     std::shared_ptr<DisplayDefaults> display_defaults;
-    std::shared_ptr<std::vector<std::string>> filters;
+    std::shared_ptr<safe_vector<std::string>> filters;
     std::map<std::string, std::string> frequencies;
     std::shared_ptr<GenomeAnnotations> genome_annotations;
-    std::shared_ptr<std::vector<GeoResolution>> geo_resolutions;
-    std::shared_ptr<std::vector<Maintainer>> maintainers;
-    std::vector<Panel> panels;
+    std::shared_ptr<safe_vector<GeoResolution>> geo_resolutions;
+    std::shared_ptr<safe_vector<Maintainer>> maintainers;
+    safe_vector<Panel> panels;
     std::shared_ptr<std::string> title;
     std::shared_ptr<std::string> tree_name;
     std::string updated;
   };
 
   struct Mutations {
-    std::shared_ptr<std::vector<std::string>> nuc;
+    std::shared_ptr<safe_vector<std::string>> nuc;
   };
 
   struct BranchAttrs {
@@ -89,7 +89,7 @@ namespace AuspiceJsonV2 {
   };
 
   struct NumDate {
-    std::shared_ptr<std::vector<double>> confidence;
+    std::shared_ptr<safe_vector<double>> confidence;
     double value;
   };
 
@@ -114,7 +114,7 @@ namespace AuspiceJsonV2 {
 
   struct Tree {
     std::shared_ptr<BranchAttrs> branch_attrs;
-    std::shared_ptr<std::vector<Tree>> children;
+    std::shared_ptr<safe_vector<Tree>> children;
     std::string name;
     std::shared_ptr<NodeAttrs> node_attrs;
   };

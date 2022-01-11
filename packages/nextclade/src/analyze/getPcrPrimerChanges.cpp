@@ -18,10 +18,8 @@ namespace Nextclade {
     }
 
     // Don't report mutation if primer contains matching ambiguous nucleotide at this position
-    const auto allowed =
-      std::any_of(primer.nonAcgts.cbegin(), primer.nonAcgts.cend(), [&mut](const NucleotideLocation& nonACGT) {
-        return mut.pos == nonACGT.pos && isMatch(nonACGT.nuc, mut.queryNuc);
-      });
+    const auto allowed = std::any_of(primer.nonAcgts.cbegin(), primer.nonAcgts.cend(),
+      [&mut](const NucleotideLocation& nonACGT) { return mut.pos == nonACGT.pos && isMatch(nonACGT.nuc, mut.qry); });
 
     // Report otherwise
     return !allowed;
@@ -32,8 +30,8 @@ namespace Nextclade {
    * Each substitution can have multiple PCR primer changes.
    */
   void addPrimerChangesInPlace(                        //
-    std::vector<NucleotideSubstitution>& substitutions,//
-    const std::vector<PcrPrimer>& primers              //
+    safe_vector<NucleotideSubstitution>& substitutions,//
+    const safe_vector<PcrPrimer>& primers              //
   ) {
     for (auto& mut : substitutions) {
       for (const auto& primer : primers) {
@@ -48,14 +46,14 @@ namespace Nextclade {
    * Builds a list of primer changes due to mutations.
    * Each element contains a primer and a list of corresponding substitutions.
    */
-  std::vector<PcrPrimerChange> getPcrPrimerChanges(          //
-    const std::vector<NucleotideSubstitution>& substitutions,//
-    const std::vector<PcrPrimer>& primers                    //
+  safe_vector<PcrPrimerChange> getPcrPrimerChanges(          //
+    const safe_vector<NucleotideSubstitution>& substitutions,//
+    const safe_vector<PcrPrimer>& primers                    //
   ) {
-    std::vector<PcrPrimerChange> result;
+    safe_vector<PcrPrimerChange> result;
     for (const auto& primer : primers) {
 
-      std::vector<NucleotideSubstitution> substitutionsSelected;
+      safe_vector<NucleotideSubstitution> substitutionsSelected;
       for (const auto& mut : substitutions) {
         if (shouldReportPrimerMutation(mut, primer)) {
           substitutionsSelected.push_back(mut);

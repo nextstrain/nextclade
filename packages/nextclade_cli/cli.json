@@ -255,31 +255,11 @@
           "isOptional": true
         },
         {
-          "flags": ["--aa-seed-length"],
-          "desc": "Seed length for aminoacid alignment.",
-          "cppName": "aaSeedLength",
-          "cppType": "int",
-          "isOptional": true
-        },
-        {
-          "flags": ["--aa-min-seeds"],
-          "desc": "Minimum number of seeds to search for during aminoacid alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--aa-seed-spacing`.",
-          "cppName": "aaMinSeeds",
-          "cppType": "int",
-          "isOptional": true
-        },
-        {
-          "flags": ["--aa-seed-spacing"],
-          "desc": "Spacing between seeds during aminoacid alignment.",
-          "cppName": "aaSeedSpacing",
-          "cppType": "int",
-          "isOptional": true
-        },
-        {
-          "flags": ["--aa-mismatches-allowed"],
-          "desc": "Maximum number of mismatching amino acids allowed for a seed to be considered a match.",
-          "cppName": "aaMismatchesAllowed",
-          "cppType": "int",
+          "flags": ["--no-translate-past-stop"],
+          "desc": "Whether to stop gene translation after first stop codon. It will cut the genes in places cases where mutations resulted in premature stop codons. If this flag is present, the aminoacid sequences wil be truncated at the first stop codon and analysis of aminoacid mutations will not be available for the regions after first stop codon.",
+          "cppName": "noTranslatePastStop",
+          "cppType": "bool",
+          "defaultValue": "false",
           "isOptional": true
         }
       ]

@@ -20,13 +20,7 @@ namespace {
         .seedSpacing = 100,
         .mismatchesAllowed = 3,
       },
-    .seedAa =
-      {
-        .seedLength = 12,
-        .minSeeds = 10,
-        .seedSpacing = 100,
-        .mismatchesAllowed = 2,
-      },
+    .translatePastStop = false,
   };
 }//namespace
 

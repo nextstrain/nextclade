@@ -1,0 +1,179 @@
+from itertools import product
+import random
+import lzma
+
+dset_sizes = [100,300,1000,3000,10000,30000]
+threads = [1,2,4,8,16]
+nreps = 3
+rule make_subsets:
+    input:
+        "data/full_sequence_set.fasta.xz",
+    output:
+        [f"data/subset_size_{x}_rep_{i}.fasta" for x,i in product(dset_sizes, range(nreps))]
+    run:
+        from Bio import SeqIO
+        with lzma.open(input[0], 'rt') as fh:
+            strains = {x.id for x in SeqIO.parse(fh, 'fasta')}
+        subsets = {}
+        for size,i in product(dset_sizes, range(nreps)):
+            subsets[(size,i)] = {"strains": random.sample(strains, size),
+                                 "outfile": open(f"data/subset_size_{size}_rep_{i}.fasta", 'w')}
+
+
+        with lzma.open(input[0], 'rt') as fh:
+            for x in SeqIO.parse(fh, 'fasta'):
+                for v in subsets.values():
+                    if x.id in v["strains"]:
+                        SeqIO.write(x,v["outfile"], 'fasta')
+
+        for v in subsets.values():
+            v["outfile"].close()
+
+rule run_nextalign:
+    input:
+        "data/subset_size_{size}_rep_{rep}.fasta",
+    output:
+        "alignments_nextalign/s{size}_r{rep}_t{threads}/seqs.aligned.fasta"
+    params:
+        outdir = "alignments_nextalign/s{size}_r{rep}_t{threads}",
+        basename = "seqs",
+        threads = "{threads}"
+    threads:
+        lambda w: int(w.threads)
+    benchmark:
+        "benchmarks/alignments_nextalign_s{size}_r{rep}_t{threads}.txt",
+    shell:
+        """
+        nextalign -j {params.threads} \
+                    -r ../../data/sars-cov-2/reference.fasta -i {input} \
+                    --output-dir {params.outdir} --output-basename {params.basename}
+        """
+
+rule benchmark_nextalign:
+    input:
+        expand("alignments_nextalign/s{size}_r{rep}_t{threads}/seqs.aligned.fasta", size=dset_sizes, threads=threads, rep = range(nreps))
+
+
+rule run_nextalign_wtranslation:
+    input:
+        "data/subset_size_{size}_rep_{rep}.fasta",
+    output:
+        "alignments_nextalign-wtranslation/s{size}_r{rep}_t{threads}/seqs.aligned.fasta"
+    params:
+        outdir = "alignments_nextalign-wtranslation/s{size}_r{rep}_t{threads}",
+        basename = "seqs",
+        threads = "{threads}"
+    threads:
+        lambda w: int(w.threads)
+    benchmark:
+        "benchmarks/alignments_nextalign-wtranslation_s{size}_r{rep}_t{threads}.txt",
+    shell:
+        """
+        nextalign -j {params.threads} \
+                                    -r ../../data/sars-cov-2/reference.fasta -i {input} \
+                                    -m ../../data/sars-cov-2/genemap.gff --genes ORF1a,ORF1b,S,N,M,E \
+                                    --output-dir {params.outdir} --output-basename {params.basename}
+        """
+
+rule benchmark_nextalign_wtranslation:
+    input:
+        expand("alignments_nextalign-wtranslation/s{size}_r{rep}_t{threads}/seqs.aligned.fasta", size=dset_sizes, threads=threads, rep = range(nreps))
+
+
+
+rule run_mafft:
+    input:
+        "data/subset_size_{size}_rep_{rep}.fasta",
+    output:
+        "alignments_mafft/s{size}_r{rep}_t{threads}/seqs.aligned.fasta"
+    params:
+        threads = "{threads}"
+    threads:
+        lambda w: int(w.threads)
+    benchmark:
+        "benchmarks/alignments_mafft_s{size}_r{rep}_t{threads}.txt",
+    shell:
+        """
+        mafft --6merpair --thread {params.threads} --keeplength --addfragments {input}  ../../data/sars-cov-2/reference.fasta > {output}
+        """
+
+rule benchmark_mafft:
+    input:
+        expand("alignments_mafft/s{size}_r{rep}_t{threads}/seqs.aligned.fasta", size=dset_sizes, threads=threads, rep = range(nreps))
+
+
+rule run_minimap2:
+    input:
+        "data/subset_size_{size}_rep_{rep}.fasta",
+    output:
+        "alignments_minimap2/s{size}_r{rep}_t{threads}/seqs.aligned.sam"
+    params:
+        threads = "{threads}"
+    threads:
+        lambda w: int(w.threads)
+    benchmark:
+        "benchmarks/alignments_minimap2_s{size}_r{rep}_t{threads}.txt",
+    shell:
+        """
+        minimap2 -a -x asm5 --sam-hit-only --secondary=no -t  {threads} ../../data/sars-cov-2/reference.fasta {input} > {output}
+        """
+
+rule benchmark_minimap2:
+    input:
+        expand("alignments_minimap2/s{size}_r{rep}_t{threads}/seqs.aligned.sam", size=dset_sizes, threads=threads, rep = range(nreps))
+
+
+rule summarize_benchmarks:
+    output:
+        "benchmark_results.tsv"
+    run:
+        import pandas as pd
+        import glob
+        results = []
+        for f in glob.glob("benchmarks/*.txt"):
+            e = f[:-4].split('_')
+            algo = e[1]
+            size = int(e[-3][1:])
+            rep = int(e[-2][1:])
+            threads = int(e[-1][1:])
+            with open(f) as fh:
+                lines = fh.readlines()
+                header = lines[0].strip().split()
+                res = lines[1].strip().split()
+            results.append([algo, size, rep, threads] + res)
+        pd.DataFrame(results, columns=["method", "size", "rep", "threads"] + header).to_csv(output[0], sep='\t')
+
+rule plot_benchmarks:
+    input:
+        "benchmark_results.tsv"
+    output:
+        "figures/cpu_time.png",
+        "figures/max_rss.png"
+    run:
+        import pandas as pd
+        import matplotlib.pyplot as plt
+        ls = ['-', '--', '-.', ':', ':']
+        b = pd.read_csv(input[0], sep=None)
+        threads = sorted(b.threads.unique())
+
+        for i, (key, label) in enumerate([("cpu_time", "CPU time"), ("max_rss", "max memory usage (max_rss)"), ("s", "total time [s]")]):
+            plt.figure()
+            for mi,method in enumerate(b.method.unique()):
+                for ti,t in enumerate(threads):
+                    d = b.loc[(b.method==method)&(b.threads==t),:].groupby('size').mean()
+                    plt.plot(d.index, d[key]*t, label=f"{method}, t={t}" if t==1 else '',
+                              c=f'C{mi}', ls=ls[ti%len(ls)])
+            plt.ylabel('CPU time')
+            plt.yscale('log')
+            plt.xscale('log')
+            plt.legend()
+            plt.savefig(output[i])
+
+rule clean:
+    shell:
+        """
+        rm -rf alignments_nextalign &&\
+        rm -rf alignments_nextalign-wtranslations &&\
+        rm -rf alignments_mafft &&\
+        rm -rf alignments_minimap2
+        """

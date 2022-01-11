@@ -16,7 +16,7 @@ export const ButtonTransparent = styled(Button)<ButtonTransparentProps>`
   margin: 4px 0;
   background-color: transparent;
   background-image: none;
-  color: initial;
+  color: ${(props) => props.theme.bodyColor};
   border: none;
   border-radius: 0;
   box-shadow: none;
@@ -32,7 +32,7 @@ export const ButtonTransparent = styled(Button)<ButtonTransparentProps>`
   &:focus-within {
     background-color: transparent;
     background-image: none;
-    color: initial;
+    color: ${(props) => props.theme.bodyColor};
     border: none;
     border-radius: 0;
     box-shadow: none;

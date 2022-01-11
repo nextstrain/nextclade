@@ -1,17 +1,15 @@
 #pragma once
 
 #include <optional>
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {
   struct AnalysisResult;
-  struct NucleotideSubstitution;
   struct QcResultMissingData;
   struct QCRulesConfigMissingData;
 
-  std::optional<QcResultMissingData> ruleMissingData(    //
-    const AnalysisResult& result,                       //
-    const std::vector<NucleotideSubstitution>& mutations,//
-    const QCRulesConfigMissingData& config               //
+  std::optional<QcResultMissingData> ruleMissingData(//
+    const AnalysisResult& result,                    //
+    const QCRulesConfigMissingData& config           //
   );
 }// namespace Nextclade

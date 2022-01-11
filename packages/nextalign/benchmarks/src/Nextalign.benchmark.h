@@ -3,7 +3,7 @@
 #include <benchmark/benchmark.h>
 
 #include <numeric>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../include/nextalign/nextalign.h"
 #include "../src/align/alignPairwise.h"
@@ -14,7 +14,7 @@
 class NextalignAverageBench : public benchmark::Fixture {
 protected:
   NucleotideSequence ref;
-  std::vector<NucleotideSequence> nucSequences;
+  safe_vector<NucleotideSequence> nucSequences;
   int totalNucs;
   GeneMap geneMap;
   std::set<std::string> genes;

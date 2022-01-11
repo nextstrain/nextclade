@@ -195,8 +195,17 @@ export interface QcResultPrivateMutations {
   cutoff: number
 }
 
+export interface FrameShiftContext {
+  codon: Range
+}
+
 export interface FrameShift {
   geneName: string
+  nucRel: Range
+  nucAbs: Range
+  codon: Range
+  gapsLeading: FrameShiftContext
+  gapsTrailing: FrameShiftContext
 }
 
 export interface QcResultFrameShifts {
@@ -204,6 +213,8 @@ export interface QcResultFrameShifts {
   status: QcStatus
   frameShifts: FrameShift[]
   totalFrameShifts: number
+  frameShiftsIgnored: FrameShift[]
+  totalFrameShiftsIgnored: number
 }
 
 export interface StopCodonLocation {
@@ -216,6 +227,8 @@ export interface QcResultStopCodons {
   status: QcStatus
   stopCodons: StopCodonLocation[]
   totalStopCodons: number
+  stopCodonsIgnored: StopCodonLocation[]
+  totalStopCodonsIgnored: number
 }
 
 export interface QcResult {
@@ -237,6 +250,8 @@ export interface AnalysisResult {
   totalInsertions: number
   deletions: NucleotideDeletion[]
   totalDeletions: number
+  frameShifts: FrameShift[]
+  totalFrameShifts: number
   missing: NucleotideMissing[]
   totalMissing: number
   nonACGTNs: NucleotideRange[]
@@ -256,6 +271,7 @@ export interface AnalysisResult {
   totalPcrPrimerChanges: number
   clade: string
   qc: QcResult
+  customNodeAttributes: Record<string, string>
 }
 
 export interface Peptide {
@@ -344,9 +360,10 @@ export interface Dataset {
   enabled: boolean
   name: string
   nameFriendly: string
-  description: string
   datasetRefs: DatasetRef[]
   defaultRef: string
+  defaultGene: string
+  geneOrderPreference: string[]
 }
 
 export interface DatasetsIndexJson {
@@ -355,3 +372,11 @@ export interface DatasetsIndexJson {
 }
 
 export interface DatasetFlat extends Dataset, DatasetRef, DatasetVersion {}
+
+export interface UrlParams {
+  inputRootSeq?: string
+  inputTree?: string
+  inputPcrPrimers?: string
+  inputQcConfig?: string
+  inputGeneMap?: string
+}

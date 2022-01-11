@@ -15,10 +15,12 @@ trap "exit" INT
 THIS_DIR=$(cd $(dirname "${BASH_SOURCE[0]}"); pwd)
 
 # Where the source code is
-PROJECT_ROOT_DIR="$(realpath --logical --no-symlinks ${THIS_DIR}/..)"
+PROJECT_ROOT_DIR="$(realpath --logical --no-symlinks "${THIS_DIR}/..")"
 
 source "${THIS_DIR}/lib/set_locales.sh"
 source "${THIS_DIR}/lib/is_ci.sh"
+
+DATA_DIR="${PROJECT_ROOT_DIR}/data_dev"
 
 [ -n "${NEXTCLADE_EMSDK_DIR:=}" ] && NEXTCLADE_EMSDK_DIR_FROM_ENV="${NEXTCLADE_EMSDK_DIR}"
 [ -n "${NEXTCLADE_EMSDK_VERSION:=}" ] && NEXTCLADE_EMSDK_VERSION_FROM_ENV="${NEXTCLADE_EMSDK_VERSION}"
@@ -738,6 +740,7 @@ pushd "${BUILD_DIR}" > /dev/null
     -DNEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS="${NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS}" \
     -DBUILD_SHARED_LIBS="${NEXTALIGN_STATIC_BUILD}" \
     -DDATA_FULL_DOMAIN=${DATA_FULL_DOMAIN} \
+    -DENABLE_DEBUG_TRACE="${ENABLE_DEBUG_TRACE:=0}" \
     ${MORE_CMAKE_FLAGS}
 #    -DNEXTCLADE_BUILD_BENCHMARKS=${NEXTCLADE_BUILD_BENCHMARKS} \
 
@@ -747,13 +750,9 @@ pushd "${BUILD_DIR}" > /dev/null
   function strip_executable() {
     CLI=${1}
 
-    print 29 "Strip executable";
-    # Strip works differently on mac
-    if [ "${BUILD_OS}" == "MacOS" ]; then
-      strip ${CLI}
+    if [ "${BUILD_OS}" == "Linux" ]; then
+      print 29 "Strip executable";
 
-      ls -l ${CLI}
-    elif [ "${BUILD_OS}" == "Linux" ]; then
       strip -s \
         --strip-unneeded \
         --remove-section=.note.gnu.gold-version \
@@ -763,10 +762,10 @@ pushd "${BUILD_DIR}" > /dev/null
         --remove-section=.note.ABI-tag \
         ${CLI}
 
-        ls --human-readable --kibibytes -Sl ${CLI}
     fi
 
     print 28 "Print executable info";
+
     file ${CLI}
 
     if [ "${BUILD_OS}" == "Linux" ] && [ "${NEXTALIGN_STATIC_BUILD}" == "1" ]; then
@@ -832,20 +831,33 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
      fi
    fi
 
-  if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
-    # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
-    ulimit -s unlimited
-  fi
+  if [ "${NEXTCLADE_BUILD_WASM}" != "1" ] && [ "${CROSS}" != "1" ]; then
 
-#  if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-#   print 27 "Run Nextalign CLI";
-#   eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-#  fi
+    if [ "${CMAKE_BUILD_TYPE}" == "ASAN" ]; then
+      # Lift process stack memory limit to avoid stack overflow when running with Address Sanitizer
+      ulimit -s unlimited
+    fi
 
-  if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
-   print 27 "Run Nextclade CLI";
-   eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
-  fi
+    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+      print 27 "Run Nextalign CLI";
+      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+    fi
+
+    if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
+      if [ ! -d "${DATA_DIR}" ]; then
+        print 27 "Download Nextclade dataset";
+        ${NEXTCLADE_CLI} dataset get --name="sars-cov-2" --output-dir="${DATA_DIR}" || cd .
+      fi
+
+      print 27 "Run Nextclade CLI";
+     eval "${GDB}" ${NEXTCLADE_CLI} ${DEV_NEXTCLADE_CLI_OPTIONS} || cd .
+    fi
+
+    print 25 "Validate CSV/TSV outputs";
+    ./scripts/csv-validator.sh
+    ./scripts/csvlint.sh
+    fi
+
   print 22 "Done";
 
 popd > /dev/null

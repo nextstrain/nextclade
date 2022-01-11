@@ -4,9 +4,16 @@ Nextclade is a tool that identifies differences between your sequences and a ref
 
 You can learn more about the algorithm in the [Algorithm](algorithm) section.
 
+This section describes:
+
+- how to install Nextclade CLI - using Docker container and natively
+- how to run Nextclade CLI with sample data
+- what other sections of the documentation are worth checking after that
+
+
 ## Installation (with docker)
 
-Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/repository/docker/nextstrain/nextclade)
+Container images are available at Docker Hub: 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade)
 
 Pull and run the latest version with:
 
@@ -21,7 +28,7 @@ Pull and run a specific version with:
 docker run -it --rm nextstrain/nextclade:1.2.1 nextclade --help
 ```
 
-Don't forget to mount necessary volumes to be able to supply the data into container and to access the results.
+> ⚠️ You need to mount or bind necessary volumes to be able to use your files in the container and to access the results (see [Docker documentation on storage](https://docs.docker.com/storage/)).
 
 Docker images are available based on:
 
@@ -134,50 +141,63 @@ Refer to help prompt for usage of Nextclade:
 nextclade --help
 ```
 
+Each subcommand has its own help prompt:
+
+```bash
+nextclade dataset --help
+nextclade dataset list --help
+nextclade dataset get --help
+nextclade run --help
+```
+
 ## Quick Example
 
 1. Download SARS-CoV-2 dataset:
 
     ```bash
-    nextclade dataset get --name='sars-cov-2' --output-dir='data' --output-subdir='sars-cov-2'
+    nextclade dataset get --name 'sars-cov-2' --output-dir 'data/sars-cov-2'
     ```
 
-   Observe dataset files in `data/sars-cov-2`
+   Observe downloaded dataset files in the directory `data/sars-cov-2/`
 
-2. Run using the downloaded dataset:
+   > 💡️ This command will download the latest SARS-CoV-2 dataset. You can use it to periodically update the dataset, in order to enable the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](datasets) section.
 
-   ```bash
-   nextclade \
-      --in-order \
-      --input-fasta=data/sars-cov-2/sequences.fasta \
-      --input-dataset=data/sars-cov-2/reference.fasta \
-      --output-tsv=output/nextclade.tsv \
-      --output-tree=output/nextclade.auspice.json \
-      --output-dir=output/ \
-      --output-basename=nextclade
-   ```
-
-   Alternatively, specify input files explicitly and/or add more flags for output files:
+2. Run using the downloaded dataset and its example sequences (`data/sars-cov-2/sequences.fasta`):
 
    ```bash
    nextclade \
       --in-order \
-      --input-fasta=data/sars-cov-2/sequences.fasta \
-      --input-root-seq=data/sars-cov-2/reference.fasta \
-      --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-      --input-gene-map=data/sars-cov-2/genemap.gff \
-      --input-tree=data/sars-cov-2/tree.json \
-      --input-qc-config=data/sars-cov-2/qc.json \
-      --input-pcr-primers=data/sars-cov-2/primers.csv \
-      --output-json=output/nextclade.json \
-      --output-csv=output/nextclade.csv \
-      --output-tsv=output/nextclade.tsv \
-      --output-tree=output/nextclade.auspice.json \
-      --output-dir=output/ \
-      --output-basename=nextclade
+      --input-fasta data/sars-cov-2/sequences.fasta \
+      --input-dataset data/sars-cov-2 \
+      --output-tsv output/nextclade.tsv \
+      --output-tree output/nextclade.auspice.json \
+      --output-dir output/ \
+      --output-basename nextclade
    ```
 
-   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.
+   To run the analysis on our own sequences, provide `--input-fasta` flag with a path to your fasta file.
+
+   For more controls, specify input files explicitly and/or add more flags for output files:
+
+   ```bash
+   nextclade \
+      --in-order \
+      --input-fasta data/sars-cov-2/sequences.fasta \
+      --input-root-seq data/sars-cov-2/reference.fasta \
+      --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+      --input-gene-map data/sars-cov-2/genemap.gff \
+      --input-tree data/sars-cov-2/tree.json \
+      --input-qc-config data/sars-cov-2/qc.json \
+      --input-pcr-primers data/sars-cov-2/primers.csv \
+      --output-json output/nextclade.json \
+      --output-csv output/nextclade.csv \
+      --output-tsv output/nextclade.tsv \
+      --output-tree output/nextclade.auspice.json \
+      --output-dir output/ \
+      --output-basename nextclade
+   ```
+
+   Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and reference peptides into outputs.
 
    The `--input-dataset` flag can be combined with individual `--input*` flags. In this case, individual flags override the corresponding files in the dataset.
 

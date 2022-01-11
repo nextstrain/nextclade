@@ -12,6 +12,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_MESSAGE LAZY)
 
 find_package(Boost 1.75.0 COMPONENTS headers REQUIRED)
+find_package(Microsoft.GSL 3.1.0 REQUIRED)
 find_package(TBB REQUIRED)
 find_package(cxxopts 2.2.1 REQUIRED)
 find_package(fmt 7.1.0 REQUIRED)
@@ -26,7 +27,7 @@ if (${NEXTALIGN_STATIC_BUILD} AND NOT APPLE)
     set(DEPENDENCIES
       ${DEPENDENCIES}
       jemalloc::jemalloc
-    )
+      )
   endif ()
 endif ()
 
@@ -60,6 +61,8 @@ target_compile_definitions(${PROJECT_NAME}
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
 
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
+
   -DFMT_HEADER_ONLY=1
   )
 
@@ -77,10 +80,12 @@ target_include_directories(${PROJECT_NAME} SYSTEM
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   nextalign
+  common
 
   PRIVATE
   ${STATIC_BUILD_FLAGS}
   Boost::headers
+  Microsoft.GSL::GSL
   TBB::tbb
   cxxopts::cxxopts
   fmt::fmt-header-only

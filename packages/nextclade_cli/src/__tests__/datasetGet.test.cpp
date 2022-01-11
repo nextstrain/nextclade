@@ -5,7 +5,7 @@
 #include <nextclade_common/datasets.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "makeTestDatasets.h"
 
@@ -25,9 +25,9 @@ TEST(DatasetGetFilter, DefaultsToGettingLatestCompatibleTag) {
     .tag = "",
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "A",
       .datasetRefs =
@@ -54,9 +54,9 @@ TEST(DatasetGetFilter, DefaultsToGettingLatestCompatibleTagWithReference) {
     .tag = "",
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "A",
       .datasetRefs =
@@ -82,9 +82,9 @@ TEST(DatasetGetFilter, GetsSpecifiedTag) {
     .tag = "2021-03-22T00:00:00Z",
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "B",
       .datasetRefs =
@@ -111,9 +111,9 @@ TEST(DatasetGetFilter, GetsSpecifiedIncompatibleTag) {
     .tag = "2021-04-31T00:00:00Z",
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "B",
       .datasetRefs =
@@ -142,7 +142,7 @@ TEST(DatasetGetFilter, IgnoresDisabledDatasets) {
     .tag = "",
   });
 
-  std::vector<Dataset> input = makeTestDatasets();
+  safe_vector<Dataset> input = makeTestDatasets();
 
   // Disable the requested dataset
   for (auto& dataset : input) {
@@ -151,7 +151,7 @@ TEST(DatasetGetFilter, IgnoresDisabledDatasets) {
     }
   }
 
-  const std::vector<Dataset> expected = {};
+  const safe_vector<Dataset> expected = {};
 
   auto result = datasetGetFilter(input, cliParams, thisVersion);
 
@@ -165,7 +165,7 @@ TEST(DatasetGetFilter, IgnoresDisabledDatasetRef) {
     .tag = "",
   });
 
-  std::vector<Dataset> input = makeTestDatasets();
+  safe_vector<Dataset> input = makeTestDatasets();
 
   // Disable the requested dataset ref
   for (auto& dataset : input) {
@@ -178,7 +178,7 @@ TEST(DatasetGetFilter, IgnoresDisabledDatasetRef) {
     }
   }
 
-  const std::vector<Dataset> expected = {};
+  const safe_vector<Dataset> expected = {};
 
   auto result = datasetGetFilter(input, cliParams, thisVersion);
 
@@ -195,7 +195,7 @@ TEST(DatasetGetFilter, GetsSpecifiedDisabledTag) {
     .tag = "2021-04-31T00:00:00Z",
   });
 
-  std::vector<Dataset> input = makeTestDatasets();
+  safe_vector<Dataset> input = makeTestDatasets();
 
   // Disable everything
   for (auto& dataset : input) {
@@ -208,7 +208,7 @@ TEST(DatasetGetFilter, GetsSpecifiedDisabledTag) {
     }
   }
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "B",
       .datasetRefs =

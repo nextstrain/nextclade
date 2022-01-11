@@ -89,6 +89,11 @@ namespace Nextclade {
         "Either `--input-dataset` or `--input-tree` is required. Cannot proceed without reference tree.");
     }
 
+    if (cliParams->inputDataset.empty() && inputQcConfig.empty()) {
+      throw ErrorFatal(
+        "Either `--input-dataset` or `--input-qc-config` is required. Cannot proceed without QC config.");
+    }
+
     if (!cliParams->inputDataset.empty()) {
       auto inputDataset = std::string{cliParams->inputDataset};
 

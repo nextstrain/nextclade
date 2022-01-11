@@ -8,7 +8,7 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "formatQcStatus.h"
 
@@ -60,25 +60,29 @@ namespace Nextclade {
   AminoacidSubstitution parseAminoacidSubstitution(const json& j) {
     return AminoacidSubstitution{
       .gene = at(j, "gene"),
-      .refAA = stringToAa(at(j, "refAA")),
-      .codon = at(j, "codon").get<int>(),
-      .queryAA = stringToAa(at(j, "queryAA")),
+      .ref = stringToAa(at(j, "refAA")),
+      .pos = at(j, "codon").get<int>(),
+      .qry = stringToAa(at(j, "queryAA")),
       .codonNucRange = parseRange(at(j, "codonNucRange")),
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
       .contextNucRange = parseRange(at(j, "contextNucRange")),
+      .nucSubstitutions = {},// FIXME: this field is not parsed. Looks like it was forgotten.
+      .nucDeletions = {},    // FIXME: this field is not parsed. Looks like it was forgotten.
     };
   }
 
   AminoacidDeletion parseAminoacidDeletion(const json& j) {
     return AminoacidDeletion{
       .gene = at(j, "gene"),
-      .refAA = stringToAa(at(j, "refAA")),
-      .codon = at(j, "codon").get<int>(),
+      .ref = stringToAa(at(j, "refAA")),
+      .pos = at(j, "codon").get<int>(),
       .codonNucRange = parseRange(at(j, "codonNucRange")),
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
       .contextNucRange = parseRange(at(j, "contextNucRange")),
+      .nucSubstitutions = {},// FIXME: this field is not parsed. Looks like it was forgotten.
+      .nucDeletions = {},    // FIXME: this field is not parsed. Looks like it was forgotten.
     };
   }
 
@@ -95,11 +99,12 @@ namespace Nextclade {
 
   NucleotideSubstitution parseNucleotideSubstitution(const json& j) {
     return NucleotideSubstitution{
-      .refNuc = stringToNuc(at(j, "refNuc")),
+      .ref = stringToNuc(at(j, "refNuc")),
       .pos = at(j, "pos").get<int>(),
-      .queryNuc = stringToNuc(at(j, "queryNuc")),
+      .qry = stringToNuc(at(j, "queryNuc")),
       .pcrPrimersChanged = parseArray<PcrPrimer>(j, "pcrPrimersChanged", parsePcrPrimer),
-      .aaSubstitutions = {},
+      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
     };
   }
 
@@ -107,6 +112,8 @@ namespace Nextclade {
     return NucleotideDeletion{
       .start = at(j, "start").get<int>(),
       .length = at(j, "length").get<int>(),
+      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
     };
   }
 
@@ -115,6 +122,56 @@ namespace Nextclade {
       .pos = at(j, "pos").get<int>(),
       .length = at(j, "length").get<int>(),
       .ins = toNucleotideSequence(at(j, "ins")),
+    };
+  }
+
+  template<typename Letter>
+  SubstitutionSimple<Letter> parseSubstitutionSimple(const json& j) {
+    return SubstitutionSimple<Letter>{
+      .ref = stringToLetter<Letter>(at(j, "ref"), LetterTag<Letter>{}),
+      .pos = at(j, "pos").get<int>(),
+      .qry = stringToLetter<Letter>(at(j, "qry"), LetterTag<Letter>{}),
+    };
+  }
+
+  template<typename Letter>
+  DeletionSimple<Letter> parseDeletionSimple(const json& j) {
+    return DeletionSimple<Letter>{
+      .ref = stringToLetter(at(j, "ref"), LetterTag<Letter>{}),
+      .pos = at(j, "pos").get<int>(),
+    };
+  }
+
+  template<typename Letter>
+  PrivateMutations<Letter> parsePrivateMutations(const json& j) {
+    return PrivateMutations<Letter>{
+      .privateSubstitutions =
+        parseArray<SubstitutionSimple<Letter>>(j, "privateSubstitutions", parseSubstitutionSimple<Letter>),
+      .privateDeletions = parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
+    };
+  }
+
+  Range parseFrameShiftRange(const json& j) {
+    return Range{
+      .begin = at(j, "begin").get<int>(),
+      .end = at(j, "end").get<int>(),
+    };
+  }
+
+  FrameShiftContext parseFrameShiftContext(const json& j) {
+    return FrameShiftContext{
+      .codon = parseFrameShiftRange(at(j, "codon")),
+    };
+  }
+
+  FrameShiftResult parseFrameShiftResult(const json& j) {
+    return FrameShiftResult{
+      .geneName = at(j, "geneName").get<std::string>(),
+      .nucRel = parseFrameShiftRange(at(j, "nucRel")),
+      .nucAbs = parseFrameShiftRange(at(j, "nucAbs")),
+      .codon = parseFrameShiftRange(at(j, "codon")),
+      .gapsLeading = parseFrameShiftContext(at(j, "gapsLeading")),
+      .gapsTrailing = parseFrameShiftContext(at(j, "gapsTrailing")),
     };
   }
 
@@ -224,9 +281,10 @@ namespace Nextclade {
     };
   }
 
-  FrameShift parseFrameShift(const json& j) {
-    return FrameShift{
+  FrameShiftLocation parseFrameShiftLocation(const json& j) {
+    return FrameShiftLocation{
       .geneName = at(j, "geneName"),
+      .codonRange = parseRange(at(j, "codonRange")),
     };
   }
 
@@ -238,8 +296,10 @@ namespace Nextclade {
     return QcResultFrameShifts{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
-      .frameShifts = parseArray<FrameShift>(j, "frameShifts", parseFrameShift),
+      .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
       .totalFrameShifts = parseInt(j, "totalFrameShifts"),
+      .frameShiftsIgnored = parseArray<FrameShiftResult>(j, "frameShiftsIgnored", parseFrameShiftResult),
+      .totalFrameShiftsIgnored = parseInt(j, "totalFrameShiftsIgnored"),
     };
   }
 
@@ -260,6 +320,8 @@ namespace Nextclade {
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
       .stopCodons = parseArray<StopCodonLocation>(j, "stopCodons", parseStopCodonLocation),
       .totalStopCodons = parseInt(j, "totalStopCodons"),
+      .stopCodonsIgnored = parseArray<StopCodonLocation>(j, "stopCodonsIgnored", parseStopCodonLocation),
+      .totalStopCodonsIgnored = parseInt(j, "totalStopCodonsIgnored"),
     };
   }
 
@@ -286,6 +348,8 @@ namespace Nextclade {
         .totalDeletions = at(j, "totalDeletions"),
         .insertions = parseArray<NucleotideInsertion>(j, "insertions", parseNucleotideInsertion),
         .totalInsertions = at(j, "totalInsertions"),
+        .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
+        .totalFrameShifts = at(j, "totalFrameShifts"),
         .missing = parseArray<NucleotideRange>(j, "missing", parseNucleotideRange),
         .totalMissing = at(j, "totalMissing"),
         .nonACGTNs = parseArray<NucleotideRange>(j, "nonACGTNs", parseNucleotideRange),
@@ -304,7 +368,13 @@ namespace Nextclade {
         .totalPcrPrimerChanges = at(j, "totalPcrPrimerChanges"),
         .nearestNodeId = at(j, "nearestNodeId"),
         .clade = at(j, "clade"),
+        .privateNucMutations = parsePrivateMutations<Nucleotide>(at(j, "privateNucMutations")),
+        .privateAaMutations =
+          parseMap<std::string, PrivateAminoacidMutations>(j, "privateAaMutations", parsePrivateMutations<Aminoacid>),
+        .missingGenes = parseSet<std::string>(at(j, "missingGenes")),
+        .divergence = at(j, "divergence"),
         .qc = parseQcResult(at(j, "qc")),
+        .customNodeAttributes = parseMap<std::string, std::string>(j, "customNodeAttributes"),
       };
     } catch (const std::exception& e) {
       throw ErrorFatal(fmt::format("When parsing analysis result json (for one sequence): {:s}", e.what()));
@@ -322,6 +392,7 @@ namespace Nextclade {
         .schemaVersion = at(j, "schemaVersion"),
         .nextcladeVersion = at(j, "nextcladeVersion"),
         .timestamp = at(j, "timestamp"),
+        .cladeNodeAttrKeys = at(j, "cladeNodeAttrKeys"),
         .results = parseArray<AnalysisResult>(j, "results", parseAnalysisResult),
       };
     } catch (const std::exception& e) {
@@ -338,7 +409,7 @@ namespace Nextclade {
     };
   }
 
-  std::vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr) {
+  safe_vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr) {
     const auto j = json::parse(pcrPrimerCsvRowsStr);
     return parseArray<PcrPrimerCsvRow>(j, parsePcrPrimerCsvRow);
   }

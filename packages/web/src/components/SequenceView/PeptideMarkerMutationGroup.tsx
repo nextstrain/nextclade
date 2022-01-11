@@ -10,11 +10,10 @@ import type { Gene } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
-import { formatMutation } from 'src/helpers/formatMutation'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import type { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
-import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
+import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { PeptideContext } from './PeptideContext'
@@ -30,11 +29,10 @@ export function PeptideMarkerMutation({ change, parentGroup, pixelsPerAa, ...res
   const { codonAaRange } = parentGroup
 
   const pos = codon - codonAaRange.begin
-  const x = pos * Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
-  const width = Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
+  const x = pos * pixelsPerAa
   const fill = getAminoacidColor(queryAA)
 
-  return <rect fill={fill} stroke="#777a" strokeWidth={0.5} x={x} width={width} height="30" {...restProps} />
+  return <rect fill={fill} stroke="#777a" strokeWidth={0.5} x={x} width={pixelsPerAa} height="30" {...restProps} />
 }
 
 export interface PeptideMarkerMutationGroupProps extends SVGProps<SVGSVGElement> {
@@ -62,8 +60,21 @@ function PeptideMarkerMutationGroupDisconnected({
 
   const { gene, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
   const id = getSafeId('aa-mutation-group-marker', { seqName, gene, begin: codonAaRange.begin })
-  const x = codonAaRange.begin * pixelsPerAa
-  const width = changes.length * Math.max(AA_MIN_WIDTH_PX, pixelsPerAa)
+  const minWidth = (AA_MIN_WIDTH_PX * 6) / (5 + changes.length)
+  const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
+  const width = changes.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
+  // position mutation group at 'center of group' - half the group width
+  const x =
+    ((codonAaRange.begin + codonAaRange.end) * pixelsPerAa -
+      (codonAaRange.end - codonAaRange.begin) * pixelsPerAaAdjusted) /
+    2
+
+  let changesHead = changes
+  let changesTail: typeof changes = []
+  if (changes.length > 6) {
+    changesHead = changes.slice(0, 3)
+    changesTail = changes.slice(-3)
+  }
 
   const totalNucChanges = nucSubstitutions.length + nucDeletions.length
 
@@ -73,7 +84,12 @@ function PeptideMarkerMutationGroupDisconnected({
       <svg x={x} y={-9.5} height={29} {...restProps}>
         <g onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
           {changes.map((change) => (
-            <PeptideMarkerMutation key={change.codon} change={change} parentGroup={group} pixelsPerAa={pixelsPerAa} />
+            <PeptideMarkerMutation
+              key={change.codon}
+              change={change}
+              parentGroup={group}
+              pixelsPerAa={pixelsPerAaAdjusted}
+            />
           ))}
 
           <Tooltip target={id} isOpen={showTooltip} wide fullWidth>
@@ -93,7 +109,7 @@ function PeptideMarkerMutationGroupDisconnected({
                 </tr>
 
                 <>
-                  {changes.map((change) => (
+                  {changesHead.map((change) => (
                     <tr key={change.codon}>
                       <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
                       <td>
@@ -101,6 +117,25 @@ function PeptideMarkerMutationGroupDisconnected({
                       </td>
                     </tr>
                   ))}
+                </>
+
+                {changesTail.length > 0 && (
+                  <tr>
+                    <td>{'...'}</td>
+                    <td>{'...'}</td>
+                  </tr>
+                )}
+
+                <>
+                  {changesTail.length > 0 &&
+                    changesTail.map((change) => (
+                      <tr key={change.codon}>
+                        <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+                        <td>
+                          <AminoacidMutationBadge mutation={change} geneMap={geneMap ?? []} />
+                        </td>
+                      </tr>
+                    ))}
                 </>
 
                 {totalNucChanges > 0 && (
@@ -115,7 +150,7 @@ function PeptideMarkerMutationGroupDisconnected({
                   {nucSubstitutions.map((mut) => (
                     <tr key={mut.pos}>
                       <td>{t('Substitution')}</td>
-                      <td>{formatMutation(mut)}</td>
+                      <td>{<NucleotideMutationBadge mutation={mut} />}</td>
                     </tr>
                   ))}
                 </>

@@ -46,12 +46,17 @@ Nextclade::AnalysisResults wrappedParseAnalysisResults(const std::string& analys
 
 
 struct NextcladeWasmState {
+  NextalignOptions nextalignOptions;
   NucleotideSequence ref;
   Nextclade::Tree tree;
   GeneMap geneMap;
   Nextclade::QcConfig qcRulesConfig;
-  std::vector<Nextclade::PcrPrimer> pcrPrimers;
+  safe_vector<Nextclade::PcrPrimer> pcrPrimers;
   Warnings warnings;
+  std::map<std::string, RefPeptideInternal> refPeptides;
+
+  // FIXME: this contains duplicate content of `refPeptides`. Deduplicate and change the downstream code to use `refPeptides` if possible please.
+  safe_vector<RefPeptideInternal> refPeptidesArr;
 };
 
 NextcladeWasmState makeNextcladeWasmState(//
@@ -63,22 +68,32 @@ NextcladeWasmState makeNextcladeWasmState(//
 ) {
   auto ref = toNucleotideSequence(refStr);
 
-  Nextclade::Tree tree{treeStr};
-  Nextclade::treePreprocess(tree, ref);
-
   auto geneMap = Nextclade::parseGeneMap(geneMapStr);
   auto qcRulesConfig = wrappedParseQcConfig(qcConfigStr, "'makeNextcladeWasmState'");
   auto pcrPrimerRows = Nextclade::parsePcrPrimerCsvRowsStr(pcrPrimerRowsStr);
   Warnings warnings;
   auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, warnings.global);
 
+  // FIXME: pass options from JS
+  auto nextalignOptions = getDefaultOptions();
+  nextalignOptions.translatePastStop = true;
+
+  auto refPeptides = translateGenesRef(ref, geneMap, nextalignOptions);
+  auto refPeptidesArr = Nextclade::getRefPeptidesArray(refPeptides);
+
+  Nextclade::Tree tree{treeStr};
+  Nextclade::treePreprocess(tree, ref, refPeptides);
+
   return NextcladeWasmState{
+    .nextalignOptions = nextalignOptions,
     .ref = std::move(ref),
     .tree = std::move(tree),
     .geneMap = std::move(geneMap),
     .qcRulesConfig = qcRulesConfig,
     .pcrPrimers = std::move(pcrPrimers),
     .warnings = std::move(warnings),
+    .refPeptides = refPeptides,
+    .refPeptidesArr = refPeptidesArr,
   };
 }
 
@@ -129,18 +144,19 @@ public:
     try {
       const auto query = toNucleotideSequence(queryStr);
 
-      // FIXME: pass options from JS
-      const auto nextalignOptions = getDefaultOptions();
 
       const auto result = analyzeOneSequence(//
         queryName,                           //
         state.ref,                           //
         query,                               //
+        state.refPeptides,                   //
+        state.refPeptidesArr,                //
         state.geneMap,                       //
         state.pcrPrimers,                    //
         state.qcRulesConfig,                 //
         state.tree,                          //
-        nextalignOptions                     //
+        state.nextalignOptions,              //
+        state.tree.getCladeNodeAttrKeys()    //
       );
 
       warnings.global = merge(warnings.global, result.warnings.global);
@@ -167,11 +183,19 @@ public:
       };
     }
   }
+
+  std::string getTree() const {
+    return state.tree.serialize(0);
+  }
+
+  std::string getCladeNodeAttrKeysStr() const {
+    return Nextclade::serializeCladeNodeAttrKeys(state.tree.getCladeNodeAttrKeys());
+  }
 };
 
 AlgorithmInput parseRefSequence(const std::string& refFastaStr, const std::string& refFastaName) {
   std::stringstream refFastaStream{refFastaStr};
-  const auto parsed = parseSequences(refFastaStream, refFastaName);
+  const auto parsed = parseSequencesSlow(refFastaStream, refFastaName);
 
   if (parsed.size() != 1) {
     throw std::runtime_error(fmt::format("Error: {:d} sequences found in reference sequence file ('{:s}'), expected 1",
@@ -201,9 +225,10 @@ std::string parsePcrPrimerCsvRowsStr(const std::string& pcrPrimersStr, const std
 void parseSequencesStreaming(const std::string& queryFastaStr, const std::string& queryFastaName,
   const emscripten::val& onSequence, const emscripten::val& onComplete) {
   std::stringstream queryFastaStringstream{queryFastaStr};
-  auto inputFastaStream = makeFastaStream(queryFastaStringstream, queryFastaName);
-  while (inputFastaStream->good()) {
-    onSequence(inputFastaStream->next());
+  auto inputFastaStream = makeFastaStreamSlow(queryFastaStringstream, queryFastaName);
+  AlgorithmInput input;
+  while (inputFastaStream->next(input)) {
+    onSequence(std::move(input));
   }
   onComplete();
 }
@@ -213,18 +238,11 @@ std::string parseTree(const std::string& treeStr) {
   return tree.serialize(0);
 }
 
-std::string treePrepare(const std::string& treeStr, const std::string& refStr) {
-  const auto ref = toNucleotideSequence(refStr);
-  auto tree = Nextclade::Tree{treeStr};
-  Nextclade::treePreprocess(tree, ref);
-  return tree.serialize(0);
-}
-
 std::string treeFinalize(const std::string& treeStr, const std::string& refStr, const std::string& analysisResultsStr) {
   const auto ref = toNucleotideSequence(refStr);
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'treeFinalize'");
   auto tree = Nextclade::Tree{treeStr};
-  treeAttachNodes(tree, ref, analysisResults.results);
+  treeAttachNodes(tree, analysisResults.results);
   treePostprocess(tree);
   return tree.serialize(0);
 }
@@ -232,10 +250,12 @@ std::string treeFinalize(const std::string& treeStr, const std::string& refStr, 
 std::string serializeToCsv(const std::string& analysisResultsStr, const std::string& delimiter) {
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'serializeToCsv'");
   std::stringstream outputCsvStream;
-  Nextclade::CsvWriter csv{outputCsvStream, Nextclade::CsvWriterOptions{.delimiter = delimiter[0]}};
+  auto csv = Nextclade::createCsvWriter(Nextclade::CsvWriterOptions{.delimiter = delimiter[0]},
+    analysisResults.cladeNodeAttrKeys);
   for (const auto& result : analysisResults.results) {
-    csv.addRow(result);
+    csv->addRow(result);
   }
+  csv->write(outputCsvStream);
   return outputCsvStream.str();
 }
 
@@ -246,7 +266,7 @@ std::string serializeInsertionsToCsv(const std::string& analysisResultsStr) {
   for (const auto& result : analysisResults.results) {
     const auto& seqName = result.seqName;
     const auto& insertions = result.insertions;
-    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, Nextclade::formatInsertions(insertions));
+    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
   }
   return outputInsertionsStream.str();
 }
@@ -273,7 +293,8 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
   emscripten::class_<NextcladeWasm>("NextcladeWasm")                                                         //
     .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string>()//
     .function("analyze", &NextcladeWasm::analyze)                                                            //
-    ;                                                                                                        //
+    .function("getTree", &NextcladeWasm::getTree)                                                            //
+    .function("getCladeNodeAttrKeysStr", &NextcladeWasm::getCladeNodeAttrKeysStr);                           //
 
   emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
     .field("ref", &NextcladeWasmResult::ref)
@@ -284,7 +305,6 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("hasError", &NextcladeWasmResult::hasError)
     .field("error", &NextcladeWasmResult::error);
 
-  emscripten::function("treePrepare", &treePrepare);
   emscripten::function("parseRefSequence", &parseRefSequence);
   emscripten::function("parseSequencesStreaming", &parseSequencesStreaming);
   emscripten::function("treeFinalize", &treeFinalize);

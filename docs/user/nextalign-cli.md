@@ -4,9 +4,15 @@ Nextalign CLI is a viral genome sequence alignment tool for command line. It use
 
 You can learn more about the algorithm in the [Algorithm: Sequence alignment](algorithm.html#sequence-alignment) section.
 
+This section describes:
+
+- how to install Nextalign CLI - using Docker container and natively
+- how to run Nextalign CLI with sample data
+- what other sections of the documentation are worth checking after that
+
 ### Installation (with docker)
 
-Container images are available at Docker Hub: 🐋 [nextstrain/nextalign](https://hub.docker.com/repository/docker/nextstrain/nextalign)
+Container images are available at Docker Hub: 🐋 [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign)
 
 Pull and run the latest version with:
 
@@ -134,19 +140,19 @@ nextalign --help
 
 ## Quick Example
 
-1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2)
+1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2021-10-11T19:00:32Z/files)
     (You can also try other viruses in the `data/` directory)
 
 2. Run:
 
    ```bash
    nextalign \
-    --sequences=data/sars-cov-2/sequences.fasta \
-    --reference=data/sars-cov-2/reference.fasta \
-    --genemap=data/sars-cov-2/genemap.gff \
-    --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-    --output-dir=output/ \
-    --output-basename=nextalign
+    --sequences data/sars-cov-2/sequences.fasta \
+    --reference data/sars-cov-2/reference.fasta \
+    --genemap data/sars-cov-2/genemap.gff \
+    --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+    --output-dir output/ \
+    --output-basename nextalign
    ```
 
    Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.

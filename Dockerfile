@@ -9,6 +9,8 @@ RUN set -x \
 && export DEBIAN_FRONTEND=noninteractive \
 && apt-get update -qq --yes \
 && apt-get install -qq --no-install-recommends --yes \
+  autoconf \
+  automake \
   bash \
   ccache \
   cmake \
@@ -18,7 +20,12 @@ RUN set -x \
   file \
   gdb \
   git \
+  libtool \
   make \
+  meson \
+  musl \
+  pkg-config \
+  pkg-config \
   python3 \
   python3-pip \
   python3-setuptools \
@@ -105,6 +112,7 @@ RUN set -x \
   clang-tidy \
   clang-tools-10 \
   curl \
+  default-jre-headless \
   libclang-common-10-dev \
   llvm-10 \
   sudo \
@@ -165,6 +173,23 @@ RUN . ${NVM_DIR}/nvm.sh \
 
 RUN set -x \
 && chown -R ${USER}:${GROUP} ${HOME}
+
+RUN set -eux >/dev/null \
+  && export CSVLINT_VERSION="0.3.0" \
+  && export URL="https://github.com/Clever/csvlint/releases/download/v${CSVLINT_VERSION}/csvlint-v${CSVLINT_VERSION}-linux-amd64.tar.gz" \
+  && cd / \
+  && curl -fsSL "${URL}" | tar -xz -C / \
+  && mv "csvlint-v${CSVLINT_VERSION}-linux-amd64/csvlint" "/usr/bin/csvlint"
+
+RUN set -eux >/dev/null \
+  && export CSV_VALIDATOR_VERSION="1.1.5" \
+  && export URL="https://github.com/digital-preservation/csv-validator/releases/download/${CSV_VALIDATOR_VERSION}/csv-validator-cmd-${CSV_VALIDATOR_VERSION}-application.zip" \
+  && cd /tmp \
+  && curl -fsSL "${URL}" -o "csv-validator.zip" \
+  && unzip "csv-validator.zip" \
+  && cp -rv "csv-validator-cmd-${CSV_VALIDATOR_VERSION}/bin/validate" "/usr/bin/csv-validator" \
+  && cp -rv "csv-validator-cmd-${CSV_VALIDATOR_VERSION}/lib" "/usr/" \
+  && rm -rf /tmp/*
 
 USER ${USER}
 

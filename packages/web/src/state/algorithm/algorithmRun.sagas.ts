@@ -1,7 +1,6 @@
 /* eslint-disable no-loops/no-loops,no-continue,no-void */
 import type { EventChannel } from 'redux-saga'
 import { buffers, eventChannel } from 'redux-saga'
-import { axiosFetchRaw } from 'src/helpers/useAxiosQuery'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
 import { all, apply, call, fork, join, put, select, take, takeEvery } from 'typed-redux-saga'
@@ -10,18 +9,20 @@ import { push } from 'connected-next-router/actions'
 import type { AuspiceJsonV2 } from 'auspice'
 import { changeColorBy } from 'auspice/src/actions/colors'
 
+import { axiosFetchRaw } from 'src/io/axiosFetch'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import fsaSaga from 'src/state/util/fsaSaga'
 
 import type { AnalysisThread, NextcladeResult, NextcladeWasmParams } from 'src/workers/worker.analyze'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
-import type { DatasetFlat, SequenceParserResult } from 'src/algorithms/types'
+import type { DatasetFlat, SequenceParserResult, UrlParams } from 'src/algorithms/types'
 import {
   addNextcladeResult,
   addParsedSequence,
   algorithmRunAsync,
   setAlgorithmGlobalStatus,
+  setCladeNodeAttrKeys,
   setFasta,
   setGeneMapObject,
   setGenomeSize,
@@ -38,14 +39,15 @@ import {
   selectRefName,
   selectRefSeq,
   selectRefTreeStr,
+  selectUrlParams,
 } from 'src/state/algorithm/algorithm.selectors'
-import { resetViewedGene } from 'src/state/ui/ui.actions'
+import { setViewedGene } from 'src/state/ui/ui.actions'
 import {
   createAnalysisThreadPool,
   createThreadParseSequencesStreaming,
   destroyAnalysisThreadPool,
   treeFinalize,
-  treePrepare,
+  // treePrepare,
 } from 'src/workers/run'
 import {
   loadFasta,
@@ -214,6 +216,34 @@ export function* runAnalysisLoop(
   }
 }
 
+export function* runGetTree(poolAnalyze: Pool<AnalysisThread>) {
+  // Retrieve the first worker from the pool. All workers have the same tree, but we arbitrarily chose the first
+  // worker here
+  const worker = yield* call(async () => {
+    // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return (await poolAnalyze.workers?.[0]?.init) as AnalysisThread
+  })
+
+  return yield* call(worker.getTree)
+}
+
+export function* runGetCladeNodeAttrKeys(poolAnalyze: Pool<AnalysisThread>) {
+  // Retrieve the first worker from the pool. All workers have the same tree, but we arbitrarily chose the first
+  // worker here
+  const worker = yield* call(async () => {
+    // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return (await poolAnalyze.workers?.[0]?.init) as AnalysisThread
+  })
+
+  return yield* call(worker.getCladeNodeAttrKeysStr)
+}
+
 /**
  * Repeatedly retrieves the results of the analysis from the analysis event channel
  * and emits corresponding redux actions
@@ -328,17 +358,28 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
 
     // Loop 1: Launch sequence parser loop and wait until it finishes parsing the input string.
     call(runParserLoop, sequenceParserThread, queryStr, queryInputName),
+
+    // Wait until the analysis is completed
+    call(async () => poolAnalyze.completed()),
   ])
-  // When `all()` effect resolves, we know that parsing is done. However, the analysis is still running.
+
+  // Retrieve the prepared (preprocessed) tree from one of the workers
+  const treePreparedStr = yield* call(runGetTree, poolAnalyze)
+
+  // Retrieve the  tree from one of the workers
+  const cladeNodeAttrKeysStr = yield* call(runGetCladeNodeAttrKeys, poolAnalyze)
+  const cladeNodeAttrKeys = JSON.parse(cladeNodeAttrKeysStr) as string[]
 
   // Destroy analysis pool as it is no longer needed
   yield* call(destroyAnalysisThreadPool, poolAnalyze)
 
   // Return array of results aggregated in the results retrieval loop
-  return ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
+  const nextcladeResults = ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
+
+  return { nextcladeResults, treePreparedStr, cladeNodeAttrKeys }
 }
 
-export function* getRefSequence(dataset: DatasetFlat) {
+export function* getRefSequence(dataset: DatasetFlat, urlParams: UrlParams) {
   // Load ref sequence from current state, in case it was set by the user previously
   const refStr = yield* select(selectRefSeq)
   const refName = yield* select(selectRefName)
@@ -347,43 +388,43 @@ export function* getRefSequence(dataset: DatasetFlat) {
     return { refStr, refName }
   }
 
-  const refFastaStr = yield* call(async () => axiosFetchRaw(dataset.files.reference))
+  const refFastaStr = yield* call(async () => axiosFetchRaw(urlParams.inputRootSeq ?? dataset.files.reference))
   return yield* loadRootSeq(new AlgorithmInputString(refFastaStr, 'reference.fasta'))
 }
 
-export function* getGeneMap(dataset: DatasetFlat) {
+export function* getGeneMap(dataset: DatasetFlat, urlParams: UrlParams) {
   const geneMapStr = yield* select(selectGeneMapStr)
   if (geneMapStr) {
     return geneMapStr
   }
-  const geneMapStrRaw = yield* call(async () => axiosFetchRaw(dataset.files.geneMap))
+  const geneMapStrRaw = yield* call(async () => axiosFetchRaw(urlParams.inputGeneMap ?? dataset.files.geneMap))
   return (yield* loadGeneMap(new AlgorithmInputString(geneMapStrRaw))).geneMapStr
 }
 
-export function* getTree(dataset: DatasetFlat) {
+export function* getTree(dataset: DatasetFlat, urlParams: UrlParams) {
   const treeStr = yield* select(selectRefTreeStr)
   if (treeStr) {
     return treeStr
   }
-  const treeStrRaw = yield* call(async () => axiosFetchRaw(dataset.files.tree))
+  const treeStrRaw = yield* call(async () => axiosFetchRaw(urlParams.inputTree ?? dataset.files.tree))
   return (yield* loadTree(new AlgorithmInputString(treeStrRaw))).treeStr
 }
 
-export function* getPcrPrimers(dataset: DatasetFlat) {
+export function* getPcrPrimers(dataset: DatasetFlat, urlParams: UrlParams) {
   const pcrPrimersStr = yield* select(selectPcrPrimersStr)
   if (pcrPrimersStr) {
     return pcrPrimersStr
   }
-  const pcrPrimersStrRaw = yield* call(async () => axiosFetchRaw(dataset.files.primers))
+  const pcrPrimersStrRaw = yield* call(async () => axiosFetchRaw(urlParams.inputPcrPrimers ?? dataset.files.primers))
   return (yield* loadPcrPrimers(new AlgorithmInputString(pcrPrimersStrRaw))).pcrPrimerCsvRowsStr
 }
 
-export function* getQcConfig(dataset: DatasetFlat) {
+export function* getQcConfig(dataset: DatasetFlat, urlParams: UrlParams) {
   const qcConfigStr = yield* select(selectQcConfigStr)
   if (qcConfigStr) {
     return qcConfigStr
   }
-  const qcConfigStrRaw = yield* call(async () => axiosFetchRaw(dataset.files.qc))
+  const qcConfigStrRaw = yield* call(async () => axiosFetchRaw(urlParams.inputQcConfig ?? dataset.files.qc))
   return (yield* loadQcSettings(new AlgorithmInputString(qcConfigStrRaw))).qcConfigStr
 }
 
@@ -395,16 +436,13 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
   }
 
   // If not provided, maybe the previously used sequence data is of any good?
-  let queryStr = yield* select(selectQueryStr)
-  let queryName = yield* select(selectQueryName)
+  const queryStr = yield* select(selectQueryStr)
+  const queryName = yield* select(selectQueryName)
   if (queryStr && queryName) {
     return { queryStr, queryName }
   }
 
-  queryStr = yield* call(async () => axiosFetchRaw(dataset.files.sequences))
-  queryName = `${dataset.nameFriendly}, ${dataset.tag}`
-
-  return { queryStr, queryName }
+  throw new Error('Internal error: sequence data is not available')
 }
 
 /**
@@ -412,13 +450,16 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
  */
 export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.loadingData))
-  yield* put(resetViewedGene())
   yield* put(push('/results'))
 
   const dataset = yield* select(selectCurrentDataset)
   if (!dataset) {
     throw new Error('No dataset is selected. Unable to proceed. This is an internal error and might indicate a bug.')
   }
+
+  yield* put(setViewedGene(dataset.defaultGene))
+
+  const urlParams = yield* select(selectUrlParams)
 
   const {
     ref: { refStr, refName },
@@ -428,13 +469,17 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     pcrPrimerCsvRowsStr,
     qcConfigStr,
   } = yield* all({
-    ref: getRefSequence(dataset),
     query: getQuerySequences(dataset, queryInput),
-    geneMapStr: getGeneMap(dataset),
-    treeStr: getTree(dataset),
-    pcrPrimerCsvRowsStr: getPcrPrimers(dataset),
-    qcConfigStr: getQcConfig(dataset),
+    ref: getRefSequence(dataset, urlParams),
+    geneMapStr: getGeneMap(dataset, urlParams),
+    treeStr: getTree(dataset, urlParams),
+    pcrPrimerCsvRowsStr: getPcrPrimers(dataset, urlParams),
+    qcConfigStr: getQcConfig(dataset, urlParams),
   })
+
+  const tree = JSON.parse(treeStr) as AuspiceJsonV2
+  const cladeNodeAttrKeys = tree.meta?.extensions?.nextclade?.clade_node_attrs_keys ?? []
+  yield* put(setCladeNodeAttrKeys({ cladeNodeAttrKeys }))
 
   const genomeSize = refStr.length
   yield* put(setGenomeSize({ genomeSize }))
@@ -442,16 +487,14 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   const geneMap = prepareGeneMap(geneMapStr)
   yield* put(setGeneMapObject({ geneMap }))
 
-  const treePreparedStr = yield* call(treePrepare, treeStr, refStr)
-
   const geneMapName = ''
   const pcrPrimersFilename = ''
-  const nextcladeResults = yield* runSequenceAnalysis(queryStr, queryName, {
+  const { nextcladeResults, treePreparedStr } = yield* runSequenceAnalysis(queryStr, queryName, {
     refStr,
     refName,
     geneMapStr,
     geneMapName,
-    treePreparedStr,
+    treeStr,
     pcrPrimerCsvRowsStr,
     pcrPrimersFilename,
     qcConfigStr,
@@ -462,7 +505,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     .map((nextcladeResult) => nextcladeResult.analysisResult)
 
   if (analysisResults.length > 0) {
-    const analysisResultsStr = serializeResults(analysisResults)
+    const analysisResultsStr = serializeResults(analysisResults, cladeNodeAttrKeys)
 
     yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
     const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)

@@ -3,7 +3,7 @@
 #include <nextalign/nextalign.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../alphabet/aminoacids.h"
 #include "../alphabet/nucleotides.h"
@@ -21,7 +21,7 @@ struct AlignmentResult {
 template<typename Letter>
 struct AlignmentStatus {
   Status status;
-    std::optional<std::string> error;
+  std::optional<std::string> error;
   std::optional<AlignmentResult<Letter>> result;
 };
 
@@ -55,7 +55,7 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
 
 template<typename Letter>
 ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& ref,
-  const std::vector<int>& gapOpenClose, int bandWidth, int meanShift,
+  const safe_vector<int>& gapOpenClose, const int bandWidth, const int meanShift,
   const NextalignAlignmentOptions& alignmentOptions);
 
 template<typename Letter>
@@ -63,9 +63,9 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   const vector2d<int>& scores, const vector2d<int>& paths, int meanShift);
 
 NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
+  const safe_vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
   const NextalignSeedOptions& seedOptions);
 
 AminoacidAlignmentStatus alignPairwise(const AminoacidSequence& query, const AminoacidSequence& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
-  const NextalignSeedOptions& seedOptions);
+  const safe_vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, const int bandWidth,
+  const int shift);

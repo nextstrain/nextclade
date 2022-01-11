@@ -3,7 +3,7 @@
 #include <nextclade/nextclade.h>
 
 #include <optional>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../utils/mapFind.h"
 #include "getQcRuleStatus.h"
@@ -11,7 +11,6 @@
 namespace Nextclade {
   std::optional<QcResultMissingData> ruleMissingData(//
     const AnalysisResult& result,                    //
-    const std::vector<NucleotideSubstitution>&,      //
     const QCRulesConfigMissingData& config           //
   ) {
     if (!config.enabled) {

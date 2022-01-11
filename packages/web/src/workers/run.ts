@@ -1,4 +1,4 @@
-import { Pool, spawn, Worker } from 'threads'
+import { Pool, spawn as spawnBase, Worker } from 'threads'
 import { concurrent } from 'fasy'
 
 import type { SequenceParserResult } from 'src/algorithms/types'
@@ -14,6 +14,13 @@ import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
 import type { SerializeToCsvThread } from 'src/workers/worker.serializeToCsv'
 import type { SerializeInsertionsToCsvThread } from './worker.serializeInsertionsToCsv'
+
+const WORKER_TIMEOUT_MS = 60 * 1000
+
+/** Wraps `spawn()` from `threads` package to provide a custom initialization timeout interval */
+export const spawn: typeof spawnBase = (worker: Worker) => {
+  return spawnBase(worker, { timeout: WORKER_TIMEOUT_MS })
+}
 
 /**
  * Creates and initializes the analysis webworker pool.
