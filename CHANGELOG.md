@@ -1,3 +1,30 @@
+## Nextclade Web 1.12.0, Nextclade CLI 1.9.0, Nextalign CLI 1.9.0 (2022-01-11)
+
+### [Feature] Handle "-" strand gene translation
+
+The strand column in the gene map file was previously ignored. Now the "-" strand genes are correctly reverse-complemented before translation.
+
+### [Feature] Update SARS-CoV-2 clade schema
+
+The schema that illustrates the tree of SARS-CoV-2 clade on the main page of Nextclade Web was updated to account for recent clade changes.
+
+### [Fix] Center mutation markers in sequence views
+
+Previously the mutation markers in sequence views in results table of Nextclade Web were anchored to their position in the sequence view on their left edge. They are now correctly centered around their position, such that the center of marker is at the corresponding position in the sequence.
+
+### [Fix] Correct exit codes
+
+Nextclade CLI and Nextalign CLI could sometime exit with incorrect exit code. This has been fixed.
+
+### [Fix] Correctly handle empty peptides
+
+The alignment algorithm in Nextclade CLI and Nextalign CLI could sometimes produce translation that is longer than expected, when the translated sequence is empty. Now the empty peptides are discarded and a warning is issued.
+
+### [Fix] Ensure array boundaries
+
+In rare cases Nextclade and Nextalign algorithms could sometimes read past the end of arrays, which previously went undetected. This is now fixed.
+
+
 ## Nextclade Web 1.11.1, Nextclade CLI 1.8.1 (2022-01-07)
 
 ### [Hotfix] Nextclade CLI crashes on macOS when reading JSON tree (#680)

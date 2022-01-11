@@ -64,7 +64,10 @@ function PeptideMarkerMutationGroupDisconnected({
   const pixelsPerAaAdjusted = Math.max(minWidth, pixelsPerAa)
   const width = changes.length * Math.max(pixelsPerAaAdjusted, pixelsPerAa)
   // position mutation group at 'center of group' - half the group width
-  const x = ((codonAaRange.begin + codonAaRange.end) * pixelsPerAa - (codonAaRange.end - codonAaRange.begin) * pixelsPerAaAdjusted) / 2
+  const x =
+    ((codonAaRange.begin + codonAaRange.end) * pixelsPerAa -
+      (codonAaRange.end - codonAaRange.begin) * pixelsPerAaAdjusted) /
+    2
 
   let changesHead = changes
   let changesTail: typeof changes = []
