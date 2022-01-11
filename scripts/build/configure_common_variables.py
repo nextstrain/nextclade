@@ -102,10 +102,10 @@ def configure_common_variables(project_root_dir, args=None):
         and not NEXTCLADE_BUILD_WASM
     )
 
-  NEXTALIGN_BUILD_BENCHMARKS = 0
-  NEXTALIGN_BUILD_TESTS = 0
-  NEXTCLADE_BUILD_TESTS = 0
-  NEXTCLADE_CLI_BUILD_TESTS = 0
+  NEXTALIGN_BUILD_BENCHMARKS = is_truthy(os.environ.get('NEXTALIGN_BUILD_BENCHMARKS'))
+  NEXTALIGN_BUILD_TESTS = is_truthy(os.environ.get('NEXTALIGN_BUILD_TESTS'))
+  NEXTCLADE_BUILD_TESTS = is_truthy(os.environ.get('NEXTCLADE_BUILD_TESTS'))
+  NEXTCLADE_CLI_BUILD_TESTS = is_truthy(os.environ.get('NEXTCLADE_CLI_BUILD_TESTS'))
 
   NEXTCLADE_EMSCRIPTEN_COMPILER_FLAGS = ""
 
@@ -173,16 +173,17 @@ def configure_common_variables(project_root_dir, args=None):
   if HOST_OS == "MacOS":
     PATH.append("/local/opt/m4/bin")
 
-  # gdb (or lldb) command with arguments
+  # Setup a debugger command: gdb or lldb
   GDB_DEFAULT = ""
-  if IS_CI:
-    GDB_DEFAULT = ""
-  elif which("lldb") is not None:
+  if which("lldb") is not None:
     GDB_DEFAULT = f"lldb --batch --source-on-crash {project_root_dir}/scripts/lib/.lldb-on-crash --source {project_root_dir}/scripts/lib/.lldb-source --"
   elif which("gdb"):
     GDB_DEFAULT = f"gdb --quiet -ix {project_root_dir}/scripts/lib/.gdbinit -x {project_root_dir}/scripts/lib/.gdbexec --args"
 
   GDB = os.environ.get("GDB") or GDB_DEFAULT
+
+  # Setup GoogleTest Pretty Printer (GTPP)
+  GTPP = f"{project_root_dir}/scripts/lib/gtpp.py"
 
   # Gather preliminary variables. These will be used to setup toolchains.
   config_dict = {
@@ -236,6 +237,7 @@ def configure_common_variables(project_root_dir, args=None):
     "ENABLE_DEBUG_TRACE": ENABLE_DEBUG_TRACE,
 
     "GDB": GDB,
+    "GTPP": GTPP,
 
     "PATH": PATH,
     "LD_LIBRARY_PATH": LD_LIBRARY_PATH

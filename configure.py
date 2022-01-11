@@ -16,13 +16,14 @@ sys.path.append(os.path.join(THIS_DIR, "scripts", "lib"))
 sys.path.append(os.path.join(THIS_DIR, "scripts", "build"))
 sys.path.append(os.path.join(THIS_DIR, "scripts", "build", "lib"))
 
-from run_build import run_build
-from run_codegen import run_codegen
 from configure_build import configure_build
 from configure_common_variables import configure_common_variables
 from install_deps import install_deps
 from parse_args import parse_args, COMMANDS
 from run import run
+from run_build import run_build
+from run_codegen import run_codegen
+from run_unit_tests import run_unit_tests
 
 # Combine system environment variables with variables read from .env files
 os.environ = {
@@ -57,6 +58,9 @@ if __name__ == '__main__':
   # Run makefiles, compile and link binaries and copy them into the final location
   if 'build' in args["commands"]:
     run_build(config, shell)
+
+  if 'test' in args["commands"]:
+    run_unit_tests(config, shell)
 
   if 'run' in args["commands"]:
     run(config, shell)
