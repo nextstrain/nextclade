@@ -28,11 +28,11 @@ dev:
 
 dev-impl:
 	@set -euxo pipefail
-	@nodemon
+	@./dev-local wr
 
 dev-nowatch:
 	@set -euxo pipefail
-	@CMAKE_BUILD_TYPE=Debug scripts/build_locally.sh
+	@./dev-local r
 
 dev-asan:
 	@set -euxo pipefail
@@ -56,11 +56,11 @@ dev-clang-analyzer:
 
 prod:
 	@set -euxo pipefail
-	@CMAKE_BUILD_TYPE=Release scripts/build_locally.sh
+	@./dev-local rr
 
 prod-watch:
 	@set -euxo pipefail
-	@CMAKE_BUILD_TYPE=Release nodemon
+	@./dev-local wrr
 
 profile:
 	@set -euxo pipefail
@@ -95,11 +95,11 @@ dev-wasm: prod-wasm
 
 prod-wasm:
 	@set -euxo pipefail
-	@NEXTCLADE_BUILD_WASM=1 $(MAKE) --no-print-directory dev
+	@./dev-local wr --wasm
 
 prod-wasm-nowatch:
 	@set -euxo pipefail
-	@NEXTCLADE_BUILD_WASM=1 $(MAKE)  --no-print-directory prod
+	@./dev-local r --wasm
 
 # Web
 
