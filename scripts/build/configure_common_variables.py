@@ -175,10 +175,10 @@ def configure_common_variables(project_root_dir, args=None):
 
   # Setup a debugger command: gdb or lldb
   GDB_DEFAULT = ""
-  if which("lldb") is not None:
-    GDB_DEFAULT = f"lldb --batch --source-on-crash {project_root_dir}/scripts/lib/.lldb-on-crash --source {project_root_dir}/scripts/lib/.lldb-source --"
-  elif which("gdb"):
+  if which("gdb"):
     GDB_DEFAULT = f"gdb --quiet -ix {project_root_dir}/scripts/lib/.gdbinit -x {project_root_dir}/scripts/lib/.gdbexec --args"
+  elif which("lldb"):
+    GDB_DEFAULT = f"lldb --batch --source-on-crash {project_root_dir}/scripts/lib/.lldb-on-crash --source {project_root_dir}/scripts/lib/.lldb-source --"
 
   GDB = os.environ.get("GDB") or GDB_DEFAULT
 

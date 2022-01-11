@@ -9,4 +9,3 @@ def configure_build(config, shell):
       --build-folder={config.BUILD_DIR} \
       {config.CONANFILE} \
   """, cwd=config.BUILD_DIR)
-
