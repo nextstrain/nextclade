@@ -1,9 +1,9 @@
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
 
 #include <numeric>
-#include <common/safe_vector.h>
 
 #include "analyze/calculateTotalLength.h"
 #include "analyze/findNucChanges.h"
@@ -131,10 +131,15 @@ namespace Nextclade {
     analysisResult.clade = nearestNode.clade();
 
     analysisResult.customNodeAttributes = nearestNode.customNodeAttributes(customNodeAttrKeys);
-    analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
+    safe_vector<NucleotideSubstitutionSimpleLabeled> nucSubstitutionLabelMap;
+    safe_vector<NucleotideDeletionSimpleLabeled> nucDeletionLabelMap;
+    analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref,
+      nucSubstitutionLabelMap, nucDeletionLabelMap);
 
-    analysisResult.privateAaMutations =
-      findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides, geneMap);
+    safe_vector<AminoacidSubstitutionSimpleLabeled> aaSubstitutionLabelMap;
+    safe_vector<AminoacidDeletionSimpleLabeled> aaDeletionLabelMap;
+    analysisResult.privateAaMutations = findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides,
+      geneMap, aaSubstitutionLabelMap, aaDeletionLabelMap);
 
     analysisResult.divergence =
       calculateDivergence(nearestNode, analysisResult, tree.tmpDivergenceUnits(), safe_cast<int>(ref.size()));

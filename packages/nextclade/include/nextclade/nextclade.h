@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 
 #include <istream>
@@ -7,7 +8,6 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <common/safe_vector.h>
 
 namespace Nextclade {
   class Tree;
@@ -207,6 +207,95 @@ namespace Nextclade {
   }
 
   template<typename Letter>
+  struct SubstitutionSimpleLabeled {
+    SubstitutionSimple<Letter> substitution;
+    std::vector<std::string> labels;
+  };
+
+  template<typename Letter>
+  struct DeletionSimpleLabeled {
+    DeletionSimple<Letter> deletion;
+    std::vector<std::string> labels;
+  };
+
+  using NucleotideSubstitutionSimpleLabeled = SubstitutionSimpleLabeled<Nucleotide>;
+  using NucleotideDeletionSimpleLabeled = DeletionSimpleLabeled<Nucleotide>;
+  using AminoacidSubstitutionSimpleLabeled = SubstitutionSimpleLabeled<Aminoacid>;
+  using AminoacidDeletionSimpleLabeled = DeletionSimpleLabeled<Aminoacid>;
+
+  template<typename Letter>
+  inline bool operator==(const SubstitutionSimpleLabeled<Letter>& lhs, const SubstitutionSimpleLabeled<Letter>& rhs) {
+    return lhs.substitution == rhs.substitution && lhs.labels == rhs.labels;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const SubstitutionSimpleLabeled<Letter>& lhs, const SubstitutionSimpleLabeled<Letter>& rhs) {
+    return (                                                           //
+      lhs.substitution < rhs.substitution ||                           //
+      (lhs.substitution == rhs.substitution && lhs.labels < rhs.labels)//
+    );
+  }
+
+  template<typename Letter>
+  inline bool operator==(const DeletionSimpleLabeled<Letter>& lhs, const DeletionSimpleLabeled<Letter>& rhs) {
+    return lhs.deletion == rhs.deletion && lhs.labels == rhs.labels;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const DeletionSimpleLabeled<Letter>& lhs, const DeletionSimpleLabeled<Letter>& rhs) {
+    return (                                                   //
+      lhs.deletion < rhs.deletion ||                           //
+      (lhs.deletion == rhs.deletion && lhs.labels < rhs.labels)//
+    );
+  }
+
+
+  template<typename Letter>
+  inline bool operator==(const SubstitutionSimpleLabeled<Letter>& labeled,
+    const SubstitutionSimple<Letter>& substitution) {
+    return substitution == labeled.substitution;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const SubstitutionSimpleLabeled<Letter>& labeled,
+    const SubstitutionSimple<Letter>& substitution) {
+    return substitution < labeled.substitution;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const DeletionSimpleLabeled<Letter>& labeled, const DeletionSimple<Letter>& deletion) {
+    return deletion == labeled.deletion;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const DeletionSimpleLabeled<Letter>& labeled, const DeletionSimple<Letter>& deletion) {
+    return deletion < labeled.deletion;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const SubstitutionSimple<Letter>& substitution,
+    const SubstitutionSimpleLabeled<Letter>& labeled) {
+    return substitution == labeled.substitution;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const SubstitutionSimple<Letter>& substitution,
+    const SubstitutionSimpleLabeled<Letter>& labeled) {
+    return substitution < labeled.substitution;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const DeletionSimple<Letter>& deletion, const DeletionSimpleLabeled<Letter>& labeled) {
+    return deletion == labeled.deletion;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const DeletionSimple<Letter>& deletion, const DeletionSimpleLabeled<Letter>& labeled) {
+    return deletion < labeled.deletion;
+  }
+
+
+  template<typename Letter>
   struct CharacterRange {
     int begin;
     int end;
@@ -356,8 +445,12 @@ namespace Nextclade {
 
   template<typename Letter>
   struct PrivateMutations {
-    safe_vector<SubstitutionSimple<Letter>> privateSubstitutions;
-    safe_vector<DeletionSimple<Letter>> privateDeletions;
+    safe_vector<SubstitutionSimple<Letter>> reversionSubstitutions;
+    safe_vector<DeletionSimple<Letter>> reversionDeletions;
+    safe_vector<SubstitutionSimpleLabeled<Letter>> labeledSubstitutions;
+    safe_vector<DeletionSimpleLabeled<Letter>> labeledDeletions;
+    safe_vector<SubstitutionSimple<Letter>> unlabeledSubstitutions;
+    safe_vector<DeletionSimple<Letter>> unlabeledDeletions;
   };
 
   using PrivateNucleotideMutations = PrivateMutations<Nucleotide>;

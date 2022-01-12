@@ -198,8 +198,8 @@ namespace Nextclade {
     template<typename Letter>
     json serializePrivateMutations(const PrivateMutations<Letter>& pm) {
       auto j = json::object();
-      j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Letter>));
-      j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Letter>));
+      j.emplace("privateSubstitutions", serializeArray(pm.unlabeledSubstitutions, serializeSubstitutionSimple<Letter>));
+      j.emplace("privateDeletions", serializeArray(pm.unlabeledDeletions, serializeDeletionSimple<Letter>));
       return j;
     }
 

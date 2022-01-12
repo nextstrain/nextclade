@@ -73,7 +73,7 @@ namespace Nextclade {
     }
 
     // TODO: should we also account for result. privateDeletions here
-    const auto snpClusters = findSnpClusters(query.privateNucMutations.privateSubstitutions, config);
+    const auto snpClusters = findSnpClusters(query.privateNucMutations.unlabeledSubstitutions, config);
     const auto totalClusters = safe_cast<double>(snpClusters.size());
 
     auto clusteredSnps = processSnpClusters(snpClusters);

@@ -145,9 +145,9 @@ namespace Nextclade {
   template<typename Letter>
   PrivateMutations<Letter> parsePrivateMutations(const json& j) {
     return PrivateMutations<Letter>{
-      .privateSubstitutions =
+      .unlabeledSubstitutions =
         parseArray<SubstitutionSimple<Letter>>(j, "privateSubstitutions", parseSubstitutionSimple<Letter>),
-      .privateDeletions = parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
+      .unlabeledDeletions = parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
     };
   }
 
