@@ -546,6 +546,21 @@ namespace Nextclade {
     AnalysisResult analysisResult;
   };
 
+  /** External data that contains labels to be assigned to mutations */
+  template<typename Letter>
+  struct MutationLabelMaps {
+    std::vector<SubstitutionSimpleLabeled<Letter>> substitutionLabelMap;
+    std::vector<DeletionSimpleLabeled<Letter>> deletionLabelMap;
+  };
+
+  /** Contains external configuration and data specific for a particular pathogen */
+  struct VirusJson {
+    std::string schemaVersion;
+    MutationLabelMaps<Nucleotide> nucMutLabelMaps;
+  };
+
+  VirusJson parseVirusJson(const std::string& virusJsonStr);
+
   /**
    * Represents unit of measurement of divergence
    */

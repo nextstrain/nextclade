@@ -79,6 +79,13 @@
           "isOptional": true
         },
         {
+          "flags": ["-s", "--input-virus-json"],
+          "desc": "Path to a JSON file containing configuration and data specific to a pathogen. Overrides path to `virus.json` provided by `--input-dataset`.",
+          "cppName": "inputVirusJson",
+          "cppType": "std::string",
+          "isOptional": true
+        },
+        {
           "flags": ["--genes"],
           "desc": "Comma-separated list of names of genes to use. This defines which peptides will be written into outputs, and which genes will be taken into account during codon-aware alignment and aminoacid mutations detection. Must only contain gene names present in the gene map. If this flag is not supplied or its value is an empty string, then all genes found in the gene map will be used. Requires `--input-gene-map` to be specified.",
           "cppName": "genes",

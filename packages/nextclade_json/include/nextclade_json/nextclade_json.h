@@ -106,6 +106,51 @@ namespace Nextclade {
     return result;
   }
 
+  /** Reads JSON value into the output reference. Throws if the key is not found */
+  template<typename T>
+  void readValue(const json& j, const std::string& path, T& value) {
+    if (j.contains(json::json_pointer{path})) {
+      value = j.at(json::json_pointer{path}).template get<T>();
+    } else {
+      throw ErrorJsonKeyNotFound(path);
+    }
+  }
+
+  /** Reads JSON value into the output reference or a default value if the key is not found */
+  template<typename T>
+  void readValue(const json& j, const std::string& path, T& value, const T& defaultValue) {
+    if (j.contains(json::json_pointer{path})) {
+      value = j.at(json::json_pointer{path}).template get<T>();
+    } else {
+      value = copy(defaultValue);
+    }
+  }
+
+  /**
+   * Reads JSON array of values into the output reference, applying the parser function to every value.
+   * Throws if the key is not found.
+   */
+  template<typename T, typename Parser>
+  void readArrayOrThrow(const json& j, const std::string& path, safe_vector<T>& value, Parser parser) {
+    if (j.contains(json::json_pointer{path})) {
+      value = parseArray<T>(j, json::json_pointer{path}, parser);
+    } else {
+      throw ErrorJsonKeyNotFound(path);
+    }
+  }
+
+  /**
+   * Reads JSON array of values into the output reference, applying the parser function to every value.
+   * Reads an empty array if the key is not found.
+   */
+  template<typename T, typename Parser>
+  void readArrayMaybe(const json& j, const std::string& path, safe_vector<T>& value, Parser parser) {
+    if (j.contains(json::json_pointer{path})) {
+      value = parseArray<T>(j, json::json_pointer{path}, parser);
+    } else {
+      value = safe_vector<T>{};
+    }
+  }
 
   std::string jsonStringify(const json& j, int spaces = 2);
 }// namespace Nextclade

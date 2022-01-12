@@ -53,6 +53,8 @@ set(SOURCE_FILES
   src/io/parseAnalysisResults.h
   src/io/parseCsv.h
   src/io/parseGeneMap.cpp
+  src/io/parseVirusJson.cpp
+  src/io/parseVirusJson.h
   src/io/parseMutation.cpp
   src/io/parseMutation.h
   src/io/parseQcConfig.cpp

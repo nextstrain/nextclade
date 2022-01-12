@@ -13,50 +13,11 @@
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
-  class ErrorParseQcConfigInvalid : public std::runtime_error {
+  class ErrorVirusJsonParsingFailed : public ErrorFatal {
   public:
-    explicit ErrorParseQcConfigInvalid(const std::string& path)
-        : std::runtime_error(fmt::format("key \"{:s}\" is missing", path)) {}
+    explicit ErrorVirusJsonParsingFailed(const std::string& message)
+        : ErrorFatal(fmt::format("When parsing QC configuration file: {:s}", message)) {}
   };
-
-
-  namespace {
-    template<typename T>
-    void readValue(const json& j, const std::string& path, T& value) {
-      if (j.contains(json::json_pointer{path})) {
-        value = j.at(json::json_pointer{path}).template get<T>();
-      } else {
-        throw ErrorParseQcConfigInvalid(path);
-      }
-    }
-
-    template<typename T>
-    void readValue(const json& j, const std::string& path, T& value, const T& defaultValue) {
-      if (j.contains(json::json_pointer{path})) {
-        value = j.at(json::json_pointer{path}).template get<T>();
-      } else {
-        value = defaultValue;
-      }
-    }
-
-    template<typename T, typename Parser>
-    void readArray(const json& j, const std::string& path, safe_vector<T>& value, Parser parser) {
-      if (j.contains(json::json_pointer{path})) {
-        value = parseArray<T>(j, json::json_pointer{path}, parser);
-      } else {
-        throw ErrorParseQcConfigInvalid(path);
-      }
-    }
-
-    template<typename T, typename Parser>
-    void readArrayMaybe(const json& j, const std::string& path, safe_vector<T>& value, Parser parser) {
-      if (j.contains(json::json_pointer{path})) {
-        value = parseArray<T>(j, json::json_pointer{path}, parser);
-      } else {
-        value = safe_vector<T>{};
-      }
-    }
-  }// namespace
 
   QcConfig parseQcConfig(const std::string& qcConfigJsonStr) {
     try {
@@ -64,10 +25,8 @@ namespace Nextclade {
 
       QcConfig qcConfig{};
 
-      // Version prior to 1.2.0 did not include "schemaVersion" field.
-      // Treat files without this field as them as "1.1.0".
+      // Prior to 1.2.0 qc.json did not include "schemaVersion" field. Treat files without this field as "1.1.0".
       readValue(j, "/schemaVersion", qcConfig.schemaVersion, std::string{"1.1.0"});
-
 
       readValue(j, "/missingData/enabled", qcConfig.missingData.enabled, false);
       if (qcConfig.missingData.enabled) {
@@ -101,12 +60,13 @@ namespace Nextclade {
 
       readValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled, false);
       if (qcConfig.stopCodons.enabled) {
-        readArray(j, "/stopCodons/ignoredStopCodons", qcConfig.stopCodons.ignoredStopCodons, parseStopCodonLocation);
+        readArrayOrThrow(j, "/stopCodons/ignoredStopCodons", qcConfig.stopCodons.ignoredStopCodons,
+          parseStopCodonLocation);
       }
 
       return qcConfig;
     } catch (const std::exception& e) {
-      throw ErrorFatal(fmt::format("When parsing QC configuration file: {:s}", e.what()));
+      throw ErrorVirusJsonParsingFailed(e.what());
     }
   }
 

@@ -41,6 +41,7 @@ namespace Nextclade {
       const auto& inputRootSeq = inputPaths.inputRootSeq;
       const auto& inputGeneMap = inputPaths.inputGeneMap;
       const auto& inputQcConfig = inputPaths.inputQcConfig;
+      const auto& inputVirusJson = inputPaths.inputVirusJson;
       const auto& inputTree = inputPaths.inputTree;
       const auto& inputPcrPrimers = inputPaths.inputPcrPrimers;
 
@@ -95,6 +96,9 @@ namespace Nextclade {
           "You might be missing out on new features. It is recommended to download the latest QC configuration file.",
           inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getQcConfigJsonSchemaVersion());
       }
+
+      const auto virusJsonString = readFile(inputVirusJson);
+      const auto virusJson = parseVirusJson(virusJsonString);
 
       const auto treeString = readFile(inputTree);
 

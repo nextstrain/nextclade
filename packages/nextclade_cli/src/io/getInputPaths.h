@@ -33,6 +33,7 @@ namespace Nextclade {
     std::string inputRootSeq;
     std::optional<std::string> inputGeneMap;
     std::string inputQcConfig;
+    std::string inputVirusJson;
     std::string inputTree;
     std::optional<std::string> inputPcrPrimers;
   };
@@ -76,6 +77,7 @@ namespace Nextclade {
     auto inputRootSeq = std::string{cliParams->inputRootSeq};
     auto inputGeneMap = std::string{cliParams->inputGeneMap};
     auto inputQcConfig = std::string{cliParams->inputQcConfig};
+    auto inputVirusJson = std::string{cliParams->inputVirusJson};
     auto inputTree = std::string{cliParams->inputTree};
     auto inputPcrPrimers = std::string{cliParams->inputPcrPrimers};
 
@@ -114,6 +116,7 @@ namespace Nextclade {
       inputRootSeq = takeFilenameFromDatasetMaybe(inputRootSeq, inputDataset, "reference.fasta");
       inputGeneMap = takeFilenameFromDatasetMaybe(inputGeneMap, inputDataset, "genemap.gff");
       inputQcConfig = takeFilenameFromDatasetMaybe(inputQcConfig, inputDataset, "qc.json");
+      inputVirusJson = takeFilenameFromDatasetMaybe(inputVirusJson, inputDataset, "virus.json");
       inputTree = takeFilenameFromDatasetMaybe(inputTree, inputDataset, "tree.json");
       inputPcrPrimers = takeFilenameFromDatasetMaybe(inputPcrPrimers, inputDataset, "primers.csv");
     }
@@ -123,6 +126,7 @@ namespace Nextclade {
       .inputRootSeq = toAbsolutePathRequired(inputRootSeq),
       .inputGeneMap = toAbsolutePathOptional(inputGeneMap),
       .inputQcConfig = toAbsolutePathRequired(inputQcConfig),
+      .inputVirusJson = toAbsolutePathRequired(inputVirusJson),
       .inputTree = toAbsolutePathRequired(inputTree),
       .inputPcrPrimers = toAbsolutePathOptional(inputPcrPrimers),
     };
