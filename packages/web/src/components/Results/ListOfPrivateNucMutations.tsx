@@ -1,6 +1,7 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import React from 'react'
 
-import type { PrivateMutations } from 'src/algorithms/types'
+import type { Nucleotide, PrivateMutations } from 'src/algorithms/types'
 import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
@@ -17,7 +18,7 @@ export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivate
     labeledSubstitutions,
     labeledDeletions,
     unlabeledSubstitutions,
-    unlabeledDeletions,
+    // unlabeledDeletions,
   } = privateNucMutations
 
   const reversions = [...reversionSubstitutions, ...reversionDeletions.map((del) => ({ ...del, qry: '-' }))]
@@ -46,7 +47,16 @@ export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivate
             <td colSpan={2}>
               {reversions.map(({ ref, pos, qry }) => (
                 <div key={pos}>
-                  <NucleotideMutationBadge mutation={{ refNuc: ref, pos, queryNuc: qry }} />
+                  <NucleotideMutationBadge
+                    mutation={{
+                      refNuc: ref as Nucleotide,
+                      pos,
+                      queryNuc: qry as Nucleotide,
+                      aaDeletions: [],
+                      aaSubstitutions: [],
+                      pcrPrimersChanged: [],
+                    }}
+                  />
                 </div>
               ))}
             </td>
@@ -62,7 +72,16 @@ export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivate
           {labeled.map(({ substitution: { ref, pos, qry }, labels }) => (
             <tr key={pos}>
               <td>
-                <NucleotideMutationBadge mutation={{ refNuc: ref, pos, queryNuc: qry }} />
+                <NucleotideMutationBadge
+                  mutation={{
+                    refNuc: ref as Nucleotide,
+                    pos,
+                    queryNuc: qry as Nucleotide,
+                    aaDeletions: [],
+                    aaSubstitutions: [],
+                    pcrPrimersChanged: [],
+                  }}
+                />
               </td>
               <td>{labels.join(', ')}</td>
             </tr>
@@ -79,7 +98,16 @@ export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivate
             <td colSpan={2}>
               {unlabeled.map(({ ref, pos, qry }) => (
                 <div key={pos}>
-                  <NucleotideMutationBadge mutation={{ refNuc: ref, pos, queryNuc: qry }} />
+                  <NucleotideMutationBadge
+                    mutation={{
+                      refNuc: ref as Nucleotide,
+                      pos,
+                      queryNuc: qry as Nucleotide,
+                      aaDeletions: [],
+                      aaSubstitutions: [],
+                      pcrPrimersChanged: [],
+                    }}
+                  />
                 </div>
               ))}
             </td>
