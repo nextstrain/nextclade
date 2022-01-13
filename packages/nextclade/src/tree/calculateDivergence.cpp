@@ -29,7 +29,7 @@ namespace Nextclade {
     const double baseDiv = nearestNode.divergence().value_or(0.0);
 
     // Divergence is just number of substitutions compared to the parent
-    auto thisDiv = safe_cast<double>(result.privateNucMutations.unlabeledSubstitutions.size());
+    auto thisDiv = safe_cast<double>(result.privateNucMutations.privateSubstitutions.size());
 
     // If divergence is measured per site, divide by the length of reference sequence.
     // The unit of measurement is deduced from what's already is used in the reference tree nodes.

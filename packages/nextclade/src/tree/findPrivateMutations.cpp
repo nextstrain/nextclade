@@ -46,6 +46,7 @@
 #include "../utils/filter.h"
 #include "../utils/mapFind.h"
 #include "../utils/range.h"
+#include "utils/concat.h"
 
 
 namespace Nextclade {
@@ -316,21 +317,21 @@ namespace Nextclade {
       const safe_vector<DeletionSimpleLabeled<Letter>>& deletionLabelMap         //
     ) {
 
-      safe_vector<SubstitutionSimple<Letter>> privateSubstitutions;
-      privateSubstitutions.reserve(substitutions.size());
+      safe_vector<SubstitutionSimple<Letter>> privateNonReversionSubstitutions;
+      privateNonReversionSubstitutions.reserve(substitutions.size());
 
-      safe_vector<DeletionSimple<Letter>> privateDeletions;
-      privateDeletions.reserve(deletions.size());
+      safe_vector<DeletionSimple<Letter>> privateNonReversionDeletions;
+      privateNonReversionDeletions.reserve(deletions.size());
 
       // Remember which positions we cover while iterating sequence mutations,
       // to be able to skip them when we iterate over node mutations
       std::set<int> seqPositionsCovered;
 
       // Iterate over sequence substitutions
-      processSeqSubstitutions(nodeMutMap, substitutions, privateSubstitutions, seqPositionsCovered);
+      processSeqSubstitutions(nodeMutMap, substitutions, privateNonReversionSubstitutions, seqPositionsCovered);
 
       // Iterate over sequence deletions
-      processSeqDeletions(nodeMutMap, deletions, refSeq, privateDeletions, seqPositionsCovered);
+      processSeqDeletions(nodeMutMap, deletions, refSeq, privateNonReversionDeletions, seqPositionsCovered);
 
       safe_vector<SubstitutionSimple<Letter>> privateReversionSubstitutions;
       privateReversionSubstitutions.reserve(nodeMutMap.size());
@@ -342,16 +343,18 @@ namespace Nextclade {
       findReversions(nodeMutMap, seq, refSeq, seqPositionsCovered, privateReversionSubstitutions,
         privateReversionDeletions);
 
-      eraseDuplicatesInPlace(privateSubstitutions);
-      eraseDuplicatesInPlace(privateDeletions);
+      eraseDuplicatesInPlace(privateNonReversionSubstitutions);
+      eraseDuplicatesInPlace(privateNonReversionDeletions);
 
-      privateSubstitutions.shrink_to_fit();
-      privateDeletions.shrink_to_fit();
+      privateNonReversionSubstitutions.shrink_to_fit();
+      privateNonReversionDeletions.shrink_to_fit();
 
-      const auto& afterLabeling =
-        labelPrivateMutations(privateSubstitutions, privateDeletions, substitutionLabelMap, deletionLabelMap);
+      const auto& afterLabeling = labelPrivateMutations(privateNonReversionSubstitutions, privateNonReversionDeletions,
+        substitutionLabelMap, deletionLabelMap);
 
       return PrivateMutations<Letter>{
+        .privateSubstitutions = merge(privateReversionSubstitutions, privateNonReversionSubstitutions),
+        .privateDeletions = merge(privateReversionDeletions, privateNonReversionDeletions),
         .reversionSubstitutions = privateReversionSubstitutions,
         .reversionDeletions = privateReversionDeletions,
         .labeledSubstitutions = afterLabeling.labeledSubstitutions,
@@ -470,6 +473,8 @@ namespace Nextclade {
       // followed by uncertainty in translation.
       //
       // clang-format off
+      found.privateSubstitutions = filter(found.privateSubstitutions, hasUnknownAaSubstitutions(unknownAaRanges));
+      found.privateDeletions = filter(found.privateDeletions, hasUnknownAaDeletions(unknownAaRanges));
       found.reversionSubstitutions = filter(found.reversionSubstitutions, hasUnknownAaSubstitutions(unknownAaRanges));
       found.labeledSubstitutions = filter(found.labeledSubstitutions, hasUnknownAaSubstitutionsLabeled(unknownAaRanges));
       found.unlabeledSubstitutions = filter(found.unlabeledSubstitutions, hasUnknownAaSubstitutions(unknownAaRanges));

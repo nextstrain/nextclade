@@ -445,6 +445,8 @@ namespace Nextclade {
 
   template<typename Letter>
   struct PrivateMutations {
+    safe_vector<SubstitutionSimple<Letter>> privateSubstitutions;
+    safe_vector<DeletionSimple<Letter>> privateDeletions;
     safe_vector<SubstitutionSimple<Letter>> reversionSubstitutions;
     safe_vector<DeletionSimple<Letter>> reversionDeletions;
     safe_vector<SubstitutionSimpleLabeled<Letter>> labeledSubstitutions;

@@ -339,17 +339,17 @@ namespace Nextclade {
       auto mutObj = json::object();
 
 
-      for (const auto& mut : nucMutations.unlabeledSubstitutions) {
+      for (const auto& mut : nucMutations.privateSubstitutions) {
         mutObj["nuc"].push_back(formatMutationSimple(mut));
       }
 
-      for (const auto& mut : nucMutations.unlabeledDeletions) {
+      for (const auto& mut : nucMutations.privateDeletions) {
         mutObj["nuc"].push_back(formatDeletionSimple(mut));
       }
 
       for (const auto& [geneName, aaMutationsForGene] : aaMutations) {
-        const auto& privateAaSubstitutions = aaMutationsForGene.unlabeledSubstitutions;
-        const auto& privateAaDeletions = aaMutationsForGene.unlabeledDeletions;
+        const auto& privateAaSubstitutions = aaMutationsForGene.privateSubstitutions;
+        const auto& privateAaDeletions = aaMutationsForGene.privateDeletions;
         const int totalPrivateAaMutations = safe_cast<int>(privateAaSubstitutions.size() + privateAaDeletions.size());
 
         if (totalPrivateAaMutations == 0) {

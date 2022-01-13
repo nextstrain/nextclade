@@ -89,9 +89,9 @@ namespace Nextclade {
     // Note that we count *individual* nucleotide substitutions, but contiguous *ranges* of deletions.
     // That is, a 2 adjacent substitutions give a total of 2, but 2 adjacent deletions give a total of 1.
 
-    const auto totalIndividualSubstitutions = safe_cast<int>(result.privateNucMutations.unlabeledSubstitutions.size());
+    const auto totalIndividualSubstitutions = safe_cast<int>(result.privateNucMutations.privateSubstitutions.size());
 
-    const auto privateDeletionRanges = findPrivateDeletionRanges(result.privateNucMutations.unlabeledDeletions);
+    const auto privateDeletionRanges = findPrivateDeletionRanges(result.privateNucMutations.privateDeletions);
     const auto totalContiguousDeletionRanges = safe_cast<int>(privateDeletionRanges.size());
 
     const auto totalPrivateMutations = safe_cast<double>(totalIndividualSubstitutions + totalContiguousDeletionRanges);
