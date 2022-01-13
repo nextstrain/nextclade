@@ -34,6 +34,7 @@ namespace Nextclade {
     const GeneMap& geneMap,                                      //
     const safe_vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
+    const VirusJson& virusJson,                                  //
     const Tree& tree,                                            //
     const NextalignOptions& nextalignOptions,                    //
     const safe_vector<std::string>& customNodeAttrKeys           //
@@ -131,10 +132,9 @@ namespace Nextclade {
     analysisResult.clade = nearestNode.clade();
 
     analysisResult.customNodeAttributes = nearestNode.customNodeAttributes(customNodeAttrKeys);
-    safe_vector<NucleotideSubstitutionSimpleLabeled> nucSubstitutionLabelMap;
-    safe_vector<NucleotideDeletionSimpleLabeled> nucDeletionLabelMap;
+
     analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref,
-      nucSubstitutionLabelMap, nucDeletionLabelMap);
+      virusJson.nucMutLabelMaps.substitutionLabelMap, virusJson.nucMutLabelMaps.deletionLabelMap);
 
     safe_vector<AminoacidSubstitutionSimpleLabeled> aaSubstitutionLabelMap;
     safe_vector<AminoacidDeletionSimpleLabeled> aaDeletionLabelMap;
@@ -191,6 +191,7 @@ namespace Nextclade {
       const auto& pcrPrimers = options.pcrPrimers;
       const auto& geneMap = options.geneMap;
       const auto& qcRulesConfig = options.qcRulesConfig;
+      const auto& virusJson = options.virusJson;
 
       return analyzeOneSequence(   //
         seqName,                   //
@@ -201,6 +202,7 @@ namespace Nextclade {
         geneMap,                   //
         pcrPrimers,                //
         qcRulesConfig,             //
+        virusJson,                 //
         tree,                      //
         options.nextalignOptions,  //
         tree.getCladeNodeAttrKeys()//

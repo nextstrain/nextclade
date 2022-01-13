@@ -170,8 +170,8 @@ namespace Nextclade {
 
       NextalignOptions options = cliOptionsToNextalignOptions(*cliParams);
 
-      runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap,
-        options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
+      runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, virusJson, treeString, pcrPrimers,
+        geneMap, options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
         outputInsertionsStream, outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
 
       logger.info("{:s}", std::string(TABLE_WIDTH, '-'));

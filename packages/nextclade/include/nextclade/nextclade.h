@@ -152,15 +152,6 @@ namespace Nextclade {
 
   struct PcrPrimer;
 
-  struct NextcladeOptions {
-    NucleotideSequence ref;
-    std::string treeString;
-    safe_vector<PcrPrimer> pcrPrimers;
-    GeneMap geneMap;
-    QcConfig qcRulesConfig;
-    NextalignOptions nextalignOptions;
-  };
-
   template<typename Letter>
   struct SubstitutionSimple {
     Letter ref;
@@ -481,6 +472,23 @@ namespace Nextclade {
     safe_vector<NucleotideSubstitution> substitutions;
   };
 
+
+  /** External data that contains labels to be assigned to mutations */
+  template<typename Letter>
+  struct MutationLabelMaps {
+    safe_vector<SubstitutionSimpleLabeled<Letter>> substitutionLabelMap;
+    safe_vector<DeletionSimpleLabeled<Letter>> deletionLabelMap;
+  };
+
+  /** Contains external configuration and data specific for a particular pathogen */
+  struct VirusJson {
+    std::string schemaVersion;
+    MutationLabelMaps<Nucleotide> nucMutLabelMaps;
+  };
+
+  VirusJson parseVirusJson(const std::string& virusJsonStr);
+
+
   struct NucleotideChangesReport {
     safe_vector<NucleotideSubstitution> substitutions;
     safe_vector<NucleotideDeletion> deletions;
@@ -548,20 +556,15 @@ namespace Nextclade {
     AnalysisResult analysisResult;
   };
 
-  /** External data that contains labels to be assigned to mutations */
-  template<typename Letter>
-  struct MutationLabelMaps {
-    std::vector<SubstitutionSimpleLabeled<Letter>> substitutionLabelMap;
-    std::vector<DeletionSimpleLabeled<Letter>> deletionLabelMap;
+  struct NextcladeOptions {
+    NucleotideSequence ref;
+    std::string treeString;
+    safe_vector<PcrPrimer> pcrPrimers;
+    GeneMap geneMap;
+    QcConfig qcRulesConfig;
+    VirusJson virusJson;
+    NextalignOptions nextalignOptions;
   };
-
-  /** Contains external configuration and data specific for a particular pathogen */
-  struct VirusJson {
-    std::string schemaVersion;
-    MutationLabelMaps<Nucleotide> nucMutLabelMaps;
-  };
-
-  VirusJson parseVirusJson(const std::string& virusJsonStr);
 
   /**
    * Represents unit of measurement of divergence

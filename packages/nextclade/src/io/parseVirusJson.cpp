@@ -74,6 +74,9 @@ namespace Nextclade {
         });
       };
     }
+
+    std::sort(labelMaps.substitutionLabelMap.begin(), labelMaps.substitutionLabelMap.end());
+    std::sort(labelMaps.deletionLabelMap.begin(), labelMaps.deletionLabelMap.end());
   }
 
   VirusJson parseVirusJson(const std::string& virusJsonStr) {
