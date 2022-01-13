@@ -1,5 +1,6 @@
 #include "parseAnalysisResults.h"
 
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
@@ -8,7 +9,6 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
-#include <common/safe_vector.h>
 
 #include "formatQcStatus.h"
 
@@ -143,12 +143,35 @@ namespace Nextclade {
   }
 
   template<typename Letter>
-  PrivateMutations<Letter> parsePrivateMutations(const json& j) {
-    return PrivateMutations<Letter>{
-      .privateSubstitutions =
-        parseArray<SubstitutionSimple<Letter>>(j, "privateSubstitutions", parseSubstitutionSimple<Letter>),
-      .privateDeletions = parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
+  SubstitutionSimpleLabeled<Letter> parseSubstitutionSimpleLabeled(const json& j) {
+    return SubstitutionSimpleLabeled<Letter>{
+      .substitution = parseSubstitutionSimple<Letter>(j.at("substitution")),
+      .labels = parseArrayOfStrings(j.at("labels")),
     };
+  }
+
+  template<typename Letter>
+  DeletionSimpleLabeled<Letter> parseDeletionSimpleLabeled(const json& j) {
+    return DeletionSimpleLabeled<Letter>{
+      .deletion = parseDeletionSimple<Letter>(j.at("deletion")),
+      .labels = parseArrayOfStrings(j.at("labels")),
+    };
+  }
+
+  template<typename Letter>
+  PrivateMutations<Letter> parsePrivateMutations(const json& j) {
+    // clang-format off
+    return PrivateMutations<Letter>{
+      .privateSubstitutions =   parseArray<SubstitutionSimple<Letter>>(j, "privateSubstitutions", parseSubstitutionSimple<Letter>),
+      .privateDeletions =       parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
+      .reversionSubstitutions = parseArray<SubstitutionSimple<Letter>>(j, "reversionSubstitutions", parseSubstitutionSimple<Letter>),
+      .reversionDeletions =     parseArray<DeletionSimple<Letter>>(j, "reversionDeletions", parseDeletionSimple<Letter>),
+      .labeledSubstitutions =   parseArray<SubstitutionSimpleLabeled<Letter>>(j, "labeledSubstitutions", parseSubstitutionSimpleLabeled<Letter>),
+      .labeledDeletions =       parseArray<DeletionSimpleLabeled<Letter>>(j, "labeledDeletions", parseDeletionSimpleLabeled<Letter>),
+      .unlabeledSubstitutions = parseArray<SubstitutionSimple<Letter>>(j, "unlabeledSubstitutions", parseSubstitutionSimple<Letter>),
+      .unlabeledDeletions =     parseArray<DeletionSimple<Letter>>(j, "unlabeledDeletions", parseDeletionSimple<Letter>),
+    };
+    // clang-format on
   }
 
   Range parseFrameShiftRange(const json& j) {

@@ -196,10 +196,34 @@ namespace Nextclade {
     }
 
     template<typename Letter>
+    json serializeSubstitutionSimpleLabeled(const SubstitutionSimpleLabeled<Letter>& labeled) {
+      auto j = json::object();
+      j.emplace("substitution", serializeSubstitutionSimple(labeled.substitution));
+      j.emplace("labels", serializeArray(labeled.labels));
+      return j;
+    }
+
+    template<typename Letter>
+    json serializeDeletionSimpleLabeled(const DeletionSimpleLabeled<Letter>& labeled) {
+      auto j = json::object();
+      j.emplace("deletion", serializeDeletionSimple(labeled.deletion));
+      j.emplace("labels", serializeArray(labeled.labels));
+      return j;
+    }
+
+    template<typename Letter>
     json serializePrivateMutations(const PrivateMutations<Letter>& pm) {
       auto j = json::object();
+      // clang-format off
       j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Letter>));
       j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Letter>));
+      j.emplace("reversionSubstitutions", serializeArray(pm.reversionSubstitutions, serializeSubstitutionSimple<Letter>));
+      j.emplace("reversionDeletions", serializeArray(pm.reversionDeletions, serializeDeletionSimple<Letter>));
+      j.emplace("labeledSubstitutions", serializeArray(pm.labeledSubstitutions, serializeSubstitutionSimpleLabeled<Letter>));
+      j.emplace("labeledDeletions", serializeArray(pm.labeledDeletions, serializeDeletionSimpleLabeled<Letter>));
+      j.emplace("unlabeledSubstitutions", serializeArray(pm.unlabeledSubstitutions, serializeSubstitutionSimple<Letter>));
+      j.emplace("unlabeledDeletions", serializeArray(pm.unlabeledDeletions, serializeDeletionSimple<Letter>));
+      // clang-format on
       return j;
     }
 

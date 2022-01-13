@@ -1,10 +1,10 @@
 #pragma once
 
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 
 #include <map>
 #include <set>
-#include <common/safe_vector.h>
 
 // clang-format off
 #include <nlohmann/json.hpp>
@@ -48,6 +48,14 @@ namespace Nextclade {
       set.emplace(elem);
     }
     return set;
+  }
+
+  inline safe_vector<std::string> parseArrayOfStrings(const json& arr) {
+    safe_vector<std::string> vec;
+    for (const auto& str : arr) {
+      vec.push_back(str);
+    }
+    return vec;
   }
 
   template<typename T, typename Parser>
