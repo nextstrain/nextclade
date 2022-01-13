@@ -26,6 +26,7 @@ export const setFasta = action.async<AlgorithmInput, { queryStr: string; queryNa
 export const setTree = action.async<AlgorithmInput, { treeStr: string }, Error>('setTree')
 export const setRootSeq = action.async<AlgorithmInput, { refStr: string; refName: string }, Error>('setRootSeq')
 export const setQcSettings = action.async<AlgorithmInput, { qcConfigStr: string }, Error>('setQcSettings')
+export const setVirusJson = action.async<AlgorithmInput, { virusJsonStr: string }, Error>('setVirusJson')
 export const setGeneMap = action.async<AlgorithmInput, { geneMapStr: string }, Error>('setGeneMap')
 export const setPcrPrimers = action.async<AlgorithmInput, { pcrPrimerCsvRowsStr: string }, Error>('setPcrPrimers')
 

@@ -40,6 +40,7 @@ import {
   selectRefSeq,
   selectRefTreeStr,
   selectUrlParams,
+  selectVirusJsonStr,
 } from 'src/state/algorithm/algorithm.selectors'
 import { setViewedGene } from 'src/state/ui/ui.actions'
 import {
@@ -56,6 +57,7 @@ import {
   loadQcSettings,
   loadRootSeq,
   loadTree,
+  loadVirusJson,
 } from 'src/state/algorithm/algorithmInputs.sagas'
 import { AlgorithmInputString } from 'src/io/AlgorithmInput'
 import { selectNumThreads } from 'src/state/settings/settings.selectors'
@@ -428,6 +430,15 @@ export function* getQcConfig(dataset: DatasetFlat, urlParams: UrlParams) {
   return (yield* loadQcSettings(new AlgorithmInputString(qcConfigStrRaw))).qcConfigStr
 }
 
+export function* getVirusJson(dataset: DatasetFlat, urlParams: UrlParams) {
+  const virusJsonStr = yield* select(selectVirusJsonStr)
+  if (virusJsonStr) {
+    return virusJsonStr
+  }
+  const virusJsonStrRaw = yield* call(async () => axiosFetchRaw(urlParams.inputVirusJson ?? dataset.files.virusJson))
+  return (yield* loadVirusJson(new AlgorithmInputString(virusJsonStrRaw))).virusJsonStr
+}
+
 export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmInput) {
   // If sequence data is provided explicitly, load it
   if (queryInput) {
@@ -468,6 +479,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     treeStr,
     pcrPrimerCsvRowsStr,
     qcConfigStr,
+    virusJsonStr,
   } = yield* all({
     query: getQuerySequences(dataset, queryInput),
     ref: getRefSequence(dataset, urlParams),
@@ -475,6 +487,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     treeStr: getTree(dataset, urlParams),
     pcrPrimerCsvRowsStr: getPcrPrimers(dataset, urlParams),
     qcConfigStr: getQcConfig(dataset, urlParams),
+    virusJsonStr: getVirusJson(dataset, urlParams),
   })
 
   const tree = JSON.parse(treeStr) as AuspiceJsonV2
@@ -498,6 +511,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     pcrPrimerCsvRowsStr,
     pcrPrimersFilename,
     qcConfigStr,
+    virusJsonStr,
   })
 
   const analysisResults = nextcladeResults

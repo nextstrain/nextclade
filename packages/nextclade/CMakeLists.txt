@@ -53,17 +53,19 @@ set(SOURCE_FILES
   src/io/parseAnalysisResults.h
   src/io/parseCsv.h
   src/io/parseGeneMap.cpp
-  src/io/parseVirusJson.cpp
-  src/io/parseVirusJson.h
   src/io/parseMutation.cpp
   src/io/parseMutation.h
   src/io/parseQcConfig.cpp
   src/io/parseQcConfig.h
+  src/io/parseVirusJson.cpp
+  src/io/parseVirusJson.h
   src/io/serializeGeneMap.cpp
   src/io/serializeQcConfig.cpp
   src/io/serializeQcConfig.h
   src/io/serializeResults.cpp
   src/io/serializeResults.h
+  src/io/serializeVirusJson.cpp
+  src/io/serializeVirusJson.h
   src/nextclade.cpp
   src/qc/getQcRuleStatus.cpp
   src/qc/getQcRuleStatus.h

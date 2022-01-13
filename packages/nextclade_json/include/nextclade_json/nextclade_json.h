@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/copy.h>
 #include <common/safe_vector.h>
 #include <fmt/format.h>
 
@@ -158,6 +159,16 @@ namespace Nextclade {
     } else {
       value = safe_vector<T>{};
     }
+  }
+
+  template<typename T>
+  void writeValue(json& j, const std::string& path, const T& value) {
+    j[json::json_pointer{path}] = value;
+  }
+
+  template<typename T, typename Serializer>
+  void writeArray(json& j, const std::string& path, const safe_vector<T>& value, Serializer serializer) {
+    j[json::json_pointer{path}] = serializeArray(value, serializer);
   }
 
   std::string jsonStringify(const json& j, int spaces = 2);

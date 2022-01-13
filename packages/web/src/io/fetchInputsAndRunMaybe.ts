@@ -17,6 +17,7 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, urlQuery: Parse
   const inputTreeUrl = getQueryParam(urlQuery, 'input-tree')
   const inputPcrPrimersUrl = getQueryParam(urlQuery, 'input-pcr-primers')
   const inputQcConfigUrl = getQueryParam(urlQuery, 'input-qc-config')
+  const inputVirusJsonUrl = getQueryParam(urlQuery, 'input-virus-json')
   const inputGeneMapUrl = getQueryParam(urlQuery, 'input-gene-map')
 
   dispatch(
@@ -25,6 +26,7 @@ export async function fetchInputsAndRunMaybe(dispatch: Dispatch, urlQuery: Parse
       inputTree: inputTreeUrl,
       inputPcrPrimers: inputPcrPrimersUrl,
       inputQcConfig: inputQcConfigUrl,
+      inputVirusJson: inputVirusJsonUrl,
       inputGeneMap: inputGeneMapUrl,
     }),
   )

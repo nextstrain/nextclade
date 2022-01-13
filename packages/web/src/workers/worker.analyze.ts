@@ -16,6 +16,7 @@ export interface NextcladeWasmParams {
   pcrPrimerCsvRowsStr: string
   pcrPrimersFilename: string
   qcConfigStr: string
+  virusJsonStr: string
 }
 
 export interface NextcladeWasmResult {
@@ -51,6 +52,7 @@ export interface NextcladeWasmClass {
     pcrPrimersStr: string,
     pcrPrimersFilename: string,
     qcConfigStr: string,
+    virusJsonStr: string,
   ): NextcladeWasmClass
 
   analyze(seqName: string, seq: string): NextcladeWasmResult
@@ -87,6 +89,7 @@ export async function init(params: NextcladeWasmParams) {
       params.pcrPrimerCsvRowsStr,
       params.pcrPrimersFilename,
       params.qcConfigStr,
+      params.virusJsonStr,
     )
   })
 }

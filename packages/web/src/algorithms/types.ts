@@ -242,6 +242,38 @@ export interface QcResult {
   overallStatus: QcStatus
 }
 
+export interface NucleotideSubstitutionSimple {
+  ref: string
+  pos: number
+  qry: string
+}
+
+export interface NucleotideDeletionSimple {
+  ref: string
+  pos: number
+}
+
+export interface NucleotideSubstitutionSimpleLabeled {
+  substitution: NucleotideSubstitutionSimple
+  labels: string[]
+}
+
+export interface NucleotideDeletionSimpleLabeled {
+  deletion: NucleotideDeletionSimple
+  labels: string[]
+}
+
+export interface PrivateMutations {
+  privateSubstitutions: NucleotideSubstitutionSimple[]
+  privateDeletions: NucleotideDeletionSimple[]
+  reversionSubstitutions: NucleotideSubstitutionSimple[]
+  reversionDeletions: NucleotideDeletionSimple[]
+  labeledSubstitutions: NucleotideSubstitutionSimpleLabeled[]
+  labeledDeletions: NucleotideDeletionSimpleLabeled[]
+  unlabeledSubstitutions: NucleotideSubstitutionSimple[]
+  unlabeledDeletions: NucleotideDeletionSimple[]
+}
+
 export interface AnalysisResult {
   seqName: string
   substitutions: NucleotideSubstitution[]
@@ -270,6 +302,8 @@ export interface AnalysisResult {
   pcrPrimerChanges: PcrPrimerChange[]
   totalPcrPrimerChanges: number
   clade: string
+  privateNucMutations: PrivateMutations
+  privateAaMutations: Record<string, PrivateMutations>
   qc: QcResult
   customNodeAttributes: Record<string, string>
 }
@@ -315,6 +349,7 @@ export interface DatasetFiles {
   geneMap: string
   primers: string
   qc: string
+  virusJson: string
   reference: string
   sequences: string
   tree: string
@@ -378,5 +413,6 @@ export interface UrlParams {
   inputTree?: string
   inputPcrPrimers?: string
   inputQcConfig?: string
+  inputVirusJson?: string
   inputGeneMap?: string
 }

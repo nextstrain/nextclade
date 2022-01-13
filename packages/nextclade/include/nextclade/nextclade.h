@@ -487,7 +487,7 @@ namespace Nextclade {
   };
 
   VirusJson parseVirusJson(const std::string& virusJsonStr);
-
+  std::string serializeVirusJson(VirusJson& virusJson);
 
   struct NucleotideChangesReport {
     safe_vector<NucleotideSubstitution> substitutions;

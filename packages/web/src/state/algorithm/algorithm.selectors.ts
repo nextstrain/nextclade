@@ -68,6 +68,7 @@ export const selectGeneMapStr = (state: State) => state.algorithm.params.strings
 export const selectRefTreeStr = (state: State) => state.algorithm.params.strings.treeStr
 export const selectPcrPrimersStr = (state: State) => state.algorithm.params.strings.pcrPrimerCsvRowsStr
 export const selectQcConfigStr = (state: State) => state.algorithm.params.strings.qcConfigStr
+export const selectVirusJsonStr = (state: State) => state.algorithm.params.strings.virusJsonStr
 
 export const selectGeneMap = (state: State) => state.algorithm.params.final?.geneMap
 export const selectGenomeSize = (state: State) => state.algorithm.params.final?.genomeSize

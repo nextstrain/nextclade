@@ -9,22 +9,11 @@
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
-  namespace {
-    template<typename T>
-    void writeValue(json& j, const std::string& path, const T& value) {
-      j[json::json_pointer{path}] = value;
-    }
-
-    template<typename T, typename Serializer>
-    void writeArray(json& j, const std::string& path, const safe_vector<T>& value, Serializer serializer) {
-      j[json::json_pointer{path}] = serializeArray(value, serializer);
-    }
-  }// namespace
 
   std::string serializeQcConfig(Nextclade::QcConfig& qcConfig) {
     auto j = json::object();
 
-    writeValue(j, "/schemaVersion", std::string{Nextclade::getVersion()});
+    writeValue(j, "/schemaVersion", qcConfig.schemaVersion);
 
     writeValue(j, "/missingData/enabled", qcConfig.missingData.enabled);
     if (qcConfig.missingData.enabled) {

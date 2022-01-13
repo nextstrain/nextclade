@@ -25,6 +25,7 @@ import {
   setTree,
   setGeneMap,
   setQcSettings,
+  setVirusJson,
   setRootSeq,
   setPcrPrimers,
   removeGeneMap,
@@ -241,6 +242,13 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.inProgress.qcRulesConfig += 1
   })
 
+  .icase(setVirusJson.started, (draft, input) => {
+    removeQcSettingsImpl(draft)
+    draft.params.raw.virusJson = input
+    draft.params.errors.virusJson = []
+    draft.params.inProgress.virusJson += 1
+  })
+
   .icase(setGeneMap.started, (draft, input) => {
     removeGeneMapImpl(draft)
     draft.params.raw.geneMap = input
@@ -284,6 +292,12 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.inProgress.qcRulesConfig -= 1
   })
 
+  .icase(setVirusJson.done, (draft, { result: { virusJsonStr } }) => {
+    draft.params.strings.virusJsonStr = virusJsonStr
+    draft.params.errors.virusJson = []
+    draft.params.inProgress.virusJson -= 1
+  })
+
   .icase(setGeneMap.done, (draft, { result: { geneMapStr } }) => {
     const geneMap = JSON.parse(geneMapStr) as Gene[]
     draft.params.strings.geneMapStr = geneMapStr
@@ -318,6 +332,11 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(setQcSettings.failed, (draft, { error }) => {
     draft.params.errors.qcRulesConfig = [error]
     draft.params.inProgress.qcRulesConfig -= 1
+  })
+
+  .icase(setVirusJson.failed, (draft, { error }) => {
+    draft.params.errors.virusJson = [error]
+    draft.params.inProgress.virusJson -= 1
   })
 
   .icase(setGeneMap.failed, (draft, { error }) => {
