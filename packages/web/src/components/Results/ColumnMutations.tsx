@@ -8,11 +8,20 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfAminoacidSubstitutions } from 'src/components/SequenceView/ListOfAminoacidSubstitutions'
 import { ListOfAminoacidDeletions } from 'src/components/SequenceView/ListOfAminoacidDeletions'
 import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
+import { ListOfPrivateNucMutations } from 'src/components/Results/ListOfPrivateNucMutations'
 
 export function ColumnMutations({ sequence }: ColumnCladeProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { seqName, substitutions, aaDeletions, aaSubstitutions, pcrPrimerChanges, totalPcrPrimerChanges } = sequence
+  const {
+    seqName,
+    substitutions,
+    aaDeletions,
+    aaSubstitutions,
+    pcrPrimerChanges,
+    totalPcrPrimerChanges,
+    privateNucMutations,
+  } = sequence
   const id = getSafeId('mutations-label', { seqName })
   const totalMutations = substitutions.length
 
@@ -24,6 +33,7 @@ export function ColumnMutations({ sequence }: ColumnCladeProps) {
           <thead />
           <tbody>
             <ListOfMutations substitutions={substitutions} />
+            <ListOfPrivateNucMutations privateNucMutations={privateNucMutations} />
             <ListOfAminoacidSubstitutions aminoacidSubstitutions={aaSubstitutions} />
             <ListOfAminoacidDeletions aminoacidDeletions={aaDeletions} />
             <ListOfPcrPrimerChanges pcrPrimerChanges={pcrPrimerChanges} totalPcrPrimerChanges={totalPcrPrimerChanges} />
