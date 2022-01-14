@@ -276,7 +276,9 @@ namespace Nextclade {
       // NOTE: std::lower_bound is basically a binary search
       // TODO: binary search might be slower than needed. Perhaps try std::map here.
       for (const auto& substitution : privateSubstitutions) {
-        auto match = std::lower_bound(substitutionLabelMap.cbegin(), substitutionLabelMap.cend(), substitution);
+        auto match = std::find_if(substitutionLabelMap.cbegin(), substitutionLabelMap.cend(),
+          [&substitution](
+            const SubstitutionSimpleLabeled<Letter>& labeled) { return substitution == labeled.substitution; });
         if (match != substitutionLabelMap.end()) {
           result.labeledSubstitutions.emplace_back(
             SubstitutionSimpleLabeled<Letter>{.substitution = substitution, .labels = match->labels});
@@ -288,7 +290,8 @@ namespace Nextclade {
       result.labeledDeletions.reserve(privateDeletions.size());
       result.unlabeledDeletions.reserve(privateDeletions.size());
       for (const auto& deletion : privateDeletions) {
-        auto match = std::lower_bound(deletionLabelMap.cbegin(), deletionLabelMap.cend(), deletion);
+        auto match = std::find_if(deletionLabelMap.cbegin(), deletionLabelMap.cend(),
+          [&deletion](const DeletionSimpleLabeled<Letter>& labeled) { return labeled.deletion == deletion; });
         if (match != deletionLabelMap.end()) {
           result.labeledDeletions.emplace_back(
             DeletionSimpleLabeled<Letter>{.deletion = deletion, .labels = match->labels});
