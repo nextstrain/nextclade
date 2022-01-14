@@ -17,7 +17,7 @@ namespace Nextclade {
   class ErrorVirusJsonParsingFailed : public ErrorFatal {
   public:
     explicit ErrorVirusJsonParsingFailed(const std::string& message)
-        : ErrorFatal(fmt::format("When parsing virus.json file: {:s}", message)) {}
+        : ErrorFatal(fmt::format("When parsing virus_properties.json file: {:s}", message)) {}
   };
 
   std::string parseMutationLabel(const json& labelJson) {

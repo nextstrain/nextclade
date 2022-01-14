@@ -79,8 +79,8 @@
           "isOptional": true
         },
         {
-          "flags": ["-s", "--input-virus-json"],
-          "desc": "Path to a JSON file containing configuration and data specific to a pathogen. Overrides path to `virus.json` provided by `--input-dataset`.",
+          "flags": ["-s", "--input-virus-properties"],
+          "desc": "Path to a JSON file containing configuration and data specific to a pathogen. Overrides path to `virus_properties.json` provided by `--input-dataset`.",
           "cppName": "inputVirusJson",
           "cppType": "std::string",
           "isOptional": true

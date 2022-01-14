@@ -137,8 +137,8 @@ export function FilePickerAdvancedDisconnected({
           className="my-3"
           compact
           icon={<FileIconJson size={30} />}
-          title={t('Virus attributes')}
-          exampleUrl="https://example.com/virus.json"
+          title={t('Virus properties')}
+          exampleUrl="https://example.com/virus_properties.json"
           pasteInstructions={t('Enter Virus attributes in JSON format')}
           input={params.raw.virusJson}
           errors={params.errors.virusJson}

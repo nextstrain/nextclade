@@ -13,7 +13,7 @@ def reverse_a_dict(dict_of_lists):
   return result
 
 
-with open("data_dev/clade_muts.json", "r") as f_in, open("data_dev/virus.json", "w") as f_out:
+with open("data_dev/clade_muts.json", "r") as f_in, open("data_dev/virus_properties.json", "w") as f_out:
   clade_muts = json.load(f_in)
 
   mut_to_clades = {clade: convert_labels(labels) for clade, labels in clade_muts.items()}
