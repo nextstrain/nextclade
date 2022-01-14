@@ -54,6 +54,12 @@ namespace Nextclade {
     return fmt::format("{}|{}", mut, labels);
   }
 
+  std::string formatDeletionSimpleLabeled(const NucleotideDeletionSimpleLabeled& del) {
+    auto mut = formatDeletionSimple(del.deletion);
+    auto labels = formatMutationLabels(del.labels);
+    return fmt::format("{}|{}", mut, labels);
+  }
+
   std::string formatAminoacidMutationSimpleWithoutGene(const AminoacidSubstitutionSimple& mut) {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto positionOneBased = mut.pos + 1;
@@ -133,31 +139,4 @@ namespace Nextclade {
   std::string formatStopCodon(const StopCodonLocation& stopCodon) {
     return fmt::format("{}:{}", stopCodon.geneName, stopCodon.codon);
   }
-
-  std::string formatPrivateNucReversions(const PrivateMutations<Nucleotide>& pm) {
-    // Convert deletions to substitutions, so that they can be formatted as a single array
-    auto dels = map_vector<NucleotideDeletionSimple, NucleotideSubstitutionSimple>(pm.reversionDeletions,
-      convertDelToSub<Nucleotide>);
-
-    auto muts = merge(pm.reversionSubstitutions, dels);
-
-    return formatAndJoin(muts, formatMutationSimple, ",");
-  }
-
-  std::string formatPrivateNucMutationsLabeled(const PrivateMutations<Nucleotide>& pm) {
-    // Convert deletions to substitutions, so that they can be formatted as a single array
-    auto dels = map_vector<NucleotideDeletionSimpleLabeled, NucleotideSubstitutionSimpleLabeled>(pm.labeledDeletions,
-      convertLabeledDelToSub<Nucleotide>);
-
-    auto muts = merge(pm.labeledSubstitutions, dels);
-
-    return formatAndJoin(muts, formatMutationSimpleLabeled, ",");
-  }
-
-  std::string formatPrivateNucMutationsUnlabeled(const PrivateMutations<Nucleotide>& pm) {
-    // NOTE: We don't currently emit unlabeled deletions, because their number might be overwhelming.
-    // TODO: Consider converting deletions to ranges and to emit them in a separate column
-    return formatAndJoin(pm.unlabeledSubstitutions, formatMutationSimple, ",");
-  }
-
 }// namespace Nextclade

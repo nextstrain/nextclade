@@ -52,9 +52,12 @@ namespace Nextclade {
         "substitutions",
         "deletions",
         "insertions",
-        "privateNucMutations.reversions",
-        "privateNucMutations.labeled",
-        "privateNucMutations.unlabeled",
+        "privateNucMutations.reversionSubstitutions",
+        "privateNucMutations.reversionDeletions",
+        "privateNucMutations.labeledSubstitutions",
+        "privateNucMutations.labeledDeletions",
+        "privateNucMutations.unlabeledSubstitutions",
+        "privateNucMutations.unlabeledDeletions",
         "frameShifts",
         "aaSubstitutions",
         "aaDeletions",
@@ -183,12 +186,25 @@ namespace Nextclade {
       doc.SetCell(getColumnIndex("substitutions"), rowName, formatAndJoin(result.substitutions, formatMutation, ","));
       doc.SetCell(getColumnIndex("deletions"), rowName, formatAndJoin(result.deletions, formatDeletion, ","));
       doc.SetCell(getColumnIndex("insertions"), rowName, formatAndJoin(result.insertions, formatInsertion, ","));
-      doc.SetCell(getColumnIndex("privateNucMutations.reversions"), rowName,
-        formatPrivateNucReversions(result.privateNucMutations));
-      doc.SetCell(getColumnIndex("privateNucMutations.labeled"), rowName,
-        formatPrivateNucMutationsLabeled(result.privateNucMutations));
-      doc.SetCell(getColumnIndex("privateNucMutations.unlabeled"), rowName,
-        formatPrivateNucMutationsUnlabeled(result.privateNucMutations));
+
+      doc.SetCell(getColumnIndex("privateNucMutations.reversionSubstitutions"), rowName,
+        formatAndJoin(result.privateNucMutations.reversionSubstitutions, formatMutationSimple, ","));
+
+      doc.SetCell(getColumnIndex("privateNucMutations.reversionDeletions"), rowName,
+        formatAndJoin(result.privateNucMutations.reversionDeletions, formatDeletionSimple, ","));
+
+      doc.SetCell(getColumnIndex("privateNucMutations.labeledSubstitutions"), rowName,
+        formatAndJoin(result.privateNucMutations.labeledSubstitutions, formatMutationSimpleLabeled, ","));
+
+      doc.SetCell(getColumnIndex("privateNucMutations.labeledDeletions"), rowName,
+        formatAndJoin(result.privateNucMutations.labeledDeletions, formatDeletionSimpleLabeled, ","));
+
+      doc.SetCell(getColumnIndex("privateNucMutations.unlabeledSubstitutions"), rowName,
+        formatAndJoin(result.privateNucMutations.unlabeledSubstitutions, formatMutationSimple, ","));
+
+      doc.SetCell(getColumnIndex("privateNucMutations.unlabeledDeletions"), rowName,
+        formatAndJoin(result.privateNucMutations.unlabeledDeletions, formatDeletionSimple, ","));
+
       doc.SetCell(getColumnIndex("frameShifts"), rowName, formatAndJoin(result.frameShifts, formatFrameShift, ","));
       doc.SetCell(getColumnIndex("aaSubstitutions"), rowName,
         formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));

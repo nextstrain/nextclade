@@ -742,6 +742,10 @@ namespace Nextclade {
 
   std::string formatDeletionSimple(const NucleotideDeletionSimple& del);
 
+  std::string formatMutationSimpleLabeled(const NucleotideSubstitutionSimpleLabeled& sub);
+
+  std::string formatDeletionSimpleLabeled(const NucleotideDeletionSimpleLabeled& del);
+
   std::string formatAminoacidMutationSimpleWithoutGene(const AminoacidSubstitutionSimple& mut);
 
   std::string formatAminoacidDeletionSimpleWithoutGene(const AminoacidDeletionSimple& del);
@@ -769,12 +773,6 @@ namespace Nextclade {
   std::string formatFrameShift(const FrameShiftResult& frameShift);
 
   std::string formatStopCodon(const StopCodonLocation& stopCodon);
-
-  std::string formatPrivateNucReversions(const PrivateMutations<Nucleotide>& pm);
-
-  std::string formatPrivateNucMutationsLabeled(const PrivateMutations<Nucleotide>& pm);
-
-  std::string formatPrivateNucMutationsUnlabeled(const PrivateMutations<Nucleotide>& pm);
 
   const char* getVersion();
 
