@@ -1,9 +1,10 @@
 #pragma once
 
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 
 #include <array>
-#include <vector>
+
 
 #define NOOP ({ (void) 0; })
 
@@ -27,13 +28,13 @@
 #endif
 
 template<typename T>
-struct fmt::formatter<std::vector<T>> {
+struct fmt::formatter<safe_vector<T>> {
   constexpr auto parse(fmt::format_parse_context& ctx) {
     return ctx.begin();
   }
 
   template<typename FormatContext>
-  auto format(const std::vector<T>& vec, FormatContext& ctx) {
+  auto format(const safe_vector<T>& vec, FormatContext& ctx) {
     for (const auto& item : vec) {
       fmt::format_to(ctx.out(), "  - {:}\n", item);
     }
