@@ -33,6 +33,7 @@ import {
   removeFasta,
   removeTree,
   removeQcSettings,
+  removeVirusJson,
   removeRootSeq,
   addParsedSequence,
   addNextcladeResult,
@@ -80,6 +81,13 @@ function removeQcSettingsImpl(draft: WritableDraft<AlgorithmState>) {
   draft.params.raw.qcRulesConfig = undefined
   draft.params.strings.qcConfigStr = undefined
   draft.params.errors.qcRulesConfig = []
+  return draft
+}
+
+function removeVirusJsonImpl(draft: WritableDraft<AlgorithmState>) {
+  draft.params.raw.virusJson = undefined
+  draft.params.strings.virusJsonStr = undefined
+  draft.params.errors.virusJson = []
   return draft
 }
 
@@ -243,7 +251,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   })
 
   .icase(setVirusJson.started, (draft, input) => {
-    removeQcSettingsImpl(draft)
+    removeVirusJsonImpl(draft)
     draft.params.raw.virusJson = input
     draft.params.errors.virusJson = []
     draft.params.inProgress.virusJson += 1
@@ -355,6 +363,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(removeTree, removeTreeImpl)
   .icase(removeRootSeq, removeRootSeqImpl)
   .icase(removeQcSettings, removeQcSettingsImpl)
+  .icase(removeVirusJson, removeVirusJsonImpl)
   .icase(removeGeneMap, removeGeneMapImpl)
   .icase(removePcrPrimers, removePcrPrimersImpl)
 

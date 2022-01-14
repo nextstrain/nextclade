@@ -34,6 +34,7 @@ export const removeFasta = action('removeFasta')
 export const removeTree = action('removeTree')
 export const removeRootSeq = action('removeRootSeq')
 export const removeQcSettings = action('removeQcSettings')
+export const removeVirusJson = action('removeVirusJson')
 export const removeGeneMap = action('removeGeneMap')
 export const removePcrPrimers = action('removePcrPrimers')
 
