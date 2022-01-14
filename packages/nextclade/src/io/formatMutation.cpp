@@ -1,12 +1,14 @@
 #include "formatMutation.h"
 
+#include <common/contract.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
 
 #include <string>
 
-#include <common/contract.h>
+#include "../utils/map.h"
+#include "utils/concat.h"
 
 namespace Nextclade {
   std::string formatRange(const Range& range) {
@@ -40,6 +42,16 @@ namespace Nextclade {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto positionOneBased = del.pos + 1;
     return fmt::format("{}{}{}", nucToString(del.ref), positionOneBased, "-");
+  }
+
+  std::string formatMutationLabels(const std::vector<std::string>& labels) {
+    return boost::join(labels, "&");
+  }
+
+  std::string formatMutationSimpleLabeled(const NucleotideSubstitutionSimpleLabeled& sub) {
+    auto mut = formatMutationSimple(sub.substitution);
+    auto labels = formatMutationLabels(sub.labels);
+    return fmt::format("{}|{}", mut, labels);
   }
 
   std::string formatAminoacidMutationSimpleWithoutGene(const AminoacidSubstitutionSimple& mut) {
@@ -121,4 +133,31 @@ namespace Nextclade {
   std::string formatStopCodon(const StopCodonLocation& stopCodon) {
     return fmt::format("{}:{}", stopCodon.geneName, stopCodon.codon);
   }
+
+  std::string formatPrivateNucReversions(const PrivateMutations<Nucleotide>& pm) {
+    // Convert deletions to substitutions, so that they can be formatted as a single array
+    auto dels = map_vector<NucleotideDeletionSimple, NucleotideSubstitutionSimple>(pm.reversionDeletions,
+      convertDelToSub<Nucleotide>);
+
+    auto muts = merge(pm.reversionSubstitutions, dels);
+
+    return formatAndJoin(muts, formatMutationSimple, ",");
+  }
+
+  std::string formatPrivateNucMutationsLabeled(const PrivateMutations<Nucleotide>& pm) {
+    // Convert deletions to substitutions, so that they can be formatted as a single array
+    auto dels = map_vector<NucleotideDeletionSimpleLabeled, NucleotideSubstitutionSimpleLabeled>(pm.labeledDeletions,
+      convertLabeledDelToSub<Nucleotide>);
+
+    auto muts = merge(pm.labeledSubstitutions, dels);
+
+    return formatAndJoin(muts, formatMutationSimpleLabeled, ",");
+  }
+
+  std::string formatPrivateNucMutationsUnlabeled(const PrivateMutations<Nucleotide>& pm) {
+    // NOTE: We don't currently emit unlabeled deletions, because their number might be overwhelming.
+    // TODO: Consider converting deletions to ranges and to emit them in a separate column
+    return formatAndJoin(pm.unlabeledSubstitutions, formatMutationSimple, ",");
+  }
+
 }// namespace Nextclade

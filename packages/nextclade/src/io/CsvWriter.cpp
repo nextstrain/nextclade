@@ -1,3 +1,5 @@
+#include <common/contract.h>
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 #include <frozen/map.h>
 #include <frozen/string.h>
@@ -8,12 +10,10 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <string>
-#include <common/safe_vector.h>
 
 #include "../utils/at.h"
 #include "../utils/concat.h"
 #include "../utils/contains.h"
-#include <common/contract.h>
 #include "../utils/eraseDuplicates.h"
 #include "../utils/safe_cast.h"
 #include "formatMutation.h"
@@ -52,6 +52,9 @@ namespace Nextclade {
         "substitutions",
         "deletions",
         "insertions",
+        "privateNucMutations.reversions",
+        "privateNucMutations.labeled",
+        "privateNucMutations.unlabeled",
         "frameShifts",
         "aaSubstitutions",
         "aaDeletions",
@@ -180,6 +183,12 @@ namespace Nextclade {
       doc.SetCell(getColumnIndex("substitutions"), rowName, formatAndJoin(result.substitutions, formatMutation, ","));
       doc.SetCell(getColumnIndex("deletions"), rowName, formatAndJoin(result.deletions, formatDeletion, ","));
       doc.SetCell(getColumnIndex("insertions"), rowName, formatAndJoin(result.insertions, formatInsertion, ","));
+      doc.SetCell(getColumnIndex("privateNucMutations.reversions"), rowName,
+        formatPrivateNucReversions(result.privateNucMutations));
+      doc.SetCell(getColumnIndex("privateNucMutations.labeled"), rowName,
+        formatPrivateNucMutationsLabeled(result.privateNucMutations));
+      doc.SetCell(getColumnIndex("privateNucMutations.unlabeled"), rowName,
+        formatPrivateNucMutationsUnlabeled(result.privateNucMutations));
       doc.SetCell(getColumnIndex("frameShifts"), rowName, formatAndJoin(result.frameShifts, formatFrameShift, ","));
       doc.SetCell(getColumnIndex("aaSubstitutions"), rowName,
         formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));

@@ -163,7 +163,18 @@ namespace Nextclade {
   struct DeletionSimple {
     Letter ref;
     int pos;
+
+    /** Converts deletion into substitution. Note: deletion is a substitution to GAP character */
+    explicit operator SubstitutionSimple<Letter>() const {
+      return SubstitutionSimple<Letter>{.ref = ref, .pos = pos, .qry = Nucleotide::GAP};
+    }
   };
+
+  /** Converts deletion into substitution (free function version). Note: deletion is a substitution to GAP character */
+  template<typename Letter>
+  SubstitutionSimple<Letter> convertDelToSub(const DeletionSimple<Letter>& del) {
+    return static_cast<SubstitutionSimple<Letter>>(del);
+  }
 
   using NucleotideSubstitutionSimple = SubstitutionSimple<Nucleotide>;
   using NucleotideDeletionSimple = DeletionSimple<Nucleotide>;
@@ -207,7 +218,21 @@ namespace Nextclade {
   struct DeletionSimpleLabeled {
     DeletionSimple<Letter> deletion;
     std::vector<std::string> labels;
+
+    /** Converts deletion into substitution. Note: deletion is a substitution to GAP character */
+    explicit operator SubstitutionSimpleLabeled<Letter>() const {
+      return SubstitutionSimpleLabeled<Letter>{
+        .substitution = static_cast<SubstitutionSimple<Letter>>(deletion),
+        .labels = labels,
+      };
+    }
   };
+
+  /** Converts deletion into substitution (free function version). Note: deletion is a substitution to GAP character */
+  template<typename Letter>
+  SubstitutionSimpleLabeled<Letter> convertLabeledDelToSub(const DeletionSimpleLabeled<Letter>& del) {
+    return static_cast<SubstitutionSimpleLabeled<Letter>>(del);
+  }
 
   using NucleotideSubstitutionSimpleLabeled = SubstitutionSimpleLabeled<Nucleotide>;
   using NucleotideDeletionSimpleLabeled = DeletionSimpleLabeled<Nucleotide>;
@@ -744,6 +769,12 @@ namespace Nextclade {
   std::string formatFrameShift(const FrameShiftResult& frameShift);
 
   std::string formatStopCodon(const StopCodonLocation& stopCodon);
+
+  std::string formatPrivateNucReversions(const PrivateMutations<Nucleotide>& pm);
+
+  std::string formatPrivateNucMutationsLabeled(const PrivateMutations<Nucleotide>& pm);
+
+  std::string formatPrivateNucMutationsUnlabeled(const PrivateMutations<Nucleotide>& pm);
 
   const char* getVersion();
 
