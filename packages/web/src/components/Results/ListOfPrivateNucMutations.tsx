@@ -1,9 +1,10 @@
-/* eslint-disable sonarjs/no-identical-functions */
-import React from 'react'
+import React, { useMemo } from 'react'
 
-import type { Nucleotide, PrivateMutations } from 'src/algorithms/types'
-import { NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
+import { PrivateMutations, convertSimpleSubToSub, convertDelToSubLabeled, convertDelToSub } from 'src/algorithms/types'
+
+import { ListOfMutationsGeneric } from 'src/components/Results/ListOfMutationsGeneric'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { ListOfMutationsLabeled } from './ListOfMutationsLabeled'
 
 export interface ListOfPrivateNucMutationsProps {
   privateNucMutations: PrivateMutations
@@ -12,25 +13,31 @@ export interface ListOfPrivateNucMutationsProps {
 export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivateNucMutationsProps) {
   const { t } = useTranslationSafe()
 
-  const {
-    reversionSubstitutions,
-    reversionDeletions,
-    labeledSubstitutions,
-    labeledDeletions,
-    unlabeledSubstitutions,
-    // unlabeledDeletions,
-  } = privateNucMutations
+  const { reversions, labeled, unlabeled, totalMutations } = useMemo(() => {
+    const {
+      reversionSubstitutions,
+      reversionDeletions,
+      labeledSubstitutions,
+      labeledDeletions,
+      unlabeledSubstitutions,
+    } = privateNucMutations
 
-  const reversions = [...reversionSubstitutions, ...reversionDeletions.map((del) => ({ ...del, qry: '-' }))]
-  const labeled = [
-    ...labeledSubstitutions,
-    ...labeledDeletions.map((labeled) => ({ ...labeled, substitution: { ...labeled.deletion, qry: '-' } })),
-  ]
-  const unlabeled = [
-    ...unlabeledSubstitutions,
-    // ...unlabeledDeletions.map((del) => ({ ...del, qry: '-' }))
-  ]
-  const totalMutations = reversions.length + labeled.length + unlabeled.length
+    // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,
+    // and then everything to NucleotideSubstitutions, so that it's easier to render badge components.
+    const reversions = [...reversionSubstitutions, ...reversionDeletions.map(convertDelToSub)].map(
+      convertSimpleSubToSub,
+    )
+
+    const labeled = [...labeledSubstitutions, ...labeledDeletions.map(convertDelToSubLabeled)]
+
+    // NOTE: we ignore unlabeled deletions. There are too many of them
+    // TODO: consider converting deletions to ranges, as in the "Gap" column.
+    const unlabeled = unlabeledSubstitutions.map(convertSimpleSubToSub)
+
+    const totalMutations = reversions.length + labeled.length + unlabeled.length
+
+    return { reversions, labeled, unlabeled, totalMutations }
+  }, [privateNucMutations])
 
   return (
     <>
@@ -45,20 +52,7 @@ export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivate
           </tr>
           <tr>
             <td colSpan={2}>
-              {reversions.map(({ ref, pos, qry }) => (
-                <div key={pos}>
-                  <NucleotideMutationBadge
-                    mutation={{
-                      refNuc: ref as Nucleotide,
-                      pos,
-                      queryNuc: qry as Nucleotide,
-                      aaDeletions: [],
-                      aaSubstitutions: [],
-                      pcrPrimersChanged: [],
-                    }}
-                  />
-                </div>
-              ))}
+              <ListOfMutationsGeneric substitutions={reversions} />
             </td>
           </tr>
         </>
@@ -69,23 +63,7 @@ export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivate
           <tr>
             <td colSpan={2}>{t('Labeled')}</td>
           </tr>
-          {labeled.map(({ substitution: { ref, pos, qry }, labels }) => (
-            <tr key={pos}>
-              <td>
-                <NucleotideMutationBadge
-                  mutation={{
-                    refNuc: ref as Nucleotide,
-                    pos,
-                    queryNuc: qry as Nucleotide,
-                    aaDeletions: [],
-                    aaSubstitutions: [],
-                    pcrPrimersChanged: [],
-                  }}
-                />
-              </td>
-              <td>{labels.join(', ')}</td>
-            </tr>
-          ))}
+          <ListOfMutationsLabeled mutationsLabeled={labeled} />
         </>
       )}
 
@@ -96,20 +74,7 @@ export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivate
           </tr>
           <tr>
             <td colSpan={2}>
-              {unlabeled.map(({ ref, pos, qry }) => (
-                <div key={pos}>
-                  <NucleotideMutationBadge
-                    mutation={{
-                      refNuc: ref as Nucleotide,
-                      pos,
-                      queryNuc: qry as Nucleotide,
-                      aaDeletions: [],
-                      aaSubstitutions: [],
-                      pcrPrimersChanged: [],
-                    }}
-                  />
-                </div>
-              ))}
+              <ListOfMutationsGeneric substitutions={unlabeled} />
             </td>
           </tr>
         </>

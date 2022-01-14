@@ -274,6 +274,25 @@ export interface PrivateMutations {
   unlabeledDeletions: NucleotideDeletionSimple[]
 }
 
+export function convertDelToSub(del: NucleotideDeletionSimple): NucleotideSubstitutionSimple {
+  return { ...del, qry: '-' }
+}
+
+export function convertDelToSubLabeled(labeled: NucleotideDeletionSimpleLabeled): NucleotideSubstitutionSimpleLabeled {
+  return { ...labeled, substitution: convertDelToSub(labeled.deletion) }
+}
+
+export function convertSimpleSubToSub({ ref, pos, qry }: NucleotideSubstitutionSimple): NucleotideSubstitution {
+  return {
+    refNuc: ref as Nucleotide,
+    pos,
+    queryNuc: qry as Nucleotide,
+    aaDeletions: [],
+    aaSubstitutions: [],
+    pcrPrimersChanged: [],
+  }
+}
+
 export interface AnalysisResult {
   seqName: string
   substitutions: NucleotideSubstitution[]
