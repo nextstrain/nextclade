@@ -354,15 +354,35 @@ namespace Nextclade {
       const auto& afterLabeling = labelPrivateMutations(privateNonReversionSubstitutions, privateNonReversionDeletions,
         substitutionLabelMap, deletionLabelMap);
 
+      auto privateSubstitutions = merge(privateReversionSubstitutions, privateNonReversionSubstitutions);
+      auto privateDeletions = merge(privateReversionDeletions, privateNonReversionDeletions);
+
+      auto totalPrivateSubstitutions = safe_cast<int>(privateSubstitutions.size());
+      auto totalPrivateDeletions = safe_cast<int>(privateDeletions.size());
+      auto totalReversionSubstitutions = safe_cast<int>(privateReversionSubstitutions.size());
+      auto totalReversionDeletions = safe_cast<int>(privateReversionDeletions.size());
+      auto totalLabeledSubstitutions = safe_cast<int>(afterLabeling.labeledSubstitutions.size());
+      auto totalLabeledDeletions = safe_cast<int>(afterLabeling.labeledDeletions.size());
+      auto totalUnlabeledSubstitutions = safe_cast<int>(afterLabeling.unlabeledSubstitutions.size());
+      auto totalUnlabeledDeletions = safe_cast<int>(afterLabeling.unlabeledDeletions.size());
+
       return PrivateMutations<Letter>{
-        .privateSubstitutions = merge(privateReversionSubstitutions, privateNonReversionSubstitutions),
-        .privateDeletions = merge(privateReversionDeletions, privateNonReversionDeletions),
+        .privateSubstitutions = privateSubstitutions,
+        .privateDeletions = privateDeletions,
         .reversionSubstitutions = privateReversionSubstitutions,
         .reversionDeletions = privateReversionDeletions,
         .labeledSubstitutions = afterLabeling.labeledSubstitutions,
         .labeledDeletions = afterLabeling.labeledDeletions,
         .unlabeledSubstitutions = afterLabeling.unlabeledSubstitutions,
         .unlabeledDeletions = afterLabeling.unlabeledDeletions,
+        .totalPrivateSubstitutions = totalPrivateSubstitutions,
+        .totalPrivateDeletions = totalPrivateDeletions,
+        .totalReversionSubstitutions = totalReversionSubstitutions,
+        .totalReversionDeletions = totalReversionDeletions,
+        .totalLabeledSubstitutions = totalLabeledSubstitutions,
+        .totalLabeledDeletions = totalLabeledDeletions,
+        .totalUnlabeledSubstitutions = totalUnlabeledSubstitutions,
+        .totalUnlabeledDeletions = totalUnlabeledDeletions,
       };
     }
 

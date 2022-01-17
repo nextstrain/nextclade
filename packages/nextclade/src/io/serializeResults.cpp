@@ -224,6 +224,16 @@ namespace Nextclade {
       j.emplace("unlabeledSubstitutions", serializeArray(pm.unlabeledSubstitutions, serializeSubstitutionSimple<Letter>));
       j.emplace("unlabeledDeletions", serializeArray(pm.unlabeledDeletions, serializeDeletionSimple<Letter>));
       // clang-format on
+
+      j.emplace("totalPrivateSubstitutions", pm.totalPrivateSubstitutions);
+      j.emplace("totalPrivateDeletions", pm.totalPrivateDeletions);
+      j.emplace("totalReversionSubstitutions", pm.totalReversionSubstitutions);
+      j.emplace("totalReversionDeletions", pm.totalReversionDeletions);
+      j.emplace("totalLabeledSubstitutions", pm.totalLabeledSubstitutions);
+      j.emplace("totalLabeledDeletions", pm.totalLabeledDeletions);
+      j.emplace("totalUnlabeledSubstitutions", pm.totalUnlabeledSubstitutions);
+      j.emplace("totalUnlabeledDeletions", pm.totalUnlabeledDeletions);
+
       return j;
     }
 

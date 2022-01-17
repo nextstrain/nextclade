@@ -160,8 +160,8 @@ namespace Nextclade {
 
   template<typename Letter>
   PrivateMutations<Letter> parsePrivateMutations(const json& j) {
-    // clang-format off
     return PrivateMutations<Letter>{
+      // clang-format off
       .privateSubstitutions =   parseArray<SubstitutionSimple<Letter>>(j, "privateSubstitutions", parseSubstitutionSimple<Letter>),
       .privateDeletions =       parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
       .reversionSubstitutions = parseArray<SubstitutionSimple<Letter>>(j, "reversionSubstitutions", parseSubstitutionSimple<Letter>),
@@ -170,8 +170,16 @@ namespace Nextclade {
       .labeledDeletions =       parseArray<DeletionSimpleLabeled<Letter>>(j, "labeledDeletions", parseDeletionSimpleLabeled<Letter>),
       .unlabeledSubstitutions = parseArray<SubstitutionSimple<Letter>>(j, "unlabeledSubstitutions", parseSubstitutionSimple<Letter>),
       .unlabeledDeletions =     parseArray<DeletionSimple<Letter>>(j, "unlabeledDeletions", parseDeletionSimple<Letter>),
+      // clang-format on
+      .totalPrivateSubstitutions = j.at("totalPrivateSubstitutions").template get<int>(),
+      .totalPrivateDeletions = j.at("totalPrivateDeletions").template get<int>(),
+      .totalReversionSubstitutions = j.at("totalReversionSubstitutions").template get<int>(),
+      .totalReversionDeletions = j.at("totalReversionDeletions").template get<int>(),
+      .totalLabeledSubstitutions = j.at("totalLabeledSubstitutions").template get<int>(),
+      .totalLabeledDeletions = j.at("totalLabeledDeletions").template get<int>(),
+      .totalUnlabeledSubstitutions = j.at("totalUnlabeledSubstitutions").template get<int>(),
+      .totalUnlabeledDeletions = j.at("totalUnlabeledDeletions").template get<int>(),
     };
-    // clang-format on
   }
 
   Range parseFrameShiftRange(const json& j) {

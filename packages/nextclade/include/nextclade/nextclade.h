@@ -529,6 +529,14 @@ namespace Nextclade {
     safe_vector<DeletionSimpleLabeled<Letter>> labeledDeletions;
     safe_vector<SubstitutionSimple<Letter>> unlabeledSubstitutions;
     safe_vector<DeletionSimple<Letter>> unlabeledDeletions;
+    int totalPrivateSubstitutions;
+    int totalPrivateDeletions;
+    int totalReversionSubstitutions;
+    int totalReversionDeletions;
+    int totalLabeledSubstitutions;
+    int totalLabeledDeletions;
+    int totalUnlabeledSubstitutions;
+    int totalUnlabeledDeletions;
   };
 
   using PrivateNucleotideMutations = PrivateMutations<Nucleotide>;
