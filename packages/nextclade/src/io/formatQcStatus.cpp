@@ -14,6 +14,14 @@ namespace Nextclade {
       explicit ErrorQcStatusUnknown(const QcStatus& status)
           : ErrorNonFatal(fmt::format("QC status not recognized: \"{:d}\"", status)) {}
     };
+
+
+    class ErrorAnalysisResultsQcStatusInvalid : public ErrorNonFatal {
+    public:
+      explicit ErrorAnalysisResultsQcStatusInvalid(const std::string& statusStr)
+          : ErrorNonFatal(fmt::format("QC status not recognized: \"{:s}\"", statusStr)) {}
+    };
+
   }// namespace
 
   std::string formatQcStatus(const QcStatus& status) {
@@ -24,101 +32,11 @@ namespace Nextclade {
     return std::string{str->data(), str->size()};
   }
 
-  namespace {
-    std::string formatQc(const QcResultMissingData& missingData) {
-      if (missingData.status == QcStatus::good) {
-        return "Good";
-      }
-
-      std::string message = "Missing data found'";
-      if (missingData.status == QcStatus::bad) {
-        message = "Too much missing data found";
-      }
-
-      return fmt::format("{}. Total Ns: {} ({} allowed). QC score: {}", message, missingData.totalMissing,
-        missingData.missingDataThreshold, std::round(missingData.score));
-
-      return std::string{};
+  QcStatus parseQcStatus(const frozen::string& statusStr) {
+    const auto status = mapFind(qcStringsStatus, statusStr);
+    if (!status) {
+      throw ErrorAnalysisResultsQcStatusInvalid(statusStr.data());
     }
-
-    std::string formatQc(const QcResultPrivateMutations& privateMutations) {
-      if (privateMutations.status == QcStatus::good) {
-        return "Good";
-      }
-
-      return fmt::format(
-        "Private mutations score: {}. "
-        "Reverted substitutions: {}, "
-        "Reverted deletions: {}, "
-        "Labeled substitutions: {}, "
-        "Labeled deletions: {}, "
-        "Unlabeled substitutions: {}, "
-        "Unlabeled deletions: {}. "
-        "WeightedTotal: {}",
-        std::round(privateMutations.score),        //
-        privateMutations.numReversionSubstitutions,//
-        privateMutations.numReversionDeletions,    //
-        privateMutations.numLabeledSubstitutions,  //
-        privateMutations.numLabeledDeletions,      //
-        privateMutations.numUnlabeledSubstitutions,//
-        privateMutations.numUnlabeledDeletions,    //
-        privateMutations.weightedTotal             //
-      );
-    }
-
-    std::string formatQc(const QCResultMixedSites& mixedSites) {
-      if (mixedSites.status == QcStatus::good) {
-        return "Good";
-      }
-
-      std::string message = "Mixed sites found";
-
-      if (mixedSites.status == QcStatus::bad) {
-        message = "Too many mixed sites found";
-      }
-
-      return fmt::format("{}: total {} ({} allowed). QC score: {}", message, mixedSites.totalMixedSites,
-        mixedSites.mixedSitesThreshold, std::round(mixedSites.score));
-    }
-
-    std::string formatQc(const QCResultSnpClusters& snpClusters) {
-      if (snpClusters.status == QcStatus::good) {
-        return "Good";
-      }
-
-      std::string message = "Mutation clusters found";
-      if (snpClusters.status == QcStatus::bad) {
-        message = "Too many mutation clusters found";
-      }
-
-      return fmt::format("{}. Seen {} mutation clusters with total of {} mutations. QC score: {}", message,
-        snpClusters.totalSNPs, snpClusters.clusteredSNPs.size(), std::round(snpClusters.score));
-    }
-  }//namespace
-
-  std::string formatQcFlags(const QcResult& qc) {
-    safe_vector<std::string> formatted;
-
-    if (qc.missingData) {
-      formatted.emplace_back(formatQc(*qc.missingData));
-    }
-
-    if (qc.privateMutations) {
-      formatted.emplace_back(formatQc(*qc.privateMutations));
-    }
-
-    if (qc.mixedSites) {
-      formatted.emplace_back(formatQc(*qc.mixedSites));
-    }
-
-    if (qc.snpClusters) {
-      formatted.emplace_back(formatQc(*qc.snpClusters));
-    }
-
-    if (formatted.empty()) {
-      return "None";
-    }
-
-    return boost::algorithm::join(formatted, "; ");
+    return *status;
   }
 }// namespace Nextclade

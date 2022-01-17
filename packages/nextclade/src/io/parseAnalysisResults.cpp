@@ -24,13 +24,6 @@ namespace Nextclade {
   };
 
 
-  class ErrorAnalysisResultsQcStatusInvalid : public ErrorNonFatal {
-  public:
-    explicit ErrorAnalysisResultsQcStatusInvalid(const std::string& statusStr)
-        : ErrorNonFatal(fmt::format("QC status not recognized: \"{:s}\"", statusStr)) {}
-  };
-
-
   NucleotideLocation parseNucleotideLocation(const json& j) {
     return NucleotideLocation{
       .pos = at(j, "pos").get<int>(),
@@ -242,14 +235,6 @@ namespace Nextclade {
     return nucComp;
   }
 
-
-  QcStatus parseQcStatus(const frozen::string& statusStr) {
-    const auto status = mapFind(qcStringsStatus, statusStr);
-    if (!status) {
-      throw ErrorAnalysisResultsQcStatusInvalid(statusStr.data());
-    }
-    return *status;
-  }
 
   std::optional<QcResultMissingData> parseQcMissingData(const json& jj) {
     if (!jj.contains("missingData")) {
