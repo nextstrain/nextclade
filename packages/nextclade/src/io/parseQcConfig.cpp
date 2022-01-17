@@ -43,6 +43,17 @@ namespace Nextclade {
       if (qcConfig.privateMutations.enabled) {
         readValue(j, "/privateMutations/typical", qcConfig.privateMutations.typical);
         readValue(j, "/privateMutations/cutoff", qcConfig.privateMutations.cutoff);
+
+        double defaultWeight = 1.0;
+
+        // clang-format off
+        readValue(j, "/privateMutations/weightReversionSubstitutions", qcConfig.privateMutations.weightReversionSubstitutions, defaultWeight);
+        readValue(j, "/privateMutations/weightReversionDeletions", qcConfig.privateMutations.weightReversionDeletions, defaultWeight);
+        readValue(j, "/privateMutations/weightLabeledSubstitutions", qcConfig.privateMutations.weightLabeledSubstitutions, defaultWeight);
+        readValue(j, "/privateMutations/weightLabeledDeletions", qcConfig.privateMutations.weightLabeledDeletions, defaultWeight);
+        readValue(j, "/privateMutations/weightUnlabeledSubstitutions", qcConfig.privateMutations.weightUnlabeledSubstitutions, defaultWeight);
+        readValue(j, "/privateMutations/weightUnlabeledDeletions", qcConfig.privateMutations.weightUnlabeledDeletions, defaultWeight);
+        // clang-format on
       }
 
       readValue(j, "/snpClusters/enabled", qcConfig.snpClusters.enabled, false);

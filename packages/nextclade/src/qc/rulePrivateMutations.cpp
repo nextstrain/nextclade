@@ -1,14 +1,15 @@
 #include "rulePrivateMutations.h"
 
+#include <common/safe_vector.h>
 #include <nextclade/nextclade.h>
 
 #include <algorithm>
 #include <optional>
 #include <type_traits>
-#include <common/safe_vector.h>
 
 #include "../utils/safe_cast.h"
 #include "getQcRuleStatus.h"
+#include "utils/map.h"
 
 namespace Nextclade {
 
@@ -78,6 +79,15 @@ namespace Nextclade {
     return deletionRanges;
   }
 
+  NucleotideDeletionSimple removeLabelsFromDel(const NucleotideDeletionSimpleLabeled& labeled) {
+    return labeled.deletion;
+  }
+
+  safe_vector<NucleotideDeletionSimple> removeLabelsFromDels(
+    const safe_vector<NucleotideDeletionSimpleLabeled>& labeled) {
+    return map_vector<NucleotideDeletionSimpleLabeled, NucleotideDeletionSimple>(labeled, removeLabelsFromDel);
+  }
+
   std::optional<QcResultPrivateMutations> rulePrivateMutations(//
     const AnalysisResult& result,                              //
     const QCRulesConfigPrivateMutations& config                //
@@ -89,22 +99,39 @@ namespace Nextclade {
     // Note that we count *individual* nucleotide substitutions, but contiguous *ranges* of deletions.
     // That is, a 2 adjacent substitutions give a total of 2, but 2 adjacent deletions give a total of 1.
 
-    const auto totalIndividualSubstitutions = safe_cast<int>(result.privateNucMutations.privateSubstitutions.size());
+    const auto numReversionSubstitutions = safe_cast<int>(result.privateNucMutations.reversionSubstitutions.size());
+    const auto numLabeledSubstitutions = safe_cast<int>(result.privateNucMutations.labeledSubstitutions.size());
+    const auto numUnlabeledSubstitutions = safe_cast<int>(result.privateNucMutations.unlabeledSubstitutions.size());
 
-    const auto privateDeletionRanges = findPrivateDeletionRanges(result.privateNucMutations.privateDeletions);
-    const auto totalContiguousDeletionRanges = safe_cast<int>(privateDeletionRanges.size());
+    const auto reversionDeletionRanges = findPrivateDeletionRanges(result.privateNucMutations.reversionDeletions);
+    const auto numReversionDeletions = safe_cast<int>(reversionDeletionRanges.size());
 
-    const auto totalPrivateMutations = safe_cast<double>(totalIndividualSubstitutions + totalContiguousDeletionRanges);
+    const auto labeledDeletionRanges =
+      findPrivateDeletionRanges(removeLabelsFromDels(result.privateNucMutations.labeledDeletions));
+    const auto numLabeledDeletions = safe_cast<int>(labeledDeletionRanges.size());
+
+    const auto unlabeledDeletionRanges = findPrivateDeletionRanges(result.privateNucMutations.unlabeledDeletions);
+    const auto numUnlabeledDeletions = safe_cast<int>(unlabeledDeletionRanges.size());
+
+    const auto weightedTotal =                                         //
+      0.0                                                              //
+      + config.weightReversionSubstitutions * numReversionSubstitutions//
+      + config.weightReversionDeletions * numReversionDeletions        //
+      + config.weightLabeledSubstitutions * numLabeledSubstitutions    //
+      + config.weightLabeledDeletions * numLabeledDeletions            //
+      + config.weightUnlabeledSubstitutions * numUnlabeledSubstitutions//
+      + config.weightUnlabeledDeletions * numUnlabeledDeletions        //
+      ;
 
     // the score hits 100 if the excess mutations equals the cutoff value
-    const auto score = (std::max(0.0, totalPrivateMutations - config.typical) * 100.0) / config.cutoff;
+    const auto score = (std::max(0.0, weightedTotal - config.typical) * 100.0) / config.cutoff;
     const auto& status = getQcRuleStatus(score);
 
     return QcResultPrivateMutations{
       .score = score,
       .status = status,
-      .total = totalPrivateMutations,
-      .excess = totalPrivateMutations - config.typical,
+      .total = weightedTotal,
+      .excess = weightedTotal - config.typical,
       .cutoff = config.cutoff,
     };
   }

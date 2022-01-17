@@ -27,6 +27,12 @@ namespace Nextclade {
 
   struct QCRulesConfigPrivateMutations {
     bool enabled;
+    double weightReversionSubstitutions;
+    double weightReversionDeletions;
+    double weightLabeledSubstitutions;
+    double weightLabeledDeletions;
+    double weightUnlabeledSubstitutions;
+    double weightUnlabeledDeletions;
     double typical;
     double cutoff;
   };
