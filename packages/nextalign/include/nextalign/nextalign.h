@@ -296,6 +296,13 @@ inline bool operator==(const InsertionInternal<Letter>& lhs, const InsertionInte
 
 using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
+struct AminoacidInsertion {
+  std::string gene;
+  int pos;
+  int length;
+  Sequence<Aminoacid> ins;
+};
+
 
 template<typename Container, typename Formatter, typename Delimiter>
 std::string formatAndJoin(const Container& elements, Formatter formatter, Delimiter delimiter) {

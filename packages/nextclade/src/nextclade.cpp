@@ -1,9 +1,9 @@
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
 
 #include <numeric>
-#include <common/safe_vector.h>
 
 #include "analyze/calculateTotalLength.h"
 #include "analyze/findNucChanges.h"
@@ -25,6 +25,21 @@
 #include "utils/safe_cast.h"
 
 namespace Nextclade {
+  safe_vector<AminoacidInsertion> convertAaInsertions(const safe_vector<PeptideInternal>& peptides) {
+    safe_vector<AminoacidInsertion> result;
+    for (const auto& peptide : peptides) {
+      for (const auto& insertion : peptide.insertions) {
+        result.emplace_back(AminoacidInsertion{
+          .gene = peptide.name,
+          .pos = insertion.pos,
+          .length = insertion.length,
+          .ins = insertion.ins,
+        });
+      }
+    }
+    return result;
+  }
+
   NextcladeResult analyzeOneSequence(                            //
     const std::string& seqName,                                  //
     const NucleotideSequence& ref,                               //
@@ -83,6 +98,9 @@ namespace Nextclade {
     const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
     const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
 
+    safe_vector<AminoacidInsertion> aaInsertions = convertAaInsertions(alignment.queryPeptides);
+    auto totalAaInsertions = safe_cast<int>(aaInsertions.size());
+
     auto analysisResult = AnalysisResult{
       .seqName = seqName,
 
@@ -103,6 +121,8 @@ namespace Nextclade {
       .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
       .aaDeletions = aaChanges.aaDeletions,
       .totalAminoacidDeletions = totalAminoacidDeletions,
+      .aaInsertions = aaInsertions,
+      .totalAminoacidInsertions = totalAaInsertions,
 
       .unknownAaRanges = unknownAaRanges,
       .totalUnknownAa = totalUnknownAa,
@@ -150,6 +170,7 @@ namespace Nextclade {
       .analysisResult = std::move(analysisResult),
     };
   }
+
 
   safe_vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides) {
     safe_vector<RefPeptideInternal> result;

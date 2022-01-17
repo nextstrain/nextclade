@@ -1,3 +1,5 @@
+#include <common/contract.h>
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 #include <frozen/map.h>
 #include <frozen/string.h>
@@ -8,12 +10,10 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <string>
-#include <common/safe_vector.h>
 
 #include "../utils/at.h"
 #include "../utils/concat.h"
 #include "../utils/contains.h"
-#include <common/contract.h>
 #include "../utils/eraseDuplicates.h"
 #include "../utils/safe_cast.h"
 #include "formatMutation.h"
@@ -45,6 +45,7 @@ namespace Nextclade {
         "totalFrameShifts",
         "totalAminoacidSubstitutions",
         "totalAminoacidDeletions",
+        "totalAminoacidInsertions",
         "totalMissing",
         "totalNonACGTNs",
         "totalPcrPrimerChanges",
@@ -55,6 +56,7 @@ namespace Nextclade {
         "frameShifts",
         "aaSubstitutions",
         "aaDeletions",
+        "aaInsertions",
         "missing",
         "nonACGTNs",
         "pcrPrimerChanges",
@@ -173,6 +175,7 @@ namespace Nextclade {
       doc.SetCell(getColumnIndex("totalAminoacidSubstitutions"), rowName,
         std::to_string(result.totalAminoacidSubstitutions));
       doc.SetCell(getColumnIndex("totalAminoacidDeletions"), rowName, std::to_string(result.totalAminoacidDeletions));
+      doc.SetCell(getColumnIndex("totalAminoacidInsertions"), rowName, std::to_string(result.totalAminoacidInsertions));
       doc.SetCell(getColumnIndex("totalMissing"), rowName, std::to_string(result.totalMissing));
       doc.SetCell(getColumnIndex("totalNonACGTNs"), rowName, std::to_string(result.totalNonACGTNs));
       doc.SetCell(getColumnIndex("totalPcrPrimerChanges"), rowName, std::to_string(result.totalPcrPrimerChanges));
@@ -185,6 +188,8 @@ namespace Nextclade {
         formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));
       doc.SetCell(getColumnIndex("aaDeletions"), rowName,
         formatAndJoin(result.aaDeletions, formatAminoacidDeletion, ","));
+      doc.SetCell(getColumnIndex("aaInsertions"), rowName,
+        formatAndJoin(result.aaInsertions, formatAminoacidInsertion, ","));
       doc.SetCell(getColumnIndex("missing"), rowName, formatAndJoin(result.missing, formatMissing, ","));
       doc.SetCell(getColumnIndex("nonACGTNs"), rowName, formatAndJoin(result.nonACGTNs, formatNonAcgtn, ","));
       doc.SetCell(getColumnIndex("pcrPrimerChanges"), rowName,

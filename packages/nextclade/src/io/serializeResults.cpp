@@ -178,6 +178,15 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeAminoacidInsertion(const AminoacidInsertion& ins) {
+      auto j = json::object();
+      j.emplace("gene", ins.gene);
+      j.emplace("pos", ins.pos);
+      j.emplace("length", ins.length);
+      j.emplace("ins", toString(ins.ins));
+      return j;
+    }
+
     template<typename Letter>
     json serializeSubstitutionSimple(const SubstitutionSimple<Letter>& sub) {
       auto j = json::object();
@@ -328,6 +337,7 @@ namespace Nextclade {
       j.emplace("totalPcrPrimerChanges", result.totalPcrPrimerChanges);
       j.emplace("totalAminoacidSubstitutions", result.totalAminoacidSubstitutions);
       j.emplace("totalAminoacidDeletions", result.totalAminoacidDeletions);
+      j.emplace("totalAminoacidInsertions", result.totalAminoacidInsertions);
       j.emplace("totalUnknownAa", result.totalUnknownAa);
 
       j.emplace("substitutions", serializeArray(result.substitutions, serializeMutation));
@@ -339,6 +349,7 @@ namespace Nextclade {
       j.emplace("pcrPrimerChanges", serializeArray(result.pcrPrimerChanges, serializePcrPrimerChange));
       j.emplace("aaSubstitutions", serializeArray(result.aaSubstitutions, serializeAminoacidMutation));
       j.emplace("aaDeletions", serializeArray(result.aaDeletions, serializeAminoacidDeletion));
+      j.emplace("aaInsertions", serializeArray(result.aaInsertions, serializeAminoacidInsertion));
       j.emplace("unknownAaRanges", serializeArray(result.unknownAaRanges, serializeGeneAminoacidRange));
 
       j.emplace("nearestNodeId", result.nearestNodeId);

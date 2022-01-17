@@ -1,12 +1,11 @@
 #include "formatMutation.h"
 
+#include <common/contract.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
 
 #include <string>
-
-#include <common/contract.h>
 
 namespace Nextclade {
   std::string formatRange(const Range& range) {
@@ -106,6 +105,14 @@ namespace Nextclade {
     const auto& gene = del.gene;
     const auto notation = formatAminoacidDeletionWithoutGene(del);
     return fmt::format("{}:{}", gene, notation);
+  }
+
+  std::string formatAminoacidInsertion(const AminoacidInsertion& insertion) {
+    const auto& gene = insertion.gene;
+    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    const auto positionOneBased = insertion.pos + 1;
+    const auto insertedSequence = toString(insertion.ins);
+    return fmt::format("{}:{}", gene, positionOneBased, insertedSequence);
   }
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp) {

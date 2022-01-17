@@ -1,5 +1,6 @@
 #include "parseAnalysisResults.h"
 
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
@@ -8,7 +9,6 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
-#include <common/safe_vector.h>
 
 #include "formatQcStatus.h"
 
@@ -83,6 +83,15 @@ namespace Nextclade {
       .contextNucRange = parseRange(at(j, "contextNucRange")),
       .nucSubstitutions = {},// FIXME: this field is not parsed. Looks like it was forgotten.
       .nucDeletions = {},    // FIXME: this field is not parsed. Looks like it was forgotten.
+    };
+  }
+
+  AminoacidInsertion parseAminoacidInsertion(const json& j) {
+    return AminoacidInsertion{
+      .gene = at(j, "gene").get<std::string>(),
+      .pos = at(j, "pos").get<int>(),
+      .length = at(j, "length").get<int>(),
+      .ins = toAminoacidSequence(at(j, "ins")),
     };
   }
 
@@ -358,6 +367,8 @@ namespace Nextclade {
         .totalAminoacidSubstitutions = at(j, "totalAminoacidSubstitutions"),
         .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
         .totalAminoacidDeletions = at(j, "totalAminoacidDeletions"),
+        .aaInsertions = parseArray<AminoacidInsertion>(j, "aaInsertions", parseAminoacidInsertion),
+        .totalAminoacidInsertions = at(j, "totalAminoacidInsertions"),
         .unknownAaRanges = parseArray<GeneAminoacidRange>(j, "unknownAaRanges", parseGeneAminoacidRange),
         .totalUnknownAa = at(j, "totalUnknownAa"),
         .alignmentStart = at(j, "alignmentStart"),

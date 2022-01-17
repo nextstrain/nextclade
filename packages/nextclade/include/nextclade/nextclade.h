@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 
 #include <istream>
@@ -7,7 +8,6 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <common/safe_vector.h>
 
 namespace Nextclade {
   class Tree;
@@ -416,6 +416,8 @@ namespace Nextclade {
     int totalAminoacidSubstitutions;
     safe_vector<AminoacidDeletion> aaDeletions;
     int totalAminoacidDeletions;
+    safe_vector<AminoacidInsertion> aaInsertions;
+    int totalAminoacidInsertions;
     safe_vector<GeneAminoacidRange> unknownAaRanges;
     int totalUnknownAa;
     int alignmentStart;
@@ -625,6 +627,8 @@ namespace Nextclade {
   std::string formatAminoacidDeletionWithoutGene(const AminoacidDeletion& del);
 
   std::string formatAminoacidDeletion(const AminoacidDeletion& del);
+
+  std::string formatAminoacidInsertion(const AminoacidInsertion& insertion);
 
   std::string formatClusteredSnp(const ClusteredSnp& csnp);
 
