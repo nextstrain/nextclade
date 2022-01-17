@@ -46,17 +46,24 @@ namespace Nextclade {
         return "Good";
       }
 
-      std::string message;
-      if (privateMutations.status == QcStatus::bad) {
-        message = "Too many private mutations. ";
-      }
-
       return fmt::format(
-        "{}{} private mutations seen, {} more than expected (more than {} is considered problematic). QC score: {}",
-        message, privateMutations.total, privateMutations.excess, privateMutations.cutoff,
-        std::round(privateMutations.score));
-
-      return std::string{};
+        "Private mutations score: {}. "
+        "Reverted substitutions: {}, "
+        "Reverted deletions: {}, "
+        "Labeled substitutions: {}, "
+        "Labeled deletions: {}, "
+        "Unlabeled substitutions: {}, "
+        "Unlabeled deletions: {}. "
+        "WeightedTotal: {}",
+        std::round(privateMutations.score),        //
+        privateMutations.numReversionSubstitutions,//
+        privateMutations.numReversionDeletions,    //
+        privateMutations.numLabeledSubstitutions,  //
+        privateMutations.numLabeledDeletions,      //
+        privateMutations.numUnlabeledSubstitutions,//
+        privateMutations.numUnlabeledDeletions,    //
+        privateMutations.weightedTotal             //
+      );
     }
 
     std::string formatQc(const QCResultMixedSites& mixedSites) {

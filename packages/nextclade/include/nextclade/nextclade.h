@@ -108,7 +108,13 @@ namespace Nextclade {
   struct QcResultPrivateMutations {
     double score;
     QcStatus status;
-    double total;
+    int numReversionSubstitutions;
+    int numReversionDeletions;
+    int numLabeledSubstitutions;
+    int numLabeledDeletions;
+    int numUnlabeledSubstitutions;
+    int numUnlabeledDeletions;
+    double weightedTotal;
     double excess;
     double cutoff;
   };

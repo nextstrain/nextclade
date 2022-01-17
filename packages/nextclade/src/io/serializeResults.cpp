@@ -291,7 +291,13 @@ namespace Nextclade {
               {"excess", qc.privateMutations->excess},
               {"score", qc.privateMutations->score},
               {"status", formatQcStatus(qc.privateMutations->status)},
-              {"total", qc.privateMutations->total},
+              {"weightedTotal", qc.privateMutations->weightedTotal},
+              {"numReversionSubstitutions", qc.privateMutations->numReversionSubstitutions},
+              {"numReversionDeletions", qc.privateMutations->numReversionDeletions},
+              {"numLabeledSubstitutions", qc.privateMutations->numLabeledSubstitutions},
+              {"numLabeledDeletions", qc.privateMutations->numLabeledDeletions},
+              {"numUnlabeledSubstitutions", qc.privateMutations->numUnlabeledSubstitutions},
+              {"numUnlabeledDeletions", qc.privateMutations->numUnlabeledDeletions},
             }));
       }
 

@@ -285,7 +285,13 @@ namespace Nextclade {
     return QcResultPrivateMutations{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
-      .total = parseDouble(j, "total"),
+      .numReversionSubstitutions = parseInt(j, "numReversionSubstitutions"),
+      .numReversionDeletions = parseInt(j, "numReversionDeletions"),
+      .numLabeledSubstitutions = parseInt(j, "numLabeledSubstitutions"),
+      .numLabeledDeletions = parseInt(j, "numLabeledDeletions"),
+      .numUnlabeledSubstitutions = parseInt(j, "numUnlabeledSubstitutions"),
+      .numUnlabeledDeletions = parseInt(j, "numUnlabeledDeletions"),
+      .weightedTotal = parseDouble(j, "weightedTotal"),
       .excess = parseDouble(j, "excess"),
       .cutoff = parseDouble(j, "cutoff"),
     };

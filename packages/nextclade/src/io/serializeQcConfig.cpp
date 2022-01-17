@@ -28,12 +28,20 @@ namespace Nextclade {
 
     writeValue(j, "/privateMutations/enabled", qcConfig.privateMutations.enabled);
     if (qcConfig.privateMutations.enabled) {
+      // clang-format off
       writeValue(j, "/privateMutations/typical", qcConfig.privateMutations.typical);
       writeValue(j, "/privateMutations/cutoff", qcConfig.privateMutations.cutoff);
+      writeValue(j, "/privateMutations/weightReversionSubstitutions", qcConfig.privateMutations.weightReversionSubstitutions);
+      writeValue(j, "/privateMutations/weightReversionDeletions", qcConfig.privateMutations.weightReversionDeletions);
+      writeValue(j, "/privateMutations/weightLabeledSubstitutions", qcConfig.privateMutations.weightLabeledSubstitutions);
+      writeValue(j, "/privateMutations/weightLabeledDeletions", qcConfig.privateMutations.weightLabeledDeletions);
+      writeValue(j, "/privateMutations/weightUnlabeledSubstitutions", qcConfig.privateMutations.weightUnlabeledSubstitutions);
+      writeValue(j, "/privateMutations/weightUnlabeledDeletions", qcConfig.privateMutations.weightUnlabeledDeletions);
+      // clang-format on
     }
 
     writeValue(j, "/snpClusters/enabled", qcConfig.snpClusters.enabled);
-    if (qcConfig.privateMutations.enabled) {
+    if (qcConfig.snpClusters.enabled) {
       writeValue(j, "/snpClusters/windowSize", qcConfig.snpClusters.windowSize);
       writeValue(j, "/snpClusters/clusterCutOff", qcConfig.snpClusters.clusterCutOff);
       writeValue(j, "/snpClusters/scoreWeight", qcConfig.snpClusters.scoreWeight);

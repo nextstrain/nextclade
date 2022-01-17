@@ -190,7 +190,13 @@ export interface QcResultMissingData {
 export interface QcResultPrivateMutations {
   score: number
   status: QcStatus
-  total: number
+  numReversionSubstitutions: number
+  numReversionDeletions: number
+  numLabeledSubstitutions: number
+  numLabeledDeletions: number
+  numUnlabeledSubstitutions: number
+  numUnlabeledDeletions: number
+  weightedTotal: number
   excess: number
   cutoff: number
 }

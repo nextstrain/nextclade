@@ -267,7 +267,7 @@ namespace Nextclade {
         doc.SetCell(getColumnIndex("qc.privateMutations.status"), rowName,
           formatQcStatus(result.qc.privateMutations->status));
         doc.SetCell(getColumnIndex("qc.privateMutations.total"), rowName,
-          std::to_string(result.qc.privateMutations->total));
+          std::to_string(result.qc.privateMutations->weightedTotal));
       }
 
       if (result.qc.snpClusters) {

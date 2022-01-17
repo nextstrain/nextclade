@@ -130,7 +130,13 @@ namespace Nextclade {
     return QcResultPrivateMutations{
       .score = score,
       .status = status,
-      .total = weightedTotal,
+      .numReversionSubstitutions = numReversionSubstitutions,
+      .numReversionDeletions = numReversionDeletions,
+      .numLabeledSubstitutions = numLabeledSubstitutions,
+      .numLabeledDeletions = numLabeledDeletions,
+      .numUnlabeledSubstitutions = numUnlabeledSubstitutions,
+      .numUnlabeledDeletions = numUnlabeledDeletions,
+      .weightedTotal = weightedTotal,
       .excess = weightedTotal - config.typical,
       .cutoff = config.cutoff,
     };
