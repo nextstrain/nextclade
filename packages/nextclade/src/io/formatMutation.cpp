@@ -32,6 +32,18 @@ namespace Nextclade {
     return formatRange(Range{.begin = range.begin, .end = range.end});
   }
 
+  std::string formatGenotype(const Genotype<Nucleotide>& mut) {
+    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    const auto positionOneBased = mut.pos + 1;
+    return fmt::format("{}{}", positionOneBased, nucToString(mut.qry));
+  }
+
+  std::string formatGenotype(const Genotype<Aminoacid>& mut) {
+    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    const auto positionOneBased = mut.pos + 1;
+    return fmt::format("{}{}", positionOneBased, aaToString(mut.qry));
+  }
+
   std::string formatMutationSimple(const NucleotideSubstitutionSimple& mut) {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto positionOneBased = mut.pos + 1;

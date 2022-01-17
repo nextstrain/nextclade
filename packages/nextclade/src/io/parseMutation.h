@@ -24,6 +24,11 @@ namespace Nextclade {
     explicit ErrorParseMutationInvalidAminoacid(const std::string& mut);
   };
 
+  class ErrorParseGenotypeInvalidFormat : public ErrorNonFatal {
+  public:
+    explicit ErrorParseGenotypeInvalidFormat(const std::string_view& mut);
+  };
+
   class ErrorParseMutationInvalidFormat : public ErrorNonFatal {
   public:
     explicit ErrorParseMutationInvalidFormat(const std::string_view& mut);
@@ -37,4 +42,6 @@ namespace Nextclade {
   NucleotideSubstitution parseMutation(const std::string& mut);
 
   AminoacidSubstitutionWithoutGene parseAminoacidMutationWithoutGene(const std::string& mut);
+
+  Genotype<Nucleotide> parseGenotype(const std::string& mut);
 }// namespace Nextclade

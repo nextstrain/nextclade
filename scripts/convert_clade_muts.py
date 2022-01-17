@@ -4,6 +4,8 @@ import json
 def convert_labels(labels):
   return [label["Nextstrain_clade"] for label in labels]
 
+def covert_mut(mut):
+  return mut[1:]
 
 def reverse_a_dict(dict_of_lists):
   result = {}
@@ -16,7 +18,7 @@ def reverse_a_dict(dict_of_lists):
 with open("data_dev/clade_muts.json", "r") as f_in, open("data_dev/virus_properties.json", "w") as f_out:
   clade_muts = json.load(f_in)
 
-  mut_to_clades = {clade: convert_labels(labels) for clade, labels in clade_muts.items()}
+  mut_to_clades = {covert_mut(mut): convert_labels(labels) for mut, labels in clade_muts.items()}
 
   clades = mut_to_clades
 

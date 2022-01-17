@@ -17,7 +17,7 @@ namespace Nextclade {
   class ErrorVirusJsonParsingFailed : public ErrorFatal {
   public:
     explicit ErrorVirusJsonParsingFailed(const std::string& message)
-        : ErrorFatal(fmt::format("When parsing virus_properties.json file: {:s}", message)) {}
+        : ErrorFatal(fmt::format("When parsing virus properties file: {:s}", message)) {}
   };
 
   std::string parseMutationLabel(const json& labelJson) {
@@ -52,21 +52,20 @@ namespace Nextclade {
     for (const auto& [mutStr, labelsJson] : labelMapsJson.items()) {
       auto labels = parseMutationLabels(labelsJson);
 
-      const auto mut = parseMutation(mutStr);
+      const auto mut = parseGenotype(mutStr);
       if (isGap(mut.qry)) {
-        labelMaps.deletionLabelMap.template emplace_back(DeletionSimpleLabeled<Letter>{
-          .deletion =
+        labelMaps.deletionLabelMap.template emplace_back(GenotypeLabeled<Letter>{
+          .genotype =
             {
-              .ref = mut.ref,
               .pos = mut.pos,
+              .qry = Nucleotide::GAP,
             },
           .labels = std::move(labels),
         });
       } else {
-        labelMaps.substitutionLabelMap.template emplace_back(SubstitutionSimpleLabeled<Letter>{
-          .substitution =
+        labelMaps.substitutionLabelMap.template emplace_back(GenotypeLabeled<Letter>{
+          .genotype =
             {
-              .ref = mut.ref,
               .pos = mut.pos,
               .qry = mut.qry,
             },

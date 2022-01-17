@@ -18,14 +18,14 @@ namespace Nextclade {
     std::map<std::string, std::vector<std::string>> nucMutLabelMaps;
 
     for (const auto& labeled : virusJson.nucMutLabelMaps.substitutionLabelMap) {
-      auto mutStr = formatMutationSimple(labeled.substitution);
+      auto mutStr = formatGenotype(labeled.genotype);
       for (const auto& label : labeled.labels) {
         nucMutLabelMaps[mutStr].push_back(label);
       }
     }
 
     for (const auto& labeled : virusJson.nucMutLabelMaps.deletionLabelMap) {
-      auto mutStr = formatDeletionSimple(labeled.deletion);
+      auto mutStr = formatGenotype(labeled.genotype);
       for (const auto& label : labeled.labels) {
         nucMutLabelMaps[mutStr].push_back(label);
       }

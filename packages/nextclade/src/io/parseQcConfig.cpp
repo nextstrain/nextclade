@@ -13,9 +13,9 @@
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
-  class ErrorVirusJsonParsingFailed : public ErrorFatal {
+  class ErrorQcConfigParsingFailed : public ErrorFatal {
   public:
-    explicit ErrorVirusJsonParsingFailed(const std::string& message)
+    explicit ErrorQcConfigParsingFailed(const std::string& message)
         : ErrorFatal(fmt::format("When parsing QC configuration file: {:s}", message)) {}
   };
 
@@ -66,7 +66,7 @@ namespace Nextclade {
 
       return qcConfig;
     } catch (const std::exception& e) {
-      throw ErrorVirusJsonParsingFailed(e.what());
+      throw ErrorQcConfigParsingFailed(e.what());
     }
   }
 

@@ -136,8 +136,8 @@ namespace Nextclade {
     analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref,
       virusJson.nucMutLabelMaps.substitutionLabelMap, virusJson.nucMutLabelMaps.deletionLabelMap);
 
-    safe_vector<AminoacidSubstitutionSimpleLabeled> aaSubstitutionLabelMap;
-    safe_vector<AminoacidDeletionSimpleLabeled> aaDeletionLabelMap;
+    safe_vector<GenotypeLabeled<Aminoacid>> aaSubstitutionLabelMap;
+    safe_vector<GenotypeLabeled<Aminoacid>> aaDeletionLabelMap;
     analysisResult.privateAaMutations = findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides,
       geneMap, aaSubstitutionLabelMap, aaDeletionLabelMap);
 

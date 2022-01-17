@@ -262,8 +262,8 @@ namespace Nextclade {
     LabelPrivateMutationsResult<Letter> labelPrivateMutations(
       const safe_vector<SubstitutionSimple<Letter>>& privateSubstitutions,
       const safe_vector<DeletionSimple<Letter>>& privateDeletions,
-      const safe_vector<SubstitutionSimpleLabeled<Letter>>& substitutionLabelMap,
-      const safe_vector<DeletionSimpleLabeled<Letter>>& deletionLabelMap) {
+      const safe_vector<GenotypeLabeled<Letter>>& substitutionLabelMap,
+      const safe_vector<GenotypeLabeled<Letter>>& deletionLabelMap) {
 
       // We use binary search, so we expect label maps to be sorted
       precondition(std::is_sorted(substitutionLabelMap.cbegin(), substitutionLabelMap.cend()));
@@ -277,8 +277,7 @@ namespace Nextclade {
       // TODO: binary search might be slower than needed. Perhaps try std::map here.
       for (const auto& substitution : privateSubstitutions) {
         auto match = std::find_if(substitutionLabelMap.cbegin(), substitutionLabelMap.cend(),
-          [&substitution](
-            const SubstitutionSimpleLabeled<Letter>& labeled) { return substitution == labeled.substitution; });
+          [&substitution](const GenotypeLabeled<Letter>& labeled) { return labeled.genotype == substitution; });
         if (match != substitutionLabelMap.end()) {
           result.labeledSubstitutions.emplace_back(
             SubstitutionSimpleLabeled<Letter>{.substitution = substitution, .labels = match->labels});
@@ -291,7 +290,7 @@ namespace Nextclade {
       result.unlabeledDeletions.reserve(privateDeletions.size());
       for (const auto& deletion : privateDeletions) {
         auto match = std::find_if(deletionLabelMap.cbegin(), deletionLabelMap.cend(),
-          [&deletion](const DeletionSimpleLabeled<Letter>& labeled) { return labeled.deletion == deletion; });
+          [&deletion](const GenotypeLabeled<Letter>& labeled) { return labeled.genotype == deletion; });
         if (match != deletionLabelMap.end()) {
           result.labeledDeletions.emplace_back(
             DeletionSimpleLabeled<Letter>{.deletion = deletion, .labels = match->labels});
@@ -310,14 +309,14 @@ namespace Nextclade {
 
 
     template<typename Letter>
-    PrivateMutations<Letter> findPrivateMutations(                               //
-      const std::map<int, Letter>& nodeMutMap,                                   //
-      const AnalysisResult& seq,                                                 //
-      const safe_vector<Substitution<Letter>> substitutions,                     //
-      const safe_vector<Deletion<Letter>> deletions,                             //
-      const Sequence<Letter>& refSeq,                                            //
-      const safe_vector<SubstitutionSimpleLabeled<Letter>>& substitutionLabelMap,//
-      const safe_vector<DeletionSimpleLabeled<Letter>>& deletionLabelMap         //
+    PrivateMutations<Letter> findPrivateMutations(                     //
+      const std::map<int, Letter>& nodeMutMap,                         //
+      const AnalysisResult& seq,                                       //
+      const safe_vector<Substitution<Letter>> substitutions,           //
+      const safe_vector<Deletion<Letter>> deletions,                   //
+      const Sequence<Letter>& refSeq,                                  //
+      const safe_vector<GenotypeLabeled<Letter>>& substitutionLabelMap,//
+      const safe_vector<GenotypeLabeled<Letter>>& deletionLabelMap     //
     ) {
 
       safe_vector<SubstitutionSimple<Letter>> privateNonReversionSubstitutions;
@@ -373,12 +372,12 @@ namespace Nextclade {
   /**
    * Finds private nucleotide mutations. See the extended comment for a generic implementation above.
    */
-  PrivateNucleotideMutations findPrivateNucMutations(                            //
-    const std::map<int, Nucleotide>& nodeMutMap,                                 //
-    const AnalysisResult& seq,                                                   //
-    const NucleotideSequence& refSeq,                                            //
-    const safe_vector<NucleotideSubstitutionSimpleLabeled>& substitutionLabelMap,//
-    const safe_vector<NucleotideDeletionSimpleLabeled>& deletionLabelMap         //
+  PrivateNucleotideMutations findPrivateNucMutations(                    //
+    const std::map<int, Nucleotide>& nodeMutMap,                         //
+    const AnalysisResult& seq,                                           //
+    const NucleotideSequence& refSeq,                                    //
+    const safe_vector<GenotypeLabeled<Nucleotide>>& substitutionLabelMap,//
+    const safe_vector<GenotypeLabeled<Nucleotide>>& deletionLabelMap     //
   ) {
     return findPrivateMutations<Nucleotide>(nodeMutMap, seq, seq.substitutions, seq.deletions, refSeq,
       substitutionLabelMap, deletionLabelMap);
@@ -415,13 +414,13 @@ namespace Nextclade {
   /**
    * Finds private aminoacid mutations. See the extended comment for the generic implementation above.
    */
-  std::map<std::string, PrivateAminoacidMutations> findPrivateAaMutations(        //
-    const std::map<std::string, std::map<int, Aminoacid>>& nodeMutMap,            //
-    const AnalysisResult& seq,                                                    //
-    const std::map<std::string, RefPeptideInternal>& refPeptides,                 //
-    const GeneMap& geneMap,                                                       //
-    const safe_vector<SubstitutionSimpleLabeled<Aminoacid>>& substitutionLabelMap,//
-    const safe_vector<DeletionSimpleLabeled<Aminoacid>>& deletionLabelMap         //
+  std::map<std::string, PrivateAminoacidMutations> findPrivateAaMutations(//
+    const std::map<std::string, std::map<int, Aminoacid>>& nodeMutMap,    //
+    const AnalysisResult& seq,                                            //
+    const std::map<std::string, RefPeptideInternal>& refPeptides,         //
+    const GeneMap& geneMap,                                               //
+    const safe_vector<GenotypeLabeled<Aminoacid>>& substitutionLabelMap,  //
+    const safe_vector<GenotypeLabeled<Aminoacid>>& deletionLabelMap       //
   ) {
     std::map<std::string, PrivateAminoacidMutations> result;
 

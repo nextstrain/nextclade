@@ -153,6 +153,12 @@ namespace Nextclade {
   struct PcrPrimer;
 
   template<typename Letter>
+  struct Genotype {
+    int pos;
+    Letter qry;
+  };
+
+  template<typename Letter>
   struct SubstitutionSimple {
     Letter ref;
     int pos;
@@ -182,6 +188,16 @@ namespace Nextclade {
   using AminoacidDeletionSimple = DeletionSimple<Aminoacid>;
 
   template<typename Letter>
+  inline bool operator==(const Genotype<Letter>& lhs, const Genotype<Letter>& rhs) {
+    return lhs.pos == rhs.pos && lhs.qry == rhs.qry;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const Genotype<Letter>& lhs, const Genotype<Letter>& rhs) {
+    return lhs.pos < rhs.pos || (lhs.pos == rhs.pos && lhs.qry < rhs.qry);
+  }
+
+  template<typename Letter>
   inline bool operator==(const SubstitutionSimple<Letter>& lhs, const SubstitutionSimple<Letter>& rhs) {
     return lhs.pos == rhs.pos && lhs.ref == rhs.ref && lhs.qry == rhs.qry;
   }
@@ -207,6 +223,33 @@ namespace Nextclade {
       (lhs.pos == rhs.pos && lhs.ref < rhs.ref)//
     );
   }
+
+  template<typename Letter>
+  inline bool operator==(const SubstitutionSimple<Letter>& sub, const Genotype<Letter>& gen) {
+    return sub.pos == gen.pos && sub.qry == gen.qry;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const Genotype<Letter>& gen, const SubstitutionSimple<Letter>& sub) {
+    return operator==(sub, gen);
+  }
+
+  template<typename Letter>
+  inline bool operator==(const DeletionSimple<Letter>& del, const Genotype<Letter>& gen) {
+    return del.pos == gen.pos;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const Genotype<Letter>& gen, const DeletionSimple<Letter>& del) {
+    return operator==(del, gen);
+  }
+
+
+  template<typename Letter>
+  struct GenotypeLabeled {
+    Genotype<Letter> genotype;
+    std::vector<std::string> labels;
+  };
 
   template<typename Letter>
   struct SubstitutionSimpleLabeled {
@@ -238,6 +281,17 @@ namespace Nextclade {
   using NucleotideDeletionSimpleLabeled = DeletionSimpleLabeled<Nucleotide>;
   using AminoacidSubstitutionSimpleLabeled = SubstitutionSimpleLabeled<Aminoacid>;
   using AminoacidDeletionSimpleLabeled = DeletionSimpleLabeled<Aminoacid>;
+
+
+  template<typename Letter>
+  inline bool operator==(const GenotypeLabeled<Letter>& lhs, const GenotypeLabeled<Letter>& rhs) {
+    return lhs.genotype == rhs.genotype && lhs.labels == rhs.labels;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const GenotypeLabeled<Letter>& lhs, const GenotypeLabeled<Letter>& rhs) {
+    return lhs.genotype < rhs.genotype || (lhs.genotype == rhs.genotype && lhs.labels < rhs.labels);
+  }
 
   template<typename Letter>
   inline bool operator==(const SubstitutionSimpleLabeled<Letter>& lhs, const SubstitutionSimpleLabeled<Letter>& rhs) {
@@ -501,8 +555,8 @@ namespace Nextclade {
   /** External data that contains labels to be assigned to mutations */
   template<typename Letter>
   struct MutationLabelMaps {
-    safe_vector<SubstitutionSimpleLabeled<Letter>> substitutionLabelMap;
-    safe_vector<DeletionSimpleLabeled<Letter>> deletionLabelMap;
+    safe_vector<GenotypeLabeled<Letter>> substitutionLabelMap;
+    safe_vector<GenotypeLabeled<Letter>> deletionLabelMap;
   };
 
   /** Contains external configuration and data specific for a particular pathogen */
@@ -737,6 +791,10 @@ namespace Nextclade {
   std::string serializeResults(const AnalysisResults& results);
 
   std::string formatRange(const Range& range);
+
+  std::string formatGenotype(const Genotype<Nucleotide>& mut);
+
+  std::string formatGenotype(const Genotype<Aminoacid>& mut);
 
   std::string formatMutationSimple(const NucleotideSubstitutionSimple& mut);
 
