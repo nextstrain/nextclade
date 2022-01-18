@@ -16,22 +16,26 @@ Open [clades.nextstrain.org](https://clades.nextstrain.org) in your browser.
 >
 > Using Safari browser is not recommended due to its poor support of required web technologies.
 
-For a demonstration of capabilities of Nextclade click on "Show me an example" link.
+For a demonstration of capabilities of Nextclade, select the virus you want to analyse and click `Next`.
+
+![Select virus](assets/web_select-virus.png)
+
+To see Nextclade in action without your own sequences, click on `Load example`, then `Run`.
 
 ![Show me an example](assets/web_show-example.png)
 
-In order to run the analysis on your own data, prepare a [FASTA](https://en.wikipedia.org/wiki/FASTA_format) file with your sequences and drag & drop it onto the "upload" area marked "Sequences". The analysis starts immediately and you will be redirected to the results page.
+In order to run the analysis on your own data, prepare a [FASTA](https://en.wikipedia.org/wiki/FASTA_format) file with your sequences, drag & drop it onto the upload area (or use the file picker) and click `Run`.
+You will be redirected to the results page.
 
-Power users might want to switch to **Advanced mode** in order to get access to more configuration. This mode is equivalent to using the [Nextclade CLI](nextclade-cli), and accepts the same input files and the same output files.
+Power users might want to click **Customize dataset files** in order to get access to more configuration. This mode is equivalent to using the [Nextclade CLI](nextclade-cli), and accepts the same input files.
 
-> 💡 There are other options of providing input data to Nextclade, including:
+> 💡 There are a number of options of providing input data to Nextclade, including:
 >
->  - Dragging a file onto the "upload" area
->  - Picking a file from computer storage: click "Select a file"
->  - Providing a URL (link) to a file publicly available on the internet: click "From URL" tab
->  - Pasting sequence data from clipboard: click "Paste" tab
->  - Providing a URL using [URL parameters](#url-parameters)
->
+> - Drag & Drop a file onto the "upload" area
+> - Picking a file from computer storage: click `Select a file`
+> - Providing a URL (link) to a file publicly available on the internet: click the `Link` tab
+> - Pasting sequence data from clipboard: click the `Paste` tab
+> - Providing a URL using [URL parameters](#url-parameters)
 
 ## Analysis
 
@@ -131,17 +135,17 @@ If `input-fasta` URL parameter is provided, Nextclade Web automatically starts t
 
 All parameters are optional.
 
-| URL parameter      | Meaning |
-|--------------------|---------|
-| input-fasta        | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. 
-| input-root-seq     | URL to a fasta file containing reference (root) sequence.
-| input-tree         | URL to a Auspice JSON v2 file containing reference tree.
-| input-pcr-primers  | URL to a CSV file containing PCR primers.
-| input-qc-config    | URL to a JSON file containing QC onfiguration.
-| input-gene-map     | URL to a GFF3 file containing gene map.
-| dataset-name       | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`
-| dataset-reference  | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.
-| dataset-tag        | Version tag of the dataset to use.
+| URL parameter     | Meaning                                                                                             |
+| ----------------- | --------------------------------------------------------------------------------------------------- |
+| input-fasta       | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. |
+| input-root-seq    | URL to a fasta file containing reference (root) sequence.                                           |
+| input-tree        | URL to a Auspice JSON v2 file containing reference tree.                                            |
+| input-pcr-primers | URL to a CSV file containing PCR primers.                                                           |
+| input-qc-config   | URL to a JSON file containing QC onfiguration.                                                      |
+| input-gene-map    | URL to a GFF3 file containing gene map.                                                             |
+| dataset-name      | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                              |
+| dataset-reference | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.        |
+| dataset-tag       | Version tag of the dataset to use.                                                                  |
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
 
