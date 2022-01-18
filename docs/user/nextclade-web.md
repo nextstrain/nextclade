@@ -43,14 +43,13 @@ Nextclade analyzes your sequences locally in your browser. That means, sequences
 
 > ⚠️ Since your computer is doing all the computational work (rather than a remote server), it is advisable to analyze at most a few hundred of sequences at a time, depending on your computer hardware. Nextclade leverages all processor cores available on your computer and might require large amounts of system memory to operate. For large-scale analysis (thousands to millions of sequences) you might want to try [Nextclade CLI](nextclade-cli) instead.
 
-
 The analysis pipeline comprises the following steps:
 
-1. Alignment: Sequences are aligned to the reference genome using its custom Nextalign alignment algorithm.
+1. Alignment: Sequences are aligned to the reference genome using our custom Nextalign alignment algorithm.
 2. Translation: Nucleotide sequences are translated into amino acid sequences.
 3. Mutation calling: Nucleotide and amino acid changes are identified
 4. PCR primer changes are computed
-5. Phylogenetic placement: Sequences are placed on a reference tree, clades assigned to nearest neighbour.
+5. Phylogenetic placement: Sequences are placed on a reference tree, clades assigned to nearest neighbour, private mutations analyzed.
 6. Quality control: Quality control metrics are calculated
 
 You can get a quick overview of the results screen in the screenshot below:
@@ -69,7 +68,11 @@ At the moment, there are 6 different quality control metrics implemented:
 
 - Missing data: Number of Ns in the sequence. Up to 300 is not penalized, sequences with more than 3000 Ns are considered bad.
 - Mixed sites: Number of bases with ambiguous nucleotide characters. Since mixed sites are considered indicative of impurities, already 10 mixed sites give a bad score.
-- Private mutations: Mutations that are additional to the nearest neighbouring sequence in the reference tree. Up to 8 private mutations are not penalized. 24 private mutations are considered bad.
+- Private mutations: Mutations that are additional to the nearest neighbouring sequence in the reference tree. 
+Since web version `1.13.0`, Nextclade splits private mutations into three groups:
+  - Reversions to reference (this is a common quality problem in SARS-CoV-2 sequences and thus heavily penalized)
+  - Labeled: Mutations that are common in a variant and could thus indicate contamination, co-infection or recombination
+  - Unlabeled: Mutations that have not become a big proportion in any clade
 - Mutation Clusters: A mutation cluster is defined as more than 6 private mutations occurring within a 100 nucleotide window. 2 mutation clusters are considered bad.
 - Frame shifts: Number of insertions or deletions that are not a multiple of 3. 1 frameshift is considered mediocre, 2 frameshifts are bad.
 - Stop codons: Number of stop codons that occur in unexpected places. 1 misplaced stop codon is considered mediocre, 2 stop codons are bad.
