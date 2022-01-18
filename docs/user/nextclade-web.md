@@ -148,7 +148,7 @@ flags of [Nextclade CLI](nextclade-cli) and flags of the `dataset get` command f
 
 You can learn more about input files and datasets in sections: [Input files](input-files), and [Nextclade datasets](datasets).
 
-If `input-fasta` URL parameter is provided, Nextclade Web automatically starts the analysis after all input and dataset files are downloaded.
+If an `input-fasta` URL parameter is provided, Nextclade Web automatically starts the analysis after all input and dataset files are downloaded.
 
 All parameters are optional.
 
@@ -163,30 +163,31 @@ All parameters are optional.
 | dataset-name      | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                              |
 | dataset-reference | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.        |
 | dataset-tag       | Version tag of the dataset to use.                                                                  |
+<!--- TODO @ivan-aksamentov: Add row for virusPropertiesJson parameter -->
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
 
-```
-https://clades.nextstrain.org
-    ?input-fasta=https://example.com/sequences.fasta
+```url
+https://clades.nextstrain.org?dataset-name=sars-cov-2
+    &input-fasta=https://example.com/sequences.fasta
 ```
 
 (the newlines and the indentation are added here for readability, they should not be present in the URL)
 
-In this case, Nextclade will download the default dataset (currently: SARS-CoV2 based on MN908947 reference), thill download the privided file, will skip the home page and will automatically start the analysis.
-
+In this case, Nextclade will download the latest SARS-CoV-2 dataset and the provided `fasta` file, and will automatically start the analysis. You can try it out using this link: https://clades.nextstrain.org?dataset-name=sars-cov-2&input-fasta=https://data.clades.nextstrain.org/datasets/sars-cov-2/references/MN908947/versions/2022-01-05T19:54:31Z/files/sequences.fasta
 
 Multiple files can be specified, for example the sequences and the reference tree:
 
-```
+```url
 https://clades.nextstrain.org
-    ?input-fasta=https://example.com/sequences.fasta
+    ?dataset-name=sars-cov-2
+    &input-fasta=https://example.com/sequences.fasta
     &input-tree=https://example.com/tree.json
 ```
 
 Another dataset can be specified with `dataset-name`:
 
-```
+```url
 https://clades.nextstrain.org
     ?dataset-name=flu_h3n2_ha
     &input-fasta=https://example.com/flu_sequences.fasta
@@ -194,7 +195,7 @@ https://clades.nextstrain.org
 
 Another dataset based on a particular reference sequence can be specified with a combination of `dataset-name` and `dataset-reference`:
 
-```
+```url
 https://clades.nextstrain.org
     ?dataset-name=flu_h3n2_ha
     &dataset-reference=CY034116
@@ -211,9 +212,8 @@ https://clades.nextstrain.org
 
 Congratulations, You have learned how to use Nextclade Web!
 
-Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](algorithm)
-section.
+Going further, you might want to learn about the science behind the Nextclade internals in the [Algorithm](algorithm) section.
 
 For more advanced use-cases, check out [Nextclade CLI](nextclade-cli.md).
 
-Nextclade is an open-source project. We welcome ideas and contributions. Head to our [GitHub repository](https://github.com/nextstrain/nextclade) if you want to obtain source code and contribute to the project.
+Nextclade is an open-source project. We welcome ideas and contributions. Head to our [GitHub repository](https://github.com/nextstrain/nextclade) if you want to obtain the source code, open bug reports or suggest features.
