@@ -16,14 +16,18 @@ namespace Nextclade {
   class ErrorCliDatasetFileNotFound : public ErrorFatal {
   public:
     explicit ErrorCliDatasetFileNotFound(const std::string& pathStr)
-        : ErrorFatal(fmt::format("Dataset file not found: \"{:s}\". Dataset is corrupted.", pathStr)) {}
+        : ErrorFatal(
+            fmt::format("Dataset file not found: \"{:s}\". Dataset is corrupted or is too old for this version of "
+                        "Nextclade CLI. Try downloading the latest dataset compatible with Nextclade CLI {}.",
+              pathStr, Nextclade::getVersion())) {}
   };
 
   class ErrorFileNotFound : public ErrorFatal {
   public:
     explicit ErrorFileNotFound(const std::string& pathStr)
         : ErrorFatal(fmt::format("File not found: \"{:s}\". Please verify correctness of input flags. If a dataset is "
-                                 "used, check that the dataset is not corrupted.",
+                                 "used, check that the dataset is not corrupted and is compatible with this version of "
+                                 "Nextclade CLI.",
             pathStr)) {}
   };
 
