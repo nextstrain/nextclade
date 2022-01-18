@@ -405,7 +405,7 @@ export interface DatasetFiles {
   geneMap: string
   primers: string
   qc: string
-  virus_preferences: string // eslint-disable-line camelcase
+  virusPreferencesJson: string
   reference: string
   sequences: string
   tree: string

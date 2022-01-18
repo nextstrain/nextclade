@@ -436,7 +436,7 @@ export function* getVirusJson(dataset: DatasetFlat, urlParams: UrlParams) {
     return virusJsonStr
   }
   const virusJsonStrRaw = yield* call(async () =>
-    axiosFetchRaw(urlParams.inputVirusJson ?? dataset.files.virus_preferences),
+    axiosFetchRaw(urlParams.inputVirusJson ?? dataset.files.virusPreferencesJson),
   )
   return (yield* loadVirusJson(new AlgorithmInputString(virusJsonStrRaw))).virusJsonStr
 }
