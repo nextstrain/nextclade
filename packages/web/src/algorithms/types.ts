@@ -405,7 +405,7 @@ export interface DatasetFiles {
   geneMap: string
   primers: string
   qc: string
-  virusPreferencesJson: string
+  virusPropertiesJson: string
   reference: string
   sequences: string
   tree: string
