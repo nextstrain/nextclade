@@ -105,7 +105,7 @@ In the screenshot below, the mouse hovers over a _20J (Gamma)_ sequence. The too
 
 ### Alignment viewer
 
-To the right of the table you can see the alignment with mutations and regions with missing data highlighted in color. You can quickly check how segments of missing data are distributed on the genome - whether it's a few big chunks clustering in one area or many small missing segments.
+To the right of the table you can see the alignment with mutations and regions with missing data highlighted in grey. You can quickly check how segments of missing data are distributed on the genome - whether it's a few big chunks clustering in one area or many small missing segments.
 
 ![Alignment view](assets/web_alignment.png)
 
@@ -113,7 +113,7 @@ You can zoom into a gene by clicking on the respective gene at the bottom, or se
 
 ![Select Gene](assets/web_click-gene.png)
 
-In sequence view, one can observe mutations in a particular gene. One of Nextclade's strengths is that nucleotide and amino acid changes are visualised in the tooltip in a codon-aware way as you can see in the example below
+In sequence view, one can observe mutations in a particular gene. One of Nextclade's strengths is that nucleotide and amino acid changes are visualised in the tooltip in a codon-aware way, as you can see in the example below
 
 ![Alignment tooltip](assets/web_alignment-tip.png)
 
@@ -121,7 +121,9 @@ In sequence view, one can observe mutations in a particular gene. One of Nextcla
 
 In order to assign clades to sequences, Nextclade places all new sequences on a a reference tree. You can view the resulting tree by clicking on the tree icon at the top right.
 
-The tree is visualized by Nextstrain Auspice. By default, only your sequences are highlighted. One limitation to be aware of is that new sequences are place one by one on the reference tree. Thus, no common internal nodes of new sequences are placed on the tree. If you are interested in seeing ancestral relationships between your sequences, we recommend you use [Usher](https://genome.ucsc.edu/cgi-bin/hgPhyloPlace).
+The tree is visualized by Nextstrain's [Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/). By default, only your uploaded sequences are highlighted.
+
+One limitation to be aware of is that new sequences are place one by one on the reference tree. Thus, no common internal nodes of new sequences are placed on the tree. If you are interested in seeing ancestral relationships between your sequences, we recommend you use [Usher](https://genome.ucsc.edu/cgi-bin/hgPhyloPlace).
 
 ![Tree with new sequences](assets/web_tree.png)
 
