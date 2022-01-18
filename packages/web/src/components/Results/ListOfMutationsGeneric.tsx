@@ -14,8 +14,9 @@ export function ListOfMutationsGeneric({ substitutions }: ListOfMutationsGeneric
   const { t } = useTranslationSafe()
 
   const totalMutations = substitutions.length
-  const maxRows = 8
-  const substitutionsSelected = substitutions.slice(0, 64)
+  const maxRows = Math.min(8, totalMutations)
+  const numCols = 8
+  const substitutionsSelected = substitutions.slice(0, maxRows * numCols)
   const columns = splitToRows(substitutionsSelected, { rowLength: maxRows })
 
   let moreText
@@ -24,25 +25,29 @@ export function ListOfMutationsGeneric({ substitutions }: ListOfMutationsGeneric
   }
 
   return (
-    <TableSlim>
-      <tbody>
-        {columns.map((col, i) => (
-          // eslint-disable-next-line react/no-array-index-key
-          <tr key={i}>
-            {col.map((item) => (
-              <td key={item.pos}>{<NucleotideMutationBadge mutation={item} />}</td>
+    <div className="d-flex">
+      <div className="mr-auto">
+        <TableSlim>
+          <tbody>
+            {columns.map((col, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <tr key={i}>
+                {col.map((item) => (
+                  <td key={item.pos}>{<NucleotideMutationBadge mutation={item} />}</td>
+                ))}
+              </tr>
             ))}
-          </tr>
-        ))}
 
-        {moreText && (
-          <tr>
-            <td colSpan={maxRows} className="text-center">
-              {moreText}
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </TableSlim>
+            {moreText && (
+              <tr>
+                <td colSpan={numCols} className="text-center">
+                  {moreText}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </TableSlim>
+      </div>
+    </div>
   )
 }

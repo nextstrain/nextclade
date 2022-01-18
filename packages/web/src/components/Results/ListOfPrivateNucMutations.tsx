@@ -1,84 +1,78 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 
-import { PrivateMutations, convertSimpleSubToSub, convertDelToSubLabeled, convertDelToSub } from 'src/algorithms/types'
+import { PrivateMutationsInternal } from 'src/algorithms/types'
+import { LiInvisible, UlInvisible } from 'src/components/Common/List'
 
 import { ListOfMutationsGeneric } from 'src/components/Results/ListOfMutationsGeneric'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { TableSlim } from 'src/components/Common/TableSlim'
 import { ListOfMutationsLabeled } from './ListOfMutationsLabeled'
 
 export interface ListOfPrivateNucMutationsProps {
-  privateNucMutations: PrivateMutations
+  privateNucMutationsInternal: PrivateMutationsInternal
 }
 
-export function ListOfPrivateNucMutations({ privateNucMutations }: ListOfPrivateNucMutationsProps) {
+export function ListOfPrivateNucMutations({ privateNucMutationsInternal }: ListOfPrivateNucMutationsProps) {
   const { t } = useTranslationSafe()
 
-  const { reversions, labeled, unlabeled, totalMutations } = useMemo(() => {
-    const {
-      reversionSubstitutions,
-      reversionDeletions,
-      labeledSubstitutions,
-      labeledDeletions,
-      unlabeledSubstitutions,
-    } = privateNucMutations
-
-    // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,
-    // and then everything to NucleotideSubstitutions, so that it's easier to render badge components.
-    const reversions = [...reversionSubstitutions, ...reversionDeletions.map(convertDelToSub)].map(
-      convertSimpleSubToSub,
-    )
-
-    const labeled = [...labeledSubstitutions, ...labeledDeletions.map(convertDelToSubLabeled)]
-
-    // NOTE: we ignore unlabeled deletions. There are too many of them
-    // TODO: consider converting deletions to ranges, as in the "Gap" column.
-    const unlabeled = unlabeledSubstitutions.map(convertSimpleSubToSub)
-
-    const totalMutations = reversions.length + labeled.length + unlabeled.length
-
-    return { reversions, labeled, unlabeled, totalMutations }
-  }, [privateNucMutations])
+  const { reversions, labeled, unlabeled } = privateNucMutationsInternal
 
   return (
-    <>
-      <tr>
-        <td colSpan={2}>{t('Private nucleotide mutations ({{totalMutations}})', { totalMutations })}</td>
-      </tr>
+    <div className="d-flex">
+      <div className="mr-auto">
+        <UlInvisible className="pl-2">
+          {reversions.length > 0 && (
+            <LiInvisible>
+              <TableSlim className="mb-0">
+                <tbody>
+                  <tr>
+                    <td>{t('Reversions ({{n}})', { n: reversions.length })}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <ListOfMutationsGeneric substitutions={reversions} />
+                    </td>
+                  </tr>
+                </tbody>
+              </TableSlim>
+            </LiInvisible>
+          )}
 
-      {reversions.length > 0 && (
-        <>
-          <tr>
-            <td colSpan={2}>{t('Reversions')}</td>
-          </tr>
-          <tr>
-            <td colSpan={2}>
-              <ListOfMutationsGeneric substitutions={reversions} />
-            </td>
-          </tr>
-        </>
-      )}
+          {labeled.length > 0 && (
+            <LiInvisible>
+              <TableSlim className="mb-0">
+                <tbody>
+                  <tr>
+                    <td>{t('Labeled private mutations ({{n}})', { n: labeled.length })}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <ListOfMutationsLabeled mutationsLabeled={labeled} />
+                    </td>
+                  </tr>
+                </tbody>
+              </TableSlim>
+            </LiInvisible>
+          )}
 
-      {labeled.length > 0 && (
-        <>
-          <tr>
-            <td colSpan={2}>{t('Labeled')}</td>
-          </tr>
-          <ListOfMutationsLabeled mutationsLabeled={labeled} />
-        </>
-      )}
-
-      {unlabeled.length > 0 && (
-        <>
-          <tr>
-            <td colSpan={2}>{t('Unlabeled')}</td>
-          </tr>
-          <tr>
-            <td colSpan={2}>
-              <ListOfMutationsGeneric substitutions={unlabeled} />
-            </td>
-          </tr>
-        </>
-      )}
-    </>
+          {unlabeled.length > 0 && (
+            <LiInvisible>
+              <TableSlim className="mb-0">
+                <tbody>
+                  <tr>
+                    <td>{t('Unlabeled private mutations ({{n}})', { n: unlabeled.length })}</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <ListOfMutationsGeneric substitutions={unlabeled} />
+                    </td>
+                  </tr>
+                </tbody>
+              </TableSlim>
+            </LiInvisible>
+          )}
+        </UlInvisible>
+      </div>
+    </div>
   )
 }

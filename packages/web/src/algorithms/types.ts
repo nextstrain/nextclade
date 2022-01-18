@@ -299,6 +299,37 @@ export function convertSimpleSubToSub({ ref, pos, qry }: NucleotideSubstitutionS
   }
 }
 
+export interface PrivateMutationsInternal {
+  reversions: NucleotideSubstitution[]
+  labeled: NucleotideSubstitutionSimpleLabeled[]
+  unlabeled: NucleotideSubstitution[]
+  totalMutations: number
+}
+
+export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
+  const {
+    reversionSubstitutions,
+    reversionDeletions,
+    labeledSubstitutions,
+    labeledDeletions,
+    unlabeledSubstitutions,
+  } = privateNucMutations
+
+  // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,
+  // and then everything to NucleotideSubstitutions, so that it's easier to render badge components.
+  const reversions = [...reversionSubstitutions, ...reversionDeletions.map(convertDelToSub)].map(convertSimpleSubToSub)
+
+  const labeled = [...labeledSubstitutions, ...labeledDeletions.map(convertDelToSubLabeled)]
+
+  // NOTE: we ignore unlabeled deletions. There are too many of them
+  // TODO: consider converting deletions to ranges, as in the "Gap" column.
+  const unlabeled = unlabeledSubstitutions.map(convertSimpleSubToSub)
+
+  const totalMutations = reversions.length + labeled.length + unlabeled.length
+
+  return { reversions, labeled, unlabeled, totalMutations }
+}
+
 export interface AnalysisResult {
   seqName: string
   substitutions: NucleotideSubstitution[]
