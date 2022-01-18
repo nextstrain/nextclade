@@ -88,8 +88,18 @@ The result table further displays for each sequence:
 - "Ns": number of missing nucleotides indicated by *N*
 - "Gaps": number of nucleotides that are deleted with respect to the reference sequence
 - "Ins.": number of nucleotides that are inserted with respect to the reference sequence
+- "FS": Number of uncommon frame shifts (total number, including common frame shifts are in parentheses)
+- "SC": Number of uncommon premature stop codons (total number, including common premature stops are in parentheses)
 
-Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference. Changes in bases that are used by common primers are also displayed.
+Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference.
+
+Since version `1.13.0`, Nextclade also shows which mutations differ from the nearest neighbor on the reference tree, termed. These so-called _private_ mutations are are split into:
+
+- Reversions: mutations back to reference, often a sign of sequencing problems
+- Labeled: Mutations that are known, for example because they occur often in a clade. If multiple labeled mutations from the same clade appear, it is a sign of contamination, co-infection or recombination.
+- Unlabeled: Mutations that are neither reversions nor labeled.
+
+In the screenshot below, the mouse hovers over a _20J (Gamma)_ sequence. The tooltip shows there are 3 reversion and 4 labeled mutations, indicative of sequence quality problems, potentially a contamination with _20I (Alpha)_.
 
 ![Mutations tooltip](assets/web_mut-tooltip.png)
 
@@ -99,7 +109,7 @@ To the right of the table you can see the alignment with mutations and regions w
 
 ![Alignment view](assets/web_alignment.png)
 
-You can zoom into a gene by clicking on the respective gene at the bottom.
+You can zoom into a gene by clicking on the respective gene at the bottom, or selecting the gene of interest from the dropdown at the top.
 
 ![Select Gene](assets/web_click-gene.png)
 
