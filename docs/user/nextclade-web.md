@@ -129,15 +129,17 @@ One limitation to be aware of is that new sequences are place one by one on the 
 
 ### Download data
 
-Once Nextclade has finished its analysis, you can download the results in a variety of formats:
+Once Nextclade has finished its analysis, you can download the results in a variety of formats by clicking the download icon at the top right:
 
-- Detailed results in either `json`, `tsv` or `csv` format, containing most results such as clades, mutations, QC metrics etc.
-- Phylogenetic reference tree including new sequences in `auspice.json` format for viewing with Nextstrain Auspice
-- A `fasta` file containing the aligned sequences of all analyzed sequences
-- A `fasta` file containing translated and aligned peptide sequences of all analyzed sequences
-- A `csv` file of all insertions that have been stripped from the aligned sequences
-- A `nextclade.errors.csv` file containing all errors and warnings that occurred during the analysis, like genes that failed to be translated
-- A `nextclade.zip` file containing all files mentioned above
+![Download results](assets/web_download-options.png)
+
+- `nextclade.{json,tsv,csv}`: Detailed results in either `json`, `tsv` or `csv` format, containing most results such as clades, mutations, QC metrics and more.
+- `nextclade.auspice.json`: Phylogenetic reference tree including new sequences in `auspice.json` format for viewing with Nextstrain Auspice, for example at auspice.us
+- `nextclade.aligned.fasta`: A `fasta` file containing alignments of all uploaded sequences
+- `nextclade.peptides.fasta.zip`: A `zipped` folder of translated and aligned amino acid sequences in `fasta` format
+- `nextclade.insertions.csv`: A `csv` file containing all insertions that have been stripped from the aligned sequences (including insertions in the alignment would cause deletions to appear in the reference sequence).
+- `nextclade.errors.csv`: A file containing all errors and warnings that occurred during the analysis, like genes that failed to be translated
+- `nextclade.zip`: A `zip` file containing all files mentioned above
 
 ### URL parameters
 
