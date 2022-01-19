@@ -191,11 +191,9 @@ export interface QcResultPrivateMutations {
   score: number
   status: QcStatus
   numReversionSubstitutions: number
-  numReversionsOfDeletions: number
   numLabeledSubstitutions: number
-  numLabeledDeletions: number
   numUnlabeledSubstitutions: number
-  numUnlabeledDeletions: number
+  totalDeletionRanges: number
   weightedTotal: number
   excess: number
   cutoff: number
@@ -273,11 +271,8 @@ export interface PrivateMutations {
   privateSubstitutions: NucleotideSubstitutionSimple[]
   privateDeletions: NucleotideDeletionSimple[]
   reversionSubstitutions: NucleotideSubstitutionSimple[]
-  reversionsOfDeletions: NucleotideSubstitutionSimple[]
   labeledSubstitutions: NucleotideSubstitutionSimpleLabeled[]
-  labeledDeletions: NucleotideDeletionSimpleLabeled[]
   unlabeledSubstitutions: NucleotideSubstitutionSimple[]
-  unlabeledDeletions: NucleotideDeletionSimple[]
 }
 
 export function convertDelToSub(del: NucleotideDeletionSimple): NucleotideSubstitutionSimple {
@@ -307,19 +302,13 @@ export interface PrivateMutationsInternal {
 }
 
 export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
-  const {
-    reversionSubstitutions,
-    reversionsOfDeletions,
-    labeledSubstitutions,
-    labeledDeletions,
-    unlabeledSubstitutions,
-  } = privateNucMutations
+  const { reversionSubstitutions, labeledSubstitutions, unlabeledSubstitutions } = privateNucMutations
 
   // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,
   // and then everything to NucleotideSubstitutions, so that it's easier to render badge components.
-  const reversions = [...reversionSubstitutions, ...reversionsOfDeletions].map(convertSimpleSubToSub)
+  const reversions = reversionSubstitutions.map(convertSimpleSubToSub)
 
-  const labeled = [...labeledSubstitutions, ...labeledDeletions.map(convertDelToSubLabeled)]
+  const labeled = labeledSubstitutions
 
   // NOTE: we ignore unlabeled deletions. There are too many of them
   // TODO: consider converting deletions to ranges, as in the "Gap" column.

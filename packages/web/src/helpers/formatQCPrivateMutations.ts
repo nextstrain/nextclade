@@ -17,31 +17,25 @@ export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
   const {
     score,
     numReversionSubstitutions,
-    numReversionsOfDeletions,
     numLabeledSubstitutions,
-    numLabeledDeletions,
     numUnlabeledSubstitutions,
-    numUnlabeledDeletions,
+    totalDeletionRanges,
     weightedTotal,
   } = privateMutations
 
   return t(
     'Private mutations score: {{score}}. ' +
       'Reverted substitutions: {{numReversionSubstitutions}}, ' +
-      'Reverted deletions: {{numReversionsOfDeletions}}, ' +
       'Labeled substitutions: {{numLabeledSubstitutions}}, ' +
-      'Labeled deletions: {{numLabeledDeletions}}, ' +
       'Unlabeled substitutions: {{numUnlabeledSubstitutions}}, ' +
-      'Unlabeled deletions: {{numUnlabeledDeletions}}. ' +
+      'Deletion ranges: {{totalDeletionRanges}}. ' +
       'WeightedTotal: {{weightedTotal}}',
     {
       score: round(score),
       numReversionSubstitutions,
-      numReversionsOfDeletions,
       numLabeledSubstitutions,
-      numLabeledDeletions,
       numUnlabeledSubstitutions,
-      numUnlabeledDeletions,
+      totalDeletionRanges,
       weightedTotal,
     },
   )

@@ -157,20 +157,14 @@ namespace Nextclade {
       .privateSubstitutions =   parseArray<SubstitutionSimple<Nucleotide>>(j, "privateSubstitutions", parseSubstitutionSimple<Nucleotide>),
       .privateDeletions =       parseArray<DeletionSimple<Nucleotide>>(j, "privateDeletions", parseDeletionSimple<Nucleotide>),
       .reversionSubstitutions = parseArray<SubstitutionSimple<Nucleotide>>(j, "reversionSubstitutions", parseSubstitutionSimple<Nucleotide>),
-      .reversionsOfDeletions =  parseArray<SubstitutionSimple<Nucleotide>>(j, "reversionsOfDeletions", parseSubstitutionSimple<Nucleotide>),
       .labeledSubstitutions =   parseArray<SubstitutionSimpleLabeled<Nucleotide>>(j, "labeledSubstitutions", parseSubstitutionSimpleLabeled<Nucleotide>),
-      .labeledDeletions =       parseArray<DeletionSimpleLabeled<Nucleotide>>(j, "labeledDeletions", parseDeletionSimpleLabeled<Nucleotide>),
       .unlabeledSubstitutions = parseArray<SubstitutionSimple<Nucleotide>>(j, "unlabeledSubstitutions", parseSubstitutionSimple<Nucleotide>),
-      .unlabeledDeletions =     parseArray<DeletionSimple<Nucleotide>>(j, "unlabeledDeletions", parseDeletionSimple<Nucleotide>),
       // clang-format on
       .totalPrivateSubstitutions = j.at("totalPrivateSubstitutions").template get<int>(),
       .totalPrivateDeletions = j.at("totalPrivateDeletions").template get<int>(),
       .totalReversionSubstitutions = j.at("totalReversionSubstitutions").template get<int>(),
-      .totalReversionsOfDeletions = j.at("totalReversionsOfDeletions").template get<int>(),
       .totalLabeledSubstitutions = j.at("totalLabeledSubstitutions").template get<int>(),
-      .totalLabeledDeletions = j.at("totalLabeledDeletions").template get<int>(),
       .totalUnlabeledSubstitutions = j.at("totalUnlabeledSubstitutions").template get<int>(),
-      .totalUnlabeledDeletions = j.at("totalUnlabeledDeletions").template get<int>(),
     };
   }
 
@@ -186,12 +180,10 @@ namespace Nextclade {
       .privateSubstitutions =   parseArray<SubstitutionSimple<Aminoacid>>(j, "privateSubstitutions", parseSubstitutionSimple<Aminoacid>),
       .privateDeletions =       parseArray<DeletionSimple<Aminoacid>>(j, "privateDeletions", parseDeletionSimple<Aminoacid>),
       .reversionSubstitutions = parseArray<SubstitutionSimple<Aminoacid>>(j, "reversionSubstitutions", parseSubstitutionSimple<Aminoacid>),
-      .reversionsOfDeletions =  parseArray<SubstitutionSimple<Aminoacid>>(j, "reversionsOfDeletions", parseSubstitutionSimple<Aminoacid>),
       // clang-format on
       .totalPrivateSubstitutions = j.at("totalPrivateSubstitutions").template get<int>(),
       .totalPrivateDeletions = j.at("totalPrivateDeletions").template get<int>(),
       .totalReversionSubstitutions = j.at("totalReversionSubstitutions").template get<int>(),
-      .totalReversionsOfDeletions = j.at("totalReversionsOfDeletions").template get<int>(),
     };
 #pragma GCC diagnostic pop
   }
@@ -292,11 +284,9 @@ namespace Nextclade {
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
       .numReversionSubstitutions = parseInt(j, "numReversionSubstitutions"),
-      .numReversionsOfDeletions = parseInt(j, "numReversionsOfDeletions"),
       .numLabeledSubstitutions = parseInt(j, "numLabeledSubstitutions"),
-      .numLabeledDeletions = parseInt(j, "numLabeledDeletions"),
       .numUnlabeledSubstitutions = parseInt(j, "numUnlabeledSubstitutions"),
-      .numUnlabeledDeletions = parseInt(j, "numUnlabeledDeletions"),
+      .totalDeletionRanges = parseInt(j, "totalDeletionRanges"),
       .weightedTotal = parseDouble(j, "weightedTotal"),
       .excess = parseDouble(j, "excess"),
       .cutoff = parseDouble(j, "cutoff"),

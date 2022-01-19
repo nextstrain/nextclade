@@ -38,24 +38,15 @@ namespace Nextclade {
     const auto numLabeledSubstitutions = safe_cast<int>(result.privateNucMutations.labeledSubstitutions.size());
     const auto numUnlabeledSubstitutions = safe_cast<int>(result.privateNucMutations.unlabeledSubstitutions.size());
 
-    const auto reversionsOfDeletionsRanges = findSubstitutionRanges(result.privateNucMutations.reversionsOfDeletions);
-    const auto numReversionsOfDeletions = safe_cast<int>(reversionsOfDeletionsRanges.size());
-
-    const auto labeledDeletionRanges =
-      findDeletionRanges(removeLabelsFromDels(result.privateNucMutations.labeledDeletions));
-    const auto numLabeledDeletions = safe_cast<int>(labeledDeletionRanges.size());
-
-    const auto unlabeledDeletionRanges = findDeletionRanges(result.privateNucMutations.unlabeledDeletions);
-    const auto numUnlabeledDeletions = safe_cast<int>(unlabeledDeletionRanges.size());
+    const auto deletionRanges = findDeletionRanges(result.privateNucMutations.privateDeletions);
+    const auto totalDeletionRanges = safe_cast<int>(deletionRanges.size());
 
     const auto weightedTotal =                                         //
       0.0                                                              //
       + config.weightReversionSubstitutions * numReversionSubstitutions//
-      + config.weightReversionDeletions * numReversionsOfDeletions     //
       + config.weightLabeledSubstitutions * numLabeledSubstitutions    //
-      + config.weightLabeledDeletions * numLabeledDeletions            //
       + config.weightUnlabeledSubstitutions * numUnlabeledSubstitutions//
-      + config.weightUnlabeledDeletions * numUnlabeledDeletions        //
+      + totalDeletionRanges                                            //
       ;
 
     // the score hits 100 if the excess mutations equals the cutoff value
@@ -66,11 +57,9 @@ namespace Nextclade {
       .score = score,
       .status = status,
       .numReversionSubstitutions = numReversionSubstitutions,
-      .numReversionsOfDeletions = numReversionsOfDeletions,
       .numLabeledSubstitutions = numLabeledSubstitutions,
-      .numLabeledDeletions = numLabeledDeletions,
       .numUnlabeledSubstitutions = numUnlabeledSubstitutions,
-      .numUnlabeledDeletions = numUnlabeledDeletions,
+      .totalDeletionRanges = totalDeletionRanges,
       .weightedTotal = weightedTotal,
       .excess = weightedTotal - config.typical,
       .cutoff = config.cutoff,

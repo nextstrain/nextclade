@@ -109,11 +109,9 @@ namespace Nextclade {
     double score;
     QcStatus status;
     int numReversionSubstitutions;
-    int numReversionsOfDeletions;
     int numLabeledSubstitutions;
-    int numLabeledDeletions;
     int numUnlabeledSubstitutions;
-    int numUnlabeledDeletions;
+    int totalDeletionRanges;
     double weightedTotal;
     double excess;
     double cutoff;

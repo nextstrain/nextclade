@@ -217,21 +217,15 @@ namespace Nextclade {
       j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Nucleotide>));
       j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Nucleotide>));
       j.emplace("reversionSubstitutions", serializeArray(pm.reversionSubstitutions, serializeSubstitutionSimple<Nucleotide>));
-      j.emplace("reversionsOfDeletions", serializeArray(pm.reversionsOfDeletions, serializeSubstitutionSimple<Nucleotide>));
       j.emplace("labeledSubstitutions", serializeArray(pm.labeledSubstitutions, serializeSubstitutionSimpleLabeled<Nucleotide>));
-      j.emplace("labeledDeletions", serializeArray(pm.labeledDeletions, serializeDeletionSimpleLabeled<Nucleotide>));
       j.emplace("unlabeledSubstitutions", serializeArray(pm.unlabeledSubstitutions, serializeSubstitutionSimple<Nucleotide>));
-      j.emplace("unlabeledDeletions", serializeArray(pm.unlabeledDeletions, serializeDeletionSimple<Nucleotide>));
       // clang-format on
 
       j.emplace("totalPrivateSubstitutions", pm.totalPrivateSubstitutions);
       j.emplace("totalPrivateDeletions", pm.totalPrivateDeletions);
       j.emplace("totalReversionSubstitutions", pm.totalReversionSubstitutions);
-      j.emplace("totalReversionsOfDeletions", pm.totalReversionsOfDeletions);
       j.emplace("totalLabeledSubstitutions", pm.totalLabeledSubstitutions);
-      j.emplace("totalLabeledDeletions", pm.totalLabeledDeletions);
       j.emplace("totalUnlabeledSubstitutions", pm.totalUnlabeledSubstitutions);
-      j.emplace("totalUnlabeledDeletions", pm.totalUnlabeledDeletions);
 
       return j;
     }
@@ -247,13 +241,11 @@ namespace Nextclade {
       j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Aminoacid>));
       j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Aminoacid>));
       j.emplace("reversionSubstitutions", serializeArray(pm.reversionSubstitutions, serializeSubstitutionSimple<Aminoacid>));
-      j.emplace("reversionsOfDeletions", serializeArray(pm.reversionsOfDeletions, serializeSubstitutionSimple<Aminoacid>));
       // clang-format on
 
       j.emplace("totalPrivateSubstitutions", pm.totalPrivateSubstitutions);
       j.emplace("totalPrivateDeletions", pm.totalPrivateDeletions);
       j.emplace("totalReversionSubstitutions", pm.totalReversionSubstitutions);
-      j.emplace("totalReversionsOfDeletions", pm.totalReversionsOfDeletions);
 
       return j;
     }
@@ -314,11 +306,9 @@ namespace Nextclade {
               {"status", formatQcStatus(qc.privateMutations->status)},
               {"weightedTotal", qc.privateMutations->weightedTotal},
               {"numReversionSubstitutions", qc.privateMutations->numReversionSubstitutions},
-              {"numReversionsOfDeletions", qc.privateMutations->numReversionsOfDeletions},
               {"numLabeledSubstitutions", qc.privateMutations->numLabeledSubstitutions},
-              {"numLabeledDeletions", qc.privateMutations->numLabeledDeletions},
               {"numUnlabeledSubstitutions", qc.privateMutations->numUnlabeledSubstitutions},
-              {"numUnlabeledDeletions", qc.privateMutations->numUnlabeledDeletions},
+              {"totalDeletionRanges", qc.privateMutations->totalDeletionRanges},
             }));
       }
 
