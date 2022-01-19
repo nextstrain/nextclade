@@ -104,7 +104,7 @@ Accepted formats: JSON. Example configuration for SARS-CoV-2:
 
 A table describing the genes of the virus (name, frame, position, etc.)
 
-The gene map is required for codon-aware alignment, for gene translation and for calling of aminoacid mutations. Without gene map, peptides will not be output and aminoacid mutations will not be detected. Without gene map the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](algorithm/01-sequence-alignment) and [Algorithm: Translation](algorithm/02-translation)).
+The gene map is required for codon-aware alignment, for gene translation and for calling of aminoacid mutations. Without gene map, peptides will not be output and aminoacid mutations will not be detected. Without gene map the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](algorithm/01-sequence-alignment) and [Algorithm: Translation](algorithm/02-translation)). Since version `1.10.0` (web `1.13.0`) negative strands are supported, too.
 
 Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md). Example gene map for SARS-CoV-2:
 
