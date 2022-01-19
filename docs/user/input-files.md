@@ -10,29 +10,29 @@ Nextclade Web (simple and advanced modes): accepted in "Sequences" drag & drop b
 
 Nextclade CLI flag: `--input-fasta`
 
-Nextalign CLI flag: ` --sequences`
+Nextalign CLI flag: `--sequences`
 
-Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text (one sequence per line).
+Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) or plain text (one sequence per line).
 
 ## Reference (root) sequence
 
 Viral nucleotide sequence which serves as a reference for alignment and the analysis. Mutations are called relative to the reference sequence. It is expected to be the root of the [reference tree](#reference-tree). The best results are obtained when the reference sequence is a well-known consensus genome, of a very high quality, preferably complete and unambiguous (spans entire genome and has no ambiguous nucleotides).
 
-Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text. The file is expected to contain only 1 sequence.
+Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) or plain text. The file is expected to contain only 1 sequence.
 
 Nextclade Web (advanced mode): accepted in "Root sequence" drag & drop box. A remote URL is also accepted in `input-root-sequence` URL parameter.
 
 Nextclade CLI flag: `--input-root-sequence`
 
-Nextalign CLI flag: ` --reference`
+Nextalign CLI flag: `--reference`
 
 ## Reference tree
 
-The reference phylogenetic tree which serves as a target for phylogenetic placement (see [Algorithm: Phylogenetic placement](algorithm/05-phylogenetic-placement)) and a source of clade information for clade assignment (see [Algorithm: Clade Assignment](algorithm/06-clade-assignment)).
+The phylogenetic reference tree which serves as a target for phylogenetic placement (see [Algorithm: Phylogenetic placement](algorithm/05-phylogenetic-placement)). Nearest neighbour information is used to assign clades (see [Algorithm: Clade Assignment](algorithm/06-clade-assignment)) and to identify private mutations, including reversions.
 
 The tree **must** be rooted at the sample that matches the [reference (root) sequence](#reference-root-sequence).
 
-The tree **must** contain a clade definition for every node.
+The tree **must** contain a clade definition for every node (including internal).
 
 The tree **must** be sufficiently large, diverse and to meet clade assignment expectations of a particular use-case, study or experiment. Only clades present on the reference tree can be assigned to [Query sequences](terminology.html#query-sequence).
 
@@ -58,7 +58,13 @@ Accepted formats: JSON. Example configuration for SARS-CoV-2:
   "privateMutations": {
     "enabled": true,
     "typical": 8,
-    "cutoff": 24
+    "cutoff": 24,
+    "weightLabeledSubstitutions": 4,
+    "weightLabeledDeletions": 4,
+    "weightReversionSubstitutions": 6,
+    "weightReversionDeletions": 8,
+    "weightUnlabeledSubstitutions": 1,
+    "weightUnlabeledDeletions": 1
   },
   "missingData": {
     "enabled": true,
@@ -76,7 +82,11 @@ Accepted formats: JSON. Example configuration for SARS-CoV-2:
     "mixedSitesThreshold": 10
   },
   "frameShifts": {
-    "enabled": true
+    "enabled": true,
+    "ignoredFrameShifts": [
+      { "geneName": "ORF3a", "codonRange": {"begin": 256, "end": 276 } },
+      { "geneName": "ORF3a", "codonRange": {"begin": 258, "end": 276 } },
+    ]
   },
   "stopCodons": {
     "enabled": true,
