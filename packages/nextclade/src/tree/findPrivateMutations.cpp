@@ -105,11 +105,11 @@ namespace Nextclade {
       /* in */ const std::map<int, Letter>& nodeMutMap,                         //
       /* in */ const safe_vector<Substitution<Letter>>& substitutions,          //
       /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateSubstitutions,//
-      /* inout */ std::set<int>& seqPositionsCovered                            //
+      /* inout */ std::set<int>& seqPositionsMutatedOrDeleted                   //
     ) {
       for (const auto& seqMut : substitutions) {
         const auto& pos = seqMut.pos;
-        seqPositionsCovered.insert(pos);
+        seqPositionsMutatedOrDeleted.insert(pos);
 
         if (isUnknown(seqMut.qry)) {
           // Cases 5/6: Unknown in sequence
@@ -150,7 +150,7 @@ namespace Nextclade {
       /* in */ const safe_vector<Deletion<Letter>>& deletions,          //
       /* in */ const Sequence<Letter>& refSeq,                          //
       /* inout */ safe_vector<DeletionSimple<Letter>>& privateDeletions,//
-      /* inout */ std::set<int>& seqPositionsCovered                    //
+      /* inout */ std::set<int>& seqPositionsMutatedOrDeleted           //
     );
 
     /** Specialization of `processSeqDeletions()` for nucleotides */
@@ -160,7 +160,7 @@ namespace Nextclade {
       /* in */ const safe_vector<Deletion<Nucleotide>>& deletions,          //
       /* in */ const Sequence<Nucleotide>& refSeq,                          //
       /* inout */ safe_vector<DeletionSimple<Nucleotide>>& privateDeletions,//
-      /* inout */ std::set<int>& seqPositionsCovered                        //
+      /* inout */ std::set<int>& seqPositionsMutatedOrDeleted               //
     ) {
       for (const auto& del : deletions) {
         const auto& start = del.start;
@@ -168,7 +168,7 @@ namespace Nextclade {
 
         for (int pos = start; pos < end; ++pos) {
           const auto& nodeQueryNuc = mapFind(nodeMutMap, pos);
-          seqPositionsCovered.insert(pos);
+          seqPositionsMutatedOrDeleted.insert(pos);
 
           if (!nodeQueryNuc) {
             // Case 3: Deletion in sequence but not in node, i.e. a newly occurred deletion.
@@ -194,12 +194,12 @@ namespace Nextclade {
       /* in */ const safe_vector<Deletion<Aminoacid>>& deletions,          //
       /* in */ const Sequence<Aminoacid>& refSeq,                          //
       /* inout */ safe_vector<DeletionSimple<Aminoacid>>& privateDeletions,//
-      /* inout */ std::set<int>& seqPositionsCovered                       //
+      /* inout */ std::set<int>& seqPositionsMutatedOrDeleted              //
     ) {
       for (const auto& del : deletions) {
         const auto& pos = del.pos;
         const auto& nodeQueryNuc = mapFind(nodeMutMap, pos);
-        seqPositionsCovered.insert(pos);
+        seqPositionsMutatedOrDeleted.insert(pos);
 
         if (!nodeQueryNuc) {
           // Case 3: Deletion in sequence but not in node, i.e. a newly occurred deletion.
@@ -229,14 +229,14 @@ namespace Nextclade {
       /* in */ const std::map<int, Letter>& nodeMutMap,                                  //
       /* in */ const AnalysisResult& seq,                                                //
       /* in */ const Sequence<Letter>& refSeq,                                           //
-      /* in */ const std::set<int>& seqPositionsCovered,                                 //
+      /* in */ const std::set<int>& seqPositionsMutatedOrDeleted,                        //
       /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateReversionSubstitutions,//
       /* inout */ safe_vector<DeletionSimple<Letter>>& privateReversionDeletions         //
     ) {
       for (const auto& [pos, nodeQueryNuc] : nodeMutMap) {
-        const bool notCoveredYet = !has(seqPositionsCovered, pos);
+        const bool seqHasMutOrDel = has(seqPositionsMutatedOrDeleted, pos);
         const bool isSequenced = isSequencedGeneric(pos, seq, LetterTag<Letter>{});
-        if (notCoveredYet && isSequenced && !isGap(nodeQueryNuc)) {
+        if (!seqHasMutOrDel && isSequenced && !isGap(nodeQueryNuc)) {
           // Case 4: Mutation in node, but not in sequence. This is a so-called reversion. Mutation in sequence reverts
           // the character to ref seq.
           // Action: Add mutation from node query character to character in reference sequence.
@@ -327,13 +327,14 @@ namespace Nextclade {
 
       // Remember which positions we cover while iterating sequence mutations,
       // to be able to skip them when we iterate over node mutations
-      std::set<int> seqPositionsCovered;
+      std::set<int> seqPositionsMutatedOrDeleted;
 
       // Iterate over sequence substitutions
-      processSeqSubstitutions(nodeMutMap, substitutions, privateNonReversionSubstitutions, seqPositionsCovered);
+      processSeqSubstitutions(nodeMutMap, substitutions, privateNonReversionSubstitutions,
+        seqPositionsMutatedOrDeleted);
 
       // Iterate over sequence deletions
-      processSeqDeletions(nodeMutMap, deletions, refSeq, privateNonReversionDeletions, seqPositionsCovered);
+      processSeqDeletions(nodeMutMap, deletions, refSeq, privateNonReversionDeletions, seqPositionsMutatedOrDeleted);
 
       safe_vector<SubstitutionSimple<Letter>> privateReversionSubstitutions;
       privateReversionSubstitutions.reserve(nodeMutMap.size());
@@ -342,7 +343,7 @@ namespace Nextclade {
       privateReversionDeletions.reserve(nodeMutMap.size());
 
       // Iterate over node substitutions and deletions and find reversions
-      findReversions(nodeMutMap, seq, refSeq, seqPositionsCovered, privateReversionSubstitutions,
+      findReversions(nodeMutMap, seq, refSeq, seqPositionsMutatedOrDeleted, privateReversionSubstitutions,
         privateReversionDeletions);
 
       eraseDuplicatesInPlace(privateNonReversionSubstitutions);
