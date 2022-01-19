@@ -31,6 +31,14 @@ Don't forget to mount necessary volumes to be able to supply the data inside the
 
 ## Installation (local)
 
+### Using conda
+
+A [Nextalign conda package]((https://anaconda.org/bioconda/nextalign)) is available for Linux and macOS from the `conda` channel `bioconda`:
+
+```bash
+conda install -c bioconda nextalign
+```
+
 ### Download manually
 
 You can download the latest version of Nextalign CLI for your platform using one of these direct links:
@@ -122,7 +130,6 @@ NEXTALIGN_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/rele
 
 </details>
 </p>
-
 
 Native Windows executables are not available at this time. Windows users can try one of the following:
 
