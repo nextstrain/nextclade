@@ -191,6 +191,7 @@ nextclade run --help
    nextclade \
       --in-order \
       --input-fasta data/sars-cov-2/sequences.fasta \
+      --input-dataset data/sars-cov-2 \
       --input-root-seq data/sars-cov-2/reference.fasta \
       --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
       --input-gene-map data/sars-cov-2/genemap.gff \
