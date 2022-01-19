@@ -22,10 +22,18 @@ set(SOURCE_FILES
   include/nextclade/private/__generated__/types.h
   include/nextclade/private/nextclade_private.h
   src/analyze/calculateTotalLength.h
+  src/analyze/findDeletionRanges.cpp
+  src/analyze/findDeletionRanges.cpp
+  src/analyze/findDeletionRanges.h
+  src/analyze/findDeletionRanges.h
   src/analyze/findNucChanges.cpp
   src/analyze/findNucChanges.h
   src/analyze/findNucleotideRanges.cpp
+  src/analyze/findNucleotideRanges.cpp
   src/analyze/findNucleotideRanges.h
+  src/analyze/findNucleotideRanges.h
+  src/analyze/findSubstitutionRanges.cpp
+  src/analyze/findSubstitutionRanges.h
   src/analyze/getAminoacidChanges.cpp
   src/analyze/getAminoacidChanges.h
   src/analyze/getFrameShifts.cpp
