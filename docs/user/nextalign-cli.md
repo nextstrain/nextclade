@@ -10,7 +10,7 @@ This section describes:
 - how to run Nextalign CLI with sample data
 - what other sections of the documentation are worth checking after that
 
-### Installation (with docker)
+## Installation (with docker)
 
 Container images are available at Docker Hub: 🐋 [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign)
 
@@ -29,9 +29,9 @@ docker run -it --rm nextstrain/nextalign:1.0.0 nextalign --help
 
 Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
 
-### Installation (local)
+## Installation (local)
 
-#### Download manually
+### Download manually
 
 You can download the latest version of Nextalign CLI for your platform using one of these direct links:
 
@@ -56,7 +56,7 @@ Security settings</a>. Refer to the latest macOS documentation if none of this w
 >
 
 
-#### Download from command line
+### Download from command line
 
 The following commands can be used to download Nextalign from command line, from shell scripts and inside dockerfiles:
 
@@ -130,7 +130,7 @@ Native Windows executables are not available at this time. Windows users can try
 - Running docker container (see below)
 - Renting a Linux machine, for example at any cloud compute provider
 
-### Usage
+## Usage
 
 Refer to help prompt for usage of Nextalign:
 
