@@ -236,7 +236,7 @@ namespace Nextclade {
       for (const auto& [pos, nodeQueryNuc] : nodeMutMap) {
         const bool seqHasMutOrDel = has(seqPositionsMutatedOrDeleted, pos);
         const bool isSequenced = isSequencedGeneric(pos, seq, LetterTag<Letter>{});
-        if (!seqHasMutOrDel && isSequenced && !isGap(nodeQueryNuc)) {
+        if (!seqHasMutOrDel && isSequenced) {
           // Case 4: Mutation in node, but not in sequence. This is a so-called reversion. Mutation in sequence reverts
           // the character to ref seq.
           // Action: Add mutation from node query character to character in reference sequence.
