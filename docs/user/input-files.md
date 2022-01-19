@@ -201,4 +201,4 @@ It is of the following schema (shortened for clarity):
 
 Nextclade Web (advanced mode): accepted in "Virus properties" drag & drop box.
 
-Nextclade CLI flag: `--virus-properties`
+Nextclade CLI flag: `--input-virus-properties`
