@@ -1,6 +1,6 @@
 # Nextclade CLI
 
-Nextclade is a tool that identifies differences between your sequences and a reference sequence used by Nextstrain, uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data. You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
+Nextclade is a tool that identifies differences between your sequences and a reference sequence, uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data. You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
 
 You can learn more about the algorithm in the [Algorithm](algorithm) section.
 
@@ -9,7 +9,6 @@ This section describes:
 - how to install Nextclade CLI - using Docker container and natively
 - how to run Nextclade CLI with sample data
 - what other sections of the documentation are worth checking after that
-
 
 ## Installation (with docker)
 
@@ -42,6 +41,14 @@ Tag `:latest` points to `:debian`.
 
 ## Installation (local)
 
+### Using conda
+
+A [Nextclade conda package]((https://anaconda.org/bioconda/nextclade)) is available for Linux and macOS from the `conda` channel `bioconda`:
+
+```bash
+conda install -c bioconda nextclade
+```
+
 ### Download manually
 
 You can download the latest version of Nextclade CLI for your platform using one of these direct links:
@@ -64,7 +71,6 @@ Security settings</a>. Refer to the latest macOS documentation if none of this w
 > - Download the Linux executable (see above) and run it under [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 > - Use [Docker container image](#installation-with-docker)
 > - Rent a Linux machine, for example at a cloud compute provider or on premises of your organization or university
->
 
 ### Download from command line
 
@@ -202,7 +208,6 @@ nextclade run --help
    The `--input-dataset` flag can be combined with individual `--input*` flags. In this case, individual flags override the corresponding files in the dataset.
 
    You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for the detailed description of each flag.
-
 
 3. Find the output files in the `output/` directory:
 
