@@ -156,6 +156,8 @@ nextclade dataset get --help
 nextclade run --help
 ```
 
+<!--- TODO: Should be expanded with detailed explanation of the commands -->
+
 ## Quick Example
 
 1. Download SARS-CoV-2 dataset:
@@ -166,7 +168,7 @@ nextclade run --help
 
    Observe downloaded dataset files in the directory `data/sars-cov-2/`
 
-   > 💡️ This command will download the latest SARS-CoV-2 dataset. You can use it to periodically update the dataset, in order to enable the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](datasets) section.
+   > 💡️ This command will download the latest SARS-CoV-2 dataset. You should run it periodically to update the dataset, in order to get the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](datasets) section.
 
 2. Run using the downloaded dataset and its example sequences (`data/sars-cov-2/sequences.fasta`):
 
