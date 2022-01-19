@@ -191,7 +191,7 @@ export interface QcResultPrivateMutations {
   score: number
   status: QcStatus
   numReversionSubstitutions: number
-  numReversionDeletions: number
+  numReversionsOfDeletions: number
   numLabeledSubstitutions: number
   numLabeledDeletions: number
   numUnlabeledSubstitutions: number
@@ -273,7 +273,7 @@ export interface PrivateMutations {
   privateSubstitutions: NucleotideSubstitutionSimple[]
   privateDeletions: NucleotideDeletionSimple[]
   reversionSubstitutions: NucleotideSubstitutionSimple[]
-  reversionDeletions: NucleotideDeletionSimple[]
+  reversionsOfDeletions: NucleotideSubstitutionSimple[]
   labeledSubstitutions: NucleotideSubstitutionSimpleLabeled[]
   labeledDeletions: NucleotideDeletionSimpleLabeled[]
   unlabeledSubstitutions: NucleotideSubstitutionSimple[]
@@ -309,7 +309,7 @@ export interface PrivateMutationsInternal {
 export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
   const {
     reversionSubstitutions,
-    reversionDeletions,
+    reversionsOfDeletions,
     labeledSubstitutions,
     labeledDeletions,
     unlabeledSubstitutions,
@@ -317,7 +317,7 @@ export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
 
   // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,
   // and then everything to NucleotideSubstitutions, so that it's easier to render badge components.
-  const reversions = [...reversionSubstitutions, ...reversionDeletions.map(convertDelToSub)].map(convertSimpleSubToSub)
+  const reversions = [...reversionSubstitutions, ...reversionsOfDeletions].map(convertSimpleSubToSub)
 
   const labeled = [...labeledSubstitutions, ...labeledDeletions.map(convertDelToSubLabeled)]
 

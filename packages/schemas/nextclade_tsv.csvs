@@ -33,13 +33,13 @@ version 1.1
 "nonACGTNs":
 "pcrPrimerChanges":
 "privateNucMutations.reversionSubstitutions":
-"privateNucMutations.reversionDeletions":
+"privateNucMutations.reversionsOfDeletions":
 "privateNucMutations.labeledSubstitutions":
 "privateNucMutations.labeledDeletions":
 "privateNucMutations.unlabeledSubstitutions":
 "privateNucMutations.unlabeledDeletions":
 "privateNucMutations.totalReversionSubstitutions":
-"privateNucMutations.totalReversionDeletions":
+"privateNucMutations.totalReversionsOfDeletions":
 "privateNucMutations.totalLabeledSubstitutions":
 "privateNucMutations.totalLabeledDeletions":
 "privateNucMutations.totalUnlabeledSubstitutions":

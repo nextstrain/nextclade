@@ -53,13 +53,13 @@ namespace Nextclade {
         "deletions",
         "insertions",
         "privateNucMutations.reversionSubstitutions",
-        "privateNucMutations.reversionDeletions",
+        "privateNucMutations.reversionsOfDeletions",
         "privateNucMutations.labeledSubstitutions",
         "privateNucMutations.labeledDeletions",
         "privateNucMutations.unlabeledSubstitutions",
         "privateNucMutations.unlabeledDeletions",
         "privateNucMutations.totalReversionSubstitutions",
-        "privateNucMutations.totalReversionDeletions",
+        "privateNucMutations.totalReversionsOfDeletions",
         "privateNucMutations.totalLabeledSubstitutions",
         "privateNucMutations.totalLabeledDeletions",
         "privateNucMutations.totalUnlabeledSubstitutions",
@@ -197,8 +197,8 @@ namespace Nextclade {
       doc.SetCell(getColumnIndex("privateNucMutations.reversionSubstitutions"), rowName,
         formatAndJoin(result.privateNucMutations.reversionSubstitutions, formatMutationSimple, ","));
 
-      doc.SetCell(getColumnIndex("privateNucMutations.reversionDeletions"), rowName,
-        formatAndJoin(result.privateNucMutations.reversionDeletions, formatDeletionSimple, ","));
+      doc.SetCell(getColumnIndex("privateNucMutations.reversionsOfDeletions"), rowName,
+        formatAndJoin(result.privateNucMutations.reversionsOfDeletions, formatMutationSimple, ","));
 
       doc.SetCell(getColumnIndex("privateNucMutations.labeledSubstitutions"), rowName,
         formatAndJoin(result.privateNucMutations.labeledSubstitutions, formatMutationSimpleLabeled, ","));
@@ -214,8 +214,8 @@ namespace Nextclade {
 
       doc.SetCell(getColumnIndex("privateNucMutations.totalReversionSubstitutions"), rowName,
         result.privateNucMutations.totalReversionSubstitutions);
-      doc.SetCell(getColumnIndex("privateNucMutations.totalReversionDeletions"), rowName,
-        result.privateNucMutations.totalReversionDeletions);
+      doc.SetCell(getColumnIndex("privateNucMutations.totalReversionsOfDeletions"), rowName,
+        result.privateNucMutations.totalReversionsOfDeletions);
       doc.SetCell(getColumnIndex("privateNucMutations.totalLabeledSubstitutions"), rowName,
         result.privateNucMutations.totalLabeledSubstitutions);
       doc.SetCell(getColumnIndex("privateNucMutations.totalLabeledDeletions"), rowName,

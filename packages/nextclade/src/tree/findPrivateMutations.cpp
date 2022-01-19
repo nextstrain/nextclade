@@ -231,7 +231,7 @@ namespace Nextclade {
       /* in */ const Sequence<Letter>& refSeq,                                           //
       /* in */ const std::set<int>& seqPositionsMutatedOrDeleted,                        //
       /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateReversionSubstitutions,//
-      /* inout */ safe_vector<DeletionSimple<Letter>>& privateReversionDeletions         //
+      /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateReversionsOfDeletions  //
     ) {
       for (const auto& [pos, nodeQueryNuc] : nodeMutMap) {
         const bool seqHasMutOrDel = has(seqPositionsMutatedOrDeleted, pos);
@@ -241,8 +241,10 @@ namespace Nextclade {
           // the character to ref seq.
           // Action: Add mutation from node query character to character in reference sequence.
           const auto& refNuc = refSeq[pos];
-          if (isGap<Letter>(refNuc)) {
-            privateReversionDeletions.emplace_back(DeletionSimple<Letter>{.ref = nodeQueryNuc, .pos = pos});
+
+          if (isGap(nodeQueryNuc)) {
+            privateReversionsOfDeletions.emplace_back(
+              SubstitutionSimple<Letter>{.ref = nodeQueryNuc, .pos = pos, .qry = refNuc});
           } else {
             privateReversionSubstitutions.emplace_back(
               SubstitutionSimple<Letter>{.ref = nodeQueryNuc, .pos = pos, .qry = refNuc});
@@ -339,12 +341,12 @@ namespace Nextclade {
       safe_vector<SubstitutionSimple<Letter>> privateReversionSubstitutions;
       privateReversionSubstitutions.reserve(nodeMutMap.size());
 
-      safe_vector<DeletionSimple<Letter>> privateReversionDeletions;
-      privateReversionDeletions.reserve(nodeMutMap.size());
+      safe_vector<SubstitutionSimple<Letter>> privateReversionsOfDeletions;
+      privateReversionsOfDeletions.reserve(nodeMutMap.size());
 
       // Iterate over node substitutions and deletions and find reversions
       findReversions(nodeMutMap, seq, refSeq, seqPositionsMutatedOrDeleted, privateReversionSubstitutions,
-        privateReversionDeletions);
+        privateReversionsOfDeletions);
 
       eraseDuplicatesInPlace(privateNonReversionSubstitutions);
       eraseDuplicatesInPlace(privateNonReversionDeletions);
@@ -356,12 +358,13 @@ namespace Nextclade {
         substitutionLabelMap, deletionLabelMap);
 
       auto privateSubstitutions = merge(privateReversionSubstitutions, privateNonReversionSubstitutions);
-      auto privateDeletions = merge(privateReversionDeletions, privateNonReversionDeletions);
+      privateSubstitutions = merge(privateSubstitutions, privateReversionsOfDeletions);
+      auto privateDeletions = privateNonReversionDeletions;
 
       auto totalPrivateSubstitutions = safe_cast<int>(privateSubstitutions.size());
       auto totalPrivateDeletions = safe_cast<int>(privateDeletions.size());
       auto totalReversionSubstitutions = safe_cast<int>(privateReversionSubstitutions.size());
-      auto totalReversionDeletions = safe_cast<int>(privateReversionDeletions.size());
+      auto totalReversionsOfDeletions = safe_cast<int>(privateReversionsOfDeletions.size());
       auto totalLabeledSubstitutions = safe_cast<int>(afterLabeling.labeledSubstitutions.size());
       auto totalLabeledDeletions = safe_cast<int>(afterLabeling.labeledDeletions.size());
       auto totalUnlabeledSubstitutions = safe_cast<int>(afterLabeling.unlabeledSubstitutions.size());
@@ -371,7 +374,7 @@ namespace Nextclade {
         .privateSubstitutions = privateSubstitutions,
         .privateDeletions = privateDeletions,
         .reversionSubstitutions = privateReversionSubstitutions,
-        .reversionDeletions = privateReversionDeletions,
+        .reversionsOfDeletions = privateReversionsOfDeletions,
         .labeledSubstitutions = afterLabeling.labeledSubstitutions,
         .labeledDeletions = afterLabeling.labeledDeletions,
         .unlabeledSubstitutions = afterLabeling.unlabeledSubstitutions,
@@ -379,7 +382,7 @@ namespace Nextclade {
         .totalPrivateSubstitutions = totalPrivateSubstitutions,
         .totalPrivateDeletions = totalPrivateDeletions,
         .totalReversionSubstitutions = totalReversionSubstitutions,
-        .totalReversionDeletions = totalReversionDeletions,
+        .totalReversionsOfDeletions = totalReversionsOfDeletions,
         .totalLabeledSubstitutions = totalLabeledSubstitutions,
         .totalLabeledDeletions = totalLabeledDeletions,
         .totalUnlabeledSubstitutions = totalUnlabeledSubstitutions,
@@ -501,7 +504,7 @@ namespace Nextclade {
       found.reversionSubstitutions = filter(found.reversionSubstitutions, hasUnknownAaSubstitutions(unknownAaRanges));
       found.labeledSubstitutions = filter(found.labeledSubstitutions, hasUnknownAaSubstitutionsLabeled(unknownAaRanges));
       found.unlabeledSubstitutions = filter(found.unlabeledSubstitutions, hasUnknownAaSubstitutions(unknownAaRanges));
-      found.reversionDeletions = filter(found.reversionDeletions, hasUnknownAaDeletions(unknownAaRanges));
+      found.reversionsOfDeletions = filter(found.reversionsOfDeletions, hasUnknownAaSubstitutions(unknownAaRanges));
       found.labeledDeletions = filter(found.labeledDeletions, hasUnknownAaDeletionsLabeled(unknownAaRanges));
       found.unlabeledDeletions = filter(found.unlabeledDeletions, hasUnknownAaDeletions(unknownAaRanges));
       // clang-format on

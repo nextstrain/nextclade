@@ -109,7 +109,7 @@ namespace Nextclade {
     double score;
     QcStatus status;
     int numReversionSubstitutions;
-    int numReversionDeletions;
+    int numReversionsOfDeletions;
     int numLabeledSubstitutions;
     int numLabeledDeletions;
     int numUnlabeledSubstitutions;
@@ -530,7 +530,7 @@ namespace Nextclade {
     safe_vector<SubstitutionSimple<Letter>> privateSubstitutions;
     safe_vector<DeletionSimple<Letter>> privateDeletions;
     safe_vector<SubstitutionSimple<Letter>> reversionSubstitutions;
-    safe_vector<DeletionSimple<Letter>> reversionDeletions;
+    safe_vector<SubstitutionSimple<Letter>> reversionsOfDeletions;
     safe_vector<SubstitutionSimpleLabeled<Letter>> labeledSubstitutions;
     safe_vector<DeletionSimpleLabeled<Letter>> labeledDeletions;
     safe_vector<SubstitutionSimple<Letter>> unlabeledSubstitutions;
@@ -538,7 +538,7 @@ namespace Nextclade {
     int totalPrivateSubstitutions;
     int totalPrivateDeletions;
     int totalReversionSubstitutions;
-    int totalReversionDeletions;
+    int totalReversionsOfDeletions;
     int totalLabeledSubstitutions;
     int totalLabeledDeletions;
     int totalUnlabeledSubstitutions;
