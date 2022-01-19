@@ -161,3 +161,44 @@ Note: the primers are processed differently depending on the primer type. The ty
 - `_R` - reverse primer
 - `_P` - probe
 
+## Virus properties
+
+_Introduced in CLI version `1.10.0`, web `1.13.0`_
+
+Private mutations are split into 3 categories: reversion, labeled mutations and unlabeled mutations.
+
+Through the `virus_properties.json` config file, Nextclade is told which mutations to attach which labels to.
+
+Private mutations to a genotype listed in the file are given the labels given in the file.
+
+It is of the following schema (shortened for clarity):
+
+```json
+{
+  "schemaVersion": "1.10.0",
+  "nucMutLabelMap": {
+    "174T": [
+      "20H"
+    ],
+    "204T": [
+      "20E",
+      "21J"
+    ],
+  }
+  "nucMutLabelMapReverse": {
+    "19A": [
+      "11083T",
+      "14805T",
+      "26144T"
+    ],
+    "19B": [
+      "8782T",
+      "9477A",
+    ]
+  }
+}
+```
+
+Nextclade Web (advanced mode): accepted in "Virus properties" drag & drop box.
+
+Nextclade CLI flag: `--virus-properties`
