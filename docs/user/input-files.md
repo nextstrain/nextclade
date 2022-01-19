@@ -183,7 +183,7 @@ It is of the following schema (shortened for clarity):
     "204T": [
       "20E",
       "21J"
-    ],
+    ]
   }
   "nucMutLabelMapReverse": {
     "19A": [
