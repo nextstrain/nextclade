@@ -43,6 +43,11 @@ export interface NucleotideInsertion {
   ins: string
 }
 
+export interface AminoacidInsertion {
+  pos: number
+  ins: string
+}
+
 export interface NucleotideMissing extends Range {}
 
 export interface CharacterRange<Letter> extends Range {
@@ -337,6 +342,8 @@ export interface AnalysisResult {
   totalAminoacidSubstitutions: number
   aaDeletions: AminoacidDeletion[]
   totalAminoacidDeletions: number
+  aaInsertions: AminoacidInsertion[]
+  totalAminoacidInsertions: number
   unknownAaRanges: GeneAminoacidRange[]
   totalUnknownAa: number
   alignmentStart: number
