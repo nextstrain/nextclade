@@ -44,6 +44,7 @@ export interface NucleotideInsertion {
 }
 
 export interface AminoacidInsertion {
+  gene: string
   pos: number
   ins: string
 }

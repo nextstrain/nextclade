@@ -4,7 +4,7 @@ import { shade } from 'polished'
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
-import type { Aminoacid, Nucleotide, NucleotideInsertion } from 'src/algorithms/types'
+import type { Aminoacid, AminoacidInsertion, Nucleotide, NucleotideInsertion } from 'src/algorithms/types'
 import { getTextColor } from 'src/helpers/getTextColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
@@ -17,11 +17,11 @@ const InsertionsTable = styled(TableSlimWithBorders)`
   min-width: 400px;
 `
 
-const ThNormal = styled.td`
+const ThNormal = styled.th`
   width: 100px;
 `
 
-const ThFragment = styled.td`
+const ThFragment = styled.th`
   min-width: 200px;
 `
 
@@ -114,10 +114,9 @@ export function InsertedFragmentTruncated({ insertion, isAminoacid }: InsertedFr
 export interface ListOfInsertionsNucProps {
   insertions: NucleotideInsertion[]
   totalInsertions: number
-  isAminoacid?: boolean
 }
 
-export function ListOfInsertions({ insertions, totalInsertions, isAminoacid }: ListOfInsertionsNucProps) {
+export function ListOfInsertionsNuc({ insertions, totalInsertions }: ListOfInsertionsNucProps) {
   const { t } = useTranslation()
 
   const { thead, tbody } = useMemo(() => {
@@ -134,7 +133,54 @@ export function ListOfInsertions({ insertions, totalInsertions, isAminoacid }: L
         <TdNormal className="text-center">{pos + 1}</TdNormal>
         <TdNormal className="text-center">{ins.length}</TdNormal>
         <TdFragment className="text-left">
-          <InsertedFragmentTruncated insertion={ins} isAminoacid={isAminoacid} />
+          <InsertedFragmentTruncated insertion={ins} />
+        </TdFragment>
+      </tr>
+    ))
+
+    return { thead, tbody }
+  }, [insertions, t])
+
+  if (insertions.length === 0) {
+    return null
+  }
+
+  return (
+    <>
+      <InsertionsTable>
+        <thead>{thead}</thead>
+        <tbody>{tbody}</tbody>
+      </InsertionsTable>
+    </>
+  )
+}
+
+export interface ListOfInsertionsAaProps {
+  insertions: AminoacidInsertion[]
+  totalInsertions: number
+  isAminoacid?: boolean
+}
+
+export function ListOfInsertionsAa({ insertions, totalInsertions }: ListOfInsertionsAaProps) {
+  const { t } = useTranslation()
+
+  const { thead, tbody } = useMemo(() => {
+    const thead = (
+      <tr>
+        <ThNormal className="text-center">{t('Gene.')}</ThNormal>
+        <ThNormal className="text-center">{t('After ref pos.')}</ThNormal>
+        <ThNormal className="text-center">{t('Length')}</ThNormal>
+        <ThFragment className="text-center">{t('Inserted fragment')}</ThFragment>
+      </tr>
+    )
+
+    const tbody = insertions.map(({ pos, ins, gene }) => (
+      <tr key={pos}>
+        <TdNormal className="text-center">{gene}</TdNormal>
+        <TdNormal className="text-center">{pos + 1}</TdNormal>
+        <TdNormal className="text-center">{ins.length}</TdNormal>
+        <TdFragment className="text-left">
+          <InsertedFragmentTruncated insertion={ins} isAminoacid />
         </TdFragment>
       </tr>
     ))

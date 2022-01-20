@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react'
 import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
-import { ListOfInsertions } from 'src/components/Results/ListOfInsertions'
+import { ListOfInsertionsNuc, ListOfInsertionsAa } from 'src/components/Results/ListOfInsertions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Col, Row } from 'reactstrap'
 
@@ -28,14 +28,14 @@ export function ColumnInsertions({ sequence }: ColumnInsertionsProps) {
         <Row noGutters>
           <Col>
             <h6>{nucTitle}</h6>
-            <ListOfInsertions insertions={insertions} totalInsertions={totalInsertions} />
+            <ListOfInsertionsNuc insertions={insertions} totalInsertions={totalInsertions} />
           </Col>
         </Row>
 
         <Row noGutters>
           <Col>
             <h6>{aaTitle}</h6>
-            <ListOfInsertions insertions={aaInsertions} totalInsertions={totalAminoacidInsertions} isAminoacid />
+            <ListOfInsertionsAa insertions={aaInsertions} totalInsertions={totalAminoacidInsertions} isAminoacid />
           </Col>
         </Row>
       </Tooltip>
