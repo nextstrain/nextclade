@@ -24,13 +24,6 @@ namespace Nextclade {
   };
 
 
-  class ErrorAnalysisResultsQcStatusInvalid : public ErrorNonFatal {
-  public:
-    explicit ErrorAnalysisResultsQcStatusInvalid(const std::string& statusStr)
-        : ErrorNonFatal(fmt::format("QC status not recognized: \"{:s}\"", statusStr)) {}
-  };
-
-
   NucleotideLocation parseNucleotideLocation(const json& j) {
     return NucleotideLocation{
       .pos = at(j, "pos").get<int>(),
@@ -152,12 +145,56 @@ namespace Nextclade {
   }
 
   template<typename Letter>
-  PrivateMutations<Letter> parsePrivateMutations(const json& j) {
-    return PrivateMutations<Letter>{
-      .privateSubstitutions =
-        parseArray<SubstitutionSimple<Letter>>(j, "privateSubstitutions", parseSubstitutionSimple<Letter>),
-      .privateDeletions = parseArray<DeletionSimple<Letter>>(j, "privateDeletions", parseDeletionSimple<Letter>),
+  SubstitutionSimpleLabeled<Letter> parseSubstitutionSimpleLabeled(const json& j) {
+    return SubstitutionSimpleLabeled<Letter>{
+      .substitution = parseSubstitutionSimple<Letter>(j.at("substitution")),
+      .labels = parseArrayOfStrings(j.at("labels")),
     };
+  }
+
+  template<typename Letter>
+  DeletionSimpleLabeled<Letter> parseDeletionSimpleLabeled(const json& j) {
+    return DeletionSimpleLabeled<Letter>{
+      .deletion = parseDeletionSimple<Letter>(j.at("deletion")),
+      .labels = parseArrayOfStrings(j.at("labels")),
+    };
+  }
+
+  PrivateMutations<Nucleotide> parsePrivateNucMutations(const json& j) {
+    return PrivateMutations<Nucleotide>{
+      // clang-format off
+      .privateSubstitutions =   parseArray<SubstitutionSimple<Nucleotide>>(j, "privateSubstitutions", parseSubstitutionSimple<Nucleotide>),
+      .privateDeletions =       parseArray<DeletionSimple<Nucleotide>>(j, "privateDeletions", parseDeletionSimple<Nucleotide>),
+      .reversionSubstitutions = parseArray<SubstitutionSimple<Nucleotide>>(j, "reversionSubstitutions", parseSubstitutionSimple<Nucleotide>),
+      .labeledSubstitutions =   parseArray<SubstitutionSimpleLabeled<Nucleotide>>(j, "labeledSubstitutions", parseSubstitutionSimpleLabeled<Nucleotide>),
+      .unlabeledSubstitutions = parseArray<SubstitutionSimple<Nucleotide>>(j, "unlabeledSubstitutions", parseSubstitutionSimple<Nucleotide>),
+      // clang-format on
+      .totalPrivateSubstitutions = j.at("totalPrivateSubstitutions").template get<int>(),
+      .totalPrivateDeletions = j.at("totalPrivateDeletions").template get<int>(),
+      .totalReversionSubstitutions = j.at("totalReversionSubstitutions").template get<int>(),
+      .totalLabeledSubstitutions = j.at("totalLabeledSubstitutions").template get<int>(),
+      .totalUnlabeledSubstitutions = j.at("totalUnlabeledSubstitutions").template get<int>(),
+    };
+  }
+
+  PrivateMutations<Aminoacid> parsePrivateAaMutations(const json& j) {
+    // NOTE: We exclude fields for labeled and unlabeled mutations, because we currently don't
+    // process them for aminoacids, so these are always empty. If and when there's a label map for
+    // aa mutations, these fields can be added. Or perhaps the function for nucleotide can be transformed
+    // into a generic one.
+
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+    return PrivateMutations<Aminoacid>{
+      // clang-format off
+      .privateSubstitutions =   parseArray<SubstitutionSimple<Aminoacid>>(j, "privateSubstitutions", parseSubstitutionSimple<Aminoacid>),
+      .privateDeletions =       parseArray<DeletionSimple<Aminoacid>>(j, "privateDeletions", parseDeletionSimple<Aminoacid>),
+      .reversionSubstitutions = parseArray<SubstitutionSimple<Aminoacid>>(j, "reversionSubstitutions", parseSubstitutionSimple<Aminoacid>),
+      // clang-format on
+      .totalPrivateSubstitutions = j.at("totalPrivateSubstitutions").template get<int>(),
+      .totalPrivateDeletions = j.at("totalPrivateDeletions").template get<int>(),
+      .totalReversionSubstitutions = j.at("totalReversionSubstitutions").template get<int>(),
+    };
+#pragma GCC diagnostic pop
   }
 
   Range parseFrameShiftRange(const json& j) {
@@ -221,14 +258,6 @@ namespace Nextclade {
   }
 
 
-  QcStatus parseQcStatus(const frozen::string& statusStr) {
-    const auto status = mapFind(qcStringsStatus, statusStr);
-    if (!status) {
-      throw ErrorAnalysisResultsQcStatusInvalid(statusStr.data());
-    }
-    return *status;
-  }
-
   std::optional<QcResultMissingData> parseQcMissingData(const json& jj) {
     if (!jj.contains("missingData")) {
       return {};
@@ -263,7 +292,11 @@ namespace Nextclade {
     return QcResultPrivateMutations{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
-      .total = parseDouble(j, "total"),
+      .numReversionSubstitutions = parseInt(j, "numReversionSubstitutions"),
+      .numLabeledSubstitutions = parseInt(j, "numLabeledSubstitutions"),
+      .numUnlabeledSubstitutions = parseInt(j, "numUnlabeledSubstitutions"),
+      .totalDeletionRanges = parseInt(j, "totalDeletionRanges"),
+      .weightedTotal = parseDouble(j, "weightedTotal"),
       .excess = parseDouble(j, "excess"),
       .cutoff = parseDouble(j, "cutoff"),
     };
@@ -379,9 +412,9 @@ namespace Nextclade {
         .totalPcrPrimerChanges = at(j, "totalPcrPrimerChanges"),
         .nearestNodeId = at(j, "nearestNodeId"),
         .clade = at(j, "clade"),
-        .privateNucMutations = parsePrivateMutations<Nucleotide>(at(j, "privateNucMutations")),
+        .privateNucMutations = parsePrivateNucMutations(at(j, "privateNucMutations")),
         .privateAaMutations =
-          parseMap<std::string, PrivateAminoacidMutations>(j, "privateAaMutations", parsePrivateMutations<Aminoacid>),
+          parseMap<std::string, PrivateAminoacidMutations>(j, "privateAaMutations", parsePrivateAaMutations),
         .missingGenes = parseSet<std::string>(at(j, "missingGenes")),
         .divergence = at(j, "divergence"),
         .qc = parseQcResult(at(j, "qc")),

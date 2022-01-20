@@ -25,6 +25,7 @@ import {
   setTree,
   setGeneMap,
   setQcSettings,
+  setVirusJson,
   setRootSeq,
   setPcrPrimers,
   removeGeneMap,
@@ -32,6 +33,7 @@ import {
   removeFasta,
   removeTree,
   removeQcSettings,
+  removeVirusJson,
   removeRootSeq,
   addParsedSequence,
   addNextcladeResult,
@@ -79,6 +81,13 @@ function removeQcSettingsImpl(draft: WritableDraft<AlgorithmState>) {
   draft.params.raw.qcRulesConfig = undefined
   draft.params.strings.qcConfigStr = undefined
   draft.params.errors.qcRulesConfig = []
+  return draft
+}
+
+function removeVirusJsonImpl(draft: WritableDraft<AlgorithmState>) {
+  draft.params.raw.virusJson = undefined
+  draft.params.strings.virusJsonStr = undefined
+  draft.params.errors.virusJson = []
   return draft
 }
 
@@ -241,6 +250,13 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.inProgress.qcRulesConfig += 1
   })
 
+  .icase(setVirusJson.started, (draft, input) => {
+    removeVirusJsonImpl(draft)
+    draft.params.raw.virusJson = input
+    draft.params.errors.virusJson = []
+    draft.params.inProgress.virusJson += 1
+  })
+
   .icase(setGeneMap.started, (draft, input) => {
     removeGeneMapImpl(draft)
     draft.params.raw.geneMap = input
@@ -284,6 +300,12 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.inProgress.qcRulesConfig -= 1
   })
 
+  .icase(setVirusJson.done, (draft, { result: { virusJsonStr } }) => {
+    draft.params.strings.virusJsonStr = virusJsonStr
+    draft.params.errors.virusJson = []
+    draft.params.inProgress.virusJson -= 1
+  })
+
   .icase(setGeneMap.done, (draft, { result: { geneMapStr } }) => {
     const geneMap = JSON.parse(geneMapStr) as Gene[]
     draft.params.strings.geneMapStr = geneMapStr
@@ -320,6 +342,11 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.inProgress.qcRulesConfig -= 1
   })
 
+  .icase(setVirusJson.failed, (draft, { error }) => {
+    draft.params.errors.virusJson = [error]
+    draft.params.inProgress.virusJson -= 1
+  })
+
   .icase(setGeneMap.failed, (draft, { error }) => {
     draft.params.errors.geneMap = [error]
     draft.params.inProgress.geneMap -= 1
@@ -336,6 +363,7 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
   .icase(removeTree, removeTreeImpl)
   .icase(removeRootSeq, removeRootSeqImpl)
   .icase(removeQcSettings, removeQcSettingsImpl)
+  .icase(removeVirusJson, removeVirusJsonImpl)
   .icase(removeGeneMap, removeGeneMapImpl)
   .icase(removePcrPrimers, removePcrPrimersImpl)
 

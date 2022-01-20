@@ -41,6 +41,7 @@ namespace Nextclade {
       const auto& inputRootSeq = inputPaths.inputRootSeq;
       const auto& inputGeneMap = inputPaths.inputGeneMap;
       const auto& inputQcConfig = inputPaths.inputQcConfig;
+      const auto& inputVirusJson = inputPaths.inputVirusJson;
       const auto& inputTree = inputPaths.inputTree;
       const auto& inputPcrPrimers = inputPaths.inputPcrPrimers;
 
@@ -95,6 +96,9 @@ namespace Nextclade {
           "You might be missing out on new features. It is recommended to download the latest QC configuration file.",
           inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getQcConfigJsonSchemaVersion());
       }
+
+      const auto virusJsonString = readFile(inputVirusJson);
+      const auto virusJson = parseVirusJson(virusJsonString);
 
       const auto treeString = readFile(inputTree);
 
@@ -166,8 +170,8 @@ namespace Nextclade {
 
       NextalignOptions options = cliOptionsToNextalignOptions(*cliParams);
 
-      runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap,
-        options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
+      runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, virusJson, treeString, pcrPrimers,
+        geneMap, options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
         outputInsertionsStream, outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
 
       logger.info("{:s}", std::string(TABLE_WIDTH, '-'));

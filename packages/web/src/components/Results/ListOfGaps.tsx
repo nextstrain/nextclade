@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import type { DeepReadonly } from 'ts-essentials'
@@ -17,19 +17,14 @@ export interface ListOfGapsProps {
 export function ListOfGaps({ deletions }: ListOfGapsProps) {
   const { t } = useTranslation()
 
-  const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
+  const gapItems = useMemo(() => {
+    const gapItems = deletions.map(({ start, length }) => {
+      const range = formatRange(start, start + length)
+      return <Li key={range}>{range}</Li>
+    })
 
-  let gapItems = deletions.map(({ start, length }) => {
-    const range = formatRange(start, start + length)
-    return <Li key={range}>{range}</Li>
-  })
+    return truncateList(gapItems, LIST_OF_GAPS_MAX_ITEMS, t('...more'))
+  }, [deletions, t])
 
-  gapItems = truncateList(gapItems, LIST_OF_GAPS_MAX_ITEMS, t('...more'))
-
-  return (
-    <div>
-      <div>{t('Gaps ({{totalGaps}})', { totalGaps })}</div>
-      <Ul>{gapItems}</Ul>
-    </div>
-  )
+  return <Ul>{gapItems}</Ul>
 }

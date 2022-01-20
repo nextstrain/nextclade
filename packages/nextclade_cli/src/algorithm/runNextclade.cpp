@@ -1,5 +1,6 @@
 #include "runNextclade.h"
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
 #include <tbb/concurrent_vector.h>
@@ -10,7 +11,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <common/safe_vector.h>
 
 #include "../io/Logger.h"
 #include "../io/parseRefFastaFile.h"
@@ -36,6 +36,7 @@ namespace Nextclade {
     /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
     /* in  */ const ReferenceSequenceData &refData,
     /* in  */ const QcConfig &qcRulesConfig,
+    /* in  */ const VirusJson &virusJson,
     /* in  */ const std::string &treeString,
     /* in  */ const safe_vector<PcrPrimer> &pcrPrimers,
     /* in  */ const GeneMap &geneMap,
@@ -62,6 +63,7 @@ namespace Nextclade {
       .pcrPrimers = pcrPrimers,
       .geneMap = geneMap,
       .qcRulesConfig = qcRulesConfig,
+      .virusJson = virusJson,
       .nextalignOptions = nextalignOptions,
     };
 

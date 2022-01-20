@@ -5,3 +5,11 @@ export const Ul = styled.ul`
 `
 
 export const Li = styled.li``
+
+export const UlInvisible = styled.ul`
+  padding-left: 0;
+`
+
+export const LiInvisible = styled.li`
+  list-style: none;
+`

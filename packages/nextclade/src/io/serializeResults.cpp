@@ -205,10 +205,57 @@ namespace Nextclade {
     }
 
     template<typename Letter>
-    json serializePrivateMutations(const PrivateMutations<Letter>& pm) {
+    json serializeSubstitutionSimpleLabeled(const SubstitutionSimpleLabeled<Letter>& labeled) {
       auto j = json::object();
-      j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Letter>));
-      j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Letter>));
+      j.emplace("substitution", serializeSubstitutionSimple(labeled.substitution));
+      j.emplace("labels", serializeArray(labeled.labels));
+      return j;
+    }
+
+    template<typename Letter>
+    json serializeDeletionSimpleLabeled(const DeletionSimpleLabeled<Letter>& labeled) {
+      auto j = json::object();
+      j.emplace("deletion", serializeDeletionSimple(labeled.deletion));
+      j.emplace("labels", serializeArray(labeled.labels));
+      return j;
+    }
+
+    json serializePrivateNucMutations(const PrivateMutations<Nucleotide>& pm) {
+      auto j = json::object();
+      // clang-format off
+      j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Nucleotide>));
+      j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Nucleotide>));
+      j.emplace("reversionSubstitutions", serializeArray(pm.reversionSubstitutions, serializeSubstitutionSimple<Nucleotide>));
+      j.emplace("labeledSubstitutions", serializeArray(pm.labeledSubstitutions, serializeSubstitutionSimpleLabeled<Nucleotide>));
+      j.emplace("unlabeledSubstitutions", serializeArray(pm.unlabeledSubstitutions, serializeSubstitutionSimple<Nucleotide>));
+      // clang-format on
+
+      j.emplace("totalPrivateSubstitutions", pm.totalPrivateSubstitutions);
+      j.emplace("totalPrivateDeletions", pm.totalPrivateDeletions);
+      j.emplace("totalReversionSubstitutions", pm.totalReversionSubstitutions);
+      j.emplace("totalLabeledSubstitutions", pm.totalLabeledSubstitutions);
+      j.emplace("totalUnlabeledSubstitutions", pm.totalUnlabeledSubstitutions);
+
+      return j;
+    }
+
+    json serializePrivateAaMutations(const PrivateMutations<Aminoacid>& pm) {
+      // NOTE: We exclude fields for labeled and unlabeled mutations, because we currently don't
+      // process them for aminoacids, so these are always empty. If and when there's a label map for
+      // aa mutations, these fields can be added. Or perhaps the function for nucleotide can be transformed
+      // into a generic one.
+
+      auto j = json::object();
+      // clang-format off
+      j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Aminoacid>));
+      j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Aminoacid>));
+      j.emplace("reversionSubstitutions", serializeArray(pm.reversionSubstitutions, serializeSubstitutionSimple<Aminoacid>));
+      // clang-format on
+
+      j.emplace("totalPrivateSubstitutions", pm.totalPrivateSubstitutions);
+      j.emplace("totalPrivateDeletions", pm.totalPrivateDeletions);
+      j.emplace("totalReversionSubstitutions", pm.totalReversionSubstitutions);
+
       return j;
     }
 
@@ -266,7 +313,11 @@ namespace Nextclade {
               {"excess", qc.privateMutations->excess},
               {"score", qc.privateMutations->score},
               {"status", formatQcStatus(qc.privateMutations->status)},
-              {"total", qc.privateMutations->total},
+              {"weightedTotal", qc.privateMutations->weightedTotal},
+              {"numReversionSubstitutions", qc.privateMutations->numReversionSubstitutions},
+              {"numLabeledSubstitutions", qc.privateMutations->numLabeledSubstitutions},
+              {"numUnlabeledSubstitutions", qc.privateMutations->numUnlabeledSubstitutions},
+              {"totalDeletionRanges", qc.privateMutations->totalDeletionRanges},
             }));
       }
 
@@ -354,8 +405,8 @@ namespace Nextclade {
 
       j.emplace("nearestNodeId", result.nearestNodeId);
 
-      j.emplace("privateNucMutations", serializePrivateMutations(result.privateNucMutations));
-      j.emplace("privateAaMutations", serializeMap(result.privateAaMutations, serializePrivateMutations<Aminoacid>));
+      j.emplace("privateNucMutations", serializePrivateNucMutations(result.privateNucMutations));
+      j.emplace("privateAaMutations", serializeMap(result.privateAaMutations, serializePrivateAaMutations));
       j.emplace("missingGenes", serializeArray(result.missingGenes));
       j.emplace("divergence", result.divergence);
 
