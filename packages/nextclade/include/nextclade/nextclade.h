@@ -616,6 +616,8 @@ namespace Nextclade {
     int totalAminoacidSubstitutions;
     safe_vector<AminoacidDeletion> aaDeletions;
     int totalAminoacidDeletions;
+    safe_vector<AminoacidInsertion> aaInsertions;
+    int totalAminoacidInsertions;
     safe_vector<GeneAminoacidRange> unknownAaRanges;
     int totalUnknownAa;
     int alignmentStart;

@@ -274,11 +274,9 @@ std::string serializeToCsv(const std::string& analysisResultsStr, const std::str
 std::string serializeInsertionsToCsv(const std::string& analysisResultsStr) {
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'serializeInsertionsToCsv'");
   std::stringstream outputInsertionsStream;
-  outputInsertionsStream << "seqName,insertions\n";
+  outputInsertionsStream << "seqName,insertions,aaInsertions\n";
   for (const auto& result : analysisResults.results) {
-    const auto& seqName = result.seqName;
-    const auto& insertions = result.insertions;
-    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+    outputInsertionsStream << formatInsertionsCsvRow(result.seqName, result.insertions, result.aaInsertions);
   }
   return outputInsertionsStream.str();
 }

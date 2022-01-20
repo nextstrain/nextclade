@@ -79,6 +79,15 @@ namespace Nextclade {
     };
   }
 
+  AminoacidInsertion parseAminoacidInsertion(const json& j) {
+    return AminoacidInsertion{
+      .gene = at(j, "gene").get<std::string>(),
+      .pos = at(j, "pos").get<int>(),
+      .length = at(j, "length").get<int>(),
+      .ins = toAminoacidSequence(at(j, "ins")),
+    };
+  }
+
   AminoacidRange parseAminoacidRange(const json& j);
 
   GeneAminoacidRange parseGeneAminoacidRange(const json& j) {
@@ -391,6 +400,8 @@ namespace Nextclade {
         .totalAminoacidSubstitutions = at(j, "totalAminoacidSubstitutions"),
         .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
         .totalAminoacidDeletions = at(j, "totalAminoacidDeletions"),
+        .aaInsertions = parseArray<AminoacidInsertion>(j, "aaInsertions", parseAminoacidInsertion),
+        .totalAminoacidInsertions = at(j, "totalAminoacidInsertions"),
         .unknownAaRanges = parseArray<GeneAminoacidRange>(j, "unknownAaRanges", parseGeneAminoacidRange),
         .totalUnknownAa = at(j, "totalUnknownAa"),
         .alignmentStart = at(j, "alignmentStart"),

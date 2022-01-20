@@ -762,7 +762,7 @@ void run(
         outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, toString(peptide.seq));
       }
 
-      outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+      outputInsertionsStream << formatInsertionsCsvRow(seqName, insertions, queryPeptides);
     });
 
   try {
@@ -848,7 +848,7 @@ int main(int argc, char *argv[]) {
     if (!outputInsertionsFile.good()) {
       throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", paths.outputInsertions.string()));
     }
-    outputInsertionsFile << "seqName,insertions\n";
+    outputInsertionsFile << "seqName,insertions,aaInsertions\n";
 
     std::ofstream outputErrorsFile(paths.outputErrors);
     if (!outputErrorsFile.good()) {

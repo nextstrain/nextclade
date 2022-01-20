@@ -25,6 +25,7 @@
 #include "utils/safe_cast.h"
 
 namespace Nextclade {
+
   NextcladeResult analyzeOneSequence(                            //
     const std::string& seqName,                                  //
     const NucleotideSequence& ref,                               //
@@ -84,6 +85,9 @@ namespace Nextclade {
     const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
     const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
 
+    safe_vector<AminoacidInsertion> aaInsertions = convertAaInsertions(alignment.queryPeptides);
+    auto totalAaInsertions = safe_cast<int>(aaInsertions.size());
+
     auto analysisResult = AnalysisResult{
       .seqName = seqName,
 
@@ -104,6 +108,8 @@ namespace Nextclade {
       .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
       .aaDeletions = aaChanges.aaDeletions,
       .totalAminoacidDeletions = totalAminoacidDeletions,
+      .aaInsertions = aaInsertions,
+      .totalAminoacidInsertions = totalAaInsertions,
 
       .unknownAaRanges = unknownAaRanges,
       .totalUnknownAa = totalUnknownAa,
@@ -155,6 +161,7 @@ namespace Nextclade {
       .analysisResult = std::move(analysisResult),
     };
   }
+
 
   safe_vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides) {
     safe_vector<RefPeptideInternal> result;

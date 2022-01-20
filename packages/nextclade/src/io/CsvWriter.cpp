@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <frozen/map.h>
 #include <frozen/string.h>
+#include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
 #include <rapidcsv.h>
 
@@ -45,6 +46,7 @@ namespace Nextclade {
         "totalFrameShifts",
         "totalAminoacidSubstitutions",
         "totalAminoacidDeletions",
+        "totalAminoacidInsertions",
         "totalMissing",
         "totalNonACGTNs",
         "totalPcrPrimerChanges",
@@ -66,6 +68,7 @@ namespace Nextclade {
         "frameShifts",
         "aaSubstitutions",
         "aaDeletions",
+        "aaInsertions",
         "missing",
         "nonACGTNs",
         "pcrPrimerChanges",
@@ -184,6 +187,7 @@ namespace Nextclade {
       doc.SetCell(getColumnIndex("totalAminoacidSubstitutions"), rowName,
         std::to_string(result.totalAminoacidSubstitutions));
       doc.SetCell(getColumnIndex("totalAminoacidDeletions"), rowName, std::to_string(result.totalAminoacidDeletions));
+      doc.SetCell(getColumnIndex("totalAminoacidInsertions"), rowName, std::to_string(result.totalAminoacidInsertions));
       doc.SetCell(getColumnIndex("totalMissing"), rowName, std::to_string(result.totalMissing));
       doc.SetCell(getColumnIndex("totalNonACGTNs"), rowName, std::to_string(result.totalNonACGTNs));
       doc.SetCell(getColumnIndex("totalPcrPrimerChanges"), rowName, std::to_string(result.totalPcrPrimerChanges));
@@ -214,6 +218,7 @@ namespace Nextclade {
         formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));
       doc.SetCell(getColumnIndex("aaDeletions"), rowName,
         formatAndJoin(result.aaDeletions, formatAminoacidDeletion, ","));
+      doc.SetCell(getColumnIndex("aaInsertions"), rowName, formatAndJoin(result.aaInsertions, formatAaInsertion, ","));
       doc.SetCell(getColumnIndex("missing"), rowName, formatAndJoin(result.missing, formatMissing, ","));
       doc.SetCell(getColumnIndex("nonACGTNs"), rowName, formatAndJoin(result.nonACGTNs, formatNonAcgtn, ","));
       doc.SetCell(getColumnIndex("pcrPrimerChanges"), rowName,
