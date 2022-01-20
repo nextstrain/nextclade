@@ -60,11 +60,8 @@ Accepted formats: JSON. Example configuration for SARS-CoV-2:
     "typical": 8,
     "cutoff": 24,
     "weightLabeledSubstitutions": 4,
-    "weightLabeledDeletions": 4,
     "weightReversionSubstitutions": 6,
-    "weightReversionDeletions": 8,
-    "weightUnlabeledSubstitutions": 1,
-    "weightUnlabeledDeletions": 1
+    "weightUnlabeledSubstitutions": 1
   },
   "missingData": {
     "enabled": true,
