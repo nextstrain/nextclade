@@ -8,7 +8,6 @@
 #include <type_traits>
 
 #include "../analyze/findDeletionRanges.h"
-#include "../analyze/findSubstitutionRanges.h"
 #include "../utils/safe_cast.h"
 #include "getQcRuleStatus.h"
 #include "utils/map.h"

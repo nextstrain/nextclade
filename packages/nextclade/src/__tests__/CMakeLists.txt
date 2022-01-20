@@ -14,7 +14,6 @@ add_executable(${PROJECT_NAME}
   findNucChanges.test.cpp
   findNucleotideRanges.test.cpp
   findPrivateNucMutations.test.cpp
-  findSubstitutionRanges.test.cpp
   getAminoacidChanges.test.cpp
   getNucleotideComposition.test.cpp
   getPcrPrimerChanges.test.cpp

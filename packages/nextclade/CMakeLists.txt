@@ -32,8 +32,6 @@ set(SOURCE_FILES
   src/analyze/findNucleotideRanges.cpp
   src/analyze/findNucleotideRanges.h
   src/analyze/findNucleotideRanges.h
-  src/analyze/findSubstitutionRanges.cpp
-  src/analyze/findSubstitutionRanges.h
   src/analyze/getAminoacidChanges.cpp
   src/analyze/getAminoacidChanges.h
   src/analyze/getFrameShifts.cpp
