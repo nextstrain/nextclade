@@ -24,12 +24,12 @@ export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
   } = privateMutations
 
   return t(
-    'Private mutations score: {{score}}. ' +
+    'QC score: {{score}}. ' +
       'Reverted substitutions: {{numReversionSubstitutions}}, ' +
       'Labeled substitutions: {{numLabeledSubstitutions}}, ' +
       'Unlabeled substitutions: {{numUnlabeledSubstitutions}}, ' +
       'Deletion ranges: {{totalDeletionRanges}}. ' +
-      'WeightedTotal: {{weightedTotal}}',
+      'Weighted total: {{weightedTotal}}',
     {
       score: round(score),
       numReversionSubstitutions,

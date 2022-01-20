@@ -1,7 +1,10 @@
 #include "findDeletionRanges.h"
 
+#include <common/copy.h>
 #include <common/safe_vector.h>
 #include <nextclade/nextclade.h>
+
+#include "utils/safe_cast.h"
 
 namespace Nextclade {
 
@@ -13,61 +16,39 @@ namespace Nextclade {
    * individually. We compute the ranges for private deletions here.
    */
   safe_vector<NucleotideRange> findDeletionRanges(const safe_vector<NucleotideDeletionSimple>& privateDeletions) {
+    if (privateDeletions.empty()) {
+      return {};
+    }
 
     // Sort deletions by position, so that later we can tell which ones are adjacent.
-    // Note: it's a full sort, but we use `partial_sort_copy()` because there is no `sort_copy()`.
-    safe_vector<NucleotideDeletionSimple> privateDeletionsSorted;
-    std::partial_sort_copy(                                                            //
-      privateDeletions.cbegin(), privateDeletions.cend(),                              //
-      privateDeletionsSorted.begin(), privateDeletionsSorted.end(),                    //
-      [](const NucleotideDeletionSimple& left, const NucleotideDeletionSimple& right) {//
-        return left.pos < right.pos;                                                   //
-      });                                                                              //
-
+    safe_vector<NucleotideDeletionSimple> dels = copy(privateDeletions);
+    std::sort(dels.begin(), dels.end());
 
     // This will be the result.
-    safe_vector<NucleotideRange> deletionRanges;
+    safe_vector<NucleotideRange> ranges;
 
-    // Remember the beginning of the current contiguous range. It's unset initially (std::nullopt)
-    std::optional<int> begin;
+    // Length of the current range
+    int length = 1;
 
-    // Go over (sorted) deletions and see if the current deletion is adjacent to the previous one,
-    // and group adjacent deletions into ranges.
-    for (const auto& del : privateDeletionsSorted) {
-      if (!begin) {
-        // If there is no begin set previously, then this deletion starts the new range
-        begin = del.pos;
+    auto n = safe_cast<int>(dels.size());
+    for (int i = 1; i <= n; ++i) {
+      if (i == n || dels[i].pos - dels[i - 1].pos != 1) {
+        // If it's the end of the inputs, or if the current position is not adjacent to the previous,
+        // then close the current range
+        const auto begin = dels[i - length].pos;
+        const auto end = dels[i - 1].pos + 1;
+        const auto range = NucleotideRange{.begin = begin, .end = end, .length = length, .character = Nucleotide::GAP};
+        ranges.emplace_back(range);
+
+        // Start a new range
+        length = 1;
       } else {
-
-        if (*begin - del.pos != 1) {
-          // This deletion is not adjacent to the previous. Terminate the range and remember it.
-          // Note: we use ranges that are semi-open (on the right), hence the `+1` for the `end`.
-          const auto end = del.pos + 1;
-          const auto length = end - *begin;
-          deletionRanges.emplace_back(
-            NucleotideRange{.begin = *begin, .end = end, .length = length, .character = Nucleotide::GAP});
-
-          // Unset the `begin`, to tell that there is no current range.
-          // We use default constructor here instead of std::nullopt, because
-          // there seem to be problems with using it on old Apple Clang.
-          begin = std::optional<int>{};
-        }
-
-        // Otherwise, deletion is adjacent: extend the existing range (by simply not terminating it)
+        // Extend the current range
+        ++length;
       }
     }
 
-    // Terminate the last range if any (there is an open range if `begin` is set)
-    if (!privateDeletionsSorted.empty() && begin) {
-      const auto end = privateDeletionsSorted.back().pos;
-      const auto length = end - *begin;
-      if (length > 0) {
-        deletionRanges.emplace_back(
-          NucleotideRange{.begin = *begin, .end = end, .length = length, .character = Nucleotide::GAP});
-      }
-    }
-
-    return deletionRanges;
+    return ranges;
   }
 
 
