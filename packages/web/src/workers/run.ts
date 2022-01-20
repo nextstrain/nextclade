@@ -7,6 +7,7 @@ import type { AnalysisThread, AnalysisWorker, NextcladeWasmParams } from 'src/wo
 import type { ParseGeneMapThread } from 'src/workers/worker.parseGeneMap'
 import type { ParsePcrPrimerCsvRowsStrThread } from 'src/workers/worker.parsePcrPrimers'
 import type { ParseQcConfigThread } from 'src/workers/worker.parseQcConfig'
+import type { ParseVirusJsonThread } from 'src/workers/worker.parseVirusJson'
 import type { ParseTreeThread } from 'src/workers/worker.parseTree'
 import type { ParseRefSequenceThread } from 'src/workers/worker.parseRefSeq'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
@@ -115,6 +116,13 @@ export async function parseQcConfigString(qcConfigStr: string) {
     new Worker('src/workers/worker.parseQcConfig.ts', { name: 'worker.parseQcConfig' }),
   )
   return thread.parseQcConfigString(qcConfigStr)
+}
+
+export async function parseVirusJsonString(virusJsonStr: string) {
+  const thread = await spawn<ParseVirusJsonThread>(
+    new Worker('src/workers/worker.parseVirusJson.ts', { name: 'worker.parseVirusJson' }),
+  )
+  return thread.parseVirusJsonString(virusJsonStr)
 }
 
 export async function parsePcrPrimerCsvRowsStr(pcrPrimersStrRaw: string, pcrPrimersFilename: string) {

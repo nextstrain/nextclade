@@ -1,3 +1,5 @@
+#include <common/contract.h>
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 #include <frozen/map.h>
 #include <frozen/string.h>
@@ -8,12 +10,10 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <string>
-#include <common/safe_vector.h>
 
 #include "../utils/at.h"
 #include "../utils/concat.h"
 #include "../utils/contains.h"
-#include <common/contract.h>
 #include "../utils/eraseDuplicates.h"
 #include "../utils/safe_cast.h"
 #include "formatMutation.h"
@@ -52,6 +52,17 @@ namespace Nextclade {
         "substitutions",
         "deletions",
         "insertions",
+
+        "privateNucMutations.reversionSubstitutions",
+        "privateNucMutations.labeledSubstitutions",
+        "privateNucMutations.unlabeledSubstitutions",
+
+        "privateNucMutations.totalReversionSubstitutions",
+        "privateNucMutations.totalLabeledSubstitutions",
+        "privateNucMutations.totalUnlabeledSubstitutions",
+
+        "privateNucMutations.totalPrivateSubstitutions",
+
         "frameShifts",
         "aaSubstitutions",
         "aaDeletions",
@@ -180,6 +191,24 @@ namespace Nextclade {
       doc.SetCell(getColumnIndex("substitutions"), rowName, formatAndJoin(result.substitutions, formatMutation, ","));
       doc.SetCell(getColumnIndex("deletions"), rowName, formatAndJoin(result.deletions, formatDeletion, ","));
       doc.SetCell(getColumnIndex("insertions"), rowName, formatAndJoin(result.insertions, formatInsertion, ","));
+
+      doc.SetCell(getColumnIndex("privateNucMutations.reversionSubstitutions"), rowName,
+        formatAndJoin(result.privateNucMutations.reversionSubstitutions, formatMutationSimple, ","));
+      doc.SetCell(getColumnIndex("privateNucMutations.labeledSubstitutions"), rowName,
+        formatAndJoin(result.privateNucMutations.labeledSubstitutions, formatMutationSimpleLabeled, ","));
+      doc.SetCell(getColumnIndex("privateNucMutations.unlabeledSubstitutions"), rowName,
+        formatAndJoin(result.privateNucMutations.unlabeledSubstitutions, formatMutationSimple, ","));
+
+      doc.SetCell(getColumnIndex("privateNucMutations.totalReversionSubstitutions"), rowName,
+        result.privateNucMutations.totalReversionSubstitutions);
+      doc.SetCell(getColumnIndex("privateNucMutations.totalLabeledSubstitutions"), rowName,
+        result.privateNucMutations.totalLabeledSubstitutions);
+      doc.SetCell(getColumnIndex("privateNucMutations.totalUnlabeledSubstitutions"), rowName,
+        result.privateNucMutations.totalUnlabeledSubstitutions);
+
+      doc.SetCell(getColumnIndex("privateNucMutations.totalPrivateSubstitutions"), rowName,
+        result.privateNucMutations.totalPrivateSubstitutions);
+
       doc.SetCell(getColumnIndex("frameShifts"), rowName, formatAndJoin(result.frameShifts, formatFrameShift, ","));
       doc.SetCell(getColumnIndex("aaSubstitutions"), rowName,
         formatAndJoin(result.aaSubstitutions, formatAminoacidMutation, ","));
@@ -222,7 +251,7 @@ namespace Nextclade {
         doc.SetCell(getColumnIndex("qc.privateMutations.status"), rowName,
           formatQcStatus(result.qc.privateMutations->status));
         doc.SetCell(getColumnIndex("qc.privateMutations.total"), rowName,
-          std::to_string(result.qc.privateMutations->total));
+          std::to_string(result.qc.privateMutations->weightedTotal));
       }
 
       if (result.qc.snpClusters) {

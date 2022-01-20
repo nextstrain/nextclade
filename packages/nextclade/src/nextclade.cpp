@@ -1,9 +1,9 @@
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
 
 #include <numeric>
-#include <common/safe_vector.h>
 
 #include "analyze/calculateTotalLength.h"
 #include "analyze/findNucChanges.h"
@@ -34,6 +34,7 @@ namespace Nextclade {
     const GeneMap& geneMap,                                      //
     const safe_vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
+    const VirusJson& virusJson,                                  //
     const Tree& tree,                                            //
     const NextalignOptions& nextalignOptions,                    //
     const safe_vector<std::string>& customNodeAttrKeys           //
@@ -131,10 +132,14 @@ namespace Nextclade {
     analysisResult.clade = nearestNode.clade();
 
     analysisResult.customNodeAttributes = nearestNode.customNodeAttributes(customNodeAttrKeys);
-    analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
 
-    analysisResult.privateAaMutations =
-      findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides, geneMap);
+    analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref,
+      virusJson.nucMutLabelMaps.substitutionLabelMap, virusJson.nucMutLabelMaps.deletionLabelMap);
+
+    safe_vector<GenotypeLabeled<Aminoacid>> aaSubstitutionLabelMap;
+    safe_vector<GenotypeLabeled<Aminoacid>> aaDeletionLabelMap;
+    analysisResult.privateAaMutations = findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides,
+      geneMap, aaSubstitutionLabelMap, aaDeletionLabelMap);
 
     analysisResult.divergence =
       calculateDivergence(nearestNode, analysisResult, tree.tmpDivergenceUnits(), safe_cast<int>(ref.size()));
@@ -186,6 +191,7 @@ namespace Nextclade {
       const auto& pcrPrimers = options.pcrPrimers;
       const auto& geneMap = options.geneMap;
       const auto& qcRulesConfig = options.qcRulesConfig;
+      const auto& virusJson = options.virusJson;
 
       return analyzeOneSequence(   //
         seqName,                   //
@@ -196,6 +202,7 @@ namespace Nextclade {
         geneMap,                   //
         pcrPrimers,                //
         qcRulesConfig,             //
+        virusJson,                 //
         tree,                      //
         options.nextalignOptions,  //
         tree.getCladeNodeAttrKeys()//

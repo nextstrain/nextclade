@@ -76,6 +76,7 @@ export interface AlgorithmParams {
     auspiceData?: AlgorithmInput
     rootSeq?: AlgorithmInput
     qcRulesConfig?: AlgorithmInput
+    virusJson?: AlgorithmInput
     geneMap?: AlgorithmInput
     pcrPrimers?: AlgorithmInput
   }
@@ -88,6 +89,7 @@ export interface AlgorithmParams {
     treeStr?: string
     pcrPrimerCsvRowsStr?: string
     qcConfigStr?: string
+    virusJsonStr?: string
   }
   final: {
     geneMap?: Gene[]
@@ -98,6 +100,7 @@ export interface AlgorithmParams {
     auspiceData: number
     rootSeq: number
     qcRulesConfig: number
+    virusJson: number
     geneMap: number
     pcrPrimers: number
   }
@@ -106,6 +109,7 @@ export interface AlgorithmParams {
     auspiceData: Error[]
     rootSeq: Error[]
     qcRulesConfig: Error[]
+    virusJson: Error[]
     geneMap: Error[]
     pcrPrimers: Error[]
   }
@@ -159,6 +163,7 @@ export const algorithmDefaultState: AlgorithmState = {
       auspiceData: 0,
       rootSeq: 0,
       qcRulesConfig: 0,
+      virusJson: 0,
       geneMap: 0,
       pcrPrimers: 0,
     },
@@ -167,6 +172,7 @@ export const algorithmDefaultState: AlgorithmState = {
       auspiceData: [],
       rootSeq: [],
       qcRulesConfig: [],
+      virusJson: [],
       geneMap: [],
       pcrPrimers: [],
     },

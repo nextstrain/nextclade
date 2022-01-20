@@ -190,7 +190,11 @@ export interface QcResultMissingData {
 export interface QcResultPrivateMutations {
   score: number
   status: QcStatus
-  total: number
+  numReversionSubstitutions: number
+  numLabeledSubstitutions: number
+  numUnlabeledSubstitutions: number
+  totalDeletionRanges: number
+  weightedTotal: number
   excess: number
   cutoff: number
 }
@@ -242,6 +246,79 @@ export interface QcResult {
   overallStatus: QcStatus
 }
 
+export interface NucleotideSubstitutionSimple {
+  ref: string
+  pos: number
+  qry: string
+}
+
+export interface NucleotideDeletionSimple {
+  ref: string
+  pos: number
+}
+
+export interface NucleotideSubstitutionSimpleLabeled {
+  substitution: NucleotideSubstitutionSimple
+  labels: string[]
+}
+
+export interface NucleotideDeletionSimpleLabeled {
+  deletion: NucleotideDeletionSimple
+  labels: string[]
+}
+
+export interface PrivateMutations {
+  privateSubstitutions: NucleotideSubstitutionSimple[]
+  privateDeletions: NucleotideDeletionSimple[]
+  reversionSubstitutions: NucleotideSubstitutionSimple[]
+  labeledSubstitutions: NucleotideSubstitutionSimpleLabeled[]
+  unlabeledSubstitutions: NucleotideSubstitutionSimple[]
+}
+
+export function convertDelToSub(del: NucleotideDeletionSimple): NucleotideSubstitutionSimple {
+  return { ...del, qry: '-' }
+}
+
+export function convertDelToSubLabeled(labeled: NucleotideDeletionSimpleLabeled): NucleotideSubstitutionSimpleLabeled {
+  return { ...labeled, substitution: convertDelToSub(labeled.deletion) }
+}
+
+export function convertSimpleSubToSub({ ref, pos, qry }: NucleotideSubstitutionSimple): NucleotideSubstitution {
+  return {
+    refNuc: ref as Nucleotide,
+    pos,
+    queryNuc: qry as Nucleotide,
+    aaDeletions: [],
+    aaSubstitutions: [],
+    pcrPrimersChanged: [],
+  }
+}
+
+export interface PrivateMutationsInternal {
+  reversions: NucleotideSubstitution[]
+  labeled: NucleotideSubstitutionSimpleLabeled[]
+  unlabeled: NucleotideSubstitution[]
+  totalMutations: number
+}
+
+export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
+  const { reversionSubstitutions, labeledSubstitutions, unlabeledSubstitutions } = privateNucMutations
+
+  // NOTE: Convert NucleotideDeletionSimple to NucleotideSubstitutionSimple,
+  // and then everything to NucleotideSubstitutions, so that it's easier to render badge components.
+  const reversions = reversionSubstitutions.map(convertSimpleSubToSub)
+
+  const labeled = labeledSubstitutions
+
+  // NOTE: we ignore unlabeled deletions. There are too many of them
+  // TODO: consider converting deletions to ranges, as in the "Gap" column.
+  const unlabeled = unlabeledSubstitutions.map(convertSimpleSubToSub)
+
+  const totalMutations = reversions.length + labeled.length + unlabeled.length
+
+  return { reversions, labeled, unlabeled, totalMutations }
+}
+
 export interface AnalysisResult {
   seqName: string
   substitutions: NucleotideSubstitution[]
@@ -270,6 +347,8 @@ export interface AnalysisResult {
   pcrPrimerChanges: PcrPrimerChange[]
   totalPcrPrimerChanges: number
   clade: string
+  privateNucMutations: PrivateMutations
+  privateAaMutations: Record<string, PrivateMutations>
   qc: QcResult
   customNodeAttributes: Record<string, string>
 }
@@ -315,6 +394,7 @@ export interface DatasetFiles {
   geneMap: string
   primers: string
   qc: string
+  virusPropertiesJson: string
   reference: string
   sequences: string
   tree: string
@@ -378,5 +458,6 @@ export interface UrlParams {
   inputTree?: string
   inputPcrPrimers?: string
   inputQcConfig?: string
+  inputVirusJson?: string
   inputGeneMap?: string
 }

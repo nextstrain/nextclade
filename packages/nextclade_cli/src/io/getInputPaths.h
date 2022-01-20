@@ -16,14 +16,18 @@ namespace Nextclade {
   class ErrorCliDatasetFileNotFound : public ErrorFatal {
   public:
     explicit ErrorCliDatasetFileNotFound(const std::string& pathStr)
-        : ErrorFatal(fmt::format("Dataset file not found: \"{:s}\". Dataset is corrupted.", pathStr)) {}
+        : ErrorFatal(
+            fmt::format("Dataset file not found: \"{:s}\". Dataset is corrupted or is too old for this version of "
+                        "Nextclade CLI. Try downloading the latest dataset compatible with Nextclade CLI {}.",
+              pathStr, Nextclade::getVersion())) {}
   };
 
   class ErrorFileNotFound : public ErrorFatal {
   public:
     explicit ErrorFileNotFound(const std::string& pathStr)
         : ErrorFatal(fmt::format("File not found: \"{:s}\". Please verify correctness of input flags. If a dataset is "
-                                 "used, check that the dataset is not corrupted.",
+                                 "used, check that the dataset is not corrupted and is compatible with this version of "
+                                 "Nextclade CLI.",
             pathStr)) {}
   };
 
@@ -33,6 +37,7 @@ namespace Nextclade {
     std::string inputRootSeq;
     std::optional<std::string> inputGeneMap;
     std::string inputQcConfig;
+    std::string inputVirusJson;
     std::string inputTree;
     std::optional<std::string> inputPcrPrimers;
   };
@@ -76,6 +81,7 @@ namespace Nextclade {
     auto inputRootSeq = std::string{cliParams->inputRootSeq};
     auto inputGeneMap = std::string{cliParams->inputGeneMap};
     auto inputQcConfig = std::string{cliParams->inputQcConfig};
+    auto inputVirusJson = std::string{cliParams->inputVirusJson};
     auto inputTree = std::string{cliParams->inputTree};
     auto inputPcrPrimers = std::string{cliParams->inputPcrPrimers};
 
@@ -114,6 +120,7 @@ namespace Nextclade {
       inputRootSeq = takeFilenameFromDatasetMaybe(inputRootSeq, inputDataset, "reference.fasta");
       inputGeneMap = takeFilenameFromDatasetMaybe(inputGeneMap, inputDataset, "genemap.gff");
       inputQcConfig = takeFilenameFromDatasetMaybe(inputQcConfig, inputDataset, "qc.json");
+      inputVirusJson = takeFilenameFromDatasetMaybe(inputVirusJson, inputDataset, "virus_properties.json");
       inputTree = takeFilenameFromDatasetMaybe(inputTree, inputDataset, "tree.json");
       inputPcrPrimers = takeFilenameFromDatasetMaybe(inputPcrPrimers, inputDataset, "primers.csv");
     }
@@ -123,6 +130,7 @@ namespace Nextclade {
       .inputRootSeq = toAbsolutePathRequired(inputRootSeq),
       .inputGeneMap = toAbsolutePathOptional(inputGeneMap),
       .inputQcConfig = toAbsolutePathRequired(inputQcConfig),
+      .inputVirusJson = toAbsolutePathRequired(inputVirusJson),
       .inputTree = toAbsolutePathRequired(inputTree),
       .inputPcrPrimers = toAbsolutePathOptional(inputPcrPrimers),
     };

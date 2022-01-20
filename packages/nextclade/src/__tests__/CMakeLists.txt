@@ -10,6 +10,7 @@ find_package(fmt 7.1.0 REQUIRED)
 
 add_executable(${PROJECT_NAME}
   _musl_workarounds.c
+  findDeletionRanges.test.cpp
   findNucChanges.test.cpp
   findNucleotideRanges.test.cpp
   findPrivateNucMutations.test.cpp

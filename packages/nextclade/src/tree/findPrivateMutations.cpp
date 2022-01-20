@@ -17,7 +17,7 @@
 * |---|--------------------------------------------------------------|---------|---------------|--------------|
 * | 3 | mutation in sequence but not in node                         |   yes   |    seq.ref    |   seq.qry    |
 * |---|--------------------------------------------------------------|---------|---------------|--------------|
-* | 4 | mutation in node, but not in sequence, aka "reversal"        |   yes   |    node.qry   |   node.ref   |
+* | 4 | mutation in node, but not in sequence, aka "reversion"       |   yes   |    node.qry   |   node.ref   |
 * |   | (mutation in sequence that reverts the character to ref seq) |         |               |              |
 * |---|--------------------------------------------------------------|---------|---------------|--------------|
 * | 5 | unknown in sequence, mutation in node                        |   no    |      N/A      |     N/A      |
@@ -31,12 +31,12 @@
 */
 #include "findPrivateMutations.h"
 
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 
 #include <algorithm>
 #include <map>
-#include <common/safe_vector.h>
 
 #include "../analyze/isSequenced.h"
 #include "../analyze/nucleotide.h"
@@ -46,10 +46,23 @@
 #include "../utils/filter.h"
 #include "../utils/mapFind.h"
 #include "../utils/range.h"
+#include "utils/concat.h"
 
 
 namespace Nextclade {
   namespace {
+
+    /** Intermediate results, after labeling. At this point we no longer have reversions (see struct above). */
+    template<typename Letter>
+    struct LabelPrivateMutationsResult {
+      // Mutations for which there's a label in the label map
+      safe_vector<SubstitutionSimpleLabeled<Letter>> labeledSubstitutions;
+      safe_vector<DeletionSimpleLabeled<Letter>> labeledDeletions;
+
+      // Mutations for which there's no label in the label map
+      safe_vector<SubstitutionSimple<Letter>> unlabeledSubstitutions;
+      safe_vector<DeletionSimple<Letter>> unlabeledDeletions;
+    };
 
     /** Generic version of isSequenced() function */
     template<typename Letter>
@@ -92,11 +105,11 @@ namespace Nextclade {
       /* in */ const std::map<int, Letter>& nodeMutMap,                         //
       /* in */ const safe_vector<Substitution<Letter>>& substitutions,          //
       /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateSubstitutions,//
-      /* inout */ std::set<int>& seqPositionsCovered                            //
+      /* inout */ std::set<int>& seqPositionsMutatedOrDeleted                   //
     ) {
       for (const auto& seqMut : substitutions) {
         const auto& pos = seqMut.pos;
-        seqPositionsCovered.insert(pos);
+        seqPositionsMutatedOrDeleted.insert(pos);
 
         if (isUnknown(seqMut.qry)) {
           // Cases 5/6: Unknown in sequence
@@ -137,7 +150,7 @@ namespace Nextclade {
       /* in */ const safe_vector<Deletion<Letter>>& deletions,          //
       /* in */ const Sequence<Letter>& refSeq,                          //
       /* inout */ safe_vector<DeletionSimple<Letter>>& privateDeletions,//
-      /* inout */ std::set<int>& seqPositionsCovered                    //
+      /* inout */ std::set<int>& seqPositionsMutatedOrDeleted           //
     );
 
     /** Specialization of `processSeqDeletions()` for nucleotides */
@@ -147,7 +160,7 @@ namespace Nextclade {
       /* in */ const safe_vector<Deletion<Nucleotide>>& deletions,          //
       /* in */ const Sequence<Nucleotide>& refSeq,                          //
       /* inout */ safe_vector<DeletionSimple<Nucleotide>>& privateDeletions,//
-      /* inout */ std::set<int>& seqPositionsCovered                        //
+      /* inout */ std::set<int>& seqPositionsMutatedOrDeleted               //
     ) {
       for (const auto& del : deletions) {
         const auto& start = del.start;
@@ -155,7 +168,7 @@ namespace Nextclade {
 
         for (int pos = start; pos < end; ++pos) {
           const auto& nodeQueryNuc = mapFind(nodeMutMap, pos);
-          seqPositionsCovered.insert(pos);
+          seqPositionsMutatedOrDeleted.insert(pos);
 
           if (!nodeQueryNuc) {
             // Case 3: Deletion in sequence but not in node, i.e. a newly occurred deletion.
@@ -181,12 +194,12 @@ namespace Nextclade {
       /* in */ const safe_vector<Deletion<Aminoacid>>& deletions,          //
       /* in */ const Sequence<Aminoacid>& refSeq,                          //
       /* inout */ safe_vector<DeletionSimple<Aminoacid>>& privateDeletions,//
-      /* inout */ std::set<int>& seqPositionsCovered                       //
+      /* inout */ std::set<int>& seqPositionsMutatedOrDeleted              //
     ) {
       for (const auto& del : deletions) {
         const auto& pos = del.pos;
         const auto& nodeQueryNuc = mapFind(nodeMutMap, pos);
-        seqPositionsCovered.insert(pos);
+        seqPositionsMutatedOrDeleted.insert(pos);
 
         if (!nodeQueryNuc) {
           // Case 3: Deletion in sequence but not in node, i.e. a newly occurred deletion.
@@ -206,99 +219,232 @@ namespace Nextclade {
 
 
     /**
-     * Iterates over node mutations, compares node and sequence mutations and finds the private ones.
+     * Iterates over node mutations, compares node and sequence mutations and finds reversions.
      *
      * This function is generic and is suitable for both nucleotide and aminoacid mutations. Substitutions and
-     * deletions are handled in one go (nodes don't distinguish them)
+     * deletions are handled in one go (nodes don't distinguish between them)
      */
     template<typename Letter>
-    void processNodeMutations(                                                  //
-      /* in */ const std::map<int, Letter>& nodeMutMap,                         //
-      /* in */ const AnalysisResult& seq,                                       //
-      /* in */ const Sequence<Letter>& refSeq,                                  //
-      /* in */ const std::set<int>& seqPositionsCovered,                        //
-      /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateSubstitutions,//
-      /* inout */ safe_vector<DeletionSimple<Letter>>& privateDeletions         //
+    void findReversions(                                                                 //
+      /* in */ const std::map<int, Letter>& nodeMutMap,                                  //
+      /* in */ const AnalysisResult& seq,                                                //
+      /* in */ const Sequence<Letter>& refSeq,                                           //
+      /* in */ const std::set<int>& seqPositionsMutatedOrDeleted,                        //
+      /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateReversionSubstitutions,//
+      /* inout */ safe_vector<SubstitutionSimple<Letter>>& privateReversionsOfDeletions  //
     ) {
       for (const auto& [pos, nodeQueryNuc] : nodeMutMap) {
-        const bool notCoveredYet = !has(seqPositionsCovered, pos);
+        const bool seqHasMutOrDel = has(seqPositionsMutatedOrDeleted, pos);
         const bool isSequenced = isSequencedGeneric(pos, seq, LetterTag<Letter>{});
-        if (notCoveredYet && isSequenced && !isGap(nodeQueryNuc)) {
-          // Case 4: Mutation in node, but not in sequence. This is a so-called reversal. Mutation in sequence reverts
+        if (!seqHasMutOrDel && isSequenced) {
+          // Case 4: Mutation in node, but not in sequence. This is a so-called reversion. Mutation in sequence reverts
           // the character to ref seq.
           // Action: Add mutation from node query character to character in reference sequence.
           const auto& refNuc = refSeq[pos];
-          if (isGap<Letter>(refNuc)) {
-            privateDeletions.emplace_back(DeletionSimple<Letter>{.ref = nodeQueryNuc, .pos = pos});
+
+          if (isGap(nodeQueryNuc)) {
+            privateReversionsOfDeletions.emplace_back(
+              SubstitutionSimple<Letter>{.ref = nodeQueryNuc, .pos = pos, .qry = refNuc});
           } else {
-            privateSubstitutions.emplace_back(
+            privateReversionSubstitutions.emplace_back(
               SubstitutionSimple<Letter>{.ref = nodeQueryNuc, .pos = pos, .qry = refNuc});
           }
         }
       }
     }
 
+
+    /**
+   * Subdivides private mutations into labeled and unlabeled, according to label map.
+   *
+   * If there's a match in the label map, add mutation to the labelled list, and attach the corresponding labels.
+   * If not, keep it in the unlabelled list.
+   */
     template<typename Letter>
-    PrivateMutations<Letter> findPrivateMutations(          //
-      const std::map<int, Letter>& nodeMutMap,              //
-      const AnalysisResult& seq,                            //
-      const safe_vector<Substitution<Letter>> substitutions,//
-      const safe_vector<Deletion<Letter>> deletions,        //
-      const Sequence<Letter>& refSeq                        //
+    LabelPrivateMutationsResult<Letter> labelPrivateMutations(
+      const safe_vector<SubstitutionSimple<Letter>>& privateSubstitutions,
+      const safe_vector<DeletionSimple<Letter>>& privateDeletions,
+      const safe_vector<GenotypeLabeled<Letter>>& substitutionLabelMap,
+      const safe_vector<GenotypeLabeled<Letter>>& deletionLabelMap) {
+
+      // We use binary search, so we expect label maps to be sorted
+      precondition(std::is_sorted(substitutionLabelMap.cbegin(), substitutionLabelMap.cend()));
+      precondition(std::is_sorted(deletionLabelMap.cbegin(), deletionLabelMap.cend()));
+
+      LabelPrivateMutationsResult<Letter> result;
+      result.labeledSubstitutions.reserve(privateSubstitutions.size());
+      result.unlabeledSubstitutions.reserve(privateSubstitutions.size());
+
+      // NOTE: std::lower_bound is basically a binary search
+      // TODO: binary search might be slower than needed. Perhaps try std::map here.
+      for (const auto& substitution : privateSubstitutions) {
+        auto match = std::find_if(substitutionLabelMap.cbegin(), substitutionLabelMap.cend(),
+          [&substitution](const GenotypeLabeled<Letter>& labeled) { return labeled.genotype == substitution; });
+        if (match != substitutionLabelMap.end()) {
+          result.labeledSubstitutions.emplace_back(
+            SubstitutionSimpleLabeled<Letter>{.substitution = substitution, .labels = match->labels});
+        } else {
+          result.unlabeledSubstitutions.push_back(substitution);
+        }
+      }
+
+      result.labeledDeletions.reserve(privateDeletions.size());
+      result.unlabeledDeletions.reserve(privateDeletions.size());
+      for (const auto& deletion : privateDeletions) {
+        auto match = std::find_if(deletionLabelMap.cbegin(), deletionLabelMap.cend(),
+          [&deletion](const GenotypeLabeled<Letter>& labeled) { return labeled.genotype == deletion; });
+        if (match != deletionLabelMap.end()) {
+          result.labeledDeletions.emplace_back(
+            DeletionSimpleLabeled<Letter>{.deletion = deletion, .labels = match->labels});
+        } else {
+          result.unlabeledDeletions.push_back(deletion);
+        }
+      }
+
+      result.labeledSubstitutions.shrink_to_fit();
+      result.labeledDeletions.shrink_to_fit();
+      result.unlabeledSubstitutions.shrink_to_fit();
+      result.unlabeledDeletions.shrink_to_fit();
+
+      return result;
+    }
+
+
+    template<typename Letter>
+    PrivateMutations<Letter> findPrivateMutations(                     //
+      const std::map<int, Letter>& nodeMutMap,                         //
+      const AnalysisResult& seq,                                       //
+      const safe_vector<Substitution<Letter>> substitutions,           //
+      const safe_vector<Deletion<Letter>> deletions,                   //
+      const Sequence<Letter>& refSeq,                                  //
+      const safe_vector<GenotypeLabeled<Letter>>& substitutionLabelMap,//
+      const safe_vector<GenotypeLabeled<Letter>>& deletionLabelMap     //
     ) {
 
-      safe_vector<SubstitutionSimple<Letter>> privateSubstitutions;
-      privateSubstitutions.reserve(substitutions.size() + nodeMutMap.size());
+      safe_vector<SubstitutionSimple<Letter>> privateNonReversionSubstitutions;
+      privateNonReversionSubstitutions.reserve(substitutions.size());
 
-      safe_vector<DeletionSimple<Letter>> privateDeletions;
-      privateDeletions.reserve(deletions.size() + nodeMutMap.size());
+      safe_vector<DeletionSimple<Letter>> privateNonReversionDeletions;
+      privateNonReversionDeletions.reserve(deletions.size());
 
       // Remember which positions we cover while iterating sequence mutations,
       // to be able to skip them when we iterate over node mutations
-      std::set<int> seqPositionsCovered;
+      std::set<int> seqPositionsMutatedOrDeleted;
 
       // Iterate over sequence substitutions
-      processSeqSubstitutions(nodeMutMap, substitutions, privateSubstitutions, seqPositionsCovered);
+      processSeqSubstitutions(nodeMutMap, substitutions, privateNonReversionSubstitutions,
+        seqPositionsMutatedOrDeleted);
 
       // Iterate over sequence deletions
-      processSeqDeletions(nodeMutMap, deletions, refSeq, privateDeletions, seqPositionsCovered);
+      processSeqDeletions(nodeMutMap, deletions, refSeq, privateNonReversionDeletions, seqPositionsMutatedOrDeleted);
 
-      // Iterate over node substitutions and deletions
-      processNodeMutations(nodeMutMap, seq, refSeq, seqPositionsCovered, privateSubstitutions, privateDeletions);
+      safe_vector<SubstitutionSimple<Letter>> privateReversionSubstitutions;
+      privateReversionSubstitutions.reserve(nodeMutMap.size());
 
-      eraseDuplicatesInPlace(privateSubstitutions);
-      eraseDuplicatesInPlace(privateDeletions);
+      safe_vector<SubstitutionSimple<Letter>> privateReversionsOfDeletions;
+      privateReversionsOfDeletions.reserve(nodeMutMap.size());
 
-      privateSubstitutions.shrink_to_fit();
-      privateDeletions.shrink_to_fit();
+      // Iterate over node substitutions and deletions and find reversions
+      findReversions(nodeMutMap, seq, refSeq, seqPositionsMutatedOrDeleted, privateReversionSubstitutions,
+        privateReversionsOfDeletions);
+
+      eraseDuplicatesInPlace(privateNonReversionSubstitutions);
+      eraseDuplicatesInPlace(privateNonReversionDeletions);
+
+      privateNonReversionSubstitutions.shrink_to_fit();
+      privateNonReversionDeletions.shrink_to_fit();
+
+      const auto& afterLabeling = labelPrivateMutations(privateNonReversionSubstitutions, privateNonReversionDeletions,
+        substitutionLabelMap, deletionLabelMap);
+
+      auto privateSubstitutions = merge(privateReversionSubstitutions, privateNonReversionSubstitutions);
+      privateSubstitutions = merge(privateSubstitutions, privateReversionsOfDeletions);
+      auto privateDeletions = privateNonReversionDeletions;
+
+      auto totalPrivateSubstitutions = safe_cast<int>(privateSubstitutions.size());
+      auto totalPrivateDeletions = safe_cast<int>(privateDeletions.size());
+      auto totalReversionSubstitutions = safe_cast<int>(privateReversionSubstitutions.size());
+      auto totalReversionsOfDeletions = safe_cast<int>(privateReversionsOfDeletions.size());
+      auto totalLabeledSubstitutions = safe_cast<int>(afterLabeling.labeledSubstitutions.size());
+      auto totalLabeledDeletions = safe_cast<int>(afterLabeling.labeledDeletions.size());
+      auto totalUnlabeledSubstitutions = safe_cast<int>(afterLabeling.unlabeledSubstitutions.size());
+      auto totalUnlabeledDeletions = safe_cast<int>(afterLabeling.unlabeledDeletions.size());
 
       return PrivateMutations<Letter>{
         .privateSubstitutions = privateSubstitutions,
         .privateDeletions = privateDeletions,
+        .reversionSubstitutions = privateReversionSubstitutions,
+        .reversionsOfDeletions = privateReversionsOfDeletions,
+        .labeledSubstitutions = afterLabeling.labeledSubstitutions,
+        .labeledDeletions = afterLabeling.labeledDeletions,
+        .unlabeledSubstitutions = afterLabeling.unlabeledSubstitutions,
+        .unlabeledDeletions = afterLabeling.unlabeledDeletions,
+        .totalPrivateSubstitutions = totalPrivateSubstitutions,
+        .totalPrivateDeletions = totalPrivateDeletions,
+        .totalReversionSubstitutions = totalReversionSubstitutions,
+        .totalReversionsOfDeletions = totalReversionsOfDeletions,
+        .totalLabeledSubstitutions = totalLabeledSubstitutions,
+        .totalLabeledDeletions = totalLabeledDeletions,
+        .totalUnlabeledSubstitutions = totalUnlabeledSubstitutions,
+        .totalUnlabeledDeletions = totalUnlabeledDeletions,
       };
     }
 
   }// namespace
 
+
   /**
    * Finds private nucleotide mutations. See the extended comment for a generic implementation above.
    */
-  PrivateNucleotideMutations findPrivateNucMutations(//
-    const std::map<int, Nucleotide>& nodeMutMap,     //
-    const AnalysisResult& seq,                       //
-    const NucleotideSequence& refSeq                 //
+  PrivateNucleotideMutations findPrivateNucMutations(                    //
+    const std::map<int, Nucleotide>& nodeMutMap,                         //
+    const AnalysisResult& seq,                                           //
+    const NucleotideSequence& refSeq,                                    //
+    const safe_vector<GenotypeLabeled<Nucleotide>>& substitutionLabelMap,//
+    const safe_vector<GenotypeLabeled<Nucleotide>>& deletionLabelMap     //
   ) {
-    return findPrivateMutations<Nucleotide>(nodeMutMap, seq, seq.substitutions, seq.deletions, refSeq);
+    return findPrivateMutations<Nucleotide>(nodeMutMap, seq, seq.substitutions, seq.deletions, refSeq,
+      substitutionLabelMap, deletionLabelMap);
   }
 
+  /** Returns predicate that allows to detect substitutions falling to the ranges of unknown aminoacids  */
+  auto hasUnknownAaSubstitutions(const safe_vector<GeneAminoacidRange>& unknownAaRanges) {
+    return [&unknownAaRanges](const AminoacidSubstitutionSimple& substitution) {
+      return !isUnknownAa(substitution.pos, unknownAaRanges);
+    };
+  }
+
+  /** Returns predicate that allows to detect deletions falling to the ranges of unknown aminoacids  */
+  auto hasUnknownAaDeletions(const safe_vector<GeneAminoacidRange>& unknownAaRanges) {
+    return [&unknownAaRanges](
+             const AminoacidDeletionSimple& deletion) { return !isUnknownAa(deletion.pos, unknownAaRanges); };
+  }
+
+  /** Returns predicate that allows to detect labeled substitutions falling to the ranges of unknown aminoacids  */
+  auto hasUnknownAaSubstitutionsLabeled(const safe_vector<GeneAminoacidRange>& unknownAaRanges) {
+    return [&unknownAaRanges](const AminoacidSubstitutionSimpleLabeled& labeled) {
+      return !isUnknownAa(labeled.substitution.pos, unknownAaRanges);
+    };
+  }
+
+  /** Returns predicate that allows to detect labeled deletions falling to the ranges of unknown aminoacids  */
+  auto hasUnknownAaDeletionsLabeled(const safe_vector<GeneAminoacidRange>& unknownAaRanges) {
+    return [&unknownAaRanges](const AminoacidDeletionSimpleLabeled& labeled) {
+      return !isUnknownAa(labeled.deletion.pos, unknownAaRanges);
+    };
+  }
+
+
   /**
-   * Finds private aminoacid mutations. See the extended comment for a generic implementation above.
+   * Finds private aminoacid mutations. See the extended comment for the generic implementation above.
    */
   std::map<std::string, PrivateAminoacidMutations> findPrivateAaMutations(//
     const std::map<std::string, std::map<int, Aminoacid>>& nodeMutMap,    //
     const AnalysisResult& seq,                                            //
     const std::map<std::string, RefPeptideInternal>& refPeptides,         //
-    const GeneMap& geneMap                                                //
+    const GeneMap& geneMap,                                               //
+    const safe_vector<GenotypeLabeled<Aminoacid>>& substitutionLabelMap,  //
+    const safe_vector<GenotypeLabeled<Aminoacid>>& deletionLabelMap       //
   ) {
     std::map<std::string, PrivateAminoacidMutations> result;
 
@@ -308,7 +454,7 @@ namespace Nextclade {
 
       // Only process amino acid mutations if the peptide is not missing (i.e. gene was properly translated and aligned)
       // In missing peptides all aminoacid mutations are also missing. We want to avoid treating these missing mutations
-      // as reversals (Case 4). Detecting reversals makes sense under normal circumstances
+      // as reversions (Case 4). Detecting reversions makes sense under normal circumstances
       // when a single mutation is not present in a well-formed peptide, but not when all mutations are missing because
       // gene processing failed.
       if (has(seq.missingGenes, geneName)) {
@@ -341,8 +487,8 @@ namespace Nextclade {
       const auto unknownAaRanges =
         filter(seq.unknownAaRanges, [&geneName](const GeneAminoacidRange& unk) { return unk.geneName == geneName; });
 
-      auto resultForGene =
-        findPrivateMutations<Aminoacid>(nodeMutMapForGene, seq, aaSubstitutions, aaDeletions, refPeptide);
+      auto found = findPrivateMutations<Aminoacid>(nodeMutMapForGene, seq, aaSubstitutions, aaDeletions, refPeptide,
+        substitutionLabelMap, deletionLabelMap);
 
       // Filter out substitutions and deletions from results, where positions fall into ranges with
       // aminoacid X in query peptide.
@@ -351,13 +497,19 @@ namespace Nextclade {
       // results (a mutation from the node all the way to what was in the ref seq). We chose to remove these,
       // because we believe that a reversion is a less likely event and most of these are the sequencing errors
       // followed by uncertainty in translation.
-      resultForGene.privateSubstitutions = filter(resultForGene.privateSubstitutions,
-        [&unknownAaRanges](const AminoacidSubstitutionSimple& sub) { return !isUnknownAa(sub.pos, unknownAaRanges); });
+      //
+      // clang-format off
+      found.privateSubstitutions = filter(found.privateSubstitutions, hasUnknownAaSubstitutions(unknownAaRanges));
+      found.privateDeletions = filter(found.privateDeletions, hasUnknownAaDeletions(unknownAaRanges));
+      found.reversionSubstitutions = filter(found.reversionSubstitutions, hasUnknownAaSubstitutions(unknownAaRanges));
+      found.labeledSubstitutions = filter(found.labeledSubstitutions, hasUnknownAaSubstitutionsLabeled(unknownAaRanges));
+      found.unlabeledSubstitutions = filter(found.unlabeledSubstitutions, hasUnknownAaSubstitutions(unknownAaRanges));
+      found.reversionsOfDeletions = filter(found.reversionsOfDeletions, hasUnknownAaSubstitutions(unknownAaRanges));
+      found.labeledDeletions = filter(found.labeledDeletions, hasUnknownAaDeletionsLabeled(unknownAaRanges));
+      found.unlabeledDeletions = filter(found.unlabeledDeletions, hasUnknownAaDeletions(unknownAaRanges));
+      // clang-format on
 
-      resultForGene.privateDeletions = filter(resultForGene.privateDeletions,
-        [&unknownAaRanges](const AminoacidDeletionSimple& del) { return !isUnknownAa(del.pos, unknownAaRanges); });
-
-      result[geneName] = resultForGene;
+      result[geneName] = found;
     }
 
     return result;
