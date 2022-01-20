@@ -35,7 +35,7 @@ export function ColumnInsertions({ sequence }: ColumnInsertionsProps) {
         <Row noGutters>
           <Col>
             <h6>{aaTitle}</h6>
-            <ListOfInsertions insertions={aaInsertions} totalInsertions={totalAminoacidInsertions} />
+            <ListOfInsertions insertions={aaInsertions} totalInsertions={totalAminoacidInsertions} isAminoacid />
           </Col>
         </Row>
       </Tooltip>
