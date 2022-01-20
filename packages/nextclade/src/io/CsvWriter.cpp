@@ -62,7 +62,6 @@ namespace Nextclade {
         "privateNucMutations.totalUnlabeledSubstitutions",
 
         "privateNucMutations.totalPrivateSubstitutions",
-        "privateNucMutations.totalPrivateDeletions",
 
         "frameShifts",
         "aaSubstitutions",
@@ -209,8 +208,6 @@ namespace Nextclade {
 
       doc.SetCell(getColumnIndex("privateNucMutations.totalPrivateSubstitutions"), rowName,
         result.privateNucMutations.totalPrivateSubstitutions);
-      doc.SetCell(getColumnIndex("privateNucMutations.totalPrivateDeletions"), rowName,
-        result.privateNucMutations.totalPrivateDeletions);
 
       doc.SetCell(getColumnIndex("frameShifts"), rowName, formatAndJoin(result.frameShifts, formatFrameShift, ","));
       doc.SetCell(getColumnIndex("aaSubstitutions"), rowName,
