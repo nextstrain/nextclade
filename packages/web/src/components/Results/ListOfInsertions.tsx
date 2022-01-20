@@ -13,8 +13,17 @@ const InsertionsTable = styled(TableSlimWithBorders)`
   min-width: 300px;
 `
 
+const ThNormal = styled.td`
+  width: 80px;
+`
+
 const ThFragment = styled.td`
   min-width: 200px;
+`
+
+const TdNormal = styled.td`
+  min-width: 80px;
+  font-family: ${(props) => props.theme.font.monospace};
 `
 
 const TdFragment = styled.td`
@@ -27,22 +36,22 @@ export interface ListOfInsertionsNucProps {
   totalInsertions: number
 }
 
-export function ListOfInsertionsNuc({ insertions, totalInsertions }: ListOfInsertionsNucProps) {
+export function ListOfInsertions({ insertions, totalInsertions }: ListOfInsertionsNucProps) {
   const { t } = useTranslation()
 
   const { thead, tbody } = useMemo(() => {
     const thead = (
       <tr>
-        <th className="text-center">{t('After ref pos.')}</th>
-        <th className="text-center">{t('Length')}</th>
-        <ThFragment className="text-center">{t('Nuc. fragment')}</ThFragment>
+        <ThNormal className="text-center">{t('After ref pos.')}</ThNormal>
+        <ThNormal className="text-center">{t('Length')}</ThNormal>
+        <ThFragment className="text-center">{t('Inserted fragment')}</ThFragment>
       </tr>
     )
 
     const tbody = insertions.map(({ pos, ins }) => (
       <tr key={pos}>
-        <td className="text-center">{pos + 1}</td>
-        <td className="text-center">{ins.length}</td>
+        <TdNormal className="text-center">{pos + 1}</TdNormal>
+        <TdNormal className="text-center">{ins.length}</TdNormal>
         <TdFragment className="text-left">{truncateString(ins, INSERTION_MAX_LENGTH)}</TdFragment>
       </tr>
     ))
