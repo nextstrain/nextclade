@@ -123,7 +123,7 @@ namespace Nextclade {
 
       std::ofstream outputInsertionsStream;
       openOutputFile(outputPaths.outputInsertions, outputInsertionsStream);
-      outputInsertionsStream << "seqName,insertions\n";
+      outputInsertionsStream << "seqName,insertions,aaInsertions\n";
 
       std::ofstream outputErrorsFile;
       openOutputFile(outputPaths.outputErrors, outputErrorsFile);

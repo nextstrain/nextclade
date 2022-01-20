@@ -846,8 +846,6 @@ namespace Nextclade {
 
   std::string formatAminoacidDeletion(const AminoacidDeletion& del);
 
-  std::string formatAminoacidInsertion(const AminoacidInsertion& insertion);
-
   std::string formatClusteredSnp(const ClusteredSnp& csnp);
 
   std::string formatFrameShift(const FrameShiftResult& frameShift);

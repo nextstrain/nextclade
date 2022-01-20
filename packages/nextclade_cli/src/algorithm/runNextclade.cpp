@@ -130,6 +130,7 @@ namespace Nextclade {
         const auto &queryPeptides = output.result.queryPeptides;
         const auto &refPeptides = output.result.refPeptides;
         const auto &insertions = output.result.analysisResult.insertions;
+        const auto &aaInsertions = output.result.analysisResult.aaInsertions;
         const auto &warnings = output.result.warnings;
 
         const auto &result = output.result;
@@ -197,7 +198,7 @@ namespace Nextclade {
             outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
           }
 
-          outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+          outputInsertionsStream << formatInsertionsCsvRow(seqName, insertions, aaInsertions);
 
           if (outputJsonStream || outputTreeStream) {
             resultsConcurrent.push_back(output.result.analysisResult);

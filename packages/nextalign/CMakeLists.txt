@@ -23,12 +23,14 @@ add_library(${PROJECT_NAME} STATIC
   src/align/alignPairwise.h
   src/align/alignmentParams.cpp
   src/align/alignmentParams.h
+  src/align/convertAaInsertions.cpp
   src/align/getGapOpenCloseScores.cpp
   src/align/getGapOpenCloseScores.h
   src/alphabet/aminoacids.cpp
   src/alphabet/aminoacids.h
   src/alphabet/nucleotides.cpp
   src/alphabet/nucleotides.h
+  src/io/formatInsertionsCsvRow.cpp
   src/io/gene.io.cpp
   src/io/gene.io.h
   src/io/parseGeneMapGff.cpp

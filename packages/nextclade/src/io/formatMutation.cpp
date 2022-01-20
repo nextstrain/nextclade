@@ -138,14 +138,6 @@ namespace Nextclade {
     return fmt::format("{}:{}", gene, notation);
   }
 
-  std::string formatAminoacidInsertion(const AminoacidInsertion& insertion) {
-    const auto& gene = insertion.gene;
-    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
-    const auto positionOneBased = insertion.pos + 1;
-    const auto insertedSequence = toString(insertion.ins);
-    return fmt::format("{}:{}", gene, positionOneBased, insertedSequence);
-  }
-
   std::string formatClusteredSnp(const ClusteredSnp& csnp) {
     const auto range = formatRange(Range{.begin = csnp.start, .end = csnp.end});
     const auto numberOfSNPs = std::to_string(csnp.numberOfSNPs);
