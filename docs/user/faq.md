@@ -21,7 +21,7 @@ The rules on missing data, private mutations, and SNP clusters mimic the exclusi
 
 ### How can I contact the maintainers of Nextclade?
 
-The Nextstrain team maintains a discussion forum at https://discussion.nextstrain.org. You can post your questions there. For software bugs, feature requests, ideas, technical questions please open an issue on [GitHub](https://github.com/nextstrain/nextclade/issues/new/choose) (requires account registration).
+The Nextstrain team maintains a discussion forum at <https://discussion.nextstrain.org>. You can post your questions there. For software bugs, feature requests, ideas, technical questions please open an issue on [GitHub](https://github.com/nextstrain/nextclade/issues/new/choose) (requires account registration).
 
 ### Can I use my own reference tree?
 
@@ -29,4 +29,4 @@ Yes, you can specify your own tree, reference sequence, QC configuration and oth
 
 ### Is Nextclade available for other pathogens and microorganisms, too?
 
-Nextclade works for other viruses, but you have to specify your own reference sequences, trees, and annotations. Only SARS-CoV-2 data is currently provided as a default. We plan to support other pathogens in the future.
+Nextclade works for other viruses, but you have to specify your own reference sequences, trees, and annotations. Only SARS-CoV-2 and Influenza A/B HA (H3N2,H1N1pdm,Vic,Yam) data is currently provided as a default. We plan to support other pathogens in the future.
