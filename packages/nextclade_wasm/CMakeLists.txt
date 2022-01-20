@@ -53,6 +53,8 @@ target_compile_definitions(${PROJECT_NAME}
   -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
   -DNEXTALIGN_VERSION="${NEXTCLADE_CPP_VERSION}"
 
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
+
   -DFMT_HEADER_ONLY=1
   )
 
@@ -69,6 +71,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+  common
   nextclade_json
   nextclade
 

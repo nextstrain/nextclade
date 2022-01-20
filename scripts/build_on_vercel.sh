@@ -47,8 +47,10 @@ rm /lib64/libvips-cpp.so.42
 rm /lib64/libvips.so.42
 
 # Remove default Python. It does not have SQLite module enabled required for `conan`.
-rm -rf /usr/local/bin/python3.6
-rm -rf /usr/local/lib/python3.6
+rm -rf /usr/local/bin/python3.6 /usr/local/lib/python3.6
+rm -rf /usr/local/lib/python3.9 /usr/local/include/python3.9 /usr/local/bin/python3.9
+
+rm -rf /usr/local/bin/python3
 
 # Add "UIS" repos, with more up-to-date packages (https://ius.io/)
 # Python 3.6 from IUS has SQLite enabled.
@@ -73,6 +75,19 @@ alternatives --install /usr/bin/python3.6 python3.6 /usr/bin/python3.6 60 || tru
 ln -s /usr/bin/python3.6 /usr/local/bin/python3.6 || true
 ln -s /usr/lib/python3.6 /usr/local/lib/python3.6 || true
 export PYTHONPATH=/usr/lib/python3.6${PYTHONPATH:+":$PYTHONPATH"}
+
+
+find / -iname "python" 2>/dev/null || true
+find / -iname "python3" 2>/dev/null || true
+find / -iname "python3.6" 2>/dev/null || true
+find / -iname "python3.9" 2>/dev/null || true
+
+
+
+which "python" || true
+which "python3" || true
+which "python3.6" || true
+which "python3.9" || true
 
 
 # Make sure Python has SQLite module enabled

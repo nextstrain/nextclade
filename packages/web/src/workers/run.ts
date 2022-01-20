@@ -1,4 +1,4 @@
-import { Pool, spawn, Worker } from 'threads'
+import { Pool, spawn as spawnBase, Worker } from 'threads'
 import { concurrent } from 'fasy'
 
 import type { SequenceParserResult } from 'src/algorithms/types'
@@ -7,6 +7,7 @@ import type { AnalysisThread, AnalysisWorker, NextcladeWasmParams } from 'src/wo
 import type { ParseGeneMapThread } from 'src/workers/worker.parseGeneMap'
 import type { ParsePcrPrimerCsvRowsStrThread } from 'src/workers/worker.parsePcrPrimers'
 import type { ParseQcConfigThread } from 'src/workers/worker.parseQcConfig'
+import type { ParseVirusJsonThread } from 'src/workers/worker.parseVirusJson'
 import type { ParseTreeThread } from 'src/workers/worker.parseTree'
 import type { ParseRefSequenceThread } from 'src/workers/worker.parseRefSeq'
 import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
@@ -14,6 +15,13 @@ import type { TreeFinalizeThread } from 'src/workers/worker.treeFinalize'
 import type { TreePrepareThread } from 'src/workers/worker.treePrepare'
 import type { SerializeToCsvThread } from 'src/workers/worker.serializeToCsv'
 import type { SerializeInsertionsToCsvThread } from './worker.serializeInsertionsToCsv'
+
+const WORKER_TIMEOUT_MS = 60 * 1000
+
+/** Wraps `spawn()` from `threads` package to provide a custom initialization timeout interval */
+export const spawn: typeof spawnBase = (worker: Worker) => {
+  return spawnBase(worker, { timeout: WORKER_TIMEOUT_MS })
+}
 
 /**
  * Creates and initializes the analysis webworker pool.
@@ -108,6 +116,13 @@ export async function parseQcConfigString(qcConfigStr: string) {
     new Worker('src/workers/worker.parseQcConfig.ts', { name: 'worker.parseQcConfig' }),
   )
   return thread.parseQcConfigString(qcConfigStr)
+}
+
+export async function parseVirusJsonString(virusJsonStr: string) {
+  const thread = await spawn<ParseVirusJsonThread>(
+    new Worker('src/workers/worker.parseVirusJson.ts', { name: 'worker.parseVirusJson' }),
+  )
+  return thread.parseVirusJsonString(virusJsonStr)
 }
 
 export async function parsePcrPrimerCsvRowsStr(pcrPrimersStrRaw: string, pcrPrimersFilename: string) {

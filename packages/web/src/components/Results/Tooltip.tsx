@@ -29,7 +29,7 @@ export interface TooltipProps extends PropsWithChildren<PopoverProps> {
 export function Tooltip({ children, placement, hideArrow, wide, fullWidth, tooltipWidth, ...restProps }: TooltipProps) {
   return (
     <Popover
-      placement={placement ?? 'auto'}
+      placement={placement}
       hideArrow={hideArrow ?? true}
       delay={0}
       fade={false}

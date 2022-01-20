@@ -50,7 +50,7 @@ export function DocsLink() {
   return (
     <NavLinkContainer className="text-center">
       <NavLinkGrey
-        href="https://docs.nextstrain.org/projects/nextclade/en/latest/user/nextclade-web.html"
+        href="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-web.html"
         alt={t('Documentation')}
         title={t('Documentation')}
       >

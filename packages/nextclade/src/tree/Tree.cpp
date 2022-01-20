@@ -54,7 +54,7 @@ namespace Nextclade {
             divergenceUnitsInt)) {}
   };
 
-  json& get(json& js, const std::string& key, const json& defaultValue = json::object()) {
+  json& get(json& js, const std::string& key, const json& defaultValue) {
     if (!js.contains(key)) {
       js[key] = defaultValue;
     }
@@ -84,6 +84,30 @@ namespace Nextclade {
       }
 
       return TreeNode{j.at("tree")};
+    }
+
+    safe_vector<std::string> getCladeNodeAttrKeys() const {
+      if (!j.is_object()) {
+        throw ErrorAuspiceJsonV2Invalid(j);
+      }
+
+      const auto ptr = json_pointer{"/meta/extensions/nextclade/clade_node_attrs_keys"};
+      if (!j.contains(ptr)) {
+        return {};
+      }
+
+      const auto& cladeNodeAttrKeysJson = j.at(ptr);
+      if (!cladeNodeAttrKeysJson.is_array()) {
+        return {};
+      }
+
+      safe_vector<std::string> cladeNodeAttrKeys;
+      for (const auto& key : cladeNodeAttrKeysJson) {
+        if (key.is_string()) {
+          cladeNodeAttrKeys.push_back(key);
+        }
+      }
+      return cladeNodeAttrKeys;
     }
 
     void addMetadata() {
@@ -252,6 +276,10 @@ namespace Nextclade {
 
   TreeNode Tree::root() const {
     return pimpl->root();
+  }
+
+  safe_vector<std::string> Tree::getCladeNodeAttrKeys() const {
+    return pimpl->getCladeNodeAttrKeys();
   }
 
   void Tree::addMetadata() {

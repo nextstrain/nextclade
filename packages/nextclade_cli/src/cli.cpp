@@ -551,7 +551,7 @@ GeneMap parseGeneMapGffFile(const std::string &filename) {
 }
 
 std::set<std::string> parseGenes(const std::string &genesString) {
-  std::vector<std::string> genes;
+  safe_vector<std::string> genes;
 
   if (!genesString.empty()) {
     boost::algorithm::split(genes, genesString, boost::is_any_of(","));
@@ -723,7 +723,7 @@ void run(
   /* in  */ const ReferenceSequenceData &refData,
   /* in  */ const Nextclade::QcConfig &qcRulesConfig,
   /* in  */ const std::string &treeString,
-  /* in  */ const std::vector<Nextclade::PcrPrimer> &pcrPrimers,
+  /* in  */ const safe_vector<Nextclade::PcrPrimer> &pcrPrimers,
   /* in  */ const GeneMap &geneMap,
   /* in  */ const NextalignOptions &nextalignOptions,
   /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
@@ -840,8 +840,8 @@ void run(
           return;
         }
       } else {
-        std::vector<std::string> warningsCombined;
-        std::vector<std::string> failedGeneNames;
+        safe_vector<std::string> warningsCombined;
+        safe_vector<std::string> failedGeneNames;
         for (const auto &warning : warnings.global) {
           logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
           warningsCombined.push_back(warning);
@@ -904,7 +904,7 @@ void run(
 
   if (outputJsonStream || outputTreeStream) {
     // TODO: try to avoid copy here
-    std::vector<Nextclade::AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
+    safe_vector<Nextclade::AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
 
     if (outputJsonStream) {
       *outputJsonStream << serializeResults(results);
@@ -1038,10 +1038,10 @@ int main(int argc, char *argv[]) {
 
     const auto treeString = readFile(cliParams.inputTree);
 
-    std::vector<Nextclade::PcrPrimer> pcrPrimers;
+    safe_vector<Nextclade::PcrPrimer> pcrPrimers;
     if (cliParams.inputPcrPrimers) {
       const auto pcrPrimersCsvString = readFile(*cliParams.inputPcrPrimers);
-      std::vector<std::string> warnings;
+      safe_vector<std::string> warnings;
       pcrPrimers =
         Nextclade::parseAndConvertPcrPrimersCsv(pcrPrimersCsvString, *cliParams.inputPcrPrimers, refData.seq, warnings);
     }

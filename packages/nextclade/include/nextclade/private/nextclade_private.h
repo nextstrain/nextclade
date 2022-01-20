@@ -1,13 +1,13 @@
 #pragma once
 
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
 
 #include <ostream>
 #include <string>
-#include <vector>
 
 
 namespace Nextclade {
@@ -31,15 +31,17 @@ namespace Nextclade {
     const NucleotideSequence& ref,                               //
     const NucleotideSequence& query,                             //
     const std::map<std::string, RefPeptideInternal>& refPeptides,//
-    const std::vector<RefPeptideInternal>& refPeptidesArr,       //
+    const safe_vector<RefPeptideInternal>& refPeptidesArr,       //
     const GeneMap& geneMap,                                      //
-    const std::vector<PcrPrimer>& pcrPrimers,                    //
+    const safe_vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
+    const VirusJson& virusJson,                                  //
     const Tree& tree,                                            //
-    const NextalignOptions& nextalignOptions                     //
+    const NextalignOptions& nextalignOptions,                    //
+    const safe_vector<std::string>& customNodeAttrKeys           //
   );
 
-  std::vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides);
+  safe_vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides);
 
 
   inline std::ostream& operator<<(std::ostream& os, const NucleotideSubstitution& val) {

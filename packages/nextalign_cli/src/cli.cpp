@@ -1,5 +1,5 @@
 #include <fmt/format.h>
-#include <nextalign/nextalign.h>
+#include <nextalign/private/nextalign_private.h>
 #include <tbb/global_control.h>
 #include <tbb/parallel_pipeline.h>
 
@@ -116,11 +116,6 @@ NextalignOptions validateOptions(const cxxopts::ParseResult &cxxOptsParsed) {
   options.seedNuc.minSeeds = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-min-seeds", ensurePositive);
   options.seedNuc.seedSpacing = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-seed-spacing", ensureNonNegative);
   options.seedNuc.mismatchesAllowed = getParamRequiredDefaulted<int>(cxxOptsParsed, "nuc-mismatches-allowed", ensureNonNegative);
-
-  options.seedAa.seedLength = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-seed-length", ensurePositive);
-  options.seedAa.minSeeds = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-min-seeds", ensurePositive);
-  options.seedAa.seedSpacing = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-seed-spacing", ensureNonNegative);
-  options.seedAa.mismatchesAllowed = getParamRequiredDefaulted<int>(cxxOptsParsed, "aa-mismatches-allowed", ensureNonNegative);
 
   options.translatePastStop = !(getParamOptional<bool>(cxxOptsParsed, "no-translate-past-stop").value_or(false));
   // clang-format on
@@ -341,34 +336,6 @@ std::tuple<CliParams, cxxopts::Options, NextalignOptions> parseCommandLine(int a
     )
 
     (
-      "aa-seed-length",
-      "(optional, integer, positive) Seed length for aminoacid alignment.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.seedLength)),
-      "AA_SEED_LENGTH"
-    )
-
-    (
-      "aa-min-seeds",
-      "(optional, integer, positive) Minimum number of seeds to search for during aminoacid alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--aa-seed-spacing`.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.minSeeds)),
-      "AA_MIN_SEEDS"
-    )
-
-    (
-      "aa-seed-spacing",
-      "(optional, integer, non-negative) Spacing between seeds during aminoacid alignment.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.seedSpacing)),
-      "AA_SEED_SPACING"
-    )
-
-    (
-      "aa-mismatches-allowed",
-      "(optional, integer, non-negative) Maximum number of mismatching aminoacids allowed for a seed to be considered a match.",
-      cxxopts::value<int>()->default_value(std::to_string(getDefaultOptions().seedAa.mismatchesAllowed)),
-      "AA_MISMATCHES_ALLOWED"
-    )
-
-    (
       "no-translate-past-stop",
       "(optional, boolean) Whether to stop gene translation after first stop codon. It will cut the genes in places cases where mutations resulted in premature stop codons. If this flag is present, the aminoacid sequences wil be truncated at the first stop codon and analysis of aminoacid mutations will not be available for the regions after first stop codon.",
       cxxopts::value<bool>(),
@@ -454,12 +421,7 @@ struct ReferenceSequenceData {
 };
 
 ReferenceSequenceData parseRefFastaFile(const std::string &filename) {
-  std::ifstream file(filename);
-  if (!file.good()) {
-    throw ErrorFastaReader(fmt::format("Error: unable to read \"{:s}\"\n", filename));
-  }
-
-  const auto refSeqs = parseSequences(file, filename);
+  const auto refSeqs = parseSequences(filename);
   if (refSeqs.size() != 1) {
     throw ErrorFastaReader(
       fmt::format("Error: {:d} sequences found in reference sequence file, expected 1", refSeqs.size()));
@@ -527,7 +489,9 @@ GeneMap filterGeneMap(const std::set<std::string> &genes, const GeneMap &geneMap
 }
 
 std::string formatCliParams(const CliParams &cliParams) {
-  fmt::memory_buffer buf;
+  fmt::memory_buffer bufRaw;
+  auto buf = std::back_inserter(bufRaw);
+
   fmt::format_to(buf, "\nCLI Parameters:\n");
   fmt::format_to(buf, "{:>20s}=\"{:<d}\"\n", "--jobs", cliParams.jobs);
   fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--sequences", cliParams.sequences);
@@ -558,7 +522,7 @@ std::string formatCliParams(const CliParams &cliParams) {
     fmt::format_to(buf, "{:>20s}=\"{:<s}\"\n", "--output-errors", *cliParams.outputErrors);
   }
 
-  return fmt::to_string(buf);
+  return fmt::to_string(bufRaw);
 }
 
 Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
@@ -612,18 +576,21 @@ Paths getPaths(const CliParams &cliParams, const std::set<std::string> &genes) {
 }
 
 std::string formatPaths(const Paths &paths) {
-  fmt::memory_buffer buf;
+  fmt::memory_buffer bufRaw;
+  auto buf = std::back_inserter(bufRaw);
+
   fmt::format_to(buf, "\nOutput files:\n");
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Aligned sequences", paths.outputFasta.string());
   fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", "Stripped insertions", paths.outputInsertions.string());
 
   for (const auto &[geneName, outputGenePath] : paths.outputGenes) {
-    fmt::memory_buffer bufGene;
+    fmt::memory_buffer bufRawGene;
+    auto bufGene = std::back_inserter(bufRawGene);
     fmt::format_to(bufGene, "{:s} {:>10s}", "Translated genes", geneName);
-    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufGene), outputGenePath.string());
+    fmt::format_to(buf, "{:>30s}: \"{:<s}\"\n", fmt::to_string(bufRawGene), outputGenePath.string());
   }
 
-  return fmt::to_string(buf);
+  return fmt::to_string(bufRaw);
 }
 
 std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteReference) {
@@ -634,7 +601,9 @@ std::string formatRef(const ReferenceSequenceData &refData, bool shouldWriteRefe
 std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &genes) {
   constexpr const auto TABLE_WIDTH = 86;
 
-  fmt::memory_buffer buf;
+  fmt::memory_buffer bufRaw;
+  auto buf = std::back_inserter(bufRaw);
+
   fmt::format_to(buf, "\nGene map:\n");
   fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
   fmt::format_to(buf, "| {:8s} | {:16s} | {:8s} | {:8s} | {:8s} | {:8s} | {:8s} |\n", "Selected", "   Gene Name",
@@ -647,11 +616,12 @@ std::string formatGeneMap(const GeneMap &geneMap, const std::set<std::string> &g
       gene.start + 1, gene.end, gene.length, gene.frame + 1, gene.strand);
   }
   fmt::format_to(buf, "{:s}\n", std::string(TABLE_WIDTH, '-'));
-  return fmt::to_string(buf);
+
+  return fmt::to_string(bufRaw);
 }
 
-std::string formatInsertions(const std::vector<Insertion> &insertions) {
-  std::vector<std::string> insertionStrings;
+std::string formatInsertions(const safe_vector<Insertion> &insertions) {
+  safe_vector<std::string> insertionStrings;
   insertionStrings.reserve(insertions.size());
   for (const auto &insertion : insertions) {
     insertionStrings.emplace_back(fmt::format("{:d}:{:s}", insertion.pos, insertion.ins));
@@ -712,12 +682,12 @@ void run(
    * reads and parses the contents of it, and returns parsed sequences */
   const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(ioFiltersMode,//
     [&inputFastaStream](tbb::flow_control &fc) -> AlgorithmInput {
-      if (!inputFastaStream->good()) {
+      AlgorithmInput input;
+      if (!inputFastaStream->next(input)) {
         fc.stop();
         return {};
       }
-
-      return inputFastaStream->next();
+      return input;
     });
 
 
@@ -728,7 +698,7 @@ void run(
     [&ref, &refPeptides, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
       try {
         const auto query = toNucleotideSequence(input.seq);
-        const auto result = nextalign(query, ref, refPeptides, geneMap, options);
+        const auto result = nextalignInternal(query, ref, refPeptides, geneMap, options);
         return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
       } catch (const std::exception &e) {
         const auto &error = std::current_exception();
@@ -764,8 +734,8 @@ void run(
       logger.info("| {:5d} | {:<40s} | {:>16d} | {:12d} |",//
         index, seqName, alignmentScore, insertions.size());
 
-      std::vector<std::string> warningsCombined;
-      std::vector<std::string> failedGeneNames;
+      safe_vector<std::string> warningsCombined;
+      safe_vector<std::string> failedGeneNames;
       for (const auto &warning : warnings.global) {
         logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
         warningsCombined.push_back(warning);
@@ -786,13 +756,13 @@ void run(
       outputErrorsFile << fmt::format("\"{:s}\",\"{:s}\",\"{:s}\",\"{:s}\"\n", seqName, "", warningsJoined,
         failedGeneNamesJoined);
 
-      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, queryAligned);
+      outputFastaStream << fmt::format(">{:s}\n{:s}\n", seqName, toString(queryAligned));
 
       for (const auto &peptide : queryPeptides) {
-        outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
+        outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, toString(peptide.seq));
       }
 
-      outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+      outputInsertionsStream << formatInsertionsCsvRow(seqName, insertions, queryPeptides);
     });
 
   try {
@@ -849,12 +819,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    std::ifstream fastaFile(cliParams.sequences);
-    auto fastaStream = makeFastaStream(fastaFile, cliParams.sequences);
-    if (!fastaFile.good()) {
-      logger.error("Error: unable to read \"{:s}\"", cliParams.sequences);
-      std::exit(1);
-    }
+    auto fastaStream = makeFastaStream(cliParams.sequences);
 
     const auto paths = getPaths(cliParams, genes);
     logger.info(formatPaths(paths));
@@ -883,7 +848,7 @@ int main(int argc, char *argv[]) {
     if (!outputInsertionsFile.good()) {
       throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", paths.outputInsertions.string()));
     }
-    outputInsertionsFile << "seqName,insertions\n";
+    outputInsertionsFile << "seqName,insertions,aaInsertions\n";
 
     std::ofstream outputErrorsFile(paths.outputErrors);
     if (!outputErrorsFile.good()) {
@@ -920,12 +885,8 @@ int main(int argc, char *argv[]) {
     logger.info("| {:5s} | {:40s} | {:16s} | {:12s} |", "Index", "Seq. name", "Align. score", "Insertions");
     logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
 
-    try {
-      run(parallelism, inOrder, fastaStream, refData, geneMap, options, outputFastaFile, outputInsertionsFile,
-        outputErrorsFile, outputGeneFiles, shouldWriteReference, logger);
-    } catch (const std::exception &e) {
-      logger.error("Error: {:>16s} |\n", e.what());
-    }
+    run(parallelism, inOrder, fastaStream, refData, geneMap, options, outputFastaFile, outputInsertionsFile,
+      outputErrorsFile, outputGeneFiles, shouldWriteReference, logger);
 
     logger.info("{:s}", std::string(TABLE_WIDTH, '-'));
   } catch (const std::exception &e) {

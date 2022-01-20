@@ -1,19 +1,21 @@
 #pragma once
 
-#include <vector>
+#include <fmt/format.h>
 
-#include "contract.h"
+#include <common/safe_vector.h>
+
+#include <common/contract.h>
 
 template<class T>
 class vector2d {
   size_t m_rows = 0;
   size_t m_cols = 0;
-  std::vector<T> m_data;
+  safe_vector<T> m_data;
 
 public:
   typedef T value_type;
-  typedef typename std::vector<T>::iterator iterator;
-  typedef typename std::vector<T>::const_iterator const_iterator;
+  typedef typename safe_vector<T>::iterator iterator;
+  typedef typename safe_vector<T>::const_iterator const_iterator;
 
   inline vector2d() {}
 
@@ -91,5 +93,23 @@ public:
     m_data.resize(rows * cols);
     m_rows = rows;
     m_cols = cols;
+  }
+};
+
+template<typename T>
+struct fmt::formatter<vector2d<T>> {
+  constexpr auto parse(fmt::format_parse_context& ctx) {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const vector2d<T>& vec, FormatContext& ctx) {
+    for (int col = 0; col < vec.num_cols(); ++col) {
+      for (int row = 0; row < vec.num_rows(); ++row) {
+        fmt::format_to(ctx.out(), " {:2d},", vec(row, col));
+      }
+      fmt::format_to(ctx.out(), "\n");
+    }
+    return ctx.out();
   }
 };

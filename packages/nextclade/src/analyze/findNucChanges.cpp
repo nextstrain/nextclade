@@ -1,21 +1,30 @@
 #include "findNucChanges.h"
 
-#include <vector>
+#include <common/contract.h>
+#include <common/safe_vector.h>
 
 #include "nucleotide.h"
 #include "utils/safe_cast.h"
 
 
 namespace Nextclade {
+  /**
+   * Finds nucleotide changes (nucleotide substitutions and deletions) as well
+   * as the beginning and end of the alignment range.
+   *
+   * @pre Precondition: sequences are expected to be stripped from insertions.
+   */
   NucleotideChangesReport findNucChanges(  //
     const NucleotideSequence& refStripped, //
     const NucleotideSequence& queryStripped//
   ) {
+    precondition_equal(refStripped.length(), queryStripped.length());
+
     int nDel = 0;
     int delPos = -1;
     bool beforeAlignment = true;
-    std::vector<NucleotideSubstitution> substitutions;
-    std::vector<NucleotideDeletion> deletions;
+    safe_vector<NucleotideSubstitution> substitutions;
+    safe_vector<NucleotideDeletion> deletions;
     int alignmentStart = -1;
     int alignmentEnd = -1;
     const auto length = safe_cast<int>(queryStripped.size());
@@ -45,6 +54,7 @@ namespace Nextclade {
           .qry = d,
           .pcrPrimersChanged = {},
           .aaSubstitutions = {},
+          .aaDeletions = {},
         });
       } else if (isGap(d) && !beforeAlignment) {
         if (!nDel) {

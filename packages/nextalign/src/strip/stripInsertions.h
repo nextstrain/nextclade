@@ -3,10 +3,10 @@
 #include <nextalign/nextalign.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../alphabet/nucleotides.h"
-#include "../utils/contract.h"
+#include <common/contract.h>
 #include "../utils/safe_cast.h"
 #include "nextalign/private/nextalign_private.h"
 
@@ -14,7 +14,7 @@
 template<typename Letter>
 struct StripInsertionsResult {
   Sequence<Letter> queryStripped;
-  std::vector<InsertionInternal<Letter>> insertions;
+  safe_vector<InsertionInternal<Letter>> insertions;
 };
 
 
@@ -28,18 +28,22 @@ inline StripInsertionsResult<Letter> stripInsertions(const Sequence<Letter>& ref
   result.queryStripped.reserve(refLength);
 
   int insertionStart = -1;
+  int refPos = -1;
   Sequence<Letter> currentInsertion;
   for (int i = 0; i < refLength; ++i) {
     const auto& c = ref[i];
     if (c == Letter::GAP) {
       if (currentInsertion.empty()) {
         currentInsertion = query[i];
-        insertionStart = i;
+        // NOTE: by convention we set position of insertion to be the index of a character that precedes the insertion,
+        // i.e. a position of reference nucleotide *after* which the insertion have happened.
+        insertionStart = refPos;
       } else {
         currentInsertion += query[i];
       }
     } else {
       result.queryStripped += query[i];
+      refPos++;
       if (!currentInsertion.empty()) {
         const auto length = safe_cast<int>(currentInsertion.size());
 

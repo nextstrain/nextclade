@@ -17,6 +17,7 @@ import {
   exportTsvTrigger,
 } from 'src/state/algorithm/algorithm.actions'
 import {
+  selectCladeNodeAttrKeys,
   selectExportParams,
   selectOutputPeptides,
   selectOutputSequences,
@@ -31,8 +32,9 @@ import { serializeInsertionsToCsv, serializeToCsv } from 'src/workers/run'
 
 export function* prepareResultsCsvStr() {
   const results = yield* select(selectResultsArray)
+  const cladeNodeAttrKeys = yield* select(selectCladeNodeAttrKeys)
   const resultsGood = results.filter(notUndefinedOrNull)
-  const resultsGoodStr = serializeResults(resultsGood)
+  const resultsGoodStr = serializeResults(resultsGood, cladeNodeAttrKeys)
   return yield* call(serializeToCsv, resultsGoodStr, ';')
 }
 
@@ -44,8 +46,9 @@ export function* exportCsv() {
 
 export function* prepareResultsTsvStr() {
   const results = yield* select(selectResultsArray)
+  const cladeNodeAttrKeys = yield* select(selectCladeNodeAttrKeys)
   const resultsGood = results.filter(notUndefinedOrNull)
-  const resultsGoodStr = serializeResults(resultsGood)
+  const resultsGoodStr = serializeResults(resultsGood, cladeNodeAttrKeys)
   return yield* call(serializeToCsv, resultsGoodStr, '\t')
 }
 
@@ -57,7 +60,8 @@ export function* exportTsv() {
 
 export function* prepareResultsJsonStr() {
   const results = yield* select(selectResults)
-  return yield* call(serializeResultsToJson, results)
+  const cladeNodeAttrKeys = yield* select(selectCladeNodeAttrKeys)
+  return yield* call(serializeResultsToJson, results, cladeNodeAttrKeys)
 }
 
 export function* exportJson() {
@@ -133,8 +137,9 @@ export function* exportPeptidesWorker() {
 
 export function* prepareInsertionsCsvStr() {
   const results = yield* select(selectResultsArray)
+  const cladeNodeAttrKeys = yield* select(selectCladeNodeAttrKeys)
   const resultsGood = results.filter(notUndefinedOrNull)
-  const resultsGoodStr = serializeResults(resultsGood)
+  const resultsGoodStr = serializeResults(resultsGood, cladeNodeAttrKeys)
   return yield* call(serializeInsertionsToCsv, resultsGoodStr)
 }
 

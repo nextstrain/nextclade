@@ -1,12 +1,14 @@
 #include "formatMutation.h"
 
+#include <common/contract.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
 
 #include <string>
 
-#include "utils/contract.h"
+#include "../utils/map.h"
+#include "utils/concat.h"
 
 namespace Nextclade {
   std::string formatRange(const Range& range) {
@@ -30,6 +32,18 @@ namespace Nextclade {
     return formatRange(Range{.begin = range.begin, .end = range.end});
   }
 
+  std::string formatGenotype(const Genotype<Nucleotide>& mut) {
+    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    const auto positionOneBased = mut.pos + 1;
+    return fmt::format("{}{}", positionOneBased, nucToString(mut.qry));
+  }
+
+  std::string formatGenotype(const Genotype<Aminoacid>& mut) {
+    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    const auto positionOneBased = mut.pos + 1;
+    return fmt::format("{}{}", positionOneBased, aaToString(mut.qry));
+  }
+
   std::string formatMutationSimple(const NucleotideSubstitutionSimple& mut) {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto positionOneBased = mut.pos + 1;
@@ -40,6 +54,22 @@ namespace Nextclade {
     // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
     const auto positionOneBased = del.pos + 1;
     return fmt::format("{}{}{}", nucToString(del.ref), positionOneBased, "-");
+  }
+
+  std::string formatMutationLabels(const std::vector<std::string>& labels) {
+    return boost::join(labels, "&");
+  }
+
+  std::string formatMutationSimpleLabeled(const NucleotideSubstitutionSimpleLabeled& sub) {
+    auto mut = formatMutationSimple(sub.substitution);
+    auto labels = formatMutationLabels(sub.labels);
+    return fmt::format("{}|{}", mut, labels);
+  }
+
+  std::string formatDeletionSimpleLabeled(const NucleotideDeletionSimpleLabeled& del) {
+    auto mut = formatDeletionSimple(del.deletion);
+    auto labels = formatMutationLabels(del.labels);
+    return fmt::format("{}|{}", mut, labels);
   }
 
   std::string formatAminoacidMutationSimpleWithoutGene(const AminoacidSubstitutionSimple& mut) {
@@ -64,17 +94,6 @@ namespace Nextclade {
 
   std::string formatDeletion(const NucleotideDeletion& del) {
     return formatRange(Range{.begin = del.start, .end = del.start + del.length});
-  }
-
-  std::string formatInsertion(const NucleotideInsertion& insertion) {
-    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
-    const auto positionOneBased = insertion.pos + 1;
-    const auto insertedSequence = toString(insertion.ins);
-    return fmt::format("{}:{}", positionOneBased, insertedSequence);
-  }
-
-  std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions) {
-    return formatAndJoin(insertions, formatInsertion, ";");
   }
 
   std::string formatMissing(const NucleotideRange& missing) {

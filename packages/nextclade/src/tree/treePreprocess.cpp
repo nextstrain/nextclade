@@ -1,5 +1,6 @@
 #include "treePreprocess.h"
 
+#include <common/copy.h>
 #include <fmt/format.h>
 #include <nextclade/private/nextclade_private.h>
 
@@ -7,12 +8,8 @@
 #include "../utils/mapFind.h"
 #include "TreeNode.h"
 
-
 namespace Nextclade {
-  template<typename T>
-  inline T copy(const T& t) {
-    return T(t);
-  }
+
 
   class ErrorAttachMutationsInconsistentMutation : public ErrorFatal {
   public:
@@ -111,7 +108,7 @@ namespace Nextclade {
 
         const auto& refPeptide = mapFind(refPeptides, geneName);
         if (!refPeptide) {
-          throw RefPeptideNotFound(geneName);
+          continue;
         }
 
         // If mutation reverts aminoacid back to what reference had, remove it from the map

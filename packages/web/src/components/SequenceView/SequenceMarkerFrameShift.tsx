@@ -60,7 +60,7 @@ function SequenceMarkerFrameShiftDisconnected({
   const nucLength = nucAbs.end - nucAbs.begin
   const codonLength = codon.end - codon.begin
 
-  const x = nucAbs.begin * pixelsPerBase
+  const x = nucAbs.begin * pixelsPerBase - pixelsPerBase / 2
   let width = nucLength * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
 

@@ -21,19 +21,22 @@ add_library(${PROJECT_NAME} STATIC
   include/nextalign/private/nextalign_private.h
   src/align/alignPairwise.cpp
   src/align/alignPairwise.h
+  src/align/alignmentParams.cpp
+  src/align/alignmentParams.h
+  src/align/convertAaInsertions.cpp
   src/align/getGapOpenCloseScores.cpp
   src/align/getGapOpenCloseScores.h
   src/alphabet/aminoacids.cpp
   src/alphabet/aminoacids.h
   src/alphabet/nucleotides.cpp
   src/alphabet/nucleotides.h
+  src/io/formatInsertionsCsvRow.cpp
   src/io/gene.io.cpp
   src/io/gene.io.h
   src/io/parseGeneMapGff.cpp
   src/io/parseSequences.cpp
-  src/match/matchAa.cpp
+  src/io/parseSequencesSlow.cpp
   src/match/matchAa.h
-  src/match/matchNuc.cpp
   src/match/matchNuc.h
   src/nextalign.cpp
   src/options/options.cpp
@@ -55,12 +58,7 @@ add_library(${PROJECT_NAME} STATIC
   src/translate/translateGenesRef.h
   src/utils/at.h
   src/utils/concat_move.h
-  src/utils/config.h
   src/utils/contains.h
-  src/utils/contract.h
-  src/utils/debugbreak.h
-  src/utils/ieee754_comparison.h
-  src/utils/macro_overload.h
   src/utils/map.h
   src/utils/safe_cast.h
   src/utils/to_underlying.h
@@ -81,6 +79,8 @@ target_compile_definitions(${PROJECT_NAME}
 
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
+
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
 
   -DFMT_HEADER_ONLY=1
 
@@ -109,6 +109,9 @@ target_include_directories(${PROJECT_NAME}
   )
 
 target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+  common
+
   PRIVATE
   Microsoft.GSL::GSL
   Boost::headers

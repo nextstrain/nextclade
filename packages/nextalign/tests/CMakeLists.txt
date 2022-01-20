@@ -12,6 +12,7 @@ add_executable(${PROJECT_NAME}
   _musl_workarounds.c
   alignPairwise.test.cpp
   alignPairwiseWithCodons.test.cpp
+  alignmentParams.test.cpp
   data/sampleGeneMap.h
   decode.test.cpp
   extractGene.test.cpp
@@ -34,6 +35,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC -DAPP_NAME="${PROJECT_NAME}"
+
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
 
   -DFMT_HEADER_ONLY=1
   )

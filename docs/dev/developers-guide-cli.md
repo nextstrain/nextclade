@@ -494,6 +494,22 @@ executable.
 > TODO: setup profile-guided optimization based on CLI executable or e2e tests
 
 
+### 👣 Tracing
+
+There is a `debug_trace()` C++ macro with some usages spread across the codebase. They print messages, often with some numeric values, that help to see what the internal algorithms are doing during runtime. The messages are printed into the terminal (`stdout`) as well as into the browser console, when building for WebAssembly.
+
+The tracing is disabled by default and all the usages of `debug_trace()` macro expanded to a dummy noop statement, which should be optimized away from the binary. In order to enable tracing, set environment variable `ENABLE_DEBUG_TRACE=1`, for example in the `.env` file.
+
+In order to make traces more readable, you may also want to add the following flags to the Nextalign and Nextclade CLI invocation:
+
+ - `--jobs=1` so that messages from different threads are not entangled together
+ - `--in-order` to see messages for sequences in the same order as sequences appear in the input files
+
+You can add new usages of `debug_trace()` where it is useful. Underneath it uses [`fmt` library](https://fmt.dev/) with Python-like syntax for the format string. User-defined types (`struct`s, `class`es, etc.) can be printed eiter field by field or using a [custom formatters](https://fmt.dev/latest/api.html#formatting-user-defined-types).
+
+Debug tracing makes algorithms to run much slower. Do not enable it in the official production builds!
+
+
 ### 🚀 Creating a new release
 
 - Increment version in `VERSION` file in the root directory

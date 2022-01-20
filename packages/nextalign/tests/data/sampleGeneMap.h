@@ -2,9 +2,9 @@
 
 #include <nextalign/nextalign.h>
 
-#include <vector>
+#include <common/safe_vector.h>
 
-const std::vector<Gene> sampleGeneArray = {//
+const safe_vector<Gene> sampleGeneArray = {//
   Gene{
     .geneName = "E",
     .start = 26244,
@@ -119,7 +119,7 @@ const std::vector<Gene> sampleGeneArray = {//
   }};
 
 
-inline GeneMap makeGeneMap(const std::vector<Gene>& genes) {
+inline GeneMap makeGeneMap(const safe_vector<Gene>& genes) {
   GeneMap geneMap;
   std::transform(genes.begin(), genes.end(), std::inserter(geneMap, geneMap.end()),
     [](const Gene& gene) { return std::make_pair(gene.geneName, gene); });

@@ -5,7 +5,7 @@
 #include <nextclade_common/datasets.h>
 
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "makeTestDatasets.h"
 
@@ -25,9 +25,9 @@ TEST(DatasetListFilter, DefaultsToLatestCompatible) {
     .includeOld = false,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "B",
       .datasetRefs =
@@ -58,9 +58,9 @@ TEST(DatasetListFilter, IncludesIncompatible) {
     .includeOld = false,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "B",
       .datasetRefs =
@@ -91,9 +91,9 @@ TEST(DatasetListFilter, IncludesOld) {
     .includeOld = true,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "B",
       .datasetRefs =
@@ -132,9 +132,9 @@ TEST(DatasetListFilter, IncludesOldAndIncompatible) {
     .includeOld = true,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "B",
       .datasetRefs =
@@ -177,9 +177,9 @@ TEST(DatasetListFilter, IncludesOnlySpecifiedReference) {
     .includeOld = false,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "B",
       .datasetRefs =
@@ -206,9 +206,9 @@ TEST(DatasetListFilter, IncludesNothingIfNameAndRefDontMatch) {
     .includeOld = false,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {};
+  const safe_vector<Dataset> expected = {};
 
   auto actual = datasetListFilter(input, cliParams, thisVersion);
 
@@ -224,9 +224,9 @@ TEST(DatasetListFilter, IncludesOnlySpecifiedCompatibleTag) {
     .includeOld = false,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "A",
       .datasetRefs =
@@ -258,9 +258,9 @@ TEST(DatasetListFilter, IncludesOnlySpecifiedIncompatibleTag) {
     .includeOld = true,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "A",
       .datasetRefs =
@@ -292,9 +292,9 @@ TEST(DatasetListFilter, IncludesEverything) {
     .includeOld = true,
   });
 
-  const std::vector<Dataset> input = makeTestDatasets();
+  const safe_vector<Dataset> input = makeTestDatasets();
 
-  const std::vector<Dataset>& expected = input;// expected to return the input
+  const safe_vector<Dataset>& expected = input;// expected to return the input
 
   auto actual = datasetListFilter(input, cliParams, thisVersion);
 
@@ -310,7 +310,7 @@ TEST(DatasetListFilter, IgnoresDisabledSpecific) {
     .includeOld = true,
   });
 
-  std::vector<Dataset> input = makeTestDatasets();
+  safe_vector<Dataset> input = makeTestDatasets();
 
 
   for (auto& dataset : input) {
@@ -342,7 +342,7 @@ TEST(DatasetListFilter, IgnoresDisabledSpecific) {
     }
   }
 
-  const std::vector<Dataset> expected = {
+  const safe_vector<Dataset> expected = {
     Dataset{
       .name = "A",
       .datasetRefs =
@@ -391,7 +391,7 @@ TEST(DatasetListFilter, IgnoresDisabledAll) {
     .includeOld = true,
   });
 
-  std::vector<Dataset> input = makeTestDatasets();
+  safe_vector<Dataset> input = makeTestDatasets();
 
   // Disable everything
   for (auto& dataset : input) {
@@ -404,7 +404,7 @@ TEST(DatasetListFilter, IgnoresDisabledAll) {
     }
   }
 
-  const std::vector<Dataset>& expected = {};
+  const safe_vector<Dataset>& expected = {};
 
   auto actual = datasetListFilter(input, cliParams, thisVersion);
 

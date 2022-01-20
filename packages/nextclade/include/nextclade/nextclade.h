@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 
 #include <istream>
@@ -7,7 +8,6 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 namespace Nextclade {
   class Tree;
@@ -27,6 +27,12 @@ namespace Nextclade {
 
   struct QCRulesConfigPrivateMutations {
     bool enabled;
+    double weightReversionSubstitutions;
+    double weightReversionDeletions;
+    double weightLabeledSubstitutions;
+    double weightLabeledDeletions;
+    double weightUnlabeledSubstitutions;
+    double weightUnlabeledDeletions;
     double typical;
     double cutoff;
   };
@@ -45,14 +51,14 @@ namespace Nextclade {
 
   struct QCRulesConfigFrameShifts {
     bool enabled;
-    std::vector<FrameShiftLocation> ignoredFrameShifts;
+    safe_vector<FrameShiftLocation> ignoredFrameShifts;
   };
 
   struct StopCodonLocation;
 
   struct QCRulesConfigStopCodons {
     bool enabled;
-    std::vector<StopCodonLocation> ignoredStopCodons;
+    safe_vector<StopCodonLocation> ignoredStopCodons;
   };
 
   struct QcConfig {
@@ -89,7 +95,7 @@ namespace Nextclade {
     double score;
     QcStatus status;
     int totalSNPs;
-    std::vector<ClusteredSnp> clusteredSNPs;
+    safe_vector<ClusteredSnp> clusteredSNPs;
   };
 
   struct QcResultMissingData {
@@ -102,7 +108,11 @@ namespace Nextclade {
   struct QcResultPrivateMutations {
     double score;
     QcStatus status;
-    double total;
+    int numReversionSubstitutions;
+    int numLabeledSubstitutions;
+    int numUnlabeledSubstitutions;
+    int totalDeletionRanges;
+    double weightedTotal;
     double excess;
     double cutoff;
   };
@@ -110,9 +120,9 @@ namespace Nextclade {
   struct QcResultFrameShifts {
     double score;
     QcStatus status;
-    std::vector<FrameShiftResult> frameShifts;
+    safe_vector<FrameShiftResult> frameShifts;
     int totalFrameShifts;
-    std::vector<FrameShiftResult> frameShiftsIgnored;
+    safe_vector<FrameShiftResult> frameShiftsIgnored;
     int totalFrameShiftsIgnored;
   };
 
@@ -128,9 +138,9 @@ namespace Nextclade {
   struct QcResultStopCodons {
     double score;
     QcStatus status;
-    std::vector<StopCodonLocation> stopCodons;
+    safe_vector<StopCodonLocation> stopCodons;
     int totalStopCodons;
-    std::vector<StopCodonLocation> stopCodonsIgnored;
+    safe_vector<StopCodonLocation> stopCodonsIgnored;
     int totalStopCodonsIgnored;
   };
 
@@ -152,13 +162,10 @@ namespace Nextclade {
 
   struct PcrPrimer;
 
-  struct NextcladeOptions {
-    NucleotideSequence ref;
-    std::string treeString;
-    std::vector<PcrPrimer> pcrPrimers;
-    GeneMap geneMap;
-    QcConfig qcRulesConfig;
-    NextalignOptions nextalignOptions;
+  template<typename Letter>
+  struct Genotype {
+    int pos;
+    Letter qry;
   };
 
   template<typename Letter>
@@ -172,12 +179,33 @@ namespace Nextclade {
   struct DeletionSimple {
     Letter ref;
     int pos;
+
+    /** Converts deletion into substitution. Note: deletion is a substitution to GAP character */
+    explicit operator SubstitutionSimple<Letter>() const {
+      return SubstitutionSimple<Letter>{.ref = ref, .pos = pos, .qry = Nucleotide::GAP};
+    }
   };
+
+  /** Converts deletion into substitution (free function version). Note: deletion is a substitution to GAP character */
+  template<typename Letter>
+  SubstitutionSimple<Letter> convertDelToSub(const DeletionSimple<Letter>& del) {
+    return static_cast<SubstitutionSimple<Letter>>(del);
+  }
 
   using NucleotideSubstitutionSimple = SubstitutionSimple<Nucleotide>;
   using NucleotideDeletionSimple = DeletionSimple<Nucleotide>;
   using AminoacidSubstitutionSimple = SubstitutionSimple<Aminoacid>;
   using AminoacidDeletionSimple = DeletionSimple<Aminoacid>;
+
+  template<typename Letter>
+  inline bool operator==(const Genotype<Letter>& lhs, const Genotype<Letter>& rhs) {
+    return lhs.pos == rhs.pos && lhs.qry == rhs.qry;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const Genotype<Letter>& lhs, const Genotype<Letter>& rhs) {
+    return lhs.pos < rhs.pos || (lhs.pos == rhs.pos && lhs.qry < rhs.qry);
+  }
 
   template<typename Letter>
   inline bool operator==(const SubstitutionSimple<Letter>& lhs, const SubstitutionSimple<Letter>& rhs) {
@@ -207,6 +235,147 @@ namespace Nextclade {
   }
 
   template<typename Letter>
+  inline bool operator==(const SubstitutionSimple<Letter>& sub, const Genotype<Letter>& gen) {
+    return sub.pos == gen.pos && sub.qry == gen.qry;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const Genotype<Letter>& gen, const SubstitutionSimple<Letter>& sub) {
+    return operator==(sub, gen);
+  }
+
+  template<typename Letter>
+  inline bool operator==(const DeletionSimple<Letter>& del, const Genotype<Letter>& gen) {
+    return del.pos == gen.pos;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const Genotype<Letter>& gen, const DeletionSimple<Letter>& del) {
+    return operator==(del, gen);
+  }
+
+
+  template<typename Letter>
+  struct GenotypeLabeled {
+    Genotype<Letter> genotype;
+    std::vector<std::string> labels;
+  };
+
+  template<typename Letter>
+  struct SubstitutionSimpleLabeled {
+    SubstitutionSimple<Letter> substitution;
+    std::vector<std::string> labels;
+  };
+
+  template<typename Letter>
+  struct DeletionSimpleLabeled {
+    DeletionSimple<Letter> deletion;
+    std::vector<std::string> labels;
+
+    /** Converts deletion into substitution. Note: deletion is a substitution to GAP character */
+    explicit operator SubstitutionSimpleLabeled<Letter>() const {
+      return SubstitutionSimpleLabeled<Letter>{
+        .substitution = static_cast<SubstitutionSimple<Letter>>(deletion),
+        .labels = labels,
+      };
+    }
+  };
+
+  /** Converts deletion into substitution (free function version). Note: deletion is a substitution to GAP character */
+  template<typename Letter>
+  SubstitutionSimpleLabeled<Letter> convertLabeledDelToSub(const DeletionSimpleLabeled<Letter>& del) {
+    return static_cast<SubstitutionSimpleLabeled<Letter>>(del);
+  }
+
+  using NucleotideSubstitutionSimpleLabeled = SubstitutionSimpleLabeled<Nucleotide>;
+  using NucleotideDeletionSimpleLabeled = DeletionSimpleLabeled<Nucleotide>;
+  using AminoacidSubstitutionSimpleLabeled = SubstitutionSimpleLabeled<Aminoacid>;
+  using AminoacidDeletionSimpleLabeled = DeletionSimpleLabeled<Aminoacid>;
+
+
+  template<typename Letter>
+  inline bool operator==(const GenotypeLabeled<Letter>& lhs, const GenotypeLabeled<Letter>& rhs) {
+    return lhs.genotype == rhs.genotype && lhs.labels == rhs.labels;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const GenotypeLabeled<Letter>& lhs, const GenotypeLabeled<Letter>& rhs) {
+    return lhs.genotype < rhs.genotype || (lhs.genotype == rhs.genotype && lhs.labels < rhs.labels);
+  }
+
+  template<typename Letter>
+  inline bool operator==(const SubstitutionSimpleLabeled<Letter>& lhs, const SubstitutionSimpleLabeled<Letter>& rhs) {
+    return lhs.substitution == rhs.substitution && lhs.labels == rhs.labels;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const SubstitutionSimpleLabeled<Letter>& lhs, const SubstitutionSimpleLabeled<Letter>& rhs) {
+    return (                                                           //
+      lhs.substitution < rhs.substitution ||                           //
+      (lhs.substitution == rhs.substitution && lhs.labels < rhs.labels)//
+    );
+  }
+
+  template<typename Letter>
+  inline bool operator==(const DeletionSimpleLabeled<Letter>& lhs, const DeletionSimpleLabeled<Letter>& rhs) {
+    return lhs.deletion == rhs.deletion && lhs.labels == rhs.labels;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const DeletionSimpleLabeled<Letter>& lhs, const DeletionSimpleLabeled<Letter>& rhs) {
+    return (                                                   //
+      lhs.deletion < rhs.deletion ||                           //
+      (lhs.deletion == rhs.deletion && lhs.labels < rhs.labels)//
+    );
+  }
+
+
+  template<typename Letter>
+  inline bool operator==(const SubstitutionSimpleLabeled<Letter>& labeled,
+    const SubstitutionSimple<Letter>& substitution) {
+    return substitution == labeled.substitution;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const SubstitutionSimpleLabeled<Letter>& labeled,
+    const SubstitutionSimple<Letter>& substitution) {
+    return substitution < labeled.substitution;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const DeletionSimpleLabeled<Letter>& labeled, const DeletionSimple<Letter>& deletion) {
+    return deletion == labeled.deletion;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const DeletionSimpleLabeled<Letter>& labeled, const DeletionSimple<Letter>& deletion) {
+    return deletion < labeled.deletion;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const SubstitutionSimple<Letter>& substitution,
+    const SubstitutionSimpleLabeled<Letter>& labeled) {
+    return substitution == labeled.substitution;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const SubstitutionSimple<Letter>& substitution,
+    const SubstitutionSimpleLabeled<Letter>& labeled) {
+    return substitution < labeled.substitution;
+  }
+
+  template<typename Letter>
+  inline bool operator==(const DeletionSimple<Letter>& deletion, const DeletionSimpleLabeled<Letter>& labeled) {
+    return deletion == labeled.deletion;
+  }
+
+  template<typename Letter>
+  inline bool operator<(const DeletionSimple<Letter>& deletion, const DeletionSimpleLabeled<Letter>& labeled) {
+    return deletion < labeled.deletion;
+  }
+
+
+  template<typename Letter>
   struct CharacterRange {
     int begin;
     int end;
@@ -220,7 +389,7 @@ namespace Nextclade {
   struct GeneAminoacidRange {
     std::string geneName;
     Aminoacid character;
-    std::vector<AminoacidRange> ranges;
+    safe_vector<AminoacidRange> ranges;
     int length;
   };
 
@@ -259,9 +428,9 @@ namespace Nextclade {
     Nucleotide ref;
     int pos;
     Nucleotide qry;
-    std::vector<PcrPrimer> pcrPrimersChanged;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
+    safe_vector<PcrPrimer> pcrPrimersChanged;
+    safe_vector<AminoacidSubstitution> aaSubstitutions;
+    safe_vector<AminoacidDeletion> aaDeletions;
   };
 
   inline bool operator==(const NucleotideSubstitution& lhs, const NucleotideSubstitution& rhs) {
@@ -280,15 +449,13 @@ namespace Nextclade {
   struct Deletion<Nucleotide> {
     int start;
     int length;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
+    safe_vector<AminoacidSubstitution> aaSubstitutions;
+    safe_vector<AminoacidDeletion> aaDeletions;
   };
 
   inline bool operator==(const NucleotideDeletion& lhs, const NucleotideDeletion& rhs) {
     return lhs.start == rhs.start && lhs.length == rhs.length;
   }
-
-  using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
   template<>
   struct Substitution<Aminoacid> {
@@ -300,8 +467,8 @@ namespace Nextclade {
     NucleotideSequence refContext;
     NucleotideSequence queryContext;
     Range contextNucRange;
-    std::vector<NucleotideSubstitution> nucSubstitutions;
-    std::vector<NucleotideDeletion> nucDeletions;
+    safe_vector<NucleotideSubstitution> nucSubstitutions;
+    safe_vector<NucleotideDeletion> nucDeletions;
   };
 
   inline bool operator==(const AminoacidSubstitution& left, const AminoacidSubstitution& right) {
@@ -333,8 +500,8 @@ namespace Nextclade {
     NucleotideSequence refContext;
     NucleotideSequence queryContext;
     Range contextNucRange;
-    std::vector<NucleotideSubstitution> nucSubstitutions;
-    std::vector<NucleotideDeletion> nucDeletions;
+    safe_vector<NucleotideSubstitution> nucSubstitutions;
+    safe_vector<NucleotideDeletion> nucDeletions;
   };
 
   inline bool operator==(const AminoacidDeletion& left, const AminoacidDeletion& right) {
@@ -358,8 +525,22 @@ namespace Nextclade {
 
   template<typename Letter>
   struct PrivateMutations {
-    std::vector<SubstitutionSimple<Letter>> privateSubstitutions;
-    std::vector<DeletionSimple<Letter>> privateDeletions;
+    safe_vector<SubstitutionSimple<Letter>> privateSubstitutions;
+    safe_vector<DeletionSimple<Letter>> privateDeletions;
+    safe_vector<SubstitutionSimple<Letter>> reversionSubstitutions;
+    safe_vector<SubstitutionSimple<Letter>> reversionsOfDeletions;
+    safe_vector<SubstitutionSimpleLabeled<Letter>> labeledSubstitutions;
+    safe_vector<DeletionSimpleLabeled<Letter>> labeledDeletions;
+    safe_vector<SubstitutionSimple<Letter>> unlabeledSubstitutions;
+    safe_vector<DeletionSimple<Letter>> unlabeledDeletions;
+    int totalPrivateSubstitutions;
+    int totalPrivateDeletions;
+    int totalReversionSubstitutions;
+    int totalReversionsOfDeletions;
+    int totalLabeledSubstitutions;
+    int totalLabeledDeletions;
+    int totalUnlabeledSubstitutions;
+    int totalUnlabeledDeletions;
   };
 
   using PrivateNucleotideMutations = PrivateMutations<Nucleotide>;
@@ -380,51 +561,70 @@ namespace Nextclade {
     NucleotideSequence rootOligonuc;
     NucleotideSequence primerOligonuc;
     Range range;
-    std::vector<NucleotideLocation> nonAcgts;
+    safe_vector<NucleotideLocation> nonAcgts;
   };
 
   struct PcrPrimerChange {
     PcrPrimer primer;
-    std::vector<NucleotideSubstitution> substitutions;
+    safe_vector<NucleotideSubstitution> substitutions;
   };
 
+
+  /** External data that contains labels to be assigned to mutations */
+  template<typename Letter>
+  struct MutationLabelMaps {
+    safe_vector<GenotypeLabeled<Letter>> substitutionLabelMap;
+    safe_vector<GenotypeLabeled<Letter>> deletionLabelMap;
+  };
+
+  /** Contains external configuration and data specific for a particular pathogen */
+  struct VirusJson {
+    std::string schemaVersion;
+    MutationLabelMaps<Nucleotide> nucMutLabelMaps;
+  };
+
+  VirusJson parseVirusJson(const std::string& virusJsonStr);
+  std::string serializeVirusJson(VirusJson& virusJson);
+
   struct NucleotideChangesReport {
-    std::vector<NucleotideSubstitution> substitutions;
-    std::vector<NucleotideDeletion> deletions;
+    safe_vector<NucleotideSubstitution> substitutions;
+    safe_vector<NucleotideDeletion> deletions;
     int alignmentStart;
     int alignmentEnd;
   };
 
   struct AminoacidChangesReport {
-    std::vector<AminoacidSubstitution> aaSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
+    safe_vector<AminoacidSubstitution> aaSubstitutions;
+    safe_vector<AminoacidDeletion> aaDeletions;
   };
 
   struct AnalysisResult {
     std::string seqName;
-    std::vector<NucleotideSubstitution> substitutions;
+    safe_vector<NucleotideSubstitution> substitutions;
     int totalSubstitutions;
-    std::vector<NucleotideDeletion> deletions;
+    safe_vector<NucleotideDeletion> deletions;
     int totalDeletions;
-    std::vector<NucleotideInsertion> insertions;
+    safe_vector<NucleotideInsertion> insertions;
     int totalInsertions;
-    std::vector<FrameShiftResult> frameShifts;
+    safe_vector<FrameShiftResult> frameShifts;
     int totalFrameShifts;
-    std::vector<NucleotideRange> missing;
+    safe_vector<NucleotideRange> missing;
     int totalMissing;
-    std::vector<NucleotideRange> nonACGTNs;
+    safe_vector<NucleotideRange> nonACGTNs;
     int totalNonACGTNs;
-    std::vector<AminoacidSubstitution> aaSubstitutions;
+    safe_vector<AminoacidSubstitution> aaSubstitutions;
     int totalAminoacidSubstitutions;
-    std::vector<AminoacidDeletion> aaDeletions;
+    safe_vector<AminoacidDeletion> aaDeletions;
     int totalAminoacidDeletions;
-    std::vector<GeneAminoacidRange> unknownAaRanges;
+    safe_vector<AminoacidInsertion> aaInsertions;
+    int totalAminoacidInsertions;
+    safe_vector<GeneAminoacidRange> unknownAaRanges;
     int totalUnknownAa;
     int alignmentStart;
     int alignmentEnd;
     int alignmentScore;
     std::map<Nucleotide, int> nucleotideComposition;
-    std::vector<PcrPrimerChange> pcrPrimerChanges;
+    safe_vector<PcrPrimerChange> pcrPrimerChanges;
     int totalPcrPrimerChanges;
     int nearestNodeId;
     std::string clade;
@@ -433,6 +633,7 @@ namespace Nextclade {
     std::set<std::string> missingGenes;
     double divergence;
     QcResult qc;
+    std::map<std::string, std::string> customNodeAttributes;
   };
 
 
@@ -440,17 +641,28 @@ namespace Nextclade {
     std::string schemaVersion;
     std::string nextcladeVersion;
     std::uint64_t timestamp;
-    std::vector<Nextclade::AnalysisResult> results;
+    safe_vector<std::string> cladeNodeAttrKeys;
+    safe_vector<Nextclade::AnalysisResult> results;
   };
 
 
   struct NextcladeResult {
     std::string ref;
     std::string query;
-    std::vector<RefPeptide> refPeptides;
-    std::vector<Peptide> queryPeptides;
+    safe_vector<RefPeptide> refPeptides;
+    safe_vector<Peptide> queryPeptides;
     Warnings warnings;
     AnalysisResult analysisResult;
+  };
+
+  struct NextcladeOptions {
+    NucleotideSequence ref;
+    std::string treeString;
+    safe_vector<PcrPrimer> pcrPrimers;
+    GeneMap geneMap;
+    QcConfig qcRulesConfig;
+    VirusJson virusJson;
+    NextalignOptions nextalignOptions;
   };
 
   /**
@@ -469,11 +681,13 @@ namespace Nextclade {
   public:
     explicit NextcladeAlgorithm(const NextcladeOptions& options);
 
+    safe_vector<std::string> getCladeNodeAttrKeys() const;
+
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& seq);
 
     const Tree& getTree() const;
 
-    const Tree& finalize(const std::vector<AnalysisResult>& results);
+    const Tree& finalize(const safe_vector<AnalysisResult>& results);
 
     // Destructor is required when using pimpl idiom with unique_ptr.
     // See "Effective Modern C++" by Scott Meyers,
@@ -489,22 +703,22 @@ namespace Nextclade {
 
   bool isQcConfigVersionRecent(const QcConfig& qcConfig);
 
-  std::vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
+  safe_vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,       //
     const std::string& filename                   //
   );
 
-  std::vector<PcrPrimer> convertPcrPrimerRows(           //
-    const std::vector<PcrPrimerCsvRow>& pcrPrimerCsvRows,//
+  safe_vector<PcrPrimer> convertPcrPrimerRows(           //
+    const safe_vector<PcrPrimerCsvRow>& pcrPrimerCsvRows,//
     const NucleotideSequence& rootSeq,                   //
-    /* inout */ std::vector<std::string>& warnings       //
+    /* inout */ safe_vector<std::string>& warnings       //
   );
 
-  std::vector<PcrPrimer> parseAndConvertPcrPrimersCsv(//
+  safe_vector<PcrPrimer> parseAndConvertPcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,           //
     const std::string& filename,                      //
     const NucleotideSequence& rootSeq,                //
-    /* inout */ std::vector<std::string>& warnings    //
+    /* inout */ safe_vector<std::string>& warnings    //
   );
 
   class ErrorPcrPrimersCsvParserMissingColumn : public ErrorFatal {
@@ -537,7 +751,8 @@ namespace Nextclade {
     virtual void write(std::ostream& outputStream) = 0;
   };
 
-  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options = {});
+  std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options = {},
+    const safe_vector<std::string>& customNodeAttrKeys = {});
 
   class Tree {
     std::unique_ptr<TreeImpl> pimpl;
@@ -546,6 +761,8 @@ namespace Nextclade {
     explicit Tree(const std::string& auspiceJsonV2);
 
     TreeNode root() const;
+
+    safe_vector<std::string> getCladeNodeAttrKeys() const;
 
     void addMetadata();
 
@@ -573,29 +790,39 @@ namespace Nextclade {
 
   GeneMap parseGeneMap(const std::string& geneMapStr);
 
-  std::vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr);
+  safe_vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr);
 
   AnalysisResults parseAnalysisResults(const std::string& analysisResultsStr);
 
-  std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers);
+  std::string serializePcrPrimerRowsToString(const safe_vector<PcrPrimerCsvRow>& pcrPrimers);
 
   std::string serializeWarningsToString(const Warnings& warnings);
+
+  std::string serializeCladeNodeAttrKeys(const safe_vector<std::string>& keys);
 
   std::string serializeGeneMap(const GeneMap& geneMap);
 
   std::string serializeQcConfig(Nextclade::QcConfig& qcConfig);
 
-  std::string serializePeptidesToString(const std::vector<Peptide>& peptides);
+  std::string serializePeptidesToString(const safe_vector<Peptide>& peptides);
 
   std::string serializeResultToString(const AnalysisResult& result);
 
-  std::string serializeResults(const std::vector<AnalysisResult>& results);
+  std::string serializeResults(const AnalysisResults& results);
 
   std::string formatRange(const Range& range);
+
+  std::string formatGenotype(const Genotype<Nucleotide>& mut);
+
+  std::string formatGenotype(const Genotype<Aminoacid>& mut);
 
   std::string formatMutationSimple(const NucleotideSubstitutionSimple& mut);
 
   std::string formatDeletionSimple(const NucleotideDeletionSimple& del);
+
+  std::string formatMutationSimpleLabeled(const NucleotideSubstitutionSimpleLabeled& sub);
+
+  std::string formatDeletionSimpleLabeled(const NucleotideDeletionSimpleLabeled& del);
 
   std::string formatAminoacidMutationSimpleWithoutGene(const AminoacidSubstitutionSimple& mut);
 
@@ -604,10 +831,6 @@ namespace Nextclade {
   std::string formatMutation(const NucleotideSubstitution& mut);
 
   std::string formatDeletion(const NucleotideDeletion& del);
-
-  std::string formatInsertion(const NucleotideInsertion& insertion);
-
-  std::string formatInsertions(const std::vector<NucleotideInsertion>& insertions);
 
   std::string formatMissing(const NucleotideRange& missing);
 

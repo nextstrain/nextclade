@@ -3,7 +3,7 @@
 #include <benchmark/benchmark.h>
 
 #include <numeric>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../include/nextalign/nextalign.h"
 #include "../src/align/alignPairwise.h"
@@ -17,9 +17,9 @@
 class AlignPairwiseAverageBench : public benchmark::Fixture {
 protected:
   const NextalignOptions options = getDefaultOptions();
-  std::vector<int> gapOpenClose;
+  safe_vector<int> gapOpenClose;
   NucleotideSequence ref;
-  std::vector<NucleotideSequence> nucSequences;
+  safe_vector<NucleotideSequence> nucSequences;
   int totalNucs;
   GeneMap geneMap;
 

@@ -3,7 +3,7 @@
 
 #include <optional>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 namespace Nextclade {
   class ErrorHttp : public std::runtime_error {

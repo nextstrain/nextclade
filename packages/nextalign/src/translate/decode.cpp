@@ -4,8 +4,9 @@
 #include <frozen/map.h>
 #include <frozen/set.h>
 #include <frozen/string.h>
+#include <common/contract.h>
 
-#include "utils/contract.h"
+#include "../utils/mapFind.h"
 
 
 using NucleotideSequenceFrozen = frozen::basic_string<Nucleotide>;
@@ -146,13 +147,59 @@ constexpr const frozen::map<NucleotideSequenceFrozen, Aminoacid, 65> codonTable 
   {NucleotideSequenceFrozen{TTT, 3}, Aminoacid::F},
 };
 
+constexpr auto NUCLEOTIDE_COMPLEMENTS = frozen::make_map<Nucleotide, Nucleotide, 16>({
+  {Nucleotide::A, Nucleotide::T},
+  {Nucleotide::C, Nucleotide::G},
+  {Nucleotide::G, Nucleotide::C},
+  {Nucleotide::T, Nucleotide::A},
+  {Nucleotide::Y, Nucleotide::R},
+  {Nucleotide::R, Nucleotide::Y},
+  {Nucleotide::W, Nucleotide::W},
+  {Nucleotide::S, Nucleotide::S},
+  {Nucleotide::K, Nucleotide::M},
+  {Nucleotide::M, Nucleotide::K},
+  {Nucleotide::D, Nucleotide::H},
+  {Nucleotide::V, Nucleotide::B},
+  {Nucleotide::H, Nucleotide::D},
+  {Nucleotide::B, Nucleotide::V},
+  {Nucleotide::N, Nucleotide::N},
+  {Nucleotide::GAP, Nucleotide::GAP},
+});
+
+/**
+ * Returns complement of a nucleotide
+ */
+Nucleotide complement(Nucleotide nuc) {
+  const auto comp = mapFind(NUCLEOTIDE_COMPLEMENTS, nuc);
+  if (!comp) {
+    throw ErrorComplementUnknownNucleotide(nucToString(nuc));
+  }
+  return *comp;
+}
+
+/**
+ * Reverses the sequence and replaces every nucleotide by its complement
+ */
+void reverseComplementInPlace(NucleotideSequence& seq) {
+  std::reverse(seq.begin(), seq.end());
+  for (auto& nuc : seq) {
+    nuc = complement(nuc);
+  }
+}
+
 Aminoacid decode(const NucleotideSequenceView& codon) {
   invariant_equal(3, codon.size());
 
-  const auto* it = codonTable.find(codon);
+  const auto* it = codonTable.find(NucleotideSequenceFrozen{codon});
   if (it != codonTable.end()) {
     return it->second;
   }
 
   return Aminoacid::X;
 }
+
+ErrorComplementUnknownNucleotide::ErrorComplementUnknownNucleotide(
+  const std::string& nuc)
+    : ErrorFatal(fmt::format("When calculating sequence complement: "
+                             "Found unknown nucleotide: \"{:s}\"",
+        nuc)) {}

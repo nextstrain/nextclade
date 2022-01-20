@@ -3,7 +3,7 @@
 #include <benchmark/benchmark.h>
 
 #include <numeric>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../include/nextalign/nextalign.h"
 #include "../src/align/alignPairwise.h"
@@ -13,7 +13,7 @@
 
 class ForwardTraceBench : public benchmark::Fixture {
 protected:
-  std::vector<SeedAlignment> seedAlignments;
+  safe_vector<SeedAlignment> seedAlignments;
 
 
   ForwardTraceBench() {

@@ -1,152 +1,94 @@
+#include <fcntl.h>
 #include <fmt/format.h>
 #include <nextalign/nextalign.h>
+#include <unistd.h>
 
-#include <boost/algorithm/string.hpp>
-#include <map>
-#include <regex>
+#include <cstdio>
 #include <utility>
 
-namespace {
-  using regex = std::regex;
-  using std::regex_replace;
-}// namespace
+#include "kseqpp.h"
 
 
-class ErrorFastaStreamIllegalNextCall : public ErrorFatal {
+class ErrorUnableToOpenFile : public std::runtime_error {
 public:
-  explicit ErrorFastaStreamIllegalNextCall(const std::string& filename)
-      : ErrorFatal(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is in non-readable state,"
-                               " the next line cannot be retrieved. Aborting.",
-          filename)) {}
+  explicit ErrorUnableToOpenFile(const std::string& filePath)
+      : std::runtime_error(fmt::format("Unable to open file: \"{:s}\": {:}", filePath, strerror(errno))) {}
+};
+
+class ErrorUnableToReadFile : public std::runtime_error {
+public:
+  explicit ErrorUnableToReadFile(const std::string& filePath)
+      : std::runtime_error(fmt::format("Unable to read file: \"{:s}\": {:}", filePath, strerror(errno))) {}
 };
 
 
-class ErrorFastaStreamInvalidState : public ErrorFatal {
-public:
-  explicit ErrorFastaStreamInvalidState(const std::string& filename)
-      : ErrorFatal(fmt::format("When parsing input sequences: Input stream (\"{:s}\") is empty or corrupted. Aborting.",
-          filename)) {}
-};
-
-
-auto sanitizeLine(std::string line) {
-  line = regex_replace(line, regex("\r\n"), "\n");
-  line = regex_replace(line, regex("\r"), "\n");
-  boost::trim(line);
-  return line;
-}
-
-auto sanitizeSequenceName(std::string seqName) {
-  seqName = seqName.substr(1, seqName.size());
-  boost::trim(seqName);
-  return seqName;
-}
-
-auto sanitizeSequence(std::string seq) {
-  boost::to_upper(seq);
-  // NOTE: Strip all characters except capital letters, asterisks, dots and question marks
-  const auto re = regex("[^.?*A-Z]");
-  seq = regex_replace(seq, re, "", std::regex_constants::match_any);
-  return seq;
-}
-
-
-class FastaStreamImpl : public FastaStream {
-  std::istream& istream;
-  std::string filename;
-  std::map<std::string, int> seqNames;
-
-  int currentIndex = 0;
-  std::string currentSeqName;
-  std::string currentSeq;
-
-  /**
-   * Keeps track of sequence names for deduplication
-   * and prepares (seqName, seq) entry for returning as the next element of the stream.
-   */
-  AlgorithmInput prepareResult() {
-    if (currentSeqName.empty()) {
-      currentSeqName = "Untitled";
-    }
-
-    auto it = seqNames.find(currentSeqName);
-    if (it != seqNames.end()) {
-      const auto nameCount = it->second;
-      currentSeqName = fmt::format("{:s} ({:d})", currentSeqName, nameCount);
-      it->second += 1;
-    } else {
-      seqNames.emplace(currentSeqName, 1);
-    }
-
-    return {.index = currentIndex, .seqName = currentSeqName, .seq = sanitizeSequence(currentSeq)};
+/** Reference-counted file descriptor */
+class FileDescriptor {
+  static void close_file_descriptor(const int* fd) {
+    close(*fd);
+    delete fd;// NOLINT(cppcoreguidelines-owning-memory)
   }
 
+  std::unique_ptr<int, decltype(&FileDescriptor::close_file_descriptor)> pfd;
+
+public:
+  explicit FileDescriptor(int fd) : pfd(new int(fd), &FileDescriptor::close_file_descriptor) {}
+
+  operator int() const {// NOLINT(google-explicit-constructor)
+    return *pfd;
+  }
+};
+
+
+class FileReader {
+  std::string filePath;
+  FileDescriptor fd;
+
+public:
+  explicit FileReader(std::string filePath_)
+      : filePath(std::move(filePath_)),
+        fd(::open(filePath.c_str(), O_RDONLY | O_CLOEXEC)) {
+    if (fd < 0) {
+      throw ErrorUnableToOpenFile(filePath);
+    }
+  }
+
+  ssize_t read(void* buf, size_t nBytes) const {
+    ssize_t nBytesRead = ::read(fd, buf, nBytes);
+    if (nBytesRead < 0) {
+      throw ErrorUnableToReadFile(filePath);
+    }
+    return nBytesRead;
+  }
+};
+
+class FastaStreamImpl : public FastaStream {
+  using KStream = klibpp::KStream<FileReader>;
+  KStream kstream;
 
 public:
   FastaStreamImpl() = delete;
 
-  explicit FastaStreamImpl(std::istream& is, std::string fileName) : istream(is), filename(std::move(fileName)) {}
-
-  ~FastaStreamImpl() override = default;
-
-  FastaStreamImpl(const FastaStreamImpl& other) = delete;
-
-  FastaStreamImpl operator=(const FastaStreamImpl& other) = delete;
-
-  FastaStreamImpl(FastaStreamImpl&& other) = delete;
-
-  FastaStreamImpl operator=(const FastaStreamImpl&& other) = delete;
+  explicit FastaStreamImpl(const std::string& filePath) : kstream(FileReader(filePath)) {}
 
 
-  [[nodiscard]] bool good() const override {
-    return istream.good();
-  }
-
-
-  AlgorithmInput next() override {
-    if (!good()) {
-      throw ErrorFastaStreamIllegalNextCall(filename);
-    }
-
-    std::string line;
-    while (std::getline(istream, line)) {
-      line = sanitizeLine(line);
-
-      if (boost::starts_with(line, ">")) {
-        if (!currentSeq.empty()) {
-          auto result = prepareResult();
-          ++currentIndex;
-          currentSeq = "";
-          currentSeqName = sanitizeSequenceName(line);
-          return result;
-        }
-
-        currentSeqName = sanitizeSequenceName(line);
-        currentSeq = "";
-
-      } else if (!line.empty()) {
-        currentSeq += line;
-      }
-    }
-
-    if (!currentSeq.empty()) {
-      return prepareResult();
-    }
-
-    throw ErrorFastaStreamInvalidState(filename);
+  bool next(AlgorithmInput& record) override {
+    return kstream.next(record);
   }
 };
 
-std::unique_ptr<FastaStream> makeFastaStream(std::istream& istream, std::string filename) {
-  return std::make_unique<FastaStreamImpl>(istream, std::move(filename));
+std::unique_ptr<FastaStream> makeFastaStream(const std::string& filename) {
+  return std::make_unique<FastaStreamImpl>(filename);
 }
 
-std::vector<AlgorithmInput> parseSequences(std::istream& istream, std::string filename) {
-  std::vector<AlgorithmInput> seqs;
+safe_vector<AlgorithmInput> parseSequences(const std::string& filename) {
+  safe_vector<AlgorithmInput> seqs;
 
-  auto fastaStream = makeFastaStream(istream, std::move(filename));
-  while (fastaStream->good()) {
-    seqs.emplace_back(fastaStream->next());
+  auto fastaStream = makeFastaStream(filename);
+
+  AlgorithmInput input;
+  while (fastaStream->next(input)) {
+    seqs.emplace_back(std::move(input));
   }
 
   return seqs;

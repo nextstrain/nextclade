@@ -21,19 +21,6 @@
       ]
     },
     {
-      "login": "corneliusroemer",
-      "name": "Cornelius Roemer",
-      "avatar_url": "https://avatars1.githubusercontent.com/u/25161793?v=4",
-      "profile": "https://github.com/corneliusroemer",
-      "contributions": [
-        "code",
-        "doc",
-        "test",
-        "talk",
-        "review"
-      ]
-    },
-    {
       "login": "tsibley",
       "name": "Thomas Sibley",
       "avatar_url": "https://avatars2.githubusercontent.com/u/79913?v=4",
@@ -41,6 +28,16 @@
       "contributions": [
         "infra",
         "security"
+      ]
+    },
+    {
+      "login": "victorlin",
+      "name": "Victor Lin",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/13424970?v=4",
+      "profile": "https://github.com/victorlin",
+      "contributions": [
+        "code",
+        "doc"
       ]
     },
     {
@@ -87,6 +84,16 @@
       "profile": "http://finlaymagui.re/",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "dnanto",
+      "name": "dnanto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49757922?v=4",
+      "profile": "https://github.com/dnanto",
+      "contributions": [
+        "code",
+        "data"
       ]
     }
   ],

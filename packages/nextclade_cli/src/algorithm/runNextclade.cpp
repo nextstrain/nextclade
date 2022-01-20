@@ -1,5 +1,6 @@
 #include "runNextclade.h"
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
 #include <tbb/concurrent_vector.h>
@@ -10,10 +11,11 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "../io/Logger.h"
 #include "../io/parseRefFastaFile.h"
+#include "../utils/datetime.h"
+#include "../utils/safe_cast.h"
 
 
 namespace Nextclade {
@@ -34,8 +36,9 @@ namespace Nextclade {
     /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
     /* in  */ const ReferenceSequenceData &refData,
     /* in  */ const QcConfig &qcRulesConfig,
+    /* in  */ const VirusJson &virusJson,
     /* in  */ const std::string &treeString,
-    /* in  */ const std::vector<PcrPrimer> &pcrPrimers,
+    /* in  */ const safe_vector<PcrPrimer> &pcrPrimers,
     /* in  */ const GeneMap &geneMap,
     /* in  */ const NextalignOptions &nextalignOptions,
     /* out */ std::unique_ptr<std::ostream> &outputJsonStream,
@@ -54,26 +57,28 @@ namespace Nextclade {
     const auto &ref = refData.seq;
     const auto &refName = refData.name;
 
-    std::unique_ptr<Nextclade::CsvWriterAbstract> csv;
-    if (outputCsvStream) {
-      csv = createCsvWriter(CsvWriterOptions{.delimiter = ';'});
-    }
-
-    std::unique_ptr<Nextclade::CsvWriterAbstract> tsv;
-    if (outputTsvStream) {
-      tsv = createCsvWriter(CsvWriterOptions{.delimiter = '\t'});
-    }
-
     const NextcladeOptions options = {
       .ref = ref,
       .treeString = treeString,
       .pcrPrimers = pcrPrimers,
       .geneMap = geneMap,
       .qcRulesConfig = qcRulesConfig,
+      .virusJson = virusJson,
       .nextalignOptions = nextalignOptions,
     };
 
     NextcladeAlgorithm nextclade{options};
+    const auto cladeNodeAttrKeys = nextclade.getCladeNodeAttrKeys();
+
+    std::unique_ptr<Nextclade::CsvWriterAbstract> csv;
+    if (outputCsvStream) {
+      csv = createCsvWriter(CsvWriterOptions{.delimiter = ';'}, cladeNodeAttrKeys);
+    }
+
+    std::unique_ptr<Nextclade::CsvWriterAbstract> tsv;
+    if (outputTsvStream) {
+      tsv = createCsvWriter(CsvWriterOptions{.delimiter = '\t'}, cladeNodeAttrKeys);
+    }
 
     // TODO(perf): consider using a thread-safe queue instead of a vector,
     //  or restructuring code to avoid concurrent access entirely
@@ -83,12 +88,12 @@ namespace Nextclade {
    * reads and parses the contents of it, and returns parsed sequences */
     const auto inputFilter = tbb::make_filter<void, AlgorithmInput>(ioFiltersMode,//
       [&inputFastaStream](tbb::flow_control &fc) -> AlgorithmInput {
-        if (!inputFastaStream->good()) {
+        AlgorithmInput input;
+        if (!inputFastaStream->next(input)) {
           fc.stop();
           return {};
         }
-
-        return inputFastaStream->next();
+        return input;
       });
 
     /** A set of parallel transform filter functions, each accepts a parsed sequence from the input filter,
@@ -125,6 +130,7 @@ namespace Nextclade {
         const auto &queryPeptides = output.result.queryPeptides;
         const auto &refPeptides = output.result.refPeptides;
         const auto &insertions = output.result.analysisResult.insertions;
+        const auto &aaInsertions = output.result.analysisResult.aaInsertions;
         const auto &warnings = output.result.warnings;
 
         const auto &result = output.result;
@@ -151,8 +157,8 @@ namespace Nextclade {
             return;
           }
         } else {
-          std::vector<std::string> warningsCombined;
-          std::vector<std::string> failedGeneNames;
+          safe_vector<std::string> warningsCombined;
+          safe_vector<std::string> failedGeneNames;
           for (const auto &warning : warnings.global) {
             logger.warn("Warning: in sequence \"{:s}\": {:s}", seqName, warning);
             warningsCombined.push_back(warning);
@@ -192,7 +198,7 @@ namespace Nextclade {
             outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
           }
 
-          outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+          outputInsertionsStream << formatInsertionsCsvRow(seqName, insertions, aaInsertions);
 
           if (outputJsonStream || outputTreeStream) {
             resultsConcurrent.push_back(output.result.analysisResult);
@@ -223,10 +229,16 @@ namespace Nextclade {
 
     if (outputJsonStream || outputTreeStream) {
       // TODO: try to avoid copy here
-      std::vector<AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
+      safe_vector<AnalysisResult> results{resultsConcurrent.cbegin(), resultsConcurrent.cend()};
 
       if (outputJsonStream) {
-        *outputJsonStream << serializeResults(results);
+        *outputJsonStream << serializeResults(AnalysisResults{
+          .schemaVersion = Nextclade::getAnalysisResultsJsonSchemaVersion(),
+          .nextcladeVersion = Nextclade::getVersion(),
+          .timestamp = safe_cast<uint64_t>(getTimestampNow()),
+          .cladeNodeAttrKeys = cladeNodeAttrKeys,
+          .results = results,
+        });
       }
 
       if (outputTreeStream) {

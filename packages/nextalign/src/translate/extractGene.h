@@ -4,7 +4,7 @@
 
 #include <exception>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "nextalign/private/nextalign_private.h"
 

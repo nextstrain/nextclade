@@ -5,7 +5,7 @@
 
 #include <algorithm>
 #include <optional>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../utils/mapFind.h"
 #include "getQcRuleStatus.h"

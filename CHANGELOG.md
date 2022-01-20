@@ -1,3 +1,140 @@
+## Nextclade Web 1.12.0, Nextclade CLI 1.9.0, Nextalign CLI 1.9.0 (2022-01-11)
+
+### [Feature] Handle "-" strand gene translation
+
+The strand column in the gene map file was previously ignored. Now the "-" strand genes are correctly reverse-complemented before translation.
+
+### [Feature] Update SARS-CoV-2 clade schema
+
+The schema that illustrates the tree of SARS-CoV-2 clade on the main page of Nextclade Web was updated to account for recent clade changes.
+
+### [Fix] Center mutation markers in sequence views
+
+Previously the mutation markers in sequence views in results table of Nextclade Web were anchored to their position in the sequence view on their left edge. They are now correctly centered around their position, such that the center of marker is at the corresponding position in the sequence.
+
+### [Fix] Correct exit codes
+
+Nextclade CLI and Nextalign CLI could sometime exit with incorrect exit code. This has been fixed.
+
+### [Fix] Correctly handle empty peptides
+
+The alignment algorithm in Nextclade CLI and Nextalign CLI could sometimes produce translation that is longer than expected, when the translated sequence is empty. Now the empty peptides are discarded and a warning is issued.
+
+### [Fix] Ensure array boundaries
+
+In rare cases Nextclade and Nextalign algorithms could sometimes read past the end of arrays, which previously went undetected. This is now fixed.
+
+
+## Nextclade Web 1.11.1, Nextclade CLI 1.8.1 (2022-01-07)
+
+### [Hotfix] Nextclade CLI crashes on macOS when reading JSON tree (#680)
+
+Fixes crash `Error: [json.exception.invalid_iterator.214] cannot get value |` when reading JSON tree on macOS
+
+
+## Nextclade Web 1.11.0, Nextclade CLI 1.8.0 (2022-01-04)
+
+### [Feature] Better dataset selector
+
+Nextclade Web has got the new dataset selector on the main page, which clearly presents all available dataset and is more convenient to use. The last selected dataset is remembered, so that it dow not need to be selected again on subsequent runs. This also fixes rare problems and inconsistencies, when incorrect dataset might have been used despite another dataset is being selected.
+
+### [Feature] Dynamic node attributes
+
+Nextclade CLI and Nextclade Web now can assign multiple clade-like attributes to the analyzed sequences.
+
+If input reference tree JSON contains an array of attribute keys attached to the
+
+```
+meta.extensions.nextclade.clade_node_attrs_keys = ["my_clades", "other_clades"]
+```
+
+For each query sequence, during clade assignment step, Nextclade will lookup values of these keys from `.node.node_attrs` property of the nearest reference tree node and assign them to the corresponding properties of the newly attached nodes, just like it happens with the usual Nextstrain clades. This feature is currently not used with the default datasets, but we are planning to extend the reference trees in these datasets to take advantage of this feature. Curious users can start experimenting with their own reference trees and custom nomenclatures. Learn more about clade assignment in Nextclade in the [documentation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/algorithm/06-clade-assignment.html).
+
+### [Performance] Optimize match table lookups
+
+In this version, alignment algorithm behind Nextclade and Nextalign is now up to 10% faster due to performance improvements in nucleotide and aminoacid table lookups.
+
+
+## Nextclade Web 1.10.0, Nextclade CLI 1.7.0 (2021-12-09)
+
+### [Performance] Optimize FASTA parser
+
+The new optimized FASTA parser makes Nextclade CLI up to 60% faster and Nextalign CLI up to 500% faster when used on high-core-count machines. Nextalign and Nextclade now scale much better with number of available threads and rely less on I/O speed. See [#632](https://github.com/nextstrain/nextclade/pull/632) for more details.
+
+### [Fix] Avoid crash due to buffer overflow
+
+This is an internal fix of a problem that might have lead to a crash in rare cases, when coordinate map array was accessed beyond it's size.
+
+
+## Nextclade Web 1.9.0, Nextclade CLI 1.6.0 (2021-12-07)
+
+
+### [BREAKING CHANGE] [Fix] Remove unused CLI flags for aminoacid seed alignment
+
+Seed matching step was removed in Nextalign and Nextclade CLI 1.5.0, however the command-line parameters previously providing configuration options for this step were not. In this version, the now unused family of `--aa-*` CLI flags is removed. Migration path: remove these flags from Nextclade CLI invocation.
+
+### [Feature] Make "results" and "tree" pages full-width in Nextclade Web
+
+The content in "results" and "tree" pages of Nextclade Web now occupies entire width available in the browser window, so that more useful information can be presented. In particular, sequence views should be more readable, especially on larger screens.
+
+### [Feature] Dynamically adjust width of AA mutation markers
+
+Nextclade Web now dynamically adjusts width of AA mutation markers in sequence views to avoid overly long mutation groups that may obscure other mutations. This is particularly important for sequences with high density of mutations.
+
+### [Feature] Reduce probability of WebWorker timeout errors
+
+On low-end computers, computers with slow internet connection or computers under heavy background resource utilization Nextclade Web could sometimes produce WebWorker timeout errors. This has been addressed by increasing the timeout interval from 10 seconds to 1 minute. 
+
+If this is not enough, consider freeing up system memory and CPU resources by closing unused applications and browser tabs, processing sequences in smaller batches, or using Nextclade CLI. 
+
+### [Fix] Fix off-by-one errors in insertion positions
+
+Nextclade Web, Nextclade CLI and Nextalign could sometime produce incorrect positions for nucleotide insertions - off by 1 nucleotide to either direction. This was fixed in the new version.
+
+### [Fix] Don't add private reversions when query aminoacid is unknown
+
+In previous versions, if a query sequence, for one reason or another, had aminoacid X at the position where the parent tree node had a private mutation, Nextclade was incorrectly calling a new reversion at this position. This is now fixed and Nextclade will not report a reversion. We assume that in these situations the sequencing defect is more likely than a reversion.
+
+### [Fix] Avoid potential dereference of nullopt
+
+This is an internal fix of a problem that might have lead to a crash, but never manifested so far.
+
+
+### [Fix] Avoid error when `--genes` flag contains a subset of genes
+
+Nextclade 1.8.0 introduced an error when `--genes` flag contained only a subset of genes from the gene map. This is now resolved.
+
+
+## Nextclade Web 1.8.1, Nextclade CLI 1.5.1 (2021-11-27)
+
+
+### [Fix] Avoid crash when relative shift (bandwidth) is larger than query length
+
+In rare cases Nextclade 1.5.0 could crash during alignment of some of the short peptides. This has been fixed in this version.
+
+
+### [Fix] Improve peptide alignment
+
+We improved heuristics which determine band width and shift for the peptide alignment, so that some of the peptides with large insertions can now be aligned.
+
+
+
+## Nextclade Web 1.8.0, Nextclade CLI 1.5.0 (2021-11-27)
+
+### [Feature] Improve peptide alignment
+
+We improved the algorithm for peptide alignment. Instead of performing seed matching in order to estimate width of the band and shift parameters for peptide alignment, we now deduce these parameters from the nucleotide alignment results. This allows Nextclade to align and analyse some of the peptides that would fail previously, including for low quality gene sequences and sequences with large deletions or deletions close to the beginning.
+
+### [Fix] Account for the partially covered last codon in frame shift
+
+Nextclade previously did not account for the last codon in a frame shift if that codon was covered by the shift only partially. In this version we count the partial codons. This solves an issue with empty frame shift codon ranges being reported in rare cases. This change may result in some of the frame shifts to be longer by 1 codon in the new version compared to previous versions of Nextclade. The nucleotide length of frame shifts stays the same.
+
+None of the ignored frame shift ranges in the QC configurations of the existing dataset are affected by this change. But if you use a custom QC configuration, some of the frame shifts in the list of ignored frame shifts might need to be adjusted.
+
+### [Fix] Fix crashes with Nextclade CLI on macOS
+
+In this version we fixed a crash with segmentation fault that could sometimes happen with Nextclade CLI on macOS.
+
 ## Nextclade Web 1.7.4 (2021-11-16)
 
 This is a bugfix release for Nextclade Web.

@@ -14,21 +14,29 @@ export function formatQCPrivateMutations<TFunction extends TFunctionInterface>(
     return undefined
   }
 
-  const { score, total, excess, cutoff, status } = privateMutations
-
-  let message = t('')
-  if (status === QcStatus.bad) {
-    message = t('Too many private mutations. ')
-  }
+  const {
+    score,
+    numReversionSubstitutions,
+    numLabeledSubstitutions,
+    numUnlabeledSubstitutions,
+    totalDeletionRanges,
+    weightedTotal,
+  } = privateMutations
 
   return t(
-    '{{message}}{{total}} private mutations seen. Up to {{excess}} is expected, {{cutoff}} or more is considered problematic.',
+    'QC score: {{score}}. ' +
+      'Reverted substitutions: {{numReversionSubstitutions}}, ' +
+      'Labeled substitutions: {{numLabeledSubstitutions}}, ' +
+      'Unlabeled substitutions: {{numUnlabeledSubstitutions}}, ' +
+      'Deletion ranges: {{totalDeletionRanges}}. ' +
+      'Weighted total: {{weightedTotal}}',
     {
-      message,
-      total,
-      excess,
-      cutoff,
       score: round(score),
+      numReversionSubstitutions,
+      numLabeledSubstitutions,
+      numUnlabeledSubstitutions,
+      totalDeletionRanges,
+      weightedTotal,
     },
   )
 }
