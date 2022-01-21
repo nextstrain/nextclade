@@ -1,14 +1,25 @@
 [package]
-name = "nextalign"
-description = "Nucleotide sequence alignment and translation"
+name = "nextclade"
+description = "Viral sequence alignmant and analysis tool"
 version = "2.0.0"
 edition = "2021"
 license = "MIT"
 publish = false
 
+
 [dependencies]
-bio = "0.39.0"
-jemallocator-global = "0.3.2"
+bio = "0.39.1"
+chrono = { version = "0.4.19", default-features = false, features = ["clock", "std"] }
+clap = { version = "3.0.10", features = ["derive"] }
+color-eyre = "0.6.0"
+ctor = "0.1.21"
+env_logger = "0.9.0"
+eyre = "0.6.5"
+itertools = "0.10.3"
+log = "0.4.14"
+mimalloc = { version = "0.1.27", default-features = false }
+owo-colors = "3.2.0"
+
 
 [profile.release]
 codegen-units = 1
