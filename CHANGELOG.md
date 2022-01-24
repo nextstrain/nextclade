@@ -12,7 +12,7 @@ Which category a mutation belongs to is visible by hovering over the "Mut." colu
 
 ### [Feature] Insertions now also available as amino acids [#692](https://github.com/nextstrain/nextclade/pull/692)
 
-Nucleotide insertions are now additionally translated into amino acids. You can find them by hovering over the "insertions" column in the web app and as "aaInsertions" and "totalAminoacidInsertions" fields in Nextalign and Nextclade output.
+Aminoacid insertions relative to the reference peptide are now display in the over the "Ins." column in Nextclade Web and are emitted as "aaInsertions" and "totalAminoacidInsertions" fields in Nextalign and Nextclade output files. Note, that similarly to nucleotide insertions, aminoacid insertions are stripped from the output alignment.
 
 ### [Change] Rare mutations QC rule now uses reversion and labeled mutation counts (Nextclade)
 
