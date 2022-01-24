@@ -18,6 +18,10 @@ Nucleotide insertions are now additionally translated into amino acids. You can 
 
 Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights in the private mutation QC rule.
 
+### [Fix] Gaps in query sequences are now stripped correctly [#696](https://github.com/nextstrain/nextclade/pull/696)
+
+When query sequences contained gaps (-), e.g. when inputting aligned sequences, gaps were not stripped correctly since v1.7.0 (web v1.10.0), which could lead to - showing up in insertions.
+
 ## Nextclade Web 1.12.0, Nextclade CLI 1.9.0, Nextalign CLI 1.9.0 (2022-01-11)
 
 ### [Feature] Handle "-" strand gene translation
