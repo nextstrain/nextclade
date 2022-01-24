@@ -1,3 +1,27 @@
+## Nextclade Web 1.13.0, Nextclade CLI 1.10.0, Nextalign CLI 1.10.0 (2022-01-24)
+
+### [Feature] Detailed split of private mutations (Nextclade) [#689](https://github.com/nextstrain/nextclade/pull/689)
+
+Private mutations (differences between a query sequence and nearest neighbour in reference tree) are now split into three categories:
+
+1. Reversion to reference genotype
+2. (SARS-CoV-2 only for now) Mutation to a genotype common in at least 1 clade get labeled with that clade
+3. Mutations that are neither reversions nor labeled (called "unlabeled")
+
+Which category a mutation belongs to is visible by hovering over the "Mut." column in Nextclade Web and in various "privateNucMutations" fields in [csv/tsv/json outputs](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files.html#tabular-csv-tsv-results).
+
+### [Change] "Private mutations" QC rule now accounts for reversions and labeled mutations
+
+Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights in the "Private mutations" QC rule (denoted as "P" in Nextclade Web, and `qc.privateMutations` in output files).
+
+### [Feature] Insertions now also available as amino acids [#692](https://github.com/nextstrain/nextclade/pull/692)
+
+Aminoacid insertions in the query peptides relative to the corresponding reference peptide are now displayed in the "Ins." column in Nextclade Web and are emitted as "aaInsertions" and "totalAminoacidInsertions" fields in Nextalign and Nextclade output files. Note, that similarly to nucleotide insertions, aminoacid insertions are stripped from the output alignment.
+
+### [Fix] Gaps in query sequences are now stripped correctly [#696](https://github.com/nextstrain/nextclade/pull/696)
+
+When query sequences contained gaps (-), e.g. when inputting aligned sequences, gaps were not stripped correctly since v1.7.0 (web v1.10.0), which could lead to - showing up in insertions.
+
 ## Nextclade Web 1.12.0, Nextclade CLI 1.9.0, Nextalign CLI 1.9.0 (2022-01-11)
 
 ### [Feature] Handle "-" strand gene translation
@@ -24,13 +48,11 @@ The alignment algorithm in Nextclade CLI and Nextalign CLI could sometimes produ
 
 In rare cases Nextclade and Nextalign algorithms could sometimes read past the end of arrays, which previously went undetected. This is now fixed.
 
-
 ## Nextclade Web 1.11.1, Nextclade CLI 1.8.1 (2022-01-07)
 
 ### [Hotfix] Nextclade CLI crashes on macOS when reading JSON tree (#680)
 
 Fixes crash `Error: [json.exception.invalid_iterator.214] cannot get value |` when reading JSON tree on macOS
-
 
 ## Nextclade Web 1.11.0, Nextclade CLI 1.8.0 (2022-01-04)
 
@@ -44,7 +66,7 @@ Nextclade CLI and Nextclade Web now can assign multiple clade-like attributes to
 
 If input reference tree JSON contains an array of attribute keys attached to the
 
-```
+```js
 meta.extensions.nextclade.clade_node_attrs_keys = ["my_clades", "other_clades"]
 ```
 
@@ -65,9 +87,7 @@ The new optimized FASTA parser makes Nextclade CLI up to 60% faster and Nextalig
 
 This is an internal fix of a problem that might have lead to a crash in rare cases, when coordinate map array was accessed beyond it's size.
 
-
 ## Nextclade Web 1.9.0, Nextclade CLI 1.6.0 (2021-12-07)
-
 
 ### [BREAKING CHANGE] [Fix] Remove unused CLI flags for aminoacid seed alignment
 

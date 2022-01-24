@@ -389,6 +389,8 @@ inline bool isUnknown(const Aminoacid& aa) {
   return aa == Aminoacid::N;
 }
 
+std::string sanitizeSequenceString(const std::string& str);
+
 class FastaStream {
 public:
   FastaStream() = default;

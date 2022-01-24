@@ -148,7 +148,7 @@ public:
     };
 
     try {
-      const auto query = toNucleotideSequence(queryStr);
+      const auto query = toNucleotideSequence(sanitizeSequenceString(queryStr));
 
 
       const auto result = analyzeOneSequence(//
