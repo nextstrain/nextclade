@@ -10,13 +10,13 @@ Private mutations (differences between a query sequence and nearest neighbour in
 
 Which category a mutation belongs to is visible by hovering over the "Mut." column in Nextclade Web and in various "privateNucMutations" fields in [csv/tsv/json outputs](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files.html#tabular-csv-tsv-results).
 
-### [Feature] Insertions now also available as amino acids [#692](https://github.com/nextstrain/nextclade/pull/692)
-
-Aminoacid insertions relative to the reference peptide are now display in the over the "Ins." column in Nextclade Web and are emitted as "aaInsertions" and "totalAminoacidInsertions" fields in Nextalign and Nextclade output files. Note, that similarly to nucleotide insertions, aminoacid insertions are stripped from the output alignment.
-
 ### [Change] "Private mutations" QC rule now accounts for reversions and labeled mutations
 
 Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights in the "Private mutations" QC rule (denoted as "P" in Nextclade Web, and `qc.privateMutations` in output files).
+
+### [Feature] Insertions now also available as amino acids [#692](https://github.com/nextstrain/nextclade/pull/692)
+
+Aminoacid insertions relative to the reference peptide are now display in the over the "Ins." column in Nextclade Web and are emitted as "aaInsertions" and "totalAminoacidInsertions" fields in Nextalign and Nextclade output files. Note, that similarly to nucleotide insertions, aminoacid insertions are stripped from the output alignment.
 
 ### [Fix] Gaps in query sequences are now stripped correctly [#696](https://github.com/nextstrain/nextclade/pull/696)
 
