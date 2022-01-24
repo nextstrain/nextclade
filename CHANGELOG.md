@@ -1,6 +1,6 @@
 ## Nextclade Web 1.13.0, Nextclade CLI 1.10.0, Nextalign CLI 1.10.0 (2022-01-24)
 
-### [Feature] Detailed split of private mutations (Nextclade) [#698](https://github.com/nextstrain/nextclade/pull/689)
+### [Feature] Detailed split of private mutations (Nextclade) [#689](https://github.com/nextstrain/nextclade/pull/689)
 
 Private mutations (differences between a query sequence and nearest neighbour in reference tree) are now split into three categories:
 
