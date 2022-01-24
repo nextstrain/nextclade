@@ -1,6 +1,6 @@
 ## Nextclade Web 1.13.0, Nextclade CLI 1.10.0, Nextalign CLI 1.10.0 (2022-01-24)
 
-### [Feature] Detailed split of private mutations
+### [Feature] Detailed split of private mutations (Nextclade) [#698](https://github.com/nextstrain/nextclade/pull/689)
 
 Private mutations (differences between a query sequence and nearest neighbour in reference tree) are now split into three categories:
 
@@ -10,7 +10,11 @@ Private mutations (differences between a query sequence and nearest neighbour in
 
 Which category a mutation belongs to is visible by hovering over the "divergence" column (in web) and in various "privateNucMutations" fields in [csv/tsv/json outputs](https://docs.nextstrain.org/projects/nextclade/en/latest/user/output-files.html#tabular-csv-tsv-results).
 
-### [Change] Rare mutations QC rule now uses reversion and labeled mutation counts
+### [Feature] Insertions now also available as amino acids [#692](https://github.com/nextstrain/nextclade/pull/692)
+
+Nucleotide insertions are now additionally translated into amino acids. You can find them by hovering over the "insertions" column in the web app and as "aaInsertions" and "totalAminoacidInsertions" fields in Nextalign and Nextclade output.
+
+### [Change] Rare mutations QC rule now uses reversion and labeled mutation counts (Nextclade)
 
 Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights private mutation QC rule.
 
