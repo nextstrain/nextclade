@@ -14,9 +14,9 @@ Which category a mutation belongs to is visible by hovering over the "Mut." colu
 
 Aminoacid insertions relative to the reference peptide are now display in the over the "Ins." column in Nextclade Web and are emitted as "aaInsertions" and "totalAminoacidInsertions" fields in Nextalign and Nextclade output files. Note, that similarly to nucleotide insertions, aminoacid insertions are stripped from the output alignment.
 
-### [Change] Rare mutations QC rule now uses reversion and labeled mutation counts (Nextclade)
+### [Change] "Private mutations" QC rule now accounts for reversions and labeled mutations
 
-Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights in the private mutation QC rule.
+Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights in the "Private mutations" QC rule (denoted as "P" in Nextclade Web, and `qc.privateMutations` in output files).
 
 ### [Fix] Gaps in query sequences are now stripped correctly [#696](https://github.com/nextstrain/nextclade/pull/696)
 
