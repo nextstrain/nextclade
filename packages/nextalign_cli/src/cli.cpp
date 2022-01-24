@@ -697,7 +697,7 @@ void run(
   const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter_mode::parallel,//
     [&ref, &refPeptides, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
       try {
-        const auto query = toNucleotideSequence(input.seq);
+        const auto query = toNucleotideSequence(sanitizeSequenceString(input.seq));
         const auto result = nextalignInternal(query, ref, refPeptides, geneMap, options);
         return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
       } catch (const std::exception &e) {
