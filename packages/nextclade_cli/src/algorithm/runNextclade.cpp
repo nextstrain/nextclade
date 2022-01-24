@@ -100,11 +100,12 @@ namespace Nextclade {
    * runs nextclade algorithm sequentially and returns its result.
    * The number of filters is determined by the `--jobs` CLI argument */
     const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter_mode::parallel,//
-      [&nextclade](const AlgorithmInput &input) -> AlgorithmOutput {
+      [&nextclade](AlgorithmInput&& input) -> AlgorithmOutput {
         const auto &seqName = input.seqName;
 
         try {
-          const auto seq = toNucleotideSequence(sanitizeSequenceString(input.seq));
+          input.seq = sanitizeSequenceString(input.seq); // NOTE: replaces the original
+          const auto seq = toNucleotideSequence(input.seq);
           const auto result = nextclade.run(seqName, seq);
           return {.index = input.index, .seqName = seqName, .hasError = false, .result = result, .error = nullptr};
         } catch (const std::exception &e) {

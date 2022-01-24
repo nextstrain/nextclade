@@ -139,7 +139,7 @@ public:
 
   NextcladeWasmResult analyze(   //
     const std::string& queryName,//
-    const std::string& queryStr  //
+    std::string&& queryStr       // NOTE: pass by value
   ) {
 
     Warnings warnings{
@@ -148,7 +148,8 @@ public:
     };
 
     try {
-      const auto query = toNucleotideSequence(sanitizeSequenceString(queryStr));
+      queryStr = sanitizeSequenceString(queryStr);// NOTE: replaces the original
+      const auto query = toNucleotideSequence(queryStr);
 
 
       const auto result = analyzeOneSequence(//

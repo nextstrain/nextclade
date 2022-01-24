@@ -695,9 +695,10 @@ void run(
    * runs nextalign algorithm sequentially and returning its result.
    * The number of filters is determined by the `--jobs` CLI argument */
   const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter_mode::parallel,//
-    [&ref, &refPeptides, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
+    [&ref, &refPeptides, &geneMap, &options](AlgorithmInput &&input) -> AlgorithmOutput {
       try {
-        const auto query = toNucleotideSequence(sanitizeSequenceString(input.seq));
+        input.seq = sanitizeSequenceString(input.seq);// NOTE: replaces the original
+        const auto query = toNucleotideSequence(input.seq);
         const auto result = nextalignInternal(query, ref, refPeptides, geneMap, options);
         return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
       } catch (const std::exception &e) {
