@@ -6,7 +6,7 @@ Private mutations (differences between a query sequence and nearest neighbour in
 
 1. Reversion to reference genotype
 2. (SARS-CoV-2 only for now) Mutation to a genotype common in at least 1 clade get labeled with that clade
-3. Mutations that are neither reversions nor labeled (called "unlabeled"
+3. Mutations that are neither reversions nor labeled (called "unlabeled")
 
 Which category a mutation belongs to is visible by hovering over the "divergence" column (in web) and in various "privateNucMutations" fields in [csv/tsv/json outputs](https://docs.nextstrain.org/projects/nextclade/en/latest/user/output-files.html#tabular-csv-tsv-results).
 
