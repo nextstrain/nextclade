@@ -44,13 +44,11 @@ The alignment algorithm in Nextclade CLI and Nextalign CLI could sometimes produ
 
 In rare cases Nextclade and Nextalign algorithms could sometimes read past the end of arrays, which previously went undetected. This is now fixed.
 
-
 ## Nextclade Web 1.11.1, Nextclade CLI 1.8.1 (2022-01-07)
 
 ### [Hotfix] Nextclade CLI crashes on macOS when reading JSON tree (#680)
 
 Fixes crash `Error: [json.exception.invalid_iterator.214] cannot get value |` when reading JSON tree on macOS
-
 
 ## Nextclade Web 1.11.0, Nextclade CLI 1.8.0 (2022-01-04)
 
@@ -64,7 +62,7 @@ Nextclade CLI and Nextclade Web now can assign multiple clade-like attributes to
 
 If input reference tree JSON contains an array of attribute keys attached to the
 
-```
+```js
 meta.extensions.nextclade.clade_node_attrs_keys = ["my_clades", "other_clades"]
 ```
 
@@ -85,9 +83,7 @@ The new optimized FASTA parser makes Nextclade CLI up to 60% faster and Nextalig
 
 This is an internal fix of a problem that might have lead to a crash in rare cases, when coordinate map array was accessed beyond it's size.
 
-
 ## Nextclade Web 1.9.0, Nextclade CLI 1.6.0 (2021-12-07)
-
 
 ### [BREAKING CHANGE] [Fix] Remove unused CLI flags for aminoacid seed alignment
 
