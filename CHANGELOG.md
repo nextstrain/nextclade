@@ -16,7 +16,7 @@ Nucleotide insertions are now additionally translated into amino acids. You can 
 
 ### [Change] Rare mutations QC rule now uses reversion and labeled mutation counts (Nextclade)
 
-Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights private mutation QC rule.
+Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights in the private mutation QC rule.
 
 ## Nextclade Web 1.12.0, Nextclade CLI 1.9.0, Nextalign CLI 1.9.0 (2022-01-11)
 
