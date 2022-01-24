@@ -104,7 +104,7 @@ namespace Nextclade {
         const auto &seqName = input.seqName;
 
         try {
-          const auto seq = toNucleotideSequence(input.seq);
+          const auto seq = toNucleotideSequence(sanitizeSequenceString(input.seq));
           const auto result = nextclade.run(seqName, seq);
           return {.index = input.index, .seqName = seqName, .hasError = false, .result = result, .error = nullptr};
         } catch (const std::exception &e) {
