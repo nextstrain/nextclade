@@ -2,10 +2,9 @@
 #![allow(clippy::separated_literal_suffix)]
 
 use crate::align::score_matrix::{qryGAPextend, qryGAPmatrix, refGAPextend, refGAPmatrix, END_OF_SEQUENCE, MATCH};
+use crate::io::nuc::Nuc;
 use crate::utils::vec2d::Vec2d;
 use std::cmp;
-
-const GAP: u8 = b'-';
 
 fn index_to_shift(si: usize, bandWidth: usize, meanShift: i32) -> i32 {
   si as i32 - bandWidth as i32 + meanShift as i32
@@ -61,14 +60,14 @@ fn determine_best_alignment(
 }
 
 pub struct NextalignResult {
-  qry_seq: Vec<u8>,
-  ref_seq: Vec<u8>,
+  qry_seq: Vec<Nuc>,
+  ref_seq: Vec<Nuc>,
   alignment_score: usize,
 }
 
 pub fn backtrace(
-  qry_seq: &[u8],
-  ref_seq: &[u8],
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
   scores: &Vec2d<i32>,
   paths: &Vec2d<i32>,
   meanShift: i32,
@@ -80,8 +79,8 @@ pub fn backtrace(
   let bandWidth = (num_rows - 1) / 2;
 
   let aln_capacity = num_cols + 3 * bandWidth;
-  let mut aln_ref = Vec::<u8>::with_capacity(aln_capacity);
-  let mut aln_qry = Vec::<u8>::with_capacity(aln_capacity);
+  let mut aln_ref = Vec::<Nuc>::with_capacity(aln_capacity);
+  let mut aln_qry = Vec::<Nuc>::with_capacity(aln_capacity);
 
   let DetermineBestAlignmentResult {
     mut si,
@@ -93,13 +92,13 @@ pub fn backtrace(
   // Add right overhang, i.e. unaligned parts of the query or reference
   if rPos < ref_len - 1 {
     for i in (rPos..ref_len - 1).rev() {
-      aln_qry.push(GAP);
+      aln_qry.push(Nuc::GAP);
       aln_ref.push(ref_seq[i]);
     }
   } else if qPos < qry_len - 1 {
     for i in (qPos..qry_len - 1).rev() {
       aln_qry.push(qry_seq[i]);
-      aln_ref.push(GAP);
+      aln_ref.push(Nuc::GAP);
     }
   }
 
@@ -119,7 +118,7 @@ pub fn backtrace(
     } else if ((origin & refGAPmatrix) != 0 && currentMatrix == 0) || currentMatrix == refGAPmatrix {
       // Insertion in ref -- decrement query, increase shift
       aln_qry.push(qry_seq[qPos]);
-      aln_ref.push(GAP);
+      aln_ref.push(Nuc::GAP);
       qPos -= 1;
       si += 1;
       currentMatrix = if (origin & refGAPextend) != 0 {
@@ -131,7 +130,7 @@ pub fn backtrace(
       }
     } else if ((origin & qryGAPmatrix) != 0 && currentMatrix == 0) || currentMatrix == qryGAPmatrix {
       // Deletion in query -- decrement reference, reduce shift
-      aln_qry.push(GAP);
+      aln_qry.push(Nuc::GAP);
       aln_ref.push(ref_seq[rPos]);
       rPos -= 1;
       si -= 1;
@@ -150,13 +149,13 @@ pub fn backtrace(
   // Add left overhang, i.e. unaligned parts of the query or reference
   if rPos >= 0 {
     for i in (0..rPos).rev() {
-      aln_qry.push(GAP);
+      aln_qry.push(Nuc::GAP);
       aln_ref.push(ref_seq[i]);
     }
   } else if qPos >= 0 {
     for i in (0..qPos).rev() {
       aln_qry.push(qry_seq[i]);
-      aln_ref.push(GAP);
+      aln_ref.push(Nuc::GAP);
     }
   }
 

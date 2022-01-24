@@ -4,6 +4,7 @@
 
 use crate::align::align::AlignPairwiseParams;
 use crate::align::match_nuc::lookup_match_score_nuc;
+use crate::io::nuc::Nuc;
 use crate::utils::vec2d::Vec2d;
 use log::trace;
 
@@ -23,8 +24,8 @@ pub struct ScoreMatrixResult {
 }
 
 pub fn score_matrix(
-  qry_seq: &[u8],
-  ref_seq: &[u8],
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
   gapOpenClose: &[i32],
   bandWidth: usize,
   meanShift: i32,

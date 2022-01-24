@@ -1,15 +1,16 @@
 use crate::align::align::AlignPairwiseParams;
 use crate::gene::gene::Gene;
+use crate::io::nuc::Nuc;
 use std::collections::HashMap;
 
-pub fn get_gap_open_close_scores_flat(ref_seq: &[u8], params: &AlignPairwiseParams) -> Vec<i32> {
+pub fn get_gap_open_close_scores_flat(ref_seq: &[Nuc], params: &AlignPairwiseParams) -> Vec<i32> {
   let value = params.penaltyGapOpen as i32;
   let len = ref_seq.len() + 2;
   vec![value; len]
 }
 
 pub fn get_gap_open_close_scores_codon_aware(
-  ref_seq: &[u8],
+  ref_seq: &[Nuc],
   gene_map: &HashMap<String, Gene>,
   params: &AlignPairwiseParams,
 ) -> Vec<i32> {

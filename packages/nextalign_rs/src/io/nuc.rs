@@ -3,6 +3,7 @@ use eyre::Report;
 use itertools::Itertools;
 
 #[repr(u8)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Nuc {
   U,
   T,

@@ -1,2 +1,2 @@
 pub mod nuc;
-pub mod parse_fasta;
+pub mod fasta_reader;

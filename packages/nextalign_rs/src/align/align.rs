@@ -3,6 +3,7 @@
 use crate::align::backtrace::{backtrace, NextalignResult};
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::error;
+use crate::io::nuc::Nuc;
 use eyre::Report;
 use log::trace;
 
@@ -28,7 +29,7 @@ struct SeedMatchResult {
   score: usize,
 }
 
-fn seedMatch(kmer: &[u8], ref_seq: &[u8], start_pos: usize, mismatches_allowed: usize) -> SeedMatchResult {
+fn seedMatch(kmer: &[Nuc], ref_seq: &[Nuc], start_pos: usize, mismatches_allowed: usize) -> SeedMatchResult {
   let ref_len = ref_seq.len();
   let kmer_len = kmer.len();
 
@@ -68,18 +69,18 @@ fn seedMatch(kmer: &[u8], ref_seq: &[u8], start_pos: usize, mismatches_allowed: 
   }
 }
 
-fn is_bad_letter(letter: u8) -> bool {
-  letter == b'N'
+fn is_bad_letter(letter: &Nuc) -> bool {
+  letter == &Nuc::N
 }
 
-fn get_map_to_good_positions(qry_seq: &[u8], seed_length: usize) -> Vec<usize> {
+fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> {
   let qry_len = qry_seq.len();
 
   let mut map_to_good_positions = Vec::<usize>::with_capacity(qry_len);
   let mut distance_to_last_bad_pos: i64 = 0;
 
   for (i, letter) in qry_seq.iter().enumerate() {
-    if is_bad_letter(*letter) {
+    if is_bad_letter(letter) {
       distance_to_last_bad_pos = -1;
     } else if distance_to_last_bad_pos > seed_length as i64 {
       map_to_good_positions.push(i - seed_length);
@@ -95,7 +96,11 @@ struct SeedAlignmentResult {
   bandWidth: usize,
 }
 
-fn seedAlignment(qry_seq: &[u8], ref_seq: &[u8], params: &AlignPairwiseParams) -> Result<SeedAlignmentResult, Report> {
+fn seedAlignment(
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
+  params: &AlignPairwiseParams,
+) -> Result<SeedAlignmentResult, Report> {
   let querySize = qry_seq.len();
   let refSize = ref_seq.len();
 
@@ -179,8 +184,8 @@ fn seedAlignment(qry_seq: &[u8], ref_seq: &[u8], params: &AlignPairwiseParams) -
 }
 
 fn alignPairwise(
-  qry_seq: &[u8],
-  ref_seq: &[u8],
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
   gapOpenClose: &[i32],
   params: &AlignPairwiseParams,
   bandWidth: usize,
@@ -200,8 +205,8 @@ fn alignPairwise(
 }
 
 pub fn align_nuc(
-  qry_seq: &[u8],
-  ref_seq: &[u8],
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
   gapOpenClose: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<NextalignResult, Report> {

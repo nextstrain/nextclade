@@ -1,14 +1,16 @@
-use bio::io::fasta;
-use bio::io::fasta::FastaRead;
 use ctor::ctor;
-use eyre::{eyre, Report};
+use eyre::Report;
 use log::trace;
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
 use nextclade::align::gap_open::get_gap_open_close_scores_codon_aware;
 use nextclade::gene::gene::Gene;
+use nextclade::io::fasta_reader::{FastaReader, FastaRecord};
+use nextclade::io::nuc::to_nuc_seq;
 use nextclade::utils::global_init::global_init;
 use std::collections::HashMap;
 use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -18,11 +20,11 @@ fn init() {
   global_init();
 }
 
-pub fn read_one_fasta(filepath: &str) -> Result<Vec<u8>, Report> {
-  let mut reader = fasta::Reader::from_file(filepath).map_err(|err| eyre!(err))?;
-  let mut record = fasta::Record::new();
+pub fn read_one_fasta(filepath: &str) -> Result<String, Report> {
+  let mut reader = FastaReader::new(BufReader::with_capacity(32 * 1024, File::open(filepath)?));
+  let mut record = FastaRecord::default();
   reader.read(&mut record)?;
-  Ok(Vec::<u8>::from(record.seq()))
+  Ok(record.seq)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -52,17 +54,15 @@ fn main() -> Result<(), Box<dyn Error>> {
   trace!("Params:\n{params:#?}");
 
   trace!("Reading ref sequence from {ref_path}");
-  let ref_seq = &read_one_fasta(ref_path)?;
+  let ref_seq = to_nuc_seq(&read_one_fasta(ref_path)?)?;
 
   trace!("Creating fasta reader");
-  let mut reader = fasta::Reader::from_file(qry_path)?;
-  let mut writer = fasta::Writer::to_file(out_path)?;
-  let mut record = fasta::Record::new();
+  let mut reader = FastaReader::new(BufReader::with_capacity(32 * 1024, File::open(qry_path)?));
+  let mut record = FastaRecord::default();
 
   let gene_map = HashMap::<String, Gene>::new();
-
   trace!("Creating gap open scores");
-  let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(ref_seq, &gene_map, &params);
+  let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
 
   trace!("Starting main loop");
   while let Ok(()) = reader.read(&mut record) {
@@ -70,14 +70,14 @@ fn main() -> Result<(), Box<dyn Error>> {
       break;
     }
 
-    trace!("Reading sequence  '{}'", &record.id());
-    let qry_seq: &[u8] = record.seq();
+    trace!("Reading sequence  '{}'", &record.seq_name);
+    let qry_seq = to_nuc_seq(&record.seq)?;
 
-    trace!("Aligning sequence '{}'", &record.id());
-    align_nuc(qry_seq, ref_seq, &gap_open_close_nuc, &params)?;
+    trace!("Aligning sequence '{}'", &record.seq_name);
+    align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params)?;
 
-    trace!("Writing sequence  '{}'", &record.id());
-    writer.write(record.id(), record.desc(), qry_seq)?;
+    // trace!("Writing sequence  '{}'", &record.seq_name);
+    // writer.write(record.seq_name, record.desc(), qry_seq)?;
   }
 
   trace!("Success");
