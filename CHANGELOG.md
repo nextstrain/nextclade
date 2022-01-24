@@ -1,3 +1,19 @@
+## Nextclade Web 1.13.0, Nextclade CLI 1.10.0, Nextalign CLI 1.10.0 (2022-01-24)
+
+### [Feature] Detailed split of private mutations
+
+Private mutations (differences between a query sequence and nearest neighbour in reference tree) are now split into three categories:
+
+1. Reversion to reference genotype
+2. (SARS-CoV-2 only for now) Mutation to a genotype common in at least 1 clade get labeled with that clade
+3. Mutations that are neither reversions nor labeled (called "unlabeled"
+
+Which category a mutation belongs to is visible by hovering over the "divergence" column (in web) and in various "privateNucMutations" fields in [csv/tsv/json outputs](https://docs.nextstrain.org/projects/nextclade/en/latest/user/output-files.html#tabular-csv-tsv-results).
+
+### [Change] Rare mutations QC rule now uses reversion and labeled mutation counts
+
+Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights private mutation QC rule.
+
 ## Nextclade Web 1.12.0, Nextclade CLI 1.9.0, Nextalign CLI 1.9.0 (2022-01-11)
 
 ### [Feature] Handle "-" strand gene translation
