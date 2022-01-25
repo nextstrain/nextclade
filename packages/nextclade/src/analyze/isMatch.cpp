@@ -65,5 +65,8 @@ namespace Nextclade {
     return false;
   }
 
-
+  bool isMatch(Aminoacid query, Aminoacid reference) {
+    // TODO: consider ambiguous aminoacids
+    return query == reference;
+  }
 }//namespace Nextclade

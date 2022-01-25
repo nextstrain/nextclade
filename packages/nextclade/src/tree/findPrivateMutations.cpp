@@ -38,6 +38,7 @@
 #include <algorithm>
 #include <map>
 
+#include "../analyze/isMatch.h"
 #include "../analyze/isSequenced.h"
 #include "../analyze/nucleotide.h"
 #include "../utils/at.h"
@@ -279,7 +280,9 @@ namespace Nextclade {
       // TODO: binary search might be slower than needed. Perhaps try std::map here.
       for (const auto& substitution : privateSubstitutions) {
         auto match = std::find_if(substitutionLabelMap.cbegin(), substitutionLabelMap.cend(),
-          [&substitution](const GenotypeLabeled<Letter>& labeled) { return labeled.genotype == substitution; });
+          [&substitution](const GenotypeLabeled<Letter>& labeled) {
+            return substitution.pos == labeled.genotype.pos && isMatch(substitution.qry, labeled.genotype.qry);
+          });
         if (match != substitutionLabelMap.end()) {
           result.labeledSubstitutions.emplace_back(
             SubstitutionSimpleLabeled<Letter>{.substitution = substitution, .labels = match->labels});
@@ -292,7 +295,7 @@ namespace Nextclade {
       result.unlabeledDeletions.reserve(privateDeletions.size());
       for (const auto& deletion : privateDeletions) {
         auto match = std::find_if(deletionLabelMap.cbegin(), deletionLabelMap.cend(),
-          [&deletion](const GenotypeLabeled<Letter>& labeled) { return labeled.genotype == deletion; });
+          [&deletion](const GenotypeLabeled<Letter>& labeled) { return deletion.pos == labeled.genotype.pos; });
         if (match != deletionLabelMap.end()) {
           result.labeledDeletions.emplace_back(
             DeletionSimpleLabeled<Letter>{.deletion = deletion, .labels = match->labels});
