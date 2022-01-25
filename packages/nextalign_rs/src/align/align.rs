@@ -3,8 +3,8 @@
 use crate::align::backtrace::{backtrace, NextalignResult};
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::{seedAlignment, SeedAlignmentResult};
-use crate::error;
 use crate::io::nuc::Nuc;
+use crate::make_error;
 use eyre::Report;
 use log::trace;
 
@@ -38,7 +38,7 @@ fn alignPairwise(
   let max_indel = params.maxIndel;
   if bandWidth > max_indel {
     trace!("Align pairwise: failed. band_width={bandWidth}, max_indel={max_indel}");
-    return error!("Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches");
+    return make_error!("Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches");
   }
 
   let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gapOpenClose, bandWidth, shift, params);
@@ -55,7 +55,7 @@ pub fn align_nuc(
   let qry_len: usize = qry_seq.len();
   let min_len: usize = params.min_length;
   if qry_len < min_len {
-    return error!(
+    return make_error!(
       "Unable to align: sequence is too short. Details: sequence length: {qry_len}, min length allowed: {min_len}"
     );
   }

@@ -1,4 +1,4 @@
-use crate::error;
+use crate::make_error;
 use eyre::Report;
 use itertools::Itertools;
 
@@ -44,7 +44,7 @@ pub fn to_nuc(letter: char) -> Result<Nuc, Report> {
     'V' => Ok(Nuc::V),
     'N' => Ok(Nuc::N),
     '-' => Ok(Nuc::GAP),
-    _ => error!("Unknown nucleotide: {letter}"),
+    _ => make_error!("Unknown nucleotide: {letter}"),
   }
 }
 

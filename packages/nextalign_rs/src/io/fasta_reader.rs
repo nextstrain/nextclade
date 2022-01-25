@@ -1,4 +1,4 @@
-use crate::error;
+use crate::make_error;
 use eyre::Report;
 
 #[derive(Default, Clone, Debug)]
@@ -48,7 +48,7 @@ impl<R: std::io::BufRead> FastaReader<R> {
     }
 
     if !self.line.starts_with('>') {
-      return error!("Expected > at record start.");
+      return make_error!("Expected > at record start.");
     }
 
     record.seq_name = self.line[1..].trim().to_owned();

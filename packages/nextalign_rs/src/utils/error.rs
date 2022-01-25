@@ -19,7 +19,7 @@ pub fn report_to_string_debug_only(report: &Report) -> String {
 }
 
 #[macro_export(local_inner_macros)]
-macro_rules! error {
+macro_rules! make_error {
   ($($arg:tt)*) => {
     {
       Err(eyre::eyre!(std::format!($($arg)*)))
@@ -27,4 +27,4 @@ macro_rules! error {
   };
 }
 
-pub use error;
+pub use make_error;

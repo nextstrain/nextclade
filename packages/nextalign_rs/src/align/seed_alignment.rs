@@ -4,8 +4,8 @@
 
 use crate::align::align::AlignPairwiseParams;
 use crate::align::seed_match::seedMatch;
-use crate::error;
 use crate::io::nuc::Nuc;
+use crate::make_error;
 use eyre::Report;
 
 fn is_bad_letter(letter: &Nuc) -> bool {
@@ -69,7 +69,7 @@ pub fn seedAlignment(
   let kmerSpacing = ((seedCover as f32) - 1.0) / ((nSeeds - 1) as f32);
 
   if seedCover < 0 || kmerSpacing < 0.0 {
-    return error!(
+    return make_error!(
       "Unable to align: poor seed matches. Details: seed cover: {seedCover}, k-mer spacing: {kmerSpacing}."
     );
   }
@@ -98,7 +98,7 @@ pub fn seedAlignment(
 
   let num_seed_matches = seedMatches.len();
   if num_seed_matches < 2 {
-    return error!("Unable to align: no seed matches. Details: num seed matches: {num_seed_matches}");
+    return make_error!("Unable to align: no seed matches. Details: num seed matches: {num_seed_matches}");
   }
 
   // Given the seed matches, determine the maximal and minimal shifts.
