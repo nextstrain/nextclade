@@ -2,6 +2,7 @@
 
 use crate::align::backtrace::{backtrace, NextalignResult};
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
+use crate::align::seed::seedMatch;
 use crate::error;
 use crate::io::nuc::Nuc;
 use eyre::Report;
@@ -22,51 +23,6 @@ pub struct AlignPairwiseParams {
   pub minSeeds: i32,
   pub mismatchesAllowed: usize,
   pub translatePastStop: bool,
-}
-
-struct SeedMatchResult {
-  shift: usize,
-  score: usize,
-}
-
-fn seedMatch(kmer: &[Nuc], ref_seq: &[Nuc], start_pos: usize, mismatches_allowed: usize) -> SeedMatchResult {
-  let ref_len = ref_seq.len();
-  let kmer_len = kmer.len();
-
-  #[allow(unused_assignments)]
-  let mut tmp_score: usize = 0;
-  let mut max_score: usize = 0;
-  let mut max_shift: usize = 0;
-
-  let end_pos = ref_len - kmer_len;
-  for shift in start_pos..end_pos {
-    tmp_score = 0;
-
-    for pos in 0..kmer_len {
-      if kmer[pos] == ref_seq[shift + pos] {
-        tmp_score += 1;
-      }
-
-      // TODO: this speeds up seed-matching by disregarding bad seeds.
-      if tmp_score + mismatches_allowed < pos {
-        break;
-      }
-    }
-    if tmp_score > max_score {
-      max_score = tmp_score;
-      max_shift = shift;
-
-      // if maximal score is reached
-      if tmp_score == kmer_len {
-        break;
-      }
-    }
-  }
-
-  SeedMatchResult {
-    shift: max_shift,
-    score: max_score,
-  }
 }
 
 fn is_bad_letter(letter: &Nuc) -> bool {
