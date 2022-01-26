@@ -8,8 +8,8 @@ use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
 
-fn is_bad_letter(letter: &Nuc) -> bool {
-  letter == &Nuc::N
+fn is_bad_letter(letter: Nuc) -> bool {
+  letter == Nuc::N
 }
 
 fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> {
@@ -19,7 +19,7 @@ fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> 
   let mut distance_to_last_bad_pos: i64 = 0;
 
   for (i, letter) in qry_seq.iter().enumerate() {
-    if is_bad_letter(letter) {
+    if is_bad_letter(*letter) {
       distance_to_last_bad_pos = -1;
     } else if distance_to_last_bad_pos > seed_length as i64 {
       map_to_good_positions.push(i - seed_length);
