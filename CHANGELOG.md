@@ -1,6 +1,6 @@
 ## Nextclade CLI 1.10.1 (2022-01-26)
 
-### [Fix] Improve error message when the virus properties file [#704](https://github.com/nextstrain/nextclade/pull/704)
+### [Fix] Improve error message when the virus properties file is missing [#704](https://github.com/nextstrain/nextclade/pull/704)
 
 Since version 1.10.0 Nextclade CLI have introduced a new required input file, `virus_properties.json` and [datasets](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md) and [documentation](https://docs.nextstrain.org/projects/nextclade/) were updated to match. However, users who don't use datasets might have encountered breakage due to a missing file: when running Nextclade CLI without either `--input-dataset` of `--input-virus-properties` flag provided, it would stop with an unclear error message. In this release we improve the error message that explains the problem and offers a solution.
 
@@ -20,9 +20,9 @@ In the excitement of bringing the new features, we forgot to mention `virus_prop
 
 ## Nextclade Web 1.13.0, Nextclade CLI 1.10.0, Nextalign CLI 1.10.0 (2022-01-24)
 
-### 💥 [BREAKING CHANGE] Nextclade CLI: new required input file: `virus_properties.json`
+### 💥 [BREAKING CHANGE] Nextclade: new required input file: `virus_properties.json` [#689](https://github.com/nextstrain/nextclade/pull/689)
 
-This version introduces a new required input file for Nextclade, called `virus_properties.json`. This file contains additional information necessary for the "Detailed split of private mutations" feature (see below). The new versions of Nextclade datasets were released to account for this change.
+This version introduces a new required input file for Nextclade, called `virus_properties.json`. This file contains additional information necessary for the "Detailed split of private mutations" feature (see below). [The new versions of Nextclade datasets](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md) were released to account for this change.
 
 How it affects different tools in the Nextclade family and how to upgrade:
 
