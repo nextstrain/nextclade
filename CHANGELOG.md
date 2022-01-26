@@ -2,7 +2,7 @@
 
 ### [Fix] Improve error message when the virus properties file is missing [#704](https://github.com/nextstrain/nextclade/pull/704)
 
-Since version 1.10.0 Nextclade CLI have introduced a new required input file, `virus_properties.json` and [datasets](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md) and [documentation](https://docs.nextstrain.org/projects/nextclade/) were updated to match. However, users who don't use datasets might have encountered breakage due to a missing file: when running Nextclade CLI without either `--input-dataset` of `--input-virus-properties` flag provided, it would stop with an unclear error message. In this release we improve the error message that explains the problem and offers a solution.
+Since version 1.10.0 Nextclade CLI have introduced a new required input file, `virus_properties.json` and [datasets](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md) and [documentation](https://docs.nextstrain.org/projects/nextclade/) were updated to match. However, users who don't use datasets might have encountered breakage due to a missing file: when running Nextclade CLI without either `--input-dataset` of `--input-virus-properties` flag provided, it would stop with an unclear error message. In this release we improve the error message, making sure that that explains the problem and offers a solution.
 
 This does not affect Nextclade Web or Nextalign CLI.
 
