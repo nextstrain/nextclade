@@ -32,21 +32,7 @@ fn main() -> Result<(), Box<dyn Error>> {
   let qry_path = "../../data_dev/sequences.fasta";
   let out_path = "../../tmp/sequences.aligned.fasta";
 
-  let params = AlignPairwiseParams {
-    min_length: 100,
-    penaltyGapExtend: 0,
-    penaltyGapOpen: 6,
-    penaltyGapOpenInFrame: 7,
-    penaltyGapOpenOutOfFrame: 8,
-    penaltyMismatch: 1,
-    scoreMatch: 3,
-    maxIndel: 400,
-    seedLength: 21,
-    minSeeds: 10,
-    seedSpacing: 100,
-    mismatchesAllowed: 3,
-    translatePastStop: false,
-  };
+  let params = AlignPairwiseParams::default();
 
   trace!("Ref   : {ref_path}");
   trace!("Qry   : {qry_path}");

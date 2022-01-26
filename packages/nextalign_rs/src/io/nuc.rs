@@ -1,6 +1,5 @@
 use crate::make_error;
 use eyre::Report;
-use itertools::Itertools;
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]

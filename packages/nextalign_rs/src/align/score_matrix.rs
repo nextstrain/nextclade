@@ -1,6 +1,8 @@
+#![allow(clippy::separated_literal_suffix)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-#![allow(clippy::separated_literal_suffix)]
+#![allow(unused_assignments)]
+#![allow(unused_imports)]
 
 use crate::align::align::AlignPairwiseParams;
 use crate::align::match_nuc::lookup_match_score_nuc;

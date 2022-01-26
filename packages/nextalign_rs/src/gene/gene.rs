@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 pub struct Gene {
   pub geneName: String,
   pub start: usize,
@@ -7,7 +9,8 @@ pub struct Gene {
 }
 
 impl Gene {
+  #[allow(clippy::len_without_is_empty)]
   pub fn len(&self) -> usize {
-    return self.end - self.start;
+    self.end - self.start
   }
 }

@@ -1,5 +1,8 @@
-#![allow(non_snake_case)]
 #![allow(clippy::separated_literal_suffix)]
+#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+#![allow(unused_assignments)]
+#![allow(unused_imports)]
 
 use crate::align::score_matrix::{qryGAPextend, qryGAPmatrix, refGAPextend, refGAPmatrix, END_OF_SEQUENCE, MATCH};
 use crate::io::nuc::Nuc;
@@ -60,9 +63,9 @@ fn determine_best_alignment(
 }
 
 pub struct NextalignResult {
-  qry_seq: Vec<Nuc>,
-  ref_seq: Vec<Nuc>,
-  alignment_score: usize,
+  pub qry_seq: Vec<Nuc>,
+  pub ref_seq: Vec<Nuc>,
+  pub alignment_score: usize,
 }
 
 pub fn backtrace(
