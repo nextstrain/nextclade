@@ -138,15 +138,7 @@ mod tests {
     let qry_seq = to_nuc_seq("ACGCTCGCT")?;
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
@@ -160,15 +152,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
     let qry_aln = to_nuc_seq("-CGCTCGCT")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -182,15 +166,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
     let qry_aln = to_nuc_seq("---CTCGCT")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -205,15 +181,7 @@ mod tests {
     let qry_aln = to_nuc_seq("-----TCCAATCA")?;
     //                                  ^
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -228,15 +196,7 @@ mod tests {
     let qry_aln = to_nuc_seq("-----TGTTACCTGCGC")?;
     //                              ^^
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -250,15 +210,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
     let qry_aln = to_nuc_seq("ACGCTC---")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -273,15 +225,7 @@ mod tests {
     let qry_aln = to_nuc_seq("CCAATCAT-----")?;
     //                             ^
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -296,15 +240,7 @@ mod tests {
     let qry_aln = to_nuc_seq("CCGATCAT-----")?;
     //                            ^  ^
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -318,15 +254,7 @@ mod tests {
     let ref_seq = to_nuc_seq("GCCACGCTCGCT")?;
     let qry_aln = to_nuc_seq("---ACGCTC---")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -340,15 +268,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACGCTC")?;
     let ref_aln = to_nuc_seq("---ACGCTC---")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
@@ -362,15 +282,7 @@ mod tests {
     let ref_seq = to_nuc_seq("GCCACGCTCGCT")?;
     let qry_aln = to_nuc_seq("GCCA--CTCCCT")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     // assert_eq!(18, result.alignment_score);
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
@@ -385,15 +297,7 @@ mod tests {
     let ref_seq = to_nuc_seq("GCCACTCGCT")?;
     let ref_aln = to_nuc_seq("GCCA--CTCGCT")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
@@ -407,15 +311,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACATATACTTC")?;
     let qry_aln = to_nuc_seq("ACAT---CTTC")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_seq), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
@@ -429,15 +325,7 @@ mod tests {
     let ref_seq = to_nuc_seq("ACATCTTG")?;
     let ref_aln = to_nuc_seq("ACAT---CTTG")?;
 
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_seq), from_nuc_seq(&result.qry_seq));
@@ -451,17 +339,9 @@ mod tests {
     let ref_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATCAAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT"     )?;
     let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCT----AGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
     let qry_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATC-----AAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT")?;
-
-    let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(&qry_seq, &ref_seq, &ctx.params)?;
-    let result = alignPairwise(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      &ctx.params,
-      bandWidth,
-      meanShift,
-    )?;
-
+  
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+  
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
     Ok(())
