@@ -100,6 +100,15 @@ namespace Nextclade {
         "Either `--input-dataset` or `--input-qc-config` is required. Cannot proceed without QC config.");
     }
 
+    if (cliParams->inputDataset.empty() && inputVirusJson.empty()) {
+      throw ErrorFatal(
+        "Either `--input-dataset` or `--input-virus-properties` is required. Cannot proceed without virus properties. "
+        "Note: the new required file `virus_properties.json` was introduced in version 1.10.0. You can obtain it from "
+        "the latest Nextclade dataset. See `nextclade dataset get --help` and "
+        "https://docs.nextstrain.org/projects/nextclade for more information");
+    }
+
+
     if (!cliParams->inputDataset.empty()) {
       auto inputDataset = std::string{cliParams->inputDataset};
 

@@ -1,4 +1,41 @@
+## Nextclade CLI 1.10.1 (2022-01-26)
+
+### [Fix] Improve error message when the virus properties file is missing [#704](https://github.com/nextstrain/nextclade/pull/704)
+
+Since version 1.10.0 Nextclade CLI have introduced a new required input file, `virus_properties.json` and [datasets](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md) and [documentation](https://docs.nextstrain.org/projects/nextclade/) were updated to match. However, users who don't use datasets might have encountered breakage due to a missing file: when running Nextclade CLI without either `--input-dataset` of `--input-virus-properties` flag provided, it would stop with an unclear error message. In this release we improve the error message, making sure that that explains the problem and offers a solution.
+
+This does not affect Nextclade Web or Nextalign CLI.
+
+In order to facilitate upgrades, for most users, we recommend to:
+
+ - download the latest dataset before each Nextclade CLI session (e.g. in the beginning of an automated workflow, or once you start a batch of experiments manually) using `nextclade dataset get` command
+ - use `--input-dataset` flag instead of individual `--input-*` flags for dataset files when issuing `nextclade run` command
+ - if necessary, override some of the individual input files using corresponding `--input-*` flags
+
+
+### [Fix] Add information about `virus_properties.json` or `--input-virus-properties` to changelog
+
+In the excitement of bringing the new features, we forgot to mention `virus_properties.json` or `--input-virus-properties` in the changelog when Nextclade CLI 1.10.0 was released. We now added this information retroactively.
+
+
 ## Nextclade Web 1.13.0, Nextclade CLI 1.10.0, Nextalign CLI 1.10.0 (2022-01-24)
+
+### 💥 [BREAKING CHANGE] Nextclade: new required input file: `virus_properties.json` [#689](https://github.com/nextstrain/nextclade/pull/689)
+
+This version introduces a new required input file for Nextclade, called `virus_properties.json`. This file contains additional information necessary for the "Detailed split of private mutations" feature (see below). [The new versions of Nextclade datasets](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md) were released to account for this change.
+
+How it affects different tools in the Nextclade family and how to upgrade:
+
+  - Nextclade Web - requires the new file. Migration path: no action is needed. Nextclade Web always uses the latest dataset automatically.
+
+  - Nextclade CLI - requires the new file. Migration path:
+
+    - Download the latest dataset with `nextclade dataset get` command (dataset tagged `2022-01-18T12:00:00Z` or more recent is required)
+    - If using `--input-dataset` flag: the new file will be be picked up automatically from the latest dataset. No further action is needed.
+    - If not using `--input-dataset` flag: add `--input-virus-properties` flag to pint to `virus_properties.json` file from the dataset.
+
+  - Nextalign CLI - not affected: it does not use `virus_properties.json`. Migration path: no action is needed.
+
 
 ### [Feature] Detailed split of private mutations (Nextclade) [#689](https://github.com/nextstrain/nextclade/pull/689)
 
