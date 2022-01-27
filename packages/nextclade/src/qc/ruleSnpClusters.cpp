@@ -1,17 +1,32 @@
 #include "ruleSnpClusters.h"
 
+#include <common/safe_vector.h>
 #include <nextclade/nextclade.h>
 
 #include <algorithm>
 #include <deque>
 #include <optional>
-#include <common/safe_vector.h>
 
+#include "../utils/concat.h"
 #include "../utils/safe_cast.h"
 #include "getQcRuleStatus.h"
 
 
 namespace Nextclade {
+  namespace {
+    // A naive way to erase mutations from a vector of mutations, that are present in another vector of mutations
+    safe_vector<NucleotideSubstitutionSimple> eraseIntersection(const safe_vector<NucleotideSubstitutionSimple>& big,
+      const safe_vector<NucleotideSubstitutionSimple>& small) {
+      safe_vector<NucleotideSubstitutionSimple> result;
+      std::copy_if(big.begin(), big.end(), std::back_inserter(result), [&small](const NucleotideSubstitutionSimple& b) {
+        return small.end() == std::find_if(small.cbegin(), small.cend(),
+                                [&b](const NucleotideSubstitutionSimple& s) { return b.pos == s.pos; });
+      });
+      return result;
+    }
+
+  }// namespace
+
   safe_vector<safe_vector<int>> findSnpClusters(                         //
     const safe_vector<NucleotideSubstitutionSimple>& privateMutationsRaw,//
     const QCRulesConfigSnpClusters& config                               //
@@ -72,8 +87,13 @@ namespace Nextclade {
       return {};
     }
 
+    // NOTE: we exclude reversions of deletions
+    // See: https://github.com/nextstrain/nextclade/issues/707
+    const auto privateSubstitutions = eraseIntersection(query.privateNucMutations.privateSubstitutions,
+      query.privateNucMutations.reversionsOfDeletions);
+
     // TODO: should we also account for result. privateDeletions here
-    const auto snpClusters = findSnpClusters(query.privateNucMutations.privateSubstitutions, config);
+    const auto snpClusters = findSnpClusters(privateSubstitutions, config);
     const auto totalClusters = safe_cast<double>(snpClusters.size());
 
     auto clusteredSnps = processSnpClusters(snpClusters);
