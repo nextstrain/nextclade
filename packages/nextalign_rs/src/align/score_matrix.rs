@@ -9,6 +9,8 @@ use crate::align::match_nuc::lookup_match_score_nuc;
 use crate::io::nuc::Nuc;
 use crate::utils::vec2d::Vec2d;
 use log::trace;
+use std::io;
+use std::io::Write;
 
 // store direction info for backtrace as bits in paths matrix
 // these indicate the currently optimal move
@@ -61,22 +63,22 @@ pub fn score_matrix(
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
   let NO_ALIGN = -(params.scoreMatch + params.penaltyMismatch) * refSize as i32;
 
-  for si in (bandWidth..(2 * bandWidth)).rev() {
+  for si in bandWidth + 1..=2 * bandWidth {
     paths[(si, 0)] = qryGAPmatrix;
   }
 
   paths[(bandWidth, 0)] = MATCH;
   qryGaps[bandWidth] = -params.penaltyGapOpen;
-  for si in (0..(bandWidth - 1)).rev() {
+  for si in (0..bandWidth).rev() {
     paths[(si, 0)] = refGAPmatrix;
     qryGaps[si] = -params.penaltyGapOpen;
   }
 
-  for ri in 0..refSize {
-    let mut qPos: i32 = ri as i32 - bandWidth as i32 + meanShift;
-    let mut refGaps = -gapOpenClose[ri];
+  for ri in 0..refSize as i32 {
+    let mut qPos: i32 = ri as i32 - (bandWidth as i32 + meanShift);
+    let mut refGaps = -gapOpenClose[ri as usize];
 
-    for si in (bandWidth..(2 * bandWidth)).rev() {
+    for si in (0..=(2 * bandWidth as i32)).rev() {
       let mut tmpPath = 0;
       let mut score = 0;
       let mut origin = 0;
@@ -92,13 +94,13 @@ pub fn score_matrix(
         // we could fill all of this at once
         score = 0;
         tmpPath += qryGAPextend;
-        refGaps = -gapOpenClose[ri];
+        refGaps = -gapOpenClose[ri as usize];
         origin = qryGAPmatrix;
       } else if qPos < querySize as i32 {
         // if the shifted position is within the query sequence
 
         // no gap -- match case
-        let matrix_score = lookup_match_score_nuc(qry_seq[qPos as usize], ref_seq[ri]);
+        let matrix_score = lookup_match_score_nuc(qry_seq[qPos as usize], ref_seq[ri as usize]);
         tmpMatch = if matrix_score > 0 {
           params.scoreMatch
         } else {
@@ -108,9 +110,9 @@ pub fn score_matrix(
         origin = MATCH;
 
         // check the scores of a reference gap
-        if si < 2 * bandWidth {
+        if si < 2 * bandWidth as i32 {
           rGapExtend = refGaps - params.penaltyGapExtend;
-          rGapOpen = scores[(si + 1, ri + 1)] - gapOpenClose[ri + 1];
+          rGapOpen = scores[(si + 1, ri + 1)] - gapOpenClose[(ri + 1) as usize];
           if rGapExtend > rGapOpen {
             tmpScore = rGapExtend;
             tmpPath += refGAPextend;
@@ -128,22 +130,22 @@ pub fn score_matrix(
 
         // check the scores of a reference gap
         if si > 0 {
-          qGapExtend = qryGaps[si - 1] - params.penaltyGapExtend;
-          qGapOpen = scores[(si - 1, ri)] - gapOpenClose[ri];
-          tmpScore = if qGapExtend > qGapOpen { qGapExtend } else { qGapOpen };
+          qGapExtend = qryGaps[(si - 1) as usize] - params.penaltyGapExtend;
+          qGapOpen = scores[(si - 1, ri)] - gapOpenClose[ri as usize];
+          tmpScore = qGapExtend.max(qGapOpen);
           if qGapExtend > qGapOpen {
             tmpScore = qGapExtend;
             tmpPath += qryGAPextend;
           } else {
             tmpScore = qGapOpen;
           }
-          qryGaps[si] = tmpScore;
+          qryGaps[si as usize] = tmpScore;
           if score < tmpScore {
             score = tmpScore;
             origin = qryGAPmatrix;
           }
         } else {
-          qryGaps[si] = NO_ALIGN;
+          qryGaps[si as usize] = NO_ALIGN;
         }
       } else {
         // past query sequence -- mark as sequence end
@@ -158,4 +160,96 @@ pub fn score_matrix(
   }
 
   ScoreMatrixResult { scores, paths }
+}
+
+#[cfg(test)]
+mod tests {
+  #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
+  use super::*;
+  use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+  use crate::gene::gene_map::GeneMap;
+  use crate::io::nuc::{from_nuc_seq, to_nuc_seq};
+  use crate::utils::global_init::global_init;
+  use ctor::ctor;
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::{fixture, rstest};
+
+  struct Context {
+    params: AlignPairwiseParams,
+    gene_map: GeneMap,
+    gap_open_close: GapScoreMap,
+  }
+
+  #[fixture]
+  fn ctx() -> Context {
+    let params = AlignPairwiseParams {
+      min_length: 3,
+      ..AlignPairwiseParams::default()
+    };
+
+    let gene_map = GeneMap::new();
+
+    let dummy_ref_seq = vec![Nuc::GAP; 100];
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
+
+    Context {
+      params,
+      gene_map,
+      gap_open_close,
+    }
+  }
+
+  #[rstest]
+  fn pads_missing_left(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let qry_seq = to_nuc_seq("CTCGCT")?;
+    let ref_seq = to_nuc_seq("ACGCTCGCT")?;
+
+    let band_width = 5;
+    let mean_shift = 2;
+
+    let result = score_matrix(
+      &qry_seq,
+      &ref_seq,
+      &ctx.gap_open_close,
+      band_width,
+      mean_shift,
+      &ctx.params,
+    );
+
+    #[rustfmt::skip]
+    let expected_scores = Vec2d::<i32>::from_slice(&[
+      0,  -1,   2,   1,  -1,  -1,  -1,  -1,  -1,  -1,
+      0,  -1,  -2,  -1,   2,  -1,  -1,  -1,  -1,  -1,
+      0,  -1,   2,   5,   8,  11,  -1,  -1,  -1,  -1,
+      0,  -1,  -2,  -3,  -1,   2,   5,  -1,  -1,  -1,
+      0,   0,   3,   2,   5,   4,   7,   6,  -1,  -1,
+      0,   0,   0,  -1,  -2,   0,   3,   6,   9,  -1,
+      0,   0,   0,   0,   3,   6,   9,  12,  15,  18,
+      0,   0,   0,   0,   0,  -1,   0,   3,   6,   9,
+      0,   0,   0,   0,   0,   0,   3,   2,   5,   6,
+      0,   0,   0,   0,   0,   0,   0,  -1,   0,   3,
+      0,   0,   0,   0,   0,   0,   0,   0,   3,   6,
+    ], 11, 10);
+
+    #[rustfmt::skip]
+    let expected_paths = Vec2d::<i32>::from_slice(&[
+      2,   9,   9,   9,  -1,  -1,  -1,  -1,  -1,  -1,
+      2,   9,   9,   2,   2,  -1,  -1,  -1,  -1,  -1,
+      2,   9,  25,  25,  25,   9,  -1,  -1,  -1,  -1,
+      2,   1,  17,   1,   2,  12,  12,  -1,  -1,  -1,
+      2,  20,  17,  25,  25,  25,  25,  25,  -1,  -1,
+      1,  20,  20,   1,   1,   2,  18,  18,  18,  -1,
+      4,  20,  20,  20,  17,  25,  25,  17,  17,  17,
+      4,  20,  20,  20,  20,   1,   4,   4,   4,   4,
+      4,  20,  20,  20,  20,  20,  17,  25,  25,  28,
+      4,  20,  20,  20,  20,  20,  20,   1,  20,  20,
+      4,  20,  20,  20,  20,  20,  20,  20,  17,  17,
+    ], 11, 10);
+
+    assert_eq!(expected_scores, result.scores);
+    assert_eq!(expected_paths, result.paths);
+    Ok(())
+  }
 }

@@ -97,16 +97,9 @@ mod tests {
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::gene::gene_map::GeneMap;
   use crate::io::nuc::{from_nuc_seq, to_nuc_seq};
-  use crate::utils::global_init::global_init;
-  use ctor::ctor;
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
-
-  #[ctor]
-  fn init() {
-    global_init();
-  }
 
   struct Context {
     params: AlignPairwiseParams,
@@ -339,9 +332,9 @@ mod tests {
     let ref_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATCAAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT"     )?;
     let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCT----AGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
     let qry_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATC-----AAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT")?;
-  
+
     let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
-  
+
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
     Ok(())
