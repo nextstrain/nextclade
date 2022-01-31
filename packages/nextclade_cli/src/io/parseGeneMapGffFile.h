@@ -58,7 +58,7 @@ namespace Nextclade {
 
 
   inline std::set<std::string> parseGenes(const std::string &genesString) {
-    std::vector<std::string> genes;
+    safe_vector<std::string> genes;
 
     if (!genesString.empty()) {
       boost::algorithm::split(genes, genesString, boost::is_any_of(","));

@@ -12,12 +12,11 @@ import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
-import { formatMutation } from 'src/helpers/formatMutation'
 
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { ListOfPcrPrimersChanged } from 'src/components/SequenceView/ListOfPcrPrimersChanged'
-import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
+import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
 
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
@@ -55,11 +54,10 @@ function SequenceMarkerMutationDisconnected({
   const { pos, queryNuc, aaSubstitutions, aaDeletions, pcrPrimersChanged } = substitution
   const id = getSafeId('mutation-marker', { seqName, ...substitution })
 
-  const mut = formatMutation(substitution)
-
   const fill = getNucleotideColor(queryNuc)
-  const x = pos * pixelsPerBase
   const width = Math.max(BASE_MIN_WIDTH_PX, pixelsPerBase)
+  const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
+  const x = pos * pixelsPerBase - halfNuc
 
   const totalAaChanges = aaSubstitutions.length + aaDeletions.length
 
@@ -81,7 +79,13 @@ function SequenceMarkerMutationDisconnected({
           <tbody>
             <tr>
               <td colSpan={2}>
-                <h6>{t('Nucleotide substitution: {{mutation}}', { mutation: mut })}</h6>
+                <h6>
+                  <span>{t('Nucleotide substitution')}</span>
+                  <span> </span>
+                  <span>
+                    <NucleotideMutationBadge mutation={substitution} />
+                  </span>
+                </h6>
               </td>
             </tr>
 

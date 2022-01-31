@@ -1,6 +1,4 @@
 settings set target.load-cwd-lldbinit true
 
-b malloc_error_break
-
 run
 quit

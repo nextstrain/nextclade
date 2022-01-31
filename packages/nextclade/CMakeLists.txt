@@ -21,15 +21,21 @@ set(SOURCE_FILES
   include/nextclade/nextclade.h
   include/nextclade/private/__generated__/types.h
   include/nextclade/private/nextclade_private.h
-  src/analyze/aminoacid.cpp
-  src/analyze/aminoacid.h
   src/analyze/calculateTotalLength.h
+  src/analyze/findDeletionRanges.cpp
+  src/analyze/findDeletionRanges.cpp
+  src/analyze/findDeletionRanges.h
+  src/analyze/findDeletionRanges.h
   src/analyze/findNucChanges.cpp
   src/analyze/findNucChanges.h
   src/analyze/findNucleotideRanges.cpp
+  src/analyze/findNucleotideRanges.cpp
+  src/analyze/findNucleotideRanges.h
   src/analyze/findNucleotideRanges.h
   src/analyze/getAminoacidChanges.cpp
   src/analyze/getAminoacidChanges.h
+  src/analyze/getFrameShifts.cpp
+  src/analyze/getFrameShifts.h
   src/analyze/getNucleotideComposition.cpp
   src/analyze/getNucleotideComposition.h
   src/analyze/getPcrPrimerChanges.cpp
@@ -57,11 +63,15 @@ set(SOURCE_FILES
   src/io/parseMutation.h
   src/io/parseQcConfig.cpp
   src/io/parseQcConfig.h
+  src/io/parseVirusJson.cpp
+  src/io/parseVirusJson.h
   src/io/serializeGeneMap.cpp
   src/io/serializeQcConfig.cpp
   src/io/serializeQcConfig.h
   src/io/serializeResults.cpp
   src/io/serializeResults.h
+  src/io/serializeVirusJson.cpp
+  src/io/serializeVirusJson.h
   src/nextclade.cpp
   src/qc/getQcRuleStatus.cpp
   src/qc/getQcRuleStatus.h
@@ -85,6 +95,10 @@ set(SOURCE_FILES
   src/tree/Tree.h
   src/tree/TreeNode.cpp
   src/tree/TreeNode.h
+  src/tree/calculateDivergence.cpp
+  src/tree/calculateDivergence.h
+  src/tree/findPrivateMutations.cpp
+  src/tree/findPrivateMutations.h
   src/tree/treeAttachNodes.cpp
   src/tree/treeAttachNodes.h
   src/tree/treeFindNearestNodes.cpp
@@ -95,13 +109,9 @@ set(SOURCE_FILES
   src/tree/treePreprocess.h
   src/utils/concat.h
   src/utils/concat_move.h
-  src/utils/config.h
   src/utils/contains.h
-  src/utils/contract.h
-  src/utils/debugbreak.h
   src/utils/eraseDuplicates.h
-  src/utils/ieee754_comparison.h
-  src/utils/macro_overload.h
+  src/utils/filter.h
   src/utils/map.h
   src/utils/mapFind.h
   src/utils/range.h
@@ -125,6 +135,8 @@ target_compile_definitions(${PROJECT_NAME}
   -DPROJECT_NAME="${PROJECT_NAME}"
   -DPROJECT_VERSION="${NEXTCLADE_CPP_VERSION}"
 
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
+
   -DFMT_HEADER_ONLY=1
 
   # Workaround for GCC 9 error in type_safe.
@@ -147,6 +159,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM
   PRIVATE
   "${CMAKE_SOURCE_DIR}/3rdparty/frozen/include"
   "${CMAKE_SOURCE_DIR}/3rdparty/json/include"
+  "${CMAKE_SOURCE_DIR}/3rdparty/rapidcsv/src"
   )
 
 target_include_directories(${PROJECT_NAME}
@@ -156,6 +169,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+  common
   nextclade_json
   nextalign
 

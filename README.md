@@ -96,9 +96,9 @@ by Nextstrain team
 </p>
 
 <p align="center">
-  <a href="https://anaconda.org/bioconda/nextclade_js">
+  <a href="https://anaconda.org/bioconda/nextclade">
     <img
-      src="https://anaconda.org/bioconda/nextclade_js/badges/version.svg"
+      src="https://anaconda.org/bioconda/nextclade/badges/version.svg"
       alt="Nextclade"
     />
   </a>
@@ -128,9 +128,17 @@ by Nextstrain team
   <a href="https://hub.docker.com/r/nextstrain/nextalign">
       <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextalign">
   </a>
-  
+
   <a href="https://hub.docker.com/r/nextstrain/nextclade">
       <img alt="Nextclade Docker image version" src="https://img.shields.io/docker/v/nextstrain/nextclade?label=%F0%9F%90%8B%20%20%20docker%3Anextclade">
+  </a>
+
+</p>
+
+<p align="center">
+
+  <a style="border-width:0" href="https://doi.org/10.21105/joss.03773">
+    <img src="https://joss.theoj.org/papers/10.21105/joss.03773/status.svg" alt="JOSS publication" >
   </a>
 
 </p>
@@ -177,7 +185,21 @@ by Nextstrain team
   </a>
 </p>
 
----
+<h2 id="citation" align="center">
+📜️ Citation
+</h2>
+
+If you use results obtained with Nextclade in a publication, please
+
+ - cite our paper:
+
+    > Aksamentov, I., Roemer, C., Hodcroft, E. B., & Neher, R. A., (2021). Nextclade: clade assignment, mutation calling and quality control for viral genomes. Journal of Open Source Software, 6(67), 3773, https://doi.org/10.21105/joss.03773
+
+   ([bibtex](https://clades.nextstrain.org/citation.bib))
+
+ - where possible, provide a link to Nextclade Web:
+
+    > https://clades.nextstrain.org
 
 
 <h2 id="documentation" align="center">
@@ -214,13 +236,12 @@ This repository consists of a set of packages presented in the table below. Refe
 | [nextclade_wasm](/packages/nextclade_wasm) | WebAssembly module |                                                                        |                                                                          |
 | [nextclade_web](/packages/web)             | Web App            | 🌎 [clades.nextstrain.org](https://clades.nextstrain.org)              |                                                                          |
 
-
 <h2 id="team" align="center">
  ✨ Team
 </h2>
 
 <p>
-Nextclade is a part of 
+Nextclade is a part of
 <a target="_blank" rel="noopener noreferrer" href="https://nextstrain.org">
 <img height="15px"
   src="https://github.com/nextstrain/nextclade/blob/master/docs/assets/nextstrain_logo.svg"
@@ -233,49 +254,66 @@ Nextclade is a part of
 
 It is maintained by:
 
-<table>
-  <tr>
-  <td align="center">
 <p align="center">
+<table>
+<tr>
+<td>
   <p align="center">
     <a href="https://github.com/ivan-aksamentov">
-      <img src="https://avatars.githubusercontent.com/u/9403403?s=100&&v=4" width="100px;" alt=""/>
-    </a> 
+      <img alt="" src="https://avatars.githubusercontent.com/u/9403403?s=100&&v=4" width="100px;" />
+    </a>
   </p>
-  <p align="center">
-    <p align="center">
-      <a href="https://github.com/ivan-aksamentov">
-      Ivan Aksamentov
-      </a>
-    </p>
-    <p align="center">
-      <small>Senior Software Engineer</small></br>
-      <small>NeherLab, Biozentrum, University of Basel</small></br>
-    </p>
-  </p>
-  </td>
 
-  <td align="center">
+  <p align="center">
+    <a href="https://github.com/ivan-aksamentov">Ivan Aksamentov</a>
+  </p>
+
+  <p align="center">
+    <small>Senior Software Engineer</small><br />
+    <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
+  </p>
+</td>
+
+<td>
   <p align="center">
     <a href="https://github.com/rneher">
-      <img src="https://avatars.githubusercontent.com/u/8379168?s=100&&v=4" width="100px;" alt=""/>
-    </a> 
+      <img alt="" src="https://avatars.githubusercontent.com/u/8379168?s=100&&v=4" width="100px;" />
+    </a>
   </p>
+
   <p align="center">
-    <p align="center">
-      <a href="https://github.com/rneher">
-      Richard Neher
-      </a>
-    </p>
-    <p align="center">
-      <small>Principal Investigator</small></br>
-      <small>NeherLab, Biozentrum, University of Basel</small></br>
-    </p>
+    <a href="https://github.com/rneher">Richard Neher</a>
   </p>
-</p>
+
+  <p align="center">
+    <small>Principal Investigator</small><br />
+    <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
+  </p>
 </td>
-  </tr>
+
+<td>
+  <p align="center">
+    <a href="https://github.com/corneliusroemer">
+      <img alt="" src="https://avatars.githubusercontent.com/u/25161793?s=100&&v=4" width="100px;" />
+    </a>
+  </p>
+
+  <p align="center">
+    <a href="https://github.com/corneliusroemer">Cornelius Roemer</a>
+  </p>
+
+  <p align="center">
+    <small>Staff Scientist</small><br />
+    <small>NeherLab, Biozentrum, University of Basel</small><br />
+    <small>Swiss Institute of Bioinformatics</small><br />
+  </p>
+</td>
+</tr>
 </table>
+</p>
+
 
 We are thankful to all our contributors, no matter how they contribute: in ideas, science, code, documentation or otherwise. Thanks goes to these people (<a target="_blank" rel="noopener noreferrer" href="https://allcontributors.org/docs/en/emoji-key">emoji key</a>):
 
@@ -286,11 +324,15 @@ We are thankful to all our contributors, no matter how they contribute: in ideas
   <tr>
     <td align="center"><a href="https://github.com/emmahodcroft"><img src="https://avatars1.githubusercontent.com/u/14290674?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Emma Hodcroft</b></sub></a><br /><a href="#ideas-emmahodcroft" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/nextstrain/nextclade/commits?author=emmahodcroft" title="Tests">⚠️</a> <a href="#talk-emmahodcroft" title="Talks">📢</a> <a href="https://github.com/nextstrain/nextclade/pulls?q=is%3Apr+reviewed-by%3Aemmahodcroft" title="Reviewed Pull Requests">👀</a></td>
     <td align="center"><a href="https://tsibley.net/"><img src="https://avatars2.githubusercontent.com/u/79913?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Thomas Sibley</b></sub></a><br /><a href="#infra-tsibley" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#security-tsibley" title="Security">🛡️</a></td>
+    <td align="center"><a href="https://github.com/victorlin"><img src="https://avatars2.githubusercontent.com/u/13424970?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Victor Lin</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=victorlin" title="Code">💻</a> <a href="https://github.com/nextstrain/nextclade/commits?author=victorlin" title="Documentation">📖</a></td>
     <td align="center"><a href="http://theo.io/"><img src="https://avatars.githubusercontent.com/u/19732295?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Theo Sanderson</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=theosanderson" title="Code">💻</a></td>
     <td align="center"><a href="http://www.natalieastroud.com/"><img src="https://avatars3.githubusercontent.com/u/17433156?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Natalie Stroud</b></sub></a><br /><a href="#content-stroudn1" title="Content">🖋</a> <a href="#translation-stroudn1" title="Translation">🌍</a></td>
     <td align="center"><a href="http://www.rubinsteyn.com/"><img src="https://avatars.githubusercontent.com/u/48441?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alex Rubinsteyn</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=iskandr" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/molecules"><img src="https://avatars.githubusercontent.com/u/345060?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christopher Bottoms</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=molecules" title="Documentation">📖</a></td>
     <td align="center"><a href="http://finlaymagui.re/"><img src="https://avatars.githubusercontent.com/u/1698629?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Finlay Maguire</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=fmaguire" title="Documentation">📖</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/dnanto"><img src="https://avatars.githubusercontent.com/u/49757922?v=4?s=100" width="100px;" alt=""/><br /><sub><b>dnanto</b></sub></a><br /><a href="https://github.com/nextstrain/nextclade/commits?author=dnanto" title="Code">💻</a> <a href="#data-dnanto" title="Data">🔣</a></td>
   </tr>
 </table>
 

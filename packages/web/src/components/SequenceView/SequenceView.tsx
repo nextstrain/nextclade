@@ -14,6 +14,7 @@ import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
+import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 
 export const SequenceViewWrapper = styled(HorizontalDragScroll)`
   display: flex;
@@ -62,7 +63,7 @@ export function SequenceViewUnsizedDisconnected({
   setSequenceViewPan,
   setSequenceViewZoom,
 }: SequenceViewProps) {
-  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd } = sequence
+  const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts } = sequence
 
   const handleScroll = useCallback(
     (delta: number) => {
@@ -117,6 +118,15 @@ export function SequenceViewUnsizedDisconnected({
     )
   })
 
+  const frameShiftMarkers = frameShifts.map((frameShift) => (
+    <SequenceMarkerFrameShift
+      key={`${frameShift.geneName}_${frameShift.nucAbs.begin}`}
+      seqName={seqName}
+      frameShift={frameShift}
+      pixelsPerBase={pixelsPerBase}
+    />
+  ))
+
   return (
     <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
       <SequenceViewSVG width={width} height={30} viewBox={`${pixelPan} 0 ${width * zoom} 10`}>
@@ -135,6 +145,7 @@ export function SequenceViewUnsizedDisconnected({
           alignmentEnd={alignmentEnd}
           pixelsPerBase={pixelsPerBase}
         />
+        {frameShiftMarkers}
       </SequenceViewSVG>
     </SequenceViewWrapper>
   )

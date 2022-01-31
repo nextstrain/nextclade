@@ -3,30 +3,117 @@
 #include <nextalign/nextalign.h>
 
 #include <string_view>
-#include <vector>
+#include <common/safe_vector.h>
 
-#include "utils/contract.h"
+#include <common/contract.h>
 #include "utils/safe_cast.h"
 
-/**
- * Makes a map from raw coordinates to alignment coordinates
- * (Excluding the gaps in reference).
- *
- * Example:
- *   012345678901234
- *   ACTC---CGTG---A -> aln_coord = [0,1,2,3,7,8,9,10,14]
- */
-std::vector<int> mapCoordinates(const NucleotideSequence& ref) {
-  const auto refLength = safe_cast<int>(ref.size());
 
-  std::vector<int> coordMap;
-  coordMap.reserve(refLength);
-  for (int i = 0; i < refLength; ++i) {
-    if (ref[i] != Nucleotide::GAP) {
-      coordMap.push_back(i);
+namespace {
+  /**
+ * Makes the "alingnment to reference" coordinate map: from alignment coordinates to reference coordinates.
+ *
+ * Given a position of a letter in the aligned sequence, the "alingnment to reference" coordinate map allows to
+ * lookup the position of the corresponding letter in the reference sequence.
+ *
+ * @param refAln  Aligned reference sequence
+ * @return        Coordinate map from alignment coordinates to reference coordinates
+ */
+  safe_vector<int> makeAlnToRefMapOld(const NucleotideSequence& ref) {
+    const auto alnLength = safe_cast<int>(ref.size());
+
+    safe_vector<int> revCoordMap;
+    revCoordMap.reserve(alnLength);
+    int refPos = 0;
+    for (int i = 0; i < alnLength; ++i) {
+      if (ref[i] == Nucleotide::GAP) {
+        if (revCoordMap.empty()) {
+          revCoordMap.push_back(0);
+        } else {
+          const auto& prev = revCoordMap.back();
+          revCoordMap.push_back(prev);
+        }
+      } else {
+        revCoordMap.push_back(refPos);
+        ++refPos;
+      }
     }
+
+    revCoordMap.shrink_to_fit();
+    return revCoordMap;
   }
 
-  coordMap.shrink_to_fit();
-  return coordMap;
+
+  /**
+ * Makes the "reference to alingnment" coordinate map: from alignment coordinates to reference coordinates.
+ *
+ * Given a position of a letter in the reference sequence, the "reference to alingnment" coordinate map allows to
+ * lookup the position of the corresponding letter in the aligned sequence.
+ *
+ * @param refAln  Aligned reference sequence
+ * @return        Coordinate map from alignment coordinates to reference coordinates
+ */
+  safe_vector<int> makeRefToAlnMapOld(const NucleotideSequence& ref) {
+    const auto alnLength = safe_cast<int>(ref.size());
+
+    safe_vector<int> coordMap;
+    coordMap.reserve(alnLength);
+    for (int i = 0; i < alnLength; ++i) {
+      if (ref[i] != Nucleotide::GAP) {
+        coordMap.push_back(i);
+      }
+    }
+
+    coordMap.shrink_to_fit();
+    return coordMap;
+  }
+}// namespace
+
+CoordinateMapper::CoordinateMapper(const NucleotideSequence& refAln)
+    // old implementation
+    : alnToRefMap(makeAlnToRefMapOld(refAln)),
+      refToAlnMap(makeRefToAlnMapOld(refAln)) {}
+
+/**
+ * Converts position from alignment coordinates to reference coordianates
+ *
+ * @param alnPos  Position in alignment coordinates
+ * @return        Position in reference coordinates
+ */
+int CoordinateMapper::alnToRef(int alnPos) const {
+  return at(alnToRefMap, alnPos);
+}
+
+/**
+ * Converts position from reference coordinates to alignment coordianates
+ *
+ * @param refPos  Position in reference coordinates
+ * @return        Position in alignment coordinates
+ */
+int CoordinateMapper::refToAln(int refPos) const {
+  return at(refToAlnMap, refPos);
+}
+
+Range CoordinateMapper::alnToRef(const Range& alnRange) const {
+  if (alnRange.begin >= alnRange.end) {
+    return Range{alnRange.begin, alnRange.begin};
+  }
+  const Range refRange{
+    .begin = alnToRef(alnRange.begin),
+    .end = alnToRef(alnRange.end - 1) + 1,
+  };
+  postcondition_less(refRange.begin, refRange.end);
+  return refRange;
+}
+
+Range CoordinateMapper::refToAln(const Range& refRange) const {
+  if (refRange.begin >= refRange.end) {
+    return Range{refRange.begin, refRange.begin};
+  }
+  const Range alnRange{
+    .begin = refToAln(refRange.begin),
+    .end = refToAln(refRange.end - 1) + 1,
+  };
+  postcondition_less(alnRange.begin, alnRange.end);
+  return alnRange;
 }

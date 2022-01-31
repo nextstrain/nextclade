@@ -1,13 +1,17 @@
-import React from 'react'
+import { AuspiceMetadata } from 'auspice'
+import React, { useMemo } from 'react'
 
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
+import { connect } from 'react-redux'
 
 import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 
+import type { State } from 'src/state/reducer'
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { ButtonBack } from 'src/components/Tree/ButtonBack'
+import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
 
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
@@ -17,7 +21,7 @@ export const Container = styled.div`
   flex-basis: 100%;
   width: 100%;
   height: 100%;
-  min-width: 1000px;
+  min-width: 1080px;
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
@@ -48,7 +52,7 @@ const MainContent = styled.main`
 const AuspiceContainer = styled.div`
   display: flex;
   flex: 1;
-  flex-basis: 100%;
+  flex-basis: 99%;
   height: 100%;
 `
 
@@ -63,7 +67,41 @@ const TreeContainer = styled.div`
   overflow-y: scroll;
 `
 
-function TreePage() {
+const TreeTopPanel = styled.div`
+  display: flex;
+`
+
+const FiltersSummaryWrapper = styled.div`
+  flex: 1 1 100%;
+`
+
+const LogoGisaidWrapper = styled.div`
+  display: flex;
+  flex: 0 0 auto;
+  margin: 0 auto;
+  margin-right: 2.25rem;
+`
+
+const LogoGisaid = styled(LogoGisaidBase)`
+  margin-top: auto;
+`
+
+export interface TreePageProps {
+  treeMeta?: AuspiceMetadata
+}
+
+const mapStateToProps = (state: State) => ({
+  treeMeta: state.metadata,
+})
+
+export const TreePage = connect(mapStateToProps, null)(TreePageDisconnected)
+
+function TreePageDisconnected({ treeMeta }: TreePageProps) {
+  const isDataFromGisaid = useMemo(
+    () => treeMeta?.dataProvenance?.some((provenance) => provenance.name?.toLowerCase() === 'gisaid'),
+    [treeMeta],
+  )
+
   return (
     <LayoutResults>
       <Container>
@@ -82,10 +120,16 @@ function TreePage() {
                 <Sidebar />
               </SidebarContainer>
               <TreeContainer>
-                <span>
-                  <FiltersSummary />
-                </span>
-
+                <TreeTopPanel>
+                  <FiltersSummaryWrapper>
+                    <FiltersSummary />
+                  </FiltersSummaryWrapper>
+                  {isDataFromGisaid && (
+                    <LogoGisaidWrapper>
+                      <LogoGisaid />
+                    </LogoGisaidWrapper>
+                  )}
+                </TreeTopPanel>
                 <Tree />
               </TreeContainer>
             </I18nextProvider>

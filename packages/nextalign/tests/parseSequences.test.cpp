@@ -4,7 +4,7 @@
 
 #include <sstream>
 
-using ExpectedResults = std::vector<AlgorithmInput>;
+using ExpectedResults = safe_vector<AlgorithmInput>;
 
 
 bool operator==(const AlgorithmInput& left, const AlgorithmInput& right) {
@@ -27,7 +27,7 @@ std::ostream& operator<<(std::ostream& os, const AlgorithmInput& input) {
 }
 
 
-TEST(parseSequences, SanitizesSequences) {
+TEST(parseSequencesSlow, SanitizesSequences) {
   std::stringstream input;
 
   // clang-format off
@@ -43,7 +43,7 @@ X Y:)Z
   )"  ;
   // clang-format on
 
-  const auto results = parseSequences(input, "test std::stringstream");
+  const auto results = parseSequencesSlow(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Hello/Sequence/ID1234", "ABC?DEF.GHL*MNOPXYZ"},
@@ -53,7 +53,7 @@ X Y:)Z
 }
 
 
-TEST(parseSequences, ConvertsSequencesToUppercase) {
+TEST(parseSequencesSlow, ConvertsSequencesToUppercase) {
   std::stringstream input;
 
   input << R"(>Some/Sequence
@@ -62,7 +62,7 @@ TEST(parseSequences, ConvertsSequencesToUppercase) {
   Cheers!
   )";
 
-  const auto results = parseSequences(input, "test std::stringstream");
+  const auto results = parseSequencesSlow(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Some/Sequence", "HICANYOUMAKEITUPPERCASEPLEASE?CHEERS"},
@@ -71,7 +71,7 @@ TEST(parseSequences, ConvertsSequencesToUppercase) {
   EXPECT_THAT(results, testing::ElementsAreArray(expected));
 }
 
-TEST(parseSequences, DeduplicatesSequenceNames) {
+TEST(parseSequencesSlow, DeduplicatesSequenceNames) {
   std::stringstream input;
 
   input << R"(
@@ -91,7 +91,7 @@ TEST(parseSequences, DeduplicatesSequenceNames) {
     OPQRS
   )";
 
-  const auto results = parseSequences(input, "test std::stringstream");
+  const auto results = parseSequencesSlow(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Hello", "ABCD"},
@@ -104,7 +104,7 @@ TEST(parseSequences, DeduplicatesSequenceNames) {
   EXPECT_THAT(results, testing::ElementsAreArray(expected));
 }
 
-TEST(parseSequences, AssignsSequenceNameToUntitledSequences) {
+TEST(parseSequencesSlow, AssignsSequenceNameToUntitledSequences) {
   std::stringstream input;
 
   input << R"(
@@ -114,7 +114,7 @@ TEST(parseSequences, AssignsSequenceNameToUntitledSequences) {
     EFGH
   )";
 
-  const auto results = parseSequences(input, "test std::stringstream");
+  const auto results = parseSequencesSlow(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Untitled", "ABCD"},
@@ -124,7 +124,7 @@ TEST(parseSequences, AssignsSequenceNameToUntitledSequences) {
   EXPECT_THAT(results, testing::ElementsAreArray(expected));
 }
 
-TEST(parseSequences, AllowsPlainText) {
+TEST(parseSequencesSlow, AllowsPlainText) {
   std::stringstream input;
 
   input << R"(
@@ -132,7 +132,7 @@ TEST(parseSequences, AllowsPlainText) {
     plain text!
   )";
 
-  const auto results = parseSequences(input, "test std::stringstream");
+  const auto results = parseSequencesSlow(input, "test std::stringstream");
 
   const ExpectedResults expected = {
     {0, "Untitled", "THISISPLAINTEXT"},

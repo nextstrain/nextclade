@@ -10,9 +10,10 @@ find_package(fmt 7.1.0 REQUIRED)
 
 add_executable(${PROJECT_NAME}
   _musl_workarounds.c
+  findDeletionRanges.test.cpp
   findNucChanges.test.cpp
   findNucleotideRanges.test.cpp
-  findPrivateMutations.test.cpp
+  findPrivateNucMutations.test.cpp
   getAminoacidChanges.test.cpp
   getNucleotideComposition.test.cpp
   getPcrPrimerChanges.test.cpp
@@ -35,6 +36,8 @@ endif ()
 
 target_compile_definitions(${PROJECT_NAME}
   PUBLIC -DAPP_NAME="${PROJECT_NAME}"
+
+  -DENABLE_DEBUG_TRACE=${ENABLE_DEBUG_TRACE}
 
   -DFMT_HEADER_ONLY=1
   )

@@ -8,11 +8,15 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { formatRange } from 'src/helpers/formatRange'
 import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
 import { ErrorIcon, getStatusIconAndText, WarningIcon } from 'src/components/Results/getStatusIconAndText'
-import { TableSlim } from 'src/components/Common/TableSlim'
+import { TableSlim as TablSlimBase } from 'src/components/Common/TableSlim'
 
 const Alert = styled(ReactstrapAlert)`
   box-shadow: ${(props) => props.theme.shadows.slight};
-  max-width: 400px;
+  width: 400px;
+`
+
+const TableSlim = styled(TablSlimBase)`
+  width: 400px;
 `
 
 export interface ColumnNameTooltipProps {

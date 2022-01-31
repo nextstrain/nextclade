@@ -4,9 +4,15 @@ Nextalign CLI is a viral genome sequence alignment tool for command line. It use
 
 You can learn more about the algorithm in the [Algorithm: Sequence alignment](algorithm.html#sequence-alignment) section.
 
-### Installation (with docker)
+This section describes:
 
-Container images are available at Docker Hub: 🐋 [nextstrain/nextalign](https://hub.docker.com/repository/docker/nextstrain/nextalign)
+- how to install Nextalign CLI - using Docker container and natively
+- how to run Nextalign CLI with sample data
+- what other sections of the documentation are worth checking after that
+
+## Installation (with docker)
+
+Container images are available at Docker Hub: 🐋 [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign)
 
 Pull and run the latest version with:
 
@@ -23,9 +29,17 @@ docker run -it --rm nextstrain/nextalign:1.0.0 nextalign --help
 
 Don't forget to mount necessary volumes to be able to supply the data inside the container and to access the results.
 
-### Installation (local)
+## Installation (local)
 
-#### Download manually
+### Using conda
+
+A [Nextalign conda package]((https://anaconda.org/bioconda/nextalign)) is available for Linux and macOS from the `conda` channel `bioconda`:
+
+```bash
+conda install -c bioconda nextalign
+```
+
+### Download manually
 
 You can download the latest version of Nextalign CLI for your platform using one of these direct links:
 
@@ -50,7 +64,7 @@ Security settings</a>. Refer to the latest macOS documentation if none of this w
 >
 
 
-#### Download from command line
+### Download from command line
 
 The following commands can be used to download Nextalign from command line, from shell scripts and inside dockerfiles:
 
@@ -117,14 +131,13 @@ NEXTALIGN_VERSION=1.0.0 curl -fsSL "https://github.com/nextstrain/nextclade/rele
 </details>
 </p>
 
-
 Native Windows executables are not available at this time. Windows users can try one of the following:
 
 - Downloading and running Linux executable from [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 - Running docker container (see below)
 - Renting a Linux machine, for example at any cloud compute provider
 
-### Usage
+## Usage
 
 Refer to help prompt for usage of Nextalign:
 
@@ -134,19 +147,19 @@ nextalign --help
 
 ## Quick Example
 
-1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade/tree/master/data/sars-cov-2)
+1. Download the example SARS-CoV-2 data files from [GitHub](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2021-10-11T19:00:32Z/files)
     (You can also try other viruses in the `data/` directory)
 
 2. Run:
 
    ```bash
    nextalign \
-    --sequences=data/sars-cov-2/sequences.fasta \
-    --reference=data/sars-cov-2/reference.fasta \
-    --genemap=data/sars-cov-2/genemap.gff \
-    --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
-    --output-dir=output/ \
-    --output-basename=nextalign
+    --sequences data/sars-cov-2/sequences.fasta \
+    --reference data/sars-cov-2/reference.fasta \
+    --genemap data/sars-cov-2/genemap.gff \
+    --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+    --output-dir output/ \
+    --output-basename nextalign
    ```
 
    Add `--verbose` flag to show more information in the console. Add `--include-reference` flag to also write gap-stripped reference sequence and peptides into outputs.

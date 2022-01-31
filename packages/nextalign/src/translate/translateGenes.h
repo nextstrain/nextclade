@@ -1,22 +1,16 @@
 #pragma once
 
 #include <nextalign/nextalign.h>
+#include <nextalign/private/nextalign_private.h>
 
-#include <vector>
+#include <map>
+#include <common/safe_vector.h>
 
-#include "nextalign/private/nextalign_private.h"
-
-struct PeptidesInternal {
-  std::vector<PeptideInternal> queryPeptides;
-  std::vector<PeptideInternal> refPeptides;
-  Warnings warnings;
-  std::vector<FrameShift> frameShifts;
-};
-
-PeptidesInternal translateGenes(         //
-  const NucleotideSequence& query,       //
-  const NucleotideSequence& ref,         //
-  const GeneMap& geneMap,                //
-  const std::vector<int>& gapOpenCloseAA,//
-  const NextalignOptions& options        //
+PeptidesInternal translateGenes(                               //
+  const NucleotideSequence& query,                             //
+  const NucleotideSequence& ref,                               //
+  const std::map<std::string, RefPeptideInternal>& refPeptides,//
+  const GeneMap& geneMap,                                      //
+  const safe_vector<int>& gapOpenCloseAA,                      //
+  const NextalignOptions& options                              //
 );

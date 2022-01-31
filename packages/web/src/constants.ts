@@ -7,6 +7,7 @@ export const COPYRIGHT_YEAR_START = 2020 as const
 export const COMPANY_NAME = 'Nextstrain developers' as const
 
 export const DOMAIN = process.env.DOMAIN ?? ''
+export const DOMAIN_STRIPPED = process.env.DOMAIN_STRIPPED ?? ''
 export const URL_FAVICON = `${DOMAIN}/favicon.ico`
 export const URL_SOCIAL_IMAGE = `${DOMAIN}/social-1200x600.png`
 export const URL_MANIFEST_JSON = `${DOMAIN}/manifest.json`

@@ -10,13 +10,14 @@ export interface Exportable extends StrictOmit<AnalysisResult, 'alignedQuery' | 
   errors: string
 }
 
-export function serializeResults(analysisResults: AnalysisResult[]) {
+export function serializeResults(analysisResults: AnalysisResult[], cladeNodeAttrKeys: string[]) {
   const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? 'unknown'
 
   const finalResult = {
     schemaVersion: '1.2.0',
     nextcladeVersion: `web-${PACKAGE_VERSION}`,
     timestamp: Math.floor(Date.now() / 1000),
+    cladeNodeAttrKeys,
     results: analysisResults,
   }
 
@@ -34,8 +35,8 @@ export function prepareResultsJson(results: SequenceAnalysisState[]) {
     .filter(notUndefinedOrNull)
 }
 
-export function serializeResultsToJson(results: SequenceAnalysisState[]) {
+export function serializeResultsToJson(results: SequenceAnalysisState[], cladeNodeAttrKeys: string[]) {
   const data = prepareResultsJson(results)
-  const str = serializeResults(data)
+  const str = serializeResults(data, cladeNodeAttrKeys)
   return `${str}\n`
 }

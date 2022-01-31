@@ -5,8 +5,8 @@
 #include <nextclade/private/nextclade_private.h>
 
 namespace {
-  using Nextclade::isSequenced;
   using Nextclade::AnalysisResult;
+  using Nextclade::isSequenced;
   using Nextclade::NucleotideRange;
 }//namespace
 
@@ -21,7 +21,7 @@ TEST(isSequenced, True_When_In_Range_And_No_Missing) {
 
 TEST(isSequenced, True_When_In_Range_And_Not_In_Missing) {
   AnalysisResult res = {
-    .missing = std::vector<NucleotideRange>{NucleotideRange{
+    .missing = safe_vector<NucleotideRange>{NucleotideRange{
       .begin = 120,
       .end = 150,
       .length = 30,
@@ -71,7 +71,7 @@ TEST(isSequenced, False_When_Not_In_Range_Right) {
 
 TEST(isSequenced, False_When_Missing) {
   AnalysisResult res = {
-    .missing = std::vector<NucleotideRange>{NucleotideRange{
+    .missing = safe_vector<NucleotideRange>{NucleotideRange{
       .begin = 120,
       .end = 150,
       .length = 30,

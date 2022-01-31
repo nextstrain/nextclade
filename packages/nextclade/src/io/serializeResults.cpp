@@ -4,13 +4,27 @@
 #include <nextclade/private/nextclade_private.h>
 #include <nextclade_json/nextclade_json.h>
 
-#include <chrono>
 #include <nlohmann/json.hpp>
 #include <string>
 
+#include "../utils/safe_cast.h"
 #include "formatQcStatus.h"
 
 namespace Nextclade {
+  json serializeRange(const Range& range) {
+    auto j = json::object();
+    j.emplace("begin", range.begin);
+    j.emplace("end", range.end);
+    return j;
+  }
+
+  json serializeFrameShiftLocation(const FrameShiftLocation& fs) {
+    auto j = json::object();
+    j.emplace("geneName", fs.geneName);
+    j.emplace("codonRange", serializeRange(fs.codonRange));
+    return j;
+  }
+
   json serializeStopCodon(const StopCodonLocation& stopCodon) {
     auto j = json::object();
     j.emplace("geneName", stopCodon.geneName);
@@ -21,14 +35,6 @@ namespace Nextclade {
   namespace {
     json serializeString(const std::string& s) {
       return json{s};
-    }
-
-
-    json serializeRange(const Range& range) {
-      auto j = json::object();
-      j.emplace("begin", range.begin);
-      j.emplace("end", range.end);
-      return j;
     }
 
     json serializeNucleotideLocation(const NucleotideLocation& loc) {
@@ -68,7 +74,7 @@ namespace Nextclade {
       return j;
     }
 
-    json serializePcrPrimers(const std::vector<PcrPrimer>& pcrPrimers) {
+    json serializePcrPrimers(const safe_vector<PcrPrimer>& pcrPrimers) {
       return serializeArray(pcrPrimers, serializePcrPrimer);
     }
 
@@ -78,9 +84,9 @@ namespace Nextclade {
 
     json serializeMutation(const NucleotideSubstitution& mut) {
       auto j = json::object();
-      j.emplace("refNuc", nucToString(mut.refNuc));
+      j.emplace("refNuc", nucToString(mut.ref));
       j.emplace("pos", mut.pos);
-      j.emplace("queryNuc", nucToString(mut.queryNuc));
+      j.emplace("queryNuc", nucToString(mut.qry));
       j.emplace("aaSubstitutions", serializeArray(mut.aaSubstitutions, serializeAminoacidMutation));
       j.emplace("aaDeletions", serializeArray(mut.aaDeletions, serializeAminoacidDeletion));
       j.emplace("pcrPrimersChanged", serializePcrPrimers(mut.pcrPrimersChanged));
@@ -104,6 +110,30 @@ namespace Nextclade {
       return j;
     }
 
+    json serializeFrameShiftRange(const Range& fs) {
+      auto j = json::object();
+      j.emplace("begin", fs.begin);
+      j.emplace("end", fs.end);
+      return j;
+    }
+
+    json serializeFrameShiftContext(const FrameShiftContext& fsc) {
+      auto j = json::object();
+      j.emplace("codon", serializeFrameShiftRange(fsc.codon));
+      return j;
+    }
+
+    json serializeFrameShiftResult(const FrameShiftResult& fs) {
+      auto j = json::object();
+      j.emplace("geneName", fs.geneName);
+      j.emplace("nucRel", serializeFrameShiftRange(fs.nucRel));
+      j.emplace("nucAbs", serializeFrameShiftRange(fs.nucAbs));
+      j.emplace("codon", serializeFrameShiftRange(fs.codon));
+      j.emplace("gapsLeading", serializeFrameShiftContext(fs.gapsLeading));
+      j.emplace("gapsTrailing", serializeFrameShiftContext(fs.gapsTrailing));
+      return j;
+    }
+
     json serializeMissing(const NucleotideRange& missing) {
       return serializeNucleotideRange(missing);
     }
@@ -122,9 +152,9 @@ namespace Nextclade {
     json serializeAminoacidMutation(const AminoacidSubstitution& mut) {
       auto j = json::object();
       j.emplace("gene", mut.gene);
-      j.emplace("refAA", aaToString(mut.refAA));
-      j.emplace("codon", mut.codon);
-      j.emplace("queryAA", aaToString(mut.queryAA));
+      j.emplace("refAA", aaToString(mut.ref));
+      j.emplace("codon", mut.pos);
+      j.emplace("queryAA", aaToString(mut.qry));
       j.emplace("codonNucRange", serializeRange(mut.codonNucRange));
       j.emplace("refContext", toString(mut.refContext));
       j.emplace("queryContext", toString(mut.queryContext));
@@ -137,14 +167,95 @@ namespace Nextclade {
     json serializeAminoacidDeletion(const AminoacidDeletion& del) {
       auto j = json::object();
       j.emplace("gene", del.gene);
-      j.emplace("refAA", aaToString(del.refAA));
-      j.emplace("codon", del.codon);
+      j.emplace("refAA", aaToString(del.ref));
+      j.emplace("codon", del.pos);
       j.emplace("codonNucRange", serializeRange(del.codonNucRange));
       j.emplace("refContext", toString(del.refContext));
       j.emplace("queryContext", toString(del.queryContext));
       j.emplace("contextNucRange", serializeRange(del.contextNucRange));
       j.emplace("nucSubstitutions", serializeArray(del.nucSubstitutions, serializeMutation));
       j.emplace("nucDeletions", serializeArray(del.nucDeletions, serializeDeletion));
+      return j;
+    }
+
+    json serializeAminoacidInsertion(const AminoacidInsertion& ins) {
+      auto j = json::object();
+      j.emplace("gene", ins.gene);
+      j.emplace("pos", ins.pos);
+      j.emplace("length", ins.length);
+      j.emplace("ins", toString(ins.ins));
+      return j;
+    }
+
+    template<typename Letter>
+    json serializeSubstitutionSimple(const SubstitutionSimple<Letter>& sub) {
+      auto j = json::object();
+      j.emplace("ref", letterToString(sub.ref));
+      j.emplace("pos", sub.pos);
+      j.emplace("qry", letterToString(sub.qry));
+      return j;
+    }
+
+    template<typename Letter>
+    json serializeDeletionSimple(const DeletionSimple<Letter>& del) {
+      auto j = json::object();
+      j.emplace("ref", letterToString(del.ref));
+      j.emplace("pos", del.pos);
+      return j;
+    }
+
+    template<typename Letter>
+    json serializeSubstitutionSimpleLabeled(const SubstitutionSimpleLabeled<Letter>& labeled) {
+      auto j = json::object();
+      j.emplace("substitution", serializeSubstitutionSimple(labeled.substitution));
+      j.emplace("labels", serializeArray(labeled.labels));
+      return j;
+    }
+
+    template<typename Letter>
+    json serializeDeletionSimpleLabeled(const DeletionSimpleLabeled<Letter>& labeled) {
+      auto j = json::object();
+      j.emplace("deletion", serializeDeletionSimple(labeled.deletion));
+      j.emplace("labels", serializeArray(labeled.labels));
+      return j;
+    }
+
+    json serializePrivateNucMutations(const PrivateMutations<Nucleotide>& pm) {
+      auto j = json::object();
+      // clang-format off
+      j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Nucleotide>));
+      j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Nucleotide>));
+      j.emplace("reversionSubstitutions", serializeArray(pm.reversionSubstitutions, serializeSubstitutionSimple<Nucleotide>));
+      j.emplace("labeledSubstitutions", serializeArray(pm.labeledSubstitutions, serializeSubstitutionSimpleLabeled<Nucleotide>));
+      j.emplace("unlabeledSubstitutions", serializeArray(pm.unlabeledSubstitutions, serializeSubstitutionSimple<Nucleotide>));
+      // clang-format on
+
+      j.emplace("totalPrivateSubstitutions", pm.totalPrivateSubstitutions);
+      j.emplace("totalPrivateDeletions", pm.totalPrivateDeletions);
+      j.emplace("totalReversionSubstitutions", pm.totalReversionSubstitutions);
+      j.emplace("totalLabeledSubstitutions", pm.totalLabeledSubstitutions);
+      j.emplace("totalUnlabeledSubstitutions", pm.totalUnlabeledSubstitutions);
+
+      return j;
+    }
+
+    json serializePrivateAaMutations(const PrivateMutations<Aminoacid>& pm) {
+      // NOTE: We exclude fields for labeled and unlabeled mutations, because we currently don't
+      // process them for aminoacids, so these are always empty. If and when there's a label map for
+      // aa mutations, these fields can be added. Or perhaps the function for nucleotide can be transformed
+      // into a generic one.
+
+      auto j = json::object();
+      // clang-format off
+      j.emplace("privateSubstitutions", serializeArray(pm.privateSubstitutions, serializeSubstitutionSimple<Aminoacid>));
+      j.emplace("privateDeletions", serializeArray(pm.privateDeletions, serializeDeletionSimple<Aminoacid>));
+      j.emplace("reversionSubstitutions", serializeArray(pm.reversionSubstitutions, serializeSubstitutionSimple<Aminoacid>));
+      // clang-format on
+
+      j.emplace("totalPrivateSubstitutions", pm.totalPrivateSubstitutions);
+      j.emplace("totalPrivateDeletions", pm.totalPrivateDeletions);
+      j.emplace("totalReversionSubstitutions", pm.totalReversionSubstitutions);
+
       return j;
     }
 
@@ -162,12 +273,6 @@ namespace Nextclade {
       j.emplace("start", snp.start);
       j.emplace("end", snp.end);
       j.emplace("numberOfSNPs", snp.numberOfSNPs);
-      return j;
-    }
-
-    json serializeFrameShift(const FrameShift& frameShift) {
-      auto j = json::object();
-      j.emplace("geneName", frameShift.geneName);
       return j;
     }
 
@@ -208,7 +313,11 @@ namespace Nextclade {
               {"excess", qc.privateMutations->excess},
               {"score", qc.privateMutations->score},
               {"status", formatQcStatus(qc.privateMutations->status)},
-              {"total", qc.privateMutations->total},
+              {"weightedTotal", qc.privateMutations->weightedTotal},
+              {"numReversionSubstitutions", qc.privateMutations->numReversionSubstitutions},
+              {"numLabeledSubstitutions", qc.privateMutations->numLabeledSubstitutions},
+              {"numUnlabeledSubstitutions", qc.privateMutations->numUnlabeledSubstitutions},
+              {"totalDeletionRanges", qc.privateMutations->totalDeletionRanges},
             }));
       }
 
@@ -229,8 +338,10 @@ namespace Nextclade {
             {
               {"score", qc.frameShifts->score},
               {"status", formatQcStatus(qc.frameShifts->status)},
-              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShift)},
+              {"frameShifts", serializeArray(qc.frameShifts->frameShifts, serializeFrameShiftResult)},
               {"totalFrameShifts", qc.frameShifts->totalFrameShifts},
+              {"frameShiftsIgnored", serializeArray(qc.frameShifts->frameShiftsIgnored, serializeFrameShiftResult)},
+              {"totalFrameShiftsIgnored", qc.frameShifts->totalFrameShiftsIgnored},
             }));
       }
 
@@ -242,6 +353,8 @@ namespace Nextclade {
               {"status", formatQcStatus(qc.stopCodons->status)},
               {"stopCodons", serializeArray(qc.stopCodons->stopCodons, serializeStopCodon)},
               {"totalStopCodons", qc.stopCodons->totalStopCodons},
+              {"stopCodonsIgnored", serializeArray(qc.stopCodons->stopCodonsIgnored, serializeStopCodon)},
+              {"totalStopCodonsIgnored", qc.stopCodons->totalStopCodonsIgnored},
             }));
       }
 
@@ -269,27 +382,38 @@ namespace Nextclade {
       j.emplace("totalSubstitutions", result.totalSubstitutions);
       j.emplace("totalDeletions", result.totalDeletions);
       j.emplace("totalInsertions", result.totalInsertions);
+      j.emplace("totalFrameShifts", result.totalFrameShifts);
       j.emplace("totalMissing", result.totalMissing);
       j.emplace("totalNonACGTNs", result.totalNonACGTNs);
       j.emplace("totalPcrPrimerChanges", result.totalPcrPrimerChanges);
       j.emplace("totalAminoacidSubstitutions", result.totalAminoacidSubstitutions);
       j.emplace("totalAminoacidDeletions", result.totalAminoacidDeletions);
+      j.emplace("totalAminoacidInsertions", result.totalAminoacidInsertions);
       j.emplace("totalUnknownAa", result.totalUnknownAa);
 
       j.emplace("substitutions", serializeArray(result.substitutions, serializeMutation));
       j.emplace("deletions", serializeArray(result.deletions, serializeDeletion));
       j.emplace("insertions", serializeArray(result.insertions, serializeInsertion));
+      j.emplace("frameShifts", serializeArray(result.frameShifts, serializeFrameShiftResult));
       j.emplace("missing", serializeArray(result.missing, serializeMissing));
       j.emplace("nonACGTNs", serializeArray(result.nonACGTNs, serializeNonAcgtn));
       j.emplace("pcrPrimerChanges", serializeArray(result.pcrPrimerChanges, serializePcrPrimerChange));
       j.emplace("aaSubstitutions", serializeArray(result.aaSubstitutions, serializeAminoacidMutation));
       j.emplace("aaDeletions", serializeArray(result.aaDeletions, serializeAminoacidDeletion));
+      j.emplace("aaInsertions", serializeArray(result.aaInsertions, serializeAminoacidInsertion));
       j.emplace("unknownAaRanges", serializeArray(result.unknownAaRanges, serializeGeneAminoacidRange));
 
       j.emplace("nearestNodeId", result.nearestNodeId);
 
+      j.emplace("privateNucMutations", serializePrivateNucMutations(result.privateNucMutations));
+      j.emplace("privateAaMutations", serializeMap(result.privateAaMutations, serializePrivateAaMutations));
+      j.emplace("missingGenes", serializeArray(result.missingGenes));
+      j.emplace("divergence", result.divergence);
+
       j.emplace("qc", serializeQcResult(result.qc));
       j.emplace("nucleotideComposition", serializeNucleotideComposition(result.nucleotideComposition));
+
+      j.emplace("customNodeAttributes", serializeMap(result.customNodeAttributes));
 
       return j;
     }
@@ -299,10 +423,11 @@ namespace Nextclade {
     auto j = json::object();
     j.emplace("name", peptide.name);
     j.emplace("seq", peptide.seq);
+    j.emplace("frameShiftResults", serializeArray(peptide.frameShiftResults, serializeFrameShiftResult));
     return j;
   }
 
-  std::string serializePeptidesToString(const std::vector<Peptide>& peptides) {
+  std::string serializePeptidesToString(const safe_vector<Peptide>& peptides) {
     json j = serializeArray(peptides, serializePeptide);
     return jsonStringify(j);
   }
@@ -312,7 +437,7 @@ namespace Nextclade {
     return jsonStringify(j);
   }
 
-  json serializeResultsArray(const std::vector<AnalysisResult>& results) {
+  json serializeResultsArray(const safe_vector<AnalysisResult>& results) {
     auto j = json::array();
     for (const auto& result : results) {
       j.emplace_back(serializeResult(result));
@@ -320,17 +445,14 @@ namespace Nextclade {
     return j;
   }
 
-  auto getTimestampNow() {
-    const auto p1 = std::chrono::system_clock::now();
-    return std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count();
-  }
 
-  std::string serializeResults(const std::vector<AnalysisResult>& results) {
+  std::string serializeResults(const AnalysisResults& analysisResults) {
     auto j = json::object();
-    j.emplace("schemaVersion", Nextclade::getAnalysisResultsJsonSchemaVersion());
-    j.emplace("nextcladeVersion", Nextclade::getVersion());
-    j.emplace("timestamp", getTimestampNow());
-    j.emplace("results", serializeResultsArray(results));
+    j.emplace("schemaVersion", analysisResults.schemaVersion);
+    j.emplace("nextcladeVersion", analysisResults.nextcladeVersion);
+    j.emplace("timestamp", analysisResults.timestamp);
+    j.emplace("cladeNodeAttrKeys", serializeArray(analysisResults.cladeNodeAttrKeys));
+    j.emplace("results", serializeResultsArray(analysisResults.results));
     return jsonStringify(j);
   }
 
@@ -343,7 +465,7 @@ namespace Nextclade {
     return j;
   }
 
-  std::string serializePcrPrimerRowsToString(const std::vector<PcrPrimerCsvRow>& pcrPrimers) {
+  std::string serializePcrPrimerRowsToString(const safe_vector<PcrPrimerCsvRow>& pcrPrimers) {
     json j = serializeArray(pcrPrimers, serializePcrPrimerCsvRow);
     return jsonStringify(j);
   }
@@ -359,6 +481,14 @@ namespace Nextclade {
     auto j = json::object();
     j.emplace("global", serializeArray(warnings.global, serializeString));
     j.emplace("inGenes", serializeArray(warnings.inGenes, serializeGeneWarning));
+    return jsonStringify(j);
+  }
+
+  std::string serializeCladeNodeAttrKeys(const safe_vector<std::string>& keys) {
+    auto j = json::array();
+    for (const auto& key : keys) {
+      j.push_back(key);
+    }
     return jsonStringify(j);
   }
 

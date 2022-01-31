@@ -1,7 +1,6 @@
 import React from 'react'
 
 import { last } from 'lodash'
-import { DateTime } from 'luxon'
 import { Col, Row } from 'reactstrap'
 import styled from 'styled-components'
 import { TableSlimWithBorders } from 'src/components/Common/TableSlim'
@@ -13,6 +12,8 @@ import semver from 'semver'
 import { LayoutMain } from 'src/components/Layout/LayoutMain'
 import { useAxiosQuery } from 'src/helpers/useAxiosQuery'
 import type { Dataset, DatasetFiles, DatasetRef, DatasetsIndexJson, DatasetVersion } from 'src/algorithms/types'
+import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
+import { formatCompatibility } from 'src/helpers/formatCompatibility'
 
 const DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
 const DATA_INDEX_FILE = 'index.json'
@@ -25,40 +26,6 @@ export const Ul = styled.ul`
 `
 
 export const Li = styled.li``
-
-export function formatVersion(min?: string, max?: string) {
-  if (!min && max) {
-    return `up to ${max}`
-  }
-
-  if (min && !max) {
-    return `from ${min}`
-  }
-
-  if (min && max) {
-    return `from ${min} to ${max}`
-  }
-
-  return `unknown`
-}
-
-export function formatDateIsoUtcSimple(dateTimeStr: string) {
-  const utc = DateTime.fromISO(dateTimeStr, { zone: 'UTC' })
-
-  const date = utc.toISODate()
-
-  let time = utc.toISOTime({
-    suppressMilliseconds: true,
-    suppressSeconds: true,
-    includeOffset: false,
-  })
-
-  if (time === '00:00') {
-    time = ''
-  }
-
-  return [date, time].join(' ')
-}
 
 export interface DatasetFileProps {
   file: string
@@ -107,8 +74,8 @@ export function DatasetVersionView({ version }: DatasetVersionProps) {
       <td>{formatDateIsoUtcSimple(version.tag)}</td>
       <td>{version.comment}</td>
       <td>{version.enabled ? t('Yes') : t('No')}</td>
-      <td>{formatVersion(cliMin, cliMax)}</td>
-      <td>{formatVersion(webMin, webMax)}</td>
+      <td>{formatCompatibility(cliMin, cliMax)}</td>
+      <td>{formatCompatibility(webMin, webMax)}</td>
       <td>{isCompatible ? t('Yes') : t('No')}</td>
       <td>
         <DatasetFilesView files={version.files} />
@@ -177,7 +144,6 @@ export function DatasetView({ dataset, isDefault }: DatasetViewProps) {
           {dataset.nameFriendly}
           {isDefault && <sup className="text-small ml-2">{t('(default)')}</sup>}
         </h3>
-        <p>{dataset.description}</p>
 
         {dataset.datasetRefs.map((ref) => (
           <DatasetRefView key={ref.reference.accession} datasetRef={ref} />

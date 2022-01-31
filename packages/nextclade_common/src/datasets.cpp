@@ -92,7 +92,6 @@ namespace Nextclade {
         .enabled = at(j, "enabled"),
         .name = at(j, "name"),
         .nameFriendly = at(j, "nameFriendly"),
-        .description = at(j, "description"),
         .datasetRefs = parseArray<DatasetRef>(j, "datasetRefs", parseDatasetRef),
         .defaultRef = at(j, "defaultRef"),
       };
@@ -128,7 +127,7 @@ namespace Nextclade {
   }
 
   std::string getFilenameFromUrl(const std::string& url) {
-    std::vector<std::string> urlParts;
+    safe_vector<std::string> urlParts;
     boost::algorithm::split(urlParts, url, boost::is_any_of("/"));
     if (urlParts.empty()) {
       throw std::runtime_error(
@@ -152,8 +151,8 @@ namespace Nextclade {
     taskGroup.wait();
   }
 
-  std::vector<Dataset> getEnabledDatasets(const std::vector<Dataset>& datasets) {
-    std::vector<Dataset> datasetsEnabled;
+  safe_vector<Dataset> getEnabledDatasets(const safe_vector<Dataset>& datasets) {
+    safe_vector<Dataset> datasetsEnabled;
     for (const auto& dataset : datasets) {
       if (!dataset.enabled) {
         continue;
@@ -187,8 +186,8 @@ namespace Nextclade {
     return datasetsEnabled;
   }
 
-  std::vector<Dataset> getCompatibleDatasets(const std::vector<Dataset>& datasets, const std::string& thisVersion) {
-    std::vector<Dataset> datasetsCompatible;
+  safe_vector<Dataset> getCompatibleDatasets(const safe_vector<Dataset>& datasets, const std::string& thisVersion) {
+    safe_vector<Dataset> datasetsCompatible;
     for (const auto& dataset : datasets) {
 
       auto datasetCompatible = Dataset{dataset};
@@ -200,7 +199,7 @@ namespace Nextclade {
         datasetRefCompatible.versions = {};
 
         // Find compatible versions
-        std::vector<DatasetVersion> versionsCompatible;
+        safe_vector<DatasetVersion> versionsCompatible;
         for (const auto& version : datasetRef.versions) {
           if (isDatasetVersionCompatible(version, thisVersion)) {
             datasetRefCompatible.versions.push_back(version);
@@ -222,8 +221,8 @@ namespace Nextclade {
     return datasetsCompatible;
   }
 
-  std::vector<Dataset> getLatestDatasets(const std::vector<Dataset>& datasets) {
-    std::vector<Dataset> datasetsLatest;
+  safe_vector<Dataset> getLatestDatasets(const safe_vector<Dataset>& datasets) {
+    safe_vector<Dataset> datasetsLatest;
     for (const auto& dataset : datasets) {
       auto datasetLatest = Dataset{dataset};
       datasetLatest.datasetRefs = {};
@@ -254,14 +253,14 @@ namespace Nextclade {
     return datasetsLatest;
   }
 
-  std::vector<Dataset> getLatestCompatibleDatasets(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> getLatestCompatibleDatasets(const safe_vector<Dataset>& datasets,
     const std::string& thisVersion) {
     return getLatestDatasets(getCompatibleDatasets(datasets, thisVersion));
   }
 
-  std::vector<Dataset> filterDatasetsByReference(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> filterDatasetsByReference(const safe_vector<Dataset>& datasets,
     const std::string& datasetReferenceDesired) {
-    std::vector<Dataset> datasetsFiltered;
+    safe_vector<Dataset> datasetsFiltered;
     for (const auto& dataset : datasets) {
       auto datasetFiltered = Dataset{dataset};
       datasetFiltered.datasetRefs = {};
@@ -278,8 +277,8 @@ namespace Nextclade {
     return datasetsFiltered;
   }
 
-  std::vector<Dataset> filterDatasetsByDefaultReference(const std::vector<Dataset>& datasets) {
-    std::vector<Dataset> datasetsFiltered;
+  safe_vector<Dataset> filterDatasetsByDefaultReference(const safe_vector<Dataset>& datasets) {
+    safe_vector<Dataset> datasetsFiltered;
     for (const auto& dataset : datasets) {
       auto datasetFiltered = Dataset{dataset};
       datasetFiltered.datasetRefs = {};
@@ -296,16 +295,16 @@ namespace Nextclade {
     return datasetsFiltered;
   }
 
-  std::vector<Dataset> filterDatasetsByName(const std::vector<Dataset>& datasets,
+  safe_vector<Dataset> filterDatasetsByName(const safe_vector<Dataset>& datasets,
     const std::string& datasetNameDesired) {
-    std::vector<Dataset> datasetsFiltered;
+    safe_vector<Dataset> datasetsFiltered;
     std::copy_if(datasets.cbegin(), datasets.cend(), std::back_inserter(datasetsFiltered),
       [&datasetNameDesired](const Dataset& dataset) { return dataset.name == datasetNameDesired; });
     return datasetsFiltered;
   }
 
-  std::vector<Dataset> filterDatasetsByTag(const std::vector<Dataset>& datasets, const std::string& versionTagDesired) {
-    std::vector<Dataset> datasetsVersioned;
+  safe_vector<Dataset> filterDatasetsByTag(const safe_vector<Dataset>& datasets, const std::string& versionTagDesired) {
+    safe_vector<Dataset> datasetsVersioned;
     for (const auto& dataset : datasets) {
       auto datasetVersioned = Dataset{dataset};
       datasetVersioned.datasetRefs = {};
@@ -347,14 +346,15 @@ namespace Nextclade {
     return "unknown";
   }
 
-  std::string formatDatasets(const std::vector<Dataset>& datasets, bool verbose /* = false */) {
-    fmt::memory_buffer buf;
+  std::string formatDatasets(const safe_vector<Dataset>& datasets, bool verbose /* = false */) {
+    fmt::memory_buffer bufRaw;
+    auto buf = std::back_inserter(bufRaw);
+
     for (const auto& dataset : datasets) {
       fmt::format_to(buf, "Dataset\n");
       fmt::format_to(buf, "-------\n");
       fmt::format_to(buf, "Friendly name     : {:s}\n", dataset.nameFriendly);
       fmt::format_to(buf, "Safe name         : {:s}\n", dataset.name);
-      fmt::format_to(buf, "Description       : {:s}\n", dataset.description);
       fmt::format_to(buf, "Default reference : {:s}\n\n", dataset.defaultRef);
 
       fmt::format_to(buf,
@@ -371,7 +371,6 @@ namespace Nextclade {
 
       auto numRefs = std::to_string(dataset.datasetRefs.size());
       fmt::format_to(buf, "Specific reference sequences ({:}):\n", numRefs);
-      fmt::format_to(buf, "-----------------------------" + std::string{"-", numRefs.size() + 3} + "\n\n");
 
       for (const auto& datasetRef : dataset.datasetRefs) {
         const auto& ref = datasetRef.reference;
@@ -379,7 +378,7 @@ namespace Nextclade {
         fmt::format_to(buf, "    ---------\n");
         fmt::format_to(buf, "    Strain name  : {:s}\n", ref.strainName);
         fmt::format_to(buf, "    Accession    : {:s}\n", ref.accession);
-        fmt::format_to(buf, "    Description  : {:s}\n", ref.source);
+        fmt::format_to(buf, "    Source       : {:s}\n", ref.source);
 
         fmt::format_to(buf, "\n");
 
@@ -396,7 +395,6 @@ namespace Nextclade {
 
         auto numTags = std::to_string(datasetRef.versions.size());
         fmt::format_to(buf, "    Specific versions ({:}):\n", datasetRef.versions.size());
-        fmt::format_to(buf, "    ------------------" + std::string{"-", numTags.size() + 3} + "\n\n");
 
         for (const auto& version : datasetRef.versions) {
           fmt::format_to(buf, "        Version\n");
@@ -443,7 +441,7 @@ namespace Nextclade {
       }
       fmt::format_to(buf, "\n");
     }
-    return fmt::to_string(buf);
+    return fmt::to_string(bufRaw);
   }
 
 
@@ -542,9 +540,6 @@ namespace Nextclade {
     os << "  "
           "nameFriendly: "
        << dataset.nameFriendly << "\n";
-    os << "  "
-          "description: "
-       << dataset.description << "\n";
     os << "  "
           "datasetRefs: [\n";
     for (const auto& datasetRef : dataset.datasetRefs) {

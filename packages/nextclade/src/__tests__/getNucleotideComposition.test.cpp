@@ -1,8 +1,8 @@
+#include "../analyze/getNucleotideComposition.h"
+
 #include <gtest/gtest.h>
 
-#include <vector>
-
-#include "../analyze/getNucleotideComposition.h"
+#include <common/safe_vector.h>
 
 using Nextclade::getNucleotideComposition;
 

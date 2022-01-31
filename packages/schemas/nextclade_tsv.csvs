@@ -1,0 +1,77 @@
+version 1.1
+@separator TAB
+@totalColumns 65
+/*
+    Defines a CSV schema for TSV output of Nextclade.
+    To be used to validate Nextclade TSV output using csv-validator tool.
+
+    See:
+     - CSV Schema: https://digital-preservation.github.io/csv-schema/
+     - CSV Schema specification: https://digital-preservation.github.io/csv-schema/csv-schema-1.1.html
+     - CSV Validator: https://digital-preservation.github.io/csv-validator/
+*/
+"seqName":                                  notEmpty
+"clade":
+"qc.overallScore":                          regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.overallStatus":                         is("good") or is("mediocre") or is("bad") @optional
+"totalSubstitutions":                       positiveInteger @optional
+"totalDeletions":                           positiveInteger @optional
+"totalInsertions":                          positiveInteger @optional
+"totalFrameShifts":                         positiveInteger @optional
+"totalAminoacidSubstitutions":              positiveInteger @optional
+"totalAminoacidDeletions":                  positiveInteger @optional
+"totalMissing":                             positiveInteger @optional
+"totalNonACGTNs":                           positiveInteger @optional
+"totalPcrPrimerChanges":                    positiveInteger @optional
+"substitutions":
+"deletions":
+"insertions":
+"frameShifts":
+"aaSubstitutions":
+"aaDeletions":
+"missing":
+"nonACGTNs":
+"pcrPrimerChanges":
+"privateNucMutations.reversionSubstitutions":
+"privateNucMutations.reversionsOfDeletions":
+"privateNucMutations.labeledSubstitutions":
+"privateNucMutations.labeledDeletions":
+"privateNucMutations.unlabeledSubstitutions":
+"privateNucMutations.unlabeledDeletions":
+"privateNucMutations.totalReversionSubstitutions":
+"privateNucMutations.totalReversionsOfDeletions":
+"privateNucMutations.totalLabeledSubstitutions":
+"privateNucMutations.totalLabeledDeletions":
+"privateNucMutations.totalUnlabeledSubstitutions":
+"privateNucMutations.totalUnlabeledDeletions":
+"alignmentScore":                           positiveInteger @optional
+"alignmentStart":                           positiveInteger @optional
+"alignmentEnd":                             positiveInteger @optional
+"qc.missingData.missingDataThreshold":      regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.missingData.score":                     regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.missingData.status":                    is("good") or is("mediocre") or is("bad") @optional
+"qc.missingData.totalMissing":              positiveInteger @optional
+"qc.mixedSites.mixedSitesThreshold":        regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.mixedSites.score":                      regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.mixedSites.status":                     is("good") or is("mediocre") or is("bad") @optional
+"qc.mixedSites.totalMixedSites":            positiveInteger @optional
+"qc.privateMutations.cutoff":               regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.privateMutations.excess":               regex("-?[0-9]+(\.[0-9]*)?") @optional
+"qc.privateMutations.score":                regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.privateMutations.status":               is("good") or is("mediocre") or is("bad") @optional
+"qc.privateMutations.total":                regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.snpClusters.clusteredSNPs":
+"qc.snpClusters.score":                     regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.snpClusters.status":                    is("good") or is("mediocre") or is("bad") @optional
+"qc.snpClusters.totalSNPs":                 positiveInteger @optional
+"qc.frameShifts.frameShifts":
+"qc.frameShifts.totalFrameShifts":          positiveInteger @optional
+"qc.frameShifts.frameShiftsIgnored":
+"qc.frameShifts.totalFrameShiftsIgnored":   positiveInteger @optional
+"qc.frameShifts.score":                     regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.frameShifts.status":                    is("good") or is("mediocre") or is("bad") @optional
+"qc.stopCodons.stopCodons":
+"qc.stopCodons.totalStopCodons":            positiveInteger @optional
+"qc.stopCodons.score":                      regex("[0-9]+(\.[0-9]*)?") @optional
+"qc.stopCodons.status":                     is("good") or is("mediocre") or is("bad") @optional
+"errors":

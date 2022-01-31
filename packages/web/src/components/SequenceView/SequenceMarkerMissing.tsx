@@ -24,9 +24,10 @@ export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase,
   const { begin, end } = missing // prettier-ignore
 
   const id = getSafeId('missing-marker', { seqName, ...missing })
-  const x = begin * pixelsPerBase
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
+  const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
+  const x = begin * pixelsPerBase - halfNuc
 
   const rangeStr = formatRange(begin, end)
 

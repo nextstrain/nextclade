@@ -13,42 +13,11 @@
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
-  class ErrorParseQcConfigInvalid : public std::runtime_error {
+  class ErrorQcConfigParsingFailed : public ErrorFatal {
   public:
-    explicit ErrorParseQcConfigInvalid(const std::string& path)
-        : std::runtime_error(fmt::format("key \"{:s}\" is missing", path)) {}
+    explicit ErrorQcConfigParsingFailed(const std::string& message)
+        : ErrorFatal(fmt::format("When parsing QC configuration file: {:s}", message)) {}
   };
-
-
-  namespace {
-    template<typename T>
-    void readValue(const json& j, const std::string& path, T& value) {
-      if (j.contains(json::json_pointer{path})) {
-        value = j.at(json::json_pointer{path}).template get<T>();
-      } else {
-        throw ErrorParseQcConfigInvalid(path);
-      }
-    }
-
-    template<typename T>
-    void readValue(const json& j, const std::string& path, T& value, const T& defaultValue) {
-      if (j.contains(json::json_pointer{path})) {
-        value = j.at(json::json_pointer{path}).template get<T>();
-      } else {
-        value = defaultValue;
-      }
-    }
-
-    template<typename T, typename Parser>
-    void readArray(const json& j, const std::string& path, std::vector<T>& value, Parser parser) {
-      if (j.contains(json::json_pointer{path})) {
-        value = parseArray<T>(j, json::json_pointer{path}, parser);
-      } else {
-        throw ErrorParseQcConfigInvalid(path);
-      }
-    }
-  }// namespace
-
 
   QcConfig parseQcConfig(const std::string& qcConfigJsonStr) {
     try {
@@ -56,10 +25,8 @@ namespace Nextclade {
 
       QcConfig qcConfig{};
 
-      // Version prior to 1.2.0 did not include "schemaVersion" field.
-      // Treat files without this field as them as "1.1.0".
+      // Prior to 1.2.0 qc.json did not include "schemaVersion" field. Treat files without this field as "1.1.0".
       readValue(j, "/schemaVersion", qcConfig.schemaVersion, std::string{"1.1.0"});
-
 
       readValue(j, "/missingData/enabled", qcConfig.missingData.enabled, false);
       if (qcConfig.missingData.enabled) {
@@ -76,6 +43,17 @@ namespace Nextclade {
       if (qcConfig.privateMutations.enabled) {
         readValue(j, "/privateMutations/typical", qcConfig.privateMutations.typical);
         readValue(j, "/privateMutations/cutoff", qcConfig.privateMutations.cutoff);
+
+        double defaultWeight = 1.0;
+
+        // clang-format off
+        readValue(j, "/privateMutations/weightReversionSubstitutions", qcConfig.privateMutations.weightReversionSubstitutions, defaultWeight);
+        readValue(j, "/privateMutations/weightReversionDeletions", qcConfig.privateMutations.weightReversionDeletions, defaultWeight);
+        readValue(j, "/privateMutations/weightLabeledSubstitutions", qcConfig.privateMutations.weightLabeledSubstitutions, defaultWeight);
+        readValue(j, "/privateMutations/weightLabeledDeletions", qcConfig.privateMutations.weightLabeledDeletions, defaultWeight);
+        readValue(j, "/privateMutations/weightUnlabeledSubstitutions", qcConfig.privateMutations.weightUnlabeledSubstitutions, defaultWeight);
+        readValue(j, "/privateMutations/weightUnlabeledDeletions", qcConfig.privateMutations.weightUnlabeledDeletions, defaultWeight);
+        // clang-format on
       }
 
       readValue(j, "/snpClusters/enabled", qcConfig.snpClusters.enabled, false);
@@ -86,15 +64,20 @@ namespace Nextclade {
       }
 
       readValue(j, "/frameShifts/enabled", qcConfig.frameShifts.enabled, false);
+      if (qcConfig.frameShifts.enabled) {
+        readArrayMaybe(j, "/frameShifts/ignoredFrameShifts", qcConfig.frameShifts.ignoredFrameShifts,
+          parseFrameShiftLocation);
+      }
 
       readValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled, false);
       if (qcConfig.stopCodons.enabled) {
-        readArray(j, "/stopCodons/ignoredStopCodons", qcConfig.stopCodons.ignoredStopCodons, parseStopCodonLocation);
+        readArrayOrThrow(j, "/stopCodons/ignoredStopCodons", qcConfig.stopCodons.ignoredStopCodons,
+          parseStopCodonLocation);
       }
 
       return qcConfig;
     } catch (const std::exception& e) {
-      throw ErrorFatal(fmt::format("When parsing QC configuration file: {:s}", e.what()));
+      throw ErrorQcConfigParsingFailed(e.what());
     }
   }
 

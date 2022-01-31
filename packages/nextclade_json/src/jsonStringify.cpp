@@ -6,7 +6,7 @@
 namespace Nextclade {
   std::string jsonStringify(const json& j, int spaces) {
     constexpr auto indent_char = ' ';
-    constexpr auto ensure_ascii = true;
+    constexpr auto ensure_ascii = false;
     return j.dump(spaces, indent_char, ensure_ascii);
   }
 }// namespace Nextclade

@@ -26,9 +26,10 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
 }: PropsWithChildren<SequenceMarkerProps>) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const x = begin * pixelsPerBase
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
+  const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
+  const x = begin * pixelsPerBase - halfNuc
 
   if (begin >= end) {
     console.warn(

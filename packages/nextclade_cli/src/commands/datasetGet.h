@@ -5,8 +5,8 @@
 #include "commands.h"
 
 namespace Nextclade {
-  inline std::vector<Dataset> datasetGetFilter(           //
-    const std::vector<Dataset>& inputDatasets,            //
+  inline safe_vector<Dataset> datasetGetFilter(           //
+    const safe_vector<Dataset>& inputDatasets,            //
     const std::shared_ptr<CliParamsDatasetGet>& cliParams,//
     const std::string& thisVersion                        //
   ) {

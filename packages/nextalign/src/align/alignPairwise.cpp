@@ -1,12 +1,15 @@
 #include "alignPairwise.h"
 
+#include <fmt/format.h>
+
 #include <cmath>
 #include <iostream>
 #include <string>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../match/matchAa.h"
 #include "../match/matchNuc.h"
+#include <common/debug_trace.h>
 #include "../utils/safe_cast.h"
 
 
@@ -29,8 +32,8 @@ constexpr const int END_OF_SEQUENCE = -1;
 
 // determine the position where a particular kmer (string of length k) matches the reference sequence
 // TODO: this function accepts a start position and will not search for matches before this position.
-// This start position is set be the previous match. It is this sensitive to a seed matching in the wrong
-// part of the sequence and this is likely to produce errors for genomes with repeated sequence
+// This start position is set by the previous match. It is thus sensitive to a seed matching in the wrong
+// part of the sequence and is thus likely to produce errors for genomes with repeated sequence
 template<typename Letter>
 SeedMatch seedMatch(const Sequence<Letter>& kmer, const Sequence<Letter>& ref, const int start_pos,
   const int mismatchesAllowed) {
@@ -77,10 +80,10 @@ template<>
 }
 
 template<typename Letter>
-std::vector<int> getMapToGoodPositions(const Sequence<Letter>& query, int seedLength) {
+safe_vector<int> getMapToGoodPositions(const Sequence<Letter>& query, int seedLength) {
   const int querySize = safe_cast<int>(query.size());
 
-  std::vector<int> mapToGoodPositions;
+  safe_vector<int> mapToGoodPositions;
   mapToGoodPositions.reserve(querySize);
   int distanceToLastBadPos = 0;
   for (int i = 0; i < querySize; i++) {
@@ -108,14 +111,22 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
   const int bandWidth = details::round((refSize + querySize) * 0.5) - 3;
   // clang-format on
 
+  debug_trace("Seed alignment: started: querySize={:}, refSize={:}, nSeeds={:}, margin={:}, bandWidth={:}\n", querySize,
+    refSize, nSeeds, margin, bandWidth);
+
   int start_pos = 0;
   if (bandWidth < 2 * options.seedLength) {
+    const auto meanShift = details::round((refSize - querySize) * 0.5);
+    debug_trace(
+      "Seed alignment succeeded: the condition `bandWidth < 2 * options.seedLength` is fulfilled: bandWidth={:}, "
+      "meanShift={:}, options.seedLength={:}\n",
+      bandWidth, meanShift, options.seedLength);
     return SeedAlignmentStatus{
       .status = Status::Success,
       .error = {},
       .result = std::make_optional<SeedAlignment>({
-        .meanShift = details::round((refSize - querySize) * 0.5),// NOLINT: cppcoreguidelines-avoid-magic-numbers
-        .bandWidth = bandWidth                                   //
+        .meanShift = meanShift,// NOLINT: cppcoreguidelines-avoid-magic-numbers
+        .bandWidth = bandWidth //
       }),
     };
   }
@@ -126,12 +137,14 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
   // TODO: Maybe use something other than array? A struct with named fields to make
   //  the code in the end of the function less confusing?
   using Clamp = std::array<int, 4>;
-  std::vector<Clamp> seedMatches;
+  safe_vector<Clamp> seedMatches;
   // generate kmers equally spaced on the query
   const auto seedCover = safe_cast<double>(nGoodPositions - 2 * margin);
   const double kmerSpacing = (seedCover - 1.0) / (nSeeds - 1.0);
 
   if (seedCover < 0.0 || kmerSpacing < 0.0) {
+    debug_trace("Seed alignment: failed: No seed matches: seedCover={:}, kmerSpacing={:}. Aborting.\n", seedCover,
+      kmerSpacing);
     return SeedAlignmentStatus{
       .status = Status::Error,
       .error = "Unable to align: no seed matches",
@@ -154,7 +167,12 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
       start_pos = tmpMatch.shift;
     }
   }
+
+  debug_trace("Seed matches:\n{:}\n", seedMatches);
+
   if (seedMatches.size() < 2) {
+    debug_trace("Seed alignment: failed: No seed matches: seedMatches.size={:}, which is less than 2. Aborting.\n",
+      seedMatches.size());
     return SeedAlignmentStatus{
       .status = Status::Error,
       .error = "Unable to align: no seed matches",
@@ -178,8 +196,12 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
     }
   }
 
+  debug_trace("Seed alignment: minShift={:}, maxShift={:}\n", minShift, maxShift);
+
   const int meanShift = details::round(0.5 * (minShift + maxShift));
   const int bandWidthFinal = maxShift - minShift + 9;
+
+  debug_trace("Seed alignment succeeded: bandWidth={:}, meanShift={:}\n", bandWidthFinal, meanShift);
   return SeedAlignmentStatus{
     .status = Status::Success,
     .error = {},
@@ -189,7 +211,7 @@ SeedAlignmentStatus seedAlignment(const Sequence<Letter>& query, const Sequence<
 
 template<typename Letter>
 ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& ref,
-  const std::vector<int>& gapOpenClose, int bandWidth, int meanShift,
+  const safe_vector<int>& gapOpenClose, int bandWidth, int meanShift,
   const NextalignAlignmentOptions& alignmentOptions) {
   // allocate a matrix to record the matches
   const int querySize = safe_cast<int>(query.size());
@@ -197,10 +219,14 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
   const int n_rows = bandWidth * 2 + 1;
   const int n_cols = refSize + 1;
 
+  debug_trace(
+    "Score matrix: stared: querySize={:}, refSize={:}, bandWidth={:}, meanShift={:}, n_rows={:}, n_cols={:}\n",
+    querySize, refSize, bandWidth, meanShift, n_rows, n_cols);
+
   vector2d<int> paths(n_rows, n_cols);
   // TODO: these could be reduced to vectors
   vector2d<int> scores(n_rows, n_cols);
-  std::vector<int> qryGaps(n_rows);
+  safe_vector<int> qryGaps(n_rows);
 
 
   // fill scores with alignment scores
@@ -300,6 +326,10 @@ ForwardTrace scoreMatrix(const Sequence<Letter>& query, const Sequence<Letter>& 
     // std::cout <<"\n";
   }
 
+  debug_trace(
+    "Score matrix: succeeded: scores.num_rows={:}, scores.num_cols={:}, paths.num_rows={:}, paths.num_cols={:}\n",
+    scores.num_rows(), scores.num_cols(), paths.num_rows(), paths.num_cols());
+
   return {.scores = scores, .paths = paths};
 }
 
@@ -320,7 +350,7 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
     };
 
 
-  std::vector<std::pair<char, char>> aln;
+  safe_vector<std::pair<char, char>> aln;
   Sequence<Letter> aln_ref;
   Sequence<Letter> aln_query;
   aln_ref.reserve(rowLength + 3 * bandWidth);
@@ -330,25 +360,32 @@ AlignmentStatus<Letter> backTrace(const Sequence<Letter>& query, const Sequence<
   // const lastScoreByShift = scores.map((d, i) = > d[lastIndexByShift[i]]);
 
 
-  std::vector<int> lastScoreByShift;
-  std::vector<int> lastIndexByShift;
+  safe_vector<int> lastScoreByShift;
+  safe_vector<int> lastIndexByShift;
   lastScoreByShift.resize(scores.num_rows());
   lastIndexByShift.resize(scores.num_rows());
 
   // Determine the best alignment by picking the optimal score at the end of the query
   int si = 0;
-  int bestScore = 0;
+  int bestScore = END_OF_SEQUENCE;
+  debug_trace("backtrace: rowLength={:}, querySize={:}, scoresSize={:}\n", rowLength, querySize, scoresSize);
   for (int i = 0; i < scoresSize; i++) {
     const auto is = indexToShift(i);
+    // Determine the last index
     lastIndexByShift[i] = rowLength - 1 < querySize + is ? rowLength - 1 : querySize + is;
 
-    invariant_greater(lastIndexByShift[i], 0);
-    invariant_less(lastIndexByShift[i], scores.num_cols());
+    if (lastIndexByShift[i] >= 0 && lastIndexByShift[i] < scores.num_cols()) {
+      // invariant_greater(lastIndexByShift[i], 0);
+      // invariant_less(lastIndexByShift[i], scores.num_cols());
+      // debug_trace(
+      //   "backtrace: i={:}, is={:}, lastIndexByShift={:}, bestScore={:}, score={:}\n",
+      //   i, is, lastIndexByShift[i], bestScore, scores(i, lastIndexByShift[i]));
 
-    lastScoreByShift[i] = scores(i, lastIndexByShift[i]);
-    if (lastScoreByShift[i] > bestScore) {
-      bestScore = lastScoreByShift[i];
-      si = i;
+      lastScoreByShift[i] = scores(i, lastIndexByShift[i]);
+      if (lastScoreByShift[i] > bestScore) {
+        bestScore = lastScoreByShift[i];
+        si = i;
+      }
     }
   }
 
@@ -447,38 +484,38 @@ struct AlignPairwiseTag {};
 
 template<typename Letter>
 AlignmentStatus<Letter> alignPairwise(const Sequence<Letter>& query, const Sequence<Letter>& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
-  const NextalignSeedOptions& seedOptions, AlignPairwiseTag) {
+  const safe_vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, int bandWidth, int shift,
+  AlignPairwiseTag) {
 
-  const SeedAlignmentStatus& seedAlignmentStatus = seedAlignment(query, ref, seedOptions);
-  if (seedAlignmentStatus.status != Status::Success) {
-    return AlignmentStatus<Letter>{
-      .status = seedAlignmentStatus.status,
-      .error = seedAlignmentStatus.error,
-      .result = {},
-    };
-  }
+  debug_trace(
+    "Align pairwise: started:\n  minimalLength={:},\n  penaltyGapExtend={:},\n  penaltyGapOpen={:},\n  "
+    "penaltyGapOpenInFrame={:},\n  penaltyGapOpenOutOfFrame={:},\n  penaltyMismatch={:},\n  scoreMatch={:},\n  "
+    "maxIndel={:}",
+    alignmentOptions.minimalLength, alignmentOptions.penaltyGapExtend, alignmentOptions.penaltyGapOpen,
+    alignmentOptions.penaltyGapOpenInFrame, alignmentOptions.penaltyGapOpenOutOfFrame, alignmentOptions.penaltyMismatch,
+    alignmentOptions.scoreMatch, alignmentOptions.maxIndel);
 
-  const auto& bandWidth = seedAlignmentStatus.result->bandWidth;
-  const auto& meanShift = seedAlignmentStatus.result->meanShift;
 
   if (bandWidth > alignmentOptions.maxIndel) {
+    debug_trace("Align pairwise: failed: `bandWidth > alignmentOptions.maxIndel`, where bandWidth={:}, maxIndel={:}\n",
+      bandWidth, alignmentOptions.maxIndel);
     return AlignmentStatus<Letter>{
       .status = Status::Error,
       .error = "Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches",
       .result = {},
     };
   }
-  const ForwardTrace& forwardTrace = scoreMatrix(query, ref, gapOpenClose, bandWidth, meanShift, alignmentOptions);
+  const ForwardTrace& forwardTrace = scoreMatrix(query, ref, gapOpenClose, bandWidth, shift, alignmentOptions);
   const auto& scores = forwardTrace.scores;
   const auto& paths = forwardTrace.paths;
+  // debug_trace("Align pairwise: after score matrix: scores={:}, paths={:}\n", scores, paths);
 
-  return backTrace<Letter>(query, ref, scores, paths, meanShift);
+  return backTrace<Letter>(query, ref, scores, paths, shift);
 }
 
 
 NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const NucleotideSequence& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
+  const safe_vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
   const NextalignSeedOptions& seedOptions) {
 
   const int querySize = safe_cast<int>(query.size());
@@ -490,11 +527,23 @@ NucleotideAlignmentStatus alignPairwise(const NucleotideSequence& query, const N
     };
   }
 
-  return alignPairwise(query, ref, gapOpenClose, alignmentOptions, seedOptions, AlignPairwiseTag{});
+  const SeedAlignmentStatus& seedAlignmentStatus = seedAlignment(query, ref, seedOptions);
+  if (seedAlignmentStatus.status != Status::Success) {
+    return AlignmentStatus<Nucleotide>{
+      .status = seedAlignmentStatus.status,
+      .error = seedAlignmentStatus.error,
+      .result = {},
+    };
+  }
+
+  const auto& bandWidth = seedAlignmentStatus.result->bandWidth;
+  const auto& meanShift = seedAlignmentStatus.result->meanShift;
+  debug_trace("Align pairwise: after seed alignment: bandWidth={:}, meanShift={:}\n", bandWidth, meanShift);
+
+  return alignPairwise(query, ref, gapOpenClose, alignmentOptions, bandWidth, meanShift, AlignPairwiseTag{});
 }
 
 AminoacidAlignmentStatus alignPairwise(const AminoacidSequence& query, const AminoacidSequence& ref,
-  const std::vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions,
-  const NextalignSeedOptions& seedOptions) {
-  return alignPairwise(query, ref, gapOpenClose, alignmentOptions, seedOptions, AlignPairwiseTag{});
+  const safe_vector<int>& gapOpenClose, const NextalignAlignmentOptions& alignmentOptions, int bandWidth, int shift) {
+  return alignPairwise(query, ref, gapOpenClose, alignmentOptions, bandWidth, shift, AlignPairwiseTag{});
 }

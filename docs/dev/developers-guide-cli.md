@@ -36,26 +36,16 @@ The easiest way to start the development is to use the included docker container
     💡 Quick install for Ubuntu (click to expand)
     </summary>
 
-    You can install required dependencies from 
+    You can install required dependencies with 
 
     ```
-    sudo apt-get install 
-      bash \
-      ccache \
-      cmake \
-      coreutils \
-      file \
-      gdb \
-      g++ \
-      gcc \
-      make \
-      python3 \
-      python3-pip \
-      python3-setuptools \
-      python3-wheel \
+    xargs -a apt-packages.txt sudo apt-get install
 
-    pip3 install --user --upgrade conan cppcheck colorama
+    pip3 install --user --upgrade -r requirements.txt
     ```
+    
+    See `apt-packages.txt` and `requirements.txt` in the root of the project for the full list.
+
     </details>
     </p>
 
@@ -65,13 +55,18 @@ The easiest way to start the development is to use the included docker container
     💡 Quick install for macOS  (click to expand)
     </summary>
 
-    You need to install XCode command line tools. After that you can install remaining required dependencies using [Homebrew](https://brew.sh/) and pip
+    You need to install XCode command line tools. After that you can install remaining required dependencies using [Homebrew](https://brew.sh/) and pip (into a Python virtual environment)
 
     ```
     xcode-select --install
 
     cd nextclade
     brew bundle --file=Brewfile
+
+    mkdir -p .cache
+    python3 -m venv .cache/venv
+    source .cache/venv/bin/activate
+    pip3 install --upgrade -r requirements.txt
 
     ```
     </details>
@@ -234,9 +229,44 @@ and [Google Mock documentation](https://github.com/google/googletest/blob/master
 
 #### 💥 End-to-end tests
 
-The default dev scripts run the Nextalign CLI and Nextclade CLI under GDB (if installed), which serves a smoke test.
+##### 🚬 Smoke tests
 
-> TODO: setup proper e2e tests. Compare results to known-well previous results and assert on differences.
+The default dev scripts run the Nextalign CLI and Nextclade CLI under GDB (if installed) with default dataset and example data. This serves as a smoke test and indicate immediately visible failures.
+
+The results are in `tmp/`
+
+The environment variables control what flags are passed for CLI invocation:
+
+ - `DEV_CLI_OPTIONS` for Nextalign
+ - `DEV_NEXTCLADE_CLI_OPTIONS` for Nextclade
+
+
+##### 📸 Snapshot tests
+
+We can check the results of the smoke test against known good outputs (a snapshot). The snapshot files are in the `e2e/cli/snapshots` directory and are compressed-decompressed as needed.
+
+In order to perform the check, run:
+
+```
+make e2e-cli-run
+```
+
+In order to update snapshots, run:
+
+```
+make e2e-cli-update-snapshots
+```
+
+This will copy the outputs of the last smoke test and they will become the new snapshot
+
+```
+make e2e-cli-update-snapshots
+```
+
+The resulting compressed archive needs to be committed to the source control.
+
+TODO: consider storing the snapshots outside of repository.
+
 
 ---
 
@@ -462,6 +492,22 @@ executable.
 #### 🚅 Profile-guided optimization (PGO)
 
 > TODO: setup profile-guided optimization based on CLI executable or e2e tests
+
+
+### 👣 Tracing
+
+There is a `debug_trace()` C++ macro with some usages spread across the codebase. They print messages, often with some numeric values, that help to see what the internal algorithms are doing during runtime. The messages are printed into the terminal (`stdout`) as well as into the browser console, when building for WebAssembly.
+
+The tracing is disabled by default and all the usages of `debug_trace()` macro expanded to a dummy noop statement, which should be optimized away from the binary. In order to enable tracing, set environment variable `ENABLE_DEBUG_TRACE=1`, for example in the `.env` file.
+
+In order to make traces more readable, you may also want to add the following flags to the Nextalign and Nextclade CLI invocation:
+
+ - `--jobs=1` so that messages from different threads are not entangled together
+ - `--in-order` to see messages for sequences in the same order as sequences appear in the input files
+
+You can add new usages of `debug_trace()` where it is useful. Underneath it uses [`fmt` library](https://fmt.dev/) with Python-like syntax for the format string. User-defined types (`struct`s, `class`es, etc.) can be printed eiter field by field or using a [custom formatters](https://fmt.dev/latest/api.html#formatting-user-defined-types).
+
+Debug tracing makes algorithms to run much slower. Do not enable it in the official production builds!
 
 
 ### 🚀 Creating a new release

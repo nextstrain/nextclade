@@ -1,5 +1,6 @@
 #include "parseAnalysisResults.h"
 
+#include <common/safe_vector.h>
 #include <fmt/format.h>
 #include <nextclade/nextclade.h>
 #include <nextclade/private/nextclade_private.h>
@@ -8,7 +9,6 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
-#include <vector>
 
 #include "formatQcStatus.h"
 
@@ -21,13 +21,6 @@ namespace Nextclade {
   public:
     explicit ErrorAnalysisResultsRootTypeInvalid(const std::string& type)
         : ErrorNonFatal(fmt::format("Expected to find an object as the root entry, but found \"{:s}\"", type)) {}
-  };
-
-
-  class ErrorAnalysisResultsQcStatusInvalid : public ErrorNonFatal {
-  public:
-    explicit ErrorAnalysisResultsQcStatusInvalid(const std::string& statusStr)
-        : ErrorNonFatal(fmt::format("QC status not recognized: \"{:s}\"", statusStr)) {}
   };
 
 
@@ -60,25 +53,38 @@ namespace Nextclade {
   AminoacidSubstitution parseAminoacidSubstitution(const json& j) {
     return AminoacidSubstitution{
       .gene = at(j, "gene"),
-      .refAA = stringToAa(at(j, "refAA")),
-      .codon = at(j, "codon").get<int>(),
-      .queryAA = stringToAa(at(j, "queryAA")),
+      .ref = stringToAa(at(j, "refAA")),
+      .pos = at(j, "codon").get<int>(),
+      .qry = stringToAa(at(j, "queryAA")),
       .codonNucRange = parseRange(at(j, "codonNucRange")),
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
       .contextNucRange = parseRange(at(j, "contextNucRange")),
+      .nucSubstitutions = {},// FIXME: this field is not parsed. Looks like it was forgotten.
+      .nucDeletions = {},    // FIXME: this field is not parsed. Looks like it was forgotten.
     };
   }
 
   AminoacidDeletion parseAminoacidDeletion(const json& j) {
     return AminoacidDeletion{
       .gene = at(j, "gene"),
-      .refAA = stringToAa(at(j, "refAA")),
-      .codon = at(j, "codon").get<int>(),
+      .ref = stringToAa(at(j, "refAA")),
+      .pos = at(j, "codon").get<int>(),
       .codonNucRange = parseRange(at(j, "codonNucRange")),
       .refContext = toNucleotideSequence(at(j, "refContext")),
       .queryContext = toNucleotideSequence(at(j, "queryContext")),
       .contextNucRange = parseRange(at(j, "contextNucRange")),
+      .nucSubstitutions = {},// FIXME: this field is not parsed. Looks like it was forgotten.
+      .nucDeletions = {},    // FIXME: this field is not parsed. Looks like it was forgotten.
+    };
+  }
+
+  AminoacidInsertion parseAminoacidInsertion(const json& j) {
+    return AminoacidInsertion{
+      .gene = at(j, "gene").get<std::string>(),
+      .pos = at(j, "pos").get<int>(),
+      .length = at(j, "length").get<int>(),
+      .ins = toAminoacidSequence(at(j, "ins")),
     };
   }
 
@@ -95,11 +101,12 @@ namespace Nextclade {
 
   NucleotideSubstitution parseNucleotideSubstitution(const json& j) {
     return NucleotideSubstitution{
-      .refNuc = stringToNuc(at(j, "refNuc")),
+      .ref = stringToNuc(at(j, "refNuc")),
       .pos = at(j, "pos").get<int>(),
-      .queryNuc = stringToNuc(at(j, "queryNuc")),
+      .qry = stringToNuc(at(j, "queryNuc")),
       .pcrPrimersChanged = parseArray<PcrPrimer>(j, "pcrPrimersChanged", parsePcrPrimer),
-      .aaSubstitutions = {},
+      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
     };
   }
 
@@ -107,6 +114,8 @@ namespace Nextclade {
     return NucleotideDeletion{
       .start = at(j, "start").get<int>(),
       .length = at(j, "length").get<int>(),
+      .aaSubstitutions = parseArray<AminoacidSubstitution>(j, "aaSubstitutions", parseAminoacidSubstitution),
+      .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
     };
   }
 
@@ -115,6 +124,100 @@ namespace Nextclade {
       .pos = at(j, "pos").get<int>(),
       .length = at(j, "length").get<int>(),
       .ins = toNucleotideSequence(at(j, "ins")),
+    };
+  }
+
+  template<typename Letter>
+  SubstitutionSimple<Letter> parseSubstitutionSimple(const json& j) {
+    return SubstitutionSimple<Letter>{
+      .ref = stringToLetter<Letter>(at(j, "ref"), LetterTag<Letter>{}),
+      .pos = at(j, "pos").get<int>(),
+      .qry = stringToLetter<Letter>(at(j, "qry"), LetterTag<Letter>{}),
+    };
+  }
+
+  template<typename Letter>
+  DeletionSimple<Letter> parseDeletionSimple(const json& j) {
+    return DeletionSimple<Letter>{
+      .ref = stringToLetter(at(j, "ref"), LetterTag<Letter>{}),
+      .pos = at(j, "pos").get<int>(),
+    };
+  }
+
+  template<typename Letter>
+  SubstitutionSimpleLabeled<Letter> parseSubstitutionSimpleLabeled(const json& j) {
+    return SubstitutionSimpleLabeled<Letter>{
+      .substitution = parseSubstitutionSimple<Letter>(j.at("substitution")),
+      .labels = parseArrayOfStrings(j.at("labels")),
+    };
+  }
+
+  template<typename Letter>
+  DeletionSimpleLabeled<Letter> parseDeletionSimpleLabeled(const json& j) {
+    return DeletionSimpleLabeled<Letter>{
+      .deletion = parseDeletionSimple<Letter>(j.at("deletion")),
+      .labels = parseArrayOfStrings(j.at("labels")),
+    };
+  }
+
+  PrivateMutations<Nucleotide> parsePrivateNucMutations(const json& j) {
+    return PrivateMutations<Nucleotide>{
+      // clang-format off
+      .privateSubstitutions =   parseArray<SubstitutionSimple<Nucleotide>>(j, "privateSubstitutions", parseSubstitutionSimple<Nucleotide>),
+      .privateDeletions =       parseArray<DeletionSimple<Nucleotide>>(j, "privateDeletions", parseDeletionSimple<Nucleotide>),
+      .reversionSubstitutions = parseArray<SubstitutionSimple<Nucleotide>>(j, "reversionSubstitutions", parseSubstitutionSimple<Nucleotide>),
+      .labeledSubstitutions =   parseArray<SubstitutionSimpleLabeled<Nucleotide>>(j, "labeledSubstitutions", parseSubstitutionSimpleLabeled<Nucleotide>),
+      .unlabeledSubstitutions = parseArray<SubstitutionSimple<Nucleotide>>(j, "unlabeledSubstitutions", parseSubstitutionSimple<Nucleotide>),
+      // clang-format on
+      .totalPrivateSubstitutions = j.at("totalPrivateSubstitutions").template get<int>(),
+      .totalPrivateDeletions = j.at("totalPrivateDeletions").template get<int>(),
+      .totalReversionSubstitutions = j.at("totalReversionSubstitutions").template get<int>(),
+      .totalLabeledSubstitutions = j.at("totalLabeledSubstitutions").template get<int>(),
+      .totalUnlabeledSubstitutions = j.at("totalUnlabeledSubstitutions").template get<int>(),
+    };
+  }
+
+  PrivateMutations<Aminoacid> parsePrivateAaMutations(const json& j) {
+    // NOTE: We exclude fields for labeled and unlabeled mutations, because we currently don't
+    // process them for aminoacids, so these are always empty. If and when there's a label map for
+    // aa mutations, these fields can be added. Or perhaps the function for nucleotide can be transformed
+    // into a generic one.
+
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+    return PrivateMutations<Aminoacid>{
+      // clang-format off
+      .privateSubstitutions =   parseArray<SubstitutionSimple<Aminoacid>>(j, "privateSubstitutions", parseSubstitutionSimple<Aminoacid>),
+      .privateDeletions =       parseArray<DeletionSimple<Aminoacid>>(j, "privateDeletions", parseDeletionSimple<Aminoacid>),
+      .reversionSubstitutions = parseArray<SubstitutionSimple<Aminoacid>>(j, "reversionSubstitutions", parseSubstitutionSimple<Aminoacid>),
+      // clang-format on
+      .totalPrivateSubstitutions = j.at("totalPrivateSubstitutions").template get<int>(),
+      .totalPrivateDeletions = j.at("totalPrivateDeletions").template get<int>(),
+      .totalReversionSubstitutions = j.at("totalReversionSubstitutions").template get<int>(),
+    };
+#pragma GCC diagnostic pop
+  }
+
+  Range parseFrameShiftRange(const json& j) {
+    return Range{
+      .begin = at(j, "begin").get<int>(),
+      .end = at(j, "end").get<int>(),
+    };
+  }
+
+  FrameShiftContext parseFrameShiftContext(const json& j) {
+    return FrameShiftContext{
+      .codon = parseFrameShiftRange(at(j, "codon")),
+    };
+  }
+
+  FrameShiftResult parseFrameShiftResult(const json& j) {
+    return FrameShiftResult{
+      .geneName = at(j, "geneName").get<std::string>(),
+      .nucRel = parseFrameShiftRange(at(j, "nucRel")),
+      .nucAbs = parseFrameShiftRange(at(j, "nucAbs")),
+      .codon = parseFrameShiftRange(at(j, "codon")),
+      .gapsLeading = parseFrameShiftContext(at(j, "gapsLeading")),
+      .gapsTrailing = parseFrameShiftContext(at(j, "gapsTrailing")),
     };
   }
 
@@ -155,14 +258,6 @@ namespace Nextclade {
   }
 
 
-  QcStatus parseQcStatus(const frozen::string& statusStr) {
-    const auto status = mapFind(qcStringsStatus, statusStr);
-    if (!status) {
-      throw ErrorAnalysisResultsQcStatusInvalid(statusStr.data());
-    }
-    return *status;
-  }
-
   std::optional<QcResultMissingData> parseQcMissingData(const json& jj) {
     if (!jj.contains("missingData")) {
       return {};
@@ -197,7 +292,11 @@ namespace Nextclade {
     return QcResultPrivateMutations{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
-      .total = parseDouble(j, "total"),
+      .numReversionSubstitutions = parseInt(j, "numReversionSubstitutions"),
+      .numLabeledSubstitutions = parseInt(j, "numLabeledSubstitutions"),
+      .numUnlabeledSubstitutions = parseInt(j, "numUnlabeledSubstitutions"),
+      .totalDeletionRanges = parseInt(j, "totalDeletionRanges"),
+      .weightedTotal = parseDouble(j, "weightedTotal"),
       .excess = parseDouble(j, "excess"),
       .cutoff = parseDouble(j, "cutoff"),
     };
@@ -224,9 +323,10 @@ namespace Nextclade {
     };
   }
 
-  FrameShift parseFrameShift(const json& j) {
-    return FrameShift{
+  FrameShiftLocation parseFrameShiftLocation(const json& j) {
+    return FrameShiftLocation{
       .geneName = at(j, "geneName"),
+      .codonRange = parseRange(at(j, "codonRange")),
     };
   }
 
@@ -238,8 +338,10 @@ namespace Nextclade {
     return QcResultFrameShifts{
       .score = parseDouble(j, "score"),
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
-      .frameShifts = parseArray<FrameShift>(j, "frameShifts", parseFrameShift),
+      .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
       .totalFrameShifts = parseInt(j, "totalFrameShifts"),
+      .frameShiftsIgnored = parseArray<FrameShiftResult>(j, "frameShiftsIgnored", parseFrameShiftResult),
+      .totalFrameShiftsIgnored = parseInt(j, "totalFrameShiftsIgnored"),
     };
   }
 
@@ -260,6 +362,8 @@ namespace Nextclade {
       .status = parseQcStatus(frozen::string{j["status"].get<std::string>()}),
       .stopCodons = parseArray<StopCodonLocation>(j, "stopCodons", parseStopCodonLocation),
       .totalStopCodons = parseInt(j, "totalStopCodons"),
+      .stopCodonsIgnored = parseArray<StopCodonLocation>(j, "stopCodonsIgnored", parseStopCodonLocation),
+      .totalStopCodonsIgnored = parseInt(j, "totalStopCodonsIgnored"),
     };
   }
 
@@ -286,6 +390,8 @@ namespace Nextclade {
         .totalDeletions = at(j, "totalDeletions"),
         .insertions = parseArray<NucleotideInsertion>(j, "insertions", parseNucleotideInsertion),
         .totalInsertions = at(j, "totalInsertions"),
+        .frameShifts = parseArray<FrameShiftResult>(j, "frameShifts", parseFrameShiftResult),
+        .totalFrameShifts = at(j, "totalFrameShifts"),
         .missing = parseArray<NucleotideRange>(j, "missing", parseNucleotideRange),
         .totalMissing = at(j, "totalMissing"),
         .nonACGTNs = parseArray<NucleotideRange>(j, "nonACGTNs", parseNucleotideRange),
@@ -294,6 +400,8 @@ namespace Nextclade {
         .totalAminoacidSubstitutions = at(j, "totalAminoacidSubstitutions"),
         .aaDeletions = parseArray<AminoacidDeletion>(j, "aaDeletions", parseAminoacidDeletion),
         .totalAminoacidDeletions = at(j, "totalAminoacidDeletions"),
+        .aaInsertions = parseArray<AminoacidInsertion>(j, "aaInsertions", parseAminoacidInsertion),
+        .totalAminoacidInsertions = at(j, "totalAminoacidInsertions"),
         .unknownAaRanges = parseArray<GeneAminoacidRange>(j, "unknownAaRanges", parseGeneAminoacidRange),
         .totalUnknownAa = at(j, "totalUnknownAa"),
         .alignmentStart = at(j, "alignmentStart"),
@@ -304,7 +412,13 @@ namespace Nextclade {
         .totalPcrPrimerChanges = at(j, "totalPcrPrimerChanges"),
         .nearestNodeId = at(j, "nearestNodeId"),
         .clade = at(j, "clade"),
+        .privateNucMutations = parsePrivateNucMutations(at(j, "privateNucMutations")),
+        .privateAaMutations =
+          parseMap<std::string, PrivateAminoacidMutations>(j, "privateAaMutations", parsePrivateAaMutations),
+        .missingGenes = parseSet<std::string>(at(j, "missingGenes")),
+        .divergence = at(j, "divergence"),
         .qc = parseQcResult(at(j, "qc")),
+        .customNodeAttributes = parseMap<std::string, std::string>(j, "customNodeAttributes"),
       };
     } catch (const std::exception& e) {
       throw ErrorFatal(fmt::format("When parsing analysis result json (for one sequence): {:s}", e.what()));
@@ -322,6 +436,7 @@ namespace Nextclade {
         .schemaVersion = at(j, "schemaVersion"),
         .nextcladeVersion = at(j, "nextcladeVersion"),
         .timestamp = at(j, "timestamp"),
+        .cladeNodeAttrKeys = at(j, "cladeNodeAttrKeys"),
         .results = parseArray<AnalysisResult>(j, "results", parseAnalysisResult),
       };
     } catch (const std::exception& e) {
@@ -338,7 +453,7 @@ namespace Nextclade {
     };
   }
 
-  std::vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr) {
+  safe_vector<PcrPrimerCsvRow> parsePcrPrimerCsvRowsStr(const std::string& pcrPrimerCsvRowsStr) {
     const auto j = json::parse(pcrPrimerCsvRowsStr);
     return parseArray<PcrPrimerCsvRow>(j, parsePcrPrimerCsvRow);
   }

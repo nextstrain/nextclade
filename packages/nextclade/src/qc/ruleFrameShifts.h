@@ -1,16 +1,16 @@
 #pragma once
 
 #include <optional>
-#include <vector>
+#include <common/safe_vector.h>
 
-struct NextalignResultInternal;
 
 namespace Nextclade {
+  struct AnalysisResult;
   struct QCRulesConfigFrameShifts;
   struct QcResultFrameShifts;
 
   std::optional<QcResultFrameShifts> ruleFrameShifts(//
-    const ::NextalignResultInternal& alignment,      //
+    const AnalysisResult& analysisResult,            //
     const QCRulesConfigFrameShifts& config           //
   );
 }// namespace Nextclade

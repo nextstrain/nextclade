@@ -7,7 +7,7 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <regex>
-#include <vector>
+#include <common/safe_vector.h>
 
 #include "../analyze/nucleotide.h"
 #include "../utils/map.h"
@@ -96,7 +96,7 @@ namespace Nextclade {
     const std::string& name,                          //
     const NucleotideSequence& primer,                 //
     const NucleotideSequence& ref,                    //
-    /* inout */ std::vector<std::string>& warnings    //
+    /* inout */ safe_vector<std::string>& warnings    //
   ) {
     const auto refStr = toString(ref);
     const auto primerStr = toString(primer);
@@ -137,8 +137,8 @@ namespace Nextclade {
    * Finds locations {nuc, pos} of nucleotides that are not A, C, G, T in a given sequence.
    * Resulting positions can be adjusted by an offset.
    */
-  std::vector<NucleotideLocation> findNonAcgt(const NucleotideSequence& seq, int offset = 0) {
-    std::vector<NucleotideLocation> nonAcgts;
+  safe_vector<NucleotideLocation> findNonAcgt(const NucleotideSequence& seq, int offset = 0) {
+    safe_vector<NucleotideLocation> nonAcgts;
     const auto len = safe_cast<int>(seq.size());
     for (int i = 0; i < len; ++i) {
       const auto& nuc = seq[i];
@@ -155,7 +155,7 @@ namespace Nextclade {
   std::optional<PcrPrimer> convertPcrPrimer(      //
     const PcrPrimerCsvRow& primerEntry,           //
     const NucleotideSequence& rootSeq,            //
-    /* inout */ std::vector<std::string>& warnings//
+    /* inout */ safe_vector<std::string>& warnings//
   ) {
     auto primerOligonucMaybeReverseComplemented = toNucleotideSequence(primerEntry.primerOligonuc);
 
@@ -187,7 +187,7 @@ namespace Nextclade {
     int end = safe_cast<int>(begin + found->rootOligonuc.size());
     Range range{.begin = begin, .end = end};
 
-    std::vector<NucleotideLocation> nonAcgts = findNonAcgt(primerOligonucMaybeReverseComplemented, begin);
+    safe_vector<NucleotideLocation> nonAcgts = findNonAcgt(primerOligonucMaybeReverseComplemented, begin);
 
     return std::make_optional(PcrPrimer{
       .name = primerEntry.name,
@@ -206,7 +206,7 @@ namespace Nextclade {
    * Each row is a raw temporary representation of a PCR primer and it needs to be further converted into internal
    * representation in order to be useful.
    */
-  std::vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
+  safe_vector<PcrPrimerCsvRow> parsePcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,       //
     const std::string& filename                   //
   ) {
@@ -232,7 +232,7 @@ namespace Nextclade {
     /* 3 */ std::string name;
     /* 4 */ std::string primerOligonuc;
 
-    std::vector<PcrPrimerCsvRow> pcrPrimerCsvRows;
+    safe_vector<PcrPrimerCsvRow> pcrPrimerCsvRows;
     while (reader.read_row(source, target, name, primerOligonuc)) {
       pcrPrimerCsvRows.emplace_back(PcrPrimerCsvRow{
         .source = source,
@@ -249,13 +249,13 @@ namespace Nextclade {
    * Coverts PCR primer rows (which were previously parsed from CSV) into the internal representation,
    * which can be used by the algorithms.
    */
-  std::vector<PcrPrimer> convertPcrPrimerRows(           //
-    const std::vector<PcrPrimerCsvRow>& pcrPrimerCsvRows,//
+  safe_vector<PcrPrimer> convertPcrPrimerRows(           //
+    const safe_vector<PcrPrimerCsvRow>& pcrPrimerCsvRows,//
     const NucleotideSequence& rootSeq,                   //
-    /* inout */ std::vector<std::string>& warnings       //
+    /* inout */ safe_vector<std::string>& warnings       //
   ) {
 
-    std::vector<PcrPrimer> pcrPrimers;
+    safe_vector<PcrPrimer> pcrPrimers;
     for (const auto& row : pcrPrimerCsvRows) {
       const auto primer = convertPcrPrimer(row, rootSeq, warnings);
       if (primer) {
@@ -271,13 +271,13 @@ namespace Nextclade {
    * Parses and converts PCR primer CSV string from an input stream and returns a list of PCR primers in the internal
    * representation
    */
-  std::vector<PcrPrimer> parseAndConvertPcrPrimersCsv(//
+  safe_vector<PcrPrimer> parseAndConvertPcrPrimersCsv(//
     const std::string& pcrPrimersCsvString,           //
     const std::string& filename,                      //
     const NucleotideSequence& rootSeq,                //
-    /* inout */ std::vector<std::string>& warnings    //
+    /* inout */ safe_vector<std::string>& warnings    //
   ) {
-    std::vector<PcrPrimerCsvRow> pcrPrimerCsvRows = parsePcrPrimersCsv(pcrPrimersCsvString, filename);
+    safe_vector<PcrPrimerCsvRow> pcrPrimerCsvRows = parsePcrPrimersCsv(pcrPrimersCsvString, filename);
     return convertPcrPrimerRows(pcrPrimerCsvRows, rootSeq, warnings);
   }
 

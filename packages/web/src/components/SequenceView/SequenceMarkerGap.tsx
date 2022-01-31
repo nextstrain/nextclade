@@ -47,9 +47,10 @@ function SequenceMarkerGapDisconnected({ seqName, deletion, pixelsPerBase, geneM
 
   const id = getSafeId('gap-marker', { seqName, ...deletion })
 
-  const x = begin * pixelsPerBase
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
+  const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
+  const x = begin * pixelsPerBase - halfNuc
 
   const rangeStr = formatRange(begin, end)
 

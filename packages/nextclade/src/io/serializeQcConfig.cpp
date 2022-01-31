@@ -9,22 +9,11 @@
 namespace Nextclade {
   using json = nlohmann::ordered_json;
 
-  namespace {
-    template<typename T>
-    void writeValue(json& j, const std::string& path, const T& value) {
-      j[json::json_pointer{path}] = value;
-    }
-
-    template<typename T, typename Serializer>
-    void writeArray(json& j, const std::string& path, const std::vector<T>& value, Serializer serializer) {
-      j[json::json_pointer{path}] = serializeArray(value, serializer);
-    }
-  }// namespace
 
   std::string serializeQcConfig(Nextclade::QcConfig& qcConfig) {
     auto j = json::object();
 
-    writeValue(j, "/schemaVersion", std::string{Nextclade::getVersion()});
+    writeValue(j, "/schemaVersion", qcConfig.schemaVersion);
 
     writeValue(j, "/missingData/enabled", qcConfig.missingData.enabled);
     if (qcConfig.missingData.enabled) {
@@ -39,18 +28,30 @@ namespace Nextclade {
 
     writeValue(j, "/privateMutations/enabled", qcConfig.privateMutations.enabled);
     if (qcConfig.privateMutations.enabled) {
+      // clang-format off
       writeValue(j, "/privateMutations/typical", qcConfig.privateMutations.typical);
       writeValue(j, "/privateMutations/cutoff", qcConfig.privateMutations.cutoff);
+      writeValue(j, "/privateMutations/weightReversionSubstitutions", qcConfig.privateMutations.weightReversionSubstitutions);
+      writeValue(j, "/privateMutations/weightReversionDeletions", qcConfig.privateMutations.weightReversionDeletions);
+      writeValue(j, "/privateMutations/weightLabeledSubstitutions", qcConfig.privateMutations.weightLabeledSubstitutions);
+      writeValue(j, "/privateMutations/weightLabeledDeletions", qcConfig.privateMutations.weightLabeledDeletions);
+      writeValue(j, "/privateMutations/weightUnlabeledSubstitutions", qcConfig.privateMutations.weightUnlabeledSubstitutions);
+      writeValue(j, "/privateMutations/weightUnlabeledDeletions", qcConfig.privateMutations.weightUnlabeledDeletions);
+      // clang-format on
     }
 
     writeValue(j, "/snpClusters/enabled", qcConfig.snpClusters.enabled);
-    if (qcConfig.privateMutations.enabled) {
+    if (qcConfig.snpClusters.enabled) {
       writeValue(j, "/snpClusters/windowSize", qcConfig.snpClusters.windowSize);
       writeValue(j, "/snpClusters/clusterCutOff", qcConfig.snpClusters.clusterCutOff);
       writeValue(j, "/snpClusters/scoreWeight", qcConfig.snpClusters.scoreWeight);
     }
 
     writeValue(j, "/frameShifts/enabled", qcConfig.frameShifts.enabled);
+    if (qcConfig.frameShifts.enabled) {
+      writeArray(j, "/frameShifts/ignoredFrameShifts", qcConfig.frameShifts.ignoredFrameShifts,
+        serializeFrameShiftLocation);
+    }
 
     writeValue(j, "/stopCodons/enabled", qcConfig.stopCodons.enabled);
     if (qcConfig.stopCodons.enabled) {
