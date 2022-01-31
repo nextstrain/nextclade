@@ -87,8 +87,9 @@ export function SequenceViewUnsizedDisconnected({
     )
   }
 
-  const pixelsPerBase = width / genomeSize
+  const zoomedWidth = width * zoom
   const pixelPan = pan * width
+  const pixelsPerBase = width / genomeSize
 
   const mutationViews = substitutions.map((substitution) => {
     return (
@@ -129,7 +130,7 @@ export function SequenceViewUnsizedDisconnected({
 
   return (
     <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
-      <SequenceViewSVG width={width} height={30} viewBox={`${pixelPan} 0 ${width * zoom} 10`}>
+      <SequenceViewSVG width={width} height={30} viewBox={`${pixelPan} 0 ${zoomedWidth} 10`}>
         <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
         <SequenceMarkerUnsequencedStart
           seqName={seqName}
