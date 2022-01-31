@@ -6,6 +6,7 @@ import { areEqual, FixedSizeList as FixedSizeListBase, FixedSizeListProps, ListC
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
+import { Col, Container, Label, Row } from 'reactstrap'
 
 import { QcStatus } from 'src/algorithms/types'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
@@ -17,8 +18,7 @@ import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { State } from 'src/state/reducer'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortByKeyTrigger, resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
-import { setViewedGene } from 'src/state/ui/ui.actions'
-import { setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
+import { setViewedGene, setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
 
 import { ButtonHelp } from './ButtonHelp'
 import { ColumnClade } from './ColumnClade'
@@ -480,29 +480,38 @@ export function ResultsTableDisconnected({
 
   return (
     <>
-      <div style={{ margin: '20px', width: '200px' }}>{sequenceViewZoom * 100}</div>
-      <div>
-        <input
-          type="range"
-          style={{ margin: '20px', width: '200px' }}
-          min={0}
-          max={100}
-          value={sequenceViewZoom * 100}
-          onChange={handleZoomChange}
-        />
-      </div>
-
-      <div style={{ margin: '20px', width: '200px' }}>{sequenceViewPan}</div>
-      <div>
-        <input
-          type="range"
-          style={{ margin: '20px', width: '200px' }}
-          min={0}
-          max={100}
-          value={sequenceViewPan * 100}
-          onChange={handlePanChange}
-        />
-      </div>
+      <Container fluid className="d-flex w-100">
+        <Row noGutters className="d-flex ml-auto">
+          <Col className="ml-auto">
+            <Label style={{ margin: '20px' }}>
+              <span style={{ width: '100px' }}>{'Pan'}</span>
+              <input
+                type="range"
+                style={{ margin: '20px', width: '200px' }}
+                min={-100}
+                max={100}
+                value={sequenceViewPan * 100}
+                onChange={handlePanChange}
+                onAuxClick={() => setSequenceViewPan(0)}
+              />
+              <span style={{ width: '100px' }}>{sequenceViewPan.toFixed(3)}</span>
+            </Label>
+            <Label style={{ margin: '20px' }}>
+              <span style={{ width: '100px' }}>{'Zoom'}</span>
+              <input
+                type="range"
+                style={{ margin: '20px', width: '200px' }}
+                min={0}
+                max={100}
+                value={sequenceViewZoom * 100}
+                onChange={handleZoomChange}
+                onAuxClick={() => setSequenceViewZoom(1)}
+              />
+              <span style={{ width: '100px' }}>{sequenceViewZoom.toFixed(3)}</span>
+            </Label>
+          </Col>
+        </Row>
+      </Container>
 
       <Table rounded={!filterPanelCollapsed}>
         <TableHeaderRow>
