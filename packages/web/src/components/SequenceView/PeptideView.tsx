@@ -7,6 +7,7 @@ import styled from 'styled-components'
 
 import type { AnalysisResult, Gene, GeneWarning, Warnings } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
+import { AA_MIN_WIDTH_PX } from 'src/constants'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -135,7 +136,8 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
 
   return (
     <SequenceViewWrapper>
-      <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
+      {/* Padding of 1/2 of an AA is added on both sides, such that the markers close to the edges are visible */}
+      <SequenceViewSVG viewBox={`${-AA_MIN_WIDTH_PX / 2} 0 ${width + AA_MIN_WIDTH_PX / 2} 10`}>
         <rect fill="transparent" x={0} y={-10} width={gene.length} height="30" />
 
         {unknownAaRangesForGene &&
