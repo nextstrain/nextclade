@@ -38,10 +38,20 @@ std::string formatInsertion(const NucleotideInsertion& insertion) {
   return fmt::format("{}:{}", positionOneBased, insertedSequence);
 }
 
+std::string formatAaInsertion(const AminoacidInsertion& insertion) {
+  // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+  const auto positionOneBased = insertion.pos + 1;
+  const auto insertedSequence = toString(insertion.ins);
+  return fmt::format("{}:{}:{}", insertion.gene, positionOneBased, insertedSequence);
+}
+
 std::string formatInsertions(const safe_vector<NucleotideInsertion>& insertions) {
   return formatAndJoin(insertions, formatInsertion, ";");
 }
 
+std::string formatAaInsertions(const safe_vector<AminoacidInsertion>& insertions) {
+  return formatAndJoin(insertions, formatAaInsertion, ";");
+}
 
 safe_vector<RefPeptide> toRefPeptidesExternal(const safe_vector<RefPeptideInternal>& peptides) {
   return map(peptides, std::function<RefPeptide(RefPeptideInternal)>(toRefPeptideExternal));

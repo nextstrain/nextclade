@@ -10,29 +10,29 @@ Nextclade Web (simple and advanced modes): accepted in "Sequences" drag & drop b
 
 Nextclade CLI flag: `--input-fasta`
 
-Nextalign CLI flag: ` --sequences`
+Nextalign CLI flag: `--sequences`
 
-Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text (one sequence per line).
+Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) or plain text (one sequence per line).
 
 ## Reference (root) sequence
 
 Viral nucleotide sequence which serves as a reference for alignment and the analysis. Mutations are called relative to the reference sequence. It is expected to be the root of the [reference tree](#reference-tree). The best results are obtained when the reference sequence is a well-known consensus genome, of a very high quality, preferably complete and unambiguous (spans entire genome and has no ambiguous nucleotides).
 
-Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format), plain text. The file is expected to contain only 1 sequence.
+Accepted formats: [FASTA](https://en.wikipedia.org/wiki/FASTA_format) or plain text. The file is expected to contain only 1 sequence.
 
 Nextclade Web (advanced mode): accepted in "Root sequence" drag & drop box. A remote URL is also accepted in `input-root-sequence` URL parameter.
 
 Nextclade CLI flag: `--input-root-sequence`
 
-Nextalign CLI flag: ` --reference`
+Nextalign CLI flag: `--reference`
 
 ## Reference tree
 
-The reference phylogenetic tree which serves as a target for phylogenetic placement (see [Algorithm: Phylogenetic placement](algorithm/05-phylogenetic-placement)) and a source of clade information for clade assignment (see [Algorithm: Clade Assignment](algorithm/06-clade-assignment)).
+The phylogenetic reference tree which serves as a target for phylogenetic placement (see [Algorithm: Phylogenetic placement](algorithm/05-phylogenetic-placement)). Nearest neighbour information is used to assign clades (see [Algorithm: Clade Assignment](algorithm/06-clade-assignment)) and to identify private mutations, including reversions.
 
 The tree **must** be rooted at the sample that matches the [reference (root) sequence](#reference-root-sequence).
 
-The tree **must** contain a clade definition for every node.
+The tree **must** contain a clade definition for every node (including internal).
 
 The tree **must** be sufficiently large, diverse and to meet clade assignment expectations of a particular use-case, study or experiment. Only clades present on the reference tree can be assigned to [Query sequences](terminology.html#query-sequence).
 
@@ -58,7 +58,10 @@ Accepted formats: JSON. Example configuration for SARS-CoV-2:
   "privateMutations": {
     "enabled": true,
     "typical": 8,
-    "cutoff": 24
+    "cutoff": 24,
+    "weightLabeledSubstitutions": 4,
+    "weightReversionSubstitutions": 6,
+    "weightUnlabeledSubstitutions": 1
   },
   "missingData": {
     "enabled": true,
@@ -76,7 +79,11 @@ Accepted formats: JSON. Example configuration for SARS-CoV-2:
     "mixedSitesThreshold": 10
   },
   "frameShifts": {
-    "enabled": true
+    "enabled": true,
+    "ignoredFrameShifts": [
+      { "geneName": "ORF3a", "codonRange": {"begin": 256, "end": 276 } },
+      { "geneName": "ORF3a", "codonRange": {"begin": 258, "end": 276 } },
+    ]
   },
   "stopCodons": {
     "enabled": true,
@@ -94,7 +101,7 @@ Accepted formats: JSON. Example configuration for SARS-CoV-2:
 
 A table describing the genes of the virus (name, frame, position, etc.)
 
-The gene map is required for codon-aware alignment, for gene translation and for calling of aminoacid mutations. Without gene map, peptides will not be output and aminoacid mutations will not be detected. Without gene map the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](algorithm/01-sequence-alignment) and [Algorithm: Translation](algorithm/02-translation)).
+The gene map is required for codon-aware alignment, for gene translation and for calling of aminoacid mutations. Without gene map, peptides will not be output and aminoacid mutations will not be detected. Without gene map the nucleotide alignment step will not be informed by codon information (see: [Algorithm: Sequence alignment](algorithm/01-sequence-alignment) and [Algorithm: Translation](algorithm/02-translation)). Since version `1.10.0` (web `1.13.0`) negative strands are supported, too.
 
 Accepted formats: [GFF3](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md). Example gene map for SARS-CoV-2:
 
@@ -151,3 +158,44 @@ Note: the primers are processed differently depending on the primer type. The ty
 - `_R` - reverse primer
 - `_P` - probe
 
+## Virus properties
+
+_Introduced in CLI version `1.10.0`, web `1.13.0`_
+
+Private mutations are split into 3 categories: reversion, labeled mutations and unlabeled mutations.
+
+Through the `virus_properties.json` config file, Nextclade is told which mutations to attach which labels to.
+
+Private mutations to a genotype listed in the file are given the labels given in the file.
+
+It is of the following schema (shortened for clarity):
+
+```json
+{
+  "schemaVersion": "1.10.0",
+  "nucMutLabelMap": {
+    "174T": [
+      "20H"
+    ],
+    "204T": [
+      "20E",
+      "21J"
+    ]
+  },
+  "nucMutLabelMapReverse": {
+    "19A": [
+      "11083T",
+      "14805T",
+      "26144T"
+    ],
+    "19B": [
+      "8782T",
+      "9477A",
+    ]
+  }
+}
+```
+
+Nextclade Web (advanced mode): accepted in "Virus properties" drag & drop box.
+
+Nextclade CLI flag: `--input-virus-properties`

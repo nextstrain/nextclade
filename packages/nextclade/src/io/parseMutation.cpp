@@ -120,11 +120,49 @@ namespace Nextclade {
     };
   }
 
+  /** Parses genotype string. Genotype is a nucleotide mutation without reference nucleotide. */
+  Genotype<Nucleotide> parseGenotype(const std::string& mut) {
+    if (mut.size() < 3) {
+      throw ErrorParseGenotypeInvalidFormat(mut);
+    }
+
+    using boost::xpressive::smatch;
+    using boost::xpressive::sregex;
+
+    // clang-format off
+    const auto regex = sregex::compile(R"((?P<pos>\d{1,10})(?P<queryNuc>[A-Z-]))");
+    // clang-format on
+
+    const auto upper = boost::to_upper_copy(mut);
+
+    smatch matches;
+    if (!regex_match(upper, matches, regex)) {
+      throw ErrorParseGenotypeInvalidFormat(mut);
+    }
+
+    const auto& posStr = std::string{matches["pos"]};
+    const auto& queryNucStr = std::string{matches["queryNuc"]};
+
+    const auto& pos = parsePosition(posStr);
+    const auto& queryNuc = parseNucleotide(queryNucStr);
+
+    return Genotype<Nucleotide>{
+      .pos = pos,
+      .qry = queryNuc,
+    };
+  }
+
+
   Nextclade::ErrorParseMutationInvalidNucleotide::ErrorParseMutationInvalidNucleotide(const std::string& mut)
       : ErrorNonFatal(fmt::format("When parsing mutation: Unable to parse nucleotide: \"{}\"", mut)) {}
 
   Nextclade::ErrorParseMutationInvalidPosition::ErrorParseMutationInvalidPosition(const std::string& posStr)
       : ErrorNonFatal(fmt::format("When parsing mutation: Unable to parse position: \"{:s}\"", posStr)) {}
+
+  ErrorParseGenotypeInvalidFormat::ErrorParseGenotypeInvalidFormat(const std::string_view& mut)
+      : ErrorNonFatal(
+          fmt::format("When parsing mutation: Unable to parse genotype. The format is invalid: \"{:s}\"", mut)) {}
+
 
   ErrorParseMutationInvalidFormat::ErrorParseMutationInvalidFormat(const std::string_view& mut)
       : ErrorNonFatal(

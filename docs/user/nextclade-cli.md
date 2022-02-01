@@ -1,6 +1,6 @@
 # Nextclade CLI
 
-Nextclade is a tool that identifies differences between your sequences and a reference sequence used by Nextstrain, uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data. You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
+Nextclade is a tool that identifies differences between your sequences and a reference sequence, uses these differences to assign your sequences to clades, and reports potential sequence quality issues in your data. You can use the tool to analyze sequences before you upload them to a database, or if you want to assign Nextstrain clades to a set of sequences.
 
 You can learn more about the algorithm in the [Algorithm](algorithm) section.
 
@@ -9,7 +9,6 @@ This section describes:
 - how to install Nextclade CLI - using Docker container and natively
 - how to run Nextclade CLI with sample data
 - what other sections of the documentation are worth checking after that
-
 
 ## Installation (with docker)
 
@@ -42,6 +41,14 @@ Tag `:latest` points to `:debian`.
 
 ## Installation (local)
 
+### Using conda
+
+A [Nextclade conda package]((https://anaconda.org/bioconda/nextclade)) is available for Linux and macOS from the `conda` channel `bioconda`:
+
+```bash
+conda install -c bioconda nextclade
+```
+
 ### Download manually
 
 You can download the latest version of Nextclade CLI for your platform using one of these direct links:
@@ -64,7 +71,6 @@ Security settings</a>. Refer to the latest macOS documentation if none of this w
 > - Download the Linux executable (see above) and run it under [Windows Subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
 > - Use [Docker container image](#installation-with-docker)
 > - Rent a Linux machine, for example at a cloud compute provider or on premises of your organization or university
->
 
 ### Download from command line
 
@@ -150,6 +156,8 @@ nextclade dataset get --help
 nextclade run --help
 ```
 
+<!--- TODO: Should be expanded with detailed explanation of the commands -->
+
 ## Quick Example
 
 1. Download SARS-CoV-2 dataset:
@@ -160,7 +168,7 @@ nextclade run --help
 
    Observe downloaded dataset files in the directory `data/sars-cov-2/`
 
-   > 💡️ This command will download the latest SARS-CoV-2 dataset. You can use it to periodically update the dataset, in order to enable the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](datasets) section.
+   > 💡️ This command will download the latest SARS-CoV-2 dataset. You should run it periodically to update the dataset, in order to get the latest features, including the most up-to-date clade assignment. Find out more in the [Nextclade datasets](datasets) section.
 
 2. Run using the downloaded dataset and its example sequences (`data/sars-cov-2/sequences.fasta`):
 
@@ -183,6 +191,7 @@ nextclade run --help
    nextclade \
       --in-order \
       --input-fasta data/sars-cov-2/sequences.fasta \
+      --input-dataset data/sars-cov-2 \
       --input-root-seq data/sars-cov-2/reference.fasta \
       --genes E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
       --input-gene-map data/sars-cov-2/genemap.gff \
@@ -202,7 +211,6 @@ nextclade run --help
    The `--input-dataset` flag can be combined with individual `--input*` flags. In this case, individual flags override the corresponding files in the dataset.
 
    You can learn more about input and output files in sections: [Input files](input-files), [Output files](output-files) and [Nextclade datasets](datasets). Read the built-in help (`nextclade --help`) for the detailed description of each flag.
-
 
 3. Find the output files in the `output/` directory:
 

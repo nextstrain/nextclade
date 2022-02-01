@@ -17,6 +17,7 @@ constexpr void EXPECT_EMPTY(const Container& actual) {
 
 namespace {
   using Nextclade::AnalysisResult;
+  using Nextclade::GenotypeLabeled;
   using Nextclade::NucleotideDeletion;
   using Nextclade::NucleotideDeletionSimple;
   using Nextclade::NucleotideSubstitution;
@@ -33,6 +34,8 @@ namespace {
     //                                                      12345678901234567890123456789012345678901234567890
     const NucleotideSequence refSeq = toNucleotideSequence("CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC");
 
+    safe_vector<GenotypeLabeled<Nucleotide>> substitutionLabelMap;
+    safe_vector<GenotypeLabeled<Nucleotide>> deletionLabelMap;
 
     std::map<int, Nucleotide> makeTestNode(const safe_vector<std::string>& mutStrings) {
       std::map<int, Nucleotide> result;
@@ -101,7 +104,7 @@ TEST_F(FindPrivateNucMutations, NoMutations) {
   const auto node = makeTestNode({/* no mutations in ref node */});
   const auto seq = makeTestSeq({/* no query substitutions */}, {/* no query deletions */});
   const auto expected = makeSubstitutionList({});
-  const auto actual = findPrivateNucMutations(node, seq, refSeq);
+  const auto actual = findPrivateNucMutations(node, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expected);
   EXPECT_EMPTY(actual.privateDeletions);
 }
@@ -111,7 +114,7 @@ TEST_F(FindPrivateNucMutations, NoMutationsInNodeSomeMutationsInSequence) {
   const auto node = makeTestNode({/* no mutations in ref node */});
   const auto seq = makeTestSeq({"A9C", "T16C", "A32G"}, {/* no query deletions */});
   const auto expected = makeSubstitutionList({"A9C", "T16C", "A32G"});
-  const auto actual = findPrivateNucMutations(node, seq, refSeq);
+  const auto actual = findPrivateNucMutations(node, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expected);
   EXPECT_EMPTY(actual.privateDeletions);
 }
@@ -129,7 +132,7 @@ TEST_F(FindPrivateNucMutations, NoMutationsInNodeSomeDeletionsInSequence) {
   const auto node = makeTestNode({/* no mutations in ref node */});
   const auto seq = makeTestSeq({/* no query substitutions */}, {12, 13, 42});
   const auto expected = makeDeletionList({"C12-", "G13-", "A42-"});
-  const auto actual = findPrivateNucMutations(node, seq, refSeq);
+  const auto actual = findPrivateNucMutations(node, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EMPTY(actual.privateSubstitutions);
   EXPECT_EQ(actual.privateDeletions, expected);
 }
@@ -140,7 +143,7 @@ TEST_F(FindPrivateNucMutations, NoMutationsInNodeSomeMutationsAndDeletionsInSequ
   const auto seq = makeTestSeq({"A9C", "T16C", "A32G"}, {12, 13, 42});
   const auto expectedSubs = makeSubstitutionList({"A9C", "T16C", "A32G"});
   const auto expectedDels = makeDeletionList({"C12-", "G13-", "A42-"});
-  const auto actual = findPrivateNucMutations(node, seq, refSeq);
+  const auto actual = findPrivateNucMutations(node, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expectedSubs);
   EXPECT_EQ(actual.privateDeletions, expectedDels);
 }
@@ -150,7 +153,7 @@ TEST_F(FindPrivateNucMutations, SameMutation) {
   const auto nodeMutMap = makeTestNode({"A123C"});
   const auto seq = makeTestSeq({"A123C"}, {/* no query deletions */});
   const auto expected = makeSubstitutionList({});
-  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq);
+  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expected);
   EXPECT_EMPTY(actual.privateDeletions);
 }
@@ -160,7 +163,7 @@ TEST_F(FindPrivateNucMutations, SameMutationMultiple) {
   const auto nodeMutMap = makeTestNode({"A9C", "T16C", "A32G"});
   const auto seq = makeTestSeq({"A9C", "T16C", "A32G"}, {/* no query deletions */});
   const auto expected = makeSubstitutionList({});
-  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq);
+  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expected);
   EXPECT_EMPTY(actual.privateDeletions);
 }
@@ -171,7 +174,7 @@ TEST_F(FindPrivateNucMutations, SameSiteDifferentCharacter) {
   const auto nodeMutMap = makeTestNode({"A9C"});
   const auto seq = makeTestSeq({"A9G"}, {/* no query deletions */});
   const auto expected = makeSubstitutionList({"C9G"});
-  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq);
+  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expected);
   EXPECT_EMPTY(actual.privateDeletions);
 }
@@ -189,7 +192,7 @@ TEST_F(FindPrivateNucMutations, NoMutationsInSeqSomeMutationsInNode) {
   const auto node = makeTestNode({"T12A", "T42G"});
   const auto seq = makeTestSeq({/* no query substitutions */}, {/* no query deletions */});
   const auto expected = makeSubstitutionList({"A12C", "G42A"});
-  const auto actual = findPrivateNucMutations(node, seq, refSeq);
+  const auto actual = findPrivateNucMutations(node, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expected);
   EXPECT_EMPTY(actual.privateDeletions);
 }
@@ -209,14 +212,15 @@ TEST_F(FindPrivateNucMutations, NoMutationsInSeqSomeDeletionsInNode) {
   const auto node = makeTestNode({"T12-", "T42-"});
   const auto seq = makeTestSeq({/* no query substitutions */}, {/* no query deletions */});
 
+  const auto expected = makeSubstitutionList({"-12C", "-42A"});
+
   // I would expect it to return this:
-  // const auto expected = makeSubstitutionList({"-12C", "-42A"});
   // But we are excluding these insertions by checking if the node's nuc is '-' and skipping the loop iteration.
   // So in this case, an empty array is currently returned.
 
-  const auto actual = findPrivateNucMutations(node, seq, refSeq);
+  const auto actual = findPrivateNucMutations(node, seq, refSeq, substitutionLabelMap, deletionLabelMap);
 
-  EXPECT_EMPTY(actual.privateSubstitutions);
+  EXPECT_EQ(actual.privateSubstitutions, expected);
   EXPECT_EMPTY(actual.privateDeletions);
 }
 
@@ -229,13 +233,13 @@ TEST_F(FindPrivateNucMutations, DisjointSets) {
   //                                              10        20        30        40        50
   //                                              |         |         |         |         |
   //                                     12345678901234567890123456789012345678901234567890
+  // seq                                         G  C     A                       A     T
+  // node                                           A                             G
   // ref (indices here are one-based!)   CTTGGAGGTTCCGTGGCTATAGATAACAGAACATTCTTGGAATGCTGATC
-  //                                                ^                             ^
-  //                                               12C                           42A
-  const auto nodeMutMap = makeTestNode({"T12A", "T42G"});
-  const auto seq = makeTestSeq({"A9G", "C18A", "G48T"}, {/* no query deletions */});
-  const auto expected = makeSubstitutionList({"A9G", "A12C", "C18A", "G42A", "G48T"});
-  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq);
+  const auto nodeMutMap = makeTestNode({"C12A", "A42G"});
+  const auto seq = makeTestSeq({"T9G", "C18A", "G48T"}, {/* no query deletions */});
+  const auto expected = makeSubstitutionList({"A12C", "G42A", "T9G", "C18A", "G48T"});
+  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expected);
   EXPECT_EMPTY(actual.privateDeletions);
 }
@@ -244,9 +248,9 @@ TEST_F(FindPrivateNucMutations, GeneralCase) {
   // General case. A combination of various previous cases.
   const auto nodeMutMap = makeTestNode({"T12A", "G13A", "C31T", "T34-", "T38-", "T45G"});
   const auto seq = makeTestSeq({"A9C", "T12A", "T16C", "A32G", "T45G", "A47C"}, {13, 21, 34, 42});
-  const auto expectedSubs = makeSubstitutionList({"A9C", "T16C", "T31A", "A32G", "A47C"});
+  const auto expectedSubs = makeSubstitutionList({"T31A", "A9C", "T16C", "A32G", "A47C", "-38T"});
   const auto expectedDels = makeDeletionList({"A13-", "A21-", "A42-"});
-  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq);
+  const auto actual = findPrivateNucMutations(nodeMutMap, seq, refSeq, substitutionLabelMap, deletionLabelMap);
   EXPECT_EQ(actual.privateSubstitutions, expectedSubs);
   EXPECT_EQ(actual.privateDeletions, expectedDels);
 }

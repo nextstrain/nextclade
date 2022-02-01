@@ -296,6 +296,13 @@ inline bool operator==(const InsertionInternal<Letter>& lhs, const InsertionInte
 
 using NucleotideInsertion = InsertionInternal<Nucleotide>;
 
+struct AminoacidInsertion {
+  std::string gene;
+  int pos;
+  int length;
+  Sequence<Aminoacid> ins;
+};
+
 
 template<typename Container, typename Formatter, typename Delimiter>
 std::string formatAndJoin(const Container& elements, Formatter formatter, Delimiter delimiter) {
@@ -307,6 +314,10 @@ std::string formatAndJoin(const Container& elements, Formatter formatter, Delimi
 std::string formatInsertion(const NucleotideInsertion& insertion);
 
 std::string formatInsertions(const safe_vector<NucleotideInsertion>& insertions);
+
+std::string formatAaInsertion(const AminoacidInsertion& insertion);
+
+std::string formatAaInsertions(const safe_vector<AminoacidInsertion>& insertions);
 
 struct Insertion {
   int pos;
@@ -355,6 +366,7 @@ struct AlgorithmOutput {
   std::exception_ptr error;
 };
 
+
 NextalignOptions getDefaultOptions();
 
 /**
@@ -376,6 +388,8 @@ inline bool isUnknown(const Nucleotide& nuc) {
 inline bool isUnknown(const Aminoacid& aa) {
   return aa == Aminoacid::N;
 }
+
+std::string sanitizeSequenceString(const std::string& str);
 
 class FastaStream {
 public:
@@ -420,3 +434,12 @@ safe_vector<AlgorithmInput> parseSequences(const std::string& filename);
 safe_vector<AlgorithmInput> parseSequencesSlow(std::istream& istream, const std::string& filename);
 
 const char* getVersion();
+
+
+safe_vector<AminoacidInsertion> convertAaInsertions(const safe_vector<PeptideInternal>& peptides);
+
+std::string formatInsertionsCsvRow(const std::string& seqName, const safe_vector<NucleotideInsertion>& nucInsertions,
+  const safe_vector<AminoacidInsertion>& aaInsertions, char delimiter = ',');
+
+std::string formatInsertionsCsvRow(const std::string& seqName, const safe_vector<NucleotideInsertion>& nucInsertions,
+  const safe_vector<PeptideInternal>& queryPeptides, char delimiter = ',');
