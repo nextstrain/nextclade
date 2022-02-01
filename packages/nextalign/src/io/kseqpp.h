@@ -61,10 +61,6 @@ namespace klibpp {
 
     int64_t index = 0;
 
-    inline bool is_char_allowed(char_type c) {
-      return std::isalpha(c) || c == '.' || c == '?' || c == '*';
-    }
-
   public:
     explicit KStream(Reader&& reader_) : reader{std::move(reader_)} {
       this->buf.resize(DEFAULT_BUFSIZE);
@@ -126,10 +122,9 @@ namespace klibpp {
       }
 
       while ((c = this->getc()) && c != '>') {
-        if (!is_char_allowed(c)) {
+        if (c == '\n') {
           continue;
         }
-        c = static_cast<char_type>(std::toupper(c));
         rec.seq += c;
         this->getuntil(KStream::SEP_LINE, rec.seq, nullptr, true);// read the rest of the line
       }

@@ -1,5 +1,6 @@
 #include "runNextclade.h"
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
 #include <tbb/concurrent_vector.h>
@@ -10,7 +11,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <common/safe_vector.h>
 
 #include "../io/Logger.h"
 #include "../io/parseRefFastaFile.h"
@@ -36,6 +36,7 @@ namespace Nextclade {
     /* inout */ std::unique_ptr<FastaStream> &inputFastaStream,
     /* in  */ const ReferenceSequenceData &refData,
     /* in  */ const QcConfig &qcRulesConfig,
+    /* in  */ const VirusJson &virusJson,
     /* in  */ const std::string &treeString,
     /* in  */ const safe_vector<PcrPrimer> &pcrPrimers,
     /* in  */ const GeneMap &geneMap,
@@ -62,6 +63,7 @@ namespace Nextclade {
       .pcrPrimers = pcrPrimers,
       .geneMap = geneMap,
       .qcRulesConfig = qcRulesConfig,
+      .virusJson = virusJson,
       .nextalignOptions = nextalignOptions,
     };
 
@@ -102,7 +104,7 @@ namespace Nextclade {
         const auto &seqName = input.seqName;
 
         try {
-          const auto seq = toNucleotideSequence(input.seq);
+          const auto seq = toNucleotideSequence(sanitizeSequenceString(input.seq));
           const auto result = nextclade.run(seqName, seq);
           return {.index = input.index, .seqName = seqName, .hasError = false, .result = result, .error = nullptr};
         } catch (const std::exception &e) {
@@ -128,6 +130,7 @@ namespace Nextclade {
         const auto &queryPeptides = output.result.queryPeptides;
         const auto &refPeptides = output.result.refPeptides;
         const auto &insertions = output.result.analysisResult.insertions;
+        const auto &aaInsertions = output.result.analysisResult.aaInsertions;
         const auto &warnings = output.result.warnings;
 
         const auto &result = output.result;
@@ -195,7 +198,7 @@ namespace Nextclade {
             outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, peptide.seq);
           }
 
-          outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+          outputInsertionsStream << formatInsertionsCsvRow(seqName, insertions, aaInsertions);
 
           if (outputJsonStream || outputTreeStream) {
             resultsConcurrent.push_back(output.result.analysisResult);

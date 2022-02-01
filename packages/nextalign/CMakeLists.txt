@@ -25,6 +25,7 @@ add_library(${PROJECT_NAME} STATIC
   src/align/alignPairwise.h
   src/align/alignmentParams.cpp
   src/align/alignmentParams.h
+  src/align/convertAaInsertions.cpp
   src/align/getGapOpenCloseScores.cpp
   src/align/getGapOpenCloseScores.h
   src/alphabet/aminoacids.cpp
@@ -35,11 +36,13 @@ add_library(${PROJECT_NAME} STATIC
   src/io/FileReaderPlain.h
   src/io/FileReaderXz.h
   src/io/filesystem.h
+  src/io/formatInsertionsCsvRow.cpp
   src/io/gene.io.cpp
   src/io/gene.io.h
   src/io/parseGeneMapGff.cpp
   src/io/parseSequences.cpp
   src/io/parseSequencesSlow.cpp
+  src/io/sanitizeSequence.cpp
   src/match/matchAa.h
   src/match/matchNuc.h
   src/nextalign.cpp

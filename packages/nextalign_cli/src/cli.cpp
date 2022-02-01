@@ -697,7 +697,7 @@ void run(
   const auto transformFilters = tbb::make_filter<AlgorithmInput, AlgorithmOutput>(tbb::filter_mode::parallel,//
     [&ref, &refPeptides, &geneMap, &options](const AlgorithmInput &input) -> AlgorithmOutput {
       try {
-        const auto query = toNucleotideSequence(input.seq);
+        const auto query = toNucleotideSequence(sanitizeSequenceString(input.seq));
         const auto result = nextalignInternal(query, ref, refPeptides, geneMap, options);
         return {.index = input.index, .seqName = input.seqName, .hasError = false, .result = result, .error = nullptr};
       } catch (const std::exception &e) {
@@ -762,7 +762,7 @@ void run(
         outputGeneStreams[peptide.name] << fmt::format(">{:s}\n{:s}\n", seqName, toString(peptide.seq));
       }
 
-      outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+      outputInsertionsStream << formatInsertionsCsvRow(seqName, insertions, queryPeptides);
     });
 
   try {
@@ -848,7 +848,7 @@ int main(int argc, char *argv[]) {
     if (!outputInsertionsFile.good()) {
       throw ErrorIoUnableToWrite(fmt::format("Error: unable to write \"{:s}\"", paths.outputInsertions.string()));
     }
-    outputInsertionsFile << "seqName,insertions\n";
+    outputInsertionsFile << "seqName,insertions,aaInsertions\n";
 
     std::ofstream outputErrorsFile(paths.outputErrors);
     if (!outputErrorsFile.good()) {

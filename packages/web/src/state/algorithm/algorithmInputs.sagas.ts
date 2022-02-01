@@ -10,12 +10,14 @@ import {
   setQcSettings,
   setRootSeq,
   setTree,
+  setVirusJson,
 } from 'src/state/algorithm/algorithm.actions'
 
 import {
   parseGeneMapGffString,
   parsePcrPrimerCsvRowsStr,
   parseQcConfigString,
+  parseVirusJsonString,
   parseRefSequence,
   parseTree,
 } from 'src/workers/run'
@@ -43,6 +45,12 @@ export function* loadQcSettings(input: AlgorithmInput) {
   return { qcConfigStr }
 }
 
+export function* loadVirusJson(input: AlgorithmInput) {
+  const virusJsonRawStr = yield* call([input, input.getContent])
+  const virusJsonStr = yield* call(parseVirusJsonString, virusJsonRawStr)
+  return { virusJsonStr }
+}
+
 export function* loadGeneMap(input: AlgorithmInput) {
   const geneMapStrRaw = yield* call([input, input.getContent])
   const geneMapStr = yield* call(parseGeneMapGffString, geneMapStrRaw, input.name)
@@ -60,6 +68,7 @@ export default [
   takeEvery(setTree.trigger, fsaSaga(setTree, loadTree)),
   takeEvery(setRootSeq.trigger, fsaSaga(setRootSeq, loadRootSeq)),
   takeEvery(setQcSettings.trigger, fsaSaga(setQcSettings, loadQcSettings)),
+  takeEvery(setVirusJson.trigger, fsaSaga(setVirusJson, loadVirusJson)),
   takeEvery(setGeneMap.trigger, fsaSaga(setGeneMap, loadGeneMap)),
   takeEvery(setPcrPrimers.trigger, fsaSaga(setPcrPrimers, loadPcrPrimers)),
 ]

@@ -3,7 +3,7 @@ import { getContrast } from 'polished'
 
 export function getTextColor(theme: Theme, backgroundColor: string) {
   const contrast = getContrast(backgroundColor, theme.gray100)
-  if (contrast > 5) {
+  if (contrast > 3) {
     return theme.gray100
   }
   return theme.gray800

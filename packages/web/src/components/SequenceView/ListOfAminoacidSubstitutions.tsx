@@ -43,8 +43,11 @@ export function ListOfAminoacidMutationsDisconnected({
   }
 
   const totalMutations = aminoacidSubstitutions.length
-  const maxRows = 6
-  const substitutionsSelected = copy(aminoacidSubstitutions).sort(sortByGenes(geneOrderPreference)).slice(0, 90)
+  const maxRows = Math.min(8, totalMutations)
+  const numCols = 8
+  const substitutionsSelected = copy(aminoacidSubstitutions)
+    .sort(sortByGenes(geneOrderPreference))
+    .slice(0, maxRows * numCols)
 
   const columns = splitToRows(substitutionsSelected, { maxRows })
 
@@ -54,37 +57,31 @@ export function ListOfAminoacidMutationsDisconnected({
   }
 
   return (
-    <>
-      <tr>
-        <td colSpan={2}>{t('Aminoacid mutations ({{totalMutations}})', { totalMutations })}</td>
-      </tr>
-
-      <tr>
-        <td colSpan={2}>
-          <TableSlim>
-            <tbody>
-              {columns.map((col, i) => (
-                // eslint-disable-next-line react/no-array-index-key
-                <tr key={i}>
-                  {col.map((item) => (
-                    <td key={formatAAMutation(item)}>
-                      <AminoacidMutationBadge mutation={item} geneMap={geneMap} />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-
-              {moreText && (
-                <tr>
-                  <td colSpan={maxRows} className="text-center">
-                    {moreText}
+    <div className="d-flex">
+      <div className="mr-auto">
+        <TableSlim>
+          <tbody>
+            {columns.map((col, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <tr key={i}>
+                {col.map((item) => (
+                  <td key={formatAAMutation(item)}>
+                    <AminoacidMutationBadge mutation={item} geneMap={geneMap} />
                   </td>
-                </tr>
-              )}
-            </tbody>
-          </TableSlim>
-        </td>
-      </tr>
-    </>
+                ))}
+              </tr>
+            ))}
+
+            {moreText && (
+              <tr>
+                <td colSpan={maxRows} className="text-center">
+                  {moreText}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </TableSlim>
+      </div>
+    </div>
   )
 }

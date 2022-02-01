@@ -1,3 +1,77 @@
+## Nextclade Web 1.13.1, Nextclade CLI 1.10.2, Nextalign CLI 1.10.2 (2022-02-01)
+
+This is a bug fix release.
+
+### [Fix] Exclude reversions of deletions from consideration in "SNP clusters" QC rule
+
+Since introduction of reversions in Nextclade Web 1.13.0 and Nextclade CLI 1.10.0, "SNP clusters" QC rule have been including reversions of deletions when counting clustered private mutations. This was unexpected and produced false-positives for some of the sequences. To fix that, we removed the reversions of deletions from consideration of this QC rule, so that it behaves as previously.
+
+### [Fix] Center markers in sequence view in Nextclade Web
+
+In this version we improved the display of various colored markers (mutations, ranges etc.) in sequence and peptide views on the Results page of Nextclade Web. The individual markers are now centered around their position in the sequence (previously left-aligned). Although markers have moved by just a few pixels, this makes positioning more consistent, and ensures that different types of markers are correctly aligned across table rows.
+
+
+## Nextclade CLI 1.10.1 (2022-01-26)
+
+### [Fix] Improve error message when the virus properties file is missing [#704](https://github.com/nextstrain/nextclade/pull/704)
+
+Since version 1.10.0 Nextclade CLI have introduced a new required input file, `virus_properties.json` and [datasets](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md) and [documentation](https://docs.nextstrain.org/projects/nextclade/) were updated to match. However, users who don't use datasets might have encountered breakage due to a missing file: when running Nextclade CLI without either `--input-dataset` of `--input-virus-properties` flag provided, it would stop with an unclear error message. In this release we improve the error message, making sure that that explains the problem and offers a solution.
+
+This does not affect Nextclade Web or Nextalign CLI.
+
+In order to facilitate upgrades, for most users, we recommend to:
+
+ - download the latest dataset before each Nextclade CLI session (e.g. in the beginning of an automated workflow, or once you start a batch of experiments manually) using `nextclade dataset get` command
+ - use `--input-dataset` flag instead of individual `--input-*` flags for dataset files when issuing `nextclade run` command
+ - if necessary, override some of the individual input files using corresponding `--input-*` flags
+
+
+### [Fix] Add information about `virus_properties.json` or `--input-virus-properties` to changelog
+
+In the excitement of bringing the new features, we forgot to mention `virus_properties.json` or `--input-virus-properties` in the changelog when Nextclade CLI 1.10.0 was released. We now added this information retroactively.
+
+
+## Nextclade Web 1.13.0, Nextclade CLI 1.10.0, Nextalign CLI 1.10.0 (2022-01-24)
+
+### 💥 [BREAKING CHANGE] Nextclade: new required input file: `virus_properties.json` [#689](https://github.com/nextstrain/nextclade/pull/689)
+
+This version introduces a new required input file for Nextclade, called `virus_properties.json`. This file contains additional information necessary for the "Detailed split of private mutations" feature (see below). [The new versions of Nextclade datasets](https://github.com/nextstrain/nextclade_data/blob/master/CHANGELOG.md) were released to account for this change.
+
+How it affects different tools in the Nextclade family and how to upgrade:
+
+  - Nextclade Web - requires the new file. Migration path: no action is needed. Nextclade Web always uses the latest dataset automatically.
+
+  - Nextclade CLI - requires the new file. Migration path:
+
+    - Download the latest dataset with `nextclade dataset get` command (dataset tagged `2022-01-18T12:00:00Z` or more recent is required)
+    - If using `--input-dataset` flag: the new file will be be picked up automatically from the latest dataset. No further action is needed.
+    - If not using `--input-dataset` flag: add `--input-virus-properties` flag to pint to `virus_properties.json` file from the dataset.
+
+  - Nextalign CLI - not affected: it does not use `virus_properties.json`. Migration path: no action is needed.
+
+
+### [Feature] Detailed split of private mutations (Nextclade) [#689](https://github.com/nextstrain/nextclade/pull/689)
+
+Private mutations (differences between a query sequence and nearest neighbour in reference tree) are now split into three categories:
+
+1. Reversion to reference genotype
+2. (SARS-CoV-2 only for now) Mutation to a genotype common in at least 1 clade get labeled with that clade
+3. Mutations that are neither reversions nor labeled (called "unlabeled")
+
+Which category a mutation belongs to is visible by hovering over the "Mut." column in Nextclade Web and in various "privateNucMutations" fields in [csv/tsv/json outputs](https://docs.nextstrain.org/projects/nextclade/en/stable/user/output-files.html#tabular-csv-tsv-results).
+
+### [Change] "Private mutations" QC rule now accounts for reversions and labeled mutations
+
+Reversions and labeled mutations (see feature above) are particularly common in contaminated samples, coinfections and recombination. To draw the user's attention to such sequences, both types of private mutation now get higher weights in the "Private mutations" QC rule (denoted as "P" in Nextclade Web, and `qc.privateMutations` in output files).
+
+### [Feature] Insertions now also available as amino acids [#692](https://github.com/nextstrain/nextclade/pull/692)
+
+Aminoacid insertions in the query peptides relative to the corresponding reference peptide are now displayed in the "Ins." column in Nextclade Web and are emitted as "aaInsertions" and "totalAminoacidInsertions" fields in Nextalign and Nextclade output files. Note, that similarly to nucleotide insertions, aminoacid insertions are stripped from the output alignment.
+
+### [Fix] Gaps in query sequences are now stripped correctly [#696](https://github.com/nextstrain/nextclade/pull/696)
+
+When query sequences contained gaps (-), e.g. when inputting aligned sequences, gaps were not stripped correctly since v1.7.0 (web v1.10.0), which could lead to - showing up in insertions.
+
 ## Nextclade Web 1.12.0, Nextclade CLI 1.9.0, Nextalign CLI 1.9.0 (2022-01-11)
 
 ### [Feature] Handle "-" strand gene translation
@@ -24,13 +98,11 @@ The alignment algorithm in Nextclade CLI and Nextalign CLI could sometimes produ
 
 In rare cases Nextclade and Nextalign algorithms could sometimes read past the end of arrays, which previously went undetected. This is now fixed.
 
-
 ## Nextclade Web 1.11.1, Nextclade CLI 1.8.1 (2022-01-07)
 
 ### [Hotfix] Nextclade CLI crashes on macOS when reading JSON tree (#680)
 
 Fixes crash `Error: [json.exception.invalid_iterator.214] cannot get value |` when reading JSON tree on macOS
-
 
 ## Nextclade Web 1.11.0, Nextclade CLI 1.8.0 (2022-01-04)
 
@@ -44,7 +116,7 @@ Nextclade CLI and Nextclade Web now can assign multiple clade-like attributes to
 
 If input reference tree JSON contains an array of attribute keys attached to the
 
-```
+```js
 meta.extensions.nextclade.clade_node_attrs_keys = ["my_clades", "other_clades"]
 ```
 
@@ -65,9 +137,7 @@ The new optimized FASTA parser makes Nextclade CLI up to 60% faster and Nextalig
 
 This is an internal fix of a problem that might have lead to a crash in rare cases, when coordinate map array was accessed beyond it's size.
 
-
 ## Nextclade Web 1.9.0, Nextclade CLI 1.6.0 (2021-12-07)
-
 
 ### [BREAKING CHANGE] [Fix] Remove unused CLI flags for aminoacid seed alignment
 

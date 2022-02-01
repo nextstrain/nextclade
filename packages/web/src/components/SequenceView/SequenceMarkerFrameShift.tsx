@@ -60,9 +60,10 @@ function SequenceMarkerFrameShiftDisconnected({
   const nucLength = nucAbs.end - nucAbs.begin
   const codonLength = codon.end - codon.begin
 
-  const x = nucAbs.begin * pixelsPerBase - pixelsPerBase / 2
   let width = nucLength * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
+  const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
+  const x = nucAbs.begin * pixelsPerBase - halfNuc
 
   const codonRangeStr = formatRange(codon.begin, codon.end)
   const nucRangeStr = formatRange(nucAbs.begin, nucAbs.end)
