@@ -1,3 +1,16 @@
+## Nextclade Web 1.13.1, Nextclade CLI 1.10.2, Nextalign CLI 1.10.2 (2022-02-01)
+
+This is a bug fix release.
+
+### [Fix] Exclude reversions of deletions from consideration in "SNP clusters" QC rule
+
+Since introduction of reversions in Nextclade Web 1.13.0 and Nextclade CLI 1.10.0, "SNP clusters" QC rule have been including reversions of deletions when counting clustered private mutations. This was unexpected and produced false-positives for some of the sequences. To fix that, we removed the reversions of deletions from consideration of this QC rule, so that it behaves as previously.
+
+### [Fix] Center markers in sequence view in Nextclade Web
+
+In this version we improved the display of various colored markers (mutations, ranges etc.) in sequence and peptide views on the Results page of Nextclade Web. The individual markers are now centered around their position in the sequence (previously left-aligned). Although markers have moved by just a few pixels, this makes positioning more consistent, and ensures that different types of markers are correctly aligned across table rows.
+
+
 ## Nextclade CLI 1.10.1 (2022-01-26)
 
 ### [Fix] Improve error message when the virus properties file is missing [#704](https://github.com/nextstrain/nextclade/pull/704)
