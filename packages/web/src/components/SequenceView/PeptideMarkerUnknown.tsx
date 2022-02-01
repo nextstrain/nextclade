@@ -1,7 +1,7 @@
 import React, { SVGProps, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { AMINOACID_UNKNOWN, AA_MIN_WIDTH_PX } from 'src/constants'
+import { AMINOACID_UNKNOWN, AA_MIN_WIDTH_PX, BASE_MIN_WIDTH_PX } from 'src/constants'
 
 import type { AminoacidRange } from 'src/algorithms/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
@@ -25,9 +25,10 @@ export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...r
   const { begin, end } = range // prettier-ignore
 
   const id = getSafeId('unknown-marker', { seqName, ...range })
-  const x = begin * pixelsPerAa - pixelsPerAa / 2
   let width = (end - begin) * pixelsPerAa
   width = Math.max(width, AA_MIN_WIDTH_PX)
+  const halfAa = Math.max(pixelsPerAa, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first AA
+  const x = begin * pixelsPerAa - halfAa
 
   const rangeStr = formatRange(begin, end)
   const length = end - begin
