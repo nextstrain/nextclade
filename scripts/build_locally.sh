@@ -806,14 +806,14 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
        print 23 "Run Nextalign tests";
        eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextalign/tests/nextalign_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/nextalign_tests.xml || cd .
      fi
-     if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
-       print 23 "Run Nextclade tests";
-       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/nextclade_tests.xml || cd .
-     fi
-     if [ "${NEXTCLADE_CLI_BUILD_TESTS}" != "0" ]; then
-       print 23 "Run Nextclade CLI tests";
-       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade_cli/src/__tests__/nextclade_cli_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/nextclade_cli_tests.xml || cd .
-     fi
+#     if [ "${NEXTCLADE_BUILD_TESTS}" != "0" ]; then
+#       print 23 "Run Nextclade tests";
+#       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade/src/__tests__/nextclade_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/nextclade_tests.xml || cd .
+#     fi
+#     if [ "${NEXTCLADE_CLI_BUILD_TESTS}" != "0" ]; then
+#       print 23 "Run Nextclade CLI tests";
+#       eval ${GTPP} ${GDB} "${BUILD_DIR}/packages/nextclade_cli/src/__tests__/nextclade_cli_tests" --gtest_output=xml:${PROJECT_ROOT_DIR}/.reports/nextclade_cli_tests.xml || cd .
+#     fi
    fi
 
   if [ "${NEXTCLADE_BUILD_WASM}" != "1" ] && [ "${CROSS}" != "1" ]; then
@@ -823,10 +823,10 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
       ulimit -s unlimited
     fi
 
-    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-      print 27 "Run Nextalign CLI";
-      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-    fi
+#    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+#      print 27 "Run Nextalign CLI";
+#      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+#    fi
 
     if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
       if [ ! -d "${DATA_DIR}" ]; then

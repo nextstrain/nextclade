@@ -68,6 +68,7 @@ int main(int argc, char* argv[]) {
         .inputRootSeq = {},
         .inputTree = {},
         .inputQcConfig = {},
+        .inputVirusJson = {},
         .genes = {},
         .inputGeneMap = {},
         .inputPcrPrimers = {},

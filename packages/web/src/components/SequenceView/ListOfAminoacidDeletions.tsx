@@ -54,37 +54,31 @@ export function ListOfAminoacidDeletionsDisconnected({
   }
 
   return (
-    <>
-      <tr>
-        <td colSpan={2}>{t('Aminoacid deletions ({{totalDeletions}})', { totalDeletions })}</td>
-      </tr>
-
-      <tr>
-        <td colSpan={2}>
-          <TableSlim>
-            <tbody>
-              {columns.map((col, i) => (
-                // eslint-disable-next-line react/no-array-index-key
-                <tr key={i}>
-                  {col.map((item) => (
-                    <td key={formatAADeletion(item)}>
-                      <AminoacidMutationBadge mutation={item} geneMap={geneMap} />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-
-              {moreText && (
-                <tr>
-                  <td colSpan={maxRows} className="text-center">
-                    {moreText}
+    <div className="d-flex">
+      <div className="mr-auto">
+        <TableSlim>
+          <tbody>
+            {columns.map((col, i) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <tr key={i}>
+                {col.map((item) => (
+                  <td key={formatAADeletion(item)}>
+                    <AminoacidMutationBadge mutation={item} geneMap={geneMap} />
                   </td>
-                </tr>
-              )}
-            </tbody>
-          </TableSlim>
-        </td>
-      </tr>
-    </>
+                ))}
+              </tr>
+            ))}
+
+            {moreText && (
+              <tr>
+                <td colSpan={maxRows} className="text-center">
+                  {moreText}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </TableSlim>
+      </div>
+    </div>
   )
 }

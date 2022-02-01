@@ -21,5 +21,5 @@ namespace Nextclade {
 
   std::string formatQcStatus(const QcStatus& status);
 
-  std::string formatQcFlags(const QcResult& qc);
+  QcStatus parseQcStatus(const frozen::string& statusStr);
 }//namespace Nextclade

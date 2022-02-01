@@ -1,6 +1,6 @@
 version 1.1
 @separator TAB
-@totalColumns 53
+@totalColumns 65
 /*
     Defines a CSV schema for TSV output of Nextclade.
     To be used to validate Nextclade TSV output using csv-validator tool.
@@ -32,6 +32,18 @@ version 1.1
 "missing":
 "nonACGTNs":
 "pcrPrimerChanges":
+"privateNucMutations.reversionSubstitutions":
+"privateNucMutations.reversionsOfDeletions":
+"privateNucMutations.labeledSubstitutions":
+"privateNucMutations.labeledDeletions":
+"privateNucMutations.unlabeledSubstitutions":
+"privateNucMutations.unlabeledDeletions":
+"privateNucMutations.totalReversionSubstitutions":
+"privateNucMutations.totalReversionsOfDeletions":
+"privateNucMutations.totalLabeledSubstitutions":
+"privateNucMutations.totalLabeledDeletions":
+"privateNucMutations.totalUnlabeledSubstitutions":
+"privateNucMutations.totalUnlabeledDeletions":
 "alignmentScore":                           positiveInteger @optional
 "alignmentStart":                           positiveInteger @optional
 "alignmentEnd":                             positiveInteger @optional

@@ -1,9 +1,9 @@
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
 
 #include <numeric>
-#include <common/safe_vector.h>
 
 #include "analyze/calculateTotalLength.h"
 #include "analyze/findNucChanges.h"
@@ -25,6 +25,7 @@
 #include "utils/safe_cast.h"
 
 namespace Nextclade {
+
   NextcladeResult analyzeOneSequence(                            //
     const std::string& seqName,                                  //
     const NucleotideSequence& ref,                               //
@@ -34,6 +35,7 @@ namespace Nextclade {
     const GeneMap& geneMap,                                      //
     const safe_vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
+    const VirusJson& virusJson,                                  //
     const Tree& tree,                                            //
     const NextalignOptions& nextalignOptions,                    //
     const safe_vector<std::string>& customNodeAttrKeys           //
@@ -83,6 +85,9 @@ namespace Nextclade {
     const auto totalAminoacidSubstitutions = safe_cast<int>(aaChanges.aaSubstitutions.size());
     const auto totalAminoacidDeletions = safe_cast<int>(aaChanges.aaDeletions.size());
 
+    safe_vector<AminoacidInsertion> aaInsertions = convertAaInsertions(alignment.queryPeptides);
+    auto totalAaInsertions = safe_cast<int>(aaInsertions.size());
+
     auto analysisResult = AnalysisResult{
       .seqName = seqName,
 
@@ -103,6 +108,8 @@ namespace Nextclade {
       .totalAminoacidSubstitutions = totalAminoacidSubstitutions,
       .aaDeletions = aaChanges.aaDeletions,
       .totalAminoacidDeletions = totalAminoacidDeletions,
+      .aaInsertions = aaInsertions,
+      .totalAminoacidInsertions = totalAaInsertions,
 
       .unknownAaRanges = unknownAaRanges,
       .totalUnknownAa = totalUnknownAa,
@@ -131,10 +138,14 @@ namespace Nextclade {
     analysisResult.clade = nearestNode.clade();
 
     analysisResult.customNodeAttributes = nearestNode.customNodeAttributes(customNodeAttrKeys);
-    analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref);
 
-    analysisResult.privateAaMutations =
-      findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides, geneMap);
+    analysisResult.privateNucMutations = findPrivateNucMutations(nearestNode.mutations(), analysisResult, ref,
+      virusJson.nucMutLabelMaps.substitutionLabelMap, virusJson.nucMutLabelMaps.deletionLabelMap);
+
+    safe_vector<GenotypeLabeled<Aminoacid>> aaSubstitutionLabelMap;
+    safe_vector<GenotypeLabeled<Aminoacid>> aaDeletionLabelMap;
+    analysisResult.privateAaMutations = findPrivateAaMutations(nearestNode.aaMutations(), analysisResult, refPeptides,
+      geneMap, aaSubstitutionLabelMap, aaDeletionLabelMap);
 
     analysisResult.divergence =
       calculateDivergence(nearestNode, analysisResult, tree.tmpDivergenceUnits(), safe_cast<int>(ref.size()));
@@ -150,6 +161,7 @@ namespace Nextclade {
       .analysisResult = std::move(analysisResult),
     };
   }
+
 
   safe_vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides) {
     safe_vector<RefPeptideInternal> result;
@@ -186,6 +198,7 @@ namespace Nextclade {
       const auto& pcrPrimers = options.pcrPrimers;
       const auto& geneMap = options.geneMap;
       const auto& qcRulesConfig = options.qcRulesConfig;
+      const auto& virusJson = options.virusJson;
 
       return analyzeOneSequence(   //
         seqName,                   //
@@ -196,6 +209,7 @@ namespace Nextclade {
         geneMap,                   //
         pcrPrimers,                //
         qcRulesConfig,             //
+        virusJson,                 //
         tree,                      //
         options.nextalignOptions,  //
         tree.getCladeNodeAttrKeys()//
