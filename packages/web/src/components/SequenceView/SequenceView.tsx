@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
@@ -6,6 +6,8 @@ import styled from 'styled-components'
 
 import { selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
 import type { State } from 'src/state/reducer'
+import { setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
+import { HorizontalDragScroll } from 'src/components/Common/HorizontalDragScroll'
 import type { AnalysisResult } from 'src/algorithms/types'
 
 import { SequenceMarkerGap } from './SequenceMarkerGap'
@@ -14,7 +16,7 @@ import { SequenceMarkerMutation } from './SequenceMarkerMutation'
 import { SequenceMarkerUnsequencedEnd, SequenceMarkerUnsequencedStart } from './SequenceMarkerUnsequenced'
 import { SequenceMarkerFrameShift } from './SequenceMarkerFrameShift'
 
-export const SequenceViewWrapper = styled.div`
+export const SequenceViewWrapper = styled(HorizontalDragScroll)`
   display: flex;
   width: 100%;
   height: 30px;
@@ -28,35 +30,65 @@ export const SequenceViewWrapper = styled.div`
 export const SequenceViewSVG = styled.svg`
   padding: 0;
   margin: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
 `
 
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
   genomeSize?: number
+  zoom: number
+  pan: number
+  setSequenceViewPan(pan: number): void
+  setSequenceViewZoom(pan: number): void
 }
 
 const mapStateToProps = (state: State) => ({
   genomeSize: selectGenomeSize(state),
+  zoom: state.ui.sequenceView.zoom,
+  pan: state.ui.sequenceView.pan,
 })
-const mapDispatchToProps = {}
+
+const mapDispatchToProps = {
+  setSequenceViewPan,
+  setSequenceViewZoom,
+}
 
 export const SequenceViewUnsized = connect(mapStateToProps, mapDispatchToProps)(SequenceViewUnsizedDisconnected)
 
-export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }: SequenceViewProps) {
+export function SequenceViewUnsizedDisconnected({
+  sequence,
+  width,
+  genomeSize,
+  zoom,
+  pan,
+  setSequenceViewPan,
+  setSequenceViewZoom,
+}: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts } = sequence
+
+  const handleScroll = useCallback(
+    (delta: number) => {
+      setSequenceViewPan(pan - 0.001 * delta)
+    },
+    [pan, setSequenceViewPan],
+  )
+
+  const handleWheel = useCallback(
+    (delta: number) => {
+      setSequenceViewZoom(zoom - 0.0005 * delta)
+    },
+    [zoom, setSequenceViewZoom],
+  )
 
   if (!width || !genomeSize) {
     return (
-      <SequenceViewWrapper>
+      <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
         <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
       </SequenceViewWrapper>
     )
   }
 
+  const zoomedWidth = width * zoom
+  const pixelPan = pan * width
   const pixelsPerBase = width / genomeSize
 
   const mutationViews = substitutions.map((substitution) => {
@@ -97,8 +129,8 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
   ))
 
   return (
-    <SequenceViewWrapper>
-      <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
+    <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
+      <SequenceViewSVG width={width} height={30} viewBox={`${pixelPan} 0 ${zoomedWidth} 10`}>
         <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
         <SequenceMarkerUnsequencedStart
           seqName={seqName}

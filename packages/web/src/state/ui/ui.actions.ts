@@ -15,3 +15,7 @@ export const setShowNewRunPopup = action<boolean>('setShowNewRunPopup')
 export const setViewedGene = action<string>('setViewedGene')
 
 export const resetViewedGene = action('resetViewedGene')
+
+export const setSequenceViewZoom = action<number>('setSequenceViewZoom')
+
+export const setSequenceViewPan = action<number>('setSequenceViewPan')

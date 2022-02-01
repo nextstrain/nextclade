@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
+import { setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
 import styled from 'styled-components'
 
 import type { AnalysisResult, Gene, GeneWarning, Warnings } from 'src/algorithms/types'
@@ -76,21 +77,55 @@ export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   warnings: Warnings
   geneMap?: Gene[]
   viewedGene: string
+  zoom: number
+  pan: number
+  setSequenceViewPan(pan: number): void
+  setSequenceViewZoom(pan: number): void
 }
 
 const mapStateToProps = (state: State) => ({
   geneMap: selectGeneMap(state),
+  zoom: state.ui.sequenceView.zoom,
+  pan: state.ui.sequenceView.pan,
 })
-const mapDispatchToProps = {}
+
+const mapDispatchToProps = {
+  setSequenceViewPan,
+  setSequenceViewZoom,
+}
 
 export const PeptideViewUnsized = connect(mapStateToProps, mapDispatchToProps)(PeptideViewUnsizedDisconnected)
 
-export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, geneMap, viewedGene }: PeptideViewProps) {
+export function PeptideViewUnsizedDisconnected({
+  sequence,
+  width,
+  warnings,
+  geneMap,
+  viewedGene,
+  zoom,
+  pan,
+  setSequenceViewPan,
+  setSequenceViewZoom,
+}: PeptideViewProps) {
   const { t } = useTranslationSafe()
+
+  const handleScroll = useCallback(
+    (delta: number) => {
+      setSequenceViewPan(pan - 0.001 * delta)
+    },
+    [pan, setSequenceViewPan],
+  )
+
+  const handleWheel = useCallback(
+    (delta: number) => {
+      setSequenceViewZoom(zoom - 0.0005 * delta)
+    },
+    [zoom, setSequenceViewZoom],
+  )
 
   if (!width || !geneMap) {
     return (
-      <SequenceViewWrapper>
+      <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
         <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
       </SequenceViewWrapper>
     )
@@ -99,7 +134,7 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
   const gene = geneMap.find((gene) => gene.geneName === viewedGene)
   if (!gene) {
     return (
-      <SequenceViewWrapper>
+      <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
         {t('Gene {{geneName}} is missing in gene map', { geneName: viewedGene })}
       </SequenceViewWrapper>
     )
@@ -108,14 +143,17 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
   const warningsForThisGene = warnings.inGenes.filter((warn) => warn.geneName === viewedGene)
   if (warningsForThisGene.length > 0) {
     return (
-      <SequenceViewWrapper>
+      <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
         <PeptideViewMissing geneName={gene.geneName} reasons={warningsForThisGene} />
       </SequenceViewWrapper>
     )
   }
 
   const { seqName, unknownAaRanges } = sequence
+  const zoomedWidth = width * zoom
+  const pixelPan = pan * width
   const pixelsPerAa = width / Math.round(gene.length / 3)
+
   const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
   const aaDeletions = sequence.aaDeletions.filter((aaSub) => aaSub.gene === viewedGene)
   const groups = groupAdjacentAminoacidChanges(aaSubstitutions, aaDeletions)
@@ -134,8 +172,8 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
     ))
 
   return (
-    <SequenceViewWrapper>
-      <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
+    <SequenceViewWrapper onScroll={handleScroll} onWheel={handleWheel}>
+      <SequenceViewSVG width={width} height={30} viewBox={`${pixelPan} 0 ${zoomedWidth} 10`}>
         <rect fill="transparent" x={0} y={-10} width={gene.length} height="30" />
 
         {unknownAaRangesForGene &&

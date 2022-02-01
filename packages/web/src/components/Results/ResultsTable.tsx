@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { ChangeEvent, memo, useCallback } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
@@ -6,6 +6,7 @@ import { areEqual, FixedSizeList as FixedSizeListBase, FixedSizeListProps, ListC
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
+import { Col, Container, Label, Row } from 'reactstrap'
 
 import { QcStatus } from 'src/algorithms/types'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
@@ -17,7 +18,7 @@ import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 import type { State } from 'src/state/reducer'
 import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import { resultsSortByKeyTrigger, resultsSortTrigger } from 'src/state/algorithm/algorithm.actions'
-import { setViewedGene } from 'src/state/ui/ui.actions'
+import { setViewedGene, setSequenceViewPan, setSequenceViewZoom } from 'src/state/ui/ui.actions'
 
 import { ButtonHelp } from './ButtonHelp'
 import { ColumnClade } from './ColumnClade'
@@ -99,6 +100,7 @@ export const TableRow = styled.div<{ even?: boolean; backgroundColor?: string }>
   align-items: stretch;
   background-color: ${(props) => props.backgroundColor};
   box-shadow: 1px 2px 2px 2px ${rgba('#212529', 0.25)};
+  user-select: none;
 `
 
 export const TableCell = styled.div<{ basis?: string; grow?: number; shrink?: number }>`
@@ -280,6 +282,8 @@ const mapStateToProps = (state: State) => ({
   resultsFiltered: state.algorithm.resultsFiltered,
   filterPanelCollapsed: state.ui.filterPanelCollapsed,
   viewedGene: state.ui.viewedGene,
+  sequenceViewZoom: state.ui.sequenceView.zoom,
+  sequenceViewPan: state.ui.sequenceView.pan,
 })
 
 const mapDispatchToProps = {
@@ -339,6 +343,9 @@ const mapDispatchToProps = {
     resultsSortTrigger({ category: SortCategory.totalStopCodons, direction: SortDirection.desc }),
 
   setViewedGene,
+
+  setSequenceViewZoom,
+  setSequenceViewPan,
 }
 
 export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToProps)(ResultsTableDisconnected))
@@ -399,6 +406,14 @@ export interface ResultProps {
   sortByTotalStopCodonsDesc(): void
 
   setViewedGene(viewedGene: string): void
+
+  sequenceViewZoom: number
+
+  setSequenceViewZoom(zoom: number): void
+
+  sequenceViewPan: number
+
+  setSequenceViewPan(zoom: number): void
 }
 
 export function ResultsTableDisconnected({
@@ -432,9 +447,12 @@ export function ResultsTableDisconnected({
   sortByTotalStopCodonsDesc,
   viewedGene,
   setViewedGene,
+  sequenceViewZoom,
+  setSequenceViewZoom,
+  sequenceViewPan,
+  setSequenceViewPan,
 }: ResultProps) {
   const { t } = useTranslation()
-
   const data = resultsFiltered
   const rowData: TableRowDatum[] = data.map((datum) => ({
     ...datum,
@@ -444,8 +462,57 @@ export function ResultsTableDisconnected({
     cladeNodeAttrKeys,
   }))
 
+  const handleZoomChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const z = Number.parseInt(event.target.value, 10) / 100
+      setSequenceViewZoom(z)
+    },
+    [setSequenceViewZoom],
+  )
+
+  const handlePanChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const z = Number.parseInt(event.target.value, 10) / 100
+      setSequenceViewPan(z)
+    },
+    [setSequenceViewPan],
+  )
+
   return (
     <>
+      <Container fluid className="d-flex w-100">
+        <Row noGutters className="d-flex ml-auto">
+          <Col className="ml-auto">
+            <Label style={{ margin: '20px' }}>
+              <span style={{ width: '100px' }}>{'Pan'}</span>
+              <input
+                type="range"
+                style={{ margin: '20px', width: '200px' }}
+                min={-100}
+                max={100}
+                value={sequenceViewPan * 100}
+                onChange={handlePanChange}
+                onAuxClick={() => setSequenceViewPan(0)}
+              />
+              <span style={{ width: '100px' }}>{sequenceViewPan.toFixed(3)}</span>
+            </Label>
+            <Label style={{ margin: '20px' }}>
+              <span style={{ width: '100px' }}>{'Zoom'}</span>
+              <input
+                type="range"
+                style={{ margin: '20px', width: '200px' }}
+                min={0}
+                max={100}
+                value={sequenceViewZoom * 100}
+                onChange={handleZoomChange}
+                onAuxClick={() => setSequenceViewZoom(1)}
+              />
+              <span style={{ width: '100px' }}>{sequenceViewZoom.toFixed(3)}</span>
+            </Label>
+          </Col>
+        </Row>
+      </Container>
+
       <Table rounded={!filterPanelCollapsed}>
         <TableHeaderRow>
           <TableHeaderCell first basis={columnWidthsPx.id} grow={0} shrink={0}>

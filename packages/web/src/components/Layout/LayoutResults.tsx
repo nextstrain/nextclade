@@ -14,6 +14,7 @@ export const LayoutContainer = styled.div`
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
+  overflow: hidden;
 `
 
 const Header = styled.header`

@@ -5,6 +5,8 @@ import {
   setIsSettingsDialogOpen,
   resetViewedGene,
   setFilterPanelCollapsed,
+  setSequenceViewPan,
+  setSequenceViewZoom,
   setShowNewRunPopup,
   setShowWhatsnew,
   setTreeFilterPanelCollapsed,
@@ -38,4 +40,12 @@ export const uiReducer = reducerWithInitialState(uiDefaultState)
 
   .icase(resetViewedGene, (draft) => {
     draft.viewedGene = uiDefaultState.viewedGene
+  })
+
+  .icase(setSequenceViewZoom, (draft, zoom) => {
+    draft.sequenceView.zoom = zoom
+  })
+
+  .icase(setSequenceViewPan, (draft, pan) => {
+    draft.sequenceView.pan = pan
   })
