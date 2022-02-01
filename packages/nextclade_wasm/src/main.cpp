@@ -51,6 +51,7 @@ struct NextcladeWasmState {
   Nextclade::Tree tree;
   GeneMap geneMap;
   Nextclade::QcConfig qcRulesConfig;
+  Nextclade::VirusJson virusJson;
   safe_vector<Nextclade::PcrPrimer> pcrPrimers;
   Warnings warnings;
   std::map<std::string, RefPeptideInternal> refPeptides;
@@ -64,12 +65,14 @@ NextcladeWasmState makeNextcladeWasmState(//
   const std::string& geneMapStr,          //
   const std::string& treeStr,             //
   const std::string& pcrPrimerRowsStr,    //
-  const std::string& qcConfigStr          //
+  const std::string& qcConfigStr,         //
+  const std::string& virusJsonStr         //
 ) {
   auto ref = toNucleotideSequence(refStr);
 
   auto geneMap = Nextclade::parseGeneMap(geneMapStr);
   auto qcRulesConfig = wrappedParseQcConfig(qcConfigStr, "'makeNextcladeWasmState'");
+  auto virusJson = Nextclade::parseVirusJson(virusJsonStr);
   auto pcrPrimerRows = Nextclade::parsePcrPrimerCsvRowsStr(pcrPrimerRowsStr);
   Warnings warnings;
   auto pcrPrimers = Nextclade::convertPcrPrimerRows(pcrPrimerRows, ref, warnings.global);
@@ -90,6 +93,7 @@ NextcladeWasmState makeNextcladeWasmState(//
     .tree = std::move(tree),
     .geneMap = std::move(geneMap),
     .qcRulesConfig = qcRulesConfig,
+    .virusJson = virusJson,
     .pcrPrimers = std::move(pcrPrimers),
     .warnings = std::move(warnings),
     .refPeptides = refPeptides,
@@ -118,7 +122,8 @@ public:
     const std::string& treeStr,           //
     const std::string& pcrPrimerRowsStr,  //
     const std::string& pcrPrimersFilename,//
-    const std::string& qcConfigStr        //
+    const std::string& qcConfigStr,       //
+    const std::string& virusJsonStr       //
     )
       : state(                   //
           makeNextcladeWasmState(//
@@ -126,7 +131,8 @@ public:
             geneMapStr,          //
             treeStr,             //
             pcrPrimerRowsStr,    //
-            qcConfigStr          //
+            qcConfigStr,         //
+            virusJsonStr         //
             )                    //
           )                      //
   {}
@@ -142,7 +148,7 @@ public:
     };
 
     try {
-      const auto query = toNucleotideSequence(queryStr);
+      const auto query = toNucleotideSequence(sanitizeSequenceString(queryStr));
 
 
       const auto result = analyzeOneSequence(//
@@ -154,6 +160,7 @@ public:
         state.geneMap,                       //
         state.pcrPrimers,                    //
         state.qcRulesConfig,                 //
+        state.virusJson,                     //
         state.tree,                          //
         state.nextalignOptions,              //
         state.tree.getCladeNodeAttrKeys()    //
@@ -217,6 +224,11 @@ std::string parseQcConfigString(const std::string& qcConfigStr) {
   return Nextclade::serializeQcConfig(qcConfig);
 }
 
+std::string parseVirusJsonString(const std::string& virusJsonString) {
+  auto virusJson = Nextclade::parseVirusJson(virusJsonString);
+  return Nextclade::serializeVirusJson(virusJson);
+}
+
 std::string parsePcrPrimerCsvRowsStr(const std::string& pcrPrimersStr, const std::string& pcrPrimersFilename) {
   auto pcrPrimers = Nextclade::parsePcrPrimersCsv(pcrPrimersStr, pcrPrimersFilename);
   return Nextclade::serializePcrPrimerRowsToString(pcrPrimers);
@@ -262,11 +274,9 @@ std::string serializeToCsv(const std::string& analysisResultsStr, const std::str
 std::string serializeInsertionsToCsv(const std::string& analysisResultsStr) {
   const auto analysisResults = wrappedParseAnalysisResults(analysisResultsStr, "'serializeInsertionsToCsv'");
   std::stringstream outputInsertionsStream;
-  outputInsertionsStream << "seqName,insertions\n";
+  outputInsertionsStream << "seqName,insertions,aaInsertions\n";
   for (const auto& result : analysisResults.results) {
-    const auto& seqName = result.seqName;
-    const auto& insertions = result.insertions;
-    outputInsertionsStream << fmt::format("\"{:s}\",\"{:s}\"\n", seqName, formatInsertions(insertions));
+    outputInsertionsStream << formatInsertionsCsvRow(result.seqName, result.insertions, result.aaInsertions);
   }
   return outputInsertionsStream.str();
 }
@@ -277,6 +287,7 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
 
   emscripten::function("parseGeneMapGffString", &parseGeneMapGffString);
   emscripten::function("parseQcConfigString", &parseQcConfigString);
+  emscripten::function("parseVirusJsonString", &parseVirusJsonString);
   emscripten::function("parsePcrPrimerCsvRowsStr", &parsePcrPrimerCsvRowsStr);
   emscripten::function("parseTree", &parseTree);
 
@@ -290,11 +301,12 @@ EMSCRIPTEN_BINDINGS(nextclade_wasm) {
     .field("seq", &Peptide::seq)              //
     ;                                         //
 
-  emscripten::class_<NextcladeWasm>("NextcladeWasm")                                                         //
-    .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string>()//
-    .function("analyze", &NextcladeWasm::analyze)                                                            //
-    .function("getTree", &NextcladeWasm::getTree)                                                            //
-    .function("getCladeNodeAttrKeysStr", &NextcladeWasm::getCladeNodeAttrKeysStr);                           //
+  emscripten::class_<NextcladeWasm>("NextcladeWasm")//
+    .constructor<std::string, std::string, std::string, std::string, std::string, std::string, std::string,
+      std::string>()                                                              //
+    .function("analyze", &NextcladeWasm::analyze)                                 //
+    .function("getTree", &NextcladeWasm::getTree)                                 //
+    .function("getCladeNodeAttrKeysStr", &NextcladeWasm::getCladeNodeAttrKeysStr);//
 
   emscripten::value_object<NextcladeWasmResult>("NextcladeResultWasm")
     .field("ref", &NextcladeWasmResult::ref)

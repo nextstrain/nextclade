@@ -1,13 +1,13 @@
 #pragma once
 
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
 
 #include <ostream>
 #include <string>
-#include <common/safe_vector.h>
 
 
 namespace Nextclade {
@@ -35,6 +35,7 @@ namespace Nextclade {
     const GeneMap& geneMap,                                      //
     const safe_vector<PcrPrimer>& pcrPrimers,                    //
     const QcConfig& qcRulesConfig,                               //
+    const VirusJson& virusJson,                                  //
     const Tree& tree,                                            //
     const NextalignOptions& nextalignOptions,                    //
     const safe_vector<std::string>& customNodeAttrKeys           //

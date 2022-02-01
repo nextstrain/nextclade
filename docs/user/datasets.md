@@ -7,6 +7,7 @@ Nextclade dataset is a set of input data files required for Nextclade to run the
 - quality control configuration
 - gene map
 - PCR primers
+- virus properties (since CLI `v1.10.0` / web `v1.13.0`)
 
 Dataset might also include example sequence data (to be analyzed).
 
@@ -16,9 +17,9 @@ An instance of a dataset is a directory containing the dataset files.
 
 There are 3 concepts that are important to understand in order to work with Nextclade datasets:
 
-1. **Dataset name** - identifies dataset purpose. Typically indicates name of the pathogen. Examples: `sars-cov-2`, `flu_h3n2_ha`. Each dataset is specific to a given virus. For example, a dataset for H1N1 flu is not suitable for analysing SARS-CoV-2 sequences and vice versa. Mixing incompatible datasets and sequences will produce incorrect results.
+1. **Dataset name** - identifies dataset purpose. Typically indicates name of the pathogen. Examples: `sars-cov-2`, `flu_h3n2_ha`. Each dataset is specific to a given virus. For example, a dataset for H1N1 flu is not suitable for analyzing SARS-CoV-2 sequences and vice versa. Mixing incompatible datasets and sequences will produce incorrect results.
 
-2. **Dataset's reference sequence**: each dataset can have multiple flavors, depending on the reference sequence it is based on. For example, one `sars-cov-2` reference dataset can be based on `MN908947 (Wuhan-Hu-1/2019)` or reference sequences, and `flu_h3n2_ha` can be based on `CY034116 (A/Wisconsin/67/2005)` or other reference sequences. For each dataset name, among all available reference sequences, there is a default reference sequence defined (by dataset maintainers). It is used when no concrete reference sequence is specified. The dataset reference is specified using the corresponding accession ID.
+2. **Dataset's reference sequence**: each dataset can have multiple flavors, depending on the reference sequence it is based on. For example, one `sars-cov-2` reference dataset can be based on `MN908947 (Wuhan-Hu-1/2019)` or reference sequences, and `flu_h3n2_ha` can be based on `CY034116 (A/Wisconsin/67/2005)` or other reference sequences. For each dataset name, among all available reference sequences, there is a default reference sequence defined by the dataset maintainers. It is used when no concrete reference sequence is specified. The dataset reference is specified using the corresponding accession ID.
 
 3. **Dataset version and version tag**: each reference dataset can have multiple versions. New versions are produced during dataset updates. Datasets are versioned to ensure correctness when running with different versions of Nextclade as well as reproducibility of results. For each reference in dataset there is exactly one latest version. It is used as a default when no version is specified. Version tag is the name unique to a given version.
 
@@ -30,18 +31,17 @@ A combination of (1) name, (2) reference sequence accession, (3) version tag uni
 
 Nextclade Web loads the latest compatible datasets automatically. User can choose one of the datasets before starting the analysis using dataset selector.
 
-
-<!-- The datasets page &#40;`https://clades.nextstrain.org/data`&#41; displays all the available datasets and allows to download them &#40;individual files or grouped inside a zip archive&#41;. These downloaded datasets can be used with Nextclade Web in advanced mode or with Nextclade CLI. They can also serve as a starting point for creating your own datasets. -->
+The [datasets page](https://github.com/nextstrain/nextclade_data/tree/release/data/datasets) displays all the available datasets and allows to download them. These downloaded datasets can be used with Nextclade Web in advanced mode or with Nextclade CLI. They can also serve as a starting point for creating your own datasets.
 
 ### Datasets in Nextclade CLI
 
-Nextclade CLI implements subcommands allowing to list and to download datasets. This functionality requires internet connection.
+Nextclade CLI implements subcommands allowing to list and to download datasets. This functionality requires an internet connection.
 
 #### List available datasets
 
 The datasets can be listed with the `dataset list` subcommand:
 
-```
+```bash
 nextclade dataset list --name sars-cov-2
 ```
 
@@ -130,9 +130,9 @@ If the `--input-dataset` flag is not used, the individual `--input-*` flags are 
 
 ## Dataset versioning and compatibility
 
-When Nextclade software implements new features (for example new QC checks) it might require dataset changes that are incompatible with the previous versions of Nextclade.
+When Nextclade software implements new features (for example new QC checks) it might require dataset changes that are incompatible with previous versions of Nextclade.
 
-Each dataset defines multiple versions, each containing a range of compatible Nextclade versions (separately for Nextclade Web and Nextclade CLI). A particular version of Nextclade can only use a dataset that has matching compatibility range.
+Each dataset defines multiple versions, each containing a range of compatible Nextclade versions (separately for Nextclade Web and Nextclade CLI). A particular version of Nextclade can only use a dataset that has a matching compatibility range.
 
 Compatibility checks are ensured by default in Nextclade Web and Nextclade CLI when downloading datasets. However, Nextclade CLI users can additionally list and download any dataset version using advanced command-line flags (see `nextclade dataset --help`).
 
@@ -148,7 +148,7 @@ Nextclade team hosts a public file server containing all the dataset file themse
 
 At this time we do not support the usage of the dataset repository outside of Nextclade. We cannot guarantee stability of the index file format or of the filesystem structure. They can change without notice.
 
-The code and source data for datasets generation is in the GitHub repository: [https://github.com/nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data)
+The code and source data for datasets generation is in the GitHub repository: [nextstrain/nextclade_data_workflows](https://github.com/nextstrain/nextclade_data_workflows)
 
 ## Dataset updates
 

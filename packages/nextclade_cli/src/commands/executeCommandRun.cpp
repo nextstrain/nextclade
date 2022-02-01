@@ -41,6 +41,7 @@ namespace Nextclade {
       const auto& inputRootSeq = inputPaths.inputRootSeq;
       const auto& inputGeneMap = inputPaths.inputGeneMap;
       const auto& inputQcConfig = inputPaths.inputQcConfig;
+      const auto& inputVirusJson = inputPaths.inputVirusJson;
       const auto& inputTree = inputPaths.inputTree;
       const auto& inputPcrPrimers = inputPaths.inputPcrPrimers;
 
@@ -96,6 +97,9 @@ namespace Nextclade {
           inputQcConfig, qcRulesConfig.schemaVersion, Nextclade::getQcConfigJsonSchemaVersion());
       }
 
+      const auto virusJsonString = readFile(inputVirusJson);
+      const auto virusJson = parseVirusJson(virusJsonString);
+
       const auto treeString = readFile(inputTree);
 
       safe_vector<Nextclade::PcrPrimer> pcrPrimers;
@@ -119,7 +123,7 @@ namespace Nextclade {
 
       std::ofstream outputInsertionsStream;
       openOutputFile(outputPaths.outputInsertions, outputInsertionsStream);
-      outputInsertionsStream << "seqName,insertions\n";
+      outputInsertionsStream << "seqName,insertions,aaInsertions\n";
 
       std::ofstream outputErrorsFile;
       openOutputFile(outputPaths.outputErrors, outputErrorsFile);
@@ -166,8 +170,8 @@ namespace Nextclade {
 
       NextalignOptions options = cliOptionsToNextalignOptions(*cliParams);
 
-      runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, treeString, pcrPrimers, geneMap,
-        options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
+      runNextclade(parallelism, inOrder, inputFastaStream, refData, qcRulesConfig, virusJson, treeString, pcrPrimers,
+        geneMap, options, outputJsonStream, outputCsvStream, outputTsvStream, outputTreeStream, outputFastaStream,
         outputInsertionsStream, outputErrorsFile, outputGeneStreams, shouldWriteReference, logger);
 
       logger.info("{:s}", std::string(TABLE_WIDTH, '-'));

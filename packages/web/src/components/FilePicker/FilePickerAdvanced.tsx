@@ -10,12 +10,14 @@ import {
   removeQcSettings,
   removeRootSeq,
   removeTree,
+  removeVirusJson,
   setGeneMap,
   setIsDirty,
   setPcrPrimers,
   setQcSettings,
   setRootSeq,
   setTree,
+  setVirusJson,
 } from 'src/state/algorithm/algorithm.actions'
 import { selectCanRun, selectIsDirty, selectParams } from 'src/state/algorithm/algorithm.selectors'
 import { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
@@ -34,11 +36,13 @@ export interface FilePickerAdvancedProps {
   setTree(input: AlgorithmInput): void
   setRootSeq(input: AlgorithmInput): void
   setQcSettings(input: AlgorithmInput): void
+  setVirusJson(input: AlgorithmInput): void
   setGeneMap(input: AlgorithmInput): void
   setPcrPrimers(input: AlgorithmInput): void
   removeTree(_0: unknown): void
   removeRootSeq(_0: unknown): void
   removeQcSettings(_0: unknown): void
+  removeVirusJson(_0: unknown): void
   removeGeneMap(_0: unknown): void
   removePcrPrimers(_0: unknown): void
   setShowNewRunPopup(showNewRunPopup: boolean): void
@@ -55,11 +59,13 @@ const mapDispatchToProps = {
   setTree: setTree.trigger,
   setRootSeq: setRootSeq.trigger,
   setQcSettings: setQcSettings.trigger,
+  setVirusJson: setVirusJson.trigger,
   setGeneMap: setGeneMap.trigger,
   setPcrPrimers: setPcrPrimers.trigger,
   removeTree,
   removeRootSeq,
   removeQcSettings,
+  removeVirusJson,
   removeGeneMap,
   removePcrPrimers,
   algorithmRunTrigger: algorithmRunAsync.trigger,
@@ -73,11 +79,13 @@ export function FilePickerAdvancedDisconnected({
   setTree,
   setRootSeq,
   setQcSettings,
+  setVirusJson,
   setGeneMap,
   setPcrPrimers,
   removeTree,
   removeRootSeq,
   removeQcSettings,
+  removeVirusJson,
   removeGeneMap,
   removePcrPrimers,
 }: FilePickerAdvancedProps) {
@@ -123,6 +131,19 @@ export function FilePickerAdvancedDisconnected({
           errors={params.errors.qcRulesConfig}
           onRemove={removeQcSettings}
           onInput={setQcSettings}
+        />
+
+        <FilePicker
+          className="my-3"
+          compact
+          icon={<FileIconJson size={30} />}
+          title={t('Virus properties')}
+          exampleUrl="https://example.com/virus_properties.json"
+          pasteInstructions={t('Enter Virus attributes in JSON format')}
+          input={params.raw.virusJson}
+          errors={params.errors.virusJson}
+          onRemove={removeVirusJson}
+          onInput={setVirusJson}
         />
 
         <FilePicker

@@ -8,7 +8,11 @@ This is for historical context and none of these should be used for anything ser
 ## Versions 1.x
 
 | release date | version | URL of Vercel preview                              |
-|--------------|---------|----------------------------------------------------|
+| ------------ | ------- | -------------------------------------------------- |
+| 2022-01-11   | 1.12.0  | https://nextclade-jo1iacqrs-nextstrain.vercel.app/ |
+| 2022-01-07   | 1.11.1  | https://nextclade-5aj183szo-nextstrain.vercel.app/ |
+| 2022-01-04   | 1.11.0  | https://nextclade-7knw3p805-nextstrain.vercel.app/ |
+| 2021-12-07   | 1.9.0   | https://nextclade-gi9y6qzvr-nextstrain.vercel.app/ |
 | 2021-11-29   | 1.8.1   | https://nextclade-d0eft3j74-nextstrain.vercel.app/ |
 | 2021-11-25   | 1.8.0   | https://nextclade-ppgn50zv9-nextstrain.vercel.app/ |
 | 2021-11-16   | 1.7.4   | https://nextclade-hq9z31tch-nextstrain.vercel.app/ |
@@ -22,11 +26,10 @@ This is for historical context and none of these should be used for anything ser
 | 2021-07-11   | 1.5.2   | https://nextclade-1bpp6eq1m-nextstrain.vercel.app/ |
 | 2021-07-08   | 1.5.1   | https://nextclade-lb6e55u36-nextstrain.vercel.app/ |
 
-
 ## Versions 0.x
 
 | release date | version | URL of Vercel preview                              |
-|--------------|---------|----------------------------------------------------|
+| ------------ | ------- | -------------------------------------------------- |
 | 2021-06-07   | 0.14.4  | https://nextclade-4u8v9zs7i-nextstrain.vercel.app/ |
 | 2021-05-20   | 0.14.3  | https://nextclade-9d810h320-nextstrain.vercel.app/ |
 | 2021-03-30   | 0.14.2  | https://nextclade-kocumke81-nextstrain.vercel.app/ |

@@ -56,7 +56,8 @@ function SequenceMarkerMutationDisconnected({
 
   const fill = getNucleotideColor(queryNuc)
   const width = Math.max(BASE_MIN_WIDTH_PX, pixelsPerBase)
-  const x = pos * pixelsPerBase - width / 2
+  const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
+  const x = pos * pixelsPerBase - halfNuc
 
   const totalAaChanges = aaSubstitutions.length + aaDeletions.length
 
