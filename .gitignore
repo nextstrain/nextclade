@@ -13,6 +13,7 @@
 /paper/paper.pdf
 /paper/preprint.pdf
 /paper/tex2pdf*
+/target
 /tmp/
 Brewfile.lock.json
 Thumbs.db

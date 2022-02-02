@@ -1,0 +1,10 @@
+/\.build
+/\.cache
+/\.env
+/\.github
+/\.idea
+/\.ignore
+/\.vscode*
+/node_modules
+/public
+/tsconfig.json

@@ -1,0 +1,298 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function abspath() {
+  readlink -m "$1"
+}
+
+export THIS_DIR=$(
+  cd $(dirname "${BASH_SOURCE[0]}")
+  pwd
+)
+
+SUCCESS="({ set +x; } 2> /dev/null && echo '🟩 Success' && exit 0)"
+FAILURE="({ set +x; } 2> /dev/null && echo '🟥 Failure' && exit 1)"
+CANCELLED="({ set +x; } 2> /dev/null && echo '🟦 Cancelled' && exit 0)"
+SUCCESS_OR_FAILURE="&& ${SUCCESS} || ${FAILURE}"
+HANDLE_SIGINT="trap \"${CANCELLED}; exit 0\" INT"
+
+export PACKAGE_NAME="nextclade"
+#export PACKAGE_DIR_REL="packages/${PACKAGE_NAME}"
+export PACKAGE_DIR_REL=""
+
+export PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
+export PACKAGE_DIR="$(abspath "${PROJECT_ROOT_DIR}/${PACKAGE_DIR_REL}")"
+
+export DOCKER_IMAGE_NAME="${PACKAGE_NAME}-dev"
+export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME//\//-}-$(date +%s)"
+
+export USER=user
+export GROUP=user
+
+#export BUILD_DIR_REL="../../.build/${PACKAGE_DIR_REL}"
+export BUILD_DIR_REL=".build/docker/${PACKAGE_DIR_REL}"
+export BUILD_DIR="$(abspath "${PACKAGE_DIR}/${BUILD_DIR_REL}")"
+export BUILD_DIR_TEST="${BUILD_DIR}/test"
+
+#export CACHE_DIR_REL="../../.cache/${PACKAGE_DIR_REL}"
+export CACHE_DIR_REL=".cache/docker/${PACKAGE_DIR_REL}"
+export CACHE_DIR="$(abspath "${PACKAGE_DIR}/${CACHE_DIR_REL}")"
+
+export MAKES="make --no-print-directory"
+export NICE="nice -14 ionice -c2 -n3"
+export TIME="/usr/bin/time --quiet -f \"Cmd : %C\nTime: %E\nMem : %M KB\n\""
+
+export RUSTFLAGS="-A dead_code -A unused"
+export RUST_BACKTRACE="full"
+export COLORBT_SHOW_HIDDEN="0"
+export RUST_LOG="warn"
+export CARGO_BUILD_TARGET_DIR="${BUILD_DIR_REL}"
+
+export LINT_ALLOW_NOW_BUT_FIX_THESE_LATER=" \
+-A clippy::cognitive-complexity \
+-A clippy::else-if-without-else  \
+-A clippy::expect-used \
+-A clippy::missing-const-for-fn \
+-A clippy::panic \
+-A clippy::panic-in-result-fn \
+-A clippy::suboptimal_flops \
+-A clippy::unwrap-in-result \
+-A clippy::unwrap-used \
+-A clippy::useless-transmute \
+"
+
+export LINT_ALLOW=" \
+${LINT_ALLOW_NOW_BUT_FIX_THESE_LATER} \
+-A clippy::as-conversions  \
+-A clippy::cast-lossless \
+-A clippy::cast-possible-truncation \
+-A clippy::cast-possible-wrap \
+-A clippy::cast-precision-loss \
+-A clippy::cast-sign-loss \
+-A clippy::default-numeric-fallback \
+-A clippy::doc-markdown \
+-A clippy::exhaustive-enums \
+-A clippy::exhaustive-structs \
+-A clippy::float-arithmetic \
+-A clippy::if-not-else \
+-A clippy::implicit-hasher \
+-A clippy::implicit-return  \
+-A clippy::inconsistent_digit_grouping \
+-A clippy::indexing-slicing \
+-A clippy::integer-arithmetic \
+-A clippy::large_digit_groups \
+-A clippy::let-underscore-must-use \
+-A clippy::match-same-arms \
+-A clippy::missing-docs-in-private-items  \
+-A clippy::missing-errors-doc \
+-A clippy::missing-panics-doc \
+-A clippy::missing_inline_in_public_items \
+-A clippy::mod-module-files \
+-A clippy::module-name-repetitions \
+-A clippy::must-use-candidate \
+-A clippy::new_without_default \
+-A clippy::non-ascii-literal \
+-A clippy::option-if-let-else \
+-A clippy::pattern-type-mismatch \
+-A clippy::print-stderr  \
+-A clippy::print-stdout  \
+-A clippy::separated-literal-suffix \
+-A clippy::shadow-reuse \
+-A clippy::shadow-same \
+-A clippy::shadow-unrelated \
+-A clippy::should_implement_trait \
+-A clippy::similar-names \
+-A clippy::too-many-lines \
+-A clippy::unnecessary-wraps \
+-A clippy::unreachable \
+-A clippy::unreadable-literal  \
+-A clippy::unused-self \
+-A clippy::use-debug  \
+-A clippy::wildcard-enum-match-arm \
+"
+
+export EXTENSIONS_TO_WATCH="rs,toml,lock"
+
+export FILES_TO_WATCH="\
+-w 'Cargo.lock' \
+-w 'Cargo.toml' \
+-w 'clippy.toml' \
+-w 'rust-toolchain.toml' \
+-w 'rustfmt.toml' \
+-w 'src/' \
+"
+
+export FILES_TO_IGNORE="\
+-i '.build' \
+-i '.cache' \
+-i '.vscode' \
+-i 'target/' \
+"
+
+BUILD=0
+RUN=0
+WASM=0
+EXEC=0
+RELEASE=
+WATCH=0
+TEST=0
+
+case "$1" in
+"build" | "b")
+  shift
+  BUILD=1
+  ;;
+"build-release" | "br")
+  shift
+  BUILD=1
+  RELEASE="--release"
+  ;;
+"run" | "r")
+  shift
+  RUN=1
+  EXEC=0
+  ;;
+"run-release" | "rr")
+  shift
+  RUN=1
+  RELEASE="--release"
+  ;;
+"watch-run" | "wr")
+  shift
+  RUN=1
+  WATCH=1
+  ;;
+"watch-run-release" | "wrr")
+  shift
+  RUN=1
+  RELEASE="--release"
+  WATCH=1
+  ;;
+"wasm" | "w")
+  shift
+  WASM=1
+  RELEASE="--dev"
+  WATCH=0
+  ;;
+"watch-wasm" | "ww")
+  shift
+  WASM=1
+  RELEASE="--release"
+  WATCH=1
+  ;;
+"watch-wasm-release" | "wwr")
+  shift
+  WASM=1
+  RELEASE="--release"
+  WATCH=1
+  ;;
+"test" | "t")
+  shift
+  TEST=1
+  WATCH=0
+  ;;
+"watch-test" | "wt")
+  shift
+  TEST=1
+  WATCH=1
+  ;;
+"exec" | "e")
+  shift
+  RUN=0
+  EXEC=1
+  ;;
+esac
+
+docker build -q -t "${DOCKER_IMAGE_NAME}:latest" \
+  -f "${PACKAGE_DIR}/docker-dev.dockerfile" \
+  --build-arg="UID=$(id -u)" \
+  --build-arg="GID=$(id -g)" \
+  --build-arg="USER=user" \
+  --build-arg="GROUP=user" \
+  "${PACKAGE_DIR}" \
+  >/dev/null
+
+PARAMS="${@:-}"
+if [ ! -z "${PARAMS}" ]; then
+  PARAMS="--bin=${PARAMS}"
+fi
+
+COMMAND=${*:-}
+if [ "${RUN}" == "1" ]; then
+  COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RELEASE} ${PARAMS}"
+elif [ "${BUILD}" == "1" ]; then
+  COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RELEASE} ${PARAMS}"
+elif [ "${WASM}" == "1" ];then
+  COMMAND="wasm-pack --quiet --log-level=error build --dev --target=bundler"
+elif [ "${TEST}" == "1" ]; then
+  PRETTY_TEST="( grep --color=always --line-buffered -vP \"running.*tests|\x1b\[32m.\x1b\(B\x1b\[m|^$|test result\" || true )"
+  COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${@:-} -- --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
+else
+  COMMAND="${NICE} ${TIME} ${COMMAND}"
+fi
+
+if [ "${WATCH}" == "1" ]; then
+  COMMAND="${NICE} watchexec \
+    --restart \
+    --shell=bash \
+    --debounce=10 \
+    --no-meta \
+    --no-environment \
+    --exts=${EXTENSIONS_TO_WATCH} \
+    ${FILES_TO_WATCH} \
+    ${FILES_TO_IGNORE} \
+    --ignore='src/gen/' \
+    'reset; ${NICE} ${TIME} ${COMMAND}'"
+else
+  COMMAND="${NICE} ${TIME} ${COMMAND}"
+fi
+
+CPUS="$(($(nproc) - 2))"
+
+mkdir -p ${BUILD_DIR} ${CACHE_DIR}/.cargo/{install,registry}
+
+DOCKER_PS_RESULT=$(docker ps -f "name=${DOCKER_CONTAINER_NAME}" --format '{{.Names}}')
+if [ "${RUN}" != "1" ] && [ "${DOCKER_PS_RESULT}" == "${DOCKER_CONTAINER_NAME}" ]; then
+  # If already running, exec a command in the existing instance
+  docker exec -it \
+    --user="$(id -u):$(id -g)" \
+    --workdir="/workdir/${PACKAGE_DIR_REL}" \
+    --env="UID=$(id -u)" \
+    --env="GID=$(id -g)" \
+    --env="USER=${USER}" \
+    --env="GROUP=${GROUP}" \
+    --env="PS1=\${USER}@\${HOST}" \
+    --env="RUSTFLAGS=${RUSTFLAGS}" \
+    --env="RUST_BACKTRACE=${RUST_BACKTRACE}" \
+    --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
+    --env="RUST_LOG=${RUST_LOG}" \
+    --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
+    --cpus="${CPUS}" \
+    ${DOCKER_CONTAINER_NAME} \
+    bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${NICE} ${TIME} ${COMMAND} ${SUCCESS_OR_FAILURE}"
+else
+  # If not already running, run
+  docker run -it --rm \
+    --init \
+    --name="${DOCKER_CONTAINER_NAME}" \
+    --hostname="${DOCKER_IMAGE_NAME}" \
+    --user="$(id -u):$(id -g)" \
+    --volume="${PROJECT_ROOT_DIR}:/workdir" \
+    --volume="${CACHE_DIR}/.cargo/install:/home/${USER}/.cargo/install" \
+    --volume="${CACHE_DIR}/.cargo/registry:/home/${USER}/.cargo/registry" \
+    --workdir="/workdir/${PACKAGE_DIR_REL}" \
+    --env="UID=$(id -u)" \
+    --env="GID=$(id -g)" \
+    --env="USER=${USER}" \
+    --env="GROUP=${GROUP}" \
+    --env="PS1=\${USER}@\${HOST}" \
+    --env="RUSTFLAGS=${RUSTFLAGS}" \
+    --env="RUST_BACKTRACE=${RUST_BACKTRACE}" \
+    --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
+    --env="RUST_LOG=${RUST_LOG}" \
+    --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
+    --cpus="${CPUS}" \
+    ${DOCKER_IMAGE_NAME} \
+    bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"
+fi

@@ -1,0 +1,2 @@
+avoid-breaking-exported-api = false
+cognitive-complexity-threshold = 30

@@ -1,0 +1,28 @@
+[package]
+name = "nextclade_wasm"
+description = "Viral sequence alignmant and analysis tool"
+version = "2.0.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+
+[dependencies]
+console_error_panic_hook = "0.1.7"
+log = "0.4.14"
+wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"] }
+wasm-logger = "0.2.0"
+web-sys = { version = "0.3.56", features = ["console"] }
+wee_alloc = "0.4.5"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.29"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
+opt-level = "s"
