@@ -13,6 +13,20 @@
 
 
 namespace Nextclade {
+  namespace {
+    // A naive way to erase mutations from a vector of mutations, that are present in another vector of mutations
+    safe_vector<NucleotideSubstitutionSimple> eraseIntersection(const safe_vector<NucleotideSubstitutionSimple>& big,
+      const safe_vector<NucleotideSubstitutionSimple>& small) {
+      safe_vector<NucleotideSubstitutionSimple> result;
+      std::copy_if(big.begin(), big.end(), std::back_inserter(result), [&small](const NucleotideSubstitutionSimple& b) {
+        return small.end() == std::find_if(small.cbegin(), small.cend(),
+                                [&b](const NucleotideSubstitutionSimple& s) { return b.pos == s.pos; });
+      });
+      return result;
+    }
+
+  }// namespace
+
   safe_vector<safe_vector<int>> findSnpClusters(                         //
     const safe_vector<NucleotideSubstitutionSimple>& privateMutationsRaw,//
     const QCRulesConfigSnpClusters& config                               //
