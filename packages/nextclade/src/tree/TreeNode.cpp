@@ -363,12 +363,15 @@ namespace Nextclade {
           mutObj[geneName] = json::array();
         }
 
-        for (const auto& mut : privateAaSubstitutions) {
-          mutObj[geneName].push_back(formatAminoacidMutationSimpleWithoutGene(mut));
-        }
 
-        for (const auto& mut : privateAaDeletions) {
-          mutObj[geneName].push_back(formatAminoacidDeletionSimpleWithoutGene(mut));
+        // Merge aa subs and dels and sort them in unison
+        const auto aaDelsAsSubs = map_vector<AminoacidDeletionSimple, AminoacidSubstitutionSimple>(privateAaDeletions,
+          convertDelToSub<Aminoacid>);
+        auto allAaMutations = merge(privateAaSubstitutions, aaDelsAsSubs);
+        std::sort(allAaMutations.begin(), allAaMutations.end());
+
+        for (const auto& mut : allAaMutations) {
+          mutObj[geneName].push_back(formatAminoacidMutationSimpleWithoutGene(mut));
         }
       }
 
