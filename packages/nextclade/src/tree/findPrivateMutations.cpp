@@ -359,6 +359,8 @@ namespace Nextclade {
 
       auto privateSubstitutions = merge(privateReversionSubstitutions, privateNonReversionSubstitutions);
       privateSubstitutions = merge(privateSubstitutions, privateReversionsOfDeletions);
+      std::sort(privateSubstitutions.begin(), privateSubstitutions.end());
+
       auto privateDeletions = privateNonReversionDeletions;
 
       auto totalPrivateSubstitutions = safe_cast<int>(privateSubstitutions.size());
