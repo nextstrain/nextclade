@@ -358,22 +358,22 @@ namespace Nextclade {
       for (const auto& [geneName, aaMutationsForGene] : aaMutations) {
         const auto& privateAaSubstitutions = aaMutationsForGene.privateSubstitutions;
         const auto& privateAaDeletions = aaMutationsForGene.privateDeletions;
-        const int totalPrivateAaMutations = safe_cast<int>(privateAaSubstitutions.size() + privateAaDeletions.size());
+        const auto& reversionsOfDeletions = aaMutationsForGene.reversionsOfDeletions;
 
-        if (totalPrivateAaMutations == 0) {
+        // Merge aa subs and dels and rev dels, and sort them in unison
+        const auto aaDelsAsSubs = map_vector<AminoacidDeletionSimple, AminoacidSubstitutionSimple>(privateAaDeletions,
+          convertDelToSub<Aminoacid>);
+        auto allAaMutations = merge(privateAaSubstitutions, aaDelsAsSubs);
+        allAaMutations = merge(allAaMutations, reversionsOfDeletions);
+        std::sort(allAaMutations.begin(), allAaMutations.end());
+
+        if (allAaMutations.empty()) {
           continue;
         }
 
         if (!mutObj.contains(geneName)) {
           mutObj[geneName] = json::array();
         }
-
-
-        // Merge aa subs and dels and sort them in unison
-        const auto aaDelsAsSubs = map_vector<AminoacidDeletionSimple, AminoacidSubstitutionSimple>(privateAaDeletions,
-          convertDelToSub<Aminoacid>);
-        auto allAaMutations = merge(privateAaSubstitutions, aaDelsAsSubs);
-        std::sort(allAaMutations.begin(), allAaMutations.end());
 
         for (const auto& mut : allAaMutations) {
           mutObj[geneName].push_back(formatAminoacidMutationSimpleWithoutGene(mut));
