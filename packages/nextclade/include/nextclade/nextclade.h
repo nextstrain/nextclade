@@ -182,7 +182,7 @@ namespace Nextclade {
 
     /** Converts deletion into substitution. Note: deletion is a substitution to GAP character */
     explicit operator SubstitutionSimple<Letter>() const {
-      return SubstitutionSimple<Letter>{.ref = ref, .pos = pos, .qry = Nucleotide::GAP};
+      return SubstitutionSimple<Letter>{.ref = ref, .pos = pos, .qry = Letter::GAP};
     }
   };
 
