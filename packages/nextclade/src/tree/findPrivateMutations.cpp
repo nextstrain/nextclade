@@ -358,7 +358,6 @@ namespace Nextclade {
         substitutionLabelMap, deletionLabelMap);
 
       auto privateSubstitutions = merge(privateReversionSubstitutions, privateNonReversionSubstitutions);
-      privateSubstitutions = merge(privateSubstitutions, privateReversionsOfDeletions);
       std::sort(privateSubstitutions.begin(), privateSubstitutions.end());
 
       auto privateDeletions = privateNonReversionDeletions;
