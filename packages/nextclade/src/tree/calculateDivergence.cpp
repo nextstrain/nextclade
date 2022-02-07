@@ -1,8 +1,8 @@
 #include "calculateDivergence.h"
 
+#include <common/contract.h>
 #include <nextclade/nextclade.h>
 
-#include <common/contract.h>
 #include "../utils/safe_cast.h"
 #include "TreeNode.h"
 
@@ -28,8 +28,12 @@ namespace Nextclade {
     // The parent node has this much divergence
     const double baseDiv = nearestNode.divergence().value_or(0.0);
 
+    // NOTE: we exclude reversions of deletions
+    const auto privateSubstitutions = eraseIntersection(result.privateNucMutations.privateSubstitutions,
+      result.privateNucMutations.reversionsOfDeletions);
+
     // Divergence is just number of substitutions compared to the parent
-    auto thisDiv = safe_cast<double>(result.privateNucMutations.privateSubstitutions.size());
+    auto thisDiv = safe_cast<double>(privateSubstitutions.size());
 
     // If divergence is measured per site, divide by the length of reference sequence.
     // The unit of measurement is deduced from what's already is used in the reference tree nodes.
