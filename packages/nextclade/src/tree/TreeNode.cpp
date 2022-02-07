@@ -340,11 +340,16 @@ namespace Nextclade {
     ) {
       auto mutObj = json::object();
 
-      // Merge nuc subs and dels and sort them in unison
+      // Merge nuc subs and dels and rev dels, and sort them in unison
       const auto delsAsSubs = map_vector<NucleotideDeletionSimple, NucleotideSubstitutionSimple>(
         nucMutations.privateDeletions, convertDelToSub<Nucleotide>);
       auto allNucMutations = merge(nucMutations.privateSubstitutions, delsAsSubs);
+      allNucMutations = merge(allNucMutations, nucMutations.reversionsOfDeletions);
       std::sort(allNucMutations.begin(), allNucMutations.end());
+
+      if (!mutObj.contains("nuc")) {
+        mutObj["nuc"] = json::array();
+      }
 
       for (const auto& mut : allNucMutations) {
         mutObj["nuc"].push_back(formatMutationSimple(mut));
