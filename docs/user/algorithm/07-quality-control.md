@@ -32,11 +32,13 @@ The final score has the same thresholds as the the individual scores.
 
 ## Individual QC Rules
 
-For SARS-CoV-2, we currently implement the following QC rules (in parentheses are the one-letter designations used in [Nextclade Web](../nextclade-web))
+For SARS-CoV-2, we currently implement the following QC rules (in parentheses are the one-letter designations used in [Nextclade Web](../nextclade-web)). For other viruses, such as influenza, the same QC rules are used. However, the parametrization is different. The exact parameters can be found in the `qc.json` input file. Datasets provided by Nextclade can be inspected in the Github repo [nextstrain/nextclade_data](https://github.com/nextstrain/nextclade_data).
 
-#### Missing data (N)
+As an example, here's a [`qc.json` for a recent H3N2 dataset](https://github.com/nextstrain/nextclade_data/blob/master/data/datasets/flu_h3n2_ha/references/CY163680/versions/2022-01-18T12:00:00Z/files/qc.json). Here's the [`qc.json` for a recent SARS-CoV-2 dataset](https://github.com/nextstrain/nextclade_data/blob/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-02-07T12:00:00Z/files/qc.json).
 
-If your sequence misses more than 3000 sites (`N` characters), it will be flagged as `bad` <!--- what happens if it's 2900 Ns? What's the function, linear from 0 to 100 from 0 to 3000 and capped thereafter? -->
+### Missing data (N)
+
+If your sequence misses more than 3000 sites (`N` characters), it will be flagged as `bad`. The first 300 missing sites are not penalized (`scoreBias`). After that the score goes linearly from 0-100 as the number `N`s goes from 300 to 3000 (`scoreBias + missingDataThreshold`).
 
 #### Mixed sites (M)
 
