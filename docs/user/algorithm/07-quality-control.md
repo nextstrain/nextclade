@@ -10,13 +10,11 @@ Nextclade scans each query sequence for issues which may indicate problems occur
 
 For each query sequence each individual QC rule produces a quality score. These **individual QC scores** are empirically calibrated to fit the following thresholds:
 
-| Score         | Meaning                  | Color designation     |
-|---------------|--------------------------|-----------------------|
-| 0             | the best quality         | bright green          |
-| 0 to 29       | "good" quality           | green to yellow       |
-| 30            | warning threshold        | yellow                |
-| 30 to 99      | "mediocre" quality       | yellow to orange      |
-| 100 and above | "bad" quality            | red to bright red     |
+| Score         | Meaning            | Color designation |
+| ------------- | ------------------ | ----------------- |
+| 0 to 29       | "good" quality     | green             |
+| 30 to 99      | "mediocre" quality | yellow            |
+| 100 and above | "bad" quality      | red               |
 
 After all scores are calculated, the **final QC score** ``$` S `$`` is calculated as follows:
 
@@ -40,29 +38,60 @@ As an example, here's a [`qc.json` for a recent H3N2 dataset](https://github.com
 
 If your sequence misses more than 3000 sites (`N` characters), it will be flagged as `bad`. The first 300 missing sites are not penalized (`scoreBias`). After that the score goes linearly from 0-100 as the number `N`s goes from 300 to 3000 (`scoreBias + missingDataThreshold`).
 
-#### Mixed sites (M)
+### Mixed sites (M)
 
-Ambiguous nucleotides (such as `R`, `Y`, etc) are often indicative of contamination (or superinfection) and more than 10 such non-ACGTN characters will result in a QC flag `bad`.
+Ambiguous nucleotides (such as `R`, `Y`, etc) are often indicative of contamination (or superinfection) and more than 10 (`mixedSitesThreshold`) such non-ACGTN characters will result in a QC flag `bad`.
 
-#### Private mutations (P)
+### Private mutations (P)
 
-Sequences with more than 24 mutations relative to the closest sequence in the reference tree are flagged as `bad`. We will revise this threshold as diversity of the SARS-CoV-2 population increases.
+In order to assign clades, Nextclade places sequences on a reference tree that is representative of the global phylogeny (see figure below). The query sequence (dashed) is compared to all sequences (including internal nodes) of the reference tree to identify the nearest neighbor.
 
-#### Mutation clusters (C)
+As a by-product of this placement, Nextclade identifies the mutations, called "private mutations", that differ between the query sequence and the nearest neighbor sequence. In the figure, the yellow and dark green mutations are private mutations, as they occur in addition to the 3 mutations of the attachment node.
 
-If your sequence has clusters with 6 or more private differences within a 100-nucleotide window, it will be flagged as `bad`.
+![Identification of private mutations](//docs/user/assets/algo_private-muts.png)
 
-#### Stop codons (S)
+Many sequence quality problems are identifiable by the presence of private mutations. Sequences with unusually many private mutations are unlikely to be biological and are thus flagged as bad.
+
+Since web version 1.13.0 (CLI 1.10.0), Nextclade classifies private mutations further into 3 categories to be more sensitive to potential contamination, co-infection and recombination:
+
+1. Reversions: Private mutations that go back to the reference sequence, i.e. a mutation with respect to reference is present on the attachment node but not on the query sequence.
+2. Labeled mutations: Private mutations to a genotype that is known to be common in a clade.
+3. Unlabeled mutations: Private mutations that are neither reversions nor labeled.
+
+For an illustration of these 3 types, see the figure below.
+
+![Classification of private mutations](//docs/user/assets/algo_private-muts-classification.png)
+
+Reversions are common artefacts in some bioinformatic pipelines when there is amplicon dropout.
+They are also a sign of contamination, co-infection or recombination. Labeled mutations also contain commonly when there's contamination, co-infection or recombination.
+
+Reversions and labeled mutations are weighted several times higher than unlabeled mutations due to their higher sensitivity and specificity for quality problems (and recombination).
+In February 2022, every reversion was counted 6 times (`weightReversionSubstitutions`) while every labeled mutation was counted 4 times (`weightLabeledSubstitutions`). Unlabeled mutations get weight 1 (`weightUnlabeledSubstitutions`).
+
+From the weighted sum, 8 (`typical`) is subtracted. The score is then a linear interpolation between 0 and 100 (and above), where 100 corresponds to 24 (`cutoff`).
+
+Private deletion ranges (including reversion) are currently counted as a single unlabeled substitution, but this could change in the future.
+
+Which genotypes get "labeled" is determined in the dataset config file `virus_properties.json` which can also be found in the [Github repo](https://github.com/nextstrain/nextclade_data/blob/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-02-07T12:00:00Z/files/virus_properties.json).
+Currently, all mutations that appear in at least 30% of the sequences of a clade or in at least 100k sequences in a clade get that clade's label.
+
+### Mutation clusters (C)
+
+To be more sensitive for quality problems in a narrow area of a genome, the mutation cluster rule counts the number of private within all possible 100-nucleotide windows (`windowSize`).
+If that number exceeds 6 (`clusterCutOff`), this counts as a SNP cluster.
+The quality score is the number of clusters times 50 (`scoreWeight`), hence 1 cluster will cause the cluster rule to be mediocre.
+
+### Stop codons (S)
 
 Replicating viruses can not have premature stop codons in essential genes and such premature stops are hence an indicator of problematic sequences.
 
-However, some stop codons are known to be common even in functional viruses. Our stop codon rule excludes such known stop codons and assigns a QC score of 75 to each additional premature stop.
+However, some stop codons are known to be common even in functional viruses. Our stop codon rule excludes such known stop codons `ignoredStopCodons` and assigns a QC score of 75 to each premature stop, hence if there are 2 unknown stop codons, the score is 150.
 
-<!--- How does this work with 2 stop codons? Score of 150? But I thought 100 is max. -->
+Beware that the position of known stop codons in `qc.json` is 0-indexed, in contrast to the 1-indexed positions that are used in Nextclade outputs.
 
-#### Frame shifts (F)
+### Frame shifts (F)
 
-Frame shifting insertions or deletions typically result in a garbled translation or a premature stop. Nextalign currently doesn't translate frame shifted coding sequences and each frame shift is assigned a QC score 75. Note, however, that clade 21H has a frame shift towards the end of ORF3a that results in a premature stop.
+Frame shifting insertions or deletions typically result in a garbled translation or a premature stop. Nextalign currently doesn't translate frame shifted coding sequences and each frame shift is assigned a QC score 75. Note, however, that clade 21H (Mu) has a frame shift towards the end of ORF3a that results in a premature stop. Known frame shifts (those listed in `ignoredFrameShifts`) in `qc.json` are not penalized.
 
 ## Interpretation
 
@@ -90,4 +119,3 @@ QC checks can be enabled or disabled, and their parameters can be changed by pro
 QC results are presented in the "QC" column of the results table in [Nextclade Web](../nextclade-web). More information is included into mouseover tooltips.
 
 QC results are also included in the analysis results JSON, CSV and TSV files generated by [Nextclade CLI](../nextclade-cli) and in the "Download" dialog of [Nextclade Web](../nextclade-web).
-
