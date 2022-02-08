@@ -99,20 +99,13 @@ Nextclade's QC warnings don't necessarily mean your sequences are problematic, b
 
 The numeric QC scores are useful for rough estimation of the quality of sequences. However, these values are empirical. They only hint on possible issues, the possible scale of these issues and call for further investigation. They do not have any other meaning or application.
 
+The [Nextstrain SARS-CoV-2 pipeline](https://github.com/nextstrain/ncov) uses similar (more lenient) QC criteria. For example, Nextstrain will exclude your sequence if it has fewer than 27000 valid bases (corresponding to roughly 3000 Ns) and doesn't check for ambiguous characters. Sequences flagged for excess divergence and SNP clusters by Nextclade are likely excluded by Nextstrain.
 
-<!-- TODO: this is a SARS-CoV-2-specific section -->
-
-The [Nextstrain SARS-CoV-2 pipeline](https://github.com/nextstrain/ncov) uses similar (more lenient) QC criteria. For example, Nextstrain will exclude your sequence if it has fewer than 27000 valid bases (corresponding to roughly 3000 Ns) and <!--- should this be `but` instead of `and`? --> doesn't check for ambiguous characters. Sequences flagged for excess divergence and SNP clusters by Nextclade are likely excluded <!--- should this be `included` or `excluded`? --> by Nextstrain.
-
-<!-- TODO: check factual correctness and spelling of the next sentence -->
-
-Note that there are many additional potential problems Nextclade does not check for. These include for example: primer sequences, adaptaters <!--- adaptors? --> , or chimeras <!--- reocmbinations? --> between divergent SARS-CoV-2 strains.
+Note that there are many additional potential problems Nextclade does not check for. These include for example: primer sequences or adapters.
 
 ## Configuration
 
 QC checks can be enabled or disabled, and their parameters can be changed by providing a custom QC configuration file (typically `qc.json`) in the Advanced mode of [Nextclade Web](../nextclade-web) or in [Nextclade CLI](../nextclade-cli).
-
-<!-- TODO: describe the QC parameters -->
 
 ## Results
 
