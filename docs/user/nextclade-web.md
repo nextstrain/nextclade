@@ -141,6 +141,18 @@ Once Nextclade has finished its analysis, you can download the results in a vari
 - `nextclade.errors.csv`: A file containing all errors and warnings that occurred during the analysis, like genes that failed to be translated
 - `nextclade.zip`: A `zip` file containing all files mentioned above
 
+### Advanced mode
+
+You can use a custom dataset in Nextclade web through the advanced mode. The same input files as for Nextclade CLI can be specified, see [input files](input-files) for more details. Click on `Customize dataset files` to open advanced mode:
+
+![Advanced mode](//docs/user/assets/web_select-advanced.png)
+
+The selected dataset, for example `SARS-CoV-2` is used as the default for any input file and overwritten by user supplied files.
+
+You can provide files by drag and drop, by providing a web link or copying it into a text box:
+
+![Advanced mode UI](//docs/user/assets/web_advanced-ui.png)
+
 ### URL parameters
 
 Input files can be specified in the URL parameters. The name of the parameters match the corresponding `--input*`
@@ -152,18 +164,18 @@ If an `input-fasta` URL parameter is provided, Nextclade Web automatically start
 
 All parameters are optional.
 
-| URL parameter     | Meaning                                                                                             |
-| ----------------- | --------------------------------------------------------------------------------------------------- |
-| input-fasta       | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. |
-| input-root-seq    | URL to a fasta file containing reference (root) sequence.                                           |
-| input-tree        | URL to a Auspice JSON v2 file containing reference tree.                                            |
-| input-pcr-primers | URL to a CSV file containing PCR primers.                                                           |
-| input-qc-config   | URL to a JSON file containing QC onfiguration.                                                      |
-| input-gene-map    | URL to a GFF3 file containing gene map.                                                             |
-| dataset-name      | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                              |
-| dataset-reference | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.        |
-| dataset-tag       | Version tag of the dataset to use.                                                                  |
-<!--- TODO @ivan-aksamentov: Add row for virusPropertiesJson parameter -->
+| URL parameter          | Meaning                                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| input-fasta            | URL to a fasta file containing query sequences. If provided, the analysis will start automatically. |
+| input-root-seq         | URL to a fasta file containing reference (root) sequence.                                           |
+| input-tree             | URL to a Auspice JSON v2 file containing reference tree.                                            |
+| input-pcr-primers      | URL to a CSV file containing PCR primers.                                                           |
+| input-qc-config        | URL to a JSON file containing QC onfiguration.                                                      |
+| input-gene-map         | URL to a GFF3 file containing gene map.                                                             |
+| input-virus-properties | URL to a JSON file containing labeled genotypes (`virusProperties.json`)                            |
+| dataset-name           | Safe name of the dataset to use. Examples: `sars-cov-2`, `flu_h3n2_ha`                              |
+| dataset-reference      | Accession of the reference sequence of the dataset to use: Examples: `MN908947`, `CY034116`.        |
+| dataset-tag            | Version tag of the dataset to use.                                                                  |
 
 For example, the file with input sequences hosted at `https://example.com/sequences.fasta` can be specified with:
 

@@ -94,9 +94,13 @@ Every row in tabular output corresponds to 1 input sequence. The meaning of colu
 
 ### JSON results
 
-Nextclade CLI flag: `--output-json`
+Nextclade CLI flag: `--output-json`, filename `nextclade.json`
 
 JSON results file is best for in-depth automated processing of results. It contains everything tabular files contain, plus more, in a more machine-friendly format.
+
+> ⚠️ Beware that JSON results use 0-indexed nucleotide and codon positions, whereas csv and tsv files use 1-indexed positions. The reason is, that JSON corresponds more closely to the internal representation and 0-indexing is the default in most programming languages. For example, substitution `{refNuc: "C", pos: 2146, queryNuc: "T"}` in JSON results corresponds to substitution `C2147T` in csv and tsv files.
+>
+>Ranges are inclusive for the start and exclusive for the end. Hence, `missing: {begin: 704, end: 726}` in JSON results corresponds to `missing: 705-726` in csv/tsv results.
 
 ## Output phylogenetic tree
 

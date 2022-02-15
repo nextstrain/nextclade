@@ -95,6 +95,8 @@ Accepted formats: JSON. Example configuration for SARS-CoV-2:
 }
 ```
 
+Note that the positions are 0-indexed and codon range ends are excluded. So `ORF3a:257-276` should be encoded as `{"begin": 256, "end": 276 }`.
+
 ## Gene map
 
 (or "genome annotations")
@@ -195,6 +197,8 @@ It is of the following schema (shortened for clarity):
   }
 }
 ```
+
+Positions are 1-indexed.
 
 Nextclade Web (advanced mode): accepted in "Virus properties" drag & drop box.
 
