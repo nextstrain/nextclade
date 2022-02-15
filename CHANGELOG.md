@@ -1,3 +1,20 @@
+## Nextclade Web 1.13.2, Nextclade CLI 1.10.3, Nextalign CLI 1.10.3 (2022-02-15)
+
+This is a bug fix release.
+
+### [Fix] Ignore private reversions of deletions when calculating divergence
+
+Since their introduction, individual private reversions of deletions contributed extra to divergence. This was unexpected, so we removed reversions of deletions from consideration when calculating divergence in Nextclade.
+
+### [Fix] Sort private substitutions on the tree
+
+Private substitutions are now sorted by position when they are displayed on the tree page
+
+### [Fix] "truncated" text in the insertions tooltip
+
+In Nextclade Web, long insertions no longer have a visual bug when the "truncated" text is displayed twice.
+
+
 ## Nextclade Web 1.13.1, Nextclade CLI 1.10.2, Nextalign CLI 1.10.2 (2022-02-01)
 
 This is a bug fix release.
