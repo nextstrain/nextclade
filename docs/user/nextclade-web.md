@@ -145,13 +145,13 @@ Once Nextclade has finished its analysis, you can download the results in a vari
 
 You can use a custom dataset in Nextclade web through the advanced mode. The same input files as for Nextclade CLI can be specified, see [input files](input-files) for more details. Click on `Customize dataset files` to open advanced mode:
 
-![Advanced mode](//docs/user/assets/web_select-advanced.png)
+![Advanced mode](assets/web_select-advanced.png)
 
 The selected dataset, for example `SARS-CoV-2` is used as the default for any input file and overwritten by user supplied files.
 
 You can provide files by drag and drop, by providing a web link or copying it into a text box:
 
-![Advanced mode UI](//docs/user/assets/web_advanced-ui.png)
+![Advanced mode UI](assets/web_advanced-ui.png)
 
 ### URL parameters
 
