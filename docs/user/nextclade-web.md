@@ -61,24 +61,11 @@ You can get a quick overview of the results screen in the screenshot below:
 ### QC metrics
 
 Nextclade implements a variety of quality control metrics to quickly spot problems in your sequencing/assembly pipeline. You can get a quick idea which of your sequences are having problems by sorting the results table from bad to good (click on the upper arrow in the column "QC"). Bad sequences are colored red, mediocre ones yellow and good ones white. You can view detailed results of the QC metrics by hovering your mouse over a sequences QC entry:
-click on the upper arrow in the column QC). Bad sequences are colored red, mediocre ones yellow and good ones white. You can view detailed results of the QC metrics by hovering your mouse over a sequences QC entry:
 
 ![QC hover](assets/web_QC.png)
 
-Every icon corresponds to a different metric.
+Every icon corresponds to a different metric. See [Quality control](algorithm/07-quality-control) section for the detailed explanation of QC metrics.
 
-At the moment, there are 6 different quality control metrics implemented:
-
-- Missing data: Number of Ns in the sequence. Up to 300 is not penalized, sequences with more than 3000 Ns are considered bad.
-- Mixed sites: Number of bases with ambiguous nucleotide characters. Since mixed sites are considered indicative of impurities, already 10 mixed sites give a bad score.
-- Private mutations: Mutations that are additional to the nearest neighbouring sequence in the reference tree. 
-Since web version `1.13.0`, Nextclade splits private mutations into three groups:
-  - Reversions to reference (this is a common quality problem in SARS-CoV-2 sequences and thus heavily penalized)
-  - Labeled: Mutations that are common in a variant and could thus indicate contamination, co-infection or recombination
-  - Unlabeled: Mutations that have not become a big proportion in any clade
-- Mutation Clusters: A mutation cluster is defined as more than 6 private mutations occurring within a 100 nucleotide window. 2 mutation clusters are considered bad.
-- Frame shifts: Number of insertions or deletions that are not a multiple of 3. 1 frameshift is considered mediocre, 2 frameshifts are bad.
-- Stop codons: Number of stop codons that occur in unexpected places. 1 misplaced stop codon is considered mediocre, 2 stop codons are bad.
 
 ### Table data
 
