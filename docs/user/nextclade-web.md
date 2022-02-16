@@ -106,7 +106,7 @@ In sequence view, one can observe mutations in a particular gene. One of Nextcla
 ![Alignment tooltip](assets/web_alignment-tip.png)
 
 ### Tree
-In order to assign clades to sequences, Nextclade [places](algorithm) all new sequences on a a reference tree. You can view the resulting tree by clicking on the tree icon at the top right.
+In order to assign clades to sequences, Nextclade [places](algorithm/05-phylogenetic-placement) all new sequences on a a reference tree. You can view the resulting tree by clicking on the tree icon at the top right.
 
 The tree is visualized by [Nextstrain Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/). By default, only your uploaded sequences are highlighted.
 
