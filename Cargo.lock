@@ -718,11 +718,34 @@ dependencies = [
 ]
 
 [[package]]
-name = "nextclade_wasm"
+name = "nextclade-cli"
+version = "2.0.0"
+dependencies = [
+ "assert2",
+ "bio",
+ "chrono",
+ "clap",
+ "color-eyre",
+ "ctor",
+ "env_logger",
+ "eyre",
+ "itertools",
+ "log",
+ "mimalloc",
+ "nextclade",
+ "owo-colors",
+ "pretty_assertions",
+ "rstest",
+ "rstest_reuse",
+]
+
+[[package]]
+name = "nextclade-web"
 version = "2.0.0"
 dependencies = [
  "console_error_panic_hook",
  "log",
+ "nextclade",
  "wasm-bindgen",
  "wasm-bindgen-test",
  "wasm-logger",

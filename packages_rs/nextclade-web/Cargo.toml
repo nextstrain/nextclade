@@ -1,6 +1,6 @@
 [package]
-name = "nextclade_wasm"
-description = "Viral sequence alignmant and analysis tool"
+name = "nextclade-web"
+description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. WebAssembly module."
 version = "2.0.0"
 edition = "2021"
 license = "MIT"
@@ -14,6 +14,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 console_error_panic_hook = "0.1.7"
 log = "0.4.14"
+nextclade = { path = "../nextclade" }
 wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"] }
 wasm-logger = "0.2.0"
 web-sys = { version = "0.3.56", features = ["console"] }

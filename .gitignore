@@ -10,6 +10,8 @@
 /docs/build/
 /e2e/cli/snapshots/
 /e2e/cli/tmp/
+/packages_rs/*/target/
+/packages_rs/nextclade-wasm/wasm-pack.log
 /paper/paper.pdf
 /paper/preprint.pdf
 /paper/tex2pdf*

@@ -213,7 +213,7 @@ docker build -q -t "${DOCKER_IMAGE_NAME}:latest" \
   "${PACKAGE_DIR}" \
   >/dev/null
 
-PARAMS="${@:-}"
+PARAMS="$(echo "${@:-}" | xargs)"
 if [ ! -z "${PARAMS}" ]; then
   PARAMS="--bin=${PARAMS}"
 fi

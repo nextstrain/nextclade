@@ -1,6 +1,6 @@
 [package]
 name = "nextclade"
-description = "Viral sequence alignmant and analysis tool"
+description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. Library."
 version = "2.0.0"
 edition = "2021"
 license = "MIT"

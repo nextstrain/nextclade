@@ -1,6 +1,5 @@
 [workspace]
 
 members = [
-  "packages/nextalign_rs",
-  "packages/nextclade_rs_wasm",
+  "packages_rs/*",
 ]
