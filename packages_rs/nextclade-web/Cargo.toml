@@ -14,7 +14,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 console_error_panic_hook = "0.1.7"
 log = "0.4.14"
-nextclade = { path = "../nextclade" }
+nextclade = { path = "../nextclade", default-features = false, features = ["wasm"] }
 wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"] }
 wasm-logger = "0.2.0"
 web-sys = { version = "0.3.56", features = ["console"] }

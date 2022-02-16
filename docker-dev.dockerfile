@@ -5,8 +5,11 @@ FROM ubuntu@sha256:57df66b9fc9ce2947e434b4aa02dbe16f6685e20db0c170917d4a1962a5fe
 
 SHELL ["bash", "-c"]
 
+ARG CLANG_VERSION="13"
 ARG DASEL_VERSION="1.22.1"
 ARG WATCHEXEC_VERSION="1.17.1"
+ARG NODEMON_VERSION="2.0.15"
+ARG YARN_VERSION="1.22.17"
 
 RUN set -euxo pipefail >/dev/null \
 && export DEBIAN_FRONTEND=noninteractive \
@@ -18,7 +21,9 @@ RUN set -euxo pipefail >/dev/null \
   ca-certificates \
   curl \
   git \
+  gnupg \
   libssl-dev \
+  lsb-release \
   pigz \
   pixz \
   pkg-config \
@@ -29,6 +34,24 @@ RUN set -euxo pipefail >/dev/null \
 && rm -rf /var/lib/apt/lists/* \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null
+
+
+# Install LLVM/Clang (https://apt.llvm.org/)
+RUN set -euxo pipefail >/dev/null \
+&& echo "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list" \
+&& curl -fsSL "https://apt.llvm.org/llvm-snapshot.gpg.key" | sudo apt-key add - \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  clang-${CLANG_VERSION} \
+  clang-tools-${CLANG_VERSION} \
+  lld-${CLANG_VERSION} \
+  lldb-${CLANG_VERSION} \
+>/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null
+
 
 ARG USER=user
 ARG GROUP=user
@@ -44,7 +67,8 @@ ENV HOME="/home/${USER}"
 ENV CARGO_HOME="${HOME}/.cargo"
 ENV CARGO_INSTALL_ROOT="${HOME}/.cargo/install"
 ENV RUSTUP_HOME="${HOME}/.rustup"
-ENV PATH="${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
+ENV NODE_DIR="/opt/node"
+ENV PATH="${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
 
 RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel" \
@@ -55,6 +79,17 @@ RUN set -euxo pipefail >/dev/null \
 && curl -sSL "https://github.com/watchexec/watchexec/releases/download/cli-v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-1.17.1-x86_64-unknown-linux-musl/watchexec" \
 && chmod +x "/usr/bin/watchexec" \
 && watchexec --version
+
+COPY .nvmrc /
+
+RUN set -eux >dev/null \
+&& mkdir -p "${NODE_DIR}" \
+&& cd "${NODE_DIR}" \
+&& NODE_VERSION=$(cat /.nvmrc) \
+&& curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
+&& npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
+&& npm config set scripts-prepend-node-path auto
+
 
 COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 

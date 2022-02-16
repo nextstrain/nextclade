@@ -28,9 +28,9 @@ pub fn read_one_fasta(filepath: &str) -> Result<String, Report> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-  let ref_path = "../../data_dev/reference.fasta";
-  let qry_path = "../../data_dev/sequences.fasta";
-  let out_path = "../../tmp/sequences.aligned.fasta";
+  let ref_path = "data_dev/reference.fasta";
+  let qry_path = "data_dev/sequences.fasta";
+  let out_path = "tmp/sequences.aligned.fasta";
 
   let params = AlignPairwiseParams::default();
 

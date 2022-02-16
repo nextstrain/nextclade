@@ -11,7 +11,8 @@
 /e2e/cli/snapshots/
 /e2e/cli/tmp/
 /packages_rs/*/target/
-/packages_rs/nextclade-wasm/wasm-pack.log
+/packages_rs/nextclade-web/src/gen
+/packages_rs/nextclade-web/wasm-pack.log
 /paper/paper.pdf
 /paper/preprint.pdf
 /paper/tex2pdf*

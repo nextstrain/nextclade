@@ -6,6 +6,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "wasm-dev": "wasm-pack --quiet --log-level=error build --dev --target=bundler --out-dir=.build/wasm-dev/ --out-name=nextclade-wasm && mkdir -p src/gen/ && cp .build/wasm-dev/* src/gen/",
+    "wasm-prod": "wasm-pack --quiet --log-level=error build --release --target=bundler --out-dir=.build/wasm-prod/ --out-name=nextclade-wasm && mkdir -p src/gen/ && cp .build/wasm-prod/* src/gen/",
     "clean": "rm -rf .next",
     "cleanest": "rm -rf .cache .next node_modules"
   },

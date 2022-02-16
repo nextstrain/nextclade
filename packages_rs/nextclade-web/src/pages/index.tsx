@@ -1,12 +1,15 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import Head from 'next/head'
 
-import { greet } from '../../../nextclade_rs_wasm/pkg/nextclade_wasm'
+import { greet } from 'src/gen/nextclade-wasm'
 
 export default function Home() {
+  const [foo, setFoo] = useState<string | undefined>(undefined)
+
   useEffect(() => {
-    greet()
+    const foo = greet()
+    setFoo(foo)
   }, [])
 
   return (
@@ -17,7 +20,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <p>{'Hello!'}</p>
+      <p>{foo}</p>
     </div>
   )
 }

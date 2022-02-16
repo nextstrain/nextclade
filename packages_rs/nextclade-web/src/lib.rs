@@ -9,11 +9,15 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-pub fn greet() {
+pub fn greet() -> String {
   wasm_logger::init(wasm_logger::Config::default());
   console_error_panic_hook::set_once();
 
-  log::debug!("Hello");
+  let foo = nextclade::foo();
+
+  log::debug!("{foo:}");
+
+  foo
 
   // alert("Hello!");
 }
