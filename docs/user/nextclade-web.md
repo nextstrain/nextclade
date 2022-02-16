@@ -29,7 +29,7 @@ You will be redirected to the results page.
 
 Power users might want to click **Customize dataset files** in order to get access to more configuration. This mode is equivalent to using the [Nextclade CLI](nextclade-cli), and accepts the same input files.
 
-> 💡 There are a number of options of providing input data to Nextclade, including:
+> 💡 There is a number of options of providing input data to Nextclade, including:
 >
 > - Drag & Drop a file onto the "upload" area
 > - Picking a file from computer storage: click `Select a file`
@@ -121,9 +121,9 @@ In sequence view, one can observe mutations in a particular gene. One of Nextcla
 
 In order to assign clades to sequences, Nextclade places all new sequences on a a reference tree. You can view the resulting tree by clicking on the tree icon at the top right.
 
-The tree is visualized by Nextstrain's [Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/). By default, only your uploaded sequences are highlighted.
+The tree is visualized by [Nextstrain Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/). By default, only your uploaded sequences are highlighted.
 
-One limitation to be aware of is that new sequences are place one by one on the reference tree. Thus, no common internal nodes of new sequences are placed on the tree. If you are interested in seeing ancestral relationships between your sequences, we recommend you use [Usher](https://genome.ucsc.edu/cgi-bin/hgPhyloPlace).
+One limitation to be aware of is that new sequences are placed one by one on the reference tree. Thus, no common internal nodes of new sequences are placed on the tree. If you are interested in seeing ancestral relationships between your sequences, we recommend you use [Usher](https://genome.ucsc.edu/cgi-bin/hgPhyloPlace).
 
 ![Tree with new sequences](assets/web_tree.png)
 
