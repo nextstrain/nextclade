@@ -81,9 +81,7 @@ The result table further displays for each sequence:
 - "FS": Number of uncommon frame shifts (total number, including common frame shifts are in parentheses)
 - "SC": Number of uncommon premature stop codons (total number, including common premature stops are in parentheses)
 
-Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference.
-
-Since version `1.13.0`, Nextclade also shows which mutations differ from the nearest neighbor on the reference tree, termed. These so-called _private_ mutations are are split into:
+Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference, as well as so-called _private_ mutations (mutations that differ from the nearest neighbor on the reference tree), which are are split into:
 
 - Reversions: mutations back to reference, often a sign of sequencing problems
 - Labeled: Mutations that are known, for example because they occur often in a clade. If multiple labeled mutations from the same clade appear, it is a sign of contamination, co-infection or recombination.
