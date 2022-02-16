@@ -45,12 +45,15 @@ Nextclade analyzes your sequences locally in your browser. That means, sequences
 
 The analysis pipeline comprises the following steps:
 
-1. Alignment: Sequences are aligned to the reference genome using our custom Nextalign alignment algorithm.
+1. Sequence alignment: Sequences are aligned to the reference genome using our custom Nextalign alignment algorithm.
 2. Translation: Nucleotide sequences are translated into amino acid sequences.
 3. Mutation calling: Nucleotide and amino acid changes are identified
-4. PCR primer changes are computed
-5. Phylogenetic placement: Sequences are placed on a reference tree, clades assigned to nearest neighbour, private mutations analyzed.
-6. Quality control: Quality control metrics are calculated
+4. Detection of PCR primer changes
+5. Phylogenetic placement: Sequences are placed on a reference tree, private mutations analyzed
+6. Clade assignment: Clades are taken from the parent node on the tree
+7. Quality Control (QC): Quality control metrics are calculated
+
+See [Algorithm](algorithm) section for more details.
 
 You can get a quick overview of the results screen in the screenshot below:
 ![Results overview](assets/web_overview.png)
