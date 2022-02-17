@@ -1,6 +1,7 @@
 pub mod align;
 pub mod gene;
 pub mod io;
+pub mod tree;
 pub mod utils;
 
 pub fn foo() -> String {
