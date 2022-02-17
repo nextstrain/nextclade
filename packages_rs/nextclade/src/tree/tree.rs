@@ -1,7 +1,9 @@
 use eyre::Report;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use std::slice::Iter;
 use std::str::FromStr;
+use traversal::{Bft, DftPost, DftPre};
 use validator::Validate;
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
@@ -81,8 +83,9 @@ pub struct AuspiceTreeNode {
 
   pub node_attrs: TreeNodeAttrs,
 
-  #[serde(skip_serializing_if = "Option::is_none")]
-  pub children: Option<Vec<AuspiceTreeNode>>,
+  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default)]
+  pub children: Vec<AuspiceTreeNode>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -115,10 +118,59 @@ impl FromStr for AuspiceTree {
   }
 }
 
+pub type AuspiceTreeNodeIter<'a> = Iter<'a, AuspiceTreeNode>;
+
+pub type AuspiceTreeNodeIterFn<'a> = fn(&'a AuspiceTreeNode) -> AuspiceTreeNodeIter;
+
 impl AuspiceTree {
   pub fn to_string_pretty(&self) -> Result<String, Report> {
     let mut tree_str = serde_json::to_string_pretty(self)?;
     tree_str += "\n";
     Ok(tree_str)
+  }
+
+  /// Returns iterator for breadth-first tree traversal
+  pub fn iter_breadth_first<'a>(
+    &'a self,
+  ) -> Bft<'a, AuspiceTreeNode, AuspiceTreeNodeIterFn<'a>, AuspiceTreeNodeIter<'a>> {
+    Bft::new(&self.tree, |node: &'a AuspiceTreeNode| node.children.iter())
+  }
+
+  /// Returns iterator for depth-first pre-order tree traversal
+  pub fn iter_depth_first_preorder<'a>(
+    &'a self,
+  ) -> DftPre<'a, AuspiceTreeNode, AuspiceTreeNodeIterFn<'a>, AuspiceTreeNodeIter<'a>> {
+    DftPre::new(&self.tree, |node: &'a AuspiceTreeNode| node.children.iter())
+  }
+
+  /// Returns iterator for depth-first post-order tree traversal
+  pub fn iter_depth_first_postorder<'a>(
+    &'a self,
+  ) -> DftPost<'a, AuspiceTreeNode, AuspiceTreeNodeIterFn<'a>, AuspiceTreeNodeIter<'a>> {
+    DftPost::new(&self.tree, |node: &'a AuspiceTreeNode| node.children.iter())
+  }
+
+  fn map_nodes_rec(node: &AuspiceTreeNode, action: fn(&AuspiceTreeNode)) {
+    action(node);
+    for child in node.children.iter() {
+      Self::map_nodes_rec(child, action);
+    }
+  }
+
+  /// Iterates over nodes and applies a function to each. Immutable version.
+  pub fn map_nodes(&self, action: fn(&AuspiceTreeNode)) {
+    Self::map_nodes_rec(&self.tree, action);
+  }
+
+  fn map_nodes_mut_rec(node: &mut AuspiceTreeNode, action: fn(&mut AuspiceTreeNode)) {
+    action(node);
+    for child in node.children.iter_mut() {
+      Self::map_nodes_mut_rec(child, action);
+    }
+  }
+
+  /// Iterates over nodes and applies a function to each. Mutable version.
+  pub fn map_nodes_mut(&mut self, action: fn(&mut AuspiceTreeNode)) {
+    Self::map_nodes_mut_rec(&mut self.tree, action);
   }
 }
