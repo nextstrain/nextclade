@@ -7,6 +7,9 @@ license = "MIT"
 publish = false
 
 
+[lib]
+crate-type = ["lib"]
+
 [dependencies]
 assert2 = "0.3.6"
 bio = "0.39.1"

@@ -4,6 +4,7 @@ pub mod gene;
 pub mod io;
 pub mod tree;
 pub mod utils;
+pub mod wasm;
 
 #[cfg(test)]
 mod tests {

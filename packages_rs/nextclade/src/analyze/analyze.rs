@@ -1,41 +1,11 @@
 #![allow(clippy::use_self)]
 
+use crate::wasm::js_value::{deserialize_js_value, serialize_js_value};
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
-use typescript_definitions::{TypeScriptify, TypeScriptifyTrait, TypescriptDefinition};
-use wasm_bindgen::prelude::{wasm_bindgen, JsError, JsValue};
-
-pub fn serialize_js_value<T, U>(value: &T) -> Result<U, JsError>
-where
-  T: Serialize + Debug,
-  U: From<JsValue>,
-{
-  JsValue::from_serde::<T>(value)
-    // We want a concrete struct type `U` as output
-    .map(U::from)
-    // In case of error we throw a JS exception
-    .map_err(|report| {
-    let message = report.to_string();
-    let type_name = std::any::type_name::<T>();
-    JsError::new(&format!(
-      "{message:}.\nWhen serializing '{type_name:}' into 'JsValue'.\nThe input value was:\n  {value:#?}"
-    ))
-  })
-}
-
-pub fn deserialize_js_value<T>(value: &JsValue) -> Result<T, JsError>
-where
-  T: for<'de> Deserialize<'de> + Debug,
-{
-  value.into_serde::<T>().map_err(|report| {
-    let message = report.to_string();
-    let type_name = std::any::type_name::<T>();
-    JsError::new(&format!(
-      "{message:}.\nWhen deserializing 'JsValue' into '{type_name:}'.\nThe input value was:\n  {value:#?}"
-    ))
-  })
-}
+use typescript_definitions::TypescriptDefinition;
+use wasm_bindgen::prelude::{wasm_bindgen, JsError};
 
 // Plain old Javascript Objects (POJO) to ensure type safety in `JsValue` serialization.
 // They are convenient to use in constructors of complex types.
