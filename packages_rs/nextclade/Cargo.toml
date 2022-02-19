@@ -28,6 +28,8 @@ rstest_reuse = { version = "0.1.3", optional = true }
 serde = { version = "1.0.136", features = ["derive"] }
 serde_json = { version = "1.0.79", features = ["preserve_order", "indexmap", "unbounded_depth"] }
 traversal = "0.1.2"
+typescript-definitions = { path = "../../3rdparty/typescript-definitions", features = [], optional = true }
+typescript-definitions-derive = { path = "../../3rdparty/typescript-definitions/typescript-definitions-derive", features = [], optional = true }
 validator = { version = "0.12", features = ["derive"] }
 wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"], optional = true }
 
@@ -36,6 +38,8 @@ wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"], optional = 
 default = ["non-wasm"]
 wasm = [
   "getrandom/js",
+  "typescript-definitions",
+  "typescript-definitions-derive",
   "wasm-bindgen",
 ]
 non-wasm = [

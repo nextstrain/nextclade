@@ -21,20 +21,20 @@ export class ErrorModuleNotInitialized extends Error {
 let gNextcladeWasm: NextcladeWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
-function create() {
+async function create() {
   const params = NextcladeParams.from_js({ foo: 42 })
   gNextcladeWasm = new NextcladeWasm(params)
   params.free()
 }
 
 /** Destroys the underlying WebAssembly module. */
-function destroy() {
+async function destroy() {
   gNextcladeWasm?.free()
   gNextcladeWasm = undefined
 }
 
 /** Runs the underlying WebAssembly module. */
-function run() {
+async function run() {
   if (!gNextcladeWasm) {
     throw new ErrorModuleNotInitialized()
   }
