@@ -757,6 +757,7 @@ dependencies = [
  "serde_json",
  "traversal",
  "validator",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -788,6 +789,7 @@ dependencies = [
  "console_error_panic_hook",
  "log",
  "nextclade",
+ "serde",
  "wasm-bindgen",
  "wasm-bindgen-test",
  "wasm-logger",

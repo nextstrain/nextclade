@@ -1,12 +1,9 @@
 pub mod align;
+pub mod analyze;
 pub mod gene;
 pub mod io;
 pub mod tree;
 pub mod utils;
-
-pub fn foo() -> String {
-  "Hello!".to_owned()
-}
 
 #[cfg(test)]
 mod tests {

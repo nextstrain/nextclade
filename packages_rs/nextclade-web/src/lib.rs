@@ -1,23 +1,36 @@
 use wasm_bindgen::prelude::*;
 
+use nextclade::analyze::analyze::{AnalysisInput, AnalysisResult, Nextclade, NextcladeParams};
+use nextclade::utils::error::report_to_string;
+
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-extern "C" {
-  fn alert(s: &str);
+pub struct NextcladeWasm {
+  nextclade: Nextclade,
 }
 
 #[wasm_bindgen]
-pub fn greet() -> String {
-  wasm_logger::init(wasm_logger::Config::default());
-  console_error_panic_hook::set_once();
+impl NextcladeWasm {
+  #[wasm_bindgen(constructor)]
+  pub fn new(params: &NextcladeParams) -> Self {
+    wasm_logger::init(wasm_logger::Config::default());
+    console_error_panic_hook::set_once();
 
-  let foo = nextclade::foo();
+    log::debug!("NextcladeWasm::new");
 
-  log::debug!("{foo:}");
+    Self {
+      nextclade: Nextclade::new(params),
+    }
+  }
 
-  foo
+  pub fn run(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, JsError> {
+    log::debug!("NextcladeWasm::run(), input:\n{input:#?}");
 
-  // alert("Hello!");
+    self
+      .nextclade
+      .run(input)
+      .map_err(|report| JsError::new(&report_to_string(&report)))
+  }
 }
