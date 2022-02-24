@@ -28,6 +28,15 @@ namespace Nextclade {
             tree.dump())) {}
   };
 
+  class ErrorCladeNodeAttrNotObject : public ErrorFatal {
+  public:
+    explicit ErrorCladeNodeAttrNotObject(const json& tree)
+        : ErrorFatal(fmt::format("When accessing clade tree attribute on json node: The attribute is expected to be an "
+                                 "object, but found this instead: \"{}\"",
+            tree.dump())) {}
+  };
+
+
   class ErrorTreeTmpMaxDivergenceNotSet : public ErrorFatal {
   public:
     explicit ErrorTreeTmpMaxDivergenceNotSet(const json& j)
@@ -61,6 +70,22 @@ namespace Nextclade {
     return js.at(key);
   }
 
+  std::optional<CladeNodeAttr> parseCladeNodeAttrMaybe(const json& j) {
+    if (!j.is_object()) {
+      throw ErrorCladeNodeAttrNotObject(j);
+    }
+
+    if (!j.contains("name") || !j.contains("displayName") || !j.contains("description")) {
+      return std::optional<CladeNodeAttr>{};
+    }
+
+    return CladeNodeAttr{
+      .name = j["name"],
+      .displayName = j["displayName"],
+      .description = j["description"],
+    };
+  }
+
   class TreeImpl {
     json j;
 
@@ -86,12 +111,12 @@ namespace Nextclade {
       return TreeNode{j.at("tree")};
     }
 
-    safe_vector<std::string> getCladeNodeAttrKeys() const {
+    safe_vector<CladeNodeAttr> getCladeNodeAttrKeys() const {
       if (!j.is_object()) {
         throw ErrorAuspiceJsonV2Invalid(j);
       }
 
-      const auto ptr = json_pointer{"/meta/extensions/nextclade/clade_node_attrs_keys"};
+      const auto ptr = json_pointer{"/meta/extensions/nextclade/clade_node_attrs"};
       if (!j.contains(ptr)) {
         return {};
       }
@@ -101,10 +126,13 @@ namespace Nextclade {
         return {};
       }
 
-      safe_vector<std::string> cladeNodeAttrKeys;
-      for (const auto& key : cladeNodeAttrKeysJson) {
-        if (key.is_string()) {
-          cladeNodeAttrKeys.push_back(key);
+      safe_vector<CladeNodeAttr> cladeNodeAttrKeys;
+      for (const auto& attrJson : cladeNodeAttrKeysJson) {
+        if (attrJson.is_object()) {
+          const auto& attr = parseCladeNodeAttrMaybe(attrJson);
+          if (attr) {
+            cladeNodeAttrKeys.push_back(*attr);
+          }
         }
       }
       return cladeNodeAttrKeys;
@@ -278,7 +306,7 @@ namespace Nextclade {
     return pimpl->root();
   }
 
-  safe_vector<std::string> Tree::getCladeNodeAttrKeys() const {
+  safe_vector<CladeNodeAttr> Tree::getCladeNodeAttrKeys() const {
     return pimpl->getCladeNodeAttrKeys();
   }
 

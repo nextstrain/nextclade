@@ -493,7 +493,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   })
 
   const tree = JSON.parse(treeStr) as AuspiceJsonV2
-  const cladeNodeAttrKeys = tree.meta?.extensions?.nextclade?.clade_node_attrs_keys ?? []
+  const cladeNodeAttrKeys = tree.meta?.extensions?.nextclade?.clade_node_attrs ?? []
   yield* put(setCladeNodeAttrKeys({ cladeNodeAttrKeys }))
 
   const genomeSize = refStr.length

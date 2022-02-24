@@ -4,6 +4,7 @@ import i18n from 'src/i18n/i18n'
 import type { State } from 'src/state/reducer'
 import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { selectNumThreads } from 'src/state/settings/settings.selectors'
+import { CladeNodeAttr } from 'src/algorithms/types'
 
 export const selectParams = (state: State) => state.algorithm.params
 
@@ -50,7 +51,7 @@ export const selectCanDownload = (state: State): boolean =>
   state.algorithm.treeStr !== undefined
 
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.treeStr
-export const selectCladeNodeAttrKeys = (state: State): string[] => state.algorithm.cladeNodeAttrKeys
+export const selectCladeNodeAttrKeys = (state: State): CladeNodeAttr[] => state.algorithm.cladeNodeAttrKeys
 
 export const selectOutputSequences = (state: State) =>
   state.algorithm.results.map((result) => ({ seqName: result.seqName, query: result.query }))

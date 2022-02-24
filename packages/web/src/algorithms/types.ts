@@ -325,6 +325,8 @@ export function convertPrivateMutations(privateNucMutations: PrivateMutations) {
   return { reversions, labeled, unlabeled, totalMutations }
 }
 
+export type { CladeNodeAttr } from 'auspice'
+
 export interface AnalysisResult {
   seqName: string
   substitutions: NucleotideSubstitution[]

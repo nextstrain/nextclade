@@ -7,7 +7,7 @@ import AutoSizerBase from 'react-virtualized-auto-sizer'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
 
-import { QcStatus } from 'src/algorithms/types'
+import { CladeNodeAttr, QcStatus } from 'src/algorithms/types'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
@@ -142,7 +142,7 @@ export interface TableRowDatum extends SequenceAnalysisState {
   viewedGene: string
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicColumnWidthPx: string
-  cladeNodeAttrKeys: string[]
+  cladeNodeAttrKeys: CladeNodeAttr[]
 }
 
 export interface RowProps extends ListChildComponentProps {
@@ -229,9 +229,9 @@ function TableRowComponent({ index, style, data }: RowProps) {
         <ColumnClade sequence={sequence} />
       </TableCellAlignedLeft>
 
-      {cladeNodeAttrKeys.map((attrKey) => (
-        <TableCellAlignedLeft key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
-          <ColumnCustomNodeAttr sequence={sequence} attrKey={attrKey} />
+      {cladeNodeAttrKeys.map((attr) => (
+        <TableCellAlignedLeft key={attr.name} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+          <ColumnCustomNodeAttr sequence={sequence} attr={attr} />
         </TableCellAlignedLeft>
       ))}
 
@@ -346,7 +346,7 @@ export const ResultsTable = React.memo(connect(mapStateToProps, mapDispatchToPro
 export interface ResultProps {
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicColumnWidthPx: string
-  cladeNodeAttrKeys: string[]
+  cladeNodeAttrKeys: CladeNodeAttr[]
 
   resultsFiltered: SequenceAnalysisState[]
   filterPanelCollapsed: boolean
@@ -488,18 +488,19 @@ export function ResultsTableDisconnected({
             </ButtonHelpStyled>
           </TableHeaderCell>
 
-          {cladeNodeAttrKeys.map((attrKey) => {
-            const sortAsc = () => resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.asc })
-            const sortDesc = () => resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.desc })
+          {cladeNodeAttrKeys.map((attr) => {
+            const sortAsc = () => resultsSortByKeyTrigger({ key: attr.name, direction: SortDirection.asc })
+            const sortDesc = () => resultsSortByKeyTrigger({ key: attr.name, direction: SortDirection.desc })
 
             return (
-              <TableHeaderCell key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+              <TableHeaderCell key={attr.name} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
                 <TableHeaderCellContent>
-                  <TableCellText>{attrKey}</TableCellText>
+                  <TableCellText>{attr.displayName}</TableCellText>
                   <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
                 </TableHeaderCellContent>
                 <ButtonHelpStyled identifier="btn-help-col-clade" wide>
-                  <HelpTipsColumnClade />
+                  <h5>{`Column: ${attr.displayName}`}</h5>
+                  <p>{attr.description}</p>
                 </ButtonHelpStyled>
               </TableHeaderCell>
             )
