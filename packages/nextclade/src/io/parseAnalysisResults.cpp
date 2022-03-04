@@ -380,6 +380,14 @@ namespace Nextclade {
     };
   }
 
+  CladeNodeAttr parseCladeNodeAttr(const json& j) {
+    return CladeNodeAttr{
+      .name = at(j, "name"),
+      .displayName = at(j, "displayName"),
+      .description = at(j, "description"),
+    };
+  }
+
   AnalysisResult parseAnalysisResult(const json& j) {
     try {
       return AnalysisResult{
@@ -436,7 +444,7 @@ namespace Nextclade {
         .schemaVersion = at(j, "schemaVersion"),
         .nextcladeVersion = at(j, "nextcladeVersion"),
         .timestamp = at(j, "timestamp"),
-        .cladeNodeAttrKeys = at(j, "cladeNodeAttrKeys"),
+        .cladeNodeAttrKeys = parseArray<CladeNodeAttr>(j, "cladeNodeAttrKeys", parseCladeNodeAttr),
         .results = parseArray<AnalysisResult>(j, "results", parseAnalysisResult),
       };
     } catch (const std::exception& e) {

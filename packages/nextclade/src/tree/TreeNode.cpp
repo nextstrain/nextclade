@@ -414,11 +414,14 @@ namespace Nextclade {
       j[json_pointer{"/node_attrs/clade_membership/value"}] = clade;
     }
 
-    std::map<std::string, std::string> customNodeAttributes(const safe_vector<std::string>& customNodeAttrKeys) const {
+    std::map<std::string, std::string> customNodeAttributes(
+      const safe_vector<CladeNodeAttr>& customNodeAttrKeys) const {
       ensureIsObject();
 
       std::map<std::string, std::string> attrs;
-      for (const auto& key : customNodeAttrKeys) {
+      for (const auto& attr : customNodeAttrKeys) {
+        const auto& key = attr.name;
+
         const auto& jptr = json_pointer{fmt::format("/node_attrs/{}/value", key)};
         if (!j.contains(jptr)) {
           continue;
@@ -596,7 +599,7 @@ namespace Nextclade {
   }
 
   std::map<std::string, std::string> TreeNode::customNodeAttributes(
-    const safe_vector<std::string>& customNodeAttrKeys) const {
+    const safe_vector<CladeNodeAttr>& customNodeAttrKeys) const {
     return pimpl->customNodeAttributes(customNodeAttrKeys);
   }
 

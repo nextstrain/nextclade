@@ -196,6 +196,12 @@ declare module 'auspice' {
     name?: string
   }
 
+  export interface CladeNodeAttr {
+    name: string
+    displayName: string
+    description: string
+  }
+
   export declare interface AuspiceMetadata {
     title?: string
     description?: string
@@ -218,7 +224,7 @@ declare module 'auspice' {
     panels?: string[]
     extensions?: {
       nextclade?: {
-        clade_node_attrs_keys: string[]
+        clade_node_attrs?: CladeNodeAttr[]
       }
     }
   }

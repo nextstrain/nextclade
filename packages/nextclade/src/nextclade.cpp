@@ -38,7 +38,7 @@ namespace Nextclade {
     const VirusJson& virusJson,                                  //
     const Tree& tree,                                            //
     const NextalignOptions& nextalignOptions,                    //
-    const safe_vector<std::string>& customNodeAttrKeys           //
+    const safe_vector<CladeNodeAttr>& customNodeAttrKeys         //
   ) {
     const auto alignment = nextalignInternal(query, ref, refPeptides, geneMap, nextalignOptions);
 
@@ -189,7 +189,7 @@ namespace Nextclade {
       treePreprocess(tree, opt.ref, refPeptides);
     }
 
-    safe_vector<std::string> getCladeNodeAttrKeys() const {
+    safe_vector<CladeNodeAttr> getCladeNodeAttrKeys() const {
       return tree.getCladeNodeAttrKeys();
     }
 
@@ -232,7 +232,7 @@ namespace Nextclade {
 
   NextcladeAlgorithm::~NextcladeAlgorithm() {}// NOLINT(modernize-use-equals-default)
 
-  safe_vector<std::string> NextcladeAlgorithm::getCladeNodeAttrKeys() const {
+  safe_vector<CladeNodeAttr> NextcladeAlgorithm::getCladeNodeAttrKeys() const {
     return pimpl->getCladeNodeAttrKeys();
   }
 
