@@ -1,5 +1,6 @@
+use color_eyre::{Section, SectionExt};
 use ctor::ctor;
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use log::trace;
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
 use nextclade::align::gap_open::get_gap_open_close_scores_codon_aware;
@@ -60,10 +61,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let qry_seq = to_nuc_seq(&record.seq)?;
 
     trace!("Aligning sequence '{}'", &record.seq_name);
-    align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params)?;
+    let alignment = align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params)
+      .wrap_err_with(|| format!("When aligning sequence '{}'", &record.seq_name))
+      .with_section(|| record.seq.clone().header("Sequence data:"))?;
 
     // trace!("Writing sequence  '{}'", &record.seq_name);
     // writer.write(record.seq_name, record.desc(), qry_seq)?;
+
+    record.clear();
   }
 
   trace!("Success");

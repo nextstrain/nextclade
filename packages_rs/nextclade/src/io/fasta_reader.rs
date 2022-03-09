@@ -15,6 +15,7 @@ impl FastaRecord {
 
   pub fn clear(&mut self) {
     self.seq_name.clear();
+    self.seq.clear();
     self.index = 0;
   }
 
