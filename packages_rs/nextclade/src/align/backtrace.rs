@@ -38,7 +38,7 @@ fn determine_best_alignment(
   for i in 0..num_rows {
     let is = index_to_shift(i, band_width, mean_shift);
     // Determine the last index
-    lastIndexByShift[i as usize] = cmp::min(num_rows as i32 - 1, qry_len as i32 + is);
+    lastIndexByShift[i as usize] = cmp::min(num_cols as i32 - 1, qry_len as i32 + is);
 
     if (lastIndexByShift[i as usize] >= 0) && (lastIndexByShift[i as usize] < num_cols as i32) {
       lastScoreByShift[i as usize] = scores[(i, lastIndexByShift[i as usize])];
