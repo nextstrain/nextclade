@@ -56,7 +56,7 @@ pub fn seedAlignment(
 
   if bandWidth < (2 * params.seedLength) {
     return Ok(SeedAlignmentResult {
-      meanShift: ((refSize - querySize) as f32 * 0.5).round() as i32,
+      meanShift: ((refSize as f32 - querySize as f32) * 0.5).round() as i32,
       bandWidth,
     });
   };
