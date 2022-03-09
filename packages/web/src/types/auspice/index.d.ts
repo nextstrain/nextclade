@@ -36,6 +36,11 @@ declare module 'auspice' {
     version?: any
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  export interface AuspiceMeasurementsState {
+    // TODO: add fields if this part of state is ever used
+  }
+
   export interface AuspiceControlsState {
     defaults?: {
       distanceMeasure?: string
