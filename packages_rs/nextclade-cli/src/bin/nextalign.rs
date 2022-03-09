@@ -5,13 +5,14 @@ use log::trace;
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
 use nextclade::align::gap_open::get_gap_open_close_scores_codon_aware;
 use nextclade::gene::gene::Gene;
-use nextclade::io::fasta_reader::{FastaReader, FastaRecord};
-use nextclade::io::nuc::to_nuc_seq;
+use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
+use nextclade::io::fs::ensure_dir;
+use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq};
 use nextclade::utils::global_init::global_init;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, BufWriter};
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -31,7 +32,7 @@ pub fn read_one_fasta(filepath: &str) -> Result<String, Report> {
 fn main() -> Result<(), Box<dyn Error>> {
   let ref_path = "data_dev/reference.fasta";
   let qry_path = "data_dev/sequences.fasta";
-  let out_path = "tmp/sequences.aligned.fasta";
+  let out_path = "tmp/sequences2.aligned.fasta";
 
   let params = AlignPairwiseParams::default();
 
@@ -46,6 +47,10 @@ fn main() -> Result<(), Box<dyn Error>> {
   trace!("Creating fasta reader");
   let mut reader = FastaReader::new(BufReader::with_capacity(32 * 1024, File::open(qry_path)?));
   let mut record = FastaRecord::default();
+
+  trace!("Creating fasta writer");
+  ensure_dir(out_path)?;
+  let mut writer = FastaWriter::new(BufWriter::with_capacity(32 * 1024, File::create(out_path)?));
 
   let gene_map = HashMap::<String, Gene>::new();
   trace!("Creating gap open scores");
@@ -65,8 +70,10 @@ fn main() -> Result<(), Box<dyn Error>> {
       .wrap_err_with(|| format!("When aligning sequence '{}'", &record.seq_name))
       .with_section(|| record.seq.clone().header("Sequence data:"))?;
 
-    // trace!("Writing sequence  '{}'", &record.seq_name);
-    // writer.write(record.seq_name, record.desc(), qry_seq)?;
+    let qry_aln = from_nuc_seq(&alignment.qry_seq);
+
+    trace!("Writing sequence  '{}'", &record.seq_name);
+    writer.write(&record.seq_name, &qry_aln)?;
 
     record.clear();
   }

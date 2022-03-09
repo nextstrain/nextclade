@@ -66,3 +66,24 @@ impl<R: std::io::BufRead> FastaReader<R> {
     Ok(())
   }
 }
+
+#[derive(Debug)]
+pub struct FastaWriter<W: std::io::Write> {
+  writer: W,
+}
+
+impl<W: std::io::Write> FastaWriter<W> {
+  pub fn new(writer: W) -> Self {
+    Self { writer }
+  }
+
+  pub fn write(&mut self, name: &str, seq: &str) -> Result<(), Report> {
+    write!(self.writer, ">{name}\n{seq}\n");
+    Ok(())
+  }
+
+  pub fn flush(&mut self) -> Result<(), Report> {
+    self.writer.flush()?;
+    Ok(())
+  }
+}
