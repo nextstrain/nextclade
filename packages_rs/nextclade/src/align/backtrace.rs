@@ -94,12 +94,12 @@ pub fn backtrace(
 
   // Add right overhang, i.e. unaligned parts of the query or reference
   if rPos < ref_len - 1 {
-    for i in (rPos..ref_len - 1).rev() {
+    for i in (rPos + 1..ref_len).rev() {
       aln_qry.push(Nuc::GAP);
       aln_ref.push(ref_seq[i as usize]);
     }
   } else if qPos < qry_len - 1 {
-    for i in (qPos..qry_len - 1).rev() {
+    for i in (qPos + 1..qry_len).rev() {
       aln_qry.push(qry_seq[i as usize]);
       aln_ref.push(Nuc::GAP);
     }
@@ -151,12 +151,12 @@ pub fn backtrace(
 
   // Add left overhang, i.e. unaligned parts of the query or reference
   if rPos >= 0 {
-    for i in (0..rPos).rev() {
+    for i in (0..=rPos).rev() {
       aln_qry.push(Nuc::GAP);
       aln_ref.push(ref_seq[i as usize]);
     }
   } else if qPos >= 0 {
-    for i in (0..qPos).rev() {
+    for i in (0..=qPos).rev() {
       aln_qry.push(qry_seq[i as usize]);
       aln_ref.push(Nuc::GAP);
     }
