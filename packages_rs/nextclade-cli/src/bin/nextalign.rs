@@ -4,6 +4,7 @@ use eyre::{Report, WrapErr};
 use log::trace;
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
 use nextclade::align::gap_open::get_gap_open_close_scores_codon_aware;
+use nextclade::align::strip_insertions::strip_insertions;
 use nextclade::gene::gene::Gene;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::ensure_dir;
@@ -70,7 +71,9 @@ fn main() -> Result<(), Box<dyn Error>> {
       .wrap_err_with(|| format!("When aligning sequence '{}'", &record.seq_name))
       .with_section(|| record.seq.clone().header("Sequence data:"))?;
 
-    let qry_aln = from_nuc_seq(&alignment.qry_seq);
+    let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
+
+    let qry_aln = from_nuc_seq(&stripped.qry_seq);
 
     trace!("Writing sequence  '{}'", &record.seq_name);
     writer.write(&record.seq_name, &qry_aln)?;
