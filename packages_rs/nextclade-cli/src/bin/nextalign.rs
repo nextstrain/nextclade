@@ -1,9 +1,8 @@
-use color_eyre::{Section, SectionExt};
+use color_eyre::Section;
 use ctor::ctor;
-use eyre::{Report, WrapErr};
+use eyre::Report;
 use log::{trace, warn};
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
-use nextclade::align::backtrace::NextalignResult;
 use nextclade::align::gap_open::get_gap_open_close_scores_codon_aware;
 use nextclade::align::strip_insertions::strip_insertions;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
