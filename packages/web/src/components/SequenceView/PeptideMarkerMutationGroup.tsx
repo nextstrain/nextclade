@@ -1,8 +1,9 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useRef, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { Row, Col } from 'reactstrap'
 import { connect } from 'react-redux'
+import { useClickOutside } from 'src/components/Common/useClickOutside'
 
 import { AA_MIN_WIDTH_PX } from 'src/constants'
 
@@ -57,6 +58,12 @@ function PeptideMarkerMutationGroupDisconnected({
 }: PeptideMarkerMutationGroupProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
+  const [isClicked, setIsClicked] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useClickOutside(ref, () => {
+    setShowTooltip(false)
+    setIsClicked(false)
+  })
 
   const { gene, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
   const id = getSafeId('aa-mutation-group-marker', { seqName, gene, begin: codonAaRange.begin })
@@ -82,7 +89,24 @@ function PeptideMarkerMutationGroupDisconnected({
     <g id={id}>
       <rect fill="#999a" x={x - 0.5} y={-10} width={width + 1} stroke="#aaaa" strokeWidth={0.5} height={32} />
       <svg x={x} y={-9.5} height={29} {...restProps}>
-        <g onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+        <g
+          onMouseEnter={() => {
+            if (!isClicked) {
+              setShowTooltip(true)
+            }
+          }}
+          onMouseLeave={() => {
+            if (!isClicked) {
+              setShowTooltip(false)
+            }
+          }}
+          onClick={() => {
+            if (!isClicked) {
+              setShowTooltip(true)
+              setIsClicked(true)
+            }
+          }}
+        >
           {changes.map((change) => (
             <PeptideMarkerMutation
               key={change.codon}
@@ -93,42 +117,24 @@ function PeptideMarkerMutationGroupDisconnected({
           ))}
 
           <Tooltip target={id} isOpen={showTooltip} wide fullWidth>
-            <TableSlim borderless className="mb-1">
-              <thead />
-              <tbody>
-                <tr>
-                  <td colSpan={2}>
-                    <h5>{seqName}</h5>
-                  </td>
-                </tr>
-
-                <tr className="mb-2">
-                  <td colSpan={2}>
-                    <h6>{t('Aminoacid changes ({{count}})', { count: changes.length })}</h6>
-                  </td>
-                </tr>
-
-                <>
-                  {changesHead.map((change) => (
-                    <tr key={change.codon}>
-                      <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
-                      <td>
-                        <AminoacidMutationBadge mutation={change} geneMap={geneMap ?? []} />
-                      </td>
-                    </tr>
-                  ))}
-                </>
-
-                {changesTail.length > 0 && (
+            <div ref={ref}>
+              <TableSlim borderless className="mb-1">
+                <thead />
+                <tbody>
                   <tr>
-                    <td>{'...'}</td>
-                    <td>{'...'}</td>
+                    <td colSpan={2}>
+                      <h5>{seqName}</h5>
+                    </td>
                   </tr>
-                )}
 
-                <>
-                  {changesTail.length > 0 &&
-                    changesTail.map((change) => (
+                  <tr className="mb-2">
+                    <td colSpan={2}>
+                      <h6>{t('Aminoacid changes ({{count}})', { count: changes.length })}</h6>
+                    </td>
+                  </tr>
+
+                  <>
+                    {changesHead.map((change) => (
                       <tr key={change.codon}>
                         <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
                         <td>
@@ -136,51 +142,73 @@ function PeptideMarkerMutationGroupDisconnected({
                         </td>
                       </tr>
                     ))}
-                </>
+                  </>
 
-                {totalNucChanges > 0 && (
+                  {changesTail.length > 0 && (
+                    <tr>
+                      <td>{'...'}</td>
+                      <td>{'...'}</td>
+                    </tr>
+                  )}
+
+                  <>
+                    {changesTail.length > 0 &&
+                      changesTail.map((change) => (
+                        <tr key={change.codon}>
+                          <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+                          <td>
+                            <AminoacidMutationBadge mutation={change} geneMap={geneMap ?? []} />
+                          </td>
+                        </tr>
+                      ))}
+                  </>
+
+                  {totalNucChanges > 0 && (
+                    <tr>
+                      <td colSpan={2}>
+                        <h6 className="mt-3">
+                          {t('Nucleotide changes nearby ({{count}})', { count: totalNucChanges })}
+                        </h6>
+                      </td>
+                    </tr>
+                  )}
+
+                  <>
+                    {nucSubstitutions.map((mut) => (
+                      <tr key={mut.pos}>
+                        <td>{t('Substitution')}</td>
+                        <td>{<NucleotideMutationBadge mutation={mut} />}</td>
+                      </tr>
+                    ))}
+                  </>
+
+                  <>
+                    {nucDeletions.map((del) => (
+                      <tr key={del.start}>
+                        <td>{t('Deletion')}</td>
+                        <td>{formatRange(del.start, del.start + del.length)}</td>
+                      </tr>
+                    ))}
+                  </>
+
                   <tr>
                     <td colSpan={2}>
-                      <h6 className="mt-3">{t('Nucleotide changes nearby ({{count}})', { count: totalNucChanges })}</h6>
+                      <Row noGutters className="mt-3">
+                        <Col>
+                          <h6>{'Context'}</h6>
+                        </Col>
+                      </Row>
+
+                      <Row noGutters>
+                        <Col>
+                          <PeptideContext group={group} />
+                        </Col>
+                      </Row>
                     </td>
                   </tr>
-                )}
-
-                <>
-                  {nucSubstitutions.map((mut) => (
-                    <tr key={mut.pos}>
-                      <td>{t('Substitution')}</td>
-                      <td>{<NucleotideMutationBadge mutation={mut} />}</td>
-                    </tr>
-                  ))}
-                </>
-
-                <>
-                  {nucDeletions.map((del) => (
-                    <tr key={del.start}>
-                      <td>{t('Deletion')}</td>
-                      <td>{formatRange(del.start, del.start + del.length)}</td>
-                    </tr>
-                  ))}
-                </>
-
-                <tr>
-                  <td colSpan={2}>
-                    <Row noGutters className="mt-3">
-                      <Col>
-                        <h6>{'Context'}</h6>
-                      </Col>
-                    </Row>
-
-                    <Row noGutters>
-                      <Col>
-                        <PeptideContext group={group} />
-                      </Col>
-                    </Row>
-                  </td>
-                </tr>
-              </tbody>
-            </TableSlim>
+                </tbody>
+              </TableSlim>
+            </div>
           </Tooltip>
         </g>
       </svg>
