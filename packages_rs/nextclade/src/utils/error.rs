@@ -1,4 +1,5 @@
 use color_eyre::Report;
+use eyre::eyre;
 
 pub fn report_to_string(report: &Report) -> String {
   let strings: Vec<String> = report
@@ -7,6 +8,10 @@ pub fn report_to_string(report: &Report) -> String {
     .map(std::string::ToString::to_string)
     .collect();
   strings.join(": ")
+}
+
+pub fn to_eyre_error<T, E: Into<eyre::Error>>(val_or_err: Result<T, E>) -> Result<T, Report> {
+  val_or_err.map_err(|report| eyre!(report))
 }
 
 #[allow(unused_variables)]

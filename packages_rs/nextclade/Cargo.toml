@@ -12,7 +12,8 @@ crate-type = ["lib"]
 
 [dependencies]
 assert2 = "0.3.6"
-bio = "0.39.1"
+bio = "0.40.0"
+bio-types = "0.12.1"
 chrono = { version = "0.4.19", default-features = false, features = ["clock", "std"] }
 clap = { version = "3.0.10", features = ["derive"] }
 color-eyre = "0.6.0"

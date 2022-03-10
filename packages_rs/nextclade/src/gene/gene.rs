@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 pub struct Gene {
-  pub geneName: String,
+  pub gene_name: String,
   pub start: usize,
   pub end: usize,
   pub strand: String,
