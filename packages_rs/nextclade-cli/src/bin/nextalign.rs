@@ -1,14 +1,16 @@
 use color_eyre::{Section, SectionExt};
 use ctor::ctor;
 use eyre::{Report, WrapErr};
-use log::trace;
+use log::{trace, warn};
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
+use nextclade::align::backtrace::NextalignResult;
 use nextclade::align::gap_open::get_gap_open_close_scores_codon_aware;
 use nextclade::align::strip_insertions::strip_insertions;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::ensure_dir;
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq};
+use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
 use std::error::Error;
 use std::fs::File;
@@ -69,16 +71,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     let qry_seq = to_nuc_seq(&record.seq)?;
 
     trace!("Aligning sequence '{}'", &record.seq_name);
-    let alignment = align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params)
-      .wrap_err_with(|| format!("When aligning sequence '{}'", &record.seq_name))
-      .with_section(|| record.seq.clone().header("Sequence data:"))?;
+    match align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params) {
+      Err(report) => {
+        warn!(
+          "Unable to align sequence '{}': {}",
+          &record.seq_name,
+          report_to_string(&report)
+        );
+      }
+      Ok(alignment) => {
+        let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
 
-    let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
+        let qry_aln = from_nuc_seq(&stripped.qry_seq);
 
-    let qry_aln = from_nuc_seq(&stripped.qry_seq);
-
-    trace!("Writing sequence  '{}'", &record.seq_name);
-    writer.write(&record.seq_name, &qry_aln)?;
+        trace!("Writing sequence  '{}'", &record.seq_name);
+        writer.write(&record.seq_name, &qry_aln)?;
+      }
+    }
 
     record.clear();
   }
