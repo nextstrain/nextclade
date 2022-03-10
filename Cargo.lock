@@ -145,6 +145,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "bio"
+version = "0.40.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2307d7c36baf9fb41fd1fef3a3d32ee1592822f07ef6144b86bfedda96517d4"
+dependencies = [
+ "anyhow",
+ "approx",
+ "bio-types",
+ "bit-set",
+ "bv",
+ "bytecount",
+ "csv",
+ "custom_derive",
+ "enum-map",
+ "fxhash",
+ "getset",
+ "itertools",
+ "itertools-num",
+ "lazy_static",
+ "multimap",
+ "ndarray",
+ "newtype_derive",
+ "num-integer",
+ "num-traits",
+ "ordered-float",
+ "petgraph",
+ "rand",
+ "regex",
+ "serde",
+ "serde_derive",
+ "statrs",
+ "strum",
+ "strum_macros",
+ "thiserror",
+ "triple_accel",
+ "vec_map",
+]
+
+[[package]]
 name = "bio-types"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -816,7 +855,8 @@ name = "nextclade"
 version = "2.0.0"
 dependencies = [
  "assert2",
- "bio",
+ "bio 0.40.0",
+ "bio-types",
  "chrono",
  "clap",
  "color-eyre",
@@ -846,7 +886,7 @@ name = "nextclade-cli"
 version = "2.0.0"
 dependencies = [
  "assert2",
- "bio",
+ "bio 0.39.1",
  "chrono",
  "clap",
  "color-eyre",
