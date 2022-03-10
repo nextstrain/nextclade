@@ -5,7 +5,6 @@ use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use bio_types::strand::Strand;
 use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
-use itertools::Itertools;
 use std::fmt::Debug;
 use std::path::Path;
 
@@ -30,12 +29,11 @@ pub fn convert_gff_record_to_gene(gene_name: &str, record: &GffRecord) -> Result
   })
 }
 
-#[allow(clippy::needless_pass_by_value)]
-pub fn convert_gff_record_to_gene_map_record(record: GffRecord) -> Option<Result<(String, Gene), Report>> {
+pub fn convert_gff_record_to_gene_map_record(record: &GffRecord) -> Option<Result<(String, Gene), Report>> {
   if record.feature_type().to_lowercase() == "gene" {
     let gene_name = record.attributes().get("gene_name");
     if let Some(gene_name) = gene_name {
-      return Some(match convert_gff_record_to_gene(gene_name, &record) {
+      return Some(match convert_gff_record_to_gene(gene_name, record) {
         Ok(gene) => Ok((gene_name.clone(), gene)),
         Err(report) => Err(report)
           .wrap_err("When parsing a GFF3 record")
@@ -46,16 +44,22 @@ pub fn convert_gff_record_to_gene_map_record(record: GffRecord) -> Option<Result
   None
 }
 
+pub fn read_gff3_file_impl<P: AsRef<Path> + Debug + ToString>(filename: &P) -> Result<GeneMap, Report> {
+  let mut reader = GffReader::from_file(&filename, GffType::GFF3).map_err(|report| eyre!(report))?;
+
+  let records = reader
+    .records()
+    .map(to_eyre_error)
+    .collect::<Result<Vec<GffRecord>, Report>>()?;
+
+  records
+    .iter()
+    .filter_map(convert_gff_record_to_gene_map_record)
+    .collect::<Result<GeneMap, Report>>()
+}
+
 pub fn read_gff3_file<P: AsRef<Path> + Debug + ToString>(filename: &P) -> Result<GeneMap, Report> {
-  {
-    GffReader::from_file(&filename, GffType::GFF3)
-      .map_err(|report| eyre!(report))?
-      .records()
-      .map(to_eyre_error)
-      .filter_map_ok(convert_gff_record_to_gene_map_record)
-      .flatten()
-      .collect::<Result<GeneMap, Report>>()
-  }
-  .wrap_err("When reading GFF3 file")
-  .with_section(|| filename.to_string().header("filename:"))
+  read_gff3_file_impl(filename)
+    .wrap_err("When reading GFF3 file")
+    .with_section(|| filename.to_string().header("filename:"))
 }
