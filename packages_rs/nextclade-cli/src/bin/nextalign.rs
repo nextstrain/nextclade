@@ -3,12 +3,15 @@ use ctor::ctor;
 use eyre::Report;
 use log::{trace, warn};
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
-use nextclade::align::gap_open::get_gap_open_close_scores_codon_aware;
+use nextclade::align::backtrace::NextalignResult;
+use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::strip_insertions::strip_insertions;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::ensure_dir;
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq};
+use nextclade::translate::translate_genes::translate_genes;
+use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
 use std::error::Error;
@@ -59,6 +62,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
   trace!("Creating gap open scores");
   let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
+  let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &params);
+
+  trace!("Translating reference sequence");
+  let ref_peptides = translate_genes_ref(&ref_seq, &gene_map, &params)?;
 
   trace!("Starting main loop");
   while let Ok(()) = reader.read(&mut record) {
@@ -79,12 +86,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
       }
       Ok(alignment) => {
+        let translation = translate_genes(
+          &alignment.qry_seq,
+          &alignment.ref_seq,
+          &ref_peptides,
+          &gene_map,
+          &gap_open_close_aa,
+          &params,
+        );
+
         let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
 
-        let qry_aln = from_nuc_seq(&stripped.qry_seq);
-
         trace!("Writing sequence  '{}'", &record.seq_name);
-        writer.write(&record.seq_name, &qry_aln)?;
+        writer.write(&record.seq_name, &from_nuc_seq(&stripped.qry_seq))?;
       }
     }
 

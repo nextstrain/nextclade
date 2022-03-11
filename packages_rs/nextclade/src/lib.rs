@@ -2,6 +2,7 @@ pub mod align;
 pub mod analyze;
 pub mod gene;
 pub mod io;
+pub mod translate;
 pub mod tree;
 pub mod utils;
 pub mod wasm;
