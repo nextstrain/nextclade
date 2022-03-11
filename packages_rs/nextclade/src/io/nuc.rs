@@ -1,10 +1,13 @@
+#![allow(clippy::use_self, clippy::upper_case_acronyms)]
+
+use crate::align::score_matrix_nuc::lookup_nuc_scoring_matrix;
+use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
 use eyre::Report;
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum Nuc {
-  U,
   T,
   A,
   W,
@@ -23,10 +26,24 @@ pub enum Nuc {
   GAP,
 }
 
+impl ScoreMatrixLookup<Nuc> for Nuc {
+  fn lookup_match_score(x: &Nuc, y: &Nuc) -> i32 {
+    lookup_nuc_scoring_matrix(x, y)
+  }
+}
+
+impl Letter<Nuc> for Nuc {
+  const GAP: Nuc = Nuc::GAP;
+
+  #[inline]
+  fn is_gap(&self) -> bool {
+    self == &Nuc::GAP
+  }
+}
+
 #[inline]
 pub fn to_nuc(letter: char) -> Result<Nuc, Report> {
   match letter {
-    'U' => Ok(Nuc::U),
     'T' => Ok(Nuc::T),
     'A' => Ok(Nuc::A),
     'W' => Ok(Nuc::W),
@@ -48,9 +65,8 @@ pub fn to_nuc(letter: char) -> Result<Nuc, Report> {
 }
 
 #[inline]
-pub fn from_nuc(nuc: &Nuc) -> char {
+pub fn from_nuc(nuc: Nuc) -> char {
   match nuc {
-    Nuc::U => 'U',
     Nuc::T => 'T',
     Nuc::A => 'A',
     Nuc::W => 'W',
@@ -75,5 +91,5 @@ pub fn to_nuc_seq(str: &str) -> Result<Vec<Nuc>, Report> {
 }
 
 pub fn from_nuc_seq(seq: &[Nuc]) -> String {
-  seq.iter().map(from_nuc).collect()
+  seq.iter().map(|nuc| from_nuc(*nuc)).collect()
 }

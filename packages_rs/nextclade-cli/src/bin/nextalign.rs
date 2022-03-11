@@ -1,19 +1,22 @@
 use color_eyre::Section;
 use ctor::ctor;
 use eyre::Report;
+use itertools::Itertools;
 use log::{trace, warn};
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
-use nextclade::align::backtrace::NextalignResult;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::strip_insertions::strip_insertions;
+use nextclade::io::aa::from_aa_seq;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::fs::ensure_dir;
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq};
-use nextclade::translate::translate_genes::translate_genes;
+use nextclade::make_internal_error;
+use nextclade::translate::translate_genes::{translate_genes, Translation};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
@@ -31,6 +34,30 @@ pub fn read_one_fasta(filepath: &str) -> Result<String, Report> {
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
   Ok(record.seq)
+}
+
+pub type FastaBufFileWriter = FastaWriter<BufWriter<File>>;
+
+pub fn write_translations(
+  seq_name: &str,
+  translations: &[Result<Translation, Report>],
+  gene_fasta_writers: &mut HashMap<String, FastaBufFileWriter>,
+) -> Result<(), Report> {
+  translations
+    .into_iter()
+    .map(|translation_or_err| match translation_or_err {
+      Ok(translation) => match gene_fasta_writers.get_mut(&translation.gene_name) {
+        None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.gene_name),
+        Some(writer) => writer.write(&seq_name, &from_aa_seq(&translation.seq)),
+      },
+      Err(report) => {
+        warn!("In sequence '{}': {}", &seq_name, report_to_string(&report));
+        Ok(())
+      }
+    })
+    .collect::<Result<(), Report>>()?;
+
+  Ok(())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -60,6 +87,17 @@ fn main() -> Result<(), Box<dyn Error>> {
   ensure_dir(out_path)?;
   let mut writer = FastaWriter::new(BufWriter::with_capacity(32 * 1024, File::create(out_path)?));
 
+  let mut gene_fasta_writers = gene_map
+    .iter()
+    .map(|(gene_name, _)| -> Result<_, Report> {
+      let out_gene_fasta_path = format!("tmp/nextalign.gene.{gene_name}_new.fasta");
+      trace!("Creating fasta writer to file '{out_gene_fasta_path}'");
+      ensure_dir(&out_gene_fasta_path)?;
+      let writer = FastaWriter::new(BufWriter::with_capacity(32 * 1024, File::create(&out_gene_fasta_path)?));
+      Ok((gene_name.to_owned(), writer))
+    })
+    .collect::<Result<HashMap<String, FastaBufFileWriter>, Report>>()?;
+
   trace!("Creating gap open scores");
   let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
   let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &params);
@@ -86,7 +124,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
       }
       Ok(alignment) => {
-        let translation = translate_genes(
+        trace!("Translating sequence '{}'", &record.seq_name);
+        let translations = translate_genes(
           &alignment.qry_seq,
           &alignment.ref_seq,
           &ref_peptides,
@@ -95,10 +134,14 @@ fn main() -> Result<(), Box<dyn Error>> {
           &params,
         );
 
+        trace!("Stripping sequence '{}'", &record.seq_name);
         let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
 
         trace!("Writing sequence  '{}'", &record.seq_name);
         writer.write(&record.seq_name, &from_nuc_seq(&stripped.qry_seq))?;
+
+        trace!("Writing translations for '{}'", &record.seq_name);
+        write_translations(&record.seq_name, &translations, &mut gene_fasta_writers)?;
       }
     }
 

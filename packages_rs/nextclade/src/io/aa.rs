@@ -1,3 +1,7 @@
+#![allow(clippy::use_self, clippy::upper_case_acronyms)]
+
+use crate::align::score_matrix_aa::lookup_aa_scoring_matrix;
+use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
 use eyre::Report;
 
@@ -32,6 +36,21 @@ pub enum Aa {
   X,
   STOP,
   GAP,
+}
+
+impl ScoreMatrixLookup<Aa> for Aa {
+  fn lookup_match_score(x: &Aa, y: &Aa) -> i32 {
+    lookup_aa_scoring_matrix(x, y)
+  }
+}
+
+impl Letter<Aa> for Aa {
+  const GAP: Aa = Aa::GAP;
+
+  #[inline]
+  fn is_gap(&self) -> bool {
+    self == &Aa::GAP
+  }
 }
 
 #[inline]
@@ -70,7 +89,7 @@ pub fn to_aa(letter: char) -> Result<Aa, Report> {
 }
 
 #[inline]
-pub fn from_aa(nuc: &Aa) -> char {
+pub fn from_aa(nuc: Aa) -> char {
   match nuc {
     Aa::A => 'A',
     Aa::B => 'B',
@@ -108,5 +127,5 @@ pub fn to_aa_seq(str: &str) -> Result<Vec<Aa>, Report> {
 }
 
 pub fn from_aa_seq(seq: &[Aa]) -> String {
-  seq.iter().map(from_aa).collect()
+  seq.iter().map(|aa| from_aa(*aa)).collect()
 }

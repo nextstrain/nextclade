@@ -5,7 +5,7 @@
 #![allow(unused_imports)]
 
 use crate::align::score_matrix::{qryGAPextend, qryGAPmatrix, refGAPextend, refGAPmatrix, END_OF_SEQUENCE, MATCH};
-use crate::io::nuc::Nuc;
+use crate::io::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use std::cmp;
 
@@ -62,19 +62,19 @@ fn determine_best_alignment(
   }
 }
 
-pub struct NextalignResult {
-  pub qry_seq: Vec<Nuc>,
-  pub ref_seq: Vec<Nuc>,
+pub struct NextalignResult<T> {
+  pub qry_seq: Vec<T>,
+  pub ref_seq: Vec<T>,
   pub alignment_score: usize,
 }
 
-pub fn backtrace(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
+pub fn backtrace<T: Letter<T>>(
+  qry_seq: &[T],
+  ref_seq: &[T],
   scores: &Vec2d<i32>,
   paths: &Vec2d<i32>,
   meanShift: i32,
-) -> NextalignResult {
+) -> NextalignResult<T> {
   let num_cols = scores.num_cols();
   let num_rows = scores.num_rows();
   let qry_len = qry_seq.len() as i32;
@@ -82,8 +82,8 @@ pub fn backtrace(
   let bandWidth = ((num_rows - 1) / 2) as i32;
 
   let aln_capacity = num_cols + 3 * bandWidth as usize;
-  let mut aln_ref = Vec::<Nuc>::with_capacity(aln_capacity);
-  let mut aln_qry = Vec::<Nuc>::with_capacity(aln_capacity);
+  let mut aln_ref = Vec::<T>::with_capacity(aln_capacity);
+  let mut aln_qry = Vec::<T>::with_capacity(aln_capacity);
 
   let DetermineBestAlignmentResult {
     mut si,
@@ -95,13 +95,13 @@ pub fn backtrace(
   // Add right overhang, i.e. unaligned parts of the query or reference
   if rPos < ref_len - 1 {
     for i in (rPos + 1..ref_len).rev() {
-      aln_qry.push(Nuc::GAP);
+      aln_qry.push(T::GAP);
       aln_ref.push(ref_seq[i as usize]);
     }
   } else if qPos < qry_len - 1 {
     for i in (qPos + 1..qry_len).rev() {
       aln_qry.push(qry_seq[i as usize]);
-      aln_ref.push(Nuc::GAP);
+      aln_ref.push(T::GAP);
     }
   }
 
@@ -121,7 +121,7 @@ pub fn backtrace(
     } else if ((origin & refGAPmatrix) != 0 && currentMatrix == 0) || currentMatrix == refGAPmatrix {
       // Insertion in ref -- decrement query, increase shift
       aln_qry.push(qry_seq[qPos as usize]);
-      aln_ref.push(Nuc::GAP);
+      aln_ref.push(T::GAP);
       qPos -= 1;
       si += 1;
       currentMatrix = if (origin & refGAPextend) != 0 {
@@ -133,7 +133,7 @@ pub fn backtrace(
       }
     } else if ((origin & qryGAPmatrix) != 0 && currentMatrix == 0) || currentMatrix == qryGAPmatrix {
       // Deletion in query -- decrement reference, reduce shift
-      aln_qry.push(Nuc::GAP);
+      aln_qry.push(T::GAP);
       aln_ref.push(ref_seq[rPos as usize]);
       rPos -= 1;
       si -= 1;
@@ -152,13 +152,13 @@ pub fn backtrace(
   // Add left overhang, i.e. unaligned parts of the query or reference
   if rPos >= 0 {
     for i in (0..=rPos).rev() {
-      aln_qry.push(Nuc::GAP);
+      aln_qry.push(T::GAP);
       aln_ref.push(ref_seq[i as usize]);
     }
   } else if qPos >= 0 {
     for i in (0..=qPos).rev() {
       aln_qry.push(qry_seq[i as usize]);
-      aln_ref.push(Nuc::GAP);
+      aln_ref.push(T::GAP);
     }
   }
 

@@ -5,12 +5,15 @@
 #![allow(unused_imports)]
 
 use crate::align::align::AlignPairwiseParams;
-use crate::align::match_nuc::lookup_match_score_nuc;
+use crate::io::aa::Aa;
+use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::utils::vec2d::Vec2d;
 use log::trace;
 use std::io;
 use std::io::Write;
+use std::marker::PhantomData;
+use std::ops::Index;
 
 // store direction info for backtrace as bits in paths matrix
 // these indicate the currently optimal move
@@ -27,9 +30,9 @@ pub struct ScoreMatrixResult {
   pub paths: Vec2d<i32>,
 }
 
-pub fn score_matrix(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
+pub fn score_matrix<T: Letter<T>>(
+  qry_seq: &[T],
+  ref_seq: &[T],
   gapOpenClose: &[i32],
   bandWidth: usize,
   meanShift: i32,
@@ -100,7 +103,7 @@ pub fn score_matrix(
         // if the shifted position is within the query sequence
 
         // no gap -- match case
-        let matrix_score = lookup_match_score_nuc(qry_seq[qPos as usize], ref_seq[ri as usize]);
+        let matrix_score = T::lookup_match_score(&qry_seq[qPos as usize], &ref_seq[ri as usize]);
         tmpMatch = if matrix_score > 0 {
           params.scoreMatch
         } else {

@@ -1,6 +1,7 @@
 use crate::align::align::AlignPairwiseParams;
 use crate::gene::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
+use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::peptide::{Peptide, PeptideMap};
 use crate::translate::translate::translate;
 use eyre::Report;
@@ -14,8 +15,11 @@ pub fn translate_genes_ref(
   gene_map
     .iter()
     .map(|(gene_name, gene)| -> Result<(String, Peptide), Report> {
-      let gene_nuc_seq = &ref_seq[gene.start..gene.end];
-      let peptide = translate(gene_nuc_seq, gene, params)?;
+      let mut gene_nuc_seq = ref_seq[gene.start..gene.end].to_vec();
+      if gene.strand == "-" {
+        reverse_complement_in_place(&mut gene_nuc_seq);
+      }
+      let peptide = translate(&gene_nuc_seq, gene, params)?;
       Ok((gene_name.clone(), peptide))
     })
     .collect::<Result<PeptideMap, Report>>()

@@ -33,3 +33,29 @@ macro_rules! make_error {
 }
 
 pub use make_error;
+
+#[macro_export(local_inner_macros)]
+macro_rules! make_internal_error {
+  ($($arg:tt)*) => {
+    {
+      let msg_external = std::format!($($arg)*);
+      let msg = std::format!("{msg_external}. This is an internal error. Please report it to developers.");
+      Err(eyre::eyre!(msg))
+    }
+  };
+}
+
+pub use make_internal_error;
+
+#[macro_export(local_inner_macros)]
+macro_rules! make_internal_report {
+  ($($arg:tt)*) => {
+    {
+      let msg_external = std::format!($($arg)*);
+      let msg = std::format!("{msg_external}. This is an internal error. Please report it to developers.");
+      eyre::eyre!(msg)
+    }
+  };
+}
+
+pub use make_internal_report;

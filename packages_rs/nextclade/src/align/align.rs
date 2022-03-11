@@ -3,6 +3,8 @@
 use crate::align::backtrace::{backtrace, NextalignResult};
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::{seedAlignment, SeedAlignmentResult};
+use crate::io::aa::Aa;
+use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
@@ -40,19 +42,19 @@ impl Default for AlignPairwiseParams {
       minSeeds: 10,
       seedSpacing: 100,
       mismatchesAllowed: 3,
-      translatePastStop: false,
+      translatePastStop: true,
     }
   }
 }
 
-fn alignPairwise(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
+fn alignPairwise<T: Letter<T>>(
+  qry_seq: &[T],
+  ref_seq: &[T],
   gapOpenClose: &[i32],
   params: &AlignPairwiseParams,
   bandWidth: usize,
   shift: i32,
-) -> Result<NextalignResult, Report> {
+) -> Result<NextalignResult<T>, Report> {
   trace!("Align pairwise: started. Params: {params:?}");
 
   let max_indel = params.maxIndel;
@@ -71,7 +73,7 @@ pub fn align_nuc(
   ref_seq: &[Nuc],
   gapOpenClose: &[i32],
   params: &AlignPairwiseParams,
-) -> Result<NextalignResult, Report> {
+) -> Result<NextalignResult<Nuc>, Report> {
   let qry_len: usize = qry_seq.len();
   let min_len: usize = params.min_length;
   if qry_len < min_len {
@@ -87,6 +89,17 @@ pub fn align_nuc(
     meanShift
   );
 
+  alignPairwise(qry_seq, ref_seq, gapOpenClose, params, bandWidth, meanShift)
+}
+
+pub fn align_aa(
+  qry_seq: &[Aa],
+  ref_seq: &[Aa],
+  gapOpenClose: &[i32],
+  params: &AlignPairwiseParams,
+  bandWidth: usize,
+  meanShift: i32,
+) -> Result<NextalignResult<Aa>, Report> {
   alignPairwise(qry_seq, ref_seq, gapOpenClose, params, bandWidth, meanShift)
 }
 
