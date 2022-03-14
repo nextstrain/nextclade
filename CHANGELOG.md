@@ -1,3 +1,22 @@
+## Nextclade Web 1.14.0, Nextclade CLI 1.11.0, Nextalign CLI 1.11.0 (2022-03-15)
+
+### [Feature] Nextclade Pango classifier (SARS-CoV-2 specific)
+
+With the latest dataset, Nextclade now assigns sequences a pango lineage, similar to how clades are assigned. The classifier is about 98% accurate for sequences from the past 12 months. Older lineages are deprioritised, and accuracy is thus worse. Read more about the method and validation against pangoLEARN and UShER in this report: [Nextclade as pango lineage classifier: Methods and Validation](https://docs.nextstrain.org/projects/nextclade/en/latest/user/algorithm/nextclade-pango.html).
+
+### [Feature] Better tree extensions [#741](https://github.com/nextstrain/nextclade/pull/741)
+
+The Nextclade extensions fields in reference tree JSON now contain more information. This makes custom clade-like columns on the results page more informative.
+
+### [Feature] Update Auspice
+
+The tree rendering component, [Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/index.html), was updated to version 2.34.1. Refer to [its changelog](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md) for details.
+
+### [Fix] Mutation badges showing incorrect position for first nucleotide [#745](https://github.com/nextstrain/nextclade/issues/745)
+
+We fixed a bug where mutations at position 1 were incorrectly showing position 0 in Nextclade Web
+
+
 ## Nextclade Web 1.13.2, Nextclade CLI 1.10.3, Nextalign CLI 1.10.3 (2022-02-15)
 
 This is a bug fix release.
