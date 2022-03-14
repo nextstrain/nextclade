@@ -1,3 +1,21 @@
+## Nextclade Web 1.14.0, Nextclade CLI 1.11.0, Nextalign CLI 1.11.0 (2022-03-15)
+
+### [Feature] Better tree extensions
+
+The Nextclade extensions fields in reference tree JSON now contain more information. This makes custom clade-like columns on the results page more informative.
+
+
+### [Feature] Update Auspice
+
+The tree rendering component, [Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/index.html), was updated to version 2.34.1. Refer to [its changelog](https://github.com/nextstrain/auspice/blob/master/CHANGELOG.md) for details.
+
+
+### [Fix] Mutation badges showing incorrect position for first nucleotide
+
+We fixed a bug where mutations at position 1 were incorrectly showing position 0 in Nextclade Web
+
+
+
 ## Nextclade Web 1.13.2, Nextclade CLI 1.10.3, Nextalign CLI 1.10.3 (2022-02-15)
 
 This is a bug fix release.
