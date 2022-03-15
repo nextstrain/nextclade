@@ -692,6 +692,10 @@ pushd "${BUILD_DIR}" > /dev/null
     ${CONAN_STATIC_BUILD_FLAGS} \
     --build missing \
 
+  if [ -f "${BUILD_DIR}/Findghc_filesystem.cmake" ]; then
+    mv "${BUILD_DIR}/Findghc_filesystem.cmake" "${BUILD_DIR}/FindghcFilesystem.cmake"
+  fi
+
   print 57 "Generate source files";
   python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
       --input_json=${PROJECT_ROOT_DIR}/packages/nextclade_cli/cli.json \

@@ -16,6 +16,7 @@
 #include "../utils/concat.h"
 #include "../utils/contains.h"
 #include "../utils/eraseDuplicates.h"
+#include "../utils/map.h"
 #include "../utils/safe_cast.h"
 #include "formatMutation.h"
 #include "formatQcStatus.h"
@@ -126,7 +127,7 @@ namespace Nextclade {
     }
 
   public:
-    explicit CSVWriter(const CsvWriterOptions& opt, const safe_vector<std::string>& customNodeAttrKeys)
+    explicit CSVWriter(const CsvWriterOptions& opt, const safe_vector<CladeNodeAttr>& customNodeAttrs)
         : doc{
             "",
             rapidcsv::LabelParams{/* pColumnNameIdx */ -1, /* pRowNameIdx */ -1},
@@ -144,6 +145,9 @@ namespace Nextclade {
               /* pSkipEmptyLines  */ true  //
             },
           } {
+
+      safe_vector<std::string> customNodeAttrKeys =
+        map_vector<CladeNodeAttr, std::string>(customNodeAttrs, [](const CladeNodeAttr& attr) { return attr.name; });
 
       // Merge default column names with the incoming custom ones
       auto columnNamesVec = merge(getDefaultColumnNamesUpToClades(), customNodeAttrKeys);
@@ -306,7 +310,7 @@ namespace Nextclade {
 
 
   std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options,
-    const safe_vector<std::string>& customNodeAttrKeys) {
+    const safe_vector<CladeNodeAttr>& customNodeAttrKeys) {
     return std::make_unique<CSVWriter>(options, customNodeAttrKeys);
   }
 

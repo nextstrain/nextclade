@@ -1,4 +1,4 @@
-import { UrlParams } from 'src/algorithms/types'
+import { CladeNodeAttr, UrlParams } from 'src/algorithms/types'
 import type { DatasetFlat, Gene } from 'src/algorithms/types'
 import { SortingKeyBased } from 'src/helpers/sortResults'
 import type { Sorting } from 'src/helpers/sortResults'
@@ -46,7 +46,7 @@ export const setGeneMapObject = action<{ geneMap: Gene[] }>('setGeneMapObject')
 export const addParsedSequence = action<{ index: number; seqName: string }>('addParsedSequence')
 export const addNextcladeResult = action<{ nextcladeResult: NextcladeResult }>('addNextcladeResult')
 export const setTreeResult = action<{ treeStr: string }>('setTreeResult')
-export const setCladeNodeAttrKeys = action<{ cladeNodeAttrKeys: string[] }>('setCladeNodeAttrKeys')
+export const setCladeNodeAttrKeys = action<{ cladeNodeAttrKeys: CladeNodeAttr[] }>('setCladeNodeAttrKeys')
 export const setResultsJsonStr = action<{ resultsJsonStr: string }>('setResultsJsonStr')
 
 export const exportCsvTrigger = action<void>('exportCsvTrigger')
