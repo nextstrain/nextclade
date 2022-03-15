@@ -29,7 +29,7 @@ You will be redirected to the results page.
 
 Power users might want to click **Customize dataset files** in order to get access to more configuration. This mode is equivalent to using the [Nextclade CLI](nextclade-cli), and accepts the same input files.
 
-> 💡 There are a number of options of providing input data to Nextclade, including:
+> 💡 There is a number of options of providing input data to Nextclade, including:
 >
 > - Drag & Drop a file onto the "upload" area
 > - Picking a file from computer storage: click `Select a file`
@@ -45,37 +45,27 @@ Nextclade analyzes your sequences locally in your browser. That means, sequences
 
 The analysis pipeline comprises the following steps:
 
-1. Alignment: Sequences are aligned to the reference genome using our custom Nextalign alignment algorithm.
+1. Sequence alignment: Sequences are aligned to the reference genome using our custom Nextalign alignment algorithm.
 2. Translation: Nucleotide sequences are translated into amino acid sequences.
 3. Mutation calling: Nucleotide and amino acid changes are identified
-4. PCR primer changes are computed
-5. Phylogenetic placement: Sequences are placed on a reference tree, clades assigned to nearest neighbour, private mutations analyzed.
-6. Quality control: Quality control metrics are calculated
+4. Detection of PCR primer changes
+5. Phylogenetic placement: Sequences are placed on a reference tree, private mutations analyzed
+6. Clade assignment: Clades are taken from the parent node on the tree
+7. Quality Control (QC): Quality control metrics are calculated
+
+See [Algorithm](algorithm) section for more details.
 
 You can get a quick overview of the results screen in the screenshot below:
 ![Results overview](assets/web_overview.png)
 
 ### QC metrics
 
-Nextclade implements a variety of quality control metrics to quickly spot problems in your sequencing/assembly pipeline. You can get a quick idea which of your sequences are having problems by sorting the results table from bad to good (
-click on the upper arrow in the column QC). Bad sequences are colored red, mediocre ones yellow and good ones white. You can view detailed results of the QC metrics by hovering your mouse over a sequences QC entry:
+Nextclade implements a variety of quality control metrics to quickly spot problems in your sequencing/assembly pipeline. You can get a quick idea which of your sequences are having problems by sorting the results table from bad to good (click on the upper arrow in the column "QC"). Bad sequences are colored red, mediocre ones yellow and good ones white. You can view detailed results of the QC metrics by hovering your mouse over a sequences QC entry:
 
 ![QC hover](assets/web_QC.png)
 
-Every icon corresponds to a different metric.
+Every icon corresponds to a different metric. See [Quality control](algorithm/07-quality-control) section for the detailed explanation of QC metrics.
 
-At the moment, there are 6 different quality control metrics implemented:
-
-- Missing data: Number of Ns in the sequence. Up to 300 is not penalized, sequences with more than 3000 Ns are considered bad.
-- Mixed sites: Number of bases with ambiguous nucleotide characters. Since mixed sites are considered indicative of impurities, already 10 mixed sites give a bad score.
-- Private mutations: Mutations that are additional to the nearest neighbouring sequence in the reference tree. 
-Since web version `1.13.0`, Nextclade splits private mutations into three groups:
-  - Reversions to reference (this is a common quality problem in SARS-CoV-2 sequences and thus heavily penalized)
-  - Labeled: Mutations that are common in a variant and could thus indicate contamination, co-infection or recombination
-  - Unlabeled: Mutations that have not become a big proportion in any clade
-- Mutation Clusters: A mutation cluster is defined as more than 6 private mutations occurring within a 100 nucleotide window. 2 mutation clusters are considered bad.
-- Frame shifts: Number of insertions or deletions that are not a multiple of 3. 1 frameshift is considered mediocre, 2 frameshifts are bad.
-- Stop codons: Number of stop codons that occur in unexpected places. 1 misplaced stop codon is considered mediocre, 2 stop codons are bad.
 
 ### Table data
 
@@ -91,9 +81,7 @@ The result table further displays for each sequence:
 - "FS": Number of uncommon frame shifts (total number, including common frame shifts are in parentheses)
 - "SC": Number of uncommon premature stop codons (total number, including common premature stops are in parentheses)
 
-Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference.
-
-Since version `1.13.0`, Nextclade also shows which mutations differ from the nearest neighbor on the reference tree, termed. These so-called _private_ mutations are are split into:
+Hovering over table entries reveals more detailed information. For example, hovering over the number of mutations reveals which nucleotides and aminoacids have changed with respect to the reference, as well as so-called _private_ mutations (mutations that differ from the nearest neighbor on the reference tree), which are are split into:
 
 - Reversions: mutations back to reference, often a sign of sequencing problems
 - Labeled: Mutations that are known, for example because they occur often in a clade. If multiple labeled mutations from the same clade appear, it is a sign of contamination, co-infection or recombination.
@@ -118,12 +106,11 @@ In sequence view, one can observe mutations in a particular gene. One of Nextcla
 ![Alignment tooltip](assets/web_alignment-tip.png)
 
 ### Tree
+In order to assign clades to sequences, Nextclade [places](algorithm/05-phylogenetic-placement) all new sequences on a a reference tree. You can view the resulting tree by clicking on the tree icon at the top right.
 
-In order to assign clades to sequences, Nextclade places all new sequences on a a reference tree. You can view the resulting tree by clicking on the tree icon at the top right.
+The tree is visualized by [Nextstrain Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/). By default, only your uploaded sequences are highlighted.
 
-The tree is visualized by Nextstrain's [Auspice](https://docs.nextstrain.org/projects/auspice/en/stable/). By default, only your uploaded sequences are highlighted.
-
-One limitation to be aware of is that new sequences are place one by one on the reference tree. Thus, no common internal nodes of new sequences are placed on the tree. If you are interested in seeing ancestral relationships between your sequences, we recommend you use [Usher](https://genome.ucsc.edu/cgi-bin/hgPhyloPlace).
+One limitation to be aware of is that new sequences are placed one by one on the reference tree. Thus, no common internal nodes of new sequences are placed on the tree. If you are interested in seeing ancestral relationships between your sequences, we recommend you use [Usher](https://genome.ucsc.edu/cgi-bin/hgPhyloPlace).
 
 ![Tree with new sequences](assets/web_tree.png)
 
@@ -145,13 +132,13 @@ Once Nextclade has finished its analysis, you can download the results in a vari
 
 You can use a custom dataset in Nextclade web through the advanced mode. The same input files as for Nextclade CLI can be specified, see [input files](input-files) for more details. Click on `Customize dataset files` to open advanced mode:
 
-![Advanced mode](//docs/user/assets/web_select-advanced.png)
+![Advanced mode](assets/web_select-advanced.png)
 
 The selected dataset, for example `SARS-CoV-2` is used as the default for any input file and overwritten by user supplied files.
 
 You can provide files by drag and drop, by providing a web link or copying it into a text box:
 
-![Advanced mode UI](//docs/user/assets/web_advanced-ui.png)
+![Advanced mode UI](assets/web_advanced-ui.png)
 
 ### URL parameters
 
@@ -186,7 +173,9 @@ https://clades.nextstrain.org?dataset-name=sars-cov-2
 
 (the newlines and the indentation are added here for readability, they should not be present in the URL)
 
-In this case, Nextclade will download the latest SARS-CoV-2 dataset and the provided `fasta` file, and will automatically start the analysis. You can try it out using this link: https://clades.nextstrain.org?dataset-name=sars-cov-2&input-fasta=https://data.clades.nextstrain.org/datasets/sars-cov-2/references/MN908947/versions/2022-01-05T19:54:31Z/files/sequences.fasta
+In this case, Nextclade will download the latest SARS-CoV-2 dataset and the provided `fasta` file, and will automatically start the analysis. Real example:
+
+> [https://clades.nextstrain.org?dataset-name=sars-cov-2&input-fasta=https://data.clades.nextstrain.org/datasets/sars-cov-2/references/MN908947/versions/2022-01-05T19:54:31Z/files/sequences.fasta](https://clades.nextstrain.org?dataset-name=sars-cov-2&input-fasta=https://data.clades.nextstrain.org/datasets/sars-cov-2/references/MN908947/versions/2022-01-05T19:54:31Z/files/sequences.fasta)
 
 Multiple files can be specified, for example the sequences and the reference tree:
 
@@ -219,6 +208,21 @@ https://clades.nextstrain.org
 > ⚠️The linked resources should be available for fetching by a web browser on the client machine. Make sure [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) is enabled on your file server as well as that all required authentication (if any) is included into the file URL itself.
 
 > ⚠️The URLs might get quite complex, so don't forget to [encode the special characters](https://en.wikipedia.org/wiki/Percent-encoding), to keep the URLs valid.
+
+## Performance tips
+
+Nextclade algorithms are computationally expensive and require a lot of CPU cycles and system memory (RAM). All this computational work runs on your computer, in the web browser.
+
+For the best experience and performance, it is advised to run Nextclade in one of the latest versions of Firefox or Chrome web browsers, as they are known for the fastest and the most spec-compliant implementations of the web technologies that Nextclade uses.
+
+Browser extensions, such as ad blockers, can interfere with Nextclade software modules and may cause slowdown, excessive memory consumption and crashes. Nextclade does not serve ads. Try to remove these extensions or to disable them selectively for Nextclade website.
+
+For optimal performance, before running Nextclade, close unused applications and browser tabs, especially tabs with extra copies of Nextclade, in order to free up the system memory they are occupying.
+
+You can also try to tune the performance by increasing or decreasing the number of CPU threads in the "Settings" window. This option tells Nextclade how many processing jobs it is allowed to run in parallel. More threads will consume more memory, and will make startup process longer, but will make the analysis faster in case there are many sequences to process. Less threads will speedup the startup, and decrease memory consumption, but will make the analysis slower.
+
+In case of any problems, try to run Nextclade in a fresh private/incognito browser window, with no extensions enabled, and where Nextclade is the only tab.
+
 
 ## What's next?
 

@@ -48,7 +48,7 @@ In order to assign clades, Nextclade places sequences on a reference tree that i
 
 As a by-product of this placement, Nextclade identifies the mutations, called "private mutations", that differ between the query sequence and the nearest neighbor sequence. In the figure, the yellow and dark green mutations are private mutations, as they occur in addition to the 3 mutations of the attachment node.
 
-![Identification of private mutations](//docs/user/assets/algo_private-muts.png)
+![Identification of private mutations](../assets/algo_private-muts.png)
 
 Many sequence quality problems are identifiable by the presence of private mutations. Sequences with unusually many private mutations are unlikely to be biological and are thus flagged as bad.
 
@@ -60,7 +60,7 @@ Since web version 1.13.0 (CLI 1.10.0), Nextclade classifies private mutations fu
 
 For an illustration of these 3 types, see the figure below.
 
-![Classification of private mutations](//docs/user/assets/algo_private-muts-classification.png)
+![Classification of private mutations](../assets/algo_private-muts-classification.png)
 
 Reversions are common artefacts in some bioinformatic pipelines when there is amplicon dropout.
 They are also a sign of contamination, co-infection or recombination. Labeled mutations also contain commonly when there's contamination, co-infection or recombination.
