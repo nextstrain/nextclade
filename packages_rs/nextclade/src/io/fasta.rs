@@ -1,5 +1,10 @@
+use crate::io::fs::ensure_dir;
 use crate::make_error;
-use eyre::Report;
+use clap::ErrorKind::Format;
+use eyre::{Report, WrapErr};
+use std::fs::File;
+use std::io::{BufRead, BufReader, BufWriter};
+use std::path::{Path, PathBuf};
 
 #[derive(Default, Clone, Debug)]
 pub struct FastaRecord {
@@ -24,18 +29,24 @@ impl FastaRecord {
   }
 }
 
-#[derive(Debug)]
-pub struct FastaReader<R: std::io::BufRead> {
-  reader: R,
+pub struct FastaReader {
+  reader: Box<dyn std::io::BufRead>,
   line: String,
 }
 
-impl<R: std::io::BufRead> FastaReader<R> {
-  pub fn new(reader: R) -> Self {
+impl FastaReader {
+  pub fn new(reader: Box<dyn std::io::BufRead>) -> Self {
     Self {
       reader,
       line: String::new(),
     }
+  }
+
+  pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
+    let filepath = filepath.as_ref();
+    let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:?}"))?;
+    let reader = BufReader::with_capacity(32 * 1024, file);
+    Ok(Self::new(Box::new(reader)))
   }
 
   pub fn read(&mut self, record: &mut FastaRecord) -> Result<(), Report> {
@@ -67,18 +78,25 @@ impl<R: std::io::BufRead> FastaReader<R> {
   }
 }
 
-#[derive(Debug)]
-pub struct FastaWriter<W: std::io::Write> {
-  writer: W,
+pub struct FastaWriter {
+  writer: Box<dyn std::io::Write>,
 }
 
-impl<W: std::io::Write> FastaWriter<W> {
-  pub fn new(writer: W) -> Self {
+impl FastaWriter {
+  pub fn new(writer: Box<dyn std::io::Write>) -> Self {
     Self { writer }
   }
 
+  pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
+    let filepath = filepath.as_ref();
+    ensure_dir(&filepath)?;
+    let file = File::create(&filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?;
+    let writer = BufWriter::with_capacity(32 * 1024, file);
+    Ok(Self::new(Box::new(writer)))
+  }
+
   pub fn write(&mut self, name: &str, seq: &str) -> Result<(), Report> {
-    write!(self.writer, ">{name}\n{seq}\n");
+    write!(self.writer, ">{name}\n{seq}\n")?;
     Ok(())
   }
 

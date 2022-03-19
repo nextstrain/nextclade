@@ -4,7 +4,7 @@ use std::io::Write;
 use crate::utils::datetime::{date_format_precise, date_now};
 use color_eyre::owo_colors::OwoColorize;
 use env_logger::Env;
-use log::{Level, Record};
+use log::{Level, LevelFilter, Record};
 
 fn get_current_exe_filename() -> Option<String> {
   env::current_exe().ok()?.file_name()?.to_str()?.to_owned().into()
@@ -34,10 +34,9 @@ fn color_log_level(record: &Record) -> String {
   }
 }
 
-pub fn global_init() {
-  color_eyre::install().expect("color_eyre initialization failed");
-
+pub fn setup_logger(filter_level: LevelFilter) {
   env_logger::Builder::from_env(Env::default().default_filter_or("warn"))
+    .filter_level(filter_level)
     .format(|buf, record| {
       let current_exe = get_current_exe_filename().unwrap_or_default();
       let file_line = get_file_line(record);
@@ -48,4 +47,8 @@ pub fn global_init() {
       Ok(())
     })
     .init();
+}
+
+pub fn global_init() {
+  color_eyre::install().expect("color_eyre initialization failed");
 }

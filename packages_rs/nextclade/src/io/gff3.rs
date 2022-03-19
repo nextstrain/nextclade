@@ -44,7 +44,8 @@ pub fn convert_gff_record_to_gene_map_record(record: &GffRecord) -> Option<Resul
   None
 }
 
-pub fn read_gff3_file_impl<P: AsRef<Path> + Debug + ToString>(filename: &P) -> Result<GeneMap, Report> {
+pub fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
+  let filename = filename.as_ref();
   let mut reader = GffReader::from_file(&filename, GffType::GFF3).map_err(|report| eyre!(report))?;
 
   let records = reader
@@ -58,8 +59,7 @@ pub fn read_gff3_file_impl<P: AsRef<Path> + Debug + ToString>(filename: &P) -> R
     .collect::<Result<GeneMap, Report>>()
 }
 
-pub fn read_gff3_file<P: AsRef<Path> + Debug + ToString>(filename: &P) -> Result<GeneMap, Report> {
-  read_gff3_file_impl(filename)
-    .wrap_err("When reading GFF3 file")
-    .with_section(|| filename.to_string().header("filename:"))
+pub fn read_gff3_file<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
+  let filename = filename.as_ref();
+  read_gff3_file_impl(&filename).wrap_err_with(|| format!("When reading GFF3 file '{filename:#?}'"))
 }
