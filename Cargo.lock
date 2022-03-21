@@ -908,6 +908,7 @@ dependencies = [
  "clap_complete",
  "clap_complete_fig",
  "color-eyre",
+ "csv",
  "ctor",
  "env_logger",
  "eyre",

@@ -3,7 +3,6 @@ use itertools::Itertools;
 
 pub struct Insertion<T: Letter<T>> {
   pub pos: i32,
-  pub length: i32,
   pub ins: Vec<T>,
 }
 
@@ -41,7 +40,6 @@ pub fn strip_insertions<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
       if !current_insertion.is_empty() {
         insertions.push(Insertion {
           pos: insertion_start,
-          length: current_insertion.len() as i32,
           ins: current_insertion.clone(),
         });
         current_insertion.clear();
