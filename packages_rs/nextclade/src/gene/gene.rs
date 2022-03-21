@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+#[derive(Debug)]
 pub struct Gene {
   pub gene_name: String,
   pub start: usize,

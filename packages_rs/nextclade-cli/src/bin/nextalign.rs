@@ -7,6 +7,7 @@ use nextclade::align::align::{align_nuc, AlignPairwiseParams};
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::strip_insertions::strip_insertions;
 use nextclade::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands, NextalignRunArgs};
+use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::aa::from_aa_seq;
 use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::gff3::read_gff3_file;
@@ -17,7 +18,7 @@ use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
 use nextclade::{make_internal_error, make_internal_report};
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -82,7 +83,14 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
   let ref_seq = to_nuc_seq(&read_one_fasta(input_ref)?)?;
 
   trace!("Reading gene map from '{genemap:#?}'");
-  let gene_map = read_gff3_file(&genemap)?;
+  let gene_map = match (genemap, genes) {
+    // Read gene map and retain only requested genes
+    (Some(genemap), Some(genes)) => read_gff3_file(&genemap)?
+      .into_iter()
+      .filter(|(gene_name, ..)| genes.contains(gene_name))
+      .collect(),
+    _ => GeneMap::new(),
+  };
 
   trace!("Creating fasta reader from file '{input_fasta:#?}'");
   let mut reader = FastaReader::from_path(&input_fasta)?;

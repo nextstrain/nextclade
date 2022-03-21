@@ -1,3 +1,4 @@
+use crate::io::fs::basename;
 use crate::utils::global_init::setup_logger;
 use clap::{AppSettings, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
@@ -7,6 +8,7 @@ use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::LevelFilter;
+use std::env::current_dir;
 use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
@@ -24,10 +26,11 @@ lazy_static! {
 #[clap(verbatim_doc_comment)]
 /// Viral sequence alignment and translation.
 ///
-/// by Nextstrain team
+/// Nextalign is a part of Nextstrain project: https://nextstrain.org
 ///
-/// Website: https://clades.nextstrain.org
-/// Documentation: https://docs.nextstrain.org/projects/nextclade/en/stable
+/// Documentation: https://docs.nextstrain.org/projects/nextclade
+/// Nextclade Web: https://clades.nextstrain.org
+/// Publication:   https://doi.org/10.21105/joss.03773
 pub struct NextalignArgs {
   #[clap(subcommand)]
   pub command: Option<NextalignCommands>,
@@ -91,7 +94,7 @@ pub struct NextalignRunArgs {
     use_value_delimiter = true
   )]
   #[clap(value_hint = ValueHint::FilePath)]
-  pub genes: Vec<String>,
+  pub genes: Option<Vec<String>>,
 
   #[clap(long, short = 'm')]
   #[clap(value_hint = ValueHint::FilePath)]
@@ -103,7 +106,7 @@ pub struct NextalignRunArgs {
   ///
   /// Learn more about Generic Feature Format Version 3 (GFF3):
   /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md",
-  pub genemap: PathBuf,
+  pub genemap: Option<PathBuf>,
 
   /// Write output files to this directory.
   ///
@@ -112,13 +115,13 @@ pub struct NextalignRunArgs {
   /// If the required directory tree does not exist, it will be created.
   #[clap(long, short = 'd')]
   #[clap(value_hint = ValueHint::DirPath)]
-  pub output_dir: PathBuf,
+  pub output_dir: Option<PathBuf>,
 
   /// Set the base filename to use for output files.
   ///
   /// To be used together with `--output-dir` flag. By default uses the filename of the sequences file (provided with `--input-fasta`). The paths can be overridden on a per-file basis using `--output-*` flags.
   #[clap(long, short = 'n')]
-  pub output_basename: String,
+  pub output_basename: Option<String>,
 
   /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
   #[clap(long)]
@@ -187,33 +190,25 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
 
 /// Get output filenames provided by user or, if not provided, create filenames based on input fasta
 pub fn get_output_filenames(run_args: &mut NextalignRunArgs) -> Result<(), Report> {
-  let NextalignRunArgs {
-    input_fasta,
-    output_dir,
-    ..
-  } = run_args;
+  let NextalignRunArgs { input_fasta, .. } = run_args;
 
-  let out_fasta_filename = PathBuf::from(
-    input_fasta
-      .file_name()
-      .ok_or_else(|| eyre!("The provided path is incorrect: Unable to get filename from: '{input_fasta:#?}'",))?,
-  );
+  let basename = run_args.output_basename.get_or_insert(basename(&input_fasta)?);
+
+  let output_dir = run_args
+    .output_dir
+    .get_or_insert(current_dir().wrap_err("When getting current working directory")?);
 
   run_args
     .output_fasta
-    .get_or_insert(output_dir.join(&out_fasta_filename));
+    .get_or_insert(output_dir.join(&basename).with_extension("aligned.fasta"));
 
-  run_args.output_insertions.get_or_insert(
-    run_args
-      .output_dir
-      .join(&out_fasta_filename.with_extension("insertions.csv")),
-  );
+  run_args
+    .output_insertions
+    .get_or_insert(output_dir.join(&basename).with_extension("insertions.csv"));
 
-  run_args.output_errors.get_or_insert(
-    run_args
-      .output_dir
-      .join(&out_fasta_filename.with_extension("errors.csv")),
-  );
+  run_args
+    .output_errors
+    .get_or_insert(output_dir.join(&basename).with_extension("errors.csv"));
 
   Ok(())
 }
