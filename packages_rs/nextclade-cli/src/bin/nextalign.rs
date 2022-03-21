@@ -5,13 +5,13 @@ use itertools::Itertools;
 use log::{info, trace, warn};
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use nextclade::align::strip_insertions::strip_insertions;
+use nextclade::align::strip_insertions::{strip_insertions, Insertion};
 use nextclade::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands, NextalignRunArgs};
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::aa::from_aa_seq;
-use nextclade::io::fasta::{FastaReader, FastaRecord, FastaWriter};
+use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::gff3::read_gff3_file;
-use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq};
+use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use nextclade::translate::translate_genes::{translate_genes, Translation};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::utils::error::report_to_string;
@@ -26,14 +26,6 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 #[ctor]
 fn init() {
   global_init();
-}
-
-pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<String, Report> {
-  let filepath = filepath.as_ref();
-  let mut reader = FastaReader::from_path(&filepath)?;
-  let mut record = FastaRecord::default();
-  reader.read(&mut record)?;
-  Ok(record.seq)
 }
 
 pub fn write_translations(

@@ -1,10 +1,9 @@
 use crate::io::fs::ensure_dir;
 use crate::make_error;
-use clap::ErrorKind::Format;
 use eyre::{Report, WrapErr};
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[derive(Default, Clone, Debug)]
 pub struct FastaRecord {
@@ -76,6 +75,14 @@ impl FastaReader {
 
     Ok(())
   }
+}
+
+pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<String, Report> {
+  let filepath = filepath.as_ref();
+  let mut reader = FastaReader::from_path(&filepath)?;
+  let mut record = FastaRecord::default();
+  reader.read(&mut record)?;
+  Ok(record.seq)
 }
 
 pub struct FastaWriter {
