@@ -80,7 +80,7 @@ pub fn frame_shift_translate(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &Coo
 
   let mask_nuc_rel_aln = find_mask(query, nuc_rel_aln);
   let mask_nuc_abs_aln = mask_nuc_rel_aln + gene_start_aln;
-  let mask_nuc_abs_ref = coord_map.ref_to_aln(&mask_nuc_abs_aln);
+  let mask_nuc_abs_ref = coord_map.aln_to_ref(&mask_nuc_abs_aln);
   let mask_nuc_rel_ref = mask_nuc_abs_ref - gene_start_ref;
 
   let mut codon_mask = nuc_range_to_codon_range(&mask_nuc_rel_ref);
