@@ -42,7 +42,11 @@ impl GapCounts {
     }
 
     // Count gaps in the internal region
-    let internal = seq[begin..end].iter().filter(|nuc| nuc.is_gap()).count();
+    let internal = if end > begin {
+      seq[begin..end].iter().filter(|nuc| nuc.is_gap()).count()
+    } else {
+      0
+    };
 
     let leading = begin;
     let trailing = len - end - 1;
