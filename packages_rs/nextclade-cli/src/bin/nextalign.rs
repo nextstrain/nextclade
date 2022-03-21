@@ -117,17 +117,15 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
       break;
     }
 
+    info!("Processing sequence  '{}'", &record.seq_name);
+
     trace!("Reading sequence  '{}'", &record.seq_name);
     let qry_seq = to_nuc_seq(&record.seq)?;
 
     trace!("Aligning sequence '{}'", &record.seq_name);
     match align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params) {
       Err(report) => {
-        warn!(
-          "Unable to align sequence '{}': {}",
-          &record.seq_name,
-          report_to_string(&report)
-        );
+        warn!("In sequence '{}': {}", &record.seq_name, report_to_string(&report));
       }
       Ok(alignment) => {
         trace!("Translating sequence '{}'", &record.seq_name);
