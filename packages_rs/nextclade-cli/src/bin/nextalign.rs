@@ -1,6 +1,6 @@
 use color_eyre::Section;
 use ctor::ctor;
-use eyre::{Report, WrapErr};
+use eyre::Report;
 use itertools::Itertools;
 use log::{info, trace, warn};
 use nextclade::align::align::{align_nuc, AlignPairwiseParams};
@@ -18,7 +18,7 @@ use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
 use nextclade::{make_internal_error, make_internal_report};
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -49,7 +49,11 @@ pub fn write_translations(
         Some(writer) => writer.write(&seq_name, &from_aa_seq(&translation.seq)),
       },
       Err(report) => {
-        warn!("In sequence '{}': {}", &seq_name, report_to_string(&report));
+        warn!(
+          "In sequence '{}': {}. Note that this gene will not be included in the results of the sequence.",
+          &seq_name,
+          report_to_string(&report)
+        );
         Ok(())
       }
     })
@@ -79,6 +83,10 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
   let params = AlignPairwiseParams::default();
   info!("Params:\n{params:#?}");
 
+  let output_basename = output_basename.ok_or_else(|| make_internal_report!("output_basename is not set"))?;
+  let output_dir = output_dir.ok_or_else(|| make_internal_report!("output_dir path is not set"))?;
+  let output_insertions = output_insertions.ok_or_else(|| make_internal_report!("output_insertions is not set"))?;
+
   trace!("Reading ref sequence from '{input_ref:#?}'");
   let ref_seq = to_nuc_seq(&read_one_fasta(input_ref)?)?;
 
@@ -96,16 +104,18 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
   let mut reader = FastaReader::from_path(&input_fasta)?;
   let mut record = FastaRecord::default();
 
-  let output_fasta_some = &output_fasta.ok_or_else(|| make_internal_report!("Output fasta path is not set"))?;
+  let output_fasta_some = &output_fasta.ok_or_else(|| make_internal_report!("output_fasta path is not set"))?;
   trace!("Creating fasta writer to file '{output_fasta_some:#?}'");
   let mut writer = FastaWriter::from_path(&output_fasta_some)?;
 
   let mut gene_fasta_writers = gene_map
     .iter()
     .map(|(gene_name, _)| -> Result<_, Report> {
-      let out_gene_fasta_path = format!("tmp/nextalign.gene.{gene_name}_new.fasta");
+      let out_gene_fasta_path = output_dir
+        .clone()
+        .join(format!("{output_basename}.gene.{gene_name}.fasta"));
 
-      trace!("Creating fasta writer to file '{out_gene_fasta_path}'");
+      trace!("Creating fasta writer to file {out_gene_fasta_path:#?}");
       let writer = FastaWriter::from_path(&out_gene_fasta_path)?;
 
       Ok((gene_name.to_owned(), writer))
@@ -133,7 +143,11 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
     trace!("Aligning sequence '{}'", &record.seq_name);
     match align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params) {
       Err(report) => {
-        warn!("In sequence '{}': {}", &record.seq_name, report_to_string(&report));
+        warn!(
+          "In sequence '{}': {}. Note that this sequence will not be included in the results.",
+          &record.seq_name,
+          report_to_string(&report)
+        );
       }
       Ok(alignment) => {
         trace!("Translating sequence '{}'", &record.seq_name);
