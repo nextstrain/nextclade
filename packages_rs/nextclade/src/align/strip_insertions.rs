@@ -25,15 +25,13 @@ pub fn strip_insertions<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
   for i in 0..ref_seq.len() {
     let c = ref_seq[i];
 
-    if c == T::GAP {
-      current_insertion.push(qry_seq[i]);
+    if c.is_gap() {
       if current_insertion.is_empty() {
         // NOTE: by convention we set position of insertion to be the index of a character that precedes the insertion,
         // i.e. a position of reference nucleotide *after* which the insertion have happened.
         insertion_start = ref_pos;
-      } else {
-        current_insertion.push(qry_seq[i]);
       }
+      current_insertion.push(qry_seq[i]);
     } else {
       qry_stripped.push(qry_seq[i]);
       ref_pos += 1;
