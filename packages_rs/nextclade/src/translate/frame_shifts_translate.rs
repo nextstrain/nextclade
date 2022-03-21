@@ -34,10 +34,43 @@ pub fn find_mask_end(seq: &[Nuc], frame_shift_nuc_range_rel: &Range) -> usize {
   end
 }
 
-pub fn find_mask(query: &[Nuc], frame_shift_nuc_range_rel: &Range) -> Range {
+/// Finds nucleotide range to be masked. The nucleotides belonging to frame shift need to be masked, because the
+/// alignment in this region is likely to be very uncertain.
+pub fn find_nuc_mask_range(query: &[Nuc], frame_shift_nuc_range_rel: &Range) -> Range {
   Range {
     begin: find_mask_begin(query, frame_shift_nuc_range_rel),
     end: find_mask_end(query, frame_shift_nuc_range_rel),
+  }
+}
+
+/// Finds codon range to be masked. The aminoacids belonging to frame shift need to be masked, because they are not
+/// biological and can produce a lot of noisy mutations that don't exist.
+pub fn find_codon_mask_range(
+  nuc_rel_aln: &Range,
+  query: &[Nuc],
+  coord_map: &CoordMap,
+  gene_start_ref: usize,
+  gene_start_aln: usize,
+  gene_length: usize,
+) -> Range {
+  let mask_nuc_rel_aln = find_nuc_mask_range(query, nuc_rel_aln);
+  let mask_nuc_abs_aln = mask_nuc_rel_aln + gene_start_aln;
+  let mask_nuc_abs_ref = coord_map.aln_to_ref(&mask_nuc_abs_aln);
+  let mask_nuc_rel_ref = mask_nuc_abs_ref - gene_start_ref;
+  let mut mask_codon = nuc_range_to_codon_range(&mask_nuc_rel_ref);
+
+  // Nuc mask can span beyond the gene. Prevent peptide mask overflow.
+  mask_codon.end = mask_codon.end.min(gene_length);
+
+  mask_codon
+}
+
+#[inline]
+pub fn nuc_range_to_codon_range(range: &Range) -> Range {
+  Range {
+    begin: range.begin / 3,
+    // Make sure the right boundary is aligned to codon boundary
+    end: (range.end + (3 - range.end % 3) % 3) / 3,
   }
 }
 
@@ -55,15 +88,6 @@ pub struct FrameShift {
   pub codon_mask: Range,
 }
 
-#[inline]
-pub fn nuc_range_to_codon_range(range: &Range) -> Range {
-  Range {
-    begin: range.begin / 3,
-    // Make sure the right boundary is aligned to codon boundary
-    end: (range.end + (3 - range.end % 3) % 3) / 3,
-  }
-}
-
 pub fn frame_shift_translate(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &CoordMap, gene: &Gene) -> FrameShift {
   // Relative nuc range is in alignment coordinates. However, after insertions are stripped,
   // absolute positions may change - so in order to get absolute range, we need to convert range boundaries
@@ -78,15 +102,14 @@ pub fn frame_shift_translate(nuc_rel_aln: &Range, query: &[Nuc], coord_map: &Coo
   let nuc_rel_ref = &nuc_abs_ref - gene_start_ref;
   let codon = nuc_range_to_codon_range(&nuc_rel_ref);
 
-  let mask_nuc_rel_aln = find_mask(query, nuc_rel_aln);
-  let mask_nuc_abs_aln = mask_nuc_rel_aln + gene_start_aln;
-  let mask_nuc_abs_ref = coord_map.aln_to_ref(&mask_nuc_abs_aln);
-  let mask_nuc_rel_ref = mask_nuc_abs_ref - gene_start_ref;
-
-  let mut codon_mask = nuc_range_to_codon_range(&mask_nuc_rel_ref);
-
-  // Nuc mask can span beyond the gene. Prevent peptide mask overflow.
-  codon_mask.end = codon_mask.end.min(gene.len() / 3);
+  let codon_mask = find_codon_mask_range(
+    nuc_rel_aln,
+    query,
+    coord_map,
+    gene_start_ref,
+    gene_start_aln,
+    gene.len(),
+  );
 
   let gaps_leading = FrameShiftContext {
     codon: Range {
