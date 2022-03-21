@@ -6,6 +6,7 @@ use clap_verbosity_flag::{Verbosity, WarnLevel};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use log::LevelFilter;
 use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
@@ -220,10 +221,14 @@ pub fn get_output_filenames(run_args: &mut NextalignRunArgs) -> Result<(), Repor
 pub fn nextalign_parse_cli_args() -> Result<NextalignArgs, Report> {
   let mut args = NextalignArgs::parse();
 
-  // --verbosity takes priority over -v and -q
-  let filter_level = match args.verbosity {
-    None => args.verbose.log_level_filter(),
-    Some(verbosity) => verbosity,
+  // --verbosity=<level> and --silent take priority over -v and -q
+  let filter_level = if args.silent {
+    LevelFilter::Off
+  } else {
+    match args.verbosity {
+      None => args.verbose.log_level_filter(),
+      Some(verbosity) => verbosity,
+    }
   };
 
   setup_logger(filter_level);
