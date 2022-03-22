@@ -1,9 +1,9 @@
 use crate::io::aa::Aa;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 pub struct Peptide {
   pub gene_name: String,
   pub seq: Vec<Aa>,
 }
 
-pub type PeptideMap = HashMap<String, Peptide>;
+pub type PeptideMap = BTreeMap<String, Peptide>;

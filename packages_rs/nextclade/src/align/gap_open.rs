@@ -1,7 +1,6 @@
 use crate::align::align::AlignPairwiseParams;
-use crate::gene::gene::Gene;
+use crate::gene::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
-use std::collections::HashMap;
 
 pub type GapScoreMap = Vec<i32>;
 
@@ -13,7 +12,7 @@ pub fn get_gap_open_close_scores_flat(ref_seq: &[Nuc], params: &AlignPairwisePar
 
 pub fn get_gap_open_close_scores_codon_aware(
   ref_seq: &[Nuc],
-  gene_map: &HashMap<String, Gene>,
+  gene_map: &GeneMap,
   params: &AlignPairwiseParams,
 ) -> GapScoreMap {
   let mut gap_open_close = get_gap_open_close_scores_flat(ref_seq, params);

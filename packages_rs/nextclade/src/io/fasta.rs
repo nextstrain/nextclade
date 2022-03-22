@@ -6,7 +6,7 @@ use crate::utils::error::report_to_string;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
 use log::{trace, warn};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
 use std::path::Path;
@@ -120,9 +120,11 @@ impl FastaWriter {
   }
 }
 
+pub type FastaPeptideWritersMap = BTreeMap<String, FastaWriter>;
+
 /// Writes peptides, each into a separate fasta file
 pub struct FastaPeptideWriter {
-  writers: HashMap<String, FastaWriter>,
+  writers: FastaPeptideWritersMap,
 }
 
 impl FastaPeptideWriter {
@@ -142,7 +144,7 @@ impl FastaPeptideWriter {
         let writer = FastaWriter::from_path(&out_gene_fasta_path)?;
         Ok((gene_name.clone(), writer))
       })
-      .collect::<Result<HashMap<String, FastaWriter>, Report>>()?;
+      .collect::<Result<FastaPeptideWritersMap, Report>>()?;
 
     Ok(Self { writers })
   }

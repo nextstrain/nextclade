@@ -1,4 +1,4 @@
 use crate::gene::gene::Gene;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-pub type GeneMap = HashMap<String, Gene>;
+pub type GeneMap = BTreeMap<String, Gene>;
