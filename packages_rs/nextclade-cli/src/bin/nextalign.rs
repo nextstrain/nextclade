@@ -9,13 +9,15 @@ use nextclade::align::strip_insertions::strip_insertions;
 use nextclade::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands, NextalignRunArgs};
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
-use nextclade::io::fasta::{read_one_fasta, FastaPeptideWriter, FastaReader, FastaRecord, FastaWriter};
+use nextclade::io::fasta::{
+  read_one_fasta, write_translations, FastaPeptideWriter, FastaReader, FastaRecord, FastaWriter,
+};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use nextclade::option_get_some;
 use nextclade::translate::peptide::PeptideMap;
-use nextclade::translate::translate_genes::{translate_genes, Translation};
+use nextclade::translate::translate_genes::translate_genes;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
@@ -26,28 +28,6 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 #[ctor]
 fn init() {
   global_init();
-}
-
-pub fn write_translations(
-  seq_name: &str,
-  translations: &[Result<Translation, Report>],
-  fasta_peptide_writer: &mut FastaPeptideWriter,
-) -> Result<(), Report> {
-  translations
-    .into_iter()
-    .map(|translation_or_err| match translation_or_err {
-      Ok(translation) => fasta_peptide_writer.write(seq_name, translation),
-      Err(report) => {
-        warn!(
-          "In sequence '{}': {}. Note that this gene will not be included in the results of the sequence.",
-          &seq_name,
-          report_to_string(&report)
-        );
-        Ok(())
-      }
-    })
-    .collect::<Result<(), Report>>()?;
-  Ok(())
 }
 
 pub fn run_one<'a>(
@@ -97,7 +77,10 @@ pub fn run_one<'a>(
       trace!("Writing translations for '{}'", &seq_name);
       write_translations(&seq_name, &translations, fasta_peptide_writer)?;
 
+      trace!("Writing insertions.csv for '{}'", &seq_name);
       insertions_csv_writer.write(&seq_name, &stripped.insertions, &translations);
+
+      trace!("Writing errors.csv for '{}'", &seq_name);
       errors_csv_writer.write_aa_errors(&seq_name, &translations, gene_map);
     }
   }

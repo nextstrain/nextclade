@@ -2,9 +2,10 @@ use crate::gene::gene_map::GeneMap;
 use crate::io::aa::from_aa_seq;
 use crate::io::fs::ensure_dir;
 use crate::translate::translate_genes::Translation;
+use crate::utils::error::report_to_string;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
-use log::trace;
+use log::{trace, warn};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
@@ -152,4 +153,25 @@ impl FastaPeptideWriter {
       Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq)),
     }
   }
+}
+
+pub fn write_translations(
+  seq_name: &str,
+  translations: &[Result<Translation, Report>],
+  fasta_peptide_writer: &mut FastaPeptideWriter,
+) -> Result<(), Report> {
+  translations
+    .iter()
+    .try_for_each(|translation_or_err| match translation_or_err {
+      Ok(translation) => fasta_peptide_writer.write(seq_name, translation),
+      Err(report) => {
+        warn!(
+          "In sequence '{}': {}. Note that this gene will not be included in the results of the sequence.",
+          &seq_name,
+          report_to_string(report)
+        );
+        Ok(())
+      }
+    })?;
+  Ok(())
 }
