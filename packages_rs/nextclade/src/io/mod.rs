@@ -1,5 +1,6 @@
 pub mod aa;
 pub mod csv_writer;
+pub mod errors_csv;
 pub mod fasta;
 pub mod fs;
 pub mod gff3;

@@ -9,6 +9,7 @@ use nextclade::align::strip_insertions::strip_insertions;
 use nextclade::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands, NextalignRunArgs};
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::aa::from_aa_seq;
+use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
@@ -18,7 +19,7 @@ use nextclade::translate::translate_genes::{translate_genes, Translation};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
-use nextclade::{make_internal_error, make_internal_report};
+use nextclade::{make_internal_error, make_internal_report, option_get_some};
 use std::collections::HashMap;
 
 #[global_allocator]
@@ -65,6 +66,7 @@ pub fn run_one<'a>(
   fasta_writer: &mut FastaWriter,
   gene_fasta_writers: &mut HashMap<String, FastaWriter>,
   insertions_csv_writer: &mut InsertionsCsvWriter,
+  errors_csv_writer: &mut ErrorsCsvWriter,
 ) -> Result<(), Report> {
   let FastaRecord { seq_name, seq, index } = record;
 
@@ -74,11 +76,11 @@ pub fn run_one<'a>(
   trace!("Aligning sequence '{}'", &seq_name);
   match align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params) {
     Err(report) => {
-      warn!(
-        "In sequence '{}': {}. Note that this sequence will not be included in the results.",
-        &seq_name,
-        report_to_string(&report)
-      );
+      let cause = report_to_string(&report);
+      let message =
+        format!("In sequence '{seq_name}': {cause}. Note that this sequence will not be included in the results.");
+      warn!("{message}");
+      errors_csv_writer.write_nuc_error(&seq_name, &message);
     }
     Ok(alignment) => {
       trace!("Translating sequence '{}'", &seq_name);
@@ -101,6 +103,7 @@ pub fn run_one<'a>(
       write_translations(&seq_name, &translations, gene_fasta_writers)?;
 
       insertions_csv_writer.write(&seq_name, &stripped.insertions, &translations);
+      errors_csv_writer.write_aa_errors(&seq_name, &translations, gene_map);
     }
   }
 
@@ -128,9 +131,10 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
   let params = AlignPairwiseParams::default();
   info!("Params:\n{params:#?}");
 
-  let output_basename = output_basename.ok_or_else(|| make_internal_report!("output_basename is not set"))?;
-  let output_dir = output_dir.ok_or_else(|| make_internal_report!("output_dir path is not set"))?;
-  let output_insertions = output_insertions.ok_or_else(|| make_internal_report!("output_insertions is not set"))?;
+  let output_basename = option_get_some!(output_basename)?;
+  let output_dir = option_get_some!(output_dir)?;
+  let output_insertions = option_get_some!(output_insertions)?;
+  let output_errors = option_get_some!(output_errors)?;
 
   trace!("Reading ref sequence from '{input_ref:#?}'");
   let ref_seq = to_nuc_seq(&read_one_fasta(input_ref)?)?;
@@ -169,6 +173,9 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
   trace!("Creating insertions.csv writer into '{output_insertions:?}'");
   let mut insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions)?;
 
+  trace!("Creating errors.csv writer into '{output_errors:?}'");
+  let mut errors_csv_writer = ErrorsCsvWriter::new(&output_errors)?;
+
   trace!("Creating gap open scores");
   let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
   let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &params);
@@ -195,6 +202,7 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
       &mut fasta_writer,
       &mut gene_fasta_writers,
       &mut insertions_csv_writer,
+      &mut errors_csv_writer,
     );
 
     record.clear();
