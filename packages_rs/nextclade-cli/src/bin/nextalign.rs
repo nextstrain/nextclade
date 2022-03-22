@@ -8,19 +8,17 @@ use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_
 use nextclade::align::strip_insertions::strip_insertions;
 use nextclade::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands, NextalignRunArgs};
 use nextclade::gene::gene_map::GeneMap;
-use nextclade::io::aa::from_aa_seq;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
-use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord, FastaWriter};
+use nextclade::io::fasta::{read_one_fasta, FastaPeptideWriter, FastaReader, FastaRecord, FastaWriter};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
+use nextclade::option_get_some;
 use nextclade::translate::peptide::PeptideMap;
 use nextclade::translate::translate_genes::{translate_genes, Translation};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
-use nextclade::{make_internal_error, make_internal_report, option_get_some};
-use std::collections::HashMap;
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -33,15 +31,12 @@ fn init() {
 pub fn write_translations(
   seq_name: &str,
   translations: &[Result<Translation, Report>],
-  gene_fasta_writers: &mut HashMap<String, FastaWriter>,
+  fasta_peptide_writer: &mut FastaPeptideWriter,
 ) -> Result<(), Report> {
   translations
     .into_iter()
     .map(|translation_or_err| match translation_or_err {
-      Ok(translation) => match gene_fasta_writers.get_mut(&translation.gene_name) {
-        None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.gene_name),
-        Some(writer) => writer.write(&seq_name, &from_aa_seq(&translation.seq)),
-      },
+      Ok(translation) => fasta_peptide_writer.write(seq_name, translation),
       Err(report) => {
         warn!(
           "In sequence '{}': {}. Note that this gene will not be included in the results of the sequence.",
@@ -64,7 +59,7 @@ pub fn run_one<'a>(
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
   fasta_writer: &mut FastaWriter,
-  gene_fasta_writers: &mut HashMap<String, FastaWriter>,
+  fasta_peptide_writer: &mut FastaPeptideWriter,
   insertions_csv_writer: &mut InsertionsCsvWriter,
   errors_csv_writer: &mut ErrorsCsvWriter,
 ) -> Result<(), Report> {
@@ -100,7 +95,7 @@ pub fn run_one<'a>(
       fasta_writer.write(&seq_name, &from_nuc_seq(&stripped.qry_seq))?;
 
       trace!("Writing translations for '{}'", &seq_name);
-      write_translations(&seq_name, &translations, gene_fasta_writers)?;
+      write_translations(&seq_name, &translations, fasta_peptide_writer)?;
 
       insertions_csv_writer.write(&seq_name, &stripped.insertions, &translations);
       errors_csv_writer.write_aa_errors(&seq_name, &translations, gene_map);
@@ -131,6 +126,7 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
   let params = AlignPairwiseParams::default();
   info!("Params:\n{params:#?}");
 
+  let output_fasta = option_get_some!(output_fasta)?;
   let output_basename = option_get_some!(output_basename)?;
   let output_dir = option_get_some!(output_dir)?;
   let output_insertions = option_get_some!(output_insertions)?;
@@ -152,23 +148,11 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
   trace!("Creating fasta reader from file '{input_fasta:#?}'");
   let mut reader = FastaReader::from_path(&input_fasta)?;
 
-  let output_fasta_some = &output_fasta.ok_or_else(|| make_internal_report!("output_fasta path is not set"))?;
-  trace!("Creating fasta writer to file '{output_fasta_some:#?}'");
-  let mut fasta_writer = FastaWriter::from_path(&output_fasta_some)?;
+  trace!("Creating fasta writer to file '{output_fasta:#?}'");
+  let mut fasta_writer = FastaWriter::from_path(&output_fasta)?;
 
-  let mut gene_fasta_writers = gene_map
-    .iter()
-    .map(|(gene_name, _)| -> Result<_, Report> {
-      let out_gene_fasta_path = output_dir
-        .clone()
-        .join(format!("{output_basename}.gene.{gene_name}.fasta"));
-
-      trace!("Creating fasta writer to file {out_gene_fasta_path:#?}");
-      let writer = FastaWriter::from_path(&out_gene_fasta_path)?;
-
-      Ok((gene_name.to_owned(), writer))
-    })
-    .collect::<Result<HashMap<String, FastaWriter>, Report>>()?;
+  trace!("Creating peptide writer to directory '{output_dir:#?}' with basename '{output_basename}'");
+  let mut fasta_peptide_writer = FastaPeptideWriter::new(&gene_map, &output_dir, &output_basename)?;
 
   trace!("Creating insertions.csv writer into '{output_insertions:?}'");
   let mut insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions)?;
@@ -200,7 +184,7 @@ fn run(args: NextalignRunArgs) -> Result<(), Report> {
       &gap_open_close_aa,
       &params,
       &mut fasta_writer,
-      &mut gene_fasta_writers,
+      &mut fasta_peptide_writer,
       &mut insertions_csv_writer,
       &mut errors_csv_writer,
     );

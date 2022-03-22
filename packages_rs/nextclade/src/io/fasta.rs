@@ -1,6 +1,11 @@
+use crate::gene::gene_map::GeneMap;
+use crate::io::aa::from_aa_seq;
 use crate::io::fs::ensure_dir;
-use crate::make_error;
+use crate::translate::translate_genes::Translation;
+use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
+use log::trace;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
 use std::path::Path;
@@ -85,6 +90,7 @@ pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<String, Report> {
   Ok(record.seq)
 }
 
+// Writes sequences into given fasta file
 pub struct FastaWriter {
   writer: Box<dyn std::io::Write>,
 }
@@ -110,5 +116,40 @@ impl FastaWriter {
   pub fn flush(&mut self) -> Result<(), Report> {
     self.writer.flush()?;
     Ok(())
+  }
+}
+
+/// Writes peptides, each into a separate fasta file
+pub struct FastaPeptideWriter {
+  writers: HashMap<String, FastaWriter>,
+}
+
+impl FastaPeptideWriter {
+  pub fn new(
+    gene_map: &GeneMap,
+    output_dir: impl AsRef<Path>,
+    output_basename: impl AsRef<str>,
+  ) -> Result<Self, Report> {
+    let output_dir = output_dir.as_ref();
+    let output_basename = output_basename.as_ref();
+
+    let writers = gene_map
+      .iter()
+      .map(|(gene_name, _)| -> Result<_, Report> {
+        let out_gene_fasta_path = output_dir.join(format!("{output_basename}.gene.{gene_name}.fasta"));
+        trace!("Creating fasta writer to file {out_gene_fasta_path:#?}");
+        let writer = FastaWriter::from_path(&out_gene_fasta_path)?;
+        Ok((gene_name.clone(), writer))
+      })
+      .collect::<Result<HashMap<String, FastaWriter>, Report>>()?;
+
+    Ok(Self { writers })
+  }
+
+  pub fn write(&mut self, seq_name: &str, translation: &Translation) -> Result<(), Report> {
+    match self.writers.get_mut(&translation.gene_name) {
+      None => make_internal_error!("Fasta file writer not found for gene '{}'", &translation.gene_name),
+      Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq)),
+    }
   }
 }
