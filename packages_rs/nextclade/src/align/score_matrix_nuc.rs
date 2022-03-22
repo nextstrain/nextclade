@@ -25,6 +25,6 @@ static SCORING_MATRIX_NUC: &[i32; SCORING_MATRIX_NUC_SIZE] = &[
   /* 16   - */  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,
   ];
 
-pub fn lookup_nuc_scoring_matrix(x: &Nuc, y: &Nuc) -> i32 {
-  SCORING_MATRIX_NUC[(*x as usize * NUM_COLS as usize + *y as usize) as usize]
+pub fn lookup_nuc_scoring_matrix(x: Nuc, y: Nuc) -> i32 {
+  SCORING_MATRIX_NUC[(x as usize * NUM_COLS as usize + y as usize) as usize]
 }

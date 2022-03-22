@@ -103,7 +103,7 @@ pub fn score_matrix<T: Letter<T>>(
         // if the shifted position is within the query sequence
 
         // no gap -- match case
-        let matrix_score = T::lookup_match_score(&qry_seq[qPos as usize], &ref_seq[ri as usize]);
+        let matrix_score = T::lookup_match_score(qry_seq[qPos as usize], ref_seq[ri as usize]);
         tmpMatch = if matrix_score > 0 {
           params.scoreMatch
         } else {

@@ -46,42 +46,42 @@ pub fn run_one<'a>(
   let FastaRecord { seq_name, seq, index } = record;
 
   info!("Processing sequence  '{seq_name}'");
-  let qry_seq = to_nuc_seq(&seq)?;
+  let qry_seq = to_nuc_seq(seq)?;
 
   trace!("Aligning sequence '{}'", &seq_name);
-  match align_nuc(&qry_seq, &ref_seq, &gap_open_close_nuc, &params) {
+  match align_nuc(&qry_seq, ref_seq, gap_open_close_nuc, params) {
     Err(report) => {
       let cause = report_to_string(&report);
       let message =
         format!("In sequence '{seq_name}': {cause}. Note that this sequence will not be included in the results.");
       warn!("{message}");
-      errors_csv_writer.write_nuc_error(&seq_name, &message);
+      errors_csv_writer.write_nuc_error(seq_name, &message);
     }
     Ok(alignment) => {
       trace!("Translating sequence '{}'", &seq_name);
       let translations = translate_genes(
         &alignment.qry_seq,
         &alignment.ref_seq,
-        &ref_peptides,
-        &gene_map,
-        &gap_open_close_aa,
-        &params,
+        ref_peptides,
+        gene_map,
+        gap_open_close_aa,
+        params,
       );
 
       trace!("Stripping sequence '{}'", &seq_name);
       let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
 
       trace!("Writing sequence  '{}'", &seq_name);
-      fasta_writer.write(&seq_name, &from_nuc_seq(&stripped.qry_seq))?;
+      fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
 
       trace!("Writing translations for '{}'", &seq_name);
-      write_translations(&seq_name, &translations, fasta_peptide_writer)?;
+      write_translations(seq_name, &translations, fasta_peptide_writer)?;
 
       trace!("Writing insertions.csv for '{}'", &seq_name);
-      insertions_csv_writer.write(&seq_name, &stripped.insertions, &translations);
+      insertions_csv_writer.write(seq_name, &stripped.insertions, &translations);
 
       trace!("Writing errors.csv for '{}'", &seq_name);
-      errors_csv_writer.write_aa_errors(&seq_name, &translations, gene_map);
+      errors_csv_writer.write_aa_errors(seq_name, &translations, gene_map);
     }
   }
 

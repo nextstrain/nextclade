@@ -27,7 +27,7 @@ pub enum Nuc {
 }
 
 impl ScoreMatrixLookup<Nuc> for Nuc {
-  fn lookup_match_score(x: &Nuc, y: &Nuc) -> i32 {
+  fn lookup_match_score(x: Nuc, y: Nuc) -> i32 {
     lookup_nuc_scoring_matrix(x, y)
   }
 }

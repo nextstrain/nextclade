@@ -113,7 +113,7 @@ impl FromStr for AuspiceTree {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let tree = serde_json::from_str::<AuspiceTree>(s)?;
+    let tree = serde_json::from_str::<Self>(s)?;
     Ok(tree)
   }
 }
@@ -152,7 +152,7 @@ impl AuspiceTree {
 
   fn map_nodes_rec(node: &AuspiceTreeNode, action: fn(&AuspiceTreeNode)) {
     action(node);
-    for child in node.children.iter() {
+    for child in &node.children {
       Self::map_nodes_rec(child, action);
     }
   }
@@ -164,7 +164,7 @@ impl AuspiceTree {
 
   fn map_nodes_mut_rec(node: &mut AuspiceTreeNode, action: fn(&mut AuspiceTreeNode)) {
     action(node);
-    for child in node.children.iter_mut() {
+    for child in &mut node.children {
       Self::map_nodes_mut_rec(child, action);
     }
   }

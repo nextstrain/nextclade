@@ -54,6 +54,7 @@ impl FastaReader {
     Ok(Self::new(Box::new(reader)))
   }
 
+  #[allow(clippy::string_slice)]
   pub fn read(&mut self, record: &mut FastaRecord) -> Result<(), Report> {
     record.clear();
 

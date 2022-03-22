@@ -39,7 +39,7 @@ pub enum Aa {
 }
 
 impl ScoreMatrixLookup<Aa> for Aa {
-  fn lookup_match_score(x: &Aa, y: &Aa) -> i32 {
+  fn lookup_match_score(x: Aa, y: Aa) -> i32 {
     lookup_aa_scoring_matrix(x, y)
   }
 }

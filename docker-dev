@@ -57,6 +57,8 @@ export LINT_ALLOW_NOW_BUT_FIX_THESE_LATER=" \
 -A clippy::panic \
 -A clippy::panic-in-result-fn \
 -A clippy::suboptimal_flops \
+-A clippy::too_many_arguments \
+-A clippy::unsafe-derive-deserialize \
 -A clippy::unwrap-in-result \
 -A clippy::unwrap-used \
 -A clippy::useless-transmute \
@@ -81,6 +83,7 @@ ${LINT_ALLOW_NOW_BUT_FIX_THESE_LATER} \
 -A clippy::inconsistent_digit_grouping \
 -A clippy::indexing-slicing \
 -A clippy::integer-arithmetic \
+-A clippy::integer-division \
 -A clippy::large_digit_groups \
 -A clippy::let-underscore-must-use \
 -A clippy::match-same-arms \
@@ -90,6 +93,7 @@ ${LINT_ALLOW_NOW_BUT_FIX_THESE_LATER} \
 -A clippy::missing_inline_in_public_items \
 -A clippy::mod-module-files \
 -A clippy::module-name-repetitions \
+-A clippy::module_inception \
 -A clippy::must-use-candidate \
 -A clippy::new_without_default \
 -A clippy::non-ascii-literal \
@@ -108,7 +112,9 @@ ${LINT_ALLOW_NOW_BUT_FIX_THESE_LATER} \
 -A clippy::unreachable \
 -A clippy::unreadable-literal  \
 -A clippy::unused-self \
+-A clippy::unused-unit \
 -A clippy::use-debug  \
+-A clippy::use-self \
 -A clippy::wildcard-enum-match-arm \
 "
 
@@ -144,6 +150,8 @@ EXEC=0
 RELEASE=
 WATCH=0
 TEST=0
+LINT=
+FIX=
 
 case "$1" in
 "build" | "b")
@@ -216,6 +224,78 @@ case "$1" in
   TEST=1
   WATCH=1
   ;;
+"lint" | "l")
+  shift
+  LINT=" "
+  WATCH=0
+  FIX=
+  ;;
+"watch-lint" | "wl")
+  shift
+  LINT=" "
+  WATCH=1
+  FIX=
+  ;;
+"lint-extra" | "le")
+  shift
+  LINT="-W clippy::all -W clippy::pedantic"
+  WATCH=0
+  FIX=
+  ;;
+"watch-lint-extra" | "wle")
+  shift
+  LINT="-W clippy::all -W clippy::pedantic"
+  WATCH=1
+  FIX=
+  ;;
+"lint-crazy" | "lc")
+  shift
+  LINT="-W clippy::all -W clippy::pedantic -W clippy::restriction -W clippy::nursery"
+  WATCH=0
+  FIX=
+  ;;
+"watch-lint-crazy" | "wlc")
+  shift
+  LINT="-W clippy::all -W clippy::pedantic -W clippy::restriction -W clippy::nursery"
+  WATCH=1
+  FIX=
+  ;;
+"lint-fix" | "lf")
+  shift
+  LINT=" "
+  WATCH=0
+  FIX="--fix --allow-staged"
+  ;;
+"watch-lint-fix" | "wlf")
+  shift
+  LINT=" "
+  WATCH=1
+  FIX="--fix --allow-staged"
+  ;;
+"lint-extra-fix" | "lef")
+  shift
+  LINT="-W clippy::all -W clippy::pedantic"
+  WATCH=0
+  FIX="--fix --allow-staged"
+  ;;
+"watch-lint-extra-fix" | "wlef")
+  shift
+  LINT="-W clippy::all -W clippy::pedantic"
+  WATCH=1
+  FIX="--fix --allow-staged"
+  ;;
+"lint-crazy-fix" | "lcf")
+  shift
+  LINT="-W clippy::all -W clippy::pedantic -W clippy::restriction -W clippy::nursery"
+  WATCH=0
+  FIX="--fix --allow-staged"
+  ;;
+"watch-lint-crazy-fix" | "wlcf")
+  shift
+  LINT="-W clippy::all -W clippy::pedantic -W clippy::restriction -W clippy::nursery"
+  WATCH=1
+  FIX="--fix --allow-staged"
+  ;;
 "exec" | "e")
   shift
   RUN=0
@@ -237,20 +317,27 @@ if [ ! -z "${PARAMS}" ]; then
   PARAMS="--bin=${PARAMS}"
 fi
 
+export RUSTC_FORCE_INCREMENTAL=""
+if [ -n "${RELEASE}" ]; then
+  export RUSTC_FORCE_INCREMENTAL=1
+fi
+
 COMMAND=${*:-}
 PORTS=
 if [ "${RUN}" == "1" ]; then
   COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RELEASE} ${PARAMS}"
 elif [ "${BUILD}" == "1" ]; then
   COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RELEASE} ${PARAMS}"
-elif [ "${WASM}" == "1" ];then
+elif [ "${WASM}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn wasm-${RELEASE}\""
-elif [ "${WEB}" == "1" ];then
+elif [ "${WEB}" == "1" ]; then
   PORTS="-p 3000:3000"
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn install && yarn ${RELEASE}\""
 elif [ "${TEST}" == "1" ]; then
   PRETTY_TEST="( grep --color=always --line-buffered -vP \"running.*tests|\x1b\[32m.\x1b\(B\x1b\[m|^$|test result|TEST START\" || true )"
   COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${@:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
+elif [ ! -z "${LINT}" ]; then
+  COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-} -- ${LINT:-} ${LINT_ALLOW}"
 else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
 fi
@@ -290,6 +377,7 @@ if [ "${RUN}" != "1" ] && [ "${DOCKER_PS_RESULT}" == "${DOCKER_CONTAINER_NAME}" 
     --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
     --env="RUST_LOG=${RUST_LOG}" \
     --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
+    --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
     ${PORTS} \
     --cpus="${CPUS}" \
     ${DOCKER_CONTAINER_NAME} \
@@ -315,6 +403,7 @@ else
     --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
     --env="RUST_LOG=${RUST_LOG}" \
     --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
+    --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
     ${PORTS} \
     --cpus="${CPUS}" \
     ${DOCKER_IMAGE_NAME} \

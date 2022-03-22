@@ -9,8 +9,8 @@ fn make_aln_to_ref_map(ref_seq: &[Nuc]) -> Vec<usize> {
   let mut rev_coord_map = Vec::<usize>::with_capacity(ref_seq.len());
   let mut ref_pos = 0;
 
-  for i in 0..ref_seq.len() {
-    if ref_seq[i].is_gap() {
+  for nuc in ref_seq {
+    if nuc.is_gap() {
       if rev_coord_map.is_empty() {
         rev_coord_map.push(0);
       } else {
@@ -34,8 +34,8 @@ fn make_aln_to_ref_map(ref_seq: &[Nuc]) -> Vec<usize> {
 fn make_ref_to_aln_map(ref_seq: &[Nuc]) -> Vec<usize> {
   let mut coord_map = Vec::<usize>::with_capacity(ref_seq.len());
 
-  for i in 0..ref_seq.len() {
-    if !ref_seq[i].is_gap() {
+  for (i, nuc) in ref_seq.iter().enumerate() {
+    if !nuc.is_gap() {
       coord_map.push(i);
     }
   }
