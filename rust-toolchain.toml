@@ -1,5 +1,5 @@
 [toolchain]
-channel = "1.58.1"
+channel = "1.59.0"
 profile = "default"
 targets = ["wasm32-unknown-unknown", "x86_64-unknown-linux-gnu"]
 components = [
