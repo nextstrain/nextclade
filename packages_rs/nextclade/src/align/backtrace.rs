@@ -62,7 +62,7 @@ fn determine_best_alignment(
   }
 }
 
-pub struct NextalignResult<T> {
+pub struct AlignmentOutput<T> {
   pub qry_seq: Vec<T>,
   pub ref_seq: Vec<T>,
   pub alignment_score: usize,
@@ -74,7 +74,7 @@ pub fn backtrace<T: Letter<T>>(
   scores: &Vec2d<i32>,
   paths: &Vec2d<i32>,
   meanShift: i32,
-) -> NextalignResult<T> {
+) -> AlignmentOutput<T> {
   let num_cols = scores.num_cols();
   let num_rows = scores.num_rows();
   let qry_len = qry_seq.len() as i32;
@@ -165,7 +165,7 @@ pub fn backtrace<T: Letter<T>>(
   aln_qry.reverse();
   aln_ref.reverse();
 
-  NextalignResult {
+  AlignmentOutput {
     qry_seq: aln_qry,
     ref_seq: aln_ref,
     alignment_score: best_score,

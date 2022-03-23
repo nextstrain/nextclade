@@ -4,7 +4,7 @@
 macro_rules! option_get_some {
   ($x:ident) => {{
     $x.ok_or_else(|| {
-      nextclade::utils::error::make_internal_report!(
+      crate::make_internal_report!(
         "Expected `Some` value, found `None`, in `Option` variable `{}`",
         std::stringify!($x)
       )

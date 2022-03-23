@@ -155,8 +155,8 @@ pub struct NextalignRunArgs {
   pub output_errors: Option<PathBuf>,
 
   /// Number of processing jobs. If not specified, all available CPU threads will be used.
-  #[clap(long, short)]
-  pub jobs: Option<usize>,
+  #[clap(long, short, default_value_t = num_cpus::get() )]
+  pub jobs: usize,
 
   /// Emit output sequences in-order.
   ///
