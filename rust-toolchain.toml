@@ -1,7 +1,15 @@
 [toolchain]
 channel = "1.59.0"
 profile = "default"
-targets = ["wasm32-unknown-unknown", "x86_64-unknown-linux-gnu"]
+targets = [
+  "aarch64-apple-darwin",
+  "aarch64-unknown-linux-gnu",
+  "wasm32-unknown-unknown",
+  "x86_64-apple-darwin",
+  "x86_64-pc-windows-gnu",
+  "x86_64-unknown-linux-gnu",
+  "x86_64-unknown-linux-musl",
+]
 components = [
   "cargo",
   "clippy",

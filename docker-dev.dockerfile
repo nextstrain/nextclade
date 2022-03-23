@@ -1,7 +1,7 @@
 # Freeze base image version to
 # ubuntu:20.04 (pushed 2022-01-07T02:40:05.784436Z)
 # https://hub.docker.com/layers/ubuntu/library/ubuntu/20.04/images/sha256-57df66b9fc9ce2947e434b4aa02dbe16f6685e20db0c170917d4a1962a5fe6a9
-FROM ubuntu@sha256:57df66b9fc9ce2947e434b4aa02dbe16f6685e20db0c170917d4a1962a5fe6a9
+FROM ubuntu@sha256:57df66b9fc9ce2947e434b4aa02dbe16f6685e20db0c170917d4a1962a5fe6a9 as dev
 
 SHELL ["bash", "-c"]
 
@@ -170,3 +170,47 @@ RUN set -euxo pipefail >/dev/null \
 USER ${USER}
 
 WORKDIR ${HOME}/src
+
+
+# Cross-compilation for Linux x86_64 with libmusl
+FROM dev as cross-x86_64-unknown-linux-musl
+
+
+# Cross-compilation for Linux ARM64
+FROM dev as cross-aarch64-unknown-linux-gnu
+
+USER 0
+SHELL ["bash", "-c"]
+
+RUN set -euxo pipefail >/dev/null \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  gcc-aarch64-linux-gnu \
+  libc6-dev-arm64-cross \
+>/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null
+
+
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
+ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
+
+
+# Cross-compilation for Windows x86_64
+FROM dev as cross-x86_64-pc-windows-gnu
+
+USER 0
+SHELL ["bash", "-c"]
+
+RUN set -euxo pipefail >/dev/null \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  gcc-mingw-w64-x86-64 \
+>/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null

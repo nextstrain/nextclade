@@ -303,8 +303,18 @@ case "$1" in
   ;;
 esac
 
-docker build -q -t "${DOCKER_IMAGE_NAME}:latest" \
+DOCKER_TARGET="dev"
+DOCKER_TAG="latest"
+RUST_TARGET=""
+if [ -n "${CROSS:-}" ]; then
+  DOCKER_TARGET="cross-${CROSS}"
+  DOCKER_TAG="cross-${CROSS}"
+  RUST_TARGET="--target=${CROSS}"
+fi
+
+docker build -q -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
   -f "${PACKAGE_DIR}/docker-dev.dockerfile" \
+  --target=${DOCKER_TARGET} \
   --build-arg="UID=$(id -u)" \
   --build-arg="GID=$(id -g)" \
   --build-arg="USER=user" \
@@ -325,9 +335,9 @@ fi
 COMMAND=${*:-}
 PORTS=
 if [ "${RUN}" == "1" ]; then
-  COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RELEASE} ${PARAMS}"
+  COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${BUILD}" == "1" ]; then
-  COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RELEASE} ${PARAMS}"
+  COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${WASM}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn wasm-${RELEASE}\""
 elif [ "${WEB}" == "1" ]; then
@@ -335,7 +345,7 @@ elif [ "${WEB}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn install && yarn ${RELEASE}\""
 elif [ "${TEST}" == "1" ]; then
   PRETTY_TEST="( grep --color=always --line-buffered -vP \"running.*tests|\x1b\[32m.\x1b\(B\x1b\[m|^$|test result|TEST START\" || true )"
-  COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${@:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
+  COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${@:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
 elif [ ! -z "${LINT}" ]; then
   COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-} -- ${LINT:-} ${LINT_ALLOW}"
 else
@@ -406,6 +416,6 @@ else
     --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
     ${PORTS} \
     --cpus="${CPUS}" \
-    ${DOCKER_IMAGE_NAME} \
+    "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
     bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"
 fi

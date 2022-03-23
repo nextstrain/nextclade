@@ -4,6 +4,7 @@ use nextclade::tree::tree::{AuspiceTree, AuspiceTreeNode};
 use nextclade::utils::global_init::global_init;
 use std::str::FromStr;
 
+#[cfg(all(target_family = "linux", target_arch = "x86_64"))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 

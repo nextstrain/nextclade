@@ -18,12 +18,14 @@ env_logger = "0.9.0"
 eyre = "0.6.7"
 itertools = "0.10.3"
 log = "0.4.14"
-mimalloc = { version = "0.1.28", default-features = false }
 nextclade = { path = "../nextclade" }
 owo-colors = "3.3.0"
 pretty_assertions = "1.2.0"
 rstest = "0.12.0"
 rstest_reuse = "0.3.0"
+
+[target.'cfg(all(target_family = "linux", target_arch = "x86_64"))'.dependencies]
+mimalloc = { version = "0.1.28", default-features = false, optional = true }
 
 [profile.release]
 codegen-units = 1

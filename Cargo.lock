@@ -879,7 +879,6 @@ dependencies = [
  "lazy_static",
  "log",
  "map_in_place",
- "mimalloc",
  "owo-colors",
  "phf",
  "pretty_assertions",

@@ -22,6 +22,7 @@ use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::utils::error::report_to_string;
 use nextclade::utils::global_init::global_init;
 
+#[cfg(all(target_family = "linux", target_arch = "x86_64"))]
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
