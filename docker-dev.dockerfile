@@ -198,6 +198,8 @@ ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
 ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 
+USER ${USER}
+
 
 # Cross-compilation for Windows x86_64
 FROM dev as cross-x86_64-pc-windows-gnu
@@ -214,3 +216,83 @@ RUN set -euxo pipefail >/dev/null \
 && rm -rf /var/lib/apt/lists/* \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null
+
+USER ${USER}
+
+
+# Builds osxcross for Mac cross-compiation
+FROM dev as osxcross
+
+SHELL ["bash", "-c"]
+
+USER 0
+
+RUN set -euxo pipefail >/dev/null \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  bash \
+  bzip2 \
+  clang \
+  clang \
+  cmake \
+  cpio \
+  gzip \
+  libbz2-dev \
+  libssl-dev \
+  libxml2-dev \
+  llvm-dev \
+  make \
+  patch \
+  sed \
+  tar \
+  uuid-dev \
+  xz-utils \
+  zlib1g-dev \
+>/dev/null \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null
+
+ENV OSX_VERSION_MIN=10.12
+ENV LIBZ_SYS_STATIC=1
+ENV OSXCROSS_COMMIT=be2b79f444aa0b43b8695a4fb7b920bf49ecc01c
+ENV OSXCROSS_INSTALL_DIR=/opt/osxcross
+ARG TEMP_BUILD_DIR=/temp-build-dir
+
+RUN set -euxo pipefail >/dev/null \
+&& mkdir -p ${TEMP_BUILD_DIR} \
+&& cd ${TEMP_BUILD_DIR} \
+&& git clone https://github.com/tpoechtrager/osxcross \
+&& cd osxcross \
+&& git config advice.detachedHead false \
+&& git checkout ${OSXCROSS_COMMIT}
+
+ARG MACOS_SDK_FILENAME
+ARG MACOS_SDK_SHA
+COPY ".downloads/${MACOS_SDK_FILENAME}" "${TEMP_BUILD_DIR}/osxcross/tarballs/"
+
+RUN set -euxo pipefail >/dev/null \
+&& echo "${MACOS_SDK_SHA} ${TEMP_BUILD_DIR}/osxcross/tarballs/${MACOS_SDK_FILENAME}"  \
+  | sha256sum --check --status
+
+RUN set -euxo pipefail >/dev/null \
+&& mkdir -p ${OSXCROSS_INSTALL_DIR} \
+&& cd ${TEMP_BUILD_DIR}/osxcross \
+&& UNATTENDED=1 TARGET_DIR=${OSXCROSS_INSTALL_DIR} OSX_VERSION_MIN=${OSX_VERSION_MIN} ./build.sh
+
+
+# Cross-compilation for macOS x86_64
+FROM osxcross as cross-x86_64-apple-darwin
+
+ENV PATH="/opt/osxcross/bin/:${PATH}"
+ENV CC_x86_64-apple-darwin=x86_64-apple-darwin20.2-clang
+ENV CXX_x86_64-apple-darwin=x86_64-apple-darwin20.2-clang++
+
+
+# Cross-compilation for macOS ARM64
+FROM osxcross as cross-aarch64-apple-darwin
+
+ENV PATH="/opt/osxcross/bin/:${PATH}"
+ENV CC_aarch64-apple-darwin=aarch64-apple-darwin20.2-clang
+ENV CXX_aarch64-apple-darwin=aarch64-apple-darwin20.2-clang++

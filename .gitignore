@@ -26,6 +26,7 @@ Thumbs.db
 \.Trashes
 \.build
 \.cache
+\.downloads
 \.env
 \.idea
 \.ignore
