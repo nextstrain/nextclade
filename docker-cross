@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function abspath() {
+  readlink -m "$1"
+}
+
+
+declare -a TARGETS=(
+  "aarch64-apple-darwin"
+  "aarch64-unknown-linux-gnu"
+  "x86_64-apple-darwin"
+  "x86_64-pc-windows-gnu"
+  "x86_64-unknown-linux-gnu"
+  "x86_64-unknown-linux-musl"
+)
+
+
+mkdir -p ".out/"
+
+for target in "${TARGETS[@]}"; do
+  printf "\nBuilding for %s\n" "${target}"
+  CROSS=${target} ./docker-dev br nextalign
+
+  if [[ "${target}" == *windows* ]]; then
+    cp ".build/docker/${target}/release/nextalign.exe" ".out/nextalign-${target}.exe"
+  else
+    cp ".build/docker/${target}/release/nextalign" ".out/nextalign-${target}"
+  fi
+done
+

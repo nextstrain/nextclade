@@ -172,6 +172,9 @@ USER ${USER}
 WORKDIR ${HOME}/src
 
 
+# Cross-compilation for Linux x86_64 with gnu-libc
+FROM dev as cross-x86_64-unknown-linux-gnu
+
 # Cross-compilation for Linux x86_64 with libmusl
 FROM dev as cross-x86_64-unknown-linux-musl
 
