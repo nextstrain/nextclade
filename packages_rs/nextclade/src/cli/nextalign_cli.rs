@@ -71,17 +71,19 @@ pub enum NextalignCommands {
 
 #[derive(Parser, Debug)]
 pub struct NextalignRunArgs {
-  /// Path to a FASTA file with input sequences"
+  /// Path to a FASTA file with input sequences
   #[clap(long, short = 'i', alias("sequences"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_fasta: PathBuf,
 
-  /// Path to a FASTA file containing reference sequence.This file is expected to contain exactly 1 sequence.
+  /// Path to a FASTA file containing reference sequence.
+  ///
+  /// This file is expected to contain exactly 1 sequence.
   #[clap(long, short = 'r', alias("reference"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: PathBuf,
 
-  /// List of genes to translate.
+  /// Comma-separated list of names of genes to use.
   ///
   /// If not supplied or empty, sequence will not be translated. If non-empty, should contain a coma-separated list of gene names.
   ///
@@ -96,7 +98,7 @@ pub struct NextalignRunArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub genes: Option<Vec<String>>,
 
-  #[clap(long, short = 'm')]
+  #[clap(long, short = 'm', alias = "genemap")]
   #[clap(value_hint = ValueHint::FilePath)]
   /// Path to a GFF3 file containing custom gene map.
   ///
@@ -106,7 +108,7 @@ pub struct NextalignRunArgs {
   ///
   /// Learn more about Generic Feature Format Version 3 (GFF3):
   /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md",
-  pub genemap: Option<PathBuf>,
+  pub input_gene_map: Option<PathBuf>,
 
   /// Write output files to this directory.
   ///
@@ -189,7 +191,7 @@ fn generate_completions(shell: &str) -> Result<(), Report> {
 }
 
 /// Get output filenames provided by user or, if not provided, create filenames based on input fasta
-pub fn get_output_filenames(run_args: &mut NextalignRunArgs) -> Result<(), Report> {
+pub fn nextalign_get_output_filenames(run_args: &mut NextalignRunArgs) -> Result<(), Report> {
   let NextalignRunArgs { input_fasta, .. } = run_args;
 
   let basename = run_args.output_basename.get_or_insert(basename(&input_fasta)?);
@@ -233,7 +235,7 @@ pub fn nextalign_parse_cli_args() -> Result<NextalignArgs, Report> {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
     Some(NextalignCommands::Run { 0: ref mut run_args }) => {
-      get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
+      nextalign_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }
     _ => {}
   }

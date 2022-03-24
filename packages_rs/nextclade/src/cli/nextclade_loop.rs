@@ -2,8 +2,8 @@ use crate::align::align::{align_nuc, AlignPairwiseParams};
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::strip_insertions::{strip_insertions, StripInsertionsResult};
-use crate::cli::nextalign_cli::NextalignRunArgs;
-use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
+use crate::cli::nextclade_cli::NextcladeRunArgs;
+use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::gene::gene_map::GeneMap;
 use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use crate::io::gff3::read_gff3_file;
@@ -16,16 +16,16 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
 
-pub struct NextalignOutputs {
+pub struct NextcladeOutputs {
   pub stripped: StripInsertionsResult<Nuc>,
   pub alignment: AlignmentOutput<Nuc>,
   pub translations: Vec<Result<Translation, Report>>,
 }
 
-pub struct NextalignRecord {
+pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
-  pub outputs_or_err: Result<NextalignOutputs, Report>,
+  pub outputs_or_err: Result<NextcladeOutputs, Report>,
 }
 
 pub fn run_one(
@@ -36,7 +36,7 @@ pub fn run_one(
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
-) -> Result<NextalignOutputs, Report> {
+) -> Result<NextcladeOutputs, Report> {
   match align_nuc(qry_seq, ref_seq, gap_open_close_nuc, params) {
     Err(report) => Err(report),
 
@@ -52,7 +52,7 @@ pub fn run_one(
 
       let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
 
-      Ok(NextalignOutputs {
+      Ok(NextcladeOutputs {
         stripped,
         alignment,
         translations,
@@ -61,43 +61,68 @@ pub fn run_one(
   }
 }
 
-pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
+pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{args:#?}");
 
-  let NextalignRunArgs {
+  let NextcladeRunArgs {
     input_fasta,
     input_ref,
-    genes,
+    input_tree,
+    input_qc_config,
+    input_virus_properties,
+    input_pcr_primers,
     input_gene_map,
+    genes,
     output_dir,
     output_basename,
     include_reference,
     output_fasta,
+    output_ndjson,
+    output_json,
+    output_csv,
+    output_tsv,
+    output_tree,
     output_insertions,
     output_errors,
     jobs,
     in_order,
+    ..
   } = args;
 
   let params = &AlignPairwiseParams::default();
   info!("Params:\n{params:#?}");
+
+  let input_ref = option_get_some!(input_ref)?;
+  let input_tree = option_get_some!(input_tree)?;
+  let input_qc_config = option_get_some!(input_qc_config)?;
+  let input_virus_properties = option_get_some!(input_virus_properties)?;
+  let input_pcr_primers = option_get_some!(input_pcr_primers)?;
 
   let output_fasta = option_get_some!(output_fasta)?;
   let output_basename = option_get_some!(output_basename)?;
   let output_dir = option_get_some!(output_dir)?;
   let output_insertions = option_get_some!(output_insertions)?;
   let output_errors = option_get_some!(output_errors)?;
+  let output_ndjson = option_get_some!(output_ndjson)?;
+  let output_json = option_get_some!(output_json)?;
+  let output_csv = option_get_some!(output_csv)?;
+  let output_tsv = option_get_some!(output_tsv)?;
+  let output_tree = option_get_some!(output_tree)?;
 
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 
-  let gene_map = &match (input_gene_map, genes) {
-    // Read gene map and retain only requested genes
-    (Some(input_gene_map), Some(genes)) => read_gff3_file(&input_gene_map)?
-      .into_iter()
-      .filter(|(gene_name, ..)| genes.contains(gene_name))
-      .collect(),
-    _ => GeneMap::new(),
+  let gene_map = &if let Some(input_gene_map) = input_gene_map {
+    let mut gene_map = read_gff3_file(&input_gene_map)?;
+    if let Some(genes) = genes {
+      gene_map = gene_map
+        .into_iter()
+        .filter(|(gene_name, ..)| genes.contains(gene_name))
+        .collect();
+    }
+    gene_map
+  } else {
+    GeneMap::new()
   };
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, params);
@@ -108,7 +133,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
-    let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextalignRecord>(CHANNEL_SIZE);
+    let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
 
     s.spawn(|_| {
       let mut reader = FastaReader::from_path(&input_fasta).unwrap();
@@ -151,7 +176,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
             params,
           );
 
-          let record = NextalignRecord {
+          let record = NextcladeRecord {
             index,
             seq_name,
             outputs_or_err,
@@ -163,7 +188,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
           // filtering of records should be done in the writer, instead of here.
           result_sender
             .send(record)
-            .wrap_err("When sending NextalignRecord")
+            .wrap_err("When sending NextcladeRecord")
             .unwrap();
         }
 
@@ -172,7 +197,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     }
 
     s.spawn(move |_| {
-      let mut output_writer = NextalignOrderedWriter::new(
+      let mut output_writer = NextcladeOrderedWriter::new(
         gene_map,
         &output_fasta,
         &output_insertions,

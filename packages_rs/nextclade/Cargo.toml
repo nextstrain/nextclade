@@ -49,6 +49,9 @@ typescript-definitions-derive = { path = "../../3rdparty/typescript-definitions/
 validator = { version = "0.14.0", features = ["derive"] }
 wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"], optional = true }
 
+[target.'cfg(all(target_family = "linux", target_arch = "x86_64"))'.dependencies]
+mimalloc = { version = "0.1.28", default-features = false, optional = true }
+
 [dev-dependencies]
 rstest = "0.12.0"
 rstest_reuse = "0.3.0"
