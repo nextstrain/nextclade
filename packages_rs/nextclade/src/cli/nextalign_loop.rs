@@ -19,6 +19,7 @@ use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::{info, warn};
+use std::collections::HashMap;
 
 pub struct NextalignOutputs {
   pub stripped: StripInsertionsResult<Nuc>,
@@ -27,8 +28,9 @@ pub struct NextalignOutputs {
 }
 
 pub struct NextalignRecord {
+  pub index: usize,
   pub seq_name: String,
-  pub result_or_err: Result<NextalignOutputs, Report>,
+  pub outputs_or_err: Result<NextalignOutputs, Report>,
 }
 
 pub fn run_one(
@@ -64,24 +66,40 @@ pub fn run_one(
   }
 }
 
-#[allow(clippy::too_many_arguments)]
-pub fn write_one(
-  seq_name: &str,
-  results: &NextalignOutputs,
+pub fn output_one(
+  record: &NextalignRecord,
   gene_map: &GeneMap,
   fasta_writer: &mut FastaWriter,
   fasta_peptide_writer: &mut FastaPeptideWriter,
   insertions_csv_writer: &mut InsertionsCsvWriter,
   errors_csv_writer: &mut ErrorsCsvWriter,
 ) -> Result<(), Report> {
-  let NextalignOutputs {
-    stripped, translations, ..
-  } = results;
+  let NextalignRecord {
+    index,
+    seq_name,
+    outputs_or_err,
+  } = record;
 
-  fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
-  write_translations(seq_name, translations, fasta_peptide_writer)?;
-  insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
-  errors_csv_writer.write_aa_errors(seq_name, translations, gene_map)?;
+  match outputs_or_err {
+    Ok(output) => {
+      let NextalignOutputs {
+        stripped, translations, ..
+      } = output;
+      // warn!("writing {index}");
+      fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
+      write_translations(seq_name, translations, fasta_peptide_writer)?;
+      insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
+      errors_csv_writer.write_aa_errors(seq_name, translations, gene_map)?;
+    }
+    Err(report) => {
+      let cause = report_to_string(report);
+      let message = format!(
+        "In sequence #{index} '{seq_name}': {cause}. Note that this sequence will not be included in the results."
+      );
+      warn!("{message}");
+      errors_csv_writer.write_nuc_error(seq_name, &message)?;
+    }
+  };
 
   Ok(())
 }
@@ -101,7 +119,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     output_insertions,
     output_errors,
     jobs,
-    // in_order,
+    in_order,
     ..
   } = args;
 
@@ -177,8 +195,9 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
           );
 
           let record = NextalignRecord {
+            index,
             seq_name,
-            result_or_err,
+            outputs_or_err: result_or_err,
           };
 
           result_sender
@@ -186,6 +205,8 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
             .wrap_err("When sending NextalignRecord")
             .unwrap();
         }
+
+        drop(result_sender);
       });
     }
 
@@ -195,34 +216,80 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
       let mut insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions).unwrap();
       let mut errors_csv_writer = ErrorsCsvWriter::new(&output_errors).unwrap();
 
+      let mut expected_index = 0;
+      let queue = &mut HashMap::<usize, NextalignRecord>::new();
       for record in result_receiver {
-        let NextalignRecord {
-          seq_name,
-          result_or_err,
-        } = record;
+        let NextalignRecord { index, seq_name, .. } = &record;
 
-        match result_or_err {
-          Ok(result) => {
-            write_one(
-              &seq_name,
-              &result,
+        if !in_order {
+          output_one(
+            &record,
+            gene_map,
+            &mut fasta_writer,
+            &mut fasta_peptide_writer,
+            &mut insertions_csv_writer,
+            &mut errors_csv_writer,
+          )
+          .wrap_err_with(|| format!("When writing results for sequence #{index} '{seq_name}'"))
+          .unwrap();
+        }
+
+        if in_order {
+          if index == &expected_index {
+            output_one(
+              &record,
               gene_map,
               &mut fasta_writer,
               &mut fasta_peptide_writer,
               &mut insertions_csv_writer,
               &mut errors_csv_writer,
             )
-            .wrap_err_with(|| format!("When processing sequence '{seq_name}'"))
+            .wrap_err_with(|| format!("When writing results for sequence #{index} '{seq_name}'"))
             .unwrap();
+
+            expected_index += 1;
+          } else {
+            queue.insert(*index, record);
           }
-          Err(report) => {
-            let cause = report_to_string(&report);
-            let message = format!(
-              "In sequence '{seq_name}': {cause}. Note that this sequence will not be included in the results."
-            );
-            warn!("{message}");
-            errors_csv_writer.write_nuc_error(&seq_name, &message).unwrap();
+
+          let record = queue.get(&expected_index);
+          if let Some(record) = record {
+            let NextalignRecord { index, seq_name, .. } = &record;
+
+            if index == &expected_index {
+              output_one(
+                record,
+                gene_map,
+                &mut fasta_writer,
+                &mut fasta_peptide_writer,
+                &mut insertions_csv_writer,
+                &mut errors_csv_writer,
+              )
+              .wrap_err_with(|| format!("When writing results for queued sequence #{index} '{seq_name}'"))
+              .unwrap();
+
+              expected_index += 1;
+            }
           }
+        }
+      }
+
+      for record in queue.values().sorted_by_key(|record| record.index) {
+        let NextalignRecord { index, seq_name, .. } = &record;
+
+        if index == &expected_index {
+          output_one(
+            record,
+            gene_map,
+            &mut fasta_writer,
+            &mut fasta_peptide_writer,
+            &mut insertions_csv_writer,
+            &mut errors_csv_writer,
+          )
+          .wrap_err_with(|| format!("When writing results for queued sequence #{index} '{seq_name}'"))
+          .unwrap();
+
+          expected_index += 1;
         }
       }
     });

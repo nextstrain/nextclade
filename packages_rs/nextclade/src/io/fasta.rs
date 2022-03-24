@@ -37,6 +37,7 @@ impl FastaRecord {
 pub struct FastaReader {
   reader: Box<dyn std::io::BufRead>,
   line: String,
+  index: usize,
 }
 
 impl FastaReader {
@@ -44,6 +45,7 @@ impl FastaReader {
     Self {
       reader,
       line: String::new(),
+      index: 0,
     }
   }
 
@@ -79,6 +81,9 @@ impl FastaReader {
       }
       record.seq.push_str(self.line.trim_end());
     }
+
+    record.index = self.index;
+    self.index += 1;
 
     Ok(())
   }
