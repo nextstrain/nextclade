@@ -1,9 +1,10 @@
 use crate::cli::nextalign_loop::{NextalignOutputs, NextalignRecord};
 use crate::gene::gene_map::GeneMap;
 use crate::io::errors_csv::ErrorsCsvWriter;
-use crate::io::fasta::{write_translations, FastaPeptideWriter, FastaWriter};
+use crate::io::fasta::{write_translations, FastaPeptideWriter, FastaRecord, FastaWriter};
 use crate::io::insertions_csv::InsertionsCsvWriter;
 use crate::io::nuc::from_nuc_seq;
+use crate::translate::translate_genes::TranslationMap;
 use crate::utils::error::report_to_string;
 use eyre::{Report, WrapErr};
 use log::warn;
@@ -44,6 +45,16 @@ impl<'a> NextalignOrderedWriter<'a> {
       queue: HashMap::<usize, NextalignRecord>::new(),
       in_order,
     })
+  }
+
+  pub fn write_ref(&mut self, ref_record: &FastaRecord, ref_peptides: &TranslationMap) -> Result<(), Report> {
+    let FastaRecord { seq_name, seq, .. } = &ref_record;
+
+    self.fasta_writer.write(seq_name, seq)?;
+
+    ref_peptides
+      .iter()
+      .try_for_each(|(_, peptide)| self.fasta_peptide_writer.write(seq_name, peptide))
   }
 
   /// Writes output record into output files

@@ -9,8 +9,7 @@ use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use crate::io::gff3::read_gff3_file;
 use crate::io::nuc::{to_nuc_seq, Nuc};
 use crate::option_get_some;
-use crate::translate::peptide::PeptideMap;
-use crate::translate::translate_genes::{translate_genes, Translation};
+use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
@@ -32,7 +31,7 @@ pub struct NextalignRecord {
 pub fn run_one(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  ref_peptides: &PeptideMap,
+  ref_peptides: &TranslationMap,
   gene_map: &GeneMap,
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
@@ -72,13 +71,12 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     genemap,
     output_dir,
     output_basename,
-    // include_reference,
+    include_reference,
     output_fasta,
     output_insertions,
     output_errors,
     jobs,
     in_order,
-    ..
   } = args;
 
   let params = &AlignPairwiseParams::default();
@@ -90,7 +88,8 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   let output_insertions = option_get_some!(output_insertions)?;
   let output_errors = option_get_some!(output_errors)?;
 
-  let ref_seq = &to_nuc_seq(&read_one_fasta(input_ref)?)?;
+  let ref_record = &read_one_fasta(input_ref)?;
+  let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 
   let gene_map = &match (genemap, genes) {
     // Read gene map and retain only requested genes
@@ -184,6 +183,13 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
       )
       .wrap_err("When creating output writer")
       .unwrap();
+
+      if include_reference {
+        output_writer
+          .write_ref(ref_record, ref_peptides)
+          .wrap_err("When writing output record for ref sequence")
+          .unwrap();
+      }
 
       for record in result_receiver {
         output_writer

@@ -125,7 +125,7 @@ pub struct NextalignRunArgs {
 
   /// Whether to include aligned reference nucleotide sequence into output nucleotide sequence FASTA file and reference peptides into output peptide FASTA files.
   #[clap(long)]
-  pub include_reference: Option<bool>,
+  pub include_reference: bool,
 
   /// Path to output FASTA file with aligned sequences.
   ///

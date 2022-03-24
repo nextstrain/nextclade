@@ -11,7 +11,8 @@ use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_translate, FrameShift};
-use crate::translate::peptide::{Peptide, PeptideMap};
+use std::collections::BTreeMap;
+
 use crate::translate::translate::translate;
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
@@ -26,6 +27,8 @@ pub struct Translation {
   pub insertions: Vec<Insertion<Aa>>,
   pub frame_shifts: Vec<FrameShift>,
 }
+
+pub type TranslationMap = BTreeMap<String, Translation>;
 
 /// Extracts nucleotide sequence of a gene
 pub fn extract_gene(full_aln_seq: &[Nuc], gene: &Gene, coord_map: &CoordMap) -> Vec<Nuc> {
@@ -126,7 +129,7 @@ pub fn translate_gene(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   gene: &Gene,
-  ref_peptide: &Peptide,
+  ref_peptide: &Translation,
   gap_open_close_aa: &[i32],
   coord_map: &CoordMap,
   params: &AlignPairwiseParams,
@@ -193,7 +196,7 @@ pub fn translate_gene(
 pub fn translate_genes(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  ref_peptides: &PeptideMap,
+  ref_peptides: &TranslationMap,
   gene_map: &GeneMap,
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,

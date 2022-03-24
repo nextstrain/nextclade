@@ -5,7 +5,7 @@ use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
 use crate::io::nuc::Nuc;
 
-use crate::translate::peptide::Peptide;
+use crate::translate::translate_genes::Translation;
 use eyre::Report;
 
 pub fn decode(triplet: &[Nuc]) -> Aa {
@@ -81,7 +81,7 @@ pub fn decode(triplet: &[Nuc]) -> Aa {
 
 /// Translates a nucleotide sequence of a gene into the corresponding aminoacid sequence (peptide)
 /// NOTE: we accept gene sequence by value here to avoid copying (it should be moved) and then process it in-place
-pub fn translate(gene_nuc_seq: &[Nuc], gene: &Gene, params: &AlignPairwiseParams) -> Result<Peptide, Report> {
+pub fn translate(gene_nuc_seq: &[Nuc], gene: &Gene, params: &AlignPairwiseParams) -> Result<Translation, Report> {
   // NOTE: rounds the result to the multiple of 3 (floor) so that translation does not overrun the buffer
   let peptide_length = gene_nuc_seq.len() / 3;
 
@@ -97,8 +97,10 @@ pub fn translate(gene_nuc_seq: &[Nuc], gene: &Gene, params: &AlignPairwiseParams
   }
   peptide.shrink_to_fit();
 
-  Ok(Peptide {
+  Ok(Translation {
     gene_name: gene.gene_name.clone(),
     seq: peptide,
+    insertions: vec![],
+    frame_shifts: vec![],
   })
 }
