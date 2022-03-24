@@ -51,13 +51,15 @@ pub struct ErrorCsvEntry<'a, 'b> {
 }
 
 /// Writes errors.csv file
-pub struct ErrorsCsvWriter {
+pub struct ErrorsCsvWriter<'a> {
+  gene_map: &'a GeneMap,
   writer: CsvWriter,
 }
 
-impl ErrorsCsvWriter {
-  pub fn new(filepath: impl AsRef<Path>) -> Result<Self, Report> {
+impl<'a> ErrorsCsvWriter<'a> {
+  pub fn new(gene_map: &'a GeneMap, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     Ok(Self {
+      gene_map,
       writer: CsvWriter::new(filepath.as_ref())?,
     })
   }
@@ -77,10 +79,9 @@ impl ErrorsCsvWriter {
     &mut self,
     seq_name: &str,
     maybe_translations: &[Result<Translation, Report>],
-    gene_map: &GeneMap,
   ) -> Result<(), Report> {
     let warnings = &format_aa_warnings(maybe_translations);
-    let failed_genes = &format_aa_failed_genes(maybe_translations, gene_map);
+    let failed_genes = &format_aa_failed_genes(maybe_translations, &self.gene_map);
     self.writer.write(&ErrorCsvEntry {
       seq_name,
       errors: "",

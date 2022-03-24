@@ -3,23 +3,19 @@ use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::strip_insertions::{strip_insertions, StripInsertionsResult};
 use crate::cli::nextalign_cli::NextalignRunArgs;
+use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 use crate::gene::gene_map::GeneMap;
-use crate::io::errors_csv::ErrorsCsvWriter;
-use crate::io::fasta::{read_one_fasta, write_translations, FastaPeptideWriter, FastaReader, FastaRecord, FastaWriter};
+use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use crate::io::gff3::read_gff3_file;
-use crate::io::insertions_csv::InsertionsCsvWriter;
-use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
+use crate::io::nuc::{to_nuc_seq, Nuc};
 use crate::option_get_some;
 use crate::translate::peptide::PeptideMap;
 use crate::translate::translate_genes::{translate_genes, Translation};
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::utils::error::report_to_string;
-use color_eyre::Section;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
-use log::{info, warn};
-use std::collections::HashMap;
+use log::info;
 
 pub struct NextalignOutputs {
   pub stripped: StripInsertionsResult<Nuc>,
@@ -64,44 +60,6 @@ pub fn run_one(
       })
     }
   }
-}
-
-pub fn output_one(
-  record: &NextalignRecord,
-  gene_map: &GeneMap,
-  fasta_writer: &mut FastaWriter,
-  fasta_peptide_writer: &mut FastaPeptideWriter,
-  insertions_csv_writer: &mut InsertionsCsvWriter,
-  errors_csv_writer: &mut ErrorsCsvWriter,
-) -> Result<(), Report> {
-  let NextalignRecord {
-    index,
-    seq_name,
-    outputs_or_err,
-  } = record;
-
-  match outputs_or_err {
-    Ok(output) => {
-      let NextalignOutputs {
-        stripped, translations, ..
-      } = output;
-      // warn!("writing {index}");
-      fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
-      write_translations(seq_name, translations, fasta_peptide_writer)?;
-      insertions_csv_writer.write(seq_name, &stripped.insertions, translations)?;
-      errors_csv_writer.write_aa_errors(seq_name, translations, gene_map)?;
-    }
-    Err(report) => {
-      let cause = report_to_string(report);
-      let message = format!(
-        "In sequence #{index} '{seq_name}': {cause}. Note that this sequence will not be included in the results."
-      );
-      warn!("{message}");
-      errors_csv_writer.write_nuc_error(seq_name, &message)?;
-    }
-  };
-
-  Ok(())
 }
 
 pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
@@ -184,7 +142,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
             .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
             .unwrap();
 
-          let result_or_err = run_one(
+          let outputs_or_err = run_one(
             &qry_seq,
             ref_seq,
             ref_peptides,
@@ -197,9 +155,13 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
           let record = NextalignRecord {
             index,
             seq_name,
-            outputs_or_err: result_or_err,
+            outputs_or_err,
           };
 
+          // Important: **all** records should be sent into this channel, without skipping.
+          // In in-order mode, writer that receives from this channel expects a contiguous stream of indices. Gaps in
+          // the indices will cause writer to stall waiting for the missing index and the buffering queue to grow. Any
+          // filtering of records should be done in the writer, instead of here.
           result_sender
             .send(record)
             .wrap_err("When sending NextalignRecord")
@@ -211,86 +173,23 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     }
 
     s.spawn(move |_| {
-      let mut fasta_writer = FastaWriter::from_path(&output_fasta).unwrap();
-      let mut fasta_peptide_writer = FastaPeptideWriter::new(gene_map, &output_dir, &output_basename).unwrap();
-      let mut insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions).unwrap();
-      let mut errors_csv_writer = ErrorsCsvWriter::new(&output_errors).unwrap();
+      let mut output_writer = NextalignOrderedWriter::new(
+        gene_map,
+        &output_fasta,
+        &output_insertions,
+        &output_errors,
+        &output_dir,
+        &output_basename,
+        in_order,
+      )
+      .wrap_err("When creating output writer")
+      .unwrap();
 
-      let mut expected_index = 0;
-      let queue = &mut HashMap::<usize, NextalignRecord>::new();
       for record in result_receiver {
-        let NextalignRecord { index, seq_name, .. } = &record;
-
-        if !in_order {
-          output_one(
-            &record,
-            gene_map,
-            &mut fasta_writer,
-            &mut fasta_peptide_writer,
-            &mut insertions_csv_writer,
-            &mut errors_csv_writer,
-          )
-          .wrap_err_with(|| format!("When writing results for sequence #{index} '{seq_name}'"))
+        output_writer
+          .write_record(record)
+          .wrap_err("When writing output record")
           .unwrap();
-        }
-
-        if in_order {
-          if index == &expected_index {
-            output_one(
-              &record,
-              gene_map,
-              &mut fasta_writer,
-              &mut fasta_peptide_writer,
-              &mut insertions_csv_writer,
-              &mut errors_csv_writer,
-            )
-            .wrap_err_with(|| format!("When writing results for sequence #{index} '{seq_name}'"))
-            .unwrap();
-
-            expected_index += 1;
-          } else {
-            queue.insert(*index, record);
-          }
-
-          let record = queue.get(&expected_index);
-          if let Some(record) = record {
-            let NextalignRecord { index, seq_name, .. } = &record;
-
-            if index == &expected_index {
-              output_one(
-                record,
-                gene_map,
-                &mut fasta_writer,
-                &mut fasta_peptide_writer,
-                &mut insertions_csv_writer,
-                &mut errors_csv_writer,
-              )
-              .wrap_err_with(|| format!("When writing results for queued sequence #{index} '{seq_name}'"))
-              .unwrap();
-
-              expected_index += 1;
-            }
-          }
-        }
-      }
-
-      for record in queue.values().sorted_by_key(|record| record.index) {
-        let NextalignRecord { index, seq_name, .. } = &record;
-
-        if index == &expected_index {
-          output_one(
-            record,
-            gene_map,
-            &mut fasta_writer,
-            &mut fasta_peptide_writer,
-            &mut insertions_csv_writer,
-            &mut errors_csv_writer,
-          )
-          .wrap_err_with(|| format!("When writing results for queued sequence #{index} '{seq_name}'"))
-          .unwrap();
-
-          expected_index += 1;
-        }
       }
     });
   })
