@@ -1,6 +1,9 @@
-use eyre::Report;
+use crate::io::fs::read_file_to_string;
+use crate::io::json::parse_json;
+use eyre::{Report, WrapErr};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::slice::Iter;
 use std::str::FromStr;
 use traversal::{Bft, DftPost, DftPre};
@@ -109,20 +112,26 @@ pub struct AuspiceTree {
   pub version: String,
 }
 
+pub type AuspiceTreeNodeIter<'a> = Iter<'a, AuspiceTreeNode>;
+
+pub type AuspiceTreeNodeIterFn<'a> = fn(&'a AuspiceTreeNode) -> AuspiceTreeNodeIter<'_>;
+
 impl FromStr for AuspiceTree {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let tree = serde_json::from_str::<Self>(s)?;
-    Ok(tree)
+    parse_json(s)
   }
 }
 
-pub type AuspiceTreeNodeIter<'a> = Iter<'a, AuspiceTreeNode>;
-
-pub type AuspiceTreeNodeIterFn<'a> = fn(&'a AuspiceTreeNode) -> AuspiceTreeNodeIter;
-
 impl AuspiceTree {
+  pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
+    let filepath = filepath.as_ref();
+    let data =
+      read_file_to_string(filepath).wrap_err_with(|| format!("When reading Auspice Tree JSON file {filepath:#?}"))?;
+    Self::from_str(&data).wrap_err_with(|| format!("When parsing Auspice Tree JSON file {filepath:#?}"))
+  }
+
   pub fn to_string_pretty(&self) -> Result<String, Report> {
     let mut tree_str = serde_json::to_string_pretty(self)?;
     tree_str += "\n";

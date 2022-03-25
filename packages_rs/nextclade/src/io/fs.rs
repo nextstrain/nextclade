@@ -1,4 +1,6 @@
 use eyre::{eyre, Report, WrapErr};
+use std::fs::File;
+use std::io::{BufReader, Read};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
 
@@ -37,4 +39,22 @@ pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
       .ok_or_else(|| eyre!("Cannot get base name of path {filepath:#?}"))?
       .to_owned(),
   )
+}
+
+/// Reads entire file into a string.
+/// Compared to `std::fs::read_to_string` uses buffered reader
+pub fn read_file_to_string(filepath: impl AsRef<Path>) -> Result<String, Report> {
+  const BUF_SIZE: usize = 1 * 1024 * 1024;
+
+  let filepath = filepath.as_ref();
+
+  let file = File::open(&filepath).wrap_err_with(|| format!("When opening file: {filepath:#?}"))?;
+  let mut reader = BufReader::with_capacity(BUF_SIZE, file);
+
+  let mut data = String::new();
+  reader
+    .read_to_string(&mut data)
+    .wrap_err_with(|| format!("When reading file: {filepath:#?}"))?;
+
+  Ok(data)
 }

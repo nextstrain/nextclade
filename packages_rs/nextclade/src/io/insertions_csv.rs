@@ -1,6 +1,6 @@
 use crate::align::strip_insertions::Insertion;
 use crate::io::aa::{from_aa_seq, Aa};
-use crate::io::csv_writer::CsvWriter;
+use crate::io::csv::CsvWriter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
 use crate::translate::translate_genes::Translation;
 use eyre::Report;

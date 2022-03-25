@@ -2,15 +2,19 @@ use crate::align::align::{align_nuc, AlignPairwiseParams};
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::strip_insertions::{strip_insertions, StripInsertionsResult};
+use crate::analyze::pcr_primers::PcrPrimer;
+use crate::analyze::virus_properties::VirusProperties;
 use crate::cli::nextclade_cli::NextcladeRunArgs;
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::gene::gene_map::GeneMap;
 use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use crate::io::gff3::read_gff3_file;
-use crate::io::nuc::{to_nuc_seq, Nuc};
+use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::option_get_some;
+use crate::qc::qc_config::QcConfig;
 use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
+use crate::tree::tree::AuspiceTree;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
@@ -129,6 +133,15 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, params);
 
   let ref_peptides = &translate_genes_ref(ref_seq, gene_map, params)?;
+
+  let tree = AuspiceTree::from_path(&input_tree)?;
+
+  let qc_config = QcConfig::from_path(&input_qc_config)?;
+
+  let virus_properties = VirusProperties::from_path(&input_virus_properties)?;
+
+  let ref_seq_str = from_nuc_seq(&ref_seq);
+  let pcr_primers = PcrPrimer::from_path(&input_pcr_primers, &ref_seq_str)?;
 
   thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;

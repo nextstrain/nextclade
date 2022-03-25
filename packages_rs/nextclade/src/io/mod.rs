@@ -1,9 +1,10 @@
 pub mod aa;
-pub mod csv_writer;
+pub mod csv;
 pub mod errors_csv;
 pub mod fasta;
 pub mod fs;
 pub mod gff3;
 pub mod insertions_csv;
+pub mod json;
 pub mod letter;
 pub mod nuc;

@@ -3,7 +3,7 @@
 use crate::align::score_matrix_aa::lookup_aa_scoring_matrix;
 use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
-use eyre::Report;
+use eyre::{eyre, Report, WrapErr};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
@@ -38,6 +38,12 @@ pub enum Aa {
   GAP,
 }
 
+impl Default for Aa {
+  fn default() -> Self {
+    Aa::GAP
+  }
+}
+
 impl ScoreMatrixLookup<Aa> for Aa {
   fn lookup_match_score(x: Aa, y: Aa) -> i32 {
     lookup_aa_scoring_matrix(x, y)
@@ -50,6 +56,17 @@ impl Letter<Aa> for Aa {
   #[inline]
   fn is_gap(&self) -> bool {
     self == &Aa::GAP
+  }
+
+  #[inline]
+  fn from_string(s: &str) -> Result<Aa, Report> {
+    if s.len() == 1 {
+      let first_char = s.chars().nth(0).ok_or(eyre!("Unable to retrieve first character"))?;
+      Ok(to_aa(first_char)?)
+    } else {
+      make_error!("Expected 1 character, but got {}", s.len())
+    }
+    .wrap_err_with(|| format!("When parsing amino acid: '{s}'"))
   }
 }
 

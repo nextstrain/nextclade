@@ -3,6 +3,7 @@ pub mod analyze;
 pub mod cli;
 pub mod gene;
 pub mod io;
+pub mod qc;
 pub mod translate;
 pub mod tree;
 pub mod utils;

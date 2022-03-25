@@ -39,6 +39,7 @@ num_cpus = "1.13.1"
 owo-colors = "3.3.0"
 phf = { version = "0.10.1", features = ["macros"] }
 pretty_assertions = "1.2.0"
+regex = "1.5.5"
 rstest = { version = "0.12.0", optional = true }
 rstest_reuse = { version = "0.3.0", optional = true }
 serde = { version = "1.0.136", features = ["derive"] }

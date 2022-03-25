@@ -1,5 +1,5 @@
 use crate::gene::gene_map::GeneMap;
-use crate::io::csv_writer::CsvWriter;
+use crate::io::csv::CsvWriter;
 use crate::translate::translate_genes::Translation;
 use crate::utils::error::report_to_string;
 use eyre::Report;

@@ -1,9 +1,10 @@
 #![allow(clippy::use_self)]
 
 use auto_ops::impl_op_ex;
+use serde::{Deserialize, Serialize};
 use std::ops::Range as StdRange;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Range {
   pub begin: usize,
   pub end: usize,

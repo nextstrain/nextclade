@@ -3,10 +3,11 @@
 use crate::align::score_matrix_nuc::lookup_nuc_scoring_matrix;
 use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
-use eyre::Report;
+use eyre::{eyre, Report, WrapErr};
+use serde::{Deserialize, Serialize};
 
 #[repr(u8)]
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Nuc {
   T,
   A,
@@ -26,6 +27,30 @@ pub enum Nuc {
   GAP,
 }
 
+impl Nuc {
+  #[inline]
+  pub fn is_acgt(&self) -> bool {
+    match self {
+      Nuc::A | Nuc::C | Nuc::G | Nuc::T => true,
+      _ => false,
+    }
+  }
+
+  #[inline]
+  pub fn is_acgtn(&self) -> bool {
+    match self {
+      Nuc::A | Nuc::C | Nuc::G | Nuc::T | Nuc::N => true,
+      _ => false,
+    }
+  }
+}
+
+impl Default for Nuc {
+  fn default() -> Self {
+    Nuc::GAP
+  }
+}
+
 impl ScoreMatrixLookup<Nuc> for Nuc {
   fn lookup_match_score(x: Nuc, y: Nuc) -> i32 {
     lookup_nuc_scoring_matrix(x, y)
@@ -38,6 +63,17 @@ impl Letter<Nuc> for Nuc {
   #[inline]
   fn is_gap(&self) -> bool {
     self == &Nuc::GAP
+  }
+
+  #[inline]
+  fn from_string(s: &str) -> Result<Nuc, Report> {
+    if s.len() == 1 {
+      let first_char = s.chars().nth(0).ok_or(eyre!("Unable to retrieve first character"))?;
+      Ok(to_nuc(first_char)?)
+    } else {
+      make_error!("Expected 1 character, but got {}", s.len())
+    }
+    .wrap_err_with(|| format!("When parsing nucleotide: '{s}'"))
   }
 }
 
