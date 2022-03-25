@@ -1,9 +1,11 @@
-use crate::align::align::{align_nuc, AlignPairwiseParams};
+use crate::align::align::AlignPairwiseParams;
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use crate::align::strip_insertions::{strip_insertions, StripInsertionsResult};
+use crate::align::strip_insertions::StripInsertionsResult;
+use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
+use crate::cli::nextalign_loop::{nextalign_run_one, NextalignOutputs};
 use crate::cli::nextclade_cli::NextcladeRunArgs;
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::gene::gene_map::GeneMap;
@@ -12,7 +14,7 @@ use crate::io::gff3::read_gff3_file;
 use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::option_get_some;
 use crate::qc::qc_config::QcConfig;
-use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
+use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
 use crate::tree::tree::AuspiceTree;
 use crossbeam::thread;
@@ -32,7 +34,7 @@ pub struct NextcladeRecord {
   pub outputs_or_err: Result<NextcladeOutputs, Report>,
 }
 
-pub fn run_one(
+pub fn nextclade_run_one(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
@@ -41,28 +43,32 @@ pub fn run_one(
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<NextcladeOutputs, Report> {
-  match align_nuc(qry_seq, ref_seq, gap_open_close_nuc, params) {
-    Err(report) => Err(report),
+  let NextalignOutputs {
+    stripped,
+    alignment,
+    translations,
+  } = nextalign_run_one(
+    qry_seq,
+    ref_seq,
+    ref_peptides,
+    gene_map,
+    gap_open_close_nuc,
+    gap_open_close_aa,
+    params,
+  )?;
 
-    Ok(alignment) => {
-      let translations = translate_genes(
-        &alignment.qry_seq,
-        &alignment.ref_seq,
-        ref_peptides,
-        gene_map,
-        gap_open_close_aa,
-        params,
-      );
+  let FindNucChangesOutput {
+    substitutions,
+    deletions,
+    alignment_start,
+    alignment_end,
+  } = find_nuc_changes(&alignment.qry_seq, &alignment.ref_seq);
 
-      let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
-
-      Ok(NextcladeOutputs {
-        stripped,
-        alignment,
-        translations,
-      })
-    }
-  }
+  Ok(NextcladeOutputs {
+    stripped,
+    alignment,
+    translations,
+  })
 }
 
 pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
@@ -179,7 +185,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
             .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
             .unwrap();
 
-          let outputs_or_err = run_one(
+          let outputs_or_err = nextclade_run_one(
             &qry_seq,
             ref_seq,
             ref_peptides,

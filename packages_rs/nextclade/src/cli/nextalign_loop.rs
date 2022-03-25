@@ -28,7 +28,7 @@ pub struct NextalignRecord {
   pub outputs_or_err: Result<NextalignOutputs, Report>,
 }
 
-pub fn run_one(
+pub fn nextalign_run_one(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
@@ -141,7 +141,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
             .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
             .unwrap();
 
-          let outputs_or_err = run_one(
+          let outputs_or_err = nextalign_run_one(
             &qry_seq,
             ref_seq,
             ref_peptides,
