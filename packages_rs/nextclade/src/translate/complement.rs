@@ -17,7 +17,7 @@ pub fn complement(nuc: Nuc) -> Nuc {
     Nuc::H => Nuc::D,
     Nuc::B => Nuc::V,
     Nuc::N => Nuc::N,
-    Nuc::GAP => Nuc::GAP,
+    Nuc::Gap => Nuc::Gap,
   }
 }
 

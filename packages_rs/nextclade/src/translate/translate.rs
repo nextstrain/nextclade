@@ -1,5 +1,3 @@
-#![allow(clippy::integer_division)]
-
 use crate::align::align::AlignPairwiseParams;
 use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
@@ -10,7 +8,7 @@ use eyre::Report;
 
 pub fn decode(triplet: &[Nuc]) -> Aa {
   match *triplet {
-    [Nuc::GAP, Nuc::GAP, Nuc::GAP] => Aa::GAP,
+    [Nuc::Gap, Nuc::Gap, Nuc::Gap] => Aa::Gap,
     [Nuc::A, Nuc::A, Nuc::A] => Aa::K,
     [Nuc::A, Nuc::A, Nuc::C] => Aa::N,
     [Nuc::A, Nuc::A, Nuc::G] => Aa::K,
@@ -59,15 +57,15 @@ pub fn decode(triplet: &[Nuc]) -> Aa {
     [Nuc::G, Nuc::T, Nuc::C] => Aa::V,
     [Nuc::G, Nuc::T, Nuc::G] => Aa::V,
     [Nuc::G, Nuc::T, Nuc::T] => Aa::V,
-    [Nuc::T, Nuc::A, Nuc::A] => Aa::STOP,
+    [Nuc::T, Nuc::A, Nuc::A] => Aa::Stop,
     [Nuc::T, Nuc::A, Nuc::C] => Aa::Y,
-    [Nuc::T, Nuc::A, Nuc::G] => Aa::STOP,
+    [Nuc::T, Nuc::A, Nuc::G] => Aa::Stop,
     [Nuc::T, Nuc::A, Nuc::T] => Aa::Y,
     [Nuc::T, Nuc::C, Nuc::A] => Aa::S,
     [Nuc::T, Nuc::C, Nuc::C] => Aa::S,
     [Nuc::T, Nuc::C, Nuc::G] => Aa::S,
     [Nuc::T, Nuc::C, Nuc::T] => Aa::S,
-    [Nuc::T, Nuc::G, Nuc::A] => Aa::STOP,
+    [Nuc::T, Nuc::G, Nuc::A] => Aa::Stop,
     [Nuc::T, Nuc::G, Nuc::C] => Aa::C,
     [Nuc::T, Nuc::G, Nuc::G] => Aa::W,
     [Nuc::T, Nuc::G, Nuc::T] => Aa::C,
@@ -91,7 +89,7 @@ pub fn translate(gene_nuc_seq: &[Nuc], gene: &Gene, params: &AlignPairwiseParams
     let triplet: &[Nuc] = &gene_nuc_seq[i_nuc..(i_nuc + 3)];
     let aminoacid = decode(triplet);
     peptide.push(aminoacid);
-    if !params.translatePastStop && aminoacid == Aa::STOP {
+    if !params.translate_past_stop && aminoacid == Aa::Stop {
       break;
     }
   }

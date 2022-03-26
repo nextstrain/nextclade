@@ -81,7 +81,7 @@ impl<'a> ErrorsCsvWriter<'a> {
     maybe_translations: &[Result<Translation, Report>],
   ) -> Result<(), Report> {
     let warnings = &format_aa_warnings(maybe_translations);
-    let failed_genes = &format_aa_failed_genes(maybe_translations, &self.gene_map);
+    let failed_genes = &format_aa_failed_genes(maybe_translations, self.gene_map);
     self.writer.write(&ErrorCsvEntry {
       seq_name,
       errors: "",

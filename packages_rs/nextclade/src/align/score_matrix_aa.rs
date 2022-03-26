@@ -1,7 +1,7 @@
 use crate::io::aa::Aa;
 
-const NUM_COLS: u8 = 28;
-const SCORING_MATRIX_AA_SIZE: usize = NUM_COLS as usize * NUM_COLS as usize;
+const NUM_COLS: usize = 28;
+const SCORING_MATRIX_AA_SIZE: usize = NUM_COLS * NUM_COLS;
 
 #[rustfmt::skip]
 static SCORING_MATRIX_AA: &[i32; SCORING_MATRIX_AA_SIZE] = &[
@@ -38,5 +38,5 @@ static SCORING_MATRIX_AA: &[i32; SCORING_MATRIX_AA_SIZE] = &[
   ];
 
 pub fn lookup_aa_scoring_matrix(x: Aa, y: Aa) -> i32 {
-  SCORING_MATRIX_AA[(x as usize * NUM_COLS as usize + y as usize) as usize]
+  SCORING_MATRIX_AA[(x as usize * NUM_COLS + y as usize)]
 }

@@ -1,28 +1,16 @@
-#![allow(clippy::separated_literal_suffix)]
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
-#![allow(unused_assignments)]
-#![allow(unused_imports)]
-
 use crate::align::align::AlignPairwiseParams;
-use crate::io::aa::Aa;
 use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
 use crate::utils::vec2d::Vec2d;
 use log::trace;
-use std::io;
-use std::io::Write;
-use std::marker::PhantomData;
-use std::ops::Index;
 
 // store direction info for backtrace as bits in paths matrix
 // these indicate the currently optimal move
 pub const MATCH: i32 = 1 << 0;
-pub const refGAPmatrix: i32 = 1 << 1;
-pub const qryGAPmatrix: i32 = 1 << 2;
+pub const REF_GAP_MATRIX: i32 = 1 << 1;
+pub const QRY_GAP_MATRIX: i32 = 1 << 2;
 // these are the override flags for gap extension
-pub const refGAPextend: i32 = 1 << 3;
-pub const qryGAPextend: i32 = 1 << 4;
+pub const REF_GAP_EXTEND: i32 = 1 << 3;
+pub const QRY_GAP_EXTEND: i32 = 1 << 4;
 pub const END_OF_SEQUENCE: i32 = -1;
 
 pub struct ScoreMatrixResult {
@@ -33,24 +21,24 @@ pub struct ScoreMatrixResult {
 pub fn score_matrix<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
-  gapOpenClose: &[i32],
-  bandWidth: usize,
-  meanShift: i32,
+  gap_open_close: &[i32],
+  band_width: usize,
+  mean_shift: i32,
   params: &AlignPairwiseParams,
 ) -> ScoreMatrixResult {
-  let querySize = qry_seq.len();
-  let refSize = ref_seq.len();
-  let n_rows = bandWidth * 2 + 1;
-  let n_cols = refSize + 1;
+  let query_size = qry_seq.len();
+  let ref_size = ref_seq.len();
+  let n_rows = band_width * 2 + 1;
+  let n_cols = ref_size + 1;
 
   trace!(
-    "Score matrix: stared: querySize={querySize}, refSize={refSize}, \
-  bandWidth={bandWidth}, meanShift={meanShift}, n_rows={n_rows}, n_cols={n_cols}"
+    "Score matrix: stared: query_size={query_size}, ref_size={ref_size}, \
+  band_width={band_width}, mean_shift={mean_shift}, n_rows={n_rows}, n_cols={n_cols}"
   );
 
   let mut paths = Vec2d::<i32>::new(n_rows, n_cols);
   let mut scores = Vec2d::<i32>::new(n_rows, n_cols);
-  let mut qryGaps = vec![0_i32; n_rows];
+  let mut qry_gaps = vec![0_i32; n_rows];
 
   // fill scores with alignment scores
   // The inner index scores[][ri] is the index of the reference sequence
@@ -64,101 +52,101 @@ pub fn score_matrix<T: Letter<T>>(
   //    -> vertical step in the matrix from si+1 to si
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-  let NO_ALIGN = -(params.scoreMatch + params.penaltyMismatch) * refSize as i32;
+  let no_align = -(params.score_match + params.penalty_mismatch) * ref_size as i32;
 
-  for si in bandWidth + 1..=2 * bandWidth {
-    paths[(si, 0)] = qryGAPmatrix;
+  for si in band_width + 1..=2 * band_width {
+    paths[(si, 0)] = QRY_GAP_MATRIX;
   }
 
-  paths[(bandWidth, 0)] = MATCH;
-  qryGaps[bandWidth] = -params.penaltyGapOpen;
-  for si in (0..bandWidth).rev() {
-    paths[(si, 0)] = refGAPmatrix;
-    qryGaps[si] = -params.penaltyGapOpen;
+  paths[(band_width, 0)] = MATCH;
+  qry_gaps[band_width] = -params.penalty_gap_open;
+  for si in (0..band_width).rev() {
+    paths[(si, 0)] = REF_GAP_MATRIX;
+    qry_gaps[si] = -params.penalty_gap_open;
   }
 
-  for ri in 0..refSize as i32 {
-    let mut qPos: i32 = ri as i32 - (bandWidth as i32 + meanShift);
-    let mut refGaps = -gapOpenClose[ri as usize];
+  for ri in 0..ref_size as i32 {
+    let mut q_pos: i32 = ri - (band_width as i32 + mean_shift);
+    let mut ref_gaps = -gap_open_close[ri as usize];
 
-    for si in (0..=(2 * bandWidth as i32)).rev() {
-      let mut tmpPath = 0;
-      let mut score = 0;
-      let mut origin = 0;
-      let mut qGapExtend = 0;
-      let mut rGapExtend = 0;
-      let mut rGapOpen = 0;
-      let mut qGapOpen = 0;
-      let mut tmpMatch = 0;
-      let mut tmpScore = 0;
+    for si in (0..=(2 * band_width as i32)).rev() {
+      let mut tmp_path = 0;
+      let mut score: i32;
+      let mut origin: i32;
+      let q_gap_extend: i32;
+      let r_gap_extend: i32;
+      let r_gap_open: i32;
+      let q_gap_open: i32;
+      let tmp_match: i32;
+      let mut tmp_score: i32;
 
-      if qPos < 0 {
+      if q_pos < 0 {
         // precedes query sequence -- no score, origin is query gap
         // we could fill all of this at once
         score = 0;
-        tmpPath += qryGAPextend;
-        refGaps = -gapOpenClose[ri as usize];
-        origin = qryGAPmatrix;
-      } else if qPos < querySize as i32 {
+        tmp_path += QRY_GAP_EXTEND;
+        ref_gaps = -gap_open_close[ri as usize];
+        origin = QRY_GAP_MATRIX;
+      } else if q_pos < query_size as i32 {
         // if the shifted position is within the query sequence
 
         // no gap -- match case
-        let matrix_score = T::lookup_match_score(qry_seq[qPos as usize], ref_seq[ri as usize]);
-        tmpMatch = if matrix_score > 0 {
-          params.scoreMatch
+        let matrix_score = T::lookup_match_score(qry_seq[q_pos as usize], ref_seq[ri as usize]);
+        tmp_match = if matrix_score > 0 {
+          params.score_match
         } else {
-          -params.penaltyMismatch
+          -params.penalty_mismatch
         };
-        score = scores[(si, ri)] + tmpMatch;
+        score = scores[(si, ri)] + tmp_match;
         origin = MATCH;
 
         // check the scores of a reference gap
-        if si < 2 * bandWidth as i32 {
-          rGapExtend = refGaps - params.penaltyGapExtend;
-          rGapOpen = scores[(si + 1, ri + 1)] - gapOpenClose[(ri + 1) as usize];
-          if rGapExtend > rGapOpen {
-            tmpScore = rGapExtend;
-            tmpPath += refGAPextend;
+        if si < 2 * band_width as i32 {
+          r_gap_extend = ref_gaps - params.penalty_gap_extend;
+          r_gap_open = scores[(si + 1, ri + 1)] - gap_open_close[(ri + 1) as usize];
+          if r_gap_extend > r_gap_open {
+            tmp_score = r_gap_extend;
+            tmp_path += REF_GAP_EXTEND;
           } else {
-            tmpScore = rGapOpen;
+            tmp_score = r_gap_open;
           }
-          refGaps = tmpScore;
-          if score < tmpScore {
-            score = tmpScore;
-            origin = refGAPmatrix;
+          ref_gaps = tmp_score;
+          if score < tmp_score {
+            score = tmp_score;
+            origin = REF_GAP_MATRIX;
           }
         } else {
-          refGaps = NO_ALIGN;
+          ref_gaps = no_align;
         }
 
         // check the scores of a reference gap
         if si > 0 {
-          qGapExtend = qryGaps[(si - 1) as usize] - params.penaltyGapExtend;
-          qGapOpen = scores[(si - 1, ri)] - gapOpenClose[ri as usize];
-          tmpScore = qGapExtend.max(qGapOpen);
-          if qGapExtend > qGapOpen {
-            tmpScore = qGapExtend;
-            tmpPath += qryGAPextend;
+          q_gap_extend = qry_gaps[(si - 1) as usize] - params.penalty_gap_extend;
+          q_gap_open = scores[(si - 1, ri)] - gap_open_close[ri as usize];
+          tmp_score = q_gap_extend.max(q_gap_open);
+          if q_gap_extend > q_gap_open {
+            tmp_score = q_gap_extend;
+            tmp_path += QRY_GAP_EXTEND;
           } else {
-            tmpScore = qGapOpen;
+            tmp_score = q_gap_open;
           }
-          qryGaps[si as usize] = tmpScore;
-          if score < tmpScore {
-            score = tmpScore;
-            origin = qryGAPmatrix;
+          qry_gaps[si as usize] = tmp_score;
+          if score < tmp_score {
+            score = tmp_score;
+            origin = QRY_GAP_MATRIX;
           }
         } else {
-          qryGaps[si as usize] = NO_ALIGN;
+          qry_gaps[si as usize] = no_align;
         }
       } else {
         // past query sequence -- mark as sequence end
         score = END_OF_SEQUENCE;
         origin = END_OF_SEQUENCE;
       }
-      tmpPath += origin;
-      paths[(si, ri + 1)] = tmpPath;
+      tmp_path += origin;
+      paths[(si, ri + 1)] = tmp_path;
       scores[(si, ri + 1)] = score;
-      qPos += 1;
+      q_pos += 1;
     }
   }
 
@@ -171,9 +159,7 @@ mod tests {
   use super::*;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::gene::gene_map::GeneMap;
-  use crate::io::nuc::{from_nuc_seq, to_nuc_seq};
-  use crate::utils::global_init::global_init;
-  use ctor::ctor;
+  use crate::io::nuc::{to_nuc_seq, Nuc};
   use eyre::Report;
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
@@ -193,7 +179,7 @@ mod tests {
 
     let gene_map = GeneMap::new();
 
-    let dummy_ref_seq = vec![Nuc::GAP; 100];
+    let dummy_ref_seq = vec![Nuc::Gap; 100];
     let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
 
     Context {

@@ -44,7 +44,7 @@ pub fn basename(filepath: impl AsRef<Path>) -> Result<String, Report> {
 /// Reads entire file into a string.
 /// Compared to `std::fs::read_to_string` uses buffered reader
 pub fn read_file_to_string(filepath: impl AsRef<Path>) -> Result<String, Report> {
-  const BUF_SIZE: usize = 1 * 1024 * 1024;
+  const BUF_SIZE: usize = 2 * 1024 * 1024;
 
   let filepath = filepath.as_ref();
 

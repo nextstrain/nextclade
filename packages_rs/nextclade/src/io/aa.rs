@@ -1,5 +1,3 @@
-#![allow(clippy::use_self, clippy::upper_case_acronyms)]
-
 use crate::align::score_matrix_aa::lookup_aa_scoring_matrix;
 use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
@@ -34,13 +32,13 @@ pub enum Aa {
   Y,
   Z,
   X,
-  STOP,
-  GAP,
+  Stop,
+  Gap,
 }
 
 impl Default for Aa {
   fn default() -> Self {
-    Aa::GAP
+    Aa::Gap
   }
 }
 
@@ -51,11 +49,11 @@ impl ScoreMatrixLookup<Aa> for Aa {
 }
 
 impl Letter<Aa> for Aa {
-  const GAP: Aa = Aa::GAP;
+  const GAP: Aa = Aa::Gap;
 
   #[inline]
   fn is_gap(&self) -> bool {
-    self == &Aa::GAP
+    self == &Aa::Gap
   }
 
   #[inline]
@@ -99,8 +97,8 @@ pub fn to_aa(letter: char) -> Result<Aa, Report> {
     'Y' => Ok(Aa::Y),
     'Z' => Ok(Aa::Z),
     'X' => Ok(Aa::X),
-    '*' => Ok(Aa::STOP),
-    '-' => Ok(Aa::GAP),
+    '*' => Ok(Aa::Stop),
+    '-' => Ok(Aa::Gap),
     _ => make_error!("Unknown nucleotide: {letter}"),
   }
 }
@@ -134,8 +132,8 @@ pub fn from_aa(nuc: Aa) -> char {
     Aa::Y => 'Y',
     Aa::Z => 'Z',
     Aa::X => 'X',
-    Aa::STOP => '*',
-    Aa::GAP => '-',
+    Aa::Stop => '*',
+    Aa::Gap => '-',
   }
 }
 

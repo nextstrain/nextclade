@@ -1,7 +1,3 @@
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
-#![allow(clippy::separated_literal_suffix)]
-
 use crate::io::nuc::Nuc;
 
 pub struct SeedMatchResult {
@@ -9,14 +5,13 @@ pub struct SeedMatchResult {
   pub score: usize,
 }
 
-pub fn seedMatch(kmer: &[Nuc], ref_seq: &[Nuc], start_pos: usize, mismatches_allowed: usize) -> SeedMatchResult {
+pub fn seed_match(kmer: &[Nuc], ref_seq: &[Nuc], start_pos: usize, mismatches_allowed: usize) -> SeedMatchResult {
   let ref_len = ref_seq.len();
   let kmer_len = kmer.len();
 
-  #[allow(unused_assignments)]
-  let mut tmp_score: usize = 0;
-  let mut max_score: usize = 0;
-  let mut max_shift: usize = 0;
+  let mut tmp_score: usize;
+  let mut max_score = 0;
+  let mut max_shift = 0;
 
   let end_pos = ref_len - kmer_len;
   for shift in start_pos..end_pos {

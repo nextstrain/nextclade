@@ -1,5 +1,3 @@
-#![allow(clippy::use_self)]
-
 use auto_ops::impl_op_ex;
 use serde::{Deserialize, Serialize};
 use std::ops::Range as StdRange;
@@ -29,8 +27,8 @@ impl_op_ex!(- |range: &Range, scalar: usize| -> Range { Range{ begin: range.begi
 impl From<Range> for StdRange<usize> {
   fn from(other: Range) -> Self {
     StdRange::<usize> {
-      start: other.begin as usize,
-      end: other.end as usize,
+      start: other.begin,
+      end: other.end,
     }
   }
 }

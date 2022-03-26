@@ -1,5 +1,3 @@
-#![allow(clippy::use_self)]
-
 use crate::wasm::js_value::{deserialize_js_value, serialize_js_value};
 use eyre::Report;
 use serde::{Deserialize, Serialize};

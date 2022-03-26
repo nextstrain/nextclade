@@ -4,7 +4,7 @@ use nextclade::analyze::analyze::{AnalysisInput, AnalysisResult, Nextclade, Next
 use nextclade::utils::error::report_to_string;
 
 #[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+static ALLOC: wee_alloc::WeeAlloc<'_> = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
 pub struct NextcladeWasm {

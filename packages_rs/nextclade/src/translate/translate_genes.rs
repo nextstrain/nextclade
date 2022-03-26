@@ -52,7 +52,6 @@ pub struct PeptideAlignmentParams {
 /// Deduces aminoacid alignment params from nucleotide alignment.
 /// Gap counts from nucleotide alignment are used to estimate rough parameters. This is by contrast to nucleotide
 /// alignment, where these parameters are estimated using seed matching.
-#[allow(clippy::integer_division)]
 pub fn calculate_aa_alignment_params(qry_gaps: &GapCounts, ref_gaps: &GapCounts) -> PeptideAlignmentParams {
   const BASE_BAND_WIDTH: usize = 5; // An arbitrary magic number to give some additional room for alignment
   let band_width = (qry_gaps.internal + ref_gaps.internal) / 3 + BASE_BAND_WIDTH;
@@ -119,9 +118,9 @@ pub fn fill_range_inplace(seq: &mut [Aa], range: &Range, letter: Aa) {
 /// and we cover them with `X`.
 pub fn mask_peptide_frame_shifts_in_place(seq: &mut [Aa], frame_shifts: &[FrameShift]) {
   for frame_shift in frame_shifts {
-    fill_range_inplace(seq, &frame_shift.gaps_leading.codon, Aa::GAP);
+    fill_range_inplace(seq, &frame_shift.gaps_leading.codon, Aa::Gap);
     fill_range_inplace(seq, &frame_shift.codon, Aa::X);
-    fill_range_inplace(seq, &frame_shift.gaps_trailing.codon, Aa::GAP);
+    fill_range_inplace(seq, &frame_shift.gaps_trailing.codon, Aa::Gap);
   }
 }
 

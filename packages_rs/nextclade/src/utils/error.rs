@@ -14,7 +14,6 @@ pub fn to_eyre_error<T, E: Into<eyre::Error>>(val_or_err: Result<T, E>) -> Resul
   val_or_err.map_err(|report| eyre!(report))
 }
 
-#[allow(unused_variables)]
 pub fn report_to_string_debug_only(report: &Report) -> String {
   #[cfg(not(debug_assertions))]
   return "An unexpected error occurred. Please try again later.".to_owned();

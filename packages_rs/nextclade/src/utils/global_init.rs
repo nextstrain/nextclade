@@ -10,7 +10,7 @@ fn get_current_exe_filename() -> Option<String> {
   env::current_exe().ok()?.file_name()?.to_str()?.to_owned().into()
 }
 
-fn get_file_line(record: &Record) -> String {
+fn get_file_line(record: &Record<'_>) -> String {
   match (record.file(), record.line()) {
     (Some(file), None) => file.to_owned(),
     (Some(file), Some(line)) => format!("{:}:{:}", file, line),
@@ -18,13 +18,13 @@ fn get_file_line(record: &Record) -> String {
   }
 }
 
-fn log_level_str(record: &Record) -> String {
+fn log_level_str(record: &Record<'_>) -> String {
   let mut level_str = record.level().to_string();
   level_str.truncate(5);
   format!("{:<5}", level_str)
 }
 
-fn color_log_level(record: &Record) -> String {
+fn color_log_level(record: &Record<'_>) -> String {
   match record.level() {
     Level::Error => log_level_str(record).red().to_string(),
     Level::Warn => log_level_str(record).yellow().to_string(),

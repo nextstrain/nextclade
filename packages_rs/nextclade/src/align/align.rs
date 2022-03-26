@@ -1,8 +1,6 @@
-#![allow(non_snake_case)]
-
 use crate::align::backtrace::{backtrace, AlignmentOutput};
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
-use crate::align::seed_alignment::{seedAlignment, SeedAlignmentResult};
+use crate::align::seed_alignment::{seed_alignment, SeedAlignmentResult};
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -12,58 +10,58 @@ use log::trace;
 
 #[derive(Debug)]
 pub struct AlignPairwiseParams {
-  pub penaltyGapExtend: i32,
-  pub penaltyGapOpen: i32,
-  pub penaltyGapOpenInFrame: i32,
-  pub penaltyGapOpenOutOfFrame: i32,
-  pub penaltyMismatch: i32,
-  pub scoreMatch: i32,
-  pub maxIndel: usize,
+  pub penalty_gap_extend: i32,
+  pub penalty_gap_open: i32,
+  pub penalty_gap_open_in_frame: i32,
+  pub penalty_gap_open_out_of_frame: i32,
+  pub penalty_mismatch: i32,
+  pub score_match: i32,
+  pub max_indel: usize,
   pub min_length: usize,
-  pub seedLength: usize,
-  pub seedSpacing: i32,
-  pub minSeeds: i32,
-  pub mismatchesAllowed: usize,
-  pub translatePastStop: bool,
+  pub seed_length: usize,
+  pub seed_spacing: i32,
+  pub min_seeds: i32,
+  pub mismatches_allowed: usize,
+  pub translate_past_stop: bool,
 }
 
 impl Default for AlignPairwiseParams {
   fn default() -> Self {
     Self {
       min_length: 100,
-      penaltyGapExtend: 0,
-      penaltyGapOpen: 6,
-      penaltyGapOpenInFrame: 7,
-      penaltyGapOpenOutOfFrame: 8,
-      penaltyMismatch: 1,
-      scoreMatch: 3,
-      maxIndel: 400,
-      seedLength: 21,
-      minSeeds: 10,
-      seedSpacing: 100,
-      mismatchesAllowed: 3,
-      translatePastStop: true,
+      penalty_gap_extend: 0,
+      penalty_gap_open: 6,
+      penalty_gap_open_in_frame: 7,
+      penalty_gap_open_out_of_frame: 8,
+      penalty_mismatch: 1,
+      score_match: 3,
+      max_indel: 400,
+      seed_length: 21,
+      min_seeds: 10,
+      seed_spacing: 100,
+      mismatches_allowed: 3,
+      translate_past_stop: true,
     }
   }
 }
 
-fn alignPairwise<T: Letter<T>>(
+fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
-  gapOpenClose: &[i32],
+  gap_open_close: &[i32],
   params: &AlignPairwiseParams,
-  bandWidth: usize,
+  band_width: usize,
   shift: i32,
 ) -> Result<AlignmentOutput<T>, Report> {
   trace!("Align pairwise: started. Params: {params:?}");
 
-  let max_indel = params.maxIndel;
-  if bandWidth > max_indel {
-    trace!("Align pairwise: failed. band_width={bandWidth}, max_indel={max_indel}");
+  let max_indel = params.max_indel;
+  if band_width > max_indel {
+    trace!("Align pairwise: failed. band_width={band_width}, max_indel={max_indel}");
     return make_error!("Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches");
   }
 
-  let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gapOpenClose, bandWidth, shift, params);
+  let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, band_width, shift, params);
 
   Ok(backtrace(qry_seq, ref_seq, &scores, &paths, shift))
 }
@@ -71,7 +69,7 @@ fn alignPairwise<T: Letter<T>>(
 pub fn align_nuc(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
-  gapOpenClose: &[i32],
+  gap_open_close: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<AlignmentOutput<Nuc>, Report> {
   let qry_len: usize = qry_seq.len();
@@ -82,25 +80,25 @@ pub fn align_nuc(
     );
   }
 
-  let SeedAlignmentResult { meanShift, bandWidth } = seedAlignment(qry_seq, ref_seq, params)?;
+  let SeedAlignmentResult { mean_shift, band_width } = seed_alignment(qry_seq, ref_seq, params)?;
   trace!(
-    "Align pairwise: after seed alignment: bandWidth={:}, meanShift={:}\n",
-    bandWidth,
-    meanShift
+    "Align pairwise: after seed alignment: band_width={:}, mean_shift={:}\n",
+    band_width,
+    mean_shift
   );
 
-  alignPairwise(qry_seq, ref_seq, gapOpenClose, params, bandWidth, meanShift)
+  align_pairwise(qry_seq, ref_seq, gap_open_close, params, band_width, mean_shift)
 }
 
 pub fn align_aa(
   qry_seq: &[Aa],
   ref_seq: &[Aa],
-  gapOpenClose: &[i32],
+  gap_open_close: &[i32],
   params: &AlignPairwiseParams,
-  bandWidth: usize,
-  meanShift: i32,
+  band_width: usize,
+  mean_shift: i32,
 ) -> Result<AlignmentOutput<Aa>, Report> {
-  alignPairwise(qry_seq, ref_seq, gapOpenClose, params, bandWidth, meanShift)
+  align_pairwise(qry_seq, ref_seq, gap_open_close, params, band_width, mean_shift)
 }
 
 #[cfg(test)]
@@ -116,7 +114,6 @@ mod tests {
 
   struct Context {
     params: AlignPairwiseParams,
-    gene_map: GeneMap,
     gap_open_close: GapScoreMap,
   }
 
@@ -129,14 +126,10 @@ mod tests {
 
     let gene_map = GeneMap::new();
 
-    let dummy_ref_seq = vec![Nuc::GAP; 100];
+    let dummy_ref_seq = vec![Nuc::Gap; 100];
     let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
 
-    Context {
-      params,
-      gene_map,
-      gap_open_close,
-    }
+    Context { params, gap_open_close }
   }
 
   #[rstest]

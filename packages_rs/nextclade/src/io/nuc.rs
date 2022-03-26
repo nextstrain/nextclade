@@ -1,5 +1,3 @@
-#![allow(clippy::use_self, clippy::upper_case_acronyms)]
-
 use crate::align::score_matrix_nuc::lookup_nuc_scoring_matrix;
 use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
@@ -24,30 +22,24 @@ pub enum Nuc {
   B,
   V,
   N,
-  GAP,
+  Gap,
 }
 
 impl Nuc {
   #[inline]
-  pub fn is_acgt(&self) -> bool {
-    match self {
-      Nuc::A | Nuc::C | Nuc::G | Nuc::T => true,
-      _ => false,
-    }
+  pub fn is_acgt(self) -> bool {
+    matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T)
   }
 
   #[inline]
-  pub fn is_acgtn(&self) -> bool {
-    match self {
-      Nuc::A | Nuc::C | Nuc::G | Nuc::T | Nuc::N => true,
-      _ => false,
-    }
+  pub fn is_acgtn(self) -> bool {
+    matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T | Nuc::N)
   }
 }
 
 impl Default for Nuc {
   fn default() -> Self {
-    Nuc::GAP
+    Nuc::Gap
   }
 }
 
@@ -58,11 +50,11 @@ impl ScoreMatrixLookup<Nuc> for Nuc {
 }
 
 impl Letter<Nuc> for Nuc {
-  const GAP: Nuc = Nuc::GAP;
+  const GAP: Nuc = Nuc::Gap;
 
   #[inline]
   fn is_gap(&self) -> bool {
-    self == &Nuc::GAP
+    self == &Nuc::Gap
   }
 
   #[inline]
@@ -95,7 +87,7 @@ pub fn to_nuc(letter: char) -> Result<Nuc, Report> {
     'B' => Ok(Nuc::B),
     'V' => Ok(Nuc::V),
     'N' => Ok(Nuc::N),
-    '-' => Ok(Nuc::GAP),
+    '-' => Ok(Nuc::Gap),
     _ => make_error!("Unknown nucleotide: {letter}"),
   }
 }
@@ -118,7 +110,7 @@ pub fn from_nuc(nuc: Nuc) -> char {
     Nuc::B => 'B',
     Nuc::V => 'V',
     Nuc::N => 'N',
-    Nuc::GAP => '-',
+    Nuc::Gap => '-',
   }
 }
 

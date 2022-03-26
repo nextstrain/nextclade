@@ -1,7 +1,7 @@
 use crate::io::nuc::Nuc;
 
-const NUM_COLS: u8 = 16;
-const SCORING_MATRIX_NUC_SIZE: usize = NUM_COLS as usize * NUM_COLS as usize;
+const NUM_COLS: usize = 16;
+const SCORING_MATRIX_NUC_SIZE: usize = NUM_COLS * NUM_COLS;
 
 #[rustfmt::skip]
 static SCORING_MATRIX_NUC: &[i32; SCORING_MATRIX_NUC_SIZE] = &[
@@ -26,5 +26,5 @@ static SCORING_MATRIX_NUC: &[i32; SCORING_MATRIX_NUC_SIZE] = &[
   ];
 
 pub fn lookup_nuc_scoring_matrix(x: Nuc, y: Nuc) -> i32 {
-  SCORING_MATRIX_NUC[(x as usize * NUM_COLS as usize + y as usize) as usize]
+  SCORING_MATRIX_NUC[(x as usize * NUM_COLS + y as usize)]
 }

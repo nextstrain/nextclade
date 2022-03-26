@@ -146,7 +146,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
   let virus_properties = VirusProperties::from_path(&input_virus_properties)?;
 
-  let ref_seq_str = from_nuc_seq(&ref_seq);
+  let ref_seq_str = from_nuc_seq(ref_seq);
   let pcr_primers = PcrPrimer::from_path(&input_pcr_primers, &ref_seq_str)?;
 
   thread::scope(|s| {

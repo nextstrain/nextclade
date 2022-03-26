@@ -37,22 +37,25 @@ pub struct TreeNodeAttrs {
   pub node_type: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  region: Option<TreeNodeAttr>,
+  pub region: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  country: Option<TreeNodeAttr>,
+  pub country: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  division: Option<TreeNodeAttr>,
+  pub division: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  Alignment: Option<TreeNodeAttr>,
+  #[serde(rename = "Alignment")]
+  pub alignment: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  Missing: Option<TreeNodeAttr>,
+  #[serde(rename = "Missing")]
+  pub missing: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  Gaps: Option<TreeNodeAttr>,
+  #[serde(rename = "Missing")]
+  gaps: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Non-ACGTNs")]

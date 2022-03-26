@@ -1,5 +1,3 @@
-#![allow(clippy::integer_division)]
-
 use crate::gene::gene::Gene;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -12,7 +10,7 @@ pub fn find_mask_begin(seq: &[Nuc], frame_shift_nuc_range_rel: &Range) -> usize 
   // From begin, rewind to find the first adjacent nuc deletion
   let mut begin = frame_shift_nuc_range_rel.begin - 1;
   if begin > 0 {
-    while seq[begin as usize].is_gap() {
+    while seq[begin].is_gap() {
       begin -= 1;
     }
   }
