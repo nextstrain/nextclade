@@ -7,4 +7,5 @@ pub mod gff3;
 pub mod insertions_csv;
 pub mod json;
 pub mod letter;
+pub mod ndjson;
 pub mod nuc;

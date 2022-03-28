@@ -4,9 +4,9 @@ use crate::align::align::AlignPairwiseParams;
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::strip_insertions::{AaIns, Insertion, NucIns, StripInsertionsResult};
-use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput, NucDel, NucSub};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
+use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput, NucDel, NucSub};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
 use crate::cli::nextalign_loop::{nextalign_run_one, NextalignOutputs};
@@ -28,8 +28,11 @@ use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
 use map_in_place::MapVecInPlace;
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NextcladeOutputs {
   pub substitutions: Vec<NucSub>,
   pub totalSubstitutions: usize,
@@ -289,6 +292,11 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
       let mut output_writer = NextcladeOrderedWriter::new(
         gene_map,
         &output_fasta,
+        &output_ndjson,
+        &output_json,
+        &output_csv,
+        &output_tsv,
+        &output_tree,
         &output_insertions,
         &output_errors,
         &output_dir,

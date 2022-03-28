@@ -4,6 +4,7 @@ use crate::gene::gene_map::GeneMap;
 use crate::io::errors_csv::ErrorsCsvWriter;
 use crate::io::fasta::{write_translations, FastaPeptideWriter, FastaRecord, FastaWriter};
 use crate::io::insertions_csv::InsertionsCsvWriter;
+use crate::io::ndjson::NdjsonWriter;
 use crate::io::nuc::from_nuc_seq;
 use crate::translate::translate_genes::TranslationMap;
 use crate::utils::error::report_to_string;
@@ -16,6 +17,7 @@ use std::path::Path;
 pub struct NextcladeOrderedWriter<'a> {
   fasta_writer: FastaWriter,
   fasta_peptide_writer: FastaPeptideWriter,
+  output_ndjson_writer: NdjsonWriter,
   insertions_csv_writer: InsertionsCsvWriter,
   errors_csv_writer: ErrorsCsvWriter<'a>,
   expected_index: usize,
@@ -27,6 +29,11 @@ impl<'a> NextcladeOrderedWriter<'a> {
   pub fn new(
     gene_map: &'a GeneMap,
     output_fasta: &Path,
+    output_ndjson: &Path,
+    output_json: &Path,
+    output_csv: &Path,
+    output_tsv: &Path,
+    output_tree: &Path,
     output_insertions: &Path,
     output_errors: &Path,
     output_dir: &Path,
@@ -35,11 +42,13 @@ impl<'a> NextcladeOrderedWriter<'a> {
   ) -> Result<Self, Report> {
     let fasta_writer = FastaWriter::from_path(&output_fasta)?;
     let fasta_peptide_writer = FastaPeptideWriter::new(gene_map, &output_dir, &output_basename)?;
+    let output_ndjson_writer = NdjsonWriter::new(&output_ndjson)?;
     let insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions)?;
     let errors_csv_writer = ErrorsCsvWriter::new(gene_map, &output_errors)?;
     Ok(Self {
       fasta_writer,
       fasta_peptide_writer,
+      output_ndjson_writer,
       insertions_csv_writer,
       errors_csv_writer,
       expected_index: 0,
@@ -73,6 +82,8 @@ impl<'a> NextcladeOrderedWriter<'a> {
         } = nextalign_outputs;
 
         self.fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
+
+        self.output_ndjson_writer.write(&nextclade_outputs)?;
 
         write_translations(seq_name, translations, &mut self.fasta_peptide_writer)?;
 
