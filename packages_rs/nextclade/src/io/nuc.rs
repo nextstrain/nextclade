@@ -69,6 +69,12 @@ impl Letter<Nuc> for Nuc {
   }
 }
 
+/// Checks whether 2 of nucleotides are equivalent, taking into account ambiguous nucleotides,
+/// according to UIPAC table.
+pub fn is_nuc_match(x: Nuc, y: Nuc) -> bool {
+  lookup_nuc_scoring_matrix(x, y) > 0
+}
+
 #[inline]
 pub fn to_nuc(letter: char) -> Result<Nuc, Report> {
   match letter {

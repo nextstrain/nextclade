@@ -7,6 +7,7 @@ use crate::align::strip_insertions::{AaIns, Insertion, NucIns, StripInsertionsRe
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput, NucDel, NucSub};
+use crate::analyze::pcr_primer_changes::{get_pcr_primer_changes, PcrPrimerChange};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
 use crate::cli::nextalign_loop::{nextalign_run_one, NextalignOutputs};
@@ -58,8 +59,8 @@ pub struct NextcladeOutputs {
   // pub alignmentStart: usize,
   // pub alignmentEnd: usize,
   // pub alignmentScore: usize,
-  // pub pcrPrimerChanges: Vec<PcrPrimerChange>,
-  // pub totalPcrPrimerChanges: usize,
+  pub pcrPrimerChanges: Vec<PcrPrimerChange>,
+  pub totalPcrPrimerChanges: usize,
   // pub nearestNodeId: usize,
   // pub clade: String,
   // pub privateNucMutations: PrivateNucleotideMutations,
@@ -81,6 +82,7 @@ pub fn nextclade_run_one(
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
   gene_map: &GeneMap,
+  primers: &[PcrPrimer],
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
@@ -122,6 +124,9 @@ pub fn nextclade_run_one(
 
   let nucleotideComposition = get_letter_composition(&alignment.qry_seq);
 
+  let pcrPrimerChanges = get_pcr_primer_changes(&substitutions, primers);
+  let totalPcrPrimerChanges = pcrPrimerChanges.iter().map(|pc| pc.substitutions.len()).sum();
+
   Ok((
     NextalignOutputs {
       stripped,
@@ -140,6 +145,8 @@ pub fn nextclade_run_one(
       nonACGTNs,
       totalNonACGTNs,
       nucleotideComposition,
+      pcrPrimerChanges,
+      totalPcrPrimerChanges,
     },
   ))
 }
@@ -220,7 +227,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let virus_properties = VirusProperties::from_path(&input_virus_properties)?;
 
   let ref_seq_str = from_nuc_seq(ref_seq);
-  let pcr_primers = PcrPrimer::from_path(&input_pcr_primers, &ref_seq_str)?;
+  let primers = &PcrPrimer::from_path(&input_pcr_primers, &ref_seq_str)?;
 
   thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
@@ -263,6 +270,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
             ref_seq,
             ref_peptides,
             gene_map,
+            primers,
             gap_open_close_nuc,
             gap_open_close_aa,
             params,

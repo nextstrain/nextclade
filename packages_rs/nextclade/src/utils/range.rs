@@ -9,8 +9,14 @@ pub struct Range {
 }
 
 impl Range {
+  #[inline]
   pub fn new(begin: usize, end: usize) -> Range {
     Range { begin, end }
+  }
+
+  #[inline]
+  pub fn contains(&self, x: usize) -> bool {
+    x >= self.begin && x < self.end
   }
 }
 
