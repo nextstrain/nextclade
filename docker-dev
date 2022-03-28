@@ -43,7 +43,6 @@ export MAKES="make --no-print-directory"
 export NICE="nice -14 ionice -c2 -n3"
 export TIME="/usr/bin/time --quiet -f \"Cmd : %C\nTime: %E\nMem : %M KB\n\""
 
-export RUSTFLAGS="-A dead_code -A unused"
 export RUST_BACKTRACE="full"
 export COLORBT_SHOW_HIDDEN="0"
 export RUST_LOG="warn"
@@ -492,7 +491,6 @@ if [ "${RUN}" != "1" ] && [ "${DOCKER_PS_RESULT}" == "${DOCKER_CONTAINER_NAME}" 
     --env="USER=${USER}" \
     --env="GROUP=${GROUP}" \
     --env="PS1=\${USER}@\${HOST}" \
-    --env="RUSTFLAGS=${RUSTFLAGS}" \
     --env="RUST_BACKTRACE=${RUST_BACKTRACE}" \
     --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
     --env="RUST_LOG=${RUST_LOG}" \
@@ -518,7 +516,6 @@ else
     --env="USER=${USER}" \
     --env="GROUP=${GROUP}" \
     --env="PS1=\${USER}@\${HOST}" \
-    --env="RUSTFLAGS=${RUSTFLAGS}" \
     --env="RUST_BACKTRACE=${RUST_BACKTRACE}" \
     --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
     --env="RUST_LOG=${RUST_LOG}" \

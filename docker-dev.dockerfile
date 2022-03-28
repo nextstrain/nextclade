@@ -1,11 +1,12 @@
 # Freeze base image version to
 # ubuntu:20.04 (pushed 2022-03-18T05:48:59.785294Z)
 # https://hub.docker.com/layers/ubuntu/library/ubuntu/20.04/images/sha256-dcc176d1ab45d154b767be03c703a35fe0df16cfb1cc7ea5dd3b6f9af99b6718
-FROM ubuntu@sha256:dcc176d1ab45d154b767be03c703a35fe0df16cfb1cc7ea5dd3b6f9af99b6718 as dev
+FROM ubuntu@sha256:dcc176d1ab45d154b767be03c703a35fe0df16cfb1cc7ea5dd3b6f9af99b6718 as base
 
 SHELL ["bash", "-c"]
 
 ARG CLANG_VERSION="13"
+ARG MOLD_VERSION="1.1.1"
 ARG DASEL_VERSION="1.22.1"
 ARG WATCHEXEC_VERSION="1.17.1"
 ARG NODEMON_VERSION="2.0.15"
@@ -47,10 +48,20 @@ RUN set -euxo pipefail >/dev/null \
   clang-tools-${CLANG_VERSION} \
   lld-${CLANG_VERSION} \
   lldb-${CLANG_VERSION} \
+  llvm-${CLANG_VERSION} \
+  llvm-${CLANG_VERSION}-dev \
+  llvm-${CLANG_VERSION}-linker-tools \
+  llvm-${CLANG_VERSION}-tools \
 >/dev/null \
 && rm -rf /var/lib/apt/lists/* \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null
+
+# Install mold linker (https://github.com/rui314/mold)
+RUN set -euxo pipefail >/dev/null \
+&& cd /tmp \
+&& curl -fsSL "https://github.com/rui314/mold/releases/download/v${MOLD_VERSION}/mold-${MOLD_VERSION}-x86_64-linux.tar.gz" | \
+     tar -xz --strip-components=1 -C /usr
 
 
 ARG USER=user
@@ -68,20 +79,22 @@ ENV CARGO_HOME="${HOME}/.cargo"
 ENV CARGO_INSTALL_ROOT="${HOME}/.cargo/install"
 ENV RUSTUP_HOME="${HOME}/.rustup"
 ENV NODE_DIR="/opt/node"
-ENV PATH="${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
+ENV PATH="/usr/lib/llvm-13/bin:${NODE_DIR}/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:${PATH}"
 
+# Install dasel, a tool to query TOML files
 RUN set -euxo pipefail >/dev/null \
 && curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel" \
 && chmod +x "/usr/bin/dasel" \
 && dasel --version
 
+# Install watchexec - file watcher
 RUN set -euxo pipefail >/dev/null \
 && curl -sSL "https://github.com/watchexec/watchexec/releases/download/cli-v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-1.17.1-x86_64-unknown-linux-musl/watchexec" \
 && chmod +x "/usr/bin/watchexec" \
 && watchexec --version
 
+# Install Node.js
 COPY .nvmrc /
-
 RUN set -eux >dev/null \
 && mkdir -p "${NODE_DIR}" \
 && cd "${NODE_DIR}" \
@@ -89,9 +102,6 @@ RUN set -eux >dev/null \
 && curl -fsSL  "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" | tar -xJ --strip-components=1 \
 && npm install -g nodemon@${NODEMON_VERSION} yarn@${YARN_VERSION} >/dev/null \
 && npm config set scripts-prepend-node-path auto
-
-
-COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 
 # Make a user and group
 RUN set -euxo pipefail >/dev/null \
@@ -119,9 +129,11 @@ RUN set -euxo pipefail >/dev/null \
 && touch ${HOME}/.hushlogin \
 && chown -R ${UID}:${GID} "${HOME}"
 
+
 USER ${USER}
 
 # Install rustup and toolchain from rust-toolchain.toml
+COPY rust-toolchain.toml "${HOME}/rust-toolchain.toml"
 RUN set -euxo pipefail >/dev/null \
 && cd "${HOME}" \
 && RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "${HOME}/rust-toolchain.toml") \
@@ -172,15 +184,32 @@ USER ${USER}
 WORKDIR ${HOME}/src
 
 
-# Cross-compilation for Linux x86_64 with gnu-libc
+
+# Native compilation for Linux x86_64 with gnu-libc
+FROM base as dev
+
+ENV CC_x86_64-unknown-linux-gnu=clang
+ENV CXX_x86_64-unknown-linux-gnu=clang++
+ENV RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=mold"
+
+# Cross-compilation for Linux x86_64 with gnu-libc.
+# Same as native, but convenient to have for mass cross-compilation.
 FROM dev as cross-x86_64-unknown-linux-gnu
 
+ENV CC_x86_64-unknown-linux-gnu=clang
+ENV CXX_x86_64-unknown-linux-gnu=clang++
+ENV RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=mold"
+
+
+
 # Cross-compilation for Linux x86_64 with libmusl
-FROM dev as cross-x86_64-unknown-linux-musl
+FROM base as cross-x86_64-unknown-linux-musl
+
+ENV RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=mold"
 
 
 # Cross-compilation for Linux ARM64
-FROM dev as cross-aarch64-unknown-linux-gnu
+FROM base as cross-aarch64-unknown-linux-gnu
 
 USER 0
 SHELL ["bash", "-c"]
@@ -204,8 +233,9 @@ ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
 USER ${USER}
 
 
+
 # Cross-compilation for Windows x86_64
-FROM dev as cross-x86_64-pc-windows-gnu
+FROM base as cross-x86_64-pc-windows-gnu
 
 USER 0
 SHELL ["bash", "-c"]
@@ -223,8 +253,9 @@ RUN set -euxo pipefail >/dev/null \
 USER ${USER}
 
 
+
 # Builds osxcross for Mac cross-compiation
-FROM dev as osxcross
+FROM base as osxcross
 
 SHELL ["bash", "-c"]
 
@@ -236,15 +267,12 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get install -qq --no-install-recommends --yes \
   bash \
   bzip2 \
-  clang \
-  clang \
   cmake \
   cpio \
   gzip \
   libbz2-dev \
   libssl-dev \
   libxml2-dev \
-  llvm-dev \
   make \
   patch \
   sed \
@@ -285,12 +313,14 @@ RUN set -euxo pipefail >/dev/null \
 && UNATTENDED=1 TARGET_DIR=${OSXCROSS_INSTALL_DIR} OSX_VERSION_MIN=${OSX_VERSION_MIN} ./build.sh
 
 
+
 # Cross-compilation for macOS x86_64
 FROM osxcross as cross-x86_64-apple-darwin
 
 ENV PATH="/opt/osxcross/bin/:${PATH}"
 ENV CC_x86_64-apple-darwin=x86_64-apple-darwin20.2-clang
 ENV CXX_x86_64-apple-darwin=x86_64-apple-darwin20.2-clang++
+
 
 
 # Cross-compilation for macOS ARM64
