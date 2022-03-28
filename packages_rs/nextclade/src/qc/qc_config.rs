@@ -1,5 +1,5 @@
 use crate::io::fs::read_file_to_string;
-use crate::io::json::parse_json;
+use crate::io::json::json_parse;
 use crate::utils::range::Range;
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
@@ -98,7 +98,7 @@ impl FromStr for QcConfig {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    parse_json(s)
+    json_parse(s)
   }
 }
 

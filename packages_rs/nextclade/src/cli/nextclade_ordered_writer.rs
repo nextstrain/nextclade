@@ -6,7 +6,9 @@ use crate::io::fasta::{write_translations, FastaPeptideWriter, FastaRecord, Fast
 use crate::io::insertions_csv::InsertionsCsvWriter;
 use crate::io::ndjson::NdjsonWriter;
 use crate::io::nuc::from_nuc_seq;
+use crate::io::results_json::ResultsJsonWriter;
 use crate::translate::translate_genes::TranslationMap;
+use crate::tree::tree::CladeNodeAttr;
 use crate::utils::error::report_to_string;
 use eyre::{Report, WrapErr};
 use log::warn;
@@ -17,6 +19,7 @@ use std::path::Path;
 pub struct NextcladeOrderedWriter<'a> {
   fasta_writer: FastaWriter,
   fasta_peptide_writer: FastaPeptideWriter,
+  output_json_writer: ResultsJsonWriter,
   output_ndjson_writer: NdjsonWriter,
   insertions_csv_writer: InsertionsCsvWriter,
   errors_csv_writer: ErrorsCsvWriter<'a>,
@@ -28,6 +31,7 @@ pub struct NextcladeOrderedWriter<'a> {
 impl<'a> NextcladeOrderedWriter<'a> {
   pub fn new(
     gene_map: &'a GeneMap,
+    clade_node_attrs: &[CladeNodeAttr],
     output_fasta: &Path,
     output_ndjson: &Path,
     output_json: &Path,
@@ -42,12 +46,14 @@ impl<'a> NextcladeOrderedWriter<'a> {
   ) -> Result<Self, Report> {
     let fasta_writer = FastaWriter::from_path(&output_fasta)?;
     let fasta_peptide_writer = FastaPeptideWriter::new(gene_map, &output_dir, &output_basename)?;
+    let output_json_writer = ResultsJsonWriter::new(&output_json, clade_node_attrs)?;
     let output_ndjson_writer = NdjsonWriter::new(&output_ndjson)?;
     let insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions)?;
     let errors_csv_writer = ErrorsCsvWriter::new(gene_map, &output_errors)?;
     Ok(Self {
       fasta_writer,
       fasta_peptide_writer,
+      output_json_writer,
       output_ndjson_writer,
       insertions_csv_writer,
       errors_csv_writer,
@@ -68,7 +74,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
   }
 
   /// Writes output record into output files
-  fn write_impl(&mut self, record: &NextcladeRecord) -> Result<(), Report> {
+  fn write_impl(&mut self, record: NextcladeRecord) -> Result<(), Report> {
     let NextcladeRecord {
       index,
       seq_name,
@@ -81,25 +87,27 @@ impl<'a> NextcladeOrderedWriter<'a> {
           stripped, translations, ..
         } = nextalign_outputs;
 
-        self.fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
+        self.fasta_writer.write(&seq_name, &from_nuc_seq(&stripped.qry_seq))?;
 
         self.output_ndjson_writer.write(&nextclade_outputs)?;
 
-        write_translations(seq_name, translations, &mut self.fasta_peptide_writer)?;
+        write_translations(&seq_name, &translations, &mut self.fasta_peptide_writer)?;
 
         self
           .insertions_csv_writer
-          .write(seq_name, &stripped.insertions, translations)?;
+          .write(&seq_name, &stripped.insertions, &translations)?;
 
-        self.errors_csv_writer.write_aa_errors(seq_name, translations)?;
+        self.errors_csv_writer.write_aa_errors(&seq_name, &translations)?;
+
+        self.output_json_writer.write(nextclade_outputs);
       }
       Err(report) => {
-        let cause = report_to_string(report);
+        let cause = report_to_string(&report);
         let message = format!(
           "In sequence #{index} '{seq_name}': {cause}. Note that this sequence will not be included in the results."
         );
         warn!("{message}");
-        self.errors_csv_writer.write_nuc_error(seq_name, &message)?;
+        self.errors_csv_writer.write_nuc_error(&seq_name, &message)?;
       }
     }
 
@@ -110,7 +118,7 @@ impl<'a> NextcladeOrderedWriter<'a> {
   /// On out-of-order mode, does nothing - the queue is always empty.
   fn write_queued_records(&mut self) -> Result<(), Report> {
     while let Some(record) = self.queue.remove(&self.expected_index) {
-      self.write_impl(&record)?;
+      self.write_impl(record)?;
       self.expected_index += 1;
     }
     Ok(())
@@ -127,12 +135,12 @@ impl<'a> NextcladeOrderedWriter<'a> {
   pub fn write_record(&mut self, record: NextcladeRecord) -> Result<(), Report> {
     if !self.in_order {
       // Out-of-order mode: write immediately
-      self.write_impl(&record)?;
+      self.write_impl(record)?;
     } else {
       // In-order mode: check if the record has next expected index
       if record.index == self.expected_index {
         // If the record has next expected index, write it immediately
-        self.write_impl(&record)?;
+        self.write_impl(record)?;
         self.expected_index += 1;
       } else {
         // If the record has an unexpected index, queue it to write later
@@ -147,7 +155,8 @@ impl<'a> NextcladeOrderedWriter<'a> {
 
   /// Finalizes output by writing all queued records
   pub fn finish(&mut self) -> Result<(), Report> {
-    self.write_queued_records()
+    self.write_queued_records()?;
+    self.output_json_writer.finish()
   }
 }
 

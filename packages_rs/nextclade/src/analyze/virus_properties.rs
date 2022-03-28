@@ -1,6 +1,6 @@
 use crate::gene::genotype::{Genotype, GenotypeLabeled};
 use crate::io::fs::read_file_to_string;
-use crate::io::json::parse_json;
+use crate::io::json::json_parse;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use eyre::{Report, WrapErr};
@@ -38,7 +38,7 @@ impl FromStr for VirusProperties {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    let raw = parse_json::<VirusPropertiesRaw>(s)?;
+    let raw = json_parse::<VirusPropertiesRaw>(s)?;
 
     let mut substitution_label_map = Vec::<GenotypeLabeled<Nuc>>::new();
     let mut deletion_label_map = Vec::<GenotypeLabeled<Nuc>>::new();

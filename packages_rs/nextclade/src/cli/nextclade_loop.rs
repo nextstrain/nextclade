@@ -291,6 +291,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     s.spawn(move |_| {
       let mut output_writer = NextcladeOrderedWriter::new(
         gene_map,
+        &tree.meta.extensions.nextclade.clade_node_attrs,
         &output_fasta,
         &output_ndjson,
         &output_json,

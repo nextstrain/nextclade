@@ -9,3 +9,4 @@ pub mod json;
 pub mod letter;
 pub mod ndjson;
 pub mod nuc;
+pub mod results_json;

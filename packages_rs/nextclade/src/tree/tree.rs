@@ -1,5 +1,5 @@
 use crate::io::fs::read_file_to_string;
-use crate::io::json::parse_json;
+use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -97,8 +97,28 @@ pub struct AuspiceTreeNode {
   pub other: serde_json::Value,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CladeNodeAttr {
+  pub name: String,
+  pub display_name: String,
+  pub description: String,
+}
+
+#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+pub struct AuspiceMetaExtensionsNextclade {
+  pub clade_node_attrs: Vec<CladeNodeAttr>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+pub struct AuspiceMetaExtensions {
+  pub nextclade: AuspiceMetaExtensionsNextclade,
+}
+
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct AuspiceTreeMeta {
+  pub extensions: AuspiceMetaExtensions,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
@@ -123,7 +143,7 @@ impl FromStr for AuspiceTree {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    parse_json(s)
+    json_parse(s)
   }
 }
 
