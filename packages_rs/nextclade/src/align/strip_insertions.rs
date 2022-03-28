@@ -1,10 +1,27 @@
+use crate::io::aa::Aa;
 use crate::io::letter::Letter;
+use crate::io::nuc::Nuc;
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Insertion<T: Letter<T>> {
   pub pos: i32,
   pub ins: Vec<T>,
 }
+
+impl<T: Letter<T>> Insertion<T> {
+  pub fn len(&self) -> usize {
+    self.ins.len()
+  }
+
+  pub fn is_empty(&self) -> bool {
+    self.len() == 0
+  }
+}
+
+pub type NucIns = Insertion<Nuc>;
+pub type AaIns = Insertion<Aa>;
 
 pub struct StripInsertionsResult<T: Letter<T>> {
   pub qry_seq: Vec<T>,

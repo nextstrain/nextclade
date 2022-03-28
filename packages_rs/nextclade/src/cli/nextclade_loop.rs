@@ -1,8 +1,12 @@
+#![allow(non_snake_case)]
+
 use crate::align::align::AlignPairwiseParams;
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use crate::align::strip_insertions::StripInsertionsResult;
-use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
+use crate::align::strip_insertions::{AaIns, Insertion, NucIns, StripInsertionsResult};
+use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput, NucDel, NucSub};
+use crate::analyze::letter_composition::get_letter_composition;
+use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
 use crate::cli::nextalign_loop::{nextalign_run_one, NextalignOutputs};
@@ -11,9 +15,11 @@ use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::gene::gene_map::GeneMap;
 use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use crate::io::gff3::read_gff3_file;
+use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::option_get_some;
 use crate::qc::qc_config::QcConfig;
+use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
 use crate::tree::tree::AuspiceTree;
@@ -21,17 +27,50 @@ use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
+use map_in_place::MapVecInPlace;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub struct NextcladeOutputs {
-  pub stripped: StripInsertionsResult<Nuc>,
-  pub alignment: AlignmentOutput<Nuc>,
-  pub translations: Vec<Result<Translation, Report>>,
+  pub substitutions: Vec<NucSub>,
+  pub totalSubstitutions: usize,
+  pub deletions: Vec<NucDel>,
+  pub totalDeletions: usize,
+  pub insertions: Vec<Insertion<Nuc>>,
+  pub totalInsertions: usize,
+  pub missing: Vec<NucRange>,
+  pub totalMissing: usize,
+  pub nonACGTNs: Vec<NucRange>,
+  pub totalNonACGTNs: usize,
+  pub nucleotideComposition: BTreeMap<Nuc, usize>,
+  // pub frameShifts: Vec<FrameShift>,
+  // pub totalFrameShifts: usize,
+  // pub aaSubstitutions: Vec<AaSub>,
+  // pub totalAminoacidSubstitutions: usize,
+  // pub aaDeletions: Vec<AaDel>,
+  // pub totalAminoacidDeletions: usize,
+  // pub aaInsertions: Vec<AaIns>,
+  // pub totalAminoacidInsertions: usize,
+  // pub unknownAaRanges: Vec<GeneAaRange>,
+  // pub totalUnknownAa: usize,
+  // pub alignmentStart: usize,
+  // pub alignmentEnd: usize,
+  // pub alignmentScore: usize,
+  // pub pcrPrimerChanges: Vec<PcrPrimerChange>,
+  // pub totalPcrPrimerChanges: usize,
+  // pub nearestNodeId: usize,
+  // pub clade: String,
+  // pub privateNucMutations: PrivateNucleotideMutations,
+  // pub privateAaMutations: BTreeMap<String, PrivateAminoacidMutations>,
+  // pub missingGenes: BTreeSet<String>,
+  // pub divergence: f64,
+  // pub qc: QcResult,
+  // pub customNodeAttributes: BTreeMap<String, String>
 }
 
 pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
-  pub outputs_or_err: Result<NextcladeOutputs, Report>,
+  pub outputs_or_err: Result<(NextalignOutputs, NextcladeOutputs), Report>,
 }
 
 pub fn nextclade_run_one(
@@ -42,12 +81,8 @@ pub fn nextclade_run_one(
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
-) -> Result<NextcladeOutputs, Report> {
-  let NextalignOutputs {
-    stripped,
-    alignment,
-    translations,
-  } = nextalign_run_one(
+) -> Result<(NextalignOutputs, NextcladeOutputs), Report> {
+  let nextalign_outputs = nextalign_run_one(
     qry_seq,
     ref_seq,
     ref_peptides,
@@ -57,6 +92,12 @@ pub fn nextclade_run_one(
     params,
   )?;
 
+  let NextalignOutputs {
+    stripped,
+    alignment,
+    translations,
+  } = nextalign_outputs;
+
   let FindNucChangesOutput {
     substitutions,
     deletions,
@@ -64,11 +105,40 @@ pub fn nextclade_run_one(
     alignment_end,
   } = find_nuc_changes(&alignment.qry_seq, &alignment.ref_seq);
 
-  Ok(NextcladeOutputs {
-    stripped,
-    alignment,
-    translations,
-  })
+  let totalSubstitutions = substitutions.len();
+  let totalDeletions = deletions.iter().map(|del| del.length).sum();
+
+  let insertions = stripped.insertions.clone();
+  let totalInsertions = insertions.iter().map(NucIns::len).sum();
+
+  let missing = find_letter_ranges(&alignment.qry_seq, Nuc::N);
+  let totalMissing = missing.iter().map(NucRange::len).sum();
+
+  let nonACGTNs = find_letter_ranges_by(&alignment.qry_seq, |nuc: Nuc| !(nuc.is_acgtn() || nuc.is_gap()));
+  let totalNonACGTNs = nonACGTNs.iter().map(NucRange::len).sum();
+
+  let nucleotideComposition = get_letter_composition(&alignment.qry_seq);
+
+  Ok((
+    NextalignOutputs {
+      stripped,
+      alignment,
+      translations,
+    },
+    NextcladeOutputs {
+      substitutions,
+      totalSubstitutions,
+      deletions,
+      totalDeletions,
+      insertions,
+      totalInsertions,
+      missing,
+      totalMissing,
+      nonACGTNs,
+      totalNonACGTNs,
+      nucleotideComposition,
+    },
+  ))
 }
 
 pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {

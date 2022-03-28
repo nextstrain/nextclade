@@ -4,15 +4,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NucSub {
-  reff: Nuc,
-  pos: usize,
-  qry: Nuc,
+  pub reff: Nuc,
+  pub pos: usize,
+  pub qry: Nuc,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NucDel {
-  start: usize,
-  length: usize,
+  pub start: usize,
+  pub length: usize,
 }
 
 pub struct FindNucChangesOutput {

@@ -1,3 +1,4 @@
+use crate::cli::nextalign_loop::NextalignOutputs;
 use crate::cli::nextclade_loop::{NextcladeOutputs, NextcladeRecord};
 use crate::gene::gene_map::GeneMap;
 use crate::io::errors_csv::ErrorsCsvWriter;
@@ -66,10 +67,10 @@ impl<'a> NextcladeOrderedWriter<'a> {
     } = record;
 
     match outputs_or_err {
-      Ok(output) => {
-        let NextcladeOutputs {
+      Ok((nextalign_outputs, nextclade_outputs)) => {
+        let NextalignOutputs {
           stripped, translations, ..
-        } = output;
+        } = nextalign_outputs;
 
         self.fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
 
