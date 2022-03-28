@@ -77,7 +77,7 @@ WEB=0
 RELEASE=
 WATCH=0
 TEST=0
-LINT=
+LINT=0
 FIX=
 
 case "$1" in
@@ -152,73 +152,25 @@ case "$1" in
   ;;
 "lint" | "l")
   shift
-  LINT="${LINT_NORMAL}"
+  LINT=1
   WATCH=0
   FIX=
   ;;
 "watch-lint" | "wl")
   shift
-  LINT="${LINT_NORMAL}"
-  WATCH=1
-  FIX=
-  ;;
-"lint-extra" | "le")
-  shift
-  LINT="${LINT_EXTRA}"
-  WATCH=0
-  FIX=
-  ;;
-"watch-lint-extra" | "wle")
-  shift
-  LINT="${LINT_EXTRA}"
-  WATCH=1
-  FIX=
-  ;;
-"lint-crazy" | "lc")
-  shift
-  LINT="${LINT_CRAZY}"
-  WATCH=0
-  FIX=
-  ;;
-"watch-lint-crazy" | "wlc")
-  shift
-  LINT="${LINT_CRAZY}"
+  LINT=1
   WATCH=1
   FIX=
   ;;
 "lint-fix" | "lf")
   shift
-  LINT="${LINT_NORMAL}"
+  LINT=1
   WATCH=0
   FIX="${LINT_FIX}"
   ;;
 "watch-lint-fix" | "wlf")
   shift
-  LINT="${LINT_NORMAL}"
-  WATCH=1
-  FIX="${LINT_FIX}"
-  ;;
-"lint-extra-fix" | "lef")
-  shift
-  LINT="${LINT_EXTRA}"
-  WATCH=0
-  FIX="${LINT_FIX}"
-  ;;
-"watch-lint-extra-fix" | "wlef")
-  shift
-  LINT="${LINT_EXTRA}"
-  WATCH=1
-  FIX="${LINT_FIX}"
-  ;;
-"lint-crazy-fix" | "lcf")
-  shift
-  LINT="${LINT_CRAZY}"
-  WATCH=0
-  FIX="${LINT_FIX}"
-  ;;
-"watch-lint-crazy-fix" | "wlcf")
-  shift
-  LINT="${LINT_CRAZY}"
+  LINT=1
   WATCH=1
   FIX="${LINT_FIX}"
   ;;
@@ -283,8 +235,8 @@ elif [ "${WEB}" == "1" ]; then
 elif [ "${TEST}" == "1" ]; then
   PRETTY_TEST="( grep --color=always --line-buffered -vP \"running.*tests|\x1b\[32m.\x1b\(B\x1b\[m|^$|test result|TEST START\" || true )"
   COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
-elif [ -n "${LINT}" ]; then
-  COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-} -- ${LINT} ${LINT_ALLOW}"
+elif [ "${LINT}" == "1" ]; then
+  COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-}"
 else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
 fi
