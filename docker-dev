@@ -7,7 +7,7 @@ function abspath() {
 }
 
 export THIS_DIR=$(
-  cd $(dirname "${BASH_SOURCE[0]}")
+  cd "$(dirname "${BASH_SOURCE[0]}")"
   pwd
 )
 
@@ -18,7 +18,6 @@ SUCCESS_OR_FAILURE="&& ${SUCCESS} || ${FAILURE}"
 HANDLE_SIGINT="trap \"${CANCELLED}; exit 0\" INT"
 
 export PACKAGE_NAME="nextclade"
-#export PACKAGE_DIR_REL="packages/${PACKAGE_NAME}"
 export PACKAGE_DIR_REL=""
 
 export PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
@@ -30,16 +29,13 @@ export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME//\//-}-$(date +%s)"
 export USER=user
 export GROUP=user
 
-#export BUILD_DIR_REL="../../.build/${PACKAGE_DIR_REL}"
 export BUILD_DIR_REL=".build/docker/${PACKAGE_DIR_REL}"
 export BUILD_DIR="$(abspath "${PACKAGE_DIR}/${BUILD_DIR_REL}")"
 export BUILD_DIR_TEST="${BUILD_DIR}/test"
 
-#export CACHE_DIR_REL="../../.cache/${PACKAGE_DIR_REL}"
 export CACHE_DIR_REL=".cache/docker/${PACKAGE_DIR_REL}"
 export CACHE_DIR="$(abspath "${PACKAGE_DIR}/${CACHE_DIR_REL}")"
 
-export MAKES="make --no-print-directory"
 export NICE="nice -14 ionice -c2 -n3"
 export TIME="/usr/bin/time --quiet -f \"Cmd : %C\nTime: %E\nMem : %M KB\n\""
 
@@ -78,7 +74,6 @@ BUILD=0
 RUN=0
 WASM=0
 WEB=0
-EXEC=0
 RELEASE=
 WATCH=0
 TEST=0
@@ -98,7 +93,6 @@ case "$1" in
 "run" | "r")
   shift
   RUN=1
-  EXEC=0
   ;;
 "run-release" | "rr")
   shift
@@ -231,7 +225,6 @@ case "$1" in
 "exec" | "e")
   shift
   RUN=0
-  EXEC=1
   ;;
 esac
 
@@ -254,9 +247,10 @@ if [[ "${CROSS:-}" == *-apple-darwin ]]; then
   "
 fi
 
+# shellcheck disable=SC2086
 docker build -q -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
   -f "${PACKAGE_DIR}/docker-dev.dockerfile" \
-  --target=${DOCKER_TARGET} \
+  --target="${DOCKER_TARGET}" \
   --build-arg="UID=$(id -u)" \
   --build-arg="GID=$(id -g)" \
   --build-arg="USER=user" \
@@ -266,7 +260,7 @@ docker build -q -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
   >/dev/null
 
 PARAMS="$(echo "${@:-}" | xargs)"
-if [ ! -z "${PARAMS}" ]; then
+if [ -n "${PARAMS}" ]; then
   PARAMS="--bin=${PARAMS}"
 fi
 
@@ -288,8 +282,8 @@ elif [ "${WEB}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn install && yarn ${RELEASE}\""
 elif [ "${TEST}" == "1" ]; then
   PRETTY_TEST="( grep --color=always --line-buffered -vP \"running.*tests|\x1b\[32m.\x1b\(B\x1b\[m|^$|test result|TEST START\" || true )"
-  COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${@:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
-elif [ ! -z "${LINT}" ]; then
+  COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
+elif [ -n "${LINT}" ]; then
   COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-} -- ${LINT} ${LINT_ALLOW}"
 else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
@@ -312,51 +306,29 @@ fi
 
 CPUS="$(($(nproc) - 2))"
 
-mkdir -p ${BUILD_DIR} ${CACHE_DIR}/.cargo/{install,registry}
+mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
-DOCKER_PS_RESULT=$(docker ps -f "name=${DOCKER_CONTAINER_NAME}" --format '{{.Names}}')
-if [ "${RUN}" != "1" ] && [ "${DOCKER_PS_RESULT}" == "${DOCKER_CONTAINER_NAME}" ]; then
-  # If already running, exec a command in the existing instance
-  docker exec -it \
-    --user="$(id -u):$(id -g)" \
-    --workdir="/workdir/${PACKAGE_DIR_REL}" \
-    --env="UID=$(id -u)" \
-    --env="GID=$(id -g)" \
-    --env="USER=${USER}" \
-    --env="GROUP=${GROUP}" \
-    --env="PS1=\${USER}@\${HOST}" \
-    --env="RUST_BACKTRACE=${RUST_BACKTRACE}" \
-    --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
-    --env="RUST_LOG=${RUST_LOG}" \
-    --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
-    --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
-    ${PORTS} \
-    --cpus="${CPUS}" \
-    ${DOCKER_CONTAINER_NAME} \
-    bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${NICE} ${TIME} ${COMMAND} ${SUCCESS_OR_FAILURE}"
-else
-  # If not already running, run
-  docker run -it --rm \
-    --init \
-    --name="${DOCKER_CONTAINER_NAME}" \
-    --hostname="${DOCKER_IMAGE_NAME}" \
-    --user="$(id -u):$(id -g)" \
-    --volume="${PROJECT_ROOT_DIR}:/workdir" \
-    --volume="${CACHE_DIR}/.cargo/install:/home/${USER}/.cargo/install" \
-    --volume="${CACHE_DIR}/.cargo/registry:/home/${USER}/.cargo/registry" \
-    --workdir="/workdir/${PACKAGE_DIR_REL}" \
-    --env="UID=$(id -u)" \
-    --env="GID=$(id -g)" \
-    --env="USER=${USER}" \
-    --env="GROUP=${GROUP}" \
-    --env="PS1=\${USER}@\${HOST}" \
-    --env="RUST_BACKTRACE=${RUST_BACKTRACE}" \
-    --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
-    --env="RUST_LOG=${RUST_LOG}" \
-    --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
-    --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
-    ${PORTS} \
-    --cpus="${CPUS}" \
-    "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
-    bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"
-fi
+# shellcheck disable=SC2086
+docker run -it --rm \
+  --init \
+  --name="${DOCKER_CONTAINER_NAME}" \
+  --hostname="${DOCKER_IMAGE_NAME}" \
+  --user="$(id -u):$(id -g)" \
+  --volume="${PROJECT_ROOT_DIR}:/workdir" \
+  --volume="${CACHE_DIR}/.cargo/install:/home/${USER}/.cargo/install" \
+  --volume="${CACHE_DIR}/.cargo/registry:/home/${USER}/.cargo/registry" \
+  --workdir="/workdir/${PACKAGE_DIR_REL}" \
+  --env="UID=$(id -u)" \
+  --env="GID=$(id -g)" \
+  --env="USER=${USER}" \
+  --env="GROUP=${GROUP}" \
+  --env="PS1=\${USER}@\${HOST}" \
+  --env="RUST_BACKTRACE=${RUST_BACKTRACE}" \
+  --env="COLORBT_SHOW_HIDDEN=${COLORBT_SHOW_HIDDEN}" \
+  --env="RUST_LOG=${RUST_LOG}" \
+  --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
+  --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
+  ${PORTS} \
+  --cpus="${CPUS}" \
+  "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
+  bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"
