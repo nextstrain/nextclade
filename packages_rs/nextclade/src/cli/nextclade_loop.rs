@@ -4,6 +4,7 @@ use crate::align::align::AlignPairwiseParams;
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::strip_insertions::{AaIns, Insertion, NucIns, StripInsertionsResult};
+use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOutput};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput, NucDel, NucSub};
@@ -24,6 +25,8 @@ use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
 use crate::tree::tree::AuspiceTree;
+use crate::utils::error::keep_ok;
+use crate::utils::range::Range;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
@@ -48,10 +51,10 @@ pub struct NextcladeOutputs {
   pub nucleotideComposition: BTreeMap<Nuc, usize>,
   // pub frameShifts: Vec<FrameShift>,
   // pub totalFrameShifts: usize,
-  // pub aaSubstitutions: Vec<AaSub>,
-  // pub totalAminoacidSubstitutions: usize,
-  // pub aaDeletions: Vec<AaDel>,
-  // pub totalAminoacidDeletions: usize,
+  pub aaSubstitutions: Vec<AaSub>,
+  pub totalAminoacidSubstitutions: usize,
+  pub aaDeletions: Vec<AaDel>,
+  pub totalAminoacidDeletions: usize,
   // pub aaInsertions: Vec<AaIns>,
   // pub totalAminoacidInsertions: usize,
   // pub unknownAaRanges: Vec<GeneAaRange>,
@@ -83,6 +86,9 @@ pub fn nextclade_run_one(
   ref_peptides: &TranslationMap,
   gene_map: &GeneMap,
   primers: &[PcrPrimer],
+  tree: &AuspiceTree,
+  qc_config: &QcConfig,
+  virus_properties: &VirusProperties,
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
@@ -106,9 +112,8 @@ pub fn nextclade_run_one(
   let FindNucChangesOutput {
     substitutions,
     deletions,
-    alignment_start,
-    alignment_end,
-  } = find_nuc_changes(&alignment.qry_seq, &alignment.ref_seq);
+    alignment_range,
+  } = find_nuc_changes(&stripped.qry_seq, &stripped.ref_seq);
 
   let totalSubstitutions = substitutions.len();
   let totalDeletions = deletions.iter().map(|del| del.length).sum();
@@ -116,16 +121,31 @@ pub fn nextclade_run_one(
   let insertions = stripped.insertions.clone();
   let totalInsertions = insertions.iter().map(NucIns::len).sum();
 
-  let missing = find_letter_ranges(&alignment.qry_seq, Nuc::N);
+  let missing = find_letter_ranges(&stripped.qry_seq, Nuc::N);
   let totalMissing = missing.iter().map(NucRange::len).sum();
 
-  let nonACGTNs = find_letter_ranges_by(&alignment.qry_seq, |nuc: Nuc| !(nuc.is_acgtn() || nuc.is_gap()));
+  let nonACGTNs = find_letter_ranges_by(&stripped.qry_seq, |nuc: Nuc| !(nuc.is_acgtn() || nuc.is_gap()));
   let totalNonACGTNs = nonACGTNs.iter().map(NucRange::len).sum();
 
-  let nucleotideComposition = get_letter_composition(&alignment.qry_seq);
+  let nucleotideComposition = get_letter_composition(&stripped.qry_seq);
 
   let pcrPrimerChanges = get_pcr_primer_changes(&substitutions, primers);
   let totalPcrPrimerChanges = pcrPrimerChanges.iter().map(|pc| pc.substitutions.len()).sum();
+
+  let FindAaChangesOutput {
+    aaSubstitutions,
+    aaDeletions,
+  } = find_aa_changes(
+    &stripped.ref_seq,
+    &stripped.qry_seq,
+    ref_peptides,
+    &translations,
+    &alignment_range,
+    gene_map,
+  )?;
+
+  let totalAminoacidSubstitutions = aaSubstitutions.len();
+  let totalAminoacidDeletions = aaDeletions.len();
 
   Ok((
     NextalignOutputs {
@@ -145,6 +165,10 @@ pub fn nextclade_run_one(
       nonACGTNs,
       totalNonACGTNs,
       nucleotideComposition,
+      aaSubstitutions,
+      totalAminoacidSubstitutions,
+      aaDeletions,
+      totalAminoacidDeletions,
       pcrPrimerChanges,
       totalPcrPrimerChanges,
     },
@@ -220,11 +244,11 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
   let ref_peptides = &translate_genes_ref(ref_seq, gene_map, params)?;
 
-  let tree = AuspiceTree::from_path(&input_tree)?;
+  let tree = &AuspiceTree::from_path(&input_tree)?;
 
-  let qc_config = QcConfig::from_path(&input_qc_config)?;
+  let qc_config = &QcConfig::from_path(&input_qc_config)?;
 
-  let virus_properties = VirusProperties::from_path(&input_virus_properties)?;
+  let virus_properties = &VirusProperties::from_path(&input_virus_properties)?;
 
   let ref_seq_str = from_nuc_seq(ref_seq);
   let primers = &PcrPrimer::from_path(&input_pcr_primers, &ref_seq_str)?;
@@ -271,6 +295,9 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
             ref_peptides,
             gene_map,
             primers,
+            tree,
+            qc_config,
+            virus_properties,
             gap_open_close_nuc,
             gap_open_close_aa,
             params,

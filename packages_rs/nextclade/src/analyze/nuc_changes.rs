@@ -1,5 +1,6 @@
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::utils::range::Range;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -19,8 +20,7 @@ pub struct NucDel {
 pub struct FindNucChangesOutput {
   pub substitutions: Vec<NucSub>,
   pub deletions: Vec<NucDel>,
-  pub alignment_start: i64,
-  pub alignment_end: i64,
+  pub alignment_range: Range,
 }
 
 /// Finds nucleotide changes (nucleotide substitutions and deletions) as well
@@ -74,7 +74,9 @@ pub fn find_nuc_changes(qry_aln: &[Nuc], ref_aln: &[Nuc]) -> FindNucChangesOutpu
   FindNucChangesOutput {
     substitutions,
     deletions,
-    alignment_start,
-    alignment_end,
+    alignment_range: Range {
+      begin: alignment_start as usize,
+      end: alignment_end as usize,
+    },
   }
 }

@@ -1,5 +1,6 @@
 use color_eyre::Report;
 use eyre::eyre;
+use itertools::Itertools;
 
 pub fn report_to_string(report: &Report) -> String {
   let strings: Vec<String> = report
@@ -20,6 +21,14 @@ pub fn report_to_string_debug_only(report: &Report) -> String {
 
   #[cfg(debug_assertions)]
   report_to_string(report)
+}
+
+/// Preserves only the Result::Ok values in a given collection
+pub fn keep_ok<T, E>(results: &[Result<T, E>]) -> impl Iterator<Item = &T> {
+  results.iter().filter_map(|res| match res {
+    Ok(val) => Some(val),
+    Err(_) => None,
+  })
 }
 
 #[macro_export(local_inner_macros)]

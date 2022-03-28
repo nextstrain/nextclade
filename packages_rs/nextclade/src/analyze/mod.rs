@@ -1,3 +1,4 @@
+pub mod aa_changes;
 pub mod analyze;
 pub mod count_gaps;
 pub mod letter_composition;
