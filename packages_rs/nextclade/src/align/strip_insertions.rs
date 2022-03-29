@@ -67,10 +67,8 @@ pub fn strip_insertions<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
   insertions.shrink_to_fit();
 
   // Remove gaps from ref
-  let ref_stripped = Vec::<T>::from(ref_seq)
-    .into_iter()
-    .filter(|c| c == &T::GAP)
-    .collect_vec();
+  let mut ref_stripped = ref_seq.to_vec();
+  ref_stripped.retain(|c| c != &T::GAP);
 
   StripInsertionsResult {
     qry_seq: qry_stripped,
