@@ -1,4 +1,4 @@
-use crate::analyze::nuc_changes::NucSub;
+use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::io::nuc::is_nuc_match;
 use itertools::Itertools;

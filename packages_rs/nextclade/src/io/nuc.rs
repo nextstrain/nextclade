@@ -27,6 +27,12 @@ pub enum Nuc {
   Gap,
 }
 
+impl ToString for Nuc {
+  fn to_string(&self) -> String {
+    String::from(from_nuc(*self))
+  }
+}
+
 impl Nuc {
   #[inline]
   pub fn is_acgt(self) -> bool {

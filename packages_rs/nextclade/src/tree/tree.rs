@@ -1,8 +1,11 @@
+use crate::io::aa::Aa;
 use crate::io::fs::read_file_to_string;
 use crate::io::json::json_parse;
+use crate::io::nuc::Nuc;
 use eyre::{Report, WrapErr};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::path::Path;
 use std::slice::Iter;
 use std::str::FromStr;
@@ -11,7 +14,7 @@ use validator::Validate;
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct TreeNodeAttr {
-  value: String,
+  pub value: String,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -19,13 +22,12 @@ pub struct TreeNodeAttr {
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct TreeBranchAttrs {
-  mutations: IndexMap<String, Vec<String>>,
+  pub mutations: BTreeMap<String, Vec<String>>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
 }
 
-#[allow(non_snake_case)]
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct TreeNodeAttrs {
   pub div: f64,
@@ -81,6 +83,17 @@ pub struct TreeNodeAttrs {
   pub other: serde_json::Value,
 }
 
+/// Temporary data internal to Nextclade.
+/// It is not serialized or deserialized, but is added during preprocessing step and then used for internal calculations
+#[derive(Clone, Default, Debug)]
+pub struct TreeNodeTempData {
+  pub id: usize,
+  pub substitutions: BTreeMap<usize, Nuc>,
+  pub mutations: BTreeMap<usize, Nuc>,
+  pub aa_substitutions: BTreeMap<String, BTreeMap<usize, Aa>>,
+  pub aa_mutations: BTreeMap<String, BTreeMap<usize, Aa>>,
+}
+
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct AuspiceTreeNode {
   pub name: String,
@@ -92,6 +105,10 @@ pub struct AuspiceTreeNode {
   #[serde(skip_serializing_if = "Vec::is_empty")]
   #[serde(default)]
   pub children: Vec<AuspiceTreeNode>,
+
+  #[serde(skip)]
+  #[serde(default)]
+  pub tmp: TreeNodeTempData,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -182,27 +199,27 @@ impl AuspiceTree {
     DftPost::new(&self.tree, |node: &'a AuspiceTreeNode| node.children.iter())
   }
 
-  fn map_nodes_rec(node: &AuspiceTreeNode, action: fn(&AuspiceTreeNode)) {
-    action(node);
+  fn map_nodes_rec(index: usize, node: &AuspiceTreeNode, action: fn((usize, &AuspiceTreeNode))) {
+    action((index, node));
     for child in &node.children {
-      Self::map_nodes_rec(child, action);
+      Self::map_nodes_rec(index + 1, child, action);
     }
   }
 
   /// Iterates over nodes and applies a function to each. Immutable version.
-  pub fn map_nodes(&self, action: fn(&AuspiceTreeNode)) {
-    Self::map_nodes_rec(&self.tree, action);
+  pub fn map_nodes(&self, action: fn((usize, &AuspiceTreeNode))) {
+    Self::map_nodes_rec(0, &self.tree, action);
   }
 
-  fn map_nodes_mut_rec(node: &mut AuspiceTreeNode, action: fn(&mut AuspiceTreeNode)) {
-    action(node);
+  fn map_nodes_mut_rec(index: usize, node: &mut AuspiceTreeNode, action: fn((usize, &mut AuspiceTreeNode))) {
+    action((index, node));
     for child in &mut node.children {
-      Self::map_nodes_mut_rec(child, action);
+      Self::map_nodes_mut_rec(index + 1, child, action);
     }
   }
 
   /// Iterates over nodes and applies a function to each. Mutable version.
-  pub fn map_nodes_mut(&mut self, action: fn(&mut AuspiceTreeNode)) {
-    Self::map_nodes_mut_rec(&mut self.tree, action);
+  pub fn map_nodes_mut(&mut self, action: fn((usize, &mut AuspiceTreeNode))) {
+    Self::map_nodes_mut_rec(0, &mut self.tree, action);
   }
 }

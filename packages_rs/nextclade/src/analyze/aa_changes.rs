@@ -14,29 +14,30 @@ use itertools::{assert_equal, Itertools};
 use num::clamp;
 use serde::{Deserialize, Serialize};
 
+/// Represents aminoacid substitution
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AaSub {
-  gene: String,
+  pub gene: String,
   #[serde(rename = "ref")]
-  reff: Aa,
-  pos: usize,
-  qry: Aa,
-  codonNucRange: Range,
-  refContext: Vec<Nuc>,
-  queryContext: Vec<Nuc>,
-  contextNucRange: Range,
+  pub reff: Aa,
+  pub pos: usize,
+  pub qry: Aa,
+  pub codonNucRange: Range,
+  pub refContext: Vec<Nuc>,
+  pub queryContext: Vec<Nuc>,
+  pub contextNucRange: Range,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AaDel {
-  gene: String,
+  pub gene: String,
   #[serde(rename = "ref")]
-  reff: Aa,
-  pos: usize,
-  codonNucRange: Range,
-  refContext: Vec<Nuc>,
-  queryContext: Vec<Nuc>,
-  contextNucRange: Range,
+  pub reff: Aa,
+  pub pos: usize,
+  pub codonNucRange: Range,
+  pub refContext: Vec<Nuc>,
+  pub queryContext: Vec<Nuc>,
+  pub contextNucRange: Range,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

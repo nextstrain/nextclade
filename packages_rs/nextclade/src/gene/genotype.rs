@@ -1,4 +1,5 @@
 use crate::io::letter::Letter;
+use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use crate::utils::error::to_eyre_error;
 use eyre::{Report, WrapErr};
@@ -8,11 +9,6 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 const GENOTYPE_REGEX: &str = r"((?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
-
-pub fn parse_pos(s: &str) -> Result<usize, Report> {
-  let pos = to_eyre_error(s.parse::<usize>()).wrap_err_with(|| format!("Unable to parse position: '{s}'"))?;
-  Ok(pos - 1)
-}
 
 /// Represents a mutation without reference character known
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]

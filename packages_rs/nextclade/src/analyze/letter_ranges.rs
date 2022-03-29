@@ -11,6 +11,12 @@ pub struct LetterRange<L: Letter<L>> {
 }
 
 impl<L: Letter<L>> LetterRange<L> {
+  pub fn contains_pos(&self, x: usize) -> bool {
+    x >= self.begin && x < self.end
+  }
+}
+
+impl<L: Letter<L>> LetterRange<L> {
   pub fn len(&self) -> usize {
     self.end - self.begin
   }

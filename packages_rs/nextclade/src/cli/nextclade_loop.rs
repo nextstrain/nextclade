@@ -7,7 +7,9 @@ use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns
 use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOutput};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
-use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput, NucDel, NucSub};
+use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
+use crate::analyze::nuc_del::NucDel;
+use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::{get_pcr_primer_changes, PcrPrimerChange};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
@@ -25,7 +27,9 @@ use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::AuspiceTree;
+use crate::tree::tree::{AuspiceTree, CladeNodeAttr};
+use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
+use crate::tree::tree_preprocess::tree_preprocess_in_place;
 use crate::utils::error::keep_ok;
 use crate::utils::range::Range;
 use crossbeam::thread;
@@ -65,14 +69,16 @@ pub struct NextcladeOutputs {
   // pub alignmentScore: usize,
   pub pcrPrimerChanges: Vec<PcrPrimerChange>,
   pub totalPcrPrimerChanges: usize,
-  // pub nearestNodeId: usize,
-  // pub clade: String,
+  pub clade: String,
   // pub privateNucMutations: PrivateNucleotideMutations,
   // pub privateAaMutations: BTreeMap<String, PrivateAminoacidMutations>,
   // pub missingGenes: BTreeSet<String>,
   // pub divergence: f64,
   // pub qc: QcResult,
   // pub customNodeAttributes: BTreeMap<String, String>
+  //
+  #[serde(skip)]
+  pub nearestNodeId: usize,
 }
 
 pub struct NextcladeRecord {
@@ -152,6 +158,11 @@ pub fn nextclade_run_one(
   let aaInsertions = get_aa_insertions(&translations);
   let totalAminoacidInsertions = aaInsertions.len();
 
+  let TreeFindNearestNodeOutput { node, distance } =
+    tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
+  let nearestNodeId = node.tmp.id;
+  let clade = node.node_attrs.clade_membership.value.clone();
+
   Ok((
     NextalignOutputs {
       stripped,
@@ -180,6 +191,8 @@ pub fn nextclade_run_one(
       totalAminoacidInsertions,
       pcrPrimerChanges,
       totalPcrPrimerChanges,
+      clade,
+      nearestNodeId,
     },
   ))
 }
@@ -253,7 +266,9 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
   let ref_peptides = &translate_genes_ref(ref_seq, gene_map, params)?;
 
-  let tree = &AuspiceTree::from_path(&input_tree)?;
+  let mut tree = AuspiceTree::from_path(&input_tree)?;
+  tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides)?;
+  let clade_node_attrs: &[CladeNodeAttr] = &tree.meta.extensions.nextclade.clade_node_attrs;
 
   let qc_config = &QcConfig::from_path(&input_qc_config)?;
 
@@ -288,6 +303,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
       let result_sender = result_sender.clone();
       let gap_open_close_nuc = &gap_open_close_nuc;
       let gap_open_close_aa = &gap_open_close_aa;
+      let tree = &tree;
 
       s.spawn(move |_| {
         let result_sender = result_sender.clone();
@@ -335,7 +351,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     s.spawn(move |_| {
       let mut output_writer = NextcladeOrderedWriter::new(
         gene_map,
-        &tree.meta.extensions.nextclade.clade_node_attrs,
+        clade_node_attrs,
         &output_fasta,
         &output_ndjson,
         &output_json,

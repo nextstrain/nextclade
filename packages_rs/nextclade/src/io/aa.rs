@@ -41,6 +41,12 @@ pub enum Aa {
   Gap,
 }
 
+impl ToString for Aa {
+  fn to_string(&self) -> String {
+    String::from(from_aa(*self))
+  }
+}
+
 impl Default for Aa {
   fn default() -> Self {
     Aa::Gap

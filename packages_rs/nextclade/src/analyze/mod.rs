@@ -1,9 +1,12 @@
 pub mod aa_changes;
+pub mod aa_sub;
 pub mod analyze;
 pub mod count_gaps;
 pub mod letter_composition;
 pub mod letter_ranges;
 pub mod nuc_changes;
+pub mod nuc_del;
+pub mod nuc_sub;
 pub mod pcr_primer_changes;
 pub mod pcr_primers;
 pub mod virus_properties;

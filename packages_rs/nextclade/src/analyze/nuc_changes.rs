@@ -1,21 +1,9 @@
+use crate::analyze::nuc_del::NucDel;
+use crate::analyze::nuc_sub::NucSub;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::utils::range::Range;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct NucSub {
-  #[serde(rename = "ref")]
-  pub reff: Nuc,
-  pub pos: usize,
-  pub qry: Nuc,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct NucDel {
-  pub start: usize,
-  pub length: usize,
-}
 
 pub struct FindNucChangesOutput {
   pub substitutions: Vec<NucSub>,
