@@ -1,7 +1,7 @@
 use crate::align::align::{align_nuc, AlignPairwiseParams};
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use crate::align::strip_insertions::{strip_insertions, StripInsertionsResult};
+use crate::align::insertions_strip::{insertions_strip, StripInsertionsResult};
 use crate::cli::nextalign_cli::NextalignRunArgs;
 use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 use crate::gene::gene_map::GeneMap;
@@ -50,7 +50,7 @@ pub fn nextalign_run_one(
         params,
       );
 
-      let stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
+      let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
       Ok(NextalignOutputs {
         stripped,

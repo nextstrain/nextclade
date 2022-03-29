@@ -3,7 +3,7 @@
 use crate::align::align::AlignPairwiseParams;
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use crate::align::strip_insertions::{AaIns, Insertion, NucIns, StripInsertionsResult};
+use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns, StripInsertionsResult};
 use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOutput};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
@@ -56,8 +56,8 @@ pub struct NextcladeOutputs {
   pub totalAminoacidSubstitutions: usize,
   pub aaDeletions: Vec<AaDel>,
   pub totalAminoacidDeletions: usize,
-  // pub aaInsertions: Vec<AaIns>,
-  // pub totalAminoacidInsertions: usize,
+  pub aaInsertions: Vec<AaIns>,
+  pub totalAminoacidInsertions: usize,
   // pub unknownAaRanges: Vec<GeneAaRange>,
   // pub totalUnknownAa: usize,
   // pub alignmentStart: usize,
@@ -149,6 +149,9 @@ pub fn nextclade_run_one(
   let totalAminoacidSubstitutions = aaSubstitutions.len();
   let totalAminoacidDeletions = aaDeletions.len();
 
+  let aaInsertions = get_aa_insertions(&translations);
+  let totalAminoacidInsertions = aaInsertions.len();
+
   Ok((
     NextalignOutputs {
       stripped,
@@ -173,6 +176,8 @@ pub fn nextclade_run_one(
       totalAminoacidSubstitutions,
       aaDeletions,
       totalAminoacidDeletions,
+      aaInsertions,
+      totalAminoacidInsertions,
       pcrPrimerChanges,
       totalPcrPrimerChanges,
     },

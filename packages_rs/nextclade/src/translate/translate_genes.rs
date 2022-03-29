@@ -1,6 +1,6 @@
 use crate::align::align::{align_aa, AlignPairwiseParams};
+use crate::align::insertions_strip::{insertions_strip, Insertion};
 use crate::align::remove_gaps::remove_gaps_in_place;
-use crate::align::strip_insertions::{strip_insertions, Insertion};
 use crate::analyze::count_gaps::GapCounts;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
@@ -11,13 +11,12 @@ use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_translate, FrameShift};
-use std::collections::BTreeMap;
-
 use crate::translate::translate::translate;
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use itertools::Itertools;
+use std::collections::BTreeMap;
 use std::ops::Range as StdRange;
 
 /// Results of the translation
@@ -180,7 +179,7 @@ pub fn translate_gene(
     mean_shift,
   )?;
 
-  let mut stripped = strip_insertions(&alignment.qry_seq, &alignment.ref_seq);
+  let mut stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
   mask_peptide_frame_shifts_in_place(&mut stripped.qry_seq, &frame_shifts);
 

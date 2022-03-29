@@ -1,4 +1,4 @@
-use crate::align::strip_insertions::Insertion;
+use crate::align::insertions_strip::Insertion;
 use crate::io::aa::{from_aa_seq, Aa};
 use crate::io::csv::CsvWriter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
