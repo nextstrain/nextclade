@@ -22,6 +22,8 @@ pub enum Nuc {
   B,
   V,
   N,
+
+  #[serde(rename = "-")]
   Gap,
 }
 

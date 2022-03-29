@@ -33,7 +33,11 @@ pub enum Aa {
   Y,
   Z,
   X,
+
+  #[serde(rename = "*")]
   Stop,
+
+  #[serde(rename = "-")]
   Gap,
 }
 
