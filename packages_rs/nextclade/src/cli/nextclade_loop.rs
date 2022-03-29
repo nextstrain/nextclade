@@ -93,7 +93,11 @@ pub fn nextclade_run_one(
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
 ) -> Result<(NextalignOutputs, NextcladeOutputs), Report> {
-  let nextalign_outputs = nextalign_run_one(
+  let NextalignOutputs {
+    stripped,
+    alignment,
+    translations,
+  } = nextalign_run_one(
     qry_seq,
     ref_seq,
     ref_peptides,
@@ -102,12 +106,6 @@ pub fn nextclade_run_one(
     gap_open_close_aa,
     params,
   )?;
-
-  let NextalignOutputs {
-    stripped,
-    alignment,
-    translations,
-  } = nextalign_outputs;
 
   let FindNucChangesOutput {
     substitutions,
