@@ -21,6 +21,7 @@ use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::option_get_some;
 use crate::qc::qc_config::QcConfig;
+use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
@@ -49,8 +50,8 @@ pub struct NextcladeOutputs {
   pub nonACGTNs: Vec<NucRange>,
   pub totalNonACGTNs: usize,
   pub nucleotideComposition: BTreeMap<Nuc, usize>,
-  // pub frameShifts: Vec<FrameShift>,
-  // pub totalFrameShifts: usize,
+  pub frameShifts: Vec<FrameShift>,
+  pub totalFrameShifts: usize,
   pub aaSubstitutions: Vec<AaSub>,
   pub totalAminoacidSubstitutions: usize,
   pub aaDeletions: Vec<AaDel>,
@@ -130,6 +131,9 @@ pub fn nextclade_run_one(
   let pcrPrimerChanges = get_pcr_primer_changes(&substitutions, primers);
   let totalPcrPrimerChanges = pcrPrimerChanges.iter().map(|pc| pc.substitutions.len()).sum();
 
+  let frameShifts = frame_shifts_flatten(&translations);
+  let totalFrameShifts = frameShifts.len();
+
   let FindAaChangesOutput {
     aaSubstitutions,
     aaDeletions,
@@ -163,6 +167,8 @@ pub fn nextclade_run_one(
       nonACGTNs,
       totalNonACGTNs,
       nucleotideComposition,
+      frameShifts,
+      totalFrameShifts,
       aaSubstitutions,
       totalAminoacidSubstitutions,
       aaDeletions,

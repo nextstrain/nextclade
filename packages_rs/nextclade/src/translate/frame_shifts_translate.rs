@@ -4,6 +4,7 @@ use crate::io::nuc::Nuc;
 use crate::translate::coord_map::CoordMap;
 use crate::utils::range::Range;
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 
 /// Find beginning nucleotide position of a deletion that immediately proceeds and adjacent to the frame shift
 pub fn find_mask_begin(seq: &[Nuc], frame_shift_nuc_range_rel: &Range) -> usize {
@@ -72,10 +73,14 @@ pub fn nuc_range_to_codon_range(range: &Range) -> Range {
   }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FrameShiftContext {
   pub codon: Range,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FrameShift {
   pub gene_name: String,
   pub nuc_rel: Range,
