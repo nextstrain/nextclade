@@ -1,7 +1,7 @@
 use crate::cli::nextalign_loop::NextalignOutputs;
 use crate::cli::nextclade_loop::NextcladeOutputs;
 use crate::io::json::json_write;
-use crate::tree::tree::CladeNodeAttr;
+use crate::tree::tree::CladeNodeAttrKeyDesc;
 use crate::utils::datetime::timestamp_now;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
@@ -14,19 +14,19 @@ pub struct ResultsJson {
   pub schema_version: String,
   pub nextclade_version: String,
   pub timestamp: u64,
-  pub clade_node_attrs: Vec<CladeNodeAttr>,
+  pub clade_node_attrs: Vec<CladeNodeAttrKeyDesc>,
   pub results: Vec<NextcladeOutputs>,
 }
 
 impl ResultsJson {
-  pub fn new(clade_node_attrs: &[CladeNodeAttr]) -> Self {
+  pub fn new(clade_node_attrs: &[CladeNodeAttrKeyDesc]) -> Self {
     const VERSION: &str = env!("CARGO_PKG_VERSION");
 
     Self {
       schema_version: "1.0.0".to_owned(),
       nextclade_version: VERSION.to_owned(),
       timestamp: timestamp_now() as u64,
-      clade_node_attrs: Vec::<CladeNodeAttr>::from(clade_node_attrs),
+      clade_node_attrs: Vec::<CladeNodeAttrKeyDesc>::from(clade_node_attrs),
       results: vec![],
     }
   }
@@ -38,7 +38,7 @@ pub struct ResultsJsonWriter {
 }
 
 impl ResultsJsonWriter {
-  pub fn new(filepath: impl AsRef<Path>, clade_node_attrs: &[CladeNodeAttr]) -> Result<Self, Report> {
+  pub fn new(filepath: impl AsRef<Path>, clade_node_attrs: &[CladeNodeAttrKeyDesc]) -> Result<Self, Report> {
     Ok(Self {
       filepath: filepath.as_ref().to_owned(),
       result: ResultsJson::new(clade_node_attrs),

@@ -114,9 +114,32 @@ pub struct AuspiceTreeNode {
   pub other: serde_json::Value,
 }
 
+impl AuspiceTreeNode {
+  /// Extracts clade of the node
+  pub fn clade(&self) -> String {
+    self.node_attrs.clade_membership.value.clone()
+  }
+
+  /// Extracts clade-like node attributes, given a list of key descriptions
+  pub fn get_clade_node_attrs(&self, clade_node_attr_keys: &[CladeNodeAttrKeyDesc]) -> BTreeMap<String, String> {
+    clade_node_attr_keys
+      .iter()
+      .filter_map(|attr| {
+        let key = &attr.name;
+        let attr_obj = self.node_attrs.other.get(key);
+        match attr_obj {
+          Some(attr) => attr.get("value"),
+          None => None,
+        }
+        .and_then(|val| val.as_str().map(|val| (key.clone(), val.to_owned())))
+      })
+      .collect()
+  }
+}
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct CladeNodeAttr {
+pub struct CladeNodeAttrKeyDesc {
   pub name: String,
   pub display_name: String,
   pub description: String,
@@ -124,7 +147,7 @@ pub struct CladeNodeAttr {
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
-  pub clade_node_attrs: Vec<CladeNodeAttr>,
+  pub clade_node_attrs: Vec<CladeNodeAttrKeyDesc>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
@@ -221,5 +244,11 @@ impl AuspiceTree {
   /// Iterates over nodes and applies a function to each. Mutable version.
   pub fn map_nodes_mut(&mut self, action: fn((usize, &mut AuspiceTreeNode))) {
     Self::map_nodes_mut_rec(0, &mut self.tree, action);
+  }
+
+  /// Extracts a list of descriptions of clade-like node attributes.
+  /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
+  pub fn clade_node_attr_keys(&self) -> &[CladeNodeAttrKeyDesc] {
+    &self.meta.extensions.nextclade.clade_node_attrs[..]
   }
 }

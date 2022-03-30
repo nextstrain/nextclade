@@ -8,7 +8,7 @@ use crate::io::ndjson::NdjsonWriter;
 use crate::io::nuc::from_nuc_seq;
 use crate::io::results_json::ResultsJsonWriter;
 use crate::translate::translate_genes::TranslationMap;
-use crate::tree::tree::CladeNodeAttr;
+use crate::tree::tree::CladeNodeAttrKeyDesc;
 use crate::utils::error::report_to_string;
 use eyre::{Report, WrapErr};
 use log::warn;
@@ -31,7 +31,7 @@ pub struct NextcladeOrderedWriter<'a> {
 impl<'a> NextcladeOrderedWriter<'a> {
   pub fn new(
     gene_map: &'a GeneMap,
-    clade_node_attrs: &[CladeNodeAttr],
+    clade_node_attrs: &[CladeNodeAttrKeyDesc],
     output_fasta: &Path,
     output_ndjson: &Path,
     output_json: &Path,

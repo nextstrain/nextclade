@@ -27,7 +27,7 @@ use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::{AuspiceTree, CladeNodeAttr};
+use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, CladeNodeAttrKeyDesc};
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
 use crate::tree::tree_preprocess::tree_preprocess_in_place;
 use crate::utils::error::keep_ok;
@@ -38,6 +38,7 @@ use itertools::Itertools;
 use log::info;
 use map_in_place::MapVecInPlace;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Serialize, Deserialize)]
@@ -161,7 +162,12 @@ pub fn nextclade_run_one(
   let TreeFindNearestNodeOutput { node, distance } =
     tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
   let nearestNodeId = node.tmp.id;
-  let clade = node.node_attrs.clade_membership.value.clone();
+  let clade = node.clade();
+
+  let clade_node_attr_keys = tree.clade_node_attr_keys();
+  let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
+
+  println!("{clade_node_attrs:#?}");
 
   Ok((
     NextalignOutputs {
@@ -268,7 +274,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
   let mut tree = AuspiceTree::from_path(&input_tree)?;
   tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides)?;
-  let clade_node_attrs: &[CladeNodeAttr] = &tree.meta.extensions.nextclade.clade_node_attrs;
+  let clade_node_attrs: &[CladeNodeAttrKeyDesc] = &tree.meta.extensions.nextclade.clade_node_attrs;
 
   let qc_config = &QcConfig::from_path(&input_qc_config)?;
 
