@@ -6,12 +6,13 @@ use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::str::FromStr;
 
 const GENOTYPE_REGEX: &str = r"((?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 
 /// Represents a mutation without reference character known
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Genotype<L: Letter<L>> {
   pub pos: usize,
@@ -39,6 +40,19 @@ impl<L: Letter<L>> FromStr for Genotype<L> {
       };
     }
     make_error!("Unable to parse genotype: '{s}'")
+  }
+}
+
+/// Order genotypes by position, then query character
+impl<L: Letter<L>> Ord for Genotype<L> {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.pos, self.qry).cmp(&(other.pos, other.qry))
+  }
+}
+
+impl<L: Letter<L>> PartialOrd for Genotype<L> {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
   }
 }
 

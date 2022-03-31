@@ -14,24 +14,27 @@ use validator::Validate;
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 struct VirusPropertiesRaw {
-  schema_version: String,
-  nuc_mut_label_map: BTreeMap<String, Vec<String>>,
+  pub schema_version: String,
+  pub nuc_mut_label_map: BTreeMap<String, Vec<String>>,
 }
 
 /// Contains external configuration and data specific for a particular pathogen
 #[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct VirusProperties {
-  schema_version: String,
-  nuc_mut_label_maps: MutationLabelMaps<Nuc>,
+  pub schema_version: String,
+  pub nuc_mut_label_maps: MutationLabelMaps<Nuc>,
 }
+
+/// Associates a genotype (pos, nuc) to a list of labels
+pub type LabelMap<L> = BTreeMap<Genotype<L>, Vec<String>>;
+pub type NucLabelMap = LabelMap<Nuc>;
 
 /// External data that contains labels assigned to many mutations
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 pub struct MutationLabelMaps<L: Letter<L>> {
-  substitution_label_map: Vec<GenotypeLabeled<L>>,
-  deletion_label_map: Vec<GenotypeLabeled<L>>,
+  pub substitution_label_map: BTreeMap<Genotype<L>, Vec<String>>,
 }
 
 impl FromStr for VirusProperties {
@@ -40,23 +43,17 @@ impl FromStr for VirusProperties {
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     let raw = json_parse::<VirusPropertiesRaw>(s)?;
 
-    let mut substitution_label_map = Vec::<GenotypeLabeled<Nuc>>::new();
-    let mut deletion_label_map = Vec::<GenotypeLabeled<Nuc>>::new();
+    let mut substitution_label_map = NucLabelMap::new();
     for (mut_str, labels) in raw.nuc_mut_label_map {
       let genotype = Genotype::<Nuc>::from_str(&mut_str)?;
-      if genotype.qry.is_gap() {
-        deletion_label_map.push(GenotypeLabeled { genotype, labels });
-      } else {
-        substitution_label_map.push(GenotypeLabeled { genotype, labels });
+      if !genotype.qry.is_gap() {
+        substitution_label_map.insert(genotype, labels);
       }
     }
 
     Ok(Self {
       schema_version: raw.schema_version,
-      nuc_mut_label_maps: MutationLabelMaps {
-        substitution_label_map,
-        deletion_label_map,
-      },
+      nuc_mut_label_maps: MutationLabelMaps { substitution_label_map },
     })
   }
 }

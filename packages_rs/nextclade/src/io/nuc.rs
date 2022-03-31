@@ -40,6 +40,11 @@ impl Nuc {
   }
 
   #[inline]
+  pub fn is_unknown(self) -> bool {
+    self == Nuc::N
+  }
+
+  #[inline]
   pub fn is_acgtn(self) -> bool {
     matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T | Nuc::N)
   }

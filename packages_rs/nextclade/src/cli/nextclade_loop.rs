@@ -5,6 +5,7 @@ use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns, StripInsertionsResult};
 use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOutput};
+use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
@@ -167,7 +168,15 @@ pub fn nextclade_run_one(
   let clade_node_attr_keys = tree.clade_node_attr_keys();
   let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
 
-  println!("{clade_node_attrs:#?}");
+  let private_mutations = find_private_nuc_mutations(
+    node,
+    &substitutions,
+    &deletions,
+    &missing,
+    &alignment_range,
+    ref_seq,
+    virus_properties,
+  );
 
   Ok((
     NextalignOutputs {

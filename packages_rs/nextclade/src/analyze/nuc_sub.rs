@@ -1,3 +1,4 @@
+use crate::gene::genotype::Genotype;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::io::parse_pos::parse_pos;
@@ -6,11 +7,12 @@ use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::str::FromStr;
 
 const NUC_MUT_REGEX: &str = r"((?P<ref>[A-Z-])(?P<pos>\d{1,10})(?P<qry>[A-Z-]))";
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NucSub {
   #[serde(rename = "ref")]
   pub reff: Nuc,
@@ -22,6 +24,13 @@ impl NucSub {
   /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
   pub fn is_del(&self) -> bool {
     self.qry.is_gap()
+  }
+
+  pub fn genotype(&self) -> Genotype<Nuc> {
+    Genotype {
+      pos: self.pos,
+      qry: self.qry,
+    }
   }
 }
 
@@ -49,4 +58,25 @@ impl FromStr for NucSub {
     }
     make_error!("Unable to parse genotype: '{s}'")
   }
+}
+
+/// Order substitutions by position, then ref character, then query character
+impl Ord for NucSub {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.pos, self.reff, self.qry).cmp(&(other.pos, other.reff, other.qry))
+  }
+}
+
+impl PartialOrd for NucSub {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NucSubLabeled {
+  #[serde(rename = "ref")]
+  pub sub: NucSub,
+  pub labels: Vec<String>,
 }

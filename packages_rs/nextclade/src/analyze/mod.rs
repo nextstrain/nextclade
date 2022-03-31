@@ -2,6 +2,8 @@ pub mod aa_changes;
 pub mod aa_sub;
 pub mod analyze;
 pub mod count_gaps;
+pub mod find_private_nuc_mutations;
+pub mod is_sequenced;
 pub mod letter_composition;
 pub mod letter_ranges;
 pub mod nuc_changes;

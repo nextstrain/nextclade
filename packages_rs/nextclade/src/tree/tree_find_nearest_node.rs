@@ -1,3 +1,4 @@
+use crate::analyze::is_sequenced::is_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::tree::tree::{AuspiceTree, AuspiceTreeNode};
@@ -69,13 +70,4 @@ pub fn tree_calculate_node_distance(
 
   // calculate distance from set overlaps.
   total_node_muts + total_seq_muts - 2 * shared_differences - shared_sites - undetermined_sites
-}
-
-/// Decides whether a given position in sequence is considered "sequenced".
-/// The position is considered sequenced if it is not contained in any of the missing regions
-/// and if it is within alignment range
-pub fn is_sequenced(pos: usize, qry_missing: &[NucRange], aln_range: &Range) -> bool {
-  let is_missing = qry_missing.iter().any(|missing| missing.contains_pos(pos));
-  let within_alignment = aln_range.contains(pos);
-  within_alignment && !is_missing
 }
