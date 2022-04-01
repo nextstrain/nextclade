@@ -9,6 +9,7 @@ use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::tree::tree::AuspiceTreeNode;
+use crate::utils::collections::concat_to_vec;
 use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -95,11 +96,7 @@ pub fn find_private_nuc_mutations(
     &virus_properties.nuc_mut_label_maps.substitution_label_map,
   );
 
-  let mut private_substitutions: Vec<NucSub> = vec![&reversion_substitutions, &non_reversion_substitutions]
-    .into_iter()
-    .flatten()
-    .cloned()
-    .collect();
+  let mut private_substitutions = concat_to_vec(&reversion_substitutions, &non_reversion_substitutions);
 
   private_substitutions.sort();
   private_substitutions.dedup();

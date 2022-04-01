@@ -12,11 +12,12 @@ use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_translate, FrameShift};
 use crate::translate::translate::translate;
+use crate::utils::error::keep_ok;
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use itertools::Itertools;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::ops::Range as StdRange;
 
 /// Results of the translation
@@ -219,5 +220,16 @@ pub fn translate_genes(
         params,
       )
     })
+    .collect_vec()
+}
+
+/// Retrieves a list of genes that failed translation
+pub fn get_failed_genes(maybe_translations: &[Result<Translation, Report>], gene_map: &GeneMap) -> Vec<String> {
+  let genes_present: HashSet<String> = keep_ok(maybe_translations).map(|tr| &tr.gene_name).cloned().collect();
+
+  gene_map
+    .iter()
+    .filter_map(|(gene_name, _)| (!genes_present.contains(gene_name)).then(|| gene_name))
+    .cloned()
     .collect_vec()
 }

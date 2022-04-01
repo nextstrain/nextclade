@@ -37,7 +37,6 @@ impl<'a> NextcladeOrderedWriter<'a> {
     output_json: &Path,
     output_csv: &Path,
     output_tsv: &Path,
-    output_tree: &Path,
     output_insertions: &Path,
     output_errors: &Path,
     output_dir: &Path,

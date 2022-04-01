@@ -5,6 +5,7 @@ use crate::io::nuc::Nuc;
 use eyre::{Report, WrapErr};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use std::any::Any;
 use std::collections::BTreeMap;
 use std::path::Path;
 use std::slice::Iter;
@@ -12,12 +13,25 @@ use std::str::FromStr;
 use traversal::{Bft, DftPost, DftPre};
 use validator::Validate;
 
+// HACK: keep space at the end: workaround for Auspice filtering out "Unknown"
+// https://github.com/nextstrain/auspice/blob/797090f8092ffe1291b58efd113d2c5def8b092a/src/util/globals.js#L182
+pub const AUSPICE_UNKNOWN_VALUE: &str = "Unknown ";
+
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct TreeNodeAttr {
   pub value: String,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+impl TreeNodeAttr {
+  pub fn new(value: &str) -> Self {
+    Self {
+      value: value.to_owned(),
+      other: serde_json::Value::default(),
+    }
+  }
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
@@ -30,7 +44,8 @@ pub struct TreeBranchAttrs {
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct TreeNodeAttrs {
-  pub div: f64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub div: Option<f64>,
 
   pub clade_membership: TreeNodeAttr,
 
@@ -57,7 +72,7 @@ pub struct TreeNodeAttrs {
 
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Missing")]
-  gaps: Option<TreeNodeAttr>,
+  pub gaps: Option<TreeNodeAttr>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
   #[serde(rename = "Non-ACGTNs")]
@@ -92,6 +107,7 @@ pub struct TreeNodeTempData {
   pub mutations: BTreeMap<usize, Nuc>,
   pub aa_substitutions: BTreeMap<String, BTreeMap<usize, Aa>>,
   pub aa_mutations: BTreeMap<String, BTreeMap<usize, Aa>>,
+  pub is_ref_node: bool,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
@@ -115,6 +131,14 @@ pub struct AuspiceTreeNode {
 }
 
 impl AuspiceTreeNode {
+  pub fn is_leaf(&self) -> bool {
+    self.children.is_empty()
+  }
+
+  pub fn is_ref_node(&self) -> bool {
+    self.tmp.is_ref_node
+  }
+
   /// Extracts clade of the node
   pub fn clade(&self) -> String {
     self.node_attrs.clade_membership.value.clone()
@@ -155,12 +179,101 @@ pub struct AuspiceMetaExtensions {
   pub nextclade: AuspiceMetaExtensionsNextclade,
 }
 
+#[derive(Clone, Debug, Default, Serialize, Deserialize, Validate)]
+pub struct AuspiceColoring {
+  #[serde(rename = "type")]
+  pub type_: String,
+
+  pub key: String,
+
+  pub title: String,
+
+  #[serde(skip_serializing_if = "Vec::is_empty")]
+  #[serde(default)]
+  pub scale: Vec<[String; 2]>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Validate, Debug)]
+pub struct AuspiceDisplayDefaults {
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub branch_label: Option<String>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub color_by: Option<String>,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub distance_measure: Option<String>,
+
+  #[serde(flatten)]
+  pub other: serde_json::Value,
+}
+
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct AuspiceTreeMeta {
   pub extensions: AuspiceMetaExtensions,
 
+  #[serde(skip_serializing_if = "Vec::<AuspiceColoring>::is_empty")]
+  #[serde(default)]
+  pub colorings: Vec<AuspiceColoring>,
+
+  #[serde(skip_serializing_if = "Vec::<String>::is_empty")]
+  #[serde(default)]
+  pub panels: Vec<String>,
+
+  #[serde(skip_serializing_if = "Vec::<String>::is_empty")]
+  #[serde(default)]
+  pub filters: Vec<String>,
+
+  pub display_defaults: AuspiceDisplayDefaults,
+
+  #[serde(skip)]
+  pub geo_resolutions: Option<String>,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
+}
+
+#[repr(u8)]
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum DivergenceUnits {
+  NumSubstitutionsPerYearPerSite,
+  NumSubstitutionsPerYear,
+}
+
+impl Default for DivergenceUnits {
+  fn default() -> Self {
+    DivergenceUnits::NumSubstitutionsPerYear
+  }
+}
+
+impl DivergenceUnits {
+  ///
+  /// Guesses the unit of measurement of divergence, based on the greatest value of divergence on the tree
+  ///
+  pub fn guess_from_max_divergence(max_divergence: f64) -> DivergenceUnits {
+    // FIXME: This should be fixed upstream in augur & auspice, but it is hard to do without breaking Auspice JSON v2 format.
+    // Taken from: https://github.com/nextstrain/auspice/blob/6a2d0f276fccf05bfc7084608bb0010a79086c83/src/components/tree/phyloTree/renderers.js#L376
+    // A quote from there:
+    //  > Prior to Jan 2020, the divergence measure was always "subs per site per year"
+    //  > however certain datasets changed this to "subs per year" across entire sequence.
+    //  > This distinction is not set in the JSON, so in order to correctly display the rate
+    //  > we will "guess" this here. A future augur update will export this in a JSON key,
+    //  > removing the need to guess
+    //
+    // HACK: Arbitrary threshold to make a guess
+    const HACK_MAX_DIVERGENCE_THRESHOLD: f64 = 5.0;
+    if max_divergence <= HACK_MAX_DIVERGENCE_THRESHOLD {
+      DivergenceUnits::NumSubstitutionsPerYearPerSite
+    } else {
+      DivergenceUnits::NumSubstitutionsPerYear
+    }
+  }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct TreeTempData {
+  pub max_divergence: f64,
+  pub divergence_units: DivergenceUnits,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
@@ -169,10 +282,12 @@ pub struct AuspiceTree {
 
   pub tree: AuspiceTreeNode,
 
+  #[serde(skip)]
+  #[serde(default)]
+  pub tmp: TreeTempData,
+
   #[serde(flatten)]
   pub other: serde_json::Value,
-
-  pub version: String,
 }
 
 pub type AuspiceTreeNodeIter<'a> = Iter<'a, AuspiceTreeNode>;

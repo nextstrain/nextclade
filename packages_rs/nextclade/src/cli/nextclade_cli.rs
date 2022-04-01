@@ -302,12 +302,8 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
     .get_or_insert(output_dir.join(&basename).with_extension("nextclade.ndjson"));
 
   run_args
-    .output_ndjson
+    .output_json
     .get_or_insert(output_dir.join(&basename).with_extension("nextclade.json"));
-
-  run_args
-    .output_tree
-    .get_or_insert(output_dir.join(&basename).with_extension("auspice.json"));
 
   run_args
     .output_csv

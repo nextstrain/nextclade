@@ -1,6 +1,6 @@
 use crate::gene::gene_map::GeneMap;
 use crate::io::csv::CsvWriter;
-use crate::translate::translate_genes::Translation;
+use crate::translate::translate_genes::{get_failed_genes, Translation};
 use crate::utils::error::report_to_string;
 use eyre::Report;
 use itertools::Itertools;
@@ -27,18 +27,7 @@ pub fn format_aa_warnings(maybe_translations: &[Result<Translation, Report>]) ->
 /// Example:
 ///   N;ORF1a
 pub fn format_aa_failed_genes(maybe_translations: &[Result<Translation, Report>], gene_map: &GeneMap) -> String {
-  let genes_present = maybe_translations
-    .iter()
-    .filter_map(|tr| match tr {
-      Err(_) => None, // Skip genes with errors
-      Ok(Translation { gene_name, .. }) => Some(gene_name),
-    })
-    .collect_vec();
-
-  gene_map
-    .iter()
-    .filter_map(|(gene_name, _)| (!genes_present.contains(&gene_name)).then(|| gene_name))
-    .join(";")
+  get_failed_genes(maybe_translations, gene_map).join(";")
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

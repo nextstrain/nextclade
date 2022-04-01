@@ -4,10 +4,15 @@ use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
-use crate::tree::tree::{AuspiceTree, AuspiceTreeNode};
+use crate::tree::tree::{
+  AuspiceColoring, AuspiceTree, AuspiceTreeNode, DivergenceUnits, TreeNodeAttr, AUSPICE_UNKNOWN_VALUE,
+};
+use crate::utils::collections::concat_to_vec;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use itertools::Itertools;
+use num::Float;
+use serde_json::Value;
 use std::collections::BTreeMap;
 use std::str::FromStr;
 
@@ -26,7 +31,15 @@ pub fn tree_preprocess_in_place(
     &mut parent_aa_muts,
     ref_seq,
     ref_peptides,
-  )
+  )?;
+
+  // TODO: Avoid second full tree iteration by merging it into the one that is just above
+  tree.tmp.max_divergence = get_max_divergence_recursively(&tree.tree);
+  tree.tmp.divergence_units = DivergenceUnits::guess_from_max_divergence(tree.tmp.max_divergence);
+
+  tree_add_metadata(tree);
+
+  Ok(())
 }
 
 fn tree_preprocess_in_place_impl_recursive(
@@ -52,6 +65,9 @@ fn tree_preprocess_in_place_impl_recursive(
   node.tmp.substitutions = nuc_subs;
   node.tmp.aa_mutations = aa_muts.clone();
   node.tmp.aa_substitutions = aa_subs;
+  node.tmp.is_ref_node = true;
+
+  node.node_attrs.node_type = Some(TreeNodeAttr::new("Reference"));
 
   for child in &mut node.children {
     *id += 1;
@@ -134,4 +150,75 @@ fn map_aa_muts_for_one_gene(
       aa_muts
     }
   }
+}
+
+fn get_max_divergence_recursively(node: &AuspiceTreeNode) -> f64 {
+  let div = node.node_attrs.div.unwrap_or(-f64::infinity());
+
+  let mut child_div = -f64::infinity();
+  node.children.iter().for_each(|child| {
+    if let Some(div) = child.node_attrs.div {
+      child_div = child_div.max(div);
+    }
+  });
+
+  div.max(child_div)
+}
+
+fn pair(key: &str, val: &str) -> [String; 2] {
+  [key.to_owned(), val.to_owned()]
+}
+
+fn tree_add_metadata(tree: &mut AuspiceTree) {
+  let new_colorings: Vec<AuspiceColoring> = vec![
+    AuspiceColoring {
+      key: "Node type".to_owned(),
+      title: "Node type".to_owned(),
+      type_: "categorical".to_owned(),
+      scale: vec![pair("New", "#ff6961"), pair("Reference", "#999999")],
+    },
+    AuspiceColoring {
+      key: "QC Status".to_owned(),
+      title: "QC Status".to_owned(),
+      type_: "categorical".to_owned(),
+      scale: vec![
+        pair("good", "#417c52"),
+        pair("mediocre", "#cab44d"),
+        pair("bad", "#ca738e"),
+      ],
+    },
+    AuspiceColoring {
+      key: "Has PCR primer changes".to_owned(),
+      title: "Has PCR primer changes".to_owned(),
+      type_: "categorical".to_owned(),
+      scale: vec![pair("Yes", "#6961ff"), pair("No", "#999999")],
+    },
+  ];
+
+  tree.meta.colorings = concat_to_vec(&new_colorings, &tree.meta.colorings);
+
+  tree.meta.colorings.iter_mut().for_each(|coloring| {
+    let key: &str = &coloring.key;
+    match key {
+      "region" | "country" | "division" => {
+        coloring.scale.push(pair(AUSPICE_UNKNOWN_VALUE, "#999999"));
+      }
+      _ => {}
+    }
+  });
+
+  tree.meta.display_defaults.branch_label = Some("clade".to_owned());
+  tree.meta.display_defaults.color_by = Some("clade_membership".to_owned());
+  tree.meta.display_defaults.distance_measure = Some("div".to_owned());
+
+  tree.meta.panels = vec!["tree".to_owned(), "entropy".to_owned()];
+
+  let new_filters = vec![
+    "clade_membership".to_owned(),
+    "Node type".to_owned(),
+    "QC Status".to_owned(),
+    "Has PCR primer changes".to_owned(),
+  ];
+
+  tree.meta.filters = concat_to_vec(&new_filters, &tree.meta.filters);
 }

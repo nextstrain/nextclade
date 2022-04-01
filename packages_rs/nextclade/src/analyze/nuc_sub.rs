@@ -1,6 +1,6 @@
 use crate::gene::genotype::Genotype;
 use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
+use crate::io::nuc::{from_nuc, Nuc};
 use crate::io::parse_pos::parse_pos;
 use crate::make_error;
 use eyre::{Report, WrapErr};
@@ -53,10 +53,17 @@ impl FromStr for NucSub {
           let qry = Nuc::from_string(qry.as_str())?;
           Ok(Self { reff, pos, qry })
         }
-        _ => make_error!("Unable to parse genotype: '{s}'"),
+        _ => make_error!("Unable to parse nucleotide mutation: '{s}'"),
       };
     }
-    make_error!("Unable to parse genotype: '{s}'")
+    make_error!("Unable to parse nucleotide mutation: '{s}'")
+  }
+}
+
+impl ToString for NucSub {
+  fn to_string(&self) -> String {
+    // NOTE: by convention, in bioinformatics, nucleotides are numbered starting from 1, however our arrays are 0-based
+    return format!("{}{}{}", from_nuc(self.reff), self.pos + 1, from_nuc(self.qry));
   }
 }
 

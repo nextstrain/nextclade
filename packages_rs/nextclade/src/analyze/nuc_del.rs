@@ -1,6 +1,7 @@
 use crate::analyze::nuc_sub::NucSub;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::utils::range::Range;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -13,8 +14,17 @@ pub struct NucDel {
 }
 
 impl NucDel {
+  #[inline]
   pub fn end(&self) -> usize {
     self.start + self.length
+  }
+
+  #[inline]
+  pub fn to_range(&self) -> Range {
+    Range {
+      begin: self.start,
+      end: self.end(),
+    }
   }
 }
 
@@ -24,6 +34,18 @@ pub struct NucDelMinimal {
   #[serde(rename = "ref")]
   pub reff: Nuc,
   pub pos: usize,
+}
+
+impl NucDelMinimal {
+  /// Converts deletion to substitution to Gap
+  #[inline]
+  pub fn to_sub(&self) -> NucSub {
+    NucSub {
+      reff: self.reff,
+      pos: self.pos,
+      qry: Nuc::Gap,
+    }
+  }
 }
 
 /// Order deletions by position, then ref character

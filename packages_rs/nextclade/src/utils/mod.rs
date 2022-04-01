@@ -1,3 +1,4 @@
+pub mod collections;
 pub mod datetime;
 pub mod error;
 pub mod global_init;

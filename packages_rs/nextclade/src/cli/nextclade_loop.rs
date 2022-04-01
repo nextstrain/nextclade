@@ -5,7 +5,8 @@ use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns, StripInsertionsResult};
 use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOutput};
-use crate::analyze::find_private_nuc_mutations::find_private_nuc_mutations;
+use crate::analyze::divergence::calculate_divergence;
+use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
@@ -20,15 +21,17 @@ use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::gene::gene_map::GeneMap;
 use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use crate::io::gff3::read_gff3_file;
+use crate::io::json::json_write;
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::option_get_some;
 use crate::qc::qc_config::QcConfig;
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::{Translation, TranslationMap};
+use crate::translate::translate_genes::{get_failed_genes, Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
 use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, CladeNodeAttrKeyDesc};
+use crate::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
 use crate::tree::tree_preprocess::tree_preprocess_in_place;
 use crate::utils::error::keep_ok;
@@ -42,9 +45,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeOutputs {
+  pub seqName: String,
   pub substitutions: Vec<NucSub>,
   pub totalSubstitutions: usize,
   pub deletions: Vec<NucDel>,
@@ -66,18 +70,18 @@ pub struct NextcladeOutputs {
   pub totalAminoacidInsertions: usize,
   // pub unknownAaRanges: Vec<GeneAaRange>,
   // pub totalUnknownAa: usize,
-  // pub alignmentStart: usize,
-  // pub alignmentEnd: usize,
-  // pub alignmentScore: usize,
+  pub alignmentStart: usize,
+  pub alignmentEnd: usize,
+  pub alignmentScore: usize,
   pub pcrPrimerChanges: Vec<PcrPrimerChange>,
   pub totalPcrPrimerChanges: usize,
   pub clade: String,
-  // pub privateNucMutations: PrivateNucleotideMutations,
+  pub privateNucMutations: PrivateNucMutations,
   // pub privateAaMutations: BTreeMap<String, PrivateAminoacidMutations>,
-  // pub missingGenes: BTreeSet<String>,
-  // pub divergence: f64,
+  pub missingGenes: Vec<String>,
+  pub divergence: f64,
   // pub qc: QcResult,
-  // pub customNodeAttributes: BTreeMap<String, String>
+  pub customNodeAttributes: BTreeMap<String, String>,
   //
   #[serde(skip)]
   pub nearestNodeId: usize,
@@ -90,6 +94,7 @@ pub struct NextcladeRecord {
 }
 
 pub fn nextclade_run_one(
+  seq_name: &str,
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   ref_peptides: &TranslationMap,
@@ -121,6 +126,11 @@ pub fn nextclade_run_one(
     deletions,
     alignment_range,
   } = find_nuc_changes(&stripped.qry_seq, &stripped.ref_seq);
+
+  let alignmentStart = alignment_range.begin;
+  let alignmentEnd = alignment_range.end;
+  let alignmentScore = alignment.alignment_score;
+  let missingGenes = get_failed_genes(&translations, gene_map);
 
   let totalSubstitutions = substitutions.len();
   let totalDeletions = deletions.iter().map(|del| del.length).sum();
@@ -168,7 +178,7 @@ pub fn nextclade_run_one(
   let clade_node_attr_keys = tree.clade_node_attr_keys();
   let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
 
-  let private_mutations = find_private_nuc_mutations(
+  let private_nuc_mutations = find_private_nuc_mutations(
     node,
     &substitutions,
     &deletions,
@@ -178,6 +188,8 @@ pub fn nextclade_run_one(
     virus_properties,
   );
 
+  let divergence = calculate_divergence(node, &private_nuc_mutations, &tree.tmp.divergence_units, ref_seq.len());
+
   Ok((
     NextalignOutputs {
       stripped,
@@ -185,6 +197,7 @@ pub fn nextclade_run_one(
       translations,
     },
     NextcladeOutputs {
+      seqName: seq_name.to_owned(),
       substitutions,
       totalSubstitutions,
       deletions,
@@ -204,9 +217,16 @@ pub fn nextclade_run_one(
       totalAminoacidDeletions,
       aaInsertions,
       totalAminoacidInsertions,
+      alignmentStart,
+      alignmentEnd,
+      alignmentScore,
       pcrPrimerChanges,
       totalPcrPrimerChanges,
       clade,
+      privateNucMutations: private_nuc_mutations,
+      missingGenes,
+      divergence,
+      customNodeAttributes: clade_node_attrs,
       nearestNodeId,
     },
   ))
@@ -254,11 +274,10 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let output_dir = option_get_some!(output_dir)?;
   let output_insertions = option_get_some!(output_insertions)?;
   let output_errors = option_get_some!(output_errors)?;
-  let output_ndjson = option_get_some!(output_ndjson)?;
   let output_json = option_get_some!(output_json)?;
+  let output_ndjson = option_get_some!(output_ndjson)?;
   let output_csv = option_get_some!(output_csv)?;
   let output_tsv = option_get_some!(output_tsv)?;
-  let output_tree = option_get_some!(output_tree)?;
 
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
@@ -281,9 +300,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
   let ref_peptides = &translate_genes_ref(ref_seq, gene_map, params)?;
 
-  let mut tree = AuspiceTree::from_path(&input_tree)?;
-  tree_preprocess_in_place(&mut tree, ref_seq, ref_peptides)?;
-  let clade_node_attrs: &[CladeNodeAttrKeyDesc] = &tree.meta.extensions.nextclade.clade_node_attrs;
+  let tree = &mut AuspiceTree::from_path(&input_tree)?;
 
   let qc_config = &QcConfig::from_path(&input_qc_config)?;
 
@@ -292,10 +309,18 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let ref_seq_str = from_nuc_seq(ref_seq);
   let primers = &PcrPrimer::from_path(&input_pcr_primers, &ref_seq_str)?;
 
+  let should_keep_outputs = output_tree.is_some();
+  let mut outputs = Vec::<NextcladeOutputs>::new();
+
   thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
     let (fasta_sender, fasta_receiver) = crossbeam_channel::bounded::<FastaRecord>(CHANNEL_SIZE);
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
+
+    tree_preprocess_in_place(tree, ref_seq, ref_peptides).unwrap();
+    let clade_node_attrs = (&tree.meta.extensions.nextclade.clade_node_attrs).clone();
+
+    let outputs = &mut outputs;
 
     s.spawn(|_| {
       let mut reader = FastaReader::from_path(&input_fasta).unwrap();
@@ -330,6 +355,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
             .unwrap();
 
           let outputs_or_err = nextclade_run_one(
+            &seq_name,
             &qry_seq,
             ref_seq,
             ref_peptides,
@@ -363,16 +389,15 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
       });
     }
 
-    s.spawn(move |_| {
+    let writer = s.spawn(move |_| {
       let mut output_writer = NextcladeOrderedWriter::new(
         gene_map,
-        clade_node_attrs,
+        &clade_node_attrs,
         &output_fasta,
-        &output_ndjson,
         &output_json,
+        &output_ndjson,
         &output_csv,
         &output_tsv,
-        &output_tree,
         &output_insertions,
         &output_errors,
         &output_dir,
@@ -390,6 +415,12 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
       }
 
       for record in result_receiver {
+        if should_keep_outputs {
+          if let Ok((_, nextclade_outputs)) = &record.outputs_or_err {
+            outputs.push(nextclade_outputs.clone());
+          }
+        }
+
         output_writer
           .write_record(record)
           .wrap_err("When writing output record")
@@ -398,6 +429,11 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     });
   })
   .unwrap();
+
+  if let Some(output_tree) = output_tree {
+    tree_attach_new_nodes_in_place(tree, &outputs);
+    json_write(output_tree, tree)?;
+  }
 
   Ok(())
 }

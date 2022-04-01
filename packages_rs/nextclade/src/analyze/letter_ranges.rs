@@ -1,13 +1,14 @@
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::utils::range::Range;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LetterRange<L: Letter<L>> {
-  begin: usize,
-  end: usize,
-  letter: L,
+  pub begin: usize,
+  pub end: usize,
+  pub letter: L,
 }
 
 impl<L: Letter<L>> LetterRange<L> {
@@ -17,12 +18,22 @@ impl<L: Letter<L>> LetterRange<L> {
 }
 
 impl<L: Letter<L>> LetterRange<L> {
+  #[inline]
   pub fn len(&self) -> usize {
     self.end - self.begin
   }
 
+  #[inline]
   pub fn is_empty(&self) -> bool {
     self.len() == 0
+  }
+
+  #[inline]
+  pub fn to_range(&self) -> Range {
+    Range {
+      begin: self.begin,
+      end: self.end,
+    }
   }
 }
 
