@@ -29,7 +29,7 @@ fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> 
 pub struct SeedMatch {
   qry_pos: usize,
   ref_pos: usize,
-  score: usize
+  score: usize,
 }
 
 pub struct SeedAlignmentResult {
@@ -77,12 +77,11 @@ pub fn get_seed_matches(
   seed_matches
 }
 
-pub fn seed_alignment (
+pub fn seed_alignment(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   params: &AlignPairwiseParams,
 ) -> Result<SeedAlignmentResult, Report> {
-
   let query_size = qry_seq.len();
   let ref_size = ref_seq.len();
   let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) as usize {
@@ -117,7 +116,7 @@ pub fn seed_alignment (
   // => shift = 4, then 3, 4 again
   let (min_shift, max_shift) = seed_matches.iter().fold(
     (ref_size as i64, -(ref_size as i64)),
-    |(min, max): (i64, i64), clamp:&SeedMatch | {
+    |(min, max): (i64, i64), clamp: &SeedMatch| {
       let shift = (clamp.ref_pos as i64) - (clamp.qry_pos as i64);
       (min.min(shift), max.max(shift))
     },
@@ -137,64 +136,63 @@ pub fn seed_alignment (
 
 pub struct Stripe {
   begin: usize,
-  end: usize
+  end: usize,
 }
 
-pub fn make_stripes  (
+pub fn make_stripes(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   params: &AlignPairwiseParams,
   terminal_bandwidth: i32,
-  excess_bandwidth: i32
-  ) -> Vec<Stripe> {
+  excess_bandwidth: i32,
+) -> Vec<Stripe> {
+  let query_size = qry_seq.len();
+  let ref_size = ref_seq.len();
+  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) as usize {
+    (ref_size as f32 / params.seed_spacing as f32) as i32
+  } else {
+    params.min_seeds
+  };
 
-    let query_size = qry_seq.len();
-    let ref_size = ref_seq.len();
-    let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) as usize {
-      (ref_size as f32 / params.seed_spacing as f32) as i32
+  let margin = (ref_size as f32 / (n_seeds * 3) as f32).round() as i32;
+  let band_width = (((ref_size + query_size) as f32 * 0.5) - 3.0).round() as usize;
+
+  let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
+
+  let mut stripes: Vec<Stripe> = vec![];
+
+  let mut band_width = terminal_bandwidth;
+  let mut shift = seed_matches[0].ref_pos as i32 - seed_matches[0].qry_pos as i32;
+  println!("shift: {}, bandwidth {}", shift, band_width);
+
+  let mut r: usize = 0;
+  let mut sm: usize = 0;
+  while r < ref_size {
+    while r < seed_matches[sm].ref_pos {
+      stripes.push(Stripe {
+        begin: (0).max(r as i32 - shift - band_width) as usize,
+        end: query_size.min(0.max(r as i32 - shift + band_width) as usize),
+      });
+      r += 1;
+    }
+    if sm + 1 < seed_matches.len() {
+      let old_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
+      sm += 1;
+      let new_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
+      shift = (old_shift + new_shift) / 2 as i32;
+      band_width = (old_shift - new_shift).abs() + excess_bandwidth;
+      println!("shift: {}, bandwidth {}", shift, band_width);
     } else {
-      params.min_seeds
-    };
-
-    let margin = (ref_size as f32 / (n_seeds * 3) as f32).round() as i32;
-    let band_width = (((ref_size + query_size) as f32 * 0.5) - 3.0).round() as usize;
-
-    let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
-
-    let mut stripes: Vec<Stripe> = vec![];
-
-    let mut band_width = terminal_bandwidth;
-    let mut shift = seed_matches[0].ref_pos as i32 - seed_matches[0].qry_pos as i32;
-    println!("shift: {}, bandwidth {}", shift, band_width);
-
-    let mut r:usize = 0;
-    let mut sm:usize = 0;
-    while r<ref_size {
-      while r<seed_matches[sm].ref_pos {
+      let band_width = terminal_bandwidth;
+      let shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
+      while r < ref_size {
         stripes.push(Stripe {
-          begin: (0).max(r as i32 - shift - band_width) as usize,
-          end: query_size.min(0.max(r as i32 - shift + band_width) as usize)
+          begin: (query_size as i32 - terminal_bandwidth).min((0).max(r as i32 - shift - band_width)) as usize,
+          end: query_size.min(0.max(r as i32 - shift + band_width) as usize),
         });
-        r+=1;
-      }
-      if sm+1<seed_matches.len() {
-        let old_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
-        sm += 1;
-        let new_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
-        shift = (old_shift + new_shift) / 2 as i32;
-        band_width = (old_shift - new_shift).abs() + excess_bandwidth;
-        println!("shift: {}, bandwidth {}", shift, band_width);
-      } else {
-        let band_width = terminal_bandwidth;
-        let shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
-        while r<ref_size {
-          stripes.push(Stripe {
-            begin: (query_size as i32-terminal_bandwidth).min((0).max(r as i32 - shift - band_width)) as usize,
-            end: query_size.min(0.max(r as i32 - shift + band_width) as usize)
-          });
-          r+=1;
-        }
+        r += 1;
       }
     }
-    stripes
   }
+  stripes
+}
