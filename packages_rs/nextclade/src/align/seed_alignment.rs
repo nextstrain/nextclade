@@ -37,31 +37,16 @@ pub struct SeedAlignmentResult {
   pub band_width: usize,
 }
 
-pub fn seed_alignment(
+pub fn get_seed_matches(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
   params: &AlignPairwiseParams,
-) -> Result<SeedAlignmentResult, Report> {
+  n_seeds: i32,
+  margin: i32,
+) -> Vec<SeedMatch> {
   let query_size = qry_seq.len();
   let ref_size = ref_seq.len();
-
-  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) as usize {
-    (ref_size as f32 / params.seed_spacing as f32) as i32
-  } else {
-    params.min_seeds
-  };
-
-  let margin = (ref_size as f32 / (n_seeds * 3) as f32).round() as i32;
-  let band_width = (((ref_size + query_size) as f32 * 0.5) - 3.0).round() as usize;
-
-  let mut start_pos = 0;
-
-  if band_width < (2 * params.seed_length) {
-    return Ok(SeedAlignmentResult {
-      mean_shift: ((ref_size as f32 - query_size as f32) * 0.5).round() as i32,
-      band_width,
-    });
-  };
+  let mut seed_matches = Vec::<SeedMatch>::new();
 
   let map_to_good_positions = get_map_to_good_positions(qry_seq, params.seed_length);
   let n_good_positions = map_to_good_positions.len() as i32;
@@ -70,15 +55,8 @@ pub fn seed_alignment(
   let seed_cover = n_good_positions - 2 * margin;
   let kmer_spacing = ((seed_cover as f32) - 1.0) / ((n_seeds - 1) as f32);
 
-  if seed_cover < 0 || kmer_spacing < 0.0 {
-    return make_error!(
-      "Unable to align: poor seed matches. Details: seed cover: {seed_cover}, k-mer spacing: {kmer_spacing}."
-    );
-  }
-
-  // TODO: Maybe use something other than tuple? A struct with named fields to make
-  //  the code in the end of the function less confusing?
-  let mut seed_matches = Vec::<SeedMatch>::new();
+  // loop over seeds and find matches, store in seed_matches
+  let mut start_pos = 0;
   for ni in 0..n_seeds {
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
     let qry_pos = map_to_good_positions[good_position_index];
@@ -96,6 +74,34 @@ pub fn seed_alignment(
       start_pos = tmp_match.ref_pos;
     }
   }
+  seed_matches
+}
+
+pub fn seed_alignment (
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
+  params: &AlignPairwiseParams,
+) -> Result<SeedAlignmentResult, Report> {
+
+  let query_size = qry_seq.len();
+  let ref_size = ref_seq.len();
+  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) as usize {
+    (ref_size as f32 / params.seed_spacing as f32) as i32
+  } else {
+    params.min_seeds
+  };
+
+  let margin = (ref_size as f32 / (n_seeds * 3) as f32).round() as i32;
+  let band_width = (((ref_size + query_size) as f32 * 0.5) - 3.0).round() as usize;
+
+  if band_width < (2 * params.seed_length) {
+    return Ok(SeedAlignmentResult {
+      mean_shift: ((ref_size as f32 - query_size as f32) * 0.5).round() as i32,
+      band_width,
+    });
+  };
+
+  let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
 
   let num_seed_matches = seed_matches.len();
   if num_seed_matches < 2 {
@@ -117,8 +123,78 @@ pub fn seed_alignment(
     },
   );
 
+  let stripes = make_stripes(qry_seq, ref_seq, params, 20, 9);
+  println!("stripes, len {}", stripes.len());
+  println!("pos 0 {} {}", stripes[0].begin, stripes[0].end);
+  println!("pos 15000 {} {}", stripes[15000].begin, stripes[15000].end);
+  println!("pos 29902 {} {}", stripes[29902].begin, stripes[29902].end);
+
   Ok(SeedAlignmentResult {
     mean_shift: (0.5 * (min_shift + max_shift) as f64).round() as i32,
     band_width: (max_shift - min_shift + 9) as usize,
   })
 }
+
+pub struct Stripe {
+  begin: usize,
+  end: usize
+}
+
+pub fn make_stripes  (
+  qry_seq: &[Nuc],
+  ref_seq: &[Nuc],
+  params: &AlignPairwiseParams,
+  terminal_bandwidth: i32,
+  excess_bandwidth: i32
+  ) -> Vec<Stripe> {
+
+    let query_size = qry_seq.len();
+    let ref_size = ref_seq.len();
+    let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) as usize {
+      (ref_size as f32 / params.seed_spacing as f32) as i32
+    } else {
+      params.min_seeds
+    };
+
+    let margin = (ref_size as f32 / (n_seeds * 3) as f32).round() as i32;
+    let band_width = (((ref_size + query_size) as f32 * 0.5) - 3.0).round() as usize;
+
+    let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
+
+    let mut stripes: Vec<Stripe> = vec![];
+
+    let mut band_width = terminal_bandwidth as i32;
+    let mut shift = seed_matches[0].ref_pos as i32 - seed_matches[0].qry_pos as i32;
+    println!("shift: {}, bandwidth {}", shift, band_width);
+
+    let mut r:usize = 0;
+    let mut sm:usize = 0;
+    while r<ref_size {
+      while r<seed_matches[sm].ref_pos {
+        stripes.push(Stripe {
+          begin: (0).max(r as i32 - shift - band_width) as usize,
+          end: query_size.min(0.max(r as i32 - shift + band_width) as usize)
+        });
+        r+=1;
+      }
+      if sm+1<seed_matches.len() {
+        let old_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
+        sm += 1;
+        let new_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
+        shift = (old_shift + new_shift) / 2 as i32;
+        band_width = (old_shift - new_shift).abs() + excess_bandwidth;
+        println!("shift: {}, bandwidth {}", shift, band_width);
+      } else {
+        let band_width = terminal_bandwidth;
+        let shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
+        while r<ref_size {
+          stripes.push(Stripe {
+            begin: (query_size-terminal_bandwidth).min((0).max(r as i32 - shift - band_width) as usize) as usize,
+            end: query_size.min(0.max(r as i32 - shift + band_width) as usize)
+          });
+          r+=1;
+        }
+      }
+    }
+    stripes
+  }
