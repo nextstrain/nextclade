@@ -1,4 +1,5 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
+use crate::align::band_2d::Stripe;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::{seed_alignment, SeedAlignmentResult};
 use crate::io::aa::Aa;
@@ -52,6 +53,7 @@ fn align_pairwise<T: Letter<T>>(
   params: &AlignPairwiseParams,
   band_width: usize,
   shift: i32,
+  stripes: &[Stripe],
 ) -> Result<AlignmentOutput<T>, Report> {
   trace!("Align pairwise: started. Params: {params:?}");
 
@@ -61,7 +63,8 @@ fn align_pairwise<T: Letter<T>>(
     return make_error!("Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches");
   }
 
-  let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, band_width, shift, params);
+  let ScoreMatrixResult { scores, paths } =
+    score_matrix(qry_seq, ref_seq, gap_open_close, band_width, shift, stripes, params);
 
   Ok(backtrace(qry_seq, ref_seq, &scores, &paths, shift))
 }
@@ -80,14 +83,26 @@ pub fn align_nuc(
     );
   }
 
-  let SeedAlignmentResult { mean_shift, band_width } = seed_alignment(qry_seq, ref_seq, params)?;
+  let SeedAlignmentResult {
+    mean_shift,
+    band_width,
+    stripes,
+  } = seed_alignment(qry_seq, ref_seq, params)?;
   trace!(
     "Align pairwise: after seed alignment: band_width={:}, mean_shift={:}\n",
     band_width,
     mean_shift
   );
 
-  align_pairwise(qry_seq, ref_seq, gap_open_close, params, band_width, mean_shift)
+  align_pairwise(
+    qry_seq,
+    ref_seq,
+    gap_open_close,
+    params,
+    band_width,
+    mean_shift,
+    &stripes,
+  )
 }
 
 pub fn align_aa(
@@ -98,7 +113,17 @@ pub fn align_aa(
   band_width: usize,
   mean_shift: i32,
 ) -> Result<AlignmentOutput<Aa>, Report> {
-  align_pairwise(qry_seq, ref_seq, gap_open_close, params, band_width, mean_shift)
+  let stripes = vec![]; // HACK: stripes are empty
+
+  align_pairwise(
+    qry_seq,
+    ref_seq,
+    gap_open_close,
+    params,
+    band_width,
+    mean_shift,
+    &stripes,
+  )
 }
 
 #[cfg(test)]

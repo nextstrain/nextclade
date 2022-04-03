@@ -38,6 +38,7 @@ pub struct SeedMatch {
 pub struct SeedAlignmentResult {
   pub mean_shift: i32,
   pub band_width: usize,
+  pub stripes: Vec<Stripe>,
 }
 
 pub fn get_seed_matches(
@@ -100,6 +101,7 @@ pub fn seed_alignment(
     return Ok(SeedAlignmentResult {
       mean_shift: ((ref_size as f32 - query_size as f32) * 0.5).round() as i32,
       band_width,
+      stripes: vec![], // HACK: stripes are empty
     });
   };
 
@@ -134,6 +136,7 @@ pub fn seed_alignment(
   Ok(SeedAlignmentResult {
     mean_shift: (0.5 * (min_shift + max_shift) as f64).round() as i32,
     band_width: (max_shift - min_shift + 9) as usize,
+    stripes,
   })
 }
 

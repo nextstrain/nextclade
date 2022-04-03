@@ -2,6 +2,7 @@ use crate::align::align::AlignPairwiseParams;
 use crate::io::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use log::trace;
+use crate::align::band_2d::Stripe;
 
 // store direction info for backtrace as bits in paths matrix
 // these indicate the currently optimal move
@@ -24,6 +25,7 @@ pub fn score_matrix<T: Letter<T>>(
   gap_open_close: &[i32],
   band_width: usize,
   mean_shift: i32,
+  stripes: &[Stripe],
   params: &AlignPairwiseParams,
 ) -> ScoreMatrixResult {
   let query_size = qry_seq.len();
@@ -197,6 +199,7 @@ mod tests {
 
     let band_width = 5;
     let mean_shift = 2;
+    let stripes = vec![]; // HACK: stripes are empty
 
     let result = score_matrix(
       &qry_seq,
@@ -204,11 +207,12 @@ mod tests {
       &ctx.gap_open_close,
       band_width,
       mean_shift,
+      &stripes,
       &ctx.params,
     );
 
     #[rustfmt::skip]
-    let expected_scores = Vec2d::<i32>::from_slice(&[
+    let expected_scores = Band2d::<i32>::from_slice(&[
       0,  -1,   2,   1,  -1,  -1,  -1,  -1,  -1,  -1,
       0,  -1,  -2,  -1,   2,  -1,  -1,  -1,  -1,  -1,
       0,  -1,   2,   5,   8,  11,  -1,  -1,  -1,  -1,
