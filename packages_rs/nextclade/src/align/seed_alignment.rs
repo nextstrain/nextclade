@@ -26,6 +26,12 @@ fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> 
   map_to_good_positions
 }
 
+pub struct SeedMatch {
+  qry_pos: usize,
+  ref_pos: usize,
+  score: usize
+}
+
 pub struct SeedAlignmentResult {
   pub mean_shift: i32,
   pub band_width: usize,
@@ -72,23 +78,22 @@ pub fn seed_alignment(
 
   // TODO: Maybe use something other than tuple? A struct with named fields to make
   //  the code in the end of the function less confusing?
-  let mut seed_matches = Vec::<(usize, usize, i64, usize)>::new();
+  let mut seed_matches = Vec::<SeedMatch>::new();
   for ni in 0..n_seeds {
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
-    let q_pos = map_to_good_positions[good_position_index];
+    let qry_pos = map_to_good_positions[good_position_index];
 
-    let seed = &qry_seq[q_pos..q_pos + params.seed_length];
+    let seed = &qry_seq[qry_pos..qry_pos + params.seed_length];
     let tmp_match = seed_match(seed, ref_seq, start_pos, params.mismatches_allowed);
 
     // Only use seeds with at most allowed_mismatches
     if tmp_match.score >= params.seed_length - params.mismatches_allowed {
-      seed_matches.push((
-        q_pos,
-        tmp_match.shift,
-        (tmp_match.shift as i64 - q_pos as i64),
-        tmp_match.score,
-      ));
-      start_pos = tmp_match.shift;
+      seed_matches.push(SeedMatch {
+        qry_pos,
+        ref_pos: tmp_match.ref_pos,
+        score: tmp_match.score,
+      });
+      start_pos = tmp_match.ref_pos;
     }
   }
 
@@ -106,8 +111,8 @@ pub fn seed_alignment(
   // => shift = 4, then 3, 4 again
   let (min_shift, max_shift) = seed_matches.iter().fold(
     (ref_size as i64, -(ref_size as i64)),
-    |(min, max): (i64, i64), clamp: &(usize, usize, i64, usize)| {
-      let shift = clamp.2;
+    |(min, max): (i64, i64), clamp:&SeedMatch | {
+      let shift = (clamp.ref_pos as i64) - (clamp.qry_pos as i64);
       (min.min(shift), max.max(shift))
     },
   );
