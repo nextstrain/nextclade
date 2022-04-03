@@ -128,7 +128,9 @@ pub fn seed_alignment(
     },
   );
 
-  let stripes = make_stripes(qry_seq, ref_seq, params, 20, 9);
+  let terminal_bandwidth: i32 = 20;
+  let excess_bandwidth: i32 = 9;
+  let stripes = make_stripes(qry_seq, ref_seq, params, terminal_bandwidth, excess_bandwidth);
   println!("stripes, len {}", stripes.len());
   println!("pos 0     {:?}", stripes[0]);
   println!("pos 15000 {:?}", stripes[15000]);
