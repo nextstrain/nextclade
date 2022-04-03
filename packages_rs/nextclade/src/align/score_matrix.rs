@@ -155,94 +155,94 @@ pub fn score_matrix<T: Letter<T>>(
   ScoreMatrixResult { scores, paths }
 }
 
-#[cfg(test)]
-mod tests {
-  #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
-  use super::*;
-  use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
-  use crate::gene::gene_map::GeneMap;
-  use crate::io::nuc::{to_nuc_seq, Nuc};
-  use eyre::Report;
-  use pretty_assertions::assert_eq;
-  use rstest::{fixture, rstest};
-
-  struct Context {
-    params: AlignPairwiseParams,
-    gene_map: GeneMap,
-    gap_open_close: GapScoreMap,
-  }
-
-  #[fixture]
-  fn ctx() -> Context {
-    let params = AlignPairwiseParams {
-      min_length: 3,
-      ..AlignPairwiseParams::default()
-    };
-
-    let gene_map = GeneMap::new();
-
-    let dummy_ref_seq = vec![Nuc::Gap; 100];
-    let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
-
-    Context {
-      params,
-      gene_map,
-      gap_open_close,
-    }
-  }
-
-  #[rstest]
-  fn pads_missing_left(ctx: Context) -> Result<(), Report> {
-    #[rustfmt::skip]
-    let qry_seq = to_nuc_seq("CTCGCT")?;
-    let ref_seq = to_nuc_seq("ACGCTCGCT")?;
-
-    let band_width = 5;
-    let mean_shift = 2;
-    let stripes = vec![]; // HACK: stripes are empty
-
-    let result = score_matrix(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      band_width,
-      mean_shift,
-      &stripes,
-      &ctx.params,
-    );
-
-    #[rustfmt::skip]
-    let expected_scores = Band2d::<i32>::from_slice(&[
-      0,  -1,   2,   1,  -1,  -1,  -1,  -1,  -1,  -1,
-      0,  -1,  -2,  -1,   2,  -1,  -1,  -1,  -1,  -1,
-      0,  -1,   2,   5,   8,  11,  -1,  -1,  -1,  -1,
-      0,  -1,  -2,  -3,  -1,   2,   5,  -1,  -1,  -1,
-      0,   0,   3,   2,   5,   4,   7,   6,  -1,  -1,
-      0,   0,   0,  -1,  -2,   0,   3,   6,   9,  -1,
-      0,   0,   0,   0,   3,   6,   9,  12,  15,  18,
-      0,   0,   0,   0,   0,  -1,   0,   3,   6,   9,
-      0,   0,   0,   0,   0,   0,   3,   2,   5,   6,
-      0,   0,   0,   0,   0,   0,   0,  -1,   0,   3,
-      0,   0,   0,   0,   0,   0,   0,   0,   3,   6,
-    ], 11, 10);
-
-    #[rustfmt::skip]
-    let expected_paths = Vec2d::<i32>::from_slice(&[
-      2,   9,   9,   9,  -1,  -1,  -1,  -1,  -1,  -1,
-      2,   9,   9,   2,   2,  -1,  -1,  -1,  -1,  -1,
-      2,   9,  25,  25,  25,   9,  -1,  -1,  -1,  -1,
-      2,   1,  17,   1,   2,  12,  12,  -1,  -1,  -1,
-      2,  20,  17,  25,  25,  25,  25,  25,  -1,  -1,
-      1,  20,  20,   1,   1,   2,  18,  18,  18,  -1,
-      4,  20,  20,  20,  17,  25,  25,  17,  17,  17,
-      4,  20,  20,  20,  20,   1,   4,   4,   4,   4,
-      4,  20,  20,  20,  20,  20,  17,  25,  25,  28,
-      4,  20,  20,  20,  20,  20,  20,   1,  20,  20,
-      4,  20,  20,  20,  20,  20,  20,  20,  17,  17,
-    ], 11, 10);
-
-    assert_eq!(expected_scores, result.scores);
-    assert_eq!(expected_paths, result.paths);
-    Ok(())
-  }
-}
+// #[cfg(test)]
+// mod tests {
+//   #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
+//   use super::*;
+//   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+//   use crate::gene::gene_map::GeneMap;
+//   use crate::io::nuc::{to_nuc_seq, Nuc};
+//   use eyre::Report;
+//   use pretty_assertions::assert_eq;
+//   use rstest::{fixture, rstest};
+//
+//   struct Context {
+//     params: AlignPairwiseParams,
+//     gene_map: GeneMap,
+//     gap_open_close: GapScoreMap,
+//   }
+//
+//   #[fixture]
+//   fn ctx() -> Context {
+//     let params = AlignPairwiseParams {
+//       min_length: 3,
+//       ..AlignPairwiseParams::default()
+//     };
+//
+//     let gene_map = GeneMap::new();
+//
+//     let dummy_ref_seq = vec![Nuc::Gap; 100];
+//     let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
+//
+//     Context {
+//       params,
+//       gene_map,
+//       gap_open_close,
+//     }
+//   }
+//
+//   #[rstest]
+//   fn pads_missing_left(ctx: Context) -> Result<(), Report> {
+//     #[rustfmt::skip]
+//     let qry_seq = to_nuc_seq("CTCGCT")?;
+//     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
+//
+//     let band_width = 5;
+//     let mean_shift = 2;
+//     let stripes = vec![]; // HACK: stripes are empty
+//
+//     let result = score_matrix(
+//       &qry_seq,
+//       &ref_seq,
+//       &ctx.gap_open_close,
+//       band_width,
+//       mean_shift,
+//       &stripes,
+//       &ctx.params,
+//     );
+//
+//     #[rustfmt::skip]
+//     let expected_scores = Band2d::<i32>::from_slice(&[
+//       0,  -1,   2,   1,  -1,  -1,  -1,  -1,  -1,  -1,
+//       0,  -1,  -2,  -1,   2,  -1,  -1,  -1,  -1,  -1,
+//       0,  -1,   2,   5,   8,  11,  -1,  -1,  -1,  -1,
+//       0,  -1,  -2,  -3,  -1,   2,   5,  -1,  -1,  -1,
+//       0,   0,   3,   2,   5,   4,   7,   6,  -1,  -1,
+//       0,   0,   0,  -1,  -2,   0,   3,   6,   9,  -1,
+//       0,   0,   0,   0,   3,   6,   9,  12,  15,  18,
+//       0,   0,   0,   0,   0,  -1,   0,   3,   6,   9,
+//       0,   0,   0,   0,   0,   0,   3,   2,   5,   6,
+//       0,   0,   0,   0,   0,   0,   0,  -1,   0,   3,
+//       0,   0,   0,   0,   0,   0,   0,   0,   3,   6,
+//     ], 11, 10);
+//
+//     #[rustfmt::skip]
+//     let expected_paths = Vec2d::<i32>::from_slice(&[
+//       2,   9,   9,   9,  -1,  -1,  -1,  -1,  -1,  -1,
+//       2,   9,   9,   2,   2,  -1,  -1,  -1,  -1,  -1,
+//       2,   9,  25,  25,  25,   9,  -1,  -1,  -1,  -1,
+//       2,   1,  17,   1,   2,  12,  12,  -1,  -1,  -1,
+//       2,  20,  17,  25,  25,  25,  25,  25,  -1,  -1,
+//       1,  20,  20,   1,   1,   2,  18,  18,  18,  -1,
+//       4,  20,  20,  20,  17,  25,  25,  17,  17,  17,
+//       4,  20,  20,  20,  20,   1,   4,   4,   4,   4,
+//       4,  20,  20,  20,  20,  20,  17,  25,  25,  28,
+//       4,  20,  20,  20,  20,  20,  20,   1,  20,  20,
+//       4,  20,  20,  20,  20,  20,  20,  20,  17,  17,
+//     ], 11, 10);
+//
+//     assert_eq!(expected_scores, result.scores);
+//     assert_eq!(expected_paths, result.paths);
+//     Ok(())
+//   }
+// }
