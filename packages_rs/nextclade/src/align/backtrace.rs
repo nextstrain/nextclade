@@ -1,4 +1,7 @@
-use crate::align::score_matrix::{QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX, END_OF_SEQUENCE, MATCH};
+use crate::align::band_2d::Band2d;
+use crate::align::score_matrix::{
+  END_OF_SEQUENCE, MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX,
+};
 use crate::io::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use std::cmp;
@@ -16,7 +19,7 @@ struct DetermineBestAlignmentResult {
 
 /// Determine the best alignment by picking the optimal score at the end of the query
 fn determine_best_alignment(
-  scores: &Vec2d<i32>,
+  scores: &Band2d<i32>,
   band_width: i32,
   mean_shift: i32,
   qry_len: i32,
@@ -65,8 +68,8 @@ pub struct AlignmentOutput<T> {
 pub fn backtrace<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
-  scores: &Vec2d<i32>,
-  paths: &Vec2d<i32>,
+  scores: &Band2d<i32>,
+  paths: &Band2d<i32>,
   mean_shift: i32,
 ) -> AlignmentOutput<T> {
   let num_cols = scores.num_cols();

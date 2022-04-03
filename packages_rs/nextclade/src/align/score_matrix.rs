@@ -1,8 +1,7 @@
 use crate::align::align::AlignPairwiseParams;
+use crate::align::band_2d::{Band2d, Stripe};
 use crate::io::letter::Letter;
-use crate::utils::vec2d::Vec2d;
 use log::trace;
-use crate::align::band_2d::Stripe;
 
 // store direction info for backtrace as bits in paths matrix
 // these indicate the currently optimal move
@@ -15,8 +14,8 @@ pub const QRY_GAP_EXTEND: i32 = 1 << 4;
 pub const END_OF_SEQUENCE: i32 = -1;
 
 pub struct ScoreMatrixResult {
-  pub scores: Vec2d<i32>,
-  pub paths: Vec2d<i32>,
+  pub scores: Band2d<i32>,
+  pub paths: Band2d<i32>,
 }
 
 pub fn score_matrix<T: Letter<T>>(
@@ -38,8 +37,8 @@ pub fn score_matrix<T: Letter<T>>(
   band_width={band_width}, mean_shift={mean_shift}, n_rows={n_rows}, n_cols={n_cols}"
   );
 
-  let mut paths = Vec2d::<i32>::new(n_rows, n_cols);
-  let mut scores = Vec2d::<i32>::new(n_rows, n_cols);
+  let mut paths = Band2d::<i32>::new(stripes);
+  let mut scores = Band2d::<i32>::new(stripes);
   let mut qry_gaps = vec![0_i32; n_rows];
 
   // fill scores with alignment scores
