@@ -1,3 +1,4 @@
+use num_traits::{cast, NumCast};
 use std::ops::{Index, IndexMut};
 
 /// Describes data layout of a single row in `Band2d`
@@ -5,6 +6,19 @@ use std::ops::{Index, IndexMut};
 pub struct Stripe {
   pub begin: usize,
   pub end: usize,
+}
+
+impl Stripe {
+  pub fn new<T, U>(begin: T, end: U) -> Stripe
+  where
+    T: NumCast,
+    U: NumCast,
+  {
+    Stripe {
+      begin: begin.to_usize().unwrap(),
+      end: end.to_usize().unwrap(),
+    }
+  }
 }
 
 impl Stripe {
@@ -69,55 +83,30 @@ where
   }
 
   #[inline]
-  fn get_index(&self, index2d: (usize, usize)) -> usize {
-    let (row, col) = index2d;
+  fn get_index<I: NumCast, J: NumCast>(&self, index2d: (I, J)) -> usize {
+    let row = index2d.0.to_usize().unwrap();
+    let col = index2d.1.to_usize().unwrap();
     let stripe = &self.stripes[row];
     assert!(stripe.begin <= col && col < stripe.end);
     self.row_start_points[row] + (col - stripe.begin)
   }
-
-  #[inline]
-  fn get_index_i32(&self, index2d: (i32, i32)) -> usize {
-    let (row, col) = index2d;
-    assert!(row >= 0);
-    assert!(col >= 0);
-    self.get_index((row as usize, col as usize))
-  }
 }
 
 /// Allows 2-dimensional indexing using a tuple
-impl<T: Default + Clone> Index<(usize, usize)> for Band2d<T> {
+impl<T: Default + Clone, I: NumCast, J: NumCast> Index<(I, J)> for Band2d<T> {
   type Output = T;
 
   #[inline]
-  fn index(&self, index2d: (usize, usize)) -> &Self::Output {
+  fn index(&self, index2d: (I, J)) -> &Self::Output {
     self.data.index(self.get_index(index2d))
   }
 }
 
 /// Allows 2-dimensional mutable indexing using a tuple
-impl<T: Default + Clone> IndexMut<(usize, usize)> for Band2d<T> {
+impl<T: Default + Clone, I: NumCast, J: NumCast> IndexMut<(I, J)> for Band2d<T> {
   #[inline]
-  fn index_mut(&mut self, index2d: (usize, usize)) -> &mut Self::Output {
+  fn index_mut(&mut self, index2d: (I, J)) -> &mut Self::Output {
     self.data.index_mut(self.get_index(index2d))
-  }
-}
-
-/// Allows 2-dimensional indexing using a tuple (version for i32)
-impl<T: Default + Clone> Index<(i32, i32)> for Band2d<T> {
-  type Output = T;
-
-  #[inline]
-  fn index(&self, index2d: (i32, i32)) -> &Self::Output {
-    self.data.index(self.get_index_i32(index2d))
-  }
-}
-
-/// Allows 2-dimensional mutable indexing using a tuple (version for i32)
-impl<T: Default + Clone> IndexMut<(i32, i32)> for Band2d<T> {
-  #[inline]
-  fn index_mut(&mut self, index2d: (i32, i32)) -> &mut Self::Output {
-    self.data.index_mut(self.get_index_i32(index2d))
   }
 }
 

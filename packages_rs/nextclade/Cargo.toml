@@ -36,6 +36,7 @@ lazy_static = "1.4.0"
 log = "0.4.14"
 map_in_place = "0.1.0"
 num = "0.4.0"
+num-traits = "0.2.14"
 num_cpus = "1.13.1"
 owo-colors = "3.3.0"
 phf = { version = "0.10.1", features = ["macros"] }

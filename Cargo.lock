@@ -961,6 +961,7 @@ dependencies = [
  "map_in_place",
  "mimalloc",
  "num",
+ "num-traits",
  "num_cpus",
  "owo-colors",
  "phf",
