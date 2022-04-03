@@ -1,3 +1,4 @@
+use std::intrinsics::assert_zero_valid;
 use std::ops::{Index, IndexMut};
 
 /// Describes data layout of a single row in `Band2d`
@@ -75,6 +76,14 @@ where
     assert!(stripe.begin <= col && col < stripe.end);
     self.row_start_points[row] + (col - stripe.begin)
   }
+
+  #[inline]
+  fn get_index_i32(&self, index2d: (i32, i32)) -> usize {
+    let (row, col) = index2d;
+    assert!(row >= 0);
+    assert!(col >= 0);
+    self.get_index((row as usize, col as usize))
+  }
 }
 
 /// Allows 2-dimensional indexing using a tuple
@@ -92,6 +101,24 @@ impl<T: Default + Clone> IndexMut<(usize, usize)> for Band2d<T> {
   #[inline]
   fn index_mut(&mut self, index2d: (usize, usize)) -> &mut Self::Output {
     self.data.index_mut(self.get_index(index2d))
+  }
+}
+
+/// Allows 2-dimensional indexing using a tuple (version for i32)
+impl<T: Default + Clone> Index<(i32, i32)> for Band2d<T> {
+  type Output = T;
+
+  #[inline]
+  fn index(&self, index2d: (i32, i32)) -> &Self::Output {
+    self.data.index(self.get_index_i32(index2d))
+  }
+}
+
+/// Allows 2-dimensional mutable indexing using a tuple (version for i32)
+impl<T: Default + Clone> IndexMut<(i32, i32)> for Band2d<T> {
+  #[inline]
+  fn index_mut(&mut self, index2d: (i32, i32)) -> &mut Self::Output {
+    self.data.index_mut(self.get_index_i32(index2d))
   }
 }
 
