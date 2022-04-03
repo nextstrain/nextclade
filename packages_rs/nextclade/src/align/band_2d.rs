@@ -1,4 +1,3 @@
-use std::intrinsics::assert_zero_valid;
 use std::ops::{Index, IndexMut};
 
 /// Describes data layout of a single row in `Band2d`
