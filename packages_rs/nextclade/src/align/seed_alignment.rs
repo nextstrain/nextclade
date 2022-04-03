@@ -1,4 +1,5 @@
 use crate::align::align::AlignPairwiseParams;
+use crate::align::band_2d::Stripe;
 use crate::align::seed_match::seed_match;
 use crate::io::nuc::Nuc;
 use crate::make_error;
@@ -132,11 +133,6 @@ pub fn seed_alignment(
     mean_shift: (0.5 * (min_shift + max_shift) as f64).round() as i32,
     band_width: (max_shift - min_shift + 9) as usize,
   })
-}
-
-pub struct Stripe {
-  begin: usize,
-  end: usize,
 }
 
 pub fn make_stripes(

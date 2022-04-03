@@ -3,8 +3,18 @@ use std::ops::{Index, IndexMut};
 /// Describes data layout of a single row in `Band2d`
 #[derive(Debug, Clone)]
 pub struct Stripe {
-  begin: usize,
-  length: usize,
+  pub begin: usize,
+  pub end: usize,
+}
+
+impl Stripe {
+  pub fn len(&self) -> usize {
+    self.end - self.begin
+  }
+
+  pub fn is_empty(&self) -> bool {
+    self.end == self.begin
+  }
 }
 
 /// Represents a diagonal band in a matrix.
@@ -34,9 +44,8 @@ where
     let mut n_cols = 0_usize;
     row_start_points[0] = 0;
     for (i, stripe) in stripes.iter().enumerate() {
-      let stripe_end = row_start_points[i] + stripe.length;
-      row_start_points[i + 1] = stripe_end;
-      n_cols = n_cols.max(stripe.begin + stripe.length);
+      row_start_points[i + 1] = row_start_points[i] + stripe.len();
+      n_cols = n_cols.max(stripe.end);
     }
 
     let data: Vec<T> = vec![T::default(); n_rows * n_cols];
@@ -63,7 +72,7 @@ where
   fn get_index(&self, index2d: (usize, usize)) -> usize {
     let (row, col) = index2d;
     let stripe = &self.stripes[row];
-    assert!(stripe.begin <= col && col < stripe.begin + stripe.length);
+    assert!(stripe.begin <= col && col < stripe.end);
     self.row_start_points[row] + (col - stripe.begin)
   }
 }
@@ -99,29 +108,29 @@ mod tests {
   ///
   /// ```plaintext
   ///
-  ///     0   1   2   3   4   5   6   7            stripes                 row_start_points
-  /// 0   X   X   X   .   .   .   .   .            begin: 0, length: 3     0
-  /// 1   .   X   X   X   X   X   .   .            begin: 1, length: 5     3
-  /// 2   .   .   X   X   X   X   .   .            begin: 2, length: 4     8
-  /// 3   .   .   .   X   X   X   X   .            begin: 3, length: 4     12
-  /// 4   .   .   .   .   X   X   X   X            begin: 4, length: 4     16
-  /// 5   .   .   .   .   .   X   X   X            begin: 5, length: 3     20
-  ///                         ^       ^
-  ///                     begin: 5  length: 3
-  /// total_size = 23
+  ///     0   1   2   3   4   5   6   7   8             stripes       row_start_points
+  /// 0   X   X   X   .   .   .   .   .            begin: 0, end: 3         0
+  /// 1   .   X   X   X   X   X   .   .            begin: 1, end: 6         3
+  /// 2   .   .   X   X   X   X   .   .            begin: 2, end: 6         8
+  /// 3   .   .   .   X   X   X   X   .            begin: 3, end: 7         12
+  /// 4   .   .   .   .   X   X   X   X            begin: 4, end: 8         16
+  /// 5   .   .   .   .   .   X   X   X            begin: 5, end: 8         20
+  ///                         ^           ^
+  ///                stripe.begin: 5   stripe.end: 8
   /// n_rows: 8
   /// n_cols: 6
+  /// total_size = 23
   ///
   /// ```
   #[rstest]
   fn test_band_2d_internals() -> Result<(), Report> {
     let stripes = vec![
-      Stripe { begin: 0, length: 3 },
-      Stripe { begin: 1, length: 5 },
-      Stripe { begin: 2, length: 4 },
-      Stripe { begin: 3, length: 4 },
-      Stripe { begin: 4, length: 4 },
-      Stripe { begin: 5, length: 3 },
+      Stripe { begin: 0, end: 3 },
+      Stripe { begin: 1, end: 6 },
+      Stripe { begin: 2, end: 6 },
+      Stripe { begin: 3, end: 7 },
+      Stripe { begin: 4, end: 8 },
+      Stripe { begin: 5, end: 8 },
     ];
 
     let mut band = Band2d::<i32>::new(&stripes);
@@ -140,13 +149,6 @@ mod tests {
 
     assert_eq!(band.num_rows(), 6);
     assert_eq!(band.num_cols(), 8);
-
-    assert_eq!(band.data[0], 11);
-    assert_eq!(band.data[1], 12);
-    assert_eq!(band.data[3], 22);
-
-    assert_eq!(band.data[21], 67);
-    assert_eq!(band.data[22], 68);
 
     assert_eq!(&band.row_start_points, &[0, 3, 8, 12, 16, 20, 23]);
 
