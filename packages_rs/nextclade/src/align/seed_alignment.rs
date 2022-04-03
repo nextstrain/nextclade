@@ -163,7 +163,7 @@ pub fn make_stripes  (
 
     let mut stripes: Vec<Stripe> = vec![];
 
-    let mut band_width = terminal_bandwidth as i32;
+    let mut band_width = terminal_bandwidth;
     let mut shift = seed_matches[0].ref_pos as i32 - seed_matches[0].qry_pos as i32;
     println!("shift: {}, bandwidth {}", shift, band_width);
 
@@ -189,7 +189,7 @@ pub fn make_stripes  (
         let shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
         while r<ref_size {
           stripes.push(Stripe {
-            begin: (query_size-terminal_bandwidth).min((0).max(r as i32 - shift - band_width) as usize) as usize,
+            begin: (query_size as i32-terminal_bandwidth).min((0).max(r as i32 - shift - band_width)) as usize,
             end: query_size.min(0.max(r as i32 - shift + band_width) as usize)
           });
           r+=1;
