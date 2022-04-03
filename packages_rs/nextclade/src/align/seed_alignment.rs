@@ -4,6 +4,7 @@ use crate::align::seed_match::seed_match;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
+use num_traits::{abs, clamp, clamp_min};
 
 fn is_bad_letter(letter: Nuc) -> bool {
   letter == Nuc::N
@@ -147,9 +148,9 @@ pub fn make_stripes(
   terminal_bandwidth: i32,
   excess_bandwidth: i32,
 ) -> Vec<Stripe> {
-  let query_size = qry_seq.len();
-  let ref_size = ref_seq.len();
-  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) as usize {
+  let query_size = qry_seq.len() as i32;
+  let ref_size = ref_seq.len() as i32;
+  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) {
     (ref_size as f32 / params.seed_spacing as f32) as i32
   } else {
     params.min_seeds
@@ -166,31 +167,32 @@ pub fn make_stripes(
   let mut shift = seed_matches[0].ref_pos as i32 - seed_matches[0].qry_pos as i32;
   println!("shift: {}, bandwidth {}", shift, band_width);
 
-  let mut r: usize = 0;
+  let mut r: i32 = 0;
   let mut sm: usize = 0;
   while r < ref_size {
-    while r < seed_matches[sm].ref_pos {
-      stripes.push(Stripe {
-        begin: (0).max(r as i32 - shift - band_width) as usize,
-        end: query_size.min(0.max(r as i32 - shift + band_width) as usize),
-      });
+    let ref_pos = seed_matches[sm].ref_pos as i32;
+
+    while r < ref_pos {
+      let begin = clamp_min(r - shift - band_width, 0);
+      let end = clamp(r - shift + band_width, 0, query_size);
+      stripes.push(Stripe::new(begin, end));
       r += 1;
     }
+
     if sm + 1 < seed_matches.len() {
       let old_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
       sm += 1;
       let new_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
-      shift = (old_shift + new_shift) / 2 as i32;
-      band_width = (old_shift - new_shift).abs() + excess_bandwidth;
+      shift = (old_shift + new_shift) / 2;
+      band_width = abs(old_shift - new_shift) + excess_bandwidth;
       println!("shift: {}, bandwidth {}", shift, band_width);
     } else {
       let band_width = terminal_bandwidth;
       let shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
       while r < ref_size {
-        stripes.push(Stripe {
-          begin: (query_size as i32 - terminal_bandwidth).min((0).max(r as i32 - shift - band_width)) as usize,
-          end: query_size.min(0.max(r as i32 - shift + band_width) as usize),
-        });
+        let begin = clamp(r - shift - band_width, 0, query_size - terminal_bandwidth); // TODO: band_width == terminal_bandwidth?
+        let end = clamp(r - shift + band_width, 0, query_size);
+        stripes.push(Stripe::new(begin, end));
         r += 1;
       }
     }
