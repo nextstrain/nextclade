@@ -27,12 +27,14 @@ fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> 
   map_to_good_positions
 }
 
+#[derive(Debug)]
 pub struct SeedMatch {
   qry_pos: usize,
   ref_pos: usize,
   score: usize,
 }
 
+#[derive(Debug)]
 pub struct SeedAlignmentResult {
   pub mean_shift: i32,
   pub band_width: usize,
@@ -125,9 +127,9 @@ pub fn seed_alignment(
 
   let stripes = make_stripes(qry_seq, ref_seq, params, 20, 9);
   println!("stripes, len {}", stripes.len());
-  println!("pos 0 {} {}", stripes[0].begin, stripes[0].end);
-  println!("pos 15000 {} {}", stripes[15000].begin, stripes[15000].end);
-  println!("pos 29902 {} {}", stripes[29902].begin, stripes[29902].end);
+  println!("pos 0     {:?}", stripes[0]);
+  println!("pos 15000 {:?}", stripes[15000]);
+  println!("pos 29902 {:?}", stripes[29902]);
 
   Ok(SeedAlignmentResult {
     mean_shift: (0.5 * (min_shift + max_shift) as f64).round() as i32,
