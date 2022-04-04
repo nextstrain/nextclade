@@ -18,9 +18,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AaSub {
   pub gene: String,
-  #[serde(rename = "ref")]
+  #[serde(rename = "refAa")]
   pub reff: Aa,
+
+  #[serde(rename = "codon")]
   pub pos: usize,
+
+  #[serde(rename = "queryAa")]
   pub qry: Aa,
   pub codonNucRange: Range,
   pub refContext: String,
@@ -31,9 +35,12 @@ pub struct AaSub {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AaDel {
   pub gene: String,
-  #[serde(rename = "ref")]
+  #[serde(rename = "refAa")]
   pub reff: Aa,
+
+  #[serde(rename = "codon")]
   pub pos: usize,
+
   pub codonNucRange: Range,
   pub refContext: String,
   pub queryContext: String,
