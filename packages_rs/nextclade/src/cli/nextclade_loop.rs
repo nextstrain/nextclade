@@ -8,7 +8,9 @@ use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOut
 use crate::analyze::divergence::calculate_divergence;
 use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
 use crate::analyze::letter_composition::get_letter_composition;
-use crate::analyze::letter_ranges::{find_letter_ranges, find_letter_ranges_by, LetterRange, NucRange};
+use crate::analyze::letter_ranges::{
+  find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, GeneAaRange, LetterRange, NucRange,
+};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
@@ -19,6 +21,7 @@ use crate::cli::nextalign_loop::{nextalign_run_one, NextalignOutputs};
 use crate::cli::nextclade_cli::NextcladeRunArgs;
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crate::gene::gene_map::GeneMap;
+use crate::io::aa::Aa;
 use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use crate::io::gff3::read_gff3_file;
 use crate::io::json::json_write;
@@ -68,8 +71,8 @@ pub struct NextcladeOutputs {
   pub totalAminoacidDeletions: usize,
   pub aaInsertions: Vec<AaIns>,
   pub totalAminoacidInsertions: usize,
-  // pub unknownAaRanges: Vec<GeneAaRange>,
-  // pub totalUnknownAa: usize,
+  pub unknownAaRanges: Vec<GeneAaRange>,
+  pub totalUnknownAa: usize,
   pub alignmentStart: usize,
   pub alignmentEnd: usize,
   pub alignmentScore: usize,
@@ -170,6 +173,9 @@ pub fn nextclade_run_one(
   let aaInsertions = get_aa_insertions(&translations);
   let totalAminoacidInsertions = aaInsertions.len();
 
+  let unknownAaRanges = find_aa_letter_ranges(&translations, Aa::X);
+  let totalUnknownAa = unknownAaRanges.iter().map(|r| r.length).sum();
+
   let TreeFindNearestNodeOutput { node, distance } =
     tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
   let nearestNodeId = node.tmp.id;
@@ -217,6 +223,8 @@ pub fn nextclade_run_one(
       totalAminoacidDeletions,
       aaInsertions,
       totalAminoacidInsertions,
+      unknownAaRanges,
+      totalUnknownAa,
       alignmentStart,
       alignmentEnd,
       alignmentScore,

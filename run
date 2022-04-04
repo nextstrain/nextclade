@@ -57,19 +57,19 @@ NEXTALIGN_PARAMS="\
   --silent
 "
 
-echo "Running Nextalign Rust"
-if [ "${DATA_NAME}" == "sequences" ]; then
-  ./docker-dev r nextalign -- run \
-    --output-dir=${OUTPUT_DIR_NEXTALIGN_RS} \
-    ${NEXTALIGN_PARAMS}
-else
-  ./docker-dev br nextalign
-
-  /usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
-    .build/docker/release/nextalign run \
-    --output-dir=${OUTPUT_DIR_NEXTALIGN_RS} \
-    ${NEXTALIGN_PARAMS}
-fi
+#echo "Running Nextalign Rust"
+#if [ "${DATA_NAME}" == "sequences" ]; then
+#  ./docker-dev r nextalign -- run \
+#    --output-dir=${OUTPUT_DIR_NEXTALIGN_RS} \
+#    ${NEXTALIGN_PARAMS}
+#else
+#  ./docker-dev br nextalign
+#
+#  /usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
+#    .build/docker/release/nextalign run \
+#    --output-dir=${OUTPUT_DIR_NEXTALIGN_RS} \
+#    ${NEXTALIGN_PARAMS}
+#fi
 
 
 #echo "Running Nextalign C++"

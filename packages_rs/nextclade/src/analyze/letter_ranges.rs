@@ -1,7 +1,11 @@
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::translate::translate_genes::Translation;
+use crate::utils::error::keep_ok;
 use crate::utils::range::Range;
+use eyre::Report;
+use map_in_place::MapVecInPlace;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -92,4 +96,28 @@ pub fn find_letter_ranges_by<L: Letter<L>>(seq: &[L], pred: impl Fn(L) -> bool) 
 /// Finds contiguous ranges (segments) consisting of a given nucleotide in the sequence.
 pub fn find_letter_ranges<L: Letter<L>>(qry_aln: &[L], letter: L) -> Vec<LetterRange<L>> {
   find_letter_ranges_by(qry_aln, |candidate| candidate == letter)
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct GeneAaRange {
+  pub gene_name: String,
+  pub letter: Aa,
+  pub ranges: Vec<AaRange>,
+  pub length: usize,
+}
+
+/// Finds contiguous ranges (segments) consisting of a given amino acid in the sequence.
+pub fn find_aa_letter_ranges(translations: &[Result<Translation, Report>], letter: Aa) -> Vec<GeneAaRange> {
+  keep_ok(translations)
+    .map(|Translation { gene_name, seq, .. }| {
+      let ranges = find_letter_ranges_by(seq, |candidate| candidate == letter);
+      let length = ranges.iter().map(LetterRange::len).sum();
+      GeneAaRange {
+        gene_name: gene_name.clone(),
+        letter,
+        ranges,
+        length,
+      }
+    })
+    .collect()
 }
