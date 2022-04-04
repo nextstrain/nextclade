@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2086
+
+set -euo pipefail
+
+export THIS_DIR=$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)
+
+INPUT_FASTA="data_dev/sequences.fasta"
+INPUT_FASTA="data_dev/sequences.fasta"
+OUTPUT_DIR_NEXTALIGN_RS="tmp/1/nextalign_rs/"
+OUTPUT_DIR_NEXTALIGN_CPP="tmp/1/nextalign_cpp/"
+OUTPUT_DIR_NEXTCLADE_RS="tmp/1/nextclade_rs/"
+OUTPUT_DIR_NEXTCLADE_CPP="tmp/1/nextclade_cpp/"
+
+case "${1:-}" in
+"10k" | "b")
+  shift
+  INPUT_FASTA="data_dev/gisaid-10k.fasta"
+  OUTPUT_DIR_NEXTALIGN_RS="tmp/10k/nextalign_rs/"
+  OUTPUT_DIR_NEXTALIGN_CPP="tmp/10k/nextalign_cpp/"
+  OUTPUT_DIR_NEXTCLADE_RS="tmp/10k/nextclade_rs/"
+  OUTPUT_DIR_NEXTCLADE_CPP="tmp/10k/nextclade_cpp/"
+  ;;
+"100k")
+  shift
+  INPUT_FASTA="data_dev/gisaid-100k.fasta"
+  OUTPUT_DIR_NEXTALIGN_RS="tmp/100k/nextalign_rs/"
+  OUTPUT_DIR_NEXTALIGN_CPP="tmp/100k/nextalign_cpp/"
+  OUTPUT_DIR_NEXTCLADE_RS="tmp/100k/nextclade_rs/"
+  OUTPUT_DIR_NEXTCLADE_CPP="tmp/100k/nextclade_cpp/"
+  ;;
+"1M")
+  shift
+  INPUT_FASTA="data_dev/gisaid-1M.fasta"
+  OUTPUT_DIR_NEXTALIGN_RS="tmp/1M/nextalign_rs/"
+  OUTPUT_DIR_NEXTALIGN_CPP="tmp/1M/nextalign_cpp/"
+  OUTPUT_DIR_NEXTCLADE_RS="tmp/1M/nextclade_rs/"
+  OUTPUT_DIR_NEXTCLADE_CPP="tmp/1M/nextclade_cpp/"
+  ;;
+esac
+
+NEXTALIGN_PARAMS="\
+  --sequences=${INPUT_FASTA} \
+  --reference=data_dev/reference.fasta \
+  --genemap=data_dev/genemap.gff \
+  --genes=E,M,N,ORF1a,ORF1b,ORF3a,ORF6,ORF7a,ORF7b,ORF8,ORF9b,S \
+  --output-basename=nextalign \
+  --in-order \
+  --include-reference \
+  --silent
+"
+
+./docker-dev br nextalign --bin=nextclade
+
+echo "Running Nextalign Rust"
+/usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
+  .build/docker/release/nextalign run \
+  --output-dir=${OUTPUT_DIR_NEXTALIGN_RS} \
+  ${NEXTALIGN_PARAMS}
+
+echo "Running Nextalign C++"
+/usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
+  ../nextclade.cpp/nextclade/.out/bin/nextalign-Linux-x86_64 \
+  --output-dir=${OUTPUT_DIR_NEXTALIGN_CPP} \
+  ${NEXTALIGN_PARAMS}
+
+tr -d '"' <${OUTPUT_DIR_NEXTALIGN_CPP}/nextalign.errors.csv >ccc1 && mv ccc1 ${OUTPUT_DIR_NEXTALIGN_CPP}/nextalign.errors.csv
+tr -d '"' <${OUTPUT_DIR_NEXTALIGN_CPP}/nextalign.insertions.csv >ccc2 && mv ccc2 ${OUTPUT_DIR_NEXTALIGN_CPP}/nextalign.insertions.csv
+
+NEXTCLADE_PARAMS="\
+--input-fasta=${INPUT_FASTA} \
+--input-dataset=data_dev \
+--output-basename=nextclade \
+--in-order \
+--include-reference \
+--silent \
+"
+
+echo "Running Nextclade Rust"
+/usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
+  .build/docker/release/nextclade run \
+  --output-dir=${OUTPUT_DIR_NEXTCLADE_RS} \
+  ${NEXTCLADE_PARAMS} \
+  --output-json=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json \
+  --output-tree=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json \
+  --output-tsv=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.tsv
+
+jq -S '.' ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json >ttt1 && mv ttt1 ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json
+
+echo "Running Nextclade C++"
+/usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
+  ../nextclade.cpp/nextclade/.out/bin/nextclade-Linux-x86_64 \
+  --output-dir=${OUTPUT_DIR_NEXTCLADE_CPP} \
+  ${NEXTCLADE_PARAMS} \
+  --output-json=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json \
+  --output-tree=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json \
+  --output-tsv=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.tsv
+
+tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.errors.csv >ccc3 && mv ccc3 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.errors.csv
+tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.insertions.csv >ccc4 && mv ccc4 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.insertions.csv
+jq -S '.' ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json >ttt2 && mv ttt2 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json
