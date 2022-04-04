@@ -4,7 +4,7 @@ use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
+use crate::io::nuc::{from_nuc_seq, Nuc};
 use crate::make_internal_report;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::utils::error::keep_ok;
@@ -23,8 +23,8 @@ pub struct AaSub {
   pub pos: usize,
   pub qry: Aa,
   pub codonNucRange: Range,
-  pub refContext: Vec<Nuc>,
-  pub queryContext: Vec<Nuc>,
+  pub refContext: String,
+  pub queryContext: String,
   pub contextNucRange: Range,
 }
 
@@ -35,8 +35,8 @@ pub struct AaDel {
   pub reff: Aa,
   pub pos: usize,
   pub codonNucRange: Range,
-  pub refContext: Vec<Nuc>,
-  pub queryContext: Vec<Nuc>,
+  pub refContext: String,
+  pub queryContext: String,
   pub contextNucRange: Range,
 }
 
@@ -147,8 +147,8 @@ fn find_aa_changes_for_gene(
     // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
     let context_begin = clamp(codon_begin - 3, 0, num_nucs);
     let context_end = clamp(codon_end + 3, 0, num_nucs);
-    let refContext = ref_seq[context_begin..context_end].to_vec();
-    let queryContext = qry_seq[context_begin..context_end].to_vec();
+    let refContext = from_nuc_seq(&ref_seq[context_begin..context_end]);
+    let queryContext = from_nuc_seq(&qry_seq[context_begin..context_end]);
 
     let codonNucRange = Range {
       begin: codon_begin,
