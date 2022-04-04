@@ -182,9 +182,9 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
       title: "QC Status".to_owned(),
       type_: "categorical".to_owned(),
       scale: vec![
-        pair("good", "#417c52"),
+        pair("good", "#417C52"),
         pair("mediocre", "#cab44d"),
-        pair("bad", "#ca738e"),
+        pair("bad", "#CA738E"),
       ],
     },
     AuspiceColoring {
@@ -201,7 +201,7 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
     let key: &str = &coloring.key;
     match key {
       "region" | "country" | "division" => {
-        coloring.scale.push(pair(AUSPICE_UNKNOWN_VALUE, "#999999"));
+        coloring.scale = concat_to_vec(&[pair(AUSPICE_UNKNOWN_VALUE, "#999999")], &coloring.scale);
       }
       _ => {}
     }
@@ -221,4 +221,6 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
   ];
 
   tree.meta.filters = concat_to_vec(&new_filters, &tree.meta.filters);
+
+  tree.meta.geo_resolutions = serde_json::Value::Null;
 }

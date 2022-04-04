@@ -202,10 +202,7 @@ pub struct AuspiceDisplayDefaults {
   pub color_by: Option<String>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub distance_measure: Option<String>,
-
-  #[serde(flatten)]
-  pub other: serde_json::Value,
+  pub distance_measure: Option<String>
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
@@ -226,8 +223,8 @@ pub struct AuspiceTreeMeta {
 
   pub display_defaults: AuspiceDisplayDefaults,
 
-  #[serde(skip)]
-  pub geo_resolutions: Option<String>,
+  #[serde(skip_serializing_if = "serde_json::Value::is_null")]
+  pub geo_resolutions: serde_json::Value,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
