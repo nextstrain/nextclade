@@ -1,4 +1,4 @@
-use crate::analyze::is_sequenced::is_sequenced;
+use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::NucSub;
 use crate::tree::tree::{AuspiceTree, AuspiceTreeNode};
@@ -60,7 +60,7 @@ pub fn tree_calculate_node_distance(
   // for these we can't tell whether the node agrees with seq
   let mut undetermined_sites = 0_i64;
   for pos in node.tmp.substitutions.keys() {
-    if !is_sequenced(*pos, qry_missing, aln_range) {
+    if !is_nuc_sequenced(*pos, qry_missing, aln_range) {
       undetermined_sites += 1;
     }
   }

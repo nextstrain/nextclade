@@ -6,6 +6,7 @@ use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open
 use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns, StripInsertionsResult};
 use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOutput};
 use crate::analyze::divergence::calculate_divergence;
+use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
 use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
@@ -80,7 +81,7 @@ pub struct NextcladeOutputs {
   pub totalPcrPrimerChanges: usize,
   pub clade: String,
   pub privateNucMutations: PrivateNucMutations,
-  // pub privateAaMutations: BTreeMap<String, PrivateAminoacidMutations>,
+  pub privateAaMutations: BTreeMap<String, PrivateAaMutations>,
   pub missingGenes: Vec<String>,
   pub divergence: f64,
   // pub qc: QcResult,
@@ -194,6 +195,15 @@ pub fn nextclade_run_one(
     virus_properties,
   );
 
+  let private_aa_mutations = find_private_aa_mutations(
+    node,
+    &aaSubstitutions,
+    &aaDeletions,
+    &unknownAaRanges,
+    ref_peptides,
+    gene_map,
+  );
+
   let divergence = calculate_divergence(node, &private_nuc_mutations, &tree.tmp.divergence_units, ref_seq.len());
 
   Ok((
@@ -232,6 +242,7 @@ pub fn nextclade_run_one(
       totalPcrPrimerChanges,
       clade,
       privateNucMutations: private_nuc_mutations,
+      privateAaMutations: private_aa_mutations,
       missingGenes,
       divergence,
       customNodeAttributes: clade_node_attrs,

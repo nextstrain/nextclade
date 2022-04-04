@@ -41,6 +41,12 @@ pub enum Aa {
   Gap,
 }
 
+impl Aa {
+  pub fn is_unknown(self) -> bool {
+    self == Aa::X
+  }
+}
+
 impl ToString for Aa {
   fn to_string(&self) -> String {
     String::from(from_aa(*self))

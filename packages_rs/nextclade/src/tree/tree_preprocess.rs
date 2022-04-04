@@ -110,36 +110,35 @@ fn map_aa_muts(
     .branch_attrs
     .mutations
     .iter()
-    .filter_map(
-      // -> Option<(String, Result<BTreeMap<usize, Aa>, Report>)>
-      |(gene_name, mut_strs)| {
-        let ref_peptide = ref_peptides.get(gene_name);
-        let aa_muts = parent_aa_muts.get(gene_name);
-        match (ref_peptide, aa_muts) {
-          (Some(ref_peptide), Some(aa_muts)) => {
-            let aa_mut_map = map_aa_muts_for_one_gene(node, &ref_peptide.seq, aa_muts);
-            Some((gene_name.clone(), aa_mut_map))
-          }
-          _ => None,
+    .filter_map(|(gene_name, mut_strs)| {
+      let ref_peptide = ref_peptides.get(gene_name);
+      let empty = BTreeMap::<usize, Aa>::new();
+      let aa_muts = parent_aa_muts.get(gene_name).unwrap_or(&empty);
+      match ref_peptide {
+        Some(ref_peptide) => {
+          let aa_mut_map = map_aa_muts_for_one_gene(gene_name, node, &ref_peptide.seq, aa_muts);
+          Some((gene_name.clone(), aa_mut_map))
         }
-      },
-    )
+        _ => None,
+      }
+    })
     .collect()
 }
 
 fn map_aa_muts_for_one_gene(
+  gene_name: &str,
   node: &AuspiceTreeNode,
   ref_peptide: &[Aa],
   parent_aa_muts: &BTreeMap<usize, Aa>,
 ) -> BTreeMap<usize, Aa> {
   let mut aa_muts = parent_aa_muts.clone();
 
-  match node.branch_attrs.mutations.get("nuc") {
+  match node.branch_attrs.mutations.get(gene_name) {
     None => aa_muts,
     Some(mutations) => {
       for mutation_str in mutations {
         let mutation = AaSubMinimal::from_str(mutation_str).unwrap();
-        // If mutation reverts nucleotide back to what reference had, remove it from the map
+        // If mutation reverts amino acid back to what reference had, remove it from the map
         let ref_nuc = ref_peptide[mutation.pos];
         if ref_nuc == mutation.qry {
           aa_muts.remove(&mutation.pos);

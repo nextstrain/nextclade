@@ -106,6 +106,12 @@ pub struct GeneAaRange {
   pub length: usize,
 }
 
+impl GeneAaRange {
+  pub fn contains_pos(&self, pos: usize) -> bool {
+    self.ranges.iter().any(|range| range.contains_pos(pos))
+  }
+}
+
 /// Finds contiguous ranges (segments) consisting of a given amino acid in the sequence.
 pub fn find_aa_letter_ranges(translations: &[Result<Translation, Report>], letter: Aa) -> Vec<GeneAaRange> {
   keep_ok(translations)
