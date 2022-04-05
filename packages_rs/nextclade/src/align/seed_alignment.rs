@@ -8,7 +8,18 @@ fn is_bad_letter(letter: Nuc) -> bool {
   letter == Nuc::N
 }
 
+/// Find substrings of length `seed_length` that don't contain any `N`s (_bad letters_)
+/// # Examples
+/// ```
+/// let qry_example = Nuc::from_string("ACGTTNACCTT");
+/// let seed_length = 3;
+/// let result = get_map_to_good_positions(qry_example, seed_length);
+///
+/// assert_eq!([0,1,2,6,7].to_vec(), result);
+///
 fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> {
+  let qry_example = Nuc::from_string("ACGTTNACCTT");
+
   let qry_len = qry_seq.len();
 
   let mut map_to_good_positions = Vec::<usize>::with_capacity(qry_len);
@@ -29,7 +40,7 @@ fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> 
 pub struct SeedMatch {
   qry_pos: usize,
   ref_pos: usize,
-  score: usize
+  score: usize,
 }
 
 pub struct SeedAlignmentResult {
@@ -111,7 +122,7 @@ pub fn seed_alignment(
   // => shift = 4, then 3, 4 again
   let (min_shift, max_shift) = seed_matches.iter().fold(
     (ref_size as i64, -(ref_size as i64)),
-    |(min, max): (i64, i64), clamp:&SeedMatch | {
+    |(min, max): (i64, i64), clamp: &SeedMatch| {
       let shift = (clamp.ref_pos as i64) - (clamp.qry_pos as i64);
       (min.min(shift), max.max(shift))
     },
