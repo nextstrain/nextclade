@@ -33,6 +33,7 @@ use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::option_get_some;
 use crate::qc::qc_config::QcConfig;
+use crate::qc::qc_run::{qc_run, QcResult};
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{get_failed_genes, Translation, TranslationMap};
@@ -87,7 +88,7 @@ pub struct NextcladeOutputs {
   pub privateAaMutations: BTreeMap<String, PrivateAaMutations>,
   pub missingGenes: Vec<String>,
   pub divergence: f64,
-  // pub qc: QcResult,
+  pub qc: QcResult,
   pub customNodeAttributes: BTreeMap<String, String>,
   //
   #[serde(skip)]
@@ -216,6 +217,15 @@ pub fn nextclade_run_one(
     aaDeletions,
   } = link_nuc_and_aa_changes(&substitutions, &deletions, &aaSubstitutions, &aaDeletions);
 
+  let qc = qc_run(
+    &private_nuc_mutations,
+    &nucleotideComposition,
+    totalMissing,
+    &translations,
+    &frameShifts,
+    &qc_config,
+  );
+
   Ok((
     NextalignOutputs {
       stripped,
@@ -255,6 +265,7 @@ pub fn nextclade_run_one(
       privateAaMutations: private_aa_mutations,
       missingGenes,
       divergence,
+      qc,
       customNodeAttributes: clade_node_attrs,
       nearestNodeId,
     },

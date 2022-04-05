@@ -42,8 +42,14 @@ pub enum Aa {
 }
 
 impl Aa {
+  #[inline]
   pub fn is_unknown(self) -> bool {
     self == Aa::X
+  }
+
+  #[inline]
+  pub fn is_stop(self) -> bool {
+    self == Aa::Stop
   }
 }
 
