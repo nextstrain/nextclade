@@ -22,8 +22,8 @@ pub fn seed_match(kmer: &[Nuc], ref_seq: &[Nuc], start_pos: usize, mismatches_al
         tmp_score += 1;
       }
 
-      // TODO: this speeds up seed-matching by disregarding bad seeds.
-      if tmp_score + mismatches_allowed < pos {
+      // this speeds up seed-matching by disregarding bad seeds.
+      if tmp_score + mismatches_allowed <= pos {
         break;
       }
     }
