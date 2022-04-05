@@ -119,7 +119,7 @@ pub fn score_matrix<T: Letter<T>>(
           ref_gaps = no_align;
         }
 
-        // check the scores of a reference gap
+        // check the scores of a query gap
         if si > 0 {
           q_gap_extend = qry_gaps[(si - 1) as usize] - params.penalty_gap_extend;
           q_gap_open = scores[(si - 1, ri)] - gap_open_close[ri as usize];
