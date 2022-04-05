@@ -1,5 +1,8 @@
 #![allow(non_snake_case)]
 
+use crate::analyze::aa_del::AaDelMinimal;
+use crate::analyze::aa_sub::AaSubMinimal;
+use crate::analyze::nuc_sub::NucSub;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
 use crate::io::aa::Aa;
@@ -13,9 +16,10 @@ use eyre::Report;
 use itertools::{assert_equal, Itertools};
 use num::clamp;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 
 /// Represents aminoacid substitution
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AaSub {
   pub gene: String,
   #[serde(rename = "refAa")]
@@ -32,7 +36,35 @@ pub struct AaSub {
   pub contextNucRange: Range,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+impl AaSub {
+  /// Checks whether this substitution is a deletion (substitution of letter `Gap`)
+  pub fn is_del(&self) -> bool {
+    self.qry.is_gap()
+  }
+
+  pub fn to_minimal(&self) -> AaSubMinimal {
+    AaSubMinimal {
+      reff: self.reff,
+      pos: self.pos,
+      qry: self.qry,
+    }
+  }
+}
+
+/// Order substitutions by position, then ref character, then query character
+impl Ord for AaSub {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.pos, self.reff, self.qry).cmp(&(other.pos, other.reff, other.qry))
+  }
+}
+
+impl PartialOrd for AaSub {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AaDel {
   pub gene: String,
   #[serde(rename = "refAa")]
@@ -45,6 +77,28 @@ pub struct AaDel {
   pub refContext: String,
   pub queryContext: String,
   pub contextNucRange: Range,
+}
+
+impl AaDel {
+  pub fn to_minimal(&self) -> AaDelMinimal {
+    AaDelMinimal {
+      reff: self.reff,
+      pos: self.pos,
+    }
+  }
+}
+
+/// Order substitutions by position, then ref character, then query character
+impl Ord for AaDel {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.pos, self.reff).cmp(&(other.pos, other.reff))
+  }
+}
+
+impl PartialOrd for AaDel {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
+  }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

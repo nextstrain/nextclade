@@ -5,6 +5,7 @@ use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns, StripInsertionsResult};
 use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOutput};
+use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::divergence::calculate_divergence;
 use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
 use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
@@ -12,9 +13,11 @@ use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
   find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, GeneAaRange, LetterRange, NucRange,
 };
+use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNucAndAaChanges};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
+use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::{get_pcr_primer_changes, PcrPrimerChange};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
@@ -53,9 +56,9 @@ use std::collections::{BTreeMap, BTreeSet};
 #[serde(rename_all = "camelCase")]
 pub struct NextcladeOutputs {
   pub seqName: String,
-  pub substitutions: Vec<NucSub>,
+  pub substitutions: Vec<NucSubFull>,
   pub totalSubstitutions: usize,
-  pub deletions: Vec<NucDel>,
+  pub deletions: Vec<NucDelFull>,
   pub totalDeletions: usize,
   pub insertions: Vec<Insertion<Nuc>>,
   pub totalInsertions: usize,
@@ -66,9 +69,9 @@ pub struct NextcladeOutputs {
   pub nucleotideComposition: BTreeMap<Nuc, usize>,
   pub frameShifts: Vec<FrameShift>,
   pub totalFrameShifts: usize,
-  pub aaSubstitutions: Vec<AaSub>,
+  pub aaSubstitutions: Vec<AaSubFull>,
   pub totalAminoacidSubstitutions: usize,
-  pub aaDeletions: Vec<AaDel>,
+  pub aaDeletions: Vec<AaDelFull>,
   pub totalAminoacidDeletions: usize,
   pub aaInsertions: Vec<AaIns>,
   pub totalAminoacidInsertions: usize,
@@ -205,6 +208,13 @@ pub fn nextclade_run_one(
   );
 
   let divergence = calculate_divergence(node, &private_nuc_mutations, &tree.tmp.divergence_units, ref_seq.len());
+
+  let LinkedNucAndAaChanges {
+    substitutions,
+    deletions,
+    aaSubstitutions,
+    aaDeletions,
+  } = link_nuc_and_aa_changes(&substitutions, &deletions, &aaSubstitutions, &aaDeletions);
 
   Ok((
     NextalignOutputs {

@@ -2,7 +2,7 @@ use auto_ops::impl_op_ex;
 use serde::{Deserialize, Serialize};
 use std::ops::Range as StdRange;
 
-#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Range {
   pub begin: usize,
   pub end: usize,
@@ -18,6 +18,11 @@ impl Range {
   pub fn contains(&self, x: usize) -> bool {
     x >= self.begin && x < self.end
   }
+}
+
+#[inline]
+pub fn have_intersection(x: &Range, y: &Range) -> bool {
+  !(y.begin >= x.end || x.begin >= y.end)
 }
 
 // Arithmetic operators

@@ -1,6 +1,7 @@
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::NucDel;
 use crate::analyze::nuc_sub::NucSub;
+use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::nuc::from_nuc;
 use crate::utils::range::Range;
@@ -25,14 +26,18 @@ pub fn format_range(range: &Range) -> String {
   }
 }
 
-pub fn format_nuc_substitutions(substitutions: &[NucSub], delimiter: &str) -> String {
+pub fn format_nuc_substitutions(substitutions: &[NucSubFull], delimiter: &str) -> String {
+  substitutions.iter().map(|sub| sub.sub.to_string()).join(delimiter)
+}
+
+pub fn format_nuc_substitutions_minimal(substitutions: &[NucSub], delimiter: &str) -> String {
   substitutions.iter().map(NucSub::to_string).join(delimiter)
 }
 
-pub fn format_deletions(deletions: &[NucDel], delimiter: &str) -> String {
+pub fn format_deletions(deletions: &[NucDelFull], delimiter: &str) -> String {
   deletions
     .iter()
-    .map(|del| format_range(&del.to_range()))
+    .map(|del| format_range(&del.del.to_range()))
     .join(delimiter)
 }
 
@@ -59,7 +64,7 @@ pub fn format_pcr_primer_changes(pcr_primer_changes: &[PcrPrimerChange], delimit
     .iter()
     .map(|pc| {
       let name = &pc.primer.name;
-      let subs = format_nuc_substitutions(&pc.substitutions, ";");
+      let subs = format_nuc_substitutions_minimal(&pc.substitutions, ";");
       format!("{name}:{subs}")
     })
     .join(delimiter)
