@@ -12,15 +12,6 @@ fn is_bad_letter(letter: Nuc) -> bool {
 /// and are at least 1 away from both:
 /// - ends of sequence AND
 /// - `N`s
-///
-/// # Examples
-/// ```
-/// let qry_example = nextclade::io::nuc::to_nuc_seq("ACGTTNACCTT").unwrap();
-/// let seed_length = 3;
-/// let result = nextclade::align::seed_alignment::get_map_to_good_positions(&qry_example, seed_length);
-///
-/// assert_eq!([1,7].to_vec(), result);
-/// ```
 pub fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> {
   let qry_len = qry_seq.len();
 
@@ -133,4 +124,20 @@ pub fn seed_alignment(
     mean_shift: (0.5 * (min_shift + max_shift) as f64).round() as i32,
     band_width: (max_shift - min_shift + 9) as usize,
   })
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::io::nuc::to_nuc_seq;
+  use pretty_assertions::assert_eq;
+  use rstest::rstest;
+
+  #[rstest]
+  fn map_to_good_positions_general_case() {
+    let qry_seq = to_nuc_seq("ACGTTNACCTT").unwrap();
+    let seed_length = 3;
+    let result = get_map_to_good_positions(&qry_seq, seed_length);
+    assert_eq!(vec![1, 7], result);
+  }
 }
