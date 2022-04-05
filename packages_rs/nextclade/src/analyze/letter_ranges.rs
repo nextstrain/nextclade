@@ -12,6 +12,8 @@ use serde::{Deserialize, Serialize};
 pub struct LetterRange<L: Letter<L>> {
   pub begin: usize,
   pub end: usize,
+
+  #[serde(rename = "character")]
   pub letter: L,
 }
 
@@ -99,8 +101,10 @@ pub fn find_letter_ranges<L: Letter<L>>(qry_aln: &[L], letter: L) -> Vec<LetterR
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GeneAaRange {
   pub gene_name: String,
+  #[serde(rename = "character")]
   pub letter: Aa,
   pub ranges: Vec<AaRange>,
   pub length: usize,

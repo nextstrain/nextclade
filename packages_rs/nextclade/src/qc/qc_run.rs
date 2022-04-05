@@ -16,14 +16,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum QcStatus {
-  #[serde(rename = "lowercase")]
   Good,
-
-  #[serde(rename = "lowercase")]
   Mediocre,
-
-  #[serde(rename = "lowercase")]
   Bad,
 }
 

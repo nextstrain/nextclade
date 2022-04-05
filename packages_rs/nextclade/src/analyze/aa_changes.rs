@@ -22,13 +22,13 @@ use std::cmp::Ordering;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AaSub {
   pub gene: String,
-  #[serde(rename = "refAa")]
+  #[serde(rename = "refAA")]
   pub reff: Aa,
 
   #[serde(rename = "codon")]
   pub pos: usize,
 
-  #[serde(rename = "queryAa")]
+  #[serde(rename = "queryAA")]
   pub qry: Aa,
   pub codonNucRange: Range,
   pub refContext: String,
@@ -67,7 +67,7 @@ impl PartialOrd for AaSub {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AaDel {
   pub gene: String,
-  #[serde(rename = "refAa")]
+  #[serde(rename = "refAA")]
   pub reff: Aa,
 
   #[serde(rename = "codon")]

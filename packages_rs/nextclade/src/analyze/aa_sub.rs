@@ -16,13 +16,13 @@ const AA_MUT_REGEX: &str = r"((?P<ref>[A-Z-*])(?P<pos>\d{1,10})(?P<qry>[A-Z-*]))
 /// Represents aminoacid substitution in a simple way (without gene name and surrounding context)
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AaSubMinimal {
-  #[serde(rename = "refAa")]
+  #[serde(rename = "refAA")]
   pub reff: Aa,
 
   #[serde(rename = "codon")]
   pub pos: usize,
 
-  #[serde(rename = "queryAa")]
+  #[serde(rename = "queryAA")]
   pub qry: Aa,
 }
 

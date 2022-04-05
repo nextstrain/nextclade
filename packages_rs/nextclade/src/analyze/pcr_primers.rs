@@ -36,9 +36,10 @@ pub struct PcrPrimer {
   pub source: String,
   pub target: String,
   pub name: String,
-  pub root_oligonuc: Vec<Nuc>,
-  pub primer_oligonuc: Vec<Nuc>,
+  pub root_oligonuc: String,
+  pub primer_oligonuc: String,
   pub range: Range,
+  #[serde(rename = "nonACGTs")]
   pub non_acgts: Vec<Genotype<Nuc>>,
 }
 
@@ -105,8 +106,8 @@ pub fn convert_pcr_primer(raw: PcrPrimerCsvRow, ref_seq_str: &str) -> Result<Pcr
         source,
         target,
         name,
-        root_oligonuc,
-        primer_oligonuc,
+        root_oligonuc: from_nuc_seq(&root_oligonuc),
+        primer_oligonuc: from_nuc_seq(&primer_oligonuc),
         range,
         non_acgts,
       })

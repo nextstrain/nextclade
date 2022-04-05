@@ -20,7 +20,11 @@ pub struct ClusteredSnp {
 pub struct QcResultSnpClusters {
   pub score: f64,
   pub status: QcStatus,
+
+  #[serde(rename = "totalSNPs")]
   pub total_snps: usize,
+
+  #[serde(rename = "clusteredSNPs")]
   pub clustered_snps: Vec<ClusteredSnp>,
 }
 

@@ -7,7 +7,7 @@ use std::cmp::Ordering;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AaDelMinimal {
-  #[serde(rename = "refAa")]
+  #[serde(rename = "refAA")]
   pub reff: Aa,
 
   #[serde(rename = "codon")]
