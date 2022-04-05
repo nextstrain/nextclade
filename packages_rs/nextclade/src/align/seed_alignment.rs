@@ -5,7 +5,7 @@ use crate::make_error;
 use eyre::Report;
 
 fn is_bad_letter(letter: Nuc) -> bool {
-  letter == Nuc::N
+  !letter.is_acgt()
 }
 
 /// Find substrings of length `seed_length` that don't contain any `N`s (is_bad_letter),
@@ -132,6 +132,14 @@ mod tests {
   use crate::io::nuc::to_nuc_seq;
   use pretty_assertions::assert_eq;
   use rstest::rstest;
+
+  #[rstest]
+  fn map_to_good_positions_amb_is_bad() {
+    let qry_seq = to_nuc_seq("AYGTTNACCTT").unwrap();
+    let seed_length = 3;
+    let result = get_map_to_good_positions(&qry_seq, seed_length);
+    assert_eq!(vec![7], result);
+  }
 
   #[rstest]
   fn map_to_good_positions_general_case() {
