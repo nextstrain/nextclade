@@ -8,18 +8,20 @@ fn is_bad_letter(letter: Nuc) -> bool {
   letter == Nuc::N
 }
 
-/// Find substrings of length `seed_length` that don't contain any `N`s (_bad letters_)
+/// Find substrings of length `seed_length` that don't contain any `N`s (is_bad_letter),
+/// and are at least 1 away from both:
+/// - ends of sequence AND
+/// - `N`s
+///
 /// # Examples
 /// ```
-/// let qry_example = Nuc::from_string("ACGTTNACCTT");
+/// let qry_example = nextclade::io::nuc::to_nuc_seq("ACGTTNACCTT").unwrap();
 /// let seed_length = 3;
-/// let result = get_map_to_good_positions(qry_example, seed_length);
+/// let result = nextclade::align::seed_alignment::get_map_to_good_positions(&qry_example, seed_length);
 ///
-/// assert_eq!([0,1,2,6,7].to_vec(), result);
-///
-fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> {
-  let qry_example = Nuc::from_string("ACGTTNACCTT");
-
+/// assert_eq!([1,7].to_vec(), result);
+/// ```
+pub fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> {
   let qry_len = qry_seq.len();
 
   let mut map_to_good_positions = Vec::<usize>::with_capacity(qry_len);
@@ -48,6 +50,7 @@ pub struct SeedAlignmentResult {
   pub band_width: usize,
 }
 
+/// Calculate the mean shift and band width for a seed alignment.
 pub fn seed_alignment(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
@@ -87,8 +90,6 @@ pub fn seed_alignment(
     );
   }
 
-  // TODO: Maybe use something other than tuple? A struct with named fields to make
-  //  the code in the end of the function less confusing?
   let mut seed_matches = Vec::<SeedMatch>::new();
   for ni in 0..n_seeds {
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
@@ -97,7 +98,7 @@ pub fn seed_alignment(
     let seed = &qry_seq[qry_pos..qry_pos + params.seed_length];
     let tmp_match = seed_match(seed, ref_seq, start_pos, params.mismatches_allowed);
 
-    // Only use seeds with at most allowed_mismatches
+    // Only use seeds with at most `mismatches_allowed` mismatches
     if tmp_match.score >= params.seed_length - params.mismatches_allowed {
       seed_matches.push(SeedMatch {
         qry_pos,
@@ -110,15 +111,15 @@ pub fn seed_alignment(
 
   let num_seed_matches = seed_matches.len();
   if num_seed_matches < 2 {
-    return make_error!("Unable to align: no seed matches. Details: num seed matches: {num_seed_matches}");
+    return make_error!("Unable to align: less than 2 seed matches. Details: num seed matches: {num_seed_matches}");
   }
 
   // Given the seed matches, determine the maximal and minimal shifts.
   // This shift is the typical amount the query needs shifting to match ref.
   //
   // Example:
-  // ref:   ACTCTACTGC-TCAGAC
-  // qry:   ----TCACTCATCT-ACACCGAT
+  // ref:   ACTCTACTGC-CACCGATAAAA
+  // qry:   ----ACTCTACTG-ACACCGAT
   // => shift = 4, then 3, 4 again
   let (min_shift, max_shift) = seed_matches.iter().fold(
     (ref_size as i64, -(ref_size as i64)),
