@@ -5,6 +5,21 @@ pub struct SeedMatchResult {
   pub score: usize,
 }
 
+/// Find best match in reference sequence, with at most `mismatches_allowed` mismatches
+/// Ambiguous nucleotides in kmer will never match
+///
+/// # Examples
+///
+/// ```
+/// let ref_seq = nextclade::io::nuc::to_nuc_seq("ACGCCGACCTCGGTT").unwrap();
+/// let kmer = nextclade::io::nuc::to_nuc_seq("CGGT").unwrap();
+///
+/// let result = nextclade::align::seed_match::seed_match(&kmer, &ref_seq, 0, 1);
+///
+/// assert_eq!(result.ref_pos, 10);
+/// assert_eq!(result.score, 4);
+/// ```
+///
 pub fn seed_match(kmer: &[Nuc], ref_seq: &[Nuc], start_pos: usize, mismatches_allowed: usize) -> SeedMatchResult {
   let ref_len = ref_seq.len();
   let kmer_len = kmer.len();
