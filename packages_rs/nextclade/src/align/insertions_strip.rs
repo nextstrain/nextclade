@@ -89,13 +89,12 @@ pub struct AaIns {
 
 pub fn get_aa_insertions(translations: &[Result<Translation, Report>]) -> Vec<AaIns> {
   keep_ok(translations)
-    .map(|tr| {
+    .flat_map(|tr| {
       tr.insertions.iter().cloned().map(|Insertion::<Aa> { pos, ins }| AaIns {
-        gene_name: tr.gene_name.to_owned(),
+        gene_name: tr.gene_name.clone(),
         pos,
         ins,
       })
     })
-    .flatten()
     .collect_vec()
 }

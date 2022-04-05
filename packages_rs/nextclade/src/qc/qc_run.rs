@@ -25,7 +25,7 @@ pub enum QcStatus {
 
 impl QcStatus {
   pub fn from_score(score: f64) -> QcStatus {
-    if score >= 30.0 && score < 100.0 {
+    if (30.0..100.0).contains(&score) {
       QcStatus::Mediocre
     } else if score >= 100.0 {
       QcStatus::Bad

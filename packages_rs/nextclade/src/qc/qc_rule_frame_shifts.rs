@@ -40,7 +40,7 @@ pub fn rule_frame_shifts(
   let (frame_shifts, frame_shifts_ignored): (Vec<FrameShift>, Vec<FrameShift>) = all_frame_shifts
     .iter()
     .cloned()
-    .partition(|frame_shift| is_frame_shift_ignored(&frame_shift, config));
+    .partition(|frame_shift| is_frame_shift_ignored(frame_shift, config));
 
   let total_frame_shifts = frame_shifts.len();
   let total_frame_shifts_ignored = frame_shifts_ignored.len();

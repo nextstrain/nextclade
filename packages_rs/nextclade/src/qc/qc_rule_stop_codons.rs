@@ -43,8 +43,7 @@ pub fn rule_stop_codons(
     } = translation;
 
     let len_minus_one = peptide.len() - 1; // Minus one to ignore valid stop codon at the end
-    for codon in 0..len_minus_one {
-      let aa = peptide[codon];
+    for (codon, aa) in peptide.iter().enumerate().take(len_minus_one) {
       if aa.is_stop() {
         let stop_codon = StopCodonLocation {
           gene_name: gene_name.clone(),

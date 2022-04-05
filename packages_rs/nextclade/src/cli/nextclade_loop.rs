@@ -223,7 +223,7 @@ pub fn nextclade_run_one(
     totalMissing,
     &translations,
     &frameShifts,
-    &qc_config,
+    qc_config,
   );
 
   Ok((
