@@ -4,12 +4,14 @@ use crate::io::nuc::Nuc;
 
 pub type GapScoreMap = Vec<i32>;
 
+/// Vector with same penalty_gap_open in all positions
 pub fn get_gap_open_close_scores_flat(ref_seq: &[Nuc], params: &AlignPairwiseParams) -> GapScoreMap {
   let value = params.penalty_gap_open;
   let len = ref_seq.len() + 2;
   vec![value; len]
 }
 
+/// Vector with `[penalty_gap_open_in_frame, penalty_gap_open_out_of_frame, penalty_gap_open_out_of_frame]` repeated
 pub fn get_gap_open_close_scores_codon_aware(
   ref_seq: &[Nuc],
   gene_map: &GeneMap,
