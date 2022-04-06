@@ -65,6 +65,7 @@ pub struct NextcladeOutputs {
   pub total_missing: usize,
   #[serde(rename = "nonACGTNs")]
   pub non_acgtns: Vec<NucRange>,
+  #[serde(rename = "totalNonACGTNs")]
   pub total_non_acgtns: usize,
   pub nucleotide_composition: BTreeMap<Nuc, usize>,
   pub frame_shifts: Vec<FrameShift>,
