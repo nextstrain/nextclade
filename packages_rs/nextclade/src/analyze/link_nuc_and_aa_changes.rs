@@ -11,8 +11,8 @@ use itertools::Itertools;
 pub struct LinkedNucAndAaChanges {
   pub substitutions: Vec<NucSubFull>,
   pub deletions: Vec<NucDelFull>,
-  pub aaSubstitutions: Vec<AaSubFull>,
-  pub aaDeletions: Vec<AaDelFull>,
+  pub aa_substitutions: Vec<AaSubFull>,
+  pub aa_deletions: Vec<AaDelFull>,
 }
 
 impl LinkedNucAndAaChanges {
@@ -25,8 +25,8 @@ impl LinkedNucAndAaChanges {
     Self {
       substitutions: substitutions.iter().map(NucSubFull::from_nuc_sub).collect_vec(),
       deletions: deletions.iter().map(NucDelFull::from_nuc_del).collect_vec(),
-      aaSubstitutions: aa_substitutions.iter().map(AaSubFull::from_aa_sub).collect_vec(),
-      aaDeletions: aa_deletions.iter().map(AaDelFull::from_aa_del).collect_vec(),
+      aa_substitutions: aa_substitutions.iter().map(AaSubFull::from_aa_sub).collect_vec(),
+      aa_deletions: aa_deletions.iter().map(AaDelFull::from_aa_del).collect_vec(),
     }
   }
 }
@@ -41,32 +41,32 @@ pub fn link_nuc_and_aa_changes(
 ) -> LinkedNucAndAaChanges {
   let mut linked = LinkedNucAndAaChanges::new(substitutions, deletions, aa_substitutions, aa_deletions);
 
-  for aa_sub in &mut linked.aaSubstitutions {
+  for aa_sub in &mut linked.aa_substitutions {
     for nuc_sub in &mut linked.substitutions {
-      if aa_sub.sub.codonNucRange.contains(nuc_sub.sub.pos) {
+      if aa_sub.sub.codon_nuc_range.contains(nuc_sub.sub.pos) {
         nuc_sub.aa_substitutions.push(aa_sub.sub.to_minimal());
         aa_sub.nuc_substitutions.push(nuc_sub.sub.clone());
       }
     }
 
     for nuc_del in &mut linked.deletions {
-      if have_intersection(&nuc_del.del.to_range(), &aa_sub.sub.codonNucRange) {
+      if have_intersection(&nuc_del.del.to_range(), &aa_sub.sub.codon_nuc_range) {
         nuc_del.aa_substitutions.push(aa_sub.sub.to_minimal());
         aa_sub.nuc_deletions.push(nuc_del.del.clone());
       }
     }
   }
 
-  for aa_del in &mut linked.aaDeletions {
+  for aa_del in &mut linked.aa_deletions {
     for nuc_sub in &mut linked.substitutions {
-      if aa_del.del.codonNucRange.contains(nuc_sub.sub.pos) {
+      if aa_del.del.codon_nuc_range.contains(nuc_sub.sub.pos) {
         nuc_sub.aa_deletions.push(aa_del.del.to_minimal());
         aa_del.nuc_substitutions.push(nuc_sub.sub.clone());
       }
     }
 
     for nuc_del in &mut linked.deletions {
-      if have_intersection(&nuc_del.del.to_range(), &aa_del.del.codonNucRange) {
+      if have_intersection(&nuc_del.del.to_range(), &aa_del.del.codon_nuc_range) {
         nuc_del.aa_deletions.push(aa_del.del.to_minimal());
         aa_del.nuc_deletions.push(nuc_del.del.clone());
       }

@@ -33,7 +33,7 @@ fn tree_attach_new_nodes_impl_in_place_recursive(node: &mut AuspiceTreeNode, res
 
   // Look for a query sample result for which this node was decided to be nearest
   for result in results {
-    if node.tmp.id == result.nearestNodeId {
+    if node.tmp.id == result.nearest_node_id {
       attach_new_node(node, result);
     }
   }
@@ -42,7 +42,7 @@ fn tree_attach_new_nodes_impl_in_place_recursive(node: &mut AuspiceTreeNode, res
 /// Attaches a new node to the reference tree
 fn attach_new_node(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
   debug_assert!(node.is_ref_node());
-  debug_assert_eq!(node.tmp.id, result.nearestNodeId);
+  debug_assert_eq!(node.tmp.id, result.nearest_node_id);
 
   if node.is_leaf() {
     add_aux_node(node);
@@ -61,27 +61,27 @@ fn add_aux_node(node: &mut AuspiceTreeNode) {
 }
 
 fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
-  let mutations = convert_mutations_to_node_branch_attrs(&result.privateNucMutations);
+  let mutations = convert_mutations_to_node_branch_attrs(&result.private_nuc_mutations);
 
   let alignment = format!(
     "start: {}, end: {} (score: {})",
-    result.alignmentStart, result.alignmentEnd, result.alignmentScore
+    result.alignment_start, result.alignment_end, result.alignment_score
   );
 
-  let (has_pcr_primer_changes, pcr_primer_changes) = if result.totalPcrPrimerChanges > 0 {
+  let (has_pcr_primer_changes, pcr_primer_changes) = if result.total_pcr_primer_changes > 0 {
     (Some(TreeNodeAttr::new("No")), None)
   } else {
     (
       Some(TreeNodeAttr::new("Yes")),
       Some(TreeNodeAttr::new(&format_pcr_primer_changes(
-        &result.pcrPrimerChanges,
+        &result.pcr_primer_changes,
         ", ",
       ))),
     )
   };
 
   node.children.push(AuspiceTreeNode {
-    name: format!("{}_new", result.seqName),
+    name: format!("{}_new", result.seq_name),
     branch_attrs: TreeBranchAttrs {
       mutations,
       other: serde_json::Value::default(),
@@ -96,10 +96,10 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
       alignment: Some(TreeNodeAttr::new(&alignment)),
       missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
       gaps: Some(TreeNodeAttr::new(&format_deletions(&result.deletions, ", "))),
-      non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.nonACGTNs, ", "))),
+      non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
       has_pcr_primer_changes,
       pcr_primer_changes,
-      missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missingGenes, ", "))),
+      missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
       other: serde_json::Value::default(),
 
       // TODO

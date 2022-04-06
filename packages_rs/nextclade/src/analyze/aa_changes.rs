@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use crate::analyze::aa_del::AaDelMinimal;
 use crate::analyze::aa_sub::AaSubMinimal;
 use crate::analyze::nuc_sub::NucSub;
@@ -30,10 +28,10 @@ pub struct AaSub {
 
   #[serde(rename = "queryAA")]
   pub qry: Aa,
-  pub codonNucRange: Range,
-  pub refContext: String,
-  pub queryContext: String,
-  pub contextNucRange: Range,
+  pub codon_nuc_range: Range,
+  pub ref_context: String,
+  pub query_context: String,
+  pub context_nuc_range: Range,
 }
 
 impl AaSub {
@@ -73,10 +71,10 @@ pub struct AaDel {
   #[serde(rename = "codon")]
   pub pos: usize,
 
-  pub codonNucRange: Range,
-  pub refContext: String,
-  pub queryContext: String,
-  pub contextNucRange: Range,
+  pub codon_nuc_range: Range,
+  pub ref_context: String,
+  pub query_context: String,
+  pub context_nuc_range: Range,
 }
 
 impl AaDel {
@@ -104,8 +102,8 @@ impl PartialOrd for AaDel {
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FindAaChangesOutput {
-  pub aaSubstitutions: Vec<AaSub>,
-  pub aaDeletions: Vec<AaDel>,
+  pub aa_substitutions: Vec<AaSub>,
+  pub aa_deletions: Vec<AaDel>,
 }
 
 /// Finds aminoacid substitutions and deletions in query peptides relative to reference peptides, in all genes
@@ -150,14 +148,14 @@ pub fn find_aa_changes(
     .collect::<Result<Vec<FindAaChangesOutput>, Report>>()?
     .into_iter()
     .fold(FindAaChangesOutput::default(), |mut output, changes| {
-      output.aaSubstitutions.extend(changes.aaSubstitutions);
-      output.aaDeletions.extend(changes.aaDeletions);
+      output.aa_substitutions.extend(changes.aa_substitutions);
+      output.aa_deletions.extend(changes.aa_deletions);
       output
     });
 
   // TODO: sort by gene and position
-  // changes.aaSubstitutions.sort_by_key(|sub| sub.pos);
-  // changes.aaDeletions.sort_by_key(|del| del.pos);
+  // changes.aa_substitutions.sort_by_key(|sub| sub.pos);
+  // changes.aa_deletions.sort_by_key(|del| del.pos);
 
   Ok(changes)
 }
@@ -187,8 +185,8 @@ fn find_aa_changes_for_gene(
   assert_eq!(ref_peptide.len(), qry_peptide.len());
   assert_eq!(qry_seq.len(), ref_seq.len());
 
-  let mut aaSubstitutions = Vec::<AaSub>::new();
-  let mut aaDeletions = Vec::<AaDel>::new();
+  let mut aa_substitutions = Vec::<AaSub>::new();
+  let mut aa_deletions = Vec::<AaDel>::new();
 
   let num_nucs = qry_seq.len();
   let num_codons = qry_peptide.len();
@@ -208,49 +206,49 @@ fn find_aa_changes_for_gene(
     // Provide surrounding context in nucleotide sequences: 1 codon to the left and 1 codon to the right
     let context_begin = clamp(codon_begin - 3, 0, num_nucs);
     let context_end = clamp(codon_end + 3, 0, num_nucs);
-    let refContext = from_nuc_seq(&ref_seq[context_begin..context_end]);
-    let queryContext = from_nuc_seq(&qry_seq[context_begin..context_end]);
+    let ref_context = from_nuc_seq(&ref_seq[context_begin..context_end]);
+    let query_context = from_nuc_seq(&qry_seq[context_begin..context_end]);
 
-    let codonNucRange = Range {
+    let codon_nuc_range = Range {
       begin: codon_begin,
       end: codon_end,
     };
 
-    let contextNucRange = Range {
+    let context_nuc_range = Range {
       begin: context_begin,
       end: context_end,
     };
 
     if qry_aa.is_gap() {
       // Gap in the ref sequence means that this is a deletion in the query sequence
-      aaDeletions.push(AaDel {
+      aa_deletions.push(AaDel {
         gene: gene.gene_name.clone(),
         reff: ref_aa,
         pos: codon,
-        codonNucRange,
-        refContext,
-        queryContext,
-        contextNucRange,
+        codon_nuc_range,
+        ref_context,
+        query_context,
+        context_nuc_range,
       });
     }
     // TODO: we might account for ambiguous aminoacids in this condition
     else if qry_aa != ref_aa && qry_aa != Aa::X {
       // If not a gap and the state has changed, than it's a substitution
-      aaSubstitutions.push(AaSub {
+      aa_substitutions.push(AaSub {
         gene: gene.gene_name.clone(),
         reff: ref_aa,
         pos: codon,
         qry: qry_aa,
-        codonNucRange,
-        refContext,
-        queryContext,
-        contextNucRange,
+        codon_nuc_range,
+        ref_context,
+        query_context,
+        context_nuc_range,
       });
     }
   }
 
   FindAaChangesOutput {
-    aaSubstitutions,
-    aaDeletions,
+    aa_substitutions,
+    aa_deletions,
   }
 }
