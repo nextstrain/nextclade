@@ -42,16 +42,37 @@ pub fn score_matrix<T: Letter<T>>(
 
   // fill scores with alignment scores
   // The inner index scores[][ri] is the index of the reference sequence
-  // the outer index si index the shift, together they define rPos=ri and qPos = ri-shift
+  // the outer index si index the shift, together they define rPos=ri and qPos = ri-shift = ri - si + band_width
+  //      rPos=ri: 0  1  2  3  4  5  6
+  //               -------------------
+  //          -2|  4
+  //          -1|  3  4
+  //    qPos = 0|  2  3  4
+  //           1|  1  2  3  4
+  //           2|  0  1  2  3  4
+  //           3|     0  1  2  3  4
+  //           4|        0  1  2  3  4
+  //
+  //      rPos:    0  1  2  3  4  5  6
+  //               -------------------
+  //           4| -2 -1  0  1  2  3  4  <- qPos
+  //      si:  3| -1  0  1  2  3  4  5
+  //           2|  0  1  2  3  4  5  6
+  //           1|  1  2  3  4  5  6  7
+  //           0|  2  3  4  5  6  7  8
+  //
+  //
+  //
+
   // if the colon marks the position in the sequence before rPos,qPos
   // R: ...ACT:X
   // Q: ...ACT:Y
   // 1) if X and Y are bases they either match or mismatch. shift doesn't change, rPos and qPos advance
-  //    -> right horizontal step in the matrix
+  //    -> right horizontal step in the matrix (down right)
   // 2) if X is '-' and Y is a base, rPos stays the same and the shift decreases
-  //    -> vertical step in the matrix from si+1 to si
+  //    -> vertical step down in the matrix from si+1 to si (down)
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
-  //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
+  //    -> diagonal step up right in the matrix from (ri,si-1) to (ri+1,si) (right)
   let no_align = -(params.score_match + params.penalty_mismatch) * ref_size as i32;
 
   for si in band_width + 1..=2 * band_width {
@@ -60,11 +81,13 @@ pub fn score_matrix<T: Letter<T>>(
 
   paths[(band_width, 0)] = MATCH;
   qry_gaps[band_width] = -params.penalty_gap_open;
+  // Q: Why reverse? Just convention, to have same diretion as below
   for si in (0..band_width).rev() {
     paths[(si, 0)] = REF_GAP_MATRIX;
     qry_gaps[si] = -params.penalty_gap_open;
   }
 
+  // Cell being filled is actually ri+1
   for ri in 0..ref_size as i32 {
     let mut q_pos: i32 = ri - (band_width as i32 + mean_shift);
     let mut ref_gaps = -gap_open_close[ri as usize];
@@ -121,6 +144,7 @@ pub fn score_matrix<T: Letter<T>>(
 
         // check the scores of a query gap
         if si > 0 {
+          // Gotoh: Better to extend or open
           q_gap_extend = qry_gaps[(si - 1) as usize] - params.penalty_gap_extend;
           q_gap_open = scores[(si - 1, ri)] - gap_open_close[ri as usize];
           if q_gap_extend > q_gap_open {
@@ -185,6 +209,77 @@ mod tests {
       params,
       gene_map,
       gap_open_close,
+    }
+  }
+
+  fn small_example(ctx: Context) -> Result<(), Report> {
+      #[rustfmt::skip]
+      let qry_seq = to_nuc_seq("CTCGCT")?;
+      let ref_seq = to_nuc_seq("GCTCGCT")?;
+
+      let band_width = 2;
+      let mean_shift = 0;
+
+      let result = score_matrix(
+        &qry_seq,
+        &ref_seq,
+        &ctx.gap_open_close,
+        band_width,
+        mean_shift,
+        &ctx.params,
+      );
+
+      #[rustfmt::skip]
+
+      let expected_scores = Vec2d::<i32>::from_slice(&[
+        0,  -1,  -2,   0,   3,  -1,  -1,  -1,
+        0,  -1,   2,   1,   4,   6,  -1,  -1,
+        0,  -1,  -2,   0,   3,   6,   9,  -1,
+        0,   0,   3,   6,   9,  12,  15,  18,
+        0,   0,   0,  -1,   0,   3,   6,   9,
+      ], 5, 8);
+
+      //   In reference-query coordinates
+      //    0
+      //    0 -1
+      //    0 -1 -2
+      //    0 -1  2  0
+      //    0  0 -2  1  3
+      //       0  3  0  4 -1
+      //          0  6  3  6 -1
+      //            -1  9  6 -1 -1
+      //                0 12  9 -1
+      //                   3 15 -1
+      //                      6 18
+      //                         9
+
+      #[rustfmt::skip]
+      let expected_paths = Vec2d::<i32>::from_slice(&[
+        2,   9,   9,  10,  10,  -1,  -1,  -1,
+        2,   9,   9,   9,   9,  10,  -1,  -1,
+        1,   1,  17,   2,   2,   2,   2,  -1,
+        4,  20,  17,  17,  17,   1,   1,   1,
+        4,  20,  20,   1,   4,   4,   4,   4,
+      ], 5, 8);
+
+      //  In reference-query coordinates
+      //  2
+      //  2  9
+      //  1  9  9
+      //  4  1  9 10
+      //  4 20 17  9 10
+      //    20 17  2  9 -1
+      //       20 17  2 10 -1
+      //           1 17  2 -1 -1
+      //              4  1  2 -1
+      //                 4  1 -1
+      //                    4  1
+      //                       4
+
+
+      assert_eq!(expected_scores, result.scores);
+      assert_eq!(expected_paths, result.paths);
+      Ok(())
     }
   }
 
