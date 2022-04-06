@@ -1,6 +1,7 @@
 use color_eyre::Report;
 use eyre::eyre;
 use itertools::Itertools;
+use std::str::FromStr;
 
 pub fn report_to_string(report: &Report) -> String {
   let strings: Vec<String> = report
@@ -13,6 +14,10 @@ pub fn report_to_string(report: &Report) -> String {
 
 pub fn to_eyre_error<T, E: Into<eyre::Error>>(val_or_err: Result<T, E>) -> Result<T, Report> {
   val_or_err.map_err(|report| eyre!(report))
+}
+
+pub fn from_eyre_error<T, E: FromStr>(val_or_err: Result<T, Report>) -> Result<T, E> {
+  val_or_err.map_err(|report| E::from_str(&report_to_string(&report)).ok().unwrap())
 }
 
 pub fn report_to_string_debug_only(report: &Report) -> String {

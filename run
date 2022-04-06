@@ -110,6 +110,12 @@ else
     --output-tsv=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.tsv
 fi
 
+cp ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade_orig.json
+
+jq 'walk(if type == "object" then with_entries(select(.key | test("timestamp|nextcladeVersion|nearestNodeId|length|pcrPrimersChanged|nucSubstitutions|nucDeletions|aaSubstitutions|aaDeletions") | not)) else . end)' \
+  ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade_orig.json \
+  > ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json
+
 jq -S '.' ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json >ttt1 && mv ttt1 ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json
 jq -S '.' ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json >jjj1 && mv jjj1 ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json
 
@@ -118,11 +124,15 @@ jq -S '.' ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json >jjj1 && mv jjj1 ${OUTPUT_DI
 #  ../nextclade.cpp/nextclade/.out/bin/nextclade-Linux-x86_64 \
 #  --output-dir=${OUTPUT_DIR_NEXTCLADE_CPP} \
 #  ${NEXTCLADE_PARAMS} \
-#  --output-json=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json \
+#  --output-json=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade_orig.json \
 #  --output-tree=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json \
 #  --output-tsv=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.tsv
 
-tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.errors.csv >ccc3 && mv ccc3 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.errors.csv
-tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.insertions.csv >ccc4 && mv ccc4 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.insertions.csv
-jq -S '.' ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json >ttt2 && mv ttt2 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json
-jq -S '.' ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json >jjj2 && mv jjj2 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json
+#jq 'walk(if type == "object" then with_entries(select(.key | test("timestamp|nextcladeVersion|nearestNodeId|length|pcrPrimersChanged|nucSubstitutions|nucDeletions|aaSubstitutions|aaDeletions") | not)) else . end)' \
+#  ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade_orig.json \
+#  > ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json
+#
+#tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.errors.csv >ccc3 && mv ccc3 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.errors.csv
+#tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.insertions.csv >ccc4 && mv ccc4 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.insertions.csv
+#jq -S '.' ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json >ttt2 && mv ttt2 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json
+#jq -S '.' ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json >jjj2 && mv jjj2 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json

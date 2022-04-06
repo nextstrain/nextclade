@@ -1,8 +1,9 @@
 use crate::align::score_matrix_aa::lookup_aa_scoring_matrix;
 use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
+use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -88,6 +89,14 @@ impl Letter<Aa> for Aa {
       make_error!("Expected 1 character, but got {}", s.len())
     }
     .wrap_err_with(|| format!("When parsing amino acid: '{s}'"))
+  }
+
+  fn from_seq(seq: &[Aa]) -> String {
+    from_aa_seq(seq)
+  }
+
+  fn to_seq(s: &str) -> Result<Vec<Aa>, Report> {
+    to_aa_seq(s)
   }
 }
 
