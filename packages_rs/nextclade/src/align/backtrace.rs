@@ -1,4 +1,6 @@
-use crate::align::score_matrix::{QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX, END_OF_SEQUENCE, MATCH};
+use crate::align::score_matrix::{
+  END_OF_SEQUENCE, MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX,
+};
 use crate::io::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use std::cmp;
@@ -24,30 +26,33 @@ fn determine_best_alignment(
   let num_cols = scores.num_cols() as i32;
   let num_rows = scores.num_rows() as i32;
 
-  let mut last_score_by_shift: Vec<i32> = vec![0; num_rows as usize];
-  let mut last_index_by_shift: Vec<i32> = vec![0; num_rows as usize];
+  let mut last_score: i32;
+  let mut last_index: i32;
 
   let mut si: i32 = 0;
   let mut best_score = END_OF_SEQUENCE;
+  let mut best_shift: i32 = 0;
+  let mut best_index: i32 = 0;
   for i in 0..num_rows {
     let is = index_to_shift(i, band_width, mean_shift);
     // Determine the last index
-    last_index_by_shift[i as usize] = cmp::min(num_cols - 1, qry_len + is);
+    last_index = cmp::min(num_cols - 1, qry_len + is);
 
-    if (last_index_by_shift[i as usize] >= 0) && (last_index_by_shift[i as usize] < num_cols) {
-      last_score_by_shift[i as usize] = scores[(i, last_index_by_shift[i as usize])];
+    if last_index > 0 {
+      last_score = scores[(i, last_index)];
 
-      if last_score_by_shift[i as usize] > best_score {
-        best_score = last_score_by_shift[i as usize];
+      if last_score > best_score {
+        best_score = last_score;
+        best_shift = is;
         si = i;
+        best_index = last_index;
       }
     }
   }
 
   // determine position tuple q_pos, r_pos corresponding to the place it the matrix
-  let shift = index_to_shift(si, band_width, mean_shift);
-  let r_pos = last_index_by_shift[si as usize] - 1;
-  let q_pos = r_pos - shift;
+  let r_pos = best_index - 1;
+  let q_pos = r_pos - best_shift;
   DetermineBestAlignmentResult {
     si,
     q_pos,
