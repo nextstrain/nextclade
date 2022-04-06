@@ -18,6 +18,7 @@ use std::cmp::Ordering;
 
 /// Represents aminoacid substitution
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AaSub {
   pub gene: String,
   #[serde(rename = "refAA")]
@@ -63,6 +64,7 @@ impl PartialOrd for AaSub {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AaDel {
   pub gene: String,
   #[serde(rename = "refAA")]

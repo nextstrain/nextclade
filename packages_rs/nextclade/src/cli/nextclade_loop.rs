@@ -63,6 +63,7 @@ pub struct NextcladeOutputs {
   pub total_insertions: usize,
   pub missing: Vec<NucRange>,
   pub total_missing: usize,
+  #[serde(rename = "nonACGTNs")]
   pub non_acgtns: Vec<NucRange>,
   pub total_non_acgtns: usize,
   pub nucleotide_composition: BTreeMap<Nuc, usize>,
