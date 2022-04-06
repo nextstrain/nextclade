@@ -3,7 +3,7 @@ use crate::qc::qc_run::{QcRule, QcStatus};
 use num::traits::clamp_min;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultMissingData {
   pub score: f64,

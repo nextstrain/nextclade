@@ -1,9 +1,8 @@
 use crate::analyze::aa_del::AaDelMinimal;
 use crate::analyze::aa_sub::AaSubMinimal;
-use crate::analyze::nuc_sub::NucSub;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
-use crate::io::aa::Aa;
+use crate::io::aa::{from_aa, Aa};
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, Nuc};
 use crate::make_internal_report;
@@ -50,6 +49,19 @@ impl AaSub {
   }
 }
 
+impl ToString for AaSub {
+  fn to_string(&self) -> String {
+    // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
+    return format!(
+      "{}:{}{}{}",
+      self.gene,
+      from_aa(self.reff),
+      self.pos + 1,
+      from_aa(self.qry)
+    );
+  }
+}
+
 /// Order substitutions by position, then ref character, then query character
 impl Ord for AaSub {
   fn cmp(&self, other: &Self) -> Ordering {
@@ -85,6 +97,13 @@ impl AaDel {
       reff: self.reff,
       pos: self.pos,
     }
+  }
+}
+
+impl ToString for AaDel {
+  fn to_string(&self) -> String {
+    // NOTE: by convention, in bioinformatics, amino acids are numbered starting from 1, however our arrays are 0-based
+    return format!("{}:{}{}-", self.gene, from_aa(self.reff), self.pos + 1,);
   }
 }
 

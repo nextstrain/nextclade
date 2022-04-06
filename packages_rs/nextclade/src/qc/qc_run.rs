@@ -23,6 +23,22 @@ pub enum QcStatus {
   Bad,
 }
 
+impl Default for QcStatus {
+  fn default() -> Self {
+    QcStatus::Good
+  }
+}
+
+impl ToString for QcStatus {
+  fn to_string(&self) -> String {
+    match self {
+      QcStatus::Good => "good".to_owned(),
+      QcStatus::Mediocre => "mediocre".to_owned(),
+      QcStatus::Bad => "bad".to_owned(),
+    }
+  }
+}
+
 impl QcStatus {
   pub fn from_score(score: f64) -> QcStatus {
     if (30.0..100.0).contains(&score) {
@@ -35,17 +51,17 @@ impl QcStatus {
   }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResult {
-  missing_data: Option<QcResultMissingData>,
-  mixed_sites: Option<QcResultMixedSites>,
-  private_mutations: Option<QcResultPrivateMutations>,
-  snp_clusters: Option<QcResultSnpClusters>,
-  frame_shifts: Option<QcResultFrameShifts>,
-  stop_codons: Option<QcResultStopCodons>,
-  overall_score: f64,
-  overall_status: QcStatus,
+  pub missing_data: Option<QcResultMissingData>,
+  pub mixed_sites: Option<QcResultMixedSites>,
+  pub private_mutations: Option<QcResultPrivateMutations>,
+  pub snp_clusters: Option<QcResultSnpClusters>,
+  pub frame_shifts: Option<QcResultFrameShifts>,
+  pub stop_codons: Option<QcResultStopCodons>,
+  pub overall_score: f64,
+  pub overall_status: QcStatus,
 }
 
 pub trait QcRule {

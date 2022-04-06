@@ -43,3 +43,24 @@ impl From<Range> for StdRange<usize> {
     }
   }
 }
+
+impl ToString for Range {
+  fn to_string(&self) -> String {
+    debug_assert!(self.begin <= self.end);
+
+    if self.begin >= self.end {
+      return "empty range".to_owned();
+    }
+
+    // NOTE: we (and Rust standard library) use 0-based half-open ranges,
+    // but bioinformaticians prefer 1-based, closed ranges
+    let begin_one = self.begin + 1;
+    let end_one = self.end;
+
+    if end_one == begin_one {
+      format!("{begin_one}")
+    } else {
+      format!("{begin_one}-{end_one}")
+    }
+  }
+}

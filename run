@@ -8,13 +8,13 @@ export THIS_DIR=$(
   pwd
 )
 
-DATA_NAME="sequences"
+DATA_NAME="10"
 INPUT_FASTA="data_dev/sequences.fasta"
 INPUT_FASTA="data_dev/sequences.fasta"
-OUTPUT_DIR_NEXTALIGN_RS="tmp/1/nextalign_rs/"
-OUTPUT_DIR_NEXTALIGN_CPP="tmp/1/nextalign_cpp/"
-OUTPUT_DIR_NEXTCLADE_RS="tmp/1/nextclade_rs/"
-OUTPUT_DIR_NEXTCLADE_CPP="tmp/1/nextclade_cpp/"
+OUTPUT_DIR_NEXTALIGN_RS="tmp/10/nextalign_rs/"
+OUTPUT_DIR_NEXTALIGN_CPP="tmp/10/nextalign_cpp/"
+OUTPUT_DIR_NEXTCLADE_RS="tmp/10/nextclade_rs/"
+OUTPUT_DIR_NEXTCLADE_CPP="tmp/10/nextclade_cpp/"
 
 case "${1:-}" in
 "10k")
@@ -57,22 +57,21 @@ NEXTALIGN_PARAMS="\
   --silent
 "
 
-#echo "Running Nextalign Rust"
-#if [ "${DATA_NAME}" == "sequences" ]; then
+#echo "Running Nextalign Rust: ${DATA_NAME}"
+#if [ "${DATA_NAME}" == "10" ]; then
 #  ./docker-dev r nextalign -- run \
 #    --output-dir=${OUTPUT_DIR_NEXTALIGN_RS} \
 #    ${NEXTALIGN_PARAMS}
 #else
-#  ./docker-dev br nextalign
+#  ./docker-dev br nextalign >/dev/null
 #
 #  /usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
 #    .build/docker/release/nextalign run \
 #    --output-dir=${OUTPUT_DIR_NEXTALIGN_RS} \
 #    ${NEXTALIGN_PARAMS}
 #fi
-
-
-#echo "Running Nextalign C++"
+#
+#echo "Running Nextalign C++: ${DATA_NAME}"
 #/usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
 #  ../nextclade.cpp/nextclade/.out/bin/nextalign-Linux-x86_64 \
 #  --output-dir=${OUTPUT_DIR_NEXTALIGN_CPP} \
@@ -90,49 +89,54 @@ NEXTCLADE_PARAMS="\
 --silent \
 "
 
-echo "Running Nextclade Rust"
-if [ "${DATA_NAME}" == "sequences" ]; then
+echo "Running Nextclade Rust: ${DATA_NAME}"
+if [ "${DATA_NAME}" == "10" ]; then
   ./docker-dev r nextclade -- run \
     --output-dir=${OUTPUT_DIR_NEXTCLADE_RS} \
     ${NEXTCLADE_PARAMS} \
+    --output-tsv=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.tsv \
+    --output-csv=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.csv \
     --output-json=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json \
     --output-tree=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json \
-    --output-tsv=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.tsv
+
 else
-  ./docker-dev br nextclade
+  ./docker-dev br nextclade >/dev/null
 
   /usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
     .build/docker/release/nextclade run \
     --output-dir=${OUTPUT_DIR_NEXTCLADE_RS} \
     ${NEXTCLADE_PARAMS} \
-    --output-json=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json \
-    --output-tree=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json \
-    --output-tsv=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.tsv
-fi
+    --output-tsv=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.tsv \
+    --output-csv=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.csv \
+#    --output-json=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade_orig.json \
+#    --output-tree=${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json \
 
-cp ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade_orig.json
+fi
 
 jq 'walk(if type == "object" then with_entries(select(.key | test("timestamp|nextcladeVersion|nearestNodeId|length|pcrPrimersChanged|nucSubstitutions|nucDeletions|aaSubstitutions|aaDeletions") | not)) else . end)' \
   ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade_orig.json \
-  > ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json
+  >${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json
 
 jq -S '.' ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json >ttt1 && mv ttt1 ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.auspice.json
 jq -S '.' ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json >jjj1 && mv jjj1 ${OUTPUT_DIR_NEXTCLADE_RS}/nextclade.json
 
-#echo "Running Nextclade C++"
+#echo "Running Nextclade C++: ${DATA_NAME}"
 #/usr/bin/time -f 'Time: %E\nMem:  %M KB\n' \
 #  ../nextclade.cpp/nextclade/.out/bin/nextclade-Linux-x86_64 \
 #  --output-dir=${OUTPUT_DIR_NEXTCLADE_CPP} \
 #  ${NEXTCLADE_PARAMS} \
-#  --output-json=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade_orig.json \
-#  --output-tree=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json \
-#  --output-tsv=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.tsv
-
+#  --output-tsv=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.tsv \
+#  --output-csv=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.csv \
+##  --output-json=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade_orig.json \
+##  --output-tree=${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json \
+#
 #jq 'walk(if type == "object" then with_entries(select(.key | test("timestamp|nextcladeVersion|nearestNodeId|length|pcrPrimersChanged|nucSubstitutions|nucDeletions|aaSubstitutions|aaDeletions") | not)) else . end)' \
 #  ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade_orig.json \
-#  > ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json
+#  >${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json
 #
 #tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.errors.csv >ccc3 && mv ccc3 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.errors.csv
 #tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.insertions.csv >ccc4 && mv ccc4 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.insertions.csv
+#tr -d '"' <${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.tsv >ccc5 && mv ccc5 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.tsv
+#sed -i 's|.000000||g' ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.tsv
 #jq -S '.' ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json >ttt2 && mv ttt2 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.auspice.json
 #jq -S '.' ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json >jjj2 && mv jjj2 ${OUTPUT_DIR_NEXTCLADE_CPP}/nextclade.json

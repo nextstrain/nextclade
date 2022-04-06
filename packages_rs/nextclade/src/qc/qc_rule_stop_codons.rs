@@ -8,7 +8,7 @@ use crate::utils::error::keep_ok;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QcResultStopCodons {
   pub score: f64,

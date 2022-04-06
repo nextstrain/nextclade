@@ -5,12 +5,14 @@ use crate::io::errors_csv::ErrorsCsvWriter;
 use crate::io::fasta::{write_translations, FastaPeptideWriter, FastaRecord, FastaWriter};
 use crate::io::insertions_csv::InsertionsCsvWriter;
 use crate::io::ndjson::NdjsonWriter;
+use crate::io::nextclade_csv::NextcladeResultsCsvWriter;
 use crate::io::nuc::from_nuc_seq;
 use crate::io::results_json::ResultsJsonWriter;
 use crate::translate::translate_genes::TranslationMap;
 use crate::tree::tree::CladeNodeAttrKeyDesc;
 use crate::utils::error::report_to_string;
 use eyre::{Report, WrapErr};
+use itertools::Itertools;
 use log::warn;
 use std::collections::HashMap;
 use std::path::Path;
@@ -21,6 +23,8 @@ pub struct NextcladeOrderedWriter<'a> {
   fasta_peptide_writer: FastaPeptideWriter,
   output_json_writer: ResultsJsonWriter,
   output_ndjson_writer: NdjsonWriter,
+  output_csv_writer: NextcladeResultsCsvWriter,
+  output_tsv_writer: NextcladeResultsCsvWriter,
   insertions_csv_writer: InsertionsCsvWriter,
   errors_csv_writer: ErrorsCsvWriter<'a>,
   expected_index: usize,
@@ -31,7 +35,7 @@ pub struct NextcladeOrderedWriter<'a> {
 impl<'a> NextcladeOrderedWriter<'a> {
   pub fn new(
     gene_map: &'a GeneMap,
-    clade_node_attrs: &[CladeNodeAttrKeyDesc],
+    clade_node_attr_key_descs: &[CladeNodeAttrKeyDesc],
     output_fasta: &Path,
     output_json: &Path,
     output_ndjson: &Path,
@@ -45,8 +49,16 @@ impl<'a> NextcladeOrderedWriter<'a> {
   ) -> Result<Self, Report> {
     let fasta_writer = FastaWriter::from_path(&output_fasta)?;
     let fasta_peptide_writer = FastaPeptideWriter::new(gene_map, &output_dir, &output_basename)?;
-    let output_json_writer = ResultsJsonWriter::new(&output_json, clade_node_attrs)?;
+    let output_json_writer = ResultsJsonWriter::new(&output_json, clade_node_attr_key_descs)?;
     let output_ndjson_writer = NdjsonWriter::new(&output_ndjson)?;
+
+    let clade_node_attr_keys = clade_node_attr_key_descs
+      .iter()
+      .map(|desc| desc.name.clone())
+      .collect_vec();
+    let output_csv_writer = NextcladeResultsCsvWriter::new(&output_csv, b';', &clade_node_attr_keys)?;
+    let output_tsv_writer = NextcladeResultsCsvWriter::new(&output_tsv, b'\t', &clade_node_attr_keys)?;
+
     let insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions)?;
     let errors_csv_writer = ErrorsCsvWriter::new(gene_map, &output_errors)?;
     Ok(Self {
@@ -54,6 +66,8 @@ impl<'a> NextcladeOrderedWriter<'a> {
       fasta_peptide_writer,
       output_json_writer,
       output_ndjson_writer,
+      output_csv_writer,
+      output_tsv_writer,
       insertions_csv_writer,
       errors_csv_writer,
       expected_index: 0,
@@ -82,21 +96,31 @@ impl<'a> NextcladeOrderedWriter<'a> {
 
     match outputs_or_err {
       Ok((nextalign_outputs, nextclade_outputs)) => {
-        let NextalignOutputs {
-          stripped, translations, ..
-        } = nextalign_outputs;
+        self
+          .fasta_writer
+          .write(&seq_name, &from_nuc_seq(&nextalign_outputs.stripped.qry_seq))?;
 
-        self.fasta_writer.write(&seq_name, &from_nuc_seq(&stripped.qry_seq))?;
+        self.output_csv_writer.write(&nextalign_outputs, &nextclade_outputs)?;
+
+        self.output_tsv_writer.write(&nextalign_outputs, &nextclade_outputs)?;
 
         self.output_ndjson_writer.write(&nextclade_outputs)?;
 
-        write_translations(&seq_name, &translations, &mut self.fasta_peptide_writer)?;
+        write_translations(
+          &seq_name,
+          &nextalign_outputs.translations,
+          &mut self.fasta_peptide_writer,
+        )?;
+
+        self.insertions_csv_writer.write(
+          &seq_name,
+          &nextalign_outputs.stripped.insertions,
+          &nextalign_outputs.translations,
+        )?;
 
         self
-          .insertions_csv_writer
-          .write(&seq_name, &stripped.insertions, &translations)?;
-
-        self.errors_csv_writer.write_aa_errors(&seq_name, &translations)?;
+          .errors_csv_writer
+          .write_aa_errors(&seq_name, &nextalign_outputs.translations)?;
 
         self.output_json_writer.write(nextclade_outputs);
       }

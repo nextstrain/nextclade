@@ -5,7 +5,7 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::cli::nextclade_loop::NextcladeOutputs;
 use crate::io::nextclade_csv::{
-  format_deletions, format_failed_genes, format_missings, format_non_acgtns, format_pcr_primer_changes,
+  format_nuc_deletions, format_failed_genes, format_missings, format_non_acgtns, format_pcr_primer_changes,
 };
 use crate::tree::tree::{
   AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
@@ -95,7 +95,7 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
       division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
       alignment: Some(TreeNodeAttr::new(&alignment)),
       missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
-      gaps: Some(TreeNodeAttr::new(&format_deletions(&result.deletions, ", "))),
+      gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
       non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
       has_pcr_primer_changes,
       pcr_primer_changes,

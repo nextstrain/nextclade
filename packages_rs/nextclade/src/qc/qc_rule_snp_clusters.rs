@@ -16,7 +16,7 @@ pub struct ClusteredSnp {
   pub number_of_snps: usize,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct QcResultSnpClusters {
   pub score: f64,
   pub status: QcStatus,
