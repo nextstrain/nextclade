@@ -88,7 +88,7 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AaIns {
-  pub gene_name: String,
+  pub gene: String,
   pub pos: i32,
 
   #[serde(serialize_with = "serde_serialize_seq")]
@@ -100,7 +100,7 @@ pub fn get_aa_insertions(translations: &[Result<Translation, Report>]) -> Vec<Aa
   keep_ok(translations)
     .flat_map(|tr| {
       tr.insertions.iter().cloned().map(|Insertion::<Aa> { pos, ins }| AaIns {
-        gene_name: tr.gene_name.clone(),
+        gene: tr.gene_name.clone(),
         pos,
         ins,
       })
