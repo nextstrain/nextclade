@@ -167,6 +167,8 @@ pub fn make_stripes(
 
   let mut band_width = terminal_bandwidth;
   let mut shift = seed_matches[0].ref_pos as i32 - seed_matches[0].qry_pos as i32;
+  // Initial strip -- needs to begin at 0
+  stripes.push(Stripe::new(0, clamp(band_width - shift, 0, query_size)));
   println!("shift: {}, bandwidth {}", shift, band_width);
 
   let mut r: i32 = 0;
@@ -191,12 +193,15 @@ pub fn make_stripes(
     } else {
       let band_width = terminal_bandwidth;
       let shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
-      while r < ref_size {
+      while r < ref_size - 1 {
         let begin = clamp(r - shift - band_width, 0, query_size - terminal_bandwidth); // TODO: band_width == terminal_bandwidth?
         let end = clamp(r - shift + band_width, 0, query_size);
         stripes.push(Stripe::new(begin, end));
         r += 1;
       }
+      let begin = clamp(r - shift - band_width, 0, query_size - terminal_bandwidth); // TODO: band_width == terminal_bandwidth?
+      let end = query_size;
+      stripes.push(Stripe::new(begin, end));
     }
   }
   stripes

@@ -62,7 +62,7 @@ where
       n_cols = n_cols.max(stripe.end);
     }
 
-    let data: Vec<T> = vec![T::default(); n_rows * n_cols];
+    let data: Vec<T> = vec![T::default(); row_start_points[n_rows]];
     Self {
       data,
       stripes: stripes.to_vec(),
