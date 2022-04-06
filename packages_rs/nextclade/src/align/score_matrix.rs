@@ -213,23 +213,23 @@ mod tests {
   }
 
   fn small_example(ctx: Context) -> Result<(), Report> {
-      #[rustfmt::skip]
+    #[rustfmt::skip]
       let qry_seq = to_nuc_seq("CTCGCT")?;
-      let ref_seq = to_nuc_seq("GCTCGCT")?;
+    let ref_seq = to_nuc_seq("GCTCGCT")?;
 
-      let band_width = 2;
-      let mean_shift = 0;
+    let band_width = 2;
+    let mean_shift = 0;
 
-      let result = score_matrix(
-        &qry_seq,
-        &ref_seq,
-        &ctx.gap_open_close,
-        band_width,
-        mean_shift,
-        &ctx.params,
-      );
+    let result = score_matrix(
+      &qry_seq,
+      &ref_seq,
+      &ctx.gap_open_close,
+      band_width,
+      mean_shift,
+      &ctx.params,
+    );
 
-      #[rustfmt::skip]
+    #[rustfmt::skip]
 
       let expected_scores = Vec2d::<i32>::from_slice(&[
         0,  -1,  -2,   0,   3,  -1,  -1,  -1,
@@ -239,21 +239,21 @@ mod tests {
         0,   0,   0,  -1,   0,   3,   6,   9,
       ], 5, 8);
 
-      //   In reference-query coordinates
-      //    0
-      //    0 -1
-      //    0 -1 -2
-      //    0 -1  2  0
-      //    0  0 -2  1  3
-      //       0  3  0  4 -1
-      //          0  6  3  6 -1
-      //            -1  9  6 -1 -1
-      //                0 12  9 -1
-      //                   3 15 -1
-      //                      6 18
-      //                         9
+    //   In reference-query coordinates
+    //    0
+    //    0 -1
+    //    0 -1 -2
+    //    0 -1  2  0
+    //    0  0 -2  1  3
+    //       0  3  0  4 -1
+    //          0  6  3  6 -1
+    //            -1  9  6 -1 -1
+    //                0 12  9 -1
+    //                   3 15 -1
+    //                      6 18
+    //                         9
 
-      #[rustfmt::skip]
+    #[rustfmt::skip]
       let expected_paths = Vec2d::<i32>::from_slice(&[
         2,   9,   9,  10,  10,  -1,  -1,  -1,
         2,   9,   9,   9,   9,  10,  -1,  -1,
@@ -262,25 +262,23 @@ mod tests {
         4,  20,  20,   1,   4,   4,   4,   4,
       ], 5, 8);
 
-      //  In reference-query coordinates
-      //  2
-      //  2  9
-      //  1  9  9
-      //  4  1  9 10
-      //  4 20 17  9 10
-      //    20 17  2  9 -1
-      //       20 17  2 10 -1
-      //           1 17  2 -1 -1
-      //              4  1  2 -1
-      //                 4  1 -1
-      //                    4  1
-      //                       4
+    //  In reference-query coordinates
+    //  2
+    //  2  9
+    //  1  9  9
+    //  4  1  9 10
+    //  4 20 17  9 10
+    //    20 17  2  9 -1
+    //       20 17  2 10 -1
+    //           1 17  2 -1 -1
+    //              4  1  2 -1
+    //                 4  1 -1
+    //                    4  1
+    //                       4
 
-
-      assert_eq!(expected_scores, result.scores);
-      assert_eq!(expected_paths, result.paths);
-      Ok(())
-    }
+    assert_eq!(expected_scores, result.scores);
+    assert_eq!(expected_paths, result.paths);
+    Ok(())
   }
 
   #[rstest]
