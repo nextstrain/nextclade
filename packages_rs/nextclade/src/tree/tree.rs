@@ -135,7 +135,7 @@ impl AuspiceTreeNode {
     self.children.is_empty()
   }
 
-  pub fn is_ref_node(&self) -> bool {
+  pub const fn is_ref_node(&self) -> bool {
     self.tmp.is_ref_node
   }
 

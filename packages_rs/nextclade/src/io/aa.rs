@@ -136,7 +136,7 @@ pub fn to_aa(letter: char) -> Result<Aa, Report> {
 }
 
 #[inline]
-pub fn from_aa(nuc: Aa) -> char {
+pub const fn from_aa(nuc: Aa) -> char {
   match nuc {
     Aa::A => 'A',
     Aa::B => 'B',

@@ -67,7 +67,7 @@ pub struct Nextclade {
 }
 
 impl Nextclade {
-  pub fn new(params: &NextcladeParams) -> Self {
+  pub const fn new(params: &NextcladeParams) -> Self {
     Self { foo: params.foo }
   }
 

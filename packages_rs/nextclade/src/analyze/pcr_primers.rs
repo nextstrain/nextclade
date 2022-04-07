@@ -145,7 +145,7 @@ pub fn find_primer_in_ref_seq(primer_oligonuc: &[Nuc], ref_seq_str: &str) -> Opt
   }
 }
 
-pub fn is_acgt_char(c: char) -> bool {
+pub const fn is_acgt_char(c: char) -> bool {
   matches!(c.to_ascii_uppercase(), 'A' | 'C' | 'G' | 'T')
 }
 

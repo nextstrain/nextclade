@@ -100,7 +100,6 @@
 #![allow(clippy::cognitive_complexity)]
 #![allow(clippy::else_if_without_else)]
 #![allow(clippy::expect_used)]
-#![allow(clippy::missing_const_for_fn)]
 #![allow(clippy::panic)]
 #![allow(clippy::panic_in_result_fn)]
 #![allow(clippy::single_char_lifetime_names)]

@@ -3,7 +3,7 @@ use crate::io::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use std::cmp;
 
-fn index_to_shift(si: i32, band_width: i32, mean_shift: i32) -> i32 {
+const fn index_to_shift(si: i32, band_width: i32, mean_shift: i32) -> i32 {
   si - band_width + mean_shift
 }
 

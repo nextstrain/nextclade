@@ -28,7 +28,7 @@ impl NucSub {
     self.qry.is_gap()
   }
 
-  pub fn genotype(&self) -> Genotype<Nuc> {
+  pub const fn genotype(&self) -> Genotype<Nuc> {
     Genotype {
       pos: self.pos,
       qry: self.qry,

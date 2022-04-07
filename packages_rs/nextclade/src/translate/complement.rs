@@ -1,6 +1,6 @@
 use crate::io::nuc::Nuc;
 
-pub fn complement(nuc: Nuc) -> Nuc {
+pub const fn complement(nuc: Nuc) -> Nuc {
   match nuc {
     Nuc::A => Nuc::T,
     Nuc::C => Nuc::G,

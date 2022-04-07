@@ -65,7 +65,7 @@ pub fn find_codon_mask_range(
 }
 
 #[inline]
-pub fn nuc_range_to_codon_range(range: &Range) -> Range {
+pub const fn nuc_range_to_codon_range(range: &Range) -> Range {
   Range {
     begin: range.begin / 3,
     // Make sure the right boundary is aligned to codon boundary

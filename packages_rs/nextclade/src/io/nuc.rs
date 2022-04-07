@@ -36,7 +36,7 @@ impl ToString for Nuc {
 
 impl Nuc {
   #[inline]
-  pub fn is_acgt(self) -> bool {
+  pub const fn is_acgt(self) -> bool {
     matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T)
   }
 
@@ -46,7 +46,7 @@ impl Nuc {
   }
 
   #[inline]
-  pub fn is_acgtn(self) -> bool {
+  pub const fn is_acgtn(self) -> bool {
     matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T | Nuc::N)
   }
 }
@@ -121,7 +121,7 @@ pub fn to_nuc(letter: char) -> Result<Nuc, Report> {
 }
 
 #[inline]
-pub fn from_nuc(nuc: Nuc) -> char {
+pub const fn from_nuc(nuc: Nuc) -> char {
   match nuc {
     Nuc::T => 'T',
     Nuc::A => 'A',

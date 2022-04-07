@@ -6,7 +6,7 @@ use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
 use eyre::Report;
 
-pub fn decode(triplet: &[Nuc]) -> Aa {
+pub const fn decode(triplet: &[Nuc]) -> Aa {
   match *triplet {
     [Nuc::Gap, Nuc::Gap, Nuc::Gap] => Aa::Gap,
     [Nuc::A, Nuc::A, Nuc::A] => Aa::K,

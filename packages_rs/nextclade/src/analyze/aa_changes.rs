@@ -40,7 +40,7 @@ impl AaSub {
     self.qry.is_gap()
   }
 
-  pub fn to_minimal(&self) -> AaSubMinimal {
+  pub const fn to_minimal(&self) -> AaSubMinimal {
     AaSubMinimal {
       reff: self.reff,
       pos: self.pos,
@@ -92,7 +92,7 @@ pub struct AaDel {
 }
 
 impl AaDel {
-  pub fn to_minimal(&self) -> AaDelMinimal {
+  pub const fn to_minimal(&self) -> AaDelMinimal {
     AaDelMinimal {
       reff: self.reff,
       pos: self.pos,

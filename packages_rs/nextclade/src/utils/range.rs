@@ -10,18 +10,18 @@ pub struct Range {
 
 impl Range {
   #[inline]
-  pub fn new(begin: usize, end: usize) -> Range {
+  pub const fn new(begin: usize, end: usize) -> Range {
     Range { begin, end }
   }
 
   #[inline]
-  pub fn contains(&self, x: usize) -> bool {
+  pub const fn contains(&self, x: usize) -> bool {
     x >= self.begin && x < self.end
   }
 }
 
 #[inline]
-pub fn have_intersection(x: &Range, y: &Range) -> bool {
+pub const fn have_intersection(x: &Range, y: &Range) -> bool {
   !(y.begin >= x.end || x.begin >= y.end)
 }
 

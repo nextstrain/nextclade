@@ -17,7 +17,7 @@ pub struct AaDelMinimal {
 impl AaDelMinimal {
   /// Converts deletion to substitution to Gap
   #[inline]
-  pub fn to_sub(&self) -> AaSubMinimal {
+  pub const fn to_sub(&self) -> AaSubMinimal {
     AaSubMinimal {
       reff: self.reff,
       pos: self.pos,

@@ -52,7 +52,7 @@ pub struct PeptideAlignmentParams {
 /// Deduces aminoacid alignment params from nucleotide alignment.
 /// Gap counts from nucleotide alignment are used to estimate rough parameters. This is by contrast to nucleotide
 /// alignment, where these parameters are estimated using seed matching.
-pub fn calculate_aa_alignment_params(qry_gaps: &GapCounts, ref_gaps: &GapCounts) -> PeptideAlignmentParams {
+pub const fn calculate_aa_alignment_params(qry_gaps: &GapCounts, ref_gaps: &GapCounts) -> PeptideAlignmentParams {
   const BASE_BAND_WIDTH: usize = 5; // An arbitrary magic number to give some additional room for alignment
   let band_width = (qry_gaps.internal + ref_gaps.internal) / 3 + BASE_BAND_WIDTH;
   let mean_shift =
