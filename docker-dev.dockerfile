@@ -208,6 +208,11 @@ FROM base as cross-x86_64-unknown-linux-musl
 ENV RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=mold"
 
 
+# Cross-compilation to WebAssembly
+FROM base as cross-wasm32-unknown-unknown
+SHELL ["bash", "-c"]
+
+
 # Cross-compilation for Linux ARM64
 FROM base as cross-aarch64-unknown-linux-gnu
 

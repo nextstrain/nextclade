@@ -50,8 +50,6 @@ export FILES_TO_WATCH="\
 -w 'Cargo.lock' \
 -w 'Cargo.toml' \
 -w 'clippy.toml' \
--w 'packages_rs/nextclade-cli/src' \
--w 'packages_rs/nextclade-cli/Cargo.toml' \
 -w 'packages_rs/nextclade-web/src' \
 -w 'packages_rs/nextclade-web/Cargo.toml' \
 -w 'packages_rs/nextclade/src' \
@@ -110,19 +108,23 @@ case "$1" in
   RELEASE="--release"
   WATCH=1
   ;;
-"wasm" | "w")
+"wasm" | "W")
   shift
   WASM=1
   RELEASE="dev"
-  WATCH=0
   ;;
-"watch-wasm" | "ww")
+"wasm-release" | "Wr")
+  shift
+  WASM=1
+  RELEASE="prod"
+  ;;
+"watch-wasm" | "wW")
   shift
   WASM=1
   RELEASE="dev"
   WATCH=1
   ;;
-"watch-wasm-release" | "wwr")
+"watch-wasm-release" | "wWr")
   shift
   WASM=1
   RELEASE="prod"
@@ -180,6 +182,10 @@ case "$1" in
   ;;
 esac
 
+if [ "${WASM}" == "1" ]; then
+  CROSS="wasm32-unknown-unknown"
+fi
+
 DOCKER_TARGET="dev"
 DOCKER_TAG="latest"
 RUST_TARGET=""
@@ -190,9 +196,9 @@ if [ -n "${CROSS:-}" ]; then
 fi
 
 DOCKER_BUILD_ARGS=""
+MACOS_SDK_FILENAME="MacOSX11.1.sdk.tar.xz"
+MACOS_SDK_SHA="4a575e099c1b5dafe2835770d2a225c4ed082c2a36ecec9eac0946339fe665f3"
 if [[ "${CROSS:-}" == *-apple-darwin ]]; then
-  MACOS_SDK_FILENAME=MacOSX11.1.sdk.tar.xz
-  MACOS_SDK_SHA=4a575e099c1b5dafe2835770d2a225c4ed082c2a36ecec9eac0946339fe665f3
   DOCKER_BUILD_ARGS=" \
     --build-arg MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME} \
     --build-arg MACOS_SDK_SHA=${MACOS_SDK_SHA} \
