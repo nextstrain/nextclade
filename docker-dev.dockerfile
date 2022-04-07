@@ -1,7 +1,7 @@
 # Freeze base image version to
-# ubuntu:20.04 (pushed 2022-03-18T05:48:59.785294Z)
-# https://hub.docker.com/layers/ubuntu/library/ubuntu/20.04/images/sha256-dcc176d1ab45d154b767be03c703a35fe0df16cfb1cc7ea5dd3b6f9af99b6718
-FROM ubuntu@sha256:dcc176d1ab45d154b767be03c703a35fe0df16cfb1cc7ea5dd3b6f9af99b6718 as base
+# ubuntu:20.04 (pushed 2022-04-05T22:38:34.466804Z)
+# https://hub.docker.com/layers/ubuntu/library/ubuntu/20.04/images/sha256-31cd7bbfd36421dfd338bceb36d803b3663c1bfa87dfe6af7ba764b5bf34de05
+FROM ubuntu@sha256:31cd7bbfd36421dfd338bceb36d803b3663c1bfa87dfe6af7ba764b5bf34de05 as base
 
 SHELL ["bash", "-c"]
 
