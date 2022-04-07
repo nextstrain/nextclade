@@ -103,6 +103,7 @@
 #![allow(clippy::missing_const_for_fn)]
 #![allow(clippy::panic)]
 #![allow(clippy::panic_in_result_fn)]
+#![allow(clippy::single_char_lifetime_names)]
 #![allow(clippy::suboptimal_flops)]
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::unsafe_derive_deserialize)]
