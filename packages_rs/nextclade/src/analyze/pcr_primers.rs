@@ -44,7 +44,7 @@ pub struct PcrPrimer {
 }
 
 impl PcrPrimer {
-  fn from_csv_string(s: &str, ref_seq_str: &str) -> Result<Vec<Self>, Report> {
+  pub fn from_str(s: &str, ref_seq_str: &str) -> Result<Vec<Self>, Report> {
     let raw: Vec<PcrPrimerCsvRow> = parse_csv(s)?;
     raw
       .into_iter()
@@ -58,7 +58,7 @@ impl PcrPrimer {
     let data =
       read_file_to_string(filepath).wrap_err_with(|| format!("When reading PCR primers file {filepath:#?}"))?;
 
-    Self::from_csv_string(&data, ref_seq_str).wrap_err_with(|| format!("When parsing PCR primers file {filepath:#?}"))
+    Self::from_str(&data, ref_seq_str).wrap_err_with(|| format!("When parsing PCR primers file {filepath:#?}"))
   }
 }
 

@@ -202,7 +202,7 @@ pub struct AuspiceDisplayDefaults {
   pub color_by: Option<String>,
 
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub distance_measure: Option<String>
+  pub distance_measure: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
@@ -295,7 +295,7 @@ impl FromStr for AuspiceTree {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    json_parse(s)
+    json_parse(s).wrap_err("When parsing Auspice Tree JSON contents")
   }
 }
 

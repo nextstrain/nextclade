@@ -72,7 +72,7 @@ pub fn qc_run(
   private_nuc_mutations: &PrivateNucMutations,
   nucleotide_composition: &BTreeMap<Nuc, usize>,
   total_missing: usize,
-  translations: &[Result<Translation, Report>],
+  translations: &[Translation],
   frame_shifts: &[FrameShift],
   config: &QcConfig,
 ) -> QcResult {

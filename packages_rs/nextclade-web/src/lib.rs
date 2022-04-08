@@ -183,16 +183,12 @@ impl NextcladeWasm {
     wasm_logger::init(wasm_logger::Config::default());
     console_error_panic_hook::set_once();
 
-    log::debug!("NextcladeWasm::new");
-
     Self {
       nextclade: Nextclade::new(params),
     }
   }
 
   pub fn run(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, JsError> {
-    log::debug!("NextcladeWasm::run(), input:\n{input:#?}");
-
     self
       .nextclade
       .run(input)

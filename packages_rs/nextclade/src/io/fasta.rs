@@ -8,7 +8,7 @@ use eyre::{Report, WrapErr};
 use log::{trace, warn};
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter};
+use std::io::{BufRead, BufReader, BufWriter, Read};
 use std::path::Path;
 
 #[derive(Default, Clone, Debug)]
@@ -34,19 +34,24 @@ impl FastaRecord {
   }
 }
 
-pub struct FastaReader {
-  reader: Box<dyn std::io::BufRead>,
+pub struct FastaReader<'a> {
+  reader: Box<dyn BufRead + 'a>,
   line: String,
   index: usize,
 }
 
-impl FastaReader {
-  pub fn new(reader: Box<dyn std::io::BufRead>) -> Self {
+impl<'a> FastaReader<'a> {
+  pub fn new(reader: Box<dyn BufRead + 'a>) -> Self {
     Self {
       reader,
       line: String::new(),
       index: 0,
     }
+  }
+
+  pub fn from_str(contents: &'a str) -> Result<Self, Report> {
+    let reader = contents.as_bytes();
+    Ok(Self::new(Box::new(reader)))
   }
 
   pub fn from_path(filepath: impl AsRef<Path>) -> Result<Self, Report> {
@@ -92,6 +97,13 @@ impl FastaReader {
 pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report> {
   let filepath = filepath.as_ref();
   let mut reader = FastaReader::from_path(&filepath)?;
+  let mut record = FastaRecord::default();
+  reader.read(&mut record)?;
+  Ok(record)
+}
+
+pub fn read_one_fasta_str(contents: &str) -> Result<FastaRecord, Report> {
+  let mut reader = FastaReader::from_str(contents)?;
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
   Ok(record)
@@ -161,25 +173,4 @@ impl FastaPeptideWriter {
       Some(writer) => writer.write(seq_name, &from_aa_seq(&translation.seq)),
     }
   }
-}
-
-pub fn write_translations(
-  seq_name: &str,
-  translations: &[Result<Translation, Report>],
-  fasta_peptide_writer: &mut FastaPeptideWriter,
-) -> Result<(), Report> {
-  translations
-    .iter()
-    .try_for_each(|translation_or_err| match translation_or_err {
-      Ok(translation) => fasta_peptide_writer.write(seq_name, translation),
-      Err(report) => {
-        warn!(
-          "In sequence '{}': {}. Note that this gene will not be included in the results of the sequence.",
-          &seq_name,
-          report_to_string(report)
-        );
-        Ok(())
-      }
-    })?;
-  Ok(())
 }

@@ -31,6 +31,7 @@ impl<T: Letter<T>> Insertion<T> {
 
 pub type NucIns = Insertion<Nuc>;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StripInsertionsResult<T: Letter<T>> {
   pub qry_seq: Vec<T>,
   pub ref_seq: Vec<T>,
@@ -96,8 +97,9 @@ pub struct AaIns {
   pub ins: Vec<Aa>,
 }
 
-pub fn get_aa_insertions(translations: &[Result<Translation, Report>]) -> Vec<AaIns> {
-  keep_ok(translations)
+pub fn get_aa_insertions(translations: &[Translation]) -> Vec<AaIns> {
+  translations
+    .iter()
     .flat_map(|tr| {
       tr.insertions.iter().cloned().map(|Insertion::<Aa> { pos, ins }| AaIns {
         gene: tr.gene_name.clone(),

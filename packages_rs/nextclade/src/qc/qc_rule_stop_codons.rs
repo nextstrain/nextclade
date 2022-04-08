@@ -25,17 +25,14 @@ impl QcRule for QcResultStopCodons {
   }
 }
 
-pub fn rule_stop_codons(
-  translations: &[Result<Translation, Report>],
-  config: &QcRulesConfigStopCodons,
-) -> Option<QcResultStopCodons> {
+pub fn rule_stop_codons(translations: &[Translation], config: &QcRulesConfigStopCodons) -> Option<QcResultStopCodons> {
   if !config.enabled {
     return None;
   }
 
   let mut stop_codons = Vec::<StopCodonLocation>::new();
   let mut stop_codons_ignored = Vec::<StopCodonLocation>::new();
-  for translation in keep_ok(translations) {
+  for translation in translations {
     let Translation {
       gene_name,
       seq: peptide,

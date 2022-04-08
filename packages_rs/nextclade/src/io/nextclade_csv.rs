@@ -16,7 +16,7 @@ use crate::qc::qc_config::StopCodonLocation;
 use crate::qc::qc_rule_snp_clusters::ClusteredSnp;
 use crate::qc::qc_run::QcResult;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::{get_failed_genes, Translation};
+use crate::translate::translate_genes::Translation;
 use crate::utils::error::report_to_string;
 use crate::utils::num::is_int;
 use crate::utils::range::Range;
@@ -134,18 +134,8 @@ impl NextcladeResultsCsvWriter {
   }
 
   /// Writes one row into nextclade.csv or .tsv file
-  pub fn write(
-    &mut self,
-    nextalign_outputs: &NextalignOutputs,
-    nextclade_outputs: &NextcladeOutputs,
-  ) -> Result<(), Report> {
+  pub fn write(&mut self, translations: &[Translation], nextclade_outputs: &NextcladeOutputs) -> Result<(), Report> {
     const ARRAY_ITEM_DELIMITER: &str = ",";
-
-    let NextalignOutputs {
-      stripped,
-      alignment,
-      translations,
-    } = nextalign_outputs;
 
     let NextcladeOutputs {
       seq_name,
@@ -515,14 +505,13 @@ pub fn format_aa_deletions(substitutions: &[AaDelFull], delimiter: &str) -> Stri
 }
 
 #[inline]
-pub fn format_aa_insertions(maybe_translations: &[Result<Translation, Report>], delimiter: &str) -> String {
-  maybe_translations
+pub fn format_aa_insertions(translations: &[Translation], delimiter: &str) -> String {
+  translations
     .iter()
-    .filter_map(|tr| match tr {
-      Err(_) => None, // Skip genes with errors
-      Ok(Translation {
-        gene_name, insertions, ..
-      }) => Some(
+    .map(
+      |Translation {
+         gene_name, insertions, ..
+       }| {
         insertions
           .iter()
           .map(|Insertion::<Aa> { ins, pos }| {
@@ -530,9 +519,9 @@ pub fn format_aa_insertions(maybe_translations: &[Result<Translation, Report>], 
             let pos_one_based = pos + 1;
             format!("{gene_name}:{pos_one_based}:{ins_str}")
           })
-          .join(";"),
-      ),
-    })
+          .join(";")
+      },
+    )
     .filter(|s| !s.is_empty())
     .join(delimiter)
 }

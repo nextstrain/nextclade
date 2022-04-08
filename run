@@ -10,7 +10,6 @@ export THIS_DIR=$(
 
 DATA_NAME="10"
 INPUT_FASTA="data_dev/sequences.fasta"
-INPUT_FASTA="data_dev/sequences.fasta"
 OUTPUT_DIR_NEXTALIGN_RS="tmp/10/nextalign_rs/"
 OUTPUT_DIR_NEXTALIGN_CPP="tmp/10/nextalign_cpp/"
 OUTPUT_DIR_NEXTCLADE_RS="tmp/10/nextclade_rs/"

@@ -2,7 +2,7 @@ use crate::cli::nextalign_loop::NextalignOutputs;
 use crate::cli::nextclade_loop::{NextcladeOutputs, NextcladeRecord};
 use crate::gene::gene_map::GeneMap;
 use crate::io::errors_csv::ErrorsCsvWriter;
-use crate::io::fasta::{write_translations, FastaPeptideWriter, FastaRecord, FastaWriter};
+use crate::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use crate::io::insertions_csv::InsertionsCsvWriter;
 use crate::io::ndjson::NdjsonWriter;
 use crate::io::nextclade_csv::NextcladeResultsCsvWriter;
@@ -95,32 +95,28 @@ impl<'a> NextcladeOrderedWriter<'a> {
     } = record;
 
     match outputs_or_err {
-      Ok((nextalign_outputs, nextclade_outputs)) => {
-        self
-          .fasta_writer
-          .write(&seq_name, &from_nuc_seq(&nextalign_outputs.stripped.qry_seq))?;
+      Ok((qry_seq_stripped, translations, nextclade_outputs)) => {
+        self.fasta_writer.write(&seq_name, &from_nuc_seq(&qry_seq_stripped))?;
 
-        self.output_csv_writer.write(&nextalign_outputs, &nextclade_outputs)?;
+        self.output_csv_writer.write(&translations, &nextclade_outputs)?;
 
-        self.output_tsv_writer.write(&nextalign_outputs, &nextclade_outputs)?;
+        self.output_tsv_writer.write(&translations, &nextclade_outputs)?;
 
         self.output_ndjson_writer.write(&nextclade_outputs)?;
 
-        write_translations(
-          &seq_name,
-          &nextalign_outputs.translations,
-          &mut self.fasta_peptide_writer,
-        )?;
-
-        self.insertions_csv_writer.write(
-          &seq_name,
-          &nextalign_outputs.stripped.insertions,
-          &nextalign_outputs.translations,
-        )?;
+        for translation in &translations {
+          self.fasta_peptide_writer.write(&seq_name, translation)?;
+        }
 
         self
-          .errors_csv_writer
-          .write_aa_errors(&seq_name, &nextalign_outputs.translations)?;
+          .insertions_csv_writer
+          .write(&seq_name, &nextclade_outputs.insertions, &translations)?;
+
+        self.errors_csv_writer.write_aa_errors(
+          &seq_name,
+          &nextclade_outputs.warnings,
+          &nextclade_outputs.missing_genes,
+        )?;
 
         self.output_json_writer.write(nextclade_outputs);
       }

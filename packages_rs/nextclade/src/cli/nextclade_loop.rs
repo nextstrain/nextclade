@@ -34,7 +34,7 @@ use crate::qc::qc_config::QcConfig;
 use crate::qc::qc_run::{qc_run, QcResult};
 use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::{get_failed_genes, Translation, TranslationMap};
+use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
 use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, CladeNodeAttrKeyDesc};
 use crate::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
@@ -86,6 +86,7 @@ pub struct NextcladeOutputs {
   pub clade: String,
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
+  pub warnings: Vec<String>,
   pub missing_genes: Vec<String>,
   pub divergence: f64,
   pub qc: QcResult,
@@ -98,7 +99,7 @@ pub struct NextcladeOutputs {
 pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
-  pub outputs_or_err: Result<(NextalignOutputs, NextcladeOutputs), Report>,
+  pub outputs_or_err: Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report>,
 }
 
 pub fn nextclade_run_one(
@@ -114,11 +115,13 @@ pub fn nextclade_run_one(
   gap_open_close_nuc: &[i32],
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
-) -> Result<(NextalignOutputs, NextcladeOutputs), Report> {
+) -> Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report> {
   let NextalignOutputs {
     stripped,
     alignment,
     translations,
+    warnings,
+    missing_genes,
   } = nextalign_run_one(
     qry_seq,
     ref_seq,
@@ -138,7 +141,6 @@ pub fn nextclade_run_one(
   let alignment_start = alignment_range.begin;
   let alignment_end = alignment_range.end;
   let alignment_score = alignment.alignment_score;
-  let missing_genes = get_failed_genes(&translations, gene_map);
 
   let total_substitutions = substitutions.len();
   let total_deletions = deletions.iter().map(|del| del.length).sum();
@@ -227,11 +229,8 @@ pub fn nextclade_run_one(
   );
 
   Ok((
-    NextalignOutputs {
-      stripped,
-      alignment,
-      translations,
-    },
+    stripped.qry_seq,
+    translations,
     NextcladeOutputs {
       seq_name: seq_name.to_owned(),
       substitutions,
@@ -263,6 +262,7 @@ pub fn nextclade_run_one(
       clade,
       private_nuc_mutations,
       private_aa_mutations,
+      warnings,
       missing_genes,
       divergence,
       qc,
@@ -456,7 +456,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
       for record in result_receiver {
         if should_keep_outputs {
-          if let Ok((_, nextclade_outputs)) = &record.outputs_or_err {
+          if let Ok((_, _, nextclade_outputs)) = &record.outputs_or_err {
             outputs.push(nextclade_outputs.clone());
           }
         }

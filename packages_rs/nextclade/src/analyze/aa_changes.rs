@@ -135,11 +135,12 @@ pub fn find_aa_changes(
   ref_seq: &[Nuc],
   qry_seq: &[Nuc],
   ref_peptides: &TranslationMap,
-  translations: &[Result<Translation, Report>],
+  translations: &[Translation],
   alignment_range: &Range,
   gene_map: &GeneMap,
 ) -> Result<FindAaChangesOutput, Report> {
-  let changes = keep_ok(translations)
+  let changes = translations
+    .iter()
     .map(
       |Translation {
          gene_name,

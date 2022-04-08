@@ -1,6 +1,9 @@
-use crate::align::score_matrix::{QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX, END_OF_SEQUENCE, MATCH};
+use crate::align::score_matrix::{
+  END_OF_SEQUENCE, MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX,
+};
 use crate::io::letter::Letter;
 use crate::utils::vec2d::Vec2d;
+use serde::{Deserialize, Serialize};
 use std::cmp;
 
 const fn index_to_shift(si: i32, band_width: i32, mean_shift: i32) -> i32 {
@@ -56,6 +59,7 @@ fn determine_best_alignment(
   }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AlignmentOutput<T> {
   pub qry_seq: Vec<T>,
   pub ref_seq: Vec<T>,
