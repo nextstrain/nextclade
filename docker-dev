@@ -139,7 +139,7 @@ case "$1" in
 "web-release" | "ar")
   shift
   WEB=1
-  RELEASE="prod"
+  RELEASE="prod:watch"
   WATCH=0
   ;;
 "test" | "t")
@@ -213,6 +213,7 @@ docker build -q -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
   --build-arg="GID=$(id -g)" \
   --build-arg="USER=user" \
   --build-arg="GROUP=user" \
+  --network=host \
   ${DOCKER_BUILD_ARGS} \
   "${PACKAGE_DIR}" \
   >/dev/null
@@ -268,6 +269,7 @@ mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
 # shellcheck disable=SC2086
 docker run -it --rm \
+  --network=host \
   --init \
   --name="${DOCKER_CONTAINER_NAME}" \
   --hostname="${DOCKER_IMAGE_NAME}" \
