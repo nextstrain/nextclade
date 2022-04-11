@@ -179,13 +179,11 @@ pub struct NextcladeWasm {
 #[wasm_bindgen]
 impl NextcladeWasm {
   #[wasm_bindgen(constructor)]
-  pub fn new(params: &NextcladeParams) -> Self {
+  pub fn new(params: &NextcladeParams) -> Result<NextcladeWasm, JsError> {
     wasm_logger::init(wasm_logger::Config::default());
     console_error_panic_hook::set_once();
-
-    Self {
-      nextclade: Nextclade::new(params),
-    }
+    let nextclade = Nextclade::new(params).map_err(|report| JsError::new(&report_to_string(&report)))?;
+    Ok(Self { nextclade })
   }
 
   pub fn run(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, JsError> {

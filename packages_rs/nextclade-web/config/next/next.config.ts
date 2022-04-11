@@ -17,6 +17,7 @@ import { getEnvVars } from './lib/getEnvVars'
 import getWithExtraWatch from './withExtraWatch'
 import getWithFriendlyConsole from './withFriendlyConsole'
 import getWithLodash from './withLodash'
+import withRaw from './withRaw'
 import { getWithRobotsTxt } from './withRobotsTxt'
 import getWithTypeChecking from './withTypeChecking'
 import withSvg from './withSvg'
@@ -25,6 +26,7 @@ import withoutMinification from './withoutMinification'
 import withFriendlyChunkNames from './withFriendlyChunkNames'
 import withResolve from './withResolve'
 import withUrlAsset from './withUrlAsset'
+import withWasm from './withWasm'
 
 const {
   // BABEL_ENV,
@@ -180,9 +182,11 @@ const config = withPlugins(
     [withTranspileModules],
     PROFILE && [withoutMinification],
     [withFriendlyChunkNames],
+    [withRaw],
     [withResolve],
     [withRobotsTxt],
     [withUrlAsset],
+    [withWasm],
   ].filter(Boolean),
   nextConfig,
 )
