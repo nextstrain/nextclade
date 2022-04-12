@@ -61,7 +61,7 @@ pub struct Band2d<T>
 where
   T: Default + Clone,
 {
-  data: Vec<T>,
+  pub data: Vec<T>,
   stripes: Vec<Stripe>,
   row_start_points: Vec<usize>,
   n_rows: usize,
