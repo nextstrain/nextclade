@@ -54,14 +54,16 @@ pub fn score_matrix<T: Letter<T>>(
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
 
-  paths[(0, 0)] = 0;
-  scores[(0, 0)] = 0;
+  const ZERO: i32 = 0;
+  const NO_ALIGN: i32 = -1000;
+  paths[(ZERO, ZERO)] = 0;
+  scores[(ZERO, ZERO)] = 0;
   for qpos in (stripes[0].begin..stripes[0].end).rev() {
-    paths[(0, qpos + 1)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
-    scores[(0, qpos + 1)] = 0;
+    paths[(ZERO, qpos + 1)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
+    scores[(ZERO, qpos + 1)] = 0;
   }
-  for ri in 0..ref_size as i32 {
-    let mut ref_gaps = -gap_open_close[ri as usize];
+  for ri in 0..ref_size {
+    let mut ref_gaps = -gap_open_close[ri];
 
     for qpos in stripes[ri + 1].begin..stripes[ri + 1].end {
       let mut tmp_path = 0;
@@ -74,29 +76,29 @@ pub fn score_matrix<T: Letter<T>>(
       let tmp_match: i32;
       let mut tmp_score: i32;
 
-      if q_pos == 0 {
+      if qpos == 0 {
         // precedes query sequence -- no score, origin is query gap
         score = 0;
         tmp_path += QRY_GAP_EXTEND;
-        ref_gaps = -gap_open_close[ri as usize];
+        ref_gaps = -gap_open_close[ri];
         origin = QRY_GAP_MATRIX;
-      } else if q_pos < query_size as i32 {
+      } else if qpos < query_size {
         // if the position is within the query sequence
 
         // no gap -- match case
-        let matrix_score = T::lookup_match_score(qry_seq[q_pos as usize], ref_seq[ri as usize]);
+        let matrix_score = T::lookup_match_score(qry_seq[qpos], ref_seq[ri]);
         tmp_match = if matrix_score > 0 {
           params.score_match
         } else {
           -params.penalty_mismatch
         };
-        score = scores[(ri, q_pos)] + tmp_match;
+        score = scores[(ri, qpos)] + tmp_match;
         origin = MATCH;
 
         // check the scores of a reference gap
         if qpos + 1 > stripes[ri + 1].begin {
           r_gap_extend = ref_gaps - params.penalty_gap_extend;
-          r_gap_open = scores[(ri + 1, qpos)] - gap_open_close[(ri + 1) as usize];
+          r_gap_open = scores[(ri + 1, qpos)] - gap_open_close[ri + 1];
           if r_gap_extend > r_gap_open {
             tmp_score = r_gap_extend;
             tmp_path += REF_GAP_EXTEND;
@@ -109,13 +111,13 @@ pub fn score_matrix<T: Letter<T>>(
             origin = REF_GAP_MATRIX;
           }
         } else {
-          ref_gaps = no_align;
+          ref_gaps = NO_ALIGN;
         }
 
         // check the scores of a query gap
         if qpos + 1 < stripes[ri].end {
-          q_gap_extend = qry_gaps[qpos + 1 as usize] - params.penalty_gap_extend;
-          q_gap_open = scores[(ri, qpos + 1)] - gap_open_close[ri as usize];
+          q_gap_extend = qry_gaps[qpos + 1] - params.penalty_gap_extend;
+          q_gap_open = scores[(ri, qpos + 1)] - gap_open_close[ri];
           tmp_score = q_gap_extend.max(q_gap_open);
           if q_gap_extend > q_gap_open {
             tmp_score = q_gap_extend;
@@ -123,13 +125,13 @@ pub fn score_matrix<T: Letter<T>>(
           } else {
             tmp_score = q_gap_open;
           }
-          qry_gaps[qpos + 1 as usize] = tmp_score;
+          qry_gaps[qpos + 1] = tmp_score;
           if score < tmp_score {
             score = tmp_score;
             origin = QRY_GAP_MATRIX;
           }
         } else {
-          qry_gaps[si as usize] = no_align;
+          // qry_gaps[si] = NO_ALIGN;
         }
       } else {
         // past query sequence -- mark as sequence end
