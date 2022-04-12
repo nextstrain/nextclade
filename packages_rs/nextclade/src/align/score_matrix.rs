@@ -158,7 +158,7 @@ pub fn score_matrix<T: Letter<T>>(
 mod tests {
   #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
   use super::*;
-  use crate::align::band_2d::tests::stripe_utils::simple_stripes;
+  use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::gene::gene_map::GeneMap;
   use crate::io::nuc::{to_nuc_seq, Nuc};
