@@ -54,16 +54,15 @@ pub fn score_matrix<T: Letter<T>>(
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
 
-  const ZERO: i32 = 0;
   const NO_ALIGN: i32 = -1000;
 
-  paths[(ZERO, ZERO)] = 0;
-  scores[(ZERO, ZERO)] = 0;
+  paths[(0, 0)] = 0;
+  scores[(0, 0)] = 0;
 
   // Initialize first row
   for qpos in (stripes[0].begin + 1..stripes[0].end).rev() {
-    paths[(ZERO, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
-    scores[(ZERO, qpos)] = 0;
+    paths[(0, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
+    scores[(0, qpos)] = 0;
   }
 
   // Iterate over rows
@@ -166,7 +165,6 @@ mod tests {
   use pretty_assertions::assert_eq;
   use rstest::{fixture, rstest};
 
-  const ZERO: i32 = 0;
 
   struct Context {
     params: AlignPairwiseParams,
@@ -215,8 +213,8 @@ mod tests {
     );
 
     let mut expected_scores = Band2d::<i32>::new(&stripes);
-    expected_scores[(ZERO, 1_usize)] = 1;
-    expected_scores[(ZERO, 2_usize)] = 2;
+    expected_scores[(0, 1)] = 1;
+    expected_scores[(0, 2)] = 2;
 
     // #[rustfmt::skip]
     //     let expected_scores = Band2d::<i32>::from_slice(&[
