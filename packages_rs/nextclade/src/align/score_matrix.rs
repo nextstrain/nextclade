@@ -56,16 +56,21 @@ pub fn score_matrix<T: Letter<T>>(
 
   const ZERO: i32 = 0;
   const NO_ALIGN: i32 = -1000;
+
   paths[(ZERO, ZERO)] = 0;
   scores[(ZERO, ZERO)] = 0;
-  for qpos in (stripes[0].begin..stripes[0].end).rev() {
-    paths[(ZERO, qpos + 1)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
-    scores[(ZERO, qpos + 1)] = 0;
+
+  // Initialize first row
+  for qpos in (stripes[0].begin + 1..stripes[0].end).rev() {
+    paths[(ZERO, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
+    scores[(ZERO, qpos)] = 0;
   }
-  for ri in 0..ref_size {
+
+  // Iterate over rows
+  for ri in 1..ref_size + 1 {
     let mut ref_gaps = -gap_open_close[ri];
 
-    for qpos in stripes[ri + 1].begin..stripes[ri + 1].end {
+    for qpos in stripes[ri].begin..stripes[ri].end {
       let mut tmp_path = 0;
       let mut score: i32;
       let mut origin: i32;
@@ -77,34 +82,38 @@ pub fn score_matrix<T: Letter<T>>(
       let mut tmp_score: i32;
 
       if qpos == 0 {
+        // Initialize first column
         // precedes query sequence -- no score, origin is query gap
         score = 0;
         tmp_path += QRY_GAP_EXTEND;
-        ref_gaps = -gap_open_close[ri];
+        ref_gaps = -gap_open_close[ri]; //ref_gaps stands for ref_gap_score
         origin = QRY_GAP_MATRIX;
       } else if qpos < query_size {
         // if the position is within the query sequence
-
         // no gap -- match case
-        let matrix_score = T::lookup_match_score(qry_seq[qpos], ref_seq[ri]);
-        tmp_match = if matrix_score > 0 {
-          params.score_match
+        // TODO: Handle case where strip ends shift more than one
+        if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
+          score = scores[(ri - 1, qpos - 1)] + params.score_match;
         } else {
-          -params.penalty_mismatch
+          score = scores[(ri - 1, qpos - 1)] - params.penalty_mismatch;
         };
-        score = scores[(ri, qpos)] + tmp_match;
         origin = MATCH;
 
         // check the scores of a reference gap
-        if qpos + 1 > stripes[ri + 1].begin {
+        // if qpos == stripes.begin: ref gap not allowed
+        // thus path skipped
+        if qpos > stripes[ri].begin {
           r_gap_extend = ref_gaps - params.penalty_gap_extend;
-          r_gap_open = scores[(ri + 1, qpos)] - gap_open_close[ri + 1];
+          r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
           if r_gap_extend > r_gap_open {
+            // extension better than opening
             tmp_score = r_gap_extend;
             tmp_path += REF_GAP_EXTEND;
           } else {
+            // opening better than extension
             tmp_score = r_gap_open;
           }
+          // could factor out tmp_score, replacing with ref_gaps but maybe less readable
           ref_gaps = tmp_score;
           if score < tmp_score {
             score = tmp_score;
@@ -115,126 +124,131 @@ pub fn score_matrix<T: Letter<T>>(
         }
 
         // check the scores of a query gap
-        if qpos + 1 < stripes[ri].end {
-          q_gap_extend = qry_gaps[qpos + 1] - params.penalty_gap_extend;
-          q_gap_open = scores[(ri, qpos + 1)] - gap_open_close[ri];
-          tmp_score = q_gap_extend.max(q_gap_open);
+        if qpos < stripes[ri - 1].end {
+          q_gap_extend = qry_gaps[qpos] - params.penalty_gap_extend;
+          q_gap_open = scores[(ri - 1, qpos)] - gap_open_close[ri - 1];
           if q_gap_extend > q_gap_open {
             tmp_score = q_gap_extend;
             tmp_path += QRY_GAP_EXTEND;
           } else {
             tmp_score = q_gap_open;
           }
-          qry_gaps[qpos + 1] = tmp_score;
+          qry_gaps[qpos] = tmp_score;
           if score < tmp_score {
             score = tmp_score;
             origin = QRY_GAP_MATRIX;
           }
         } else {
-          // qry_gaps[si] = NO_ALIGN;
+          qry_gaps[qpos] = NO_ALIGN;
         }
       } else {
         // past query sequence -- mark as sequence end
-        score = scores[(ri, qpos + 1)];
+        score = scores[(ri - 1, qpos)];
         origin = QRY_GAP_EXTEND;
       }
       tmp_path += origin;
-      paths[(ri + 1, qpos + 1)] = tmp_path;
-      scores[(ri + 1, qpos + 1)] = score;
+      paths[(ri, qpos)] = tmp_path;
+      scores[(ri, qpos)] = score;
     }
   }
 
   ScoreMatrixResult { scores, paths }
 }
 
-// #[cfg(test)]
-// mod tests {
-//   #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
-//   use super::*;
-//   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
-//   use crate::gene::gene_map::GeneMap;
-//   use crate::io::nuc::{to_nuc_seq, Nuc};
-//   use eyre::Report;
-//   use pretty_assertions::assert_eq;
-//   use rstest::{fixture, rstest};
-//
-//   struct Context {
-//     params: AlignPairwiseParams,
-//     gene_map: GeneMap,
-//     gap_open_close: GapScoreMap,
-//   }
-//
-//   #[fixture]
-//   fn ctx() -> Context {
-//     let params = AlignPairwiseParams {
-//       min_length: 3,
-//       ..AlignPairwiseParams::default()
-//     };
-//
-//     let gene_map = GeneMap::new();
-//
-//     let dummy_ref_seq = vec![Nuc::Gap; 100];
-//     let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
-//
-//     Context {
-//       params,
-//       gene_map,
-//       gap_open_close,
-//     }
-//   }
-//
-//   #[rstest]
-//   fn pads_missing_left(ctx: Context) -> Result<(), Report> {
-//     #[rustfmt::skip]
-//     let qry_seq = to_nuc_seq("CTCGCT")?;
-//     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
-//
-//     let band_width = 5;
-//     let mean_shift = 2;
-//     let stripes = vec![]; // HACK: stripes are empty
-//
-//     let result = score_matrix(
-//       &qry_seq,
-//       &ref_seq,
-//       &ctx.gap_open_close,
-//       band_width,
-//       mean_shift,
-//       &stripes,
-//       &ctx.params,
-//     );
-//
-//     #[rustfmt::skip]
-//     let expected_scores = Band2d::<i32>::from_slice(&[
-//       0,  -1,   2,   1,  -1,  -1,  -1,  -1,  -1,  -1,
-//       0,  -1,  -2,  -1,   2,  -1,  -1,  -1,  -1,  -1,
-//       0,  -1,   2,   5,   8,  11,  -1,  -1,  -1,  -1,
-//       0,  -1,  -2,  -3,  -1,   2,   5,  -1,  -1,  -1,
-//       0,   0,   3,   2,   5,   4,   7,   6,  -1,  -1,
-//       0,   0,   0,  -1,  -2,   0,   3,   6,   9,  -1,
-//       0,   0,   0,   0,   3,   6,   9,  12,  15,  18,
-//       0,   0,   0,   0,   0,  -1,   0,   3,   6,   9,
-//       0,   0,   0,   0,   0,   0,   3,   2,   5,   6,
-//       0,   0,   0,   0,   0,   0,   0,  -1,   0,   3,
-//       0,   0,   0,   0,   0,   0,   0,   0,   3,   6,
-//     ], 11, 10);
-//
-//     #[rustfmt::skip]
-//     let expected_paths = Vec2d::<i32>::from_slice(&[
-//       2,   9,   9,   9,  -1,  -1,  -1,  -1,  -1,  -1,
-//       2,   9,   9,   2,   2,  -1,  -1,  -1,  -1,  -1,
-//       2,   9,  25,  25,  25,   9,  -1,  -1,  -1,  -1,
-//       2,   1,  17,   1,   2,  12,  12,  -1,  -1,  -1,
-//       2,  20,  17,  25,  25,  25,  25,  25,  -1,  -1,
-//       1,  20,  20,   1,   1,   2,  18,  18,  18,  -1,
-//       4,  20,  20,  20,  17,  25,  25,  17,  17,  17,
-//       4,  20,  20,  20,  20,   1,   4,   4,   4,   4,
-//       4,  20,  20,  20,  20,  20,  17,  25,  25,  28,
-//       4,  20,  20,  20,  20,  20,  20,   1,  20,  20,
-//       4,  20,  20,  20,  20,  20,  20,  20,  17,  17,
-//     ], 11, 10);
-//
-//     assert_eq!(expected_scores, result.scores);
-//     assert_eq!(expected_paths, result.paths);
-//     Ok(())
-//   }
-// }
+#[cfg(test)]
+mod tests {
+  #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
+  use super::*;
+  use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+  use crate::gene::gene_map::GeneMap;
+  use crate::io::nuc::{to_nuc_seq, Nuc};
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::{fixture, rstest};
+
+  const ZERO: i32 = 0;
+
+  struct Context {
+    params: AlignPairwiseParams,
+    gene_map: GeneMap,
+    gap_open_close: GapScoreMap,
+  }
+
+  #[fixture]
+  fn ctx() -> Context {
+    let params = AlignPairwiseParams {
+      min_length: 3,
+      ..AlignPairwiseParams::default()
+    };
+
+    let gene_map = GeneMap::new();
+
+    let dummy_ref_seq = vec![Nuc::Gap; 100];
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
+
+    Context {
+      params,
+      gene_map,
+      gap_open_close,
+    }
+  }
+
+  #[rstest]
+  fn pads_missing_left(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let qry_seq = to_nuc_seq("GAT")?;
+    let ref_seq = to_nuc_seq("GCGAT")?;
+
+    let band_width = 5;
+    let mean_shift = 2;
+    // Test for large dense matrix
+    let stripes = vec![Stripe { begin: 0, end: 4 }; 6];
+
+    let result = score_matrix(
+      &qry_seq,
+      &ref_seq,
+      &ctx.gap_open_close,
+      band_width,
+      mean_shift,
+      &stripes,
+      &ctx.params,
+    );
+
+    let mut expected_scores = Band2d::<i32>::new(&stripes);
+    expected_scores[(ZERO, 1_usize)] = 1;
+    expected_scores[(ZERO, 2_usize)] = 2;
+
+    // #[rustfmt::skip]
+    //     let expected_scores = Band2d::<i32>::from_slice(&[
+    //       0,  -1,   2,   1,  -1,  -1,  -1,  -1,  -1,  -1,
+    //       0,  -1,  -2,  -1,   2,  -1,  -1,  -1,  -1,  -1,
+    //       0,  -1,   2,   5,   8,  11,  -1,  -1,  -1,  -1,
+    //       0,  -1,  -2,  -3,  -1,   2,   5,  -1,  -1,  -1,
+    //       0,   0,   3,   2,   5,   4,   7,   6,  -1,  -1,
+    //       0,   0,   0,  -1,  -2,   0,   3,   6,   9,  -1,
+    //       0,   0,   0,   0,   3,   6,   9,  12,  15,  18,
+    //       0,   0,   0,   0,   0,  -1,   0,   3,   6,   9,
+    //       0,   0,   0,   0,   0,   0,   3,   2,   5,   6,
+    //       0,   0,   0,   0,   0,   0,   0,  -1,   0,   3,
+    //       0,   0,   0,   0,   0,   0,   0,   0,   3,   6,
+    //     ], 11, 10);
+    //  #[rustfmt::skip]
+    //     let expected_paths = Vec2d::<i32>::from_slice(&[
+    //       2,   9,   9,   9,  -1,  -1,  -1,  -1,  -1,  -1,
+    //       2,   9,   9,   2,   2,  -1,  -1,  -1,  -1,  -1,
+    //       2,   9,  25,  25,  25,   9,  -1,  -1,  -1,  -1,
+    //       2,   1,  17,   1,   2,  12,  12,  -1,  -1,  -1,
+    //       2,  20,  17,  25,  25,  25,  25,  25,  -1,  -1,
+    //       1,  20,  20,   1,   1,   2,  18,  18,  18,  -1,
+    //       4,  20,  20,  20,  17,  25,  25,  17,  17,  17,
+    //       4,  20,  20,  20,  20,   1,   4,   4,   4,   4,
+    //       4,  20,  20,  20,  20,  20,  17,  25,  25,  28,
+    //       4,  20,  20,  20,  20,  20,  20,   1,  20,  20,
+    //       4,  20,  20,  20,  20,  20,  20,  20,  17,  17,
+    //     ], 11, 10);
+
+    assert_eq!(expected_scores, result.scores);
+    // assert_eq!(expected_paths, result.paths);
+    Ok(())
+  }
+}

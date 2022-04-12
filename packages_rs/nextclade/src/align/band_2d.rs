@@ -2,7 +2,7 @@ use num_traits::{cast, NumCast};
 use std::ops::{Index, IndexMut};
 
 /// Describes data layout of a single row in `Band2d`
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Stripe {
   pub begin: usize,
   pub end: usize,
@@ -36,6 +36,9 @@ impl Stripe {
 /// The underlying storage is sparse - the row storage consists of `Stripe`s, each of a given size (`stripe.length`)
 /// and shifted by a given amount (`stripe.begin`) relative to the left boundary of the matrix. In each row, the cells
 /// which are outside of the corresponding stripe are not allocated and accessing them is illegal.
+///
+/// Stripe begins must increase monotonically
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Band2d<T>
 where
   T: Default + Clone,
@@ -87,7 +90,13 @@ where
     let row = index2d.0.to_usize().unwrap();
     let col = index2d.1.to_usize().unwrap();
     let stripe = &self.stripes[row];
-    assert!(stripe.begin <= col && col < stripe.end);
+    assert!(
+      stripe.begin <= col && col < stripe.end,
+      "Stripe col out of bounds: stripe.begin = {}, stripe.end = {}, col = {}",
+      stripe.begin,
+      stripe.end,
+      col
+    );
     self.row_start_points[row] + (col - stripe.begin)
   }
 }
