@@ -60,7 +60,7 @@ fn determine_best_alignment(
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AlignmentOutput<T> {
   pub qry_seq: Vec<T>,
   pub ref_seq: Vec<T>,
@@ -168,5 +168,80 @@ pub fn backtrace<T: Letter<T>>(
     qry_seq: aln_qry,
     ref_seq: aln_ref,
     alignment_score: best_score,
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
+  use super::*;
+  use crate::align::align::AlignPairwiseParams;
+  use crate::align::band_2d::simple_stripes;
+  use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+  use crate::align::score_matrix;
+  use crate::gene::gene_map::GeneMap;
+  use crate::io::nuc::{to_nuc_seq, Nuc};
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::{fixture, rstest};
+
+  struct Context {
+    params: AlignPairwiseParams,
+    gene_map: GeneMap,
+    gap_open_close: GapScoreMap,
+  }
+  #[fixture]
+  fn ctx() -> Context {
+    let params = AlignPairwiseParams {
+      min_length: 3,
+      ..AlignPairwiseParams::default()
+    };
+
+    let gene_map = GeneMap::new();
+
+    let dummy_ref_seq = vec![Nuc::Gap; 100];
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
+
+    Context {
+      params,
+      gene_map,
+      gap_open_close,
+    }
+  }
+
+  #[rstest]
+  fn test_backtrace(ctx: Context) -> Result<(), Report> {
+    let qry_seq = to_nuc_seq("CTCGCT")?;
+    let ref_seq = to_nuc_seq("ACGCTCGCT")?;
+
+    let band_width = 5;
+    let mean_shift = 2;
+
+    let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
+
+    let mut scores = Band2d::<i32>::new(&stripes);
+    scores.data = vec![
+      0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 3, -2, 2, -2, 2, 0, -1, 2, -3, 5, -1, 1, 0, 3, -2, 5, -1, 8, 2, 0, -1, 6, 0, 4,
+      2, 11, 0, 3, 0, 9, 3, 7, 5, 0, -1, 2, 3, 12, 6, 6, 3, 0, 5, 6, 15, 9, 6, 3, 6, 9, 18,
+    ];
+
+    let mut paths = Band2d::<i32>::new(&stripes);
+    paths.data = vec![
+      0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 1, 25,
+      2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 1, 25, 4, 17, 18, 25, 17, 20, 25, 4, 17, 18, 17, 20, 28, 4, 17,
+    ];
+
+    let expected_output = AlignmentOutput {
+      qry_seq: to_nuc_seq("---CTCGCT")?,
+      ref_seq: to_nuc_seq("ACGCTCGCT")?,
+      alignment_score: 18,
+    };
+
+    let output = backtrace(&qry_seq, &ref_seq, &scores, &paths, mean_shift);
+
+    assert_eq!(expected_output, output);
+    // assert_eq!(expected_paths, result.paths);
+
+    Ok(())
   }
 }
