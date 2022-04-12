@@ -159,6 +159,7 @@ mod tests {
   use super::*;
   use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+  use crate::align::score_matrix;
   use crate::gene::gene_map::GeneMap;
   use crate::io::nuc::{to_nuc_seq, Nuc};
   use eyre::Report;
@@ -192,17 +193,13 @@ mod tests {
 
   #[rstest]
   fn pads_missing_left(ctx: Context) -> Result<(), Report> {
-    #[rustfmt::skip]
-    // let ref_seq = to_nuc_seq("CAA")?;
-    // let qry_seq = to_nuc_seq("CTT")?;
     let qry_seq = to_nuc_seq("CTCGCT")?;
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
 
     let band_width = 5;
     let mean_shift = 2;
-    // Test for large dense matrix
-    let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
+    let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
     let result = score_matrix(
       &qry_seq,
       &ref_seq,
@@ -213,45 +210,21 @@ mod tests {
       &ctx.params,
     );
 
-    // let mut expected_scores = Band2d::<i32>::new(&stripes);
+    let mut expected_scores = Band2d::<i32>::new(&stripes);
+    expected_scores.data = vec![
+      0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 3, -2, 2, -2, 2, 0, -1, 2, -3, 5, -1, 1, 0, 3, -2, 5, -1, 8, 2, 0, -1, 6, 0, 4,
+      2, 11, 0, 3, 0, 9, 3, 7, 5, 0, -1, 2, 3, 12, 6, 6, 3, 0, 5, 6, 15, 9, 6, 3, 6, 9, 18,
+    ];
 
-    println!("{:?}", ctx.params);
-    println!("{:?}", result.scores);
-    println!("{:?}", result.paths);
-    // expected_scores[(0, 1)] = 1;
-    // expected_scores[(0, 2)] = 2;
+    let mut expected_paths = Band2d::<i32>::new(&stripes);
+    expected_paths.data = vec![
+      0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 1, 25,
+      2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 1, 25, 4, 17, 18, 25, 17, 20, 25, 4, 17, 18, 17, 20, 28, 4, 17,
+    ];
 
-    // #[rustfmt::skip]
-    //     let expected_scores = Band2d::<i32>::from_slice(&[
-    //       0,  -1,   2,   1,  -1,  -1,  -1,  -1,  -1,  -1,
-    //       0,  -1,  -2,  -1,   2,  -1,  -1,  -1,  -1,  -1,
-    //       0,  -1,   2,   5,   8,  11,  -1,  -1,  -1,  -1,
-    //       0,  -1,  -2,  -3,  -1,   2,   5,  -1,  -1,  -1,
-    //       0,   0,   3,   2,   5,   4,   7,   6,  -1,  -1,
-    //       0,   0,   0,  -1,  -2,   0,   3,   6,   9,  -1,
-    //       0,   0,   0,   0,   3,   6,   9,  12,  15,  18,
-    //       0,   0,   0,   0,   0,  -1,   0,   3,   6,   9,
-    //       0,   0,   0,   0,   0,   0,   3,   2,   5,   6,
-    //       0,   0,   0,   0,   0,   0,   0,  -1,   0,   3,
-    //       0,   0,   0,   0,   0,   0,   0,   0,   3,   6,
-    //     ], 11, 10);
-    //  #[rustfmt::skip]
-    //     let expected_paths = Vec2d::<i32>::from_slice(&[
-    //       2,   9,   9,   9,  -1,  -1,  -1,  -1,  -1,  -1,
-    //       2,   9,   9,   2,   2,  -1,  -1,  -1,  -1,  -1,
-    //       2,   9,  25,  25,  25,   9,  -1,  -1,  -1,  -1,
-    //       2,   1,  17,   1,   2,  12,  12,  -1,  -1,  -1,
-    //       2,  20,  17,  25,  25,  25,  25,  25,  -1,  -1,
-    //       1,  20,  20,   1,   1,   2,  18,  18,  18,  -1,
-    //       4,  20,  20,  20,  17,  25,  25,  17,  17,  17,
-    //       4,  20,  20,  20,  20,   1,   4,   4,   4,   4,
-    //       4,  20,  20,  20,  20,  20,  17,  25,  25,  28,
-    //       4,  20,  20,  20,  20,  20,  20,   1,  20,  20,
-    //       4,  20,  20,  20,  20,  20,  20,  20,  17,  17,
-    //     ], 11, 10);
+    assert_eq!(expected_scores, result.scores);
+    assert_eq!(expected_paths, result.paths);
 
-    // assert_eq!(expected_scores, result.scores);
-    // assert_eq!(expected_paths, result.paths);
     Ok(())
   }
 }
