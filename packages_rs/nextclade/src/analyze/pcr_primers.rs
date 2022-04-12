@@ -36,14 +36,15 @@ pub struct PcrPrimer {
   pub source: String,
   pub target: String,
   pub name: String,
-  pub root_oligonuc: Vec<Nuc>,
-  pub primer_oligonuc: Vec<Nuc>,
+  pub root_oligonuc: String,
+  pub primer_oligonuc: String,
   pub range: Range,
+  #[serde(rename = "nonACGTs")]
   pub non_acgts: Vec<Genotype<Nuc>>,
 }
 
 impl PcrPrimer {
-  fn from_csv_string(s: &str, ref_seq_str: &str) -> Result<Vec<Self>, Report> {
+  pub fn from_str(s: &str, ref_seq_str: &str) -> Result<Vec<Self>, Report> {
     let raw: Vec<PcrPrimerCsvRow> = parse_csv(s)?;
     raw
       .into_iter()
@@ -57,7 +58,7 @@ impl PcrPrimer {
     let data =
       read_file_to_string(filepath).wrap_err_with(|| format!("When reading PCR primers file {filepath:#?}"))?;
 
-    Self::from_csv_string(&data, ref_seq_str).wrap_err_with(|| format!("When parsing PCR primers file {filepath:#?}"))
+    Self::from_str(&data, ref_seq_str).wrap_err_with(|| format!("When parsing PCR primers file {filepath:#?}"))
   }
 }
 
@@ -105,8 +106,8 @@ pub fn convert_pcr_primer(raw: PcrPrimerCsvRow, ref_seq_str: &str) -> Result<Pcr
         source,
         target,
         name,
-        root_oligonuc,
-        primer_oligonuc,
+        root_oligonuc: from_nuc_seq(&root_oligonuc),
+        primer_oligonuc: from_nuc_seq(&primer_oligonuc),
         range,
         non_acgts,
       })
@@ -144,7 +145,7 @@ pub fn find_primer_in_ref_seq(primer_oligonuc: &[Nuc], ref_seq_str: &str) -> Opt
   }
 }
 
-pub fn is_acgt_char(c: char) -> bool {
+pub const fn is_acgt_char(c: char) -> bool {
   matches!(c.to_ascii_uppercase(), 'A' | 'C' | 'G' | 'T')
 }
 

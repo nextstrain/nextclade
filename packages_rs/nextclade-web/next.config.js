@@ -1,12 +1,3 @@
-// @ts-check
+import config from './config/next/next.config'
 
-/** @type {import('next').NextConfig} */
-module.exports = {
-  reactStrictMode: true,
-
-  webpack(config) {
-    config.experiments = { ...(config.experiments ?? {}), asyncWebAssembly: true }
-    config.plugins = [...config.plugins]
-    return config
-  },
-}
+module.exports = config

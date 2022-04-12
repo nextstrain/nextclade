@@ -2,24 +2,35 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "*": ["src/types/*"],
+      "*": ["src/types/*", "src/gen/*"],
       "src/*": ["./src/*"]
     },
+    "target": "esnext",
+    "module": "esnext",
+    "lib": ["esnext", "dom", "webworker"],
+    "jsx": "preserve",
+    "moduleResolution": "node",
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": true,
     "esModuleInterop": true,
+    "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "isolatedModules": true,
-    "jsx": "preserve",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "module": "ESNext",
-    "moduleResolution": "node",
     "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "preserveConstEnums": true,
+    "removeComments": false,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true,
-    "target": "ES5"
+    "tsBuildInfoFile": ".cache/.tsbuildinfo"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.json"],
-  "exclude": ["node_modules", ".eslintrc.js"]
+  "exclude": ["node_modules"],
+  "include": ["next-env.d.ts", ".eslintrc.js", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
 }

@@ -5,24 +5,28 @@ use crate::analyze::count_gaps::GapCounts;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
 use crate::io::aa::Aa;
-use crate::io::letter::Letter;
+use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
 use crate::translate::coord_map::CoordMap;
 use crate::translate::frame_shifts_detect::frame_shifts_detect;
 use crate::translate::frame_shifts_translate::{frame_shifts_translate, FrameShift};
 use crate::translate::translate::translate;
-use crate::utils::error::keep_ok;
+use crate::utils::error::{keep_ok, report_to_string};
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use itertools::Itertools;
+use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
 use std::ops::Range as StdRange;
 
 /// Results of the translation
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Translation {
   pub gene_name: String,
+  #[serde(serialize_with = "serde_serialize_seq")]
+  #[serde(deserialize_with = "serde_deserialize_seq")]
   pub seq: Vec<Aa>,
   pub insertions: Vec<Insertion<Aa>>,
   pub frame_shifts: Vec<FrameShift>,
@@ -52,7 +56,7 @@ pub struct PeptideAlignmentParams {
 /// Deduces aminoacid alignment params from nucleotide alignment.
 /// Gap counts from nucleotide alignment are used to estimate rough parameters. This is by contrast to nucleotide
 /// alignment, where these parameters are estimated using seed matching.
-pub fn calculate_aa_alignment_params(qry_gaps: &GapCounts, ref_gaps: &GapCounts) -> PeptideAlignmentParams {
+pub const fn calculate_aa_alignment_params(qry_gaps: &GapCounts, ref_gaps: &GapCounts) -> PeptideAlignmentParams {
   const BASE_BAND_WIDTH: usize = 5; // An arbitrary magic number to give some additional room for alignment
   let band_width = (qry_gaps.internal + ref_gaps.internal) / 3 + BASE_BAND_WIDTH;
   let mean_shift =
@@ -220,16 +224,5 @@ pub fn translate_genes(
         params,
       )
     })
-    .collect_vec()
-}
-
-/// Retrieves a list of genes that failed translation
-pub fn get_failed_genes(maybe_translations: &[Result<Translation, Report>], gene_map: &GeneMap) -> Vec<String> {
-  let genes_present: HashSet<String> = keep_ok(maybe_translations).map(|tr| &tr.gene_name).cloned().collect();
-
-  gene_map
-    .iter()
-    .filter_map(|(gene_name, _)| (!genes_present.contains(gene_name)).then(|| gene_name))
-    .cloned()
     .collect_vec()
 }

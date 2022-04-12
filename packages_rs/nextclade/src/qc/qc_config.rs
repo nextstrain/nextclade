@@ -10,7 +10,7 @@ use validator::Validate;
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-pub struct QCRulesConfigMissingData {
+pub struct QcRulesConfigMissingData {
   pub enabled: bool,
   pub missing_data_threshold: f64,
   pub score_bias: f64,
@@ -19,15 +19,15 @@ pub struct QCRulesConfigMissingData {
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-pub struct QCRulesConfigMixedSites {
+pub struct QcRulesConfigMixedSites {
   pub enabled: bool,
-  pub mixed_sites_threshold: f64,
+  pub mixed_sites_threshold: usize,
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-pub struct QCRulesConfigPrivateMutations {
+pub struct QcRulesConfigPrivateMutations {
   pub enabled: bool,
   pub weight_reversion_substitutions: f64,
   pub weight_reversion_deletions: f64,
@@ -42,10 +42,10 @@ pub struct QCRulesConfigPrivateMutations {
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-pub struct QCRulesConfigSnpClusters {
+pub struct QcRulesConfigSnpClusters {
   pub enabled: bool,
-  pub window_size: f64,
-  pub cluster_cut_off: f64,
+  pub window_size: usize,
+  pub cluster_cut_off: usize,
   pub score_weight: f64,
 }
 
@@ -60,12 +60,12 @@ pub struct FrameShiftLocation {
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-pub struct QCRulesConfigFrameShifts {
+pub struct QcRulesConfigFrameShifts {
   pub enabled: bool,
   pub ignored_frame_shifts: Vec<FrameShiftLocation>,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct StopCodonLocation {
@@ -76,7 +76,7 @@ pub struct StopCodonLocation {
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
-pub struct QCRulesConfigStopCodons {
+pub struct QcRulesConfigStopCodons {
   pub enabled: bool,
   pub ignored_stop_codons: Vec<StopCodonLocation>,
 }
@@ -86,12 +86,12 @@ pub struct QCRulesConfigStopCodons {
 #[serde(default)]
 pub struct QcConfig {
   pub schema_version: String,
-  pub missing_data: QCRulesConfigMissingData,
-  pub mixed_sites: QCRulesConfigMixedSites,
-  pub private_mutations: QCRulesConfigPrivateMutations,
-  pub snp_clusters: QCRulesConfigSnpClusters,
-  pub frame_shifts: QCRulesConfigFrameShifts,
-  pub stop_codons: QCRulesConfigStopCodons,
+  pub missing_data: QcRulesConfigMissingData,
+  pub mixed_sites: QcRulesConfigMixedSites,
+  pub private_mutations: QcRulesConfigPrivateMutations,
+  pub snp_clusters: QcRulesConfigSnpClusters,
+  pub frame_shifts: QcRulesConfigFrameShifts,
+  pub stop_codons: QcRulesConfigStopCodons,
 }
 
 impl FromStr for QcConfig {

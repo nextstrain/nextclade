@@ -1,8 +1,9 @@
 use crate::align::score_matrix_nuc::lookup_nuc_scoring_matrix;
 use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
+use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -35,7 +36,7 @@ impl ToString for Nuc {
 
 impl Nuc {
   #[inline]
-  pub fn is_acgt(self) -> bool {
+  pub const fn is_acgt(self) -> bool {
     matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T)
   }
 
@@ -45,7 +46,7 @@ impl Nuc {
   }
 
   #[inline]
-  pub fn is_acgtn(self) -> bool {
+  pub const fn is_acgtn(self) -> bool {
     matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T | Nuc::N)
   }
 }
@@ -80,6 +81,14 @@ impl Letter<Nuc> for Nuc {
     }
     .wrap_err_with(|| format!("When parsing nucleotide: '{s}'"))
   }
+
+  fn from_seq(seq: &[Nuc]) -> String {
+    from_nuc_seq(seq)
+  }
+
+  fn to_seq(s: &str) -> Result<Vec<Nuc>, Report> {
+    to_nuc_seq(s)
+  }
 }
 
 /// Checks whether 2 of nucleotides are equivalent, taking into account ambiguous nucleotides,
@@ -112,7 +121,7 @@ pub fn to_nuc(letter: char) -> Result<Nuc, Report> {
 }
 
 #[inline]
-pub fn from_nuc(nuc: Nuc) -> char {
+pub const fn from_nuc(nuc: Nuc) -> char {
   match nuc {
     Nuc::T => 'T',
     Nuc::A => 'A',

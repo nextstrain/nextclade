@@ -1,4 +1,4 @@
-use crate::analyze::is_sequenced::is_sequenced;
+use crate::analyze::is_sequenced::is_nuc_sequenced;
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
@@ -245,7 +245,7 @@ fn find_reversions(
   for (pos, node_qry) in node_mut_map {
     let pos = *pos;
     let seq_has_no_mut_or_del_here = !seq_positions_mutated_or_deleted.contains(&pos);
-    let pos_is_sequenced = is_sequenced(pos, missing, alignment_range);
+    let pos_is_sequenced = is_nuc_sequenced(pos, missing, alignment_range);
     let is_not_node_deletion = !node_qry.is_gap();
     if seq_has_no_mut_or_del_here && pos_is_sequenced && is_not_node_deletion {
       // Case 4: Mutation in node, but not in sequence. This is a so-called reversion. Mutation in sequence reverts

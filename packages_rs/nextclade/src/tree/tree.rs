@@ -135,7 +135,7 @@ impl AuspiceTreeNode {
     self.children.is_empty()
   }
 
-  pub fn is_ref_node(&self) -> bool {
+  pub const fn is_ref_node(&self) -> bool {
     self.tmp.is_ref_node
   }
 
@@ -203,9 +203,6 @@ pub struct AuspiceDisplayDefaults {
 
   #[serde(skip_serializing_if = "Option::is_none")]
   pub distance_measure: Option<String>,
-
-  #[serde(flatten)]
-  pub other: serde_json::Value,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
@@ -226,8 +223,8 @@ pub struct AuspiceTreeMeta {
 
   pub display_defaults: AuspiceDisplayDefaults,
 
-  #[serde(skip)]
-  pub geo_resolutions: Option<String>,
+  #[serde(skip_serializing_if = "serde_json::Value::is_null")]
+  pub geo_resolutions: serde_json::Value,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
@@ -298,7 +295,7 @@ impl FromStr for AuspiceTree {
   type Err = Report;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
-    json_parse(s)
+    json_parse(s).wrap_err("When parsing Auspice Tree JSON contents")
   }
 }
 

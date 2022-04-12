@@ -12,7 +12,7 @@ pub fn json_parse<T: for<'de> Deserialize<'de>>(s: &str) -> Result<T, Report> {
 }
 
 pub fn json_stringify<T: Serialize>(obj: &T) -> Result<String, Report> {
-  serde_json::to_string(obj).wrap_err("When converting an entry to JSON string")
+  serde_json::to_string_pretty(obj).wrap_err("When converting an entry to JSON string")
 }
 
 pub fn json_write<T: Serialize>(filepath: impl AsRef<Path>, obj: &T) -> Result<(), Report> {

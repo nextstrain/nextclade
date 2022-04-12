@@ -299,11 +299,11 @@ pub fn nextclade_get_output_filenames(run_args: &mut NextcladeRunArgs) -> Result
 
   run_args
     .output_ndjson
-    .get_or_insert(output_dir.join(&basename).with_extension("nextclade.ndjson"));
+    .get_or_insert(output_dir.join(&basename).with_extension("ndjson"));
 
   run_args
     .output_json
-    .get_or_insert(output_dir.join(&basename).with_extension("nextclade.json"));
+    .get_or_insert(output_dir.join(&basename).with_extension("json"));
 
   run_args
     .output_csv

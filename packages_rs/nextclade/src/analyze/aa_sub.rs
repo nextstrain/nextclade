@@ -8,16 +8,21 @@ use eyre::{Report, WrapErr};
 use lazy_static::lazy_static;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 use std::str::FromStr;
 
 const AA_MUT_REGEX: &str = r"((?P<ref>[A-Z-*])(?P<pos>\d{1,10})(?P<qry>[A-Z-*]))";
 
 /// Represents aminoacid substitution in a simple way (without gene name and surrounding context)
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AaSubMinimal {
-  #[serde(rename = "ref")]
+  #[serde(rename = "refAA")]
   pub reff: Aa,
+
+  #[serde(rename = "codon")]
   pub pos: usize,
+
+  #[serde(rename = "queryAA")]
   pub qry: Aa,
 }
 
@@ -51,5 +56,18 @@ impl FromStr for AaSubMinimal {
       };
     }
     make_error!("Unable to parse genotype: '{s}'")
+  }
+}
+
+/// Order substitutions by position, then ref character, then query character
+impl Ord for AaSubMinimal {
+  fn cmp(&self, other: &Self) -> Ordering {
+    (self.pos, self.reff, self.qry).cmp(&(other.pos, other.reff, other.qry))
+  }
+}
+
+impl PartialOrd for AaSubMinimal {
+  fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    Some(self.cmp(other))
   }
 }

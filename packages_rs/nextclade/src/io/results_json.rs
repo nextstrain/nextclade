@@ -14,7 +14,7 @@ pub struct ResultsJson {
   pub schema_version: String,
   pub nextclade_version: String,
   pub timestamp: u64,
-  pub clade_node_attrs: Vec<CladeNodeAttrKeyDesc>,
+  pub clade_node_attr_keys: Vec<CladeNodeAttrKeyDesc>,
   pub results: Vec<NextcladeOutputs>,
 }
 
@@ -26,7 +26,7 @@ impl ResultsJson {
       schema_version: "1.0.0".to_owned(),
       nextclade_version: VERSION.to_owned(),
       timestamp: timestamp_now() as u64,
-      clade_node_attrs: Vec::<CladeNodeAttrKeyDesc>::from(clade_node_attrs),
+      clade_node_attr_keys: Vec::<CladeNodeAttrKeyDesc>::from(clade_node_attrs),
       results: vec![],
     }
   }

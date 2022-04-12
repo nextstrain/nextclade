@@ -1,15 +1,21 @@
-use crate::io::aa::Aa;
-use crate::io::letter::Letter;
-use crate::io::nuc::Nuc;
+use crate::io::aa::{from_aa_seq, to_aa_seq, Aa};
+use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
+use crate::io::nuc::{from_nuc_seq, Nuc};
 use crate::translate::translate_genes::Translation;
-use crate::utils::error::keep_ok;
+use crate::utils::error::{from_eyre_error, keep_ok};
+use color_eyre::SectionExt;
 use eyre::Report;
 use itertools::Itertools;
-use serde::{Deserialize, Serialize};
+use serde::de::Error;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::str::FromStr;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Insertion<T: Letter<T>> {
   pub pos: i32,
+
+  #[serde(serialize_with = "serde_serialize_seq")]
+  #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ins: Vec<T>,
 }
 
@@ -25,6 +31,7 @@ impl<T: Letter<T>> Insertion<T> {
 
 pub type NucIns = Insertion<Nuc>;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StripInsertionsResult<T: Letter<T>> {
   pub qry_seq: Vec<T>,
   pub ref_seq: Vec<T>,
@@ -82,20 +89,23 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AaIns {
-  pub gene_name: String,
+  pub gene: String,
   pub pos: i32,
+
+  #[serde(serialize_with = "serde_serialize_seq")]
+  #[serde(deserialize_with = "serde_deserialize_seq")]
   pub ins: Vec<Aa>,
 }
 
-pub fn get_aa_insertions(translations: &[Result<Translation, Report>]) -> Vec<AaIns> {
-  keep_ok(translations)
-    .map(|tr| {
+pub fn get_aa_insertions(translations: &[Translation]) -> Vec<AaIns> {
+  translations
+    .iter()
+    .flat_map(|tr| {
       tr.insertions.iter().cloned().map(|Insertion::<Aa> { pos, ins }| AaIns {
-        gene_name: tr.gene_name.to_owned(),
+        gene: tr.gene_name.clone(),
         pos,
         ins,
       })
     })
-    .flatten()
     .collect_vec()
 }

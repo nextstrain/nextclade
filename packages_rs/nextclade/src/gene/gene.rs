@@ -8,11 +8,11 @@ pub struct Gene {
 }
 
 impl Gene {
-  pub fn len(&self) -> usize {
+  pub const fn len(&self) -> usize {
     self.end - self.start
   }
 
-  pub fn is_empty(&self) -> bool {
+  pub const fn is_empty(&self) -> bool {
     self.len() == 0
   }
 }

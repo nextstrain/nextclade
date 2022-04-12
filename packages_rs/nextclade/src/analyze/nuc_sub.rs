@@ -14,9 +14,11 @@ const NUC_MUT_REGEX: &str = r"((?P<ref>[A-Z-])(?P<pos>\d{1,10})(?P<qry>[A-Z-]))"
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NucSub {
-  #[serde(rename = "ref")]
+  #[serde(rename = "refNuc")]
   pub reff: Nuc,
   pub pos: usize,
+
+  #[serde(rename = "queryNuc")]
   pub qry: Nuc,
 }
 
@@ -26,7 +28,7 @@ impl NucSub {
     self.qry.is_gap()
   }
 
-  pub fn genotype(&self) -> Genotype<Nuc> {
+  pub const fn genotype(&self) -> Genotype<Nuc> {
     Genotype {
       pos: self.pos,
       qry: self.qry,
@@ -83,7 +85,6 @@ impl PartialOrd for NucSub {
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NucSubLabeled {
-  #[serde(rename = "ref")]
   pub sub: NucSub,
   pub labels: Vec<String>,
 }

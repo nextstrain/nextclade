@@ -61,7 +61,7 @@ impl GapCounts {
     }
   }
 
-  pub fn is_all_gaps(&self) -> bool {
+  pub const fn is_all_gaps(&self) -> bool {
     self.total >= self.len
   }
 }

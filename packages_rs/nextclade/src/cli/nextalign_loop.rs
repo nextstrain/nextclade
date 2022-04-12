@@ -11,15 +11,20 @@ use crate::io::nuc::{to_nuc_seq, Nuc};
 use crate::option_get_some;
 use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
+use crate::utils::error::{keep_ok, report_to_string};
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
-use itertools::Itertools;
+use itertools::{Either, Itertools};
 use log::info;
+use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 pub struct NextalignOutputs {
   pub stripped: StripInsertionsResult<Nuc>,
   pub alignment: AlignmentOutput<Nuc>,
-  pub translations: Vec<Result<Translation, Report>>,
+  pub translations: Vec<Translation>,
+  pub warnings: Vec<String>,
+  pub missing_genes: Vec<String>,
 }
 
 pub struct NextalignRecord {
@@ -52,10 +57,26 @@ pub fn nextalign_run_one(
 
       let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
+      let (translations, warnings): (Vec<Translation>, Vec<String>) =
+        translations.into_iter().partition_map(|res| match res {
+          Ok(tr) => Either::Left(tr),
+          Err(err) => Either::Right(report_to_string(&err)),
+        });
+
+      let present_genes: HashSet<String> = translations.iter().map(|tr| &tr.gene_name).cloned().collect();
+
+      let missing_genes = gene_map
+        .iter()
+        .filter_map(|(gene_name, _)| (!present_genes.contains(gene_name)).then(|| gene_name))
+        .cloned()
+        .collect_vec();
+
       Ok(NextalignOutputs {
         stripped,
         alignment,
         translations,
+        warnings,
+        missing_genes,
       })
     }
   }

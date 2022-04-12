@@ -1,8 +1,9 @@
 use crate::align::score_matrix_aa::lookup_aa_scoring_matrix;
 use crate::io::letter::{Letter, ScoreMatrixLookup};
 use crate::make_error;
+use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -41,6 +42,18 @@ pub enum Aa {
   Gap,
 }
 
+impl Aa {
+  #[inline]
+  pub fn is_unknown(self) -> bool {
+    self == Aa::X
+  }
+
+  #[inline]
+  pub fn is_stop(self) -> bool {
+    self == Aa::Stop
+  }
+}
+
 impl ToString for Aa {
   fn to_string(&self) -> String {
     String::from(from_aa(*self))
@@ -76,6 +89,14 @@ impl Letter<Aa> for Aa {
       make_error!("Expected 1 character, but got {}", s.len())
     }
     .wrap_err_with(|| format!("When parsing amino acid: '{s}'"))
+  }
+
+  fn from_seq(seq: &[Aa]) -> String {
+    from_aa_seq(seq)
+  }
+
+  fn to_seq(s: &str) -> Result<Vec<Aa>, Report> {
+    to_aa_seq(s)
   }
 }
 
@@ -115,7 +136,7 @@ pub fn to_aa(letter: char) -> Result<Aa, Report> {
 }
 
 #[inline]
-pub fn from_aa(nuc: Aa) -> char {
+pub const fn from_aa(nuc: Aa) -> char {
   match nuc {
     Aa::A => 'A',
     Aa::B => 'B',

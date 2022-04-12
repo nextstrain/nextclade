@@ -1,7 +1,7 @@
 use crate::cli::nextalign_loop::{NextalignOutputs, NextalignRecord};
 use crate::gene::gene_map::GeneMap;
 use crate::io::errors_csv::ErrorsCsvWriter;
-use crate::io::fasta::{write_translations, FastaPeptideWriter, FastaRecord, FastaWriter};
+use crate::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use crate::io::insertions_csv::InsertionsCsvWriter;
 use crate::io::nuc::from_nuc_seq;
 use crate::translate::translate_genes::TranslationMap;
@@ -68,18 +68,26 @@ impl<'a> NextalignOrderedWriter<'a> {
     match outputs_or_err {
       Ok(output) => {
         let NextalignOutputs {
-          stripped, translations, ..
+          stripped,
+          alignment,
+          translations,
+          warnings,
+          missing_genes,
         } = output;
 
         self.fasta_writer.write(seq_name, &from_nuc_seq(&stripped.qry_seq))?;
 
-        write_translations(seq_name, translations, &mut self.fasta_peptide_writer)?;
+        for translation in translations {
+          self.fasta_peptide_writer.write(seq_name, translation)?;
+        }
 
         self
           .insertions_csv_writer
           .write(seq_name, &stripped.insertions, translations)?;
 
-        self.errors_csv_writer.write_aa_errors(seq_name, translations)?;
+        self
+          .errors_csv_writer
+          .write_aa_errors(seq_name, warnings, missing_genes)?;
       }
       Err(report) => {
         let cause = report_to_string(report);

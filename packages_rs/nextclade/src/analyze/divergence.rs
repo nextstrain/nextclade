@@ -18,5 +18,5 @@ pub fn calculate_divergence(
     this_div /= ref_seq_len as f64;
   }
 
-  return parent_div + this_div;
+  parent_div + this_div
 }

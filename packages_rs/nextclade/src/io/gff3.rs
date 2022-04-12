@@ -44,7 +44,7 @@ pub fn convert_gff_record_to_gene_map_record(record: &GffRecord) -> Option<Resul
   None
 }
 
-pub fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
+fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
   let filename = filename.as_ref();
   let mut reader = GffReader::from_file(&filename, GffType::GFF3).map_err(|report| eyre!(report))?;
 
@@ -62,4 +62,22 @@ pub fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Repo
 pub fn read_gff3_file<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
   let filename = filename.as_ref();
   read_gff3_file_impl(&filename).wrap_err_with(|| format!("When reading GFF3 file '{filename:#?}'"))
+}
+
+fn read_gff3_str_impl(content: &str) -> Result<GeneMap, Report> {
+  let mut reader = GffReader::new(content.as_bytes(), GffType::GFF3);
+
+  let records = reader
+    .records()
+    .map(to_eyre_error)
+    .collect::<Result<Vec<GffRecord>, Report>>()?;
+
+  records
+    .iter()
+    .filter_map(convert_gff_record_to_gene_map_record)
+    .collect::<Result<GeneMap, Report>>()
+}
+
+pub fn read_gff3_str(content: &str) -> Result<GeneMap, Report> {
+  read_gff3_str_impl(content).wrap_err_with(|| format!("When reading GFF3 file"))
 }

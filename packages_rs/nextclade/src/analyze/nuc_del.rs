@@ -15,12 +15,12 @@ pub struct NucDel {
 
 impl NucDel {
   #[inline]
-  pub fn end(&self) -> usize {
+  pub const fn end(&self) -> usize {
     self.start + self.length
   }
 
   #[inline]
-  pub fn to_range(&self) -> Range {
+  pub const fn to_range(&self) -> Range {
     Range {
       begin: self.start,
       end: self.end(),
@@ -39,7 +39,7 @@ pub struct NucDelMinimal {
 impl NucDelMinimal {
   /// Converts deletion to substitution to Gap
   #[inline]
-  pub fn to_sub(&self) -> NucSub {
+  pub const fn to_sub(&self) -> NucSub {
     NucSub {
       reff: self.reff,
       pos: self.pos,

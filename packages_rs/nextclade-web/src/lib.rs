@@ -100,9 +100,9 @@
 #![allow(clippy::cognitive_complexity)]
 #![allow(clippy::else_if_without_else)]
 #![allow(clippy::expect_used)]
-#![allow(clippy::missing_const_for_fn)]
 #![allow(clippy::panic)]
 #![allow(clippy::panic_in_result_fn)]
+#![allow(clippy::single_char_lifetime_names)]
 #![allow(clippy::suboptimal_flops)]
 #![allow(clippy::too_many_arguments)]
 #![allow(clippy::unsafe_derive_deserialize)]
@@ -179,20 +179,14 @@ pub struct NextcladeWasm {
 #[wasm_bindgen]
 impl NextcladeWasm {
   #[wasm_bindgen(constructor)]
-  pub fn new(params: &NextcladeParams) -> Self {
+  pub fn new(params: &NextcladeParams) -> Result<NextcladeWasm, JsError> {
     wasm_logger::init(wasm_logger::Config::default());
     console_error_panic_hook::set_once();
-
-    log::debug!("NextcladeWasm::new");
-
-    Self {
-      nextclade: Nextclade::new(params),
-    }
+    let nextclade = Nextclade::new(params).map_err(|report| JsError::new(&report_to_string(&report)))?;
+    Ok(Self { nextclade })
   }
 
   pub fn run(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, JsError> {
-    log::debug!("NextcladeWasm::run(), input:\n{input:#?}");
-
     self
       .nextclade
       .run(input)
