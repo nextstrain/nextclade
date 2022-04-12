@@ -88,7 +88,7 @@ pub fn score_matrix<T: Letter<T>>(
         tmp_path += QRY_GAP_EXTEND;
         ref_gaps = -gap_open_close[ri]; //ref_gaps stands for ref_gap_score
         origin = QRY_GAP_MATRIX;
-      } else if qpos < query_size {
+      } else if qpos <= query_size {
         // if the position is within the query sequence
         // no gap -- match case
         // TODO: Handle case where strip ends shift more than one
@@ -143,7 +143,7 @@ pub fn score_matrix<T: Letter<T>>(
         }
       } else {
         // past query sequence -- mark as sequence end
-        score = scores[(ri - 1, qpos)];
+        score = scores[(ri, qpos - 1)];
         origin = QRY_GAP_EXTEND;
       }
       tmp_path += origin;
@@ -159,6 +159,7 @@ pub fn score_matrix<T: Letter<T>>(
 mod tests {
   #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
   use super::*;
+  use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::gene::gene_map::GeneMap;
   use crate::io::nuc::{to_nuc_seq, Nuc};
@@ -196,13 +197,15 @@ mod tests {
   #[rstest]
   fn pads_missing_left(ctx: Context) -> Result<(), Report> {
     #[rustfmt::skip]
-    let qry_seq = to_nuc_seq("GAT")?;
-    let ref_seq = to_nuc_seq("GCGAT")?;
+    // let ref_seq = to_nuc_seq("CAA")?;
+    // let qry_seq = to_nuc_seq("CTT")?;
+    let qry_seq = to_nuc_seq("CTCGCT")?;
+    let ref_seq = to_nuc_seq("ACGCTCGCT")?;
 
     let band_width = 5;
     let mean_shift = 2;
     // Test for large dense matrix
-    let stripes = vec![Stripe { begin: 0, end: 4 }; 6];
+    let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
     let result = score_matrix(
       &qry_seq,
@@ -215,8 +218,8 @@ mod tests {
     );
 
     let mut expected_scores = Band2d::<i32>::new(&stripes);
-    expected_scores[(ZERO, 1_usize)] = 1;
-    expected_scores[(ZERO, 2_usize)] = 2;
+    // expected_scores[(ZERO, 1_usize)] = 0;
+    // expected_scores[(ZERO, 2_usize)] = 0;
 
     // #[rustfmt::skip]
     //     let expected_scores = Band2d::<i32>::from_slice(&[
@@ -246,6 +249,8 @@ mod tests {
     //       4,  20,  20,  20,  20,  20,  20,   1,  20,  20,
     //       4,  20,  20,  20,  20,  20,  20,  20,  17,  17,
     //     ], 11, 10);
+    println!("{:?}", result.scores);
+    println!("{:?}", stripes);
 
     assert_eq!(expected_scores, result.scores);
     // assert_eq!(expected_paths, result.paths);

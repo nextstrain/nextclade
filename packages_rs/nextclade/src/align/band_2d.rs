@@ -1,4 +1,7 @@
+use num::ToPrimitive;
 use num_traits::{cast, NumCast};
+use std::cmp;
+use std::fmt::{self, Display};
 use std::ops::{Index, IndexMut};
 
 /// Describes data layout of a single row in `Band2d`
@@ -31,6 +34,21 @@ impl Stripe {
   }
 }
 
+pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_size: usize, qry_size: usize) -> Vec<Stripe> {
+  //Begin runs diagonally, with max(0, mean_shift - band_width + i)
+  //End runs diagnoally, with min(qry_size, mean_shift + band_width + i)
+  let mut stripes = Vec::<Stripe>::with_capacity(ref_size + 1);
+  let band_width_i32 = band_width.to_i32().unwrap();
+  let ref_size_i32 = ref_size.to_i32().unwrap();
+  let qry_size_i32 = qry_size.to_i32().unwrap();
+  for i in 0..=ref_size_i32 {
+    let begin = cmp::max(0, -mean_shift - band_width_i32 + i);
+    let end = cmp::min(qry_size_i32 + 1, -mean_shift + band_width_i32 + i + 1);
+    stripes.push(Stripe::new(begin, end));
+  }
+  stripes
+}
+
 /// Represents a diagonal band in a matrix.
 ///
 /// The underlying storage is sparse - the row storage consists of `Stripe`s, each of a given size (`stripe.length`)
@@ -38,7 +56,7 @@ impl Stripe {
 /// which are outside of the corresponding stripe are not allocated and accessing them is illegal.
 ///
 /// Stripe begins must increase monotonically
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Band2d<T>
 where
   T: Default + Clone,
@@ -119,6 +137,22 @@ impl<T: Default + Clone, I: NumCast, J: NumCast> IndexMut<(I, J)> for Band2d<T> 
   }
 }
 
+impl<T: Default + Clone + Display> fmt::Debug for Band2d<T> {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    for i in 0..self.n_rows {
+      for j in 0..self.n_cols {
+        if self.stripes[i].begin <= j && j < self.stripes[i].end {
+          write!(f, "{:2} ", self[(i, j)])?;
+        } else {
+          write!(f, " - ")?;
+        }
+      }
+      writeln!(f)?;
+    }
+    Ok(())
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -175,6 +209,24 @@ mod tests {
     assert_eq!(band.num_cols(), 8);
 
     assert_eq!(&band.row_start_points, &[0, 3, 8, 12, 16, 20, 23]);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_simple_stripes() -> Result<(), Report> {
+    let expected_stripes = vec![
+      Stripe { begin: 0, end: 3 },
+      Stripe { begin: 0, end: 4 },
+      Stripe { begin: 0, end: 5 },
+      Stripe { begin: 1, end: 6 },
+      Stripe { begin: 2, end: 7 },
+      Stripe { begin: 3, end: 8 },
+    ];
+
+    let result = simple_stripes(0, 2, 5, 7);
+
+    assert_eq!(expected_stripes, result);
 
     Ok(())
   }
