@@ -101,9 +101,16 @@ pub fn score_matrix<T: Letter<T>>(
         // if qpos == stripes.begin: ref gap not allowed
         // thus path skipped
         if qpos > stripes[ri].begin {
-          r_gap_extend = ref_gaps - params.penalty_gap_extend;
-          r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
-          if r_gap_extend > r_gap_open {
+          if ri != ref_size {
+            //normal case, not at end of ref sequence
+            r_gap_extend = ref_gaps - params.penalty_gap_extend;
+            r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
+          } else {
+            // at end of ref sequence, gaps are free
+            r_gap_extend = ref_gaps;
+            r_gap_open = scores[(ri, qpos - 1)];
+          }
+          if r_gap_extend >= r_gap_open {
             // extension better than opening
             tmp_score = r_gap_extend;
             tmp_path += REF_GAP_EXTEND;
@@ -123,9 +130,17 @@ pub fn score_matrix<T: Letter<T>>(
 
         // check the scores of a query gap
         if qpos < stripes[ri - 1].end {
-          q_gap_extend = qry_gaps[qpos] - params.penalty_gap_extend;
-          q_gap_open = scores[(ri - 1, qpos)] - gap_open_close[ri - 1];
-          if q_gap_extend > q_gap_open {
+          // need stripe above to move from, otherwise no scores[(ri-1, qpos)] not existing
+          if qpos != query_size {
+            //normal case, not at end of query sequence
+            q_gap_extend = qry_gaps[qpos] - params.penalty_gap_extend;
+            q_gap_open = scores[(ri - 1, qpos)] - gap_open_close[ri - 1];
+          } else {
+            //at end of query sequence make qry gap free
+            q_gap_extend = qry_gaps[qpos];
+            q_gap_open = scores[(ri - 1, qpos)]
+          }
+          if q_gap_extend >= q_gap_open {
             tmp_score = q_gap_extend;
             tmp_path += QRY_GAP_EXTEND;
           } else {
@@ -213,14 +228,17 @@ mod tests {
     let mut expected_scores = Band2d::<i32>::new(&stripes);
     expected_scores.data = vec![
       0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 3, -2, 2, -2, 2, 0, -1, 2, -3, 5, -1, 1, 0, 3, -2, 5, -1, 8, 2, 0, -1, 6, 0, 4,
-      2, 11, 0, 3, 0, 9, 3, 7, 5, 0, -1, 2, 3, 12, 6, 6, 3, 0, 5, 6, 15, 9, 6, 3, 6, 9, 18,
+      2, 11, 0, 3, 0, 9, 3, 7, 11, 0, -1, 2, 3, 12, 6, 11, 3, 0, 5, 6, 15, 11, 6, 6, 6, 9, 18,
     ];
 
     let mut expected_paths = Band2d::<i32>::new(&stripes);
     expected_paths.data = vec![
-      0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 1, 25,
-      2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 1, 25, 4, 17, 18, 25, 17, 20, 25, 4, 17, 18, 17, 20, 28, 4, 17,
+      0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 17, 25,
+      2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 17, 25, 4, 17, 18, 28, 17, 20, 25, 4, 17, 20, 17, 18, 26, 12, 17,
     ];
+
+    // println!("{:?}", result.scores.data);
+    // println!("{:?}", result.paths.data);
 
     assert_eq!(expected_scores, result.scores);
     assert_eq!(expected_paths, result.paths);
