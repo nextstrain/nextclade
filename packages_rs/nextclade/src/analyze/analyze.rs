@@ -209,7 +209,8 @@ impl Nextclade {
     })
   }
 
-  pub fn get_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) {
+  pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> &AuspiceTree {
     tree_attach_new_nodes_in_place(&mut self.tree, nextclade_outputs);
+    &self.tree
   }
 }

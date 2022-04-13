@@ -1,7 +1,11 @@
+/* eslint-disable camelcase */
 import 'regenerator-runtime'
 
+import type { SequenceParserResult } from 'src/algorithms/types'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
+import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
 
@@ -14,6 +18,20 @@ import primersCsv from '../../../../data_dev/primers.csv'
 import geneMap from '../../../../data_dev/genemap.gff'
 
 const qry_seq_name = 'Hello!'
+
+const gSubject = new Subject<SequenceParserResult>()
+
+function onSequence(seq: SequenceParserResult) {
+  gSubject?.next(seq)
+}
+
+function onComplete() {
+  gSubject?.complete()
+}
+
+function onError(error: Error) {
+  gSubject?.error(error)
+}
 
 export class ErrorModuleNotInitialized extends Error {
   constructor() {
@@ -28,7 +46,7 @@ export class ErrorModuleNotInitialized extends Error {
  * and teardown.
  * This cloud be a class instance, but unfortunately we cannot pass classes to/from WebWorkers (yet?).
  */
-let gNextcladeWasm: NextcladeWasm | undefined
+let nextcladeWasm: NextcladeWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
 async function create() {
@@ -40,31 +58,93 @@ async function create() {
     virus_properties_str: JSON.stringify(virusProperties),
     pcr_primers_str: primersCsv,
   })
-  gNextcladeWasm = new NextcladeWasm(params)
+  nextcladeWasm = new NextcladeWasm(params)
   params.free()
 }
 
 /** Destroys the underlying WebAssembly module. */
 async function destroy() {
-  gNextcladeWasm?.free()
-  gNextcladeWasm = undefined
+  if (!nextcladeWasm) {
+    throw new ErrorModuleNotInitialized()
+  }
+
+  nextcladeWasm.free()
+  nextcladeWasm = undefined
 }
 
 /** Runs the underlying WebAssembly module. */
 async function run() {
-  if (!gNextcladeWasm) {
+  if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized()
   }
   const input = AnalysisInput.from_js({
     qry_seq_name,
     qry_seq_str: qrySeq,
   })
-  const result = gNextcladeWasm.run(input)
+  const result = nextcladeWasm.analyze(input)
   return result.to_js()
 }
 
-const analysisWorker = { create, destroy, run }
-export type AnalysisWorker = typeof analysisWorker
-export type AnalysisThread = AnalysisWorker & Thread
+/** Retrieves the output tree from the WebAssembly module. */
+export async function treeFinalize(analysisResultsJsonStr: string): Promise<string> {
+  if (!nextcladeWasm) {
+    throw new ErrorModuleNotInitialized()
+  }
+  return nextcladeWasm.get_output_tree(analysisResultsJsonStr)
+}
 
-expose(analysisWorker)
+export async function parseSequencesStreaming(fastaStr: string) {
+  try {
+    NextcladeWasm.parse_query_sequences(fastaStr, (index: number, seqName: string, seq: string) =>
+      onSequence({ index, seqName, seq }),
+    )
+  } catch (error: unknown) {
+    onError(sanitizeError(error))
+  }
+  onComplete()
+}
+
+export async function parseRefSequence(refFastaStr: string) {
+  NextcladeWasm.validate_ref_seq_fasta(refFastaStr)
+}
+
+export async function parseTree(treeJsonStr: string) {
+  NextcladeWasm.validate_tree_json(treeJsonStr)
+}
+
+export async function parseGeneMapGffString(geneMapGffStr: string) {
+  NextcladeWasm.validate_gene_map_gff(geneMapGffStr)
+}
+
+export async function parsePcrPrimerCsvRowsStr(pcrPrimersCsvStr: string, refSeqStr: string) {
+  NextcladeWasm.validate_primers_csv(pcrPrimersCsvStr, refSeqStr)
+}
+
+export async function parseQcConfigString(qcConfigJsonStr: string) {
+  NextcladeWasm.validate_qc_config(qcConfigJsonStr)
+}
+
+export async function parseVirusJsonString(virusJsonStr: string) {
+  NextcladeWasm.validate_virus_properties_json(virusJsonStr)
+}
+
+const worker = {
+  create,
+  destroy,
+  run,
+  parseSequencesStreaming,
+  parseRefSequence,
+  parseTree,
+  parseGeneMapGffString,
+  parsePcrPrimerCsvRowsStr,
+  parseQcConfigString,
+  parseVirusJsonString,
+  values(): ThreadsObservable<SequenceParserResult> {
+    return ThreadsObservable.from(gSubject)
+  },
+}
+export type AnalysisWorker = typeof worker
+export type AnalysisThread = AnalysisWorker & Thread
+export { type Observable as ThreadsObservable } from 'threads/observable'
+
+expose(worker)

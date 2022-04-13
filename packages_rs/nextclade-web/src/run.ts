@@ -1,3 +1,4 @@
+import { SequenceParserResult } from 'src/algorithms/types'
 import { Pool, spawn as spawnBase } from 'threads'
 import { concurrent } from 'fasy'
 
@@ -59,4 +60,20 @@ export async function destroyAnalysisThreadPool(poolAnalyze: Pool<AnalysisThread
 
   // Terminate the analysis worker pool
   await poolAnalyze.terminate(true)
+}
+
+export async function createWorker() {
+  return spawn<AnalysisWorker>(new Worker(new URL('src/workers/worker.analyze.ts', import.meta.url)))
+}
+
+export async function parseSequencesStreaming(
+  fastaStr: string,
+  onSequence: (seq: SequenceParserResult) => void,
+  onError: (error: Error) => void,
+  onComplete: () => void,
+) {
+  const thread = await createWorker()
+  const subscription = thread.values().subscribe(onSequence, onError, onComplete)
+  await thread.parseSequencesStreaming(fastaStr)
+  await subscription.unsubscribe() // eslint-disable-line @typescript-eslint/await-thenable
 }
