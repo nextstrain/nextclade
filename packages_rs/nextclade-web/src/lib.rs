@@ -225,6 +225,11 @@ impl NextcladeWasm {
     Ok(())
   }
 
+  // pub fn get_clade_node_attr_key_descs(&self) -> Result<String, JsError> {
+  //   let clade_node_attr_key_descs = self.nextclade.get_clade_node_attr_key_descs();
+  //   jserr(json_stringify(&clade_node_attr_key_descs))
+  // }
+
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
   pub fn analyze(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, JsError> {
     jserr(self.nextclade.run(input))

@@ -1,6 +1,7 @@
 /* eslint-disable no-loops/no-loops,no-continue,no-void */
 import type { EventChannel } from 'redux-saga'
 import { buffers, eventChannel } from 'redux-saga'
+import { NextcladeParamsPojo } from 'src/gen'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
 import { all, apply, call, fork, join, put, select, take, takeEvery } from 'typed-redux-saga'
@@ -14,8 +15,7 @@ import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import fsaSaga from 'src/state/util/fsaSaga'
 
-import type { AnalysisThread, NextcladeResult, NextcladeWasmParams } from 'src/workers/worker.analyze'
-import type { ParseSequencesStreamingThread } from 'src/workers/worker.parseSequencesStreaming'
+import type { NextcladeWasmThread, NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import type { DatasetFlat, SequenceParserResult, UrlParams } from 'src/algorithms/types'
 import {
   addNextcladeResult,
@@ -43,13 +43,7 @@ import {
   selectVirusJsonStr,
 } from 'src/state/algorithm/algorithm.selectors'
 import { setViewedGene } from 'src/state/ui/ui.actions'
-import {
-  createAnalysisThreadPool,
-  createThreadParseSequencesStreaming,
-  destroyAnalysisThreadPool,
-  treeFinalize,
-  // treePrepare,
-} from 'src/workers/run'
+import { createAnalysisThreadPool, createWorker, destroyAnalysisThreadPool } from 'src/workers/run'
 import {
   loadFasta,
   loadGeneMap,
@@ -78,7 +72,7 @@ export interface SequenceParserChannelElement {
  * into the event channel. Later in the code, taking events from this channel yields parsed sequences.
  */
 export function createSequenceParserEventChannel(
-  sequenceParserThread: ParseSequencesStreamingThread,
+  sequenceParserThread: NextcladeWasmThread,
 ): EventChannel<SequenceParserChannelElement> {
   return eventChannel((emit) => {
     function onSequence(seq: SequenceParserResult) {
@@ -114,11 +108,13 @@ export interface AnalysisChannelElement {
  * Subscribes to observable stream of the analysis worker pool and queues the incoming results of the analysis
  * into the event channel.
  */
-export function createAnalysisEventChannel(poolAnalyze: Pool<AnalysisThread>): EventChannel<AnalysisChannelElement> {
+export function createAnalysisEventChannel(
+  poolAnalyze: Pool<NextcladeWasmThread>,
+): EventChannel<AnalysisChannelElement> {
   const events = poolAnalyze.events()
 
   return eventChannel((emit) => {
-    function onNext(event: PoolEvent<AnalysisThread>) {
+    function onNext(event: PoolEvent<NextcladeWasmThread>) {
       switch (event.type) {
         case Pool.EventType.taskStart: {
           // Analysis of one of the sequences has started
@@ -172,12 +168,11 @@ export function createAnalysisEventChannel(poolAnalyze: Pool<AnalysisThread>): E
  * Thread emits results via an Observable. Parser channel subscribes to these events
  * (see `createSequenceParserEventChannel()`).
  */
-export function* runParserLoop(
-  sequenceParserThread: ParseSequencesStreamingThread,
-  queryStr: string,
-  queryInputName: string,
+export function* runParserLoop( //
+  sequenceParserThread: NextcladeWasmThread, //
+  queryStr: string, //
 ) {
-  yield* apply(sequenceParserThread, sequenceParserThread.parseSequencesStreaming, [queryStr, queryInputName])
+  yield* apply(sequenceParserThread, sequenceParserThread.parseSequencesStreaming, [queryStr])
 }
 
 /**
@@ -187,7 +182,7 @@ export function* runParserLoop(
  */
 export function* runAnalysisLoop(
   sequenceParserEventChannel: EventChannel<SequenceParserChannelElement>,
-  poolAnalyze: Pool<AnalysisThread>,
+  poolAnalyze: Pool<NextcladeWasmThread>,
 ) {
   try {
     while (true) {
@@ -206,7 +201,7 @@ export function* runAnalysisLoop(
       if (seq) {
         // Queue the received sequence for the analysis in the worker pool.
         // This returns immediately and the analysis result will be emitted into the analysis event channel.
-        void poolAnalyze.queue((worker) => worker.analyze(seq))
+        void poolAnalyze.queue((worker) => worker.analyze(seq.seqName, seq.seq))
         yield* put(addParsedSequence({ index: seq.index, seqName: seq.seqName }))
       }
     }
@@ -218,33 +213,31 @@ export function* runAnalysisLoop(
   }
 }
 
-export function* runGetTree(poolAnalyze: Pool<AnalysisThread>) {
-  // Retrieve the first worker from the pool. All workers have the same tree, but we arbitrarily chose the first
-  // worker here
-  const worker = yield* call(async () => {
-    // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return (await poolAnalyze.workers?.[0]?.init) as AnalysisThread
-  })
+// export function* runGetTree(poolAnalyze: Pool<NextcladeWasmThread>) {
+//   // Retrieve the first worker from the pool. All workers are the same, but we arbitrarily chose the first here
+//   const worker = yield* call(async () => {
+//     // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+//     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//     // @ts-ignore
+//     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+//     return (await poolAnalyze.workers?.[0]?.init) as NextcladeWasmThread
+//   })
+//
+//   return yield* call(worker.getOutputTree, [analysis])
+// }
 
-  return yield* call(worker.getTree)
-}
-
-export function* runGetCladeNodeAttrKeys(poolAnalyze: Pool<AnalysisThread>) {
-  // Retrieve the first worker from the pool. All workers have the same tree, but we arbitrarily chose the first
-  // worker here
-  const worker = yield* call(async () => {
-    // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    return (await poolAnalyze.workers?.[0]?.init) as AnalysisThread
-  })
-
-  return yield* call(worker.getCladeNodeAttrKeysStr)
-}
+// export function* runGetCladeNodeAttrKeys(poolAnalyze: Pool<NextcladeWasmThread>) {
+//   // Retrieve the first worker from the pool. All workers are the same, but we arbitrarily chose the first here
+//   const worker = yield* call(async () => {
+//     // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+//     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//     // @ts-ignore
+//     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+//     return (await poolAnalyze.workers?.[0]?.init) as NextcladeWasmThread
+//   })
+//
+//   return yield* call(worker.getCladeNodeAttrKeyDescs)
+// }
 
 /**
  * Repeatedly retrieves the results of the analysis from the analysis event channel
@@ -329,17 +322,21 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
  *           (parallel, webworker, wasm)                   \-> [Analysis thread] -/                             (synchronous, JS)
  *                                                     (parallel, webworker pool, wasm)
  */
-export function* runSequenceAnalysis(queryStr: string, queryInputName: string, params: NextcladeWasmParams) {
+export function* runSequenceAnalysis(queryStr: string, queryInputName: string, params: NextcladeParamsPojo) {
+  const tree = JSON.parse(params.tree_str) as AuspiceJsonV2
+  const cladeNodeAttrKeys = tree.meta?.extensions?.nextclade?.clade_node_attrs_keys ?? []
+  yield* put(setCladeNodeAttrKeys({ cladeNodeAttrKeys }))
+
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.initWorkers))
   // Create sequence parser thread
-  const sequenceParserThread = yield* call(createThreadParseSequencesStreaming)
+  const sequenceParserThread: NextcladeWasmThread = yield* call(createWorker)
 
   // Create a channel which will buffer parsed sequences
   const sequenceParserEventChannel = createSequenceParserEventChannel(sequenceParserThread)
 
   // Create analysis thread pool
   const numThreads = yield* select(selectNumThreads)
-  const poolAnalyze = yield* call(createAnalysisThreadPool, params, numThreads)
+  const poolAnalyze = yield* call(createAnalysisThreadPool, numThreads, params)
 
   // Create channel which will buffer the analysis results
   const analysisEventChannel = createAnalysisEventChannel(poolAnalyze)
@@ -351,6 +348,8 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
 
+  console.log('runAlgorithm started')
+
   // The `call-all` schema is used here, because we want (1) parsing and (2) scheduling for analysis to run in parallel
   // (ideally concurrently). Note that when parser loop ends, the parsing is known to be done, however when analysis
   // loop is done it only means that all sequences are scheduled for analysis. The analysis itself keeps running.
@@ -359,26 +358,47 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
     call(runAnalysisLoop, sequenceParserEventChannel, poolAnalyze),
 
     // Loop 1: Launch sequence parser loop and wait until it finishes parsing the input string.
-    call(runParserLoop, sequenceParserThread, queryStr, queryInputName),
+    call(runParserLoop, sequenceParserThread, queryStr),
 
     // Wait until the analysis is completed
     call(async () => poolAnalyze.completed()),
   ])
 
-  // Retrieve the prepared (preprocessed) tree from one of the workers
-  const treePreparedStr = yield* call(runGetTree, poolAnalyze)
-
-  // Retrieve the  tree from one of the workers
-  const cladeNodeAttrKeysStr = yield* call(runGetCladeNodeAttrKeys, poolAnalyze)
-  const cladeNodeAttrKeys = JSON.parse(cladeNodeAttrKeysStr) as string[]
+  // // Retrieve the prepared (preprocessed) tree from one of the workers
+  // const treePreparedStr = yield* call(runGetTree, poolAnalyze)
+  // // Retrieve the  tree from one of the workers
+  // const cladeNodeAttrKeysStr = yield* call(runGetCladeNodeAttrKeys, poolAnalyze)
 
   // Destroy analysis pool as it is no longer needed
   yield* call(destroyAnalysisThreadPool, poolAnalyze)
 
   // Return array of results aggregated in the results retrieval loop
-  const nextcladeResults = ((yield* join(resultsTask)) as unknown) as NextcladeResult[]
+  const nextcladeResults = (yield* join(resultsTask)) as unknown as NextcladeResult[]
 
-  return { nextcladeResults, treePreparedStr, cladeNodeAttrKeys }
+  const analysisResults = nextcladeResults
+    .filter((nextcladeResult) => !nextcladeResult.hasError)
+    .map((nextcladeResult) => nextcladeResult.analysisResult)
+
+  if (analysisResults.length > 0) {
+    const analysisResultsJsonStr = serializeResults(analysisResults, cladeNodeAttrKeys)
+
+    yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
+
+    // Retrieve the first worker from the pool. All workers are the same, but we arbitrarily chose the first here
+    const worker = yield* call(async () => {
+      // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      return (await poolAnalyze.workers?.[0]?.init) as NextcladeWasmThread
+    })
+
+    const treeFinalStr = worker.getOutputTree(analysisResultsJsonStr)
+    const tree = parseAuspiceJsonV2(treeFinalStr)
+
+    yield* setAuspiceState(tree)
+    yield* put(setTreeResult({ treeStr: treeFinalStr }))
+  }
 }
 
 export function* getRefSequence(dataset: DatasetFlat, urlParams: UrlParams) {
@@ -446,12 +466,14 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
   if (queryInput) {
     const loadSequences = fsaSaga(setFasta, loadFasta)
     yield* loadSequences(setFasta.trigger(queryInput))
+    console.log('getQuerySequences loadSequences')
   }
 
   // If not provided, maybe the previously used sequence data is of any good?
   const queryStr = yield* select(selectQueryStr)
   const queryName = yield* select(selectQueryName)
   if (queryStr && queryName) {
+    console.log('getQuerySequences return')
     return { queryStr, queryName }
   }
 
@@ -474,6 +496,8 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
 
   const urlParams = yield* select(selectUrlParams)
 
+  console.log('runAlgorithm urlParams')
+
   const {
     ref: { refStr, refName },
     query: { queryStr, queryName },
@@ -492,9 +516,7 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     virusJsonStr: getVirusJson(dataset, urlParams),
   })
 
-  const tree = JSON.parse(treeStr) as AuspiceJsonV2
-  const cladeNodeAttrKeys = tree.meta?.extensions?.nextclade?.clade_node_attrs_keys ?? []
-  yield* put(setCladeNodeAttrKeys({ cladeNodeAttrKeys }))
+  console.log('runAlgorithm get inputs')
 
   const genomeSize = refStr.length
   yield* put(setGenomeSize({ genomeSize }))
@@ -502,34 +524,16 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   const geneMap = prepareGeneMap(geneMapStr)
   yield* put(setGeneMapObject({ geneMap }))
 
-  const geneMapName = ''
-  const pcrPrimersFilename = ''
-  const { nextcladeResults, treePreparedStr } = yield* runSequenceAnalysis(queryStr, queryName, {
-    refStr,
-    refName,
-    geneMapStr,
-    geneMapName,
-    treeStr,
-    pcrPrimerCsvRowsStr,
-    pcrPrimersFilename,
-    qcConfigStr,
-    virusJsonStr,
+  console.log('runAlgorithm runSequenceAnalysis')
+
+  yield* runSequenceAnalysis(queryStr, queryName, {
+    ref_seq_str: refStr,
+    gene_map_str: geneMapStr,
+    tree_str: treeStr,
+    qc_config_str: qcConfigStr,
+    virus_properties_str: virusJsonStr,
+    pcr_primers_str: pcrPrimerCsvRowsStr,
   })
-
-  const analysisResults = nextcladeResults
-    .filter((nextcladeResult) => !nextcladeResult.hasError)
-    .map((nextcladeResult) => nextcladeResult.analysisResult)
-
-  if (analysisResults.length > 0) {
-    const analysisResultsStr = serializeResults(analysisResults, cladeNodeAttrKeys)
-
-    yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
-    const treeFinalStr = yield* call(treeFinalize, treePreparedStr, refStr, analysisResultsStr)
-    const tree = parseAuspiceJsonV2(treeFinalStr)
-
-    yield* setAuspiceState(tree)
-    yield* put(setTreeResult({ treeStr: treeFinalStr }))
-  }
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.done))
 }

@@ -169,6 +169,10 @@ impl Nextclade {
     })
   }
 
+  pub fn get_clade_node_attr_key_descs(&self) -> Vec<CladeNodeAttrKeyDesc> {
+    self.clade_node_attr_key_descs.clone()
+  }
+
   pub fn run(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, Report> {
     let AnalysisInput {
       qry_seq_name,
