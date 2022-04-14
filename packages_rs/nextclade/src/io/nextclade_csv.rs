@@ -22,7 +22,6 @@ use crate::utils::num::is_int;
 use crate::utils::range::Range;
 use eyre::Report;
 use itertools::{cloned, concat, merge, Itertools};
-use map_in_place::MapVecInPlace;
 use regex::internal::Input;
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};

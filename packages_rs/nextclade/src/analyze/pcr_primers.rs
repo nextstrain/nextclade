@@ -9,7 +9,6 @@ use crate::utils::range::Range;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::warn;
-use map_in_place::MapVecInPlace;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::path::Path;

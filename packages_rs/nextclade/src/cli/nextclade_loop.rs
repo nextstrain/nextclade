@@ -46,7 +46,6 @@ use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
-use map_in_place::MapVecInPlace;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
