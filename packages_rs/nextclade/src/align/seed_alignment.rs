@@ -1,10 +1,13 @@
 use crate::align::align::AlignPairwiseParams;
+use crate::align::band_2d::simple_stripes;
 use crate::align::band_2d::Stripe;
 use crate::align::seed_match::seed_match;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
 use num_traits::{abs, clamp, clamp_min};
+
+use super::band_2d::Band2d;
 
 fn is_bad_letter(letter: Nuc) -> bool {
   letter == Nuc::N
@@ -99,10 +102,13 @@ pub fn seed_alignment(
   let band_width = (((ref_size + query_size) as f32 * 0.5) - 3.0).round() as usize;
 
   if band_width < (2 * params.seed_length) {
+    let mean_shift = ((ref_size as f32 - query_size as f32) * 0.5).round() as i32;
+    let stripes = simple_stripes(mean_shift, band_width, ref_size, query_size);
+
     return Ok(SeedAlignmentResult {
-      mean_shift: ((ref_size as f32 - query_size as f32) * 0.5).round() as i32,
+      mean_shift,
       band_width,
-      stripes: vec![], // HACK: stripes are empty
+      stripes,
     });
   };
 
@@ -128,17 +134,22 @@ pub fn seed_alignment(
     },
   );
 
-  let terminal_bandwidth: i32 = 20;
-  let excess_bandwidth: i32 = 9;
-  let stripes = make_stripes(qry_seq, ref_seq, params, terminal_bandwidth, excess_bandwidth);
-  println!("stripes, len {}", stripes.len());
-  println!("pos 0     {:?}", stripes[0]);
-  println!("pos 15000 {:?}", stripes[15000]);
-  println!("pos 29902 {:?}", stripes[29902]);
+  // let terminal_bandwidth: i32 = 20;
+  // let excess_bandwidth: i32 = 9;
+  // let stripes = make_stripes(qry_seq, ref_seq, params, terminal_bandwidth, excess_bandwidth);
+  // println!("stripes, len {}", stripes.len());
+  // println!("pos 0     {:?}", stripes[0]);
+  // println!("pos 15000 {:?}", stripes[15000]);
+  // println!("pos 29902 {:?}", stripes[29902]);
+
+  let mean_shift = (0.5 * (min_shift + max_shift) as f64).round() as i32;
+  let band_width = (max_shift - min_shift + 9) as usize;
+
+  let stripes = simple_stripes(mean_shift, band_width, ref_size, query_size);
 
   Ok(SeedAlignmentResult {
-    mean_shift: (0.5 * (min_shift + max_shift) as f64).round() as i32,
-    band_width: (max_shift - min_shift + 9) as usize,
+    mean_shift,
+    band_width,
     stripes,
   })
 }
