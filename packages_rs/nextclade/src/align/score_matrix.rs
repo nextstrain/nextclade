@@ -63,7 +63,7 @@ pub fn score_matrix<T: Letter<T>>(
     paths[(0, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
     scores[(0, qpos)] = 0;
   }
-  let mut qry_gaps = vec![NO_ALIGN; n_rows];
+  let mut qry_gaps = vec![NO_ALIGN; n_cols];
 
   // Iterate over rows
   for ri in 1..ref_size + 1 {
@@ -86,7 +86,7 @@ pub fn score_matrix<T: Letter<T>>(
         score = 0;
         tmp_path += QRY_GAP_EXTEND;
         origin = QRY_GAP_MATRIX;
-      } else if qpos <= query_size {
+      } else {
         // if the position is within the query sequence
         // no gap -- match case
         // TODO: Handle case where strip ends shift more than one
@@ -154,11 +154,8 @@ pub fn score_matrix<T: Letter<T>>(
         } else {
           qry_gaps[qpos] = NO_ALIGN;
         }
-      } else {
-        // past query sequence -- mark as sequence end
-        score = scores[(ri, qpos - 1)];
-        origin = QRY_GAP_EXTEND;
       }
+
       tmp_path += origin;
       paths[(ri, qpos)] = tmp_path;
       scores[(ri, qpos)] = score;
