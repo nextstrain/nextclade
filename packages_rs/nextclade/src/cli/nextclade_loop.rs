@@ -80,7 +80,7 @@ pub struct NextcladeOutputs {
   pub total_unknown_aa: usize,
   pub alignment_start: usize,
   pub alignment_end: usize,
-  pub alignment_score: usize,
+  pub alignment_score: i32,
   pub pcr_primer_changes: Vec<PcrPrimerChange>,
   pub total_pcr_primer_changes: usize,
   pub clade: String,

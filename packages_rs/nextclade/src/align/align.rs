@@ -66,7 +66,7 @@ fn align_pairwise<T: Letter<T>>(
   let ScoreMatrixResult { scores, paths } =
     score_matrix(qry_seq, ref_seq, gap_open_close, band_width, shift, stripes, params);
 
-  Ok(backtrace(qry_seq, ref_seq, &scores, &paths, shift))
+  Ok(backtrace(qry_seq, ref_seq, &scores, &paths))
 }
 
 pub fn align_nuc(
