@@ -71,8 +71,8 @@ pub fn score_matrix<T: Letter<T>>(
 
     for qpos in stripes[ri].begin..stripes[ri].end {
       let mut tmp_path = 0;
-      let mut score: i32;
-      let mut origin: i32;
+      let mut score = 0;
+      let mut origin = 0;
       let q_gap_extend: i32;
       let r_gap_extend: i32;
       let r_gap_open: i32;
@@ -90,12 +90,16 @@ pub fn score_matrix<T: Letter<T>>(
         // if the position is within the query sequence
         // no gap -- match case
         // TODO: Handle case where strip ends shift more than one
-        if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
-          score = scores[(ri - 1, qpos - 1)] + params.score_match;
-        } else {
-          score = scores[(ri - 1, qpos - 1)] - params.penalty_mismatch;
-        };
-        origin = MATCH;
+
+        // TODO: Double bounds check -> wasteful, make better
+        if qpos > stripes[ri - 1].begin {
+          if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
+            score = scores[(ri - 1, qpos - 1)] + params.score_match;
+          } else {
+            score = scores[(ri - 1, qpos - 1)] - params.penalty_mismatch;
+          };
+          origin = MATCH;
+        }
 
         // check the scores of a reference gap
         // if qpos == stripes.begin: ref gap not allowed
