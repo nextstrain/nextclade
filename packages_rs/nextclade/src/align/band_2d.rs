@@ -1,6 +1,6 @@
+use num::clamp;
 use num::ToPrimitive;
 use num_traits::{cast, NumCast};
-use std::cmp;
 use std::fmt::{self, Display};
 use std::ops::{Index, IndexMut};
 
@@ -37,13 +37,15 @@ impl Stripe {
 pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_size: usize, qry_size: usize) -> Vec<Stripe> {
   //Begin runs diagonally, with max(0, mean_shift - band_width + i)
   //End runs diagnoally, with min(qry_size, mean_shift + band_width + i)
+
+  // TODO: Increase by start/end bands
   let mut stripes = Vec::<Stripe>::with_capacity(ref_size + 1);
   let band_width_i32 = band_width.to_i32().unwrap();
   let ref_size_i32 = ref_size.to_i32().unwrap();
   let qry_size_i32 = qry_size.to_i32().unwrap();
   for i in 0..=ref_size_i32 {
-    let begin = cmp::max(0, -mean_shift - band_width_i32 + i);
-    let end = cmp::min(qry_size_i32 + 1, -mean_shift + band_width_i32 + i + 1);
+    let begin = num::clamp(-mean_shift - band_width_i32 + i, 0, qry_size_i32);
+    let end = num::clamp(-mean_shift + band_width_i32 + i + 1, 1, qry_size_i32 + 1);
     stripes.push(Stripe::new(begin, end));
   }
   stripes
@@ -225,6 +227,24 @@ mod tests {
     ];
 
     let result = simple_stripes(0, 2, 5, 7);
+
+    assert_eq!(expected_stripes, result);
+
+    Ok(())
+  }
+
+  #[rstest]
+  fn test_simple_stripes_without_origin_in_band() -> Result<(), Report> {
+    let expected_stripes = vec![
+      Stripe { begin: 0, end: 1 },
+      Stripe { begin: 0, end: 1 },
+      Stripe { begin: 0, end: 2 },
+      Stripe { begin: 0, end: 3 },
+      Stripe { begin: 1, end: 4 },
+      Stripe { begin: 2, end: 5 },
+    ];
+
+    let result = simple_stripes(2, 1, 5, 5);
 
     assert_eq!(expected_stripes, result);
 
