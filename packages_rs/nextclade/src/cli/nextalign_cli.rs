@@ -20,7 +20,7 @@ lazy_static! {
 }
 
 #[derive(Parser, Debug)]
-#[clap(name = "Nextalign", trailing_var_arg = true)]
+#[clap(name = "nextalign", trailing_var_arg = true)]
 #[clap(author, version)]
 #[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(verbatim_doc_comment)]

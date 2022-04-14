@@ -22,7 +22,7 @@ lazy_static! {
 }
 
 #[derive(Parser, Debug)]
-#[clap(name = "Nextclade", trailing_var_arg = true)]
+#[clap(name = "nextclade", trailing_var_arg = true)]
 #[clap(author, version)]
 #[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(verbatim_doc_comment)]
