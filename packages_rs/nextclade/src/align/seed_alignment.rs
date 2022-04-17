@@ -2,6 +2,7 @@ use crate::align::align::AlignPairwiseParams;
 use crate::align::band_2d::simple_stripes;
 use crate::align::band_2d::Stripe;
 use crate::align::seed_match::seed_match;
+use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
@@ -9,18 +10,14 @@ use num_traits::{abs, clamp, clamp_min};
 
 use super::band_2d::Band2d;
 
-fn is_bad_letter(letter: Nuc) -> bool {
-  letter == Nuc::N
-}
-
-fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> {
+fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) -> Vec<usize> {
   let qry_len = qry_seq.len();
 
   let mut map_to_good_positions = Vec::<usize>::with_capacity(qry_len);
   let mut distance_to_last_bad_pos: i64 = 0;
 
   for (i, letter) in qry_seq.iter().enumerate() {
-    if is_bad_letter(*letter) {
+    if letter.is_unknown() {
       distance_to_last_bad_pos = -1;
     } else if distance_to_last_bad_pos > seed_length as i64 {
       map_to_good_positions.push(i - seed_length);
@@ -45,9 +42,9 @@ pub struct SeedAlignmentResult {
   pub stripes: Vec<Stripe>,
 }
 
-pub fn get_seed_matches(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
+pub fn get_seed_matches<L: Letter<L>>(
+  qry_seq: &[L],
+  ref_seq: &[L],
   params: &AlignPairwiseParams,
   n_seeds: i32,
   margin: i32,

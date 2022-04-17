@@ -41,11 +41,6 @@ impl Nuc {
   }
 
   #[inline]
-  pub fn is_unknown(self) -> bool {
-    self == Nuc::N
-  }
-
-  #[inline]
   pub const fn is_acgtn(self) -> bool {
     matches!(self, Nuc::A | Nuc::C | Nuc::G | Nuc::T | Nuc::N)
   }
@@ -69,6 +64,11 @@ impl Letter<Nuc> for Nuc {
   #[inline]
   fn is_gap(&self) -> bool {
     self == &Nuc::Gap
+  }
+
+  #[inline]
+  fn is_unknown(&self) -> bool {
+    self == &Nuc::N
   }
 
   #[inline]
