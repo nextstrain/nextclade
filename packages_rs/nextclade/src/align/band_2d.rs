@@ -48,6 +48,9 @@ pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_size: usize, qry_s
     let end = num::clamp(-mean_shift + band_width_i32 + i + 1, 1, qry_size_i32 + 1);
     stripes.push(Stripe::new(begin, end));
   }
+  // Make sure first and last stripe can reach origin/end
+  stripes[0].begin = 0;
+  stripes[ref_size].end = qry_size + 1;
   stripes
 }
 
