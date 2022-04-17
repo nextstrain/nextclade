@@ -357,6 +357,36 @@ mod tests {
   }
 
   #[rstest]
+  fn aligns_minimal_overlap_qry_first(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let qry_seq = to_nuc_seq("AAAAAAAAAAAA")?;
+    let ref_seq = to_nuc_seq("AAATTTTTTTTTT")?;
+    let qry_aln = to_nuc_seq("AAAAAAAAAAAA----------")?;
+    let ref_aln = to_nuc_seq("---------AAATTTTTTTTTT")?;
+
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+
+    assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
+    assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
+    Ok(())
+  }
+
+  #[rstest]
+  fn aligns_minimal_overlap_ref_first(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let ref_seq = to_nuc_seq("AAAAAAAAAAAA")?;
+    let qry_seq = to_nuc_seq("AAATTTTTTTTTT")?;
+    let ref_aln = to_nuc_seq("AAAAAAAAAAAA----------")?;
+    let qry_aln = to_nuc_seq("---------AAATTTTTTTTTT")?;
+
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+
+    assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
+    assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
+    Ok(())
+  }
+
+  #[rstest]
   #[rustfmt::skip]
   fn general_case(ctx: Context) -> Result<(), Report> {
     let ref_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTAGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTGAGCCTTTGT"       )?;
