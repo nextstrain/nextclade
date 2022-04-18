@@ -89,10 +89,9 @@ pub fn score_matrix<T: Letter<T>>(
       } else {
         // if the position is within the query sequence
         // no gap -- match case
-        // TODO: Handle case where strip ends shift more than one
 
         // TODO: Double bounds check -> wasteful, make better
-        if qpos > stripes[ri - 1].begin {
+        if qpos - 1 >= stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
           if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
             score = scores[(ri - 1, qpos - 1)] + params.score_match;
           } else {
