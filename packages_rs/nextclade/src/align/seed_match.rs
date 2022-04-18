@@ -9,6 +9,7 @@ pub fn seed_match<L: Letter<L>>(
   kmer: &[L],
   ref_seq: &[L],
   start_pos: usize,
+  end_pos: usize,
   mismatches_allowed: usize,
 ) -> SeedMatchResult {
   let ref_len = ref_seq.len();
@@ -39,7 +40,7 @@ pub fn seed_match<L: Letter<L>>(
       max_ref_pos = ref_pos;
 
       // TODO: accept semi-optimal within mismatches_allowed to speed up
-      if max_score == kmer_len {
+      if max_score >= kmer_len - mismatches_allowed {
         break;
       }
     }
@@ -67,7 +68,7 @@ mod tests {
     let mismatches_allowed = 0;
     let start_pos = 0;
 
-    let result = seed_match(&kmer, &ref_seq, start_pos, mismatches_allowed);
+    let result = seed_match(&kmer, &ref_seq, start_pos, ref_seq.len(), mismatches_allowed);
 
     assert_eq!(result.ref_pos, 6);
     assert_eq!(result.score, 3);
@@ -83,7 +84,7 @@ mod tests {
     let mismatches_allowed = 1;
     let start_pos = 0;
 
-    let result = seed_match(&kmer, &ref_seq, start_pos, mismatches_allowed);
+    let result = seed_match(&kmer, &ref_seq, start_pos, ref_seq.len(), mismatches_allowed);
 
     assert_eq!(result.ref_pos, 1);
     assert_eq!(result.score, 2);

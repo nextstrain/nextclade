@@ -64,12 +64,13 @@ pub fn get_seed_matches<L: Letter<L>>(
 
   // loop over seeds and find matches, store in seed_matches
   let mut start_pos = 0;
+  let mut end_pos = params.max_indel + kmer_spacing.round() as usize;
   for ni in 0..n_seeds {
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
     let qry_pos = map_to_good_positions[good_position_index];
 
     let seed = &qry_seq[qry_pos..qry_pos + params.seed_length];
-    let tmp_match = seed_match(seed, ref_seq, start_pos, params.mismatches_allowed);
+    let tmp_match = seed_match(seed, ref_seq, start_pos, end_pos, params.mismatches_allowed);
 
     // Only use seeds with at most allowed_mismatches
     if tmp_match.score >= params.seed_length - params.mismatches_allowed {
@@ -79,6 +80,9 @@ pub fn get_seed_matches<L: Letter<L>>(
         score: tmp_match.score,
       });
       start_pos = tmp_match.ref_pos;
+      end_pos = tmp_match.ref_pos + params.max_indel + kmer_spacing.round() as usize;
+    } else {
+      end_pos += kmer_spacing.round() as usize;
     }
   }
   seed_matches
@@ -186,7 +190,7 @@ pub fn create_stripes(
     terminal_bandwidth,
   );
 
-  stripes = regularize_stripes(stripes);
+  // stripes = regularize_stripes(stripes);
 
   stripes
 }
@@ -223,14 +227,18 @@ fn add_internal_stripes(
 
   let drift = dq - dr;
 
-  trace!("drift: {} at position: {} with width: {}", drift, ref_start, dr);
+  // trace!("drift: {} at position: {} with width: {}", drift, ref_start, dr);
   let drift_begin = clamp_max(drift, 0);
   let drift_end = clamp_min(drift, 0);
 
   for i in 0..(ref_end - ref_start) {
     let center = qry_start + i;
-    let begin = clamp(center + drift_begin - bandwidth - drift_end / 3, 0, qry_len);
-    let end = clamp(center + drift_end + bandwidth - drift_begin / 3, 1, qry_len + 1);
+    let begin = clamp(center + drift_begin - bandwidth - drift_end / 3, qry_start, qry_end);
+    let end = clamp(
+      center + drift_end + bandwidth - drift_begin / 3,
+      qry_start + 1,
+      qry_end + 1,
+    );
     stripes.push(Stripe::new(begin, end));
   }
   stripes
@@ -244,8 +252,8 @@ fn add_start_stripe(ref_end: i32, qry_end: i32, qry_len: i32, bandwidth: i32) ->
 
   for i in 0..ref_end {
     let center = shift + i;
-    let begin = clamp(center - bandwidth, 0, qry_len);
-    let end = clamp(center + bandwidth, 1, qry_len + 1);
+    let begin = clamp(center - bandwidth, 0, qry_end);
+    let end = clamp(center + bandwidth, 1, qry_end + 1);
     let stripe = Stripe::new(begin, end);
     stripes.push(stripe);
   }
@@ -269,8 +277,8 @@ fn add_end_stripe(
 
   for i in ref_start..ref_len + 1 {
     let center = shift + i;
-    let begin = clamp(center - bandwidth, 0, qry_len);
-    let end = clamp(center + bandwidth, 1, qry_len + 1);
+    let begin = clamp(center - bandwidth, qry_start, qry_len);
+    let end = clamp(center + bandwidth, qry_start + 1, qry_len + 1);
     stripes.push(Stripe::new(begin, end));
   }
 
