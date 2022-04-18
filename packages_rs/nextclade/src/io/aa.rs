@@ -44,11 +44,6 @@ pub enum Aa {
 
 impl Aa {
   #[inline]
-  pub fn is_unknown(self) -> bool {
-    self == Aa::X
-  }
-
-  #[inline]
   pub fn is_stop(self) -> bool {
     self == Aa::Stop
   }
@@ -78,6 +73,11 @@ impl Letter<Aa> for Aa {
   #[inline]
   fn is_gap(&self) -> bool {
     self == &Aa::Gap
+  }
+
+  #[inline]
+  fn is_unknown(&self) -> bool {
+    self == &Aa::X
   }
 
   #[inline]

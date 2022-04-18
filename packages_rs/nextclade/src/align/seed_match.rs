@@ -1,11 +1,16 @@
-use crate::io::nuc::Nuc;
+use crate::io::letter::Letter;
 
 pub struct SeedMatchResult {
   pub ref_pos: usize,
   pub score: usize,
 }
 
-pub fn seed_match(kmer: &[Nuc], ref_seq: &[Nuc], start_pos: usize, mismatches_allowed: usize) -> SeedMatchResult {
+pub fn seed_match<L: Letter<L>>(
+  kmer: &[L],
+  ref_seq: &[L],
+  start_pos: usize,
+  mismatches_allowed: usize,
+) -> SeedMatchResult {
   let ref_len = ref_seq.len();
   let kmer_len = kmer.len();
 
