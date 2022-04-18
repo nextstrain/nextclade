@@ -244,7 +244,7 @@ mod tests {
       Stripe { begin: 0, end: 2 },
       Stripe { begin: 0, end: 3 },
       Stripe { begin: 1, end: 4 },
-      Stripe { begin: 2, end: 5 },
+      Stripe { begin: 2, end: 6 },
     ];
 
     let result = simple_stripes(2, 1, 5, 5);

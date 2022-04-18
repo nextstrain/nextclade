@@ -1,7 +1,7 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
 use crate::align::band_2d::Stripe;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
-use crate::align::seed_alignment::{seed_alignment, SeedAlignmentResult};
+use crate::align::seed_alignment::seed_alignment;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -51,20 +51,13 @@ fn align_pairwise<T: Letter<T>>(
   ref_seq: &[T],
   gap_open_close: &[i32],
   params: &AlignPairwiseParams,
-  band_width: usize,
-  shift: i32,
   stripes: &[Stripe],
 ) -> Result<AlignmentOutput<T>, Report> {
   trace!("Align pairwise: started. Params: {params:?}");
 
   let max_indel = params.max_indel;
-  if band_width > max_indel {
-    trace!("Align pairwise: failed. band_width={band_width}, max_indel={max_indel}");
-    return make_error!("Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches");
-  }
 
-  let ScoreMatrixResult { scores, paths } =
-    score_matrix(qry_seq, ref_seq, gap_open_close, band_width, shift, stripes, params);
+  let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params);
 
   Ok(backtrace(qry_seq, ref_seq, &scores, &paths))
 }
@@ -83,26 +76,13 @@ pub fn align_nuc(
     );
   }
 
-  let SeedAlignmentResult {
-    mean_shift,
-    band_width,
-    stripes,
-  } = seed_alignment(qry_seq, ref_seq, params)?;
-  trace!(
-    "Align pairwise: after seed alignment: band_width={:}, mean_shift={:}\n",
-    band_width,
-    mean_shift
-  );
+  let stripes = seed_alignment(qry_seq, ref_seq, params)?;
 
-  align_pairwise(
-    qry_seq,
-    ref_seq,
-    gap_open_close,
-    params,
-    band_width,
-    mean_shift,
-    &stripes,
-  )
+  let result = align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)?;
+
+  trace!("Score: {}", result.alignment_score);
+
+  Ok(result)
 }
 
 pub fn align_aa(
@@ -115,15 +95,7 @@ pub fn align_aa(
 ) -> Result<AlignmentOutput<Aa>, Report> {
   let stripes = vec![]; // HACK: stripes are empty
 
-  align_pairwise(
-    qry_seq,
-    ref_seq,
-    gap_open_close,
-    params,
-    band_width,
-    mean_shift,
-    &stripes,
-  )
+  align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)
 }
 
 #[cfg(test)]
@@ -430,8 +402,9 @@ mod tests {
     )?;
 
     assert!(
-      from_nuc_seq(&ref_aln) == from_nuc_seq(&result.ref_seq),
-      "Ref alignment is not correct"
+      from_nuc_seq(&qry_aln) == from_nuc_seq(&result.qry_seq),
+      "Ref alignment is not correct: {}",
+      from_nuc_seq(&result.qry_seq)
     );
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
     Ok(())

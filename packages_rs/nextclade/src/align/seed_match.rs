@@ -38,8 +38,8 @@ pub fn seed_match<L: Letter<L>>(
       max_score = tmp_score;
       max_ref_pos = ref_pos;
 
-      // accept semi-optimal within mismatches_allowed to speed up
-      if max_score >= kmer_len - mismatches_allowed {
+      // TODO: accept semi-optimal within mismatches_allowed to speed up
+      if max_score == kmer_len {
         break;
       }
     }

@@ -6,7 +6,8 @@ use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
-use num_traits::{abs, clamp, clamp_min};
+use log::trace;
+use num_traits::{abs, clamp, clamp_max, clamp_min};
 
 use super::band_2d::Band2d;
 
@@ -14,12 +15,13 @@ fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) ->
   let qry_len = qry_seq.len();
 
   let mut map_to_good_positions = Vec::<usize>::with_capacity(qry_len);
-  let mut distance_to_last_bad_pos: i64 = 0;
+  let mut distance_to_last_bad_pos: i32 = 0;
 
   for (i, letter) in qry_seq.iter().enumerate() {
+    // TODO: Exclude ambiguous letters
     if letter.is_unknown() {
-      distance_to_last_bad_pos = -1;
-    } else if distance_to_last_bad_pos > seed_length as i64 {
+      distance_to_last_bad_pos = 0;
+    } else if distance_to_last_bad_pos >= seed_length as i32 {
       map_to_good_positions.push(i - seed_length);
     }
     distance_to_last_bad_pos += 1;
@@ -35,12 +37,12 @@ pub struct SeedMatch {
   score: usize,
 }
 
-#[derive(Debug)]
-pub struct SeedAlignmentResult {
-  pub mean_shift: i32,
-  pub band_width: usize,
-  pub stripes: Vec<Stripe>,
-}
+// #[derive(Debug)]
+// pub struct SeedAlignmentResult {
+//   pub mean_shift: i32,
+//   pub band_width: usize,
+//   pub stripes: Vec<Stripe>,
+// }
 
 pub fn get_seed_matches<L: Letter<L>>(
   qry_seq: &[L],
@@ -82,31 +84,29 @@ pub fn get_seed_matches<L: Letter<L>>(
   seed_matches
 }
 
-pub fn seed_alignment(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
+pub fn seed_alignment<L: Letter<L>>(
+  qry_seq: &[L],
+  ref_seq: &[L],
   params: &AlignPairwiseParams,
-) -> Result<SeedAlignmentResult, Report> {
-  let query_size = qry_seq.len();
-  let ref_size = ref_seq.len();
-  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) as usize {
+) -> Result<Vec<Stripe>, Report> {
+  let qry_size = qry_seq.len() as i32;
+  let ref_size = ref_seq.len() as i32;
+  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) {
     (ref_size as f32 / params.seed_spacing as f32) as i32
   } else {
     params.min_seeds
   };
 
   let margin = (ref_size as f32 / (n_seeds * 3) as f32).round() as i32;
-  let band_width = (((ref_size + query_size) as f32 * 0.5) - 3.0).round() as usize;
+
+  // In case of very short sequences
+  let band_width = (((ref_size + qry_size) as f32 * 0.5) - 3.0).round() as usize;
 
   if band_width < (2 * params.seed_length) {
-    let mean_shift = ((ref_size as f32 - query_size as f32) * 0.5).round() as i32;
-    let stripes = simple_stripes(mean_shift, band_width, ref_size, query_size);
+    let mean_shift = ((ref_size as f32 - qry_size as f32) * 0.5).round() as i32;
+    let stripes = simple_stripes(mean_shift, band_width, ref_size as usize, qry_size as usize);
 
-    return Ok(SeedAlignmentResult {
-      mean_shift,
-      band_width,
-      stripes,
-    });
+    return Ok(stripes);
   };
 
   let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
@@ -116,6 +116,11 @@ pub fn seed_alignment(
     return make_error!("Unable to align: no seed matches. Details: num seed matches: {num_seed_matches}");
   }
 
+  // TODO: Pass as parameters
+  let terminal_bandwidth: i32 = 50;
+  let excess_bandwidth: i32 = 9;
+  let stripes = create_stripes(&seed_matches, qry_size, ref_size, terminal_bandwidth, excess_bandwidth);
+
   // Given the seed matches, determine the maximal and minimal shifts.
   // This shift is the typical amount the query needs shifting to match ref.
   //
@@ -123,94 +128,188 @@ pub fn seed_alignment(
   // ref:   ACTCTACTGC-TCAGAC
   // qry:   ----TCACTCATCT-ACACCGAT
   // => shift = 4, then 3, 4 again
-  let (min_shift, max_shift) = seed_matches.iter().fold(
-    (ref_size as i64, -(ref_size as i64)),
-    |(min, max): (i64, i64), clamp: &SeedMatch| {
-      let shift = (clamp.ref_pos as i64) - (clamp.qry_pos as i64);
-      (min.min(shift), max.max(shift))
-    },
-  );
+  // let (min_shift, max_shift) = seed_matches.iter().fold(
+  //   (ref_size as i64, -(ref_size as i64)),
+  //   |(min, max): (i64, i64), clamp: &SeedMatch| {
+  //     let shift = (clamp.ref_pos as i64) - (clamp.qry_pos as i64);
+  //     (min.min(shift), max.max(shift))
+  //   },
+  // );
 
-  // let terminal_bandwidth: i32 = 20;
-  // let excess_bandwidth: i32 = 9;
-  // let stripes = make_stripes(qry_seq, ref_seq, params, terminal_bandwidth, excess_bandwidth);
-  // println!("stripes, len {}", stripes.len());
-  // println!("pos 0     {:?}", stripes[0]);
-  // println!("pos 15000 {:?}", stripes[15000]);
-  // println!("pos 29902 {:?}", stripes[29902]);
+  // // let terminal_bandwidth: i32 = 20;
+  // // let excess_bandwidth: i32 = 9;
+  // // let stripes = make_stripes(qry_seq, ref_seq, params, terminal_bandwidth, excess_bandwidth);
+  // // println!("stripes, len {}", stripes.len());
+  // // println!("pos 0     {:?}", stripes[0]);
+  // // println!("pos 15000 {:?}", stripes[15000]);
+  // // println!("pos 29902 {:?}", stripes[29902]);
 
-  let mean_shift = (0.5 * (min_shift + max_shift) as f64).round() as i32;
-  let band_width = (max_shift - min_shift + 9) as usize;
+  // let mean_shift = (0.5 * (min_shift + max_shift) as f64).round() as i32;
+  // let band_width = (max_shift - min_shift + 9) as usize;
 
-  let stripes = simple_stripes(mean_shift, band_width, ref_size, query_size);
+  // let stripes = simple_stripes(mean_shift, band_width, ref_size, query_size);
 
-  Ok(SeedAlignmentResult {
-    mean_shift,
-    band_width,
-    stripes,
-  })
+  Ok(stripes)
 }
 
-pub fn make_stripes(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
-  params: &AlignPairwiseParams,
+pub fn create_stripes(
+  seed_matches: &[SeedMatch],
+  qry_len: i32,
+  ref_len: i32,
   terminal_bandwidth: i32,
   excess_bandwidth: i32,
 ) -> Vec<Stripe> {
-  let query_size = qry_seq.len() as i32;
-  let ref_size = ref_seq.len() as i32;
-  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) {
-    (ref_size as f32 / params.seed_spacing as f32) as i32
-  } else {
-    params.min_seeds
-  };
+  let mut stripes = add_start_stripe(
+    seed_matches[0].ref_pos as i32,
+    seed_matches[0].qry_pos as i32,
+    qry_len,
+    terminal_bandwidth,
+  );
 
-  let margin = (ref_size as f32 / (n_seeds * 3) as f32).round() as i32;
-  let band_width = (((ref_size + query_size) as f32 * 0.5) - 3.0).round() as usize;
+  for i in 1..seed_matches.len() {
+    stripes = add_internal_stripes(
+      stripes,
+      seed_matches[i - 1].ref_pos as i32,
+      seed_matches[i].ref_pos as i32,
+      seed_matches[i - 1].qry_pos as i32,
+      seed_matches[i].qry_pos as i32,
+      qry_len,
+      excess_bandwidth,
+    );
+  }
+  stripes = add_end_stripe(
+    stripes,
+    seed_matches[seed_matches.len() - 1].ref_pos as i32,
+    ref_len,
+    seed_matches[seed_matches.len() - 1].qry_pos as i32,
+    qry_len,
+    terminal_bandwidth,
+  );
 
-  let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
+  stripes = regularize_stripes(stripes);
 
-  let mut stripes: Vec<Stripe> = vec![];
+  stripes
+}
 
-  let mut band_width = terminal_bandwidth;
-  let mut shift = seed_matches[0].ref_pos as i32 - seed_matches[0].qry_pos as i32;
-  // Initial strip -- needs to begin at 0
-  stripes.push(Stripe::new(0, clamp(band_width - shift, 0, query_size)));
-  println!("shift: {}, bandwidth {}", shift, band_width);
+fn regularize_stripes(mut stripes: Vec<Stripe>) -> Vec<Stripe> {
+  // Chop off unreachable parts of the stripes
+  // Overhanging parts are pruned
+  let mut max = 0;
+  for i in 0..stripes.len() {
+    max = clamp_min(max, stripes[i].begin);
+    stripes[i].begin = clamp_min(stripes[i].begin, max);
+  }
 
-  let mut r: i32 = 0;
-  let mut sm: usize = 0;
-  while r < ref_size {
-    let ref_pos = seed_matches[sm].ref_pos as i32;
+  let mut min = stripes[stripes.len() - 1].end;
+  for i in (0..stripes.len()).rev() {
+    min = clamp_max(min, stripes[i].end);
+    stripes[i].end = clamp_max(stripes[i].end, min);
+  }
 
-    while r < ref_pos {
-      let begin = clamp_min(r - shift - band_width, 0);
-      let end = clamp(r - shift + band_width, 0, query_size);
-      stripes.push(Stripe::new(begin, end));
-      r += 1;
-    }
+  stripes
+}
 
-    if sm + 1 < seed_matches.len() {
-      let old_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
-      sm += 1;
-      let new_shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
-      shift = (old_shift + new_shift) / 2;
-      band_width = abs(old_shift - new_shift) + excess_bandwidth;
-      println!("shift: {}, bandwidth {}", shift, band_width);
-    } else {
-      let band_width = terminal_bandwidth;
-      let shift = seed_matches[sm].ref_pos as i32 - seed_matches[sm].qry_pos as i32;
-      while r < ref_size - 1 {
-        let begin = clamp(r - shift - band_width, 0, query_size - terminal_bandwidth); // TODO: band_width == terminal_bandwidth?
-        let end = clamp(r - shift + band_width, 0, query_size);
-        stripes.push(Stripe::new(begin, end));
-        r += 1;
-      }
-      let begin = clamp(r - shift - band_width, 0, query_size - terminal_bandwidth); // TODO: band_width == terminal_bandwidth?
-      let end = query_size;
-      stripes.push(Stripe::new(begin, end));
-    }
+fn add_internal_stripes(
+  mut stripes: Vec<Stripe>,
+  ref_start: i32,
+  ref_end: i32,
+  qry_start: i32,
+  qry_end: i32,
+  qry_len: i32,
+  bandwidth: i32,
+) -> Vec<Stripe> {
+  let dq = qry_end - qry_start;
+  let dr = ref_end - ref_start;
+
+  let drift = dq - dr;
+
+  trace!("drift: {} at position: {} with width: {}", drift, ref_start, dr);
+  let drift_begin = clamp_max(drift, 0);
+  let drift_end = clamp_min(drift, 0);
+
+  for i in 0..(ref_end - ref_start) {
+    let center = qry_start + i;
+    let begin = clamp(center + drift_begin - bandwidth - drift_end / 3, 0, qry_len);
+    let end = clamp(center + drift_end + bandwidth - drift_begin / 3, 1, qry_len + 1);
+    stripes.push(Stripe::new(begin, end));
   }
   stripes
+}
+
+fn add_start_stripe(ref_end: i32, qry_end: i32, qry_len: i32, bandwidth: i32) -> Vec<Stripe> {
+  let mut stripes: Vec<Stripe> = vec![];
+
+  let slope = 1;
+  let shift = qry_end - ref_end;
+
+  for i in 0..ref_end {
+    let center = shift + i;
+    let begin = clamp(center - bandwidth, 0, qry_len);
+    let end = clamp(center + bandwidth, 1, qry_len + 1);
+    let stripe = Stripe::new(begin, end);
+    stripes.push(stripe);
+  }
+
+  // First stripe needs to go to origin
+  stripes[0].begin = 0;
+
+  stripes
+}
+
+fn add_end_stripe(
+  mut stripes: Vec<Stripe>,
+  ref_start: i32,
+  ref_len: i32,
+  qry_start: i32,
+  qry_len: i32,
+  bandwidth: i32,
+) -> Vec<Stripe> {
+  let slope = 1;
+  let shift = qry_start - ref_start;
+
+  for i in ref_start..ref_len + 1 {
+    let center = shift + i;
+    let begin = clamp(center - bandwidth, 0, qry_len);
+    let end = clamp(center + bandwidth, 1, qry_len + 1);
+    stripes.push(Stripe::new(begin, end));
+  }
+
+  // Last stripe needs to go to terminus
+  stripes[ref_len as usize].end = qry_len as usize + 1;
+
+  stripes
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::{fixture, rstest};
+
+  #[rstest]
+  fn test_create_stripes_basic() -> Result<(), Report> {
+    let mut seed_matches = vec![];
+    seed_matches.push(SeedMatch {
+      qry_pos: 5,
+      ref_pos: 10,
+      score: 0,
+    });
+    seed_matches.push(SeedMatch {
+      qry_pos: 20,
+      ref_pos: 30,
+      score: 0,
+    });
+
+    let terminal_bandwidth = 5;
+    let excess_bandwidth = 2;
+    let qry_len = 30;
+    let ref_len = 40;
+
+    let result = create_stripes(&seed_matches, qry_len, ref_len, terminal_bandwidth, excess_bandwidth);
+
+    println!("{:?}", result);
+
+    Ok(())
+  }
 }

@@ -22,8 +22,6 @@ pub fn score_matrix<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
   gap_open_close: &[i32],
-  band_width: usize,
-  mean_shift: i32,
   stripes: &[Stripe],
   params: &AlignPairwiseParams,
 ) -> ScoreMatrixResult {
@@ -32,10 +30,7 @@ pub fn score_matrix<T: Letter<T>>(
   let n_rows = ref_size + 1;
   let n_cols = query_size + 1;
 
-  trace!(
-    "Score matrix: started: query_size={query_size}, ref_size={ref_size}, \
-  band_width={band_width}, mean_shift={mean_shift}, n_rows={n_rows}, n_cols={n_cols}"
-  );
+  trace!("Score matrix: started: query_size={query_size}, ref_size={ref_size}, n_rows={n_rows}, n_cols={n_cols}");
 
   let mut paths = Band2d::<i32>::new(stripes);
   let mut scores = Band2d::<i32>::new(stripes);
@@ -215,15 +210,7 @@ mod tests {
     let mean_shift = 2;
 
     let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
-    let result = score_matrix(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      band_width,
-      mean_shift,
-      &stripes,
-      &ctx.params,
-    );
+    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
 
     let mut expected_scores = Band2d::<i32>::new(&stripes);
     expected_scores.data = vec![
