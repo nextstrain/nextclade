@@ -1,6 +1,7 @@
 use crate::gene::gene_map::GeneMap;
 use crate::io::aa::from_aa_seq;
 use crate::io::fs::ensure_dir;
+use crate::io::nuc::{to_nuc_seq, Nuc};
 use crate::translate::translate_genes::Translation;
 use crate::utils::error::report_to_string;
 use crate::{make_error, make_internal_error};
@@ -100,6 +101,12 @@ pub fn read_one_fasta(filepath: impl AsRef<Path>) -> Result<FastaRecord, Report>
   let mut record = FastaRecord::default();
   reader.read(&mut record)?;
   Ok(record)
+}
+
+pub fn read_one_fasta_nuc_seq(filepath: impl AsRef<Path>) -> Result<Vec<Nuc>, Report> {
+  let filepath = filepath.as_ref();
+  let seq_str = read_one_fasta(filepath)?.seq;
+  to_nuc_seq(&seq_str)
 }
 
 pub fn read_one_fasta_str(contents: &str) -> Result<FastaRecord, Report> {
