@@ -75,6 +75,8 @@ WEB=0
 RELEASE=
 WATCH=0
 TEST=0
+TEST_FLAGS=
+BENCH=0
 LINT=0
 FIX=
 
@@ -150,6 +152,40 @@ case "$1" in
 "watch-test" | "wt")
   shift
   TEST=1
+  WATCH=1
+  ;;
+"test-unit" | "tu")
+  shift
+  TEST=1
+  TEST_FLAGS="--lib"
+  WATCH=0
+  ;;
+"watch-test-unit" | "wtu")
+  shift
+  TEST=1
+  TEST_FLAGS="--lib"
+  WATCH=1
+  ;;
+"test-integration" | "ti")
+  shift
+  TEST=1
+  TEST_FLAGS="--test='*'"
+  WATCH=0
+  ;;
+"watch-test-integration" | "wti")
+  shift
+  TEST=1
+  TEST_FLAGS="--test='*'"
+  WATCH=1
+  ;;
+"bench" | "B")
+  shift
+  BENCH=1
+  WATCH=0
+  ;;
+"watch-bench" | "wB")
+  shift
+  BENCH=1
   WATCH=1
   ;;
 "lint" | "l")
@@ -241,7 +277,10 @@ elif [ "${WEB}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn install && yarn ${RELEASE}\""
 elif [ "${TEST}" == "1" ]; then
   PRETTY_TEST="( grep --color=always --line-buffered -vP \"running.*tests|\x1b\[32m.\x1b\(B\x1b\[m|^$|test result|TEST START\" || true )"
-  COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
+  COMMAND="cargo test --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${TEST_FLAGS} ${*:-} -- --nocapture --color=always | ${PRETTY_TEST} ${SUCCESS_OR_FAILURE}"
+elif [ "${BENCH}" == "1" ]; then
+  PRETTY_BENCH="( grep --color=always --line-buffered -vP \"Benchmarking|Gnuplot not found, using plotters backend\" || true )"
+  COMMAND="cargo bench --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} | ${PRETTY_BENCH} ${SUCCESS_OR_FAILURE}"
 elif [ "${LINT}" == "1" ]; then
   COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-}"
 else

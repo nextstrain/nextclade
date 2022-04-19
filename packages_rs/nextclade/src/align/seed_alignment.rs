@@ -32,9 +32,9 @@ fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) ->
 
 #[derive(Debug)]
 pub struct SeedMatch {
-  qry_pos: usize,
-  ref_pos: usize,
-  score: usize,
+  pub qry_pos: usize,
+  pub ref_pos: usize,
+  pub score: usize,
 }
 
 // #[derive(Debug)]
