@@ -163,7 +163,10 @@ pub fn create_stripes(
   terminal_bandwidth: i32,
   excess_bandwidth: i32,
 ) -> Vec<Stripe> {
-  let mut stripes = add_start_stripe(
+  let mut stripes = Vec::<Stripe>::new();
+
+  add_start_stripe(
+    &mut stripes,
     seed_matches[0].ref_pos as i32,
     seed_matches[0].qry_pos as i32,
     qry_len,
@@ -171,8 +174,8 @@ pub fn create_stripes(
   );
 
   for i in 1..seed_matches.len() {
-    stripes = add_internal_stripes(
-      stripes,
+    add_internal_stripes(
+      &mut stripes,
       seed_matches[i - 1].ref_pos as i32,
       seed_matches[i].ref_pos as i32,
       seed_matches[i - 1].qry_pos as i32,
@@ -181,8 +184,9 @@ pub fn create_stripes(
       excess_bandwidth,
     );
   }
-  stripes = add_end_stripe(
-    stripes,
+
+  add_end_stripe(
+    &mut stripes,
     seed_matches[seed_matches.len() - 1].ref_pos as i32,
     ref_len,
     seed_matches[seed_matches.len() - 1].qry_pos as i32,
@@ -195,7 +199,7 @@ pub fn create_stripes(
   stripes
 }
 
-fn regularize_stripes(mut stripes: Vec<Stripe>) -> Vec<Stripe> {
+fn regularize_stripes(stripes: &mut [Stripe]) {
   // Chop off unreachable parts of the stripes
   // Overhanging parts are pruned
   let mut max = 0;
@@ -209,19 +213,17 @@ fn regularize_stripes(mut stripes: Vec<Stripe>) -> Vec<Stripe> {
     min = clamp_max(min, stripes[i].end);
     stripes[i].end = clamp_max(stripes[i].end, min);
   }
-
-  stripes
 }
 
 fn add_internal_stripes(
-  mut stripes: Vec<Stripe>,
+  stripes: &mut Vec<Stripe>,
   ref_start: i32,
   ref_end: i32,
   qry_start: i32,
   qry_end: i32,
   qry_len: i32,
   bandwidth: i32,
-) -> Vec<Stripe> {
+) {
   let dq = qry_end - qry_start;
   let dr = ref_end - ref_start;
 
@@ -241,12 +243,9 @@ fn add_internal_stripes(
     );
     stripes.push(Stripe::new(begin, end));
   }
-  stripes
 }
 
-fn add_start_stripe(ref_end: i32, qry_end: i32, qry_len: i32, bandwidth: i32) -> Vec<Stripe> {
-  let mut stripes: Vec<Stripe> = vec![];
-
+fn add_start_stripe(stripes: &mut Vec<Stripe>, ref_end: i32, qry_end: i32, qry_len: i32, bandwidth: i32) {
   let slope = 1;
   let shift = qry_end - ref_end;
 
@@ -260,18 +259,16 @@ fn add_start_stripe(ref_end: i32, qry_end: i32, qry_len: i32, bandwidth: i32) ->
 
   // First stripe needs to go to origin
   stripes[0].begin = 0;
-
-  stripes
 }
 
 fn add_end_stripe(
-  mut stripes: Vec<Stripe>,
+  stripes: &mut Vec<Stripe>,
   ref_start: i32,
   ref_len: i32,
   qry_start: i32,
   qry_len: i32,
   bandwidth: i32,
-) -> Vec<Stripe> {
+) {
   let slope = 1;
   let shift = qry_start - ref_start;
 
@@ -284,8 +281,6 @@ fn add_end_stripe(
 
   // Last stripe needs to go to terminus
   stripes[ref_len as usize].end = qry_len as usize + 1;
-
-  stripes
 }
 
 #[cfg(test)]
