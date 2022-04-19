@@ -25,6 +25,12 @@ impl Stripe {
 }
 
 impl Stripe {
+  #[inline]
+  pub fn includes<X: NumCast>(&self, x: X) -> bool {
+    let x = x.to_usize().unwrap();
+    x >= self.begin && x < self.end
+  }
+
   pub fn len(&self) -> usize {
     self.end - self.begin
   }
