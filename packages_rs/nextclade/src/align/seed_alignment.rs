@@ -239,7 +239,7 @@ fn add_internal_stripes(
       qry_start + 1,
       qry_end + 1,
     );
-    stripes.push(Stripe::new(begin, end));
+    stripes.push(Stripe::new(begin as usize, end as usize));
   }
   stripes
 }
@@ -254,7 +254,7 @@ fn add_start_stripe(ref_end: i32, qry_end: i32, qry_len: i32, bandwidth: i32) ->
     let center = shift + i;
     let begin = clamp(center - bandwidth, 0, qry_end);
     let end = clamp(center + bandwidth, 1, qry_end + 1);
-    let stripe = Stripe::new(begin, end);
+    let stripe = Stripe::new(begin as usize, end as usize);
     stripes.push(stripe);
   }
 
@@ -279,7 +279,7 @@ fn add_end_stripe(
     let center = shift + i;
     let begin = clamp(center - bandwidth, qry_start, qry_len);
     let end = clamp(center + bandwidth, qry_start + 1, qry_len + 1);
-    stripes.push(Stripe::new(begin, end));
+    stripes.push(Stripe::new(begin as usize, end as usize));
   }
 
   // Last stripe needs to go to terminus

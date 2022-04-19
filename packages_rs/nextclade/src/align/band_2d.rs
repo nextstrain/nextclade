@@ -1,6 +1,4 @@
-use num::clamp;
-use num::ToPrimitive;
-use num_traits::{cast, NumCast};
+use num_traits::clamp;
 use std::fmt::{self, Display};
 use std::ops::{Index, IndexMut};
 
@@ -12,15 +10,8 @@ pub struct Stripe {
 }
 
 impl Stripe {
-  pub fn new<T, U>(begin: T, end: U) -> Stripe
-  where
-    T: NumCast,
-    U: NumCast,
-  {
-    Stripe {
-      begin: begin.to_usize().unwrap(),
-      end: end.to_usize().unwrap(),
-    }
+  pub fn new(begin: usize, end: usize) -> Stripe {
+    Stripe { begin, end }
   }
 }
 
@@ -35,18 +26,18 @@ impl Stripe {
 }
 
 pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_size: usize, qry_size: usize) -> Vec<Stripe> {
-  //Begin runs diagonally, with max(0, mean_shift - band_width + i)
-  //End runs diagnoally, with min(qry_size, mean_shift + band_width + i)
+  // Begin runs diagonally, with max(0, mean_shift - band_width + i)
+  // End runs diagonally, with min(qry_size, mean_shift + band_width + i)
 
   // TODO: Increase by start/end bands
   let mut stripes = Vec::<Stripe>::with_capacity(ref_size + 1);
-  let band_width_i32 = band_width.to_i32().unwrap();
-  let ref_size_i32 = ref_size.to_i32().unwrap();
-  let qry_size_i32 = qry_size.to_i32().unwrap();
+  let band_width_i32 = band_width as i32;
+  let ref_size_i32 = ref_size as i32;
+  let qry_size_i32 = qry_size as i32;
   for i in 0..=ref_size_i32 {
-    let begin = num::clamp(-mean_shift - band_width_i32 + i, 0, qry_size_i32);
-    let end = num::clamp(-mean_shift + band_width_i32 + i + 1, 1, qry_size_i32 + 1);
-    stripes.push(Stripe::new(begin, end));
+    let begin = clamp(-mean_shift - band_width_i32 + i, 0, qry_size_i32);
+    let end = clamp(-mean_shift + band_width_i32 + i + 1, 1, qry_size_i32 + 1);
+    stripes.push(Stripe::new(begin as usize, end as usize));
   }
   // Make sure first and last stripe can reach origin/end
   stripes[0].begin = 0;
@@ -109,9 +100,8 @@ where
   }
 
   #[inline]
-  fn get_index<I: NumCast, J: NumCast>(&self, index2d: (I, J)) -> usize {
-    let row = index2d.0.to_usize().unwrap();
-    let col = index2d.1.to_usize().unwrap();
+  fn get_index(&self, index2d: (usize, usize)) -> usize {
+    let (row, col) = index2d;
     let stripe = &self.stripes[row];
     assert!(
       stripe.begin <= col && col < stripe.end,
@@ -125,19 +115,19 @@ where
 }
 
 /// Allows 2-dimensional indexing using a tuple
-impl<T: Default + Clone, I: NumCast, J: NumCast> Index<(I, J)> for Band2d<T> {
+impl<T: Default + Clone> Index<(usize, usize)> for Band2d<T> {
   type Output = T;
 
   #[inline]
-  fn index(&self, index2d: (I, J)) -> &Self::Output {
+  fn index(&self, index2d: (usize, usize)) -> &Self::Output {
     self.data.index(self.get_index(index2d))
   }
 }
 
 /// Allows 2-dimensional mutable indexing using a tuple
-impl<T: Default + Clone, I: NumCast, J: NumCast> IndexMut<(I, J)> for Band2d<T> {
+impl<T: Default + Clone> IndexMut<(usize, usize)> for Band2d<T> {
   #[inline]
-  fn index_mut(&mut self, index2d: (I, J)) -> &mut Self::Output {
+  fn index_mut(&mut self, index2d: (usize, usize)) -> &mut Self::Output {
     self.data.index_mut(self.get_index(index2d))
   }
 }
