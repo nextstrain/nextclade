@@ -11,6 +11,7 @@
 //! Please see documentation at [crates.io](https://crates.io/crates/typescript-definitions)
 
 #![allow(unused_doc_comments)]
+#![allow(unused_extern_crates)]
 
 extern crate proc_macro;
 #[macro_use]

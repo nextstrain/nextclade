@@ -80,7 +80,7 @@ BENCH=0
 LINT=0
 FIX=
 
-case "$1" in
+case "${1:-}" in
 "build" | "b")
   shift
   BUILD=1
