@@ -53,6 +53,7 @@ wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"], optional = 
 mimalloc = { version = "0.1.28", default-features = false, optional = true }
 
 [dev-dependencies]
+criterion = { version = "0.3.5", features = ["html_reports"] }
 rstest = "0.12.0"
 rstest_reuse = "0.3.0"
 typescript-definitions = { path = "../../3rdparty/typescript-definitions", features = [] }
@@ -71,3 +72,13 @@ non-wasm = [
   "rstest",
   "rstest_reuse"
 ]
+
+
+[[bench]]
+name = "bench_create_stripes"
+harness = false
+
+[[bench]]
+name = "bench_seed_match"
+harness = false
+

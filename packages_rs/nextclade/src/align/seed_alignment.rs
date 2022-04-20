@@ -27,9 +27,9 @@ fn get_map_to_good_positions(qry_seq: &[Nuc], seed_length: usize) -> Vec<usize> 
 }
 
 pub struct SeedMatch {
-  qry_pos: usize,
-  ref_pos: usize,
-  score: usize
+  pub qry_pos: usize,
+  pub ref_pos: usize,
+  pub score: usize
 }
 
 pub struct SeedAlignmentResult {
