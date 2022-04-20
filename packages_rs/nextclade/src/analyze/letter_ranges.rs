@@ -5,7 +5,6 @@ use crate::translate::translate_genes::Translation;
 use crate::utils::error::keep_ok;
 use crate::utils::range::Range;
 use eyre::Report;
-use map_in_place::MapVecInPlace;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

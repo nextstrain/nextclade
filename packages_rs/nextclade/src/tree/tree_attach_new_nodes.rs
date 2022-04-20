@@ -5,14 +5,13 @@ use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::cli::nextclade_loop::NextcladeOutputs;
 use crate::io::nextclade_csv::{
-  format_nuc_deletions, format_failed_genes, format_missings, format_non_acgtns, format_pcr_primer_changes,
+  format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
 use crate::tree::tree::{
   AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
 };
 use crate::utils::collections::concat_to_vec;
 use itertools::Itertools;
-use map_in_place::MapVecInPlace;
 use std::collections::BTreeMap;
 use std::fmt::format;
 

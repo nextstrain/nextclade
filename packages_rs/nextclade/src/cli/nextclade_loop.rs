@@ -26,7 +26,7 @@ use crate::gene::gene_map::GeneMap;
 use crate::io::aa::Aa;
 use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use crate::io::gff3::read_gff3_file;
-use crate::io::json::json_write;
+use crate::io::json::{json_parse, json_write};
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
 use crate::option_get_some;
@@ -46,7 +46,6 @@ use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
-use map_in_place::MapVecInPlace;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
@@ -94,6 +93,16 @@ pub struct NextcladeOutputs {
   //
   #[serde(skip)]
   pub nearest_node_id: usize,
+}
+
+impl NextcladeOutputs {
+  pub fn from_str(s: &str) -> Result<NextcladeOutputs, Report> {
+    json_parse(s)
+  }
+
+  pub fn many_from_str(s: &str) -> Result<Vec<NextcladeOutputs>, Report> {
+    json_parse(s)
+  }
 }
 
 pub struct NextcladeRecord {

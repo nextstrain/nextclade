@@ -11,6 +11,8 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 console_error_panic_hook = "0.1.7"
+eyre = "0.6.8"
+js-sys = { version = "0.3.57", features = [] }
 log = "0.4.16"
 nextclade = { path = "../nextclade", default-features = false, features = ["wasm"] }
 serde = { version = "1.0.136", features = ["derive"] }
