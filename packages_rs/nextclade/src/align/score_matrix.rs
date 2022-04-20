@@ -123,7 +123,6 @@ pub fn score_matrix<T: Letter<T>>(
         if si > 0 {
           q_gap_extend = qry_gaps[(si - 1) as usize] - params.penalty_gap_extend;
           q_gap_open = scores[(si - 1, ri)] - gap_open_close[ri as usize];
-          tmp_score = q_gap_extend.max(q_gap_open);
           if q_gap_extend > q_gap_open {
             tmp_score = q_gap_extend;
             tmp_path += QRY_GAP_EXTEND;
