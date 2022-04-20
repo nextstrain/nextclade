@@ -77,10 +77,11 @@ WATCH=0
 TEST=0
 TEST_FLAGS=
 BENCH=0
+EXAMPLE=0
 LINT=0
 FIX=
 
-case "$1" in
+case "${1:-}" in
 "build" | "b")
   shift
   BUILD=1
@@ -188,6 +189,15 @@ case "$1" in
   BENCH=1
   WATCH=1
   ;;
+"example" | "E")
+  shift
+  EXAMPLE=1
+  ;;
+"example-release" | "Er")
+  shift
+  EXAMPLE=1
+  RELEASE="--release"
+  ;;
 "lint" | "l")
   shift
   LINT=1
@@ -254,11 +264,6 @@ docker build -q -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
   "${PACKAGE_DIR}" \
   >/dev/null
 
-PARAMS="$(echo "${@:-}" | xargs)"
-if [ -n "${PARAMS}" ]; then
-  PARAMS="--bin=${PARAMS}"
-fi
-
 export RUSTC_FORCE_INCREMENTAL=""
 if [ -n "${RELEASE}" ]; then
   export RUSTC_FORCE_INCREMENTAL=1
@@ -267,6 +272,16 @@ fi
 COMMAND=${*:-}
 PORTS=
 if [ "${RUN}" == "1" ]; then
+  PARAMS="$(echo "${@:-}" | xargs)"
+  if [ -n "${PARAMS}" ]; then
+    PARAMS="--bin=${PARAMS}"
+  fi
+  COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
+elif [ "${EXAMPLE}" == "1" ]; then
+  PARAMS="$(echo "${@:-}" | xargs)"
+  if [ -n "${PARAMS}" ]; then
+    PARAMS="--example=${PARAMS}"
+  fi
   COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${BUILD}" == "1" ]; then
   COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"

@@ -6,7 +6,6 @@ FROM ubuntu@sha256:31cd7bbfd36421dfd338bceb36d803b3663c1bfa87dfe6af7ba764b5bf34d
 SHELL ["bash", "-c"]
 
 ARG CLANG_VERSION="13"
-ARG MOLD_VERSION="1.1.1"
 ARG DASEL_VERSION="1.22.1"
 ARG WATCHEXEC_VERSION="1.17.1"
 ARG NODEMON_VERSION="2.0.15"
@@ -57,13 +56,6 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null
 
-# Install mold linker (https://github.com/rui314/mold)
-RUN set -euxo pipefail >/dev/null \
-&& cd /tmp \
-&& curl -fsSL "https://github.com/rui314/mold/releases/download/v${MOLD_VERSION}/mold-${MOLD_VERSION}-x86_64-linux.tar.gz" | \
-     tar -xz --strip-components=1 -C /usr
-
-
 ARG USER=user
 ARG GROUP=user
 ARG UID
@@ -89,7 +81,7 @@ RUN set -euxo pipefail >/dev/null \
 
 # Install watchexec - file watcher
 RUN set -euxo pipefail >/dev/null \
-&& curl -sSL "https://github.com/watchexec/watchexec/releases/download/cli-v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-1.17.1-x86_64-unknown-linux-musl/watchexec" \
+&& curl -sSL "https://github.com/watchexec/watchexec/releases/download/cli-v${WATCHEXEC_VERSION}/watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl.tar.xz" | tar -C "/usr/bin/" -xJ --strip-components=1 "watchexec-${WATCHEXEC_VERSION}-x86_64-unknown-linux-musl/watchexec" \
 && chmod +x "/usr/bin/watchexec" \
 && watchexec --version
 
@@ -190,7 +182,6 @@ FROM base as dev
 
 ENV CC_x86_64-unknown-linux-gnu=clang
 ENV CXX_x86_64-unknown-linux-gnu=clang++
-ENV RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=mold"
 
 # Cross-compilation for Linux x86_64 with gnu-libc.
 # Same as native, but convenient to have for mass cross-compilation.
@@ -198,14 +189,10 @@ FROM dev as cross-x86_64-unknown-linux-gnu
 
 ENV CC_x86_64-unknown-linux-gnu=clang
 ENV CXX_x86_64-unknown-linux-gnu=clang++
-ENV RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=mold"
-
 
 
 # Cross-compilation for Linux x86_64 with libmusl
 FROM base as cross-x86_64-unknown-linux-musl
-
-ENV RUSTFLAGS="-C linker=clang -C link-arg=-fuse-ld=mold"
 
 
 # Cross-compilation to WebAssembly

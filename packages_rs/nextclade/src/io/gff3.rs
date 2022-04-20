@@ -79,5 +79,5 @@ fn read_gff3_str_impl(content: &str) -> Result<GeneMap, Report> {
 }
 
 pub fn read_gff3_str(content: &str) -> Result<GeneMap, Report> {
-  read_gff3_str_impl(content).wrap_err_with(|| format!("When reading GFF3 file"))
+  read_gff3_str_impl(content).wrap_err("When reading GFF3 file")
 }

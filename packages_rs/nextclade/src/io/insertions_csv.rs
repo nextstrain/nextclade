@@ -1,11 +1,9 @@
-use crate::align::insertions_strip::{AaIns, Insertion};
-use crate::io::aa::{from_aa_seq, Aa};
+use crate::align::insertions_strip::Insertion;
 use crate::io::csv::CsvStructWriter;
 use crate::io::nextclade_csv::{format_aa_insertions, format_nuc_insertions};
-use crate::io::nuc::{from_nuc_seq, Nuc};
+use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
 use eyre::Report;
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
@@ -38,7 +36,7 @@ impl InsertionsCsvWriter {
   ) -> Result<(), Report> {
     self.writer.write(&InsertionCsvEntry {
       seq_name,
-      insertions: format_nuc_insertions(&nuc_insertions, ";"),
+      insertions: format_nuc_insertions(nuc_insertions, ";"),
       aa_insertions: format_aa_insertions(translations, ";"),
     })
   }
