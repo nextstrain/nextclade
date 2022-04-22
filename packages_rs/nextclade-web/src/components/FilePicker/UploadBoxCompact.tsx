@@ -2,6 +2,7 @@ import React, { PropsWithChildren, useMemo, useState } from 'react'
 
 import type { TFunction } from 'i18next'
 import { Button } from 'reactstrap'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import styled, { DefaultTheme } from 'styled-components'
 import { FileRejection, useDropzone } from 'react-dropzone'
 import { useTranslation } from 'react-i18next'
@@ -49,8 +50,8 @@ export function makeOnDrop({ t, onUpload, setErrors }: MakeOnDropParams) {
     setErrors([])
     try {
       await processFiles(acceptedFiles, rejectedFiles)
-    } catch (error) {
-      handleError(error)
+    } catch (error: unknown) {
+      handleError(sanitizeError(error))
     }
   }
 }
@@ -92,7 +93,7 @@ export const UploadZoneWrapper = styled.div`
 
   &:focus-within {
     border: none;
-    inset: none;
+    inset: unset;
     border-image: none;
   }
 `

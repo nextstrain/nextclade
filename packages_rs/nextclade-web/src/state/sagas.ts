@@ -1,5 +1,6 @@
 import { Saga } from 'redux-saga'
 import { all, call, put } from 'redux-saga/effects'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 
 import { errorAdd } from './error/error.actions'
 
@@ -14,8 +15,8 @@ function autoRestart(generator: Saga, handleError: Saga<[Error]>) {
       try {
         yield call(generator)
         break
-      } catch (error) {
-        yield handleError(error)
+      } catch (error: unknown) {
+        yield handleError(sanitizeError(error))
       }
     }
   }

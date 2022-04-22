@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react'
+import React, { HTMLProps, useCallback, useState } from 'react'
 
 import classNames from 'classnames'
+import { ThreeDots } from 'react-loader-spinner'
 import { connect } from 'react-redux'
 import { Button, Col, Container, Input, Row } from 'reactstrap'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -10,7 +11,6 @@ import type { DatasetFlat } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
-import { SpinnerWrapped } from 'src/components/Common/Spinner'
 import { selectDatasets, selectCurrentDataset, selectDefaultDataset } from 'src/state/algorithm/algorithm.selectors'
 import { DatasetSelectorList } from './DatasetSelectorList'
 
@@ -33,7 +33,17 @@ const DatasetSelectorListContainer = styled.section`
   height: 300px;
 `
 
-const Spinner = styled(SpinnerWrapped)`
+const SpinnerWrapper = styled.div<HTMLProps<HTMLDivElement>>`
+  width: 100%;
+  height: 100%;
+  display: flex;
+`
+
+const SpinnerWrapperInternal = styled.div`
+  margin: auto;
+`
+
+const Spinner = styled(ThreeDots)`
   flex: 1;
   margin: auto;
   height: 100%;
@@ -125,7 +135,13 @@ export function DatasetSelectorDisconnected({
             />
           )}
 
-          {isBusy && <Spinner type="ThreeDots" size={20} color="#aaa" />}
+          {isBusy && (
+            <SpinnerWrapper>
+              <SpinnerWrapperInternal>
+                <Spinner color="#aaa" width={20} height={20} />
+              </SpinnerWrapperInternal>
+            </SpinnerWrapper>
+          )}
         </DatasetSelectorListContainer>
       </Row>
 

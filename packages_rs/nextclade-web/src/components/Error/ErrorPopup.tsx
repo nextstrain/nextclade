@@ -11,6 +11,7 @@ import {
   ModalHeader as ReactstrapModalHeader,
 } from 'reactstrap'
 import { connect } from 'react-redux'
+import serializeJavascript from 'serialize-javascript'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
 
@@ -49,16 +50,23 @@ export const Message = styled.p`
   word-break: normal;
 `
 
-export function getErrorDetails(error: Error | string): { name: string; message: string } {
+export function getErrorDetails(error: unknown): {
+  name: string
+  message: string
+  stack?: string
+} {
   if (error instanceof Error) {
-    return { name: error.name, message: error.message }
+    return { name: error.name, message: error.message, stack: error.stack }
   }
-  return { name: 'Error', message: error }
+  if (typeof error === 'string') {
+    return { name: 'Error', message: error }
+  }
+  return { name: 'Error', message: serializeJavascript(error) }
 }
 
 export function GenericError({ error }: { error: Error | string }) {
   const { t } = useTranslation()
-  const { name, message } = getErrorDetails(error)
+  const { name, message, stack } = getErrorDetails(error)
 
   let errorText = t('An error has occurred: {{errorName}}', { errorName: name })
   if (name.toLowerCase().trim() === 'error') {
@@ -69,6 +77,7 @@ export function GenericError({ error }: { error: Error | string }) {
     <ErrorContainer>
       <h5>{errorText}</h5>
       <Message>{message}</Message>
+      {process.env.NODE_ENV === 'development' && stack && <p>{stack}</p>}
     </ErrorContainer>
   )
 }

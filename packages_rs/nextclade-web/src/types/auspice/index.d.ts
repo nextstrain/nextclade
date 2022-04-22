@@ -201,7 +201,7 @@ declare module 'auspice' {
     name?: string
   }
 
-  export interface CladeNodeAttr {
+  export interface CladeNodeAttrDesc {
     name: string
     displayName: string
     description: string
@@ -229,7 +229,7 @@ declare module 'auspice' {
     panels?: string[]
     extensions?: {
       nextclade?: {
-        clade_node_attrs?: CladeNodeAttr[]
+        clade_node_attrs_keys?: CladeNodeAttrDesc[]
       }
     }
   }
