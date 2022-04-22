@@ -5,17 +5,16 @@ use log::trace;
 
 // store direction info for backtrace as bits in paths matrix
 // these indicate the currently optimal move
-pub const MATCH: i32 = 1 << 0;
-pub const REF_GAP_MATRIX: i32 = 1 << 1;
-pub const QRY_GAP_MATRIX: i32 = 1 << 2;
+pub const MATCH: i8 = 1 << 0;
+pub const REF_GAP_MATRIX: i8 = 1 << 1;
+pub const QRY_GAP_MATRIX: i8 = 1 << 2;
 // these are the override flags for gap extension
-pub const REF_GAP_EXTEND: i32 = 1 << 3;
-pub const QRY_GAP_EXTEND: i32 = 1 << 4;
-pub const END_OF_SEQUENCE: i32 = -1;
+pub const REF_GAP_EXTEND: i8 = 1 << 3;
+pub const QRY_GAP_EXTEND: i8 = 1 << 4;
 
 pub struct ScoreMatrixResult {
   pub scores: Band2d<i32>,
-  pub paths: Band2d<i32>,
+  pub paths: Band2d<i8>,
 }
 
 pub fn score_matrix<T: Letter<T>>(
@@ -32,7 +31,7 @@ pub fn score_matrix<T: Letter<T>>(
 
   trace!("Score matrix: started: query_size={query_size}, ref_size={ref_size}, n_rows={n_rows}, n_cols={n_cols}");
 
-  let mut paths = Band2d::<i32>::new(stripes);
+  let mut paths = Band2d::<i8>::new(stripes);
   let mut scores = Band2d::<i32>::new(stripes);
 
   // fill scores with alignment scores
@@ -218,7 +217,7 @@ mod tests {
       2, 11, 0, 3, 0, 9, 3, 7, 11, 0, -1, 2, 3, 12, 6, 11, 3, 0, 5, 6, 15, 11, 6, 6, 6, 9, 18,
     ];
 
-    let mut expected_paths = Band2d::<i32>::new(&stripes);
+    let mut expected_paths = Band2d::<i8>::new(&stripes);
     expected_paths.data = vec![
       0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 17, 25,
       2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 17, 25, 4, 17, 18, 28, 17, 20, 25, 4, 17, 20, 17, 18, 26, 12, 17,
