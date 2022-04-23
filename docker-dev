@@ -269,6 +269,7 @@ if [ -n "${RELEASE}" ]; then
   export RUSTC_FORCE_INCREMENTAL=1
 fi
 
+PARAMS=""
 COMMAND=${*:-}
 PORTS=
 if [ "${RUN}" == "1" ]; then

@@ -233,12 +233,8 @@ fn add_internal_stripes(
 
   for i in 0..(ref_end - ref_start) {
     let center = qry_start + i;
-    let begin = clamp(center + drift_begin - bandwidth - drift_end / 3, qry_start, qry_end);
-    let end = clamp(
-      center + drift_end + bandwidth - drift_begin / 3,
-      qry_start + 1,
-      qry_end + 1,
-    );
+    let begin = clamp(center + drift_begin - bandwidth, qry_start, qry_end);
+    let end = clamp(center + drift_end + bandwidth, qry_start + 1, qry_end + 1);
     stripes.push(Stripe::new(begin, end));
   }
   stripes
