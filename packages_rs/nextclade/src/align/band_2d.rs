@@ -113,13 +113,6 @@ where
     let row = index2d.0.to_usize().unwrap();
     let col = index2d.1.to_usize().unwrap();
     let stripe = &self.stripes[row];
-    assert!(
-      stripe.begin <= col && col < stripe.end,
-      "Stripe col out of bounds: stripe.begin = {}, stripe.end = {}, col = {}",
-      stripe.begin,
-      stripe.end,
-      col
-    );
     self.row_start_points[row] + (col - stripe.begin)
   }
 }
