@@ -2,10 +2,10 @@ import React from 'react'
 
 import { connect } from 'react-redux'
 import styled from 'styled-components'
+import { Oval } from 'react-loader-spinner'
 
 import type { State } from 'src/state/reducer'
 import { selectStatus } from 'src/state/algorithm/algorithm.selectors'
-import { Spinner } from 'src/components/Common/Spinner'
 
 const ResultsStatusWrapper = styled.div`
   height: 32px;
@@ -40,7 +40,7 @@ export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
 
   return (
     <ResultsStatusWrapper>
-      {percent !== 100 && <Spinner color="#222" size={24} />}
+      {percent !== 100 && <Oval color="#222" width={24} height={24} />}
       <span className="ml-2">{text}</span>
     </ResultsStatusWrapper>
   )

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextWebpackOptions } from 'next'
 import type { NextConfig } from 'next'
-import type { WebpackConfigContext } from 'next/dist/server/config-shared'
 import type { Compiler, Configuration, WebpackPluginFunction, WebpackPluginInstance } from 'webpack'
 
 import { addWebpackConfig } from './addWebpackConfig'
@@ -11,7 +11,7 @@ export function addWebpackPlugin(
 ) {
   return addWebpackConfig(
     nextConfig,
-    (nextConfig: NextConfig, webpackConfig: Configuration, { isServer }: WebpackConfigContext) => {
+    (nextConfig: NextConfig, webpackConfig: Configuration, { isServer }: NextWebpackOptions) => {
       if (!isServer) {
         if (webpackConfig?.plugins) {
           webpackConfig.plugins.push(plugin)

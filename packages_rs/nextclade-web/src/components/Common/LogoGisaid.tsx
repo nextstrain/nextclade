@@ -1,12 +1,15 @@
-import React, { Props } from 'react'
+import React, { HTMLProps, PropsWithRef, ReactNode } from 'react'
 
-import { StrictOmit } from 'ts-essentials'
-import styled from 'styled-components'
+import styled, { StyledProps, StyledComponentProps, StyledComponentPropsWithRef } from 'styled-components'
 
 import GisaidLogoBase from 'src/assets/img/gisaid-logo.svg'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 
-const Wrapper = styled.div`
+export interface LogoGisaidProps {
+  children?: ReactNode
+}
+
+const Wrapper = styled.div<LogoGisaidProps>`
   display: flex;
   font-size: 0.9rem;
 `
@@ -14,8 +17,6 @@ const Wrapper = styled.div`
 const GisaidLogo = styled(GisaidLogoBase)`
   margin-bottom: 4px;
 `
-
-export type LogoGisaidProps = StrictOmit<Props<HTMLDivElement>, 'ref'>
 
 export function LogoGisaid(props: LogoGisaidProps) {
   return (

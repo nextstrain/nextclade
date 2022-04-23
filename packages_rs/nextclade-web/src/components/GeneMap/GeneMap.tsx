@@ -49,7 +49,6 @@ export interface GeneViewProps extends SVGProps<SVGRectElement> {
   setViewedGene(viewedGene: string): void
 }
 
-// eslint-disable-next-line react-redux/connect-prefer-named-arguments
 export const GeneView = connect(() => ({}), { setViewedGene })(GeneViewDisconnected)
 
 export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGene, ...rest }: GeneViewProps) {
@@ -66,15 +65,15 @@ export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGen
   }, [hovered, timeoutId])
 
   const setHoveredSmart = useCallback(
-    (value) => {
+    (value: boolean) => {
       let timeout
-      if (value === true) {
+      if (value) {
         setHovered(true)
         timeout = setInterval(() => {
           setShowTooltip(true)
         }, 2000)
 
-        setTimeoutId(timeout)
+        setTimeoutId(timeout as unknown as number)
       } else {
         setHovered(false)
         setShowTooltip(false)

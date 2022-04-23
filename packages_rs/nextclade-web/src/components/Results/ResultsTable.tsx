@@ -597,6 +597,8 @@ export function ResultsTableDisconnected({
                 itemSize={ROW_HEIGHT}
                 itemData={rowData}
               >
+                {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                {/* @ts-ignore */}
                 {TableRowMemo}
               </FixedSizeList>
             )

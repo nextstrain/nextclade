@@ -2,8 +2,7 @@ import React from 'react'
 
 import { FlexCenter } from 'src/components/FilePicker/FilePickerStyles'
 import styled from 'styled-components'
-
-import { Spinner } from 'src/components/Common/Spinner'
+import { ThreeDots } from 'react-loader-spinner'
 
 const Container = styled.div`
   display: flex;
@@ -17,7 +16,7 @@ export function UploadedFileLoadingInfo() {
   return (
     <Container>
       <FlexCenter className="m-auto">
-        <Spinner type="ThreeDots" size={20} color="#aaa" />
+        <ThreeDots width={20} height={20} color="#aaa" />
       </FlexCenter>
     </Container>
   )

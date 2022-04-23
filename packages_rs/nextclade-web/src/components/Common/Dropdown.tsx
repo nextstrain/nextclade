@@ -1,21 +1,18 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 
-import Select, { ValueType, Props as SelectProps } from 'react-select'
+import Select from 'react-select'
+import type { ActionMeta, OnChangeValue } from 'react-select/dist/declarations/src/types'
+import type { StateManagerProps } from 'react-select/dist/declarations/src/useStateManager'
 
 import { DropdownOption } from 'src/components/Common/DropdownOption'
 
-export interface DropdownProps extends SelectProps {
+export type IsMultiValue = false
+
+export interface DropdownProps extends StateManagerProps<DropdownOption<string>, IsMultiValue> {
   identifier: string
-  className?: string
-  options: DropdownOption<string>[]
   defaultOption?: DropdownOption<string>
-  value?: DropdownOption<string>
-
   onValueChange?(value: string): void
-
   onOptionChange?(option: DropdownOption<string>): void
-
-  onBlur?<T>(e: React.FocusEvent<T>): void
 }
 
 export function Dropdown({
@@ -26,10 +23,18 @@ export function Dropdown({
   value,
   onOptionChange,
   onValueChange,
-  onBlur,
-  placeholder = '',
   ...restProps
 }: DropdownProps) {
+  const handleChange = useCallback(
+    (option: OnChangeValue<DropdownOption<string>, IsMultiValue>, _actionMeta: ActionMeta<DropdownOption<string>>) => {
+      if (option) {
+        onValueChange?.(option.value)
+        onOptionChange?.(option)
+      }
+    },
+    [onOptionChange, onValueChange],
+  )
+
   return (
     <Select
       className={className}
@@ -38,20 +43,8 @@ export function Dropdown({
       options={options}
       defaultValue={defaultOption}
       value={value}
-      theme={(theme) => ({ ...theme })}
       isMulti={false}
-      onChange={(option: ValueType<DropdownOption<string>>) => {
-        // FIXME: This is currently cannot be expressed without type errors due to a defect in typings
-        // See: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/32553
-        // See: https://github.com/JedWatson/react-select/issues/2902
-        if (option) {
-          const optionCasted = option as DropdownOption<string>
-          onValueChange?.(optionCasted.value)
-          onOptionChange?.(optionCasted)
-        }
-      }}
-      onBlur={onBlur}
-      placeholder={placeholder}
+      onChange={handleChange}
       {...restProps}
     />
   )
