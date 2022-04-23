@@ -1,7 +1,5 @@
 use crate::align::band_2d::Band2d;
-use crate::align::score_matrix::{
-  END_OF_SEQUENCE, MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX,
-};
+use crate::align::score_matrix::{MATCH, QRY_GAP_EXTEND, QRY_GAP_MATRIX, REF_GAP_EXTEND, REF_GAP_MATRIX};
 use crate::io::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use serde::{Deserialize, Serialize};
@@ -22,7 +20,7 @@ pub fn backtrace<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
   scores: &Band2d<i32>,
-  paths: &Band2d<i32>,
+  paths: &Band2d<i8>,
 ) -> AlignmentOutput<T> {
   let num_cols = scores.num_cols();
   let num_rows = scores.num_rows();
@@ -38,7 +36,7 @@ pub fn backtrace<T: Letter<T>>(
   let mut r_pos = num_rows - 1;
   let mut q_pos = num_cols - 1;
 
-  let mut origin: i32;
+  let mut origin: i8;
   let mut current_matrix = 0;
 
   // Do backtrace in the aligned region
@@ -145,7 +143,7 @@ mod tests {
       2, 11, 0, 3, 0, 9, 3, 7, 11, 0, -1, 2, 3, 12, 6, 11, 3, 0, 5, 6, 15, 11, 6, 6, 6, 9, 18,
     ];
 
-    let mut paths = Band2d::<i32>::new(&stripes);
+    let mut paths = Band2d::<i8>::new(&stripes);
     paths.data = vec![
       0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 17, 25,
       2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 17, 25, 4, 17, 18, 28, 17, 20, 25, 4, 17, 20, 17, 18, 26, 12, 17,
