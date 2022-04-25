@@ -313,8 +313,6 @@ else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
 fi
 
-CPUS="$(($(nproc) - 2))"
-
 mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
 # shellcheck disable=SC2086
@@ -339,6 +337,5 @@ docker run -it --rm \
   --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
   --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
   ${PORTS} \
-  --cpus="${CPUS}" \
   "${DOCKER_TAG}" \
   bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"
