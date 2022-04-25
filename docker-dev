@@ -23,8 +23,9 @@ export PACKAGE_DIR_REL=""
 export PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
 export PACKAGE_DIR="$(abspath "${PROJECT_ROOT_DIR}/${PACKAGE_DIR_REL}")"
 
-export DOCKER_IMAGE_NAME="${PACKAGE_NAME}-dev"
-export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME//\//-}-$(date +%s)"
+export DOCKER_IMAGE_NAME="nextstrain/nextclade"
+export DOCKER_IMAGE_NAME_SAFE="${DOCKER_IMAGE_NAME//\//-}"
+export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date +%s)"
 
 export USER=user
 export GROUP=user
@@ -233,13 +234,12 @@ if [ "${WASM}" == "1" ]; then
 fi
 
 DOCKER_TARGET="dev"
-DOCKER_TAG="latest"
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
   DOCKER_TARGET="cross-${CROSS}"
-  DOCKER_TAG="cross-${CROSS}"
   RUST_TARGET="--target=${CROSS}"
 fi
+DOCKER_TAG="${DOCKER_TARGET}-$(./scripts/docker_build_checksum.sh)"
 
 DOCKER_BUILD_ARGS=""
 MACOS_SDK_FILENAME="MacOSX11.1.sdk.tar.xz"
@@ -327,7 +327,7 @@ docker run -it --rm \
   --network=host \
   --init \
   --name="${DOCKER_CONTAINER_NAME}" \
-  --hostname="${DOCKER_IMAGE_NAME}" \
+  --hostname="${DOCKER_IMAGE_NAME_SAFE}" \
   --user="$(id -u):$(id -g)" \
   --volume="${PROJECT_ROOT_DIR}:/workdir" \
   --volume="${CACHE_DIR}/.cargo/install:/home/${USER}/.cargo/install" \
