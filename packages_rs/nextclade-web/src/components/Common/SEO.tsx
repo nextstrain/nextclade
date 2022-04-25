@@ -2,29 +2,16 @@ import React, { useMemo } from 'react'
 
 import Head from 'next/head'
 
-import { connect } from 'react-redux'
 import { Helmet } from 'react-helmet'
+import { useRecoilValue } from 'recoil'
 
 import { DOMAIN, PROJECT_DESCRIPTION, PROJECT_NAME, URL_SOCIAL_IMAGE, TWITTER_USERNAME_FRIENDLY } from 'src/constants'
 
-import { getLocaleWithKey, LocaleKey } from 'src/i18n/i18n'
-import { State } from 'src/state/reducer'
+import { localeAtom } from 'src/state/locale.state'
 
-export interface SEOProps {
-  localeKey: LocaleKey
-}
-
-const mapStateToProps = (state: State) => ({
-  localeKey: state.settings.localeKeyV2,
-})
-
-const mapDispatchToProps = {}
-
-export const SEO = connect(mapStateToProps, mapDispatchToProps)(SEODisconnected)
-
-export function SEODisconnected({ localeKey }: SEOProps) {
-  const localeFull = getLocaleWithKey(localeKey).full
-  const htmlAttributes = useMemo(() => ({ lang: localeKey }), [localeKey])
+export function SEO() {
+  const locale = useRecoilValue(localeAtom)
+  const htmlAttributes = useMemo(() => ({ lang: locale.full }), [locale])
   return (
     <>
       <Helmet htmlAttributes={htmlAttributes} />
@@ -43,7 +30,7 @@ export function SEODisconnected({ localeKey }: SEOProps) {
         <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="600" />
-        <meta property="og:locale" content={localeFull} />
+        <meta property="og:locale" content={locale.full} />
         <meta property="og:title" content={PROJECT_NAME} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={DOMAIN} />

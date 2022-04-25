@@ -2,7 +2,6 @@ use crate::align::align::AlignPairwiseParams;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
-use crate::cli::nextalign_loop::NextalignOutputs;
 use crate::cli::nextclade_loop::{nextclade_run_one, NextcladeOutputs};
 use crate::gene::gene_map::GeneMap;
 use crate::io::fasta::read_one_fasta_str;
@@ -17,7 +16,6 @@ use crate::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::tree_preprocess_in_place;
 use crate::wasm::js_value::{deserialize_js_value, serialize_js_value};
 use eyre::{Report, WrapErr};
-use log::debug;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::str::FromStr;
@@ -179,8 +177,7 @@ impl Nextclade {
       qry_seq_str,
     } = input;
 
-    let qry_record = &read_one_fasta_str(qry_seq_str).wrap_err("When parsing query sequence")?;
-    let qry_seq = &to_nuc_seq(&qry_record.seq).wrap_err("When converting query sequence")?;
+    let qry_seq = &to_nuc_seq(qry_seq_str).wrap_err("When converting query sequence")?;
 
     let (qry_seq_aligned_stripped, translations, nextclade_outputs) = nextclade_run_one(
       qry_seq_name,
@@ -201,7 +198,6 @@ impl Nextclade {
     let nextclade_outputs_str =
       json_stringify(&nextclade_outputs).wrap_err("When serializing output results of Nextclade")?;
 
-    let translations_final = translations.iter().map(|tr| {});
     let translations_str = json_stringify(&translations).wrap_err("When serializing output translations")?;
 
     let qry_seq_str = from_nuc_seq(&qry_seq_aligned_stripped);

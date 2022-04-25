@@ -113,7 +113,7 @@
     "next-compose-plugins": "2.2.1",
     "numbro": "2.3.6",
     "polished": "4.2.2",
-    "pretty-bytes": "6.0.0",
+    "pretty-bytes": "5.6.0",
     "prop-types": "15.8.1",
     "re-reselect": "4.0.0",
     "react": "18.0.0",
@@ -152,7 +152,7 @@
     "threads": "1.7.0",
     "threads-plugin": "1.4.0",
     "typeface-lato": "1.1.13",
-    "url-join": "5.0.0",
+    "url-join": "4.0.1",
     "use-debounce": "7.0.1",
     "uuid": "8.3.2",
     "yargs": "17.4.1"
@@ -406,6 +406,7 @@
     "next": "12.1.5",
     "papaparse": "5.2.0",
     "postcss-loader": "6.2.1",
+    "pretty-bytes": "5.6.0",
     "react": "18.0.0",
     "react-dom": "18.0.0",
     "react-error-boundary": "2.2.3",
@@ -417,6 +418,7 @@
     "style-loader": "3.3.1",
     "styled-components": "5.3.5",
     "svgo": "2.8.0",
+    "url-join": "4.0.1",
     "webpack": "5.72.0"
   }
 }

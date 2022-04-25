@@ -122,6 +122,12 @@ module.exports = {
     'only-ascii/only-ascii': 'warn',
     'prefer-for-of': 'off',
     'prettier/prettier': 'warn',
+    'react-hooks/exhaustive-deps': [
+      'warn',
+      {
+        additionalHooks: '(useRecoilCallback|useRecoilTransaction|useRecoilTransaction_UNSTABLE)',
+      },
+    ],
     'react/jsx-curly-brace-presence': 'off',
     'react/jsx-filename-extension': ['warn', { extensions: ['.js', '.jsx', '.ts', '.tsx'] }],
     'react/jsx-props-no-spreading': 'off',
@@ -138,6 +144,7 @@ module.exports = {
     'unicorn/no-abusive-eslint-disable': 'warn',
     'unicorn/no-array-callback-reference': 'off',
     'unicorn/no-array-for-each': 'off',
+    'unicorn/no-array-method-this-argument': 'off',
     'unicorn/no-array-reduce': 'off',
     'unicorn/no-fn-reference-in-iterator': 'off',
     'unicorn/no-null': 'off',

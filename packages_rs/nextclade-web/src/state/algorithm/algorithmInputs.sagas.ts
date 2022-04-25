@@ -13,15 +13,6 @@ import {
   setVirusJson,
 } from 'src/state/algorithm/algorithm.actions'
 
-import {
-  parseGeneMapGffString,
-  parsePcrPrimerCsvRowsStr,
-  parseQcConfigString,
-  parseVirusJsonString,
-  parseRefSequence,
-  parseTree,
-} from 'src/workers/run'
-
 export function* loadFasta(input: AlgorithmInput) {
   const queryStr = yield* call([input, input.getContent])
   // TODO: validate fasta file format
@@ -29,37 +20,32 @@ export function* loadFasta(input: AlgorithmInput) {
 }
 
 export function* loadTree(input: AlgorithmInput) {
-  const treeJson = yield* call([input, input.getContent])
-  const treeStr = yield* call(parseTree, treeJson)
+  const treeStr = yield* call([input, input.getContent])
   return { treeStr }
 }
 
 export function* loadRootSeq(input: AlgorithmInput) {
-  const refFastaStr = yield* call([input, input.getContent])
-  return yield* call(parseRefSequence, refFastaStr, input.name)
+  const refStr = yield* call([input, input.getContent])
+  return { refStr, refName: input.name }
 }
 
 export function* loadQcSettings(input: AlgorithmInput) {
-  const qcConfigRawStr = yield* call([input, input.getContent])
-  const qcConfigStr = yield* call(parseQcConfigString, qcConfigRawStr)
+  const qcConfigStr = yield* call([input, input.getContent])
   return { qcConfigStr }
 }
 
 export function* loadVirusJson(input: AlgorithmInput) {
-  const virusJsonRawStr = yield* call([input, input.getContent])
-  const virusJsonStr = yield* call(parseVirusJsonString, virusJsonRawStr)
+  const virusJsonStr = yield* call([input, input.getContent])
   return { virusJsonStr }
 }
 
 export function* loadGeneMap(input: AlgorithmInput) {
-  const geneMapStrRaw = yield* call([input, input.getContent])
-  const geneMapStr = yield* call(parseGeneMapGffString, geneMapStrRaw, input.name)
+  const geneMapStr = yield* call([input, input.getContent])
   return { geneMapStr }
 }
 
 export function* loadPcrPrimers(input: AlgorithmInput) {
-  const pcrPrimersStrRaw = yield* call([input, input.getContent])
-  const pcrPrimerCsvRowsStr = yield* call(parsePcrPrimerCsvRowsStr, pcrPrimersStrRaw, input.name)
+  const pcrPrimerCsvRowsStr = yield* call([input, input.getContent])
   return { pcrPrimerCsvRowsStr }
 }
 

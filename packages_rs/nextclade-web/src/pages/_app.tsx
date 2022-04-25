@@ -9,8 +9,8 @@ import 'src/helpers/functionPrototypeTojson' // to visualize Function in Redux D
 
 import { enableES5 } from 'immer'
 
-import React, { useEffect, useState, Suspense, useMemo } from 'react'
-
+import React, { useEffect, useState, Suspense, useMemo, useCallback } from 'react'
+import { MutableSnapshot, RecoilRoot } from 'recoil'
 import { AppProps } from 'next/app'
 import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
@@ -82,6 +82,10 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
     }
   }, [fetchDone, query, state, dispatch, store])
 
+  const initializeState = useCallback(({ set }: MutableSnapshot) => {
+    // TODO
+  }, [])
+
   if (!state) {
     return <Loading />
   }
@@ -91,23 +95,25 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
   return (
     <Suspense fallback={<Loading />}>
       <Provider store={storeNonNil}>
-        <ConnectedRouter>
-          <ThemeProvider theme={theme}>
-            <MDXProvider components={{ a: LinkExternal }}>
-              <Plausible domain={DOMAIN_STRIPPED} />
-              <QueryClientProvider client={queryClient}>
-                <PersistGate loading={null} persistor={persistor}>
-                  <I18nextProvider i18n={i18n}>
-                    <SEO />
-                    <Component {...pageProps} />
-                    <ErrorPopup />
-                    <ReactQueryDevtools initialIsOpen={false} />
-                  </I18nextProvider>
-                </PersistGate>
-              </QueryClientProvider>
-            </MDXProvider>
-          </ThemeProvider>
-        </ConnectedRouter>
+        <RecoilRoot initializeState={initializeState}>
+          <ConnectedRouter>
+            <ThemeProvider theme={theme}>
+              <MDXProvider components={{ a: LinkExternal }}>
+                <Plausible domain={DOMAIN_STRIPPED} />
+                <QueryClientProvider client={queryClient}>
+                  <PersistGate loading={null} persistor={persistor}>
+                    <I18nextProvider i18n={i18n}>
+                      <SEO />
+                      <Component {...pageProps} />
+                      <ErrorPopup />
+                      <ReactQueryDevtools initialIsOpen={false} />
+                    </I18nextProvider>
+                  </PersistGate>
+                </QueryClientProvider>
+              </MDXProvider>
+            </ThemeProvider>
+          </ConnectedRouter>
+        </RecoilRoot>
       </Provider>
     </Suspense>
   )

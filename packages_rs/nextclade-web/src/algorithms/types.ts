@@ -377,9 +377,12 @@ export interface Gene {
   strand: string
 }
 
-export interface SequenceParserResult {
-  index: number
+export interface FastaRecordId {
   seqName: string
+  index: number
+}
+
+export interface FastaRecord extends FastaRecordId {
   seq: string
 }
 
@@ -468,4 +471,22 @@ export interface UrlParams {
   inputQcConfig?: string
   inputVirusJson?: string
   inputGeneMap?: string
+}
+
+export interface Translation {
+  gene_name: string
+  seq: string
+  insertions: AminoacidInsertion[]
+  frame_shifts: FrameShift[]
+}
+
+export interface NextcladeResult {
+  index: number
+  seqName: string
+  query: string
+  queryPeptides: Peptide[]
+  analysisResult: AnalysisResult
+  warnings: Warnings
+  hasError: boolean
+  error: Error | undefined
 }

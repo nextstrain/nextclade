@@ -8,8 +8,8 @@ export function prepareGeneMap(geneMapUnsafe: unknown) {
     )
   }
 
-  let geneMap = JSON.parse(geneMapUnsafe) as Gene[] // TODO: validate
-  geneMap = geneMap.map((gene, i) => {
+  const geneMapRaw = JSON.parse(geneMapUnsafe) as Record<string, Gene>
+  const geneMap: Gene[] = Object.entries(geneMapRaw).map(([_0, gene], i) => {
     const color = GENOTYPE_COLORS[(i + 1) % GENOTYPE_COLORS.length]
     return { ...gene, color }
   })

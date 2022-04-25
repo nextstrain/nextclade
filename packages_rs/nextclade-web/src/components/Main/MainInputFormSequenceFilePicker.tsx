@@ -1,8 +1,10 @@
-import { delay, sumBy } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
-
+import { sumBy } from 'lodash'
+import { useRouter } from 'next/router'
 import { connect } from 'react-redux'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
+import { useRecoilCallback } from 'recoil'
+import { analysisResultsAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
@@ -25,6 +27,7 @@ import {
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
 import { selectShouldRunAutomatically } from 'src/state/settings/settings.selectors'
+import { launchAnalysis } from 'src/workers/launchAnalysis'
 
 const SequenceFilePickerContainer = styled.section`
   display: flex;
@@ -92,17 +95,42 @@ export function MainInputFormSequenceFilePickerDisconnected({
   setShouldRunAutomatically,
 }: MainInputFormSequenceFilePickerProps) {
   const { t } = useTranslationSafe()
+  const router = useRouter()
 
   const hasErrors = useMemo(() => {
     const numErrors = sumBy(Object.values(params.errors), (err) => err.length)
     return numErrors > 0
   }, [params.errors])
 
-  const run = useCallback(() => {
-    setShowNewRunPopup(false)
-    setIsDirty(true)
-    delay(algorithmRunTrigger, 1000)
-  }, [algorithmRunTrigger, setShowNewRunPopup, setIsDirty])
+  const run = useRecoilCallback(
+    ({ set }) =>
+      () => {
+        setShowNewRunPopup(false)
+        setIsDirty(true)
+
+        launchAnalysis({
+          onGlobalStatus(status) {
+            console.log(status)
+          },
+          onParsedFasta(record) {
+            console.log('fasta', record.seqName)
+          },
+          onAnalysisResult(result) {
+            set(analysisResultsAtom(result.seqName), result)
+            console.log('result', result.seqName)
+          },
+          onError(error) {
+            console.error(error)
+          },
+          onComplete() {
+            console.log('done')
+          },
+        }).catch(console.error)
+
+        router.push('/results')
+      },
+    [router, setShowNewRunPopup, setIsDirty],
+  )
 
   const setSequences = useCallback(
     (input: AlgorithmInput) => {

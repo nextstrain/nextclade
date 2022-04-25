@@ -1,4 +1,7 @@
-#[derive(Debug)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Gene {
   pub gene_name: String,
   pub start: usize,

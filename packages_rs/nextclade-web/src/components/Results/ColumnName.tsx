@@ -17,12 +17,13 @@ export const SequenceName = styled.div`
 
 export interface ColumnNameProps {
   seqName: string
-  sequence?: AnalysisResult
+  sequence: AnalysisResult
+  isDone: boolean
   warnings: Warnings
   errors: string[]
 }
 
-export function ColumnName({ seqName, sequence, warnings, errors }: ColumnNameProps) {
+export function ColumnName({ seqName, sequence, isDone, warnings, errors }: ColumnNameProps) {
   const { t } = useTranslationSafe()
 
   const [showTooltip, setShowTooltip] = useState(false)
@@ -32,7 +33,7 @@ export function ColumnName({ seqName, sequence, warnings, errors }: ColumnNamePr
 
   const { StatusIcon } = getStatusIconAndText({
     t,
-    isDone: !!sequence,
+    isDone,
     hasWarnings: allWarnings.length > 0,
     hasErrors: errors.length > 0,
   })

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import {
@@ -10,19 +10,18 @@ import {
   ModalFooter,
   ModalHeader as ReactstrapModalHeader,
 } from 'reactstrap'
-import { connect } from 'react-redux'
+import { useRecoilState } from 'recoil'
 import serializeJavascript from 'serialize-javascript'
 import styled from 'styled-components'
 import { useRouter } from 'next/router'
 
 import { DOMAIN, PROJECT_NAME, URL_GITHUB_ISSUES, URL_GITHUB_ISSUES_FRIENDLY } from 'src/constants'
-import type { State } from 'src/state/reducer'
 import { HttpRequestError } from 'src/io/axiosFetch'
 import { Li, Ul } from 'src/components/Common/List'
-import { errorDismiss } from 'src/state/error/error.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getHttpStatusText } from 'src/helpers/getHttpStatusText'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
+import { errorAtom } from 'src/state/error.state'
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
   .modal-title {
@@ -266,39 +265,22 @@ export function ErrorContent({ error }: { error: Error | string }) {
   return <GenericError error={error} />
 }
 
-export interface ErrorPopupProps {
-  globalError?: Error
-  algorithmErrors: string[]
-
-  errorDismiss(): void
-}
-
-const mapStateToProps = (state: State) => ({
-  globalError: state.error?.error,
-  algorithmErrors: state.algorithm.errors,
-})
-
-const mapDispatchToProps = {
-  errorDismiss: () => errorDismiss(),
-}
-
-export const ErrorPopup = connect(mapStateToProps, mapDispatchToProps)(ErrorPopupDisconnected)
-
-export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDismiss }: ErrorPopupProps) {
-  const [shouldShutdown, setShouldShutdown] = useState<boolean>(false)
+export function ErrorPopup() {
   const { t } = useTranslationSafe()
   const router = useRouter()
+  const [error, setError] = useRecoilState(errorAtom)
+  const errorDismiss = useCallback(() => setError(undefined), [setError])
 
-  if (shouldShutdown) {
+  const reload = useCallback(() => {
+    router.reload()
     // trigger React suspense forever, to display loading spinner until the page is refreshed
+    // eslint-disable-next-line @typescript-eslint/no-throw-literal
     throw new Promise(() => {})
-  }
+  }, [router])
 
-  if (globalError === undefined && algorithmErrors.length === 0) {
+  if (!error) {
     return null
   }
-
-  const error = globalError ?? algorithmErrors[0]
 
   return (
     <Modal centered isOpen backdrop="static" toggle={errorDismiss} fade={false} size="lg">
@@ -306,37 +288,28 @@ export function ErrorPopupDisconnected({ globalError, algorithmErrors, errorDism
         <h3 className="text-center text-danger">{t('Error')}</h3>
       </ModalHeader>
 
-      {error && (
-        <ModalBody>
-          <ErrorContent error={error} />
-          <section className="mt-3">
-            <div>
-              {t('If you think it is a bug in {{appName}}, report it at', {
-                appName: PROJECT_NAME,
-              })}
-            </div>
-            <div>
-              <LinkExternal href={URL_GITHUB_ISSUES}>{URL_GITHUB_ISSUES_FRIENDLY}</LinkExternal>
-            </div>
-            <div>
-              {t(
-                'so that developers can investigate this problem. Please provide as much details as possible about your input data, operating system, browser version and computer configuration. Include other details you deem useful for diagnostics. Share the example sequence data that allows to reproduce the problem, if possible.',
-              )}
-            </div>
-          </section>
-        </ModalBody>
-      )}
+      <ModalBody>
+        <ErrorContent error={error} />
+        <section className="mt-3">
+          <div>
+            {t('If you think it is a bug in {{appName}}, report it at', {
+              appName: PROJECT_NAME,
+            })}
+          </div>
+          <div>
+            <LinkExternal href={URL_GITHUB_ISSUES}>{URL_GITHUB_ISSUES_FRIENDLY}</LinkExternal>
+          </div>
+          <div>
+            {t(
+              'so that developers can investigate this problem. Please provide as much details as possible about your input data, operating system, browser version and computer configuration. Include other details you deem useful for diagnostics. Share the example sequence data that allows to reproduce the problem, if possible.',
+            )}
+          </div>
+        </section>
+      </ModalBody>
+
       <ModalFooter>
         <div className="ml-auto">
-          <Button
-            type="button"
-            color="danger"
-            title={t('Reload the page and start Nextclade fresh')}
-            onClick={() => {
-              setShouldShutdown(true)
-              router.reload()
-            }}
-          >
+          <Button type="button" color="danger" title={t('Reload the page and start Nextclade fresh')} onClick={reload}>
             {t('Restart Nextclade')}
           </Button>
           <ButtonOk type="button" color="secondary" title={t('Close this dialog window')} onClick={errorDismiss}>

@@ -3,7 +3,7 @@ use nextclade::analyze::analyze::{AnalysisInput, AnalysisResult, Nextclade, Next
 use nextclade::analyze::pcr_primers::{convert_pcr_primer, PcrPrimer};
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::cli::nextclade_loop::NextcladeOutputs;
-use nextclade::io::fasta::{read_one_fasta, read_one_fasta_str, FastaReader, FastaRecord};
+use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_str;
 use nextclade::io::json::json_stringify;
 use nextclade::qc::qc_config::QcConfig;
@@ -79,9 +79,9 @@ impl NextcladeWasm {
   }
 
   /// Checks that a string containing ref sequence in FASTA format is correct
-  pub fn validate_ref_seq_fasta(ref_seq_str: &str) -> Result<(), JsError> {
-    jserr(read_one_fasta_str(ref_seq_str))?;
-    Ok(())
+  pub fn parse_ref_seq_fasta(ref_seq_str: &str) -> Result<String, JsError> {
+    let record = jserr(read_one_fasta_str(ref_seq_str))?;
+    jserr(json_stringify(&record))
   }
 
   /// Checks that a string containing Auspice tree in JSON format is correct
@@ -91,9 +91,9 @@ impl NextcladeWasm {
   }
 
   /// Checks that a string containing gene map in GFF format is correct
-  pub fn validate_gene_map_gff(gene_map_gff_str: &str) -> Result<(), JsError> {
-    jserr(read_gff3_str(gene_map_gff_str))?;
-    Ok(())
+  pub fn parse_gene_map_gff(gene_map_gff_str: &str) -> Result<String, JsError> {
+    let gene_map = jserr(read_gff3_str(gene_map_gff_str))?;
+    jserr(json_stringify(&gene_map))
   }
 
   /// Checks that a string containing PCT primers in CSV format is correct
