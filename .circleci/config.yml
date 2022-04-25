@@ -168,15 +168,14 @@ jobs:
             mkdir -p /tmp/workspace
 
       - attach_workspace:
+          name: ' [ << parameters.target_arch >> ] | Attach workspace'
           at: /tmp/workspace
 
       - run:
           name: ' [ << parameters.target_arch >> ] | Test CLI'
           command: |
-            /tmp/workspace/nextclade-<< parameters.target_arch >> --version || true
-            /tmp/workspace/.out/nextclade-<< parameters.target_arch >> --version || true
-            /tmp/workspace/nextalign-<< parameters.target_arch >> --version || true
-            /tmp/workspace/.out/nextalign-<< parameters.target_arch >> --version || true
+            /tmp/workspace/.out/nextclade-<< parameters.target_arch >> --version
+            /tmp/workspace/.out/nextalign-<< parameters.target_arch >> --version
 
 
   Build-Web:
@@ -219,8 +218,6 @@ jobs:
           paths:
             - .build
             - .cache
-            - packages_rs/nextclade-web/.build
-            - packages_rs/nextclade-web/.cache
 
       - restore_cache:
           name: ' [ web ] | Restore build cache'
