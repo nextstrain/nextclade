@@ -23,7 +23,7 @@ jobs:
       - restore_cache:
           name: 'Restore previous docker build checksum from cache'
           keys:
-            - cache-v4-nextclade-docker-{{ checksum "checksum.current.txt" }}
+            - cache-v5-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare current and previous checksum, halt if no changes'
@@ -48,17 +48,26 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
+
             DOCKER_REPO="nextstrain/nextclade_builder"
             DOCKER_IMAGE_VERSION="$(cat checksum.previous.txt)"
 
             declare -a DOCKER_TARGETS=(
               "dev"
+              "cross-x86_64-apple-darwin"
+              "cross-aarch64-apple-darwin"
               "cross-wasm32-unknown-unknown"
               "cross-x86_64-pc-windows-gnu"
               "cross-x86_64-unknown-linux-gnu"
             )
 
             for DOCKER_TARGET in "${DOCKER_TARGETS[@]}"; do
+
+              if [[ "${DOCKER_TARGET}" == *apple* ]]; then
+                mkdir -p ".downloads"
+                curl -fsSL "${MACOS_SDK_URL}" -o ".downloads/${MACOS_SDK_FILENAME}"
+              fi
+
               DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
               docker build \
                 --file="docker-dev.dockerfile" \
@@ -68,6 +77,8 @@ jobs:
                 --build-arg="GID=$(id -g)" \
                 --build-arg="USER=user" \
                 --build-arg="GROUP=user" \
+                --build-arg="MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME}" \
+                --build-arg="MACOS_SDK_SHA=${MACOS_SDK_SHA}" \
                 .
             done
 
@@ -78,7 +89,7 @@ jobs:
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-v4-nextclade-docker-{{ checksum "checksum.previous.txt" }}
+          key: cache-v5-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -120,6 +131,11 @@ jobs:
           name: ' [ << parameters.target_arch >> ] | Build CLI'
           command: |
             export CROSS="<< parameters.target_arch >>"
+
+            if [[ "${CROSS}" == *apple* ]]; then
+              mkdir -p ".downloads"
+              curl -fsSL "${MACOS_SDK_URL}" -o ".downloads/${MACOS_SDK_FILENAME}"
+            fi
 
             CROSS=${CROSS} ./docker-dev br
 
@@ -489,38 +505,42 @@ workflows:
   build:
     jobs:
       - Update-Builder-Container:
+          context:
+            - nextclade_macos
           <<: *major_branches_and_cli_only
 
       - Build-Cli:
           <<: *major_branches_and_cli_only
           requires:
             - Update-Builder-Container
+          context:
+            - nextclade_macos
           matrix:
             parameters:
               target_arch:
-                - x86_64-unknown-linux-gnu
-                - x86_64-pc-windows-gnu
-                # - aarch64-apple-darwin
+                - x86_64-apple-darwin
+                - aarch64-apple-darwin
+                # - x86_64-unknown-linux-gnu
+                # - x86_64-pc-windows-gnu
                 # - aarch64-unknown-linux-gnu
-                # - x86_64-apple-darwin
                 # - x86_64-unknown-linux-musl
 
-      - Test-Cli:
-          <<: *major_branches_and_cli_only
-
-          requires:
-            - Build-Cli-x86_64-unknown-linux-gnu
-
-          matrix:
-            parameters:
-              target_arch:
-                - x86_64-unknown-linux-gnu
-
-      - Build-Web:
-#          context: nextclade_web_<< pipeline.git.branch >>
-          <<: *major_branches_only
-          requires:
-            - Update-Builder-Container
+#      - Test-Cli:
+#          <<: *major_branches_and_cli_only
+#
+#          requires:
+#            - Build-Cli-x86_64-unknown-linux-gnu
+#
+#          matrix:
+#            parameters:
+#              target_arch:
+#                - x86_64-unknown-linux-gnu
+#
+#      - Build-Web:
+##          context: nextclade_web_<< pipeline.git.branch >>
+#          <<: *major_branches_only
+#          requires:
+#            - Update-Builder-Container
 #
 #      - Build-Linux-x86_64:
 #          context: nextclade_cli_<< pipeline.git.branch >>

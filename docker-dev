@@ -23,7 +23,7 @@ export PACKAGE_DIR_REL=""
 export PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
 export PACKAGE_DIR="$(abspath "${PROJECT_ROOT_DIR}/${PACKAGE_DIR_REL}")"
 
-export DOCKER_IMAGE_NAME="nextstrain/nextclade"
+export DOCKER_IMAGE_NAME="nextstrain/nextclade_builder"
 export DOCKER_IMAGE_NAME_SAFE="${DOCKER_IMAGE_NAME//\//-}"
 export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date +%s)"
 
