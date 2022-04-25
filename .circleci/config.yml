@@ -123,6 +123,16 @@ jobs:
           command: |
             CROSS="<< parameters.target_arch >>" ./docker-dev br
 
+            mkdir -p .out/
+
+            if [[ "${CROSS}" == *windows* ]]; then
+              cp ".build/docker/${CROSS}/release/nextalign.exe" ".out/nextalign-${CROSS}.exe"
+              cp ".build/docker/${CROSS}/release/nextclade.exe" ".out/nextclade-${CROSS}.exe"
+            else
+              cp ".build/docker/${CROSS}/release/nextalign" ".out/nextalign-${CROSS}"
+              cp ".build/docker/${CROSS}/release/nextclade" ".out/nextclade-${CROSS}"
+            fi
+
       - save_cache:
           name: '<< parameters.target_arch >> | Save build cache'
           key: cache-v1-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
@@ -131,21 +141,14 @@ jobs:
             - .cache
 
       - store_artifacts:
-          name: '<< parameters.target_arch >> | Store artifacts'
-          path: .out/nextalign-<< parameters.target_arch >>
-          destination: .out/nextalign-<< parameters.target_arch >>
-
-      - store_artifacts:
-          name: '<< parameters.target_arch >> | Store artifacts'
-          path: .out/nextclade-<< parameters.target_arch >>
-          destination: .out/nextclade-<< parameters.target_arch >>
+          name: '<< parameters.target_arch >> | Store build artifacts'
+          path: .out
 
       - persist_to_workspace:
-          name: '<< parameters.target_arch >> | Persist artifacts to workspace'
-          root: .out
+          name: '<< parameters.target_arch >> | Persist build artifacts to workspace'
+          root: .
           paths:
-            - nextalign-<< parameters.target_arch >>
-            - nextclade-<< parameters.target_arch >>
+            - .out/*
 
       - run:
           name: '<< parameters.target_arch >> | Halt if not on release-cli branch'
@@ -170,12 +173,16 @@ jobs:
 
     steps:
       - attach_workspace:
-          at: .
+          at: /workspace
 
       - run:
           name: '<< parameters.target_arch >> | Test CLI'
           command: |
-            ./nextclade-<< parameters.target_arch >> --version
+            /workspace/nextclade-<< parameters.target_arch >> --version || true
+            /workspace/.out/nextclade-<< parameters.target_arch >> --version || true
+
+            /workspace/nextalign-<< parameters.target_arch >> --version || true
+            /workspace/.out/nextalign-<< parameters.target_arch >> --version || true
 
 #  Build-Web:
 #    resource_class: medium

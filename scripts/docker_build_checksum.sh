@@ -4,7 +4,6 @@ set -euxo pipefail
 trap "exit" INT
 
 cat \
-  .circleci/config.yml \
   .dockerignore \
   .gitignore \
   .nvmrc \
