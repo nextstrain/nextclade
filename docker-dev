@@ -23,8 +23,8 @@ export PACKAGE_DIR_REL=""
 export PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
 export PACKAGE_DIR="$(abspath "${PROJECT_ROOT_DIR}/${PACKAGE_DIR_REL}")"
 
-export DOCKER_IMAGE_NAME="nextstrain/nextclade_builder"
-export DOCKER_IMAGE_NAME_SAFE="${DOCKER_IMAGE_NAME//\//-}"
+export DOCKER_REPO="nextstrain/nextclade_builder"
+export DOCKER_IMAGE_NAME_SAFE="${DOCKER_REPO//\//-}"
 export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date +%s)"
 
 export USER=user
@@ -239,28 +239,24 @@ if [ -n "${CROSS:-}" ]; then
   DOCKER_TARGET="cross-${CROSS}"
   RUST_TARGET="--target=${CROSS}"
 fi
-DOCKER_TAG="${DOCKER_TARGET}-$(./scripts/docker_build_checksum.sh)"
+DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
 
-DOCKER_BUILD_ARGS=""
 MACOS_SDK_FILENAME="MacOSX11.1.sdk.tar.xz"
 MACOS_SDK_SHA="4a575e099c1b5dafe2835770d2a225c4ed082c2a36ecec9eac0946339fe665f3"
-if [[ "${CROSS:-}" == *-apple-darwin ]]; then
-  DOCKER_BUILD_ARGS=" \
-    --build-arg MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME} \
-    --build-arg MACOS_SDK_SHA=${MACOS_SDK_SHA} \
-  "
-fi
 
-# shellcheck disable=SC2086
-docker build -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
-  -f "${PACKAGE_DIR}/docker-dev.dockerfile" \
-  --target="${DOCKER_TARGET}" \
+docker build \
+  --file="${PACKAGE_DIR}/docker-dev.dockerfile" \
+  --target="dev" \
+  --tag="${DOCKER_TAG}" \
+  --cache-from="${DOCKER_TAG}" \
+  --network=host \
   --build-arg="UID=$(id -u)" \
   --build-arg="GID=$(id -g)" \
   --build-arg="USER=user" \
   --build-arg="GROUP=user" \
-  --network=host \
-  ${DOCKER_BUILD_ARGS} \
+  --build-arg="MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME}" \
+  --build-arg="MACOS_SDK_SHA=${MACOS_SDK_SHA}" \
   "${PACKAGE_DIR}"
 
 export RUSTC_FORCE_INCREMENTAL=""
@@ -344,5 +340,5 @@ docker run -it --rm \
   --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
   ${PORTS} \
   --cpus="${CPUS}" \
-  "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
+  "${DOCKER_TAG}" \
   bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"
