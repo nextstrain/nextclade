@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euxo pipefail
 
 function abspath() {
   readlink -m "$1"
@@ -252,7 +252,7 @@ if [[ "${CROSS:-}" == *-apple-darwin ]]; then
 fi
 
 # shellcheck disable=SC2086
-docker build -q -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
+docker build -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
   -f "${PACKAGE_DIR}/docker-dev.dockerfile" \
   --target="${DOCKER_TARGET}" \
   --build-arg="UID=$(id -u)" \

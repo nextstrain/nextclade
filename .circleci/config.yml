@@ -46,6 +46,11 @@ jobs:
       - run:
           name: 'Build "Builder" container image'
           command: |
+            DOCKER_REPO="nextstrain/nextclade_builder"
+            DOCKER_TARGET="dev"
+            DOCKER_IMAGE_VERSION="$(cat checksum.previous.txt)"
+            DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
+
             docker build \
               --file="docker-dev.dockerfile" \
               --target="dev" \
@@ -225,6 +230,23 @@ jobs:
       - run:
           name: ' [ web ] | Build web application'
           command: |
+
+            export FULL_DOMAIN="https://example.com"
+            export DATA_FULL_DOMAIN="https://data.example.com"
+
+            echo "FULL_DOMAIN=${FULL_DOMAIN}" >> .env
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
+            echo "ANALYZE=0" >> .env
+            echo "PROFILE=0" >> .env
+            echo "WATCH_POLL=0" >> .env
+            echo "PROD_ENABLE_SOURCE_MAPS=0" >> .env
+            echo "PROD_ENABLE_TYPE_CHECKS=0" >> .env
+            echo "PROD_ENABLE_ESLINT=0" >> .env
+            echo "PROD_ENABLE_STYLELINT=0" >> .env
+            echo "PROD_ENABLE_REDUX_DEV_TOOLS=0" >> .env
+            echo "PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT=0" >> .env
+            echo "PROD_ENABLE_REDUX_LOGGER=0" >> .env
+
             ./docker-dev ar
 
       - save_cache:
