@@ -46,18 +46,6 @@ jobs:
       - run:
           name: 'Build "Builder" container image'
           command: |
-            cat checksum.previous.txt
-
-            DOCKER_REPO="nextstrain/nextclade_builder"
-            DOCKER_TARGET="dev"
-            DOCKER_IMAGE_VERSION="$(cat checksum.previous.txt)"
-            DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
-
-            echo "DOCKER_REPO=${DOCKER_REPO}"
-            echo "DOCKER_TARGET=${DOCKER_TARGET}"
-            echo "DOCKER_IMAGE_VERSION=${DOCKER_IMAGE_VERSION}"
-            echo "DOCKER_TAG=${DOCKER_TAG}"
-
             docker build \
               --file="docker-dev.dockerfile" \
               --target="dev" \
@@ -86,11 +74,6 @@ jobs:
       target_arch:
         type: string
 
-    #    docker:
-    #      - image: nextclade_builder:dev
-    #
-    #    resource_class: large
-
     shell: '/bin/bash -euxo pipefail'
 
     machine:
@@ -103,25 +86,27 @@ jobs:
       - checkout
 
       - run:
-          name: '<< parameters.target_arch >> | Calculate current docker build checksum'
+          name: ' [ << parameters.target_arch >> ] | Calculate current docker build checksum'
           command: |
             ./scripts/docker_build_checksum.sh > "checksum.current.txt"
 
       - run:
-          name: '<< parameters.target_arch >> | Pull builder image'
+          name: ' [ << parameters.target_arch >> ] | Pull builder image'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker pull "nextstrain/nextclade_builder:dev-$(cat checksum.current.txt)"
 
       - restore_cache:
-          name: '<< parameters.target_arch >> | Restore build cache'
+          name: ' [ << parameters.target_arch >> ] | Restore build cache'
           keys:
             - cache-v1-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
 
       - run:
-          name: '<< parameters.target_arch >> | Build CLI'
+          name: ' [ << parameters.target_arch >> ] | Build CLI'
           command: |
-            CROSS="<< parameters.target_arch >>" ./docker-dev br
+            export CROSS="<< parameters.target_arch >>"
+
+            CROSS=${CROSS} ./docker-dev br
 
             mkdir -p .out/
 
@@ -134,24 +119,24 @@ jobs:
             fi
 
       - save_cache:
-          name: '<< parameters.target_arch >> | Save build cache'
+          name: ' [ << parameters.target_arch >> ] | Save build cache'
           key: cache-v1-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
           paths:
             - .build
             - .cache
 
       - store_artifacts:
-          name: '<< parameters.target_arch >> | Store build artifacts'
+          name: ' [ << parameters.target_arch >> ] | Store build artifacts'
           path: .out
 
       - persist_to_workspace:
-          name: '<< parameters.target_arch >> | Persist build artifacts to workspace'
+          name: ' [ << parameters.target_arch >> ] | Persist build artifacts to workspace'
           root: .
           paths:
             - .out/*
 
       - run:
-          name: '<< parameters.target_arch >> | Halt if not on release-cli branch'
+          name: ' [ << parameters.target_arch >> ] | Halt if not on release-cli branch'
           command: |
             if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
                 circleci-agent step halt
@@ -176,13 +161,83 @@ jobs:
           at: /workspace
 
       - run:
-          name: '<< parameters.target_arch >> | Test CLI'
+          name: ' [ << parameters.target_arch >> ] | Test CLI'
           command: |
             /workspace/nextclade-<< parameters.target_arch >> --version || true
             /workspace/.out/nextclade-<< parameters.target_arch >> --version || true
 
             /workspace/nextalign-<< parameters.target_arch >> --version || true
             /workspace/.out/nextalign-<< parameters.target_arch >> --version || true
+
+
+
+  Build-Web:
+
+    shell: '/bin/bash -euxo pipefail'
+
+    machine:
+      image: ubuntu-2004:202201-02
+      docker_layer_caching: true
+
+    resource_class: large
+
+    steps:
+      - checkout
+
+      - run:
+          name: ' [ web ] | Calculate current docker build checksum'
+          command: |
+            ./scripts/docker_build_checksum.sh > "checksum.current.txt"
+
+      - run:
+          name: ' [ web ] | Pull builder image'
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker pull "nextstrain/nextclade_builder:dev-$(cat checksum.current.txt)"
+
+      - restore_cache:
+          name: ' [ web ] | Restore build cache'
+          keys:
+            - cache-v1-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+
+      - run:
+          name: ' [ web ] | Build WebAssembly module'
+          command: |
+            ./docker-dev Wr
+
+      - save_cache:
+          name: ' [ web ] | Save build cache'
+          key: cache-v1-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+          paths:
+            - .build
+            - .cache
+            - packages_rs/nextclade-web/.build
+            - packages_rs/nextclade-web/.cache
+
+      - restore_cache:
+          name: ' [ web ] | Restore build cache'
+          keys:
+            - cache-v1-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+
+      - run:
+          name: ' [ web ] | Build web application'
+          command: |
+            ./docker-dev ar
+
+      - save_cache:
+          name: ' [ web ] | Save build cache'
+          key: cache-v1-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+          paths:
+            - packages_rs/nextclade-web/.build
+            - packages_rs/nextclade-web/.cache
+
+      - run:
+          name: ' [ web ] | Halt if not on release-cli branch'
+          command: |
+            if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
+                circleci-agent step halt
+            fi
+
 
 #  Build-Web:
 #    resource_class: medium
@@ -421,19 +476,18 @@ workflows:
           <<: *major_branches_and_cli_only
 
           requires:
-            - Build-Cli
+            - Build-Cli-x86_64-unknown-linux-gnu
 
           matrix:
             parameters:
               target_arch:
                 - x86_64-unknown-linux-gnu
 
-
-#      - Build-Web:
+      - Build-Web:
 #          context: nextclade_web_<< pipeline.git.branch >>
-#          <<: *major_branches_only
-#          requires:
-#            - Update-Builder-Container
+          <<: *major_branches_only
+          requires:
+            - Update-Builder-Container
 #
 #      - Build-Linux-x86_64:
 #          context: nextclade_cli_<< pipeline.git.branch >>
