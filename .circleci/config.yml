@@ -157,18 +157,21 @@ jobs:
     resource_class: large
 
     steps:
+      - run:
+          name: ' [ << parameters.target_arch >> ] | Test CLI'
+          command: |
+            mkdir -p /tmp/workspace
+
       - attach_workspace:
-          at: /workspace
+          at: /tmp/workspace
 
       - run:
           name: ' [ << parameters.target_arch >> ] | Test CLI'
           command: |
-            /workspace/nextclade-<< parameters.target_arch >> --version || true
-            /workspace/.out/nextclade-<< parameters.target_arch >> --version || true
-
-            /workspace/nextalign-<< parameters.target_arch >> --version || true
-            /workspace/.out/nextalign-<< parameters.target_arch >> --version || true
-
+            /tmp/workspace/nextclade-<< parameters.target_arch >> --version || true
+            /tmp/workspace/.out/nextclade-<< parameters.target_arch >> --version || true
+            /tmp/workspace/nextalign-<< parameters.target_arch >> --version || true
+            /tmp/workspace/.out/nextalign-<< parameters.target_arch >> --version || true
 
 
   Build-Web:
