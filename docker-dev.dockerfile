@@ -148,18 +148,32 @@ RUN set -euxo pipefail >/dev/null \
 && rustup show \
 && rustup default "${RUST_TOOLCHAIN}"
 
+# Install cargo-binstall
+RUN set -euxo pipefail >/dev/null \
+&& curl -sSL "https://github.com/ryankurte/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-gnu.tgz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-binstall" \
+&& chmod +x "${CARGO_HOME}/bin/cargo-binstall"
+
+# Install cargo-quickinstall
+RUN set -euxo pipefail >/dev/null \
+&& export CARGO_QUICKINSTALL_VERSION="0.2.6" \
+&& curl -sSL "https://github.com/alsuren/cargo-quickinstall/releases/download/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-quickinstall" \
+&& chmod +x "${CARGO_HOME}/bin/cargo-quickinstall"
+
+# Install wasm-bindgen
+RUN set -euxo pipefail >/dev/null \
+&& export WASM_BINDGEN_CLI_VERSION="0.2.80" \
+&& curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen" \
+&& chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
+
 # Install executable dependencies
 RUN set -euxo pipefail >/dev/null \
-&& cargo install \
-  cargo-deny \
-  cargo-edit \
-  cargo-generate \
-  cargo-watch \
-  wasm-bindgen-cli \
-  wasm-pack \
-  xargo \
-&& cargo install cargo-audit --features=fix \
-&& cp -r ${HOME}/.cargo/install/bin/* ${HOME}/.cargo/bin/
+&& cargo quickinstall cargo-audit \
+&& cargo quickinstall cargo-deny \
+&& cargo quickinstall cargo-edit \
+&& cargo quickinstall cargo-generate \
+&& cargo quickinstall cargo-watch \
+&& cargo quickinstall wasm-pack \
+&& cargo quickinstall xargo
 
 # Setup bash
 RUN set -euxo pipefail >/dev/null \
