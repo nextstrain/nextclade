@@ -23,7 +23,7 @@ jobs:
       - restore_cache:
           name: 'Restore previous docker build checksum from cache'
           keys:
-            - cache-v2-nextclade-docker-{{ checksum "checksum.current.txt" }}
+            - cache-v4-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare current and previous checksum, halt if no changes'
@@ -44,32 +44,41 @@ jobs:
             echo "Checksum changed. Continuing the job."
 
       - run:
-          name: 'Build "Builder" container image'
-          command: |
-            DOCKER_REPO="nextstrain/nextclade_builder"
-            DOCKER_TARGET="dev"
-            DOCKER_IMAGE_VERSION="$(cat checksum.previous.txt)"
-            DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
-
-            docker build \
-              --file="docker-dev.dockerfile" \
-              --target="dev" \
-              --tag="${DOCKER_TAG}" \
-              --build-arg="UID=$(id -u)" \
-              --build-arg="GID=$(id -g)" \
-              --build-arg="USER=user" \
-              --build-arg="GROUP=user" \
-              .
-
-      - run:
-          name: 'Push container images'
+          name: 'Build container image'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker push "nextstrain/nextclade_builder:dev-$(cat checksum.previous.txt)"
+
+            DOCKER_REPO="nextstrain/nextclade_builder"
+            DOCKER_IMAGE_VERSION="$(cat checksum.previous.txt)"
+
+            declare -a DOCKER_TARGETS=(
+              "dev"
+              "cross-wasm32-unknown-unknown"
+              "cross-x86_64-pc-windows-gnu"
+              "cross-x86_64-unknown-linux-gnu"
+            )
+
+            for DOCKER_TARGET in "${DOCKER_TARGETS[@]}"; do
+              DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
+              docker build \
+                --file="docker-dev.dockerfile" \
+                --target="dev" \
+                --tag="${DOCKER_TAG}" \
+                --build-arg="UID=$(id -u)" \
+                --build-arg="GID=$(id -g)" \
+                --build-arg="USER=user" \
+                --build-arg="GROUP=user" \
+                .
+            done
+
+            for DOCKER_TARGET in "${DOCKER_TARGETS[@]}"; do
+              DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
+              docker push "${DOCKER_TAG}"
+            done
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-v2-nextclade-docker-{{ checksum "checksum.previous.txt" }}
+          key: cache-v4-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -100,6 +109,7 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker pull "nextstrain/nextclade_builder:dev-$(cat checksum.current.txt)"
+            docker pull "nextstrain/nextclade_builder:cross-<< parameters.target_arch >>-$(cat checksum.current.txt)"
 
       - restore_cache:
           name: ' [ << parameters.target_arch >> ] | Restore build cache'
@@ -201,6 +211,7 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker pull "nextstrain/nextclade_builder:dev-$(cat checksum.current.txt)"
+            docker pull "nextstrain/nextclade_builder:cross-wasm32-unknown-unknown-$(cat checksum.current.txt)"
 
       - restore_cache:
           name: ' [ web ] | Restore build cache'

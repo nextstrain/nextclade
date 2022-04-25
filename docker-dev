@@ -261,8 +261,7 @@ docker build -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
   --build-arg="GROUP=user" \
   --network=host \
   ${DOCKER_BUILD_ARGS} \
-  "${PACKAGE_DIR}" \
-  >/dev/null
+  "${PACKAGE_DIR}"
 
 export RUSTC_FORCE_INCREMENTAL=""
 if [ -n "${RELEASE}" ]; then
