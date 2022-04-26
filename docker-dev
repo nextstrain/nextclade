@@ -159,6 +159,12 @@ case "${1:-}" in
 "web-release" | "ar")
   shift
   WEB=1
+  RELEASE="prod:build"
+  WATCH=0
+  ;;
+"watch-web-release" | "war")
+  shift
+  WEB=1
   RELEASE="prod:watch"
   WATCH=0
   ;;
