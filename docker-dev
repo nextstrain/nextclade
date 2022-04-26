@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -euo pipefail
 
 function abspath() {
   readlink -m "$1"
@@ -277,7 +277,7 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
-  ${NICE} docker build \
+  ${NICE} docker build -q \
     --file="docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
@@ -292,7 +292,8 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --build-arg="USER=user" \
     --build-arg="GROUP=user" \
     ${ADDITIONAL_DOCKER_BUILD_ARGS} \
-    .
+    . \
+    ./dev/null
 
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
     docker push "${DOCKER_REPO}:${DOCKER_TARGET}"
@@ -325,7 +326,7 @@ elif [ "${EXAMPLE}" == "1" ]; then
   fi
   COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${BUILD}" == "1" ]; then
-  COMMAND="cargo build --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
+  COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${WASM}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn wasm-${RELEASE}\""
 elif [ "${WEB}" == "1" ]; then
