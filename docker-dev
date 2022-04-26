@@ -247,11 +247,15 @@ MACOS_SDK_SHA="4a575e099c1b5dafe2835770d2a225c4ed082c2a36ecec9eac0946339fe665f3"
 
 export DOCKER_BUILDKIT=1
 export BUILDKIT_PROGRESS=plain
+
+
 docker build \
-  --file="${PACKAGE_DIR}/docker-dev.dockerfile" \
+  --file="docker-dev.dockerfile" \
   --target="${DOCKER_TARGET}" \
-  --tag="${DOCKER_TAG}" \
-  --cache-from="${DOCKER_TAG}" \
+  --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
+  --tag="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+  --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
+  --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
   --network=host \
   --build-arg="UID=$(id -u)" \
   --build-arg="GID=$(id -g)" \
@@ -259,7 +263,7 @@ docker build \
   --build-arg="GROUP=user" \
   --build-arg="MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME}" \
   --build-arg="MACOS_SDK_SHA=${MACOS_SDK_SHA}" \
-  "${PACKAGE_DIR}"
+  .
 
 export RUSTC_FORCE_INCREMENTAL=""
 if [ -n "${RELEASE}" ]; then

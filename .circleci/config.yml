@@ -27,7 +27,7 @@ jobs:
       - restore_cache:
           name: 'Restore previous docker build checksum from cache'
           keys:
-            - cache-v8-nextclade-docker-{{ checksum "checksum.current.txt" }}
+            - cache-v9-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare current and previous checksum, halt if no changes'
@@ -72,11 +72,16 @@ jobs:
                 curl -fsSL "${MACOS_SDK_URL}" -o ".downloads/${MACOS_SDK_FILENAME}"
               fi
 
-              DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
+              docker pull "${DOCKER_REPO}:${DOCKER_TARGET}" &>/dev/null || true
+              docker pull "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" &>/dev/null || true
+
               docker build \
                 --file="docker-dev.dockerfile" \
                 --target="${DOCKER_TARGET}" \
-                --tag="${DOCKER_TAG}" \
+                --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
+                --tag="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+                --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
+                --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
                 --network=host \
                 --build-arg="UID=$(id -u)" \
                 --build-arg="GID=$(id -g)" \
@@ -88,13 +93,13 @@ jobs:
             done
 
             for DOCKER_TARGET in "${DOCKER_TARGETS[@]}"; do
-              DOCKER_TAG=${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}
-              docker push "${DOCKER_TAG}"
+              docker push "${DOCKER_REPO}:${DOCKER_TARGET}" &>/dev/null || true
+              docker push "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" &>/dev/null || true
             done
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-v8-nextclade-docker-{{ checksum "checksum.previous.txt" }}
+          key: cache-v9-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -127,7 +132,9 @@ jobs:
           name: ' [ << parameters.target_arch >> ] | Pull builder image'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker pull "nextstrain/nextclade_builder:dev"
             docker pull "nextstrain/nextclade_builder:dev-$(cat checksum.current.txt)"
+            docker pull "nextstrain/nextclade_builder:cross-<< parameters.target_arch >>"
             docker pull "nextstrain/nextclade_builder:cross-<< parameters.target_arch >>-$(cat checksum.current.txt)"
 
       - restore_cache:
