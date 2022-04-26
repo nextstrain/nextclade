@@ -17,16 +17,8 @@ declare -a TARGETS=(
 )
 
 
-mkdir -p ".out/"
-
 for target in "${TARGETS[@]}"; do
   printf "\nBuilding for %s\n" "${target}"
   CROSS=${target} ./docker-dev br nextalign
-
-  if [[ "${target}" == *windows* ]]; then
-    cp ".build/docker/${target}/release/nextalign.exe" ".out/nextalign-${target}.exe"
-  else
-    cp ".build/docker/${target}/release/nextalign" ".out/nextalign-${target}"
-  fi
 done
 

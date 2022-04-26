@@ -27,7 +27,7 @@ jobs:
       - restore_cache:
           name: 'Restore previous docker build checksum from cache'
           keys:
-            - cache-v9-nextclade-docker-{{ checksum "checksum.current.txt" }}
+            - cache-v10-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare current and previous checksum, halt if no changes'
@@ -52,54 +52,23 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
+            ./docker-dev dp
 
-            DOCKER_REPO="nextstrain/nextclade_builder"
-            DOCKER_IMAGE_VERSION="$(cat checksum.previous.txt)"
-
-            declare -a DOCKER_TARGETS=(
-              "dev"
-              "cross-x86_64-apple-darwin"
-              "cross-aarch64-apple-darwin"
-              "cross-wasm32-unknown-unknown"
-              "cross-x86_64-pc-windows-gnu"
-              "cross-x86_64-unknown-linux-gnu"
+            declare -a TARGETS=(
+              "aarch64-apple-darwin"
+              "wasm32-unknown-unknown"
+              "x86_64-apple-darwin"
+              "x86_64-pc-windows-gnu"
+              "x86_64-unknown-linux-gnu"
             )
 
-            for DOCKER_TARGET in "${DOCKER_TARGETS[@]}"; do
-
-              if [[ "${DOCKER_TARGET}" == *apple* ]]; then
-                mkdir -p ".downloads"
-                curl -fsSL "${MACOS_SDK_URL}" -o ".downloads/${MACOS_SDK_FILENAME}"
-              fi
-
-              docker pull "${DOCKER_REPO}:${DOCKER_TARGET}" &>/dev/null || true
-              docker pull "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" &>/dev/null || true
-
-              docker build \
-                --file="docker-dev.dockerfile" \
-                --target="${DOCKER_TARGET}" \
-                --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
-                --tag="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
-                --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
-                --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
-                --network=host \
-                --build-arg="UID=$(id -u)" \
-                --build-arg="GID=$(id -g)" \
-                --build-arg="USER=user" \
-                --build-arg="GROUP=user" \
-                --build-arg="MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME}" \
-                --build-arg="MACOS_SDK_SHA=${MACOS_SDK_SHA}" \
-                .
-            done
-
-            for DOCKER_TARGET in "${DOCKER_TARGETS[@]}"; do
-              docker push "${DOCKER_REPO}:${DOCKER_TARGET}" &>/dev/null || true
-              docker push "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" &>/dev/null || true
+            for TARGET in "${TARGETS[@]}"; do
+              CROSS=${TARGET} ./docker-dev dp
             done
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-v9-nextclade-docker-{{ checksum "checksum.previous.txt" }}
+          key: cache-v10-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
@@ -132,10 +101,10 @@ jobs:
           name: ' [ << parameters.target_arch >> ] | Pull builder image'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            docker pull "nextstrain/nextclade_builder:dev"
-            docker pull "nextstrain/nextclade_builder:dev-$(cat checksum.current.txt)"
-            docker pull "nextstrain/nextclade_builder:cross-<< parameters.target_arch >>"
-            docker pull "nextstrain/nextclade_builder:cross-<< parameters.target_arch >>-$(cat checksum.current.txt)"
+            docker pull "nextstrain/nextclade_builder:dev" || true
+            docker pull "nextstrain/nextclade_builder:dev-$(cat checksum.current.txt)" || true
+            docker pull "nextstrain/nextclade_builder:cross-<< parameters.target_arch >>" || true
+            docker pull "nextstrain/nextclade_builder:cross-<< parameters.target_arch >>-$(cat checksum.current.txt)" || true
 
       - restore_cache:
           name: ' [ << parameters.target_arch >> ] | Restore build cache'
@@ -147,22 +116,7 @@ jobs:
           command: |
             export CROSS="<< parameters.target_arch >>"
 
-            if [[ "${CROSS}" == *apple* ]]; then
-              mkdir -p ".downloads"
-              curl -fsSL "${MACOS_SDK_URL}" -o ".downloads/${MACOS_SDK_FILENAME}"
-            fi
-
             CROSS=${CROSS} ./docker-dev br
-
-            mkdir -p .out/
-
-            if [[ "${CROSS}" == *windows* ]]; then
-              cp ".build/docker/${CROSS}/release/nextalign.exe" ".out/nextalign-${CROSS}.exe"
-              cp ".build/docker/${CROSS}/release/nextclade.exe" ".out/nextclade-${CROSS}.exe"
-            else
-              cp ".build/docker/${CROSS}/release/nextalign" ".out/nextalign-${CROSS}"
-              cp ".build/docker/${CROSS}/release/nextclade" ".out/nextclade-${CROSS}"
-            fi
 
       - save_cache:
           name: ' [ << parameters.target_arch >> ] | Save build cache'
