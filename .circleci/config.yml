@@ -52,6 +52,8 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
+            echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+
             ./docker-dev dp
 
             declare -a TARGETS=(

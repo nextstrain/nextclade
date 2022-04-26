@@ -45,6 +45,11 @@ export COLORBT_SHOW_HIDDEN="0"
 export RUST_LOG="warn"
 export CARGO_BUILD_TARGET_DIR="${BUILD_DIR_REL}"
 
+. "${PROJECT_ROOT_DIR}/.env.example"
+if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
+  . "${PROJECT_ROOT_DIR}/.env"
+fi
+
 export EXTENSIONS_TO_WATCH="rs,toml,lock"
 
 export FILES_TO_WATCH="\
@@ -252,9 +257,6 @@ if [ -n "${CROSS:-}" ]; then
 fi
 DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 
-MACOS_SDK_FILENAME="${MACOS_SDK_FILENAME:-MacOSX11.1.sdk.tar.xz}"
-MACOS_SDK_SHA="${MACOS_SDK_SHA:=4a575e099c1b5dafe2835770d2a225c4ed082c2a36ecec9eac0946339fe665f3}"
-
 if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" >/dev/null ||
   [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
 
@@ -267,9 +269,11 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   docker pull "${DOCKER_REPO}:${DOCKER_TARGET}" 2>/dev/null || true >/dev/null
   docker pull "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
 
-  if [[ "${DOCKER_TARGET}" == *apple* ]] && [ ! -f "${PROJECT_ROOT_DIR}/.downloads/${MACOS_SDK_FILENAME}" ]; then
-    mkdir -p ".downloads"
-    curl -fsSL "${MACOS_SDK_URL}" -o ".downloads/${MACOS_SDK_FILENAME}"
+  ADDITIONAL_DOCKER_BUILD_ARGS=
+  if [[ "${DOCKER_TARGET}" == *apple* ]]; then
+    # shellcheck disable=SC2089
+
+    ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
   docker build \
@@ -284,8 +288,7 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --build-arg="GID=$(id -g)" \
     --build-arg="USER=user" \
     --build-arg="GROUP=user" \
-    --build-arg="MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME}" \
-    --build-arg="MACOS_SDK_SHA=${MACOS_SDK_SHA}" \
+    ${ADDITIONAL_DOCKER_BUILD_ARGS} \
     .
 
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then

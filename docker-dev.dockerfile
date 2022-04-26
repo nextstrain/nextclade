@@ -291,33 +291,16 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get clean autoclean >/dev/null \
 && apt-get autoremove --yes >/dev/null
 
-ENV OSX_VERSION_MIN=10.12
-ENV LIBZ_SYS_STATIC=1
-ENV OSXCROSS_COMMIT=be2b79f444aa0b43b8695a4fb7b920bf49ecc01c
-ENV OSXCROSS_INSTALL_DIR=/opt/osxcross
-ARG TEMP_BUILD_DIR=/temp-build-dir
+
+ARG OSXCROSS_URL
+
+# Install cargo-quickinstall
+RUN set -euxo pipefail >/dev/null \
+&& mkdir -p "/opt/osxcross" \
+&& curl -fsSL "${OSXCROSS_URL}" | tar -C "/opt/osxcross" -xJ
 
 RUN set -euxo pipefail >/dev/null \
-&& mkdir -p ${TEMP_BUILD_DIR} \
-&& cd ${TEMP_BUILD_DIR} \
-&& git clone https://github.com/tpoechtrager/osxcross \
-&& cd osxcross \
-&& git config advice.detachedHead false \
-&& git checkout ${OSXCROSS_COMMIT}
-
-ARG MACOS_SDK_FILENAME
-ARG MACOS_SDK_SHA
-COPY ".downloads/${MACOS_SDK_FILENAME}" "${TEMP_BUILD_DIR}/osxcross/tarballs/"
-
-RUN set -euxo pipefail >/dev/null \
-&& echo "${MACOS_SDK_SHA} ${TEMP_BUILD_DIR}/osxcross/tarballs/${MACOS_SDK_FILENAME}"  \
-  | sha256sum --check --status
-
-RUN set -euxo pipefail >/dev/null \
-&& mkdir -p ${OSXCROSS_INSTALL_DIR} \
-&& cd ${TEMP_BUILD_DIR}/osxcross \
-&& UNATTENDED=1 TARGET_DIR=${OSXCROSS_INSTALL_DIR} OSX_VERSION_MIN=${OSX_VERSION_MIN} ./build.sh
-
+&& ls -al /opt/osxcross/
 
 
 # Cross-compilation for macOS x86_64
