@@ -276,11 +276,13 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
   fi
 
-  docker build \
+  ${NICE} docker build \
     --file="docker-dev.dockerfile" \
     --target="${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --tag="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+    --cache-from="${DOCKER_REPO}:dev" \
+    --cache-from="${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
     --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
     --network=host \
@@ -358,7 +360,7 @@ fi
 mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
 # shellcheck disable=SC2086
-docker run -it --rm \
+${NICE} docker run -it --rm \
   --network=host \
   --init \
   --name="${DOCKER_CONTAINER_NAME}" \
