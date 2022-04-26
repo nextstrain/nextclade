@@ -270,11 +270,6 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   export BUILDKIT_PROGRESS=plain
   export PROGRESS_NO_TRUNC=1
 
-  docker pull "${DOCKER_REPO}:dev" 2>/dev/null || true >/dev/null
-  docker pull "${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
-  docker pull "${DOCKER_REPO}:${DOCKER_TARGET}" 2>/dev/null || true >/dev/null
-  docker pull "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
-
   ADDITIONAL_DOCKER_BUILD_ARGS=
   if [[ "${DOCKER_TARGET}" == *apple* ]]; then
     # shellcheck disable=SC2089

@@ -213,7 +213,7 @@ FROM base as cross-wasm32-unknown-unknown
 SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
-&& rustup target add cross-wasm32-unknown-unknown
+&& rustup target add wasm32-unknown-unknown
 
 
 # Cross-compilation for Linux ARM64

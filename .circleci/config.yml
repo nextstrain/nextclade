@@ -66,8 +66,15 @@ jobs:
               "x86_64-unknown-linux-musl"
             )
 
-            for TARGET in "${TARGETS[@]}"; do
-              CROSS=${TARGET} ./docker-dev dp
+            for CROSS in "${TARGETS[@]}"; do
+              DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+
+              docker pull "nextstrain/nextclade_builder:dev" 2>/dev/null || true >/dev/null
+              docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+              docker pull "nextstrain/nextclade_builder:${CROSS}" 2>/dev/null || true >/dev/null
+              docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+
+              CROSS=${CROSS} ./docker-dev dp
             done
 
       - save_cache:
@@ -96,6 +103,17 @@ jobs:
 
     steps:
       - checkout
+
+      - run:
+          name: ' [ web ] | Pull docker dev image'
+          command: |
+            CROSS="<< parameters.target_arch >>"
+            DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+
+            docker pull "nextstrain/nextclade_builder:dev" >/dev/null
+            docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null
+            docker pull "nextstrain/nextclade_builder:cross-${CROSS}" >/dev/null
+            docker pull "nextstrain/nextclade_builder:cross-${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null
 
       - restore_cache:
           name: ' [ << parameters.target_arch >> ] | Restore build cache'
@@ -188,6 +206,17 @@ jobs:
 
     steps:
       - checkout
+
+      - run:
+          name: ' [ web ] | Pull docker dev image'
+          command: |
+            CROSS="wasm32-unknown-unknown"
+            DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+
+            docker pull "nextstrain/nextclade_builder:dev" >/dev/null
+            docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null
+            docker pull "nextstrain/nextclade_builder:cross-${CROSS}" >/dev/null
+            docker pull "nextstrain/nextclade_builder:cross-${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null
 
       - restore_cache:
           name: ' [ web ] | Restore build cache'
