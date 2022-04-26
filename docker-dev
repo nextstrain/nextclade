@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euxo pipefail
 
 function abspath() {
   readlink -m "$1"
@@ -246,9 +246,8 @@ MACOS_SDK_FILENAME="MacOSX11.1.sdk.tar.xz"
 MACOS_SDK_SHA="4a575e099c1b5dafe2835770d2a225c4ed082c2a36ecec9eac0946339fe665f3"
 
 docker build \
-  --quiet \
   --file="${PACKAGE_DIR}/docker-dev.dockerfile" \
-  --target="dev" \
+  --target="${DOCKER_TARGET}" \
   --tag="${DOCKER_TAG}" \
   --cache-from="${DOCKER_TAG}" \
   --network=host \
@@ -258,8 +257,7 @@ docker build \
   --build-arg="GROUP=user" \
   --build-arg="MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME}" \
   --build-arg="MACOS_SDK_SHA=${MACOS_SDK_SHA}" \
-  "${PACKAGE_DIR}" \
-  >/dev/null
+  "${PACKAGE_DIR}"
 
 export RUSTC_FORCE_INCREMENTAL=""
 if [ -n "${RELEASE}" ]; then
