@@ -6,6 +6,10 @@ jobs:
 
     shell: '/bin/bash -euxo pipefail'
 
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
+
     machine:
       image: ubuntu-2004:202201-02
       docker_layer_caching: true
@@ -23,7 +27,7 @@ jobs:
       - restore_cache:
           name: 'Restore previous docker build checksum from cache'
           keys:
-            - cache-v7-nextclade-docker-{{ checksum "checksum.current.txt" }}
+            - cache-v8-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
           name: 'Compare current and previous checksum, halt if no changes'
@@ -90,10 +94,9 @@ jobs:
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-v7-nextclade-docker-{{ checksum "checksum.previous.txt" }}
+          key: cache-v8-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
-
 
   Build-Cli:
     parameters:
@@ -101,6 +104,10 @@ jobs:
         type: string
 
     shell: '/bin/bash -euxo pipefail'
+
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
 
     machine:
       image: ubuntu-2004:202201-02
@@ -175,12 +182,17 @@ jobs:
             fi
 
 
+
   Test-Cli:
     parameters:
       target_arch:
         type: string
 
     shell: '/bin/bash -euxo pipefail'
+
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
 
     machine:
       image: ubuntu-2004:202201-02
@@ -205,9 +217,14 @@ jobs:
             /tmp/workspace/.out/nextalign-<< parameters.target_arch >> --version
 
 
+
   Build-Web:
 
     shell: '/bin/bash -euxo pipefail'
+
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
 
     machine:
       image: ubuntu-2004:202201-02
