@@ -262,10 +262,10 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
   export BUILDKIT_PROGRESS=plain
   export PROGRESS_NO_TRUNC=1
 
-  { docker pull "${DOCKER_REPO}:dev" || true; }
-  { docker pull "${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" || true; }
-  { docker pull "${DOCKER_REPO}:${DOCKER_TARGET}" || true; }
-  { docker pull "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" || true; }
+  docker pull "${DOCKER_REPO}:dev" 2>/dev/null || true >/dev/null
+  docker pull "${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+  docker pull "${DOCKER_REPO}:${DOCKER_TARGET}" 2>/dev/null || true >/dev/null
+  docker pull "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
 
   if [[ "${DOCKER_TARGET}" == *apple* ]] && [ ! -f "${PROJECT_ROOT_DIR}/.downloads/${MACOS_SDK_FILENAME}" ]; then
     mkdir -p ".downloads"
@@ -289,8 +289,8 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     .
 
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
-    docker push "${DOCKER_REPO}:${DOCKER_TARGET}" || true
-    docker push "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" || true
+    docker push "${DOCKER_REPO}:${DOCKER_TARGET}"
+    docker push "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}"
   fi
 
   if [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
