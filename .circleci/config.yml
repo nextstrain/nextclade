@@ -58,10 +58,12 @@ jobs:
 
             declare -a TARGETS=(
               "aarch64-apple-darwin"
+              "aarch64-unknown-linux-gnu"
               "wasm32-unknown-unknown"
               "x86_64-apple-darwin"
               "x86_64-pc-windows-gnu"
               "x86_64-unknown-linux-gnu"
+              "x86_64-unknown-linux-musl"
             )
 
             for TARGET in "${TARGETS[@]}"; do
@@ -105,8 +107,9 @@ jobs:
           command: |
             export CROSS="<< parameters.target_arch >>"
 
-            CROSS=${CROSS} ./docker-dev br nextclade
-            CROSS=${CROSS} ./docker-dev br nextalign
+            echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+
+            CROSS=${CROSS} ./docker-dev br
 
       - save_cache:
           name: ' [ << parameters.target_arch >> ] | Save build cache'
@@ -278,16 +281,21 @@ workflows:
   build:
     jobs:
       - Update-Builder-Container:
+          <<: *major_branches_and_cli_only
+
           context:
             - nextclade_macos
-          <<: *major_branches_and_cli_only
+
 
       - Build-Cli:
           <<: *major_branches_and_cli_only
+
           requires:
             - Update-Builder-Container
+
           context:
             - nextclade_macos
+
           matrix:
             parameters:
               target_arch:
@@ -297,6 +305,7 @@ workflows:
                 - x86_64-pc-windows-gnu
                 - aarch64-unknown-linux-gnu
                 - x86_64-unknown-linux-musl
+
 
       - Release-Cli:
           <<: *major_branches_and_cli_only
@@ -309,8 +318,11 @@ workflows:
               target_arch:
                 - x86_64-unknown-linux-gnu
 
+
       - Build-And-Release-Web:
-          # context: nextclade_web_<< pipeline.git.branch >>
           <<: *major_branches_only
+
+          # context: nextclade_web_<< pipeline.git.branch >>
+
           requires:
             - Update-Builder-Container
