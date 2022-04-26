@@ -1,9 +1,9 @@
 # Freeze base image version to
-# ubuntu:20.04 (pushed 2022-04-05T22:38:34.466804Z)
-# https://hub.docker.com/layers/ubuntu/library/ubuntu/20.04/images/sha256-31cd7bbfd36421dfd338bceb36d803b3663c1bfa87dfe6af7ba764b5bf34de05
-FROM ubuntu@sha256:31cd7bbfd36421dfd338bceb36d803b3663c1bfa87dfe6af7ba764b5bf34de05 as base
+# ubuntu:20.04 (pushed 2022-04-21T23:04:30.548037Z)
+# https://hub.docker.com/layers/ubuntu/library/ubuntu/20.04/images/sha256-7b3e30a1f373b0621681f13b92feb928129c1c38977481ee788a793fcae64fb9
+FROM ubuntu@sha256:7b3e30a1f373b0621681f13b92feb928129c1c38977481ee788a793fcae64fb9 as base
 
-SHELL ["bash", "-c"]
+SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 ARG CLANG_VERSION="13"
 ARG DASEL_VERSION="1.22.1"
@@ -31,13 +31,6 @@ RUN set -euxo pipefail >/dev/null \
   time \
   xz-utils \
 >/dev/null \
-&& rm -rf /var/lib/apt/lists/* \
-&& apt-get clean autoclean >/dev/null \
-&& apt-get autoremove --yes >/dev/null
-
-
-# Install LLVM/Clang (https://apt.llvm.org/)
-RUN set -euxo pipefail >/dev/null \
 && echo "deb http://apt.llvm.org/$(lsb_release -cs)/ llvm-toolchain-$(lsb_release -cs)-${CLANG_VERSION} main" >> "/etc/apt/sources.list.d/llvm.list" \
 && curl -fsSL "https://apt.llvm.org/llvm-snapshot.gpg.key" | sudo apt-key add - \
 && export DEBIAN_FRONTEND=noninteractive \
@@ -52,9 +45,9 @@ RUN set -euxo pipefail >/dev/null \
   llvm-${CLANG_VERSION}-linker-tools \
   llvm-${CLANG_VERSION}-tools \
 >/dev/null \
-&& rm -rf /var/lib/apt/lists/* \
 && apt-get clean autoclean >/dev/null \
-&& apt-get autoremove --yes >/dev/null
+&& apt-get autoremove --yes >/dev/null \
+&& rm -rf /var/lib/apt/lists/*
 
 ARG USER=user
 ARG GROUP=user
@@ -211,14 +204,15 @@ FROM base as cross-x86_64-unknown-linux-musl
 
 # Cross-compilation to WebAssembly
 FROM base as cross-wasm32-unknown-unknown
-SHELL ["bash", "-c"]
+
 
 
 # Cross-compilation for Linux ARM64
 FROM base as cross-aarch64-unknown-linux-gnu
 
 USER 0
-SHELL ["bash", "-c"]
+
+SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
 && export DEBIAN_FRONTEND=noninteractive \
@@ -227,9 +221,9 @@ RUN set -euxo pipefail >/dev/null \
   gcc-aarch64-linux-gnu \
   libc6-dev-arm64-cross \
 >/dev/null \
-&& rm -rf /var/lib/apt/lists/* \
 && apt-get clean autoclean >/dev/null \
-&& apt-get autoremove --yes >/dev/null
+&& apt-get autoremove --yes >/dev/null \
+&& rm -rf /var/lib/apt/lists/*
 
 
 ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
@@ -243,8 +237,9 @@ USER ${USER}
 # Cross-compilation for Windows x86_64
 FROM base as cross-x86_64-pc-windows-gnu
 
+SHELL ["bash", "-euxo", "pipefail", "-c"]
+
 USER 0
-SHELL ["bash", "-c"]
 
 RUN set -euxo pipefail >/dev/null \
 && export DEBIAN_FRONTEND=noninteractive \
@@ -252,9 +247,9 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get install -qq --no-install-recommends --yes \
   gcc-mingw-w64-x86-64 \
 >/dev/null \
-&& rm -rf /var/lib/apt/lists/* \
 && apt-get clean autoclean >/dev/null \
-&& apt-get autoremove --yes >/dev/null
+&& apt-get autoremove --yes >/dev/null \
+&& rm -rf /var/lib/apt/lists/*
 
 USER ${USER}
 
@@ -263,34 +258,9 @@ USER ${USER}
 # Builds osxcross for Mac cross-compiation
 FROM base as osxcross
 
-SHELL ["bash", "-c"]
+SHELL ["bash", "-euxo", "pipefail", "-c"]
 
 USER 0
-
-RUN set -euxo pipefail >/dev/null \
-&& export DEBIAN_FRONTEND=noninteractive \
-&& apt-get update -qq --yes \
-&& apt-get install -qq --no-install-recommends --yes \
-  bash \
-  bzip2 \
-  cmake \
-  cpio \
-  gzip \
-  libbz2-dev \
-  libssl-dev \
-  libxml2-dev \
-  make \
-  patch \
-  sed \
-  tar \
-  uuid-dev \
-  xz-utils \
-  zlib1g-dev \
->/dev/null \
-&& rm -rf /var/lib/apt/lists/* \
-&& apt-get clean autoclean >/dev/null \
-&& apt-get autoremove --yes >/dev/null
-
 
 ARG OSXCROSS_URL
 
@@ -298,9 +268,6 @@ ARG OSXCROSS_URL
 RUN set -euxo pipefail >/dev/null \
 && mkdir -p "/opt/osxcross" \
 && curl -fsSL "${OSXCROSS_URL}" | tar -C "/opt/osxcross" -xJ
-
-RUN set -euxo pipefail >/dev/null \
-&& ls -al /opt/osxcross/
 
 
 # Cross-compilation for macOS x86_64
