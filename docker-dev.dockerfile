@@ -201,10 +201,19 @@ ENV CXX_x86_64-unknown-linux-gnu=clang++
 # Cross-compilation for Linux x86_64 with libmusl
 FROM base as cross-x86_64-unknown-linux-musl
 
+SHELL ["bash", "-euxo", "pipefail", "-c"]
+
+RUN set -euxo pipefail >/dev/null \
+&& rustup target add x86_64-unknown-linux-musl
+
 
 # Cross-compilation to WebAssembly
 FROM base as cross-wasm32-unknown-unknown
 
+SHELL ["bash", "-euxo", "pipefail", "-c"]
+
+RUN set -euxo pipefail >/dev/null \
+&& rustup target add cross-wasm32-unknown-unknown
 
 
 # Cross-compilation for Linux ARM64
@@ -225,13 +234,14 @@ RUN set -euxo pipefail >/dev/null \
 && apt-get autoremove --yes >/dev/null \
 && rm -rf /var/lib/apt/lists/*
 
-
-ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
-ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
-ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
-
 USER ${USER}
 
+RUN set -euxo pipefail >/dev/null \
+&& rustup target add aarch64-unknown-linux-gnu
+
+ENV CC_aarch64_unknown_linux_gnu=aarch64-linux-gnu-gcc
+ENV CXX_aarch64_unknown_linux_gnu=aarch64-linux-gnu-g++
+ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 
 
 # Cross-compilation for Windows x86_64
@@ -253,6 +263,8 @@ RUN set -euxo pipefail >/dev/null \
 
 USER ${USER}
 
+RUN set -euxo pipefail >/dev/null \
+&& rustup target add x86_64-pc-windows-gnu
 
 
 # Builds osxcross for Mac cross-compiation
@@ -269,19 +281,38 @@ RUN set -euxo pipefail >/dev/null \
 && mkdir -p "/opt/osxcross" \
 && curl -fsSL "${OSXCROSS_URL}" | tar -C "/opt/osxcross" -xJ
 
+USER ${USER}
+
 
 # Cross-compilation for macOS x86_64
 FROM osxcross as cross-x86_64-apple-darwin
 
+SHELL ["bash", "-euxo", "pipefail", "-c"]
+
+USER ${USER}
+
+RUN set -euxo pipefail >/dev/null \
+&& rustup target add x86_64-apple-darwin
+
 ENV PATH="/opt/osxcross/bin/:${PATH}"
 ENV CC_x86_64-apple-darwin=x86_64-apple-darwin20.2-clang
 ENV CXX_x86_64-apple-darwin=x86_64-apple-darwin20.2-clang++
-
+ENV CARGO_TARGET_X86_64_APPLE_DARWIN_LINKER=x86_64-apple-darwin20.2-clang
+ENV CARGO_TARGET_X86_64_APPLE_DARWIN_STRIP=x86_64-apple-darwin20.2-strip
 
 
 # Cross-compilation for macOS ARM64
 FROM osxcross as cross-aarch64-apple-darwin
 
+SHELL ["bash", "-euxo", "pipefail", "-c"]
+
+USER ${USER}
+
+RUN set -euxo pipefail >/dev/null \
+&& rustup target add aarch64-apple-darwin
+
 ENV PATH="/opt/osxcross/bin/:${PATH}"
 ENV CC_aarch64-apple-darwin=aarch64-apple-darwin20.2-clang
 ENV CXX_aarch64-apple-darwin=aarch64-apple-darwin20.2-clang++
+ENV CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER=aarch64-apple-darwin20.2-clang
+ENV CARGO_TARGET_AARCH64_APPLE_DARWIN_STRIP=aarch64-apple-darwin20.2-strip
