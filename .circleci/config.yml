@@ -56,6 +56,18 @@ jobs:
 
             ./docker-dev dp
 
+            declare -a TARGETS=(
+              "aarch64-apple-darwin"
+              "wasm32-unknown-unknown"
+              "x86_64-apple-darwin"
+              "x86_64-pc-windows-gnu"
+              "x86_64-unknown-linux-gnu"
+            )
+
+            for TARGET in "${TARGETS[@]}"; do
+              CROSS=${TARGET} ./docker-dev dp
+            done
+
       - save_cache:
           name: 'Save new checksum.txt to cache'
           key: cache-v12-nextclade-docker-{{ checksum "checksum.previous.txt" }}
@@ -82,39 +94,6 @@ jobs:
 
     steps:
       - checkout
-
-      - run:
-          name: ' [ << parameters.target_arch >> ] | Calculate current docker build checksum'
-          command: |
-            ./scripts/docker_build_checksum.sh > "checksum.current.txt"
-
-      - restore_cache:
-          name: 'Restore previous docker build checksum from cache'
-          keys:
-            - cache-v12-nextclade-docker-<< parameters.target_arch >>-{{ checksum "checksum.current.txt" }}
-
-      - run:
-          name: ' [ << parameters.target_arch >> ] | Build dev container image'
-          command: |
-            touch checksum.previous.txt
-            CHECKSUM_OLD="$(cat checksum.previous.txt)"
-            CHECKSUM_NEW="$(cat checksum.current.txt)"
-
-            echo CHECKSUM_OLD=${CHECKSUM_OLD}
-            echo CHECKSUM_NEW=${CHECKSUM_NEW}
-
-            if [ "${CHECKSUM_OLD}" != "${CHECKSUM_NEW}" ]; then
-              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
-              echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
-              CROSS="<< parameters.target_arch >>" ./docker-dev dp
-            fi
-
-      - save_cache:
-          name: ' [ << parameters.target_arch >> ] | Save new docker build checksum to cache'
-          key: cache-v12-nextclade-docker-<< parameters.target_arch >>-{{ checksum "checksum.previous.txt" }}
-          paths:
-            - checksum.previous.txt
 
       - restore_cache:
           name: ' [ << parameters.target_arch >> ] | Restore build cache'
@@ -206,37 +185,6 @@ jobs:
 
     steps:
       - checkout
-
-      - run:
-          name: ' [ web ] | Calculate current docker build checksum'
-          command: |
-            ./scripts/docker_build_checksum.sh > "checksum.current.txt"
-
-      - restore_cache:
-          name: 'Restore previous docker build checksum from cache'
-          keys:
-            - cache-v12-nextclade-docker-web-{{ checksum "checksum.current.txt" }}
-
-      - run:
-          name: ' [ web ] | Build dev container image'
-          command: |
-            touch checksum.previous.txt
-            CHECKSUM_OLD="$(cat checksum.previous.txt)"
-            CHECKSUM_NEW="$(cat checksum.current.txt)"
-
-            echo CHECKSUM_OLD=${CHECKSUM_OLD}
-            echo CHECKSUM_NEW=${CHECKSUM_NEW}
-
-            if [ "${CHECKSUM_OLD}" != "${CHECKSUM_NEW}" ]; then
-              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-              CROSS="wasm32-unknown-unknown" ./docker-dev dp
-            fi
-
-      - save_cache:
-          name: ' [ web ] | Save new docker build checksum to cache'
-          key: cache-v12-nextclade-docker-web-{{ checksum "checksum.previous.txt" }}
-          paths:
-            - checksum.previous.txt
 
       - restore_cache:
           name: ' [ web ] | Restore build cache'
