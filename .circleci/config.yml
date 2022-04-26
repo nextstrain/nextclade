@@ -280,30 +280,30 @@ cli_only: &cli_only
   filters:
     branches:
       only:
-        #        - release-cli
-        #        - staging-cli
-        - rust
+        - release-cli
+        - staging-cli
+        # - rust
 
 
 major_branches_only: &major_branches_only
   filters:
     branches:
       only:
-        #        - master
-        #        - staging
-        #        - release
-        - rust
+        - master
+        - staging
+        - release
+        # - rust
 
 major_branches_and_cli_release_only: &major_branches_and_cli_only
   filters:
     branches:
       only:
-        #        - master
-        #        - staging
-        #        - release
-        #        - release-cli
-        #        - staging-cli
-        - rust
+        - master
+        - staging
+        - release
+        - release-cli
+        - staging-cli
+        # - rust
 
 workflows:
   version: 2
