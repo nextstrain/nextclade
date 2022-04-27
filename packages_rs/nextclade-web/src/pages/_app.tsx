@@ -8,13 +8,14 @@ import 'src/helpers/errorPrototypeTojson' // to visualize Error in Redux Dev Too
 import 'src/helpers/functionPrototypeTojson' // to visualize Function in Redux Dev Tools
 
 import { enableES5 } from 'immer'
-import { memoize } from 'lodash'
 import React, { useEffect, useState, Suspense, useMemo, useCallback } from 'react'
-import { MutableSnapshot, RecoilRoot } from 'recoil'
+import { MutableSnapshot, RecoilRoot, useSetRecoilState } from 'recoil'
 import { AppProps } from 'next/app'
+import { useRouter } from 'next/router'
 import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
 import type { Persistor } from 'redux-persist'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 import { ThemeProvider } from 'styled-components'
 import { Provider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
@@ -28,7 +29,6 @@ import type { State } from 'src/state/reducer'
 import { initialize } from 'src/initialize'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { initializeDatasets } from 'src/io/fetchDatasets'
-import { fetchInputsAndRunMaybe } from 'src/io/fetchInputsAndRunMaybe'
 import { ErrorPopup } from 'src/components/Error/ErrorPopup'
 import Loading from 'src/components/Loading/Loading'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
@@ -36,6 +36,8 @@ import { SEO } from 'src/components/Common/SEO'
 import { Plausible } from 'src/components/Common/Plausible'
 import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
+import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
+import { errorAtom } from 'src/state/error.state'
 
 import 'src/styles/global.scss'
 
@@ -51,6 +53,42 @@ if (process.env.NODE_ENV === 'development') {
   global.console = mutedConsole(global.console)
 }
 
+/**
+ * Dummy component that allows to set recoil state asynchronously. Needed because RecoilRoot's initializeState
+ * currently only handles synchronous update and any calls to set() from promises have no effect
+ */
+export function RecoilStateInitializer() {
+  const router = useRouter()
+
+  // NOTE: Do manual parsing, because router.query is randomly empty on the first few renders and on repeated renders.
+  // This is important, because various states depend on query, and when it changes back and forth,
+  // the state also changes unexpectedly.
+  const { query } = useMemo(() => parseUrl(router.asPath), [router.asPath])
+
+  const setDatasets = useSetRecoilState(datasetsAtom)
+  const setDatasetCurrentName = useSetRecoilState(datasetCurrentNameAtom)
+  const setError = useSetRecoilState(errorAtom)
+
+  useEffect(() => {
+    initializeDatasets(query)
+      .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
+        setDatasets({
+          datasets,
+          defaultDatasetName,
+          defaultDatasetNameFriendly,
+        })
+        setDatasetCurrentName(currentDatasetName)
+      })
+      .then(() => {
+        // TODO
+        // fetchInputsAndRunMaybe(dispatch, query)
+      })
+      .catch((error) => setError(sanitizeError(error)))
+  }, [query, setDatasetCurrentName, setDatasets, setError])
+
+  return null
+}
+
 export interface AppState {
   persistor: Persistor
   store: Store<State>
@@ -60,9 +98,9 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(), [])
   const [state, setState] = useState<AppState | undefined>()
   const [initDone, setInitDone] = useState(false)
-  const [fetchDone, setFetchDone] = useState(false)
-  const store = state?.store
-  const dispatch = store?.dispatch
+  // const [fetchDone, setFetchDone] = useState(false)
+  // const store = state?.store
+  // const dispatch = store?.dispatch
 
   // NOTE: Do manual parsing, because router.query is randomly empty on the first few renders and on repeated renders.
   // This is important, because various states depend on query, and when it changes back and forth,
@@ -80,21 +118,17 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
     }
   }, [initDone, router])
 
-  useEffect(() => {
-    if (!fetchDone && query && dispatch && store) {
-      Promise.resolve()
-        .then(() => initializeDatasets(dispatch, query, store))
-        .then(async (success) => success && fetchInputsAndRunMaybe(dispatch, query))
-        .then((success) => setFetchDone(success))
-        .catch((error: Error) => {
-          throw error
-        })
-    }
-  }, [fetchDone, query, state, dispatch, store])
-
-  const initializeState = useCallback(({ set }: MutableSnapshot) => {
-    // TODO
-  }, [])
+  // useEffect(() => {
+  //   if (!fetchDone && query && dispatch && store) {
+  //     Promise.resolve()
+  //       .then(() => initializeDatasets(dispatch, query, store))
+  //       .then(async (success) => success && fetchInputsAndRunMaybe(dispatch, query))
+  //       .then((success) => setFetchDone(success))
+  //       .catch((error: Error) => {
+  //         throw error
+  //       })
+  //   }
+  // }, [fetchDone, query, state, dispatch, store])
 
   if (!state) {
     return <Loading />
@@ -105,7 +139,8 @@ export default function MyApp({ Component, pageProps, router }: AppProps) {
   return (
     <Suspense fallback={<Loading />}>
       <Provider store={storeNonNil}>
-        <RecoilRoot initializeState={initializeState}>
+        <RecoilRoot>
+          <RecoilStateInitializer />
           <ConnectedRouter>
             <ThemeProvider theme={theme}>
               <MDXProvider components={{ a: LinkExternal }}>

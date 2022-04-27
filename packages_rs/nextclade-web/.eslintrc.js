@@ -81,6 +81,7 @@ module.exports = {
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-shadow': 'off',
     '@typescript-eslint/unbound-method': ['off'],
+    'array-func/no-unnecessary-this-arg': 'off',
     'array-func/prefer-array-from': 'off',
     'camelcase': 'warn',
     'cflint/no-substr': 'warn',

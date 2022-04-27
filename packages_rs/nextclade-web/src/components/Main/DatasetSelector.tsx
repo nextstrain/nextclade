@@ -2,16 +2,13 @@ import React, { HTMLProps, useCallback, useState } from 'react'
 
 import classNames from 'classnames'
 import { ThreeDots } from 'react-loader-spinner'
-import { connect } from 'react-redux'
 import { Button, Col, Container, Input, Row } from 'reactstrap'
+import { useRecoilState, useRecoilValue } from 'recoil'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
+import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 
-import type { DatasetFlat } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
-import { selectDatasets, selectCurrentDataset, selectDefaultDataset } from 'src/state/algorithm/algorithm.selectors'
 import { DatasetSelectorList } from './DatasetSelectorList'
 
 const DatasetSelectorContainer = styled(Container)`
@@ -51,36 +48,17 @@ const Spinner = styled(ThreeDots)`
 
 export interface DatasetSelectorProps {
   searchTerm: string
-  datasets: DatasetFlat[]
-  datasetDefault?: DatasetFlat
-  datasetCurrent?: DatasetFlat
-  setDatasetCurrent(dataset?: DatasetFlat): void
   setSearchTerm(searchTerm: string): void
 }
 
-const mapStateToProps = (state: State) => ({
-  datasets: selectDatasets(state),
-  datasetDefault: selectDefaultDataset(state),
-  datasetCurrent: selectCurrentDataset(state),
-})
-
-const mapDispatchToProps = {
-  setDatasetCurrent: setCurrentDataset,
-}
-
-export const DatasetSelector = connect(mapStateToProps, mapDispatchToProps)(DatasetSelectorDisconnected)
-
-export function DatasetSelectorDisconnected({
-  searchTerm,
-  datasets,
-  datasetDefault,
-  datasetCurrent,
-  setDatasetCurrent,
-  setSearchTerm,
-}: DatasetSelectorProps) {
+export function DatasetSelector({ searchTerm, setSearchTerm }: DatasetSelectorProps) {
   const { t } = useTranslationSafe()
   const [error, setError] = useState<string | undefined>()
-  const [datasetHighlighted, setDatasetHighlighted] = useState<DatasetFlat | undefined>(datasetDefault)
+  const { datasets, defaultDatasetName } = useRecoilValue(datasetsAtom)
+  const [datasetCurrentName, setDatasetCurrent] = useRecoilState(datasetCurrentNameAtom)
+  const [datasetHighlighted, setDatasetHighlighted] = useState<string | undefined>(
+    datasetCurrentName ?? defaultDatasetName,
+  )
 
   const onSearchTermChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

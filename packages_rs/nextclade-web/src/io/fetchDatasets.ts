@@ -1,12 +1,8 @@
-import type { Dispatch, Store } from 'redux'
 import type { ParsedUrlQuery } from 'querystring'
 
-import type { State } from 'src/state/reducer'
 import type { DatasetFlat } from 'src/algorithms/types'
 import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } from 'src/io/fetchDatasetsIndex'
 import { getQueryParam } from 'src/io/fetchInputsAndRunMaybe'
-import { setCurrentDataset, setDatasets } from 'src/state/algorithm/algorithm.actions'
-import { errorAdd } from 'src/state/error/error.actions'
 
 export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets: DatasetFlat[]) {
   const inputFastaUrl = getQueryParam(urlQuery, 'input-fasta')
@@ -42,55 +38,21 @@ export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets
   return dataset
 }
 
-export async function getLastUsedDataset(store: Store<State>, datasets: DatasetFlat[]) {
-  const state = store.getState()
-  const { lastDataset } = state.settings
-  if (!lastDataset) {
-    return undefined
-  }
+export async function initializeDatasets(urlQuery: ParsedUrlQuery) {
+  const datasetsIndexJson = await fetchDatasetsIndex()
+  const { datasets, defaultDatasetName, defaultDatasetNameFriendly } =
+    getLatestCompatibleEnabledDatasets(datasetsIndexJson)
 
-  const datasetName = lastDataset.name
-  const datasetRef = lastDataset.reference?.accession
-  const datasetTag = lastDataset.tag
-  return findDataset(datasets, datasetName, datasetRef, datasetTag)
-}
+  // Check if URL params specify dataset params and try to find the corresponding dataset
+  const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
 
-export async function initializeDatasets(dispatch: Dispatch, urlQuery: ParsedUrlQuery, store: Store<State>) {
-  let datasets
-  let defaultDatasetName
-  let defaultDatasetNameFriendly
+  // TODO
+  // // If URL params defined no dataset, try to restore the last used dataset from local storage
+  // if (!currentDataset) {
+  //   currentDataset = await getLastUsedDataset(store, datasets)
+  // }
 
-  try {
-    const datasetsIndexJson = await fetchDatasetsIndex()
-    ;({ datasets, defaultDatasetName, defaultDatasetNameFriendly } = getLatestCompatibleEnabledDatasets(
-      datasetsIndexJson,
-    ))
+  const currentDatasetName = currentDataset?.name
 
-    if (!datasets || !defaultDatasetName || !defaultDatasetNameFriendly) {
-      return false
-    }
-
-    // Check if URL params specify dataset params and try to find the corresponding dataset
-    let dataset = await getDatasetFromUrlParams(urlQuery, datasets)
-
-    // If URL params defined no dataset, try to restore the last used dataset from local storage
-    if (!dataset) {
-      dataset = await getLastUsedDataset(store, datasets)
-    }
-
-    dispatch(setDatasets({ defaultDatasetName, defaultDatasetNameFriendly, datasets }))
-    if (dataset) {
-      dispatch(setCurrentDataset(dataset))
-    }
-  } catch (error) {
-    console.error(error)
-    if (error instanceof Error) {
-      dispatch(errorAdd({ error }))
-    } else {
-      dispatch(errorAdd({ error: new Error('Unknown error') }))
-    }
-    return false
-  }
-
-  return true
+  return { datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }
 }
