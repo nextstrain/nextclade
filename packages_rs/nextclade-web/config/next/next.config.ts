@@ -6,6 +6,7 @@ import { uniq } from 'lodash'
 import getWithMDX from '@next/mdx'
 import withPlugins from 'next-compose-plugins'
 import getWithTranspileModules from 'next-transpile-modules'
+import intercept from 'intercept-stdout'
 
 import { findModuleRoot } from '../../lib/findModuleRoot'
 import { getGitBranch } from '../../lib/getGitBranch'
@@ -27,6 +28,12 @@ import withFriendlyChunkNames from './withFriendlyChunkNames'
 import withResolve from './withResolve'
 import withUrlAsset from './withUrlAsset'
 import withWasm from './withWasm'
+
+// Ignore recoil warning messages in stdout
+// https://github.com/facebookexperimental/Recoil/issues/733
+if (process.env.NODE_ENV === 'development') {
+  intercept((text: string) => (text.includes('Duplicate atom key') ? '' : text))
+}
 
 const {
   // BABEL_ENV,

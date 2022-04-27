@@ -8,7 +8,7 @@ import 'src/helpers/errorPrototypeTojson' // to visualize Error in Redux Dev Too
 import 'src/helpers/functionPrototypeTojson' // to visualize Function in Redux Dev Tools
 
 import { enableES5 } from 'immer'
-
+import { memoize } from 'lodash'
 import React, { useEffect, useState, Suspense, useMemo, useCallback } from 'react'
 import { MutableSnapshot, RecoilRoot } from 'recoil'
 import { AppProps } from 'next/app'
@@ -40,6 +40,16 @@ import { theme } from 'src/theme'
 import 'src/styles/global.scss'
 
 enableES5()
+
+if (process.env.NODE_ENV === 'development') {
+  // Ignore recoil warning messages in browser console
+  // https://github.com/facebookexperimental/Recoil/issues/733
+  const mutedConsole = memoize((console: Console) => ({
+    ...console,
+    warn: (...args: string[]) => (args[0].includes('Duplicate atom key') ? null : console.warn(...args)),
+  }))
+  global.console = mutedConsole(global.console)
+}
 
 export interface AppState {
   persistor: Persistor
