@@ -1,7 +1,7 @@
 {
   "name": "@nextstrain/nextclade",
-  "version": "0.14.4",
-  "description": "Clade assignment, mutation calling, and sequence quality checks",
+  "version": "0.16.0",
+  "description": "Nextclade version 0.x is deprecated. It means that we no longer recommend to use it. Please upgrade to the most recent version, containing latest bug fixes and new features. Make sure you remove the old version to avoid conflicts. The latest information and installation instructions are available: in Nextclade Web application: https://clades.nextstrain.org/, in official documentation: https://docs.nextstrain.org/projects/nextclade/en/stable/, on GitHub: https://github.com/nextstrain/nextclade",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
     "type": "git",
