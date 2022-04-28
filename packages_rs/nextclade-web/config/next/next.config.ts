@@ -21,6 +21,7 @@ import getWithLodash from './withLodash'
 import withRaw from './withRaw'
 import { getWithRobotsTxt } from './withRobotsTxt'
 import getWithTypeChecking from './withTypeChecking'
+import withoutDebugPackage from './withoutDebugPackage'
 import withSvg from './withSvg'
 import withIgnore from './withIgnore'
 import withoutMinification from './withoutMinification'
@@ -197,6 +198,7 @@ const config = withPlugins(
     [withRobotsTxt],
     [withUrlAsset],
     [withWasm],
+    PRODUCTION && [withoutDebugPackage],
   ].filter(Boolean),
   nextConfig,
 )
