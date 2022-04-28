@@ -133,5 +133,5 @@ yarn install --frozen-lockfile
 
 yarn prod:build
 
-mkdir -p "../web/.build/production/web"
-cp -r ".build/production/web" "../web/.build/production/web"
+mkdir -p "../../packages/web/.build/production/web"
+cp -r ".build/production/web" "../../packages/web/.build/production/"
