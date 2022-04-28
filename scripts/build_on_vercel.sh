@@ -133,4 +133,5 @@ yarn install --frozen-lockfile
 
 yarn prod:build
 
-cp -r "packages_rs/nextclade-web/.build/production/web" "packages/web/.build/production/web"
+mkdir -p "../web/.build/production/web"
+cp -r ".build/production/web" "../web/.build/production/web"
