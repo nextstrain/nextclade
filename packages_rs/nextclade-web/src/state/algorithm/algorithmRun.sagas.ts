@@ -275,8 +275,6 @@ export function* runResultsLoop(analysisEventChannel: EventChannel<AnalysisChann
       }
 
       if (nextcladeResult) {
-        console.log({ nextcladeResult })
-
         nextcladeResults.push(nextcladeResult)
         yield* put(addNextcladeResult({ nextcladeResult }))
       }

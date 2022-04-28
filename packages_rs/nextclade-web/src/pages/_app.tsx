@@ -8,8 +8,9 @@ import 'src/helpers/errorPrototypeTojson' // to visualize Error in Redux Dev Too
 import 'src/helpers/functionPrototypeTojson' // to visualize Function in Redux Dev Tools
 
 import { enableES5 } from 'immer'
-import React, { useEffect, useState, Suspense, useMemo, useCallback } from 'react'
-import { MutableSnapshot, RecoilRoot, useSetRecoilState } from 'recoil'
+import { memoize } from 'lodash'
+import React, { useEffect, useState, Suspense, useMemo } from 'react'
+import { RecoilRoot, useSetRecoilState } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import type { Store } from 'redux'
