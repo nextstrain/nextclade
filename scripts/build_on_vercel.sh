@@ -24,6 +24,10 @@ cat /etc/image-id
 cat /etc/system-release
 echo "RHEL version: $(rpm -E '%{rhel}' || echo 'unknown')"
 
+# Remove some dead symlinks which cause log pollution
+rm -f /lib64/libvips-cpp.so.42
+rm -f /lib64/libvips.so.42
+
 # Disable yum fastestmirror plugin. It only makes things slower.
 printf "[main]\nenabled=0\n" >"/etc/yum/pluginconf.d/fastestmirror.conf"
 
@@ -50,12 +54,16 @@ export CARGO_INSTALL_ROOT="${HOME}/.cargo/install"
 export RUSTUP_HOME="${HOME}/.rustup"
 export PATH=/usr/lib/llvm-13/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:/usr/sbin${PATH:+":$PATH"}
 
-
-mkdir -p "${CACHE_DIR}/.cargo"
-ln -s "${CACHE_DIR}/.cargo" "${HOME}/.cargo"
+mkdir -p "${CACHE_DIR}/.cargo/{install,git,registry}" "${HOME}/.cargo"
+ln -s "${CACHE_DIR}/.cargo/install" "${HOME}/.cargo/install"
+ln -s "${CACHE_DIR}/.cargo/git" "${HOME}/.cargo/git"
+ln -s "${CACHE_DIR}/.cargo/registry" "${HOME}/.cargo/registry"
 
 mkdir -p "${CACHE_DIR}/.build"
 ln -s "${CACHE_DIR}/.build" "target"
+
+mkdir -p "${CACHE_DIR}/.cache_web"
+ln -s "${CACHE_DIR}/.cache_web" "packages_rs/nextclade-web/.cache"
 
 # Install dasel
 DASEL_VERSION="1.22.1"
