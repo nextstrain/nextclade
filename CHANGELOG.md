@@ -1,3 +1,10 @@
+## Nextclade Web 1.14.1
+
+### [Feature] Updated clade schema
+
+In this version we updated clade schema on main page according to new clade definitions.
+
+
 ## Nextclade Web 1.14.0, Nextclade CLI 1.11.0, Nextalign CLI 1.11.0 (2022-03-15)
 
 ### [Feature] Nextclade Pango classifier (SARS-CoV-2 specific)
