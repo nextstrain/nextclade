@@ -43,7 +43,7 @@ pub fn rule_snp_clusters(
   }
 
   let mut snp_clusters = find_snp_clusters(&private_nuc_mutations.private_substitutions, config);
-
+  println!("{}", snp_clusters.len());
   for cluster in &mut snp_clusters {
     cluster.sort_unstable();
   }
@@ -81,14 +81,16 @@ fn find_snp_clusters(private_nuc_mutations: &[NucSub], config: &QcRulesConfigSnp
 
       if !all_clusters.is_empty() && current_cluster.len() > 1 {
         let i = n_clusters - 1;
-        let j = all_clusters[n_clusters - 1].len() - 1;
+        let j = all_clusters[i].len() - 1;
         let p = all_clusters[i][j];
 
         if p == previous_pos {
-          all_clusters[n_clusters - 1].push(pos);
+          all_clusters[i].push(pos);
         } else {
           all_clusters.push(current_cluster.iter().copied().collect_vec());
         }
+      }else{
+        all_clusters.push(current_cluster.iter().copied().collect_vec());
       }
     }
     previous_pos = pos;
