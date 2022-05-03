@@ -146,19 +146,8 @@ jobs:
           paths:
             - .out/*
 
-      - run:
-          name: ' [ << parameters.target_arch >> ] | Halt if not on release-cli branch'
-          command: |
-            if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
-                circleci-agent step halt
-            fi
-
-
 
   Release-Cli:
-    parameters:
-      target_arch:
-        type: string
 
     shell: '/bin/bash -euxo pipefail'
 
@@ -173,21 +162,41 @@ jobs:
     resource_class: large
 
     steps:
+      - checkout
+
+      #      - run:
+      #          name: 'Prepare workspace'
+      #          command: |
+      #            mkdir -p /tmp/workspace
+      #
+      #      - attach_workspace:
+      #          name: 'Attach workspace'
+      #          at: /tmp/workspace
+
+      #      - run:
+      #          name: 'Test CLI'
+      #          command: |
+      #            /tmp/workspace/.out/nextclade-x86_64-unknown-linux-gnu --version
+      #            /tmp/workspace/.out/nextalign-x86_64-unknown-linux-gnu --version
+
       - run:
-          name: ' [ << parameters.target_arch >> ] | Test CLI'
+          name: 'Download dependencies'
           command: |
-            mkdir -p /tmp/workspace
+            curl -fsSL "https://github.com/github-release/github-release/releases/download/v0.10.0/linux-amd64-github-release.bz2" | bzip2 -d > "${HOME}/bin/github-release"
+            chmod +x "${HOME}/bin/github-release"
 
-      - attach_workspace:
-          name: ' [ << parameters.target_arch >> ] | Attach workspace'
-          at: /tmp/workspace
+            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel"
+            chmod +x "${HOME}/bin/dasel"
 
       - run:
-          name: ' [ << parameters.target_arch >> ] | Test CLI'
+          name: 'Publish binaries to GitHub Releases'
           command: |
-            /tmp/workspace/.out/nextclade-<< parameters.target_arch >> --version
-            /tmp/workspace/.out/nextalign-<< parameters.target_arch >> --version
+            mkdir -p ".out/"
+            echo "Hello" > .out/hello-world
 
+            export ARTIFACTS_DIR=".out"
+            export VERSION=$(dasel select -p toml -s ".package.version" -f packages_rs/nextclade/Cargo.toml)
+            ./scripts/publish_github_releases.sh
 
 
   Build-And-Release-Web:
@@ -282,7 +291,7 @@ cli_only: &cli_only
       only:
         - release-cli
         - staging-cli
-        # - rust
+        - rust
 
 
 major_branches_only: &major_branches_only
@@ -309,49 +318,54 @@ workflows:
   version: 2
   build:
     jobs:
-      - Update-Builder-Container:
-          <<: *major_branches_and_cli_only
-
-          context:
-            - nextclade_macos
-
-
-      - Build-Cli:
-          <<: *major_branches_and_cli_only
-
-          requires:
-            - Update-Builder-Container
-
-          context:
-            - nextclade_macos
-
-          matrix:
-            parameters:
-              target_arch:
-                - x86_64-apple-darwin
-                - aarch64-apple-darwin
-                - x86_64-unknown-linux-gnu
-                - x86_64-pc-windows-gnu
-                - aarch64-unknown-linux-gnu
-                - x86_64-unknown-linux-musl
+#      - Update-Builder-Container:
+#          <<: *major_branches_and_cli_only
+#
+#          context:
+#            - nextclade_macos
+#
+#
+#      - Build-Cli:
+#          <<: *major_branches_and_cli_only
+#
+#          requires:
+#            - Update-Builder-Container
+#
+#          context:
+#            - nextclade_macos
+#
+#          matrix:
+#            parameters:
+#              target_arch:
+#                - x86_64-apple-darwin
+#                - aarch64-apple-darwin
+#                - x86_64-unknown-linux-gnu
+#                - x86_64-pc-windows-gnu
+#                - aarch64-unknown-linux-gnu
+#                - x86_64-unknown-linux-musl
 
 
       - Release-Cli:
-          <<: *major_branches_and_cli_only
+          filters:
+            branches:
+              only:
+                - rust-release
 
-          requires:
-            - Build-Cli-x86_64-unknown-linux-gnu
+          context:
+            - nextclade_github
 
-          matrix:
-            parameters:
-              target_arch:
-                - x86_64-unknown-linux-gnu
+#          requires:
+#            - Build-Cli-x86_64-apple-darwin
+#            - Build-Cli-aarch64-apple-darwin
+#            - Build-Cli-x86_64-unknown-linux-gnu
+#            - Build-Cli-x86_64-pc-windows-gnu
+#            - Build-Cli-aarch64-unknown-linux-gnu
+#            - Build-Cli-x86_64-unknown-linux-musl
 
-
-      - Build-And-Release-Web:
-          <<: *major_branches_only
-
-          # context: nextclade_web_<< pipeline.git.branch >>
-
-          requires:
-            - Update-Builder-Container
+#      - Build-And-Release-Web:
+#          <<: *major_branches_only
+#
+#          # context: nextclade_web_<< pipeline.git.branch >>
+#
+#          requires:
+#            - Update-Builder-Container
