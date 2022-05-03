@@ -98,7 +98,7 @@ fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
       // If the current position is not adjacent to the previous,
       // then close the current range (end is at previous gap+1)
       let begin = dels[i - length].pos;
-      let end = dels[i - i].pos + 1;
+      let end = dels[i - 1].pos + 1;
 
       ranges.push(NucRange {
         begin,
