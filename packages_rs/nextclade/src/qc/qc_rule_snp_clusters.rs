@@ -43,7 +43,6 @@ pub fn rule_snp_clusters(
   }
 
   let mut snp_clusters = find_snp_clusters(&private_nuc_mutations.private_substitutions, config);
-  println!("{}", snp_clusters.len());
   for cluster in &mut snp_clusters {
     cluster.sort_unstable();
   }
