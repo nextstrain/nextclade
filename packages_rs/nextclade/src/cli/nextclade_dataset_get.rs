@@ -6,6 +6,7 @@ pub fn nextclade_dataset_get(
     name,
     reference,
     tag,
+    attribute,
     server,
     output_dir,
     proxy_config,

@@ -96,22 +96,30 @@ pub enum NextcladeDatasetCommands {
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
 pub struct NextcladeDatasetListArgs {
-  /// Restrict list to only datasets with this name.
+  /// Restrict list to datasets with this name. Equivalent to `--attribute='name=<value>'`.
   #[clap(long, short = 'n')]
   #[clap(value_hint = ValueHint::Other)]
   pub name: Option<String>,
 
-  /// Restrict list to only datasets based on this reference sequence (given its accession ID)
+  /// Restrict list to datasets based on this reference sequence (given its accession ID). Equivalent to `--attribute='reference=<value>'`.
   #[clap(long, short = 'r')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "default")]
   pub reference: String,
 
-  /// Restrict list to only datasets with this version tag.
+  /// Restrict list to datasets with this version tag. Equivalent to `--attribute='tag=<value>'`.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "latest")]
   pub tag: String,
+
+  /// Restrict list to only datasets with a given combination of attribute key-value pairs.
+  /// Keys and values are separated with an equality sign.
+  /// This flag can occur multiple times, for multiple attributes.
+  /// Example: `--attribute='reference=MN908947' --attribute='tag=2022-04-28T12:00:00Z'`.
+  #[clap(long, short = 'a')]
+  #[clap(value_hint = ValueHint::Other)]
+  pub attribute: Vec<String>,
 
   /// Include dataset version tags that are incompatible with this version of Nextclade CLI. By default the incompatible versions are omitted.
   #[clap(long)]
@@ -143,17 +151,28 @@ pub struct NextcladeDatasetGetArgs {
   #[clap(value_hint = ValueHint::Other)]
   pub name: String,
 
-  /// Download dataset based on this reference sequence (given its accession ID). If this flag is not provided or is 'default', will download dataset based on current default reference sequence, as defined by dataset maintainers. The default reference sequence can change over time. Use `dataset list` command to view available options.
+  /// Download dataset based on this reference sequence (given its accession ID).
+  /// If this flag is not provided or is 'default', will download dataset based on current default reference sequence, as defined by dataset maintainers.
+  /// The default reference sequence can change over time. Use `dataset list` command to view available options.
   #[clap(long, short = 'r')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "default")]
   pub reference: String,
 
-  /// Version tag of the dataset to download. If this flag is not provided or is 'latest', then the latest **compatible** version is downloaded.
+  /// Version tag of the dataset to download.
+  /// If this flag is not provided or is 'latest', then the latest **compatible** version is downloaded.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "latest")]
   pub tag: String,
+
+  /// Download dataset with a given combination of attribute key-value pairs.
+  /// Keys and values are separated with an equality sign.
+  /// This flag can occur multiple times, for multiple attributes.
+  /// Example: `--attribute='reference=MN908947' --attribute='tag=2022-04-28T12:00:00Z'`.
+  #[clap(long, short = 'a')]
+  #[clap(value_hint = ValueHint::Other)]
+  pub attribute: Vec<String>,
 
   /// Use custom dataset server
   #[clap(long)]

@@ -1,5 +1,6 @@
 use crate::cli::nextclade_cli::NextcladeDatasetListArgs;
-use crate::dataset::dataset::{Dataset, DatasetAttributes, DatasetsIndexJson};
+use crate::dataset::dataset::DatasetsIndexJson;
+use crate::dataset::dataset_attributes::{format_attribute_list, parse_dataset_attributes};
 use crate::dataset::dataset_table::format_dataset_table;
 use crate::getenv;
 use crate::io::http_client::HttpClient;
@@ -8,11 +9,14 @@ use eyre::Report;
 use itertools::Itertools;
 use log::LevelFilter;
 
+const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");
+
 pub fn nextclade_dataset_list(
   NextcladeDatasetListArgs {
-    name,
-    reference,
-    tag,
+    mut name,
+    mut reference,
+    mut tag,
+    attribute,
     include_incompatible,
     include_old,
     json,
@@ -20,10 +24,23 @@ pub fn nextclade_dataset_list(
     proxy_config,
   }: NextcladeDatasetListArgs,
 ) -> Result<(), Report> {
-  let this_version = getenv!("CARGO_PKG_VERSION");
   let verbose = log::max_level() > LevelFilter::Info;
   let mut http = HttpClient::new(server, proxy_config, verbose)?;
   let DatasetsIndexJson { datasets, .. } = DatasetsIndexJson::download(&mut http)?;
+
+  // Parse attribute key-value pairs
+  let mut attributes = parse_dataset_attributes(&attribute)?;
+
+  // Handle special attributes differently
+  if let Some(attr_name) = attributes.remove("name") {
+    name = Some(attr_name);
+  }
+  if let Some(attr_reference) = attributes.remove("reference") {
+    reference = attr_reference;
+  }
+  if let Some(attr_tag) = attributes.remove("tag") {
+    tag = attr_tag;
+  }
 
   let filtered = datasets
     .into_iter()
@@ -32,7 +49,7 @@ pub fn nextclade_dataset_list(
       // If a concrete version `tag` is specified, we skip 'enabled', 'compatibility' and 'latest' checks
       if tag == "latest" {
         let is_not_old = include_old || dataset.is_latest();
-        let is_compatible = include_incompatible || dataset.is_compatible(this_version);
+        let is_compatible = include_incompatible || dataset.is_compatible(THIS_VERSION);
         is_compatible && is_not_old
       } else {
         dataset.attributes.tag.value == tag
@@ -49,26 +66,53 @@ pub fn nextclade_dataset_list(
     // Filter by name
     .filter(|dataset| {
       if let Some(name) = &name { &dataset.attributes.name.value == name } else {true}
-    }).collect_vec();
+    })
+    // Filter by remaining attributes
+    .filter(|dataset| {
+      let mut should_include = true;
+      for (key, val) in &attributes {
+        let is_attr_matches = match dataset.attributes.rest_attrs.get(key) {
+          Some(attr) => {
+            if val == "default" {
+              attr.is_default
+            } else {
+              &attr.value == val
+            }
+          }
+          None => false
+        };
+        should_include = should_include && is_attr_matches;
+      }
+      should_include
+    })
+    .collect_vec();
 
   if json {
     println!("{}", json_stringify(&filtered)?);
   } else {
     if filtered.is_empty() {
-      println!("Nothing found");
       return Ok(());
     }
 
     let table = format_dataset_table(&filtered);
 
-    if include_incompatible && include_old {
-      println!("Showing latest dataset(s) compatible with this version of Nextclade ({this_version}):\n{table}");
+    let attributes_fmt = {
+      let attributes_fmt = format_attribute_list(&name, &reference, &tag, &attributes);
+      if attributes_fmt.is_empty() {
+        "".to_owned()
+      } else {
+        format!(", having attributes {attributes_fmt}")
+      }
+    };
+
+    if !include_incompatible && !include_old {
+      println!("Showing latest dataset(s) compatible with this version of Nextclade ({THIS_VERSION}){attributes_fmt}:\n{table}");
     } else if !include_incompatible {
-      println!("Showing latest dataset(s):\n{table}");
+      println!("Showing latest dataset(s){attributes_fmt}:\n{table}");
     } else if !include_old {
-      println!("Showing datasets compatible with this version of Nextclade ({this_version}):\n{table}");
+      println!("Showing datasets compatible with this version of Nextclade ({THIS_VERSION}){attributes_fmt}:\n{table}");
     } else {
-      println!("Showing all datasets:\n{table}");
+      println!("Showing all datasets{attributes_fmt}:\n{table}");
     }
     println!("Asterisk (*) marks default values");
   }

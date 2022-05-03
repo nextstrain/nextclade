@@ -26,8 +26,8 @@ pub fn format_dataset_table_impl(filtered: &[Dataset]) -> (IndexSet<String>, Vec
     "name".to_owned(),
     "friendly name".to_owned(),
     "reference".to_owned(),
-    "attributes".to_owned(),
     "tag".to_owned(),
+    "other attributes".to_owned(),
     "comment".to_owned(),
   ]);
 
@@ -50,8 +50,8 @@ pub fn format_dataset_table_impl(filtered: &[Dataset]) -> (IndexSet<String>, Vec
         ("name".to_owned(), format_attr_value(&name)),
         ("friendly name".to_owned(), format_attr_value(&name_friendly)),
         ("reference".to_owned(), format_attr_value(&reference)),
-        ("attributes".to_owned(), format_attributes(rest_attrs)),
         ("tag".to_owned(), format_attr_value(&tag)),
+        ("other attributes".to_owned(), format_attributes(rest_attrs)),
         ("comment".to_owned(), comment.clone()),
       ]);
 
@@ -78,5 +78,5 @@ pub fn format_attributes(attrs: &BTreeMap<String, DatasetAttributeValue>) -> Str
 }
 
 pub fn format_attr_key_value(key: &str, attr: &DatasetAttributeValue) -> String {
-  format!("{}={}", key, format_attr_value(attr))
+  format!("{}='{}'", key, format_attr_value(attr))
 }
