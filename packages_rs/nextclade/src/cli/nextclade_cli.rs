@@ -146,7 +146,7 @@ pub struct NextcladeDatasetListArgs {
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]
 pub struct NextcladeDatasetGetArgs {
-  /// Name of the dataset to download. Use `dataset list` command to view available options.
+  /// Name of the dataset to download. Equivalent to `--attribute='name=<value>'`. Use `dataset list` command to view available datasets.
   #[clap(long, short = 'n')]
   #[clap(value_hint = ValueHint::Other)]
   pub name: String,
@@ -154,6 +154,7 @@ pub struct NextcladeDatasetGetArgs {
   /// Download dataset based on this reference sequence (given its accession ID).
   /// If this flag is not provided or is 'default', will download dataset based on current default reference sequence, as defined by dataset maintainers.
   /// The default reference sequence can change over time. Use `dataset list` command to view available options.
+  /// Equivalent to `--attribute='reference=<value>'`.
   #[clap(long, short = 'r')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "default")]
@@ -161,6 +162,7 @@ pub struct NextcladeDatasetGetArgs {
 
   /// Version tag of the dataset to download.
   /// If this flag is not provided or is 'latest', then the latest **compatible** version is downloaded.
+  /// Equivalent to `--attribute='tag=<value>'`.
   #[clap(long, short = 't')]
   #[clap(value_hint = ValueHint::Other)]
   #[clap(default_value = "latest")]
@@ -183,7 +185,7 @@ pub struct NextcladeDatasetGetArgs {
   /// Path to directory to write dataset files to. If the target directory tree does not exist, it will be created.
   #[clap(long, short = 'o')]
   #[clap(value_hint = ValueHint::DirPath)]
-  pub output_dir: String,
+  pub output_dir: PathBuf,
 
   #[clap(flatten)]
   pub proxy_config: ProxyConfig,

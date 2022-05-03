@@ -1442,6 +1442,7 @@ dependencies = [
  "num_cpus",
  "owo-colors",
  "pretty_assertions",
+ "rayon",
  "regex",
  "reqwest",
  "rstest",
@@ -2697,6 +2698,7 @@ dependencies = [
  "idna",
  "matches",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]

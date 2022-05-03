@@ -114,7 +114,6 @@ pub fn nextclade_dataset_list(
     } else {
       println!("Showing all datasets{attributes_fmt}:\n{table}");
     }
-    println!("Asterisk (*) marks default values");
   }
 
   Ok(())

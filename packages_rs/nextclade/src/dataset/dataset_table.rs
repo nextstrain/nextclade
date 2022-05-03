@@ -18,7 +18,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   }
 
   table.set_header(keys);
-  table.to_string()
+  format!("{table}\nAsterisk (*) marks default values")
 }
 
 pub fn format_dataset_table_impl(filtered: &[Dataset]) -> (IndexSet<String>, Vec<BTreeMap<String, String>>) {
