@@ -101,7 +101,7 @@ pub fn nextclade_dataset_list(
       if attributes_fmt.is_empty() {
         "".to_owned()
       } else {
-        format!(", having attributes {attributes_fmt}")
+        format!(", having attributes: {attributes_fmt}")
       }
     };
 
