@@ -71,7 +71,7 @@ pub enum NextcladeCommands {
   },
 
   /// Run alignment, mutation calling, clade assignment, quality checks and phylogenetic placement
-  Run(Box<NextcladeRunArgs>),
+  Run(NextcladeRunArgs),
 
   /// List and download available Nextclade datasets
   Dataset(NextcladeDatasetArgs),

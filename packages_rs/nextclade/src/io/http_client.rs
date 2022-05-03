@@ -62,31 +62,31 @@ impl HttpClient {
     Ok(Self { client, root })
   }
 
-  pub fn get<U: IntoUrl>(&self, url: U) -> Result<String, Report> {
+  pub fn get<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<String, Report> {
     self.request(Method::GET, url)
   }
 
-  pub fn post<U: IntoUrl>(&self, url: U) -> Result<String, Report> {
+  pub fn post<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<String, Report> {
     self.request(Method::POST, url)
   }
 
-  pub fn put<U: IntoUrl>(&self, url: U) -> Result<String, Report> {
+  pub fn put<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<String, Report> {
     self.request(Method::PUT, url)
   }
 
-  pub fn patch<U: IntoUrl>(&self, url: U) -> Result<String, Report> {
+  pub fn patch<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<String, Report> {
     self.request(Method::PATCH, url)
   }
 
-  pub fn delete<U: IntoUrl>(&self, url: U) -> Result<String, Report> {
+  pub fn delete<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<String, Report> {
     self.request(Method::DELETE, url)
   }
 
-  pub fn head<U: IntoUrl>(&self, url: U) -> Result<String, Report> {
+  pub fn head<U: IntoUrl + ?Sized>(&self, url: &U) -> Result<String, Report> {
     self.request(Method::HEAD, url)
   }
 
-  pub fn request<U: IntoUrl>(&self, method: Method, url: U) -> Result<String, Report> {
+  pub fn request<U: IntoUrl + ?Sized>(&self, method: Method, url: &U) -> Result<String, Report> {
     let abs_url = self.root.join(url.as_str())?;
     let content = self.client.request(method, abs_url).send()?.text()?;
     Ok(content)

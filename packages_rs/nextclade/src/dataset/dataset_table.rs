@@ -16,7 +16,7 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     "comment".to_owned(),
   ]);
 
-  filtered.iter().for_each(|dataset| {
+  for dataset in filtered.iter() {
     let Dataset {
       attributes, comment, ..
     } = dataset;
@@ -36,25 +36,25 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
     ]);
 
     for (key, attr) in rest_attrs.iter() {
-      attrs.insert(key.to_owned(), attr);
+      attrs.insert(key.clone(), attr);
     }
 
     table.add_row([
-      format_attr_value(&name),
-      format_attr_value(&name_friendly),
-      format_attr_value(&reference),
-      format_attr_value(&tag),
+      format_attr_value(name),
+      format_attr_value(name_friendly),
+      format_attr_value(reference),
+      format_attr_value(tag),
       format_attributes(&attrs),
       comment.clone(),
     ]);
-  });
+  }
 
   format!("{table}\nAsterisk (*) marks default values")
 }
 
 pub fn format_attr_value(DatasetAttributeValue { is_default, value }: &DatasetAttributeValue) -> String {
   if *is_default {
-    format!("{value} (*)").to_string()
+    format!("{value} (*)")
   } else {
     value.clone()
   }

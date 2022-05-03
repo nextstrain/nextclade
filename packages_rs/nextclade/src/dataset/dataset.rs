@@ -90,7 +90,7 @@ pub struct DatasetsIndexJson {
 impl DatasetsIndexJson {
   #[inline]
   pub fn download(http: &mut HttpClient) -> Result<Self, Report> {
-    Self::from_str(&http.get("/index.json").wrap_err("When downloading dataset index")?)
+    Self::from_str(&http.get(&"/index.json").wrap_err("When downloading dataset index")?)
   }
 }
 

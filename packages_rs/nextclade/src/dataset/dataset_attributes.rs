@@ -43,7 +43,7 @@ pub fn format_attribute_list(
   let mut attributes_fmt = IndexMap::<String, String>::new();
 
   if let Some(name) = name {
-    attributes_fmt.insert("name".to_owned(), name.to_owned());
+    attributes_fmt.insert("name".to_owned(), name.clone());
   }
   attributes_fmt.insert("reference".to_owned(), reference.to_owned());
   attributes_fmt.insert("tag".to_owned(), tag.to_owned());
