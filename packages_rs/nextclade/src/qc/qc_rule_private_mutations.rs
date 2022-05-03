@@ -78,21 +78,27 @@ fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
   }
 
   let mut ranges = Vec::<NucRange>::new();
-
-  // Length of the current range
-  let mut length = 1;
-
   let n_dels = dels.len();
 
-  for i in 0..n_dels {
-    let pos_curr = dels[i].pos as i64;
-    let pos_prev = if i > 0 { dels[i - 1].pos as i64 } else { 0 };
+  // if no gaps, return empty list of ranges
+  if n_dels==0{
+    return ranges
+  }
 
-    if i > length && (i == n_dels || pos_curr - pos_prev != 1) {
-      // If it's the end of the inputs, or if the current position is not adjacent to the previous,
-      // then close the current range
+
+  // init current range with length 1 and previous position at the first deletion
+  let mut pos_prev = dels[0].pos as i64;
+  let mut length = 1;
+
+  // loop over all subsequent deletions
+  for i in 1..n_dels {
+    let pos_curr = dels[i].pos as i64;
+
+    if pos_curr - pos_prev != 1 {
+      // If the current position is not adjacent to the previous,
+      // then close the current range (end is at previous gap+1)
       let begin = dels[i - length].pos;
-      let end = dels[i - 1].pos + 1;
+      let end = pos_prev + 1;
 
       ranges.push(NucRange {
         begin,
@@ -106,6 +112,18 @@ fn find_deletion_ranges(dels: &[NucDelMinimal]) -> Vec<NucRange> {
       // Extend the current range
       length += 1;
     }
+    pos_prev = pos_curr;
   }
+
+  // close they last range
+  let begin = dels[n_dels - length].pos;
+  let end = dels[n_dels - 1].pos + 1;
+
+  ranges.push(NucRange {
+    begin,
+    end,
+    letter: Nuc::Gap,
+  });
+
   ranges
 }
