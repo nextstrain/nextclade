@@ -401,12 +401,8 @@ mod tests {
       &more_realistic_ctx.params,
     )?;
 
-    assert!(
-      from_nuc_seq(&qry_aln) == from_nuc_seq(&result.qry_seq),
-      "Ref alignment is not correct: {}",
-      from_nuc_seq(&result.qry_seq)
-    );
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
+    assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     Ok(())
   }
 
@@ -415,7 +411,7 @@ mod tests {
   fn general_case(ctx: Context) -> Result<(), Report> {
     let ref_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTAGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTGAGCCTTTGT"       )?;
     let qry_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATCAAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT"     )?;
-    let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCT----AGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
+    let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTG----GCTAGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
     let qry_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATC-----AAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT")?;
 
     let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
