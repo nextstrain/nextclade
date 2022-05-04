@@ -116,7 +116,6 @@ pub fn seed_alignment<L: Letter<L>>(
   };
 
   let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
-  dbg!(&seed_matches);
 
   let num_seed_matches = seed_matches.len();
   if num_seed_matches < 2 {
