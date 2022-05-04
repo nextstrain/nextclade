@@ -146,19 +146,8 @@ jobs:
           paths:
             - .out/*
 
-      - run:
-          name: ' [ << parameters.target_arch >> ] | Halt if not on release-cli branch'
-          command: |
-            if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
-                circleci-agent step halt
-            fi
-
-
 
   Release-Cli:
-    parameters:
-      target_arch:
-        type: string
 
     shell: '/bin/bash -euxo pipefail'
 
@@ -173,20 +162,66 @@ jobs:
     resource_class: large
 
     steps:
-      - run:
-          name: ' [ << parameters.target_arch >> ] | Test CLI'
-          command: |
-            mkdir -p /tmp/workspace
+      - checkout
 
-      - attach_workspace:
-          name: ' [ << parameters.target_arch >> ] | Attach workspace'
-          at: /tmp/workspace
+      #      - run:
+      #          name: 'Prepare workspace'
+      #          command: |
+      #            mkdir -p /tmp/workspace
+      #
+      #      - attach_workspace:
+      #          name: 'Attach workspace'
+      #          at: /tmp/workspace
+
+      #      - run:
+      #          name: 'Test CLI'
+      #          command: |
+      #            /tmp/workspace/.out/nextclade-x86_64-unknown-linux-gnu --version
+      #            /tmp/workspace/.out/nextalign-x86_64-unknown-linux-gnu --version
 
       - run:
-          name: ' [ << parameters.target_arch >> ] | Test CLI'
+          name: 'Download dependencies'
           command: |
-            /tmp/workspace/.out/nextclade-<< parameters.target_arch >> --version
-            /tmp/workspace/.out/nextalign-<< parameters.target_arch >> --version
+            curl -fsSL "https://github.com/github-release/github-release/releases/download/v0.10.0/linux-amd64-github-release.bz2" | bzip2 -d > "${HOME}/bin/github-release"
+            chmod +x "${HOME}/bin/github-release"
+
+            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel"
+            chmod +x "${HOME}/bin/dasel"
+
+            curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
+
+      - run:
+          name: 'Publish binaries to GitHub Releases'
+          command: |
+            mkdir -p ".out/"
+            echo "Hello" > .out/hello-world
+
+            export ARTIFACTS_DIR=".out"
+            export VERSION=$(dasel select -p toml -s ".package.version" -f packages_rs/nextclade/Cargo.toml)
+
+            (./scripts/extract-release-notes.py CHANGELOG.md; git cliff --unreleased) | github-release release \
+              --user "${CIRCLE_PROJECT_USERNAME}" \
+              --repo "${CIRCLE_PROJECT_REPONAME}" \
+              --tag "${VERSION}" \
+              --target "${CIRCLE_SHA1}" \
+              --description - \
+              --security-token "${GITHUB_TOKEN}" \
+            || true
+
+            # Look like the release appears not immediately and if upload is following too quickly
+            # it fails because it cannot find the release. So let's wait an arbitrary amount of time here.
+            sleep 7
+
+            for filename in ${ARTIFACTS_DIR}/*; do
+              github-release upload \
+                --file "${filename}" \
+                --name "$(basename ${filename})" \
+                --user "${CIRCLE_PROJECT_USERNAME}" \
+                --repo "${CIRCLE_PROJECT_REPONAME}" \
+                --tag "${VERSION}" \
+                --security-token "${GITHUB_TOKEN}" \
+                --replace
+            done
 
 
 
@@ -276,48 +311,48 @@ jobs:
                 circleci-agent step halt
             fi
 
-cli_only: &cli_only
+cli_only: &cli_branches_only
   filters:
     branches:
       only:
-        - release-cli
-        - staging-cli
-        # - rust
+        # - release-cli
+        # - staging-cli
+         - rust-release
 
 
-major_branches_only: &major_branches_only
+major_branches_only: &only_major_branches
   filters:
     branches:
       only:
-        - master
-        - staging
-        - release
-        # - rust
+        # - master
+        # - staging
+        # - release
+         - rust-release
 
-major_branches_and_cli_release_only: &major_branches_and_cli_only
+major_branches_and_cli_release_only: &only_major_branches_and_cli_branches
   filters:
     branches:
       only:
-        - master
-        - staging
-        - release
-        - release-cli
-        - staging-cli
-        # - rust
+        # - master
+        # - staging
+        # - release
+        # - release-cli
+        # - staging-cli
+         - rust-release
 
 workflows:
   version: 2
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *major_branches_and_cli_only
+          <<: *only_major_branches_and_cli_branches
 
           context:
             - nextclade_macos
 
 
       - Build-Cli:
-          <<: *major_branches_and_cli_only
+          <<: *cli_branches_only
 
           requires:
             - Update-Builder-Container
@@ -337,19 +372,22 @@ workflows:
 
 
       - Release-Cli:
-          <<: *major_branches_and_cli_only
+          <<: *cli_branches_only
+
+          context:
+            - nextclade_github
 
           requires:
+            - Build-Cli-x86_64-apple-darwin
+            - Build-Cli-aarch64-apple-darwin
             - Build-Cli-x86_64-unknown-linux-gnu
-
-          matrix:
-            parameters:
-              target_arch:
-                - x86_64-unknown-linux-gnu
+            - Build-Cli-x86_64-pc-windows-gnu
+            - Build-Cli-aarch64-unknown-linux-gnu
+            - Build-Cli-x86_64-unknown-linux-musl
 
 
       - Build-And-Release-Web:
-          <<: *major_branches_only
+          <<: *only_major_branches
 
           # context: nextclade_web_<< pipeline.git.branch >>
 
