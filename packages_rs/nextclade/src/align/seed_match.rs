@@ -1,3 +1,5 @@
+use std::cmp;
+
 use crate::io::letter::Letter;
 
 pub struct SeedMatchResult {
@@ -19,9 +21,8 @@ pub fn seed_match<L: Letter<L>>(
   let mut max_score = 0;
   let mut max_ref_pos = 0;
 
-  // TODO: Use stricter bounds on end_pos, using max indel length = max shift
-  // Need to add end_pos for this
-  let end_pos = ref_len - kmer_len;
+  let end_pos = cmp::min(end_pos, ref_len - kmer_len);
+
   for ref_pos in start_pos..end_pos {
     tmp_score = 0;
 

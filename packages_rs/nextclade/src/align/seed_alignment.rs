@@ -57,16 +57,15 @@ pub fn get_seed_matches<L: Letter<L>>(
 
   // loop over seeds and find matches, store in seed_matches
   let mut start_pos = 0;
+  let mut end_pos = ref_size;
 
-  // TODO: Treat first match differently, to allow long indels at start
-  // let mut end_pos = params.max_indel + kmer_spacing.round() as usize;
   for ni in 0..n_seeds {
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
     let qry_pos = map_to_good_positions[good_position_index];
 
     let seed = &qry_seq[qry_pos..(qry_pos + params.seed_length)];
     // end_pos is not yet used in seed_match
-    let tmp_match = seed_match(seed, ref_seq, start_pos, 0, params.mismatches_allowed);
+    let tmp_match = seed_match(seed, ref_seq, start_pos, end_pos, params.mismatches_allowed);
 
     // Only use seeds with at most allowed_mismatches
     if tmp_match.score >= params.seed_length - params.mismatches_allowed {
@@ -82,10 +81,9 @@ pub fn get_seed_matches<L: Letter<L>>(
         ref_pos: tmp_match.ref_pos,
         score: tmp_match.score,
       });
-      // end_pos = tmp_match.ref_pos + params.max_indel + kmer_spacing.round() as usize;
-    } else {
-      // end_pos += kmer_spacing.round() as usize;
+      end_pos = tmp_match.ref_pos + params.max_indel + kmer_spacing.round() as usize;
     }
+    end_pos += kmer_spacing.round() as usize;
   }
   seed_matches
 }
