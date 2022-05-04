@@ -12,12 +12,9 @@ pub fn bench_seed_alignment(c: &mut Criterion) {
   let params = AlignPairwiseParams::default();
   let gene_map = GeneMap::new();
 
-  let mut test_data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-  test_data_dir.push("test_data");
-  let mut ref_path = test_data_dir.clone();
-  ref_path.push("reference.fasta");
-  let mut qry_path = test_data_dir.clone();
-  qry_path.push("Hangzhou_ZJU_07_2020.fasta");
+  let test_data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("test_data");
+  let ref_path = test_data_dir.join("reference.fasta");
+  let qry_path = test_data_dir.join("Hangzhou_ZJU_07_2020.fasta");
 
   let ref_seq = sequence_from_path(ref_path);
   let qry_seq = sequence_from_path(qry_path);
