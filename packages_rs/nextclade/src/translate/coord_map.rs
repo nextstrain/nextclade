@@ -27,7 +27,7 @@ fn make_aln_to_ref_map(ref_seq: &[Nuc]) -> Vec<usize> {
   rev_coord_map
 }
 
-/// Makes the "reference to alignment" coordinate map: from alignment coordinates to reference coordinates.
+/// Makes the "reference to alignment" coordinate map: from reference coordinates to alignment coordinates.
 /// Given a position of a letter in the reference sequence, the "reference to alignment" coordinate map allows to
 /// lookup the position of the corresponding letter in the aligned sequence.
 ///
