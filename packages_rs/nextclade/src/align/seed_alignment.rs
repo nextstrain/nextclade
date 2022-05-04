@@ -44,8 +44,6 @@ pub fn get_seed_matches<L: Letter<L>>(
   n_seeds: i32,
   margin: i32,
 ) -> Vec<SeedMatch> {
-  let query_size = qry_seq.len();
-  let ref_size = ref_seq.len();
   let mut seed_matches = Vec::<SeedMatch>::new();
 
   let map_to_good_positions = get_map_to_good_positions(qry_seq, params.seed_length);
@@ -57,14 +55,13 @@ pub fn get_seed_matches<L: Letter<L>>(
 
   // loop over seeds and find matches, store in seed_matches
   let mut start_pos = 0;
-  let mut end_pos = ref_size;
+  let mut end_pos = ref_seq.len();
 
   for ni in 0..n_seeds {
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
     let qry_pos = map_to_good_positions[good_position_index];
 
     let seed = &qry_seq[qry_pos..(qry_pos + params.seed_length)];
-    // end_pos is not yet used in seed_match
     let tmp_match = seed_match(seed, ref_seq, start_pos, end_pos, params.mismatches_allowed);
 
     // Only use seeds with at most allowed_mismatches
@@ -93,22 +90,27 @@ pub fn seed_alignment<L: Letter<L>>(
   ref_seq: &[L],
   params: &AlignPairwiseParams,
 ) -> Result<Vec<Stripe>, Report> {
-  let qry_size = qry_seq.len() as i32;
-  let ref_size = ref_seq.len() as i32;
-  let n_seeds = if ref_size > (params.min_seeds * params.seed_spacing) {
-    (ref_size as f32 / params.seed_spacing as f32) as i32
+  let qry_len_u = qry_seq.len();
+  let ref_len_u = ref_seq.len();
+  let qry_len_i = qry_len_u as i32;
+  let ref_len_i = ref_len_u as i32;
+  let qry_len_f = qry_len_u as f32;
+  let ref_len_f = ref_len_u as f32;
+
+  let n_seeds = if ref_len_i > (params.min_seeds * params.seed_spacing) {
+    (ref_len_f / params.seed_spacing as f32) as i32
   } else {
     params.min_seeds
   };
 
-  let margin = (ref_size as f32 / (n_seeds * 3) as f32).round() as i32;
+  let margin = (ref_len_f / (n_seeds * 3) as f32).round() as i32;
 
   // In case of very short sequences
-  let band_width = (((ref_size + qry_size) as f32 * 0.5) - 3.0).round() as usize;
+  let band_width = (((ref_len_f + qry_len_f) * 0.5) - 3.0).round() as usize;
 
   if band_width < (2 * params.seed_length) {
-    let mean_shift = ((ref_size as f32 - qry_size as f32) * 0.5).round() as i32;
-    let stripes = simple_stripes(mean_shift, band_width, ref_size as usize, qry_size as usize);
+    let mean_shift = ((ref_len_f - qry_len_f) * 0.5).round() as i32;
+    let stripes = simple_stripes(mean_shift, band_width, ref_len_u, qry_len_u);
 
     return Ok(stripes);
   };
@@ -124,7 +126,13 @@ pub fn seed_alignment<L: Letter<L>>(
   // TODO: Pass as parameters
   let terminal_bandwidth: i32 = 50;
   let excess_bandwidth: i32 = 9;
-  let stripes = create_stripes(&seed_matches, qry_size, ref_size, terminal_bandwidth, excess_bandwidth);
+  let stripes = create_stripes(
+    &seed_matches,
+    qry_len_i,
+    ref_len_i,
+    terminal_bandwidth,
+    excess_bandwidth,
+  );
 
   Ok(stripes)
 }

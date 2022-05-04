@@ -34,23 +34,23 @@ impl Stripe {
   }
 }
 
-pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_size: usize, qry_size: usize) -> Vec<Stripe> {
+pub fn simple_stripes(mean_shift: i32, band_width: usize, ref_len: usize, qry_len: usize) -> Vec<Stripe> {
   //Begin runs diagonally, with max(0, mean_shift - band_width + i)
-  //End runs diagnoally, with min(qry_size, mean_shift + band_width + i)
+  //End runs diagnoally, with min(qry_len, mean_shift + band_width + i)
 
   // TODO: Increase by start/end bands
-  let mut stripes = Vec::<Stripe>::with_capacity(ref_size + 1);
+  let mut stripes = Vec::<Stripe>::with_capacity(ref_len + 1);
   let band_width_i32 = band_width.to_i32().unwrap();
-  let ref_size_i32 = ref_size.to_i32().unwrap();
-  let qry_size_i32 = qry_size.to_i32().unwrap();
-  for i in 0..=ref_size_i32 {
-    let begin = num::clamp(-mean_shift - band_width_i32 + i, 0, qry_size_i32);
-    let end = num::clamp(-mean_shift + band_width_i32 + i + 1, 1, qry_size_i32 + 1);
+  let ref_len_i32 = ref_len.to_i32().unwrap();
+  let qry_len_i32 = qry_len.to_i32().unwrap();
+  for i in 0..=ref_len_i32 {
+    let begin = num::clamp(-mean_shift - band_width_i32 + i, 0, qry_len_i32);
+    let end = num::clamp(-mean_shift + band_width_i32 + i + 1, 1, qry_len_i32 + 1);
     stripes.push(Stripe::new(begin, end));
   }
   // Make sure first and last stripe can reach origin/end
   stripes[0].begin = 0;
-  stripes[ref_size].end = qry_size + 1;
+  stripes[ref_len].end = qry_len + 1;
   stripes
 }
 

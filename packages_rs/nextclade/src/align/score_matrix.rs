@@ -25,11 +25,11 @@ pub fn score_matrix<T: Letter<T>>(
   params: &AlignPairwiseParams,
 ) -> ScoreMatrixResult {
   let query_size = qry_seq.len();
-  let ref_size = ref_seq.len();
-  let n_rows = ref_size + 1;
+  let ref_len = ref_seq.len();
+  let n_rows = ref_len + 1;
   let n_cols = query_size + 1;
 
-  trace!("Score matrix: started: query_size={query_size}, ref_size={ref_size}, n_rows={n_rows}, n_cols={n_cols}");
+  trace!("Score matrix: started: query_size={query_size}, ref_len={ref_len}, n_rows={n_rows}, n_cols={n_cols}");
 
   let mut paths = Band2d::<i8>::new(stripes);
   let mut scores = Band2d::<i32>::new(stripes);
@@ -60,7 +60,7 @@ pub fn score_matrix<T: Letter<T>>(
   let mut qry_gaps = vec![NO_ALIGN; n_cols];
 
   // Iterate over rows
-  for ri in 1..ref_size + 1 {
+  for ri in 1..ref_len + 1 {
     let mut ref_gaps = NO_ALIGN;
 
     for qpos in stripes[ri].begin..stripes[ri].end {
@@ -98,7 +98,7 @@ pub fn score_matrix<T: Letter<T>>(
         // if qpos == stripes.begin: ref gap not allowed
         // thus path skipped
         if qpos > stripes[ri].begin {
-          if ri != ref_size {
+          if ri != ref_len {
             //normal case, not at end of ref sequence
             r_gap_extend = ref_gaps - params.penalty_gap_extend;
             r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
