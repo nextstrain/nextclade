@@ -37,13 +37,6 @@ pub struct SeedMatch {
   pub score: usize,
 }
 
-// #[derive(Debug)]
-// pub struct SeedAlignmentResult {
-//   pub mean_shift: i32,
-//   pub band_width: usize,
-//   pub stripes: Vec<Stripe>,
-// }
-
 pub fn get_seed_matches<L: Letter<L>>(
   qry_seq: &[L],
   ref_seq: &[L],
@@ -64,25 +57,34 @@ pub fn get_seed_matches<L: Letter<L>>(
 
   // loop over seeds and find matches, store in seed_matches
   let mut start_pos = 0;
-  let mut end_pos = params.max_indel + kmer_spacing.round() as usize;
+
+  // TODO: Treat first match differently, to allow long indels at start
+  // let mut end_pos = params.max_indel + kmer_spacing.round() as usize;
   for ni in 0..n_seeds {
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
     let qry_pos = map_to_good_positions[good_position_index];
 
-    let seed = &qry_seq[qry_pos..qry_pos + params.seed_length];
-    let tmp_match = seed_match(seed, ref_seq, start_pos, end_pos, params.mismatches_allowed);
+    let seed = &qry_seq[qry_pos..(qry_pos + params.seed_length)];
+    // end_pos is not yet used in seed_match
+    let tmp_match = seed_match(seed, ref_seq, start_pos, 0, params.mismatches_allowed);
 
     // Only use seeds with at most allowed_mismatches
     if tmp_match.score >= params.seed_length - params.mismatches_allowed {
+      if let Some(prev_match) = seed_matches.last() {
+        if tmp_match.ref_pos > prev_match.ref_pos {
+          start_pos = prev_match.ref_pos;
+        } else {
+          seed_matches.pop();
+        }
+      }
       seed_matches.push(SeedMatch {
         qry_pos,
         ref_pos: tmp_match.ref_pos,
         score: tmp_match.score,
       });
-      start_pos = tmp_match.ref_pos;
-      end_pos = tmp_match.ref_pos + params.max_indel + kmer_spacing.round() as usize;
+      // end_pos = tmp_match.ref_pos + params.max_indel + kmer_spacing.round() as usize;
     } else {
-      end_pos += kmer_spacing.round() as usize;
+      // end_pos += kmer_spacing.round() as usize;
     }
   }
   seed_matches
@@ -114,6 +116,7 @@ pub fn seed_alignment<L: Letter<L>>(
   };
 
   let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
+  dbg!(&seed_matches);
 
   let num_seed_matches = seed_matches.len();
   if num_seed_matches < 2 {
@@ -124,34 +127,6 @@ pub fn seed_alignment<L: Letter<L>>(
   let terminal_bandwidth: i32 = 50;
   let excess_bandwidth: i32 = 9;
   let stripes = create_stripes(&seed_matches, qry_size, ref_size, terminal_bandwidth, excess_bandwidth);
-
-  // Given the seed matches, determine the maximal and minimal shifts.
-  // This shift is the typical amount the query needs shifting to match ref.
-  //
-  // Example:
-  // ref:   ACTCTACTGC-TCAGAC
-  // qry:   ----TCACTCATCT-ACACCGAT
-  // => shift = 4, then 3, 4 again
-  // let (min_shift, max_shift) = seed_matches.iter().fold(
-  //   (ref_size as i64, -(ref_size as i64)),
-  //   |(min, max): (i64, i64), clamp: &SeedMatch| {
-  //     let shift = (clamp.ref_pos as i64) - (clamp.qry_pos as i64);
-  //     (min.min(shift), max.max(shift))
-  //   },
-  // );
-
-  // // let terminal_bandwidth: i32 = 20;
-  // // let excess_bandwidth: i32 = 9;
-  // // let stripes = make_stripes(qry_seq, ref_seq, params, terminal_bandwidth, excess_bandwidth);
-  // // println!("stripes, len {}", stripes.len());
-  // // println!("pos 0     {:?}", stripes[0]);
-  // // println!("pos 15000 {:?}", stripes[15000]);
-  // // println!("pos 29902 {:?}", stripes[29902]);
-
-  // let mean_shift = (0.5 * (min_shift + max_shift) as f64).round() as i32;
-  // let band_width = (max_shift - min_shift + 9) as usize;
-
-  // let stripes = simple_stripes(mean_shift, band_width, ref_size, query_size);
 
   Ok(stripes)
 }
