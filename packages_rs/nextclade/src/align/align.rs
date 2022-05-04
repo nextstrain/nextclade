@@ -1,49 +1,13 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::{seed_alignment, SeedAlignmentResult};
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
 use log::trace;
-
-#[derive(Debug)]
-pub struct AlignPairwiseParams {
-  pub penalty_gap_extend: i32,
-  pub penalty_gap_open: i32,
-  pub penalty_gap_open_in_frame: i32,
-  pub penalty_gap_open_out_of_frame: i32,
-  pub penalty_mismatch: i32,
-  pub score_match: i32,
-  pub max_indel: usize,
-  pub min_length: usize,
-  pub seed_length: usize,
-  pub seed_spacing: i32,
-  pub min_seeds: i32,
-  pub mismatches_allowed: usize,
-  pub translate_past_stop: bool,
-}
-
-impl Default for AlignPairwiseParams {
-  fn default() -> Self {
-    Self {
-      min_length: 100,
-      penalty_gap_extend: 0,
-      penalty_gap_open: 6,
-      penalty_gap_open_in_frame: 7,
-      penalty_gap_open_out_of_frame: 8,
-      penalty_mismatch: 1,
-      score_match: 3,
-      max_indel: 400,
-      seed_length: 21,
-      min_seeds: 10,
-      seed_spacing: 100,
-      mismatches_allowed: 3,
-      translate_past_stop: true,
-    }
-  }
-}
 
 fn align_pairwise<T: Letter<T>>(
   qry_seq: &[T],

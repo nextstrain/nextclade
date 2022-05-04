@@ -1,3 +1,4 @@
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::io::fs::basename;
 use crate::io::http_client::ProxyConfig;
 use crate::utils::global_init::setup_logger;
@@ -383,6 +384,9 @@ pub struct NextcladeRunArgs {
   #[clap(long, short = 'e')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_errors: Option<PathBuf>,
+
+  #[clap(flatten)]
+  pub alignment_params: AlignPairwiseParams,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {

@@ -1,24 +1,21 @@
-use crate::align::align::AlignPairwiseParams;
-use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns, StripInsertionsResult};
-use crate::analyze::aa_changes::{find_aa_changes, AaDel, AaSub, FindAaChangesOutput};
+use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns};
+use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::divergence::calculate_divergence;
 use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
 use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
 use crate::analyze::letter_composition::get_letter_composition;
 use crate::analyze::letter_ranges::{
-  find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, GeneAaRange, LetterRange, NucRange,
+  find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, GeneAaRange, NucRange,
 };
 use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNucAndAaChanges};
 use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
-use crate::analyze::nuc_del::NucDel;
-use crate::analyze::nuc_sub::NucSub;
 use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::{get_pcr_primer_changes, PcrPrimerChange};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::cli::nextalign_loop::{nextalign_run_one, NextalignOutputs};
 use crate::cli::nextclade_cli::NextcladeRunArgs;
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
@@ -36,19 +33,16 @@ use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
 use crate::translate::frame_shifts_translate::FrameShift;
 use crate::translate::translate_genes::{Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::{AuspiceTree, AuspiceTreeNode, CladeNodeAttrKeyDesc};
+use crate::tree::tree::AuspiceTree;
 use crate::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
 use crate::tree::tree_preprocess::tree_preprocess_in_place;
-use crate::utils::error::keep_ok;
-use crate::utils::range::Range;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::info;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -306,11 +300,9 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     output_errors,
     jobs,
     in_order,
+    alignment_params,
     ..
   } = args;
-
-  let params = &AlignPairwiseParams::default();
-  info!("Params:\n{params:#?}");
 
   let input_ref = option_get_some!(input_ref)?;
   let input_tree = option_get_some!(input_tree)?;
@@ -344,10 +336,10 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     GeneMap::new()
   };
 
-  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, params);
-  let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, params);
+  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
+  let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, params)?;
+  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
 
   let tree = &mut AuspiceTree::from_path(&input_tree)?;
 
@@ -392,6 +384,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
       let result_sender = result_sender.clone();
       let gap_open_close_nuc = &gap_open_close_nuc;
       let gap_open_close_aa = &gap_open_close_aa;
+      let alignment_params = &alignment_params;
       let tree = &tree;
 
       s.spawn(move |_| {
@@ -415,7 +408,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
             virus_properties,
             gap_open_close_nuc,
             gap_open_close_aa,
-            params,
+            alignment_params,
           );
 
           let record = NextcladeRecord {

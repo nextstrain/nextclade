@@ -1,8 +1,8 @@
-use crate::align::align::{align_nuc, AlignPairwiseParams};
+use crate::align::align::{align_nuc};
 use crate::align::backtrace::AlignmentOutput;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::align::insertions_strip::{insertions_strip, StripInsertionsResult};
-use crate::cli::nextalign_cli::NextalignRunArgs;
+use crate::cli::nextalign_cli::{AlignPairwiseParams, NextalignRunArgs};
 use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 use crate::gene::gene_map::GeneMap;
 use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
@@ -11,12 +11,11 @@ use crate::io::nuc::{to_nuc_seq, Nuc};
 use crate::option_get_some;
 use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::utils::error::{keep_ok, report_to_string};
+use crate::utils::error::report_to_string;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::{Either, Itertools};
 use log::info;
-use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
 pub struct NextalignOutputs {
@@ -98,10 +97,8 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     output_errors,
     jobs,
     in_order,
+    alignment_params,
   } = args;
-
-  let params = &AlignPairwiseParams::default();
-  info!("Params:\n{params:#?}");
 
   let output_fasta = option_get_some!(output_fasta)?;
   let output_basename = option_get_some!(output_basename)?;
@@ -121,10 +118,10 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     _ => GeneMap::new(),
   };
 
-  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, params);
-  let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, params);
+  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
+  let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, params)?;
+  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
 
   thread::scope(|s| {
     const CHANNEL_SIZE: usize = 128;
@@ -152,6 +149,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
       let result_sender = result_sender.clone();
       let gap_open_close_nuc = &gap_open_close_nuc;
       let gap_open_close_aa = &gap_open_close_aa;
+      let alignment_params = &alignment_params;
 
       s.spawn(move |_| {
         let result_sender = result_sender.clone();
@@ -169,7 +167,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
             gene_map,
             gap_open_close_nuc,
             gap_open_close_aa,
-            params,
+            alignment_params,
           );
 
           let record = NextalignRecord {
