@@ -243,9 +243,13 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub no_translate_past_stop: bool,
 
-  /// Whether terminal gaps are free or penalized.
+  /// Whether left terminal gaps are free or penalized.
   #[clap(long)]
-  pub terminal_gaps_free: bool,
+  pub left_terminal_gaps_free: bool,
+
+  /// Whether right terminal gaps are free or penalized.
+  #[clap(long)]
+  pub right_terminal_gaps_free: bool,
 }
 
 impl Default for AlignPairwiseParams {
@@ -264,7 +268,8 @@ impl Default for AlignPairwiseParams {
       seed_spacing: 100,
       mismatches_allowed: 3,
       no_translate_past_stop: false,
-      terminal_gaps_free: true,
+      left_terminal_gaps_free: true,
+      right_terminal_gaps_free: true,
     }
   }
 }

@@ -1,5 +1,5 @@
-use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::align::band_2d::{Band2d, Stripe};
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::io::letter::Letter;
 use log::trace;
 
@@ -53,9 +53,19 @@ pub fn score_matrix<T: Letter<T>>(
   scores[(0, 0)] = 0;
 
   // Initialize first row
-  for qpos in (stripes[0].begin + 1..stripes[0].end).rev() {
+  for qpos in (stripes[0].begin + 1)..stripes[0].end {
     paths[(0, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
-    scores[(0, qpos)] = 0;
+    if params.left_terminal_gaps_free {
+      // Left terminal gap is free
+      scores[(0, qpos)] = 0;
+    } else {
+      // Left terminal gap is not free
+      if qpos == 1 {
+        scores[(0, 1)] = -gap_open_close[0];
+      } else {
+        scores[(0, qpos)] = scores[(0, qpos - 1)] - params.penalty_gap_extend;
+      }
+    }
   }
   let mut qry_gaps = vec![NO_ALIGN; n_cols];
 
@@ -77,9 +87,19 @@ pub fn score_matrix<T: Letter<T>>(
       if qpos == 0 {
         // Initialize first column
         // precedes query sequence -- no score, origin is query gap
-        score = 0;
         tmp_path += QRY_GAP_EXTEND;
         origin = QRY_GAP_MATRIX;
+        if params.left_terminal_gaps_free {
+          // Left terminal gap is free
+          score = 0;
+        } else {
+          // Left terminal gap is not free
+          if ri == 1 {
+            score = -gap_open_close[0];
+          } else {
+            score = scores[(ri - 1, 0)] - params.penalty_gap_extend;
+          }
+        }
       } else {
         // if the position is within the query sequence
         // no gap -- match case

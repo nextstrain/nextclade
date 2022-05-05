@@ -44,7 +44,8 @@ pub fn align_nuc(
   let stripes = seed_alignment(qry_seq, ref_seq, params)?;
 
   let nuc_params = AlignPairwiseParams {
-    terminal_gaps_free: true,
+    left_terminal_gaps_free: true,
+    right_terminal_gaps_free: true,
     ..*params
   };
 
@@ -66,7 +67,8 @@ pub fn align_aa(
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
   let aa_params = AlignPairwiseParams {
-    terminal_gaps_free: false,
+    left_terminal_gaps_free: false,
+    right_terminal_gaps_free: false,
     ..*params
   };
 
