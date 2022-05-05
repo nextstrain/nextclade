@@ -4,7 +4,6 @@ use crate::analyze::aa_sub::AaSubMinimal;
 use crate::analyze::is_sequenced::is_aa_sequenced;
 use crate::analyze::letter_ranges::{AaRange, GeneAaRange};
 use crate::analyze::virus_properties::{LabelMap, MutationLabelMaps, VirusProperties};
-use crate::cli::nextclade_loop::NextcladeOutputs;
 use crate::gene::gene_map::GeneMap;
 use crate::gene::genotype::{Genotype, GenotypeLabeled};
 use crate::io::aa::Aa;

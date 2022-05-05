@@ -1,8 +1,8 @@
-use crate::make_error;
 use eyre::{Report, WrapErr};
 use indexmap::IndexMap;
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use nextclade::make_error;
 use regex::Regex;
 
 pub fn parse_dataset_attributes(attribute_strs: &[String]) -> Result<IndexMap<String, String>, Report> {

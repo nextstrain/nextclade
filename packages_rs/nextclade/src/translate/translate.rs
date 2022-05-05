@@ -4,7 +4,7 @@ use crate::io::nuc::Nuc;
 
 use crate::translate::translate_genes::Translation;
 use eyre::Report;
-use crate::cli::nextalign_cli::AlignPairwiseParams;
+use crate::align::params::AlignPairwiseParams;
 
 pub const fn decode(triplet: &[Nuc]) -> Aa {
   match *triplet {

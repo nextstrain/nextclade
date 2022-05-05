@@ -1,9 +1,9 @@
-use crate::{getenv, make_internal_error};
 use clap::{Parser, ValueHint};
 use eyre::Report;
 use reqwest::blocking::Client;
 use reqwest::{IntoUrl, Method, Proxy};
 use url::Url;
+use nextclade::{getenv, make_internal_error};
 
 #[derive(Parser, Debug)]
 #[clap(verbatim_doc_comment)]

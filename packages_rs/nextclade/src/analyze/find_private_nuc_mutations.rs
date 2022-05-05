@@ -3,7 +3,6 @@ use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::virus_properties::{LabelMap, MutationLabelMaps, NucLabelMap, VirusProperties};
-use crate::cli::nextclade_loop::NextcladeOutputs;
 use crate::gene::genotype::{Genotype, GenotypeLabeled};
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;

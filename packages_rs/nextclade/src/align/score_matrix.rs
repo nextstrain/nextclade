@@ -1,4 +1,4 @@
-use crate::cli::nextalign_cli::AlignPairwiseParams;
+use crate::align::params::AlignPairwiseParams;
 use crate::io::letter::Letter;
 use crate::utils::vec2d::Vec2d;
 use log::trace;

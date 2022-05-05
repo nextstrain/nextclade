@@ -1,4 +1,4 @@
-use crate::cli::nextalign_cli::AlignPairwiseParams;
+use crate::align::params::AlignPairwiseParams;
 use crate::gene::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
 

@@ -1,11 +1,10 @@
 use crate::io::http_client::HttpClient;
-use crate::io::json::json_parse;
 use eyre::{Report, WrapErr};
+use nextclade::io::json::json_parse;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::str::FromStr;
-use url::Url;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

@@ -4,7 +4,6 @@ pub mod errors_csv;
 pub mod fasta;
 pub mod fs;
 pub mod gff3;
-pub mod http_client;
 pub mod insertions_csv;
 pub mod json;
 pub mod letter;

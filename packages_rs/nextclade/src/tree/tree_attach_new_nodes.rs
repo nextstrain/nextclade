@@ -1,19 +1,16 @@
 use crate::analyze::find_private_nuc_mutations::PrivateNucMutations;
-use crate::analyze::letter_ranges::NucRange;
-use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
+use crate::analyze::nuc_del::NucDelMinimal;
 use crate::analyze::nuc_sub::NucSub;
-use crate::analyze::pcr_primer_changes::PcrPrimerChange;
-use crate::cli::nextclade_loop::NextcladeOutputs;
 use crate::io::nextclade_csv::{
   format_failed_genes, format_missings, format_non_acgtns, format_nuc_deletions, format_pcr_primer_changes,
 };
 use crate::tree::tree::{
   AuspiceTree, AuspiceTreeNode, TreeBranchAttrs, TreeNodeAttr, TreeNodeAttrs, TreeNodeTempData, AUSPICE_UNKNOWN_VALUE,
 };
+use crate::types::outputs::NextcladeOutputs;
 use crate::utils::collections::concat_to_vec;
 use itertools::Itertools;
 use std::collections::BTreeMap;
-use std::fmt::format;
 
 pub fn tree_attach_new_nodes_in_place(tree: &mut AuspiceTree, results: &[NextcladeOutputs]) {
   tree_attach_new_nodes_impl_in_place_recursive(&mut tree.tree, results);

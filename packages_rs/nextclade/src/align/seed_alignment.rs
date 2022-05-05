@@ -1,5 +1,5 @@
 use crate::align::seed_match::seed_match;
-use crate::cli::nextalign_cli::AlignPairwiseParams;
+use crate::align::params::AlignPairwiseParams;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
