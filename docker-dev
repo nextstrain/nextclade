@@ -354,7 +354,7 @@ elif [ "${BENCH}" == "1" ]; then
 elif [ "${LINT}" == "1" ]; then
   COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-}"
 elif [ "${FORMAT}" == "1" ]; then
-  COMMAND="cargo fmt -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-}"
+  COMMAND="cargo fmt -q --all ${FIX:-}"
 else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
 fi
