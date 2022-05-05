@@ -1,16 +1,10 @@
-use crate::align::align::AlignPairwiseParams;
-use crate::align::band_2d::simple_stripes;
-use crate::align::band_2d::Stripe;
+use crate::align::band_2d::{simple_stripes, Stripe};
 use crate::align::seed_match::seed_match;
-use crate::io::letter::Letter;
 use crate::cli::nextalign_cli::AlignPairwiseParams;
-use crate::io::nuc::Nuc;
+use crate::io::letter::Letter;
 use crate::make_error;
 use eyre::Report;
-use log::trace;
-use num_traits::{abs, clamp, clamp_max, clamp_min};
-
-use super::band_2d::Band2d;
+use num_traits::{clamp, clamp_max, clamp_min};
 
 fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) -> Vec<usize> {
   let qry_len = qry_seq.len();
@@ -36,11 +30,6 @@ pub struct SeedMatch {
   pub qry_pos: usize,
   pub ref_pos: usize,
   pub score: usize,
-}
-
-pub struct SeedAlignmentResult {
-  pub mean_shift: i32,
-  pub band_width: usize,
 }
 
 pub fn get_seed_matches<L: Letter<L>>(
@@ -278,8 +267,7 @@ fn add_end_stripe(
 mod tests {
   use super::*;
   use eyre::Report;
-  use pretty_assertions::assert_eq;
-  use rstest::{fixture, rstest};
+  use rstest::rstest;
 
   #[rstest]
   fn test_create_stripes_basic() -> Result<(), Report> {
