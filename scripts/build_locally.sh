@@ -626,7 +626,7 @@ echo "-------------------------------------------------------------------------"
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
   print 92 "Install Emscripten SDK";
 
-  if [ ! -d "${NEXTCLADE_EMSDK_DIR}" ]; then
+  if [ ! -f "${NEXTCLADE_EMSDK_DIR}/emsdk_env.sh" ]; then
     ./scripts/install_emscripten.sh "${NEXTCLADE_EMSDK_DIR}" "${NEXTCLADE_EMSDK_VERSION}"
   else
     echo "Emscripten SDK already found in '${NEXTCLADE_EMSDK_DIR}'. Skipping install."
