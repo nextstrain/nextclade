@@ -139,35 +139,49 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.final.geneMap = geneMap
   })
 
-  .icase(addParsedSequence, (draft, { index, seqName }) => {
-    draft.results[index] = {
-      status: AlgorithmSequenceStatus.queued,
-      id: index,
-      seqName,
-      result: undefined,
-      query: undefined,
-      queryPeptides: undefined,
-      warnings: { global: [], inGenes: [] },
-      errors: [],
-    }
-    draft.resultsFiltered = runFilters(current(draft))
+  .icase(addParsedSequence, (draft, seq) => {
+    // const { index, seqName } = seq
+    // draft.results[index] = {
+    //   status: AlgorithmSequenceStatus.queued,
+    //   id: index,
+    //   seqName,
+    //   result: undefined,
+    //   query: undefined,
+    //   queryPeptides: undefined,
+    //   warnings: { global: [], inGenes: [] },
+    //   errors: [],
+    // }
+    // draft.resultsFiltered = runFilters(current(draft))
   })
 
   .icase(addNextcladeResult, (draft, { nextcladeResult }) => {
-    draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
-    draft.results[nextcladeResult.index].query = nextcladeResult.query
-    draft.results[nextcladeResult.index].queryPeptides = nextcladeResult.queryPeptides
-    draft.results[nextcladeResult.index].warnings = nextcladeResult.warnings
-
-    if (nextcladeResult.hasError) {
-      draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.failed
-      draft.results[nextcladeResult.index].errors = [nextcladeResult.error]
-    } else {
-      draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.done
-      draft.results[nextcladeResult.index].errors = []
-    }
-
-    draft.resultsFiltered = runFilters(current(draft))
+    // console.log('addNextcladeResult reducer', { index: nextcladeResult.index, nextcladeResult })
+    //
+    // draft.results[nextcladeResult.index] = {
+    //   status: AlgorithmSequenceStatus.queued,
+    //   id: nextcladeResult.index,
+    //   seqName: nextcladeResult.seqName,
+    //   result: undefined,
+    //   query: undefined,
+    //   queryPeptides: undefined,
+    //   warnings: { global: [], inGenes: [] },
+    //   errors: [],
+    // }
+    //
+    // draft.results[nextcladeResult.index].result = nextcladeResult.analysisResult
+    // draft.results[nextcladeResult.index].query = nextcladeResult.query
+    // draft.results[nextcladeResult.index].queryPeptides = nextcladeResult.queryPeptides
+    // draft.results[nextcladeResult.index].warnings = nextcladeResult.warnings
+    //
+    // if (nextcladeResult.hasError) {
+    //   draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.failed
+    //   draft.results[nextcladeResult.index].errors = [nextcladeResult.error]
+    // } else {
+    //   draft.results[nextcladeResult.index].status = AlgorithmSequenceStatus.done
+    //   draft.results[nextcladeResult.index].errors = []
+    // }
+    //
+    // draft.resultsFiltered = runFilters(current(draft))
   })
 
   .icase(resultsSortTrigger, (draft, sorting) => {
@@ -273,20 +287,23 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
 
   // ******************
 
-  .icase(setFasta.done, (draft, { result: { queryStr, queryName } }) => {
+  .icase(setFasta.done, (draft, { result }) => {
+    const { queryStr, queryName } = result
     draft.params.strings.queryStr = queryStr
     draft.params.strings.queryName = queryName
     draft.params.errors.seqData = []
     draft.params.inProgress.seqData -= 1
   })
 
-  .icase(setTree.done, (draft, { result: { treeStr } }) => {
+  .icase(setTree.done, (draft, { result }) => {
+    const { treeStr } = result
     draft.params.strings.treeStr = treeStr
     draft.params.errors.auspiceData = []
     draft.params.inProgress.auspiceData -= 1
   })
 
-  .icase(setRootSeq.done, (draft, { result: { refStr, refName } }) => {
+  .icase(setRootSeq.done, (draft, { result }) => {
+    const { refStr, refName } = result
     draft.params.strings.refStr = refStr
     draft.params.strings.refName = refName
     draft.params.final.genomeSize = refStr.length
@@ -294,19 +311,22 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.inProgress.rootSeq -= 1
   })
 
-  .icase(setQcSettings.done, (draft, { result: { qcConfigStr } }) => {
+  .icase(setQcSettings.done, (draft, { result }) => {
+    const { qcConfigStr } = result
     draft.params.strings.qcConfigStr = qcConfigStr
     draft.params.errors.qcRulesConfig = []
     draft.params.inProgress.qcRulesConfig -= 1
   })
 
-  .icase(setVirusJson.done, (draft, { result: { virusJsonStr } }) => {
+  .icase(setVirusJson.done, (draft, { result }) => {
+    const { virusJsonStr } = result
     draft.params.strings.virusJsonStr = virusJsonStr
     draft.params.errors.virusJson = []
     draft.params.inProgress.virusJson -= 1
   })
 
-  .icase(setGeneMap.done, (draft, { result: { geneMapStr } }) => {
+  .icase(setGeneMap.done, (draft, { result }) => {
+    const { geneMapStr } = result
     const geneMap = JSON.parse(geneMapStr) as Gene[]
     draft.params.strings.geneMapStr = geneMapStr
     draft.params.final.geneMap = geneMap
@@ -314,7 +334,8 @@ export const algorithmReducer = reducerWithInitialState(algorithmDefaultState)
     draft.params.inProgress.geneMap -= 1
   })
 
-  .icase(setPcrPrimers.done, (draft, { result: { pcrPrimerCsvRowsStr } }) => {
+  .icase(setPcrPrimers.done, (draft, { result }) => {
+    const { pcrPrimerCsvRowsStr } = result
     draft.params.strings.pcrPrimerCsvRowsStr = pcrPrimerCsvRowsStr
     draft.params.errors.pcrPrimers = []
     draft.params.inProgress.pcrPrimers -= 1

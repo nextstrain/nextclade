@@ -1,6 +1,8 @@
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::io::fs::basename;
-use crate::make_error;
+use crate::io::http_client::ProxyConfig;
 use crate::utils::global_init::setup_logger;
+use crate::{getenv, make_error};
 use clap::{AppSettings, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
@@ -9,12 +11,14 @@ use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::LevelFilter;
-use std::collections::BTreeMap;
 use std::env::current_dir;
 use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
+use url::Url;
+
+const DATA_FULL_DOMAIN: &str = getenv!("DATA_FULL_DOMAIN");
 
 lazy_static! {
   static ref SHELLS: &'static [&'static str] = &["bash", "elvish", "fish", "fig", "powershell", "zsh"];
@@ -39,7 +43,7 @@ pub struct NextcladeArgs {
 
   /// Set verbosity level
   #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
-  pub verbosity: Option<log::LevelFilter>,
+  pub verbosity: Option<LevelFilter>,
 
   /// Disable all console output. Same as --verbosity=off
   #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "verbosity")]
@@ -68,7 +72,124 @@ pub enum NextcladeCommands {
   },
 
   /// Run alignment, mutation calling, clade assignment, quality checks and phylogenetic placement
-  Run(Box<NextcladeRunArgs>),
+  Run(NextcladeRunArgs),
+
+  /// List and download available Nextclade datasets
+  Dataset(NextcladeDatasetArgs),
+}
+
+#[derive(Parser, Debug)]
+pub struct NextcladeDatasetArgs {
+  #[clap(subcommand)]
+  pub command: Option<NextcladeDatasetCommands>,
+}
+
+#[derive(Subcommand, Debug)]
+#[clap(verbatim_doc_comment)]
+pub enum NextcladeDatasetCommands {
+  /// List available Nextclade datasets
+  List(NextcladeDatasetListArgs),
+
+  /// Download available Nextclade datasets
+  Get(NextcladeDatasetGetArgs),
+}
+
+#[derive(Parser, Debug)]
+#[clap(verbatim_doc_comment)]
+pub struct NextcladeDatasetListArgs {
+  /// Restrict list to datasets with this name. Equivalent to `--attribute='name=<value>'`.
+  #[clap(long, short = 'n')]
+  #[clap(value_hint = ValueHint::Other)]
+  pub name: Option<String>,
+
+  /// Restrict list to datasets based on this reference sequence (given its accession ID). Equivalent to `--attribute='reference=<value>'`.
+  #[clap(long, short = 'r')]
+  #[clap(value_hint = ValueHint::Other)]
+  #[clap(default_value = "default")]
+  pub reference: String,
+
+  /// Restrict list to datasets with this version tag. Equivalent to `--attribute='tag=<value>'`.
+  #[clap(long, short = 't')]
+  #[clap(value_hint = ValueHint::Other)]
+  #[clap(default_value = "latest")]
+  pub tag: String,
+
+  /// Restrict list to only datasets with a given combination of attribute key-value pairs.
+  /// Keys and values are separated with an equality sign.
+  /// This flag can occur multiple times, for multiple attributes.
+  /// Example: `--attribute='reference=MN908947' --attribute='tag=2022-04-28T12:00:00Z'`.
+  #[clap(long, short = 'a')]
+  #[clap(value_hint = ValueHint::Other)]
+  pub attribute: Vec<String>,
+
+  /// Include dataset version tags that are incompatible with this version of Nextclade CLI. By default the incompatible versions are omitted.
+  #[clap(long)]
+  pub include_incompatible: bool,
+
+  /// Include older dataset version tags, additional to the latest.
+  #[clap(long)]
+  pub include_old: bool,
+
+  /// Print output in JSON format.
+  #[clap(long)]
+  pub json: bool,
+
+  /// Use custom dataset server
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::Url)]
+  #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
+  pub server: Url,
+
+  #[clap(flatten)]
+  pub proxy_config: ProxyConfig,
+}
+
+#[derive(Parser, Debug)]
+#[clap(verbatim_doc_comment)]
+pub struct NextcladeDatasetGetArgs {
+  /// Name of the dataset to download. Equivalent to `--attribute='name=<value>'`. Use `dataset list` command to view available datasets.
+  #[clap(long, short = 'n')]
+  #[clap(value_hint = ValueHint::Other)]
+  pub name: String,
+
+  /// Download dataset based on this reference sequence (given its accession ID).
+  /// If this flag is not provided or is 'default', will download dataset based on current default reference sequence, as defined by dataset maintainers.
+  /// The default reference sequence can change over time. Use `dataset list` command to view available options.
+  /// Equivalent to `--attribute='reference=<value>'`.
+  #[clap(long, short = 'r')]
+  #[clap(value_hint = ValueHint::Other)]
+  #[clap(default_value = "default")]
+  pub reference: String,
+
+  /// Version tag of the dataset to download.
+  /// If this flag is not provided or is 'latest', then the latest **compatible** version is downloaded.
+  /// Equivalent to `--attribute='tag=<value>'`.
+  #[clap(long, short = 't')]
+  #[clap(value_hint = ValueHint::Other)]
+  #[clap(default_value = "latest")]
+  pub tag: String,
+
+  /// Download dataset with a given combination of attribute key-value pairs.
+  /// Keys and values are separated with an equality sign.
+  /// This flag can occur multiple times, for multiple attributes.
+  /// Example: `--attribute='reference=MN908947' --attribute='tag=2022-04-28T12:00:00Z'`.
+  #[clap(long, short = 'a')]
+  #[clap(value_hint = ValueHint::Other)]
+  pub attribute: Vec<String>,
+
+  /// Use custom dataset server
+  #[clap(long)]
+  #[clap(value_hint = ValueHint::Url)]
+  #[clap(default_value_t = Url::from_str(DATA_FULL_DOMAIN).expect("Invalid URL"))]
+  pub server: Url,
+
+  /// Path to directory to write dataset files to. If the target directory tree does not exist, it will be created.
+  #[clap(long, short = 'o')]
+  #[clap(value_hint = ValueHint::DirPath)]
+  pub output_dir: PathBuf,
+
+  #[clap(flatten)]
+  pub proxy_config: ProxyConfig,
 }
 
 /// Combines args from Nextalign and from Nextclade proper
@@ -263,6 +384,9 @@ pub struct NextcladeRunArgs {
   #[clap(long, short = 'e')]
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_errors: Option<PathBuf>,
+
+  #[clap(flatten)]
+  pub alignment_params: AlignPairwiseParams,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {

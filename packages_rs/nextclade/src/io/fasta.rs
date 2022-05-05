@@ -6,12 +6,14 @@ use crate::utils::error::report_to_string;
 use crate::{make_error, make_internal_error};
 use eyre::{Report, WrapErr};
 use log::{trace, warn};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read};
 use std::path::Path;
 
-#[derive(Default, Clone, Debug)]
+#[derive(Clone, Default, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct FastaRecord {
   pub seq_name: String,
   pub seq: String,

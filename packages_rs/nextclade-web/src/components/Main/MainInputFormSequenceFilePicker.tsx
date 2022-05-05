@@ -1,8 +1,12 @@
-import { delay, sumBy } from 'lodash'
 import React, { useCallback, useMemo } from 'react'
-
+import { sumBy } from 'lodash'
+import { useRouter } from 'next/router'
 import { connect } from 'react-redux'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
+import { useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { analysisResultsAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
@@ -25,6 +29,16 @@ import {
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
 import { selectShouldRunAutomatically } from 'src/state/settings/settings.selectors'
+import { LaunchAnalysisInputs, launchAnalysis, LaunchAnalysisCallbacks } from 'src/workers/launchAnalysis'
+import {
+  qrySeqAtom,
+  refSeqAtom,
+  geneMapAtom,
+  refTreeAtom,
+  qcConfigAtom,
+  virusPropertiesAtom,
+  primersCsvAtom,
+} from 'src/state/inputs.state'
 
 const SequenceFilePickerContainer = styled.section`
   display: flex;
@@ -79,12 +93,8 @@ export const MainInputFormSequenceFilePicker = connect(
 
 export function MainInputFormSequenceFilePickerDisconnected({
   params,
-  datasetCurrent,
   canRun,
   hasRequiredInputs,
-  algorithmRunTrigger,
-  setFasta,
-  removeFasta,
   isInProgressFasta,
   setShowNewRunPopup,
   setIsDirty,
@@ -92,27 +102,81 @@ export function MainInputFormSequenceFilePickerDisconnected({
   setShouldRunAutomatically,
 }: MainInputFormSequenceFilePickerProps) {
   const { t } = useTranslationSafe()
+  const router = useRouter()
+
+  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
+
+  const [_, setQrySeq] = useRecoilState(qrySeqAtom)
+  const [refSeq, setRefSeq] = useRecoilState(refSeqAtom)
+  const [geneMap, setGeneMap] = useRecoilState(geneMapAtom)
+  const [refTree, setRefTree] = useRecoilState(refTreeAtom)
+  const [qcConfig, setQcConfig] = useRecoilState(qcConfigAtom)
+  const [virusProperties, setVirusProperties] = useRecoilState(virusPropertiesAtom)
+  const [primersCsv, setPrimersCsv] = useRecoilState(primersCsvAtom)
 
   const hasErrors = useMemo(() => {
     const numErrors = sumBy(Object.values(params.errors), (err) => err.length)
     return numErrors > 0
   }, [params.errors])
 
-  const run = useCallback(() => {
-    setShowNewRunPopup(false)
-    setIsDirty(true)
-    delay(algorithmRunTrigger, 1000)
-  }, [algorithmRunTrigger, setShowNewRunPopup, setIsDirty])
+  const run = useRecoilCallback(
+    ({ set, snapshot: { getPromise } }) =>
+      () => {
+        const qrySeq = getPromise(qrySeqAtom)
+
+        setShowNewRunPopup(false)
+        setIsDirty(true)
+
+        const inputs: LaunchAnalysisInputs = {
+          ref_seq_str: refSeq,
+          gene_map_str: geneMap,
+          tree_str: refTree,
+          qc_config_str: qcConfig,
+          virus_properties_str: virusProperties,
+          pcr_primers_str: primersCsv,
+        }
+
+        const callbacks: LaunchAnalysisCallbacks = {
+          onGlobalStatus(status) {},
+          onParsedFasta(record) {},
+          onAnalysisResult(result) {
+            set(analysisResultsAtom(result.seqName), result)
+          },
+          onError(error) {},
+          onComplete() {},
+        }
+
+        if (!datasetCurrent) {
+          throw new ErrorInternal('Dataset is not selected, but required.')
+        }
+
+        launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent).catch(console.error)
+
+        router.push('/results')
+      },
+    [
+      setShowNewRunPopup,
+      setIsDirty,
+      refSeq,
+      geneMap,
+      refTree,
+      qcConfig,
+      virusProperties,
+      primersCsv,
+      datasetCurrent,
+      router,
+    ],
+  )
 
   const setSequences = useCallback(
     (input: AlgorithmInput) => {
-      setFasta(input)
+      setQrySeq(input)
 
       if (shouldRunAutomatically) {
         run()
       }
     },
-    [run, setFasta, shouldRunAutomatically],
+    [run, setQrySeq, shouldRunAutomatically],
   )
 
   const setExampleSequences = useCallback(() => {
@@ -120,12 +184,12 @@ export function MainInputFormSequenceFilePickerDisconnected({
       throw new Error('Internal error: dataset is not ready')
     }
 
-    setFasta(new AlgorithmInputDefault(datasetCurrent))
+    setQrySeq(new AlgorithmInputDefault(datasetCurrent))
 
     if (shouldRunAutomatically) {
       run()
     }
-  }, [datasetCurrent, run, setFasta, shouldRunAutomatically])
+  }, [datasetCurrent, run, setQrySeq, shouldRunAutomatically])
 
   const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
     const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasErrors

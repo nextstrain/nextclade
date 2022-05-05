@@ -1,27 +1,18 @@
 /* eslint-disable camelcase */
 import 'regenerator-runtime'
 
-import type { SequenceParserResult } from 'src/algorithms/types'
-import { sanitizeError } from 'src/helpers/sanitizeError'
+import type { AnalysisResult, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import { NextcladeWasm, NextcladeParams, AnalysisInput, NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
+import { sanitizeError } from 'src/helpers/sanitizeError'
+import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
+import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 
-// import tree from '../../../../data_dev/tree.json'
-// import qc from '../../../../data_dev/qc.json'
-// import virusProperties from '../../../../data_dev/virus_properties.json'
-// import qrySeq from '../../../../data_dev/sequence.fasta'
-// import refSeq from '../../../../data_dev/reference.fasta'
-// import primersCsv from '../../../../data_dev/primers.csv'
-// import geneMap from '../../../../data_dev/genemap.gff'
+const gSubject = new Subject<FastaRecord>()
 
-// const qry_seq_name = 'Hello!'
-
-const gSubject = new Subject<SequenceParserResult>()
-
-function onSequence(seq: SequenceParserResult) {
+function onSequence(seq: FastaRecord) {
   gSubject?.next(seq)
 }
 
@@ -50,14 +41,6 @@ let nextcladeWasm: NextcladeWasm | undefined
 
 /** Creates the underlying WebAssembly module. */
 async function create(params_pojo: NextcladeParamsPojo) {
-  // const params = NextcladeParams.from_js({
-  //   ref_seq_str: refSeq,
-  //   gene_map_str: geneMap,
-  //   tree_str: JSON.stringify(tree),
-  //   qc_config_str: JSON.stringify(qc),
-  //   virus_properties_str: JSON.stringify(virusProperties),
-  //   pcr_primers_str: primersCsv,
-  // })
   const params = NextcladeParams.from_js(params_pojo)
   nextcladeWasm = new NextcladeWasm(params)
   params.free()
@@ -74,16 +57,37 @@ async function destroy() {
 }
 
 /** Runs the underlying WebAssembly module. */
-async function analyze(qryName: string, qrySeq: string) {
+async function analyze(record: FastaRecord): Promise<NextcladeResult> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized()
   }
+
+  const { index, seqName, seq } = record
+
   const input = AnalysisInput.from_js({
-    qry_seq_name: qryName,
-    qry_seq_str: qrySeq,
+    qry_seq_name: seqName,
+    qry_seq_str: seq,
   })
-  const result = nextcladeWasm.analyze(input)
-  return result.to_js()
+
+  const resultRaw = nextcladeWasm.analyze(input).to_js()
+
+  const query = resultRaw.qry_seq_str
+  const queryPeptides = JSON.parse(resultRaw.translations_str) as Peptide[]
+  const analysisResult = JSON.parse(resultRaw.nextclade_outputs_str) as AnalysisResult
+
+  return {
+    index,
+    seqName,
+    analysisResult,
+    query,
+    queryPeptides,
+    warnings: {
+      global: [],
+      inGenes: [],
+    },
+    hasError: false,
+    error: undefined,
+  }
 }
 
 // export async function getCladeNodeAttrKeyDescs(): Promise<string> {
@@ -104,7 +108,7 @@ export function getOutputTree(analysisResultsJsonStr: string): string {
 export async function parseSequencesStreaming(fastaStr: string) {
   try {
     NextcladeWasm.parse_query_sequences(fastaStr, (index: number, seqName: string, seq: string) =>
-      onSequence({ index, seqName, seq }),
+      onSequence({ index: Number(index), seqName, seq }),
     )
   } catch (error: unknown) {
     onError(sanitizeError(error))
@@ -113,7 +117,7 @@ export async function parseSequencesStreaming(fastaStr: string) {
 }
 
 export async function parseRefSequence(refFastaStr: string) {
-  NextcladeWasm.validate_ref_seq_fasta(refFastaStr)
+  return NextcladeWasm.parse_ref_seq_fasta(refFastaStr)
 }
 
 export async function parseTree(treeJsonStr: string) {
@@ -121,7 +125,7 @@ export async function parseTree(treeJsonStr: string) {
 }
 
 export async function parseGeneMapGffString(geneMapGffStr: string) {
-  NextcladeWasm.validate_gene_map_gff(geneMapGffStr)
+  return NextcladeWasm.parse_gene_map_gff(geneMapGffStr)
 }
 
 export async function parsePcrPrimerCsvRowsStr(pcrPrimersCsvStr: string, refSeqStr: string) {
@@ -149,7 +153,7 @@ const worker = {
   parsePcrPrimerCsvRowsStr,
   parseQcConfigString,
   parseVirusJsonString,
-  values(): ThreadsObservable<SequenceParserResult> {
+  values(): ThreadsObservable<FastaRecord> {
     return ThreadsObservable.from(gSubject)
   },
 }
@@ -158,4 +162,3 @@ expose(worker)
 
 export type NextcladeWasmWorker = typeof worker
 export type NextcladeWasmThread = NextcladeWasmWorker & Thread
-export { type Observable as ThreadsObservable } from 'threads/observable'

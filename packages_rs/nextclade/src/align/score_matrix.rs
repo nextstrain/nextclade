@@ -1,4 +1,4 @@
-use crate::align::align::AlignPairwiseParams;
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::align::band_2d::{Band2d, Stripe};
 use crate::io::letter::Letter;
 use log::trace;

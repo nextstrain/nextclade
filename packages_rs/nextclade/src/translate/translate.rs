@@ -1,10 +1,10 @@
-use crate::align::align::AlignPairwiseParams;
 use crate::gene::gene::Gene;
 use crate::io::aa::Aa;
 use crate::io::nuc::Nuc;
 
 use crate::translate::translate_genes::Translation;
 use eyre::Report;
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 
 pub const fn decode(triplet: &[Nuc]) -> Aa {
   match *triplet {
@@ -89,7 +89,7 @@ pub fn translate(gene_nuc_seq: &[Nuc], gene: &Gene, params: &AlignPairwiseParams
     let triplet: &[Nuc] = &gene_nuc_seq[i_nuc..(i_nuc + 3)];
     let aminoacid = decode(triplet);
     peptide.push(aminoacid);
-    if !params.translate_past_stop && aminoacid == Aa::Stop {
+    if params.no_translate_past_stop && aminoacid == Aa::Stop {
       break;
     }
   }

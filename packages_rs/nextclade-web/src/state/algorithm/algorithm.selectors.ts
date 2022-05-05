@@ -52,11 +52,20 @@ export const selectCanDownload = (state: State): boolean =>
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.treeStr
 export const selectCladeNodeAttrKeys = (state: State): string[] => state.algorithm.cladeNodeAttrKeys
 
-export const selectOutputSequences = (state: State) =>
-  state.algorithm.results.map((result) => ({ seqName: result.seqName, query: result.query }))
+export const selectOutputSequences = (state: State) => {
+  return state.algorithm.results.map((result) => {
+    // console.log({ result })
 
-export const selectOutputPeptides = (state: State) =>
-  state.algorithm.results.map((result) => ({ seqName: result.seqName, queryPeptides: result.queryPeptides }))
+    return { seqName: result.seqName, query: result.query }
+  })
+}
+
+export const selectOutputPeptides = (state: State) => {
+  return state.algorithm.results.map((result) => {
+    // console.log({ result })
+    return { seqName: result.seqName, queryPeptides: result.queryPeptides }
+  })
+}
 
 export const selectExportParams = (state: State) => state.algorithm.exportParams
 

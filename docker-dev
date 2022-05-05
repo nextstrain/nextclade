@@ -23,8 +23,9 @@ export PACKAGE_DIR_REL=""
 export PROJECT_ROOT_DIR="$(abspath "${THIS_DIR}")"
 export PACKAGE_DIR="$(abspath "${PROJECT_ROOT_DIR}/${PACKAGE_DIR_REL}")"
 
-export DOCKER_IMAGE_NAME="${PACKAGE_NAME}-dev"
-export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME//\//-}-$(date +%s)"
+export DOCKER_REPO="nextstrain/nextclade_builder"
+export DOCKER_IMAGE_NAME_SAFE="${DOCKER_REPO//\//-}"
+export DOCKER_CONTAINER_NAME="${DOCKER_IMAGE_NAME_SAFE}-$(date +%s)"
 
 export USER=user
 export GROUP=user
@@ -43,6 +44,11 @@ export RUST_BACKTRACE="full"
 export COLORBT_SHOW_HIDDEN="0"
 export RUST_LOG="warn"
 export CARGO_BUILD_TARGET_DIR="${BUILD_DIR_REL}"
+
+. "${PROJECT_ROOT_DIR}/.env.example"
+if [ -f "${PROJECT_ROOT_DIR}/.env" ]; then
+  . "${PROJECT_ROOT_DIR}/.env"
+fi
 
 export EXTENSIONS_TO_WATCH="rs,toml,lock"
 
@@ -68,6 +74,8 @@ export FILES_TO_IGNORE="\
 
 export LINT_FIX="--fix --allow-staged"
 
+FORCE_DOCKER_IMAGE_BUILD=${FORCE_DOCKER_IMAGE_BUILD:-}
+DOCKER_IMAGE_PUSH=0
 BUILD=0
 RUN=0
 WASM=0
@@ -82,6 +90,15 @@ LINT=0
 FIX=
 
 case "${1:-}" in
+"docker-image-build" | "d")
+  shift
+  FORCE_DOCKER_IMAGE_BUILD=1
+  ;;
+"docker-image-build-push" | "dp")
+  shift
+  FORCE_DOCKER_IMAGE_BUILD=1
+  DOCKER_IMAGE_PUSH=1
+  ;;
 "build" | "b")
   shift
   BUILD=1
@@ -140,6 +157,12 @@ case "${1:-}" in
   WATCH=0
   ;;
 "web-release" | "ar")
+  shift
+  WEB=1
+  RELEASE="prod:build"
+  WATCH=0
+  ;;
+"watch-web-release" | "war")
   shift
   WEB=1
   RELEASE="prod:watch"
@@ -233,36 +256,54 @@ if [ "${WASM}" == "1" ]; then
 fi
 
 DOCKER_TARGET="dev"
-DOCKER_TAG="latest"
 RUST_TARGET=""
 if [ -n "${CROSS:-}" ]; then
   DOCKER_TARGET="cross-${CROSS}"
-  DOCKER_TAG="cross-${CROSS}"
   RUST_TARGET="--target=${CROSS}"
 fi
+DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
 
-DOCKER_BUILD_ARGS=""
-MACOS_SDK_FILENAME="MacOSX11.1.sdk.tar.xz"
-MACOS_SDK_SHA="4a575e099c1b5dafe2835770d2a225c4ed082c2a36ecec9eac0946339fe665f3"
-if [[ "${CROSS:-}" == *-apple-darwin ]]; then
-  DOCKER_BUILD_ARGS=" \
-    --build-arg MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME} \
-    --build-arg MACOS_SDK_SHA=${MACOS_SDK_SHA} \
-  "
+if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" >/dev/null ||
+  [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
+
+  export DOCKER_BUILDKIT=1
+  export BUILDKIT_PROGRESS=plain
+  export PROGRESS_NO_TRUNC=1
+
+  ADDITIONAL_DOCKER_BUILD_ARGS=
+  if [[ "${DOCKER_TARGET}" == *apple* ]]; then
+    # shellcheck disable=SC2089
+
+    ADDITIONAL_DOCKER_BUILD_ARGS="--build-arg OSXCROSS_URL=${OSXCROSS_URL}"
+  fi
+
+  ${NICE} docker build -q \
+    --file="docker-dev.dockerfile" \
+    --target="${DOCKER_TARGET}" \
+    --tag="${DOCKER_REPO}:${DOCKER_TARGET}" \
+    --tag="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+    --cache-from="${DOCKER_REPO}:dev" \
+    --cache-from="${DOCKER_REPO}:dev-${DOCKER_IMAGE_VERSION}" \
+    --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}" \
+    --cache-from="${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
+    --network=host \
+    --build-arg="UID=$(id -u)" \
+    --build-arg="GID=$(id -g)" \
+    --build-arg="USER=user" \
+    --build-arg="GROUP=user" \
+    ${ADDITIONAL_DOCKER_BUILD_ARGS} \
+    . \
+    ./dev/null
+
+  if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
+    docker push "${DOCKER_REPO}:${DOCKER_TARGET}"
+    docker push "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}"
+  fi
+
+  if [ -n "${FORCE_DOCKER_IMAGE_BUILD}" ]; then
+    exit 0;
+  fi
 fi
-
-# shellcheck disable=SC2086
-docker build -q -t "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
-  -f "${PACKAGE_DIR}/docker-dev.dockerfile" \
-  --target="${DOCKER_TARGET}" \
-  --build-arg="UID=$(id -u)" \
-  --build-arg="GID=$(id -g)" \
-  --build-arg="USER=user" \
-  --build-arg="GROUP=user" \
-  --network=host \
-  ${DOCKER_BUILD_ARGS} \
-  "${PACKAGE_DIR}" \
-  >/dev/null
 
 export RUSTC_FORCE_INCREMENTAL=""
 if [ -n "${RELEASE}" ]; then
@@ -318,16 +359,14 @@ else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
 fi
 
-CPUS="$(($(nproc) - 2))"
-
 mkdir -p "${BUILD_DIR}" "${CACHE_DIR}/.cargo/"{install,registry}
 
 # shellcheck disable=SC2086
-docker run -it --rm \
+${NICE} docker run -it --rm \
   --network=host \
   --init \
   --name="${DOCKER_CONTAINER_NAME}" \
-  --hostname="${DOCKER_IMAGE_NAME}" \
+  --hostname="${DOCKER_IMAGE_NAME_SAFE}" \
   --user="$(id -u):$(id -g)" \
   --volume="${PROJECT_ROOT_DIR}:/workdir" \
   --volume="${CACHE_DIR}/.cargo/install:/home/${USER}/.cargo/install" \
@@ -344,6 +383,16 @@ docker run -it --rm \
   --env="CARGO_BUILD_TARGET_DIR=${CARGO_BUILD_TARGET_DIR}" \
   --env="RUSTC_FORCE_INCREMENTAL=${RUSTC_FORCE_INCREMENTAL}" \
   ${PORTS} \
-  --cpus="${CPUS}" \
-  "${DOCKER_IMAGE_NAME}:${DOCKER_TAG}" \
+  "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER_IMAGE_VERSION}" \
   bash -c "set -euo pipefail; ${HANDLE_SIGINT}; ${COMMAND} ${SUCCESS_OR_FAILURE}"
+
+if [ -n "${CROSS:-}" ] && [ -n "${RELEASE:-}" ] && { [ "${BUILD:-}" == 1 ] || [ "${RUN:-}" == 1 ]; }; then
+  mkdir -p .out/
+  if [[ "${CROSS}" == *windows* ]]; then
+    cp "${BUILD_DIR}/${CROSS}/release/nextalign.exe" ".out/nextalign-${CROSS}.exe"
+    cp "${BUILD_DIR}/${CROSS}/release/nextclade.exe" ".out/nextclade-${CROSS}.exe"
+  else
+    cp "${BUILD_DIR}/${CROSS}/release/nextalign" ".out/nextalign-${CROSS}"
+    cp "${BUILD_DIR}/${CROSS}/release/nextclade" ".out/nextclade-${CROSS}"
+  fi
+fi

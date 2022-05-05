@@ -1,14 +1,12 @@
 import React, { useMemo, useState } from 'react'
 
-import { connect } from 'react-redux'
+import { useRecoilValue } from 'recoil'
 import { Container as ContainerBase } from 'reactstrap'
 import styled from 'styled-components'
 
-import type { DatasetFlat } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import { selectCurrentDataset } from 'src/state/algorithm/algorithm.selectors'
 import { DatasetSelector } from 'src/components/Main/DatasetSelector'
 import { MainInputFormRunStep } from 'src/components/Main/MainInputFormRunStep'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
 
 export const Container = styled(ContainerBase)`
   display: flex;
@@ -31,18 +29,9 @@ export const Centered = styled.section`
   max-width: 800px;
 `
 
-export interface MainInputFormProps {
-  currentDataset?: DatasetFlat
-}
-
-const mapStateToProps = (state: State) => ({
-  currentDataset: selectCurrentDataset(state),
-})
-
-export const MainInputForm = connect(mapStateToProps, null)(MainInputFormDisconnected)
-
-export function MainInputFormDisconnected({ currentDataset }: MainInputFormProps) {
+export function MainInputForm() {
   const [searchTerm, setSearchTerm] = useState('')
+  const currentDataset = useRecoilValue(datasetCurrentAtom)
 
   const FormBody = useMemo(
     () =>

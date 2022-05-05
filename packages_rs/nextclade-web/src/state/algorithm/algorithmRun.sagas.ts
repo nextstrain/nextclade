@@ -1,7 +1,6 @@
 /* eslint-disable no-loops/no-loops,no-continue,no-void */
 import type { EventChannel } from 'redux-saga'
 import { buffers, eventChannel } from 'redux-saga'
-import { NextcladeParamsPojo } from 'src/gen'
 import type { PoolEvent } from 'threads/dist/master/pool'
 import { Pool } from 'threads'
 import { all, apply, call, fork, join, put, select, take, takeEvery } from 'typed-redux-saga'
@@ -15,8 +14,8 @@ import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import fsaSaga from 'src/state/util/fsaSaga'
 
-import type { NextcladeWasmThread, NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
-import type { DatasetFlat, SequenceParserResult, UrlParams } from 'src/algorithms/types'
+import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
+import type { DatasetFlat, FastaRecord, NextcladeResult, UrlParams } from 'src/algorithms/types'
 import {
   addNextcladeResult,
   addParsedSequence,
@@ -59,9 +58,11 @@ import { prepareGeneMap } from 'src/io/prepareGeneMap'
 import { errorAdd } from 'src/state/error/error.actions'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { serializeResults } from 'src/io/serializeResults'
+import { NextcladeParamsPojo } from 'nextclade-wasm'
+import copy from 'fast-copy'
 
 export interface SequenceParserChannelElement {
-  seq?: SequenceParserResult
+  record?: FastaRecord
   error?: Error
   isDone?: boolean
 }
@@ -75,8 +76,8 @@ export function createSequenceParserEventChannel(
   sequenceParserThread: NextcladeWasmThread,
 ): EventChannel<SequenceParserChannelElement> {
   return eventChannel((emit) => {
-    function onSequence(seq: SequenceParserResult) {
-      emit({ seq })
+    function onSequence(record: FastaRecord) {
+      emit({ record })
     }
 
     function onError(error: Error) {
@@ -187,7 +188,7 @@ export function* runAnalysisLoop(
   try {
     while (true) {
       // Take an event from the channel
-      const { seq, error, isDone } = yield* take(sequenceParserEventChannel)
+      const { record, error, isDone } = yield* take(sequenceParserEventChannel)
 
       if (isDone) {
         break
@@ -198,11 +199,17 @@ export function* runAnalysisLoop(
         continue
       }
 
-      if (seq) {
+      if (record) {
+        if (!record) {
+          throw new Error('FastaRecord is undefined')
+        }
+
+        // yield* put(addParsedSequence({ index: seq.index, seqName: seq.seqName }))
+        yield* put(addParsedSequence(record))
+
         // Queue the received sequence for the analysis in the worker pool.
         // This returns immediately and the analysis result will be emitted into the analysis event channel.
-        void poolAnalyze.queue((worker) => worker.analyze(seq.seqName, seq.seq))
-        yield* put(addParsedSequence({ index: seq.index, seqName: seq.seqName }))
+        void poolAnalyze.queue((worker) => worker.analyze(record))
       }
     }
   } catch (error_: unknown) {
@@ -348,7 +355,23 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
 
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.started))
 
-  console.log('runAlgorithm started')
+  // Retrieve the first worker from the pool. All workers are the same, but we arbitrarily chose the first here
+  const worker = yield* call(async () => {
+    // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return (await poolAnalyze.workers?.[0]?.init) as NextcladeWasmThread
+  })
+
+  const refStr = yield* call(worker.parseRefSequence, params.ref_seq_str)
+  const ref = JSON.parse(refStr) as FastaRecord
+  const genomeSize = ref.seq.length
+  yield* put(setGenomeSize({ genomeSize }))
+
+  const geneMapStr = yield* call(worker.parseGeneMapGffString, params.gene_map_str)
+  const geneMap = prepareGeneMap(geneMapStr)
+  yield* put(setGeneMapObject({ geneMap }))
 
   // The `call-all` schema is used here, because we want (1) parsing and (2) scheduling for analysis to run in parallel
   // (ideally concurrently). Note that when parser loop ends, the parsing is known to be done, however when analysis
@@ -364,6 +387,8 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
     call(async () => poolAnalyze.completed()),
   ])
 
+  console.log(30)
+
   // // Retrieve the prepared (preprocessed) tree from one of the workers
   // const treePreparedStr = yield* call(runGetTree, poolAnalyze)
   // // Retrieve the  tree from one of the workers
@@ -372,32 +397,41 @@ export function* runSequenceAnalysis(queryStr: string, queryInputName: string, p
   // Destroy analysis pool as it is no longer needed
   yield* call(destroyAnalysisThreadPool, poolAnalyze)
 
+  console.log(40)
+
   // Return array of results aggregated in the results retrieval loop
   const nextcladeResults = (yield* join(resultsTask)) as unknown as NextcladeResult[]
+
+  console.log(50)
 
   const analysisResults = nextcladeResults
     .filter((nextcladeResult) => !nextcladeResult.hasError)
     .map((nextcladeResult) => nextcladeResult.analysisResult)
 
+  console.log(60)
+
   if (analysisResults.length > 0) {
     const analysisResultsJsonStr = serializeResults(analysisResults, cladeNodeAttrKeys)
 
+    console.log(70)
+
     yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.buildingTree))
 
-    // Retrieve the first worker from the pool. All workers are the same, but we arbitrarily chose the first here
-    const worker = yield* call(async () => {
-      // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      return (await poolAnalyze.workers?.[0]?.init) as NextcladeWasmThread
-    })
-
     const treeFinalStr = worker.getOutputTree(analysisResultsJsonStr)
+
+    console.log(80)
+
     const tree = parseAuspiceJsonV2(treeFinalStr)
 
+    console.log(90)
+
     yield* setAuspiceState(tree)
+
+    console.log(100)
+
     yield* put(setTreeResult({ treeStr: treeFinalStr }))
+
+    console.log(110)
   }
 }
 
@@ -466,14 +500,12 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
   if (queryInput) {
     const loadSequences = fsaSaga(setFasta, loadFasta)
     yield* loadSequences(setFasta.trigger(queryInput))
-    console.log('getQuerySequences loadSequences')
   }
 
   // If not provided, maybe the previously used sequence data is of any good?
   const queryStr = yield* select(selectQueryStr)
   const queryName = yield* select(selectQueryName)
   if (queryStr && queryName) {
-    console.log('getQuerySequences return')
     return { queryStr, queryName }
   }
 
@@ -483,7 +515,7 @@ export function* getQuerySequences(dataset: DatasetFlat, queryInput?: AlgorithmI
 /**
  * Runs Nextclade algorithm: parsing, analysis, and tree placement
  */
-export function* runAlgorithm(queryInput?: AlgorithmInput) {
+export function* algorithmRun(queryInput?: AlgorithmInput) {
   yield* put(setAlgorithmGlobalStatus(AlgorithmGlobalStatus.loadingData))
   yield* put(push('/results'))
 
@@ -495,8 +527,6 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
   yield* put(setViewedGene(dataset.defaultGene))
 
   const urlParams = yield* select(selectUrlParams)
-
-  console.log('runAlgorithm urlParams')
 
   const {
     ref: { refStr, refName },
@@ -515,16 +545,6 @@ export function* runAlgorithm(queryInput?: AlgorithmInput) {
     qcConfigStr: getQcConfig(dataset, urlParams),
     virusJsonStr: getVirusJson(dataset, urlParams),
   })
-
-  console.log('runAlgorithm get inputs')
-
-  const genomeSize = refStr.length
-  yield* put(setGenomeSize({ genomeSize }))
-
-  const geneMap = prepareGeneMap(geneMapStr)
-  yield* put(setGeneMapObject({ geneMap }))
-
-  console.log('runAlgorithm runSequenceAnalysis')
 
   yield* runSequenceAnalysis(queryStr, queryName, {
     ref_seq_str: refStr,
@@ -549,4 +569,4 @@ export function* setAuspiceState(auspiceDataPostprocessed: AuspiceJsonV2) {
   yield* put(treeFilterByNodeType(['New']))
 }
 
-export default [takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, runAlgorithm))]
+export default [takeEvery(algorithmRunAsync.trigger, fsaSaga(algorithmRunAsync, algorithmRun))]

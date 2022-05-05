@@ -1,9 +1,11 @@
-import React, { memo } from 'react'
+import React, { memo, useMemo } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { connect } from 'react-redux'
 import { areEqual, FixedSizeList as FixedSizeListBase, FixedSizeListProps, ListChildComponentProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
+import { useRecoilValue } from 'recoil'
+import { analysisResultsAtom, seqNamesAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 import { mix, rgba } from 'polished'
 
@@ -138,7 +140,8 @@ export const ButtonHelpStyled = styled(ButtonHelp)`
 
 const highlightRowsWithIssues = true
 
-export interface TableRowDatum extends SequenceAnalysisState {
+export interface TableRowDatum {
+  seqName: string
   viewedGene: string
   columnWidthsPx: Record<keyof typeof COLUMN_WIDTHS, string>
   dynamicColumnWidthPx: string
@@ -149,31 +152,34 @@ export interface RowProps extends ListChildComponentProps {
   data: TableRowDatum[]
 }
 
-function TableRowComponent({ index, style, data }: RowProps) {
+function TableRowComponent({ index: dataIndex, style, data }: RowProps) {
   const { t } = useTranslation()
-
   const {
-    id,
+    // id,
+    // warnings,
+    // errors,
+    // result: sequence,
     seqName,
-    warnings,
-    errors,
-    result: sequence,
     viewedGene,
     columnWidthsPx,
     dynamicColumnWidthPx,
     cladeNodeAttrKeys,
-  } = data[index]
-  const qc = sequence?.qc
+  } = useMemo(() => data[dataIndex], [data, dataIndex])
+
+  const { index, warnings, error, hasError, analysisResult } = useRecoilValue(analysisResultsAtom(seqName))
+  const { qc } = analysisResult
+  const errors = error ? [error.message] : []
+  const isDone = false
 
   if (errors.length > 0) {
     return (
       <TableRowError style={style} even={index % 2 === 0}>
         <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
-          <TableCellText>{id}</TableCellText>
+          <TableCellText>{index}</TableCellText>
         </TableCell>
 
         <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
+          <ColumnName seqName={seqName} sequence={analysisResult} isDone={isDone} warnings={warnings} errors={errors} />
         </TableCellName>
 
         <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
@@ -183,15 +189,15 @@ function TableRowComponent({ index, style, data }: RowProps) {
     )
   }
 
-  if (!sequence) {
+  if (!analysisResult) {
     return (
       <TableRowPending style={style} even={index % 2 === 0}>
         <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
-          <TableCellText>{id}</TableCellText>
+          <TableCellText>{index}</TableCellText>
         </TableCell>
 
         <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-          <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
+          <ColumnName seqName={seqName} sequence={analysisResult} isDone={isDone} warnings={warnings} errors={errors} />
         </TableCellName>
 
         <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
@@ -214,60 +220,60 @@ function TableRowComponent({ index, style, data }: RowProps) {
   return (
     <TableRow style={style} backgroundColor={color} even={even}>
       <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
-        <TableCellText>{id}</TableCellText>
+        <TableCellText>{index}</TableCellText>
       </TableCell>
 
       <TableCellName basis={columnWidthsPx.seqName} shrink={0}>
-        <ColumnName seqName={seqName} sequence={sequence} warnings={warnings} errors={errors} />
+        <ColumnName seqName={seqName} sequence={analysisResult} isDone={isDone} warnings={warnings} errors={errors} />
       </TableCellName>
 
       <TableCell basis={columnWidthsPx.qc} grow={0} shrink={0}>
-        <ColumnQCStatus sequence={sequence} qc={qc} />
+        <ColumnQCStatus sequence={analysisResult} qc={qc} />
       </TableCell>
 
       <TableCellAlignedLeft basis={columnWidthsPx.clade} grow={0} shrink={0}>
-        <ColumnClade sequence={sequence} />
+        <ColumnClade sequence={analysisResult} />
       </TableCellAlignedLeft>
 
       {cladeNodeAttrKeys.map((attrKey) => (
         <TableCellAlignedLeft key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
-          <ColumnCustomNodeAttr sequence={sequence} attrKey={attrKey} />
+          <ColumnCustomNodeAttr sequence={analysisResult} attrKey={attrKey} />
         </TableCellAlignedLeft>
       ))}
 
       <TableCell basis={columnWidthsPx.mut} grow={0} shrink={0}>
-        <ColumnMutations sequence={sequence} />
+        <ColumnMutations sequence={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.nonACGTN} grow={0} shrink={0}>
-        <ColumnNonACGTNs sequence={sequence} />
+        <ColumnNonACGTNs sequence={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.ns} grow={0} shrink={0}>
-        <ColumnMissing sequence={sequence} />
+        <ColumnMissing sequence={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.gaps} grow={0} shrink={0}>
-        <ColumnGaps sequence={sequence} />
+        <ColumnGaps sequence={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.insertions} grow={0} shrink={0}>
-        <ColumnInsertions sequence={sequence} />
+        <ColumnInsertions sequence={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.frameShifts} grow={0} shrink={0}>
-        <ColumnFrameShifts sequence={sequence} />
+        <ColumnFrameShifts sequence={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.stopCodons} grow={0} shrink={0}>
-        <ColumnStopCodons sequence={sequence} />
+        <ColumnStopCodons sequence={analysisResult} />
       </TableCell>
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
         {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
-          <SequenceView key={seqName} sequence={sequence} />
+          <SequenceView key={seqName} sequence={analysisResult} />
         ) : (
-          <PeptideView key={seqName} sequence={sequence} viewedGene={viewedGene} warnings={warnings} />
+          <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
         )}
       </TableCell>
     </TableRow>
@@ -435,9 +441,10 @@ export function ResultsTableDisconnected({
 }: ResultProps) {
   const { t } = useTranslation()
 
-  const data = resultsFiltered
-  const rowData: TableRowDatum[] = data.map((datum) => ({
-    ...datum,
+  const seqNames = useRecoilValue(seqNamesAtom)
+
+  const rowData: TableRowDatum[] = seqNames.map((seqName) => ({
+    seqName,
     viewedGene,
     columnWidthsPx,
     dynamicColumnWidthPx,
@@ -593,7 +600,7 @@ export function ResultsTableDisconnected({
                 style={{ overflowY: 'scroll' }}
                 width={width}
                 height={height - HEADER_ROW_HEIGHT}
-                itemCount={data.length}
+                itemCount={rowData.length}
                 itemSize={ROW_HEIGHT}
                 itemData={rowData}
               >

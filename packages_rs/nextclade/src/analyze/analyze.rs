@@ -1,8 +1,7 @@
-use crate::align::align::AlignPairwiseParams;
 use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
-use crate::cli::nextalign_loop::NextalignOutputs;
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::cli::nextclade_loop::{nextclade_run_one, NextcladeOutputs};
 use crate::gene::gene_map::GeneMap;
 use crate::io::fasta::read_one_fasta_str;
@@ -17,7 +16,6 @@ use crate::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use crate::tree::tree_preprocess::tree_preprocess_in_place;
 use crate::wasm::js_value::{deserialize_js_value, serialize_js_value};
 use eyre::{Report, WrapErr};
-use log::debug;
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::str::FromStr;
@@ -129,19 +127,19 @@ impl Nextclade {
       pcr_primers_str,
     } = params;
 
-    let aln_params = AlignPairwiseParams::default();
+    let alignment_params = AlignPairwiseParams::default();
 
     let ref_record = read_one_fasta_str(ref_seq_str).wrap_err("When parsing reference sequence")?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
 
     let gene_map = read_gff3_str(gene_map_str).wrap_err("When parsing gene map")?;
 
-    let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &aln_params);
+    let gap_open_close_nuc = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &alignment_params);
 
-    let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &aln_params);
+    let gap_open_close_aa = get_gap_open_close_scores_flat(&ref_seq, &alignment_params);
 
     let ref_peptides =
-      translate_genes_ref(&ref_seq, &gene_map, &aln_params).wrap_err("When translating reference genes")?;
+      translate_genes_ref(&ref_seq, &gene_map, &alignment_params).wrap_err("When translating reference genes")?;
 
     let mut tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
     tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides).unwrap();
@@ -165,7 +163,7 @@ impl Nextclade {
       gap_open_close_nuc,
       gap_open_close_aa,
       clade_node_attr_key_descs,
-      aln_params,
+      aln_params: alignment_params,
     })
   }
 
@@ -179,8 +177,7 @@ impl Nextclade {
       qry_seq_str,
     } = input;
 
-    let qry_record = &read_one_fasta_str(qry_seq_str).wrap_err("When parsing query sequence")?;
-    let qry_seq = &to_nuc_seq(&qry_record.seq).wrap_err("When converting query sequence")?;
+    let qry_seq = &to_nuc_seq(qry_seq_str).wrap_err("When converting query sequence")?;
 
     let (qry_seq_aligned_stripped, translations, nextclade_outputs) = nextclade_run_one(
       qry_seq_name,
@@ -201,7 +198,6 @@ impl Nextclade {
     let nextclade_outputs_str =
       json_stringify(&nextclade_outputs).wrap_err("When serializing output results of Nextclade")?;
 
-    let translations_final = translations.iter().map(|tr| {});
     let translations_str = json_stringify(&translations).wrap_err("When serializing output translations")?;
 
     let qry_seq_str = from_nuc_seq(&qry_seq_aligned_stripped);

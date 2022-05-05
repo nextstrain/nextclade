@@ -1,6 +1,7 @@
 pub mod align;
 pub mod analyze;
 pub mod cli;
+pub mod dataset;
 pub mod gene;
 pub mod io;
 pub mod qc;

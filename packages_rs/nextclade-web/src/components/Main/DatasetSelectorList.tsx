@@ -66,18 +66,21 @@ export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick 
 
 export interface DatasetSelectorListProps {
   datasets: DatasetFlat[]
-  datasetHighlighted?: DatasetFlat
   searchTerm: string
-  onDatasetHighlighted(dataset?: DatasetFlat): void
+  datasetHighlighted?: string
+  onDatasetHighlighted(dataset: string): void
 }
 
 export function DatasetSelectorList({
   datasets,
-  datasetHighlighted,
   searchTerm,
+  datasetHighlighted,
   onDatasetHighlighted,
 }: DatasetSelectorListProps) {
-  const onItemClick = useCallback((dataset: DatasetFlat) => () => onDatasetHighlighted(dataset), [onDatasetHighlighted])
+  const onItemClick = useCallback(
+    (dataset: DatasetFlat) => () => onDatasetHighlighted(dataset.name),
+    [onDatasetHighlighted],
+  )
 
   const { itemsStartWith, itemsInclude, itemsNotInclude } = useMemo(() => {
     if (searchTerm.trim().length === 0) {
@@ -101,7 +104,7 @@ export function DatasetSelectorList({
               key={dataset.name}
               dataset={dataset}
               onClick={onItemClick(dataset)}
-              isCurrent={dataset.name === datasetHighlighted?.name}
+              isCurrent={dataset.name === datasetHighlighted}
             />
           )),
         )}
@@ -112,7 +115,7 @@ export function DatasetSelectorList({
               key={dataset.name}
               dataset={dataset}
               onClick={onItemClick(dataset)}
-              isCurrent={dataset.name === datasetHighlighted?.name}
+              isCurrent={dataset.name === datasetHighlighted}
               isDimmed
             />
           )),

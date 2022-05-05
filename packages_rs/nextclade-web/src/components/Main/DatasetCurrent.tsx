@@ -1,15 +1,12 @@
 import React, { useCallback, useState } from 'react'
 
-import { connect } from 'react-redux'
 import { Button, Col, Collapse, Row } from 'reactstrap'
-import { ButtonCustomize } from 'src/components/Main/ButtonCustomize'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { datasetCurrentAtom, datasetCurrentNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 
-import type { DatasetFlat } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import { setCurrentDataset } from 'src/state/algorithm/algorithm.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { selectCurrentDataset } from 'src/state/algorithm/algorithm.selectors'
+import { ButtonCustomize } from 'src/components/Main/ButtonCustomize'
 import { FilePickerAdvanced } from 'src/components/FilePicker/FilePickerAdvanced'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { DatasetInfo } from './DatasetInfo'
@@ -61,12 +58,6 @@ export const ChangeButton = styled(Button)`
   margin-left: auto;
 `
 
-export const CustomizeButton = styled(Button)`
-  height: 1.6rem;
-  padding: 0;
-  margin: 0;
-`
-
 export const AdvancedModeExplanationWrapper = styled.div`
   max-width: 550px;
   margin-top: 0.5rem;
@@ -76,32 +67,19 @@ export const AdvancedModeExplanationWrapper = styled.div`
   }
 `
 
-export interface DatasetCurrentProps {
-  dataset?: DatasetFlat
-  setCurrentDataset(dataset: DatasetFlat | undefined): void
-}
-
-const mapStateToProps = (state: State) => ({
-  dataset: selectCurrentDataset(state),
-})
-
-const mapDispatchToProps = {
-  setCurrentDataset,
-}
-
-export const DatasetCurrent = connect(mapStateToProps, mapDispatchToProps)(DatasetCurrentDisconnected)
-
-export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: DatasetCurrentProps) {
+export function DatasetCurrent() {
   const { t } = useTranslationSafe()
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const datasetCurrent = useRecoilValue(datasetCurrentAtom)
+  const setDatasetCurrent = useSetRecoilState(datasetCurrentNameAtom)
 
   const onChangeClicked = useCallback(() => {
-    setCurrentDataset(undefined)
-  }, [setCurrentDataset])
+    setDatasetCurrent(undefined)
+  }, [setDatasetCurrent])
 
   const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
 
-  if (!dataset) {
+  if (!datasetCurrent) {
     return null
   }
 
@@ -115,7 +93,7 @@ export function DatasetCurrentDisconnected({ dataset, setCurrentDataset }: Datas
         <Row noGutters>
           <Col className="d-flex flex-row">
             <Left>
-              <DatasetInfo dataset={dataset} />
+              <DatasetInfo dataset={datasetCurrent} />
             </Left>
 
             <Right>

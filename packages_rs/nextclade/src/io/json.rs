@@ -1,6 +1,5 @@
 use crate::io::fs::ensure_dir;
 use eyre::{Report, WrapErr};
-use serde::ser::{SerializeSeq, Serializer};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufWriter;

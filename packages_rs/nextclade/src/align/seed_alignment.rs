@@ -3,6 +3,7 @@ use crate::align::band_2d::simple_stripes;
 use crate::align::band_2d::Stripe;
 use crate::align::seed_match::seed_match;
 use crate::io::letter::Letter;
+use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::io::nuc::Nuc;
 use crate::make_error;
 use eyre::Report;
@@ -35,6 +36,11 @@ pub struct SeedMatch {
   pub qry_pos: usize,
   pub ref_pos: usize,
   pub score: usize,
+}
+
+pub struct SeedAlignmentResult {
+  pub mean_shift: i32,
+  pub band_width: usize,
 }
 
 pub fn get_seed_matches<L: Letter<L>>(
