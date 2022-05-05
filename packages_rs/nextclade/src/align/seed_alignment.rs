@@ -56,10 +56,15 @@ pub fn get_seed_matches<L: Letter<L>>(
   // loop over seeds and find matches, store in seed_matches
   let mut start_pos = 0;
   let mut end_pos = ref_seq.len();
+  let mut qry_pos = 0;
 
   for ni in 0..n_seeds {
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
-    let qry_pos = map_to_good_positions[good_position_index];
+
+    let qry_pos_diff = map_to_good_positions[good_position_index] - qry_pos;
+
+    qry_pos += qry_pos_diff;
+    end_pos += qry_pos_diff;
 
     let seed = &qry_seq[qry_pos..(qry_pos + params.seed_length)];
     let tmp_match = seed_match(seed, ref_seq, start_pos, end_pos, params.mismatches_allowed);
@@ -78,9 +83,8 @@ pub fn get_seed_matches<L: Letter<L>>(
         ref_pos: tmp_match.ref_pos,
         score: tmp_match.score,
       });
-      end_pos = tmp_match.ref_pos + params.max_indel + kmer_spacing.round() as usize;
+      end_pos = tmp_match.ref_pos + params.max_indel;
     }
-    end_pos += kmer_spacing.round() as usize;
   }
   seed_matches
 }
