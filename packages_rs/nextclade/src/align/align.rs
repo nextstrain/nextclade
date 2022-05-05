@@ -43,7 +43,12 @@ pub fn align_nuc(
 
   let stripes = seed_alignment(qry_seq, ref_seq, params)?;
 
-  let result = align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)?;
+  let nuc_params = AlignPairwiseParams {
+    terminal_gaps_free: true,
+    ..*params
+  };
+
+  let result = align_pairwise(qry_seq, ref_seq, gap_open_close, &nuc_params, &stripes)?;
 
   trace!("Score: {}", result.alignment_score);
 
@@ -60,7 +65,12 @@ pub fn align_aa(
 ) -> Result<AlignmentOutput<Aa>, Report> {
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
-  align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)
+  let aa_params = AlignPairwiseParams {
+    terminal_gaps_free: false,
+    ..*params
+  };
+
+  align_pairwise(qry_seq, ref_seq, gap_open_close, &aa_params, &stripes)
 }
 
 #[cfg(test)]

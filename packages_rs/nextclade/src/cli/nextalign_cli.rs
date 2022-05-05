@@ -242,6 +242,10 @@ pub struct AlignPairwiseParams {
   /// Whether to stop gene translation after first stop codon. It will cut the genes in places cases where mutations resulted in premature stop codons. If this flag is present, the aminoacid sequences wil be truncated at the first stop codon and analysis of aminoacid mutations will not be available for the regions after first stop codon.
   #[clap(long)]
   pub no_translate_past_stop: bool,
+
+  /// Whether terminal gaps are free or penalized.
+  #[clap(long)]
+  pub terminal_gaps_free: bool,
 }
 
 impl Default for AlignPairwiseParams {
@@ -260,6 +264,7 @@ impl Default for AlignPairwiseParams {
       seed_spacing: 100,
       mismatches_allowed: 3,
       no_translate_past_stop: false,
+      terminal_gaps_free: true,
     }
   }
 }
