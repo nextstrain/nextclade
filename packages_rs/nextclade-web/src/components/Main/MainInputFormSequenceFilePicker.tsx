@@ -3,10 +3,11 @@ import { sumBy } from 'lodash'
 import { useRouter } from 'next/router'
 import { connect } from 'react-redux'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
-import { useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
+import { useRecoilCallback, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { analysisResultsAtom } from 'src/state/results.state'
+import { numThreadsAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 
 import type { DatasetFlat } from 'src/algorithms/types'
@@ -104,6 +105,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
   const { t } = useTranslationSafe()
   const router = useRouter()
 
+  const numThreads = useRecoilValue(numThreadsAtom)
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
 
   const [_, setQrySeq] = useRecoilState(qrySeqAtom)
@@ -150,7 +152,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
           throw new ErrorInternal('Dataset is not selected, but required.')
         }
 
-        launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent).catch(console.error)
+        launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads).catch(console.error)
 
         router.push('/results')
       },

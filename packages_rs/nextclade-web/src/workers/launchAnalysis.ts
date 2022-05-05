@@ -7,8 +7,6 @@ import { AnalysisLauncherStatus } from 'src/workers/go.worker'
 import { createGoWorker } from 'src/workers/run'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
 
-const NUM_THREADS = 20
-
 export interface LaunchAnalysisInputs {
   ref_seq_str?: AlgorithmInput
   gene_map_str?: AlgorithmInput
@@ -41,6 +39,7 @@ export async function launchAnalysis(
   paramInputs: LaunchAnalysisInputs,
   callbacks: LaunchAnalysisCallbacks,
   dataset: DatasetFlat,
+  numThreads: number,
 ) {
   const { onGlobalStatus, onParsedFasta, onAnalysisResult, onError, onComplete } = callbacks
 
@@ -60,7 +59,7 @@ export async function launchAnalysis(
 
   try {
     // Run the launcher worker
-    await launcherWorker.goWorker(NUM_THREADS, params, qryFastaStr)
+    await launcherWorker.goWorker(numThreads, params, qryFastaStr)
   } finally {
     // Unsubscribe from all events
     await concurrent.forEach(async (subscription) => subscription.unsubscribe(), subscriptions)
