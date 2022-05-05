@@ -692,6 +692,10 @@ pushd "${BUILD_DIR}" > /dev/null
     ${CONAN_STATIC_BUILD_FLAGS} \
     --build missing \
 
+  if [ -f "${BUILD_DIR}/Findghc_filesystem.cmake" ]; then
+    mv "${BUILD_DIR}/Findghc_filesystem.cmake" "${BUILD_DIR}/FindghcFilesystem.cmake"
+  fi
+
   print 57 "Generate source files";
   python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
       --input_json=${PROJECT_ROOT_DIR}/packages/nextclade_cli/cli.json \
@@ -838,10 +842,10 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
       ulimit -s unlimited
     fi
 
-#    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-#      print 27 "Run Nextalign CLI";
-#      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-#    fi
+    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+      print 27 "Run Nextalign CLI";
+      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+    fi
 
     if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
       if [ ! -d "${DATA_DIR}" ]; then

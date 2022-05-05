@@ -7,6 +7,7 @@ import styled from 'styled-components'
 import { selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
 import type { State } from 'src/state/reducer'
 import type { AnalysisResult } from 'src/algorithms/types'
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
@@ -98,7 +99,8 @@ export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }:
 
   return (
     <SequenceViewWrapper>
-      <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
+      {/* Padding of 1/2 of a nuc is added on both sides, such that the markers close to the edges are visible */}
+      <SequenceViewSVG viewBox={`${-BASE_MIN_WIDTH_PX / 2} 0 ${width + BASE_MIN_WIDTH_PX / 2} 10`}>
         <rect fill="transparent" x={0} y={-10} width={genomeSize} height="30" />
         <SequenceMarkerUnsequencedStart
           seqName={seqName}

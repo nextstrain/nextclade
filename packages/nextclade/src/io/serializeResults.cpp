@@ -445,13 +445,20 @@ namespace Nextclade {
     return j;
   }
 
+  json serializeCladeNodeAttr(const CladeNodeAttr& attr) {
+    auto j = json::object();
+    j.emplace("name", attr.name);
+    j.emplace("displayName", attr.displayName);
+    j.emplace("description", attr.description);
+    return j;
+  }
 
   std::string serializeResults(const AnalysisResults& analysisResults) {
     auto j = json::object();
     j.emplace("schemaVersion", analysisResults.schemaVersion);
     j.emplace("nextcladeVersion", analysisResults.nextcladeVersion);
     j.emplace("timestamp", analysisResults.timestamp);
-    j.emplace("cladeNodeAttrKeys", serializeArray(analysisResults.cladeNodeAttrKeys));
+    j.emplace("cladeNodeAttrKeys", serializeArray(analysisResults.cladeNodeAttrKeys, serializeCladeNodeAttr));
     j.emplace("results", serializeResultsArray(analysisResults.results));
     return jsonStringify(j);
   }
@@ -484,10 +491,11 @@ namespace Nextclade {
     return jsonStringify(j);
   }
 
-  std::string serializeCladeNodeAttrKeys(const safe_vector<std::string>& keys) {
+
+  std::string serializeCladeNodeAttrs(const safe_vector<CladeNodeAttr>& attrs) {
     auto j = json::array();
-    for (const auto& key : keys) {
-      j.push_back(key);
+    for (const auto& attr : attrs) {
+      j.push_back(serializeCladeNodeAttr(attr));
     }
     return jsonStringify(j);
   }

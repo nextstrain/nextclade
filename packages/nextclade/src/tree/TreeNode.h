@@ -4,6 +4,7 @@
 #include <nlohmann/json_fwd.hpp>
 // clang-format on
 
+#include <common/safe_vector.h>
 #include <nextalign/nextalign.h>
 #include <nextclade/nextclade.h>
 
@@ -12,7 +13,6 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <common/safe_vector.h>
 
 enum class Nucleotide : char;
 
@@ -87,7 +87,7 @@ namespace Nextclade {
 
     void setClade(const std::string& clade);
 
-    std::map<std::string, std::string> customNodeAttributes(const safe_vector<std::string>& customNodeAttrKeys) const;
+    std::map<std::string, std::string> customNodeAttributes(const safe_vector<CladeNodeAttr>& customNodeAttrKeys) const;
 
     void setCustomNodeAttributes(const std::map<std::string, std::string>& attrs) const;
 

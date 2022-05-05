@@ -1,5 +1,6 @@
 #include "TreeNode.h"
 
+#include <common/contract.h>
 #include <fmt/format.h>
 #include <nextalign/private/nextalign_private.h>
 #include <nextclade/nextclade.h>
@@ -10,7 +11,8 @@
 
 #include "../../../nextalign/src/alphabet/nucleotides.h"
 #include "../io/parseMutation.h"
-#include <common/contract.h>
+#include "../utils/concat.h"
+#include "../utils/map.h"
 #include "../utils/safe_cast.h"
 
 namespace Nextclade {
@@ -338,21 +340,34 @@ namespace Nextclade {
     ) {
       auto mutObj = json::object();
 
+      // Merge nuc subs and dels and rev dels, and sort them in unison
+      const auto delsAsSubs = map_vector<NucleotideDeletionSimple, NucleotideSubstitutionSimple>(
+        nucMutations.privateDeletions, convertDelToSub<Nucleotide>);
+      auto allNucMutations = merge(nucMutations.privateSubstitutions, delsAsSubs);
+      allNucMutations = merge(allNucMutations, nucMutations.reversionsOfDeletions);
+      std::sort(allNucMutations.begin(), allNucMutations.end());
 
-      for (const auto& mut : nucMutations.privateSubstitutions) {
-        mutObj["nuc"].push_back(formatMutationSimple(mut));
+      if (!mutObj.contains("nuc")) {
+        mutObj["nuc"] = json::array();
       }
 
-      for (const auto& mut : nucMutations.privateDeletions) {
-        mutObj["nuc"].push_back(formatDeletionSimple(mut));
+      for (const auto& mut : allNucMutations) {
+        mutObj["nuc"].push_back(formatMutationSimple(mut));
       }
 
       for (const auto& [geneName, aaMutationsForGene] : aaMutations) {
         const auto& privateAaSubstitutions = aaMutationsForGene.privateSubstitutions;
         const auto& privateAaDeletions = aaMutationsForGene.privateDeletions;
-        const int totalPrivateAaMutations = safe_cast<int>(privateAaSubstitutions.size() + privateAaDeletions.size());
+        const auto& reversionsOfDeletions = aaMutationsForGene.reversionsOfDeletions;
 
-        if (totalPrivateAaMutations == 0) {
+        // Merge aa subs and dels and rev dels, and sort them in unison
+        const auto aaDelsAsSubs = map_vector<AminoacidDeletionSimple, AminoacidSubstitutionSimple>(privateAaDeletions,
+          convertDelToSub<Aminoacid>);
+        auto allAaMutations = merge(privateAaSubstitutions, aaDelsAsSubs);
+        allAaMutations = merge(allAaMutations, reversionsOfDeletions);
+        std::sort(allAaMutations.begin(), allAaMutations.end());
+
+        if (allAaMutations.empty()) {
           continue;
         }
 
@@ -360,12 +375,8 @@ namespace Nextclade {
           mutObj[geneName] = json::array();
         }
 
-        for (const auto& mut : privateAaSubstitutions) {
+        for (const auto& mut : allAaMutations) {
           mutObj[geneName].push_back(formatAminoacidMutationSimpleWithoutGene(mut));
-        }
-
-        for (const auto& mut : privateAaDeletions) {
-          mutObj[geneName].push_back(formatAminoacidDeletionSimpleWithoutGene(mut));
         }
       }
 
@@ -403,11 +414,14 @@ namespace Nextclade {
       j[json_pointer{"/node_attrs/clade_membership/value"}] = clade;
     }
 
-    std::map<std::string, std::string> customNodeAttributes(const safe_vector<std::string>& customNodeAttrKeys) const {
+    std::map<std::string, std::string> customNodeAttributes(
+      const safe_vector<CladeNodeAttr>& customNodeAttrKeys) const {
       ensureIsObject();
 
       std::map<std::string, std::string> attrs;
-      for (const auto& key : customNodeAttrKeys) {
+      for (const auto& attr : customNodeAttrKeys) {
+        const auto& key = attr.name;
+
         const auto& jptr = json_pointer{fmt::format("/node_attrs/{}/value", key)};
         if (!j.contains(jptr)) {
           continue;
@@ -585,7 +599,7 @@ namespace Nextclade {
   }
 
   std::map<std::string, std::string> TreeNode::customNodeAttributes(
-    const safe_vector<std::string>& customNodeAttrKeys) const {
+    const safe_vector<CladeNodeAttr>& customNodeAttrKeys) const {
     return pimpl->customNodeAttributes(customNodeAttrKeys);
   }
 

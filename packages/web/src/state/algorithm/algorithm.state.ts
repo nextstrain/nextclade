@@ -1,4 +1,12 @@
-import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat, UrlParams } from 'src/algorithms/types'
+import type {
+  AnalysisResult,
+  Gene,
+  Peptide,
+  Warnings,
+  DatasetFlat,
+  UrlParams,
+  CladeNodeAttr,
+} from 'src/algorithms/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
 export enum AlgorithmGlobalStatus {
@@ -124,7 +132,7 @@ export interface AlgorithmState {
   resultsFiltered: SequenceAnalysisState[]
   treeStr?: string
   resultsJsonStr?: string
-  cladeNodeAttrKeys: string[]
+  cladeNodeAttrKeys: CladeNodeAttr[]
   errors: string[]
   filters: ResultsFilters
   exportParams: ExportParams

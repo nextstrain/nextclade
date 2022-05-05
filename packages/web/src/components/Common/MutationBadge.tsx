@@ -81,7 +81,7 @@ export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgePro
             {refNuc}
           </ColoredText>
         )}
-        {pos && <PositionText>{posOneBased}</PositionText>}
+        <PositionText>{posOneBased}</PositionText>
         {queryNuc && (
           <ColoredText $background={queryBg} $color={queryFg}>
             {queryNuc}
