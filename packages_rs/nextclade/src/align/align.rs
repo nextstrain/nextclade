@@ -1,4 +1,5 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
+use crate::align::band_2d::simple_stripes;
 use crate::align::band_2d::Stripe;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::seed_alignment;
@@ -93,7 +94,7 @@ pub fn align_aa(
   band_width: usize,
   mean_shift: i32,
 ) -> Result<AlignmentOutput<Aa>, Report> {
-  let stripes = vec![]; // HACK: stripes are empty
+  let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
   align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)
 }
