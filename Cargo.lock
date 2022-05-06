@@ -1487,6 +1487,7 @@ dependencies = [
 name = "nextclade-web"
 version = "2.0.0"
 dependencies = [
+ "assert2",
  "console_error_panic_hook",
  "eyre",
  "getrandom",
