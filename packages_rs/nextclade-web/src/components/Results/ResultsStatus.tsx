@@ -1,47 +1,147 @@
-import React from 'react'
-
-import { connect } from 'react-redux'
-import styled from 'styled-components'
+import React, { ReactNode, useMemo } from 'react'
 import { Oval } from 'react-loader-spinner'
 
-import type { State } from 'src/state/reducer'
-import { selectStatus } from 'src/state/algorithm/algorithm.selectors'
+import { useRecoilValue } from 'recoil'
+import i18n from 'src/i18n/i18n'
+import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
+import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
+import { numThreadsAtom } from 'src/state/settings.state'
+import styled from 'styled-components'
 
 const ResultsStatusWrapper = styled.div`
+  display: flex;
   height: 32px;
   margin: 0;
+
+  > span {
+    line-height: 32px;
+  }
 `
 
-export interface ResultsStatusProps {
-  status: { percent: number; statusText: string; failureText?: string; hasFailures: boolean }
-}
+export function ResultsStatus() {
+  const numThreads = useRecoilValue(numThreadsAtom)
+  const statusGlobal = useRecoilValue(analysisStatusGlobalAtom)
 
-const mapStateToProps = (state: State) => ({
-  status: selectStatus(state),
-})
+  const { text, spinner } = useMemo(() => {
+    const { statusText, failureText, percent } = selectStatus(statusGlobal, numThreads)
 
-const mapDispatchToProps = {}
+    let text = <span>{statusText}</span>
+    if (failureText) {
+      text = (
+        <>
+          <span>{statusText}</span>
+          <span>{'. '}</span>
+          <span className="text-danger">{failureText}</span>
+        </>
+      )
+    }
 
-export const ResultsStatus = connect(mapStateToProps, mapDispatchToProps)(ResultsStatusDisconnected)
+    let spinner: ReactNode = <Oval color="#222" width={24} height={24} />
+    if (percent === 100) {
+      spinner = null
+    }
 
-export function ResultsStatusDisconnected({ status }: ResultsStatusProps) {
-  const { statusText, failureText, percent } = status
-
-  let text = <span>{statusText}</span>
-  if (failureText) {
-    text = (
-      <>
-        <span>{statusText}</span>
-        <span>{'. '}</span>
-        <span className="text-danger">{failureText}</span>
-      </>
-    )
-  }
+    return { text, spinner }
+  }, [numThreads, statusGlobal])
 
   return (
     <ResultsStatusWrapper>
-      {percent !== 100 && <Oval color="#222" width={24} height={24} />}
+      <span>{spinner}</span>
       <span className="ml-2">{text}</span>
     </ResultsStatusWrapper>
   )
+}
+
+export function selectStatus(statusGlobal: AlgorithmGlobalStatus, numThreads: number) {
+  // const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
+  // const hasFailures = state.algorithm.results.some(({ status }) => status === AlgorithmSequenceStatus.failed)
+  const sequenceStatuses: AlgorithmSequenceStatus[] = []
+  const hasFailures = false
+
+  const idlingPercent = 0
+  const loadingDataPercent = 5
+  const loadingDataDonePercent = 10
+  const treeBuildPercent = 85
+  const treeBuildDonePercent = 90
+  const allDonePercent = 100
+
+  let statusText = i18n.t('Idle')
+  let failureText: string | undefined
+  let percent = 0
+
+  /* eslint-disable no-lone-blocks */
+  switch (statusGlobal) {
+    case AlgorithmGlobalStatus.idle:
+      {
+        statusText = i18n.t('Idle')
+        percent = idlingPercent
+      }
+      break
+
+    case AlgorithmGlobalStatus.loadingData:
+      {
+        statusText = i18n.t('Loading data...')
+        percent = loadingDataPercent
+      }
+      break
+
+    case AlgorithmGlobalStatus.initWorkers:
+      {
+        statusText = i18n.t('Starting {{numWorkers}} threads...', { numWorkers: numThreads })
+        percent = loadingDataDonePercent
+      }
+      break
+
+    case AlgorithmGlobalStatus.started:
+      {
+        const total = sequenceStatuses.length
+        const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.done).length
+        const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.failed).length
+        const done = succeeded + failed
+        percent = loadingDataDonePercent + (done / total) * (treeBuildPercent - loadingDataDonePercent)
+        statusText = i18n.t('Analysing sequences: Found: {{total}}. Analyzed: {{done}}', { done, total })
+        if (failed > 0) {
+          failureText = i18n.t('Failed: {{failed}}', { failed, total })
+        }
+      }
+      break
+
+    case AlgorithmGlobalStatus.buildingTree:
+      {
+        percent = treeBuildDonePercent
+        statusText = i18n.t('Building tree')
+      }
+      break
+
+    case AlgorithmGlobalStatus.done:
+      {
+        percent = allDonePercent
+        const total = sequenceStatuses.length
+        const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.done).length
+        const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.failed).length
+        statusText = i18n.t('Done. Total sequences: {{total}}. Succeeded: {{succeeded}}', { succeeded, total })
+        if (failed > 0) {
+          failureText = i18n.t('Failed: {{failed}}', { failed, total })
+        }
+      }
+      break
+
+    case AlgorithmGlobalStatus.failed:
+      {
+        failureText = i18n.t('Failed due to error.')
+        percent = 100
+      }
+      break
+
+    default:
+      if (process.env.NODE_ENV !== 'production') {
+        throw new Error(
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          `This switch-case block should be exhaustive, but has reached the default case. The value was "${statusGlobal}". This is an internal error. Please report it to developers.`,
+        )
+      }
+    /* eslint-enable no-lone-blocks */
+  }
+
+  return { percent, statusText, failureText, hasFailures }
 }

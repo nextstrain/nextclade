@@ -7,20 +7,13 @@ import type { Thread } from 'threads'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import { expose } from 'threads/worker'
 
-import { createAnalysisThreadPool, destroyAnalysisThreadPool, parseSequencesStreaming } from 'src/workers/run'
-
 import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
-
-export enum AnalysisLauncherStatus {
-  init = 'init',
-  started = 'started',
-  done = 'done',
-  failed = 'failed',
-}
+import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
+import { createAnalysisThreadPool, destroyAnalysisThreadPool, parseSequencesStreaming } from 'src/workers/run'
 
 // Reports global analysis status to main thread
-const analysisGlobalStatusObservable = new Subject<AnalysisLauncherStatus>()
+const analysisGlobalStatusObservable = new Subject<AlgorithmGlobalStatus>()
 
 // Relays messages from fasta parser webworker to the main thread
 const parsedFastaObservable = new Subject<FastaRecordId>()
@@ -29,10 +22,10 @@ const parsedFastaObservable = new Subject<FastaRecordId>()
 const analysisResultsObservable = new Subject<NextcladeResult>()
 
 export async function goWorker(numThreads: number, params: NextcladeParamsPojo, qryFastaStr: string) {
-  analysisGlobalStatusObservable.next(AnalysisLauncherStatus.init)
+  analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.initWorkers)
   const pool = await createAnalysisThreadPool(numThreads, params)
 
-  analysisGlobalStatusObservable.next(AnalysisLauncherStatus.started)
+  analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.started)
   await parseSequencesStreaming(
     qryFastaStr,
     (record: FastaRecord) => {
@@ -47,7 +40,7 @@ export async function goWorker(numThreads: number, params: NextcladeParamsPojo, 
         })
     },
     (error) => {
-      analysisGlobalStatusObservable.next(AnalysisLauncherStatus.failed)
+      analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.failed)
       parsedFastaObservable.error(error)
     },
     () => {
@@ -58,13 +51,13 @@ export async function goWorker(numThreads: number, params: NextcladeParamsPojo, 
   await pool.completed()
   await destroyAnalysisThreadPool(pool)
   analysisResultsObservable.complete()
-  analysisGlobalStatusObservable.next(AnalysisLauncherStatus.done)
+  analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.done)
 }
 
 // noinspection JSUnusedGlobalSymbols
 const worker = {
   goWorker,
-  getAnalysisGlobalStatusObservable(): ThreadsObservable<AnalysisLauncherStatus> {
+  getAnalysisGlobalStatusObservable(): ThreadsObservable<AlgorithmGlobalStatus> {
     return ThreadsObservable.from(analysisGlobalStatusObservable)
   },
   getParsedFastaObservable(): ThreadsObservable<FastaRecordId> {

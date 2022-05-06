@@ -2,8 +2,7 @@ import { concurrent } from 'fasy'
 
 import type { DatasetFiles, DatasetFlat, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen'
-import { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
-import { AnalysisLauncherStatus } from 'src/workers/go.worker'
+import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { createGoWorker } from 'src/workers/run'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
 
@@ -17,7 +16,7 @@ export interface LaunchAnalysisInputs {
 }
 
 export interface LaunchAnalysisCallbacks {
-  onGlobalStatus: (record: AnalysisLauncherStatus) => void
+  onGlobalStatus: (record: AlgorithmGlobalStatus) => void
   onParsedFasta: (record: FastaRecordId) => void
   onAnalysisResult: (record: NextcladeResult) => void
   onError: (error: Error) => void
