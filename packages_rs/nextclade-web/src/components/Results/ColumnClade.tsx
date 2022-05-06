@@ -6,14 +6,14 @@ import { useTranslation } from 'react-i18next'
 import { Tooltip } from 'src/components/Results/Tooltip'
 
 export interface ColumnCladeProps {
-  sequence: AnalysisResult
+  analysisResult: AnalysisResult
 }
 
-export function ColumnClade({ sequence }: ColumnCladeProps) {
+export function ColumnClade({ analysisResult }: ColumnCladeProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { clade, seqName } = sequence
+  const { clade, seqName } = analysisResult
   const id = getSafeId('col-clade', { seqName })
   const cladeText = clade ?? t('Pending...')
 

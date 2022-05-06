@@ -1,4 +1,4 @@
-import type { AnalysisResult, Gene, Peptide, Warnings, DatasetFlat, UrlParams } from 'src/algorithms/types'
+import type { AnalysisResult, Gene, Peptide, DatasetFlat, UrlParams } from 'src/algorithms/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
 export enum AlgorithmGlobalStatus {
@@ -12,8 +12,6 @@ export enum AlgorithmGlobalStatus {
 }
 
 export enum AlgorithmSequenceStatus {
-  idling = 'idling',
-  queued = 'queued',
   started = 'started',
   done = 'done',
   failed = 'failed',

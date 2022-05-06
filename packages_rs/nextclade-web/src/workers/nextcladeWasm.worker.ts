@@ -1,13 +1,16 @@
 /* eslint-disable camelcase */
 import 'regenerator-runtime'
+import { isNil } from 'lodash'
+import { FatalError } from 'next/dist/lib/fatal-error'
 
 import type { AnalysisResult, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
+import { NextcladeWasm, NextcladeParams, AnalysisInput, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 
 const gSubject = new Subject<FastaRecord>()
@@ -24,11 +27,17 @@ function onError(error: Error) {
   gSubject?.error(error)
 }
 
-export class ErrorModuleNotInitialized extends Error {
+export class ErrorModuleNotInitialized extends ErrorInternal {
   constructor(fnName: string) {
     super(
-      `Developer error: this WebWorker module has not been initialized yet. When calling module.${fnName} Make sure to call 'module.create()' function.`,
+      `This WebWorker module has not been initialized yet. When calling module.${fnName} Make sure to call 'module.create()' function.`,
     )
+  }
+}
+
+export class ErrorBothResultsAndErrorAreNull extends ErrorInternal {
+  constructor() {
+    super(`Both the 'results' and 'error' returned from the analysis wasm module are 'null'. This should never happen.`)
   }
 }
 
@@ -69,25 +78,34 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
     qry_seq_str: seq,
   })
 
-  const resultRaw = nextcladeWasm.analyze(input).to_js()
+  const { result, error } = nextcladeWasm.analyze(input).to_js()
 
-  const query = resultRaw.qry_seq_str
-  const queryPeptides = JSON.parse(resultRaw.translations_str) as Peptide[]
-  const analysisResult = JSON.parse(resultRaw.nextclade_outputs_str) as AnalysisResult
+  if (result) {
+    let { query, query_peptides, analysis_result } = result as unknown as AnalysisOutputPojo
 
-  return {
-    index,
-    seqName,
-    analysisResult,
-    query,
-    queryPeptides,
-    warnings: {
-      global: [],
-      inGenes: [],
-    },
-    hasError: false,
-    error: undefined,
+    const queryPeptides = JSON.parse(query_peptides) as Peptide[]
+    const analysisResult = JSON.parse(analysis_result) as AnalysisResult
+
+    return {
+      index,
+      seqName,
+      result: {
+        query,
+        queryPeptides,
+        analysisResult,
+      },
+    }
   }
+
+  if (error) {
+    return {
+      index,
+      seqName,
+      error,
+    }
+  }
+
+  throw new ErrorBothResultsAndErrorAreNull()
 }
 
 // export async function getCladeNodeAttrKeyDescs(): Promise<string> {

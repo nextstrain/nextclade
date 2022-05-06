@@ -8,13 +8,13 @@ import { BsArrowReturnLeft } from 'react-icons/bs'
 import type { State } from 'src/state/reducer'
 import { setViewedGene } from 'src/state/ui/ui.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { Table, TableCell, TableCellName, TableRow } from 'src/components/Results/ResultsTable'
 import { GeneMap, GENE_MAP_HEIGHT_PX } from 'src/components/GeneMap/GeneMap'
 import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { ButtonHelpSimple } from 'src/components/Results/ButtonHelp'
 import HelpTipsGeneMap from 'src/components/Results/HelpTips/HelpTipsGeneMap.mdx'
+import { Table, TableCell, TableCellName, TableRow } from 'src/components/Results/ResultsTableStyle'
 
 export const GeneMapTableContent = styled(Table)`
   overflow-y: scroll;

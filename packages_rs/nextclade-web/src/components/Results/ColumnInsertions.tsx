@@ -8,14 +8,14 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Col, Row } from 'reactstrap'
 
 export interface ColumnInsertionsProps {
-  sequence: AnalysisResult
+  analysisResult: AnalysisResult
 }
 
-export function ColumnInsertions({ sequence }: ColumnInsertionsProps) {
+export function ColumnInsertions({ analysisResult }: ColumnInsertionsProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { seqName, insertions, totalInsertions, aaInsertions, totalAminoacidInsertions } = sequence
+  const { seqName, insertions, totalInsertions, aaInsertions, totalAminoacidInsertions } = analysisResult
   const id = getSafeId('col-insertions', { seqName, insertions })
 
   const nucTitle = useMemo(() => t('Nucleotide insertions ({{n}})', { n: insertions.length }), [insertions.length, t])

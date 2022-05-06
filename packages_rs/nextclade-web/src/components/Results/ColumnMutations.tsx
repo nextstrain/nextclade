@@ -10,11 +10,11 @@ import { ListOfAminoacidSubstitutions } from 'src/components/SequenceView/ListOf
 import { ListOfPrivateNucMutations } from 'src/components/Results/ListOfPrivateNucMutations'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
-export function ColumnMutations({ sequence }: ColumnCladeProps) {
+export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { seqName, substitutions, aaSubstitutions, privateNucMutations } = sequence
+  const { seqName, substitutions, aaSubstitutions, privateNucMutations } = analysisResult
   const id = getSafeId('mutations-label', { seqName })
 
   const privateNucMutationsInternal = useMemo(() => convertPrivateMutations(privateNucMutations), [privateNucMutations])

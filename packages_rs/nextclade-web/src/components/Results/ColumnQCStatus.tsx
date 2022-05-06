@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
-import type { QcResult, AnalysisResult } from 'src/algorithms/types'
+import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfQcIssues } from 'src/components/Results/ListOfQcIsuues'
@@ -9,29 +8,16 @@ import { notUndefined } from 'src/helpers/notUndefined'
 import { Circle } from 'src/components/Results/Circle'
 
 export interface ColumnQCStatusProps {
-  sequence: AnalysisResult
-  qc?: QcResult
+  analysisResult: AnalysisResult
 }
 
-export function ColumnQCStatus({ sequence, qc }: ColumnQCStatusProps) {
-  const { t } = useTranslation()
+export function ColumnQCStatus({ analysisResult }: ColumnQCStatusProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { seqName } = sequence
-  const id = getSafeId('qc-label', { seqName })
-
-  if (!qc) {
-    return (
-      <div id={id} onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
-        {t('Pending...')}
-        <Tooltip target={id} isOpen={showTooltip}>
-          {t('Sequence quality control has not yet completed')}
-        </Tooltip>
-      </div>
-    )
-  }
-
+  const { seqName, qc } = analysisResult
   const { missingData, privateMutations, mixedSites, snpClusters, frameShifts, stopCodons } = qc
+
+  const id = getSafeId('qc-label', { seqName })
 
   const rules = [
     { value: missingData, name: 'N' },

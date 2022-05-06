@@ -5,7 +5,7 @@ import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import styled from 'styled-components'
 
-import type { AnalysisResult, Gene, GeneWarning, Warnings } from 'src/algorithms/types'
+import type { AnalysisResult, Gene, PeptideWarning } from 'src/algorithms/types'
 import type { State } from 'src/state/reducer'
 import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
@@ -35,7 +35,7 @@ const Alert = styled(ReactstrapAlert)`
 
 export interface PeptideViewMissingProps {
   geneName: string
-  reasons: GeneWarning[]
+  reasons: PeptideWarning[]
 }
 
 export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProps) {
@@ -73,7 +73,7 @@ export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProp
 
 export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
-  warnings: Warnings
+  warnings?: PeptideWarning[]
   geneMap?: Gene[]
   viewedGene: string
 }
@@ -105,7 +105,7 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
     )
   }
 
-  const warningsForThisGene = warnings.inGenes.filter((warn) => warn.geneName === viewedGene)
+  const warningsForThisGene = (warnings ?? []).filter((warn) => warn.geneName === viewedGene)
   if (warningsForThisGene.length > 0) {
     return (
       <SequenceViewWrapper>

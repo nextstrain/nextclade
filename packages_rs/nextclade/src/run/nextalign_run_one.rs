@@ -4,7 +4,7 @@ use crate::align::params::AlignPairwiseParams;
 use crate::gene::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
-use crate::types::outputs::NextalignOutputs;
+use crate::types::outputs::{NextalignOutputs, PeptideWarning};
 use crate::utils::error::report_to_string;
 use eyre::Report;
 use itertools::{Either, Itertools};
@@ -30,14 +30,17 @@ pub fn nextalign_run_one(
         gene_map,
         gap_open_close_aa,
         params,
-      );
+      )?;
 
       let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
 
-      let (translations, warnings): (Vec<Translation>, Vec<String>) =
-        translations.into_iter().partition_map(|res| match res {
+      let (translations, warnings): (Vec<Translation>, Vec<PeptideWarning>) =
+        translations.into_iter().partition_map(|(gene_name, res)| match res {
           Ok(tr) => Either::Left(tr),
-          Err(err) => Either::Right(report_to_string(&err)),
+          Err(err) => Either::Right(PeptideWarning {
+            gene_name,
+            warning: report_to_string(&err),
+          }),
         });
 
       let present_genes: HashSet<String> = translations.iter().map(|tr| &tr.gene_name).cloned().collect();
