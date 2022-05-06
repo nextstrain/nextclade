@@ -25,9 +25,9 @@ function onError(error: Error) {
 }
 
 export class ErrorModuleNotInitialized extends Error {
-  constructor() {
+  constructor(fnName: string) {
     super(
-      'Developer error: this WebWorker module has not been initialized yet. Make sure to call `module.create()` function.',
+      `Developer error: this WebWorker module has not been initialized yet. When calling module.${fnName} Make sure to call 'module.create()' function.`,
     )
   }
 }
@@ -49,7 +49,7 @@ async function create(params_pojo: NextcladeParamsPojo) {
 /** Destroys the underlying WebAssembly module. */
 async function destroy() {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized()
+    throw new ErrorModuleNotInitialized('destroy')
   }
 
   nextcladeWasm.free()
@@ -59,7 +59,7 @@ async function destroy() {
 /** Runs the underlying WebAssembly module. */
 async function analyze(record: FastaRecord): Promise<NextcladeResult> {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized()
+    throw new ErrorModuleNotInitialized('analyze')
   }
 
   const { index, seqName, seq } = record
@@ -100,7 +100,7 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
 /** Retrieves the output tree from the WebAssembly module. */
 export function getOutputTree(analysisResultsJsonStr: string): string {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized()
+    throw new ErrorModuleNotInitialized('getOutputTree')
   }
   return nextcladeWasm.get_output_tree(analysisResultsJsonStr)
 }
