@@ -1,278 +1,32 @@
-use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use crate::align::insertions_strip::{get_aa_insertions, AaIns, Insertion, NucIns};
-use crate::analyze::aa_changes::{find_aa_changes, FindAaChangesOutput};
-use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
-use crate::analyze::divergence::calculate_divergence;
-use crate::analyze::find_private_aa_mutations::{find_private_aa_mutations, PrivateAaMutations};
-use crate::analyze::find_private_nuc_mutations::{find_private_nuc_mutations, PrivateNucMutations};
-use crate::analyze::letter_composition::get_letter_composition;
-use crate::analyze::letter_ranges::{
-  find_aa_letter_ranges, find_letter_ranges, find_letter_ranges_by, GeneAaRange, NucRange,
-};
-use crate::analyze::link_nuc_and_aa_changes::{link_nuc_and_aa_changes, LinkedNucAndAaChanges};
-use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
-use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
-use crate::analyze::pcr_primer_changes::{get_pcr_primer_changes, PcrPrimerChange};
-use crate::analyze::pcr_primers::PcrPrimer;
-use crate::analyze::virus_properties::VirusProperties;
-use crate::cli::nextalign_cli::AlignPairwiseParams;
-use crate::cli::nextalign_loop::{nextalign_run_one, NextalignOutputs};
 use crate::cli::nextclade_cli::NextcladeRunArgs;
 use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
-use crate::gene::gene_map::GeneMap;
-use crate::io::aa::Aa;
-use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
-use crate::io::gff3::read_gff3_file;
-use crate::io::json::{json_parse, json_write};
-use crate::io::letter::Letter;
-use crate::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
-use crate::option_get_some;
-use crate::qc::qc_config::QcConfig;
-use crate::qc::qc_run::{qc_run, QcResult};
-use crate::translate::frame_shifts_flatten::frame_shifts_flatten;
-use crate::translate::frame_shifts_translate::FrameShift;
-use crate::translate::translate_genes::{Translation, TranslationMap};
-use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::tree::tree::AuspiceTree;
-use crate::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
-use crate::tree::tree_find_nearest_node::{tree_find_nearest_node, TreeFindNearestNodeOutput};
-use crate::tree::tree_preprocess::tree_preprocess_in_place;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
+use nextclade::analyze::pcr_primers::PcrPrimer;
+use nextclade::analyze::virus_properties::VirusProperties;
+use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
+use nextclade::io::gff3::read_gff3_file;
+use nextclade::io::json::json_write;
+use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
+use nextclade::option_get_some;
+use nextclade::qc::qc_config::QcConfig;
+use nextclade::run::nextclade_run_one::nextclade_run_one;
+use nextclade::translate::translate_genes::Translation;
+use nextclade::translate::translate_genes_ref::translate_genes_ref;
+use nextclade::tree::tree::AuspiceTree;
+use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
+use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
+use nextclade::types::outputs::NextcladeOutputs;
 use log::info;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NextcladeOutputs {
-  pub seq_name: String,
-  pub substitutions: Vec<NucSubFull>,
-  pub total_substitutions: usize,
-  pub deletions: Vec<NucDelFull>,
-  pub total_deletions: usize,
-  pub insertions: Vec<Insertion<Nuc>>,
-  pub total_insertions: usize,
-  pub missing: Vec<NucRange>,
-  pub total_missing: usize,
-  #[serde(rename = "nonACGTNs")]
-  pub non_acgtns: Vec<NucRange>,
-  #[serde(rename = "totalNonACGTNs")]
-  pub total_non_acgtns: usize,
-  pub nucleotide_composition: BTreeMap<Nuc, usize>,
-  pub frame_shifts: Vec<FrameShift>,
-  pub total_frame_shifts: usize,
-  pub aa_substitutions: Vec<AaSubFull>,
-  pub total_aminoacid_substitutions: usize,
-  pub aa_deletions: Vec<AaDelFull>,
-  pub total_aminoacid_deletions: usize,
-  pub aa_insertions: Vec<AaIns>,
-  pub total_aminoacid_insertions: usize,
-  pub unknown_aa_ranges: Vec<GeneAaRange>,
-  pub total_unknown_aa: usize,
-  pub alignment_start: usize,
-  pub alignment_end: usize,
-  pub alignment_score: i32,
-  pub pcr_primer_changes: Vec<PcrPrimerChange>,
-  pub total_pcr_primer_changes: usize,
-  pub clade: String,
-  pub private_nuc_mutations: PrivateNucMutations,
-  pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
-  pub warnings: Vec<String>,
-  pub missing_genes: Vec<String>,
-  pub divergence: f64,
-  pub qc: QcResult,
-  pub custom_node_attributes: BTreeMap<String, String>,
-  //
-  #[serde(skip)]
-  pub nearest_node_id: usize,
-}
-
-impl NextcladeOutputs {
-  pub fn from_str(s: &str) -> Result<NextcladeOutputs, Report> {
-    json_parse(s)
-  }
-
-  pub fn many_from_str(s: &str) -> Result<Vec<NextcladeOutputs>, Report> {
-    json_parse(s)
-  }
-}
 
 pub struct NextcladeRecord {
   pub index: usize,
   pub seq_name: String,
   pub outputs_or_err: Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report>,
-}
-
-pub fn nextclade_run_one(
-  seq_name: &str,
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
-  gene_map: &GeneMap,
-  primers: &[PcrPrimer],
-  tree: &AuspiceTree,
-  qc_config: &QcConfig,
-  virus_properties: &VirusProperties,
-  gap_open_close_nuc: &[i32],
-  gap_open_close_aa: &[i32],
-  params: &AlignPairwiseParams,
-) -> Result<(Vec<Nuc>, Vec<Translation>, NextcladeOutputs), Report> {
-  let NextalignOutputs {
-    stripped,
-    alignment,
-    translations,
-    warnings,
-    missing_genes,
-  } = nextalign_run_one(
-    qry_seq,
-    ref_seq,
-    ref_peptides,
-    gene_map,
-    gap_open_close_nuc,
-    gap_open_close_aa,
-    params,
-  )?;
-
-  let FindNucChangesOutput {
-    substitutions,
-    deletions,
-    alignment_range,
-  } = find_nuc_changes(&stripped.qry_seq, &stripped.ref_seq);
-
-  let alignment_start = alignment_range.begin;
-  let alignment_end = alignment_range.end;
-  let alignment_score = alignment.alignment_score;
-
-  let total_substitutions = substitutions.len();
-  let total_deletions = deletions.iter().map(|del| del.length).sum();
-
-  let insertions = stripped.insertions.clone();
-  let total_insertions = insertions.iter().map(NucIns::len).sum();
-
-  let missing = find_letter_ranges(&stripped.qry_seq, Nuc::N);
-  let total_missing = missing.iter().map(NucRange::len).sum();
-
-  let non_acgtns = find_letter_ranges_by(&stripped.qry_seq, |nuc: Nuc| !(nuc.is_acgtn() || nuc.is_gap()));
-  let total_non_acgtns = non_acgtns.iter().map(NucRange::len).sum();
-
-  let nucleotide_composition = get_letter_composition(&stripped.qry_seq);
-
-  let pcr_primer_changes = get_pcr_primer_changes(&substitutions, primers);
-  let total_pcr_primer_changes = pcr_primer_changes.iter().map(|pc| pc.substitutions.len()).sum();
-
-  let frame_shifts = frame_shifts_flatten(&translations);
-  let total_frame_shifts = frame_shifts.len();
-
-  let FindAaChangesOutput {
-    aa_substitutions,
-    aa_deletions,
-  } = find_aa_changes(
-    &stripped.ref_seq,
-    &stripped.qry_seq,
-    ref_peptides,
-    &translations,
-    &alignment_range,
-    gene_map,
-  )?;
-
-  let total_aminoacid_substitutions = aa_substitutions.len();
-  let total_aminoacid_deletions = aa_deletions.len();
-
-  let aa_insertions = get_aa_insertions(&translations);
-  let total_aminoacid_insertions = aa_insertions.len();
-
-  let unknown_aa_ranges = find_aa_letter_ranges(&translations, Aa::X);
-  let total_unknown_aa = unknown_aa_ranges.iter().map(|r| r.length).sum();
-
-  let TreeFindNearestNodeOutput { node, distance } =
-    tree_find_nearest_node(tree, &substitutions, &missing, &alignment_range);
-  let nearest_node_id = node.tmp.id;
-  let clade = node.clade();
-
-  let clade_node_attr_keys = tree.clade_node_attr_keys();
-  let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
-
-  let private_nuc_mutations = find_private_nuc_mutations(
-    node,
-    &substitutions,
-    &deletions,
-    &missing,
-    &alignment_range,
-    ref_seq,
-    virus_properties,
-  );
-
-  let private_aa_mutations = find_private_aa_mutations(
-    node,
-    &aa_substitutions,
-    &aa_deletions,
-    &unknown_aa_ranges,
-    ref_peptides,
-    gene_map,
-  );
-
-  let divergence = calculate_divergence(node, &private_nuc_mutations, &tree.tmp.divergence_units, ref_seq.len());
-
-  let LinkedNucAndAaChanges {
-    substitutions,
-    deletions,
-    aa_substitutions,
-    aa_deletions,
-  } = link_nuc_and_aa_changes(&substitutions, &deletions, &aa_substitutions, &aa_deletions);
-
-  let qc = qc_run(
-    &private_nuc_mutations,
-    &nucleotide_composition,
-    total_missing,
-    &translations,
-    &frame_shifts,
-    qc_config,
-  );
-
-  Ok((
-    stripped.qry_seq,
-    translations,
-    NextcladeOutputs {
-      seq_name: seq_name.to_owned(),
-      substitutions,
-      total_substitutions,
-      deletions,
-      total_deletions,
-      insertions,
-      total_insertions,
-      missing,
-      total_missing,
-      non_acgtns,
-      total_non_acgtns,
-      nucleotide_composition,
-      frame_shifts,
-      total_frame_shifts,
-      aa_substitutions,
-      total_aminoacid_substitutions,
-      aa_deletions,
-      total_aminoacid_deletions,
-      aa_insertions,
-      total_aminoacid_insertions,
-      unknown_aa_ranges,
-      total_unknown_aa,
-      alignment_start,
-      alignment_end,
-      alignment_score,
-      pcr_primer_changes,
-      total_pcr_primer_changes,
-      clade,
-      private_nuc_mutations,
-      private_aa_mutations,
-      warnings,
-      missing_genes,
-      divergence,
-      qc,
-      custom_node_attributes: clade_node_attrs,
-      nearest_node_id,
-    },
-  ))
 }
 
 pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {

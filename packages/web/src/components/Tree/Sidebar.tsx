@@ -41,7 +41,7 @@ export function Sidebar() {
       <ChooseBranchLabelling />
 
       <SidebarHeaderStyled>{t('sidebar:Filter Data')}</SidebarHeaderStyled>
-      <FilterData />
+      <FilterData measurementsOn={false} />
 
       <Bottom>
         <LogoPoweredByAuspice />

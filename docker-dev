@@ -87,6 +87,7 @@ TEST_FLAGS=
 BENCH=0
 EXAMPLE=0
 LINT=0
+FORMAT=0
 FIX=
 
 case "${1:-}" in
@@ -245,6 +246,18 @@ case "${1:-}" in
   WATCH=1
   FIX="${LINT_FIX}"
   ;;
+"format" | "f")
+  shift
+  FORMAT=1
+  WATCH=0
+  FIX=
+  ;;
+"format-check" | "fc")
+  shift
+  FORMAT=1
+  WATCH=1
+  FIX="--check"
+  ;;
 "exec" | "e")
   shift
   RUN=0
@@ -324,9 +337,9 @@ elif [ "${EXAMPLE}" == "1" ]; then
   if [ -n "${PARAMS}" ]; then
     PARAMS="--example=${PARAMS}"
   fi
-  COMMAND="cargo run -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
+  COMMAND="cargo run -q --package=nextclade-cli --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${BUILD}" == "1" ]; then
-  COMMAND="cargo build -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
+  COMMAND="cargo build -q --package=nextclade-cli --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${RELEASE} ${PARAMS}"
 elif [ "${WASM}" == "1" ]; then
   COMMAND="bash -c \"set -euo pipefail && cd packages_rs/nextclade-web && yarn wasm-${RELEASE}\""
 elif [ "${WEB}" == "1" ]; then
@@ -340,6 +353,8 @@ elif [ "${BENCH}" == "1" ]; then
   COMMAND="cargo bench --color=always -q --target-dir='${BUILD_DIR_REL}' ${RUST_TARGET} ${*:-} | ${PRETTY_BENCH} ${SUCCESS_OR_FAILURE}"
 elif [ "${LINT}" == "1" ]; then
   COMMAND="cargo clippy --exclude=3rdparty -q --target-dir=\"${BUILD_DIR_REL}\" --all ${FIX:-}"
+elif [ "${FORMAT}" == "1" ]; then
+  COMMAND="cargo fmt -q --all ${FIX:-}"
 else
   COMMAND="${NICE} ${TIME} ${COMMAND}"
 fi

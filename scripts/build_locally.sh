@@ -626,7 +626,7 @@ echo "-------------------------------------------------------------------------"
 if [ "${NEXTCLADE_BUILD_WASM}" == "true" ] || [ "${NEXTCLADE_BUILD_WASM}" == "1" ]; then
   print 92 "Install Emscripten SDK";
 
-  if [ ! -d "${NEXTCLADE_EMSDK_DIR}" ]; then
+  if [ ! -f "${NEXTCLADE_EMSDK_DIR}/emsdk_env.sh" ]; then
     ./scripts/install_emscripten.sh "${NEXTCLADE_EMSDK_DIR}" "${NEXTCLADE_EMSDK_VERSION}"
   else
     echo "Emscripten SDK already found in '${NEXTCLADE_EMSDK_DIR}'. Skipping install."
@@ -691,6 +691,10 @@ pushd "${BUILD_DIR}" > /dev/null
     ${CONAN_COMPILER_SETTINGS:-} \
     ${CONAN_STATIC_BUILD_FLAGS} \
     --build missing \
+
+  if [ -f "${BUILD_DIR}/Findghc_filesystem.cmake" ]; then
+    mv "${BUILD_DIR}/Findghc_filesystem.cmake" "${BUILD_DIR}/FindghcFilesystem.cmake"
+  fi
 
   print 57 "Generate source files";
   python3 "${PROJECT_ROOT_DIR}/packages/nextclade_common/scripts/generate_cli.py" \
@@ -838,10 +842,10 @@ pushd "${PROJECT_ROOT_DIR}" > /dev/null
       ulimit -s unlimited
     fi
 
-#    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
-#      print 27 "Run Nextalign CLI";
-#      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
-#    fi
+    if [ "${NEXTALIGN_BUILD_CLI}" == "true" ] || [ "${NEXTALIGN_BUILD_CLI}" == "1" ]; then
+      print 27 "Run Nextalign CLI";
+      eval "${GDB}" ${NEXTALIGN_CLI} ${DEV_CLI_OPTIONS} || cd .
+    fi
 
     if [ "${NEXTCLADE_BUILD_CLI}" == "true" ] || [ "${NEXTCLADE_BUILD_CLI}" == "1" ]; then
       if [ ! -d "${DATA_DIR}" ]; then

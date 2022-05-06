@@ -196,7 +196,7 @@ public:
   }
 
   std::string getCladeNodeAttrKeysStr() const {
-    return Nextclade::serializeCladeNodeAttrKeys(state.tree.getCladeNodeAttrKeys());
+    return Nextclade::serializeCladeNodeAttrs(state.tree.getCladeNodeAttrKeys());
   }
 };
 

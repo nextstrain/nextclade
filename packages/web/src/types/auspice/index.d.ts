@@ -36,6 +36,11 @@ declare module 'auspice' {
     version?: any
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  export interface AuspiceMeasurementsState {
+    // TODO: add fields if this part of state is ever used
+  }
+
   export interface AuspiceControlsState {
     defaults?: {
       distanceMeasure?: string
@@ -196,6 +201,12 @@ declare module 'auspice' {
     name?: string
   }
 
+  export interface CladeNodeAttr {
+    name: string
+    displayName: string
+    description: string
+  }
+
   export declare interface AuspiceMetadata {
     title?: string
     description?: string
@@ -218,7 +229,7 @@ declare module 'auspice' {
     panels?: string[]
     extensions?: {
       nextclade?: {
-        clade_node_attrs_keys: string[]
+        clade_node_attrs?: CladeNodeAttr[]
       }
     }
   }

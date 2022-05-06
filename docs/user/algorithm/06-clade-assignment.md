@@ -2,10 +2,10 @@
 
 To simplify discussion of co-circulating virus variants, Nextstrain groups them into [Clades](../terminology.html#clade), which are defined by specific combination of signature mutations. Clades are groups of related sequences that share a common ancestor. For SARS-CoV-2, we try to align these clades as much as possible with [WHO variant designations](https://www.who.int/en/activities/tracking-SARS-CoV-2-variants/).
 
-In contrast to the analysis pipeline of [Nextstrain.org](https://nextstrain.org), which requires setting up and running a heavy computational job to assign clades, Nextclade takes a lightweight approach, and assigns your sequences to clades by placing sequences on a phylogenetic tree annotated with clade definitions. More specifically, Nextclade assigns the clade of the nearest reference node found during [Phylogenetic placement](05-phylogenetic-placement) step. This is an accuracy-to-runtime-performance trade-off - Nextclade provides almost instantaneous result, but is expected to be slightly less accurate than the full pipeline. For more details see [Phylogenetic placement: Known limitations](05-phylogenetic-placement.html#known-limitations) section.
+In contrast to the analysis pipeline of [Nextstrain.org](https://nextstrain.org), which requires setting up and running a heavy computational job to assign clades, Nextclade takes a lightweight approach, and assigns your sequences to clades by placing sequences on a phylogenetic tree annotated with clade definitions. More specifically, Nextclade assigns the clade of the nearest reference node found during the [Phylogenetic placement](05-phylogenetic-placement) step. This is an accuracy-to-runtime-performance trade-off - Nextclade provides almost instantaneous result, but is expected to be slightly less accurate than the full pipeline. For more details see [Phylogenetic placement: Known limitations](05-phylogenetic-placement.html#known-limitations) section.
 
 
-> ⚠️ Nextclade only considers those clades which are present in the input reference tree. Only only one of these clades, and no others, can be assigned to the analysed sequences. It is important to make sure that every clade that you expect to find in the results is well represented in the tree.
+> ⚠️ Nextclade only considers those clades which are present in the input reference tree. Only one of these clades, and no others, can be assigned to the analysed sequences. It is important to make sure that every clade that you expect to find in the results is well represented in the tree.
 >
 > <br/>
 >
@@ -13,25 +13,31 @@ In contrast to the analysis pipeline of [Nextstrain.org](https://nextstrain.org)
 
 > 💡 For regional, focused studies, it is recommended to use a tree which includes clades that are specific to your region.
 
-#### Nextstrain clades for SARS-CoV-2
+## SARS-CoV-2 specifics
 
-   <!-- TODO: this is a SARS-CoV-2-specific section -->
-   <!-- TODO: Possibly update this section -->
+For SARS-CoV-2, Nextstrain maintains one of the 3 major clade systems: `Nextstrain clades`.
+Besides assigning `Nextstrain clades`, Nextclade also assigns each sequence to a `Pango lineage`, another widely used clade system.
 
-By the end of 2020, Nextstrain had defined 11 major clades (see [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming) for details):
+### Nextstrain clades
 
-- 19A and 19B emerged in Wuhan and have been dominating the early outbreak
+The Nextstrain clade system is outlined in [this blog post](https://nextstrain.org/blog/2021-01-06-updated-SARS-CoV-2-clade-naming).
 
-- 20A emerged from 19A out of dominated the European outbreak in March and has since spread globally
+The clades are hierarchically structured as follows:
 
-- 20B and 20C are large genetically distinct subclades 20A emerged in early 2020
-
-- 20D to 20I have emerged over the summer of 2020 and include two "variants of concern" (VOC) with signature mutations S:N501Y.
-
-   <!-- TODO: add clade schema -->
+![Clade hierarchy](https://raw.githubusercontent.com/nextstrain/ncov-clades-schema/master/clades.svg)
 
 You can find the exact, up-to-date clade definitions in [github.com/nextstrain/ncov](https://github.com/nextstrain/ncov/blob/master/defaults/clades.tsv).
 
-### Results
+### Pango lineages
+
+Nextclade also assigns each sequence to a `Pango lineage` in the same way clades are assigned, reading off the lineage of the nearest neighbour in the reference tree.
+
+You can read more about the method and validation results in this [report](nextclade-pango.md).
+In short, for recent sequences (within last 12 months) Nextclade's `Pango lineage` assignments are about as accurate as pangoLEARN's.
+To keep the reference tree small, Nextclade does not include all early `Pango lineages` and Nextclade Pango lineages should thus be treated with caution for samples older than 12 months.
+
+## Results
 
 Clades are reported in the "Clade" column in the results table of [Nextclade Web](../nextclade-web) as well as in the analysis results JSON, CSV and TSV files generated by [Nextclade CLI](../nextclade-cli) and in the "Download" dialog of [Nextclade Web](../nextclade-web).
+
+For SARS-CoV-2, Pango lineages are also displayed in the results. In `tsv` and `csv` files, the column is named `Nextclade_pango`.

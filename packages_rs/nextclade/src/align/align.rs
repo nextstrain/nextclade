@@ -1,9 +1,9 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
 use crate::align::band_2d::simple_stripes;
 use crate::align::band_2d::Stripe;
+use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
 use crate::align::seed_alignment::seed_alignment;
-use crate::cli::nextalign_cli::AlignPairwiseParams;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;

@@ -1,8 +1,8 @@
 use ctor::ctor;
 use eyre::Report;
-use nextclade::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands};
-use nextclade::cli::nextalign_loop::nextalign_run;
 use nextclade::utils::global_init::global_init;
+use nextclade_cli::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands};
+use nextclade_cli::cli::nextalign_loop::nextalign_run;
 
 #[cfg(all(target_family = "linux", target_arch = "x86_64"))]
 #[global_allocator]

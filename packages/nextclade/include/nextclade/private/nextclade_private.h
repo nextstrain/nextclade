@@ -38,7 +38,7 @@ namespace Nextclade {
     const VirusJson& virusJson,                                  //
     const Tree& tree,                                            //
     const NextalignOptions& nextalignOptions,                    //
-    const safe_vector<std::string>& customNodeAttrKeys           //
+    const safe_vector<CladeNodeAttr>& customNodeAttrKeys         //
   );
 
   safe_vector<RefPeptideInternal> getRefPeptidesArray(const std::map<std::string, RefPeptideInternal>& refPeptides);

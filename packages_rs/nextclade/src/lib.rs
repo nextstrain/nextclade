@@ -1,14 +1,13 @@
 pub mod align;
 pub mod analyze;
-pub mod cli;
-pub mod dataset;
 pub mod gene;
 pub mod io;
 pub mod qc;
+pub mod run;
 pub mod translate;
 pub mod tree;
+pub mod types;
 pub mod utils;
-pub mod wasm;
 
 #[cfg(test)]
 mod tests {

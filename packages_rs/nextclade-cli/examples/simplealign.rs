@@ -1,17 +1,18 @@
 use ctor::ctor;
 use eyre::{Report, WrapErr};
 use log::info;
-use nextclade::align::align::AlignPairwiseParams;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use nextclade::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands, NextalignRunArgs};
-use nextclade::cli::nextalign_loop::{nextalign_run_one, NextalignRecord};
-use nextclade::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::to_nuc_seq;
+use nextclade::option_get_some;
+use nextclade::run::nextalign_run_one::nextalign_run_one;
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::utils::global_init::global_init;
+use nextclade_cli::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands, NextalignRunArgs};
+use nextclade_cli::cli::nextalign_loop::NextalignRecord;
+use nextclade_cli::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 
 #[cfg(all(target_family = "linux", target_arch = "x86_64"))]
 #[global_allocator]
@@ -20,20 +21,6 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 #[ctor]
 fn init() {
   global_init();
-}
-
-/// Retrieves value from an `Option` or returns an internal error.
-/// To be used on `Option` which we know is `Some` on runtime.
-#[macro_export(local_inner_macros)]
-macro_rules! option_get_some {
-  ($x:ident) => {{
-    $x.ok_or_else(|| {
-      nextclade::make_internal_report!(
-        "Expected `Some` value, found `None`, in `Option` variable `{}`",
-        std::stringify!($x)
-      )
-    })
-  }};
 }
 
 fn main() -> Result<(), Report> {
@@ -61,10 +48,8 @@ fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     output_errors,
     jobs,
     in_order,
+    alignment_params,
   } = args;
-
-  let params = &AlignPairwiseParams::default();
-  info!("Params:\n{params:#?}");
 
   let output_fasta = option_get_some!(output_fasta)?;
   let output_basename = option_get_some!(output_basename)?;
@@ -84,10 +69,10 @@ fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     _ => GeneMap::new(),
   };
 
-  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, params);
-  let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, params);
+  let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
+  let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
-  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, params)?;
+  let ref_peptides = &translate_genes_ref(ref_seq, gene_map, &alignment_params)?;
 
   let mut output_writer = NextalignOrderedWriter::new(
     gene_map,
@@ -121,7 +106,7 @@ fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
       gene_map,
       gap_open_close_nuc,
       gap_open_close_aa,
-      params,
+      &alignment_params,
     );
 
     if include_reference {

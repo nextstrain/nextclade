@@ -1,30 +1,24 @@
-use crate::align::align::{align_nuc};
-use crate::align::backtrace::AlignmentOutput;
-use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use crate::align::insertions_strip::{insertions_strip, StripInsertionsResult};
-use crate::cli::nextalign_cli::{AlignPairwiseParams, NextalignRunArgs};
-use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
-use crate::gene::gene_map::GeneMap;
-use crate::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
-use crate::io::gff3::read_gff3_file;
-use crate::io::nuc::{to_nuc_seq, Nuc};
-use crate::option_get_some;
-use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
-use crate::translate::translate_genes_ref::translate_genes_ref;
-use crate::utils::error::report_to_string;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::{Either, Itertools};
+use nextclade::align::align::align_nuc;
+use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
+use nextclade::align::insertions_strip::insertions_strip;
+use nextclade::align::params::AlignPairwiseParams;
+use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
+use nextclade::io::gff3::read_gff3_file;
+use nextclade::io::nuc::{to_nuc_seq, Nuc};
+use nextclade::option_get_some;
+use nextclade::translate::translate_genes::{translate_genes, Translation, TranslationMap};
+use nextclade::translate::translate_genes_ref::translate_genes_ref;
+use nextclade::types::outputs::NextalignOutputs;
+use nextclade::utils::error::report_to_string;
 use log::info;
 use std::collections::HashSet;
-
-pub struct NextalignOutputs {
-  pub stripped: StripInsertionsResult<Nuc>,
-  pub alignment: AlignmentOutput<Nuc>,
-  pub translations: Vec<Translation>,
-  pub warnings: Vec<String>,
-  pub missing_genes: Vec<String>,
-}
+use nextclade::run::nextalign_run_one::nextalign_run_one;
+use crate::cli::nextalign_cli::NextalignRunArgs;
+use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 
 pub struct NextalignRecord {
   pub index: usize,
@@ -32,54 +26,7 @@ pub struct NextalignRecord {
   pub outputs_or_err: Result<NextalignOutputs, Report>,
 }
 
-pub fn nextalign_run_one(
-  qry_seq: &[Nuc],
-  ref_seq: &[Nuc],
-  ref_peptides: &TranslationMap,
-  gene_map: &GeneMap,
-  gap_open_close_nuc: &[i32],
-  gap_open_close_aa: &[i32],
-  params: &AlignPairwiseParams,
-) -> Result<NextalignOutputs, Report> {
-  match align_nuc(qry_seq, ref_seq, gap_open_close_nuc, params) {
-    Err(report) => Err(report),
 
-    Ok(alignment) => {
-      let translations = translate_genes(
-        &alignment.qry_seq,
-        &alignment.ref_seq,
-        ref_peptides,
-        gene_map,
-        gap_open_close_aa,
-        params,
-      );
-
-      let stripped = insertions_strip(&alignment.qry_seq, &alignment.ref_seq);
-
-      let (translations, warnings): (Vec<Translation>, Vec<String>) =
-        translations.into_iter().partition_map(|res| match res {
-          Ok(tr) => Either::Left(tr),
-          Err(err) => Either::Right(report_to_string(&err)),
-        });
-
-      let present_genes: HashSet<String> = translations.iter().map(|tr| &tr.gene_name).cloned().collect();
-
-      let missing_genes = gene_map
-        .iter()
-        .filter_map(|(gene_name, _)| (!present_genes.contains(gene_name)).then(|| gene_name))
-        .cloned()
-        .collect_vec();
-
-      Ok(NextalignOutputs {
-        stripped,
-        alignment,
-        translations,
-        warnings,
-        missing_genes,
-      })
-    }
-  }
-}
 
 pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{args:#?}");

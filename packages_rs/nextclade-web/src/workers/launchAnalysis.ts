@@ -2,12 +2,9 @@ import { concurrent } from 'fasy'
 
 import type { DatasetFiles, DatasetFlat, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen'
-import { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
-import { AnalysisLauncherStatus } from 'src/workers/go.worker'
+import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { createGoWorker } from 'src/workers/run'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
-
-const NUM_THREADS = 20
 
 export interface LaunchAnalysisInputs {
   ref_seq_str?: AlgorithmInput
@@ -19,7 +16,7 @@ export interface LaunchAnalysisInputs {
 }
 
 export interface LaunchAnalysisCallbacks {
-  onGlobalStatus: (record: AnalysisLauncherStatus) => void
+  onGlobalStatus: (record: AlgorithmGlobalStatus) => void
   onParsedFasta: (record: FastaRecordId) => void
   onAnalysisResult: (record: NextcladeResult) => void
   onError: (error: Error) => void
@@ -41,6 +38,7 @@ export async function launchAnalysis(
   paramInputs: LaunchAnalysisInputs,
   callbacks: LaunchAnalysisCallbacks,
   dataset: DatasetFlat,
+  numThreads: number,
 ) {
   const { onGlobalStatus, onParsedFasta, onAnalysisResult, onError, onComplete } = callbacks
 
@@ -60,7 +58,7 @@ export async function launchAnalysis(
 
   try {
     // Run the launcher worker
-    await launcherWorker.goWorker(NUM_THREADS, params, qryFastaStr)
+    await launcherWorker.goWorker(numThreads, params, qryFastaStr)
   } finally {
     // Unsubscribe from all events
     await concurrent.forEach(async (subscription) => subscription.unsubscribe(), subscriptions)

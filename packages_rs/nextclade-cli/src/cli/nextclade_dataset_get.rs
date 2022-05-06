@@ -4,9 +4,9 @@ use crate::dataset::dataset_attributes::{format_attribute_list, parse_dataset_at
 use crate::dataset::dataset_download::dataset_download;
 use crate::dataset::dataset_table::format_dataset_table;
 use crate::io::http_client::HttpClient;
-use crate::{getenv, make_error};
 use eyre::Report;
 use itertools::Itertools;
+use nextclade::{getenv, make_error};
 use log::{info, LevelFilter};
 
 const THIS_VERSION: &str = getenv!("CARGO_PKG_VERSION");

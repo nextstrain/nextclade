@@ -1,8 +1,3 @@
-use crate::cli::nextalign_cli::AlignPairwiseParams;
-use crate::io::fs::basename;
-use crate::io::http_client::ProxyConfig;
-use crate::utils::global_init::setup_logger;
-use crate::{getenv, make_error};
 use clap::{AppSettings, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
@@ -10,6 +5,8 @@ use clap_verbosity_flag::{Verbosity, WarnLevel};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use nextclade::{getenv, make_error};
+use nextclade::utils::global_init::setup_logger;
 use log::LevelFilter;
 use std::env::current_dir;
 use std::fmt::Debug;
@@ -17,6 +14,9 @@ use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
 use url::Url;
+use nextclade::align::params::AlignPairwiseParams;
+use nextclade::io::fs::basename;
+use crate::io::http_client::ProxyConfig;
 
 const DATA_FULL_DOMAIN: &str = getenv!("DATA_FULL_DOMAIN");
 

@@ -1,0 +1,47 @@
+[package]
+name = "nextclade-cli"
+description = "Alignment, mutation calling, phylogenetic placement, clade assignment and quality control checks for viral genetic sequences. CLI module."
+version = "2.0.1"
+repository = "https://github.com/nextstrain/nextclade"
+documentation = "https://docs.nextstrain.org/projects/nextclade/en/stable/"
+homepage = "https://clades.nextstrain.org/"
+edition = "2021"
+license = "MIT"
+publish = false
+
+[dependencies]
+clap = { version = "3.1.8", features = ["derive"] }
+clap-verbosity-flag = "1.0.0"
+clap_complete = "3.1.1"
+clap_complete_fig = "3.1.4"
+color-eyre = "0.6.1"
+comfy-table = "6.0.0-rc.1"
+crossbeam = "0.8.1"
+crossbeam-channel = "0.5.4"
+ctor = "0.1.22"
+dotenv = "0.15.0"
+dotenv_codegen = "0.15.0"
+eyre = "0.6.8"
+indexmap = { verson = "1.8.0", features = ["serde"], version = "1.8.1" }
+itertools = "0.10.3"
+lazy_static = "1.4.0"
+log = "0.4.16"
+nextclade = { path = "../nextclade" }
+num_cpus = "1.13.1"
+owo-colors = "3.3.0"
+pretty_assertions = "1.2.1"
+rayon = "1.5.2"
+regex = "1.5.5"
+reqwest = { version = "0.11.10", features = ["blocking", "deflate", "gzip", "brotli", "socks"] }
+semver = "1.0.9"
+serde = { version = "1.0.136", features = ["derive"] }
+url = { version = "2.2.2", features = ["serde"] }
+
+[target.'cfg(all(target_family = "linux", target_arch = "x86_64"))'.dependencies]
+mimalloc = { version = "0.1.28", default-features = false, optional = true }
+
+[dev-dependencies]
+assert2 = "0.3.6"
+criterion = { version = "0.3.5", features = ["html_reports"] }
+rstest = "0.12.0"
+rstest_reuse = "0.3.0"

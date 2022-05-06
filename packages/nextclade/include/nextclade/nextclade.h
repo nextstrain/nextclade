@@ -182,7 +182,7 @@ namespace Nextclade {
 
     /** Converts deletion into substitution. Note: deletion is a substitution to GAP character */
     explicit operator SubstitutionSimple<Letter>() const {
-      return SubstitutionSimple<Letter>{.ref = ref, .pos = pos, .qry = Nucleotide::GAP};
+      return SubstitutionSimple<Letter>{.ref = ref, .pos = pos, .qry = Letter::GAP};
     }
   };
 
@@ -636,13 +636,18 @@ namespace Nextclade {
     std::map<std::string, std::string> customNodeAttributes;
   };
 
+  struct CladeNodeAttr {
+    std::string name;
+    std::string displayName;
+    std::string description;
+  };
 
   struct AnalysisResults {
     std::string schemaVersion;
     std::string nextcladeVersion;
     std::uint64_t timestamp;
-    safe_vector<std::string> cladeNodeAttrKeys;
-    safe_vector<Nextclade::AnalysisResult> results;
+    safe_vector<CladeNodeAttr> cladeNodeAttrKeys;
+    safe_vector<AnalysisResult> results;
   };
 
 
@@ -681,7 +686,7 @@ namespace Nextclade {
   public:
     explicit NextcladeAlgorithm(const NextcladeOptions& options);
 
-    safe_vector<std::string> getCladeNodeAttrKeys() const;
+    safe_vector<CladeNodeAttr> getCladeNodeAttrKeys() const;
 
     NextcladeResult run(const std::string& seqName, const NucleotideSequence& seq);
 
@@ -752,7 +757,7 @@ namespace Nextclade {
   };
 
   std::unique_ptr<CsvWriterAbstract> createCsvWriter(const CsvWriterOptions& options = {},
-    const safe_vector<std::string>& customNodeAttrKeys = {});
+    const safe_vector<CladeNodeAttr>& customNodeAttrKeys = {});
 
   class Tree {
     std::unique_ptr<TreeImpl> pimpl;
@@ -762,7 +767,7 @@ namespace Nextclade {
 
     TreeNode root() const;
 
-    safe_vector<std::string> getCladeNodeAttrKeys() const;
+    safe_vector<CladeNodeAttr> getCladeNodeAttrKeys() const;
 
     void addMetadata();
 
@@ -798,7 +803,7 @@ namespace Nextclade {
 
   std::string serializeWarningsToString(const Warnings& warnings);
 
-  std::string serializeCladeNodeAttrKeys(const safe_vector<std::string>& keys);
+  std::string serializeCladeNodeAttrs(const safe_vector<CladeNodeAttr>& keys);
 
   std::string serializeGeneMap(const GeneMap& geneMap);
 

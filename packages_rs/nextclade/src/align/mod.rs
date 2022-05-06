@@ -3,6 +3,7 @@ pub mod backtrace;
 pub mod band_2d;
 pub mod gap_open;
 pub mod insertions_strip;
+pub mod params;
 pub mod remove_gaps;
 pub mod score_matrix;
 pub mod score_matrix_aa;

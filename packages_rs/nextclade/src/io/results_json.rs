@@ -1,12 +1,10 @@
-use crate::cli::nextalign_loop::NextalignOutputs;
-use crate::cli::nextclade_loop::NextcladeOutputs;
 use crate::io::json::json_write;
 use crate::tree::tree::CladeNodeAttrKeyDesc;
+use crate::types::outputs::NextcladeOutputs;
 use crate::utils::datetime::timestamp_now;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use std::process::Output;
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
