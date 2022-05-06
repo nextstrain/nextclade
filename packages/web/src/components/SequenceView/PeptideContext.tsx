@@ -158,13 +158,20 @@ export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBe
 
   const highlight: boolean[] = safeZip(refCodon.split(''), queryCodon.split('')).map(([ref, query]) => ref !== query)
 
+  const posOneBased = useMemo(() => {
+    if (codon === undefined) {
+      return undefined
+    }
+    return codon + 1
+  }, [codon])
+
   return (
     <td>
       <TableNuc>
         <TableBodyNuc>
           <TrNuc>
             <TdNuc colSpan={3}>
-              <AminoacidPositionText>{codon && codon + 1}</AminoacidPositionText>
+              <AminoacidPositionText>{posOneBased}</AminoacidPositionText>
             </TdNuc>
           </TrNuc>
 
