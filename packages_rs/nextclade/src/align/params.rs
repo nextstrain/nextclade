@@ -93,8 +93,8 @@ impl Default for AlignPairwiseParams {
       seed_spacing: 100,
       mismatches_allowed: 3,
       no_translate_past_stop: false,
-      left_terminal_gaps_free: true,
-      right_terminal_gaps_free: true,
+      left_terminal_gaps_free: false,
+      right_terminal_gaps_free: false,
     }
   }
 }
