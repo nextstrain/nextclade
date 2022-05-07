@@ -54,10 +54,19 @@ export CARGO_INSTALL_ROOT="${CARGO_HOME}/install"
 export PATH=/usr/lib/llvm-13/bin:${HOME}/.local/bin:${CARGO_HOME}/bin:${CARGO_HOME}/install/bin:/usr/sbin${PATH:+":$PATH"}
 
 mkdir -p "${CACHE_DIR}/.build"
-ln -s "${CACHE_DIR}/.build" "target"
+ln -s "${CACHE_DIR}/.build" ".build"
+
+mkdir -p "${CACHE_DIR}/.cache"
+ln -s "${CACHE_DIR}/.cache" ".cache"
+
+mkdir -p "${CACHE_DIR}/.build_web"
+ln -s "${CACHE_DIR}/.build_web" "packages_rs/nextclade-web/.build"
 
 mkdir -p "${CACHE_DIR}/.cache_web"
 ln -s "${CACHE_DIR}/.cache_web" "packages_rs/nextclade-web/.cache"
+
+mkdir -p "${CACHE_DIR}/node_modules"
+ln -s "${CACHE_DIR}/node_modules" "packages_rs/nextclade-web/node_modules"
 
 # Install rustup and toolchain from rust-toolchain.toml, if not already in the cache
 if ! command cargo &>/dev/null; then
@@ -74,6 +83,15 @@ if ! command cargo &>/dev/null; then
   rustup default "${RUST_TOOLCHAIN}"
   rustup target add wasm32-unknown-unknown
 
+  which rustup
+  ls -al "$(which rustup)"
+
+  which cargo
+  ls -al "$(which cargo)"
+
+  which rustc
+  ls -al "$(which rustc)"
+
   # Install cargo-quickinstall
   export CARGO_QUICKINSTALL_VERSION="0.2.6"
   curl -sSL "https://github.com/alsuren/cargo-quickinstall/releases/download/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-quickinstall"
@@ -84,10 +102,14 @@ if ! command cargo &>/dev/null; then
   curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen"
   chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
 
+  which wasm-bindgen
+
   # Install wasm-pack
   export WASM_PACK_VERSION="0.10.2"
   curl -sSL "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl/wasm-pack"
   chmod +x "${CARGO_HOME}/bin/wasm-pack"
+
+  which wasm-pack
 fi
 
 
