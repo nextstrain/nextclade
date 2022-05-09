@@ -12,6 +12,10 @@ use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Read};
 use std::path::Path;
 
+pub const fn is_char_allowed(c: char) -> bool {
+  c.is_ascii_alphabetic() || c == '.' || c == '?' || c == '*'
+}
+
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FastaRecord {
@@ -86,7 +90,9 @@ impl<'a> FastaReader<'a> {
       if self.line.is_empty() || self.line.starts_with('>') {
         break;
       }
-      record.seq.push_str(self.line.trim_end());
+
+      let fragment = self.line.trim_end().chars().into_iter().filter(|c| is_char_allowed(*c));
+      record.seq.extend(fragment);
     }
 
     record.index = self.index;

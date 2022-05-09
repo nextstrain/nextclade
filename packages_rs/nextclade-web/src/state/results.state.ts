@@ -1,6 +1,7 @@
-import { atom, atomFamily, DefaultValue, selectorFamily } from 'recoil'
+import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 
 import type { NextcladeResult } from 'src/algorithms/types'
+import { AlgorithmSequenceStatus, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
 
 export function isDefaultValue(candidate: unknown): candidate is DefaultValue {
   return candidate instanceof DefaultValue
@@ -43,4 +44,22 @@ export const analysisResultsAtom = selectorFamily<NextcladeResult, string>({
         })
       }
     },
+})
+
+// Selects an array of statues of all results
+export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
+  key: 'analysisResultStatuses',
+  get: ({ get }) => {
+    let seqNames = get(seqNamesAtom)
+    return seqNames.map((seqName) => {
+      const result = get(analysisResultSingleAtom(seqName))
+      if (result.error) {
+        return AlgorithmSequenceStatus.failed
+      } else if (result.result) {
+        return AlgorithmSequenceStatus.done
+      } else {
+        return AlgorithmSequenceStatus.queued
+      }
+    })
+  },
 })

@@ -17,6 +17,7 @@ use crate::utils::error::{keep_ok, report_to_string};
 use crate::utils::range::Range;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
+use indexmap::IndexMap;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashSet};
@@ -197,6 +198,9 @@ pub fn translate_gene(
   })
 }
 
+/// Translates all requested genes
+///
+/// NOTE: we handle translation errors as warnings, so we return a collection of `Results` as is, to handle elsewhere
 pub fn translate_genes(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
@@ -204,26 +208,30 @@ pub fn translate_genes(
   gene_map: &GeneMap,
   gap_open_close_aa: &[i32],
   params: &AlignPairwiseParams,
-) -> Vec<Result<Translation, Report>> {
+) -> Result<IndexMap<String, Result<Translation, Report>>, Report> {
   let coord_map = CoordMap::new(ref_seq);
 
   gene_map
     .iter()
-    .map(|(_, gene)| -> Result<_, Report> {
-      let ref_peptide = ref_peptides.get(&gene.gene_name).ok_or(make_internal_report!(
-        "Reference peptide not found for gene {}",
-        &gene.gene_name
-      ))?;
+    .map(
+      |(gene_name, gene)| -> Result<(String, Result<Translation, Report>), Report> {
+        let ref_peptide = ref_peptides.get(&gene.gene_name).ok_or(make_internal_report!(
+          "Reference peptide not found for gene {}",
+          &gene.gene_name
+        ))?;
 
-      translate_gene(
-        qry_seq,
-        ref_seq,
-        gene,
-        ref_peptide,
-        gap_open_close_aa,
-        &coord_map,
-        params,
-      )
-    })
-    .collect_vec()
+        let res = translate_gene(
+          qry_seq,
+          ref_seq,
+          gene,
+          ref_peptide,
+          gap_open_close_aa,
+          &coord_map,
+          params,
+        );
+
+        Ok((gene_name.to_owned(), res))
+      },
+    )
+    .collect::<Result<IndexMap<String, Result<Translation, Report>>, Report>>()
 }

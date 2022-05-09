@@ -9,14 +9,14 @@ import { ListOfGaps } from 'src/components/Results/ListOfGaps'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export interface ColumnGapsProps {
-  sequence: AnalysisResult
+  analysisResult: AnalysisResult
 }
 
-export function ColumnGaps({ sequence }: ColumnGapsProps) {
+export function ColumnGaps({ analysisResult }: ColumnGapsProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { deletions, aaDeletions, seqName } = sequence
+  const { deletions, aaDeletions, seqName } = analysisResult
   const id = getSafeId('col-gaps', { seqName })
 
   const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)

@@ -359,6 +359,7 @@ export interface AnalysisResult {
   privateAaMutations: Record<string, PrivateMutations>
   qc: QcResult
   customNodeAttributes: Record<string, string>
+  warnings: PeptideWarning[]
 }
 
 export interface Peptide {
@@ -386,14 +387,9 @@ export interface FastaRecord extends FastaRecordId {
   seq: string
 }
 
-export interface GeneWarning {
+export interface PeptideWarning {
   geneName: string
   message: string
-}
-
-export interface Warnings {
-  global: string[]
-  inGenes: GeneWarning[]
 }
 
 export interface DatasetsSettings {
@@ -480,13 +476,15 @@ export interface Translation {
   frame_shifts: FrameShift[]
 }
 
-export interface NextcladeResult {
-  index: number
-  seqName: string
+export interface AnalysisOutput {
   query: string
   queryPeptides: Peptide[]
   analysisResult: AnalysisResult
-  warnings: Warnings
-  hasError: boolean
-  error: Error | undefined
+}
+
+export interface NextcladeResult {
+  index: number
+  seqName: string
+  result?: AnalysisOutput
+  error?: string
 }

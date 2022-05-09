@@ -17,6 +17,7 @@ use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
+use nextclade::utils::error::report_to_string;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use typescript_definitions::TypescriptDefinition;
@@ -31,6 +32,9 @@ extern "C" {
 
   #[wasm_bindgen(typescript_type = "AnalysisInputPojo")]
   pub type AnalysisInputPojo;
+
+  #[wasm_bindgen(typescript_type = "AnalysisOutputPojo")]
+  pub type AnalysisOutputPojo;
 
   #[wasm_bindgen(typescript_type = "AnalysisResultPojo")]
   pub type AnalysisResultPojo;
@@ -84,15 +88,26 @@ impl AnalysisInput {
 
 #[wasm_bindgen]
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Debug)]
+#[serde(rename = "camelCase")]
+pub struct AnalysisOutput {
+  analysis_result: String,
+  query: String,
+  query_peptides: String,
+}
+
+#[wasm_bindgen]
+impl AnalysisOutput {
+  pub fn to_js(&self) -> Result<AnalysisOutputPojo, JsError> {
+    serialize_js_value::<AnalysisOutput, AnalysisOutputPojo>(self)
+  }
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Debug)]
+#[serde(rename = "camelCase")]
 pub struct AnalysisResult {
-  #[wasm_bindgen(getter_with_clone)]
-  pub qry_seq_str: String,
-
-  #[wasm_bindgen(getter_with_clone)]
-  pub translations_str: String,
-
-  #[wasm_bindgen(getter_with_clone)]
-  pub nextclade_outputs_str: String,
+  result: Option<AnalysisOutput>,
+  error: Option<String>,
 }
 
 #[wasm_bindgen]
@@ -179,7 +194,7 @@ impl Nextclade {
 
     let qry_seq = &to_nuc_seq(qry_seq_str).wrap_err("When converting query sequence")?;
 
-    let (qry_seq_aligned_stripped, translations, nextclade_outputs) = nextclade_run_one(
+    match nextclade_run_one(
       qry_seq_name,
       qry_seq,
       &self.ref_seq,
@@ -192,21 +207,32 @@ impl Nextclade {
       &self.gap_open_close_nuc,
       &self.gap_open_close_aa,
       &self.aln_params,
-    )
-    .wrap_err_with(|| format!("When running Nextclade for sequence '{qry_seq_name}'"))?;
+    ) {
+      Ok((qry_seq_aligned_stripped, translations, nextclade_outputs)) => {
+        let nextclade_outputs_str =
+          json_stringify(&nextclade_outputs).wrap_err("When serializing output results of Nextclade")?;
 
-    let nextclade_outputs_str =
-      json_stringify(&nextclade_outputs).wrap_err("When serializing output results of Nextclade")?;
+        let translations_str = json_stringify(&translations).wrap_err("When serializing output translations")?;
 
-    let translations_str = json_stringify(&translations).wrap_err("When serializing output translations")?;
+        let qry_seq_str = from_nuc_seq(&qry_seq_aligned_stripped);
 
-    let qry_seq_str = from_nuc_seq(&qry_seq_aligned_stripped);
-
-    Ok(AnalysisResult {
-      qry_seq_str,
-      translations_str,
-      nextclade_outputs_str,
-    })
+        Ok(AnalysisResult {
+          result: Some(AnalysisOutput {
+            analysis_result: nextclade_outputs_str,
+            query: qry_seq_str,
+            query_peptides: translations_str,
+          }),
+          error: None,
+        })
+      }
+      Err(err) => {
+        let error = report_to_string(&err);
+        Ok(AnalysisResult {
+          result: None,
+          error: Some(error),
+        })
+      }
+    }
   }
 
   pub fn get_output_tree(&mut self, nextclade_outputs: &[NextcladeOutputs]) -> &AuspiceTree {

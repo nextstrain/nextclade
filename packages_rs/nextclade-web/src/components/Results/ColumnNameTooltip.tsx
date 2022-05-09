@@ -1,46 +1,70 @@
-import React from 'react'
-
+import { isEmpty, isNil } from 'lodash'
+import React, { useMemo } from 'react'
 import { Alert as ReactstrapAlert } from 'reactstrap'
+import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 
-import type { AnalysisResult } from 'src/algorithms/types'
+import { analysisResultsAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { formatRange } from 'src/helpers/formatRange'
 import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
 import { ErrorIcon, getStatusIconAndText, WarningIcon } from 'src/components/Results/getStatusIconAndText'
-import { TableSlim as TablSlimBase } from 'src/components/Common/TableSlim'
+import { TableSlim as TableSlimBase } from 'src/components/Common/TableSlim'
 
 const Alert = styled(ReactstrapAlert)`
   box-shadow: ${(props) => props.theme.shadows.slight};
   width: 400px;
 `
 
-const TableSlim = styled(TablSlimBase)`
+const TableSlim = styled(TableSlimBase)`
   width: 400px;
 `
 
 export interface ColumnNameTooltipProps {
   seqName: string
-  result?: AnalysisResult
-  warnings: string[]
-  errors: string[]
 }
 
-export function ColumnNameTooltip({ seqName, result, warnings, errors }: ColumnNameTooltipProps) {
-  const { t } = useTranslationSafe()
+export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
+  const isDone = false
 
-  if (!result) {
+  const { t } = useTranslationSafe()
+  const { result, error } = useRecoilValue(analysisResultsAtom(seqName))
+
+  const { StatusIcon, statusText } = useMemo(
+    () =>
+      getStatusIconAndText({
+        t,
+        isDone,
+        hasWarnings: !isEmpty(result?.analysisResult.warnings),
+        hasErrors: !isNil(error),
+      }),
+    [error, isDone, result?.analysisResult.warnings, t],
+  )
+
+  const errorComponent = useMemo(() => {
+    return (
+      <Alert key={error} color="danger" fade={false} className="px-2 py-1 my-1">
+        <ErrorIcon />
+        {error}
+      </Alert>
+    )
+  }, [error])
+
+  const warningComponents = useMemo(() => {
+    return (result?.analysisResult?.warnings ?? []).map((warning) => (
+      <Alert key={warning} color="warning" fade={false} className="px-2 py-1 my-1">
+        <WarningIcon />
+        {warning}
+      </Alert>
+    ))
+  }, [result?.analysisResult?.warnings])
+
+  if (!result?.analysisResult) {
     return null
   }
 
-  const { StatusIcon, statusText } = getStatusIconAndText({
-    t,
-    isDone: !!result,
-    hasWarnings: warnings.length > 0,
-    hasErrors: errors.length > 0,
-  })
-
-  const { clade, alignmentStart, alignmentEnd, alignmentScore, pcrPrimerChanges, totalPcrPrimerChanges } = result
+  const { clade, alignmentStart, alignmentEnd, alignmentScore, pcrPrimerChanges, totalPcrPrimerChanges } =
+    result.analysisResult
 
   return (
     <TableSlim borderless className="mb-1">
@@ -87,18 +111,8 @@ export function ColumnNameTooltip({ seqName, result, warnings, errors }: ColumnN
 
         <tr>
           <td colSpan={2}>
-            {errors.map((error) => (
-              <Alert key={error} color="danger" fade={false} className="px-2 py-1 my-1">
-                <ErrorIcon />
-                {error}
-              </Alert>
-            ))}
-            {warnings.map((warning) => (
-              <Alert key={warning} color="warning" fade={false} className="px-2 py-1 my-1">
-                <WarningIcon />
-                {warning}
-              </Alert>
-            ))}
+            {errorComponent}
+            {warningComponents}
           </td>
         </tr>
       </tbody>

@@ -6,13 +6,13 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfMissing } from 'src/components/Results/ListOfMissing'
 
 export interface ColumnMissingProps {
-  sequence: AnalysisResult
+  analysisResult: AnalysisResult
 }
 
-export function ColumnMissing({ sequence }: ColumnMissingProps) {
+export function ColumnMissing({ analysisResult }: ColumnMissingProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { missing, seqName, totalMissing } = sequence
+  const { missing, seqName, totalMissing } = analysisResult
   const id = getSafeId('col-missing', { seqName })
 
   return (

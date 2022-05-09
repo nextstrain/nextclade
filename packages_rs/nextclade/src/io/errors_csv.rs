@@ -2,6 +2,7 @@ use crate::gene::gene_map::GeneMap;
 use crate::io::csv::CsvStructWriter;
 use crate::io::nextclade_csv::{format_aa_warnings, format_failed_genes};
 use crate::translate::translate_genes::Translation;
+use crate::types::outputs::PeptideWarning;
 use crate::utils::error::report_to_string;
 use eyre::Report;
 use itertools::Itertools;
@@ -45,10 +46,10 @@ impl<'a> ErrorsCsvWriter<'a> {
   pub fn write_aa_errors(
     &mut self,
     seq_name: &str,
-    warnings: &[String],
+    warnings: &[PeptideWarning],
     failed_genes: &[String],
   ) -> Result<(), Report> {
-    let warnings = &warnings.join(";");
+    let warnings = &warnings.iter().map(|PeptideWarning { warning, .. }| warning).join(";");
     let failed_genes = &format_failed_genes(failed_genes, ";");
     self.writer.write(&ErrorCsvEntry {
       seq_name,

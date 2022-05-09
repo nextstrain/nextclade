@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
-
+import React, { useMemo, useState } from 'react'
+import { useRecoilValue } from 'recoil'
+import { isEmpty, isNil } from 'lodash'
 import styled from 'styled-components'
 
-import type { AnalysisResult, Warnings } from 'src/algorithms/types'
+import { analysisResultsAtom } from 'src/state/results.state'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-
 import { ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { getStatusIconAndText } from 'src/components/Results/getStatusIconAndText'
@@ -17,26 +17,30 @@ export const SequenceName = styled.div`
 
 export interface ColumnNameProps {
   seqName: string
-  sequence: AnalysisResult
-  isDone: boolean
-  warnings: Warnings
-  errors: string[]
 }
 
-export function ColumnName({ seqName, sequence, isDone, warnings, errors }: ColumnNameProps) {
+export function ColumnName({ seqName }: ColumnNameProps) {
+  const isDone = false
+
   const { t } = useTranslationSafe()
-
+  const { result, error } = useRecoilValue(analysisResultsAtom(seqName))
   const [showTooltip, setShowTooltip] = useState(false)
-  const id = getSafeId('sequence-label', { seqName })
+  const id = useMemo(() => getSafeId('sequence-label', { seqName }), [seqName])
 
-  const allWarnings = warnings.global.concat(warnings.inGenes.map((warn) => warn.message))
+  const { StatusIcon } = useMemo(
+    () =>
+      getStatusIconAndText({
+        t,
+        isDone,
+        hasWarnings: !isEmpty(result?.analysisResult.warnings),
+        hasErrors: !isNil(error),
+      }),
+    [error, isDone, result?.analysisResult.warnings, t],
+  )
 
-  const { StatusIcon } = getStatusIconAndText({
-    t,
-    isDone,
-    hasWarnings: allWarnings.length > 0,
-    hasErrors: errors.length > 0,
-  })
+  if (!result?.analysisResult) {
+    return null
+  }
 
   return (
     <SequenceName
@@ -49,7 +53,7 @@ export function ColumnName({ seqName, sequence, isDone, warnings, errors }: Colu
       {seqName}
       {
         <Tooltip wide fullWidth target={id} isOpen={showTooltip} placement="right-start">
-          <ColumnNameTooltip seqName={seqName} result={sequence} warnings={allWarnings} errors={errors} />
+          <ColumnNameTooltip seqName={seqName} />
         </Tooltip>
       }
     </SequenceName>

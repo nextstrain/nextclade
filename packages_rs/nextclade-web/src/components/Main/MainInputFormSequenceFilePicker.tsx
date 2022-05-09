@@ -7,6 +7,7 @@ import { useRecoilCallback, useRecoilState, useRecoilValue, useSetRecoilState } 
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { errorAtom } from 'src/state/error.state'
 import { analysisResultsAtom } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
@@ -144,12 +145,14 @@ export function MainInputFormSequenceFilePickerDisconnected({
           onGlobalStatus(status) {
             setGlobalStatus(status)
           },
-          onParsedFasta(record) {},
+          onParsedFasta(record) {
+            set(analysisResultsAtom(record.seqName), { index: record.index, seqName: record.seqName })
+          },
           onAnalysisResult(result) {
             set(analysisResultsAtom(result.seqName), result)
           },
           onError(error) {
-            set(analysisResultsAtom(result.seqName), { error, hasError: true })
+            set(errorAtom, error)
           },
           onComplete() {},
         }

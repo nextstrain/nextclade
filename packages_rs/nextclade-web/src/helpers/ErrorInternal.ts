@@ -1,9 +1,9 @@
 import { URL_GITHUB_ISSUES } from 'src/constants'
 
 export class ErrorInternal extends Error {
-  public constructor(name: string) {
+  public constructor(message: string) {
     super(
-      `When selecting "${name}": no data available. This is an internal issue, likely due to a programming mistake. Please report it to developers at ${URL_GITHUB_ISSUES}.`,
+      `Internal Error: ${message}. This is an internal issue, likely due to a programming mistake. Please report it to developers at '${URL_GITHUB_ISSUES}' so that they could fix it.`,
     )
   }
 }

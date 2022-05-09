@@ -6,13 +6,13 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
 
 export interface ColumnNonACGTNsProps {
-  sequence: AnalysisResult
+  analysisResult: AnalysisResult
 }
 
-export function ColumnNonACGTNs({ sequence }: ColumnNonACGTNsProps) {
+export function ColumnNonACGTNs({ analysisResult }: ColumnNonACGTNsProps) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  const { seqName, nonACGTNs, totalNonACGTNs } = sequence
+  const { seqName, nonACGTNs, totalNonACGTNs } = analysisResult
   const id = getSafeId('col-nonacgtn', { seqName })
 
   return (

@@ -4,7 +4,7 @@ import { concurrent } from 'fasy'
 import type { FastaRecord } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import type { NextcladeWasmThread, NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
-import type { GoThread, GoWorker } from 'src/workers/go.worker'
+import type { GoThread } from 'src/workers/go.worker'
 
 const WORKER_TIMEOUT_MS = 60 * 1000
 
@@ -24,15 +24,16 @@ export async function createAnalysisThreadPool(
   params: NextcladeParamsPojo,
 ): Promise<Pool<NextcladeWasmThread>> {
   // Spawn the pool of WebWorkers
-  const poolAnalyze = Pool<NextcladeWasmThread>(
-    () => spawn<NextcladeWasmWorker>(new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url))),
-    {
-      size: numThreads,
-      concurrency: 1,
-      name: 'pool.analyze',
-      maxQueuedJobs: undefined,
-    },
-  )
+
+  const nextcladeWorkerModule = new Worker(new URL('src/workers/nextcladeWasm.worker.ts', import.meta.url), {
+    name: 'nextcladeWebWorker',
+  })
+  const poolAnalyze = Pool<NextcladeWasmThread>(() => spawn<NextcladeWasmThread>(nextcladeWorkerModule), {
+    size: numThreads,
+    concurrency: 1,
+    name: 'pool.analyze',
+    maxQueuedJobs: undefined,
+  })
 
   // Initialize each WebWorker in the pool.
   // This instantiates and initializes webassembly module, and runs the constructor of the underlying C++ class.
@@ -41,7 +42,7 @@ export async function createAnalysisThreadPool(
     return worker.create(params)
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-  }, poolAnalyze.workers)
+  }, poolAnalyze.workers) // eslint-disable-line @typescript-eslint/no-unsafe-argument
 
   // Wait until pool is done initializing
   await poolAnalyze.settled(true)
@@ -63,14 +64,15 @@ export async function destroyAnalysisThreadPool(poolAnalyze: Pool<NextcladeWasmT
     return worker.destroy()
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-  }, poolAnalyze.workers)
+  }, poolAnalyze.workers) // eslint-disable-line @typescript-eslint/no-unsafe-argument
 
   // Terminate the analysis worker pool
   await poolAnalyze.terminate(true)
 }
 
 export async function createGoWorker(): Promise<GoThread> {
-  return spawn<GoWorker>(new Worker(new URL('src/workers/go.worker.ts', import.meta.url)))
+  const goWorkerModule = new Worker(new URL('src/workers/go.worker.ts', import.meta.url), { name: 'launcherWebWorker' })
+  return spawn<GoThread>(goWorkerModule)
 }
 
 export async function parseSequencesStreaming(

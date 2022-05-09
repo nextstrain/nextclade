@@ -10,6 +10,7 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+assert2 = "0.3.6"
 console_error_panic_hook = "0.1.7"
 eyre = "0.6.8"
 getrandom = { version = "0.2.6", features = ["js"] }
@@ -25,4 +26,5 @@ web-sys = { version = "0.3.56", features = ["console"] }
 wee_alloc = "0.4.5"
 
 [dev-dependencies]
+assert2 = "0.3.6"
 wasm-bindgen-test = "0.3.29"
