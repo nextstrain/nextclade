@@ -47,7 +47,7 @@ pub fn score_matrix<T: Letter<T>>(
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
 
-  const NO_ALIGN: i32 = -1000;
+  const NO_ALIGN: i32 = -1_000_000_000; //very negative to be able to process unalignable seqs
 
   paths[(0, 0)] = 0;
   scores[(0, 0)] = 0;
@@ -106,6 +106,7 @@ pub fn score_matrix<T: Letter<T>>(
 
         // TODO: Double bounds check -> wasteful, make better
         if qpos - 1 >= stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
+          // ^ If stripes allow to move up diagonally to upper left
           if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
             score = scores[(ri - 1, qpos - 1)] + params.score_match;
           } else {
@@ -127,8 +128,8 @@ pub fn score_matrix<T: Letter<T>>(
             r_gap_extend = ref_gaps;
             r_gap_open = scores[(ri, qpos - 1)];
           }
-          if r_gap_extend >= r_gap_open {
-            // extension better than opening
+          if r_gap_extend >= r_gap_open && qpos > stripes[ri].begin + 1 {
+            // extension better than opening (and ^ extension allowed positionally)
             tmp_score = r_gap_extend;
             tmp_path += REF_GAP_EXTEND;
           } else {
@@ -141,8 +142,6 @@ pub fn score_matrix<T: Letter<T>>(
             score = tmp_score;
             origin = REF_GAP_MATRIX;
           }
-        } else {
-          ref_gaps = NO_ALIGN;
         }
 
         // check the scores of a query gap
@@ -157,7 +156,8 @@ pub fn score_matrix<T: Letter<T>>(
             q_gap_extend = qry_gaps[qpos];
             q_gap_open = scores[(ri - 1, qpos)]
           }
-          if q_gap_extend >= q_gap_open {
+          if q_gap_extend >= q_gap_open && qpos < stripes[ri - 2].end {
+            // extension better than opening (and ^ extension allowed positionally)
             tmp_score = q_gap_extend;
             tmp_path += QRY_GAP_EXTEND;
           } else {

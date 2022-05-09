@@ -2,8 +2,8 @@ use std::fs::{self, read_to_string};
 use std::path::PathBuf;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughput};
-use nextclade::align::align::AlignPairwiseParams;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+use nextclade::align::params::AlignPairwiseParams;
 use nextclade::align::seed_alignment::{self, seed_alignment};
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::nuc::to_nuc_seq;

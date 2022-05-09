@@ -1,8 +1,8 @@
 use crate::align::align::align_aa;
 use crate::align::insertions_strip::{insertions_strip, Insertion};
+use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
 use crate::analyze::count_gaps::GapCounts;
-use crate::align::params::AlignPairwiseParams;
 use crate::gene::gene::Gene;
 use crate::gene::gene_map::GeneMap;
 use crate::io::aa::Aa;

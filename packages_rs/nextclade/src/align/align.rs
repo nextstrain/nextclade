@@ -67,8 +67,9 @@ pub fn align_aa(
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
   let aa_params = AlignPairwiseParams {
-    left_terminal_gaps_free: false,
-    right_terminal_gaps_free: false,
+    // Set to false for internal genes
+    left_terminal_gaps_free: true,
+    right_terminal_gaps_free: true,
     ..*params
   };
 

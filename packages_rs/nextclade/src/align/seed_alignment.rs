@@ -1,6 +1,6 @@
 use crate::align::band_2d::{simple_stripes, Stripe};
-use crate::align::seed_match::seed_match;
 use crate::align::params::AlignPairwiseParams;
+use crate::align::seed_match::seed_match;
 use crate::io::letter::Letter;
 use crate::make_error;
 use eyre::Report;
@@ -25,7 +25,7 @@ fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) ->
   map_to_good_positions
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct SeedMatch {
   pub qry_pos: usize,
   pub ref_pos: usize,
@@ -142,6 +142,16 @@ pub fn create_stripes(
   terminal_bandwidth: i32,
   excess_bandwidth: i32,
 ) -> Vec<Stripe> {
+  let mut seed_matches = seed_matches.to_vec();
+
+  // Discard seed matches right at the terminals of the ref sequence
+  if seed_matches[0].ref_pos == 0 {
+    seed_matches = seed_matches[1..].to_vec();
+  }
+  if seed_matches[seed_matches.len() - 1].ref_pos == ref_len as usize - 1 {
+    seed_matches = seed_matches[0..(seed_matches.len() - 1)].to_vec();
+  }
+
   let mut stripes = add_start_stripe(
     seed_matches[0].ref_pos as i32,
     seed_matches[0].qry_pos as i32,
