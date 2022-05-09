@@ -3,6 +3,7 @@ use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
@@ -10,7 +11,7 @@ use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::json::json_write;
-use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
+use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, to_ungapped_nuc_seq, Nuc};
 use nextclade::option_get_some;
 use nextclade::qc::qc_config::QcConfig;
 use nextclade::run::nextclade_run_one::nextclade_run_one;
@@ -20,7 +21,6 @@ use nextclade::tree::tree::AuspiceTree;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
-use log::info;
 use serde::{Deserialize, Serialize};
 
 pub struct NextcladeRecord {
@@ -146,7 +146,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
 
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
           info!("Processing sequence '{seq_name}'");
-          let qry_seq = to_nuc_seq(&seq)
+          let qry_seq = to_ungapped_nuc_seq(&seq)
             .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
             .unwrap();
 

@@ -146,6 +146,14 @@ pub fn to_nuc_seq(str: &str) -> Result<Vec<Nuc>, Report> {
   str.chars().map(to_nuc).collect()
 }
 
+pub fn to_ungapped_nuc_seq(str: &str) -> Result<Vec<Nuc>, Report> {
+  str
+    .chars()
+    .filter(|&x| x != char::from_u32('-' as u32).unwrap())
+    .map(to_nuc)
+    .collect()
+}
+
 pub fn from_nuc_seq(seq: &[Nuc]) -> String {
   seq.iter().map(|nuc| from_nuc(*nuc)).collect()
 }

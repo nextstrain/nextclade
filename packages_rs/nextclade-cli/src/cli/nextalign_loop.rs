@@ -1,6 +1,9 @@
+use crate::cli::nextalign_cli::NextalignRunArgs;
+use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::{Either, Itertools};
+use log::info;
 use nextclade::align::align::align_nuc;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::insertions_strip::insertions_strip;
@@ -8,25 +11,20 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_file;
-use nextclade::io::nuc::{to_nuc_seq, Nuc};
+use nextclade::io::nuc::{to_nuc_seq, to_ungapped_nuc_seq, Nuc};
 use nextclade::option_get_some;
+use nextclade::run::nextalign_run_one::nextalign_run_one;
 use nextclade::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::types::outputs::NextalignOutputs;
 use nextclade::utils::error::report_to_string;
-use log::info;
 use std::collections::HashSet;
-use nextclade::run::nextalign_run_one::nextalign_run_one;
-use crate::cli::nextalign_cli::NextalignRunArgs;
-use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 
 pub struct NextalignRecord {
   pub index: usize,
   pub seq_name: String,
   pub outputs_or_err: Result<NextalignOutputs, Report>,
 }
-
-
 
 pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{args:#?}");
@@ -103,7 +101,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
 
         for FastaRecord { seq_name, seq, index } in &fasta_receiver {
           info!("Processing sequence '{seq_name}'");
-          let qry_seq = to_nuc_seq(&seq)
+          let qry_seq = to_ungapped_nuc_seq(&seq)
             .wrap_err_with(|| format!("When processing sequence #{index} '{seq_name}'"))
             .unwrap();
 
