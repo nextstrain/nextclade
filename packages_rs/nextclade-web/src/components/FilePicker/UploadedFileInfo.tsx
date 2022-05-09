@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
@@ -6,6 +6,7 @@ import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 import styled from 'styled-components'
 
 import { theme } from 'src/theme'
+import { isNil } from 'lodash'
 import { ErrorContent } from 'src/components/Error/ErrorPopup'
 
 const Container = styled.div`
@@ -87,7 +88,7 @@ function FileStatusIcon({ hasErrors }: { hasErrors: boolean }) {
   return <IoMdCheckmarkCircle size={ICON_SIZE} color={theme.success} />
 }
 
-function FileError({ error }: { error: Error }) {
+function FileError({ error }: { error?: string }) {
   return (
     <FileErrorStyled color="danger">
       <ErrorContent error={error} />
@@ -97,14 +98,26 @@ function FileError({ error }: { error: Error }) {
 
 export interface UploadedFileInfoProps {
   description: string
-  errors: Error[]
+  error?: string
   onRemove(): void
 }
 
-export function UploadedFileInfo({ description, errors, onRemove }: UploadedFileInfoProps) {
+export function UploadedFileInfo({ description, error, onRemove }: UploadedFileInfoProps) {
   const { t } = useTranslation()
 
-  const hasErrors = errors.length > 0
+  const hasErrors = !isNil(error)
+
+  const errorComponent = useMemo(
+    () =>
+      error && (
+        <ErrorWrapper>
+          <ErrorWrapperInternal>
+            <FileError key={error} error={error} />
+          </ErrorWrapperInternal>
+        </ErrorWrapper>
+      ),
+    [error],
+  )
 
   return (
     <Container>
@@ -138,15 +151,7 @@ export function UploadedFileInfo({ description, errors, onRemove }: UploadedFile
         </InfoWrapperInternal>
       </InfoWrapper>
 
-      {errors.length > 0 && (
-        <ErrorWrapper>
-          <ErrorWrapperInternal>
-            {errors.map((error) => (
-              <FileError key={error.message} error={error} />
-            ))}
-          </ErrorWrapperInternal>
-        </ErrorWrapper>
-      )}
+      {errorComponent}
     </Container>
   )
 }

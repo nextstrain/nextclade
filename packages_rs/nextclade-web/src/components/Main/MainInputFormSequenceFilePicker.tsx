@@ -1,37 +1,23 @@
 import React, { useCallback, useMemo } from 'react'
-import { sumBy } from 'lodash'
 import { useRouter } from 'next/router'
-import { connect } from 'react-redux'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
-import { useRecoilCallback, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
-import { datasetCurrentAtom } from 'src/state/dataset.state'
-import { errorAtom } from 'src/state/error.state'
-import { analysisResultsAtom } from 'src/state/results.state'
-import { numThreadsAtom } from 'src/state/settings.state'
+import { useRecoilCallback, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
 import styled from 'styled-components'
 
-import type { DatasetFlat } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import type { AlgorithmInput, AlgorithmParams } from 'src/state/algorithm/algorithm.state'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { analysisStatusGlobalAtom, canRunAtom } from 'src/state/analysisStatusGlobal.state'
+import { datasetCurrentAtom } from 'src/state/dataset.state'
+import { globalErrorAtom, hasInputErrorsAtom, qrySeqErrorAtom } from 'src/state/error.state'
+import { analysisResultsAtom } from 'src/state/results.state'
+import { numThreadsAtom, shouldRunAutomaticallyAtom, showNewRunPopupAtom } from 'src/state/settings.state'
+import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { Toggle } from 'src/components/Common/Toggle'
 import { FlexLeft, FlexRight } from 'src/components/FilePicker/FilePickerStyles'
 import { setShouldRunAutomatically } from 'src/state/settings/settings.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
-import { algorithmRunAsync, removeFasta, setFasta, setIsDirty } from 'src/state/algorithm/algorithm.actions'
-import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
-import {
-  selectCanRun,
-  selectCurrentDataset,
-  selectHasRequiredInputs,
-  selectParams,
-  selectIsInProgressFasta,
-} from 'src/state/algorithm/algorithm.selectors'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
-import { selectShouldRunAutomatically } from 'src/state/settings/settings.selectors'
 import { LaunchAnalysisInputs, launchAnalysis, LaunchAnalysisCallbacks } from 'src/workers/launchAnalysis'
 import {
   qrySeqAtom,
@@ -41,6 +27,7 @@ import {
   qcConfigAtom,
   virusPropertiesAtom,
   primersCsvAtom,
+  hasRequiredInputsAtom,
 } from 'src/state/inputs.state'
 
 const SequenceFilePickerContainer = styled.section`
@@ -56,54 +43,7 @@ const ButtonRunStyled = styled(Button)`
   margin-left: 1rem;
 `
 
-export interface MainInputFormSequenceFilePickerProps {
-  params: AlgorithmParams
-  datasetCurrent?: DatasetFlat
-  canRun: boolean
-  hasRequiredInputs: boolean
-  isInProgressFasta: boolean
-  shouldRunAutomatically: boolean
-  algorithmRunTrigger(_0: unknown): void
-  setShowNewRunPopup(showNewRunPopup: boolean): void
-  setIsDirty(isDirty: boolean): void
-  setFasta(input: AlgorithmInput): void
-  removeFasta(_0: unknown): void
-  setShouldRunAutomatically(shouldRunAutomatically: boolean): void
-}
-
-const mapStateToProps = (state: State) => ({
-  params: selectParams(state),
-  datasetCurrent: selectCurrentDataset(state),
-  canRun: selectCanRun(state),
-  hasRequiredInputs: selectHasRequiredInputs(state),
-  isInProgressFasta: selectIsInProgressFasta(state),
-  shouldRunAutomatically: selectShouldRunAutomatically(state),
-})
-
-const mapDispatchToProps = {
-  setFasta: setFasta.trigger,
-  removeFasta,
-  algorithmRunTrigger: algorithmRunAsync.trigger,
-  setShowNewRunPopup,
-  setIsDirty,
-  setShouldRunAutomatically,
-}
-
-export const MainInputFormSequenceFilePicker = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(MainInputFormSequenceFilePickerDisconnected)
-
-export function MainInputFormSequenceFilePickerDisconnected({
-  params,
-  canRun,
-  hasRequiredInputs,
-  isInProgressFasta,
-  setShowNewRunPopup,
-  setIsDirty,
-  shouldRunAutomatically,
-  setShouldRunAutomatically,
-}: MainInputFormSequenceFilePickerProps) {
+export function MainInputFormSequenceFilePicker() {
   const { t } = useTranslationSafe()
   const router = useRouter()
 
@@ -111,18 +51,27 @@ export function MainInputFormSequenceFilePickerDisconnected({
   const setGlobalStatus = useSetRecoilState(analysisStatusGlobalAtom)
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
 
-  const [_, setQrySeq] = useRecoilState(qrySeqAtom)
-  const [refSeq, setRefSeq] = useRecoilState(refSeqAtom)
-  const [geneMap, setGeneMap] = useRecoilState(geneMapAtom)
-  const [refTree, setRefTree] = useRecoilState(refTreeAtom)
-  const [qcConfig, setQcConfig] = useRecoilState(qcConfigAtom)
-  const [virusProperties, setVirusProperties] = useRecoilState(virusPropertiesAtom)
-  const [primersCsv, setPrimersCsv] = useRecoilState(primersCsvAtom)
+  const [qrySeq, setQrySeq] = useRecoilState(qrySeqAtom)
+  const removeQrySeq = useResetRecoilState(qrySeqAtom)
+  const qrySeqError = useRecoilValue(qrySeqErrorAtom)
 
-  const hasErrors = useMemo(() => {
-    const numErrors = sumBy(Object.values(params.errors), (err) => err.length)
-    return numErrors > 0
-  }, [params.errors])
+  const refSeq = useRecoilValue(refSeqAtom)
+  const geneMap = useRecoilValue(geneMapAtom)
+  const refTree = useRecoilValue(refTreeAtom)
+  const qcConfig = useRecoilValue(qcConfigAtom)
+  const virusProperties = useRecoilValue(virusPropertiesAtom)
+  const primersCsv = useRecoilValue(primersCsvAtom)
+
+  const canRun = useRecoilValue(canRunAtom)
+  const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
+  const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
+  const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
+  const setShowNewRunPopup = useSetRecoilState(showNewRunPopupAtom)
+
+  const isInProgressFasta = useMemo(() => false, []) // TODO: decide whether this is needed at all
+  const setIsDirty = useCallback((_0: boolean) => {}, []) // TODO: decide whether this is needed at all
+
+  const icon = useMemo(() => <FileIconFasta />, [])
 
   const run = useRecoilCallback(
     ({ set, snapshot: { getPromise } }) =>
@@ -154,7 +103,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
             set(analysisResultsAtom(result.seqName), result)
           },
           onError(error) {
-            set(errorAtom, error)
+            set(globalErrorAtom, error)
           },
           onComplete() {},
         }
@@ -208,7 +157,7 @@ export function MainInputFormSequenceFilePickerDisconnected({
   }, [datasetCurrent, run, setQrySeq, shouldRunAutomatically])
 
   const { isRunButtonDisabled, runButtonColor, runButtonTooltip } = useMemo(() => {
-    const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasErrors
+    const isRunButtonDisabled = !(canRun && hasRequiredInputs) || hasInputErrors
     return {
       isRunButtonDisabled,
       runButtonColor: isRunButtonDisabled ? 'secondary' : 'success',
@@ -216,16 +165,16 @@ export function MainInputFormSequenceFilePickerDisconnected({
         ? t('Please provide input files for the algorithm')
         : t('Launch the algorithm!'),
     }
-  }, [canRun, hasErrors, hasRequiredInputs, t])
+  }, [canRun, hasInputErrors, hasRequiredInputs, t])
 
   const LoadExampleLink = useMemo(() => {
-    const cannotLoadExample = hasRequiredInputs || isInProgressFasta || hasErrors
+    const cannotLoadExample = hasRequiredInputs || isInProgressFasta || hasInputErrors
     return (
       <Button color="link" onClick={setExampleSequences} disabled={cannotLoadExample}>
         {t('Load example')}
       </Button>
     )
-  }, [hasErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
+  }, [hasInputErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
 
   const onToggleRunAutomatically = useCallback(() => {
     setShouldRunAutomatically(!shouldRunAutomatically)
@@ -235,13 +184,13 @@ export function MainInputFormSequenceFilePickerDisconnected({
     <SequenceFilePickerContainer>
       <FilePicker
         title={t('Provide sequence data')}
-        icon={<FileIconFasta />}
+        icon={icon}
         exampleUrl="https://example.com/sequences.fasta"
         pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
-        input={params.raw.seqData}
-        errors={params.errors.seqData}
+        input={qrySeq}
+        error={qrySeqError}
         isInProgress={isInProgressFasta}
-        onRemove={removeFasta}
+        onRemove={removeQrySeq}
         onInput={setSequences}
       />
 

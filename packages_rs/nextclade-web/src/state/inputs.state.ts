@@ -1,6 +1,7 @@
-import { atom } from 'recoil'
+import { isNil } from 'lodash'
+import { atom, selector } from 'recoil'
 
-import { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
+import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 
 export const qrySeqAtom = atom<AlgorithmInput | undefined>({
   key: 'qrySeq',
@@ -35,4 +36,11 @@ export const virusPropertiesAtom = atom<AlgorithmInput | undefined>({
 export const primersCsvAtom = atom<AlgorithmInput | undefined>({
   key: 'primersCsv',
   default: undefined,
+})
+
+export const hasRequiredInputsAtom = selector({
+  key: 'hasRequiredInputs',
+  get({ get }) {
+    return !isNil(get(qrySeqAtom))
+  },
 })
