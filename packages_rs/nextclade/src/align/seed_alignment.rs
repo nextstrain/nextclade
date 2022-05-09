@@ -4,6 +4,7 @@ use crate::align::seed_match::seed_match;
 use crate::io::letter::Letter;
 use crate::make_error;
 use eyre::Report;
+use log::warn;
 use num_traits::{clamp, clamp_max, clamp_min};
 
 fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) -> Vec<usize> {
@@ -70,14 +71,27 @@ pub fn get_seed_matches<L: Letter<L>>(
         if tmp_match.ref_pos > prev_match.ref_pos {
           start_pos = prev_match.ref_pos;
         } else {
+          warn!("Crossed over seed removed. {:?}", prev_match);
           seed_matches.pop();
         }
       }
-      seed_matches.push(SeedMatch {
+      let seed_match = SeedMatch {
         qry_pos,
         ref_pos: tmp_match.ref_pos,
         score: tmp_match.score,
-      });
+      };
+      if seed_matches
+        .last()
+        .map_or(true, |prev_match| prev_match.ref_pos < tmp_match.ref_pos)
+      {
+        //ensure seed positions increase strictly monotonically
+        seed_matches.push(seed_match);
+      } else {
+        warn!(
+          "Seed not used because of identical ref_pos with previous seed: {:?}",
+          seed_match
+        );
+      }
       end_pos = tmp_match.ref_pos + params.max_indel;
     }
   }

@@ -75,7 +75,7 @@ pub fn score_matrix<T: Letter<T>>(
 
     for qpos in stripes[ri].begin..stripes[ri].end {
       let mut tmp_path = 0;
-      let mut score = 0;
+      let mut score = NO_ALIGN; // Needs to be very negative so that one path is always the best
       let mut origin = 0;
       let q_gap_extend: i32;
       let r_gap_extend: i32;
@@ -87,7 +87,7 @@ pub fn score_matrix<T: Letter<T>>(
       if qpos == 0 {
         // Initialize first column
         // precedes query sequence -- no score, origin is query gap
-        tmp_path += QRY_GAP_EXTEND;
+        tmp_path = QRY_GAP_EXTEND;
         origin = QRY_GAP_MATRIX;
         if params.left_terminal_gaps_free {
           // Left terminal gap is free
@@ -131,7 +131,7 @@ pub fn score_matrix<T: Letter<T>>(
           if r_gap_extend >= r_gap_open && qpos > stripes[ri].begin + 1 {
             // extension better than opening (and ^ extension allowed positionally)
             tmp_score = r_gap_extend;
-            tmp_path += REF_GAP_EXTEND;
+            tmp_path = REF_GAP_EXTEND;
           } else {
             // opening better than extension
             tmp_score = r_gap_open;

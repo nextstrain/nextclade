@@ -74,11 +74,14 @@ pub fn backtrace<T: Letter<T>>(
         0
       }
     } else {
-      break;
+      // This should never be reached
+      // origin = 0 and current_matrix = 0
+      // Why would this ever happen?
+      // Mistake in score_matrix?
+      unreachable!("Problem in backtrace: origin = 0 and current_matrix = 0 before (0,0) reached. Please share the sequence with the developers.");
     }
   }
 
-  let best_score = 0;
   aln_qry.reverse();
   aln_ref.reverse();
 
