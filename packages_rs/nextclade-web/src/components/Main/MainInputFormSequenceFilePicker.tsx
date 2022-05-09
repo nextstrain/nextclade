@@ -145,8 +145,10 @@ export function MainInputFormSequenceFilePickerDisconnected({
           onGlobalStatus(status) {
             setGlobalStatus(status)
           },
-          onParsedFasta(record) {
-            set(analysisResultsAtom(record.seqName), { index: record.index, seqName: record.seqName })
+          onParsedFasta(/* record */) {
+            // TODO: this does not work well: updates in `onAnalysisResult()` callback below fight with this one.
+            // Figure out how to make them both work.
+            // set(analysisResultsAtom(record.seqName), { index: record.index, seqName: record.seqName })
           },
           onAnalysisResult(result) {
             set(analysisResultsAtom(result.seqName), result)
@@ -163,7 +165,8 @@ export function MainInputFormSequenceFilePickerDisconnected({
 
         launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads).catch(console.error)
 
-        router.push('/results')
+        // eslint-disable-next-line no-void
+        void router.push('/results')
       },
     [
       setShowNewRunPopup,
@@ -175,7 +178,9 @@ export function MainInputFormSequenceFilePickerDisconnected({
       virusProperties,
       primersCsv,
       datasetCurrent,
+      numThreads,
       router,
+      setGlobalStatus,
     ],
   )
 

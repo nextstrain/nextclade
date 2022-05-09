@@ -1,3 +1,4 @@
+import { uniq } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 
 import type { NextcladeResult } from 'src/algorithms/types'
@@ -27,20 +28,23 @@ export const analysisResultsAtom = selectorFamily<NextcladeResult, string>({
 
   get:
     (seqName: string) =>
-    ({ get }) => {
+    ({ get }): NextcladeResult => {
       return get(analysisResultSingleAtom(seqName))
     },
 
   set:
     (seqName) =>
-    ({ set, reset }, result) => {
+    ({ set, reset }, result: NextcladeResult | DefaultValue) => {
       if (isDefaultValue(result)) {
         reset(analysisResultSingleAtom(seqName))
         reset(seqNamesAtom)
       } else {
         set(analysisResultSingleAtom(seqName), result)
         set(seqNamesAtom, (prev) => {
-          return [...prev, result?.seqName]
+          if (result && !prev.includes(result.seqName)) {
+            return [...prev, result.seqName]
+          }
+          return prev
         })
       }
     },
@@ -50,16 +54,16 @@ export const analysisResultsAtom = selectorFamily<NextcladeResult, string>({
 export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
   key: 'analysisResultStatuses',
   get: ({ get }) => {
-    let seqNames = get(seqNamesAtom)
+    const seqNames = get(seqNamesAtom)
     return seqNames.map((seqName) => {
       const result = get(analysisResultSingleAtom(seqName))
       if (result.error) {
         return AlgorithmSequenceStatus.failed
-      } else if (result.result) {
-        return AlgorithmSequenceStatus.done
-      } else {
-        return AlgorithmSequenceStatus.queued
       }
+      if (result.result) {
+        return AlgorithmSequenceStatus.done
+      }
+      return AlgorithmSequenceStatus.started
     })
   },
 })
