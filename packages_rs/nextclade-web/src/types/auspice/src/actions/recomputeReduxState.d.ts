@@ -10,7 +10,7 @@ declare module 'auspice/src/actions/recomputeReduxState' {
     narrativeBlocks?: boolean
     mainTreeName?: string | false
     secondTreeName?: string | false
-    dispatch?: Dispatch
+    dispatch: Dispatch
   }
 
   export declare function createStateFromQueryOrJSONs(params: CreateStateFromQueryOrJSONsParams): AuspiceState

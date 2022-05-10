@@ -116,7 +116,7 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
 // }
 
 /** Retrieves the output tree from the WebAssembly module. */
-export function getOutputTree(analysisResultsJsonStr: string): string {
+export async function getOutputTree(analysisResultsJsonStr: string): Promise<string> {
   if (!nextcladeWasm) {
     throw new ErrorModuleNotInitialized('getOutputTree')
   }

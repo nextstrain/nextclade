@@ -1,3 +1,4 @@
+import { AuspiceJsonV2 } from 'auspice'
 import { concurrent } from 'fasy'
 
 import type { DatasetFiles, DatasetFlat, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
@@ -19,6 +20,7 @@ export interface LaunchAnalysisCallbacks {
   onGlobalStatus: (record: AlgorithmGlobalStatus) => void
   onParsedFasta: (record: FastaRecordId) => void
   onAnalysisResult: (record: NextcladeResult) => void
+  onTree: (tree: AuspiceJsonV2) => void
   onError: (error: Error) => void
   onComplete: () => void
 }
@@ -40,7 +42,7 @@ export async function launchAnalysis(
   dataset: DatasetFlat,
   numThreads: number,
 ) {
-  const { onGlobalStatus, onParsedFasta, onAnalysisResult, onError, onComplete } = callbacks
+  const { onGlobalStatus, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
 
   // Resolve inputs into the actual strings
   const qryFastaStr = await getQueryFasta(await qryFastaInput)
@@ -54,6 +56,7 @@ export async function launchAnalysis(
     launcherWorker.getAnalysisGlobalStatusObservable().subscribe(onGlobalStatus),
     launcherWorker.getParsedFastaObservable().subscribe(onParsedFasta, onError),
     launcherWorker.getAnalysisResultsObservable().subscribe(onAnalysisResult, onError, onComplete),
+    launcherWorker.getTreeObservable().subscribe(onTree, onError),
   ]
 
   try {

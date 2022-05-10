@@ -1,8 +1,9 @@
-import { uniq } from 'lodash'
+import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
+import type { AuspiceJsonV2 } from 'auspice'
 
 import type { NextcladeResult } from 'src/algorithms/types'
-import { AlgorithmSequenceStatus, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 
 export function isDefaultValue(candidate: unknown): candidate is DefaultValue {
   return candidate instanceof DefaultValue
@@ -65,5 +66,16 @@ export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
       }
       return AlgorithmSequenceStatus.started
     })
+  },
+})
+
+export const treeAtom = atom<AuspiceJsonV2 | undefined>({
+  key: 'tree',
+})
+
+export const hasTreeAtom = selector<boolean>({
+  key: 'hasTree',
+  get({ get }) {
+    return !isNil(get(treeAtom))
   },
 })

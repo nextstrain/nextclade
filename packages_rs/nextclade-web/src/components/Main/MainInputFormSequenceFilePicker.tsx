@@ -1,14 +1,20 @@
+import { changeColorBy } from 'auspice/src/actions/colors'
 import React, { useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useDispatch } from 'react-redux'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
 import { useRecoilCallback, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { AnyAction } from 'redux'
+import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
+import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import styled from 'styled-components'
 
+import type { AuspiceJsonV2 } from 'auspice'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { analysisStatusGlobalAtom, canRunAtom } from 'src/state/analysisStatusGlobal.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { globalErrorAtom, hasInputErrorsAtom, qrySeqErrorAtom } from 'src/state/error.state'
-import { analysisResultsAtom } from 'src/state/results.state'
+import { analysisResultsAtom, treeAtom } from 'src/state/results.state'
 import { numThreadsAtom, shouldRunAutomaticallyAtom, showNewRunPopupAtom } from 'src/state/settings.state'
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { Toggle } from 'src/components/Common/Toggle'
@@ -46,6 +52,7 @@ const ButtonRunStyled = styled(Button)`
 export function MainInputFormSequenceFilePicker() {
   const { t } = useTranslationSafe()
   const router = useRouter()
+  const dispatch = useDispatch()
 
   const numThreads = useRecoilValue(numThreadsAtom)
   const setGlobalStatus = useSetRecoilState(analysisStatusGlobalAtom)
@@ -104,6 +111,14 @@ export function MainInputFormSequenceFilePicker() {
           },
           onError(error) {
             set(globalErrorAtom, error)
+          },
+          onTree(tree: AuspiceJsonV2) {
+            set(treeAtom, tree)
+
+            const auspiceState = createAuspiceState(tree, dispatch)
+            dispatch(auspiceStartClean(auspiceState))
+            dispatch(changeColorBy())
+            dispatch(treeFilterByNodeType(['New']))
           },
           onComplete() {},
         }
