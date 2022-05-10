@@ -30,11 +30,10 @@ const analysisResultsObservable = new Subject<NextcladeResult>()
 const treeObservable = new Subject<AuspiceJsonV2>()
 
 export async function goWorker(numThreads: number, params: NextcladeParamsPojo, qryFastaStr: string) {
+  analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.initWorkers)
   const pool = await createAnalysisThreadPool(numThreads, params)
 
   try {
-    analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.initWorkers)
-
     const results: AnalysisResult[] = []
 
     analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.started)

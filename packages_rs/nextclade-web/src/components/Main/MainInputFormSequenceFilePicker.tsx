@@ -16,10 +16,10 @@ import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { globalErrorAtom, hasInputErrorsAtom, qrySeqErrorAtom } from 'src/state/error.state'
 import { analysisResultsAtom, treeAtom } from 'src/state/results.state'
 import { numThreadsAtom, shouldRunAutomaticallyAtom, showNewRunPopupAtom } from 'src/state/settings.state'
+import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { Toggle } from 'src/components/Common/Toggle'
 import { FlexLeft, FlexRight } from 'src/components/FilePicker/FilePickerStyles'
-import { setShouldRunAutomatically } from 'src/state/settings/settings.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
@@ -83,6 +83,8 @@ export function MainInputFormSequenceFilePicker() {
   const run = useRecoilCallback(
     ({ set, snapshot: { getPromise } }) =>
       () => {
+        setGlobalStatus(AlgorithmGlobalStatus.loadingData)
+
         const qrySeq = getPromise(qrySeqAtom)
 
         setShowNewRunPopup(false)
@@ -133,7 +135,9 @@ export function MainInputFormSequenceFilePicker() {
             return launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads)
           })
           .catch((error) => {
+            setGlobalStatus(AlgorithmGlobalStatus.failed)
             set(globalErrorAtom, sanitizeError(error))
+            console.error(error)
           })
       },
     [
