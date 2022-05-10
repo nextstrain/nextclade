@@ -137,6 +137,14 @@ export function SettingsButton() {
   const initialValues = useMemo(() => ({ numThreads }), [numThreads])
   const onReset = useCallback(() => ({ numThreads }), [numThreads])
 
+  const memoryAvailable = useMemo(() => {
+    return guess.memoryAvailable ? prettyBytes.format(guess.memoryAvailable) : t('unsupported')
+  }, [guess.memoryAvailable, t])
+
+  const memoryAvailablePerThread = useMemo(() => {
+    return guess.memoryAvailable ? prettyBytes.format(guess.memoryAvailable / numThreads) : t('unsupported')
+  }, [guess.memoryAvailable, numThreads, t])
+
   return (
     <>
       <ButtonSettingsBase type="button" onClick={toggleOpen} title={text}>
@@ -202,20 +210,12 @@ export function SettingsButton() {
                                 <tbody>
                                   <tr>
                                     <td>{t('Memory available*')}</td>
-                                    <td>
-                                      {guess.memoryAvailable
-                                        ? prettyBytes.format(guess.memoryAvailable)
-                                        : t('unsupported')}
-                                    </td>
+                                    <td>{memoryAvailable}</td>
                                   </tr>
 
                                   <tr>
                                     <td>{t('Memory per CPU thread')}</td>
-                                    <td>
-                                      {guess.memoryAvailable
-                                        ? prettyBytes.format(guess.memoryAvailable / numThreads)
-                                        : t('unsupported')}
-                                    </td>
+                                    <td>{memoryAvailablePerThread}</td>
                                   </tr>
 
                                   <tr>

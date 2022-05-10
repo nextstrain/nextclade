@@ -2,7 +2,7 @@ import { mapValues, sum } from 'lodash'
 import { atom, selector } from 'recoil'
 
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
-import { getNumThreads } from 'src/helpers/getNumThreads'
+import { getNumThreads, guessNumThreads } from 'src/helpers/getNumThreads'
 import { COLUMN_WIDTHS, DYNAMIC_COLUMN_WIDTH } from 'src/components/Results/ResultsTableStyle'
 import { cladeNodeAttrKeysAtom } from 'src/state/results.state'
 import { persistAtom } from 'src/state/persist/localStorage'
@@ -14,7 +14,7 @@ export const isInitializedAtom = atom<boolean>({
 
 export const numThreadsAtom = atom<number>({
   key: 'numThreads',
-  default: getNumThreads(),
+  default: guessNumThreads()?.numThreads ?? getNumThreads(),
   effects: [persistAtom],
 })
 

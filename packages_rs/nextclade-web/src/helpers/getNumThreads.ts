@@ -1,7 +1,9 @@
+import { clamp } from 'lodash'
 import { useEffect, useState } from 'react'
 
 export const DEFAULT_NUM_THREADS = 4
 export const MINIMUM_NUM_THREADS = 2
+export const MAXIMUM_NUM_THREADS = 8
 export const MEMORY_BYTES_PER_THREAD_MINIMUM = 200 * 1024 * 1024
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -26,11 +28,11 @@ export function getMemoryBytesAvailable(): number | undefined {
   return undefined
 }
 
-export function guessNumThreads(numThreadsBase: number | undefined) {
+export function guessNumThreads() {
   const memoryBytesAvailable = getMemoryBytesAvailable()
   if (memoryBytesAvailable && Number.isFinite(memoryBytesAvailable)) {
     const numThreadsMax = Math.floor(memoryBytesAvailable / MEMORY_BYTES_PER_THREAD_MINIMUM)
-    const numThreads = Math.max(numThreadsMax, MINIMUM_NUM_THREADS)
+    const numThreads = clamp(numThreadsMax, MINIMUM_NUM_THREADS, MAXIMUM_NUM_THREADS)
     return { memoryAvailable: memoryBytesAvailable, numThreads }
   }
   return undefined
@@ -45,7 +47,7 @@ export function getNumThreads() {
   numThreads = Math.max(numThreads, DEFAULT_NUM_THREADS)
 
   // Detect how much memory is available and adjust number of threads if per-thread memory is too low
-  const guess = guessNumThreads(numThreads)
+  const guess = guessNumThreads()
   if (guess?.numThreads) {
     numThreads = Math.min(numThreads, guess.numThreads)
   }
@@ -59,7 +61,7 @@ export function useGuessNumThreads(numThreadsBase: number | undefined) {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      const guess = guessNumThreads(numThreads)
+      const guess = guessNumThreads()
       if (guess?.numThreads && guess?.memoryAvailable) {
         setNumThreads((numThreads) => (numThreads ? Math.min(numThreads, guess.numThreads) : guess.numThreads))
         setMemoryAvailable(guess.memoryAvailable)
