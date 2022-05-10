@@ -23,7 +23,7 @@ ctor = "0.1.22"
 dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
 eyre = "0.6.8"
-indexmap = { verson = "1.8.0", features = ["serde"], version = "1.8.1" }
+indexmap = { version = "1.8.1", features = ["serde"] }
 itertools = "0.10.3"
 lazy_static = "1.4.0"
 log = "0.4.16"
