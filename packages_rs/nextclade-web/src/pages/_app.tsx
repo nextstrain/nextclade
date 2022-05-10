@@ -38,7 +38,7 @@ import { Plausible } from 'src/components/Common/Plausible'
 import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
-import { errorAtom } from 'src/state/error.state'
+import { globalErrorAtom } from 'src/state/error.state'
 
 import 'src/styles/global.scss'
 
@@ -68,7 +68,7 @@ export function RecoilStateInitializer() {
 
   const setDatasets = useSetRecoilState(datasetsAtom)
   const setDatasetCurrentName = useSetRecoilState(datasetCurrentNameAtom)
-  const setError = useSetRecoilState(errorAtom)
+  const setError = useSetRecoilState(globalErrorAtom)
 
   useEffect(() => {
     initializeDatasets(query)

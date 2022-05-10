@@ -51,7 +51,7 @@ export interface FilePickerProps extends StrictOmit<HTMLProps<HTMLDivElement>, '
   exampleUrl: string
   pasteInstructions: string
   input?: AlgorithmInput
-  errors: Error[]
+  error?: string
   isInProgress?: boolean
   inputRef?: Ref<HTMLInputElement | null>
   onInput(input: AlgorithmInput): void
@@ -66,7 +66,7 @@ export function FilePicker({
   exampleUrl,
   pasteInstructions,
   input,
-  errors,
+  error,
   isInProgress,
   onInput,
   onRemove,
@@ -134,15 +134,15 @@ export function FilePicker({
 
     if (input) {
       return compact ? (
-        <UploadedFileInfoCompact description={input.description} errors={errors} onRemove={clearAndRemove}>
+        <UploadedFileInfoCompact description={input.description} error={error} onRemove={clearAndRemove}>
           {icon}
         </UploadedFileInfoCompact>
       ) : (
-        <UploadedFileInfo description={input.description} errors={errors} onRemove={clearAndRemove} />
+        <UploadedFileInfo description={input.description} error={error} onRemove={clearAndRemove} />
       )
     }
     return <TabsContentStyled tabs={tabs} activeTab={activeTab} />
-  }, [activeTab, clearAndRemove, compact, errors, icon, input, isInProgress, tabs])
+  }, [activeTab, clearAndRemove, compact, error, icon, input, isInProgress, tabs])
 
   return (
     <FilePickerContainer {...props}>

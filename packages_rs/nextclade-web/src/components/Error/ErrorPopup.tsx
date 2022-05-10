@@ -21,7 +21,7 @@ import { Li, Ul } from 'src/components/Common/List'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getHttpStatusText } from 'src/helpers/getHttpStatusText'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { errorAtom } from 'src/state/error.state'
+import { globalErrorAtom } from 'src/state/error.state'
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
   .modal-title {
@@ -245,7 +245,11 @@ export function BadAllocErrorMessage() {
   )
 }
 
-export function ErrorContent({ error }: { error: Error | string }) {
+export function ErrorContent({ error }: { error?: Error | string }) {
+  if (!error) {
+    return null
+  }
+
   if (error instanceof HttpRequestError) {
     const url = error.request.url ?? 'Unknown URL'
     const status = error.response?.status
@@ -256,19 +260,13 @@ export function ErrorContent({ error }: { error: Error | string }) {
     return <AxiosErrorFailed url={url} status={status} statusText={statusText} />
   }
 
-  const { message } = getErrorDetails(error)
-
-  if (message === 'std::bad_alloc') {
-    return <BadAllocErrorMessage />
-  }
-
   return <GenericError error={error} />
 }
 
 export function ErrorPopup() {
   const { t } = useTranslationSafe()
   const router = useRouter()
-  const [error, setError] = useRecoilState(errorAtom)
+  const [error, setError] = useRecoilState(globalErrorAtom)
   const errorDismiss = useCallback(() => setError(undefined), [setError])
 
   const reload = useCallback(() => {

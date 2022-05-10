@@ -15,6 +15,7 @@ import browserDimensions from 'auspice/src/reducers/browserDimensions'
 import notifications from 'auspice/src/reducers/notifications'
 import narrative from 'auspice/src/reducers/narrative'
 import treeToo from 'auspice/src/reducers/treeToo'
+import measurements from 'auspice/src/reducers/measurements'
 // END reducers from auspice
 
 import { algorithmReducer } from './algorithm/algorithm.reducer'
@@ -64,6 +65,7 @@ const rootReducer = () =>
     treeToo,
     general: auspiceGeneralReducer,
     query: auspiceQueryReducer,
+    measurements,
     // END reducers from auspice
   })
 

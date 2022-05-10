@@ -1,4 +1,4 @@
-import { Pool, spawn as spawnBase, Worker as ThreadsJsWorker } from 'threads'
+import { Pool, spawn as spawnBase, Worker as ThreadsJsWorker, Thread } from 'threads'
 import { concurrent } from 'fasy'
 
 import type { FastaRecord } from 'src/algorithms/types'
@@ -50,6 +50,15 @@ export async function createAnalysisThreadPool(
   return poolAnalyze
 }
 
+/** Retrieves the first worker in the pool */
+export async function getFirstWorker<ThreadType extends Thread>(pool: Pool<ThreadType>) {
+  // HACK: Typings for the 'threads' library don't include the `.workers` field on the `Pool<>`
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  return (await pool.workers?.[0]?.init) as ThreadType
+}
+
 /**
  * Destroys the analysis webworker pool.
  * Note: perhaps frivolously, but words "webworker" and "thread" are used interchangeably throughout the code.
@@ -87,6 +96,7 @@ export async function parseSequencesStreaming(
   const subscription = thread.values().subscribe(onSequence, onError, onComplete)
   await thread.parseSequencesStreaming(fastaStr)
   await subscription.unsubscribe() // eslint-disable-line @typescript-eslint/await-thenable
+  await thread.destroy()
 }
 
 export async function serializeToCsv(analysisResultsStr: string, delimiter: string) {

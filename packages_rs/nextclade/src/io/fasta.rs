@@ -13,7 +13,7 @@ use std::io::{BufRead, BufReader, BufWriter, Read};
 use std::path::Path;
 
 pub const fn is_char_allowed(c: char) -> bool {
-  c.is_ascii_alphabetic() || c == '.' || c == '?' || c == '*'
+  c.is_ascii_alphabetic() || c == '*'
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]

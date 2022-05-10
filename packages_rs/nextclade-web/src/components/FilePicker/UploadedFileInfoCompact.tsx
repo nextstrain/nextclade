@@ -1,9 +1,11 @@
-import React, { ReactNode } from 'react'
+import { isNil } from 'lodash'
+import React, { ReactNode, useMemo } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 import { UploadZoneTextContainer } from 'src/components/FilePicker/UploadBoxCompact'
+import { ErrorWrapper, ErrorWrapperInternal } from 'src/components/FilePicker/UploadedFileInfo'
 
 import styled from 'styled-components'
 
@@ -101,7 +103,7 @@ function FileStatusIcon({ hasErrors }: { hasErrors: boolean }) {
   return <IoMdCheckmarkCircle size={ICON_SIZE} color={theme.success} />
 }
 
-function FileError({ error }: { error: Error }) {
+function FileError({ error }: { error: string }) {
   return (
     <FileErrorStyled color="danger">
       <ErrorContent error={error} />
@@ -112,14 +114,26 @@ function FileError({ error }: { error: Error }) {
 export interface UploadedFileInfoCompactProps {
   children?: ReactNode
   description: string
-  errors: Error[]
+  error?: string
   onRemove(): void
 }
 
-export function UploadedFileInfoCompact({ children, description, errors, onRemove }: UploadedFileInfoCompactProps) {
+export function UploadedFileInfoCompact({ children, description, error, onRemove }: UploadedFileInfoCompactProps) {
   const { t } = useTranslation()
 
-  const hasErrors = errors.length > 0
+  const hasErrors = !isNil(error)
+
+  const errorComponent = useMemo(
+    () =>
+      error && (
+        <ErrorWrapper>
+          <ErrorWrapperInternal>
+            <FileError key={error} error={error} />
+          </ErrorWrapperInternal>
+        </ErrorWrapper>
+      ),
+    [error],
+  )
 
   // NOTE: This currently uses the Tab layout, even there's no tabs (1 invisible tab).
   // This is in order to match the style of the main component's state, with tabs.
@@ -148,13 +162,7 @@ export function UploadedFileInfoCompact({ children, description, errors, onRemov
           </Col>
         </Row>
 
-        <Row noGutters>
-          <Col>
-            {errors.map((error) => (
-              <FileError key={error.message} error={error} />
-            ))}
-          </Col>
-        </Row>
+        {errorComponent}
       </Col>
     </Row>
   )

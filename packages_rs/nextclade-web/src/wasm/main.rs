@@ -30,8 +30,6 @@ pub struct NextcladeWasm {
 impl NextcladeWasm {
   #[wasm_bindgen(constructor)]
   pub fn new(params: &NextcladeParams) -> Result<NextcladeWasm, JsError> {
-    wasm_logger::init(wasm_logger::Config::default());
-    console_error_panic_hook::set_once();
     let nextclade = jserr(Nextclade::new(params))?;
     Ok(Self { nextclade })
   }
@@ -111,4 +109,10 @@ impl NextcladeWasm {
     jserr(VirusProperties::from_str(virus_properties_json_str))?;
     Ok(())
   }
+}
+
+#[wasm_bindgen(start)]
+pub fn main() {
+  wasm_logger::init(wasm_logger::Config::default());
+  console_error_panic_hook::set_once();
 }
