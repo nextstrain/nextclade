@@ -145,6 +145,7 @@ export function MainInputFormSequenceFilePicker() {
       numThreads,
       router,
       setGlobalStatus,
+      dispatch,
     ],
   )
 
@@ -193,7 +194,7 @@ export function MainInputFormSequenceFilePicker() {
 
   const onToggleRunAutomatically = useCallback(() => {
     setShouldRunAutomatically(!shouldRunAutomatically)
-  }, [setShouldRunAutomatically, shouldRunAutomatically])
+  }, [shouldRunAutomatically])
 
   return (
     <SequenceFilePickerContainer>
