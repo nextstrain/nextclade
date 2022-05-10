@@ -10,13 +10,20 @@ import 'src/helpers/functionPrototypeTojson' // to visualize Function in Redux D
 import { enableES5 } from 'immer'
 import { memoize } from 'lodash'
 import React, { useEffect, useState, Suspense, useMemo } from 'react'
-import { RecoilRoot, useSetRecoilState } from 'recoil'
+import { RecoilRoot, useRecoilCallback, useRecoilState } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import type { Store } from 'redux'
 import { ConnectedRouter } from 'connected-next-router'
 import type { Persistor } from 'redux-persist'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import {
+  changelogIsShownAtom,
+  changelogLastVersionSeenAtom,
+  changelogShouldShowOnUpdatesAtom,
+  isInitializedAtom,
+} from 'src/state/settings.state'
+import { shouldShowChangelog } from 'src/state/utils/changelog'
 import { ThemeProvider } from 'styled-components'
 import { Provider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
@@ -66,26 +73,47 @@ export function RecoilStateInitializer() {
   // the state also changes unexpectedly.
   const { query } = useMemo(() => parseUrl(router.asPath), [router.asPath])
 
-  const setDatasets = useSetRecoilState(datasetsAtom)
-  const setDatasetCurrentName = useSetRecoilState(datasetCurrentNameAtom)
-  const setError = useSetRecoilState(globalErrorAtom)
+  const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
 
-  useEffect(() => {
+  const initialize = useRecoilCallback(({ set, snapshot: { getPromise } }) => () => {
+    if (initialized) {
+      return
+    }
+
     initializeDatasets(query)
       .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
-        setDatasets({
+        set(datasetsAtom, {
           datasets,
           defaultDatasetName,
           defaultDatasetNameFriendly,
         })
-        setDatasetCurrentName(currentDatasetName)
+        set(datasetCurrentNameAtom, (previous) => previous ?? currentDatasetName)
+
+        return undefined
       })
       .then(() => {
         // TODO
         // fetchInputsAndRunMaybe(dispatch, query)
       })
-      .catch((error) => setError(sanitizeError(error)))
-  }, [query, setDatasetCurrentName, setDatasets, setError])
+      .then(async () => {
+        const changelogShouldShowOnUpdates = await getPromise(changelogShouldShowOnUpdatesAtom)
+        const changelogLastVersionSeen = await getPromise(changelogLastVersionSeenAtom)
+        set(changelogIsShownAtom, shouldShowChangelog(changelogLastVersionSeen, changelogShouldShowOnUpdates))
+        set(changelogLastVersionSeenAtom, (prev) => process.env.PACKAGE_VERSION ?? prev ?? '')
+        return undefined
+      })
+      .then(() => {
+        setInitialized(true)
+      })
+      .catch((error) => {
+        console.error(error)
+        set(globalErrorAtom, sanitizeError(error))
+      })
+  })
+
+  useEffect(() => {
+    initialize()
+  })
 
   return null
 }

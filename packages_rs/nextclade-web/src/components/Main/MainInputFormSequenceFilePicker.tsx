@@ -70,7 +70,7 @@ export function MainInputFormSequenceFilePicker() {
   const primersCsv = useRecoilValue(primersCsvAtom)
 
   const canRun = useRecoilValue(canRunAtom)
-  const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
+  const [shouldRunAutomatically, setShouldRunAutomatically] = useRecoilState(shouldRunAutomaticallyAtom)
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
   const setShowNewRunPopup = useSetRecoilState(showNewRunPopupAtom)
@@ -197,8 +197,8 @@ export function MainInputFormSequenceFilePicker() {
   }, [hasInputErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
 
   const onToggleRunAutomatically = useCallback(() => {
-    setShouldRunAutomatically(!shouldRunAutomatically)
-  }, [shouldRunAutomatically])
+    setShouldRunAutomatically((shouldRunAutomatically) => !shouldRunAutomatically)
+  }, [setShouldRunAutomatically])
 
   return (
     <SequenceFilePickerContainer>

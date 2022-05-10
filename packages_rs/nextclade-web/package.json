@@ -139,6 +139,7 @@
     "reactstrap": "8.10.1",
     "recharts": "2.1.9",
     "recoil": "0.7.2",
+    "recoil-persist": "4.1.0",
     "redux": "4.2.0",
     "redux-logger": "3.0.6",
     "redux-persist": "6.0.0",

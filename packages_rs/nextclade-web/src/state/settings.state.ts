@@ -5,15 +5,45 @@ import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { getNumThreads } from 'src/helpers/getNumThreads'
 import { COLUMN_WIDTHS, DYNAMIC_COLUMN_WIDTH } from 'src/components/Results/ResultsTableStyle'
 import { cladeNodeAttrKeysAtom } from 'src/state/results.state'
+import { persistAtom } from 'src/state/persist/localStorage'
 
-export const numThreadsAtom = atom({
-  key: 'numThreads',
-  default: getNumThreads(),
+export const isInitializedAtom = atom<boolean>({
+  key: 'isInitialized',
+  default: false,
 })
 
-export const shouldRunAutomaticallyAtom = atom({
+export const numThreadsAtom = atom<number>({
+  key: 'numThreads',
+  default: getNumThreads(),
+  effects: [persistAtom],
+})
+
+export const isSettingsDialogOpenAtom = atom<boolean>({
+  key: 'isSettingsDialogOpen',
+  default: false,
+})
+
+export const shouldRunAutomaticallyAtom = atom<boolean>({
   key: 'shouldRunAutomatically',
   default: false,
+  effects: [persistAtom],
+})
+
+export const changelogIsShownAtom = atom<boolean>({
+  key: 'changelogIsShown',
+  default: false,
+})
+
+export const changelogShouldShowOnUpdatesAtom = atom<boolean>({
+  key: 'changelogShouldShowOnUpdates',
+  default: true,
+  effects: [persistAtom],
+})
+
+export const changelogLastVersionSeenAtom = atom<string>({
+  key: 'changelogLastVersionSeen',
+  default: '',
+  effects: [persistAtom],
 })
 
 export const showNewRunPopupAtom = atom({
