@@ -1,7 +1,5 @@
 /* eslint-disable camelcase */
 import 'regenerator-runtime'
-import { isNil } from 'lodash'
-import { FatalError } from 'next/dist/lib/fatal-error'
 
 import type { AnalysisResult, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
@@ -58,7 +56,7 @@ async function create(params_pojo: NextcladeParamsPojo) {
 /** Destroys the underlying WebAssembly module. */
 async function destroy() {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized('destroy')
+    return
   }
 
   nextcladeWasm.free()

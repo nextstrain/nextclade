@@ -96,6 +96,7 @@ export async function parseSequencesStreaming(
   const subscription = thread.values().subscribe(onSequence, onError, onComplete)
   await thread.parseSequencesStreaming(fastaStr)
   await subscription.unsubscribe() // eslint-disable-line @typescript-eslint/await-thenable
+  await thread.destroy()
 }
 
 export async function serializeToCsv(analysisResultsStr: string, delimiter: string) {
