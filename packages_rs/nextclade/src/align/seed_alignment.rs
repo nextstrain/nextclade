@@ -193,7 +193,7 @@ pub fn create_stripes(
     terminal_bandwidth,
   );
 
-  // stripes = regularize_stripes(stripes);
+  stripes = regularize_stripes(stripes);
 
   stripes
 }
@@ -236,8 +236,8 @@ fn add_internal_stripes(
 
   for i in 0..(ref_end - ref_start) {
     let center = qry_start + i;
-    let begin = clamp(center + drift_begin - bandwidth, qry_start, qry_end);
-    let end = clamp(center + drift_end + bandwidth, qry_start + 1, qry_end + 1);
+    let begin = clamp(center + drift_begin - bandwidth, 0, qry_end);
+    let end = clamp(center + drift_end + bandwidth, qry_start + 1, qry_len + 1);
     stripes.push(Stripe::new(begin, end));
   }
   stripes
@@ -252,7 +252,7 @@ fn add_start_stripe(ref_end: i32, qry_end: i32, qry_len: i32, bandwidth: i32) ->
   for i in 0..ref_end {
     let center = shift + i;
     let begin = clamp(center - bandwidth, 0, qry_end);
-    let end = clamp(center + bandwidth, 1, qry_end + 1);
+    let end = clamp(center + bandwidth, 1, qry_len + 1);
     let stripe = Stripe::new(begin, end);
     stripes.push(stripe);
   }
@@ -276,7 +276,7 @@ fn add_end_stripe(
 
   for i in ref_start..ref_len + 1 {
     let center = shift + i;
-    let begin = clamp(center - bandwidth, qry_start, qry_len);
+    let begin = clamp(center - bandwidth, 0, qry_len);
     let end = clamp(center + bandwidth, qry_start + 1, qry_len + 1);
     stripes.push(Stripe::new(begin, end));
   }
