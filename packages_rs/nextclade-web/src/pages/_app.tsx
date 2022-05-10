@@ -75,10 +75,13 @@ export function RecoilStateInitializer() {
 
   const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
 
-  const initialize = useRecoilCallback(({ set, snapshot: { getPromise } }) => () => {
+  const initialize = useRecoilCallback(({ set, snapshot }) => () => {
     if (initialized) {
       return
     }
+
+    const snapShotRelease = snapshot.retain()
+    const { getPromise } = snapshot
 
     initializeDatasets(query)
       .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
@@ -104,6 +107,7 @@ export function RecoilStateInitializer() {
       })
       .then(() => {
         setInitialized(true)
+        snapShotRelease()
       })
       .catch((error) => {
         console.error(error)
