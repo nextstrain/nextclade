@@ -137,7 +137,6 @@ export function MainInputFormSequenceFilePicker() {
           .catch((error) => {
             setGlobalStatus(AlgorithmGlobalStatus.failed)
             set(globalErrorAtom, sanitizeError(error))
-            console.error(error)
           })
       },
     [
