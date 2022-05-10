@@ -2,7 +2,7 @@ import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 import type { AuspiceJsonV2 } from 'auspice'
 
-import type { NextcladeResult } from 'src/algorithms/types'
+import type { Gene, NextcladeResult } from 'src/algorithms/types'
 import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 
 export function isDefaultValue(candidate: unknown): candidate is DefaultValue {
@@ -69,8 +69,19 @@ export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
   },
 })
 
+export const geneMapAtom = atom<Gene[]>({
+  key: 'geneMap',
+  default: [],
+})
+
+export const geneNamesAtom = selector<string[]>({
+  key: 'geneNames',
+  get: ({ get }) => get(geneMapAtom).map((gene) => gene.geneName),
+})
+
 export const treeAtom = atom<AuspiceJsonV2 | undefined>({
   key: 'tree',
+  default: undefined,
 })
 
 export const hasTreeAtom = selector<boolean>({
@@ -78,4 +89,9 @@ export const hasTreeAtom = selector<boolean>({
   get({ get }) {
     return !isNil(get(treeAtom))
   },
+})
+
+export const cladeNodeAttrKeysAtom = atom<string[]>({
+  key: 'cladeNodeAttrKeys',
+  default: [],
 })

@@ -1,16 +1,19 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 
-import { connect } from 'react-redux'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import {
+  geneMapNameColumnWidthPxAtom,
+  isInNucleotideViewAtom,
+  resultsTableColumnWidthsPxAtom,
+  switchToNucleotideViewAtom,
+} from 'src/state/settings.state'
 import styled from 'styled-components'
 import { rgba } from 'polished'
 import { BsArrowReturnLeft } from 'react-icons/bs'
 
-import type { State } from 'src/state/reducer'
-import { setViewedGene } from 'src/state/ui/ui.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { GeneMap, GENE_MAP_HEIGHT_PX } from 'src/components/GeneMap/GeneMap'
 import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'
-import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { ButtonHelpSimple } from 'src/components/Results/ButtonHelp'
 import HelpTipsGeneMap from 'src/components/Results/HelpTips/HelpTipsGeneMap.mdx'
@@ -39,38 +42,33 @@ export const GeneMapBackButton = styled(ButtonTransparent)`
   }
 `
 
-export interface GeneMapTableProps {
-  geneMapNameWidthPx: string
-  columnWidthsPx: Record<string, string>
-  isInNucleotideView: boolean
-
-  switchToNucleotideView(): void
-}
-
-const mapStateToProps = (state: State) => ({
-  isInNucleotideView: state.ui.viewedGene === GENE_OPTION_NUC_SEQUENCE,
-})
-
-const mapDispatchToProps = {
-  switchToNucleotideView: () => setViewedGene(GENE_OPTION_NUC_SEQUENCE),
-}
-
-export const GeneMapTable = connect(mapStateToProps, mapDispatchToProps)(GeneMapTableDisconnected)
-
-export const GeneMapTableCell = styled(TableCellName)``
-
-export function GeneMapTableDisconnected({
-  geneMapNameWidthPx,
-  columnWidthsPx,
-  isInNucleotideView,
-  switchToNucleotideView,
-}: GeneMapTableProps) {
+export function GeneMapTable() {
   const { t } = useTranslationSafe()
+
+  const isInNucleotideView = useRecoilValue(isInNucleotideViewAtom)
+  const switchToNucleotideView = useSetRecoilState(switchToNucleotideViewAtom)
+  const geneMapNameWidthPx = useRecoilValue(geneMapNameColumnWidthPxAtom)
+  const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
+
+  const returnButton = useMemo(() => {
+    if (!isInNucleotideView) {
+      return (
+        <GeneMapBackButton
+          color="transparent"
+          onClick={switchToNucleotideView}
+          title={t('Return to full Genome annotation and nucleotide sequence view')}
+        >
+          <BsArrowReturnLeft size={20} />
+        </GeneMapBackButton>
+      )
+    }
+    return null
+  }, [isInNucleotideView, switchToNucleotideView, t])
 
   return (
     <GeneMapTableContent>
       <GeneMapTableRow>
-        <GeneMapTableCell basis={geneMapNameWidthPx} grow={0} shrink={0}>
+        <TableCellName basis={geneMapNameWidthPx} grow={0} shrink={0}>
           <div className="mx-auto">
             <span className="ml-auto mr-2">{t('Genome annotation')}</span>
             <ButtonHelpSimple identifier="btn-help-gene-map" tooltipPlacement="auto">
@@ -78,16 +76,8 @@ export function GeneMapTableDisconnected({
             </ButtonHelpSimple>
           </div>
 
-          {!isInNucleotideView && (
-            <GeneMapBackButton
-              color="transparent"
-              onClick={switchToNucleotideView}
-              title={t('Return to full Genome annotation and nucleotide sequence view')}
-            >
-              <BsArrowReturnLeft size={20} />
-            </GeneMapBackButton>
-          )}
-        </GeneMapTableCell>
+          {returnButton}
+        </TableCellName>
         <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
           <GeneMap />
         </TableCell>

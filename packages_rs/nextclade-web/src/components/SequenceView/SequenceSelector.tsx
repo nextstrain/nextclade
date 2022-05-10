@@ -1,14 +1,11 @@
-import React, { useCallback } from 'react'
-
-import { connect } from 'react-redux'
+import React, { useCallback, useMemo } from 'react'
 import styled from 'styled-components'
 
-import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-
-import type { Gene } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
+import { useRecoilCallback, useRecoilValue } from 'recoil'
+import { geneNamesAtom } from 'src/state/results.state'
+import { viewedGeneAtom } from 'src/state/settings.state'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 const Select = styled.select`
   text-align: center;
@@ -19,34 +16,18 @@ const Select = styled.select`
   text-align-last: center;
 `
 
-export interface SequenceSelectorProps {
-  geneMap?: Gene[]
-  viewedGene: string
-
-  setViewedGene(gene: string): void
-}
-
-const mapStateToProps = (state: State) => ({
-  geneMap: selectGeneMap(state),
-})
-
-const mapDispatchToProps = {}
-
-export const SequenceSelector = connect(mapStateToProps, mapDispatchToProps)(SequenceSelectorDisconnected)
-
-export function SequenceSelectorDisconnected({ geneMap, viewedGene, setViewedGene }: SequenceSelectorProps) {
+export function SequenceSelector() {
   const { t } = useTranslationSafe()
 
-  let geneNames = [GENE_OPTION_NUC_SEQUENCE]
-  if (geneMap) {
-    geneNames = [...geneNames, ...geneMap.map((gene) => gene.geneName)]
-  }
+  const geneNames = useRecoilValue(geneNamesAtom)
 
-  const onChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setViewedGene(e.target.value)
-    },
-    [setViewedGene],
+  const viewedGene = useRecoilValue(viewedGeneAtom)
+  const onChangeGene = useRecoilCallback(
+    ({ set }) =>
+      (e: React.ChangeEvent<HTMLSelectElement>) => {
+        set(viewedGeneAtom, e.target.value)
+      },
+    [],
   )
 
   const getOptionText = useCallback(
@@ -60,13 +41,24 @@ export function SequenceSelectorDisconnected({ geneMap, viewedGene, setViewedGen
     [t],
   )
 
-  return (
-    <Select name="sequence-view-gene-dropdown" id="sequence-view-gene-dropdown" onChange={onChange} value={viewedGene}>
-      {geneNames.map((gene) => (
+  const geneOptions = useMemo(() => {
+    return [GENE_OPTION_NUC_SEQUENCE, ...geneNames].map((gene) => {
+      return (
         <option key={gene} value={gene}>
           {getOptionText(gene)}
         </option>
-      ))}
+      )
+    })
+  }, [geneNames, getOptionText])
+
+  return (
+    <Select
+      name="sequence-view-gene-dropdown"
+      id="sequence-view-gene-dropdown"
+      onChange={onChangeGene}
+      value={viewedGene}
+    >
+      {geneOptions}
     </Select>
   )
 }

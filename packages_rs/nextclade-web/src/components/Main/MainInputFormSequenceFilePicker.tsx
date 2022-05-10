@@ -1,15 +1,15 @@
-import { changeColorBy } from 'auspice/src/actions/colors'
 import React, { useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useDispatch } from 'react-redux'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
 import { useRecoilCallback, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { AnyAction } from 'redux'
-import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
-import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import type { AuspiceJsonV2 } from 'auspice'
 import styled from 'styled-components'
 
-import type { AuspiceJsonV2 } from 'auspice'
+import { changeColorBy } from 'auspice/src/actions/colors'
+import { sanitizeError } from 'src/helpers/sanitizeError'
+import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
+import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { analysisStatusGlobalAtom, canRunAtom } from 'src/state/analysisStatusGlobal.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
@@ -127,10 +127,14 @@ export function MainInputFormSequenceFilePicker() {
           throw new ErrorInternal('Dataset is not selected, but required.')
         }
 
-        launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads).catch(console.error)
-
-        // eslint-disable-next-line no-void
-        void router.push('/results')
+        router
+          .push('/results', '/results')
+          .then(async () => {
+            return launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads)
+          })
+          .catch((error) => {
+            set(globalErrorAtom, sanitizeError(error))
+          })
       },
     [
       setShowNewRunPopup,

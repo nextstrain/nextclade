@@ -4,37 +4,37 @@ import { atom, selector } from 'recoil'
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 
 export const qrySeqAtom = atom<AlgorithmInput | undefined>({
-  key: 'qrySeq',
+  key: 'qrySeqInput',
   default: undefined,
 })
 
 export const refSeqAtom = atom<AlgorithmInput | undefined>({
-  key: 'refSeq',
+  key: 'refSeqInput',
   default: undefined,
 })
 
 export const geneMapAtom = atom<AlgorithmInput | undefined>({
-  key: 'geneMap',
+  key: 'geneMapInput',
   default: undefined,
 })
 
 export const refTreeAtom = atom<AlgorithmInput | undefined>({
-  key: 'refTree',
+  key: 'refTreeInput',
   default: undefined,
 })
 
 export const qcConfigAtom = atom<AlgorithmInput | undefined>({
-  key: 'qcConfig',
+  key: 'qcConfigInput',
   default: undefined,
 })
 
 export const virusPropertiesAtom = atom<AlgorithmInput | undefined>({
-  key: 'virusProperties',
+  key: 'virusPropertiesInput',
   default: undefined,
 })
 
 export const primersCsvAtom = atom<AlgorithmInput | undefined>({
-  key: 'primersCsv',
+  key: 'primersCsvInput',
   default: undefined,
 })
 
