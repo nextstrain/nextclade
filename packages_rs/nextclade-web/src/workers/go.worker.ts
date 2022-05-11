@@ -1,21 +1,17 @@
 /* eslint-disable promise/always-return */
-import type { AuspiceJsonV2 } from 'auspice'
-import { omit } from 'lodash'
 import 'regenerator-runtime'
+
+import type { AuspiceJsonV2 } from 'auspice'
+import type { Thread } from 'threads'
+import { omit } from 'lodash'
+import { Observable as ThreadsObservable, Subject } from 'threads/observable'
+import { expose } from 'threads/worker'
 
 import type { AnalysisResult, FastaRecord, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
-import {
-  createAnalysisThreadPool,
-  destroyAnalysisThreadPool,
-  getFirstWorker,
-  parseSequencesStreaming,
-} from 'src/workers/run'
-import type { Thread } from 'threads'
-import { Observable as ThreadsObservable, Subject } from 'threads/observable'
-import { expose } from 'threads/worker'
+import { createAnalysisThreadPool, destroyAnalysisThreadPool, FastaParser } from 'src/workers/run'
 
 // Reports global analysis status to main thread
 const analysisGlobalStatusObservable = new Subject<AlgorithmGlobalStatus>()
@@ -31,13 +27,17 @@ const treeObservable = new Subject<AuspiceJsonV2>()
 
 export async function goWorker(numThreads: number, params: NextcladeParamsPojo, qryFastaStr: string) {
   analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.initWorkers)
+
   const pool = await createAnalysisThreadPool(numThreads, params)
+
+  const fastaParser = await FastaParser.create()
 
   try {
     const results: AnalysisResult[] = []
 
     analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.started)
-    await parseSequencesStreaming(
+
+    await fastaParser.parseSequencesStreaming(
       qryFastaStr,
       (record: FastaRecord) => {
         parsedFastaObservable.next(omit(record, 'seq'))
@@ -51,11 +51,15 @@ export async function goWorker(numThreads: number, params: NextcladeParamsPojo, 
           })
           .catch((error: unknown) => {
             analysisResultsObservable.error(sanitizeError(error))
+            void fastaParser.destroy() // eslint-disable-line no-void
+            void destroyAnalysisThreadPool(pool) // eslint-disable-line no-void
           })
       },
       (error) => {
         analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.failed)
         parsedFastaObservable.error(error)
+        void fastaParser.destroy() // eslint-disable-line no-void
+        void destroyAnalysisThreadPool(pool) // eslint-disable-line no-void
       },
       () => {
         parsedFastaObservable.complete()
@@ -72,6 +76,8 @@ export async function goWorker(numThreads: number, params: NextcladeParamsPojo, 
         })
         .catch((error: unknown) => {
           treeObservable.error(error)
+          void fastaParser.destroy() // eslint-disable-line no-void
+          void destroyAnalysisThreadPool(pool) // eslint-disable-line no-void
         }),
     )
 
@@ -81,7 +87,8 @@ export async function goWorker(numThreads: number, params: NextcladeParamsPojo, 
     analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.failed)
     analysisResultsObservable.error(error)
   } finally {
-    await destroyAnalysisThreadPool(pool)
+    void fastaParser.destroy() // eslint-disable-line no-void
+    void destroyAnalysisThreadPool(pool) // eslint-disable-line no-void
   }
 }
 
