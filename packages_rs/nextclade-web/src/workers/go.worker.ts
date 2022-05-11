@@ -7,11 +7,11 @@ import { omit } from 'lodash'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import { expose } from 'threads/worker'
 
-import type { AnalysisResult, FastaRecord, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
+import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
-import { createAnalysisThreadPool, destroyAnalysisThreadPool, FastaParser } from 'src/workers/run'
+import { AnalysisWorkerPool, FastaParserWorker } from 'src/workers/run'
 
 // Reports global analysis status to main thread
 const analysisGlobalStatusObservable = new Subject<AlgorithmGlobalStatus>()
@@ -28,38 +28,32 @@ const treeObservable = new Subject<AuspiceJsonV2>()
 export async function goWorker(numThreads: number, params: NextcladeParamsPojo, qryFastaStr: string) {
   analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.initWorkers)
 
-  const pool = await createAnalysisThreadPool(numThreads, params)
-
-  const fastaParser = await FastaParser.create()
+  const fastaParser = await FastaParserWorker.create()
+  const pool = await AnalysisWorkerPool.create(numThreads, params)
 
   try {
-    const results: AnalysisResult[] = []
-
     analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.started)
 
     await fastaParser.parseSequencesStreaming(
       qryFastaStr,
       (record: FastaRecord) => {
         parsedFastaObservable.next(omit(record, 'seq'))
-        const task = pool.queue((thread) => thread.analyze(record))
+        const task = pool.analyze(record)
         task
           .then((result) => {
             analysisResultsObservable.next(result)
-            if (result.result) {
-              results.push(result.result.analysisResult)
-            }
           })
           .catch((error: unknown) => {
             analysisResultsObservable.error(sanitizeError(error))
             void fastaParser.destroy() // eslint-disable-line no-void
-            void destroyAnalysisThreadPool(pool) // eslint-disable-line no-void
+            void pool.terminate() // eslint-disable-line no-void
           })
       },
       (error) => {
         analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.failed)
         parsedFastaObservable.error(error)
         void fastaParser.destroy() // eslint-disable-line no-void
-        void destroyAnalysisThreadPool(pool) // eslint-disable-line no-void
+        void pool.terminate() // eslint-disable-line no-void
       },
       () => {
         parsedFastaObservable.complete()
@@ -68,18 +62,16 @@ export async function goWorker(numThreads: number, params: NextcladeParamsPojo, 
 
     await pool.completed()
 
-    await pool.queue((thread) =>
-      thread
-        .getOutputTree(JSON.stringify(results))
-        .then((treeStr) => {
-          treeObservable.next(JSON.parse(treeStr) as AuspiceJsonV2)
-        })
-        .catch((error: unknown) => {
-          treeObservable.error(error)
-          void fastaParser.destroy() // eslint-disable-line no-void
-          void destroyAnalysisThreadPool(pool) // eslint-disable-line no-void
-        }),
-    )
+    await pool
+      .getOutputTree()
+      .then((tree) => {
+        treeObservable.next(tree)
+      })
+      .catch((error: unknown) => {
+        treeObservable.error(error)
+        void fastaParser.destroy() // eslint-disable-line no-void
+        void pool.terminate() // eslint-disable-line no-void
+      })
 
     analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.done)
     analysisResultsObservable.complete()
@@ -88,7 +80,7 @@ export async function goWorker(numThreads: number, params: NextcladeParamsPojo, 
     analysisResultsObservable.error(error)
   } finally {
     void fastaParser.destroy() // eslint-disable-line no-void
-    void destroyAnalysisThreadPool(pool) // eslint-disable-line no-void
+    void pool.terminate() // eslint-disable-line no-void
   }
 }
 
