@@ -135,15 +135,12 @@ pub fn seed_alignment<L: Letter<L>>(
     return make_error!("Unable to align: no seed matches. Details: num seed matches: {num_seed_matches}");
   }
 
-  // TODO: Pass as parameters
-  let terminal_bandwidth: i32 = 50;
-  let excess_bandwidth: i32 = 9;
   let stripes = create_stripes(
     &seed_matches,
     qry_len_i,
     ref_len_i,
-    terminal_bandwidth,
-    excess_bandwidth,
+    params.terminal_bandwidth,
+    params.excess_bandwidth,
   );
 
   Ok(stripes)

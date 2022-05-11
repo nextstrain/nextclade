@@ -75,6 +75,16 @@ pub struct AlignPairwiseParams {
   /// Whether right terminal gaps are free or penalized.
   #[clap(long)]
   pub right_terminal_gaps_free: bool,
+
+  /// Excess bandwidth for internal stripes.
+  #[clap(long)]
+  #[clap(default_value_t = AlignPairwiseParams::default().excess_bandwidth)]
+  pub excess_bandwidth: i32,
+
+  /// Excess bandwidth for terminal stripes.
+  #[clap(long)]
+  #[clap(default_value_t = AlignPairwiseParams::default().terminal_bandwidth)]
+  pub terminal_bandwidth: i32,
 }
 
 impl Default for AlignPairwiseParams {
@@ -95,6 +105,8 @@ impl Default for AlignPairwiseParams {
       no_translate_past_stop: false,
       left_terminal_gaps_free: false,
       right_terminal_gaps_free: false,
+      excess_bandwidth: 9,
+      terminal_bandwidth: 50,
     }
   }
 }
