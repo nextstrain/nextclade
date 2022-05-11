@@ -49,6 +49,10 @@ export const Message = styled.p`
   word-break: normal;
 `
 
+const Stack = styled.pre`
+  white-space: pre-wrap;
+`
+
 export function getErrorDetails(error: unknown): {
   name: string
   message: string
@@ -76,7 +80,9 @@ export function GenericError({ error }: { error: Error | string }) {
     <ErrorContainer>
       <h5>{errorText}</h5>
       <Message>{message}</Message>
-      {process.env.NODE_ENV === 'development' && stack && <p>{stack}</p>}
+      {process.env.NODE_ENV === 'development' && stack && (
+        <Stack>{stack.replace(/webpack-internal:\/{3}\.\//g, '').replace(/https?:\/\/(.+):\d+\//g, '')}</Stack>
+      )}
     </ErrorContainer>
   )
 }
