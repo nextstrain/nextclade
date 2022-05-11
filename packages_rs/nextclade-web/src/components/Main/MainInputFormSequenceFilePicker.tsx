@@ -132,6 +132,7 @@ export function MainInputFormSequenceFilePicker() {
         router
           .push('/results', '/results')
           .then(async () => {
+            setGlobalStatus(AlgorithmGlobalStatus.initWorkers)
             return launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads)
           })
           .catch((error) => {

@@ -51,20 +51,26 @@ export async function launchAnalysis(
   // Create a launcher worker that will schedule other workers
   const launcherWorker = await createGoWorker()
 
-  // Subscribe to launcher worker events
-  const subscriptions = [
-    launcherWorker.getAnalysisGlobalStatusObservable().subscribe(onGlobalStatus),
-    launcherWorker.getParsedFastaObservable().subscribe(onParsedFasta, onError),
-    launcherWorker.getAnalysisResultsObservable().subscribe(onAnalysisResult, onError, onComplete),
-    launcherWorker.getTreeObservable().subscribe(onTree, onError),
-  ]
-
   try {
-    // Run the launcher worker
-    await launcherWorker.goWorker(numThreads, params, qryFastaStr)
+    await launcherWorker.init(numThreads, params)
+
+    // Subscribe to launcher worker events
+    const subscriptions = [
+      launcherWorker.getAnalysisGlobalStatusObservable().subscribe(onGlobalStatus, onError),
+      launcherWorker.getParsedFastaObservable().subscribe(onParsedFasta, onError),
+      launcherWorker.getAnalysisResultsObservable().subscribe(onAnalysisResult, onError, onComplete),
+      launcherWorker.getTreeObservable().subscribe(onTree, onError),
+    ]
+
+    try {
+      // Run the launcher worker
+      await launcherWorker.launch(qryFastaStr)
+    } finally {
+      // Unsubscribe from all events
+      await concurrent.forEach(async (subscription) => subscription.unsubscribe(), subscriptions)
+    }
   } finally {
-    // Unsubscribe from all events
-    await concurrent.forEach(async (subscription) => subscription.unsubscribe(), subscriptions)
+    await launcherWorker.destroy()
   }
 }
 

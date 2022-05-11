@@ -156,8 +156,8 @@ export class FastaParserWorker {
   async parseSequencesStreaming(
     fastaStr: string,
     onSequence: (seq: FastaRecord) => void,
-    onError: (error: Error) => void,
-    onComplete: () => void,
+    onError?: (error: Error) => void,
+    onComplete?: () => void,
   ) {
     this.subscription = this.thread.values().subscribe(onSequence, onError, onComplete)
     await this.thread.parseSequencesStreaming(fastaStr)
