@@ -76,34 +76,40 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
     qry_seq_str: seq,
   })
 
-  const { result, error } = nextcladeWasm.analyze(input).to_js()
+  const output = nextcladeWasm.analyze(input)
 
-  if (result) {
-    let { query, query_peptides, analysis_result } = result as unknown as AnalysisOutputPojo
+  try {
+    const { result, error } = output.to_js()
 
-    const queryPeptides = JSON.parse(query_peptides) as Peptide[]
-    const analysisResult = JSON.parse(analysis_result) as AnalysisResult
+    if (result) {
+      const { query, query_peptides, analysis_result } = result as unknown as AnalysisOutputPojo
 
-    return {
-      index,
-      seqName,
-      result: {
-        query,
-        queryPeptides,
-        analysisResult,
-      },
+      const queryPeptides = JSON.parse(query_peptides) as Peptide[]
+      const analysisResult = JSON.parse(analysis_result) as AnalysisResult
+
+      return {
+        index,
+        seqName,
+        result: {
+          query,
+          queryPeptides,
+          analysisResult,
+        },
+      }
     }
-  }
 
-  if (error) {
-    return {
-      index,
-      seqName,
-      error,
+    if (error) {
+      return {
+        index,
+        seqName,
+        error,
+      }
     }
-  }
 
-  throw new ErrorBothResultsAndErrorAreNull()
+    throw new ErrorBothResultsAndErrorAreNull()
+  } finally {
+    output.free()
+  }
 }
 
 // export async function getCladeNodeAttrKeyDescs(): Promise<string> {
