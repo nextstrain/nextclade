@@ -1,25 +1,8 @@
-/* eslint-disable no-lone-blocks */
-import i18n from 'src/i18n/i18n'
-
 import type { State } from 'src/state/reducer'
-import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
-import { selectNumThreads } from 'src/state/settings/settings.selectors'
 
 export const selectParams = (state: State) => state.algorithm.params
 
-export const selectDefaultDatasetName = (state: State) => selectParams(state).defaultDatasetName
-
-export const selectDefaultDatasetNameFriendly = (state: State) => selectParams(state).defaultDatasetNameFriendly
-
-export const selectDatasets = (state: State) => selectParams(state).datasets
-
 export const selectCurrentDataset = (state: State) => selectParams(state).datasetCurrent
-
-export const selectDefaultDataset = (state: State) => {
-  const datasets = selectDatasets(state)
-  const defaultDatasetName = selectDefaultDatasetName(state)
-  return datasets.find((dataset) => dataset.name === defaultDatasetName)
-}
 
 export const selectResults = (state: State) => state.algorithm.results
 
@@ -27,59 +10,22 @@ export const selectResultsArray = (state: State) => state.algorithm.results.map(
 
 export const selectResultsState = (state: State) => state.algorithm.results
 
-export const selectIsDirty = (state: State): boolean => state.algorithm.isDirty
-
-export const selectHasRequiredInputs = (state: State): boolean => selectQueryStr(state) !== undefined
-
-export const selectIsInProgressFasta = (state: State) => state.algorithm.params.inProgress.seqData !== 0
-export const selectIsInProgressTree = (state: State) => state.algorithm.params.inProgress.auspiceData !== 0
-export const selectIsInProgressRootSeq = (state: State) => state.algorithm.params.inProgress.rootSeq !== 0
-export const selectIsInProgressQcSettings = (state: State) => state.algorithm.params.inProgress.qcRulesConfig !== 0
-export const selectIsInProgressGeneMap = (state: State) => state.algorithm.params.inProgress.geneMap !== 0
-export const selectIsInProgressPcrPrimers = (state: State) => state.algorithm.params.inProgress.pcrPrimers !== 0
-
-export const selectCanRun = (state: State): boolean =>
-  state.algorithm.status === AlgorithmGlobalStatus.idle ||
-  state.algorithm.status === AlgorithmGlobalStatus.done ||
-  state.algorithm.status === AlgorithmGlobalStatus.failed
-
-export const selectCanDownload = (state: State): boolean =>
-  state.algorithm.status === AlgorithmGlobalStatus.done &&
-  state.algorithm.results !== undefined &&
-  state.algorithm.results.length > 0 &&
-  state.algorithm.treeStr !== undefined
-
 export const selectOutputTree = (state: State): string | undefined => state.algorithm.treeStr
+
 export const selectCladeNodeAttrKeys = (state: State): string[] => state.algorithm.cladeNodeAttrKeys
 
 export const selectOutputSequences = (state: State) => {
   return state.algorithm.results.map((result) => {
-    // console.log({ result })
-
     return { seqName: result.seqName, query: result.query }
   })
 }
 
 export const selectOutputPeptides = (state: State) => {
   return state.algorithm.results.map((result) => {
-    // console.log({ result })
     return { seqName: result.seqName, queryPeptides: result.queryPeptides }
   })
 }
 
 export const selectExportParams = (state: State) => state.algorithm.exportParams
 
-export const selectQueryStr = (state: State) => state.algorithm.params.strings.queryStr
-export const selectQueryName = (state: State) => state.algorithm.params.strings.queryName
-export const selectRefSeq = (state: State) => state.algorithm.params.strings.refStr
-export const selectRefName = (state: State) => state.algorithm.params.strings.refName
-export const selectGeneMapStr = (state: State) => state.algorithm.params.strings.geneMapStr
-export const selectRefTreeStr = (state: State) => state.algorithm.params.strings.treeStr
-export const selectPcrPrimersStr = (state: State) => state.algorithm.params.strings.pcrPrimerCsvRowsStr
-export const selectQcConfigStr = (state: State) => state.algorithm.params.strings.qcConfigStr
-export const selectVirusJsonStr = (state: State) => state.algorithm.params.strings.virusJsonStr
-
 export const selectGeneMap = (state: State) => state.algorithm.params.final?.geneMap
-export const selectGenomeSize = (state: State) => state.algorithm.params.final?.genomeSize
-
-export const selectUrlParams = (state: State) => state.algorithm.params.urlParams

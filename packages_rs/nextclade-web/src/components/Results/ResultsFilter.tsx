@@ -1,5 +1,4 @@
-import React from 'react'
-
+import React, { useCallback } from 'react'
 import {
   FormGroup as ReactstrapFormGroup,
   Input as ReactstrapInput,
@@ -16,22 +15,20 @@ import {
   Collapse,
 } from 'reactstrap'
 import styled from 'styled-components'
-import { useTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
+import { useRecoilState, useRecoilValue } from 'recoil'
 
-import { State } from 'src/state/reducer'
 import {
-  setAAFilter,
-  setCladesFilter,
-  setMutationsFilter,
-  setSeqNamesFilter,
-  setShowBad,
-  setShowErrors,
-  setShowGood,
-  setShowMediocre,
-} from 'src/state/algorithm/algorithm.actions'
-import { setFilterPanelCollapsed } from 'src/state/ui/ui.actions'
-import { QCFilters } from 'src/filtering/filterByQCIssues'
+  aaFilterAtom,
+  cladesFilterAtom,
+  mutationsFilterAtom,
+  seqNamesFilterAtom,
+  showBadFilterAtom,
+  showErrorsFilterAtom,
+  showGoodFilterAtom,
+  showMediocreFilterAtom,
+} from 'src/state/resultFilters.state'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { isFilterPanelShownAtom } from 'src/state/settings.state'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
   box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
@@ -89,113 +86,88 @@ export const InputCheckbox = styled(ReactstrapInput)<ReactstrapInputProps>`
   padding-bottom: 3px;
 `
 
-const mapStateToProps = (state: State) => ({
-  filterPanelCollapsed: state.ui.filterPanelCollapsed,
-  seqNamesFilter: state.algorithm.filters.seqNamesFilter ?? '',
-  mutationsFilter: state.algorithm.filters.mutationsFilter ?? '',
-  aaFilter: state.algorithm.filters.aaFilter ?? '',
-  cladesFilter: state.algorithm.filters.cladesFilter ?? '',
-  showGood: state.algorithm.filters.showGood,
-  showMediocre: state.algorithm.filters.showMediocre,
-  showBad: state.algorithm.filters.showBad,
-  showErrors: state.algorithm.filters.showErrors,
-})
+export function ResultsFilter() {
+  const { t } = useTranslationSafe()
 
-const mapDispatchToProps = {
-  setFilterPanelCollapsed,
-  setSeqNamesFilter,
-  setMutationsFilter,
-  setAAFilter,
-  setCladesFilter,
-  setShowGood,
-  setShowMediocre,
-  setShowBad,
-  setShowErrors,
-}
+  const isFilterPanelShown = useRecoilValue(isFilterPanelShownAtom)
 
-export const ResultsFilter = connect(mapStateToProps, mapDispatchToProps)(ResultsFilterDisconnected)
+  // TODO: we could use a map (object) and refer to filters by name,
+  // in order to reduce code duplication in the state, callbacks and components being rendered
+  const [seqNamesFilter, setSeqNamesFilter] = useRecoilState(seqNamesFilterAtom)
+  const [mutationsFilter, setMutationsFilter] = useRecoilState(mutationsFilterAtom)
+  const [cladesFilter, setCladesFilter] = useRecoilState(cladesFilterAtom)
+  const [aaFilter, setAAFilter] = useRecoilState(aaFilterAtom)
+  const [showGood, setShowGood] = useRecoilState(showGoodFilterAtom)
+  const [showMediocre, setShowMediocre] = useRecoilState(showMediocreFilterAtom)
+  const [showBad, setShowBad] = useRecoilState(showBadFilterAtom)
+  const [showErrors, setShowErrors] = useRecoilState(showErrorsFilterAtom)
 
-export interface ResultsFilterProps extends QCFilters {
-  filterPanelCollapsed: boolean
-  seqNamesFilter: string
-  mutationsFilter: string
-  aaFilter: string
-  cladesFilter: string
-  setFilterPanelCollapsed(collapsed: boolean): void
-  setSeqNamesFilter(namesFilter?: string): void
-  setMutationsFilter(mutationsFilter?: string): void
-  setAAFilter(aaFilter?: string): void
-  setCladesFilter(cladesFilter?: string): void
-  setShowGood(checked: boolean): void
-  setShowMediocre(checked: boolean): void
-  setShowBad(checked: boolean): void
-  setShowErrors(checked: boolean): void
-}
+  const handleSeqNamesFilterChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target
+      setSeqNamesFilter(value)
+    },
+    [setSeqNamesFilter],
+  )
 
-export function ResultsFilterDisconnected({
-  filterPanelCollapsed,
-  setFilterPanelCollapsed,
-  seqNamesFilter,
-  setSeqNamesFilter,
-  mutationsFilter,
-  aaFilter,
-  showGood,
-  showMediocre,
-  showBad,
-  showErrors,
-  setMutationsFilter,
-  setAAFilter,
-  cladesFilter,
-  setCladesFilter,
-  setShowGood,
-  setShowMediocre,
-  setShowBad,
-  setShowErrors,
-}: ResultsFilterProps) {
-  const { t } = useTranslation()
+  const handleMutationsFilterChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target
+      setMutationsFilter(value)
+    },
+    [setMutationsFilter],
+  )
 
-  function handleSeqNamesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-    setSeqNamesFilter(value)
-  }
+  const handleAAFilterChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target
+      setAAFilter(value)
+    },
+    [setAAFilter],
+  )
 
-  function handleMutationsFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-    setMutationsFilter(value)
-  }
+  const handleCladesFilterChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = event.target
+      setCladesFilter(value)
+    },
+    [setCladesFilter],
+  )
 
-  function handleAAFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-    setAAFilter(value)
-  }
+  const handleSetShowGood = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { checked } = event.target
+      setShowGood(checked)
+    },
+    [setShowGood],
+  )
 
-  function handleCladesFilterChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-    setCladesFilter(value)
-  }
+  const handleSetShowMediocre = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { checked } = event.target
+      setShowMediocre(checked)
+    },
+    [setShowMediocre],
+  )
 
-  function handleSetShowGood(event: React.ChangeEvent<HTMLInputElement>) {
-    const { checked } = event.target
-    setShowGood(checked)
-  }
+  const handleSetShowBad = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { checked } = event.target
+      setShowBad(checked)
+    },
+    [setShowBad],
+  )
 
-  function handleSetShowMediocre(event: React.ChangeEvent<HTMLInputElement>) {
-    const { checked } = event.target
-    setShowMediocre(checked)
-  }
-
-  function handleSetShowBad(event: React.ChangeEvent<HTMLInputElement>) {
-    const { checked } = event.target
-    setShowBad(checked)
-  }
-
-  function handleSetShowErrors(event: React.ChangeEvent<HTMLInputElement>) {
-    const { checked } = event.target
-    setShowErrors(checked)
-  }
+  const handleSetShowErrors = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { checked } = event.target
+      setShowErrors(checked)
+    },
+    [setShowErrors],
+  )
 
   return (
-    <Collapse isOpen={!filterPanelCollapsed}>
+    <Collapse isOpen={isFilterPanelShown}>
       <Card>
         <CardHeader>{t('Results filter')}</CardHeader>
 

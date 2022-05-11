@@ -1,16 +1,16 @@
 import React, { useMemo } from 'react'
 
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import styled from 'styled-components'
+import { rgba } from 'polished'
+import { BsArrowReturnLeft } from 'react-icons/bs'
+
 import {
   geneMapNameColumnWidthPxAtom,
   isInNucleotideViewAtom,
   resultsTableColumnWidthsPxAtom,
   switchToNucleotideViewAtom,
 } from 'src/state/settings.state'
-import styled from 'styled-components'
-import { rgba } from 'polished'
-import { BsArrowReturnLeft } from 'react-icons/bs'
-
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { GeneMap, GENE_MAP_HEIGHT_PX } from 'src/components/GeneMap/GeneMap'
 import { GeneMapAxis } from 'src/components/GeneMap/GeneMapAxis'

@@ -1,8 +1,9 @@
 import { mix } from 'polished'
-import React, { useMemo } from 'react'
+import React, { Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 
 import { QcStatus } from 'src/algorithms/types'
+import Loading from 'src/components/Loading/Loading'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
 import { ColumnFrameShifts } from 'src/components/Results/ColumnFrameShifts'
@@ -122,11 +123,13 @@ export function ResultsTableRowResult({
       </TableCell>
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
-        {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
-          <SequenceView key={seqName} sequence={analysisResult} />
-        ) : (
-          <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
-        )}
+        <Suspense fallback={<Loading />}>
+          {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
+            <SequenceView key={seqName} sequence={analysisResult} />
+          ) : (
+            <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
+          )}
+        </Suspense>
       </TableCell>
     </TableRow>
   )

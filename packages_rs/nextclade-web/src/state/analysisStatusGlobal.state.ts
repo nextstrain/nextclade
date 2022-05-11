@@ -18,3 +18,11 @@ export const canRunAtom = selector({
     )
   },
 })
+
+export const hasRanAtom = selector({
+  key: 'hasRan',
+  get({ get }) {
+    const status = get(analysisStatusGlobalAtom)
+    return status !== AlgorithmGlobalStatus.idle
+  },
+})

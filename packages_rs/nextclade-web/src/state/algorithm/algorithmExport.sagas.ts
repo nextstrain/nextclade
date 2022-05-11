@@ -1,21 +1,11 @@
 /* eslint-disable no-loops/no-loops,no-continue,sonarjs/no-duplicate-string */
-import { call, select, takeEvery } from 'typed-redux-saga'
+import { call, select } from 'typed-redux-saga'
 
 import type { ZipFileDescription } from 'src/helpers/saveFile'
 
 import { saveFile, saveZip } from 'src/helpers/saveFile'
 import { serializeResults, serializeResultsToJson } from 'src/io/serializeResults'
-import {
-  exportAll,
-  exportCsvTrigger,
-  exportErrorsCsvTrigger,
-  exportFastaTrigger,
-  exportInsertionsCsvTrigger,
-  exportJsonTrigger,
-  exportPeptides,
-  exportTreeJsonTrigger,
-  exportTsvTrigger,
-} from 'src/state/algorithm/algorithm.actions'
+
 import {
   selectCladeNodeAttrKeys,
   selectExportParams,
@@ -26,7 +16,6 @@ import {
   selectResultsArray,
   selectResultsState,
 } from 'src/state/algorithm/algorithm.selectors'
-import fsaSaga from 'src/state/util/fsaSaga'
 import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 import { serializeInsertionsToCsv, serializeToCsv } from 'src/workers/run'
 
@@ -207,15 +196,3 @@ export function* exportAllWorker() {
 
   yield* call(saveZip, { files: allFiles, filename: exportParams.filenameZip })
 }
-
-export default [
-  takeEvery(exportCsvTrigger, exportCsv),
-  takeEvery(exportTsvTrigger, exportTsv),
-  takeEvery(exportJsonTrigger, exportJson),
-  takeEvery(exportTreeJsonTrigger, exportTreeJson),
-  takeEvery(exportFastaTrigger, exportFasta),
-  takeEvery(exportPeptides.trigger, fsaSaga(exportPeptides, exportPeptidesWorker)),
-  takeEvery(exportInsertionsCsvTrigger, exportInsertionsCsv),
-  takeEvery(exportErrorsCsvTrigger, exportErrorsCsv),
-  takeEvery(exportAll.trigger, fsaSaga(exportAll, exportAllWorker)),
-]

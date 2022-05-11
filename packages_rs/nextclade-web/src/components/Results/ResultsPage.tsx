@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 
 import { useRecoilValue } from 'recoil'
+import Loading from 'src/components/Loading/Loading'
 import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 
@@ -99,7 +100,9 @@ export function ResultsPage() {
         </MainContent>
 
         <Footer>
-          <GeneMapTable />
+          <Suspense fallback={<Loading />}>
+            <GeneMapTable />
+          </Suspense>
         </Footer>
       </Container>
     </LayoutResults>

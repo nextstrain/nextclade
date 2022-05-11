@@ -1,9 +1,10 @@
+import type { AuspiceJsonV2 } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
-import type { AuspiceJsonV2 } from 'auspice'
 
 import type { Gene, NextcladeResult } from 'src/algorithms/types'
-import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
+import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
+import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
 
 export function isDefaultValue(candidate: unknown): candidate is DefaultValue {
   return candidate instanceof DefaultValue
@@ -69,6 +70,10 @@ export const analysisResultStatusesAtom = selector<AlgorithmSequenceStatus[]>({
   },
 })
 
+export const genomeSizeAtom = atom<number>({
+  key: 'genomeSize',
+})
+
 export const geneMapAtom = atom<Gene[]>({
   key: 'geneMap',
   default: [],
@@ -94,4 +99,18 @@ export const hasTreeAtom = selector<boolean>({
 export const cladeNodeAttrKeysAtom = atom<string[]>({
   key: 'cladeNodeAttrKeys',
   default: [],
+})
+
+export const canDownloadAtom = selector<boolean>({
+  key: 'canDownload',
+  get({ get }) {
+    const globalStatus = get(analysisStatusGlobalAtom)
+    const resultStatuses = get(analysisResultStatusesAtom)
+    const tree = get(treeAtom)
+    return (
+      globalStatus === AlgorithmGlobalStatus.done &&
+      resultStatuses.includes(AlgorithmSequenceStatus.done) &&
+      !isNil(tree)
+    )
+  },
 })

@@ -1,10 +1,14 @@
-import { reducerWithInitialState } from 'src/state/util/fsaReducer'
+/* eslint-disable unicorn/no-object-as-default-parameter */
+import { DEFAULT_LOCALE_KEY } from 'src/i18n/i18n'
 
-import { setLocale } from 'src/state/settings/settings.actions'
+export interface AuspiceGeneralState {
+  language?: string
+}
 
-export const auspiceGeneralReducer = reducerWithInitialState<{ language?: string }>({ language: 'en' }) // prettier-ignore
-  .icase(setLocale, (draft, localeKey) => {
-    draft.language = localeKey
-  })
+export function auspiceGeneralReducer(state: AuspiceGeneralState = { language: DEFAULT_LOCALE_KEY }) {
+  return state
+}
 
-export const auspiceQueryReducer = reducerWithInitialState({})
+export function auspiceQueryReducer() {
+  return {}
+}

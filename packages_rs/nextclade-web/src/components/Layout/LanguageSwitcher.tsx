@@ -1,34 +1,17 @@
-import React, { useState } from 'react'
-
-import { connect } from 'react-redux'
+import React, { useCallback, useState } from 'react'
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, DropdownProps } from 'reactstrap'
-import { ActionCreator } from 'src/state/util/fsaActions'
+import { useRecoilState } from 'recoil'
 
-import { LocaleWithKey, localesArray, LocaleKey } from 'src/i18n/i18n'
+import { localeAtom } from 'src/state/locale.state'
+import { Locale, localesArray } from 'src/i18n/i18n'
 
-import type { State } from 'src/state/reducer'
-import { selectLocale } from 'src/state/settings/settings.selectors'
-import { setLocale } from 'src/state/settings/settings.actions'
+export type LanguageSwitcherProps = DropdownProps
 
-export interface LanguageSwitcherProps extends DropdownProps {
-  currentLocale: LocaleWithKey
-  setLocale: ActionCreator<LocaleKey>
-}
-
-const mapStateToProps = (state: State) => ({
-  currentLocale: selectLocale(state),
-})
-
-const mapDispatchToProps = {
-  setLocale,
-}
-
-export const LanguageSwitcher = connect(mapStateToProps, mapDispatchToProps)(LanguageSwitcherDisconnected)
-
-export function LanguageSwitcherDisconnected({ currentLocale, setLocale, ...restProps }: LanguageSwitcherProps) {
+export function LanguageSwitcher({ ...restProps }: LanguageSwitcherProps) {
+  const [currentLocale, setCurrentLocale] = useRecoilState(localeAtom)
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const toggle = () => setDropdownOpen((prevState) => !prevState)
-  const setLocaleLocal = (key: LocaleKey) => () => setLocale(key)
+  const toggle = useCallback(() => setDropdownOpen((prevState) => !prevState), [])
+  const setLocaleLocal = useCallback((locale: Locale) => () => setCurrentLocale(locale), [setCurrentLocale])
 
   return (
     <Dropdown className="language-switcher" isOpen={dropdownOpen} toggle={toggle} {...restProps}>
@@ -39,7 +22,7 @@ export function LanguageSwitcherDisconnected({ currentLocale, setLocale, ...rest
         {localesArray.map((locale) => {
           const isCurrent = locale.key === currentLocale.key
           return (
-            <DropdownItem active={isCurrent} key={locale.key} onClick={setLocaleLocal(locale.key)}>
+            <DropdownItem active={isCurrent} key={locale.key} onClick={setLocaleLocal(locale)}>
               <LanguageSwitcherItem locale={locale} />
             </DropdownItem>
           )
@@ -49,7 +32,7 @@ export function LanguageSwitcherDisconnected({ currentLocale, setLocale, ...rest
   )
 }
 
-export function LanguageSwitcherItem({ locale }: { locale: LocaleWithKey }) {
+export function LanguageSwitcherItem({ locale }: { locale: Locale }) {
   const { Flag, name } = locale
   return (
     <>

@@ -1,5 +1,4 @@
 import type { AuspiceState } from 'auspice'
-
 import { applyFilter } from 'auspice/src/actions/tree'
 
 // NOTE: These actions are not FSA-compliant. This is the format Auspice expects.

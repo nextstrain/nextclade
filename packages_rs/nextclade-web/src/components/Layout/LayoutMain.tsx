@@ -1,20 +1,16 @@
-import React, { PropsWithChildren, HTMLProps } from 'react'
-
-import { connect } from 'react-redux'
+import { useRouter } from 'next/router'
+import React, { PropsWithChildren, HTMLProps, useCallback } from 'react'
+import { useRecoilValue } from 'recoil'
+import { hasRanAtom } from 'src/state/analysisStatusGlobal.state'
 import styled from 'styled-components'
 import { Button, Container as ContainerBase } from 'reactstrap'
-import { push } from 'connected-next-router'
 import { useTranslation } from 'react-i18next'
 import { FaCaretRight } from 'react-icons/fa'
-
-import { selectIsDirty } from 'src/state/algorithm/algorithm.selectors'
-import { State } from 'src/state/reducer'
 
 import { NavigationBar } from './NavigationBar'
 import FooterContent from './Footer'
 
 export const Container = styled(ContainerBase)`
-  max-width: 100vw;
   max-height: 100vh;
   max-width: ${(props) => props.theme.xl};
   margin: 0 auto;
@@ -44,24 +40,11 @@ const ButtonToResults = styled(Button)`
   width: 140px;
 `
 
-export interface LayoutMainProps extends PropsWithChildren<HTMLProps<HTMLDivElement>> {
-  isDirty: boolean
-
-  goToResults(): void
-}
-
-const mapStateToProps = (state: State) => ({
-  isDirty: selectIsDirty(state),
-})
-
-const mapDispatchToProps = {
-  goToResults: () => push('/results'),
-}
-
-export const LayoutMain = connect(mapStateToProps, mapDispatchToProps)(LayoutMainDisconnected)
-
-export function LayoutMainDisconnected({ children, isDirty, goToResults }: LayoutMainProps) {
+export function LayoutMain({ children }: PropsWithChildren<HTMLProps<HTMLDivElement>>) {
   const { t } = useTranslation()
+  const router = useRouter()
+  const goToResults = useCallback(() => router.push('/results'), [router])
+  const hasRan = useRecoilValue(hasRanAtom)
 
   return (
     <Container>
@@ -69,7 +52,7 @@ export function LayoutMainDisconnected({ children, isDirty, goToResults }: Layou
         <NavigationBar />
       </Header>
 
-      <ButtonToResults hidden={isDirty} color="secondary" onClick={goToResults}>
+      <ButtonToResults hidden={!hasRan} color="secondary" onClick={goToResults}>
         {t('To Results')}
         <FaCaretRight />
       </ButtonToResults>

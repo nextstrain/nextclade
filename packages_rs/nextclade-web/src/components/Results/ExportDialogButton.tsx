@@ -1,6 +1,7 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
 import { connect } from 'react-redux'
+import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import {
   Button,
@@ -16,24 +17,11 @@ import {
 } from 'reactstrap'
 import { MdFileDownload } from 'react-icons/md'
 
-import type { State } from 'src/state/reducer'
-import type { ExportParams } from 'src/state/algorithm/algorithm.state'
+import { canDownloadAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { PanelButton } from 'src/components/Results/PanelButton'
-import {
-  exportAll,
-  exportCsvTrigger,
-  exportFastaTrigger,
-  exportJsonTrigger,
-  exportPeptides,
-  exportTreeJsonTrigger,
-  exportTsvTrigger,
-  exportInsertionsCsvTrigger,
-  exportErrorsCsvTrigger,
-} from 'src/state/algorithm/algorithm.actions'
 import { FileIconCsv, FileIconTsv, FileIconFasta, FileIconJson, FileIconZip } from 'src/components/Common/FileIcons'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { selectCanDownload, selectExportParams } from 'src/state/algorithm/algorithm.selectors'
 
 export const DownloadIcon = styled(MdFileDownload)`
   width: 25px;
@@ -87,64 +75,54 @@ export function ExportFileElement({
   )
 }
 
-export interface ExportDialogButtonProps {
-  exportAllTrigger: () => void
-  exportCsvTrigger: (filename: string) => void
-  exportFastaTrigger: (filename: string) => void
-  exportJsonTrigger: (filename: string) => void
-  exportPeptidesTrigger: (filename: string) => void
-  exportTreeJsonTrigger: (filename: string) => void
-  exportTsvTrigger: (filename: string) => void
-  exportInsertionsCsvTrigger: (filename: string) => void
-  exportErrorsCsvTrigger: (filename: string) => void
-  exportParams: ExportParams
-  canDownload: boolean
+export interface ExportParams {
+  filenameZip: string
+  filenameCsv: string
+  filenameTsv: string
+  filenameJson: string
+  filenameTreeJson: string
+  filenameFasta: string
+  filenamePeptidesZip: string
+  filenameInsertionsCsv: string
+  filenameErrorsCsv: string
+  filenamePeptidesTemplate: string
 }
 
-const mapStateToProps = (state: State) => ({
-  exportParams: selectExportParams(state),
-  canDownload: selectCanDownload(state),
-})
-
-const mapDispatchToProps = {
-  exportAllTrigger: () => exportAll.trigger(),
-  exportCsvTrigger: () => exportCsvTrigger(),
-  exportFastaTrigger: () => exportFastaTrigger(),
-  exportJsonTrigger: () => exportJsonTrigger(),
-  exportPeptidesTrigger: () => exportPeptides.trigger(),
-  exportTreeJsonTrigger: () => exportTreeJsonTrigger(),
-  exportTsvTrigger: () => exportTsvTrigger(),
-  exportInsertionsCsvTrigger: () => exportInsertionsCsvTrigger(),
-  exportErrorsCsvTrigger: () => exportErrorsCsvTrigger(),
+export const DEFAULT_EXPORT_PARAMS: ExportParams = {
+  filenameZip: 'nextclade.zip',
+  filenameCsv: 'nextclade.csv',
+  filenameTsv: 'nextclade.tsv',
+  filenameJson: 'nextclade.json',
+  filenameTreeJson: 'nextclade.auspice.json',
+  filenameFasta: 'nextclade.aligned.fasta',
+  filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
+  filenameInsertionsCsv: 'nextclade.insertions.csv',
+  filenameErrorsCsv: 'nextclade.errors.csv',
+  filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 
-export function ExportDialogButtonDisconnected({
-  exportAllTrigger,
-  exportCsvTrigger,
-  exportFastaTrigger,
-  exportJsonTrigger,
-  exportPeptidesTrigger,
-  exportTreeJsonTrigger,
-  exportTsvTrigger,
-  exportInsertionsCsvTrigger,
-  exportErrorsCsvTrigger,
-  exportParams,
-  canDownload,
-}: ExportDialogButtonProps) {
+export function ExportDialogButton() {
   const { t } = useTranslationSafe()
+
   const [isOpen, setIsOpen] = useState<boolean>(false)
+  const toggleOpen = useCallback(() => setIsOpen((isOpen) => !isOpen), [])
+  const open = useCallback(() => setIsOpen(true), [])
+  const close = useCallback(() => setIsOpen(false), [])
 
-  function toggleOpen() {
-    setIsOpen(!isOpen)
-  }
+  const canDownload = useRecoilValue(canDownloadAtom)
 
-  function open() {
-    setIsOpen(true)
-  }
+  // TODO
+  const exportAllTrigger = useCallback(() => {}, [])
+  const exportCsvTrigger = useCallback(() => {}, [])
+  const exportFastaTrigger = useCallback(() => {}, [])
+  const exportJsonTrigger = useCallback(() => {}, [])
+  const exportPeptidesTrigger = useCallback(() => {}, [])
+  const exportTreeJsonTrigger = useCallback(() => {}, [])
+  const exportTsvTrigger = useCallback(() => {}, [])
+  const exportInsertionsCsvTrigger = useCallback(() => {}, [])
+  const exportErrorsCsvTrigger = useCallback(() => {}, [])
 
-  function close() {
-    setIsOpen(false)
-  }
+  const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
 
   return (
     <>
@@ -278,5 +256,3 @@ export function ExportDialogButtonDisconnected({
     </>
   )
 }
-
-export const ExportDialogButton = connect(mapStateToProps, mapDispatchToProps)(ExportDialogButtonDisconnected)

@@ -1,13 +1,10 @@
-import React from 'react'
-
-import { connect } from 'react-redux'
-import { Button, ButtonProps } from 'reactstrap'
-import { useTranslation } from 'react-i18next'
-import { push } from 'connected-next-router'
+import React, { useMemo } from 'react'
+import { useRouter } from 'next/router'
+import { Button } from 'reactstrap'
+import styled from 'styled-components'
 import { FaCaretLeft } from 'react-icons/fa'
 
-import { State } from 'src/state/reducer'
-import styled from 'styled-components'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export const ButtonStyled = styled(Button)`
   margin: 2px 2px;
@@ -20,24 +17,13 @@ export const ButtonStyled = styled(Button)`
   }
 `
 
-const mapStateToProps = (state: State) => ({})
-
-const mapDispatchToProps = {
-  goBack: () => push('/'),
-}
-
-export const ButtonBack = connect(mapStateToProps, mapDispatchToProps)(ButtonBackDisconnected)
-
-export interface ButtonBackProps extends ButtonProps {
-  goBack(): void
-}
-
-export function ButtonBackDisconnected({ onClick, goBack }: ButtonBackProps) {
-  const { t } = useTranslation()
-  const text = t('Back')
+export function ButtonBack() {
+  const { t } = useTranslationSafe()
+  const text = useMemo(() => t('Back'), [t])
+  const { back } = useRouter()
 
   return (
-    <ButtonStyled color="secondary" onClick={goBack} title={text}>
+    <ButtonStyled color="secondary" onClick={back} title={text}>
       <FaCaretLeft />
       <span className="d-none d-xl-inline">{text}</span>
     </ButtonStyled>

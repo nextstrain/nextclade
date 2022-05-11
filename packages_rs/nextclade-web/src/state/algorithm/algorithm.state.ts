@@ -50,19 +50,6 @@ export interface AlgorithmInput {
   getContent(): Promise<string>
 }
 
-export interface ExportParams {
-  filenameZip: string
-  filenameCsv: string
-  filenameTsv: string
-  filenameJson: string
-  filenameTreeJson: string
-  filenameFasta: string
-  filenamePeptidesZip: string
-  filenameInsertionsCsv: string
-  filenameErrorsCsv: string
-  filenamePeptidesTemplate: string
-}
-
 export interface AlgorithmParams {
   datasets: DatasetFlat[]
   defaultDatasetName?: string
@@ -131,62 +118,4 @@ export interface AlgorithmState {
 export interface CladeAssignmentResult {
   seqName: string
   clade: string
-}
-
-export const DEFAULT_EXPORT_PARAMS: ExportParams = {
-  filenameZip: 'nextclade.zip',
-  filenameCsv: 'nextclade.csv',
-  filenameTsv: 'nextclade.tsv',
-  filenameJson: 'nextclade.json',
-  filenameTreeJson: 'nextclade.auspice.json',
-  filenameFasta: 'nextclade.aligned.fasta',
-  filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
-  filenameInsertionsCsv: 'nextclade.insertions.csv',
-  filenameErrorsCsv: 'nextclade.errors.csv',
-  filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
-}
-
-export const algorithmDefaultState: AlgorithmState = {
-  status: AlgorithmGlobalStatus.idle,
-  params: {
-    datasets: [],
-    defaultDatasetName: undefined,
-    datasetCurrent: undefined,
-    urlParams: {},
-    raw: {},
-    strings: {},
-    final: {},
-    inProgress: {
-      seqData: 0,
-      auspiceData: 0,
-      rootSeq: 0,
-      qcRulesConfig: 0,
-      virusJson: 0,
-      geneMap: 0,
-      pcrPrimers: 0,
-    },
-    errors: {
-      seqData: [],
-      auspiceData: [],
-      rootSeq: [],
-      qcRulesConfig: [],
-      virusJson: [],
-      geneMap: [],
-      pcrPrimers: [],
-    },
-    seqData: undefined,
-  },
-  isDirty: true,
-  results: [],
-  resultsFiltered: [],
-  treeStr: undefined,
-  cladeNodeAttrKeys: [],
-  errors: [],
-  filters: {
-    showGood: true,
-    showMediocre: true,
-    showBad: true,
-    showErrors: true,
-  },
-  exportParams: DEFAULT_EXPORT_PARAMS,
 }

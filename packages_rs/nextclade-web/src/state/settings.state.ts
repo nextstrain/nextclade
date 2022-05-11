@@ -23,6 +23,16 @@ export const isSettingsDialogOpenAtom = atom<boolean>({
   default: false,
 })
 
+export const isNewRunPopupShownAtom = atom<boolean>({
+  key: 'isNewRunPopupShown',
+  default: false,
+})
+
+export const isResultsFilterPanelCollapsedAtom = atom<boolean>({
+  key: 'isResultsfilterPanelCollapsed',
+  default: false,
+})
+
 export const shouldRunAutomaticallyAtom = atom<boolean>({
   key: 'shouldRunAutomatically',
   default: false,
@@ -72,7 +82,7 @@ export const resultsTableDynamicColumnWidthPxAtom = selector<string>({
 })
 
 export const isFilterPanelShownAtom = atom<boolean>({
-  key: 'isFilterPanelCollapsed',
+  key: 'isFilterPanelShownAtom',
   default: false,
 })
 
