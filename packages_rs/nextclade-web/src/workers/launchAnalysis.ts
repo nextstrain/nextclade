@@ -1,7 +1,7 @@
-import { AuspiceJsonV2 } from 'auspice'
 import { concurrent } from 'fasy'
+import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 
-import type { DatasetFiles, DatasetFlat, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
+import type { DatasetFiles, DatasetFlat, FastaRecordId, Gene, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen'
 import type { LauncherThread } from 'src/workers/launcher.worker'
 import { spawn } from 'src/workers/spawn'
@@ -17,8 +17,15 @@ export interface LaunchAnalysisInputs {
   pcr_primers_str?: AlgorithmInput
 }
 
+export interface LaunchAnalysisInitialData {
+  geneMap: Gene[]
+  genomeSize: number
+  cladeNodeAttrKeyDescs: CladeNodeAttrDesc[]
+}
+
 export interface LaunchAnalysisCallbacks {
   onGlobalStatus: (record: AlgorithmGlobalStatus) => void
+  onInitialData: (data: LaunchAnalysisInitialData) => void
   onParsedFasta: (record: FastaRecordId) => void
   onAnalysisResult: (record: NextcladeResult) => void
   onTree: (tree: AuspiceJsonV2) => void
@@ -43,7 +50,7 @@ export async function launchAnalysis(
   dataset: DatasetFlat,
   numThreads: number,
 ) {
-  const { onGlobalStatus, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
+  const { onGlobalStatus, onInitialData, onParsedFasta, onAnalysisResult, onTree, onError, onComplete } = callbacks
 
   // Resolve inputs into the actual strings
   const qryFastaStr = await getQueryFasta(await qryFastaInput)
@@ -65,6 +72,9 @@ export async function launchAnalysis(
     ]
 
     try {
+      const initialData = await launcherWorker.getInitialData()
+      onInitialData(initialData)
+
       // Run the launcher worker
       await launcherWorker.launch(qryFastaStr)
     } finally {

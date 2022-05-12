@@ -1,4 +1,4 @@
-use crate::wasm::analyze::{AnalysisInput, AnalysisResult, Nextclade, NextcladeParams};
+use crate::wasm::analyze::{AnalysisInitialData, AnalysisInput, AnalysisResult, Nextclade, NextcladeParams};
 use eyre::Report;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
@@ -56,10 +56,9 @@ impl NextcladeWasm {
     Ok(())
   }
 
-  // pub fn get_clade_node_attr_key_descs(&self) -> Result<String, JsError> {
-  //   let clade_node_attr_key_descs = self.nextclade.get_clade_node_attr_key_descs();
-  //   jserr(json_stringify(&clade_node_attr_key_descs))
-  // }
+  pub fn get_initial_data(&self) -> Result<AnalysisInitialData, JsError> {
+    jserr(self.nextclade.get_initial_data())
+  }
 
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
   pub fn analyze(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, JsError> {

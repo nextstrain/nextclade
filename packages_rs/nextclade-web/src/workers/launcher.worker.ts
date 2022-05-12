@@ -52,6 +52,10 @@ class LauncherWorkerImpl {
     this.pool = await AnalysisWorkerPool.create(numThreads, params)
   }
 
+  async getInitialData() {
+    return this.pool.getInitialData()
+  }
+
   async launch(qryFastaStr: string) {
     this.analysisGlobalStatusObservable.next(AlgorithmGlobalStatus.initWorkers)
 
@@ -104,6 +108,12 @@ let launcher: LauncherWorkerImpl | undefined
 const worker = {
   async init(numThreads: number, params: NextcladeParamsPojo) {
     launcher = await LauncherWorkerImpl.create(numThreads, params)
+  },
+  async getInitialData() {
+    if (!launcher) {
+      throw new ErrorLauncherModuleNotInitialized('getInitialData')
+    }
+    return launcher.getInitialData()
   },
   async launch(qryFastaStr: string) {
     if (!launcher) {

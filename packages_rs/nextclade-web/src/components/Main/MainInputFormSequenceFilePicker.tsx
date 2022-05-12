@@ -14,7 +14,14 @@ import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { analysisStatusGlobalAtom, canRunAtom } from 'src/state/analysisStatusGlobal.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { globalErrorAtom, hasInputErrorsAtom, qrySeqErrorAtom } from 'src/state/error.state'
-import { analysisResultsAtom, treeAtom } from 'src/state/results.state'
+import {
+  analysisResultsAtom,
+  cladeNodeAttrDescsAtom,
+  cladeNodeAttrKeysAtom,
+  geneMapAtom,
+  genomeSizeAtom,
+  treeAtom,
+} from 'src/state/results.state'
 import { numThreadsAtom, shouldRunAutomaticallyAtom, showNewRunPopupAtom } from 'src/state/settings.state'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
@@ -24,15 +31,20 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
-import { LaunchAnalysisInputs, launchAnalysis, LaunchAnalysisCallbacks } from 'src/workers/launchAnalysis'
+import {
+  LaunchAnalysisInputs,
+  launchAnalysis,
+  LaunchAnalysisCallbacks,
+  LaunchAnalysisInitialData,
+} from 'src/workers/launchAnalysis'
 import {
   qrySeqAtom,
-  refSeqAtom,
-  geneMapAtom,
-  refTreeAtom,
-  qcConfigAtom,
-  virusPropertiesAtom,
-  primersCsvAtom,
+  refSeqInputAtom,
+  geneMapInputAtom,
+  refTreeInputAtom,
+  qcConfigInpuAtom,
+  virusPropertiesInputAtom,
+  primersCsvInputAtom,
   hasRequiredInputsAtom,
 } from 'src/state/inputs.state'
 
@@ -62,12 +74,12 @@ export function MainInputFormSequenceFilePicker() {
   const removeQrySeq = useResetRecoilState(qrySeqAtom)
   const qrySeqError = useRecoilValue(qrySeqErrorAtom)
 
-  const refSeq = useRecoilValue(refSeqAtom)
-  const geneMap = useRecoilValue(geneMapAtom)
-  const refTree = useRecoilValue(refTreeAtom)
-  const qcConfig = useRecoilValue(qcConfigAtom)
-  const virusProperties = useRecoilValue(virusPropertiesAtom)
-  const primersCsv = useRecoilValue(primersCsvAtom)
+  const refSeqInput = useRecoilValue(refSeqInputAtom)
+  const geneMapInput = useRecoilValue(geneMapInputAtom)
+  const refTreeInput = useRecoilValue(refTreeInputAtom)
+  const qcConfigInput = useRecoilValue(qcConfigInpuAtom)
+  const virusPropertiesInput = useRecoilValue(virusPropertiesInputAtom)
+  const primersCsvInput = useRecoilValue(primersCsvInputAtom)
 
   const canRun = useRecoilValue(canRunAtom)
   const [shouldRunAutomatically, setShouldRunAutomatically] = useRecoilState(shouldRunAutomaticallyAtom)
@@ -91,17 +103,22 @@ export function MainInputFormSequenceFilePicker() {
         setIsDirty(true)
 
         const inputs: LaunchAnalysisInputs = {
-          ref_seq_str: refSeq,
-          gene_map_str: geneMap,
-          tree_str: refTree,
-          qc_config_str: qcConfig,
-          virus_properties_str: virusProperties,
-          pcr_primers_str: primersCsv,
+          ref_seq_str: refSeqInput,
+          gene_map_str: geneMapInput,
+          tree_str: refTreeInput,
+          qc_config_str: qcConfigInput,
+          virus_properties_str: virusPropertiesInput,
+          pcr_primers_str: primersCsvInput,
         }
 
         const callbacks: LaunchAnalysisCallbacks = {
           onGlobalStatus(status) {
             setGlobalStatus(status)
+          },
+          onInitialData({ geneMap, genomeSize, cladeNodeAttrKeyDescs }) {
+            set(geneMapAtom, geneMap)
+            set(genomeSizeAtom, genomeSize)
+            set(cladeNodeAttrDescsAtom, cladeNodeAttrKeyDescs)
           },
           onParsedFasta(/* record */) {
             // TODO: this does not work well: updates in `onAnalysisResult()` callback below fight with this one.
@@ -143,12 +160,12 @@ export function MainInputFormSequenceFilePicker() {
     [
       setShowNewRunPopup,
       setIsDirty,
-      refSeq,
-      geneMap,
-      refTree,
-      qcConfig,
-      virusProperties,
-      primersCsv,
+      refSeqInput,
+      geneMapInput,
+      refTreeInput,
+      qcConfigInput,
+      virusPropertiesInput,
+      primersCsvInput,
       datasetCurrent,
       numThreads,
       router,

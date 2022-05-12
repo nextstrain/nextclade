@@ -5,8 +5,8 @@ import type { NextcladeWasmWorker } from 'src/workers/nextcladeWasm.worker'
 import { spawn } from 'src/workers/spawn'
 
 export class FastaParserWorker {
-  private subscription!: Subscription<FastaRecord>
   private thread!: NextcladeWasmWorker
+  private subscription?: Subscription<FastaRecord>
 
   private constructor() {}
 
@@ -33,7 +33,7 @@ export class FastaParserWorker {
   }
 
   async destroy() {
-    await this.subscription.unsubscribe() // eslint-disable-line @typescript-eslint/await-thenable
+    await this.subscription?.unsubscribe() // eslint-disable-line @typescript-eslint/await-thenable
     await this.thread.destroy()
   }
 }

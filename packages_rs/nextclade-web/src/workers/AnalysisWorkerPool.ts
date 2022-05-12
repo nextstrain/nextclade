@@ -2,6 +2,7 @@ import type { AuspiceJsonV2 } from 'auspice'
 
 import type { AnalysisResult, FastaRecord } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
+import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeWasmThread } from 'src/workers/nextcladeWasm.worker'
 import { PoolExtended } from 'src/workers/ThreadPoolExtended'
 
@@ -32,6 +33,10 @@ export class AnalysisWorkerPool {
     })
 
     await this.pool.forEachWorker(async (worker) => worker.create(params))
+  }
+
+  public async getInitialData(): Promise<LaunchAnalysisInitialData> {
+    return this.pool.queue((worker) => worker.getInitialData())
   }
 
   public async analyze(record: FastaRecord) {

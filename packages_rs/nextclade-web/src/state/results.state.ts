@@ -1,4 +1,4 @@
-import type { AuspiceJsonV2 } from 'auspice'
+import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
 
@@ -96,9 +96,14 @@ export const hasTreeAtom = selector<boolean>({
   },
 })
 
-export const cladeNodeAttrKeysAtom = atom<string[]>({
-  key: 'cladeNodeAttrKeys',
+export const cladeNodeAttrDescsAtom = atom<CladeNodeAttrDesc[]>({
+  key: 'cladeNodeAttrDescs',
   default: [],
+})
+
+export const cladeNodeAttrKeysAtom = selector<string[]>({
+  key: 'cladeNodeAttrKeys',
+  get: ({ get }) => get(cladeNodeAttrDescsAtom).map((desc) => desc.name),
 })
 
 export const canDownloadAtom = selector<boolean>({

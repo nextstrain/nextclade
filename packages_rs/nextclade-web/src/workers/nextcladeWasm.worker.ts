@@ -1,11 +1,13 @@
 /* eslint-disable camelcase */
 import 'regenerator-runtime'
 
+import type { CladeNodeAttrDesc } from 'auspice'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import type { AnalysisResult, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
+import type { AnalysisResult, FastaRecord, Gene, NextcladeResult, Peptide } from 'src/algorithms/types'
+import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
@@ -61,6 +63,21 @@ async function destroy() {
 
   nextcladeWasm.free()
   nextcladeWasm = undefined
+}
+
+async function getInitialData(): Promise<LaunchAnalysisInitialData> {
+  if (!nextcladeWasm) {
+    throw new ErrorModuleNotInitialized('getInitialData')
+  }
+  const initialData = nextcladeWasm.get_initial_data()
+  const { gene_map, genome_size, clade_node_attr_key_descs } = initialData.to_js()
+  initialData.free()
+
+  return {
+    geneMap: JSON.parse(gene_map) as Gene[],
+    genomeSize: Number(genome_size),
+    cladeNodeAttrKeyDescs: JSON.parse(clade_node_attr_key_descs) as CladeNodeAttrDesc[],
+  }
 }
 
 /** Runs the underlying WebAssembly module. */
@@ -165,7 +182,7 @@ export async function parseVirusJsonString(virusJsonStr: string) {
 const worker = {
   create,
   destroy,
-  // getCladeNodeAttrKeyDescs,
+  getInitialData,
   analyze,
   getOutputTree,
   parseSequencesStreaming,

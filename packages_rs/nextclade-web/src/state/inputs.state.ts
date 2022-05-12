@@ -8,32 +8,32 @@ export const qrySeqAtom = atom<AlgorithmInput | undefined>({
   default: undefined,
 })
 
-export const refSeqAtom = atom<AlgorithmInput | undefined>({
+export const refSeqInputAtom = atom<AlgorithmInput | undefined>({
   key: 'refSeqInput',
   default: undefined,
 })
 
-export const geneMapAtom = atom<AlgorithmInput | undefined>({
+export const geneMapInputAtom = atom<AlgorithmInput | undefined>({
   key: 'geneMapInput',
   default: undefined,
 })
 
-export const refTreeAtom = atom<AlgorithmInput | undefined>({
+export const refTreeInputAtom = atom<AlgorithmInput | undefined>({
   key: 'refTreeInput',
   default: undefined,
 })
 
-export const qcConfigAtom = atom<AlgorithmInput | undefined>({
+export const qcConfigInpuAtom = atom<AlgorithmInput | undefined>({
   key: 'qcConfigInput',
   default: undefined,
 })
 
-export const virusPropertiesAtom = atom<AlgorithmInput | undefined>({
+export const virusPropertiesInputAtom = atom<AlgorithmInput | undefined>({
   key: 'virusPropertiesInput',
   default: undefined,
 })
 
-export const primersCsvAtom = atom<AlgorithmInput | undefined>({
+export const primersCsvInputAtom = atom<AlgorithmInput | undefined>({
   key: 'primersCsvInput',
   default: undefined,
 })
