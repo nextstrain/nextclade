@@ -3,7 +3,7 @@ import { atom, selector } from 'recoil'
 
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 
-export const qrySeqAtom = atom<AlgorithmInput | undefined>({
+export const qrySeqInputAtom = atom<AlgorithmInput | undefined>({
   key: 'qrySeqInput',
   default: undefined,
 })
@@ -41,6 +41,6 @@ export const primersCsvInputAtom = atom<AlgorithmInput | undefined>({
 export const hasRequiredInputsAtom = selector({
   key: 'hasRequiredInputs',
   get({ get }) {
-    return !isNil(get(qrySeqAtom))
+    return !isNil(get(qrySeqInputAtom))
   },
 })

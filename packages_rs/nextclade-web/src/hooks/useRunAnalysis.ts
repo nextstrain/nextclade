@@ -21,7 +21,7 @@ import { numThreadsAtom, showNewRunPopupAtom } from 'src/state/settings.state'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
 import { LaunchAnalysisInputs, launchAnalysis, LaunchAnalysisCallbacks } from 'src/workers/launchAnalysis'
 import {
-  qrySeqAtom,
+  qrySeqInputAtom,
   refSeqInputAtom,
   geneMapInputAtom,
   refTreeInputAtom,
@@ -42,7 +42,7 @@ export function useRunAnalysis() {
 
         const numThreads = getPromise(numThreadsAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
-        const qrySeq = getPromise(qrySeqAtom)
+        const qrySeq = getPromise(qrySeqInputAtom)
 
         const inputs: LaunchAnalysisInputs = {
           ref_seq_str: getPromise(refSeqInputAtom),

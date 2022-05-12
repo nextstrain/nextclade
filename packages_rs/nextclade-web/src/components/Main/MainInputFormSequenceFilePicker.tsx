@@ -15,7 +15,7 @@ import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
-import { qrySeqAtom, hasRequiredInputsAtom } from 'src/state/inputs.state'
+import { qrySeqInputAtom, hasRequiredInputsAtom } from 'src/state/inputs.state'
 
 const SequenceFilePickerContainer = styled.section`
   display: flex;
@@ -34,8 +34,8 @@ export function MainInputFormSequenceFilePicker() {
   const { t } = useTranslationSafe()
 
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-  const [qrySeq, setQrySeq] = useRecoilState(qrySeqAtom)
-  const removeQrySeq = useResetRecoilState(qrySeqAtom)
+  const [qrySeq, setQrySeq] = useRecoilState(qrySeqInputAtom)
+  const removeQrySeq = useResetRecoilState(qrySeqInputAtom)
   const qrySeqError = useRecoilValue(qrySeqErrorAtom)
 
   const canRun = useRecoilValue(canRunAtom)
