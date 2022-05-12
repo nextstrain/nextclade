@@ -253,13 +253,13 @@ export interface QcResult {
 }
 
 export interface NucleotideSubstitutionSimple {
-  ref: string
+  refNuc: string
   pos: number
-  qry: string
+  queryNuc: string
 }
 
 export interface NucleotideDeletionSimple {
-  ref: string
+  refNuc: string
   pos: number
 }
 
@@ -282,18 +282,18 @@ export interface PrivateMutations {
 }
 
 export function convertDelToSub(del: NucleotideDeletionSimple): NucleotideSubstitutionSimple {
-  return { ...del, qry: '-' }
+  return { ...del, queryNuc: '-' }
 }
 
 export function convertDelToSubLabeled(labeled: NucleotideDeletionSimpleLabeled): NucleotideSubstitutionSimpleLabeled {
   return { ...labeled, substitution: convertDelToSub(labeled.deletion) }
 }
 
-export function convertSimpleSubToSub({ ref, pos, qry }: NucleotideSubstitutionSimple): NucleotideSubstitution {
+export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucleotideSubstitution {
   return {
-    refNuc: ref as Nucleotide,
+    refNuc: refNuc as Nucleotide,
     pos,
-    queryNuc: qry as Nucleotide,
+    queryNuc: queryNuc as Nucleotide,
     aaDeletions: [],
     aaSubstitutions: [],
     pcrPrimersChanged: [],
