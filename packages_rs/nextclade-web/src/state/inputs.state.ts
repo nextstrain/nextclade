@@ -23,7 +23,7 @@ export const refTreeInputAtom = atom<AlgorithmInput | undefined>({
   default: undefined,
 })
 
-export const qcConfigInpuAtom = atom<AlgorithmInput | undefined>({
+export const qcConfigInputAtom = atom<AlgorithmInput | undefined>({
   key: 'qcConfigInput',
   default: undefined,
 })

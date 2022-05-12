@@ -22,11 +22,7 @@ export const datasetCurrentNameAtom = atom<string | undefined>({
 export const datasetCurrentAtom = selector<DatasetFlat | undefined>({
   key: 'datasetCurrent',
   get({ get }) {
-    const datasetsObj = get(datasetsAtom)
-    if (!datasetsObj) {
-      return undefined
-    }
-    const { datasets } = datasetsObj
+    const { datasets } = get(datasetsAtom)
     const datasetCurrentName = get(datasetCurrentNameAtom)
     return datasets.find((dataset) => dataset.name === datasetCurrentName)
   },

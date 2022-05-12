@@ -15,7 +15,7 @@ import {
 import {
   geneMapInputAtom,
   primersCsvInputAtom,
-  qcConfigInpuAtom,
+  qcConfigInputAtom,
   refSeqInputAtom,
   refTreeInputAtom,
   virusPropertiesInputAtom,
@@ -39,9 +39,9 @@ export function FilePickerAdvanced() {
   const refTreeError = useRecoilValue(refTreeErrorAtom)
   const resetRefTree = useResetRecoilState(refTreeInputAtom)
 
-  const [qcConfig, setQcConfig] = useRecoilState(qcConfigInpuAtom)
+  const [qcConfig, setQcConfig] = useRecoilState(qcConfigInputAtom)
   const qcConfigError = useRecoilValue(qcConfigErrorAtom)
-  const resetQcConfig = useResetRecoilState(qcConfigInpuAtom)
+  const resetQcConfig = useResetRecoilState(qcConfigInputAtom)
 
   const [virusProperties, setVirusProperties] = useRecoilState(virusPropertiesInputAtom)
   const virusPropertiesError = useRecoilValue(virusPropertiesErrorAtom)
