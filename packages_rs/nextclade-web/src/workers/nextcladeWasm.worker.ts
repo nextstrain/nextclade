@@ -12,6 +12,7 @@ import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { prepareGeneMap } from 'src/io/prepareGeneMap'
 
 const gSubject = new Subject<FastaRecord>()
 
@@ -74,7 +75,7 @@ async function getInitialData(): Promise<LaunchAnalysisInitialData> {
   initialData.free()
 
   return {
-    geneMap: JSON.parse(gene_map) as Gene[],
+    geneMap: prepareGeneMap(gene_map),
     genomeSize: Number(genome_size),
     cladeNodeAttrKeyDescs: JSON.parse(clade_node_attr_key_descs) as CladeNodeAttrDesc[],
   }

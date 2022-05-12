@@ -1,19 +1,15 @@
 import React, { useState } from 'react'
-
-import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
+import { useRecoilValue } from 'recoil'
+import { geneMapAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 
 import type { AnalysisResult, Gene, PeptideWarning } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
-
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
-
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
 import { groupAdjacentAminoacidChanges } from './groupAdjacentAminoacidChanges'
@@ -78,17 +74,12 @@ export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   viewedGene: string
 }
 
-const mapStateToProps = (state: State) => ({
-  geneMap: selectGeneMap(state),
-})
-const mapDispatchToProps = {}
-
-export const PeptideViewUnsized = connect(mapStateToProps, mapDispatchToProps)(PeptideViewUnsizedDisconnected)
-
-export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, geneMap, viewedGene }: PeptideViewProps) {
+export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: PeptideViewProps) {
   const { t } = useTranslationSafe()
 
-  if (!width || !geneMap) {
+  const geneMap = useRecoilValue(geneMapAtom)
+
+  if (!width) {
     return (
       <SequenceViewWrapper>
         <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
@@ -115,7 +106,8 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
   }
 
   const { seqName, unknownAaRanges } = sequence
-  const pixelsPerAa = width / Math.round(gene.length / 3)
+  const geneLength = gene.end - gene.start
+  const pixelsPerAa = width / Math.round(geneLength / 3)
   const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
   const aaDeletions = sequence.aaDeletions.filter((aaSub) => aaSub.gene === viewedGene)
   const groups = groupAdjacentAminoacidChanges(aaSubstitutions, aaDeletions)
@@ -136,7 +128,7 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
-        <rect fill="transparent" x={0} y={-10} width={gene.length} height="30" />
+        <rect fill="transparent" x={0} y={-10} width={geneLength} height="30" />
 
         {unknownAaRangesForGene &&
           unknownAaRangesForGene.ranges.map((range) => (

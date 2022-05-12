@@ -1,10 +1,8 @@
 import React, { Suspense } from 'react'
-
 import { useRecoilValue } from 'recoil'
-import Loading from 'src/components/Loading/Loading'
-import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 
+import { resultsTableTotalWidthAtom } from 'src/state/settings.state'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { GeneMapTable } from 'src/components/GeneMap/GeneMapTable'
 import { ExportDialogButton } from 'src/components/Results/ExportDialogButton'
@@ -100,7 +98,7 @@ export function ResultsPage() {
         </MainContent>
 
         <Footer>
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={null}>
             <GeneMapTable />
           </Suspense>
         </Footer>

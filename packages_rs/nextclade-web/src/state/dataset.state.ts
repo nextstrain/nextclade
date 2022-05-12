@@ -31,3 +31,10 @@ export const datasetCurrentAtom = selector<DatasetFlat | undefined>({
     return datasets.find((dataset) => dataset.name === datasetCurrentName)
   },
 })
+
+export const geneOrderPreferenceAtom = selector({
+  key: 'geneOrderPreference',
+  get({ get }) {
+    return get(datasetCurrentAtom)?.geneOrderPreference ?? []
+  },
+})

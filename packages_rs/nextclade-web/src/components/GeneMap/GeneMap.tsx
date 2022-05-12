@@ -1,6 +1,7 @@
 import React, { SVGProps, useCallback, useEffect, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { geneLength } from 'src/algorithms/types'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX, GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
@@ -73,8 +74,8 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
     [setHovered, setShowTooltip],
   )
 
-  const { geneName, color, start, end, length, frame } = gene // prettier-ignore
-  const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
+  const { geneName, color, start, end, frame } = gene // prettier-ignore
+  const width = Math.max(BASE_MIN_WIDTH_PX, geneLength(gene) * pixelsPerBase)
   const x = single ? 0 : start * pixelsPerBase
   const id = getSafeId('gene', { ...gene })
 

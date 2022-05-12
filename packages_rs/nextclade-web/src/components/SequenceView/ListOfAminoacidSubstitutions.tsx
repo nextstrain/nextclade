@@ -1,46 +1,24 @@
 import React from 'react'
-
+import { useRecoilValue } from 'recoil'
 import copy from 'fast-copy'
-import { connect } from 'react-redux'
 
-import type { AminoacidSubstitution, Gene } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
+import type { AminoacidSubstitution } from 'src/algorithms/types'
+import { geneOrderPreferenceAtom } from 'src/state/dataset.state'
 import { formatAAMutation } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
-import { selectCurrentDataset, selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
 import { sortByGenes } from './sortByGenes'
 
 export interface ListOfAminoacidMutationsProps {
   aminoacidSubstitutions: AminoacidSubstitution[]
-  geneMap?: Gene[]
-  geneOrderPreference: string[]
 }
 
-const mapStateToProps = (state: State) => ({
-  geneMap: selectGeneMap(state),
-  geneOrderPreference: selectCurrentDataset(state)?.geneOrderPreference ?? [],
-})
-
-const mapDispatchToProps = {}
-
-export const ListOfAminoacidSubstitutions = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ListOfAminoacidMutationsDisconnected)
-
-export function ListOfAminoacidMutationsDisconnected({
-  aminoacidSubstitutions,
-  geneMap,
-  geneOrderPreference,
-}: ListOfAminoacidMutationsProps) {
+export function ListOfAminoacidSubstitutions({ aminoacidSubstitutions }: ListOfAminoacidMutationsProps) {
   const { t } = useTranslationSafe()
 
-  if (!geneMap) {
-    return null
-  }
+  const geneOrderPreference = useRecoilValue(geneOrderPreferenceAtom)
 
   const totalMutations = aminoacidSubstitutions.length
   const maxRows = Math.min(8, totalMutations)
@@ -66,7 +44,7 @@ export function ListOfAminoacidMutationsDisconnected({
               <tr key={i}>
                 {col.map((item) => (
                   <td key={formatAAMutation(item)}>
-                    <AminoacidMutationBadge mutation={item} geneMap={geneMap} />
+                    <AminoacidMutationBadge mutation={item} />
                   </td>
                 ))}
               </tr>

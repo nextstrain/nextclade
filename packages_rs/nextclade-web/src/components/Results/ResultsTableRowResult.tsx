@@ -3,7 +3,6 @@ import React, { Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 
 import { QcStatus } from 'src/algorithms/types'
-import Loading from 'src/components/Loading/Loading'
 import { ColumnClade } from 'src/components/Results/ColumnClade'
 import { ColumnCustomNodeAttr } from 'src/components/Results/ColumnCustomNodeAttr'
 import { ColumnFrameShifts } from 'src/components/Results/ColumnFrameShifts'
@@ -68,7 +67,7 @@ export function ResultsTableRowResult({
     const baseRowColor = even ? '#ededed' : '#fcfcfc'
     const qcRowColor = getQcRowColor(qc.overallStatus)
     return mix(0.5, baseRowColor, qcRowColor)
-  }, [])
+  }, [index, qc.overallStatus])
 
   return (
     <TableRow {...restProps} backgroundColor={color}>
@@ -123,7 +122,7 @@ export function ResultsTableRowResult({
       </TableCell>
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
-        <Suspense fallback={<Loading />}>
+        <Suspense fallback={null}>
           {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
             <SequenceView key={seqName} sequence={analysisResult} />
           ) : (

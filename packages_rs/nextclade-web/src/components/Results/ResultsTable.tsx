@@ -94,24 +94,23 @@ export function ResultsTable() {
   const sortByTotalStopCodonsDesc = useCallback(() => {}, [])
 
   const dynamicColumns = useMemo(() => {
-    return null
-    // return cladeNodeAttrKeys.map((attrKey) => {
-    //   const sortAsc = () => resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.asc })
-    //   const sortDesc = () => resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.desc })
-    //
-    //   return (
-    //     <TableHeaderCell key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
-    //       <TableHeaderCellContent>
-    //         <TableCellText>{attrKey}</TableCellText>
-    //         <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
-    //       </TableHeaderCellContent>
-    //       <ButtonHelpStyled identifier="btn-help-col-clade" wide>
-    //         <HelpTipsColumnClade />
-    //       </ButtonHelpStyled>
-    //     </TableHeaderCell>
-    //   )
-    // })
-  }, [])
+    return cladeNodeAttrKeys.map((attrKey) => {
+      const sortAsc = () => {} // resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.asc })
+      const sortDesc = () => {} // resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.desc })
+
+      return (
+        <TableHeaderCell key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
+          <TableHeaderCellContent>
+            <TableCellText>{attrKey}</TableCellText>
+            <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
+          </TableHeaderCellContent>
+          <ButtonHelpStyled identifier="btn-help-col-clade" wide>
+            <HelpTipsColumnClade />
+          </ButtonHelpStyled>
+        </TableHeaderCell>
+      )
+    })
+  }, [cladeNodeAttrKeys, dynamicColumnWidthPx])
 
   return (
     <Table rounded={isFilterPanelShown}>

@@ -373,9 +373,12 @@ export interface Gene {
   color: string
   start: number
   end: number
-  length: number
   frame: number
   strand: string
+}
+
+export function geneLength(gene: Gene) {
+  return gene.end - gene.start
 }
 
 export interface FastaRecordId {
