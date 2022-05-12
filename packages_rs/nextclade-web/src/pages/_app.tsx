@@ -9,6 +9,18 @@ import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
+import { globalErrorAtom } from 'src/state/error.state'
+import {
+  geneMapInputAtom,
+  primersCsvInputAtom,
+  qcConfigInputAtom,
+  qrySeqInputAtom,
+  refSeqInputAtom,
+  refTreeInputAtom,
+  virusPropertiesInputAtom,
+} from 'src/state/inputs.state'
 import {
   changelogIsShownAtom,
   changelogLastVersionSeenAtom,
@@ -35,7 +47,6 @@ import { Plausible } from 'src/components/Common/Plausible'
 import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
-import { globalErrorAtom } from 'src/state/error.state'
 
 import 'src/styles/global.scss'
 
@@ -59,9 +70,11 @@ export function RecoilStateInitializer() {
   // NOTE: Do manual parsing, because router.query is randomly empty on the first few renders and on repeated renders.
   // This is important, because various states depend on query, and when it changes back and forth,
   // the state also changes unexpectedly.
-  const { query } = useMemo(() => parseUrl(router.asPath), [router.asPath])
+  const { query: urlQuery } = useMemo(() => parseUrl(router.asPath), [router.asPath])
 
   const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
+
+  const run = useRunAnalysis()
 
   const initialize = useRecoilCallback(({ set, snapshot }) => () => {
     if (initialized) {
@@ -71,7 +84,8 @@ export function RecoilStateInitializer() {
     const snapShotRelease = snapshot.retain()
     const { getPromise } = snapshot
 
-    initializeDatasets(query)
+    // eslint-disable-next-line no-void
+    void initializeDatasets(urlQuery)
       .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
         set(datasetsAtom, {
           datasets,
@@ -83,8 +97,21 @@ export function RecoilStateInitializer() {
         return undefined
       })
       .then(() => {
-        // TODO
-        // fetchInputsAndRunMaybe(dispatch, query)
+        const qrySeqInput = createInputFromUrlParamMaybe(urlQuery, 'input-fasta')
+        set(qrySeqInputAtom, qrySeqInput)
+
+        set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-root-seq'))
+        set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))
+        set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
+        set(qcConfigInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-qc-config'))
+        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
+        set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
+
+        if (qrySeqInput) {
+          run()
+        }
+
+        return undefined
       })
       .then(async () => {
         const changelogShouldShowOnUpdates = await getPromise(changelogShouldShowOnUpdatesAtom)
@@ -96,10 +123,11 @@ export function RecoilStateInitializer() {
       .then(() => {
         setInitialized(true)
         snapShotRelease()
+        return undefined
       })
       .catch((error) => {
-        console.error(error)
         set(globalErrorAtom, sanitizeError(error))
+        throw error
       })
   })
 
