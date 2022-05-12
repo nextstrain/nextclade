@@ -3,7 +3,7 @@ import { concurrent } from 'fasy'
 
 import type { DatasetFiles, DatasetFlat, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen'
-import type { GoThread } from 'src/workers/go.worker'
+import type { LauncherThread } from 'src/workers/launcher.worker'
 import { spawn } from 'src/workers/spawn'
 import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
@@ -49,8 +49,8 @@ export async function launchAnalysis(
   const qryFastaStr = await getQueryFasta(await qryFastaInput)
   const params = await getParams(paramInputs, dataset)
 
-  const launcherWorker = await spawn<GoThread>(
-    new Worker(new URL('src/workers/go.worker.ts', import.meta.url), { name: 'launcherWebWorker' }),
+  const launcherWorker = await spawn<LauncherThread>(
+    new Worker(new URL('src/workers/launcher.worker.ts', import.meta.url), { name: 'launcherWebWorker' }),
   )
 
   try {

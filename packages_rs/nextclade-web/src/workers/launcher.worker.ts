@@ -146,5 +146,5 @@ const worker = {
 
 expose(worker)
 
-export type GoWorker = typeof worker
-export type GoThread = GoWorker & Thread
+export type LauncherWorker = typeof worker
+export type LauncherThread = LauncherWorker & Thread
