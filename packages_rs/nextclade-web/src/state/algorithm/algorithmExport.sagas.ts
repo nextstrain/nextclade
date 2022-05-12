@@ -1,23 +1,23 @@
 /* eslint-disable no-loops/no-loops,no-continue,sonarjs/no-duplicate-string */
 import { call, select } from 'typed-redux-saga'
 
-import type { ZipFileDescription } from 'src/helpers/saveFile'
+// import type { ZipFileDescription } from 'src/helpers/saveFile'
+//
+// import { saveFile, saveZip } from 'src/helpers/saveFile'
+// import { serializeResults, serializeResultsToJson } from 'src/io/serializeResults'
+//
+// import {
+//   selectCladeNodeAttrKeys,
+//   selectExportParams,
+//   selectOutputPeptides,
+//   selectOutputSequences,
+//   selectOutputTree,
+//   selectResults,
+//   selectResultsArray,
+//   selectResultsState,
+// } from 'src/state/algorithm/algorithm.selectors'
+// import { notUndefinedOrNull } from 'src/helpers/notUndefined'
 
-import { saveFile, saveZip } from 'src/helpers/saveFile'
-import { serializeResults, serializeResultsToJson } from 'src/io/serializeResults'
-
-import {
-  selectCladeNodeAttrKeys,
-  selectExportParams,
-  selectOutputPeptides,
-  selectOutputSequences,
-  selectOutputTree,
-  selectResults,
-  selectResultsArray,
-  selectResultsState,
-} from 'src/state/algorithm/algorithm.selectors'
-import { notUndefinedOrNull } from 'src/helpers/notUndefined'
-import { serializeInsertionsToCsv, serializeToCsv } from 'src/workers/run'
 
 export function* prepareResultsCsvStr() {
   const results = yield* select(selectResultsArray)

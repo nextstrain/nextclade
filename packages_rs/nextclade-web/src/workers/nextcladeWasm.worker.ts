@@ -1,15 +1,15 @@
 /* eslint-disable camelcase */
 import 'regenerator-runtime'
 
-import type { AnalysisResult, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
+import type { AnalysisResult, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
+import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
+import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
-import { NextcladeWasm, NextcladeParams, AnalysisInput, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
-import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
 
 const gSubject = new Subject<FastaRecord>()
 

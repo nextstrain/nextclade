@@ -2,15 +2,16 @@ import 'regenerator-runtime'
 
 import type { AuspiceJsonV2 } from 'auspice'
 import type { Thread } from 'threads'
-import { omit } from 'lodash'
-import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 import { expose } from 'threads/worker'
+import { Observable as ThreadsObservable, Subject } from 'threads/observable'
+import { omit } from 'lodash'
 
 import type { FastaRecord, FastaRecordId, NextcladeResult } from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { AlgorithmGlobalStatus } from 'src/state/algorithm/algorithm.state'
-import { AnalysisWorkerPool, FastaParserWorker } from 'src/workers/run'
+import { AnalysisWorkerPool } from 'src/workers/AnalysisWorkerPool'
+import { FastaParserWorker } from 'src/workers/FastaParserThread'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 
 export class ErrorLauncherModuleNotInitialized extends ErrorInternal {
