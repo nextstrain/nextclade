@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import type { NextPageContext } from 'next'
 import { Button, Col, Container as ContainerBase, Row } from 'reactstrap'
 import get from 'lodash/get'
-import { useRecoilValue } from 'recoil'
 
 import { ErrorContent } from 'src/components/Error/ErrorContent'
 import { ErrorContentExplanation } from 'src/components/Error/ErrorContentExplanation'
@@ -10,7 +9,6 @@ import { LayoutResults } from 'src/components/Layout/LayoutResults'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { MainSectionTitle } from 'src/components/Main/MainSectionTitle'
 import { useReloadPage } from 'src/hooks/useReloadPage'
-import { globalErrorAtom } from 'src/state/error.state'
 import styled from 'styled-components'
 
 export const Container = styled(ContainerBase)`
@@ -41,12 +39,11 @@ export const MainContent = styled.main`
 export interface ErrorPageProps {
   statusCode?: number
   title?: string
+  error?: Error | undefined
 }
 
-function ErrorPage({ statusCode, title }: ErrorPageProps) {
+function ErrorPage({ statusCode, title, error }: ErrorPageProps) {
   const { t } = useTranslationSafe()
-
-  const error = useRecoilValue(globalErrorAtom)
 
   const reload = useReloadPage('/')
 

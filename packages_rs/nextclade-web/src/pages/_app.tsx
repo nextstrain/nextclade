@@ -2,7 +2,7 @@ import 'reflect-metadata'
 
 import 'css.escape'
 
-import { memoize } from 'lodash'
+import { isNil, memoize } from 'lodash'
 import React, { useEffect, Suspense, useMemo } from 'react'
 import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
@@ -89,6 +89,11 @@ export function RecoilStateInitializer() {
 
     // eslint-disable-next-line no-void
     void initializeDatasets(urlQuery)
+      .catch((error) => {
+        // Dataset error is fatal and we want error to be handled in the ErrorBoundary
+        setInitialized(false)
+        throw error
+      })
       .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
         set(datasetsAtom, {
           datasets,
@@ -125,7 +130,6 @@ export function RecoilStateInitializer() {
       })
       .then(() => {
         setInitialized(true)
-        snapShotRelease()
         return undefined
       })
       .catch((error) => {
@@ -133,13 +137,16 @@ export function RecoilStateInitializer() {
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
+      .finally(() => {
+        snapShotRelease()
+      })
   })
 
   useEffect(() => {
     initialize()
   })
 
-  if (error) {
+  if (!initialized && !isNil(error)) {
     throw error
   }
 
