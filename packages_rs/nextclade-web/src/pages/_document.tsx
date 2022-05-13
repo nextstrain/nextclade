@@ -44,6 +44,30 @@ export const MicrosoftIcons = (
   </>
 )
 
+const disableErrorPopup = {
+  __html: `
+    window.addEventListener('error', event => {
+      event.stopImmediatePropagation()
+    })
+
+    window.addEventListener('unhandledrejection', event => {
+      event.stopImmediatePropagation()
+    })
+  `,
+}
+
+/**
+ * Disables Next.js error popup in dev mode, so that the behavior is consistent with production.
+ * Put this component into Document's Head.
+ */
+export function DisableNextJsErrorPopup() {
+  if (process.env.NODE_ENV === 'production') {
+    return null
+  }
+  // eslint-disable-next-line react/no-danger
+  return <script dangerouslySetInnerHTML={disableErrorPopup} />
+}
+
 export default class Document extends NextDocument {
   static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
     const sheet = new ServerStyleSheet()
@@ -75,6 +99,8 @@ export default class Document extends NextDocument {
     return (
       <Html lang="en">
         <Head>
+          <DisableNextJsErrorPopup />
+
           <meta charSet="UTF-8" />
           <title>{PROJECT_NAME}</title>
           <meta name="description" content={PROJECT_DESCRIPTION} />

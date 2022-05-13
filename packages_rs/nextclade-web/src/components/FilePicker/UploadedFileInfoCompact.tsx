@@ -1,16 +1,14 @@
 import { isNil } from 'lodash'
 import React, { ReactNode, useMemo } from 'react'
-
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
-import { UploadZoneTextContainer } from 'src/components/FilePicker/UploadBoxCompact'
-import { ErrorWrapper, ErrorWrapperInternal } from 'src/components/FilePicker/UploadedFileInfo'
-
 import styled from 'styled-components'
 
+import { UploadZoneTextContainer } from 'src/components/FilePicker/UploadBoxCompact'
+import { ErrorWrapper, ErrorWrapperInternal } from 'src/components/FilePicker/UploadedFileInfo'
 import { theme } from 'src/theme'
-import { ErrorContent } from 'src/components/Error/ErrorPopup'
+import { ErrorContent } from 'src/components/Error/ErrorContent'
 
 export const Wrapper = styled.div`
   display: flex;

@@ -4,7 +4,7 @@ import 'css.escape'
 
 import { memoize } from 'lodash'
 import React, { useEffect, Suspense, useMemo } from 'react'
-import { RecoilRoot, useRecoilCallback, useRecoilState } from 'recoil'
+import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import dynamic from 'next/dynamic'
@@ -47,6 +47,7 @@ import { Plausible } from 'src/components/Common/Plausible'
 import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
+import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
 import 'src/styles/global.scss'
 
@@ -75,6 +76,8 @@ export function RecoilStateInitializer() {
   const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
 
   const run = useRunAnalysis()
+
+  const error = useRecoilValue(globalErrorAtom)
 
   const initialize = useRecoilCallback(({ set, snapshot }) => () => {
     if (initialized) {
@@ -126,6 +129,7 @@ export function RecoilStateInitializer() {
         return undefined
       })
       .catch((error) => {
+        setInitialized(true)
         set(globalErrorAtom, sanitizeError(error))
         throw error
       })
@@ -134,6 +138,10 @@ export function RecoilStateInitializer() {
   useEffect(() => {
     initialize()
   })
+
+  if (error) {
+    throw error
+  }
 
   return null
 }
@@ -158,18 +166,22 @@ export function MyApp({ Component, pageProps, router }: AppProps) {
     <Suspense fallback={fallback}>
       <ReactReduxProvider store={store}>
         <RecoilRoot>
-          <RecoilStateInitializer />
           <ThemeProvider theme={theme}>
             <MDXProvider components={mdxComponents}>
               <Plausible domain={DOMAIN_STRIPPED} />
               <QueryClientProvider client={queryClient}>
                 <I18nextProvider i18n={i18n}>
-                  <Suspense fallback={fallback}>
-                    <SEO />
-                    <Component {...pageProps} />
-                    <ErrorPopup />
-                    <ReactQueryDevtools initialIsOpen={false} />
-                  </Suspense>
+                  <ErrorBoundary>
+                    <Suspense>
+                      <RecoilStateInitializer />
+                    </Suspense>
+                    <Suspense fallback={fallback}>
+                      <SEO />
+                      <Component {...pageProps} />
+                      <ErrorPopup />
+                      <ReactQueryDevtools initialIsOpen={false} />
+                    </Suspense>
+                  </ErrorBoundary>
                 </I18nextProvider>
               </QueryClientProvider>
             </MDXProvider>

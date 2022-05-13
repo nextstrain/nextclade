@@ -1,5 +1,5 @@
 use crate::wasm::analyze::{AnalysisInitialData, AnalysisInput, AnalysisResult, Nextclade, NextcladeParams};
-use eyre::Report;
+use eyre::{Report, WrapErr};
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
@@ -35,11 +35,11 @@ impl NextcladeWasm {
   }
 
   pub fn parse_query_sequences(qry_fasta_str: &str, callback: &js_sys::Function) -> Result<(), JsError> {
-    let mut reader = jserr(FastaReader::from_str(qry_fasta_str))?;
+    let mut reader = jserr(FastaReader::from_str(qry_fasta_str).wrap_err_with(|| "When creating fasta reader"))?;
 
     loop {
       let mut record = FastaRecord::default();
-      reader.read(&mut record).unwrap();
+      jserr(reader.read(&mut record).wrap_err_with(|| "When reading a fasta record"))?;
       if record.is_empty() {
         break;
       }

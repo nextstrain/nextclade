@@ -1,13 +1,12 @@
 import React, { useMemo } from 'react'
-
+import { isNil } from 'lodash'
 import { useTranslation } from 'react-i18next'
 import { Alert, Button, Col, Row } from 'reactstrap'
 import { IoMdCheckmarkCircle, IoMdCloseCircle } from 'react-icons/io'
 import styled from 'styled-components'
 
 import { theme } from 'src/theme'
-import { isNil } from 'lodash'
-import { ErrorContent } from 'src/components/Error/ErrorPopup'
+import { ErrorContent } from 'src/components/Error/ErrorContent'
 
 const Container = styled.div`
   display: flex;
