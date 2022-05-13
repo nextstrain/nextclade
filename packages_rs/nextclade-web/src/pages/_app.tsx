@@ -135,7 +135,6 @@ export function RecoilStateInitializer() {
       .catch((error) => {
         setInitialized(true)
         set(globalErrorAtom, sanitizeError(error))
-        throw error
       })
       .finally(() => {
         snapShotRelease()

@@ -1,5 +1,4 @@
-import React, { useCallback } from 'react'
-import { useRouter } from 'next/router'
+import React from 'react'
 import { Button, ButtonProps, Modal, ModalBody, ModalFooter, ModalHeader as ReactstrapModalHeader } from 'reactstrap'
 import { useRecoilValue, useResetRecoilState } from 'recoil'
 import { useReloadPage } from 'src/hooks/useReloadPage'
