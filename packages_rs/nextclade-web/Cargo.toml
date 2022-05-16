@@ -14,6 +14,7 @@ assert2 = "0.3.6"
 console_error_panic_hook = "0.1.7"
 eyre = "0.6.8"
 getrandom = { version = "0.2.6", features = ["js"] }
+itertools = "0.10.3"
 js-sys = { version = "0.3.57", features = [] }
 log = "0.4.16"
 nextclade = { path = "../nextclade" }
@@ -23,7 +24,6 @@ typescript-definitions-derive = { path = "../../3rdparty/typescript-definitions/
 wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"] }
 wasm-logger = "0.2.0"
 web-sys = { version = "0.3.56", features = ["console"] }
-wee_alloc = "0.4.5"
 
 [dev-dependencies]
 assert2 = "0.3.6"

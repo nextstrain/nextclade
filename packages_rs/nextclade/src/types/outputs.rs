@@ -72,8 +72,6 @@ pub struct NextcladeOutputs {
   pub divergence: f64,
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
-  //
-  #[serde(skip)]
   pub nearest_node_id: usize,
 }
 

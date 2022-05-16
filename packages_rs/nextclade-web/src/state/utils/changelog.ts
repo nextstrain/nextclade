@@ -1,8 +1,4 @@
-import { Dispatch } from 'redux'
 import compareVersions from 'compare-versions'
-
-import { setShowWhatsnew } from 'src/state/ui/ui.actions'
-import { setLastVersionSeen } from 'src/state/settings/settings.actions'
 
 const BRANCH_NAME = process.env.BRANCH_NAME ?? ''
 const PACKAGE_VERSION = process.env.PACKAGE_VERSION ?? ''
@@ -19,20 +15,15 @@ export function checkIsNewerVersionSafe(currentVersion: string, lastVersionSeen:
   return true
 }
 
-export function showWhatsNewMaybe(lastVersionSeen: string, showWhatsnewOnUpdate: boolean, dispatch: Dispatch) {
+export function shouldShowChangelog(lastVersionSeen: string, showWhatsnewOnUpdate: boolean) {
   if (!showWhatsnewOnUpdate) {
-    return
+    return false
   }
 
   const isPr = !['master', 'staging', 'release'].includes(BRANCH_NAME)
   if (isPr) {
-    return
+    return false
   }
 
-  const isNewerVersion = checkIsNewerVersionSafe(PACKAGE_VERSION, lastVersionSeen)
-  if (isNewerVersion) {
-    dispatch(setShowWhatsnew(isNewerVersion))
-  }
-
-  dispatch(setLastVersionSeen(PACKAGE_VERSION))
+  return checkIsNewerVersionSafe(PACKAGE_VERSION, lastVersionSeen)
 }

@@ -1,6 +1,5 @@
 import React, { SVGProps, useState } from 'react'
 
-import { useTranslation } from 'react-i18next'
 import { AMINOACID_UNKNOWN, AA_MIN_WIDTH_PX, BASE_MIN_WIDTH_PX } from 'src/constants'
 
 import type { AminoacidRange } from 'src/algorithms/types'
@@ -9,6 +8,7 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 const unknownAaColor = getAminoacidColor(AMINOACID_UNKNOWN)
 
@@ -19,7 +19,7 @@ export interface PeptideMarkerUnknownProps extends SVGProps<SVGRectElement> {
 }
 
 export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...rest }: PeptideMarkerUnknownProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
 
   const { begin, end } = range // prettier-ignore

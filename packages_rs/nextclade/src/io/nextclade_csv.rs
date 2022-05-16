@@ -1,11 +1,11 @@
-use crate::align::insertions_strip::Insertion;
+use crate::align::insertions_strip::{AaIns, Insertion};
 use crate::analyze::aa_sub_full::{AaDelFull, AaSubFull};
 use crate::analyze::letter_ranges::NucRange;
 use crate::analyze::nuc_sub::{NucSub, NucSubLabeled};
 use crate::analyze::nuc_sub_full::{NucDelFull, NucSubFull};
 use crate::analyze::pcr_primer_changes::PcrPrimerChange;
 use crate::io::aa::{from_aa_seq, Aa};
-use crate::io::csv::CsvVecWriter;
+use crate::io::csv::{CsvVecFileWriter, CsvVecWriter, VecWriter};
 use crate::io::nuc::{from_nuc, from_nuc_seq, Nuc};
 use crate::make_internal_error;
 use crate::qc::qc_config::StopCodonLocation;
@@ -111,23 +111,29 @@ fn prepare_headers(custom_node_attr_keys: &[String]) -> Vec<String> {
   headers
 }
 
-/// Writes nextclade.csv and nextclade.tsv files
-pub struct NextcladeResultsCsvWriter {
-  writer: CsvVecWriter,
+/// Writes content of nextclade.csv and nextclade.tsv files (but not necessarily files themselves - writer is generic)
+pub struct NextcladeResultsCsvWriter<W: VecWriter> {
+  writer: W,
   headers: Vec<String>,
   row: Vec<String>,
 }
 
-impl NextcladeResultsCsvWriter {
-  pub fn new(filepath: impl AsRef<Path>, delimiter: u8, custom_node_attr_keys: &[String]) -> Result<Self, Report> {
-    let headers: Vec<String> = prepare_headers(custom_node_attr_keys);
-    let writer = CsvVecWriter::new(filepath.as_ref(), delimiter, &headers)?;
+impl<W: VecWriter> NextcladeResultsCsvWriter<W> {
+  pub fn new(writer: W, headers: &[String]) -> Result<Self, Report> {
     let row = vec!["".to_owned(); headers.len()];
-    Ok(Self { writer, headers, row })
+    Ok(Self {
+      writer,
+      headers: headers.to_vec(),
+      row,
+    })
+  }
+
+  pub fn into_inner(self) -> W {
+    self.writer
   }
 
   /// Writes one row into nextclade.csv or .tsv file
-  pub fn write(&mut self, translations: &[Translation], nextclade_outputs: &NextcladeOutputs) -> Result<(), Report> {
+  pub fn write(&mut self, nextclade_outputs: &NextcladeOutputs) -> Result<(), Report> {
     const ARRAY_ITEM_DELIMITER: &str = ",";
 
     let NextcladeOutputs {
@@ -231,7 +237,7 @@ impl NextcladeResultsCsvWriter {
     self.add_entry("aaDeletions", &format_aa_deletions(aa_deletions, ARRAY_ITEM_DELIMITER))?;
     self.add_entry(
       "aaInsertions",
-      &format_aa_insertions(translations, ARRAY_ITEM_DELIMITER),
+      &format_aa_insertions(aa_insertions, ARRAY_ITEM_DELIMITER),
     )?;
     self.add_entry("missing", &format_missings(missing, ARRAY_ITEM_DELIMITER))?;
     self.add_entry("nonACGTNs", &format_non_acgtns(non_acgtns, ARRAY_ITEM_DELIMITER))?;
@@ -369,7 +375,7 @@ impl NextcladeResultsCsvWriter {
     Ok(())
   }
 
-  /// Writes one row into nextclade.csv or .tsv file for the case of error
+  /// Writes one row for the case of error
   pub fn write_nuc_error(&mut self, seq_name: &str, errors: &str) -> Result<(), Report> {
     self.add_entry("seqName", &seq_name)?;
     self.add_entry("errors", &errors)?;
@@ -410,6 +416,29 @@ impl NextcladeResultsCsvWriter {
     self.writer.write(&self.row)?;
     self.row.iter_mut().for_each(String::clear);
     Ok(())
+  }
+}
+
+/// Writes nextclade.csv and nextclade.tsv files
+pub struct NextcladeResultsCsvFileWriter {
+  writer: NextcladeResultsCsvWriter<CsvVecFileWriter>,
+}
+
+impl NextcladeResultsCsvFileWriter {
+  pub fn new(filepath: impl AsRef<Path>, delimiter: u8, clade_attr_keys: &[String]) -> Result<Self, Report> {
+    let headers: Vec<String> = prepare_headers(clade_attr_keys);
+    let csv_writer = CsvVecFileWriter::new(filepath, delimiter, &headers)?;
+    let writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
+    Ok(Self { writer })
+  }
+
+  pub fn write(&mut self, nextclade_outputs: &NextcladeOutputs) -> Result<(), Report> {
+    self.writer.write(nextclade_outputs)
+  }
+
+  /// Writes one row into nextclade.csv or .tsv file for the case of error
+  pub fn write_nuc_error(&mut self, seq_name: &str, errors: &str) -> Result<(), Report> {
+    self.writer.write_nuc_error(seq_name, errors)
   }
 }
 
@@ -498,25 +527,15 @@ pub fn format_aa_deletions(substitutions: &[AaDelFull], delimiter: &str) -> Stri
 }
 
 #[inline]
-pub fn format_aa_insertions(translations: &[Translation], delimiter: &str) -> String {
-  translations
-    .iter()
-    .map(
-      |Translation {
-         gene_name, insertions, ..
-       }| {
-        insertions
-          .iter()
-          .map(|Insertion::<Aa> { ins, pos }| {
-            let ins_str = from_aa_seq(ins);
-            let pos_one_based = pos + 1;
-            format!("{gene_name}:{pos_one_based}:{ins_str}")
-          })
-          .join(";")
-      },
-    )
-    .filter(|s| !s.is_empty())
-    .join(delimiter)
+pub fn format_aa_insertion(AaIns { gene, ins, pos }: &AaIns) -> String {
+  let ins_str = from_aa_seq(ins);
+  let pos_one_based = pos + 1;
+  format!("{gene}:{pos_one_based}:{ins_str}")
+}
+
+#[inline]
+pub fn format_aa_insertions(insertions: &[AaIns], delimiter: &str) -> String {
+  insertions.iter().map(format_aa_insertion).join(delimiter)
 }
 
 #[inline]
@@ -528,6 +547,31 @@ pub fn format_frame_shifts(frame_shifts: &[FrameShift], delimiter: &str) -> Stri
       let range = &frame_shift.codon.to_string();
       format!("{gene_name}:{range}")
     })
+    .join(delimiter)
+}
+
+#[inline]
+pub fn format_aa_insertions_from_translations(translations: &[Translation], delimiter: &str) -> String {
+  translations
+    .iter()
+    .map(
+      |Translation {
+         gene_name, insertions, ..
+       }| {
+        insertions
+          .iter()
+          .cloned()
+          .map(|Insertion::<Aa> { pos, ins }| {
+            format_aa_insertion(&AaIns {
+              gene: gene_name.clone(),
+              pos,
+              ins,
+            })
+          })
+          .join(";")
+      },
+    )
+    .filter(|s| !s.is_empty())
     .join(delimiter)
 }
 
@@ -573,4 +617,20 @@ pub fn format_qc_score(score: f64) -> String {
     return format!("{score:.6}");
   }
   score.to_string()
+}
+
+pub fn results_to_csv_string(
+  outputs: &[NextcladeOutputs],
+  clade_attr_keys: &[String],
+  delimiter: u8,
+) -> Result<String, Report> {
+  let headers: Vec<String> = prepare_headers(clade_attr_keys);
+  let csv_writer = CsvVecWriter::new(Vec::<u8>::new(), delimiter, &headers)?;
+  let mut writer = NextcladeResultsCsvWriter::new(csv_writer, &headers)?;
+
+  for output in outputs {
+    writer.write(output)?;
+  }
+
+  Ok(String::from_utf8(writer.into_inner().into_inner()?)?)
 }

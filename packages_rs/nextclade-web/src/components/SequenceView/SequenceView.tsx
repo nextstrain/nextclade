@@ -1,13 +1,10 @@
 import React from 'react'
-
-import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
+import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 
-import { selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
-import type { State } from 'src/state/reducer'
 import type { AnalysisResult } from 'src/algorithms/types'
-
+import { genomeSizeAtom } from 'src/state/results.state'
 import { SequenceMarkerGap } from './SequenceMarkerGap'
 import { SequenceMarkerMissing } from './SequenceMarkerMissing'
 import { SequenceMarkerMutation } from './SequenceMarkerMutation'
@@ -18,8 +15,6 @@ export const SequenceViewWrapper = styled.div`
   display: flex;
   width: 100%;
   height: 30px;
-  margin-top: 0;
-  margin-bottom: 0;
   vertical-align: middle;
   margin: 0;
   padding: 0;
@@ -30,26 +25,18 @@ export const SequenceViewSVG = styled.svg`
   margin: 0;
   width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
 `
 
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
-  genomeSize?: number
 }
 
-const mapStateToProps = (state: State) => ({
-  genomeSize: selectGenomeSize(state),
-})
-const mapDispatchToProps = {}
-
-export const SequenceViewUnsized = connect(mapStateToProps, mapDispatchToProps)(SequenceViewUnsizedDisconnected)
-
-export function SequenceViewUnsizedDisconnected({ sequence, width, genomeSize }: SequenceViewProps) {
+export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts } = sequence
 
-  if (!width || !genomeSize) {
+  const genomeSize = useRecoilValue(genomeSizeAtom)
+
+  if (!width) {
     return (
       <SequenceViewWrapper>
         <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />

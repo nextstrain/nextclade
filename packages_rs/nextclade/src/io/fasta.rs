@@ -79,7 +79,7 @@ impl<'a> FastaReader<'a> {
     }
 
     if !self.line.starts_with('>') {
-      return make_error!("Expected > at record start.");
+      return make_error!("Expected character '>' at record start.");
     }
 
     record.seq_name = self.line[1..].trim().to_owned();

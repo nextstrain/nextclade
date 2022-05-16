@@ -1,5 +1,4 @@
-use crate::analyze::aa_del::AaDelMinimal;
-use crate::analyze::aa_sub::AaSubMinimal;
+use crate::analyze::aa_changes::{AaDel, AaSub};
 use crate::analyze::nuc_del::{NucDel, NucDelMinimal};
 use crate::analyze::nuc_sub::NucSub;
 use serde::{Deserialize, Serialize};
@@ -9,8 +8,8 @@ use serde::{Deserialize, Serialize};
 pub struct NucSubFull {
   #[serde(flatten)]
   pub sub: NucSub,
-  pub aa_substitutions: Vec<AaSubMinimal>,
-  pub aa_deletions: Vec<AaDelMinimal>,
+  pub aa_substitutions: Vec<AaSub>,
+  pub aa_deletions: Vec<AaDel>,
 }
 
 impl NucSubFull {
@@ -28,8 +27,8 @@ impl NucSubFull {
 pub struct NucDelFull {
   #[serde(flatten)]
   pub del: NucDel,
-  pub aa_substitutions: Vec<AaSubMinimal>,
-  pub aa_deletions: Vec<AaDelMinimal>,
+  pub aa_substitutions: Vec<AaSub>,
+  pub aa_deletions: Vec<AaDel>,
 }
 
 impl NucDelFull {

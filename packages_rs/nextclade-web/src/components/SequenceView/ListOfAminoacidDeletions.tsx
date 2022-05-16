@@ -1,46 +1,24 @@
 import React from 'react'
-
+import { useRecoilValue } from 'recoil'
 import copy from 'fast-copy'
-import { connect } from 'react-redux'
 
-import type { AminoacidDeletion, Gene } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
+import type { AminoacidDeletion } from 'src/algorithms/types'
 import { formatAADeletion } from 'src/helpers/formatMutation'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { splitToRows } from 'src/components/Results/splitToRows'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
-import { selectCurrentDataset, selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
+import { geneOrderPreferenceAtom } from 'src/state/dataset.state'
 import { sortByGenes } from './sortByGenes'
 
 export interface ListOfAminoacidDeletionsProps {
   aminoacidDeletions: AminoacidDeletion[]
-  geneMap?: Gene[]
-  geneOrderPreference: string[]
 }
 
-const mapStateToProps = (state: State) => ({
-  geneMap: selectGeneMap(state),
-  geneOrderPreference: selectCurrentDataset(state)?.geneOrderPreference ?? [],
-})
-
-const mapDispatchToProps = {}
-
-export const ListOfAminoacidDeletions = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ListOfAminoacidDeletionsDisconnected)
-
-export function ListOfAminoacidDeletionsDisconnected({
-  aminoacidDeletions,
-  geneMap,
-  geneOrderPreference,
-}: ListOfAminoacidDeletionsProps) {
+export function ListOfAminoacidDeletions({ aminoacidDeletions }: ListOfAminoacidDeletionsProps) {
   const { t } = useTranslationSafe()
 
-  if (!geneMap) {
-    return null
-  }
+  const geneOrderPreference = useRecoilValue(geneOrderPreferenceAtom)
 
   const totalDeletions = aminoacidDeletions.length
   const maxRows = 6
@@ -63,7 +41,7 @@ export function ListOfAminoacidDeletionsDisconnected({
               <tr key={i}>
                 {col.map((item) => (
                   <td key={formatAADeletion(item)}>
-                    <AminoacidMutationBadge mutation={item} geneMap={geneMap} />
+                    <AminoacidMutationBadge mutation={item} />
                   </td>
                 ))}
               </tr>

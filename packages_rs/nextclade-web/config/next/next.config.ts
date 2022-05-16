@@ -84,13 +84,10 @@ const nextConfig: NextConfig = {
     pagesBufferLength: 2,
   },
   modern: false,
-  // reactStrictMode: true,
+  reactStrictMode: false,
+  reactRoot: true,
   experimental: {
-    // reactMode: 'concurrent',
-    // reactRoot: true,
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    reactRoot: true,
     scrollRestoration: true,
   },
   swcMinify: true,

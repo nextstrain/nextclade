@@ -13,12 +13,12 @@ import {
   virusPropertiesErrorAtom,
 } from 'src/state/error.state'
 import {
-  geneMapAtom,
-  primersCsvAtom,
-  qcConfigAtom,
-  refSeqAtom,
-  refTreeAtom,
-  virusPropertiesAtom,
+  geneMapInputAtom,
+  primersCsvInputAtom,
+  qcConfigInputAtom,
+  refSeqInputAtom,
+  refTreeInputAtom,
+  virusPropertiesInputAtom,
 } from 'src/state/inputs.state'
 
 import { FileIconCsv, FileIconFasta, FileIconGff, FileIconJson } from 'src/components/Common/FileIcons'
@@ -27,29 +27,29 @@ import { FilePicker } from 'src/components/FilePicker/FilePicker'
 export function FilePickerAdvanced() {
   const { t } = useTranslation()
 
-  const [refSeq, setRefSeq] = useRecoilState(refSeqAtom)
+  const [refSeq, setRefSeq] = useRecoilState(refSeqInputAtom)
   const refSeqError = useRecoilValue(refSeqErrorAtom)
-  const resetRefSeq = useResetRecoilState(refSeqAtom)
+  const resetRefSeq = useResetRecoilState(refSeqInputAtom)
 
-  const [geneMap, setGeneMap] = useRecoilState(geneMapAtom)
+  const [geneMap, setGeneMap] = useRecoilState(geneMapInputAtom)
   const geneMapError = useRecoilValue(geneMapErrorAtom)
-  const resetGeneMap = useResetRecoilState(geneMapAtom)
+  const resetGeneMap = useResetRecoilState(geneMapInputAtom)
 
-  const [refTree, setRefTree] = useRecoilState(refTreeAtom)
+  const [refTree, setRefTree] = useRecoilState(refTreeInputAtom)
   const refTreeError = useRecoilValue(refTreeErrorAtom)
-  const resetRefTree = useResetRecoilState(refTreeAtom)
+  const resetRefTree = useResetRecoilState(refTreeInputAtom)
 
-  const [qcConfig, setQcConfig] = useRecoilState(qcConfigAtom)
+  const [qcConfig, setQcConfig] = useRecoilState(qcConfigInputAtom)
   const qcConfigError = useRecoilValue(qcConfigErrorAtom)
-  const resetQcConfig = useResetRecoilState(qcConfigAtom)
+  const resetQcConfig = useResetRecoilState(qcConfigInputAtom)
 
-  const [virusProperties, setVirusProperties] = useRecoilState(virusPropertiesAtom)
+  const [virusProperties, setVirusProperties] = useRecoilState(virusPropertiesInputAtom)
   const virusPropertiesError = useRecoilValue(virusPropertiesErrorAtom)
-  const resetVirusProperties = useResetRecoilState(virusPropertiesAtom)
+  const resetVirusProperties = useResetRecoilState(virusPropertiesInputAtom)
 
-  const [primersCsv, setPrimersCsv] = useRecoilState(primersCsvAtom)
+  const [primersCsv, setPrimersCsv] = useRecoilState(primersCsvInputAtom)
   const primersCsvError = useRecoilValue(primersCsvErrorAtom)
-  const resetPrimersCsv = useResetRecoilState(primersCsvAtom)
+  const resetPrimersCsv = useResetRecoilState(primersCsvInputAtom)
 
   const iconCsv = useMemo(() => <FileIconCsv size={30} />, [])
   const iconFasta = useMemo(() => <FileIconFasta size={30} />, [])

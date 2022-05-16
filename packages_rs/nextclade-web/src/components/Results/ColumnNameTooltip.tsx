@@ -4,7 +4,7 @@ import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 
-import { analysisResultsAtom } from 'src/state/results.state'
+import { analysisResultAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { formatRange } from 'src/helpers/formatRange'
 import { ListOfPcrPrimerChanges } from 'src/components/SequenceView/ListOfPcrPrimerChanges'
@@ -28,7 +28,7 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
   const isDone = false
 
   const { t } = useTranslationSafe()
-  const { result, error } = useRecoilValue(analysisResultsAtom(seqName))
+  const { result, error } = useRecoilValue(analysisResultAtom(seqName))
 
   const { StatusIcon, statusText } = useMemo(
     () =>

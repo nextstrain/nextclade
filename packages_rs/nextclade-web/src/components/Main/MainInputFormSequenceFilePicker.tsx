@@ -1,40 +1,21 @@
-import { changeColorBy } from 'auspice/src/actions/colors'
 import React, { useCallback, useMemo } from 'react'
-import { useRouter } from 'next/router'
-import { useDispatch } from 'react-redux'
 import { Button, Col, Form, FormGroup, Row } from 'reactstrap'
-import { useRecoilCallback, useRecoilState, useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
-import { AnyAction } from 'redux'
-import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
-import { createAuspiceState } from 'src/state/auspice/createAuspiceState'
+import { useRecoilState, useRecoilValue, useResetRecoilState } from 'recoil'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
 import styled from 'styled-components'
 
-import type { AuspiceJsonV2 } from 'auspice'
-import { ErrorInternal } from 'src/helpers/ErrorInternal'
-import { analysisStatusGlobalAtom, canRunAtom } from 'src/state/analysisStatusGlobal.state'
+import { canRunAtom } from 'src/state/analysisStatusGlobal.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
-import { globalErrorAtom, hasInputErrorsAtom, qrySeqErrorAtom } from 'src/state/error.state'
-import { analysisResultsAtom, treeAtom } from 'src/state/results.state'
-import { numThreadsAtom, shouldRunAutomaticallyAtom, showNewRunPopupAtom } from 'src/state/settings.state'
+import { hasInputErrorsAtom, qrySeqErrorAtom } from 'src/state/error.state'
+import { shouldRunAutomaticallyAtom } from 'src/state/settings.state'
 import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { Toggle } from 'src/components/Common/Toggle'
 import { FlexLeft, FlexRight } from 'src/components/FilePicker/FilePickerStyles'
-import { setShouldRunAutomatically } from 'src/state/settings/settings.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AlgorithmInputDefault } from 'src/io/AlgorithmInput'
 import { FilePicker } from 'src/components/FilePicker/FilePicker'
 import { FileIconFasta } from 'src/components/Common/FileIcons'
-import { LaunchAnalysisInputs, launchAnalysis, LaunchAnalysisCallbacks } from 'src/workers/launchAnalysis'
-import {
-  qrySeqAtom,
-  refSeqAtom,
-  geneMapAtom,
-  refTreeAtom,
-  qcConfigAtom,
-  virusPropertiesAtom,
-  primersCsvAtom,
-  hasRequiredInputsAtom,
-} from 'src/state/inputs.state'
+import { qrySeqInputAtom, hasRequiredInputsAtom } from 'src/state/inputs.state'
 
 const SequenceFilePickerContainer = styled.section`
   display: flex;
@@ -51,103 +32,22 @@ const ButtonRunStyled = styled(Button)`
 
 export function MainInputFormSequenceFilePicker() {
   const { t } = useTranslationSafe()
-  const router = useRouter()
-  const dispatch = useDispatch()
 
-  const numThreads = useRecoilValue(numThreadsAtom)
-  const setGlobalStatus = useSetRecoilState(analysisStatusGlobalAtom)
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-
-  const [qrySeq, setQrySeq] = useRecoilState(qrySeqAtom)
-  const removeQrySeq = useResetRecoilState(qrySeqAtom)
+  const [qrySeq, setQrySeq] = useRecoilState(qrySeqInputAtom)
+  const removeQrySeq = useResetRecoilState(qrySeqInputAtom)
   const qrySeqError = useRecoilValue(qrySeqErrorAtom)
 
-  const refSeq = useRecoilValue(refSeqAtom)
-  const geneMap = useRecoilValue(geneMapAtom)
-  const refTree = useRecoilValue(refTreeAtom)
-  const qcConfig = useRecoilValue(qcConfigAtom)
-  const virusProperties = useRecoilValue(virusPropertiesAtom)
-  const primersCsv = useRecoilValue(primersCsvAtom)
-
   const canRun = useRecoilValue(canRunAtom)
-  const shouldRunAutomatically = useRecoilValue(shouldRunAutomaticallyAtom)
+  const [shouldRunAutomatically, setShouldRunAutomatically] = useRecoilState(shouldRunAutomaticallyAtom)
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
-  const setShowNewRunPopup = useSetRecoilState(showNewRunPopupAtom)
 
   const isInProgressFasta = useMemo(() => false, []) // TODO: decide whether this is needed at all
-  const setIsDirty = useCallback((_0: boolean) => {}, []) // TODO: decide whether this is needed at all
 
   const icon = useMemo(() => <FileIconFasta />, [])
 
-  const run = useRecoilCallback(
-    ({ set, snapshot: { getPromise } }) =>
-      () => {
-        const qrySeq = getPromise(qrySeqAtom)
-
-        setShowNewRunPopup(false)
-        setIsDirty(true)
-
-        const inputs: LaunchAnalysisInputs = {
-          ref_seq_str: refSeq,
-          gene_map_str: geneMap,
-          tree_str: refTree,
-          qc_config_str: qcConfig,
-          virus_properties_str: virusProperties,
-          pcr_primers_str: primersCsv,
-        }
-
-        const callbacks: LaunchAnalysisCallbacks = {
-          onGlobalStatus(status) {
-            setGlobalStatus(status)
-          },
-          onParsedFasta(/* record */) {
-            // TODO: this does not work well: updates in `onAnalysisResult()` callback below fight with this one.
-            // Figure out how to make them both work.
-            // set(analysisResultsAtom(record.seqName), { index: record.index, seqName: record.seqName })
-          },
-          onAnalysisResult(result) {
-            set(analysisResultsAtom(result.seqName), result)
-          },
-          onError(error) {
-            set(globalErrorAtom, error)
-          },
-          onTree(tree: AuspiceJsonV2) {
-            set(treeAtom, tree)
-
-            const auspiceState = createAuspiceState(tree, dispatch)
-            dispatch(auspiceStartClean(auspiceState))
-            dispatch(changeColorBy())
-            dispatch(treeFilterByNodeType(['New']))
-          },
-          onComplete() {},
-        }
-
-        if (!datasetCurrent) {
-          throw new ErrorInternal('Dataset is not selected, but required.')
-        }
-
-        launchAnalysis(qrySeq, inputs, callbacks, datasetCurrent, numThreads).catch(console.error)
-
-        // eslint-disable-next-line no-void
-        void router.push('/results')
-      },
-    [
-      setShowNewRunPopup,
-      setIsDirty,
-      refSeq,
-      geneMap,
-      refTree,
-      qcConfig,
-      virusProperties,
-      primersCsv,
-      datasetCurrent,
-      numThreads,
-      router,
-      setGlobalStatus,
-      dispatch,
-    ],
-  )
+  const run = useRunAnalysis()
 
   const setSequences = useCallback(
     (input: AlgorithmInput) => {
@@ -161,14 +61,12 @@ export function MainInputFormSequenceFilePicker() {
   )
 
   const setExampleSequences = useCallback(() => {
-    if (!datasetCurrent) {
-      throw new Error('Internal error: dataset is not ready')
-    }
+    if (datasetCurrent) {
+      setQrySeq(new AlgorithmInputDefault(datasetCurrent))
 
-    setQrySeq(new AlgorithmInputDefault(datasetCurrent))
-
-    if (shouldRunAutomatically) {
-      run()
+      if (shouldRunAutomatically) {
+        run()
+      }
     }
   }, [datasetCurrent, run, setQrySeq, shouldRunAutomatically])
 
@@ -184,17 +82,17 @@ export function MainInputFormSequenceFilePicker() {
   }, [canRun, hasInputErrors, hasRequiredInputs, t])
 
   const LoadExampleLink = useMemo(() => {
-    const cannotLoadExample = hasRequiredInputs || isInProgressFasta || hasInputErrors
+    const cannotLoadExample = hasRequiredInputs || isInProgressFasta || hasInputErrors || !datasetCurrent
     return (
       <Button color="link" onClick={setExampleSequences} disabled={cannotLoadExample}>
         {t('Load example')}
       </Button>
     )
-  }, [hasInputErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
+  }, [datasetCurrent, hasInputErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
 
   const onToggleRunAutomatically = useCallback(() => {
-    setShouldRunAutomatically(!shouldRunAutomatically)
-  }, [shouldRunAutomatically])
+    setShouldRunAutomatically((shouldRunAutomatically) => !shouldRunAutomatically)
+  }, [setShouldRunAutomatically])
 
   return (
     <SequenceFilePickerContainer>

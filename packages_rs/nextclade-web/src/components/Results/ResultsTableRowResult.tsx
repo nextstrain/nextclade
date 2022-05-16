@@ -1,5 +1,5 @@
 import { mix } from 'polished'
-import React, { useMemo } from 'react'
+import React, { Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 
 import { QcStatus } from 'src/algorithms/types'
@@ -25,7 +25,7 @@ import {
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
-import { analysisResultsAtom } from 'src/state/results.state'
+import { analysisResultAtom } from 'src/state/results.state'
 
 export interface ResultsTableRowResultProps {
   seqName: string
@@ -53,7 +53,7 @@ export function ResultsTableRowResult({
   dynamicColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
-  const { index, result } = useRecoilValue(analysisResultsAtom(seqName))
+  const { index, result } = useRecoilValue(analysisResultAtom(seqName))
 
   if (!result) {
     return null
@@ -67,7 +67,7 @@ export function ResultsTableRowResult({
     const baseRowColor = even ? '#ededed' : '#fcfcfc'
     const qcRowColor = getQcRowColor(qc.overallStatus)
     return mix(0.5, baseRowColor, qcRowColor)
-  }, [])
+  }, [index, qc.overallStatus])
 
   return (
     <TableRow {...restProps} backgroundColor={color}>
@@ -122,11 +122,13 @@ export function ResultsTableRowResult({
       </TableCell>
 
       <TableCell basis={columnWidthsPx.sequenceView} grow={1} shrink={0}>
-        {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
-          <SequenceView key={seqName} sequence={analysisResult} />
-        ) : (
-          <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
-        )}
+        <Suspense fallback={null}>
+          {viewedGene === GENE_OPTION_NUC_SEQUENCE ? (
+            <SequenceView key={seqName} sequence={analysisResult} />
+          ) : (
+            <PeptideView key={seqName} sequence={analysisResult} viewedGene={viewedGene} warnings={warnings} />
+          )}
+        </Suspense>
       </TableCell>
     </TableRow>
   )

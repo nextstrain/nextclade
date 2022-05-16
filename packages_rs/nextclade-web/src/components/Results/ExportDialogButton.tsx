@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
-import { connect } from 'react-redux'
+import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import {
   Button,
@@ -16,24 +16,30 @@ import {
 } from 'reactstrap'
 import { MdFileDownload } from 'react-icons/md'
 
-import type { State } from 'src/state/reducer'
-import type { ExportParams } from 'src/state/algorithm/algorithm.state'
+import { canDownloadAtom } from 'src/state/results.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { PanelButton } from 'src/components/Results/PanelButton'
 import {
-  exportAll,
-  exportCsvTrigger,
-  exportFastaTrigger,
-  exportJsonTrigger,
-  exportPeptides,
-  exportTreeJsonTrigger,
-  exportTsvTrigger,
-  exportInsertionsCsvTrigger,
-  exportErrorsCsvTrigger,
-} from 'src/state/algorithm/algorithm.actions'
-import { FileIconCsv, FileIconTsv, FileIconFasta, FileIconJson, FileIconZip } from 'src/components/Common/FileIcons'
+  FileIconCsv,
+  FileIconTsv,
+  FileIconFasta,
+  FileIconJson,
+  FileIconZip,
+  FileIconNdjson,
+} from 'src/components/Common/FileIcons'
+import {
+  useExportCsv,
+  useExportErrorsCsv,
+  useExportFasta,
+  useExportInsertionsCsv,
+  useExportJson,
+  useExportNdjson,
+  useExportPeptides,
+  useExportTree,
+  useExportTsv,
+  useExportZip,
+} from 'src/hooks/useExportResults'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
-import { selectCanDownload, selectExportParams } from 'src/state/algorithm/algorithm.selectors'
 
 export const DownloadIcon = styled(MdFileDownload)`
   width: 25px;
@@ -87,64 +93,57 @@ export function ExportFileElement({
   )
 }
 
-export interface ExportDialogButtonProps {
-  exportAllTrigger: () => void
-  exportCsvTrigger: (filename: string) => void
-  exportFastaTrigger: (filename: string) => void
-  exportJsonTrigger: (filename: string) => void
-  exportPeptidesTrigger: (filename: string) => void
-  exportTreeJsonTrigger: (filename: string) => void
-  exportTsvTrigger: (filename: string) => void
-  exportInsertionsCsvTrigger: (filename: string) => void
-  exportErrorsCsvTrigger: (filename: string) => void
-  exportParams: ExportParams
-  canDownload: boolean
+export interface ExportParams {
+  filenameZip: string
+  filenameCsv: string
+  filenameTsv: string
+  filenameJson: string
+  filenameNdjson: string
+  filenameTree: string
+  filenameFasta: string
+  filenamePeptidesZip: string
+  filenameInsertionsCsv: string
+  filenameErrorsCsv: string
+  filenamePeptidesTemplate: string
 }
 
-const mapStateToProps = (state: State) => ({
-  exportParams: selectExportParams(state),
-  canDownload: selectCanDownload(state),
-})
-
-const mapDispatchToProps = {
-  exportAllTrigger: () => exportAll.trigger(),
-  exportCsvTrigger: () => exportCsvTrigger(),
-  exportFastaTrigger: () => exportFastaTrigger(),
-  exportJsonTrigger: () => exportJsonTrigger(),
-  exportPeptidesTrigger: () => exportPeptides.trigger(),
-  exportTreeJsonTrigger: () => exportTreeJsonTrigger(),
-  exportTsvTrigger: () => exportTsvTrigger(),
-  exportInsertionsCsvTrigger: () => exportInsertionsCsvTrigger(),
-  exportErrorsCsvTrigger: () => exportErrorsCsvTrigger(),
+export const DEFAULT_EXPORT_PARAMS: ExportParams = {
+  filenameZip: 'nextclade.zip',
+  filenameCsv: 'nextclade.csv',
+  filenameTsv: 'nextclade.tsv',
+  filenameJson: 'nextclade.json',
+  filenameNdjson: 'nextclade.ndjson',
+  filenameTree: 'nextclade.auspice.json',
+  filenameFasta: 'nextclade.aligned.fasta',
+  filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
+  filenameInsertionsCsv: 'nextclade.insertions.csv',
+  filenameErrorsCsv: 'nextclade.errors.csv',
+  filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 
-export function ExportDialogButtonDisconnected({
-  exportAllTrigger,
-  exportCsvTrigger,
-  exportFastaTrigger,
-  exportJsonTrigger,
-  exportPeptidesTrigger,
-  exportTreeJsonTrigger,
-  exportTsvTrigger,
-  exportInsertionsCsvTrigger,
-  exportErrorsCsvTrigger,
-  exportParams,
-  canDownload,
-}: ExportDialogButtonProps) {
+export function ExportDialogButton() {
   const { t } = useTranslationSafe()
+
   const [isOpen, setIsOpen] = useState<boolean>(false)
+  const toggleOpen = useCallback(() => setIsOpen((isOpen) => !isOpen), [])
+  const open = useCallback(() => setIsOpen(true), [])
+  const close = useCallback(() => setIsOpen(false), [])
 
-  function toggleOpen() {
-    setIsOpen(!isOpen)
-  }
+  const canDownload = useRecoilValue(canDownloadAtom)
 
-  function open() {
-    setIsOpen(true)
-  }
+  // TODO: We could probably use a map and then iterate over it, to reduce duplication
+  const exportZip = useExportZip()
+  const exportFasta = useExportFasta()
+  const exportCsv = useExportCsv()
+  const exportTsv = useExportTsv()
+  const exportJson = useExportJson()
+  const exportNdjson = useExportNdjson()
+  const exportPeptides = useExportPeptides()
+  const exportTree = useExportTree()
+  const exportInsertionsCsv = useExportInsertionsCsv()
+  const exportErrorsCsv = useExportErrorsCsv()
 
-  function close() {
-    setIsOpen(false)
-  }
+  const exportParams = useMemo(() => DEFAULT_EXPORT_PARAMS, [])
 
   return (
     <>
@@ -171,7 +170,18 @@ export function ExportDialogButtonDisconnected({
                       'Contains detailed results of the analysis, such as clades, mutations, QC metrics etc., in JSON format. Convenient for further automated processing.',
                     )}
                     HelpDownload={t('Download results of the analysis in JSON format.')}
-                    onDownload={exportJsonTrigger}
+                    onDownload={exportJson}
+                  />
+
+                  <ExportFileElement
+                    Icon={<FileIconNdjson />}
+                    filename={exportParams.filenameNdjson}
+                    HelpMain={t('Results of the analysis in NDJSON format (newline-delimited JSON).')}
+                    HelpDetails={t(
+                      'Contains detailed results of the analysis, such as clades, mutations, QC metrics etc., in NDJSON format. Convenient for further automated processing.',
+                    )}
+                    HelpDownload={t('Download results of the analysis in NDJSON format.')}
+                    onDownload={exportNdjson}
                   />
 
                   <ExportFileElement
@@ -182,7 +192,7 @@ export function ExportDialogButtonDisconnected({
                       'Contains summarized results of the analysis, such as clades, mutations, QC metrics etc., in tabular format. Convenient for further review and processing using spreadsheets or data-science tools.',
                     )}
                     HelpDownload={t('Download summarized results in CSV format')}
-                    onDownload={exportCsvTrigger}
+                    onDownload={exportCsv}
                   />
 
                   <ExportFileElement
@@ -193,12 +203,12 @@ export function ExportDialogButtonDisconnected({
                       'Contains summarized results of the analysis, such as clades, mutations, QC metrics etc in tabular format. Convenient for further review and processing using spreadsheets or data-science tools.',
                     )}
                     HelpDownload={t('Download summarized results in TSV format')}
-                    onDownload={exportTsvTrigger}
+                    onDownload={exportTsv}
                   />
 
                   <ExportFileElement
                     Icon={<FileIconJson />}
-                    filename={exportParams.filenameTreeJson}
+                    filename={exportParams.filenameTree}
                     HelpMain={t('Phylogenetic tree with sequenced placed onto it.')}
                     HelpDetails={
                       <>
@@ -211,7 +221,7 @@ export function ExportDialogButtonDisconnected({
                     HelpDownload={t(
                       'Download phylogenetic tree with sequenced placed onto it, in Auspice JSON v2 format.',
                     )}
-                    onDownload={exportTreeJsonTrigger}
+                    onDownload={exportTree}
                   />
 
                   <ExportFileElement
@@ -220,7 +230,7 @@ export function ExportDialogButtonDisconnected({
                     HelpMain={t('Aligned sequences in FASTA format.')}
                     HelpDetails={t('Contains aligned sequences in FASTA format.')}
                     HelpDownload={t('Download aligned sequences in FASTA format.')}
-                    onDownload={exportFastaTrigger}
+                    onDownload={exportFasta}
                   />
 
                   <ExportFileElement
@@ -233,7 +243,7 @@ export function ExportDialogButtonDisconnected({
                     HelpDownload={t(
                       'Download aligned peptides in FASTA format, one file per gene, all in a zip archive.',
                     )}
-                    onDownload={exportPeptidesTrigger}
+                    onDownload={exportPeptides}
                   />
 
                   <ExportFileElement
@@ -242,7 +252,7 @@ export function ExportDialogButtonDisconnected({
                     HelpMain={t('Insertions in CSV format.')}
                     HelpDetails={t('Contains insertions stripped from aligned sequences.')}
                     HelpDownload={t('Download insertions in CSV format')}
-                    onDownload={exportInsertionsCsvTrigger}
+                    onDownload={exportInsertionsCsv}
                   />
 
                   <ExportFileElement
@@ -253,7 +263,7 @@ export function ExportDialogButtonDisconnected({
                       'Contains a list of errors, a list of warnings and a list of genes that failed processing, per sequence, in CSV format.',
                     )}
                     HelpDownload={t('Download warnings, and failed genes in CSV format')}
-                    onDownload={exportErrorsCsvTrigger}
+                    onDownload={exportErrorsCsv}
                   />
 
                   <ExportFileElement
@@ -262,7 +272,7 @@ export function ExportDialogButtonDisconnected({
                     HelpMain={t('All files in a zip archive.')}
                     HelpDetails={t('Contains all of the above files in a single zip file.')}
                     HelpDownload={t('Download all in zip archive')}
-                    onDownload={exportAllTrigger}
+                    onDownload={exportZip}
                   />
                 </ListGroup>
               </Card>
@@ -278,5 +288,3 @@ export function ExportDialogButtonDisconnected({
     </>
   )
 }
-
-export const ExportDialogButton = connect(mapStateToProps, mapDispatchToProps)(ExportDialogButtonDisconnected)

@@ -1,14 +1,15 @@
 import React from 'react'
-
+import { useRecoilValue } from 'recoil'
 import { get } from 'lodash'
 import styled, { useTheme } from 'styled-components'
 import { shade } from 'polished'
 
 import { AMINOACID_GAP } from 'src/constants'
-import { Aminoacid, AminoacidDeletion, AminoacidSubstitution, Gene, NucleotideSubstitution } from 'src/algorithms/types'
+import type { Aminoacid, AminoacidDeletion, AminoacidSubstitution, NucleotideSubstitution } from 'src/algorithms/types'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getAminoacidColor } from 'src/helpers/getAminoacidColor'
 import { getTextColor } from 'src/helpers/getTextColor'
+import { geneMapAtom } from 'src/state/results.state'
 
 export const MutationBadgeBox = styled.span`
   display: inline-block;
@@ -94,11 +95,12 @@ export function NucleotideMutationBadge({ mutation }: NucleotideMutationBadgePro
 
 export interface AminoacidMutationBadgeProps {
   mutation: AminoacidSubstitution | AminoacidDeletion
-  geneMap: Gene[]
 }
 
-export function AminoacidMutationBadge({ mutation, geneMap }: AminoacidMutationBadgeProps) {
+export function AminoacidMutationBadge({ mutation }: AminoacidMutationBadgeProps) {
   const theme = useTheme()
+
+  const geneMap = useRecoilValue(geneMapAtom)
 
   const { gene: geneName, refAA, codon } = mutation
   const queryAA = get(mutation, 'queryAA', AMINOACID_GAP) as Aminoacid

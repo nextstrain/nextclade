@@ -12,6 +12,10 @@ pub fn date_from_iso(iso: &str) -> Result<DateTime<Utc>, Report> {
   Ok(utc)
 }
 
+pub fn date_to_iso(datetime: &DateTime<Utc>) -> String {
+  datetime.to_rfc3339()
+}
+
 pub fn date_to_timestamp(datetime: &DateTime<Utc>) -> i64 {
   datetime.timestamp() * 1000
 }
@@ -28,6 +32,10 @@ pub fn timestamp_from_iso(iso: &str) -> Result<i64, Report> {
 
 pub fn timestamp_now() -> i64 {
   date_to_timestamp(&date_now())
+}
+
+pub fn date_iso_now() -> String {
+  date_to_iso(&date_now())
 }
 
 pub fn date_format(datetime: &DateTime<Utc>) -> String {

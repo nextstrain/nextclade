@@ -1,18 +1,15 @@
-import { AuspiceMetadata } from 'auspice'
 import React, { useMemo } from 'react'
-
 import styled from 'styled-components'
 import { I18nextProvider } from 'react-i18next'
 import { connect } from 'react-redux'
-
+import { AuspiceMetadata } from 'auspice'
 import FiltersSummary from 'auspice/src/components/info/filtersSummary'
 
 import type { State } from 'src/state/reducer'
 import i18nAuspice from 'src/i18n/i18n.auspice'
 import { LayoutResults } from 'src/components/Layout/LayoutResults'
-import { ButtonBack } from 'src/components/Tree/ButtonBack'
 import { LogoGisaid as LogoGisaidBase } from 'src/components/Common/LogoGisaid'
-
+import { ButtonBack } from 'src/components/Results/ButtonBack'
 import { Tree } from './Tree'
 import { Sidebar } from './Sidebar'
 

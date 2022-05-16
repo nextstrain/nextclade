@@ -3,7 +3,7 @@ import { areEqual, ListChildComponentProps } from 'react-window'
 import { useRecoilValue } from 'recoil'
 
 import { COLUMN_WIDTHS } from 'src/components/Results/ResultsTableStyle'
-import { analysisResultsAtom } from 'src/state/results.state'
+import { analysisResultAtom } from 'src/state/results.state'
 import { ResultsTableRowError } from './ResultsTableRowError'
 import { ResultsTableRowPending } from './ResultsTableRowPending'
 import { ResultsTableRowResult } from './ResultsTableRowResult'
@@ -28,7 +28,7 @@ function ResultsTableRowUnmemoed({ index, data, ...restProps }: RowProps) {
     [data, index],
   )
 
-  const { result, error } = useRecoilValue(analysisResultsAtom(seqName))
+  const { result, error } = useRecoilValue(analysisResultAtom(seqName))
 
   if (error) {
     return <ResultsTableRowError {...restProps} seqName={seqName} columnWidthsPx={columnWidthsPx} />

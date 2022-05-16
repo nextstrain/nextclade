@@ -47,34 +47,28 @@ export const DEFAULT_LOCALE_KEY: LocaleKey = 'en'
 export const resources = mapValues(translations, (value) => ({ translation: value }))
 
 export interface Locale {
+  readonly key: LocaleKey
   readonly full: string
   readonly name: string
   readonly Flag: ElementType
 }
 
-export interface LocaleWithKey extends Locale {
-  key: LocaleKey
-}
-
 export const locales: Record<LocaleKey, Locale> = {
-  en: { full: 'en-US', name: languages.en.native, Flag: GB },
-  ar: { full: 'ar-SA', name: languages.ar.native, Flag: SA },
-  de: { full: 'de-DE', name: languages.de.native, Flag: DE },
-  es: { full: 'es-ES', name: languages.es.native, Flag: ES },
-  fr: { full: 'fr-FR', name: languages.fr.native, Flag: FR },
-  it: { full: 'it-IT', name: languages.it.native, Flag: IT },
-  ko: { full: 'ko-KR', name: languages.ko.native, Flag: KR },
-  pt: { full: 'pt-PT', name: languages.pt.native, Flag: PT },
-  ru: { full: 'ru-RU', name: languages.ru.native, Flag: RU },
-  zh: { full: 'zh-CN', name: languages.zh.native, Flag: CN },
+  en: { key: 'en', full: 'en-US', name: languages.en.native, Flag: GB },
+  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.native, Flag: SA },
+  de: { key: 'de', full: 'de-DE', name: languages.de.native, Flag: DE },
+  es: { key: 'es', full: 'es-ES', name: languages.es.native, Flag: ES },
+  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.native, Flag: FR },
+  it: { key: 'it', full: 'it-IT', name: languages.it.native, Flag: IT },
+  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.native, Flag: KR },
+  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.native, Flag: PT },
+  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.native, Flag: RU },
+  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.native, Flag: CN },
 } as const
 
 export const localeKeys = Object.keys(locales)
 
-export const localesArray: LocaleWithKey[] = Object.entries(locales).map(([key, value]) => ({
-  ...value,
-  key: key as LocaleKey,
-}))
+export const localesArray: Locale[] = Object.values(locales)
 
 export interface I18NInitParams {
   localeKey: LocaleKey

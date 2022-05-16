@@ -306,7 +306,7 @@ if ! docker inspect --format '{{.Id}}' "${DOCKER_REPO}:${DOCKER_TARGET}-${DOCKER
     --build-arg="GROUP=user" \
     ${ADDITIONAL_DOCKER_BUILD_ARGS} \
     . \
-    ./dev/null
+    >/dev/null
 
   if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
     docker push "${DOCKER_REPO}:${DOCKER_TARGET}"

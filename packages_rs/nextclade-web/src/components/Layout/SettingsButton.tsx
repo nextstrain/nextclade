@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react'
 
-import { connect } from 'react-redux'
 import { debounce } from 'lodash'
 
 import {
@@ -18,16 +17,15 @@ import {
   Row,
 } from 'reactstrap'
 import classNames from 'classnames'
+import { useRecoilState, useResetRecoilState } from 'recoil'
+import { changelogShouldShowOnUpdatesAtom, isSettingsDialogOpenAtom, numThreadsAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 import { IoMdSettings } from 'react-icons/io'
 import { MdRefresh } from 'react-icons/md'
 import { useFormikContext, Formik, Form, FormikHelpers, FormikErrors } from 'formik'
 
-import type { State } from 'src/state/reducer'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { Toggle } from 'src/components/Common/Toggle'
-import { resetNumThreads, setNumThreads, setShowWhatsnewOnUpdate } from 'src/state/settings/settings.actions'
-import { setIsSettingsDialogOpen } from 'src/state/ui/ui.actions'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { Input } from 'src/components/Common/NumericField'
 import { MEMORY_BYTES_PER_THREAD_MINIMUM, useGuessNumThreads } from 'src/helpers/getNumThreads'
@@ -96,47 +94,20 @@ export interface SettingsFormValues {
   numThreads: number
 }
 
-export interface SettingsButtonProps {
-  isSettingsDialogOpen: boolean
-  showWhatsnewOnUpdate: boolean
-  numThreads: number
-  setIsSettingsDialogOpen(isOpen: boolean): void
-  setShowWhatsnewOnUpdate(setShowWhatsnewOnUpdate: boolean): void
-  setNumThreads(setNumThreads: number): void
-  resetNumThreads(): void
-}
-
-const mapStateToProps = (state: State) => ({
-  isSettingsDialogOpen: state.ui.isSettingsDialogOpen,
-  showWhatsnewOnUpdate: state.settings.showWhatsnewOnUpdate,
-  numThreads: state.settings.numThreadsV2,
-})
-
-const mapDispatchToProps = {
-  setShowWhatsnewOnUpdate,
-  setNumThreads,
-  setIsSettingsDialogOpen,
-  resetNumThreads: () => resetNumThreads(),
-}
-
-export const SettingsButton = connect(mapStateToProps, mapDispatchToProps)(SettingsButtonDisconnected)
-
-export function SettingsButtonDisconnected({
-  isSettingsDialogOpen,
-  showWhatsnewOnUpdate,
-  numThreads,
-  setIsSettingsDialogOpen,
-  setShowWhatsnewOnUpdate,
-  setNumThreads,
-  resetNumThreads,
-}: SettingsButtonProps) {
+export function SettingsButton() {
   const { t } = useTranslationSafe()
+
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useRecoilState(isSettingsDialogOpenAtom)
+  const [showWhatsnewOnUpdate, setShowWhatsnewOnUpdate] = useRecoilState(changelogShouldShowOnUpdatesAtom)
+  const [numThreads, setNumThreads] = useRecoilState(numThreadsAtom)
+  const resetNumThreads = useResetRecoilState(numThreadsAtom)
+
   const guess = useGuessNumThreads(numThreads)
 
-  const toggleOpen = useCallback(() => setIsSettingsDialogOpen(!isSettingsDialogOpen), [
-    setIsSettingsDialogOpen,
-    isSettingsDialogOpen,
-  ])
+  const toggleOpen = useCallback(
+    () => setIsSettingsDialogOpen(!isSettingsDialogOpen),
+    [setIsSettingsDialogOpen, isSettingsDialogOpen],
+  )
 
   const handleValidate = useCallback((values: SettingsFormValues): FormikErrors<SettingsFormValues> => {
     const errors: FormikErrors<SettingsFormValues> = {}
@@ -160,8 +131,19 @@ export function SettingsButtonDisconnected({
     [setNumThreadsDebounced],
   )
 
-  const text = t('Settings')
-  const closeText = t('Close this window')
+  const text = useMemo(() => t('Settings'), [t])
+  const closeText = useMemo(() => t('Close this window'), [t])
+
+  const initialValues = useMemo(() => ({ numThreads }), [numThreads])
+  const onReset = useCallback(() => ({ numThreads }), [numThreads])
+
+  const memoryAvailable = useMemo(() => {
+    return guess.memoryAvailable ? prettyBytes.format(guess.memoryAvailable) : t('unsupported')
+  }, [guess.memoryAvailable, t])
+
+  const memoryAvailablePerThread = useMemo(() => {
+    return guess.memoryAvailable ? prettyBytes.format(guess.memoryAvailable / numThreads) : t('unsupported')
+  }, [guess.memoryAvailable, numThreads, t])
 
   return (
     <>
@@ -180,10 +162,10 @@ export function SettingsButtonDisconnected({
             <Row>
               <Col>
                 <Formik
-                  initialValues={{ numThreads }}
+                  initialValues={initialValues}
                   validate={handleValidate}
                   onSubmit={handleSubmit}
-                  onReset={() => ({ numThreads })}
+                  onReset={onReset}
                 >
                   {({ values, errors, touched, handleChange, handleBlur, resetForm }) => (
                     <Form>
@@ -209,6 +191,7 @@ export function SettingsButtonDisconnected({
                                 className="my-0"
                                 type="button"
                                 title={t('Reset to default')}
+                                // eslint-disable-next-line react-perf/jsx-no-new-function-as-prop
                                 onClick={() => {
                                   resetNumThreads()
                                   resetForm()
@@ -227,20 +210,12 @@ export function SettingsButtonDisconnected({
                                 <tbody>
                                   <tr>
                                     <td>{t('Memory available*')}</td>
-                                    <td>
-                                      {guess.memoryAvailable
-                                        ? prettyBytes.format(guess.memoryAvailable)
-                                        : t('unsupported')}
-                                    </td>
+                                    <td>{memoryAvailable}</td>
                                   </tr>
 
                                   <tr>
                                     <td>{t('Memory per CPU thread')}</td>
-                                    <td>
-                                      {guess.memoryAvailable
-                                        ? prettyBytes.format(guess.memoryAvailable / numThreads)
-                                        : t('unsupported')}
-                                    </td>
+                                    <td>{memoryAvailablePerThread}</td>
                                   </tr>
 
                                   <tr>

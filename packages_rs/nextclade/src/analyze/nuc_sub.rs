@@ -85,6 +85,7 @@ impl PartialOrd for NucSub {
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NucSubLabeled {
+  #[serde(rename = "substitution")]
   pub sub: NucSub,
   pub labels: Vec<String>,
 }

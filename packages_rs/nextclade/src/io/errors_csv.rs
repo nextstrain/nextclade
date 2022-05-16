@@ -1,5 +1,5 @@
 use crate::gene::gene_map::GeneMap;
-use crate::io::csv::CsvStructWriter;
+use crate::io::csv::CsvStructFileWriter;
 use crate::io::nextclade_csv::{format_aa_warnings, format_failed_genes};
 use crate::translate::translate_genes::Translation;
 use crate::types::outputs::PeptideWarning;
@@ -21,14 +21,14 @@ pub struct ErrorCsvEntry<'a, 'b> {
 /// Writes errors.csv file
 pub struct ErrorsCsvWriter<'a> {
   gene_map: &'a GeneMap,
-  writer: CsvStructWriter,
+  writer: CsvStructFileWriter,
 }
 
 impl<'a> ErrorsCsvWriter<'a> {
   pub fn new(gene_map: &'a GeneMap, filepath: impl AsRef<Path>) -> Result<Self, Report> {
     Ok(Self {
       gene_map,
-      writer: CsvStructWriter::new(filepath.as_ref(), b',')?,
+      writer: CsvStructFileWriter::new(filepath.as_ref(), b',')?,
     })
   }
 

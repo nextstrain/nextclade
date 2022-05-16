@@ -59,7 +59,7 @@ export function selectStatus(
   analysisResultStatuses: AlgorithmSequenceStatus[],
   numThreads: number,
 ) {
-  const hasFailures = analysisResultStatuses.some((status) => status === AlgorithmSequenceStatus.failed)
+  const hasFailures = analysisResultStatuses.includes(AlgorithmSequenceStatus.failed)
 
   const idlingPercent = 0
   const loadingDataPercent = 5

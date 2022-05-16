@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { sanitizeError } from 'src/helpers/sanitizeError'
 
 export class HttpRequestError extends Error {
   public readonly request: AxiosRequestConfig
@@ -15,9 +16,8 @@ export async function axiosFetch<TData = unknown>(url: string, options?: AxiosRe
   let res
   try {
     res = await axios.get(url, options)
-  } catch (error_) {
-    const error = error_ as AxiosError
-    throw new HttpRequestError(error)
+  } catch (error) {
+    throw axios.isAxiosError(error) ? new HttpRequestError(error) : sanitizeError(error)
   }
 
   if (!res?.data) {

@@ -4,6 +4,7 @@ use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
+use nextclade::gene::gene::Gene;
 use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gff3::read_gff3_str;
@@ -32,6 +33,9 @@ extern "C" {
 
   #[wasm_bindgen(typescript_type = "AnalysisInputPojo")]
   pub type AnalysisInputPojo;
+
+  #[wasm_bindgen(typescript_type = "AnalysisInitialDataPojo")]
+  pub type AnalysisInitialDataPojo;
 
   #[wasm_bindgen(typescript_type = "AnalysisOutputPojo")]
   pub type AnalysisOutputPojo;
@@ -83,6 +87,22 @@ pub struct AnalysisInput {
 impl AnalysisInput {
   pub fn from_js(input: &AnalysisInputPojo) -> Result<AnalysisInput, JsError> {
     deserialize_js_value::<AnalysisInput>(input)
+  }
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Debug)]
+#[serde(rename = "camelCase")]
+pub struct AnalysisInitialData {
+  gene_map: String,
+  genome_size: usize,
+  clade_node_attr_key_descs: String,
+}
+
+#[wasm_bindgen]
+impl AnalysisInitialData {
+  pub fn to_js(&self) -> Result<AnalysisInitialDataPojo, JsError> {
+    serialize_js_value::<AnalysisInitialData, AnalysisInitialDataPojo>(self)
   }
 }
 
@@ -182,8 +202,13 @@ impl Nextclade {
     })
   }
 
-  pub fn get_clade_node_attr_key_descs(&self) -> Vec<CladeNodeAttrKeyDesc> {
-    self.clade_node_attr_key_descs.clone()
+  #[inline]
+  pub fn get_initial_data(&self) -> Result<AnalysisInitialData, Report> {
+    Ok(AnalysisInitialData {
+      gene_map: json_stringify::<Vec<Gene>>(&self.gene_map.values().cloned().collect())?,
+      genome_size: self.ref_seq.len(),
+      clade_node_attr_key_descs: json_stringify(&self.clade_node_attr_key_descs)?,
+    })
   }
 
   pub fn run(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, Report> {
