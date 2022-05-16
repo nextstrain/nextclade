@@ -55,17 +55,11 @@ pub fn score_matrix<T: Letter<T>>(
   // Initialize first row
   for qpos in (stripes[0].begin + 1)..stripes[0].end {
     paths[(0, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
-    if params.left_terminal_gaps_free {
-      // Left terminal qry insertion  is free
-      scores[(0, qpos)] = 0;
+    // Left terminal qry insertion not free
+    if qpos == 1 {
+      scores[(0, 1)] = -gap_open_close[0];
     } else {
-      // Left terminal qry insertion is not free
-      // TODO: Consider whether qry insertion should ever be free, not only qry deletion!
-      if qpos == 1 {
-        scores[(0, 1)] = -gap_open_close[0];
-      } else {
-        scores[(0, qpos)] = scores[(0, qpos - 1)] - params.penalty_gap_extend;
-      }
+      scores[(0, qpos)] = scores[(0, qpos - 1)] - params.penalty_gap_extend;
     }
   }
   let mut qry_gaps = vec![NO_ALIGN; n_cols];
@@ -120,16 +114,9 @@ pub fn score_matrix<T: Letter<T>>(
         // if qpos == stripes.begin: ref gap not allowed
         // thus path skipped
         if qpos > stripes[ri].begin {
-          if ri != ref_len || !params.right_terminal_gaps_free {
-            //normal case, not at end of ref sequence
-            r_gap_extend = ref_gaps - params.penalty_gap_extend;
-            r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
-          } else {
-            // at end of ref sequence if right terminal gaps are free
-            // TODO: Consider whether qry insertion should ever be free, not only qry deletion!
-            r_gap_extend = ref_gaps;
-            r_gap_open = scores[(ri, qpos - 1)];
-          }
+          // Qry insertion at right end is never free
+          r_gap_extend = ref_gaps - params.penalty_gap_extend;
+          r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
           if r_gap_extend >= r_gap_open && qpos > stripes[ri].begin + 1 {
             // extension better than opening (and ^ extension allowed positionally)
             tmp_score = r_gap_extend;
