@@ -68,8 +68,8 @@ pub fn align_aa(
 
   let aa_params = AlignPairwiseParams {
     // Set to false for internal genes
-    left_terminal_gaps_free: true,
-    right_terminal_gaps_free: true,
+    left_terminal_gaps_free: false,
+    right_terminal_gaps_free: false,
     ..*params
   };
 

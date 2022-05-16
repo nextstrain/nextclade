@@ -56,10 +56,11 @@ pub fn score_matrix<T: Letter<T>>(
   for qpos in (stripes[0].begin + 1)..stripes[0].end {
     paths[(0, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
     if params.left_terminal_gaps_free {
-      // Left terminal gap is free
+      // Left terminal qry insertion  is free
       scores[(0, qpos)] = 0;
     } else {
-      // Left terminal gap is not free
+      // Left terminal qry insertion is not free
+      // TODO: Consider whether qry insertion should ever be free, not only qry deletion!
       if qpos == 1 {
         scores[(0, 1)] = -gap_open_close[0];
       } else {
@@ -90,10 +91,10 @@ pub fn score_matrix<T: Letter<T>>(
         tmp_path = QRY_GAP_EXTEND;
         origin = QRY_GAP_MATRIX;
         if params.left_terminal_gaps_free {
-          // Left terminal gap is free
+          // Left terminal qry gap is free
           score = 0;
         } else {
-          // Left terminal gap is not free
+          // Left terminal qry gap is not free
           if ri == 1 {
             score = -gap_open_close[0];
           } else {
@@ -119,12 +120,13 @@ pub fn score_matrix<T: Letter<T>>(
         // if qpos == stripes.begin: ref gap not allowed
         // thus path skipped
         if qpos > stripes[ri].begin {
-          if ri != ref_len {
+          if ri != ref_len || !params.right_terminal_gaps_free {
             //normal case, not at end of ref sequence
             r_gap_extend = ref_gaps - params.penalty_gap_extend;
             r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
           } else {
-            // at end of ref sequence, gaps are free
+            // at end of ref sequence if right terminal gaps are free
+            // TODO: Consider whether qry insertion should ever be free, not only qry deletion!
             r_gap_extend = ref_gaps;
             r_gap_open = scores[(ri, qpos - 1)];
           }
@@ -147,12 +149,12 @@ pub fn score_matrix<T: Letter<T>>(
         // check the scores of a query gap
         if qpos < stripes[ri - 1].end {
           // need stripe above to move from, otherwise no scores[(ri-1, qpos)] not existing
-          if qpos != query_size {
+          if qpos != query_size || !params.right_terminal_gaps_free {
             //normal case, not at end of query sequence
             q_gap_extend = qry_gaps[qpos] - params.penalty_gap_extend;
             q_gap_open = scores[(ri - 1, qpos)] - gap_open_close[ri - 1];
           } else {
-            //at end of query sequence make qry gap free
+            //end of query sequence make right terminal gap free
             q_gap_extend = qry_gaps[qpos];
             q_gap_open = scores[(ri - 1, qpos)]
           }
