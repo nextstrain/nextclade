@@ -3,7 +3,7 @@ import { useRecoilValue } from 'recoil'
 import { isEmpty, isNil } from 'lodash'
 import styled from 'styled-components'
 
-import { analysisResultsAtom } from 'src/state/results.state'
+import { analysisResultAtom } from 'src/state/results.state'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ColumnNameTooltip } from 'src/components/Results/ColumnNameTooltip'
@@ -23,7 +23,7 @@ export function ColumnName({ seqName }: ColumnNameProps) {
   const isDone = false
 
   const { t } = useTranslationSafe()
-  const { result, error } = useRecoilValue(analysisResultsAtom(seqName))
+  const { result, error } = useRecoilValue(analysisResultAtom(seqName))
   const [showTooltip, setShowTooltip] = useState(false)
   const id = useMemo(() => getSafeId('sequence-label', { seqName }), [seqName])
 

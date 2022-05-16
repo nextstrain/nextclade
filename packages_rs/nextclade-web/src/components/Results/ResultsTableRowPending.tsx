@@ -10,7 +10,7 @@ import {
   TableRowPending,
 } from 'src/components/Results/ResultsTableStyle'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { analysisResultsAtom } from 'src/state/results.state'
+import { analysisResultAtom } from 'src/state/results.state'
 
 export interface ResultsTableRowPendingProps {
   seqName: string
@@ -20,7 +20,7 @@ export interface ResultsTableRowPendingProps {
 export function ResultsTableRowPending({ seqName, columnWidthsPx, ...restProps }: ResultsTableRowPendingProps) {
   const { t } = useTranslationSafe()
   const text = useMemo(() => t('Analyzing...'), [t])
-  const { index } = useRecoilValue(analysisResultsAtom(seqName))
+  const { index } = useRecoilValue(analysisResultAtom(seqName))
 
   return (
     <TableRowPending {...restProps} even={index % 2 === 0}>

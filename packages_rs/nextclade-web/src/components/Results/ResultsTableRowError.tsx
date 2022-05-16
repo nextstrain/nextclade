@@ -9,7 +9,7 @@ import {
   TableCellText,
   TableRowError,
 } from 'src/components/Results/ResultsTableStyle'
-import { analysisResultsAtom } from 'src/state/results.state'
+import { analysisResultAtom } from 'src/state/results.state'
 
 export interface ResultsTableRowErrorProps {
   seqName: string
@@ -17,7 +17,7 @@ export interface ResultsTableRowErrorProps {
 }
 
 export function ResultsTableRowError({ seqName, columnWidthsPx, ...restProps }: ResultsTableRowErrorProps) {
-  const { index, error } = useRecoilValue(analysisResultsAtom(seqName))
+  const { index, error } = useRecoilValue(analysisResultAtom(seqName))
 
   return (
     <TableRowError {...restProps} even={index % 2 === 0}>

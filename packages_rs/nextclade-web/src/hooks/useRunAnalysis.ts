@@ -11,6 +11,7 @@ import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
 import { datasetCurrentAtom } from 'src/state/dataset.state'
 import { globalErrorAtom } from 'src/state/error.state'
 import {
+  analysisResultAtom,
   analysisResultsAtom,
   cladeNodeAttrDescsAtom,
   geneMapAtom,
@@ -35,10 +36,12 @@ export function useRunAnalysis() {
   const dispatch = useDispatch()
 
   return useRecoilCallback(
-    ({ set, snapshot: { getPromise } }) =>
+    ({ set, reset, snapshot: { getPromise } }) =>
       () => {
         set(analysisStatusGlobalAtom, AlgorithmGlobalStatus.loadingData)
         set(showNewRunPopupAtom, false)
+
+        reset(analysisResultsAtom)
 
         const numThreads = getPromise(numThreadsAtom)
         const datasetCurrent = getPromise(datasetCurrentAtom)
@@ -68,7 +71,7 @@ export function useRunAnalysis() {
             // set(analysisResultsAtom(record.seqName), { index: record.index, seqName: record.seqName })
           },
           onAnalysisResult(result) {
-            set(analysisResultsAtom(result.seqName), result)
+            set(analysisResultAtom(result.seqName), result)
           },
           onError(error) {
             set(globalErrorAtom, error)

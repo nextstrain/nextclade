@@ -25,7 +25,7 @@ import {
 import { PeptideView } from 'src/components/SequenceView/PeptideView'
 import { SequenceView } from 'src/components/SequenceView/SequenceView'
 import { GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
-import { analysisResultsAtom } from 'src/state/results.state'
+import { analysisResultAtom } from 'src/state/results.state'
 
 export interface ResultsTableRowResultProps {
   seqName: string
@@ -53,7 +53,7 @@ export function ResultsTableRowResult({
   dynamicColumnWidthPx,
   ...restProps
 }: ResultsTableRowResultProps) {
-  const { index, result } = useRecoilValue(analysisResultsAtom(seqName))
+  const { index, result } = useRecoilValue(analysisResultAtom(seqName))
 
   if (!result) {
     return null
