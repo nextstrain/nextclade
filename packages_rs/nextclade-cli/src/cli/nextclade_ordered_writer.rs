@@ -1,18 +1,19 @@
 use crate::cli::nextclade_loop::NextcladeRecord;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use log::warn;
 use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::csv::CsvVecFileWriter;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::insertions_csv::InsertionsCsvWriter;
-use nextclade::io::ndjson::NdjsonWriter;
-use nextclade::io::nextclade_csv::NextcladeResultsCsvWriter;
+use nextclade::io::ndjson::NdjsonFileWriter;
+use nextclade::io::nextclade_csv::NextcladeResultsCsvFileWriter;
 use nextclade::io::nuc::from_nuc_seq;
 use nextclade::io::results_json::ResultsJsonWriter;
 use nextclade::translate::translate_genes::TranslationMap;
 use nextclade::tree::tree::CladeNodeAttrKeyDesc;
 use nextclade::utils::error::report_to_string;
-use log::warn;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -21,9 +22,9 @@ pub struct NextcladeOrderedWriter<'a> {
   fasta_writer: FastaWriter,
   fasta_peptide_writer: FastaPeptideWriter,
   output_json_writer: ResultsJsonWriter,
-  output_ndjson_writer: NdjsonWriter,
-  output_csv_writer: NextcladeResultsCsvWriter,
-  output_tsv_writer: NextcladeResultsCsvWriter,
+  output_ndjson_writer: NdjsonFileWriter,
+  output_csv_writer: NextcladeResultsCsvFileWriter,
+  output_tsv_writer: NextcladeResultsCsvFileWriter,
   insertions_csv_writer: InsertionsCsvWriter,
   errors_csv_writer: ErrorsCsvWriter<'a>,
   expected_index: usize,
@@ -49,14 +50,15 @@ impl<'a> NextcladeOrderedWriter<'a> {
     let fasta_writer = FastaWriter::from_path(&output_fasta)?;
     let fasta_peptide_writer = FastaPeptideWriter::new(gene_map, &output_dir, &output_basename)?;
     let output_json_writer = ResultsJsonWriter::new(&output_json, clade_node_attr_key_descs)?;
-    let output_ndjson_writer = NdjsonWriter::new(&output_ndjson)?;
+    let output_ndjson_writer = NdjsonFileWriter::new(&output_ndjson)?;
 
     let clade_node_attr_keys = clade_node_attr_key_descs
       .iter()
       .map(|desc| desc.name.clone())
       .collect_vec();
-    let output_csv_writer = NextcladeResultsCsvWriter::new(&output_csv, b';', &clade_node_attr_keys)?;
-    let output_tsv_writer = NextcladeResultsCsvWriter::new(&output_tsv, b'\t', &clade_node_attr_keys)?;
+
+    let output_csv_writer = NextcladeResultsCsvFileWriter::new(&output_csv, b';', &clade_node_attr_keys)?;
+    let output_tsv_writer = NextcladeResultsCsvFileWriter::new(&output_tsv, b'\t', &clade_node_attr_keys)?;
 
     let insertions_csv_writer = InsertionsCsvWriter::new(&output_insertions)?;
     let errors_csv_writer = ErrorsCsvWriter::new(gene_map, &output_errors)?;
@@ -97,9 +99,9 @@ impl<'a> NextcladeOrderedWriter<'a> {
       Ok((qry_seq_stripped, translations, nextclade_outputs)) => {
         self.fasta_writer.write(&seq_name, &from_nuc_seq(&qry_seq_stripped))?;
 
-        self.output_csv_writer.write(&translations, &nextclade_outputs)?;
+        self.output_csv_writer.write(&nextclade_outputs)?;
 
-        self.output_tsv_writer.write(&translations, &nextclade_outputs)?;
+        self.output_tsv_writer.write(&nextclade_outputs)?;
 
         self.output_ndjson_writer.write(&nextclade_outputs)?;
 

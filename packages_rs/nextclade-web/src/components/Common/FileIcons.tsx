@@ -18,6 +18,7 @@ export const DEFAULT_ICON_COLORS = {
   csv: '#55aa55',
   tsv: '#7777cc',
   json: '#bb7e38',
+  ndjson: '#bb5340',
   gff: '#6b29bb',
   zip: '#91640f',
 } as const
@@ -98,6 +99,15 @@ export const FileIconJson = ({ size }: FileIconProps) => (
     extension={'json'}
     labelColor={DEFAULT_ICON_COLORS.json}
     glyphColor={DEFAULT_ICON_COLORS.json}
+  />
+)
+
+export const FileIconNdjson = ({ size }: FileIconProps) => (
+  <FileIconBase
+    size={size}
+    extension={'ndjson'}
+    labelColor={DEFAULT_ICON_COLORS.ndjson}
+    glyphColor={DEFAULT_ICON_COLORS.ndjson}
   />
 )
 
