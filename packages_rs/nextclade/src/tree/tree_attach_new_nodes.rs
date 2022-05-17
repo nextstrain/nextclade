@@ -52,6 +52,9 @@ fn add_aux_node(node: &mut AuspiceTreeNode) {
 
   let mut aux_node = node.clone();
   aux_node.branch_attrs.mutations.clear();
+  // Remove other branch attrs like labels to prevent duplication
+  aux_node.branch_attrs.other = serde_json::Value::default();
+  node.children.push(aux_node);
 
   node.name = format!("{}_parent", node.name);
 }
