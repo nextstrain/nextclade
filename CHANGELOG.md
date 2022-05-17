@@ -1,3 +1,22 @@
+## Nextclade 2.0.0
+
+ - Nextclade core algorithms and command-line interface was reimplemented in Rust (replacing C++). 
+
+   Rust is a modern, high performance programming language that is more pleasant to read and write, while produces binaries comparable performance with C++ in most cases. It should provide serious productivity boost for the dev team.
+
+   Also, it is now much simpler to contribute to Nextclade. If you wanted to contribute, or to simply review and understand the codebase, but was scared off by the complexity of C++, then give it another try - Rust version is much more enjoyable! Check our [developer guide](TODO) for getting started. We are always open for contributions, review and ideas!
+
+
+ - Alignment algorithm was rewritten
+
+   - Fixed terminal misalignment bug due to too narrow terminal bands
+   - Previously unalignable sequences align due to more robust seed matching
+   - Reduced number of terminal nucleotide query insertions, because now penalized (due to different boundary conditions, can revert to previous behaviour if wanted)
+   - AA terminal gaps no longer free: fixes problem at at N gene start and also has good side effect of not deleting stops and mutating previous AA but placing deletions 1 before (more parsimonious)
+
+ - Fixed a bug where 3' terminal insertions were not properly detected
+
+
 ## Nextclade Web 1.14.1
 
 ### [Feature] Updated clade schema
