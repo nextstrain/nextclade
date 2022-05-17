@@ -163,124 +163,104 @@ pub fn create_stripes(
     seed_matches = seed_matches[0..(seed_matches.len() - 1)].to_vec();
   }
 
-  let mut stripes = add_start_stripe(
+  // Vec shifts contains offsets of each seed match
+  let mut shifts = vec![0; seed_matches.len() + 4];
+
+  for i in 0..seed_matches.len() {
+    let shift = seed_matches[i].qry_pos as i32 - seed_matches[i].ref_pos as i32;
+    shifts[i + 2] = shift;
+  }
+
+  // Pad shifts at terminals for robust width determination
+  shifts[0] = shifts[2];
+  shifts[1] = shifts[2];
+  let shifts_len = shifts.len();
+  shifts[shifts_len - 2] = shifts[shifts_len - 3];
+  shifts[shifts_len - 1] = shifts[shifts_len - 3];
+
+  let mut robust_shifts = Vec::with_capacity(seed_matches.len() + 1);
+
+  // For each stripe segment, consider seed offsets of previous and following segment
+  for slice in shifts.windows(4) {
+    let min = slice.iter().min().unwrap();
+    let max = slice.iter().max().unwrap();
+    robust_shifts.push((min, max));
+  }
+
+  let mut robust_stripes = Vec::with_capacity(robust_shifts.len());
+
+  // Add start stripes
+  robust_stripes = add_robust_stripes(
+    robust_stripes,
+    0,
     seed_matches[0].ref_pos as i32,
-    seed_matches[0].qry_pos as i32,
     qry_len,
+    robust_shifts[0],
     terminal_bandwidth,
   );
 
-  for i in 1..seed_matches.len() {
-    stripes = add_internal_stripes(
-      stripes,
+  // Add internal stripes
+  for i in 1..robust_shifts.len() - 1 {
+    robust_stripes = add_robust_stripes(
+      robust_stripes,
       seed_matches[i - 1].ref_pos as i32,
       seed_matches[i].ref_pos as i32,
-      seed_matches[i - 1].qry_pos as i32,
-      seed_matches[i].qry_pos as i32,
       qry_len,
+      robust_shifts[i],
       excess_bandwidth,
     );
   }
-  stripes = add_end_stripe(
-    stripes,
-    seed_matches[seed_matches.len() - 1].ref_pos as i32,
-    ref_len,
-    seed_matches[seed_matches.len() - 1].qry_pos as i32,
+
+  // Add end stripes
+  robust_stripes = add_robust_stripes(
+    robust_stripes,
+    seed_matches.last().unwrap().ref_pos as i32,
+    ref_len + 1,
     qry_len,
+    *robust_shifts.last().unwrap(),
     terminal_bandwidth,
   );
 
-  stripes = regularize_stripes(stripes);
+  robust_stripes = regularize_stripes(robust_stripes, qry_len as usize);
 
-  stripes
+  robust_stripes
 }
 
-fn regularize_stripes(mut stripes: Vec<Stripe>) -> Vec<Stripe> {
-  // Chop off unreachable parts of the stripes
-  // Overhanging parts are pruned
+/// Chop off unreachable parts of the stripes.
+/// Overhanging parts are pruned
+fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
+  stripes[0].begin = 0;
   let mut max = 0;
-  for i in 0..stripes.len() {
+  for i in 1..stripes.len() {
     max = clamp_min(max, stripes[i].begin);
-    stripes[i].begin = clamp_min(stripes[i].begin, max);
+    stripes[i].begin = clamp(stripes[i].begin, max, qry_len);
   }
 
-  let mut min = stripes[stripes.len() - 1].end;
-  for i in (0..stripes.len()).rev() {
+  let stripes_len = stripes.len();
+  stripes[stripes_len - 1].end = qry_len + 1;
+  let mut min = qry_len + 1;
+  for i in (0..(stripes.len() - 1)).rev() {
     min = clamp_max(min, stripes[i].end);
-    stripes[i].end = clamp_max(stripes[i].end, min);
+    stripes[i].end = clamp(stripes[i].end, 1, min);
   }
 
   stripes
 }
 
-fn add_internal_stripes(
+fn add_robust_stripes(
   mut stripes: Vec<Stripe>,
   ref_start: i32,
   ref_end: i32,
-  qry_start: i32,
-  qry_end: i32,
   qry_len: i32,
-  bandwidth: i32,
+  shift: (&i32, &i32),
+  extra_bandwidth: i32,
 ) -> Vec<Stripe> {
-  let dq = qry_end - qry_start;
-  let dr = ref_end - ref_start;
-
-  let drift = dq - dr;
-
-  // trace!("drift: {} at position: {} with width: {}", drift, ref_start, dr);
-  let drift_begin = clamp_max(drift, 0);
-  let drift_end = clamp_min(drift, 0);
-
-  for i in 0..(ref_end - ref_start) {
-    let center = qry_start + i;
-    let begin = clamp(center + drift_begin - bandwidth, 0, qry_end);
-    let end = clamp(center + drift_end + bandwidth + 1, qry_start + 1, qry_len + 1);
-    stripes.push(Stripe::new(begin, end));
+  for i in ref_start..ref_end {
+    stripes.push(Stripe::new(
+      clamp(i + shift.0 - extra_bandwidth, 0, qry_len),
+      clamp(i + shift.1 + extra_bandwidth + 1, 1, qry_len + 1),
+    ));
   }
-  stripes
-}
-
-fn add_start_stripe(ref_end: i32, qry_end: i32, qry_len: i32, bandwidth: i32) -> Vec<Stripe> {
-  let mut stripes: Vec<Stripe> = vec![];
-
-  let slope = 1;
-  let shift = qry_end - ref_end;
-
-  for i in 0..ref_end {
-    let center = shift + i;
-    let begin = clamp(center - bandwidth, 0, qry_end);
-    let end = clamp(center + bandwidth + 1, 1, qry_len + 1);
-    let stripe = Stripe::new(begin, end);
-    stripes.push(stripe);
-  }
-
-  // First stripe needs to go to origin
-  stripes[0].begin = 0;
-
-  stripes
-}
-
-fn add_end_stripe(
-  mut stripes: Vec<Stripe>,
-  ref_start: i32,
-  ref_len: i32,
-  qry_start: i32,
-  qry_len: i32,
-  bandwidth: i32,
-) -> Vec<Stripe> {
-  let slope = 1;
-  let shift = qry_start - ref_start;
-
-  for i in ref_start..ref_len + 1 {
-    let center = shift + i;
-    let begin = clamp(center - bandwidth, 0, qry_len);
-    let end = clamp(center + bandwidth + 1, qry_start + 1, qry_len + 1);
-    stripes.push(Stripe::new(begin, end));
-  }
-
-  // Last stripe needs to go to terminus
-  stripes[ref_len as usize].end = qry_len as usize + 1;
-
   stripes
 }
 
