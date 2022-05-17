@@ -6,7 +6,7 @@ import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import type { AnalysisResult, ErrorsFromWeb, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
+import type { AnalysisResult, ErrorsFromWeb, FastaRecord, NextcladeResult, Translation } from 'src/algorithms/types'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
@@ -102,7 +102,7 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
     if (result) {
       const { query, query_peptides, analysis_result } = result as unknown as AnalysisOutputPojo
 
-      const queryPeptides = JSON.parse(query_peptides) as Peptide[]
+      const queryPeptides = JSON.parse(query_peptides) as Translation[]
       const analysisResult = JSON.parse(analysis_result) as AnalysisResult
 
       return {

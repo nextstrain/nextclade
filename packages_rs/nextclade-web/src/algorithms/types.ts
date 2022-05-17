@@ -370,9 +370,11 @@ export interface ErrorsFromWeb {
   failedGenes: string[]
 }
 
-export interface Peptide {
-  name: string
+export interface Translation {
+  geneName: string
   seq: string
+  insertions: AminoacidInsertion[]
+  frameShifts: FrameShift[]
 }
 
 /** Represents a named interval in the genome */
@@ -480,16 +482,9 @@ export interface UrlParams {
   inputGeneMap?: string
 }
 
-export interface Translation {
-  gene_name: string
-  seq: string
-  insertions: AminoacidInsertion[]
-  frame_shifts: FrameShift[]
-}
-
 export interface AnalysisOutput {
   query: string
-  queryPeptides: Peptide[]
+  queryPeptides: Translation[]
   analysisResult: AnalysisResult
 }
 

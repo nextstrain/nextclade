@@ -25,6 +25,7 @@ use std::ops::Range as StdRange;
 
 /// Results of the translation
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Translation {
   pub gene_name: String,
   #[serde(serialize_with = "serde_serialize_seq")]

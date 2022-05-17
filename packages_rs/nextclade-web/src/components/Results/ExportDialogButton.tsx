@@ -28,6 +28,7 @@ import {
   FileIconNdjson,
 } from 'src/components/Common/FileIcons'
 import {
+  DEFAULT_EXPORT_PARAMS,
   useExportCsv,
   useExportErrorsCsv,
   useExportFasta,
@@ -105,20 +106,6 @@ export interface ExportParams {
   filenameInsertionsCsv: string
   filenameErrorsCsv: string
   filenamePeptidesTemplate: string
-}
-
-export const DEFAULT_EXPORT_PARAMS: ExportParams = {
-  filenameZip: 'nextclade.zip',
-  filenameCsv: 'nextclade.csv',
-  filenameTsv: 'nextclade.tsv',
-  filenameJson: 'nextclade.json',
-  filenameNdjson: 'nextclade.ndjson',
-  filenameTree: 'nextclade.auspice.json',
-  filenameFasta: 'nextclade.aligned.fasta',
-  filenamePeptidesZip: 'nextclade.peptides.fasta.zip',
-  filenameInsertionsCsv: 'nextclade.insertions.csv',
-  filenameErrorsCsv: 'nextclade.errors.csv',
-  filenamePeptidesTemplate: 'nextclade.peptide.{{GENE}}.fasta',
 }
 
 export function ExportDialogButton() {
