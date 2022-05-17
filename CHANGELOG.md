@@ -2,20 +2,30 @@
 
  - Nextclade core algorithms and command-line interface was reimplemented in Rust (replacing C++). 
 
-   Rust is a modern, high performance programming language that is more pleasant to read and write, while produces binaries comparable performance with C++ in most cases. It should provide serious productivity boost for the dev team.
+   Rust is a modern, high performance programming language that is more pleasant to read and write, while produces binaries comparable performance with C++ in most cases.
+   It should provide a serious productivity boost for the dev team.
 
-   Also, it is now much simpler to contribute to Nextclade. If you wanted to contribute, or to simply review and understand the codebase, but was scared off by the complexity of C++, then give it another try - Rust version is much more enjoyable! Check our [developer guide](TODO) for getting started. We are always open for contributions, review and ideas!
+   Also, it is now much simpler to contribute to Nextclade. If you wanted to contribute, or to simply review and understand the codebase, but were scared off by the complexity of C++, then give it another try - the Rust version is much more enjoyable! Check our [developer guide](TODO) for getting started. We are always open for contributions, review and ideas!
 
 
- - Alignment algorithm was rewritten
+### Alignment algorithm rewritten with adaptive bands
 
-   - Fixed terminal misalignment bug due to too narrow terminal bands
-   - Previously unalignable sequences align due to more robust seed matching
-   - Reduced number of terminal nucleotide query insertions, because now penalized (due to different boundary conditions, can revert to previous behaviour if wanted)
-   - AA terminal gaps no longer free: fixes problem at at N gene start and also has good side effect of not deleting stops and mutating previous AA but placing deletions 1 before (more parsimonious)
+- Previously, the alignment band width was constant throughout a given sequence. Now, band width is adaptive: narrow where seed matches indicate no indels, wide where seed matches indicate indels.
+- **Performance** is improved for sequences with indels
+- **Fix**: Terminal alignment errors, particularly common in BA.2, are fixed due to wider default band width between terminal seed matches and sequence ends (fixes [#746](https://github.com/nextstrain/nextclade/issues/746)
+- **Fix**: More robust seed matching allows some previously unalignable sequences to be aligned
+- **Fix**: Terminal indels for amino acid alignments are no longer free. This leads to more parsimonious alignment results.
+- **Feature**: Alignment parameters can now be tuned through CLI parameters. `--excess-bandwidth` controls the extra band width that is necessary for correct alignment if both deletions and insertions occur between two seed matches. `--terminal-bandwidth` controls the extra band width that is necessary for correct alignment if terminal indels occur.
+- TBD: Reduced number of terminal nucleotide query insertions, because now penalized (due to different boundary conditions, can revert to previous behaviour if wanted)
+- **Fixed** a bug where 3' terminal insertions were not properly detected
 
- - Fixed a bug where 3' terminal insertions were not properly detected
+### Planned features
 
+- Unify `nextclade` and `nextalign` CLI parameters
+- User friendly CLI parameters with minimal parameter requirements:
+  - If no output files specified, put output into standard directory in current working directory
+  - Download and use dataset at runtime with a single parameter: `nextclade INPUT_FASTA --download-dataset sars-cov-2`
+  - Take input fasta from stdin
 
 ## Nextclade Web 1.14.1
 
