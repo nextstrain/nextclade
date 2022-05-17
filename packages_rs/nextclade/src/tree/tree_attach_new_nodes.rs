@@ -49,9 +49,13 @@ fn attach_new_node(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
 
 fn add_aux_node(node: &mut AuspiceTreeNode) {
   debug_assert!(node.is_ref_node());
+  println!("Adding aux node to {}", node.tmp.id);
 
   let mut aux_node = node.clone();
   aux_node.branch_attrs.mutations.clear();
+  // TODO: Remove branch label (if present)
+
+  node.children.push(aux_node);
 
   node.name = format!("{}_parent", node.name);
 }
