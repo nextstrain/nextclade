@@ -39,6 +39,10 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
   )
 
   const errorComponent = useMemo(() => {
+    if (!error) {
+      return null
+    }
+
     return (
       <Alert key={error} color="danger" fade={false} className="px-2 py-1 my-1">
         <ErrorIcon />
