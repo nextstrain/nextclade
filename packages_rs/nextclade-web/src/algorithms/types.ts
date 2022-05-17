@@ -360,6 +360,14 @@ export interface AnalysisResult {
   qc: QcResult
   customNodeAttributes: Record<string, string>
   warnings: PeptideWarning[]
+  missingGenes: string[]
+}
+
+export interface ErrorsFromWeb {
+  seqName: string
+  errors: string
+  warnings: PeptideWarning[]
+  failedGenes: string[]
 }
 
 export interface Peptide {

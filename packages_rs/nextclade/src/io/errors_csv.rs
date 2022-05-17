@@ -1,5 +1,5 @@
 use crate::gene::gene_map::GeneMap;
-use crate::io::csv::CsvStructFileWriter;
+use crate::io::csv::{CsvStructFileWriter, CsvStructWriter};
 use crate::io::nextclade_csv::{format_aa_warnings, format_failed_genes};
 use crate::translate::translate_genes::Translation;
 use crate::types::outputs::PeptideWarning;
@@ -58,4 +58,36 @@ impl<'a> ErrorsCsvWriter<'a> {
       failed_genes,
     })
   }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ErrorsFromWeb {
+  seq_name: String,
+  errors: String,
+  warnings: Vec<PeptideWarning>,
+  failed_genes: Vec<String>,
+}
+
+pub fn errors_to_csv_string(errors: &[ErrorsFromWeb]) -> Result<String, Report> {
+  let mut writer = CsvStructWriter::new(Vec::<u8>::new(), b',')?;
+
+  for error in errors {
+    let warnings = &error
+      .warnings
+      .iter()
+      .map(|PeptideWarning { warning, .. }| warning)
+      .join(";");
+
+    let failed_genes = &format_failed_genes(&error.failed_genes, ";");
+
+    writer.write(&ErrorCsvEntry {
+      seq_name: &error.seq_name,
+      errors: &error.errors,
+      warnings,
+      failed_genes,
+    })?;
+  }
+
+  Ok(String::from_utf8(writer.into_inner()?)?)
 }

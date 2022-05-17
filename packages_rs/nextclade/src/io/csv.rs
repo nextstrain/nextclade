@@ -8,11 +8,11 @@ use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
 /// Writes CSV. Each row is a serde-annotated struct.
-pub struct CsvStructWriter<W: Write> {
+pub struct CsvStructWriter<W: 'static + Write + Sync + Send> {
   pub writer: CsvWriterImpl<W>,
 }
 
-impl<W: Write> CsvStructWriter<W> {
+impl<W: 'static + Write + Sync + Send> CsvStructWriter<W> {
   pub fn new(writer: W, delimiter: u8) -> Result<Self, Report> {
     let writer = CsvWriterBuilder::new().delimiter(delimiter).from_writer(writer);
     Ok(Self { writer })
@@ -21,6 +21,11 @@ impl<W: Write> CsvStructWriter<W> {
   pub fn write<T: Serialize>(&mut self, record: &T) -> Result<(), Report> {
     self.writer.serialize(record)?;
     Ok(())
+  }
+
+  pub fn into_inner(self) -> Result<W, Report> {
+    let inner = self.writer.into_inner()?;
+    Ok(inner)
   }
 }
 

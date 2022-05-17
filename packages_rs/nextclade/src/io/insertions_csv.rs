@@ -1,8 +1,9 @@
 use crate::align::insertions_strip::Insertion;
-use crate::io::csv::CsvStructFileWriter;
-use crate::io::nextclade_csv::{format_aa_insertions_from_translations, format_nuc_insertions};
+use crate::io::csv::{CsvStructFileWriter, CsvStructWriter};
+use crate::io::nextclade_csv::{format_aa_insertions, format_aa_insertions_from_translations, format_nuc_insertions};
 use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::Translation;
+use crate::types::outputs::NextcladeOutputs;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -40,4 +41,18 @@ impl InsertionsCsvWriter {
       aa_insertions: format_aa_insertions_from_translations(translations, ";"),
     })
   }
+}
+
+pub fn insertions_to_csv_string(outputs: &[NextcladeOutputs]) -> Result<String, Report> {
+  let mut writer = CsvStructWriter::new(Vec::<u8>::new(), b',')?;
+
+  for output in outputs {
+    writer.write(&InsertionCsvEntry {
+      seq_name: &output.seq_name,
+      insertions: format_nuc_insertions(&output.insertions, ";"),
+      aa_insertions: format_aa_insertions(&output.aa_insertions, ";"),
+    })?;
+  }
+
+  Ok(String::from_utf8(writer.into_inner()?)?)
 }
