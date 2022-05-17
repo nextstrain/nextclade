@@ -1,7 +1,7 @@
 /* eslint-disable no-void,promise/always-return,unicorn/no-await-expression-member */
 import { useCallback } from 'react'
 import { Snapshot, useRecoilCallback } from 'recoil'
-import { AnalysisOutput } from 'src/algorithms/types'
+import { AnalysisOutput, ErrorsFromWeb } from 'src/algorithms/types'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import { notUndefined } from 'src/helpers/notUndefined'
 import { saveFile } from 'src/helpers/saveFile'
@@ -33,15 +33,11 @@ function useResultsExport(exportFn: (filename: string, snapshot: Snapshot, worke
 async function mapGoodResults<T>(snapshot: Snapshot, mapFn: (result: AnalysisOutput) => T) {
   const results = await snapshot.getPromise(analysisResultsAtom)
 
-  if (results.length === 0) {
-    throw new ErrorInternal('When exporting analysis results into CSV: there is no results to export')
-  }
-
   return results
     .filter((result) => notUndefined(result.result))
     .map((result) => {
       if (!result.result) {
-        throw new ErrorInternal('When exporting analysis results into CSV: expected result to be non-nil')
+        throw new ErrorInternal('When preparing analysis results for export: expected result to be non-nil')
       }
       return mapFn(result.result)
     })
@@ -118,11 +114,42 @@ export function useExportTree() {
 }
 
 export function useExportInsertionsCsv() {
-  return useCallback((filename: string) => {}, [])
+  return useResultsExport(async (filename, snapshot, worker) => {
+    const results = await mapGoodResults(snapshot, (result) => result.analysisResult)
+    const csvStr = await worker.serializeInsertionsCsv(results)
+    saveFile(csvStr, filename, 'text/csv;charset=utf-8')
+  })
 }
 
 export function useExportErrorsCsv() {
-  return useCallback((filename: string) => {}, [])
+  return useResultsExport(async (filename, snapshot, worker) => {
+    const results = await snapshot.getPromise(analysisResultsAtom)
+
+    const errors: ErrorsFromWeb[] = results.map(({ seqName, result, error }) => {
+      if (result) {
+        return {
+          seqName,
+          errors: '',
+          failedGenes: result.analysisResult.missingGenes,
+          warnings: result.analysisResult.warnings,
+        }
+      }
+
+      if (error) {
+        return {
+          seqName,
+          errors: error,
+          failedGenes: [],
+          warnings: [],
+        }
+      }
+
+      throw new ErrorInternal('When preparing errors for export: Expected either result or error to be non-nil')
+    })
+
+    const csvStr = await worker.serializeErrorsCsv(errors)
+    saveFile(csvStr, filename, 'text/csv;charset=utf-8')
+  })
 }
 
 export function useExportPeptides() {

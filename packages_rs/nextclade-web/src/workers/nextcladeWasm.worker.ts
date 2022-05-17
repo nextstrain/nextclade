@@ -6,7 +6,7 @@ import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import type { AnalysisResult, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
+import type { AnalysisResult, ErrorsFromWeb, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
 import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
 import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
@@ -204,6 +204,14 @@ export async function serializeResultsCsv(
   return NextcladeWasm.serialize_results_csv(JSON.stringify(results), JSON.stringify(cladeNodeAttrsJson), delimiter)
 }
 
+async function serializeInsertionsCsv(results: AnalysisResult[]) {
+  return NextcladeWasm.serialize_insertions_csv(JSON.stringify(results))
+}
+
+async function serializeErrorsCsv(errors: ErrorsFromWeb[]) {
+  return NextcladeWasm.serialize_errors_csv(JSON.stringify(errors))
+}
+
 const worker = {
   create,
   destroy,
@@ -220,6 +228,8 @@ const worker = {
   serializeResultsJson,
   serializeResultsCsv,
   serializeResultsNdjson,
+  serializeInsertionsCsv,
+  serializeErrorsCsv,
   values(): ThreadsObservable<FastaRecord> {
     return ThreadsObservable.from(gSubject)
   },
