@@ -76,35 +76,38 @@ fn add_child(node: &mut AuspiceTreeNode, result: &NextcladeOutputs) {
     )
   };
 
-  node.children.push(AuspiceTreeNode {
-    name: format!("{}_new", result.seq_name),
-    branch_attrs: TreeBranchAttrs {
-      mutations,
-      other: serde_json::Value::default(),
-    },
-    node_attrs: TreeNodeAttrs {
-      div: Some(result.divergence),
-      clade_membership: TreeNodeAttr::new(&result.clade),
-      node_type: Some(TreeNodeAttr::new("New")),
-      region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-      country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-      division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
-      alignment: Some(TreeNodeAttr::new(&alignment)),
-      missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
-      gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
-      non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
-      has_pcr_primer_changes,
-      pcr_primer_changes,
-      missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
-      other: serde_json::Value::default(),
+  node.children.insert(
+    0,
+    AuspiceTreeNode {
+      name: format!("{}_new", result.seq_name),
+      branch_attrs: TreeBranchAttrs {
+        mutations,
+        other: serde_json::Value::default(),
+      },
+      node_attrs: TreeNodeAttrs {
+        div: Some(result.divergence),
+        clade_membership: TreeNodeAttr::new(&result.clade),
+        node_type: Some(TreeNodeAttr::new("New")),
+        region: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+        country: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+        division: Some(TreeNodeAttr::new(AUSPICE_UNKNOWN_VALUE)),
+        alignment: Some(TreeNodeAttr::new(&alignment)),
+        missing: Some(TreeNodeAttr::new(&format_missings(&result.missing, ", "))),
+        gaps: Some(TreeNodeAttr::new(&format_nuc_deletions(&result.deletions, ", "))),
+        non_acgtns: Some(TreeNodeAttr::new(&format_non_acgtns(&result.non_acgtns, ", "))),
+        has_pcr_primer_changes,
+        pcr_primer_changes,
+        missing_genes: Some(TreeNodeAttr::new(&format_failed_genes(&result.missing_genes, ", "))),
+        other: serde_json::Value::default(),
 
-      // TODO
-      qc_status: None,
+        // TODO
+        qc_status: None,
+      },
+      children: vec![],
+      tmp: TreeNodeTempData::default(),
+      other: serde_json::Value::default(),
     },
-    children: vec![],
-    tmp: TreeNodeTempData::default(),
-    other: serde_json::Value::default(),
-  });
+  );
 }
 
 fn convert_mutations_to_node_branch_attrs(nuc_muts: &PrivateNucMutations) -> BTreeMap<String, Vec<String>> {
