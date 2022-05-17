@@ -20,8 +20,6 @@ export interface ColumnNameProps {
 }
 
 export function ColumnName({ seqName }: ColumnNameProps) {
-  const isDone = false
-
   const { t } = useTranslationSafe()
   const { result, error } = useRecoilValue(analysisResultAtom(seqName))
   const [showTooltip, setShowTooltip] = useState(false)
@@ -31,11 +29,10 @@ export function ColumnName({ seqName }: ColumnNameProps) {
     () =>
       getStatusIconAndText({
         t,
-        isDone,
         hasWarnings: !isEmpty(result?.analysisResult.warnings),
         hasErrors: !isNil(error),
       }),
-    [error, isDone, result?.analysisResult.warnings, t],
+    [error, result?.analysisResult.warnings, t],
   )
 
   if (!result?.analysisResult) {
