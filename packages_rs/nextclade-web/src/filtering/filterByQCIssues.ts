@@ -1,6 +1,7 @@
+import { isNil } from 'lodash'
+
+import type { NextcladeResult } from 'src/algorithms/types'
 import { QcStatus } from 'src/algorithms/types'
-import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
-import { AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 
 export interface QCFilters {
   showGood: boolean
@@ -10,14 +11,14 @@ export interface QCFilters {
 }
 
 export function filterByQCIssues({ showGood, showMediocre, showBad, showErrors }: QCFilters) {
-  return ({ status, result, errors }: SequenceAnalysisState) => {
-    const isError = status === AlgorithmSequenceStatus.failed
-    const isPending = !isError && (!result || !result.qc)
+  return ({ result, error }: NextcladeResult) => {
+    const isError = !isNil(error)
+    const isPending = !isError && !result
 
     // The sequences which are still being processed are presumed to be 'good' until QC results come and prove otherwise
-    const isGood = isPending || result?.qc?.overallStatus === QcStatus.good
-    const isMediocre = result?.qc?.overallStatus === QcStatus.mediocre
-    const isBad = result?.qc?.overallStatus === QcStatus.bad
+    const isGood = isPending || result?.analysisResult?.qc?.overallStatus === QcStatus.good
+    const isMediocre = result?.analysisResult?.qc?.overallStatus === QcStatus.mediocre
+    const isBad = result?.analysisResult?.qc?.overallStatus === QcStatus.bad
 
     const good = showGood && isGood
     const mediocre = showMediocre && isMediocre

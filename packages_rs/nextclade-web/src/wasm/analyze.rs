@@ -27,8 +27,8 @@ use wasm_bindgen::prelude::*;
 // Plain old Javascript Objects (POJO) to ensure type safety in `JsValue` serialization.
 // They are convenient to use in constructors of complex types.
 #[wasm_bindgen]
-extern "C" {
   #[wasm_bindgen(typescript_type = "NextcladeParamsPojo")]
+extern "C" {
   pub type NextcladeParamsPojo;
 
   #[wasm_bindgen(typescript_type = "AnalysisInputPojo")]

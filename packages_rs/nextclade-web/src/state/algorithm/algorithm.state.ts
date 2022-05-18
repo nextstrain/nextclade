@@ -1,4 +1,4 @@
-import type { AnalysisResult, Gene, Translation, DatasetFlat, UrlParams } from 'src/algorithms/types'
+import type { AnalysisResult, Gene, Translation, DatasetFlat, UrlParams, NextcladeResult } from 'src/algorithms/types'
 import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
 export enum AlgorithmGlobalStatus {
@@ -15,6 +15,16 @@ export enum AlgorithmSequenceStatus {
   started = 'started',
   done = 'done',
   failed = 'failed',
+}
+
+export function getResultStatus(result: NextcladeResult) {
+  if (result.error) {
+    return AlgorithmSequenceStatus.failed
+  }
+  if (result.result) {
+    return AlgorithmSequenceStatus.done
+  }
+  return AlgorithmSequenceStatus.started
 }
 
 export interface SequenceAnalysisState {

@@ -15,7 +15,7 @@ import {
   Collapse,
 } from 'reactstrap'
 import styled from 'styled-components'
-import { useRecoilState, useRecoilValue } from 'recoil'
+import { useRecoilValue } from 'recoil'
 
 import {
   aaFilterAtom,
@@ -28,7 +28,8 @@ import {
   showMediocreFilterAtom,
 } from 'src/state/resultFilters.state'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { isFilterPanelShownAtom } from 'src/state/settings.state'
+import { isResultsFilterPanelCollapsedAtom } from 'src/state/settings.state'
+import { useRecoilStateDeferred } from 'src/hooks/useRecoilStateDeferred'
 
 export const Card = styled(ReactstrapCard)<ReactstrapCardProps>`
   box-shadow: 1px 1px 3px 2px rgba(128, 128, 128, 0.5);
@@ -89,18 +90,18 @@ export const InputCheckbox = styled(ReactstrapInput)<ReactstrapInputProps>`
 export function ResultsFilter() {
   const { t } = useTranslationSafe()
 
-  const isFilterPanelShown = useRecoilValue(isFilterPanelShownAtom)
+  const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
 
   // TODO: we could use a map (object) and refer to filters by name,
   // in order to reduce code duplication in the state, callbacks and components being rendered
-  const [seqNamesFilter, setSeqNamesFilter] = useRecoilState(seqNamesFilterAtom)
-  const [mutationsFilter, setMutationsFilter] = useRecoilState(mutationsFilterAtom)
-  const [cladesFilter, setCladesFilter] = useRecoilState(cladesFilterAtom)
-  const [aaFilter, setAAFilter] = useRecoilState(aaFilterAtom)
-  const [showGood, setShowGood] = useRecoilState(showGoodFilterAtom)
-  const [showMediocre, setShowMediocre] = useRecoilState(showMediocreFilterAtom)
-  const [showBad, setShowBad] = useRecoilState(showBadFilterAtom)
-  const [showErrors, setShowErrors] = useRecoilState(showErrorsFilterAtom)
+  const [seqNamesFilter, setSeqNamesFilter] = useRecoilStateDeferred(seqNamesFilterAtom)
+  const [mutationsFilter, setMutationsFilter] = useRecoilStateDeferred(mutationsFilterAtom)
+  const [cladesFilter, setCladesFilter] = useRecoilStateDeferred(cladesFilterAtom)
+  const [aaFilter, setAAFilter] = useRecoilStateDeferred(aaFilterAtom)
+  const [showGood, setShowGood] = useRecoilStateDeferred(showGoodFilterAtom)
+  const [showMediocre, setShowMediocre] = useRecoilStateDeferred(showMediocreFilterAtom)
+  const [showBad, setShowBad] = useRecoilStateDeferred(showBadFilterAtom)
+  const [showErrors, setShowErrors] = useRecoilStateDeferred(showErrorsFilterAtom)
 
   const handleSeqNamesFilterChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,7 +168,7 @@ export function ResultsFilter() {
   )
 
   return (
-    <Collapse isOpen={isFilterPanelShown}>
+    <Collapse isOpen={!isResultsFilterPanelCollapsed}>
       <Card>
         <CardHeader>{t('Results filter')}</CardHeader>
 

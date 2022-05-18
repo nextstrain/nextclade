@@ -1,9 +1,8 @@
-import { orderBy, partition } from 'lodash'
-
-import { AlgorithmSequenceStatus, SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import { isNil, orderBy, partition } from 'lodash'
+import type { NextcladeResult } from 'src/algorithms/types'
 
 export enum SortCategory {
-  id = 'id',
+  index = 'index',
   seqName = 'seqName',
   clade = 'clade',
   qcIssues = 'qcIssues',
@@ -32,33 +31,31 @@ export interface SortingKeyBased {
 }
 
 export function defaultNumber(direction: SortDirection) {
-  return direction === SortDirection.asc ? Infinity : 0
+  return direction === SortDirection.asc ? Number.POSITIVE_INFINITY : 0
 }
 
-export function getClade(res: SequenceAnalysisState) {
-  return res.result?.clade ?? '-'
+export function getClade(result: NextcladeResult) {
+  return result.result?.analysisResult.clade ?? '-'
 }
 
-export function sortById(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.id, direction)
+export function sortById(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(results, (result) => result.index, direction)
 }
 
-export function sortByName(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.seqName, direction)
+export function sortByName(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(results, (result) => result.seqName, direction)
 }
 
-export function sortByQcIssues(results: SequenceAnalysisState[], direction: SortDirection) {
+export function sortByQcIssues(results: NextcladeResult[], direction: SortDirection) {
   // Only sort sequences that are ready (succeeded or failed). Put sequences still being analyzed sequences at the bottom.
-  const [ready, rest] = partition(results, (res) =>
-    [AlgorithmSequenceStatus.done, AlgorithmSequenceStatus.failed].includes(res.status),
-  )
+  const [ready, rest] = partition(results, (result) => !isNil(result.result) || !isNil(result.error))
 
   const readySorted = orderBy(
     ready,
-    (res) => {
+    (result) => {
       // Sort errored sequences as having very bad QC results
-      const errorScore = res.errors.length * 1e9
-      const qcScore = res.result?.qc?.overallScore ?? defaultNumber(direction)
+      const errorScore = isNil(result.error) ? 0 : 1e9
+      const qcScore = result.result?.analysisResult.qc?.overallScore ?? defaultNumber(direction)
       return errorScore + qcScore
     },
     direction,
@@ -67,46 +64,80 @@ export function sortByQcIssues(results: SequenceAnalysisState[], direction: Sort
   return [...readySorted, ...rest]
 }
 
-export function sortByClade(results: SequenceAnalysisState[], direction: SortDirection) {
+export function sortByClade(results: NextcladeResult[], direction: SortDirection) {
   // Only sort sequences that are succeeded. Put errored sequences and sequences still being analyzed at the bottom.
-  const [succeeded, rest] = partition(results, (res) => !!res.result)
+  const [succeeded, rest] = partition(results, (result) => !!result.result)
   const succeededSorted = orderBy(succeeded, getClade, direction)
   return [...succeededSorted, ...rest]
 }
 
-export function sortByMutations(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalSubstitutions ?? defaultNumber(direction), direction)
+export function sortByMutations(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(
+    results,
+    (result) => result.result?.analysisResult.totalSubstitutions ?? defaultNumber(direction),
+    direction,
+  )
 }
 
-export function sortByNonACGTNs(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalNonACGTNs ?? defaultNumber(direction), direction)
+export function sortByNonACGTNs(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(
+    results,
+    (result) => result.result?.analysisResult.totalNonACGTNs ?? defaultNumber(direction),
+    direction,
+  )
 }
 
-export function sortByMissing(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalMissing ?? defaultNumber(direction), direction)
+export function sortByMissing(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(results, (result) => result.result?.analysisResult.totalMissing ?? defaultNumber(direction), direction)
 }
 
-export function sortByGaps(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalDeletions ?? defaultNumber(direction), direction)
+export function sortByGaps(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(
+    results,
+    (result) => result.result?.analysisResult.totalDeletions ?? defaultNumber(direction),
+    direction,
+  )
 }
 
-export function sortByInsertions(results: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(results, (res) => res.result?.totalInsertions ?? defaultNumber(direction), direction)
+export function sortByInsertions(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(
+    results,
+    (result) => result.result?.analysisResult.totalInsertions ?? defaultNumber(direction),
+    direction,
+  )
 }
 
-export function sortByFrameShifts(ress: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(ress, (res) => res.result?.qc.frameShifts?.totalFrameShifts ?? defaultNumber(direction), direction)
+export function sortByFrameShifts(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(
+    results,
+    (result) => {
+      const fs = result.result?.analysisResult.qc.frameShifts
+      const totalFrameShifts = fs?.totalFrameShifts ?? 0
+      const totalFrameShiftsIgnored = fs?.totalFrameShiftsIgnored ?? 0
+      return totalFrameShifts * 1e3 + totalFrameShiftsIgnored ?? defaultNumber(direction)
+    },
+    direction,
+  )
 }
 
-export function sortByStopCodons(ress: SequenceAnalysisState[], direction: SortDirection) {
-  return orderBy(ress, (res) => res.result?.qc.stopCodons?.totalStopCodons ?? defaultNumber(direction), direction)
+export function sortByStopCodons(results: NextcladeResult[], direction: SortDirection) {
+  return orderBy(
+    results,
+    (result) => {
+      const sc = result.result?.analysisResult.qc.stopCodons
+      const totalStopCodons = sc?.totalStopCodons ?? 0
+      const totalStopCodonsIgnored = sc?.totalStopCodonsIgnored ?? 0
+      return totalStopCodons * 1e3 + totalStopCodonsIgnored ?? defaultNumber(direction)
+    },
+    direction,
+  )
 }
 
-export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) {
+export function sortResults(results: NextcladeResult[], sorting: Sorting) {
   const { category, direction } = sorting
 
   switch (category) {
-    case SortCategory.id:
+    case SortCategory.index:
       return sortById(results, direction)
 
     case SortCategory.seqName:
@@ -143,7 +174,7 @@ export function sortResults(results: SequenceAnalysisState[], sorting: Sorting) 
   return results
 }
 
-export function sortResultsByKey(results: SequenceAnalysisState[], sorting: SortingKeyBased) {
+export function sortResultsByKey(results: NextcladeResult[], sorting: SortingKeyBased) {
   const { key, direction } = sorting
-  return orderBy(results, (res) => res.result?.customNodeAttributes[key], direction)
+  return orderBy(results, (result) => result.result?.analysisResult.customNodeAttributes[key], direction)
 }

@@ -30,7 +30,7 @@ export const isNewRunPopupShownAtom = atom<boolean>({
 
 export const isResultsFilterPanelCollapsedAtom = atom<boolean>({
   key: 'isResultsfilterPanelCollapsed',
-  default: false,
+  default: true,
 })
 
 export const shouldRunAutomaticallyAtom = atom<boolean>({
@@ -79,11 +79,6 @@ export const resultsTableDynamicColumnWidthAtom = atom<number>({
 export const resultsTableDynamicColumnWidthPxAtom = selector<string>({
   key: 'dynamicColumnWidthPx',
   get: ({ get }) => `${get(resultsTableDynamicColumnWidthAtom)}px`,
-})
-
-export const isFilterPanelShownAtom = atom<boolean>({
-  key: 'isFilterPanelShownAtom',
-  default: false,
 })
 
 export const viewedGeneAtom = atom<string>({
