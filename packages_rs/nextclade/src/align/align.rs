@@ -27,6 +27,7 @@ fn align_pairwise<T: Letter<T>>(
   Ok(backtrace(qry_seq, ref_seq, &scores, &paths))
 }
 
+/// align nucleotide sequences via seed alignment and banded smith watermann without penalizing terminal gaps
 pub fn align_nuc(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
@@ -56,6 +57,7 @@ pub fn align_nuc(
   Ok(result)
 }
 
+/// align amino acids using a fixed bandwidth banded alignment while penalizing terminal indels
 pub fn align_aa(
   qry_seq: &[Aa],
   ref_seq: &[Aa],
@@ -66,6 +68,7 @@ pub fn align_aa(
 ) -> Result<AlignmentOutput<Aa>, Report> {
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
+  // TODO: lift up to calling function and make conditional on whether overall align start/end falls into gene
   let aa_params = AlignPairwiseParams {
     // Set to false for internal genes
     left_terminal_gaps_free: false,

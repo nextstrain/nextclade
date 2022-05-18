@@ -34,7 +34,7 @@ pub fn seed_match<L: Letter<L>>(
       }
 
       // this speeds up seed-matching by disregarding bad seeds.
-      let current_mismatches = pos - tmp_score;
+      let current_mismatches = 1 + pos - tmp_score;
       if current_mismatches > mismatches_allowed {
         break;
       }

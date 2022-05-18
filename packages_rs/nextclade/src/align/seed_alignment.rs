@@ -59,7 +59,7 @@ pub fn get_seed_matches<L: Letter<L>>(
   // loop over seeds and find matches, store in seed_matches
   let mut start_pos = 0;            // start position of ref search
   let mut end_pos = ref_seq.len();  // end position of ref search
-  let mut qry_pos = 0;
+  let qry_pos = 0;
 
   for ni in 0..n_seeds {
     // pick index of of seed in map
@@ -168,6 +168,8 @@ pub fn seed_alignment<L: Letter<L>>(
   Ok(stripes)
 }
 
+/// construct the band in the alignment matrix. this band is organized as "stripes"
+/// that define the query sequence range for each reference position
 pub fn create_stripes(
   seed_matches: &[SeedMatch],
   qry_len: i32,
@@ -211,7 +213,7 @@ pub fn create_stripes(
 
   let mut robust_stripes = Vec::with_capacity(robust_shifts.len());
 
-  // Add start stripes
+  // Add stripes from ref_pos=0 to the first seed match
   robust_stripes = add_robust_stripes(
     robust_stripes,
     0,
@@ -221,7 +223,7 @@ pub fn create_stripes(
     terminal_bandwidth,
   );
 
-  // Add internal stripes
+  // Add stripes between successive seed matches
   for i in 1..robust_shifts.len() - 1 {
     robust_stripes = add_robust_stripes(
       robust_stripes,
@@ -233,7 +235,7 @@ pub fn create_stripes(
     );
   }
 
-  // Add end stripes
+  // Add stripes after the last seed match
   robust_stripes = add_robust_stripes(
     robust_stripes,
     seed_matches.last().unwrap().ref_pos as i32,
@@ -251,24 +253,24 @@ pub fn create_stripes(
 /// Chop off unreachable parts of the stripes.
 /// Overhanging parts are pruned
 fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
+  // assure stripe begin are non-decreasing -- such states would be unreachable in the alignment
+  let stripes_len = stripes.len();
   stripes[0].begin = 0;
-  let mut max = 0;
-  for i in 1..stripes.len() {
-    max = clamp_min(max, stripes[i].begin);
-    stripes[i].begin = clamp(stripes[i].begin, max, qry_len);
+  for i in 1..stripes_len {
+    stripes[i].begin = clamp(stripes[i].begin, stripes[i-1].begin, qry_len);
   }
 
-  let stripes_len = stripes.len();
+  // analogously, assure that strip ends are non-decreasing. this needs to be done in reverse.
   stripes[stripes_len - 1].end = qry_len + 1;
-  let mut min = qry_len + 1;
-  for i in (0..(stripes.len() - 1)).rev() {
-    min = clamp_max(min, stripes[i].end);
-    stripes[i].end = clamp(stripes[i].end, 1, min);
+  for i in (0..(stripes_len - 1)).rev() {
+    stripes[i].end = clamp(stripes[i].end, 1, stripes[i+1].end);
   }
 
   stripes
 }
 
+/// add stripes of constant width between ref_start and ref_stop
+/// incrementing the query position along with ref_pos
 fn add_robust_stripes(
   mut stripes: Vec<Stripe>,
   ref_start: i32,

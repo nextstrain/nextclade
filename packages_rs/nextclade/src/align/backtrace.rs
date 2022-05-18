@@ -45,15 +45,15 @@ pub fn backtrace<T: Letter<T>>(
 
     if (origin & MATCH) != 0 && (current_matrix == 0) {
       // Match -- decrement both strands and add match to alignment
-      aln_qry.push(qry_seq[q_pos - 1]);
-      aln_ref.push(ref_seq[r_pos - 1]);
       q_pos -= 1;
       r_pos -= 1;
+      aln_qry.push(qry_seq[q_pos]);
+      aln_ref.push(ref_seq[r_pos]);
     } else if ((origin & REF_GAP_MATRIX) != 0 && current_matrix == 0) || current_matrix == REF_GAP_MATRIX {
       // Insertion in ref -- decrement query, increase shift
-      aln_qry.push(qry_seq[q_pos - 1]);
-      aln_ref.push(T::GAP);
       q_pos -= 1;
+      aln_qry.push(qry_seq[q_pos]);
+      aln_ref.push(T::GAP);
       current_matrix = if (origin & REF_GAP_EXTEND) != 0 {
         // Remain in gap-extension mode and ignore best-overall score
         REF_GAP_MATRIX
@@ -64,8 +64,8 @@ pub fn backtrace<T: Letter<T>>(
     } else if ((origin & QRY_GAP_MATRIX) != 0 && current_matrix == 0) || current_matrix == QRY_GAP_MATRIX {
       // Deletion in query -- decrement reference, reduce shift
       aln_qry.push(T::GAP);
-      aln_ref.push(ref_seq[r_pos - 1]);
       r_pos -= 1;
+      aln_ref.push(ref_seq[r_pos]);
       current_matrix = if (origin & QRY_GAP_EXTEND) != 0 {
         // Remain in gap-extension mode and ignore best-overall score
         QRY_GAP_MATRIX

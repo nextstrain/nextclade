@@ -35,8 +35,6 @@ pub fn score_matrix<T: Letter<T>>(
   let mut scores = Band2d::<i32>::new(stripes);
 
   // fill scores with alignment scores
-  // The inner index scores[][ri] is the index of the reference sequence
-  // the outer index si index the shift, together they define rPos=ri and qPos = ri-shift
   // if the colon marks the position in the sequence before rPos,qPos
   // R: ...ACT:X
   // Q: ...ACT:Y
@@ -52,7 +50,7 @@ pub fn score_matrix<T: Letter<T>>(
   paths[(0, 0)] = 0;
   scores[(0, 0)] = 0;
 
-  // Initialize first row
+  // Initialize first row (start at + 1 since [(0,0)] is already set)
   for qpos in (stripes[0].begin + 1)..stripes[0].end {
     paths[(0, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
     // Left terminal qry insertion not free
