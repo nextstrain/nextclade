@@ -7,6 +7,8 @@ use eyre::Report;
 use log::warn;
 use num_traits::{clamp, clamp_max, clamp_min};
 
+/// generate a vector of query sequence positions that are followed by at least `seed_length`
+/// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
 fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) -> Vec<usize> {
   let qry_len = qry_seq.len();
 
@@ -33,6 +35,10 @@ pub struct SeedMatch {
   pub score: usize,
 }
 
+/// Determine seed matches between query and reference sequence. will only attempt to
+/// match k-mers without ambiguous characters. Search is performed via a left-to-right
+/// search starting and the previous valid seed and extending at most to the maximally
+/// allowed insertion/deletion (shift) distance.
 pub fn get_seed_matches<L: Letter<L>>(
   qry_seq: &[L],
   ref_seq: &[L],
@@ -42,6 +48,7 @@ pub fn get_seed_matches<L: Letter<L>>(
 ) -> Vec<SeedMatch> {
   let mut seed_matches = Vec::<SeedMatch>::new();
 
+  // get list of valid k-mer start positions
   let map_to_good_positions = get_map_to_good_positions(qry_seq, params.seed_length);
   let n_good_positions = map_to_good_positions.len() as i32;
 
@@ -50,23 +57,27 @@ pub fn get_seed_matches<L: Letter<L>>(
   let kmer_spacing = ((seed_cover as f32) - 1.0) / ((n_seeds - 1) as f32);
 
   // loop over seeds and find matches, store in seed_matches
-  let mut start_pos = 0;
-  let mut end_pos = ref_seq.len();
+  let mut start_pos = 0;            // start position of ref search
+  let mut end_pos = ref_seq.len();  // end position of ref search
   let mut qry_pos = 0;
 
   for ni in 0..n_seeds {
+    // pick index of of seed in map
     let good_position_index = (margin as f32 + (kmer_spacing * ni as f32)).round() as usize;
+    // get new query kmer-position
+    let qry_pos_old = qry_pos;
+    let qry_pos = map_to_good_positions[good_position_index];
+    // increment upper bound for search in reference
+    end_pos += qry_pos - qry_pos_old;
 
-    let qry_pos_diff = map_to_good_positions[good_position_index] - qry_pos;
-
-    qry_pos += qry_pos_diff;
-    end_pos += qry_pos_diff;
-
+    //extract seed and find match
     let seed = &qry_seq[qry_pos..(qry_pos + params.seed_length)];
     let tmp_match = seed_match(seed, ref_seq, start_pos, end_pos, params.mismatches_allowed);
 
     // Only use seeds with at most allowed_mismatches
     if tmp_match.score >= params.seed_length - params.mismatches_allowed {
+      // if this isn't the first match, check that reference position of current match after previous
+      // if previous seed matched AFTER current seed, remove previous seed
       if let Some(prev_match) = seed_matches.last() {
         if tmp_match.ref_pos > prev_match.ref_pos {
           start_pos = prev_match.ref_pos;
@@ -75,11 +86,15 @@ pub fn get_seed_matches<L: Letter<L>>(
           seed_matches.pop();
         }
       }
+
       let seed_match = SeedMatch {
         qry_pos,
         ref_pos: tmp_match.ref_pos,
         score: tmp_match.score,
       };
+
+      // check that current seed matches AFTER previous seed (-2 if already triggered above)
+      // and add current seed to list of matches
       if seed_matches
         .last()
         .map_or(true, |prev_match| prev_match.ref_pos < tmp_match.ref_pos)
@@ -92,12 +107,15 @@ pub fn get_seed_matches<L: Letter<L>>(
           seed_match
         );
       }
+      // increment the "reference search end-pos" as the current reference + maximally allowed indel
       end_pos = tmp_match.ref_pos + params.max_indel;
     }
   }
   seed_matches
 }
 
+/// Determine rough positioning of qry to reference sequence by approximate seed matching
+/// Returns vector of stripes, that is a band within which the alignment is expected to lie
 pub fn seed_alignment<L: Letter<L>>(
   qry_seq: &[L],
   ref_seq: &[L],
@@ -110,15 +128,18 @@ pub fn seed_alignment<L: Letter<L>>(
   let qry_len_f = qry_len_u as f32;
   let ref_len_f = ref_len_u as f32;
 
+  // use 1/seed_spacing for long sequences, min_seeds otherwise
   let n_seeds = if ref_len_i > (params.min_seeds * params.seed_spacing) {
     (ref_len_f / params.seed_spacing as f32) as i32
   } else {
     params.min_seeds
   };
 
+  // distance of first seed from the end of the sequence (third of seed spacing)
   let margin = (ref_len_f / (n_seeds * 3) as f32).round() as i32;
 
-  // In case of very short sequences
+  // TODO: replace by full square
+  // In case of very short sequences, use constant bandwidth
   let band_width = (((ref_len_f + qry_len_f) * 0.5) - 3.0).round() as usize;
 
   if band_width < (2 * params.seed_length) {
@@ -128,6 +149,7 @@ pub fn seed_alignment<L: Letter<L>>(
     return Ok(stripes);
   };
 
+  // otherwise, determine seed matches roughly regularly spaced along the query sequence
   let seed_matches = get_seed_matches(qry_seq, ref_seq, params, n_seeds, margin);
 
   let num_seed_matches = seed_matches.len();

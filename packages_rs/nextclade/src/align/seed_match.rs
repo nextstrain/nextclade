@@ -23,19 +23,23 @@ pub fn seed_match<L: Letter<L>>(
 
   let end_pos = cmp::min(end_pos, ref_len - kmer_len);
 
+  // search from left to right (start_pos to end_pos)
   for ref_pos in start_pos..end_pos {
     tmp_score = 0;
 
     for pos in 0..kmer_len {
+      // IDEA: use is_match if ref/qry are allowed to contain ambiguous characters
       if kmer[pos] == ref_seq[ref_pos + pos] {
         tmp_score += 1;
       }
 
       // this speeds up seed-matching by disregarding bad seeds.
-      if tmp_score + mismatches_allowed < pos {
+      let current_mismatches = pos - tmp_score;
+      if current_mismatches > mismatches_allowed {
         break;
       }
     }
+    // remember current match if better than previous best match
     if tmp_score > max_score {
       max_score = tmp_score;
       max_ref_pos = ref_pos;
@@ -49,6 +53,7 @@ pub fn seed_match<L: Letter<L>>(
         // Only accept perfect matches
         break;
       }
+      // IDEA: count acceptable matches and report back to be able to ignore ambiguous ones
     }
   }
 
