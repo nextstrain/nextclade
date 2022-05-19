@@ -1,11 +1,11 @@
-import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import type { NextcladeResult } from 'src/algorithms/types'
 
 import { splitFilterString } from './splitFilterString'
 
 export function filterBySeqName(seqNamesFilter: string) {
   const seqNamesFilters = splitFilterString(seqNamesFilter)
 
-  return (result: SequenceAnalysisState) => {
-    return seqNamesFilters.some((filter) => result.seqName.includes(filter))
+  return (result: NextcladeResult) => {
+    return seqNamesFilters.some((filter) => result.seqName.toLowerCase().includes(filter.toLowerCase()))
   }
 }

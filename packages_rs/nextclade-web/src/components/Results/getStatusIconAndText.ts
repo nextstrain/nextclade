@@ -7,7 +7,6 @@ import type { TFunctionInterface } from 'src/helpers/TFunctionInterface'
 
 export interface GetStatusIconAndTextParams {
   t: TFunctionInterface
-  isDone: boolean
   hasWarnings: boolean
   hasErrors: boolean
 }
@@ -41,7 +40,7 @@ export const ErrorIcon = styled(BsFillXOctagonFill)`
   filter: drop-shadow(2px 1px 2px rgba(0, 0, 0, 0.2));
 `
 
-export function getStatusIconAndText({ t, isDone, hasWarnings, hasErrors }: GetStatusIconAndTextParams) {
+export function getStatusIconAndText({ t, hasWarnings, hasErrors }: GetStatusIconAndTextParams) {
   let StatusIcon = SuccessIcon
   let statusText = t('Success')
   if (hasWarnings) {
@@ -50,9 +49,6 @@ export function getStatusIconAndText({ t, isDone, hasWarnings, hasErrors }: GetS
   } else if (hasErrors) {
     StatusIcon = ErrorIcon
     statusText = t('Error')
-  } else if (!isDone) {
-    statusText = t('Pending')
-    StatusIcon = PendingIcon
   }
   return { StatusIcon, statusText }
 }

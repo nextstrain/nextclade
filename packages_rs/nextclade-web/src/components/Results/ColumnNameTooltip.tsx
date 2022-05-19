@@ -25,8 +25,6 @@ export interface ColumnNameTooltipProps {
 }
 
 export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
-  const isDone = false
-
   const { t } = useTranslationSafe()
   const { result, error } = useRecoilValue(analysisResultAtom(seqName))
 
@@ -34,14 +32,17 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
     () =>
       getStatusIconAndText({
         t,
-        isDone,
         hasWarnings: !isEmpty(result?.analysisResult.warnings),
         hasErrors: !isNil(error),
       }),
-    [error, isDone, result?.analysisResult.warnings, t],
+    [error, result?.analysisResult.warnings, t],
   )
 
   const errorComponent = useMemo(() => {
+    if (!error) {
+      return null
+    }
+
     return (
       <Alert key={error} color="danger" fade={false} className="px-2 py-1 my-1">
         <ErrorIcon />
@@ -52,7 +53,7 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
 
   const warningComponents = useMemo(() => {
     return (result?.analysisResult?.warnings ?? []).map((warning) => (
-      <Alert key={warning} color="warning" fade={false} className="px-2 py-1 my-1">
+      <Alert key={`${warning.geneName}: ${warning.message}`} color="warning" fade={false} className="px-2 py-1 my-1">
         <WarningIcon />
         {warning}
       </Alert>
