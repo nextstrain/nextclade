@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useCallback, useState } from 'react'
 
 import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
 import type { NucleotideDeletion } from 'src/algorithms/types'
@@ -21,6 +21,8 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
 function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }: MissingViewProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
 
   const { start: begin, length, aaSubstitutions, aaDeletions } = deletion
   const end = begin + length
@@ -45,8 +47,8 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
       width={width}
       height="30"
       {...rest}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <Tooltip target={id} isOpen={showTooltip} fullWidth>
         <TableSlim borderless className="mb-1">
@@ -66,27 +68,23 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
               </tr>
             )}
 
-            <>
-              {aaSubstitutions.map((mut) => (
-                <tr key={mut.codon}>
-                  <td>{t('Aminoacid substitution')}</td>
-                  <td>
-                    <AminoacidMutationBadge mutation={mut} />
-                  </td>
-                </tr>
-              ))}
-            </>
+            {aaSubstitutions.map((mut) => (
+              <tr key={mut.codon}>
+                <td>{t('Aminoacid substitution')}</td>
+                <td>
+                  <AminoacidMutationBadge mutation={mut} />
+                </td>
+              </tr>
+            ))}
 
-            <>
-              {aaDeletions.map((del) => (
-                <tr key={del.queryContext}>
-                  <td>{t('Aminoacid deletion')}</td>
-                  <td>
-                    <AminoacidMutationBadge mutation={del} />
-                  </td>
-                </tr>
-              ))}
-            </>
+            {aaDeletions.map((del) => (
+              <tr key={del.queryContext}>
+                <td>{t('Aminoacid deletion')}</td>
+                <td>
+                  <AminoacidMutationBadge mutation={del} />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </TableSlim>
       </Tooltip>

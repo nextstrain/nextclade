@@ -98,6 +98,9 @@ export function FilePicker({
     [onInput],
   )
 
+  // eslint-disable-next-line no-void
+  void onError
+
   const clearAndRemove = useCallback(() => {
     onRemove([])
   }, [onRemove])

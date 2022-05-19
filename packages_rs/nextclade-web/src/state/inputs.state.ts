@@ -1,6 +1,6 @@
 import { isNil } from 'lodash'
 import { atom, selector } from 'recoil'
-import { AlgorithmInput } from "src/algorithms/types";
+import { AlgorithmInput } from 'src/algorithms/types'
 
 export const qrySeqInputAtom = atom<AlgorithmInput | undefined>({
   key: 'qrySeqInput',

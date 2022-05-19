@@ -231,7 +231,7 @@ pub fn translate_genes(
           params,
         );
 
-        Ok((gene_name.to_owned(), res))
+        Ok((gene_name.clone(), res))
       },
     )
     .collect::<Result<IndexMap<String, Result<Translation, Report>>, Report>>()

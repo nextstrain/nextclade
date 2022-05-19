@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-types */
-import { StringMap, TOptions } from 'i18next'
-import { Namespace, useTranslation, UseTranslationOptions } from 'react-i18next'
+import type { StringMap, TOptions } from 'i18next'
+import { useTranslation } from 'react-i18next'
 
-export function useTranslationSafe<TInterpolationMap extends object = StringMap>(
-  ns?: Namespace,
-  options?: UseTranslationOptions,
-) {
+export function useTranslationSafe<TInterpolationMap extends object = StringMap>() {
   const response = useTranslation()
 
   function t(key: string, options?: TOptions<TInterpolationMap> | string) {

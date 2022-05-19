@@ -4,7 +4,7 @@ import { useRecoilCallback } from 'recoil'
 import type { AuspiceJsonV2 } from 'auspice'
 
 import { changeColorBy } from 'auspice/src/actions/colors'
-import { AlgorithmGlobalStatus } from "src/algorithms/types";
+import { AlgorithmGlobalStatus } from 'src/algorithms/types'
 import { sanitizeError } from 'src/helpers/sanitizeError'
 import { auspiceStartClean, treeFilterByNodeType } from 'src/state/auspice/auspice.actions'
 import { createAuspiceState } from 'src/state/auspice/createAuspiceState'

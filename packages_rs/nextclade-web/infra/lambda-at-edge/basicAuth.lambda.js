@@ -6,7 +6,9 @@
 
 const USERNAME = 'nextstrain'
 const PASSWORD = 'nextstrain'
-const BASIC_AUTH_STRING = `Basic ${Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64')}`
+
+const BASIC_AUTH_USER_PASS = Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64')
+const BASIC_AUTH_STRING = `Basic ${BASIC_AUTH_USER_PASS}`
 
 exports.handler = (event, context, callback) => {
   // Get request and request headers

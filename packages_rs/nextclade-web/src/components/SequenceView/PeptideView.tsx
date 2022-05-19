@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
 import { useRecoilValue } from 'recoil'
@@ -37,24 +37,15 @@ export interface PeptideViewMissingProps {
 export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
+
   const id = getSafeId('sequence-label', { geneName })
 
   return (
-    <MissingRow
-      id={id}
-      className="w-100 h-100 d-flex"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <MissingRow id={id} className="w-100 h-100 d-flex" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <span className="m-auto">{t('Gene "{{ geneName }}" is missing', { geneName })}</span>
-      <Tooltip
-        wide
-        fullWidth
-        target={id}
-        isOpen={showTooltip}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
+      <Tooltip wide fullWidth target={id} isOpen={showTooltip} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <p>{t('This gene is missing due to the following errors during analysis: ')}</p>
         {reasons.map((warn) => (
           <Alert key={warn.geneName} color="warning" fade={false} className="px-2 py-1 my-1">
@@ -105,7 +96,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
     )
   }
 
-  const { seqName, unknownAaRanges } = sequence
+  const { seqName, unknownAaRanges, frameShifts } = sequence
   const geneLength = gene.end - gene.start
   const pixelsPerAa = width / Math.round(geneLength / 3)
   const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
@@ -114,7 +105,7 @@ export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: Pe
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
 
-  const frameShiftMarkers = sequence.frameShifts
+  const frameShiftMarkers = frameShifts
     .filter((frameShift) => frameShift.geneName === gene.geneName)
     .map((frameShift) => (
       <PeptideMarkerFrameShift

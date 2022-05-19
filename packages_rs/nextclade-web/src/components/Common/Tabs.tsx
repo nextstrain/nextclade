@@ -82,7 +82,7 @@ export interface TabsPanelProps extends StrictOmit<NavProps, 'tabs'> {
 export function TabsPanel({ tabs, activeTab, onChange, disabled, ...restProps }: TabsPanelProps) {
   return (
     <Nav tabs {...restProps}>
-      {tabs.map((tab, i) => (
+      {tabs.map((tab) => (
         <TabComponent key={tab.name} tab={tab} activeTab={activeTab} onChange={onChange} disabled={disabled} />
       ))}
     </Nav>
@@ -97,7 +97,7 @@ export interface TabsContentProps {
 export function TabsContent({ tabs, activeTab, ...props }: TabsContentProps) {
   return (
     <TabContent activeTab={activeTab} {...props}>
-      {tabs.map((tab, i) => (
+      {tabs.map((tab) => (
         <TabPane tabId={tab.name} key={tab.name}>
           {tab.body}
         </TabPane>

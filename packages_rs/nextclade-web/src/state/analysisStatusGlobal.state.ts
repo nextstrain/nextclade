@@ -1,5 +1,5 @@
 import { atom, selector } from 'recoil'
-import { AlgorithmGlobalStatus } from "src/algorithms/types";
+import { AlgorithmGlobalStatus } from 'src/algorithms/types'
 
 export const analysisStatusGlobalAtom = atom({
   key: 'analysisStatusGlobal',

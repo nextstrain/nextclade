@@ -178,7 +178,7 @@ const config = withPlugins(
     [withFriendlyConsole],
     [withMDX],
     [withLodash],
-    // [withTypeChecking],
+    [withTypeChecking],
     [withTranspileModules],
     PROFILE && [withoutMinification],
     [withFriendlyChunkNames],

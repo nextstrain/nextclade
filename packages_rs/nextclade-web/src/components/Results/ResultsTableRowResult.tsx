@@ -1,5 +1,5 @@
 import { mix } from 'polished'
-import React, { Suspense, useMemo } from 'react'
+import React, { ReactNode, Suspense, useMemo } from 'react'
 import { useRecoilValue } from 'recoil'
 
 import { QcStatus } from 'src/algorithms/types'
@@ -45,6 +45,29 @@ export function getQcRowColor(qcStatus: QcStatus) {
   return 'transparent'
 }
 
+export function TableRowColored({
+  index,
+  overallStatus,
+  children,
+  ...restProps
+}: {
+  index: number
+  overallStatus: QcStatus
+  children?: ReactNode
+}) {
+  const backgroundColor = useMemo(() => {
+    const even = index % 2 === 0
+    const baseRowColor = even ? '#ededed' : '#fcfcfc'
+    const qcRowColor = getQcRowColor(overallStatus)
+    return mix(0.5, baseRowColor, qcRowColor)
+  }, [index, overallStatus])
+  return (
+    <TableRow {...restProps} backgroundColor={backgroundColor}>
+      {children}
+    </TableRow>
+  )
+}
+
 export function ResultsTableRowResult({
   seqName,
   viewedGene,
@@ -62,15 +85,8 @@ export function ResultsTableRowResult({
   const { analysisResult } = result
   const { qc, warnings } = analysisResult
 
-  const color = useMemo(() => {
-    const even = index % 2 === 0
-    const baseRowColor = even ? '#ededed' : '#fcfcfc'
-    const qcRowColor = getQcRowColor(qc.overallStatus)
-    return mix(0.5, baseRowColor, qcRowColor)
-  }, [index, qc.overallStatus])
-
   return (
-    <TableRow {...restProps} backgroundColor={color}>
+    <TableRowColored {...restProps} index={index} overallStatus={qc.overallStatus}>
       <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
         <TableCellText>{index}</TableCellText>
       </TableCell>
@@ -130,6 +146,6 @@ export function ResultsTableRowResult({
           )}
         </Suspense>
       </TableCell>
-    </TableRow>
+    </TableRowColored>
   )
 }

@@ -78,6 +78,7 @@ export function InsertedFragment({ insertion, isAminoacid }: InsertedFragmentPro
     [insertion, isAminoacid],
   )
 
+  // eslint-disable-next-line react/jsx-no-useless-fragment
   return <>{ins}</>
 }
 
@@ -116,7 +117,7 @@ export interface ListOfInsertionsNucProps {
   totalInsertions: number
 }
 
-export function ListOfInsertionsNuc({ insertions, totalInsertions }: ListOfInsertionsNucProps) {
+export function ListOfInsertionsNuc({ insertions }: ListOfInsertionsNucProps) {
   const { t } = useTranslation()
 
   const { thead, tbody } = useMemo(() => {
@@ -146,12 +147,10 @@ export function ListOfInsertionsNuc({ insertions, totalInsertions }: ListOfInser
   }
 
   return (
-    <>
-      <InsertionsTable>
-        <thead>{thead}</thead>
-        <tbody>{tbody}</tbody>
-      </InsertionsTable>
-    </>
+    <InsertionsTable>
+      <thead>{thead}</thead>
+      <tbody>{tbody}</tbody>
+    </InsertionsTable>
   )
 }
 
@@ -161,7 +160,7 @@ export interface ListOfInsertionsAaProps {
   isAminoacid?: boolean
 }
 
-export function ListOfInsertionsAa({ insertions, totalInsertions }: ListOfInsertionsAaProps) {
+export function ListOfInsertionsAa({ insertions }: ListOfInsertionsAaProps) {
   const { t } = useTranslation()
 
   const { thead, tbody } = useMemo(() => {
@@ -193,11 +192,9 @@ export function ListOfInsertionsAa({ insertions, totalInsertions }: ListOfInsert
   }
 
   return (
-    <>
-      <InsertionsTable>
-        <thead>{thead}</thead>
-        <tbody>{tbody}</tbody>
-      </InsertionsTable>
-    </>
+    <InsertionsTable>
+      <thead>{thead}</thead>
+      <tbody>{tbody}</tbody>
+    </InsertionsTable>
   )
 }

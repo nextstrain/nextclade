@@ -47,7 +47,6 @@ export const TableBodyNuc = styled.tbody`
 `
 
 export const TrNuc = styled.tr`
-  padding: 10px;
   padding: 0;
   margin: 0;
 `
@@ -144,7 +143,7 @@ export function PeptideContextNucleotide({ nuc, shouldHighlight }: PeptideContex
   )
 }
 
-export interface PeptideContextCodon {
+export interface PeptideContextCodonProps {
   refCodon: string
   queryCodon: string
   change?: AminoacidChange
@@ -152,7 +151,7 @@ export interface PeptideContextCodon {
   nucBegin?: number
 }
 
-export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBegin }: PeptideContextCodon) {
+export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBegin }: PeptideContextCodonProps) {
   const refAA = change?.refAA
   const queryAA = change?.queryAA
 

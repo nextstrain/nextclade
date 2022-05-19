@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
-
+import React, { FC, ReactNode, useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 import {
@@ -56,10 +55,10 @@ export const ModalHeader = styled(ReactstrapModalHeader)`
 `
 
 export interface ExportElementProps {
-  Icon: React.ReactNode
+  Icon: FC
   filename: string
-  HelpMain: React.ReactNode
-  HelpDetails: React.ReactNode
+  HelpMain: ReactNode
+  HelpDetails: ReactNode
   HelpDownload: string
 
   onDownload(filename: string): void
@@ -78,7 +77,9 @@ export function ExportFileElement({
 
   return (
     <ListGroupItem className="d-flex">
-      <span className="flex-grow-0">{Icon}</span>
+      <span className="flex-grow-0">
+        <Icon />
+      </span>
       <div className="mx-3 d-inline-block flex-grow-1">
         <pre className="mb-0 export-file-filename">{filename}</pre>
         <p className="my-0 small">{HelpMain}</p>
@@ -150,7 +151,7 @@ export function ExportDialogButton() {
               <Card>
                 <ListGroup flush>
                   <ExportFileElement
-                    Icon={<FileIconJson />}
+                    Icon={FileIconJson}
                     filename={exportParams.filenameJson}
                     HelpMain={t('Results of the analysis in JSON format.')}
                     HelpDetails={t(
@@ -161,7 +162,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconNdjson />}
+                    Icon={FileIconNdjson}
                     filename={exportParams.filenameNdjson}
                     HelpMain={t('Results of the analysis in NDJSON format (newline-delimited JSON).')}
                     HelpDetails={t(
@@ -172,7 +173,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconCsv />}
+                    Icon={FileIconCsv}
                     filename={exportParams.filenameCsv}
                     HelpMain={t('Summarized results of the analysis in CSV format.')}
                     HelpDetails={t(
@@ -183,7 +184,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconTsv />}
+                    Icon={FileIconTsv}
                     filename={exportParams.filenameTsv}
                     HelpMain={t('Summarized results of the analysis in TSV format.')}
                     HelpDetails={t(
@@ -194,7 +195,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconJson />}
+                    Icon={FileIconJson}
                     filename={exportParams.filenameTree}
                     HelpMain={t('Phylogenetic tree with sequenced placed onto it.')}
                     HelpDetails={
@@ -212,7 +213,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconFasta />}
+                    Icon={FileIconFasta}
                     filename={exportParams.filenameFasta}
                     HelpMain={t('Aligned sequences in FASTA format.')}
                     HelpDetails={t('Contains aligned sequences in FASTA format.')}
@@ -221,7 +222,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconZip />}
+                    Icon={FileIconZip}
                     filename={exportParams.filenamePeptidesZip}
                     HelpMain={t('Aligned peptides in FASTA format, zipped')}
                     HelpDetails={t(
@@ -234,7 +235,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconCsv />}
+                    Icon={FileIconCsv}
                     filename={exportParams.filenameInsertionsCsv}
                     HelpMain={t('Insertions in CSV format.')}
                     HelpDetails={t('Contains insertions stripped from aligned sequences.')}
@@ -243,7 +244,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconCsv />}
+                    Icon={FileIconCsv}
                     filename={exportParams.filenameErrorsCsv}
                     HelpMain={t('Errors, warnings, and failed genes in CSV format.')}
                     HelpDetails={t(
@@ -254,7 +255,7 @@ export function ExportDialogButton() {
                   />
 
                   <ExportFileElement
-                    Icon={<FileIconZip />}
+                    Icon={FileIconZip}
                     filename={exportParams.filenameZip}
                     HelpMain={t('All files in a zip archive.')}
                     HelpDetails={t('Contains all of the above files in a single zip file.')}
