@@ -17,15 +17,15 @@ import { prepareGeneMap } from 'src/io/prepareGeneMap'
 const gSubject = new Subject<FastaRecord>()
 
 function onSequence(seq: FastaRecord) {
-  gSubject?.next(seq)
+  gSubject.next(seq)
 }
 
 function onComplete() {
-  gSubject?.complete()
+  gSubject.complete()
 }
 
 function onError(error: Error) {
-  gSubject?.error(error)
+  gSubject.error(error)
 }
 
 export class ErrorModuleNotInitialized extends ErrorInternal {

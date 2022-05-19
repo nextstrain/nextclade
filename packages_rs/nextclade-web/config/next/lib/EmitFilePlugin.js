@@ -46,10 +46,10 @@ function EmitFilePlugin(options) {
  */
 EmitFilePlugin.prototype.apply = function (compiler) {
   if (version < 4) {
-    compiler.plugin('emit', (compilation, callback) => emitFile(this.options, compilation, callback, callback))
+    compiler.plugin('emit', (compilation, callback) => emitFile(this.options, compilation, callback))
   } else if (version === 4) {
     compiler.hooks.emit.tapAsync(EmitFilePlugin.name, (compilation, callback) =>
-      emitFile(this.options, compilation, callback, callback),
+      emitFile(this.options, compilation, callback),
     )
   } else {
     compiler.hooks.thisCompilation.tap(EmitFilePlugin.name, (compilation) => {
@@ -61,7 +61,7 @@ EmitFilePlugin.prototype.apply = function (compiler) {
               ? this.options.stage
               : webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
         },
-        () => new Promise((resolve, reject) => emitFile(this.options, compilation, resolve, reject)),
+        () => new Promise((resolve) => emitFile(this.options, compilation, resolve)),
       )
     })
   }

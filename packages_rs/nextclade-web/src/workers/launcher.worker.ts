@@ -125,7 +125,7 @@ const worker = {
     if (!launcher) {
       return
     }
-    await launcher?.destroy()
+    await launcher.destroy()
     launcher = undefined
   },
   getAnalysisGlobalStatusObservable(): ThreadsObservable<AlgorithmGlobalStatus> {

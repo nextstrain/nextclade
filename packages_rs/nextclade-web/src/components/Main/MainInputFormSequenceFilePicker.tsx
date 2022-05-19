@@ -43,8 +43,6 @@ export function MainInputFormSequenceFilePicker() {
   const hasRequiredInputs = useRecoilValue(hasRequiredInputsAtom)
   const hasInputErrors = useRecoilValue(hasInputErrorsAtom)
 
-  const isInProgressFasta = useMemo(() => false, []) // TODO: decide whether this is needed at all
-
   const icon = useMemo(() => <FileIconFasta />, [])
 
   const run = useRunAnalysis()
@@ -82,13 +80,13 @@ export function MainInputFormSequenceFilePicker() {
   }, [canRun, hasInputErrors, hasRequiredInputs, t])
 
   const LoadExampleLink = useMemo(() => {
-    const cannotLoadExample = hasRequiredInputs || isInProgressFasta || hasInputErrors || !datasetCurrent
+    const cannotLoadExample = hasRequiredInputs || hasInputErrors || !datasetCurrent
     return (
       <Button color="link" onClick={setExampleSequences} disabled={cannotLoadExample}>
         {t('Load example')}
       </Button>
     )
-  }, [datasetCurrent, hasInputErrors, hasRequiredInputs, isInProgressFasta, setExampleSequences, t])
+  }, [datasetCurrent, hasInputErrors, hasRequiredInputs, setExampleSequences, t])
 
   const onToggleRunAutomatically = useCallback(() => {
     setShouldRunAutomatically((shouldRunAutomatically) => !shouldRunAutomatically)
@@ -103,7 +101,7 @@ export function MainInputFormSequenceFilePicker() {
         pasteInstructions={t('Enter sequence data in FASTA or plain text format')}
         input={qrySeq}
         error={qrySeqError}
-        isInProgress={isInProgressFasta}
+        isInProgress={false}
         onRemove={removeQrySeq}
         onInput={setSequences}
       />
