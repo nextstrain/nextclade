@@ -1,358 +1,392 @@
 version: 2.1
 
 
-release_cli_only: &cli_only
-  filters:
-    branches:
-      only:
-        - release-cli
-        - staging-cli
-
-major_branches_only: &major_branches_only
-  filters:
-    branches:
-      only:
-        - master
-        - staging
-        - release
-
-major_branches_and_cli_release_only: &major_branches_and_cli_only
-  filters:
-    branches:
-      only:
-        - master
-        - staging
-        - release
-        - release-cli
-        - staging-cli
-
-
 jobs:
   Update-Builder-Container:
-    resource_class: medium
+
+    shell: '/bin/bash -euxo pipefail'
+
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
 
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2004:202201-02
+      docker_layer_caching: true
+
+    resource_class: large
 
     steps:
       - checkout
 
       - run:
-          name: 'Calculate current checksum.txt'
+          name: 'Calculate current docker build checksum'
           command: |
             ./scripts/docker_build_checksum.sh > "checksum.current.txt"
 
       - restore_cache:
-          name: 'Restore previous checksum.txt from cache'
+          name: 'Restore previous docker build checksum from cache'
           keys:
-            - cache-nextclade-v10-builder-container-{{ checksum "checksum.current.txt" }}
+            - cache-v13-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
-          name: 'Compare checksum.txt to cached one, halt if no changes'
+          name: 'Compare current and previous checksum, halt if no changes'
           command: |
-            set -x
-            if [ -f "checksum.previous.txt" ]; then
-              CHECKSUM_OLD="$(cat checksum.previous.txt)"
-              CHECKSUM_NEW="$(cat checksum.current.txt)"
-              if [ "${CHECKSUM_OLD}" == "${CHECKSUM_NEW}" ]; then
-                echo "Checksum did not change. Halting the job."
-                circleci-agent step halt
-              fi
+            touch checksum.previous.txt
+            CHECKSUM_OLD="$(cat checksum.previous.txt)"
+            CHECKSUM_NEW="$(cat checksum.current.txt)"
+
+            echo CHECKSUM_OLD=${CHECKSUM_OLD}
+            echo CHECKSUM_NEW=${CHECKSUM_NEW}
+
+            if [ "${CHECKSUM_OLD}" == "${CHECKSUM_NEW}" ]; then
+              echo "Checksum did not change. Halting the job."
+              circleci-agent step halt
             fi
+
             mv checksum.current.txt checksum.previous.txt
             echo "Checksum changed. Continuing the job."
 
       - run:
-          name: 'Build "Builder" container image'
-          command: |
-            ./scripts/docker_builder_image_build.sh "builder"
-
-      - run:
-          name: 'Build "Web" container image'
-          command: |
-            set -x
-            ./scripts/docker_builder_image_build.sh "web"
-
-      - run:
-          name: 'Push container images'
+          name: 'Build container image'
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/docker_builder_image_push.sh "builder"
-            ./scripts/docker_builder_image_push.sh "web"
+
+            echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+
+            ./docker-dev dp
+
+            declare -a TARGETS=(
+              "aarch64-apple-darwin"
+              "aarch64-unknown-linux-gnu"
+              "wasm32-unknown-unknown"
+              "x86_64-apple-darwin"
+              "x86_64-pc-windows-gnu"
+              "x86_64-unknown-linux-gnu"
+              "x86_64-unknown-linux-musl"
+            )
+
+            for CROSS in "${TARGETS[@]}"; do
+              DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+
+              docker pull "nextstrain/nextclade_builder:dev" 2>/dev/null || true >/dev/null
+              docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+              docker pull "nextstrain/nextclade_builder:${CROSS}" 2>/dev/null || true >/dev/null
+              docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
+
+              CROSS=${CROSS} ./docker-dev dp
+            done
 
       - save_cache:
           name: 'Save new checksum.txt to cache'
-          key: cache-nextclade-v10-builder-container-{{ checksum "checksum.previous.txt" }}
+          key: cache-v13-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
 
-  Build-Web:
-    resource_class: medium
 
-    docker:
-      - image: nextstrain/nextclade_builder:web
-        auth:
-          username: $DOCKERHUB_USERNAME
-          password: $DOCKERHUB_PASS
+  Build-Cli:
+    parameters:
+      target_arch:
+        type: string
+
+    shell: '/bin/bash -euxo pipefail'
+
     environment:
-      AWS_PAGER: ''
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
+
+    machine:
+      image: ubuntu-2004:202201-02
+      docker_layer_caching: true
+
+    resource_class: large
 
     steps:
       - checkout
 
+      - run:
+          name: ' [ web ] | Pull docker dev image'
+          command: |
+            CROSS="<< parameters.target_arch >>"
+            DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+
+            docker pull "nextstrain/nextclade_builder:dev" >/dev/null
+            docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null
+            docker pull "nextstrain/nextclade_builder:cross-${CROSS}" >/dev/null
+            docker pull "nextstrain/nextclade_builder:cross-${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null
+
       - restore_cache:
-          name: 'Restore WebAssembly module build cache'
+          name: ' [ << parameters.target_arch >> ] | Restore build cache'
           keys:
-            - cache-nextclade-v10-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+            - cache-v4-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
 
       - run:
-          name: 'Build WebAssembly module'
+          name: ' [ << parameters.target_arch >> ] | Build CLI'
           command: |
+            export CROSS="<< parameters.target_arch >>"
+
+            echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+
+            CROSS=${CROSS} ./docker-dev br
+
+      - save_cache:
+          name: ' [ << parameters.target_arch >> ] | Save build cache'
+          key: cache-v4-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
+          paths:
+            - .build
+            - .cache
+
+      - store_artifacts:
+          name: ' [ << parameters.target_arch >> ] | Store build artifacts'
+          path: .out
+
+      - persist_to_workspace:
+          name: ' [ << parameters.target_arch >> ] | Persist build artifacts to workspace'
+          root: .
+          paths:
+            - .out/*
+
+
+  Release-Cli:
+
+    shell: '/bin/bash -euxo pipefail'
+
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
+
+    machine:
+      image: ubuntu-2004:202201-02
+      docker_layer_caching: true
+
+    resource_class: large
+
+    steps:
+      - checkout
+
+      #      - run:
+      #          name: 'Prepare workspace'
+      #          command: |
+      #            mkdir -p /tmp/workspace
+      #
+      #      - attach_workspace:
+      #          name: 'Attach workspace'
+      #          at: /tmp/workspace
+
+      #      - run:
+      #          name: 'Test CLI'
+      #          command: |
+      #            /tmp/workspace/.out/nextclade-x86_64-unknown-linux-gnu --version
+      #            /tmp/workspace/.out/nextalign-x86_64-unknown-linux-gnu --version
+
+      - run:
+          name: 'Download dependencies'
+          command: |
+            curl -fsSL "https://github.com/github-release/github-release/releases/download/v0.10.0/linux-amd64-github-release.bz2" | bzip2 -d > "${HOME}/bin/github-release"
+            chmod +x "${HOME}/bin/github-release"
+
+            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel"
+            chmod +x "${HOME}/bin/dasel"
+
+            curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
+
+      - run:
+          name: 'Publish binaries to GitHub Releases'
+          command: |
+            mkdir -p ".out/"
+            echo "Hello" > .out/hello-world
+
+            export ARTIFACTS_DIR=".out"
+            export VERSION=$(dasel select -p toml -s ".package.version" -f packages_rs/nextclade/Cargo.toml)
+
+            (./scripts/extract-release-notes.py CHANGELOG.md; git cliff --unreleased) | github-release release \
+              --user "${CIRCLE_PROJECT_USERNAME}" \
+              --repo "${CIRCLE_PROJECT_REPONAME}" \
+              --tag "${VERSION}" \
+              --target "${CIRCLE_SHA1}" \
+              --description - \
+              --security-token "${GITHUB_TOKEN}" \
+            || true
+
+            # Look like the release appears not immediately and if upload is following too quickly
+            # it fails because it cannot find the release. So let's wait an arbitrary amount of time here.
+            sleep 7
+
+            for filename in ${ARTIFACTS_DIR}/*; do
+              github-release upload \
+                --file "${filename}" \
+                --name "$(basename ${filename})" \
+                --user "${CIRCLE_PROJECT_USERNAME}" \
+                --repo "${CIRCLE_PROJECT_REPONAME}" \
+                --tag "${VERSION}" \
+                --security-token "${GITHUB_TOKEN}" \
+                --replace
+            done
+
+
+
+  Build-And-Release-Web:
+
+    shell: '/bin/bash -euxo pipefail'
+
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
+
+    machine:
+      image: ubuntu-2004:202201-02
+      docker_layer_caching: true
+
+    resource_class: large
+
+    steps:
+      - checkout
+
+      - run:
+          name: ' [ web ] | Pull docker dev image'
+          command: |
+            CROSS="wasm32-unknown-unknown"
+            DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
+
+            docker pull "nextstrain/nextclade_builder:dev" >/dev/null
+            docker pull "nextstrain/nextclade_builder:dev-${DOCKER_IMAGE_VERSION}" >/dev/null
+            docker pull "nextstrain/nextclade_builder:cross-${CROSS}" >/dev/null
+            docker pull "nextstrain/nextclade_builder:cross-${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null
+
+      - restore_cache:
+          name: ' [ web ] | Restore build cache'
+          keys:
+            - cache-v4-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+
+      - run:
+          name: ' [ web ] | Build WebAssembly module'
+          command: |
+            ./docker-dev Wr
+
+      - save_cache:
+          name: ' [ web ] | Save build cache'
+          key: cache-v4-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+          paths:
+            - .build
+            - .cache
+
+      - restore_cache:
+          name: ' [ web ] | Restore build cache'
+          keys:
+            - cache-v4-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+
+      - run:
+          name: ' [ web ] | Build web application'
+          command: |
+
+            export FULL_DOMAIN="https://example.com"
+            export DATA_FULL_DOMAIN="https://data.example.com"
+
             echo "FULL_DOMAIN=${FULL_DOMAIN}" >> .env
             echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
+            echo "ANALYZE=0" >> .env
+            echo "PROFILE=0" >> .env
+            echo "WATCH_POLL=0" >> .env
             echo "PROD_ENABLE_SOURCE_MAPS=0" >> .env
             echo "PROD_ENABLE_TYPE_CHECKS=0" >> .env
             echo "PROD_ENABLE_ESLINT=0" >> .env
             echo "PROD_ENABLE_STYLELINT=0" >> .env
-            echo "PROD_ENABLE_REDUX_DEV_TOOLS=0" >> .env
-            echo "PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT=0" >> .env
-            echo "PROD_ENABLE_REDUX_LOGGER=0" >> .env
-            make prod-wasm-nowatch
+
+            ./docker-dev ar
 
       - save_cache:
-          name: 'Save WebAssembly module build cache'
-          key: cache-nextclade-v10-web-wasm-{{ arch }}-{{ checksum "conanfile.wasm.txt" }}
+          name: ' [ web ] | Save build cache'
+          key: cache-v4-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
           paths:
-            - .cache
-
-      - restore_cache:
-          name: 'Restore web application build cache'
-          keys:
-            - cache-nextclade-v10-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
+            - packages_rs/nextclade-web/.build
+            - packages_rs/nextclade-web/.cache
 
       - run:
-          name: 'Build web application'
-          command: |
-            make lint-web
-            make prod-web-nowatch
-
-      - save_cache:
-          name: 'Save web application build cache'
-          key: cache-nextclade-v10-web-js-{{ arch }}-{{ checksum "packages/web/yarn.lock" }}
-          paths:
-            - packages/web/.cache
-            - packages/web/.build/production/tmp/cache
-
-      - run:
-          name: 'Clear AWS S3 bucket (branch << pipeline.git.branch >>)'
-          command: |
-            aws s3 rm s3://${AWS_S3_BUCKET} --recursive
-
-      - run:
-          name: 'Deploy web bundle to AWS S3 (branch << pipeline.git.branch >>)'
-          command: |
-            cd packages/web/.build/production/web
-            aws s3 cp --recursive --cache-control "max-age=2592000, public" "_next/" "s3://${AWS_S3_BUCKET}/_next/"
-
-      - run:
-          name: 'Deploy web root to AWS S3 (branch << pipeline.git.branch >>)'
-          command: |
-            cd packages/web/.build/production/web
-            aws s3 cp --recursive --exclude "_next" --exclude "*.html" "./" "s3://${AWS_S3_BUCKET}/"
-
-      - run:
-          name: 'Deploy html files to AWS S3 (branch << pipeline.git.branch >>)'
-          command: |
-            cd packages/web/.build/production/web
-            find * -type f -name "*.html" -exec bash -c '\
-            aws s3 cp \
-              --content-type "text/html" \
-              --cache-control "no-cache" \
-              --metadata-directive REPLACE \
-                $1 \
-                s3://${AWS_S3_BUCKET}/${1}' \
-            - "{}" \;
-
-      - run:
-          name: 'Invalidate AWS Cloudfront cache'
-          command: |
-            aws cloudfront create-invalidation \
-              --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
-              --paths "/*"
-
-  Build-Linux-x86_64:
-    resource_class: medium
-
-    machine:
-      image: ubuntu-2004:202010-01
-
-    steps:
-      - checkout
-
-      - run:
-          name: 'Pull "Builder" container image'
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/docker_builder_image_pull.sh || true
-
-      - restore_cache:
-          name: 'Restore build cache'
-          keys:
-            - cache-nextclade-v10-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
-
-      - run:
-          name: 'Run "Builder" container'
-          command: |
-            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
-            make docker-builder-run
-
-      - save_cache:
-          name: 'Save build cache'
-          key: cache-nextclade-v10-cache-{{ arch }}-{{ checksum "conanfile.txt" }}
-          paths:
-            - .cache
-
-      - store_artifacts:
-          name: 'Store artifacts: nextalign-Linux-x86_64'
-          path: .out/bin/nextalign-Linux-x86_64
-          destination: nextalign-Linux-x86_64
-
-      - store_artifacts:
-          name: 'Store artifacts: nextclade-Linux-x86_64'
-          path: .out/bin/nextclade-Linux-x86_64
-          destination: nextclade-Linux-x86_64
-
-      - run:
-          name: Halt if not on release-cli branch
+          name: ' [ web ] | Halt if not on release-cli branch'
           command: |
             if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
                 circleci-agent step halt
             fi
 
-      - run:
-          name: 'Publish binaries to GitHub Releases: Linux-x86_64'
-          command: |
-            OS=linux ./scripts/download_github_release_tool.sh
-            ./scripts/publish_github_releases.sh
+cli_only: &cli_branches_only
+  filters:
+    branches:
+      only:
+        # - release-cli
+        # - staging-cli
+         - rust-release
 
-      - run:
-          name: 'Publish Docker images to DockerHub'
-          command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./scripts/publish_docker_images.sh
 
-  Build-MacOS:
-    parameters:
-      macos_arch:
-        type: string
+major_branches_only: &only_major_branches
+  filters:
+    branches:
+      only:
+        # - master
+        # - staging
+        # - release
+         - rust-release
 
-    macos:
-      xcode: "12.4.0"
-
-    environment:
-      CLICOLOR: 1
-      TERM: xterm-256color
-
-    steps:
-      - checkout
-
-      - restore_cache:
-          name: 'Restore homebrew cache'
-          keys:
-            - cache-nextclade-v10-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
-
-      - run:
-          name: 'Install build tools'
-          command: |
-            set -x
-            brew bundle
-
-            mkdir -p .cache
-            python3 -m venv .cache/venv
-            source .cache/venv/bin/activate
-            pip3 install --upgrade -r requirements.txt
-
-            conan profile new default --detect
-
-          environment:
-            HOMEBREW_NO_AUTO_UPDATE: 1
-            CONAN_USER_HOME: '/Users/distiller/project/.cache'
-
-      - save_cache:
-          name: 'Save homebrew cache'
-          key: cache-nextclade-v10-homebrew-{{ arch }}-{{ checksum "Brewfile" }}
-          paths:
-            - '~/Library/Caches/Homebrew'
-            - '/usr/local/Homebrew'
-
-      - restore_cache:
-          name: 'Restore build cache'
-          keys:
-            - cache-nextclade-v10-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
-
-      - run:
-          name: Run macOS << parameters.macos_arch >> build
-          command: |
-            source .cache/venv/bin/activate
-            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
-            make prod
-          environment:
-            CONAN_USER_HOME: '/Users/distiller/project/.cache'
-            HOST_ARCH: << parameters.macos_arch >>
-
-      - save_cache:
-          name: 'Save build cache'
-          key: cache-nextclade-v10-cache-{{ arch }}-{{ checksum "conanfile.txt" }}-<< parameters.macos_arch >>
-          paths:
-            - .cache
-
-      - store_artifacts:
-          name: 'Store artifacts: nextalign-MacOS-<< parameters.macos_arch >>'
-          path: .out/bin/nextalign-MacOS-<< parameters.macos_arch >>
-          destination: nextalign-MacOS-<< parameters.macos_arch >>
-
-      - store_artifacts:
-          name: 'Store artifacts: nextclade-MacOS-<< parameters.macos_arch >>'
-          path: .out/bin/nextclade-MacOS-<< parameters.macos_arch >>
-          destination: nextclade-MacOS-<< parameters.macos_arch >>
-
-      - run:
-          name: Halt if not on release-cli branch
-          command: |
-            if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
-                circleci-agent step halt
-            fi
-
-      - run:
-          name: 'Publish binaries to GitHub Releases: MacOS-<< parameters.macos_arch >>'
-          command: |
-            OS=darwin ./scripts/download_github_release_tool.sh
-            ./scripts/publish_github_releases.sh
+major_branches_and_cli_release_only: &only_major_branches_and_cli_branches
+  filters:
+    branches:
+      only:
+        # - master
+        # - staging
+        # - release
+        # - release-cli
+        # - staging-cli
+         - rust-release
 
 workflows:
   version: 2
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *major_branches_and_cli_only
+          <<: *only_major_branches_and_cli_branches
 
-      - Build-Web:
-          context: nextclade_web_<< pipeline.git.branch >>
-          <<: *major_branches_only
+          context:
+            - nextclade_macos
+
+
+      - Build-Cli:
+          <<: *cli_branches_only
+
           requires:
             - Update-Builder-Container
 
-      - Build-Linux-x86_64:
-          context: nextclade_cli_<< pipeline.git.branch >>
-          <<: *cli_only
-          requires:
-            - Update-Builder-Container
+          context:
+            - nextclade_macos
 
-      - Build-MacOS:
-          context: nextclade_cli_<< pipeline.git.branch >>
           matrix:
             parameters:
-              macos_arch:
-                - x86_64
-                - arm64
-          <<: *cli_only
+              target_arch:
+                - x86_64-apple-darwin
+                - aarch64-apple-darwin
+                - x86_64-unknown-linux-gnu
+                - x86_64-pc-windows-gnu
+                - aarch64-unknown-linux-gnu
+                - x86_64-unknown-linux-musl
+
+
+      - Release-Cli:
+          <<: *cli_branches_only
+
+          context:
+            - nextclade_github
+
+          requires:
+            - Build-Cli-x86_64-apple-darwin
+            - Build-Cli-aarch64-apple-darwin
+            - Build-Cli-x86_64-unknown-linux-gnu
+            - Build-Cli-x86_64-pc-windows-gnu
+            - Build-Cli-aarch64-unknown-linux-gnu
+            - Build-Cli-x86_64-unknown-linux-musl
+
+
+      - Build-And-Release-Web:
+          <<: *only_major_branches
+
+          # context: nextclade_web_<< pipeline.git.branch >>
+
+          requires:
+            - Update-Builder-Container

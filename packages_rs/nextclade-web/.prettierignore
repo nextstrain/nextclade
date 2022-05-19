@@ -1,0 +1,11 @@
+/\.build
+/\.cache
+/\.editorconfig
+/\.env
+/\.git
+/\.gitignore
+/\.idea
+/\.ignore
+/\.prettierignore
+/\.vscode*
+/node_modules

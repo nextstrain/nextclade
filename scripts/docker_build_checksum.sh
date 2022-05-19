@@ -1,20 +1,13 @@
 #!/usr/bin/env bash
 
-BASH_DEBUG="${BASH_DEBUG:=}"
-([ "${BASH_DEBUG}" == "true" ] || [ "${BASH_DEBUG}" == "1" ] ) && set -o xtrace
-set -o errexit
-set -o nounset
-set -o pipefail
-shopt -s dotglob
+set -euo pipefail
 trap "exit" INT
 
 cat \
-  .circleci/config.yml \
   .dockerignore \
   .gitignore \
   .nvmrc \
-  Dockerfile \
-  Makefile \
+  docker-dev.dockerfile \
+  rust-toolchain.toml \
   scripts/docker_build_checksum.sh \
-  scripts/install*.sh \
-| md5sum
+| sha256sum | cut -f 1 -d " "

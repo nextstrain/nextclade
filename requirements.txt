@@ -1,3 +1,0 @@
-colorama
-conan==1.46.0
-cpplint

@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+  "packages_rs/*",
+]
+
+exclude = [
+  "packages_rs/3rdparty"
+]

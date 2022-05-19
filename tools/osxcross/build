@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source .env
+
+: MACOS_SDK_FILENAME
+: MACOS_SDK_URL
+
+export DOCKER_BUILDKIT=1
+export BUILDKIT_PROGRESS=plain
+export PROGRESS_NO_TRUNC=1
+
+docker build \
+  --tag="osxcross" \
+  --network=host \
+  --build-arg="MACOS_SDK_FILENAME=${MACOS_SDK_FILENAME}" \
+  --build-arg="MACOS_SDK_URL=${MACOS_SDK_URL}" \
+  .
+
+docker run -it --rm \
+  --init \
+  --name="osxcross-$(date +%s)" \
+  --user="$(id -u):$(id -g)" \
+  --volume="$(pwd):/workdir" \
+  --workdir="/workdir" \
+  osxcross \
+  bash -c "set -euxo pipefail \
+    && cd /opt/osxcross \
+    && tar c * | xz -T0 -k > /workdir/osxcross.tar.xz \
+  "
