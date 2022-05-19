@@ -231,7 +231,7 @@ pub struct NextcladeRunArgs {
 
   /// Path to a FASTA file containing reference sequence. This file is expected to contain exactly 1 sequence.
   ///
-  /// Overrides path to `tree.json` in the dataset (`--input-dataset`).
+  /// Overrides path to `reference.fasta` in the dataset (`--input-dataset`).
   #[clap(long, short = 'r', alias("reference"), alias("input-root-seq"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
@@ -367,7 +367,7 @@ pub struct NextcladeRunArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tree: Option<PathBuf>,
 
-  /// Path to output CSV file with stripped insertions data.
+  /// Path to output CSV file that contain insertions stripped from the reference alignment.
   ///
   /// Overrides paths given with `--output-dir` and `--output-basename`.
   ///
