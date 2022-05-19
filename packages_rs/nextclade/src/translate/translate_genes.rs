@@ -159,6 +159,15 @@ pub fn translate_gene(
     );
   }
 
+  // If start and end nucs of qry are gaps, don't penalize them in alignment
+  // TODO: Think about qry insertions, they will also be free?
+  let aa_params = AlignPairwiseParams {
+    // Set to false for internal genes
+    left_terminal_gaps_free: qry_gene_seq.first().unwrap().is_gap(),
+    right_terminal_gaps_free: qry_gene_seq.last().unwrap().is_gap(),
+    ..*params
+  };
+
   // Make sure subsequent gap stripping does not introduce frame shift
   protect_first_codon_in_place(&mut ref_gene_seq);
   protect_first_codon_in_place(&mut qry_gene_seq);
@@ -182,7 +191,7 @@ pub fn translate_gene(
     &query_peptide.seq,
     &ref_peptide.seq,
     gap_open_close_aa,
-    params,
+    &aa_params,
     band_width,
     mean_shift,
   )?;

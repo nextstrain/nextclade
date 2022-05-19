@@ -44,6 +44,7 @@ pub fn align_nuc(
 
   let stripes = seed_alignment(qry_seq, ref_seq, params)?;
 
+  // TODO: This should not be accessible through CLI, implement in better way
   let nuc_params = AlignPairwiseParams {
     left_terminal_gaps_free: true,
     right_terminal_gaps_free: true,
@@ -68,15 +69,7 @@ pub fn align_aa(
 ) -> Result<AlignmentOutput<Aa>, Report> {
   let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
 
-  // TODO: lift up to calling function and make conditional on whether overall align start/end falls into gene
-  let aa_params = AlignPairwiseParams {
-    // Set to false for internal genes
-    left_terminal_gaps_free: false,
-    right_terminal_gaps_free: false,
-    ..*params
-  };
-
-  align_pairwise(qry_seq, ref_seq, gap_open_close, &aa_params, &stripes)
+  align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)
 }
 
 #[cfg(test)]
