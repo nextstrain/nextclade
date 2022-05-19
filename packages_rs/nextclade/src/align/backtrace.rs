@@ -27,8 +27,8 @@ pub fn backtrace<T: Letter<T>>(
   let qry_len = qry_seq.len() as i32;
   let ref_len = ref_seq.len() as i32;
 
-  // TODO: find better aln_capacity -> this is far too big
-  let aln_capacity = scores.data.len();
+  // max length of the alignment is the sum of query and reference length
+  let aln_capacity = scores.num_cols() + scores.num_rows();
   let mut aln_ref = Vec::<T>::with_capacity(aln_capacity);
   let mut aln_qry = Vec::<T>::with_capacity(aln_capacity);
 
