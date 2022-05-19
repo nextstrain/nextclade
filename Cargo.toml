@@ -5,5 +5,5 @@ members = [
 ]
 
 exclude = [
-  "3rdparty"
+  "packages_rs/3rdparty"
 ]

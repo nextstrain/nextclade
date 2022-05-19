@@ -1,4 +1,0 @@
-settings set target.load-cwd-lldbinit true
-
-run
-quit
