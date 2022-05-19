@@ -33,6 +33,9 @@ pub fn score_matrix<T: Letter<T>>(
 
   let mut paths = Band2d::<i8>::new(stripes);
   let mut scores = Band2d::<i32>::new(stripes);
+  let band_size = paths.data.len();
+
+  trace!("Score matrix: allocated alignment band of size={band_size}");
 
   // fill scores with alignment scores
   // if the colon marks the position in the sequence before rPos,qPos

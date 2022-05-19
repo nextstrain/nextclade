@@ -163,9 +163,10 @@ pub fn seed_alignment<L: Letter<L>>(
     ref_len_i,
     params.terminal_bandwidth,
     params.excess_bandwidth,
+    params.max_indel
   );
 
-  Ok(stripes)
+  stripes
 }
 
 /// construct the band in the alignment matrix. this band is organized as "stripes"
@@ -176,7 +177,8 @@ pub fn create_stripes(
   ref_len: i32,
   terminal_bandwidth: i32,
   excess_bandwidth: i32,
-) -> Vec<Stripe> {
+  max_indel: usize
+) -> Result<Vec<Stripe>, Report> {
   let mut seed_matches = seed_matches.to_vec();
 
   // Discard seed matches right at the terminals of the ref sequence
@@ -208,6 +210,10 @@ pub fn create_stripes(
   for slice in shifts.windows(4) {
     let min = slice.iter().min().unwrap();
     let max = slice.iter().max().unwrap();
+    let width = max - min;
+    if width as usize> max_indel {
+      return make_error!("Unable to align: seed matches suggest large indels");
+    }
     robust_shifts.push((min, max));
   }
 
@@ -247,7 +253,7 @@ pub fn create_stripes(
 
   robust_stripes = regularize_stripes(robust_stripes, qry_len as usize);
 
-  robust_stripes
+  Ok(robust_stripes)
 }
 
 /// Chop off unreachable parts of the stripes.
@@ -310,10 +316,11 @@ mod tests {
 
     let terminal_bandwidth = 5;
     let excess_bandwidth = 2;
+    let max_indel = 100;
     let qry_len = 30;
     let ref_len = 40;
 
-    let result = create_stripes(&seed_matches, qry_len, ref_len, terminal_bandwidth, excess_bandwidth);
+    let result = create_stripes(&seed_matches, qry_len, ref_len, terminal_bandwidth, excess_bandwidth, max_indel);
 
     println!("{:?}", result);
 
