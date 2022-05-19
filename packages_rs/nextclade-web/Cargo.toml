@@ -16,15 +16,15 @@ eyre = "0.6.8"
 getrandom = { version = "0.2.6", features = ["js"] }
 itertools = "0.10.3"
 js-sys = { version = "0.3.57", features = [] }
-log = "0.4.16"
+log = "0.4.17"
 nextclade = { path = "../nextclade" }
-serde = { version = "1.0.136", features = ["derive"] }
+serde = { version = "1.0.137", features = ["derive"] }
 typescript-definitions = { path = "../3rdparty/typescript-definitions", features = ['export-typescript'] }
 typescript-definitions-derive = { path = "../3rdparty/typescript-definitions/typescript-definitions-derive", features = ['export-typescript'] }
-wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"] }
+wasm-bindgen = { version = "0.2.80", features = ["serde-serialize"] }
 wasm-logger = "0.2.0"
-web-sys = { version = "0.3.56", features = ["console"] }
+web-sys = { version = "0.3.57", features = ["console"] }
 
 [dev-dependencies]
 assert2 = "0.3.6"
-wasm-bindgen-test = "0.3.29"
+wasm-bindgen-test = "0.3.30"
