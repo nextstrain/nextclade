@@ -10,7 +10,7 @@ export function filterByClades(cladesFilter: string) {
       return false
     }
 
-    const clade = result?.result.analysisResult.clade
+    const { clade } = result.result.analysisResult
     return cladesFilters.some((filter) => clade.toLowerCase().startsWith(filter.toLowerCase()))
   }
 }
