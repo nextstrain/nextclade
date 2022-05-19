@@ -1,3 +1,4 @@
+use crate::io::http_client::ProxyConfig;
 use clap::{AppSettings, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
@@ -5,18 +6,17 @@ use clap_verbosity_flag::{Verbosity, WarnLevel};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use nextclade::{getenv, make_error};
-use nextclade::utils::global_init::setup_logger;
 use log::LevelFilter;
+use nextclade::align::params::AlignPairwiseParams;
+use nextclade::io::fs::basename;
+use nextclade::utils::global_init::setup_logger;
+use nextclade::{getenv, make_error};
 use std::env::current_dir;
 use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
 use url::Url;
-use nextclade::align::params::AlignPairwiseParams;
-use nextclade::io::fs::basename;
-use crate::io::http_client::ProxyConfig;
 
 const DATA_FULL_DOMAIN: &str = getenv!("DATA_FULL_DOMAIN");
 
@@ -39,7 +39,7 @@ lazy_static! {
 /// Publication:   https://doi.org/10.21105/joss.03773
 pub struct NextcladeArgs {
   #[clap(subcommand)]
-  pub command: Option<NextcladeCommands>,
+  pub command: NextcladeCommands,
 
   /// Set verbosity level
   #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
@@ -81,7 +81,7 @@ pub enum NextcladeCommands {
 #[derive(Parser, Debug)]
 pub struct NextcladeDatasetArgs {
   #[clap(subcommand)]
-  pub command: Option<NextcladeDatasetCommands>,
+  pub command: NextcladeDatasetCommands,
 }
 
 #[derive(Subcommand, Debug)]
@@ -515,10 +515,10 @@ pub fn nextclade_parse_cli_args() -> Result<NextcladeArgs, Report> {
   setup_logger(filter_level);
 
   match &mut args.command {
-    Some(NextcladeCommands::Completions { shell }) => {
+    NextcladeCommands::Completions { shell } => {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
-    Some(NextcladeCommands::Run { 0: ref mut run_args }) => {
+    NextcladeCommands::Run(ref mut run_args) => {
       nextclade_get_input_filenames(run_args)?;
       nextclade_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }
