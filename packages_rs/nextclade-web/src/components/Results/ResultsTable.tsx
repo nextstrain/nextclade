@@ -1,12 +1,12 @@
-import React, { CSSProperties, useCallback, useDeferredValue, useMemo } from 'react'
+import React, { CSSProperties, useDeferredValue, useMemo } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
 import { useRecoilCallback, useRecoilValue } from 'recoil'
-import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import styled from 'styled-components'
 
+import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import {
   resultsTableColumnWidthsPxAtom,
   resultsTableDynamicColumnWidthPxAtom,
@@ -46,7 +46,6 @@ import HelpTipsColumnStopCodons from './HelpTips/HelpTipsColumnStopCodons.mdx'
 import HelpTipsColumnSeqName from './HelpTips/HelpTipsColumnSeqName.mdx'
 import HelpTipsColumnSeqView from './HelpTips/HelpTipsColumnSeqView.mdx'
 import { SequenceSelector } from '../SequenceView/SequenceSelector'
-import { ColumnCustomNodeAttr } from './ColumnCustomNodeAttr'
 
 const LIST_STYLE: CSSProperties = { overflowY: 'scroll' }
 
@@ -124,7 +123,7 @@ export function ResultsTable() {
         </TableHeaderCell>
       )
     })
-  }, [cladeNodeAttrKeys, dynamicColumnWidthPx, sortByKey])
+  }, [cladeNodeAttrDescs, dynamicColumnWidthPx, sortByKey])
 
   return (
     <Table rounded={isResultsFilterPanelCollapsed}>
