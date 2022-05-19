@@ -1,11 +1,11 @@
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
 import { isNil } from 'lodash'
 import { atom, atomFamily, DefaultValue, selector, selectorFamily } from 'recoil'
+import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from "src/algorithms/types";
 
 import type { Gene, NextcladeResult } from 'src/algorithms/types'
 import { runFilters } from 'src/filtering/runFilters'
 import { SortCategory, SortDirection, sortResults, sortResultsByKey } from 'src/helpers/sortResults'
-import { AlgorithmGlobalStatus, AlgorithmSequenceStatus, getResultStatus } from 'src/state/algorithm/algorithm.state'
 import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
 import {
   aaFilterAtom,

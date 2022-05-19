@@ -2,8 +2,8 @@ import React, { ReactNode, useMemo } from 'react'
 import { Oval } from 'react-loader-spinner'
 
 import { useRecoilValue } from 'recoil'
+import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from "src/algorithms/types";
 import i18n from 'src/i18n/i18n'
-import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
 import { analysisResultStatusesAtom } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'

@@ -1,9 +1,7 @@
 import Axios, { AxiosError } from 'axios'
-import { DatasetFlat } from 'src/algorithms/types'
+import { AlgorithmInput, AlgorithmInputType, DatasetFlat } from "src/algorithms/types";
 import { axiosFetchRaw, HttpRequestError } from 'src/io/axiosFetch'
 
-import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
-import { AlgorithmInputType } from 'src/state/algorithm/algorithm.state'
 import { readFile } from 'src/helpers/readFile'
 import { numbro } from 'src/i18n/i18n'
 

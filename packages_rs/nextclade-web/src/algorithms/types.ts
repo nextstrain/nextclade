@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
+import { QCFilters } from 'src/filtering/filterByQCIssues'
 import type { Tagged } from 'src/helpers/types'
 
 /** Type-safe representation of a nucleotide */
@@ -403,6 +404,54 @@ export interface FastaRecord extends FastaRecordId {
 export interface PeptideWarning {
   geneName: string
   message: string
+}
+
+export enum AlgorithmGlobalStatus {
+  idle = 'idle',
+  loadingData = 'loadingData',
+  initWorkers = 'initWorkers',
+  started = 'started',
+  buildingTree = 'buildingTree',
+  done = 'done',
+  failed = 'failed',
+}
+
+export enum AlgorithmSequenceStatus {
+  started = 'started',
+  done = 'done',
+  failed = 'failed',
+}
+
+export function getResultStatus(result: NextcladeResult) {
+  if (result.error) {
+    return AlgorithmSequenceStatus.failed
+  }
+  if (result.result) {
+    return AlgorithmSequenceStatus.done
+  }
+  return AlgorithmSequenceStatus.started
+}
+
+export interface ResultsFilters extends QCFilters {
+  seqNamesFilter?: string
+  mutationsFilter?: string
+  aaFilter?: string
+  cladesFilter?: string
+}
+
+export enum AlgorithmInputType {
+  File = 'FileInput',
+  Url = 'Url',
+  String = 'String',
+  Default = 'Default',
+}
+
+export interface AlgorithmInput {
+  type: AlgorithmInputType
+  name: string
+  description: string
+
+  getContent(): Promise<string>
 }
 
 export interface DatasetsSettings {
