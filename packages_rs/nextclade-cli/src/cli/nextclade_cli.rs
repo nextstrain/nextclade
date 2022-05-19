@@ -211,7 +211,7 @@ pub struct NextcladeRunArgs {
   pub in_order: bool,
 
   /// Path to a FASTA file with input sequences
-  #[clap(long, short = 'i', alias("sequences"))]
+  #[clap(long, short = 'i', visible_alias("sequences"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_fasta: PathBuf,
 
@@ -232,7 +232,7 @@ pub struct NextcladeRunArgs {
   /// Path to a FASTA file containing reference sequence. This file is expected to contain exactly 1 sequence.
   ///
   /// Overrides path to `tree.json` in the dataset (`--input-dataset`).
-  #[clap(long, short = 'r', alias("reference"), alias("input-root-seq"))]
+  #[clap(long, short = 'r', visible_alias("reference"), visible_alias("input-root-seq"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
 
