@@ -40,7 +40,7 @@ pub struct NextalignArgs {
   #[clap(flatten)]
   pub verbose: Verbosity<WarnLevel>,
 
-  /// Set verbosity level
+  /// Set verbosity level [default: warn]
   #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
   pub verbosity: Option<log::LevelFilter>,
 
