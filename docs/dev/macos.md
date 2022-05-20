@@ -16,7 +16,7 @@
 
 2. Problem: `lldb` or `gdb` is not codesigned
 
-    When trying to debugg with `lldb` and `gdb` they stop with a message
+    When trying to debug with `lldb` and `gdb` they stop with a message
     
     > Unable to find Mach task port for process-id
 
