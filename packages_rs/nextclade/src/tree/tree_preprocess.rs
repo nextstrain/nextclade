@@ -11,6 +11,7 @@ use crate::utils::collections::concat_to_vec;
 use crate::{make_error, make_internal_report};
 use eyre::Report;
 use itertools::Itertools;
+use log::{debug, trace};
 use num::Float;
 use serde_json::Value;
 use std::collections::BTreeMap;
@@ -156,9 +157,7 @@ fn get_max_divergence_recursively(node: &AuspiceTreeNode) -> f64 {
 
   let mut child_div = -f64::infinity();
   node.children.iter().for_each(|child| {
-    if let Some(div) = child.node_attrs.div {
-      child_div = child_div.max(div);
-    }
+    child_div = child_div.max(get_max_divergence_recursively(child));
   });
 
   div.max(child_div)
