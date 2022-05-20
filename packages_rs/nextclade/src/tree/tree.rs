@@ -223,8 +223,8 @@ pub struct AuspiceTreeMeta {
 
   pub display_defaults: AuspiceDisplayDefaults,
 
-  #[serde(skip_serializing_if = "serde_json::Value::is_null")]
-  pub geo_resolutions: serde_json::Value,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub geo_resolutions: Option<serde_json::Value>,
 
   #[serde(flatten)]
   pub other: serde_json::Value,
