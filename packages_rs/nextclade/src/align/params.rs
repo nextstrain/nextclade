@@ -74,12 +74,12 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub no_translate_past_stop: bool,
 
-  ///TODO: Don't surface in CLI, local only
-  #[clap(long)]
+  // Internal alignment parameter
+  #[clap(skip)]
   pub left_terminal_gaps_free: bool,
 
-  ///TODO: Don't surface in CLI, local only
-  #[clap(long)]
+  // Internal alignment parameter
+  #[clap(skip)]
   pub right_terminal_gaps_free: bool,
 
   /// Excess bandwidth for internal stripes.
