@@ -33,10 +33,14 @@ owo-colors = "3.3.0"
 pretty_assertions = "1.2.1"
 rayon = "1.5.2"
 regex = "1.5.5"
-reqwest = { version = "0.11.10", features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls"] }
+reqwest = { version = "0.11.10", features = ["blocking", "deflate", "gzip", "brotli", "socks"] }
 semver = "1.0.9"
 serde = { version = "1.0.136", features = ["derive"] }
 url = { version = "2.2.2", features = ["serde"] }
+
+# Use rustls on Linux
+[target.'cfg(all(target_family = "linux"))'.dependencies]
+reqwest = { version = "0.11.10", features = ["blocking", "deflate", "gzip", "brotli", "socks", "rustls-tls"] }
 
 [target.'cfg(all(target_family = "linux", target_arch = "x86_64"))'.dependencies]
 mimalloc = { version = "0.1.28", default-features = false, optional = true }
