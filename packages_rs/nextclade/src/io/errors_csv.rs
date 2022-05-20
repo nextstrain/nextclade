@@ -1,4 +1,4 @@
-use crate::gene::gene_map::GeneMap;
+use crate::io::gene_map::GeneMap;
 use crate::io::csv::{CsvStructFileWriter, CsvStructWriter};
 use crate::io::nextclade_csv::{format_aa_warnings, format_failed_genes};
 use crate::translate::translate_genes::Translation;

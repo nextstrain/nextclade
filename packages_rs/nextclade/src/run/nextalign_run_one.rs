@@ -1,7 +1,7 @@
 use crate::align::align::align_nuc;
 use crate::align::insertions_strip::insertions_strip;
 use crate::align::params::AlignPairwiseParams;
-use crate::gene::gene_map::GeneMap;
+use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
 use crate::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use crate::types::outputs::{NextalignOutputs, PeptideWarning};
