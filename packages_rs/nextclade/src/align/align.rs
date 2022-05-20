@@ -44,14 +44,7 @@ pub fn align_nuc(
 
   let stripes = seed_alignment(qry_seq, ref_seq, params)?;
 
-  // TODO: This should not be accessible through CLI, implement in better way
-  let nuc_params = AlignPairwiseParams {
-    left_terminal_gaps_free: true,
-    right_terminal_gaps_free: true,
-    ..*params
-  };
-
-  let result = align_pairwise(qry_seq, ref_seq, gap_open_close, &nuc_params, &stripes)?;
+  let result = align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)?;
 
   trace!("Score: {}", result.alignment_score);
 
@@ -348,35 +341,6 @@ mod tests {
 
     assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
-    Ok(())
-  }
-
-  #[rstest]
-  fn aligns_real_large_sc2_qry_insertion_at_start(more_realistic_ctx: Context) -> Result<(), Report> {
-    let mut test_data_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    test_data_dir.push("test_data");
-    let mut ref_path = test_data_dir.clone();
-    ref_path.push("reference.fasta");
-    let mut qry_path = test_data_dir.clone();
-    qry_path.push("Hangzhou_ZJU_07_2020.fasta");
-    let mut ref_aln_path = test_data_dir.clone();
-    ref_aln_path.push("Hangzhou_ZJU_07_2020_ref_aligned.fasta");
-    let mut qry_aln_path = test_data_dir.clone();
-    qry_aln_path.push("Hangzhou_ZJU_07_2020_qry_aligned.fasta");
-    let ref_seq = to_nuc_seq(&fs::read_to_string(ref_path)?.trim())?;
-    let qry_seq = to_nuc_seq(&fs::read_to_string(qry_path)?.trim())?;
-    let ref_aln = to_nuc_seq(&fs::read_to_string(ref_aln_path)?.trim())?;
-    let qry_aln = to_nuc_seq(&fs::read_to_string(qry_aln_path)?.trim())?;
-
-    let result = align_nuc(
-      &qry_seq,
-      &ref_seq,
-      &more_realistic_ctx.gap_open_close,
-      &more_realistic_ctx.params,
-    )?;
-
-    assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
-    assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
     Ok(())
   }
 

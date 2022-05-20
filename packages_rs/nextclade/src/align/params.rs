@@ -68,11 +68,11 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub no_translate_past_stop: bool,
 
-  /// Whether left terminal gaps are free or penalized.
+  ///TODO: Don't surface in CLI, local only
   #[clap(long)]
   pub left_terminal_gaps_free: bool,
 
-  /// Whether right terminal gaps are free or penalized.
+  ///TODO: Don't surface in CLI, local only
   #[clap(long)]
   pub right_terminal_gaps_free: bool,
 
@@ -85,6 +85,18 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   #[clap(default_value_t = AlignPairwiseParams::default().terminal_bandwidth)]
   pub terminal_bandwidth: i32,
+
+  /// TODO: refactor with below into one parameter (two flags into one variable, like action in Python argparse)
+  /// Left align gaps (convention) instead of right align (Nextclade historical practice)
+  /// Make mutually exclusive with `--right-align-gaps`
+  #[clap(long)]
+  pub left_align_gaps: bool,
+
+  /// TODO: refactor with above into one parameter (two flags into one variable, like action in Python argparse)
+  /// Right align gaps (historical Nextclade practice)
+  /// Make mutually exclusive with `--right-align-gaps`
+  #[clap(long)]
+  pub right_align_gaps: bool,
 }
 
 impl Default for AlignPairwiseParams {
@@ -103,10 +115,12 @@ impl Default for AlignPairwiseParams {
       seed_spacing: 100,
       mismatches_allowed: 3,
       no_translate_past_stop: false,
-      left_terminal_gaps_free: false,
-      right_terminal_gaps_free: false,
+      left_terminal_gaps_free: true,
+      right_terminal_gaps_free: true,
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
+      left_align_gaps: false,
+      right_align_gaps: true,
     }
   }
 }
