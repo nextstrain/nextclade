@@ -11,7 +11,7 @@ pub type GeneMap = BTreeMap<String, Gene>;
 /// Reads gene map from file and, optionally, filters it according to the list of requested genes.
 ///
 /// Here are the possible combinations:
-/// 
+///
 /// | --genemap  | --genes |                 behavior                   |
 /// |------------|---------|--------------------------------------------|
 /// |     +      |    +    | Take only specified genes                  |
@@ -33,7 +33,7 @@ pub fn read_gene_map(input_gene_map: &Option<PathBuf>, genes: &Option<Vec<String
     (Some(input_gene_map), None) => read_gff3_file(&input_gene_map),
 
     // Gene list is provided, but no gene map. This is illegal.
-    (None, Some(_)) => make_error!("List of genes is only valid when gene map is provided"),
+    (None, Some(_)) => make_error!("List of genes via '--genes' can only be specified when a gene map (genome annotation) is provided"),
 
     // Nothing is provided. Create an empty gene map.
     // This disables codon-aware alignment, translation, AA mutations, frame shifts, and everything else that relies
