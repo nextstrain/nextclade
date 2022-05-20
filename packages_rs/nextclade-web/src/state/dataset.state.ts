@@ -2,6 +2,7 @@ import { isNil } from 'lodash'
 import { atom, DefaultValue, selector } from 'recoil'
 
 import type { DatasetFlat } from 'src/algorithms/types'
+import { inputResetAtom } from 'src/state/inputs.state'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { viewedGeneAtom } from 'src/state/settings.state'
 import { isDefaultValue } from './results.state'
@@ -27,15 +28,17 @@ export const datasetCurrentNameAtom = selector<string | undefined>({
   get({ get }) {
     return get(datasetCurrentNameStorageAtom)
   },
-  set({ get, set, reset }, datasetCurrentName: string | undefined | DefaultValue) {
-    if (isDefaultValue(datasetCurrentName) || isNil(datasetCurrentName)) {
+  set({ get, set, reset }, newDatasetCurrentName: string | undefined | DefaultValue) {
+    const datasetCurrentName = get(datasetCurrentNameStorageAtom)
+    if (isDefaultValue(newDatasetCurrentName) || isNil(newDatasetCurrentName)) {
       reset(datasetCurrentNameStorageAtom)
-    } else {
+    } else if (datasetCurrentName !== newDatasetCurrentName) {
       const { datasets } = get(datasetsAtom)
-      const dataset = datasets.find((dataset) => dataset.name === datasetCurrentName)
+      const dataset = datasets.find((dataset) => dataset.name === newDatasetCurrentName)
       if (dataset) {
         set(datasetCurrentNameStorageAtom, dataset.name)
         set(viewedGeneAtom, dataset.defaultGene)
+        reset(inputResetAtom)
       }
     }
   },
