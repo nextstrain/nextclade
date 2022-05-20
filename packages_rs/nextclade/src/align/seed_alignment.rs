@@ -7,6 +7,8 @@ use eyre::Report;
 use log::warn;
 use num_traits::{clamp, clamp_max, clamp_min};
 
+use super::band_2d::full_matrix;
+
 /// generate a vector of query sequence positions that are followed by at least `seed_length`
 /// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
 fn get_map_to_good_positions<L: Letter<L>>(qry_seq: &[L], seed_length: usize) -> Vec<usize> {
@@ -138,14 +140,9 @@ pub fn seed_alignment<L: Letter<L>>(
   // distance of first seed from the end of the sequence (third of seed spacing)
   let margin = (ref_len_f / (n_seeds * 3) as f32).round() as i32;
 
-  // TODO: replace by full square
-  // In case of very short sequences, use constant bandwidth
-  let band_width = (((ref_len_f + qry_len_f) * 0.5) - 3.0).round() as usize;
-
-  if band_width < (2 * params.seed_length) {
-    let mean_shift = ((ref_len_f - qry_len_f) * 0.5).round() as i32;
-    let stripes = simple_stripes(mean_shift, band_width, ref_len_u, qry_len_u);
-
+  // for very short sequences, use full square
+  if ref_len_u + qry_len_u < (5 * params.seed_length) {
+    let stripes = full_matrix(ref_len_u, qry_len_u);
     return Ok(stripes);
   };
 
@@ -154,7 +151,7 @@ pub fn seed_alignment<L: Letter<L>>(
 
   let num_seed_matches = seed_matches.len();
   if num_seed_matches < 2 {
-    return make_error!("Unable to align: no seed matches. Details: num seed matches: {num_seed_matches}");
+    return make_error!("Unable to align: no seed matches. Details: number of seed matches: {num_seed_matches}");
   }
 
   let stripes = create_stripes(
@@ -212,7 +209,7 @@ pub fn create_stripes(
     let max = slice.iter().max().unwrap();
     let width = max - min;
     if width as usize> max_indel {
-      return make_error!("Unable to align: seed matches suggest large indels");
+      return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications.");
     }
     robust_shifts.push((min, max));
   }
