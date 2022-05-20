@@ -37,9 +37,6 @@ pub fn score_matrix<T: Letter<T>>(
 
   trace!("Score matrix: allocated alignment band of size={band_size}");
 
-  // Whether alignment is left or right aligned
-  // If default changes, need to change logic here
-  // Right align is default so ignored at the moment
   let left_align = match params.gap_alignment_side {
     GapAlignmentSide::Left => 1,
     GapAlignmentSide::Right => 0,

@@ -92,19 +92,8 @@ pub struct AlignPairwiseParams {
   #[clap(default_value_t = AlignPairwiseParams::default().terminal_bandwidth)]
   pub terminal_bandwidth: i32,
 
-  /// TODO: refactor with below into one parameter (two flags into one variable, like action in Python argparse)
-  /// Left align gaps (convention) instead of right align (Nextclade historical practice)
-  /// Make mutually exclusive with `--right-align-gaps`
-  #[clap(long)]
-  pub left_align_gaps: bool,
-
-  /// TODO: refactor with above into one parameter (two flags into one variable, like action in Python argparse)
-  /// Right align gaps (historical Nextclade practice)
-  /// Make mutually exclusive with `--right-align-gaps`
-  #[clap(long)]
-  pub right_align_gaps: bool,
-
-  /// TODO: Write description
+  /// Whether to align gaps on the left or right side if equally parsimonious.
+  /// Left aligning gaps is the convention, right align is Nextclade's historic default
   #[clap(long, arg_enum)]
   #[clap(default_value_t = AlignPairwiseParams::default().gap_alignment_side)]
   pub gap_alignment_side: GapAlignmentSide,
@@ -130,8 +119,6 @@ impl Default for AlignPairwiseParams {
       right_terminal_gaps_free: true,
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
-      left_align_gaps: false,
-      right_align_gaps: true,
       gap_alignment_side: GapAlignmentSide::Right,
     }
   }
