@@ -36,6 +36,7 @@ pub fn tree_preprocess_in_place(
 
   // TODO: Avoid second full tree iteration by merging it into the one that is just above
   tree.tmp.max_divergence = get_max_divergence_recursively(&tree.tree);
+  // TODO: Use auspice extension field to pass info on divergence units, rather than guess
   tree.tmp.divergence_units = DivergenceUnits::guess_from_max_divergence(tree.tmp.max_divergence);
 
   tree_add_metadata(tree);

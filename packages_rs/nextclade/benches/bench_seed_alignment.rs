@@ -5,7 +5,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion, Throughpu
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::align::seed_alignment::{self, seed_alignment};
-use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::nuc::to_nuc_seq;
 
 pub fn bench_seed_alignment(c: &mut Criterion) {

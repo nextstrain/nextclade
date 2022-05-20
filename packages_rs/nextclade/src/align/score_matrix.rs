@@ -196,8 +196,8 @@ mod tests {
   use super::*;
   use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
-  use crate::io::gene_map::GeneMap;
   use crate::align::score_matrix;
+  use crate::io::gene_map::GeneMap;
   use crate::io::nuc::{to_nuc_seq, Nuc};
   use eyre::Report;
   use pretty_assertions::assert_eq;
