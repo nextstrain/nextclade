@@ -214,27 +214,7 @@ If you use results obtained with Nextclade in a publication, please
 🧑‍💻 Development
 </h2>
 
-If you are a developer, curious about how Nextclade and Nextalign work, want to modify it or contribute new features or fixes, check out out developer's guides:
-
- - ["Developer's guide: Nextclade CLI and Nextalign CLI"](docs/dev/developers-guide-cli.md)
-
- - ["Developer's guide: Nextclade Web"](docs/dev/developers-guide-web.md)
-
-<h2 id="packages" align="center">
-📦 Packages
-</h2>
-
-
-This repository consists of a set of packages presented in the table below. Refer to README files of individual packages for more details.
-
-| Package                                    | Type               | Get                                                                    | Docker images                                                            |
-| -------------------------------------------| -------------------| ---------------------------------------------------------------------- | -------------------------------------------------------------------------|
-| [nextalign](/packages/nextalign)           | C++ library        |                                                                        |                                                                          |
-| [nextalign_cli](/packages/nextalign_cli)   | C++ executable     | 📥 [Github Releases](https://github.com/nextstrain/nextclade/releases) | 🐋 [nextstrain/nextalign](https://hub.docker.com/r/nextstrain/nextalign) |
-| [nextclade](/packages/nextclade)           | C++ library        |                                                                        |                                                                          |
-| [nextclade_cli](/packages/nextclade_cli)   | C++ executable     | 📥 [Github Releases](https://github.com/nextstrain/nextclade/releases) | 🐋 [nextstrain/nextclade](https://hub.docker.com/r/nextstrain/nextclade) |
-| [nextclade_wasm](/packages/nextclade_wasm) | WebAssembly module |                                                                        |                                                                          |
-| [nextclade_web](/packages/web)             | Web App            | 🌎 [clades.nextstrain.org](https://clades.nextstrain.org)              |                                                                          |
+Curious about how Nextclade and Nextalign work, want to modify it or contribute new features or fixes, check out developer guide in [docs/dev/developer-guide.md](docs/dev/developer-guide.md)!
 
 <h2 id="team" align="center">
  ✨ Team
