@@ -1,13 +1,13 @@
 use crate::align::band_2d::{simple_stripes, Stripe};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match::seed_match;
+use crate::align::band_2d::full_matrix;
 use crate::io::letter::Letter;
 use crate::make_error;
 use eyre::Report;
 use log::warn;
 use num_traits::{clamp, clamp_max, clamp_min};
 
-use super::band_2d::full_matrix;
 
 /// generate a vector of query sequence positions that are followed by at least `seed_length`
 /// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
