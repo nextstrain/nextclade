@@ -158,7 +158,7 @@ jobs:
       image: ubuntu-2004:202201-02
       docker_layer_caching: true
 
-    resource_class: medium
+    resource_class: small
 
     steps:
       - checkout
@@ -225,7 +225,7 @@ jobs:
       image: ubuntu-2004:202201-02
       docker_layer_caching: true
 
-    resource_class: medium
+    resource_class: small
 
     steps:
       - checkout
@@ -247,7 +247,7 @@ jobs:
 
       - run:
           name: "Publish container images to Docker Hub"
-
+          command: |
           pwd
 
           cp -vr /home/circleci/workspace/.out .
