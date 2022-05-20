@@ -50,7 +50,7 @@ jobs:
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
-            echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+            cp .env.example .env
 
             ./docker-dev dp
 
@@ -122,7 +122,7 @@ jobs:
           command: |
             export CROSS="<< parameters.target_arch >>"
 
-            echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+            cp .env.example .env
 
             CROSS=${CROSS} ./docker-dev br
 
