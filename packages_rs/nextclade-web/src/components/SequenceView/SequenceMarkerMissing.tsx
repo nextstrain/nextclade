@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useCallback, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { BASE_MIN_WIDTH_PX, N } from 'src/constants'
@@ -20,6 +20,8 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
 export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase, ...rest }: MissingViewProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { begin, end } = missing // prettier-ignore
 
@@ -40,8 +42,8 @@ export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase,
       width={width}
       height="30"
       {...rest}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <Tooltip target={id} isOpen={showTooltip}>
         {t('Missing: {{range}}', { range: rangeStr })}

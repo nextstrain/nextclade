@@ -11,13 +11,15 @@ const LetterSpan = styled.span<{ pos: number }>`
   color: ${(props) => TITLE_COLORS[props.pos]};
 `
 
-export const NavigationLogo = () => (
-  <div>
-    {'Nextclade'.split('').map((letter, i) => (
-      // eslint-disable-next-line react/no-array-index-key
-      <LetterSpan key={`${i}_${letter}`} pos={i}>
-        {letter}
-      </LetterSpan>
-    ))}
-  </div>
-)
+export function NavigationLogo() {
+  return (
+    <div>
+      {'Nextclade'.split('').map((letter, i) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <LetterSpan key={`${i}_${letter}`} pos={i}>
+          {letter}
+        </LetterSpan>
+      ))}
+    </div>
+  )
+}

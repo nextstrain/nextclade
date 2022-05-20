@@ -114,6 +114,7 @@ impl NextcladeWasm {
     Ok(())
   }
 
+  #[allow(clippy::needless_pass_by_value)]
   pub fn serialize_results_json(
     outputs_json_str: &str,
     clade_node_attrs_json_str: &str,

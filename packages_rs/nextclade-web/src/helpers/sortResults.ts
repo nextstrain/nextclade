@@ -111,10 +111,11 @@ export function sortByFrameShifts(results: NextcladeResult[], direction: SortDir
   return orderBy(
     results,
     (result) => {
-      const fs = result.result?.analysisResult.qc.frameShifts
-      const totalFrameShifts = fs?.totalFrameShifts ?? 0
-      const totalFrameShiftsIgnored = fs?.totalFrameShiftsIgnored ?? 0
-      return totalFrameShifts * 1e3 + totalFrameShiftsIgnored ?? defaultNumber(direction)
+      const frameShifts = result.result?.analysisResult.qc.frameShifts
+      if (!frameShifts) {
+        return defaultNumber(direction)
+      }
+      return frameShifts.totalFrameShifts * 1e3 + frameShifts.totalFrameShiftsIgnored
     },
     direction,
   )
@@ -124,10 +125,11 @@ export function sortByStopCodons(results: NextcladeResult[], direction: SortDire
   return orderBy(
     results,
     (result) => {
-      const sc = result.result?.analysisResult.qc.stopCodons
-      const totalStopCodons = sc?.totalStopCodons ?? 0
-      const totalStopCodonsIgnored = sc?.totalStopCodonsIgnored ?? 0
-      return totalStopCodons * 1e3 + totalStopCodonsIgnored ?? defaultNumber(direction)
+      const stopCodons = result.result?.analysisResult.qc.stopCodons
+      if (!stopCodons) {
+        return defaultNumber(direction)
+      }
+      return stopCodons.totalStopCodons * 1e3 + stopCodons.totalStopCodonsIgnored
     },
     direction,
   )

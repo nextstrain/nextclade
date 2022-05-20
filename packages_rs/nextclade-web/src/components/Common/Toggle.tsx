@@ -42,7 +42,7 @@ export function Toggle({ identifier, className, onCheckedChanged, children, ...p
     [onCheckedChanged],
   )
 
-  const Result = <ToggleBase id={identifier} className="react-toggle-custom" onChange={onChange} {...props} />
+  const Result = <ToggleBase id={identifier} className={className} onChange={onChange} {...props} />
 
   if (children) {
     return (

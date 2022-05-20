@@ -1,6 +1,12 @@
-use clap::{Parser, ValueHint};
+use clap::{ArgEnum, Parser, ValueHint};
 use optfield::optfield;
 use serde::{Deserialize, Serialize};
+
+#[derive(ArgEnum, Copy, Clone, Debug, Deserialize, Serialize)]
+pub enum GapAlignmentSide {
+  Left,
+  Right,
+}
 
 // NOTE: The `optfield` attribute creates a struct that have the same fields, but which are wrapped into `Option`,
 // as well as adds a method `.merge_opt(&opt)` to the original struct, which merges values from the optional counterpart
@@ -15,11 +21,11 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub min_length: usize,
 
-  /// Penalty for extending a gap. If zero, all gaps regardless of length incur the same penalty.
+  /// Penalty for extending a gap in alignment. If zero, all gaps regardless of length incur the same penalty.
   #[clap(long)]
   pub penalty_gap_extend: i32,
 
-  /// Penalty for opening of a gap. A higher penalty results in fewer gaps and more mismatches. Should be less than `--penalty-gap-open-in-frame` to avoid gaps in genes.
+  /// Penalty for opening of a gap in alignment. A higher penalty results in fewer gaps and more mismatches. Should be less than `--penalty-gap-open-in-frame` to avoid gaps in genes.
   #[clap(long)]
   pub penalty_gap_open: i32,
 
@@ -35,7 +41,7 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub penalty_mismatch: i32,
 
-  /// Score for encouraging aligned nucleotides or amino acids with matching state.
+  /// Score for matching states in nucleotide or amino acid alignments.
   #[clap(long)]
   pub score_match: i32,
 
@@ -43,11 +49,15 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub max_indel: usize,
 
-  /// Minimum number of seeds to search for during nucleotide alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--nuc-seed-spacing`.
+  /// k-mer length to determine approximate alignments between query and reference and determine the bandwidth of the banded alignment.
   #[clap(long)]
   pub seed_length: usize,
 
   /// Maximum number of mismatching nucleotides allowed for a seed to be considered a match.
+  #[clap(long)]
+  pub mismatches_allowed: usize,
+
+  /// Minimum number of seeds to search for during nucleotide alignment. Relevant for short sequences. In long sequences, the number of seeds is determined by `--seed-spacing`.
   #[clap(long)]
   pub min_seeds: i32,
 
@@ -55,11 +65,7 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub seed_spacing: i32,
 
-  /// Maximum number of mismatching nucleotides allowed for a seed to be considered a match.
-  #[clap(long)]
-  pub mismatches_allowed: usize,
-
-  /// Whether to stop gene translation after first stop codon. It will cut the genes in places cases where mutations resulted in premature stop codons. If this flag is present, the aminoacid sequences wil be truncated at the first stop codon and analysis of aminoacid mutations will not be available for the regions after first stop codon.
+  /// If this flag is present, the amino acid sequences will be truncated at the first stop codon, if mutations or sequencing errors cause premature stop codons to be present. No amino acid mutations in the truncated region will be recorded.
   #[clap(long)]
   pub no_translate_past_stop: bool,
 
@@ -79,17 +85,10 @@ pub struct AlignPairwiseParams {
   #[clap(long)]
   pub terminal_bandwidth: i32,
 
-  /// TODO: refactor with below into one parameter (two flags into one variable, like action in Python argparse)
-  /// Left align gaps (convention) instead of right align (Nextclade historical practice)
-  /// Make mutually exclusive with `--right-align-gaps`
-  #[clap(long)]
-  pub left_align_gaps: bool,
-
-  /// TODO: refactor with above into one parameter (two flags into one variable, like action in Python argparse)
-  /// Right align gaps (historical Nextclade practice)
-  /// Make mutually exclusive with `--right-align-gaps`
-  #[clap(long)]
-  pub right_align_gaps: bool,
+  /// Whether to align gaps on the left or right side if equally parsimonious.
+  /// Left aligning gaps is the convention, right align is Nextclade's historic default
+  #[clap(long, arg_enum)]
+  pub gap_alignment_side: GapAlignmentSide,
 }
 
 impl Default for AlignPairwiseParams {
@@ -112,8 +111,7 @@ impl Default for AlignPairwiseParams {
       right_terminal_gaps_free: true,
       excess_bandwidth: 9,
       terminal_bandwidth: 50,
-      left_align_gaps: false,
-      right_align_gaps: true,
+      gap_alignment_side: GapAlignmentSide::Right,
     }
   }
 }

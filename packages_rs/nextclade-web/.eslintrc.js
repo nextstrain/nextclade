@@ -1,5 +1,3 @@
-const path = require('path')
-
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -63,6 +61,7 @@ module.exports = {
     'security',
     'sonarjs',
     'unicorn',
+    'unused-imports',
 
     'only-warn',
 
@@ -80,6 +79,7 @@ module.exports = {
     '@typescript-eslint/naming-convention': 'off',
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-shadow': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/unbound-method': ['off'],
     'array-func/no-unnecessary-this-arg': 'off',
     'array-func/prefer-array-from': 'off',
@@ -120,6 +120,7 @@ module.exports = {
     'no-param-reassign': ['warn', { ignorePropertyModificationsFor: ['draft'] }],
     'no-secrets/no-secrets': ['warn', { tolerance: 5 }],
     'no-shadow': 'off',
+    'no-unused-vars': 'off',
     'only-ascii/only-ascii': 'warn',
     'prefer-for-of': 'off',
     'prettier/prettier': 'warn',
@@ -139,6 +140,7 @@ module.exports = {
     'security/detect-non-literal-fs-filename': 'off',
     'security/detect-object-injection': 'off',
     'sonarjs/cognitive-complexity': ['warn', 20],
+    'unicorn/consistent-function-scoping': 'off',
     'unicorn/escape-case': 'off',
     'unicorn/filename-case': 'off',
     'unicorn/new-for-builtins': 'off',
@@ -156,6 +158,11 @@ module.exports = {
     'unicorn/prefer-query-selector': 'off',
     'unicorn/prefer-spread': 'off',
     'unicorn/prevent-abbreviations': 'off',
+    'unused-imports/no-unused-imports': 'warn',
+    'unused-imports/no-unused-vars': [
+      'warn',
+      { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
+    ],
 
     'lines-between-class-members': ['warn', 'always', { exceptAfterSingleLine: true }],
 
@@ -243,7 +250,9 @@ module.exports = {
       files: ['config/jest/mocks/**/*.js'],
       rules: {
         'no-constructor-return': 'off',
+        'react-perf/jsx-no-new-function-as-prop': 'off',
         'react/display-name': 'off',
+        'react/function-component-definition': 'off',
       },
     },
     {

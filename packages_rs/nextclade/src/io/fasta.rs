@@ -1,4 +1,4 @@
-use crate::gene::gene_map::GeneMap;
+use crate::io::gene_map::GeneMap;
 use crate::io::aa::from_aa_seq;
 use crate::io::fs::ensure_dir;
 use crate::translate::translate_genes::Translation;

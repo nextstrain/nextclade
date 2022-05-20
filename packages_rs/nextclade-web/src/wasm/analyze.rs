@@ -5,7 +5,7 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::gene::gene::Gene;
-use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::fasta::read_one_fasta_str;
 use nextclade::io::gff3::read_gff3_str;
 use nextclade::io::json::json_stringify;

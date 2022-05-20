@@ -1,6 +1,6 @@
-import React, { HTMLProps, PropsWithRef, ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 
-import styled, { StyledProps, StyledComponentProps, StyledComponentPropsWithRef } from 'styled-components'
+import styled from 'styled-components'
 
 import GisaidLogoBase from 'src/assets/img/gisaid-logo.svg'
 import { LinkExternal } from 'src/components/Link/LinkExternal'

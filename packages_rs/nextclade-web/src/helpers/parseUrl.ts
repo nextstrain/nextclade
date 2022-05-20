@@ -3,7 +3,8 @@ import { ParsedUrlQuery } from 'querystring'
 /** Borrowed from Next.js */
 export function getLocationOrigin() {
   const { protocol, hostname, port } = window.location
-  return `${protocol}//${hostname}${port ? `:${port}` : ''}`
+  const portSuffix = port ? `:${port}` : ''
+  return `${protocol}//${hostname}${portSuffix}`
 }
 
 /** Borrowed from Next.js */

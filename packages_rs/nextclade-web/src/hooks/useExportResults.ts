@@ -1,4 +1,4 @@
-/* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops */
+/* eslint-disable no-void,unicorn/no-await-expression-member,no-loops/no-loops,sonarjs/no-duplicate-string */
 import { Snapshot, useRecoilCallback } from 'recoil'
 
 import type { AnalysisOutput, ErrorsFromWeb } from 'src/algorithms/types'

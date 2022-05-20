@@ -8,8 +8,8 @@ use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
-use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
+use nextclade::io::gene_map::{read_gene_map, GeneMap};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::json::json_write;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
@@ -78,18 +78,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 
-  let gene_map = &if let Some(input_gene_map) = input_gene_map {
-    let mut gene_map = read_gff3_file(&input_gene_map)?;
-    if let Some(genes) = genes {
-      gene_map = gene_map
-        .into_iter()
-        .filter(|(gene_name, ..)| genes.contains(gene_name))
-        .collect();
-    }
-    gene_map
-  } else {
-    GeneMap::new()
-  };
+  let gene_map = &read_gene_map(&input_gene_map, &genes)?;
 
   let virus_properties = &VirusProperties::from_path(&input_virus_properties)?;
 

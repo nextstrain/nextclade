@@ -1,6 +1,6 @@
 {
   "name": "@nextstrain/nextclade-web",
-  "version": "1.13.1",
+  "version": "2.0.0",
   "description": "Clade assignment, mutation calling, and sequence quality checks",
   "homepage": "https://clades.nextstrain.org",
   "repository": {
@@ -184,6 +184,7 @@
     "@types/fs-extra": "9.0.13",
     "@types/glob": "7.2.0",
     "@types/history": "4.7.11",
+    "@types/intercept-stdout": "0.1.0",
     "@types/jest": "27.4.1",
     "@types/jest-axe": "3.5.3",
     "@types/js-yaml": "4.0.5",
@@ -267,6 +268,7 @@
     "eslint-plugin-security": "1.5.0",
     "eslint-plugin-sonarjs": "0.13.0",
     "eslint-plugin-unicorn": "42.0.0",
+    "eslint-plugin-unused-imports": "2.0.0",
     "express": "4.18.0",
     "express-static-gzip": "2.1.5",
     "extra-watch-webpack-plugin": "1.0.3",

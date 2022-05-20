@@ -172,9 +172,13 @@ export function DatasetList({ datasetsIndexJson }: DatasetListProps) {
 export function DataPage() {
   const { t } = useTranslationSafe()
 
-  const { data: datasetsIndexJson, error, isLoading, isFetching, isError } = useAxiosQuery<DatasetsIndexJson>(
-    DATA_INDEX_FILE_FULL_URL,
-  )
+  const {
+    data: datasetsIndexJson,
+    error,
+    isLoading,
+    isFetching,
+    isError,
+  } = useAxiosQuery<DatasetsIndexJson>(DATA_INDEX_FILE_FULL_URL)
 
   return (
     <LayoutMain>

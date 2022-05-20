@@ -1,4 +1,4 @@
-import React, { Ref, useMemo, useState } from 'react'
+import React, { Ref, useCallback, useMemo, useState } from 'react'
 
 import { Button, Col, Label, Row } from 'reactstrap'
 import styled from 'styled-components'
@@ -29,9 +29,9 @@ export function TabPanelUrl({ exampleUrl, onConfirm, inputRef }: TabPanelUrlProp
   const { t } = useTranslationSafe()
   const [url, setUrl] = useState<string>('')
   const hasUrl = url.length > 0
-  const change = (e: React.ChangeEvent<HTMLInputElement>) => setUrl(e.target.value)
-  const clear = () => setUrl('')
-  const confirm = () => onConfirm(url)
+  const change = useCallback((e: React.ChangeEvent<HTMLInputElement>) => { setUrl(e.target.value) }, []) // prettier-ignore
+  const clear = useCallback(() => { setUrl('') }, []) // prettier-ignore
+  const confirm = useCallback(() => { onConfirm(url) }, [onConfirm, url]) // prettier-ignore
   const placeholder = useMemo(() => t('For example: {{exampleUrl}}', { exampleUrl }), [t, exampleUrl])
   const instructions = t('Enter URL to a file to fetch')
 

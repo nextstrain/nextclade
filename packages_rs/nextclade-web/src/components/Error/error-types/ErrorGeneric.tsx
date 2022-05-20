@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 
-import { ErrorContainer, ErrorMessage, ErrorStack } from 'src/components/Error/ErrorStyles'
+import { ErrorContainer, ErrorMessage } from 'src/components/Error/ErrorStyles'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 export function ErrorGeneric({ error }: { error: Error }) {

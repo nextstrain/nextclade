@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { ChangeEvent, useCallback, useEffect, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
@@ -38,14 +38,13 @@ export const Input = styled(ReactstrapInput)`
 `
 
 export const FormGroup = styled(ReactstrapFormGroup)`
-  margin-bottom: 3px;
   margin: 5px 0;
 `
 
 export interface NumericFieldProps extends InputProps {
   identifier: string
   label: string
-  value: number | typeof Infinity
+  value: number | typeof Number.POSITIVE_INFINITY
   min: number
   max: number
 
@@ -70,27 +69,30 @@ export function NumericField({
 
   const [error, setError] = useState<string | undefined>(undefined)
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const str = e.target.value
-    setCurrent(str)
+  const onChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const str = e.target.value
+      setCurrent(str)
 
-    let num: number | undefined
-    try {
-      num = Number.parseInt(str, 10)
-    } catch {} // eslint-disable-line no-empty
+      let num: number | undefined
+      try {
+        num = Number.parseInt(str, 10)
+      } catch {} // eslint-disable-line no-empty
 
-    if (num === undefined) {
-      setError(t('Should be a number'))
-      return
-    }
+      if (num === undefined) {
+        setError(t('Should be a number'))
+        return
+      }
 
-    if (!inRange(num, min, max)) {
-      setError(t('Should be in range from {{minimum}} to {{maximum}}', { minimum: min, maximum: max - 1 }))
-    } else {
-      setError(undefined)
-      onValueChanged(num)
-    }
-  }
+      if (!inRange(num, min, max)) {
+        setError(t('Should be in range from {{minimum}} to {{maximum}}', { minimum: min, maximum: max - 1 }))
+      } else {
+        setError(undefined)
+        onValueChanged(num)
+      }
+    },
+    [max, min, onValueChanged, t],
+  )
 
   return (
     <FormGroup row className="d-flex w-100">

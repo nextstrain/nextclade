@@ -1,4 +1,3 @@
-/* eslint-disable security/detect-unsafe-regex */
 import type { Nucleotide, NucleotideSubstitution } from 'src/algorithms/types'
 import { ANY } from 'src/constants'
 import { parsePosition } from './parsePosition'

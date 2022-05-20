@@ -1,5 +1,0 @@
----
-Checks: '*,-OCUnusedMacroInspection,-altera-struct-pack-align,-cert-err58-cpp,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-pro-type-vararg,-fuchsia*,-google-readability-todo,-google-runtime-references,-hicpp*,-llvm-header-guard,-llvmlibc*,-modernize-avoid-c-arrays,-modernize-use-nodiscard,-modernize-use-trailing-return-type,-readability-convert-member-functions-to-static,-readability-function-cognitive-complexity,-readability-implicit-bool-conversion,-readability-isolate-declaration,-readability-magic-numbers,-readability-named-parameter,-readability-uppercase-literal-suffix'
-HeaderFilterRegex: '^(?!emscripten\/|boost\/|system\/|3rdparty\/).*$'
-AnalyzeTemporaryDtors: true
-...

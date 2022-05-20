@@ -1,3 +1,4 @@
+/* eslint-disable import/newline-after-import,@typescript-eslint/no-use-before-define,func-names,sonarjs/no-extra-arguments,prefer-destructuring,no-promise-executor-return,@typescript-eslint/no-floating-promises,promise/always-return,promise/catch-or-return,import/no-extraneous-dependencies */
 // Taken from https://github.com/Kir-Antipov/emit-file-webpack-plugin/blob/a17e94f434c9185d659e18806d49f3c6bc73d706/index.js
 
 /**
@@ -12,34 +13,6 @@ const version = +webpack.version.split('.')[0]
 // Webpack 5 exposes the sources property to ensure the right version of webpack-sources is used.
 // require('webpack-sources') approach may result in the "Cannot find module 'webpack-sources'" error.
 const { Source, RawSource } = webpack.sources || require('webpack-sources')
-
-/**
- * @typedef {object} EmitFilePluginOptions
- *
- * @property {string} [path]
- * OPTIONAL: defaults to the Webpack output path.
- * Output path.
- * Can be relative (to Webpack output path) or absolute.
- *
- * @property {string} filename
- * REQUIRED.
- * Name of the file to add to assets.
- *
- * @property {boolean} [hash]
- * OPTIONAL: defaults to false.
- * Adds the compilation hash to the filename. You can either choose within the filename
- * where the hash is inserted by adding `[hash]` i.e. `test.[hash].js` or the hash will be
- * appended to the end of the file i.e. `test.js?hash`.
- *
- * @property {number} [stage]
- * OPTIONAL: defaults to the webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL.
- * Asset processing stage.
- *
- * @property {string|Buffer|Source|((assets: Record<string, Source>) => (string|Buffer|Source))|((assets: Record<string, Source>) => (Promise<string|Buffer|Source>))} content
- * REQUIRED.
- * File content. Can be either a string, a buffer, or a (asynchronous) function.
- * If the resulting object is not a string or a buffer, it will be converted to JSON.
- */
 
 /**
  * Webpack plugin to emit files.
@@ -73,10 +46,10 @@ function EmitFilePlugin(options) {
  */
 EmitFilePlugin.prototype.apply = function (compiler) {
   if (version < 4) {
-    compiler.plugin('emit', (compilation, callback) => emitFile(this.options, compilation, callback, callback))
+    compiler.plugin('emit', (compilation, callback) => emitFile(this.options, compilation, callback))
   } else if (version === 4) {
     compiler.hooks.emit.tapAsync(EmitFilePlugin.name, (compilation, callback) =>
-      emitFile(this.options, compilation, callback, callback),
+      emitFile(this.options, compilation, callback),
     )
   } else {
     compiler.hooks.thisCompilation.tap(EmitFilePlugin.name, (compilation) => {
@@ -88,7 +61,7 @@ EmitFilePlugin.prototype.apply = function (compiler) {
               ? this.options.stage
               : webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
         },
-        () => new Promise((resolve, reject) => emitFile(this.options, compilation, resolve, reject)),
+        () => new Promise((resolve) => emitFile(this.options, compilation, resolve)),
       )
     })
   }
