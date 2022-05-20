@@ -1,5 +1,5 @@
 use crate::align::band_2d::{Band2d, Stripe};
-use crate::align::params::AlignPairwiseParams;
+use crate::align::params::{AlignPairwiseParams, GapAlignmentSide};
 use crate::io::letter::Letter;
 use log::trace;
 
@@ -37,10 +37,10 @@ pub fn score_matrix<T: Letter<T>>(
 
   trace!("Score matrix: allocated alignment band of size={band_size}");
 
-  // Whether alignment is left or right aligned
-  // If default changes, need to change logic here
-  // Right align is default so ignored at the moment
-  let left_align = if params.left_align_gaps { 1 } else { 0 };
+  let left_align = match params.gap_alignment_side {
+    GapAlignmentSide::Left => 1,
+    GapAlignmentSide::Right => 0,
+  };
 
   // fill scores with alignment scores
   // if the colon marks the position in the sequence before rPos,qPos
