@@ -141,7 +141,7 @@ pub struct NextalignRunArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_fasta: Option<PathBuf>,
 
-  /// Path to output CSV file with stripped insertions data.
+  /// Path to output CSV file that contain insertions stripped from the reference alignment.
   ///
   /// Overrides paths given with `--output-dir` and `--output-basename`.
   ///
