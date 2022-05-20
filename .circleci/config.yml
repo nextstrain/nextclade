@@ -262,6 +262,7 @@ jobs:
           name: " [ web ] | Build web application (branch << pipeline.git.branch >>)"
           command: |
             cp .env.example .env
+            ./docker-dev a yarn install
             ./docker-dev a yarn lint
             ./docker-dev ar
 
