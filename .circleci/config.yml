@@ -158,7 +158,7 @@ jobs:
       image: ubuntu-2004:202201-02
       docker_layer_caching: true
 
-    resource_class: large
+    resource_class: medium
 
     steps:
       - checkout
@@ -212,6 +212,49 @@ jobs:
                 --security-token "${GITHUB_TOKEN}" \
                 --replace
             done
+
+  Release-Cli-Docker:
+    shell: "/bin/bash -euxo pipefail"
+
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1\n
+
+    machine:
+      image: ubuntu-2004:202201-02
+      docker_layer_caching: true
+
+    resource_class: medium
+
+    steps:
+      - checkout
+
+      - run:
+          name: "Prepare workspace"
+          command: |
+            mkdir -p /home/circleci/workspace
+
+      - attach_workspace:
+          name: "Attach workspace"
+          at: /home/circleci/workspace
+
+      - run:
+          name: "Download dependencies"
+          command: |
+            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel"
+            chmod +x "${HOME}/bin/dasel"
+
+      - run:
+          name: "Publish container images to Docker Hub"
+
+          pwd
+
+          cp -vr /home/circleci/workspace/.out .
+
+          echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          ./docker-prod
+
 
   Build-And-Deploy-Web:
     shell: "/bin/bash -euxo pipefail"
@@ -399,6 +442,16 @@ workflows:
             - Build-Cli-x86_64-unknown-linux-gnu
             - Build-Cli-x86_64-pc-windows-gnu
             - Build-Cli-aarch64-unknown-linux-gnu
+            - Build-Cli-x86_64-unknown-linux-musl
+
+      - Release-Cli-Docker:
+          <<: *cli_release_branch
+
+          context:
+            - nextclade_github
+
+          requires:
+            - Build-Cli-x86_64-unknown-linux-gnu
             - Build-Cli-x86_64-unknown-linux-musl
 
       - Build-And-Deploy-Web:
