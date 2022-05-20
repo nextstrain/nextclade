@@ -1,24 +1,25 @@
+use crate::cli::nextalign_cli::NextalignRunArgs;
+use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::{Either, Itertools};
+use log::info;
 use nextclade::align::align::align_nuc;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::insertions_strip::insertions_strip;
 use nextclade::align::params::AlignPairwiseParams;
-use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::gene_map::{GeneMap, read_gene_map};
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::{to_nuc_seq, Nuc};
-use nextclade::option_get_some;
+use nextclade::{make_error, option_get_some};
+use nextclade::run::nextalign_run_one::nextalign_run_one;
 use nextclade::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::types::outputs::NextalignOutputs;
 use nextclade::utils::error::report_to_string;
-use log::info;
 use std::collections::HashSet;
-use nextclade::run::nextalign_run_one::nextalign_run_one;
-use crate::cli::nextalign_cli::NextalignRunArgs;
-use crate::cli::nextalign_ordered_writer::NextalignOrderedWriter;
+use std::path::PathBuf;
 
 pub struct NextalignRecord {
   pub index: usize,
@@ -56,14 +57,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 
-  let gene_map = &match (input_gene_map, genes) {
-    // Read gene map and retain only requested genes
-    (Some(input_gene_map), Some(genes)) => read_gff3_file(&input_gene_map)?
-      .into_iter()
-      .filter(|(gene_name, ..)| genes.contains(gene_name))
-      .collect(),
-    _ => GeneMap::new(),
-  };
+  let gene_map = &read_gene_map(&input_gene_map, &genes)?;
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);

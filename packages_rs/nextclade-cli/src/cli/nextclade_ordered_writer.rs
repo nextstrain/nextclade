@@ -2,7 +2,7 @@ use crate::cli::nextclade_loop::NextcladeRecord;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
 use log::warn;
-use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::csv::CsvVecFileWriter;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};

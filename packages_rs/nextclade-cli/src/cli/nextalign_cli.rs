@@ -8,6 +8,7 @@ use lazy_static::lazy_static;
 use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fs::basename;
+use nextclade::make_error;
 use nextclade::utils::global_init::setup_logger;
 use std::env::current_dir;
 use std::fmt::Debug;
@@ -240,7 +241,7 @@ pub fn nextalign_parse_cli_args() -> Result<NextalignArgs, Report> {
     Some(NextalignCommands::Completions { shell }) => {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
-    Some(NextalignCommands::Run { 0: ref mut run_args }) => {
+    Some(NextalignCommands::Run(ref mut run_args)) => {
       nextalign_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }
     _ => {}

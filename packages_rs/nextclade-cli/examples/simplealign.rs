@@ -2,7 +2,7 @@ use ctor::ctor;
 use eyre::{Report, WrapErr};
 use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
-use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::to_nuc_seq;
