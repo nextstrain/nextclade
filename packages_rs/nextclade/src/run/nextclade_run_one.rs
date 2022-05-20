@@ -111,7 +111,7 @@ pub fn nextclade_run_one(
   let nearest_node_id = node.tmp.id;
   let clade = node.clade();
 
-  let clade_node_attr_keys = tree.clade_node_attr_keys();
+  let clade_node_attr_keys = tree.clade_node_attr_descs();
   let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
 
   let private_nuc_mutations = find_private_nuc_mutations(

@@ -5,8 +5,8 @@ use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::gene::gene::Gene;
-use nextclade::io::gene_map::GeneMap;
 use nextclade::io::fasta::read_one_fasta_str;
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::gff3::read_gff3_str;
 use nextclade::io::json::json_stringify;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
@@ -189,7 +189,7 @@ impl Nextclade {
 
     let mut tree = AuspiceTree::from_str(tree_str).wrap_err("When parsing reference tree Auspice JSON v2")?;
     tree_preprocess_in_place(&mut tree, &ref_seq, &ref_peptides).unwrap();
-    let clade_node_attr_key_descs = (&tree.meta.extensions.nextclade.clade_node_attrs).clone();
+    let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
 
     let qc_config = QcConfig::from_str(qc_config_str).wrap_err("When parsing QC config JSON")?;
 

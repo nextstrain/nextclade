@@ -115,7 +115,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
 
     tree_preprocess_in_place(tree, ref_seq, ref_peptides).unwrap();
-    let clade_node_attrs = (&tree.meta.extensions.nextclade.clade_node_attrs).clone();
+    let clade_node_attrs = tree.clade_node_attr_descs();
 
     let outputs = &mut outputs;
 
@@ -190,7 +190,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     let writer = s.spawn(move |_| {
       let mut output_writer = NextcladeOrderedWriter::new(
         gene_map,
-        &clade_node_attrs,
+        clade_node_attrs,
         &output_fasta,
         &output_json,
         &output_ndjson,
