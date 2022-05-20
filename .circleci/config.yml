@@ -102,7 +102,7 @@ jobs:
       - checkout
 
       - run:
-          name: " [ web ] | Pull docker dev image"
+          name: " [ << parameters.target_arch >> ] | Pull docker dev image"
           command: |
             CROSS="<< parameters.target_arch >>"
             DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
@@ -239,7 +239,7 @@ jobs:
       - restore_cache:
           name: " [ web ] | Restore build cache (branch << pipeline.git.branch >>)"
           keys:
-            - cache-v14-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+            - cache-v15-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
 
       - run:
           name: " [ web ] | Build WebAssembly module (branch << pipeline.git.branch >>)"
@@ -248,15 +248,16 @@ jobs:
 
       - save_cache:
           name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
-          key: cache-v14-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+          key: cache-v15-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
           paths:
             - .build
             - .cache
+            - packages_rs/nextclade-web/.build/docker
 
       - restore_cache:
           name: " [ web ] | Restore build cache (branch << pipeline.git.branch >>)"
           keys:
-            - cache-v14-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+            - cache-v15-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
 
       - run:
           name: " [ web ] | Build web application (branch << pipeline.git.branch >>)"
@@ -268,10 +269,11 @@ jobs:
 
       - save_cache:
           name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
-          key: cache-v14-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+          key: cache-v15-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
           paths:
             - packages_rs/nextclade-web/.build/production/tmp/cache
             - packages_rs/nextclade-web/.cache
+            - packages_rs/nextclade-web/node_modules
 
       - run:
           name: " [ web ] | Halt if not on a major branch (branch << pipeline.git.branch >>)"
