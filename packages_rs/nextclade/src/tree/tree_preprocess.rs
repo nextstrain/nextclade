@@ -221,5 +221,5 @@ fn tree_add_metadata(tree: &mut AuspiceTree) {
 
   tree.meta.filters = concat_to_vec(&new_filters, &tree.meta.filters);
 
-  tree.meta.geo_resolutions = serde_json::Value::Null;
+  tree.meta.geo_resolutions = None;
 }

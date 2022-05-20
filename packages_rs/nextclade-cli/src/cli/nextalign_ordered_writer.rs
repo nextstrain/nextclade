@@ -1,6 +1,6 @@
 use crate::cli::nextalign_loop::NextalignRecord;
 use eyre::{Report, WrapErr};
-use nextclade::gene::gene_map::GeneMap;
+use nextclade::io::gene_map::GeneMap;
 use nextclade::io::errors_csv::ErrorsCsvWriter;
 use nextclade::io::fasta::{FastaPeptideWriter, FastaRecord, FastaWriter};
 use nextclade::io::insertions_csv::InsertionsCsvWriter;

@@ -1,7 +1,7 @@
 use crate::analyze::aa_del::AaDelMinimal;
 use crate::analyze::aa_sub::AaSubMinimal;
 use crate::gene::gene::Gene;
-use crate::gene::gene_map::GeneMap;
+use crate::io::gene_map::GeneMap;
 use crate::io::aa::{from_aa, Aa};
 use crate::io::letter::Letter;
 use crate::io::nuc::{from_nuc_seq, Nuc};

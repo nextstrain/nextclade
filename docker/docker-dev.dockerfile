@@ -201,7 +201,22 @@ ENV CXX_x86_64-unknown-linux-gnu=clang++
 # Cross-compilation for Linux x86_64 with libmusl
 FROM base as cross-x86_64-unknown-linux-musl
 
+USER 0
+
 SHELL ["bash", "-euxo", "pipefail", "-c"]
+
+RUN set -euxo pipefail >/dev/null \
+&& export DEBIAN_FRONTEND=noninteractive \
+&& apt-get update -qq --yes \
+&& apt-get install -qq --no-install-recommends --yes \
+  musl-dev \
+  musl-tools \
+>/dev/null \
+&& apt-get clean autoclean >/dev/null \
+&& apt-get autoremove --yes >/dev/null \
+&& rm -rf /var/lib/apt/lists/*
+
+USER ${USER}
 
 RUN set -euxo pipefail >/dev/null \
 && rustup target add x86_64-unknown-linux-musl

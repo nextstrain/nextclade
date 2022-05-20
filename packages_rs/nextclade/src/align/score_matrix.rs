@@ -157,7 +157,7 @@ mod tests {
   #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
   use super::*;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
-  use crate::gene::gene_map::GeneMap;
+  use crate::io::gene_map::GeneMap;
   use crate::io::nuc::{to_nuc_seq, Nuc};
   use eyre::Report;
   use pretty_assertions::assert_eq;

@@ -1,4 +1,4 @@
-/* eslint-disable import/newline-after-import,@typescript-eslint/no-use-before-define,func-names,sonarjs/no-extra-arguments,prefer-destructuring,no-promise-executor-return,@typescript-eslint/no-floating-promises,promise/always-return,promise/catch-or-return,import/no-extraneous-dependencies */
+/* eslint-disable import/newline-after-import,@typescript-eslint/no-use-before-define,func-names,prefer-destructuring,no-promise-executor-return,@typescript-eslint/no-floating-promises,promise/always-return,promise/catch-or-return,import/no-extraneous-dependencies */
 // Taken from https://github.com/Kir-Antipov/emit-file-webpack-plugin/blob/a17e94f434c9185d659e18806d49f3c6bc73d706/index.js
 
 /**

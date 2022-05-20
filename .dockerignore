@@ -2,3 +2,5 @@
 !/rust-toolchain.toml
 !/\.nvmrc
 !/\.downloads
+!/\.out
+

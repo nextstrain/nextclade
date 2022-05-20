@@ -11,7 +11,7 @@ use crate::analyze::nuc_changes::{find_nuc_changes, FindNucChangesOutput};
 use crate::analyze::pcr_primer_changes::get_pcr_primer_changes;
 use crate::analyze::pcr_primers::PcrPrimer;
 use crate::analyze::virus_properties::VirusProperties;
-use crate::gene::gene_map::GeneMap;
+use crate::io::gene_map::GeneMap;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -111,7 +111,7 @@ pub fn nextclade_run_one(
   let nearest_node_id = node.tmp.id;
   let clade = node.clade();
 
-  let clade_node_attr_keys = tree.clade_node_attr_keys();
+  let clade_node_attr_keys = tree.clade_node_attr_descs();
   let clade_node_attrs = node.get_clade_node_attrs(clade_node_attr_keys);
 
   let private_nuc_mutations = find_private_nuc_mutations(
