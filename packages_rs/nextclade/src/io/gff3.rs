@@ -1,5 +1,5 @@
 use crate::gene::gene::Gene;
-use crate::gene::gene_map::GeneMap;
+use crate::io::gene_map::GeneMap;
 use crate::utils::error::to_eyre_error;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use bio_types::strand::Strand;

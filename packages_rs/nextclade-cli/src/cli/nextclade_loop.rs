@@ -3,11 +3,12 @@ use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
-use nextclade::gene::gene_map::GeneMap;
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
+use nextclade::io::gene_map::{read_gene_map, GeneMap};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::json::json_write;
 use nextclade::io::nuc::{from_nuc_seq, to_nuc_seq, Nuc};
@@ -20,7 +21,6 @@ use nextclade::tree::tree::AuspiceTree;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
-use log::info;
 use serde::{Deserialize, Serialize};
 
 pub struct NextcladeRecord {
@@ -77,18 +77,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
 
-  let gene_map = &if let Some(input_gene_map) = input_gene_map {
-    let mut gene_map = read_gff3_file(&input_gene_map)?;
-    if let Some(genes) = genes {
-      gene_map = gene_map
-        .into_iter()
-        .filter(|(gene_name, ..)| genes.contains(gene_name))
-        .collect();
-    }
-    gene_map
-  } else {
-    GeneMap::new()
-  };
+  let gene_map = &read_gene_map(&input_gene_map, &genes)?;
 
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
@@ -113,7 +102,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     let (result_sender, result_receiver) = crossbeam_channel::bounded::<NextcladeRecord>(CHANNEL_SIZE);
 
     tree_preprocess_in_place(tree, ref_seq, ref_peptides).unwrap();
-    let clade_node_attrs = (&tree.meta.extensions.nextclade.clade_node_attrs).clone();
+    let clade_node_attrs = tree.clade_node_attr_descs();
 
     let outputs = &mut outputs;
 
@@ -188,7 +177,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     let writer = s.spawn(move |_| {
       let mut output_writer = NextcladeOrderedWriter::new(
         gene_map,
-        &clade_node_attrs,
+        clade_node_attrs,
         &output_fasta,
         &output_json,
         &output_ndjson,
