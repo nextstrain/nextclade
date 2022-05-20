@@ -8,6 +8,7 @@ use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParams;
+use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::basename;
 use nextclade::utils::global_init::setup_logger;
 use nextclade::{getenv, make_error};
@@ -386,7 +387,7 @@ pub struct NextcladeRunArgs {
   pub output_errors: Option<PathBuf>,
 
   #[clap(flatten)]
-  pub alignment_params: AlignPairwiseParams,
+  pub alignment_params: AlignPairwiseParamsOptional,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {
