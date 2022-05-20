@@ -171,12 +171,12 @@ pub struct CladeNodeAttrKeyDesc {
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct AuspiceMetaExtensionsNextclade {
-  pub clade_node_attrs: Vec<CladeNodeAttrKeyDesc>,
+  pub clade_node_attrs: Option<Vec<CladeNodeAttrKeyDesc>>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct AuspiceMetaExtensions {
-  pub nextclade: AuspiceMetaExtensionsNextclade,
+  pub nextclade: Option<AuspiceMetaExtensionsNextclade>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, Validate)]
@@ -207,7 +207,7 @@ pub struct AuspiceDisplayDefaults {
 
 #[derive(Clone, Serialize, Deserialize, Validate, Debug)]
 pub struct AuspiceTreeMeta {
-  pub extensions: AuspiceMetaExtensions,
+  pub extensions: Option<AuspiceMetaExtensions>,
 
   #[serde(skip_serializing_if = "Vec::<AuspiceColoring>::is_empty")]
   #[serde(default)]
@@ -358,9 +358,18 @@ impl AuspiceTree {
     Self::map_nodes_mut_rec(0, &mut self.tree, action);
   }
 
+  #[rustfmt::skip]
+  pub fn clade_node_attr_descs_maybe(&self) -> Option<&[CladeNodeAttrKeyDesc]> {
+    self.meta
+      .extensions.as_ref()?
+      .nextclade.as_ref()?
+      .clade_node_attrs.as_ref()
+      .map(|clade_node_attrs| clade_node_attrs.as_slice())
+  }
+
   /// Extracts a list of descriptions of clade-like node attributes.
   /// These tell what additional entries to expect in node attributes (`node_attr`) of nodes.
-  pub fn clade_node_attr_keys(&self) -> &[CladeNodeAttrKeyDesc] {
-    &self.meta.extensions.nextclade.clade_node_attrs[..]
+  pub fn clade_node_attr_descs(&self) -> &[CladeNodeAttrKeyDesc] {
+    self.clade_node_attr_descs_maybe().unwrap_or(&[])
   }
 }
