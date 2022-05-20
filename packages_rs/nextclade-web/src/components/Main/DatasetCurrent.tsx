@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 
 import { Button, Col, Collapse, Row } from 'reactstrap'
-import { useRecoilValue, useResetRecoilState, useSetRecoilState } from 'recoil'
+import { useRecoilValue, useResetRecoilState } from 'recoil'
 import { datasetCurrentAtom, datasetCurrentNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 
