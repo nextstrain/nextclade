@@ -1406,7 +1406,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade"
-version = "2.0.1"
+version = "2.0.0"
 dependencies = [
  "assert2",
  "auto_ops",
@@ -1444,7 +1444,7 @@ dependencies = [
 
 [[package]]
 name = "nextclade-cli"
-version = "2.0.1"
+version = "2.0.0"
 dependencies = [
  "assert2",
  "clap 3.1.10",

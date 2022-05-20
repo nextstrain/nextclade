@@ -160,14 +160,13 @@ jobs:
       - checkout
 
       - run:
-          name: 'Prepare workspace'
+          name: "Prepare workspace"
           command: |
             mkdir -p /home/circleci/workspace
 
       - attach_workspace:
-          name: 'Attach workspace'
+          name: "Attach workspace"
           at: /home/circleci/workspace
-
 
       - run:
           name: "Download dependencies"
@@ -210,7 +209,7 @@ jobs:
                 --replace
             done
 
-  Build-And-Release-Web:
+  Build-And-Deploy-Web:
     shell: "/bin/bash -euxo pipefail"
 
     environment:
@@ -390,7 +389,7 @@ workflows:
             - Build-Cli-aarch64-unknown-linux-gnu
             - Build-Cli-x86_64-unknown-linux-musl
 
-      - Build-And-Release-Web:
+      - Build-And-Deploy-Web:
           <<: *web_branches
 
           context: nextclade_web_<< pipeline.git.branch >>
