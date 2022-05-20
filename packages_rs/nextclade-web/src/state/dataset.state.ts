@@ -1,3 +1,4 @@
+import { isNil } from 'lodash'
 import { atom, DefaultValue, selector } from 'recoil'
 
 import type { DatasetFlat } from 'src/algorithms/types'
@@ -27,7 +28,7 @@ export const datasetCurrentNameAtom = selector<string | undefined>({
     return get(datasetCurrentNameStorageAtom)
   },
   set({ get, set, reset }, datasetCurrentName: string | undefined | DefaultValue) {
-    if (isDefaultValue(datasetCurrentName)) {
+    if (isDefaultValue(datasetCurrentName) || isNil(datasetCurrentName)) {
       reset(datasetCurrentNameStorageAtom)
     } else {
       const { datasets } = get(datasetsAtom)
