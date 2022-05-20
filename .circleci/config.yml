@@ -7,6 +7,7 @@ jobs:
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1
 
     machine:
       image: ubuntu-2004:202201-02
@@ -91,6 +92,7 @@ jobs:
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1
 
     machine:
       image: ubuntu-2004:202201-02
@@ -150,6 +152,7 @@ jobs:
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1
 
     machine:
       image: ubuntu-2004:202201-02
@@ -216,6 +219,7 @@ jobs:
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1
 
     machine:
       image: ubuntu-2004:202201-02
@@ -371,6 +375,7 @@ workflows:
 
           context:
             - nextclade_macos
+            - nextclade_cli_<< pipeline.git.branch >>
 
           matrix:
             parameters:
