@@ -40,6 +40,13 @@ const CardHeader = styled(ReactstrapCardHeader)`
   background: transparent;
 `
 
+const iconLinux = <FaLinux color="#653F12" size={20} />
+const iconApple = <FaApple color="666" size={20} />
+const iconGithub = <FaGithub color="444" size={18} />
+const iconDocker = <FaDocker color="#369cec" size={20} />
+const iconBook = <FaBook color="#777777" size={20} />
+const iconGlobe = <FaGlobeAmericas color="#4f88b0" size={20} />
+
 export interface DownloadLinkProps extends HTMLProps<HTMLAnchorElement> {
   Icon: ReactNode
   text: string
@@ -95,35 +102,35 @@ export function Downloads() {
               <CardFooter>
                 <DownloadLinkList>
                   <DownloadLink
-                    Icon={<FaLinux color="#653F12" size={20} />}
+                    Icon={iconLinux}
                     text={t('Linux')}
                     url="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-Linux-x86_64"
                     download
                   />
                   <DownloadLink
-                    Icon={<FaApple color="666" size={20} />}
+                    Icon={iconApple}
                     text={t('macOS (Intel)')}
                     url="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-x86_64"
                     download
                   />
                   <DownloadLink
-                    Icon={<FaApple color="666" size={20} />}
+                    Icon={iconApple}
                     text={t('macOS (Apple Silicon)')}
                     url="https://github.com/nextstrain/nextclade/releases/latest/download/nextclade-MacOS-arm64"
                     download
                   />
                   <DownloadLink
-                    Icon={<FaGithub color="444" size={18} />}
+                    Icon={iconGithub}
                     text={t('All versions')}
                     url="https://github.com/nextstrain/nextclade/releases"
                   />
                   <DownloadLink
-                    Icon={<FaDocker color="#369cec" size={20} />}
+                    Icon={iconDocker}
                     text={t('nextstrain/nextclade')}
                     url="https://hub.docker.com/r/nextstrain/nextclade"
                   />
                   <DownloadLink
-                    Icon={<FaBook color="#777777" size={20} />}
+                    Icon={iconBook}
                     text={t('Documentation')}
                     url="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html"
                   />
@@ -155,35 +162,35 @@ export function Downloads() {
               <CardFooter>
                 <DownloadLinkList>
                   <DownloadLink
-                    Icon={<FaLinux color="#653F12" size={20} />}
+                    Icon={iconLinux}
                     text={t('Linux')}
                     url="https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-Linux-x86_64"
                     download
                   />
                   <DownloadLink
-                    Icon={<FaApple color="666" size={20} />}
+                    Icon={iconApple}
                     text={t('macOS (Intel)')}
                     url="https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-MacOS-x86_64"
                     download
                   />
                   <DownloadLink
-                    Icon={<FaApple color="666" size={20} />}
+                    Icon={iconApple}
                     text={t('macOS (Apple Silicon)')}
                     url="https://github.com/nextstrain/nextclade/releases/latest/download/nextalign-MacOS-arm64"
                     download
                   />
                   <DownloadLink
-                    Icon={<FaGithub color="444" size={18} />}
+                    Icon={iconGithub}
                     text={t('All versions')}
                     url="https://github.com/nextstrain/nextclade/releases"
                   />
                   <DownloadLink
-                    Icon={<FaDocker color="#369cec" size={20} />}
+                    Icon={iconDocker}
                     text={t('nextstrain/nextalign')}
                     url="https://hub.docker.com/r/nextstrain/nextalign"
                   />
                   <DownloadLink
-                    Icon={<FaBook color="#777777" size={20} />}
+                    Icon={iconBook}
                     text={t('Documentation')}
                     url="https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextalign-cli.html"
                   />
@@ -218,41 +225,25 @@ export function Downloads() {
 
               <CardFooter>
                 <DownloadLinkList>
+                  <DownloadLink Icon={iconLinux} text={t('nextstrain.org')} url="https://nextstrain.org/" />
+                  <DownloadLink Icon={iconApple} text={t('Source code')} url="https://github.com/nextstrain" />
+                  <DownloadLink Icon={iconApple} text={t('Documentation: Home')} url="https://docs.nextstrain.org/" />
                   <DownloadLink
-                    Icon={<FaGlobeAmericas color="#4f88b0" size={20} />}
-                    text={t('nextstrain.org')}
-                    url="https://nextstrain.org/"
-                  />
-                  <DownloadLink
-                    Icon={<FaGithub color="444" size={18} />}
-                    text={t('Source code')}
-                    url="https://github.com/nextstrain"
-                  />
-                  <DownloadLink
-                    Icon={<FaBook color="#777777" size={20} />}
-                    text={t('Documentation: Home')}
-                    url="https://docs.nextstrain.org/"
-                  />
-                  <DownloadLink
-                    Icon={<FaBook color="#777777" size={20} />}
+                    Icon={iconGithub}
                     text={t('Documentation: Augur')}
                     url="https://docs.nextstrain.org/projects/augur"
                   />
                   <DownloadLink
-                    Icon={<FaBook color="#777777" size={20} />}
+                    Icon={iconDocker}
                     text={t('Documentation: Auspice')}
                     url="https://docs.nextstrain.org/projects/auspice"
                   />
                   <DownloadLink
-                    Icon={<FaBook color="#777777" size={20} />}
+                    Icon={iconBook}
                     text={t('Documentation: Nextstrain CLI')}
                     url="https://docs.nextstrain.org/projects/cli"
                   />
-                  <DownloadLink
-                    Icon={<FaGlobeAmericas color="#4f88b0" size={20} />}
-                    text={t('auspice.us')}
-                    url="https://auspice.us/"
-                  />
+                  <DownloadLink Icon={iconGlobe} text={t('auspice.us')} url="https://auspice.us/" />
                 </DownloadLinkList>
               </CardFooter>
             </Card>

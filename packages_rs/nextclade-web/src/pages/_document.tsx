@@ -23,11 +23,7 @@ export const AppleIcons = [57, 60, 72, 76, 114, 120, 144, 152, 180].map((size) =
   return (
     <React.Fragment key={size}>
       <link rel="apple-touch-icon" sizes={sizes} href={`${DOMAIN}/icons/apple-touch-icon-${sizes}.png`} />
-      <link
-        rel="apple-touch-icon-precomposed"
-        sizes={sizes}
-        href={`${DOMAIN}/icons/apple-touch-icon-${sizes}-precomposed.png`}
-      />
+      <link sizes={sizes} href={`${DOMAIN}/icons/apple-touch-icon-${sizes}-precomposed.png`} />
     </React.Fragment>
   )
 })
@@ -76,18 +72,9 @@ export default class Document extends NextDocument {
     try {
       ctx.renderPage = () =>
         originalRenderPage({ enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />) })
-
       const initialProps = await NextDocument.getInitialProps(ctx)
-
-      return {
-        ...initialProps,
-        styles: (
-          <>
-            {initialProps.styles}
-            {sheet.getStyleElement()}
-          </>
-        ),
-      }
+      const styles = [initialProps.styles, sheet.getStyleElement()]
+      return { ...initialProps, styles }
     } finally {
       sheet.seal()
     }
@@ -101,7 +88,7 @@ export default class Document extends NextDocument {
         <Head>
           <DisableNextJsErrorPopup />
 
-          <meta charSet="UTF-8" />
+          <meta charSet="utf8" />
           <title>{PROJECT_NAME}</title>
           <meta name="description" content={PROJECT_DESCRIPTION} />
           <meta name="application-name" content={PROJECT_NAME} />

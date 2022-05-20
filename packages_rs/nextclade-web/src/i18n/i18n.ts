@@ -1,4 +1,4 @@
-import { ElementType } from 'react'
+import { ElementType, FC } from 'react'
 
 import type { StrictOmit } from 'ts-essentials'
 import { mapValues } from 'lodash'
@@ -54,16 +54,16 @@ export interface Locale {
 }
 
 export const locales: Record<LocaleKey, Locale> = {
-  en: { key: 'en', full: 'en-US', name: languages.en.native, Flag: GB },
-  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.native, Flag: SA },
-  de: { key: 'de', full: 'de-DE', name: languages.de.native, Flag: DE },
-  es: { key: 'es', full: 'es-ES', name: languages.es.native, Flag: ES },
-  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.native, Flag: FR },
-  it: { key: 'it', full: 'it-IT', name: languages.it.native, Flag: IT },
-  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.native, Flag: KR },
-  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.native, Flag: PT },
-  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.native, Flag: RU },
-  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.native, Flag: CN },
+  en: { key: 'en', full: 'en-US', name: languages.en.native, Flag: GB as FC },
+  ar: { key: 'ar', full: 'ar-SA', name: languages.ar.native, Flag: SA as FC },
+  de: { key: 'de', full: 'de-DE', name: languages.de.native, Flag: DE as FC },
+  es: { key: 'es', full: 'es-ES', name: languages.es.native, Flag: ES as FC },
+  fr: { key: 'fr', full: 'fr-FR', name: languages.fr.native, Flag: FR as FC },
+  it: { key: 'it', full: 'it-IT', name: languages.it.native, Flag: IT as FC },
+  ko: { key: 'ko', full: 'ko-KR', name: languages.ko.native, Flag: KR as FC },
+  pt: { key: 'pt', full: 'pt-PT', name: languages.pt.native, Flag: PT as FC },
+  ru: { key: 'ru', full: 'ru-RU', name: languages.ru.native, Flag: RU as FC },
+  zh: { key: 'zh', full: 'zh-CN', name: languages.zh.native, Flag: CN as FC },
 } as const
 
 export const localeKeys = Object.keys(locales)
@@ -84,7 +84,7 @@ export class PrettyBytes {
   }
 
   public format(numBytes: number, options?: PrettyBytesOptions) {
-    return prettyBytesOriginal(numBytes, { binary: true, ...(options ?? {}), locale: this.localeKey })
+    return prettyBytesOriginal(numBytes, { binary: true, ...options, locale: this.localeKey })
   }
 }
 
@@ -92,7 +92,7 @@ const prettyBytes = new PrettyBytes()
 
 export function i18nInit({ localeKey }: I18NInitParams) {
   const enUS = numbro.languages()['en-US']
-  const allNumbroLanguages = numbroLanguages as numbro.NumbroLanguage
+  const allNumbroLanguages = numbroLanguages as numbro.NumbroLanguage[]
   Object.values(allNumbroLanguages).forEach((languageRaw) => {
     // If a language object lacks some of the features, substitute these features from English
     numbro.registerLanguage({ ...enUS, ...languageRaw })
@@ -136,8 +136,8 @@ export async function changeLocale(i18n: I18N, localeKey: LocaleKey) {
 
 const i18n = i18nInit({ localeKey: DEFAULT_LOCALE_KEY })
 
-export { numbro }
-
 export { prettyBytes }
 
 export default i18n
+
+export { default as numbro } from 'numbro'

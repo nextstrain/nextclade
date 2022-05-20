@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-
 declare module '@packtracker/webpack-plugin' {
   import webpack from 'webpack'
 

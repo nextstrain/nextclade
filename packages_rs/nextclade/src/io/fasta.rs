@@ -1,4 +1,4 @@
-use crate::gene::gene_map::GeneMap;
+use crate::io::gene_map::GeneMap;
 use crate::io::aa::from_aa_seq;
 use crate::io::fs::ensure_dir;
 use crate::translate::translate_genes::Translation;
@@ -91,7 +91,14 @@ impl<'a> FastaReader<'a> {
         break;
       }
 
-      let fragment = self.line.trim_end().chars().into_iter().filter(|c| is_char_allowed(*c));
+      let fragment = self
+        .line
+        .trim_end()
+        .chars()
+        .into_iter()
+        .filter(|c| is_char_allowed(*c))
+        .map(|c| c.to_ascii_uppercase());
+
       record.seq.extend(fragment);
     }
 

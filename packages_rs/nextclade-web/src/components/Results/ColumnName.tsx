@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 import { isEmpty, isNil } from 'lodash'
 import styled from 'styled-components'
@@ -20,22 +20,21 @@ export interface ColumnNameProps {
 }
 
 export function ColumnName({ seqName }: ColumnNameProps) {
-  const isDone = false
-
   const { t } = useTranslationSafe()
   const { result, error } = useRecoilValue(analysisResultAtom(seqName))
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
   const id = useMemo(() => getSafeId('sequence-label', { seqName }), [seqName])
 
   const { StatusIcon } = useMemo(
     () =>
       getStatusIconAndText({
         t,
-        isDone,
         hasWarnings: !isEmpty(result?.analysisResult.warnings),
         hasErrors: !isNil(error),
       }),
-    [error, isDone, result?.analysisResult.warnings, t],
+    [error, result?.analysisResult.warnings, t],
   )
 
   if (!result?.analysisResult) {
@@ -43,12 +42,7 @@ export function ColumnName({ seqName }: ColumnNameProps) {
   }
 
   return (
-    <SequenceName
-      id={id}
-      className="w-100"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <SequenceName id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <StatusIcon />
       {seqName}
       {

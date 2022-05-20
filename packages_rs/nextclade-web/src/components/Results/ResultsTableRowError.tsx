@@ -20,7 +20,7 @@ export function ResultsTableRowError({ seqName, columnWidthsPx, ...restProps }: 
   const { index, error } = useRecoilValue(analysisResultAtom(seqName))
 
   return (
-    <TableRowError {...restProps} even={index % 2 === 0}>
+    <TableRowError {...restProps}>
       <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
         <TableCellText>{index}</TableCellText>
       </TableCell>

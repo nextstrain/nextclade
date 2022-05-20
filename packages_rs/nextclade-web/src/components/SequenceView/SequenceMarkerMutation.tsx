@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -23,6 +23,8 @@ function SequenceMarkerMutationUnmemoed({
 }: SequenceMarkerMutationProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { pos, queryNuc, aaSubstitutions, aaDeletions } = substitution
   const id = getSafeId('mutation-marker', { seqName, ...substitution })
@@ -43,8 +45,8 @@ function SequenceMarkerMutationUnmemoed({
       width={width}
       height="30"
       {...rest}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <Tooltip target={id} isOpen={showTooltip} fullWidth>
         <TableSlim borderless className="mb-1">
@@ -70,27 +72,23 @@ function SequenceMarkerMutationUnmemoed({
               </tr>
             )}
 
-            <>
-              {aaSubstitutions.map((mut) => (
-                <tr key={mut.codon}>
-                  <td>{t('Aminoacid substitution')}</td>
-                  <td>
-                    <AminoacidMutationBadge mutation={mut} />
-                  </td>
-                </tr>
-              ))}
-            </>
+            {aaSubstitutions.map((mut) => (
+              <tr key={mut.codon}>
+                <td>{t('Aminoacid substitution')}</td>
+                <td>
+                  <AminoacidMutationBadge mutation={mut} />
+                </td>
+              </tr>
+            ))}
 
-            <>
-              {aaDeletions.map((del) => (
-                <tr key={del.queryContext}>
-                  <td>{t('Aminoacid deletion')}</td>
-                  <td>
-                    <AminoacidMutationBadge mutation={del} />
-                  </td>
-                </tr>
-              ))}
-            </>
+            {aaDeletions.map((del) => (
+              <tr key={del.queryContext}>
+                <td>{t('Aminoacid deletion')}</td>
+                <td>
+                  <AminoacidMutationBadge mutation={del} />
+                </td>
+              </tr>
+            ))}
 
             {/* <tr> */}
             {/*   <td colSpan={2}> */}

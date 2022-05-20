@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import { TableSlim } from 'src/components/Common/TableSlim'
@@ -15,6 +15,8 @@ export interface ColumnGapsProps {
 export function ColumnGaps({ analysisResult }: ColumnGapsProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { deletions, aaDeletions, seqName } = analysisResult
   const id = getSafeId('col-gaps', { seqName })
@@ -22,7 +24,7 @@ export function ColumnGaps({ analysisResult }: ColumnGapsProps) {
   const totalGaps = deletions.reduce((acc, curr) => acc + curr.length, 0)
 
   return (
-    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+    <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {totalGaps}
       <Tooltip isOpen={showTooltip} target={id} wide fullWidth>
         <TableSlim borderless className="mb-1">

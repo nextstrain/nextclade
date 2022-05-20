@@ -6,7 +6,7 @@ import { Table as ReactstrapTable } from 'reactstrap'
 import { safeZip, safeZip3 } from 'src/helpers/safeZip'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { AminoacidChange, AminoacidChangesGroup } from 'src/components/SequenceView/groupAdjacentAminoacidChanges'
-import { first, last } from 'lodash'
+import { first, isNil, last } from 'lodash'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { Aminoacid, Nucleotide } from 'src/algorithms/types'
 
@@ -47,7 +47,6 @@ export const TableBodyNuc = styled.tbody`
 `
 
 export const TrNuc = styled.tr`
-  padding: 10px;
   padding: 0;
   margin: 0;
 `
@@ -144,7 +143,7 @@ export function PeptideContextNucleotide({ nuc, shouldHighlight }: PeptideContex
   )
 }
 
-export interface PeptideContextCodon {
+export interface PeptideContextCodonProps {
   refCodon: string
   queryCodon: string
   change?: AminoacidChange
@@ -152,11 +151,25 @@ export interface PeptideContextCodon {
   nucBegin?: number
 }
 
-export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBegin }: PeptideContextCodon) {
+export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBegin }: PeptideContextCodonProps) {
   const refAA = change?.refAA
   const queryAA = change?.queryAA
 
   const highlight: boolean[] = safeZip(refCodon.split(''), queryCodon.split('')).map(([ref, query]) => ref !== query)
+
+  const codonOneBased = useMemo(() => {
+    if (isNil(codon)) {
+      return 0
+    }
+    return codon + 1
+  }, [codon])
+
+  const nucBeginNeBased = useMemo(() => {
+    if (isNil(nucBegin)) {
+      return 0
+    }
+    return nucBegin + 1
+  }, [nucBegin])
 
   return (
     <td>
@@ -164,7 +177,7 @@ export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBe
         <TableBodyNuc>
           <TrNuc>
             <TdNuc colSpan={3}>
-              <AminoacidPositionText>{codon && codon + 1}</AminoacidPositionText>
+              <AminoacidPositionText>{codonOneBased}</AminoacidPositionText>
             </TdNuc>
           </TrNuc>
 
@@ -192,7 +205,7 @@ export function PeptideContextCodon({ refCodon, queryCodon, change, codon, nucBe
 
           <TrNuc>
             <TdAxis colSpan={3}>
-              <NucleotidePositionText>{nucBegin && nucBegin + 1}</NucleotidePositionText>
+              <NucleotidePositionText>{nucBeginNeBased}</NucleotidePositionText>
             </TdAxis>
           </TrNuc>
         </TableBodyNuc>

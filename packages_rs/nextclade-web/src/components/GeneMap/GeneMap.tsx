@@ -43,12 +43,12 @@ export interface GeneViewProps extends SVGProps<SVGRectElement> {
 
 export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps) {
   const { t } = useTranslationSafe()
+  const [showTooltip, setShowTooltip] = useState(false)
 
   const setViewedGene = useSetRecoilState(viewedGeneAtom)
 
   const [hovered, setHovered] = useState(false)
   const [timeoutId, setTimeoutId] = useState<number | undefined>(undefined)
-  const [showTooltip, setShowTooltip] = useState(false)
 
   useEffect(() => {
     if (!hovered && timeoutId) {
@@ -74,40 +74,40 @@ export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps
     [setHovered, setShowTooltip],
   )
 
+  const openTooltip = useCallback(() => setHoveredSmart(true), [setHoveredSmart])
+  const closeTooltip = useCallback(() => setHoveredSmart(false), [setHoveredSmart])
+
   const { geneName, color, start, end, frame } = gene // prettier-ignore
-  const width = Math.max(BASE_MIN_WIDTH_PX, geneLength(gene) * pixelsPerBase)
+  const length = geneLength(gene)
+  const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
   const x = single ? 0 : start * pixelsPerBase
   const id = getSafeId('gene', { ...gene })
 
   const stroke = hovered ? '#222' : undefined
 
+  const onClick = useCallback(() => {
+    clearInterval(timeoutId)
+    setHovered(false)
+    setViewedGene(geneName)
+  }, [geneName, setViewedGene, timeoutId])
+
   return (
     <rect
       id={id}
-      fill={gene.color}
+      fill={color}
       x={x}
       y={-10 + 7.5 * frame}
       width={width}
       height={GENE_HEIGHT_PX}
-      onMouseEnter={() => setHoveredSmart(true)}
-      onMouseLeave={() => setHoveredSmart(false)}
-      onClick={() => {
-        clearInterval(timeoutId)
-        setHovered(false)
-        setViewedGene(geneName)
-      }}
+      onMouseEnter={openTooltip}
+      onMouseLeave={closeTooltip}
+      onClick={onClick}
       stroke={stroke}
       strokeWidth={1}
       cursor="pointer"
       {...rest}
     >
-      <Tooltip
-        target={id}
-        isOpen={showTooltip}
-        onClick={() => {
-          setShowTooltip(false)
-        }}
-      >
+      <Tooltip target={id} isOpen={showTooltip} onClick={closeTooltip}>
         <TableSlim borderless>
           <tbody>
             <tr>

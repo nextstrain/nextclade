@@ -1,18 +1,25 @@
-import React, { CSSProperties, useCallback, useMemo } from 'react'
+import React, { CSSProperties, useDeferredValue, useMemo } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import { FixedSizeList as FixedSizeListBase, FixedSizeListProps } from 'react-window'
 import AutoSizerBase from 'react-virtualized-auto-sizer'
-import { useRecoilValue } from 'recoil'
+import { useRecoilCallback, useRecoilValue } from 'recoil'
 import styled from 'styled-components'
 
+import { SortCategory, SortDirection } from 'src/helpers/sortResults'
 import {
   resultsTableColumnWidthsPxAtom,
   resultsTableDynamicColumnWidthPxAtom,
-  isFilterPanelShownAtom,
   viewedGeneAtom,
+  isResultsFilterPanelCollapsedAtom,
 } from 'src/state/settings.state'
-import { cladeNodeAttrKeysAtom, seqNamesAtom } from 'src/state/results.state'
+import {
+  cladeNodeAttrDescsAtom,
+  cladeNodeAttrKeysAtom,
+  seqNamesFilteredAtom,
+  sortAnalysisResultsAtom,
+  sortAnalysisResultsByKeyAtom,
+} from 'src/state/results.state'
 import type { TableRowDatum } from './ResultsTableRow'
 import { ResultsTableRow } from './ResultsTableRow'
 import {
@@ -51,12 +58,14 @@ export const FixedSizeList = styled(FixedSizeListBase)<FixedSizeListProps>`
 export function ResultsTable() {
   const { t } = useTranslation()
 
-  const seqNames = useRecoilValue(seqNamesAtom)
+  const seqNamesImmediate = useRecoilValue(seqNamesFilteredAtom)
+  const seqNames = useDeferredValue(seqNamesImmediate)
 
   const columnWidthsPx = useRecoilValue(resultsTableColumnWidthsPxAtom)
   const dynamicColumnWidthPx = useRecoilValue(resultsTableDynamicColumnWidthPxAtom)
   const cladeNodeAttrKeys = useRecoilValue(cladeNodeAttrKeysAtom)
-  const isFilterPanelShown = useRecoilValue(isFilterPanelShownAtom)
+  const cladeNodeAttrDescs = useRecoilValue(cladeNodeAttrDescsAtom)
+  const isResultsFilterPanelCollapsed = useRecoilValue(isResultsFilterPanelCollapsedAtom)
   const viewedGene = useRecoilValue(viewedGeneAtom)
 
   const rowData: TableRowDatum[] = useMemo(() => {
@@ -69,56 +78,60 @@ export function ResultsTable() {
     }))
   }, [cladeNodeAttrKeys, columnWidthsPx, dynamicColumnWidthPx, seqNames, viewedGene])
 
-  // const resultsSortByKeyTrigger = useCallback(() => {}, [])
-  const sortByIdAsc = useCallback(() => {}, [])
-  const sortByIdDesc = useCallback(() => {}, [])
-  const sortByNameAsc = useCallback(() => {}, [])
-  const sortByNameDesc = useCallback(() => {}, [])
-  const sortByQcIssuesAsc = useCallback(() => {}, [])
-  const sortByQcIssuesDesc = useCallback(() => {}, [])
-  const sortByCladeAsc = useCallback(() => {}, [])
-  const sortByCladeDesc = useCallback(() => {}, [])
-  const sortByTotalMutationsAsc = useCallback(() => {}, [])
-  const sortByTotalMutationsDesc = useCallback(() => {}, [])
-  const sortByTotalNonAcgtnAsc = useCallback(() => {}, [])
-  const sortByTotalNonAcgtnDesc = useCallback(() => {}, [])
-  const sortByTotalNsAsc = useCallback(() => {}, [])
-  const sortByTotalNsDesc = useCallback(() => {}, [])
-  const sortByTotalGapsAsc = useCallback(() => {}, [])
-  const sortByTotalGapsDesc = useCallback(() => {}, [])
-  const sortByTotalInsertionsAsc = useCallback(() => {}, [])
-  const sortByTotalInsertionsDesc = useCallback(() => {}, [])
-  const sortByTotalFrameShiftsAsc = useCallback(() => {}, [])
-  const sortByTotalFrameShiftsDesc = useCallback(() => {}, [])
-  const sortByTotalStopCodonsAsc = useCallback(() => {}, [])
-  const sortByTotalStopCodonsDesc = useCallback(() => {}, [])
+  // TODO: we could use a map (object) and refer to filters by name,
+  // in order to reduce code duplication in the state, callbacks and components being rendered
+  const sortByIndexAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByIndexDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.index, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByNameAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByNameDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.seqName, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByQcIssuesAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.qcIssues, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByQcIssuesDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.qcIssues, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByCladeAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByCladeDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.clade, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalMutationsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalMutations, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalMutationsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalMutations, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalNonAcgtnAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalNonACGTNs, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalNonAcgtnDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalNonACGTNs, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalNsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalMissing, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalNsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalMissing, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalGapsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalGaps, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalGapsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalGaps, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalInsertionsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalInsertions, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalInsertionsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalInsertions, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalFrameShiftsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalFrameShifts, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalFrameShiftsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalFrameShifts, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalStopCodonsAsc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.asc  }), undefined)  }, []) // prettier-ignore
+  const sortByTotalStopCodonsDesc = useRecoilCallback(({set}) => () => { set(sortAnalysisResultsAtom({ category: SortCategory.totalStopCodons, direction: SortDirection.desc  }), undefined)  }, []) // prettier-ignore
+  const sortByKey = useRecoilCallback(({ set }) => (key: string, direction: SortDirection) => () => {
+    set(sortAnalysisResultsByKeyAtom({ key, direction  }), undefined)
+  }, []) // prettier-ignore
 
   const dynamicColumns = useMemo(() => {
-    return cladeNodeAttrKeys.map((attrKey) => {
-      const sortAsc = () => {} // resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.asc })
-      const sortDesc = () => {} // resultsSortByKeyTrigger({ key: attrKey, direction: SortDirection.desc })
-
+    return cladeNodeAttrDescs.map(({ name: attrKey, displayName, description }) => {
+      const sortAsc = sortByKey(attrKey, SortDirection.asc)
+      const sortDesc = sortByKey(attrKey, SortDirection.desc)
       return (
         <TableHeaderCell key={attrKey} basis={dynamicColumnWidthPx} grow={0} shrink={0}>
           <TableHeaderCellContent>
-            <TableCellText>{attrKey}</TableCellText>
+            <TableCellText>{displayName}</TableCellText>
             <ResultsControlsSort sortAsc={sortAsc} sortDesc={sortDesc} />
           </TableHeaderCellContent>
           <ButtonHelpStyled identifier="btn-help-col-clade" wide>
-            <HelpTipsColumnClade />
+            <h5>{`Column: ${displayName}`}</h5>
+            <p>{description}</p>
           </ButtonHelpStyled>
         </TableHeaderCell>
       )
     })
-  }, [cladeNodeAttrKeys, dynamicColumnWidthPx])
+  }, [cladeNodeAttrDescs, dynamicColumnWidthPx, sortByKey])
 
   return (
-    <Table rounded={isFilterPanelShown}>
+    <Table rounded={isResultsFilterPanelCollapsed}>
       <TableHeaderRow>
         <TableHeaderCell first basis={columnWidthsPx.id} grow={0} shrink={0}>
           <TableHeaderCellContent>
             <TableCellText>{t('ID')}</TableCellText>
-            <ResultsControlsSort sortAsc={sortByIdAsc} sortDesc={sortByIdDesc} />
+            <ResultsControlsSort sortAsc={sortByIndexAsc} sortDesc={sortByIndexDesc} />
           </TableHeaderCellContent>
           <ButtonHelpStyled identifier="btn-help-col-seq-id">
             <HelpTipsColumnId />

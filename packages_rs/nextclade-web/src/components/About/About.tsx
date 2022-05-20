@@ -17,9 +17,11 @@ function H3(props: React.HTMLProps<HTMLHeadingElement>) {
   return <h3 className="about-h3" {...props} />
 }
 
+const mdxComponents = { p: P, h2: H2, h3: H3 }
+
 export function About() {
   return (
-    <MDXProvider components={{ p: P, h2: H2, h3: H3 }}>
+    <MDXProvider components={mdxComponents}>
       <AboutContent />
     </MDXProvider>
   )

@@ -14,7 +14,7 @@ export function formatQCSNPClusters<TFunction extends TFunctionInterface>(
     return undefined
   }
 
-  const { score, totalSNPs, status } = snpClusters
+  const { score, clusteredSNPs, totalSNPs, status } = snpClusters
 
   let message = t('Mutation clusters found')
   if (status === QcStatus.bad) {
@@ -24,7 +24,7 @@ export function formatQCSNPClusters<TFunction extends TFunctionInterface>(
   return t('{{message}}. Seen {{nClusters}} mutation clusters with total of {{total}} mutations. QC score: {{score}}', {
     message,
     total: totalSNPs,
-    nClusters: snpClusters.clusteredSNPs.length,
+    nClusters: clusteredSNPs.length,
     score: round(score),
   })
 }

@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRecoilValue } from 'recoil'
 
@@ -22,6 +22,8 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
 function SequenceMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerBase, ...rest }: MissingViewProps) {
   const { t } = useTranslation()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const geneMap = useRecoilValue(geneMapAtom)
 
@@ -63,8 +65,8 @@ function SequenceMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerBase, 
         width={width}
         height="5"
         {...rest}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         <Tooltip target={id} isOpen={showTooltip} fullWidth>
           <h5>{t('Frame shift')}</h5>

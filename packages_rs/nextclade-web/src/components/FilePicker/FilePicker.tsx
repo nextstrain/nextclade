@@ -4,7 +4,7 @@ import type { StrictOmit } from 'ts-essentials'
 import styled from 'styled-components'
 
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
+import type { AlgorithmInput } from 'src/algorithms/types'
 import { AlgorithmInputFile, AlgorithmInputString, AlgorithmInputUrl } from 'src/io/AlgorithmInput'
 import { TabsContent, TabsPanel } from 'src/components/Common/Tabs'
 import { UploadedFileLoadingInfo } from 'src/components/FilePicker/UploadedFileLoadingInfo'
@@ -97,6 +97,9 @@ export function FilePicker({
     },
     [onInput],
   )
+
+  // eslint-disable-next-line no-void
+  void onError
 
   const clearAndRemove = useCallback(() => {
     onRemove([])

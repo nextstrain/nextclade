@@ -4,7 +4,7 @@ use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
 use crate::analyze::count_gaps::GapCounts;
 use crate::gene::gene::Gene;
-use crate::gene::gene_map::GeneMap;
+use crate::io::gene_map::GeneMap;
 use crate::io::aa::Aa;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
@@ -231,7 +231,7 @@ pub fn translate_genes(
           params,
         );
 
-        Ok((gene_name.to_owned(), res))
+        Ok((gene_name.clone(), res))
       },
     )
     .collect::<Result<IndexMap<String, Result<Translation, Report>>, Report>>()

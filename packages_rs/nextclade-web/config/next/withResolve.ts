@@ -7,7 +7,7 @@ import { addWebpackConfig } from './lib/addWebpackConfig'
 const { moduleRoot } = findModuleRoot()
 
 export default function withResolve(nextConfig: NextConfig) {
-  return addWebpackConfig(nextConfig, (nextConfig, webpackConfig, options) => {
+  return addWebpackConfig(nextConfig, (nextConfig, webpackConfig) => {
     webpackConfig.resolve = {
       ...webpackConfig.resolve,
       modules: [

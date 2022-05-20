@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useCallback, useState } from 'react'
 
 import { Row, Col } from 'reactstrap'
 
@@ -44,6 +44,8 @@ function PeptideMarkerMutationGroupUnmemoed({
 }: PeptideMarkerMutationGroupProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { gene, changes, codonAaRange, nucSubstitutions, nucDeletions } = group
   const id = getSafeId('aa-mutation-group-marker', { seqName, gene, begin: codonAaRange.begin })
@@ -69,7 +71,7 @@ function PeptideMarkerMutationGroupUnmemoed({
     <g id={id}>
       <rect fill="#999a" x={x - 0.5} y={-10} width={width + 1} stroke="#aaaa" strokeWidth={0.5} height={32} />
       <svg x={x} y={-9.5} height={29} {...restProps}>
-        <g onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+        <g onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
           {changes.map((change) => (
             <PeptideMarkerMutation
               key={change.codon}
@@ -95,16 +97,14 @@ function PeptideMarkerMutationGroupUnmemoed({
                   </td>
                 </tr>
 
-                <>
-                  {changesHead.map((change) => (
-                    <tr key={change.codon}>
-                      <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
-                      <td>
-                        <AminoacidMutationBadge mutation={change} />
-                      </td>
-                    </tr>
-                  ))}
-                </>
+                {changesHead.map((change) => (
+                  <tr key={change.codon}>
+                    <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+                    <td>
+                      <AminoacidMutationBadge mutation={change} />
+                    </td>
+                  </tr>
+                ))}
 
                 {changesTail.length > 0 && (
                   <tr>
@@ -113,17 +113,15 @@ function PeptideMarkerMutationGroupUnmemoed({
                   </tr>
                 )}
 
-                <>
-                  {changesTail.length > 0 &&
-                    changesTail.map((change) => (
-                      <tr key={change.codon}>
-                        <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
-                        <td>
-                          <AminoacidMutationBadge mutation={change} />
-                        </td>
-                      </tr>
-                    ))}
-                </>
+                {changesTail.length > 0 &&
+                  changesTail.map((change) => (
+                    <tr key={change.codon}>
+                      <td>{change.type === 'substitution' ? t('Substitution') : t('Deletion')}</td>
+                      <td>
+                        <AminoacidMutationBadge mutation={change} />
+                      </td>
+                    </tr>
+                  ))}
 
                 {totalNucChanges > 0 && (
                   <tr>
@@ -133,23 +131,19 @@ function PeptideMarkerMutationGroupUnmemoed({
                   </tr>
                 )}
 
-                <>
-                  {nucSubstitutions.map((mut) => (
-                    <tr key={mut.pos}>
-                      <td>{t('Substitution')}</td>
-                      <td>{<NucleotideMutationBadge mutation={mut} />}</td>
-                    </tr>
-                  ))}
-                </>
+                {nucSubstitutions.map((mut) => (
+                  <tr key={mut.pos}>
+                    <td>{t('Substitution')}</td>
+                    <td>{<NucleotideMutationBadge mutation={mut} />}</td>
+                  </tr>
+                ))}
 
-                <>
-                  {nucDeletions.map((del) => (
-                    <tr key={del.start}>
-                      <td>{t('Deletion')}</td>
-                      <td>{formatRange(del.start, del.start + del.length)}</td>
-                    </tr>
-                  ))}
-                </>
+                {nucDeletions.map((del) => (
+                  <tr key={del.start}>
+                    <td>{t('Deletion')}</td>
+                    <td>{formatRange(del.start, del.start + del.length)}</td>
+                  </tr>
+                ))}
 
                 <tr>
                   <td colSpan={2}>

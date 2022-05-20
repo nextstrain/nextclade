@@ -59,9 +59,9 @@ export const ModalFooter = styled(ReactstrapModalFooter)``
 export function ButtonNewRun() {
   const { t } = useTranslationSafe()
 
-  const algorithmRun = useCallback(() => {
-    // TODO: trigger a run
-  }, [])
+  // const algorithmRun = useCallback(() => {
+  //   // TODO: trigger a run
+  // }, [])
 
   const canRun = useRecoilValue(canRunAtom)
   const [isNewRunPopupShown, setIsNewRunPopupShown] = useRecoilState(isNewRunPopupShownAtom)
@@ -73,10 +73,10 @@ export function ButtonNewRun() {
     [setIsNewRunPopupShown],
   )
 
-  const run = useCallback(() => {
-    close()
-    algorithmRun()
-  }, [algorithmRun, close])
+  // const run = useCallback(() => {
+  //   close()
+  //   algorithmRun()
+  // }, [algorithmRun, close])
 
   return (
     <>
