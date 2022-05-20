@@ -1,13 +1,12 @@
+use crate::align::band_2d::full_matrix;
 use crate::align::band_2d::{simple_stripes, Stripe};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::seed_match::seed_match;
-use crate::align::band_2d::full_matrix;
 use crate::io::letter::Letter;
 use crate::make_error;
 use eyre::Report;
-use log::warn;
+use log::{trace, warn};
 use num_traits::{clamp, clamp_max, clamp_min};
-
 
 /// generate a vector of query sequence positions that are followed by at least `seed_length`
 /// valid characters. Positions in this vector are thus "good" positions to start a query k-mer.
@@ -59,8 +58,8 @@ pub fn get_seed_matches<L: Letter<L>>(
   let kmer_spacing = ((seed_cover as f32) - 1.0) / ((n_seeds - 1) as f32);
 
   // loop over seeds and find matches, store in seed_matches
-  let mut start_pos = 0;            // start position of ref search
-  let mut end_pos = ref_seq.len();  // end position of ref search
+  let mut start_pos = 0; // start position of ref search
+  let mut end_pos = ref_seq.len(); // end position of ref search
   let qry_pos = 0;
 
   for ni in 0..n_seeds {
@@ -143,6 +142,7 @@ pub fn seed_alignment<L: Letter<L>>(
   // for very short sequences, use full square
   if ref_len_u + qry_len_u < (5 * params.seed_length) {
     let stripes = full_matrix(ref_len_u, qry_len_u);
+    trace!("Band construction: Short qry&ref sequence (< 5*seed_length), thus using full matrix");
     return Ok(stripes);
   };
 
@@ -160,7 +160,7 @@ pub fn seed_alignment<L: Letter<L>>(
     ref_len_i,
     params.terminal_bandwidth,
     params.excess_bandwidth,
-    params.max_indel
+    params.max_indel,
   );
 
   stripes
@@ -174,7 +174,7 @@ pub fn create_stripes(
   ref_len: i32,
   terminal_bandwidth: i32,
   excess_bandwidth: i32,
-  max_indel: usize
+  max_indel: usize,
 ) -> Result<Vec<Stripe>, Report> {
   let mut seed_matches = seed_matches.to_vec();
 
@@ -208,7 +208,8 @@ pub fn create_stripes(
     let min = slice.iter().min().unwrap();
     let max = slice.iter().max().unwrap();
     let width = max - min;
-    if width as usize> max_indel {
+    // Prevent huge widths, which would require massive amount of memory
+    if width as usize > 3 * max_indel {
       return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications.");
     }
     robust_shifts.push((min, max));
@@ -260,13 +261,13 @@ fn regularize_stripes(mut stripes: Vec<Stripe>, qry_len: usize) -> Vec<Stripe> {
   let stripes_len = stripes.len();
   stripes[0].begin = 0;
   for i in 1..stripes_len {
-    stripes[i].begin = clamp(stripes[i].begin, stripes[i-1].begin, qry_len);
+    stripes[i].begin = clamp(stripes[i].begin, stripes[i - 1].begin, qry_len);
   }
 
   // analogously, assure that strip ends are non-decreasing. this needs to be done in reverse.
   stripes[stripes_len - 1].end = qry_len + 1;
   for i in (0..(stripes_len - 1)).rev() {
-    stripes[i].end = clamp(stripes[i].end, 1, stripes[i+1].end);
+    stripes[i].end = clamp(stripes[i].end, 1, stripes[i + 1].end);
   }
 
   stripes
@@ -317,7 +318,14 @@ mod tests {
     let qry_len = 30;
     let ref_len = 40;
 
-    let result = create_stripes(&seed_matches, qry_len, ref_len, terminal_bandwidth, excess_bandwidth, max_indel);
+    let result = create_stripes(
+      &seed_matches,
+      qry_len,
+      ref_len,
+      terminal_bandwidth,
+      excess_bandwidth,
+      max_indel,
+    );
 
     println!("{:?}", result);
 
