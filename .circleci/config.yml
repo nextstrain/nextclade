@@ -123,6 +123,7 @@ jobs:
             export CROSS="<< parameters.target_arch >>"
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
 
             CROSS=${CROSS} ./docker-dev br
 
