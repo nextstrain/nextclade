@@ -1,4 +1,10 @@
-use clap::{Parser, ValueHint};
+use clap::{ArgEnum, Parser, ValueHint};
+
+#[derive(ArgEnum, Copy, Clone, Debug)]
+pub enum GapAlignmentSide {
+  Left,
+  Right,
+}
 
 #[derive(Parser, Debug)]
 pub struct AlignPairwiseParams {
@@ -97,6 +103,11 @@ pub struct AlignPairwiseParams {
   /// Make mutually exclusive with `--right-align-gaps`
   #[clap(long)]
   pub right_align_gaps: bool,
+
+  /// TODO: Write description
+  #[clap(long, arg_enum)]
+  #[clap(default_value_t = AlignPairwiseParams::default().gap_alignment_side)]
+  pub gap_alignment_side: GapAlignmentSide,
 }
 
 impl Default for AlignPairwiseParams {
@@ -121,6 +132,7 @@ impl Default for AlignPairwiseParams {
       terminal_bandwidth: 50,
       left_align_gaps: false,
       right_align_gaps: true,
+      gap_alignment_side: GapAlignmentSide::Right,
     }
   }
 }
