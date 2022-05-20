@@ -37,6 +37,11 @@ pub fn score_matrix<T: Letter<T>>(
 
   trace!("Score matrix: allocated alignment band of size={band_size}");
 
+  // Whether alignment is left or right aligned
+  // If default changes, need to change logic here
+  // Right align is default so ignored at the moment
+  let left_align = if params.left_align_gaps { 1 } else { 0 };
+
   // fill scores with alignment scores
   // if the colon marks the position in the sequence before rPos,qPos
   // R: ...ACT:X
@@ -141,7 +146,7 @@ pub fn score_matrix<T: Letter<T>>(
           }
           // could factor out tmp_score, replacing with ref_gaps but maybe less readable
           ref_gaps = tmp_score;
-          if score < tmp_score {
+          if score + left_align < tmp_score {
             score = tmp_score;
             origin = REF_GAP_MATRIX;
           }
@@ -167,7 +172,7 @@ pub fn score_matrix<T: Letter<T>>(
             tmp_score = q_gap_open;
           }
           qry_gaps[qpos] = tmp_score;
-          if score < tmp_score {
+          if score + left_align < tmp_score {
             score = tmp_score;
             origin = QRY_GAP_MATRIX;
           }
