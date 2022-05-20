@@ -209,7 +209,7 @@ pub fn create_stripes(
     let max = slice.iter().max().unwrap();
     let width = max - min;
     // Prevent huge widths, which would require massive amount of memory
-    if width as usize > 3 * max_indel {
+    if width as usize > max_indel {
       return make_error!("Unable to align: seed matches suggest large indels or are ambiguous due to duplications.");
     }
     robust_shifts.push((min, max));
