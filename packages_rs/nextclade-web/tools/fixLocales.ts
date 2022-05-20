@@ -25,7 +25,7 @@ export function getSubstitutions(str: string) {
 export const quote = (str: string) => `'${str}'`
 
 export function readJson(filepath: string) {
-  const content = fs.readFileSync(filepath, 'utf-8')
+  const content = fs.readFileSync(filepath, 'utf8')
   const jsonDangerous = JSON.parse(content) as unknown
 
   if (!isObject(jsonDangerous)) {
@@ -86,7 +86,7 @@ filepaths.forEach((filepath) => {
   })
 
   const contentFixed = resultsFixed.reduce(
-    (result, { index, missing, extra, reference, localized, localizedFixed }) => {
+    (result, { reference, localized, localizedFixed }) => {
       return {
         result: {
           ...result.result,

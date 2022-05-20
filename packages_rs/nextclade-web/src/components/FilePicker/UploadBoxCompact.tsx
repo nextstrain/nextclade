@@ -46,7 +46,7 @@ export function makeOnDrop({ t, onUpload, setErrors }: MakeOnDropParams) {
     onUpload(file)
   }
 
-  return async function onDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
+  async function onDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
     setErrors([])
     try {
       await processFiles(acceptedFiles, rejectedFiles)
@@ -54,6 +54,9 @@ export function makeOnDrop({ t, onUpload, setErrors }: MakeOnDropParams) {
       handleError(sanitizeError(error))
     }
   }
+
+  // eslint-disable-next-line no-void
+  return (acceptedFiles: File[], rejectedFiles: FileRejection[]) => void onDrop(acceptedFiles, rejectedFiles)
 }
 
 export enum UploadZoneState {

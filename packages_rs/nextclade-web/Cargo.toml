@@ -19,8 +19,8 @@ js-sys = { version = "0.3.57", features = [] }
 log = "0.4.16"
 nextclade = { path = "../nextclade" }
 serde = { version = "1.0.136", features = ["derive"] }
-typescript-definitions = { path = "../../3rdparty/typescript-definitions", features = ['export-typescript'] }
-typescript-definitions-derive = { path = "../../3rdparty/typescript-definitions/typescript-definitions-derive", features = ['export-typescript'] }
+typescript-definitions = { path = "../3rdparty/typescript-definitions", features = ['export-typescript'] }
+typescript-definitions-derive = { path = "../3rdparty/typescript-definitions/typescript-definitions-derive", features = ['export-typescript'] }
 wasm-bindgen = { version = "0.2.79", features = ["serde-serialize"] }
 wasm-logger = "0.2.0"
 web-sys = { version = "0.3.56", features = ["console"] }

@@ -74,7 +74,7 @@ mod tests {
   // rstest fixtures are passed by value
   use super::*;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
-  use crate::gene::gene_map::GeneMap;
+  use crate::io::gene_map::GeneMap;
   use crate::io::nuc::{from_nuc_seq, to_nuc_seq};
   use eyre::Report;
   use pretty_assertions::assert_eq;

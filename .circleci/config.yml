@@ -1,14 +1,13 @@
 version: 2.1
 
-
 jobs:
   Update-Builder-Container:
-
-    shell: '/bin/bash -euxo pipefail'
+    shell: "/bin/bash -euxo pipefail"
 
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1
 
     machine:
       image: ubuntu-2004:202201-02
@@ -20,17 +19,17 @@ jobs:
       - checkout
 
       - run:
-          name: 'Calculate current docker build checksum'
+          name: "Calculate current docker build checksum"
           command: |
             ./scripts/docker_build_checksum.sh > "checksum.current.txt"
 
       - restore_cache:
-          name: 'Restore previous docker build checksum from cache'
+          name: "Restore previous docker build checksum from cache"
           keys:
-            - cache-v13-nextclade-docker-{{ checksum "checksum.current.txt" }}
+            - cache-v14-nextclade-docker-{{ checksum "checksum.current.txt" }}
 
       - run:
-          name: 'Compare current and previous checksum, halt if no changes'
+          name: "Compare current and previous checksum, halt if no changes"
           command: |
             touch checksum.previous.txt
             CHECKSUM_OLD="$(cat checksum.previous.txt)"
@@ -48,7 +47,7 @@ jobs:
             echo "Checksum changed. Continuing the job."
 
       - run:
-          name: 'Build container image'
+          name: "Build container image"
           command: |
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
@@ -78,22 +77,22 @@ jobs:
             done
 
       - save_cache:
-          name: 'Save new checksum.txt to cache'
-          key: cache-v13-nextclade-docker-{{ checksum "checksum.previous.txt" }}
+          name: "Save new checksum.txt to cache"
+          key: cache-v14-nextclade-docker-{{ checksum "checksum.previous.txt" }}
           paths:
             - checksum.previous.txt
-
 
   Build-Cli:
     parameters:
       target_arch:
         type: string
 
-    shell: '/bin/bash -euxo pipefail'
+    shell: "/bin/bash -euxo pipefail"
 
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1
 
     machine:
       image: ubuntu-2004:202201-02
@@ -105,7 +104,7 @@ jobs:
       - checkout
 
       - run:
-          name: ' [ web ] | Pull docker dev image'
+          name: " [ << parameters.target_arch >> ] | Pull docker dev image"
           command: |
             CROSS="<< parameters.target_arch >>"
             DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
@@ -116,71 +115,65 @@ jobs:
             docker pull "nextstrain/nextclade_builder:cross-${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null
 
       - restore_cache:
-          name: ' [ << parameters.target_arch >> ] | Restore build cache'
+          name: " [ << parameters.target_arch >> ] | Restore build cache"
           keys:
-            - cache-v4-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
+            - cache-v14-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
 
       - run:
-          name: ' [ << parameters.target_arch >> ] | Build CLI'
+          name: " [ << parameters.target_arch >> ] | Build CLI"
           command: |
             export CROSS="<< parameters.target_arch >>"
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
+            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
 
             CROSS=${CROSS} ./docker-dev br
 
       - save_cache:
-          name: ' [ << parameters.target_arch >> ] | Save build cache'
-          key: cache-v4-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
+          name: " [ << parameters.target_arch >> ] | Save build cache"
+          key: cache-v14-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
           paths:
             - .build
             - .cache
 
       - store_artifacts:
-          name: ' [ << parameters.target_arch >> ] | Store build artifacts'
+          name: " [ << parameters.target_arch >> ] | Store build artifacts"
           path: .out
 
       - persist_to_workspace:
-          name: ' [ << parameters.target_arch >> ] | Persist build artifacts to workspace'
+          name: " [ << parameters.target_arch >> ] | Persist build artifacts to workspace"
           root: .
           paths:
             - .out/*
 
-
   Release-Cli:
-
-    shell: '/bin/bash -euxo pipefail'
+    shell: "/bin/bash -euxo pipefail"
 
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1
 
     machine:
       image: ubuntu-2004:202201-02
       docker_layer_caching: true
 
-    resource_class: large
+    resource_class: small
 
     steps:
       - checkout
 
-      #      - run:
-      #          name: 'Prepare workspace'
-      #          command: |
-      #            mkdir -p /tmp/workspace
-      #
-      #      - attach_workspace:
-      #          name: 'Attach workspace'
-      #          at: /tmp/workspace
+      - run:
+          name: "Prepare workspace"
+          command: |
+            mkdir -p /home/circleci/workspace
 
-      #      - run:
-      #          name: 'Test CLI'
-      #          command: |
-      #            /tmp/workspace/.out/nextclade-x86_64-unknown-linux-gnu --version
-      #            /tmp/workspace/.out/nextalign-x86_64-unknown-linux-gnu --version
+      - attach_workspace:
+          name: "Attach workspace"
+          at: /home/circleci/workspace
 
       - run:
-          name: 'Download dependencies'
+          name: "Download dependencies"
           command: |
             curl -fsSL "https://github.com/github-release/github-release/releases/download/v0.10.0/linux-amd64-github-release.bz2" | bzip2 -d > "${HOME}/bin/github-release"
             chmod +x "${HOME}/bin/github-release"
@@ -191,12 +184,9 @@ jobs:
             curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
 
       - run:
-          name: 'Publish binaries to GitHub Releases'
+          name: "Publish binaries to GitHub Releases"
           command: |
-            mkdir -p ".out/"
-            echo "Hello" > .out/hello-world
-
-            export ARTIFACTS_DIR=".out"
+            export ARTIFACTS_DIR="/home/circleci/workspace/.out"
             export VERSION=$(dasel select -p toml -s ".package.version" -f packages_rs/nextclade/Cargo.toml)
 
             (./scripts/extract-release-notes.py CHANGELOG.md; git cliff --unreleased) | github-release release \
@@ -208,7 +198,7 @@ jobs:
               --security-token "${GITHUB_TOKEN}" \
             || true
 
-            # Look like the release appears not immediately and if upload is following too quickly
+            # Looks like the release appears not immediately and if upload is following too quickly
             # it fails because it cannot find the release. So let's wait an arbitrary amount of time here.
             sleep 7
 
@@ -223,15 +213,53 @@ jobs:
                 --replace
             done
 
-
-
-  Build-And-Release-Web:
-
-    shell: '/bin/bash -euxo pipefail'
+  Release-Cli-Docker:
+    shell: "/bin/bash -euxo pipefail"
 
     environment:
       DOCKER_BUILDKIT: 1
       BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1\n
+
+    machine:
+      image: ubuntu-2004:202201-02
+      docker_layer_caching: true
+
+    resource_class: small
+
+    steps:
+      - checkout
+
+      - run:
+          name: "Prepare workspace"
+          command: |
+            mkdir -p /home/circleci/workspace
+
+      - attach_workspace:
+          name: "Attach workspace"
+          at: /home/circleci/workspace
+
+      - run:
+          name: "Download dependencies"
+          command: |
+            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel"
+            chmod +x "${HOME}/bin/dasel"
+
+      - run:
+          name: "Publish container images to Docker Hub"
+          command: |
+            pwd
+            cp -vr /home/circleci/workspace/.out .
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./docker-prod
+
+  Build-And-Deploy-Web:
+    shell: "/bin/bash -euxo pipefail"
+
+    environment:
+      DOCKER_BUILDKIT: 1
+      BUILDKIT_PROGRESS: plain
+      PROGRESS_NO_TRUNC: 1
 
     machine:
       image: ubuntu-2004:202201-02
@@ -243,7 +271,7 @@ jobs:
       - checkout
 
       - run:
-          name: ' [ web ] | Pull docker dev image'
+          name: " [ web ] | Pull docker dev image (branch << pipeline.git.branch >>)"
           command: |
             CROSS="wasm32-unknown-unknown"
             DOCKER_IMAGE_VERSION="$(./scripts/docker_build_checksum.sh)"
@@ -254,111 +282,140 @@ jobs:
             docker pull "nextstrain/nextclade_builder:cross-${CROSS}-${DOCKER_IMAGE_VERSION}" >/dev/null
 
       - restore_cache:
-          name: ' [ web ] | Restore build cache'
+          name: " [ web ] | Restore build cache (branch << pipeline.git.branch >>)"
           keys:
-            - cache-v4-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+            - cache-v15-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
 
       - run:
-          name: ' [ web ] | Build WebAssembly module'
+          name: " [ web ] | Build WebAssembly module (branch << pipeline.git.branch >>)"
           command: |
             ./docker-dev Wr
 
       - save_cache:
-          name: ' [ web ] | Save build cache'
-          key: cache-v4-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
+          name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
+          key: cache-v15-nextclade-wasm-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}-{{ checksum "packages_rs/nextclade-web/Cargo.toml" }}
           paths:
             - .build
             - .cache
+            - packages_rs/nextclade-web/.build/docker
 
       - restore_cache:
-          name: ' [ web ] | Restore build cache'
+          name: " [ web ] | Restore build cache (branch << pipeline.git.branch >>)"
           keys:
-            - cache-v4-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+            - cache-v15-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
 
       - run:
-          name: ' [ web ] | Build web application'
+          name: " [ web ] | Build web application (branch << pipeline.git.branch >>)"
           command: |
+            cp .env.example .env
 
-            export FULL_DOMAIN="https://example.com"
-            export DATA_FULL_DOMAIN="https://data.example.com"
+            sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
-            echo "FULL_DOMAIN=${FULL_DOMAIN}" >> .env
-            echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" >> .env
-            echo "ANALYZE=0" >> .env
-            echo "PROFILE=0" >> .env
-            echo "WATCH_POLL=0" >> .env
-            echo "PROD_ENABLE_SOURCE_MAPS=0" >> .env
-            echo "PROD_ENABLE_TYPE_CHECKS=0" >> .env
-            echo "PROD_ENABLE_ESLINT=0" >> .env
-            echo "PROD_ENABLE_STYLELINT=0" >> .env
-            echo "PROD_ENABLE_REDUX_DEV_TOOLS=0" >> .env
-            echo "PROD_ENABLE_REDUX_IMMUTABLE_STATE_INVARIANT=0" >> .env
-            echo "PROD_ENABLE_REDUX_LOGGER=0" >> .env
-
+            ./docker-dev a yarn install
+            ./docker-dev a yarn lint
             ./docker-dev ar
 
       - save_cache:
-          name: ' [ web ] | Save build cache'
-          key: cache-v4-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
+          name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
+          key: cache-v15-nextclade-web-{{ checksum "packages_rs/nextclade-web/yarn.lock" }}
           paths:
-            - packages_rs/nextclade-web/.build
+            - packages_rs/nextclade-web/.build/production/tmp/cache
             - packages_rs/nextclade-web/.cache
+            - packages_rs/nextclade-web/node_modules
 
       - run:
-          name: ' [ web ] | Halt if not on release-cli branch'
+          name: " [ web ] | Halt if not on a major branch (branch << pipeline.git.branch >>)"
           command: |
-            if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
-                circleci-agent step halt
-            fi
+            if ! [[ "$CIRCLE_BRANCH" =~ ^(master|staging|release)$ ]]; then circleci-agent step halt; fi
 
-cli_only: &cli_branches_only
+      - run:
+          name: " [ web ] | Clear AWS S3 bucket (branch << pipeline.git.branch >>)"
+          command: |
+            aws s3 rm s3://${AWS_S3_BUCKET} --recursive
+
+      - run:
+          name: " [ web ] | Deploy web bundle to AWS S3 (branch << pipeline.git.branch >>)"
+          command: |
+            cd packages_rs/nextclade-web/.build/production/web
+            aws s3 cp --recursive --cache-control "max-age=2592000, public" "_next/" "s3://${AWS_S3_BUCKET}/_next/"
+
+      - run:
+          name: " [ web ] | Deploy web root to AWS S3 (branch << pipeline.git.branch >>)"
+          command: |
+            cd packages_rs/nextclade-web/.build/production/web
+            aws s3 cp --recursive --exclude "_next" --exclude "*.html" "./" "s3://${AWS_S3_BUCKET}/"
+
+      - run:
+          name: " [ web ] | Deploy html files to AWS S3 (branch << pipeline.git.branch >>)"
+          command: |
+            cd packages_rs/nextclade-web/.build/production/web
+            find * -type f -name "*.html" -exec bash -c '\
+            aws s3 cp \
+              --content-type "text/html" \
+              --cache-control "no-cache" \
+              --metadata-directive REPLACE \
+                $1 \
+                s3://${AWS_S3_BUCKET}/${1}' \
+            - "{}" \;
+
+      - run:
+          name: " [ web ] | Invalidate AWS Cloudfront cache (branch << pipeline.git.branch >>)"
+          command: |
+            aws cloudfront create-invalidation \
+              --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
+              --paths "/*"
+
+cli_release_branch: &cli_release_branch
   filters:
     branches:
       only:
-        # - release-cli
-        # - staging-cli
-         - rust-release
+        - release-cli
 
-
-major_branches_only: &only_major_branches
+cli_branches: &cli_branches
   filters:
     branches:
       only:
-        # - master
-        # - staging
-        # - release
-         - rust-release
+        - master
+        - staging-cli
+        - release-cli
 
-major_branches_and_cli_release_only: &only_major_branches_and_cli_branches
+web_branches: &web_branches
   filters:
     branches:
       only:
-        # - master
-        # - staging
-        # - release
-        # - release-cli
-        # - staging-cli
-         - rust-release
+        - master
+        - staging
+        - release
+
+web_branches_and_cli_branches: &web_branches_and_cli_branches
+  filters:
+    branches:
+      only:
+        - master
+        - staging
+        - release
+        - release-cli
+        - staging-cli
 
 workflows:
   version: 2
   build:
     jobs:
       - Update-Builder-Container:
-          <<: *only_major_branches_and_cli_branches
+          <<: *web_branches_and_cli_branches
 
           context:
             - nextclade_macos
 
-
       - Build-Cli:
-          <<: *cli_branches_only
+          <<: *cli_branches
 
           requires:
             - Update-Builder-Container
 
           context:
             - nextclade_macos
+            - nextclade_cli_<< pipeline.git.branch >>
 
           matrix:
             parameters:
@@ -370,9 +427,8 @@ workflows:
                 - aarch64-unknown-linux-gnu
                 - x86_64-unknown-linux-musl
 
-
       - Release-Cli:
-          <<: *cli_branches_only
+          <<: *cli_release_branch
 
           context:
             - nextclade_github
@@ -385,11 +441,20 @@ workflows:
             - Build-Cli-aarch64-unknown-linux-gnu
             - Build-Cli-x86_64-unknown-linux-musl
 
+      - Release-Cli-Docker:
+          <<: *cli_release_branch
 
-      - Build-And-Release-Web:
-          <<: *only_major_branches
+          context:
+            - nextclade_github
 
-          # context: nextclade_web_<< pipeline.git.branch >>
+          requires:
+            - Build-Cli-x86_64-unknown-linux-gnu
+            - Build-Cli-x86_64-unknown-linux-musl
+
+      - Build-And-Deploy-Web:
+          <<: *web_branches
+
+          context: nextclade_web_<< pipeline.git.branch >>
 
           requires:
             - Update-Builder-Container

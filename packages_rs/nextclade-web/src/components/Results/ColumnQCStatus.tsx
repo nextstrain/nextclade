@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -13,6 +13,8 @@ export interface ColumnQCStatusProps {
 
 export function ColumnQCStatus({ analysisResult }: ColumnQCStatusProps) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { seqName, qc } = analysisResult
   const { missingData, privateMutations, mixedSites, snpClusters, frameShifts, stopCodons } = qc
@@ -37,12 +39,7 @@ export function ColumnQCStatus({ analysisResult }: ColumnQCStatusProps) {
   })
 
   return (
-    <div
-      id={id}
-      className="d-flex w-100 h-100"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <div id={id} className="d-flex w-100 h-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {icons}
       <Tooltip wide target={id} isOpen={showTooltip}>
         <ListOfQcIssues qc={qc} />

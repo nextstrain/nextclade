@@ -10,12 +10,13 @@
  *
  */
 
+import type { ServerResponse } from 'http'
 import path from 'path'
 
-import express, { Response } from 'express'
+import express from 'express'
 
 import allowMethods from 'allow-methods'
-import history from 'connect-history-api-fallback'
+// import history from 'connect-history-api-fallback'
 import expressStaticGzip from 'express-static-gzip'
 
 import { getenv } from '../../lib/getenv'
@@ -35,17 +36,22 @@ export interface NewHeaders {
 function main() {
   const app = express()
 
-  const expressStaticGzipOptions = { enableBrotli: true }
+  const expressStaticGzipOptions = { enableBrotli: true, serveStatic: { extensions: ['html'] } }
 
   const cacheNone = {
     ...expressStaticGzipOptions,
     serveStatic: {
-      setHeaders: (res: Response) => res.set({ 'Cache-Control': 'no-cache' }),
+      ...expressStaticGzipOptions.serveStatic,
+      setHeaders: (res: ServerResponse) => res.setHeader('Cache-Control', 'no-cache'),
     },
   }
   const cacheOneYear = {
     ...expressStaticGzipOptions,
-    serveStatic: { maxAge: '31556952000', immutable: true },
+    serveStatic: {
+      ...expressStaticGzipOptions.serveStatic,
+      maxAge: '31556952000',
+      immutable: true,
+    },
   }
 
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -61,7 +67,6 @@ function main() {
   })
 
   app.use(allowMethods(['GET', 'HEAD']))
-  app.use(history())
   app.use('/_next', expressStaticGzip(nextDir, cacheOneYear))
   app.get('*', expressStaticGzip(buildDir, cacheNone))
 

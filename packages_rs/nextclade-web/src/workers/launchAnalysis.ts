@@ -1,12 +1,19 @@
 import { concurrent } from 'fasy'
 import type { AuspiceJsonV2, CladeNodeAttrDesc } from 'auspice'
+import { AlgorithmGlobalStatus } from 'src/algorithms/types'
 
-import type { DatasetFiles, DatasetFlat, FastaRecordId, Gene, NextcladeResult } from 'src/algorithms/types'
+import type {
+  AlgorithmInput,
+  DatasetFiles,
+  DatasetFlat,
+  FastaRecordId,
+  Gene,
+  NextcladeResult,
+} from 'src/algorithms/types'
 import type { NextcladeParamsPojo } from 'src/gen'
 import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import type { LauncherThread } from 'src/workers/launcher.worker'
 import { spawn } from 'src/workers/spawn'
-import { AlgorithmGlobalStatus, AlgorithmInput } from 'src/state/algorithm/algorithm.state'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
 
 export interface LaunchAnalysisInputs {

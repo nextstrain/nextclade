@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 import {
@@ -92,9 +92,9 @@ export const ModalFooter = styled(ReactstrapModalFooter)`
 export function CitationButton() {
   const { t } = useTranslation()
   const [showCitation, setShowCitation] = useState(false)
-  const toggleOpen = () => setShowCitation(!showCitation)
-  const open = () => setShowCitation(true)
-  const close = () => setShowCitation(false)
+  const toggleOpen = useCallback(() => setShowCitation((showCitation) => !showCitation), [])
+  const open = useCallback(() => setShowCitation(true), [])
+  const close = useCallback(() => setShowCitation(false), [])
   const text = t('Citation')
   const closeText = t('Close this window')
 

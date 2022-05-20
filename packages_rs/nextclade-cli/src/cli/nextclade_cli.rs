@@ -1,3 +1,4 @@
+use crate::io::http_client::ProxyConfig;
 use clap::{AppSettings, CommandFactory, Parser, Subcommand, ValueHint};
 use clap_complete::{generate, Generator, Shell};
 use clap_complete_fig::Fig;
@@ -5,18 +6,17 @@ use clap_verbosity_flag::{Verbosity, WarnLevel};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use nextclade::{getenv, make_error};
-use nextclade::utils::global_init::setup_logger;
 use log::LevelFilter;
+use nextclade::align::params::AlignPairwiseParams;
+use nextclade::io::fs::basename;
+use nextclade::utils::global_init::setup_logger;
+use nextclade::{getenv, make_error};
 use std::env::current_dir;
 use std::fmt::Debug;
 use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
 use url::Url;
-use nextclade::align::params::AlignPairwiseParams;
-use nextclade::io::fs::basename;
-use crate::io::http_client::ProxyConfig;
 
 const DATA_FULL_DOMAIN: &str = getenv!("DATA_FULL_DOMAIN");
 
@@ -32,7 +32,7 @@ lazy_static! {
 #[clap(verbatim_doc_comment)]
 /// Viral genome alignment, mutation calling, clade assignment, quality checks and phylogenetic placement.
 ///
-/// Nextclade is a part of Nextstrain project: https://nextstrain.org
+/// Nextclade is a part of Nextstrain: https://nextstrain.org
 ///
 /// Documentation: https://docs.nextstrain.org/projects/nextclade
 /// Nextclade Web: https://clades.nextstrain.org
@@ -41,7 +41,7 @@ pub struct NextcladeArgs {
   #[clap(subcommand)]
   pub command: Option<NextcladeCommands>,
 
-  /// Set verbosity level
+  /// Set verbosity level [default: warn]
   #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
   pub verbosity: Option<LevelFilter>,
 
@@ -231,7 +231,7 @@ pub struct NextcladeRunArgs {
 
   /// Path to a FASTA file containing reference sequence. This file is expected to contain exactly 1 sequence.
   ///
-  /// Overrides path to `tree.json` in the dataset (`--input-dataset`).
+  /// Overrides path to `reference.fasta` in the dataset (`--input-dataset`).
   #[clap(long, short = 'r', alias("reference"), alias("input-root-seq"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: Option<PathBuf>,
@@ -266,10 +266,10 @@ pub struct NextcladeRunArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_pcr_primers: Option<PathBuf>,
 
-  /// Path to a .gff file containing gene map.
+  /// Path to a .gff file containing the gene map (genome annotation).
   ///
-  /// Gene map (sometimes also called 'gene annotations') is used to find gene regions. If not supplied, sequences will
-  /// not be translated, peptides will not be emitted, aminoacid mutations will not be detected and nucleotide sequence
+  /// Gene map (sometimes also called 'genome annotation') is used to find coding regions. If not supplied, coding regions will
+  /// not be translated, amino acid sequences will not be output, amino acid mutations will not be detected and nucleotide sequence
   /// alignment will not be informed by codon boundaries
   ///
   /// Overrides path to `genemap.gff` provided by `--input-dataset`.
@@ -367,7 +367,7 @@ pub struct NextcladeRunArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_tree: Option<PathBuf>,
 
-  /// Path to output CSV file with stripped insertions data.
+  /// Path to output CSV file that contain insertions stripped from the reference alignment.
   ///
   /// Overrides paths given with `--output-dir` and `--output-basename`.
   ///

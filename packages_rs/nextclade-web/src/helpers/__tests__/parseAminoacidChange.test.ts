@@ -82,7 +82,7 @@ describe('parseAminoacidChange', () => {
   })
 })
 
-describe('parseAminoacidChange ', () => {
+describe('parseAminoacidChange reject', () => {
   it('should reject empty input', () => {
     expect(parseAminoacidChange('')).toBeUndefined()
   })

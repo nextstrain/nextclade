@@ -23,7 +23,7 @@ export function ResultsTableRowPending({ seqName, columnWidthsPx, ...restProps }
   const { index } = useRecoilValue(analysisResultAtom(seqName))
 
   return (
-    <TableRowPending {...restProps} even={index % 2 === 0}>
+    <TableRowPending {...restProps}>
       <TableCell basis={columnWidthsPx.id} grow={0} shrink={0}>
         <TableCellText>{index}</TableCellText>
       </TableCell>

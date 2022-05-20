@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useCallback, useState } from 'react'
 
 import { AMINOACID_UNKNOWN, AA_MIN_WIDTH_PX, BASE_MIN_WIDTH_PX } from 'src/constants'
 
@@ -21,6 +21,8 @@ export interface PeptideMarkerUnknownProps extends SVGProps<SVGRectElement> {
 export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...rest }: PeptideMarkerUnknownProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { begin, end } = range // prettier-ignore
 
@@ -41,8 +43,8 @@ export function PeptideMarkerUnknownUnmemoed({ seqName, range, pixelsPerAa, ...r
       y={-10}
       width={width}
       height="30"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       {...rest}
     >
       <Tooltip target={id} isOpen={showTooltip} fullWidth>

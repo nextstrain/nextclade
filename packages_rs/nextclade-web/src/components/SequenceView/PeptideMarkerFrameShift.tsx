@@ -1,4 +1,4 @@
-import React, { SVGProps, useState } from 'react'
+import React, { SVGProps, useCallback, useState } from 'react'
 import { useRecoilValue } from 'recoil'
 
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
@@ -22,6 +22,8 @@ export interface PeptideMarkerFrameShiftProps extends SVGProps<SVGRectElement> {
 function PeptideMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerAa, ...rest }: PeptideMarkerFrameShiftProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { geneName, nucAbs, codon, gapsLeading, gapsTrailing } = frameShift
   const id = getSafeId('frame-shift-aa-marker', { seqName, ...frameShift })
@@ -63,8 +65,8 @@ function PeptideMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerAa, ...
         width={width}
         height="5"
         {...rest}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         <Tooltip target={id} isOpen={showTooltip} fullWidth>
           <h5>{t('Frame shift')}</h5>

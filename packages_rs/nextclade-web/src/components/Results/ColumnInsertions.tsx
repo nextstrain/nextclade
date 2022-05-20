@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -14,6 +14,8 @@ export interface ColumnInsertionsProps {
 export function ColumnInsertions({ analysisResult }: ColumnInsertionsProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const { seqName, insertions, totalInsertions, aaInsertions, totalAminoacidInsertions } = analysisResult
   const id = getSafeId('col-insertions', { seqName, insertions })
@@ -22,7 +24,7 @@ export function ColumnInsertions({ analysisResult }: ColumnInsertionsProps) {
   const aaTitle = useMemo(() => t('Aminoacid insertions ({{n}})', { n: aaInsertions.length }), [aaInsertions.length, t])
 
   return (
-    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+    <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {totalInsertions}
       <Tooltip id={id} isOpen={showTooltip} target={id} wide fullWidth>
         <Row noGutters>

@@ -24,9 +24,9 @@ export const QcListItemBase = styled.li`
   margin-top: 0.5rem;
 `
 
-export interface QcListItem extends React.HTMLProps<HTMLDListElement>, CircleProps {}
+export interface QcListItemProps extends React.HTMLProps<HTMLDListElement>, CircleProps {}
 
-export function QcListItem({ status, text, children }: QcListItem) {
+export function QcListItem({ status, text, children }: QcListItemProps) {
   return (
     <QcListItemBase>
       <span className="mr-2 align-content-center">
@@ -63,7 +63,7 @@ export function ListOfQcIssues({ qc }: ListOfQcIssuesProps) {
     { name: t('Stop codons'), shortName: 'S', value: stopCodons, message: formatQCStopCodons(t, stopCodons) }, // prettier-ignore
   ].filter((value) => notUndefined(value))
 
-  const issues = rules.map(({ name, shortName, value, message }, i) => {
+  const issues = rules.map(({ name, shortName, value, message }) => {
     if (!value) {
       return undefined
     }

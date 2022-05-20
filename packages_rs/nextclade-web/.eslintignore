@@ -7,4 +7,5 @@
 /\.vscode*
 /node_modules
 /public
+/src/gen
 /tsconfig.json

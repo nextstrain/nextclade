@@ -24,16 +24,16 @@ export interface ButtonCustomizeProps extends ButtonProps {
   onClick(): void
 }
 
-export function ButtonCustomize({ isOpen, onClick, children, ...props }: PropsWithChildren<ButtonCustomizeProps>) {
+export function ButtonCustomize({ isOpen, onClick, ...props }: PropsWithChildren<ButtonCustomizeProps>) {
   const { t } = useTranslationSafe()
   const theme = useTheme()
 
   const iconClassName = useMemo(() => classNames('my-auto mr-1', isOpen ? 'icon-rotate-0' : 'icon-rotate-90'), [isOpen])
 
-  const customizeButtonText = useMemo(() => (isOpen ? t('Hide dataset files') : t('Customize dataset files')), [
-    isOpen,
-    t,
-  ])
+  const customizeButtonText = useMemo(
+    () => (isOpen ? t('Hide dataset files') : t('Customize dataset files')),
+    [isOpen, t],
+  )
 
   return (
     <CustomizeButton type="button" color="link" onClick={onClick} {...props}>
