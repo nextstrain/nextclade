@@ -1432,6 +1432,7 @@ dependencies = [
  "num",
  "num-traits",
  "num_cpus",
+ "optfield",
  "owo-colors",
  "pretty_assertions",
  "rayon",
@@ -1656,6 +1657,17 @@ dependencies = [
  "libc",
  "pkg-config",
  "vcpkg",
+]
+
+[[package]]
+name = "optfield"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5e0780e78eacbb880be74df51c7f3ce87bae056394794236f7b82d0eb6e40c5"
+dependencies = [
+ "proc-macro2 1.0.37",
+ "quote 1.0.18",
+ "syn 1.0.91",
 ]
 
 [[package]]

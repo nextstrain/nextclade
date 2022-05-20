@@ -14,7 +14,7 @@ use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
 use url::Url;
-use nextclade::align::params::AlignPairwiseParams;
+use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::basename;
 use crate::io::http_client::ProxyConfig;
 
@@ -386,7 +386,7 @@ pub struct NextcladeRunArgs {
   pub output_errors: Option<PathBuf>,
 
   #[clap(flatten)]
-  pub alignment_params: AlignPairwiseParams,
+  pub alignment_params: AlignPairwiseParamsOptional,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {

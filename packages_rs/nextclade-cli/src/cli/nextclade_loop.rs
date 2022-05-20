@@ -3,7 +3,9 @@ use crate::cli::nextclade_ordered_writer::NextcladeOrderedWriter;
 use crossbeam::thread;
 use eyre::{Report, WrapErr};
 use itertools::Itertools;
+use log::info;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
+use nextclade::align::params::AlignPairwiseParams;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
 use nextclade::gene::gene_map::GeneMap;
@@ -20,7 +22,6 @@ use nextclade::tree::tree::AuspiceTree;
 use nextclade::tree::tree_attach_new_nodes::tree_attach_new_nodes_in_place;
 use nextclade::tree::tree_preprocess::tree_preprocess_in_place;
 use nextclade::types::outputs::NextcladeOutputs;
-use log::info;
 use serde::{Deserialize, Serialize};
 
 pub struct NextcladeRecord {
@@ -54,7 +55,7 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     output_errors,
     jobs,
     in_order,
-    alignment_params,
+    alignment_params: alignment_params_from_cli,
     ..
   } = args;
 
@@ -90,6 +91,20 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
     GeneMap::new()
   };
 
+  let virus_properties = &VirusProperties::from_path(&input_virus_properties)?;
+
+  let mut alignment_params = AlignPairwiseParams::default();
+
+  // Merge alignment params coming from virus_properties into alignment_params
+  if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
+    alignment_params.merge_opt(alignment_params_from_file.clone());
+  }
+
+  // Merge alignment params coming from CLI arguments
+  alignment_params.merge_opt(alignment_params_from_cli.clone());
+
+  info!("Alignment parameters (final):\n{alignment_params:#?}");
+
   let gap_open_close_nuc = &get_gap_open_close_scores_codon_aware(ref_seq, gene_map, &alignment_params);
   let gap_open_close_aa = &get_gap_open_close_scores_flat(ref_seq, &alignment_params);
 
@@ -98,8 +113,6 @@ pub fn nextclade_run(args: NextcladeRunArgs) -> Result<(), Report> {
   let tree = &mut AuspiceTree::from_path(&input_tree)?;
 
   let qc_config = &QcConfig::from_path(&input_qc_config)?;
-
-  let virus_properties = &VirusProperties::from_path(&input_virus_properties)?;
 
   let ref_seq_str = from_nuc_seq(ref_seq);
   let primers = &PcrPrimer::from_path(&input_pcr_primers, &ref_seq_str)?;
