@@ -248,13 +248,10 @@ jobs:
       - run:
           name: "Publish container images to Docker Hub"
           command: |
-          pwd
-
-          cp -vr /home/circleci/workspace/.out .
-
-          echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-          ./docker-prod
-
+            pwd
+            cp -vr /home/circleci/workspace/.out .
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            ./docker-prod
 
   Build-And-Deploy-Web:
     shell: "/bin/bash -euxo pipefail"
