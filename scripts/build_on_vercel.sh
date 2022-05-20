@@ -24,6 +24,9 @@ cat /etc/image-id
 cat /etc/system-release
 echo "RHEL version: $(rpm -E '%{rhel}' || echo 'unknown')"
 
+nproc
+cat /proc/cpuinfo
+
 # Remove some dead symlinks which cause log pollution
 rm -f /lib64/libvips-cpp.so.42
 rm -f /lib64/libvips.so.42
@@ -31,10 +34,6 @@ rm -f /lib64/libvips.so.42
 # Disable yum fastestmirror plugin. It only makes things slower.
 printf "[main]\nenabled=0\n" >"/etc/yum/pluginconf.d/fastestmirror.conf"
 
-#yum clean all
-#rm -rf /var/cache/yum/*
-#yum makecache
-#yum update -y -q
 yum install -y -q \
   gzip \
   tar \
@@ -49,50 +48,70 @@ export CACHE_DIR="${PROJECT_ROOT_DIR}/node_modules/.cache"
 
 mkdir -p "${CACHE_DIR}"
 
-export CARGO_HOME="${HOME}/.cargo"
-export CARGO_INSTALL_ROOT="${HOME}/.cargo/install"
-export RUSTUP_HOME="${HOME}/.rustup"
-export PATH=/usr/lib/llvm-13/bin:${HOME}/.local/bin:${HOME}/.cargo/bin:${HOME}/.cargo/install/bin:/usr/sbin${PATH:+":$PATH"}
-
-mkdir -p "${CACHE_DIR}/.cargo/{install,git,registry}" "${HOME}/.cargo"
-ln -s "${CACHE_DIR}/.cargo/install" "${HOME}/.cargo/install"
-ln -s "${CACHE_DIR}/.cargo/git" "${HOME}/.cargo/git"
-ln -s "${CACHE_DIR}/.cargo/registry" "${HOME}/.cargo/registry"
+export CARGO_HOME="${CACHE_DIR}/.cargo"
+export RUSTUP_HOME="${CACHE_DIR}/.rustup"
+export CARGO_INSTALL_ROOT="${CARGO_HOME}/install"
+export PATH=/usr/lib/llvm-13/bin:${HOME}/.local/bin:${CARGO_HOME}/bin:${CARGO_HOME}/install/bin:/usr/sbin${PATH:+":$PATH"}
 
 mkdir -p "${CACHE_DIR}/.build"
-ln -s "${CACHE_DIR}/.build" "target"
+ln -s "${CACHE_DIR}/.build" ".build"
+
+mkdir -p "${CACHE_DIR}/.cache"
+ln -s "${CACHE_DIR}/.cache" ".cache"
+
+mkdir -p "${CACHE_DIR}/.build_web"
+ln -s "${CACHE_DIR}/.build_web" "packages_rs/nextclade-web/.build"
 
 mkdir -p "${CACHE_DIR}/.cache_web"
 ln -s "${CACHE_DIR}/.cache_web" "packages_rs/nextclade-web/.cache"
 
-# Install dasel
-DASEL_VERSION="1.22.1"
-curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel"
-chmod +x "/usr/bin/dasel"
+mkdir -p "${CACHE_DIR}/node_modules"
+ln -s "${CACHE_DIR}/node_modules" "packages_rs/nextclade-web/node_modules"
 
-# Install rustup and toolchain from rust-toolchain.toml
-RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml")
-curl -sSf https://sh.rustup.rs >rustup-init
-chmod +x rustup-init
-./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}"
-rustup toolchain install "${HOME}"
-rustup default "${RUST_TOOLCHAIN}"
-rustup target add wasm32-unknown-unknown
+# Install rustup and toolchain from rust-toolchain.toml, if not already in the cache
+if ! command cargo &>/dev/null; then
+  # Install dasel
+  DASEL_VERSION="1.22.1"
+  curl -fsSL "https://github.com/TomWright/dasel/releases/download/v${DASEL_VERSION}/dasel_linux_amd64" -o "/usr/bin/dasel"
+  chmod +x "/usr/bin/dasel"
 
-# Install cargo-quickinstall
-export CARGO_QUICKINSTALL_VERSION="0.2.6"
-curl -sSL "https://github.com/alsuren/cargo-quickinstall/releases/download/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-quickinstall"
-chmod +x "${CARGO_HOME}/bin/cargo-quickinstall"
+  RUST_TOOLCHAIN=$(dasel select -p toml -s ".toolchain.channel" -f "rust-toolchain.toml")
+  curl -sSf https://sh.rustup.rs >rustup-init
+  chmod +x rustup-init
+  ./rustup-init -y --no-modify-path --default-toolchain="${RUST_TOOLCHAIN}"
+  rustup toolchain install "${HOME}"
+  rustup default "${RUST_TOOLCHAIN}"
+  rustup target add wasm32-unknown-unknown
 
-# Install wasm-bindgen
-export WASM_BINDGEN_CLI_VERSION="0.2.80"
-curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen"
-chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
+  which rustup
+  ls -al "$(which rustup)"
 
-# Install wasm-pack
-export WASM_PACK_VERSION="0.10.2"
-curl -sSL "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl/wasm-pack"
-chmod +x "${CARGO_HOME}/bin/wasm-pack"
+  which cargo
+  ls -al "$(which cargo)"
+
+  which rustc
+  ls -al "$(which rustc)"
+
+  # Install cargo-quickinstall
+  export CARGO_QUICKINSTALL_VERSION="0.2.6"
+  curl -sSL "https://github.com/alsuren/cargo-quickinstall/releases/download/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl/cargo-quickinstall-${CARGO_QUICKINSTALL_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" -xz "cargo-quickinstall"
+  chmod +x "${CARGO_HOME}/bin/cargo-quickinstall"
+
+  # Install wasm-bindgen
+  export WASM_BINDGEN_CLI_VERSION="0.2.80"
+  curl -sSL "https://github.com/rustwasm/wasm-bindgen/releases/download/${WASM_BINDGEN_CLI_VERSION}/wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-bindgen-${WASM_BINDGEN_CLI_VERSION}-x86_64-unknown-linux-musl/wasm-bindgen"
+  chmod +x "${CARGO_HOME}/bin/wasm-bindgen"
+
+  which wasm-bindgen
+
+  # Install wasm-pack
+  export WASM_PACK_VERSION="0.10.2"
+  curl -sSL "https://github.com/rustwasm/wasm-pack/releases/download/v${WASM_PACK_VERSION}/wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl.tar.gz" | tar -C "${CARGO_HOME}/bin" --strip-components=1 -xz "wasm-pack-v${WASM_PACK_VERSION}-x86_64-unknown-linux-musl/wasm-pack"
+  chmod +x "${CARGO_HOME}/bin/wasm-pack"
+
+  which wasm-pack
+fi
+
 
 cp ".env.example" ".env"
 

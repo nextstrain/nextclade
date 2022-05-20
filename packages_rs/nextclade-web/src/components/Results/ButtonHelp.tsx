@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, useState } from 'react'
+import React, { PropsWithChildren, useCallback, useState } from 'react'
 
 import type { ButtonProps, PopoverProps } from 'reactstrap'
 import styled from 'styled-components'
@@ -31,14 +31,11 @@ export function ButtonHelpSimple({
   ...restProps
 }: ButtonHelpProps) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   return (
-    <ButtonTransparent
-      id={identifier}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      {...restProps}
-    >
+    <ButtonTransparent id={identifier} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} {...restProps}>
       {'?'}
       {children && (
         <Tooltip
@@ -64,14 +61,11 @@ export function ButtonHelp({
   ...restProps
 }: ButtonHelpProps) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   return (
-    <ButtonHelpStyle
-      id={identifier}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      {...restProps}
-    >
+    <ButtonHelpStyle id={identifier} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} {...restProps}>
       {'?'}
       {children && (
         <Tooltip

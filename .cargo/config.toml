@@ -5,6 +5,7 @@ frequency = 'always'
 codegen-units = 32
 incremental = true
 lto = "off"
+opt-level = 1
 
 [profile.release]
 codegen-units = 1

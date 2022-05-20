@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
+
 import { convertPrivateMutations } from 'src/algorithms/types'
 import { ListOfMutationsGeneric } from 'src/components/Results/ListOfMutationsGeneric'
-
 import { getSafeId } from 'src/helpers/getSafeId'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { ColumnCladeProps } from 'src/components/Results/ColumnClade'
@@ -10,17 +10,19 @@ import { ListOfAminoacidSubstitutions } from 'src/components/SequenceView/ListOf
 import { ListOfPrivateNucMutations } from 'src/components/Results/ListOfPrivateNucMutations'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
-export function ColumnMutations({ sequence }: ColumnCladeProps) {
+export function ColumnMutations({ analysisResult }: ColumnCladeProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { seqName, substitutions, aaSubstitutions, privateNucMutations } = sequence
+  const { seqName, substitutions, aaSubstitutions, privateNucMutations } = analysisResult
   const id = getSafeId('mutations-label', { seqName })
 
   const privateNucMutationsInternal = useMemo(() => convertPrivateMutations(privateNucMutations), [privateNucMutations])
 
   return (
-    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+    <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {substitutions.length}
       <Tooltip isOpen={showTooltip} target={id} wide fullWidth>
         <TableSlim borderless className="mb-1">

@@ -1,12 +1,17 @@
-use crate::wasm::analyze::{AnalysisInput, AnalysisResult, Nextclade, NextcladeParams};
-use eyre::Report;
+use crate::wasm::analyze::{AnalysisInitialData, AnalysisInput, AnalysisResult, Nextclade, NextcladeParams};
+use eyre::{Report, WrapErr};
+use itertools::Itertools;
 use nextclade::analyze::pcr_primers::PcrPrimer;
 use nextclade::analyze::virus_properties::VirusProperties;
+use nextclade::io::errors_csv::{errors_to_csv_string, ErrorsFromWeb};
 use nextclade::io::fasta::{read_one_fasta_str, FastaReader, FastaRecord};
 use nextclade::io::gff3::read_gff3_str;
-use nextclade::io::json::json_stringify;
+use nextclade::io::insertions_csv::insertions_to_csv_string;
+use nextclade::io::json::{json_parse, json_stringify};
+use nextclade::io::nextclade_csv::results_to_csv_string;
+use nextclade::io::results_json::{results_to_json_string, results_to_ndjson_string};
 use nextclade::qc::qc_config::QcConfig;
-use nextclade::tree::tree::AuspiceTree;
+use nextclade::tree::tree::{AuspiceTree, CladeNodeAttrKeyDesc};
 use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
 use std::io::Read;
@@ -30,18 +35,16 @@ pub struct NextcladeWasm {
 impl NextcladeWasm {
   #[wasm_bindgen(constructor)]
   pub fn new(params: &NextcladeParams) -> Result<NextcladeWasm, JsError> {
-    wasm_logger::init(wasm_logger::Config::default());
-    console_error_panic_hook::set_once();
     let nextclade = jserr(Nextclade::new(params))?;
     Ok(Self { nextclade })
   }
 
   pub fn parse_query_sequences(qry_fasta_str: &str, callback: &js_sys::Function) -> Result<(), JsError> {
-    let mut reader = jserr(FastaReader::from_str(qry_fasta_str))?;
+    let mut reader = jserr(FastaReader::from_str(qry_fasta_str).wrap_err_with(|| "When creating fasta reader"))?;
 
     loop {
       let mut record = FastaRecord::default();
-      reader.read(&mut record).unwrap();
+      jserr(reader.read(&mut record).wrap_err_with(|| "When reading a fasta record"))?;
       if record.is_empty() {
         break;
       }
@@ -58,10 +61,9 @@ impl NextcladeWasm {
     Ok(())
   }
 
-  // pub fn get_clade_node_attr_key_descs(&self) -> Result<String, JsError> {
-  //   let clade_node_attr_key_descs = self.nextclade.get_clade_node_attr_key_descs();
-  //   jserr(json_stringify(&clade_node_attr_key_descs))
-  // }
+  pub fn get_initial_data(&self) -> Result<AnalysisInitialData, JsError> {
+    jserr(self.nextclade.get_initial_data())
+  }
 
   /// Runs analysis on one sequence and returns its result. This runs in many webworkers concurrently.
   pub fn analyze(&mut self, input: &AnalysisInput) -> Result<AnalysisResult, JsError> {
@@ -111,4 +113,73 @@ impl NextcladeWasm {
     jserr(VirusProperties::from_str(virus_properties_json_str))?;
     Ok(())
   }
+
+  #[allow(clippy::needless_pass_by_value)]
+  pub fn serialize_results_json(
+    outputs_json_str: &str,
+    clade_node_attrs_json_str: &str,
+    nextclade_web_version: Option<String>,
+  ) -> Result<String, JsError> {
+    let outputs: Vec<NextcladeOutputs> = jserr(
+      json_parse(outputs_json_str).wrap_err("When serializing results into JSON: When parsing outputs JSON internally"),
+    )?;
+    let clade_node_attrs: Vec<CladeNodeAttrKeyDesc> = jserr(
+      json_parse(clade_node_attrs_json_str)
+        .wrap_err("When serializing results JSON: When parsing clade node attrs JSON internally"),
+    )?;
+    jserr(
+      results_to_json_string(&outputs, &clade_node_attrs, &nextclade_web_version)
+        .wrap_err("When serializing results JSON"),
+    )
+  }
+
+  pub fn serialize_results_ndjson(outputs_json_str: &str) -> Result<String, JsError> {
+    let outputs: Vec<NextcladeOutputs> = jserr(
+      json_parse(outputs_json_str)
+        .wrap_err("When serializing results into NDJSON: When parsing outputs JSON internally"),
+    )?;
+    jserr(results_to_ndjson_string(&outputs))
+  }
+
+  pub fn serialize_results_csv(
+    outputs_json_str: &str,
+    clade_node_attrs_json_str: &str,
+    delimiter: char,
+  ) -> Result<String, JsError> {
+    let outputs: Vec<NextcladeOutputs> = jserr(
+      json_parse(outputs_json_str).wrap_err("When serializing results into CSV: When parsing outputs JSON internally"),
+    )?;
+
+    let clade_node_attrs: Vec<CladeNodeAttrKeyDesc> = jserr(
+      json_parse(clade_node_attrs_json_str)
+        .wrap_err("When serializing results JSON: When parsing clade node attrs JSON internally"),
+    )?;
+
+    let clade_node_attr_keys = clade_node_attrs.into_iter().map(|attr| attr.name).collect_vec();
+
+    jserr(results_to_csv_string(&outputs, &clade_node_attr_keys, delimiter as u8))
+  }
+
+  pub fn serialize_insertions_csv(outputs_json_str: &str) -> Result<String, JsError> {
+    let outputs: Vec<NextcladeOutputs> = jserr(
+      json_parse(outputs_json_str)
+        .wrap_err("When serializing insertions into CSV: When parsing outputs JSON internally"),
+    )?;
+
+    jserr(insertions_to_csv_string(&outputs))
+  }
+
+  pub fn serialize_errors_csv(errors_json_str: &str) -> Result<String, JsError> {
+    let errors: Vec<ErrorsFromWeb> = jserr(
+      json_parse(errors_json_str).wrap_err("When serializing errors into CSV: When parsing outputs JSON internally"),
+    )?;
+
+    jserr(errors_to_csv_string(&errors))
+  }
+}
+
+#[wasm_bindgen(start)]
+pub fn main() {
+  wasm_logger::init(wasm_logger::Config::default());
+  console_error_panic_hook::set_once();
 }

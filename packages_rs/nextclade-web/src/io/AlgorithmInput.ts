@@ -1,9 +1,6 @@
-import Axios, { AxiosError } from 'axios'
-import { DatasetFlat } from 'src/algorithms/types'
-import { axiosFetchRaw, HttpRequestError } from 'src/io/axiosFetch'
+import { AlgorithmInput, AlgorithmInputType, DatasetFlat } from 'src/algorithms/types'
+import { axiosFetchRaw } from 'src/io/axiosFetch'
 
-import type { AlgorithmInput } from 'src/state/algorithm/algorithm.state'
-import { AlgorithmInputType } from 'src/state/algorithm/algorithm.state'
 import { readFile } from 'src/helpers/readFile'
 import { numbro } from 'src/i18n/i18n'
 
@@ -44,7 +41,6 @@ export class AlgorithmInputUrl implements AlgorithmInput {
   public readonly type: AlgorithmInputType = AlgorithmInputType.Url as const
 
   private readonly url: string
-  private size?: number
 
   constructor(url: string) {
     this.url = url
@@ -55,21 +51,11 @@ export class AlgorithmInputUrl implements AlgorithmInput {
   }
 
   public get description(): string {
-    if (this.size !== undefined) {
-      return `${this.name} (${formatBytes(this.size)})`
-    }
-
     return this.name
   }
 
   public async getContent(): Promise<string> {
-    try {
-      const { data } = await Axios.get<string>(this.url, { transformResponse: [] })
-      this.size = data.length
-      return data
-    } catch (error_) {
-      throw new HttpRequestError(error_ as AxiosError)
-    }
+    return axiosFetchRaw(this.url)
   }
 }
 

@@ -46,13 +46,18 @@ export function makeOnDrop({ t, onUpload, setErrors }: MakeOnDropParams) {
     onUpload(file)
   }
 
-  return async function onDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
+  async function onDrop(acceptedFiles: File[], rejectedFiles: FileRejection[]) {
     setErrors([])
     try {
       await processFiles(acceptedFiles, rejectedFiles)
     } catch (error: unknown) {
       handleError(sanitizeError(error))
     }
+  }
+
+  return (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+    // eslint-disable-next-line no-void
+    void onDrop(acceptedFiles, rejectedFiles)
   }
 }
 

@@ -10,9 +10,10 @@
  *
  */
 
+import type { ServerResponse } from 'http'
 import path from 'path'
 
-import express, { Response } from 'express'
+import express from 'express'
 
 import allowMethods from 'allow-methods'
 import history from 'connect-history-api-fallback'
@@ -54,13 +55,12 @@ function main() {
     expressStaticGzip(DATA_OUTPUT_DIR, {
       enableBrotli: false,
       serveStatic: {
-        setHeaders: (res: Response) =>
-          res.set({
-            'Cache-Control': 'no-cache',
-            'Access-Control-Allow-Methods': 'GET, HEAD',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Max-Age': '3000',
-          }),
+        setHeaders: (res: ServerResponse) => {
+          res.setHeader('Cache-Control', 'no-cache')
+          res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD')
+          res.setHeader('Access-Control-Allow-Origin', '*')
+          res.setHeader('Access-Control-Max-Age', '3000')
+        },
       },
     }),
   )

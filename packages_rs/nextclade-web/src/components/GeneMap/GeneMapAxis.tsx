@@ -1,19 +1,11 @@
 import React, { useMemo } from 'react'
-
 import { range } from 'lodash'
-import { connect } from 'react-redux'
 import { XAxis, ComposedChart, ResponsiveContainer } from 'recharts'
+import { useRecoilValue } from 'recoil'
 
-import type { Gene } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import { selectGeneMap, selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
+import { geneMapAtom, genomeSizeAtom } from 'src/state/results.state'
+import { viewedGeneAtom } from 'src/state/settings.state'
 import { getAxisLength } from './getAxisLength'
-
-export interface AxisProps {
-  genomeSize?: number
-  geneMap?: Gene[]
-  viewedGene: string
-}
 
 const MARGIN = {}
 
@@ -32,22 +24,18 @@ export function getTickSize(axisLength: number) {
   return tickSize
 }
 
-export function getAxisParams(genomeSize: number, viewedGene: string, geneMap: Gene[]) {
-  const length = getAxisLength(genomeSize, viewedGene, geneMap)
-  const tickSize = getTickSize(length)
-  const domain: [number, number] = [0, length]
-  const ticks = range(0, length, tickSize)
-  return { ticks, domain }
-}
+export function GeneMapAxis() {
+  const genomeSize = useRecoilValue(genomeSizeAtom)
+  const geneMap = useRecoilValue(geneMapAtom)
+  const viewedGene = useRecoilValue(viewedGeneAtom)
 
-export type GeneMapAxisImplProps = Required<AxisProps>
-
-export function GeneMapAxisImpl({ genomeSize, viewedGene, geneMap }: GeneMapAxisImplProps) {
-  const { ticks, domain } = useMemo(() => getAxisParams(genomeSize, viewedGene, geneMap), [
-    geneMap,
-    genomeSize,
-    viewedGene,
-  ])
+  const { ticks, domain } = useMemo(() => {
+    const length = getAxisLength(genomeSize, viewedGene, geneMap)
+    const tickSize = getTickSize(length)
+    const domain: [number, number] = [0, length]
+    const ticks = range(0, length, tickSize)
+    return { ticks, domain }
+  }, [geneMap, genomeSize, viewedGene])
 
   return (
     <ResponsiveContainer width="100%" height={30}>
@@ -56,22 +44,4 @@ export function GeneMapAxisImpl({ genomeSize, viewedGene, geneMap }: GeneMapAxis
       </ComposedChart>
     </ResponsiveContainer>
   )
-}
-
-const mapStateToProps = (state: State) => ({
-  genomeSize: selectGenomeSize(state),
-  geneMap: selectGeneMap(state),
-  viewedGene: state.ui.viewedGene,
-})
-
-const mapDispatchToProps = {}
-
-export const GeneMapAxis = connect(mapStateToProps, mapDispatchToProps)(GeneMapAxisDisconnected)
-
-export function GeneMapAxisDisconnected({ genomeSize, geneMap, viewedGene }: AxisProps) {
-  if (!genomeSize || !geneMap) {
-    return null
-  }
-
-  return <GeneMapAxisImpl genomeSize={genomeSize} geneMap={geneMap} viewedGene={viewedGene} />
 }

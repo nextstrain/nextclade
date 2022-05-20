@@ -16,7 +16,7 @@ export interface LinkTwitterProps extends LinkExternalProps {
   iconSize?: number
 }
 
-export function LinkTwitter({ username, children, iconSize = 20, ...restProps }: PropsWithChildren<LinkTwitterProps>) {
+export function LinkTwitter({ username, iconSize = 20, ...restProps }: PropsWithChildren<LinkTwitterProps>) {
   const href = `https://twitter.com/${username}`
   const text = `@${username}`
 

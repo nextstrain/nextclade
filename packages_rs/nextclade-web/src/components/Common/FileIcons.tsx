@@ -18,6 +18,7 @@ export const DEFAULT_ICON_COLORS = {
   csv: '#55aa55',
   tsv: '#7777cc',
   json: '#bb7e38',
+  ndjson: '#bb5340',
   gff: '#6b29bb',
   zip: '#91640f',
 } as const
@@ -46,13 +47,7 @@ export interface FileIconBaseProps {
   glyphColor?: string
 }
 
-export const FileIconBase = ({
-  size = DEFAULT_ICON_SIZE,
-  extension,
-  type,
-  labelColor,
-  glyphColor,
-}: FileIconBaseProps) => {
+export function FileIconBase({ size = DEFAULT_ICON_SIZE, extension, type, labelColor, glyphColor }: FileIconBaseProps) {
   const styles = useMemo(
     () => get<Styles, FileExtension>(defaultStyles, extension as FileExtension) ?? defaultStyles.txt,
     [extension],
@@ -82,59 +77,82 @@ export interface FileIconProps {
   size?: number
 }
 
-export const FileIconFasta = ({ size }: FileIconProps) => (
-  <FileIconBase
-    size={size}
-    extension={'fasta'}
-    type={'code2'}
-    labelColor={DEFAULT_ICON_COLORS.fasta}
-    glyphColor={DEFAULT_ICON_COLORS.fasta}
-  />
-)
+export function FileIconFasta({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'fasta'}
+      type={'code2'}
+      labelColor={DEFAULT_ICON_COLORS.fasta}
+      glyphColor={DEFAULT_ICON_COLORS.fasta}
+    />
+  )
+}
 
-export const FileIconJson = ({ size }: FileIconProps) => (
-  <FileIconBase
-    size={size}
-    extension={'json'}
-    labelColor={DEFAULT_ICON_COLORS.json}
-    glyphColor={DEFAULT_ICON_COLORS.json}
-  />
-)
+export function FileIconJson({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'json'}
+      labelColor={DEFAULT_ICON_COLORS.json}
+      glyphColor={DEFAULT_ICON_COLORS.json}
+    />
+  )
+}
 
-export const FileIconCsv = ({ size }: FileIconProps) => (
-  <FileIconBase
-    size={size}
-    extension={'csv'}
-    labelColor={DEFAULT_ICON_COLORS.csv}
-    glyphColor={DEFAULT_ICON_COLORS.csv}
-  />
-)
+export function FileIconNdjson({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'ndjson'}
+      labelColor={DEFAULT_ICON_COLORS.ndjson}
+      glyphColor={DEFAULT_ICON_COLORS.ndjson}
+    />
+  )
+}
 
-export const FileIconTsv = ({ size }: FileIconProps) => (
-  <FileIconBase
-    size={size}
-    extension={'tsv'}
-    type="spreadsheet"
-    labelColor={DEFAULT_ICON_COLORS.tsv}
-    glyphColor={DEFAULT_ICON_COLORS.tsv}
-  />
-)
+export function FileIconCsv({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'csv'}
+      labelColor={DEFAULT_ICON_COLORS.csv}
+      glyphColor={DEFAULT_ICON_COLORS.csv}
+    />
+  )
+}
 
-export const FileIconGff = ({ size }: FileIconProps) => (
-  <FileIconBase
-    size={size}
-    extension={'gff'}
-    type="spreadsheet"
-    labelColor={DEFAULT_ICON_COLORS.gff}
-    glyphColor={DEFAULT_ICON_COLORS.gff}
-  />
-)
+export function FileIconTsv({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'tsv'}
+      type="spreadsheet"
+      labelColor={DEFAULT_ICON_COLORS.tsv}
+      glyphColor={DEFAULT_ICON_COLORS.tsv}
+    />
+  )
+}
 
-export const FileIconZip = ({ size }: FileIconProps) => (
-  <FileIconBase
-    size={size}
-    extension={'zip'}
-    labelColor={DEFAULT_ICON_COLORS.zip}
-    glyphColor={DEFAULT_ICON_COLORS.zip}
-  />
-)
+export function FileIconGff({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'gff'}
+      type="spreadsheet"
+      labelColor={DEFAULT_ICON_COLORS.gff}
+      glyphColor={DEFAULT_ICON_COLORS.gff}
+    />
+  )
+}
+
+export function FileIconZip({ size }: FileIconProps) {
+  return (
+    <FileIconBase
+      size={size}
+      extension={'zip'}
+      labelColor={DEFAULT_ICON_COLORS.zip}
+      glyphColor={DEFAULT_ICON_COLORS.zip}
+    />
+  )
+}

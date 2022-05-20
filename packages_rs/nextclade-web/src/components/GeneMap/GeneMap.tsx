@@ -1,24 +1,20 @@
 import React, { SVGProps, useCallback, useEffect, useState } from 'react'
-
-import { connect } from 'react-redux'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
+import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { geneLength } from 'src/algorithms/types'
 import styled from 'styled-components'
 
 import { BASE_MIN_WIDTH_PX, GENE_OPTION_NUC_SEQUENCE } from 'src/constants'
-
-import { selectGeneMap, selectGenomeSize } from 'src/state/algorithm/algorithm.selectors'
-
 import type { Gene } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { getAxisLength } from 'src/components/GeneMap/getAxisLength'
 import { TableSlim } from 'src/components/Common/TableSlim'
-
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { ColoredSquare } from 'src/components/Common/ColoredSquare'
-import { setViewedGene } from 'src/state/ui/ui.actions'
+import { geneMapAtom, genomeSizeAtom } from 'src/state/results.state'
+import { viewedGeneAtom } from 'src/state/settings.state'
 
 export const GENE_MAP_HEIGHT_PX = 35
 export const GENE_HEIGHT_PX = 15
@@ -33,8 +29,6 @@ export const GeneMapWrapper = styled.div`
 `
 
 export const GeneMapSVG = styled.svg`
-  padding: 0;
-  margin: 0;
   width: 100%;
   height: 100%;
   padding: 0;
@@ -45,18 +39,16 @@ export interface GeneViewProps extends SVGProps<SVGRectElement> {
   gene: Gene
   single: boolean
   pixelsPerBase: number
-
-  setViewedGene(viewedGene: string): void
 }
 
-export const GeneView = connect(() => ({}), { setViewedGene })(GeneViewDisconnected)
-
-export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGene, ...rest }: GeneViewProps) {
+export function GeneView({ gene, single, pixelsPerBase, ...rest }: GeneViewProps) {
   const { t } = useTranslationSafe()
+  const [showTooltip, setShowTooltip] = useState(false)
+
+  const setViewedGene = useSetRecoilState(viewedGeneAtom)
 
   const [hovered, setHovered] = useState(false)
   const [timeoutId, setTimeoutId] = useState<number | undefined>(undefined)
-  const [showTooltip, setShowTooltip] = useState(false)
 
   useEffect(() => {
     if (!hovered && timeoutId) {
@@ -82,40 +74,40 @@ export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGen
     [setHovered, setShowTooltip],
   )
 
-  const { geneName, color, start, end, length, frame } = gene // prettier-ignore
+  const openTooltip = useCallback(() => setHoveredSmart(true), [setHoveredSmart])
+  const closeTooltip = useCallback(() => setHoveredSmart(false), [setHoveredSmart])
+
+  const { geneName, color, start, end, frame } = gene // prettier-ignore
+  const length = geneLength(gene)
   const width = Math.max(BASE_MIN_WIDTH_PX, length * pixelsPerBase)
   const x = single ? 0 : start * pixelsPerBase
   const id = getSafeId('gene', { ...gene })
 
   const stroke = hovered ? '#222' : undefined
 
+  const onClick = useCallback(() => {
+    clearInterval(timeoutId)
+    setHovered(false)
+    setViewedGene(geneName)
+  }, [geneName, setViewedGene, timeoutId])
+
   return (
     <rect
       id={id}
-      fill={gene.color}
+      fill={color}
       x={x}
       y={-10 + 7.5 * frame}
       width={width}
       height={GENE_HEIGHT_PX}
-      onMouseEnter={() => setHoveredSmart(true)}
-      onMouseLeave={() => setHoveredSmart(false)}
-      onClick={() => {
-        clearInterval(timeoutId)
-        setHovered(false)
-        setViewedGene(geneName)
-      }}
+      onMouseEnter={openTooltip}
+      onMouseLeave={closeTooltip}
+      onClick={onClick}
       stroke={stroke}
       strokeWidth={1}
       cursor="pointer"
       {...rest}
     >
-      <Tooltip
-        target={id}
-        isOpen={showTooltip}
-        onClick={() => {
-          setShowTooltip(false)
-        }}
-      >
+      <Tooltip target={id} isOpen={showTooltip} onClick={closeTooltip}>
         <TableSlim borderless>
           <tbody>
             <tr>
@@ -158,26 +150,14 @@ export function GeneViewDisconnected({ gene, single, pixelsPerBase, setViewedGen
   )
 }
 
-export interface GeneMapProps extends ReactResizeDetectorDimensions {
-  // virus: Virus
-  geneMap?: Gene[]
-  genomeSize?: number
-  viewedGene: string
-}
+export type GeneMapProps = ReactResizeDetectorDimensions
 
-const mapStateToProps = (state: State) => ({
-  // virus: selectParams(state).virus,
-  geneMap: selectGeneMap(state),
-  genomeSize: selectGenomeSize(state),
-  viewedGene: state.ui.viewedGene,
-})
+export function GeneMapUnsized({ width, height }: GeneMapProps) {
+  const geneMap = useRecoilValue(geneMapAtom)
+  const genomeSize = useRecoilValue(genomeSizeAtom)
+  const viewedGene = useRecoilValue(viewedGeneAtom)
 
-const mapDispatchToProps = {}
-
-export const GeneMapUnsized = connect(mapStateToProps, mapDispatchToProps)(GeneMapUnsizedDisconnected)
-
-export function GeneMapUnsizedDisconnected({ geneMap, genomeSize, viewedGene, width, height }: GeneMapProps) {
-  if (!width || !height || !geneMap || !genomeSize) {
+  if (!width || !height) {
     return (
       <GeneMapWrapper>
         <GeneMapSVG viewBox={`0 -25 50 50`} />

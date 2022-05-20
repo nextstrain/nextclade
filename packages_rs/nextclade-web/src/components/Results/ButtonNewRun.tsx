@@ -1,10 +1,7 @@
 import React, { useCallback } from 'react'
-
+import { useRecoilState, useRecoilValue } from 'recoil'
 import styled from 'styled-components'
-import { connect } from 'react-redux'
 import {
-  ButtonProps,
-  Button,
   Col,
   Modal as ReactstrapModal,
   ModalBody as ReactstrapModalBody,
@@ -14,17 +11,11 @@ import {
 } from 'reactstrap'
 import { FaFile } from 'react-icons/fa'
 
-import type { State } from 'src/state/reducer'
-import type { PanelButtonProps } from 'src/components/Results/PanelButton'
+import { FilePickerAdvanced } from 'src/components/FilePicker/FilePickerAdvanced'
+import { canRunAtom } from 'src/state/analysisStatusGlobal.state'
+import { isNewRunPopupShownAtom } from 'src/state/settings.state'
 import { PanelButton } from 'src/components/Results/PanelButton'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
-import { setShowNewRunPopup } from 'src/state/ui/ui.actions'
-import { algorithmRunAsync } from 'src/state/algorithm/algorithm.actions'
-import { selectCanRun } from 'src/state/algorithm/algorithm.selectors'
-
-export const ButtonClose = styled(Button)<ButtonProps>`
-  width: 100px;
-`
 
 export const ModalHeader = styled(ReactstrapModalHeader)`
   .modal-title {
@@ -65,43 +56,27 @@ export const Scrollable = styled.div`
 
 export const ModalFooter = styled(ReactstrapModalFooter)``
 
-export interface ButtonNewRunProps extends PanelButtonProps {
-  canRun: boolean
-  showNewRunPopup: boolean
-
-  algorithmRunTrigger(_0: unknown): void
-
-  setShowNewRunPopup(showNewRunPopup: boolean): void
-}
-
-const mapStateToProps = (state: State) => ({
-  canRun: selectCanRun(state),
-  showNewRunPopup: state.ui.showNewRunPopup,
-})
-
-const mapDispatchToProps = {
-  algorithmRunTrigger: algorithmRunAsync.trigger,
-  setShowNewRunPopup,
-}
-
-export const ButtonNewRun = connect(mapStateToProps, mapDispatchToProps)(ButtonNewRunDisconnected)
-
-export function ButtonNewRunDisconnected({
-  canRun,
-  showNewRunPopup,
-  algorithmRunTrigger,
-  setShowNewRunPopup,
-}: ButtonNewRunProps) {
+export function ButtonNewRun() {
   const { t } = useTranslationSafe()
 
-  const open = useCallback(() => setShowNewRunPopup(true), [setShowNewRunPopup])
-  const close = useCallback(() => setShowNewRunPopup(false), [setShowNewRunPopup])
-  const toggleOpen = useCallback(() => setShowNewRunPopup(!showNewRunPopup), [setShowNewRunPopup, showNewRunPopup])
+  // const algorithmRun = useCallback(() => {
+  //   // TODO: trigger a run
+  // }, [])
+
+  const canRun = useRecoilValue(canRunAtom)
+  const [isNewRunPopupShown, setIsNewRunPopupShown] = useRecoilState(isNewRunPopupShownAtom)
+
+  const open = useCallback(() => setIsNewRunPopupShown(true), [setIsNewRunPopupShown])
+  const close = useCallback(() => setIsNewRunPopupShown(false), [setIsNewRunPopupShown])
+  const toggle = useCallback(
+    () => setIsNewRunPopupShown((isNewRunPopupShown) => !isNewRunPopupShown),
+    [setIsNewRunPopupShown],
+  )
 
   // const run = useCallback(() => {
-  //   setShowNewRunPopup(false)
-  //   algorithmRunTrigger(undefined)
-  // }, [algorithmRunTrigger, setShowNewRunPopup])
+  //   close()
+  //   algorithmRun()
+  // }, [algorithmRun, close])
 
   return (
     <>
@@ -113,13 +88,15 @@ export function ButtonNewRunDisconnected({
         <FaFile className="mr-xl-2 mb-1" />
       </PanelButton>
 
-      <Modal centered isOpen={showNewRunPopup} toggle={toggleOpen} fade={false} size="lg">
+      <Modal centered isOpen={isNewRunPopupShown} toggle={toggle} fade={false} size="lg">
         <ModalHeader toggle={close} tag="div">
           <h3 className="text-center">{t('New run')}</h3>
         </ModalHeader>
 
         <ModalBody>
-          <Scrollable>{/* <FilePickerAdvanced /> */}</Scrollable>
+          <Scrollable>
+            <FilePickerAdvanced />
+          </Scrollable>
         </ModalBody>
 
         <ModalFooter>

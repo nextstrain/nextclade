@@ -1,34 +1,44 @@
 /* eslint-disable camelcase */
 import 'regenerator-runtime'
 
-import type { AnalysisResult, FastaRecord, NextcladeResult, Peptide } from 'src/algorithms/types'
+import type { CladeNodeAttrDesc } from 'auspice'
 import type { Thread } from 'threads'
 import { expose } from 'threads/worker'
 import { Observable as ThreadsObservable, Subject } from 'threads/observable'
 
-import { sanitizeError } from 'src/helpers/sanitizeError'
+import type { AnalysisResult, ErrorsFromWeb, FastaRecord, NextcladeResult, Translation } from 'src/algorithms/types'
+import type { LaunchAnalysisInitialData } from 'src/workers/launchAnalysis'
+import type { NextcladeParamsPojo, AnalysisOutputPojo } from 'src/gen/nextclade-wasm'
 import { NextcladeWasm, NextcladeParams, AnalysisInput } from 'src/gen/nextclade-wasm'
-import type { NextcladeParamsPojo } from 'src/gen/nextclade-wasm'
+import { sanitizeError } from 'src/helpers/sanitizeError'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
+import { prepareGeneMap } from 'src/io/prepareGeneMap'
 
 const gSubject = new Subject<FastaRecord>()
 
 function onSequence(seq: FastaRecord) {
-  gSubject?.next(seq)
+  gSubject.next(seq)
 }
 
 function onComplete() {
-  gSubject?.complete()
+  gSubject.complete()
 }
 
 function onError(error: Error) {
-  gSubject?.error(error)
+  gSubject.error(error)
 }
 
-export class ErrorModuleNotInitialized extends Error {
-  constructor() {
+export class ErrorModuleNotInitialized extends ErrorInternal {
+  constructor(fnName: string) {
     super(
-      'Developer error: this WebWorker module has not been initialized yet. Make sure to call `module.create()` function.',
+      `This WebWorker module has not been initialized yet. When calling module.${fnName} Make sure to call 'module.create()' function.`,
     )
+  }
+}
+
+export class ErrorBothResultsAndErrorAreNull extends ErrorInternal {
+  constructor() {
+    super(`Both the 'results' and 'error' returned from the analysis wasm module are 'null'. This should never happen.`)
   }
 }
 
@@ -49,17 +59,32 @@ async function create(params_pojo: NextcladeParamsPojo) {
 /** Destroys the underlying WebAssembly module. */
 async function destroy() {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized()
+    return
   }
 
   nextcladeWasm.free()
   nextcladeWasm = undefined
 }
 
+async function getInitialData(): Promise<LaunchAnalysisInitialData> {
+  if (!nextcladeWasm) {
+    throw new ErrorModuleNotInitialized('getInitialData')
+  }
+  const initialData = nextcladeWasm.get_initial_data()
+  const { gene_map, genome_size, clade_node_attr_key_descs } = initialData.to_js()
+  initialData.free()
+
+  return {
+    geneMap: prepareGeneMap(gene_map),
+    genomeSize: Number(genome_size),
+    cladeNodeAttrKeyDescs: JSON.parse(clade_node_attr_key_descs) as CladeNodeAttrDesc[],
+  }
+}
+
 /** Runs the underlying WebAssembly module. */
 async function analyze(record: FastaRecord): Promise<NextcladeResult> {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized()
+    throw new ErrorModuleNotInitialized('analyze')
   }
 
   const { index, seqName, seq } = record
@@ -69,24 +94,39 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
     qry_seq_str: seq,
   })
 
-  const resultRaw = nextcladeWasm.analyze(input).to_js()
+  const output = nextcladeWasm.analyze(input)
 
-  const query = resultRaw.qry_seq_str
-  const queryPeptides = JSON.parse(resultRaw.translations_str) as Peptide[]
-  const analysisResult = JSON.parse(resultRaw.nextclade_outputs_str) as AnalysisResult
+  try {
+    const { result, error } = output.to_js()
 
-  return {
-    index,
-    seqName,
-    analysisResult,
-    query,
-    queryPeptides,
-    warnings: {
-      global: [],
-      inGenes: [],
-    },
-    hasError: false,
-    error: undefined,
+    if (result) {
+      const { query, query_peptides, analysis_result } = result as unknown as AnalysisOutputPojo
+
+      const queryPeptides = JSON.parse(query_peptides) as Translation[]
+      const analysisResult = JSON.parse(analysis_result) as AnalysisResult
+
+      return {
+        index,
+        seqName,
+        result: {
+          query,
+          queryPeptides,
+          analysisResult,
+        },
+      }
+    }
+
+    if (error) {
+      return {
+        index,
+        seqName,
+        error,
+      }
+    }
+
+    throw new ErrorBothResultsAndErrorAreNull()
+  } finally {
+    output.free()
   }
 }
 
@@ -98,9 +138,9 @@ async function analyze(record: FastaRecord): Promise<NextcladeResult> {
 // }
 
 /** Retrieves the output tree from the WebAssembly module. */
-export function getOutputTree(analysisResultsJsonStr: string): string {
+export async function getOutputTree(analysisResultsJsonStr: string): Promise<string> {
   if (!nextcladeWasm) {
-    throw new ErrorModuleNotInitialized()
+    throw new ErrorModuleNotInitialized('getOutputTree')
   }
   return nextcladeWasm.get_output_tree(analysisResultsJsonStr)
 }
@@ -140,10 +180,42 @@ export async function parseVirusJsonString(virusJsonStr: string) {
   NextcladeWasm.validate_virus_properties_json(virusJsonStr)
 }
 
+export async function serializeResultsJson(
+  outputs: AnalysisResult[],
+  cladeNodeAttrsJson: CladeNodeAttrDesc[],
+  nextcladeWebVersion: string,
+) {
+  return NextcladeWasm.serialize_results_json(
+    JSON.stringify(outputs),
+    JSON.stringify(cladeNodeAttrsJson),
+    nextcladeWebVersion,
+  )
+}
+
+export async function serializeResultsNdjson(results: AnalysisResult[]) {
+  return NextcladeWasm.serialize_results_ndjson(JSON.stringify(results))
+}
+
+export async function serializeResultsCsv(
+  results: AnalysisResult[],
+  cladeNodeAttrsJson: CladeNodeAttrDesc[],
+  delimiter: string,
+) {
+  return NextcladeWasm.serialize_results_csv(JSON.stringify(results), JSON.stringify(cladeNodeAttrsJson), delimiter)
+}
+
+async function serializeInsertionsCsv(results: AnalysisResult[]) {
+  return NextcladeWasm.serialize_insertions_csv(JSON.stringify(results))
+}
+
+async function serializeErrorsCsv(errors: ErrorsFromWeb[]) {
+  return NextcladeWasm.serialize_errors_csv(JSON.stringify(errors))
+}
+
 const worker = {
   create,
   destroy,
-  // getCladeNodeAttrKeyDescs,
+  getInitialData,
   analyze,
   getOutputTree,
   parseSequencesStreaming,
@@ -153,6 +225,11 @@ const worker = {
   parsePcrPrimerCsvRowsStr,
   parseQcConfigString,
   parseVirusJsonString,
+  serializeResultsJson,
+  serializeResultsCsv,
+  serializeResultsNdjson,
+  serializeInsertionsCsv,
+  serializeErrorsCsv,
   values(): ThreadsObservable<FastaRecord> {
     return ThreadsObservable.from(gSubject)
   },

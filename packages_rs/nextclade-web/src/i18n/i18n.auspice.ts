@@ -1,7 +1,7 @@
 import i18nOriginal, { i18n as I18N } from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
-import { DEFAULT_LOCALE_KEY, I18NInitParams, LocaleKey, localeKeys } from 'src/i18n/i18n'
+import { DEFAULT_LOCALE_KEY, LocaleKey, localeKeys } from 'src/i18n/i18n'
 
 import enSidebar from 'auspice/src/locales/en/sidebar.json'
 import arSidebar from 'auspice/src/locales/ar/sidebar.json'
@@ -27,7 +27,7 @@ import ruTranslation from 'auspice/src/locales/ru/translation.json'
 
 export const AUSPICE_I18N_NAMESPACES = ['language', 'sidebar', 'translation']
 
-export function i18nAuspiceInit({ localeKey }: I18NInitParams) {
+export function i18nAuspiceInit() {
   const i18nAuspice = i18nOriginal.use(initReactI18next).createInstance({
     resources: {
       en: { sidebar: enSidebar, translation: enTranslation },
@@ -62,6 +62,6 @@ export async function changeAuspiceLocale(i18nAuspice: I18N, localeKey: LocaleKe
   return false
 }
 
-const i18nAuspice = i18nAuspiceInit({ localeKey: DEFAULT_LOCALE_KEY })
+const i18nAuspice = i18nAuspiceInit()
 
 export default i18nAuspice

@@ -38,7 +38,7 @@ describe('parseMutation', () => {
   })
 
   it('should parse different ref, position, query', () => {
-    expect(parseMutation('T43516N')).toStrictEqual({ refNuc: 'T', pos: 43515, queryNuc: 'N' })
+    expect(parseMutation('T43516N')).toStrictEqual({ refNuc: 'T', pos: 43_515, queryNuc: 'N' })
   })
 
   it('should parse ref ("-"), position, query', () => {
@@ -58,7 +58,7 @@ describe('parseMutation', () => {
   })
 })
 
-describe('parseMutation ', () => {
+describe('parseMutation reject', () => {
   it('should reject empty input', () => {
     expect(parseMutation('')).toBeUndefined()
   })

@@ -2,9 +2,10 @@ import React, { ReactNode, useMemo } from 'react'
 import { Oval } from 'react-loader-spinner'
 
 import { useRecoilValue } from 'recoil'
+import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/algorithms/types'
 import i18n from 'src/i18n/i18n'
-import { AlgorithmGlobalStatus, AlgorithmSequenceStatus } from 'src/state/algorithm/algorithm.state'
 import { analysisStatusGlobalAtom } from 'src/state/analysisStatusGlobal.state'
+import { analysisResultStatusesAtom } from 'src/state/results.state'
 import { numThreadsAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 
@@ -21,9 +22,10 @@ const ResultsStatusWrapper = styled.div`
 export function ResultsStatus() {
   const numThreads = useRecoilValue(numThreadsAtom)
   const statusGlobal = useRecoilValue(analysisStatusGlobalAtom)
+  const analysisResultStatuses = useRecoilValue(analysisResultStatusesAtom)
 
   const { text, spinner } = useMemo(() => {
-    const { statusText, failureText, percent } = selectStatus(statusGlobal, numThreads)
+    const { statusText, failureText, percent } = selectStatus(statusGlobal, analysisResultStatuses, numThreads)
 
     let text = <span>{statusText}</span>
     if (failureText) {
@@ -42,7 +44,7 @@ export function ResultsStatus() {
     }
 
     return { text, spinner }
-  }, [numThreads, statusGlobal])
+  }, [analysisResultStatuses, numThreads, statusGlobal])
 
   return (
     <ResultsStatusWrapper>
@@ -52,11 +54,12 @@ export function ResultsStatus() {
   )
 }
 
-export function selectStatus(statusGlobal: AlgorithmGlobalStatus, numThreads: number) {
-  // const sequenceStatuses = state.algorithm.results.map(({ seqName, status }) => ({ seqName, status }))
-  // const hasFailures = state.algorithm.results.some(({ status }) => status === AlgorithmSequenceStatus.failed)
-  const sequenceStatuses: AlgorithmSequenceStatus[] = []
-  const hasFailures = false
+export function selectStatus(
+  statusGlobal: AlgorithmGlobalStatus,
+  analysisResultStatuses: AlgorithmSequenceStatus[],
+  numThreads: number,
+) {
+  const hasFailures = analysisResultStatuses.includes(AlgorithmSequenceStatus.failed)
 
   const idlingPercent = 0
   const loadingDataPercent = 5
@@ -94,9 +97,9 @@ export function selectStatus(statusGlobal: AlgorithmGlobalStatus, numThreads: nu
 
     case AlgorithmGlobalStatus.started:
       {
-        const total = sequenceStatuses.length
-        const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.done).length
-        const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.failed).length
+        const total = analysisResultStatuses.length
+        const succeeded = analysisResultStatuses.filter((status) => status === AlgorithmSequenceStatus.done).length
+        const failed = analysisResultStatuses.filter((status) => status === AlgorithmSequenceStatus.failed).length
         const done = succeeded + failed
         percent = loadingDataDonePercent + (done / total) * (treeBuildPercent - loadingDataDonePercent)
         statusText = i18n.t('Analysing sequences: Found: {{total}}. Analyzed: {{done}}', { done, total })
@@ -116,9 +119,9 @@ export function selectStatus(statusGlobal: AlgorithmGlobalStatus, numThreads: nu
     case AlgorithmGlobalStatus.done:
       {
         percent = allDonePercent
-        const total = sequenceStatuses.length
-        const succeeded = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.done).length
-        const failed = sequenceStatuses.filter(({ status }) => status === AlgorithmSequenceStatus.failed).length
+        const total = analysisResultStatuses.length
+        const succeeded = analysisResultStatuses.filter((status) => status === AlgorithmSequenceStatus.done).length
+        const failed = analysisResultStatuses.filter((status) => status === AlgorithmSequenceStatus.failed).length
         statusText = i18n.t('Done. Total sequences: {{total}}. Succeeded: {{succeeded}}', { succeeded, total })
         if (failed > 0) {
           failureText = i18n.t('Failed: {{failed}}', { failed, total })

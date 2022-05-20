@@ -2,18 +2,18 @@ import type { ParsedUrlQuery } from 'querystring'
 
 import type { DatasetFlat } from 'src/algorithms/types'
 import { fetchDatasetsIndex, findDataset, getLatestCompatibleEnabledDatasets } from 'src/io/fetchDatasetsIndex'
-import { getQueryParam } from 'src/io/fetchInputsAndRunMaybe'
+import { getQueryParamMaybe } from 'src/io/getQueryParamMaybe'
 
 export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets: DatasetFlat[]) {
-  const inputFastaUrl = getQueryParam(urlQuery, 'input-fasta')
+  const inputFastaUrl = getQueryParamMaybe(urlQuery, 'input-fasta')
 
-  // If there are no input sequences, then skip the rest of URL params
+  // If there are no input sequences, we are not going to run, so skip the rest
   if (!inputFastaUrl) {
     return undefined
   }
 
   // Retrieve dataset-related URL params and try to find a dataset based on these params
-  const datasetName = getQueryParam(urlQuery, 'dataset-name')
+  const datasetName = getQueryParamMaybe(urlQuery, 'dataset-name')
 
   if (!datasetName) {
     throw new Error(
@@ -23,8 +23,8 @@ export async function getDatasetFromUrlParams(urlQuery: ParsedUrlQuery, datasets
     )
   }
 
-  const datasetRef = getQueryParam(urlQuery, 'dataset-reference')
-  const datasetTag = getQueryParam(urlQuery, 'dataset-tag')
+  const datasetRef = getQueryParamMaybe(urlQuery, 'dataset-reference')
+  const datasetTag = getQueryParamMaybe(urlQuery, 'dataset-tag')
 
   const dataset = findDataset(datasets, datasetName, datasetRef, datasetTag)
   if (!dataset) {
@@ -45,12 +45,6 @@ export async function initializeDatasets(urlQuery: ParsedUrlQuery) {
 
   // Check if URL params specify dataset params and try to find the corresponding dataset
   const currentDataset = await getDatasetFromUrlParams(urlQuery, datasets)
-
-  // TODO
-  // // If URL params defined no dataset, try to restore the last used dataset from local storage
-  // if (!currentDataset) {
-  //   currentDataset = await getLastUsedDataset(store, datasets)
-  // }
 
   const currentDatasetName = currentDataset?.name
 

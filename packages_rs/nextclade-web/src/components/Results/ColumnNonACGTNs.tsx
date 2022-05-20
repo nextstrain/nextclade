@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import type { AnalysisResult } from 'src/algorithms/types'
 import { getSafeId } from 'src/helpers/getSafeId'
@@ -6,17 +6,19 @@ import { Tooltip } from 'src/components/Results/Tooltip'
 import { ListOfNonACGTNs } from 'src/components/Results/ListOfNonACGTNs'
 
 export interface ColumnNonACGTNsProps {
-  sequence: AnalysisResult
+  analysisResult: AnalysisResult
 }
 
-export function ColumnNonACGTNs({ sequence }: ColumnNonACGTNsProps) {
+export function ColumnNonACGTNs({ analysisResult }: ColumnNonACGTNsProps) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
-  const { seqName, nonACGTNs, totalNonACGTNs } = sequence
+  const { seqName, nonACGTNs, totalNonACGTNs } = analysisResult
   const id = getSafeId('col-nonacgtn', { seqName })
 
   return (
-    <div id={id} className="w-100" onMouseEnter={() => setShowTooltip(true)} onMouseLeave={() => setShowTooltip(false)}>
+    <div id={id} className="w-100" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       {totalNonACGTNs}
       <Tooltip isOpen={showTooltip} target={id}>
         <ListOfNonACGTNs nonACGTNs={nonACGTNs} totalNonACGTNs={totalNonACGTNs} />

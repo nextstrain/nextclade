@@ -1,9 +1,9 @@
-import React, { SVGProps, useState, PropsWithChildren, memo } from 'react'
+import React, { memo, PropsWithChildren, SVGProps, useCallback, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { BASE_MIN_WIDTH_PX } from 'src/constants'
 
 import { Tooltip } from 'src/components/Results/Tooltip'
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 
@@ -25,6 +25,8 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
   ...restProps
 }: PropsWithChildren<SequenceMarkerProps>) {
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
@@ -47,8 +49,8 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
       width={width}
       height="30"
       {...restProps}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <Tooltip target={id} isOpen={showTooltip}>
         {children}
@@ -63,6 +65,7 @@ export interface SequenceMarkerUnsequencedStartProps {
   pixelsPerBase: number
 }
 
+// eslint-disable-next-line react/display-name
 export const SequenceMarkerUnsequencedStart = memo(
   ({ seqName, alignmentStart, pixelsPerBase }: SequenceMarkerUnsequencedStartProps) => {
     const { t } = useTranslation()
@@ -70,8 +73,7 @@ export const SequenceMarkerUnsequencedStart = memo(
     const id = getSafeId('sequence-marker-unsequenced-start', { seqName, alignmentStart })
 
     const begin = 0
-    const length = alignmentStart
-    const end = begin + length
+    const end = begin + alignmentStart
 
     if (begin >= end) {
       return null
@@ -92,6 +94,7 @@ export interface SequenceMarkerUnsequencedEndProps {
   pixelsPerBase: number
 }
 
+// eslint-disable-next-line react/display-name
 export const SequenceMarkerUnsequencedEnd = memo(
   ({ seqName, genomeSize, alignmentEnd, pixelsPerBase }: SequenceMarkerUnsequencedEndProps) => {
     const { t } = useTranslation()

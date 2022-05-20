@@ -1,7 +1,8 @@
-use crate::io::json::json_write;
+use crate::io::json::{json_stringify, json_write};
+use crate::io::ndjson::NdjsonWriter;
 use crate::tree::tree::CladeNodeAttrKeyDesc;
 use crate::types::outputs::NextcladeOutputs;
-use crate::utils::datetime::timestamp_now;
+use crate::utils::datetime::date_iso_now;
 use eyre::Report;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
@@ -10,9 +11,16 @@ use std::path::{Path, PathBuf};
 #[serde(rename_all = "camelCase")]
 pub struct ResultsJson {
   pub schema_version: String,
-  pub nextclade_version: String,
-  pub timestamp: u64,
+
+  pub nextclade_algo_version: String,
+
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub nextclade_web_version: Option<String>,
+
+  pub created_at: String,
+
   pub clade_node_attr_keys: Vec<CladeNodeAttrKeyDesc>,
+
   pub results: Vec<NextcladeOutputs>,
 }
 
@@ -22,11 +30,23 @@ impl ResultsJson {
 
     Self {
       schema_version: "1.0.0".to_owned(),
-      nextclade_version: VERSION.to_owned(),
-      timestamp: timestamp_now() as u64,
+      nextclade_algo_version: VERSION.to_owned(),
+      nextclade_web_version: None,
+      created_at: date_iso_now(),
       clade_node_attr_keys: Vec::<CladeNodeAttrKeyDesc>::from(clade_node_attrs),
       results: vec![],
     }
+  }
+
+  pub fn from_outputs(
+    outputs: &[NextcladeOutputs],
+    clade_node_attrs: &[CladeNodeAttrKeyDesc],
+    nextclade_web_version: &Option<String>,
+  ) -> Self {
+    let mut this = Self::new(clade_node_attrs);
+    this.results = outputs.to_vec();
+    this.nextclade_web_version = nextclade_web_version.clone();
+    this
   }
 }
 
@@ -57,4 +77,21 @@ impl Drop for ResultsJsonWriter {
   fn drop(&mut self) {
     self.finish();
   }
+}
+
+pub fn results_to_json_string(
+  outputs: &[NextcladeOutputs],
+  clade_node_attrs: &[CladeNodeAttrKeyDesc],
+  nextclade_web_version: &Option<String>,
+) -> Result<String, Report> {
+  let results_json = ResultsJson::from_outputs(outputs, clade_node_attrs, nextclade_web_version);
+  json_stringify(&results_json)
+}
+
+pub fn results_to_ndjson_string(outputs: &[NextcladeOutputs]) -> Result<String, Report> {
+  let mut writer = NdjsonWriter::new(Vec::<u8>::new())?;
+  for output in outputs {
+    writer.write(output)?;
+  }
+  Ok(String::from_utf8(writer.into_inner()?)?)
 }

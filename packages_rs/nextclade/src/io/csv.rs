@@ -4,22 +4,44 @@ use csv::{ReaderBuilder as CsvReaderBuilder, Writer as CsvWriterImpl, WriterBuil
 use eyre::{Report, WrapErr};
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::BufWriter;
+use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
-/// Writes CSV files. Each row is a serde-annotated struct.
-pub struct CsvStructWriter {
-  pub filepath: PathBuf,
-  pub writer: CsvWriterImpl<BufWriter<File>>,
+/// Writes CSV. Each row is a serde-annotated struct.
+pub struct CsvStructWriter<W: 'static + Write + Sync + Send> {
+  pub writer: CsvWriterImpl<W>,
 }
 
-impl CsvStructWriter {
+impl<W: 'static + Write + Sync + Send> CsvStructWriter<W> {
+  pub fn new(writer: W, delimiter: u8) -> Result<Self, Report> {
+    let writer = CsvWriterBuilder::new().delimiter(delimiter).from_writer(writer);
+    Ok(Self { writer })
+  }
+
+  pub fn write<T: Serialize>(&mut self, record: &T) -> Result<(), Report> {
+    self.writer.serialize(record)?;
+    Ok(())
+  }
+
+  pub fn into_inner(self) -> Result<W, Report> {
+    let inner = self.writer.into_inner()?;
+    Ok(inner)
+  }
+}
+
+/// Writes CSV files. Each row is a serde-annotated struct.
+pub struct CsvStructFileWriter {
+  pub filepath: PathBuf,
+  pub writer: CsvStructWriter<BufWriter<File>>,
+}
+
+impl CsvStructFileWriter {
   pub fn new(filepath: impl AsRef<Path>, delimiter: u8) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     ensure_dir(&filepath)?;
     let file = File::create(&filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?;
     let buf_file = BufWriter::with_capacity(32 * 1024, file);
-    let writer = CsvWriterBuilder::new().delimiter(delimiter).from_writer(buf_file);
+    let writer = CsvStructWriter::new(buf_file, delimiter)?;
     Ok(Self {
       filepath: filepath.to_owned(),
       writer,
@@ -27,35 +49,70 @@ impl CsvStructWriter {
   }
 
   pub fn write<T: Serialize>(&mut self, record: &T) -> Result<(), Report> {
-    self.writer.serialize(record)?;
+    self.writer.write(record)?;
+    Ok(())
+  }
+}
+
+pub trait VecWriter {
+  fn write<I: IntoIterator<Item = T>, T: AsRef<[u8]>>(&mut self, values: I) -> Result<(), Report>;
+}
+
+/// Writes CSV. Each row is a vec of strings.
+pub struct CsvVecWriter<W: 'static + Write + Send + Sync> {
+  pub headers: Vec<String>,
+  pub writer: CsvWriterImpl<W>,
+}
+
+impl<W: 'static + Write + Send + Sync> CsvVecWriter<W> {
+  pub fn new(writer: W, delimiter: u8, headers: &[String]) -> Result<Self, Report> {
+    let mut writer = CsvWriterBuilder::new().delimiter(delimiter).from_writer(writer);
+    writer.write_record(headers)?;
+    Ok(Self {
+      headers: headers.to_owned(),
+      writer,
+    })
+  }
+
+  pub fn into_inner(self) -> Result<W, Report> {
+    let inner = self.writer.into_inner()?;
+    Ok(inner)
+  }
+}
+
+impl<W: 'static + Write + Send + Sync> VecWriter for CsvVecWriter<W> {
+  fn write<I: IntoIterator<Item = T>, T: AsRef<[u8]>>(&mut self, values: I) -> Result<(), Report> {
+    self.writer.write_record(values)?;
     Ok(())
   }
 }
 
 /// Writes CSV files. Each row is a vec of strings.
-pub struct CsvVecWriter {
+pub struct CsvVecFileWriter {
   pub filepath: PathBuf,
   pub headers: Vec<String>,
-  pub writer: CsvWriterImpl<BufWriter<File>>,
+  pub writer: CsvVecWriter<BufWriter<File>>,
 }
 
-impl CsvVecWriter {
+impl CsvVecFileWriter {
   pub fn new(filepath: impl AsRef<Path>, delimiter: u8, headers: &[String]) -> Result<Self, Report> {
     let filepath = filepath.as_ref();
     ensure_dir(&filepath)?;
     let file = File::create(&filepath).wrap_err_with(|| format!("When creating file: {filepath:?}"))?;
     let buf_file = BufWriter::with_capacity(32 * 1024, file);
-    let mut writer = CsvWriterBuilder::new().delimiter(delimiter).from_writer(buf_file);
-    writer.write_record(headers)?;
+    let mut writer = CsvVecWriter::new(buf_file, delimiter, headers)?;
+    writer.write(headers)?;
     Ok(Self {
       filepath: filepath.to_owned(),
       headers: headers.to_owned(),
       writer,
     })
   }
+}
 
-  pub fn write<I: IntoIterator<Item = T>, T: AsRef<[u8]>>(&mut self, values: I) -> Result<(), Report> {
-    self.writer.write_record(values)?;
+impl VecWriter for CsvVecFileWriter {
+  fn write<I: IntoIterator<Item = T>, T: AsRef<[u8]>>(&mut self, values: I) -> Result<(), Report> {
+    self.writer.write(values)?;
     Ok(())
   }
 }

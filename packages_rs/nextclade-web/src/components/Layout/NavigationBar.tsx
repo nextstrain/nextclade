@@ -1,13 +1,10 @@
 import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { connect } from 'react-redux'
 import { FaDocker, FaGithub, FaTwitter } from 'react-icons/fa'
 import { IoMdBook } from 'react-icons/io'
 import styled from 'styled-components'
 
-import { State } from 'src/state/reducer'
-import { selectPathname } from 'src/state/router/router.selectors'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 import { Link } from 'src/components/Link/Link'
@@ -61,19 +58,7 @@ export function DocsLink() {
   )
 }
 
-export interface NavigationBarProps {
-  pathname: string
-}
-
-const mapStateToProps = (state: State) => ({
-  pathname: selectPathname(state),
-})
-
-const mapDispatchToProps = {}
-
-export const NavigationBar = connect(mapStateToProps, mapDispatchToProps)(NavigationBarDisconnected)
-
-export function NavigationBarDisconnected({ pathname }: NavigationBarProps) {
+export function NavigationBar() {
   const { t } = useTranslation()
 
   const navLinksRight = useMemo(

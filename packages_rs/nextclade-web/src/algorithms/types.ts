@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import type { Tagged } from 'src/helpers/types'
+import type { QCFilters } from 'src/filtering/filterByQCIssues'
 
 /** Type-safe representation of a nucleotide */
 export type Nucleotide = Tagged<string, 'Nucleotide'>
@@ -253,13 +254,13 @@ export interface QcResult {
 }
 
 export interface NucleotideSubstitutionSimple {
-  ref: string
+  refNuc: string
   pos: number
-  qry: string
+  queryNuc: string
 }
 
 export interface NucleotideDeletionSimple {
-  ref: string
+  refNuc: string
   pos: number
 }
 
@@ -282,18 +283,18 @@ export interface PrivateMutations {
 }
 
 export function convertDelToSub(del: NucleotideDeletionSimple): NucleotideSubstitutionSimple {
-  return { ...del, qry: '-' }
+  return { ...del, queryNuc: '-' }
 }
 
 export function convertDelToSubLabeled(labeled: NucleotideDeletionSimpleLabeled): NucleotideSubstitutionSimpleLabeled {
   return { ...labeled, substitution: convertDelToSub(labeled.deletion) }
 }
 
-export function convertSimpleSubToSub({ ref, pos, qry }: NucleotideSubstitutionSimple): NucleotideSubstitution {
+export function convertSimpleSubToSub({ refNuc, pos, queryNuc }: NucleotideSubstitutionSimple): NucleotideSubstitution {
   return {
-    refNuc: ref as Nucleotide,
+    refNuc: refNuc as Nucleotide,
     pos,
-    queryNuc: qry as Nucleotide,
+    queryNuc: queryNuc as Nucleotide,
     aaDeletions: [],
     aaSubstitutions: [],
     pcrPrimersChanged: [],
@@ -359,11 +360,22 @@ export interface AnalysisResult {
   privateAaMutations: Record<string, PrivateMutations>
   qc: QcResult
   customNodeAttributes: Record<string, string>
+  warnings: PeptideWarning[]
+  missingGenes: string[]
 }
 
-export interface Peptide {
-  name: string
+export interface ErrorsFromWeb {
+  seqName: string
+  errors: string
+  warnings: PeptideWarning[]
+  failedGenes: string[]
+}
+
+export interface Translation {
+  geneName: string
   seq: string
+  insertions: AminoacidInsertion[]
+  frameShifts: FrameShift[]
 }
 
 /** Represents a named interval in the genome */
@@ -372,9 +384,12 @@ export interface Gene {
   color: string
   start: number
   end: number
-  length: number
   frame: number
   strand: string
+}
+
+export function geneLength(gene: Gene) {
+  return gene.end - gene.start
 }
 
 export interface FastaRecordId {
@@ -386,14 +401,57 @@ export interface FastaRecord extends FastaRecordId {
   seq: string
 }
 
-export interface GeneWarning {
+export interface PeptideWarning {
   geneName: string
   message: string
 }
 
-export interface Warnings {
-  global: string[]
-  inGenes: GeneWarning[]
+export enum AlgorithmGlobalStatus {
+  idle = 'idle',
+  loadingData = 'loadingData',
+  initWorkers = 'initWorkers',
+  started = 'started',
+  buildingTree = 'buildingTree',
+  done = 'done',
+  failed = 'failed',
+}
+
+export enum AlgorithmSequenceStatus {
+  started = 'started',
+  done = 'done',
+  failed = 'failed',
+}
+
+export function getResultStatus(result: NextcladeResult) {
+  if (result.error) {
+    return AlgorithmSequenceStatus.failed
+  }
+  if (result.result) {
+    return AlgorithmSequenceStatus.done
+  }
+  return AlgorithmSequenceStatus.started
+}
+
+export interface ResultsFilters extends QCFilters {
+  seqNamesFilter?: string
+  mutationsFilter?: string
+  aaFilter?: string
+  cladesFilter?: string
+}
+
+export enum AlgorithmInputType {
+  File = 'FileInput',
+  Url = 'Url',
+  String = 'String',
+  Default = 'Default',
+}
+
+export interface AlgorithmInput {
+  type: AlgorithmInputType
+  name: string
+  description: string
+
+  getContent(): Promise<string>
 }
 
 export interface DatasetsSettings {
@@ -473,20 +531,15 @@ export interface UrlParams {
   inputGeneMap?: string
 }
 
-export interface Translation {
-  gene_name: string
-  seq: string
-  insertions: AminoacidInsertion[]
-  frame_shifts: FrameShift[]
+export interface AnalysisOutput {
+  query: string
+  queryPeptides: Translation[]
+  analysisResult: AnalysisResult
 }
 
 export interface NextcladeResult {
   index: number
   seqName: string
-  query: string
-  queryPeptides: Peptide[]
-  analysisResult: AnalysisResult
-  warnings: Warnings
-  hasError: boolean
-  error: Error | undefined
+  result?: AnalysisOutput
+  error?: string
 }

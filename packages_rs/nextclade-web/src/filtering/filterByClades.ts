@@ -1,16 +1,16 @@
-import type { SequenceAnalysisState } from 'src/state/algorithm/algorithm.state'
+import type { NextcladeResult } from 'src/algorithms/types'
 
 import { splitFilterString } from './splitFilterString'
 
 export function filterByClades(cladesFilter: string) {
   const cladesFilters = splitFilterString(cladesFilter)
 
-  return (result: SequenceAnalysisState) => {
-    const clade = result?.result?.clade
-    if (!clade) {
+  return (result: NextcladeResult) => {
+    if (!result.result) {
       return false
     }
 
-    return cladesFilters.some((filter) => clade.startsWith(filter))
+    const { clade } = result.result.analysisResult
+    return cladesFilters.some((filter) => clade.toLowerCase().startsWith(filter.toLowerCase()))
   }
 }

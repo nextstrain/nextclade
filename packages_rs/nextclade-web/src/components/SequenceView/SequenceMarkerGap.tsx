@@ -1,21 +1,14 @@
-import React, { SVGProps, useState } from 'react'
-
-import { useTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
+import React, { SVGProps, useCallback, useState } from 'react'
 
 import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
-
-import type { Gene, NucleotideDeletion } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
-
+import type { NucleotideDeletion } from 'src/algorithms/types'
 import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { TableSlim } from 'src/components/Common/TableSlim'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
-
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
 const gapColor = getNucleotideColor(GAP)
 
@@ -23,24 +16,13 @@ export interface MissingViewProps extends SVGProps<SVGRectElement> {
   seqName: string
   deletion: NucleotideDeletion
   pixelsPerBase: number
-  geneMap?: Gene[]
 }
 
-const mapStateToProps = (state: State) => ({
-  geneMap: selectGeneMap(state),
-})
-
-const mapDispatchToProps = {}
-
-export const SequenceMarkerGapUnmemoed = connect(mapStateToProps, mapDispatchToProps)(SequenceMarkerGapDisconnected)
-
-function SequenceMarkerGapDisconnected({ seqName, deletion, pixelsPerBase, geneMap, ...rest }: MissingViewProps) {
-  const { t } = useTranslation()
+function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }: MissingViewProps) {
+  const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
-
-  if (!geneMap) {
-    return null
-  }
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
 
   const { start: begin, length, aaSubstitutions, aaDeletions } = deletion
   const end = begin + length
@@ -65,8 +47,8 @@ function SequenceMarkerGapDisconnected({ seqName, deletion, pixelsPerBase, geneM
       width={width}
       height="30"
       {...rest}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     >
       <Tooltip target={id} isOpen={showTooltip} fullWidth>
         <TableSlim borderless className="mb-1">
@@ -86,27 +68,23 @@ function SequenceMarkerGapDisconnected({ seqName, deletion, pixelsPerBase, geneM
               </tr>
             )}
 
-            <>
-              {aaSubstitutions.map((mut) => (
-                <tr key={mut.codon}>
-                  <td>{t('Aminoacid substitution')}</td>
-                  <td>
-                    <AminoacidMutationBadge mutation={mut} geneMap={geneMap} />
-                  </td>
-                </tr>
-              ))}
-            </>
+            {aaSubstitutions.map((mut) => (
+              <tr key={mut.codon}>
+                <td>{t('Aminoacid substitution')}</td>
+                <td>
+                  <AminoacidMutationBadge mutation={mut} />
+                </td>
+              </tr>
+            ))}
 
-            <>
-              {aaDeletions.map((del) => (
-                <tr key={del.queryContext}>
-                  <td>{t('Aminoacid deletion')}</td>
-                  <td>
-                    <AminoacidMutationBadge mutation={del} geneMap={geneMap} />
-                  </td>
-                </tr>
-              ))}
-            </>
+            {aaDeletions.map((del) => (
+              <tr key={del.queryContext}>
+                <td>{t('Aminoacid deletion')}</td>
+                <td>
+                  <AminoacidMutationBadge mutation={del} />
+                </td>
+              </tr>
+            ))}
           </tbody>
         </TableSlim>
       </Tooltip>

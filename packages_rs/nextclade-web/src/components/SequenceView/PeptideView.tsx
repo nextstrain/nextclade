@@ -1,19 +1,15 @@
-import React, { useState } from 'react'
-
-import { connect } from 'react-redux'
+import React, { useCallback, useState } from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { Alert as ReactstrapAlert } from 'reactstrap'
+import { useRecoilValue } from 'recoil'
+import { geneMapAtom } from 'src/state/results.state'
 import styled from 'styled-components'
 
-import type { AnalysisResult, Gene, GeneWarning, Warnings } from 'src/algorithms/types'
-import type { State } from 'src/state/reducer'
-import { selectGeneMap } from 'src/state/algorithm/algorithm.selectors'
+import type { AnalysisResult, Gene, PeptideWarning } from 'src/algorithms/types'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 import { getSafeId } from 'src/helpers/getSafeId'
-
 import { WarningIcon } from 'src/components/Results/getStatusIconAndText'
 import { Tooltip } from 'src/components/Results/Tooltip'
-
 import { PeptideMarkerMutationGroup } from './PeptideMarkerMutationGroup'
 import { SequenceViewWrapper, SequenceViewSVG } from './SequenceView'
 import { groupAdjacentAminoacidChanges } from './groupAdjacentAminoacidChanges'
@@ -35,30 +31,21 @@ const Alert = styled(ReactstrapAlert)`
 
 export interface PeptideViewMissingProps {
   geneName: string
-  reasons: GeneWarning[]
+  reasons: PeptideWarning[]
 }
 
 export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProps) {
   const { t } = useTranslationSafe()
   const [showTooltip, setShowTooltip] = useState(false)
+  const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+  const onMouseLeave = useCallback(() => setShowTooltip(false), [])
+
   const id = getSafeId('sequence-label', { geneName })
 
   return (
-    <MissingRow
-      id={id}
-      className="w-100 h-100 d-flex"
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
+    <MissingRow id={id} className="w-100 h-100 d-flex" onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
       <span className="m-auto">{t('Gene "{{ geneName }}" is missing', { geneName })}</span>
-      <Tooltip
-        wide
-        fullWidth
-        target={id}
-        isOpen={showTooltip}
-        onMouseEnter={() => setShowTooltip(true)}
-        onMouseLeave={() => setShowTooltip(false)}
-      >
+      <Tooltip wide fullWidth target={id} isOpen={showTooltip} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
         <p>{t('This gene is missing due to the following errors during analysis: ')}</p>
         {reasons.map((warn) => (
           <Alert key={warn.geneName} color="warning" fade={false} className="px-2 py-1 my-1">
@@ -73,22 +60,17 @@ export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProp
 
 export interface PeptideViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
-  warnings: Warnings
+  warnings?: PeptideWarning[]
   geneMap?: Gene[]
   viewedGene: string
 }
 
-const mapStateToProps = (state: State) => ({
-  geneMap: selectGeneMap(state),
-})
-const mapDispatchToProps = {}
-
-export const PeptideViewUnsized = connect(mapStateToProps, mapDispatchToProps)(PeptideViewUnsizedDisconnected)
-
-export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, geneMap, viewedGene }: PeptideViewProps) {
+export function PeptideViewUnsized({ width, sequence, warnings, viewedGene }: PeptideViewProps) {
   const { t } = useTranslationSafe()
 
-  if (!width || !geneMap) {
+  const geneMap = useRecoilValue(geneMapAtom)
+
+  if (!width) {
     return (
       <SequenceViewWrapper>
         <SequenceViewSVG fill="transparent" viewBox={`0 0 10 10`} />
@@ -105,7 +87,7 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
     )
   }
 
-  const warningsForThisGene = warnings.inGenes.filter((warn) => warn.geneName === viewedGene)
+  const warningsForThisGene = (warnings ?? []).filter((warn) => warn.geneName === viewedGene)
   if (warningsForThisGene.length > 0) {
     return (
       <SequenceViewWrapper>
@@ -114,15 +96,16 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
     )
   }
 
-  const { seqName, unknownAaRanges } = sequence
-  const pixelsPerAa = width / Math.round(gene.length / 3)
+  const { seqName, unknownAaRanges, frameShifts } = sequence
+  const geneLength = gene.end - gene.start
+  const pixelsPerAa = width / Math.round(geneLength / 3)
   const aaSubstitutions = sequence.aaSubstitutions.filter((aaSub) => aaSub.gene === viewedGene)
   const aaDeletions = sequence.aaDeletions.filter((aaSub) => aaSub.gene === viewedGene)
   const groups = groupAdjacentAminoacidChanges(aaSubstitutions, aaDeletions)
 
   const unknownAaRangesForGene = unknownAaRanges.find((range) => range.geneName === viewedGene)
 
-  const frameShiftMarkers = sequence.frameShifts
+  const frameShiftMarkers = frameShifts
     .filter((frameShift) => frameShift.geneName === gene.geneName)
     .map((frameShift) => (
       <PeptideMarkerFrameShift
@@ -136,7 +119,7 @@ export function PeptideViewUnsizedDisconnected({ width, sequence, warnings, gene
   return (
     <SequenceViewWrapper>
       <SequenceViewSVG viewBox={`0 0 ${width} 10`}>
-        <rect fill="transparent" x={0} y={-10} width={gene.length} height="30" />
+        <rect fill="transparent" x={0} y={-10} width={geneLength} height="30" />
 
         {unknownAaRangesForGene &&
           unknownAaRangesForGene.ranges.map((range) => (

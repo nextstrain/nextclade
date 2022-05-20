@@ -10,7 +10,7 @@ use serde::de::Error;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::str::FromStr;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct Insertion<T: Letter<T>> {
   pub pos: i32,
 
@@ -72,6 +72,13 @@ pub fn insertions_strip<T: Letter<T>>(qry_seq: &[T], ref_seq: &[T]) -> StripInse
     }
   }
 
+  if !current_insertion.is_empty() {
+    insertions.push(Insertion {
+      pos: insertion_start,
+      ins: current_insertion.clone(),
+    });
+  }
+
   qry_stripped.shrink_to_fit();
   insertions.shrink_to_fit();
 
@@ -108,4 +115,33 @@ pub fn get_aa_insertions(translations: &[Translation]) -> Vec<AaIns> {
       })
     })
     .collect_vec()
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::io::nuc::to_nuc_seq;
+  use eyre::Report;
+  use pretty_assertions::assert_eq;
+  use rstest::{fixture, rstest};
+
+  #[rstest]
+  fn finds_terminal_insertions() -> Result<(), Report> {
+    let qry_seq = to_nuc_seq("ACCACGCTCGCATCATC")?;
+    let ref_seq = to_nuc_seq("---ACGCTCGCAT----")?;
+    //                           0123456789
+
+    #[rustfmt::skip]
+    let expected_insertions = vec![
+      Insertion::<Nuc> { pos: -1, ins: to_nuc_seq("ACC")? },
+      Insertion::<Nuc> { pos: 9, ins: to_nuc_seq("CATC")? }
+    ];
+
+    #[rustfmt::skip]
+    let StripInsertionsResult { insertions, ref_seq, qry_seq } = insertions_strip(&qry_seq, &ref_seq);
+
+    assert_eq!(insertions, expected_insertions);
+    assert_eq!(qry_seq, ref_seq);
+    Ok(())
+  }
 }

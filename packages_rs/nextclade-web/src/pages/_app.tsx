@@ -2,32 +2,41 @@ import 'reflect-metadata'
 
 import 'css.escape'
 
-import 'map.prototype.tojson' // to visualize Map in Redux Dev Tools
-import 'set.prototype.tojson' // to visualize Set in Redux Dev Tools
-import 'src/helpers/errorPrototypeTojson' // to visualize Error in Redux Dev Tools
-import 'src/helpers/functionPrototypeTojson' // to visualize Function in Redux Dev Tools
-
-import { enableES5 } from 'immer'
-import { memoize } from 'lodash'
-import React, { useEffect, useState, Suspense, useMemo } from 'react'
-import { RecoilRoot, useSetRecoilState } from 'recoil'
+import { isNil, memoize } from 'lodash'
+import React, { useEffect, Suspense, useMemo } from 'react'
+import { RecoilRoot, useRecoilCallback, useRecoilState, useRecoilValue } from 'recoil'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
-import type { Store } from 'redux'
-import { ConnectedRouter } from 'connected-next-router'
-import type { Persistor } from 'redux-persist'
+import dynamic from 'next/dynamic'
 import { sanitizeError } from 'src/helpers/sanitizeError'
+import { useRunAnalysis } from 'src/hooks/useRunAnalysis'
+import { createInputFromUrlParamMaybe } from 'src/io/createInputFromUrlParamMaybe'
+import { globalErrorAtom } from 'src/state/error.state'
+import {
+  geneMapInputAtom,
+  primersCsvInputAtom,
+  qcConfigInputAtom,
+  qrySeqInputAtom,
+  refSeqInputAtom,
+  refTreeInputAtom,
+  virusPropertiesInputAtom,
+} from 'src/state/inputs.state'
+import {
+  changelogIsShownAtom,
+  changelogLastVersionSeenAtom,
+  changelogShouldShowOnUpdatesAtom,
+  isInitializedAtom,
+} from 'src/state/settings.state'
+import { configureStore } from 'src/state/store'
+import { shouldShowChangelog } from 'src/state/utils/changelog'
 import { ThemeProvider } from 'styled-components'
-import { Provider } from 'react-redux'
+import { Provider as ReactReduxProvider } from 'react-redux'
 import { I18nextProvider } from 'react-i18next'
-import { PersistGate } from 'redux-persist/integration/react'
 import { MDXProvider } from '@mdx-js/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
 
 import { DOMAIN_STRIPPED } from 'src/constants'
-import type { State } from 'src/state/reducer'
-import { initialize } from 'src/initialize'
 import { parseUrl } from 'src/helpers/parseUrl'
 import { initializeDatasets } from 'src/io/fetchDatasets'
 import { ErrorPopup } from 'src/components/Error/ErrorPopup'
@@ -38,11 +47,9 @@ import { Plausible } from 'src/components/Common/Plausible'
 import i18n from 'src/i18n/i18n'
 import { theme } from 'src/theme'
 import { datasetCurrentNameAtom, datasetsAtom } from 'src/state/dataset.state'
-import { errorAtom } from 'src/state/error.state'
+import { ErrorBoundary } from 'src/components/Error/ErrorBoundary'
 
 import 'src/styles/global.scss'
-
-enableES5()
 
 if (process.env.NODE_ENV === 'development') {
   // Ignore recoil warning messages in browser console
@@ -64,103 +71,155 @@ export function RecoilStateInitializer() {
   // NOTE: Do manual parsing, because router.query is randomly empty on the first few renders and on repeated renders.
   // This is important, because various states depend on query, and when it changes back and forth,
   // the state also changes unexpectedly.
-  const { query } = useMemo(() => parseUrl(router.asPath), [router.asPath])
+  const { query: urlQuery } = useMemo(() => parseUrl(router.asPath), [router.asPath])
 
-  const setDatasets = useSetRecoilState(datasetsAtom)
-  const setDatasetCurrentName = useSetRecoilState(datasetCurrentNameAtom)
-  const setError = useSetRecoilState(errorAtom)
+  const [initialized, setInitialized] = useRecoilState(isInitializedAtom)
 
-  useEffect(() => {
-    initializeDatasets(query)
+  const run = useRunAnalysis()
+
+  const error = useRecoilValue(globalErrorAtom)
+
+  const initialize = useRecoilCallback(({ set, snapshot }) => () => {
+    if (initialized) {
+      return
+    }
+
+    const snapShotRelease = snapshot.retain()
+    const { getPromise } = snapshot
+
+    // eslint-disable-next-line no-void
+    void initializeDatasets(urlQuery)
+      .catch((error) => {
+        // Dataset error is fatal and we want error to be handled in the ErrorBoundary
+        setInitialized(false)
+        throw error
+      })
       .then(({ datasets, defaultDatasetName, defaultDatasetNameFriendly, currentDatasetName }) => {
-        setDatasets({
+        set(datasetsAtom, {
           datasets,
           defaultDatasetName,
           defaultDatasetNameFriendly,
         })
-        setDatasetCurrentName(currentDatasetName)
+        set(datasetCurrentNameAtom, (previous) => previous ?? currentDatasetName)
+
+        return undefined
       })
       .then(() => {
-        // TODO
-        // fetchInputsAndRunMaybe(dispatch, query)
+        const qrySeqInput = createInputFromUrlParamMaybe(urlQuery, 'input-fasta')
+        set(qrySeqInputAtom, qrySeqInput)
+
+        set(refSeqInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-root-seq'))
+        set(geneMapInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-gene-map'))
+        set(refTreeInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-tree'))
+        set(qcConfigInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-qc-config'))
+        set(virusPropertiesInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-pcr-primers'))
+        set(primersCsvInputAtom, createInputFromUrlParamMaybe(urlQuery, 'input-virus-properties'))
+
+        if (qrySeqInput) {
+          run()
+        }
+
+        return undefined
       })
-      .catch((error) => setError(sanitizeError(error)))
-  }, [query, setDatasetCurrentName, setDatasets, setError])
+      .then(async () => {
+        const changelogShouldShowOnUpdates = await getPromise(changelogShouldShowOnUpdatesAtom)
+        const changelogLastVersionSeen = await getPromise(changelogLastVersionSeenAtom)
+        set(changelogIsShownAtom, shouldShowChangelog(changelogLastVersionSeen, changelogShouldShowOnUpdates))
+        set(changelogLastVersionSeenAtom, (prev) => process.env.PACKAGE_VERSION ?? prev ?? '')
+        return undefined
+      })
+      .then(() => {
+        setInitialized(true)
+        return undefined
+      })
+      .catch((error) => {
+        setInitialized(true)
+        set(globalErrorAtom, sanitizeError(error))
+      })
+      .finally(() => {
+        snapShotRelease()
+      })
+  })
+
+  useEffect(() => {
+    initialize()
+  })
+
+  if (!initialized && !isNil(error)) {
+    throw error
+  }
 
   return null
 }
 
-export interface AppState {
-  persistor: Persistor
-  store: Store<State>
-}
+const mdxComponents = { a: LinkExternal }
 
-export default function MyApp({ Component, pageProps, router }: AppProps) {
+export function MyApp({ Component, pageProps, router }: AppProps) {
   const queryClient = useMemo(() => new QueryClient(), [])
-  const [state, setState] = useState<AppState | undefined>()
-  const [initDone, setInitDone] = useState(false)
-  // const [fetchDone, setFetchDone] = useState(false)
-  // const store = state?.store
-  // const dispatch = store?.dispatch
-
-  // NOTE: Do manual parsing, because router.query is randomly empty on the first few renders and on repeated renders.
-  // This is important, because various states depend on query, and when it changes back and forth,
-  // the state also changes unexpectedly.
-  const { query } = useMemo(() => parseUrl(router.asPath), [router.asPath])
+  const { store } = useMemo(() => configureStore(), [])
+  const fallback = useMemo(() => <Loading />, [])
 
   useEffect(() => {
-    if (!initDone) {
-      initialize({ router })
-        .then(setState)
-        .then(() => setInitDone(true))
-        .catch((error: Error) => {
-          throw error
-        })
+    if (process.env.NODE_ENV !== 'development' && router.pathname === '/results') {
+      void router.replace('/') // eslint-disable-line no-void
     }
-  }, [initDone, router])
 
-  // useEffect(() => {
-  //   if (!fetchDone && query && dispatch && store) {
-  //     Promise.resolve()
-  //       .then(() => initializeDatasets(dispatch, query, store))
-  //       .then(async (success) => success && fetchInputsAndRunMaybe(dispatch, query))
-  //       .then((success) => setFetchDone(success))
-  //       .catch((error: Error) => {
-  //         throw error
-  //       })
-  //   }
-  // }, [fetchDone, query, state, dispatch, store])
-
-  if (!state) {
-    return <Loading />
-  }
-
-  const { store: storeNonNil, persistor } = state
+    void router.prefetch('/') // eslint-disable-line no-void
+    void router.prefetch('/results') // eslint-disable-line no-void
+  }, [router])
 
   return (
-    <Suspense fallback={<Loading />}>
-      <Provider store={storeNonNil}>
+    <Suspense fallback={fallback}>
+      <ReactReduxProvider store={store}>
         <RecoilRoot>
-          <RecoilStateInitializer />
-          <ConnectedRouter>
-            <ThemeProvider theme={theme}>
-              <MDXProvider components={{ a: LinkExternal }}>
-                <Plausible domain={DOMAIN_STRIPPED} />
-                <QueryClientProvider client={queryClient}>
-                  <PersistGate loading={null} persistor={persistor}>
-                    <I18nextProvider i18n={i18n}>
+          <ThemeProvider theme={theme}>
+            <MDXProvider components={mdxComponents}>
+              <Plausible domain={DOMAIN_STRIPPED} />
+              <QueryClientProvider client={queryClient}>
+                <I18nextProvider i18n={i18n}>
+                  <ErrorBoundary>
+                    <Suspense>
+                      <RecoilStateInitializer />
+                    </Suspense>
+                    <Suspense fallback={fallback}>
                       <SEO />
                       <Component {...pageProps} />
                       <ErrorPopup />
                       <ReactQueryDevtools initialIsOpen={false} />
-                    </I18nextProvider>
-                  </PersistGate>
-                </QueryClientProvider>
-              </MDXProvider>
-            </ThemeProvider>
-          </ConnectedRouter>
+                    </Suspense>
+                  </ErrorBoundary>
+                </I18nextProvider>
+              </QueryClientProvider>
+            </MDXProvider>
+          </ThemeProvider>
         </RecoilRoot>
-      </Provider>
+      </ReactReduxProvider>
     </Suspense>
   )
 }
+
+// NOTE: This disables server-side rendering (SSR) entirely, to avoid fatal error
+// 'Hydration failed because the initial UI does not match what was rendered on the server'.
+// This is probably a bug in React 18, or in Next.js, or in the app. There's been reports that improper
+// nesting of HTML and SVG elements can cause the mismatch.
+//
+// See:
+//  - https://github.com/facebook/react/issues/22833
+//  - https://github.com/facebook/react/issues/24519
+//  - https://github.com/vercel/next.js/discussions/35773
+//  - https://nextjs.org/docs/messages/react-hydration-error
+//  - https://stackoverflow.com/questions/71706064/react-18-hydration-failed-because-the-initial-ui-does-not-match-what-was-render
+//
+//
+// NOTE: <Suspense /> does not seem to be working properly when SSR is enabled. The server hangs forever
+// on the first unresolved Recoil atom, i.e. an atom without a default value. Such atoms, if accessed
+// before they are initialized, trigger Suspense. However the server hangs, failing to make any progress past this
+// point, even if this atom is initialized shortly after by another component. One example is the dataset atom. It is
+// initially in suspended state, and unlocks after the dataset is fetched. However server stops at the dataset selector
+// component and does not proceed further. We might not be handling the initialization of Recoil atoms properly,
+// or it is simply not yet implemented well in Next.js or Recoil.
+//
+//
+// TODO: When the hydration error, and the loading of Recoil atoms are sorted out we may want to remove this line,
+// exporting the app component directly, reenabling SSR.
+export default dynamic(() => Promise.resolve(MyApp), { ssr: false })

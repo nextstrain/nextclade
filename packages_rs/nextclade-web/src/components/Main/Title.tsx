@@ -47,19 +47,21 @@ const LetterSpan = styled.span<{ pos: number }>`
   color: ${(props) => TITLE_COLORS[props.pos]};
 `
 
-export const Title = () => (
-  <span>
-    <TitleH1>
-      {'Nextclade'.split('').map((letter, i) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <LetterSpan key={`${i}_${letter}`} pos={i}>
-          {letter}
-        </LetterSpan>
-      ))}
-    </TitleH1>
-    {PACKAGE_VERSION && <VersionNumberBadge color="secondary">{`v${PACKAGE_VERSION}`}</VersionNumberBadge>}
-  </span>
-)
+export function Title() {
+  return (
+    <span>
+      <TitleH1>
+        {'Nextclade'.split('').map((letter, i) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <LetterSpan key={`${i}_${letter}`} pos={i}>
+            {letter}
+          </LetterSpan>
+        ))}
+      </TitleH1>
+      {PACKAGE_VERSION && <VersionNumberBadge color="secondary">{`v${PACKAGE_VERSION}`}</VersionNumberBadge>}
+    </span>
+  )
+}
 
 export const Subtitle = styled.p`
   text-align: center;

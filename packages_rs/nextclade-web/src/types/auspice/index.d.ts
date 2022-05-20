@@ -1,5 +1,3 @@
-/* eslint-disable camelcase */
-
 declare module 'auspice' {
   export declare type AuspiceQuery = Record<string, unknown>
 

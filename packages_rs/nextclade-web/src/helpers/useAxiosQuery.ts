@@ -15,7 +15,9 @@ export function useAxiosQuery<TData = unknown>(
     url,
     async () => {
       if (options?.delay) {
-        await new Promise((resolve) => setInterval(resolve, options.delay))
+        await new Promise((resolve) => {
+          setInterval(resolve, options.delay)
+        })
       }
       return axiosFetch(url)
     },

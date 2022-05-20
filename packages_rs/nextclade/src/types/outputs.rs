@@ -17,11 +17,18 @@ use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct PeptideWarning {
+  pub gene_name: String,
+  pub warning: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct NextalignOutputs {
   pub stripped: StripInsertionsResult<Nuc>,
   pub alignment: AlignmentOutput<Nuc>,
   pub translations: Vec<Translation>,
-  pub warnings: Vec<String>,
+  pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
 }
 
@@ -60,13 +67,11 @@ pub struct NextcladeOutputs {
   pub clade: String,
   pub private_nuc_mutations: PrivateNucMutations,
   pub private_aa_mutations: BTreeMap<String, PrivateAaMutations>,
-  pub warnings: Vec<String>,
+  pub warnings: Vec<PeptideWarning>,
   pub missing_genes: Vec<String>,
   pub divergence: f64,
   pub qc: QcResult,
   pub custom_node_attributes: BTreeMap<String, String>,
-  //
-  #[serde(skip)]
   pub nearest_node_id: usize,
 }
 

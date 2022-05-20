@@ -5,10 +5,10 @@ use clap_verbosity_flag::{Verbosity, WarnLevel};
 use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
+use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParams;
 use nextclade::io::fs::basename;
 use nextclade::utils::global_init::setup_logger;
-use log::LevelFilter;
 use std::env::current_dir;
 use std::fmt::Debug;
 use std::io;
@@ -21,13 +21,13 @@ lazy_static! {
 }
 
 #[derive(Parser, Debug)]
-#[clap(name = "Nextalign", trailing_var_arg = true)]
+#[clap(name = "nextalign", trailing_var_arg = true)]
 #[clap(author, version)]
 #[clap(global_setting(AppSettings::DeriveDisplayOrder))]
 #[clap(verbatim_doc_comment)]
 /// Viral sequence alignment and translation.
 ///
-/// Nextalign is a part of Nextstrain project: https://nextstrain.org
+/// Nextalign is a part of Nextstrain: https://nextstrain.org
 ///
 /// Documentation: https://docs.nextstrain.org/projects/nextclade
 /// Nextclade Web: https://clades.nextstrain.org
@@ -40,7 +40,7 @@ pub struct NextalignArgs {
   #[clap(flatten)]
   pub verbose: Verbosity<WarnLevel>,
 
-  /// Set verbosity level
+  /// Set verbosity level [default: warn]
   #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
   pub verbosity: Option<log::LevelFilter>,
 
@@ -99,16 +99,18 @@ pub struct NextalignRunArgs {
   #[clap(value_hint = ValueHint::FilePath)]
   pub genes: Option<Vec<String>>,
 
-  #[clap(long, short = 'm', alias = "genemap")]
-  #[clap(value_hint = ValueHint::FilePath)]
-  /// Path to a GFF3 file containing custom gene map.
+  /// Path to a .gff file containing the gene map (genome annotation).
   ///
-  /// If not supplied, sequence will not be translated.
+  /// Gene map (sometimes also called 'genome annotation') is used to find coding regions. If not supplied, coding regions will
+  /// not be translated, amino acid sequences will not be output, amino acid mutations will not be detected and nucleotide sequence
+  /// alignment will not be informed by codon boundaries
   ///
-  /// Parameters `--genes` and `--genemap` should be either both specified or both omitted.
+  /// Unless `--genes` are specified, all genes will be translated.
   ///
   /// Learn more about Generic Feature Format Version 3 (GFF3):
   /// https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md",
+  #[clap(long, short = 'm', alias = "genemap")]
+  #[clap(value_hint = ValueHint::FilePath)]
   pub input_gene_map: Option<PathBuf>,
 
   /// Write output files to this directory.
@@ -139,7 +141,7 @@ pub struct NextalignRunArgs {
   #[clap(value_hint = ValueHint::AnyPath)]
   pub output_fasta: Option<PathBuf>,
 
-  /// Path to output CSV file with stripped insertions data.
+  /// Path to output CSV file that contain insertions stripped from the reference alignment.
   ///
   /// Overrides paths given with `--output-dir` and `--output-basename`.
   ///

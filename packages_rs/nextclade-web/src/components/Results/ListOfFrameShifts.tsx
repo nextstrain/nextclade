@@ -11,7 +11,7 @@ export interface FrameShiftRowsProps {
 export function FrameShiftRows({ frameShifts }: FrameShiftRowsProps) {
   return (
     <ul>
-      {frameShifts.map((fs, i) => (
+      {frameShifts.map((fs) => (
         <li key={`${fs.geneName}_${fs.codon.begin}`}>{formatFrameShift(fs)}</li>
       ))}
     </ul>

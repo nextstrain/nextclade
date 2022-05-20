@@ -1,8 +1,7 @@
 import { MDXProvider } from '@mdx-js/react'
-import React from 'react'
+import React, { useCallback } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { connect } from 'react-redux'
 import {
   Button,
   ButtonProps,
@@ -14,12 +13,11 @@ import {
   ModalHeader as ReactstrapModalHeader,
   Row,
 } from 'reactstrap'
-import { setShowWhatsnew } from 'src/state/ui/ui.actions'
+import { useRecoilState } from 'recoil'
+import { changelogIsShownAtom, changelogShouldShowOnUpdatesAtom } from 'src/state/settings.state'
 import styled from 'styled-components'
 import { FaListUl } from 'react-icons/fa'
 
-import type { State } from 'src/state/reducer'
-import { setShowWhatsnewOnUpdate } from 'src/state/settings/settings.actions'
 import { ButtonTransparent } from 'src/components/Common/ButtonTransparent'
 import { LinkExternal } from 'src/components/Link/LinkExternal'
 import { Toggle } from 'src/components/Common/Toggle'
@@ -201,46 +199,23 @@ export const Blockquote = styled.blockquote`
 
 const components = { h1: H1, h2: H2, h3: H3, h4: H4, h5: H5, h6: H6, a: LinkExternal, blockquote: Blockquote }
 
-export interface WhatsNewButtonProps {
-  showWhatsnew: boolean
-  showWhatsnewOnUpdate: boolean
-
-  setShowWhatsnew(showWhatsnew: boolean): void
-
-  setShowWhatsnewOnUpdate(showWhatsnewOnUpdate: boolean): void
-}
-
-const mapStateToProps = (state: State) => ({
-  showWhatsnew: state.ui.showWhatsnew,
-  showWhatsnewOnUpdate: state.settings.showWhatsnewOnUpdate,
-})
-
-const mapDispatchToProps = {
-  setShowWhatsnew,
-  setShowWhatsnewOnUpdate,
-}
-
-export const WhatsNewButton = connect(mapStateToProps, mapDispatchToProps)(WhatsNewButtonDisconnected)
-
-export function WhatsNewButtonDisconnected({
-  showWhatsnew,
-  showWhatsnewOnUpdate,
-  setShowWhatsnew,
-  setShowWhatsnewOnUpdate,
-}: WhatsNewButtonProps) {
+export function WhatsNewButton() {
   const { t } = useTranslation()
 
-  function toggleOpen() {
-    setShowWhatsnew(!showWhatsnew)
-  }
+  const [showChangelog, setShowChangelog] = useRecoilState(changelogIsShownAtom)
+  const [showChangelogOnUpdate, setShowChangelogOnUpdate] = useRecoilState(changelogShouldShowOnUpdatesAtom)
 
-  function open() {
-    setShowWhatsnew(true)
-  }
+  const toggleOpen = useCallback(() => {
+    setShowChangelog((showChangelog) => !showChangelog)
+  }, [setShowChangelog])
 
-  function close() {
-    setShowWhatsnew(false)
-  }
+  const open = useCallback(() => {
+    setShowChangelog(true)
+  }, [setShowChangelog])
+
+  const close = useCallback(() => {
+    setShowChangelog(false)
+  }, [setShowChangelog])
 
   const text = t("What's new")
   const closeText = t('Close this window')
@@ -252,7 +227,7 @@ export function WhatsNewButtonDisconnected({
         <span className="d-none d-xl-inline">{text}</span>
       </ButtonWhatsNewBase>
 
-      <Modal centered isOpen={showWhatsnew} toggle={toggleOpen} fade={false} size="lg">
+      <Modal centered isOpen={showChangelog} toggle={toggleOpen} fade={false} size="lg">
         <ModalHeader toggle={close} tag="div">
           <H1 className="text-center">{text}</H1>
         </ModalHeader>
@@ -271,8 +246,8 @@ export function WhatsNewButtonDisconnected({
                   <Toggle
                     className="m-0"
                     identifier={'show-whatsnew-again-toggle'}
-                    checked={showWhatsnewOnUpdate}
-                    onCheckedChanged={setShowWhatsnewOnUpdate}
+                    checked={showChangelogOnUpdate}
+                    onCheckedChanged={setShowChangelogOnUpdate}
                   >
                     {t('Show when a new version is available')}
                   </Toggle>

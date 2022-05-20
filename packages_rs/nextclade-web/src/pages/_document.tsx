@@ -23,11 +23,7 @@ export const AppleIcons = [57, 60, 72, 76, 114, 120, 144, 152, 180].map((size) =
   return (
     <React.Fragment key={size}>
       <link rel="apple-touch-icon" sizes={sizes} href={`${DOMAIN}/icons/apple-touch-icon-${sizes}.png`} />
-      <link
-        rel="apple-touch-icon-precomposed"
-        sizes={sizes}
-        href={`${DOMAIN}/icons/apple-touch-icon-${sizes}-precomposed.png`}
-      />
+      <link sizes={sizes} href={`${DOMAIN}/icons/apple-touch-icon-${sizes}-precomposed.png`} />
     </React.Fragment>
   )
 })
@@ -44,6 +40,30 @@ export const MicrosoftIcons = (
   </>
 )
 
+const disableErrorPopup = {
+  __html: `
+    window.addEventListener('error', event => {
+      event.stopImmediatePropagation()
+    })
+
+    window.addEventListener('unhandledrejection', event => {
+      event.stopImmediatePropagation()
+    })
+  `,
+}
+
+/**
+ * Disables Next.js error popup in dev mode, so that the behavior is consistent with production.
+ * Put this component into Document's Head.
+ */
+export function DisableNextJsErrorPopup() {
+  if (process.env.NODE_ENV === 'production') {
+    return null
+  }
+  // eslint-disable-next-line react/no-danger
+  return <script dangerouslySetInnerHTML={disableErrorPopup} />
+}
+
 export default class Document extends NextDocument {
   static async getInitialProps(ctx: DocumentContext): Promise<DocumentInitialProps> {
     const sheet = new ServerStyleSheet()
@@ -52,18 +72,9 @@ export default class Document extends NextDocument {
     try {
       ctx.renderPage = () =>
         originalRenderPage({ enhanceApp: (App) => (props) => sheet.collectStyles(<App {...props} />) })
-
       const initialProps = await NextDocument.getInitialProps(ctx)
-
-      return {
-        ...initialProps,
-        styles: (
-          <>
-            {initialProps.styles}
-            {sheet.getStyleElement()}
-          </>
-        ),
-      }
+      const styles = [initialProps.styles, sheet.getStyleElement()]
+      return { ...initialProps, styles }
     } finally {
       sheet.seal()
     }
@@ -75,7 +86,9 @@ export default class Document extends NextDocument {
     return (
       <Html lang="en">
         <Head>
-          <meta charSet="UTF-8" />
+          <DisableNextJsErrorPopup />
+
+          <meta charSet="utf8" />
           <title>{PROJECT_NAME}</title>
           <meta name="description" content={PROJECT_DESCRIPTION} />
           <meta name="application-name" content={PROJECT_NAME} />

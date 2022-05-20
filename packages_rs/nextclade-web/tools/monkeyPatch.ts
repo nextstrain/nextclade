@@ -6,12 +6,27 @@
  * Do no use this to fix bugs or introduce features. Consider contributing to the upstream project instead.
  *
  */
+import { concurrent } from 'fasy'
 import fs from 'fs-extra'
+import glob from 'glob'
+import { promisify } from 'util'
 
-export async function replace(filename: string, searchValue: string, replaceValue = '') {
+export async function replace(filename: string, searchValue: string | RegExp, replaceValue = '') {
   const content = await fs.readFile(filename, 'utf8')
   const newContent = content.replace(searchValue, replaceValue)
   await fs.writeFile(filename, newContent, { encoding: 'utf8' })
+}
+
+/** Strips timerStart() and timerEnd() calls from Auspice */
+export async function removeAuspiceTimers() {
+  await fs.rm('node_modules/auspice/src/util/perf.js', { force: true })
+
+  const files = await promisify(glob)('node_modules/auspice/src/**/*.js')
+
+  await concurrent.forEach(async (file) => {
+    await replace(file, /.*(timerStart|timerEnd)\(".+"\);.*\n/g, '')
+    await replace(file, /.*import { timerStart, timerEnd }.*\n/g, '')
+  }, files)
 }
 
 export async function main() {
@@ -44,6 +59,8 @@ export async function main() {
         'https://github.com/browserslist/browserslist#browsers-data-updating'
       )`,
     ),
+
+    removeAuspiceTimers(),
   ])
 }
 
