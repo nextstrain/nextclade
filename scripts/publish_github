@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+#
+# Builds and optionally pushes production docker images
+#
+set -euxo pipefail
+trap "exit" INT
+
+# Directory where this script resides
+THIS_DIR="$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)"
+
+artifacts_dir=
+repo_name=
+user_name=
+git_sha=
+
+: "${1:?--artifacts_dir, --repo_name, --user_name, --git_sha are required.}"
+
+while [ "${1:-}" != "" ]; do
+  case $1 in
+  --artifacts_dir)
+    shift
+    artifacts_dir=$1
+    shift
+    ;;
+  --repo_name)
+    shift
+    repo_name=$1
+    shift
+    ;;
+  --user_name)
+    shift
+    user_name=$1
+    shift
+    ;;
+  --git_sha)
+    shift
+    git_sha=$1
+    shift
+    ;;
+  *)
+    echo "$0: illegal option $1" >/dev/stderr
+    exit 1
+    ;;
+  esac
+done
+
+[ -z "$artifacts_dir" ] && echo "--artifacts_dir is required" >/dev/stderr && exit 1
+[ -z "$repo_name" ] && echo "--repo_name is required" >/dev/stderr && exit 1
+[ -z "$user_name" ] && echo "--user_name is required" >/dev/stderr && exit 1
+[ -z "$git_sha" ] && echo "--git_sha is required" >/dev/stderr && exit 1
+
+version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade-cli/Cargo.toml")
+release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
+prerelease_flag=${release_type:+--pre-release}
+
+# shellcheck disable=SC2086
+(
+  if [ -z "$release_type" ]; then
+    ./scripts/extract-release-notes.py CHANGELOG.md
+  else
+    cat docs/assets/prerelease-warning.md
+  fi
+  git cliff --unreleased
+) | github-release release \
+  --user "${user_name}" \
+  --repo "${repo_name}" \
+  --tag "${version}" \
+  --target "${CIRCLE_SHA1}" \
+  --description - \
+  --security-token "${GITHUB_TOKEN}" \
+  $prerelease_flag ||
+  true
+
+# Looks like the release appears not immediately and if upload is following too quickly
+# it fails because it cannot find the release. So let's wait for an arbitrary amount of time here.
+sleep 7
+
+# shellcheck disable=SC2231
+for filename in ${artifacts_dir}/*; do
+  github-release upload \
+    --file "${filename}" \
+    --name "$(basename "${filename}")" \
+    --user "${CIRCLE_PROJECT_USERNAME}" \
+    --repo "${repo_name}" \
+    --tag "${version}" \
+    --security-token "${GITHUB_TOKEN}" \
+    --replace
+done

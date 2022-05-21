@@ -127,6 +127,13 @@ jobs:
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
             echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
 
+            export VERSION=$(dasel select -p toml -s ".package.version" -f packages_rs/nextclade/Cargo.toml)
+
+            if [ "$CIRCLE_BRANCH" != "release-cli" ]; then
+              NEW_VERSION="${VERSION}-alpha-${CIRCLE_SHA1:0:7}"
+              sed -i "s|^version = \"${VERSION}\"$|version = "${NEW_VERSION}"|' Cargo.toml
+            fi
+
             CROSS=${CROSS} ./docker-dev br
 
       - save_cache:
@@ -186,32 +193,11 @@ jobs:
       - run:
           name: "Publish binaries to GitHub Releases"
           command: |
-            export ARTIFACTS_DIR="/home/circleci/workspace/.out"
-            export VERSION=$(dasel select -p toml -s ".package.version" -f packages_rs/nextclade/Cargo.toml)
-
-            (./scripts/extract-release-notes.py CHANGELOG.md; git cliff --unreleased) | github-release release \
-              --user "${CIRCLE_PROJECT_USERNAME}" \
-              --repo "${CIRCLE_PROJECT_REPONAME}" \
-              --tag "${VERSION}" \
-              --target "${CIRCLE_SHA1}" \
-              --description - \
-              --security-token "${GITHUB_TOKEN}" \
-            || true
-
-            # Looks like the release appears not immediately and if upload is following too quickly
-            # it fails because it cannot find the release. So let's wait an arbitrary amount of time here.
-            sleep 7
-
-            for filename in ${ARTIFACTS_DIR}/*; do
-              github-release upload \
-                --file "${filename}" \
-                --name "$(basename ${filename})" \
-                --user "${CIRCLE_PROJECT_USERNAME}" \
-                --repo "${CIRCLE_PROJECT_REPONAME}" \
-                --tag "${VERSION}" \
-                --security-token "${GITHUB_TOKEN}" \
-                --replace
-            done
+            ./scripts/publish_github \
+              --artifacts_dir="/home/circleci/workspace/.out" \
+              --user_name="${CIRCLE_PROJECT_USERNAME}" \
+              --repo_name="${CIRCLE_PROJECT_REPONAME}" \
+              --git_sha="${CIRCLE_SHA1}"
 
   Release-Cli-Docker:
     shell: "/bin/bash -euxo pipefail"
@@ -246,12 +232,12 @@ jobs:
             chmod +x "${HOME}/bin/dasel"
 
       - run:
-          name: "Publish container images to Docker Hub"
+          name: "Build and publish Docker container images to Docker Hub"
           command: |
             pwd
             cp -vr /home/circleci/workspace/.out .
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./docker-prod
+            ./scripts/publish_docker --push
 
   Build-And-Deploy-Web:
     shell: "/bin/bash -euxo pipefail"
@@ -365,17 +351,24 @@ jobs:
               --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
               --paths "/*"
 
-cli_release_branch: &cli_release_branch
-  filters:
-    branches:
-      only:
-        - release-cli
+      - run:
+          name: " [ web ] | Create and push git tag"
+          command: |
+            cd packages_rs/nextclade-web
+
+            export VERSION=$(node -e "\
+              const semver = require('semver'); \
+              const pkg = require('./package.json'); \
+              console.log(pkg.version)) \
+            ")
+
+            git tag "${VERSION}"
+            git push origin "${VERSION}"
 
 cli_branches: &cli_branches
   filters:
     branches:
       only:
-        - master
         - staging-cli
         - release-cli
 
@@ -428,7 +421,7 @@ workflows:
                 - x86_64-unknown-linux-musl
 
       - Release-Cli:
-          <<: *cli_release_branch
+          <<: *cli_branches
 
           context:
             - nextclade_github
@@ -442,7 +435,7 @@ workflows:
             - Build-Cli-x86_64-unknown-linux-musl
 
       - Release-Cli-Docker:
-          <<: *cli_release_branch
+          <<: *cli_branches
 
           context:
             - nextclade_github

@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+#
+# Prepares a release of a new version
+#
+
+set -euo pipefail
+
+: "${1:?Release target is required. Specify one of: cli, web.}"
+: "${2:?Release type is required. Specify one of: major, minor, patch, release, rc, beta, alpha.}"
+
+if ! [[ "$1" =~ ^(cli|web)$ ]]; then
+  echo "Unknown release target: '$1'. Specify one of: cli, web."
+  exit 1
+fi
+
+if ! [[ "$2" =~ ^(major|minor|patch|release|rc|beta|alpha)$ ]]; then
+  echo "Unknown release type: '$2'. Specify one of: major, minor, patch, release, rc, beta, alpha."
+  exit 1
+fi
+
+if [ -n "$(git status -s)" ]; then
+  echo "Uncommitted changes detected. Refusing to proceed."
+  echo "Stash or commit the changes and retry."
+  exit 1
+fi
+
+if [ "$1" == "cli" ]; then
+  git checkout -q master
+
+  cargo update --quiet --offline >/dev/null
+  if [ -n "$(git status -s)" ]; then
+    echo "The lockfile 'Cargo.lock' is not synchronized with one of the 'Cargo.toml' project files. Refusing to proceed."
+    echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."
+    echo "Update the lockfile, for example by rebuilding the project(s), then commit the changes to the lockfile, and retry."
+    exit 1
+  fi
+
+  cargo set-version --workspace --bump="${2:-}" >/dev/null
+  cargo update --quiet --offline >/dev/null
+
+  version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
+
+  printf "\n\n-----------------------------------\n\n"
+  git --no-pager diff
+  printf "\n\n-----------------------------------\n\n"
+
+  git add -A >/dev/null
+
+  git commit -q -m "chore: release cli ${version}" >/dev/null
+
+  target_branch="staging-cli"
+  if [[ "$2" =~ ^(major|minor|patch|release)$ ]]; then
+    target_branch="release-cli"
+  fi
+
+  git checkout -q -B staging-cli >/dev/null
+  echo "$1 release ($2) created successfully. The changes are on local branch '${target_branch}'."
+
+  read -r -p "Do you want to push this to GitHub?" choice
+  case "$choice" in
+    y|Y )
+      echo "Pushing to GitHub"
+      git push -q origin ${target_branch}
+      ;;
+    n|N )
+      echo "Will exit. If you want to push later, type 'git push'"
+      ;;
+    * )
+      echo "Invalid answer"
+      ;;
+  esac
+
+elif [ "$1" == "web" ]; then
+  echo "Not yet implemented"
+  exit 1
+else
+  echo "Invalid "
+fi
+
