@@ -8,16 +8,16 @@ use nextclade::align::align::align_nuc;
 use nextclade::align::gap_open::{get_gap_open_close_scores_codon_aware, get_gap_open_close_scores_flat};
 use nextclade::align::insertions_strip::insertions_strip;
 use nextclade::align::params::AlignPairwiseParams;
-use nextclade::io::gene_map::{GeneMap, read_gene_map};
 use nextclade::io::fasta::{read_one_fasta, FastaReader, FastaRecord};
+use nextclade::io::gene_map::{read_gene_map, GeneMap};
 use nextclade::io::gff3::read_gff3_file;
 use nextclade::io::nuc::{to_nuc_seq, Nuc};
-use nextclade::{make_error, option_get_some};
 use nextclade::run::nextalign_run_one::nextalign_run_one;
 use nextclade::translate::translate_genes::{translate_genes, Translation, TranslationMap};
 use nextclade::translate::translate_genes_ref::translate_genes_ref;
 use nextclade::types::outputs::NextalignOutputs;
 use nextclade::utils::error::report_to_string;
+use nextclade::{make_error, option_get_some};
 use std::collections::HashSet;
 use std::path::PathBuf;
 
@@ -26,8 +26,6 @@ pub struct NextalignRecord {
   pub seq_name: String,
   pub outputs_or_err: Result<NextalignOutputs, Report>,
 }
-
-
 
 pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   info!("Command-line arguments:\n{args:#?}");
@@ -45,7 +43,7 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
     output_errors,
     jobs,
     in_order,
-    alignment_params,
+    alignment_params: alignment_params_from_cli,
   } = args;
 
   let output_fasta = option_get_some!(output_fasta)?;
@@ -53,6 +51,11 @@ pub fn nextalign_run(args: NextalignRunArgs) -> Result<(), Report> {
   let output_dir = option_get_some!(output_dir)?;
   let output_insertions = option_get_some!(output_insertions)?;
   let output_errors = option_get_some!(output_errors)?;
+
+  let mut alignment_params = AlignPairwiseParams::default();
+
+  // Merge alignment params coming from CLI arguments
+  alignment_params.merge_opt(alignment_params_from_cli.clone());
 
   let ref_record = &read_one_fasta(input_ref)?;
   let ref_seq = &to_nuc_seq(&ref_record.seq)?;
