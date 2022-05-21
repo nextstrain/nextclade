@@ -40,7 +40,7 @@ export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase,
       x={x}
       y={-10}
       width={width}
-      height="30"
+      height="8"
       {...rest}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
