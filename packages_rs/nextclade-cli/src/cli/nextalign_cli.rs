@@ -75,14 +75,14 @@ pub enum NextalignCommands {
 #[derive(Parser, Debug)]
 pub struct NextalignRunArgs {
   /// Path to a FASTA file with input sequences
-  #[clap(long, short = 'i', alias("sequences"))]
+  #[clap(long, short = 'i', visible_alias("sequences"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_fasta: PathBuf,
 
   /// Path to a FASTA file containing reference sequence.
   ///
   /// This file is expected to contain exactly 1 sequence.
-  #[clap(long, short = 'r', alias("reference"))]
+  #[clap(long, short = 'r', visible_alias("reference"))]
   #[clap(value_hint = ValueHint::FilePath)]
   pub input_ref: PathBuf,
 
