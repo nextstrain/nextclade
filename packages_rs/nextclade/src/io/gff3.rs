@@ -24,7 +24,7 @@ pub fn convert_gff_record_to_gene(gene_name: &str, record: &GffRecord) -> Result
     gene_name: gene_name.to_owned(),
     start,
     end: *record.end() as usize,
-    strand: record.strand().map(|s| s.into()).unwrap_or(GeneStrand::Unknown),
+    strand: record.strand().map_or(GeneStrand::Unknown, |s| s.into()),
     frame: parse_gff3_frame(record.frame(), start),
   })
 }
