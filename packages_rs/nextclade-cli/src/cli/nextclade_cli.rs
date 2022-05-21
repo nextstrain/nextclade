@@ -40,7 +40,7 @@ lazy_static! {
 /// Publication:   https://doi.org/10.21105/joss.03773
 pub struct NextcladeArgs {
   #[clap(subcommand)]
-  pub command: Option<NextcladeCommands>,
+  pub command: NextcladeCommands,
 
   /// Set verbosity level [default: warn]
   #[clap(long, global = true, conflicts_with = "verbose", conflicts_with = "silent", possible_values(VERBOSITIES.iter()))]
@@ -82,7 +82,7 @@ pub enum NextcladeCommands {
 #[derive(Parser, Debug)]
 pub struct NextcladeDatasetArgs {
   #[clap(subcommand)]
-  pub command: Option<NextcladeDatasetCommands>,
+  pub command: NextcladeDatasetCommands,
 }
 
 #[derive(Subcommand, Debug)]
@@ -516,10 +516,10 @@ pub fn nextclade_parse_cli_args() -> Result<NextcladeArgs, Report> {
   setup_logger(filter_level);
 
   match &mut args.command {
-    Some(NextcladeCommands::Completions { shell }) => {
+    NextcladeCommands::Completions { shell } => {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
-    Some(NextcladeCommands::Run { 0: ref mut run_args }) => {
+    NextcladeCommands::Run(ref mut run_args) => {
       nextclade_get_input_filenames(run_args)?;
       nextclade_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }

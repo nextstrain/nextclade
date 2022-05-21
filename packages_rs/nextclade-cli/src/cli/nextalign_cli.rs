@@ -8,6 +8,7 @@ use lazy_static::lazy_static;
 use log::LevelFilter;
 use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::basename;
+use nextclade::make_internal_error;
 use nextclade::make_error;
 use nextclade::utils::global_init::setup_logger;
 use std::env::current_dir;
@@ -35,7 +36,7 @@ lazy_static! {
 /// Publication:   https://doi.org/10.21105/joss.03773
 pub struct NextalignArgs {
   #[clap(subcommand)]
-  pub command: Option<NextalignCommands>,
+  pub command: NextalignCommands,
 
   /// Make output more quiet or more verbose
   #[clap(flatten)]
@@ -238,13 +239,12 @@ pub fn nextalign_parse_cli_args() -> Result<NextalignArgs, Report> {
   setup_logger(filter_level);
 
   match &mut args.command {
-    Some(NextalignCommands::Completions { shell }) => {
+    NextalignCommands::Completions { shell } => {
       generate_completions(shell).wrap_err_with(|| format!("When generating completions for shell '{shell}'"))?;
     }
-    Some(NextalignCommands::Run(ref mut run_args)) => {
+    NextalignCommands::Run(ref mut run_args) => {
       nextalign_get_output_filenames(run_args).wrap_err("When deducing output filenames")?;
     }
-    _ => {}
   }
 
   Ok(args)

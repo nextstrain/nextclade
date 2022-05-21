@@ -1,5 +1,6 @@
 use ctor::ctor;
 use eyre::Report;
+use nextclade::make_internal_error;
 use nextclade::utils::global_init::global_init;
 use nextclade_cli::cli::nextalign_cli::{nextalign_parse_cli_args, NextalignCommands};
 use nextclade_cli::cli::nextalign_loop::nextalign_run;
@@ -16,8 +17,9 @@ fn init() {
 fn main() -> Result<(), Report> {
   let args = nextalign_parse_cli_args()?;
 
-  match args.command {
-    Some(NextalignCommands::Run { 0: run_args }) => nextalign_run(*run_args),
-    _ => Ok(()),
+  if let NextalignCommands::Run { 0: run_args } = args.command {
+    nextalign_run(*run_args)
+  } else {
+    make_internal_error!("Unhandled CLI subcommand. Subcommand handling must be exhaustive")
   }
 }
