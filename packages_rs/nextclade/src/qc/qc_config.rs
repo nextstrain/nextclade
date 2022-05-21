@@ -63,6 +63,8 @@ pub struct FrameShiftLocation {
 pub struct QcRulesConfigFrameShifts {
   pub enabled: bool,
   pub ignored_frame_shifts: Vec<FrameShiftLocation>,
+  #[serde(default = "score_weight_default")]
+  pub score_weight: f64,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize, Validate)]
@@ -79,6 +81,12 @@ pub struct StopCodonLocation {
 pub struct QcRulesConfigStopCodons {
   pub enabled: bool,
   pub ignored_stop_codons: Vec<StopCodonLocation>,
+  #[serde(default = "score_weight_default")]
+  pub score_weight: f64,
+}
+
+fn score_weight_default() -> f64 {
+  75 as f64
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
