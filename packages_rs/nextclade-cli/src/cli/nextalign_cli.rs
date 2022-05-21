@@ -6,7 +6,7 @@ use eyre::{eyre, Report, WrapErr};
 use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::LevelFilter;
-use nextclade::align::params::AlignPairwiseParams;
+use nextclade::align::params::AlignPairwiseParamsOptional;
 use nextclade::io::fs::basename;
 use nextclade::make_error;
 use nextclade::utils::global_init::setup_logger;
@@ -176,7 +176,7 @@ pub struct NextalignRunArgs {
   pub in_order: bool,
 
   #[clap(flatten)]
-  pub alignment_params: AlignPairwiseParams,
+  pub alignment_params: AlignPairwiseParamsOptional,
 }
 
 fn generate_completions(shell: &str) -> Result<(), Report> {
