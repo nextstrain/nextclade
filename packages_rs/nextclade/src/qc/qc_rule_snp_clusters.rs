@@ -88,7 +88,7 @@ fn find_snp_clusters(private_nuc_mutations: &[NucSub], config: &QcRulesConfigSnp
         } else {
           all_clusters.push(current_cluster.iter().copied().collect_vec());
         }
-      }else{
+      } else {
         all_clusters.push(current_cluster.iter().copied().collect_vec());
       }
     }
