@@ -1,4 +1,4 @@
-use crate::gene::gene::Gene;
+use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::gene_map::GeneMap;
 use crate::utils::error::to_eyre_error;
 use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
@@ -22,9 +22,9 @@ pub fn convert_gff_record_to_gene(gene_name: &str, record: &GffRecord) -> Result
   let start = (*record.start() - 1) as usize; // Convert to 0-based indices
   Ok(Gene {
     gene_name: gene_name.to_owned(),
-    start, // Convert to 0-based indices
+    start,
     end: *record.end() as usize,
-    strand: record.strand().unwrap_or(Strand::from_char(&'+')?).to_string(), // '+' strand by default
+    strand: record.strand().map(|s| s.into()).unwrap_or(GeneStrand::Unknown),
     frame: parse_gff3_frame(record.frame(), start),
   })
 }
