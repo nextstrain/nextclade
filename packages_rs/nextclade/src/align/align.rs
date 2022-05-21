@@ -1,7 +1,9 @@
 use crate::align::backtrace::{backtrace, AlignmentOutput};
+use crate::align::band_2d::simple_stripes;
+use crate::align::band_2d::Stripe;
 use crate::align::params::AlignPairwiseParams;
 use crate::align::score_matrix::{score_matrix, ScoreMatrixResult};
-use crate::align::seed_alignment::{seed_alignment, SeedAlignmentResult};
+use crate::align::seed_alignment::seed_alignment;
 use crate::io::aa::Aa;
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
@@ -14,22 +16,18 @@ fn align_pairwise<T: Letter<T>>(
   ref_seq: &[T],
   gap_open_close: &[i32],
   params: &AlignPairwiseParams,
-  band_width: usize,
-  shift: i32,
+  stripes: &[Stripe],
 ) -> Result<AlignmentOutput<T>, Report> {
   trace!("Align pairwise: started. Params: {params:?}");
 
   let max_indel = params.max_indel;
-  if band_width > max_indel {
-    trace!("Align pairwise: failed. band_width={band_width}, max_indel={max_indel}");
-    return make_error!("Unable to align: too many insertions, deletions, duplications, or ambiguous seed matches");
-  }
 
-  let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, band_width, shift, params);
+  let ScoreMatrixResult { scores, paths } = score_matrix(qry_seq, ref_seq, gap_open_close, stripes, params);
 
-  Ok(backtrace(qry_seq, ref_seq, &scores, &paths, shift))
+  Ok(backtrace(qry_seq, ref_seq, &scores, &paths))
 }
 
+/// align nucleotide sequences via seed alignment and banded smith watermann without penalizing terminal gaps
 pub fn align_nuc(
   qry_seq: &[Nuc],
   ref_seq: &[Nuc],
@@ -44,16 +42,16 @@ pub fn align_nuc(
     );
   }
 
-  let SeedAlignmentResult { mean_shift, band_width } = seed_alignment(qry_seq, ref_seq, params)?;
-  trace!(
-    "Align pairwise: after seed alignment: band_width={:}, mean_shift={:}\n",
-    band_width,
-    mean_shift
-  );
+  let stripes = seed_alignment(qry_seq, ref_seq, params)?;
 
-  align_pairwise(qry_seq, ref_seq, gap_open_close, params, band_width, mean_shift)
+  let result = align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)?;
+
+  trace!("Score: {}", result.alignment_score);
+
+  Ok(result)
 }
 
+/// align amino acids using a fixed bandwidth banded alignment while penalizing terminal indels
 pub fn align_aa(
   qry_seq: &[Aa],
   ref_seq: &[Aa],
@@ -62,12 +60,18 @@ pub fn align_aa(
   band_width: usize,
   mean_shift: i32,
 ) -> Result<AlignmentOutput<Aa>, Report> {
-  align_pairwise(qry_seq, ref_seq, gap_open_close, params, band_width, mean_shift)
+  let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
+
+  align_pairwise(qry_seq, ref_seq, gap_open_close, params, &stripes)
 }
 
 #[cfg(test)]
 mod tests {
-  #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
+  #![allow(clippy::needless_pass_by_value)]
+  use std::fs;
+  use std::path::PathBuf;
+
+  // rstest fixtures are passed by value
   use super::*;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
   use crate::io::gene_map::GeneMap;
@@ -92,6 +96,21 @@ mod tests {
 
     let dummy_ref_seq = vec![Nuc::Gap; 100];
     let gap_open_close = get_gap_open_close_scores_codon_aware(&dummy_ref_seq, &gene_map, &params);
+
+    Context { params, gap_open_close }
+  }
+
+  #[fixture]
+  fn more_realistic_ctx() -> Context {
+    let params = AlignPairwiseParams::default();
+    let gene_map = GeneMap::new();
+
+    let mut ref_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    ref_path.push("test_data");
+    ref_path.push("reference.fasta");
+    let ref_seq = to_nuc_seq(&fs::read_to_string(ref_path).unwrap().trim()).unwrap();
+
+    let gap_open_close = get_gap_open_close_scores_codon_aware(&ref_seq, &gene_map, &params);
 
     Context { params, gap_open_close }
   }
@@ -296,11 +315,41 @@ mod tests {
   }
 
   #[rstest]
+  fn aligns_minimal_overlap_qry_first(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let qry_seq = to_nuc_seq("AAAAAAAAAAAA")?;
+    let ref_seq = to_nuc_seq("AAATTTTTTTTTT")?;
+    let qry_aln = to_nuc_seq("AAAAAAAAAAAA----------")?;
+    let ref_aln = to_nuc_seq("---------AAATTTTTTTTTT")?;
+
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+
+    assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
+    assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
+    Ok(())
+  }
+
+  #[rstest]
+  fn aligns_minimal_overlap_ref_first(ctx: Context) -> Result<(), Report> {
+    #[rustfmt::skip]
+    let ref_seq = to_nuc_seq("AAAAAAAAAAAA")?;
+    let qry_seq = to_nuc_seq("AAATTTTTTTTTT")?;
+    let ref_aln = to_nuc_seq("AAAAAAAAAAAA----------")?;
+    let qry_aln = to_nuc_seq("---------AAATTTTTTTTTT")?;
+
+    let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;
+
+    assert_eq!(from_nuc_seq(&ref_aln), from_nuc_seq(&result.ref_seq));
+    assert_eq!(from_nuc_seq(&qry_aln), from_nuc_seq(&result.qry_seq));
+    Ok(())
+  }
+
+  #[rstest]
   #[rustfmt::skip]
   fn general_case(ctx: Context) -> Result<(), Report> {
     let ref_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTAGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTGAGCCTTTGT"       )?;
     let qry_seq = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATCAAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT"     )?;
-    let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCT----AGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
+    let ref_aln = to_nuc_seq("CTTGGAGGTTCCGTG----GCTAGATAACAGAACATTCTTGGAATGCTGATCTTTATAAGCTCATGCGACACTTCGCATGGTG---AGCCTTTGT")?;
     let qry_aln = to_nuc_seq("CTTGGAGGTTCCGTGGCTATAAAGATAACAGAACATTCTTGGAATGCTGATC-----AAGCTCATGGGACANNNNNCATGGTGGACAGCCTTTGT")?;
 
     let result = align_nuc(&qry_seq, &ref_seq, &ctx.gap_open_close, &ctx.params)?;

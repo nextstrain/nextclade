@@ -21,6 +21,7 @@ use nextclade::types::outputs::NextcladeOutputs;
 use nextclade::utils::error::report_to_string;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use log::info;
 use typescript_definitions::TypescriptDefinition;
 use wasm_bindgen::prelude::*;
 
@@ -162,7 +163,17 @@ impl Nextclade {
       pcr_primers_str,
     } = params;
 
-    let alignment_params = AlignPairwiseParams::default();
+    let virus_properties =
+      VirusProperties::from_str(virus_properties_str).wrap_err("When parsing virus properties JSON")?;
+
+    let mut alignment_params = AlignPairwiseParams::default();
+
+    // Merge alignment params coming from virus_properties into alignment_params
+    if let Some(alignment_params_from_file) = &virus_properties.alignment_params {
+      alignment_params.merge_opt(alignment_params_from_file.clone());
+    }
+
+    info!("{alignment_params:#?}");
 
     let ref_record = read_one_fasta_str(ref_seq_str).wrap_err("When parsing reference sequence")?;
     let ref_seq = to_nuc_seq(&ref_record.seq).wrap_err("When converting reference sequence")?;
@@ -181,9 +192,6 @@ impl Nextclade {
     let clade_node_attr_key_descs = tree.clade_node_attr_descs().to_vec();
 
     let qc_config = QcConfig::from_str(qc_config_str).wrap_err("When parsing QC config JSON")?;
-
-    let virus_properties =
-      VirusProperties::from_str(virus_properties_str).wrap_err("When parsing virus properties JSON")?;
 
     let primers = PcrPrimer::from_str(pcr_primers_str, &from_nuc_seq(&ref_seq)).wrap_err("When parsing PCR primers")?;
 

@@ -19,11 +19,21 @@ pub fn bench_create_stripes(c: &mut Criterion) {
   let excess_bandwidth = black_box(2);
   let qry_len = black_box(30);
   let ref_len = black_box(40);
+  let max_indel = black_box(400);
 
   let mut group = c.benchmark_group("create_stripes");
   group.throughput(Throughput::Bytes(qry_len as u64));
   group.bench_function("create_stripes", |b| {
-    b.iter(|| create_stripes(&seed_matches, qry_len, ref_len, terminal_bandwidth, excess_bandwidth))
+    b.iter(|| {
+      create_stripes(
+        &seed_matches,
+        qry_len,
+        ref_len,
+        terminal_bandwidth,
+        excess_bandwidth,
+        max_indel,
+      )
+    })
   });
   group.finish();
 }

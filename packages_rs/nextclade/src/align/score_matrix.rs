@@ -1,48 +1,48 @@
-use crate::align::params::AlignPairwiseParams;
+use crate::align::band_2d::{Band2d, Stripe};
+use crate::align::params::{AlignPairwiseParams, GapAlignmentSide};
 use crate::io::letter::Letter;
-use crate::utils::vec2d::Vec2d;
 use log::trace;
 
 // store direction info for backtrace as bits in paths matrix
 // these indicate the currently optimal move
-pub const MATCH: i32 = 1 << 0;
-pub const REF_GAP_MATRIX: i32 = 1 << 1;
-pub const QRY_GAP_MATRIX: i32 = 1 << 2;
+pub const MATCH: i8 = 1 << 0;
+pub const REF_GAP_MATRIX: i8 = 1 << 1;
+pub const QRY_GAP_MATRIX: i8 = 1 << 2;
 // these are the override flags for gap extension
-pub const REF_GAP_EXTEND: i32 = 1 << 3;
-pub const QRY_GAP_EXTEND: i32 = 1 << 4;
-pub const END_OF_SEQUENCE: i32 = -1;
+pub const REF_GAP_EXTEND: i8 = 1 << 3;
+pub const QRY_GAP_EXTEND: i8 = 1 << 4;
 
 pub struct ScoreMatrixResult {
-  pub scores: Vec2d<i32>,
-  pub paths: Vec2d<i32>,
+  pub scores: Band2d<i32>,
+  pub paths: Band2d<i8>,
 }
 
 pub fn score_matrix<T: Letter<T>>(
   qry_seq: &[T],
   ref_seq: &[T],
   gap_open_close: &[i32],
-  band_width: usize,
-  mean_shift: i32,
+  stripes: &[Stripe],
   params: &AlignPairwiseParams,
 ) -> ScoreMatrixResult {
   let query_size = qry_seq.len();
-  let ref_size = ref_seq.len();
-  let n_rows = band_width * 2 + 1;
-  let n_cols = ref_size + 1;
+  let ref_len = ref_seq.len();
+  let n_rows = ref_len + 1;
+  let n_cols = query_size + 1;
 
-  trace!(
-    "Score matrix: stared: query_size={query_size}, ref_size={ref_size}, \
-  band_width={band_width}, mean_shift={mean_shift}, n_rows={n_rows}, n_cols={n_cols}"
-  );
+  trace!("Score matrix: started: query_size={query_size}, ref_len={ref_len}, n_rows={n_rows}, n_cols={n_cols}");
 
-  let mut paths = Vec2d::<i32>::new(n_rows, n_cols);
-  let mut scores = Vec2d::<i32>::new(n_rows, n_cols);
-  let mut qry_gaps = vec![0_i32; n_rows];
+  let mut paths = Band2d::<i8>::new(stripes);
+  let mut scores = Band2d::<i32>::new(stripes);
+  let band_size = paths.data.len();
+
+  trace!("Score matrix: allocated alignment band of size={band_size}");
+
+  let left_align = match params.gap_alignment_side {
+    GapAlignmentSide::Left => 1,
+    GapAlignmentSide::Right => 0,
+  };
 
   // fill scores with alignment scores
-  // The inner index scores[][ri] is the index of the reference sequence
-  // the outer index si index the shift, together they define rPos=ri and qPos = ri-shift
   // if the colon marks the position in the sequence before rPos,qPos
   // R: ...ACT:X
   // Q: ...ACT:Y
@@ -52,27 +52,38 @@ pub fn score_matrix<T: Letter<T>>(
   //    -> vertical step in the matrix from si+1 to si
   // 2) if X is a base and Y is '-', rPos advances the same and the shift increases
   //    -> diagonal step in the matrix from (ri,si-1) to (ri+1,si)
-  let no_align = -(params.score_match + params.penalty_mismatch) * ref_size as i32;
 
-  for si in band_width + 1..=2 * band_width {
-    paths[(si, 0)] = QRY_GAP_MATRIX;
+  const NO_ALIGN: i32 = -1_000_000_000; //very negative to be able to process unalignable seqs
+
+  paths[(0, 0)] = 0;
+  scores[(0, 0)] = 0;
+
+  // Initialize first row (start at + 1 since [(0,0)] is already set)
+  for qpos in (stripes[0].begin + 1)..stripes[0].end {
+    paths[(0, qpos)] = REF_GAP_EXTEND + REF_GAP_MATRIX;
+    if params.left_terminal_gaps_free {
+      // Left terminal qry insertion  is free
+      scores[(0, qpos)] = 0;
+    } else {
+      // Left terminal qry insertion is not free
+      // TODO: Consider whether qry insertion should ever be free, not only qry deletion!
+      if qpos == 1 {
+        scores[(0, 1)] = -gap_open_close[0];
+      } else {
+        scores[(0, qpos)] = scores[(0, qpos - 1)] - params.penalty_gap_extend;
+      }
+    }
   }
+  let mut qry_gaps = vec![NO_ALIGN; n_cols];
 
-  paths[(band_width, 0)] = MATCH;
-  qry_gaps[band_width] = -params.penalty_gap_open;
-  for si in (0..band_width).rev() {
-    paths[(si, 0)] = REF_GAP_MATRIX;
-    qry_gaps[si] = -params.penalty_gap_open;
-  }
+  // Iterate over rows
+  for ri in 1..ref_len + 1 {
+    let mut ref_gaps = NO_ALIGN;
 
-  for ri in 0..ref_size as i32 {
-    let mut q_pos: i32 = ri - (band_width as i32 + mean_shift);
-    let mut ref_gaps = -gap_open_close[ri as usize];
-
-    for si in (0..=(2 * band_width as i32)).rev() {
+    for qpos in stripes[ri].begin..stripes[ri].end {
       let mut tmp_path = 0;
-      let mut score: i32;
-      let mut origin: i32;
+      let mut score = NO_ALIGN; // Needs to be very negative so that one path is always the best
+      let mut origin = 0;
       let q_gap_extend: i32;
       let r_gap_extend: i32;
       let r_gap_open: i32;
@@ -80,72 +91,99 @@ pub fn score_matrix<T: Letter<T>>(
       let tmp_match: i32;
       let mut tmp_score: i32;
 
-      if q_pos < 0 {
+      if qpos == 0 {
+        // Initialize first column
         // precedes query sequence -- no score, origin is query gap
-        // we could fill all of this at once
-        score = 0;
-        tmp_path += QRY_GAP_EXTEND;
-        ref_gaps = -gap_open_close[ri as usize];
+        tmp_path = QRY_GAP_EXTEND;
         origin = QRY_GAP_MATRIX;
-      } else if q_pos < query_size as i32 {
-        // if the shifted position is within the query sequence
-
-        // no gap -- match case
-        let matrix_score = T::lookup_match_score(qry_seq[q_pos as usize], ref_seq[ri as usize]);
-        tmp_match = if matrix_score > 0 {
-          params.score_match
+        if params.left_terminal_gaps_free {
+          // Left terminal qry gap is free
+          score = 0;
         } else {
-          -params.penalty_mismatch
-        };
-        score = scores[(si, ri)] + tmp_match;
-        origin = MATCH;
-
-        // check the scores of a reference gap
-        if si < 2 * band_width as i32 {
-          r_gap_extend = ref_gaps - params.penalty_gap_extend;
-          r_gap_open = scores[(si + 1, ri + 1)] - gap_open_close[(ri + 1) as usize];
-          if r_gap_extend > r_gap_open {
-            tmp_score = r_gap_extend;
-            tmp_path += REF_GAP_EXTEND;
+          // Left terminal qry gap is not free
+          if ri == 1 {
+            score = -gap_open_close[0];
           } else {
-            tmp_score = r_gap_open;
+            score = scores[(ri - 1, 0)] - params.penalty_gap_extend;
           }
-          ref_gaps = tmp_score;
-          if score < tmp_score {
-            score = tmp_score;
-            origin = REF_GAP_MATRIX;
-          }
-        } else {
-          ref_gaps = no_align;
+        }
+      } else {
+        // if the position is within the query sequence
+        // no gap -- match case
+
+        // TODO: Double bounds check -> wasteful, make better
+        if qpos - 1 >= stripes[ri - 1].begin && qpos - 1 < stripes[ri - 1].end {
+          // ^ If stripes allow to move up diagonally to upper left
+          if T::lookup_match_score(qry_seq[qpos - 1], ref_seq[ri - 1]) > 0 {
+            score = scores[(ri - 1, qpos - 1)] + params.score_match;
+          } else {
+            score = scores[(ri - 1, qpos - 1)] - params.penalty_mismatch;
+          };
+          origin = MATCH;
         }
 
         // check the scores of a reference gap
-        if si > 0 {
-          q_gap_extend = qry_gaps[(si - 1) as usize] - params.penalty_gap_extend;
-          q_gap_open = scores[(si - 1, ri)] - gap_open_close[ri as usize];
-          if q_gap_extend > q_gap_open {
+        // if qpos == stripes.begin: ref gap not allowed
+        // thus path skipped
+        if qpos > stripes[ri].begin {
+          if ri != ref_len || !params.right_terminal_gaps_free {
+            //normal case, not at end of ref sequence
+            r_gap_extend = ref_gaps - params.penalty_gap_extend;
+            r_gap_open = scores[(ri, qpos - 1)] - gap_open_close[ri];
+          } else {
+            // at end of ref sequence if right terminal gaps are free
+            // TODO: Consider whether qry insertion should ever be free, not only qry deletion!
+            r_gap_extend = ref_gaps;
+            r_gap_open = scores[(ri, qpos - 1)];
+          }
+          if r_gap_extend >= r_gap_open && qpos > stripes[ri].begin + 1 {
+            // extension better than opening (and ^ extension allowed positionally)
+            tmp_score = r_gap_extend;
+            tmp_path = REF_GAP_EXTEND;
+          } else {
+            // opening better than extension
+            tmp_score = r_gap_open;
+          }
+          // could factor out tmp_score, replacing with ref_gaps but maybe less readable
+          ref_gaps = tmp_score;
+          if score + left_align < tmp_score {
+            score = tmp_score;
+            origin = REF_GAP_MATRIX;
+          }
+        }
+
+        // check the scores of a query gap
+        if qpos < stripes[ri - 1].end {
+          // need stripe above to move from, otherwise no scores[(ri-1, qpos)] not existing
+          if qpos != query_size || !params.right_terminal_gaps_free {
+            //normal case, not at end of query sequence
+            q_gap_extend = qry_gaps[qpos] - params.penalty_gap_extend;
+            q_gap_open = scores[(ri - 1, qpos)] - gap_open_close[ri - 1];
+          } else {
+            //end of query sequence make right terminal gap free
+            q_gap_extend = qry_gaps[qpos];
+            q_gap_open = scores[(ri - 1, qpos)]
+          }
+          if q_gap_extend >= q_gap_open && qpos < stripes[ri - 2].end {
+            // extension better than opening (and ^ extension allowed positionally)
             tmp_score = q_gap_extend;
             tmp_path += QRY_GAP_EXTEND;
           } else {
             tmp_score = q_gap_open;
           }
-          qry_gaps[si as usize] = tmp_score;
-          if score < tmp_score {
+          qry_gaps[qpos] = tmp_score;
+          if score + left_align < tmp_score {
             score = tmp_score;
             origin = QRY_GAP_MATRIX;
           }
         } else {
-          qry_gaps[si as usize] = no_align;
+          qry_gaps[qpos] = NO_ALIGN;
         }
-      } else {
-        // past query sequence -- mark as sequence end
-        score = END_OF_SEQUENCE;
-        origin = END_OF_SEQUENCE;
       }
+
       tmp_path += origin;
-      paths[(si, ri + 1)] = tmp_path;
-      scores[(si, ri + 1)] = score;
-      q_pos += 1;
+      paths[(ri, qpos)] = tmp_path;
+      scores[(ri, qpos)] = score;
     }
   }
 
@@ -156,7 +194,9 @@ pub fn score_matrix<T: Letter<T>>(
 mod tests {
   #![allow(clippy::needless_pass_by_value)] // rstest fixtures are passed by value
   use super::*;
+  use crate::align::band_2d::simple_stripes;
   use crate::align::gap_open::{get_gap_open_close_scores_codon_aware, GapScoreMap};
+  use crate::align::score_matrix;
   use crate::io::gene_map::GeneMap;
   use crate::io::nuc::{to_nuc_seq, Nuc};
   use eyre::Report;
@@ -190,54 +230,33 @@ mod tests {
 
   #[rstest]
   fn pads_missing_left(ctx: Context) -> Result<(), Report> {
-    #[rustfmt::skip]
     let qry_seq = to_nuc_seq("CTCGCT")?;
     let ref_seq = to_nuc_seq("ACGCTCGCT")?;
 
     let band_width = 5;
     let mean_shift = 2;
 
-    let result = score_matrix(
-      &qry_seq,
-      &ref_seq,
-      &ctx.gap_open_close,
-      band_width,
-      mean_shift,
-      &ctx.params,
-    );
+    let stripes = simple_stripes(mean_shift, band_width, ref_seq.len(), qry_seq.len());
+    let result = score_matrix(&qry_seq, &ref_seq, &ctx.gap_open_close, &stripes, &ctx.params);
 
-    #[rustfmt::skip]
-    let expected_scores = Vec2d::<i32>::from_slice(&[
-      0,  -1,   2,   1,  -1,  -1,  -1,  -1,  -1,  -1,
-      0,  -1,  -2,  -1,   2,  -1,  -1,  -1,  -1,  -1,
-      0,  -1,   2,   5,   8,  11,  -1,  -1,  -1,  -1,
-      0,  -1,  -2,  -3,  -1,   2,   5,  -1,  -1,  -1,
-      0,   0,   3,   2,   5,   4,   7,   6,  -1,  -1,
-      0,   0,   0,  -1,  -2,   0,   3,   6,   9,  -1,
-      0,   0,   0,   0,   3,   6,   9,  12,  15,  18,
-      0,   0,   0,   0,   0,  -1,   0,   3,   6,   9,
-      0,   0,   0,   0,   0,   0,   3,   2,   5,   6,
-      0,   0,   0,   0,   0,   0,   0,  -1,   0,   3,
-      0,   0,   0,   0,   0,   0,   0,   0,   3,   6,
-    ], 11, 10);
+    let mut expected_scores = Band2d::<i32>::new(&stripes);
+    expected_scores.data = vec![
+      0, 0, 0, 0, 0, -1, -1, -1, -1, 0, 3, -2, 2, -2, 2, 0, -1, 2, -3, 5, -1, 1, 0, 3, -2, 5, -1, 8, 2, 0, -1, 6, 0, 4,
+      2, 11, 0, 3, 0, 9, 3, 7, 11, 0, -1, 2, 3, 12, 6, 11, 3, 0, 5, 6, 15, 11, 6, 6, 6, 9, 18,
+    ];
 
-    #[rustfmt::skip]
-    let expected_paths = Vec2d::<i32>::from_slice(&[
-      2,   9,   9,   9,  -1,  -1,  -1,  -1,  -1,  -1,
-      2,   9,   9,   2,   2,  -1,  -1,  -1,  -1,  -1,
-      2,   9,  25,  25,  25,   9,  -1,  -1,  -1,  -1,
-      2,   1,  17,   1,   2,  12,  12,  -1,  -1,  -1,
-      2,  20,  17,  25,  25,  25,  25,  25,  -1,  -1,
-      1,  20,  20,   1,   1,   2,  18,  18,  18,  -1,
-      4,  20,  20,  20,  17,  25,  25,  17,  17,  17,
-      4,  20,  20,  20,  20,   1,   4,   4,   4,   4,
-      4,  20,  20,  20,  20,  20,  17,  25,  25,  28,
-      4,  20,  20,  20,  20,  20,  20,   1,  20,  20,
-      4,  20,  20,  20,  20,  20,  20,  20,  17,  17,
-    ], 11, 10);
+    let mut expected_paths = Band2d::<i8>::new(&stripes);
+    expected_paths.data = vec![
+      0, 10, 10, 10, 20, 1, 9, 9, 9, 20, 17, 17, 25, 9, 9, 20, 1, 25, 1, 25, 2, 9, 20, 17, 1, 25, 2, 25, 2, 20, 17, 25,
+      2, 25, 12, 9, 20, 17, 4, 25, 18, 25, 12, 20, 17, 25, 4, 17, 18, 28, 17, 20, 25, 4, 17, 20, 17, 18, 26, 12, 17,
+    ];
+
+    // println!("{:?}", result.scores.data);
+    // println!("{:?}", result.paths.data);
 
     assert_eq!(expected_scores, result.scores);
     assert_eq!(expected_paths, result.paths);
+
     Ok(())
   }
 }
