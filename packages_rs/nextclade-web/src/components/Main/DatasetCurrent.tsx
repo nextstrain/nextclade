@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react'
 
 import { Button, Col, Collapse, Row } from 'reactstrap'
-import { useRecoilValue, useSetRecoilState } from 'recoil'
+import { useRecoilValue, useResetRecoilState } from 'recoil'
 import { datasetCurrentAtom, datasetCurrentNameAtom } from 'src/state/dataset.state'
 import styled from 'styled-components'
 
@@ -71,11 +71,11 @@ export function DatasetCurrent() {
   const { t } = useTranslationSafe()
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const datasetCurrent = useRecoilValue(datasetCurrentAtom)
-  const setDatasetCurrent = useSetRecoilState(datasetCurrentNameAtom)
+  const resetDatasetCurrent = useResetRecoilState(datasetCurrentNameAtom)
 
   const onChangeClicked = useCallback(() => {
-    setDatasetCurrent(undefined)
-  }, [setDatasetCurrent])
+    resetDatasetCurrent()
+  }, [resetDatasetCurrent])
 
   const onCustomizeClicked = useCallback(() => setAdvancedOpen((advancedOpen) => !advancedOpen), [])
 
