@@ -49,12 +49,9 @@ if [ "$1" == "cli" ]; then
 
   git commit -q -m "chore: release cli ${version}" >/dev/null
 
-  target_branch="staging-cli"
-  if [[ "$2" =~ ^(major|minor|patch|release)$ ]]; then
-    target_branch="release-cli"
-  fi
+  target_branch="release-cli"
 
-  git checkout -q -B staging-cli >/dev/null
+  git checkout -q -B ${target_branch} >/dev/null
   echo "$1 release ($2) created successfully. The changes are on local branch '${target_branch}'."
 
   read -r -p "Do you want to push this to GitHub?" choice
