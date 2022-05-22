@@ -187,10 +187,10 @@ jobs:
           name: "Publish binaries to GitHub Releases"
           command: |
             ./scripts/publish_github \
-              --artifacts_dir="/home/circleci/workspace/.out" \
-              --user_name="${CIRCLE_PROJECT_USERNAME}" \
-              --repo_name="${CIRCLE_PROJECT_REPONAME}" \
-              --git_sha="${CIRCLE_SHA1}"
+              --artifacts_dir "/home/circleci/workspace/.out" \
+              --user_name "${CIRCLE_PROJECT_USERNAME}" \
+              --repo_name "${CIRCLE_PROJECT_REPONAME}" \
+              --git_sha "${CIRCLE_SHA1}"
 
   Release-Cli-Docker:
     shell: "/bin/bash -euxo pipefail"
