@@ -344,16 +344,19 @@ jobs:
       - run:
           name: " [ web ] | Create and push git tag"
           command: |
+            curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+            gh auth setup-git
+
             cd packages_rs/nextclade-web
 
-            export VERSION=$(node -e "\
+            export version=$(node -e "\
               const semver = require('semver'); \
               const pkg = require('./package.json'); \
               console.log(pkg.version)) \
             ")
 
-            git tag "${VERSION}"
-            git push origin "${VERSION}"
+            git tag "web-${version}"
+            git push origin "web-${version}"
 
 cli_branches: &cli_branches
   filters:
