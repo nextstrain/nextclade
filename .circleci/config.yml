@@ -345,7 +345,11 @@ jobs:
           name: " [ web ] | Create and push git tag"
           command: |
             curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+
             gh auth setup-git
+
+            git config user.email "nextstrainbot@nextstrain.org"
+            git config user.name "nextstrain-bot"
 
             cd packages_rs/nextclade-web
 
@@ -440,7 +444,9 @@ workflows:
       - Build-And-Deploy-Web:
           <<: *web_branches
 
-          context: nextclade_web_<< pipeline.git.branch >>
+          context:
+            - nextclade_github
+            - nextclade_web_<< pipeline.git.branch >>
 
           requires:
             - Update-Builder-Container
