@@ -1,8 +1,24 @@
 #!/usr/bin/env bash
 
 #
-# Prepares a release of a new version
+# Prepares a release of a new version of CLI or Web app
 #
+# Dependencies for CLI releases:
+#
+#  1. Rust toolchain (see developer guide in docs/dev/developer-guide.md)
+#  2. dasel:
+#    mkdir -p "${HOME}/bin"
+#    export PATH="${HOME}/bin:${PATH}"
+#    curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+#
+# Dependencies for Web releases:
+#  1. Node.js
+#  2. npm
+#
+#  Usage examples:
+#    ./scripts/release cli alpha
+#    ./scripts/release cli minor
+#    ./scripts/release web patch
 
 set -euo pipefail
 
@@ -69,9 +85,33 @@ if [ "$1" == "cli" ]; then
   esac
 
 elif [ "$1" == "web" ]; then
-  echo "Not yet implemented"
-  exit 1
+  branch=$(git rev-parse --abbrev-ref HEAD)
+
+  if ! [[ "$branch" =~ ^(master|staging|release)$ ]]; then
+    echo "⚠️WARNING: Not on one of the major branches."
+    echo "There are 3 web environments corresponding to master, staging, and release branches. Checkout one of these branches, depending on where you want to deploy the new release."
+    exit 1
+  fi
+
+  pushd "packages_rs/nextclade-web" >/dev/null
+
+    version=$(npm version prerelease --preid='alpha')
+
+    printf "\n\n-----------------------------------\n\n"
+    git --no-pager diff
+    printf "\n\n-----------------------------------\n\n"
+
+    git add -A >/dev/null
+
+    if [ "$branch" == "release" ]; then
+      git commit -q -m "chore: release ${1} ${version}" >/dev/null
+    else
+      git commit -q -m "chore: pre-release ${1} ${version} (on $branch)" >/dev/null
+    fi
+
+  popd
+
 else
-  echo "Invalid "
+  echo "Invalid release target ${1}"
 fi
 
