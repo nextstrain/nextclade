@@ -352,7 +352,7 @@ jobs:
             export version=$(node -e "\
               const semver = require('semver'); \
               const pkg = require('./package.json'); \
-              console.log(pkg.version)) \
+              console.log(pkg.version) \
             ")
 
             git tag "web-${version}"
