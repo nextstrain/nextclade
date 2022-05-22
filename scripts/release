@@ -23,15 +23,15 @@
 set -euo pipefail
 
 : "${1:?Release target is required. Specify one of: cli, web.}"
-: "${2:?Release type is required. Specify one of: major, minor, patch, release, rc, beta, alpha.}"
+: "${2:?Release type is required. Specify one of: major, minor, release, rc, beta, alpha.}"
 
 if ! [[ "$1" =~ ^(cli|web)$ ]]; then
   echo "Unknown release target: '$1'. Specify one of: cli, web."
   exit 1
 fi
 
-if ! [[ "$2" =~ ^(major|minor|patch|release|rc|beta|alpha)$ ]]; then
-  echo "Unknown release type: '$2'. Specify one of: major, minor, patch, release, rc, beta, alpha."
+if ! [[ "$2" =~ ^(major|minor|patch|rc|beta|alpha)$ ]]; then
+  echo "Unknown release type: '$2'. Specify one of: major, minor, patch, rc, beta, alpha."
   exit 1
 fi
 
@@ -41,7 +41,11 @@ if [ -n "$(git status -s)" ]; then
   exit 1
 fi
 
+branch=
+
 if [ "$1" == "cli" ]; then
+  branch="release-cli"
+
   git checkout -q master
 
   cargo update --quiet --offline >/dev/null
@@ -65,37 +69,25 @@ if [ "$1" == "cli" ]; then
 
   git commit -q -m "chore: release cli ${version}" >/dev/null
 
-  target_branch="release-cli"
-
-  git checkout -q -B ${target_branch} >/dev/null
-  echo "$1 release ($2) created successfully. The changes are on local branch '${target_branch}'."
-
-  read -r -p "Do you want to push this to GitHub?" choice
-  case "$choice" in
-    y|Y )
-      echo "Pushing to GitHub"
-      git push -q origin ${target_branch}
-      ;;
-    n|N )
-      echo "Will exit. If you want to push later, type 'git push'"
-      ;;
-    * )
-      echo "Invalid answer"
-      ;;
-  esac
+  git checkout -q -B ${branch} >/dev/null
+  echo "$1 release ($2) created successfully. The changes listed above are now committed to your local branch '${branch}'."
 
 elif [ "$1" == "web" ]; then
   branch=$(git rev-parse --abbrev-ref HEAD)
 
   if ! [[ "$branch" =~ ^(master|staging|release)$ ]]; then
-    echo "⚠️WARNING: Not on one of the major branches."
-    echo "There are 3 web environments corresponding to master, staging, and release branches. Checkout one of these branches, depending on where you want to deploy the new release."
+    echo "You are on branch '$branch', which is not one of the major branches suitable for web release." >/dev/stderr
+    echo "There are 3 web environments corresponding to master, staging, and release branches. Checkout one of these branches, depending on where you want to deploy the new release. Refusing to proceed." >/dev/stderr
     exit 1
   fi
 
   pushd "packages_rs/nextclade-web" >/dev/null
 
-    version=$(npm version prerelease --preid='alpha')
+    if [[ "$2" =~ ^(major|minor|patch)$ ]]; then
+      version=$(npm version "$2")
+    elif [[ "$2" =~ ^(rc|beta|alpha)$ ]]; then
+      version=$(npm version prerelease --preid="$2")
+    fi
 
     printf "\n\n-----------------------------------\n\n"
     git --no-pager diff
@@ -106,7 +98,7 @@ elif [ "$1" == "web" ]; then
     if [ "$branch" == "release" ]; then
       git commit -q -m "chore: release ${1} ${version}" >/dev/null
     else
-      git commit -q -m "chore: pre-release ${1} ${version} (on $branch)" >/dev/null
+      git commit -q -m "chore: pre-release ${1} ${version}" >/dev/null
     fi
 
   popd
@@ -115,3 +107,17 @@ else
   echo "Invalid release target ${1}"
 fi
 
+
+read -r -p "Do you want to push this to GitHub? The push will trigger CI build and publishing. Type 'y' or 'n'." choice
+case "$choice" in
+  y|Y )
+    echo "Pushing to GitHub, branch '${branch}'"
+    git push -q origin "${branch}"
+    ;;
+  n|N )
+    echo "Will exit now. Bit if you want to push later, type 'git push origin ${branch}'"
+    ;;
+  * )
+    echo "Invalid answer. Type 'y' or 'n'."
+    ;;
+esac

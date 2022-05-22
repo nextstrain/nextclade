@@ -2,6 +2,14 @@
 #
 # Builds and optionally pushes production docker images
 #
+# Dependencies:
+#
+#  - docker (https://docs.docker.com/get-docker/)
+#  - dasel
+#     mkdir -p "${HOME}/bin"
+#     export PATH="${HOME}/bin:${PATH}"
+#     curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+
 set -euo pipefail
 trap "exit" INT
 
