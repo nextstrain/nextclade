@@ -120,6 +120,12 @@ jobs:
             - cache-v14-nextclade-cli-<< parameters.target_arch >>-{{ checksum "Cargo.toml" }}-{{ checksum "packages_rs/nextclade/Cargo.toml" }}
 
       - run:
+          name: "Download dependencies"
+          command: |
+            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel"
+            chmod +x "${HOME}/bin/dasel"
+
+      - run:
           name: " [ << parameters.target_arch >> ] | Build CLI"
           command: |
             export CROSS="<< parameters.target_arch >>"
