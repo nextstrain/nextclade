@@ -59,7 +59,7 @@ pub fn rule_stop_codons(translations: &[Translation], config: &QcRulesConfigStop
   let total_stop_codons = stop_codons.len();
   let total_stop_codons_ignored = stop_codons_ignored.len();
 
-  let score = (total_stop_codons * 75) as f64;
+  let score = total_stop_codons as f64 * config.score_weight;
   let status = QcStatus::from_score(score);
 
   Some(QcResultStopCodons {

@@ -57,12 +57,23 @@ pub struct FrameShiftLocation {
   pub codon_range: Range,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigFrameShifts {
   pub enabled: bool,
   pub ignored_frame_shifts: Vec<FrameShiftLocation>,
+  pub score_weight: f64,
+}
+
+impl Default for QcRulesConfigFrameShifts {
+  fn default() -> Self {
+    Self {
+      enabled: false,
+      ignored_frame_shifts: vec![],
+      score_weight: 75.0,
+    }
+  }
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq, Serialize, Deserialize, Validate)]
@@ -73,12 +84,23 @@ pub struct StopCodonLocation {
   pub codon: usize,
 }
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 #[serde(default)]
 pub struct QcRulesConfigStopCodons {
   pub enabled: bool,
   pub ignored_stop_codons: Vec<StopCodonLocation>,
+  pub score_weight: f64,
+}
+
+impl Default for QcRulesConfigStopCodons {
+  fn default() -> Self {
+    Self {
+      enabled: false,
+      ignored_stop_codons: vec![],
+      score_weight: 75.0,
+    }
+  }
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize, Validate)]
