@@ -1,13 +1,19 @@
-import React, { SVGProps, useCallback, useState } from 'react'
+import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
-import { BASE_MIN_WIDTH_PX } from 'src/constants'
+import { useRecoilValue } from 'recoil'
 import type { NucleotideSubstitution } from 'src/algorithms/types'
-import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
-import { Tooltip } from 'src/components/Results/Tooltip'
-import { getSafeId } from 'src/helpers/getSafeId'
 import { AminoacidMutationBadge, NucleotideMutationBadge } from 'src/components/Common/MutationBadge'
 import { TableSlim } from 'src/components/Common/TableSlim'
+import { Tooltip } from 'src/components/Results/Tooltip'
+
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
+import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
+import { getSafeId } from 'src/helpers/getSafeId'
+import {
+  getSeqMarkerDims,
+  SeqMarkerHeightState,
+  seqMarkerMutationHeightStateAtom,
+} from 'src/state/seqViewSettings.state'
 
 export interface SequenceMarkerMutationProps extends SVGProps<SVGRectElement> {
   seqName: string
@@ -26,6 +32,13 @@ function SequenceMarkerMutationUnmemoed({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
+  const seqMarkerMutationHeightState = useRecoilValue(seqMarkerMutationHeightStateAtom)
+  const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerMutationHeightState), [seqMarkerMutationHeightState])
+
+  if (seqMarkerMutationHeightState === SeqMarkerHeightState.Off) {
+    return null
+  }
+
   const { pos, queryNuc, aaSubstitutions, aaDeletions } = substitution
   const id = getSafeId('mutation-marker', { seqName, ...substitution })
 
@@ -41,9 +54,9 @@ function SequenceMarkerMutationUnmemoed({
       id={id}
       fill={fill}
       x={x}
-      y={-10}
+      y={y}
       width={width}
-      height="30"
+      height={height}
       {...rest}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}

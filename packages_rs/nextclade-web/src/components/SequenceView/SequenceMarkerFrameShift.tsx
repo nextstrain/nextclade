@@ -3,12 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { useRecoilValue } from 'recoil'
 
 import type { FrameShift } from 'src/algorithms/types'
-import { BASE_MIN_WIDTH_PX } from 'src/constants'
-import { Tooltip } from 'src/components/Results/Tooltip'
 import { TableRowSpacer, TableSlim } from 'src/components/Common/TableSlim'
+import { Tooltip } from 'src/components/Results/Tooltip'
+import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { formatRange, formatRangeMaybeEmpty } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { geneMapAtom } from 'src/state/results.state'
+import { SeqMarkerFrameShiftState, seqMarkerFrameShiftStateAtom } from 'src/state/seqViewSettings.state'
 
 const frameShiftColor = '#eb0d2a'
 const frameShiftBorderColor = '#ffff00'
@@ -26,6 +27,12 @@ function SequenceMarkerFrameShiftUnmemoed({ seqName, frameShift, pixelsPerBase, 
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
   const geneMap = useRecoilValue(geneMapAtom)
+
+  const seqMarkerFrameShiftState = useRecoilValue(seqMarkerFrameShiftStateAtom)
+
+  if (seqMarkerFrameShiftState === SeqMarkerFrameShiftState.Off) {
+    return null
+  }
 
   const { geneName, nucAbs, codon, gapsTrailing, gapsLeading } = frameShift
   const id = getSafeId('frame-shift-nuc-marker', { seqName, ...frameShift })

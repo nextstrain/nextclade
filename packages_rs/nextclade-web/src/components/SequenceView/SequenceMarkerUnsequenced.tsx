@@ -1,13 +1,19 @@
-import React, { memo, PropsWithChildren, SVGProps, useCallback, useState } from 'react'
+import React, { memo, PropsWithChildren, SVGProps, useCallback, useMemo, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
+import { useRecoilValue } from 'recoil'
 
 import { Tooltip } from 'src/components/Results/Tooltip'
 import { BASE_MIN_WIDTH_PX } from 'src/constants'
 import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
+import {
+  getSeqMarkerDims,
+  SeqMarkerHeightState,
+  seqMarkerUnsequencedHeightStateAtom,
+} from 'src/state/seqViewSettings.state'
 
-const colorUnsequenced = '#BBBBBB'
+const colorUnsequenced = '#bbbbbb'
 
 export interface SequenceMarkerProps extends SVGProps<SVGRectElement> {
   id: string
@@ -28,6 +34,16 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
 
+  const seqMarkerUnsequencedHeightState = useRecoilValue(seqMarkerUnsequencedHeightStateAtom)
+  const { y, height } = useMemo(
+    () => getSeqMarkerDims(seqMarkerUnsequencedHeightState),
+    [seqMarkerUnsequencedHeightState],
+  )
+
+  if (seqMarkerUnsequencedHeightState === SeqMarkerHeightState.Off) {
+    return null
+  }
+
   let width = (end - begin) * pixelsPerBase
   width = Math.max(width, BASE_MIN_WIDTH_PX)
   const halfNuc = Math.max(pixelsPerBase, BASE_MIN_WIDTH_PX) / 2 // Anchor on the center of the first nuc
@@ -45,9 +61,9 @@ export const SequenceMarker = memo(function SequenceMarkerImpl({
       id={id}
       fill={colorUnsequenced}
       x={x}
-      y={-10}
+      y={y}
       width={width}
-      height="30"
+      height={height}
       {...restProps}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
