@@ -5,6 +5,7 @@ use bio::io::gff::{GffType, Reader as GffReader, Record as GffRecord};
 use bio_types::strand::Strand;
 use color_eyre::{Section, SectionExt};
 use eyre::{eyre, Report, WrapErr};
+use log::warn;
 use std::fmt::Debug;
 use std::path::Path;
 
@@ -53,10 +54,19 @@ fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> 
     .map(to_eyre_error)
     .collect::<Result<Vec<GffRecord>, Report>>()?;
 
-  records
+  let genemap: GeneMap = records
     .iter()
     .filter_map(convert_gff_record_to_gene_map_record)
-    .collect::<Result<GeneMap, Report>>()
+    .collect::<Result<GeneMap, Report>>()?;
+
+  if genemap.len() == 0 && records.len() != 0 {
+    warn!(
+      "No valid gene entries found in genemap with {} records. No genes will be used.",
+      records.len()
+    );
+  }
+
+  Ok(genemap)
 }
 
 pub fn read_gff3_file<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
