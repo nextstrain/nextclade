@@ -3,9 +3,9 @@ use crate::align::insertions_strip::{insertions_strip, Insertion};
 use crate::align::params::AlignPairwiseParams;
 use crate::align::remove_gaps::remove_gaps_in_place;
 use crate::analyze::count_gaps::GapCounts;
-use crate::gene::gene::Gene;
-use crate::io::gene_map::GeneMap;
+use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::aa::Aa;
+use crate::io::gene_map::GeneMap;
 use crate::io::letter::{serde_deserialize_seq, serde_serialize_seq, Letter};
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
@@ -144,7 +144,7 @@ pub fn translate_gene(
   let mut qry_gene_seq = extract_gene(qry_seq, gene, coord_map);
 
   // Reverse strands should be reverse-complemented first
-  if gene.strand == "-" {
+  if gene.strand == GeneStrand::Reverse {
     reverse_complement_in_place(&mut ref_gene_seq);
     reverse_complement_in_place(&mut qry_gene_seq);
   }

@@ -3,6 +3,7 @@ use optfield::optfield;
 use serde::{Deserialize, Serialize};
 
 #[derive(ArgEnum, Copy, Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum GapAlignmentSide {
   Left,
   Right,
