@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+#
+# Prepares a release of a new version of CLI or Web app
+#
+# Dependencies for CLI releases:
+#
+#  1. Rust toolchain (see developer guide in docs/dev/developer-guide.md)
+#  2. dasel:
+#    mkdir -p "${HOME}/bin"
+#    export PATH="${HOME}/bin:${PATH}"
+#    curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+#
+# Dependencies for Web releases:
+#  1. Node.js
+#  2. npm
+#
+#  Usage examples:
+#    ./scripts/release cli alpha
+#    ./scripts/release cli minor
+#    ./scripts/release web patch
+
+set -euo pipefail
+
+: "${1:?Release target is required. Specify one of: cli, web.}"
+: "${2:?Release type is required. Specify one of: major, minor, release, rc, beta, alpha.}"
+
+if ! [[ "$1" =~ ^(cli|web)$ ]]; then
+  echo "Unknown release target: '$1'. Specify one of: cli, web."
+  exit 1
+fi
+
+if ! [[ "$2" =~ ^(major|minor|patch|rc|beta|alpha)$ ]]; then
+  echo "Unknown release type: '$2'. Specify one of: major, minor, patch, rc, beta, alpha."
+  exit 1
+fi
+
+if [ -n "$(git status -s)" ]; then
+  echo "Uncommitted changes detected. Refusing to proceed."
+  echo "Stash or commit the changes and retry."
+  exit 1
+fi
+
+branch=
+
+if [ "$1" == "cli" ]; then
+  branch="release-cli"
+
+  git checkout -q master
+
+  cargo update --quiet --offline >/dev/null
+  if [ -n "$(git status -s)" ]; then
+    echo "The lockfile 'Cargo.lock' is not synchronized with one of the 'Cargo.toml' project files. Refusing to proceed."
+    echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."
+    echo "Update the lockfile, for example by rebuilding the project(s), then commit the changes to the lockfile, and retry."
+    exit 1
+  fi
+
+  cargo set-version --workspace --bump="${2:-}" >/dev/null
+  cargo update --quiet --offline >/dev/null
+
+  version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade/Cargo.toml")
+
+  printf "\n\n-----------------------------------\n\n"
+  git --no-pager diff
+  printf "\n\n-----------------------------------\n\n"
+
+  git add -A >/dev/null
+
+  git commit -q -m "chore: release cli ${version}" >/dev/null
+
+  git checkout -q -B ${branch} >/dev/null
+  echo "$1 release ($2) created successfully. The changes listed above are now committed to your local branch '${branch}'."
+
+elif [ "$1" == "web" ]; then
+  branch=$(git rev-parse --abbrev-ref HEAD)
+
+  if ! [[ "$branch" =~ ^(master|staging|release)$ ]]; then
+    echo "You are on branch '$branch', which is not one of the major branches suitable for web release." >/dev/stderr
+    echo "There are 3 web environments corresponding to master, staging, and release branches. Checkout one of these branches, depending on where you want to deploy the new release. Refusing to proceed." >/dev/stderr
+    exit 1
+  fi
+
+  pushd "packages_rs/nextclade-web" >/dev/null
+
+    if [[ "$2" =~ ^(major|minor|patch)$ ]]; then
+      version=$(npm version "$2")
+    elif [[ "$2" =~ ^(rc|beta|alpha)$ ]]; then
+      version=$(npm version prerelease --preid="$2")
+    fi
+
+    printf "\n\n-----------------------------------\n\n"
+    git --no-pager diff
+    printf "\n\n-----------------------------------\n\n"
+
+    git add -A >/dev/null
+
+    if [ "$branch" == "release" ]; then
+      git commit -q -m "chore: release ${1} ${version}" >/dev/null
+    else
+      git commit -q -m "chore: pre-release ${1} ${version}" >/dev/null
+    fi
+
+  popd
+
+else
+  echo "Invalid release target ${1}"
+fi
+
+
+read -r -p "Do you want to push this to GitHub? The push will trigger CI build and publishing. Type 'y' or 'n'." choice
+case "$choice" in
+  y|Y )
+    echo "Pushing to GitHub, branch '${branch}'"
+    git push -q origin "${branch}"
+    ;;
+  n|N )
+    echo "Will exit now. Bit if you want to push later, type 'git push origin ${branch}'"
+    ;;
+  * )
+    echo "Invalid answer. Type 'y' or 'n'."
+    ;;
+esac
