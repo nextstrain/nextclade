@@ -10,6 +10,8 @@
 #    mkdir -p "${HOME}/bin"
 #    export PATH="${HOME}/bin:${PATH}"
 #    curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+#  3. cargo-edit for cargo set-version
+#    cargo install cargo-edit
 #
 # Dependencies for Web releases:
 #  1. Node.js
@@ -50,10 +52,11 @@ if [ "$1" == "cli" ]; then
 
   cargo update --quiet --offline >/dev/null
   if [ -n "$(git status -s)" ]; then
-    echo "Your local 'Cargo.lock' is not identical to the commited 'Cargo.lock."
+    echo "Your local 'Cargo.lock' is not identical to the commited 'Cargo.lock.'"
     echo "It may not synchronized with one of the 'Cargo.toml' project files. Refusing to proceed."
     echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."
-    echo "Try 'git restore Cargo.lock && cargo clean && cargo build --locked'. If that doesn't help:"
+    echo "Try 'rm -rf ~/.cargo/registry/{src,cache}/
+    cargo build --lo && cargo build --locked' then rerun the script. If that doesn't help:"
     echo "Update the lockfile, for example by rebuilding the project(s), then commit the changes to the lockfile, and retry."
     exit 1
   fi
