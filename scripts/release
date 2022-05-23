@@ -23,7 +23,7 @@
 set -euo pipefail
 
 : "${1:?Release target is required. Specify one of: cli, web.}"
-: "${2:?Release type is required. Specify one of: major, minor, release, rc, beta, alpha.}"
+: "${2:?Release target and type are required.\nFor target, specify one of: cli, web.\nFor type, one of: major, minor, release, rc, beta, alpha.}"
 
 if ! [[ "$1" =~ ^(cli|web)$ ]]; then
   echo "Unknown release target: '$1'. Specify one of: cli, web."
@@ -50,8 +50,10 @@ if [ "$1" == "cli" ]; then
 
   cargo update --quiet --offline >/dev/null
   if [ -n "$(git status -s)" ]; then
-    echo "The lockfile 'Cargo.lock' is not synchronized with one of the 'Cargo.toml' project files. Refusing to proceed."
+    echo "Your local 'Cargo.lock' is not identical to the commited 'Cargo.lock."
+    echo "It may not synchronized with one of the 'Cargo.toml' project files. Refusing to proceed."
     echo "It likely means that the dependencies recorded in 'Cargo.lock' are different from the ones specified in one of the 'Cargo.toml'."
+    echo "Try 'git restore Cargo.lock && cargo clean && cargo build'. If that doesn't help:"
     echo "Update the lockfile, for example by rebuilding the project(s), then commit the changes to the lockfile, and retry."
     exit 1
   fi
@@ -83,23 +85,23 @@ elif [ "$1" == "web" ]; then
 
   pushd "packages_rs/nextclade-web" >/dev/null
 
-    if [[ "$2" =~ ^(major|minor|patch)$ ]]; then
-      version=$(npm version "$2")
-    elif [[ "$2" =~ ^(rc|beta|alpha)$ ]]; then
-      version=$(npm version prerelease --preid="$2")
-    fi
+  if [[ "$2" =~ ^(major|minor|patch)$ ]]; then
+    version=$(npm version "$2")
+  elif [[ "$2" =~ ^(rc|beta|alpha)$ ]]; then
+    version=$(npm version prerelease --preid="$2")
+  fi
 
-    printf "\n\n-----------------------------------\n\n"
-    git --no-pager diff
-    printf "\n\n-----------------------------------\n\n"
+  printf "\n\n-----------------------------------\n\n"
+  git --no-pager diff
+  printf "\n\n-----------------------------------\n\n"
 
-    git add -A >/dev/null
+  git add -A >/dev/null
 
-    if [ "$branch" == "release" ]; then
-      git commit -q -m "chore: release ${1} ${version}" >/dev/null
-    else
-      git commit -q -m "chore: pre-release ${1} ${version}" >/dev/null
-    fi
+  if [ "$branch" == "release" ]; then
+    git commit -q -m "chore: release ${1} ${version}" >/dev/null
+  else
+    git commit -q -m "chore: pre-release ${1} ${version}" >/dev/null
+  fi
 
   popd
 
@@ -107,17 +109,16 @@ else
   echo "Invalid release target ${1}"
 fi
 
-
 read -r -p "Do you want to push this to GitHub? The push will trigger CI build and publishing. Type 'y' or 'n'." choice
 case "$choice" in
-  y|Y )
-    echo "Pushing to GitHub, branch '${branch}'"
-    git push -q origin "${branch}"
-    ;;
-  n|N )
-    echo "Will exit now. Bit if you want to push later, type 'git push origin ${branch}'"
-    ;;
-  * )
-    echo "Invalid answer. Type 'y' or 'n'."
-    ;;
+y | Y)
+  echo "Pushing to GitHub, branch '${branch}'"
+  git push -q origin "${branch}"
+  ;;
+n | N)
+  echo "Will exit now. Bit if you want to push later, type 'git push origin ${branch}'"
+  ;;
+*)
+  echo "Invalid answer. Type 'y' or 'n'."
+  ;;
 esac
