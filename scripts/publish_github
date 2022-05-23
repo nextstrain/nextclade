@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2086
+
+# Uploads build artifacts to GitHub releases
+#
+# Dependencies:
+#  mkdir -p "${HOME}/bin"
+#  export PATH="${HOME}/bin:${PATH}"
+#  curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+#  curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+#  curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
+#  curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
+
+set -euo pipefail
+trap "exit" INT
+trap 'echo "ERROR: $BASH_SOURCE:$LINENO $BASH_COMMAND" >&2' ERR
+#trap 'if [ $? != 0 ]; then echo $BASH_COMMAND; fi' DEBUG
+
+# Directory where this script resides
+THIS_DIR="$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)"
+
+artifacts_dir=
+repo_name=
+user_name=
+git_sha=
+
+: "${1:?--artifacts_dir, --repo_name, --user_name, --git_sha are required.}"
+: "${GITHUB_TOKEN:? Env var \$GITHUB_TOKEN is required.}"
+
+while [ "${1:-}" != "" ]; do
+  case $1 in
+  --artifacts_dir)
+    shift
+    artifacts_dir=$1
+    shift
+    ;;
+  --repo_name)
+    shift
+    repo_name=$1
+    shift
+    ;;
+  --user_name)
+    shift
+    user_name=$1
+    shift
+    ;;
+  --git_sha)
+    shift
+    git_sha=$1
+    shift
+    ;;
+  *)
+    echo "$0: illegal option $1" >/dev/stderr
+    exit 1
+    ;;
+  esac
+done
+
+[ -z "$artifacts_dir" ] && echo "--artifacts_dir is required" >/dev/stderr && exit 1
+[ -z "$repo_name" ] && echo "--repo_name is required" >/dev/stderr && exit 1
+[ -z "$user_name" ] && echo "--user_name is required" >/dev/stderr && exit 1
+[ -z "$git_sha" ] && echo "--git_sha is required" >/dev/stderr && exit 1
+
+version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade-cli/Cargo.toml")
+release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
+prerelease_flag=${release_type:+--prerelease}
+
+# Check auth
+gh auth status >/dev/null
+
+# shellcheck disable=SC2086
+# Create a release.
+# We send release notes to stdin here.
+(
+  if [ -z "$release_type" ]; then
+    ./scripts/extract-release-notes.py CHANGELOG.md
+  else
+    cat docs/assets/prerelease-warning.md
+  fi
+  git cliff --unreleased
+) |
+  gh release create \
+    "${version}" \
+    --repo "${user_name}/${repo_name}" \
+    --title "${version}" \
+    --target "${git_sha}" \
+    --notes-file - \
+    $prerelease_flag &>/dev/null ||
+  true
+
+# Looks like the release appears not immediately, and if an upload is following too quickly
+# it fails because it cannot find the release. So let's wait for an arbitrary amount of
+# time here until the release is live.
+while [ "release not found" == "$(gh release view "${version}" --repo "${user_name}/${repo_name}" 2>&1 || true)" ]; do
+  echo "Waiting for release to go online"
+  sleep 2
+done
+
+# Check the release once again, in case of other errors
+gh release view "${version}" --repo "${user_name}/${repo_name}" >/dev/null
+
+# Upload files
+gh release upload \
+  "${version}" \
+  --repo "${user_name}/${repo_name}" \
+  --clobber \
+  ${artifacts_dir}/* >/dev/null
+
+# Add emoji reaction
+react_to_release() {
+  emoji=${1:-rocket}
+
+  release_id=$(curl -fsSL \
+    -H "Accept: application/vnd.github.v3+json" \
+    -H "Authorization: token ${GITHUB_TOKEN}" \
+    "https://api.github.com/repos/${user_name}/${repo_name}/releases/tags/${version}" |
+    jq ".id")
+
+  if [ -n "$release_id" ]; then
+    curl -fsSL \
+      -X POST \
+      -H "Accept: application/vnd.github.v3+json" \
+      -H "Authorization: token ${GITHUB_TOKEN}" \
+      "https://api.github.com/repos/${user_name}/${repo_name}/releases/${release_id}/reactions" \
+      -d "{\"content\":\"$emoji\"}" >/dev/null
+  fi
+}
+
+react_to_release 'rocket' || true

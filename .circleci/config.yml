@@ -146,7 +146,7 @@ jobs:
           paths:
             - .out/*
 
-  Release-Cli:
+  Release-Cli-Github:
     shell: "/bin/bash -euxo pipefail"
 
     environment:
@@ -175,43 +175,19 @@ jobs:
       - run:
           name: "Download dependencies"
           command: |
-            curl -fsSL "https://github.com/github-release/github-release/releases/download/v0.10.0/linux-amd64-github-release.bz2" | bzip2 -d > "${HOME}/bin/github-release"
-            chmod +x "${HOME}/bin/github-release"
-
-            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel"
-            chmod +x "${HOME}/bin/dasel"
-
+            curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+            curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
             curl -fsSL "https://github.com/orhun/git-cliff/releases/download/v0.7.0/git-cliff-0.7.0-x86_64-unknown-linux-gnu.tar.gz" | tar -C "${HOME}/bin" --strip-components=1 -xz "git-cliff-0.7.0/git-cliff"
+            curl -fsSL "https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64" -o ${HOME}/bin/jq && chmod +x ${HOME}/bin/jq
 
       - run:
           name: "Publish binaries to GitHub Releases"
           command: |
-            export ARTIFACTS_DIR="/home/circleci/workspace/.out"
-            export VERSION=$(dasel select -p toml -s ".package.version" -f packages_rs/nextclade/Cargo.toml)
-
-            (./scripts/extract-release-notes.py CHANGELOG.md; git cliff --unreleased) | github-release release \
-              --user "${CIRCLE_PROJECT_USERNAME}" \
-              --repo "${CIRCLE_PROJECT_REPONAME}" \
-              --tag "${VERSION}" \
-              --target "${CIRCLE_SHA1}" \
-              --description - \
-              --security-token "${GITHUB_TOKEN}" \
-            || true
-
-            # Looks like the release appears not immediately and if upload is following too quickly
-            # it fails because it cannot find the release. So let's wait an arbitrary amount of time here.
-            sleep 7
-
-            for filename in ${ARTIFACTS_DIR}/*; do
-              github-release upload \
-                --file "${filename}" \
-                --name "$(basename ${filename})" \
-                --user "${CIRCLE_PROJECT_USERNAME}" \
-                --repo "${CIRCLE_PROJECT_REPONAME}" \
-                --tag "${VERSION}" \
-                --security-token "${GITHUB_TOKEN}" \
-                --replace
-            done
+            ./scripts/publish_github \
+              --artifacts_dir "/home/circleci/workspace/.out" \
+              --user_name "${CIRCLE_PROJECT_USERNAME}" \
+              --repo_name "${CIRCLE_PROJECT_REPONAME}" \
+              --git_sha "${CIRCLE_SHA1}"
 
   Release-Cli-Docker:
     shell: "/bin/bash -euxo pipefail"
@@ -246,12 +222,12 @@ jobs:
             chmod +x "${HOME}/bin/dasel"
 
       - run:
-          name: "Publish container images to Docker Hub"
+          name: "Build and publish Docker container images to Docker Hub"
           command: |
             pwd
             cp -vr /home/circleci/workspace/.out .
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            ./docker-prod
+            ./scripts/publish_docker --push
 
   Build-And-Deploy-Web:
     shell: "/bin/bash -euxo pipefail"
@@ -365,17 +341,31 @@ jobs:
               --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
               --paths "/*"
 
-cli_release_branch: &cli_release_branch
-  filters:
-    branches:
-      only:
-        - release-cli
+      - run:
+          name: " [ web ] | Create and push git tag"
+          command: |
+            curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
+
+            gh auth setup-git
+
+            git config user.email "nextstrainbot@nextstrain.org"
+            git config user.name "nextstrain-bot"
+
+            cd packages_rs/nextclade-web
+
+            export version=$(node -e "\
+              const semver = require('semver'); \
+              const pkg = require('./package.json'); \
+              console.log(pkg.version) \
+            ")
+
+            git tag "web-${version}"
+            git push origin "web-${version}"
 
 cli_branches: &cli_branches
   filters:
     branches:
       only:
-        - master
         - staging-cli
         - release-cli
 
@@ -427,8 +417,8 @@ workflows:
                 - aarch64-unknown-linux-gnu
                 - x86_64-unknown-linux-musl
 
-      - Release-Cli:
-          <<: *cli_release_branch
+      - Release-Cli-Github:
+          <<: *cli_branches
 
           context:
             - nextclade_github
@@ -442,7 +432,7 @@ workflows:
             - Build-Cli-x86_64-unknown-linux-musl
 
       - Release-Cli-Docker:
-          <<: *cli_release_branch
+          <<: *cli_branches
 
           context:
             - nextclade_github
@@ -454,7 +444,9 @@ workflows:
       - Build-And-Deploy-Web:
           <<: *web_branches
 
-          context: nextclade_web_<< pipeline.git.branch >>
+          context:
+            - nextclade_github
+            - nextclade_web_<< pipeline.git.branch >>
 
           requires:
             - Update-Builder-Container

@@ -157,3 +157,37 @@ cargo fmt --all
 cd packages_rs/nextclade-web
 yarn format:fix
 ```
+
+## Maintenance
+
+There are 2 release targets, which are released and versioned separately:
+
+- CLI (Nextclade CLI and Nextalign CLI are released together)
+- Web application
+
+### Versioning
+
+Nextclade project tries hard to adhere to [Semantic Versioning 2.0.0](https://semver.org/)
+
+### Releasing new CLI version
+
+- Checkout the branch and commit you want to release. Theoretically, you can release any commit, but be nice and stick to releases from master.
+- If you are making a stable release, make sure to fill the CHANGELOG.md and commit changes to your branch. Pay particular attention to headings: CI will extract the text between the two first `##` headings, in a very silly way, and will use this text as release notes on GitHub Releases.
+- Make sure there are no uncommitted changes.
+- Follow comments in the script `./scripts/releases` on how to install dependencies for this script.
+- Run `./scripts/releases cli <bump_type>`, where `bump_type` signifies by how much you want to increment the version. It should be one of: `major`, `minor`, `patch`, `rc`, `beta`, `alpha`. Note that `rc`, `beta` and `alpha` will make a prerelease, that is - marked as "prerelease" on GitHub Releases and not overwriting "latest" tags on DockerHub.
+- Verify the changes the script applied:
+  - versions are bumped as you expect in all Cargo.toml and Cargo.lock files.
+  - a local commit created on branch `release-cli` with a message containing the version number that you expect
+- The script will ask if you want to push the changes. This is the last step. If you agree, then the changes will be pushed to GitHub and CI will start a build. You can track it [here](https://app.circleci.com/pipelines/github/nextstrain/nextclade). If you refuse this step, you can still push later.
+
+### Releasing new Web version
+
+- There are 3 websites exist, for master, staging and release environments. They map to master, staging and release git branches. Pick an environment you want to deploy the new version to and checkout the corresponding branch.
+- If you are deploying to release, make sure to fill the CHANGELOG.md and commit changes to your branch. Pay particular attention to headings: CI will extract the text between the two first `##` headings, in a very silly way, and will use this text as release notes on GitHub Releases.
+- Make sure there are no uncommitted changes.
+- Follow comments in the script `./scripts/releases` on how to install dependencies for this script.
+- Run `./scripts/releases web <bump_type>`, where `bump_type` signifies by how much you want to increment the version. It should be one of: `major`, `minor`, `patch`, `rc`, `beta`, `alpha`. It is advised against releasing `rc`, `beta`, `alpha` to release environment.
+
+
+If you want to deploy the same version to multiple environments, then release to one environment (on one branch) and then promote it to other environments: manually fast-forward other branch(es) to this commit and push.

@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+#
+# Builds and optionally pushes production docker images
+#
+# Dependencies:
+#
+#  - docker (https://docs.docker.com/get-docker/)
+#  - dasel
+#     mkdir -p "${HOME}/bin"
+#     export PATH="${HOME}/bin:${PATH}"
+#     curl -fsSL "https://github.com/TomWright/dasel/releases/download/v1.24.3/dasel_linux_amd64" -o "${HOME}/bin/dasel" && chmod +x "${HOME}/bin/dasel"
+
+set -euo pipefail
+trap "exit" INT
+
+# Directory where this script resides
+THIS_DIR="$(
+  cd "$(dirname "${BASH_SOURCE[0]}")"
+  pwd
+)"
+
+DOCKER_IMAGE_PUSH=0
+
+case "${1:-}" in
+"--push" | "-p")
+  shift
+  DOCKER_IMAGE_PUSH=1
+  ;;
+esac
+
+DOCKER_ORG="nextstrain"
+
+declare -a PROJECT_NAMES=(
+  "nextclade"
+  "nextalign"
+)
+
+declare -a BASE_IMAGES=(
+  "alpine"
+  "scratch"
+  "debian"
+)
+
+version=$(dasel select -p toml -s ".package.version" -f "packages_rs/nextclade-cli/Cargo.toml")
+version_major=$("${THIS_DIR}/semver" get major "${version}")
+release_type=$("${THIS_DIR}/semver" get prerel "${version}" | cut -d '.' -f 1)
+release_type=${release_type:=latest}
+
+for base_image in "${BASE_IMAGES[@]}"; do
+  for project_name in "${PROJECT_NAMES[@]}"; do
+    echo "Building docker image '${DOCKER_ORG}/${project_name}:${version}-${base_image}'"
+
+    export DOCKER_BUILDKIT=1
+    export BUILDKIT_PROGRESS=plain
+    export PROGRESS_NO_TRUNC=1
+
+    TAGS=" \
+      ${DOCKER_ORG}/${project_name}:${release_type}-${base_image} \
+      ${DOCKER_ORG}/${project_name}:${version}-${base_image} \
+      "
+
+    if [ "${release_type}" == "latest" ]; then
+      TAGS="${TAGS:-} \
+        ${DOCKER_ORG}/${project_name}:${base_image}
+        ${DOCKER_ORG}/${project_name}:${release_type}-${version_major}-${base_image} \
+        ${DOCKER_ORG}/${project_name}:${version_major}-${base_image} \
+      "
+    else
+      TAGS="${TAGS:-} \
+        ${DOCKER_ORG}/${project_name}:prerelease-${base_image}
+        ${DOCKER_ORG}/${project_name}:prerelease-${version_major}-${base_image} \
+      "
+    fi
+
+    if [ "${base_image}" == "debian" ]; then
+      TAGS="${TAGS:-} \
+        ${DOCKER_ORG}/${project_name}:${release_type} \
+        "
+
+      if [ "${release_type}" == "latest" ]; then
+        TAGS="${TAGS:-} \
+          ${DOCKER_ORG}/${project_name}:${version_major} \
+          ${DOCKER_ORG}/${project_name}:${version} \
+          "
+      else
+        TAGS="${TAGS:-} \
+          ${DOCKER_ORG}/${project_name}:prerelease
+          ${DOCKER_ORG}/${project_name}:prerelease-${version_major} \
+        "
+      fi
+    fi
+
+    # Make a string containing of tags for `docker build` command
+    TAGS_FOR_DOCKER_BUILD=""
+    for tag in ${TAGS}; do
+      TAGS_FOR_DOCKER_BUILD="${TAGS_FOR_DOCKER_BUILD} -t ${tag}"
+    done
+
+    # shellcheck disable=SC2086
+    docker build -q \
+      --file="docker/docker-prod-${base_image}.dockerfile" \
+      ${TAGS_FOR_DOCKER_BUILD} \
+      . \
+      >/dev/null
+
+    echo ""
+
+    if [ "${DOCKER_IMAGE_PUSH}" == "1" ]; then
+      # Push each tag separately (`docker push` does not support pushing multiple)
+      for tag in ${TAGS}; do
+        echo "Pushing  docker image '${tag}'"
+        docker push -q "${tag}"
+      done
+      echo ""
+    fi
+
+  done
+done

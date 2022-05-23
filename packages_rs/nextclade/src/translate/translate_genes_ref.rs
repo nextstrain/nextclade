@@ -1,4 +1,5 @@
 use crate::align::params::AlignPairwiseParams;
+use crate::gene::gene::GeneStrand;
 use crate::io::gene_map::GeneMap;
 use crate::io::nuc::Nuc;
 use crate::translate::complement::reverse_complement_in_place;
@@ -16,7 +17,7 @@ pub fn translate_genes_ref(
     .iter()
     .map(|(gene_name, gene)| -> Result<(String, Translation), Report> {
       let mut gene_nuc_seq = ref_seq[gene.start..gene.end].to_vec();
-      if gene.strand == "-" {
+      if gene.strand == GeneStrand::Reverse {
         reverse_complement_in_place(&mut gene_nuc_seq);
       }
       let peptide = translate(&gene_nuc_seq, gene, params)?;
