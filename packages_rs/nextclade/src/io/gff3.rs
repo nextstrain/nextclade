@@ -54,21 +54,19 @@ fn read_gff3_file_impl<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> 
     .map(to_eyre_error)
     .collect::<Result<Vec<GffRecord>, Report>>()?;
 
-  let genemap_result = records
+  let genemap: GeneMap = records
     .iter()
     .filter_map(convert_gff_record_to_gene_map_record)
-    .collect::<Result<GeneMap, Report>>();
+    .collect::<Result<GeneMap, Report>>()?;
 
-  if let Ok(genemap) = &genemap_result {
-    if genemap.len() == 0 && records.len() != 0 {
-      warn!(
-        "No valid gene entries found in genemap with {} records. No genes will be used.",
-        records.len()
-      );
-    }
+  if genemap.len() == 0 && records.len() != 0 {
+    warn!(
+      "No valid gene entries found in genemap with {} records. No genes will be used.",
+      records.len()
+    );
   }
 
-  genemap_result
+  Ok(genemap)
 }
 
 pub fn read_gff3_file<P: AsRef<Path>>(filename: &P) -> Result<GeneMap, Report> {
