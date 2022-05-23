@@ -1,4 +1,5 @@
-import React, { SVGProps, useCallback, useState } from 'react'
+import React, { SVGProps, useCallback, useMemo, useState } from 'react'
+import { useRecoilValue } from 'recoil'
 
 import { BASE_MIN_WIDTH_PX, GAP } from 'src/constants'
 import type { NucleotideDeletion } from 'src/algorithms/types'
@@ -9,6 +10,7 @@ import { formatRange } from 'src/helpers/formatRange'
 import { getSafeId } from 'src/helpers/getSafeId'
 import { AminoacidMutationBadge } from 'src/components/Common/MutationBadge'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { getSeqMarkerDims, seqMarkerGapHeightStateAtom, SeqMarkerHeightState } from 'src/state/seqViewSettings.state'
 
 const gapColor = getNucleotideColor(GAP)
 
@@ -23,6 +25,13 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
+
+  const seqMarkerGapHeightState = useRecoilValue(seqMarkerGapHeightStateAtom)
+  const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerGapHeightState), [seqMarkerGapHeightState])
+
+  if (seqMarkerGapHeightState === SeqMarkerHeightState.Off) {
+    return null
+  }
 
   const { start: begin, length, aaSubstitutions, aaDeletions } = deletion
   const end = begin + length
@@ -43,9 +52,9 @@ function SequenceMarkerGapUnmemoed({ seqName, deletion, pixelsPerBase, ...rest }
       id={id}
       fill={gapColor}
       x={x}
-      y={-10}
+      y={y}
       width={width}
-      height="30"
+      height={height}
       {...rest}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}

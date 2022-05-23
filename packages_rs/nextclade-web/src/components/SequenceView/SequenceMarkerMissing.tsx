@@ -1,13 +1,19 @@
-import React, { SVGProps, useCallback, useState } from 'react'
+import React, { SVGProps, useCallback, useMemo, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { BASE_MIN_WIDTH_PX, N } from 'src/constants'
+import { useRecoilValue } from 'recoil'
 
 import type { NucleotideMissing } from 'src/algorithms/types'
-import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { Tooltip } from 'src/components/Results/Tooltip'
+import { BASE_MIN_WIDTH_PX, N } from 'src/constants'
 import { formatRange } from 'src/helpers/formatRange'
+import { getNucleotideColor } from 'src/helpers/getNucleotideColor'
 import { getSafeId } from 'src/helpers/getSafeId'
+import {
+  getSeqMarkerDims,
+  SeqMarkerHeightState,
+  seqMarkerMissingHeightStateAtom,
+} from 'src/state/seqViewSettings.state'
 
 const missingColor = getNucleotideColor(N)
 
@@ -22,6 +28,13 @@ export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase,
   const [showTooltip, setShowTooltip] = useState(false)
   const onMouseEnter = useCallback(() => setShowTooltip(true), [])
   const onMouseLeave = useCallback(() => setShowTooltip(false), [])
+
+  const seqMarkerMissingHeightState = useRecoilValue(seqMarkerMissingHeightStateAtom)
+  const { y, height } = useMemo(() => getSeqMarkerDims(seqMarkerMissingHeightState), [seqMarkerMissingHeightState])
+
+  if (seqMarkerMissingHeightState === SeqMarkerHeightState.Off) {
+    return null
+  }
 
   const { begin, end } = missing // prettier-ignore
 
@@ -38,9 +51,9 @@ export function SequenceMarkerMissingUnmemoed({ seqName, missing, pixelsPerBase,
       id={id}
       fill={missingColor}
       x={x}
-      y={-10}
+      y={y}
       width={width}
-      height="30"
+      height={height}
       {...rest}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
