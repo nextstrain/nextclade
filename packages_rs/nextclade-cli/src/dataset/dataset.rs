@@ -25,13 +25,13 @@ pub struct DatasetCompatibility {
 pub struct DatasetAttributeValue {
   pub is_default: bool,
   pub value: String,
+  pub value_friendly: Option<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetAttributes {
   pub name: DatasetAttributeValue,
-  pub name_friendly: DatasetAttributeValue,
   pub reference: DatasetAttributeValue,
   pub tag: DatasetAttributeValue,
 
