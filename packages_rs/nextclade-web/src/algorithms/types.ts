@@ -511,7 +511,7 @@ export interface Dataset {
   nameFriendly: string
   datasetRefs: DatasetRef[]
   defaultRef: string
-  defaultGene: string
+  defaultGene?: string
   geneOrderPreference: string[]
 }
 
