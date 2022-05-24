@@ -491,6 +491,7 @@ export interface DatasetFiles {
 
 export interface DatasetAttribute {
   value: string
+  valueFriendly?: string
   isDefault: boolean
 }
 

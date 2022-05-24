@@ -29,11 +29,16 @@ export function DatasetInfo({ dataset }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
   const tagFormatted = useMemo(() => dataset && formatDateIsoUtcSimple(dataset.attributes.tag.value), [dataset])
 
+  const { name, reference } = dataset.attributes
+
   return (
     <DatasetinfoContainer>
-      <DatasetName>{dataset.attributes.name.value}</DatasetName>
+      <DatasetName>{name.valueFriendly ?? name.value}</DatasetName>
       <DatasetInfoLine>
-        {t('Reference: {{ accession }})', { accession: dataset.attributes.reference.value })}
+        {t('Reference: {{ name }} ({{ accession }})', {
+          name: reference.valueFriendly ?? 'Untitled',
+          accession: reference.value,
+        })}
       </DatasetInfoLine>
       <DatasetInfoLine>{t('Updated: {{updated}}', { updated: tagFormatted })}</DatasetInfoLine>
     </DatasetinfoContainer>

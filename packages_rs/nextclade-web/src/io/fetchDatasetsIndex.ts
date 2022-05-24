@@ -52,10 +52,12 @@ export function getLatestCompatibleEnabledDatasets(datasetsIndexJson: DatasetsIn
 
   const defaultDataset = getDefaultDataset(datasets)
 
+  const { value, valueFriendly } = defaultDataset.attributes.name
+
   return {
     datasets,
-    defaultDatasetName: defaultDataset.attributes.name.value,
-    defaultDatasetNameFriendly: defaultDataset.attributes.name.value,
+    defaultDatasetName: value,
+    defaultDatasetNameFriendly: valueFriendly ?? value,
   }
 }
 

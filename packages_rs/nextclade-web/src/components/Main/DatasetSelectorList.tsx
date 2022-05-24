@@ -82,6 +82,7 @@ export function DatasetSelectorList({
 
     return search(datasets, searchTerm, (dataset) => [
       dataset.attributes.name.value,
+      dataset.attributes.name.valueFriendly ?? '',
       dataset.attributes.reference.value,
     ])
   }, [datasets, searchTerm])
