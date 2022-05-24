@@ -3,7 +3,7 @@ import React, { useCallback, useMemo } from 'react'
 import { ListGroup, ListGroupItem } from 'reactstrap'
 import styled from 'styled-components'
 
-import type { DatasetFlat } from 'src/algorithms/types'
+import type { Dataset } from 'src/algorithms/types'
 import { search } from 'src/helpers/search'
 import { DatasetInfo } from 'src/components/Main/DatasetInfo'
 
@@ -42,15 +42,8 @@ export const DatasetSelectorLi = styled(ListGroupItem)<{ $isDimmed?: boolean }>`
   background-color: transparent;
 `
 
-export const DatasetName = styled.h6`
-  font-size: 1.3rem;
-  font-weight: bold;
-  padding: 0;
-  margin: 0;
-`
-
 export interface DatasetSelectorListItemProps {
-  dataset: DatasetFlat
+  dataset: Dataset
   isCurrent?: boolean
   isDimmed?: boolean
   onClick?: () => void
@@ -65,7 +58,7 @@ export function DatasetSelectorListItem({ dataset, isCurrent, isDimmed, onClick 
 }
 
 export interface DatasetSelectorListProps {
-  datasets: DatasetFlat[]
+  datasets: Dataset[]
   searchTerm: string
   datasetHighlighted?: string
   onDatasetHighlighted(dataset: string): void
@@ -78,7 +71,7 @@ export function DatasetSelectorList({
   onDatasetHighlighted,
 }: DatasetSelectorListProps) {
   const onItemClick = useCallback(
-    (dataset: DatasetFlat) => () => onDatasetHighlighted(dataset.name),
+    (dataset: Dataset) => () => onDatasetHighlighted(dataset.attributes.name.value),
     [onDatasetHighlighted],
   )
 
@@ -88,10 +81,8 @@ export function DatasetSelectorList({
     }
 
     return search(datasets, searchTerm, (dataset) => [
-      dataset.name,
-      dataset.nameFriendly,
-      dataset.reference.accession,
-      dataset.reference.strainName,
+      dataset.attributes.name.value,
+      dataset.attributes.reference.value,
     ])
   }, [datasets, searchTerm])
 
@@ -101,10 +92,10 @@ export function DatasetSelectorList({
         {[itemsStartWith, itemsInclude].map((datasets) =>
           datasets.map((dataset) => (
             <DatasetSelectorListItem
-              key={dataset.name}
+              key={dataset.attributes.name.value}
               dataset={dataset}
               onClick={onItemClick(dataset)}
-              isCurrent={dataset.name === datasetHighlighted}
+              isCurrent={dataset.attributes.name.value === datasetHighlighted}
             />
           )),
         )}
@@ -112,10 +103,10 @@ export function DatasetSelectorList({
         {[itemsNotInclude].map((datasets) =>
           datasets.map((dataset) => (
             <DatasetSelectorListItem
-              key={dataset.name}
+              key={dataset.attributes.name.value}
               dataset={dataset}
               onClick={onItemClick(dataset)}
-              isCurrent={dataset.name === datasetHighlighted}
+              isCurrent={dataset.attributes.name.value === datasetHighlighted}
               isDimmed
             />
           )),

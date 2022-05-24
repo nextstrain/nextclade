@@ -454,74 +454,6 @@ export interface AlgorithmInput {
   getContent(): Promise<string>
 }
 
-export interface DatasetsSettings {
-  defaultDatasetName: string
-  defaultDatasetNameFriendly: string
-}
-
-export interface DatasetFiles {
-  geneMap: string
-  primers: string
-  qc: string
-  virusPropertiesJson: string
-  reference: string
-  sequences: string
-  tree: string
-  tag: string
-
-  [k: string]: string
-}
-
-export interface DatasetVersion {
-  enabled: boolean
-  metadata: Record<string, unknown>
-  tag: string
-  comment: string
-  latest: boolean
-  compatibility: {
-    nextcladeCli: {
-      min?: string
-      max?: string
-    }
-    nextcladeWeb: {
-      min?: string
-      max?: string
-    }
-  }
-  files: DatasetFiles
-  zipBundle: string
-}
-
-export interface DatasetRefSeq {
-  accession: string
-  source: string
-  strainName: string
-}
-
-export interface DatasetRef {
-  enabled: boolean
-  metadata: Record<string, unknown>
-  reference: DatasetRefSeq
-  versions: DatasetVersion[]
-}
-
-export interface Dataset {
-  enabled: boolean
-  name: string
-  nameFriendly: string
-  datasetRefs: DatasetRef[]
-  defaultRef: string
-  defaultGene: string
-  geneOrderPreference: string[]
-}
-
-export interface DatasetsIndexJson {
-  settings: DatasetsSettings
-  datasets: Dataset[]
-}
-
-export interface DatasetFlat extends Dataset, DatasetRef, DatasetVersion {}
-
 export interface UrlParams {
   inputRootSeq?: string
   inputTree?: string
@@ -542,4 +474,57 @@ export interface NextcladeResult {
   seqName: string
   result?: AnalysisOutput
   error?: string
+}
+
+export interface DatasetFiles {
+  'genemap.gff': string
+  'primers.csv': string
+  'qc.json': string
+  'reference.fasta': string
+  'sequences.fasta': string
+  'tag.json': string
+  'tree.json': string
+  'virus_properties.json': string
+
+  [k: string]: string
+}
+
+export interface DatasetAttribute {
+  value: string
+  isDefault: boolean
+}
+
+export interface DatasetAttributes {
+  name: DatasetAttribute
+  tag: DatasetAttribute
+  reference: DatasetAttribute
+
+  [k: string]: DatasetAttribute
+}
+
+export interface DatasetCompatibility {
+  nextcladeCli: {
+    min?: string
+    max?: string
+  }
+  nextcladeWeb: {
+    min?: string
+    max?: string
+  }
+}
+
+export interface Dataset {
+  enabled: boolean
+  attributes: DatasetAttributes
+  comment: string
+  compatibility: DatasetCompatibility
+  defaultGene: string
+  geneOrderPreference: string[]
+  files: DatasetFiles
+  zipBundle: string
+}
+
+export interface DatasetsIndexV2Json {
+  schema: string
+  datasets: Dataset[]
 }

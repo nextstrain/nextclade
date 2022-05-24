@@ -1,14 +1,14 @@
 import { isNil } from 'lodash'
 import { atom, DefaultValue, selector } from 'recoil'
 
-import type { DatasetFlat } from 'src/algorithms/types'
+import type { Dataset } from 'src/algorithms/types'
 import { inputResetAtom } from 'src/state/inputs.state'
 import { persistAtom } from 'src/state/persist/localStorage'
 import { viewedGeneAtom } from 'src/state/settings.state'
 import { isDefaultValue } from './results.state'
 
 export interface Datasets {
-  datasets: DatasetFlat[]
+  datasets: Dataset[]
   defaultDatasetName: string
   defaultDatasetNameFriendly: string
 }
@@ -34,9 +34,9 @@ export const datasetCurrentNameAtom = selector<string | undefined>({
       reset(datasetCurrentNameStorageAtom)
     } else if (datasetCurrentName !== newDatasetCurrentName) {
       const { datasets } = get(datasetsAtom)
-      const dataset = datasets.find((dataset) => dataset.name === newDatasetCurrentName)
+      const dataset = datasets.find((dataset) => dataset.attributes.name.value === newDatasetCurrentName)
       if (dataset) {
-        set(datasetCurrentNameStorageAtom, dataset.name)
+        set(datasetCurrentNameStorageAtom, dataset.attributes.name.value)
         set(viewedGeneAtom, dataset.defaultGene)
         reset(inputResetAtom)
       }
@@ -44,12 +44,12 @@ export const datasetCurrentNameAtom = selector<string | undefined>({
   },
 })
 
-export const datasetCurrentAtom = selector<DatasetFlat | undefined>({
+export const datasetCurrentAtom = selector<Dataset | undefined>({
   key: 'datasetCurrent',
   get({ get }) {
     const { datasets } = get(datasetsAtom)
     const datasetCurrentName = get(datasetCurrentNameAtom)
-    return datasets.find((dataset) => dataset.name === datasetCurrentName)
+    return datasets.find((dataset) => dataset.attributes.name.value === datasetCurrentName)
   },
 })
 

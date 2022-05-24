@@ -1,158 +1,80 @@
-/* eslint-disable no-loops/no-loops */
-import { mapValues, maxBy } from 'lodash'
+import { mapValues } from 'lodash'
 import semver from 'semver'
+import { ErrorInternal } from 'src/helpers/ErrorInternal'
 import urljoin from 'url-join'
 
-import { Dataset, DatasetFiles, DatasetFlat, DatasetRef, DatasetsIndexJson, DatasetVersion } from 'src/algorithms/types'
+import { Dataset, DatasetsIndexV2Json } from 'src/algorithms/types'
 import { axiosFetch } from 'src/io/axiosFetch'
 
 const DATA_FULL_DOMAIN = process.env.DATA_FULL_DOMAIN ?? '/'
-const DATA_INDEX_FILE = 'index.json'
+const DATA_INDEX_FILE = 'index_v2.json'
 export const DATA_INDEX_FILE_FULL_URL = urljoin(DATA_FULL_DOMAIN, DATA_INDEX_FILE)
 const thisVersion = process.env.PACKAGE_VERSION ?? ''
 
-export function isCompatible({ min, max }: { min?: string; max?: string }) {
+export function isEnabled(dataset: Dataset) {
+  return dataset.enabled
+}
+
+export function isCompatible(dataset: Dataset) {
+  const { min, max } = dataset.compatibility.nextcladeWeb
   return semver.gte(thisVersion, min ?? thisVersion) && semver.lte(thisVersion, max ?? thisVersion)
 }
 
-export function fileUrlsToAbsolute(files: DatasetFiles): DatasetFiles {
-  return mapValues(files, (file: string) => urljoin(DATA_FULL_DOMAIN, file))
+export function isLatest(dataset: Dataset) {
+  return dataset.attributes.tag.isDefault
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
-export function getEnabledDatasets(datasets?: Dataset[]): Dataset[] {
-  const enabledDatasets: Dataset[] = []
-  for (const dataset of datasets ?? []) {
-    if (!dataset.enabled) {
-      continue // eslint-disable-line no-continue
-    }
+export function areAllAttributesDefault(dataset: Dataset) {
+  return Object.values(dataset.attributes).every((attr) => attr.isDefault)
+}
 
-    const enabledDataset: Dataset = { ...dataset }
-    enabledDataset.datasetRefs = []
+export function fileUrlsToAbsolute(dataset: Dataset): Dataset {
+  const files = mapValues(dataset.files, (file) => urljoin(DATA_FULL_DOMAIN, file))
+  return { ...dataset, files }
+}
 
-    for (const datasetRef of dataset.datasetRefs) {
-      if (!datasetRef.enabled) {
-        continue // eslint-disable-line no-continue
-      }
-
-      const enabledDatasetRef: DatasetRef = { ...datasetRef }
-      enabledDatasetRef.versions = []
-
-      for (const version of datasetRef.versions) {
-        if (version.enabled) {
-          enabledDatasetRef.versions.push(version)
-        }
-      }
-
-      if (enabledDatasetRef.versions.length > 0) {
-        enabledDataset.datasetRefs.push(enabledDatasetRef)
-      }
-    }
-
-    if (enabledDataset.datasetRefs.length > 0) {
-      enabledDatasets.push(enabledDataset)
-    }
+export function getDefaultDataset(datasets: Dataset[]) {
+  const defaultDatasetCandidates = datasets.filter(areAllAttributesDefault)
+  if (defaultDatasetCandidates.length === 0) {
+    throw new ErrorInternal('Unable to find default dataset')
+  } else if (defaultDatasetCandidates.length > 1) {
+    throw new ErrorInternal('Multiple candidates found for default dataset')
   }
-
-  return enabledDatasets
+  return datasets[0]
 }
 
-export function getCompatibleDatasets(datasets?: Dataset[]): Dataset[] {
-  const compatibleDatasets: Dataset[] = []
+export function getLatestCompatibleEnabledDatasets(datasetsIndexJson: DatasetsIndexV2Json) {
+  const datasets = datasetsIndexJson.datasets
+    .filter(isEnabled)
+    .filter(isCompatible)
+    .filter(isLatest)
+    .map((dataset) => fileUrlsToAbsolute(dataset))
 
-  for (const dataset of datasets ?? []) {
-    const compatibleDatasetRefs: DatasetRef[] = []
+  const defaultDataset = getDefaultDataset(datasets)
 
-    for (const datasetRef of dataset.datasetRefs) {
-      let compatibleVersions: DatasetVersion[] = []
-      for (const version of datasetRef.versions) {
-        if (isCompatible(version.compatibility.nextcladeWeb)) {
-          compatibleVersions.push(version)
-        }
-      }
-
-      compatibleVersions = compatibleVersions.map((ver) => ({ ...ver, files: fileUrlsToAbsolute(ver.files) }))
-
-      if (compatibleVersions.length > 0) {
-        compatibleDatasetRefs.push({
-          ...datasetRef,
-          versions: compatibleVersions,
-        })
-      }
-    }
-
-    if (compatibleDatasetRefs.length > 0) {
-      compatibleDatasets.push({
-        ...dataset,
-        datasetRefs: compatibleDatasetRefs,
-      })
-    }
-  }
-
-  return compatibleDatasets
-}
-
-export function getLatestDatasetsFlat(datasets?: Dataset[]): DatasetFlat[] {
-  const latestDatasetsFlat: DatasetFlat[] = []
-  for (const dataset of datasets ?? []) {
-    for (const datasetRef of dataset.datasetRefs) {
-      const latestVersion = maxBy(datasetRef.versions, (version) => version.tag)
-      if (latestVersion) {
-        latestDatasetsFlat.push({
-          ...dataset,
-          ...datasetRef,
-          ...latestVersion,
-        })
-      }
-    }
-  }
-
-  return latestDatasetsFlat
-}
-
-export function getLatestCompatibleEnabledDatasets(datasetsIndexJson?: DatasetsIndexJson) {
-  const datasets = getLatestDatasetsFlat(getCompatibleDatasets(getEnabledDatasets(datasetsIndexJson?.datasets)))
-
-  const defaultDatasetName = datasetsIndexJson?.settings.defaultDatasetName ?? ''
-  const defaultDataset = datasets.find((dataset) => dataset.name === defaultDatasetName)
-  let defaultDatasetNameFriendly = ''
-  if (defaultDataset) {
-    defaultDatasetNameFriendly = defaultDataset.nameFriendly
-  } else if (datasets.length > 0) {
-    defaultDatasetNameFriendly = datasets[0].nameFriendly
-  }
-
-  return { datasets, defaultDatasetName, defaultDatasetNameFriendly }
-}
-
-export class DatasetNotFoundError extends Error {
-  constructor(name: string, refAccession?: string, tag?: string) {
-    let message = `Dataset not found: name=${name}`
-    if (refAccession) {
-      message += `, reference=${refAccession}`
-    }
-    if (tag) {
-      message += `, tag=${tag}`
-    }
-    super(message)
+  return {
+    datasets,
+    defaultDatasetName: defaultDataset.attributes.name.value,
+    defaultDatasetNameFriendly: defaultDataset.attributes.name.value,
   }
 }
 
-export function findDataset(datasets: DatasetFlat[], name?: string, refAccession?: string, tag?: string) {
+export function findDataset(datasets: Dataset[], name?: string, refAccession?: string, tag?: string) {
   return datasets.find((dataset) => {
-    let isMatch = dataset.name === name
+    let isMatch = dataset.attributes.name.value === name
 
     if (refAccession) {
-      isMatch = isMatch && dataset.reference.accession === refAccession
+      isMatch = isMatch && dataset.attributes.reference.value === refAccession
     }
 
     if (tag) {
-      isMatch = isMatch && dataset.tag === tag
+      isMatch = isMatch && dataset.attributes.tag.value === tag
     }
+
     return isMatch
   })
 }
 
 export async function fetchDatasetsIndex() {
-  return axiosFetch<DatasetsIndexJson>(DATA_INDEX_FILE_FULL_URL)
+  return axiosFetch<DatasetsIndexV2Json>(DATA_INDEX_FILE_FULL_URL)
 }
