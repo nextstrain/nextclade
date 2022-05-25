@@ -32,16 +32,32 @@ pub fn convert_gff_record_to_gene(gene_name: &str, record: &GffRecord) -> Result
 
 pub fn convert_gff_record_to_gene_map_record(record: &GffRecord) -> Option<Result<(String, Gene), Report>> {
   if record.feature_type().to_lowercase() == "gene" {
-    let gene_name = record.attributes().get("gene_name");
-    if let Some(gene_name) = gene_name {
-      return Some(match convert_gff_record_to_gene(gene_name, record) {
-        Ok(gene) => Ok((gene_name.clone(), gene)),
-        Err(report) => Err(report)
-          .wrap_err("When parsing a GFF3 record")
-          .with_section(|| format!("{:#?}", record).header("record:")),
-      });
-    }
+    let attributes = record.attributes();
+    let gene_name_opt = attributes
+      .get("gene_name")
+      .or_else(|| attributes.get("gene"))
+      .or_else(|| attributes.get("locus_tag"));
+    if gene_name_opt.is_none() {
+      warn!(
+        "Genemap record could not be parsed as it contains neither a 'gene_name' nor 'locus_tag' attribute ({:?})",
+        record
+      );
+      return None;
+    };
+    let gene_name = gene_name_opt.unwrap();
+    return Some(match convert_gff_record_to_gene(gene_name, record) {
+      Ok(gene) => Ok((gene_name.clone(), gene)),
+      Err(report) => Err(report)
+        .wrap_err("When parsing a GFF3 record")
+        .with_section(|| format!("{:#?}", record).header("record:")),
+    });
   }
+  // Could warn like this, but should test first if `source` is not present. We could read `source` at some point.
+  // We should not warn in that case
+  // warn!(
+  //   "Genemap record could not be parsed as it contains neither a 'gene_name' nor 'locus_tag' attribute ({:?})",
+  //   record
+  // );
   None
 }
 
