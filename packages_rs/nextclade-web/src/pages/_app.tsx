@@ -54,9 +54,13 @@ import 'src/styles/global.scss'
 if (process.env.NODE_ENV === 'development') {
   // Ignore recoil warning messages in browser console
   // https://github.com/facebookexperimental/Recoil/issues/733
+  const shouldFilter = (args: (string | undefined)[]) =>
+    args[0] && typeof args[0].includes === 'function' && args[0].includes('Duplicate atom key')
+
   const mutedConsole = memoize((console: Console) => ({
     ...console,
-    warn: (...args: string[]) => (args[0].includes('Duplicate atom key') ? null : console.warn(...args)),
+    warn: (...args: (string | undefined)[]) => (shouldFilter(args) ? null : console.warn(...args)),
+    error: (...args: (string | undefined)[]) => (shouldFilter(args) ? null : console.error(...args)),
   }))
   global.console = mutedConsole(global.console)
 }

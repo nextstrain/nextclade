@@ -1,6 +1,8 @@
 import React from 'react'
 import { ReactResizeDetectorDimensions, withResizeDetector } from 'react-resize-detector'
 import { useRecoilValue } from 'recoil'
+import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { maxNucMarkersAtom } from 'src/state/seqViewSettings.state'
 import styled from 'styled-components'
 
 import type { AnalysisResult } from 'src/algorithms/types'
@@ -27,12 +29,19 @@ export const SequenceViewSVG = styled.svg`
   height: 100%;
 `
 
+export const SequenceViewText = styled.p`
+  margin: auto;
+`
+
 export interface SequenceViewProps extends ReactResizeDetectorDimensions {
   sequence: AnalysisResult
 }
 
 export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
   const { seqName, substitutions, missing, deletions, alignmentStart, alignmentEnd, frameShifts } = sequence
+
+  const { t } = useTranslationSafe()
+  const maxNucMarkers = useRecoilValue(maxNucMarkersAtom)
 
   const genomeSize = useRecoilValue(genomeSizeAtom)
 
@@ -82,6 +91,21 @@ export function SequenceViewUnsized({ sequence, width }: SequenceViewProps) {
       pixelsPerBase={pixelsPerBase}
     />
   ))
+
+  const totalMarkers = mutationViews.length + deletionViews.length + missingViews.length + frameShiftMarkers.length
+  if (totalMarkers > maxNucMarkers) {
+    return (
+      <SequenceViewWrapper>
+        <SequenceViewText
+          title={t(
+            "Markers are the colored rectangles which represent mutations, deletions etc. There is a technical limit of how many of those can be displayed at a time, depending on how fast your computer is. You can tune the threshold in the 'Settings' dialog, accessible with the button on the top panel.",
+          )}
+        >
+          {t('Too many markers to display. The threshold can be increased in "Settings" dialog')}
+        </SequenceViewText>
+      </SequenceViewWrapper>
+    )
+  }
 
   return (
     <SequenceViewWrapper>
