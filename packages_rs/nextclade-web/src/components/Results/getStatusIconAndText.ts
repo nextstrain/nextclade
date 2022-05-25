@@ -37,6 +37,7 @@ export const ErrorIcon = styled(BsFillXOctagonFill)`
   width: 1rem;
   height: 1rem;
   color: ${(props) => props.theme.danger};
+  padding-right: 2px;
   filter: drop-shadow(2px 1px 2px rgba(0, 0, 0, 0.2));
 `
 
