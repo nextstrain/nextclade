@@ -2,7 +2,9 @@ import React, { useCallback, useMemo } from 'react'
 import { Col, Container, Form, FormGroup, Label, Row } from 'reactstrap'
 import { RecoilState, useRecoilState } from 'recoil'
 import { Multitoggle } from 'src/components/Common/Multitoggle'
+import { NumericField } from 'src/components/Common/NumericField'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
+import { useRecoilStateDeferred } from 'src/hooks/useRecoilStateDeferred'
 import {
   SEQ_MARKER_HEIGHT_STATES,
   SeqMarkerHeightState,
@@ -12,6 +14,7 @@ import {
   seqMarkerGapHeightStateAtom,
   seqMarkerMutationHeightStateAtom,
   seqMarkerUnsequencedHeightStateAtom,
+  maxNucMarkersAtom,
 } from 'src/state/seqViewSettings.state'
 
 /** Adapts Recoil state  `enum` to `string` */
@@ -44,6 +47,8 @@ export function useSeqMarkerState(state: RecoilState<SeqMarkerHeightState>) {
 export function SeqViewSettings() {
   const { t } = useTranslationSafe()
 
+  const [maxNucMarkers, setMaxNucMarkers] = useRecoilStateDeferred(maxNucMarkersAtom)
+
   const [seqMarkerMissingHeightState, setSeqMarkerMissingHeightState] = useSeqMarkerState(
     seqMarkerMissingHeightStateAtom,
   )
@@ -63,6 +68,18 @@ export function SeqViewSettings() {
       <Row noGutters>
         <Col>
           <Form>
+            <NumericField
+              identifier="max-nuc-markers"
+              label={t('Maximum number of nucleotide sequence view markers')}
+              title={t(
+                'Sets threshold on maximum number of markers (mutations, deletions etc.) to display in nucleotide views. Reducing this number increases performance. If the threshold is reached, then the nucleotide sequence view will be disabled.',
+              )}
+              min={0}
+              max={1_000_000}
+              value={maxNucMarkers}
+              onValueChanged={setMaxNucMarkers}
+            />
+
             <FormGroup>
               {t('Missing')}
               <Multitoggle
