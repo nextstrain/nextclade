@@ -15,7 +15,6 @@ export const Label = styled(ReactstrapLabel)<{ disabled?: boolean }>`
   color: ${(props) => (props.disabled ? props.theme.gray500 : undefined)};
   padding: 2px 5px;
   width: 100%;
-  display: flex;
 `
 
 export const LabelText = styled.div<{ disabled?: boolean }>`
@@ -44,6 +43,7 @@ export const FormGroup = styled(ReactstrapFormGroup)`
 export interface NumericFieldProps extends InputProps {
   identifier: string
   label: string
+  title?: string
   value: number | typeof Number.POSITIVE_INFINITY
   min: number
   max: number
@@ -59,6 +59,7 @@ export function NumericField({
   min,
   max,
   disabled,
+  title,
   ...props
 }: NumericFieldProps) {
   const { t } = useTranslation()
@@ -95,12 +96,13 @@ export function NumericField({
   )
 
   return (
-    <FormGroup row className="d-flex w-100">
-      <Label className="col-sm-9 ml-auto" htmlFor={identifier} disabled={disabled}>
+    <FormGroup>
+      <Label htmlFor={identifier} disabled={disabled} title={title}>
         <LabelText disabled={disabled}>{label}</LabelText>
         <ErrorText disabled={disabled}>{error}</ErrorText>
       </Label>
       <Input
+        title={title}
         className={classNames(error && !disabled && 'border-danger', 'col-sm-3')}
         type="number"
         id={identifier}
