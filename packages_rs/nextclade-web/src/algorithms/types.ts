@@ -403,7 +403,7 @@ export interface FastaRecord extends FastaRecordId {
 
 export interface PeptideWarning {
   geneName: string
-  message: string
+  warning: string
 }
 
 export enum AlgorithmGlobalStatus {
