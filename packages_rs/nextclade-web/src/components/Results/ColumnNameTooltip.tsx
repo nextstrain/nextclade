@@ -38,24 +38,11 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
     [error, result?.analysisResult.warnings, t],
   )
 
-  const errorComponent = useMemo(() => {
-    if (!error) {
-      return null
-    }
-
-    return (
-      <Alert key={error} color="danger" fade={false} className="px-2 py-1 my-1">
-        <ErrorIcon />
-        {error}
-      </Alert>
-    )
-  }, [error])
-
   const warningComponents = useMemo(() => {
     return (result?.analysisResult?.warnings ?? []).map((warning) => (
-      <Alert key={`${warning.geneName}: ${warning.message}`} color="warning" fade={false} className="px-2 py-1 my-1">
+      <Alert key={`${warning.geneName}: ${warning.warning}`} color="warning" fade={false} className="px-2 py-1 my-1">
         <WarningIcon />
-        {warning}
+        {warning.warning}
       </Alert>
     ))
   }, [result?.analysisResult?.warnings])
@@ -111,9 +98,45 @@ export function ColumnNameTooltip({ seqName }: ColumnNameTooltipProps) {
         )}
 
         <tr>
+          <td colSpan={2}>{warningComponents}</td>
+        </tr>
+      </tbody>
+    </TableSlim>
+  )
+}
+
+export interface ColumnNameErrorTooltipProps {
+  seqName: string
+  error: string
+}
+
+export function ColumnNameErrorTooltip({ seqName, error }: ColumnNameErrorTooltipProps) {
+  const { t } = useTranslationSafe()
+
+  return (
+    <TableSlim borderless className="mb-1">
+      <thead />
+      <tbody>
+        <tr>
           <td colSpan={2}>
-            {errorComponent}
-            {warningComponents}
+            <h5 className="mb-2">{seqName}</h5>
+          </td>
+        </tr>
+
+        <tr>
+          <td>{t('Analysis status')}</td>
+          <td>
+            <ErrorIcon size={18} />
+            {t('Failed')}
+          </td>
+        </tr>
+
+        <tr>
+          <td colSpan={2}>
+            <Alert key={error} color="danger" fade={false} className="px-2 py-1 my-1">
+              <ErrorIcon />
+              {error}
+            </Alert>
           </td>
         </tr>
       </tbody>

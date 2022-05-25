@@ -104,7 +104,7 @@ export function RecoilStateInitializer() {
           defaultDatasetName,
           defaultDatasetNameFriendly,
         })
-        set(datasetCurrentNameAtom, (previous) => previous ?? currentDatasetName)
+        set(datasetCurrentNameAtom, (previous) => currentDatasetName ?? previous)
 
         return undefined
       })

@@ -403,7 +403,7 @@ export interface FastaRecord extends FastaRecordId {
 
 export interface PeptideWarning {
   geneName: string
-  message: string
+  warning: string
 }
 
 export enum AlgorithmGlobalStatus {
@@ -519,7 +519,7 @@ export interface Dataset {
   attributes: DatasetAttributes
   comment: string
   compatibility: DatasetCompatibility
-  defaultGene: string
+  defaultGene?: string
   geneOrderPreference: string[]
   files: DatasetFiles
   zipBundle: string
