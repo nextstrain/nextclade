@@ -341,6 +341,11 @@ jobs:
               --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
               --paths "/*"
 
+      - run:
+          name: " [ web ] | Halt if not on release (branch << pipeline.git.branch >>)"
+          command: |
+            if [ "$CIRCLE_BRANCH" != "release" ]; then circleci-agent step halt; fi
+
       - add_ssh_keys:
           # A read-write SSH key is needed to be able to push git tag back to GitHub repo
           # https://circleci.com/docs/2.0/gh-bb-integration/#creating-a-github-deploy-key
