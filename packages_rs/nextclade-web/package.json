@@ -82,7 +82,7 @@
   },
   "dependencies": {
     "animate.css": "4.1.1",
-    "auspice": "2.36.0",
+    "auspice": "2.37.2",
     "autoprefixer": "10.4.5",
     "awesomplete": "1.1.5",
     "axios": "0.27.1",
