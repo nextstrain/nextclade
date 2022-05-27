@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 
 import styled from 'styled-components'
 
-import type { DatasetFlat } from 'src/algorithms/types'
+import type { Dataset } from 'src/algorithms/types'
 import { formatDateIsoUtcSimple } from 'src/helpers/formatDate'
 import { useTranslationSafe } from 'src/helpers/useTranslationSafe'
 
@@ -22,21 +22,22 @@ export const DatasetInfoLine = styled.p`
 `
 
 export interface DatasetInfoProps {
-  dataset: DatasetFlat
+  dataset: Dataset
 }
 
 export function DatasetInfo({ dataset }: DatasetInfoProps) {
   const { t } = useTranslationSafe()
-  const tagFormatted = useMemo(() => dataset && formatDateIsoUtcSimple(dataset.tag), [dataset])
+  const tagFormatted = useMemo(() => dataset && formatDateIsoUtcSimple(dataset.attributes.tag.value), [dataset])
+
+  const { name, reference } = dataset.attributes
 
   return (
     <DatasetinfoContainer>
-      <DatasetName>{dataset.nameFriendly}</DatasetName>
+      <DatasetName>{name.valueFriendly ?? name.value}</DatasetName>
       <DatasetInfoLine>
-        {t('Reference: {{ ref }} ({{ source }}: {{ accession }})', {
-          ref: dataset.reference.strainName,
-          source: dataset.reference.source,
-          accession: dataset.reference.accession,
+        {t('Reference: {{ name }} ({{ accession }})', {
+          name: reference.valueFriendly ?? 'Untitled',
+          accession: reference.value,
         })}
       </DatasetInfoLine>
       <DatasetInfoLine>{t('Updated: {{updated}}', { updated: tagFormatted })}</DatasetInfoLine>
