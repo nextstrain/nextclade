@@ -41,12 +41,20 @@ pub struct DatasetAttributes {
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct DatasetParams {
+  pub default_gene: Option<String>,
+  pub gene_order_preference: Option<Vec<String>>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Dataset {
   pub enabled: bool,
   pub attributes: DatasetAttributes,
   pub comment: String,
   pub compatibility: DatasetCompatibility,
   pub files: BTreeMap<String, String>,
+  pub params: Option<DatasetParams>,
 }
 
 impl Dataset {
