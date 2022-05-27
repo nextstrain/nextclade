@@ -38,7 +38,7 @@ export const datasetCurrentNameAtom = selector<string | undefined>({
       const dataset = datasets.find((dataset) => dataset.attributes.name.value === newDatasetCurrentName)
       if (dataset) {
         set(datasetCurrentNameStorageAtom, dataset.attributes.name.value)
-        set(viewedGeneAtom, dataset.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
+        set(viewedGeneAtom, dataset.params?.defaultGene ?? GENE_OPTION_NUC_SEQUENCE)
         reset(inputResetAtom)
       }
     }
@@ -57,6 +57,6 @@ export const datasetCurrentAtom = selector<Dataset | undefined>({
 export const geneOrderPreferenceAtom = selector({
   key: 'geneOrderPreference',
   get({ get }) {
-    return get(datasetCurrentAtom)?.geneOrderPreference ?? []
+    return get(datasetCurrentAtom)?.params?.geneOrderPreference ?? []
   },
 })

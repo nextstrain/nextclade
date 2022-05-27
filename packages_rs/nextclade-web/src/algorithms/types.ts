@@ -514,14 +514,18 @@ export interface DatasetCompatibility {
   }
 }
 
+export interface DatasetParams {
+  defaultGene?: string
+  geneOrderPreference?: string[]
+}
+
 export interface Dataset {
   enabled: boolean
   attributes: DatasetAttributes
   comment: string
   compatibility: DatasetCompatibility
-  defaultGene?: string
-  geneOrderPreference: string[]
   files: DatasetFiles
+  params: DatasetParams
   zipBundle: string
 }
 
