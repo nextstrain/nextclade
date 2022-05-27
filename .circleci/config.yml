@@ -53,7 +53,7 @@ jobs:
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
 
-            ./docker-dev dp
+            ./docker-dev docker-image-build-push
 
             declare -a TARGETS=(
               "aarch64-apple-darwin"
@@ -73,7 +73,7 @@ jobs:
               docker pull "nextstrain/nextclade_builder:${CROSS}" 2>/dev/null || true >/dev/null
               docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
 
-              CROSS=${CROSS} ./docker-dev dp
+              CROSS=${CROSS} ./docker-dev docker-image-build-push
             done
 
       - save_cache:
@@ -127,7 +127,7 @@ jobs:
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
             echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
 
-            CROSS=${CROSS} ./docker-dev br
+            CROSS=${CROSS} ./docker-dev build-release
 
       - save_cache:
           name: " [ << parameters.target_arch >> ] | Save build cache"
@@ -265,7 +265,7 @@ jobs:
       - run:
           name: " [ web ] | Build WebAssembly module (branch << pipeline.git.branch >>)"
           command: |
-            ./docker-dev Wr
+            ./docker-dev wasm-release
 
       - save_cache:
           name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
@@ -287,9 +287,9 @@ jobs:
 
             sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
-            ./docker-dev a yarn install
-            ./docker-dev a yarn lint
-            ./docker-dev ar
+            ./docker-dev web yarn install
+            ./docker-dev web yarn lint
+            ./docker-dev web-release
 
       - save_cache:
           name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
