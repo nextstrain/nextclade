@@ -341,23 +341,30 @@ jobs:
               --distribution-id ${AWS_CLOUDFRONT_DISTRIBUTION_ID} \
               --paths "/*"
 
+      - add_ssh_keys:
+          # A read-write SSH key is needed to be able to push git tag back to GitHub repo
+          # https://circleci.com/docs/2.0/gh-bb-integration/#creating-a-github-deploy-key
+          name: " [ web ] | Add SSH key for git"
+          fingerprints:
+            - "27:88:3c:a4:54:9c:4a:ae:c0:9b:c4:4b:7a:29:58:ce"
+
       - run:
           name: " [ web ] | Create and push git tag"
           command: |
             curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
 
-            gh auth setup-git
-
             git config user.email "nextstrainbot@nextstrain.org"
             git config user.name "nextstrain-bot"
 
-            cd packages_rs/nextclade-web
+            pushd packages_rs/nextclade-web  >/dev/null
 
             export version=$(node -e "\
               const semver = require('semver'); \
               const pkg = require('./package.json'); \
               console.log(pkg.version) \
             ")
+
+            popd >/dev/null
 
             git tag "web-${version}"
             git push origin "web-${version}"
