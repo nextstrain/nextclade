@@ -49,7 +49,7 @@ export function PeptideViewMissing({ geneName, reasons }: PeptideViewMissingProp
         {reasons.map((warn) => (
           <Alert key={warn.geneName} color="warning" fade={false} className="px-2 py-1 my-1">
             <WarningIcon />
-            {warn.message}
+            {warn.warning}
           </Alert>
         ))}
       </Tooltip>

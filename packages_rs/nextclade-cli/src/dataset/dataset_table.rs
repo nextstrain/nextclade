@@ -9,7 +9,6 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
   table.set_header([
     "name".to_owned(),
-    "friendly name".to_owned(),
     "reference".to_owned(),
     "tag".to_owned(),
     "attributes".to_owned(),
@@ -23,7 +22,6 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
     let DatasetAttributes {
       name,
-      name_friendly,
       reference,
       tag,
       rest_attrs,
@@ -41,7 +39,6 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
 
     table.add_row([
       format_attr_value(name),
-      format_attr_value(name_friendly),
       format_attr_value(reference),
       format_attr_value(tag),
       format_attributes(&attrs),
@@ -52,11 +49,21 @@ pub fn format_dataset_table(filtered: &[Dataset]) -> String {
   format!("{table}\nAsterisk (*) marks default values")
 }
 
-pub fn format_attr_value(DatasetAttributeValue { is_default, value }: &DatasetAttributeValue) -> String {
+pub fn format_attr_value_short(attr: &DatasetAttributeValue) -> String {
+  let DatasetAttributeValue { is_default, value, .. } = &attr;
   if *is_default {
     format!("{value} (*)")
   } else {
-    value.clone()
+    value.to_owned()
+  }
+}
+
+pub fn format_attr_value(attr: &DatasetAttributeValue) -> String {
+  let value_str = format_attr_value_short(&attr);
+  if let Some(value_friendly) = &attr.value_friendly {
+    format!("{value_str}\n'{value_friendly}'")
+  } else {
+    value_str
   }
 }
 
@@ -68,5 +75,5 @@ pub fn format_attributes(attrs: &IndexMap<String, &DatasetAttributeValue>) -> St
 }
 
 pub fn format_attr_key_value(key: &str, attr: &DatasetAttributeValue) -> String {
-  format!("{}={}", key, format_attr_value(attr))
+  format!("{}={}", key, format_attr_value_short(attr))
 }

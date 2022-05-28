@@ -1,4 +1,4 @@
-import { AlgorithmInput, AlgorithmInputType, DatasetFlat } from 'src/algorithms/types'
+import { AlgorithmInput, AlgorithmInputType, Dataset } from 'src/algorithms/types'
 import { axiosFetchRaw } from 'src/io/axiosFetch'
 
 import { readFile } from 'src/helpers/readFile'
@@ -86,14 +86,14 @@ export class AlgorithmInputString implements AlgorithmInput {
 export class AlgorithmInputDefault implements AlgorithmInput {
   public readonly type: AlgorithmInputType = AlgorithmInputType.Default as const
 
-  public dataset: DatasetFlat
+  public dataset: Dataset
 
-  constructor(dataset: DatasetFlat) {
+  constructor(dataset: Dataset) {
     this.dataset = dataset
   }
 
   public get name(): string {
-    return `${this.dataset.nameFriendly} example`
+    return `${this.dataset.attributes.name.value} example`
   }
 
   public get description(): string {
@@ -101,6 +101,6 @@ export class AlgorithmInputDefault implements AlgorithmInput {
   }
 
   public async getContent(): Promise<string> {
-    return axiosFetchRaw(this.dataset.files.sequences)
+    return axiosFetchRaw(this.dataset.files['sequences.fasta'])
   }
 }

@@ -53,7 +53,7 @@ jobs:
 
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
 
-            ./docker-dev dp
+            ./docker-dev docker-image-build-push
 
             declare -a TARGETS=(
               "aarch64-apple-darwin"
@@ -73,7 +73,7 @@ jobs:
               docker pull "nextstrain/nextclade_builder:${CROSS}" 2>/dev/null || true >/dev/null
               docker pull "nextstrain/nextclade_builder:${CROSS}-${DOCKER_IMAGE_VERSION}" 2>/dev/null || true >/dev/null
 
-              CROSS=${CROSS} ./docker-dev dp
+              CROSS=${CROSS} ./docker-dev docker-image-build-push
             done
 
       - save_cache:
@@ -127,7 +127,7 @@ jobs:
             echo "OSXCROSS_URL=${OSXCROSS_URL}" > ".env"
             echo "DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}" > ".env"
 
-            CROSS=${CROSS} ./docker-dev br
+            CROSS=${CROSS} ./docker-dev build-release
 
       - save_cache:
           name: " [ << parameters.target_arch >> ] | Save build cache"
@@ -265,7 +265,7 @@ jobs:
       - run:
           name: " [ web ] | Build WebAssembly module (branch << pipeline.git.branch >>)"
           command: |
-            ./docker-dev Wr
+            ./docker-dev wasm-release
 
       - save_cache:
           name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
@@ -287,9 +287,9 @@ jobs:
 
             sed -i -e "s|DATA_FULL_DOMAIN=https://data.master.clades.nextstrain.org|DATA_FULL_DOMAIN=${DATA_FULL_DOMAIN}|g" .env
 
-            ./docker-dev a yarn install
-            ./docker-dev a yarn lint
-            ./docker-dev ar
+            ./docker-dev web yarn install
+            ./docker-dev web yarn lint
+            ./docker-dev web-release
 
       - save_cache:
           name: " [ web ] | Save build cache (branch << pipeline.git.branch >>)"
@@ -342,22 +342,34 @@ jobs:
               --paths "/*"
 
       - run:
+          name: " [ web ] | Halt if not on release (branch << pipeline.git.branch >>)"
+          command: |
+            if [ "$CIRCLE_BRANCH" != "release" ]; then circleci-agent step halt; fi
+
+      - add_ssh_keys:
+          # A read-write SSH key is needed to be able to push git tag back to GitHub repo
+          # https://circleci.com/docs/2.0/gh-bb-integration/#creating-a-github-deploy-key
+          name: " [ web ] | Add SSH key for git"
+          fingerprints:
+            - "27:88:3c:a4:54:9c:4a:ae:c0:9b:c4:4b:7a:29:58:ce"
+
+      - run:
           name: " [ web ] | Create and push git tag"
           command: |
             curl -fsSL "https://github.com/cli/cli/releases/download/v2.10.1/gh_2.10.1_linux_amd64.tar.gz" | tar xz -C "${HOME}/bin" --strip-components=2 gh_2.10.1_linux_amd64/bin/gh
 
-            gh auth setup-git
-
             git config user.email "nextstrainbot@nextstrain.org"
             git config user.name "nextstrain-bot"
 
-            cd packages_rs/nextclade-web
+            pushd packages_rs/nextclade-web  >/dev/null
 
             export version=$(node -e "\
               const semver = require('semver'); \
               const pkg = require('./package.json'); \
               console.log(pkg.version) \
             ")
+
+            popd >/dev/null
 
             git tag "web-${version}"
             git push origin "web-${version}"
