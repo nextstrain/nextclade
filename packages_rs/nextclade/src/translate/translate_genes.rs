@@ -37,19 +37,6 @@ pub struct Translation {
 
 pub type TranslationMap = BTreeMap<String, Translation>;
 
-/// Extracts nucleotide sequence of a gene
-pub fn extract_gene(full_aln_seq: &[Nuc], gene: &Gene, coord_map: &CoordMap) -> Vec<Nuc> {
-  let &Gene { start, end, .. } = gene;
-
-  // Gene map contains gene range in reference coordinates (like in ref sequence)
-  let gene_range_ref = Range { begin: start, end };
-
-  // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
-  let gene_range_aln = coord_map.ref_to_aln(&gene_range_ref);
-
-  full_aln_seq[StdRange::from(gene_range_aln)].to_vec()
-}
-
 /// Results of the aminoacid alignment parameters estimation
 pub struct PeptideAlignmentParams {
   band_width: usize,
@@ -140,14 +127,8 @@ pub fn translate_gene(
   coord_map: &CoordMap,
   params: &AlignPairwiseParams,
 ) -> Result<Translation, Report> {
-  let mut ref_gene_seq = extract_gene(ref_seq, gene, coord_map);
-  let mut qry_gene_seq = extract_gene(qry_seq, gene, coord_map);
-
-  // Reverse strands should be reverse-complemented first
-  if gene.strand == GeneStrand::Reverse {
-    reverse_complement_in_place(&mut ref_gene_seq);
-    reverse_complement_in_place(&mut qry_gene_seq);
-  }
+  let mut ref_gene_seq = coord_map.extract_gene(ref_seq, gene);
+  let mut qry_gene_seq = coord_map.extract_gene(qry_seq, gene);
 
   let ref_gaps = GapCounts::new(&ref_gene_seq);
   let qry_gaps = GapCounts::new(&qry_gene_seq);

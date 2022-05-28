@@ -1,6 +1,9 @@
+use crate::gene::gene::{Gene, GeneStrand};
 use crate::io::letter::Letter;
 use crate::io::nuc::Nuc;
+use crate::translate::complement::reverse_complement_in_place;
 use crate::utils::range::Range;
+use std::ops::Range as StdRange;
 
 /// Makes the "alignment to reference" coordinate map: from alignment coordinates to reference coordinates.
 /// Given a position of a letter in the aligned sequence, the "alignment to reference" coordinate map allows to
@@ -84,5 +87,25 @@ impl CoordMap {
       begin: self.ref_to_aln_table[ref_range.begin],
       end: self.ref_to_aln_table[ref_range.end - 1] + 1,
     }
+  }
+
+  /// Extracts nucleotide sequence of a gene
+  pub fn extract_gene(&self, full_aln_seq: &[Nuc], gene: &Gene) -> Vec<Nuc> {
+    let &Gene { start, end, .. } = gene;
+
+    // Gene map contains gene range in reference coordinates (like in ref sequence)
+    let gene_range_ref = Range { begin: start, end };
+
+    // ...but we are extracting from aligned sequence, so we need to convert it to alignment coordinates (like in aligned sequences)
+    let gene_range_aln = self.ref_to_aln(&gene_range_ref);
+
+    let mut gene_nucs = full_aln_seq[StdRange::from(gene_range_aln)].to_vec();
+
+    // Reverse strands should be reverse-complemented
+    if gene.strand == GeneStrand::Reverse {
+      reverse_complement_in_place(&mut gene_nucs);
+    }
+
+    gene_nucs
   }
 }
